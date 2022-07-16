@@ -10,11 +10,8 @@
 *****************************************************************/
 #include "to-str-tags.hpp"
 
-// base-util
-#include "base-util/string.hpp"
-
-// Abseil
-#include "absl/strings/str_join.h"
+// base
+#include "string.hpp"
 
 using namespace std;
 
@@ -27,7 +24,7 @@ namespace detail {
 void json_style_list_impl( vector<string> const& items,
                            string&               out ) {
   out += '[';
-  out += absl::StrJoin( items, "," );
+  out += base::str_join( items, "," );
   out += ']';
 }
 
@@ -44,7 +41,7 @@ void vertical_json_list_impl( vector<string> const& items,
   out += '\n';
   for( int i = 0; i < int( items.size() ); ++i ) {
     string formatted = fmt::to_string( items[i] );
-    auto   lines     = util::split( formatted, '\n' );
+    auto   lines     = base::str_split( formatted, '\n' );
     for( string_view line : lines )
       out += fmt::format( "  {}\n", line );
     if( i != int( items.size() ) - 1 ) {
@@ -75,7 +72,7 @@ void vertical_map_impl(
     out += formatted_k;
     out += '=';
     std::string formatted_v = fmt::to_string( v );
-    auto        lines       = util::split( formatted_v, '\n' );
+    auto        lines = base::str_split( formatted_v, '\n' );
     for( int j = 0; j < int( lines.size() ); ++j ) {
       if( j != 0 ) out += "  ";
       out += lines[j];

@@ -24,8 +24,6 @@
 
 // Abseil
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_join.h"
-#include "absl/strings/str_split.h"
 
 // c++ standard library
 #include <iomanip>
@@ -62,7 +60,7 @@ string template_params( vector<expr::TemplateParam> const& tmpls,
     names.push_back( tp_name + param.param );
   string sep = ",";
   if( space ) sep += ' ';
-  return "<"s + absl::StrJoin( names, sep ) + ">";
+  return "<"s + base::str_join( names, sep ) + ">";
 }
 
 string all_int_tmpl_params( int count ) {

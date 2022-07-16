@@ -45,4 +45,8 @@ std::vector<std::string> str_split( std::string_view sv,
 std::vector<std::string> str_split_on_any(
     std::string_view sv, std::string_view chars );
 
+// Joins the elements in `what` with `sep` between them.
+std::string str_join( std::vector<std::string> const& v,
+                      std::string_view const          sep );
+
 } // namespace base

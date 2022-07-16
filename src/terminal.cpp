@@ -8,11 +8,6 @@
 * Description: Backend for lua terminal.
 *
 *****************************************************************/
-// We need to define this first because a preprocessor symbol de-
-// fined by the {fmt} library ("fmt") conflicts with something
-// inside str_join.
-#include "absl/strings/str_join.h"
-
 #include "terminal.hpp"
 
 // Revolution Now
@@ -288,7 +283,7 @@ vector<string> Terminal::autocomplete( string_view fragment ) {
   }
   auto last = segments.back();
   lg.trace( "last: {}", last );
-  string initial = absl::StrJoin( initial_segments, "." );
+  string initial = base::str_join( initial_segments, "." );
   vector<string> res;
 
   auto add_keys = [&]( lua::any parent, auto kv ) {

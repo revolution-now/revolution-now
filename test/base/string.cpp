@@ -178,5 +178,40 @@ TEST_CASE( "[string] string splitting" ) {
   REQUIRE( str_split_on_any( "ab,cd-ef", "" ) == expected );
 }
 
+TEST_CASE( "[string] string joining" ) {
+  vector<string> input;
+
+  input = {};
+  REQUIRE( str_join( input, "," ) == "" );
+
+  input = {};
+  REQUIRE( str_join( input, "" ) == "" );
+
+  input = { "" };
+  REQUIRE( str_join( input, "," ) == "" );
+
+  input = { "" };
+  REQUIRE( str_join( input, "" ) == "" );
+
+  input = { "one" };
+  REQUIRE( str_join( input, "," ) == "one" );
+
+  input = { "one" };
+  REQUIRE( str_join( input, "" ) == "one" );
+
+  input = { "one", "" };
+  REQUIRE( str_join( input, ",,," ) == "one,,," );
+
+  input = { "one", "two" };
+  REQUIRE( str_join( input, ",,," ) == "one,,,two" );
+
+  input = { "one", "two", "three" };
+  REQUIRE( str_join( input, "," ) == "one,two,three" );
+  REQUIRE( str_join( input, "--" ) == "one--two--three" );
+
+  REQUIRE( str_join( str_split( "ab,cd,ef", ',' ), "," ) ==
+           "ab,cd,ef" );
+}
+
 } // namespace
 } // namespace base

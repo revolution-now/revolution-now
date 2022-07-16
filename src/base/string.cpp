@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "string.hpp"
 
+// base
+#include "error.hpp"
+
 // C++ standard library
 #include <string>
 #include <string_view>
@@ -79,6 +82,31 @@ vector<string> str_split_on_any( string_view sv,
     sv.remove_prefix( next + 1 );
   }
   res.push_back( string( sv ) );
+  return res;
+}
+
+string str_join( vector<string> const& v,
+                 string_view const     sep ) {
+  if( !v.size() ) return "";
+  // First attempt to compute how much space we need, which  we
+  // should be able to do exactly.
+  size_t total = 0;
+  for( auto const& e : v ) total += e.size();
+  total += sep.size() * ( v.size() - 1 ); // v.size() > 0 always
+  // Now construct the result (reserve +1 for good measure).
+  std::string res;
+  res.reserve( total + 1 );
+  bool first = true;
+  for( auto const& e : v ) {
+    if( !first ) res += sep;
+    res += e;
+    first = false;
+  }
+  // Just to make sure  we  did  the  calculation right; if not,
+  // then we might pay extra in memory allocations.
+  DCHECK( res.size() == total,
+          "res.size() == {} and total == {}", res.size(),
+          total );
   return res;
 }
 
