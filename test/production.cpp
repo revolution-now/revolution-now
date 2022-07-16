@@ -79,8 +79,8 @@ struct World : testing::World {
 TEST_CASE( "[production] production_for_slot" ) {
   ColonyProduction pr;
 
-  pr.ore_products.muskets_produced_theoretical   = 1;
-  pr.ore_products.tools_produced_theoretical     = 2;
+  pr.tools_muskets.product_produced_theoretical  = 1;
+  pr.ore_tools.product_produced_theoretical      = 2;
   pr.sugar_rum.product_produced_theoretical      = 3;
   pr.cotton_cloth.product_produced_theoretical   = 4;
   pr.fur_coats.product_produced_theoretical      = 5;
@@ -498,7 +498,17 @@ TEST_CASE( "[production] silver [discoverer]" ) {
     REQUIRE(
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
-    REQUIRE( pr.silver == 6 );
+    int const ex = 6;
+    REQUIRE( pr.silver == RMP{
+                              .raw_produced                 = ex,
+                              .raw_consumed_theoretical     = 0,
+                              .raw_delta_theoretical        = ex,
+                              .raw_consumed_actual          = 0,
+                              .raw_delta_final              = ex,
+                              .product_produced_theoretical = 0,
+                              .product_produced_actual      = 0,
+                              .product_delta_final          = 0,
+                          } );
   }
 
   SECTION( "silver miner, warehouse partial" ) {
@@ -516,7 +526,17 @@ TEST_CASE( "[production] silver [discoverer]" ) {
     REQUIRE(
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
-    REQUIRE( pr.silver == 6 );
+    int const ex = 6;
+    REQUIRE( pr.silver == RMP{
+                              .raw_produced                 = ex,
+                              .raw_consumed_theoretical     = 0,
+                              .raw_delta_theoretical        = ex,
+                              .raw_consumed_actual          = 0,
+                              .raw_delta_final              = ex,
+                              .product_produced_theoretical = 0,
+                              .product_produced_actual      = 0,
+                              .product_delta_final          = 0,
+                          } );
   }
 
   SECTION( "silver miner, warehouse almost full" ) {
@@ -534,7 +554,16 @@ TEST_CASE( "[production] silver [discoverer]" ) {
     REQUIRE(
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
-    REQUIRE( pr.silver == 2 );
+    REQUIRE( pr.silver == RMP{
+                              .raw_produced                 = 6,
+                              .raw_consumed_theoretical     = 0,
+                              .raw_delta_theoretical        = 6,
+                              .raw_consumed_actual          = 0,
+                              .raw_delta_final              = 2,
+                              .product_produced_theoretical = 0,
+                              .product_produced_actual      = 0,
+                              .product_delta_final          = 0,
+                          } );
   }
 
   SECTION( "silver miner, warehouse full" ) {
@@ -552,7 +581,16 @@ TEST_CASE( "[production] silver [discoverer]" ) {
     REQUIRE(
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
-    REQUIRE( pr.silver == 0 );
+    REQUIRE( pr.silver == RMP{
+                              .raw_produced                 = 6,
+                              .raw_consumed_theoretical     = 0,
+                              .raw_delta_theoretical        = 6,
+                              .raw_consumed_actual          = 0,
+                              .raw_delta_final              = 0,
+                              .product_produced_theoretical = 0,
+                              .product_produced_actual      = 0,
+                              .product_delta_final          = 0,
+                          } );
   }
 
   SECTION( "silver miner, warehouse over" ) {
@@ -570,7 +608,16 @@ TEST_CASE( "[production] silver [discoverer]" ) {
     REQUIRE(
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
-    REQUIRE( pr.silver == 0 );
+    REQUIRE( pr.silver == RMP{
+                              .raw_produced                 = 6,
+                              .raw_consumed_theoretical     = 0,
+                              .raw_delta_theoretical        = 6,
+                              .raw_consumed_actual          = 0,
+                              .raw_delta_final              = 0,
+                              .product_produced_theoretical = 0,
+                              .product_produced_actual      = 0,
+                              .product_delta_final          = 0,
+                          } );
   }
 }
 
@@ -1447,6 +1494,13 @@ TEST_CASE( "[production] food/horses" ) {
       "+stable" ) {
     // TODO: implement center production first.
   }
+}
+
+TEST_CASE( "[production] ore/tools/muskets [discoverer]" ) {
+  World W;
+  W.create_default_map();
+
+  // TODO
 }
 
 } // namespace

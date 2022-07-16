@@ -65,4 +65,6 @@ maybe<e_outdoor_job> outdoor_job_for_expertise(
 
 e_unit_activity activity_for_outdoor_job( e_outdoor_job job );
 
+e_commodity commodity_for_outdoor_job( e_outdoor_job job );
+
 } // namespace rn

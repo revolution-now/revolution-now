@@ -29,6 +29,20 @@ namespace rn {
 /****************************************************************
 ** Public API
 *****************************************************************/
+e_commodity commodity_for_outdoor_job( e_outdoor_job job ) {
+  switch( job ) {
+    case e_outdoor_job::food: return e_commodity::food;
+    case e_outdoor_job::fish: return e_commodity::food;
+    case e_outdoor_job::sugar: return e_commodity::sugar;
+    case e_outdoor_job::tobacco: return e_commodity::tobacco;
+    case e_outdoor_job::cotton: return e_commodity::cotton;
+    case e_outdoor_job::fur: return e_commodity::fur;
+    case e_outdoor_job::lumber: return e_commodity::lumber;
+    case e_outdoor_job::ore: return e_commodity::ore;
+    case e_outdoor_job::silver: return e_commodity::silver;
+  }
+}
+
 maybe<e_outdoor_job> outdoor_job_for_expertise(
     e_unit_activity activity ) {
   switch( activity ) {

@@ -42,6 +42,42 @@ namespace rn {
 
 namespace {
 
+maybe<e_commodity> product_from_raw( e_commodity raw ) {
+  switch( raw ) {
+    case e_commodity::food: return nothing;
+    case e_commodity::sugar: return e_commodity::rum;
+    case e_commodity::tobacco: return e_commodity::cigars;
+    case e_commodity::cotton: return e_commodity::cloth;
+    case e_commodity::fur: return e_commodity::coats;
+    case e_commodity::lumber: return nothing;
+    case e_commodity::ore: return e_commodity::tools;
+    case e_commodity::silver: return nothing;
+    case e_commodity::horses: return nothing;
+    case e_commodity::rum: return nothing;
+    case e_commodity::cigars: return nothing;
+    case e_commodity::cloth: return nothing;
+    case e_commodity::coats: return nothing;
+    case e_commodity::trade_goods: return nothing;
+    case e_commodity::tools: return e_commodity::muskets;
+    case e_commodity::muskets: return nothing;
+  }
+}
+
+maybe<e_indoor_job> indoor_job_from_outdoor_job(
+    e_outdoor_job job ) {
+  switch( job ) {
+    case e_outdoor_job::food: return nothing;
+    case e_outdoor_job::fish: return nothing;
+    case e_outdoor_job::sugar: return e_indoor_job::rum;
+    case e_outdoor_job::tobacco: return e_indoor_job::cigars;
+    case e_outdoor_job::cotton: return e_indoor_job::cloth;
+    case e_outdoor_job::fur: return e_indoor_job::coats;
+    case e_outdoor_job::lumber: return e_indoor_job::hammers;
+    case e_outdoor_job::ore: return e_indoor_job::tools;
+    case e_outdoor_job::silver: return nothing;
+  }
+}
+
 // Note that these numbers will be different from outdoor jobs.
 // For example, a petty criminal is as good as a free colonist at
 // farming.
@@ -367,15 +403,9 @@ void compute_food_production(
   }
 }
 
-// This will compute all of the fields in the RawMaterialAnd-
-// Product except for the product_delta_final, since computing
-// the latter requires knowing the maximum capacity for a product
-// in the colony which is computed differently depending on
-// whether it is hammers or not.
-void compute_raw_and_product_impl(
+void compute_raw(
     Colony const& colony, TerrainState const& terrain_state,
     UnitsState const& units_state, e_outdoor_job outdoor_job,
-    e_indoor_job indoor_job, e_commodity raw_commodity,
     maybe<SquareProduction const&> center_secondary,
     RawMaterialAndProduct&         out,
     refl::enum_map<e_direction, SquareProduction>&
@@ -398,6 +428,16 @@ void compute_raw_and_product_impl(
     // This must have already been computed.
     out.raw_produced += center_secondary->quantity;
 
+  // This may be ammended if there is a product produced from
+  // this raw good.
+  out.raw_delta_theoretical = out.raw_produced;
+}
+
+void compute_product( Colony const&          colony,
+                      e_indoor_job           indoor_job,
+                      UnitsState const&      units_state,
+                      e_commodity            raw_commodity,
+                      RawMaterialAndProduct& out ) {
   int const product_produced_no_bonus = [&] {
     int res = 0;
     for( UnitId unit_id : colony.indoor_jobs[indoor_job] )
@@ -419,216 +459,145 @@ void compute_raw_and_product_impl(
       apply_building_bonus( product_produced_no_bonus, bonus );
   out.product_produced_theoretical = bonus_res.put;
   out.raw_consumed_theoretical     = bonus_res.use;
-  out.raw_delta_theoretical =
-      out.raw_produced - out.raw_consumed_theoretical;
+  out.raw_delta_theoretical -= out.raw_consumed_theoretical;
 
   // The quantities actually produced and consumed might have to
   // be lowered from their theoretical values if there isn't
   // enough total supply of the raw material. This is nontrivial
   // because of factory-level buildings.
+  //
+  // Note that the colony commodities at this point will already
+  // include the raw product this turn.
   int const available_raw_input =
-      out.raw_produced + colony.commodities[raw_commodity];
+      colony.commodities[raw_commodity];
   out.raw_consumed_actual = std::min(
       out.raw_consumed_theoretical, available_raw_input );
   out.product_produced_actual = raw_to_produced_for_bonus_type(
       out.raw_consumed_actual, bonus );
-
-  int const warehouse_capacity =
-      colony_warehouse_capacity( colony );
-
-  int const current_raw_quantity =
-      colony.commodities[raw_commodity];
-  int const proposed_raw_quantity = current_raw_quantity +
-                                    out.raw_produced -
-                                    out.raw_consumed_actual;
-  if( current_raw_quantity >= warehouse_capacity ) {
-    // If we're here then the current amount of this raw good in
-    // the colony is already at or exceeding warehouse capacity.
-    // In that case, we will allow a net decrease, but not a net
-    // increase. This is so that when we reach the warehouse ca-
-    // pacity (e.g. 100), we will not add anymore, since then the
-    // user would get a message about spoilage; to prevent that
-    // we just here discard any excess. If they are significantly
-    // over warehouse capacity then they'd probably get a
-    // spoilage message even after a net decrease, but there is a
-    // chance that the net decrease will lower it below the ca-
-    // pacity, so we will allow a net decrease.
-    //
-    // The reason this is non-trivial is because the logic in
-    // this function is responsible for ensuring that, if the
-    // quantity begins below warehouse capacity, that it won't
-    // end up exceeding warehouse capacity, while on the other
-    // hand if the quantity starts off exceeding warehouse ca-
-    // pacity then we don't handle spoilage here, and so we don't
-    // force it to decrease to the warehouse capacity.
-    out.raw_delta_final = std::min(
-        proposed_raw_quantity - current_raw_quantity, 0 );
-    CHECK_LE( out.raw_delta_final, 0 );
-  } else {
-    out.raw_delta_final =
-        std::min( proposed_raw_quantity, warehouse_capacity ) -
-        current_raw_quantity;
-  }
-
-  CHECK( out.raw_delta_final + current_raw_quantity >= 0,
-         "colony supply of {} has gone negative ({}).",
-         indoor_job,
-         out.raw_delta_final + current_raw_quantity );
-
-  // !! Note that product_delta_final has not yet been computed;
-  // that must be done by the caller.
 }
 
-void compute_raw_and_product_generic(
-    Colony const& colony, TerrainState const& terrain_state,
-    UnitsState const& units_state, e_outdoor_job outdoor_job,
-    e_indoor_job indoor_job, e_commodity raw_commodity,
-    maybe<SquareProduction const&> center_secondary,
-    e_commodity product_commodity, RawMaterialAndProduct& out,
-    refl::enum_map<e_direction, SquareProduction>&
-        out_land_production ) {
-  compute_raw_and_product_impl(
-      colony, terrain_state, units_state, outdoor_job,
-      indoor_job, raw_commodity, center_secondary, out,
-      out_land_production );
-  int const warehouse_capacity =
-      colony_warehouse_capacity( colony );
-  int const current_product_quantity =
-      colony.commodities[product_commodity];
-  int const proposed_product_quantity =
-      current_product_quantity + out.product_produced_actual;
-  if( current_product_quantity >= warehouse_capacity ) {
-    // See comment in corresponding bit of code in
-    // compute_raw_and_product_impl for why we do this.
-    out.product_delta_final = std::min(
-        proposed_product_quantity - current_product_quantity,
-        0 );
-    CHECK_LE( out.product_delta_final, 0 );
-  } else {
-    out.product_delta_final =
-        std::min( proposed_product_quantity,
-                  warehouse_capacity ) -
-        current_product_quantity;
-  }
-  CHECK( out.product_delta_final >= 0,
-         "product_delta_final for {} is negative ({}).",
-         product_commodity, out.product_delta_final );
-}
-
-// Note that in the original game, lumber is never produced as a
-// secondary good on the colony square, but we will thread the
-// center_secondary parameter through anyway to avoid making spe-
-// cial cases (and also because that behavior could be changed in
-// the config files).
-void compute_lumber_hammers(
-    Colony const& colony, TerrainState const& terrain_state,
-    UnitsState const&              units_state,
-    maybe<SquareProduction const&> center_secondary,
-    RawMaterialAndProduct&         out,
-    refl::enum_map<e_direction, SquareProduction>&
-        out_land_production ) {
-  compute_raw_and_product_impl(
-      colony, terrain_state, units_state, e_outdoor_job::lumber,
-      e_indoor_job::hammers, e_commodity::lumber,
-      center_secondary, out, out_land_production );
-
-  // There are no limits on the number of hammers it seems.
-  out.product_delta_final = out.product_produced_actual;
-  CHECK( out.product_delta_final >= 0,
-         "product_delta_final for hammers is negative ({}).",
-         out.product_delta_final );
-}
-
-void compute_silver_production(
-    ColonyProduction& pr, Colony const& colony,
-    TerrainState const& terrain_state,
-    UnitsState const&   units_state ) {
-  for( e_direction d : refl::enum_values<e_direction> ) {
-    if( maybe<OutdoorUnit> const& unit = colony.outdoor_jobs[d];
-        unit.has_value() &&
-        unit->job == e_outdoor_job::silver ) {
-      int const quantity = production_on_square(
-          e_outdoor_job::silver, terrain_state,
-          units_state.unit_for( unit->unit_id ).type(),
-          colony.location.moved( d ) );
-      pr.silver += quantity;
-      pr.land_production[d] = SquareProduction{
-          .what = e_outdoor_job::silver, .quantity = quantity };
-    }
-  }
-
-  // Note: the center square will never produce silver.
-
-  int const warehouse_capacity =
-      colony_warehouse_capacity( colony );
-
-  int const current_raw_quantity =
-      colony.commodities[e_commodity::silver];
-  int const proposed_raw_quantity =
-      current_raw_quantity + pr.silver;
-  if( current_raw_quantity >= warehouse_capacity ) {
-    // See comment in corresponding bit of code in
-    // compute_raw_and_product_impl for why we do this.
-    pr.silver = std::min(
-        proposed_raw_quantity - current_raw_quantity, 0 );
-    CHECK_LE( pr.silver, 0 );
-  } else {
-    pr.silver =
-        std::min( proposed_raw_quantity, warehouse_capacity ) -
-        current_raw_quantity;
-  }
-  CHECK( pr.silver + current_raw_quantity >= 0,
-         "colony supply of silver has gone negative ({}).",
-         pr.silver + current_raw_quantity );
-}
-
-void compute_land_production( ColonyProduction&   pr,
-                              Colony const&       colony,
+void compute_land_production( ColonyProduction& pr,
+                              Colony const&     colony_pristine,
                               TerrainState const& terrain_state,
                               UnitsState const&   units_state ) {
-  auto generic = [&]( e_outdoor_job          outdoor_job,
-                      e_indoor_job           indoor_job,
-                      e_commodity            raw_commodity,
-                      e_commodity            product_commodity,
-                      RawMaterialAndProduct& out ) {
-    return compute_raw_and_product_generic(
-        colony, terrain_state, units_state, outdoor_job,
-        indoor_job, raw_commodity, pr.center_extra_production,
-        product_commodity, out, pr.land_production );
+  // FIXME: copying not optimal.
+  Colony colony = colony_pristine;
+
+  auto do_product =
+      [&]( e_indoor_job job, e_commodity raw,
+           RawMaterialAndProduct& raw_and_product ) {
+        compute_product( colony, job, units_state, raw,
+                         raw_and_product );
+        maybe<e_commodity> product = product_from_raw( raw );
+        // E.g. lumber won't have a commodity product (because
+        // ham- mers are not a commodity).
+        if( !product.has_value() ) return;
+        colony.commodities[*product] +=
+            raw_and_product.product_produced_actual;
+      };
+
+  auto compute = [&]( e_outdoor_job          outdoor_job,
+                      RawMaterialAndProduct& raw_and_product ) {
+    compute_raw( colony, terrain_state, units_state, outdoor_job,
+                 pr.center_extra_production, raw_and_product,
+                 pr.land_production );
+    e_commodity const raw =
+        commodity_for_outdoor_job( outdoor_job );
+    colony.commodities[raw] += raw_and_product.raw_produced;
+    maybe<e_indoor_job> indoor_job =
+        indoor_job_from_outdoor_job( outdoor_job );
+    if( indoor_job.has_value() )
+      do_product( *indoor_job, raw, raw_and_product );
+    colony.commodities[raw] -=
+        raw_and_product.raw_consumed_actual;
   };
 
-  // Sugar+Rum.
-  generic( e_outdoor_job::sugar, e_indoor_job::rum,
-           e_commodity::sugar, e_commodity::rum, pr.sugar_rum );
+  compute( e_outdoor_job::sugar, pr.sugar_rum );
+  compute( e_outdoor_job::tobacco, pr.tobacco_cigars );
+  compute( e_outdoor_job::cotton, pr.cotton_cloth );
+  compute( e_outdoor_job::fur, pr.fur_coats );
+  compute( e_outdoor_job::lumber, pr.lumber_hammers );
+  compute( e_outdoor_job::silver, pr.silver );
 
-  // Tobacco+Cigars.
-  generic( e_outdoor_job::tobacco, e_indoor_job::cigars,
-           e_commodity::tobacco, e_commodity::cigars,
-           pr.tobacco_cigars );
-
-  // Cotton+Cloth.
-  generic( e_outdoor_job::cotton, e_indoor_job::cloth,
-           e_commodity::cotton, e_commodity::cloth,
-           pr.cotton_cloth );
-
-  // Fur+Coats.
-  generic( e_outdoor_job::fur, e_indoor_job::coats,
-           e_commodity::fur, e_commodity::coats, pr.fur_coats );
-
-  // Lumber+Hammers.
-  compute_lumber_hammers( colony, terrain_state, units_state,
-                          pr.center_extra_production,
-                          pr.lumber_hammers,
-                          pr.land_production );
-
-  compute_silver_production( pr, colony, terrain_state,
-                             units_state );
+  // Ore/tools/muskets.
+  {
+    // First compute ore/tools as if muskets don't exist.
+    compute( e_outdoor_job::ore, pr.ore_tools );
+    // Boostrap the muskets calculation with the tools produced
+    // from the ore/tools stage.
+    pr.tools_muskets.raw_produced =
+        pr.ore_tools.product_produced_actual;
+    pr.tools_muskets.raw_delta_theoretical =
+        pr.tools_muskets.raw_produced;
+    do_product( e_indoor_job::muskets, e_commodity::tools,
+                pr.tools_muskets );
+    colony.commodities[e_commodity::tools] -=
+        pr.tools_muskets.raw_consumed_actual;
+  }
 
   compute_food_production( terrain_state, units_state, colony,
                            pr.center_food_production, pr.food,
                            pr.land_production );
 
-  // TODO
+  // Warehouse adjustments. Note that this must be done after all
+  // production is computed because in some cases (e.g. tools)
+  // one production pair might use the result product of another
+  // pair as input, so we don't want to prematurely do the ware-
+  // house capping otherwise we will accidentally discard tools
+  // that could be used to produce muskets this turn.
+  int const warehouse_capacity =
+      colony_warehouse_capacity( colony_pristine );
+
+  auto adjust_for_warehouse = [&]( e_commodity comm,
+                                   int&        delta_final ) {
+    if( colony_pristine.commodities[comm] <=
+            warehouse_capacity &&
+        colony.commodities[comm] > warehouse_capacity )
+      colony.commodities[comm] = warehouse_capacity;
+    else if( colony_pristine.commodities[comm] >
+                 warehouse_capacity &&
+             colony.commodities[comm] >
+                 colony_pristine.commodities[comm] )
+      colony.commodities[comm] =
+          colony_pristine.commodities[comm];
+    delta_final = colony.commodities[comm] -
+                  colony_pristine.commodities[comm];
+  };
+
+  adjust_for_warehouse( e_commodity::sugar,
+                        pr.sugar_rum.raw_delta_final );
+  adjust_for_warehouse( e_commodity::rum,
+                        pr.sugar_rum.product_delta_final );
+
+  adjust_for_warehouse( e_commodity::tobacco,
+                        pr.tobacco_cigars.raw_delta_final );
+  adjust_for_warehouse( e_commodity::cigars,
+                        pr.tobacco_cigars.product_delta_final );
+
+  adjust_for_warehouse( e_commodity::cotton,
+                        pr.cotton_cloth.raw_delta_final );
+  adjust_for_warehouse( e_commodity::cloth,
+                        pr.cotton_cloth.product_delta_final );
+
+  adjust_for_warehouse( e_commodity::fur,
+                        pr.fur_coats.raw_delta_final );
+  adjust_for_warehouse( e_commodity::coats,
+                        pr.fur_coats.product_delta_final );
+
+  adjust_for_warehouse( e_commodity::ore,
+                        pr.ore_tools.raw_delta_final );
+  // For tools, its the one in tools/muskets that has the final
+  // value.
+  adjust_for_warehouse( e_commodity::tools,
+                        pr.tools_muskets.raw_delta_final );
+  adjust_for_warehouse( e_commodity::muskets,
+                        pr.tools_muskets.product_delta_final );
+
+  adjust_for_warehouse( e_commodity::silver,
+                        pr.silver.raw_delta_final );
+
+  adjust_for_warehouse( e_commodity::lumber,
+                        pr.lumber_hammers.raw_delta_final );
 }
 
 void fill_in_center_square( SSConst const&    ss,
@@ -663,9 +632,9 @@ maybe<int> production_for_slot( ColonyProduction const& pr,
                                 e_colony_building_slot  slot ) {
   switch( slot ) {
     case e_colony_building_slot::muskets:
-      return pr.ore_products.muskets_produced_theoretical;
+      return pr.tools_muskets.product_produced_theoretical;
     case e_colony_building_slot::tools:
-      return pr.ore_products.tools_produced_theoretical;
+      return pr.ore_tools.product_produced_theoretical;
     case e_colony_building_slot::rum:
       return pr.sugar_rum.product_produced_theoretical;
     case e_colony_building_slot::cloth:

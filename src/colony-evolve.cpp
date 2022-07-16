@@ -294,14 +294,13 @@ void apply_production_to_colony(
   inc( e_commodity::lumber,
        production.lumber_hammers.raw_delta_final );
 
-  inc( e_commodity::silver, production.silver );
+  inc( e_commodity::silver, production.silver.raw_delta_final );
 
-  inc( e_commodity::ore,
-       production.ore_products.ore_delta_final );
+  inc( e_commodity::ore, production.ore_tools.raw_delta_final );
   inc( e_commodity::tools,
-       production.ore_products.tools_delta_final );
+       production.tools_muskets.raw_delta_final );
   inc( e_commodity::muskets,
-       production.ore_products.muskets_delta_final );
+       production.tools_muskets.product_delta_final );
 
   colony.hammers +=
       production.lumber_hammers.product_delta_final;
