@@ -80,6 +80,7 @@ struct World {
   static MapSquare make_ocean();
   static MapSquare make_sea_lane();
   static MapSquare make_grassland();
+  static MapSquare make_terrain( e_terrain terrain );
 
   // Access the mutable map. NOTE: functions like this should not
   // be used outside of unit tests, since normal game code should

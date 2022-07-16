@@ -441,9 +441,35 @@ void compute_raw_and_product_impl(
   int const proposed_raw_quantity = current_raw_quantity +
                                     out.raw_produced -
                                     out.raw_consumed_actual;
-  out.raw_delta_final =
-      std::min( proposed_raw_quantity, warehouse_capacity ) -
-      current_raw_quantity;
+  if( current_raw_quantity >= warehouse_capacity ) {
+    // If we're here then the current amount of this raw good in
+    // the colony is already at or exceeding warehouse capacity.
+    // In that case, we will allow a net decrease, but not a net
+    // increase. This is so that when we reach the warehouse ca-
+    // pacity (e.g. 100), we will not add anymore, since then the
+    // user would get a message about spoilage; to prevent that
+    // we just here discard any excess. If they are significantly
+    // over warehouse capacity then they'd probably get a
+    // spoilage message even after a net decrease, but there is a
+    // chance that the net decrease will lower it below the ca-
+    // pacity, so we will allow a net decrease.
+    //
+    // The reason this is non-trivial is because the logic in
+    // this function is responsible for ensuring that, if the
+    // quantity begins below warehouse capacity, that it won't
+    // end up exceeding warehouse capacity, while on the other
+    // hand if the quantity starts off exceeding warehouse ca-
+    // pacity then we don't handle spoilage here, and so we don't
+    // force it to decrease to the warehouse capacity.
+    out.raw_delta_final = std::min(
+        proposed_raw_quantity - current_raw_quantity, 0 );
+    CHECK_LE( out.raw_delta_final, 0 );
+  } else {
+    out.raw_delta_final =
+        std::min( proposed_raw_quantity, warehouse_capacity ) -
+        current_raw_quantity;
+  }
+
   CHECK( out.raw_delta_final + current_raw_quantity >= 0,
          "colony supply of {} has gone negative ({}).",
          indoor_job,
@@ -471,9 +497,19 @@ void compute_raw_and_product_generic(
       colony.commodities[product_commodity];
   int const proposed_product_quantity =
       current_product_quantity + out.product_produced_actual;
-  out.product_delta_final =
-      std::min( proposed_product_quantity, warehouse_capacity ) -
-      current_product_quantity;
+  if( current_product_quantity >= warehouse_capacity ) {
+    // See comment in corresponding bit of code in
+    // compute_raw_and_product_impl for why we do this.
+    out.product_delta_final = std::min(
+        proposed_product_quantity - current_product_quantity,
+        0 );
+    CHECK_LE( out.product_delta_final, 0 );
+  } else {
+    out.product_delta_final =
+        std::min( proposed_product_quantity,
+                  warehouse_capacity ) -
+        current_product_quantity;
+  }
   CHECK( out.product_delta_final >= 0,
          "product_delta_final for {} is negative ({}).",
          product_commodity, out.product_delta_final );
@@ -530,9 +566,17 @@ void compute_silver_production(
       colony.commodities[e_commodity::silver];
   int const proposed_raw_quantity =
       current_raw_quantity + pr.silver;
-  pr.silver =
-      std::min( proposed_raw_quantity, warehouse_capacity ) -
-      current_raw_quantity;
+  if( current_raw_quantity >= warehouse_capacity ) {
+    // See comment in corresponding bit of code in
+    // compute_raw_and_product_impl for why we do this.
+    pr.silver = std::min(
+        proposed_raw_quantity - current_raw_quantity, 0 );
+    CHECK_LE( pr.silver, 0 );
+  } else {
+    pr.silver =
+        std::min( proposed_raw_quantity, warehouse_capacity ) -
+        current_raw_quantity;
+  }
   CHECK( pr.silver + current_raw_quantity >= 0,
          "colony supply of silver has gone negative ({}).",
          pr.silver + current_raw_quantity );

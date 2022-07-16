@@ -136,6 +136,10 @@ MapSquare World::make_grassland() {
   return map_square_for_terrain( e_terrain::grassland );
 }
 
+MapSquare World::make_terrain( e_terrain terrain ) {
+  return map_square_for_terrain( terrain );
+}
+
 void World::build_map( vector<MapSquare> tiles, W width ) {
   map_updater().modify_entire_map( [&]( Matrix<MapSquare>& m ) {
     m = Matrix<MapSquare>( std::move( tiles ), width );
