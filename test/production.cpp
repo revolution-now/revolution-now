@@ -84,7 +84,7 @@ TEST_CASE( "[production] production_for_slot" ) {
   ColonyProduction pr;
 
   pr.tools_muskets.product_produced_theoretical  = 1;
-  pr.ore_tools.product_produced_theoretical      = 2;
+  pr.tools_muskets.raw_produced                  = 2;
   pr.sugar_rum.product_produced_theoretical      = 3;
   pr.cotton_cloth.product_produced_theoretical   = 4;
   pr.fur_coats.product_produced_theoretical      = 5;

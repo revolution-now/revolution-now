@@ -646,7 +646,9 @@ maybe<int> production_for_slot( ColonyProduction const& pr,
     case e_colony_building_slot::muskets:
       return pr.tools_muskets.product_produced_theoretical;
     case e_colony_building_slot::tools:
-      return pr.ore_tools.product_produced_theoretical;
+      // For tools, its the one in tools/muskets that has the
+      // final value.
+      return pr.tools_muskets.raw_produced;
     case e_colony_building_slot::rum:
       return pr.sugar_rum.product_produced_theoretical;
     case e_colony_building_slot::cloth:
