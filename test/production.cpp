@@ -1415,6 +1415,796 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
   }
 }
 
+TEST_CASE( "[production] cotton/cloth [explorer]" ) {
+  World W;
+  W.create_default_map();
+
+  using SP  = SquareProduction;
+  using LP  = refl::enum_map<e_direction, SP>;
+  using RMP = RawMaterialAndProduct;
+
+  W.settings().difficulty = e_difficulty::explorer;
+
+  SECTION( "center square cotton only" ) {
+    Colony&          colony = W.add_colony( W.kPrairieTile );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 3,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 3,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 3,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "center square cotton only, almost full warehouse" ) {
+    Colony& colony = W.add_colony( W.kPrairieTile );
+    colony.commodities[e_commodity::cotton] = 98;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 3,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 3,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 2,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "center square cotton only, full warehouse" ) {
+    Colony& colony = W.add_colony( W.kPrairieTile );
+    colony.commodities[e_commodity::cotton] = 100;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 3,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 3,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "center square cotton only, over warehouse" ) {
+    Colony& colony = W.add_colony( W.kPrairieTile );
+    colony.commodities[e_commodity::cotton] = 150;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 3,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 3,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "one cotton planter" ) {
+    Colony& colony = W.add_colony( W.kPrairieTile );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::cotton );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what = e_outdoor_job::cotton,
+                                  .quantity = 3 } } } );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 6,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 6,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "no cotton center square" ) {
+    Colony&          colony = W.add_colony( W.kGrasslandTile );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 0,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "no cotton center square/with rum distiller" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    W.add_unit_indoors( colony.id, e_indoor_job::rum,
+                        e_unit_type::master_rum_distiller );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 0,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "no cotton center square/with weaver, cotton in store" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::cotton] = 50;
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 3,
+                 .raw_delta_theoretical        = -3,
+                 .raw_consumed_actual          = 3,
+                 .raw_delta_final              = -3,
+                 .product_produced_theoretical = 3,
+                 .product_produced_actual      = 3,
+                 .product_delta_final          = 3,
+             } );
+  }
+
+  SECTION(
+      "no cotton center square/with master weaver, some cotton "
+      "in store" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::cotton] = 3;
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 3,
+                 .raw_delta_final              = -3,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 3,
+                 .product_delta_final          = 3,
+             } );
+  }
+
+  SECTION(
+      "no cotton center square/with weaver, some cotton in "
+      "store" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::cotton] = 3;
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 3,
+                 .raw_delta_theoretical        = -3,
+                 .raw_consumed_actual          = 3,
+                 .raw_delta_final              = -3,
+                 .product_produced_theoretical = 3,
+                 .product_produced_actual      = 3,
+                 .product_delta_final          = 3,
+             } );
+  }
+
+  SECTION(
+      "no cotton center square/with master weaver, cotton in "
+      "store" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::cotton] = 50;
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = -6,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 6,
+             } );
+  }
+
+  SECTION(
+      "no cotton center square/with master weaver, cotton in "
+      "store, almost full warehouse for cloth" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::cotton] = 50;
+    colony.commodities[e_commodity::cloth]  = 98;
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced             = 0,
+                 .raw_consumed_theoretical = 6,
+                 .raw_delta_theoretical    = -6,
+                 // No backpressure.
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = -6,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 2,
+             } );
+  }
+
+  SECTION(
+      "no cotton center square/with master weaver, cotton in "
+      "store, full warehouse for cloth" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::cotton] = 50;
+    colony.commodities[e_commodity::cloth]  = 100;
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced             = 0,
+                 .raw_consumed_theoretical = 6,
+                 .raw_delta_theoretical    = -6,
+                 // No backpressure.
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = -6,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "no cotton center square/with master weaver, cotton in "
+      "store, over warehouse for cloth" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::cotton] = 50;
+    colony.commodities[e_commodity::cloth]  = 150;
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced             = 0,
+                 .raw_consumed_theoretical = 6,
+                 .raw_delta_theoretical    = -6,
+                 // No backpressure.
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = -6,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "cotton center square/with master weaver, no cotton in "
+      "store, no cloth in store" ) {
+    Colony& colony = W.add_colony( W.kPrairieTile );
+    colony.commodities[e_commodity::cotton] = 0;
+    colony.commodities[e_commodity::cloth]  = 0;
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 3,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -3,
+                 .raw_consumed_actual          = 3,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 3,
+                 .product_delta_final          = 3,
+             } );
+  }
+
+  SECTION(
+      "cotton center square/with master weaver, no cotton in "
+      "store, full cloth warehouse" ) {
+    Colony& colony = W.add_colony( W.kPrairieTile );
+    colony.commodities[e_commodity::cotton] = 0;
+    colony.commodities[e_commodity::cloth]  = 100;
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 3,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -3,
+                 .raw_consumed_actual          = 3,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 3,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "cotton center square, one cotton planter, with master "
+      "weaver, no cotton in store, no cloth in store, weaver's "
+      "shop" ) {
+    Colony& colony = W.add_colony( W.kPrairieTile );
+    colony.buildings[e_colony_building::weavers_shop] = true;
+    colony.commodities[e_commodity::cotton]           = 0;
+    colony.commodities[e_commodity::cloth]            = 0;
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::cotton,
+                         e_unit_type::free_colonist );
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what = e_outdoor_job::cotton,
+                                  .quantity = 3 } } } );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 12,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 6,
+             } );
+  }
+
+  SECTION(
+      "cotton center square, one cotton planter, with master "
+      "weaver, some cotton in store, no cloth in store, "
+      "weaver's shop" ) {
+    Colony& colony = W.add_colony( W.kPrairieTile );
+    colony.buildings[e_colony_building::weavers_shop] = true;
+    colony.commodities[e_commodity::cotton]           = 50;
+    colony.commodities[e_commodity::cloth]            = 0;
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::cotton,
+                         e_unit_type::free_colonist );
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what = e_outdoor_job::cotton,
+                                  .quantity = 3 } } } );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 12,
+                 .raw_delta_final              = -6,
+                 .product_produced_theoretical = 12,
+                 .product_produced_actual      = 12,
+                 .product_delta_final          = 12,
+             } );
+  }
+
+  SECTION(
+      "cotton center square, one cotton planter, with master "
+      "weaver, no cotton in store, no cloth in store, "
+      "textile_mill" ) {
+    Colony& colony = W.add_colony( W.kPrairieTile );
+    colony.buildings[e_colony_building::textile_mill] = true;
+    colony.commodities[e_commodity::cotton]           = 0;
+    colony.commodities[e_commodity::cloth]            = 0;
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::cotton,
+                         e_unit_type::free_colonist );
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what = e_outdoor_job::cotton,
+                                  .quantity = 3 } } } );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 18,
+                 .product_produced_actual      = 9,
+                 .product_delta_final          = 9,
+             } );
+  }
+
+  SECTION(
+      "cotton center square, one cotton planter, with master "
+      "weaver, some cotton in store, no cloth in store, textile "
+      "mill" ) {
+    Colony& colony = W.add_colony( W.kPrairieTile );
+    colony.buildings[e_colony_building::textile_mill] = true;
+    colony.commodities[e_commodity::cotton]           = 2;
+    colony.commodities[e_commodity::cloth]            = 0;
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::cotton,
+                         e_unit_type::free_colonist );
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what = e_outdoor_job::cotton,
+                                  .quantity = 3 } } } );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 8,
+                 .raw_delta_final              = -2,
+                 .product_produced_theoretical = 18,
+                 .product_produced_actual      = 12,
+                 .product_delta_final          = 12,
+             } );
+  }
+
+  SECTION(
+      "cotton center square, one expert cotton planter, with "
+      "master weaver, no cotton in store, no cloth in store, "
+      "textile mill" ) {
+    Colony& colony = W.add_colony( W.kPrairieTile );
+    colony.buildings[e_colony_building::textile_mill] = true;
+    colony.commodities[e_commodity::cotton]           = 0;
+    colony.commodities[e_commodity::cloth]            = 0;
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::cotton,
+                         e_unit_type::expert_cotton_planter );
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what = e_outdoor_job::cotton,
+                                  .quantity = 6 } } } );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 9,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = -3,
+                 .raw_consumed_actual          = 9,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 18,
+                 .product_produced_actual      = 14,
+                 .product_delta_final          = 14,
+             } );
+  }
+
+  SECTION(
+      "cotton center square, one expert cotton planter, one "
+      "cotton planter, with master weaver, no cotton in store, "
+      "no cloth in store, textile mill" ) {
+    Colony& colony = W.add_colony( W.kPrairieTile );
+    colony.buildings[e_colony_building::textile_mill] = true;
+    colony.commodities[e_commodity::cotton]           = 0;
+    colony.commodities[e_commodity::cloth]            = 0;
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::cotton,
+                         e_unit_type::expert_cotton_planter );
+    W.add_unit_outdoors( colony.id, e_direction::s,
+                         e_outdoor_job::cotton,
+                         e_unit_type::petty_criminal );
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what = e_outdoor_job::cotton,
+                                  .quantity = 6 } },
+            { e_direction::s, SP{ .what = e_outdoor_job::cotton,
+                                  .quantity = 3 } } } );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 12,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = 0,
+                 .raw_consumed_actual          = 12,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 18,
+                 .product_produced_actual      = 18,
+                 .product_delta_final          = 18,
+             } );
+  }
+
+  SECTION(
+      "cotton center square, one expert cotton planter, one "
+      "cotton planter, with master weaver, full cotton in "
+      "store, no cloth in store, textile mill" ) {
+    Colony& colony = W.add_colony( W.kPrairieTile );
+    colony.buildings[e_colony_building::textile_mill] = true;
+    colony.commodities[e_commodity::cotton]           = 100;
+    colony.commodities[e_commodity::cloth]            = 0;
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::cotton,
+                         e_unit_type::expert_cotton_planter );
+    W.add_unit_outdoors( colony.id, e_direction::s,
+                         e_outdoor_job::cotton,
+                         e_unit_type::petty_criminal );
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what = e_outdoor_job::cotton,
+                                  .quantity = 6 } },
+            { e_direction::s, SP{ .what = e_outdoor_job::cotton,
+                                  .quantity = 3 } } } );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 12,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = 0,
+                 .raw_consumed_actual          = 12,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 18,
+                 .product_produced_actual      = 18,
+                 .product_delta_final          = 18,
+             } );
+  }
+
+  SECTION(
+      "cotton center square, one expert cotton planter, one "
+      "cotton planter, two master weavers, full cotton in "
+      "store, no cloth in store, textile mill" ) {
+    Colony& colony = W.add_colony( W.kPrairieTile );
+    colony.buildings[e_colony_building::textile_mill] = true;
+    colony.commodities[e_commodity::cotton]           = 100;
+    colony.commodities[e_commodity::cloth]            = 0;
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::cotton,
+                         e_unit_type::expert_cotton_planter );
+    W.add_unit_outdoors( colony.id, e_direction::s,
+                         e_outdoor_job::cotton,
+                         e_unit_type::petty_criminal );
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what = e_outdoor_job::cotton,
+                                  .quantity = 6 } },
+            { e_direction::s, SP{ .what = e_outdoor_job::cotton,
+                                  .quantity = 3 } } } );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 12,
+                 .raw_consumed_theoretical     = 24,
+                 .raw_delta_theoretical        = -12,
+                 .raw_consumed_actual          = 24,
+                 .raw_delta_final              = -12,
+                 .product_produced_theoretical = 36,
+                 .product_produced_actual      = 36,
+                 .product_delta_final          = 36,
+             } );
+  }
+
+  SECTION(
+      "cotton center square, one expert cotton planter, one "
+      "cotton planter, two master weavers, some cotton in "
+      "store, no cloth in store, textile mill" ) {
+    Colony& colony = W.add_colony( W.kPrairieTile );
+    colony.buildings[e_colony_building::textile_mill] = true;
+    colony.commodities[e_commodity::cotton]           = 2;
+    colony.commodities[e_commodity::cloth]            = 0;
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::cotton,
+                         e_unit_type::expert_cotton_planter );
+    W.add_unit_outdoors( colony.id, e_direction::s,
+                         e_outdoor_job::cotton,
+                         e_unit_type::petty_criminal );
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what = e_outdoor_job::cotton,
+                                  .quantity = 6 } },
+            { e_direction::s, SP{ .what = e_outdoor_job::cotton,
+                                  .quantity = 3 } } } );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 12,
+                 .raw_consumed_theoretical     = 24,
+                 .raw_delta_theoretical        = -12,
+                 .raw_consumed_actual          = 14,
+                 .raw_delta_final              = -2,
+                 .product_produced_theoretical = 36,
+                 .product_produced_actual      = 21,
+                 .product_delta_final          = 21,
+             } );
+  }
+
+  SECTION(
+      "cotton center square, one expert cotton planter, one "
+      "cotton planter, two master weavers, some cotton in "
+      "store, cloth almost full, textile mill" ) {
+    Colony& colony = W.add_colony( W.kPrairieTile );
+    colony.buildings[e_colony_building::textile_mill] = true;
+    colony.commodities[e_commodity::cotton]           = 2;
+    colony.commodities[e_commodity::cloth]            = 90;
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::cotton,
+                         e_unit_type::expert_cotton_planter );
+    W.add_unit_outdoors( colony.id, e_direction::s,
+                         e_outdoor_job::cotton,
+                         e_unit_type::petty_criminal );
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                        e_unit_type::master_weaver );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what = e_outdoor_job::cotton,
+                                  .quantity = 6 } },
+            { e_direction::s, SP{ .what = e_outdoor_job::cotton,
+                                  .quantity = 3 } } } );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
+    REQUIRE( pr.cotton_cloth ==
+             RMP{
+                 .raw_produced                 = 12,
+                 .raw_consumed_theoretical     = 24,
+                 .raw_delta_theoretical        = -12,
+                 .raw_consumed_actual          = 14,
+                 .raw_delta_final              = -2,
+                 .product_produced_theoretical = 36,
+                 .product_produced_actual      = 21,
+                 .product_delta_final          = 10,
+             } );
+  }
+}
+
 TEST_CASE( "[production] food/horses" ) {
   World W;
   W.create_default_map();
