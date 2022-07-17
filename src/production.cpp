@@ -577,6 +577,11 @@ void compute_land_production( ColonyProduction& pr,
   // mulated, the final and actual are the same.
   pr.lumber_hammers.product_delta_final =
       pr.lumber_hammers.product_produced_actual;
+
+  // It's nice for these to agree, even though the policy is to
+  // only read from the tools_muskets version.
+  pr.ore_tools.product_delta_final =
+      pr.tools_muskets.raw_delta_final;
 }
 
 void fill_in_center_square( SSConst const&    ss,
