@@ -3053,6 +3053,166 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
   }
 }
 
+// This test case is not meant to be exhaustive, it is just to
+// make sure that the center square food production bonus gets
+// applied correctly on the explorer difficulty level.
+TEST_CASE( "[production] food/horses [explorer]" ) {
+  World W;
+  W.create_default_map();
+
+  using FP = FoodProduction;
+  using SP = SquareProduction;
+  using LP = refl::enum_map<e_direction, SP>;
+
+  W.settings().difficulty = e_difficulty::explorer;
+  int const bonus         = 1;
+
+  SECTION( "no units no horses/arctic" ) {
+    Colony&          colony = W.add_colony( W.kArcticTile );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.center_food_production == 0 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 1,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 1,
+                 .food_consumed_by_colonists_theoretical = 0,
+                 .food_consumed_by_colonists_actual      = 0,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 1,
+                 .horses_produced_theoretical            = 0,
+                 .max_new_horses_allowed                 = 1,
+                 .horses_produced_actual                 = 0,
+                 .food_consumed_by_horses                = 0,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = 1,
+                 .colonist_starved                       = false,
+             } );
+  }
+
+  SECTION(
+      "one farmer, surplus=2, warehouse expansion, horses=100, "
+      "+stable" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.buildings[e_colony_building::stable] = true;
+    colony.buildings[e_colony_building::warehouse_expansion] =
+        true;
+    colony.commodities[e_commodity::horses] = 100;
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::food,
+                         e_unit_type::free_colonist );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 3 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 7,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 7,
+                 .food_consumed_by_colonists_theoretical = 6,
+                 .food_consumed_by_colonists_actual      = 6,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 1,
+                 .horses_produced_theoretical            = 8,
+                 .max_new_horses_allowed                 = 1,
+                 .horses_produced_actual                 = 1,
+                 .food_consumed_by_horses                = 1,
+                 .horses_delta_final                     = 1,
+                 .food_delta_final                       = 0,
+                 .colonist_starved                       = false,
+             } );
+  }
+}
+
+// This test case is not meant to be exhaustive, it is just to
+// make sure that the center square food production bonus gets
+// applied correctly on the viceroy difficulty level.
+TEST_CASE( "[production] food/horses [viceroy]" ) {
+  World W;
+  W.create_default_map();
+
+  using FP = FoodProduction;
+  using SP = SquareProduction;
+  using LP = refl::enum_map<e_direction, SP>;
+
+  W.settings().difficulty = e_difficulty::viceroy;
+  int const bonus         = 0;
+
+  SECTION( "no units no horses/arctic" ) {
+    Colony&          colony = W.add_colony( W.kArcticTile );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.center_food_production == 0 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 0,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 0,
+                 .food_consumed_by_colonists_theoretical = 0,
+                 .food_consumed_by_colonists_actual      = 0,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 0,
+                 .horses_produced_theoretical            = 0,
+                 .max_new_horses_allowed                 = 0,
+                 .horses_produced_actual                 = 0,
+                 .food_consumed_by_horses                = 0,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = 0,
+                 .colonist_starved                       = false,
+             } );
+  }
+
+  SECTION(
+      "one farmer, surplus=2, warehouse expansion, horses=100, "
+      "+stable" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.buildings[e_colony_building::stable] = true;
+    colony.buildings[e_colony_building::warehouse_expansion] =
+        true;
+    colony.commodities[e_commodity::horses] = 100;
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::food,
+                         e_unit_type::free_colonist );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 3 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 6,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 6,
+                 .food_consumed_by_colonists_theoretical = 6,
+                 .food_consumed_by_colonists_actual      = 6,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 0,
+                 .horses_produced_theoretical            = 8,
+                 .max_new_horses_allowed                 = 0,
+                 .horses_produced_actual                 = 0,
+                 .food_consumed_by_horses                = 0,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = 0,
+                 .colonist_starved                       = false,
+             } );
+  }
+}
+
 TEST_CASE( "[production] ore/tools/muskets [discoverer]" ) {
   World W;
   W.create_default_map();
