@@ -51,6 +51,9 @@ maybe<ColonyNotification::spoilage> check_spoilage(
   refl::enum_map<e_commodity, int>& commodities =
       colony.commodities;
   for( e_commodity c : refl::enum_values<e_commodity> ) {
+    if( !config_colony.warehouses
+             .commodities_with_warehouse_limit[c] )
+      continue;
     int const max = warehouse_capacity;
     if( commodities[c] > max ) {
       int spoilage = commodities[c] - max;
