@@ -49,20 +49,22 @@ struct World : testing::World {
   static inline Coord kGrasslandTile{ .x = 1, .y = 1 };
   static inline Coord kPrairieTile{ .x = 4, .y = 1 };
   static inline Coord kConiferTile{ .x = 3, .y = 1 };
+  static inline Coord kArcticTile{ .x = 7, .y = 1 };
 
   void create_default_map() {
     MapSquare const _ = make_ocean();
     MapSquare const G = make_grassland();
     MapSquare const C = make_terrain( e_terrain::conifer );
     MapSquare const P = make_terrain( e_terrain::prairie );
+    MapSquare const A = make_terrain( e_terrain::arctic );
     // clang-format off
     vector<MapSquare> tiles{
-      _, G, _, _, P, _,
-      G, G, G, C, P, P,
-      _, G, G, P, P, _,
+      _, G, _, _, P, _, A, A, A,
+      G, G, G, C, P, P, A, A, A,
+      _, G, G, P, P, _, A, A, A,
     };
     // clang-format on
-    build_map( std::move( tiles ), 6 );
+    build_map( std::move( tiles ), 9 );
 
     CHECK( effective_terrain( square( kGrasslandTile ) ) ==
            e_terrain::grassland );
@@ -70,6 +72,8 @@ struct World : testing::World {
            e_terrain::prairie );
     CHECK( effective_terrain( square( kConiferTile ) ) ==
            e_terrain::conifer );
+    CHECK( effective_terrain( square( kArcticTile ) ) ==
+           e_terrain::arctic );
   }
 };
 
@@ -2205,84 +2209,821 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
   }
 }
 
-TEST_CASE( "[production] food/horses" ) {
+TEST_CASE( "[production] food/horses [discoverer]" ) {
   World W;
   W.create_default_map();
-  Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
-  REQUIRE( colony_population( colony ) == 0 );
+
+  using FP = FoodProduction;
+  using SP = SquareProduction;
+  using LP = refl::enum_map<e_direction, SP>;
+
+  W.settings().difficulty = e_difficulty::discoverer;
+  int const bonus         = 2;
 
   SECTION( "no units no horses/arctic" ) {
-    // TODO: implement center production first.
+    Colony&          colony = W.add_colony( W.kArcticTile );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.center_food_production == 0 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 2,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 2,
+                 .food_consumed_by_colonists_theoretical = 0,
+                 .food_consumed_by_colonists_actual      = 0,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 2,
+                 .horses_produced_theoretical            = 0,
+                 .max_new_horses_allowed                 = 2,
+                 .horses_produced_actual                 = 0,
+                 .food_consumed_by_horses                = 0,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = 2,
+                 .colonist_starved                       = false,
+             } );
   }
 
   SECTION( "no units no horses" ) {
-    // TODO: implement center production first.
+    Colony&          colony = W.add_colony( W.kGrasslandTile );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 5,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 5,
+                 .food_consumed_by_colonists_theoretical = 0,
+                 .food_consumed_by_colonists_actual      = 0,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 5,
+                 .horses_produced_theoretical            = 0,
+                 .max_new_horses_allowed                 = 5,
+                 .horses_produced_actual                 = 0,
+                 .food_consumed_by_horses                = 0,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = 5,
+                 .colonist_starved                       = false,
+             } );
   }
 
   SECTION( "one farmer no horses" ) {
-    // TODO: implement center production first.
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::food,
+                         e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 3 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 8,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 8,
+                 .food_consumed_by_colonists_theoretical = 2,
+                 .food_consumed_by_colonists_actual      = 2,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 6,
+                 .horses_produced_theoretical            = 0,
+                 .max_new_horses_allowed                 = 6,
+                 .horses_produced_actual                 = 0,
+                 .food_consumed_by_horses                = 0,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = 6,
+                 .colonist_starved                       = false,
+             } );
   }
 
   SECTION( "one fisherman no horses" ) {
-    // TODO: implement center production first.
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    W.add_unit_outdoors( colony.id, e_direction::nw,
+                         e_outdoor_job::fish,
+                         e_unit_type::expert_fisherman );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::nw, SP{ .what = e_outdoor_job::fish,
+                                   .quantity = 6 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 5,
+                 .fish_produced                          = 6,
+                 .food_produced                          = 11,
+                 .food_consumed_by_colonists_theoretical = 2,
+                 .food_consumed_by_colonists_actual      = 2,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 9,
+                 .horses_produced_theoretical            = 0,
+                 .max_new_horses_allowed                 = 9,
+                 .horses_produced_actual                 = 0,
+                 .food_consumed_by_horses                = 0,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = 9,
+                 .colonist_starved                       = false,
+             } );
   }
 
   SECTION( "one farmer breaking even" ) {
-    // TODO: implement center production first.
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::food,
+                         e_unit_type::free_colonist );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 3 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 8,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 8,
+                 .food_consumed_by_colonists_theoretical = 8,
+                 .food_consumed_by_colonists_actual      = 8,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 0,
+                 .horses_produced_theoretical            = 0,
+                 .max_new_horses_allowed                 = 0,
+                 .horses_produced_actual                 = 0,
+                 .food_consumed_by_horses                = 0,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = 0,
+                 .colonist_starved                       = false,
+             } );
   }
 
   SECTION( "one farmer breaking even, horses=2" ) {
-    // TODO: implement center production first.
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::horses] = 2;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::food,
+                         e_unit_type::free_colonist );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 3 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 8,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 8,
+                 .food_consumed_by_colonists_theoretical = 8,
+                 .food_consumed_by_colonists_actual      = 8,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 0,
+                 .horses_produced_theoretical            = 1,
+                 .max_new_horses_allowed                 = 0,
+                 .horses_produced_actual                 = 0,
+                 .food_consumed_by_horses                = 0,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = 0,
+                 .colonist_starved                       = false,
+             } );
   }
 
   SECTION( "one farmer surplus=1, horses=1" ) {
-    // TODO: implement center production first.
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::horses] = 1;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::food,
+                         e_unit_type::native_convert );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 9,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 9,
+                 .food_consumed_by_colonists_theoretical = 8,
+                 .food_consumed_by_colonists_actual      = 8,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 1,
+                 .horses_produced_theoretical            = 0,
+                 .max_new_horses_allowed                 = 1,
+                 .horses_produced_actual                 = 0,
+                 .food_consumed_by_horses                = 0,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = 1,
+                 .colonist_starved                       = false,
+             } );
   }
 
   SECTION( "one farmer surplus=1, horses=2" ) {
-    // TODO: implement center production first.
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::horses] = 2;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::food,
+                         e_unit_type::native_convert );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 9,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 9,
+                 .food_consumed_by_colonists_theoretical = 8,
+                 .food_consumed_by_colonists_actual      = 8,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 1,
+                 .horses_produced_theoretical            = 1,
+                 .max_new_horses_allowed                 = 1,
+                 .horses_produced_actual                 = 1,
+                 .food_consumed_by_horses                = 1,
+                 .horses_delta_final                     = 1,
+                 .food_delta_final                       = 0,
+                 .colonist_starved                       = false,
+             } );
   }
 
   SECTION( "one fisherman surplus=3, horses=0" ) {
-    // TODO: implement center production first.
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    W.add_unit_outdoors( colony.id, e_direction::nw,
+                         e_outdoor_job::fish,
+                         e_unit_type::expert_fisherman );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::nw, SP{ .what = e_outdoor_job::fish,
+                                   .quantity = 6 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 5,
+                 .fish_produced                          = 6,
+                 .food_produced                          = 11,
+                 .food_consumed_by_colonists_theoretical = 8,
+                 .food_consumed_by_colonists_actual      = 8,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 3,
+                 .horses_produced_theoretical            = 0,
+                 .max_new_horses_allowed                 = 3,
+                 .horses_produced_actual                 = 0,
+                 .food_consumed_by_horses                = 0,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = 3,
+                 .colonist_starved                       = false,
+             } );
   }
 
   SECTION( "one farmer surplus=3, horses=25" ) {
-    // TODO: implement center production first.
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::horses] = 25;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::food,
+                         e_unit_type::native_convert );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 9,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 9,
+                 .food_consumed_by_colonists_theoretical = 6,
+                 .food_consumed_by_colonists_actual      = 6,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 3,
+                 .horses_produced_theoretical            = 1,
+                 .max_new_horses_allowed                 = 3,
+                 .horses_produced_actual                 = 1,
+                 .food_consumed_by_horses                = 1,
+                 .horses_delta_final                     = 1,
+                 .food_delta_final                       = 2,
+                 .colonist_starved                       = false,
+             } );
+  }
+
+  SECTION( "one farmer surplus=3, horses=26" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::horses] = 26;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::food,
+                         e_unit_type::native_convert );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 9,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 9,
+                 .food_consumed_by_colonists_theoretical = 6,
+                 .food_consumed_by_colonists_actual      = 6,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 3,
+                 .horses_produced_theoretical            = 2,
+                 .max_new_horses_allowed                 = 3,
+                 .horses_produced_actual                 = 2,
+                 .food_consumed_by_horses                = 2,
+                 .horses_delta_final                     = 2,
+                 .food_delta_final                       = 1,
+                 .colonist_starved                       = false,
+             } );
+  }
+
+  SECTION( "one farmer surplus=1, horses=max-2" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::horses] = 98;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::food,
+                         e_unit_type::native_convert );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 9,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 9,
+                 .food_consumed_by_colonists_theoretical = 8,
+                 .food_consumed_by_colonists_actual      = 8,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 1,
+                 .horses_produced_theoretical            = 4,
+                 .max_new_horses_allowed                 = 1,
+                 .horses_produced_actual                 = 1,
+                 .food_consumed_by_horses                = 1,
+                 .horses_delta_final                     = 1,
+                 .food_delta_final                       = 0,
+                 .colonist_starved                       = false,
+             } );
+  }
+
+  SECTION( "one farmer surplus=3, horses=max-1" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::horses] = 99;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::food,
+                         e_unit_type::native_convert );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 9,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 9,
+                 .food_consumed_by_colonists_theoretical = 6,
+                 .food_consumed_by_colonists_actual      = 6,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 3,
+                 .horses_produced_theoretical            = 4,
+                 .max_new_horses_allowed                 = 3,
+                 .horses_produced_actual                 = 3,
+                 .food_consumed_by_horses                = 3,
+                 .horses_delta_final                     = 1,
+                 .food_delta_final                       = 0,
+                 .colonist_starved                       = false,
+             } );
   }
 
   SECTION( "one farmer surplus=3, horses=max" ) {
-    // TODO: implement center production first.
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::horses] = 100;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::food,
+                         e_unit_type::native_convert );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 9,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 9,
+                 .food_consumed_by_colonists_theoretical = 6,
+                 .food_consumed_by_colonists_actual      = 6,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 3,
+                 .horses_produced_theoretical            = 4,
+                 .max_new_horses_allowed                 = 3,
+                 .horses_produced_actual                 = 3,
+                 .food_consumed_by_horses                = 3,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = 0,
+                 .colonist_starved                       = false,
+             } );
   }
 
   SECTION( "one farmer surplus=3, horses=25, +stable" ) {
-    // TODO: implement center production first.
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.buildings[e_colony_building::stable] = true;
+    colony.commodities[e_commodity::horses]     = 25;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::food,
+                         e_unit_type::native_convert );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 9,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 9,
+                 .food_consumed_by_colonists_theoretical = 6,
+                 .food_consumed_by_colonists_actual      = 6,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 3,
+                 .horses_produced_theoretical            = 2,
+                 .max_new_horses_allowed                 = 3,
+                 .horses_produced_actual                 = 2,
+                 .food_consumed_by_horses                = 2,
+                 .horses_delta_final                     = 2,
+                 .food_delta_final                       = 1,
+                 .colonist_starved                       = false,
+             } );
+  }
+
+  SECTION( "one farmer surplus=3, horses=26, +stable" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.buildings[e_colony_building::stable] = true;
+    colony.commodities[e_commodity::horses]     = 26;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::food,
+                         e_unit_type::native_convert );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 9,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 9,
+                 .food_consumed_by_colonists_theoretical = 6,
+                 .food_consumed_by_colonists_actual      = 6,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 3,
+                 .horses_produced_theoretical            = 4,
+                 .max_new_horses_allowed                 = 3,
+                 .horses_produced_actual                 = 3,
+                 .food_consumed_by_horses                = 3,
+                 .horses_delta_final                     = 3,
+                 .food_delta_final                       = 0,
+                 .colonist_starved                       = false,
+             } );
   }
 
   SECTION( "deficit no starve, horses=0" ) {
-    // TODO: implement center production first.
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.buildings[e_colony_building::stable] = true;
+    colony.commodities[e_commodity::horses]     = 0;
+    colony.commodities[e_commodity::food]       = 50;
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 5,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 5,
+                 .food_consumed_by_colonists_theoretical = 6,
+                 .food_consumed_by_colonists_actual      = 6,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 0,
+                 .horses_produced_theoretical            = 0,
+                 .max_new_horses_allowed                 = 0,
+                 .horses_produced_actual                 = 0,
+                 .food_consumed_by_horses                = 0,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = -1,
+                 .colonist_starved                       = false,
+             } );
   }
 
-  SECTION( "deficit no starve, horses=50" ) {
-    // TODO: implement center production first.
+  SECTION( "deficit no starve, horses=51" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::horses] = 51;
+    colony.commodities[e_commodity::food]   = 50;
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::cigars );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 5,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 5,
+                 .food_consumed_by_colonists_theoretical = 8,
+                 .food_consumed_by_colonists_actual      = 8,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 0,
+                 .horses_produced_theoretical            = 3,
+                 .max_new_horses_allowed                 = 0,
+                 .horses_produced_actual                 = 0,
+                 .food_consumed_by_horses                = 0,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = -3,
+                 .colonist_starved                       = false,
+             } );
   }
 
   SECTION( "deficit and starve" ) {
-    // TODO: implement center production first.
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::cigars );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 5,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 5,
+                 .food_consumed_by_colonists_theoretical = 8,
+                 .food_consumed_by_colonists_actual      = 5,
+                 .food_deficit                           = 3,
+                 .food_surplus_before_horses             = 0,
+                 .horses_produced_theoretical            = 0,
+                 .max_new_horses_allowed                 = 0,
+                 .horses_produced_actual                 = 0,
+                 .food_consumed_by_horses                = 0,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = 0,
+                 .colonist_starved                       = true,
+             } );
   }
 
-  SECTION( "deficit and starve, horses=50" ) {
-    // TODO: implement center production first.
+  SECTION( "deficit and starve, horses=51" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::horses] = 51;
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::cigars );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 5,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 5,
+                 .food_consumed_by_colonists_theoretical = 8,
+                 .food_consumed_by_colonists_actual      = 5,
+                 .food_deficit                           = 3,
+                 .food_surplus_before_horses             = 0,
+                 .horses_produced_theoretical            = 3,
+                 .max_new_horses_allowed                 = 0,
+                 .horses_produced_actual                 = 0,
+                 .food_consumed_by_horses                = 0,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = 0,
+                 .colonist_starved                       = true,
+             } );
   }
 
   SECTION( "two farmers, two fisherman, surplus" ) {
-    // TODO: implement center production first.
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    W.add_unit_outdoors( colony.id, e_direction::nw,
+                         e_outdoor_job::fish,
+                         e_unit_type::expert_fisherman );
+    W.add_unit_outdoors( colony.id, e_direction::ne,
+                         e_outdoor_job::fish,
+                         e_unit_type::free_colonist );
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::food,
+                         e_unit_type::expert_farmer );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::food,
+                         e_unit_type::free_colonist );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::nw,
+              SP{ .what = e_outdoor_job::fish, .quantity = 6 } },
+            { e_direction::ne,
+              SP{ .what = e_outdoor_job::fish, .quantity = 4 } },
+            { e_direction::e,
+              SP{ .what = e_outdoor_job::food, .quantity = 3 } },
+            { e_direction::w, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 5 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 13,
+                 .fish_produced                          = 10,
+                 .food_produced                          = 23,
+                 .food_consumed_by_colonists_theoretical = 14,
+                 .food_consumed_by_colonists_actual      = 14,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 9,
+                 .horses_produced_theoretical            = 0,
+                 .max_new_horses_allowed                 = 9,
+                 .horses_produced_actual                 = 0,
+                 .food_consumed_by_horses                = 0,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = 9,
+                 .colonist_starved                       = false,
+             } );
+  }
+
+  SECTION(
+      "two farmers, two fisherman, surplus, warehouse, "
+      "horses=101, stable" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.buildings[e_colony_building::stable]    = true;
+    colony.buildings[e_colony_building::warehouse] = true;
+    colony.commodities[e_commodity::horses]        = 101;
+    W.add_unit_outdoors( colony.id, e_direction::nw,
+                         e_outdoor_job::fish,
+                         e_unit_type::expert_fisherman );
+    W.add_unit_outdoors( colony.id, e_direction::ne,
+                         e_outdoor_job::fish,
+                         e_unit_type::free_colonist );
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::food,
+                         e_unit_type::expert_farmer );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::food,
+                         e_unit_type::free_colonist );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::nw,
+              SP{ .what = e_outdoor_job::fish, .quantity = 6 } },
+            { e_direction::ne,
+              SP{ .what = e_outdoor_job::fish, .quantity = 4 } },
+            { e_direction::e,
+              SP{ .what = e_outdoor_job::food, .quantity = 3 } },
+            { e_direction::w, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 5 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 13,
+                 .fish_produced                          = 10,
+                 .food_produced                          = 23,
+                 .food_consumed_by_colonists_theoretical = 10,
+                 .food_consumed_by_colonists_actual      = 10,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 13,
+                 .horses_produced_theoretical            = 10,
+                 .max_new_horses_allowed                 = 13,
+                 .horses_produced_actual                 = 10,
+                 .food_consumed_by_horses                = 10,
+                 .horses_delta_final                     = 10,
+                 .food_delta_final                       = 3,
+                 .colonist_starved                       = false,
+             } );
   }
 
   SECTION(
       "one farmer, surplus=2, warehouse expansion, horses=100, "
       "+stable" ) {
-    // TODO: implement center production first.
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.buildings[e_colony_building::stable] = true;
+    colony.buildings[e_colony_building::warehouse_expansion] =
+        true;
+    colony.commodities[e_commodity::horses] = 100;
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::food,
+                         e_unit_type::free_colonist );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 3 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 8,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 8,
+                 .food_consumed_by_colonists_theoretical = 6,
+                 .food_consumed_by_colonists_actual      = 6,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 2,
+                 .horses_produced_theoretical            = 8,
+                 .max_new_horses_allowed                 = 2,
+                 .horses_produced_actual                 = 2,
+                 .food_consumed_by_horses                = 2,
+                 .horses_delta_final                     = 2,
+                 .food_delta_final                       = 0,
+                 .colonist_starved                       = false,
+             } );
   }
 }
 

@@ -317,53 +317,48 @@ void compute_food_production(
   int const warehouse_capacity =
       colony_warehouse_capacity( colony );
 
-  if( out.food_surplus_before_horses > 0 ) {
-    // We have the opportunity to produce some horses since we
-    // have some (non-warehouse) food surplus this turn.
-    int const current_horses =
-        colony.commodities[e_commodity::horses];
+  // We must have at least two horses to breed. If we do, then we
+  // produce one extra horse per 25 (or less) horses. I.e., 50
+  // horses produces two horses per turn, and 51 produces three
+  // per turn.
+  int const current_horses =
+      colony.commodities[e_commodity::horses];
+  out.horses_produced_theoretical =
+      ( current_horses < 2 ) ? 0 : ( current_horses + 24 ) / 25;
+  if( colony.buildings[e_colony_building::stable] )
+    out.horses_produced_theoretical *= 2;
+  int const food_per_new_horse = 1;
+  out.max_new_horses_allowed =
+      out.food_surplus_before_horses / food_per_new_horse;
 
-    // We must have at least two horses to breed. If we do, then
-    // we produce one extra horse per 25 (or less) horses. I.e.,
-    // 50 horses produces two horses per turn, and 51 produces
-    // three per turn.
-    out.horses_produced_theoretical =
-        ( current_horses < 2 ) ? 0
-                               : ( current_horses + 24 ) / 25;
-    if( colony.buildings[e_colony_building::stable] )
-      out.horses_produced_theoretical *= 2;
-
-    int const food_per_new_horse = 1;
-    out.max_new_horses_allowed =
-        out.food_surplus_before_horses / food_per_new_horse;
-    out.horses_produced_actual =
-        std::min( out.max_new_horses_allowed,
-                  out.horses_produced_theoretical );
-    out.food_consumed_by_horses =
-        food_per_new_horse * out.horses_produced_actual;
-    if( out.horses_produced_actual > 0 ||
-        out.max_new_horses_allowed > 0 ) {
-      CHECK( out.food_deficit == 0 );
-    }
-
-    int const proposed_new_horse_quantity =
-        current_horses + out.horses_produced_actual;
-    out.horses_delta_final =
-        std::min( proposed_new_horse_quantity,
-                  warehouse_capacity ) -
-        current_horses;
-    if( out.horses_delta_final < 0 ) {
-      // Since horse quantities can never decrease due to food
-      // shortages, if we are here then this means that we are
-      // over warehouse capacity. We will therefore set the delta
-      // to zero and let the spoilage detector (which happens
-      // separately) remove the excess quantity.
-      out.horses_delta_final = 0;
-    }
-    CHECK( out.horses_delta_final + current_horses >= 0,
-           "colony supply of horses has gone negative ({}).",
-           out.horses_delta_final + current_horses );
+  // We have the opportunity to actually produce some horses
+  // since we have some (non-warehouse) food surplus this turn.
+  out.horses_produced_actual =
+      std::min( out.max_new_horses_allowed,
+                out.horses_produced_theoretical );
+  out.food_consumed_by_horses =
+      food_per_new_horse * out.horses_produced_actual;
+  if( out.horses_produced_actual > 0 ||
+      out.max_new_horses_allowed > 0 ) {
+    CHECK( out.food_deficit == 0 );
   }
+
+  int const proposed_new_horse_quantity =
+      current_horses + out.horses_produced_actual;
+  out.horses_delta_final = std::min( proposed_new_horse_quantity,
+                                     warehouse_capacity ) -
+                           current_horses;
+  if( out.horses_delta_final < 0 ) {
+    // Since horse quantities can never decrease due to food
+    // shortages, if we are here then this means that we are over
+    // warehouse capacity. We will therefore set the delta to
+    // zero and let the spoilage detector (which happens sepa-
+    // rately) remove the excess quantity.
+    out.horses_delta_final = 0;
+  }
+  CHECK( out.horses_delta_final + current_horses >= 0,
+         "colony supply of horses has gone negative ({}).",
+         out.horses_delta_final + current_horses );
 
   // Do this again since it is important.
   CHECK_GE( out.food_deficit, 0 );
