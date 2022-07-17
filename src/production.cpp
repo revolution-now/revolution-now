@@ -570,6 +570,13 @@ void compute_land_production( ColonyProduction& pr,
             .commodities_with_warehouse_limit[c] )
       adjust_for_warehouse(
           c, final_production_delta_for_commodity( pr, c ) );
+
+  // We need to do hammers manually since it won't be done by the
+  // loop above because there is no commodity for hammers. Since
+  // there is no limit on the number of hammers that can be accu-
+  // mulated, the final and actual are the same.
+  pr.lumber_hammers.product_delta_final =
+      pr.lumber_hammers.product_produced_actual;
 }
 
 void fill_in_center_square( SSConst const&    ss,

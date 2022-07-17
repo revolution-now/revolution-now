@@ -183,7 +183,13 @@ TEST_CASE( "[production] crosses" ) {
   REQUIRE( W.validate_colonies() == base::valid );
 }
 
-TEST_CASE( "[production] lumber/hammers" ) {
+// This test case emphasizes lumber production for many combina-
+// tions of unit types and tile types. There is another test case
+// that deals with conversion of lumber to hammers and warehouse
+// capacity.
+TEST_CASE(
+    "[production] lumber production by colonist and tile "
+    "type" ) {
   World W;
   W.create_default_map();
   Colony&    colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
@@ -193,9 +199,6 @@ TEST_CASE( "[production] lumber/hammers" ) {
     return production_for_colony( W.ss(), colony )
         .lumber_hammers;
   };
-
-  // TODO
-  // Need to add hammers.
 
   SECTION( "petty_criminal" ) {
     W.add_unit_outdoors( colony.id, e_direction::w,
@@ -471,6 +474,293 @@ TEST_CASE( "[production] lumber/hammers" ) {
       W.add_major_river( P );
       REQUIRE( lum() == RawMaterialAndProduct{} );
     }
+  }
+}
+
+TEST_CASE( "[production] lumber+hammers [discoverer]" ) {
+  World W;
+  W.create_default_map();
+
+  W.square( W.kGrasslandTile - Delta{ .w = 1 } ).overlay =
+      e_land_overlay::forest;
+  // Adding a forest to the colony square will also help us to
+  // enforce that there is no lumber produced on the center
+  // square.
+  W.square( W.kGrasslandTile ).overlay = e_land_overlay::forest;
+
+  using SP  = SquareProduction;
+  using LP  = refl::enum_map<e_direction, SP>;
+  using RMP = RawMaterialAndProduct;
+
+  W.settings().difficulty = e_difficulty::discoverer;
+
+  SECTION( "no lumberjack" ) {
+    Colony&          colony = W.add_colony( W.kGrasslandTile );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.lumber_hammers ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 0,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "one lumberjack" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::lumber,
+                         e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::lumber,
+                                  .quantity = 6 } } } );
+    REQUIRE( pr.lumber_hammers ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 6,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 6,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "one lumberjack, almost full warehouse" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::lumber] = 98;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::lumber,
+                         e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::lumber,
+                                  .quantity = 6 } } } );
+    REQUIRE( pr.lumber_hammers ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 6,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 2,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "one expert lumberjack, full warehouse" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::lumber] = 100;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::lumber,
+                         e_unit_type::expert_lumberjack );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::lumber,
+                                  .quantity = 12 } } } );
+    REQUIRE( pr.lumber_hammers ==
+             RMP{
+                 .raw_produced                 = 12,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 12,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "one lumberjack, over warehouse" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::lumber] = 150;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::lumber,
+                         e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::lumber,
+                                  .quantity = 6 } } } );
+    REQUIRE( pr.lumber_hammers ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 6,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "no lumberjack/with carpenter" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::lumber] = 0;
+    W.add_unit_indoors( colony.id, e_indoor_job::hammers,
+                        e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.lumber_hammers ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 3,
+                 .raw_delta_theoretical        = -3,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 3,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "no lumberjack/with carpenter, lumber in store" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::lumber] = 1;
+    W.add_unit_indoors( colony.id, e_indoor_job::hammers,
+                        e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.lumber_hammers ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 3,
+                 .raw_delta_theoretical        = -3,
+                 .raw_consumed_actual          = 1,
+                 .raw_delta_final              = -1,
+                 .product_produced_theoretical = 3,
+                 .product_produced_actual      = 1,
+                 .product_delta_final          = 1,
+             } );
+  }
+
+  SECTION(
+      "no lumberjack/with master carpenter, lumber in store" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::lumber] = 50;
+    W.add_unit_indoors( colony.id, e_indoor_job::hammers,
+                        e_unit_type::master_carpenter );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.lumber_hammers ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = -6,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 6,
+             } );
+  }
+
+  SECTION(
+      "one lumberjack/with master carpenter, no lumber in "
+      "store" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::lumber] = 0;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::lumber,
+                         e_unit_type::free_colonist );
+    W.add_unit_indoors( colony.id, e_indoor_job::hammers,
+                        e_unit_type::master_carpenter );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::lumber,
+                                  .quantity = 6 } } } );
+    REQUIRE( pr.lumber_hammers ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = 0,
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 6,
+             } );
+  }
+
+  SECTION(
+      "one expert lumberjack, with master carpenter, some "
+      "lumber in store, lumber mill" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::lumber]          = 50;
+    colony.buildings[e_colony_building::lumber_mill] = true;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::lumber,
+                         e_unit_type::expert_lumberjack );
+    W.add_unit_indoors( colony.id, e_indoor_job::hammers,
+                        e_unit_type::master_carpenter );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::lumber,
+                                  .quantity = 12 } } } );
+    REQUIRE( pr.lumber_hammers ==
+             RMP{
+                 .raw_produced                 = 12,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = 0,
+                 .raw_consumed_actual          = 12,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 12,
+                 .product_produced_actual      = 12,
+                 .product_delta_final          = 12,
+             } );
+  }
+
+  SECTION(
+      "one expert lumberjack, with two master carpenters, some "
+      "lumber in store, lumber mill" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::lumber]          = 50;
+    colony.buildings[e_colony_building::lumber_mill] = true;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::lumber,
+                         e_unit_type::expert_lumberjack );
+    W.add_unit_indoors( colony.id, e_indoor_job::hammers,
+                        e_unit_type::master_carpenter );
+    W.add_unit_indoors( colony.id, e_indoor_job::hammers,
+                        e_unit_type::master_carpenter );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::lumber,
+                                  .quantity = 12 } } } );
+    REQUIRE( pr.lumber_hammers ==
+             RMP{
+                 .raw_produced                 = 12,
+                 .raw_consumed_theoretical     = 24,
+                 .raw_delta_theoretical        = -12,
+                 .raw_consumed_actual          = 24,
+                 .raw_delta_final              = -12,
+                 .product_produced_theoretical = 24,
+                 .product_produced_actual      = 24,
+                 .product_delta_final          = 24,
+             } );
   }
 }
 
