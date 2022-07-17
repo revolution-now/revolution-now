@@ -12,6 +12,7 @@
 include "ss/colony-enums.rds.hpp"
 include "ss/unit-type.rds.hpp"
 include "ss/fathers.rds.hpp"
+include "ss/commodity.rds.hpp"
 
 # gfx
 include "gfx/pixel.hpp"
@@ -47,10 +48,11 @@ struct.warehouses {
   warehouse_expansion_max_quantity 'int',
 
   # The original game doesn't seem to impose a limit on the
-  # amount of food that can be stored. This could partially be to
-  # allow exceeding 100 without a warehouse in order to get to
-  # 200 which is needed to create a new colonist.
-  food_max_quantity 'int',
+  # amount of food that can be stored. This is to allow exceeding
+  # 100 without a warehouse in order to get to 200 which is
+  # needed to create a new colonist (and creating a new colonist
+  # at 100 made it too easy).
+  commodities_with_warehouse_limit 'refl::enum_map<e_commodity, bool>',
 
   _features { validation, equality }
 }

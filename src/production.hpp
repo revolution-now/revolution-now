@@ -37,4 +37,7 @@ ColonyProduction production_for_colony( SSConst const& ss,
 maybe<int> production_for_slot( ColonyProduction const& pr,
                                 e_colony_building_slot  slot );
 
+int const& final_production_delta_for_commodity(
+    ColonyProduction const& pr, e_commodity c );
+
 } // namespace rn

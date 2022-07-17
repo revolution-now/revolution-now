@@ -24,20 +24,10 @@ base::valid_or<string> config::colony::warehouses::validate()
       warehouse_expansion_max_quantity > warehouse_max_quantity,
       "The warehouse expansion capacity must be larger than the "
       "warehouse capacity." );
-  REFL_VALIDATE(
-      food_max_quantity >= default_max_quantity,
-      "max food capacity must be larger than default warehouse "
-      "capacity." );
   return base::valid;
 }
 
 base::valid_or<string> config_colony_t::validate() const {
-  REFL_VALIDATE(
-      food_for_creating_new_colonist <=
-          warehouses.food_max_quantity,
-      "The amount of food required for creating a new colonist "
-      "must be <= to the maximum quantity of food allowed." );
-
   // The capenter's shop must not cost any hammers to build,
   // since one would not be able to produce the hammers to build
   // it without the building itself.

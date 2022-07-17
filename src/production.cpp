@@ -42,6 +42,38 @@ namespace rn {
 
 namespace {
 
+// Mutable version, used only internally.
+int& final_production_delta_for_commodity( ColonyProduction& pr,
+                                           e_commodity c ) {
+  switch( c ) {
+    case e_commodity::food: return pr.food.food_delta_final;
+    case e_commodity::horses: return pr.food.horses_delta_final;
+    case e_commodity::sugar: return pr.sugar_rum.raw_delta_final;
+    case e_commodity::rum:
+      return pr.sugar_rum.product_delta_final;
+    case e_commodity::tobacco:
+      return pr.tobacco_cigars.raw_delta_final;
+    case e_commodity::cigars:
+      return pr.tobacco_cigars.product_delta_final;
+    case e_commodity::cotton:
+      return pr.cotton_cloth.raw_delta_final;
+    case e_commodity::cloth:
+      return pr.cotton_cloth.product_delta_final;
+    case e_commodity::fur: return pr.fur_coats.raw_delta_final;
+    case e_commodity::coats:
+      return pr.fur_coats.product_delta_final;
+    case e_commodity::lumber:
+      return pr.lumber_hammers.raw_delta_final;
+    case e_commodity::silver: return pr.silver.raw_delta_final;
+    case e_commodity::ore: return pr.ore_tools.raw_delta_final;
+    case e_commodity::tools:
+      return pr.tools_muskets.raw_delta_final;
+    case e_commodity::muskets:
+      return pr.tools_muskets.product_delta_final;
+    case e_commodity::trade_goods: return pr.trade_goods;
+  }
+}
+
 maybe<e_commodity> product_from_raw( e_commodity raw ) {
   switch( raw ) {
     case e_commodity::food: return nothing;
@@ -292,30 +324,26 @@ void compute_food_production(
   out.food_consumed_by_colonists_theoretical = population * 2;
   CHECK_GE( out.food_consumed_by_colonists_theoretical, 0 );
 
-  int const food_in_warehouse_before =
-      colony.commodities[e_commodity::food];
+  int const current_food = colony.commodities[e_commodity::food];
   out.food_consumed_by_colonists_actual =
-      ( food_in_warehouse_before + out.food_produced ) >=
+      ( current_food + out.food_produced ) >=
               out.food_consumed_by_colonists_theoretical
           ? out.food_consumed_by_colonists_theoretical
-          : ( food_in_warehouse_before + out.food_produced );
+          : ( current_food + out.food_produced );
   CHECK_GE( out.food_consumed_by_colonists_actual, 0 );
 
   // Either zero or positive.
   out.food_deficit =
-      ( food_in_warehouse_before + out.food_produced ) >=
+      ( current_food + out.food_produced ) >=
               out.food_consumed_by_colonists_theoretical
           ? 0
           : out.food_consumed_by_colonists_theoretical -
-                ( food_in_warehouse_before + out.food_produced );
+                ( current_food + out.food_produced );
   CHECK_GE( out.food_deficit, 0 );
 
   out.food_surplus_before_horses = std::max(
       0, out.food_produced -
              out.food_consumed_by_colonists_theoretical );
-
-  int const warehouse_capacity =
-      colony_warehouse_capacity( colony );
 
   // We must have at least two horses to breed. If we do, then we
   // produce one extra horse per 25 (or less) horses. I.e., 50
@@ -343,58 +371,38 @@ void compute_food_production(
     CHECK( out.food_deficit == 0 );
   }
 
-  int const proposed_new_horse_quantity =
-      current_horses + out.horses_produced_actual;
-  out.horses_delta_final = std::min( proposed_new_horse_quantity,
-                                     warehouse_capacity ) -
-                           current_horses;
-  if( out.horses_delta_final < 0 ) {
-    // Since horse quantities can never decrease due to food
-    // shortages, if we are here then this means that we are over
-    // warehouse capacity. We will therefore set the delta to
-    // zero and let the spoilage detector (which happens sepa-
-    // rately) remove the excess quantity.
-    out.horses_delta_final = 0;
-  }
-  CHECK( out.horses_delta_final + current_horses >= 0,
-         "colony supply of horses has gone negative ({}).",
-         out.horses_delta_final + current_horses );
-
   // Do this again since it is important.
   CHECK_GE( out.food_deficit, 0 );
 
   if( out.food_deficit > 0 ) {
     CHECK( out.horses_produced_actual == 0 );
     // Final food delta can be computed without regard to horses.
-    out.horses_delta_final               = 0;
     int const proposed_new_food_quantity = 0;
     // Since there are no warehouse limits on the amount of food,
     // we can just compute the final delta.
-    out.food_delta_final = ( proposed_new_food_quantity -
-                             food_in_warehouse_before );
-    CHECK( food_in_warehouse_before + out.food_delta_final ==
-           0 );
+    out.food_delta_final =
+        ( proposed_new_food_quantity - current_food );
+    CHECK( current_food + out.food_delta_final == 0 );
     out.colonist_starved = true;
   } else {
     // Final food delta must take into account horses.
     int const proposed_new_food_quantity =
-        food_in_warehouse_before + out.food_produced -
+        current_food + out.food_produced -
         out.food_consumed_by_colonists_actual -
         out.food_consumed_by_horses;
     out.food_delta_final =
-        proposed_new_food_quantity - food_in_warehouse_before;
+        proposed_new_food_quantity - current_food;
     // Note that food_delta_final could be positive or negative
     // here, since the fact that we have no food deficit may just
     // mean that there was enough in the warehouse to draw from.
     CHECK( out.colonist_starved == false );
   }
 
-  CHECK( out.food_delta_final + food_in_warehouse_before >= 0,
+  CHECK( out.food_delta_final + current_food >= 0,
          "colony supply of food has gone negative ({}).",
-         out.food_delta_final + food_in_warehouse_before );
+         out.food_delta_final + current_food );
   if( out.colonist_starved ) {
-    CHECK( out.food_delta_final + food_in_warehouse_before ==
-           0 );
+    CHECK( out.food_delta_final + current_food == 0 );
   }
 }
 
@@ -513,26 +521,24 @@ void compute_land_production( ColonyProduction& pr,
   compute( e_outdoor_job::fur, pr.fur_coats );
   compute( e_outdoor_job::lumber, pr.lumber_hammers );
   compute( e_outdoor_job::silver, pr.silver );
+  compute( e_outdoor_job::ore, pr.ore_tools );
 
-  // Ore/tools/muskets.
-  {
-    // First compute ore/tools as if muskets don't exist.
-    compute( e_outdoor_job::ore, pr.ore_tools );
-    // Boostrap the muskets calculation with the tools produced
-    // from the ore/tools stage.
-    pr.tools_muskets.raw_produced =
-        pr.ore_tools.product_produced_actual;
-    pr.tools_muskets.raw_delta_theoretical =
-        pr.tools_muskets.raw_produced;
-    do_product( e_indoor_job::muskets, e_commodity::tools,
-                pr.tools_muskets );
-    colony.commodities[e_commodity::tools] -=
-        pr.tools_muskets.raw_consumed_actual;
-  }
+  // Tools/Muskets. Boostrap the muskets calculation with the
+  // tools produced from the ore/tools stage.
+  pr.tools_muskets.raw_produced =
+      pr.ore_tools.product_produced_actual;
+  pr.tools_muskets.raw_delta_theoretical =
+      pr.tools_muskets.raw_produced;
+  do_product( e_indoor_job::muskets, e_commodity::tools,
+              pr.tools_muskets );
+  colony.commodities[e_commodity::tools] -=
+      pr.tools_muskets.raw_consumed_actual;
 
   compute_food_production( terrain_state, units_state, colony,
                            pr.center_food_production, pr.food,
                            pr.land_production );
+  colony.commodities[e_commodity::horses] +=
+      pr.food.horses_produced_actual;
 
   // Warehouse adjustments. Note that this must be done after all
   // production is computed because in some cases (e.g. tools)
@@ -559,40 +565,11 @@ void compute_land_production( ColonyProduction& pr,
                   colony_pristine.commodities[comm];
   };
 
-  adjust_for_warehouse( e_commodity::sugar,
-                        pr.sugar_rum.raw_delta_final );
-  adjust_for_warehouse( e_commodity::rum,
-                        pr.sugar_rum.product_delta_final );
-
-  adjust_for_warehouse( e_commodity::tobacco,
-                        pr.tobacco_cigars.raw_delta_final );
-  adjust_for_warehouse( e_commodity::cigars,
-                        pr.tobacco_cigars.product_delta_final );
-
-  adjust_for_warehouse( e_commodity::cotton,
-                        pr.cotton_cloth.raw_delta_final );
-  adjust_for_warehouse( e_commodity::cloth,
-                        pr.cotton_cloth.product_delta_final );
-
-  adjust_for_warehouse( e_commodity::fur,
-                        pr.fur_coats.raw_delta_final );
-  adjust_for_warehouse( e_commodity::coats,
-                        pr.fur_coats.product_delta_final );
-
-  adjust_for_warehouse( e_commodity::ore,
-                        pr.ore_tools.raw_delta_final );
-  // For tools, its the one in tools/muskets that has the final
-  // value.
-  adjust_for_warehouse( e_commodity::tools,
-                        pr.tools_muskets.raw_delta_final );
-  adjust_for_warehouse( e_commodity::muskets,
-                        pr.tools_muskets.product_delta_final );
-
-  adjust_for_warehouse( e_commodity::silver,
-                        pr.silver.raw_delta_final );
-
-  adjust_for_warehouse( e_commodity::lumber,
-                        pr.lumber_hammers.raw_delta_final );
+  for( e_commodity c : refl::enum_values<e_commodity> )
+    if( config_colony.warehouses
+            .commodities_with_warehouse_limit[c] )
+      adjust_for_warehouse(
+          c, final_production_delta_for_commodity( pr, c ) );
 }
 
 void fill_in_center_square( SSConst const&    ss,
@@ -623,6 +600,39 @@ void fill_in_center_square( SSConst const&    ss,
 /****************************************************************
 ** Public API
 *****************************************************************/
+int const& final_production_delta_for_commodity(
+    ColonyProduction const& pr, e_commodity c ) {
+  switch( c ) {
+    case e_commodity::food: return pr.food.food_delta_final;
+    case e_commodity::horses: return pr.food.horses_delta_final;
+    case e_commodity::sugar: return pr.sugar_rum.raw_delta_final;
+    case e_commodity::rum:
+      return pr.sugar_rum.product_delta_final;
+    case e_commodity::tobacco:
+      return pr.tobacco_cigars.raw_delta_final;
+    case e_commodity::cigars:
+      return pr.tobacco_cigars.product_delta_final;
+    case e_commodity::cotton:
+      return pr.cotton_cloth.raw_delta_final;
+    case e_commodity::cloth:
+      return pr.cotton_cloth.product_delta_final;
+    case e_commodity::fur: return pr.fur_coats.raw_delta_final;
+    case e_commodity::coats:
+      return pr.fur_coats.product_delta_final;
+    case e_commodity::lumber:
+      return pr.lumber_hammers.raw_delta_final;
+    case e_commodity::silver: return pr.silver.raw_delta_final;
+    case e_commodity::ore: return pr.ore_tools.raw_delta_final;
+    case e_commodity::tools:
+      // For tools, its the one in tools/muskets that has the
+      // final value.
+      return pr.tools_muskets.raw_delta_final;
+    case e_commodity::muskets:
+      return pr.tools_muskets.product_delta_final;
+    case e_commodity::trade_goods: return pr.trade_goods;
+  }
+}
+
 maybe<int> production_for_slot( ColonyProduction const& pr,
                                 e_colony_building_slot  slot ) {
   switch( slot ) {

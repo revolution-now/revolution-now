@@ -2270,6 +2270,32 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
              } );
   }
 
+  SECTION( "food no warehouse limit" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::food] = 350;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 5,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 5,
+                 .food_consumed_by_colonists_theoretical = 0,
+                 .food_consumed_by_colonists_actual      = 0,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 5,
+                 .horses_produced_theoretical            = 0,
+                 .max_new_horses_allowed                 = 5,
+                 .horses_produced_actual                 = 0,
+                 .food_consumed_by_horses                = 0,
+                 .horses_delta_final                     = 0,
+                 .food_delta_final                       = 5,
+                 .colonist_starved                       = false,
+             } );
+  }
+
   SECTION( "one farmer no horses" ) {
     Colony& colony = W.add_colony( W.kGrasslandTile );
     W.add_unit_outdoors( colony.id, e_direction::w,

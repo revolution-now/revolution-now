@@ -184,4 +184,9 @@ struct.ColonyProduction {
   # Things that are neither derived nor consumed.
   crosses 'int',
   bells   'int',
+
+  # This field is always zero since colonies can't produce or
+  # consume trade goods, at least in the original game. But it is
+  # convenient to have such a field for consistency.
+  trade_goods 'int',
 }

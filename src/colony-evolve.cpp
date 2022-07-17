@@ -44,8 +44,6 @@ namespace {
 // and a notification will be returned.
 maybe<ColonyNotification::spoilage> check_spoilage(
     Colony& colony ) {
-  int const food_capacity =
-      config_colony.warehouses.food_max_quantity;
   int const warehouse_capacity =
       colony_warehouse_capacity( colony );
 
@@ -53,9 +51,7 @@ maybe<ColonyNotification::spoilage> check_spoilage(
   refl::enum_map<e_commodity, int>& commodities =
       colony.commodities;
   for( e_commodity c : refl::enum_values<e_commodity> ) {
-    int const max = ( c == e_commodity::food )
-                        ? food_capacity
-                        : warehouse_capacity;
+    int const max = warehouse_capacity;
     if( commodities[c] > max ) {
       int spoilage = commodities[c] - max;
       spoiled.push_back(
@@ -264,43 +260,12 @@ void apply_production_to_colony(
   refl::enum_map<e_commodity, int>& commodities =
       colony.commodities;
 
-  auto inc = [&]( e_commodity what, int delta ) {
-    apply_commodity_increase( commodities, what, delta,
+  for( e_commodity c : refl::enum_values<e_commodity> ) {
+    int delta =
+        final_production_delta_for_commodity( production, c );
+    apply_commodity_increase( commodities, c, delta,
                               notifications );
-  };
-
-  inc( e_commodity::food, production.food.food_delta_final );
-  inc( e_commodity::horses, production.food.horses_delta_final );
-
-  inc( e_commodity::sugar,
-       production.sugar_rum.raw_delta_final );
-  inc( e_commodity::rum,
-       production.sugar_rum.product_delta_final );
-
-  inc( e_commodity::tobacco,
-       production.tobacco_cigars.raw_delta_final );
-  inc( e_commodity::cigars,
-       production.tobacco_cigars.product_delta_final );
-
-  inc( e_commodity::cotton,
-       production.cotton_cloth.raw_delta_final );
-  inc( e_commodity::cloth,
-       production.cotton_cloth.product_delta_final );
-
-  inc( e_commodity::fur, production.fur_coats.raw_delta_final );
-  inc( e_commodity::coats,
-       production.fur_coats.product_delta_final );
-
-  inc( e_commodity::lumber,
-       production.lumber_hammers.raw_delta_final );
-
-  inc( e_commodity::silver, production.silver.raw_delta_final );
-
-  inc( e_commodity::ore, production.ore_tools.raw_delta_final );
-  inc( e_commodity::tools,
-       production.tools_muskets.raw_delta_final );
-  inc( e_commodity::muskets,
-       production.tools_muskets.product_delta_final );
+  }
 
   colony.hammers +=
       production.lumber_hammers.product_delta_final;
