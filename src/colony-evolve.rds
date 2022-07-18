@@ -38,6 +38,10 @@ sumtype.ColonyNotification {
   full_cargo {
     what 'e_commodity',
   },
+  run_out_of_raw_material {
+    what 'e_commodity',
+    job 'e_indoor_job',
+  },
   construction_missing_tools {
     what 'Construction_t',
     have_tools 'int',

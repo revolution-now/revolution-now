@@ -74,27 +74,6 @@ int& final_production_delta_for_commodity( ColonyProduction& pr,
   }
 }
 
-maybe<e_commodity> product_from_raw( e_commodity raw ) {
-  switch( raw ) {
-    case e_commodity::food: return nothing;
-    case e_commodity::sugar: return e_commodity::rum;
-    case e_commodity::tobacco: return e_commodity::cigars;
-    case e_commodity::cotton: return e_commodity::cloth;
-    case e_commodity::fur: return e_commodity::coats;
-    case e_commodity::lumber: return nothing;
-    case e_commodity::ore: return e_commodity::tools;
-    case e_commodity::silver: return nothing;
-    case e_commodity::horses: return nothing;
-    case e_commodity::rum: return nothing;
-    case e_commodity::cigars: return nothing;
-    case e_commodity::cloth: return nothing;
-    case e_commodity::coats: return nothing;
-    case e_commodity::trade_goods: return nothing;
-    case e_commodity::tools: return e_commodity::muskets;
-    case e_commodity::muskets: return nothing;
-  }
-}
-
 maybe<e_indoor_job> indoor_job_from_outdoor_job(
     e_outdoor_job job ) {
   switch( job ) {
@@ -616,6 +595,27 @@ void fill_in_center_square( SSConst const&    ss,
 /****************************************************************
 ** Public API
 *****************************************************************/
+maybe<e_commodity> product_from_raw( e_commodity raw ) {
+  switch( raw ) {
+    case e_commodity::food: return nothing;
+    case e_commodity::sugar: return e_commodity::rum;
+    case e_commodity::tobacco: return e_commodity::cigars;
+    case e_commodity::cotton: return e_commodity::cloth;
+    case e_commodity::fur: return e_commodity::coats;
+    case e_commodity::lumber: return nothing;
+    case e_commodity::ore: return e_commodity::tools;
+    case e_commodity::silver: return nothing;
+    case e_commodity::horses: return nothing;
+    case e_commodity::rum: return nothing;
+    case e_commodity::cigars: return nothing;
+    case e_commodity::cloth: return nothing;
+    case e_commodity::coats: return nothing;
+    case e_commodity::trade_goods: return nothing;
+    case e_commodity::tools: return e_commodity::muskets;
+    case e_commodity::muskets: return nothing;
+  }
+}
+
 int const& final_production_delta_for_commodity(
     ColonyProduction const& pr, e_commodity c ) {
   switch( c ) {

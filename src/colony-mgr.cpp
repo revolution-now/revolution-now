@@ -40,6 +40,7 @@
 // config
 #include "config/colony.rds.hpp"
 #include "config/nation.hpp"
+#include "config/production.rds.hpp"
 #include "config/unit-type.hpp"
 
 // refl
@@ -183,6 +184,18 @@ wait<bool> present_colony_update(
           o.required_population, colony_population( colony ) );
       break;
     }
+    case ColonyNotification::e::run_out_of_raw_material: {
+      auto& o = notification.get<
+          ColonyNotification::run_out_of_raw_material>();
+      msg = fmt::format(
+          "@[H]{}@[] has run out of @[H]{}@[], Your Excellency. "
+          " Our {} cannot continue production until the supply "
+          "is increased.",
+          colony.name, o.what,
+          config_production.indoor_production
+              .worker_names_plural[o.job] );
+      break;
+    }
   }
 
   if( ask_to_zoom ) {
@@ -193,7 +206,7 @@ wait<bool> present_colony_update(
         co_await gui.choice( { .msg     = msg,
                                .options = std::move( choices ),
                                .key_on_escape = "no_zoom" } );
-    co_return( res == "zoom" );
+    co_return ( res == "zoom" );
   }
   co_await gui.message_box( msg );
   co_return false;

@@ -39,6 +39,37 @@ struct Player;
 
 namespace {
 
+void check_ran_out_of_raw_materials( ColonyEvolution& ev ) {
+  auto check =
+      [&]( e_commodity what, e_indoor_job job,
+           RawMaterialAndProduct const& raw_and_product ) {
+        if( raw_and_product.raw_consumed_theoretical > 0 &&
+            raw_and_product.raw_consumed_actual == 0 )
+          // This means that the raw good could have had some
+          // amount consumed, but none was actually consumed,
+          // meaning that there was none produced and none in the
+          // warehouse.
+          ev.notifications.push_back(
+              ColonyNotification::run_out_of_raw_material{
+                  .what = what, .job = job } );
+      };
+
+  check( e_commodity::sugar, e_indoor_job::rum,
+         ev.production.sugar_rum );
+  check( e_commodity::tobacco, e_indoor_job::cigars,
+         ev.production.tobacco_cigars );
+  check( e_commodity::cotton, e_indoor_job::cloth,
+         ev.production.cotton_cloth );
+  check( e_commodity::fur, e_indoor_job::coats,
+         ev.production.fur_coats );
+  check( e_commodity::lumber, e_indoor_job::hammers,
+         ev.production.lumber_hammers );
+  check( e_commodity::ore, e_indoor_job::tools,
+         ev.production.ore_tools );
+  check( e_commodity::tools, e_indoor_job::muskets,
+         ev.production.tools_muskets );
+}
+
 // This will check for spoilage given warehouse capacity. If any-
 // thing spoils then it will be removed from the commodity store
 // and a notification will be returned.
@@ -296,6 +327,8 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
 
   apply_production_to_colony( colony, ev.production,
                               ev.notifications );
+
+  check_ran_out_of_raw_materials( ev );
 
   check_construction( ss.units, ts.map_updater, colony, ev );
 

@@ -37,6 +37,9 @@ ColonyProduction production_for_colony( SSConst const& ss,
 maybe<int> production_for_slot( ColonyProduction const& pr,
                                 e_colony_building_slot  slot );
 
+// If a product can be made from this raw material, return it.
+maybe<e_commodity> product_from_raw( e_commodity raw );
+
 int const& final_production_delta_for_commodity(
     ColonyProduction const& pr, e_commodity c );
 

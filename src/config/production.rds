@@ -77,6 +77,10 @@ struct.IndoorProduction {
 
   # William Penn crosses production bonus percent.
   william_penn_crosses_bonus 'int',
+
+  # Given an indoor job, this will return the plural names for a
+  # worker doing that job.
+  worker_names_plural 'refl::enum_map<e_indoor_job, std::string>',
 }
 
 sumtype.OutdoorJobBonus {

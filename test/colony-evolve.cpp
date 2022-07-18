@@ -173,6 +173,40 @@ TEST_CASE( "[colony-evolve] spoilage" ) {
   REQUIRE( ev.notifications == expected );
 }
 
+TEST_CASE( "[colony-evolve] ran out of raw materials" ) {
+  World   W;
+  Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
+  // Add this so no one starves.
+  colony.commodities[e_commodity::food] = 2;
+
+  W.add_unit_indoors( colony.id, e_indoor_job::hammers,
+                      e_unit_type::free_colonist );
+  W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                      e_unit_type::free_colonist );
+  W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                      e_unit_type::free_colonist );
+
+  using SP  = SquareProduction;
+  using LP  = refl::enum_map<e_direction, SP>;
+  using RMP = RawMaterialAndProduct;
+
+  ColonyEvolution ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), colony );
+
+  vector<ColonyNotification_t> const expected = {
+      ColonyNotification::run_out_of_raw_material{
+          .what = e_commodity::lumber,
+          .job  = e_indoor_job::hammers },
+      ColonyNotification::run_out_of_raw_material{
+          .what = e_commodity::ore, .job = e_indoor_job::tools },
+      ColonyNotification::run_out_of_raw_material{
+          .what = e_commodity::tools,
+          .job  = e_indoor_job::muskets },
+  };
+
+  REQUIRE( ev.notifications == expected );
+}
+
 TEST_CASE( "[colony-evolve] applies production" ) {
   World W;
   // TODO

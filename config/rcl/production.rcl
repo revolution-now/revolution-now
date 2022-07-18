@@ -28,6 +28,21 @@ indoor_production {
 
   # William Penn crosses production bonus percent.
   william_penn_crosses_bonus: 50
+
+  # Given an indoor job, this will return the plural names for a
+  # worker doing that job.
+  worker_names_plural {
+    bells:   "statesmen"
+    crosses: "preachers"
+    hammers: "carpenters"
+    rum:     "distillers"
+    cigars:  "tobacconists"
+    cloth:   "weavers"
+    coats:   "fur traders"
+    tools:   "blacksmiths"
+    muskets: "gunsmiths"
+    teacher: "teachers"
+  }
 }
 
 # The number of items that are automatically produced by virtual
