@@ -696,6 +696,7 @@ ColonyProduction production_for_colony( SSConst const& ss,
 
   compute_land_production( res, colony, ss.terrain, ss.units );
 
+  CHECK( res.trade_goods == 0 );
   return res;
 }
 

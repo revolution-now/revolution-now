@@ -775,6 +775,11 @@ TEST_CASE( "[production] silver [discoverer]" ) {
                                          Delta{ .w = 1, .h = 0 } );
   has_silver.overlay         = e_land_overlay::mountains;
   has_silver.ground_resource = e_natural_resource::silver;
+  MapSquare& has_silver2     = W.square( World::kGrasslandTile +
+                                         Delta{ .w = 0, .h = 1 } );
+  has_silver2.overlay        = e_land_overlay::mountains;
+  has_silver2.ground_resource =
+      e_natural_resource::silver_depleted;
 
   using SP  = SquareProduction;
   using LP  = refl::enum_map<e_direction, SP>;
@@ -797,6 +802,38 @@ TEST_CASE( "[production] silver [discoverer]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     int const ex = 6;
+    REQUIRE( pr.silver == RMP{
+                              .raw_produced                 = ex,
+                              .raw_consumed_theoretical     = 0,
+                              .raw_delta_theoretical        = ex,
+                              .raw_consumed_actual          = 0,
+                              .raw_delta_final              = ex,
+                              .product_produced_theoretical = 0,
+                              .product_produced_actual      = 0,
+                              .product_delta_final          = 0,
+                          } );
+  }
+
+  SECTION( "two silver miners, warehouse empty" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::silver,
+                         e_unit_type::expert_silver_miner );
+    W.add_unit_outdoors( colony.id, e_direction::s,
+                         e_outdoor_job::silver,
+                         e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::silver,
+                                  .quantity = 6 } },
+            { e_direction::s, SP{ .what = e_outdoor_job::silver,
+                                  .quantity = 1 } } } );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
+    int const ex = 7;
     REQUIRE( pr.silver == RMP{
                               .raw_produced                 = ex,
                               .raw_consumed_theoretical     = 0,
