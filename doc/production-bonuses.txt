@@ -1,0 +1,307 @@
+NOTES:
+
+================================================================
+
+  Bells with +1 sons of liberty and jefferson and newspaper:
+
+       criminal:      6
+       indentured:    10
+       free_colonist: 12
+       master:        24
+
+    1. Non-expert colonist amount (1, 2, 3); for expert colonist
+       use 3 (free colonist amount).
+    2. Add sons of liberty bonus/penalty (+1/+2/-1).
+    3. Multiply by two for expert.
+    4. Add Jefferson bonus, multiply by 1.5 (round up).
+    5. Multiply by 2 for newspaper.
+
+  Bells with Full sons of liberty and jefferson and newspaper:
+
+       criminal:      10
+       indentured:    12
+       free_colonist: 16
+       master:        30
+
+    1. Non-expert colonist amount (1, 2, 3); for expert colonist
+       use 3 (free colonist amount).
+    2. Add sons of liberty bonus/penalty +2.
+    3. Multiply by two for expert.
+    4. Add Jefferson bonus, multiply by 1.5 (round up).
+    5. Multiply by 2 for newspaper.
+
+  Bells with tory penalty and jefferson, and printing press:
+
+       criminal:      0
+       indentured:    3
+       free_colonist: 5
+       master:        9
+
+    1. Non-expert colonist amount (1, 2, 3); for expert colonist
+       use 3 (free colonist amount).
+    2. Subtract tory penalty (-1)*tory_population/N, where N is
+       determined by difficulty level.
+    3. Multiply by two for expert.
+    4. Add Jefferson bonus, multiply by 1.5 (rounding up).
+    5. Multiply by 1.5 for printing press (rounding up).
+
+  Bells with tory penalty and jefferson, and newspaper:
+
+       criminal:      0
+       indentured:    4
+       free_colonist: 6
+       master:        12
+
+    1. Non-expert colonist amount (1, 2, 3); for expert colonist
+       use 3 (free colonist amount).
+    2. Subtract tory penalty (-1)*tory_population/N, where N is
+       determined by difficulty level.
+    3. Multiply by two for expert.
+    4. Add Jefferson bonus, multiply by 1.5 (rounding up).
+    5. Multiply by 2 for newpaper.
+
+  Conclusion for bells:
+
+    1. Non-expert colonist amount (1, 2, 3); for expert colonist
+       use 3 (free colonist amount).
+    2. Add sons of liberty bonus/penalty (+1/+2).
+    3. Subtract tory penalty (-1)*tory_population/N, where N is
+       determined by difficulty level.
+    4. Multiply by two for expert.
+    5. Add Jefferson bonus, multiply by 1.5 (rounding up).
+    6. Multiply by 1.5 for printing press (rounding up) or 2 for
+       newspaper.
+
+  For base bells:
+
+       auto:          2
+
+    1. Add base building production (== 1).
+    2. Multiply by 1.5 or 2 for printing press/newspaper.
+
+    Jefferson may not apply here. If he did then his bonus would
+    have to be factored in between steps 1 and 2 and the result
+    would have to be rounded down. This is possible, but the docs
+    also say that his bonus only increases the bell production of
+    statesmen, which might mean that it doesn't apply to the auto
+    bell production.
+
+================================================================
+
+  Crosses with +1 sons of liberty and cathedral:
+
+       criminal:      4
+       indentured:    6
+       free_colonist: 8
+       master:        14
+
+    1. Non-expert colonist amount (1, 2, 3); for expert colonist
+       use 3 (free colonist amount).
+    4. Multiply by two for expert.
+    2. Add sons of liberty bonus/penalty (+1/+2/-1).
+    3. Subtract tory penalty (-1)*tory_population/N, where N is
+       determined by difficulty level.
+    5. Multiply by two for building bonus.
+
+  Crosses with +2 sons of liberty and church and penn:
+
+       criminal:      4
+       indentured:    6
+       free_colonist: 7
+       master:        12
+
+    1. Non-expert colonist amount (1, 2, 3); for expert colonist
+       use 3 (free colonist amount).
+    2. Multiply by two for expert.
+    3. Add sons of liberty bonus/penalty (+2).
+    4. Subtract tory penalty (-1)*tory_population/N, where N is
+       determined by difficulty level.
+    5. Add William Penn bonus, multiply by 1.5 (round down).
+
+  Crosses with +2 sons of liberty and cathedral and penn:
+
+       criminal:      9
+       indentured:    12
+       free_colonist: 15
+       master:        24
+
+    1. Non-expert colonist amount (1, 2, 3); for expert colonist
+       use 3 (free colonist amount).
+    2. Multiply by two for expert.
+    3. Add sons of liberty bonus/penalty (+2).
+    4. Subtract tory penalty (-1)*tory_population/N, where N is
+       determined by difficulty level.
+    5. Multiply by two for building bonus.
+    6. Add William Penn bonus, multiply by 1.5 (round down).
+
+  Crosses with tory penalty and church:
+
+       criminal:      0
+       indentured:    1
+       free_colonist: 2
+       master:        5
+
+    1. Non-expert colonist amount (1, 2, 3); for expert colonist
+       use 3 (free colonist amount).
+    4. Multiply by two for expert.
+    2. Add sons of liberty bonus/penalty (+1/+2/-1).
+    3. Subtract tory penalty (-1)*tory_population/N, where N is
+       determined by difficulty level.
+
+  Conclusion for crosses:
+
+    1. Non-expert colonist amount (1, 2, 3); for expert colonist
+       use 3 (free colonist amount).
+    2. Multiply by two for expert.
+    3. Add sons of liberty bonus/penalty (+2).
+    4. Subtract tory penalty (-1)*tory_population/N, where N is
+       determined by difficulty level.
+    5. Multiply by two for building bonus.
+    6. Add William Penn bonus, multiply by 1.5 (round down).
+
+  Base crosses need to be added to the above.
+
+================================================================
+
+  Base-level building with no tory penalty:
+
+       criminal:      1
+       indentured:    2
+       free_colonist: 3
+       master:        6
+
+    1. Non-expert colonist amount (1, 2, 3); for expert
+       colonist use 3 (free colonist amount).
+    2. Multiply by 2 for expert.
+
+  Base-level building with tory penalty:
+
+       criminal:      0
+       indentured:    1
+       free_colonist: 2
+       master:        4
+
+    1. Non-expert colonist amount (1, 2, 3); for expert
+       colonist use 3 (free colonist amount).
+  * 2. Subtract tory penalty (-1)*tory_population/N, where N
+       is determined by difficulty level.
+    3. Multiply by 2 for expert.
+
+  Mid-level building with tory penalty:
+
+       criminal:      1
+       indentured:    3
+       free_colonist: 5
+       master:        10
+
+    1. Non-expert colonist amount (1, 2, 3); for expert
+       colonist use 3 (free colonist amount).
+  * 2. Multiply by 2 for building upgrade.
+    3. Subtract tory penalty (-1)*tory_population/N, where N
+       is determined by difficulty level.
+    4. Multiply by 2 for expert.
+
+  Mid-level building with +1 sons of liberty:
+
+       criminal:      3
+       indentured:    5
+       free_colonist: 7
+       master:        14
+
+    1. Non-expert colonist amount (1, 2, 3); for expert
+       colonist use 3 (free colonist amount).
+    2. Multiply by 2 for building upgrade.
+    3. Add sons of liberty bonus (+1/+2).
+    4. Multiply by 2 for expert.
+
+  Factory-level building with tory penalty:
+
+       criminal:      1
+       indentured:    4
+       free_colonist: 7
+       master:        14
+
+    1. Non-expert colonist amount (1, 2, 3); for expert
+       colonist use 3 (free colonist amount).
+    2. Multiply by 2 for building upgrade.
+    3. Subtract tory penalty (-1)*tory_population/N, where N
+       is determined by difficulty level.
+  * 4. Multiply by 1.5 for factory level (rounding down).
+    5. Multiply by 2 for expert.
+
+  Factory-level building with +1 sons of liberty:
+
+       criminal:      4
+       indentured:    7
+       free_colonist: 10
+       master:        20
+
+    1. Non-expert colonist amount (1, 2, 3); for expert
+       colonist use 3 (free colonist amount).
+    2. Multiply by 2 for building upgrade.
+  * 3. Add sons of liberty bonus (+1/+2).
+    4. Multiply by 1.5 for factory level (rounding down).
+    5. Multiply by 2 for expert.
+
+  Conclusion for non-carpenters:
+
+    1. Non-expert colonist amount (1, 2, 3); for expert colonist
+       use 3 (free colonist amount).
+    2. Multiply by 2 for building upgrade.
+    3. Add sons of liberty bonus (+1/+2).
+    4. Subtract tory penalty (-1)*tory_population/N, where N is
+       determined by difficulty level.
+    5. Multiply by 1.5 for factory level (rounding down).
+    6. Multiply by 2 for expert.
+
+================================================================
+
+  Carpenter in lumber mill with tory penalty:
+
+       criminal:      0
+       indentured:    2
+       free_colonist: 4
+       master:        10
+
+    1. Non-expert colonist amount (1, 2, 3); for expert
+       colonist use 3 (free colonist amount).
+    2. Multiply by 2 for expert.
+    3. Subtract tory penalty (-1)*tory_population/N, where N
+       is determined by difficulty level.
+    4. Multiply by 2 for building upgrade.
+
+  Carpenter in lumber mill with +1 sons of liberty:
+
+       criminal:      4
+       indentured:    6
+       free_colonist: 8
+       master:        14
+
+    1. Non-expert colonist amount (1, 2, 3); for expert
+       colonist use 3 (free colonist amount).
+    2. Multiply by 2 for expert.
+    3. Add sons of liberty bonus (+1/+2).
+    4. Multiply by 2 for building upgrade.
+
+  Carpenter in carpenter's shop with +1 sons of liberty:
+
+       criminal:      2
+       indentured:    3
+       free_colonist: 4
+       master:        7
+
+    1. Non-expert colonist amount (1, 2, 3); for expert
+       colonist use 3 (free colonist amount).
+    2. Multiply by 2 for expert.
+    3. Add sons of liberty bonus (+1/+2).
+    4. Multiply by 2 for building upgrade.
+
+  Conclusion for carpenters:
+
+    1. Non-expert colonist amount (1, 2, 3); for expert colonist
+       use 3 (free colonist amount).
+    2. Multiply by 2 for expert.
+    3. Add sons of liberty bonus (+1/+2).
+    4. Subtract tory penalty (-1)*tory_population/N, where N is
+       determined by difficulty level.
+    5. Multiply by 2 for building upgrade.
