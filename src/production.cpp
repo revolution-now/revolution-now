@@ -325,13 +325,15 @@ void compute_food_production(
              out.food_consumed_by_colonists_theoretical );
 
   // We must have at least two horses to breed. If we do, then we
-  // produce one extra horse per 25 (or less) horses. I.e., 50
-  // horses produces two horses per turn, and 51 produces three
+  // produce two extra horses per 50 (or less) horses. I.e., 50
+  // horses produces two horses per turn, and 51 produces four
   // per turn.
   int const current_horses =
       colony.commodities[e_commodity::horses];
   out.horses_produced_theoretical =
-      ( current_horses < 2 ) ? 0 : ( current_horses + 24 ) / 25;
+      ( current_horses < 2 )
+          ? 0
+          : 2 * ( ( current_horses + 49 ) / 50 );
   if( colony.buildings[e_colony_building::stable] )
     out.horses_produced_theoretical *= 2;
   int const food_per_new_horse = 1;

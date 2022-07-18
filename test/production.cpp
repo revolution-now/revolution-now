@@ -2750,7 +2750,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_consumed_by_colonists_actual      = 8,
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 0,
-                 .horses_produced_theoretical            = 1,
+                 .horses_produced_theoretical            = 2,
                  .max_new_horses_allowed                 = 0,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
@@ -2822,7 +2822,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_consumed_by_colonists_actual      = 8,
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 1,
-                 .horses_produced_theoretical            = 1,
+                 .horses_produced_theoretical            = 2,
                  .max_new_horses_allowed                 = 1,
                  .horses_produced_actual                 = 1,
                  .food_consumed_by_horses                = 1,
@@ -2867,44 +2867,9 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
              } );
   }
 
-  SECTION( "one farmer surplus=3, horses=25" ) {
+  SECTION( "one farmer surplus=3, horses=50" ) {
     Colony& colony = W.add_colony( W.kGrasslandTile );
-    colony.commodities[e_commodity::horses] = 25;
-    W.add_unit_outdoors( colony.id, e_direction::w,
-                         e_outdoor_job::food,
-                         e_unit_type::native_convert );
-    // These are just to consume food.
-    W.add_unit_indoors( colony.id, e_indoor_job::bells );
-    W.add_unit_indoors( colony.id, e_indoor_job::bells );
-    ColonyProduction pr =
-        production_for_colony( W.ss(), colony );
-    REQUIRE(
-        pr.land_production ==
-        LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
-                                  .quantity = 4 } } } );
-    REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
-             FP{
-                 .corn_produced                          = 9,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 9,
-                 .food_consumed_by_colonists_theoretical = 6,
-                 .food_consumed_by_colonists_actual      = 6,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 3,
-                 .horses_produced_theoretical            = 1,
-                 .max_new_horses_allowed                 = 3,
-                 .horses_produced_actual                 = 1,
-                 .food_consumed_by_horses                = 1,
-                 .horses_delta_final                     = 1,
-                 .food_delta_final                       = 2,
-                 .colonist_starved                       = false,
-             } );
-  }
-
-  SECTION( "one farmer surplus=3, horses=26" ) {
-    Colony& colony = W.add_colony( W.kGrasslandTile );
-    colony.commodities[e_commodity::horses] = 26;
+    colony.commodities[e_commodity::horses] = 50;
     W.add_unit_outdoors( colony.id, e_direction::w,
                          e_outdoor_job::food,
                          e_unit_type::native_convert );
@@ -2933,6 +2898,41 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_consumed_by_horses                = 2,
                  .horses_delta_final                     = 2,
                  .food_delta_final                       = 1,
+                 .colonist_starved                       = false,
+             } );
+  }
+
+  SECTION( "one farmer surplus=3, horses=51" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.commodities[e_commodity::horses] = 51;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::food,
+                         e_unit_type::native_convert );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 9,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 9,
+                 .food_consumed_by_colonists_theoretical = 6,
+                 .food_consumed_by_colonists_actual      = 6,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 3,
+                 .horses_produced_theoretical            = 4,
+                 .max_new_horses_allowed                 = 3,
+                 .horses_produced_actual                 = 3,
+                 .food_consumed_by_horses                = 3,
+                 .horses_delta_final                     = 3,
+                 .food_delta_final                       = 0,
                  .colonist_starved                       = false,
              } );
   }
@@ -3043,46 +3043,10 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
              } );
   }
 
-  SECTION( "one farmer surplus=3, horses=25, +stable" ) {
+  SECTION( "one farmer surplus=3, horses=50, +stable" ) {
     Colony& colony = W.add_colony( W.kGrasslandTile );
     colony.buildings[e_colony_building::stable] = true;
-    colony.commodities[e_commodity::horses]     = 25;
-    W.add_unit_outdoors( colony.id, e_direction::w,
-                         e_outdoor_job::food,
-                         e_unit_type::native_convert );
-    // These are just to consume food.
-    W.add_unit_indoors( colony.id, e_indoor_job::bells );
-    W.add_unit_indoors( colony.id, e_indoor_job::bells );
-    ColonyProduction pr =
-        production_for_colony( W.ss(), colony );
-    REQUIRE(
-        pr.land_production ==
-        LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
-                                  .quantity = 4 } } } );
-    REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
-             FP{
-                 .corn_produced                          = 9,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 9,
-                 .food_consumed_by_colonists_theoretical = 6,
-                 .food_consumed_by_colonists_actual      = 6,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 3,
-                 .horses_produced_theoretical            = 2,
-                 .max_new_horses_allowed                 = 3,
-                 .horses_produced_actual                 = 2,
-                 .food_consumed_by_horses                = 2,
-                 .horses_delta_final                     = 2,
-                 .food_delta_final                       = 1,
-                 .colonist_starved                       = false,
-             } );
-  }
-
-  SECTION( "one farmer surplus=3, horses=26, +stable" ) {
-    Colony& colony = W.add_colony( W.kGrasslandTile );
-    colony.buildings[e_colony_building::stable] = true;
-    colony.commodities[e_commodity::horses]     = 26;
+    colony.commodities[e_commodity::horses]     = 50;
     W.add_unit_outdoors( colony.id, e_direction::w,
                          e_outdoor_job::food,
                          e_unit_type::native_convert );
@@ -3106,6 +3070,42 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 3,
                  .horses_produced_theoretical            = 4,
+                 .max_new_horses_allowed                 = 3,
+                 .horses_produced_actual                 = 3,
+                 .food_consumed_by_horses                = 3,
+                 .horses_delta_final                     = 3,
+                 .food_delta_final                       = 0,
+                 .colonist_starved                       = false,
+             } );
+  }
+
+  SECTION( "one farmer surplus=3, horses=51, +stable" ) {
+    Colony& colony = W.add_colony( W.kGrasslandTile );
+    colony.buildings[e_colony_building::stable] = true;
+    colony.commodities[e_commodity::horses]     = 51;
+    W.add_unit_outdoors( colony.id, e_direction::w,
+                         e_outdoor_job::food,
+                         e_unit_type::native_convert );
+    // These are just to consume food.
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.center_food_production == 3 + bonus );
+    REQUIRE( pr.food ==
+             FP{
+                 .corn_produced                          = 9,
+                 .fish_produced                          = 0,
+                 .food_produced                          = 9,
+                 .food_consumed_by_colonists_theoretical = 6,
+                 .food_consumed_by_colonists_actual      = 6,
+                 .food_deficit                           = 0,
+                 .food_surplus_before_horses             = 3,
+                 .horses_produced_theoretical            = 8,
                  .max_new_horses_allowed                 = 3,
                  .horses_produced_actual                 = 3,
                  .food_consumed_by_horses                = 3,
@@ -3169,7 +3169,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_consumed_by_colonists_actual      = 8,
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 0,
-                 .horses_produced_theoretical            = 3,
+                 .horses_produced_theoretical            = 4,
                  .max_new_horses_allowed                 = 0,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
@@ -3230,7 +3230,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_consumed_by_colonists_actual      = 5,
                  .food_deficit                           = 3,
                  .food_surplus_before_horses             = 0,
-                 .horses_produced_theoretical            = 3,
+                 .horses_produced_theoretical            = 4,
                  .max_new_horses_allowed                 = 0,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
@@ -3333,24 +3333,24 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_consumed_by_colonists_actual      = 10,
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 13,
-                 .horses_produced_theoretical            = 10,
+                 .horses_produced_theoretical            = 12,
                  .max_new_horses_allowed                 = 13,
-                 .horses_produced_actual                 = 10,
-                 .food_consumed_by_horses                = 10,
-                 .horses_delta_final                     = 10,
-                 .food_delta_final                       = 3,
+                 .horses_produced_actual                 = 12,
+                 .food_consumed_by_horses                = 12,
+                 .horses_delta_final                     = 12,
+                 .food_delta_final                       = 1,
                  .colonist_starved                       = false,
              } );
   }
 
   SECTION(
-      "one farmer, surplus=2, warehouse expansion, horses=100, "
+      "one farmer, surplus=2, warehouse expansion, horses=200, "
       "+stable" ) {
     Colony& colony = W.add_colony( W.kGrasslandTile );
     colony.buildings[e_colony_building::stable] = true;
     colony.buildings[e_colony_building::warehouse_expansion] =
         true;
-    colony.commodities[e_commodity::horses] = 100;
+    colony.commodities[e_commodity::horses] = 200;
     W.add_unit_outdoors( colony.id, e_direction::e,
                          e_outdoor_job::food,
                          e_unit_type::free_colonist );
@@ -3373,7 +3373,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_consumed_by_colonists_actual      = 6,
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 2,
-                 .horses_produced_theoretical            = 8,
+                 .horses_produced_theoretical            = 16,
                  .max_new_horses_allowed                 = 2,
                  .horses_produced_actual                 = 2,
                  .food_consumed_by_horses                = 2,
