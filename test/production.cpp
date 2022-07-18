@@ -50,6 +50,7 @@ struct World : testing::World {
   static inline Coord kPrairieTile{ .x = 4, .y = 1 };
   static inline Coord kConiferTile{ .x = 3, .y = 1 };
   static inline Coord kArcticTile{ .x = 7, .y = 1 };
+  static inline Coord kDesertTile{ .x = 10, .y = 1 };
 
   void create_default_map() {
     MapSquare const _ = make_ocean();
@@ -57,14 +58,15 @@ struct World : testing::World {
     MapSquare const C = make_terrain( e_terrain::conifer );
     MapSquare const P = make_terrain( e_terrain::prairie );
     MapSquare const A = make_terrain( e_terrain::arctic );
+    MapSquare const D = make_terrain( e_terrain::desert );
     // clang-format off
     vector<MapSquare> tiles{
-      _, G, _, _, P, _, A, A, A,
-      G, G, G, C, P, P, A, A, A,
-      _, G, G, P, P, _, A, A, A,
+      _, G, _, _, P, _, A, A, A, D, D, D,
+      G, G, G, C, P, P, A, A, A, G, D, D,
+      _, G, G, P, P, _, A, A, A, D, D, D,
     };
     // clang-format on
-    build_map( std::move( tiles ), 9 );
+    build_map( std::move( tiles ), 12 );
 
     CHECK( effective_terrain( square( kGrasslandTile ) ) ==
            e_terrain::grassland );
@@ -74,6 +76,8 @@ struct World : testing::World {
            e_terrain::conifer );
     CHECK( effective_terrain( square( kArcticTile ) ) ==
            e_terrain::arctic );
+    CHECK( effective_terrain( square( kDesertTile ) ) ==
+           e_terrain::desert );
   }
 };
 
@@ -3503,11 +3507,1803 @@ TEST_CASE( "[production] food/horses [viceroy]" ) {
   }
 }
 
-TEST_CASE( "[production] ore/tools/muskets [discoverer]" ) {
+TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
   World W;
   W.create_default_map();
 
-  // TODO
+  using SP  = SquareProduction;
+  using LP  = refl::enum_map<e_direction, SP>;
+  using RMP = RawMaterialAndProduct;
+
+  W.settings().difficulty = e_difficulty::conquistador;
+
+  SECTION( "center square ore only" ) {
+    Colony&          colony = W.add_colony( W.kDesertTile );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 2,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 2,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 0,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "center square ore only, almost full warehouse" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::ore] = 98;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 2,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 2,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 0,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "center square ore only, almost full warehouse" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::ore] = 99;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 2,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 1,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 0,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "center square ore only, full warehouse" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::ore] = 100;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 2,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 0,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "center square ore only, over warehouse" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::ore] = 150;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 2,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 0,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "one ore miner" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::ore,
+                         e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what     = e_outdoor_job::ore,
+                                  .quantity = 2 } } } );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 4,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 4,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 4,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 0,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION( "no ore center square" ) {
+    Colony& colony =
+        W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 0,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 0,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "no ore center square/with blacksmith, ore in store" ) {
+    Colony& colony =
+        W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    colony.commodities[e_commodity::ore] = 2;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 3,
+                 .raw_delta_theoretical        = -3,
+                 .raw_consumed_actual          = 2,
+                 .raw_delta_final              = -2,
+                 .product_produced_theoretical = 3,
+                 .product_produced_actual      = 2,
+                 .product_delta_final          = 2,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 2,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 2,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "no ore center square/with master blacksmith, some ore in "
+      "store" ) {
+    Colony& colony =
+        W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    colony.commodities[e_commodity::ore] = 2;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 2,
+                 .raw_delta_final              = -2,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 2,
+                 .product_delta_final          = 2,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 2,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 2,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "no ore center square/with master blacksmith, some ore in "
+      "store, gunsmith" ) {
+    Colony& colony =
+        W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    colony.commodities[e_commodity::ore] = 2;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 2,
+                 .raw_delta_final              = -2,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 2,
+                 .product_delta_final          = 0,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -4,
+                 .raw_consumed_actual          = 2,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 2,
+                 .product_delta_final          = 2,
+             } );
+  }
+
+  SECTION(
+      "no ore center square/with blacksmith, some ore in "
+      "store" ) {
+    Colony& colony =
+        W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    colony.commodities[e_commodity::ore] = 10;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 3,
+                 .raw_delta_theoretical        = -3,
+                 .raw_consumed_actual          = 3,
+                 .raw_delta_final              = -3,
+                 .product_produced_theoretical = 3,
+                 .product_produced_actual      = 3,
+                 .product_delta_final          = 3,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 3,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 3,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 3,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "no ore center square/with master blacksmith, ore in "
+      "store, almost full warehouse for tools" ) {
+    Colony& colony =
+        W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    colony.commodities[e_commodity::ore]   = 10;
+    colony.commodities[e_commodity::tools] = 98;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = -6,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 2,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 6,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 2,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "no ore center square/with master blacksmith, ore in "
+      "store, almost full warehouse for tools, master "
+      "gunsmith" ) {
+    Colony& colony =
+        W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    colony.commodities[e_commodity::ore]   = 10;
+    colony.commodities[e_commodity::tools] = 98;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = -6,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 0,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = 0,
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 6,
+             } );
+  }
+
+  SECTION(
+      "no ore center square/with master blacksmith, ore in "
+      "store, full warehouse for tools" ) {
+    Colony& colony =
+        W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    colony.commodities[e_commodity::ore]   = 2;
+    colony.commodities[e_commodity::tools] = 100;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 2,
+                 .raw_delta_final              = -2,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 2,
+                 .product_delta_final          = 0,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 2,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "no ore center square/with master blacksmith, ore in "
+      "store, full warehouse for tools, gunsmith, no muskets in "
+      "store" ) {
+    Colony& colony =
+        W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    colony.commodities[e_commodity::ore]   = 2;
+    colony.commodities[e_commodity::tools] = 100;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 2,
+                 .raw_delta_final              = -2,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 2,
+                 .product_delta_final          = -1,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 3,
+                 .raw_delta_theoretical        = -1,
+                 .raw_consumed_actual          = 3,
+                 .raw_delta_final              = -1,
+                 .product_produced_theoretical = 3,
+                 .product_produced_actual      = 3,
+                 .product_delta_final          = 3,
+             } );
+  }
+
+  SECTION(
+      "no ore center square/with master blacksmith, ore in "
+      "store, full warehouse for tools, gunsmith, some muskets "
+      "in store" ) {
+    Colony& colony =
+        W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    colony.commodities[e_commodity::ore]     = 2;
+    colony.commodities[e_commodity::tools]   = 100;
+    colony.commodities[e_commodity::muskets] = 98;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 2,
+                 .raw_delta_final              = -2,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 2,
+                 .product_delta_final          = -4,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -4,
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = -4,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 2,
+             } );
+  }
+
+  SECTION(
+      "no ore center square/with master blacksmith, ore in "
+      "store, full warehouse for tools, gunsmith, full muskets "
+      "in store" ) {
+    Colony& colony =
+        W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    colony.commodities[e_commodity::ore]     = 10;
+    colony.commodities[e_commodity::tools]   = 100;
+    colony.commodities[e_commodity::muskets] = 100;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = -6,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 0,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 3,
+                 .raw_delta_theoretical        = 3,
+                 .raw_consumed_actual          = 3,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 3,
+                 .product_produced_actual      = 3,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "no ore center square/with master blacksmith, ore in "
+      "store, over warehouse for tools" ) {
+    Colony& colony =
+        W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    colony.commodities[e_commodity::ore]   = 2;
+    colony.commodities[e_commodity::tools] = 150;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 2,
+                 .raw_delta_final              = -2,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 2,
+                 .product_delta_final          = 0,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 2,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "no ore center square/with master blacksmith, ore in "
+      "store, over warehouse for tools, gunsmith, no guns in "
+      "store" ) {
+    Colony& colony =
+        W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    colony.commodities[e_commodity::ore]   = 2;
+    colony.commodities[e_commodity::tools] = 150;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 2,
+                 .raw_delta_final              = -2,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 2,
+                 .product_delta_final          = -4,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -4,
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = -4,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 6,
+             } );
+  }
+
+  SECTION(
+      "no ore center square/with master blacksmith, ore in "
+      "store, over warehouse for tools, gunsmith, some guns in "
+      "store" ) {
+    Colony& colony =
+        W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    colony.commodities[e_commodity::ore]     = 2;
+    colony.commodities[e_commodity::tools]   = 150;
+    colony.commodities[e_commodity::muskets] = 95;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 2,
+                 .raw_delta_final              = -2,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 2,
+                 .product_delta_final          = -4,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -4,
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = -4,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 5,
+             } );
+  }
+
+  SECTION(
+      "no ore center square/with master blacksmith, ore in "
+      "store, over warehouse for tools, gunsmith, full muskets "
+      "in store" ) {
+    Colony& colony =
+        W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    colony.commodities[e_commodity::ore]     = 2;
+    colony.commodities[e_commodity::tools]   = 150;
+    colony.commodities[e_commodity::muskets] = 100;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 2,
+                 .raw_delta_final              = -2,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 2,
+                 .product_delta_final          = -4,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -4,
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = -4,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "ore center square/with master blacksmith, no ore in "
+      "store, no tools in store" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -4,
+                 .raw_consumed_actual          = 2,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 2,
+                 .product_delta_final          = 2,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 2,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 2,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "ore center square/with master gunsmith, no ore in "
+      "store, no tools in store" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 2,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 2,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "no ore center square/with gunsmith and blacksmith, no "
+      "ore in store, no tools in store" ) {
+    Colony& colony =
+        W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "no ore center square/with gunsmith and blacksmith, no "
+      "ore in store, some tools in store" ) {
+    Colony& colony =
+        W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    colony.commodities[e_commodity::tools] = 30;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE(
+        pr.center_extra_production ==
+        SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = -6,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = -6,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 6,
+             } );
+  }
+
+  SECTION(
+      "ore center square/with master blacksmith, no ore in "
+      "store, full tools warehouse" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::tools] = 100;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -4,
+                 .raw_consumed_actual          = 2,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 2,
+                 .product_delta_final          = 0,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 2,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "ore center square/with master blacksmith and gunsmith, "
+      "no ore in store, full tools warehouse" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::tools] = 100;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -4,
+                 .raw_consumed_actual          = 2,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 2,
+                 .product_delta_final          = -1,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 3,
+                 .raw_delta_theoretical        = -1,
+                 .raw_consumed_actual          = 3,
+                 .raw_delta_final              = -1,
+                 .product_produced_theoretical = 3,
+                 .product_produced_actual      = 3,
+                 .product_delta_final          = 3,
+             } );
+  }
+
+  SECTION(
+      "ore center square/with master blacksmith and gunsmith, "
+      "no ore in store, full tools and muskets warehouse" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::tools]   = 100;
+    colony.commodities[e_commodity::muskets] = 100;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE( pr.land_production == LP{} );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = -4,
+                 .raw_consumed_actual          = 2,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 2,
+                 .product_delta_final          = -1,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 2,
+                 .raw_consumed_theoretical     = 3,
+                 .raw_delta_theoretical        = -1,
+                 .raw_consumed_actual          = 3,
+                 .raw_delta_final              = -1,
+                 .product_produced_theoretical = 3,
+                 .product_produced_actual      = 3,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "ore center square, one ore miner, with master "
+      "blacksmith, no ore in store, no tools in store, "
+      "blacksmith's shop" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::ore,
+                         e_unit_type::free_colonist );
+    colony.buildings[e_colony_building::blacksmiths_shop] = true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what     = e_outdoor_job::ore,
+                                  .quantity = 2 } } } );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 4,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = -8,
+                 .raw_consumed_actual          = 4,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 12,
+                 .product_produced_actual      = 4,
+                 .product_delta_final          = 4,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 4,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 4,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 4,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "ore center square, one ore miner, with master blacksmith "
+      "and gunsmith, some ore in store, no tools in store, "
+      "blacksmith's shop, magazine" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::ore] = 40;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::free_colonist );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::ore,
+                         e_unit_type::free_colonist );
+    colony.buildings[e_colony_building::blacksmiths_shop] = true;
+    colony.buildings[e_colony_building::magazine]         = true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what     = e_outdoor_job::ore,
+                                  .quantity = 2 } } } );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 4,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = -8,
+                 .raw_consumed_actual          = 12,
+                 .raw_delta_final              = -8,
+                 .product_produced_theoretical = 12,
+                 .product_produced_actual      = 12,
+                 .product_delta_final          = 6,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 12,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = 6,
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = 6,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 6,
+             } );
+  }
+
+  SECTION(
+      "ore center square, one ore miner, with master "
+      "blacksmith, some ore in store, no tools in store, "
+      "blacksmith's shop" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::ore] = 8;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::ore,
+                         e_unit_type::expert_ore_miner );
+    colony.buildings[e_colony_building::blacksmiths_shop] = true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what     = e_outdoor_job::ore,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 12,
+                 .raw_delta_final              = -6,
+                 .product_produced_theoretical = 12,
+                 .product_produced_actual      = 12,
+                 .product_delta_final          = 12,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 12,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 12,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 12,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "ore center square, one ore miner, with master "
+      "blacksmith, master gunsmith, no ore in store, some "
+      "tools in store, blacksmith's shop, arsenal" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::tools] = 8;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::ore,
+                         e_unit_type::free_colonist );
+    colony.buildings[e_colony_building::blacksmiths_shop] = true;
+    colony.buildings[e_colony_building::arsenal]          = true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what     = e_outdoor_job::ore,
+                                  .quantity = 2 } } } );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 4,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = -8,
+                 .raw_consumed_actual          = 4,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 12,
+                 .product_produced_actual      = 4,
+                 .product_delta_final          = -8,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 4,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = -8,
+                 .raw_consumed_actual          = 12,
+                 .raw_delta_final              = -8,
+                 .product_produced_theoretical = 18,
+                 .product_produced_actual      = 18,
+                 .product_delta_final          = 18,
+             } );
+  }
+
+  SECTION(
+      "ore center square, one ore miner, with master "
+      "blacksmith, no ore in store, some tools in store, iron "
+      "works" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::tools] = 3;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::ore,
+                         e_unit_type::free_colonist );
+    colony.buildings[e_colony_building::iron_works] = true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what     = e_outdoor_job::ore,
+                                  .quantity = 2 } } } );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 4,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = -8,
+                 .raw_consumed_actual          = 4,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 18,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 6,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 6,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 6,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "ore center square, one ore miner, with master "
+      "blacksmith, master gunsmith, no ore in store, some tools "
+      "in store, iron works, arsenal" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::tools] = 3;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::ore,
+                         e_unit_type::free_colonist );
+    colony.buildings[e_colony_building::iron_works] = true;
+    colony.buildings[e_colony_building::arsenal]    = true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what     = e_outdoor_job::ore,
+                                  .quantity = 2 } } } );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 4,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = -8,
+                 .raw_consumed_actual          = 4,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 18,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = -3,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = -6,
+                 .raw_consumed_actual          = 9,
+                 .raw_delta_final              = -3,
+                 .product_produced_theoretical = 18,
+                 .product_produced_actual      = 14,
+                 .product_delta_final          = 14,
+             } );
+  }
+
+  SECTION(
+      "ore center square, one ore miner, with IS blacksmith, "
+      "no ore in store, no tools in store, iron works" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::indentured_servant );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::ore,
+                         e_unit_type::free_colonist );
+    colony.buildings[e_colony_building::iron_works] = true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what     = e_outdoor_job::ore,
+                                  .quantity = 2 } } } );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 4,
+                 .raw_consumed_theoretical     = 4,
+                 .raw_delta_theoretical        = 0,
+                 .raw_consumed_actual          = 4,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 6,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 6,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 6,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "ore center square, one ore miner, with master gunsmith, "
+      "some ore in store, some tools in store, magazine" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::ore]   = 8;
+    colony.commodities[e_commodity::tools] = 1;
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::ore,
+                         e_unit_type::expert_ore_miner );
+    colony.buildings[e_colony_building::magazine] = true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what     = e_outdoor_job::ore,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 6,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 6,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = -1,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = -12,
+                 .raw_consumed_actual          = 1,
+                 .raw_delta_final              = -1,
+                 .product_produced_theoretical = 12,
+                 .product_produced_actual      = 1,
+                 .product_delta_final          = 1,
+             } );
+  }
+
+  SECTION(
+      "ore center square, one ore miner, with master gunsmith, "
+      "some ore in store, some tools in store, arsenal" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::ore]   = 8;
+    colony.commodities[e_commodity::tools] = 1;
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::ore,
+                         e_unit_type::expert_ore_miner );
+    colony.buildings[e_colony_building::arsenal] = true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e, SP{ .what     = e_outdoor_job::ore,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 6,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 6,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 6,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = -1,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 0,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = -12,
+                 .raw_consumed_actual          = 1,
+                 .raw_delta_final              = -1,
+                 .product_produced_theoretical = 18,
+                 .product_produced_actual      = 2,
+                 .product_delta_final          = 2,
+             } );
+  }
+
+  SECTION(
+      "ore center square, one expert ore miner, one ore miner, "
+      "with one master blacksmiths, one blacksmith, full ore in "
+      "store, no tools in store, iron works" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::ore] = 100;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::free_colonist );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::ore,
+                         e_unit_type::free_colonist );
+    W.add_unit_outdoors( colony.id, e_direction::s,
+                         e_outdoor_job::ore,
+                         e_unit_type::expert_ore_miner );
+    colony.buildings[e_colony_building::iron_works] = true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e,
+              SP{ .what = e_outdoor_job::ore, .quantity = 2 } },
+            { e_direction::s, SP{ .what     = e_outdoor_job::ore,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 8,
+                 .raw_consumed_theoretical     = 18,
+                 .raw_delta_theoretical        = -10,
+                 .raw_consumed_actual          = 18,
+                 .raw_delta_final              = -10,
+                 .product_produced_theoretical = 27,
+                 .product_produced_actual      = 27,
+                 .product_delta_final          = 27,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 27,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 27,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 27,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "ore center square, one expert ore miner, one ore miner, "
+      "with master blacksmith, one master gunsmith, full ore in "
+      "store, full tools in store, iron works, armory" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::ore]   = 100;
+    colony.commodities[e_commodity::tools] = 100;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::ore,
+                         e_unit_type::free_colonist );
+    W.add_unit_outdoors( colony.id, e_direction::s,
+                         e_outdoor_job::ore,
+                         e_unit_type::expert_ore_miner );
+    colony.buildings[e_colony_building::iron_works] = true;
+    colony.buildings[e_colony_building::armory]     = true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e,
+              SP{ .what = e_outdoor_job::ore, .quantity = 2 } },
+            { e_direction::s, SP{ .what     = e_outdoor_job::ore,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 8,
+                 .raw_consumed_theoretical     = 12,
+                 .raw_delta_theoretical        = -4,
+                 .raw_consumed_actual          = 12,
+                 .raw_delta_final              = -4,
+                 .product_produced_theoretical = 18,
+                 .product_produced_actual      = 18,
+                 .product_delta_final          = 0,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 18,
+                 .raw_consumed_theoretical     = 6,
+                 .raw_delta_theoretical        = 12,
+                 .raw_consumed_actual          = 6,
+                 .raw_delta_final              = 0,
+                 .product_produced_theoretical = 6,
+                 .product_produced_actual      = 6,
+                 .product_delta_final          = 6,
+             } );
+  }
+
+  SECTION(
+      "ore center square, one expert ore miner, one ore miner, "
+      "two master blacksmiths, some ore in store, no tools in "
+      "store, iron works" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::ore] = 3;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::ore,
+                         e_unit_type::free_colonist );
+    W.add_unit_outdoors( colony.id, e_direction::s,
+                         e_outdoor_job::ore,
+                         e_unit_type::expert_ore_miner );
+    colony.buildings[e_colony_building::iron_works] = true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e,
+              SP{ .what = e_outdoor_job::ore, .quantity = 2 } },
+            { e_direction::s, SP{ .what     = e_outdoor_job::ore,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 8,
+                 .raw_consumed_theoretical     = 24,
+                 .raw_delta_theoretical        = -16,
+                 .raw_consumed_actual          = 11,
+                 .raw_delta_final              = -3,
+                 .product_produced_theoretical = 36,
+                 .product_produced_actual      = 17,
+                 .product_delta_final          = 17,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 17,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 17,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 17,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "ore center square, one expert ore miner, one ore miner, "
+      "two master blacksmiths, some ore in store, tools almost "
+      "full, iron works" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::ore]   = 5;
+    colony.commodities[e_commodity::tools] = 98;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::ore,
+                         e_unit_type::free_colonist );
+    W.add_unit_outdoors( colony.id, e_direction::s,
+                         e_outdoor_job::ore,
+                         e_unit_type::expert_ore_miner );
+    colony.buildings[e_colony_building::iron_works] = true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e,
+              SP{ .what = e_outdoor_job::ore, .quantity = 2 } },
+            { e_direction::s, SP{ .what     = e_outdoor_job::ore,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 8,
+                 .raw_consumed_theoretical     = 24,
+                 .raw_delta_theoretical        = -16,
+                 .raw_consumed_actual          = 13,
+                 .raw_delta_final              = -5,
+                 .product_produced_theoretical = 36,
+                 .product_produced_actual      = 20,
+                 .product_delta_final          = 2,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 20,
+                 .raw_consumed_theoretical     = 0,
+                 .raw_delta_theoretical        = 20,
+                 .raw_consumed_actual          = 0,
+                 .raw_delta_final              = 2,
+                 .product_produced_theoretical = 0,
+                 .product_produced_actual      = 0,
+                 .product_delta_final          = 0,
+             } );
+  }
+
+  SECTION(
+      "ore center square, one expert ore miner, one ore miner, "
+      "two master blacksmiths, three gunsmiths, some ore in "
+      "store, tools almost full, iron works, arsenal" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::ore]   = 5;
+    colony.commodities[e_commodity::tools] = 98;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::ore,
+                         e_unit_type::free_colonist );
+    W.add_unit_outdoors( colony.id, e_direction::s,
+                         e_outdoor_job::ore,
+                         e_unit_type::expert_ore_miner );
+    colony.buildings[e_colony_building::iron_works] = true;
+    colony.buildings[e_colony_building::arsenal]    = true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e,
+              SP{ .what = e_outdoor_job::ore, .quantity = 2 } },
+            { e_direction::s, SP{ .what     = e_outdoor_job::ore,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 8,
+                 .raw_consumed_theoretical     = 24,
+                 .raw_delta_theoretical        = -16,
+                 .raw_consumed_actual          = 13,
+                 .raw_delta_final              = -5,
+                 .product_produced_theoretical = 36,
+                 .product_produced_actual      = 20,
+                 .product_delta_final          = -16,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 20,
+                 .raw_consumed_theoretical     = 36,
+                 .raw_delta_theoretical        = -16,
+                 .raw_consumed_actual          = 36,
+                 .raw_delta_final              = -16,
+                 .product_produced_theoretical = 54,
+                 .product_produced_actual      = 54,
+                 .product_delta_final          = 54,
+             } );
+  }
+
+  SECTION(
+      "ore center square, one expert ore miner, one ore miner, "
+      "two master blacksmiths, three gunsmiths, some ore in "
+      "store, tools almost full, muskets almost full, iron "
+      "works, arsenal" ) {
+    Colony& colony = W.add_colony( W.kDesertTile );
+    colony.commodities[e_commodity::ore]     = 5;
+    colony.commodities[e_commodity::tools]   = 98;
+    colony.commodities[e_commodity::muskets] = 90;
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                        e_unit_type::master_blacksmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                        e_unit_type::master_gunsmith );
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::ore,
+                         e_unit_type::free_colonist );
+    W.add_unit_outdoors( colony.id, e_direction::s,
+                         e_outdoor_job::ore,
+                         e_unit_type::expert_ore_miner );
+    colony.buildings[e_colony_building::iron_works] = true;
+    colony.buildings[e_colony_building::arsenal]    = true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.center_extra_production ==
+             SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
+    REQUIRE(
+        pr.land_production ==
+        LP{ { e_direction::e,
+              SP{ .what = e_outdoor_job::ore, .quantity = 2 } },
+            { e_direction::s, SP{ .what     = e_outdoor_job::ore,
+                                  .quantity = 4 } } } );
+    REQUIRE( pr.ore_tools ==
+             RMP{
+                 .raw_produced                 = 8,
+                 .raw_consumed_theoretical     = 24,
+                 .raw_delta_theoretical        = -16,
+                 .raw_consumed_actual          = 13,
+                 .raw_delta_final              = -5,
+                 .product_produced_theoretical = 36,
+                 .product_produced_actual      = 20,
+                 .product_delta_final          = -16,
+             } );
+    REQUIRE( pr.tools_muskets ==
+             RMP{
+                 .raw_produced                 = 20,
+                 .raw_consumed_theoretical     = 36,
+                 .raw_delta_theoretical        = -16,
+                 .raw_consumed_actual          = 36,
+                 .raw_delta_final              = -16,
+                 .product_produced_theoretical = 54,
+                 .product_produced_actual      = 54,
+                 .product_delta_final          = 10,
+             } );
+  }
 }
 
 } // namespace
