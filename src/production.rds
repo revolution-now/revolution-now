@@ -170,11 +170,10 @@ struct.ColonyProduction {
   # These are a bit special because tools overlap between the
   # both of them. The ore_tools will be computed first, and all
   # of its fields will be filled out assuming that musket produc-
-  # tion doesn't exist, and not changed thereafter. Then the
-  # tools_muskets will be computed in the presence of any tools
-  # produced by the ore_tools stage. Both of these have a "tools
-  # final delta" field, but only the one in the tools_muskets has
-  # the true final value.
+  # tion doesn't exist. Then the tools_muskets will be computed
+  # in the presence of any tools produced by the ore_tools stage.
+  # Both of these have a "tools final delta" field, and they will
+  # both be equal and reflect the true final value.
   ore_tools      'RawMaterialAndProduct',
   tools_muskets  'RawMaterialAndProduct',
   # This one has no product, but we'll use the same type for con-

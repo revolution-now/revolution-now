@@ -524,7 +524,11 @@ void compute_land_production( ColonyProduction& pr,
   compute( e_outdoor_job::ore, pr.ore_tools );
 
   // Tools/Muskets. Boostrap the muskets calculation with the
-  // tools produced from the ore/tools stage.
+  // tools produced from the ore/tools stage. Note that the
+  // raw_produced (tools) here is the value before warehouse cut-
+  // offs are considered, since anything produced this turn be-
+  // yond that is allowed to be consumed within the same turn.
+  // Spoilage only applies after all of the dust settles.
   pr.tools_muskets.raw_produced =
       pr.ore_tools.product_produced_actual;
   pr.tools_muskets.raw_delta_theoretical =
