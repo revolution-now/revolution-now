@@ -98,15 +98,25 @@ void unit_to_map_square_non_interactive( UnitsState& units_state,
                                          IMapUpdater&, UnitId id,
                                          Coord world_square ) {
   // 1. Move the unit. This is the only place where this function
-  // should be called by normal game code.
+  //    should be called by normal game code.
   units_state.change_to_map( id, world_square );
 
   // 2. Unsentry surrounding foreign units.
-  // TODO
+  //    TODO
 
-  // 3. Update terrain visibility.
-  // TODO
-  // TODO: mind founding father de soto here.
+  // 3. Update terrain visibility (and mind de soto here).
+  //    TODO
+
+  // 4. If the unit is at a colony site then append the unit ID
+  //    to the colony's list of unit's at the gate (said list
+  //    must be added to the data model) so that the ordering of
+  //    units is predictable and stable when rendering them at
+  //    the gate. NOTE: this method is called when a unit that is
+  //    already at the gate changes type (e.g. by dragging horses
+  //    onto it to make it a scout), and so in that case the unit
+  //    will already be in that list and should not be moved or
+  //    added again.
+  //    TODO
 }
 
 wait<maybe<UnitDeleted>> unit_to_map_square(

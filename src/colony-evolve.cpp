@@ -232,6 +232,13 @@ void check_construction( UnitsState&  units_state,
     }
     case e::unit: {
       auto& o = construction.get<unit>();
+      // We need a real map updater here because e.g. theoreti-
+      // cally we could construct a unit that has a two-square
+      // sighting radius and that might cause new squares to be-
+      // come visible, which would have to be rendered. That
+      // said, in the original game, no unit that can be con-
+      // structed in this manner has a sighting radius of more
+      // than one.
       create_unit_on_map_non_interactive(
           units_state, map_updater, colony.nation,
           UnitComposition::create( o.type ), colony.location );

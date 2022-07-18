@@ -293,7 +293,7 @@ class MarketCommodities : public ui::View,
                .type = type, .quantity = quantity } },
         .bounds = Rect::from(
             box_upper_left + rendered_commodity_offset(),
-            Delta{ .w = 1, .h = 1 } * kCommodityTileSize ) };
+            Delta{ .w = 1, .h = 1 }* kCommodityTileSize ) };
   }
 
   bool try_drag( ColViewObject_t const& o,
@@ -737,9 +737,9 @@ class CargoView : public ui::View,
     int                     min  = 1;
     int                     max  = comm.obj.quantity;
     string                  text = fmt::format(
-                         "What quantity of @[H]{}@[] would you like to move? "
-                                          "({}-{}):",
-                         commodity_display_name( comm.obj.type ), min, max );
+        "What quantity of @[H]{}@[] would you like to move? "
+                         "({}-{}):",
+        commodity_display_name( comm.obj.type ), min, max );
     maybe<int> quantity =
         co_await ts_.gui.int_input( { .msg           = text,
                                       .initial_value = max,
@@ -1063,6 +1063,15 @@ class UnitsAtGateColonyView : public ui::View,
             CHECK( xform_res.quantity_used ==
                    dropping_comm.quantity );
             unit.change_type( xform_res.new_comp );
+            // The unit, being at the colony gate, is actually on
+            // the map at the site of this colony. In the event
+            // that we are e.g. changing a colonist to a scout
+            // (which has a sighting radius of two) we should
+            // call this function to update the rendered map
+            // along with anything else that needs to be done.
+            unit_to_map_square_non_interactive(
+                ss_.units, ts_.map_updater, unit.id(),
+                colony_.location );
           }
         } );
   }
