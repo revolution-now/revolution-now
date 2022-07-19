@@ -325,15 +325,12 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
   ColonyEvolution ev;
   ev.production = production_for_colony( ss, colony );
 
-  // We should do this before applying production changes so that
-  // any tools that we need won't have been consumed by a gun-
-  // smith.
-  check_construction( ss.units, ts.map_updater, colony, ev );
-
   apply_production_to_colony( colony, ev.production,
                               ev.notifications );
 
   check_ran_out_of_raw_materials( ev );
+
+  check_construction( ss.units, ts.map_updater, colony, ev );
 
   // Needs to be done after food deltas have been applied.
   check_create_or_starve_colonist(

@@ -218,9 +218,9 @@ TEST_CASE( "[colony-evolve] construction" ) {
 
   // TODO: test a case where a construction project requires
   // tools and there are just the right amount of tools in the
-  // colony but there is also a gunsmith consuming tools. Make
-  // sure that the construction project completes before the
-  // tools are consumed by the gunsmith.
+  // colony but there is also a gunsmith consuming tools. In the
+  // original game, the gunsmith will consume the tools before
+  // they can be used for the construction project.
 }
 
 TEST_CASE( "[colony-evolve] new colonist" ) {
