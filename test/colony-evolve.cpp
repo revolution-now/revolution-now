@@ -215,6 +215,12 @@ TEST_CASE( "[colony-evolve] applies production" ) {
 TEST_CASE( "[colony-evolve] construction" ) {
   World W;
   // TODO
+
+  // TODO: test a case where a construction project requires
+  // tools and there are just the right amount of tools in the
+  // colony but there is also a gunsmith consuming tools. Make
+  // sure that the construction project completes before the
+  // tools are consumed by the gunsmith.
 }
 
 TEST_CASE( "[colony-evolve] new colonist" ) {
