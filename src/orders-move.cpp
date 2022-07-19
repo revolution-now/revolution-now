@@ -70,7 +70,7 @@ namespace {
 
 #define BEHAVIOR( c, r, e, ... )                              \
   namespace BEHAVIOR_NS( c, r, e ) {                          \
-    enum class e_vals { __VA_ARGS__ };                        \
+  enum class e_vals { __VA_ARGS__ };                          \
   }                                                           \
   template<>                                                  \
   struct to_behaviors<BEHAVIOR_VALUES( c, r, e )> {           \
@@ -355,7 +355,7 @@ TravelHandler::analyze_unload() const {
                                    .yes_label = "Make landfall",
                                    .no_label = "Stay with ships",
                                    .no_comes_first = true } );
-    co_return( answer == ui::e_confirm::yes )
+    co_return ( answer == ui::e_confirm::yes )
         ? e_travel_verdict::land_fall
         : e_travel_verdict::cancelled;
   } else {
@@ -1096,6 +1096,40 @@ AttackHandler::confirm_attack_impl() {
       case bh_t::never:
         co_return e_attack_verdict::unit_cannot_attack;
       case bh_t::attack: {
+        // TODO: Paul Revere will allow a colonist to pick up
+        // stockpiled muskets. In the original game it appears
+        // that this will only happen once no matter how many
+        // muskets are in the colony. For this reason Paul Revere
+        // is considered not to be worth much. However, in order
+        // to make him worth more, we can expand his effects to
+        // have the colonist (a veteran if available) keep taking
+        // up as many muskets and horses as are available repeat-
+        // edly until they are gone, fighting as if he was a dra-
+        // goon or soldier each time (possibly with a fortifica-
+        // tion bonus). Only when they are all depeleted does he
+        // fight like a normal colonist, and that will be the
+        // last battle as usual if he loses. This would allow
+        // e.g. a colony with a warehouse expansion to have 300
+        // horses, and 300 muskets, and a veteran colonist
+        // working somewhere in the colony, but no military de-
+        // fending its gates, and this would be equivalent to
+        // having six fortified veteran dragoons defending the
+        // colony! This might actually make Revere too powerful,
+        // maybe the colonists should only pick up muskets and
+        // not also horses.
+        //
+        // TODO: Figure out how to deal with military units that
+        // are in the cargo of ships in the port of the colony
+        // being attacked. This issue doesn't come up in the
+        // original game. Maybe Paul Revere could enable them to
+        // fight?
+        //
+        // TODO: In the original game, things in the colony can
+        // be damaged as a result of the attack. Not sure if this
+        // requires the attacker winning. This has been observed
+        // to include ships in port, which then need to be sent
+        // for repair to another colony or europe. Not sure if
+        // this includes buildings.
         e_attack_verdict which =
             is_military_unit(
                 ss_.units.unit_for( highest_defense_unit )

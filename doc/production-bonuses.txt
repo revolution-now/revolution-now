@@ -243,7 +243,7 @@ NOTES:
     4. Multiply by 1.5 for factory level (rounding down).
     5. Multiply by 2 for expert.
 
-  Conclusion for non-carpenters:
+  Conclusion for non-carpenter buildings:
 
     1. Non-expert colonist amount (1, 2, 3); for expert colonist
        use 3 (free colonist amount).
@@ -294,7 +294,6 @@ NOTES:
        colonist use 3 (free colonist amount).
     2. Multiply by 2 for expert.
     3. Add sons of liberty bonus (+1/+2).
-    4. Multiply by 2 for building upgrade.
 
   Conclusion for carpenters:
 
