@@ -293,7 +293,7 @@ class MarketCommodities : public ui::View,
                .type = type, .quantity = quantity } },
         .bounds = Rect::from(
             box_upper_left + rendered_commodity_offset(),
-            Delta{ .w = 1, .h = 1 }* kCommodityTileSize ) };
+            Delta{ .w = 1, .h = 1 } * kCommodityTileSize ) };
   }
 
   bool try_drag( ColViewObject_t const& o,
@@ -737,9 +737,9 @@ class CargoView : public ui::View,
     int                     min  = 1;
     int                     max  = comm.obj.quantity;
     string                  text = fmt::format(
-        "What quantity of @[H]{}@[] would you like to move? "
-                         "({}-{}):",
-        commodity_display_name( comm.obj.type ), min, max );
+                         "What quantity of @[H]{}@[] would you like to move? "
+                                          "({}-{}):",
+                         commodity_display_name( comm.obj.type ), min, max );
     maybe<int> quantity =
         co_await ts_.gui.int_input( { .msg           = text,
                                       .initial_value = max,
@@ -785,7 +785,7 @@ class UnitsAtGateColonyView : public ui::View,
     : ColonySubView( ss, ts, colony ),
       cargo_view_( cargo_view ),
       size_( size ) {
-    update();
+    update_this_and_children();
   }
 
   Delta delta() const override { return size_; }
@@ -1162,7 +1162,7 @@ class UnitsAtGateColonyView : public ui::View,
     }
   }
 
-  void update() override {
+  void update_this_and_children() override {
     auto const& colony = ss_.colonies.colony_for( colony_.id );
     auto const& units  = ss_.units.from_coord( colony.location );
     auto        unit_pos = Coord{} + Delta{ .w = 1, .h = 16 };
@@ -1331,10 +1331,9 @@ struct CompositeColSubView : public ui::InvisibleView,
     return nothing;
   }
 
-  void update() override {
-    // FIXME: this seems like it should go somewhere else.
-    update_production( ss_, colony_ );
-    for( ColonySubView* p : ptrs_ ) p->update();
+  void update_this_and_children() override {
+    for( ColonySubView* p : ptrs_ )
+      p->update_this_and_children();
   }
 
   vector<ColonySubView*> ptrs_;
@@ -1550,6 +1549,13 @@ void colview_drag_n_drop_draw(
 
 ColonyProduction const& colview_production() {
   return g_production;
+}
+
+void update_colony_view( SSConst const& ss,
+                         Colony const&  colony ) {
+  update_production( ss, colony );
+  ColonySubView& top = colview_top_level();
+  top.update_this_and_children();
 }
 
 void update_production( SSConst const& ss,

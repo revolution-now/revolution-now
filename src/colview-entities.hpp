@@ -187,16 +187,18 @@ class ColonySubView : public AwaitView {
     return nothing;
   }
 
+  // For convenience.
+  maybe<IColViewDragSource&> drag_source();
+  maybe<IColViewDragSink&>   drag_sink();
+
   // This will update any internal state held inside the view
   // that needs to be recomputed if any state external to the
   // view changes. Note: this assumes that the screen size has
   // not been changed. If the screen size has not been changed,
-  // then we need to do a full recompositing instead.
-  virtual void update() {}
-
-  // For convenience.
-  maybe<IColViewDragSource&> drag_source();
-  maybe<IColViewDragSink&>   drag_sink();
+  // then we need to do a full recompositing instead. This is not
+  // supposed to be called directly, but should only be called
+  // via the update_colony_view method.
+  virtual void update_this_and_children() {}
 
  protected:
   SS&     ss_;
@@ -211,6 +213,9 @@ ColonySubView& colview_top_level();
 
 // FIXME: global state.
 ColonyProduction const& colview_production();
+
+void update_colony_view( SSConst const& ss,
+                         Colony const&  colony );
 
 void update_production( SSConst const& ss,
                         Colony const&  colony );

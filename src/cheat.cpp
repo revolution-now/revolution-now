@@ -13,6 +13,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "colony-buildings.hpp"
+#include "colony-evolve.hpp"
 #include "igui.hpp"
 #include "logger.hpp"
 #include "unit.hpp"
@@ -31,6 +32,7 @@
 
 // base
 #include "base/scope-exit.hpp"
+#include "base/to-str-ext-std.hpp"
 
 using namespace std;
 
@@ -269,6 +271,16 @@ void cheat_decrease_commodity( Colony&     colony,
   else
     quantity -= 50;
   quantity = std::max( quantity, 0 );
+}
+
+void cheat_advance_colony_one_turn( SS& ss, TS& ts,
+                                    Colony& colony ) {
+  RETURN_IF_NO_CHEAT;
+  lg.debug( "advancing colony {}. notifications:", colony.name );
+  ColonyEvolution ev = evolve_colony_one_turn( ss, ts, colony );
+  for( ColonyNotification_t const& notification :
+       ev.notifications )
+    lg.debug( "{}", notification );
 }
 
 } // namespace rn

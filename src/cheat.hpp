@@ -28,6 +28,8 @@ struct ColoniesState;
 struct Colony;
 struct IGui;
 struct IMapUpdater;
+struct SS;
+struct TS;
 struct Unit;
 struct UnitsState;
 
@@ -63,5 +65,11 @@ void cheat_increase_commodity( Colony&     colony,
                                e_commodity type );
 void cheat_decrease_commodity( Colony&     colony,
                                e_commodity type );
+
+// This will perform all of the actions on the colony that are
+// done when it is evolved at the start of a turn, though it
+// won't display any notifications, it will just log them.
+void cheat_advance_colony_one_turn( SS& ss, TS& ts,
+                                    Colony& colony );
 
 } // namespace rn
