@@ -577,3 +577,48 @@ colors {
   # shadow color.
   unit_shadow_color_light: '#3C5050'
 }
+
+# For a given difficulty level, this gives the size N of the tory
+# population which, when met or exceeded, causes a production
+# penalty to apply. Moreover, the production penalty will be ap-
+# plied multiple times for each multiple of N reached by the tory
+# population. Note that this has nothing to do with overall
+# colony size since it is not based on percentages; it only per-
+# tains to the absolute size of the tory population.
+tory_penalty_population {
+  discoverer:   10 # TODO: Check this.
+  explorer:      9 # TODO: Check this.
+  conquistador:  8
+  governor:      7 # TODO: Check this.
+  viceroy:       6 # TODO: Check this.
+}
+
+# This is a percent bonus in [0.0, 1.0] that will be added to
+# each colony's SoL percentage after acquiring Simon Bolivar. In
+# the original game it is 0.2.
+bolivar_sons_of_liberty_bonus: 0.2
+
+# This is the (fractional) number of bells consumed by each
+# (fractional) rebel in a colony each turn. Any surplus goes to-
+# ward converting more tories to rebels. In the original game it
+# is 2.0. Increasing this number will make it more difficult to
+# raise Sons of Liberty membership.
+bells_consumed_per_rebel: 2.0
+
+# This is the (positive) value of the penalty that will be sub-
+# tracted from all colonists production for each multiple N of
+# tories, where N is determined by the difficulty level. In the
+# original game it is 1. But note that this penalty will not al-
+# ways manifest as precisely one unit reduction in production,
+# since e.g. for indoor workers it is subtracted before other
+# multipliers are applied.
+tory_production_penalty: 1
+
+# These are the production bonuses that are applied in a colony
+# when Sons of Liberty percent hits 50% and 100%, respectively.
+# In the original game they are 1 and 2, respectively. But note
+# that these bonuses will not always manifest as precisely that
+# increase in production, since e.g. for indoor workers it is
+# added before other multipliers are applied.
+sons_of_liberty_50_bonus:  1
+sons_of_liberty_100_bonus: 2

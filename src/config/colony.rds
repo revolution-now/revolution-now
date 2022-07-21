@@ -13,6 +13,7 @@ include "ss/colony-enums.rds.hpp"
 include "ss/unit-type.rds.hpp"
 include "ss/fathers.rds.hpp"
 include "ss/commodity.rds.hpp"
+include "ss/difficulty.rds.hpp"
 
 # gfx
 include "gfx/pixel.hpp"
@@ -124,6 +125,45 @@ struct.config_colony_t {
   # This gives the list of units that are buildable in a colony
   # as well as how many hammers and tools are needed for each.
   requirements_for_unit 'refl::enum_map<e_unit_type, base::maybe<config::colony::construction_requirements>>',
+
+  # For a given difficulty level, this gives the size N of the
+  # tory population which, when met or exceeded, causes a produc-
+  # tion penalty to apply. Moreover, the production penalty will
+  # be applied multiple times for each multiple of N reached by
+  # the tory population. Note that this has nothing to do with
+  # overall colony size since it is not based on percentages; it
+  # only pertains to the absolute size of the tory population.
+  tory_penalty_population 'refl::enum_map<e_difficulty, int>',
+
+  # This is a percent bonus in [0.0, 1.0] that will be added to
+  # each colony's SoL percentage after acquiring Simon Bolivar.
+  # In the original game it is 0.2.
+  bolivar_sons_of_liberty_bonus 'double',
+
+  # This is the (fractional) number of bells consumed by each
+  # (fractional) rebel in a colony each turn. Any surplus goes
+  # toward converting more tories to rebels. In the original game
+  # it is 2.0. Increasing this number will make it more difficult
+  # to raise Sons of Liberty membership.
+  bells_consumed_per_rebel 'double',
+
+  # This is the (positive) value of the penalty that will be sub-
+  # tracted from all colonists production for each multiple N of
+  # tories, where N is determined by the difficulty level. In the
+  # original game it is 1. But note that this penalty will not
+  # always manifest as precisely one unit reduction in produc-
+  # tion, since e.g. for indoor workers it is subtracted before
+  # other multipliers are applied.
+  tory_production_penalty 'int',
+
+  # These are the production bonuses that are applied in a colony
+  # when Sons of Liberty percent hits 50% and 100%, respectively.
+  # In the original game they are 1 and 2, respectively. But note
+  # that these bonuses will not always manifest as precisely that
+  # increase in production, since e.g. for indoor workers it is
+  # added before other multipliers are applied.
+  sons_of_liberty_50_bonus 'int',
+  sons_of_liberty_100_bonus 'int',
 
   building_display_names 'refl::enum_map<e_colony_building, std::string>',
 
