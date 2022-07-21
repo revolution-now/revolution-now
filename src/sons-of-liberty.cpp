@@ -60,9 +60,11 @@ double compute_sons_of_liberty_percent(
 }
 
 int compute_sons_of_liberty_number(
-    double sons_of_liberty_percent, int colony_population ) {
-  int const rounded_colonists = static_cast<int>( std::floor(
-      sons_of_liberty_percent * colony_population ) );
+    int sons_of_liberty_integral_percent,
+    int colony_population ) {
+  int const rounded_colonists = static_cast<int>(
+      std::floor( double( sons_of_liberty_integral_percent ) /
+                  100.0 * colony_population ) );
   CHECK_GE( rounded_colonists, 0 );
   CHECK_LE( rounded_colonists, colony_population );
   return rounded_colonists;

@@ -141,57 +141,57 @@ TEST_CASE(
 }
 
 TEST_CASE( "[sons-of-liberty] compute_sons_of_liberty_number" ) {
-  double sons_of_liberty_percent = 0.0;
-  int    colony_population       = 0;
+  double sons_of_liberty_integral_percent = 0.0;
+  int    colony_population                = 0;
 
   auto f = [&] {
     return compute_sons_of_liberty_number(
-        sons_of_liberty_percent, colony_population );
+        sons_of_liberty_integral_percent, colony_population );
   };
 
   SECTION( "population 1" ) {
-    colony_population       = 1;
-    sons_of_liberty_percent = 0.0;
+    colony_population                = 1;
+    sons_of_liberty_integral_percent = 0;
     REQUIRE( f() == 0 );
-    sons_of_liberty_percent = 0.1;
+    sons_of_liberty_integral_percent = 10;
     REQUIRE( f() == 0 );
-    sons_of_liberty_percent = 0.4;
+    sons_of_liberty_integral_percent = 40;
     REQUIRE( f() == 0 );
-    sons_of_liberty_percent = 0.7;
+    sons_of_liberty_integral_percent = 70;
     REQUIRE( f() == 0 );
-    sons_of_liberty_percent = 0.99;
+    sons_of_liberty_integral_percent = 99;
     REQUIRE( f() == 0 );
-    sons_of_liberty_percent = 1.0;
+    sons_of_liberty_integral_percent = 100;
     REQUIRE( f() == 1 );
   }
   SECTION( "population 2" ) {
-    colony_population       = 2;
-    sons_of_liberty_percent = 0.0;
+    colony_population                = 2;
+    sons_of_liberty_integral_percent = 0;
     REQUIRE( f() == 0 );
-    sons_of_liberty_percent = 0.1;
+    sons_of_liberty_integral_percent = 10;
     REQUIRE( f() == 0 );
-    sons_of_liberty_percent = 0.4;
+    sons_of_liberty_integral_percent = 40;
     REQUIRE( f() == 0 );
-    sons_of_liberty_percent = 0.7;
+    sons_of_liberty_integral_percent = 70;
     REQUIRE( f() == 1 );
-    sons_of_liberty_percent = 0.99;
+    sons_of_liberty_integral_percent = 99;
     REQUIRE( f() == 1 );
-    sons_of_liberty_percent = 1.0;
+    sons_of_liberty_integral_percent = 100;
     REQUIRE( f() == 2 );
   }
   SECTION( "population 4" ) {
-    colony_population       = 4;
-    sons_of_liberty_percent = 0.0;
+    colony_population                = 4;
+    sons_of_liberty_integral_percent = 0;
     REQUIRE( f() == 0 );
-    sons_of_liberty_percent = 0.1;
+    sons_of_liberty_integral_percent = 10;
     REQUIRE( f() == 0 );
-    sons_of_liberty_percent = 0.4;
+    sons_of_liberty_integral_percent = 40;
     REQUIRE( f() == 1 );
-    sons_of_liberty_percent = 0.7;
+    sons_of_liberty_integral_percent = 70;
     REQUIRE( f() == 2 );
-    sons_of_liberty_percent = 0.99;
+    sons_of_liberty_integral_percent = 99;
     REQUIRE( f() == 3 );
-    sons_of_liberty_percent = 1.0;
+    sons_of_liberty_integral_percent = 100;
     REQUIRE( f() == 4 );
   }
 }

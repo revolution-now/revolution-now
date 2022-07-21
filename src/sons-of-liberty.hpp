@@ -29,19 +29,6 @@ double compute_sons_of_liberty_percent(
     double num_rebels_from_bells_only, int colony_population,
     bool has_simon_bolivar );
 
-// This is the (integral) number of colonists in the colony that
-// are members of the Sons of Liberty. This is what is displayed
-// in the UI. Note that the sons_of_liberty_percent must be com-
-// puted using the above function.
-int compute_sons_of_liberty_number(
-    double sons_of_liberty_percent, int colony_population );
-
-// This is the (integral) number of colonists in the colony that
-// are tories (loyal to the crown). This is what is displayed in
-// the UI.
-int compute_tory_number( int sons_of_liberty_number,
-                         int colony_population );
-
 // This is the SoL percent that will be displayed in the UI,
 // which is always an integral number in [0, 100] since it looks
 // nicer than adding decimal places. Therefore, in order for
@@ -51,6 +38,24 @@ int compute_tory_number( int sons_of_liberty_number,
 // e.g. production bonuses, tory penalties, notifications, etc.
 int compute_sons_of_liberty_integral_percent(
     double sons_of_liberty_percent );
+
+// This is the (integral) number of colonists in the colony that
+// are members of the Sons of Liberty. This is what is displayed
+// in the UI. Note that the sons_of_liberty_integral_percent must
+// be computed using the above function, and we use the integral
+// percent instead of the floating percent (which is more accu-
+// rate) because the (rounded) integral percent is what's dis-
+// played in the UI, and we want this number to always be consis-
+// tent with it, and the rounding logic is non-trivial.
+int compute_sons_of_liberty_number(
+    int sons_of_liberty_integral_percent,
+    int colony_population );
+
+// This is the (integral) number of colonists in the colony that
+// are tories (loyal to the crown). This is what is displayed in
+// the UI.
+int compute_tory_number( int sons_of_liberty_number,
+                         int colony_population );
 
 // This will compute the production bonus to add as a result of
 // the sons of liberty percent. We want to use the integral per-
