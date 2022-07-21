@@ -1,0 +1,76 @@
+# ===============================================================
+# sons-of-liberty.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-07-19.
+#
+# Description: Representation for state relating to SoL.
+#
+# ===============================================================
+namespace "rn"
+
+# This is held per-colony.
+struct.SonsOfLiberty {
+  # This represents the (fractional) number of colonists in the
+  # colony that are rebels due to (the history of) bell produc-
+  # tion only. It is updated at the start of each turn when the
+  # colony is evolved and does not change for the remainder of
+  # the turn. The colony UI will update its SoL % as the player
+  # makes changes, but it will not change this number; it will
+  # just use this number to compute/recompute the SoL %.
+  #
+  # Note that this is not the same as SoL %, since this measures
+  # a number of colonists. It's also not precisely the same as
+  # Sons of Liberty membership, since that will be computed from
+  # SoL % and rounded down. Specifically, the SoL % is computed
+  # from this fractional rebels number (together with the colony
+  # population), then finally the Bolivar bonus is applied, and
+  # that yields the final SoL % number. Then the (integral) Sons
+  # of Liberty is computed from that SoL % by multiplying by the
+  # population and rounding to the nearest percent (there are ac-
+  # tually a few more minor details related to rounding, but
+  # that's good enough for the sake of this discussion).
+  #
+  # To emphasize, this number is independent of whether the
+  # player has Simon Bolivar. Intuitively, one can think of this
+  # as the fractional number of colonists that are in favor of
+  # independence purely as a result of the history of bell pro-
+  # duction and population growth in the colony.
+  #
+  # Using the fractional rebels as the data model for this seems
+  # to be the most compact way to represent it. For example, if
+  # we were to instead record the SoL % then we wouldn't know how
+  # it was computed since we don't know the population or Bolivar
+  # status last turn; and we would need to know how it was com-
+  # puted in order to infer 1) the pre-bolivar SoL % (in order to
+  # evolve it) and 2) the fractional rebels in order allow the
+  # colony UI to show realtime changes to the SoL % as colonists
+  # are added and removed within a turn. So this representation
+  # seems most fundamental since 1) everything else can be com-
+  # puted from it, and 2) it can be evolved in turn N without
+  # needing any information about the state of things last turn.
+  #
+  # This is a fractional number instead of an integer number in
+  # order to allow the rebel % to evolve at a granular level,
+  # which it does in the original game. If it were an integral
+  # number then e.g. a colony with one colonist wouldn't be able
+  # to ramp up the rebel percentage gradually, it would have to
+  # abruptly go from zero to 100, and it wouldn't be clear
+  # how/when to even make that transition.
+  num_rebels_from_bells_only 'double',
+
+  # This is purely for player notifications. When we evolve a
+  # colony we need to compute the final SoL % in the colony both
+  # before and after the evolution so that we can potentially no-
+  # tify the player about changes. We can compute it after the
+  # evolution, but we can't compute what it would have been at
+  # the start of the last turn because we don't know what the
+  # population or Bolivar status was then. So we just have to
+  # record it. This is an integral percent in [0, 100] because
+  # the percent that is displayed to the user in the UI is an in-
+  # tegral one with special rounding behavior.
+  last_sons_of_liberty_integral_percent 'int',
+
+  _features { equality, validation }
+}

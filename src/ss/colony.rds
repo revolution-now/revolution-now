@@ -13,6 +13,7 @@ include "ss/colony-enums.rds.hpp"
 include "ss/colony-id.hpp"
 include "ss/commodity.rds.hpp"
 include "ss/nation.rds.hpp"
+include "ss/sons-of-liberty.rds.hpp"
 include "ss/unit-id.hpp"
 include "ss/unit-type.rds.hpp"
 
@@ -77,14 +78,9 @@ struct.Colony {
 
   hammers 'int',
 
-  # How many bells this colony has accumulated. A certain number
-  # of bells generated in a turn are consumed by colonists, and
-  # the remainder (which might be negative) is added to this.
-  # Then, the value this ends up having each turn determines the
-  # percentage of Sons of Liberty membership by comparing its
-  # value to the population size (the formula used for this is
-  # not yet clear).
-  bells 'int',
+  # State required for computing and notifying on Sons of Liberty
+  # (SoL) membership for this colony.
+  sons_of_liberty 'SonsOfLiberty',
 
   _features { equality, validation }
 }

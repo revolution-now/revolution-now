@@ -14,6 +14,7 @@
 #include "commodity.rds.hpp"
 
 // ss
+#include "ss/sons-of-liberty.hpp"
 #include "ss/units.hpp"
 
 // config
@@ -216,13 +217,13 @@ LUA_STARTUP( lua::state& st ) {
   auto u  = st.usertype.create<U>();
 
   // Getters.
-  u["id"]          = &U::id;
-  u["nation"]      = &U::nation;
-  u["name"]        = &U::name;
-  u["location"]    = &U::location;
-  u["bells"]       = &U::bells;
-  u["buildings"]   = &U::buildings;
-  u["commodities"] = &U::commodities;
+  u["id"]              = &U::id;
+  u["nation"]          = &U::nation;
+  u["name"]            = &U::name;
+  u["location"]        = &U::location;
+  u["sons_of_liberty"] = &U::sons_of_liberty;
+  u["buildings"]       = &U::buildings;
+  u["commodities"]     = &U::commodities;
 };
 
 } // namespace
