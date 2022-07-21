@@ -182,8 +182,12 @@ struct.ColonyProduction {
   # venience.
   silver         'RawMaterialAndProduct',
 
-  # Things that are neither derived nor consumed.
+  # Will never be negative.
   crosses 'int',
+
+  # Will never be negative. Note that this turn's bell production
+  # will not be used to adjust the SoL % for this turn's produc-
+  # tion; instead we will use last turn's SoL %.
   bells   'int',
 
   # This field is always zero since colonies can't produce or
