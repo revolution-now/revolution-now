@@ -378,16 +378,18 @@ int crosses_production_for_colony(
 void compute_food_production(
     TerrainState const& terrain_state,
     UnitsState const& units_state, Colony const& colony,
+    BellsModifiers const& bells_modifiers,
     int const center_food_produced, FoodProduction& out,
     refl::enum_map<e_direction, SquareProduction>&
         out_land_production ) {
   for( e_direction d : refl::enum_values<e_direction> ) {
     if( maybe<OutdoorUnit> const& unit = colony.outdoor_jobs[d];
         unit.has_value() && unit->job == e_outdoor_job::food ) {
-      int const quantity = production_on_square(
+      int quantity = production_on_square(
           e_outdoor_job::food, terrain_state,
           units_state.unit_for( unit->unit_id ).type(),
           colony.location.moved( d ) );
+      bells_modifiers.apply( quantity );
       out.corn_produced += quantity;
       out_land_production[d] = SquareProduction{
           .what = e_outdoor_job::food, .quantity = quantity };
@@ -399,10 +401,11 @@ void compute_food_production(
   for( e_direction d : refl::enum_values<e_direction> ) {
     if( maybe<OutdoorUnit> const& unit = colony.outdoor_jobs[d];
         unit.has_value() && unit->job == e_outdoor_job::fish ) {
-      int const quantity = production_on_square(
+      int quantity = production_on_square(
           e_outdoor_job::fish, terrain_state,
           units_state.unit_for( unit->unit_id ).type(),
           colony.location.moved( d ) );
+      bells_modifiers.apply( quantity );
       out.fish_produced += quantity;
       out_land_production[d] = SquareProduction{
           .what = e_outdoor_job::fish, .quantity = quantity };
@@ -687,9 +690,9 @@ void compute_land_production(
   colony.commodities[e_commodity::tools] -=
       pr.tools_muskets.raw_consumed_actual;
 
-  compute_food_production( terrain_state, units_state, colony,
-                           pr.center_food_production, pr.food,
-                           pr.land_production );
+  compute_food_production(
+      terrain_state, units_state, colony, bells_modifiers,
+      pr.center_food_production, pr.food, pr.land_production );
   colony.commodities[e_commodity::horses] +=
       pr.food.horses_produced_actual;
 
