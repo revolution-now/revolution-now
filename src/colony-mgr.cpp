@@ -196,6 +196,45 @@ wait<bool> present_colony_update(
               .worker_names_plural[o.job] );
       break;
     }
+    case ColonyNotification::e::sons_of_liberty_increased: {
+      auto& o = notification.get<
+          ColonyNotification::sons_of_liberty_increased>();
+      msg = fmt::format(
+          "Sons of Liberty membership has increased to "
+          "@[H]{}%@[] in @[H]{}@[]!",
+          o.to, colony.name );
+      if( o.from < 50 && o.to >= 50 )
+        msg += fmt::format(
+            "  All colonists will now receive a @[H]+{}@[] "
+            "production bonus.",
+            config_colony.sons_of_liberty_50_bonus );
+      if( o.from < 100 && o.to == 100 )
+        msg += fmt::format(
+            "  All colonists will now receive a @[H]+{}@[] "
+            "production bonus.",
+            config_colony.sons_of_liberty_100_bonus );
+      break;
+    }
+    case ColonyNotification::e::sons_of_liberty_decreased: {
+      auto& o = notification.get<
+          ColonyNotification::sons_of_liberty_decreased>();
+      msg = fmt::format(
+          "Sons of Liberty membership has decreased to "
+          "@[H]{}%@[] in @[H]{}@[]!",
+          o.to, colony.name );
+      if( o.from == 100 && o.to < 100 )
+        msg += fmt::format(
+            "  The production bonus afforded to each colonist "
+            "is now reduced by @[H]{}@[].",
+            config_colony.sons_of_liberty_100_bonus -
+                config_colony.sons_of_liberty_50_bonus );
+      if( o.from >= 50 && o.to < 50 )
+        msg += fmt::format(
+            "  Colonists will no longer receive any production "
+            "bonuses.",
+            config_colony.sons_of_liberty_100_bonus );
+      break;
+    }
   }
 
   if( ask_to_zoom ) {
@@ -286,9 +325,7 @@ ColonyJob_t find_job_for_initial_colonist(
 }
 
 void create_initial_buildings( Colony& colony ) {
-  for( e_colony_building building :
-       config_colony.initial_colony_buildings )
-    colony.buildings[building] = true;
+  colony.buildings = config_colony.initial_colony_buildings;
 }
 
 } // namespace

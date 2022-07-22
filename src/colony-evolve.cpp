@@ -17,6 +17,7 @@
 #include "on-map.hpp"
 #include "production.hpp"
 #include "rand.hpp"
+#include "sons-of-liberty.hpp"
 #include "ts.hpp"
 #include "ustate.hpp"
 
@@ -34,8 +35,6 @@
 using namespace std;
 
 namespace rn {
-
-struct Player;
 
 namespace {
 
@@ -295,6 +294,51 @@ void apply_commodity_increase(
   store[what] = new_value;
 }
 
+void evolve_sons_of_liberty(
+    Player const& player, int bells_produced, Colony& colony,
+    vector<ColonyNotification_t>& notifications ) {
+  SonsOfLiberty& sol        = colony.sons_of_liberty;
+  int const      population = colony_population( colony );
+  // This won't happen in practice because the game does not
+  // allow zero-population colonies, but it is useful for unit
+  // tests where that something happens, and which would other-
+  // wise cause code below to check-fail. Conceptually it makes
+  // sense either way, because a population zero colony cannot
+  // have any sons of liberty.
+  if( population == 0 ) {
+    sol.num_rebels_from_bells_only            = 0.0;
+    sol.last_sons_of_liberty_integral_percent = 0;
+    return;
+  }
+
+  sol.num_rebels_from_bells_only =
+      evolve_num_rebels_from_bells_only(
+          sol.num_rebels_from_bells_only, bells_produced,
+          population );
+  int const new_sons_of_liberty_integral_percent =
+      compute_sons_of_liberty_integral_percent(
+          compute_sons_of_liberty_percent(
+              sol.num_rebels_from_bells_only, population,
+              player.fathers
+                  .has[e_founding_father::simon_bolivar] ) );
+  int const new_bucket =
+      new_sons_of_liberty_integral_percent / 10;
+  int const old_bucket =
+      sol.last_sons_of_liberty_integral_percent / 10;
+  if( new_bucket > old_bucket )
+    notifications.push_back(
+        ColonyNotification::sons_of_liberty_increased{
+            .from = sol.last_sons_of_liberty_integral_percent,
+            .to   = new_sons_of_liberty_integral_percent } );
+  if( new_bucket < old_bucket )
+    notifications.push_back(
+        ColonyNotification::sons_of_liberty_decreased{
+            .from = sol.last_sons_of_liberty_integral_percent,
+            .to   = new_sons_of_liberty_integral_percent } );
+  sol.last_sons_of_liberty_integral_percent =
+      new_sons_of_liberty_integral_percent;
+}
+
 void apply_production_to_colony(
     Colony& colony, ColonyProduction const& production,
     vector<ColonyNotification_t>& notifications ) {
@@ -322,8 +366,15 @@ void apply_production_to_colony(
 
 ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
                                         Colony& colony ) {
+  UNWRAP_CHECK( player, ss.players.players[colony.nation] );
   ColonyEvolution ev;
   ev.production = production_for_colony( ss, colony );
+
+  // This must be done after computing the production for the
+  // colony since we want the production to use last turn's SoL %
+  // and associated bonuses.
+  evolve_sons_of_liberty( player, ev.production.bells, colony,
+                          ev.notifications );
 
   apply_production_to_colony( colony, ev.production,
                               ev.notifications );

@@ -90,12 +90,7 @@ wait<> cheat_colony_buildings( Colony& colony, IGui& gui ) {
       break;
     }
     case e_cheat_colony_buildings_option::set_default_buildings:
-      for( e_colony_building building :
-           refl::enum_values<e_colony_building> )
-        colony.buildings[building] = false;
-      for( e_colony_building building :
-           config_colony.initial_colony_buildings )
-        colony.buildings[building] = true;
+      colony.buildings = config_colony.initial_colony_buildings;
       break;
     case e_cheat_colony_buildings_option::add_one_building: {
       maybe<e_colony_building> building =

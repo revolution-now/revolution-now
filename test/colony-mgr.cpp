@@ -94,10 +94,10 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
   SECTION( "dragoon" ) {
     Coord const coord = { .x = 1, .y = 1 };
     UnitId      id    = W.add_unit_on_map(
-                UnitType::create( e_unit_type::dragoon,
+        UnitType::create( e_unit_type::dragoon,
                                   e_unit_type::petty_criminal )
-                    .value(),
-                coord );
+            .value(),
+        coord );
     Unit& founder = W.units().unit_for( id );
     REQUIRE( founder.type() == e_unit_type::dragoon );
     REQUIRE( unit_can_found_colony( W.ss(), id ).valid() );
@@ -360,6 +360,10 @@ TEST_CASE( "[colony-mgr] found_colony finds job for unit." ) {
 }
 
 TEST_CASE( "[colony-mgr] evolve colonies." ) {
+  // TODO
+}
+
+TEST_CASE( "[colony-mgr] SoL membership changed." ) {
   // TODO
 }
 

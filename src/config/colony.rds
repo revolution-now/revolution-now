@@ -112,9 +112,9 @@ struct.config_colony_t {
   # colony building.
   max_workers_per_building 'int',
 
-  # When a colony is founded it will get this set of buildings
-  # for free.
-  initial_colony_buildings 'std::unordered_set<e_colony_building>',
+  # Which colony buildings are given automatically to a colony
+  # upon founding.
+  initial_colony_buildings 'refl::enum_map<e_colony_building, bool>',
 
   outdoors 'config::colony::outdoors',
 

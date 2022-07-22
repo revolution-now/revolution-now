@@ -22,6 +22,7 @@
 #include "src/ustate.hpp"
 
 // config
+#include "config/colony.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
@@ -273,9 +274,11 @@ Colony& World::add_colony( Coord           where,
                            maybe<e_nation> nation ) {
   string name =
       fmt::to_string( colonies().last_colony_id() + 1 );
-  return colonies().colony_for( create_empty_colony(
+  Colony& colony   = colonies().colony_for( create_empty_colony(
       colonies(), nation.value_or( default_nation_ ), where,
       name ) );
+  colony.buildings = config_colony.initial_colony_buildings;
+  return colony;
 }
 
 Colony& World::add_colony_with_new_unit(

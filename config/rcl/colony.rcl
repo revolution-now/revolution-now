@@ -42,15 +42,46 @@ food_for_creating_new_colonist: 200
 # colony building. The original game uses 3.
 max_workers_per_building: 3
 
-initial_colony_buildings [
-  blacksmiths_house
-  carpenters_shop
-  fur_traders_house
-  rum_distillers_house
-  tobacconists_house
-  weavers_house
-  town_hall
-]
+initial_colony_buildings {
+  armory:               false
+  blacksmiths_house:    true
+  carpenters_shop:      true
+  fur_traders_house:    true
+  rum_distillers_house: true
+  tobacconists_house:   true
+  weavers_house:        true
+  blacksmiths_shop:     false
+  fur_trading_post:     false
+  lumber_mill:          false
+  magazine:             false
+  rum_distillery:       false
+  tobacconists_shop:    false
+  weavers_shop:         false
+  arsenal:              false
+  cigar_factory:        false
+  fur_factory:          false
+  iron_works:           false
+  rum_factory:          false
+  textile_mill:         false
+  town_hall:            true
+  printing_press:       false
+  newspaper:            false
+  schoolhouse:          false
+  college:              false
+  university:           false
+  docks:                false
+  drydock:              false
+  shipyard:             false
+  stable:               false
+  stockade:             false
+  fort:                 false
+  fortress:             false
+  warehouse:            false
+  warehouse_expansion:  false
+  church:               false
+  cathedral:            false
+  custom_house:         false
+}
 
 outdoors {
   job_names {

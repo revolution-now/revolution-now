@@ -183,6 +183,7 @@ TEST_CASE( "[colony-evolve] ran out of raw materials" ) {
                       e_unit_type::free_colonist );
   W.add_unit_indoors( colony.id, e_indoor_job::tools,
                       e_unit_type::free_colonist );
+  colony.buildings[e_colony_building::armory] = true;
   W.add_unit_indoors( colony.id, e_indoor_job::muskets,
                       e_unit_type::free_colonist );
 
@@ -229,6 +230,11 @@ TEST_CASE( "[colony-evolve] new colonist" ) {
 }
 
 TEST_CASE( "[colony-evolve] colonist starved" ) {
+  World W;
+  // TODO
+}
+
+TEST_CASE( "[colony-evolve] evolves sons of liberty" ) {
   World W;
   // TODO
 }

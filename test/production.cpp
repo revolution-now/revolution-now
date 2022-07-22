@@ -3863,7 +3863,8 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
       "store, gunsmith" ) {
     Colony& colony =
         W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
-    colony.commodities[e_commodity::ore] = 2;
+    colony.commodities[e_commodity::ore]        = 2;
+    colony.buildings[e_colony_building::armory] = true;
     W.add_unit_indoors( colony.id, e_indoor_job::tools,
                         e_unit_type::master_blacksmith );
     W.add_unit_indoors( colony.id, e_indoor_job::muskets,
@@ -3981,8 +3982,9 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
       "gunsmith" ) {
     Colony& colony =
         W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
-    colony.commodities[e_commodity::ore]   = 10;
-    colony.commodities[e_commodity::tools] = 98;
+    colony.commodities[e_commodity::ore]        = 10;
+    colony.commodities[e_commodity::tools]      = 98;
+    colony.buildings[e_colony_building::armory] = true;
     W.add_unit_indoors( colony.id, e_indoor_job::tools,
                         e_unit_type::master_blacksmith );
     W.add_unit_indoors( colony.id, e_indoor_job::muskets,
@@ -4062,8 +4064,9 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
       "store" ) {
     Colony& colony =
         W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
-    colony.commodities[e_commodity::ore]   = 2;
-    colony.commodities[e_commodity::tools] = 100;
+    colony.commodities[e_commodity::ore]        = 2;
+    colony.commodities[e_commodity::tools]      = 100;
+    colony.buildings[e_colony_building::armory] = true;
     W.add_unit_indoors( colony.id, e_indoor_job::tools,
                         e_unit_type::master_blacksmith );
     W.add_unit_indoors( colony.id, e_indoor_job::muskets,
@@ -4104,9 +4107,10 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
       "in store" ) {
     Colony& colony =
         W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
-    colony.commodities[e_commodity::ore]     = 2;
-    colony.commodities[e_commodity::tools]   = 100;
-    colony.commodities[e_commodity::muskets] = 98;
+    colony.commodities[e_commodity::ore]        = 2;
+    colony.commodities[e_commodity::tools]      = 100;
+    colony.commodities[e_commodity::muskets]    = 98;
+    colony.buildings[e_colony_building::armory] = true;
     W.add_unit_indoors( colony.id, e_indoor_job::tools,
                         e_unit_type::master_blacksmith );
     W.add_unit_indoors( colony.id, e_indoor_job::muskets,
@@ -4147,9 +4151,10 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
       "in store" ) {
     Colony& colony =
         W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
-    colony.commodities[e_commodity::ore]     = 10;
-    colony.commodities[e_commodity::tools]   = 100;
-    colony.commodities[e_commodity::muskets] = 100;
+    colony.commodities[e_commodity::ore]        = 10;
+    colony.commodities[e_commodity::tools]      = 100;
+    colony.commodities[e_commodity::muskets]    = 100;
+    colony.buildings[e_colony_building::armory] = true;
     W.add_unit_indoors( colony.id, e_indoor_job::tools,
                         e_unit_type::master_blacksmith );
     W.add_unit_indoors( colony.id, e_indoor_job::muskets,
@@ -4229,8 +4234,9 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
       "store" ) {
     Colony& colony =
         W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
-    colony.commodities[e_commodity::ore]   = 2;
-    colony.commodities[e_commodity::tools] = 150;
+    colony.commodities[e_commodity::ore]        = 2;
+    colony.commodities[e_commodity::tools]      = 150;
+    colony.buildings[e_colony_building::armory] = true;
     W.add_unit_indoors( colony.id, e_indoor_job::tools,
                         e_unit_type::master_blacksmith );
     W.add_unit_indoors( colony.id, e_indoor_job::muskets,
@@ -4271,9 +4277,10 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
       "store" ) {
     Colony& colony =
         W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
-    colony.commodities[e_commodity::ore]     = 2;
-    colony.commodities[e_commodity::tools]   = 150;
-    colony.commodities[e_commodity::muskets] = 95;
+    colony.commodities[e_commodity::ore]        = 2;
+    colony.commodities[e_commodity::tools]      = 150;
+    colony.commodities[e_commodity::muskets]    = 95;
+    colony.buildings[e_colony_building::armory] = true;
     W.add_unit_indoors( colony.id, e_indoor_job::tools,
                         e_unit_type::master_blacksmith );
     W.add_unit_indoors( colony.id, e_indoor_job::muskets,
@@ -4314,9 +4321,10 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
       "in store" ) {
     Colony& colony =
         W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
-    colony.commodities[e_commodity::ore]     = 2;
-    colony.commodities[e_commodity::tools]   = 150;
-    colony.commodities[e_commodity::muskets] = 100;
+    colony.commodities[e_commodity::ore]        = 2;
+    colony.commodities[e_commodity::tools]      = 150;
+    colony.commodities[e_commodity::muskets]    = 100;
+    colony.buildings[e_colony_building::armory] = true;
     W.add_unit_indoors( colony.id, e_indoor_job::tools,
                         e_unit_type::master_blacksmith );
     W.add_unit_indoors( colony.id, e_indoor_job::muskets,
@@ -4390,6 +4398,7 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
       "ore center square/with master gunsmith, no ore in "
       "store, no tools in store" ) {
     Colony& colony = W.add_colony( W.kDesertTile );
+    colony.buildings[e_colony_building::armory] = true;
     W.add_unit_indoors( colony.id, e_indoor_job::muskets,
                         e_unit_type::master_gunsmith );
     ColonyProduction pr =
@@ -4426,6 +4435,7 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
       "ore in store, no tools in store" ) {
     Colony& colony =
         W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
+    colony.buildings[e_colony_building::armory] = true;
     W.add_unit_indoors( colony.id, e_indoor_job::tools,
                         e_unit_type::master_blacksmith );
     W.add_unit_indoors( colony.id, e_indoor_job::muskets,
@@ -4465,7 +4475,8 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
       "ore in store, some tools in store" ) {
     Colony& colony =
         W.add_colony( W.kDesertTile - Delta{ .w = 1 } );
-    colony.commodities[e_commodity::tools] = 30;
+    colony.buildings[e_colony_building::armory] = true;
+    colony.commodities[e_commodity::tools]      = 30;
     W.add_unit_indoors( colony.id, e_indoor_job::tools,
                         e_unit_type::master_blacksmith );
     W.add_unit_indoors( colony.id, e_indoor_job::muskets,
@@ -4540,7 +4551,8 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
       "ore center square/with master blacksmith and gunsmith, "
       "no ore in store, full tools warehouse" ) {
     Colony& colony = W.add_colony( W.kDesertTile );
-    colony.commodities[e_commodity::tools] = 100;
+    colony.buildings[e_colony_building::armory] = true;
+    colony.commodities[e_commodity::tools]      = 100;
     W.add_unit_indoors( colony.id, e_indoor_job::tools,
                         e_unit_type::master_blacksmith );
     W.add_unit_indoors( colony.id, e_indoor_job::muskets,
@@ -4578,8 +4590,9 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
       "ore center square/with master blacksmith and gunsmith, "
       "no ore in store, full tools and muskets warehouse" ) {
     Colony& colony = W.add_colony( W.kDesertTile );
-    colony.commodities[e_commodity::tools]   = 100;
-    colony.commodities[e_commodity::muskets] = 100;
+    colony.commodities[e_commodity::tools]      = 100;
+    colony.commodities[e_commodity::muskets]    = 100;
+    colony.buildings[e_colony_building::armory] = true;
     W.add_unit_indoors( colony.id, e_indoor_job::tools,
                         e_unit_type::master_blacksmith );
     W.add_unit_indoors( colony.id, e_indoor_job::muskets,
@@ -5341,6 +5354,30 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
                  .product_delta_final          = 10,
              } );
   }
+}
+
+TEST_CASE( "[production] bell production [discoverer]" ) {
+  World W;
+  W.create_default_map();
+  // TODO
+}
+
+TEST_CASE( "[production] with 50 percent SoL" ) {
+  World W;
+  W.create_default_map();
+  // TODO
+}
+
+TEST_CASE( "[production] with 100 percent SoL" ) {
+  World W;
+  W.create_default_map();
+  // TODO
+}
+
+TEST_CASE( "[production] with tory penalty" ) {
+  World W;
+  W.create_default_map();
+  // TODO
 }
 
 } // namespace

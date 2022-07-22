@@ -15,6 +15,7 @@
 #include "colony-mgr.hpp"
 #include "colony.hpp"
 #include "land-production.hpp"
+#include "sons-of-liberty.hpp"
 #include "unit.hpp"
 
 // ss
@@ -29,6 +30,7 @@
 // config
 #include "config/colony.rds.hpp"
 #include "config/production.rds.hpp"
+#include "config/unit-type.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -41,6 +43,41 @@ using namespace std;
 namespace rn {
 
 namespace {
+
+/****************************************************************
+** BellsModifiers
+*****************************************************************/
+struct BellsModifiers {
+  BellsModifiers( int sons_of_liberty_bonus, int tory_penalty )
+    : sons_of_liberty_bonus_( sons_of_liberty_bonus ),
+      tory_penalty_( tory_penalty ) {
+    CHECK_GE( sons_of_liberty_bonus_, 0 );
+    CHECK_GE( tory_penalty_, 0 );
+  }
+
+  void apply( int& to ) const {
+    to += sons_of_liberty_bonus_;
+    to -= tory_penalty_;
+  }
+
+ private:
+  // Making these private ensures that the `apply` method is al-
+  // ways used to apply them, which guarantees that they will be
+  // applied with the correct sign.
+  int sons_of_liberty_bonus_ = 0;
+  int tory_penalty_          = 0;
+};
+
+/****************************************************************
+** Helpers
+*****************************************************************/
+bool indoor_unit_is_expert( e_indoor_job job,
+                            e_unit_type  unit_type ) {
+  UnitTypeAttributes const& attr = unit_attr( unit_type );
+  e_unit_activity const     activity =
+      activity_for_indoor_job( job );
+  return ( attr.expertise == activity );
+}
 
 // Mutable version, used only internally.
 int& final_production_delta_for_commodity( ColonyProduction& pr,
@@ -89,21 +126,25 @@ maybe<e_indoor_job> indoor_job_from_outdoor_job(
   }
 }
 
+// This will give the base colonist production for an indoor job
+// that does not include expert status. The reason that we don't
+// lump expert status together with this is because the original
+// game tends to apply the expert bonus at a later stage in the
+// chain of bonuses, potentially after some other bonuses are ap-
+// plied (some of which may be additive, and some which may do
+// rounding). For this reason, all units get the same production
+// (3 in the original game) except for petty criminal, native
+// convert, and indentured servant. If the colonist is an expert,
+// that bonus will be applied separately.
+//
+// In the original game this seems to only depend on colonist
+// type and not on the particular indoor job.
+//
 // Note that these numbers will be different from outdoor jobs.
 // For example, a petty criminal is as good as a free colonist at
 // farming.
-int production_for_indoor_job( e_indoor_job job,
-                               e_unit_type  type ) {
-  if( job == e_indoor_job::bells ) {
-    // Bells seems to be an exception to the rule for indoor pro-
-    // duction, so we need a special case for it. In particular,
-    // it seems that a free colonist produces 5 bells, indentured
-    // servant 3, and petty criminal/convert produces 2.
-    TODO(
-        "Need to make this mechanism more general so that we "
-        "can specify production for each indoor job "
-        "individually." );
-  }
+int base_indoor_production_for_colonist_indoor_job(
+    e_unit_type type ) {
   switch( type ) {
     case e_unit_type::petty_criminal:
       return config_production.indoor_production
@@ -114,45 +155,31 @@ int production_for_indoor_job( e_indoor_job job,
     case e_unit_type::indentured_servant:
       return config_production.indoor_production
           .indentured_servant_base_production;
-    case e_unit_type::free_colonist:
-      return config_production.indoor_production
-          .non_expert_base_production;
     default: break;
   }
-  auto switch_expert = [&]( e_unit_type expert ) {
-    if( type == expert )
-      return config_production.indoor_production
-          .expert_base_production;
-    return config_production.indoor_production
-        .non_expert_base_production;
-  };
-  switch( job ) {
-    case e_indoor_job::bells: {
-      // See above.
-      SHOULD_NOT_BE_HERE;
-    }
-    case e_indoor_job::crosses:
-      return switch_expert( e_unit_type::firebrand_preacher );
-    case e_indoor_job::hammers:
-      return switch_expert( e_unit_type::master_carpenter );
-    case e_indoor_job::rum:
-      return switch_expert( e_unit_type::master_rum_distiller );
-    case e_indoor_job::cigars:
-      return switch_expert( e_unit_type::master_tobacconist );
-    case e_indoor_job::cloth:
-      return switch_expert( e_unit_type::master_weaver );
-    case e_indoor_job::coats:
-      return switch_expert( e_unit_type::master_fur_trader );
-    case e_indoor_job::tools:
-      return switch_expert( e_unit_type::master_blacksmith );
-    case e_indoor_job::muskets:
-      return switch_expert( e_unit_type::master_gunsmith );
-    case e_indoor_job::teacher: SHOULD_NOT_BE_HERE;
-  }
+  return config_production.indoor_production
+      .non_expert_base_production;
 }
 
-[[nodiscard]] int apply_int_percent_bonus( int n, int percent ) {
-  return n + int( lround( n * double( percent ) / 100.0 ) );
+// Given n=5 and percent=50, this will yield 7.
+void apply_int_percent_bonus_rnd_down( int& n, int percent ) {
+  n = n + int( floor( n * double( percent ) / 100.0 ) );
+}
+
+// Given n=5 and percent=50, this will yield 8.
+void apply_int_percent_bonus_rnd_up( int& n, int percent ) {
+  n = n + int( ceil( n * double( percent ) / 100.0 ) );
+}
+
+[[nodiscard]] int apply_factory_reduction( int put,
+                                           int factory_bonus ) {
+  CHECK_GE( factory_bonus, 0 );
+  // Avoid rounding errors in the common case.
+  if( factory_bonus == 0 ) return put;
+  // In the original game, factory_bonus is 50, so the below mul-
+  // tiplies by 2/3 and rounds down.
+  return int( floor( double( put ) * 100.0 /
+                     ( 100.0 + factory_bonus ) ) );
 }
 
 struct BuildingBonusResult {
@@ -160,54 +187,127 @@ struct BuildingBonusResult {
   int put = 0;
 };
 
-// Given the amount of a product that is produced by units in the
-// base level building, compute the amount that is theoretically
-// produced and used given the actual building's bonus type.
-[[nodiscard]] BuildingBonusResult apply_building_bonus(
-    int n, BuildingBonus_t const& bonus ) {
-  switch( bonus.to_enum() ) {
-    case BuildingBonus::e::none: {
-      return BuildingBonusResult{ .use = n, .put = n };
-    }
-    case BuildingBonus::e::same: {
-      auto const& o = bonus.get<BuildingBonus::same>();
-      int         b = apply_int_percent_bonus( n, o.bonus );
-      return BuildingBonusResult{ .use = b, .put = b };
-    }
-    case BuildingBonus::e::factory: {
-      auto const& o = bonus.get<BuildingBonus::factory>();
-      int use       = apply_int_percent_bonus( n, o.use_bonus );
-      int put       = apply_int_percent_bonus( n, o.put_bonus );
-      return BuildingBonusResult{ .use = use, .put = put };
-    }
+int bells_production( UnitsState const& units_state,
+                      Player const& player, Colony const& colony,
+                      BellsModifiers const& bells_modifiers ) {
+  maybe<e_colony_building> maybe_building = building_for_slot(
+      colony, e_colony_building_slot::town_hall );
+  if( !maybe_building.has_value() ) {
+    // If we have no relevant buildings then we're left with the
+    // base value. Sanity check and leave.
+    CHECK( colony.indoor_jobs[e_indoor_job::bells].size() == 0 );
+    return 0;
   }
+
+  e_colony_building const building = *maybe_building;
+
+  // For base bells from the building itself, the original game
+  // seems to do the following:
+  //
+  // 1. Add free building production (== 1).
+  // 2. Add Paine bonus, multiply by (1+tax rate) (round down).
+  //
+  // Note the Jefferson bonus does not apply here. This is prob-
+  // ably because the original game docs mention that his bonus
+  // only increases the bell production of statesmen.
+  //
+  // Also, sons of liberty bonuses don't appear to apply to base
+  // bell production. If they did, then a colony with one or two
+  // colonists, once it gets to 100, could (depending on liberty
+  // bell consumption) stay there comfortably with no statesmen.
+  // Also, the base production is not produced by a colonist, and
+  // sons of liberty bonuses (or tory penalties) are really sup-
+  // posed to apply to colonists.
+  //
+  // Not sure if the original game applies the Paine bonus, but
+  // it wouldn't really make a difference anyway, since even if
+  // the tax rate is 99% then the bonus (which rounds down) would
+  // yield nothing when applied to the base building production
+  // of 1. So we're just including it here for consistency.
+  //
+  // The printing press/newspaper bonuses also apply here techni-
+  // cally, but the original game appears to apply them at the
+  // very end after the colonist contributions are added in.
+  int buildings_quantity =
+      config_production.free_building_production[building];
+  if( player.fathers.has[e_founding_father::thomas_paine] )
+    apply_int_percent_bonus_rnd_down(
+        buildings_quantity, player.old_world.taxes.tax_rate );
+
+  // For bells production from colonists, the original game seems
+  // to do the following:
+  //
+  //   1. Non-expert colonist amount (1, 2, 3); for expert
+  //      colonist use 3 (free colonist amount).
+  //   2. Add sons of liberty bonus/penalty (+1/+2).
+  //   3. Subtract tory penalty (-1)*tory_population/N, where N
+  //      is determined by difficulty level.
+  //   4. Multiply by two for expert.
+  //   5. Add Jefferson bonus, multiply by 1.5 (rounding up).
+  //   6. Add Paine bonus, multiply by (1+tax rate) (round down).
+
+  vector<UnitId> const& unit_ids =
+      colony.indoor_jobs[e_indoor_job::bells];
+  int        units_quantity = 0;
+  bool const has_jefferson =
+      player.fathers.has[e_founding_father::thomas_jefferson];
+  bool const has_paine =
+      player.fathers.has[e_founding_father::thomas_paine];
+  for( UnitId id : unit_ids ) {
+    e_unit_type const unit_type =
+        units_state.unit_for( id ).type();
+    int unit_quantity =
+        base_indoor_production_for_colonist_indoor_job(
+            unit_type );
+    bells_modifiers.apply( unit_quantity );
+    if( indoor_unit_is_expert( e_indoor_job::bells, unit_type ) )
+      apply_int_percent_bonus_rnd_down(
+          unit_quantity,
+          config_production.indoor_production.expert_bonus );
+    if( has_jefferson )
+      apply_int_percent_bonus_rnd_up(
+          unit_quantity, config_production.indoor_production
+                             .thomas_jefferson_bells_bonus );
+    if( has_paine )
+      apply_int_percent_bonus_rnd_up(
+          unit_quantity, player.old_world.taxes.tax_rate );
+
+    units_quantity += unit_quantity;
+  }
+
+  int const pre_newspaper_total =
+      buildings_quantity + units_quantity;
+
+  // Lastly, the original game will apply the printing press/new-
+  // paper bonuses after all others are added. This means:
+  //
+  //   - Multiply by 1.5 for printing press (rounding up) or 2
+  //     for newspaper.
+  //
+  // To emphasize, this multiplicative bonus applies to both the
+  // unit quantities and the town hall quantity.
+  int const post_newspaper_total = [&] {
+    maybe<e_colony_building> bells_bonus_building =
+        building_for_slot( colony,
+                           e_colony_building_slot::newspapers );
+    int res = pre_newspaper_total;
+    apply_int_percent_bonus_rnd_up(
+        res, bells_bonus_building.has_value()
+                 ? config_production.building_production_bonus
+                       [*bells_bonus_building]
+                 : 0 );
+    return res;
+  }();
+
+  int const total = post_newspaper_total;
+
+  return total;
 }
 
-// Given a certain amount of a raw material that will theoreti-
-// cally be used, compute the amount of product produced.
-[[nodiscard]] int raw_to_produced_for_bonus_type(
-    int raw, BuildingBonus_t const& bonus ) {
-  switch( bonus.to_enum() ) {
-    case BuildingBonus::e::none: return raw;
-    case BuildingBonus::e::same: return raw;
-    case BuildingBonus::e::factory: {
-      auto const& o = bonus.get<BuildingBonus::factory>();
-      // For the original game, the use_bonus is 100% and the put
-      // bonus is 200%, which means that the output is 50% larger
-      // than the input (counting the starting quantity, which is
-      // 100% by definition). So in that case, percent_increase
-      // will be 50.
-      int percent_increase = ( ( o.put_bonus + 100 ) * 100 ) /
-                                 ( o.use_bonus + 100 ) -
-                             100;
-      return apply_int_percent_bonus( raw, percent_increase );
-    }
-  }
-}
-
-int crosses_production_for_colony( UnitsState const& units_state,
-                                   Player const&     player,
-                                   Colony const&     colony ) {
+int crosses_production_for_colony(
+    UnitsState const& units_state, Player const& player,
+    Colony const&         colony,
+    BellsModifiers const& bells_modifiers ) {
   int const base_quantity = config_production.base_crosses;
 
   maybe<e_colony_building> maybe_building = building_for_slot(
@@ -219,42 +319,55 @@ int crosses_production_for_colony( UnitsState const& units_state,
            0 );
     return base_quantity;
   }
+  e_colony_building const building = *maybe_building;
 
-  e_colony_building building = *maybe_building;
-
-  // First let's get the base amount for the buildings.
   int const buildings_quantity =
       config_production.free_building_production[building];
 
-  // Now let's get the quantity added by the units.
+  // In the original game, base crosses don't seem to have any
+  // bonuses applied, even together with colonists.
+
+  // The original game seems to compute colonist contributions in
+  // this way:
+  //
+  //   1. Non-expert colonist amount (1, 2, 3); for expert
+  //      colonist use 3 (free colonist amount).
+  //   2. Multiply by two for expert.
+  //   3. Add sons of liberty bonus/penalty (+2).
+  //   4. Subtract tory penalty (-1)*tory_population/N, where N
+  //      is determined by difficulty level.
+  //   5. Multiply by two for building bonus.
+  //   6. Add William Penn bonus, multiply by 1.5 (round down).
+  //
+  // The original game appears to apply the William Penn bonus on
+  // a per-colonist basis, and rounds down.
   vector<UnitId> const& unit_ids =
       colony.indoor_jobs[e_indoor_job::crosses];
-  int units_quantity = 0;
-  for( UnitId id : unit_ids )
-    units_quantity += production_for_indoor_job(
-        e_indoor_job::crosses,
-        units_state.unit_for( id ).type() );
-
-  // Now add in any bonuses due to building upgrade. Note that we
-  // are applying this to the units_quantity and not the total
-  // cumulative quantity since that is what the original game
-  // seems to do for crosses.
-  if( maybe<BuildingBonus_t> const& bonus =
-          config_production.building_production_bonus[building];
-      bonus.has_value() ) {
-    BuildingBonusResult res =
-        apply_building_bonus( units_quantity, *bonus );
-    // Producing crosses does not consume anything, so these
-    // should not differ.
-    CHECK( res.use == res.put );
-    units_quantity = res.put;
+  int        units_quantity = 0;
+  bool const has_penn =
+      player.fathers.has[e_founding_father::william_penn];
+  for( UnitId id : unit_ids ) {
+    int               unit_quantity = 0;
+    e_unit_type const unit_type =
+        units_state.unit_for( id ).type();
+    unit_quantity =
+        base_indoor_production_for_colonist_indoor_job(
+            unit_type );
+    if( indoor_unit_is_expert( e_indoor_job::crosses,
+                               unit_type ) )
+      apply_int_percent_bonus_rnd_down(
+          unit_quantity,
+          config_production.indoor_production.expert_bonus );
+    bells_modifiers.apply( unit_quantity );
+    apply_int_percent_bonus_rnd_down(
+        unit_quantity,
+        config_production.building_production_bonus[building] );
+    if( has_penn )
+      apply_int_percent_bonus_rnd_down(
+          unit_quantity, config_production.indoor_production
+                             .william_penn_crosses_bonus );
+    units_quantity += unit_quantity;
   }
-
-  // William Penn increases cross production by 50%, but this is
-  // applied to the units production (not including base).
-  if( player.fathers.has[e_founding_father::william_penn] )
-    units_quantity =
-        apply_int_percent_bonus( units_quantity, 50 );
 
   int total =
       base_quantity + buildings_quantity + units_quantity;
@@ -391,16 +504,18 @@ void compute_raw(
     Colony const& colony, TerrainState const& terrain_state,
     UnitsState const& units_state, e_outdoor_job outdoor_job,
     maybe<SquareProduction const&> center_secondary,
+    BellsModifiers const&          bells_modifiers,
     RawMaterialAndProduct&         out,
     refl::enum_map<e_direction, SquareProduction>&
         out_land_production ) {
   for( e_direction d : refl::enum_values<e_direction> ) {
     if( maybe<OutdoorUnit> const& unit = colony.outdoor_jobs[d];
         unit.has_value() && unit->job == outdoor_job ) {
-      int const quantity = production_on_square(
+      int quantity = production_on_square(
           outdoor_job, terrain_state,
           units_state.unit_for( unit->unit_id ).type(),
           colony.location.moved( d ) );
+      bells_modifiers.apply( quantity );
       out.raw_produced += quantity;
       out_land_production[d] = SquareProduction{
           .what = outdoor_job, .quantity = quantity };
@@ -421,34 +536,77 @@ void compute_product( Colony const&          colony,
                       e_indoor_job           indoor_job,
                       UnitsState const&      units_state,
                       e_commodity            raw_commodity,
+                      BellsModifiers const&  bells_modifiers,
                       RawMaterialAndProduct& out ) {
-  int const product_produced_no_bonus = [&] {
-    int res = 0;
-    for( UnitId unit_id : colony.indoor_jobs[indoor_job] )
-      res += production_for_indoor_job(
-          indoor_job, units_state.unit_for( unit_id ).type() );
-    return res;
-  }();
-
   e_colony_building_slot const building_slot =
       slot_for_indoor_job( indoor_job );
   maybe<e_colony_building> const building =
       building_for_slot( colony, building_slot );
-  BuildingBonus_t const bonus =
-      building.has_value()
-          ? config_production
-                .building_production_bonus[*building]
-          : BuildingBonus::none{};
-  BuildingBonusResult const bonus_res =
-      apply_building_bonus( product_produced_no_bonus, bonus );
-  out.product_produced_theoretical = bonus_res.put;
-  out.raw_consumed_theoretical     = bonus_res.use;
+  if( !building.has_value() ) {
+    CHECK( colony.indoor_jobs[indoor_job].empty() );
+    return;
+  }
+
+  // For each unit, the original game appears to apply bonuses in
+  // the following way to arrive at the "put" quantity per
+  // colonist, which is the amount produced per colonist. In gen-
+  // eral this differs from the amount of raw material consumed
+  // due to factory level buildings. The original game appears to
+  // compute the "put" first, sum it over all colonists, then de-
+  // rive the consumed quantity from it.
+  //
+  //   1. Non-expert colonist amount (1, 2, 3); for expert
+  //      colonist use 3 (free colonist amount).
+  //   2. Multiply by 2 for building upgrade.
+  //   3. Add sons of liberty bonus (+1/+2).
+  //   4. Subtract tory penalty (-1)*tory_population/N, where N
+  //      is determined by difficulty level.
+  //   5. Multiply by 1.5 for factory level (rounding down).
+  //   6. Multiply by 2 for expert.
+  //
+  int units_quantity_put = 0;
+  for( UnitId unit_id : colony.indoor_jobs[indoor_job] ) {
+    int               unit_quantity_put = 0;
+    e_unit_type const unit_type =
+        units_state.unit_for( unit_id ).type();
+    unit_quantity_put +=
+        base_indoor_production_for_colonist_indoor_job(
+            unit_type );
+    apply_int_percent_bonus_rnd_down(
+        unit_quantity_put,
+        config_production.building_production_bonus[*building] );
+    bells_modifiers.apply( unit_quantity_put );
+    // Note the factory bonus may be zero.
+    apply_int_percent_bonus_rnd_down(
+        unit_quantity_put,
+        config_production.factory_bonus[*building] );
+    if( indoor_unit_is_expert( indoor_job, unit_type ) )
+      apply_int_percent_bonus_rnd_down(
+          unit_quantity_put,
+          config_production.indoor_production.expert_bonus );
+
+    units_quantity_put += unit_quantity_put;
+  }
+
+  out.product_produced_theoretical += units_quantity_put;
+
+  // The "put" quantity has already been inflated, so now we de-
+  // flate it to get the consumption quantity (this seems to be
+  // how the original game does it, and it matters because of the
+  // fact that it is being applied to the sum of all colonists'
+  // production and the rounding behavior).
+  int const consumed_theoretical = apply_factory_reduction(
+      units_quantity_put,
+      config_production.factory_bonus[*building] );
+
+  out.raw_consumed_theoretical = consumed_theoretical;
   out.raw_delta_theoretical -= out.raw_consumed_theoretical;
 
   // The quantities actually produced and consumed might have to
   // be lowered from their theoretical values if there isn't
-  // enough total supply of the raw material. This is nontrivial
-  // because of factory-level buildings.
+  // enough total supply of the raw material. But because the
+  // building might be factory-level we need to then recompute
+  // what is actually produced using the factory bonus.
   //
   // Note that the colony commodities at this point will already
   // include the raw product this turn.
@@ -456,14 +614,24 @@ void compute_product( Colony const&          colony,
       colony.commodities[raw_commodity];
   out.raw_consumed_actual = std::min(
       out.raw_consumed_theoretical, available_raw_input );
-  out.product_produced_actual = raw_to_produced_for_bonus_type(
-      out.raw_consumed_actual, bonus );
+  // Theoretically there is an ambiguity here as to whether we
+  // should round up or down. In the above, when we apply the
+  // factory bonus to derive the "put" value, we round down (be-
+  // cause the original game seems to do that). That means that
+  // there are multiple values that could lead to a certain "con-
+  // sumed" value. The original game appears to round up here, so
+  // we will do that.
+  out.product_produced_actual = out.raw_consumed_actual;
+  apply_int_percent_bonus_rnd_up(
+      out.product_produced_actual,
+      config_production.factory_bonus[*building] );
 }
 
-void compute_land_production( ColonyProduction& pr,
-                              Colony const&     colony_pristine,
-                              TerrainState const& terrain_state,
-                              UnitsState const&   units_state ) {
+void compute_land_production(
+    ColonyProduction& pr, Colony const& colony_pristine,
+    TerrainState const&   terrain_state,
+    UnitsState const&     units_state,
+    BellsModifiers const& bells_modifiers ) {
   // FIXME: copying not optimal.
   Colony colony = colony_pristine;
 
@@ -471,7 +639,7 @@ void compute_land_production( ColonyProduction& pr,
       [&]( e_indoor_job job, e_commodity raw,
            RawMaterialAndProduct& raw_and_product ) {
         compute_product( colony, job, units_state, raw,
-                         raw_and_product );
+                         bells_modifiers, raw_and_product );
         maybe<e_commodity> product = product_from_raw( raw );
         // E.g. lumber won't have a commodity product (because
         // ham- mers are not a commodity).
@@ -483,8 +651,8 @@ void compute_land_production( ColonyProduction& pr,
   auto compute = [&]( e_outdoor_job          outdoor_job,
                       RawMaterialAndProduct& raw_and_product ) {
     compute_raw( colony, terrain_state, units_state, outdoor_job,
-                 pr.center_extra_production, raw_and_product,
-                 pr.land_production );
+                 pr.center_extra_production, bells_modifiers,
+                 raw_and_product, pr.land_production );
     e_commodity const raw =
         commodity_for_outdoor_job( outdoor_job );
     colony.commodities[raw] += raw_and_product.raw_produced;
@@ -569,15 +737,17 @@ void compute_land_production( ColonyProduction& pr,
       pr.tools_muskets.raw_delta_final;
 }
 
-void fill_in_center_square( SSConst const&    ss,
-                            Colony const&     colony,
-                            ColonyProduction& pr ) {
+void fill_in_center_square(
+    SSConst const& ss, Colony const& colony,
+    BellsModifiers const& bells_modifiers,
+    ColonyProduction&     pr ) {
   MapSquare const& square =
       ss.terrain.square_at( colony.location );
 
   // Food.
   pr.center_food_production = food_production_on_center_square(
       square, ss.settings.difficulty );
+  bells_modifiers.apply( pr.center_food_production );
 
   // Secondary good.
   maybe<e_outdoor_commons_secondary_job> center_secondary =
@@ -590,6 +760,7 @@ void fill_in_center_square( SSConst const&    ss,
       // to the total calculations.
       .quantity = commodity_production_on_center_square(
           *center_secondary, square, ss.settings.difficulty ) };
+  bells_modifiers.apply( pr.center_extra_production->quantity );
 }
 
 } // namespace
@@ -683,20 +854,72 @@ maybe<int> production_for_slot( ColonyProduction const& pr,
   }
 }
 
+BellsModifiers compute_bells_modifiers(
+    Player const& player, Colony const& colony,
+    e_difficulty difficulty ) {
+  int const population = colony_population( colony );
+
+  // This won't happen in practice because the game does not
+  // allow zero-population colonies, but it is useful for unit
+  // tests where that something happens, and which would other-
+  // wise cause code below to check-fail. Conceptually it makes
+  // sense either way, because a population zero colony cannot
+  // have any sons of liberty, and thus no sons of liberty bonus,
+  // and also has no tories, so cannot have a tory penalty.
+  if( population == 0 )
+    return BellsModifiers( /*sons_of_liberty_bonus=*/0,
+                           /*tory_penalty=*/0 );
+
+  double const sons_of_liberty_percent =
+      compute_sons_of_liberty_percent(
+          colony.sons_of_liberty.num_rebels_from_bells_only,
+          population,
+          player.fathers.has[e_founding_father::simon_bolivar] );
+
+  int const sons_of_liberty_integral_percent =
+      compute_sons_of_liberty_integral_percent(
+          sons_of_liberty_percent );
+
+  int const sons_of_liberty_number =
+      compute_sons_of_liberty_number(
+          sons_of_liberty_integral_percent, population );
+
+  int const tory_number =
+      compute_tory_number( sons_of_liberty_number, population );
+
+  int const tory_penalty =
+      compute_tory_penalty( difficulty, tory_number );
+
+  int const sons_of_liberty_bonus =
+      compute_sons_of_liberty_bonus(
+          sons_of_liberty_integral_percent );
+
+  return BellsModifiers(
+      /*sons_of_liberty_bonus=*/sons_of_liberty_bonus,
+      /*tory_penalty=*/tory_penalty );
+}
+
 ColonyProduction production_for_colony( SSConst const& ss,
                                         Colony const&  colony ) {
   ColonyProduction res;
   UNWRAP_CHECK( player, ss.players.players[colony.nation] );
 
-  res.crosses =
-      crosses_production_for_colony( ss.units, player, colony );
-  // TODO: factor in sons of liberty bonuses and/or tory penalty.
+  // These are computed based on the state of things last turn.
+  BellsModifiers const bells_modifiers = compute_bells_modifiers(
+      player, colony, ss.settings.difficulty );
+
+  res.crosses = crosses_production_for_colony(
+      ss.units, player, colony, bells_modifiers );
+
+  res.bells = bells_production( ss.units, player, colony,
+                                bells_modifiers );
 
   // Note that this must be done before processing any of the
   // other land squares.
-  fill_in_center_square( ss, colony, res );
+  fill_in_center_square( ss, colony, bells_modifiers, res );
 
-  compute_land_production( res, colony, ss.terrain, ss.units );
+  compute_land_production( res, colony, ss.terrain, ss.units,
+                           bells_modifiers );
 
   CHECK( res.trade_goods == 0 );
   return res;

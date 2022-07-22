@@ -70,6 +70,14 @@ sumtype.ColonyNotification {
     what 'Construction_t',
     required_building 'e_colony_building',
   },
+  sons_of_liberty_increased {
+    from 'int', # integral percents.
+    to 'int',
+  },
+  sons_of_liberty_decreased {
+    from 'int', # integral percents.
+    to 'int',
+  },
 }
 
 struct.ColonyEvolution {

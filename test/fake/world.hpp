@@ -138,10 +138,9 @@ struct World {
   // the unit.
   Colony& add_colony( UnitId founder );
 
-  // This one will create an empty colony with no units or build-
-  // ings in it, it is basically default constructed. It is not
-  // really a valid colony therefore, but should be fine for
-  // testing.
+  // This one will create an empty colony with no units (though
+  // it will have the default set of buildings). It is not really
+  // a valid colony therefore, but should be fine for testing.
   Colony& add_colony( Coord           where,
                       maybe<e_nation> nation = nothing );
 

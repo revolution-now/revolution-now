@@ -30,27 +30,6 @@ include "<unordered_set>"
 
 namespace "rn"
 
-sumtype.BuildingBonus {
-  none {},
-  same {
-    # Same bonus for use/put. For a +50% bonus this would be 50.
-    # Could be zero.
-    bonus 'int',
-  },
-  factory {
-    # Factory level buildings produce a bonus, but what sets them
-    # apart is that they put out more than they consume, unlike
-    # the bonuses from level 2 buildings. For example, an Iron
-    # Works would have a percent_increase_use of 100 because it
-    # uses the same amount as the level 2 Blacksmiths Shop. But
-    # the Iron Works will have a percent_increase_put of 150 be-
-    # cause it is extra efficient in then it will produce +50%
-    # more goods than it is consuming.
-    use_bonus 'int',
-    put_bonus 'int',
-  },
-}
-
 struct.IndoorProduction {
   # Amount produced per turn by a petty criminal working in an
   # indoor job (e.g. rum distiller).
@@ -70,13 +49,19 @@ struct.IndoorProduction {
   # working a job that they are not an expert at.
   non_expert_base_production 'int',
 
-  # Amount produced by an expert colonist working in an indoor
+  # Percent bonus when an expert colonist is working in an indoor
   # job matching their expertise (e.g. master run distiller
-  # working on producing rum).
-  expert_base_production 'int',
+  # working on producing rum). In the original game this is 100,
+  # meaning that it is a 100% bonus, meaning "multiply by 2."
+  expert_bonus 'int',
 
   # William Penn crosses production bonus percent.
+  # FIXME: move this to the founding fathers config.
   william_penn_crosses_bonus 'int',
+
+  # Thomas Jefferson bells production bonus percent.
+  # FIXME: move this to the founding fathers config.
+  thomas_jefferson_bells_bonus 'int',
 
   # Given an indoor job, this will return the plural names for a
   # worker doing that job.
@@ -232,8 +217,10 @@ struct.config_production_t {
   # it existing (i.e., with no churches or cathedrals)?
   base_crosses 'int',
 
+  # FIXME: rename this to indoor.
   indoor_production 'IndoorProduction',
 
+  # FIXME: rename this to outdoor.
   outdoor_production 'OutdoorProduction',
 
   # The number of items that are automatically produced by vir-
@@ -241,21 +228,33 @@ struct.config_production_t {
   # this.
   free_building_production 'refl::enum_map<e_colony_building, int>',
 
-  # This describes the nature of the bonus that you get from a
-  # building on production in terms of percent increases. Note
-  # that the base value to which the percentage is applied here
-  # may or may not include the base/free production, depending on
-  # what we're talking about. For example, the percent bonus for
-  # a Cathedral does not seem to apply to the base production of
-  # the building, while the percent bonus of a Printing Press and
-  # Newspaper do seem to get applied to the base production. Note
-  # that the original game appears to ROUND DOWN on 1/2.
-  building_production_bonus 'refl::enum_map<e_colony_building, BuildingBonus_t>',
+  # This describes the total bonus that a building gives you over
+  # the base building. It is a percent increases. Typically a
+  # second-level building with double output, in which case the
+  # bonus would be a 100% increase, so this value would be 100
+  # for that building. Note that, depending on context, the value
+  # to which the percentage is applied here may or may not in-
+  # clude the base/free production, and there may be further mul-
+  # tiplier bonuses applied after this bonus, so in other words
+  # this bonus doesn't necessarily have the final word in the
+  # total production increase. Newspaper do seem to get applied
+  # to the base production. Note that the original game appears
+  # to round up on 1/2.
+  # FIXME: move this into indoor production.
+  building_production_bonus 'refl::enum_map<e_colony_building, int>',
+
+  # A "factory bonus" is a bonus where, in addition to all of the
+  # bonuses from lesser buildings, you also get a % increase in
+  # your output without changing your input. So a Cigar Factory
+  # could e.g. produce 15 cigars but consume only 10 tobacco.
+  # FIXME: move this to indoor production.
+  factory_bonus 'refl::enum_map<e_colony_building, int>',
 
   # Config for what and how much gets produced in the center
   # square. Note that the secondary good is selected by choosing
   # the good that yields most; it is not hard-coded in the config
   # for each terrain type.
+  # FIXME: move this to outdoor production.
   center_square_production 'CenterSquareProduction',
 
   _features { validation, equality }

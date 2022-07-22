@@ -21,13 +21,17 @@ indoor_production {
   # working a job that they are not an expert at.
   non_expert_base_production: 3
 
-  # Amount produced by an expert colonist working in an indoor
-  # job matching their expertise (e.g. master rum distiller
-  # working on producing rum).
-  expert_base_production: 6
+  # Percent bonus when an expert colonist is working in an indoor
+  # job matching their expertise (e.g. master run distiller
+  # working on producing rum). In the original game this is 100,
+  # meaning that it is a 100% bonus, meaning "multiply by 2."
+  expert_bonus: 100
 
   # William Penn crosses production bonus percent.
   william_penn_crosses_bonus: 50
+
+  # Thomas Jefferson bells production bonus percent.
+  thomas_jefferson_bells_bonus: 50
 
   # Given an indoor job, this will return the plural names for a
   # worker doing that job.
@@ -109,73 +113,112 @@ free_building_production {
   custom_house:         0
 }
 
-# This describes the nature of the bonus that you get from a
-# building on production in terms of percent increases. Note that
-# the base value to which the percentage is applied here may or
-# may not include the base/free production, depending on what
-# we're talking about. For example, the percent bonus for a
-# Cathedral does not seem to apply to the base production of the
-# building, while the percent bonus of a Printing Press and News-
-# paper do seem to get applied to the base production. Note that
-# the original game appears to ROUND DOWN on 1/2.
+# This describes the total bonus that a building gives you over
+# the base building. It is a percent increases. Typically a
+# second-level building with double output, in which case the
+# bonus would be a 100% increase, so this value would be 100 for
+# that building. Note that, depending on context, the value to
+# which the percentage is applied here may or may not include the
+# base/free production, and there may be further multiplier
+# bonuses applied after this bonus, so in other words this bonus
+# doesn't necessarily have the final word in the total production
+# increase. Newspaper do seem to get applied to the base produc-
+# tion. Note that the original game appears to round up on 1/2.
 building_production_bonus {
-  # Buildings with just base values.
-  blacksmiths_house.none:    {}
-  carpenters_shop.none:      {}
-  fur_traders_house.none:    {}
-  rum_distillers_house.none: {}
-  tobacconists_house.none:   {}
-  weavers_house.none:        {}
-  armory.none:               {}
-  church.none:               {}
+  # Buildings with just base values; no bonus by definition.
+  blacksmiths_house:         0
+  carpenters_shop:           0
+  fur_traders_house:         0
+  rum_distillers_house:      0
+  tobacconists_house:        0
+  weavers_house:             0
+  armory:                    0
+  church:                    0
 
-  # Buildings with regular bonuses. They get a fixed percent in-
-  # crease on both use and put.
-  blacksmiths_shop.same:     { bonus=100 }
-  fur_trading_post.same:     { bonus=100 }
-  lumber_mill.same:          { bonus=100 }
-  magazine.same:             { bonus=100 }
-  rum_distillery.same:       { bonus=100 }
-  tobacconists_shop.same:    { bonus=100 }
-  weavers_shop.same:         { bonus=100 }
-  # Note that in the original game bells have a base/free level
-  # of production (coming from the town hall). Unlike with the
-  # Cathedral, the original game appears to first compute the
-  # total production of bells from the colony, then applies this
-  # bonus to the result.
-  printing_press.same:       { bonus=50  }
-  newspaper.same:            { bonus=100 }
-  # Note that in the original game this building has base/free
-  # production; the original game appears to apply this bonus
-  # only to the units' production, then adds the base production.
-  cathedral.same:            { bonus=100 }
+  # Second level buildings.
+  blacksmiths_shop:          100
+  fur_trading_post:          100
+  lumber_mill:               100
+  magazine:                  100
+  rum_distillery:            100
+  tobacconists_shop:         100
+  weavers_shop:              100
+  cathedral:                 100
 
-  # Level 3 buildings. They get different bonus on what is used
-  # versus what is produced. Specifically, in the original game,
-  # the use the same amount as the previous level building, but
-  # emit 50% more.
-  arsenal.factory:           { use_bonus=100, put_bonus=200 }
-  cigar_factory.factory:     { use_bonus=100, put_bonus=200 }
-  fur_factory.factory:       { use_bonus=100, put_bonus=200 }
-  iron_works.factory:        { use_bonus=100, put_bonus=200 }
-  rum_factory.factory:       { use_bonus=100, put_bonus=200 }
-  textile_mill.factory:      { use_bonus=100, put_bonus=200 }
+  # These apply their bonuses to another building (town hall).
+  printing_press:            50
+  newspaper:                 100
+
+  # Although the following are factory-level buildings, the bonus
+  # here is just their regular building bonus. The factory bonus
+  # is applied on top of this and is specified elsewhere.
+  arsenal:                   100
+  cigar_factory:             100
+  fur_factory:               100
+  iron_works:                100
+  rum_factory:               100
+  textile_mill:              100
 
   # Non-relevant buildings.
-  custom_house.none:         {}
-  docks.none:                {}
-  drydock.none:              {}
-  shipyard.none:             {}
-  town_hall.none:            {}
-  stable.none:               {}
-  warehouse.none:            {}
-  warehouse_expansion.none:  {}
-  stockade.none:             {}
-  fort.none:                 {}
-  fortress.none:             {}
-  schoolhouse.none:          {}
-  college.none:              {}
-  university.none:           {}
+  custom_house:              0
+  docks:                     0
+  drydock:                   0
+  shipyard:                  0
+  town_hall:                 0
+  stable:                    0
+  warehouse:                 0
+  warehouse_expansion:       0
+  stockade:                  0
+  fort:                      0
+  fortress:                  0
+  schoolhouse:               0
+  college:                   0
+  university:                0
+}
+
+# A "factory bonus" is a bonus where, in addition to all of the
+# bonuses from lesser buildings, you also get a % increase in
+# your output without changing your input. So a Cigar Factory
+# could e.g. produce 15 cigars but consume only 10 tobacco.
+factory_bonus {
+  blacksmiths_house:         0
+  carpenters_shop:           0
+  fur_traders_house:         0
+  rum_distillers_house:      0
+  tobacconists_house:        0
+  weavers_house:             0
+  armory:                    0
+  church:                    0
+  blacksmiths_shop:          0
+  fur_trading_post:          0
+  lumber_mill:               0
+  magazine:                  0
+  rum_distillery:            0
+  tobacconists_shop:         0
+  weavers_shop:              0
+  printing_press:            0
+  newspaper:                 0
+  cathedral:                 0
+  arsenal:                   50
+  cigar_factory:             50
+  fur_factory:               50
+  iron_works:                50
+  rum_factory:               50
+  textile_mill:              50
+  custom_house:              0
+  docks:                     0
+  drydock:                   0
+  shipyard:                  0
+  town_hall:                 0
+  stable:                    0
+  warehouse:                 0
+  warehouse_expansion:       0
+  stockade:                  0
+  fort:                      0
+  fortress:                  0
+  schoolhouse:               0
+  college:                   0
+  university:                0
 }
 
 outdoor_production {
