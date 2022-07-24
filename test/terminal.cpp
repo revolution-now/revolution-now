@@ -367,9 +367,8 @@ TEST_CASE(
   out = { "ROOT.colonies:colony_for_id(" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "ROOT.colonies:colony_for_id(";
-  out = { "ROOT.colonies:colony_for_id(" };
-  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+  in = "ROOT.colonies:colony_for_id(";
+  REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
 }
 
 } // namespace
