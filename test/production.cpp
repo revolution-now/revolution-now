@@ -95,7 +95,7 @@ TEST_CASE( "[production] production_for_slot" ) {
   pr.tobacco_cigars.product_produced_theoretical = 6;
   pr.lumber_hammers.product_produced_theoretical = 7;
   pr.bells                                       = 8;
-  pr.food.horses_produced_theoretical            = 12;
+  pr.food_horses.horses_produced_theoretical     = 12;
   pr.crosses                                     = 15;
 
   REQUIRE( production_for_slot(
@@ -2557,7 +2557,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
     REQUIRE( pr.center_food_production == 0 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 2,
                  .fish_produced                          = 0,
@@ -2582,7 +2582,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 5,
                  .fish_produced                          = 0,
@@ -2608,7 +2608,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 5,
                  .fish_produced                          = 0,
@@ -2639,7 +2639,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
                                   .quantity = 3 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 8,
                  .fish_produced                          = 0,
@@ -2670,7 +2670,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         LP{ { e_direction::nw, SP{ .what = e_outdoor_job::fish,
                                    .quantity = 6 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 5,
                  .fish_produced                          = 6,
@@ -2705,7 +2705,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
                                   .quantity = 3 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 8,
                  .fish_produced                          = 0,
@@ -2741,7 +2741,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
                                   .quantity = 3 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 8,
                  .fish_produced                          = 0,
@@ -2777,7 +2777,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
                                   .quantity = 4 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 9,
                  .fish_produced                          = 0,
@@ -2813,7 +2813,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
                                   .quantity = 4 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 9,
                  .fish_produced                          = 0,
@@ -2848,7 +2848,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         LP{ { e_direction::nw, SP{ .what = e_outdoor_job::fish,
                                    .quantity = 6 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 5,
                  .fish_produced                          = 6,
@@ -2883,7 +2883,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
                                   .quantity = 4 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 9,
                  .fish_produced                          = 0,
@@ -2918,7 +2918,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
                                   .quantity = 4 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 9,
                  .fish_produced                          = 0,
@@ -2954,7 +2954,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
                                   .quantity = 4 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 9,
                  .fish_produced                          = 0,
@@ -2989,7 +2989,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
                                   .quantity = 4 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 9,
                  .fish_produced                          = 0,
@@ -3024,7 +3024,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
                                   .quantity = 4 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 9,
                  .fish_produced                          = 0,
@@ -3060,7 +3060,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
                                   .quantity = 4 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 9,
                  .fish_produced                          = 0,
@@ -3096,7 +3096,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         LP{ { e_direction::w, SP{ .what = e_outdoor_job::food,
                                   .quantity = 4 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 9,
                  .fish_produced                          = 0,
@@ -3128,7 +3128,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 5,
                  .fish_produced                          = 0,
@@ -3160,7 +3160,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 5,
                  .fish_produced                          = 0,
@@ -3190,7 +3190,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 5,
                  .fish_produced                          = 0,
@@ -3221,7 +3221,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 5,
                  .fish_produced                          = 0,
@@ -3271,7 +3271,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
             { e_direction::w, SP{ .what = e_outdoor_job::food,
                                   .quantity = 5 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 13,
                  .fish_produced                          = 10,
@@ -3324,7 +3324,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
             { e_direction::w, SP{ .what = e_outdoor_job::food,
                                   .quantity = 5 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 13,
                  .fish_produced                          = 10,
@@ -3364,7 +3364,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
         LP{ { e_direction::e, SP{ .what = e_outdoor_job::food,
                                   .quantity = 3 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 8,
                  .fish_produced                          = 0,
@@ -3404,7 +3404,7 @@ TEST_CASE( "[production] food/horses [explorer]" ) {
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
     REQUIRE( pr.center_food_production == 0 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 1,
                  .fish_produced                          = 0,
@@ -3444,7 +3444,7 @@ TEST_CASE( "[production] food/horses [explorer]" ) {
         LP{ { e_direction::e, SP{ .what = e_outdoor_job::food,
                                   .quantity = 3 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 7,
                  .fish_produced                          = 0,
@@ -3484,7 +3484,7 @@ TEST_CASE( "[production] food/horses [viceroy]" ) {
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
     REQUIRE( pr.center_food_production == 0 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 0,
                  .fish_produced                          = 0,
@@ -3524,7 +3524,7 @@ TEST_CASE( "[production] food/horses [viceroy]" ) {
         LP{ { e_direction::e, SP{ .what = e_outdoor_job::food,
                                   .quantity = 3 } } } );
     REQUIRE( pr.center_food_production == 3 + bonus );
-    REQUIRE( pr.food ==
+    REQUIRE( pr.food_horses ==
              FP{
                  .corn_produced                          = 6,
                  .fish_produced                          = 0,

@@ -125,7 +125,7 @@ void check_create_or_starve_colonist(
     ColonyProduction const&       pr,
     vector<ColonyNotification_t>& notifications,
     IMapUpdater&                  map_updater ) {
-  if( pr.food.colonist_starved ) {
+  if( pr.food_horses.colonist_starved ) {
     vector<UnitId> const units_in_colony =
         colony_units_all( colony );
     CHECK( !units_in_colony.empty() );

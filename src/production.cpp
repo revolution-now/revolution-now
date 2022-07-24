@@ -83,8 +83,10 @@ bool indoor_unit_is_expert( e_indoor_job job,
 int& final_production_delta_for_commodity( ColonyProduction& pr,
                                            e_commodity c ) {
   switch( c ) {
-    case e_commodity::food: return pr.food.food_delta_final;
-    case e_commodity::horses: return pr.food.horses_delta_final;
+    case e_commodity::food:
+      return pr.food_horses.food_delta_final;
+    case e_commodity::horses:
+      return pr.food_horses.horses_delta_final;
     case e_commodity::sugar: return pr.sugar_rum.raw_delta_final;
     case e_commodity::rum:
       return pr.sugar_rum.product_delta_final;
@@ -690,11 +692,12 @@ void compute_land_production(
   colony.commodities[e_commodity::tools] -=
       pr.tools_muskets.raw_consumed_actual;
 
-  compute_food_production(
-      terrain_state, units_state, colony, bells_modifiers,
-      pr.center_food_production, pr.food, pr.land_production );
+  compute_food_production( terrain_state, units_state, colony,
+                           bells_modifiers,
+                           pr.center_food_production,
+                           pr.food_horses, pr.land_production );
   colony.commodities[e_commodity::horses] +=
-      pr.food.horses_produced_actual;
+      pr.food_horses.horses_produced_actual;
 
   // Warehouse adjustments. Note that this must be done after all
   // production is computed because in some cases (e.g. tools)
@@ -795,8 +798,10 @@ maybe<e_commodity> product_from_raw( e_commodity raw ) {
 int const& final_production_delta_for_commodity(
     ColonyProduction const& pr, e_commodity c ) {
   switch( c ) {
-    case e_commodity::food: return pr.food.food_delta_final;
-    case e_commodity::horses: return pr.food.horses_delta_final;
+    case e_commodity::food:
+      return pr.food_horses.food_delta_final;
+    case e_commodity::horses:
+      return pr.food_horses.horses_delta_final;
     case e_commodity::sugar: return pr.sugar_rum.raw_delta_final;
     case e_commodity::rum:
       return pr.sugar_rum.product_delta_final;
@@ -849,7 +854,7 @@ maybe<int> production_for_slot( ColonyProduction const& pr,
     case e_colony_building_slot::schools: return nothing;
     case e_colony_building_slot::offshore: return nothing;
     case e_colony_building_slot::horses:
-      return pr.food.horses_produced_theoretical;
+      return pr.food_horses.horses_produced_theoretical;
     case e_colony_building_slot::wall: return nothing;
     case e_colony_building_slot::warehouses: return nothing;
     case e_colony_building_slot::crosses: return pr.crosses;

@@ -149,7 +149,10 @@ struct.SquareProduction {
 # so that the consumer of this data can distinguish spoilage from
 # consumption so that the player can be notified.
 struct.ColonyProduction {
-  food 'FoodProduction',
+  # Food (which includes fish) and horses are done together be-
+  # cause not only do horses consume food, they do so in a way
+  # that is unlike other derived goods.
+  food_horses 'FoodProduction',
 
   # These are needed in order to render the amount being produced
   # in each square on land in the colony view. Note that these
