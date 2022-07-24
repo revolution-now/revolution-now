@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "testing.hpp"
 
+// Testing
+#include "test/fake/world.hpp"
+
 // Revolution Now
 #include "src/lua.hpp"
 #include "src/terminal.hpp"
@@ -28,6 +31,33 @@ using namespace std;
 using Catch::Contains;
 using Catch::Equals;
 
+/****************************************************************
+** Fake World Setup
+*****************************************************************/
+struct World : testing::World {
+  using Base = testing::World;
+  World() : Base() {
+    add_player( e_nation::dutch );
+    create_default_map();
+  }
+
+  void create_default_map() {
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
+    // clang-format off
+    vector<MapSquare> tiles{
+      _, L, _,
+      L, L, L,
+      _, L, L,
+    };
+    // clang-format on
+    build_map( std::move( tiles ), 3 );
+  }
+};
+
+/****************************************************************
+** Test Cases
+*****************************************************************/
 TEST_CASE( "[terminal] autocomplete" ) {
   lua::state st;
   // NOTE: this is expensive, but this test currently needs it.
@@ -278,6 +308,68 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   in  = "abcabc:";
   out = {};
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
+}
+
+TEST_CASE(
+    "[terminal] autocomplete for serializable game state" ) {
+  World W;
+
+  // FIXME: we need this so that the autocomplete logic can call
+  // meta.all_pairs, which it really shouldn't be doing, but has
+  // to because luapp currently has no way to do proper lua-style
+  // iteration on the result of the pairs method.
+  W.expensive_run_lua_init();
+
+  lua::state& st = W.lua();
+  Terminal    term( st );
+
+  auto autocomplete = [&]( string_view in ) {
+    return term.autocomplete( in );
+  };
+
+  auto const empty = vector<string>{};
+
+  string         in;
+  vector<string> out;
+
+  in  = "ROO";
+  out = { "ROOT" };
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "ROOT";
+  out = { "ROOT." };
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "ROOT.";
+  out = { "ROOT.colonies", "ROOT.land_view", "ROOT.players",
+          "ROOT.settings", "ROOT.terrain",   "ROOT.turn",
+          "ROOT.units" };
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "ROOT.col";
+  out = { "ROOT.colonies" };
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "ROOT.colonies";
+  out = { "ROOT.colonies." };
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "ROOT.colonies.";
+  out = { "ROOT.colonies:colony_for_id",
+          "ROOT.colonies:last_colony_id" };
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "ROOT.colonies.col";
+  out = { "ROOT.colonies:colony_for_id" };
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "ROOT.colonies:colony_for_id";
+  out = { "ROOT.colonies:colony_for_id(" };
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "ROOT.colonies:colony_for_id(";
+  out = { "ROOT.colonies:colony_for_id(" };
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 }
 
 } // namespace

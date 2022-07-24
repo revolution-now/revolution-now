@@ -123,10 +123,10 @@ LUA_STARTUP( lua::state& st ) {
   // u["version"] = &U::version;
   u["settings"] = &U::settings;
   // u["events"] = &U::events;
-  u["units"]   = &U::units;
-  u["players"] = &U::players;
-  u["turn"]    = &U::turn;
-  // u["colonies"] = &U::colonies;
+  u["units"]     = &U::units;
+  u["players"]   = &U::players;
+  u["turn"]      = &U::turn;
+  u["colonies"]  = &U::colonies;
   u["land_view"] = &U::land_view;
   u["terrain"]   = &U::zzz_terrain;
 };

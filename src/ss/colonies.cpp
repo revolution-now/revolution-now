@@ -10,6 +10,10 @@
 *****************************************************************/
 #include "colonies.hpp"
 
+// luapp
+#include "luapp/register.hpp"
+#include "luapp/state.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -183,5 +187,23 @@ base::maybe<ColonyId> ColoniesState::maybe_from_name(
     string_view name ) const {
   return base::lookup( colony_from_name_, string( name ) );
 }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+// ColoniesState
+LUA_STARTUP( lua::state& st ) {
+  using U = ::rn::ColoniesState;
+  auto u  = st.usertype.create<U>();
+
+  u["last_colony_id"] = &U::last_colony_id;
+  u["colony_for_id"]  = []( U& o, ColonyId id ) -> Colony& {
+    return o.colony_for( id );
+  };
+};
+
+} // namespace
 
 } // namespace rn

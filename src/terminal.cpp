@@ -220,6 +220,7 @@ vector<string> Terminal::autocomplete( string_view fragment ) {
 
   auto table_for_object = []( lua::any o ) {
     maybe<lua::table> res;
+    lg.trace( "table_for_object type: {}", lua::type_of( o ) );
     if( lua::type_of( o ) == lua::type::table )
       res = lua::as<lua::table>( o );
     if( lua::type_of( o ) == lua::type::userdata ) {
@@ -278,13 +279,13 @@ vector<string> Terminal::autocomplete( string_view fragment ) {
   for( auto piece : initial_segments ) {
     lg.trace( "piece: {}", piece );
     if( piece.empty() ) return {};
-    auto maybe_table = table_for_object( curr_table[piece] );
+    auto maybe_table = table_for_object( curr_obj[piece] );
     // lg.trace( "maybe_table: {}", maybe_table.has_value() );
     if( !maybe_table ) return {};
     auto size = table_size_non_meta( *maybe_table );
-    // lg.trace( "table_size_non_meta: {}", size );
+    lg.trace( "table_size_non_meta: {}", size );
     if( size == 0 ) return {};
-    curr_obj   = curr_table[piece];
+    curr_obj   = curr_obj[piece];
     curr_table = *maybe_table;
   }
   auto last = segments.back();
@@ -343,7 +344,12 @@ vector<string> Terminal::autocomplete( string_view fragment ) {
   DCHECK( res.size() == 1 );
   if( res[0] == fragment ) {
     lg.trace( "res[0], fragment: {},{}", res[0], fragment );
-    lua::any o = curr_table[last];
+    // Need to use curr_obj instead of curr_table because we need
+    // the real type of the last thing. For userdata it wouldn't
+    // be the real type because the type of each thing in the
+    // member_types table (from which the keys of the userdata
+    // are extracted) are always bools (see luapp/userdata).
+    lua::any o = curr_obj[last];
     DCHECK( o != lua::nil );
     if( lua::type_of( o ) == lua::type::table ) {
       UNWRAP_CHECK( t, table_for_object( o ) );
@@ -366,8 +372,7 @@ vector<string> Terminal::autocomplete( string_view fragment ) {
           res[0] += '.';
       }
     }
-    if( lua::type_of( curr_obj[last] ) == lua::type::function )
-      res[0] += '(';
+    if( lua::type_of( o ) == lua::type::function ) res[0] += '(';
     lg.trace( "final res[0]: {}", res[0] );
   }
   lg.trace( "returning: {}", base::FmtJsonStyleList{ res } );
