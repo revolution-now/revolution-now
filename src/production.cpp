@@ -673,8 +673,37 @@ void compute_land_production(
   compute( e_outdoor_job::tobacco, pr.tobacco_cigars );
   compute( e_outdoor_job::cotton, pr.cotton_cloth );
   compute( e_outdoor_job::fur, pr.fur_coats );
-  compute( e_outdoor_job::lumber, pr.lumber_hammers );
   compute( e_outdoor_job::silver, pr.silver );
+
+  // In the original game it appears that hammer production
+  // bonuses are applied in a different order than for the other
+  // derived goods. Specifically, it seems to go like this:
+  //
+  //   1. Non-expert colonist production (1, 2, 3).
+  //   2. Apply expert bonus (x2).
+  //   3. Add sons of liberty bonus/penalty.
+  //   4. Multiply by 2 for building upgrade.
+  //
+  // (There is no factory bonus step because in the original game
+  // there is no factory-level carpentry building). Hence, the
+  // numbers turn out a bit differently than for the other
+  // building workers, such as e.g. a rum distiller. In particu-
+  // lar, this causes an expert to no longer produce exactly
+  // twice the amount of a free colonist when there is a SoL
+  // bonus/penalty. Instead of making an exception and computing
+  // hammers differently, we will just compute them in the same
+  // way as the other derived goods. This shouldn't be a problem
+  // because in the common case, where there is no SoL
+  // bonus/penalty, there is no difference; when there is a dif-
+  // ference, it is not so severe. And this way it will be easier
+  // for the player to understand since they don't have to learn
+  // a separate rule for hammer production.
+  compute( e_outdoor_job::lumber, pr.lumber_hammers );
+
+  // Even though the product for this one (tools) are then con-
+  // sumed by a gunsmith, the original game seems to just compute
+  // these first as a normal raw/product pair as if muskets did
+  // not exist. Then computes musket production in the next step.
   compute( e_outdoor_job::ore, pr.ore_tools );
 
   // Tools/Muskets. Boostrap the muskets calculation with the
