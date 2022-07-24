@@ -232,7 +232,13 @@ vector<string> Terminal::autocomplete( string_view fragment ) {
   };
 
   auto lifted_pairs_for_table = [this]( lua::table t ) {
-    // FIXME: luapp should access __pairs.
+    // FIXME: luapp should have a way to iterate something using
+    // proper lua style iteration (which we could then use on the
+    // result of the pairs method and would not then need the
+    // all_pairs method here). Currently luapp can only iterate
+    // through the keys/values in a table that are physically
+    // present, as opposed to those produced by a __pairs
+    // metamethod.
     return lua::as<lua::table>( st_["meta"]["all_pairs"]( t ) );
   };
 

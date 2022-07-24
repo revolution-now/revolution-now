@@ -26,6 +26,18 @@ namespace lua {
 // ified, even for numeric indices. To iterate through the in-
 // dices of an array in order, use a numerical-for loop, or C
 // equivalent (i.e. don't use this in that case).
+//
+// FIXME: There is a problem with this: 1) it only iterates
+// through a table, and 2) it only iterates through keys/values
+// that are explicitly present in the table, as opposed to using
+// the __pairs metamethod. What we should probably do instead is
+// to create an iteration mechanism that mirrors the one that lua
+// uses (which is function based). Then, using that, we could it-
+// erate on the result of the `pairs` or `ipairs` methods to get
+// the relevant keys/values as would be done in real Lua code.
+// The current iterator could be kept since it could theoreti-
+// cally be useful, but if so, then at least it should be renamed
+// to something like "explicit k/v table iterator."
 struct raw_table_iterator {
   using iterator_category = std::input_iterator_tag;
   using difference_type   = int;
