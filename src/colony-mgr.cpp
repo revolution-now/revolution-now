@@ -329,6 +329,18 @@ void create_initial_buildings( Colony& colony ) {
   colony.buildings = config_colony.initial_colony_buildings;
 }
 
+wait<> run_colony_starvation( Planes& planes, SS& ss, TS& ts,
+                              Colony& colony ) {
+  // Must extract this info before destroying the colony.
+  string const msg = fmt::format(
+      "@[H]{}@[] ran out of food and was not able to support "
+      "its last remaining colonists.  As a result, the colony "
+      "has disappeared.",
+      colony.name );
+  co_await run_colony_destruction( planes, ss, ts, colony, msg );
+  // !! Do not reference `colony` beyond this point.
+}
+
 void clear_abandoned_colony_road( SSConst const& ss,
                                   IMapUpdater&   map_updater,
                                   Coord          location ) {
@@ -628,6 +640,12 @@ wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
     evolutions.push_back(
         evolve_colony_one_turn( ss, ts, colony ) );
     ColonyEvolution const& ev = evolutions.back();
+    if( ev.colony_disappeared ) {
+      co_await run_colony_starvation( planes, ss, ts, colony );
+      // !! at this point the colony will have been deleted, so
+      // we should not access it anymore.
+      continue;
+    }
     if( ev.notifications.empty() ) continue;
     // We have some notifications to present.
     co_await planes.land_view().landview_ensure_visible(
