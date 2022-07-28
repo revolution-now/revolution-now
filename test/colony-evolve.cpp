@@ -16,6 +16,10 @@
 // Testing.
 #include "test/fake/world.hpp"
 
+// ss
+#include "src/ss/colony.hpp"
+#include "src/ss/settings.rds.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -48,6 +52,18 @@ struct World : testing::World {
       _, L, _,
       L, L, L,
       _, L, L,
+    };
+    // clang-format on
+    build_map( std::move( tiles ), 3 );
+  }
+
+  void create_arctic_map() {
+    MapSquare const A = make_terrain( e_terrain::arctic );
+    // clang-format off
+    vector<MapSquare> tiles{
+      A, A, A,
+      A, A, A,
+      A, A, A,
     };
     // clang-format on
     build_map( std::move( tiles ), 3 );
@@ -206,6 +222,49 @@ TEST_CASE( "[colony-evolve] ran out of raw materials" ) {
   };
 
   REQUIRE( ev.notifications == expected );
+  REQUIRE_FALSE( ev.colony_disappeared );
+}
+
+TEST_CASE( "[colony-evolve] colony starves" ) {
+  World W;
+  // This way it is impossible for any food to be produced either
+  // on the center square or any other square when on a hard dif-
+  // ficulty level.
+  W.create_arctic_map();
+  Colony& colony =
+      W.add_colony_with_new_unit( { .x = 1, .y = 1 } );
+  REQUIRE( colony.commodities[e_commodity::food] == 0 );
+  REQUIRE( colony_units_all( colony ).size() == 1 );
+
+  SECTION( "discoverer" ) {
+    // On discoverer the center tile should produce two food on
+    // arctic tiles, but the colonist added (on land) will not
+    // produce any because it is arctic.
+    W.settings().difficulty = e_difficulty::discoverer;
+    ColonyEvolution ev =
+        evolve_colony_one_turn( W.ss(), W.ts(), colony );
+    REQUIRE( !ev.colony_disappeared );
+  }
+
+  SECTION( "explorer" ) {
+    // On explorer and higher the center tile should produce no
+    // food on arctic, and neither will the colonist added (on
+    // land).
+    W.settings().difficulty = e_difficulty::explorer;
+    ColonyEvolution ev =
+        evolve_colony_one_turn( W.ss(), W.ts(), colony );
+    REQUIRE( ev.colony_disappeared );
+  }
+
+  SECTION( "viceroy" ) {
+    W.settings().difficulty = e_difficulty::viceroy;
+    ColonyEvolution ev =
+        evolve_colony_one_turn( W.ss(), W.ts(), colony );
+    REQUIRE( ev.colony_disappeared );
+  }
+
+  // No matter what, the colony should not have been changed.
+  REQUIRE( colony_units_all( colony ).size() == 1 );
 }
 
 TEST_CASE( "[colony-evolve] applies production" ) {

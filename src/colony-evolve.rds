@@ -95,4 +95,11 @@ struct.ColonyEvolution {
   # to the message it can animate the construction of the build-
   # ing.
   built 'maybe<e_colony_building>',
+
+  # This happens when there is only one colonist in the colony
+  # and there is not enough food to sustain that colonist (which
+  # implies that the square on which the colony sits is not ca-
+  # pable of producing two units of food) and the colonist
+  # starves, removing the entire colony in the process.
+  colony_disappeared 'bool',
 }

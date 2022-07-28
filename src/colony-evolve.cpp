@@ -122,7 +122,7 @@ config::colony::construction_requirements materials_needed(
 
 void check_create_or_starve_colonist(
     UnitsState& units_state, Colony& colony,
-    ColonyProduction const&       pr,
+    ColonyProduction const& pr, bool& colony_disappeared,
     vector<ColonyNotification_t>& notifications,
     IMapUpdater&                  map_updater ) {
   if( pr.food_horses.colonist_starved ) {
@@ -130,17 +130,12 @@ void check_create_or_starve_colonist(
         colony_units_all( colony );
     CHECK( !units_in_colony.empty() );
     if( units_in_colony.size() == 1 ) {
-      // In the original game it seems that colonies (even those
-      // on arctic squares) will always produce a minimum of two
-      // food in the center square, which can support one
-      // colonist, and so in the original game we would never
-      // have a colonist starve when the population is one. In
-      // our case we don't want to commit to that food minimum in
-      // the center square, and so we will allow the possibility
-      // that we get to this code path. TODO: It seems that the
-      // proper thing to do here would be to delete both the
-      // colonist and the colony. But for now we will just have
-      // mercy on the colonist and ignore it.
+      // If we are here then center colony square is not able to
+      // produce enough food to support even a single colonist
+      // (which can happen on some difficulty levels and on some
+      // tiles, such as arctic). The original game will starve
+      // (delete) the colonist and delete the colony.
+      colony_disappeared = true;
     } else {
       UnitId      unit_id = rng::pick_one( units_in_colony );
       e_unit_type type = units_state.unit_for( unit_id ).type();
@@ -385,8 +380,12 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
 
   // Needs to be done after food deltas have been applied.
   check_create_or_starve_colonist(
-      ss.units, colony, ev.production, ev.notifications,
-      ts.map_updater );
+      ss.units, colony, ev.production, ev.colony_disappeared,
+      ev.notifications, ts.map_updater );
+  if( ev.colony_disappeared )
+    // If the colony is to disappear then there isn't much point
+    // in doing anything further.
+    return ev;
 
   // NOTE: This should be done last, so that anything above that
   // could potentially consume commodities can do so before they
