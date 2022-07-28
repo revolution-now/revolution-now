@@ -37,6 +37,9 @@ static_assert( !is_move_assignable_v<TestResponderQueue> );
 static_assert( !is_copy_constructible_v<TestResponderQueue> );
 static_assert( !is_copy_assignable_v<TestResponderQueue> );
 
+static_assert(
+    is_constructible_v<detail::RetHolder<int&>, int&> );
+
 /****************************************************************
 ** IPoint
 *****************************************************************/
