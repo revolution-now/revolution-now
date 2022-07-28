@@ -155,12 +155,31 @@ end
 -----------------------------------------------------------------
 -- Unit Placement
 -----------------------------------------------------------------
-function M.initial_ships_pos()
+local function initial_ships_pos_for_row( y )
   local size = world_size()
-  local y = size.h / 2
   local x = size.w - 1
   while square_at{ x=x, y=y }.sea_lane do x = x - 1 end
-  return { ['dutch']={ x=x + 1, y=y } }
+  return x + 1
+end
+
+function M.initial_ships_pos()
+  local size = world_size()
+  local quintile = size.h // 5
+  local y = size.h / 2
+  local spanish_y = quintile
+  local dutch_y = quintile * 2
+  local french_y = quintile * 3
+  local english_y = quintile * 4
+  local dutch_x = initial_ships_pos_for_row( dutch_y )
+  local french_x = initial_ships_pos_for_row( french_y )
+  local english_x = initial_ships_pos_for_row( english_y )
+  local spanish_x = initial_ships_pos_for_row( spanish_y )
+  return {
+    dutch={ x=dutch_x, y=dutch_y },
+    french={ x=french_x, y=french_y },
+    english={ x=english_x, y=english_y },
+    spanish={ x=spanish_x, y=spanish_y }
+  }
 end
 
 -----------------------------------------------------------------

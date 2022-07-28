@@ -56,7 +56,6 @@ end
 local function create_initial_units_for_nation( nation, root )
   local player = root.players.players:get( nation )
   local coord = map_gen.initial_ships_pos()[nation]
-  if not coord then return { x=0, y=0 } end
   local merchantman = build_unit_type( 'merchantman' )
   local soldier = build_unit_type( 'soldier' )
   local pioneer = build_unit_type( 'pioneer' )
@@ -230,7 +229,7 @@ end
 -- Testing
 -----------------------------------------------------------------
 local function add_testing_options( options )
-  options.nations = { ['dutch']={ human=true } }
+  options.nations = { dutch={ human=true } }
   options.map.type = 'half_and_half'
   -- options.map.world_size = { w=4, h=4 }
 end
