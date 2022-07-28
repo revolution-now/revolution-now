@@ -725,9 +725,13 @@ wait<> TravelHandler::perform() {
       //
       // TODO: consider prioritizing units that are brought in by
       // the ship.
-      co_await show_colony_view(
-          planes_, ss_, ts_,
-          ss_.colonies.colony_for( colony_id ) );
+      e_colony_abandoned const abandoned =
+          co_await show_colony_view(
+              planes_, ss_, ts_,
+              ss_.colonies.colony_for( colony_id ) );
+      if( abandoned == e_colony_abandoned::yes )
+        // Nothing really special to do here.
+        break;
       break;
     }
     case e_travel_verdict::land_fall:
@@ -915,9 +919,13 @@ struct AttackHandler : public OrdersHandler {
       co_await ts_.gui.message_box(
           "The @[H]{}@[] have captured the colony of @[H]{}@[]!",
           attacker_nation.display_name, colony.name );
-      co_await show_colony_view(
-          planes_, ss_, ts_,
-          ss_.colonies.colony_for( colony_id ) );
+      e_colony_abandoned const abandoned =
+          co_await show_colony_view(
+              planes_, ss_, ts_,
+              ss_.colonies.colony_for( colony_id ) );
+      if( abandoned == e_colony_abandoned::yes )
+        // Nothing really special to do here.
+        co_return;
     }
   }
 

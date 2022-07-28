@@ -354,9 +354,13 @@ wait<> process_player_input( LandViewPlayerInput_t const& input,
   switch( input.to_enum() ) {
     using namespace LandViewPlayerInput;
     case e::colony: {
-      co_await show_colony_view(
-          planes, ss, ts,
-          ss.colonies.colony_for( input.get<colony>().id ) );
+      e_colony_abandoned const abandoned =
+          co_await show_colony_view(
+              planes, ss, ts,
+              ss.colonies.colony_for( input.get<colony>().id ) );
+      if( abandoned == e_colony_abandoned::yes )
+        // Nothing really special to do here.
+        co_return;
       break;
     }
     default: break;
@@ -435,9 +439,13 @@ wait<> process_player_input( UnitId                       id,
       SHOULD_NOT_BE_HERE;
     }
     case e::colony: {
-      co_await show_colony_view(
-          planes, ss, ts,
-          ss.colonies.colony_for( input.get<colony>().id ) );
+      e_colony_abandoned const abandoned =
+          co_await show_colony_view(
+              planes, ss, ts,
+              ss.colonies.colony_for( input.get<colony>().id ) );
+      if( abandoned == e_colony_abandoned::yes )
+        // Nothing really special to do here.
+        co_return;
       break;
     }
     // We have some orders for the current unit.

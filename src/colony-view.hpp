@@ -16,6 +16,9 @@
 #include "colony-id.hpp"
 #include "wait.hpp"
 
+// base
+#include "base/vocab.hpp"
+
 namespace rn {
 
 struct Colony;
@@ -46,7 +49,13 @@ struct ColonyPlane {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> show_colony_view( Planes& planes, SS& ss, TS& ts,
-                         Colony& colony );
+enum class e_colony_abandoned { no, yes };
+
+// Returns whether the colony was abandoned by the player while
+// open. The caller needs to know about that so that it can take
+// the appropriate measures to not access it after that, since it
+// will no longer exist.
+wait<base::NoDiscard<e_colony_abandoned>> show_colony_view(
+    Planes& planes, SS& ss, TS& ts, Colony& colony );
 
 } // namespace rn

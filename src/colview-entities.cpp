@@ -21,6 +21,7 @@
 #include "compositor.hpp"
 #include "construction.hpp"
 #include "gui.hpp"
+#include "interrupts.hpp"
 #include "land-production.hpp"
 #include "logger.hpp"
 #include "map-updater.hpp"
@@ -135,11 +136,17 @@ ColViewObject_t from_cargo( Cargo_t const& o ) {
       } );
 }
 
-maybe<string> check_abandon( Colony const& colony ) {
-  if( colony_population( colony ) == 1 )
-    return "This action would abandon the colony, which is not "
-           "yet supported.";
-  return nothing;
+// Returns whether the action should be rejected.
+wait<bool> check_abandon( Colony const& colony, IGui& gui ) {
+  if( colony_population( colony ) > 1 ) co_return false;
+  YesNoConfig const config{
+      .msg = "Shall we abandon this colony, Your Excellency?",
+      .yes_label      = "Yes, it is God's will.",
+      .no_label       = "Never!  That would be folly.",
+      .no_comes_first = true,
+  };
+  ui::e_confirm res = co_await gui.yes_no( config );
+  co_return( res == ui::e_confirm::no );
 }
 
 maybe<string> check_seige() {
@@ -588,10 +595,12 @@ class CargoView : public ui::View,
         co_return base::valid;
       case e_colview_entity::land:
       case e_colview_entity::buildings: //
-        if( auto msg = check_abandon( colony_ );
-            msg.has_value() )
-          co_return IColViewDragSinkCheck::Rejection{ .reason =
-                                                          *msg };
+        if( co_await check_abandon( colony_, ts_.gui ) )
+          // If we're rejecting then that means that the player
+          // has opted not to abandon the colony, so there is no
+          // need to display a reason message.
+          co_return IColViewDragSinkCheck::Rejection{
+              .reason = nothing };
         if( auto msg = check_seige(); msg.has_value() )
           co_return IColViewDragSinkCheck::Rejection{ .reason =
                                                           *msg };
@@ -908,10 +917,12 @@ class UnitsAtGateColonyView : public ui::View,
         co_return base::valid;
       case e_colview_entity::land:
       case e_colview_entity::buildings: //
-        if( auto msg = check_abandon( colony_ );
-            msg.has_value() )
-          co_return IColViewDragSinkCheck::Rejection{ .reason =
-                                                          *msg };
+        if( co_await check_abandon( colony_, ts_.gui ) )
+          // If we're rejecting then that means that the player
+          // has opted not to abandon the colony, so there is no
+          // need to display a reason message.
+          co_return IColViewDragSinkCheck::Rejection{
+              .reason = nothing };
         if( auto msg = check_seige(); msg.has_value() )
           co_return IColViewDragSinkCheck::Rejection{ .reason =
                                                           *msg };
@@ -1041,6 +1052,9 @@ class UnitsAtGateColonyView : public ui::View,
             // would be sentry'd, which is probably not what the
             // player wants.
             ss_.units.unit_for( unit.id ).clear_orders();
+            // Check if we've abandoned the colony.
+            if( colony_population( colony_ ) == 0 )
+              throw colony_abandon_interrupt{};
           }
         },
         [&]( ColViewObject::commodity const& comm ) {

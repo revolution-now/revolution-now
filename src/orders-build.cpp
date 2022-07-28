@@ -124,9 +124,13 @@ struct BuildHandler : public OrdersHandler {
   }
 
   wait<> post() const override {
-    co_await show_colony_view(
-        planes_, ss_, ts_,
-        ss_.colonies.colony_for( colony_id ) );
+    e_colony_abandoned const abandoned =
+        co_await show_colony_view(
+            planes_, ss_, ts_,
+            ss_.colonies.colony_for( colony_id ) );
+    if( abandoned == e_colony_abandoned::yes )
+      // Nothing special to do here.
+      co_return;
   }
 
   Planes& planes_;

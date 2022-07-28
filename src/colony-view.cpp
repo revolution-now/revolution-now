@@ -14,11 +14,13 @@
 #include "anim.hpp"
 #include "cheat.hpp"
 #include "co-combinator.hpp"
+#include "colony-mgr.hpp"
 #include "colony.hpp"
 #include "colview-entities.hpp"
 #include "compositor.hpp"
 #include "dragdrop.hpp"
 #include "gui.hpp"
+#include "interrupts.hpp"
 #include "logger.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
@@ -46,6 +48,8 @@
 using namespace std;
 
 namespace rn {
+
+namespace {
 
 struct IMapUpdater;
 
@@ -447,6 +451,8 @@ wait<> drag_drop_routine(
     co_await gui.message_box( "{}", *post_reject_message );
 }
 
+} // namespace
+
 /****************************************************************
 ** Colony Plane
 *****************************************************************/
@@ -638,25 +644,8 @@ struct ColonyPlane::Impl : public Plane {
   Rect canvas_;
 };
 
-/****************************************************************
-** ColonyPlane
-*****************************************************************/
-Plane& ColonyPlane::impl() { return *impl_; }
-
-ColonyPlane::~ColonyPlane() = default;
-
-ColonyPlane::ColonyPlane( SS& ss, TS& ts, Colony& colony )
-  : impl_( new Impl( ss, ts, colony ) ) {}
-
-wait<> ColonyPlane::show_colony_view() const {
-  co_await impl_->run_colview();
-}
-
-/****************************************************************
-** API
-*****************************************************************/
-wait<> show_colony_view( Planes& planes, SS& ss, TS& ts_old,
-                         Colony& colony ) {
+wait<> show_colony_view_impl( Planes& planes, SS& ss, TS& ts_old,
+                              Colony& colony ) {
   PlaneGroup const& old_group = planes.back();
   auto              popper    = planes.new_group();
   PlaneGroup&       new_group = planes.back();
@@ -681,6 +670,36 @@ wait<> show_colony_view( Planes& planes, SS& ss, TS& ts_old,
   lg.info( "viewing colony '{}'.", colony.name );
   co_await colony_plane.show_colony_view();
   lg.info( "leaving colony view." );
+}
+
+/****************************************************************
+** ColonyPlane
+*****************************************************************/
+Plane& ColonyPlane::impl() { return *impl_; }
+
+ColonyPlane::~ColonyPlane() = default;
+
+ColonyPlane::ColonyPlane( SS& ss, TS& ts, Colony& colony )
+  : impl_( new Impl( ss, ts, colony ) ) {}
+
+wait<> ColonyPlane::show_colony_view() const {
+  co_await impl_->run_colview();
+}
+
+/****************************************************************
+** API
+*****************************************************************/
+wait<base::NoDiscard<e_colony_abandoned>> show_colony_view(
+    Planes& planes, SS& ss, TS& ts, Colony& colony ) {
+  try {
+    co_await show_colony_view_impl( planes, ss, ts, colony );
+    co_return e_colony_abandoned::no;
+  } catch( colony_abandon_interrupt const& ) {}
+
+  // We are abandoned.
+  co_await run_colony_destruction( planes, ss, ts, colony,
+                                   /*msg=*/nothing );
+  co_return e_colony_abandoned::yes;
 }
 
 } // namespace rn
