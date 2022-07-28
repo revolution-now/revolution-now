@@ -59,6 +59,8 @@ struct IPoint {
 
   virtual void output_c_array( size_t* size_written,
                                int*    arr ) const = 0;
+
+  virtual int& returns_lvalue_ref() const = 0;
 };
 
 /****************************************************************
@@ -77,6 +79,7 @@ struct MockPoint : IPoint {
   MOCK_METHOD( double, length, (), ( const ) );
   MOCK_METHOD( void, output_c_array, (size_t*, int*),
                ( const ) );
+  MOCK_METHOD( int&, returns_lvalue_ref, (), ( const ) );
 };
 
 /****************************************************************
@@ -119,6 +122,8 @@ struct PointUser {
     for( size_t i = 0; i < n_written; ++i ) res += buf[i];
     return res;
   }
+
+  int get_lvalue_ref() const { return p_->returns_lvalue_ref(); }
 
   IPoint* p_;
 };
@@ -198,6 +203,17 @@ TEST_CASE( "[mock] any" ) {
   EXPECT_CALL( mp, get_y() ).returns( 10 );
   EXPECT_CALL( mp, set_y( _ ) );
   REQUIRE( user.increment_y() == 11 );
+}
+
+TEST_CASE( "[mock] lvalue ref return type" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  int n = 4;
+  EXPECT_CALL( mp, returns_lvalue_ref() ).returns( n );
+  // Make sure that we're really storing a ref.
+  n = 5;
+  REQUIRE( user.get_lvalue_ref() == 5 );
 }
 
 TEST_CASE(

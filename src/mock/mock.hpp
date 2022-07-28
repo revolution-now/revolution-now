@@ -111,9 +111,21 @@ namespace detail {
 
 template<typename T>
 struct RetHolder {
+  RetHolder( T& val ) requires std::is_reference_v<T>
+    : o( val ) {}
   RetHolder( T val ) : o( std::move( val ) ) {}
-  T&& get() { return std::move( o ); }
-  T   o;
+  decltype( auto ) get() {
+    // If our return type is a non-const l-value ref then we need
+    // to return it as such (and not as T&&) because the
+    // non-const l-value ref that will be waiting for it will not
+    // be able to bind to it.
+    if constexpr( std::is_lvalue_reference_v<T> &&
+                  !std::is_const_v<std::remove_reference_t<T>> )
+      return o;
+    else
+      return std::move( o );
+  }
+  T o;
 };
 
 template<>
@@ -176,6 +188,7 @@ template<typename RetT, typename... Args, size_t... Idx>
 struct Responder<RetT, std::tuple<Args...>,
                  std::index_sequence<Idx...>> {
  public:
+  using ret_t       = RetT;
   using args_t      = std::tuple<Args...>;
   using args_refs_t = std::tuple<Args const&...>;
   using matchers_t  = std::tuple<MatcherWrapper<Args>...>;
@@ -290,7 +303,7 @@ struct Responder<RetT, std::tuple<Args...>,
   requires std::is_convertible_v<U, RetT>
   Responder& returns( U&& val ) {
     // clang-format on
-    ret_ = static_cast<RetT>( std::forward<U>( val ) );
+    ret_.emplace( static_cast<RetT>( std::forward<U>( val ) ) );
     return *this;
   }
 
@@ -367,7 +380,7 @@ struct ResponderQueue {
   }
 
   template<typename... T>
-  auto operator()( T&&... args ) {
+  typename R::ret_t operator()( T&&... args ) {
     // We need to clear any empty responders from the front of
     // the queue just in case the user manually cleared them of
     // their expectations.
