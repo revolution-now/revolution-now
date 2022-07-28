@@ -357,7 +357,7 @@ struct LandViewPlane::Impl : public Plane {
           "There are no units currently asking for orders." );
       return make_wait<>();
     }
-    return landview_ensure_visible( *blinking_unit );
+    return landview_ensure_visible_unit( *blinking_unit );
   }
 
   /****************************************************************
@@ -1479,7 +1479,7 @@ struct LandViewPlane::Impl : public Plane {
     return viewport().ensure_tile_visible_smooth( coord );
   }
 
-  wait<> landview_ensure_visible( UnitId id ) {
+  wait<> landview_ensure_visible_unit( UnitId id ) {
     // Need multi-ownership variant because sometimes the unit in
     // question is a worker in a colony, as can happen if we are
     // attacking an undefended colony.
@@ -1508,7 +1508,7 @@ struct LandViewPlane::Impl : public Plane {
     // This might be true either because we started a new turn,
     // or because of the above assignment.
     if( g_needs_scroll_to_unit_on_input )
-      co_await landview_ensure_visible( id );
+      co_await landview_ensure_visible_unit( id );
     g_needs_scroll_to_unit_on_input = false;
 
     if( last_unit_input_ != id ) landview_reset_input_buffers();
@@ -1551,8 +1551,8 @@ struct LandViewPlane::Impl : public Plane {
                                   UnitId defender,
                                   bool   attacker_wins,
                                   e_depixelate_anim dp_anim ) {
-    co_await landview_ensure_visible( defender );
-    co_await landview_ensure_visible( attacker );
+    co_await landview_ensure_visible_unit( defender );
+    co_await landview_ensure_visible_unit( attacker );
     auto new_state = LandViewMode::unit_attack{
         .attacker      = attacker,
         .defender      = defender,
@@ -1616,8 +1616,8 @@ wait<> LandViewPlane::landview_ensure_visible(
   return impl_->landview_ensure_visible( coord );
 }
 
-wait<> LandViewPlane::landview_ensure_visible( UnitId id ) {
-  return impl_->landview_ensure_visible( id );
+wait<> LandViewPlane::landview_ensure_visible_unit( UnitId id ) {
+  return impl_->landview_ensure_visible_unit( id );
 }
 
 wait<LandViewPlayerInput_t>

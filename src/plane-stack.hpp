@@ -53,7 +53,7 @@ struct WindowPlane;
 struct MainMenuPlane;
 struct MenuPlane;
 struct PanelPlane;
-struct LandViewPlane;
+struct ILandViewPlane;
 struct MapEditPlane;
 struct ColonyPlane;
 struct HarborPlane;
@@ -64,16 +64,16 @@ struct HarborPlane;
 // These are pointers instead of maybe-ref because we want to be
 // able to copy assign these.
 struct PlaneGroup {
-  OmniPlane*     omni;
-  ConsolePlane*  console;
-  WindowPlane*   window;
-  MainMenuPlane* main_menu;
-  MenuPlane*     menu;
-  PanelPlane*    panel;
-  LandViewPlane* land_view;
-  MapEditPlane*  map_edit;
-  ColonyPlane*   colony;
-  HarborPlane*   harbor;
+  OmniPlane*      omni;
+  ConsolePlane*   console;
+  WindowPlane*    window;
+  MainMenuPlane*  main_menu;
+  MenuPlane*      menu;
+  PanelPlane*     panel;
+  ILandViewPlane* land_view;
+  MapEditPlane*   map_edit;
+  ColonyPlane*    colony;
+  HarborPlane*    harbor;
 };
 
 maybe<Plane&> plane_pointer( PlaneGroup const& group,
@@ -115,7 +115,7 @@ struct Planes {
   PLANE_ACCESSOR_DECL( MainMenuPlane, main_menu );
   PLANE_ACCESSOR_DECL( MenuPlane, menu );
   PLANE_ACCESSOR_DECL( PanelPlane, panel );
-  PLANE_ACCESSOR_DECL( LandViewPlane, land_view );
+  PLANE_ACCESSOR_DECL( ILandViewPlane, land_view );
   PLANE_ACCESSOR_DECL( MapEditPlane, map_edit );
   PLANE_ACCESSOR_DECL( ColonyPlane, colony );
   PLANE_ACCESSOR_DECL( HarborPlane, harbor );

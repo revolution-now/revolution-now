@@ -128,7 +128,7 @@ PLANE_ACCESSOR_IMPL( WindowPlane, window );
 PLANE_ACCESSOR_IMPL( MainMenuPlane, main_menu );
 PLANE_ACCESSOR_IMPL( MenuPlane, menu );
 PLANE_ACCESSOR_IMPL( PanelPlane, panel );
-PLANE_ACCESSOR_IMPL( LandViewPlane, land_view );
+PLANE_ACCESSOR_IMPL( ILandViewPlane, land_view );
 PLANE_ACCESSOR_IMPL( MapEditPlane, map_edit );
 PLANE_ACCESSOR_IMPL( ColonyPlane, colony );
 PLANE_ACCESSOR_IMPL( HarborPlane, harbor );

@@ -35,56 +35,94 @@ struct TS;
 enum class e_depixelate_anim { death, demote };
 
 /****************************************************************
-** LandViewPlane
+** ILandViewPlane
 *****************************************************************/
-struct LandViewPlane {
-  LandViewPlane( Planes& planes, SS& ss, TS& ts );
+struct ILandViewPlane {
+  virtual wait<> landview_ensure_visible(
+      Coord const& coord ) = 0;
 
-  ~LandViewPlane();
+  virtual wait<> landview_ensure_visible_unit( UnitId id ) = 0;
 
-  wait<> landview_ensure_visible( Coord const& coord );
-  wait<> landview_ensure_visible( UnitId id );
+  virtual wait<LandViewPlayerInput_t> landview_get_next_input(
+      UnitId id ) = 0;
 
-  wait<LandViewPlayerInput_t> landview_get_next_input(
-      UnitId id );
+  virtual wait<LandViewPlayerInput_t>
+  landview_eot_get_next_input() = 0;
 
-  wait<LandViewPlayerInput_t> landview_eot_get_next_input();
-
-  wait<> landview_animate_move( UnitId      id,
-                                e_direction direction );
+  virtual wait<> landview_animate_move(
+      UnitId id, e_direction direction ) = 0;
 
   // This happens not when a colony is attacked or captured, but
   // when it is either abandoned or starved.
-  wait<> landview_animate_colony_depixelation(
-      Colony const& colony );
+  virtual wait<> landview_animate_colony_depixelation(
+      Colony const& colony ) = 0;
 
-  wait<> landview_animate_attack( UnitId attacker,
-                                  UnitId defender,
-                                  bool   attacker_wins,
-                                  e_depixelate_anim dp_anim );
+  virtual wait<> landview_animate_attack(
+      UnitId attacker, UnitId defender, bool attacker_wins,
+      e_depixelate_anim dp_anim ) = 0;
 
-  wait<> landview_animate_colony_capture( UnitId   attacker_id,
-                                          UnitId   defender_id,
-                                          ColonyId colony_id );
+  virtual wait<> landview_animate_colony_capture(
+      UnitId attacker_id, UnitId defender_id,
+      ColonyId colony_id ) = 0;
 
   // Clear any buffer input.
-  void landview_reset_input_buffers();
+  virtual void landview_reset_input_buffers() = 0;
 
   // We don't have to do much specifically in the land view when
   // we start a new turn, but there are a couple of small things
   // to do for a polished user experience.
-  void landview_start_new_turn();
+  virtual void landview_start_new_turn() = 0;
 
   // Zoom out just enough to see the entire map plus a bit of
   // border around it.
-  void zoom_out_full();
+  virtual void zoom_out_full() = 0;
+
+  virtual Plane& impl() = 0;
+};
+
+/****************************************************************
+** LandViewPlane
+*****************************************************************/
+struct LandViewPlane : ILandViewPlane {
+  LandViewPlane( Planes& planes, SS& ss, TS& ts );
+
+  ~LandViewPlane();
+
+  wait<> landview_ensure_visible( Coord const& coord ) override;
+  wait<> landview_ensure_visible_unit( UnitId id ) override;
+
+  wait<LandViewPlayerInput_t> landview_get_next_input(
+      UnitId id ) override;
+
+  wait<LandViewPlayerInput_t> landview_eot_get_next_input()
+      override;
+
+  wait<> landview_animate_move( UnitId      id,
+                                e_direction direction ) override;
+
+  wait<> landview_animate_colony_depixelation(
+      Colony const& colony ) override;
+
+  wait<> landview_animate_attack(
+      UnitId attacker, UnitId defender, bool attacker_wins,
+      e_depixelate_anim dp_anim ) override;
+
+  wait<> landview_animate_colony_capture(
+      UnitId attacker_id, UnitId defender_id,
+      ColonyId colony_id ) override;
+
+  void landview_reset_input_buffers() override;
+
+  void landview_start_new_turn() override;
+
+  void zoom_out_full() override;
 
  private:
   struct Impl;
   std::unique_ptr<Impl> impl_;
 
  public:
-  Plane& impl();
+  Plane& impl() override;
 };
 
 } // namespace rn

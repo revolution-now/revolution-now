@@ -535,8 +535,9 @@ wait<> process_player_input( UnitId                       id,
 }
 
 wait<LandViewPlayerInput_t> landview_player_input(
-    LandViewPlane& land_view_plane, NationTurnState& nat_turn_st,
-    UnitsState const& units_state, UnitId id ) {
+    ILandViewPlane&  land_view_plane,
+    NationTurnState& nat_turn_st, UnitsState const& units_state,
+    UnitId id ) {
   LandViewPlayerInput_t response;
   if( auto maybe_orders = pop_unit_orders( id ) ) {
     response = LandViewPlayerInput::give_orders{
@@ -582,7 +583,8 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
                        unit );
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders() == e_unit_orders::none );
-      co_await planes.land_view().landview_ensure_visible( id );
+      co_await planes.land_view().landview_ensure_visible_unit(
+          id );
       co_await ts.gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
@@ -594,7 +596,8 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
                        unit );
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders() == e_unit_orders::none );
-      co_await planes.land_view().landview_ensure_visible( id );
+      co_await planes.land_view().landview_ensure_visible_unit(
+          id );
       // TODO: if we were clearing a forest then we should pick a
       // colony in the vicinity and add a certain amount of
       // lumber to it (see strategy guide for formula) and give a
