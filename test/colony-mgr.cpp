@@ -12,15 +12,19 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/land-view-plane.hpp"
 
 // Revolution Now
 #include "colony-mgr.hpp"
+#include "igui-mock.hpp"
 #include "map-square.hpp"
 #include "map-updater.hpp"
+#include "plane-stack.hpp"
 #include "ustate.hpp"
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
 // refl
@@ -36,6 +40,9 @@ using namespace std;
 using namespace rn;
 
 using ::Catch::UnorderedEquals;
+
+using ::mock::matchers::_;
+using ::mock::matchers::StrContains;
 
 /****************************************************************
 ** Fake World Setup
@@ -94,10 +101,10 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
   SECTION( "dragoon" ) {
     Coord const coord = { .x = 1, .y = 1 };
     UnitId      id    = W.add_unit_on_map(
-        UnitType::create( e_unit_type::dragoon,
+                UnitType::create( e_unit_type::dragoon,
                                   e_unit_type::petty_criminal )
-            .value(),
-        coord );
+                    .value(),
+                coord );
     Unit& founder = W.units().unit_for( id );
     REQUIRE( founder.type() == e_unit_type::dragoon );
     REQUIRE( unit_can_found_colony( W.ss(), id ).valid() );
@@ -353,6 +360,75 @@ TEST_CASE( "[colony-mgr] change_unit_outdoor_job." ) {
   REQUIRE( colony.outdoor_jobs[e_direction::e] ==
            ( OutdoorUnit{ .unit_id = ore_miner,
                           .job     = e_outdoor_job::ore } ) );
+}
+
+TEST_CASE( "[colony-mgr] destroy_colony" ) {
+  World       W;
+  Coord const loc            = { .x = 1, .y = 1 };
+  Colony&     colony         = W.add_colony_with_new_unit( loc );
+  vector<UnitId> const units = colony_units_all( colony );
+  REQUIRE( units.size() == 1 );
+  UnitId const founder = units[0];
+
+  REQUIRE( W.units().exists( founder ) );
+  REQUIRE( W.colonies().all().size() == 1 );
+  REQUIRE( W.terrain().square_at( loc ).road );
+
+  SECTION( "non interactive" ) {
+    destroy_colony( W.ss(), W.map_updater(), colony );
+  }
+
+  SECTION( "non interactive with ship" ) {
+    UnitId ship = W.add_unit_on_map( e_unit_type::caravel, loc );
+    destroy_colony( W.ss(), W.map_updater(), colony );
+    REQUIRE( W.units().exists( ship ) );
+  }
+
+  SECTION( "interactive" ) {
+    MockLandViewPlane mock_land_view;
+    W.planes().back().land_view = &mock_land_view;
+
+    EXPECT_CALL( mock_land_view,
+                 landview_animate_colony_depixelation( _ ) )
+        .returns( make_wait<>() );
+    EXPECT_CALL( W.gui(), message_box( "some msg" ) )
+        .returns( make_wait<>() );
+
+    wait<> w = run_colony_destruction(
+        W.planes(), W.ss(), W.ts(), colony, /*msg=*/"some msg" );
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+  }
+
+  SECTION( "interactive with ship" ) {
+    UnitId ship = W.add_unit_on_map( e_unit_type::caravel, loc );
+
+    MockLandViewPlane mock_land_view;
+    W.planes().back().land_view = &mock_land_view;
+
+    EXPECT_CALL( mock_land_view,
+                 landview_animate_colony_depixelation( _ ) )
+        .returns( make_wait<>() );
+    EXPECT_CALL( W.gui(), message_box( "some msg" ) )
+        .returns( make_wait<>() );
+    EXPECT_CALL(
+        W.gui(),
+        message_box( StrContains( "had ships in its port" ) ) )
+        .returns( make_wait<>() );
+
+    wait<> w = run_colony_destruction(
+        W.planes(), W.ss(), W.ts(), colony, /*msg=*/"some msg" );
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+
+    REQUIRE( W.units().exists( ship ) );
+  }
+
+  // !! Do not access colony after this point.
+
+  REQUIRE( !W.units().exists( founder ) );
+  REQUIRE( W.colonies().all().size() == 0 );
+  REQUIRE( !W.terrain().square_at( loc ).road );
 }
 
 TEST_CASE( "[colony-mgr] found_colony finds job for unit." ) {

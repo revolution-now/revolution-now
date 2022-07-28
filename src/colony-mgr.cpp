@@ -24,6 +24,7 @@
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "map-square.hpp"
+#include "map-updater.hpp"
 #include "plane-stack.hpp"
 #include "rand.hpp"
 #include "road.hpp"
@@ -328,6 +329,27 @@ void create_initial_buildings( Colony& colony ) {
   colony.buildings = config_colony.initial_colony_buildings;
 }
 
+void clear_abandoned_colony_road( SSConst const& ss,
+                                  IMapUpdater&   map_updater,
+                                  Coord          location ) {
+  MapSquare const& square = ss.terrain.square_at( location );
+  // Depending on how the colony is being destroyed, the road may
+  // have already been removed (e.g. for animation purposes), and
+  // so if it is already gone then bail early so that we don't
+  // have to invoke the map updater to remove the road.
+  if( !square.road ) return;
+
+  // As the original game does, we will remove the road that the
+  // colony got for free upon its founding. This is for two rea-
+  // sons: if we didn't do this then that would enable a "cheat"
+  // whereby the player could just keep founding colonies and
+  // abandoning them to get free roads (i.e., without expending
+  // any tools). Second, it prevents an insightly road island
+  // from lingering on the map which the player would otherwise
+  // not be able to remove.
+  clear_road( map_updater, location );
+}
+
 } // namespace
 
 /****************************************************************
@@ -544,6 +566,50 @@ void change_unit_outdoor_job( Colony& colony, UnitId id,
     if( outdoor_jobs[d].has_value() )
       if( outdoor_jobs[d]->unit_id == id )
         outdoor_jobs[d]->job = new_job;
+}
+
+void destroy_colony( SS& ss, IMapUpdater& map_updater,
+                     Colony& colony ) {
+  // These are the units working in the colony, not those at the
+  // gate or in port (which won't be affected).
+  vector<UnitId> units = colony_units_all( colony );
+  for( UnitId unit_id : units ) {
+    remove_unit_from_colony( ss.units, colony, unit_id );
+    ss.units.destroy_unit( unit_id );
+  }
+  CHECK( colony_population( colony ) == 0 );
+  clear_abandoned_colony_road( ss, map_updater,
+                               colony.location );
+  // Should be last.
+  ss.colonies.destroy_colony( colony.id );
+}
+
+wait<> run_colony_destruction( Planes& planes, SS& ss, TS& ts,
+                               Colony&       colony,
+                               maybe<string> msg ) {
+  // Must extract this info before destroying the colony.
+  string const name     = colony.name;
+  Coord const  location = colony.location;
+  clear_abandoned_colony_road( ss, ts.map_updater,
+                               colony.location );
+  co_await planes.land_view()
+      .landview_animate_colony_depixelation( colony );
+  destroy_colony( ss, ts.map_updater, colony );
+  if( msg.has_value() ) co_await ts.gui.message_box( *msg );
+  // Check if there are any ships in port.
+  unordered_set<UnitId> const& at_gate =
+      ss.units.from_coord( location );
+  for( UnitId unit_id : at_gate ) {
+    if( !ss.units.unit_for( unit_id ).desc().ship ) continue;
+    string const msg = fmt::format(
+        "@[H]{}@[] had ships in its port that are now exposed "
+        "on land.  We should move them into the ocean soon "
+        "since they are vulnerable and weak while in the "
+        "abandoned colony port.",
+        name );
+    co_await ts.gui.message_box( msg );
+    break;
+  }
 }
 
 wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
