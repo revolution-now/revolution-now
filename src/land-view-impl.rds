@@ -33,6 +33,9 @@ sumtype.LandViewMode {
     defender 'UnitId',
     attacker_wins 'bool',
   },
+  colony_disappearing {
+    colony_id 'ColonyId',
+  },
   hidden_terrain {},
 }
 
@@ -52,6 +55,7 @@ sumtype.LandViewRawInput {
 # These are animation primitives. A unit "move" is a slide, and a
 # unit attack sequence is constructed from a slide + depixela-
 # tion.
+# FIXME: change the name of this.
 sumtype.UnitAnimation {
   blink {
     visible 'bool',
@@ -61,11 +65,14 @@ sumtype.UnitAnimation {
     percent 'double',
     percent_vel 'DissipativeVelocity',
   },
-  depixelate {
+  depixelate_unit {
     type 'e_depixelate_anim',
     stage 'double',
     # If we're depixelating to another unit.
     target 'maybe<e_unit_type>',
+  },
+  depixelate_colony {
+    stage 'double',
   },
 
   _features { equality }

@@ -26,6 +26,7 @@
 
 namespace rn {
 
+struct Colony;
 struct Plane;
 struct Planes;
 struct SS;
@@ -51,6 +52,11 @@ struct LandViewPlane {
 
   wait<> landview_animate_move( UnitId      id,
                                 e_direction direction );
+
+  // This happens not when a colony is attacked or captured, but
+  // when it is either abandoned or starved.
+  wait<> landview_animate_colony_depixelation(
+      Colony const& colony );
 
   wait<> landview_animate_attack( UnitId attacker,
                                   UnitId defender,

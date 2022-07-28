@@ -188,7 +188,8 @@ struct LandViewPlane::Impl : public Plane {
 
   co::stream<RawInput>    raw_input_stream_;
   co::stream<PlayerInput> translated_input_stream_;
-  unordered_map<UnitId, UnitAnimation_t> unit_animations_;
+  unordered_map<UnitId, UnitAnimation_t>   unit_animations_;
+  unordered_map<ColonyId, UnitAnimation_t> colony_animations_;
   LandViewMode_t landview_mode_ = LandViewMode::none{};
   maybe<UnitId>  last_unit_input_;
 
@@ -229,6 +230,7 @@ struct LandViewPlane::Impl : public Plane {
     register_menu_items( planes.menu() );
     // Initialize general global data.
     unit_animations_.clear();
+    colony_animations_.clear();
     landview_mode_   = LandViewMode::none{};
     last_unit_input_ = nothing;
     raw_input_stream_.reset();
@@ -243,9 +245,9 @@ struct LandViewPlane::Impl : public Plane {
   wait<> animate_depixelation( UnitId            id,
                                e_depixelate_anim dp_anim ) {
     CHECK( !unit_animations_.contains( id ) );
-    UnitAnimation::depixelate& depixelate =
+    UnitAnimation::depixelate_unit& depixelate =
         unit_animations_[id]
-            .emplace<UnitAnimation::depixelate>();
+            .emplace<UnitAnimation::depixelate_unit>();
     SCOPE_EXIT( {
       UNWRAP_CHECK( it, base::find( unit_animations_, id ) );
       unit_animations_.erase( it );
@@ -253,6 +255,25 @@ struct LandViewPlane::Impl : public Plane {
     depixelate.type   = dp_anim;
     depixelate.stage  = 0.0;
     depixelate.target = ss_.units.unit_for( id ).demoted_type();
+
+    AnimThrottler throttle( kAlmostStandardFrame );
+    while( depixelate.stage <= 1.0 ) {
+      co_await throttle();
+      depixelate.stage += config_rn.depixelate_per_frame;
+    }
+  }
+
+  wait<> animate_colony_depixelation( Colony const& colony ) {
+    CHECK( !colony_animations_.contains( colony.id ) );
+    UnitAnimation::depixelate_colony& depixelate =
+        colony_animations_[colony.id]
+            .emplace<UnitAnimation::depixelate_colony>();
+    SCOPE_EXIT( {
+      UNWRAP_CHECK(
+          it, base::find( colony_animations_, colony.id ) );
+      colony_animations_.erase( it );
+    } );
+    depixelate.stage = 0.0;
 
     AnimThrottler throttle( kAlmostStandardFrame );
     while( depixelate.stage <= 1.0 ) {
@@ -770,7 +791,7 @@ struct LandViewPlane::Impl : public Plane {
 
   void render_units_during_depixelate(
       rr::Renderer& renderer, Rect covered, UnitId depixelate_id,
-      UnitAnimation::depixelate const& dp_anim ) const {
+      UnitAnimation::depixelate_unit const& dp_anim ) const {
     // Need the multi_ownership version because we could be de-
     // pixelating a colonist that is owned by a colony, which
     // happens when the colony is captured.
@@ -835,6 +856,26 @@ struct LandViewPlane::Impl : public Plane {
         fmt::format( "@[S]{}@[]", colony.name ) );
   }
 
+  void render_colony_depixelate( rr::Renderer& renderer,
+                                 Rect          covered,
+                                 Colony const& colony ) const {
+    UNWRAP_CHECK(
+        animation,
+        base::lookup( colony_animations_, colony.id )
+            .get_if<UnitAnimation::depixelate_colony>() );
+    // As usual, the anchor coord is arbitrary so long as its po-
+    // sition is fixed relative to the sprite.
+    Coord anchor =
+        render_rect_for_tile( covered, colony.location )
+            .upper_left();
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                             animation.stage );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
+                             anchor );
+    rr::Painter painter = renderer.painter();
+    render_colony( renderer, painter, covered, colony );
+  }
+
   void render_colonies( rr::Renderer& renderer,
                         Rect          covered ) const {
     rr::Painter painter = renderer.painter();
@@ -843,9 +884,45 @@ struct LandViewPlane::Impl : public Plane {
     // rect.
     unordered_map<ColonyId, Colony> const& all =
         ss_.colonies.all();
-    for( auto const& [id, colony] : all )
-      if( colony.location.is_inside( covered ) )
-        render_colony( renderer, painter, covered, colony );
+    switch( landview_mode_.to_enum() ) {
+      using namespace LandViewMode;
+      case e::colony_disappearing: {
+        auto& o = landview_mode_
+                      .get<LandViewMode::colony_disappearing>();
+        ColonyId disappearing_id = o.colony_id;
+        for( auto const& [id, colony] : all ) {
+          if( colony.location.is_inside( covered ) ) {
+            if( id == disappearing_id )
+              render_colony_depixelate( renderer, covered,
+                                        colony );
+            else
+              render_colony( renderer, painter, covered,
+                             colony );
+          }
+        }
+        break;
+      }
+      default: {
+        for( auto const& [id, colony] : all )
+          if( colony.location.is_inside( covered ) )
+            render_colony( renderer, painter, covered, colony );
+        break;
+      }
+    }
+  }
+
+  void render_units_under_colonies( rr::Renderer& renderer,
+                                    Rect covered ) const {
+    // Currently the only use case for rendering a unit under a
+    // colony is when the colony is depixelating and we want to
+    // reveal any units that are there.
+    auto o = landview_mode_
+                 .get_if<LandViewMode::colony_disappearing>();
+    if( !o.has_value() ) return;
+    Coord const location =
+        ss_.colonies.colony_for( o->colony_id ).location;
+    if( !location.is_inside( covered ) ) return;
+    render_units_on_square( renderer, covered, location );
   }
 
   // Units (rendering strategy depends on land view state).
@@ -880,6 +957,20 @@ struct LandViewPlane::Impl : public Plane {
                             blink_anim.visible );
         break;
       }
+      case e::colony_disappearing: {
+        // NOTE: while the colony is depixelating it will still
+        // technically exist, and so none of the units that are
+        // at the gate/port will be rendered by this default unit
+        // rendering method, which is what we want for the anima-
+        // tion, since then we can render the last unit under-
+        // neath of it (which we will have already done at this
+        // point, since it is done before the colony is ren-
+        // dered), which will create the effect of the colony de-
+        // pixelating into a unit (if there is one; there may not
+        // be, if the unit starved).
+        render_units_default( renderer, covered );
+        break;
+      }
       case e::unit_move: {
         auto& o = landview_mode_.get<unit_move>();
         CHECK( unit_animations_.size() == 1 );
@@ -907,7 +998,8 @@ struct LandViewPlane::Impl : public Plane {
           break;
         }
         if( auto dp_anim =
-                animation.get_if<UnitAnimation::depixelate>() ) {
+                animation
+                    .get_if<UnitAnimation::depixelate_unit>() ) {
           render_units_during_depixelate( renderer, covered,
                                           anim_id, *dp_anim );
           break;
@@ -987,6 +1079,7 @@ struct LandViewPlane::Impl : public Plane {
     SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
                              corner.distance_from_origin() );
     Rect const covered_tiles = viewport().covered_tiles();
+    render_units_under_colonies( renderer, covered_tiles );
     render_colonies( renderer, covered_tiles );
     render_units( renderer, covered_tiles );
   }
@@ -1480,6 +1573,16 @@ struct LandViewPlane::Impl : public Plane {
         attacker_wins ? defender : attacker, dp_anim );
   }
 
+  wait<> landview_animate_colony_depixelation(
+      Colony const& colony ) {
+    co_await landview_ensure_visible( colony.location );
+    auto new_state = LandViewMode::colony_disappearing{
+        .colony_id = colony.id };
+    SCOPED_SET_AND_RESTORE( landview_mode_, new_state );
+    // TODO: Sound effect?
+    co_await animate_colony_depixelation( colony );
+  }
+
   // FIXME: Would be nice to make this animation a bit more so-
   // phisticated, but we first need to fix the animation frame-
   // work in this module to be more flexible.
@@ -1530,6 +1633,11 @@ LandViewPlane::landview_eot_get_next_input() {
 wait<> LandViewPlane::landview_animate_move(
     UnitId id, e_direction direction ) {
   return impl_->landview_animate_move( id, direction );
+}
+
+wait<> LandViewPlane::landview_animate_colony_depixelation(
+    Colony const& colony ) {
+  return impl_->landview_animate_colony_depixelation( colony );
 }
 
 wait<> LandViewPlane::landview_animate_attack(
