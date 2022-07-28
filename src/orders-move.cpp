@@ -102,7 +102,7 @@ to_behaviors_t<target, relationship, entity> behavior(
 
 /****************************************************************/
 BEHAVIOR( land, foreign, unit, no_attack, attack, no_bombard,
-          bombard );
+          bombard, attack_land_ship );
 BEHAVIOR( land, foreign, colony, never, attack, trade );
 // BEHAVIOR( land, foreign, village, unused );
 BEHAVIOR( land, neutral, empty, never, always, unload );
@@ -822,6 +822,7 @@ struct AttackHandler : public OrdersHandler {
     ship_attack_land_unit,
     unit_cannot_attack,
     attack_from_ship,
+    land_unit_attack_ship_on_land,
   };
 
   wait<bool> confirm() override {
@@ -832,7 +833,7 @@ struct AttackHandler : public OrdersHandler {
       // Non-allowed (errors)
       case e_attack_verdict::land_unit_attack_ship:
         co_await ts_.gui.message_box(
-            "Land units cannot attack ships." );
+            "Land units cannot attack ships that are at sea." );
         co_return false;
       case e_attack_verdict::ship_attack_land_unit:
         co_await ts_.gui.message_box(
@@ -850,6 +851,7 @@ struct AttackHandler : public OrdersHandler {
       case e_attack_verdict::colony_undefended:
       case e_attack_verdict::colony_defended:
       case e_attack_verdict::eu_land_unit:
+      case e_attack_verdict::land_unit_attack_ship_on_land:
       case e_attack_verdict::ship_on_ship: //
         break;
     }
@@ -1052,16 +1054,18 @@ AttackHandler::confirm_attack_impl() {
       sorted_by_defense,
       LC( ss_.units.unit_for( _ ).desc().defense_points ) );
   CHECK( !sorted_by_defense.empty() );
-  UnitId highest_defense_unit = sorted_by_defense.back();
+  UnitId highest_defense_unit_id = sorted_by_defense.back();
+  Unit&  highest_defense_unit =
+      ss_.units.unit_for( highest_defense_unit_id );
   lg.info( "unit in target square with highest defense: {}",
-           debug_string( ss_.units, highest_defense_unit ) );
+           debug_string( ss_.units, highest_defense_unit_id ) );
 
   // Deferred evaluation until we know that the attack makes
   // sense.
-  auto run_stats = [this, id, highest_defense_unit] {
+  auto run_stats = [this, id, highest_defense_unit_id] {
     return fight_statistics(
         ss_.units.unit_for( id ),
-        ss_.units.unit_for( highest_defense_unit ) );
+        ss_.units.unit_for( highest_defense_unit_id ) );
   };
 
   // We are entering a land square containing a foreign unit.
@@ -1069,24 +1073,57 @@ AttackHandler::confirm_attack_impl() {
     using bh_t = unit_behavior::land::foreign::unit::e_vals;
     bh_t bh;
     // Possible results: nothing, attack, bombard, no_bombard
-    if( unit.desc().ship )
+    if( unit.desc().ship ) {
       bh = bh_t::no_bombard;
-    else
+    } else {
       bh = can_attack( unit.type() ) ? bh_t::attack
                                      : bh_t::no_attack;
+      if( bh == bh_t::attack ) {
+        // We have a land unit attacking a square with some for-
+        // eign land units on it.
+        if( highest_defense_unit.desc().ship ) {
+          // The unit being attacked is a ship. This is a special
+          // case that can happen when a ship is left on land
+          // after a colony is abandoned.
+          bh = bh_t::attack_land_ship;
+        }
+      }
+    }
     switch( bh ) {
       case bh_t::no_attack:
         co_return e_attack_verdict::unit_cannot_attack;
       case bh_t::attack:
-        target_unit = highest_defense_unit;
+        target_unit = highest_defense_unit_id;
         fight_stats = run_stats();
         co_return e_attack_verdict::eu_land_unit;
       case bh_t::no_bombard:
         co_return e_attack_verdict::ship_attack_land_unit;
       case bh_t::bombard:
-        target_unit = highest_defense_unit;
+        target_unit = highest_defense_unit_id;
         fight_stats = run_stats();
         co_return e_attack_verdict::eu_land_unit;
+      case bh_t::attack_land_ship:
+        target_unit = highest_defense_unit_id; // ship.
+        CHECK( ss_.units.unit_for( *target_unit ).desc().ship );
+        // In the original game a ship can be left on land after
+        // a colony is abandoned, but if a land unit then tries
+        // to attack it the game panics. We will handle it prop-
+        // erly, but we don't want a normal battle to ensue, be-
+        // cause then the player could "cheat" by leaving a bunch
+        // of fortified frigates on land that would be too strong
+        // for normal land units to take down. So what this game
+        // does is, when a ship is left on land, the player is
+        // given a message that they should move it off land as
+        // soon as possible because it is vulnerable to attack.
+        // And by vulnerable, we mean that if it is attacked by a
+        // land unit (no matter how weak) then the land unit will
+        // always win. This will prevent the scenario above where
+        // the player accumultes ships on land as a "wall."
+        fight_stats = FightStatistics{
+            .attacker_wins = true,
+        };
+        co_return e_attack_verdict::
+            land_unit_attack_ship_on_land;
     }
   }
   // We are entering a land square containing a foreign unit.
@@ -1140,11 +1177,11 @@ AttackHandler::confirm_attack_impl() {
         // this includes buildings.
         e_attack_verdict which =
             is_military_unit(
-                ss_.units.unit_for( highest_defense_unit )
+                ss_.units.unit_for( highest_defense_unit_id )
                     .type() )
                 ? e_attack_verdict::colony_defended
                 : e_attack_verdict::colony_undefended;
-        target_unit = highest_defense_unit;
+        target_unit = highest_defense_unit_id;
         fight_stats = run_stats();
         co_return which;
       }
@@ -1167,13 +1204,13 @@ AttackHandler::confirm_attack_impl() {
       case bh_t::no_attack:
         co_return e_attack_verdict::unit_cannot_attack;
       case bh_t::attack:
-        target_unit = highest_defense_unit;
+        target_unit = highest_defense_unit_id;
         fight_stats = run_stats();
         co_return e_attack_verdict::ship_on_ship;
       case bh_t::no_bombard:;
         co_return e_attack_verdict::land_unit_attack_ship;
       case bh_t::bombard:;
-        target_unit = highest_defense_unit;
+        target_unit = highest_defense_unit_id;
         fight_stats = run_stats();
         co_return e_attack_verdict::ship_on_ship;
     }
@@ -1249,6 +1286,7 @@ wait<> AttackHandler::perform() {
     }
     case e_attack_verdict::colony_defended:
     case e_attack_verdict::eu_land_unit:
+    case e_attack_verdict::land_unit_attack_ship_on_land:
     case e_attack_verdict::ship_on_ship: //
       break;
   }
@@ -1282,6 +1320,21 @@ wait<> AttackHandler::perform() {
       break;
     }
     case e::naval: {
+      if( !attacker.desc().ship ) {
+        // NOTE: this is a rare edge case here where the ship
+        // being attacked could be on land and the attacker could
+        // be a land unit. This can happen when a ship is left on
+        // land after a colony is abandoned.
+        CHECK( defender.desc().ship );
+        // The ship always loses when attacked on land.
+        CHECK( loser.id() == defender.id() );
+        ss_.units.destroy_unit( loser.id() );
+        string msg =
+            "Our ship, which was vulnerable in the abandoned "
+            "colony port, has been lost due to an attack.";
+        co_await ts_.gui.message_box( msg );
+        break;
+      }
       auto num_units_lost =
           loser.cargo().items_of_type<Cargo::unit>().size();
       lg.info( "ship sunk: {} units onboard lost.",

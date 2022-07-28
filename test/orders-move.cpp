@@ -8,6 +8,7 @@
 * Description: Unit tests for the src/orders-move.* module.
 *
 *****************************************************************/
+#include "test/mocking.hpp"
 #include "test/testing.hpp"
 
 // Under test.
@@ -17,6 +18,7 @@
 #include "test/fake/world.hpp"
 
 // Revolution Now
+#include "src/igui-mock.hpp"
 #include "src/map-square.hpp"
 
 // config
@@ -33,6 +35,8 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::mock::matchers::StrContains;
 
 /****************************************************************
 ** Fake World Setup
@@ -51,6 +55,7 @@ struct World : testing::World {
     // clang-format on
     build_map( std::move( tiles ), 3 );
     add_player( e_nation::dutch );
+    add_player( e_nation::french );
   }
 };
 
@@ -109,6 +114,56 @@ TEST_CASE( "[orders-move] ship can move from land to ocean" ) {
     REQUIRE( W.units().coord_for( id ) ==
              Coord{ .x = 2, .y = 0 } );
   }
+}
+
+// This test case tests a very rare scenario: that is when a land
+// unit attacks a ship that is on land because it was left there
+// after a colony either starved or was abandoned. In that case,
+// the attacking unit always wins. That way, the player can't use
+// that to "cheat" and put frigates on land as a defensive wall,
+// since they have super high defense compared to land units.
+TEST_CASE( "[orders-move] land unit can attack ship on land" ) {
+  World W;
+  // This is so that we don't try to pop up a box telling the
+  // player that they've discovered the new world.
+  W.dutch().discovered_new_world  = "";
+  W.french().discovered_new_world = "";
+  UnitId ship    = W.add_unit_on_map( e_unit_type::galleon,
+                                      Coord{ .x = 1, .y = 1 },
+                                      e_nation::dutch );
+  UnitId soldier = W.add_unit_on_map( e_unit_type::soldier,
+                                      Coord{ .x = 0, .y = 1 },
+                                      e_nation::french );
+  // Sanity check to make sure we are testing what we think we're
+  // testing.
+  REQUIRE( is_land( W.square( W.units().coord_for( ship ) ) ) );
+  REQUIRE(
+      is_land( W.square( W.units().coord_for( soldier ) ) ) );
+  REQUIRE( W.units().unit_for( ship ).desc().ship );
+
+  // Now make sure that it can move from land to water.
+  unique_ptr<OrdersHandler> handler =
+      handle_orders( W.planes(), W.ss(), W.ts(), soldier,
+                     orders::move{ .d = e_direction::e } );
+  wait<bool> w_confirm = handler->confirm();
+  REQUIRE( !w_confirm.exception() );
+  REQUIRE( w_confirm.ready() );
+  REQUIRE( *w_confirm == true );
+  REQUIRE( W.units().coord_for( soldier ) ==
+           Coord{ .x = 0, .y = 1 } );
+  REQUIRE( W.units().exists( ship ) );
+
+  EXPECT_CALL(
+      W.gui(),
+      message_box( StrContains(
+          "vulnerable in the abandoned colony port" ) ) )
+      .returns( make_wait<>() );
+  wait<> w_perform = handler->perform();
+  REQUIRE( !w_perform.exception() );
+  REQUIRE( w_perform.ready() );
+  REQUIRE( W.units().coord_for( soldier ) ==
+           Coord{ .x = 0, .y = 1 } );
+  REQUIRE( !W.units().exists( ship ) );
 }
 
 } // namespace
