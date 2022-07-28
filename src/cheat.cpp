@@ -276,6 +276,10 @@ void cheat_advance_colony_one_turn( SS& ss, TS& ts,
   for( ColonyNotification_t const& notification :
        ev.notifications )
     lg.debug( "{}", notification );
+  // NOTE: we will not starve the colony here since this is just
+  // a cheat/debug feature. We'll just log that it was supposed
+  // to happen.
+  if( ev.colony_disappeared ) lg.debug( "colony has starved." );
 }
 
 } // namespace rn
