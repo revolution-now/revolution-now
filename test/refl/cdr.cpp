@@ -20,6 +20,9 @@
 #include "src/cdr/ext-builtin.hpp"
 #include "src/cdr/ext-std.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // base
 #include "base/to-str.hpp"
 #include "src/base/to-str-ext-std.hpp"
@@ -37,14 +40,6 @@ base::valid_or<std::string> StructWithValidation::validate()
     const {
   if( yyy == double( xxx ) + 1.0 ) return base::valid;
   return "failed validation";
-}
-
-// TODO: can remove once reflected structs have automatic to_str
-// overloads.
-void to_str( StructWithValidation const& o, string& out,
-             base::ADL_t ) {
-  out += fmt::format( "StructWithValidation{{xxx={},yyy={}}}",
-                      o.xxx, o.yyy );
 }
 
 } // namespace rn
