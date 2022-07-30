@@ -625,6 +625,11 @@ class CargoView : public ui::View,
         [this, slot_idx = slot_idx]( Cargo::unit u ) {
           ss_.units.change_to_cargo_somewhere(
               *holder_, u.id, /*starting_slot=*/slot_idx );
+          // Check if we've abandoned the colony, which could
+          // happen if we dragged the last unit working in the
+          // colony into the cargo hold.
+          if( colony_population( colony_ ) == 0 )
+            throw colony_abandon_interrupt{};
         },
         [this,
          slot_idx = slot_idx]( Cargo::commodity const& c ) {
