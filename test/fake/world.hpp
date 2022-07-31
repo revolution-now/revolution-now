@@ -117,12 +117,21 @@ struct World {
       ColonyId colony_id, e_indoor_job indoor_job,
       e_unit_type type = e_unit_type::free_colonist );
 
+  // Same as above but adds the expert colonist type for the job.
+  UnitId add_expert_unit_indoors( ColonyId     colony_id,
+                                  e_indoor_job indoor_job );
+
   // Create a unit and add give it the specified outdoor job in
   // the colony.
   UnitId add_unit_outdoors(
       ColonyId colony_id, e_direction d,
       e_outdoor_job outdoor_job,
       e_unit_type   type = e_unit_type::free_colonist );
+
+  // Same as above but adds the expert colonist type for the job.
+  UnitId add_expert_unit_outdoors( ColonyId      colony_id,
+                                   e_direction   d,
+                                   e_outdoor_job outdoor_job );
 
   // ------------------------------------------------------------
   // Steering ships.

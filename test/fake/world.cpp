@@ -23,6 +23,7 @@
 
 // config
 #include "config/colony.rds.hpp"
+#include "config/production.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
@@ -238,6 +239,13 @@ UnitId World::add_unit_indoors( ColonyId     colony_id,
   return unit_id;
 }
 
+UnitId World::add_expert_unit_indoors(
+    ColonyId colony_id, e_indoor_job indoor_job ) {
+  return add_unit_indoors( colony_id, indoor_job,
+                           config_production.indoor_production
+                               .expert_for[indoor_job] );
+}
+
 void World::ship_to_outbound( UnitId id ) {
   CHECK( units().unit_for( id ).desc().ship );
   UnitHarborViewState new_state{
@@ -255,6 +263,14 @@ UnitId World::add_unit_outdoors( ColonyId      colony_id,
   ColonyJob::outdoor job{ .direction = d, .job = outdoor_job };
   move_unit_to_colony( units(), colony, unit_id, job );
   return unit_id;
+}
+
+UnitId World::add_expert_unit_outdoors(
+    ColonyId colony_id, e_direction d,
+    e_outdoor_job outdoor_job ) {
+  return add_unit_outdoors( colony_id, d, outdoor_job,
+                            config_production.outdoor_production
+                                .expert_for[outdoor_job] );
 }
 
 void World::add_player( e_nation nation ) {
@@ -275,8 +291,8 @@ Colony& World::add_colony( Coord           where,
   string name =
       fmt::to_string( colonies().last_colony_id() + 1 );
   Colony& colony   = colonies().colony_for( create_empty_colony(
-      colonies(), nation.value_or( default_nation_ ), where,
-      name ) );
+        colonies(), nation.value_or( default_nation_ ), where,
+        name ) );
   colony.buildings = config_colony.initial_colony_buildings;
   return colony;
 }

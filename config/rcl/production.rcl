@@ -47,6 +47,21 @@ indoor_production {
     muskets: "gunsmiths"
     teacher: "teachers"
   }
+
+  # For a given indoor job this will give the corresponding ex-
+  # pert colonist type.
+  expert_for {
+    bells:   elder_statesman
+    crosses: firebrand_preacher
+    hammers: master_carpenter
+    rum:     master_rum_distiller
+    cigars:  master_tobacconist
+    cloth:   master_weaver
+    coats:   master_fur_trader
+    tools:   master_blacksmith
+    muskets: master_gunsmith
+    teacher: free_colonist # TODO: maybe in the future.
+  }
 }
 
 # The number of items that are automatically produced by virtual
@@ -225,6 +240,20 @@ outdoor_production {
   # The original game seems to use 3 here (and that includes both
   # cardinal and diagonal squares).
   num_land_tiles_for_coast: 3
+
+  # For a given outdoor job this will give the corresponding ex-
+  # pert colonist type.
+  expert_for {
+    food:    expert_farmer
+    fish:    expert_fisherman
+    sugar:   expert_sugar_planter
+    tobacco: expert_tobacco_planter
+    cotton:  expert_cotton_planter
+    fur:     expert_fur_trapper
+    lumber:  expert_lumberjack
+    ore:     expert_ore_miner
+    silver:  expert_silver_miner
+  }
 
   jobs {
     food: {

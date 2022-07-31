@@ -12,6 +12,7 @@
 include "ss/colony-enums.rds.hpp"
 include "ss/terrain-enums.rds.hpp"
 include "ss/difficulty.rds.hpp"
+include "ss/unit-type.rds.hpp"
 
 # refl
 include "refl/cdr.hpp"
@@ -66,6 +67,10 @@ struct.IndoorProduction {
   # Given an indoor job, this will return the plural names for a
   # worker doing that job.
   worker_names_plural 'refl::enum_map<e_indoor_job, std::string>',
+
+  # For a given indoor job this will give the corresponding ex-
+  # pert colonist type.
+  expert_for 'refl::enum_map<e_indoor_job, e_unit_type>',
 }
 
 sumtype.OutdoorJobBonus {
@@ -154,6 +159,10 @@ struct.OutdoorProduction {
   # (at least) have to be land in order for it to be considered a
   # "coast" (and thus recieve the associated fishing bonus).
   num_land_tiles_for_coast 'int',
+
+  # For a given outdoor job this will give the corresponding ex-
+  # pert colonist type.
+  expert_for 'refl::enum_map<e_outdoor_job, e_unit_type>',
 }
 
 struct.CenterSquareProduction {
