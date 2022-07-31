@@ -5492,10 +5492,6 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
   // P, S, M,
   // G, T, L,
 
-  using SP  = SquareProduction;
-  using LP  = refl::enum_map<e_direction, SP>;
-  using RMP = RawMaterialAndProduct;
-
   // Enhance silver mining.
   MapSquare& silver_square = W.square( { .x = 14, .y = 1 } );
   CHECK( silver_square.overlay == e_land_overlay::mountains );
@@ -5989,6 +5985,474 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
               SquareProduction{
                   .what     = e_outdoor_job::fish,
                   .quantity = 2 + 2 + 2 + XO } } } );
+  }
+}
+
+TEST_CASE(
+    "[production] SoL bonuses/penalties don't affect "
+    "non-producing squares" ) {
+  World W;
+  W.create_default_map();
+  // _, C, B,
+  // P, S, M,
+  // G, T, L,
+
+  Colony& colony = W.add_colony( { .x = 13, .y = 1 } );
+  CHECK( W.square( { .x = 13, .y = 1 } ).ground ==
+         e_ground_terrain::savannah );
+  Player& player = W.default_player();
+
+  // Do tobacco on the prairie because we want one tile that pro-
+  // duces nothing to see how the bonuses affect it (they should
+  // have no effect).
+  W.add_expert_unit_outdoors( colony.id, e_direction::w,
+                              e_outdoor_job::tobacco );
+
+  SECTION( "no SoL bonus or penalty" ) {
+    W.settings().difficulty = e_difficulty::discoverer;
+    colony.sons_of_liberty.num_rebels_from_bells_only = .49;
+    // Sanity check to make sure that we're testing the case that
+    // we think we're testing.
+    int const population = colony_population( colony );
+    CHECK( population == 1 );
+    int const sons_of_liberty_integral_percent =
+        compute_sons_of_liberty_integral_percent(
+            compute_sons_of_liberty_percent(
+                colony.sons_of_liberty
+                    .num_rebels_from_bells_only,
+                population,
+                player.fathers
+                    .has[e_founding_father::simon_bolivar] ) );
+    REQUIRE( sons_of_liberty_integral_percent == 49 );
+    REQUIRE(
+        compute_tory_number(
+            compute_sons_of_liberty_number(
+                sons_of_liberty_integral_percent, population ),
+            population ) < 10 );
+
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.tobacco_cigars.raw_produced == 0 );
+    REQUIRE(
+        pr.land_production ==
+        refl::enum_map<e_direction, SquareProduction>{
+            { e_direction::w,
+              SquareProduction{ .what = e_outdoor_job::tobacco,
+                                .quantity = 0 } } } );
+  }
+
+  SECTION( "50+% SoL bonus and no tory penalty" ) {
+    W.settings().difficulty = e_difficulty::discoverer;
+    colony.sons_of_liberty.num_rebels_from_bells_only = .50;
+    // Sanity check to make sure that we're testing the case that
+    // we think we're testing.
+    int const population = colony_population( colony );
+    CHECK( population == 1 );
+    int const sons_of_liberty_integral_percent =
+        compute_sons_of_liberty_integral_percent(
+            compute_sons_of_liberty_percent(
+                colony.sons_of_liberty
+                    .num_rebels_from_bells_only,
+                population,
+                player.fathers
+                    .has[e_founding_father::simon_bolivar] ) );
+    REQUIRE( sons_of_liberty_integral_percent == 50 );
+    REQUIRE(
+        compute_tory_number(
+            compute_sons_of_liberty_number(
+                sons_of_liberty_integral_percent, population ),
+            population ) < 10 );
+
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.tobacco_cigars.raw_produced == 0 );
+    REQUIRE(
+        pr.land_production ==
+        refl::enum_map<e_direction, SquareProduction>{
+            { e_direction::w,
+              SquareProduction{ .what = e_outdoor_job::tobacco,
+                                .quantity = 0 } } } );
+  }
+
+  SECTION( "100% SoL bonus and no tory penalty" ) {
+    W.settings().difficulty = e_difficulty::discoverer;
+    colony.sons_of_liberty.num_rebels_from_bells_only = 1.0;
+    // Sanity check to make sure that we're testing the case that
+    // we think we're testing.
+    int const population = colony_population( colony );
+    CHECK( population == 1 );
+    int const sons_of_liberty_integral_percent =
+        compute_sons_of_liberty_integral_percent(
+            compute_sons_of_liberty_percent(
+                colony.sons_of_liberty
+                    .num_rebels_from_bells_only,
+                population,
+                player.fathers
+                    .has[e_founding_father::simon_bolivar] ) );
+    REQUIRE( sons_of_liberty_integral_percent == 100 );
+    REQUIRE(
+        compute_tory_number(
+            compute_sons_of_liberty_number(
+                sons_of_liberty_integral_percent, population ),
+            population ) < 10 );
+
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.tobacco_cigars.raw_produced == 0 );
+    REQUIRE(
+        pr.land_production ==
+        refl::enum_map<e_direction, SquareProduction>{
+            { e_direction::w,
+              SquareProduction{ .what = e_outdoor_job::tobacco,
+                                .quantity = 0 } } } );
+  }
+
+  SECTION( "No SoL bonus and with tory penalty" ) {
+    W.settings().difficulty = e_difficulty::viceroy;
+    colony.sons_of_liberty.num_rebels_from_bells_only = 0.0;
+    // These are just to accumulate some tories.
+    colony.buildings[e_colony_building::church] = true;
+    W.add_unit_indoors( colony.id, e_indoor_job::crosses );
+    W.add_unit_indoors( colony.id, e_indoor_job::crosses );
+    W.add_unit_indoors( colony.id, e_indoor_job::crosses );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    // Sanity check to make sure that we're testing the case that
+    // we think we're testing.
+    int const population = colony_population( colony );
+    CHECK( population == 7 );
+    int const sons_of_liberty_integral_percent =
+        compute_sons_of_liberty_integral_percent(
+            compute_sons_of_liberty_percent(
+                colony.sons_of_liberty
+                    .num_rebels_from_bells_only,
+                population,
+                player.fathers
+                    .has[e_founding_father::simon_bolivar] ) );
+    REQUIRE( sons_of_liberty_integral_percent == 0 );
+    REQUIRE(
+        compute_tory_number(
+            compute_sons_of_liberty_number(
+                sons_of_liberty_integral_percent, population ),
+            population ) >= 6 );
+
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.tobacco_cigars.raw_produced == 0 );
+    REQUIRE(
+        pr.land_production ==
+        refl::enum_map<e_direction, SquareProduction>{
+            { e_direction::w,
+              SquareProduction{ .what = e_outdoor_job::tobacco,
+                                .quantity = 0 } } } );
+  }
+}
+
+TEST_CASE(
+    "[production] SoL bonuses/penalties affecting silver on "
+    "mountains with no resource" ) {
+  World W;
+  W.create_default_map();
+  // _, C, B,
+  // P, S, M,
+  // G, T, L,
+
+  // Allow silver mining by expert (no resource).
+  MapSquare& silver_square = W.square( { .x = 14, .y = 1 } );
+  CHECK( silver_square.overlay == e_land_overlay::mountains );
+
+  Colony& colony = W.add_colony( { .x = 13, .y = 1 } );
+  Player& player = W.default_player();
+
+  SECTION( "expert, no SoL bonus or penalty" ) {
+    W.add_expert_unit_outdoors( colony.id, e_direction::e,
+                                e_outdoor_job::silver );
+    W.settings().difficulty = e_difficulty::discoverer;
+    colony.sons_of_liberty.num_rebels_from_bells_only = .49;
+    // Sanity check to make sure that we're testing the case that
+    // we think we're testing.
+    int const population = colony_population( colony );
+    CHECK( population == 1 );
+    int const sons_of_liberty_integral_percent =
+        compute_sons_of_liberty_integral_percent(
+            compute_sons_of_liberty_percent(
+                colony.sons_of_liberty
+                    .num_rebels_from_bells_only,
+                population,
+                player.fathers
+                    .has[e_founding_father::simon_bolivar] ) );
+    REQUIRE( sons_of_liberty_integral_percent == 49 );
+
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.silver.raw_produced == 1 );
+    REQUIRE(
+        pr.land_production ==
+        refl::enum_map<e_direction, SquareProduction>{
+            { e_direction::e,
+              SquareProduction{ .what = e_outdoor_job::silver,
+                                .quantity = 1 } } } );
+  }
+
+  SECTION( "expert, 50+% SoL bonus and no tory penalty" ) {
+    W.add_expert_unit_outdoors( colony.id, e_direction::e,
+                                e_outdoor_job::silver );
+    W.settings().difficulty = e_difficulty::discoverer;
+    colony.sons_of_liberty.num_rebels_from_bells_only = .50;
+    // Sanity check to make sure that we're testing the case that
+    // we think we're testing.
+    int const population = colony_population( colony );
+    CHECK( population == 1 );
+    int const sons_of_liberty_integral_percent =
+        compute_sons_of_liberty_integral_percent(
+            compute_sons_of_liberty_percent(
+                colony.sons_of_liberty
+                    .num_rebels_from_bells_only,
+                population,
+                player.fathers
+                    .has[e_founding_father::simon_bolivar] ) );
+    REQUIRE( sons_of_liberty_integral_percent == 50 );
+
+    // This is the expected sum of the SoL bonus and tory penal-
+    // ties for outdoor workers.
+    int const XO = 2;
+
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    // NOTE: deviates from the original game, where there appears
+    // to be a global silver production override on mountain
+    // tiles with no resources, and where silver production there
+    // has fixed values that are not subject to any of the
+    // bonuses in the original game; this game modifies that to
+    // allow Sol/tory bonuses/penalties here.
+    REQUIRE( pr.silver.raw_produced == 1 + XO );
+    REQUIRE(
+        pr.land_production ==
+        refl::enum_map<e_direction, SquareProduction>{
+            { e_direction::e,
+              SquareProduction{ .what = e_outdoor_job::silver,
+                                .quantity = 1 + XO } } } );
+  }
+
+  SECTION( "expert, 100% SoL bonus and no tory penalty" ) {
+    W.add_expert_unit_outdoors( colony.id, e_direction::e,
+                                e_outdoor_job::silver );
+    W.settings().difficulty = e_difficulty::discoverer;
+    colony.sons_of_liberty.num_rebels_from_bells_only = 1.0;
+    // Sanity check to make sure that we're testing the case that
+    // we think we're testing.
+    int const population = colony_population( colony );
+    CHECK( population == 1 );
+    int const sons_of_liberty_integral_percent =
+        compute_sons_of_liberty_integral_percent(
+            compute_sons_of_liberty_percent(
+                colony.sons_of_liberty
+                    .num_rebels_from_bells_only,
+                population,
+                player.fathers
+                    .has[e_founding_father::simon_bolivar] ) );
+    REQUIRE( sons_of_liberty_integral_percent == 100 );
+
+    // This is the expected sum of the SoL bonus and tory penal-
+    // ties for outdoor workers.
+    int const XO = 4;
+
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    // NOTE: deviates from the original game, where there appears
+    // to be a global silver production override on mountain
+    // tiles with no resources, and where silver production there
+    // has fixed values that are not subject to any of the
+    // bonuses in the original game; this game modifies that to
+    // allow Sol/tory bonuses/penalties here.
+    REQUIRE( pr.silver.raw_produced == 1 + XO );
+    REQUIRE(
+        pr.land_production ==
+        refl::enum_map<e_direction, SquareProduction>{
+            { e_direction::e,
+              SquareProduction{ .what = e_outdoor_job::silver,
+                                .quantity = 1 + XO } } } );
+  }
+
+  SECTION( "expert, No SoL bonus and with tory penalty" ) {
+    W.add_expert_unit_outdoors( colony.id, e_direction::e,
+                                e_outdoor_job::silver );
+    W.settings().difficulty = e_difficulty::viceroy;
+    colony.sons_of_liberty.num_rebels_from_bells_only = 0.0;
+    // These are just to accumulate some tories.
+    colony.buildings[e_colony_building::church] = true;
+    W.add_unit_indoors( colony.id, e_indoor_job::crosses );
+    W.add_unit_indoors( colony.id, e_indoor_job::crosses );
+    W.add_unit_indoors( colony.id, e_indoor_job::crosses );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    // Sanity check to make sure that we're testing the case that
+    // we think we're testing.
+    int const population = colony_population( colony );
+    CHECK( population == 7 );
+    int const sons_of_liberty_integral_percent =
+        compute_sons_of_liberty_integral_percent(
+            compute_sons_of_liberty_percent(
+                colony.sons_of_liberty
+                    .num_rebels_from_bells_only,
+                population,
+                player.fathers
+                    .has[e_founding_father::simon_bolivar] ) );
+    REQUIRE( sons_of_liberty_integral_percent == 0 );
+    REQUIRE(
+        compute_tory_number(
+            compute_sons_of_liberty_number(
+                sons_of_liberty_integral_percent, population ),
+            population ) >= 6 );
+
+    // This is the expected sum of the SoL bonus and tory penal-
+    // ties for outdoor workers.
+    int const XO = -1;
+
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.silver.raw_produced == 1 + XO );
+    REQUIRE(
+        pr.land_production ==
+        refl::enum_map<e_direction, SquareProduction>{
+            { e_direction::e,
+              SquareProduction{ .what = e_outdoor_job::silver,
+                                .quantity = 1 + XO } } } );
+  }
+
+  SECTION( "non-expert, no SoL bonus or penalty" ) {
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::silver );
+    W.settings().difficulty = e_difficulty::discoverer;
+    colony.sons_of_liberty.num_rebels_from_bells_only = .49;
+    // Sanity check to make sure that we're testing the case that
+    // we think we're testing.
+    int const population = colony_population( colony );
+    CHECK( population == 1 );
+    int const sons_of_liberty_integral_percent =
+        compute_sons_of_liberty_integral_percent(
+            compute_sons_of_liberty_percent(
+                colony.sons_of_liberty
+                    .num_rebels_from_bells_only,
+                population,
+                player.fathers
+                    .has[e_founding_father::simon_bolivar] ) );
+    REQUIRE( sons_of_liberty_integral_percent == 49 );
+
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.silver.raw_produced == 0 );
+    REQUIRE(
+        pr.land_production ==
+        refl::enum_map<e_direction, SquareProduction>{
+            { e_direction::e,
+              SquareProduction{ .what = e_outdoor_job::silver,
+                                .quantity = 0 } } } );
+  }
+
+  SECTION( "non-expert, 50+% SoL bonus and no tory penalty" ) {
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::silver );
+    W.settings().difficulty = e_difficulty::discoverer;
+    colony.sons_of_liberty.num_rebels_from_bells_only = .50;
+    // Sanity check to make sure that we're testing the case that
+    // we think we're testing.
+    int const population = colony_population( colony );
+    CHECK( population == 1 );
+    int const sons_of_liberty_integral_percent =
+        compute_sons_of_liberty_integral_percent(
+            compute_sons_of_liberty_percent(
+                colony.sons_of_liberty
+                    .num_rebels_from_bells_only,
+                population,
+                player.fathers
+                    .has[e_founding_father::simon_bolivar] ) );
+    REQUIRE( sons_of_liberty_integral_percent == 50 );
+
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.silver.raw_produced == 0 );
+    REQUIRE(
+        pr.land_production ==
+        refl::enum_map<e_direction, SquareProduction>{
+            { e_direction::e,
+              SquareProduction{ .what = e_outdoor_job::silver,
+                                .quantity = 0 } } } );
+  }
+
+  SECTION( "non-expert, 100% SoL bonus and no tory penalty" ) {
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::silver );
+    W.settings().difficulty = e_difficulty::discoverer;
+    colony.sons_of_liberty.num_rebels_from_bells_only = 1.0;
+    // Sanity check to make sure that we're testing the case that
+    // we think we're testing.
+    int const population = colony_population( colony );
+    CHECK( population == 1 );
+    int const sons_of_liberty_integral_percent =
+        compute_sons_of_liberty_integral_percent(
+            compute_sons_of_liberty_percent(
+                colony.sons_of_liberty
+                    .num_rebels_from_bells_only,
+                population,
+                player.fathers
+                    .has[e_founding_father::simon_bolivar] ) );
+    REQUIRE( sons_of_liberty_integral_percent == 100 );
+
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.silver.raw_produced == 0 );
+    REQUIRE(
+        pr.land_production ==
+        refl::enum_map<e_direction, SquareProduction>{
+            { e_direction::e,
+              SquareProduction{ .what = e_outdoor_job::silver,
+                                .quantity = 0 } } } );
+  }
+
+  SECTION( "non-expert, No SoL bonus and with tory penalty" ) {
+    W.add_unit_outdoors( colony.id, e_direction::e,
+                         e_outdoor_job::silver );
+    W.settings().difficulty = e_difficulty::viceroy;
+    colony.sons_of_liberty.num_rebels_from_bells_only = 0.0;
+    // These are just to accumulate some tories.
+    colony.buildings[e_colony_building::church] = true;
+    W.add_unit_indoors( colony.id, e_indoor_job::crosses );
+    W.add_unit_indoors( colony.id, e_indoor_job::crosses );
+    W.add_unit_indoors( colony.id, e_indoor_job::crosses );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    // Sanity check to make sure that we're testing the case that
+    // we think we're testing.
+    int const population = colony_population( colony );
+    CHECK( population == 7 );
+    int const sons_of_liberty_integral_percent =
+        compute_sons_of_liberty_integral_percent(
+            compute_sons_of_liberty_percent(
+                colony.sons_of_liberty
+                    .num_rebels_from_bells_only,
+                population,
+                player.fathers
+                    .has[e_founding_father::simon_bolivar] ) );
+    REQUIRE( sons_of_liberty_integral_percent == 0 );
+    REQUIRE(
+        compute_tory_number(
+            compute_sons_of_liberty_number(
+                sons_of_liberty_integral_percent, population ),
+            population ) >= 6 );
+
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.silver.raw_produced == 0 );
+    REQUIRE(
+        pr.land_production ==
+        refl::enum_map<e_direction, SquareProduction>{
+            { e_direction::e,
+              SquareProduction{ .what = e_outdoor_job::silver,
+                                .quantity = 0 } } } );
   }
 }
 
