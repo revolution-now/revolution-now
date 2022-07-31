@@ -6456,5 +6456,130 @@ TEST_CASE(
   }
 }
 
+TEST_CASE( "[production] SoL does not affect horses" ) {
+  World W;
+  W.create_default_map();
+  // _, C, B,
+  // P, S, M,
+  // G, T, L,
+
+  Colony& colony = W.add_colony( { .x = 13, .y = 1 } );
+  CHECK( W.square( { .x = 13, .y = 1 } ).ground ==
+         e_ground_terrain::savannah );
+  Player& player = W.default_player();
+
+  // One expert farmer on plains will produce 5+2+XO. Center food
+  // production will be == 3 + 2 + XO. Total will be 12+2*XO.
+  // Consuption will be 2 food, so surplus before horses should
+  // be 10+2*XO. Max horses allowed theoretically would be 5+XO;
+  // actual production should be 2, regardless of SoL bonuses.
+  W.add_expert_unit_outdoors( colony.id, e_direction::se,
+                              e_outdoor_job::food );
+  colony.commodities[e_commodity::horses] = 50;
+
+  int const population = colony_population( colony );
+  CHECK( population == 1 );
+
+  SECTION( "no SoL bonus or penalty" ) {
+    W.settings().difficulty = e_difficulty::discoverer;
+    colony.sons_of_liberty.num_rebels_from_bells_only = .49;
+    // Sanity check to make sure that we're testing the case that
+    // we think we're testing.
+    int const sons_of_liberty_integral_percent =
+        compute_sons_of_liberty_integral_percent(
+            compute_sons_of_liberty_percent(
+                colony.sons_of_liberty
+                    .num_rebels_from_bells_only,
+                population,
+                player.fathers
+                    .has[e_founding_father::simon_bolivar] ) );
+    REQUIRE( sons_of_liberty_integral_percent == 49 );
+    REQUIRE(
+        compute_tory_number(
+            compute_sons_of_liberty_number(
+                sons_of_liberty_integral_percent, population ),
+            population ) < 10 );
+
+    // Outdoor SoL production bonus/penalty.
+    int const XO = 0;
+
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.food_horses.corn_produced == 12 + 2 * XO );
+    REQUIRE( pr.food_horses.horses_produced_theoretical == 2 );
+    REQUIRE( pr.food_horses.max_new_horses_allowed ==
+             10 + 2 * XO );
+    REQUIRE( pr.food_horses.horses_produced_actual == 2 );
+  }
+
+  SECTION( "50+% SoL bonus and no tory penalty" ) {
+    W.settings().difficulty = e_difficulty::discoverer;
+    colony.sons_of_liberty.num_rebels_from_bells_only = .50;
+    // Sanity check to make sure that we're testing the case that
+    // we think we're testing.
+    int const population = colony_population( colony );
+    CHECK( population == 1 );
+    int const sons_of_liberty_integral_percent =
+        compute_sons_of_liberty_integral_percent(
+            compute_sons_of_liberty_percent(
+                colony.sons_of_liberty
+                    .num_rebels_from_bells_only,
+                population,
+                player.fathers
+                    .has[e_founding_father::simon_bolivar] ) );
+    REQUIRE( sons_of_liberty_integral_percent == 50 );
+    REQUIRE(
+        compute_tory_number(
+            compute_sons_of_liberty_number(
+                sons_of_liberty_integral_percent, population ),
+            population ) < 10 );
+
+    // Outdoor SoL production bonus/penalty.
+    int const XO = 2;
+
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.food_horses.corn_produced == 12 + 2 * XO );
+    REQUIRE( pr.food_horses.horses_produced_theoretical == 2 );
+    REQUIRE( pr.food_horses.max_new_horses_allowed ==
+             10 + 2 * XO );
+    REQUIRE( pr.food_horses.horses_produced_actual == 2 );
+  }
+
+  SECTION( "100% SoL bonus and no tory penalty" ) {
+    W.settings().difficulty = e_difficulty::discoverer;
+    colony.sons_of_liberty.num_rebels_from_bells_only = 1.0;
+    // Sanity check to make sure that we're testing the case that
+    // we think we're testing.
+    int const population = colony_population( colony );
+    CHECK( population == 1 );
+    int const sons_of_liberty_integral_percent =
+        compute_sons_of_liberty_integral_percent(
+            compute_sons_of_liberty_percent(
+                colony.sons_of_liberty
+                    .num_rebels_from_bells_only,
+                population,
+                player.fathers
+                    .has[e_founding_father::simon_bolivar] ) );
+    REQUIRE( sons_of_liberty_integral_percent == 100 );
+    REQUIRE(
+        compute_tory_number(
+            compute_sons_of_liberty_number(
+                sons_of_liberty_integral_percent, population ),
+            population ) < 10 );
+
+    // Outdoor SoL production bonus/penalty.
+    int const XO = 4;
+
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.food_horses.corn_produced == 12 + 2 * XO );
+    REQUIRE( pr.food_horses.horses_produced_theoretical == 2 );
+    REQUIRE( pr.food_horses.max_new_horses_allowed ==
+             10 + 2 * XO );
+    REQUIRE( pr.food_horses.horses_produced_actual == 2 );
+  }
+}
+
 } // namespace
 } // namespace rn
