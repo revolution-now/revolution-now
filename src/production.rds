@@ -102,6 +102,13 @@ struct.FoodProduction {
   # food in the warehouse, since horses never consume that).
   horses_produced_theoretical 'int',
 
+  # In the original game, horses (even if there are enough of
+  # them to support a certain level of breeding) are not allowed
+  # to consume all of the surplus food. This will give the max
+  # they are allowed to consume. In the original game, it is half
+  # of the food surplus rounded up.
+  max_horse_food_consumption_allowed 'int',
+
   # This factors in the amount of food consumed per new horse to-
   # gether with the surplus to see how many horses we are allowed
   # to produce just based on that (not based on the number of

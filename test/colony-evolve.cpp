@@ -82,15 +82,16 @@ TEST_CASE( "[colony-evolve] spoilage" ) {
   ColonyEvolution ev =
       evolve_colony_one_turn( W.ss(), W.ts(), colony );
   REQUIRE( ev.production.center_food_production == 5 );
-  // Food is still 150 despite the 5 food produced in the center
-  // square because of horse production, which coincidentally
-  // happens to allow 5 horses (101+24)/25=5 (each consuming one
-  // of the 5 surplus food). That said, the increase in horses
+  // Food is only 152 despite the 5 food produced in the center
+  // square because of horse production, which in this case al-
+  // lows a max of 5 horses (101+24)/25=5 to be bread, but is
+  // then further constrained by the fact that it can only con-
+  // sume 3 food (ceil(5/2)). That said, the increase in horses
   // won't be reflected in any of the numbers below because the
   // new horses will be suppressed because the number of horses
   // is already over capacity (so the number of horses that will
   // be reported as having spoiled is actually only 1).
-  REQUIRE( colony.commodities[e_commodity::food] == 150 );
+  REQUIRE( colony.commodities[e_commodity::food] == 152 );
   REQUIRE( colony.commodities[e_commodity::sugar] == 100 );
   REQUIRE( colony.commodities[e_commodity::tobacco] == 100 );
   REQUIRE( colony.commodities[e_commodity::cotton] == 100 );
@@ -141,11 +142,11 @@ TEST_CASE( "[colony-evolve] spoilage" ) {
   ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
   REQUIRE( ev.production.center_food_production == 5 );
   // Food goes up by 5 due to center square production and down
-  // by 5 due to horse breeding, then down 200 due to new
-  // colonist being produced, putting the final value at 600. See
+  // by 3 due to horse breeding, then down 200 due to new
+  // colonist being produced, putting the final value at 602. See
   // corresponding comment above for more info on the horse
   // breeding.
-  REQUIRE( colony.commodities[e_commodity::food] == 600 );
+  REQUIRE( colony.commodities[e_commodity::food] == 602 );
   REQUIRE( colony.commodities[e_commodity::sugar] == 200 );
   REQUIRE( colony.commodities[e_commodity::tobacco] == 200 );
   REQUIRE( colony.commodities[e_commodity::cotton] == 200 );

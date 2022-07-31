@@ -2573,7 +2573,8 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 2,
                  .horses_produced_theoretical            = 0,
-                 .max_new_horses_allowed                 = 2,
+                 .max_horse_food_consumption_allowed     = 1,
+                 .max_new_horses_allowed                 = 1,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
                  .horses_delta_final                     = 0,
@@ -2598,7 +2599,8 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 5,
                  .horses_produced_theoretical            = 0,
-                 .max_new_horses_allowed                 = 5,
+                 .max_horse_food_consumption_allowed     = 3,
+                 .max_new_horses_allowed                 = 3,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
                  .horses_delta_final                     = 0,
@@ -2624,7 +2626,8 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 5,
                  .horses_produced_theoretical            = 0,
-                 .max_new_horses_allowed                 = 5,
+                 .max_horse_food_consumption_allowed     = 3,
+                 .max_new_horses_allowed                 = 3,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
                  .horses_delta_final                     = 0,
@@ -2655,7 +2658,8 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 6,
                  .horses_produced_theoretical            = 0,
-                 .max_new_horses_allowed                 = 6,
+                 .max_horse_food_consumption_allowed     = 3,
+                 .max_new_horses_allowed                 = 3,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
                  .horses_delta_final                     = 0,
@@ -2686,7 +2690,8 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 9,
                  .horses_produced_theoretical            = 0,
-                 .max_new_horses_allowed                 = 9,
+                 .max_horse_food_consumption_allowed     = 5,
+                 .max_new_horses_allowed                 = 5,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
                  .horses_delta_final                     = 0,
@@ -2721,6 +2726,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 0,
                  .horses_produced_theoretical            = 0,
+                 .max_horse_food_consumption_allowed     = 0,
                  .max_new_horses_allowed                 = 0,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
@@ -2757,6 +2763,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 0,
                  .horses_produced_theoretical            = 2,
+                 .max_horse_food_consumption_allowed     = 0,
                  .max_new_horses_allowed                 = 0,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
@@ -2793,6 +2800,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 1,
                  .horses_produced_theoretical            = 0,
+                 .max_horse_food_consumption_allowed     = 1,
                  .max_new_horses_allowed                 = 1,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
@@ -2829,6 +2837,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 1,
                  .horses_produced_theoretical            = 2,
+                 .max_horse_food_consumption_allowed     = 1,
                  .max_new_horses_allowed                 = 1,
                  .horses_produced_actual                 = 1,
                  .food_consumed_by_horses                = 1,
@@ -2864,7 +2873,8 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 3,
                  .horses_produced_theoretical            = 0,
-                 .max_new_horses_allowed                 = 3,
+                 .max_horse_food_consumption_allowed     = 2,
+                 .max_new_horses_allowed                 = 2,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
                  .horses_delta_final                     = 0,
@@ -2899,7 +2909,8 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 3,
                  .horses_produced_theoretical            = 2,
-                 .max_new_horses_allowed                 = 3,
+                 .max_horse_food_consumption_allowed     = 2,
+                 .max_new_horses_allowed                 = 2,
                  .horses_produced_actual                 = 2,
                  .food_consumed_by_horses                = 2,
                  .horses_delta_final                     = 2,
@@ -2934,11 +2945,12 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 3,
                  .horses_produced_theoretical            = 4,
-                 .max_new_horses_allowed                 = 3,
-                 .horses_produced_actual                 = 3,
-                 .food_consumed_by_horses                = 3,
-                 .horses_delta_final                     = 3,
-                 .food_delta_final                       = 0,
+                 .max_horse_food_consumption_allowed     = 2,
+                 .max_new_horses_allowed                 = 2,
+                 .horses_produced_actual                 = 2,
+                 .food_consumed_by_horses                = 2,
+                 .horses_delta_final                     = 2,
+                 .food_delta_final                       = 1,
                  .colonist_starved                       = false,
              } );
   }
@@ -2970,6 +2982,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 1,
                  .horses_produced_theoretical            = 4,
+                 .max_horse_food_consumption_allowed     = 1,
                  .max_new_horses_allowed                 = 1,
                  .horses_produced_actual                 = 1,
                  .food_consumed_by_horses                = 1,
@@ -3005,11 +3018,12 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 3,
                  .horses_produced_theoretical            = 4,
-                 .max_new_horses_allowed                 = 3,
-                 .horses_produced_actual                 = 3,
-                 .food_consumed_by_horses                = 3,
+                 .max_horse_food_consumption_allowed     = 2,
+                 .max_new_horses_allowed                 = 2,
+                 .horses_produced_actual                 = 2,
+                 .food_consumed_by_horses                = 2,
                  .horses_delta_final                     = 1,
-                 .food_delta_final                       = 0,
+                 .food_delta_final                       = 1,
                  .colonist_starved                       = false,
              } );
   }
@@ -3040,11 +3054,12 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 3,
                  .horses_produced_theoretical            = 4,
-                 .max_new_horses_allowed                 = 3,
-                 .horses_produced_actual                 = 3,
-                 .food_consumed_by_horses                = 3,
+                 .max_horse_food_consumption_allowed     = 2,
+                 .max_new_horses_allowed                 = 2,
+                 .horses_produced_actual                 = 2,
+                 .food_consumed_by_horses                = 2,
                  .horses_delta_final                     = 0,
-                 .food_delta_final                       = 0,
+                 .food_delta_final                       = 1,
                  .colonist_starved                       = false,
              } );
   }
@@ -3076,11 +3091,12 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 3,
                  .horses_produced_theoretical            = 4,
-                 .max_new_horses_allowed                 = 3,
-                 .horses_produced_actual                 = 3,
-                 .food_consumed_by_horses                = 3,
-                 .horses_delta_final                     = 3,
-                 .food_delta_final                       = 0,
+                 .max_horse_food_consumption_allowed     = 2,
+                 .max_new_horses_allowed                 = 2,
+                 .horses_produced_actual                 = 2,
+                 .food_consumed_by_horses                = 2,
+                 .horses_delta_final                     = 2,
+                 .food_delta_final                       = 1,
                  .colonist_starved                       = false,
              } );
   }
@@ -3112,11 +3128,12 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 3,
                  .horses_produced_theoretical            = 8,
-                 .max_new_horses_allowed                 = 3,
-                 .horses_produced_actual                 = 3,
-                 .food_consumed_by_horses                = 3,
-                 .horses_delta_final                     = 3,
-                 .food_delta_final                       = 0,
+                 .max_horse_food_consumption_allowed     = 2,
+                 .max_new_horses_allowed                 = 2,
+                 .horses_produced_actual                 = 2,
+                 .food_consumed_by_horses                = 2,
+                 .horses_delta_final                     = 2,
+                 .food_delta_final                       = 1,
                  .colonist_starved                       = false,
              } );
   }
@@ -3144,6 +3161,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 0,
                  .horses_produced_theoretical            = 0,
+                 .max_horse_food_consumption_allowed     = 0,
                  .max_new_horses_allowed                 = 0,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
@@ -3176,6 +3194,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 0,
                  .horses_produced_theoretical            = 4,
+                 .max_horse_food_consumption_allowed     = 0,
                  .max_new_horses_allowed                 = 0,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
@@ -3206,6 +3225,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 3,
                  .food_surplus_before_horses             = 0,
                  .horses_produced_theoretical            = 0,
+                 .max_horse_food_consumption_allowed     = 0,
                  .max_new_horses_allowed                 = 0,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
@@ -3237,6 +3257,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 3,
                  .food_surplus_before_horses             = 0,
                  .horses_produced_theoretical            = 4,
+                 .max_horse_food_consumption_allowed     = 0,
                  .max_new_horses_allowed                 = 0,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
@@ -3287,7 +3308,8 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 9,
                  .horses_produced_theoretical            = 0,
-                 .max_new_horses_allowed                 = 9,
+                 .max_horse_food_consumption_allowed     = 5,
+                 .max_new_horses_allowed                 = 5,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
                  .horses_delta_final                     = 0,
@@ -3340,11 +3362,12 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 13,
                  .horses_produced_theoretical            = 12,
-                 .max_new_horses_allowed                 = 13,
-                 .horses_produced_actual                 = 12,
-                 .food_consumed_by_horses                = 12,
-                 .horses_delta_final                     = 12,
-                 .food_delta_final                       = 1,
+                 .max_horse_food_consumption_allowed     = 7,
+                 .max_new_horses_allowed                 = 7,
+                 .horses_produced_actual                 = 7,
+                 .food_consumed_by_horses                = 7,
+                 .horses_delta_final                     = 7,
+                 .food_delta_final                       = 6,
                  .colonist_starved                       = false,
              } );
   }
@@ -3380,11 +3403,12 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 2,
                  .horses_produced_theoretical            = 16,
-                 .max_new_horses_allowed                 = 2,
-                 .horses_produced_actual                 = 2,
-                 .food_consumed_by_horses                = 2,
-                 .horses_delta_final                     = 2,
-                 .food_delta_final                       = 0,
+                 .max_horse_food_consumption_allowed     = 1,
+                 .max_new_horses_allowed                 = 1,
+                 .horses_produced_actual                 = 1,
+                 .food_consumed_by_horses                = 1,
+                 .horses_delta_final                     = 1,
+                 .food_delta_final                       = 1,
                  .colonist_starved                       = false,
              } );
   }
@@ -3420,6 +3444,7 @@ TEST_CASE( "[production] food/horses [explorer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 1,
                  .horses_produced_theoretical            = 0,
+                 .max_horse_food_consumption_allowed     = 1,
                  .max_new_horses_allowed                 = 1,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
@@ -3460,6 +3485,7 @@ TEST_CASE( "[production] food/horses [explorer]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 1,
                  .horses_produced_theoretical            = 8,
+                 .max_horse_food_consumption_allowed     = 1,
                  .max_new_horses_allowed                 = 1,
                  .horses_produced_actual                 = 1,
                  .food_consumed_by_horses                = 1,
@@ -3500,6 +3526,7 @@ TEST_CASE( "[production] food/horses [viceroy]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 0,
                  .horses_produced_theoretical            = 0,
+                 .max_horse_food_consumption_allowed     = 0,
                  .max_new_horses_allowed                 = 0,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
@@ -3540,6 +3567,7 @@ TEST_CASE( "[production] food/horses [viceroy]" ) {
                  .food_deficit                           = 0,
                  .food_surplus_before_horses             = 0,
                  .horses_produced_theoretical            = 8,
+                 .max_horse_food_consumption_allowed     = 0,
                  .max_new_horses_allowed                 = 0,
                  .horses_produced_actual                 = 0,
                  .food_consumed_by_horses                = 0,
@@ -6507,8 +6535,7 @@ TEST_CASE( "[production] SoL does not affect horses" ) {
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.food_horses.corn_produced == 12 + 2 * XO );
     REQUIRE( pr.food_horses.horses_produced_theoretical == 2 );
-    REQUIRE( pr.food_horses.max_new_horses_allowed ==
-             10 + 2 * XO );
+    REQUIRE( pr.food_horses.max_new_horses_allowed == 5 + XO );
     REQUIRE( pr.food_horses.horses_produced_actual == 2 );
   }
 
@@ -6541,8 +6568,7 @@ TEST_CASE( "[production] SoL does not affect horses" ) {
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.food_horses.corn_produced == 12 + 2 * XO );
     REQUIRE( pr.food_horses.horses_produced_theoretical == 2 );
-    REQUIRE( pr.food_horses.max_new_horses_allowed ==
-             10 + 2 * XO );
+    REQUIRE( pr.food_horses.max_new_horses_allowed == 5 + XO );
     REQUIRE( pr.food_horses.horses_produced_actual == 2 );
   }
 
@@ -6575,8 +6601,7 @@ TEST_CASE( "[production] SoL does not affect horses" ) {
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.food_horses.corn_produced == 12 + 2 * XO );
     REQUIRE( pr.food_horses.horses_produced_theoretical == 2 );
-    REQUIRE( pr.food_horses.max_new_horses_allowed ==
-             10 + 2 * XO );
+    REQUIRE( pr.food_horses.max_new_horses_allowed == 5 + XO );
     REQUIRE( pr.food_horses.horses_produced_actual == 2 );
   }
 }

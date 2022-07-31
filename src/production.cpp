@@ -456,9 +456,14 @@ void compute_food_production(
           : 2 * ( ( current_horses + 49 ) / 50 );
   if( colony.buildings[e_colony_building::stable] )
     out.horses_produced_theoretical *= 2;
+  // In the original game, horses are allowed to consume at most
+  // half of the surplus food, rounded up.
+  out.max_horse_food_consumption_allowed = static_cast<int>(
+      ceil( out.food_surplus_before_horses / 2.0 ) );
   int const food_per_new_horse = 1;
   out.max_new_horses_allowed =
-      out.food_surplus_before_horses / food_per_new_horse;
+      out.max_horse_food_consumption_allowed /
+      food_per_new_horse;
 
   // We have the opportunity to actually produce some horses
   // since we have some (non-warehouse) food surplus this turn.
