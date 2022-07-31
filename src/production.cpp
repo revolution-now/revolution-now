@@ -49,18 +49,21 @@ namespace {
 *****************************************************************/
 struct BellsModifiers {
   void apply_outdoor( int& to ) const {
+    if( to == 0 ) return;
     to += sons_of_liberty_bonus_outdoor;
     to -= tory_penalty_outdoor;
   }
 
   void apply_indoor( int& to ) const {
+    if( to == 0 ) return;
     to += sons_of_liberty_bonus_indoor;
     to -= tory_penalty_indoor;
   }
 
   // Shouldn't really access these directly except to construct
-  // this object; to apply the bonuses use the above apply meth-
-  // ods.
+  // this object; to apply the bonuses use the above apply
+  // methods so that we ensure that the correct logic gets ap-
+  // plied.
   int sons_of_liberty_bonus_outdoor = 0;
   int sons_of_liberty_bonus_indoor  = 0;
   int tory_penalty_outdoor          = 0;
