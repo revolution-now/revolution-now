@@ -5359,7 +5359,124 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
 TEST_CASE( "[production] bell production [discoverer]" ) {
   World W;
   W.create_default_map();
-  // TODO
+
+  using SP  = SquareProduction;
+  using LP  = refl::enum_map<e_direction, SP>;
+  using RMP = RawMaterialAndProduct;
+
+  W.settings().difficulty = e_difficulty::discoverer;
+
+  Colony& colony = W.add_colony( W.kGrasslandTile );
+  Player& player = W.default_player();
+
+  SECTION( "no town hall" ) {
+    colony.buildings[e_colony_building::town_hall] = false;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.bells == 0 );
+  }
+
+  SECTION( "no colonists in town hall" ) {
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.bells == 1 );
+  }
+
+  SECTION( "no colonists in town hall, printing press" ) {
+    colony.buildings[e_colony_building::printing_press] = true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.bells == 1 );
+  }
+
+  SECTION( "no colonists in town hall, newspaper" ) {
+    colony.buildings[e_colony_building::newspaper] = true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.bells == 2 );
+  }
+
+  SECTION( "no colonists in town hall, newspaper, paine" ) {
+    colony.buildings[e_colony_building::newspaper]      = true;
+    player.fathers.has[e_founding_father::thomas_paine] = true;
+    player.old_world.taxes.tax_rate                     = 99;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.bells == 2 );
+  }
+
+  SECTION(
+      "no colonists in town hall, newspaper, paine, "
+      "jefferson" ) {
+    colony.buildings[e_colony_building::newspaper]      = true;
+    player.fathers.has[e_founding_father::thomas_paine] = true;
+    player.old_world.taxes.tax_rate                     = 99;
+    player.fathers.has[e_founding_father::thomas_jefferson] =
+        true;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.bells == 2 );
+  }
+
+  SECTION( "free colonist in town hall" ) {
+    W.add_unit_indoors( colony.id, e_indoor_job::bells,
+                        e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.bells == 4 );
+  }
+
+  SECTION( "two free colonists in town hall, printing press" ) {
+    colony.buildings[e_colony_building::printing_press] = true;
+    W.add_unit_indoors( colony.id, e_indoor_job::bells,
+                        e_unit_type::free_colonist );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells,
+                        e_unit_type::free_colonist );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.bells == 10 );
+  }
+
+  SECTION(
+      "free colonist and elder stateman in town hall, "
+      "newspaper" ) {
+    colony.buildings[e_colony_building::newspaper] = true;
+    W.add_unit_indoors( colony.id, e_indoor_job::bells,
+                        e_unit_type::free_colonist );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells,
+                        e_unit_type::elder_statesman );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.bells == 20 );
+  }
+
+  SECTION( "elder statesman in town hall, newspaper, paine" ) {
+    colony.buildings[e_colony_building::newspaper]      = true;
+    player.fathers.has[e_founding_father::thomas_paine] = true;
+    player.old_world.taxes.tax_rate                     = 99;
+    W.add_unit_indoors( colony.id, e_indoor_job::bells,
+                        e_unit_type::elder_statesman );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.bells == 24 );
+  }
+
+  SECTION(
+      "free colonist and elder statesman in town hall, "
+      "newspaper, paine, jefferson" ) {
+    colony.buildings[e_colony_building::newspaper]      = true;
+    player.fathers.has[e_founding_father::thomas_paine] = true;
+    player.old_world.taxes.tax_rate                     = 50;
+    player.fathers.has[e_founding_father::thomas_jefferson] =
+        true;
+    W.add_unit_indoors( colony.id, e_indoor_job::bells,
+                        e_unit_type::free_colonist );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells,
+                        e_unit_type::elder_statesman );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.bells == 42 );
+  }
 }
 
 TEST_CASE( "[production] with 50 percent SoL" ) {

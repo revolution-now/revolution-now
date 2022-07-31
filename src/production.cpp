@@ -271,7 +271,7 @@ int bells_production( UnitsState const& units_state,
           unit_quantity, config_production.indoor_production
                              .thomas_jefferson_bells_bonus );
     if( has_paine )
-      apply_int_percent_bonus_rnd_up(
+      apply_int_percent_bonus_rnd_down(
           unit_quantity, player.old_world.taxes.tax_rate );
 
     units_quantity += unit_quantity;
@@ -283,7 +283,7 @@ int bells_production( UnitsState const& units_state,
   // Lastly, the original game will apply the printing press/new-
   // paper bonuses after all others are added. This means:
   //
-  //   - Multiply by 1.5 for printing press (rounding up) or 2
+  //   - Multiply by 1.5 for printing press (rounding down) or 2
   //     for newspaper.
   //
   // To emphasize, this multiplicative bonus applies to both the
@@ -293,7 +293,7 @@ int bells_production( UnitsState const& units_state,
         building_for_slot( colony,
                            e_colony_building_slot::newspapers );
     int res = pre_newspaper_total;
-    apply_int_percent_bonus_rnd_up(
+    apply_int_percent_bonus_rnd_down(
         res, bells_bonus_building.has_value()
                  ? config_production.building_production_bonus
                        [*bells_bonus_building]
