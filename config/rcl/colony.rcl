@@ -642,14 +642,32 @@ bells_consumed_per_rebel: 2.0
 # original game it is 1. But note that this penalty will not al-
 # ways manifest as precisely one unit reduction in production,
 # since e.g. for indoor workers it is subtracted before other
-# multipliers are applied.
-tory_production_penalty: 1
+# multipliers are applied. In this game we support making these
+# different between indoor/outdoor jobs (since the bonuses are
+# distinct between the two) but by default we keep them the same
+# because the original game seems to do that. Also, note that in
+# the original game, the tory penalty does not seem to get ap-
+# plied to the center square (although SoL bonuses do); in this
+# game, we apply it equally to all squares, including the center
+# square, since there doesn't seem to be a logical reason to do
+# otherwise.
+tory_production_penalty_indoor:  1
+tory_production_penalty_outdoor: 1
 
 # These are the production bonuses that are applied in a colony
 # when Sons of Liberty percent hits 50% and 100%, respectively.
-# In the original game they are 1 and 2, respectively. But note
-# that these bonuses will not always manifest as precisely that
-# increase in production, since e.g. for indoor workers it is
-# added before other multipliers are applied.
-sons_of_liberty_50_bonus:  1
-sons_of_liberty_100_bonus: 2
+# In the original game they are 1/2, respectively, for indoor
+# jobs, and 2/4, respectively, for outdoor jobs (contrary to what
+# some documentation says). But note that, for indoor jobs, these
+# bonuses will not always manifest as precisely that increase in
+# production, since e.g. for indoor workers it is added before
+# other multipliers are applied. The original game seems to make
+# a few exceptions to the outdoor bonuses; namely the center
+# square only gets 1/2, and lumberjacks seemingly have the bonus
+# applied in a different order. In this game, for simplicity, we
+# will apply these equally to all squares and all occupations,
+# including the center square.
+sons_of_liberty_indoor_50_bonus:   1
+sons_of_liberty_indoor_100_bonus:  2
+sons_of_liberty_outdoor_50_bonus:  2
+sons_of_liberty_outdoor_100_bonus: 4
