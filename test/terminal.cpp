@@ -355,7 +355,7 @@ TEST_CASE(
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "ROOT.colonies.";
-  out = { "ROOT.colonies:colony_for_id",
+  out = { "ROOT.colonies:colony_for_id", "ROOT.colonies:exists",
           "ROOT.colonies:last_colony_id" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
