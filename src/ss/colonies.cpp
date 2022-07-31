@@ -188,6 +188,10 @@ base::maybe<ColonyId> ColoniesState::maybe_from_name(
   return base::lookup( colony_from_name_, string( name ) );
 }
 
+bool ColoniesState::exists( ColonyId id ) const {
+  return o_.colonies.contains( id );
+}
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/
@@ -199,8 +203,11 @@ LUA_STARTUP( lua::state& st ) {
   auto u  = st.usertype.create<U>();
 
   u["last_colony_id"] = &U::last_colony_id;
-  u["colony_for_id"]  = []( U& o, ColonyId id ) -> Colony& {
-    return o.colony_for( id );
+  u["exists"]         = &U::exists;
+  u["colony_for_id"]  = [&]( U& o, ColonyId id ) -> Colony& {
+     LUA_CHECK( st, o.exists( id ), "colony {} does not exist.",
+                id );
+     return o.colony_for( id );
   };
 };
 

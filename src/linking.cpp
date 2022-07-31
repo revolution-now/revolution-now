@@ -21,7 +21,7 @@ void linker_dont_discard_module_co_lua();
 void linker_dont_discard_module_lua_ui();
 void linker_dont_discard_module_map_gen();
 void linker_dont_discard_module_config_files();
-void linker_dont_discard_module_fathers();
+void linker_dont_discard_module_ss_fathers();
 void linker_dont_discard_module_time();
 void linker_dont_discard_module_ss_land_view();
 void linker_dont_discard_module_ss_map_square();
@@ -36,7 +36,7 @@ void linker_dont_discard_me() {
   linker_dont_discard_module_lua_ui();
   linker_dont_discard_module_map_gen();
   linker_dont_discard_module_config_files();
-  linker_dont_discard_module_fathers();
+  linker_dont_discard_module_ss_fathers();
   linker_dont_discard_module_time();
   linker_dont_discard_module_ss_land_view();
   linker_dont_discard_module_ss_map_square();

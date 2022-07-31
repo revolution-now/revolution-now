@@ -49,6 +49,4 @@ string_view founding_father_type_name(
   return config_fathers.types[type].name;
 }
 
-void linker_dont_discard_module_fathers() {}
-
 } // namespace rn

@@ -52,6 +52,8 @@ struct ColoniesState {
   base::maybe<ColonyId> maybe_from_name(
       std::string_view name ) const;
 
+  bool exists( ColonyId id ) const;
+
   // The id of this colony must be zero (i.e., you can't select
   // the ID); a new ID will be generated for this unit and re-
   // turned.
