@@ -115,8 +115,8 @@ enum.e_outdoor_job {
 # the algorithm for choosing the secondary job would likely not
 # choose silver anyway because there'd be more ore produced.
 #
-# Also, just as in the original game, we don't have lumber.  The
-# reason for this is
+# Also, just as in the original game, we don't have lumber. The
+# reason for this might have just been for game balancing.
 enum.e_outdoor_commons_secondary_job {
   sugar,
   tobacco,
