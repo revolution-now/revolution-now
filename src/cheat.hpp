@@ -20,7 +20,11 @@
 
 // ss
 #include "ss/commodity.rds.hpp"
+#include "ss/nation.rds.hpp"
 #include "ss/unit-id.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 namespace rn {
 
@@ -71,5 +75,10 @@ void cheat_decrease_commodity( Colony&     colony,
 // won't display any notifications, it will just log them.
 void cheat_advance_colony_one_turn( SS& ss, TS& ts,
                                     Colony& colony );
+
+// This is called when the player asks to just create a unit on
+// the map. It will allow the player to select the unit type.
+wait<> cheat_create_unit_on_map( SS& ss, TS& ts, e_nation nation,
+                                 Coord tile );
 
 } // namespace rn

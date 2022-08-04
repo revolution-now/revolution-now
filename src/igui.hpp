@@ -104,6 +104,12 @@ struct IGui {
   template<refl::ReflectedEnum E>
   wait<maybe<E>> enum_choice( bool sort = false );
 
+  // For when we want to limit to a subset of the possible enum
+  // values.
+  template<refl::ReflectedEnum E>
+  wait<maybe<E>> partial_enum_choice(
+      std::vector<E> const& options, bool sort = false );
+
   // For convenience while developing, shouldn't really be used
   // to provide proper names for things for the player.
   std::string identifier_to_display_name(
@@ -143,6 +149,23 @@ wait<maybe<E>> IGui::enum_choice( bool sort ) {
                            .choice_required = false,
                            .sort            = sort };
   co_return co_await enum_choice<E>( config );
+}
+
+template<refl::ReflectedEnum E>
+wait<maybe<E>> IGui::partial_enum_choice(
+    std::vector<E> const& options, bool sort ) {
+  ChoiceConfig config{
+      .msg = "Select One", .key_on_escape = "-", .sort = sort };
+  for( E item : options ) {
+    auto key = std::string( refl::enum_value_name( item ) );
+    config.options.push_back( ChoiceConfigOption{
+        .key          = key,
+        .display_name = identifier_to_display_name( key ) } );
+  }
+  std::string res = co_await choice( config );
+  // If hitting escape was allowed, and if that happened, then
+  // this should do the right thing and return nothing.
+  co_return refl::enum_from_string<E>( res );
 }
 
 } // namespace rn

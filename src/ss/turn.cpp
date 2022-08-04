@@ -37,6 +37,14 @@ base::valid_or<string> TurnTimePoint::validate() const {
 }
 
 /****************************************************************
+** Public API
+*****************************************************************/
+base::maybe<e_nation> active_player(
+    TurnState const& turn_state ) {
+  return turn_state.nation.member( &NationTurnState::nation );
+}
+
+/****************************************************************
 ** Lua Bindings
 *****************************************************************/
 namespace {

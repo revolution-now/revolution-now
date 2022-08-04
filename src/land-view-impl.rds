@@ -9,6 +9,7 @@
 #
 # ===============================================================
 # Revolution Now
+include "input.hpp"
 include "physics.hpp"
 include "unit-id.hpp"
 
@@ -45,6 +46,7 @@ sumtype.LandViewRawInput {
   },
   tile_click {
     coord 'Coord',
+    mods 'input::mod_keys',
   },
   center {}, # Center on blinking unit, if any.
   next_turn {},

@@ -23,3 +23,15 @@ enum.e_drag_phase {
   # 'end' is a Lua keyword, so we have to do this. :-E
   function() return {name='end'} end,
 }
+
+struct.mod_keys {
+  l_shf_down  'bool',
+  r_shf_down  'bool',
+  shf_down    'bool',
+  l_alt_down  'bool',
+  r_alt_down  'bool',
+  alt_down    'bool',
+  l_ctrl_down 'bool',
+  r_ctrl_down 'bool',
+  ctrl_down   'bool',
+}

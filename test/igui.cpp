@@ -142,5 +142,26 @@ TEST_CASE( "[igui] enum_choice cancels" ) {
   REQUIRE( !w->has_value() );
 }
 
+TEST_CASE( "[igui] partial_enum_choice" ) {
+  MockIGui gui;
+
+  EXPECT_CALL(
+      gui,
+      choice( ChoiceConfig{
+          .msg = "Select One",
+          .options =
+              vector<ChoiceConfigOption>{
+                  { .key = "red", .display_name = "Red" },
+                  { .key = "blue", .display_name = "Blue" } },
+          .key_on_escape = "-" } ) )
+      .returns( make_wait<string>( "blue" ) );
+
+  wait<maybe<e_color>> w = gui.partial_enum_choice<e_color>(
+      { e_color::red, e_color::blue } );
+  REQUIRE( w.ready() );
+  REQUIRE( w->has_value() );
+  REQUIRE( **w == e_color::blue );
+}
+
 } // namespace
 } // namespace rn

@@ -38,23 +38,6 @@ namespace rn::input {
 /****************************************************************
 ** Event Base
 *****************************************************************/
-struct mod_keys {
-  bool l_shf_down;
-  bool r_shf_down;
-  bool shf_down; // either shift down
-  bool l_alt_down;
-  bool r_alt_down;
-  bool alt_down; // either alt down
-  bool l_ctrl_down;
-  bool r_ctrl_down;
-  bool ctrl_down; // either ctrl down
-};
-
-inline void to_str( mod_keys const&, std::string& out,
-                    base::ADL_t ) {
-  out += "<modkeys>";
-}
-
 // All event types must inherit either directly or indirectly
 // from this type.
 struct event_base_t {

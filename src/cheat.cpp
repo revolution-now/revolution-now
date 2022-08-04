@@ -16,6 +16,7 @@
 #include "colony-evolve.hpp"
 #include "igui.hpp"
 #include "logger.hpp"
+#include "ts.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
 
@@ -26,6 +27,7 @@
 
 // gs
 #include "ss/colony.hpp"
+#include "ss/players.rds.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -280,6 +282,95 @@ void cheat_advance_colony_one_turn( SS& ss, TS& ts,
   // a cheat/debug feature. We'll just log that it was supposed
   // to happen.
   if( ev.colony_disappeared ) lg.debug( "colony has starved." );
+}
+
+wait<> cheat_create_unit_on_map( SS& ss, TS& ts, e_nation nation,
+                                 Coord tile ) {
+  CO_RETURN_IF_NO_CHEAT;
+  static refl::enum_map<e_cheat_unit_creation_categories,
+                        vector<e_unit_type>> const categories{
+      { e_cheat_unit_creation_categories::basic_colonists,
+        {
+            e_unit_type::free_colonist,
+            e_unit_type::indentured_servant,
+            e_unit_type::petty_criminal,
+            e_unit_type::native_convert,
+        } },
+      { e_cheat_unit_creation_categories::modified_colonists,
+        {
+            e_unit_type::pioneer,
+            e_unit_type::hardy_pioneer,
+            e_unit_type::missionary,
+            e_unit_type::jesuit_missionary,
+            e_unit_type::scout,
+            e_unit_type::seasoned_scout,
+        } },
+      { e_cheat_unit_creation_categories::expert_colonists,
+        {
+            e_unit_type::expert_farmer,
+            e_unit_type::expert_fisherman,
+            e_unit_type::expert_sugar_planter,
+            e_unit_type::expert_tobacco_planter,
+            e_unit_type::expert_cotton_planter,
+            e_unit_type::expert_fur_trapper,
+            e_unit_type::expert_lumberjack,
+            e_unit_type::expert_ore_miner,
+            e_unit_type::expert_silver_miner,
+            e_unit_type::master_carpenter,
+            e_unit_type::master_rum_distiller,
+            e_unit_type::master_tobacconist,
+            e_unit_type::master_weaver,
+            e_unit_type::master_fur_trader,
+            e_unit_type::master_blacksmith,
+            e_unit_type::master_gunsmith,
+            e_unit_type::elder_statesman,
+            e_unit_type::firebrand_preacher,
+            e_unit_type::hardy_colonist,
+            e_unit_type::jesuit_colonist,
+            e_unit_type::seasoned_colonist,
+            e_unit_type::veteran_colonist,
+        } },
+      { e_cheat_unit_creation_categories::armies,
+        {
+            e_unit_type::soldier,
+            e_unit_type::dragoon,
+            e_unit_type::veteran_soldier,
+            e_unit_type::veteran_dragoon,
+            e_unit_type::continental_army,
+            e_unit_type::continental_cavalry,
+            e_unit_type::regular,
+            e_unit_type::cavalry,
+            e_unit_type::artillery,
+            e_unit_type::damaged_artillery,
+        } },
+      { e_cheat_unit_creation_categories::ships,
+        {
+            e_unit_type::caravel,
+            e_unit_type::merchantman,
+            e_unit_type::galleon,
+            e_unit_type::privateer,
+            e_unit_type::frigate,
+            e_unit_type::man_o_war,
+        } },
+      { e_cheat_unit_creation_categories::miscellaneous,
+        {
+            e_unit_type::wagon_train,
+            e_unit_type::small_treasure,
+            e_unit_type::large_treasure,
+        } },
+  };
+  maybe<e_cheat_unit_creation_categories> category =
+      co_await ts.gui
+          .enum_choice<e_cheat_unit_creation_categories>();
+  if( !category.has_value() ) co_return;
+  maybe<e_unit_type> type =
+      co_await ts.gui.partial_enum_choice<e_unit_type>(
+          categories[*category] );
+  if( !type.has_value() ) co_return;
+  UNWRAP_CHECK( player, ss.players.players[nation] );
+  maybe<UnitId> unit_id = co_await create_unit_on_map(
+      ss.units, ss.terrain, player, ss.settings, ts.gui,
+      ts.map_updater, UnitComposition::create( *type ), tile );
 }
 
 } // namespace rn

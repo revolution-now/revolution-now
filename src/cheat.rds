@@ -17,3 +17,12 @@ enum.e_cheat_colony_buildings_option {
   add_one_building,
   remove_one_building,
 }
+
+enum.e_cheat_unit_creation_categories {
+  basic_colonists,
+  modified_colonists,
+  expert_colonists,
+  armies,
+  ships,
+  miscellaneous,
+}

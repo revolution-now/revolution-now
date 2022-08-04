@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "anim.hpp"
+#include "cheat.hpp"
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
 #include "colony-id.hpp"
@@ -44,6 +45,7 @@
 #include "ss/ref.hpp"
 #include "ss/settings.hpp"
 #include "ss/terrain.hpp"
+#include "ss/turn.hpp"
 #include "ss/unit-type.hpp"
 #include "ss/units.hpp"
 
@@ -529,6 +531,14 @@ struct LandViewPlane::Impl : public Plane {
         }
         case e::tile_click: {
           auto& o = raw_input.input.get<tile_click>();
+          if( o.mods.shf_down ) {
+            // cheat mode.
+            maybe<e_nation> nation = active_player( ss_.turn );
+            if( !nation.has_value() ) break;
+            co_await cheat_create_unit_on_map( ss_, ts_, *nation,
+                                               o.coord );
+            break;
+          }
           vector<LandViewPlayerInput_t> inputs =
               co_await click_on_world_tile( o.coord );
           // Since we may have just popped open a box to ask the
@@ -1390,14 +1400,9 @@ struct LandViewPlane::Impl : public Plane {
             viewport().screen_pixel_to_world_tile( val.pos ) );
         handled = e_input_handled::yes;
         lg.debug( "clicked on tile: {}.", world_tile );
-        if( val.mod.shf_down ) {
-          viewport().smooth_zoom_target( 1.0 );
-          viewport().set_point_seek_from_screen_pixel( val.pos );
-        } else {
-          raw_input_stream_.send(
-              RawInput( LandViewRawInput::tile_click{
-                  .coord = world_tile } ) );
-        }
+        raw_input_stream_.send(
+            RawInput( LandViewRawInput::tile_click{
+                .coord = world_tile, .mods = val.mod } ) );
         break;
       }
       default: //
