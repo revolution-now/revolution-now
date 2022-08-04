@@ -1434,7 +1434,7 @@ composition {
       nat_icon_position:     nw
       visibility:            1
       movement_points:       4
-      attack_points:         2
+      attack_points:         0
       defense_points:        2
       on_death               naval{}
       road_turns:            null
