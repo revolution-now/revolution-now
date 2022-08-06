@@ -2,7 +2,6 @@ types {
   ocean {
     surface:        water
     movement_cost:  1
-    can_irrigate:   false
     with_forest:    null
     cleared_forest: null
   }
@@ -12,7 +11,6 @@ types {
   arctic {
     surface:        land
     movement_cost:  2
-    can_irrigate:   false
     with_forest:    null
     cleared_forest: null
   }
@@ -22,7 +20,6 @@ types {
   desert {
     surface:        land
     movement_cost:  1
-    can_irrigate:   true
     with_forest:    scrub
     cleared_forest: null
   }
@@ -30,7 +27,6 @@ types {
   grassland {
     surface:        land
     movement_cost:  1
-    can_irrigate:   true
     with_forest:    conifer
     cleared_forest: null
   }
@@ -38,7 +34,6 @@ types {
   marsh {
     surface:        land
     movement_cost:  2
-    can_irrigate:   true
     with_forest:    wetland
     cleared_forest: null
   }
@@ -46,7 +41,6 @@ types {
   plains {
     surface:        land
     movement_cost:  1
-    can_irrigate:   true
     with_forest:    mixed
     cleared_forest: null
   }
@@ -54,7 +48,6 @@ types {
   prairie {
     surface:        land
     movement_cost:  1
-    can_irrigate:   true
     with_forest:    broadleaf
     cleared_forest: null
   }
@@ -62,7 +55,6 @@ types {
   savannah {
     surface:        land
     movement_cost:  1
-    can_irrigate:   true
     with_forest:    tropical
     cleared_forest: null
   }
@@ -70,7 +62,6 @@ types {
   swamp {
     surface:        land
     movement_cost:  2
-    can_irrigate:   true
     with_forest:    rain
     cleared_forest: null
   }
@@ -78,7 +69,6 @@ types {
   tundra {
     surface:        land
     movement_cost:  1
-    can_irrigate:   true
     with_forest:    boreal
     cleared_forest: null
   }
@@ -89,7 +79,6 @@ types {
   boreal {
     surface:        land
     movement_cost:  2
-    can_irrigate:   false
     with_forest:    null
     cleared_forest: tundra
   }
@@ -97,7 +86,6 @@ types {
   broadleaf {
     surface:        land
     movement_cost:  2
-    can_irrigate:   false
     with_forest:    null
     cleared_forest: prairie
   }
@@ -105,7 +93,6 @@ types {
   conifer {
     surface:        land
     movement_cost:  2
-    can_irrigate:   false
     with_forest:    null
     cleared_forest: grassland
   }
@@ -113,7 +100,6 @@ types {
   mixed {
     surface:        land
     movement_cost:  2
-    can_irrigate:   false
     with_forest:    null
     cleared_forest: plains
   }
@@ -121,7 +107,6 @@ types {
   rain {
     surface:        land
     movement_cost:  3
-    can_irrigate:   false
     with_forest:    null
     cleared_forest: swamp
   }
@@ -129,7 +114,6 @@ types {
   scrub {
     surface:        land
     movement_cost:  1
-    can_irrigate:   false
     with_forest:    null
     cleared_forest: desert
   }
@@ -137,7 +121,6 @@ types {
   tropical {
     surface:        land
     movement_cost:  2
-    can_irrigate:   false
     with_forest:    null
     cleared_forest: savannah
   }
@@ -145,7 +128,6 @@ types {
   wetland {
     surface:        land
     movement_cost:  3
-    can_irrigate:   false
     with_forest:    null
     cleared_forest: marsh
   }
@@ -155,7 +137,6 @@ types {
   hills {
     surface:        land
     movement_cost:  2
-    can_irrigate:   false
     with_forest:    null
     cleared_forest: null
   }
@@ -163,7 +144,6 @@ types {
   mountains {
     surface:        land
     movement_cost:  3
-    can_irrigate:   false
     with_forest:    null
     cleared_forest: null
   }

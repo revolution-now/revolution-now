@@ -32,9 +32,6 @@ base::valid_or<string> TerrainTypeInfo::validate() const {
   // fields must be false/null.
   if( surface == e_surface::water ) {
     REFL_VALIDATE(
-        can_irrigate == false,
-        "water tiles cannot have can_irrigate == true." );
-    REFL_VALIDATE(
         with_forest == nothing,
         "water tiles cannot have with_forest to be non-null." );
     REFL_VALIDATE( cleared_forest == nothing,
@@ -46,13 +43,6 @@ base::valid_or<string> TerrainTypeInfo::validate() const {
   REFL_VALIDATE( movement_cost > 0,
                  "all tile types must have a movement cost "
                  "larger than 0." );
-
-  // If can_irrigate is true then cleared_forest must be null.
-  if( can_irrigate ) {
-    REFL_VALIDATE( cleared_forest == nothing,
-                   "tiles that can be irrigated cannot also "
-                   "have cleared_forest == true." );
-  }
 
   // If with_forest is set then it cannot be a ground terrain.
   if( with_forest.has_value() ) {

@@ -24,6 +24,7 @@
 namespace rn {
 
 struct IMapUpdater;
+struct MapSquare;
 struct TerrainState;
 struct UnitsState;
 
@@ -43,6 +44,10 @@ bool can_plow( TerrainState const& terrain_state, Coord tile );
 // This applies only to irrigation, not clearing.
 bool can_irrigate( TerrainState const& terrain_state,
                    Coord               tile );
+
+// This includes *only* irrigation and not forest-clearing. Will
+// return false if the square already has irrigation.
+bool can_irrigate( MapSquare const& square );
 
 bool has_irrigation( TerrainState const& terrain_state,
                      Coord               tile );

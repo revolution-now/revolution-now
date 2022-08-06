@@ -94,6 +94,13 @@ bool can_plow( TerrainState const& terrain_state, Coord tile ) {
       .has_value();
 }
 
+bool can_irrigate( MapSquare const& square ) {
+  return !square.irrigation &&
+         square.overlay != e_land_overlay::forest &&
+         config_orders.plow_turns[effective_terrain( square )]
+             .has_value();
+}
+
 bool can_irrigate( TerrainState const& terrain_state,
                    Coord               tile ) {
   MapSquare const& square = terrain_state.square_at( tile );

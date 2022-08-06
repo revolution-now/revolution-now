@@ -32,17 +32,8 @@ e_surface surface_type( e_terrain terrain ) {
   return is_land( terrain ) ? e_surface::land : e_surface::water;
 }
 
-bool can_plow( e_terrain terrain ) {
-  auto const& info = config_terrain.types[terrain];
-  return info.can_irrigate || info.cleared_forest;
-}
-
 maybe<e_ground_terrain> cleared_forest( e_terrain terrain ) {
   return config_terrain.types[terrain].cleared_forest;
-}
-
-bool can_irrigate( e_terrain terrain ) {
-  return config_terrain.types[terrain].can_irrigate;
 }
 
 bool has_forest( e_terrain terrain ) {

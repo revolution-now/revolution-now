@@ -26,10 +26,6 @@ struct.TerrainTypeInfo {
   # Is this land or water.
   surface 'e_surface',
   movement_cost 'MovementPoints',
-  # If the square has a forest then it will be assumed that the
-  # forest can be cleared. If it doesn't have a forest then this
-  # bool will specify whether it can be irrigated.
-  can_irrigate 'bool',
   # If a forest is added to this terrain (when possible) it be-
   # comes the following.
   with_forest 'base::maybe<e_terrain>',

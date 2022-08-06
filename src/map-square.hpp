@@ -41,10 +41,6 @@ bool has_forest( MapSquare const& square );
 // Will check-fail if the square has no forest.
 void clear_forest( MapSquare& square );
 
-// This includes *only* irrigation and not forest-clearing.
-// Will return false if the square already has irrigation.
-bool can_irrigate( MapSquare const& square );
-
 // This will apply irrigation (not forest-clearing) to the square
 // and will check-fail if it cannot be irrigated or if there is
 // already irrigation there.

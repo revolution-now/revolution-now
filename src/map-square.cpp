@@ -95,16 +95,7 @@ void clear_forest( MapSquare& square ) {
   square.overlay = nothing;
 }
 
-bool can_irrigate( MapSquare const& square ) {
-  return !square.irrigation &&
-         config_terrain.types[effective_terrain( square )]
-             .can_irrigate;
-}
-
-void irrigate( MapSquare& square ) {
-  CHECK( can_irrigate( square ) );
-  square.irrigation = true;
-}
+void irrigate( MapSquare& square ) { square.irrigation = true; }
 
 MapSquare map_square_for_terrain( e_terrain terrain ) {
   if( terrain == e_terrain::hills )
