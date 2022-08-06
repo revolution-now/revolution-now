@@ -185,19 +185,6 @@ double evolve_num_rebels_from_bells_only(
 
 int compute_sons_of_liberty_integral_percent(
     double sons_of_liberty_percent ) {
-  // Note that we have this special case where we round anything
-  // over 99% to 100% because otherwise the asymptotic evolution
-  // of the SoL to 100 will never actually reach it, whereas in
-  // the original game it is observed that even when you have
-  // just the right number of bells each turn to make a given
-  // colony able to asymptotically reach 100, it will eventually
-  // do so. It may be the case that in the original game that be-
-  // havior is due to rounding errors, and so our asymptotic be-
-  // havior won't be precisely the same (it appears to move more
-  // slowly near the limit), but at least this way it will even-
-  // tually make it hit the target after enough turns. This is to
-  // provide a slightly better player experience.
-  if( sons_of_liberty_percent > .99 ) return 100;
   int const res = static_cast<int>(
       std::lround( sons_of_liberty_percent * 100.0 ) );
   CHECK_GE( res, 0 );

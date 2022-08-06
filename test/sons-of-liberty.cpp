@@ -284,10 +284,9 @@ TEST_CASE(
   REQUIRE( f( 0.7 ) == 70 );
   REQUIRE( f( 0.989 ) == 99 );
   REQUIRE( f( 0.99 ) == 99 );
-  REQUIRE( f( 1.0 ) == 100 );
-  // These are the >99 special case.
-  REQUIRE( f( 0.991 ) == 100 );
+  REQUIRE( f( 0.991 ) == 99 );
   REQUIRE( f( 0.999 ) == 100 );
+  REQUIRE( f( 1.0 ) == 100 );
 }
 
 TEST_CASE(
@@ -582,26 +581,35 @@ TEST_CASE(
   }
 }
 
-// A test was done in the original game where it was observed
-// that a colony of population 2 and producing three bells per
-// turn (held constant even after the 50% mark by demoting the
-// unit producing the bells) took around 82 turns to hit 60% SoL
-// (with no Bolivar).
+// Some tests on SoL percent evolution rate were done in the
+// original game and this test case describes each of those,
+// their results, and ensures that our formula replicates those
+// to sufficient accuracy.
 //
-// Then, once the colony hit 60%, bell production was upped to 4
-// per turn, which is exactly the minimum number needed for a
-// colony of population 2 to reach 100% SoL, which it does asymp-
-// totically, but eventually reaches it in the original game, and
-// this was observed to take 89 turns.
-//
-// This test cases ensures that our behavior is similar.
+// We can reproduce its behavior surprisingly well, save for the
+// asymptotic behavior very close to the equilibrium points. It
+// is very likely that the original game's behavior in those
+// regimes is not working as intended due to some primitive
+// floating point representations and rounding that it likely
+// uses. So in our case, our asymptotic behavior is different,
+// but still ok.
 TEST_CASE( "[sons-of-liberty] asymptotic evolution" ) {
   double num_rebels_from_bells_only       = 0.0;
   int    sons_of_liberty_integral_percent = 0;
-  int    bells_produced                   = 3;
-  int    colony_population                = 2;
+  int    bells_produced                   = 0;
+  int    colony_population                = 0;
 
   int turns = 0;
+
+  // First, it was observed that a colony of population 2 and
+  // producing three bells per turn (held constant even after the
+  // 50% mark by demoting the unit producing the bells) took
+  // around 82 turns to hit 60% SoL (with no Bolivar).
+  num_rebels_from_bells_only       = 0.0;
+  sons_of_liberty_integral_percent = 0;
+  bells_produced                   = 3;
+  colony_population                = 2;
+
   while( sons_of_liberty_integral_percent < 60 ) {
     num_rebels_from_bells_only =
         evolve_num_rebels_from_bells_only(
@@ -620,6 +628,11 @@ TEST_CASE( "[sons-of-liberty] asymptotic evolution" ) {
   // are using the same evolution formula as the original game.
   REQUIRE( turns == 79 );
 
+  // Then, once the colony hit 60%, bell production was upped to
+  // 4 per turn, which is exactly the minimum number needed for a
+  // colony of population 2 to reach 100% SoL, which it does as-
+  // ymptotically, but eventually reaches it in the original
+  // game, and this was observed to take 89 turns.
   bells_produced = 4;
 
   turns = 0;
@@ -647,7 +660,7 @@ TEST_CASE( "[sons-of-liberty] asymptotic evolution" ) {
   // If the player wants to speed this up then they can tem-
   // porarily increase bell production even by one bell to get it
   // to 100%, then it will stay there.
-  REQUIRE( turns == 183 );
+  REQUIRE( turns == 218 );
 
   // Second test with population 3 and 7 bells per turn. Seems to
   // have taken around 21 turns in the original game to hit 50%.
@@ -701,6 +714,45 @@ TEST_CASE( "[sons-of-liberty] asymptotic evolution" ) {
   // are producing more bells than we need to get a population 3
   // colony to 100%.
   REQUIRE( turns == 34 );
+
+  // Finally, we'll do one where a colony of population 1 and
+  // producing one bell (which is the state when the colony is
+  // founded) gets to 50%, which is the convergence point. This
+  // will again test the asymptotic behavior of the evolution.
+  num_rebels_from_bells_only       = 0.0;
+  sons_of_liberty_integral_percent = 0;
+  bells_produced                   = 1;
+  colony_population                = 1;
+
+  turns = 0;
+  while( sons_of_liberty_integral_percent < 50 ) {
+    num_rebels_from_bells_only =
+        evolve_num_rebels_from_bells_only(
+            num_rebels_from_bells_only, bells_produced,
+            colony_population );
+    ++turns;
+    sons_of_liberty_integral_percent =
+        compute_sons_of_liberty_integral_percent(
+            compute_sons_of_liberty_percent(
+                num_rebels_from_bells_only, colony_population,
+                /*has_simon_bolivar=*/false ) );
+    if( turns >= 1000 ) break;
+  }
+
+  // We don't really have good information from the original game
+  // in this case because in the original game it doesn't con-
+  // verge to 50% in this case, it converges to 33%, but it is
+  // highly likely that that is due to rounding errors, and so we
+  // don't want to replicate that here. So all that we are
+  // testing here is that we get to the (correct) convergence
+  // point in a finite number of turns.
+  //
+  // This is a large number of turns, which means that, in prac-
+  // tice, it won't be practical for a colony of population 1 to
+  // get to the 50% mark with only the default (1) bell produc-
+  // tion, unless they want to wait 228 years. But that is prob-
+  // ably fine, since we want to encourage the use of statesmen.
+  REQUIRE( turns == 228 );
 }
 
 TEST_CASE( "[sons-of-liberty] compute_tory_penalty_level" ) {
