@@ -6606,5 +6606,70 @@ TEST_CASE( "[production] SoL does not affect horses" ) {
   }
 }
 
+TEST_CASE(
+    "[production] tory penalty does not cause negative "
+    "production" ) {
+  World W;
+  W.create_default_map();
+  //  D, D, D,
+  //  G, D, D,
+  //  D, D, D,
+
+  Colony& colony = W.add_colony( { .x = 10, .y = 1 } );
+  CHECK( W.square( { .x = 10, .y = 1 } ).ground ==
+         e_ground_terrain::desert );
+
+  W.settings().difficulty = e_difficulty::viceroy;
+
+  // One free colonist on desert should produce 2 food, and the
+  // center desert square should produce 1 food (since we're on
+  // viceroy).
+  W.add_unit_outdoors( colony.id, e_direction::nw,
+                       e_outdoor_job::food );
+
+  int const population = colony_population( colony );
+  CHECK( population == 1 );
+  colony.sons_of_liberty.num_rebels_from_bells_only = 0;
+
+  SECTION( "no tory penalty" ) {
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.food_horses.food_produced == 3 );
+    REQUIRE( pr.center_food_production == 1 );
+  }
+
+  SECTION( "level 1 tory penalty" ) {
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::hammers );
+    W.add_unit_indoors( colony.id, e_indoor_job::hammers );
+    W.add_unit_indoors( colony.id, e_indoor_job::hammers );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.food_horses.food_produced == 1 );
+    REQUIRE( pr.center_food_production == 0 );
+  }
+
+  SECTION( "level 2 tory penalty" ) {
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells );
+    W.add_unit_indoors( colony.id, e_indoor_job::hammers );
+    W.add_unit_indoors( colony.id, e_indoor_job::hammers );
+    W.add_unit_indoors( colony.id, e_indoor_job::hammers );
+    W.add_unit_indoors( colony.id, e_indoor_job::tools );
+    W.add_unit_indoors( colony.id, e_indoor_job::tools );
+    W.add_unit_indoors( colony.id, e_indoor_job::tools );
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth );
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth );
+    W.add_unit_indoors( colony.id, e_indoor_job::cloth );
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.food_horses.food_produced == 0 );
+    REQUIRE( pr.center_food_production == 0 );
+  }
+}
+
 } // namespace
 } // namespace rn

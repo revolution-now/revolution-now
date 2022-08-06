@@ -52,12 +52,14 @@ struct BellsModifiers {
     if( to == 0 ) return;
     to += sons_of_liberty_bonus_outdoor;
     to -= tory_penalty_outdoor;
+    if( to < 0 ) to = 0;
   }
 
   void apply_indoor( int& to ) const {
     if( to == 0 ) return;
     to += sons_of_liberty_bonus_indoor;
     to -= tory_penalty_indoor;
+    if( to < 0 ) to = 0;
   }
 
   // Shouldn't really access these directly except to construct
