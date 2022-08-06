@@ -8,6 +8,7 @@
 * Description: Unit tests for the src/sons-of-liberty.* module.
 *
 *****************************************************************/
+#include "test/fake/world.hpp"
 #include "test/testing.hpp"
 
 // Under test.
@@ -21,6 +22,33 @@ namespace {
 
 using namespace std;
 
+/****************************************************************
+** Fake World Setup
+*****************************************************************/
+struct World : testing::World {
+  using Base = testing::World;
+  World() : Base() {
+    add_player( e_nation::dutch );
+    create_default_map();
+  }
+
+  void create_default_map() {
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
+    // clang-format off
+    vector<MapSquare> tiles{
+      _, L, _,
+      L, L, L,
+      _, L, L,
+    };
+    // clang-format on
+    build_map( std::move( tiles ), 3 );
+  }
+};
+
+/****************************************************************
+** Test Cases
+*****************************************************************/
 TEST_CASE(
     "[sons-of-liberty] compute_sons_of_liberty_percent" ) {
   double num_rebels_from_bells_only = 0.0;
@@ -673,6 +701,104 @@ TEST_CASE( "[sons-of-liberty] asymptotic evolution" ) {
   // are producing more bells than we need to get a population 3
   // colony to 100%.
   REQUIRE( turns == 34 );
+}
+
+TEST_CASE( "[sons-of-liberty] compute_tory_penalty_level" ) {
+  auto f = []( e_difficulty difficulty, int tory_number ) {
+    return compute_tory_penalty_level( difficulty, tory_number );
+  };
+
+  REQUIRE( f( e_difficulty::viceroy, 0 ) == 0 );
+  REQUIRE( f( e_difficulty::viceroy, 1 ) == 0 );
+  REQUIRE( f( e_difficulty::viceroy, 2 ) == 0 );
+  REQUIRE( f( e_difficulty::viceroy, 3 ) == 0 );
+  REQUIRE( f( e_difficulty::viceroy, 4 ) == 0 );
+  REQUIRE( f( e_difficulty::viceroy, 5 ) == 0 );
+  REQUIRE( f( e_difficulty::viceroy, 6 ) == 1 );
+  REQUIRE( f( e_difficulty::viceroy, 7 ) == 1 );
+  REQUIRE( f( e_difficulty::viceroy, 8 ) == 1 );
+  REQUIRE( f( e_difficulty::viceroy, 9 ) == 1 );
+  REQUIRE( f( e_difficulty::viceroy, 10 ) == 1 );
+  REQUIRE( f( e_difficulty::viceroy, 11 ) == 1 );
+  REQUIRE( f( e_difficulty::viceroy, 12 ) == 2 );
+  REQUIRE( f( e_difficulty::viceroy, 13 ) == 2 );
+
+  REQUIRE( f( e_difficulty::discoverer, 0 ) == 0 );
+  REQUIRE( f( e_difficulty::discoverer, 1 ) == 0 );
+  REQUIRE( f( e_difficulty::discoverer, 2 ) == 0 );
+  REQUIRE( f( e_difficulty::discoverer, 3 ) == 0 );
+  REQUIRE( f( e_difficulty::discoverer, 4 ) == 0 );
+  REQUIRE( f( e_difficulty::discoverer, 5 ) == 0 );
+  REQUIRE( f( e_difficulty::discoverer, 6 ) == 0 );
+  REQUIRE( f( e_difficulty::discoverer, 7 ) == 0 );
+  REQUIRE( f( e_difficulty::discoverer, 8 ) == 0 );
+  REQUIRE( f( e_difficulty::discoverer, 9 ) == 0 );
+  REQUIRE( f( e_difficulty::discoverer, 10 ) == 1 );
+  REQUIRE( f( e_difficulty::discoverer, 11 ) == 1 );
+  REQUIRE( f( e_difficulty::discoverer, 12 ) == 1 );
+  REQUIRE( f( e_difficulty::discoverer, 13 ) == 1 );
+  REQUIRE( f( e_difficulty::discoverer, 14 ) == 1 );
+  REQUIRE( f( e_difficulty::discoverer, 15 ) == 1 );
+  REQUIRE( f( e_difficulty::discoverer, 16 ) == 1 );
+  REQUIRE( f( e_difficulty::discoverer, 17 ) == 1 );
+  REQUIRE( f( e_difficulty::discoverer, 18 ) == 1 );
+  REQUIRE( f( e_difficulty::discoverer, 19 ) == 1 );
+  REQUIRE( f( e_difficulty::discoverer, 20 ) == 2 );
+  REQUIRE( f( e_difficulty::discoverer, 21 ) == 2 );
+  REQUIRE( f( e_difficulty::discoverer, 22 ) == 2 );
+  REQUIRE( f( e_difficulty::discoverer, 23 ) == 2 );
+  REQUIRE( f( e_difficulty::discoverer, 24 ) == 2 );
+  REQUIRE( f( e_difficulty::discoverer, 25 ) == 2 );
+  REQUIRE( f( e_difficulty::discoverer, 26 ) == 2 );
+}
+
+TEST_CASE( "[sons-of-liberty] compute_colony_sons_of_liberty" ) {
+  World   W;
+  Colony& colony =
+      W.add_colony_with_new_unit( { .x = 1, .y = 1 } );
+  W.add_unit_indoors( colony.id, e_indoor_job::hammers );
+  W.add_unit_indoors( colony.id, e_indoor_job::hammers );
+  W.add_unit_indoors( colony.id, e_indoor_job::hammers );
+  Player&             player = W.default_player();
+  ColonySonsOfLiberty expected;
+
+  auto f = [&] {
+    return compute_colony_sons_of_liberty( player, colony );
+  };
+
+  expected = { .sol_integral_percent  = 0,
+               .rebels                = 0,
+               .tory_integral_percent = 100,
+               .tories                = 4 };
+  REQUIRE( f() == expected );
+
+  colony.sons_of_liberty.num_rebels_from_bells_only = 1.0;
+  expected = { .sol_integral_percent  = 25,
+               .rebels                = 1,
+               .tory_integral_percent = 75,
+               .tories                = 3 };
+  REQUIRE( f() == expected );
+
+  colony.sons_of_liberty.num_rebels_from_bells_only = 1.9;
+  expected = { .sol_integral_percent  = 48,
+               .rebels                = 1,
+               .tory_integral_percent = 52,
+               .tories                = 3 };
+  REQUIRE( f() == expected );
+
+  colony.sons_of_liberty.num_rebels_from_bells_only = 2.0;
+  expected = { .sol_integral_percent  = 50,
+               .rebels                = 2,
+               .tory_integral_percent = 50,
+               .tories                = 2 };
+  REQUIRE( f() == expected );
+
+  colony.sons_of_liberty.num_rebels_from_bells_only = 4.0;
+  expected = { .sol_integral_percent  = 100,
+               .rebels                = 4,
+               .tory_integral_percent = 0,
+               .tories                = 0 };
+  REQUIRE( f() == expected );
 }
 
 } // namespace

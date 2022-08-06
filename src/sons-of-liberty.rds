@@ -1,0 +1,20 @@
+# ===============================================================
+# sons-of-liberty.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-08-05.
+#
+# Description: Rds definitions for the sons-of-liberty module.
+#
+# ===============================================================
+namespace "rn"
+
+struct.ColonySonsOfLiberty {
+  sol_integral_percent 'int',
+  rebels 'int',
+  # These can be gotten by taking the inverse of the above two,
+  # but they are provided for convenience.
+  tory_integral_percent 'int',
+  tories 'int',
+}

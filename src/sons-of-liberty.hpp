@@ -12,11 +12,16 @@
 
 #include "core-config.hpp"
 
+// Rds
+#include "sons-of-liberty.rds.hpp"
+
 // ss
 #include "ss/difficulty.rds.hpp"
 
 namespace rn {
 
+struct Colony;
+struct Player;
 struct SettingsState;
 
 // This will be the true sons of liberty membership percent of
@@ -68,6 +73,12 @@ int compute_sons_of_liberty_bonus_indoor(
 int compute_sons_of_liberty_bonus_outdoor(
     int sons_of_liberty_integral_percent );
 
+// How many tory penalty levels is this colony being penalized
+// with. E.g. on Viceroy, 5 rebels will be at level 0, meaning no
+// penalty; 6 will be at level 1, 12 at level 2, etc.
+int compute_tory_penalty_level( e_difficulty difficulty,
+                                int          tory_number );
+
 // This will compute the production penalty to subtract as a re-
 // sult of the tory penalty.
 int compute_tory_penalty_indoor( e_difficulty difficulty,
@@ -86,5 +97,8 @@ int compute_tory_penalty_outdoor( e_difficulty difficulty,
 double evolve_num_rebels_from_bells_only(
     double num_rebels_from_bells_only, int bells_produced,
     int colony_population );
+
+ColonySonsOfLiberty compute_colony_sons_of_liberty(
+    Player const& player, Colony const& colony );
 
 } // namespace rn

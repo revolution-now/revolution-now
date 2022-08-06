@@ -10,8 +10,15 @@
 *****************************************************************/
 #include "sons-of-liberty.hpp"
 
+// Revolution Now
+#include "colony-mgr.hpp"
+
 // config
 #include "config/colony.rds.hpp"
+
+// ss
+#include "ss/colony.rds.hpp"
+#include "ss/player.rds.hpp"
 
 // base
 #include "base/error.hpp"
@@ -232,16 +239,47 @@ int compute_tory_penalty_outdoor( e_difficulty difficulty,
          ( tory_number / penalty_population );
 }
 
-int compute_tory_penalty_indoor( e_difficulty difficulty,
-                                 int          tory_number ) {
+int compute_tory_penalty_level( e_difficulty difficulty,
+                                int          tory_number ) {
   int const penalty_population =
       config_colony.tory_penalty_population[difficulty];
   // For each multiple of the penalty population that the colony
   // has that are tories, we produce one penalty point. Each
-  // point will be subtracted from the production of all
+  // point will be (after possibly scaling it) translate to a
+  // penalty that will be subtracted from the production of all
   // colonists in the colony.
+  return ( tory_number / penalty_population );
+}
+
+int compute_tory_penalty_indoor( e_difficulty difficulty,
+                                 int          tory_number ) {
   return config_colony.tory_production_penalty_indoor *
-         ( tory_number / penalty_population );
+         compute_tory_penalty_level( difficulty, tory_number );
+}
+
+ColonySonsOfLiberty compute_colony_sons_of_liberty(
+    Player const& player, Colony const& colony ) {
+  SonsOfLiberty const& sol        = colony.sons_of_liberty;
+  int const            population = colony_population( colony );
+  CHECK_GE( population, 0 );
+
+  int const sons_of_liberty_integral_percent =
+      compute_sons_of_liberty_integral_percent(
+          compute_sons_of_liberty_percent(
+              sol.num_rebels_from_bells_only, population,
+              player.fathers
+                  .has[e_founding_father::simon_bolivar] ) );
+  int const sons_of_liberty_number =
+      compute_sons_of_liberty_number(
+          sons_of_liberty_integral_percent, population );
+  int const tory_number =
+      compute_tory_number( sons_of_liberty_number, population );
+  return ColonySonsOfLiberty{
+      .sol_integral_percent = sons_of_liberty_integral_percent,
+      .rebels               = sons_of_liberty_number,
+      .tory_integral_percent =
+          100 - sons_of_liberty_integral_percent,
+      .tories = tory_number };
 }
 
 } // namespace rn
