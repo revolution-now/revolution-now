@@ -168,14 +168,6 @@ struct.UnitTypeAttributes {
 
   on_death 'UnitDeathAction_t',
 
-  # If the unit can build a road then this specifies how many
-  # turns it has to work for it to be completed.
-  road_turns 'base::maybe<int>',
-
-  # If the unit can plow then this specifies how many turns it
-  # has to work for it to be completed.
-  plow_turns 'base::maybe<int>',
-
   # Describes if/how this unit is a human. This is important to
   # know so that we can e.g. ensure that only human units can
   # found colonies. Derived types must always have "from_base"

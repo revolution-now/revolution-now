@@ -1,0 +1,58 @@
+# Number of turns taken for road orders by a non-expert pioneer
+# for each given terrain type. The hardy pioneer will complete it
+# in half that many turns (rounded down), with one turn minimum,
+# which is how the original game appears to do it.
+road_turns {
+  arctic:    4
+  boreal:    4
+  broadleaf: 4
+  conifer:   4
+  desert:    3
+  grassland: 3
+  hills:     4
+  marsh:     5
+  mixed:     4
+  mountains: 7
+  ocean:     0 # ignored.
+  plains:    3
+  prairie:   3
+  rain:      7
+  savannah:  3
+  scrub:     4
+  swamp:     7
+  tropical:  6
+  tundra:    4
+  wetland:   6
+}
+
+# Number of turns taken for a plow order by a non-expert pioneer
+# for each given terrain type, if the order is supported there.
+# For forested types that means clearing the forest, or irriga-
+# tion otherwise. The hardy pioneer will complete it in half that
+# many turns (rounded down), with one turn minimum, which is how
+# the original game appears to do it.
+plow_turns {
+  # The original game appears to allow plowing arctic squares,
+  # though there doesn't seem to be a reason for doing so because
+  # it doesn't enable anything to be produced there.
+  arctic:    6
+  boreal:    6
+  broadleaf: 6
+  conifer:   6
+  desert:    5
+  grassland: 5
+  hills:     null
+  marsh:     7
+  mixed:     6
+  mountains: null
+  ocean:     null
+  plains:    5
+  prairie:   5
+  rain:      9
+  savannah:  5
+  scrub:     6
+  swamp:     9
+  tropical:  8
+  tundra:    6
+  wetland:   8
+}

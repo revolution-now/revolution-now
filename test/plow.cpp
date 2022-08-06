@@ -103,10 +103,10 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 40 );
   REQUIRE( unit.movement_points() == 1 );
 
-  int const kTurnsRequired = 4;
+  int const kClearTurnsRequired = 6;
 
   // Do the work.
-  for( int i = 0; i < kTurnsRequired; ++i ) {
+  for( int i = 0; i < kClearTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
     perform_plow_work( units_state, terrain_state, map_updater,
@@ -155,8 +155,10 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 20 );
   REQUIRE( unit.movement_points() == 1 );
 
+  int const kPlowTurnsRequired = 5;
+
   // Do the work.
-  for( int i = 0; i < kTurnsRequired; ++i ) {
+  for( int i = 0; i < kPlowTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
     perform_plow_work( units_state, terrain_state, map_updater,
@@ -188,6 +190,87 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 0 );
+  REQUIRE( unit.movement_points() == 1 );
+}
+
+TEST_CASE( "[src/plow] plow_square hardy_pioneer" ) {
+  TerrainState           terrain_state;
+  NonRenderingMapUpdater map_updater( terrain_state );
+  UnitsState             units_state;
+  prepare_world( terrain_state, units_state, e_terrain::desert,
+                 e_unit_type::hardy_pioneer );
+
+  UnitId           id       = 1;
+  Unit&            unit     = units_state.unit_for( id );
+  Coord            location = units_state.coord_for( id );
+  MapSquare const& square   = terrain_state.square_at( kSquare );
+  REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
+  REQUIRE( location == kSquare );
+
+  // Before starting plowing work.
+  REQUIRE( can_plow( unit ) == true );
+  REQUIRE( can_plow( terrain_state, kSquare ) == true );
+  REQUIRE( !has_forest( square ) );
+  REQUIRE( can_irrigate( square ) == true );
+  REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
+  REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
+  REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
+  REQUIRE( unit.turns_worked() == 0 );
+  REQUIRE( unit.orders() == e_unit_orders::none );
+  REQUIRE( unit.composition()[e_unit_inventory::tools] == 100 );
+  REQUIRE( unit.movement_points() == 1 );
+
+  // Tell unit to start plowing work.
+  unit.plow();
+  unit.set_turns_worked( 0 );
+  REQUIRE( can_plow( unit ) == true );
+  REQUIRE( can_plow( terrain_state, kSquare ) == true );
+  REQUIRE( !has_forest( square ) );
+  REQUIRE( can_irrigate( square ) == true );
+  REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
+  REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
+  REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
+  REQUIRE( unit.turns_worked() == 0 );
+  REQUIRE( unit.orders() == e_unit_orders::plow );
+  REQUIRE( unit.composition()[e_unit_inventory::tools] == 100 );
+  REQUIRE( unit.movement_points() == 1 );
+
+  int const kPlowTurnsRequired = 2;
+
+  // Do the work.
+  for( int i = 0; i < kPlowTurnsRequired; ++i ) {
+    INFO( fmt::format( "i={}", i ) );
+    unit.new_turn();
+    perform_plow_work( units_state, terrain_state, map_updater,
+                       unit );
+    REQUIRE( can_plow( unit ) == true );
+    REQUIRE( can_plow( terrain_state, kSquare ) == true );
+    REQUIRE( !has_forest( square ) );
+    REQUIRE( can_irrigate( square ) == true );
+    REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
+    REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
+    REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
+    REQUIRE( unit.turns_worked() == i + 1 );
+    REQUIRE( unit.orders() == e_unit_orders::plow );
+    REQUIRE( unit.composition()[e_unit_inventory::tools] ==
+             100 );
+    REQUIRE( unit.movement_points() == 0 );
+  }
+
+  // Finished clearing.
+  unit.new_turn();
+  perform_plow_work( units_state, terrain_state, map_updater,
+                     unit );
+  REQUIRE( can_plow( unit ) == true );
+  REQUIRE( can_plow( terrain_state, kSquare ) == false );
+  REQUIRE( !has_forest( square ) );
+  REQUIRE( can_irrigate( square ) == false );
+  REQUIRE( can_irrigate( terrain_state, kSquare ) == false );
+  REQUIRE( has_irrigation( terrain_state, kSquare ) == true );
+  REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
+  REQUIRE( unit.turns_worked() == 0 );
+  REQUIRE( unit.orders() == e_unit_orders::none );
+  REQUIRE( unit.composition()[e_unit_inventory::tools] == 80 );
   REQUIRE( unit.movement_points() == 1 );
 }
 
@@ -239,7 +322,7 @@ TEST_CASE( "[src/plow] plow_square with cancellation" ) {
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 40 );
   REQUIRE( unit.movement_points() == 1 );
 
-  int const kTurnsRequired = 4;
+  int const kTurnsRequired = 5;
 
   // Do some of the work.
   for( int i = 0; i < kTurnsRequired - 2; ++i ) {

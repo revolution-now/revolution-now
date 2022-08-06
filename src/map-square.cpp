@@ -106,10 +106,6 @@ void irrigate( MapSquare& square ) {
   square.irrigation = true;
 }
 
-bool can_plow( MapSquare const& square ) {
-  return can_irrigate( square ) || has_forest( square );
-}
-
 MapSquare map_square_for_terrain( e_terrain terrain ) {
   if( terrain == e_terrain::hills )
     return MapSquare{ .surface = e_surface::land,

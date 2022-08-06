@@ -1,0 +1,43 @@
+# ===============================================================
+# orders.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-08-05.
+#
+# Description: Config info for unit orders behavior.
+#
+# ===============================================================
+# ss
+include "ss/terrain-enums.rds.hpp"
+
+# refl
+include "refl/cdr.hpp"
+include "refl/enum-map.hpp"
+
+# Cdr.
+include "cdr/ext-builtin.hpp"
+include "cdr/ext-std.hpp"
+
+# base
+include "base/maybe.hpp"
+
+namespace "rn"
+
+struct.config_orders_t {
+  # Number of turns taken for road orders by a non-expert pioneer
+  # for each given terrain type. The hardy pioneer will complete
+  # it in half that many turns (rounded down), with one turn min-
+  # imum, which is how the original game appears to do it.
+  road_turns 'refl::enum_map<e_terrain, int>',
+
+  # Number of turns taken for a plow order by a non-expert pio-
+  # neer for each given terrain type, if the order is supported
+  # there. For forested types that means clearing the forest, or
+  # irrigation otherwise. The hardy pioneer will complete it in
+  # half that many turns (rounded down), with one turn minimum,
+  # which is how the original game appears to do it.
+  plow_turns 'refl::enum_map<e_terrain, base::maybe<int>>',
+}
+
+config.orders {}

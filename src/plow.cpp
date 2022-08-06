@@ -18,6 +18,7 @@
 #include "tiles.hpp"
 
 // config
+#include "config/orders.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
@@ -50,6 +51,17 @@ void clear_forest( IMapUpdater& map_updater, Coord tile ) {
   } );
 }
 
+int turns_required( e_unit_type unit_type, e_terrain terrain ) {
+  UNWRAP_CHECK( for_terrain, config_orders.plow_turns[terrain] );
+  switch( unit_type ) {
+    case e_unit_type::pioneer: return for_terrain;
+    case e_unit_type::hardy_pioneer:
+      return std::max( for_terrain / 2, 1 );
+    default: break;
+  }
+  FATAL( "unit type {} cannot plow/clear.", unit_type );
+}
+
 } // namespace
 
 /****************************************************************
@@ -77,7 +89,9 @@ void plow_square( TerrainState const& terrain_state,
 
 bool can_plow( TerrainState const& terrain_state, Coord tile ) {
   MapSquare const& square = terrain_state.square_at( tile );
-  return can_plow( square );
+  if( square.irrigation ) return false;
+  return config_orders.plow_turns[effective_terrain( square )]
+      .has_value();
 }
 
 bool can_irrigate( TerrainState const& terrain_state,
@@ -122,8 +136,10 @@ void perform_plow_work( UnitsState const&   units_state,
     return;
   }
   // The unit is still plowing.
-  int turns_worked = unit.turns_worked();
-  UNWRAP_CHECK( plow_turns, unit.desc().plow_turns );
+  int       turns_worked = unit.turns_worked();
+  int const plow_turns   = turns_required(
+        unit.type(),
+        effective_terrain( terrain_state.square_at( location ) ) );
   CHECK_LE( turns_worked, plow_turns );
   if( turns_worked == plow_turns ) {
     // We're finished plowing.
@@ -141,7 +157,8 @@ void perform_plow_work( UnitsState const&   units_state,
 }
 
 bool can_plow( Unit const& unit ) {
-  return unit.desc().plow_turns.has_value();
+  return unit.type() == e_unit_type::pioneer ||
+         unit.type() == e_unit_type::hardy_pioneer;
 }
 
 /****************************************************************

@@ -36,9 +36,6 @@ MovementPoints movement_points_required(
 
 e_terrain effective_terrain( MapSquare const& square );
 
-// This includes either clearing a forest or irrigating.
-bool can_plow( MapSquare const& square );
-
 bool has_forest( MapSquare const& square );
 
 // Will check-fail if the square has no forest.

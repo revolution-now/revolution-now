@@ -53,7 +53,7 @@ void prepare_world( TerrainState& terrain_state,
                                       id, kSquare );
 }
 
-TEST_CASE( "[src/road] perform_road_work 100 tools" ) {
+TEST_CASE( "[road] perform_road_work 100 tools" ) {
   TerrainState           terrain_state;
   NonRenderingMapUpdater map_updater( terrain_state );
   UnitsState             units_state;
@@ -84,7 +84,7 @@ TEST_CASE( "[src/road] perform_road_work 100 tools" ) {
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 100 );
   REQUIRE( unit.movement_points() == 1 );
 
-  int const kTurnsRequired = 4;
+  int const kTurnsRequired = 3;
 
   // Do the work.
   for( int i = 0; i < kTurnsRequired; ++i ) {
@@ -113,7 +113,67 @@ TEST_CASE( "[src/road] perform_road_work 100 tools" ) {
   REQUIRE( unit.movement_points() == 1 );
 }
 
-TEST_CASE( "[src/road] perform_road_work 20 tools" ) {
+TEST_CASE( "[road] perform_road_work hardy_pioneer" ) {
+  TerrainState           terrain_state;
+  NonRenderingMapUpdater map_updater( terrain_state );
+  UnitsState             units_state;
+  prepare_world( terrain_state, units_state,
+                 e_unit_type::hardy_pioneer );
+
+  UnitId id       = 1;
+  Unit&  unit     = units_state.unit_for( id );
+  Coord  location = units_state.coord_for( id );
+  REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
+  REQUIRE( location == kSquare );
+
+  // Before starting road work.
+  REQUIRE( has_road( terrain_state, kSquare ) == false );
+  REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
+  REQUIRE( unit.turns_worked() == 0 );
+  REQUIRE( unit.orders() == e_unit_orders::none );
+  REQUIRE( unit.composition()[e_unit_inventory::tools] == 100 );
+  REQUIRE( unit.movement_points() == 1 );
+
+  // Tell unit to start road work.
+  unit.build_road();
+  unit.set_turns_worked( 0 );
+  REQUIRE( has_road( terrain_state, kSquare ) == false );
+  REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
+  REQUIRE( unit.turns_worked() == 0 );
+  REQUIRE( unit.orders() == e_unit_orders::road );
+  REQUIRE( unit.composition()[e_unit_inventory::tools] == 100 );
+  REQUIRE( unit.movement_points() == 1 );
+
+  int const kTurnsRequired = 1;
+
+  // Do the work.
+  for( int i = 0; i < kTurnsRequired; ++i ) {
+    INFO( fmt::format( "i={}", i ) );
+    unit.new_turn();
+    perform_road_work( units_state, terrain_state, map_updater,
+                       unit );
+    REQUIRE( has_road( terrain_state, kSquare ) == false );
+    REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
+    REQUIRE( unit.turns_worked() == i + 1 );
+    REQUIRE( unit.orders() == e_unit_orders::road );
+    REQUIRE( unit.composition()[e_unit_inventory::tools] ==
+             100 );
+    REQUIRE( unit.movement_points() == 0 );
+  }
+
+  // Finished.
+  unit.new_turn();
+  perform_road_work( units_state, terrain_state, map_updater,
+                     unit );
+  REQUIRE( has_road( terrain_state, kSquare ) == true );
+  REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
+  REQUIRE( unit.turns_worked() == 0 );
+  REQUIRE( unit.orders() == e_unit_orders::none );
+  REQUIRE( unit.composition()[e_unit_inventory::tools] == 80 );
+  REQUIRE( unit.movement_points() == 1 );
+}
+
+TEST_CASE( "[road] perform_road_work 20 tools" ) {
   TerrainState           terrain_state;
   NonRenderingMapUpdater map_updater( terrain_state );
   UnitsState             units_state;
@@ -150,7 +210,7 @@ TEST_CASE( "[src/road] perform_road_work 20 tools" ) {
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 20 );
   REQUIRE( unit.movement_points() == 1 );
 
-  int const kTurnsRequired = 4;
+  int const kTurnsRequired = 3;
 
   // Do the work.
   for( int i = 0; i < kTurnsRequired; ++i ) {
@@ -178,8 +238,7 @@ TEST_CASE( "[src/road] perform_road_work 20 tools" ) {
   REQUIRE( unit.movement_points() == 1 );
 }
 
-TEST_CASE(
-    "[src/road] perform_road_work hardy_pioneer 20 tools" ) {
+TEST_CASE( "[road] perform_road_work hardy_pioneer 20 tools" ) {
   TerrainState           terrain_state;
   NonRenderingMapUpdater map_updater( terrain_state );
   UnitsState             units_state;
@@ -244,7 +303,7 @@ TEST_CASE(
   REQUIRE( unit.movement_points() == 1 );
 }
 
-TEST_CASE( "[src/road] perform_road_work with cancel" ) {
+TEST_CASE( "[road] perform_road_work with cancel" ) {
   TerrainState           terrain_state;
   NonRenderingMapUpdater map_updater( terrain_state );
   UnitsState             units_state;

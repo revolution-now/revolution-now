@@ -16,6 +16,7 @@
 #include "tiles.hpp"
 
 // config
+#include "config/orders.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
@@ -35,7 +36,20 @@ using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+int turns_required( e_unit_type unit_type, e_terrain terrain ) {
+  int for_terrain = config_orders.road_turns[terrain];
+  switch( unit_type ) {
+    case e_unit_type::pioneer: return for_terrain;
+    case e_unit_type::hardy_pioneer:
+      return std::max( for_terrain / 2, 1 );
+    default: break;
+  }
+  FATAL( "unit type {} cannot build a road.", unit_type );
+}
+
+} // namespace
 
 /****************************************************************
 ** Road State
@@ -86,8 +100,10 @@ void perform_road_work( UnitsState const&   units_state,
     return;
   }
   // The unit is still building the road.
-  int turns_worked = unit.turns_worked();
-  UNWRAP_CHECK( road_turns, unit.desc().road_turns );
+  int       turns_worked = unit.turns_worked();
+  int const road_turns   = turns_required(
+        unit.type(),
+        effective_terrain( terrain_state.square_at( location ) ) );
   CHECK_LE( turns_worked, road_turns );
   if( turns_worked == road_turns ) {
     // We're finished building the road.
@@ -105,7 +121,8 @@ void perform_road_work( UnitsState const&   units_state,
 }
 
 bool can_build_road( Unit const& unit ) {
-  return unit.desc().road_turns.has_value();
+  return unit.type() == e_unit_type::pioneer ||
+         unit.type() == e_unit_type::hardy_pioneer;
 }
 
 /****************************************************************

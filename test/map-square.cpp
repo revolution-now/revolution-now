@@ -255,58 +255,6 @@ TEST_CASE( "[map-square] effective_terrain" ) {
   REQUIRE( effective_terrain( square ) == expected );
 }
 
-TEST_CASE( "[map-square] can_plow" ) {
-  MapSquare square;
-  bool      expected;
-
-  square = MapSquare{
-      .surface         = e_surface::water,
-      .ground_resource = e_natural_resource::fish,
-  };
-  expected = false;
-  REQUIRE( can_plow( square ) == expected );
-
-  square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::savannah,
-      .road    = true,
-  };
-  expected = true;
-  REQUIRE( can_plow( square ) == expected );
-
-  square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::savannah,
-      .overlay = e_land_overlay::forest,
-      .road    = true,
-  };
-  expected = true;
-  REQUIRE( can_plow( square ) == expected );
-
-  square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::savannah,
-      .overlay = e_land_overlay::hills,
-  };
-  expected = false;
-  REQUIRE( can_plow( square ) == expected );
-
-  square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::savannah,
-      .overlay = e_land_overlay::mountains,
-  };
-  expected = false;
-  REQUIRE( can_plow( square ) == expected );
-
-  square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::arctic,
-  };
-  expected = false;
-  REQUIRE( can_plow( square ) == expected );
-}
-
 TEST_CASE( "[map-square] has_forest" ) {
   MapSquare square;
   bool      expected;
