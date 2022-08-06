@@ -39,6 +39,14 @@ sheets {
       }
     }
     {
+      img_path: assets/art/tiles/colony-view.png
+      sprite_size: { w: 16, h: 16 }
+      sprites {
+        rebel_flag: { y: 0, x: 0 }
+        crown:      { y: 0, x: 1 }
+      }
+    }
+    {
       img_path: assets/art/tiles/terrain.png
       sprite_size: { w: 32, h: 32 }
       sprites {
