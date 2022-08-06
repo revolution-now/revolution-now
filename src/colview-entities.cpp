@@ -17,6 +17,7 @@
 #include "colony.hpp"
 #include "colview-buildings.hpp"
 #include "colview-land.hpp"
+#include "colview-population.hpp"
 #include "commodity.hpp"
 #include "compositor.hpp"
 #include "construction.hpp"
@@ -146,7 +147,7 @@ wait<bool> check_abandon( Colony const& colony, IGui& gui ) {
       .no_comes_first = true,
   };
   ui::e_confirm res = co_await gui.yes_no( config );
-  co_return( res == ui::e_confirm::no );
+  co_return ( res == ui::e_confirm::no );
 }
 
 maybe<string> check_seige() {
@@ -371,50 +372,6 @@ class MarketCommodities : public ui::View,
  private:
   W                block_width_;
   maybe<Commodity> dragging_;
-};
-
-class PopulationView : public ui::View, public ColonySubView {
- public:
-  static unique_ptr<PopulationView> create( SS& ss, TS& ts,
-                                            Colony& colony,
-                                            Delta   size ) {
-    return make_unique<PopulationView>( ss, ts, colony, size );
-  }
-
-  PopulationView( SS& ss, TS& ts, Colony& colony, Delta size )
-    : ColonySubView( ss, ts, colony ), size_( size ) {}
-
-  Delta delta() const override { return size_; }
-
-  maybe<e_colview_entity> entity() const override {
-    return e_colview_entity::population;
-  }
-
-  ui::View&       view() noexcept override { return *this; }
-  ui::View const& view() const noexcept override {
-    return *this;
-  }
-
-  void draw( rr::Renderer& renderer,
-             Coord         coord ) const override {
-    rr::Painter painter = renderer.painter();
-    painter.draw_empty_rect( rect( coord ).with_inc_size(),
-                             rr::Painter::e_border_mode::inside,
-                             gfx::pixel::black() );
-    auto const& colony   = ss_.colonies.colony_for( colony_.id );
-    vector<UnitId> units = colony_units_all( colony );
-    auto           unit_pos = coord + Delta{ .h = 16 };
-    unit_pos.x -= 3;
-    for( UnitId unit_id : units ) {
-      render_unit( renderer, unit_pos,
-                   ss_.units.unit_for( unit_id ),
-                   UnitRenderOptions{ .flag = false } );
-      unit_pos.x += 15;
-    }
-  }
-
- private:
-  Delta size_;
 };
 
 class CargoView : public ui::View,
@@ -1406,7 +1363,7 @@ void recomposite( SS& ss, TS& ts, Colony& colony,
 
   // [Population] -----------------------------------------------
   auto population_view = PopulationView::create(
-      ss, ts, colony,
+      ss, ts, colony, player,
       middle_strip_size.with_width( middle_strip_size.w / 3 ) );
   g_composition.entities[e_colview_entity::population] =
       population_view.get();
