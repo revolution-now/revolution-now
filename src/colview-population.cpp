@@ -39,9 +39,6 @@ void PopulationView::draw_sons_of_liberty(
   // This is the number of pixels of padding to add on each side
   // of the flag and crown icons.
   int constexpr kIconPadding = 4;
-  pos.x += kIconPadding;
-  render_sprite( painter, pos, e_tile::rebel_flag );
-  pos.x += sprite_size( e_tile::rebel_flag ).w + kIconPadding;
   ColonySonsOfLiberty const info =
       compute_colony_sons_of_liberty( player_, colony_ );
   gfx::pixel text_color         = gfx::pixel::white();
@@ -73,13 +70,20 @@ void PopulationView::draw_sons_of_liberty(
     }
   }
   int const kTextVerticalOffset = 4;
-  {
+  if( info.sol_integral_percent > 0 ) {
+    pos.x += kIconPadding;
+    render_sprite( painter, pos, e_tile::rebel_flag );
+    pos.x += sprite_size( e_tile::rebel_flag ).w + kIconPadding;
     rr::Typer typer = renderer.typer(
         pos + gfx::size{ .h = kTextVerticalOffset },
         text_color );
     typer.write( fmt::format(
         "{}% ({})", info.sol_integral_percent, info.rebels ) );
   }
+  if( info.tory_integral_percent == 0 )
+    // The original game does not draw the crown when there are
+    // no tories.
+    return;
   string const tories_str = fmt::format(
       "{}% ({})", info.tory_integral_percent, info.tories );
   gfx::size const tories_text_width =
