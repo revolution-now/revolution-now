@@ -68,10 +68,8 @@ int compute_tory_number( int sons_of_liberty_number,
 // UI, and we won't have to worry about floating point rounding
 // errors below. This way, we easily guarantee that the bonus is
 // always consistent with what the player sees in the UI.
-int compute_sons_of_liberty_bonus_indoor(
-    int sons_of_liberty_integral_percent );
-int compute_sons_of_liberty_bonus_outdoor(
-    int sons_of_liberty_integral_percent );
+int compute_sons_of_liberty_bonus(
+    int sons_of_liberty_integral_percent, bool is_expert );
 
 // How many tory penalty levels is this colony being penalized
 // with. E.g. on Viceroy, 5 rebels will be at level 0, meaning no
@@ -81,10 +79,8 @@ int compute_tory_penalty_level( e_difficulty difficulty,
 
 // This will compute the production penalty to subtract as a re-
 // sult of the tory penalty.
-int compute_tory_penalty_indoor( e_difficulty difficulty,
-                                 int          tory_number );
-int compute_tory_penalty_outdoor( e_difficulty difficulty,
-                                  int          tory_number );
+int compute_tory_penalty( e_difficulty difficulty,
+                          int          tory_number );
 
 // This will take the (fractional) number of rebels in a colony
 // as computed without the Bolivar bonus and will evolve it one

@@ -207,17 +207,17 @@ wait<bool> present_colony_update(
       if( o.from < 50 && o.to >= 50 )
         msg += fmt::format(
             "  All colonists will now receive a production "
-            "bonus: @[H]+{}@[] for indoor workers and "
-            "@[H]+{}@[] for outdoor workers.",
-            config_colony.sons_of_liberty_indoor_50_bonus,
-            config_colony.sons_of_liberty_outdoor_50_bonus );
+            "bonus: @[H]+{}@[] for non-expert workers and "
+            "@[H]+{}@[] for expert workers.",
+            config_colony.sons_of_liberty_50_bonus_non_expert,
+            config_colony.sons_of_liberty_50_bonus_expert );
       if( o.from < 100 && o.to == 100 )
         msg += fmt::format(
             "  All colonists will now receive a production "
-            "bonus: @[H]+{}@[] for indoor workers and "
-            "@[H]+{}@[] for outdoor workers.",
-            config_colony.sons_of_liberty_indoor_100_bonus,
-            config_colony.sons_of_liberty_outdoor_100_bonus );
+            "bonus: @[H]+{}@[] for non-expert workers and "
+            "@[H]+{}@[] for expert workers.",
+            config_colony.sons_of_liberty_100_bonus_non_expert,
+            config_colony.sons_of_liberty_100_bonus_expert );
       break;
     }
     case ColonyNotification::e::sons_of_liberty_decreased: {
@@ -247,7 +247,7 @@ wait<bool> present_colony_update(
         co_await gui.choice( { .msg     = msg,
                                .options = std::move( choices ),
                                .key_on_escape = "no_zoom" } );
-    co_return ( res == "zoom" );
+    co_return( res == "zoom" );
   }
   co_await gui.message_box( msg );
   co_return false;

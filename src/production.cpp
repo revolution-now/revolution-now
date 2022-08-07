@@ -48,17 +48,13 @@ namespace {
 ** BellsModifiers
 *****************************************************************/
 struct BellsModifiers {
-  void apply_outdoor( int& to ) const {
+  void apply( e_unit_type type, int& to ) const {
+    bool const is_expert =
+        unit_attr( type ).expertise.has_value();
     if( to == 0 ) return;
-    to += sons_of_liberty_bonus_outdoor;
-    to -= tory_penalty_outdoor;
-    if( to < 0 ) to = 0;
-  }
-
-  void apply_indoor( int& to ) const {
-    if( to == 0 ) return;
-    to += sons_of_liberty_bonus_indoor;
-    to -= tory_penalty_indoor;
+    to += is_expert ? sons_of_liberty_bonus_expert
+                    : sons_of_liberty_bonus_non_expert;
+    to -= tory_penalty;
     if( to < 0 ) to = 0;
   }
 
@@ -66,10 +62,9 @@ struct BellsModifiers {
   // this object; to apply the bonuses use the above apply
   // methods so that we ensure that the correct logic gets ap-
   // plied.
-  int sons_of_liberty_bonus_outdoor = 0;
-  int sons_of_liberty_bonus_indoor  = 0;
-  int tory_penalty_outdoor          = 0;
-  int tory_penalty_indoor           = 0;
+  int sons_of_liberty_bonus_non_expert = 0;
+  int sons_of_liberty_bonus_expert     = 0;
+  int tory_penalty                     = 0;
 };
 
 /****************************************************************
@@ -265,7 +260,7 @@ int bells_production( UnitsState const& units_state,
     int unit_quantity =
         base_indoor_production_for_colonist_indoor_job(
             unit_type );
-    bells_modifiers.apply_indoor( unit_quantity );
+    bells_modifiers.apply( unit_type, unit_quantity );
     if( indoor_unit_is_expert( e_indoor_job::bells, unit_type ) )
       apply_int_percent_bonus_rnd_down(
           unit_quantity,
@@ -364,7 +359,7 @@ int crosses_production_for_colony(
       apply_int_percent_bonus_rnd_down(
           unit_quantity,
           config_production.indoor_production.expert_bonus );
-    bells_modifiers.apply_indoor( unit_quantity );
+    bells_modifiers.apply( unit_type, unit_quantity );
     apply_int_percent_bonus_rnd_down(
         unit_quantity,
         config_production.building_production_bonus[building] );
@@ -391,11 +386,12 @@ void compute_food_production(
   for( e_direction d : refl::enum_values<e_direction> ) {
     if( maybe<OutdoorUnit> const& unit = colony.outdoor_jobs[d];
         unit.has_value() && unit->job == e_outdoor_job::food ) {
+      e_unit_type const unit_type =
+          units_state.unit_for( unit->unit_id ).type();
       int quantity = production_on_square(
-          e_outdoor_job::food, terrain_state,
-          units_state.unit_for( unit->unit_id ).type(),
+          e_outdoor_job::food, terrain_state, unit_type,
           colony.location.moved( d ) );
-      bells_modifiers.apply_outdoor( quantity );
+      bells_modifiers.apply( unit_type, quantity );
       out.corn_produced += quantity;
       out_land_production[d] = SquareProduction{
           .what = e_outdoor_job::food, .quantity = quantity };
@@ -407,11 +403,12 @@ void compute_food_production(
   for( e_direction d : refl::enum_values<e_direction> ) {
     if( maybe<OutdoorUnit> const& unit = colony.outdoor_jobs[d];
         unit.has_value() && unit->job == e_outdoor_job::fish ) {
+      e_unit_type const unit_type =
+          units_state.unit_for( unit->unit_id ).type();
       int quantity = production_on_square(
-          e_outdoor_job::fish, terrain_state,
-          units_state.unit_for( unit->unit_id ).type(),
+          e_outdoor_job::fish, terrain_state, unit_type,
           colony.location.moved( d ) );
-      bells_modifiers.apply_outdoor( quantity );
+      bells_modifiers.apply( unit_type, quantity );
       out.fish_produced += quantity;
       out_land_production[d] = SquareProduction{
           .what = e_outdoor_job::fish, .quantity = quantity };
@@ -525,11 +522,12 @@ void compute_raw(
   for( e_direction d : refl::enum_values<e_direction> ) {
     if( maybe<OutdoorUnit> const& unit = colony.outdoor_jobs[d];
         unit.has_value() && unit->job == outdoor_job ) {
+      e_unit_type const unit_type =
+          units_state.unit_for( unit->unit_id ).type();
       int quantity = production_on_square(
-          outdoor_job, terrain_state,
-          units_state.unit_for( unit->unit_id ).type(),
+          outdoor_job, terrain_state, unit_type,
           colony.location.moved( d ) );
-      bells_modifiers.apply_outdoor( quantity );
+      bells_modifiers.apply( unit_type, quantity );
       out.raw_produced += quantity;
       out_land_production[d] = SquareProduction{
           .what = outdoor_job, .quantity = quantity };
@@ -589,7 +587,7 @@ void compute_product( Colony const&          colony,
     apply_int_percent_bonus_rnd_down(
         unit_quantity_put,
         config_production.building_production_bonus[*building] );
-    bells_modifiers.apply_indoor( unit_quantity_put );
+    bells_modifiers.apply( unit_type, unit_quantity_put );
     // Note the factory bonus may be zero.
     apply_int_percent_bonus_rnd_down(
         unit_quantity_put,
@@ -788,10 +786,14 @@ void fill_in_center_square(
   MapSquare const& square =
       ss.terrain.square_at( colony.location );
 
+  // Bonuses/penalties will be computed as if the center square
+  // is being worked by this unit type.
+  e_unit_type const unit_type = e_unit_type::free_colonist;
+
   // Food.
   pr.center_food_production = food_production_on_center_square(
       square, ss.settings.difficulty );
-  bells_modifiers.apply_outdoor( pr.center_food_production );
+  bells_modifiers.apply( unit_type, pr.center_food_production );
 
   // Secondary good.
   maybe<e_outdoor_commons_secondary_job> center_secondary =
@@ -804,8 +806,8 @@ void fill_in_center_square(
       // to the total calculations.
       .quantity = commodity_production_on_center_square(
           *center_secondary, square, ss.settings.difficulty ) };
-  bells_modifiers.apply_outdoor(
-      pr.center_extra_production->quantity );
+  bells_modifiers.apply( unit_type,
+                         pr.center_extra_production->quantity );
 }
 
 } // namespace
@@ -932,25 +934,22 @@ BellsModifiers compute_bells_modifiers(
   int const tory_number =
       compute_tory_number( sons_of_liberty_number, population );
 
-  int const tory_penalty_outdoor =
-      compute_tory_penalty_outdoor( difficulty, tory_number );
-  int const tory_penalty_indoor =
-      compute_tory_penalty_indoor( difficulty, tory_number );
+  int const tory_penalty =
+      compute_tory_penalty( difficulty, tory_number );
 
-  int const sons_of_liberty_bonus_outdoor =
-      compute_sons_of_liberty_bonus_outdoor(
-          sons_of_liberty_integral_percent );
-  int const sons_of_liberty_bonus_indoor =
-      compute_sons_of_liberty_bonus_indoor(
-          sons_of_liberty_integral_percent );
+  int const sons_of_liberty_bonus_non_expert =
+      compute_sons_of_liberty_bonus(
+          sons_of_liberty_integral_percent,
+          /*is_expert=*/false );
+  int const sons_of_liberty_bonus_expert =
+      compute_sons_of_liberty_bonus(
+          sons_of_liberty_integral_percent, /*is_expert=*/true );
 
-  return BellsModifiers{
-      .sons_of_liberty_bonus_outdoor =
-          sons_of_liberty_bonus_outdoor,
-      .sons_of_liberty_bonus_indoor =
-          sons_of_liberty_bonus_indoor,
-      .tory_penalty_outdoor = tory_penalty_outdoor,
-      .tory_penalty_indoor  = tory_penalty_indoor };
+  return BellsModifiers{ .sons_of_liberty_bonus_non_expert =
+                             sons_of_liberty_bonus_non_expert,
+                         .sons_of_liberty_bonus_expert =
+                             sons_of_liberty_bonus_expert,
+                         .tory_penalty = tory_penalty };
 }
 
 ColonyProduction production_for_colony( SSConst const& ss,

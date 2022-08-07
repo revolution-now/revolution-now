@@ -289,12 +289,27 @@ TEST_CASE(
   REQUIRE( f( 1.0 ) == 100 );
 }
 
-TEST_CASE(
-    "[sons-of-liberty] compute_sons_of_liberty_bonus_outdoor" ) {
+TEST_CASE( "[sons-of-liberty] compute_sons_of_liberty_bonus" ) {
+  bool is_expert = false;
   auto f = [&]( double sons_of_liberty_integral_percent ) {
-    return compute_sons_of_liberty_bonus_outdoor(
-        sons_of_liberty_integral_percent );
+    return compute_sons_of_liberty_bonus(
+        sons_of_liberty_integral_percent, is_expert );
   };
+
+  REQUIRE( f( 0 ) == 0 );
+  REQUIRE( f( 1 ) == 0 );
+  REQUIRE( f( 5 ) == 0 );
+  REQUIRE( f( 15 ) == 0 );
+  REQUIRE( f( 40 ) == 0 );
+  REQUIRE( f( 49 ) == 0 );
+  REQUIRE( f( 50 ) == 1 );
+  REQUIRE( f( 51 ) == 1 );
+  REQUIRE( f( 70 ) == 1 );
+  REQUIRE( f( 90 ) == 1 );
+  REQUIRE( f( 99 ) == 1 );
+  REQUIRE( f( 100 ) == 2 );
+
+  is_expert = true;
 
   REQUIRE( f( 0 ) == 0 );
   REQUIRE( f( 1 ) == 0 );
@@ -310,97 +325,71 @@ TEST_CASE(
   REQUIRE( f( 100 ) == 4 );
 }
 
-TEST_CASE(
-    "[sons-of-liberty] compute_sons_of_liberty_bonus_indoor" ) {
-  auto f = [&]( double sons_of_liberty_integral_percent ) {
-    return compute_sons_of_liberty_bonus_indoor(
-        sons_of_liberty_integral_percent );
-  };
-
-  REQUIRE( f( 0 ) == 0 );
-  REQUIRE( f( 1 ) == 0 );
-  REQUIRE( f( 5 ) == 0 );
-  REQUIRE( f( 15 ) == 0 );
-  REQUIRE( f( 40 ) == 0 );
-  REQUIRE( f( 49 ) == 0 );
-  REQUIRE( f( 50 ) == 1 );
-  REQUIRE( f( 51 ) == 1 );
-  REQUIRE( f( 70 ) == 1 );
-  REQUIRE( f( 90 ) == 1 );
-  REQUIRE( f( 99 ) == 1 );
-  REQUIRE( f( 100 ) == 2 );
-}
-
 TEST_CASE( "[sons-of-liberty] compute_tory_penalty" ) {
   e_difficulty difficulty = {};
 
   auto f = [&]( int tory_number ) {
-    return compute_tory_penalty_indoor( difficulty,
-                                        tory_number );
-  };
-  auto g = [&]( int tory_number ) {
-    return compute_tory_penalty_outdoor( difficulty,
-                                         tory_number );
+    return compute_tory_penalty( difficulty, tory_number );
   };
 
   SECTION( "discoverer" ) {
     difficulty = e_difficulty::discoverer;
     REQUIRE( f( 0 ) == 0 );
-    REQUIRE( g( 1 ) == 0 );
+    REQUIRE( f( 1 ) == 0 );
     REQUIRE( f( 2 ) == 0 );
-    REQUIRE( g( 5 ) == 0 );
+    REQUIRE( f( 5 ) == 0 );
     REQUIRE( f( 8 ) == 0 );
-    REQUIRE( g( 9 ) == 0 );
+    REQUIRE( f( 9 ) == 0 );
     REQUIRE( f( 10 ) == 1 );
-    REQUIRE( g( 12 ) == 1 );
+    REQUIRE( f( 12 ) == 1 );
     REQUIRE( f( 19 ) == 1 );
-    REQUIRE( g( 20 ) == 2 );
+    REQUIRE( f( 20 ) == 2 );
     REQUIRE( f( 29 ) == 2 );
-    REQUIRE( g( 30 ) == 3 );
+    REQUIRE( f( 30 ) == 3 );
   }
 
   SECTION( "conquistador" ) {
     difficulty = e_difficulty::conquistador;
     REQUIRE( f( 0 ) == 0 );
-    REQUIRE( g( 1 ) == 0 );
+    REQUIRE( f( 1 ) == 0 );
     REQUIRE( f( 2 ) == 0 );
-    REQUIRE( g( 5 ) == 0 );
+    REQUIRE( f( 5 ) == 0 );
     REQUIRE( f( 7 ) == 0 );
-    REQUIRE( g( 8 ) == 1 );
+    REQUIRE( f( 8 ) == 1 );
     REQUIRE( f( 9 ) == 1 );
-    REQUIRE( g( 10 ) == 1 );
+    REQUIRE( f( 10 ) == 1 );
     REQUIRE( f( 12 ) == 1 );
-    REQUIRE( g( 15 ) == 1 );
+    REQUIRE( f( 15 ) == 1 );
     REQUIRE( f( 16 ) == 2 );
-    REQUIRE( g( 19 ) == 2 );
+    REQUIRE( f( 19 ) == 2 );
     REQUIRE( f( 20 ) == 2 );
-    REQUIRE( g( 23 ) == 2 );
+    REQUIRE( f( 23 ) == 2 );
     REQUIRE( f( 24 ) == 3 );
-    REQUIRE( g( 30 ) == 3 );
+    REQUIRE( f( 30 ) == 3 );
   }
 
   SECTION( "viceroy" ) {
     difficulty = e_difficulty::viceroy;
     REQUIRE( f( 0 ) == 0 );
-    REQUIRE( g( 1 ) == 0 );
+    REQUIRE( f( 1 ) == 0 );
     REQUIRE( f( 2 ) == 0 );
-    REQUIRE( g( 5 ) == 0 );
+    REQUIRE( f( 5 ) == 0 );
     REQUIRE( f( 6 ) == 1 );
-    REQUIRE( g( 7 ) == 1 );
+    REQUIRE( f( 7 ) == 1 );
     REQUIRE( f( 8 ) == 1 );
-    REQUIRE( g( 9 ) == 1 );
+    REQUIRE( f( 9 ) == 1 );
     REQUIRE( f( 10 ) == 1 );
-    REQUIRE( g( 12 ) == 2 );
+    REQUIRE( f( 12 ) == 2 );
     REQUIRE( f( 15 ) == 2 );
-    REQUIRE( g( 16 ) == 2 );
+    REQUIRE( f( 16 ) == 2 );
     REQUIRE( f( 17 ) == 2 );
-    REQUIRE( g( 18 ) == 3 );
+    REQUIRE( f( 18 ) == 3 );
     REQUIRE( f( 19 ) == 3 );
-    REQUIRE( g( 20 ) == 3 );
+    REQUIRE( f( 20 ) == 3 );
     REQUIRE( f( 23 ) == 3 );
-    REQUIRE( g( 24 ) == 4 );
+    REQUIRE( f( 24 ) == 4 );
     REQUIRE( f( 25 ) == 4 );
-    REQUIRE( g( 30 ) == 5 );
+    REQUIRE( f( 30 ) == 5 );
   }
 }
 

@@ -192,38 +192,21 @@ int compute_sons_of_liberty_integral_percent(
   return res;
 }
 
-int compute_sons_of_liberty_bonus_outdoor(
-    int sons_of_liberty_integral_percent ) {
+int compute_sons_of_liberty_bonus(
+    int sons_of_liberty_integral_percent, bool is_expert ) {
   CHECK_GE( sons_of_liberty_integral_percent, 0 );
   CHECK_LE( sons_of_liberty_integral_percent, 100 );
   if( sons_of_liberty_integral_percent == 100 )
-    return config_colony.sons_of_liberty_outdoor_100_bonus;
+    return is_expert
+               ? config_colony.sons_of_liberty_100_bonus_expert
+               : config_colony
+                     .sons_of_liberty_100_bonus_non_expert;
   if( sons_of_liberty_integral_percent >= 50 )
-    return config_colony.sons_of_liberty_outdoor_50_bonus;
+    return is_expert
+               ? config_colony.sons_of_liberty_50_bonus_expert
+               : config_colony
+                     .sons_of_liberty_50_bonus_non_expert;
   return 0;
-}
-
-int compute_sons_of_liberty_bonus_indoor(
-    int sons_of_liberty_integral_percent ) {
-  CHECK_GE( sons_of_liberty_integral_percent, 0 );
-  CHECK_LE( sons_of_liberty_integral_percent, 100 );
-  if( sons_of_liberty_integral_percent == 100 )
-    return config_colony.sons_of_liberty_indoor_100_bonus;
-  if( sons_of_liberty_integral_percent >= 50 )
-    return config_colony.sons_of_liberty_indoor_50_bonus;
-  return 0;
-}
-
-int compute_tory_penalty_outdoor( e_difficulty difficulty,
-                                  int          tory_number ) {
-  int const penalty_population =
-      config_colony.tory_penalty_population[difficulty];
-  // For each multiple of the penalty population that the colony
-  // has that are tories, we produce one penalty point. Each
-  // point will be subtracted from the production of all
-  // colonists in the colony.
-  return config_colony.tory_production_penalty_outdoor *
-         ( tory_number / penalty_population );
 }
 
 int compute_tory_penalty_level( e_difficulty difficulty,
@@ -238,9 +221,9 @@ int compute_tory_penalty_level( e_difficulty difficulty,
   return ( tory_number / penalty_population );
 }
 
-int compute_tory_penalty_indoor( e_difficulty difficulty,
-                                 int          tory_number ) {
-  return config_colony.tory_production_penalty_indoor *
+int compute_tory_penalty( e_difficulty difficulty,
+                          int          tory_number ) {
+  return config_colony.tory_production_penalty *
          compute_tory_penalty_level( difficulty, tory_number );
 }
 

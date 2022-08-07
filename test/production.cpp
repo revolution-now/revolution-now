@@ -5608,56 +5608,56 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
     // This is the expected sum of the SoL bonus and tory penal-
     // ties. We sum them together because they are always applied
     // together (additively) in every formula. But we differen-
-    // tiate between indoor/outdoor.
-    int const XI = 0; // indoor
-    int const XO = 0; // outdoor
+    // tiate between expert/non-expert.
+    int const XE = 0; // expert
+    int const XN = 0; // non-expert
 
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.trade_goods == 0 );
-    REQUIRE( pr.bells == ( 1 + ( 3 + XI ) * 2 ) * 2 );
-    REQUIRE( pr.crosses == 3 + ( 3 * 2 + XI ) * 2 );
+    REQUIRE( pr.bells == ( 1 + ( 3 + XE ) * 2 ) * 2 );
+    REQUIRE( pr.crosses == 3 + ( 3 * 2 + XE ) * 2 );
 
-    REQUIRE( pr.silver.raw_produced == ( 1 + 2 ) * 2 + XO );
+    REQUIRE( pr.silver.raw_produced == ( 1 + 2 ) * 2 + XE );
 
-    REQUIRE( pr.ore_tools.raw_produced == ( 2 * 2 ) + XO );
+    REQUIRE( pr.ore_tools.raw_produced == ( 2 * 2 ) + XE );
     REQUIRE( pr.ore_tools.product_produced_theoretical ==
-             ( 3 + XI ) * 2 );
+             ( 3 + XE ) * 2 );
 
     // This needs to match the actual amount of ore produced.
-    REQUIRE( pr.tools_muskets.raw_produced == ( 2 + 2 ) + XO );
+    REQUIRE( pr.tools_muskets.raw_produced == ( 2 + 2 ) + XE );
     REQUIRE( pr.tools_muskets.product_produced_theoretical ==
              0 );
 
-    REQUIRE( pr.lumber_hammers.raw_produced == 4 * 2 + XO );
+    REQUIRE( pr.lumber_hammers.raw_produced == 4 * 2 + XE );
     REQUIRE( pr.lumber_hammers.product_produced_theoretical ==
-             ( ( 3 * 2 ) + XI ) * 2 );
+             ( ( 3 * 2 ) + XE ) * 2 );
 
-    REQUIRE( pr.fur_coats.raw_produced == 2 * 2 + XO );
+    REQUIRE( pr.fur_coats.raw_produced == 2 * 2 + XE );
     REQUIRE( pr.fur_coats.product_produced_theoretical ==
-             ( ( 3 * 2 ) + XI ) * 2 );
+             ( ( 3 * 2 ) + XE ) * 2 );
 
     REQUIRE( pr.cotton_cloth.raw_produced == 0 );
     REQUIRE( pr.cotton_cloth.product_produced_theoretical ==
-             ( ( 3 + XI ) * 2 ) );
+             ( ( 3 + XE ) * 2 ) );
 
-    REQUIRE( pr.tobacco_cigars.raw_produced == ( 3 * 2 ) + XO );
+    REQUIRE( pr.tobacco_cigars.raw_produced == ( 3 * 2 ) + XE );
     REQUIRE( pr.tobacco_cigars.product_produced_theoretical ==
-             int( ( ( 3 * 2 ) + XI ) * 1.5 ) * 2 );
+             int( ( ( 3 * 2 ) + XE ) * 1.5 ) * 2 );
 
     // These depend on difficulty level because it is produced on
     // the center square.
-    REQUIRE( pr.sugar_rum.raw_produced == 3 + 1 + XO );
+    REQUIRE( pr.sugar_rum.raw_produced == 3 + 1 + XN );
     REQUIRE( pr.sugar_rum.product_produced_theoretical == 0 );
     REQUIRE( pr.center_extra_production ==
              SquareProduction{ .what     = e_outdoor_job::sugar,
-                               .quantity = 3 + 1 + XO } );
-    REQUIRE( pr.center_food_production == 3 + 2 + XO );
+                               .quantity = 3 + 1 + XN } );
+    REQUIRE( pr.center_food_production == 3 + 2 + XN );
 
     // se square + center square (difficulty dependent).
     REQUIRE( pr.food_horses.corn_produced ==
-             ( 5 + 2 + XO ) + ( 3 + 2 + XO ) );
-    REQUIRE( pr.food_horses.fish_produced == 2 + 2 + 2 + XO );
+             ( 5 + 2 + XE ) + ( 3 + 2 + XN ) );
+    REQUIRE( pr.food_horses.fish_produced == 2 + 2 + 2 + XE );
     REQUIRE( pr.food_horses.horses_produced_theoretical == 0 );
 
     REQUIRE(
@@ -5665,30 +5665,30 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
         refl::enum_map<e_direction, SquareProduction>{
             { e_direction::se,
               SquareProduction{ .what     = e_outdoor_job::food,
-                                .quantity = ( 5 + 2 + XO ) } },
+                                .quantity = ( 5 + 2 + XE ) } },
             { e_direction::s,
               SquareProduction{ .what     = e_outdoor_job::ore,
-                                .quantity = ( 2 * 2 ) + XO } },
+                                .quantity = ( 2 * 2 ) + XE } },
             { e_direction::sw,
               SquareProduction{ .what = e_outdoor_job::tobacco,
-                                .quantity = ( 3 * 2 ) + XO } },
+                                .quantity = ( 3 * 2 ) + XE } },
             { e_direction::e,
               SquareProduction{
                   .what     = e_outdoor_job::silver,
-                  .quantity = ( 1 + 2 ) * 2 + XO } },
+                  .quantity = ( 1 + 2 ) * 2 + XE } },
             { e_direction::w,
               SquareProduction{ .what = e_outdoor_job::tobacco,
                                 .quantity = 0 } },
             { e_direction::ne,
               SquareProduction{ .what = e_outdoor_job::lumber,
-                                .quantity = 4 * 2 + XO } },
+                                .quantity = 4 * 2 + XE } },
             { e_direction::n,
               SquareProduction{ .what     = e_outdoor_job::fur,
-                                .quantity = 2 * 2 + XO } },
+                                .quantity = 2 * 2 + XE } },
             { e_direction::nw,
               SquareProduction{
                   .what     = e_outdoor_job::fish,
-                  .quantity = 2 + 2 + 2 + XO } } } );
+                  .quantity = 2 + 2 + 2 + XE } } } );
   }
 
   SECTION( "50+% SoL bonus and no tory penalty" ) {
@@ -5717,56 +5717,56 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
     // This is the expected sum of the SoL bonus and tory penal-
     // ties. We sum them together because they are always applied
     // together (additively) in every formula. But we differen-
-    // tiate between indoor/outdoor.
-    int const XI = 1; // indoor
-    int const XO = 2; // outdoor
+    // tiate between expert/non-expert.
+    int const XE = 2; // expert
+    int const XN = 1; // non-expert
 
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.trade_goods == 0 );
-    REQUIRE( pr.bells == ( 1 + ( 3 + XI ) * 2 ) * 2 );
-    REQUIRE( pr.crosses == 3 + ( 3 * 2 + XI ) * 2 );
+    REQUIRE( pr.bells == ( 1 + ( 3 + XE ) * 2 ) * 2 );
+    REQUIRE( pr.crosses == 3 + ( 3 * 2 + XE ) * 2 );
 
-    REQUIRE( pr.silver.raw_produced == ( 1 + 2 ) * 2 + XO );
+    REQUIRE( pr.silver.raw_produced == ( 1 + 2 ) * 2 + XE );
 
-    REQUIRE( pr.ore_tools.raw_produced == ( 2 * 2 ) + XO );
+    REQUIRE( pr.ore_tools.raw_produced == ( 2 * 2 ) + XE );
     REQUIRE( pr.ore_tools.product_produced_theoretical ==
-             ( 3 + XI ) * 2 );
+             ( 3 + XE ) * 2 );
 
     // This needs to match the actual amount of ore produced.
-    REQUIRE( pr.tools_muskets.raw_produced == ( 2 + 2 ) + XO );
+    REQUIRE( pr.tools_muskets.raw_produced == ( 2 + 2 ) + XE );
     REQUIRE( pr.tools_muskets.product_produced_theoretical ==
              0 );
 
-    REQUIRE( pr.lumber_hammers.raw_produced == 4 * 2 + XO );
+    REQUIRE( pr.lumber_hammers.raw_produced == 4 * 2 + XE );
     REQUIRE( pr.lumber_hammers.product_produced_theoretical ==
-             ( ( 3 * 2 ) + XI ) * 2 );
+             ( ( 3 * 2 ) + XE ) * 2 );
 
-    REQUIRE( pr.fur_coats.raw_produced == 2 * 2 + XO );
+    REQUIRE( pr.fur_coats.raw_produced == 2 * 2 + XE );
     REQUIRE( pr.fur_coats.product_produced_theoretical ==
-             ( ( 3 * 2 ) + XI ) * 2 );
+             ( ( 3 * 2 ) + XE ) * 2 );
 
     REQUIRE( pr.cotton_cloth.raw_produced == 0 );
     REQUIRE( pr.cotton_cloth.product_produced_theoretical ==
-             ( ( 3 + XI ) * 2 ) );
+             ( ( 3 + XE ) * 2 ) );
 
-    REQUIRE( pr.tobacco_cigars.raw_produced == ( 3 * 2 ) + XO );
+    REQUIRE( pr.tobacco_cigars.raw_produced == ( 3 * 2 ) + XE );
     REQUIRE( pr.tobacco_cigars.product_produced_theoretical ==
-             int( ( ( 3 * 2 ) + XI ) * 1.5 ) * 2 );
+             int( ( ( 3 * 2 ) + XE ) * 1.5 ) * 2 );
 
     // These depend on difficulty level because it is produced on
     // the center square.
-    REQUIRE( pr.sugar_rum.raw_produced == 3 + 1 + XO );
+    REQUIRE( pr.sugar_rum.raw_produced == 3 + 1 + XN );
     REQUIRE( pr.sugar_rum.product_produced_theoretical == 0 );
     REQUIRE( pr.center_extra_production ==
              SquareProduction{ .what     = e_outdoor_job::sugar,
-                               .quantity = 3 + 1 + XO } );
-    REQUIRE( pr.center_food_production == 3 + 2 + XO );
+                               .quantity = 3 + 1 + XN } );
+    REQUIRE( pr.center_food_production == 3 + 2 + XN );
 
     // se square + center square (difficulty dependent).
     REQUIRE( pr.food_horses.corn_produced ==
-             ( 5 + 2 + XO ) + ( 3 + 2 + XO ) );
-    REQUIRE( pr.food_horses.fish_produced == 2 + 2 + 2 + XO );
+             ( 5 + 2 + XE ) + ( 3 + 2 + XN ) );
+    REQUIRE( pr.food_horses.fish_produced == 2 + 2 + 2 + XE );
     REQUIRE( pr.food_horses.horses_produced_theoretical == 0 );
 
     REQUIRE(
@@ -5774,30 +5774,30 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
         refl::enum_map<e_direction, SquareProduction>{
             { e_direction::se,
               SquareProduction{ .what     = e_outdoor_job::food,
-                                .quantity = ( 5 + 2 + XO ) } },
+                                .quantity = ( 5 + 2 + XE ) } },
             { e_direction::s,
               SquareProduction{ .what     = e_outdoor_job::ore,
-                                .quantity = ( 2 * 2 ) + XO } },
+                                .quantity = ( 2 * 2 ) + XE } },
             { e_direction::sw,
               SquareProduction{ .what = e_outdoor_job::tobacco,
-                                .quantity = ( 3 * 2 ) + XO } },
+                                .quantity = ( 3 * 2 ) + XE } },
             { e_direction::e,
               SquareProduction{
                   .what     = e_outdoor_job::silver,
-                  .quantity = ( 1 + 2 ) * 2 + XO } },
+                  .quantity = ( 1 + 2 ) * 2 + XE } },
             { e_direction::w,
               SquareProduction{ .what = e_outdoor_job::tobacco,
                                 .quantity = 0 } },
             { e_direction::ne,
               SquareProduction{ .what = e_outdoor_job::lumber,
-                                .quantity = 4 * 2 + XO } },
+                                .quantity = 4 * 2 + XE } },
             { e_direction::n,
               SquareProduction{ .what     = e_outdoor_job::fur,
-                                .quantity = 2 * 2 + XO } },
+                                .quantity = 2 * 2 + XE } },
             { e_direction::nw,
               SquareProduction{
                   .what     = e_outdoor_job::fish,
-                  .quantity = 2 + 2 + 2 + XO } } } );
+                  .quantity = 2 + 2 + 2 + XE } } } );
   }
 
   SECTION( "100% SoL bonus and no tory penalty" ) {
@@ -5826,56 +5826,56 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
     // This is the expected sum of the SoL bonus and tory penal-
     // ties. We sum them together because they are always applied
     // together (additively) in every formula. But we differen-
-    // tiate between indoor/outdoor.
-    int const XI = 2; // indoor
-    int const XO = 4; // outdoor
+    // tiate between expert/non-expert.
+    int const XE = 4; // expert
+    int const XN = 2; // non-expert
 
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.trade_goods == 0 );
-    REQUIRE( pr.bells == ( 1 + ( 3 + XI ) * 2 ) * 2 );
-    REQUIRE( pr.crosses == 3 + ( 3 * 2 + XI ) * 2 );
+    REQUIRE( pr.bells == ( 1 + ( 3 + XE ) * 2 ) * 2 );
+    REQUIRE( pr.crosses == 3 + ( 3 * 2 + XE ) * 2 );
 
-    REQUIRE( pr.silver.raw_produced == ( 1 + 2 ) * 2 + XO );
+    REQUIRE( pr.silver.raw_produced == ( 1 + 2 ) * 2 + XE );
 
-    REQUIRE( pr.ore_tools.raw_produced == ( 2 * 2 ) + XO );
+    REQUIRE( pr.ore_tools.raw_produced == ( 2 * 2 ) + XE );
     REQUIRE( pr.ore_tools.product_produced_theoretical ==
-             ( 3 + XI ) * 2 );
+             ( 3 + XE ) * 2 );
 
     // This needs to match the actual amount of ore produced.
-    REQUIRE( pr.tools_muskets.raw_produced == ( 2 + 2 ) + XO );
+    REQUIRE( pr.tools_muskets.raw_produced == ( 2 + 2 ) + XE );
     REQUIRE( pr.tools_muskets.product_produced_theoretical ==
              0 );
 
-    REQUIRE( pr.lumber_hammers.raw_produced == 4 * 2 + XO );
+    REQUIRE( pr.lumber_hammers.raw_produced == 4 * 2 + XE );
     REQUIRE( pr.lumber_hammers.product_produced_theoretical ==
-             ( ( 3 * 2 ) + XI ) * 2 );
+             ( ( 3 * 2 ) + XE ) * 2 );
 
-    REQUIRE( pr.fur_coats.raw_produced == 2 * 2 + XO );
+    REQUIRE( pr.fur_coats.raw_produced == 2 * 2 + XE );
     REQUIRE( pr.fur_coats.product_produced_theoretical ==
-             ( ( 3 * 2 ) + XI ) * 2 );
+             ( ( 3 * 2 ) + XE ) * 2 );
 
     REQUIRE( pr.cotton_cloth.raw_produced == 0 );
     REQUIRE( pr.cotton_cloth.product_produced_theoretical ==
-             ( ( 3 + XI ) * 2 ) );
+             ( ( 3 + XE ) * 2 ) );
 
-    REQUIRE( pr.tobacco_cigars.raw_produced == ( 3 * 2 ) + XO );
+    REQUIRE( pr.tobacco_cigars.raw_produced == ( 3 * 2 ) + XE );
     REQUIRE( pr.tobacco_cigars.product_produced_theoretical ==
-             int( ( ( 3 * 2 ) + XI ) * 1.5 ) * 2 );
+             int( ( ( 3 * 2 ) + XE ) * 1.5 ) * 2 );
 
     // These depend on difficulty level because it is produced on
     // the center square.
-    REQUIRE( pr.sugar_rum.raw_produced == 3 + 1 + XO );
+    REQUIRE( pr.sugar_rum.raw_produced == 3 + 1 + XN );
     REQUIRE( pr.sugar_rum.product_produced_theoretical == 0 );
     REQUIRE( pr.center_extra_production ==
              SquareProduction{ .what     = e_outdoor_job::sugar,
-                               .quantity = 3 + 1 + XO } );
-    REQUIRE( pr.center_food_production == 3 + 2 + XO );
+                               .quantity = 3 + 1 + XN } );
+    REQUIRE( pr.center_food_production == 3 + 2 + XN );
 
     // se square + center square (difficulty dependent).
     REQUIRE( pr.food_horses.corn_produced ==
-             ( 5 + 2 + XO ) + ( 3 + 2 + XO ) );
-    REQUIRE( pr.food_horses.fish_produced == 2 + 2 + 2 + XO );
+             ( 5 + 2 + XE ) + ( 3 + 2 + XN ) );
+    REQUIRE( pr.food_horses.fish_produced == 2 + 2 + 2 + XE );
     REQUIRE( pr.food_horses.horses_produced_theoretical == 0 );
 
     REQUIRE(
@@ -5883,30 +5883,30 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
         refl::enum_map<e_direction, SquareProduction>{
             { e_direction::se,
               SquareProduction{ .what     = e_outdoor_job::food,
-                                .quantity = ( 5 + 2 + XO ) } },
+                                .quantity = ( 5 + 2 + XE ) } },
             { e_direction::s,
               SquareProduction{ .what     = e_outdoor_job::ore,
-                                .quantity = ( 2 * 2 ) + XO } },
+                                .quantity = ( 2 * 2 ) + XE } },
             { e_direction::sw,
               SquareProduction{ .what = e_outdoor_job::tobacco,
-                                .quantity = ( 3 * 2 ) + XO } },
+                                .quantity = ( 3 * 2 ) + XE } },
             { e_direction::e,
               SquareProduction{
                   .what     = e_outdoor_job::silver,
-                  .quantity = ( 1 + 2 ) * 2 + XO } },
+                  .quantity = ( 1 + 2 ) * 2 + XE } },
             { e_direction::w,
               SquareProduction{ .what = e_outdoor_job::tobacco,
                                 .quantity = 0 } },
             { e_direction::ne,
               SquareProduction{ .what = e_outdoor_job::lumber,
-                                .quantity = 4 * 2 + XO } },
+                                .quantity = 4 * 2 + XE } },
             { e_direction::n,
               SquareProduction{ .what     = e_outdoor_job::fur,
-                                .quantity = 2 * 2 + XO } },
+                                .quantity = 2 * 2 + XE } },
             { e_direction::nw,
               SquareProduction{
                   .what     = e_outdoor_job::fish,
-                  .quantity = 2 + 2 + 2 + XO } } } );
+                  .quantity = 2 + 2 + 2 + XE } } } );
   }
 
   SECTION( "No SoL bonus and with tory penalty" ) {
@@ -5932,56 +5932,56 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
     // This is the expected sum of the SoL bonus and tory penal-
     // ties. We sum them together because they are always applied
     // together (additively) in every formula. But we differen-
-    // tiate between indoor/outdoor.
-    int const XI = -1; // indoor
-    int const XO = -1; // outdoor
+    // tiate between expert/non-expert.
+    int const XE = -1; // expert
+    int const XN = -1; // non-expert
 
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.trade_goods == 0 );
-    REQUIRE( pr.bells == ( 1 + ( 3 + XI ) * 2 ) * 2 );
-    REQUIRE( pr.crosses == 3 + ( 3 * 2 + XI ) * 2 );
+    REQUIRE( pr.bells == ( 1 + ( 3 + XE ) * 2 ) * 2 );
+    REQUIRE( pr.crosses == 3 + ( 3 * 2 + XE ) * 2 );
 
-    REQUIRE( pr.silver.raw_produced == ( 1 + 2 ) * 2 + XO );
+    REQUIRE( pr.silver.raw_produced == ( 1 + 2 ) * 2 + XE );
 
-    REQUIRE( pr.ore_tools.raw_produced == ( 2 * 2 ) + XO );
+    REQUIRE( pr.ore_tools.raw_produced == ( 2 * 2 ) + XE );
     REQUIRE( pr.ore_tools.product_produced_theoretical ==
-             ( 3 + XI ) * 2 );
+             ( 3 + XE ) * 2 );
 
     // This needs to match the actual amount of ore produced.
-    REQUIRE( pr.tools_muskets.raw_produced == ( 2 + 2 ) + XO );
+    REQUIRE( pr.tools_muskets.raw_produced == ( 2 + 2 ) + XE );
     REQUIRE( pr.tools_muskets.product_produced_theoretical ==
              0 );
 
-    REQUIRE( pr.lumber_hammers.raw_produced == 4 * 2 + XO );
+    REQUIRE( pr.lumber_hammers.raw_produced == 4 * 2 + XE );
     REQUIRE( pr.lumber_hammers.product_produced_theoretical ==
-             ( ( 3 * 2 ) + XI ) * 2 );
+             ( ( 3 * 2 ) + XE ) * 2 );
 
-    REQUIRE( pr.fur_coats.raw_produced == 2 * 2 + XO );
+    REQUIRE( pr.fur_coats.raw_produced == 2 * 2 + XE );
     REQUIRE( pr.fur_coats.product_produced_theoretical ==
-             ( ( 3 * 2 ) + XI ) * 2 );
+             ( ( 3 * 2 ) + XE ) * 2 );
 
     REQUIRE( pr.cotton_cloth.raw_produced == 0 );
     REQUIRE( pr.cotton_cloth.product_produced_theoretical ==
-             ( ( 3 + XI ) * 2 ) );
+             ( ( 3 + XE ) * 2 ) );
 
-    REQUIRE( pr.tobacco_cigars.raw_produced == ( 3 * 2 ) + XO );
+    REQUIRE( pr.tobacco_cigars.raw_produced == ( 3 * 2 ) + XE );
     REQUIRE( pr.tobacco_cigars.product_produced_theoretical ==
-             int( ( ( 3 * 2 ) + XI ) * 1.5 ) * 2 );
+             int( ( ( 3 * 2 ) + XE ) * 1.5 ) * 2 );
 
     // These depend on difficulty level because it is produced on
     // the center square.
-    REQUIRE( pr.sugar_rum.raw_produced == 3 + 1 + XO );
+    REQUIRE( pr.sugar_rum.raw_produced == 3 + 1 + XN );
     REQUIRE( pr.sugar_rum.product_produced_theoretical == 0 );
     REQUIRE( pr.center_extra_production ==
              SquareProduction{ .what     = e_outdoor_job::sugar,
-                               .quantity = 3 + 1 + XO } );
-    REQUIRE( pr.center_food_production == 3 + 2 + XO );
+                               .quantity = 3 + 1 + XN } );
+    REQUIRE( pr.center_food_production == 3 + 2 + XN );
 
     // se square + center square (difficulty dependent).
     REQUIRE( pr.food_horses.corn_produced ==
-             ( 5 + 2 + XO ) + ( 3 + 2 + XO ) );
-    REQUIRE( pr.food_horses.fish_produced == 2 + 2 + 2 + XO );
+             ( 5 + 2 + XE ) + ( 3 + 2 + XN ) );
+    REQUIRE( pr.food_horses.fish_produced == 2 + 2 + 2 + XE );
     REQUIRE( pr.food_horses.horses_produced_theoretical == 0 );
 
     REQUIRE(
@@ -5989,30 +5989,30 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
         refl::enum_map<e_direction, SquareProduction>{
             { e_direction::se,
               SquareProduction{ .what     = e_outdoor_job::food,
-                                .quantity = ( 5 + 2 + XO ) } },
+                                .quantity = ( 5 + 2 + XE ) } },
             { e_direction::s,
               SquareProduction{ .what     = e_outdoor_job::ore,
-                                .quantity = ( 2 * 2 ) + XO } },
+                                .quantity = ( 2 * 2 ) + XE } },
             { e_direction::sw,
               SquareProduction{ .what = e_outdoor_job::tobacco,
-                                .quantity = ( 3 * 2 ) + XO } },
+                                .quantity = ( 3 * 2 ) + XE } },
             { e_direction::e,
               SquareProduction{
                   .what     = e_outdoor_job::silver,
-                  .quantity = ( 1 + 2 ) * 2 + XO } },
+                  .quantity = ( 1 + 2 ) * 2 + XE } },
             { e_direction::w,
               SquareProduction{ .what = e_outdoor_job::tobacco,
                                 .quantity = 0 } },
             { e_direction::ne,
               SquareProduction{ .what = e_outdoor_job::lumber,
-                                .quantity = 4 * 2 + XO } },
+                                .quantity = 4 * 2 + XE } },
             { e_direction::n,
               SquareProduction{ .what     = e_outdoor_job::fur,
-                                .quantity = 2 * 2 + XO } },
+                                .quantity = 2 * 2 + XE } },
             { e_direction::nw,
               SquareProduction{
                   .what     = e_outdoor_job::fish,
-                  .quantity = 2 + 2 + 2 + XO } } } );
+                  .quantity = 2 + 2 + 2 + XE } } } );
   }
 }
 
@@ -6243,8 +6243,8 @@ TEST_CASE(
     REQUIRE( sons_of_liberty_integral_percent == 50 );
 
     // This is the expected sum of the SoL bonus and tory penal-
-    // ties for outdoor workers.
-    int const XO = 2;
+    // ties for expert workers.
+    int const XE = 2; // expert
 
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
@@ -6254,13 +6254,13 @@ TEST_CASE(
     // has fixed values that are not subject to any of the
     // bonuses in the original game; this game modifies that to
     // allow Sol/tory bonuses/penalties here.
-    REQUIRE( pr.silver.raw_produced == 1 + XO );
+    REQUIRE( pr.silver.raw_produced == 1 + XE );
     REQUIRE(
         pr.land_production ==
         refl::enum_map<e_direction, SquareProduction>{
             { e_direction::e,
               SquareProduction{ .what = e_outdoor_job::silver,
-                                .quantity = 1 + XO } } } );
+                                .quantity = 1 + XE } } } );
   }
 
   SECTION( "expert, 100% SoL bonus and no tory penalty" ) {
@@ -6283,8 +6283,8 @@ TEST_CASE(
     REQUIRE( sons_of_liberty_integral_percent == 100 );
 
     // This is the expected sum of the SoL bonus and tory penal-
-    // ties for outdoor workers.
-    int const XO = 4;
+    // ties for expert workers.
+    int const XE = 4; // expert
 
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
@@ -6294,13 +6294,13 @@ TEST_CASE(
     // has fixed values that are not subject to any of the
     // bonuses in the original game; this game modifies that to
     // allow Sol/tory bonuses/penalties here.
-    REQUIRE( pr.silver.raw_produced == 1 + XO );
+    REQUIRE( pr.silver.raw_produced == 1 + XE );
     REQUIRE(
         pr.land_production ==
         refl::enum_map<e_direction, SquareProduction>{
             { e_direction::e,
               SquareProduction{ .what = e_outdoor_job::silver,
-                                .quantity = 1 + XO } } } );
+                                .quantity = 1 + XE } } } );
   }
 
   SECTION( "expert, No SoL bonus and with tory penalty" ) {
@@ -6336,18 +6336,18 @@ TEST_CASE(
             population ) >= 6 );
 
     // This is the expected sum of the SoL bonus and tory penal-
-    // ties for outdoor workers.
-    int const XO = -1;
+    // ties for expert workers.
+    int const XE = -1; // expert
 
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
-    REQUIRE( pr.silver.raw_produced == 1 + XO );
+    REQUIRE( pr.silver.raw_produced == 1 + XE );
     REQUIRE(
         pr.land_production ==
         refl::enum_map<e_direction, SquareProduction>{
             { e_direction::e,
               SquareProduction{ .what = e_outdoor_job::silver,
-                                .quantity = 1 + XO } } } );
+                                .quantity = 1 + XE } } } );
   }
 
   SECTION( "non-expert, no SoL bonus or penalty" ) {
@@ -6496,11 +6496,12 @@ TEST_CASE( "[production] SoL does not affect horses" ) {
          e_ground_terrain::savannah );
   Player& player = W.default_player();
 
-  // One expert farmer on plains will produce 5+2+XO. Center food
-  // production will be == 3 + 2 + XO. Total will be 12+2*XO.
+  // One expert farmer on plains will produce 5+2+XE. Center food
+  // production will be == 3 + 2 + XN. Total will be 12+XE+XN.
   // Consuption will be 2 food, so surplus before horses should
-  // be 10+2*XO. Max horses allowed theoretically would be 5+XO;
-  // actual production should be 2, regardless of SoL bonuses.
+  // be 10+XE+XN. Max horses allowed theoretically would be
+  // (10+XE+XN)/2=7 rounded up; actual production should be 2,
+  // regardless of SoL bonuses.
   W.add_expert_unit_outdoors( colony.id, e_direction::se,
                               e_outdoor_job::food );
   colony.commodities[e_commodity::horses] = 50;
@@ -6528,14 +6529,16 @@ TEST_CASE( "[production] SoL does not affect horses" ) {
                 sons_of_liberty_integral_percent, population ),
             population ) < 10 );
 
-    // Outdoor SoL production bonus/penalty.
-    int const XO = 0;
+    // SoL production bonus/penalty.
+    int const XE = 0; // expert
+    int const XN = 0; // non-expert
 
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
-    REQUIRE( pr.food_horses.corn_produced == 12 + 2 * XO );
+    REQUIRE( pr.food_horses.corn_produced == 12 + XE + XN );
     REQUIRE( pr.food_horses.horses_produced_theoretical == 2 );
-    REQUIRE( pr.food_horses.max_new_horses_allowed == 5 + XO );
+    REQUIRE( pr.food_horses.max_new_horses_allowed ==
+             5 + XE + XN );
     REQUIRE( pr.food_horses.horses_produced_actual == 2 );
   }
 
@@ -6561,14 +6564,16 @@ TEST_CASE( "[production] SoL does not affect horses" ) {
                 sons_of_liberty_integral_percent, population ),
             population ) < 10 );
 
-    // Outdoor SoL production bonus/penalty.
-    int const XO = 2;
+    // SoL production bonus/penalty.
+    int const XE = 2; // expert
+    int const XN = 1; // non-expert
 
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
-    REQUIRE( pr.food_horses.corn_produced == 12 + 2 * XO );
+    REQUIRE( pr.food_horses.corn_produced == 12 + XE + XN );
     REQUIRE( pr.food_horses.horses_produced_theoretical == 2 );
-    REQUIRE( pr.food_horses.max_new_horses_allowed == 5 + XO );
+    REQUIRE( pr.food_horses.max_new_horses_allowed ==
+             ( 10 + XE + XN ) / 2 + 1 ); // round up
     REQUIRE( pr.food_horses.horses_produced_actual == 2 );
   }
 
@@ -6594,14 +6599,16 @@ TEST_CASE( "[production] SoL does not affect horses" ) {
                 sons_of_liberty_integral_percent, population ),
             population ) < 10 );
 
-    // Outdoor SoL production bonus/penalty.
-    int const XO = 4;
+    // SoL production bonus/penalty.
+    int const XE = 4; // expert
+    int const XN = 2; // non-expert
 
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
-    REQUIRE( pr.food_horses.corn_produced == 12 + 2 * XO );
+    REQUIRE( pr.food_horses.corn_produced == 12 + XE + XN );
     REQUIRE( pr.food_horses.horses_produced_theoretical == 2 );
-    REQUIRE( pr.food_horses.max_new_horses_allowed == 5 + XO );
+    REQUIRE( pr.food_horses.max_new_horses_allowed ==
+             ( 10 + XE + XN ) / 2 );
     REQUIRE( pr.food_horses.horses_produced_actual == 2 );
   }
 }
@@ -6668,6 +6675,64 @@ TEST_CASE(
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.food_horses.food_produced == 0 );
     REQUIRE( pr.center_food_production == 0 );
+  }
+}
+
+TEST_CASE(
+    "[production] SoL bonuses/penalties expert/non-expert" ) {
+  World W;
+  W.create_default_map();
+  //  _, G, _,
+  //  G, G, G,
+  //  _, G, G,
+  Colony& colony = W.add_colony( World::kGrasslandTile );
+
+  colony.buildings[e_colony_building::docks] = true;
+  W.add_expert_unit_outdoors( colony.id, e_direction::nw,
+                              e_outdoor_job::fish );
+  W.add_unit_outdoors( colony.id, e_direction::ne,
+                       e_outdoor_job::fish );
+
+  SECTION( "no bonus no penalty" ) {
+    int const XE = 0; // expert
+    int const XN = 0; // non-expert
+    colony.sons_of_liberty.num_rebels_from_bells_only = 0.0;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production[e_direction::nw] ==
+             SquareProduction{ .what     = e_outdoor_job::fish,
+                               .quantity = 6 + XE } );
+    REQUIRE( pr.land_production[e_direction::ne] ==
+             SquareProduction{ .what     = e_outdoor_job::fish,
+                               .quantity = 4 + XN } );
+  }
+
+  SECTION( "50% SoL" ) {
+    int const XE = 2; // expert
+    int const XN = 1; // non-expert
+    colony.sons_of_liberty.num_rebels_from_bells_only = 1.0;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production[e_direction::nw] ==
+             SquareProduction{ .what     = e_outdoor_job::fish,
+                               .quantity = 6 + XE } );
+    REQUIRE( pr.land_production[e_direction::ne] ==
+             SquareProduction{ .what     = e_outdoor_job::fish,
+                               .quantity = 4 + XN } );
+  }
+
+  SECTION( "100% SoL" ) {
+    int const XE = 4; // expert
+    int const XN = 2; // non-expert
+    colony.sons_of_liberty.num_rebels_from_bells_only = 2.0;
+    ColonyProduction pr =
+        production_for_colony( W.ss(), colony );
+    REQUIRE( pr.land_production[e_direction::nw] ==
+             SquareProduction{ .what     = e_outdoor_job::fish,
+                               .quantity = 6 + XE } );
+    REQUIRE( pr.land_production[e_direction::ne] ==
+             SquareProduction{ .what     = e_outdoor_job::fish,
+                               .quantity = 4 + XN } );
   }
 }
 
