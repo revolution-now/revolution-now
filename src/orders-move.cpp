@@ -70,7 +70,7 @@ namespace {
 
 #define BEHAVIOR( c, r, e, ... )                              \
   namespace BEHAVIOR_NS( c, r, e ) {                          \
-  enum class e_vals { __VA_ARGS__ };                          \
+    enum class e_vals { __VA_ARGS__ };                        \
   }                                                           \
   template<>                                                  \
   struct to_behaviors<BEHAVIOR_VALUES( c, r, e )> {           \
@@ -146,7 +146,7 @@ BEHAVIOR( water, friendly, unit, always, never, move_onto_ship,
 ** Movement Points Calculator
 *****************************************************************/
 wait<maybe<MovementPoints>> check_movement_points(
-    IGui& gui, Unit const& unit, MapSquare const& src_square,
+    Unit const& unit, MapSquare const& src_square,
     MapSquare const& dst_square, e_direction direction ) {
   MovementPointsAnalysis analysis = expense_movement_points(
       unit, src_square, dst_square, direction );
@@ -157,19 +157,6 @@ wait<maybe<MovementPoints>> check_movement_points(
       lg.debug( "move allowed by overdraw allowance." );
     co_return analysis.points_to_subtract();
   }
-  // FIXME: add a checkbox to this dialog that allows the user to
-  // suppress it; in that case, an attempt to move onto a square
-  // with not enough movement points will simply end that unit's
-  // turn by forfeighting its movement points, and it appears
-  // that will mirror the original game's behavior.
-  co_await gui.message_box(
-      "Unit requires @[H]{}@[] movement point(s) to enter this "
-      "square, but only has @[H]{}@[]+{} = @[H]{}@[] available "
-      "to use.",
-      analysis.needs, analysis.has,
-      MovementPointsAnalysis::kOverdrawAllowance,
-      analysis.has +
-          MovementPointsAnalysis::kOverdrawAllowance );
   co_return nothing;
 }
 
@@ -187,15 +174,22 @@ struct TravelHandler : public OrdersHandler {
       player_( player ) {}
 
   enum class e_travel_verdict {
-    // Cancelled by user
+    // Cancelled.
     cancelled,
-    // Non-allowed moves (errors)
+
+    // Forfeight. This one happens when the unit doesn't have
+    // enough movement points to move, and is not selected (but
+    // the random mechanism) to proceed anyway, and so it just
+    // stops and loses the remainder of its points.
+    consume_remaining_points,
+
+    // Non-allowed moves (errors).
     map_edge,
     land_forbidden,
     water_forbidden,
     board_ship_full,
-    not_enough_movement_points,
-    // Allowed moves
+
+    // Allowed moves.
     map_edge_high_seas,
     map_to_map,
     board_ship,
@@ -213,11 +207,14 @@ struct TravelHandler : public OrdersHandler {
       case e_travel_verdict::cancelled: //
         co_return false;
 
+      // Forfeight.
+      case e_travel_verdict::consume_remaining_points: //
+        break;
+
       // Non-allowed moves (errors)
       case e_travel_verdict::map_edge:
       case e_travel_verdict::land_forbidden:
       case e_travel_verdict::water_forbidden: //
-      case e_travel_verdict::not_enough_movement_points:
         co_return false;
       case e_travel_verdict::board_ship_full:
         co_await ts_.gui.message_box(
@@ -257,6 +254,9 @@ struct TravelHandler : public OrdersHandler {
     // unit enters a water square it will just automatically pick
     // a ship and board it.
     if( verdict == e_travel_verdict::land_fall ) co_return;
+
+    if( verdict == e_travel_verdict::consume_remaining_points )
+      co_return;
 
     co_await planes_.land_view().landview_animate_move(
         unit_id, direction );
@@ -455,10 +455,12 @@ TravelHandler::confirm_travel_impl() {
   auto& dst_square = ss_.terrain.square_at( move_dst );
   UNWRAP_CHECK( direction, move_src.direction_to( move_dst ) );
   maybe<MovementPoints> to_subtract =
-      co_await check_movement_points( ts_.gui, unit, src_square,
+      co_await check_movement_points( unit, src_square,
                                       dst_square, direction );
-  if( !to_subtract.has_value() )
-    co_return e_travel_verdict::not_enough_movement_points;
+  if( !to_subtract.has_value() ) {
+    unit_would_move = false;
+    co_return e_travel_verdict::consume_remaining_points;
+  }
   mv_points_to_subtract_ = *to_subtract;
 
   CHECK( !unit.mv_pts_exhausted() );
@@ -665,9 +667,12 @@ wait<> TravelHandler::perform() {
     case e_travel_verdict::map_edge:
     case e_travel_verdict::land_forbidden:
     case e_travel_verdict::water_forbidden:
-    case e_travel_verdict::board_ship_full:            //
-    case e_travel_verdict::not_enough_movement_points: //
+    case e_travel_verdict::board_ship_full: //
       SHOULD_NOT_BE_HERE;
+    case e_travel_verdict::consume_remaining_points: {
+      unit.forfeight_mv_points();
+      break;
+    }
     // Allowed moves.
     case e_travel_verdict::map_to_map: {
       // If it's a ship then sentry all its units before it
