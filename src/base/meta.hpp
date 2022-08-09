@@ -144,7 +144,7 @@ struct member_var_callable_traits_impl<R( O* )> {
   using ret_type                   = R;
   using func_type                  = R();
   using func_ptr_type              = R ( * )();
-  using member_func_type           = R( O::* );
+  using member_func_type           = R O::*;
   using member_func_flattened_type = R( O* );
   using var_type                   = R;
   using object_type                = O;
@@ -238,7 +238,7 @@ struct callable_traits<R ( C::*const )( Arg... ) const>
 
 // Pointer to member variable.
 template<typename R, typename C>
-requires( !std::is_const_v<C> ) struct callable_traits<R( C::* )>
+requires( !std::is_const_v<C> ) struct callable_traits<R C::*>
   : public detail::member_var_callable_traits_impl<R( C* )> {
 };
 

@@ -11,9 +11,6 @@
 *****************************************************************/
 #include "mv-points.hpp"
 
-// {fmt}
-#include "fmt/format.h"
-
 // luapp
 #include "luapp/as.hpp"
 #include "luapp/metatable.hpp"
@@ -22,6 +19,9 @@
 // Cdr
 #include "cdr/converter.hpp"
 #include "cdr/ext-builtin.hpp"
+
+// base
+#include "base/fmt.hpp"
 
 // C++ standard library
 #include <unordered_set>

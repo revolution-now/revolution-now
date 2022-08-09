@@ -95,6 +95,7 @@ TEST_CASE( "[rds] Maybe" ) {
   switch( maybe.to_enum() ) {
     case Maybe::e::nothing: //
       REQUIRE( false );
+      break;
     case Maybe::e::just: {
       auto& val = maybe.get<Maybe::just<int>>();
       REQUIRE( val.val == 5 );

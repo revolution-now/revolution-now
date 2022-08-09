@@ -34,8 +34,8 @@ int to_GL( e_attrib_type type ) {
 
 string_view to_GL_str( e_attrib_type type ) {
   switch( type ) {
-    case e_attrib_type::int_: return "GL_INT"; break;
-    case e_attrib_type::float_: return "GL_FLOAT"; break;
+    case e_attrib_type::int_: return "GL_INT";
+    case e_attrib_type::float_: return "GL_FLOAT";
   }
 }
 
@@ -62,19 +62,11 @@ int to_GL( e_attrib_compound_type type ) {
 
 string_view to_GL_str( e_attrib_compound_type type ) {
   switch( type ) {
-    case e_attrib_compound_type::int_: return "GL_INT"; break;
-    case e_attrib_compound_type::float_:
-      return "GL_FLOAT";
-      break;
-    case e_attrib_compound_type::vec2:
-      return "GL_FLOAT_VEC2";
-      break;
-    case e_attrib_compound_type::vec3:
-      return "GL_FLOAT_VEC3";
-      break;
-    case e_attrib_compound_type::vec4:
-      return "GL_FLOAT_VEC4";
-      break;
+    case e_attrib_compound_type::int_: return "GL_INT";
+    case e_attrib_compound_type::float_: return "GL_FLOAT";
+    case e_attrib_compound_type::vec2: return "GL_FLOAT_VEC2";
+    case e_attrib_compound_type::vec3: return "GL_FLOAT_VEC3";
+    case e_attrib_compound_type::vec4: return "GL_FLOAT_VEC4";
   }
 }
 

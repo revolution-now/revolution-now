@@ -14,14 +14,12 @@
 
 // base
 #include "adl-tag.hpp"
+#include "fmt.hpp"
 #include "macros.hpp"
 #include "source-loc.hpp"
 
 // base-util
 #include "base-util/pp.hpp"
-
-// {fmt}
-#include "fmt/format.h"
 
 // C++ standard library
 #include <memory>
@@ -65,7 +63,7 @@
 // the `abort_with_msg` function.
 #define FATAL( ... )                                 \
   ::base::abort_with_msg( ::base::detail::check_msg( \
-      "fatal error", fmt::format( "" __VA_ARGS__ ) ) );
+      "fatal error", fmt::format( "" __VA_ARGS__ ) ) )
 
 /****************************************************************
 ** Main check-fail macros.

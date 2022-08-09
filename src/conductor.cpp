@@ -339,9 +339,9 @@ void silence_all_music_players() {
   }
 }
 
-} // namespace
-
 REGISTER_INIT_ROUTINE( conductor );
+
+} // namespace
 
 void play_request( e_request             request,
                    e_request_probability probability ) {
@@ -528,10 +528,12 @@ void prev() {
       Duration_t tune_duration = 120s;
       if( ( *info.playing_now ).length.has_value() )
         tune_duration = *( *info.playing_now ).length;
-      progress_time = chrono::seconds( int(
-          chrono::duration_cast<chrono::seconds>( tune_duration )
-              .count() *
-          progress ) );
+      progress_time = chrono::seconds(
+          int( static_cast<double>(
+                   chrono::duration_cast<chrono::seconds>(
+                       tune_duration )
+                       .count() ) *
+               progress ) );
     }
     id = ( *info.playing_now ).id;
   }
@@ -726,8 +728,11 @@ void subscribe_to_conductor_event( e_conductor_event  event,
 /****************************************************************
 ** Menu Handlers
 *****************************************************************/
+namespace {
+
+#if 0
 void menu_music_play() {
-  play();
+  conductor::play();
   set_autoplay( true );
 }
 bool menu_music_play_enabled() {
@@ -813,6 +818,9 @@ bool menu_music_set_player_enabled() {
   (void)info;
   return true;
 }
+#endif
+
+} // namespace
 
 // MENU_ITEM_HANDLER( music_play, menu_music_play,
 //                    menu_music_play_enabled );
@@ -896,5 +904,6 @@ void test() {
 } // namespace rn::conductor
 
 namespace rn {
+void linker_dont_discard_module_conductor();
 void linker_dont_discard_module_conductor() {}
 }

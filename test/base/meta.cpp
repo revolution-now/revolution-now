@@ -49,11 +49,11 @@ static_assert( is_same_v<to_list_t<tu2>, list<int, char>> );
 ** Is Callable Overloaded
 *****************************************************************/
 struct foo_overloaded {
-  void operator()( int );
-  void operator()( char );
+  [[maybe_unused]] void operator()( int ) {}
+  [[maybe_unused]] void operator()( char ) {}
 };
 struct foo_non_overloaded {
-  void operator()( int );
+  [[maybe_unused]] void operator()( int ) {}
 };
 
 static_assert( is_overloaded_v<foo_overloaded> == true );
@@ -91,28 +91,28 @@ using F11 = A ( *const )( B );
 using F12 = A( B ) const;
 
 // Lambda with capture.
-auto F13 = [x = 1.0]( A* ) -> int {
+[[maybe_unused]] auto F13 = [x = 1.0]( A* ) -> int {
   (void)x;
   return 0;
 };
 
 // mutable
-auto F14 = [x = 1.0]( A* ) mutable -> int {
+[[maybe_unused]] auto F14 = [x = 1.0]( A* ) mutable -> int {
   (void)x;
   return 0;
 };
 
 struct Stateful {
-  void operator()();
-  int  x;
-  int  foo() const;
+  [[maybe_unused]] void operator()() {}
+  int                   x;
+  [[maybe_unused]] int  foo() const { return 0; }
 };
 
 struct HasMembers {
-  void      operator()();
-  int       x;
-  int const y;
-  int       foo() const;
+  [[maybe_unused]] void operator()() {}
+  int                   x;
+  int const             y;
+  [[maybe_unused]] int  foo() const { return 0; }
 };
 
 using get_x_t = decltype( &HasMembers::x );
@@ -265,7 +265,7 @@ static_assert( is_same_v<int( HasMembers const* ),
                          callable_member_func_flattened_type_t<
                              decltype( &HasMembers::foo )>> );
 
-static_assert( is_same_v<int( HasMembers::* ),
+static_assert( is_same_v<int HasMembers::*,
                          callable_member_func_type_t<
                              decltype( &HasMembers::x )>> );
 static_assert(
@@ -437,15 +437,6 @@ static_assert( any_v<false, false> == false );
 static_assert( any_v<true, true, true> == true );
 static_assert( any_v<true, true, false> == true );
 static_assert( any_v<false, true, false> == true );
-
-/****************************************************************
-** use me
-*****************************************************************/
-// To suppress compiler warnings.
-TEST_CASE( "[meta] use some variables" ) {
-  (void)callable_traits_test::F13;
-  (void)callable_traits_test::F14;
-}
 
 /****************************************************************
 ** for_index_seq

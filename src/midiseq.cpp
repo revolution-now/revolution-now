@@ -27,8 +27,16 @@
 // midifile (FIXME)
 #include "../extern/midifile/include/MidiFile.h"
 
-// rtmidi
+// rtmidi.
+// Don't warn on anything in here.
+#ifdef __clang__
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Weverything"
+#endif
 #include "RtMidi.h"
+#ifdef __clang__
+#  pragma clang diagnostic pop
+#endif
 
 // C++ standard library
 #include <algorithm>
@@ -69,13 +77,6 @@ class MidiIO {
   MidiIO( MidiIO&& rhs ) noexcept {
     out_ = std::exchange( rhs.out_, nullptr );
   }
-
-  MidiIO& operator=( MidiIO&& rhs ) noexcept {
-    rhs.swap( *this );
-    return *this;
-  }
-
-  void swap( MidiIO& rhs ) noexcept { rhs.out_.swap( out_ ); }
 
   ~MidiIO() {
     if( out_ ) out_->closePort();
@@ -297,7 +298,6 @@ class MidiIO {
   // known whether it is thread safe.
   unique_ptr<RtMidiOut> out_{};
 };
-NOTHROW_MOVE( MidiIO );
 
 // This will be nothing if midi music cannot be played for any
 // reason.
@@ -698,7 +698,7 @@ void midi_thread_impl() {
                         Clock_t::now() -
                         ( info.start_time + info.stoppage ) )
                         .count() ) /
-            info.tune_duration.count();
+            static_cast<double>( info.tune_duration.count() );
         progress = std::clamp( progress, 0.0, 1.0 );
         g_midi_comm.set_progress( progress );
 
@@ -784,9 +784,9 @@ void cleanup_midiseq() {
   }
 }
 
-} // namespace
-
 REGISTER_INIT_ROUTINE( midiseq );
+
+} // namespace
 
 /****************************************************************
 ** User API

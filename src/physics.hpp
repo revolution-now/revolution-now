@@ -59,13 +59,8 @@ class ND DissipativeVelocity {
   void set_accelerations( double accel, double drag_accel );
   void set_velocity( double velocity );
 
-  bool operator==( DissipativeVelocity const& rhs ) const {
-    return ( min_velocity_ == rhs.min_velocity_ ) && //
-           ( max_velocity_ == rhs.max_velocity_ ) && //
-           ( velocity_ == rhs.velocity_ ) &&         //
-           ( accel_ == rhs.accel_ ) &&               //
-           ( drag_accel_ == rhs.drag_accel_ );
-  }
+  bool operator==( DissipativeVelocity const& rhs ) const =
+      default;
 
   friend void to_str( DissipativeVelocity const& o,
                       std::string& out, base::ADL_t ) {

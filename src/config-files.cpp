@@ -71,6 +71,7 @@ namespace rn {
 
 bool configs_loaded() { return g_configs_loaded; }
 
+void linker_dont_discard_module_config_files();
 void linker_dont_discard_module_config_files() {}
 
 } // namespace rn

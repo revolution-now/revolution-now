@@ -25,6 +25,7 @@ using namespace std;
 
 namespace rn {
 
+void linker_dont_discard_module_ss_fathers();
 void linker_dont_discard_module_ss_fathers() {}
 
 /****************************************************************

@@ -19,7 +19,6 @@
 
 // backward
 #ifdef STACK_TRACE_ON
-#  include "backward.hpp"
 #  include "stacktrace-printer.hpp"
 #endif
 

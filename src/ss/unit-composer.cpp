@@ -39,6 +39,44 @@ namespace rn {
 
 using ::base::FmtVerticalMap;
 
+namespace {
+
+// Commodity quantity can be positive or negative.
+vector<UnitTransformationFromCommodityResult>
+unit_delta_commodity( UnitComposition const& comp,
+                      Commodity const&       commodity ) {
+  vector<UnitTransformationResult> general_results =
+      possible_unit_transformations(
+          comp, { { commodity.type, commodity.quantity } } );
+  vector<UnitTransformationFromCommodityResult> res;
+  res.reserve( general_results.size() );
+  for( UnitTransformationResult const& utr : general_results ) {
+    if( utr.commodity_deltas.size() != 1 ) continue;
+    DCHECK( utr.commodity_deltas.size() == 1 );
+    // quantity_delta is positive if the unit takes some.
+    auto [comm, quantity_delta] = *utr.commodity_deltas.begin();
+    DCHECK( quantity_delta != 0 );
+    if( comm != commodity.type )
+      // I think this could happen if a transformation entails
+      // the unit shedding a single commodity which happens to be
+      // different from the one in question here.
+      continue;
+    // At this point we know that the transformation requires
+    // changing only a single commodity, and that commodity is
+    // the one in question here. Now make sure that the quantity
+    // change is in the direction that we're asking.
+    if( ( quantity_delta > 0 ) == ( commodity.quantity > 0 ) )
+      continue;
+    res.push_back( UnitTransformationFromCommodityResult{
+        .new_comp        = utr.new_comp,
+        .modifier_deltas = utr.modifier_deltas,
+        .quantity_used   = -quantity_delta } );
+  }
+  return res;
+}
+
+} // namespace
+
 /****************************************************************
 ** UnitComposition
 *****************************************************************/
@@ -374,40 +412,6 @@ UnitTransformationResult strip_to_base_type(
            comm_type, q );
   }
   return std::move( general_results[0] );
-}
-
-// Commodity quantity can be positive or negative.
-vector<UnitTransformationFromCommodityResult>
-unit_delta_commodity( UnitComposition const& comp,
-                      Commodity const&       commodity ) {
-  vector<UnitTransformationResult> general_results =
-      possible_unit_transformations(
-          comp, { { commodity.type, commodity.quantity } } );
-  vector<UnitTransformationFromCommodityResult> res;
-  res.reserve( general_results.size() );
-  for( UnitTransformationResult const& utr : general_results ) {
-    if( utr.commodity_deltas.size() != 1 ) continue;
-    DCHECK( utr.commodity_deltas.size() == 1 );
-    // quantity_delta is positive if the unit takes some.
-    auto [comm, quantity_delta] = *utr.commodity_deltas.begin();
-    DCHECK( quantity_delta != 0 );
-    if( comm != commodity.type )
-      // I think this could happen if a transformation entails
-      // the unit shedding a single commodity which happens to be
-      // different from the one in question here.
-      continue;
-    // At this point we know that the transformation requires
-    // changing only a single commodity, and that commodity is
-    // the one in question here. Now make sure that the quantity
-    // change is in the direction that we're asking.
-    if( ( quantity_delta > 0 ) == ( commodity.quantity > 0 ) )
-      continue;
-    res.push_back( UnitTransformationFromCommodityResult{
-        .new_comp        = utr.new_comp,
-        .modifier_deltas = utr.modifier_deltas,
-        .quantity_used   = -quantity_delta } );
-  }
-  return res;
 }
 
 vector<UnitTransformationFromCommodityResult>

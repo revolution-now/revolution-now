@@ -16,6 +16,7 @@
 #include "maybe.hpp"
 #include "screen.hpp"
 #include "sdl-util.hpp"
+#include "sdl.hpp"
 
 // config
 #include "config/tile-sheet.rds.hpp"
@@ -25,9 +26,6 @@
 
 // refl
 #include "refl/to-str.hpp"
-
-// SDL
-#include "SDL.h"
 
 using namespace std;
 
@@ -102,11 +100,9 @@ void cleanup_renderer() {
   g_window     = nullptr;
 }
 
-} // namespace
-
-//
-//
 REGISTER_INIT_ROUTINE( renderer );
+
+} // namespace
 
 /****************************************************************
 ** Public API

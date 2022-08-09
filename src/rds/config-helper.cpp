@@ -23,11 +23,15 @@ namespace rds {
 /****************************************************************
 ** Globals.
 *****************************************************************/
+namespace {
+
 PopulatorsMap& g_config_populators() {
   // Needs to be a static variable in a function in order to
   // avoid global initialization ordering issues.
   static PopulatorsMap m;
   return m;
+}
+
 }
 
 /****************************************************************

@@ -15,15 +15,13 @@
 
 // base
 #include "attributes.hpp"
+#include "fmt.hpp"
 #include "meta.hpp"
 #include "source-loc.hpp"
 #include "to-str.hpp"
 
 // base-util
 #include "base-util/mp.hpp"
-
-// {fmt}
-#include "fmt/format.h"
 
 // C++ standard library
 #include <functional>
@@ -99,6 +97,11 @@ struct bad_maybe_access : public std::exception {
     error_msg_ += ":" + std::to_string( loc_.line() ) + ": ";
     error_msg_ += "value() called on an inactive maybe.";
   }
+
+  // This is to suppress clang's -Wweak-vtables, which warns that
+  // without any out-of-line-functions the vtable would have to
+  // be emitted in every translation unit, which we don't want.
+  virtual void dummy_key_function() const final;
 
   char const* what() const noexcept override {
     return error_msg_.c_str();
@@ -982,9 +985,9 @@ class [[nodiscard]] maybe { /* clang-format on */
   ** Storage
   ***************************************************************/
 
- private :
-   // This allows maybe<T> to access private members of maybe<U>.
-   template<typename U>
+ private:
+  // This allows maybe<T> to access private members of maybe<U>.
+  template<typename U>
   requires MaybeTypeRequirements<U>
   friend class maybe;
 
@@ -1276,9 +1279,9 @@ class [[nodiscard]] maybe<T&> { /* clang-format on */
     return res;
   }
 
- private :
-   // This allows maybe<T> to access private members of maybe<U>.
-   template<typename U>
+ private:
+  // This allows maybe<T> to access private members of maybe<U>.
+  template<typename U>
   requires MaybeTypeRequirements<U>
   friend class maybe;
 

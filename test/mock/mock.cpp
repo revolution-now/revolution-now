@@ -100,11 +100,7 @@ struct PointUser {
   int some_method_1( int new_x ) {
     p_->set_x( new_x );
     increment_y();
-    return p_->length();
-  }
-
-  int some_method_2() {
-    return some_method_1( 42 ) + p_->get_x();
+    return static_cast<int>( p_->length() );
   }
 
   int get_x() const { return p_->get_x(); }
@@ -238,6 +234,17 @@ TEST_CASE( "[mock] throws on unexpected mock call" ) {
   REQUIRE_THROWS_WITH(
       user.increment_y(),
       Matches( "unexpected mock function call.*get_y.*" ) );
+}
+
+TEST_CASE( "[mock] some_method_1" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, set_x( 4 ) );
+  EXPECT_CALL( mp, get_y() ).returns( 2 );
+  EXPECT_CALL( mp, set_y( 3 ) );
+  EXPECT_CALL( mp, length() ).returns( 2.3 );
+  REQUIRE( user.some_method_1( 4 ) == 2 );
 }
 
 } // namespace

@@ -14,7 +14,9 @@
 #include "error.hpp"
 #include "init.hpp"
 #include "logger.hpp"
+#include "sdl-mixer.hpp"
 #include "sdl-util.hpp"
+#include "sdl.hpp"
 #include "util.hpp"
 
 // config
@@ -23,10 +25,6 @@
 // refl
 #include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"
-
-// SDL
-#include "SDL.h"
-#include "SDL_mixer.h"
 
 // C++ standard library
 #include <unordered_map>
@@ -138,9 +136,9 @@ void cleanup_sound() {
   ::Mix_Quit();
 }
 
-} // namespace
-
 REGISTER_INIT_ROUTINE( sound );
+
+} // namespace
 
 void play_sound_effect( e_sfx sound ) {
   auto* chunk = load_sfx( sound );
@@ -148,6 +146,7 @@ void play_sound_effect( e_sfx sound ) {
     lg.warn( "unable to play sound effect {}", sound );
 }
 
+void linker_dont_discard_module_sound();
 void linker_dont_discard_module_sound() {}
 
 } // namespace rn

@@ -68,7 +68,9 @@ using MaybeMusicPlayer = expect<MusicPlayer&>;
 // accepts a timeout to avoid hanging if something goes wrong.
 class MusicPlayer {
  public:
-  MusicPlayer() = default;
+  MusicPlayer()          = default;
+  virtual ~MusicPlayer() = default;
+
   MOVABLE_ONLY( MusicPlayer );
 
   // All subclasses must have one of these.

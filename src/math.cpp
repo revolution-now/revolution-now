@@ -20,7 +20,7 @@ namespace rn {
 int round_up_to_nearest_int_multiple( double d, int m ) {
   if( d < 0.0 )
     return -round_down_to_nearest_int_multiple( -d, m );
-  int fl = floor( d );
+  int fl = static_cast<int>( floor( d ) );
   if( d == fl ) {
     // d (== fl) is integral.
     if( fl % m == 0 ) return fl;
@@ -31,7 +31,7 @@ int round_up_to_nearest_int_multiple( double d, int m ) {
 int round_down_to_nearest_int_multiple( double d, int m ) {
   if( d < 0.0 )
     return -round_up_to_nearest_int_multiple( -d, m );
-  int fl = floor( d );
+  int fl = static_cast<int>( floor( d ) );
   return fl - ( fl % m );
 }
 

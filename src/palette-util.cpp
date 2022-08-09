@@ -21,6 +21,7 @@
 #include "render/renderer.hpp"
 
 // base
+#include "base/fmt.hpp"
 #include "base/lambda.hpp"
 #include "base/maybe-util.hpp"
 #include "base/to-str-ext-std.hpp"
@@ -28,12 +29,6 @@
 // base-util
 #include "base-util/algo.hpp"
 #include "base-util/io.hpp"
-
-// {fmt}
-#include "fmt/format.h"
-
-// SDL
-#include "SDL.h"
 
 // c++ standard library
 #include <algorithm>
@@ -204,18 +199,6 @@ vector<pixel> coursen_impl( vector<pixel> const& colors,
 }
 
 } // namespace
-
-// Takes the average of each component.
-pixel mix( pixel first, pixel second ) {
-  return {
-      // clang-format off
-    uint8_t((uint32_t(first.r)+uint32_t(second.r))/2),
-    uint8_t((uint32_t(first.g)+uint32_t(second.g))/2),
-    uint8_t((uint32_t(first.b)+uint32_t(second.b))/2),
-    uint8_t((uint32_t(first.a)+uint32_t(second.a))/2)
-      // clang-format on
-  };
-}
 
 void hsl_bucketed_sort( vector<pixel>& colors ) {
   util::sort_by_key( colors, L( _.luminosity() ) );
@@ -388,18 +371,6 @@ void dump_palette( ColorBuckets const& bucketed,
   inl_out << ")\n";
 }
 
-vector<vector<pixel>> partition_by_hue(
-    vector<pixel> const& colors ) {
-  return util::split_on_idxs(
-      colors, util::group_by_key( colors, hue_bucket_key ) );
-}
-
-vector<vector<pixel>> partition_by_sat(
-    vector<pixel> const& colors ) {
-  return util::split_on_idxs(
-      colors, util::group_by_key( colors, sat_bucket_key ) );
-}
-
 void remove_greys( vector<pixel>& colors ) {
   auto is_greyscale = []( pixel c ) {
     auto hsl = to_HSL( c );
@@ -430,23 +401,6 @@ void show_palette( rr::Renderer&        renderer,
   renderer.present();
 }
 
-void show_palette( rr::Renderer&       renderer,
-                   ColorBuckets const& colors ) {
-  renderer.clear_screen();
-  Coord origin( palette_render_origin );
-  H     group_offset{ 10 };
-  H     offset{ 10 };
-  for( auto const& hue : colors ) {
-    for( auto const& sat : hue ) {
-      auto no_null = base::cat_maybes( sat );
-      render_palette_segment( renderer, no_null, origin );
-      origin.y += offset;
-    }
-    origin.y += group_offset;
-  }
-  renderer.present();
-}
-
 void show_color_adjustment( rr::Renderer& renderer,
                             pixel         center ) {
   vector<pixel> colors;
@@ -455,13 +409,6 @@ void show_color_adjustment( rr::Renderer& renderer,
   for( int i = 0; i <= 10; ++i )
     colors.push_back( center.highlighted( i ) );
   show_palette( renderer, colors );
-}
-
-void write_palette_png( fs::path const& /*png_file*/ ) {
-  NOT_IMPLEMENTED;
-  // auto tx = create_texture( Delta{ .w=W{ 500 }, .h=H{ 480 } }
-  // ); auto const& colors = g_palette(); show_palette( renderer,
-  // hsl_bucket( colors ) ); tx.save_png( png_file );
 }
 
 void update_palette( fs::path const& where ) {

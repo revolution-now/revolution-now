@@ -14,12 +14,10 @@
 #include "luapp/state.hpp"
 
 // base
+#include "base/fmt.hpp"
 #include "base/fs.hpp"
 #include "base/io.hpp"
 #include "base/maybe.hpp"
-
-// {fmt}
-#include "fmt/format.h"
 
 using namespace std;
 
@@ -281,9 +279,7 @@ expr::Rds parse( string_view filename,
       add_struct( ns, name, obj, rds );
     else if( type == "config" )
       add_config( ns, name, rds );
-    else {
-      FATAL( "unknown type: {}", type );
-    }
+    else { FATAL( "unknown type: {}", type ); }
   }
 
   lua::table includes = st["rds"]["includes"].as<lua::table>();

@@ -34,6 +34,11 @@ namespace gl {
 struct IOpenGL {
   virtual ~IOpenGL() = default;
 
+  // This is to suppress clang's -Wweak-vtables, which warns that
+  // without any out-of-line-functions the vtable would have to
+  // be emitted in every translation unit, which we don't want.
+  virtual void dummy_key_function() const final;
+
   virtual void gl_AttachShader( GLuint program,
                                 GLuint shader ) = 0;
 

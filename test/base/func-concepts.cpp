@@ -31,50 +31,39 @@ struct A;
 
 struct NonCallable {};
 struct Callable {
-  void operator()();
+  [[maybe_unused]] void operator()() {}
 };
 struct StaticCallable {
-  static void fun();
+  [[maybe_unused]] static void fun() {}
 };
 
 struct Stateful1 {
-  void operator()();
+  [[maybe_unused]] void operator()() {}
 };
 struct Stateful2 {
-  void operator()();
-  int  x;
+  [[maybe_unused]] void operator()() {}
+  int                   x;
 };
 
-void takes_params( int, char ) {}
+[[maybe_unused]] void takes_params( int, char ) {}
 
-void  normal() {}
-auto  lambda              = []() {};
-auto* pointer_to_normal   = normal;
-auto* pointer_to_lambda   = &lambda;
-auto& reference_to_normal = normal;
-auto& reference_to_lambda = lambda;
+[[maybe_unused]] void  normal() {}
+[[maybe_unused]] auto  lambda              = []() {};
+[[maybe_unused]] auto* pointer_to_normal   = normal;
+[[maybe_unused]] auto* pointer_to_lambda   = &lambda;
+[[maybe_unused]] auto& reference_to_normal = normal;
+[[maybe_unused]] auto& reference_to_lambda = lambda;
 
-auto c_ext_lambda         = []( A* ) -> int { return 0; };
-auto c_ext_lambda_capture = [x = 1.0]( A* ) -> int {
+[[maybe_unused]] auto c_ext_lambda = []( A* ) -> int {
+  return 0;
+};
+[[maybe_unused]] auto c_ext_lambda_capture =
+    [x = 1.0]( A* ) -> int {
   (void)x;
   return 0;
 };
 
 } // namespace func
-
-// Use the above functions so that the compiler does not emit
-// warnings about them not being used.
-TEST_CASE( "[func-concepts] use funcs" ) {
-  func::takes_params( 5, 'c' );
-  func::normal();
-  func::lambda();
-  func::pointer_to_normal();
-  ( *func::pointer_to_lambda )();
-  func::reference_to_normal();
-  func::reference_to_lambda();
-  func::c_ext_lambda( nullptr );
-  func::c_ext_lambda_capture( nullptr );
-}
 
 /****************************************************************
 ** Sanity checks (not the actual tests).
@@ -162,9 +151,9 @@ static_assert( !NonOverloadedStatefulCallable<
 ** Member Functions
 *****************************************************************/
 struct HasMembers {
-  int    n;
-  double foo();
-  int    bar( string const& ) const;
+  int                     n;
+  [[maybe_unused]] double foo() { return 0; }
+  [[maybe_unused]] int bar( string const& ) const { return 0; }
 };
 
 using foo_t = decltype( &HasMembers::foo );

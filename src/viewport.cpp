@@ -636,8 +636,8 @@ maybe<Coord> SmoothViewport::world_pixel_to_screen_pixel(
       double( ( world_pixel.y - covered_pixels.y ) ) /
       covered_pixels.h;
   Rect dst = rendering_dest_rect_rounded();
-  dst.w *= x_percent;
-  dst.h *= y_percent;
+  dst.w    = static_cast<int>( dst.w * x_percent );
+  dst.h    = static_cast<int>( dst.h * y_percent );
   return dst.lower_right();
 }
 

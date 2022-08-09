@@ -29,7 +29,7 @@ struct size {
   int w = 0;
   int h = 0;
 
-  bool negative() const { return w < 0 || h < 0; };
+  bool negative() const { return w < 0 || h < 0; }
 
   int area() const { return w * h; }
 
@@ -51,7 +51,7 @@ struct dsize {
   double w = 0.0;
   double h = 0.0;
 
-  bool negative() const { return w < 0 || h < 0; };
+  bool negative() const { return w < 0 || h < 0; }
 
   size truncate() const {
     return size{ .w = int( w ), .h = int( h ) };

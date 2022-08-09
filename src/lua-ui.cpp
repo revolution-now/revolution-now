@@ -30,6 +30,7 @@ using namespace std;
 
 namespace rn {
 
+void linker_dont_discard_module_lua_ui();
 void linker_dont_discard_module_lua_ui() {}
 
 namespace {

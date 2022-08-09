@@ -21,6 +21,7 @@ using namespace std;
 
 namespace rn {
 
+void linker_dont_discard_module_time();
 void linker_dont_discard_module_time() {}
 
 /****************************************************************

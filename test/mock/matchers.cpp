@@ -47,6 +47,8 @@ struct Foo {
 ** IPoint
 *****************************************************************/
 struct IPoint {
+  virtual ~IPoint() = default;
+
   virtual int get_x() const = 0;
 
   virtual int get_y() const = 0;
@@ -106,6 +108,7 @@ struct IPoint {
 ** MockPoint
 *****************************************************************/
 struct MockPoint : IPoint {
+  virtual ~MockPoint() override = default;
   MockConfig::binder config =
       MockConfig{ .throw_on_unexpected = true };
 
@@ -167,35 +170,11 @@ struct MockPoint : IPoint {
 struct PointUser {
   PointUser( IPoint* p ) : p_( p ) { DCHECK( p_ != nullptr ); }
 
-  int increment_y() {
-    int new_val = p_->get_y() + 1;
-    p_->set_y( new_val );
-    return new_val;
-  }
-
-  int some_method_1( int new_x ) {
-    p_->set_x( new_x );
-    increment_y();
-    return p_->length();
-  }
-
-  int some_method_2() {
-    return some_method_1( 42 ) + p_->get_x();
-  }
-
   void set_xy_pair( std::pair<int /*x*/, int /*y*/> p ) {
     p_->set_xy_pair( p );
   }
 
   void set_x( int x ) { p_->set_x( x ); }
-
-  int get_x() const { return p_->get_x(); }
-
-  int get_y() const { return p_->get_y(); }
-
-  bool get_xy( int* x_out, int& y_out ) const {
-    return p_->get_xy( x_out, y_out );
-  }
 
   void set_x_from_ptr( int* x ) { p_->set_x_from_ptr( x ); }
   void set_x_from_const_ptr( int x ) {
@@ -271,6 +250,16 @@ struct PointUser {
 /****************************************************************
 ** Tests
 *****************************************************************/
+TEST_CASE( "[mock] use stuff" ) {
+  // For some reason if we don't explicitly use this then clang
+  // warns that operator== is unused, even though it is needed by
+  // the mocking framework since Foo is a parameter to a mocked
+  // function.
+  Foo foo1;
+  Foo foo2;
+  REQUIRE( foo1 == foo2 );
+}
+
 TEST_CASE( "[mock] Pointee" ) {
   MockPoint mp;
   PointUser user( &mp );

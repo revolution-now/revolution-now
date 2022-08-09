@@ -27,4 +27,6 @@ void set_global_gl_implementation( IOpenGL* iopengl ) {
   g_impl = iopengl;
 }
 
+void IOpenGL::dummy_key_function() const {}
+
 } // namespace gl

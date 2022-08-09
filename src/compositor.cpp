@@ -90,7 +90,9 @@ maybe<Rect> section_inverted( e_section sec ) {
 }
 
 // FIXME
+namespace {
 bool is_menu_plane_enabled() { return true; }
+}
 
 // FIXME: the results of this need to be cached and only recom-
 // puted when some state changes that would affect it. This is
@@ -137,17 +139,17 @@ maybe<Rect> section( e_section sec ) {
       res = total;
       switch( g_console_loc ) {
         case e_composite_location::top: //
-          res->h *= g_console_size;
+          res->h = static_cast<int>( res->h * g_console_size );
           break;
         case e_composite_location::bottom:
-          res->h *= g_console_size;
+          res->h = static_cast<int>( res->h * g_console_size );
           res->y = total.bottom_edge() - res->h;
           break;
         case e_composite_location::left: //
-          res->w *= g_console_size;
+          res->w = static_cast<int>( res->w * g_console_size );
           break;
         case e_composite_location::right:
-          res->w *= g_console_size;
+          res->w = static_cast<int>( res->w * g_console_size );
           res->x = total.right_edge() - res->w;
           break;
       }

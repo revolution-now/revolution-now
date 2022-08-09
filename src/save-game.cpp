@@ -225,7 +225,6 @@ expect<fs::path> load_game( RootState& root, int slot ) {
   } else {
     lg.info( "loading game from {}.", b64_path );
     NOT_IMPLEMENTED;
-    return b64_path;
   }
 }
 

@@ -17,7 +17,9 @@ namespace mock {
 /****************************************************************
 ** Mock Config
 *****************************************************************/
+namespace {
 MockConfig g_mock_config;
+}
 
 MockConfig::binder::binder( MockConfig config )
   : old_config_( std::move( g_mock_config ) ) {
@@ -33,7 +35,7 @@ MockConfig::binder::~binder() {
 *****************************************************************/
 namespace detail {
 
-void throw_unexpected_error( string_view msg ) {
+[[noreturn]] void throw_unexpected_error( string_view msg ) {
   if( g_mock_config.throw_on_unexpected ) {
     throw invalid_argument( string( msg ) );
   } else {

@@ -14,9 +14,7 @@
 
 // base
 #include "expect.hpp"
-
-// {fmt}
-#include "fmt/format.h"
+#include "fmt.hpp"
 
 namespace base {
 

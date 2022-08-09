@@ -10,8 +10,8 @@
 *****************************************************************/
 #include "power.hpp"
 
-// SDL
-#include "SDL.h"
+// Revolution Now
+#include "sdl.hpp"
 
 namespace rn {
 
@@ -42,7 +42,6 @@ MachinePowerInfo machine_power_info() {
       break;
     // Cannot determine power status.
     case SDL_POWERSTATE_UNKNOWN:
-    default: //
       info.power_state = e_power_state::unknown;
       break;
   }

@@ -31,8 +31,6 @@ using namespace std;
 ** MyStructWrapper
 *****************************************************************/
 struct MyStructWrapper {
-  MyStructWrapper() = default;
-
   MyStructWrapper( rn::MyStruct ms )
     : wrapped( std::move( ms ) ) {}
 
@@ -40,8 +38,6 @@ struct MyStructWrapper {
   rn::MyStruct const&          refl() const { return wrapped; }
   static constexpr string_view refl_ns   = "other";
   static constexpr string_view refl_name = "MyStructWrapper";
-
-  bool operator==( MyStructWrapper const& ) const = default;
 
   rn::MyStruct wrapped;
 };

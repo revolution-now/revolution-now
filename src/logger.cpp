@@ -94,9 +94,11 @@ struct ConsoleLogger final : public ILogger {
   Terminal* terminal_ = nullptr;
 };
 
+namespace {
 ConsoleLogger& console_logger_storage() {
   static ConsoleLogger l;
   return l;
+}
 }
 
 ILogger& console_logger() { return console_logger_storage(); }

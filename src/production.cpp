@@ -810,6 +810,55 @@ void fill_in_center_square(
                          pr.center_extra_production->quantity );
 }
 
+BellsModifiers compute_bells_modifiers(
+    Player const& player, Colony const& colony,
+    e_difficulty difficulty ) {
+  int const population = colony_population( colony );
+
+  // This won't happen in practice because the game does not
+  // allow zero-population colonies, but it is useful for unit
+  // tests where that something happens, and which would other-
+  // wise cause code below to check-fail. Conceptually it makes
+  // sense either way, because a population zero colony cannot
+  // have any sons of liberty, and thus no sons of liberty bonus,
+  // and also has no tories, so cannot have a tory penalty.
+  if( population == 0 ) return BellsModifiers{};
+
+  double const sons_of_liberty_percent =
+      compute_sons_of_liberty_percent(
+          colony.sons_of_liberty.num_rebels_from_bells_only,
+          population,
+          player.fathers.has[e_founding_father::simon_bolivar] );
+
+  int const sons_of_liberty_integral_percent =
+      compute_sons_of_liberty_integral_percent(
+          sons_of_liberty_percent );
+
+  int const sons_of_liberty_number =
+      compute_sons_of_liberty_number(
+          sons_of_liberty_integral_percent, population );
+
+  int const tory_number =
+      compute_tory_number( sons_of_liberty_number, population );
+
+  int const tory_penalty =
+      compute_tory_penalty( difficulty, tory_number );
+
+  int const sons_of_liberty_bonus_non_expert =
+      compute_sons_of_liberty_bonus(
+          sons_of_liberty_integral_percent,
+          /*is_expert=*/false );
+  int const sons_of_liberty_bonus_expert =
+      compute_sons_of_liberty_bonus(
+          sons_of_liberty_integral_percent, /*is_expert=*/true );
+
+  return BellsModifiers{ .sons_of_liberty_bonus_non_expert =
+                             sons_of_liberty_bonus_non_expert,
+                         .sons_of_liberty_bonus_expert =
+                             sons_of_liberty_bonus_expert,
+                         .tory_penalty = tory_penalty };
+}
+
 } // namespace
 
 /****************************************************************
@@ -901,55 +950,6 @@ maybe<int> production_for_slot( ColonyProduction const& pr,
     case e_colony_building_slot::crosses: return pr.crosses;
     case e_colony_building_slot::custom_house: return nothing;
   }
-}
-
-BellsModifiers compute_bells_modifiers(
-    Player const& player, Colony const& colony,
-    e_difficulty difficulty ) {
-  int const population = colony_population( colony );
-
-  // This won't happen in practice because the game does not
-  // allow zero-population colonies, but it is useful for unit
-  // tests where that something happens, and which would other-
-  // wise cause code below to check-fail. Conceptually it makes
-  // sense either way, because a population zero colony cannot
-  // have any sons of liberty, and thus no sons of liberty bonus,
-  // and also has no tories, so cannot have a tory penalty.
-  if( population == 0 ) return BellsModifiers{};
-
-  double const sons_of_liberty_percent =
-      compute_sons_of_liberty_percent(
-          colony.sons_of_liberty.num_rebels_from_bells_only,
-          population,
-          player.fathers.has[e_founding_father::simon_bolivar] );
-
-  int const sons_of_liberty_integral_percent =
-      compute_sons_of_liberty_integral_percent(
-          sons_of_liberty_percent );
-
-  int const sons_of_liberty_number =
-      compute_sons_of_liberty_number(
-          sons_of_liberty_integral_percent, population );
-
-  int const tory_number =
-      compute_tory_number( sons_of_liberty_number, population );
-
-  int const tory_penalty =
-      compute_tory_penalty( difficulty, tory_number );
-
-  int const sons_of_liberty_bonus_non_expert =
-      compute_sons_of_liberty_bonus(
-          sons_of_liberty_integral_percent,
-          /*is_expert=*/false );
-  int const sons_of_liberty_bonus_expert =
-      compute_sons_of_liberty_bonus(
-          sons_of_liberty_integral_percent, /*is_expert=*/true );
-
-  return BellsModifiers{ .sons_of_liberty_bonus_non_expert =
-                             sons_of_liberty_bonus_non_expert,
-                         .sons_of_liberty_bonus_expert =
-                             sons_of_liberty_bonus_expert,
-                         .tory_penalty = tory_penalty };
 }
 
 ColonyProduction production_for_colony( SSConst const& ss,

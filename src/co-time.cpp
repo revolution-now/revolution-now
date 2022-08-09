@@ -31,7 +31,8 @@ wait<std::chrono::microseconds> co_await_transform(
 wait<chrono::microseconds> wait_for_duration(
     chrono::microseconds us ) {
   if( us == chrono::microseconds{ 0 } )
-    return wait<chrono::microseconds>( 0 );
+    return wait<chrono::microseconds>(
+        chrono::microseconds{ 0 } );
   wait_promise<chrono::microseconds> p;
   auto                               now = Clock_t::now();
   auto after_time = [p, then = now]() mutable {

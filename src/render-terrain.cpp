@@ -911,8 +911,6 @@ void render_land_overlay( TerrainState const& terrain_state,
   }
 }
 
-} // namespace
-
 void render_terrain_ocean_square(
     rr::Renderer& renderer, rr::Painter& painter, Coord where,
     TerrainState const& terrain_state, MapSquare const& square,
@@ -1782,6 +1780,8 @@ void render_resources( rr::Renderer&       renderer,
                         world_square );
   render_sprite( painter, where, resource_tile( *resource ) );
 }
+
+} // namespace
 
 // Pass in the painter as well for efficiency.
 void render_terrain_square(

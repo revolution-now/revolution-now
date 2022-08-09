@@ -15,13 +15,11 @@
 
 // base
 #include "base/error.hpp"
+#include "base/fmt.hpp"
 #include "base/lambda.hpp"
 #include "base/maybe.hpp"
 #include "base/meta.hpp"
 #include "base/string.hpp"
-
-// {fmt}
-#include "fmt/format.h"
 
 // c++ standard library
 #include <iomanip>
@@ -90,7 +88,6 @@ struct CodeGenerator {
     bool quotes       = false;
 
     bool operator==( Options const& ) const = default;
-    bool operator!=( Options const& ) const = default;
   };
 
   ostringstream oss_;
@@ -123,13 +120,10 @@ struct CodeGenerator {
     AutoPopper( CodeGenerator& gen ) : gen_( &gen ) {
       CHECK( gen_ != nullptr );
     }
-    AutoPopper( AutoPopper const& )            = delete;
+    AutoPopper( AutoPopper const& ) = delete;
     AutoPopper& operator=( AutoPopper const& ) = delete;
-    AutoPopper& operator=( AutoPopper&& )      = delete;
-    AutoPopper( AutoPopper&& rhs ) {
-      gen_     = rhs.gen_;
-      rhs.gen_ = nullptr;
-    }
+    AutoPopper& operator=( AutoPopper&& ) = delete;
+    AutoPopper( AutoPopper&& rhs )        = delete;
     ~AutoPopper() {
       if( gen_ ) gen_->pop();
     }
@@ -139,12 +133,6 @@ struct CodeGenerator {
   AutoPopper indent( int levels = 1 ) {
     push( options() );
     options().indent_level += levels;
-    return AutoPopper( *this );
-  }
-
-  AutoPopper quoted() {
-    push( options() );
-    options().quotes = true;
     return AutoPopper( *this );
   }
 
@@ -243,30 +231,6 @@ struct CodeGenerator {
     if( tmpls.empty() ) return;
     line( "template{}",
           template_params( tmpls, /*put_typename=*/true ) );
-  }
-
-  void emit_format_str_for_formatting_alternative(
-      expr::Alternative const&           alt,
-      vector<expr::TemplateParam> const& tmpls,
-      string_view                        sumtype_name ) {
-    auto _ = quoted();
-    if( tmpls.empty() )
-      frag( "{}::{}", sumtype_name, alt.name );
-    else
-      frag( "{}::{}<{{}}>", sumtype_name, alt.name );
-    if( !alt.members.empty() ) frag( "{{" );
-    flush();
-    if( !alt.members.empty() ) {
-      vector<string> fmt_members;
-      for( expr::StructMember const& member : alt.members )
-        fmt_members.push_back(
-            fmt::format( "{}={{}}", member.var ) );
-      {
-        auto _ = indent();
-        emit_vert_list( fmt_members, "," );
-      }
-      line( "}}" );
-    }
   }
 
   void emit_sumtype_alternative(
@@ -614,23 +578,6 @@ struct CodeGenerator {
   void emit_preamble() {
     line( "#pragma once" );
     newline();
-  }
-
-  bool rds_has_sumtype_feature(
-      expr::Rds const& rds, expr::e_feature target_feature ) {
-    for( expr::Item const& item : rds.items ) {
-      for( expr::Construct const& construct : item.constructs ) {
-        bool has_feature = visit(
-            mp::overload{ [&]( expr::Sumtype const& sumtype ) {
-                           return item_has_feature(
-                               sumtype, target_feature );
-                         },
-                          []( auto const& ) { return false; } },
-            construct );
-        if( has_feature ) return true;
-      }
-    }
-    return false;
   }
 
   template<typename T>

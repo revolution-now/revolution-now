@@ -227,14 +227,14 @@ maybe<drect> drect::clipped_by( drect const other ) const {
   if( res.bottom() > other.bottom() )
     res.size.h -= ( res.bottom() - other.bottom() );
   if( res.left() < other.left() ) {
-    int delta    = ( other.left() - res.left() );
+    int delta    = static_cast<int>( other.left() - res.left() );
     res.origin.x = other.left();
     res.size.w -= delta;
     if( res.right() > other.right() )
       res.size.w -= ( res.right() - other.right() );
   }
   if( res.top() < other.top() ) {
-    int delta    = ( other.top() - res.top() );
+    int delta    = static_cast<int>( other.top() - res.top() );
     res.origin.y = other.top();
     res.size.h -= delta;
     if( res.bottom() > other.bottom() )

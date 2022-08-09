@@ -73,6 +73,7 @@ struct ColViewObjectWithBounds {
 // Interface for views that support prompting a user for informa-
 // tion on the parameters of a drag.
 struct IColViewDragSourceUserInput {
+  virtual ~IColViewDragSourceUserInput() = default;
   // This will only be called if the user requests it, typically
   // by holding down a modifier key such as shift when releasing
   // the drag. Using this method, the view has the opportunity to
@@ -90,6 +91,7 @@ struct IColViewDragSourceUserInput {
 // idea here is that the view must keep track of what is being
 // dragged.
 struct IColViewDragSource {
+  virtual ~IColViewDragSource() = default;
   // Decides whether a drag can happen on the given object. Note
   // that in some cases the coordinate parameter will not be
   // needed. If this returns true, this means that the view has
@@ -132,6 +134,8 @@ struct IColViewDragSource {
 // plaining why we are cancelling it. Returning `true` means
 // "proceed".
 struct IColViewDragSinkCheck {
+  virtual ~IColViewDragSinkCheck() = default;
+
   struct Rejection {
     maybe<std::string> reason;
   };
@@ -143,6 +147,7 @@ struct IColViewDragSinkCheck {
 
 // Interface for views that can accept dragged items.
 struct IColViewDragSink {
+  virtual ~IColViewDragSink() = default;
   // Coordinates are relative to view's upper left corner. If the
   // object can be received, then a new object will be returned
   // that is either the same or possibly altered from the origi-
@@ -198,7 +203,7 @@ class ColonySubView : public AwaitView {
   // then we need to do a full recompositing instead. This is not
   // supposed to be called directly, but should only be called
   // via the update_colony_view method.
-  virtual void update_this_and_children() {}
+  virtual void update_this_and_children();
 
  protected:
   SS&     ss_;

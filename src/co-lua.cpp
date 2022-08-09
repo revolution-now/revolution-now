@@ -93,6 +93,7 @@ void cleanup_coro( lua::rthread coro ) {
 
 } // namespace internal
 
+void linker_dont_discard_module_co_lua();
 void linker_dont_discard_module_co_lua() {}
 
 namespace {

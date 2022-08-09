@@ -644,6 +644,8 @@ struct ColonyPlane::Impl : public Plane {
   Rect canvas_;
 };
 
+namespace {
+
 wait<> show_colony_view_impl( Planes& planes, SS& ss, TS& ts_old,
                               Colony& colony ) {
   PlaneGroup const& old_group = planes.back();
@@ -671,6 +673,8 @@ wait<> show_colony_view_impl( Planes& planes, SS& ss, TS& ts_old,
   co_await colony_plane.show_colony_view();
   lg.info( "leaving colony view." );
 }
+
+} // namespace
 
 /****************************************************************
 ** ColonyPlane

@@ -285,9 +285,9 @@ pixel to_RGB( pixel_hsl const& hsl ) {
   if( 240 <= hsl.h && hsl.h < 300 ) { R = X; G = 0; B = C; };
   if( 300 <= hsl.h && hsl.h < 360 ) { R = C; G = 0; B = X; };
   // clang-format on
-  rgb.r = ( R + m ) * 255;
-  rgb.g = ( G + m ) * 255;
-  rgb.b = ( B + m ) * 255;
+  rgb.r = static_cast<uint8_t>( ( R + m ) * 255 );
+  rgb.g = static_cast<uint8_t>( ( G + m ) * 255 );
+  rgb.b = static_cast<uint8_t>( ( B + m ) * 255 );
   return rgb;
 }
 

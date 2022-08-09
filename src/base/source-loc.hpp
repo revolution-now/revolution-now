@@ -27,7 +27,14 @@
 // source_location (coming in C++20)
 #if __has_include( <experimental/source_location>)
 
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Weverything"
+#  endif
 #  include <experimental/source_location>
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  endif
 namespace base {
 using SourceLoc = std::experimental::source_location;
 }

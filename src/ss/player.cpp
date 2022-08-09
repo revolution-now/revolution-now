@@ -30,6 +30,7 @@ using namespace std;
 
 namespace rn {
 
+void linker_dont_discard_module_player();
 void linker_dont_discard_module_player() {}
 
 /****************************************************************

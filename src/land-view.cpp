@@ -1017,7 +1017,6 @@ struct LandViewPlane::Impl : public Plane {
         FATAL(
             "Unit animation not found for either slide or "
             "depixelate." );
-        break;
       }
     }
   }

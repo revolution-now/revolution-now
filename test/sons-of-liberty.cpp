@@ -169,8 +169,8 @@ TEST_CASE(
 }
 
 TEST_CASE( "[sons-of-liberty] compute_sons_of_liberty_number" ) {
-  double sons_of_liberty_integral_percent = 0.0;
-  int    colony_population                = 0;
+  int sons_of_liberty_integral_percent = 0;
+  int colony_population                = 0;
 
   auto f = [&] {
     return compute_sons_of_liberty_number(
@@ -291,7 +291,8 @@ TEST_CASE(
 
 TEST_CASE( "[sons-of-liberty] compute_sons_of_liberty_bonus" ) {
   bool is_expert = false;
-  auto f = [&]( double sons_of_liberty_integral_percent ) {
+
+  auto f = [&]( int sons_of_liberty_integral_percent ) {
     return compute_sons_of_liberty_bonus(
         sons_of_liberty_integral_percent, is_expert );
   };

@@ -24,9 +24,9 @@ rthread::rthread( lua::cthread L, int ref ) : any( L, ref ) {
   CHECK( C.type_of( -1 ) == type::thread );
   // Replace the L held in this object by the one representing
   // the new thread (the L passed in as a parameter may represent
-  // some other thread)..
-  this->L = C.tothread( -1 );
-  CHECK( this->L != nullptr );
+  // some other thread).
+  this->L_ = C.tothread( -1 );
+  CHECK( this->L_ != nullptr );
   C.pop();
 }
 
@@ -40,24 +40,24 @@ base::maybe<rthread> lua_get( cthread L, int idx,
 }
 
 bool rthread::is_main() const noexcept {
-  lua::c_api C( L );
+  lua::c_api C( L_ );
   bool       is_main_thread = C.pushthread();
   C.pop();
   return is_main_thread;
 }
 
 lua_valid rthread::resetthread() const noexcept {
-  lua::c_api C( L );
+  lua::c_api C( L_ );
   return C.resetthread();
 }
 
 thread_status rthread::status() const noexcept {
-  lua::c_api C( L );
+  lua::c_api C( L_ );
   return C.status();
 }
 
 coroutine_status rthread::coro_status() const noexcept {
-  lua::c_api C( L );
+  lua::c_api C( L_ );
   return C.coro_status();
 }
 

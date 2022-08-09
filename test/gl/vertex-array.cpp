@@ -105,7 +105,7 @@ TEST_CASE( "[vertex-array] creation" ) {
                    /*index=*/0, /*size=*/3, /*type=*/GL_FLOAT,
                    /*normalized=*/false, /*stride=*/
                    sizeof( Vertex ),
-                   /*pointer=*/(void*)0 ) );
+                   /*pointer=*/nullptr ) );
   EXPECT_CALL( mock, gl_EnableVertexAttribArray( 0 ) );
 
   // Register attribute 1 (float).

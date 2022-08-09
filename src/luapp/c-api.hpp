@@ -30,9 +30,9 @@ namespace lua {
 // to be an intermediate step or building block to the ultimate
 // lua C++ interface.
 struct c_api {
-  c_api( cthread L_ ) noexcept : L( L_ ) {}
+  c_api( cthread L ) noexcept : L_( L ) {}
 
-  cthread this_cthread() noexcept { return L; }
+  cthread this_cthread() noexcept { return L_; }
   cthread main_cthread() noexcept;
 
   /**************************************************************
@@ -676,7 +676,7 @@ struct c_api {
   // clang-format on
 
   // Not necessarily the main thread.
-  cthread L;
+  cthread L_;
 };
 
 // For convenience.

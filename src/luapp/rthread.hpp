@@ -35,7 +35,7 @@ struct rthread : public any {
   // In an rthread, the particular `L' held represents the
   // thread. This is unlike other objects where the L is only
   // held for access to the global state.
-  lua::cthread cthread() const noexcept { return L; }
+  lua::cthread cthread() const noexcept { return L_; }
 
   bool is_main() const noexcept;
 

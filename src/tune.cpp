@@ -102,10 +102,9 @@ void init_tunes() {
 
 void cleanup_tunes() {}
 
-} // namespace
-
-//
 REGISTER_INIT_ROUTINE( tunes );
+
+} // namespace
 
 #define OPT_TO_VEC( what )                                     \
   {                                                            \

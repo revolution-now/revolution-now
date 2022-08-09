@@ -156,17 +156,17 @@ concept GettableOrVoid = Gettable<T> || std::same_as<void, T>;
 *****************************************************************/
 namespace internal {
 
-  int         ext_stack_size( cthread L );
-  std::string ext_type_name( cthread L, int idx );
+int         ext_stack_size( cthread L );
+std::string ext_type_name( cthread L, int idx );
 
-  template<typename T>
-  auto storage_type_impl() {
-    using unqualified_t = std::remove_cvref_t<T>;
-    if constexpr( HasTraitsStorageType<T> )
-      return tag<typename traits_for<T>::storage_type>{};
-    else
-      return tag<unqualified_t>{};
-  }
+template<typename T>
+auto storage_type_impl() {
+  using unqualified_t = std::remove_cvref_t<T>;
+  if constexpr( HasTraitsStorageType<T> )
+    return tag<typename traits_for<T>::storage_type>{};
+  else
+    return tag<unqualified_t>{};
+}
 
 } // namespace internal
 
@@ -232,7 +232,8 @@ int push( cthread L, T&& o ) {
   else if constexpr( PushableViaTraits<T> )
     traits_for<T>::push( L, std::forward<T>( o ) );
   else
-    static_assert( "should not be here." );
+    static_assert( !std::is_same_v<T, T>,
+                   "should not be here." );
   int n_pushed =
       internal::ext_stack_size( L ) - start_stack_size;
   assert( n_pushed == nvalues_for<T>() );
@@ -249,7 +250,8 @@ auto get( cthread L, int idx ) {
   else if constexpr( GettableViaTraits<T> )
     return traits_for<T>::get( L, idx, tag<T>{} );
   else
-    static_assert( "should not be here." );
+    static_assert( !std::is_same_v<T, T>,
+                   "should not be here." );
 }
 
 // This function will attempt to get a value off of the stack and

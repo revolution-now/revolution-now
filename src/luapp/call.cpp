@@ -14,8 +14,8 @@
 #include "c-api.hpp"
 #include "types.hpp"
 
-// {fmt}
-#include "fmt/format.h"
+// base
+#include "base/fmt.hpp"
 
 using namespace std;
 

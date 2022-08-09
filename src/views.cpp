@@ -404,7 +404,7 @@ LineEditorView::LineEditorView( e_font font, W pixels_wide,
     cursor_width_{} {
   string text( 100, 'X' );
   Delta  char_delta = Delta::from_gfx(
-      rr::rendered_text_line_size_pixels( text ) );
+       rr::rendered_text_line_size_pixels( text ) );
 
   cursor_width_ = char_delta.w / SX{ int( text.size() ) };
 
@@ -467,7 +467,7 @@ void LineEditorView::draw( rr::Renderer& renderer,
                ? W{ 0 }
           // The rendered text might have width 1 in this case.
                : Delta::from_gfx( rr::rendered_text_line_size_pixels(
-                                 string_up_to_cursor ) )
+                                      string_up_to_cursor ) )
                 .w;
   Rect cursor{ .x = coord.x + 1 + rel_cursor_pixels,
                .y = coord.y + 1,
@@ -693,7 +693,6 @@ Coord OkCancelView::pos_of( int idx ) const {
   if( idx == 0 ) return Coord{};
   if( idx == 1 ) return Coord{} + Delta{ .w = ok_->delta().w };
   SHOULD_NOT_BE_HERE;
-  return {};
 }
 
 unique_ptr<View>& OkCancelView::mutable_at( int idx ) {
@@ -955,14 +954,12 @@ bool OptionSelectView::on_key(
     case ::SDLK_k: // TODO: temporary?
       if( selected_ > 0 ) set_selected( selected_ - 1 );
       return true;
-      break;
     case ::SDLK_DOWN:
     case ::SDLK_KP_2:
     case ::SDLK_j: // TODO: temporary?
       if( selected_ < count() - 1 )
         set_selected( selected_ + 1 );
       return true;
-      break;
     default: break;
   }
   return false;

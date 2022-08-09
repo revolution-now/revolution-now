@@ -135,11 +135,6 @@ struct Delta {
     return { .w = -w, .h = h };
   }
 
-  // Will project this delta along the given one; the length of
-  // the returned delta will generally be different than this
-  // one.
-  Delta projected_along( Delta const& along ) const;
-
   // Multiply both components by the scale and round.
   Delta multiply_and_round( double scale ) const;
 
@@ -499,8 +494,8 @@ struct RectGridProxyIteratorHelper {
     Coord                              it;
     RectGridProxyIteratorHelper const* rect_proxy;
     auto const&                        operator*() const {
-      DCHECK( it.is_inside( rect_proxy->rect ) );
-      return it;
+                             DCHECK( it.is_inside( rect_proxy->rect ) );
+                             return it;
     }
     const_iterator& operator++() {
       it.x += rect_proxy->chunk_size.w;

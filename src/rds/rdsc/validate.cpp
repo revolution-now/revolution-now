@@ -14,10 +14,8 @@
 #include "rds-util.hpp"
 
 // base
+#include "base/fmt.hpp"
 #include "base/lambda.hpp"
-
-// {fmt}
-#include "fmt/format.h"
 
 // C++ standard library.
 #include <string_view>
@@ -31,14 +29,6 @@ namespace {
 
 struct Validator {
   vector<string> errors_;
-
-  template<typename Arg1, typename... Args>
-  void error( string_view fmt_str, Arg1&& arg1,
-              Args&&... args ) {
-    errors_.push_back( fmt::format(
-        fmt::runtime( fmt_str ), std::forward<Arg1>( arg1 ),
-        std::forward<Args>( args )... ) );
-  }
 
   void error( string_view msg ) { errors_.emplace_back( msg ); }
 

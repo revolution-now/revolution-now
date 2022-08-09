@@ -21,6 +21,7 @@ using namespace std;
 
 namespace rn {
 
+void linker_dont_discard_module_ss_land_view();
 void linker_dont_discard_module_ss_land_view() {}
 
 /****************************************************************

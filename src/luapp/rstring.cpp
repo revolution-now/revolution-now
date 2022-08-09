@@ -25,8 +25,8 @@ namespace lua {
 ** rstring
 *****************************************************************/
 string rstring::as_cpp() const {
-  c_api C( L );
-  push( L, *this );
+  c_api C( L_ );
+  push( L_, *this );
   CHECK( C.type_of( -1 ) == type::string );
   UNWRAP_CHECK( res, C.get<string>( -1 ) );
   C.pop();

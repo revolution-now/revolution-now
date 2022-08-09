@@ -12,12 +12,12 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "sdl.hpp"
+
 // gfx
 #include "gfx/coord.hpp"
 #include "gfx/pixel.hpp"
-
-// SDL
-#include "SDL.h"
 
 // C++ standard library
 #include <string_view>

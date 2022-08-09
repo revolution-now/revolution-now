@@ -265,14 +265,14 @@ Coord Coord::rounded_to_multiple_to_minus_inf(
 Coord Coord::moved( e_direction d ) const {
   // clang-format off
   switch( d ) {
-    case e_direction::nw: return {.x=x-1,.y=y-1}; break;
-    case e_direction::n:  return {.x=x,  .y=y-1}; break;
-    case e_direction::ne: return {.x=x+1,.y=y-1}; break;
-    case e_direction::w:  return {.x=x-1,.y=y  }; break;
-    case e_direction::e:  return {.x=x+1,.y=y  }; break;
-    case e_direction::sw: return {.x=x-1,.y=y+1}; break;
-    case e_direction::s:  return {.x=x,  .y=y+1}; break;
-    case e_direction::se: return {.x=x+1,.y=y+1}; break;
+    case e_direction::nw: return {.x=x-1,.y=y-1};
+    case e_direction::n:  return {.x=x,  .y=y-1};
+    case e_direction::ne: return {.x=x+1,.y=y-1};
+    case e_direction::w:  return {.x=x-1,.y=y  };
+    case e_direction::e:  return {.x=x+1,.y=y  };
+    case e_direction::sw: return {.x=x-1,.y=y+1};
+    case e_direction::s:  return {.x=x,  .y=y+1};
+    case e_direction::se: return {.x=x+1,.y=y+1};
   };
   // clang-format on
 }
@@ -329,17 +329,6 @@ double Delta::diagonal() const {
   return std::sqrt( w * w + h * h );
 }
 
-Delta Delta::projected_along( Delta const& along ) const {
-  double mag = along.diagonal();
-  DCHECK( mag >= 0 );
-  // If we effectively don't have a projection direction than the
-  // resultant vector will be of zero length, which means that
-  // the new end == start.
-  if( mag == 0 ) return {};
-  auto dot_product = inner_product( *this, along );
-  return along.multiply_and_round( dot_product / ( mag * mag ) );
-}
-
 Delta Delta::multiply_and_round( double scale ) const {
   return Delta{
       W{ static_cast<int>( std::lround( w * scale ) ) },
@@ -359,15 +348,6 @@ Delta Delta::uni0n( Delta const& rhs ) const {
 Delta Delta::clamp( Delta const& delta ) const {
   return { .w = std::min( w, delta.w ),
            .h = std::min( h, delta.h ) };
-}
-
-RectGridProxyIteratorHelper::const_iterator begin(
-    RectGridProxyIteratorHelper const& rect_proxy ) {
-  return rect_proxy.begin();
-}
-RectGridProxyIteratorHelper::const_iterator end(
-    RectGridProxyIteratorHelper const& rect_proxy ) {
-  return rect_proxy.end();
 }
 
 Coord centered( Delta const& delta, Rect const& rect ) {

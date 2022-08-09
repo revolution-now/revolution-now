@@ -27,13 +27,14 @@ using namespace std;
 using ::std::experimental::is_detected_v;
 
 struct MoveOnly {
-  MoveOnly() = default;
+  [[maybe_unused]] MoveOnly() = default;
 
-  MoveOnly( MoveOnly const& ) = delete;
-  MoveOnly( MoveOnly&& )      = default;
+  [[maybe_unused]] MoveOnly( MoveOnly const& ) = delete;
+  [[maybe_unused]] MoveOnly( MoveOnly&& )      = default;
 
-  MoveOnly& operator=( MoveOnly const& ) = delete;
-  MoveOnly& operator=( MoveOnly&& ) = default;
+  [[maybe_unused]] MoveOnly& operator=( MoveOnly const& ) =
+      delete;
+  [[maybe_unused]] MoveOnly& operator=( MoveOnly&& ) = default;
 };
 
 template<typename T>

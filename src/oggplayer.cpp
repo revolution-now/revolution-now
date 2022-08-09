@@ -13,13 +13,11 @@
 // Revolution Now
 #include "init.hpp"
 #include "logger.hpp"
+#include "sdl-mixer.hpp"
+#include "sdl.hpp"
 
 // config
 #include "config/music.rds.hpp"
-
-// SDL
-#include "SDL.h"
-#include "SDL_mixer.h"
 
 // C++ standard library
 #include <cmath>
@@ -167,10 +165,12 @@ void init_oggplayer() {
 
   lg.info(
       "SDL Mixer OGG support enabled: enabling Music Player." );
-  g_ogg_player = OggMusicPlayer();
+  g_ogg_player = OggMusicPlayer{};
 }
 
+namespace {
 REGISTER_INIT_ROUTINE( oggplayer );
+}
 
 /****************************************************************
 ** OggMusicPlayer Implementation

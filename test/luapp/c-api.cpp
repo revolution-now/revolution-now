@@ -807,7 +807,6 @@ LUA_TEST_CASE( "[lua-c-api] pcallk, yield, no error" ) {
     C2.pcallk( /*nargs=*/0, /*nresults=*/0, /*ctx=*/0, /*k=*/k );
 
     SHOULD_NOT_BE_HERE;
-    return 0;
   };
 
   char const* lua_script = R"(
@@ -871,7 +870,6 @@ LUA_TEST_CASE( "[lua-c-api] pcallk with eager error" ) {
     C2.pcallk( /*nargs=*/0, /*nresults=*/0, /*ctx=*/0, /*k=*/k );
 
     SHOULD_NOT_BE_HERE;
-    return 0;
   };
 
   char const* lua_script = R"(
@@ -928,7 +926,6 @@ LUA_TEST_CASE( "[lua-c-api] pcallk with late error" ) {
     C2.pcallk( /*nargs=*/0, /*nresults=*/0, /*ctx=*/0, /*k=*/k );
 
     SHOULD_NOT_BE_HERE;
-    return 0;
   };
 
   char const* lua_script = R"(
@@ -1335,7 +1332,6 @@ LUA_TEST_CASE( "[lua-c-api] error" ) {
       c_api C( L );
       C.push( "this is an error." );
       C.error();
-      return 0;
     } );
     // clang-format off
     char const* err =
@@ -1350,7 +1346,6 @@ LUA_TEST_CASE( "[lua-c-api] error" ) {
     C.push( []( lua_State* L ) -> int {
       c_api C( L );
       C.error( "this is an error." );
-      return 0;
     } );
     // clang-format off
     char const* err =

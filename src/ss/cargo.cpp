@@ -206,9 +206,8 @@ vector<UnitId> CargoHold::units() const {
 vector<pair<Commodity, int>> CargoHold::commodities(
     maybe<e_commodity> type ) const {
   vector<pair<Commodity, int>> res;
-
-  for( auto const& [idx, slot] :
-       rl::all( o_.slots ).enumerate() ) {
+  auto enumerated = rl::all( o_.slots ).enumerate();
+  for( auto const [idx, slot] : enumerated ) {
     if( auto* cargo = get_if<CargoSlot::cargo>( &slot ) )
       if( auto* commodity =
               get_if<Cargo::commodity>( &( cargo->contents ) ) )
@@ -334,7 +333,6 @@ bool CargoHold::fits( UnitsState const& units_state,
                   return ( c.obj.quantity + proposed.quantity <=
                            k_max_commodity_cargo_per_slot );
                 } );
-            break;
           }
         }
       } );
@@ -474,7 +472,7 @@ bool CargoHold::try_add( UnitsState const& units_state,
         auto occupied  = *maybe_occupied;
         o_.slots[slot] = CargoSlot::cargo{ /*contents=*/cargo };
         // Now handle overflow.
-        while( slot++, occupied-- > 1 )
+        while( static_cast<void>( slot++ ), occupied-- > 1 )
           o_.slots[slot] = CargoSlot::overflow{};
         return true;
       },

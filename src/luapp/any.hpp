@@ -76,7 +76,7 @@ struct any : base::zero<any, int> {
  protected:
   void lua_push_impl( cthread L ) const;
 
-  cthread L; // not owned.
+  cthread L_; // not owned.
 };
 
 static_assert( Stackable<any> );

@@ -97,8 +97,8 @@ using to_behaviors_t =
     typename to_behaviors<target, relationship, entity>::type;
 
 TEMPLATE_BEHAVIOR
-to_behaviors_t<target, relationship, entity> behavior(
-    UnitTypeAttributes const& desc );
+[[maybe_unused]] to_behaviors_t<target, relationship, entity>
+behavior( UnitTypeAttributes const& desc );
 
 /****************************************************************/
 BEHAVIOR( land, foreign, unit, no_attack, attack, no_bombard,

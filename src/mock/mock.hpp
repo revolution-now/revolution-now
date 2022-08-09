@@ -71,7 +71,8 @@
       std::tuple<PP_MAP_COMMAS( ADD_MATCHER_WRAPPER,           \
                                 PP_REMOVE_PARENS fn_args )>,   \
       Args...>                                                 \
-  responder__##fn_name& add__##fn_name( Args&&... args ) {     \
+  [[maybe_unused]] responder__##fn_name& add__##fn_name(       \
+      Args&&... args ) {                                       \
     auto matchers = responder__##fn_name::matchers_t{          \
         std::forward<Args>( args )... };                       \
     return queue__##fn_name.add( std::move( matchers ) );      \
@@ -111,12 +112,10 @@ namespace detail {
 
 template<typename T>
 struct RetHolder {
-  RetHolder( T& val )
-  requires std::is_reference_v<T>
-  : o( val ) {}
-  RetHolder( T val )
-  requires( !std::is_reference_v<T> )
-  : o( std::move( val ) ) {}
+  RetHolder( T& val ) requires std::is_reference_v<T>
+    : o( val ) {}
+  RetHolder( T val ) requires( !std::is_reference_v<T> )
+    : o( std::move( val ) ) {}
   decltype( auto ) get() {
     // If our return type is a non-const l-value ref then we need
     // to return it as such (and not as T&&) because the
@@ -136,7 +135,7 @@ struct RetHolder<void> {
   void get() {}
 };
 
-void throw_unexpected_error( std::string_view msg );
+[[noreturn]] void throw_unexpected_error( std::string_view msg );
 
 template<typename T>
 struct exhaust_checker {

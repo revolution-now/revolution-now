@@ -26,6 +26,52 @@ using namespace std;
 
 namespace rn {
 
+namespace {
+
+[[nodiscard]] int apply_outdoor_bonus(
+    int const in, bool const is_expert,
+    OutdoorJobBonus_t const& bonus ) {
+  switch( bonus.to_enum() ) {
+    case OutdoorJobBonus::e::none: return in;
+    case OutdoorJobBonus::e::add: {
+      auto& o = bonus.get<OutdoorJobBonus::add>();
+      return is_expert ? ( in + o.expert )
+                       : ( in + o.non_expert );
+    }
+    case OutdoorJobBonus::e::mul: {
+      auto& o = bonus.get<OutdoorJobBonus::mul>();
+      return in * o.by;
+    }
+  }
+}
+
+int bordering_land_tiles( TerrainState const& terrain_state,
+                          Coord               where ) {
+  DCHECK( terrain_state.square_at( where ).surface ==
+          e_surface::water );
+  int n = 0;
+  for( e_direction d : refl::enum_values<e_direction> )
+    if( terrain_state.total_square_at( where.moved( d ) )
+            .surface == e_surface::land )
+      ++n;
+  return n;
+}
+
+bool has_required_resources(
+    MapSquare const& square,
+    unordered_set<e_natural_resource> const&
+        required_resources ) {
+  if( square.ground_resource.has_value() &&
+      required_resources.contains( *square.ground_resource ) )
+    return true;
+  if( square.forest_resource.has_value() &&
+      required_resources.contains( *square.forest_resource ) )
+    return true;
+  return false;
+}
+
+} // namespace
+
 /****************************************************************
 ** Public API
 *****************************************************************/
@@ -96,48 +142,6 @@ e_unit_activity activity_for_outdoor_job( e_outdoor_job job ) {
     case e_outdoor_job::silver:
       return e_unit_activity::silver_mining;
   }
-}
-
-[[nodiscard]] int apply_outdoor_bonus(
-    int const in, bool const is_expert,
-    OutdoorJobBonus_t const& bonus ) {
-  switch( bonus.to_enum() ) {
-    case OutdoorJobBonus::e::none: return in;
-    case OutdoorJobBonus::e::add: {
-      auto& o = bonus.get<OutdoorJobBonus::add>();
-      return is_expert ? ( in + o.expert )
-                       : ( in + o.non_expert );
-    }
-    case OutdoorJobBonus::e::mul: {
-      auto& o = bonus.get<OutdoorJobBonus::mul>();
-      return in * o.by;
-    }
-  }
-}
-
-int bordering_land_tiles( TerrainState const& terrain_state,
-                          Coord               where ) {
-  DCHECK( terrain_state.square_at( where ).surface ==
-          e_surface::water );
-  int n = 0;
-  for( e_direction d : refl::enum_values<e_direction> )
-    if( terrain_state.total_square_at( where.moved( d ) )
-            .surface == e_surface::land )
-      ++n;
-  return n;
-}
-
-bool has_required_resources(
-    MapSquare const& square,
-    unordered_set<e_natural_resource> const&
-        required_resources ) {
-  if( square.ground_resource.has_value() &&
-      required_resources.contains( *square.ground_resource ) )
-    return true;
-  if( square.forest_resource.has_value() &&
-      required_resources.contains( *square.forest_resource ) )
-    return true;
-  return false;
 }
 
 int food_production_on_center_square( MapSquare const& square,

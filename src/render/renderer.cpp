@@ -334,7 +334,6 @@ struct Renderer::Impl {
         // normal buffer gets automatically cleared at the start
         // of each render pass.
         SHOULD_NOT_BE_HERE;
-        break;
       case e_render_target_buffer::landscape:
         landscape_vertices.clear();
         landscape_emitter.set_position( 0 );
@@ -344,7 +343,6 @@ struct Renderer::Impl {
         // backdrop buffer gets automatically cleared at the
         // start of each render pass.
         SHOULD_NOT_BE_HERE;
-        break;
     }
   }
 

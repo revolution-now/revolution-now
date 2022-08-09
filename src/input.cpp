@@ -13,6 +13,7 @@
 // Revolution Now
 #include "logger.hpp"
 #include "screen.hpp"
+#include "sdl.hpp"
 #include "util.hpp"
 #include "variant.hpp"
 
@@ -26,9 +27,6 @@
 
 // Rds
 #include "input-impl.rds.hpp"
-
-// SDL
-#include "SDL.h"
 
 // C++ standard library
 #include <algorithm>

@@ -41,6 +41,7 @@ fs::path mid_file_from_id( TuneId id ) {
 // Outside of anonymous namespace otherwise it apparently cannot
 // be a "friend" of the MidiSeqMusicPlayer class, which it needs
 // to be to instantiate it.
+void init_midiplayer();
 void init_midiplayer() {
   if( midiseq::midiseq_enabled() ) {
     lg.info(
@@ -55,7 +56,9 @@ void init_midiplayer() {
   }
 }
 
+namespace {
 REGISTER_INIT_ROUTINE( midiplayer );
+}
 
 pair<MusicPlayerDesc, MaybeMusicPlayer>
 MidiSeqMusicPlayer::player() {

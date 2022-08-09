@@ -74,41 +74,6 @@ auto fast_visit( F&& f, V&& v ) {
   UNREACHABLE_LOCATION;
 }
 
-template<typename F, typename V>
-auto fast_visit_lvalue( F&& f, V&& v ) {
-  switch( v.index() ) {
-    case 0: {
-      auto& o = v.template get<null_t>();
-      return f( o );
-    }
-    case 1: {
-      auto& o = v.template get<double>();
-      return f( o );
-    }
-    case 2: {
-      auto& o = v.template get<cdr::integer_type>();
-      return f( o );
-    }
-    case 3: {
-      auto& o = v.template get<bool>();
-      return f( o );
-    }
-    case 4: {
-      auto& o = v.template get<std::string>();
-      return f( o );
-    }
-    case 5: {
-      auto& o = v.template get<table>();
-      return f( o );
-    }
-    case 6: {
-      auto& o = v.template get<list>();
-      return f( o );
-    }
-  }
-  UNREACHABLE_LOCATION;
-}
-
 } // namespace
 
 /****************************************************************

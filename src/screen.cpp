@@ -15,6 +15,7 @@
 #include "init.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
+#include "sdl.hpp"
 #include "tiles.hpp"
 
 // config
@@ -27,9 +28,6 @@
 #include "base/lambda.hpp"
 #include "base/range-lite.hpp"
 
-// SDL
-#include "SDL.h"
-
 // C++ standard library
 #include <cmath>
 
@@ -37,15 +35,16 @@ using namespace std;
 
 namespace rn {
 
-::SDL_Window* g_window = nullptr;
-
-Delta g_resolution_scale_factor{ .w = 0, .h = 0 };
-Delta g_optimal_resolution_scale_factor{ .w = 0, .h = 0 };
-Delta g_screen_physical_size{};
-
 namespace rl = ::base::rl;
 
+Delta g_resolution_scale_factor{ .w = 0, .h = 0 };
+
 namespace {
+
+::SDL_Window* g_window = nullptr;
+
+Delta g_optimal_resolution_scale_factor{ .w = 0, .h = 0 };
+Delta g_screen_physical_size{};
 
 auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
 
@@ -83,7 +82,7 @@ Delta screen_logical_size() {
   return g_screen_physical_size / g_resolution_scale_factor;
 }
 
-double monitor_diagonal_length( float ddpi, DisplayMode dm ) {
+double monitor_diagonal_length( double ddpi, DisplayMode dm ) {
   double length =
       sqrt( pow( dm.size.w, 2.0 ) + pow( dm.size.h, 2.0 ) ) /
       ddpi;
@@ -351,9 +350,9 @@ void on_renderer_scale_factor_changed() {
   on_logical_resolution_changed();
 }
 
-} // namespace
-
 REGISTER_INIT_ROUTINE( screen );
+
+} // namespace
 
 void* main_os_window_handle() { return (void*)g_window; }
 

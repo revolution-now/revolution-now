@@ -39,39 +39,38 @@ namespace func {
 
 struct A {};
 
-int luac_stateless_foo( lua_State* ) { return 0; }
-int not_luac_foo( lua_State& ) { return 0; }
+[[maybe_unused]] int luac_stateless_foo( lua_State* ) {
+  return 0;
+}
+[[maybe_unused]] int not_luac_foo( lua_State& ) { return 0; }
 
 // lua-c-extension-function.
 struct StatelessLCEF {
-  static int fun( lua_State* );
+  [[maybe_unused]] static int fun( lua_State* ) { return 0; }
 };
 struct LCEF {
-  int operator()( lua_State* ) const;
+  [[maybe_unused]] int operator()( lua_State* ) const {
+    return 0;
+  }
   int x;
 };
 struct NonLCEF {
-  int operator()( lua_State*, int ) const;
+  [[maybe_unused]] int operator()( lua_State*, int ) const {
+    return 0;
+  }
   int x;
 };
 
-auto c_ext_lambda = []( lua_State* ) -> int { return 0; };
-auto c_ext_lambda_capture = [x = 1.0]( lua_State* ) -> int {
+[[maybe_unused]] auto c_ext_lambda = []( lua_State* ) -> int {
+  return 0;
+};
+[[maybe_unused]] auto c_ext_lambda_capture =
+    [x = 1.0]( lua_State* ) -> int {
   (void)x;
   return 0;
 };
 
 } // namespace func
-
-// Use the above functions so that the compiler does not emit
-// warnings about them not being used.
-TEST_CASE( "[lfunction] use funcs" ) {
-  func::c_ext_lambda( nullptr );
-  func::c_ext_lambda_capture( nullptr );
-  func::luac_stateless_foo( nullptr );
-  int x = 0;
-  func::not_luac_foo( *(lua_State*)&x );
-}
 
 /****************************************************************
 ** LuaCExtensionFunction
@@ -364,13 +363,6 @@ struct AdderTracker {
     x_         = rhs.x_;
     y_         = rhs.y_;
     destroyed_ = exchange( rhs.destroyed_, nullptr );
-  }
-  AdderTracker& operator=( AdderTracker&& rhs ) {
-    if( this == &rhs ) return *this;
-    x_         = rhs.x_;
-    y_         = rhs.y_;
-    destroyed_ = exchange( rhs.destroyed_, nullptr );
-    return *this;
   }
 
   int   x_;

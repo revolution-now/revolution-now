@@ -11,48 +11,44 @@
 #pragma once
 
 // base
+#include "base/fmt.hpp"
 #include "base/function-ref.hpp"
 
 // rdsc
 #include "expr.hpp"
-
-// {fmt}
-#include "fmt/format.h"
 
 // c++ standard library
 #include <cstdlib>
 #include <iostream>
 #include <string_view>
 
-using namespace std;
-
 namespace rds {
 
 template<typename... Args>
-void error_no_exit_msg( string_view fmt, Args&&... args ) {
-  cerr << "\033[31merror:\033[00m ";
-  cerr << fmt::format( fmt::runtime( fmt ),
-                       std::forward<Args>( args )... );
-  cerr << "\n";
+void error_no_exit_msg( std::string_view fmt, Args&&... args ) {
+  std::cerr << "\033[31merror:\033[00m ";
+  std::cerr << fmt::format( fmt::runtime( fmt ),
+                            std::forward<Args>( args )... );
+  std::cerr << "\n";
 }
 
 template<typename... Args>
-void error_no_exit( string_view filename, int line, int col,
-                    string_view fmt, Args&&... args ) {
-  cerr << filename << ":" << line << ":" << col << ": ";
+void error_no_exit( std::string_view filename, int line, int col,
+                    std::string_view fmt, Args&&... args ) {
+  std::cerr << filename << ":" << line << ":" << col << ": ";
   error_no_exit_msg( fmt, std::forward<Args>( args )... );
 }
 
 template<typename... Args>
-void error( string_view filename, int line, int col,
-            string_view fmt, Args&&... args ) {
+void error( std::string_view filename, int line, int col,
+            std::string_view fmt, Args&&... args ) {
   error_no_exit( filename, line, col, fmt,
                  std::forward<Args>( args )... );
   exit( 1 );
 }
 
 template<typename... Args>
-void error_msg( string_view fmt, Args&&... args ) {
+void error_msg( std::string_view fmt, Args&&... args ) {
   error_no_exit_msg( fmt, std::forward<Args>( args )... );
   exit( 1 );
 }

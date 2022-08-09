@@ -21,6 +21,7 @@ using namespace std;
 
 namespace rn {
 
+void linker_dont_discard_module_map_updater_lua();
 void linker_dont_discard_module_map_updater_lua() {}
 
 /****************************************************************

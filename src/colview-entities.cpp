@@ -90,6 +90,9 @@ maybe<IColViewDragSink&> ColonySubView::drag_sink() {
   return base::maybe_dynamic_cast<IColViewDragSink&>( *this );
 }
 
+// Use this as the vtable key function.
+void ColonySubView::update_this_and_children() {}
+
 namespace {
 
 /****************************************************************

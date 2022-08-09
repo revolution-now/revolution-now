@@ -13,13 +13,11 @@
 #include "config.hpp"
 
 // base
+#include "fmt.hpp"
 #include "maybe.hpp"
 #include "meta.hpp"
 #include "source-loc.hpp"
 #include "to-str.hpp"
-
-// {fmt}
-#include "fmt/format.h"
 
 // C++ standard library
 #include <concepts>
@@ -72,6 +70,11 @@ struct bad_expect_access : public std::exception {
     else
       error_msg_ += "error() called on an active expect.";
   }
+
+  // This is to suppress clang's -Wweak-vtables, which warns that
+  // without any out-of-line-functions the vtable would have to
+  // be emitted in every translation unit, which we don't want.
+  virtual void dummy_key_function() const final;
 
   char const* what() const noexcept override {
     return error_msg_.c_str();
@@ -1141,9 +1144,9 @@ class [[nodiscard]] expect { /* clang-format on */
   ** Storage
   ***************************************************************/
 
- private :
-   // Allows expect<T> to access private members of expect<U>.
-   template<typename U, typename V>
+ private:
+  // Allows expect<T> to access private members of expect<U>.
+  template<typename U, typename V>
   requires ExpectTypeRequirements<U, V>
   friend class expect;
 
@@ -1432,7 +1435,6 @@ class [[nodiscard]] expect<T&, E> { /* clang-format on */
       requires( !std::is_same_v<std::remove_cvref_t<T>, bool> &&
                 !std::is_same_v<std::remove_cvref_t<E>, bool> ) {
     return p_ != nullptr;
-    ;
   }
 
   /**************************************************************
@@ -1557,10 +1559,10 @@ class [[nodiscard]] expect<T&, E> { /* clang-format on */
     return std::invoke( std::forward<Func>( func ), **this );
   }
 
- private :
-   // This allows expect<T, E> to access private members of
-   // expect<U, V>.
-   template<typename U, typename V>
+ private:
+  // This allows expect<T, E> to access private members of
+  // expect<U, V>.
+  template<typename U, typename V>
   requires ExpectTypeRequirements<U, V>
   friend class expect;
 

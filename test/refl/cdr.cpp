@@ -487,20 +487,20 @@ my_ns::Rolodex const native_rolodex_1{
            .height = 5.5,
            .male   = true,
            .houses =
-            {
-                {
+               {
+                   {
                        .street_number = 444,
                        .state         = "CA",
                 },
-                {
+                   {
                        .street_number = 555,
                        .state         = "MD",
                 },
             },
            .pets =
-            {
-                { my_ns::e_pet::cat, 3 },
-                { my_ns::e_pet::frog, 6 },
+               {
+                   { my_ns::e_pet::cat, 3 },
+                   { my_ns::e_pet::frog, 6 },
             },
     } },
     .updated = "1900-02-01",
@@ -632,50 +632,50 @@ my_ns::Variant3 const variant3c             = native_rolodex_1;
 my_ns::Variant3 const variant3d             = my_ns::Person{};
 my_ns::Variant3 const variant3d_fst_default = my_ns::Address{};
 
-cdr::table cdr_variant1{
+cdr::table const cdr_variant1{
     "Person"_key = cdr_person1,
 };
 
-cdr::table cdr_variant1_empty{};
+cdr::table const cdr_variant1_empty{};
 
-cdr::table cdr_variant1_default{
+cdr::table const cdr_variant1_default{
     "Person"_key = cdr_person_default,
 };
 
-cdr::table cdr_variant2{
+cdr::table const cdr_variant2{
     "Address"_key = cdr_address1,
 };
 
-cdr::table cdr_variant3a{
+cdr::table const cdr_variant3a{
     "Address"_key = cdr_address1,
 };
 
-cdr::table cdr_variant3b{
+cdr::table const cdr_variant3b{
     "Person"_key = cdr_person2,
 };
 
-cdr::table cdr_variant3c{
+cdr::table const cdr_variant3c{
     "Rolodex"_key = cdr_rolodex_1,
 };
 
-cdr::table cdr_variant3d_no_default{
+cdr::table const cdr_variant3d_no_default{
     "Person"_key = cdr::table{},
 };
 
-cdr::table cdr_variant3_no_fields{};
+cdr::table const cdr_variant3_no_fields{};
 
-cdr::list cdr_variant3_non_table{};
+cdr::list const cdr_variant3_non_table{};
 
-cdr::table cdr_variant3_extra_field{
+cdr::table const cdr_variant3_extra_field{
     "Rolodex"_key = cdr_rolodex_1,
     "Person"_key  = cdr_person1,
 };
 
-cdr::table cdr_variant3_extra_field_inner{
+cdr::table const cdr_variant3_extra_field_inner{
     "Rolodex"_key = cdr_rolodex_1_extra_field,
 };
 
-cdr::table cdr_variant3_unknown_field{
+cdr::table const cdr_variant3_unknown_field{
     "abc"_key = cdr_person1,
 };
 

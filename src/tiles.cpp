@@ -66,9 +66,9 @@ int atlas_lookup( e_tile tile ) {
   return cache[idx];
 }
 
-} // namespace
-
 REGISTER_INIT_ROUTINE( sprites );
+
+} // namespace
 
 Delta sprite_size( e_tile tile ) {
   return Delta::from_gfx(
@@ -147,10 +147,6 @@ void tile_sprite( rr::Painter& painter, e_tile tile,
   auto where = rect.lower_right() - mod;
   render_sprite_section( painter, tile, where,
                          Rect::from( Coord{}, mod ) );
-}
-
-e_tile index_to_tile( int index ) {
-  return static_cast<e_tile>( index );
 }
 
 void render_rect_of_sprites_with_border(

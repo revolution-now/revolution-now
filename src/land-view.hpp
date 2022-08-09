@@ -38,6 +38,8 @@ enum class e_depixelate_anim { death, demote };
 ** ILandViewPlane
 *****************************************************************/
 struct ILandViewPlane {
+  virtual ~ILandViewPlane() = default;
+
   virtual wait<> landview_ensure_visible(
       Coord const& coord ) = 0;
 
@@ -86,7 +88,7 @@ struct ILandViewPlane {
 struct LandViewPlane : ILandViewPlane {
   LandViewPlane( Planes& planes, SS& ss, TS& ts );
 
-  ~LandViewPlane();
+  ~LandViewPlane() override;
 
   wait<> landview_ensure_visible( Coord const& coord ) override;
   wait<> landview_ensure_visible_unit( UnitId id ) override;

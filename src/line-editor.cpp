@@ -13,9 +13,7 @@
 // Revolution Now
 #include "error.hpp"
 #include "math.hpp"
-
-// SDL
-#include "SDL.h"
+#include "sdl.hpp"
 
 // C++ standard library
 #include <algorithm>

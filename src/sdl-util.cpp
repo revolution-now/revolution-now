@@ -82,6 +82,8 @@ Rect from_SDL( ::SDL_Rect const& rect ) {
   return res;
 }
 
+namespace {
+
 void init_sdl() {
   ::SDL_version compiled, linked;
   SDL_VERSION( &compiled );
@@ -104,10 +106,9 @@ void init_sdl() {
 
 void cleanup_sdl() { ::SDL_Quit(); }
 
-//
-//
-//
 REGISTER_INIT_ROUTINE( sdl );
+
+} // namespace
 
 ::SDL_Color color_from_pixel( SDL_PixelFormat* fmt,
                               uint32_t         pixel ) {

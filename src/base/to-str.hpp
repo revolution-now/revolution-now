@@ -14,9 +14,7 @@
 
 // base
 #include "adl-tag.hpp"
-
-// {fmt}
-#include "fmt/format.h"
+#include "fmt.hpp"
 
 // C++ standard library
 #include <concepts>

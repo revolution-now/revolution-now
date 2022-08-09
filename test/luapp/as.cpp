@@ -39,7 +39,7 @@ struct Point {
   int x = 0;
   int y = 0;
 
-  bool operator<=>( Point const& ) const = default;
+  bool operator==( Point const& ) const = default;
 
   friend void lua_push( lua::cthread L, Point const& p ) {
     lua::c_api C( L );

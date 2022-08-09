@@ -103,11 +103,8 @@ void init_rng() {
 
 void cleanup_rng() {}
 
-} // namespace
-
-//
-//
-//
 REGISTER_INIT_ROUTINE( rng );
+
+} // namespace
 
 } // namespace rn

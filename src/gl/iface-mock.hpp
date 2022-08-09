@@ -34,7 +34,7 @@ struct MockOpenGL : IOpenGL {
  public:
   MockOpenGL();
 
-  ~MockOpenGL();
+  ~MockOpenGL() override;
 
   MOCK_GL_METHOD( void, gl_AttachShader, ( GLuint, GLuint ) );
   MOCK_GL_METHOD( void, gl_BindBuffer, ( GLenum, GLuint ) );

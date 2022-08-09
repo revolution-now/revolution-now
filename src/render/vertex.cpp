@@ -59,8 +59,8 @@ double VertexBase::depixelation_stage() const {
 }
 
 void VertexBase::set_depixelation_anchor( gfx::point anchor ) {
-  depixelate.x = anchor.x;
-  depixelate.y = anchor.y;
+  depixelate.x = static_cast<float>( anchor.x );
+  depixelate.y = static_cast<float>( anchor.y );
 }
 
 gl::vec2 VertexBase::depixelation_anchor() const {
@@ -88,7 +88,9 @@ void VertexBase::set_alpha( double alpha ) {
   alpha_multiplier = static_cast<float>( alpha );
 }
 
-void VertexBase::set_scaling( double scale ) { scaling = scale; }
+void VertexBase::set_scaling( double scale ) {
+  scaling = static_cast<float>( scale );
+}
 
 void VertexBase::set_translation( gfx::dsize trans ) {
   translation = gl::vec2::from_dsize( trans );

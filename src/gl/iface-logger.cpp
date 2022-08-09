@@ -65,11 +65,10 @@ auto handle_pointer( T&& arg ) {
   }
 }
 
-unordered_set<string_view> no_log{
-    "gl_GetError",
-};
-
 void log_gl_call( string_view name, string_view params ) {
+  static unordered_set<string_view> const no_log{
+      "gl_GetError",
+  };
   DCHECK( name.starts_with( "gl_" ) );
   if( base::find( no_log, name ) ) return;
   string no_prefix( name.begin() + 3, name.end() );

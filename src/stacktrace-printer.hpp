@@ -12,7 +12,14 @@
 
 #include "core-config.hpp"
 
+#ifdef __clang__
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Weverything"
+#endif
 #include "backward.hpp"
+#ifdef __clang__
+#  pragma clang diagnostic pop
+#endif
 
 // C++ standard library
 #include <functional>

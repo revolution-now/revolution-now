@@ -15,8 +15,44 @@ function( set_warning_options target )
         ${target} PRIVATE
         # clang
         $<$<CXX_COMPILER_ID:Clang>:
-           -Wall
-           -Wextra
+           -Weverything
+           -Wno-pre-c++20-compat
+           -Wno-c++20-compat
+           -Wno-pre-c++17-compat
+           -Wno-pre-c++14-compat
+           -Wno-c99-extensions
+           -Wno-c++98-compat
+           -Wno-c++98-compat-pedantic
+           -Wno-reserved-macro-identifier
+           -Wno-newline-eof
+           -Wno-padded
+           -Wno-extra-semi-stmt
+           -Wno-extra-semi
+           -Wno-reserved-identifier
+           -Wno-ctad-maybe-unsupported
+           -Wno-undefined-func-template
+           # This one gives a warning about missing case state-
+           # ments even when there is a default, which we don't
+           # want. We still have -Wswitch which will tell us
+           # about missing case statements when there is no de-
+           # fault (which is important).
+           -Wno-switch-enum
+
+           # TODO: consider re-enabling.
+           -Wno-shadow
+           -Wno-shadow-uncaptured-local
+           -Wno-shadow-field
+           -Wno-exit-time-destructors
+           -Wno-implicit-int-conversion
+           -Wno-implicit-float-conversion
+           -Wno-sign-conversion
+           -Wno-old-style-cast
+           -Wno-shorten-64-to-32
+           -Wno-global-constructors
+           -Wno-weak-vtables
+           -Wno-double-promotion
+           -Wno-float-equal
+
            # TODO: remove this after these issues are fixed:
            #       https://bugs.llvm.org/show_bug.cgi?id=24883
            #       https://bugs.llvm.org/show_bug.cgi?id=33298

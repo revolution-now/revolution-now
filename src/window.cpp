@@ -406,6 +406,7 @@ Window& WindowManager::focused() {
 ** Validators
 *****************************************************************/
 // These should probably be moved elsewhere.
+namespace {
 
 ui::ValidatorFunc make_int_validator( maybe<int> min,
                                       maybe<int> max ) {
@@ -418,11 +419,14 @@ ui::ValidatorFunc make_int_validator( maybe<int> min,
   };
 }
 
+}
+
 /****************************************************************
 ** Windows
 *****************************************************************/
 // We need to have pointer stability on the returned window since
 // its address needs to go into callbacks.
+namespace {
 [[nodiscard]] unique_ptr<Window> async_window_builder(
     WindowPlane& window_plane, unique_ptr<ui::View> view,
     bool auto_pad ) {
@@ -432,6 +436,7 @@ ui::ValidatorFunc make_int_validator( maybe<int> min,
   win->center_window();
   return win;
 }
+} // namespace
 
 using GetOkCancelSubjectViewFunc = unique_ptr<ui::View>(
     function<void( bool )> /*enable_ok_button*/ //
@@ -466,7 +471,7 @@ template<typename ResultT>
       } );
   auto* p_ok_button      = ok_cancel_view->ok_button();
   auto  enable_ok_button = [p_ok_button]( bool enable ) {
-    p_ok_button->enable( enable );
+     p_ok_button->enable( enable );
   };
   unique_ptr<ui::View> subject_view = get_view_fn(
       /*enable_ok_button=*/std::move( enable_ok_button ) //
@@ -507,7 +512,7 @@ template<typename ResultT>
       } );
   auto* p_ok_button      = ok_button_view->ok_button();
   auto  enable_ok_button = [p_ok_button]( bool enable ) {
-    p_ok_button->enable( enable );
+     p_ok_button->enable( enable );
   };
   auto subject_view = get_view_fn(
       /*enable_ok_button=*/std::move( enable_ok_button ) //
@@ -522,50 +527,8 @@ template<typename ResultT>
                                /*auto_pad=*/true );
 }
 
-[[nodiscard]] unique_ptr<Window> ok_cancel_impl(
-    WindowPlane& window_plane, string_view msg,
-    function<void( ui::e_ok_cancel )> on_result ) {
-  auto on_ok_cancel_result =
-      [on_result{ std::move( on_result ) }]( maybe<int> o ) {
-        if( o.has_value() )
-          return on_result( ui::e_ok_cancel::ok );
-        on_result( ui::e_ok_cancel::cancel );
-      };
-  TextMarkupInfo m_info{
-      /*normal=*/config_ui.dialog_text.normal,
-      /*highlight=*/config_ui.dialog_text.highlighted };
-  TextReflowInfo r_info{
-      /*max_cols=*/config_ui.dialog_text.columns };
-  auto view =
-      make_unique<ui::TextView>( string( msg ), m_info, r_info );
-
-  // We can capture by reference here because the function will
-  // be called before this scope exits.
-  auto get_view_fn =
-      [&]( function<void( bool )> /*enable_ok_button*/ ) {
-        return std::move( view );
-      };
-
-  // Use <int> for lack of anything better.
-  return ok_cancel_window_builder<int>(
-      window_plane,
-      /*get_result=*/L0( 0 ),
-      /*validator=*/L( _ == 0 ), // always true.
-      /*on_result=*/std::move( on_ok_cancel_result ),
-      /*get_view_fn=*/get_view_fn //
-  );
-}
-
-wait<ui::e_ok_cancel> ok_cancel( WindowPlane&     window_plane,
-                                 std::string_view msg ) {
-  wait_promise<ui::e_ok_cancel> p;
-  unique_ptr<Window>            win = ok_cancel_impl(
-                 window_plane, msg,
-                 [p]( ui::e_ok_cancel oc ) { p.set_value( oc ); } );
-  co_return co_await p.wait();
-}
-
 namespace {
+
 [[nodiscard]] unique_ptr<Window> text_input_box(
     WindowPlane& window_plane, string_view msg,
     string_view initial_text, ui::ValidatorFunc validator,
@@ -615,6 +578,7 @@ namespace {
       /*get_view_fun=*/get_view_fn //
   );
 }
+
 } // namespace
 
 /****************************************************************

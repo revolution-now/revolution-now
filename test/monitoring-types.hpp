@@ -32,8 +32,8 @@ struct Tracker {
   static inline int move_constructed = 0;
   static inline int move_assigned    = 0;
   static void       reset() {
-    constructed = destructed = copied = move_constructed =
-        move_assigned                 = 0;
+          constructed = destructed = copied = move_constructed =
+              move_assigned                 = 0;
   }
 
   Tracker() noexcept { ++constructed; }
@@ -43,8 +43,8 @@ struct Tracker {
 
   Tracker& operator=( Tracker const& ) = delete;
   Tracker& operator                    =( Tracker&& ) noexcept {
-    ++move_assigned;
-    return *this;
+                        ++move_assigned;
+                        return *this;
   }
 
   friend void to_str( Tracker const&, std::string& out,
@@ -143,10 +143,10 @@ struct Throws {
     if( should_throw )
       throw std::runtime_error( "default construction" );
   }
-  Throws( Throws const& ) {
+  [[noreturn]] Throws( Throws const& ) {
     throw std::runtime_error( "copy construction" );
   }
-  Throws( Throws&& ) {
+  [[noreturn]] Throws( Throws&& ) {
     throw std::runtime_error( "move construction" );
   }
   Throws& operator=( Throws const& ) {

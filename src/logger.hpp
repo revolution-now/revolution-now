@@ -73,6 +73,8 @@ struct StringAndLoc {
 // Subclasses of this must be thread safe with respect to them-
 // selves as well as to any other loggers or global state.
 struct ILogger {
+  virtual ~ILogger() = default;
+
   ILOGGER_LEVEL( trace );
   ILOGGER_LEVEL( debug );
   ILOGGER_LEVEL( info );

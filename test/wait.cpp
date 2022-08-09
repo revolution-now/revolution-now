@@ -76,17 +76,6 @@ TEST_CASE( "[wait] formatting" ) {
   REQUIRE( fmt::format( "{}", s_promise ) == "<ready>" );
 }
 
-struct LogDestruction {
-  LogDestruction( bool& b_ ) : b( &b_ ) {}
-  ~LogDestruction() {
-    if( b ) *b = true;
-  }
-  LogDestruction( LogDestruction const& ) = delete;
-  LogDestruction( LogDestruction&& rhs ) noexcept
-    : b( exchange( rhs.b, nullptr ) ) {}
-  bool* b;
-};
-
 /****************************************************************
 ** Coroutines
 *****************************************************************/
@@ -627,7 +616,6 @@ wait<> throws_eagerly_from_coro() {
   // which changes how it will handle the below exception (it
   // will catch it instead of letting it fly).
   throw runtime_error( "eager exception" );
-  co_return;
 }
 
 wait<> doomed_awaiter_on_coro() {
@@ -653,8 +641,6 @@ wait<> exception_coro_early_level_2() {
   places += 'c';
   SCOPE_EXIT( places += 'C' );
   throw runtime_error( "test" );
-  places += 'd';
-  SCOPE_EXIT( places += 'D' );
 }
 
 wait<> exception_coro_early_level_1() {
@@ -683,8 +669,6 @@ wait<> exception_coro_simple() {
   places += 'b';
   SCOPE_EXIT( places += 'B' );
   throw runtime_error( "test" );
-  places += 'c';
-  SCOPE_EXIT( places += 'C' );
 }
 
 TEST_CASE( "[wait] exception coro simple" ) {
@@ -735,11 +719,6 @@ wait<> exception_2() {
   places += 'i';
   SCOPE_EXIT( places += 'I' );
   throw runtime_error( "test" );
-  places += 'j';
-  SCOPE_EXIT( places += 'J' );
-  co_await exception_p2.wait();
-  places += 'k';
-  SCOPE_EXIT( places += 'K' );
 }
 
 wait<> exception_1() {

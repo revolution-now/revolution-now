@@ -29,6 +29,7 @@ using namespace std;
 using namespace base;
 
 namespace rn {
+namespace {
 
 wait<> test_ui() { return make_wait<>(); }
 wait<> test_lua_ui() { return rn::lua_ui_test(); }
@@ -64,7 +65,7 @@ void run( e_mode mode ) {
           { e_init_routine::configs, e_init_routine::rng } );
       NOT_IMPLEMENTED;
       // ascii_map_gen();
-      break;
+      // break;
     }
     case e_mode::test_ui: {
       full_init();
@@ -84,6 +85,7 @@ void run( e_mode mode ) {
   }
 }
 
+} // namespace
 } // namespace rn
 
 using namespace ::rn;

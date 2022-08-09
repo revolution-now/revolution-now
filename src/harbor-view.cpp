@@ -437,8 +437,6 @@ class Backdrop : EntityBase {
                                                      .h = 544 };
 
  public:
-  Rect bounds() const { return Rect::from( Coord{}, size_ ); }
-
   void draw( rr::Renderer& renderer, Delta offset ) const {
     rr::Painter painter = renderer.painter();
     render_sprite_section(
@@ -650,9 +648,8 @@ class OutboundBox : EntityBase {
       }
       res = OutboundBox{
           S,
-          origin,         //
-          size_in_blocks, //
-          is_wide         //
+          origin,        //
+          size_in_blocks //
       };
       auto lr_delta = res->bounds().lower_right() - Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
@@ -663,18 +660,13 @@ class OutboundBox : EntityBase {
     return res;
   }
 
-  bool is_wide() const { return is_wide_; }
-
  private:
-  OutboundBox( PS& S, Coord origin, Delta size_in_blocks,
-               bool is_wide )
+  OutboundBox( PS& S, Coord origin, Delta size_in_blocks )
     : EntityBase( S ),
       origin_( origin ),
-      size_in_blocks_( size_in_blocks ),
-      is_wide_( is_wide ) {}
+      size_in_blocks_( size_in_blocks ) {}
   Coord origin_{};
   Delta size_in_blocks_{};
-  bool  is_wide_{};
 };
 NOTHROW_MOVE( OutboundBox );
 
@@ -1076,9 +1068,9 @@ class ActiveCargo : EntityBase {
     if( maybe_active_unit_ ) {
       auto& unit = S->ss_.units.unit_for( *maybe_active_unit_ );
       auto const& cargo_slots = unit.cargo().slots();
-      for( auto const& [idx, cargo_slot, rect] :
-           rl::zip( rl::ints(), cargo_slots,
-                    range_of_rects( grid ) ) ) {
+      auto        zipped      = rl::zip( rl::ints(), cargo_slots,
+                                         range_of_rects( grid ) );
+      for( auto const [idx, cargo_slot, rect] : zipped ) {
         if( S->drag_state.has_value() ) {
           if_get( S->drag_state->object,
                   HarborDraggableObject::cargo_commodity, cc ) {
@@ -1922,7 +1914,7 @@ void drag_n_drop_draw( PS const& S, rr::Renderer& renderer,
   if( !S.drag_state ) return;
   auto& state            = *S.drag_state;
   auto  to_screen_coords = [&]( Coord const& c ) {
-    return c + canvas.upper_left().distance_from_origin();
+     return c + canvas.upper_left().distance_from_origin();
   };
   auto origin_for = [&]( Delta const& tile_size ) {
     return to_screen_coords( state.where ) -

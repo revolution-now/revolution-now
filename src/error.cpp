@@ -13,13 +13,11 @@
 // Revolution Now
 #include "init.hpp"
 #include "logger.hpp"
+#include "sdl.hpp"
 #include "stacktrace.hpp"
 
 // base
 #include "base/stack-trace.hpp"
-
-// SDL
-#include "SDL.h"
 
 using namespace std;
 
@@ -35,6 +33,7 @@ void print_SDL_error() {
 
 } // namespace
 
+void linker_dont_discard_module_error();
 void linker_dont_discard_module_error() {}
 
 } // namespace rn
@@ -67,7 +66,8 @@ void abort_with_backtrace_here( SourceLoc /*loc*/ ) {
 // extern "C", but it does not require any C++ parameters, so
 // that C code should be able to call it. It also doesn't filter
 // out any frames and trims less off the top.
-void c_abort_with_backtrace_here() {
+[[noreturn]] void c_abort_with_backtrace_here();
+[[noreturn]] void c_abort_with_backtrace_here() {
   auto here = ::rn::stack_trace_here();
   rn::print_SDL_error();
   rn::run_all_cleanup_routines();

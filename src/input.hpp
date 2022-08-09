@@ -28,7 +28,7 @@
 
 // SDL
 // TODO: get rid of this
-#include "SDL.h"
+#include "sdl.hpp"
 
 // C++ standard library.
 #include <queue>

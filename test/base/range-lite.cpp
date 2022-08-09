@@ -34,7 +34,7 @@ using namespace std;
 //
 // FIXME: can get rid of this once clang gets support for the
 // C++20 feature called "lambdas in unevaluated contexts".
-auto GetCompoundViewType() {
+[[maybe_unused]] static auto GetCompoundViewType() {
   return rl::all( vector<int>{} )
       .keep_if( L( _ % 2 == 1 ) )
       .map( L( _ * _ ) )
@@ -42,7 +42,7 @@ auto GetCompoundViewType() {
       .take_while( L( _ < 27 ) );
 }
 
-auto GetCompoundViewOfRefs() {
+[[maybe_unused]] static auto GetCompoundViewOfRefs() {
   return rl::all( vector<int>{} ).keep_if( L( _ % 2 == 1 ) );
 }
 
@@ -93,10 +93,6 @@ TEST_CASE( "[range-lite] move-only" ) {
     A( A const& a ) = delete;
     A& operator=( A const& a ) = delete;
     A( A&& a ) { n = a.n; }
-    A& operator=( A&& a ) {
-      n = a.n;
-      return *this;
-    }
     bool operator==( A const& ) const = default;
     int  n;
   };
@@ -130,11 +126,6 @@ TEST_CASE( "[range-lite] move-over-copy" ) {
     A( A&& a ) {
       n     = a.n;
       moved = true;
-    }
-    A& operator=( A&& a ) {
-      n     = a.n;
-      moved = true;
-      return *this;
     }
     bool operator==( A const& ) const = default;
     int  n;

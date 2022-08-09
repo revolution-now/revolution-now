@@ -1066,12 +1066,11 @@ struct MenuPlane::Impl : public Plane {
           // over_what.has_value() == true).
           return e_input_handled::yes;
         },
-        []( input::mouse_drag_event_t ) {
+        []( input::mouse_drag_event_t ) -> e_input_handled {
           // The framework does not send us mouse drag events
           // directly; instead it uses the api methods on the
           // Plane class.
           SHOULD_NOT_BE_HERE;
-          return e_input_handled::no;
         } );
   }
 
@@ -1085,11 +1084,9 @@ struct MenuPlane::Impl : public Plane {
       }
       case MenuState::e::menus_closed: {
         SHOULD_NOT_BE_HERE;
-        break;
       }
       case MenuState::e::menus_hidden: {
         SHOULD_NOT_BE_HERE;
-        break;
       }
       case MenuState::e::menu_open: {
         if( !is_menu_item_enabled( item ) ) return;

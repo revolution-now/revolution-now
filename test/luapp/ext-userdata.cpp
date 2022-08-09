@@ -30,9 +30,6 @@ using namespace ::std;
 
 namespace lua {
 
-#define MAKE_EMPTY_SHOWABLE( name ) \
-  void to_str( name const&, string&, base::ADL_t ) {}
-
 struct CppOwned {
   int n = 5;
 
@@ -60,8 +57,8 @@ struct CppOwnedNonCopyable {
   CppOwnedNonCopyable& operator=( CppOwnedNonCopyable&& ) =
       default;
 };
-void to_str( CppOwnedNonCopyable const&, string& out,
-             base::ADL_t ) {
+static void to_str( CppOwnedNonCopyable const&, string& out,
+                    base::ADL_t ) {
   out += "zzz";
 }
 
@@ -99,8 +96,8 @@ struct LuaOwnedNonCopyable {
   LuaOwnedNonCopyable& operator=( LuaOwnedNonCopyable&& ) =
       default;
 };
-void to_str( LuaOwnedNonCopyable const&, string& out,
-             base::ADL_t ) {
+static void to_str( LuaOwnedNonCopyable const&, string& out,
+                    base::ADL_t ) {
   out += "zzz";
 }
 
@@ -112,12 +109,10 @@ static_assert(
     HasValueUserdataOwnershipModel<LuaOwnedNonCopyable> );
 
 struct NoOwnershipModel {};
-MAKE_EMPTY_SHOWABLE( NoOwnershipModel );
 static_assert( !HasTraitsNvalues<NoOwnershipModel> );
 static_assert( !HasUserdataOwnershipModel<NoOwnershipModel> );
 
 struct NoOwnershipModelButHasTraits {};
-MAKE_EMPTY_SHOWABLE( NoOwnershipModelButHasTraits );
 template<>
 struct type_traits<NoOwnershipModelButHasTraits> {
   static constexpr int nvalues = 1;
