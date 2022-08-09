@@ -5394,10 +5394,6 @@ TEST_CASE( "[production] bell production [discoverer]" ) {
   World W;
   W.create_default_map();
 
-  using SP  = SquareProduction;
-  using LP  = refl::enum_map<e_direction, SP>;
-  using RMP = RawMaterialAndProduct;
-
   W.settings().difficulty = e_difficulty::discoverer;
 
   Colony& colony = W.add_colony( W.kGrasslandTile );

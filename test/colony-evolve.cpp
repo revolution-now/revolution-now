@@ -204,10 +204,6 @@ TEST_CASE( "[colony-evolve] ran out of raw materials" ) {
   W.add_unit_indoors( colony.id, e_indoor_job::muskets,
                       e_unit_type::free_colonist );
 
-  using SP  = SquareProduction;
-  using LP  = refl::enum_map<e_direction, SP>;
-  using RMP = RawMaterialAndProduct;
-
   ColonyEvolution ev =
       evolve_colony_one_turn( W.ss(), W.ts(), colony );
 
