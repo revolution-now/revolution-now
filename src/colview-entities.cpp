@@ -461,6 +461,10 @@ class CargoView : public ui::View,
       painter.draw_empty_rect(
           rect, rr::Painter::e_border_mode::in_out,
           gfx::pixel::wood() );
+      if( dragging_.has_value() && dragging_->slot == idx )
+        // If we're draggin the thing in this slot then don't
+        // draw it in there.
+        continue;
       CargoHold const& hold = unit->cargo();
       switch( auto& v = hold[idx]; v.to_enum() ) {
         case CargoSlot::e::empty: break;
@@ -780,6 +784,7 @@ class UnitsAtGateColonyView : public ui::View,
                              rr::Painter::e_border_mode::inside,
                              gfx::pixel::black() );
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
+      if( dragging_ == unit_id ) continue;
       Coord draw_pos = unit_pos.as_if_origin_were( coord );
       render_unit(
           renderer, draw_pos, ss_.units.unit_for( unit_id ),
