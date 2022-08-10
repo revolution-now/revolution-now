@@ -20,6 +20,7 @@ include "gfx/pixel.hpp"
 
 # refl
 include "refl/enum-map.hpp"
+include "refl/to-str.hpp"
 
 # cdr
 include "cdr/ext-base.hpp"
@@ -83,6 +84,28 @@ struct.construction_requirements {
   # water tile does not have to have ocean access, but must be
   # immediately adjacent in any direction.
   requires_water 'bool',
+
+  _features { validation, equality }
+}
+
+struct.on_the_job_training {
+  # If the given unit type can be auto-promoted via on-the-job
+  # training then this will give the probability, which is ap-
+  # plied independently to every unit every turn.
+  probabilities 'std::unordered_map<e_unit_type, double>',
+
+  # Which indoor jobs are eligible for auto promotion.
+  eligible_indoor_jobs 'refl::enum_map<e_indoor_job, bool>',
+
+  # Which outdoor jobs are eligible for auto promotion.
+  eligible_outdoor_jobs 'refl::enum_map<e_outdoor_job, bool>',
+
+  # In the original game, a unit can be promoted even when it is
+  # working in a square that is not producing anything. This
+  # could be a bug, and doesn't make much sense, so this game
+  # will not allow that. But this flag allows turning it back on
+  # if compatibility is desired.
+  can_promote_with_zero_production 'bool',
 
   _features { validation, equality }
 }
@@ -181,6 +204,10 @@ struct.config_colony_t {
   building_display_names 'refl::enum_map<e_colony_building, std::string>',
 
   colors 'config::colony::colors',
+
+  # Configures how/when units working in colonies get randomly
+  # promoted via on-the-job-training.
+  on_the_job_training 'config::colony::on_the_job_training',
 
   _features { validation, equality }
 }

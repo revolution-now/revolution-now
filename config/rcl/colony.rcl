@@ -666,3 +666,72 @@ sons_of_liberty_50_bonus_non_expert:  1
 sons_of_liberty_50_bonus_expert:      2
 sons_of_liberty_100_bonus_non_expert: 2
 sons_of_liberty_100_bonus_expert:     4
+
+on_the_job_training {
+  # If the given unit type can be auto-promoted via on-the-job
+  # training then this will give the probability, which is ap-
+  # plied independently to every unit every turn.
+  #
+  # These probabilities are difficult to measure in the original
+  # game because 1) they are small, and 2) the original game's
+  # random number generator is very bad. So these are taken from
+  # the strategy guide. They make sense at least relative to each
+  # other, since the on-the-job promotion takes any unit directly
+  # to an expert, so e.g. it makes sense that a petty criminal
+  # has 1/3 the probability for this transition as a free
+  # colonist, because a petty criminal conceptually passes
+  # through three states in order to get there (first to an in-
+  # dentured servant, then to a free colonist, then to an ex-
+  # pert).
+  #
+  # The strategy guide's verbiage seems to indicate that these
+  # probabilities are applied to each colonist (in each colony)
+  # independently on each turn (which is how this game does it),
+  # but that is difficult to verify due to the low probabilities.
+  probabilities {
+    petty_criminal:     0.003333333 # 1/300
+    indentured_servant: 0.005       # 1/200
+    free_colonist:      0.01        # 1/100
+
+    # Note that in the original game, native converts cannot be
+    # promoted by this mechanism; they can only be promoted by
+    # obtaining bartolome_de_las_casas.
+  }
+
+  # Which indoor jobs are eligible for auto promotion. In the
+  # original game, no indoor job is eligible for this.
+  eligible_indoor_jobs {
+    bells:   false
+    crosses: false
+    hammers: false
+    rum:     false
+    cigars:  false
+    cloth:   false
+    coats:   false
+    tools:   false
+    muskets: false
+    teacher: false
+  }
+
+  # Which outdoor jobs are eligible for auto promotion. In the
+  # original game, it is only the outdoor professions that are
+  # not obtainable in the old world that are eligible.
+  eligible_outdoor_jobs {
+    food:    false
+    fish:    false
+    sugar:   true
+    tobacco: true
+    cotton:  true
+    fur:     true
+    lumber:  false
+    ore:     false
+    silver:  false
+  }
+
+  # In the original game, a unit can be promoted even when it is
+  # working in a square that is not producing anything. This
+  # could be a bug, and doesn't make much sense, so this game
+  # will not allow that. But this flag allows turning it back on
+  # if compatibility is desired.
+  can_promote_with_zero_production: false
+}

@@ -27,6 +27,18 @@ base::valid_or<string> config::colony::warehouses::validate()
   return base::valid;
 }
 
+base::valid_or<string>
+config::colony::on_the_job_training::validate() const {
+  for( auto const& [unit_type, probability] : probabilities ) {
+    REFL_VALIDATE(
+        probability >= 0.0 && probability <= 1.0,
+        "on-the-job training probabilities must be between 0.0 "
+        "and 1.0, instead found {} for unit type {}.",
+        probability, unit_type );
+  }
+  return base::valid;
+}
+
 base::valid_or<string> config_colony_t::validate() const {
   // The capenter's shop must not cost any hammers to build,
   // since one would not be able to produce the hammers to build
