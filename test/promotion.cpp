@@ -333,5 +333,537 @@ TEST_CASE(
   }
 }
 
+TEST_CASE( "[unit-type] promoted_unit_type" ) {
+  auto f = []( UnitType ut, e_unit_activity activity ) {
+    return promoted_unit_type( ut, activity );
+  };
+  using UT  = e_unit_type;
+  using Act = e_unit_activity;
+  UnitType        ut;
+  UnitType        expected;
+  e_unit_activity act;
+
+  SECTION( "base types" ) {
+    // petty_criminal.
+    ut       = UnitType::create( UT::petty_criminal );
+    act      = Act::farming;
+    expected = UnitType::create( UT::indentured_servant );
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == expected );
+    // indentured_servant.
+    ut       = UnitType::create( UT::indentured_servant );
+    act      = Act::farming;
+    expected = UnitType::create( UT::free_colonist );
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == expected );
+    // free_colonist.
+    ut       = UnitType::create( UT::free_colonist );
+    act      = Act::farming;
+    expected = UnitType::create( UT::expert_farmer );
+    REQUIRE( f( ut, act ) == expected );
+    act      = Act::bell_ringing;
+    expected = UnitType::create( UT::elder_statesman );
+    REQUIRE( f( ut, act ) == expected );
+    act      = Act::fighting;
+    expected = UnitType::create( UT::veteran_colonist );
+    REQUIRE( f( ut, act ) == expected );
+    act      = Act::scouting;
+    expected = UnitType::create( UT::seasoned_colonist );
+    REQUIRE( f( ut, act ) == expected );
+    act      = Act::cotton_planting;
+    expected = UnitType::create( UT::expert_cotton_planter );
+    REQUIRE( f( ut, act ) == expected );
+    // expert_cotton_planer.
+    ut  = UnitType::create( UT::expert_cotton_planter );
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == nothing );
+    // veteran_colonist.
+    ut  = UnitType::create( UT::veteran_colonist );
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == nothing );
+    // cavalry.
+    ut  = UnitType::create( UT::cavalry );
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == nothing );
+    // damaged_artillery.
+    ut  = UnitType::create( UT::damaged_artillery );
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == nothing );
+    // native_convert.
+    ut  = UnitType::create( UT::native_convert );
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == nothing );
+    // privateer.
+    ut  = UnitType::create( UT::privateer );
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == nothing );
+    // wagon_train.
+    ut  = UnitType::create( UT::wagon_train );
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == nothing );
+    // large_treasure.
+    ut  = UnitType::create( UT::large_treasure );
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == nothing );
+  }
+  SECTION( "non-expert modified colonists" ) {
+    // pioneer/petty_criminal.
+    ut = UnitType::create( UT::pioneer, UT::petty_criminal )
+             .value();
+    expected =
+        UnitType::create( UT::pioneer, UT::indentured_servant )
+            .value();
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::pioneering;
+    REQUIRE( f( ut, act ) == expected );
+    // pioneer/indentured_servant.
+    ut = UnitType::create( UT::pioneer, UT::indentured_servant )
+             .value();
+    expected = UnitType::create( UT::pioneer, UT::free_colonist )
+                   .value();
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::pioneering;
+    REQUIRE( f( ut, act ) == expected );
+    // pioneer/free_colonist.
+    ut = UnitType::create( UT::pioneer, UT::free_colonist )
+             .value();
+    expected =
+        UnitType::create( UT::hardy_pioneer, UT::hardy_colonist )
+            .value();
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::pioneering;
+    REQUIRE( f( ut, act ) == expected );
+    // pioneer/expert_farmer.
+    ut = UnitType::create( UT::pioneer, UT::expert_farmer )
+             .value();
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::pioneering;
+    REQUIRE( f( ut, act ) == nothing );
+    // dragoon/petty_criminal.
+    ut = UnitType::create( UT::dragoon, UT::petty_criminal )
+             .value();
+    expected =
+        UnitType::create( UT::dragoon, UT::indentured_servant )
+            .value();
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::pioneering;
+    REQUIRE( f( ut, act ) == expected );
+    // dragoon/free_colonist.
+    ut = UnitType::create( UT::dragoon, UT::free_colonist )
+             .value();
+    expected = UnitType::create( UT::veteran_dragoon,
+                                 UT::veteran_colonist )
+                   .value();
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::pioneering;
+    REQUIRE( f( ut, act ) == expected );
+    // dragoon/expert_farmer.
+    ut = UnitType::create( UT::dragoon, UT::expert_farmer )
+             .value();
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::pioneering;
+    REQUIRE( f( ut, act ) == nothing );
+    // scout/free_colonist.
+    ut =
+        UnitType::create( UT::scout, UT::free_colonist ).value();
+    expected = UnitType::create( UT::seasoned_scout,
+                                 UT::seasoned_colonist )
+                   .value();
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::pioneering;
+    REQUIRE( f( ut, act ) == expected );
+  }
+  SECTION( "expert modified colonists" ) {
+    // veteran_soldier
+    ut       = UnitType::create( UT::veteran_soldier );
+    expected = UnitType::create( UT::continental_army );
+    act      = Act::farming;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::pioneering;
+    REQUIRE( f( ut, act ) == expected );
+    // veteran_dragoon
+    ut       = UnitType::create( UT::veteran_dragoon );
+    expected = UnitType::create( UT::continental_cavalry );
+    act      = Act::farming;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == expected );
+    act = Act::pioneering;
+    REQUIRE( f( ut, act ) == expected );
+    // continental_army
+    ut  = UnitType::create( UT::continental_army );
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::pioneering;
+    REQUIRE( f( ut, act ) == nothing );
+    // continental_cavalry
+    ut  = UnitType::create( UT::continental_cavalry );
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::pioneering;
+    REQUIRE( f( ut, act ) == nothing );
+    // hardy_pioneer
+    ut  = UnitType::create( UT::hardy_pioneer );
+    act = Act::farming;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::bell_ringing;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::fighting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::scouting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::cotton_planting;
+    REQUIRE( f( ut, act ) == nothing );
+    act = Act::pioneering;
+    REQUIRE( f( ut, act ) == nothing );
+  }
+}
+
+TEST_CASE( "[unit-type] cleared_expertise" ) {
+  auto* f  = cleared_expertise;
+  using UT = e_unit_type;
+  UnitType ut;
+  UnitType expected;
+
+  SECTION( "base types" ) {
+    // petty_criminal.
+    ut = UnitType::create( UT::petty_criminal );
+    REQUIRE( f( ut ) == nothing );
+    // indentured_servant.
+    ut = UnitType::create( UT::indentured_servant );
+    REQUIRE( f( ut ) == nothing );
+    // free_colonist.
+    ut = UnitType::create( UT::free_colonist );
+    REQUIRE( f( ut ) == nothing );
+    // native_convert.
+    ut = UnitType::create( UT::native_convert );
+    REQUIRE( f( ut ) == nothing );
+    // expert_farmer.
+    ut       = UnitType::create( UT::expert_farmer );
+    expected = UnitType::create( UT::free_colonist );
+    REQUIRE( f( ut ) == expected );
+    // veteran_colonist.
+    ut       = UnitType::create( UT::veteran_colonist );
+    expected = UnitType::create( UT::free_colonist );
+    REQUIRE( f( ut ) == expected );
+    // jesuit_missionary.
+    ut       = UnitType::create( UT::jesuit_colonist );
+    expected = UnitType::create( UT::free_colonist );
+    REQUIRE( f( ut ) == expected );
+    // caravel.
+    ut = UnitType::create( UT::caravel );
+    REQUIRE( f( ut ) == nothing );
+    // artillery.
+    ut = UnitType::create( UT::artillery );
+    REQUIRE( f( ut ) == nothing );
+  }
+  SECTION( "non-expert modified colonists" ) {
+    // dragoon/petty_criminal.
+    ut = UnitType::create( UT::dragoon, UT::petty_criminal )
+             .value();
+    REQUIRE( f( ut ) == nothing );
+    // dragoon/indentured_servant.
+    ut = UnitType::create( UT::dragoon, UT::indentured_servant )
+             .value();
+    REQUIRE( f( ut ) == nothing );
+    // dragoon/free_colonist.
+    ut = UnitType::create( UT::dragoon, UT::free_colonist )
+             .value();
+    REQUIRE( f( ut ) == nothing );
+    // scout/expert_farmer.
+    ut =
+        UnitType::create( UT::scout, UT::expert_farmer ).value();
+    expected =
+        UnitType::create( UT::scout, UT::free_colonist ).value();
+    REQUIRE( f( ut ) == expected );
+    // scout/veteran_colonist.
+    ut = UnitType::create( UT::scout, UT::veteran_colonist )
+             .value();
+    expected =
+        UnitType::create( UT::scout, UT::free_colonist ).value();
+    REQUIRE( f( ut ) == expected );
+    // pioneer/jesuit_colonist.
+    ut = UnitType::create( UT::pioneer, UT::jesuit_colonist )
+             .value();
+    expected = UnitType::create( UT::pioneer, UT::free_colonist )
+                   .value();
+    REQUIRE( f( ut ) == expected );
+  }
+  SECTION( "expert modified colonists" ) {
+    // veteran_dragoon.
+    ut       = UnitType::create( UT::veteran_dragoon );
+    expected = UnitType::create( UT::dragoon );
+    REQUIRE( f( ut ) == expected );
+    // continental_cavalry.
+    ut       = UnitType::create( UT::continental_cavalry );
+    expected = UnitType::create( UT::dragoon );
+    REQUIRE( f( ut ) == expected );
+    // continental_army.
+    ut       = UnitType::create( UT::continental_army );
+    expected = UnitType::create( UT::soldier );
+    REQUIRE( f( ut ) == expected );
+    // seasoned_scout.
+    ut       = UnitType::create( UT::seasoned_scout );
+    expected = UnitType::create( UT::scout );
+    REQUIRE( f( ut ) == expected );
+    // hardy_pioneer.
+    ut       = UnitType::create( UT::hardy_pioneer );
+    expected = UnitType::create( UT::pioneer );
+    REQUIRE( f( ut ) == expected );
+    // veteran_soldier.
+    ut       = UnitType::create( UT::veteran_soldier );
+    expected = UnitType::create( UT::soldier );
+    REQUIRE( f( ut ) == expected );
+    // jesuit_missionary..
+    ut       = UnitType::create( UT::jesuit_missionary );
+    expected = UnitType::create( UT::missionary );
+    REQUIRE( f( ut ) == expected );
+  }
+}
+
+TEST_CASE( "[unit-type] on_death_demoted_type" ) {
+  auto* f  = on_death_demoted_type;
+  using UT = e_unit_type;
+  // No demoting.
+  REQUIRE( f( UnitType::create( UT::free_colonist ) ) ==
+           nothing );
+  REQUIRE( f( UnitType::create( UT::native_convert ) ) ==
+           nothing );
+  REQUIRE( f( UnitType::create( UT::indentured_servant ) ) ==
+           nothing );
+  REQUIRE( f( UnitType::create( UT::expert_sugar_planter ) ) ==
+           nothing );
+  REQUIRE( f( UnitType::create( UT::damaged_artillery ) ) ==
+           nothing );
+  REQUIRE( f( UnitType::create( UT::caravel ) ) == nothing );
+  // Demoting.
+  REQUIRE( f( UnitType::create( UT::soldier ) ) ==
+           UnitType::create( UT::free_colonist ) );
+  REQUIRE(
+      f( UnitType::create( UT::soldier, UT::indentured_servant )
+             .value() ) ==
+      UnitType::create( UT::indentured_servant ) );
+  REQUIRE( f( UnitType::create( UT::dragoon ) ) ==
+           UnitType::create( UT::soldier ) );
+  REQUIRE(
+      f( UnitType::create( UT::dragoon, UT::indentured_servant )
+             .value() ) ==
+      UnitType::create( UT::soldier, UT::indentured_servant )
+          .value() );
+  REQUIRE( f( UnitType::create( UT::veteran_soldier ) ) ==
+           UnitType::create( UT::veteran_colonist ) );
+  REQUIRE( f( UnitType::create( UT::veteran_dragoon ) ) ==
+           UnitType::create( UT::veteran_soldier ) );
+  REQUIRE( f( UnitType::create( UT::cavalry ) ) ==
+           UnitType::create( UT::regular ) );
+  REQUIRE( f( UnitType::create( UT::continental_army ) ) ==
+           UnitType::create( UT::veteran_colonist ) );
+  REQUIRE( f( UnitType::create( UT::continental_cavalry ) ) ==
+           UnitType::create( UT::continental_army ) );
+  REQUIRE( f( UnitType::create( UT::artillery ) ) ==
+           UnitType::create( UT::damaged_artillery ) );
+}
+
+TEST_CASE( "[unit-type] on_capture_demoted_type" ) {
+  auto* f  = on_capture_demoted_type;
+  using UT = e_unit_type;
+  // No demoting.
+  REQUIRE( f( UnitType::create( UT::free_colonist ) ) ==
+           nothing );
+  REQUIRE( f( UnitType::create( UT::native_convert ) ) ==
+           nothing );
+  REQUIRE( f( UnitType::create( UT::indentured_servant ) ) ==
+           nothing );
+  REQUIRE( f( UnitType::create( UT::expert_sugar_planter ) ) ==
+           nothing );
+  REQUIRE( f( UnitType::create( UT::damaged_artillery ) ) ==
+           nothing );
+  REQUIRE( f( UnitType::create( UT::caravel ) ) == nothing );
+  REQUIRE( f( UnitType::create( UT::cavalry ) ) == nothing );
+  // Demoting.
+  REQUIRE( f( UnitType::create( UT::veteran_colonist ) ) ==
+           UT::free_colonist );
+}
+
 } // namespace
 } // namespace rn

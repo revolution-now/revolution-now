@@ -5,12 +5,16 @@
 *
 * Created by dsicilia on 2022-08-10.
 *
-* Description: All things related to unit type promotion.
+* Description: All things related to unit type promotion
+*              & demotion.
 *
 *****************************************************************/
 #pragma once
 
 #include "core-config.hpp"
+
+// ss
+#include "ss/unit-type.hpp"
 
 namespace rn {
 
@@ -35,5 +39,46 @@ struct Unit;
 //
 bool try_promote_unit_for_current_activity( SSConst const& ss,
                                             Unit& unit );
+
+// This promotes a unit. If the promotion is possible then either
+// the base type or derived type (or both) may change. The `ac-
+// tivity` parameter may or may not be used depending on the unit
+// type. The logic behind this function is a bit complicated; see
+// the comments in the Rds definition for UnitPromotion as well
+// as the function implementation for more info.
+//
+// This may be a bit expensive to call; it should not be called
+// on every frame or on every unit in a given turn. It should
+// only be called when we know that we want to try to promote a
+// unit, which should not happen that often. It is ok to call it
+// on the order of once per battle, although that probably won't
+// happen since the probability of promotion in a battle is not
+// large.
+//
+// NOTE: this function should not be called directly to promote a
+// unit in this fashion because it will not take into account
+// unit inventory. Search for the other functions that call this
+// one.
+maybe<UnitType> promoted_unit_type( UnitType        ut,
+                                    e_unit_activity activity );
+
+// Will attempt to clear the expertise (if any) of the base type
+// while holding any modifiers constant. Though if the derived
+// type specifies a cleared_expertise target then that will be
+// respected without regard for the base type: that target will
+// be created with its default base type and returned.
+maybe<UnitType> cleared_expertise( UnitType ut );
+
+// This will return nothing if the unit does not have an
+// on_death.demoted property, otherwise it will return the new
+// UnitType representing the demoted unit, which is guaranteed by
+// the game rules (and validation performed during deserializa-
+// tion of the unit descriptor configs) to exist regardless of
+// base type.
+maybe<UnitType> on_death_demoted_type( UnitType ut );
+
+// For units that get demoted upon capture (e.g.
+// veteran_colonist) this will return that demoted type.
+maybe<e_unit_type> on_capture_demoted_type( UnitType ut );
 
 } // namespace rn

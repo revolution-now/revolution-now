@@ -13,6 +13,7 @@
 // Revolution Now
 #include "error.hpp"
 #include "plow.hpp"
+#include "promotion.hpp"
 #include "road.hpp"
 #include "ustate.hpp"
 

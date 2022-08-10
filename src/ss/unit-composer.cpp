@@ -457,17 +457,6 @@ void adjust_for_independence_status(
   erase_if( input, L( requires_independence( _ ) ) );
 }
 
-expect<UnitComposition> promoted_from_activity(
-    UnitComposition const& comp, e_unit_activity activity ) {
-  maybe<UnitType> new_type_obj =
-      promoted_unit_type( comp.type_obj(), activity );
-  if( !new_type_obj.has_value() )
-    return unexpected<UnitComposition>(
-        "viable unit type not found" );
-  return UnitComposition::create( *new_type_obj,
-                                  comp.inventory() );
-}
-
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/

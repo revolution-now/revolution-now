@@ -114,18 +114,6 @@ bool is_unit_human( UnitType ut );
 // Can this unit type found a colony?
 bool can_unit_found( UnitType ut );
 
-// This will return nothing if the unit does not have an
-// on_death.demoted property, otherwise it will return the new
-// UnitType representing the demoted unit, which is guaranteed by
-// the game rules (and validation performed during deserializa-
-// tion of the unit descriptor configs) to exist regardless of
-// base type.
-maybe<UnitType> on_death_demoted_type( UnitType ut );
-
-// For units that get demoted upon capture (e.g.
-// veteran_colonist) this will return that demoted type.
-maybe<e_unit_type> on_capture_demoted_type( UnitType ut );
-
 // Try to add the modifiers to the type and return the resulting
 // type if it works out.
 maybe<UnitType> add_unit_type_modifiers(
@@ -139,34 +127,13 @@ maybe<UnitType> rm_unit_type_modifiers(
     UnitType                                        ut,
     std::unordered_set<e_unit_type_modifier> const& modifiers );
 
-// This promotes a unit. If the promotion is possible then either
-// the base type or derived type (or both) may change. The `ac-
-// tivity` parameter may or may not be used depending on the unit
-// type. The logic behind this function is a bit complicated; see
-// the comments in the Rds definition for UnitPromotion as well
-// as the function implementation for more info.
-//
-// This may be a bit expensive to call; it should not be called
-// on every frame or on every unit in a given turn. It should
-// only be called when we know that we want to try to promote a
-// unit, which should not happen that often. It is ok to call it
-// on the order of once per battle, although that probably won't
-// happen since the probability of promotion in a battle is not
-// large.
-//
-// NOTE: this function should not be called directly to promote a
-// unit in this fashion because it will not take into account
-// unit inventory. Search for the other functions that call this
-// one.
-maybe<UnitType> promoted_unit_type( UnitType        ut,
-                                    e_unit_activity activity );
-
-// Will attempt to clear the expertise (if any) of the base type
-// while holding any modifiers constant. Though if the derived
-// type specifies a cleared_expertise target then that will be
-// respected without regard for the base type: that target will
-// be created with its default base type and returned.
-maybe<UnitType> cleared_expertise( UnitType ut );
+// Given a base unit type and a set of proposed modifiers, this
+// function will determine if there is a resulting derived type.
+// If there is, it is guaranteed to be unique since config vali-
+// dation should have verified that.
+maybe<UnitType> find_unit_type_modifiers(
+    e_unit_type                                     base_type,
+    std::unordered_set<e_unit_type_modifier> const& modifiers );
 
 } // namespace rn
 
