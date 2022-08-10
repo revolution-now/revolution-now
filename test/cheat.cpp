@@ -18,6 +18,7 @@
 
 // ss
 #include "src/ss/colonies.hpp"
+#include "src/ss/ref.hpp"
 #include "src/ss/units.hpp"
 
 // refl
@@ -65,8 +66,7 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
   W.create_default_map();
 
   auto up = [&]( Unit& unit ) {
-    cheat_upgrade_unit_expertise( W.units(), W.colonies(),
-                                  unit );
+    cheat_upgrade_unit_expertise( W.ss(), unit );
   };
 
   auto down = [&]( Unit& unit ) {

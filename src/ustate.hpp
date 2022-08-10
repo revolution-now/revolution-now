@@ -54,29 +54,6 @@ maybe<e_unit_activity> current_activity_for_unit(
     ColoniesState const& colonies_state, UnitId id );
 
 /****************************************************************
-** Unit Promotion
-*****************************************************************/
-// This is the function that top-level game logic should call
-// whenever it is determined that a unit is up for promotion (the
-// it is ok if the unit cannot be promoted further). This will
-// find the unit's current activity and promote it along those
-// lines if a promotion target exists. It will return true if a
-// promotion was possible (and was thus made). If the unit has no
-// activity the no promotion will be made. Technically, in that
-// case, we could still theoretically promote e.g. an indentured
-// servant to a free colonist, but the game will never do that
-// (outside of cheat mode) when the unit has no activity, so we
-// don't do that. Also, note that if the unit is an expert at
-// something other than the given activity then no promotion will
-// happen.
-//
-// TODO: promote veterans to continentals after independence.
-//
-bool try_promote_unit_for_current_activity(
-    UnitsState const&    units_state,
-    ColoniesState const& colonies_state, Unit& unit );
-
-/****************************************************************
 ** Map Ownership
 *****************************************************************/
 // This will give all units that are on a square or are cargo of

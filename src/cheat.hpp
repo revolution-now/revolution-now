@@ -33,6 +33,7 @@ struct Colony;
 struct IGui;
 struct IMapUpdater;
 struct SS;
+struct SSConst;
 struct TS;
 struct Unit;
 struct UnitsState;
@@ -55,9 +56,8 @@ wait<> cheat_colony_buildings( Colony& colony, IGui& gui );
 // game's cheat feature where you can select a unit (at least in
 // the colony view) and it will be upgraded based on what it is
 // currently doing or being.
-void cheat_upgrade_unit_expertise(
-    UnitsState const&    units_state,
-    ColoniesState const& colonies_state, Unit& unit );
+void cheat_upgrade_unit_expertise( SSConst const& ss,
+                                   Unit&          unit );
 
 void cheat_downgrade_unit_expertise( Unit& unit );
 

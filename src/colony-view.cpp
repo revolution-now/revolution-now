@@ -89,7 +89,7 @@ void try_promote_demote_unit( SS& ss, Colony& colony,
   if( demote )
     cheat_downgrade_unit_expertise( unit );
   else
-    cheat_upgrade_unit_expertise( ss.units, ss.colonies, unit );
+    cheat_upgrade_unit_expertise( ss, unit );
   update_colony_view( ss, colony );
 }
 

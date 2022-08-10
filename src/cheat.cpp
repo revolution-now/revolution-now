@@ -16,6 +16,7 @@
 #include "colony-evolve.hpp"
 #include "igui.hpp"
 #include "logger.hpp"
+#include "promotion.hpp"
 #include "ts.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
@@ -119,9 +120,8 @@ wait<> cheat_colony_buildings( Colony& colony, IGui& gui ) {
   }
 }
 
-void cheat_upgrade_unit_expertise(
-    UnitsState const&    units_state,
-    ColoniesState const& colonies_state, Unit& unit ) {
+void cheat_upgrade_unit_expertise( SSConst const& ss,
+                                   Unit&          unit ) {
   RETURN_IF_NO_CHEAT;
   UnitType const original_type = unit.type_obj();
   SCOPE_EXIT(
@@ -133,12 +133,10 @@ void cheat_upgrade_unit_expertise(
   // motion when the unit has no activity and it won't change an
   // expert's type to be a new expert, both things that we will
   // want to do with this cheat feature.
-  if( try_promote_unit_for_current_activity(
-          units_state, colonies_state, unit ) )
-    return;
+  if( try_promote_unit_for_current_activity( ss, unit ) ) return;
 
   maybe<e_unit_activity> activity = current_activity_for_unit(
-      units_state, colonies_state, unit.id() );
+      ss.units, ss.colonies, unit.id() );
 
   if( activity.has_value() ) {
     if( unit_attr( unit.base_type() ).expertise == *activity )
