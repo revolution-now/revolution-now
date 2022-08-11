@@ -233,6 +233,10 @@ struct World {
   // cases calling this.
   void expensive_run_lua_init();
 
+  // FIXME: get rid of this once we figure out how to deal with
+  // initializing lua's TS global properly.
+  void initialize_ts();
+
  private:
   e_nation default_nation_ = e_nation::dutch;
 

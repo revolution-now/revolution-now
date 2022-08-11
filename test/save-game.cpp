@@ -8,6 +8,7 @@
 * Description: Unit tests for the src/save-game.* module.
 *
 *****************************************************************/
+#include "test/mocking.hpp"
 #include "test/testing.hpp"
 
 // Under test.
@@ -15,6 +16,7 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocks/irand.hpp"
 
 // Revolution Now
 #include "src/rand.hpp"
@@ -37,6 +39,7 @@ namespace {
 
 using namespace std;
 
+using ::mock::matchers::_;
 using ::testing::data_dir;
 
 // Change this to 1 and then run the tests to regenerate the
@@ -65,8 +68,15 @@ void print_line( string_view what ) {
 }
 
 void reset_seeds( lua::state& st ) {
-  rng::reseed( 0 );
+  // rng::reseed( 0 );
   st["math"]["randomseed"]( 0 );
+}
+
+void expect_rands( World& W ) {
+  // These are for choosing the immigrant pool.
+  EXPECT_CALL( W.rand(), between_doubles( _, _ ) )
+      .times( 3 )
+      .returns( 0.0 );
 }
 
 void create_new_game_from_lua( World& world ) {
@@ -92,6 +102,8 @@ void generate_save_file( World& world, fs::path const& dst,
 TEST_CASE( "[save-game] no default values (compact)" ) {
   World W;
   W.expensive_run_lua_init();
+  // FIXME
+  W.initialize_ts();
 
   static fs::path const src =
       data_dir() / "saves/compact.sav.rcl";
@@ -132,6 +144,8 @@ TEST_CASE( "[save-game] no default values (compact)" ) {
 TEST_CASE( "[save-game] default values (full)" ) {
   World W;
   W.expensive_run_lua_init();
+  // FIXME
+  W.initialize_ts();
 
   static fs::path const src = data_dir() / "saves/full.sav.rcl";
 
@@ -171,13 +185,16 @@ TEST_CASE( "[save-game] default values (full)" ) {
 TEST_CASE( "[save-game] world gen with default values (full)" ) {
   World W;
   W.expensive_run_lua_init();
+  W.initialize_ts();
   reset_seeds( W.lua() );
+  expect_rands( W );
   create_new_game_from_lua( W );
   RootState backup = W.root();
   // The game-creation routine expects to be working on a
   // default-constructed game state.
   W.root() = {};
   reset_seeds( W.lua() );
+  expect_rands( W );
   create_new_game_from_lua( W );
 
   // FIXME: find a better way to get a random temp folder.
@@ -204,13 +221,16 @@ TEST_CASE(
     "[save-game] world gen with no default values (compact)" ) {
   World W;
   W.expensive_run_lua_init();
+  W.initialize_ts();
   reset_seeds( W.lua() );
+  expect_rands( W );
   create_new_game_from_lua( W );
   RootState backup = W.root();
   // The game-creation routine expects to be working on a
   // default-constructed game state.
   W.root() = {};
   reset_seeds( W.lua() );
+  expect_rands( W );
   create_new_game_from_lua( W );
 
   // FIXME: find a better way to get a random temp folder.

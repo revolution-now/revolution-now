@@ -166,7 +166,7 @@ TEST_CASE( "[lua] after initialization" ) {
   W.expensive_run_lua_init();
   // Cause TS to initialize lua since this test happens to need
   // the "TS" global in place.
-  W.ts();
+  W.initialize_ts();
   lua::state& st = W.lua();
 
   // Function binding.

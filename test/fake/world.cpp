@@ -412,6 +412,8 @@ void World::expensive_run_lua_init() {
   lua_init( st );
 }
 
+void World::initialize_ts() { ts(); }
+
 World::World()
   : ss_( new SS ),
     map_updater_(
