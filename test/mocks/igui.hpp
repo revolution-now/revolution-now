@@ -1,5 +1,5 @@
 /****************************************************************
-**igui-mock.hpp
+**igui.hpp
 *
 * Project: Revolution Now
 *
@@ -10,13 +10,11 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // Revolution Now
-#include "igui.hpp"
+#include "src/igui.hpp"
 
 // mock
-#include "mock/mock.hpp"
+#include "src/mock/mock.hpp"
 
 #define MOCK_GUI_METHOD( ret_type, name, params ) \
   MOCK_METHOD( ret_type, name, params, () )

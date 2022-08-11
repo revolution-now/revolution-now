@@ -11,8 +11,10 @@
 #include "test/mocking.hpp"
 #include "test/testing.hpp"
 
+// Testing
+#include "test/mocks/igui.hpp"
+
 // Revolution Now
-#include "igui-mock.hpp"
 #include "map-updater.hpp"
 #include "ustate.hpp"
 

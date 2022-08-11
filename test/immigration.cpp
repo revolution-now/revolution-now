@@ -16,10 +16,10 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
+#include "test/mocks/igui.hpp"
 
 // Revolution Now
 #include "src/harbor-units.hpp"
-#include "src/igui-mock.hpp"
 #include "src/igui.hpp"
 #include "src/map-square.hpp"
 #include "src/ustate.hpp"

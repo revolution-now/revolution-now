@@ -16,10 +16,10 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/igui.hpp"
 
 // Revolution Now
 #include "src/commodity.hpp"
-#include "src/igui-mock.hpp"
 #include "src/ss/units.hpp"
 
 // Must be last.

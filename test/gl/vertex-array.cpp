@@ -14,8 +14,8 @@
 // Under test.
 #include "src/gl/vertex-array.hpp"
 
-// gl
-#include "src/gl/iface-mock.hpp"
+// Testing
+#include "test/mocks/gl/iface.hpp"
 
 // refl
 #include "refl/ext.hpp"

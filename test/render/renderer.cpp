@@ -14,11 +14,13 @@
 // Under test.
 #include "src/render/renderer.hpp"
 
+// Testing
+#include "test/mocks/gl/iface.hpp"
+
 // render
 #include "render/vertex.hpp"
 
 // gl
-#include "src/gl/iface-mock.hpp"
 #include "src/gl/shader.hpp"
 
 // Must be last.

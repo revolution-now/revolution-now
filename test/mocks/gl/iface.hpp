@@ -1,5 +1,5 @@
 /****************************************************************
-**iface-mock.hpp
+**iface.hpp
 *
 * Project: Revolution Now
 *
@@ -11,10 +11,10 @@
 #pragma once
 
 // gl
-#include "iface.hpp"
+#include "src/gl/iface.hpp"
 
 // mock
-#include "mock/mock.hpp"
+#include "src/mock/mock.hpp"
 
 // C++ standard library
 #include <type_traits>
@@ -32,9 +32,14 @@ struct MockOpenGL : IOpenGL {
   IOpenGL* prev_;
 
  public:
-  MockOpenGL();
+  MockOpenGL() {
+    prev_ = global_gl_implementation();
+    set_global_gl_implementation( this );
+  }
 
-  ~MockOpenGL() override;
+  ~MockOpenGL() override {
+    set_global_gl_implementation( prev_ );
+  }
 
   MOCK_GL_METHOD( void, gl_AttachShader, ( GLuint, GLuint ) );
   MOCK_GL_METHOD( void, gl_BindBuffer, ( GLenum, GLuint ) );

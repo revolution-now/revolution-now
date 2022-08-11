@@ -14,8 +14,8 @@
 // Under test.
 #include "src/gl/texture.hpp"
 
-// gl mock
-#include "src/gl/iface-mock.hpp"
+// Testing
+#include "test/mocks/gl/iface.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"

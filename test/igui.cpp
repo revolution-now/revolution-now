@@ -15,10 +15,8 @@
 
 // Testing
 #include "test/mocking.hpp"
+#include "test/mocks/igui.hpp"
 #include "test/rds/testing.rds.hpp"
-
-// Revolution Now
-#include "src/igui-mock.hpp"
 
 // refl
 #include "refl/to-str.hpp"

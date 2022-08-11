@@ -10,10 +10,12 @@
 *****************************************************************/
 #include "world.hpp"
 
+// Testing
+#include "test/mocks/igui.hpp"
+
 // Revolution Now
 #include "src/colony-mgr.hpp"
 #include "src/harbor-units.hpp"
-#include "src/igui-mock.hpp"
 #include "src/lua.hpp"
 #include "src/map-updater-lua.hpp"
 #include "src/map-updater.hpp"

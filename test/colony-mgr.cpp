@@ -12,11 +12,11 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/igui.hpp"
 #include "test/mocks/land-view-plane.hpp"
 
 // Revolution Now
 #include "colony-mgr.hpp"
-#include "igui-mock.hpp"
 #include "map-square.hpp"
 #include "map-updater.hpp"
 #include "plane-stack.hpp"

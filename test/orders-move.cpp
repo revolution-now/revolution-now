@@ -16,9 +16,9 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/igui.hpp"
 
 // Revolution Now
-#include "src/igui-mock.hpp"
 #include "src/map-square.hpp"
 
 // config
