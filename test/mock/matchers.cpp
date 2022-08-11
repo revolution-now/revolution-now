@@ -30,6 +30,7 @@ namespace {
 
 using namespace std;
 using namespace ::mock::matchers;
+using namespace Catch::literals;
 
 using ::Catch::Matches;
 
@@ -80,7 +81,8 @@ struct IPoint {
   virtual void set_x_from_const_uptr_ref(
       unique_ptr<int const> const& x ) = 0;
 
-  virtual double length() const = 0;
+  virtual double length() const               = 0;
+  virtual double double_add( double d ) const = 0;
 
   virtual int sum_ints( vector<int> const& v ) const = 0;
 
@@ -141,6 +143,7 @@ struct MockPoint : IPoint {
                (unique_ptr<int const> const&), () );
 
   MOCK_METHOD( double, length, (), ( const ) );
+  MOCK_METHOD( double, double_add, (double), ( const ) );
 
   MOCK_METHOD( int, sum_ints, (vector<int> const&), ( const ) );
   MOCK_METHOD( int, sum_ints_ptr, (vector<int const*> const&),
@@ -243,6 +246,10 @@ struct PointUser {
   void set_foo( Foo const& foo ) { p_->set_foo( foo ); }
 
   void take_bool( bool b ) const { p_->take_bool( b ); }
+
+  double add_two( double d ) const {
+    return d + p_->double_add( d + .1 );
+  }
 
   IPoint* p_;
 };
@@ -714,6 +721,14 @@ TEST_CASE( "[mock] Property" ) {
   REQUIRE_UNEXPECTED_ARGS( user.set_foo( Foo{ 5, 6 } ) );
   REQUIRE_UNEXPECTED_ARGS( user.set_foo( Foo{ 6, 6 } ) );
   user.set_foo( Foo{ 7, 6 } );
+}
+
+TEST_CASE( "[mock] Approx" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+  EXPECT_CALL( mp, double_add( Approx( .6, .01 ) ) )
+      .returns( .7 );
+  REQUIRE( user.add_two( .499 ) == 1.199_a );
 }
 
 } // namespace

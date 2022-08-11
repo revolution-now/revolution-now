@@ -150,7 +150,7 @@ wait<bool> check_abandon( Colony const& colony, IGui& gui ) {
       .no_comes_first = true,
   };
   ui::e_confirm res = co_await gui.yes_no( config );
-  co_return ( res == ui::e_confirm::no );
+  co_return( res == ui::e_confirm::no );
 }
 
 maybe<string> check_seige() {
@@ -1015,8 +1015,7 @@ class UnitsAtGateColonyView : public ui::View,
           } else {
             TrappingMapUpdater map_updater;
             unit_to_map_square_non_interactive(
-                ss_.units, map_updater, unit.id,
-                colony_.location );
+                ss_, ts_, unit.id, colony_.location );
             // This is not strictly necessary, but as a conve-
             // nience to the user, clear the orders, otherwise it
             // would be sentry'd, which is probably not what the
@@ -1054,8 +1053,7 @@ class UnitsAtGateColonyView : public ui::View,
             // call this function to update the rendered map
             // along with anything else that needs to be done.
             unit_to_map_square_non_interactive(
-                ss_.units, ts_.map_updater, unit.id(),
-                colony_.location );
+                ss_, ts_, unit.id(), colony_.location );
           }
         } );
   }

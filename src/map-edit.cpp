@@ -24,6 +24,7 @@
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "plow.hpp"
+#include "rand.hpp"     // FIXME
 #include "renderer.hpp" // FIXME
 #include "road.hpp"
 #include "terminal.hpp" // FIXME
@@ -635,11 +636,8 @@ wait<> run_map_editor_standalone( Planes& planes ) {
       [&]( string const& msg ) { terminal.log( msg ); };
   WindowPlane window_plane;
   RealGui     gui( window_plane );
-  TS          ts{
-               .map_updater = map_updater,
-               .lua         = st,
-               .gui         = gui,
-  };
+  Rand        rand;
+  TS          ts( map_updater, st, gui, rand );
   co_await run_map_editor( planes, ss, ts );
 }
 

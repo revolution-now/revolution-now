@@ -648,9 +648,8 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
         }
         ss.units.unit_for( id ).clear_orders();
         maybe<UnitDeleted> unit_deleted =
-            co_await unit_to_map_square(
-                ss.units, ss.terrain, player, ss.settings,
-                ts.gui, ts.map_updater, id, *dst_coord );
+            co_await unit_to_map_square( ss, ts, id,
+                                         *dst_coord );
         // There are no LCR tiles on water squares.
         CHECK( !unit_deleted.has_value() );
         unsentry_surroundings( ss.units,

@@ -13,6 +13,9 @@
 // Under test.
 #include "src/plow.hpp"
 
+// Testing
+#include "test/fake/world.hpp"
+
 // Revolution Now
 #include "src/map-square.hpp"
 #include "src/map-updater.hpp"
@@ -37,24 +40,25 @@ using namespace std;
 
 Coord const kSquare{};
 
-// This will prepare a world with a 1x1 map of the given terrain
-// type with one unit on it of the given type.
-void prepare_world( TerrainState& terrain_state,
-                    UnitsState& units_state, e_terrain terrain,
-                    e_unit_type unit_type ) {
-  NonRenderingMapUpdater map_updater( terrain_state );
-  map_updater.modify_entire_map( [&]( Matrix<MapSquare>& m ) {
-    m          = Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
-    m[kSquare] = map_square_for_terrain( terrain );
-  } );
-  UnitComposition comp = UnitComposition::create( unit_type );
-  UnitId          id =
-      create_free_unit( units_state, e_nation::english, comp );
-  CHECK( id == 1 );
-  unit_to_map_square_non_interactive( units_state, map_updater,
-                                      id, kSquare );
-}
+/****************************************************************
+** Fake World Setup
+*****************************************************************/
+struct World : testing::World {
+  using Base = testing::World;
+  World() : Base() {}
 
+  void initialize( e_unit_type unit_type, e_terrain terrain ) {
+    MapSquare const   L = make_terrain( terrain );
+    vector<MapSquare> tiles{ L };
+    build_map( std::move( tiles ), 1 );
+
+    add_unit_on_map( unit_type, Coord{} );
+  }
+};
+
+/****************************************************************
+** Test Cases
+*****************************************************************/
 TEST_CASE( "[plow] can_irrigate" ) {
   MapSquare square;
   bool      expected;
@@ -108,16 +112,13 @@ TEST_CASE( "[plow] can_irrigate" ) {
 }
 
 TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
-  TerrainState           terrain_state;
-  NonRenderingMapUpdater map_updater( terrain_state );
-  UnitsState             units_state;
-  prepare_world( terrain_state, units_state, e_terrain::conifer,
-                 e_unit_type::pioneer );
+  World W;
+  W.initialize( e_unit_type::pioneer, e_terrain::conifer );
 
   UnitId           id       = 1;
-  Unit&            unit     = units_state.unit_for( id );
-  Coord            location = units_state.coord_for( id );
-  MapSquare const& square   = terrain_state.square_at( kSquare );
+  Unit&            unit     = W.units().unit_for( id );
+  Coord            location = W.units().coord_for( id );
+  MapSquare const& square   = W.square( kSquare );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( location == kSquare );
 
@@ -129,11 +130,11 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
 
   // Before starting plowing work.
   REQUIRE( can_plow( unit ) == true );
-  REQUIRE( can_plow( terrain_state, kSquare ) == true );
+  REQUIRE( can_plow( W.terrain(), kSquare ) == true );
   REQUIRE( has_forest( square ) );
   REQUIRE( can_irrigate( square ) == false );
-  REQUIRE( can_irrigate( terrain_state, kSquare ) == false );
-  REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
+  REQUIRE( can_irrigate( W.terrain(), kSquare ) == false );
+  REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );
@@ -144,11 +145,11 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
   unit.plow();
   unit.set_turns_worked( 0 );
   REQUIRE( can_plow( unit ) == true );
-  REQUIRE( can_plow( terrain_state, kSquare ) == true );
+  REQUIRE( can_plow( W.terrain(), kSquare ) == true );
   REQUIRE( has_forest( square ) );
   REQUIRE( can_irrigate( square ) == false );
-  REQUIRE( can_irrigate( terrain_state, kSquare ) == false );
-  REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
+  REQUIRE( can_irrigate( W.terrain(), kSquare ) == false );
+  REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::plow );
@@ -161,14 +162,14 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
   for( int i = 0; i < kClearTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
-    perform_plow_work( units_state, terrain_state, map_updater,
+    perform_plow_work( W.units(), W.terrain(), W.map_updater(),
                        unit );
     REQUIRE( can_plow( unit ) == true );
-    REQUIRE( can_plow( terrain_state, kSquare ) == true );
+    REQUIRE( can_plow( W.terrain(), kSquare ) == true );
     REQUIRE( has_forest( square ) );
     REQUIRE( can_irrigate( square ) == false );
-    REQUIRE( can_irrigate( terrain_state, kSquare ) == false );
-    REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
+    REQUIRE( can_irrigate( W.terrain(), kSquare ) == false );
+    REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
     REQUIRE( unit.turns_worked() == i + 1 );
     REQUIRE( unit.orders() == e_unit_orders::plow );
@@ -178,14 +179,14 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
 
   // Finished clearing.
   unit.new_turn();
-  perform_plow_work( units_state, terrain_state, map_updater,
+  perform_plow_work( W.units(), W.terrain(), W.map_updater(),
                      unit );
   REQUIRE( can_plow( unit ) == true );
-  REQUIRE( can_plow( terrain_state, kSquare ) == true );
+  REQUIRE( can_plow( W.terrain(), kSquare ) == true );
   REQUIRE( !has_forest( square ) );
   REQUIRE( can_irrigate( square ) == true );
-  REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
-  REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
+  REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
+  REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );
@@ -196,11 +197,11 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
   unit.plow();
   unit.set_turns_worked( 0 );
   REQUIRE( can_plow( unit ) == true );
-  REQUIRE( can_plow( terrain_state, kSquare ) == true );
+  REQUIRE( can_plow( W.terrain(), kSquare ) == true );
   REQUIRE( !has_forest( square ) );
   REQUIRE( can_irrigate( square ) == true );
-  REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
-  REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
+  REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
+  REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::plow );
@@ -213,14 +214,14 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
   for( int i = 0; i < kPlowTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
-    perform_plow_work( units_state, terrain_state, map_updater,
+    perform_plow_work( W.units(), W.terrain(), W.map_updater(),
                        unit );
     REQUIRE( can_plow( unit ) == true );
-    REQUIRE( can_plow( terrain_state, kSquare ) == true );
+    REQUIRE( can_plow( W.terrain(), kSquare ) == true );
     REQUIRE( !has_forest( square ) );
     REQUIRE( can_irrigate( square ) == true );
-    REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
-    REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
+    REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
+    REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
     REQUIRE( unit.turns_worked() == i + 1 );
     REQUIRE( unit.orders() == e_unit_orders::plow );
@@ -230,14 +231,14 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
 
   // Finished irrigating.
   unit.new_turn();
-  perform_plow_work( units_state, terrain_state, map_updater,
+  perform_plow_work( W.units(), W.terrain(), W.map_updater(),
                      unit );
   REQUIRE( can_plow( unit ) == false );
-  REQUIRE( can_plow( terrain_state, kSquare ) == false );
+  REQUIRE( can_plow( W.terrain(), kSquare ) == false );
   REQUIRE( !has_forest( square ) );
   REQUIRE( can_irrigate( square ) == false );
-  REQUIRE( can_irrigate( terrain_state, kSquare ) == false );
-  REQUIRE( has_irrigation( terrain_state, kSquare ) == true );
+  REQUIRE( can_irrigate( W.terrain(), kSquare ) == false );
+  REQUIRE( has_irrigation( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::free_colonist );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );
@@ -246,26 +247,23 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
 }
 
 TEST_CASE( "[src/plow] plow_square hardy_pioneer" ) {
-  TerrainState           terrain_state;
-  NonRenderingMapUpdater map_updater( terrain_state );
-  UnitsState             units_state;
-  prepare_world( terrain_state, units_state, e_terrain::desert,
-                 e_unit_type::hardy_pioneer );
+  World W;
+  W.initialize( e_unit_type::hardy_pioneer, e_terrain::desert );
 
   UnitId           id       = 1;
-  Unit&            unit     = units_state.unit_for( id );
-  Coord            location = units_state.coord_for( id );
-  MapSquare const& square   = terrain_state.square_at( kSquare );
+  Unit&            unit     = W.units().unit_for( id );
+  Coord            location = W.units().coord_for( id );
+  MapSquare const& square   = W.terrain().square_at( kSquare );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( location == kSquare );
 
   // Before starting plowing work.
   REQUIRE( can_plow( unit ) == true );
-  REQUIRE( can_plow( terrain_state, kSquare ) == true );
+  REQUIRE( can_plow( W.terrain(), kSquare ) == true );
   REQUIRE( !has_forest( square ) );
   REQUIRE( can_irrigate( square ) == true );
-  REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
-  REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
+  REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
+  REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );
@@ -276,11 +274,11 @@ TEST_CASE( "[src/plow] plow_square hardy_pioneer" ) {
   unit.plow();
   unit.set_turns_worked( 0 );
   REQUIRE( can_plow( unit ) == true );
-  REQUIRE( can_plow( terrain_state, kSquare ) == true );
+  REQUIRE( can_plow( W.terrain(), kSquare ) == true );
   REQUIRE( !has_forest( square ) );
   REQUIRE( can_irrigate( square ) == true );
-  REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
-  REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
+  REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
+  REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::plow );
@@ -293,14 +291,14 @@ TEST_CASE( "[src/plow] plow_square hardy_pioneer" ) {
   for( int i = 0; i < kPlowTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
-    perform_plow_work( units_state, terrain_state, map_updater,
+    perform_plow_work( W.units(), W.terrain(), W.map_updater(),
                        unit );
     REQUIRE( can_plow( unit ) == true );
-    REQUIRE( can_plow( terrain_state, kSquare ) == true );
+    REQUIRE( can_plow( W.terrain(), kSquare ) == true );
     REQUIRE( !has_forest( square ) );
     REQUIRE( can_irrigate( square ) == true );
-    REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
-    REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
+    REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
+    REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
     REQUIRE( unit.turns_worked() == i + 1 );
     REQUIRE( unit.orders() == e_unit_orders::plow );
@@ -311,14 +309,14 @@ TEST_CASE( "[src/plow] plow_square hardy_pioneer" ) {
 
   // Finished clearing.
   unit.new_turn();
-  perform_plow_work( units_state, terrain_state, map_updater,
+  perform_plow_work( W.units(), W.terrain(), W.map_updater(),
                      unit );
   REQUIRE( can_plow( unit ) == true );
-  REQUIRE( can_plow( terrain_state, kSquare ) == false );
+  REQUIRE( can_plow( W.terrain(), kSquare ) == false );
   REQUIRE( !has_forest( square ) );
   REQUIRE( can_irrigate( square ) == false );
-  REQUIRE( can_irrigate( terrain_state, kSquare ) == false );
-  REQUIRE( has_irrigation( terrain_state, kSquare ) == true );
+  REQUIRE( can_irrigate( W.terrain(), kSquare ) == false );
+  REQUIRE( has_irrigation( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );
@@ -327,16 +325,13 @@ TEST_CASE( "[src/plow] plow_square hardy_pioneer" ) {
 }
 
 TEST_CASE( "[src/plow] plow_square with cancellation" ) {
-  TerrainState           terrain_state;
-  NonRenderingMapUpdater map_updater( terrain_state );
-  UnitsState             units_state;
-  prepare_world( terrain_state, units_state,
-                 e_terrain::grassland, e_unit_type::pioneer );
+  World W;
+  W.initialize( e_unit_type::pioneer, e_terrain::grassland );
 
   UnitId           id       = 1;
-  Unit&            unit     = units_state.unit_for( id );
-  Coord            location = units_state.coord_for( id );
-  MapSquare const& square   = terrain_state.square_at( kSquare );
+  Unit&            unit     = W.units().unit_for( id );
+  Coord            location = W.units().coord_for( id );
+  MapSquare const& square   = W.terrain().square_at( kSquare );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( location == kSquare );
 
@@ -348,11 +343,11 @@ TEST_CASE( "[src/plow] plow_square with cancellation" ) {
 
   // Before starting plowing work.
   REQUIRE( can_plow( unit ) == true );
-  REQUIRE( can_plow( terrain_state, kSquare ) == true );
+  REQUIRE( can_plow( W.terrain(), kSquare ) == true );
   REQUIRE( !has_forest( square ) );
   REQUIRE( can_irrigate( square ) == true );
-  REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
-  REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
+  REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
+  REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );
@@ -363,11 +358,11 @@ TEST_CASE( "[src/plow] plow_square with cancellation" ) {
   unit.plow();
   unit.set_turns_worked( 0 );
   REQUIRE( can_plow( unit ) == true );
-  REQUIRE( can_plow( terrain_state, kSquare ) == true );
+  REQUIRE( can_plow( W.terrain(), kSquare ) == true );
   REQUIRE( !has_forest( square ) );
   REQUIRE( can_irrigate( square ) == true );
-  REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
-  REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
+  REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
+  REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::plow );
@@ -380,15 +375,15 @@ TEST_CASE( "[src/plow] plow_square with cancellation" ) {
   for( int i = 0; i < kTurnsRequired - 2; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
-    perform_plow_work( units_state, terrain_state, map_updater,
+    perform_plow_work( W.units(), W.terrain(), W.map_updater(),
                        unit );
     REQUIRE( can_plow( unit ) == true );
-    REQUIRE( can_plow( terrain_state, kSquare ) == true );
+    REQUIRE( can_plow( W.terrain(), kSquare ) == true );
     REQUIRE( !has_forest( square ) );
     REQUIRE( can_irrigate( square ) == true );
     REQUIRE( can_irrigate( square ) == true );
-    REQUIRE( can_irrigate( terrain_state, kSquare ) == true );
-    REQUIRE( has_irrigation( terrain_state, kSquare ) == false );
+    REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
+    REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
     REQUIRE( unit.turns_worked() == i + 1 );
     REQUIRE( unit.orders() == e_unit_orders::plow );
@@ -397,18 +392,18 @@ TEST_CASE( "[src/plow] plow_square with cancellation" ) {
   }
 
   // Effectively cancel it by putting a road on the tile.
-  plow_square( terrain_state, map_updater, kSquare );
+  plow_square( W.terrain(), W.map_updater(), kSquare );
 
   // Finished clearing.
   unit.new_turn();
-  perform_plow_work( units_state, terrain_state, map_updater,
+  perform_plow_work( W.units(), W.terrain(), W.map_updater(),
                      unit );
   REQUIRE( can_plow( unit ) == true );
-  REQUIRE( can_plow( terrain_state, kSquare ) == false );
+  REQUIRE( can_plow( W.terrain(), kSquare ) == false );
   REQUIRE( !has_forest( square ) );
   REQUIRE( can_irrigate( square ) == false );
-  REQUIRE( can_irrigate( terrain_state, kSquare ) == false );
-  REQUIRE( has_irrigation( terrain_state, kSquare ) == true );
+  REQUIRE( can_irrigate( W.terrain(), kSquare ) == false );
+  REQUIRE( has_irrigation( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );

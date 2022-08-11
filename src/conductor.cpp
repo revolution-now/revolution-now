@@ -13,12 +13,13 @@
 // Revolution Now
 #include "frame.hpp"
 #include "init.hpp"
+#include "irand.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
 #include "midiplayer.hpp"
 #include "mplayer.hpp"
 #include "oggplayer.hpp"
-#include "rand.hpp"
+#include "rand.hpp" // FIXME
 #include "time.hpp"
 
 // config
@@ -200,7 +201,8 @@ void register_requests() {
 
 void init_conductor() {
   // Generate a random playlist.
-  playlist_generate();
+  Rand rand; // FIXME
+  playlist_generate( rand );
   CHECK( g_playlist.size() > 0 );
 
   register_requests();
@@ -343,7 +345,7 @@ REGISTER_INIT_ROUTINE( conductor );
 
 } // namespace
 
-void play_request( e_request             request,
+void play_request( IRand& rand, e_request request,
                    e_request_probability probability ) {
   CONDUCTOR_INFO_OR_RETURN( info );
   DCHECK( dimensions_for_request().contains( request ) );
@@ -357,7 +359,7 @@ void play_request( e_request             request,
   // In the below we use fuzzy_match=true because we always want
   // to guarantee some tunes returned regardless of our search
   // criteria.
-  if( rng::flip_coin( prob ) ) {
+  if( rand.bernoulli( prob ) ) {
     auto tune_id = find_tunes( dims, /*fuzzy_match=*/true,
                                /*not_like=*/false )[0];
     // Only play it if we're not already playing it.
@@ -665,7 +667,7 @@ void seek( double pos ) {
   }
 }
 
-void playlist_generate() {
+void playlist_generate( IRand& rand ) {
   // For this it will first generate a random list of tunes,
   // choosing among all the tunes who have purpose=standard. The
   // length of this list will be 10 times the total number of
@@ -695,7 +697,7 @@ void playlist_generate() {
     while( true ) {
       timeout_countdown--;
       if( timeout_countdown == 0 ) break;
-      auto id = random_tune();
+      auto id = random_tune( rand );
       if( tune_dimensions( id ).purpose ==
           e_tune_purpose::special_event )
         continue;

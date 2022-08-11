@@ -12,6 +12,7 @@
 
 // Testing
 #include "test/mocks/igui.hpp"
+#include "test/mocks/irand.hpp"
 
 // Revolution Now
 #include "src/colony-mgr.hpp"
@@ -95,9 +96,7 @@ lua::state& World::lua() {
     lua::state& st     = *uninitialized_lua_;
     // FIXME: need to dedupe this logic.
     st["ROOT"] = root();
-    st["TS"]   = st.table.create();
-    st["TS"]["map_updater"] =
-        static_cast<IMapUpdater&>( map_updater() );
+    st["SS"]   = ss();
   }
   return *uninitialized_lua_;
 }
@@ -108,14 +107,19 @@ MockIGui& World::gui() {
   return *uninitialized_gui_;
 }
 
+MockIRand& World::rand() {
+  if( uninitialized_rand_ == nullptr )
+    uninitialized_rand_ = make_unique<MockIRand>();
+  return *uninitialized_rand_;
+}
+
 namespace {
 
 // We need this because we can't (yet?) do aggregate initializa-
 // tion for an object on the heap.
 TS make_ts( World& world ) {
-  return TS{ .map_updater = world.map_updater(),
-             .lua         = world.lua(),
-             .gui         = world.gui() };
+  return TS( world.map_updater(), world.lua(), world.gui(),
+             world.rand() );
 }
 
 }
@@ -217,8 +221,8 @@ UnitId World::add_unit_on_map( UnitType type, Coord where,
                                maybe<e_nation> nation ) {
   if( !nation ) nation = default_nation_;
   return create_unit_on_map_non_interactive(
-      root().units, map_updater(), *nation,
-      UnitComposition::create( type ), where );
+      ss(), ts(), *nation, UnitComposition::create( type ),
+      where );
 }
 
 UnitId World::add_unit_in_cargo( e_unit_type type, UnitId holder,
@@ -279,6 +283,10 @@ void World::add_player( e_nation nation ) {
   root().players.players[nation] = Player{};
   // This is the minimal amount that we need to set for a player.
   root().players.players[nation]->nation = nation;
+}
+
+void World::add_default_player() {
+  add_player( default_nation() );
 }
 
 Colony& World::add_colony( UnitId founder ) {

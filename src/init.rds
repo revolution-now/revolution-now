@@ -19,7 +19,6 @@ enum.e_init_routine {
   midiseq,
   oggplayer,
   renderer,
-  rng,
   screen,
   sdl,
   sound,

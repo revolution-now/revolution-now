@@ -60,9 +60,8 @@ void run( e_mode mode ) {
       break;
     }
     case e_mode::map_gen: {
-      run_all_init_routines(
-          e_log_level::warn,
-          { e_init_routine::configs, e_init_routine::rng } );
+      run_all_init_routines( e_log_level::warn,
+                             { e_init_routine::configs } );
       NOT_IMPLEMENTED;
       // ascii_map_gen();
       // break;

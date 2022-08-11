@@ -236,12 +236,11 @@ void cheat_downgrade_unit_expertise( Unit& unit ) {
   }
 }
 
-void cheat_create_new_colonist( UnitsState&   units_state,
-                                IMapUpdater&  map_updater,
+void cheat_create_new_colonist( SS& ss, TS& ts,
                                 Colony const& colony ) {
   RETURN_IF_NO_CHEAT;
   create_unit_on_map_non_interactive(
-      units_state, map_updater, colony.nation,
+      ss, ts, colony.nation,
       UnitComposition::create( e_unit_type::free_colonist ),
       colony.location );
 }
@@ -364,8 +363,7 @@ wait<> cheat_create_unit_on_map( SS& ss, TS& ts, e_nation nation,
   if( !type.has_value() ) co_return;
   UNWRAP_CHECK( player, ss.players.players[nation] );
   maybe<UnitId> unit_id = co_await create_unit_on_map(
-      ss.units, ss.terrain, player, ss.settings, ts.gui,
-      ts.map_updater, UnitComposition::create( *type ), tile );
+      ss, ts, player, UnitComposition::create( *type ), tile );
 }
 
 } // namespace rn

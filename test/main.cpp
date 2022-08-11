@@ -22,9 +22,8 @@ using namespace rn;
 
 int main( int argc, char** argv ) {
   linker_dont_discard_me();
-  run_all_init_routines(
-      e_log_level::off,
-      { e_init_routine::configs, e_init_routine::rng } );
+  run_all_init_routines( e_log_level::off,
+                         { e_init_routine::configs } );
   int result = Catch::Session().run( argc, argv );
   run_all_cleanup_routines();
   return result;

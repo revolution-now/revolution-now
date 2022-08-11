@@ -54,6 +54,7 @@ struct IMapUpdater;
 struct Player;
 
 struct MockIGui;
+struct MockIRand;
 struct Planes;
 struct SS;
 struct TS;
@@ -167,6 +168,7 @@ struct World {
   // Players.
   // ------------------------------------------------------------
   void add_player( e_nation nation );
+  void add_default_player();
 
   e_nation default_nation() const { return default_nation_; }
   void     set_default_player( e_nation nation ) {
@@ -221,6 +223,7 @@ struct World {
   Planes&     planes();
   lua::state& lua();
   MockIGui&   gui();
+  MockIRand&  rand();
   TS&         ts();
 
   IMapUpdater& map_updater() { return *map_updater_; }
@@ -243,6 +246,7 @@ struct World {
   std::unique_ptr<Planes>     uninitialized_planes_;
   std::unique_ptr<lua::state> uninitialized_lua_;
   std::unique_ptr<MockIGui>   uninitialized_gui_;
+  std::unique_ptr<MockIRand>  uninitialized_rand_;
   std::unique_ptr<TS>         uninitialized_ts_;
 };
 

@@ -10,6 +10,9 @@
 *****************************************************************/
 #pragma once
 
+// luapp
+#include "luapp/ext-userdata.hpp"
+
 // base
 #include "base/valid.hpp"
 
@@ -93,4 +96,15 @@ struct SSConst {
   base::valid_or<std::string> validate_game_state() const;
 };
 
+void to_str( SS const& o, std::string& out, base::ADL_t );
+
 } // namespace rn
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace lua {
+
+LUA_USERDATA_TRAITS( ::rn::SS, owned_by_cpp ){};
+
+}

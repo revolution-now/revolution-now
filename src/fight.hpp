@@ -14,13 +14,15 @@
 
 namespace rn {
 
+struct IRand;
 struct Unit;
 
 struct FightStatistics {
   bool attacker_wins{};
 };
 
-FightStatistics fight_statistics( Unit const& attacker,
+FightStatistics fight_statistics( IRand&      rand,
+                                  Unit const& attacker,
                                   Unit const& defender );
 
 } // namespace rn

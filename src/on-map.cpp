@@ -17,9 +17,12 @@
 #include "igui.hpp"
 #include "lcr.hpp"
 #include "logger.hpp"
+#include "ts.hpp"
 
 // ss
 #include "ss/player.rds.hpp"
+#include "ss/players.hpp"
+#include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
@@ -64,27 +67,24 @@ wait<> try_discover_new_world( TerrainState const& terrain_state,
 }
 
 // Returns true if the unit was deleted.
-wait<bool> try_lost_city_rumor(
-    UnitsState& units_state, TerrainState const& terrain_state,
-    Player& player, SettingsState const& settings, IGui& gui,
-    IMapUpdater& map_updater, UnitId id, Coord world_square ) {
+wait<bool> try_lost_city_rumor( SS& ss, TS& ts, Player& player,
+                                UnitId id, Coord world_square ) {
   // Check if the unit actually moved and it landed on a Lost
   // City Rumor.
-  if( !has_lost_city_rumor( terrain_state, world_square ) )
+  if( !has_lost_city_rumor( ss.terrain, world_square ) )
     co_return false;
   e_lcr_explorer_category const explorer =
-      lcr_explorer_category( units_state, id );
+      lcr_explorer_category( ss.units, id );
   e_rumor_type rumor_type =
-      pick_rumor_type_result( explorer, player );
+      pick_rumor_type_result( ts.rand, explorer, player );
   e_burial_mounds_type burial_type =
-      pick_burial_mounds_result( explorer );
+      pick_burial_mounds_result( ts.rand, explorer );
   bool has_burial_grounds = pick_burial_grounds_result(
-      player, explorer, burial_type );
+      ts.rand, player, explorer, burial_type );
   LostCityRumorResult_t lcr_res =
       co_await run_lost_city_rumor_result(
-          units_state, gui, player, settings, map_updater, id,
-          world_square, rumor_type, burial_type,
-          has_burial_grounds );
+          ss, ts, player, id, world_square, rumor_type,
+          burial_type, has_burial_grounds );
 
   co_return lcr_res.holds<LostCityRumorResult::unit_lost>();
 }
@@ -94,12 +94,11 @@ wait<bool> try_lost_city_rumor(
 /****************************************************************
 ** Public API
 *****************************************************************/
-void unit_to_map_square_non_interactive( UnitsState& units_state,
-                                         IMapUpdater&, UnitId id,
+void unit_to_map_square_non_interactive( SS& ss, TS&, UnitId id,
                                          Coord world_square ) {
   // 1. Move the unit. This is the only place where this function
   //    should be called by normal game code.
-  units_state.change_to_map( id, world_square );
+  ss.units.change_to_map( id, world_square );
 
   // 2. Unsentry surrounding foreign units.
   //    TODO
@@ -120,20 +119,18 @@ void unit_to_map_square_non_interactive( UnitsState& units_state,
 }
 
 wait<maybe<UnitDeleted>> unit_to_map_square(
-    UnitsState& units_state, TerrainState const& terrain_state,
-    Player& player, SettingsState const& settings, IGui& gui,
-    IMapUpdater& map_updater, UnitId id, Coord world_square ) {
-  unit_to_map_square_non_interactive( units_state, map_updater,
-                                      id, world_square );
-
+    SS& ss, TS& ts, UnitId id, Coord world_square ) {
+  unit_to_map_square_non_interactive( ss, ts, id, world_square );
+  UNWRAP_CHECK(
+      player,
+      ss.players.players[ss.units.unit_for( id ).nation()] );
   if( !player.discovered_new_world.has_value() )
-    co_await try_discover_new_world( terrain_state, player, gui,
+    co_await try_discover_new_world( ss.terrain, player, ts.gui,
                                      world_square );
 
-  if( has_lost_city_rumor( terrain_state, world_square ) )
-    if( co_await try_lost_city_rumor(
-            units_state, terrain_state, player, settings, gui,
-            map_updater, id, world_square ) )
+  if( has_lost_city_rumor( ss.terrain, world_square ) )
+    if( co_await try_lost_city_rumor( ss, ts, player, id,
+                                      world_square ) )
       co_return UnitDeleted{};
 
   // Unit is still alive.

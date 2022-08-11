@@ -36,7 +36,9 @@ struct IGui;
 struct IMapUpdater;
 struct Player;
 struct SettingsState;
+struct SS;
 struct TerrainState;
+struct TS;
 struct UnitsState;
 
 /****************************************************************
@@ -114,17 +116,17 @@ Unit create_unregistered_unit( e_nation        nation,
 // cally by placed on an LCR square, and, since this is the
 // coroutine version, the LCR will be explored and one of the
 // outcomes is that the unit could be lost.
-wait<maybe<UnitId>> create_unit_on_map(
-    UnitsState& units_state, TerrainState const& terrain_state,
-    Player& player, SettingsState const& settings, IGui& gui,
-    IMapUpdater& map_updater, UnitComposition comp,
-    Coord coord );
+wait<maybe<UnitId>> create_unit_on_map( SS& ss, TS& ts,
+                                        Player&         player,
+                                        UnitComposition comp,
+                                        Coord           coord );
 
 // Note: when calling from a coroutine, call the coroutine ver-
 // sion above since it will run through any UI actions.
-UnitId create_unit_on_map_non_interactive(
-    UnitsState& units_state, IMapUpdater& map_updater,
-    e_nation nation, UnitComposition comp, Coord coord );
+UnitId create_unit_on_map_non_interactive( SS& ss, TS& ts,
+                                           e_nation nation,
+                                           UnitComposition comp,
+                                           Coord coord );
 
 /****************************************************************
 ** Multi

@@ -13,6 +13,9 @@
 // Under test.
 #include "src/road.hpp"
 
+// Testing
+#include "test/fake/world.hpp"
+
 // Revolution Now
 #include "src/map-square.hpp"
 #include "src/map-updater.hpp"
@@ -35,39 +38,37 @@ using Catch::Contains;
 
 Coord const kSquare{};
 
-// This will prepare a world with a 1x1 map consisting of a
-// single grassland square with one unit on it of the given type.
-void prepare_world( TerrainState& terrain_state,
-                    UnitsState&   units_state,
-                    e_unit_type   unit_type ) {
-  NonRenderingMapUpdater map_updater( terrain_state );
-  map_updater.modify_entire_map( []( Matrix<MapSquare>& m ) {
-    m          = Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
-    m[kSquare] = map_square_for_terrain( e_terrain::grassland );
-  } );
-  UnitComposition comp = UnitComposition::create( unit_type );
-  UnitId          id =
-      create_free_unit( units_state, e_nation::english, comp );
-  CHECK( id == 1 );
-  unit_to_map_square_non_interactive( units_state, map_updater,
-                                      id, kSquare );
-}
+/****************************************************************
+** Fake World Setup
+*****************************************************************/
+struct World : testing::World {
+  using Base = testing::World;
+  World() : Base() {}
 
+  void initialize( e_unit_type unit_type ) {
+    MapSquare const   L = make_grassland();
+    vector<MapSquare> tiles{ L };
+    build_map( std::move( tiles ), 1 );
+
+    add_unit_on_map( unit_type, Coord{} );
+  }
+};
+
+/****************************************************************
+** Test Cases
+*****************************************************************/
 TEST_CASE( "[road] perform_road_work 100 tools" ) {
-  TerrainState           terrain_state;
-  NonRenderingMapUpdater map_updater( terrain_state );
-  UnitsState             units_state;
-  prepare_world( terrain_state, units_state,
-                 e_unit_type::pioneer );
+  World W;
+  W.initialize( e_unit_type::pioneer );
 
   UnitId id       = 1;
-  Unit&  unit     = units_state.unit_for( id );
-  Coord  location = units_state.coord_for( id );
+  Unit&  unit     = W.units().unit_for( id );
+  Coord  location = W.units().coord_for( id );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( location == kSquare );
 
   // Before starting road work.
-  REQUIRE( has_road( terrain_state, kSquare ) == false );
+  REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );
@@ -77,7 +78,7 @@ TEST_CASE( "[road] perform_road_work 100 tools" ) {
   // Tell unit to start road work.
   unit.build_road();
   unit.set_turns_worked( 0 );
-  REQUIRE( has_road( terrain_state, kSquare ) == false );
+  REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::road );
@@ -90,9 +91,9 @@ TEST_CASE( "[road] perform_road_work 100 tools" ) {
   for( int i = 0; i < kTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
-    perform_road_work( units_state, terrain_state, map_updater,
+    perform_road_work( W.units(), W.terrain(), W.map_updater(),
                        unit );
-    REQUIRE( has_road( terrain_state, kSquare ) == false );
+    REQUIRE( has_road( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
     REQUIRE( unit.turns_worked() == i + 1 );
     REQUIRE( unit.orders() == e_unit_orders::road );
@@ -103,9 +104,9 @@ TEST_CASE( "[road] perform_road_work 100 tools" ) {
 
   // Finished.
   unit.new_turn();
-  perform_road_work( units_state, terrain_state, map_updater,
+  perform_road_work( W.units(), W.terrain(), W.map_updater(),
                      unit );
-  REQUIRE( has_road( terrain_state, kSquare ) == true );
+  REQUIRE( has_road( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );
@@ -114,20 +115,17 @@ TEST_CASE( "[road] perform_road_work 100 tools" ) {
 }
 
 TEST_CASE( "[road] perform_road_work hardy_pioneer" ) {
-  TerrainState           terrain_state;
-  NonRenderingMapUpdater map_updater( terrain_state );
-  UnitsState             units_state;
-  prepare_world( terrain_state, units_state,
-                 e_unit_type::hardy_pioneer );
+  World W;
+  W.initialize( e_unit_type::hardy_pioneer );
 
   UnitId id       = 1;
-  Unit&  unit     = units_state.unit_for( id );
-  Coord  location = units_state.coord_for( id );
+  Unit&  unit     = W.units().unit_for( id );
+  Coord  location = W.units().coord_for( id );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( location == kSquare );
 
   // Before starting road work.
-  REQUIRE( has_road( terrain_state, kSquare ) == false );
+  REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );
@@ -137,7 +135,7 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer" ) {
   // Tell unit to start road work.
   unit.build_road();
   unit.set_turns_worked( 0 );
-  REQUIRE( has_road( terrain_state, kSquare ) == false );
+  REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::road );
@@ -150,9 +148,9 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer" ) {
   for( int i = 0; i < kTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
-    perform_road_work( units_state, terrain_state, map_updater,
+    perform_road_work( W.units(), W.terrain(), W.map_updater(),
                        unit );
-    REQUIRE( has_road( terrain_state, kSquare ) == false );
+    REQUIRE( has_road( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
     REQUIRE( unit.turns_worked() == i + 1 );
     REQUIRE( unit.orders() == e_unit_orders::road );
@@ -163,9 +161,9 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer" ) {
 
   // Finished.
   unit.new_turn();
-  perform_road_work( units_state, terrain_state, map_updater,
+  perform_road_work( W.units(), W.terrain(), W.map_updater(),
                      unit );
-  REQUIRE( has_road( terrain_state, kSquare ) == true );
+  REQUIRE( has_road( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );
@@ -174,15 +172,12 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer" ) {
 }
 
 TEST_CASE( "[road] perform_road_work 20 tools" ) {
-  TerrainState           terrain_state;
-  NonRenderingMapUpdater map_updater( terrain_state );
-  UnitsState             units_state;
-  prepare_world( terrain_state, units_state,
-                 e_unit_type::pioneer );
+  World W;
+  W.initialize( e_unit_type::pioneer );
 
   UnitId id       = 1;
-  Unit&  unit     = units_state.unit_for( id );
-  Coord  location = units_state.coord_for( id );
+  Unit&  unit     = W.units().unit_for( id );
+  Coord  location = W.units().coord_for( id );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( location == kSquare );
 
@@ -193,7 +188,7 @@ TEST_CASE( "[road] perform_road_work 20 tools" ) {
   unit.consume_20_tools();
 
   // Before starting road work.
-  REQUIRE( has_road( terrain_state, kSquare ) == false );
+  REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );
@@ -203,7 +198,7 @@ TEST_CASE( "[road] perform_road_work 20 tools" ) {
   // Tell unit to start road work.
   unit.build_road();
   unit.set_turns_worked( 0 );
-  REQUIRE( has_road( terrain_state, kSquare ) == false );
+  REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::road );
@@ -216,9 +211,9 @@ TEST_CASE( "[road] perform_road_work 20 tools" ) {
   for( int i = 0; i < kTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
-    perform_road_work( units_state, terrain_state, map_updater,
+    perform_road_work( W.units(), W.terrain(), W.map_updater(),
                        unit );
-    REQUIRE( has_road( terrain_state, kSquare ) == false );
+    REQUIRE( has_road( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
     REQUIRE( unit.turns_worked() == i + 1 );
     REQUIRE( unit.orders() == e_unit_orders::road );
@@ -228,9 +223,9 @@ TEST_CASE( "[road] perform_road_work 20 tools" ) {
 
   // Finished.
   unit.new_turn();
-  perform_road_work( units_state, terrain_state, map_updater,
+  perform_road_work( W.units(), W.terrain(), W.map_updater(),
                      unit );
-  REQUIRE( has_road( terrain_state, kSquare ) == true );
+  REQUIRE( has_road( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::free_colonist );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );
@@ -239,15 +234,12 @@ TEST_CASE( "[road] perform_road_work 20 tools" ) {
 }
 
 TEST_CASE( "[road] perform_road_work hardy_pioneer 20 tools" ) {
-  TerrainState           terrain_state;
-  NonRenderingMapUpdater map_updater( terrain_state );
-  UnitsState             units_state;
-  prepare_world( terrain_state, units_state,
-                 e_unit_type::hardy_pioneer );
+  World W;
+  W.initialize( e_unit_type::hardy_pioneer );
 
   UnitId id       = 1;
-  Unit&  unit     = units_state.unit_for( id );
-  Coord  location = units_state.coord_for( id );
+  Unit&  unit     = W.units().unit_for( id );
+  Coord  location = W.units().coord_for( id );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( location == kSquare );
 
@@ -258,7 +250,7 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer 20 tools" ) {
   unit.consume_20_tools();
 
   // Before starting road work.
-  REQUIRE( has_road( terrain_state, kSquare ) == false );
+  REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );
@@ -268,7 +260,7 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer 20 tools" ) {
   // Tell unit to start road work.
   unit.build_road();
   unit.set_turns_worked( 0 );
-  REQUIRE( has_road( terrain_state, kSquare ) == false );
+  REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::road );
@@ -281,9 +273,9 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer 20 tools" ) {
   for( int i = 0; i < kTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
-    perform_road_work( units_state, terrain_state, map_updater,
+    perform_road_work( W.units(), W.terrain(), W.map_updater(),
                        unit );
-    REQUIRE( has_road( terrain_state, kSquare ) == false );
+    REQUIRE( has_road( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
     REQUIRE( unit.turns_worked() == i + 1 );
     REQUIRE( unit.orders() == e_unit_orders::road );
@@ -293,9 +285,9 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer 20 tools" ) {
 
   // Finished.
   unit.new_turn();
-  perform_road_work( units_state, terrain_state, map_updater,
+  perform_road_work( W.units(), W.terrain(), W.map_updater(),
                      unit );
-  REQUIRE( has_road( terrain_state, kSquare ) == true );
+  REQUIRE( has_road( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::hardy_colonist );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );
@@ -304,20 +296,17 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer 20 tools" ) {
 }
 
 TEST_CASE( "[road] perform_road_work with cancel" ) {
-  TerrainState           terrain_state;
-  NonRenderingMapUpdater map_updater( terrain_state );
-  UnitsState             units_state;
-  prepare_world( terrain_state, units_state,
-                 e_unit_type::pioneer );
+  World W;
+  W.initialize( e_unit_type::pioneer );
 
   UnitId id       = 1;
-  Unit&  unit     = units_state.unit_for( id );
-  Coord  location = units_state.coord_for( id );
+  Unit&  unit     = W.units().unit_for( id );
+  Coord  location = W.units().coord_for( id );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( location == kSquare );
 
   // Before starting road work.
-  REQUIRE( has_road( terrain_state, kSquare ) == false );
+  REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );
@@ -327,7 +316,7 @@ TEST_CASE( "[road] perform_road_work with cancel" ) {
   // Tell unit to start road work.
   unit.build_road();
   unit.set_turns_worked( 0 );
-  REQUIRE( has_road( terrain_state, kSquare ) == false );
+  REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::road );
@@ -340,9 +329,9 @@ TEST_CASE( "[road] perform_road_work with cancel" ) {
   for( int i = 0; i < kTurnsRequired - 2; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn();
-    perform_road_work( units_state, terrain_state, map_updater,
+    perform_road_work( W.units(), W.terrain(), W.map_updater(),
                        unit );
-    REQUIRE( has_road( terrain_state, kSquare ) == false );
+    REQUIRE( has_road( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
     REQUIRE( unit.turns_worked() == i + 1 );
     REQUIRE( unit.orders() == e_unit_orders::road );
@@ -352,13 +341,13 @@ TEST_CASE( "[road] perform_road_work with cancel" ) {
   }
 
   // Effectively cancel it by putting a road on the tile.
-  set_road( map_updater, kSquare );
+  set_road( W.map_updater(), kSquare );
 
   // Cancelled.
   unit.new_turn();
-  perform_road_work( units_state, terrain_state, map_updater,
+  perform_road_work( W.units(), W.terrain(), W.map_updater(),
                      unit );
-  REQUIRE( has_road( terrain_state, kSquare ) == true );
+  REQUIRE( has_road( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
   REQUIRE( unit.orders() == e_unit_orders::none );

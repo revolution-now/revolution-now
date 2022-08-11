@@ -355,7 +355,7 @@ TravelHandler::analyze_unload() const {
                                    .yes_label = "Make landfall",
                                    .no_label = "Stay with ships",
                                    .no_comes_first = true } );
-    co_return ( answer == ui::e_confirm::yes )
+    co_return( answer == ui::e_confirm::yes )
         ? e_travel_verdict::land_fall
         : e_travel_verdict::cancelled;
   } else {
@@ -684,9 +684,8 @@ wait<> TravelHandler::perform() {
           cargo_unit.sentry();
         }
       }
-      unit_deleted = co_await unit_to_map_square(
-          ss_.units, ss_.terrain, player_, ss_.settings, ts_.gui,
-          ts_.map_updater, id, move_dst );
+      unit_deleted =
+          co_await unit_to_map_square( ss_, ts_, id, move_dst );
       CHECK_GT( mv_points_to_subtract_, 0 );
       if( unit_deleted.has_value() ) break;
       unit.consume_mv_points( mv_points_to_subtract_ );
@@ -705,17 +704,15 @@ wait<> TravelHandler::perform() {
       break;
     }
     case e_travel_verdict::offboard_ship:
-      unit_deleted = co_await unit_to_map_square(
-          ss_.units, ss_.terrain, player_, ss_.settings, ts_.gui,
-          ts_.map_updater, id, move_dst );
+      unit_deleted =
+          co_await unit_to_map_square( ss_, ts_, id, move_dst );
       if( unit_deleted.has_value() ) break;
       unit.forfeight_mv_points();
       CHECK( unit.orders() == e_unit_orders::none );
       break;
     case e_travel_verdict::ship_into_port: {
-      unit_deleted = co_await unit_to_map_square(
-          ss_.units, ss_.terrain, player_, ss_.settings, ts_.gui,
-          ts_.map_updater, id, move_dst );
+      unit_deleted =
+          co_await unit_to_map_square( ss_, ts_, id, move_dst );
       CHECK( !unit_deleted.has_value() );
       // When a ship moves into port it forfeights its movement
       // points.
@@ -915,7 +912,7 @@ struct AttackHandler : public OrdersHandler {
     if( verdict == e_attack_verdict::colony_undefended &&
         fight_stats->attacker_wins ) {
       conductor::play_request(
-          conductor::e_request::fife_drum_happy,
+          ts_.rand, conductor::e_request::fife_drum_happy,
           conductor::e_request_probability::always );
       UNWRAP_CHECK( colony_id, ss_.colonies.maybe_from_coord(
                                    attack_dst ) );
@@ -1069,7 +1066,7 @@ AttackHandler::confirm_attack_impl() {
   // sense.
   auto run_stats = [this, id, highest_defense_unit_id] {
     return fight_statistics(
-        ss_.units.unit_for( id ),
+        ts_.rand, ss_.units.unit_for( id ),
         ss_.units.unit_for( highest_defense_unit_id ) );
   };
 
@@ -1275,10 +1272,8 @@ wait<> AttackHandler::perform() {
                             ss_.units, attacker.nation() );
       // 2. The attacker moves into the colony square.
       maybe<UnitDeleted> unit_deleted =
-          co_await unit_to_map_square(
-              ss_.units, ss_.terrain, player_, ss_.settings,
-              ts_.gui, ts_.map_updater, attacker.id(),
-              attack_dst );
+          co_await unit_to_map_square( ss_, ts_, attacker.id(),
+                                       attack_dst );
       CHECK( !unit_deleted.has_value() );
       // 3. The attacker has all movement points consumed.
       attacker.forfeight_mv_points();
@@ -1300,8 +1295,7 @@ wait<> AttackHandler::perform() {
     loser.change_nation( ss_.units, winner.nation() );
     maybe<UnitDeleted> unit_deleted =
         co_await unit_to_map_square(
-            ss_.units, ss_.terrain, player_, ss_.settings,
-            ts_.gui, ts_.map_updater, loser.id(),
+            ss_, ts_, loser.id(),
             coord_for_unit_indirect_or_die( ss_.units,
                                             winner.id() ) );
     CHECK( !unit_deleted.has_value() );

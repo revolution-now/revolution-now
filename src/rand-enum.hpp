@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "rand.hpp"
+#include "irand.hpp"
 
 // refl
 #include "refl/enum-map.hpp"
@@ -22,15 +22,16 @@
 // base
 #include "base/error.hpp"
 
-namespace rn::rng {
+namespace rn {
 
 // Given a reflected enum type it will return a random value out
 // of all the possible values.
 template<refl::ReflectedEnum Enum>
-Enum pick_one() {
+Enum pick_one( IRand& rand ) {
   constexpr auto count = refl::enum_count<Enum>;
   static_assert( count > 0 );
-  auto idx = between( 0, count, e_interval::half_open );
+  auto idx = rand.between_ints( 0, count,
+                                IRand::e_interval::half_open );
   return refl::enum_values<Enum>[idx];
 }
 
@@ -40,13 +41,18 @@ Enum pick_one() {
 // refl::enum_map requires this.
 template<refl::ReflectedEnum T>
 T pick_from_weighted_enum_values(
-    refl::enum_map<T, int> const& weights ) {
+    IRand& rand, refl::enum_map<T, int> const& weights ) {
   int total = 0;
   for( auto [item, weight] : weights ) total += weight;
   CHECK_GE( total, 0 );
-  int stop    = between( 0, total, rng::e_interval::half_open );
+  int stop    = rand.between_ints( 0, total,
+                                   IRand::e_interval::half_open );
   int running = 0;
-  for( auto [item, weight] : weights ) {
+  // This iteration needs to be in order of enum values, and not
+  // the default iteration of the enum_map container which uses
+  // an unordered_map as a backing container.
+  for( T item : refl::enum_values<T> ) {
+    int const weight = weights[item];
     running += weight;
     if( running > stop ) return item;
   }
@@ -56,15 +62,19 @@ T pick_from_weighted_enum_values(
 // For doubles.
 template<refl::ReflectedEnum T>
 T pick_from_weighted_enum_values(
-    refl::enum_map<T, double> const& weights ) {
+    IRand& rand, refl::enum_map<T, double> const& weights ) {
   double total = 0;
   for( auto [item, weight] : weights ) total += weight;
   CHECK_GE( total, 0.0 );
-  double stop    = between( 0.0, total );
+  double stop    = rand.between_doubles( 0.0, total );
   double running = 0.0;
   T      res     = {};
-  for( auto [item, weight] : weights ) {
-    res = item;
+  // This iteration needs to be in order of enum values, and not
+  // the default iteration of the enum_map container which uses
+  // an unordered_map as a backing container.
+  for( T item : refl::enum_values<T> ) {
+    double const weight = weights[item];
+    res                 = item;
     running += weight;
     if( running > stop ) break;
   }
@@ -76,4 +86,4 @@ T pick_from_weighted_enum_values(
   return res;
 }
 
-} // namespace rn::rng
+} // namespace rn

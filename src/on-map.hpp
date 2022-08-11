@@ -23,12 +23,8 @@
 
 namespace rn {
 
-struct IMapUpdater;
-struct TerrainState;
-struct UnitsState;
-struct SettingsState;
-struct IGui;
-struct Player;
+struct SS;
+struct TS;
 
 // A dummy type to help remind the caller that the unit may have
 // disappeared as a result of the call. This works because maybe
@@ -45,15 +41,13 @@ struct UnitDeleted {};
 // exist since they might stepped into a lost city rumor and dis-
 // appeared! Or new units could have been created, etc.
 wait<maybe<UnitDeleted>> unit_to_map_square(
-    UnitsState& units_state, TerrainState const& terrain_state,
-    Player& player, SettingsState const& settings, IGui& gui,
-    IMapUpdater& map_updater, UnitId id, Coord world_square );
+    SS& ss, TS& ts, UnitId id, Coord world_square );
 
 // This is the non-coroutine version of the above, only to be
 // called from non-coroutines where you know that this action
 // won't need to trigger any UI actions.
-void unit_to_map_square_non_interactive(
-    UnitsState& units_state, IMapUpdater& map_updater, UnitId id,
-    Coord world_square );
+void unit_to_map_square_non_interactive( SS& ss, TS& ts,
+                                         UnitId id,
+                                         Coord  world_square );
 
 } // namespace rn

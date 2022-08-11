@@ -17,14 +17,15 @@
 #include "console.hpp"
 #include "gui.hpp"
 #include "interrupts.hpp"
+#include "irand.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
-#include "map-updater-lua.hpp"
 #include "map-updater.hpp"
 #include "menu.hpp"
 #include "panel.hpp"
 #include "plane-stack.hpp"
+#include "rand.hpp"
 #include "renderer.hpp" // FIXME: remove
 #include "save-game.hpp"
 #include "ts.hpp"
@@ -67,11 +68,11 @@ void ensure_human_player( PlayersState const& players_state ) {
          "there must be at least one human player." );
 }
 
-void play( e_game_module_tune_points tune ) {
+void play( IRand& rand, e_game_module_tune_points tune ) {
   switch( tune ) {
     case e_game_module_tune_points::start_game:
       conductor::play_request(
-          conductor::e_request::fife_drum_happy,
+          rand, conductor::e_request::fife_drum_happy,
           conductor::e_request_probability::always );
       break;
   }
@@ -88,15 +89,6 @@ wait<> run_game(
       global_renderer_use_only_when_needed() );
 
   lua::state& st = planes.console().lua_state();
-  st["ROOT"]     = ss.root;
-  st["TS"]       = st.table.create();
-  st["TS"]["map_updater"] =
-      static_cast<IMapUpdater&>( map_updater );
-
-  loader( ss, st );
-
-  map_updater.redraw();
-  ensure_human_player( ss.players );
 
   auto        popper = planes.new_copied_group();
   PlaneGroup& group  = planes.back();
@@ -104,26 +96,31 @@ wait<> run_game(
   WindowPlane window_plane;
   group.window = &window_plane;
 
+  RealGui gui( window_plane );
+
+  Rand rand; // random seed.
+
+  TS ts( map_updater, st, gui, rand );
+
+  st["ROOT"] = ss.root;
+  st["SS"]   = ss;
+  loader( ss, st );
+
+  map_updater.redraw();
+  ensure_human_player( ss.players );
+
   MenuPlane menu_plane;
   group.menu = &menu_plane;
 
   PanelPlane panel_plane( planes, ss );
   group.panel = &panel_plane;
 
-  RealGui gui( window_plane );
-
-  TS ts{
-      .map_updater = map_updater,
-      .lua         = st,
-      .gui         = gui,
-  };
-
   LandViewPlane land_view_plane( planes, ss, ts );
   group.land_view = &land_view_plane;
 
   // land_view_plane.zoom_out_full();
 
-  play( e_game_module_tune_points::start_game );
+  play( rand, e_game_module_tune_points::start_game );
   // All of the above needs to stay alive, so we must wait.
   co_await co::erase( co::try_<game_quit_interrupt>(
       [&] { return turn_loop( planes, ss, ts ); } ) );

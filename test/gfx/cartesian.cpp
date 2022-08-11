@@ -27,7 +27,6 @@ using namespace std;
 using namespace Catch::literals;
 
 using ::base::nothing;
-using ::Catch::Approx;
 
 /****************************************************************
 ** size

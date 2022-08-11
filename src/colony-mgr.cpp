@@ -665,8 +665,7 @@ wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
       compute_crosses( ss.units, player.nation );
   give_new_crosses_to_player( player, crosses_calc, evolutions );
   maybe<UnitId> immigrant = co_await check_for_new_immigrant(
-      ts.gui, ss.units, player, ss.settings,
-      crosses_calc.crosses_needed );
+      ss, ts, player, crosses_calc.crosses_needed );
   if( immigrant.has_value() )
     lg.info( "a new immigrant ({}) has arrived.",
              ss.units.unit_for( *immigrant ).desc().name );

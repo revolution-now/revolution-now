@@ -14,10 +14,11 @@
 #include "co-wait.hpp"
 #include "harbor-units.hpp"
 #include "immigration.hpp"
+#include "irand.hpp"
 #include "logger.hpp"
 #include "map-updater.hpp"
 #include "rand-enum.hpp"
-#include "rand.hpp"
+#include "ts.hpp"
 #include "ustate.hpp"
 
 // ss
@@ -49,13 +50,13 @@ struct GiftOptions {
   int multiple = base::no_default<>;
 };
 
-int random_gift( GiftOptions options ) {
+int random_gift( IRand& rand, GiftOptions options ) {
   if( options.multiple < 1 ) options.multiple = 1;
   if( options.min < options.multiple )
     options.min = options.multiple;
   if( options.max < options.min ) options.max = options.min;
-  int amount = rng::between( options.min, options.max,
-                             rng::e_interval::closed );
+  int amount = rand.between_ints( options.min, options.max,
+                                  IRand::e_interval::closed );
   return ( amount / options.multiple ) * options.multiple;
 }
 
@@ -76,8 +77,7 @@ bool allow_fountain_of_youth( Player const& player ) {
   return !player.independence_declared;
 }
 
-UnitId create_treasure_train( UnitsState&   units_state,
-                              IMapUpdater&  map_updater,
+UnitId create_treasure_train( SS& ss, TS& ts,
                               Player const& player,
                               Coord world_square, int amount ) {
   UNWRAP_CHECK(
@@ -91,25 +91,24 @@ UnitId create_treasure_train( UnitsState&   units_state,
   // actions needed in response to creating this unit, apart from
   // what we will do here.
   return create_unit_on_map_non_interactive(
-      units_state, map_updater, player.nation, uc_treasure,
-      world_square );
+      ss, ts, player.nation, uc_treasure, world_square );
 }
 
 wait<LostCityRumorResult_t> run_burial_mounds_result(
-    e_burial_mounds_type type, bool has_burial_grounds,
-    UnitsState& units_state, IGui& gui, Player& player,
-    IMapUpdater& map_updater, UnitId unit_id,
+    e_burial_mounds_type type, bool has_burial_grounds, SS& ss,
+    TS& ts, Player& player, UnitId unit_id,
     Coord world_square ) {
   LostCityRumorResult_t         result = {};
   e_lcr_explorer_category const explorer =
-      lcr_explorer_category( units_state, unit_id );
+      lcr_explorer_category( ss.units, unit_id );
   switch( type ) {
     case e_burial_mounds_type::trinkets: {
       int amount = random_gift(
+          ts.rand,
           { .min      = config_lcr.trinkets_gift_min[explorer],
             .max      = config_lcr.trinkets_gift_max[explorer],
             .multiple = config_lcr.trinkets_gift_multiple } );
-      co_await gui.message_box(
+      co_await ts.gui.message_box(
           "You've found some trinkets worth @[H]{}@[] gold.",
           amount );
       int total = player.money += amount;
@@ -121,38 +120,38 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
     }
     case e_burial_mounds_type::treasure_train: {
       int amount = random_gift(
+          ts.rand,
           { .min =
                 config_lcr.burial_mounds_treasure_min[explorer],
             .max =
                 config_lcr.burial_mounds_treasure_max[explorer],
             .multiple =
                 config_lcr.burial_mounds_treasure_multiple } );
-      co_await gui.message_box(
+      co_await ts.gui.message_box(
           "You've recovered a treasure worth @[H]{}@[]!",
           amount );
-      UnitId unit_id =
-          create_treasure_train( units_state, map_updater,
-                                 player, world_square, amount );
+      UnitId unit_id = create_treasure_train(
+          ss, ts, player, world_square, amount );
       result =
           LostCityRumorResult::unit_created{ .id = unit_id };
       break;
     }
     case e_burial_mounds_type::cold_and_empty: {
-      co_await gui.message_box(
+      co_await ts.gui.message_box(
           "The mounds are cold and empty." );
       result = LostCityRumorResult::other{};
       break;
     }
   }
   if( has_burial_grounds ) {
-    co_await gui.message_box(
+    co_await ts.gui.message_box(
         "These are native burial grounds.  WAR!" );
   }
   co_return result;
 }
 
 wait<> take_one_immigrant( UnitsState& units_state, IGui& gui,
-                           Player&              player,
+                           IRand& rand, Player& player,
                            SettingsState const& settings ) {
   Player const& cplayer = player;
   // NOTE: The original game seems to always allow the player to
@@ -168,20 +167,20 @@ wait<> take_one_immigrant( UnitsState& units_state, IGui& gui,
   // will skip to the next one without adding an immigrant.
   if( !choice.has_value() ) co_return;
   e_unit_type replacement =
-      pick_next_unit_for_pool( cplayer, settings );
+      pick_next_unit_for_pool( rand, cplayer, settings );
   e_unit_type taken = take_immigrant_from_pool(
       player.old_world.immigration, *choice, replacement );
   create_unit_in_harbor( units_state, player.nation, taken );
 }
 
 wait<> run_fountain_of_youth( UnitsState& units_state, IGui& gui,
-                              Player&              player,
+                              IRand& rand, Player& player,
                               SettingsState const& settings ) {
   co_await gui.message_box(
       "You've discovered a Fountain of Youth!" );
   int const count = config_lcr.fountain_of_youth_num_immigrants;
   for( int i = 0; i < count; ++i ) {
-    co_await take_one_immigrant( units_state, gui, player,
+    co_await take_one_immigrant( units_state, gui, rand, player,
                                  settings );
     // If we don't do this then the next window pops up instanta-
     // neously and its visually confusing since it's not clear
@@ -195,28 +194,28 @@ wait<> run_fountain_of_youth( UnitsState& units_state, IGui& gui,
 
 wait<LostCityRumorResult_t> run_rumor_result(
     e_rumor_type type, e_burial_mounds_type burial_type,
-    bool has_burial_grounds, UnitsState& units_state, IGui& gui,
-    Player& player, SettingsState const& settings,
-    IMapUpdater& map_updater, UnitId unit_id,
-    Coord world_square ) {
+    bool has_burial_grounds, SS& ss, TS& ts, Player& player,
+    UnitId unit_id, Coord world_square ) {
   e_lcr_explorer_category const explorer =
-      lcr_explorer_category( units_state, unit_id );
+      lcr_explorer_category( ss.units, unit_id );
   switch( type ) {
     case e_rumor_type::none: {
-      co_await gui.message_box( "You find nothing but rumors." );
+      co_await ts.gui.message_box(
+          "You find nothing but rumors." );
       co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::fountain_of_youth: {
-      co_await run_fountain_of_youth( units_state, gui, player,
-                                      settings );
+      co_await run_fountain_of_youth( ss.units, ts.gui, ts.rand,
+                                      player, ss.settings );
       co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::ruins: {
       int amount = random_gift(
+          ts.rand,
           { .min      = config_lcr.ruins_gift_min[explorer],
             .max      = config_lcr.ruins_gift_max[explorer],
             .multiple = config_lcr.ruins_gift_multiple } );
-      co_await gui.message_box(
+      co_await ts.gui.message_box(
           "You've discovered the ruins of a lost colony, among "
           "which there are items worth @[H]{}@[] in gold.",
           amount );
@@ -228,7 +227,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
       co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::burial_mounds: {
-      ui::e_confirm res = co_await gui.yes_no(
+      ui::e_confirm res = co_await ts.gui.yes_no(
           { .msg = "You stumble across some mysterious ancient "
                    "burial mounds.  Explore them?",
             .yes_label      = "Let us search for treasure!",
@@ -238,16 +237,17 @@ wait<LostCityRumorResult_t> run_rumor_result(
         co_return LostCityRumorResult::other{};
       LostCityRumorResult_t result =
           co_await run_burial_mounds_result(
-              burial_type, has_burial_grounds, units_state, gui,
-              player, map_updater, unit_id, world_square );
+              burial_type, has_burial_grounds, ss, ts, player,
+              unit_id, world_square );
       co_return result;
     }
     case e_rumor_type::chief_gift: {
       int amount = random_gift(
+          ts.rand,
           { .min      = config_lcr.chief_gift_min[explorer],
             .max      = config_lcr.chief_gift_max[explorer],
             .multiple = config_lcr.chief_gift_multiple } );
-      co_await gui.message_box(
+      co_await ts.gui.message_box(
           "You happen upon a small village.  The chief offers "
           "you a gift worth @[H]{}@[] gold.",
           amount );
@@ -259,7 +259,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
       co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::free_colonist: {
-      co_await gui.message_box(
+      co_await ts.gui.message_box(
           "You happen upon the survivors of a lost colony.  In "
           "exchange for badly-needed supplies, they agree to "
           "swear allegiance to you and join your expedition." );
@@ -269,7 +269,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
       // further UI actions needed in response to creating this
       // unit, apart from what we will do here.
       UnitId id = create_unit_on_map_non_interactive(
-          units_state, map_updater, player.nation,
+          ss, ts, player.nation,
           UnitComposition::create(
               UnitType::create( e_unit_type::free_colonist ) ),
           world_square );
@@ -278,24 +278,24 @@ wait<LostCityRumorResult_t> run_rumor_result(
     case e_rumor_type::unit_lost: {
       // Destroy unit before showing message so that the unit ac-
       // tually appears to disappear.
-      units_state.destroy_unit( unit_id );
-      co_await gui.message_box(
+      ss.units.destroy_unit( unit_id );
+      co_await ts.gui.message_box(
           "Our colonist has vanished without a trace." );
       co_return LostCityRumorResult::unit_lost{};
     }
     case e_rumor_type::cibola: {
       int amount = random_gift(
+          ts.rand,
           { .min      = config_lcr.cibola_treasure_min[explorer],
             .max      = config_lcr.cibola_treasure_max[explorer],
             .multiple = config_lcr.cibola_treasure_multiple } );
-      co_await gui.message_box(
+      co_await ts.gui.message_box(
           "You've discovered one of the @[H]Seven Cities of "
           "Cibola@[] and have recovered a treasure worth "
           "@[H]{}@[]!",
           amount );
-      UnitId unit_id =
-          create_treasure_train( units_state, map_updater,
-                                 player, world_square, amount );
+      UnitId unit_id = create_treasure_train(
+          ss, ts, player, world_square, amount );
       co_return LostCityRumorResult::unit_created{ .id =
                                                        unit_id };
     }
@@ -323,14 +323,15 @@ e_lcr_explorer_category lcr_explorer_category(
 }
 
 e_burial_mounds_type pick_burial_mounds_result(
-    e_lcr_explorer_category explorer ) {
+    IRand& rand, e_lcr_explorer_category explorer ) {
   refl::enum_map<e_burial_mounds_type, int> const& weights =
       config_lcr.burial_mounds_type_weights[explorer];
-  return rng::pick_from_weighted_enum_values( weights );
+  return pick_from_weighted_enum_values( rand, weights );
 }
 
 e_rumor_type pick_rumor_type_result(
-    e_lcr_explorer_category explorer, Player const& player ) {
+    IRand& rand, e_lcr_explorer_category explorer,
+    Player const& player ) {
   refl::enum_map<e_rumor_type, int> weights =
       config_lcr.rumor_type_weights[explorer];
 
@@ -348,12 +349,13 @@ e_rumor_type pick_rumor_type_result(
     weights[e_rumor_type::unit_lost] = 0;
   }
 
-  return rng::pick_from_weighted_enum_values( weights );
+  return pick_from_weighted_enum_values( rand, weights );
 }
 
 bool pick_burial_grounds_result(
-    Player const& player, e_lcr_explorer_category explorer,
-    e_burial_mounds_type burial_type ) {
+    IRand& rand, Player const& player,
+    e_lcr_explorer_category explorer,
+    e_burial_mounds_type    burial_type ) {
   if( !is_native_land() ) return false;
   bool positive_burial_mounds_result =
       ( burial_type != e_burial_mounds_type::cold_and_empty );
@@ -370,21 +372,20 @@ bool pick_burial_grounds_result(
   if( !allow_negative ) return false;
   // We are clear for allowing burial grounds. But whether we
   // trigger it is still a matter of probability.
-  return rng::flip_coin(
+  return rand.bernoulli(
       config_lcr.burial_grounds_probability[explorer] );
 }
 
 wait<LostCityRumorResult_t> run_lost_city_rumor_result(
-    UnitsState& units_state, IGui& gui, Player& player,
-    SettingsState const& settings, IMapUpdater& map_updater,
-    UnitId unit_id, Coord world_square, e_rumor_type type,
+    SS& ss, TS& ts, Player& player, UnitId unit_id,
+    Coord world_square, e_rumor_type type,
     e_burial_mounds_type burial_type, bool has_burial_grounds ) {
   LostCityRumorResult_t result = co_await run_rumor_result(
-      type, burial_type, has_burial_grounds, units_state, gui,
-      player, settings, map_updater, unit_id, world_square );
+      type, burial_type, has_burial_grounds, ss, ts, player,
+      unit_id, world_square );
 
   // Remove lost city rumor.
-  map_updater.modify_map_square(
+  ts.map_updater.modify_map_square(
       world_square, []( MapSquare& square ) {
         CHECK_EQ( square.lost_city_rumor, true );
         square.lost_city_rumor = false;

@@ -16,15 +16,17 @@
 #include "igui.hpp"
 #include "logger.hpp"
 #include "rand-enum.hpp"
+#include "ts.hpp"
 
 // config
 #include "config/immigration.rds.hpp"
 #include "config/nation.rds.hpp"
 #include "config/unit-type.hpp"
 
-// gs
+// ss
 #include "ss/old-world-state.rds.hpp"
 #include "ss/player.hpp"
+#include "ss/ref.hpp"
 #include "ss/settings.hpp"
 #include "ss/unit-type.hpp"
 #include "ss/units.hpp"
@@ -128,7 +130,8 @@ e_unit_type take_immigrant_from_pool(
 }
 
 e_unit_type pick_next_unit_for_pool(
-    Player const& player, SettingsState const& settings ) {
+    IRand& rand, Player const& player,
+    SettingsState const& settings ) {
   WeightsMap weights = immigrant_weights_for_level(
       static_cast<int>( settings.difficulty ) );
 
@@ -141,7 +144,7 @@ e_unit_type pick_next_unit_for_pool(
     weights[e_unit_type::indentured_servant] = 0.0;
   }
 
-  return rng::pick_from_weighted_enum_values( weights );
+  return pick_from_weighted_enum_values( rand, weights );
 }
 
 CrossesCalculation compute_crosses(
@@ -232,39 +235,37 @@ void add_player_crosses( Player& player,
 }
 
 wait<maybe<UnitId>> check_for_new_immigrant(
-    IGui& gui, UnitsState& units_state, Player& player,
-    SettingsState const& settings, int crosses_needed ) {
+    SS& ss, TS& ts, Player& player, int crosses_needed ) {
   CHECK_GE( crosses_needed, 0 );
   if( player.crosses < crosses_needed ) co_return nothing;
   player.crosses -= crosses_needed;
   DCHECK( player.crosses >= 0 );
   int immigrant_idx = {};
-  rng::between( 0, 2, rng::e_interval::closed );
   if( player.fathers.has[e_founding_father::william_brewster] ) {
     string msg =
         "Word of religious freedom has spread! New immigrants "
         "are ready to join us in the New World.  Which of the "
         "following shall we choose?";
     immigrant_idx = co_await ask_player_to_choose_immigrant(
-        gui, player.old_world.immigration, msg );
+        ts.gui, player.old_world.immigration, msg );
     CHECK_GE( immigrant_idx, 0 );
     CHECK_LE( immigrant_idx, 2 );
   } else {
     immigrant_idx =
-        rng::between( 0, 2, rng::e_interval::closed );
+        ts.rand.between_ints( 0, 2, IRand::e_interval::closed );
     string msg = fmt::format(
         "Word of religious freedom has spread! A new immigrant "
         "(@[H]{}@[]) has arrived on the docks.",
         unit_attr( player.old_world.immigration
                        .immigrants_pool[immigrant_idx] )
             .name );
-    co_await gui.message_box( msg );
+    co_await ts.gui.message_box( msg );
   }
   e_unit_type replacement =
-      pick_next_unit_for_pool( player, settings );
+      pick_next_unit_for_pool( ts.rand, player, ss.settings );
   e_unit_type type = take_immigrant_from_pool(
       player.old_world.immigration, immigrant_idx, replacement );
-  co_return create_unit_in_harbor( units_state, player.nation,
+  co_return create_unit_in_harbor( ss.units, player.nation,
                                    type );
 }
 
@@ -275,7 +276,8 @@ namespace {
 
 LUA_FN( pick_next_unit_for_pool, e_unit_type,
         Player const& player, SettingsState const& settings ) {
-  return pick_next_unit_for_pool( player, settings );
+  IRand& rand = st["ROOT_TS"]["rand"].as<IRand&>();
+  return pick_next_unit_for_pool( rand, player, settings );
 };
 
 } // namespace

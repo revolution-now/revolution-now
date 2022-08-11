@@ -25,11 +25,14 @@
 
 namespace rn {
 
-struct UnitsState;
-struct SettingsState;
-struct ImmigrationState;
 struct IGui;
+struct ImmigrationState;
+struct IRand;
 struct Player;
+struct SettingsState;
+struct SS;
+struct TS;
+struct UnitsState;
 
 // Presents the user with the three unit types that are currently
 // in the immigration pool and asks to choose one.
@@ -45,7 +48,8 @@ e_unit_type take_immigrant_from_pool(
 
 // Randomly selects the next unit type for the immigration pool.
 e_unit_type pick_next_unit_for_pool(
-    Player const& player, SettingsState const& settings );
+    IRand& rand, Player const& player,
+    SettingsState const& settings );
 
 // This is not cheap to compute, so should be computed only when
 // needed.
@@ -63,7 +67,6 @@ void add_player_crosses( Player& player,
 // Will check if the player can obtain a new immigrant, and, if
 // so, will run through the associated UI routine.
 wait<maybe<UnitId>> check_for_new_immigrant(
-    IGui& gui, UnitsState& units_state, Player& player,
-    SettingsState const& settings, int crosses_needed );
+    SS& ss, TS& ts, Player& player, int crosses_needed );
 
 } // namespace rn

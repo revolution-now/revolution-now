@@ -30,7 +30,8 @@
 
 namespace rn {
 
-struct IMapUpdater;
+struct SS;
+struct TS;
 
 struct UnitsState {
   UnitsState();
@@ -116,8 +117,7 @@ struct UnitsState {
 
   // This is the function that calls the above.
   friend void unit_to_map_square_non_interactive(
-      UnitsState& unit_state, IMapUpdater& map_updater,
-      UnitId id, Coord world_square );
+      SS& ss, TS& ts, UnitId id, Coord world_square );
 
  private:
   // This is private because it should only be called via the

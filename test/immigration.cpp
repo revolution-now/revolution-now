@@ -17,12 +17,16 @@
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/mocks/irand.hpp"
 
 // Revolution Now
 #include "src/harbor-units.hpp"
 #include "src/igui.hpp"
 #include "src/map-square.hpp"
 #include "src/ustate.hpp"
+
+// config
+#include "config/unit-type.hpp"
 
 // ss
 #include "src/ss/player.rds.hpp"
@@ -48,6 +52,7 @@ namespace {
 using namespace std;
 
 using ::mock::matchers::AllOf;
+using ::mock::matchers::Approx;
 using ::mock::matchers::Field;
 using ::mock::matchers::HasSize;
 using ::mock::matchers::StartsWith;
@@ -57,7 +62,7 @@ using ::mock::matchers::StartsWith;
 *****************************************************************/
 struct World : testing::World {
   using Base = testing::World;
-  World() : Base() {}
+  World() : Base() { add_default_player(); }
 
   void create_default_map() {
     MapSquare const   L = make_grassland();
@@ -306,37 +311,88 @@ TEST_CASE( "[immigration] take_immigrant_from_pool" ) {
            e_unit_type::veteran_dragoon );
 }
 
-// This is non-deterministic, but it should always pass when
-// things are working as expected.
 TEST_CASE( "[immigration] pick_next_unit_for_pool" ) {
-  SettingsState settings;
+  World   W;
+  Player& player = W.default_player();
 
-  Player player;
+  bool found_petty_criminal     = false;
+  bool found_indentured_servant = false;
+  bool found_free_colonist      = false;
+  bool found_expert_colonist    = false;
+
+  W.settings().difficulty = e_difficulty::conquistador;
+  // Calculated theoretically by computing all of the weights for
+  // all unit types on the conquistador difficulty level and sum-
+  // ming them, then truncating, since this needs to be slightly
+  // smaller than the result if it is not equal so that d does
+  // not exceed it.
+  double const kUpperLimit = 6808.69;
+  for( double d = 0.0; d < kUpperLimit; d += 100.0 ) {
+    EXPECT_CALL( W.rand(), between_doubles(
+                               0, Approx( kUpperLimit, .1 ) ) )
+        .returns( d );
+    e_unit_type type = pick_next_unit_for_pool( W.rand(), player,
+                                                W.settings() );
+    if( type == e_unit_type::petty_criminal )
+      found_petty_criminal = true;
+    if( type == e_unit_type::indentured_servant )
+      found_indentured_servant = true;
+    if( type == e_unit_type::free_colonist )
+      found_free_colonist = true;
+    if( unit_attr( type ).expertise.has_value() )
+      found_expert_colonist = true;
+  }
+
+  REQUIRE( found_petty_criminal == true );
+  REQUIRE( found_indentured_servant == true );
+  REQUIRE( found_free_colonist == true );
+  REQUIRE( found_expert_colonist == true );
+}
+
+TEST_CASE(
+    "[immigration] pick_next_unit_for_pool with brewster" ) {
+  World   W;
+  Player& player = W.default_player();
   player.fathers.has[e_founding_father::william_brewster] = true;
 
-  for( e_difficulty difficulty :
-       refl::enum_values<e_difficulty> ) {
-    settings.difficulty = difficulty;
-    for( int i = 0; i < 50; ++i ) {
-      e_unit_type type =
-          pick_next_unit_for_pool( player, settings );
-      REQUIRE( type != e_unit_type::petty_criminal );
-      REQUIRE( type != e_unit_type::indentured_servant );
-    }
+  bool found_free_colonist   = false;
+  bool found_expert_colonist = false;
+
+  W.settings().difficulty = e_difficulty::conquistador;
+  // Calculated theoretically by computing all of the weights for
+  // all unit types on the conquistador difficulty level and sum-
+  // ming them, except assuming that the weights for petty crim-
+  // inal and indentured servant are zero. Then the sum is trun-
+  // cated, since this needs to be slightly smaller than the re-
+  // sult if it is not equal so that d does not exceed it.
+  double const kUpperLimit = 4580.4;
+  for( double d = 0.0; d < kUpperLimit; d += 100.0 ) {
+    EXPECT_CALL( W.rand(), between_doubles(
+                               0, Approx( kUpperLimit, .1 ) ) )
+        .returns( d );
+    e_unit_type type = pick_next_unit_for_pool( W.rand(), player,
+                                                W.settings() );
+    REQUIRE( type != e_unit_type::petty_criminal );
+    REQUIRE( type != e_unit_type::indentured_servant );
+    if( type == e_unit_type::free_colonist )
+      found_free_colonist = true;
+    if( unit_attr( type ).expertise.has_value() )
+      found_expert_colonist = true;
   }
+
+  REQUIRE( found_free_colonist == true );
+  REQUIRE( found_expert_colonist == true );
 }
 
 TEST_CASE( "[immigration] check_for_new_immigrant" ) {
-  MockIGui      gui;
-  UnitsState    units_state;
-  Player        player;
-  SettingsState settings;
+  World W;
 
   // Set up the immigrants pool.
   ImmigrationState const initial_state = {
       .immigrants_pool = { e_unit_type::expert_farmer,
                            e_unit_type::veteran_soldier,
                            e_unit_type::seasoned_scout } };
+  Player& player = W.default_player();
   player.old_world.immigration.immigrants_pool =
       initial_state.immigrants_pool;
 
@@ -344,11 +400,11 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     player.crosses                     = 10;
     int const           crosses_needed = 11;
     wait<maybe<UnitId>> w              = check_for_new_immigrant(
-                     gui, units_state, player, settings, crosses_needed );
+                     W.ss(), W.ts(), player, crosses_needed );
     REQUIRE( w.ready() );
     REQUIRE( *w == nothing );
     REQUIRE( player.crosses == 10 );
-    REQUIRE( units_state.all().size() == 0 );
+    REQUIRE( W.units().all().size() == 0 );
     REQUIRE( player.old_world.immigration.immigrants_pool ==
              initial_state.immigrants_pool );
   }
@@ -357,23 +413,40 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     player.crosses           = 11;
     int const crosses_needed = 11;
 
-    EXPECT_CALL( gui, message_box( StartsWith(
-                          "Word of religious freedom has "
-                          "spread! A new immigrant" ) ) )
+    EXPECT_CALL( W.gui(), message_box( StartsWith(
+                              "Word of religious freedom has "
+                              "spread! A new immigrant" ) ) )
         .returns( make_wait<>() );
+    // This one is to choose which immigrant we get, which is
+    // done randomly because we don't have brewster.
+    EXPECT_CALL(
+        W.rand(),
+        between_ints( 0, 2, IRand::e_interval::closed ) )
+        .returns( 1 );
+    // This one is to choose that unit's replacement in the pool,
+    // which is always done randomly. 9960.0 was found by summing
+    // all of the unit type weights for all units on the discov-
+    // erer level.
+    EXPECT_CALL( W.rand(),
+                 between_doubles( 0, Approx( 9960.0, .00001 ) ) )
+        .returns( 5000.0 ); // chosen to give scout.
     wait<maybe<UnitId>> w = check_for_new_immigrant(
-        gui, units_state, player, settings, crosses_needed );
+        W.ss(), W.ts(), player, crosses_needed );
     REQUIRE( w.ready() );
     REQUIRE( *w == UnitId{ 1 } );
+    REQUIRE( W.units().unit_for( **w ).type() ==
+             e_unit_type::veteran_soldier );
+    REQUIRE( player.old_world.immigration.immigrants_pool[1] ==
+             e_unit_type::scout );
 
     REQUIRE( player.crosses == 0 );
-    REQUIRE( units_state.all().size() == 1 );
-    REQUIRE( units_state.all().begin()->first == UnitId{ 1 } );
+    REQUIRE( W.units().all().size() == 1 );
+    REQUIRE( W.units().all().begin()->first == UnitId{ 1 } );
     UnitOwnership_t const expected_ownership{
         UnitOwnership::harbor{
             .st = UnitHarborViewState{
                 .port_status = PortStatus::in_port{} } } };
-    REQUIRE( units_state.all().begin()->second.ownership ==
+    REQUIRE( W.units().all().begin()->second.ownership ==
              expected_ownership );
   }
 
@@ -384,7 +457,7 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     int const crosses_needed = 11;
 
     EXPECT_CALL(
-        gui,
+        W.gui(),
         choice( AllOf(
             Field( &ChoiceConfig::msg,
                    StartsWith(
@@ -396,19 +469,31 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
             Field( &ChoiceConfig::key_on_escape,
                    maybe<string>{} ) ) ) )
         .returns( make_wait<string>( "1" ) );
+    // This one is to choose that unit's replacement in the pool,
+    // which is always done randomly. 8960.0 was found by summing
+    // all of the weights for the unit types on the discoverer
+    // level except assuming that the petty criminal and inden-
+    // tured servant weights are zero.
+    EXPECT_CALL( W.rand(),
+                 between_doubles( 0, Approx( 8960.0, .00001 ) ) )
+        .returns( 5000.0 ); // chosen to give expert lumberjack.
     wait<maybe<UnitId>> w = check_for_new_immigrant(
-        gui, units_state, player, settings, crosses_needed );
+        W.ss(), W.ts(), player, crosses_needed );
     REQUIRE( w.ready() );
     REQUIRE( *w == UnitId{ 1 } );
+    REQUIRE( W.units().unit_for( **w ).type() ==
+             e_unit_type::veteran_soldier );
+    REQUIRE( player.old_world.immigration.immigrants_pool[1] ==
+             e_unit_type::expert_lumberjack );
 
     REQUIRE( player.crosses == 2 );
-    REQUIRE( units_state.all().size() == 1 );
-    REQUIRE( units_state.all().begin()->first == UnitId{ 1 } );
+    REQUIRE( W.units().all().size() == 1 );
+    REQUIRE( W.units().all().begin()->first == UnitId{ 1 } );
     UnitOwnership_t const expected_ownership{
         UnitOwnership::harbor{
             .st = UnitHarborViewState{
                 .port_status = PortStatus::in_port{} } } };
-    REQUIRE( units_state.all().begin()->second.ownership ==
+    REQUIRE( W.units().all().begin()->second.ownership ==
              expected_ownership );
   }
 }

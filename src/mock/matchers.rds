@@ -1,0 +1,16 @@
+# ===============================================================
+# matchers.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-08-11.
+#
+# Description: Rds definitions for the matchers module.
+#
+# ===============================================================
+namespace "mock.matchers"
+
+struct.ApproxData {
+  target 'double',
+  plus_minus 'double',
+}

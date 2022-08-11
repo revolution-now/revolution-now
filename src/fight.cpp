@@ -11,8 +11,8 @@
 #include "fight.hpp"
 
 // Revolution Now
+#include "irand.hpp"
 #include "logger.hpp"
-#include "rand.hpp"
 
 // ss
 #include "ss/unit.hpp"
@@ -24,7 +24,8 @@ namespace rn {
 
 namespace {} // namespace
 
-FightStatistics fight_statistics( Unit const& attacker,
+FightStatistics fight_statistics( IRand&      rand,
+                                  Unit const& attacker,
                                   Unit const& defender ) {
   auto attack_points = attacker.desc().attack_points;
   auto defend_points = defender.desc().defense_points;
@@ -34,7 +35,7 @@ FightStatistics fight_statistics( Unit const& attacker,
   CHECK( attack_points > 0 );
   CHECK( winning_probability <= 1.0 );
   lg.info( "winning probability: {}", winning_probability );
-  return { rng::flip_coin( winning_probability ) };
+  return { rand.bernoulli( winning_probability ) };
 }
 
 } // namespace rn

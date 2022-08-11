@@ -13,6 +13,9 @@
 // ss
 #include "root.hpp"
 
+// luapp
+#include "luapp/register.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -46,6 +49,11 @@ SS::SS()
     mutable_terrain_use_with_care( impl_->top.zzz_terrain ),
     root( impl_->top ) {}
 
+void to_str( SS const& o, string& out, base::ADL_t ) {
+  out += "SS@";
+  out += fmt::format( "{}", static_cast<void const*>( &o ) );
+}
+
 /****************************************************************
 ** SSConst
 *****************************************************************/
@@ -69,4 +77,20 @@ base::valid_or<std::string> SSConst::validate_game_state()
   NOT_IMPLEMENTED;
 }
 
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_STARTUP( lua::state& st ) {
+  using U = SS;
+  st.usertype.create<U>();
+  // We don't need to register any members here since lua should
+  // access those via the "ROOT" global which will be a RootState
+  // and its fields are exposed. We just need to expose the SS
+  // type so that we can extract it from Lua to C++ and pass it
+  // to a C++ function.
+};
+
+} // namespace
 } // namespace rn

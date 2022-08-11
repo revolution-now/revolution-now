@@ -13,7 +13,6 @@
 // Revolution Now
 #include "co-combinator.hpp"
 #include "compositor.hpp"
-#include "conductor.hpp"
 #include "enum.hpp"
 #include "game.hpp"
 #include "gui.hpp"
@@ -153,9 +152,6 @@ MainMenuPlane::MainMenuPlane( Planes& planes )
   : impl_( new Impl( planes ) ) {}
 
 wait<> MainMenuPlane::run() {
-  conductor::play_request(
-      conductor::e_request::fife_drum_happy,
-      conductor::e_request_probability::always );
   co::stream<e_main_menu_item>& selections =
       impl_->selection_stream_;
   // TODO: Temporary

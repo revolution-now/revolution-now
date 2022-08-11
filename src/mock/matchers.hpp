@@ -10,6 +10,9 @@
 *****************************************************************/
 #pragma once
 
+// Rds
+#include "matchers.rds.hpp"
+
 // mock
 #include "matcher.hpp"
 #include "node.hpp"
@@ -151,6 +154,20 @@ MATCHER_DEFINE_NODE( Not, held, actual ) {
 };
 
 GENERIC_SINGLE_ARG_MATCHER( Not );
+
+/****************************************************************
+** Approx
+*****************************************************************/
+MATCHER_DEFINE_NODE( Approx, held, actual ) {
+  double const lower_bound = held.target - held.plus_minus;
+  double const upper_bound = held.target + held.plus_minus;
+  return ( actual >= lower_bound ) && ( actual <= upper_bound );
+};
+
+inline auto Approx( double target, double plus_minus ) {
+  return detail::ApproxImpl<ApproxData>(
+      ApproxData{ .target = target, .plus_minus = plus_minus } );
+}
 
 /****************************************************************
 ** StartsWith

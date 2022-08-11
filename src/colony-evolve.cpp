@@ -14,9 +14,9 @@
 #include "colony-buildings.hpp"
 #include "colony-mgr.hpp"
 #include "colony.hpp"
+#include "irand.hpp"
 #include "on-map.hpp"
 #include "production.hpp"
-#include "rand.hpp"
 #include "sons-of-liberty.hpp"
 #include "ts.hpp"
 #include "ustate.hpp"
@@ -121,10 +121,9 @@ config::colony::construction_requirements materials_needed(
 }
 
 void check_create_or_starve_colonist(
-    UnitsState& units_state, Colony& colony,
-    ColonyProduction const& pr, bool& colony_disappeared,
-    vector<ColonyNotification_t>& notifications,
-    IMapUpdater&                  map_updater ) {
+    SS& ss, TS& ts, Colony& colony, ColonyProduction const& pr,
+    bool&                         colony_disappeared,
+    vector<ColonyNotification_t>& notifications ) {
   if( pr.food_horses.colonist_starved ) {
     vector<UnitId> const units_in_colony =
         colony_units_all( colony );
@@ -137,12 +136,12 @@ void check_create_or_starve_colonist(
       // (delete) the colonist and delete the colony.
       colony_disappeared = true;
     } else {
-      UnitId      unit_id = rng::pick_one( units_in_colony );
-      e_unit_type type = units_state.unit_for( unit_id ).type();
+      UnitId      unit_id = ts.rand.pick_one( units_in_colony );
+      e_unit_type type    = ss.units.unit_for( unit_id ).type();
       // Note that calling `destroy_unit` is not enough, we have
       // to remove it from the colony as well.
-      remove_unit_from_colony( units_state, colony, unit_id );
-      units_state.destroy_unit( unit_id );
+      remove_unit_from_colony( ss.units, colony, unit_id );
+      ss.units.destroy_unit( unit_id );
       notifications.emplace_back(
           ColonyNotification::colonist_starved{ .type = type } );
     }
@@ -162,10 +161,10 @@ void check_create_or_starve_colonist(
 
   current_food -= food_needed_for_creation;
   UnitId unit_id = create_free_unit(
-      units_state, colony.nation,
+      ss.units, colony.nation,
       UnitType::create( e_unit_type::free_colonist ) );
-  unit_to_map_square_non_interactive( units_state, map_updater,
-                                      unit_id, colony.location );
+  unit_to_map_square_non_interactive( ss, ts, unit_id,
+                                      colony.location );
   notifications.emplace_back(
       ColonyNotification::new_colonist{ .id = unit_id } );
 
@@ -173,9 +172,8 @@ void check_create_or_starve_colonist(
   CHECK_GE( colony.commodities[e_commodity::food], 0 );
 }
 
-void check_construction( UnitsState&  units_state,
-                         IMapUpdater& map_updater,
-                         Colony& colony, ColonyEvolution& ev ) {
+void check_construction( SS& ss, TS& ts, Colony& colony,
+                         ColonyEvolution& ev ) {
   if( !colony.construction.has_value() ) return;
   Construction_t const& construction = *colony.construction;
 
@@ -265,7 +263,7 @@ void check_construction( UnitsState&  units_state,
       // structed in this manner has a sighting radius of more
       // than one.
       create_unit_on_map_non_interactive(
-          units_state, map_updater, colony.nation,
+          ss, ts, colony.nation,
           UnitComposition::create( o.type ), colony.location );
       break;
     }
@@ -376,12 +374,12 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
 
   check_ran_out_of_raw_materials( ev );
 
-  check_construction( ss.units, ts.map_updater, colony, ev );
+  check_construction( ss, ts, colony, ev );
 
   // Needs to be done after food deltas have been applied.
-  check_create_or_starve_colonist(
-      ss.units, colony, ev.production, ev.colony_disappeared,
-      ev.notifications, ts.map_updater );
+  check_create_or_starve_colonist( ss, ts, colony, ev.production,
+                                   ev.colony_disappeared,
+                                   ev.notifications );
   if( ev.colony_disappeared )
     // If the colony is to disappear then there isn't much point
     // in doing anything further.

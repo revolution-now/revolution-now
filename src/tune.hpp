@@ -26,6 +26,8 @@ using TuneId = int;
 
 namespace rn {
 
+struct IRand;
+
 // Take the first element of each tuple in the dimension
 // definitions list; this yields a comma-separated list of
 // dimension names.
@@ -157,6 +159,6 @@ std::vector<TuneId> tunes_not_like( TuneId id );
 // specify a tune, since multiple tunes can have the same set of
 // dimensions. In those cases, a random tune will be selected
 // among the resulting subset.
-TuneId random_tune();
+TuneId random_tune( IRand& rand );
 
 } // namespace rn

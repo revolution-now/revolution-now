@@ -554,8 +554,7 @@ struct ColonyPlane::Impl : public Plane {
           update_colony_view( ss_, colony_ );
           break;
         case ::SDLK_t:
-          cheat_create_new_colonist( ss_.units, ts_.map_updater,
-                                     colony_ );
+          cheat_create_new_colonist( ss_, ts_, colony_ );
           update_colony_view( ss_, colony_ );
           break;
         case ::SDLK_SPACE:
@@ -660,11 +659,7 @@ wait<> show_colony_view_impl( Planes& planes, SS& ss, TS& ts_old,
 
   RealGui gui( window_plane );
 
-  TS ts{
-      .map_updater = ts_old.map_updater,
-      .lua         = ts_old.lua,
-      .gui         = gui,
-  };
+  TS ts( ts_old.map_updater, ts_old.lua, gui, ts_old.rand );
 
   ColonyPlane colony_plane( ss, ts, colony );
   new_group.colony = &colony_plane;

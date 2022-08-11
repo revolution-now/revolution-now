@@ -22,6 +22,7 @@
 #include "map-updater-lua.hpp"
 #include "map-updater.hpp"
 #include "on-map.hpp"
+#include "ts.hpp"
 #include "variant.hpp"
 
 // config
@@ -155,26 +156,24 @@ UnitId create_free_unit( UnitsState& units_state,
                            UnitType::create( type ) );
 }
 
-UnitId create_unit_on_map_non_interactive(
-    UnitsState& units_state, IMapUpdater& map_updater,
-    e_nation nation, UnitComposition comp, Coord coord ) {
+UnitId create_unit_on_map_non_interactive( SS& ss, TS& ts,
+                                           e_nation nation,
+                                           UnitComposition comp,
+                                           Coord coord ) {
   UnitId id =
-      create_free_unit( units_state, nation, std::move( comp ) );
-  unit_to_map_square_non_interactive( units_state, map_updater,
-                                      id, coord );
+      create_free_unit( ss.units, nation, std::move( comp ) );
+  unit_to_map_square_non_interactive( ss, ts, id, coord );
   return id;
 }
 
-wait<maybe<UnitId>> create_unit_on_map(
-    UnitsState& units_state, TerrainState const& terrain_state,
-    Player& player, SettingsState const& settings, IGui& gui,
-    IMapUpdater& map_updater, UnitComposition comp,
-    Coord coord ) {
-  UnitId id = create_free_unit( units_state, player.nation,
+wait<maybe<UnitId>> create_unit_on_map( SS& ss, TS& ts,
+                                        Player&         player,
+                                        UnitComposition comp,
+                                        Coord           coord ) {
+  UnitId id = create_free_unit( ss.units, player.nation,
                                 std::move( comp ) );
-  maybe<UnitDeleted> unit_deleted = co_await unit_to_map_square(
-      units_state, terrain_state, player, settings, gui,
-      map_updater, id, coord );
+  maybe<UnitDeleted> unit_deleted =
+      co_await unit_to_map_square( ss, ts, id, coord );
   if( unit_deleted.has_value() ) co_return nothing;
   co_return id;
 }
@@ -272,16 +271,13 @@ namespace {
 
 LUA_FN( create_unit_on_map, Unit&, e_nation nation,
         UnitComposition& comp, Coord const& coord ) {
-  CHECK( st["ROOT"] != lua::nil );
-  UnitsState& units_state =
-      st["ROOT"]["units"].as<UnitsState&>();
-  IMapUpdater& map_updater =
-      st["TS"]["map_updater"].as<IMapUpdater&>();
-  UnitId id = create_unit_on_map_non_interactive(
-      units_state, map_updater, nation, comp, coord );
+  SS&    ss = st["SS"].as<SS&>();
+  TS&    ts = st["TS"].as<TS&>();
+  UnitId id = create_unit_on_map_non_interactive( ss, ts, nation,
+                                                  comp, coord );
   lg.info( "created a {} on square {}.",
            unit_attr( comp.type() ).name, coord );
-  return units_state.unit_for( id );
+  return ss.units.unit_for( id );
 }
 
 LUA_FN( add_unit_to_cargo, void, UnitId held, UnitId holder ) {

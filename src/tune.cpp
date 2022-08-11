@@ -220,7 +220,7 @@ vector<TuneId> tunes_not_like( TuneId id ) {
 }
 
 #define TUNE_DIMENSION_PICK_ONE( dim ) \
-  rng::pick_one<e_tune_##dim>()
+  pick_one<e_tune_##dim>( rand )
 
 // The idea here is that we pick a random set of dimensions, then
 // rank all tunes according to their distance from that. Then we
@@ -230,7 +230,7 @@ vector<TuneId> tunes_not_like( TuneId id ) {
 // most similar tunes of equal distance then we would run into
 // problems where two tunes have the exact same dimensions and
 // one would never get picked.
-TuneId random_tune() {
+TuneId random_tune( IRand& rand ) {
   TuneOptDimensions dims{
       //
       EVAL( PP_MAP_COMMAS( TUNE_DIMENSION_PICK_ONE,
@@ -244,7 +244,7 @@ TuneId random_tune() {
       rl::all( tunes_scores )
           .take_while_L( _.second == first_score )
           .to_vector();
-  return rng::pick_one( same_distance ).first;
+  return rand.pick_one( same_distance ).first;
 }
 
 } // namespace rn

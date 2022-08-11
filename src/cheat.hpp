@@ -61,8 +61,7 @@ void cheat_upgrade_unit_expertise( SSConst const& ss,
 
 void cheat_downgrade_unit_expertise( Unit& unit );
 
-void cheat_create_new_colonist( UnitsState&   units_state,
-                                IMapUpdater&  map_updater,
+void cheat_create_new_colonist( SS& ss, TS& ts,
                                 Colony const& colony );
 
 void cheat_increase_commodity( Colony&     colony,

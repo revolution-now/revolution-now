@@ -36,16 +36,12 @@ rumor_type_weights {
   }
   other {
     none:              56
-    fountain_of_youth: 10
+    fountain_of_youth:  8
     free_colonist:     13
     ruins:              8
     burial_mounds:      5
     chief_gift:         6
-    # Seems to be zero in the original game at least on the
-    # lowest difficulty level; this could be to prevent the
-    # player from losing the initial units, since the first few
-    # LCRs explored will probably be done by them.
-    unit_lost:          0
+    unit_lost:          2
     cibola:             2
   }
 }

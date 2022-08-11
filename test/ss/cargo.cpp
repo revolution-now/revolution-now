@@ -542,8 +542,8 @@ TEST_CASE( "CargoHold add item too large for cargo hold" ) {
   World           W;
   CargoHoldTester ch( 4 );
   auto            unit_id1 = create_unit(
-      W.units(), e_nation::english,
-      UnitType::create( e_unit_type::large_treasure ) );
+                 W.units(), e_nation::english,
+                 UnitType::create( e_unit_type::large_treasure ) );
   REQUIRE_FALSE(
       ch.fits( W.units(), Cargo::unit{ unit_id1 }, 0 ) );
   REQUIRE_FALSE(
@@ -2194,8 +2194,8 @@ TEST_CASE( "CargoHold compactify units and commodities" ) {
   auto sugar_part     = Commodity{ /*type=*/e_commodity::sugar,
                                /*quantity=*/33 };
   auto unit_id1       = create_unit(
-      W.units(), e_nation::english,
-      UnitType::create( e_unit_type::free_colonist ) );
+            W.units(), e_nation::english,
+            UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id2 = create_unit(
       W.units(), e_nation::english,
       UnitType::create( e_unit_type::free_colonist ) );
@@ -2292,8 +2292,8 @@ TEST_CASE(
   auto sugar_part     = Commodity{ /*type=*/e_commodity::sugar,
                                /*quantity=*/33 };
   auto unit_id1       = create_unit(
-      W.units(), e_nation::english,
-      UnitType::create( e_unit_type::free_colonist ) );
+            W.units(), e_nation::english,
+            UnitType::create( e_unit_type::free_colonist ) );
   auto unit_id2 = create_unit(
       W.units(), e_nation::english,
       UnitType::create( e_unit_type::small_treasure ) );
@@ -2331,10 +2331,10 @@ TEST_CASE(
   uint32_t sub_seed =
       GENERATE( take( 100, random( 0, 1000000 ) ) );
   INFO( fmt::format( "sub_seed: {}", sub_seed ) );
-  rng::reseed( sub_seed );
+  default_random_engine rng_engine( sub_seed );
 
   vector<Cargo_t> shuffled( begin( cargos ), end( cargos ) );
-  rng::shuffle( shuffled );
+  std::shuffle( shuffled.begin(), shuffled.end(), rng_engine );
 
   for( auto const& cargo : shuffled ) {
     auto maybe_idx = util::find_index(
@@ -2749,8 +2749,8 @@ TEST_CASE( "CargoHold max_commodity_quantity_that_fits" ) {
   auto  sugar_part = Commodity{ /*type=*/e_commodity::sugar,
                                /*quantity=*/33 };
   auto  unit_id1   = create_unit(
-      W.units(), e_nation::english,
-      UnitType::create( e_unit_type::small_treasure ) );
+         W.units(), e_nation::english,
+         UnitType::create( e_unit_type::small_treasure ) );
 
   SECTION( "size zero" ) {
     CargoHoldTester ch( 0 );

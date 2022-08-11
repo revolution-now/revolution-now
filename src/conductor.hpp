@@ -23,6 +23,10 @@
 // C++ standard library
 #include <functional>
 
+namespace rn {
+struct IRand;
+}
+
 namespace rn::conductor {
 
 // Add more events here as they are needed.
@@ -119,11 +123,11 @@ void seek( double pos );
 // Generate a random playlist. If one exists it will be regener-
 // ated (we will not merely shuffle here because the playlist
 // must satisfy some invariants).
-void playlist_generate();
+void playlist_generate( IRand& rand );
 
 enum class e_request_probability { always, sometimes, rarely };
 
-void play_request( e_request             request,
+void play_request( IRand& rand, e_request request,
                    e_request_probability probability );
 
 // Testing

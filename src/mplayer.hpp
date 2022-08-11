@@ -212,16 +212,4 @@ class SilentMusicPlayer : public MusicPlayer {
   maybe<TuneId> id_{};
 };
 
-/****************************************************************
-**Testing
-*****************************************************************/
-void test_music_player_impl( MusicPlayer& mplayer );
-
-template<typename MusicPlayerT>
-void test_music_player() {
-  auto mplayer_desc = MusicPlayerT::player();
-  if( mplayer_desc.second.has_value() )
-    test_music_player_impl( **mplayer_desc.second );
-}
-
 } // namespace rn

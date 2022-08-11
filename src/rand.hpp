@@ -14,71 +14,38 @@
 
 // Revolution Now
 #include "error.hpp"
+#include "irand.hpp"
 
 // C++ standard library
-#include <algorithm>
-#include <array>
 #include <random>
-#include <vector>
 
 namespace rn {
 
-namespace rng {
-
-std::default_random_engine& engine();
-
-// Flip a fair coin.
-bool flip_coin();
-
-// p is probability of getting true, must be between [0,1.0].
-bool flip_coin( double p );
-
-// half_open means [a,b), closed means [a,b].
-enum class e_interval { half_open, closed };
-
-// Random integer between tbe bounds, where the meaning of "be-
-// tween" depends on the interval type. If interval is half open
-// then lower must be < upper.
-int between( int lower, int upper, e_interval type );
-
-// Random floating point number in [lower, upper).
-double between( double lower, double upper );
-
-// Could be negative.
-int random_int();
-
-// Pick a random enum value out of a set of choices. Use like
-// this:
-//
-//   auto val = rng::pick_one( array{e_test::b, e_test::d} );
-//
-// Since this function is constexpr it will require that the ar-
-// gument be constexpr, so there will be no runtime overhead in
-// constructing it.
-template<typename T, size_t N>
-constexpr T const& pick_one( std::array<T, N> const& arr ) {
-  static_assert( N > 0 );
-  return arr[between( 0, N, e_interval::half_open )];
-}
-
-// Vector must be non-empty.  Picks a random element.
-template<typename T>
-T const& pick_one( std::vector<T> const& v ) {
-  return v[between( 0, v.size(), e_interval::half_open )];
-}
-
-template<typename T>
-void shuffle( std::vector<T>& v ) {
-  std::shuffle( v.begin(), v.end(), engine() );
-}
-
 /****************************************************************
-** Testing
+** Rand
 *****************************************************************/
-// This only needs to be called to control seeding during
-// testing.
-void reseed( uint32_t seed );
+// Generates real (pseudo-random) numbers. For unit testing in-
+// stead use a mock of IRand, not this one.
+struct Rand : IRand {
+  // Will invoke std::random_device for a seed.
+  Rand();
 
-} // namespace rng
+  Rand( uint32_t seed );
+
+  ~Rand() override = default;
+
+  // Implement IRand.
+  bool bernoulli( double p ) override;
+
+  // Implement IRand.
+  int between_ints( int lower, int upper,
+                    e_interval type ) override;
+
+  // Implement IRand.
+  double between_doubles( double lower, double upper ) override;
+
+ private:
+  std::default_random_engine engine_;
+};
 
 } // namespace rn
