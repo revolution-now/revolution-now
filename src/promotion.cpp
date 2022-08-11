@@ -22,6 +22,9 @@
 #include "ss/unit-composer.hpp"
 #include "ss/unit.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -38,7 +41,8 @@ e_unit_type expert_for_activity( e_unit_activity activity ) {
   for( auto& [type, attr] :
        config_unit_type.composition.unit_types )
     if( attr.expertise == activity ) return type;
-  SHOULD_NOT_BE_HERE;
+  FATAL( "expert unit type for activity {} not found.",
+         activity );
 }
 
 // This will attempt to change only the base type while holding
