@@ -153,11 +153,8 @@ void cheat_upgrade_unit_expertise( SSConst const& ss,
       // Not derived, so just try promoting a free colonist.
       to_promote =
           UnitType::create( e_unit_type::free_colonist );
-    maybe<UnitType> new_ut =
-        promoted_unit_type( to_promote, *activity );
-    if( !new_ut.has_value() ) return;
-    expect<UnitComposition> promoted =
-        UnitComposition::create( *new_ut );
+    expect<UnitComposition> promoted = promoted_from_activity(
+        UnitComposition::create( to_promote ), *activity );
     if( !promoted.has_value() ) return;
     CHECK( promoted.has_value() );
     unit.change_type( *promoted );

@@ -59,46 +59,13 @@ maybe<e_unit_type> cleared_expertise( e_unit_type type ) {
   return unit_attr( type ).cleared_expertise;
 }
 
-// This function will promote a unit given an activity. It will
-// promote the unit type given the activity, then preserve the
-// inventory. Note that if the unit type is already an expert at
-// something other than the activity then this will not promote
-// them, since that does not happen in the game normally (there
-// may be some cheat/debug features that allow doing that, but
-// that logic is kept separate from this). On the other hand, if
-// the unit is already an expert at the given activity, then no
-// promotion will happen and an error will be returned.
-expect<UnitComposition> promoted_from_activity(
-    UnitComposition const& comp, e_unit_activity activity ) {
-  maybe<UnitType> new_type_obj =
-      promoted_unit_type( comp.type_obj(), activity );
-  if( !new_type_obj.has_value() )
-    return unexpected<UnitComposition>(
-        "viable unit type not found" );
-  return UnitComposition::create( *new_type_obj,
-                                  comp.inventory() );
-}
-
-} // namespace
-
-/****************************************************************
-** Public API
-*****************************************************************/
-bool try_promote_unit_for_current_activity( SSConst const& ss,
-                                            Unit& unit ) {
-  if( !is_unit_human( unit.type_obj() ) ) return false;
-  maybe<e_unit_activity> activity = current_activity_for_unit(
-      ss.units, ss.colonies, unit.id() );
-  if( !activity.has_value() ) return false;
-  if( unit_attr( unit.base_type() ).expertise == *activity )
-    return false;
-  expect<UnitComposition> promoted =
-      promoted_from_activity( unit.composition(), *activity );
-  if( !promoted.has_value() ) return false;
-  unit.change_type( *promoted );
-  return true;
-}
-
+// This promotes a unit type only, meaning that it ignores inven-
+// tory. If the promotion is possible then either the base type
+// or derived type (or both) may change. The `activity` parameter
+// may or may not be used depending on the unit type. The logic
+// behind this function is a bit complicated; see the comments in
+// the Rds definition for UnitPromotion as well as the function
+// implementation for more info.
 maybe<UnitType> promoted_unit_type( UnitType        ut,
                                     e_unit_activity activity ) {
   if( ut.type() == ut.base_type() ) {
@@ -245,6 +212,37 @@ maybe<UnitType> promoted_unit_type( UnitType        ut,
       return add_unit_type_modifiers( ut, { modifier } );
     }
   }
+}
+
+} // namespace
+
+/****************************************************************
+** Public API
+*****************************************************************/
+bool try_promote_unit_for_current_activity( SSConst const& ss,
+                                            Unit& unit ) {
+  if( !is_unit_human( unit.type_obj() ) ) return false;
+  maybe<e_unit_activity> activity = current_activity_for_unit(
+      ss.units, ss.colonies, unit.id() );
+  if( !activity.has_value() ) return false;
+  if( unit_attr( unit.base_type() ).expertise == *activity )
+    return false;
+  expect<UnitComposition> promoted =
+      promoted_from_activity( unit.composition(), *activity );
+  if( !promoted.has_value() ) return false;
+  unit.change_type( *promoted );
+  return true;
+}
+
+expect<UnitComposition> promoted_from_activity(
+    UnitComposition const& comp, e_unit_activity activity ) {
+  maybe<UnitType> new_type_obj =
+      promoted_unit_type( comp.type_obj(), activity );
+  if( !new_type_obj.has_value() )
+    return unexpected<UnitComposition>(
+        "viable unit type not found" );
+  return UnitComposition::create( *new_type_obj,
+                                  comp.inventory() );
 }
 
 maybe<UnitType> cleared_expertise( UnitType ut ) {
