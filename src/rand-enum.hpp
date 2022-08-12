@@ -48,11 +48,9 @@ T pick_from_weighted_enum_values(
   int stop    = rand.between_ints( 0, total,
                                    IRand::e_interval::half_open );
   int running = 0;
-  // This iteration needs to be in order of enum values, and not
-  // the default iteration of the enum_map container which uses
-  // an unordered_map as a backing container.
-  for( T item : refl::enum_values<T> ) {
-    int const weight = weights[item];
+  // This iteration will be in order of enum values since that is
+  // guaranteed by the container.
+  for( auto const [item, weight] : weights ) {
     running += weight;
     if( running > stop ) return item;
   }
@@ -69,12 +67,10 @@ T pick_from_weighted_enum_values(
   double stop    = rand.between_doubles( 0.0, total );
   double running = 0.0;
   T      res     = {};
-  // This iteration needs to be in order of enum values, and not
-  // the default iteration of the enum_map container which uses
-  // an unordered_map as a backing container.
-  for( T item : refl::enum_values<T> ) {
-    double const weight = weights[item];
-    res                 = item;
+  // This iteration will be in order of enum values since that is
+  // guaranteed by the container.
+  for( auto const [item, weight] : weights ) {
+    res = item;
     running += weight;
     if( running > stop ) break;
   }

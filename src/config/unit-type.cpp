@@ -356,7 +356,7 @@ valid_or<string> UnitCompositionConfig::validate() const {
   for( auto& [type, type_struct] : m ) {
     if( type_struct.is_derived ) continue;
     for( auto& [mtype, mod_list] : type_struct.modifiers ) {
-      UNWRAP_CHECK( mtype_desc, base::lookup( m, mtype ) );
+      UnitTypeAttributes const& mtype_desc = m[mtype];
       unordered_set<e_unit_inventory>
           modifier_associated_inventory_types;
       for( e_unit_inventory inv_type :

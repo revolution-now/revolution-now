@@ -26,8 +26,8 @@
 
 // C++ standard library
 #include <memory>
-#include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 namespace refl {
 
@@ -40,9 +40,12 @@ namespace refl {
 // Note: type trait specializations of this (e.g. to_str) should
 // just defer to to the base class implementation, which will
 // usually always be provided because it is a standard container.
+//
+// Iteration order is guaranteed to be in order of the reflected
+// enum elements because the backing container is ordered.
 template<refl::ReflectedEnum Enum, typename ValT>
-struct enum_map : public std::unordered_map<Enum, ValT> {
-  using base = std::unordered_map<Enum, ValT>;
+struct enum_map : public std::vector<std::pair<Enum, ValT>> {
+  using base = std::vector<std::pair<Enum, ValT>>;
 
   static constexpr int kSize = refl::enum_count<Enum>;
 
@@ -50,16 +53,20 @@ struct enum_map : public std::unordered_map<Enum, ValT> {
   base const& as_base() const { return *this; }
 
  public:
-  using typename base::key_type;
-  using typename base::value_type;
+  using key_type   = typename base::value_type::first_type;
+  using value_type = typename base::value_type::second_type;
 
   // All other constructors should ultimately call this one,
   // since this is the one that ensures that all keys have a
   // value.
-  enum_map( base&& b ) : base( std::move( b ) ) {
+  enum_map( base&& b ) : base( kSize ) {
+    // At this point the backing container has the correct size
+    // and all of its values are default constructed, but we
+    // still need to initialize the keys.
     for( Enum e : refl::enum_values<Enum> )
-      if( this->find( e ) == this->end() ) //
-        this->emplace( e, ValT{} );
+      this->as_base()[static_cast<size_t>( e )].first = e;
+    // Now insert any values that were provided.
+    for( auto& [e, val] : b ) ( *this )[e] = std::move( val );
   }
 
   enum_map( base const& b ) : enum_map( base{ b } ) {}
@@ -80,21 +87,39 @@ struct enum_map : public std::unordered_map<Enum, ValT> {
   ValT& operator[]( Enum i ) { return at( i ); }
 
   ValT const& at( Enum i ) const {
-    DCHECK( this->find( i ) != this->end() );
-    return this->find( i )->second;
+    size_t const idx = static_cast<size_t>( i );
+    DCHECK( i >= 0 );
+    DCHECK( i < kSize );
+    return this->as_base()[idx].second;
   }
 
   ValT& at( Enum i ) {
-    DCHECK( this->find( i ) != this->end() );
-    return this->find( i )->second;
+    size_t const idx = static_cast<size_t>( i );
+    DCHECK( i >= 0 );
+    DCHECK( i < kSize );
+    return this->as_base()[idx].second;
   }
 
-  // Make sure that the base class `contains` and `erase` methods
-  // are not callable since calling them is not correct for this
-  // class; enum_maps always contain every enum key, and so if
-  // someone is trying to call them it is certainly a bug.
-  void contains( Enum ) = delete;
-  void erase( Enum )    = delete;
+  // Make sure that the following base class methods are not
+  // callable since calling them is not correct for this class;
+  // enum_maps always contain every enum key, and are of a fixed
+  // size, and that has the consequence that there is a very lim-
+  // ited set of operations that make sense to perform on it.
+  //
+  // We can't just hide the base class and only expose the
+  // methods we want (whitelist) because we want this type to im-
+  // plicitly convert to the base.
+  void contains( Enum )              = delete;
+  void erase( Enum )                 = delete;
+  void reserve( size_t )             = delete;
+  void shrink_to_fit()               = delete;
+  void clear()                       = delete;
+  void insert( size_t, ValT const& ) = delete;
+  void push_back( ValT const& )      = delete;
+  void emplace_back( ValT const& )   = delete;
+  void pop_back()                    = delete;
+  void resize( size_t )              = delete;
+  void find( ValT )                  = delete;
 
   friend cdr::value to_canonical( cdr::converter& conv,
                                   enum_map const& o,

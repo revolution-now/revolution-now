@@ -38,6 +38,7 @@ using namespace ::cdr::literals;
 using ::Catch::Matches;
 using ::cdr::testing::conv_from_bt;
 using ::rn::e_color;
+using ::rn::e_count;
 using ::rn::e_empty;
 
 // If this changes then the below tests may need to be updated.
@@ -101,15 +102,6 @@ TEST_CASE( "[enum-map] enum_map indexing" ) {
   enum_map<e_color, int> const m_const;
   REQUIRE( m_const[e_color::red] == 0 );
   REQUIRE( m_const.at( e_color::green ) == 0 );
-}
-
-TEST_CASE( "[enum-map] enum_map find" ) {
-  enum_map<e_color, int> m;
-  m[e_color::green] = 7;
-  auto it           = m.find( e_color::green );
-  REQUIRE( it != m.end() );
-  REQUIRE( it->first == e_color::green );
-  REQUIRE( it->second == 7 );
 }
 
 TEST_CASE( "[enum-map] enum_map equality" ) {
@@ -221,7 +213,6 @@ struct NonCopyable {
   NonCopyable( NonCopyable const& ) = delete;
   NonCopyable& operator=( NonCopyable const& ) = delete;
 
-  NonCopyable( NonCopyable&& ) = default;
   NonCopyable& operator=( NonCopyable&& ) = default;
 
   bool operator==( NonCopyable const& ) const = default;
@@ -241,6 +232,27 @@ TEST_CASE( "[enum-map] non-copyable" ) {
 
   em2 = std::move( em );
   REQUIRE( em2[e_color::red] == NonCopyable( 5 ) );
+}
+
+TEST_CASE( "[enum-map] iteration order" ) {
+  enum_map<e_count, bool> const em;
+
+  vector<pair<e_count, bool>> out;
+  out.resize( em.size() );
+
+  copy( em.begin(), em.end(), out.begin() );
+
+  vector<pair<e_count, bool>> const expected{
+      { e_count::one, false },      { e_count::two, false },
+      { e_count::three, false },    { e_count::four, false },
+      { e_count::five, false },     { e_count::six, false },
+      { e_count::seven, false },    { e_count::eight, false },
+      { e_count::nine, false },     { e_count::ten, false },
+      { e_count::eleven, false },   { e_count::twelve, false },
+      { e_count::thirteen, false }, { e_count::fourteen, false },
+      { e_count::fifteen, false },
+  };
+  REQUIRE( out == expected );
 }
 
 } // namespace

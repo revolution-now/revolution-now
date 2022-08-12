@@ -449,11 +449,9 @@ TEST_CASE( "[lcr] cibola / treasure" ) {
       2 );
   Unit const& unit = W.units().unit_for( 2 );
   REQUIRE( unit.type() == e_unit_type::large_treasure );
-  unordered_map<e_unit_inventory, int> const& inventory =
+  refl::enum_map<e_unit_inventory, int> const& inventory =
       unit.composition().inventory();
-  REQUIRE( inventory.contains( e_unit_inventory::gold ) );
-  UNWRAP_CHECK(
-      gold, base::lookup( inventory, e_unit_inventory::gold ) );
+  int const gold = inventory[e_unit_inventory::gold];
   // These number come from the config files for the min/max
   // amount of a treasure train for a non-scout on the lowest
   // difficulty mode.
@@ -516,11 +514,9 @@ TEST_CASE( "[lcr] burial mounds / treasure" ) {
       2 );
   Unit const& unit = W.units().unit_for( 2 );
   REQUIRE( unit.type() == e_unit_type::large_treasure );
-  unordered_map<e_unit_inventory, int> const& inventory =
+  refl::enum_map<e_unit_inventory, int> const& inventory =
       unit.composition().inventory();
-  REQUIRE( inventory.contains( e_unit_inventory::gold ) );
-  UNWRAP_CHECK(
-      gold, base::lookup( inventory, e_unit_inventory::gold ) );
+  int const gold = inventory[e_unit_inventory::gold];
   // These number come from the config files for the min/max
   // amount of a treasure train for a non-scout on the lowest
   // difficulty mode.

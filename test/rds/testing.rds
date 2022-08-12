@@ -182,6 +182,24 @@ enum.e_hand {
   right,
 }
 
+enum.e_count {
+  one,
+  two,
+  three,
+  four,
+  five,
+  six,
+  seven,
+  eight,
+  nine,
+  ten,
+  eleven,
+  twelve,
+  thirteen,
+  fourteen,
+  fifteen,
+}
+
 struct.EmptyStruct {}
 
 struct.EmptyStruct2 {
