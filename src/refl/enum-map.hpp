@@ -88,15 +88,15 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
 
   ValT const& at( Enum i ) const {
     size_t const idx = static_cast<size_t>( i );
-    DCHECK( i >= 0 );
-    DCHECK( i < kSize );
+    DCHECK( idx >= 0 );
+    DCHECK( idx < kSize );
     return this->as_base()[idx].second;
   }
 
   ValT& at( Enum i ) {
     size_t const idx = static_cast<size_t>( i );
-    DCHECK( i >= 0 );
-    DCHECK( i < kSize );
+    DCHECK( idx >= 0 );
+    DCHECK( idx < kSize );
     return this->as_base()[idx].second;
   }
 
