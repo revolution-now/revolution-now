@@ -29,18 +29,19 @@ class ND MovementPoints {
  private:
   static constexpr int factor = 3;
 
-  // atoms can be > 2
+  // atoms_ can be > 2
   constexpr MovementPoints( int integral, int atoms_arg )
-    : atoms( ( ( integral + ( atoms_arg / factor ) ) * factor ) +
-             ( atoms_arg % factor ) ) {}
+    : atoms_(
+          ( ( integral + ( atoms_arg / factor ) ) * factor ) +
+          ( atoms_arg % factor ) ) {}
 
  public:
   constexpr MovementPoints() = default;
   explicit constexpr MovementPoints( int p )
-    : atoms( p * factor ) {}
+    : atoms_( p * factor ) {}
 
   MovementPoints& operator=( int p ) {
-    atoms = p * factor;
+    atoms_ = p * factor;
     return *this;
   }
 
@@ -52,6 +53,8 @@ class ND MovementPoints {
       default;
   MovementPoints& operator=( MovementPoints&& other ) = default;
 
+  int atoms() const { return atoms_; }
+
   static constexpr MovementPoints _1_3() {
     return MovementPoints( 0, 1 );
   };
@@ -61,75 +64,75 @@ class ND MovementPoints {
   };
 
   constexpr bool operator==( MovementPoints const& rhs ) const {
-    return atoms == rhs.atoms;
+    return atoms_ == rhs.atoms_;
   }
   constexpr bool operator==( int rhs ) const {
-    return atoms == rhs * factor;
+    return atoms_ == rhs * factor;
   }
 
   constexpr bool operator!=( MovementPoints const& rhs ) const {
-    return atoms != rhs.atoms;
+    return atoms_ != rhs.atoms_;
   }
   constexpr bool operator!=( int rhs ) const {
-    return atoms != rhs * factor;
+    return atoms_ != rhs * factor;
   }
 
   constexpr bool operator>( MovementPoints const& rhs ) const {
-    return atoms > rhs.atoms;
+    return atoms_ > rhs.atoms_;
   }
   constexpr bool operator>( int rhs ) const {
-    return atoms > rhs * factor;
+    return atoms_ > rhs * factor;
   }
 
   constexpr bool operator<( MovementPoints const& rhs ) const {
-    return atoms < rhs.atoms;
+    return atoms_ < rhs.atoms_;
   }
   constexpr bool operator<( int rhs ) const {
-    return atoms < rhs * factor;
+    return atoms_ < rhs * factor;
   }
 
   constexpr bool operator>=( MovementPoints const& rhs ) const {
-    return atoms >= rhs.atoms;
+    return atoms_ >= rhs.atoms_;
   }
   constexpr bool operator>=( int rhs ) const {
-    return atoms >= rhs * factor;
+    return atoms_ >= rhs * factor;
   }
 
   constexpr bool operator<=( MovementPoints const& rhs ) const {
-    return atoms <= rhs.atoms;
+    return atoms_ <= rhs.atoms_;
   }
   constexpr bool operator<=( int rhs ) const {
-    return atoms <= rhs * factor;
+    return atoms_ <= rhs * factor;
   }
 
   constexpr MovementPoints operator+(
       MovementPoints const& rhs ) const {
-    return MovementPoints( 0, atoms + rhs.atoms );
+    return MovementPoints( 0, atoms_ + rhs.atoms_ );
   }
   constexpr MovementPoints operator+( int rhs ) const {
-    return MovementPoints( 0, atoms + ( rhs * factor ) );
+    return MovementPoints( 0, atoms_ + ( rhs * factor ) );
   }
 
   constexpr MovementPoints operator-(
       MovementPoints const& rhs ) const {
-    return MovementPoints( 0, atoms - rhs.atoms );
+    return MovementPoints( 0, atoms_ - rhs.atoms_ );
   }
   constexpr MovementPoints operator-( int rhs ) const {
-    return MovementPoints( 0, atoms - ( rhs * factor ) );
+    return MovementPoints( 0, atoms_ - ( rhs * factor ) );
   }
 
   void operator+=( MovementPoints const& rhs ) {
-    atoms += rhs.atoms;
+    atoms_ += rhs.atoms_;
   }
-  void operator+=( int rhs ) { atoms += rhs * factor; }
+  void operator+=( int rhs ) { atoms_ += rhs * factor; }
 
   void operator-=( MovementPoints const& rhs ) {
-    atoms -= rhs.atoms;
+    atoms_ -= rhs.atoms_;
   }
-  void operator-=( int rhs ) { atoms -= rhs * factor; }
+  void operator-=( int rhs ) { atoms_ -= rhs * factor; }
 
   constexpr MovementPoints operator-() const {
-    return MovementPoints( 0, -atoms );
+    return MovementPoints( 0, -atoms_ );
   }
 
   friend void to_str( MovementPoints const& o, std::string& out,
@@ -151,7 +154,7 @@ class ND MovementPoints {
 
  private:
   // 2 points would be represented by 2*factor.
-  int atoms = 0;
+  int atoms_ = 0;
 };
 NOTHROW_MOVE( MovementPoints );
 

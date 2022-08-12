@@ -47,6 +47,7 @@ TEST_CASE( "[map-square] is_land, is_water" ) {
 }
 
 TEST_CASE( "[map-square] movement_points_required" ) {
+  // TODO: add some forest cases.
   MapSquare ocean = map_square_for_terrain( e_terrain::ocean );
   MapSquare grassland =
       map_square_for_terrain( e_terrain::grassland );

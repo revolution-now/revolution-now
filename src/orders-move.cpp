@@ -47,6 +47,7 @@
 // base
 #include "base/lambda.hpp"
 #include "base/to-str-ext-std.hpp"
+#include "base/vocab.hpp"
 
 using namespace std;
 
@@ -143,21 +144,35 @@ BEHAVIOR( water, friendly, unit, always, never, move_onto_ship,
                           surface, relationship, entity ) )> )
 
 /****************************************************************
-** Movement Points Calculator
+** Movement Points
 *****************************************************************/
-wait<maybe<MovementPoints>> check_movement_points(
-    Unit const& unit, MapSquare const& src_square,
-    MapSquare const& dst_square, e_direction direction ) {
-  MovementPointsAnalysis analysis = expense_movement_points(
-      unit, src_square, dst_square, direction );
+// This one is for when we need to manually specify the required
+// movement points, e.g. if a unit is moving onto a colony
+// square.
+maybe<MovementPoints> check_movement_points(
+    TS& ts, Unit const& unit, MovementPoints needed ) {
+  MovementPointsAnalysis const analysis =
+      can_unit_move_based_on_mv_points( ts, unit, needed );
   if( analysis.allowed() ) {
-    if( analysis.using_start_of_turn_exemption() )
+    if( analysis.using_start_of_turn_exemption )
       lg.debug( "move allowed by start-of-turn exemption." );
-    if( analysis.using_overdraw_allowance() )
+    if( analysis.using_overdraw_allowance )
       lg.debug( "move allowed by overdraw allowance." );
-    co_return analysis.points_to_subtract();
+    return analysis.points_to_subtract();
   }
-  co_return nothing;
+  return nothing;
+}
+
+// This one is for those cases where the movement points are
+// simply determined by the src/dst MapSquare objects. An example
+// of when this would not be the case is what there is a colony
+// on the destination square.
+maybe<MovementPoints> check_movement_points(
+    TS& ts, Unit const& unit, MapSquare const& src_square,
+    MapSquare const& dst_square, e_direction direction ) {
+  MovementPoints const needed = movement_points_required(
+      src_square, dst_square, direction );
+  return check_movement_points( ts, unit, needed );
 }
 
 /****************************************************************
@@ -207,29 +222,41 @@ struct TravelHandler : public OrdersHandler {
       case e_travel_verdict::cancelled: //
         co_return false;
 
-      // Forfeight.
+      // Lost remaining movement points in an attempt to move but
+      // without enough points.
       case e_travel_verdict::consume_remaining_points: //
+        CHECK( checked_mv_points_ );
         break;
 
       // Non-allowed moves (errors)
       case e_travel_verdict::map_edge:
       case e_travel_verdict::land_forbidden:
       case e_travel_verdict::water_forbidden: //
+        // We should not have checked movement points in these
+        // cases since they are never allowed.
+        CHECK( !checked_mv_points_ );
         co_return false;
       case e_travel_verdict::board_ship_full:
         co_await ts_.gui.message_box(
             "None of the ships on this square have enough free "
             "space to hold this unit!" );
+        // We should not have checked movement points in this
+        // case since it was an impossible move.
+        CHECK( !checked_mv_points_ );
         co_return false;
 
       // Allowed moves
       case e_travel_verdict::map_edge_high_seas:
       case e_travel_verdict::map_to_map:
       case e_travel_verdict::board_ship:
-      case e_travel_verdict::offboard_ship:
       case e_travel_verdict::ship_into_port:
-      case e_travel_verdict::land_fall:      //
+      case e_travel_verdict::offboard_ship:
       case e_travel_verdict::sail_high_seas: //
+        CHECK( checked_mv_points_ );
+        break;
+      case e_travel_verdict::land_fall: //
+        // Shouldn't have checked movement points here because
+        // none are needed for making landfall.
         break;
     }
 
@@ -320,6 +347,10 @@ struct TravelHandler : public OrdersHandler {
   maybe<UnitId> target_unit = nothing;
 
   MovementPoints mv_points_to_subtract_ = {};
+
+  // This is used to catch us if we ever forget to check movement
+  // points for a given (successful) move.
+  bool checked_mv_points_ = false;
 
   Player& player_;
 };
@@ -454,14 +485,50 @@ TravelHandler::confirm_travel_impl() {
   auto& src_square = ss_.terrain.square_at( move_src );
   auto& dst_square = ss_.terrain.square_at( move_dst );
   UNWRAP_CHECK( direction, move_src.direction_to( move_dst ) );
-  maybe<MovementPoints> to_subtract =
-      co_await check_movement_points( unit, src_square,
-                                      dst_square, direction );
-  if( !to_subtract.has_value() ) {
-    unit_would_move = false;
-    co_return e_travel_verdict::consume_remaining_points;
-  }
-  mv_points_to_subtract_ = *to_subtract;
+
+  // This is for checking if the unit has enough movement points
+  // remaining to make the move. The reason that we defer this
+  // calculation by wrapping it into a lambda is because it would
+  // be premature to run that here, since we need to determine
+  // first 1) whether the unit is ever allowed to make the move,
+  // what lies on the target square, e.g. a colony. If we didn't
+  // do this then we'd have problems in some cases, such as the
+  // following: 1) a unit attempting to move from land to a water
+  // tile with no ship on it but with a 1/3 of a movement point
+  // may have its movement points consumed (and turn ended) even
+  // though that unit is never allowed to move onto that square;
+  // 2) a unit moving onto a hills tile but which contains a
+  // colony would have too many movement points subtracted.
+  //
+  // On the other hand, if we just check this once at the very
+  // end then we run the risk of presenting a confirmation mes-
+  // sage to the player regarding a move that will fail anyway on
+  // account of movement points; an example of that is a scout
+  // attempting to enter an indian village without enough move-
+  // ment points.
+  //
+  // So what we do is we defer this logic by wrapping in a lambda
+  // and then making a special call to it in each specific loca-
+  // tion where we determine that the unit is allowed to move in
+  // general and where we can know exactly how many movement
+  // points are needed, but before presenting any messages to the
+  // user.
+  auto check_points =
+      [&, this]( maybe<MovementPoints> needed =
+                     nothing ) -> base::NoDiscard<bool> {
+    this->checked_mv_points_ = true;
+    maybe<MovementPoints> const to_subtract =
+        needed.has_value()
+            ? check_movement_points( ts_, unit, *needed )
+            : check_movement_points( ts_, unit, src_square,
+                                     dst_square, direction );
+    if( !to_subtract.has_value() ) {
+      unit_would_move = false;
+      return false;
+    }
+    mv_points_to_subtract_ = *to_subtract;
+    return true;
+  };
 
   CHECK( !unit.mv_pts_exhausted() );
 
@@ -499,14 +566,28 @@ TravelHandler::confirm_travel_impl() {
         if( auto holder =
                 is_unit_onboard( ss_.units, unit.id() );
             holder ) {
-          // We have a unit onboard a ship moving onto
-          // land.
+          // We have a unit onboard a ship moving onto land. As-
+          // sume a single movement point for this regardless of
+          // terrain type. Note: when a unit boards a ship from
+          // land then it will consume all of its movement points
+          // when doing so, but when a ship departs a colony and
+          // brings units with it, their movement points are not
+          // consumed, so they may have partial points, thus we
+          // need to check here against 1 point; i.e., we can't
+          // assume the unit will always just have the start of
+          // turn exemption.
+          if( !check_points( /*needed=*/MovementPoints( 1 ) ) )
+            co_return e_travel_verdict::consume_remaining_points;
           co_return e_travel_verdict::offboard_ship;
         } else {
+          if( !check_points() )
+            co_return e_travel_verdict::consume_remaining_points;
           co_return e_travel_verdict::map_to_map;
         }
       case bh_t::unload: {
         unit_would_move = false;
+        // We don't check movement points here because non are
+        // needed for making landfall.
         co_return co_await analyze_unload();
       }
     }
@@ -526,14 +607,21 @@ TravelHandler::confirm_travel_impl() {
         if( auto holder =
                 is_unit_onboard( ss_.units, unit.id() );
             holder ) {
-          // We have a unit onboard a ship moving onto
-          // land.
+          // We have a unit onboard a ship moving onto land. See
+          // comment for similar line above for explanation of
+          // this.
+          if( !check_points( /*needed=*/MovementPoints( 1 ) ) )
+            co_return e_travel_verdict::consume_remaining_points;
           co_return e_travel_verdict::offboard_ship;
         } else {
+          if( !check_points() )
+            co_return e_travel_verdict::consume_remaining_points;
           co_return e_travel_verdict::map_to_map;
         }
       case bh_t::unload: {
         unit_would_move = false;
+        // We don't check movement points here because non are
+        // needed for making landfall.
         co_return co_await analyze_unload();
       }
     }
@@ -545,8 +633,15 @@ TravelHandler::confirm_travel_impl() {
     bh_t bh = bh_t::always;
     switch( bh ) {
       case bh_t::always:
-        // TODO: when a wagon train enters a colony it ends its
-        // turn.
+        // Assume that it always takes one point to move into a
+        // friendly colony square, whether from land or a ship.
+        if( !check_points( /*needed=*/MovementPoints( 1 ) ) )
+          co_return e_travel_verdict::consume_remaining_points;
+        // NOTE: In the original game, when a wagon train enters
+        // a colony it ends its turn. But that is not likely
+        // something that we want to replicate in this game be-
+        // cause it can be annoying and there doesn't appear to
+        // be a good reason for it.
         if( unit.desc().ship )
           co_return e_travel_verdict::ship_into_port;
         // `holder` will be a valid value if the unit is cargo of
@@ -574,8 +669,21 @@ TravelHandler::confirm_travel_impl() {
     switch( bh ) {
       case bh_t::never:
         co_return e_travel_verdict::water_forbidden;
-      case bh_t::always: co_return e_travel_verdict::map_to_map;
+      case bh_t::always:
+        if( !check_points() ) {
+          // This shouldn't happen in practice since it will al-
+          // ways be a ship and they don't have partial movement
+          // points, but we include it for consistency.
+          co_return e_travel_verdict::consume_remaining_points;
+        }
+        co_return e_travel_verdict::map_to_map;
       case bh_t::high_seas:
+        if( !check_points() ) {
+          // This shouldn't happen in practice since it will al-
+          // ways be a ship and they don't have partial movement
+          // points, but we include it for consistency.
+          co_return e_travel_verdict::consume_remaining_points;
+        }
         co_return co_await confirm_sail_high_seas();
     }
   }
@@ -598,7 +706,14 @@ TravelHandler::confirm_travel_impl() {
     switch( bh ) {
       case bh_t::never:
         co_return e_travel_verdict::water_forbidden;
-      case bh_t::always: co_return e_travel_verdict::map_to_map;
+      case bh_t::always:
+        if( !check_points() ) {
+          // This shouldn't happen in practice since it will al-
+          // ways be a ship and they don't have partial movement
+          // points, but we include it for consistency.
+          co_return e_travel_verdict::consume_remaining_points;
+        }
+        co_return e_travel_verdict::map_to_map;
       case bh_t::move_onto_ship: {
         auto const& ships = units_at_dst;
         if( ships.empty() )
@@ -616,12 +731,23 @@ TravelHandler::confirm_travel_impl() {
                                     Cargo::unit{ id } ) ) {
             prioritize  = { ship_id };
             target_unit = ship_id;
+            // Assume that it always takes one movement points to
+            // board a ships.
+            if( !check_points( /*needed=*/MovementPoints( 1 ) ) )
+              co_return e_travel_verdict::
+                  consume_remaining_points;
             co_return e_travel_verdict::board_ship;
           }
         }
         co_return e_travel_verdict::board_ship_full;
       }
       case bh_t::high_seas:
+        if( !check_points() ) {
+          // This shouldn't happen in practice since it will al-
+          // ways be a ship and they don't have partial movement
+          // points, but we include it for consistency.
+          co_return e_travel_verdict::consume_remaining_points;
+        }
         co_return co_await confirm_sail_high_seas();
     }
   }

@@ -5,13 +5,21 @@
 *
 * Created by dsicilia on 2022-03-28.
 *
-* Description: Calculation of movement points needed for a move.
+* Description: Determines if/how a unit can make a move requiring
+*              a certain number of movement points.
 *
 *****************************************************************/
 #include "mv-calc.hpp"
 
+// Revolution Now
+#include "irand.hpp"
+#include "ts.hpp"
+
 // config
 #include "config/unit-type.rds.hpp"
+
+// ss
+#include "ss/unit.hpp"
 
 // base
 #include "base/error.hpp"
@@ -21,56 +29,46 @@ using namespace std;
 namespace rn {
 
 /****************************************************************
-** MovementPointsAnalyzis
+** MovementPointsAnalysis
 *****************************************************************/
 bool MovementPointsAnalysis::allowed() const {
-  if( has_start_of_turn_exemption ) return true;
-  if( has + kOverdrawAllowance < needs ) return false;
-  return true;
-}
-
-bool MovementPointsAnalysis::using_start_of_turn_exemption()
-    const {
-  if( has_start_of_turn_exemption )
-    return ( has + kOverdrawAllowance < needs );
-  return false;
-}
-
-bool MovementPointsAnalysis::using_overdraw_allowance() const {
-  if( allowed() && !using_start_of_turn_exemption() &&
-      needs > has ) {
-    CHECK_LE( needs - has, kOverdrawAllowance );
-    return true;
-  }
-  return false;
+  if( using_start_of_turn_exemption ) return true;
+  if( using_overdraw_allowance ) return true;
+  return has >= needed;
 }
 
 MovementPoints MovementPointsAnalysis::points_to_subtract()
     const {
   CHECK( allowed() );
-  if( needs > has ) return has;
-  return needs;
+  if( needed > has ) return has;
+  return needed;
 }
 
 /****************************************************************
 ** Public API
 *****************************************************************/
-MovementPointsAnalysis expense_movement_points(
-    Unit const& unit, MapSquare const& src_square,
-    MapSquare const& dst_square, e_direction d ) {
-  MovementPoints const has = unit.movement_points();
-  // TODO: if there is a colony on the square then the unit can
-  // probably always move into it (but might be worth checking
-  // this).
-  MovementPoints const needs =
-      movement_points_required( src_square, dst_square, d );
-  bool const has_start_of_turn_exemption =
-      ( unit.movement_points() == unit.desc().movement_points );
-  return MovementPointsAnalysis{
-      .has   = has,
-      .needs = needs,
-      .has_start_of_turn_exemption =
-          has_start_of_turn_exemption };
+MovementPointsAnalysis can_unit_move_based_on_mv_points(
+    TS& ts, Unit const& unit, MovementPoints needed ) {
+  MovementPoints const   has = unit.movement_points();
+  MovementPointsAnalysis res{
+      .has                           = has,
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = false };
+  if( has == 0 ) return res;
+  if( has >= needed ) return res;
+  // At this point the unit does not have enough movement points
+  // to make the move, so check the exceptions.
+  res.using_start_of_turn_exemption =
+      ( has == unit.desc().movement_points );
+  if( res.using_start_of_turn_exemption ) return res;
+  CHECK_LT( has, needed );
+  double const probability =
+      double( has.atoms() ) / needed.atoms();
+  // If this returns true then the unit gets to move anyway.
+  res.using_overdraw_allowance =
+      ts.rand.bernoulli( probability );
+  return res;
 }
 
 } // namespace rn

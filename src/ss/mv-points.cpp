@@ -34,18 +34,18 @@ namespace {} // namespace
 
 void to_str( MovementPoints const& o, std::string& out,
              base::ADL_t ) {
-  if( o.atoms % o.factor == 0 )
-    out += fmt::format( "{}", o.atoms / o.factor );
+  if( o.atoms_ % o.factor == 0 )
+    out += fmt::format( "{}", o.atoms_ / o.factor );
   else {
-    if( o.atoms / o.factor > 0 )
-      out += fmt::format( "{}+", o.atoms / o.factor );
-    out += fmt::format( "{}/{}", o.atoms % o.factor,
+    if( o.atoms_ / o.factor > 0 )
+      out += fmt::format( "{}+", o.atoms_ / o.factor );
+    out += fmt::format( "{}/{}", o.atoms_ % o.factor,
                         MovementPoints::factor );
   }
 }
 
 base::valid_or<string> MovementPoints::validate() const {
-  RETURN_IF_FALSE( atoms >= 0,
+  RETURN_IF_FALSE( atoms_ >= 0,
                    "MovementPoints object has negative points" );
   return base::valid;
 }
@@ -58,21 +58,21 @@ maybe<MovementPoints> lua_get( lua::cthread L, int idx,
   if( !maybe_t.has_value() ) return nothing;
   lua::table& t = *maybe_t;
   if( t["atoms"] == lua::nil ) return nothing;
-  int atoms = lua::as<int>( t["atoms"] );
-  return MovementPoints( atoms / 3, atoms % 3 );
+  int atoms_ = lua::as<int>( t["atoms"] );
+  return MovementPoints( atoms_ / 3, atoms_ % 3 );
 }
 
 void lua_push( lua::cthread L, MovementPoints mv_pts ) {
   auto st = lua::state::view( L );
 
   lua::table t = st.table.create();
-  t["atoms"]   = mv_pts.atoms;
+  t["atoms"]   = mv_pts.atoms_;
 
   // FIXME: setting these metatables each time is too slow.
   lua::table meta = st.table.create();
 
   meta["__tostring"] = []( MovementPoints o ) {
-    return fmt::format( "MovementPoints{{atoms={}}}", o.atoms );
+    return fmt::format( "MovementPoints{{atoms={}}}", o.atoms_ );
   };
 
   meta["__eq"] = []( MovementPoints const& l,
@@ -91,7 +91,7 @@ cdr::value to_canonical( cdr::converter&       conv,
                          MovementPoints const& o,
                          cdr::tag_t<MovementPoints> ) {
   cdr::table tbl;
-  tbl["atoms"] = conv.to( o.atoms );
+  tbl["atoms"] = conv.to( o.atoms_ );
   return tbl;
 }
 
@@ -120,7 +120,7 @@ cdr::result<MovementPoints> from_canonical(
       n, conv.from_field<int>( tbl, "atoms", used_keys ) );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
   MovementPoints res;
-  res.atoms = n;
+  res.atoms_ = n;
   return res;
 }
 
