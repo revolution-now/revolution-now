@@ -15,10 +15,14 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocking.hpp"
+#include "test/mocks/irand.hpp"
 
 // ss
 #include "src/ss/colony.hpp"
+#include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
+#include "src/ss/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -34,6 +38,8 @@ namespace {
 
 using namespace std;
 
+using ::mock::matchers::Approx;
+
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
@@ -43,6 +49,8 @@ struct World : testing::World {
     add_player( e_nation::dutch );
     create_default_map();
   }
+
+  Coord const kColonySquare = Coord{ .x = 1, .y = 1 };
 
   void create_default_map() {
     MapSquare const _ = make_ocean();
@@ -262,6 +270,161 @@ TEST_CASE( "[colony-evolve] colony starves" ) {
 
   // No matter what, the colony should not have been changed.
   REQUIRE( colony_units_all( colony ).size() == 1 );
+}
+
+TEST_CASE(
+    "[colony-evolve] does not promote unit producing nothing" ) {
+  World   W;
+  Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
+  // Make sure no one starves.
+  colony.commodities[e_commodity::food] = 100;
+
+  // tries=yes, succeeds=yes. This colonist should be produing
+  // nothing, since grassland does not produce cotton.
+  W.add_unit_outdoors( colony.id, e_direction::n,
+                       e_outdoor_job::cotton,
+                       e_unit_type::petty_criminal );
+  EXPECT_CALL( W.rand(),
+               bernoulli( Approx( 0.00333, 0.00001 ) ) )
+      .returns( true );
+
+  // Sanity check. Note unit ids start at 1.
+  REQUIRE( W.ss().units.unit_for( 1 ).type() ==
+           e_unit_type::petty_criminal );
+
+  ColonyEvolution const ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), colony );
+
+  vector<ColonyNotification_t> const expected;
+  REQUIRE( ev.notifications == expected );
+
+  // Check that the unit has not been changed.
+  REQUIRE( W.ss().units.unit_for( 1 ).type() ==
+           e_unit_type::petty_criminal );
+}
+
+TEST_CASE( "[colony-evolve] promotes units" ) {
+  World   W;
+  Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
+  // Make sure no one starves.
+  colony.commodities[e_commodity::food] = 100;
+
+  // For each of the below we need to make sure that the square
+  // that the colonist is on is actually producing what we assign
+  // it, otherwise it wouldn't be promoted anyway and then we
+  // wouldn't be testing what we think.
+
+  // tries=yes, succeeds=yes.
+  W.square( W.kColonySquare.moved( e_direction::nw ) ).surface =
+      e_surface::land;
+  W.square( W.kColonySquare.moved( e_direction::nw ) ).ground =
+      e_ground_terrain::savannah;
+  W.add_unit_outdoors( colony.id, e_direction::nw,
+                       e_outdoor_job::sugar,
+                       e_unit_type::petty_criminal );
+  EXPECT_CALL( W.rand(),
+               bernoulli( Approx( 0.00333, 0.00001 ) ) )
+      .returns( true );
+
+  // tries=no.
+  W.square( W.kColonySquare.moved( e_direction::n ) ).surface =
+      e_surface::land;
+  W.square( W.kColonySquare.moved( e_direction::n ) ).overlay =
+      e_land_overlay::forest;
+  W.add_unit_outdoors( colony.id, e_direction::n,
+                       e_outdoor_job::lumber,
+                       e_unit_type::petty_criminal );
+
+  // tries=yes, succeeds=no.
+  W.square( W.kColonySquare.moved( e_direction::ne ) ).surface =
+      e_surface::land;
+  W.square( W.kColonySquare.moved( e_direction::ne ) ).ground =
+      e_ground_terrain::grassland;
+  W.add_unit_outdoors( colony.id, e_direction::ne,
+                       e_outdoor_job::tobacco,
+                       e_unit_type::indentured_servant );
+  EXPECT_CALL( W.rand(), bernoulli( Approx( 0.005, 0.00001 ) ) )
+      .returns( false );
+
+  // tries=no.
+  W.square( W.kColonySquare.moved( e_direction::w ) ).surface =
+      e_surface::land;
+  W.square( W.kColonySquare.moved( e_direction::w ) ).ground =
+      e_ground_terrain::plains;
+  W.add_unit_outdoors( colony.id, e_direction::w,
+                       e_outdoor_job::food,
+                       e_unit_type::indentured_servant );
+
+  // tries=yes, succeeds=yes.
+  W.square( W.kColonySquare.moved( e_direction::e ) ).surface =
+      e_surface::land;
+  W.square( W.kColonySquare.moved( e_direction::e ) ).ground =
+      e_ground_terrain::prairie;
+  W.add_unit_outdoors( colony.id, e_direction::e,
+                       e_outdoor_job::cotton,
+                       e_unit_type::free_colonist );
+  EXPECT_CALL( W.rand(), bernoulli( Approx( 0.01, 0.00001 ) ) )
+      .returns( true );
+
+  // Sanity check. Note unit ids start at 1.
+  REQUIRE( W.ss().units.unit_for( 1 ).type() ==
+           e_unit_type::petty_criminal );
+  REQUIRE( W.ss().units.unit_for( 2 ).type() ==
+           e_unit_type::petty_criminal );
+  REQUIRE( W.ss().units.unit_for( 3 ).type() ==
+           e_unit_type::indentured_servant );
+  REQUIRE( W.ss().units.unit_for( 4 ).type() ==
+           e_unit_type::indentured_servant );
+  REQUIRE( W.ss().units.unit_for( 5 ).type() ==
+           e_unit_type::free_colonist );
+
+  // Here we don't have to test the logic that decides which
+  // kinds of units to promote, since that is tested in the
+  // promotion module; we just need to test that the units
+  // actually get their type changed and that the proper
+  // notifications are added.
+
+  ColonyEvolution const ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), colony );
+
+  // Sanity check to make sure that all colonists are producing,
+  // since otherwise they wouldn't be promoted anyway.
+  using SP = SquareProduction;
+  using LP = refl::enum_map<e_direction, SP>;
+  REQUIRE(
+      ev.production.land_production ==
+      LP{ { e_direction::nw,
+            SP{ .what = e_outdoor_job::sugar, .quantity = 3 } },
+          { e_direction::n,
+            SP{ .what = e_outdoor_job::lumber, .quantity = 6 } },
+          { e_direction::ne, SP{ .what = e_outdoor_job::tobacco,
+                                 .quantity = 3 } },
+          { e_direction::w,
+            SP{ .what = e_outdoor_job::food, .quantity = 5 } },
+          { e_direction::e, SP{ .what = e_outdoor_job::cotton,
+                                .quantity = 3 } } } );
+
+  vector<ColonyNotification_t> const expected = {
+      ColonyNotification::unit_promoted{
+          .promoted_to = e_unit_type::expert_sugar_planter },
+      ColonyNotification::unit_promoted{
+          .promoted_to = e_unit_type::expert_cotton_planter },
+  };
+
+  REQUIRE( ev.notifications == expected );
+
+  // Check that the unit types have actually been changed, but
+  // only those that were promoted.
+  REQUIRE( W.ss().units.unit_for( 1 ).type() ==
+           e_unit_type::expert_sugar_planter );
+  REQUIRE( W.ss().units.unit_for( 2 ).type() ==
+           e_unit_type::petty_criminal );
+  REQUIRE( W.ss().units.unit_for( 3 ).type() ==
+           e_unit_type::indentured_servant );
+  REQUIRE( W.ss().units.unit_for( 4 ).type() ==
+           e_unit_type::indentured_servant );
+  REQUIRE( W.ss().units.unit_for( 5 ).type() ==
+           e_unit_type::expert_cotton_planter );
 }
 
 TEST_CASE( "[colony-evolve] applies production" ) {

@@ -104,6 +104,19 @@ maybe<e_unit_type> on_capture_demoted_type( UnitType ut );
 // in practice, it is safe to say that the vast majorityof time
 // the result of this function will be empty, and very occasion-
 // ally it will be one, and even more rarely will it be > 1.
+//
+// In the original game a unit can be promoted even if they are
+// producing nothing on a square. E.g., a petty criminal pro-
+// ducing zero cotton on a grassland tile can still be promoted
+// to an expert cotton planer. That seems strange and could be a
+// bug, so in this game we don't allow that. However, we support
+// both via a config flag for compatibility. That said, this
+// function will not check the production of the units; that must
+// be done by whomever is using the results. Namely, any unit re-
+// turned by this function, if they are currently producing zero,
+// they should just be dropped. That won't interfere with the se-
+// lection process because this function considers all colonists
+// independently.
 std::vector<OnTheJobPromotionResult>
 workers_to_promote_for_on_the_job_training(
     SSConst const& ss, TS& ts, Colony const& colony );

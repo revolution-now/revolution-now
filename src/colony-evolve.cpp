@@ -17,6 +17,7 @@
 #include "irand.hpp"
 #include "on-map.hpp"
 #include "production.hpp"
+#include "promotion.hpp"
 #include "sons-of-liberty.hpp"
 #include "ts.hpp"
 #include "ustate.hpp"
@@ -355,6 +356,62 @@ void apply_production_to_colony(
   }
 }
 
+void check_colonist_promotion(
+    SS& ss, TS& ts, Colony& colony, ColonyProduction const& pr,
+    vector<ColonyNotification_t>& notifications ) {
+  vector<OnTheJobPromotionResult> const res =
+      workers_to_promote_for_on_the_job_training( ss, ts,
+                                                  colony );
+  for( auto const& [unit_id, promoted_to] : res ) {
+    CHECK( as_const( ss.units )
+               .ownership_of( unit_id )
+               .holds<UnitOwnership::colony>() );
+    bool should_promote = true;
+    if( !config_colony.on_the_job_training
+             .can_promote_with_zero_production ) {
+      // We're not promoting the unit if they're producing zero
+      // of what they are attempting to produce. E.g., if a
+      // colonist is working as a cotton planter on a grassland
+      // tile they'll produce zero. In that case, we don't want
+      // to promote them since that would be strange. This de-
+      // parts from the behavior of the original game, but it
+      // seems sensible.
+      //
+      // Currently we will only check this for outdoor units,
+      // since 1) in practice those are the only units that are
+      // eligible for promotion, and 2) is it very rare that an
+      // indoor unit produces nothing; e.g. you'd need a petty
+      // criminal working in a building with a tory penalty.
+      // FIXME: this should be fixed at some point for the sake
+      // of completeness; in order to do this we should have the
+      // colony production data structure record the quantity
+      // produce by each unit.
+      //
+      // Default to allowing the unit to be promoted, unless we
+      // specifically find that the unit is outdoors and is pro-
+      // ducing nothing.
+      for( auto const& [direction, outdoor_unit] :
+           colony.outdoor_jobs ) {
+        if( !outdoor_unit.has_value() )
+          // No unit working on this square.
+          continue;
+        auto const [outdoor_unit_id, job] = *outdoor_unit;
+        if( outdoor_unit_id != unit_id ) continue;
+        // We've found the unit.
+        if( pr.land_production[direction].quantity == 0 )
+          should_promote = false;
+        break;
+      }
+    }
+    if( should_promote ) {
+      Unit& unit = ss.units.unit_for( unit_id );
+      unit.change_type( UnitComposition::create( promoted_to ) );
+      notifications.push_back( ColonyNotification::unit_promoted{
+          .promoted_to = promoted_to } );
+    }
+  }
+}
+
 } // namespace
 
 ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
@@ -393,6 +450,13 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
   if( spoilage_notification.has_value() )
     ev.notifications.emplace_back(
         std::move( *spoilage_notification ) );
+
+  // Since this can change the type of units, do this as late as
+  // possible so that production has already been computed and
+  // any other changes to colonists (such as starvation) have al-
+  // ready been done.
+  check_colonist_promotion( ss, ts, colony, ev.production,
+                            ev.notifications );
 
   return ev;
 }

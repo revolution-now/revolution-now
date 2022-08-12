@@ -237,6 +237,15 @@ wait<bool> present_colony_update(
             "bonuses.";
       break;
     }
+    case ColonyNotification::e::unit_promoted: {
+      auto& o =
+          notification.get<ColonyNotification::unit_promoted>();
+      msg = fmt::format(
+          "A colonist in @[H]{}@[] has learned the specialty "
+          "profession @[H]{}@[]!",
+          colony.name, unit_attr( o.promoted_to ).name );
+      break;
+    }
   }
 
   if( ask_to_zoom ) {

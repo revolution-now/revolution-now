@@ -16,6 +16,7 @@ include "production.rds.hpp"
 include "ss/colony.rds.hpp"
 include "ss/commodity.rds.hpp"
 include "ss/unit-id.hpp"
+include "ss/unit-type.rds.hpp"
 
 # C++ standard library
 include "<vector>"
@@ -77,6 +78,16 @@ sumtype.ColonyNotification {
   sons_of_liberty_decreased {
     from 'int', # integral percents.
     to 'int',
+  },
+  unit_promoted {
+    # This is a unit that has been promoted through on-the-job
+    # training. In rare circumstances there could be more than
+    # one unit per turn per colony that gets promoted, but if
+    # that happens, each unit will get its own notification ob-
+    # ject, hence there is only one unit here. We could have in-
+    # cluded the unit id here but it is not really needed for the
+    # notification.
+    promoted_to 'e_unit_type',
   },
 }
 
