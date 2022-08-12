@@ -1,0 +1,20 @@
+# ===============================================================
+# promotion.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-08-12.
+#
+# Description: Rds definitions for the promotion module.
+#
+# ===============================================================
+# ss
+include "ss/unit-id.hpp"
+include "ss/unit-type.rds.hpp"
+
+namespace "rn"
+
+struct.OnTheJobPromotionResult {
+  unit_id 'UnitId',
+  promoted_to 'e_unit_type',
+}

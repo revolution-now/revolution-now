@@ -14,6 +14,10 @@
 // Under test.
 #include "src/promotion.hpp"
 
+// Testing
+#include "test/mocking.hpp"
+#include "test/mocks/irand.hpp"
+
 // ss
 #include "src/ss/ref.hpp"
 #include "src/ss/unit-composer.hpp"
@@ -32,6 +36,8 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::mock::matchers::Approx;
 
 /****************************************************************
 ** Fake World Setup
@@ -927,6 +933,91 @@ TEST_CASE( "[unit-type] on_capture_demoted_type" ) {
   // Demoting.
   REQUIRE( f( UnitType::create( UT::veteran_colonist ) ) ==
            UT::free_colonist );
+}
+
+TEST_CASE( "[unit-type] on the job promotion" ) {
+  World W;
+  W.create_default_map();
+  Colony& colony = W.add_colony( W.kLand );
+
+  // Add indoor units. The default config says that none of these
+  // units will ever be promoted since they are indoor.
+  W.add_unit_indoors( colony.id, e_indoor_job::bells,
+                      e_unit_type::petty_criminal );
+  W.add_unit_indoors( colony.id, e_indoor_job::tools,
+                      e_unit_type::indentured_servant );
+  W.add_unit_indoors( colony.id, e_indoor_job::coats,
+                      e_unit_type::free_colonist );
+  W.add_unit_indoors( colony.id, e_indoor_job::rum,
+                      e_unit_type::native_convert );
+  W.add_unit_indoors( colony.id, e_indoor_job::muskets,
+                      e_unit_type::expert_sugar_planter );
+  W.add_unit_indoors( colony.id, e_indoor_job::cloth,
+                      e_unit_type::master_weaver );
+
+  // Add outdoor units. The default config says that in order to
+  // be promoted you have to be either a petty criminal, inden-
+  // tured servant, or free colonist, and you must be working at
+  // planting one of the trade crops or fur trapping.
+
+  // tries=yes, succeeds=yes.
+  W.add_unit_outdoors( colony.id, e_direction::nw,
+                       e_outdoor_job::sugar,
+                       e_unit_type::petty_criminal );
+  EXPECT_CALL( W.rand(),
+               bernoulli( Approx( 0.00333, 0.00001 ) ) )
+      .returns( true );
+
+  // tries=no.
+  W.add_unit_outdoors( colony.id, e_direction::n,
+                       e_outdoor_job::lumber,
+                       e_unit_type::petty_criminal );
+
+  // tries=yes, succeeds=no.
+  W.add_unit_outdoors( colony.id, e_direction::ne,
+                       e_outdoor_job::tobacco,
+                       e_unit_type::indentured_servant );
+  EXPECT_CALL( W.rand(), bernoulli( Approx( 0.005, 0.00001 ) ) )
+      .returns( false );
+
+  // tries=no.
+  W.add_unit_outdoors( colony.id, e_direction::w,
+                       e_outdoor_job::food,
+                       e_unit_type::indentured_servant );
+
+  // tries=yes, succeeds=yes.
+  W.add_unit_outdoors( colony.id, e_direction::e,
+                       e_outdoor_job::cotton,
+                       e_unit_type::free_colonist );
+  EXPECT_CALL( W.rand(), bernoulli( Approx( 0.01, 0.00001 ) ) )
+      .returns( true );
+
+  // tries=no.
+  W.add_unit_outdoors( colony.id, e_direction::sw,
+                       e_outdoor_job::fish,
+                       e_unit_type::free_colonist );
+
+  // tries=no.
+  W.add_unit_outdoors( colony.id, e_direction::s,
+                       e_outdoor_job::sugar,
+                       e_unit_type::native_convert );
+
+  // tries=no.
+  W.add_unit_outdoors( colony.id, e_direction::se,
+                       e_outdoor_job::tobacco,
+                       e_unit_type::expert_farmer );
+
+  vector<OnTheJobPromotionResult> const res =
+      workers_to_promote_for_on_the_job_training( W.ss(), W.ts(),
+                                                  colony );
+
+  vector<OnTheJobPromotionResult> const expected{
+      { .unit_id     = 7,
+        .promoted_to = e_unit_type::expert_sugar_planter },
+      { .unit_id     = 11,
+        .promoted_to = e_unit_type::expert_cotton_planter } };
+
+  REQUIRE( res == expected );
 }
 
 } // namespace

@@ -13,13 +13,21 @@
 
 #include "core-config.hpp"
 
+// Rds
+#include "promotion.rds.hpp"
+
 // ss
 #include "ss/unit-composer.hpp"
 #include "ss/unit-type.hpp"
 
+// C++ standard library
+#include <vector>
+
 namespace rn {
 
+struct Colony;
 struct SSConst;
+struct TS;
 struct Unit;
 
 // This is the function that top-level game logic should call
@@ -81,5 +89,23 @@ maybe<UnitType> on_death_demoted_type( UnitType ut );
 // For units that get demoted upon capture (e.g.
 // veteran_colonist) this will return that demoted type.
 maybe<e_unit_type> on_capture_demoted_type( UnitType ut );
+
+// This function should be called once on each colony each turn
+// to decide which of its workers should be promoted be promoted
+// for on-the-job training. This happens rarely; in the original
+// game, a free colonist only has a 1/100 chance while a petty
+// criminal has a 1/300. But, any colonist that gets promoted
+// will go straight to being an expert. Note that this function
+// won't actually make the promotions, it will just report on
+// what they should be. Also, its results are non-deterministic
+// since it selects the colonists randomly. Each colonist is con-
+// sidered independently of the others, so in principle, multiple
+// colonists in a colony could get promoted in a single turn; but
+// in practice, it is safe to say that the vast majorityof time
+// the result of this function will be empty, and very occasion-
+// ally it will be one, and even more rarely will it be > 1.
+std::vector<OnTheJobPromotionResult>
+workers_to_promote_for_on_the_job_training(
+    SSConst const& ss, TS& ts, Colony const& colony );
 
 } // namespace rn

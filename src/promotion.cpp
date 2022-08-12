@@ -12,18 +12,28 @@
 #include "promotion.hpp"
 
 // Revolution Now
+#include "colony-buildings.hpp"
+#include "irand.hpp"
+#include "land-production.hpp"
+#include "ts.hpp"
 #include "ustate.hpp"
 
 // config
+#include "config/colony.hpp"
 #include "config/unit-type.hpp"
 
 // ss
+#include "ss/colony.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/unit-composer.hpp"
 #include "ss/unit.hpp"
+#include "ss/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/keyval.hpp"
 
 using namespace std;
 
@@ -288,6 +298,89 @@ maybe<e_unit_type> on_capture_demoted_type( UnitType ut ) {
           .on_death
           .get_if<UnitDeathAction::capture_and_demote>() );
   return capture_and_demote.type;
+}
+
+std::vector<OnTheJobPromotionResult>
+workers_to_promote_for_on_the_job_training(
+    SSConst const& ss, TS& ts, Colony const& colony ) {
+  std::vector<OnTheJobPromotionResult> res;
+
+  // First the indoor workers. Note that in the original game
+  // only outdoor workers can get promoted. We support both here,
+  // but configure it to be compatible with config settings.
+  for( auto const& [job, units] : colony.indoor_jobs ) {
+    if( !config_colony.on_the_job_training
+             .eligible_indoor_jobs[job] )
+      continue;
+    for( UnitId const unit_id : units ) {
+      e_unit_type const unit_type =
+          ss.units.unit_for( unit_id ).type();
+      maybe<double> const probability = base::lookup(
+          config_colony.on_the_job_training.probabilities,
+          unit_type );
+      if( !probability.has_value() )
+        // This unit type is not eligible for promotion, typi-
+        // cally because they are either already an expert at
+        // something or they are a native convert.
+        continue;
+      // At this point we know that the unit type and its current
+      // job are both such that unit is eligible for promotion.
+      // Now roll the dice to see if it happens.
+      DCHECK( *probability >= 0 && *probability <= 1.0 );
+      if( !ts.rand.bernoulli( *probability ) )
+        // Sorry, maybe next time.
+        continue;
+      // The unit is getting promoted! Now find what type. The
+      // idea is that they get promoted immediately to the unit
+      // type that is an expert at what they are currently doing.
+      e_unit_activity const activity =
+          activity_for_indoor_job( job );
+      e_unit_type const promoted_type =
+          expert_for_activity( activity );
+      res.push_back( OnTheJobPromotionResult{
+          .unit_id = unit_id, .promoted_to = promoted_type } );
+    }
+  }
+
+  // Next the outdoor workers.
+  for( auto const& [direction, outdoor_unit] :
+       colony.outdoor_jobs ) {
+    if( !outdoor_unit.has_value() )
+      // No unit working on this square.
+      continue;
+    auto const [unit_id, job] = *outdoor_unit;
+    if( !config_colony.on_the_job_training
+             .eligible_outdoor_jobs[job] )
+      continue;
+    e_unit_type const unit_type =
+        ss.units.unit_for( unit_id ).type();
+    maybe<double> const probability = base::lookup(
+        config_colony.on_the_job_training.probabilities,
+        unit_type );
+    if( !probability.has_value() )
+      // This unit type is not eligible for promotion, typically
+      // because they are either already an expert at something
+      // or they are a native convert.
+      continue;
+    // At this point we know that the unit type and its current
+    // job are both such that unit is eligible for promotion. Now
+    // roll the dice to see if it happens.
+    DCHECK( *probability >= 0 && *probability <= 1.0 );
+    if( !ts.rand.bernoulli( *probability ) )
+      // Sorry, maybe next time.
+      continue;
+    // The unit is getting promoted! Now find what type. The idea
+    // is that they get promoted immediately to the unit type
+    // that is an expert at what they are currently doing.
+    e_unit_activity const activity =
+        activity_for_outdoor_job( job );
+    e_unit_type const promoted_type =
+        expert_for_activity( activity );
+    res.push_back( OnTheJobPromotionResult{
+        .unit_id = unit_id, .promoted_to = promoted_type } );
+  }
+
+  return res;
 }
 
 } // namespace rn
