@@ -39,7 +39,6 @@ bool MovementPointsAnalysis::allowed() const {
 
 MovementPoints MovementPointsAnalysis::points_to_subtract()
     const {
-  CHECK( allowed() );
   if( needed > has ) return has;
   return needed;
 }

@@ -53,9 +53,10 @@ struct [[nodiscard]] MovementPointsAnalysis {
   bool allowed() const;
 
   // How many points should actually be deducted from this unit
-  // after making the move? This will ensure that the unit's
-  // points don't go below zero. Only call this if the move is
-  // allowed.
+  // after making (or attempting to make) the move? This will en-
+  // sure that the unit's points don't go below zero. Note that
+  // this can be called even if the move is not allowed, since in
+  // that case the unit forfeits its movement points.
   MovementPoints points_to_subtract() const;
 
   // Number of movement points the unit has available, not in-
