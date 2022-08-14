@@ -174,8 +174,7 @@ wait<> select_colony_construction( SSConst const& ss,
   CHECK( !initial_selection.has_value() ||
          *initial_selection >= 0 );
   config.initial_selection = initial_selection;
-  maybe<string> what       = co_await gui.choice( config );
-  if( !what.has_value() ) co_return;
+  string const what        = co_await gui.choice( config );
 
   if( what == kNoProductionKey ) {
     colony.construction.reset();
@@ -198,7 +197,7 @@ wait<> select_colony_construction( SSConst const& ss,
     }
   }
 
-  FATAL( "unknown building name {}.", *what );
+  FATAL( "unknown building name {}.", what );
 }
 
 } // namespace rn
