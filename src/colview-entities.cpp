@@ -855,6 +855,12 @@ class UnitsAtGateColonyView : public ui::View,
       // then we won't allow the population to be reduced below
       // three, but that will be checked in the confirmation
       // stage.
+      //
+      // FIXME: need to ask the player what this colonist should
+      // be after moving it out of the colony, otherwise if a
+      // colony has 50 muskets and the last colonist is being re-
+      // moved (to abandon the colony) then the player has no way
+      // to save those muskets by making the unit into a soldier.
       return ColViewObject::unit{ .id = dragged };
     }
     Unit const& target_unit =
