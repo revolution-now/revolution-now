@@ -308,7 +308,7 @@ maybe<Window&> WindowManager::window_for_cursor_pos_in_view(
 
 e_input_handled WindowManager::input(
     input::event_t const& event ) {
-  // Since windows are model we will always declare that we've
+  // Since windows are modal we will always declare that we've
   // handled the event, unless there are no windows open.
   if( this->num_windows() == 0 ) return e_input_handled::no;
 
@@ -323,10 +323,30 @@ e_input_handled WindowManager::input(
 
   // It's a mouse event.
   maybe<Window&> win = window_for_cursor_pos( mouse_event->pos );
-  if( !win )
-    // Only send mouse events when the cursor is over a window.
-    // But still declare that we've handled the event.
+  if( !win ) {
+    auto button_event =
+        event.get_if<input::mouse_button_event_t>();
+    if( !button_event.has_value() ) return e_input_handled::yes;
+    if( button_event->buttons !=
+        input::e_mouse_button_event::left_up )
+      return e_input_handled::yes;
+    // We have a window open and the user has clicked the mouse,
+    // but the user has clicked outside of the window. In order
+    // to reproduce the behavior of the original game (which al-
+    // lows closing/cancelling popup boxes by clicking outside of
+    // the window in many cases) we will forward this to the
+    // window as an escape key, and the window can decide what to
+    // do with it; many windows will cancel/close the window in
+    // response.
+    input::key_event_t const escape_event{
+        .change    = input::e_key_change::down,
+        .keycode   = ::SDLK_ESCAPE,
+        .scancode  = ::SDL_SCANCODE_ESCAPE,
+        .direction = nothing };
+    (void)focused().view->input( escape_event );
+
     return e_input_handled::yes;
+  }
   auto view_rect =
       Rect::from( win->view_pos(), win->view->delta() );
 
