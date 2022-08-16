@@ -471,7 +471,7 @@ template<typename ResultT>
       } );
   auto* p_ok_button      = ok_cancel_view->ok_button();
   auto  enable_ok_button = [p_ok_button]( bool enable ) {
-     p_ok_button->enable( enable );
+    p_ok_button->enable( enable );
   };
   unique_ptr<ui::View> subject_view = get_view_fn(
       /*enable_ok_button=*/std::move( enable_ok_button ) //
@@ -512,7 +512,7 @@ template<typename ResultT>
       } );
   auto* p_ok_button      = ok_button_view->ok_button();
   auto  enable_ok_button = [p_ok_button]( bool enable ) {
-     p_ok_button->enable( enable );
+    p_ok_button->enable( enable );
   };
   auto subject_view = get_view_fn(
       /*enable_ok_button=*/std::move( enable_ok_button ) //
@@ -654,22 +654,28 @@ wait<> WindowPlane::message_box( string_view msg ) {
   co_await p.wait();
 }
 
-wait<int> WindowPlane::select_box(
+wait<maybe<int>> WindowPlane::select_box(
     string_view msg, vector<string> const& options,
-    maybe<int> initial_selection ) {
+    e_input_required required, maybe<int> initial_selection ) {
   lg.info( "question: \"{}\"", msg );
   auto selector_view = make_unique<ui::OptionSelectView>(
       options,
       /*initial_selection=*/initial_selection.value_or( 0 ) );
   auto* p_selector_view = selector_view.get();
 
-  wait_promise<int> p;
+  wait_promise<maybe<int>> p;
 
   auto on_input = [&]( input::event_t const& event ) {
     bool selected = false;
     switch( event.to_enum() ) {
       case input::e_input_event::key_event: {
         auto const& key_event = event.as<input::key_event_t>();
+        if( required == e_input_required::no &&
+            key_event.keycode == ::SDLK_ESCAPE ) {
+          lg.info( "cancelled." );
+          p.set_value( nothing );
+          return true; // handled.
+        }
         if( key_event.keycode != ::SDLK_RETURN &&
             key_event.keycode != ::SDLK_KP_ENTER &&
             key_event.keycode != ::SDLK_SPACE &&

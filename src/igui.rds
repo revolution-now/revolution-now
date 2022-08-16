@@ -20,11 +20,6 @@ include "<vector>"
 
 namespace "rn"
 
-enum.e_input_required {
-  no,
-  yes,
-}
-
 struct.ChoiceConfigOption {
   key 'std::string',
   display_name 'std::string',
