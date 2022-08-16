@@ -34,10 +34,11 @@ struct Plane;
 struct UnitsState;
 
 struct IntInputBoxOptions {
-  std::string_view msg     = "";
-  maybe<int>       min     = nothing;
-  maybe<int>       max     = nothing;
-  maybe<int>       initial = nothing;
+  std::string_view msg      = "";
+  maybe<int>       min      = nothing;
+  maybe<int>       max      = nothing;
+  maybe<int>       initial  = nothing;
+  e_input_required required = e_input_required::no;
 };
 
 /****************************************************************
@@ -69,7 +70,8 @@ struct WindowPlane {
       e_input_required required, maybe<int> initial_selection );
 
   wait<maybe<std::string>> str_input_box(
-      std::string_view msg, std::string_view initial_text );
+      std::string_view msg, std::string_view initial_text,
+      e_input_required required );
 
   wait<maybe<int>> int_input_box(
       IntInputBoxOptions const& options );

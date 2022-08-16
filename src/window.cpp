@@ -531,7 +531,8 @@ namespace {
 
 [[nodiscard]] unique_ptr<Window> text_input_box(
     WindowPlane& window_plane, string_view msg,
-    string_view initial_text, ui::ValidatorFunc validator,
+    string_view initial_text, e_input_required required,
+    ui::ValidatorFunc               validator,
     function<void( maybe<string> )> on_result ) {
   TextMarkupInfo m_info{
       /*normal=*/config_ui.dialog_text.normal,
@@ -544,39 +545,47 @@ namespace {
       /*chars_wide=*/20, initial_text );
   ui::LineEditorView* p_le_view = le_view.get();
 
-  // We can capture by reference here because the function will
-  // be called before this scope exits.
-  auto get_view_fn =
-      [&]( function<void( bool )> enable_ok_button ) {
-        ui::LineEditorView::OnChangeFunc on_change =
-            [validator,
-             enable_ok_button{ std::move( enable_ok_button ) }](
-                string const& new_str ) {
-              if( validator( new_str ) )
-                enable_ok_button( true );
-              else
-                enable_ok_button( false );
-            };
-        // Make sure initial state of button is consistent with
-        // initial validation result.
-        on_change( le_view->text() );
-        le_view->set_on_change_fn( std::move( on_change ) );
-        vector<unique_ptr<ui::View>> view_vec;
-        view_vec.emplace_back( std::move( text ) );
-        view_vec.emplace_back( std::move( le_view ) );
-        return make_unique<ui::VerticalArrayView>(
-            std::move( view_vec ),
-            ui::VerticalArrayView::align::center );
-      };
+  vector<unique_ptr<ui::View>> view_vec;
+  view_vec.emplace_back( std::move( text ) );
+  view_vec.emplace_back( std::move( le_view ) );
+  auto va_view = make_unique<ui::VerticalArrayView>(
+      std::move( view_vec ),
+      ui::VerticalArrayView::align::center );
 
-  return ok_cancel_window_builder<string>(
-      window_plane,
-      /*get_result=*/
-      [p_le_view]() -> string { return p_le_view->text(); },
-      /*validator=*/validator, // must be copied.
-      /*on_result=*/std::move( on_result ),
-      /*get_view_fun=*/get_view_fn //
-  );
+  auto on_input = [=]( input::event_t const& event ) {
+    switch( event.to_enum() ) {
+      case input::e_input_event::key_event: {
+        auto const& key_event = event.as<input::key_event_t>();
+        if( key_event.change != input::e_key_change::down )
+          return true; // handled.
+        if( required == e_input_required::no &&
+            key_event.keycode == ::SDLK_ESCAPE ) {
+          lg.info( "cancelled." );
+          on_result( nothing );
+          return true; // handled.
+        }
+        if( key_event.keycode == ::SDLK_RETURN ||
+            key_event.keycode == ::SDLK_KP_ENTER ) {
+          if( !validator( p_le_view->text() ) ) {
+            // Invalid input.
+            return true; // handled.
+          }
+          lg.info( "received: {}", p_le_view->text() );
+          on_result( p_le_view->text() );
+          return true; // handled.
+        }
+        return false; // not handled.
+      }
+      default: break;
+    }
+    return false; // not handled.
+  };
+
+  auto view = make_unique<ui::OnInputView>(
+      std::move( va_view ), std::move( on_input ) );
+
+  return async_window_builder( window_plane, std::move( view ),
+                               /*auto_pad=*/true );
 }
 
 } // namespace
@@ -670,6 +679,8 @@ wait<maybe<int>> WindowPlane::select_box(
     switch( event.to_enum() ) {
       case input::e_input_event::key_event: {
         auto const& key_event = event.as<input::key_event_t>();
+        if( key_event.change != input::e_key_change::down )
+          return true;
         if( required == e_input_required::no &&
             key_event.keycode == ::SDLK_ESCAPE ) {
           lg.info( "cancelled." );
@@ -681,8 +692,6 @@ wait<maybe<int>> WindowPlane::select_box(
             key_event.keycode != ::SDLK_SPACE &&
             key_event.keycode != ::SDLK_KP_5 )
           return false; // not handled.
-        if( key_event.change != input::e_key_change::down )
-          return true;
         // An enter-like key is being released, so take action.
         selected = true;
         break;
@@ -736,10 +745,11 @@ wait<maybe<int>> WindowPlane::select_box(
 }
 
 wait<maybe<string>> WindowPlane::str_input_box(
-    string_view msg, string_view initial_text ) {
+    string_view msg, string_view initial_text,
+    e_input_required required ) {
   wait_promise<maybe<string>> p;
   unique_ptr<Window>          win = text_input_box(
-               *this, msg, initial_text, L( _.size() > 0 ),
+               *this, msg, initial_text, required, L( _.size() > 0 ),
                [p]( maybe<string> result ) { p.set_value( result ); } );
   co_return co_await p.wait();
 }
@@ -753,7 +763,7 @@ wait<maybe<int>> WindowPlane::int_input_box(
           ? fmt::format( "{}", *options.initial )
           : "";
   unique_ptr<Window> win = text_input_box(
-      *this, options.msg, initial_text,
+      *this, options.msg, initial_text, options.required,
       make_int_validator( options.min, options.max ),
       [p]( maybe<string> result ) {
         p.set_value( result.bind( L( base::stoi( _ ) ) ) );

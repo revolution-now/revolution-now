@@ -107,7 +107,7 @@ struct BuildHandler : public OrdersHandler {
               .no_label  = "No" } );
     if( proceed != ui::e_confirm::yes ) co_return false;
     while( true ) {
-      colony_name = co_await ts_.gui.required_string_input(
+      colony_name = co_await ts_.gui.optional_string_input(
           { .msg =
                 "What shall this colony be named, your majesty?",
             .initial_text = colony_name.value_or( "" ) } );

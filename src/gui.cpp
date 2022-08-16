@@ -82,30 +82,32 @@ wait<maybe<string>> RealGui::choice(
 }
 
 wait<maybe<string>> RealGui::string_input(
-    StringInputConfig const& config, e_input_required ) {
-  maybe<string> res;
-  // FIXME: need to fix this so that it can require input if the
-  // relevant parameter is set.
-  while( !res.has_value() )
-    res = co_await window_plane_.str_input_box(
-        config.msg, config.initial_text );
-  DCHECK( res.has_value() );
+    StringInputConfig const& config,
+    e_input_required         required ) {
+  maybe<string> const res = co_await window_plane_.str_input_box(
+      config.msg, config.initial_text, required );
+  if( !res.has_value() ) {
+    // User cancelled.
+    CHECK( required == e_input_required::no );
+    co_return nothing;
+  }
   co_return *res;
 }
 
 wait<maybe<int>> RealGui::int_input(
-    IntInputConfig const& config, e_input_required ) {
-  maybe<int> res;
-  // FIXME: need to fix this so that it can require input if the
-  // relevant parameter is set.
-  while( !res.has_value() )
-    res = co_await window_plane_.int_input_box( {
-        .msg     = config.msg,
-        .min     = config.min,
-        .max     = config.max,
-        .initial = config.initial_value,
-    } );
-  DCHECK( res.has_value() );
+    IntInputConfig const& config, e_input_required required ) {
+  maybe<int> const res = co_await window_plane_.int_input_box( {
+      .msg      = config.msg,
+      .min      = config.min,
+      .max      = config.max,
+      .initial  = config.initial_value,
+      .required = required,
+  } );
+  if( !res.has_value() ) {
+    // User cancelled.
+    CHECK( required == e_input_required::no );
+    co_return nothing;
+  }
   co_return *res;
 }
 
