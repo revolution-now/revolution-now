@@ -637,9 +637,24 @@ TravelHandler::confirm_travel_impl() {
     bh_t bh = bh_t::always;
     switch( bh ) {
       case bh_t::always:
-        // Assume that it always takes one point to move into a
-        // friendly colony square, whether from land or a ship.
-        if( !check_points( /*needed=*/MovementPoints( 1 ) ) )
+        // If we are moving into the colony along a road or
+        // river, then it will cost the usual 1/3 movement point.
+        // But in the original game, the cost otherwise seems to
+        // be capped at one movement points; in other words, if
+        // we are moving into a colony square that is located on
+        // hills (normally costs 2 points) but is not connected
+        // with a road or river, it will only cost 1 movement
+        // point. friendly colony square, whether from land or a
+        // ship.
+        //
+        // First get the movement points as if the colony were
+        // not present (but the road under it still is).
+        MovementPoints const land_only_pts =
+            movement_points_required( src_square, dst_square,
+                                      direction );
+        MovementPoints const needed_pts =
+            std::min( land_only_pts, MovementPoints( 1 ) );
+        if( !check_points( needed_pts ) )
           co_return e_travel_verdict::consume_remaining_points;
         // NOTE: In the original game, when a wagon train enters
         // a colony it ends its turn. But that is not likely
