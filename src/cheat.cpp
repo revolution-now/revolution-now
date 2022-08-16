@@ -68,8 +68,8 @@ bool can_remove_building( Colony const&     colony,
 wait<> cheat_colony_buildings( Colony& colony, IGui& gui ) {
   CO_RETURN_IF_NO_CHEAT;
   maybe<e_cheat_colony_buildings_option> mode =
-      co_await gui
-          .enum_choice<e_cheat_colony_buildings_option>();
+      co_await gui.optional_enum_choice<
+          e_cheat_colony_buildings_option>();
   if( !mode.has_value() ) co_return;
   switch( *mode ) {
     case e_cheat_colony_buildings_option::give_all_buildings:
@@ -97,7 +97,7 @@ wait<> cheat_colony_buildings( Colony& colony, IGui& gui ) {
       break;
     case e_cheat_colony_buildings_option::add_one_building: {
       maybe<e_colony_building> building =
-          co_await gui.enum_choice<e_colony_building>(
+          co_await gui.optional_enum_choice<e_colony_building>(
               /*sort=*/true );
       if( building.has_value() )
         colony.buildings[*building] = true;
@@ -105,7 +105,7 @@ wait<> cheat_colony_buildings( Colony& colony, IGui& gui ) {
     }
     case e_cheat_colony_buildings_option::remove_one_building: {
       maybe<e_colony_building> building =
-          co_await gui.enum_choice<e_colony_building>(
+          co_await gui.optional_enum_choice<e_colony_building>(
               /*sort=*/true );
       if( !building.has_value() ) co_return;
       if( !can_remove_building( colony, *building ) ) {
@@ -354,11 +354,11 @@ wait<> cheat_create_unit_on_map( SS& ss, TS& ts, e_nation nation,
         } },
   };
   maybe<e_cheat_unit_creation_categories> category =
-      co_await ts.gui
-          .enum_choice<e_cheat_unit_creation_categories>();
+      co_await ts.gui.optional_enum_choice<
+          e_cheat_unit_creation_categories>();
   if( !category.has_value() ) co_return;
   maybe<e_unit_type> type =
-      co_await ts.gui.partial_enum_choice<e_unit_type>(
+      co_await ts.gui.partial_optional_enum_choice<e_unit_type>(
           categories[*category] );
   if( !type.has_value() ) co_return;
   UNWRAP_CHECK( player, ss.players.players[nation] );

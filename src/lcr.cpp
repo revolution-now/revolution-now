@@ -227,7 +227,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
       co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::burial_mounds: {
-      ui::e_confirm res = co_await ts.gui.yes_no(
+      ui::e_confirm res = co_await ts.gui.required_yes_no(
           { .msg = "You stumble across some mysterious ancient "
                    "burial mounds.  Explore them?",
             .yes_label      = "Let us search for treasure!",

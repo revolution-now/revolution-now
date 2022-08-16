@@ -80,8 +80,7 @@ struct DumpHandler : public OrdersHandler {
 
     ChoiceConfig config{
         .msg = "What cargo would you like to dump overboard?",
-        .options       = {},
-        .key_on_escape = "-",
+        .options = {},
     };
 
     for( auto const& [slot, comm] : commodities ) {
@@ -97,11 +96,12 @@ struct DumpHandler : public OrdersHandler {
       config.options.push_back( option );
     }
 
-    string const selection = co_await ts_.gui.choice( config );
-    if( selection == "-" ) co_return false; // cancelled.
+    maybe<string> const selection =
+        co_await ts_.gui.optional_choice( config );
+    if( !selection.has_value() ) co_return false; // cancelled.
 
-    CHECK( keys.contains( selection ) );
-    slot_      = keys[selection];
+    CHECK( keys.contains( *selection ) );
+    slot_      = keys[*selection];
     to_remove_ = commodities[slot_];
     co_return true;
   }

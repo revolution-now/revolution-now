@@ -191,7 +191,8 @@ wait<> menu_handler( Planes& planes, SS& ss, TS& ts,
               { .key          = "yes",
                 .display_name = "Give me liberty or give me "
                                 "death!" } } };
-      string answer = co_await ts.gui.choice( config );
+      maybe<string> const answer =
+          co_await ts.gui.optional_choice( config );
       co_await ts.gui.message_box( "You selected: {}", answer );
       break;
     }

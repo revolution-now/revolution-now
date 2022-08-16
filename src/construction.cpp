@@ -174,9 +174,15 @@ wait<> select_colony_construction( SSConst const& ss,
   CHECK( !initial_selection.has_value() ||
          *initial_selection >= 0 );
   config.initial_selection = initial_selection;
-  string const what        = co_await gui.choice( config );
+  maybe<string> const what =
+      co_await gui.optional_choice( config );
+
+  if( what == nothing )
+    // User cancelled; no change.
+    co_return;
 
   if( what == kNoProductionKey ) {
+    // User selected "(no production)".
     colony.construction.reset();
     co_return;
   }
@@ -197,7 +203,7 @@ wait<> select_colony_construction( SSConst const& ss,
     }
   }
 
-  FATAL( "unknown building name {}.", what );
+  FATAL( "unknown building name {}.", *what );
 }
 
 } // namespace rn

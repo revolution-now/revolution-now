@@ -51,29 +51,12 @@ namespace rn {
 struct IGui {
   virtual ~IGui() = default;
 
+  /* ============================================================
+  ** One-way (non-input) GUI/IO stuff.
+  ** ===========================================================*/
   // Displays a message box. Hitting basically any key or
   // clicking the mouse (anywhere) should close it.
   virtual wait<> message_box( std::string_view msg ) = 0;
-
-  // Display a message and one or more choices and let the user
-  // choose one.
-  virtual wait<std::string> choice(
-      ChoiceConfig const& config ) = 0;
-
-  // Display a prompt and ask (require) a string input from the
-  // user.
-  virtual wait<std::string> string_input(
-      StringInputConfig const& config ) = 0;
-
-  // Display a prompt and ask (require) an integer input from the
-  // user.
-  virtual wait<int> int_input(
-      IntInputConfig const& config ) = 0;
-
-  // Waits for the given amount of time and then returns the
-  // amount of time actually waited.
-  virtual wait<std::chrono::microseconds> wait_for(
-      std::chrono::microseconds time ) = 0;
 
   // For convenience.  Should not be overridden.
   template<typename Arg, typename... Rest>
@@ -84,32 +67,104 @@ struct IGui {
         std::forward<Rest>( rest )... ) );
   }
 
-  // For convenience. Should not be overridden.
-  wait<ui::e_confirm> yes_no( YesNoConfig const& config );
+  // Waits for the given amount of time and then returns the
+  // amount of time actually waited.
+  virtual wait<std::chrono::microseconds> wait_for(
+      std::chrono::microseconds time ) = 0;
+
+  /* ============================================================
+  ** User Input GUI
+  ** ===========================================================*/
+
+ public:
+  wait<maybe<std::string>> optional_choice(
+      ChoiceConfig const& config );
+
+  wait<std::string> required_choice(
+      ChoiceConfig const& config );
+
+  wait<maybe<std::string>> optional_string_input(
+      StringInputConfig const& config );
+
+  wait<std::string> required_string_input(
+      StringInputConfig const& config );
+
+  wait<maybe<int>> optional_int_input(
+      IntInputConfig const& config );
+
+  wait<int> required_int_input( IntInputConfig const& config );
+
+  wait<maybe<ui::e_confirm>> optional_yes_no(
+      YesNoConfig const& config );
+
+  wait<ui::e_confirm> required_yes_no(
+      YesNoConfig const& config );
 
   template<refl::ReflectedEnum E>
-  wait<maybe<E>> enum_choice(
+  wait<maybe<E>> optional_enum_choice(
+      EnumChoiceConfig const&               enum_config,
+      refl::enum_map<E, std::string> const& names );
+
+  template<refl::ReflectedEnum E>
+  wait<E> required_enum_choice(
       EnumChoiceConfig const&               enum_config,
       refl::enum_map<E, std::string> const& names );
 
   // This one just uses the names of the enums as display names.
   // This is mostly for debug related UIs.
   template<refl::ReflectedEnum E>
-  wait<maybe<E>> enum_choice(
+  wait<maybe<E>> optional_enum_choice(
+      EnumChoiceConfig const& enum_config );
+
+  template<refl::ReflectedEnum E>
+  wait<E> required_enum_choice(
       EnumChoiceConfig const& enum_config );
 
   // Even more minimal for quick and dirty menus, just asks "Se-
   // lect One" as the message and allows escaping. If sort ==
   // true then the items will be sorted by display name.
   template<refl::ReflectedEnum E>
-  wait<maybe<E>> enum_choice( bool sort = false );
+  wait<maybe<E>> optional_enum_choice( bool sort = false );
+
+  template<refl::ReflectedEnum E>
+  wait<E> required_enum_choice( bool sort = false );
 
   // For when we want to limit to a subset of the possible enum
   // values.
   template<refl::ReflectedEnum E>
-  wait<maybe<E>> partial_enum_choice(
+  wait<maybe<E>> partial_optional_enum_choice(
       std::vector<E> const& options, bool sort = false );
 
+ protected:
+  // Do not call these directly, instead call the ones in the
+  // next section that make it explicit in the name and return
+  // type as to whether the user input is required or not (or if
+  // the user can just hit escape to opt out of the input).
+
+  // Display a message and one or more choices and let the user
+  // choose one. This returns a maybe because it is used to im-
+  // plement both the optional and required variants.
+  virtual wait<maybe<std::string>> choice(
+      ChoiceConfig const& config,
+      e_input_required    required ) = 0;
+
+  // Display a prompt and ask the user for a string input. This
+  // returns a maybe because it is used to implement both the op-
+  // tional and required variants.
+  virtual wait<maybe<std::string>> string_input(
+      StringInputConfig const& config,
+      e_input_required         required ) = 0;
+
+  // Display a prompt and ask the user for an integer input. This
+  // returns a maybe because it is used to implement both the op-
+  // tional and required variants.
+  virtual wait<maybe<int>> int_input(
+      IntInputConfig const& config,
+      e_input_required      required ) = 0;
+
+  /* ============================================================
+  ** Utilities
+  ** ===========================================================*/
   // For convenience while developing, shouldn't really be used
   // to provide proper names for things for the player.
   std::string identifier_to_display_name(
@@ -117,55 +172,84 @@ struct IGui {
 };
 
 template<refl::ReflectedEnum E>
-wait<maybe<E>> IGui::enum_choice(
+wait<maybe<E>> IGui::optional_enum_choice(
     EnumChoiceConfig const&               enum_config,
     refl::enum_map<E, std::string> const& names ) {
   ChoiceConfig config{ .msg  = enum_config.msg,
                        .sort = enum_config.sort };
-  if( !enum_config.choice_required ) config.key_on_escape = "-";
   for( E item : refl::enum_values<E> )
     config.options.push_back( ChoiceConfigOption{
         .key = std::string( refl::enum_value_name( item ) ),
         .display_name = names[item] } );
-  std::string res = co_await choice( config );
-  // If hitting escape was allowed, and if that happened, then
-  // this should do the right thing and return nothing.
-  co_return refl::enum_from_string<E>( res );
+  maybe<std::string> str_res =
+      co_await optional_choice( config );
+  if( !str_res.has_value() ) co_return nothing;
+  UNWRAP_CHECK( res, refl::enum_from_string<E>( *str_res ) );
+  co_return res;
 }
 
 template<refl::ReflectedEnum E>
-wait<maybe<E>> IGui::enum_choice(
+wait<E> IGui::required_enum_choice(
+    EnumChoiceConfig const&               enum_config,
+    refl::enum_map<E, std::string> const& names ) {
+  ChoiceConfig config{ .msg  = enum_config.msg,
+                       .sort = enum_config.sort };
+  for( E item : refl::enum_values<E> )
+    config.options.push_back( ChoiceConfigOption{
+        .key = std::string( refl::enum_value_name( item ) ),
+        .display_name = names[item] } );
+  std::string const str_res = co_await required_choice( config );
+  UNWRAP_CHECK( res, refl::enum_from_string<E>( str_res ) );
+  co_return res;
+}
+
+template<refl::ReflectedEnum E>
+wait<maybe<E>> IGui::optional_enum_choice(
     EnumChoiceConfig const& enum_config ) {
   refl::enum_map<E, std::string> names;
   for( E item : refl::enum_values<E> )
     names[item] = identifier_to_display_name(
         refl::enum_value_name( item ) );
-  co_return co_await enum_choice( enum_config, names );
+  co_return co_await optional_enum_choice( enum_config, names );
 }
 
 template<refl::ReflectedEnum E>
-wait<maybe<E>> IGui::enum_choice( bool sort ) {
-  EnumChoiceConfig config{ .msg             = "Select One",
-                           .choice_required = false,
-                           .sort            = sort };
-  co_return co_await enum_choice<E>( config );
+wait<E> IGui::required_enum_choice(
+    EnumChoiceConfig const& enum_config ) {
+  refl::enum_map<E, std::string> names;
+  for( E item : refl::enum_values<E> )
+    names[item] = identifier_to_display_name(
+        refl::enum_value_name( item ) );
+  co_return co_await required_enum_choice( enum_config, names );
 }
 
 template<refl::ReflectedEnum E>
-wait<maybe<E>> IGui::partial_enum_choice(
+wait<maybe<E>> IGui::optional_enum_choice( bool sort ) {
+  EnumChoiceConfig config{ .msg = "Select One", .sort = sort };
+  co_return co_await optional_enum_choice<E>( config );
+}
+
+template<refl::ReflectedEnum E>
+wait<E> IGui::required_enum_choice( bool sort ) {
+  EnumChoiceConfig config{ .msg = "Select One", .sort = sort };
+  co_return co_await required_enum_choice<E>( config );
+}
+
+template<refl::ReflectedEnum E>
+wait<maybe<E>> IGui::partial_optional_enum_choice(
     std::vector<E> const& options, bool sort ) {
-  ChoiceConfig config{
-      .msg = "Select One", .key_on_escape = "-", .sort = sort };
+  ChoiceConfig config{ .msg = "Select One", .sort = sort };
   for( E item : options ) {
     auto key = std::string( refl::enum_value_name( item ) );
     config.options.push_back( ChoiceConfigOption{
         .key          = key,
         .display_name = identifier_to_display_name( key ) } );
   }
-  std::string res = co_await choice( config );
-  // If hitting escape was allowed, and if that happened, then
-  // this should do the right thing and return nothing.
-  co_return refl::enum_from_string<E>( res );
+  maybe<std::string> str_res =
+      co_await optional_choice( config );
+  if( !str_res.has_value() ) co_return nothing;
+  UNWRAP_CHECK( res, refl::enum_from_string<E>( *str_res ) );
+  co_return res;
 }
 
 } // namespace rn

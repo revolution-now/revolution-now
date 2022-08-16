@@ -149,8 +149,9 @@ wait<bool> check_abandon( Colony const& colony, IGui& gui ) {
       .no_label       = "Never!  That would be folly.",
       .no_comes_first = true,
   };
-  ui::e_confirm res = co_await gui.yes_no( config );
-  co_return( res == ui::e_confirm::no );
+  maybe<ui::e_confirm> res =
+      co_await gui.optional_yes_no( config );
+  co_return( res != ui::e_confirm::yes );
 }
 
 maybe<string> check_seige() {
@@ -360,11 +361,11 @@ class MarketCommodities : public ui::View,
         "What quantity of @[H]{}@[] would you like to move? "
         "({}-{}):",
         commodity_display_name( dragging_->type ), min, max );
-    maybe<int> quantity =
-        co_await ts_.gui.int_input( { .msg           = text,
-                                      .initial_value = max,
-                                      .min           = min,
-                                      .max           = max } );
+    maybe<int> quantity = co_await ts_.gui.optional_int_input(
+        { .msg           = text,
+          .initial_value = max,
+          .min           = min,
+          .max           = max } );
     if( !quantity ) co_return nothing;
     Commodity new_comm = *dragging_;
     new_comm.quantity  = *quantity;
@@ -718,11 +719,11 @@ class CargoView : public ui::View,
                          "What quantity of @[H]{}@[] would you like to move? "
                                           "({}-{}):",
                          commodity_display_name( comm.obj.type ), min, max );
-    maybe<int> quantity =
-        co_await ts_.gui.int_input( { .msg           = text,
-                                      .initial_value = max,
-                                      .min           = min,
-                                      .max           = max } );
+    maybe<int> quantity = co_await ts_.gui.optional_int_input(
+        { .msg           = text,
+          .initial_value = max,
+          .min           = min,
+          .max           = max } );
     if( !quantity ) co_return nothing;
     Commodity new_comm = comm.obj;
     new_comm.quantity  = *quantity;
@@ -1049,7 +1050,7 @@ class UnitsAtGateColonyView : public ui::View,
             // The unit, being at the colony gate, is actually on
             // the map at the site of this colony. In the event
             // that we are e.g. changing a colonist to a scout
-            // (which has a sighting radius of two) we should
+            // (whsch has a sighting radius of two) we should
             // call this function to update the rendered map
             // along with anything else that needs to be done.
             unit_to_map_square_non_interactive(
@@ -1102,12 +1103,12 @@ class UnitsAtGateColonyView : public ui::View,
             { .key = "orders", .display_name = "Change Orders" },
             { .key = "strip", .display_name = "Strip Unit" } } };
     if( can_bless_missionaries( colony_ ) &&
-
         unit_can_be_blessed( unit.type_obj() ) )
       config.options.push_back(
           { .key          = "missionary",
             .display_name = "Bless as Missionary" } );
-    string mode = co_await ts_.gui.choice( config );
+    maybe<string> const mode =
+        co_await ts_.gui.optional_choice( config );
     if( mode == "orders" ) {
       ChoiceConfig config{
           .msg     = "Change unit orders to:",
@@ -1116,7 +1117,8 @@ class UnitsAtGateColonyView : public ui::View,
               { .key = "sentry", .display_name = "Sentry" },
               { .key          = "fortify",
                 .display_name = "Fortify" } } };
-      string new_orders = co_await ts_.gui.choice( config );
+      maybe<string> const new_orders =
+          co_await ts_.gui.optional_choice( config );
       if( new_orders == "clear" )
         unit.clear_orders();
       else if( new_orders == "sentry" )

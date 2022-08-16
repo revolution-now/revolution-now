@@ -20,6 +20,11 @@ include "<vector>"
 
 namespace "rn"
 
+enum.e_input_required {
+  no,
+  yes,
+}
+
 struct.ChoiceConfigOption {
   key 'std::string',
   display_name 'std::string',
@@ -34,11 +39,6 @@ struct.ChoiceConfig {
   # Needs to be a vector for well-defined and customizable order-
   # ing.
   options 'std::vector<ChoiceConfigOption>',
-
-  # If this has a value then the user is allowed to hit escape to
-  # close the window and in that case it will return the given
-  # key, which does not have to be among those in the options.
-  key_on_escape 'maybe<std::string>',
 
   # Should they be sorted by display name before being displayed.
   sort 'bool',
@@ -70,10 +70,6 @@ struct.IntInputConfig {
 struct.EnumChoiceConfig {
   # This text will be reflowed and may end up on multiple lines.
   msg 'std::string',
-
-  # Should the user be forced to choose one, or can they e.g. hit
-  # escape to just cancel.
-  choice_required 'bool',
 
   # Should they be sorted by display name before being displayed.
   sort 'bool',

@@ -1685,13 +1685,12 @@ struct DragUserInput {
         "(0-100):",
         commodity_display_name( type ), verb );
 
-    // FIXME: allow the user to cancel by hitting escape.
-    //
     // FIXME: add proper initial value.
-    int res = co_await S.ts_.gui.int_input( { .msg = text,
-                                              .initial_value = 0,
-                                              .min           = 0,
-                                              .max = 100 } );
+    maybe<int> const res = co_await S.ts_.gui.optional_int_input(
+        { .msg           = text,
+          .initial_value = 0,
+          .min           = 0,
+          .max           = 100 } );
     co_return res;
   }
 
@@ -1914,7 +1913,7 @@ void drag_n_drop_draw( PS const& S, rr::Renderer& renderer,
   if( !S.drag_state ) return;
   auto& state            = *S.drag_state;
   auto  to_screen_coords = [&]( Coord const& c ) {
-     return c + canvas.upper_left().distance_from_origin();
+    return c + canvas.upper_left().distance_from_origin();
   };
   auto origin_for = [&]( Delta const& tile_size ) {
     return to_screen_coords( state.where ) -

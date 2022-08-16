@@ -32,19 +32,23 @@ struct RealGui : IGui {
   wait<> message_box( std::string_view msg ) override;
 
   // Implement IGui.
-  wait<std::string> choice(
-      ChoiceConfig const& config ) override;
-
-  // Implement IGui.
-  wait<std::string> string_input(
-      StringInputConfig const& config ) override;
-
-  // Implement IGui.
-  wait<int> int_input( IntInputConfig const& config ) override;
-
-  // Implement IGui.
   wait<std::chrono::microseconds> wait_for(
       std::chrono::microseconds time ) override;
+
+  // Implement IGui.
+  wait<maybe<std::string>> choice(
+      ChoiceConfig const& config,
+      e_input_required    required ) override;
+
+  // Implement IGui.
+  wait<maybe<std::string>> string_input(
+      StringInputConfig const& config,
+      e_input_required         required ) override;
+
+  // Implement IGui.
+  wait<maybe<int>> int_input(
+      IntInputConfig const& config,
+      e_input_required      required ) override;
 
  private:
   WindowPlane& window_plane_;

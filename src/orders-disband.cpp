@@ -43,8 +43,9 @@ struct DisbandHandler : public OrdersHandler {
         "Really disband {}?",
         units_state.unit_for( unit_id ).desc().name );
 
-    ui::e_confirm answer = co_await gui.yes_no(
-        { .msg = q, .yes_label = "Yes", .no_label = "No" } );
+    maybe<ui::e_confirm> const answer =
+        co_await gui.optional_yes_no(
+            { .msg = q, .yes_label = "Yes", .no_label = "No" } );
     co_return answer == ui::e_confirm::yes;
   }
 

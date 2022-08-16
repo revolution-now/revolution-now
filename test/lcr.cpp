@@ -267,10 +267,11 @@ TEST_CASE( "[lcr] fountain of youth" ) {
   for( int i = 0; i < 8; ++i ) {
     EXPECT_CALL(
         W.gui(),
-        choice( Field(
-            &ChoiceConfig::msg,
-            StrContains( "Who shall we next choose" ) ) ) )
-        .returns( make_wait<string>( "1" ) );
+        choice(
+            Field( &ChoiceConfig::msg,
+                   StrContains( "Who shall we next choose" ) ),
+            e_input_required::no ) )
+        .returns( make_wait<maybe<string>>( "1" ) );
     EXPECT_CALL( W.gui(),
                  wait_for( chrono::milliseconds( 300 ) ) )
         .returns( chrono::microseconds{} );
@@ -486,8 +487,8 @@ TEST_CASE( "[lcr] burial mounds / treasure" ) {
   bool has_burial_grounds = false;
 
   // Mock function calls.
-  EXPECT_CALL( W.gui(), choice( _ ) )
-      .returns( make_wait<string>( "yes" ) );
+  EXPECT_CALL( W.gui(), choice( _, e_input_required::yes ) )
+      .returns( make_wait<maybe<string>>( "yes" ) );
   EXPECT_CALL( W.gui(), message_box( StrContains(
                             "recovered a treasure worth" ) ) )
       .returns( make_wait() );
@@ -551,8 +552,8 @@ TEST_CASE( "[lcr] burial mounds / cold and empty" ) {
   bool has_burial_grounds = false;
 
   // Mock function calls.
-  EXPECT_CALL( W.gui(), choice( _ ) )
-      .returns( make_wait<string>( "yes" ) );
+  EXPECT_CALL( W.gui(), choice( _, e_input_required::yes ) )
+      .returns( make_wait<maybe<string>>( "yes" ) );
   EXPECT_CALL( W.gui(),
                message_box( StrContains( "cold and empty" ) ) )
       .returns( make_wait() );
@@ -598,8 +599,8 @@ TEST_CASE( "[lcr] burial mounds / trinkets" ) {
   bool has_burial_grounds = false;
 
   // Mock function calls.
-  EXPECT_CALL( W.gui(), choice( _ ) )
-      .returns( make_wait<string>( "yes" ) );
+  EXPECT_CALL( W.gui(), choice( _, e_input_required::yes ) )
+      .returns( make_wait<maybe<string>>( "yes" ) );
   EXPECT_CALL(
       W.gui(),
       message_box( StrContains( "found some trinkets" ) ) )
@@ -654,8 +655,8 @@ TEST_CASE( "[lcr] burial mounds / no explore" ) {
   bool has_burial_grounds = false;
 
   // Mock function calls.
-  EXPECT_CALL( W.gui(), choice( _ ) )
-      .returns( make_wait<string>( "no" ) );
+  EXPECT_CALL( W.gui(), choice( _, e_input_required::yes ) )
+      .returns( make_wait<maybe<string>>( "no" ) );
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
@@ -699,8 +700,8 @@ TEST_CASE(
   bool has_burial_grounds = true;
 
   // Mock function calls.
-  EXPECT_CALL( W.gui(), choice( _ ) )
-      .returns( make_wait<string>( "yes" ) );
+  EXPECT_CALL( W.gui(), choice( _, e_input_required::yes ) )
+      .returns( make_wait<maybe<string>>( "yes" ) );
   EXPECT_CALL(
       W.gui(),
       message_box( StrContains( "found some trinkets" ) ) )

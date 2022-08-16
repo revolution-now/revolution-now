@@ -82,23 +82,56 @@ TEST_CASE( "[immigration] ask_player_to_choose_immigrant" ) {
   MockIGui gui;
 
   EXPECT_CALL(
-      gui, choice( ChoiceConfig{
-               .msg = "please select one",
-               .options =
-                   vector<ChoiceConfigOption>{
-                       { .key          = "0",
-                         .display_name = "Expert Farmer" },
-                       { .key          = "1",
-                         .display_name = "Veteran Soldier" },
-                       { .key          = "2",
-                         .display_name = "Seasoned Scout" } },
-               .key_on_escape = nothing } ) )
-      .returns( make_wait<string>( "1" ) );
+      gui,
+      choice(
+          ChoiceConfig{
+              .msg = "please select one",
+              .options =
+                  vector<ChoiceConfigOption>{
+                      { .key          = "0",
+                        .display_name = "Expert Farmer" },
+                      { .key          = "1",
+                        .display_name = "Veteran Soldier" },
+                      { .key          = "2",
+                        .display_name = "Seasoned Scout" } } },
+          e_input_required::no ) )
+      .returns( make_wait<maybe<string>>( "1" ) );
 
-  wait<int> w = ask_player_to_choose_immigrant(
+  wait<maybe<int>> w = ask_player_to_choose_immigrant(
       gui, immigration, "please select one" );
   REQUIRE( w.ready() );
-  REQUIRE( *w == 1 );
+  REQUIRE( w->has_value() );
+  REQUIRE( **w == 1 );
+}
+
+TEST_CASE(
+    "[immigration] ask_player_to_choose_immigrant cancels" ) {
+  ImmigrationState immigration{
+      .immigrants_pool = { e_unit_type::expert_farmer,
+                           e_unit_type::veteran_soldier,
+                           e_unit_type::seasoned_scout } };
+  MockIGui gui;
+
+  EXPECT_CALL(
+      gui,
+      choice(
+          ChoiceConfig{
+              .msg = "please select one",
+              .options =
+                  vector<ChoiceConfigOption>{
+                      { .key          = "0",
+                        .display_name = "Expert Farmer" },
+                      { .key          = "1",
+                        .display_name = "Veteran Soldier" },
+                      { .key          = "2",
+                        .display_name = "Seasoned Scout" } } },
+          e_input_required::no ) )
+      .returns( make_wait<maybe<string>>( nothing ) );
+
+  wait<maybe<int>> w = ask_player_to_choose_immigrant(
+      gui, immigration, "please select one" );
+  REQUIRE( w.ready() );
+  REQUIRE( *w == nothing );
 }
 
 TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
@@ -458,17 +491,18 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
 
     EXPECT_CALL(
         W.gui(),
-        choice( AllOf(
-            Field( &ChoiceConfig::msg,
-                   StartsWith(
-                       "Word of religious freedom has spread! "
-                       "New immigrants are ready to join us in "
-                       "the New World.  Which of the following "
-                       "shall we choose?" ) ),
-            Field( &ChoiceConfig::options, HasSize( 3 ) ),
-            Field( &ChoiceConfig::key_on_escape,
-                   maybe<string>{} ) ) ) )
-        .returns( make_wait<string>( "1" ) );
+        choice(
+            AllOf(
+                Field(
+                    &ChoiceConfig::msg,
+                    StartsWith(
+                        "Word of religious freedom has spread! "
+                        "New immigrants are ready to join us in "
+                        "the New World.  Which of the following "
+                        "shall we choose?" ) ),
+                Field( &ChoiceConfig::options, HasSize( 3 ) ) ),
+            e_input_required::no ) )
+        .returns( make_wait<maybe<string>>( "1" ) );
     // This one is to choose that unit's replacement in the pool,
     // which is always done randomly. 8960.0 was found by summing
     // all of the weights for the unit types on the discoverer
@@ -480,7 +514,8 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     wait<maybe<UnitId>> w = check_for_new_immigrant(
         W.ss(), W.ts(), player, crosses_needed );
     REQUIRE( w.ready() );
-    REQUIRE( *w == UnitId{ 1 } );
+    REQUIRE( w->has_value() );
+    REQUIRE( **w == UnitId{ 1 } );
     REQUIRE( W.units().unit_for( **w ).type() ==
              e_unit_type::veteran_soldier );
     REQUIRE( player.old_world.immigration.immigrants_pool[1] ==

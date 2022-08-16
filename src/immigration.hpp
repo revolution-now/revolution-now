@@ -35,8 +35,11 @@ struct TS;
 struct UnitsState;
 
 // Presents the user with the three unit types that are currently
-// in the immigration pool and asks to choose one.
-wait<int> ask_player_to_choose_immigrant(
+// in the immigration pool and asks to choose one. As in the
+// original game, the user can cancel by hitting escape in which
+// case no immigrant will be selected. That might be done e.g. in
+// the end game where no further immigrants are wanted.
+wait<maybe<int>> ask_player_to_choose_immigrant(
     IGui& gui, ImmigrationState const& immigration,
     std::string msg );
 
@@ -65,7 +68,10 @@ void add_player_crosses( Player& player,
                          int     dock_crosses_bonus );
 
 // Will check if the player can obtain a new immigrant, and, if
-// so, will run through the associated UI routine.
+// so, will run through the associated UI routine. This can re-
+// turn nothing if either there are not enough crosses or if the
+// user has cancelled while selecting an immigrant from the pool
+// (which can only happen after Brewster is obtained).
 wait<maybe<UnitId>> check_for_new_immigrant(
     SS& ss, TS& ts, Player& player, int crosses_needed );
 

@@ -77,12 +77,12 @@ TEST_CASE( "[construction] select building, borders water" ) {
         .msg               = "Select One",
         .options           = { ChoiceConfigOption{
                       .key = "none", .display_name = "(no production)" } },
-        .key_on_escape     = nothing,
         .sort              = false,
         .initial_selection = nothing };
 
-    EXPECT_CALL( W.gui(), choice( config ) )
-        .returns( make_wait<string>( "none" ) );
+    EXPECT_CALL( W.gui(),
+                 choice( config, e_input_required::no ) )
+        .returns( make_wait<maybe<string>>( "none" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -121,12 +121,13 @@ TEST_CASE( "[construction] select building, borders water" ) {
               { .key = "wagon_train",
                 .display_name =
                     "Wagon Train             40 hammers" } },
-        .key_on_escape     = nothing,
         .sort              = false,
         .initial_selection = nothing };
 
-    EXPECT_CALL( W.gui(), choice( config ) )
-        .returns( make_wait<string>( "tobacconists_shop" ) );
+    EXPECT_CALL( W.gui(),
+                 choice( config, e_input_required::no ) )
+        .returns(
+            make_wait<maybe<string>>( "tobacconists_shop" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -172,12 +173,13 @@ TEST_CASE( "[construction] select building, borders water" ) {
               { .key = "wagon_train",
                 .display_name =
                     "Wagon Train             40 hammers" } },
-        .key_on_escape     = nothing,
         .sort              = false,
         .initial_selection = 3 };
 
-    EXPECT_CALL( W.gui(), choice( config ) )
-        .returns( make_wait<string>( "tobacconists_shop" ) );
+    EXPECT_CALL( W.gui(),
+                 choice( config, e_input_required::no ) )
+        .returns(
+            make_wait<maybe<string>>( "tobacconists_shop" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -244,12 +246,13 @@ TEST_CASE( "[construction] select building, borders water" ) {
               { .key = "wagon_train",
                 .display_name =
                     "Wagon Train             40 hammers" } },
-        .key_on_escape     = nothing,
         .sort              = false,
         .initial_selection = nothing };
 
-    EXPECT_CALL( W.gui(), choice( config ) )
-        .returns( make_wait<string>( "fur_trading_post" ) );
+    EXPECT_CALL( W.gui(),
+                 choice( config, e_input_required::no ) )
+        .returns(
+            make_wait<maybe<string>>( "fur_trading_post" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -325,12 +328,12 @@ TEST_CASE( "[construction] select building, borders water" ) {
               { .key = "wagon_train",
                 .display_name =
                     "Wagon Train             40 hammers" } },
-        .key_on_escape     = nothing,
         .sort              = false,
         .initial_selection = nothing };
 
-    EXPECT_CALL( W.gui(), choice( config ) )
-        .returns( make_wait<string>( "none" ) );
+    EXPECT_CALL( W.gui(),
+                 choice( config, e_input_required::no ) )
+        .returns( make_wait<maybe<string>>( "none" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -386,12 +389,13 @@ TEST_CASE(
               { .key = "wagon_train",
                 .display_name =
                     "Wagon Train             40 hammers" } },
-        .key_on_escape     = nothing,
         .sort              = false,
         .initial_selection = nothing };
 
-    EXPECT_CALL( W.gui(), choice( config ) )
-        .returns( make_wait<string>( "tobacconists_shop" ) );
+    EXPECT_CALL( W.gui(),
+                 choice( config, e_input_required::no ) )
+        .returns(
+            make_wait<maybe<string>>( "tobacconists_shop" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );

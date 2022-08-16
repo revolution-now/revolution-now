@@ -54,7 +54,7 @@ wait<> try_discover_new_world( TerrainState const& terrain_state,
     if( !square.has_value() ) continue;
     if( square->surface != e_surface::land ) continue;
     // We've discovered the new world!
-    string name = co_await gui.string_input(
+    string const name = co_await gui.required_string_input(
         { .msg = "You've discovered the new world!  What shall "
                  "we call this land, Your Excellency?",
           .initial_text = new_world_name_for( player ) } );

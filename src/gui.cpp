@@ -31,7 +31,14 @@ wait<> RealGui::message_box( string_view msg ) {
   return window_plane_.message_box( msg );
 }
 
-wait<string> RealGui::choice( ChoiceConfig const& config ) {
+wait<chrono::microseconds> RealGui::wait_for(
+    chrono::microseconds time ) {
+  chrono::microseconds actual = co_await time;
+  co_return actual;
+}
+
+wait<maybe<string>> RealGui::choice(
+    ChoiceConfig const& config, e_input_required required ) {
   if( config.sort ) {
     ChoiceConfig new_config = config;
     std::sort( new_config.options.begin(),
@@ -40,7 +47,7 @@ wait<string> RealGui::choice( ChoiceConfig const& config ) {
                } );
     // Recurse but this time with no sorting.
     new_config.sort = false;
-    co_return co_await choice( new_config );
+    co_return co_await choice( new_config, required );
   }
   {
     // Sanity check.
@@ -69,11 +76,11 @@ wait<string> RealGui::choice( ChoiceConfig const& config ) {
   co_return config.options[selected].key;
 }
 
-wait<string> RealGui::string_input(
-    StringInputConfig const& config ) {
+wait<maybe<string>> RealGui::string_input(
+    StringInputConfig const& config, e_input_required ) {
   maybe<string> res;
-  // FIXME: need to use a different function here that just re-
-  // quires input.
+  // FIXME: need to fix this so that it can require input if the
+  // relevant parameter is set.
   while( !res.has_value() )
     res = co_await window_plane_.str_input_box(
         config.msg, config.initial_text );
@@ -81,10 +88,11 @@ wait<string> RealGui::string_input(
   co_return *res;
 }
 
-wait<int> RealGui::int_input( IntInputConfig const& config ) {
+wait<maybe<int>> RealGui::int_input(
+    IntInputConfig const& config, e_input_required ) {
   maybe<int> res;
-  // FIXME: need to use a different function here that just re-
-  // quires input.
+  // FIXME: need to fix this so that it can require input if the
+  // relevant parameter is set.
   while( !res.has_value() )
     res = co_await window_plane_.int_input_box( {
         .msg     = config.msg,
@@ -94,12 +102,6 @@ wait<int> RealGui::int_input( IntInputConfig const& config ) {
     } );
   DCHECK( res.has_value() );
   co_return *res;
-}
-
-wait<chrono::microseconds> RealGui::wait_for(
-    chrono::microseconds time ) {
-  chrono::microseconds actual = co_await time;
-  co_return actual;
 }
 
 } // namespace rn

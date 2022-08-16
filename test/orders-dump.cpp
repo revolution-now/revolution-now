@@ -130,10 +130,10 @@ TEST_CASE( "[orders-dump] galleon" ) {
                     .display_name = "1 muskets",
                 },
             },
-        .key_on_escape = "-",
     };
-    EXPECT_CALL( W.gui(), choice( config ) )
-        .returns( make_wait<string>( "2" ) );
+    EXPECT_CALL( W.gui(),
+                 choice( config, e_input_required::no ) )
+        .returns( make_wait<maybe<string>>( "2" ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -183,10 +183,10 @@ TEST_CASE( "[orders-dump] galleon" ) {
                     .display_name = "1 muskets",
                 },
             },
-        .key_on_escape = "-",
     };
-    EXPECT_CALL( W.gui(), choice( config ) )
-        .returns( make_wait<string>( "5" ) );
+    EXPECT_CALL( W.gui(),
+                 choice( config, e_input_required::no ) )
+        .returns( make_wait<maybe<string>>( "5" ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -229,10 +229,10 @@ TEST_CASE( "[orders-dump] galleon" ) {
                     .display_name = "50 horses",
                 },
             },
-        .key_on_escape = "-",
     };
-    EXPECT_CALL( W.gui(), choice( config ) )
-        .returns( make_wait<string>( "-" ) );
+    EXPECT_CALL( W.gui(),
+                 choice( config, e_input_required::no ) )
+        .returns( make_wait<maybe<string>>( nothing ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -268,10 +268,10 @@ TEST_CASE( "[orders-dump] galleon" ) {
                     .display_name = "50 horses",
                 },
             },
-        .key_on_escape = "-",
     };
-    EXPECT_CALL( W.gui(), choice( config ) )
-        .returns( make_wait<string>( "0" ) );
+    EXPECT_CALL( W.gui(),
+                 choice( config, e_input_required::no ) )
+        .returns( make_wait<maybe<string>>( "0" ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -307,10 +307,10 @@ TEST_CASE( "[orders-dump] galleon" ) {
                     .display_name = "50 horses",
                 },
             },
-        .key_on_escape = "-",
     };
-    EXPECT_CALL( W.gui(), choice( config ) )
-        .returns( make_wait<string>( "4" ) );
+    EXPECT_CALL( W.gui(),
+                 choice( config, e_input_required::no ) )
+        .returns( make_wait<maybe<string>>( "4" ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -387,10 +387,10 @@ TEST_CASE( "[orders-dump] wagon train" ) {
                     .display_name = "23 cotton",
                 },
             },
-        .key_on_escape = "-",
     };
-    EXPECT_CALL( W.gui(), choice( config ) )
-        .returns( make_wait<string>( "0" ) );
+    EXPECT_CALL( W.gui(),
+                 choice( config, e_input_required::no ) )
+        .returns( make_wait<maybe<string>>( "0" ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );

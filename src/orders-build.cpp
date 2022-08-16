@@ -100,13 +100,14 @@ struct BuildHandler : public OrdersHandler {
       }
     }
 
-    ui::e_confirm proceed =
-        co_await ts_.gui.yes_no( { .msg = "Build colony here?",
-                                   .yes_label = "Yes",
-                                   .no_label  = "No" } );
-    if( proceed == ui::e_confirm::no ) co_return false;
+    maybe<ui::e_confirm> const proceed =
+        co_await ts_.gui.optional_yes_no(
+            { .msg       = "Build colony here?",
+              .yes_label = "Yes",
+              .no_label  = "No" } );
+    if( proceed != ui::e_confirm::yes ) co_return false;
     while( true ) {
-      colony_name = co_await ts_.gui.string_input(
+      colony_name = co_await ts_.gui.required_string_input(
           { .msg =
                 "What shall this colony be named, your majesty?",
             .initial_text = colony_name.value_or( "" ) } );

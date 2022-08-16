@@ -92,7 +92,7 @@ UnitCounts unit_counts( UnitsState const& units_state,
 
 } // namespace
 
-wait<int> ask_player_to_choose_immigrant(
+wait<maybe<int>> ask_player_to_choose_immigrant(
     IGui& gui, ImmigrationState const& immigration,
     string msg ) {
   array<e_unit_type, 3> const& pool =
@@ -103,12 +103,13 @@ wait<int> ask_player_to_choose_immigrant(
       { .key = "2", .display_name = unit_attr( pool[2] ).name },
   };
   ChoiceConfig config{
-      .msg           = std::move( msg ),
-      .options       = options,
-      .key_on_escape = nothing,
+      .msg     = std::move( msg ),
+      .options = options,
   };
 
-  std::string res = co_await gui.choice( config );
+  maybe<string> const res =
+      co_await gui.optional_choice( config );
+  if( !res.has_value() ) co_return nothing;
   if( res == "0" ) co_return 0;
   if( res == "1" ) co_return 1;
   if( res == "2" ) co_return 2;
@@ -246,8 +247,11 @@ wait<maybe<UnitId>> check_for_new_immigrant(
         "Word of religious freedom has spread! New immigrants "
         "are ready to join us in the New World.  Which of the "
         "following shall we choose?";
-    immigrant_idx = co_await ask_player_to_choose_immigrant(
-        ts.gui, player.old_world.immigration, msg );
+    maybe<int> const maybe_immigrant_idx =
+        co_await ask_player_to_choose_immigrant(
+            ts.gui, player.old_world.immigration, msg );
+    if( !maybe_immigrant_idx.has_value() ) co_return nothing;
+    immigrant_idx = *maybe_immigrant_idx;
     CHECK_GE( immigrant_idx, 0 );
     CHECK_LE( immigrant_idx, 2 );
   } else {

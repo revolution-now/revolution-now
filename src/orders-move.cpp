@@ -305,8 +305,8 @@ struct TravelHandler : public OrdersHandler {
   wait<e_travel_verdict> confirm_travel_impl();
   wait<e_travel_verdict> analyze_unload() const;
 
-  wait<ui::e_confirm>    ask_sail_high_seas() const;
-  wait<e_travel_verdict> confirm_sail_high_seas() const;
+  wait<maybe<ui::e_confirm>> ask_sail_high_seas() const;
+  wait<e_travel_verdict>     confirm_sail_high_seas() const;
   wait<e_travel_verdict> confirm_sail_high_seas_map_edge() const;
 
   Planes& planes_;
@@ -381,11 +381,12 @@ TravelHandler::analyze_unload() const {
       msg =
           "Some units have already  moved this turn.  Would you "
           "like the remaining units to make landfall anyway?";
-    ui::e_confirm answer =
-        co_await ts_.gui.yes_no( { .msg       = msg,
-                                   .yes_label = "Make landfall",
-                                   .no_label = "Stay with ships",
-                                   .no_comes_first = true } );
+    maybe<ui::e_confirm> const answer =
+        co_await ts_.gui.optional_yes_no(
+            { .msg            = msg,
+              .yes_label      = "Make landfall",
+              .no_label       = "Stay with ships",
+              .no_comes_first = true } );
     co_return( answer == ui::e_confirm::yes )
         ? e_travel_verdict::land_fall
         : e_travel_verdict::cancelled;
@@ -398,8 +399,9 @@ bool is_high_seas( TerrainState const& terrain_state, Coord c ) {
   return terrain_state.square_at( c ).sea_lane;
 }
 
-wait<ui::e_confirm> TravelHandler::ask_sail_high_seas() const {
-  return ts_.gui.yes_no(
+wait<maybe<ui::e_confirm>> TravelHandler::ask_sail_high_seas()
+    const {
+  return ts_.gui.optional_yes_no(
       { .msg       = "Would you like to sail the high seas?",
         .yes_label = "Yes, steady as she goes!",
         .no_label  = "No, let us remain in these waters." } );
@@ -447,7 +449,8 @@ TravelHandler::confirm_sail_high_seas() const {
                                    ( d == e_direction::sw ) );
   bool ask = correct_src && correct_dst && correct_direction;
   if( !ask ) co_return e_travel_verdict::map_to_map;
-  ui::e_confirm confirmed = co_await ask_sail_high_seas();
+  maybe<ui::e_confirm> const confirmed =
+      co_await ask_sail_high_seas();
   co_return confirmed == ui::e_confirm::yes
       ? TravelHandler::e_travel_verdict::sail_high_seas
       : TravelHandler::e_travel_verdict::map_to_map;
@@ -463,7 +466,8 @@ TravelHandler::confirm_sail_high_seas_map_edge() const {
   bool ask = ( move_dst.x == -1 ||
                move_dst.x == ss_.terrain.world_size_tiles().w );
   if( !ask ) co_return e_travel_verdict::cancelled;
-  ui::e_confirm confirmed = co_await ask_sail_high_seas();
+  maybe<ui::e_confirm> const confirmed =
+      co_await ask_sail_high_seas();
   co_return confirmed == ui::e_confirm::yes
       ? TravelHandler::e_travel_verdict::map_edge_high_seas
       : TravelHandler::e_travel_verdict::cancelled;
@@ -1109,7 +1113,7 @@ AttackHandler::confirm_attack_impl() {
     co_return e_attack_verdict::unit_cannot_attack;
 
   if( unit.movement_points() < 1 ) {
-    if( co_await ts_.gui.yes_no(
+    if( co_await ts_.gui.optional_yes_no(
             { .msg = fmt::format(
                   "This unit only has @[H]{}@[] movement points "
                   "and so will not be fighting at full "
@@ -1117,8 +1121,8 @@ AttackHandler::confirm_attack_impl() {
                   unit.movement_points() ),
               .yes_label =
                   "Yes, let us proceed with full force!",
-              .no_label = "No, do not attack." } ) ==
-        ui::e_confirm::no )
+              .no_label = "No, do not attack." } ) !=
+        ui::e_confirm::yes )
       co_return e_attack_verdict::cancelled;
   }
 

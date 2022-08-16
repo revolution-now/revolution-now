@@ -157,10 +157,10 @@ wait<> ColonyLandView::perform_click(
   maybe<UnitId> unit_id = unit_under_cursor( event.pos );
   if( !unit_id.has_value() ) co_return;
 
-  EnumChoiceConfig     config{ .msg = "Select Occupation",
-                               .choice_required = false };
-  maybe<e_outdoor_job> new_job = co_await ts_.gui.enum_choice(
-      config, config_colony.outdoors.job_names );
+  EnumChoiceConfig const config{ .msg = "Select Occupation" };
+  maybe<e_outdoor_job> const new_job =
+      co_await ts_.gui.optional_enum_choice(
+          config, config_colony.outdoors.job_names );
   if( !new_job.has_value() ) co_return;
   Colony& colony = ss_.colonies.colony_for( colony_.id );
   change_unit_outdoor_job( colony, *unit_id, *new_job );

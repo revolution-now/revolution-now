@@ -252,10 +252,9 @@ wait<bool> present_colony_update(
     vector<ChoiceConfigOption> choices{
         { .key = "no_zoom", .display_name = "Continue turn" },
         { .key = "zoom", .display_name = "Zoom to colony" } };
-    string res =
-        co_await gui.choice( { .msg     = msg,
-                               .options = std::move( choices ),
-                               .key_on_escape = "no_zoom" } );
+    maybe<string> res = co_await gui.optional_choice(
+        { .msg = msg, .options = std::move( choices ) } );
+    // If the user hits escape then we don't zoom.
     co_return( res == "zoom" );
   }
   co_await gui.message_box( msg );
