@@ -35,6 +35,12 @@ struct RealGui : IGui {
   wait<std::chrono::microseconds> wait_for(
       std::chrono::microseconds time ) override;
 
+ private:
+  // The ones in this section should not be invoked directly, but
+  // instead through the IGui wrappers that are public. That way
+  // the required/optional status will be reflected in the return
+  // type.
+
   // Implement IGui.
   wait<maybe<std::string>> choice(
       ChoiceConfig const& config,
