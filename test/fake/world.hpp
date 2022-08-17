@@ -65,10 +65,6 @@ namespace rn::testing {
 
 // In order to use this the client test file will have to include
 // any game state files that it needs.
-//
-// TODO: consider moving this into the rn library and exposing it
-// in lua as it might end up being the right way to expose an API
-// to Lua.
 struct World {
   World();
   ~World() noexcept;
