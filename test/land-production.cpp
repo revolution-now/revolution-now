@@ -1984,7 +1984,235 @@ TEST_CASE( "[production] production_on_square/fish" ) {
 }
 
 TEST_CASE( "[production] food_production_on_center_square" ) {
-  // TODO
+  World            W;
+  MapSquare const* square     = nullptr;
+  e_difficulty     difficulty = {};
+  int              expected   = 0;
+
+  auto f = [&] {
+    return food_production_on_center_square( *square,
+                                             difficulty );
+  };
+
+  MapSquare const grassland =
+      W.make_terrain( e_terrain::grassland );
+  MapSquare const conifer = W.make_terrain( e_terrain::conifer );
+  MapSquare const hills   = W.make_terrain( e_terrain::hills );
+  MapSquare const arctic  = W.make_terrain( e_terrain::arctic );
+  MapSquare const plains  = W.make_terrain( e_terrain::plains );
+
+  MapSquare plains_plowed  = plains;
+  plains_plowed.irrigation = true;
+
+  MapSquare plains_plowed_wheat = plains_plowed;
+  plains_plowed_wheat.ground_resource =
+      e_natural_resource::wheat;
+
+  MapSquare plains_plowed_wheat_river = plains_plowed_wheat;
+  plains_plowed_wheat_river.river     = e_river::minor;
+
+  square     = &grassland;
+  difficulty = e_difficulty::discoverer;
+  expected   = 5;
+  REQUIRE( f() == expected );
+
+  square     = &grassland;
+  difficulty = e_difficulty::explorer;
+  expected   = 4;
+  REQUIRE( f() == expected );
+
+  square     = &grassland;
+  difficulty = e_difficulty::conquistador;
+  expected   = 3;
+  REQUIRE( f() == expected );
+
+  square     = &grassland;
+  difficulty = e_difficulty::governor;
+  expected   = 3;
+  REQUIRE( f() == expected );
+
+  square     = &grassland;
+  difficulty = e_difficulty::viceroy;
+  expected   = 3;
+  REQUIRE( f() == expected );
+
+  square     = &arctic;
+  difficulty = e_difficulty::discoverer;
+  expected   = 2;
+  REQUIRE( f() == expected );
+
+  square     = &arctic;
+  difficulty = e_difficulty::explorer;
+  expected   = 1;
+  REQUIRE( f() == expected );
+
+  square     = &arctic;
+  difficulty = e_difficulty::conquistador;
+  expected   = 0;
+  REQUIRE( f() == expected );
+
+  square     = &arctic;
+  difficulty = e_difficulty::governor;
+  expected   = 0;
+  REQUIRE( f() == expected );
+
+  square     = &arctic;
+  difficulty = e_difficulty::viceroy;
+  expected   = 0;
+  REQUIRE( f() == expected );
+
+  square     = &conifer;
+  difficulty = e_difficulty::discoverer;
+  expected   = 4;
+  REQUIRE( f() == expected );
+
+  square     = &conifer;
+  difficulty = e_difficulty::explorer;
+  expected   = 3;
+  REQUIRE( f() == expected );
+
+  square     = &conifer;
+  difficulty = e_difficulty::conquistador;
+  expected   = 2;
+  REQUIRE( f() == expected );
+
+  square     = &conifer;
+  difficulty = e_difficulty::governor;
+  expected   = 2;
+  REQUIRE( f() == expected );
+
+  square     = &conifer;
+  difficulty = e_difficulty::viceroy;
+  expected   = 2;
+  REQUIRE( f() == expected );
+
+  // This one differs from what it would be on a non-center
+  // square.
+
+  square     = &plains;
+  difficulty = e_difficulty::discoverer;
+  expected   = 5;
+  REQUIRE( f() == expected );
+
+  square     = &plains;
+  difficulty = e_difficulty::explorer;
+  expected   = 4;
+  REQUIRE( f() == expected );
+
+  square     = &plains;
+  difficulty = e_difficulty::conquistador;
+  expected   = 3;
+  REQUIRE( f() == expected );
+
+  square     = &plains;
+  difficulty = e_difficulty::governor;
+  expected   = 3;
+  REQUIRE( f() == expected );
+
+  square     = &plains;
+  difficulty = e_difficulty::viceroy;
+  expected   = 3;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed;
+  difficulty = e_difficulty::discoverer;
+  expected   = 6;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed;
+  difficulty = e_difficulty::explorer;
+  expected   = 5;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed;
+  difficulty = e_difficulty::conquistador;
+  expected   = 4;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed;
+  difficulty = e_difficulty::governor;
+  expected   = 4;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed;
+  difficulty = e_difficulty::viceroy;
+  expected   = 4;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_wheat;
+  difficulty = e_difficulty::discoverer;
+  expected   = 8;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_wheat;
+  difficulty = e_difficulty::explorer;
+  expected   = 7;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_wheat;
+  difficulty = e_difficulty::conquistador;
+  expected   = 6;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_wheat;
+  difficulty = e_difficulty::governor;
+  expected   = 6;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_wheat;
+  difficulty = e_difficulty::viceroy;
+  expected   = 6;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_wheat_river;
+  difficulty = e_difficulty::discoverer;
+  expected   = 8;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_wheat_river;
+  difficulty = e_difficulty::explorer;
+  expected   = 7;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_wheat_river;
+  difficulty = e_difficulty::conquistador;
+  expected   = 6;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_wheat_river;
+  difficulty = e_difficulty::governor;
+  expected   = 6;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_wheat_river;
+  difficulty = e_difficulty::viceroy;
+  expected   = 6;
+  REQUIRE( f() == expected );
+
+  square     = &hills;
+  difficulty = e_difficulty::discoverer;
+  expected   = 4;
+  REQUIRE( f() == expected );
+
+  square     = &hills;
+  difficulty = e_difficulty::explorer;
+  expected   = 3;
+  REQUIRE( f() == expected );
+
+  square     = &hills;
+  difficulty = e_difficulty::conquistador;
+  expected   = 2;
+  REQUIRE( f() == expected );
+
+  square     = &hills;
+  difficulty = e_difficulty::governor;
+  expected   = 2;
+  REQUIRE( f() == expected );
+
+  square     = &hills;
+  difficulty = e_difficulty::viceroy;
+  expected   = 2;
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE(
