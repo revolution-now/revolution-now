@@ -47,10 +47,11 @@ TEST_CASE( "[map-square] is_land, is_water" ) {
 }
 
 TEST_CASE( "[map-square] movement_points_required" ) {
-  // TODO: add some forest cases.
   MapSquare ocean = map_square_for_terrain( e_terrain::ocean );
   MapSquare grassland =
       map_square_for_terrain( e_terrain::grassland );
+  MapSquare grassland_with_forest =
+      map_square_for_terrain( e_terrain::conifer );
   MapSquare mountains =
       map_square_for_terrain( e_terrain::mountains );
   MapSquare grassland_with_road =
@@ -94,6 +95,16 @@ TEST_CASE( "[map-square] movement_points_required" ) {
   src      = grassland;
   dst      = grassland;
   expected = 1;
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
+
+  src      = grassland_with_forest;
+  dst      = grassland;
+  expected = 1;
+  REQUIRE( f( src, dst, e_direction::n ) == expected );
+
+  src      = grassland;
+  dst      = grassland_with_forest;
+  expected = 2;
   REQUIRE( f( src, dst, e_direction::n ) == expected );
 
   src      = mountains;
