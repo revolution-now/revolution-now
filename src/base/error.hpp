@@ -223,8 +223,8 @@
 /****************************************************************
 ** Try to unwrap a wrapped type.
 *****************************************************************/
-#define UNWRAP_CHECK( a, e )                                   \
-  auto&& STRING_JOIN( __e, __LINE__ ) = e;                     \
+#define UNWRAP_CHECK( a, ... )                                 \
+  auto&& STRING_JOIN( __e, __LINE__ ) = __VA_ARGS__;           \
   if( !STRING_JOIN( __e, __LINE__ ).has_value() ) {            \
     ::base::abort_with_msg(                                    \
         fmt::format( "bad unwrap, original error: {}",         \

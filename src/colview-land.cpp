@@ -186,6 +186,9 @@ maybe<ColViewObject_t> ColonyLandView::can_receive(
   if( dragging_.has_value() && d == dragging_->d ) return o;
   // Check if there is already a unit on the square.
   if( unit_under_cursor( where ).has_value() ) return nothing;
+  // Check if there is a colonist from another colony (friendly
+  // or foreign) that is already working on this square.
+  if( occupied_red_box_[*d] ) return nothing;
   // Note that we don't check for water/docks here; that is
   // done in the check function.
 
@@ -299,6 +302,18 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
     render_terrain_square(
         ss_.terrain, renderer, local_coord * g_tile_delta,
         render_square, TerrainRenderOptions{} );
+    static Coord const local_colony_loc =
+        Coord{ .x = 1, .y = 1 };
+    if( local_coord == local_colony_loc ) continue;
+    UNWRAP_CHECK( d,
+                  local_colony_loc.direction_to( local_coord ) );
+    if( occupied_red_box_[d] )
+      // This square is occupied by a colonist from another
+      // colony (either friendly or foreign).
+      painter.draw_empty_rect(
+          Rect::from( local_coord * g_tile_delta, g_tile_delta ),
+          rr::Painter::e_border_mode::inside,
+          gfx::pixel::red() );
   }
   // Render colonies.
   for( auto local_coord :
@@ -447,6 +462,8 @@ ColonyLandView::ColonyLandView( SS& ss, TS& ts, Colony& colony,
                                 e_render_mode mode )
   : ColonySubView( ss, ts, colony ),
     player_( player ),
-    mode_( mode ) {}
+    mode_( mode ),
+    occupied_red_box_( find_occupied_surrounding_colony_squares(
+        ss, colony ) ) {}
 
 } // namespace rn

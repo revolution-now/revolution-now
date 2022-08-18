@@ -119,4 +119,13 @@ wait<> run_colony_destruction( Planes& planes, SS& ss, TS& ts,
                                Colony&            colony,
                                maybe<std::string> msg );
 
+// Given a colony, find the squares in its surroundings that are
+// being worked by units in other colonies, either friendly or
+// foreign. In the original game, these squares will be drawn
+// with red boxes around them in the colony view to signal that
+// no further colonists can work there.
+refl::enum_map<e_direction, bool>
+find_occupied_surrounding_colony_squares( SSConst const& ss,
+                                          Colony const& colony );
+
 } // namespace rn

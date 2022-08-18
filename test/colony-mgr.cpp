@@ -59,14 +59,15 @@ struct World : testing::World {
     MapSquare const L = make_grassland();
     // clang-format off
     vector<MapSquare> tiles{
-      _, L, _, L,
-      L, L, L, L,
-      _, L, L, L,
-      _, L, _, L,
-      _, L, L, L,
+      _, L, _, L, L, L,
+      L, L, L, L, L, L,
+      _, L, L, L, L, L,
+      _, L, _, L, L, L,
+      _, L, L, L, L, L,
+      L, L, L, L, L, L,
     };
     // clang-format on
-    build_map( std::move( tiles ), 4 );
+    build_map( std::move( tiles ), 6 );
   }
 };
 
@@ -101,10 +102,10 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
   SECTION( "dragoon" ) {
     Coord const coord = { .x = 1, .y = 1 };
     UnitId      id    = W.add_unit_on_map(
-                UnitType::create( e_unit_type::dragoon,
+        UnitType::create( e_unit_type::dragoon,
                                   e_unit_type::petty_criminal )
-                    .value(),
-                coord );
+            .value(),
+        coord );
     Unit& founder = W.units().unit_for( id );
     REQUIRE( founder.type() == e_unit_type::dragoon );
     REQUIRE( unit_can_found_colony( W.ss(), id ).valid() );
@@ -429,6 +430,38 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
   REQUIRE( !W.units().exists( founder ) );
   REQUIRE( W.colonies().all().size() == 0 );
   REQUIRE( !W.terrain().square_at( loc ).road );
+}
+
+TEST_CASE(
+    "[colony-mgr] find_occupied_surrounding_colony_squares" ) {
+  World   W;
+  Colony& colony_nw = W.add_colony( Coord{ .x = 1, .y = 1 } );
+  Colony& colony_ne = W.add_colony( Coord{ .x = 5, .y = 1 } );
+  Colony& colony    = W.add_colony( Coord{ .x = 3, .y = 3 } );
+  Colony& colony_sw = W.add_colony( Coord{ .x = 1, .y = 5 } );
+  Colony& colony_se = W.add_colony( Coord{ .x = 5, .y = 5 } );
+
+  Colony* colonies[] = { &colony_nw, &colony_ne, &colony_sw,
+                         &colony_se };
+
+  // Populate workers in the colonies.
+  for( Colony* p_colony : colonies )
+    for( e_direction d : refl::enum_values<e_direction> )
+      p_colony->outdoor_jobs[d].emplace();
+  // Remove one.
+  colony_se.outdoor_jobs[e_direction::nw] = nothing;
+
+  refl::enum_map<e_direction, bool> const& occupied_red_box =
+      find_occupied_surrounding_colony_squares( W.ss(), colony );
+
+  refl::enum_map<e_direction, bool> const expected{
+      { e_direction::nw, true }, { e_direction::n, false },
+      { e_direction::ne, true }, { e_direction::w, false },
+      { e_direction::e, false }, { e_direction::sw, true },
+      { e_direction::s, false }, { e_direction::se, false },
+  };
+
+  REQUIRE( occupied_red_box == expected );
 }
 
 TEST_CASE( "[colony-mgr] found_colony finds job for unit." ) {

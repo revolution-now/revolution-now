@@ -255,7 +255,7 @@ wait<bool> present_colony_update(
     maybe<string> res = co_await gui.optional_choice(
         { .msg = msg, .options = std::move( choices ) } );
     // If the user hits escape then we don't zoom.
-    co_return( res == "zoom" );
+    co_return ( res == "zoom" );
   }
   co_await gui.message_box( msg );
   co_return false;
@@ -290,16 +290,18 @@ void give_new_crosses_to_player(
 }
 
 ColonyJob_t find_job_for_initial_colonist(
-    TerrainState const& terrain_state, Colony const& colony,
-    Unit const& ) {
+    SSConst const& ss, Colony const& colony ) {
+  refl::enum_map<e_direction, bool> const occupied_squares =
+      find_occupied_surrounding_colony_squares( ss, colony );
   // In an unmodded game the colony will not start off with
   // docks, but it could it settings are changed.
   bool has_docks = colony_has_building_level(
       colony, e_colony_building::docks );
   for( e_direction d : refl::enum_values<e_direction> ) {
+    if( occupied_squares[d] ) continue;
     Coord const coord = colony.location.moved( d );
-    if( !terrain_state.square_exists( coord ) ) continue;
-    MapSquare const& square = terrain_state.square_at( coord );
+    if( !ss.terrain.square_exists( coord ) ) continue;
+    MapSquare const& square = ss.terrain.square_at( coord );
     if( is_water( square ) && !has_docks ) continue;
     // Cannot work squares containing LCRs. This is what the
     // original game does, and is probably for two reasons: 1)
@@ -310,9 +312,6 @@ ColonyJob_t find_job_for_initial_colonist(
     // TODO: Check if there is an indian village on the square.
 
     // TODO: Check if the land is owned by an indian village.
-
-    // TODO: check if the square is being worked by other
-    //       colonies.
 
     // TODO: check if there are any foreign units fortified on
     //       the square.
@@ -483,8 +482,7 @@ ColonyId found_colony( SS& ss, TS& ts, UnitId founder,
   strip_unit_to_base_type( unit, col );
 
   // Find initial job for founder. (TODO)
-  ColonyJob_t job =
-      find_job_for_initial_colonist( ss.terrain, col, unit );
+  ColonyJob_t job = find_job_for_initial_colonist( ss, col );
 
   // Move unit into it.
   move_unit_to_colony( ss.units, col, founder, job );
@@ -677,6 +675,42 @@ wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
   if( immigrant.has_value() )
     lg.info( "a new immigrant ({}) has arrived.",
              ss.units.unit_for( *immigrant ).desc().name );
+}
+
+refl::enum_map<e_direction, bool>
+find_occupied_surrounding_colony_squares(
+    SSConst const& ss, Colony const& colony ) {
+  refl::enum_map<e_direction, bool> res;
+  Coord const                       loc = colony.location;
+  // We need to search the space of squares just large enough to
+  // get any colonies that are two squares away, since those are
+  // the only one's whose land squares could overlap with ours.
+  Rect const search_space =
+      Rect::from( loc - Delta{ .w = 2, .h = 2 },
+                  Delta{ .w = 5, .h = 5 } )
+          .with_inc_size();
+  for( Coord square : search_space ) {
+    if( !ss.terrain.square_exists( square ) ) continue;
+    if( square == loc ) continue;
+    maybe<ColonyId> const colony_id =
+        ss.colonies.maybe_from_coord( square );
+    if( !colony_id.has_value() ) continue;
+    Colony const& other_colony =
+        ss.colonies.colony_for( *colony_id );
+    for( auto [d, outdoor_unit] : other_colony.outdoor_jobs ) {
+      if( outdoor_unit.has_value() ) {
+        Coord const occupied = other_colony.location.moved( d );
+        maybe<e_direction> const direction_from_our_colony =
+            loc.direction_to( occupied );
+        if( !direction_from_our_colony.has_value() )
+          // The square is not adjacent to our colony.
+          continue;
+        CHECK( !res[*direction_from_our_colony] );
+        res[*direction_from_our_colony] = true;
+      }
+    }
+  }
+  return res;
 }
 
 } // namespace rn

@@ -21,6 +21,9 @@
 #include "base/keyval.hpp"
 #include "base/to-str-ext-std.hpp"
 
+// C++ standard library
+#include <unordered_map>
+
 using namespace std;
 
 namespace rn {
@@ -62,6 +65,23 @@ base::valid_or<string> wrapped::ColoniesState::validate() const {
                  "next_colony_id ({}) must be larger than any "
                  "colony ID in use (max found is {}).",
                  next_colony_id, max_id );
+
+  // Validate that there is no square where workers from multiple
+  // colonies are working.
+  unordered_map<Coord, string> have_workers;
+  for( auto const& [id, colony] : colonies ) {
+    Coord const loc = colony.location;
+    for( auto const& [d, outdoor_unit] : colony.outdoor_jobs ) {
+      if( !outdoor_unit.has_value() ) continue;
+      Coord const worked = loc.moved( d );
+      REFL_VALIDATE(
+          !have_workers.contains( worked ),
+          "square {} is being worked by colonists from both the "
+          "{} colony and the {} colony.",
+          worked, colony.name, have_workers[worked] );
+      have_workers[worked] = colony.name;
+    }
+  }
 
   return base::valid;
 }
@@ -205,9 +225,9 @@ LUA_STARTUP( lua::state& st ) {
   u["last_colony_id"] = &U::last_colony_id;
   u["exists"]         = &U::exists;
   u["colony_for_id"]  = [&]( U& o, ColonyId id ) -> Colony& {
-     LUA_CHECK( st, o.exists( id ), "colony {} does not exist.",
+    LUA_CHECK( st, o.exists( id ), "colony {} does not exist.",
                 id );
-     return o.colony_for( id );
+    return o.colony_for( id );
   };
 };
 
