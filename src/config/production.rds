@@ -129,7 +129,12 @@ struct.OutdoorJobProduction {
   #
   # Note that none of these are mutually exclusive; i.e., when a
   # tile is eligible for both plow and river bonuses, they can
-  # both be present and will be cumulative.
+  # both be present and will be cumulative. In the original game,
+  # it appears that when a square has a minor river that it can
+  # also receive the road bonus, but when it has a major river it
+  # either doesn't get the road bonus or gets a reduced road
+  # bonus. To avoid that extra complexity, we just make them all
+  # independent.
   minor_river_bonus 'OutdoorJobBonus_t',
   major_river_bonus 'OutdoorJobBonus_t',
   road_bonus        'OutdoorJobBonus_t',
