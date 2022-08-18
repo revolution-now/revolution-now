@@ -4,10 +4,9 @@ let s:stems = [
  \ 'config/colony',
  \ 'colony-mgr',
  \ 'colony-evolve',
- \ 'ss/difficulty',
- \ 'production',
- \ 'land-production',
- \ 'config/production',
+ \ 'colony-buildings',
+ \ 'colview-buildings',
+ \ 'teaching',
 \]
 
 let s:luas = [
