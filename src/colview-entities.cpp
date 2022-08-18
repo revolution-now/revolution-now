@@ -151,7 +151,7 @@ wait<bool> check_abandon( Colony const& colony, IGui& gui ) {
   };
   maybe<ui::e_confirm> res =
       co_await gui.optional_yes_no( config );
-  co_return( res != ui::e_confirm::yes );
+  co_return ( res != ui::e_confirm::yes );
 }
 
 maybe<string> check_seige() {
@@ -716,9 +716,9 @@ class CargoView : public ui::View,
     int                     min  = 1;
     int                     max  = comm.obj.quantity;
     string                  text = fmt::format(
-                         "What quantity of @[H]{}@[] would you like to move? "
-                                          "({}-{}):",
-                         commodity_display_name( comm.obj.type ), min, max );
+        "What quantity of @[H]{}@[] would you like to move? "
+                         "({}-{}):",
+        commodity_display_name( comm.obj.type ), min, max );
     maybe<int> quantity = co_await ts_.gui.optional_int_input(
         { .msg           = text,
           .initial_value = max,
@@ -1274,13 +1274,16 @@ struct CompositeColSubView : public ui::InvisibleView,
     for( int i = 0; i < count(); ++i ) {
       ui::PositionedView pos_view = at( i );
       if( !event.pos.is_inside( pos_view.rect() ) ) continue;
-      UNWRAP_CHECK(
-          shifted_event,
+      input::event_t const shifted_event =
           input::move_mouse_origin_by(
-              event, pos_view.coord.distance_from_origin() )
-              .get_if<input::mouse_button_event_t>() );
+              event, pos_view.coord.distance_from_origin() );
+      UNWRAP_CHECK(
+          shifted_mouse_button_event,
+          shifted_event.get_if<input::mouse_button_event_t>() );
       // Need to co_await so that shifted_event stays alive.
-      co_await ptrs_[i]->perform_click( shifted_event );
+      co_await ptrs_[i]->perform_click(
+          shifted_mouse_button_event );
+      break;
     }
   }
 

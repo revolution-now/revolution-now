@@ -14,6 +14,7 @@
 #include "config.hpp"
 
 // base
+#include "attributes.hpp"
 #include "error.hpp"
 #include "maybe.hpp"
 #include "source-loc.hpp"
@@ -71,8 +72,8 @@ class variant : public std::variant<Args...> {
   ** get (no checks!)
   ***************************************************************/
   template<typename T>
-  T const& get(
-      SourceLoc loc = SourceLoc::current() ) const noexcept {
+  T const& get( SourceLoc loc = SourceLoc::current() )
+      const noexcept ATTR_LIFETIMEBOUND {
     auto* p = std::get_if<T>( this );
     CHECK( p, "invalid base::variant::get():{}:{}",
            loc.file_name(), loc.line() );
@@ -80,7 +81,8 @@ class variant : public std::variant<Args...> {
   }
 
   template<typename T>
-  T& get( SourceLoc loc = SourceLoc::current() ) noexcept {
+  T& get( SourceLoc loc = SourceLoc::current() ) noexcept
+      ATTR_LIFETIMEBOUND {
     auto* p = std::get_if<T>( this );
     CHECK( p, "invalid base::variant::get():{}:{}",
            loc.file_name(), loc.line() );
@@ -91,8 +93,8 @@ class variant : public std::variant<Args...> {
   ** as (same as get
   ***************************************************************/
   template<typename T>
-  T const& as(
-      SourceLoc loc = SourceLoc::current() ) const noexcept {
+  T const& as( SourceLoc loc = SourceLoc::current() )
+      const noexcept ATTR_LIFETIMEBOUND {
     auto* p = std::get_if<T>( this );
     CHECK( p, "invalid base::variant::get():{}:{}",
            loc.file_name(), loc.line() );
@@ -100,7 +102,8 @@ class variant : public std::variant<Args...> {
   }
 
   template<typename T>
-  T& as( SourceLoc loc = SourceLoc::current() ) noexcept {
+  T& as( SourceLoc loc = SourceLoc::current() ) noexcept
+      ATTR_LIFETIMEBOUND {
     auto* p = std::get_if<T>( this );
     CHECK( p, "invalid base::variant::get():{}:{}",
            loc.file_name(), loc.line() );
@@ -111,13 +114,13 @@ class variant : public std::variant<Args...> {
   ** get_if
   ***************************************************************/
   template<typename T>
-  maybe<T const&> get_if() const noexcept {
+  maybe<T const&> get_if() const noexcept ATTR_LIFETIMEBOUND {
     auto* p = std::get_if<T>( this );
     return p ? maybe<T const&>( *p ) : nothing;
   }
 
   template<typename T>
-  maybe<T&> get_if() noexcept {
+  maybe<T&> get_if() noexcept ATTR_LIFETIMEBOUND {
     auto* p = std::get_if<T>( this );
     return p ? maybe<T&>( *p ) : nothing;
   }
