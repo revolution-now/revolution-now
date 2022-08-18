@@ -35,3 +35,14 @@ struct.mod_keys {
   r_ctrl_down 'bool',
   ctrl_down   'bool',
 }
+
+enum.e_mouse_button {
+  l, r
+}
+
+enum.e_mouse_button_event {
+  left_down,
+  left_up,
+  right_down,
+  right_up,
+}

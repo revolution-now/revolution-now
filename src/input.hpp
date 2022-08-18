@@ -55,15 +55,6 @@ struct quit_event_t : public event_base_t {};
 /****************************************************************
 ** Mouse
 *****************************************************************/
-enum class e_mouse_button { l, r };
-
-enum class e_mouse_button_event {
-  left_down,
-  left_up,
-  right_down,
-  right_up,
-};
-
 class mouse_event_base_t : public event_base_t {
  public:
   mouse_event_base_t( Coord pos_ )
