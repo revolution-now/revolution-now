@@ -13,6 +13,7 @@ include "ss/colony-enums.rds.hpp"
 include "ss/terrain-enums.rds.hpp"
 include "ss/difficulty.rds.hpp"
 include "ss/unit-type.rds.hpp"
+include "ss/fathers.rds.hpp"
 
 # refl
 include "refl/cdr.hpp"
@@ -101,6 +102,11 @@ struct.NonResourceOverride {
   allowed_with_no_resource 'refl::enum_map<e_terrain, bool>',
 }
 
+struct.FoundingFatherProductionBonus {
+  father 'e_founding_father',
+  bonus 'OutdoorJobBonus_t',
+}
+
 struct.OutdoorJobProduction {
   # In general the order in which these are applied matters be-
   # cause some of them are additive and some multiplicative. When
@@ -114,6 +120,7 @@ struct.OutdoorJobProduction {
   #   3. plow:       +1
   #   4. river:      +1 (minor)
   #   5. expert:     x2
+  #   6. fathers:    x2 (example for fur trappers)
   #
   # So let's say that we have an expert cotton planter working on
   # a square with prime cotton, a river, and plowed, we'd have:
@@ -128,6 +135,8 @@ struct.OutdoorJobProduction {
   road_bonus        'OutdoorJobBonus_t',
   plow_bonus        'OutdoorJobBonus_t',
   expert_bonus      'OutdoorJobBonus_t',
+
+  father_bonus      'base::maybe<FoundingFatherProductionBonus>',
 
   # If the worker is a native convert then its production will be
   # computed from that of a free colonist, but with this bonus

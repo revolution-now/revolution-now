@@ -15,6 +15,7 @@
 
 // ss
 #include "ss/colony-enums.hpp"
+#include "ss/player.rds.hpp"
 #include "ss/terrain.hpp"
 #include "ss/unit-type.hpp"
 
@@ -237,7 +238,7 @@ int food_production_on_center_square( MapSquare const& square,
 
 int commodity_production_on_center_square(
     e_outdoor_commons_secondary_job job, MapSquare const& square,
-    e_difficulty difficulty ) {
+    Player const& player, e_difficulty difficulty ) {
   auto const& conf = config_production.outdoor_production
                          .jobs[to_outdoor_job( job )];
   auto const& center_conf =
@@ -276,8 +277,9 @@ int commodity_production_on_center_square(
   //   1. base:                   3
   //   2. resource:              x2
   //   3. plow/road/coast:       +1 each
-  //   4. major/minor river      +1 (+2 for major)
+  //   4. major/minor river:     +1 (+2 for major)
   //   5. expert:                x2
+  //   6. Fathers bonus:         x2 (for fur trappers)
   //
 
   // 1. Base.
@@ -329,6 +331,12 @@ int commodity_production_on_center_square(
     res =
         apply_outdoor_bonus( res, is_expert, conf.expert_bonus );
 
+  // 5. Fathers bonus.
+  if( conf.father_bonus.has_value() &&
+      player.fathers.has[conf.father_bonus->father] )
+    res = apply_outdoor_bonus( res, is_expert,
+                               conf.father_bonus->bonus );
+
   // 5. Difficulty bonus. Unlike with food on the center square,
   // we apply this at the end. Otherwise artic tiles on "discov-
   // erer" would produce some secondary goods, which they don't
@@ -339,13 +347,14 @@ int commodity_production_on_center_square(
 }
 
 maybe<e_outdoor_commons_secondary_job> choose_secondary_job(
-    MapSquare const& square, e_difficulty difficulty ) {
+    Player const& player, MapSquare const& square,
+    e_difficulty difficulty ) {
   maybe<e_outdoor_commons_secondary_job> res;
   int                                    max_found = 0;
   for( e_outdoor_commons_secondary_job commons_job :
        refl::enum_values<e_outdoor_commons_secondary_job> ) {
     int const quantity = commodity_production_on_center_square(
-        commons_job, square, difficulty );
+        commons_job, square, player, difficulty );
     if( quantity <= max_found ) continue;
     max_found = quantity;
     res       = commons_job;
@@ -355,7 +364,8 @@ maybe<e_outdoor_commons_secondary_job> choose_secondary_job(
 
 int production_on_square( e_outdoor_job       job,
                           TerrainState const& terrain_state,
-                          e_unit_type type, Coord where ) {
+                          Player const& player, e_unit_type type,
+                          Coord where ) {
   auto const& conf =
       config_production.outdoor_production.jobs[job];
 
@@ -413,6 +423,7 @@ int production_on_square( e_outdoor_job       job,
   //   3. plow/road/coast:       +1 each
   //   4. major/minor river      +1 (+2 for major)
   //   5. expert:                x2
+  //   6. fathers:               x2 (example for fur trappers)
   //
   // So let's say that we have an expert cotton planter working
   // on a square with prime cotton, a minor river, and plowed,
@@ -483,6 +494,12 @@ int production_on_square( e_outdoor_job       job,
   if( type == e_unit_type::native_convert )
     res =
         apply_outdoor_bonus( res, is_expert, conf.native_bonus );
+
+  // 6. Fathers bonus.
+  if( conf.father_bonus.has_value() &&
+      player.fathers.has[conf.father_bonus->father] )
+    res = apply_outdoor_bonus( res, is_expert,
+                               conf.father_bonus->bonus );
 
   return res;
 }

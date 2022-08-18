@@ -24,10 +24,12 @@
 
 namespace rn {
 
+struct Player;
 struct TerrainState;
 
 int production_on_square( e_outdoor_job       job,
                           TerrainState const& terrain_state,
+                          Player const&       player,
                           e_unit_type unit_type, Coord where );
 
 int food_production_on_center_square( MapSquare const& square,
@@ -39,7 +41,7 @@ int food_production_on_center_square( MapSquare const& square,
 // different from on normal squares.
 int commodity_production_on_center_square(
     e_outdoor_commons_secondary_job job, MapSquare const& square,
-    e_difficulty difficulty );
+    Player const& player, e_difficulty difficulty );
 
 // If a colony were on this square, which secondary good would it
 // choose to produce. This will just run through all of the
@@ -54,7 +56,8 @@ int commodity_production_on_center_square(
 // rain forest square has minerals in it then the game selects
 // ore.
 maybe<e_outdoor_commons_secondary_job> choose_secondary_job(
-    MapSquare const& square, e_difficulty difficulty );
+    Player const& player, MapSquare const& square,
+    e_difficulty difficulty );
 
 // Given a unit activity this will convert it to an outdoor job,
 // if the mapping exists. Basically this can be used to take a

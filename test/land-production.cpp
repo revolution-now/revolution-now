@@ -16,6 +16,9 @@
 // Testing.
 #include "test/fake/world.hpp"
 
+// ss
+#include "ss/player.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -132,9 +135,9 @@ TEST_CASE( "[production] production_on_square/cotton" ) {
 
   SECTION( "petty_criminal" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::petty_criminal,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::petty_criminal, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -172,9 +175,9 @@ TEST_CASE( "[production] production_on_square/cotton" ) {
 
   SECTION( "free_colonist" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::free_colonist,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::free_colonist, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -212,9 +215,9 @@ TEST_CASE( "[production] production_on_square/cotton" ) {
 
   SECTION( "native_convert" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::native_convert,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::native_convert, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -253,7 +256,8 @@ TEST_CASE( "[production] production_on_square/cotton" ) {
   SECTION( "expert" ) {
     auto f = [&] {
       return production_on_square(
-          job, W.terrain(), e_unit_type::expert_cotton_planter,
+          job, W.terrain(), W.default_player(),
+          e_unit_type::expert_cotton_planter,
           Coord::from_gfx( P ) );
     };
 
@@ -302,9 +306,9 @@ TEST_CASE( "[production] production_on_square/silver" ) {
 
   SECTION( "petty_criminal" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::petty_criminal,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::petty_criminal, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -335,9 +339,9 @@ TEST_CASE( "[production] production_on_square/silver" ) {
 
   SECTION( "free_colonist" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::free_colonist,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::free_colonist, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -368,9 +372,9 @@ TEST_CASE( "[production] production_on_square/silver" ) {
 
   SECTION( "native_convert" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::native_convert,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::native_convert, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -402,7 +406,8 @@ TEST_CASE( "[production] production_on_square/silver" ) {
   SECTION( "expert" ) {
     auto f = [&] {
       return production_on_square(
-          job, W.terrain(), e_unit_type::expert_silver_miner,
+          job, W.terrain(), W.default_player(),
+          e_unit_type::expert_silver_miner,
           Coord::from_gfx( P ) );
     };
 
@@ -447,9 +452,9 @@ TEST_CASE( "[production] production_on_square/food" ) {
 
   SECTION( "petty_criminal" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::petty_criminal,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::petty_criminal, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -505,9 +510,9 @@ TEST_CASE( "[production] production_on_square/food" ) {
 
   SECTION( "free_colonist" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::free_colonist,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::free_colonist, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -563,9 +568,9 @@ TEST_CASE( "[production] production_on_square/food" ) {
 
   SECTION( "native_convert" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::native_convert,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::native_convert, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -621,9 +626,9 @@ TEST_CASE( "[production] production_on_square/food" ) {
 
   SECTION( "expert" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::expert_farmer,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::expert_farmer, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -689,9 +694,9 @@ TEST_CASE( "[production] production_on_square/sugar" ) {
 
   SECTION( "petty_criminal" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::petty_criminal,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::petty_criminal, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -743,9 +748,9 @@ TEST_CASE( "[production] production_on_square/sugar" ) {
 
   SECTION( "free_colonist" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::free_colonist,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::free_colonist, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -797,9 +802,9 @@ TEST_CASE( "[production] production_on_square/sugar" ) {
 
   SECTION( "native_convert" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::native_convert,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::native_convert, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -852,7 +857,8 @@ TEST_CASE( "[production] production_on_square/sugar" ) {
   SECTION( "expert" ) {
     auto f = [&] {
       return production_on_square(
-          job, W.terrain(), e_unit_type::expert_sugar_planter,
+          job, W.terrain(), W.default_player(),
+          e_unit_type::expert_sugar_planter,
           Coord::from_gfx( P ) );
     };
 
@@ -915,9 +921,9 @@ TEST_CASE( "[production] production_on_square/tobacco" ) {
 
   SECTION( "petty_criminal" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::petty_criminal,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::petty_criminal, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -969,9 +975,9 @@ TEST_CASE( "[production] production_on_square/tobacco" ) {
 
   SECTION( "free_colonist" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::free_colonist,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::free_colonist, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -1023,9 +1029,9 @@ TEST_CASE( "[production] production_on_square/tobacco" ) {
 
   SECTION( "native_convert" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::native_convert,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::native_convert, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -1078,7 +1084,8 @@ TEST_CASE( "[production] production_on_square/tobacco" ) {
   SECTION( "expert" ) {
     auto f = [&] {
       return production_on_square(
-          job, W.terrain(), e_unit_type::expert_tobacco_planter,
+          job, W.terrain(), W.default_player(),
+          e_unit_type::expert_tobacco_planter,
           Coord::from_gfx( P ) );
     };
 
@@ -1141,9 +1148,9 @@ TEST_CASE( "[production] production_on_square/fur" ) {
 
   SECTION( "petty_criminal" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::petty_criminal,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::petty_criminal, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -1185,7 +1192,8 @@ TEST_CASE( "[production] production_on_square/fur" ) {
   SECTION( "indentured_servant" ) {
     auto f = [&] {
       return production_on_square(
-          job, W.terrain(), e_unit_type::indentured_servant,
+          job, W.terrain(), W.default_player(),
+          e_unit_type::indentured_servant,
           Coord::from_gfx( P ) );
     };
 
@@ -1227,9 +1235,9 @@ TEST_CASE( "[production] production_on_square/fur" ) {
 
   SECTION( "native_convert" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::native_convert,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::native_convert, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -1271,7 +1279,8 @@ TEST_CASE( "[production] production_on_square/fur" ) {
   SECTION( "expert" ) {
     auto f = [&] {
       return production_on_square(
-          job, W.terrain(), e_unit_type::expert_fur_trapper,
+          job, W.terrain(), W.default_player(),
+          e_unit_type::expert_fur_trapper,
           Coord::from_gfx( P ) );
     };
 
@@ -1323,9 +1332,9 @@ TEST_CASE( "[production] production_on_square/lumber" ) {
 
   SECTION( "petty_criminal" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::petty_criminal,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::petty_criminal, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -1366,9 +1375,9 @@ TEST_CASE( "[production] production_on_square/lumber" ) {
 
   SECTION( "free_colonist" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::free_colonist,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::free_colonist, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -1409,9 +1418,9 @@ TEST_CASE( "[production] production_on_square/lumber" ) {
 
   SECTION( "native_convert" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::native_convert,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::native_convert, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -1453,8 +1462,8 @@ TEST_CASE( "[production] production_on_square/lumber" ) {
   SECTION( "expert" ) {
     auto f = [&] {
       return production_on_square(
-          job, W.terrain(), e_unit_type::expert_lumberjack,
-          Coord::from_gfx( P ) );
+          job, W.terrain(), W.default_player(),
+          e_unit_type::expert_lumberjack, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -1507,9 +1516,9 @@ TEST_CASE( "[production] production_on_square/ore" ) {
 
   SECTION( "petty_criminal" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::petty_criminal,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::petty_criminal, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -1550,9 +1559,9 @@ TEST_CASE( "[production] production_on_square/ore" ) {
 
   SECTION( "free_colonist" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::free_colonist,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::free_colonist, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -1593,9 +1602,9 @@ TEST_CASE( "[production] production_on_square/ore" ) {
 
   SECTION( "native_convert" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::native_convert,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::native_convert, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -1636,9 +1645,9 @@ TEST_CASE( "[production] production_on_square/ore" ) {
 
   SECTION( "expert" ) {
     auto f = [&] {
-      return production_on_square( job, W.terrain(),
-                                   e_unit_type::expert_ore_miner,
-                                   Coord::from_gfx( P ) );
+      return production_on_square(
+          job, W.terrain(), W.default_player(),
+          e_unit_type::expert_ore_miner, Coord::from_gfx( P ) );
     };
 
     S()        = { .surface = e_surface::land };
@@ -1692,9 +1701,9 @@ TEST_CASE( "[production] production_on_square/fish" ) {
 
     SECTION( "petty_criminal" ) {
       auto f = [&] {
-        return production_on_square( job, W.terrain(),
-                                     e_unit_type::petty_criminal,
-                                     Coord::from_gfx( P ) );
+        return production_on_square(
+            job, W.terrain(), W.default_player(),
+            e_unit_type::petty_criminal, Coord::from_gfx( P ) );
       };
 
       S() = { .surface = e_surface::land };
@@ -1728,9 +1737,9 @@ TEST_CASE( "[production] production_on_square/fish" ) {
 
     SECTION( "free_colonist" ) {
       auto f = [&] {
-        return production_on_square( job, W.terrain(),
-                                     e_unit_type::free_colonist,
-                                     Coord::from_gfx( P ) );
+        return production_on_square(
+            job, W.terrain(), W.default_player(),
+            e_unit_type::free_colonist, Coord::from_gfx( P ) );
       };
 
       S() = { .surface = e_surface::land };
@@ -1764,9 +1773,9 @@ TEST_CASE( "[production] production_on_square/fish" ) {
 
     SECTION( "native_convert" ) {
       auto f = [&] {
-        return production_on_square( job, W.terrain(),
-                                     e_unit_type::native_convert,
-                                     Coord::from_gfx( P ) );
+        return production_on_square(
+            job, W.terrain(), W.default_player(),
+            e_unit_type::native_convert, Coord::from_gfx( P ) );
       };
 
       S() = { .surface = e_surface::land };
@@ -1801,7 +1810,8 @@ TEST_CASE( "[production] production_on_square/fish" ) {
     SECTION( "expert" ) {
       auto f = [&] {
         return production_on_square(
-            job, W.terrain(), e_unit_type::expert_fisherman,
+            job, W.terrain(), W.default_player(),
+            e_unit_type::expert_fisherman,
             Coord::from_gfx( P ) );
       };
 
@@ -1842,9 +1852,9 @@ TEST_CASE( "[production] production_on_square/fish" ) {
 
     SECTION( "petty_criminal" ) {
       auto f = [&] {
-        return production_on_square( job, W.terrain(),
-                                     e_unit_type::petty_criminal,
-                                     Coord::from_gfx( P ) );
+        return production_on_square(
+            job, W.terrain(), W.default_player(),
+            e_unit_type::petty_criminal, Coord::from_gfx( P ) );
       };
 
       S() = { .surface = e_surface::land };
@@ -1878,9 +1888,9 @@ TEST_CASE( "[production] production_on_square/fish" ) {
 
     SECTION( "free_colonist" ) {
       auto f = [&] {
-        return production_on_square( job, W.terrain(),
-                                     e_unit_type::free_colonist,
-                                     Coord::from_gfx( P ) );
+        return production_on_square(
+            job, W.terrain(), W.default_player(),
+            e_unit_type::free_colonist, Coord::from_gfx( P ) );
       };
 
       S() = { .surface = e_surface::land };
@@ -1914,9 +1924,9 @@ TEST_CASE( "[production] production_on_square/fish" ) {
 
     SECTION( "native_convert" ) {
       auto f = [&] {
-        return production_on_square( job, W.terrain(),
-                                     e_unit_type::native_convert,
-                                     Coord::from_gfx( P ) );
+        return production_on_square(
+            job, W.terrain(), W.default_player(),
+            e_unit_type::native_convert, Coord::from_gfx( P ) );
       };
 
       S() = { .surface = e_surface::land };
@@ -1951,7 +1961,8 @@ TEST_CASE( "[production] production_on_square/fish" ) {
     SECTION( "expert" ) {
       auto f = [&] {
         return production_on_square(
-            job, W.terrain(), e_unit_type::expert_fisherman,
+            job, W.terrain(), W.default_player(),
+            e_unit_type::expert_fisherman,
             Coord::from_gfx( P ) );
       };
 
@@ -2223,14 +2234,15 @@ TEST_CASE( "[production] food_production_on_center_square" ) {
 
 TEST_CASE(
     "[production] commodity_production_on_center_square" ) {
+  World                           W;
   MapSquare const*                square     = nullptr;
   e_difficulty                    difficulty = {};
   e_outdoor_commons_secondary_job job        = {};
   int                             expected   = 0;
 
   auto f = [&] {
-    return commodity_production_on_center_square( job, *square,
-                                                  difficulty );
+    return commodity_production_on_center_square(
+        job, *square, W.default_player(), difficulty );
   };
 
   MapSquare const plains =
@@ -2402,6 +2414,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "[production] choose_secondary_job" ) {
+  World W;
   using J = e_outdoor_commons_secondary_job;
   using T = e_terrain;
 
@@ -2412,7 +2425,8 @@ TEST_CASE( "[production] choose_secondary_job" ) {
   INFO( fmt::format( "difficulty: {}", difficulty ) );
 
   auto f = [&]( MapSquare const& square ) {
-    return choose_secondary_job( square, difficulty );
+    return choose_secondary_job( W.default_player(), square,
+                                 difficulty );
   };
 
   REQUIRE( f( m( T::desert ) ) == J::ore );
@@ -2448,9 +2462,9 @@ TEST_CASE(
   CHECK( S().surface == e_surface::land );
 
   auto f = [&] {
-    return production_on_square( e_outdoor_job::silver,
-                                 W.terrain(), unit_type,
-                                 Coord::from_gfx( P ) );
+    return production_on_square(
+        e_outdoor_job::silver, W.terrain(), W.default_player(),
+        unit_type, Coord::from_gfx( P ) );
   };
 
   S() = World::make_terrain( e_terrain::rain );
@@ -2469,6 +2483,60 @@ TEST_CASE(
 
   unit_type = e_unit_type::expert_silver_miner;
   REQUIRE( f() == 2 );
+}
+
+TEST_CASE( "[production] fur trappers with hudson" ) {
+  World W;
+  W.create_default_map();
+
+  e_unit_type unit_type = e_unit_type::free_colonist;
+
+  gfx::point const P{ .x = 1, .y = 1 };
+  auto S = [&]() -> decltype( auto ) { return W.square( P ); };
+  CHECK( S().surface == e_surface::land );
+
+  auto f = [&] {
+    return production_on_square( e_outdoor_job::fur, W.terrain(),
+                                 W.default_player(), unit_type,
+                                 Coord::from_gfx( P ) );
+  };
+
+  auto g = [&] {
+    return commodity_production_on_center_square(
+        e_outdoor_commons_secondary_job::fur, S(),
+        W.default_player(), e_difficulty::conquistador );
+  };
+
+  S() = World::make_terrain( e_terrain::grassland );
+
+  REQUIRE( g() == 0 );
+
+  unit_type = e_unit_type::free_colonist;
+  REQUIRE( f() == 0 );
+
+  unit_type = e_unit_type::expert_fur_trapper;
+  REQUIRE( f() == 0 );
+
+  S() = World::make_terrain( e_terrain::conifer );
+
+  REQUIRE( g() == 2 );
+
+  unit_type = e_unit_type::free_colonist;
+  REQUIRE( f() == 2 );
+
+  unit_type = e_unit_type::expert_fur_trapper;
+  REQUIRE( f() == 4 );
+
+  W.default_player()
+      .fathers.has[e_founding_father::henry_hudson] = true;
+
+  REQUIRE( g() == 4 );
+
+  unit_type = e_unit_type::free_colonist;
+  REQUIRE( f() == 4 );
+
+  unit_type = e_unit_type::expert_fur_trapper;
+  REQUIRE( f() == 8 );
 }
 
 } // namespace

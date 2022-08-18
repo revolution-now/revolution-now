@@ -379,7 +379,7 @@ int crosses_production_for_colony(
 void compute_food_production(
     TerrainState const& terrain_state,
     UnitsState const& units_state, Colony const& colony,
-    BellsModifiers const& bells_modifiers,
+    Player const& player, BellsModifiers const& bells_modifiers,
     int const center_food_produced, FoodProduction& out,
     refl::enum_map<e_direction, SquareProduction>&
         out_land_production ) {
@@ -389,7 +389,7 @@ void compute_food_production(
       e_unit_type const unit_type =
           units_state.unit_for( unit->unit_id ).type();
       int quantity = production_on_square(
-          e_outdoor_job::food, terrain_state, unit_type,
+          e_outdoor_job::food, terrain_state, player, unit_type,
           colony.location.moved( d ) );
       bells_modifiers.apply( unit_type, quantity );
       out.corn_produced += quantity;
@@ -406,7 +406,7 @@ void compute_food_production(
       e_unit_type const unit_type =
           units_state.unit_for( unit->unit_id ).type();
       int quantity = production_on_square(
-          e_outdoor_job::fish, terrain_state, unit_type,
+          e_outdoor_job::fish, terrain_state, player, unit_type,
           colony.location.moved( d ) );
       bells_modifiers.apply( unit_type, quantity );
       out.fish_produced += quantity;
@@ -513,7 +513,8 @@ void compute_food_production(
 
 void compute_raw(
     Colony const& colony, TerrainState const& terrain_state,
-    UnitsState const& units_state, e_outdoor_job outdoor_job,
+    UnitsState const& units_state, Player const& player,
+    e_outdoor_job                  outdoor_job,
     maybe<SquareProduction const&> center_secondary,
     BellsModifiers const&          bells_modifiers,
     RawMaterialAndProduct&         out,
@@ -525,7 +526,7 @@ void compute_raw(
       e_unit_type const unit_type =
           units_state.unit_for( unit->unit_id ).type();
       int quantity = production_on_square(
-          outdoor_job, terrain_state, unit_type,
+          outdoor_job, terrain_state, player, unit_type,
           colony.location.moved( d ) );
       bells_modifiers.apply( unit_type, quantity );
       out.raw_produced += quantity;
@@ -641,8 +642,8 @@ void compute_product( Colony const&          colony,
 
 void compute_land_production(
     ColonyProduction& pr, Colony const& colony_pristine,
-    TerrainState const&   terrain_state,
-    UnitsState const&     units_state,
+    TerrainState const& terrain_state,
+    UnitsState const& units_state, Player const& player,
     BellsModifiers const& bells_modifiers ) {
   // FIXME: copying not optimal.
   Colony colony = colony_pristine;
@@ -662,9 +663,10 @@ void compute_land_production(
 
   auto compute = [&]( e_outdoor_job          outdoor_job,
                       RawMaterialAndProduct& raw_and_product ) {
-    compute_raw( colony, terrain_state, units_state, outdoor_job,
-                 pr.center_extra_production, bells_modifiers,
-                 raw_and_product, pr.land_production );
+    compute_raw( colony, terrain_state, units_state, player,
+                 outdoor_job, pr.center_extra_production,
+                 bells_modifiers, raw_and_product,
+                 pr.land_production );
     e_commodity const raw =
         commodity_for_outdoor_job( outdoor_job );
     colony.commodities[raw] += raw_and_product.raw_produced;
@@ -729,7 +731,7 @@ void compute_land_production(
       pr.tools_muskets.raw_consumed_actual;
 
   compute_food_production( terrain_state, units_state, colony,
-                           bells_modifiers,
+                           player, bells_modifiers,
                            pr.center_food_production,
                            pr.food_horses, pr.land_production );
   colony.commodities[e_commodity::horses] +=
@@ -781,8 +783,8 @@ void compute_land_production(
 
 void fill_in_center_square(
     SSConst const& ss, Colony const& colony,
-    BellsModifiers const& bells_modifiers,
-    ColonyProduction&     pr ) {
+    Player const& player, BellsModifiers const& bells_modifiers,
+    ColonyProduction& pr ) {
   MapSquare const& square =
       ss.terrain.square_at( colony.location );
 
@@ -797,7 +799,8 @@ void fill_in_center_square(
 
   // Secondary good.
   maybe<e_outdoor_commons_secondary_job> center_secondary =
-      choose_secondary_job( square, ss.settings.difficulty );
+      choose_secondary_job( player, square,
+                            ss.settings.difficulty );
   if( !center_secondary.has_value() ) return;
   pr.center_extra_production = SquareProduction{
       .what = to_outdoor_job( *center_secondary ),
@@ -805,7 +808,8 @@ void fill_in_center_square(
       // dedicated to individual goods in order to factor them in
       // to the total calculations.
       .quantity = commodity_production_on_center_square(
-          *center_secondary, square, ss.settings.difficulty ) };
+          *center_secondary, square, player,
+          ss.settings.difficulty ) };
   bells_modifiers.apply( unit_type,
                          pr.center_extra_production->quantity );
 }
@@ -969,10 +973,11 @@ ColonyProduction production_for_colony( SSConst const& ss,
 
   // Note that this must be done before processing any of the
   // other land squares.
-  fill_in_center_square( ss, colony, bells_modifiers, res );
+  fill_in_center_square( ss, colony, player, bells_modifiers,
+                         res );
 
   compute_land_production( res, colony, ss.terrain, ss.units,
-                           bells_modifiers );
+                           player, bells_modifiers );
 
   CHECK( res.trade_goods == 0 );
   return res;
