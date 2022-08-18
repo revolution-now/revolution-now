@@ -43,6 +43,7 @@ to_replace_in_line = {
   ['string<>'                                ] = 'string',
   ['.abi:cxx11.'                             ] = '',
   [rn    .. '/.builds/current/../../'        ] = ' ',
+  [rn    .. '/'                              ] = ' ',
   [tools .. '/gcc.current/include/'          ] = ' ',
   ['____C_A_T_C_H____T_E_S_T____%d+%(%)'     ] = '(unit test)',
   ['char, char_traits<char>, allocator<char>'] = '',
