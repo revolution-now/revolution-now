@@ -71,7 +71,7 @@ namespace {
 
 #define BEHAVIOR( c, r, e, ... )                              \
   namespace BEHAVIOR_NS( c, r, e ) {                          \
-    enum class e_vals { __VA_ARGS__ };                        \
+  enum class e_vals { __VA_ARGS__ };                          \
   }                                                           \
   template<>                                                  \
   struct to_behaviors<BEHAVIOR_VALUES( c, r, e )> {           \
@@ -247,6 +247,8 @@ struct TravelHandler : public OrdersHandler {
 
       // Allowed moves
       case e_travel_verdict::map_edge_high_seas:
+        // Don't need to have checked movement points here.
+        break;
       case e_travel_verdict::map_to_map:
       case e_travel_verdict::board_ship:
       case e_travel_verdict::ship_into_port:
@@ -387,7 +389,7 @@ TravelHandler::analyze_unload() const {
               .yes_label      = "Make landfall",
               .no_label       = "Stay with ships",
               .no_comes_first = true } );
-    co_return( answer == ui::e_confirm::yes )
+    co_return ( answer == ui::e_confirm::yes )
         ? e_travel_verdict::land_fall
         : e_travel_verdict::cancelled;
   } else {
