@@ -16,6 +16,9 @@
 // Testing.
 #include "test/fake/world.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -1984,7 +1987,6 @@ TEST_CASE( "[production] production_on_square/fish" ) {
 }
 
 TEST_CASE( "[production] food_production_on_center_square" ) {
-  World            W;
   MapSquare const* square     = nullptr;
   e_difficulty     difficulty = {};
   int              expected   = 0;
@@ -1995,11 +1997,15 @@ TEST_CASE( "[production] food_production_on_center_square" ) {
   };
 
   MapSquare const grassland =
-      W.make_terrain( e_terrain::grassland );
-  MapSquare const conifer = W.make_terrain( e_terrain::conifer );
-  MapSquare const hills   = W.make_terrain( e_terrain::hills );
-  MapSquare const arctic  = W.make_terrain( e_terrain::arctic );
-  MapSquare const plains  = W.make_terrain( e_terrain::plains );
+      World::make_terrain( e_terrain::grassland );
+  MapSquare const conifer =
+      World::make_terrain( e_terrain::conifer );
+  MapSquare const hills =
+      World::make_terrain( e_terrain::hills );
+  MapSquare const arctic =
+      World::make_terrain( e_terrain::arctic );
+  MapSquare const plains =
+      World::make_terrain( e_terrain::plains );
 
   MapSquare plains_plowed  = plains;
   plains_plowed.irrigation = true;
@@ -2217,11 +2223,217 @@ TEST_CASE( "[production] food_production_on_center_square" ) {
 
 TEST_CASE(
     "[production] commodity_production_on_center_square" ) {
-  // TODO
+  MapSquare const*                square     = nullptr;
+  e_difficulty                    difficulty = {};
+  e_outdoor_commons_secondary_job job        = {};
+  int                             expected   = 0;
+
+  auto f = [&] {
+    return commodity_production_on_center_square( job, *square,
+                                                  difficulty );
+  };
+
+  MapSquare const plains =
+      World::make_terrain( e_terrain::plains );
+
+  MapSquare plains_plowed  = plains;
+  plains_plowed.irrigation = true;
+
+  MapSquare plains_plowed_cotton = plains_plowed;
+  plains_plowed_cotton.ground_resource =
+      e_natural_resource::cotton;
+
+  MapSquare plains_plowed_cotton_river = plains_plowed_cotton;
+  plains_plowed_cotton_river.river     = e_river::minor;
+
+  MapSquare plains_plowed_cotton_river_road =
+      plains_plowed_cotton_river;
+  plains_plowed_cotton_river.road = true;
+
+  square     = &plains;
+  difficulty = e_difficulty::discoverer;
+  job        = e_outdoor_commons_secondary_job::cotton;
+  expected   = 3;
+  REQUIRE( f() == expected );
+
+  square     = &plains;
+  difficulty = e_difficulty::explorer;
+  job        = e_outdoor_commons_secondary_job::fur;
+  expected   = 0;
+  REQUIRE( f() == expected );
+
+  square     = &plains;
+  difficulty = e_difficulty::conquistador;
+  job        = e_outdoor_commons_secondary_job::ore;
+  expected   = 1;
+  REQUIRE( f() == expected );
+
+  square     = &plains;
+  difficulty = e_difficulty::governor;
+  job        = e_outdoor_commons_secondary_job::sugar;
+  expected   = 0;
+  REQUIRE( f() == expected );
+
+  square     = &plains;
+  difficulty = e_difficulty::viceroy;
+  job        = e_outdoor_commons_secondary_job::tobacco;
+  expected   = 0;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed;
+  difficulty = e_difficulty::discoverer;
+  job        = e_outdoor_commons_secondary_job::cotton;
+  expected   = 3;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed;
+  difficulty = e_difficulty::explorer;
+  job        = e_outdoor_commons_secondary_job::fur;
+  expected   = 0;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed;
+  difficulty = e_difficulty::conquistador;
+  job        = e_outdoor_commons_secondary_job::ore;
+  expected   = 1;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed;
+  difficulty = e_difficulty::governor;
+  job        = e_outdoor_commons_secondary_job::sugar;
+  expected   = 0;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed;
+  difficulty = e_difficulty::viceroy;
+  job        = e_outdoor_commons_secondary_job::tobacco;
+  expected   = 0;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_cotton;
+  difficulty = e_difficulty::discoverer;
+  job        = e_outdoor_commons_secondary_job::cotton;
+  expected   = 5;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_cotton;
+  difficulty = e_difficulty::explorer;
+  job        = e_outdoor_commons_secondary_job::fur;
+  expected   = 0;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_cotton;
+  difficulty = e_difficulty::conquistador;
+  job        = e_outdoor_commons_secondary_job::ore;
+  expected   = 1;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_cotton;
+  difficulty = e_difficulty::governor;
+  job        = e_outdoor_commons_secondary_job::sugar;
+  expected   = 0;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_cotton;
+  difficulty = e_difficulty::viceroy;
+  job        = e_outdoor_commons_secondary_job::tobacco;
+  expected   = 0;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_cotton_river;
+  difficulty = e_difficulty::discoverer;
+  job        = e_outdoor_commons_secondary_job::cotton;
+  expected   = 6;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_cotton_river;
+  difficulty = e_difficulty::explorer;
+  job        = e_outdoor_commons_secondary_job::fur;
+  expected   = 0;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_cotton_river;
+  difficulty = e_difficulty::conquistador;
+  job        = e_outdoor_commons_secondary_job::ore;
+  expected   = 2;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_cotton_river;
+  difficulty = e_difficulty::governor;
+  job        = e_outdoor_commons_secondary_job::sugar;
+  expected   = 0;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_cotton_river;
+  difficulty = e_difficulty::viceroy;
+  job        = e_outdoor_commons_secondary_job::tobacco;
+  expected   = 0;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_cotton_river_road;
+  difficulty = e_difficulty::discoverer;
+  job        = e_outdoor_commons_secondary_job::cotton;
+  expected   = 6;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_cotton_river_road;
+  difficulty = e_difficulty::explorer;
+  job        = e_outdoor_commons_secondary_job::fur;
+  expected   = 0;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_cotton_river_road;
+  difficulty = e_difficulty::conquistador;
+  job        = e_outdoor_commons_secondary_job::ore;
+  expected   = 2;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_cotton_river_road;
+  difficulty = e_difficulty::governor;
+  job        = e_outdoor_commons_secondary_job::sugar;
+  expected   = 0;
+  REQUIRE( f() == expected );
+
+  square     = &plains_plowed_cotton_river_road;
+  difficulty = e_difficulty::viceroy;
+  job        = e_outdoor_commons_secondary_job::tobacco;
+  expected   = 0;
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[production] choose_secondary_job" ) {
-  // TODO
+  using J = e_outdoor_commons_secondary_job;
+  using T = e_terrain;
+
+  auto m = World::make_terrain;
+
+  e_difficulty const difficulty = GENERATE(
+      e_difficulty::discoverer, e_difficulty::viceroy );
+  INFO( fmt::format( "difficulty: {}", difficulty ) );
+
+  auto f = [&]( MapSquare const& square ) {
+    return choose_secondary_job( square, difficulty );
+  };
+
+  REQUIRE( f( m( T::desert ) ) == J::ore );
+  REQUIRE( f( m( T::scrub ) ) == J::fur );
+  REQUIRE( f( m( T::grassland ) ) == J::tobacco );
+  REQUIRE( f( m( T::conifer ) ) == J::fur );
+  REQUIRE( f( m( T::marsh ) ) == J::tobacco );
+  REQUIRE( f( m( T::wetland ) ) == J::fur );
+  REQUIRE( f( m( T::plains ) ) == J::cotton );
+  REQUIRE( f( m( T::mixed ) ) == J::fur );
+  REQUIRE( f( m( T::prairie ) ) == J::cotton );
+  REQUIRE( f( m( T::broadleaf ) ) == J::fur );
+  REQUIRE( f( m( T::savannah ) ) == J::sugar );
+  REQUIRE( f( m( T::tropical ) ) == J::fur );
+  REQUIRE( f( m( T::swamp ) ) == J::sugar );
+  REQUIRE( f( m( T::rain ) ) == J::sugar );
+  REQUIRE( f( m( T::tundra ) ) == J::ore );
+  REQUIRE( f( m( T::boreal ) ) == J::fur );
+  REQUIRE( f( m( T::arctic ) ) == nothing );
+  REQUIRE( f( m( T::hills ) ) == J::ore );
+  REQUIRE( f( m( T::mountains ) ) == J::ore );
 }
 
 } // namespace
