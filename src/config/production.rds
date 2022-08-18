@@ -93,6 +93,12 @@ struct.NonResourceOverride {
   non_expert 'int',
   expert     'int',
   required_resources 'std::unordered_set<e_natural_resource>',
+
+  # If the square has none of the above required resources then
+  # it will produce something only if it is enabled in this map,
+  # and the amount that it produces will be given by the numbers
+  # above.
+  allowed_with_no_resource 'refl::enum_map<e_terrain, bool>',
 }
 
 struct.OutdoorJobProduction {
@@ -142,13 +148,14 @@ struct.OutdoorJobProduction {
 
   # When this has a value, it means that, when the tile has no
   # resource, the entire calculation will be completely over-
-  # ridden but the numbers here. That means that what would oth-
-  # erwise be the base production and various bonuses will not be
+  # ridden by the numbers here. That means that what would other-
+  # wise be the base production and various bonuses will not be
   # applied, with the exception of the Sons of Liberty
   # bonus/penalty. This is to allow reproducing the behavior of
   # some versions of the original game with regard to silver pro-
   # duction, which seems to follow all of the usual formulas but
-  # only when a tile has a silver (or depleted silver) resource.
+  # only when a tile has a silver (or depleted silver), or min-
+  # erals resource.
   non_resource_override 'base::maybe<NonResourceOverride>',
 }
 

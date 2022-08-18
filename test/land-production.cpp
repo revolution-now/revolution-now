@@ -2436,5 +2436,40 @@ TEST_CASE( "[production] choose_secondary_job" ) {
   REQUIRE( f( m( T::mountains ) ) == J::ore );
 }
 
+TEST_CASE(
+    "[production] silver production on minerals squares" ) {
+  World W;
+  W.create_default_map();
+
+  e_unit_type unit_type = e_unit_type::free_colonist;
+
+  gfx::point const P{ .x = 1, .y = 1 };
+  auto S = [&]() -> decltype( auto ) { return W.square( P ); };
+  CHECK( S().surface == e_surface::land );
+
+  auto f = [&] {
+    return production_on_square( e_outdoor_job::silver,
+                                 W.terrain(), unit_type,
+                                 Coord::from_gfx( P ) );
+  };
+
+  S() = World::make_terrain( e_terrain::rain );
+
+  unit_type = e_unit_type::free_colonist;
+  REQUIRE( f() == 0 );
+
+  unit_type = e_unit_type::expert_silver_miner;
+  REQUIRE( f() == 0 );
+
+  S()                 = World::make_terrain( e_terrain::rain );
+  S().forest_resource = e_natural_resource::minerals;
+
+  unit_type = e_unit_type::free_colonist;
+  REQUIRE( f() == 1 );
+
+  unit_type = e_unit_type::expert_silver_miner;
+  REQUIRE( f() == 2 );
+}
+
 } // namespace
 } // namespace rn

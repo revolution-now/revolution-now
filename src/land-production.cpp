@@ -389,9 +389,17 @@ int production_on_square( e_outdoor_job       job,
   if( conf.non_resource_override.has_value() &&
       !has_required_resources(
           square,
-          conf.non_resource_override->required_resources ) )
+          conf.non_resource_override->required_resources ) ) {
+    // For commodities that have the non-resource-override, they
+    // can (potentially) produce something only for a select set
+    // of terrain types, and the amount produced will be given by
+    // the hard-coded values in the non-resource-override.
+    if( !conf.non_resource_override
+             ->allowed_with_no_resource[terrain] )
+      return 0;
     return is_expert ? conf.non_resource_override->expert
                      : conf.non_resource_override->non_expert;
+  }
 
   // In general the order in which these are applied matters be-
   // cause some of them are additive and some multiplicative.

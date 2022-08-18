@@ -654,7 +654,7 @@ void compute_land_production(
                          bells_modifiers, raw_and_product );
         maybe<e_commodity> product = product_from_raw( raw );
         // E.g. lumber won't have a commodity product (because
-        // ham- mers are not a commodity).
+        // hammers are not a commodity).
         if( !product.has_value() ) return;
         colony.commodities[*product] +=
             raw_and_product.product_produced_actual;

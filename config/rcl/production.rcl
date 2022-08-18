@@ -671,10 +671,10 @@ outdoor_production {
       non_resource_override: null
     }
     silver: {
-      # In the original game silver can only be mined in moun-
-      # tains, and it appears that it doesn't support rivers on
-      # mountain squares, so this may not be relevant. But the
-      # in-game docs do give numbers for this river bonus.
+      # In the original game silver can be mined on tiles that
+      # contain the minerals resource (in addition to mountains),
+      # and those can contain rivers, and the river bonuses ap-
+      # pear to apply as usual.
       minor_river_bonus.add { non_expert=1, expert=1 }
       major_river_bonus.add { non_expert=2, expert=2 }
       road_bonus.add        { non_expert=1, expert=1 }
@@ -692,13 +692,14 @@ outdoor_production {
       # least one unit. However, in the version of the game from
       # which these numbers were taken, the actual behavior is
       # not only different from this, but it seems to depart from
-      # all other commodities. Specifically, when a maintain tile
-      # has a resource then it will follow the above formula; but
-      # when it has no resource then a free colonist produces
-      # zero, while an expert produces one.
+      # all other commodities. Specifically, when a tile has ei-
+      # ther a silver resource or minerals resource then it will
+      # follow the above formula; but when it has no resource
+      # then a free colonist produces zero, while an expert pro-
+      # duces one, but only on mountain tiles.
       #
       # Furthermore, those numbers (for non-resource tiles)
-      # strangely don't seem to get subjuct to the usual bonuses;
+      # strangely don't seem to get subject to the usual bonuses;
       # neither Sons of Liberty bonuses nor road/river bonuses
       # seem to get applied, which suggests that they might have
       # been hard-coded. On the other hand, when there is a
@@ -720,7 +721,7 @@ outdoor_production {
       #
       # Perhaps the game designers wanted to nurf silver produc-
       # tion at the last minute and made some changes, including
-      # hard-codeding reduced numbers for non-resource tiles.
+      # hard-coding reduced numbers for non-resource tiles.
       #
       # Hence to reproduce this behavior we have the following
       # resource-related stuff.
@@ -731,7 +732,35 @@ outdoor_production {
         required_resources [
           silver
           silver_depleted
+          minerals
         ]
+
+        # If the square has none of the above required resources
+        # then it will produce something only if it is enabled in
+        # this map, and the amount that it produces will be given
+        # by the numbers above.
+        allowed_with_no_resource {
+          arctic:    false
+          boreal:    false
+          broadleaf: false
+          conifer:   false
+          desert:    false
+          grassland: false
+          hills:     false
+          marsh:     false
+          mixed:     false
+          mountains: true
+          ocean:     false
+          plains:    false
+          prairie:   false
+          rain:      false
+          savannah:  false
+          scrub:     false
+          swamp:     false
+          tropical:  false
+          tundra:    false
+          wetland:   false
+        }
       }
 
       resource_bonus {
@@ -750,6 +779,9 @@ outdoor_production {
         wheat.none           {}
       }
 
+      # For silver, which has a non_resource_override, these only
+      # apply when there is a resource; otherwise, the non re-
+      # source override governs the numbers entirely.
       base_productions {
         arctic:    0
         boreal:    0
@@ -758,19 +790,19 @@ outdoor_production {
         desert:    0
         grassland: 0
         hills:     0
-        marsh:     0
+        marsh:     1
         mixed:     0
         mountains: 1
         ocean:     0
         plains:    0
         prairie:   0
-        rain:      0
+        rain:      1
         savannah:  0
         scrub:     0
-        swamp:     0
+        swamp:     1
         tropical:  0
-        tundra:    0
-        wetland:   0
+        tundra:    1
+        wetland:   1
       }
     }
   }
