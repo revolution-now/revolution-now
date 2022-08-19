@@ -71,6 +71,10 @@ struct.Colony {
 
   outdoor_jobs 'refl::enum_map<e_direction, base::maybe<OutdoorUnit>>',
 
+  # For each unit that is teaching, we record the number of turns
+  # they've been teaching.
+  teachers 'std::unordered_map<UnitId, int>',
+
   buildings 'refl::enum_map<e_colony_building, bool>',
 
   # What building is the colony currently constructing.

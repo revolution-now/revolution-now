@@ -136,6 +136,19 @@ valid_or<string> Colony::validate() const {
         config_colony.max_workers_per_building );
   }
 
+  // Make sure that the list of teachers is in sync between the
+  // teacher's map and the indoor_jobs map.
+  REFL_VALIDATE( indoor_jobs[e_indoor_job::teacher].size() ==
+                     teachers.size(),
+                 "inconsistent list of teachers between the "
+                 "indoor_jobs map and the teachers map." );
+  for( UnitId unit_id : indoor_jobs[e_indoor_job::teacher] ) {
+    REFL_VALIDATE(
+        teachers.contains( unit_id ),
+        "teachers list does not contain expected unit id {}.",
+        unit_id );
+  }
+
   // All colony's units can occupy a colony.
   // TODO: to do this I think we just check that each unit is a
   // human and a base type.
@@ -224,6 +237,8 @@ LUA_STARTUP( lua::state& st ) {
   u["sons_of_liberty"] = &U::sons_of_liberty;
   u["buildings"]       = &U::buildings;
   u["commodities"]     = &U::commodities;
+  // FIXME: figure out how to expose C++ maps to Lua.
+  u["teachers"] = &U::teachers;
 };
 
 } // namespace

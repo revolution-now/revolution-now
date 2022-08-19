@@ -19,6 +19,9 @@
 namespace rn {
 
 using CommodityQuantityMap = refl::enum_map<e_commodity, int>;
+
+using TeachersMap = std::unordered_map<UnitId, int>;
+
 using ColonyBuildingsMap =
     refl::enum_map<e_colony_building, bool>;
 
@@ -32,8 +35,12 @@ std::vector<UnitId> colony_units_all( Colony const& colony );
 namespace lua {
 
 LUA_USERDATA_TRAITS( ::rn::Colony, owned_by_cpp ){};
+
 LUA_USERDATA_TRAITS( ::rn::CommodityQuantityMap,
                      owned_by_cpp ){};
+
 LUA_USERDATA_TRAITS( ::rn::ColonyBuildingsMap, owned_by_cpp ){};
+
+LUA_USERDATA_TRAITS( ::rn::TeachersMap, owned_by_cpp ){};
 
 }
