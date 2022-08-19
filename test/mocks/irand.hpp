@@ -18,6 +18,9 @@
 
 namespace rn {
 
+/****************************************************************
+** MockIRand
+*****************************************************************/
 struct MockIRand : IRand {
   MOCK_METHOD( bool, bernoulli, (double), () );
   MOCK_METHOD( int, between_ints, ( int, int, e_interval ), () );
@@ -25,5 +28,14 @@ struct MockIRand : IRand {
 };
 
 static_assert( !std::is_abstract_v<MockIRand> );
+
+/****************************************************************
+** Helpers
+*****************************************************************/
+// This will take a vector of indices representing how we'd like
+// a vector shuffled and will generate all of the mock expect
+// calls to make that happen.
+void expect_shuffle( MockIRand&              rand,
+                     std::vector<int> const& indices );
 
 } // namespace rn
