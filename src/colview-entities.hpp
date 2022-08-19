@@ -122,17 +122,17 @@ struct IColViewDragSource {
   virtual void disown_dragged_object() = 0;
 };
 
-// Interface for drag targets that can/might need some user in-
-// teraction after the drag has otherwise been greenlighted. Two
-// possibilities for this would be that it needs to ask the user
-// for a final confirmation, or it might check some further game
-// logic that could cause the drag to be cancelled in a way that
-// would require showing a message to the user. An example of the
-// latter case would be dragging a unit over a water tile in a
-// colony that does not contain docks; we want to all the drag
-// UI-wise, but we want to then show a message to the user ex-
-// plaining why we are cancelling it. Returning `true` means
-// "proceed".
+// Interface for drag targets that can/might need to do some fur-
+// ther checks before the drag is greenlighted that require some
+// user input or message boxes. Two possibilities for this would
+// be that it needs to ask the user for a final confirmation, or
+// it might check some further game logic that could cause the
+// drag to be cancelled in a way that would require showing a
+// message to the user. An example of the latter case would be
+// dragging a unit over a water tile in a colony that does not
+// contain docks; we want to all the drag UI-wise, but we want to
+// then show a message to the user explaining why we are can-
+// celling it. Returning `true` means "proceed".
 struct IColViewDragSinkCheck {
   virtual ~IColViewDragSinkCheck() = default;
 
