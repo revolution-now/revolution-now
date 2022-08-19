@@ -48,6 +48,11 @@ struct IRand {
   virtual double between_doubles( double lower,
                                   double upper ) = 0;
 
+  // Shuffles the elements. Vector can be empty. Picks a random
+  // element.
+  template<typename T>
+  void shuffle( std::vector<T>& vec );
+
   // For convenience. Vector must be non-empty. Picks a random
   // element.
   template<typename T>
@@ -59,6 +64,19 @@ struct IRand {
 };
 
 void to_str( IRand const& o, std::string& out, base::ADL_t );
+
+template<typename T>
+void IRand::shuffle( std::vector<T>& vec ) {
+  if( vec.empty() ) return;
+  int const last_idx = vec.size() - 1;
+  // i < last_idx because we don't want to consider swapping the
+  // last element with itself, which would have not purpose.
+  for( int i = 0; i < last_idx; ++i ) {
+    int source = between_ints( i, last_idx, e_interval::closed );
+    using std::swap;
+    swap( vec[i], vec[source] );
+  }
+}
 
 } // namespace rn
 
