@@ -155,7 +155,7 @@ wait<> MainMenuPlane::run() {
   co::stream<e_main_menu_item>& selections =
       impl_->selection_stream_;
   // TODO: Temporary
-  selections.send( e_main_menu_item::new_ );
+  selections.send( e_main_menu_item::load );
   while( true ) {
     e_main_menu_item item = co_await selections.next();
     try {
