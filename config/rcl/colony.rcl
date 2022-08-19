@@ -763,3 +763,55 @@ on_the_job_training {
   # if compatibility is desired.
   can_promote_with_zero_production: false
 }
+
+# Describes parameters related to teachers teaching in schools /
+# colleges / universities.
+teaching {
+  # Number of turns needed for promoting one unit from one
+  # teacher.
+  turns_needed {
+    schoolhouse: 4
+    college:     6
+    university:  8
+  }
+
+  # Maximum number of teachers that a given school type can hold.
+  max_teachers {
+    schoolhouse: 1
+    college:     2
+    university:  3
+  }
+
+  # This gives the minimum school building level that is needed
+  # to teach the given activity.
+  school_type_for_activity {
+    # Schoolhouse.
+    farming:          schoolhouse
+    fishing:          schoolhouse
+    fur_trapping:     schoolhouse
+    lumberjacking:    schoolhouse
+    ore_mining:       schoolhouse
+    silver_mining:    schoolhouse
+    carpentry:        schoolhouse
+    pioneering:       schoolhouse
+    scouting:         schoolhouse
+    teaching:         schoolhouse # unused
+
+    # College.
+    sugar_planting:   college
+    tobacco_planting: college
+    cotton_planting:  college
+    rum_distilling:   college
+    tobacconistry:    college
+    weaving:          college
+    fur_trading:      college
+    blacksmithing:    college
+    gunsmithing:      college
+    fighting:         college
+
+    # University.
+    missioning:       university
+    bell_ringing:     university
+    preaching:        university
+  }
+}

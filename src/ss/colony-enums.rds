@@ -125,6 +125,12 @@ enum.e_outdoor_commons_secondary_job {
   ore,
 }
 
+enum.e_school_type {
+  schoolhouse,
+  college,
+  university,
+}
+
 # In the colony there is one slot per building class.
 enum.e_colony_building_slot {
   muskets,

@@ -122,6 +122,21 @@ struct.colors {
   unit_shadow_color_light 'gfx::pixel',
 }
 
+struct.Teaching {
+  # This gives the minimum school building level that is needed
+  # to teach the given activity.
+  school_type_for_activity 'refl::enum_map<e_unit_activity, e_school_type>',
+
+  # Number of turns needed for promoting one unit from one
+  # teacher of an activity associated with this school type. In
+  # other words, first we look up the school type for the ac-
+  # tivity above, then lookup then turns required here.
+  turns_needed 'refl::enum_map<e_school_type, int>',
+
+  # Maximum number of teachers that a given school type can hold.
+  max_teachers 'refl::enum_map<e_school_type, int>',
+}
+
 namespace "rn"
 
 # Note that this config is for non-production related things. For
@@ -132,7 +147,8 @@ struct.config_colony_t {
   food_for_creating_new_colonist 'int',
 
   # The maximum number of people that be placed in each (indoor)
-  # colony building.
+  # colony building, though this does not apply to school / col-
+  # lege / university.
   max_workers_per_building 'int',
 
   # Which colony buildings are given automatically to a colony
@@ -213,6 +229,10 @@ struct.config_colony_t {
   # Configures how/when units working in colonies get randomly
   # promoted via on-the-job-training.
   on_the_job_training 'config::colony::on_the_job_training',
+
+  # Describes parameters related to teachers teaching in schools
+  # / colleges / universities.
+  teaching 'config::colony::Teaching',
 
   _features { validation, equality }
 }
