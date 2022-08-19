@@ -193,8 +193,7 @@ wait<bool> present_colony_update(
           " Our {} cannot continue production until the supply "
           "is increased.",
           colony.name, o.what,
-          config_production.indoor_production
-              .worker_names_plural[o.job] );
+          config_colony.worker_names_plural[o.job] );
       break;
     }
     case ColonyNotification::e::sons_of_liberty_increased: {

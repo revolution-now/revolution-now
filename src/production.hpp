@@ -16,7 +16,7 @@
 #include "maybe.hpp"
 
 // Rds
-#include "colony-buildings.rds.hpp"
+#include "colony-enums.rds.hpp"
 #include "production.rds.hpp"
 
 namespace rn {

@@ -18,9 +18,6 @@
 // gs
 #include "ss/colony-enums.rds.hpp"
 
-// Rds
-#include "colony-buildings.rds.hpp"
-
 namespace rn {
 
 struct SS;

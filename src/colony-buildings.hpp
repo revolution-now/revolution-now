@@ -12,9 +12,6 @@
 
 #include "core-config.hpp"
 
-// Rds
-#include "colony-buildings.rds.hpp"
-
 // Revolution Now
 #include "maybe.hpp"
 #include "tile-enum.rds.hpp"

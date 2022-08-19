@@ -597,6 +597,34 @@ building_display_names {
   custom_house:         "Custom House"
 }
 
+# Given an indoor job, this will return the plural names for a
+# worker doing that job.
+worker_names_plural {
+  bells:   "statesmen"
+  crosses: "preachers"
+  hammers: "carpenters"
+  rum:     "distillers"
+  cigars:  "tobacconists"
+  cloth:   "weavers"
+  coats:   "fur traders"
+  tools:   "blacksmiths"
+  muskets: "gunsmiths"
+  teacher: "teachers"
+}
+
+worker_names_singular {
+  bells:   "statesman"
+  crosses: "preacher"
+  hammers: "carpenter"
+  rum:     "distiller"
+  cigars:  "tobacconist"
+  cloth:   "weaver"
+  coats:   "fur trader"
+  tools:   "blacksmith"
+  muskets: "gunsmith"
+  teacher: "teacher"
+}
+
 colors {
   # In addition to a black shadow behind the unit (to the left),
   # we render a one-pixel "glow" on the right side of the unit

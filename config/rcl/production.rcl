@@ -33,21 +33,6 @@ indoor_production {
   # Thomas Jefferson bells production bonus percent.
   thomas_jefferson_bells_bonus: 50
 
-  # Given an indoor job, this will return the plural names for a
-  # worker doing that job.
-  worker_names_plural {
-    bells:   "statesmen"
-    crosses: "preachers"
-    hammers: "carpenters"
-    rum:     "distillers"
-    cigars:  "tobacconists"
-    cloth:   "weavers"
-    coats:   "fur traders"
-    tools:   "blacksmiths"
-    muskets: "gunsmiths"
-    teacher: "teachers"
-  }
-
   # For a given indoor job this will give the corresponding ex-
   # pert colonist type.
   expert_for {

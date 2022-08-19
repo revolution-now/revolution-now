@@ -203,6 +203,11 @@ struct.config_colony_t {
 
   building_display_names 'refl::enum_map<e_colony_building, std::string>',
 
+  # Given an indoor job, this will return the names for a worker
+  # doing that job.
+  worker_names_plural 'refl::enum_map<e_indoor_job, std::string>',
+  worker_names_singular 'refl::enum_map<e_indoor_job, std::string>',
+
   colors 'config::colony::colors',
 
   # Configures how/when units working in colonies get randomly

@@ -124,3 +124,23 @@ enum.e_outdoor_commons_secondary_job {
   fur,
   ore,
 }
+
+# In the colony there is one slot per building class.
+enum.e_colony_building_slot {
+  muskets,
+  tools,
+  rum,
+  cloth,
+  coats,
+  cigars,
+  hammers,
+  town_hall,
+  newspapers, # printing press + newspaper.
+  schools,
+  offshore,
+  horses,
+  wall,
+  warehouses,
+  crosses,
+  custom_house,
+}

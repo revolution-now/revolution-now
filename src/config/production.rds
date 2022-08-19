@@ -65,10 +65,6 @@ struct.IndoorProduction {
   # FIXME: move this to the founding fathers config.
   thomas_jefferson_bells_bonus 'int',
 
-  # Given an indoor job, this will return the plural names for a
-  # worker doing that job.
-  worker_names_plural 'refl::enum_map<e_indoor_job, std::string>',
-
   # For a given indoor job this will give the corresponding ex-
   # pert colonist type.
   expert_for 'refl::enum_map<e_indoor_job, e_unit_type>',
