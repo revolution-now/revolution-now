@@ -15,6 +15,7 @@
 #include "colony-mgr.hpp"
 #include "production.hpp"
 #include "render.hpp"
+#include "teaching.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
 
@@ -222,7 +223,7 @@ maybe<ColViewObject_t> ColViewBuildings::can_receive(
 }
 
 wait<base::valid_or<IColViewDragSinkCheck::Rejection>>
-ColViewBuildings::check( ColViewObject_t const&,
+ColViewBuildings::check( ColViewObject_t const& o,
                          e_colview_entity,
                          Coord const where ) const {
   // These should have already been checked.
@@ -236,16 +237,40 @@ ColViewBuildings::check( ColViewObject_t const&,
   // dering of the units which would be strange.
   if( dragging_.has_value() && slot == dragging_->slot )
     co_return IColViewDragSinkCheck::Rejection{};
+  // This should have already been checked.
+  UNWRAP_CHECK( building, building_for_slot( colony_, slot ) );
   // Check that there aren't more than the max allowed units in
   // this slot.
+  int const allowed_units = max_workers_for_building( building );
   if( int( colony_.indoor_jobs[indoor_job].size() ) >=
-      config_colony.max_workers_per_building ) {
+      allowed_units ) {
+    string const worker_name =
+        allowed_units > 1
+            ? config_colony.worker_names_plural[indoor_job]
+            : config_colony.worker_names_singular[indoor_job];
     co_return IColViewDragSinkCheck::Rejection{
         .reason = fmt::format(
-            "There can be at most @[H]{}@[] workers per colony "
-            "building.",
-            config_colony.max_workers_per_building ) };
+            "There can be at most @[H]{}@[] {} in a @[H]{}@[].",
+            allowed_units, worker_name,
+            config_colony.building_display_names[building] ) };
   }
+  // This should have already been checked.
+  UNWRAP_CHECK( unit_id, o.get_if<ColViewObject::unit>().member(
+                             &ColViewObject::unit::id ) );
+  UnitsState const& units_state = ss_.units;
+  Unit const&       unit = units_state.unit_for( unit_id );
+  // If this is a school type building then make sure that the
+  // unit has the right expertise.
+  maybe<e_school_type> const school_type =
+      school_type_from_building( building );
+  if( school_type.has_value() ) {
+    base::valid_or<string> can_teach =
+        can_unit_teach_in_building( unit.type(), *school_type );
+    if( !can_teach.valid() )
+      co_return IColViewDragSinkCheck::Rejection{
+          .reason = can_teach.error() };
+  }
+
   co_return base::valid; // proceed.
 }
 
