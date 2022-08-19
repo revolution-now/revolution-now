@@ -28,6 +28,7 @@
 #include "plane-stack.hpp"
 #include "rand.hpp"
 #include "road.hpp"
+#include "teaching.hpp"
 #include "ts.hpp"
 #include "ustate.hpp"
 
@@ -243,6 +244,47 @@ wait<bool> present_colony_update(
           "A colonist in @[H]{}@[] has learned the specialty "
           "profession @[H]{}@[]!",
           colony.name, unit_attr( o.promoted_to ).name );
+      break;
+    }
+    case ColonyNotification::e::unit_taught: {
+      auto& o =
+          notification.get<ColonyNotification::unit_taught>();
+      switch( o.from ) {
+        case e_unit_type::petty_criminal:
+          CHECK( o.to == e_unit_type::indentured_servant );
+          msg = fmt::format(
+              "A @[H]Petty Criminal@[] in @[H]{}@[] has been "
+              "promoted to @[H]Indentured Servant@[] through "
+              "education.",
+              colony.name );
+          break;
+        case e_unit_type::indentured_servant:
+          CHECK( o.to == e_unit_type::free_colonist );
+          msg = fmt::format(
+              "An @[H]Indentured Servant@[] in @[H]{}@[] has "
+              "been promoted to @[H]Free Colonist@[] through "
+              "education.",
+              colony.name );
+          break;
+        default:
+          msg = fmt::format(
+              "A @[H]Free Colonist@[] in @[H]{}@[] has learned "
+              "the specialty profession @[H]{}@[] through "
+              "education.",
+              colony.name, unit_attr( o.to ).name );
+          break;
+      }
+      break;
+    }
+    case ColonyNotification::e::teacher_but_no_students: {
+      auto& o = notification.get<
+          ColonyNotification::teacher_but_no_students>();
+      msg = fmt::format(
+          "We have a teacher in @[H]{}@[] that is teaching the "
+          "specialty "
+          "profession @[H]{}@[], but there are no colonists "
+          "available to teach.",
+          colony.name, unit_attr( o.teacher_type ).name );
       break;
     }
   }
@@ -535,6 +577,7 @@ void move_unit_to_colony( UnitsState& units_state,
     case ColonyJob::e::indoor: {
       auto const& o = job.get<ColonyJob::indoor>();
       colony.indoor_jobs[o.job].push_back( unit_id );
+      sync_colony_teachers( colony );
       break;
     }
     case ColonyJob::e::outdoor: {
@@ -561,6 +604,7 @@ void remove_unit_from_colony( UnitsState& units_state,
     if( find( units.begin(), units.end(), unit_id ) !=
         units.end() ) {
       units.erase( find( units.begin(), units.end(), unit_id ) );
+      sync_colony_teachers( colony );
       return;
     }
   }

@@ -19,6 +19,7 @@
 #include "production.hpp"
 #include "promotion.hpp"
 #include "sons-of-liberty.hpp"
+#include "teaching.hpp"
 #include "ts.hpp"
 #include "ustate.hpp"
 
@@ -356,7 +357,7 @@ void apply_production_to_colony(
   }
 }
 
-void check_colonist_promotion(
+void check_colonist_on_the_job_training(
     SS& ss, TS& ts, Colony& colony, ColonyProduction const& pr,
     vector<ColonyNotification_t>& notifications ) {
   vector<OnTheJobPromotionResult> const res =
@@ -412,6 +413,38 @@ void check_colonist_promotion(
   }
 }
 
+void check_colonists_teaching(
+    SS& ss, TS& ts, Colony& colony,
+    vector<ColonyNotification_t>& notifications ) {
+  ColonyTeachingEvolution const ev =
+      evolve_teachers( ss, ts, colony );
+  CHECK_LE( int( ev.teachers.size() ), 3 );
+
+  // First check if we have teachers but no one teachable.
+  for( TeacherEvolution const& tev : ev.teachers ) {
+    switch( tev.action.to_enum() ) {
+      case TeacherAction::e::in_progress: break;
+      case TeacherAction::e::taught_unit: {
+        auto& o = tev.action.get<TeacherAction::taught_unit>();
+        notifications.push_back( ColonyNotification::unit_taught{
+            .from = o.from_type, .to = o.to_type } );
+        break;
+      }
+      case TeacherAction::e::taught_no_one: {
+        // Note that this message ("taught no one") will only be
+        // triggered when the teach finishes one teaching cycle,
+        // i.e. it won't appear each turn.
+        notifications.push_back(
+            ColonyNotification::teacher_but_no_students{
+                .teacher_type =
+                    ss.units.unit_for( tev.teacher_unit_id )
+                        .type() } );
+        break;
+      }
+    }
+  }
+}
+
 } // namespace
 
 ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
@@ -451,12 +484,13 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
     ev.notifications.emplace_back(
         std::move( *spoilage_notification ) );
 
-  // Since this can change the type of units, do this as late as
+  // Since these can change the type of units, do this as late as
   // possible so that production has already been computed and
   // any other changes to colonists (such as starvation) have al-
   // ready been done.
-  check_colonist_promotion( ss, ts, colony, ev.production,
-                            ev.notifications );
+  check_colonist_on_the_job_training(
+      ss, ts, colony, ev.production, ev.notifications );
+  check_colonists_teaching( ss, ts, colony, ev.notifications );
 
   return ev;
 }

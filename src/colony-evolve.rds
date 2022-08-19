@@ -89,6 +89,16 @@ sumtype.ColonyNotification {
     # notification.
     promoted_to 'e_unit_type',
   },
+  unit_taught {
+    # A unit was promoted as a result of teaching.
+    from 'e_unit_type',
+    to   'e_unit_type',
+  },
+  teacher_but_no_students {
+    # There are teachers in the colony but no units that can be
+    # promoted (they are all experts working in the colony).
+    teacher_type 'e_unit_type',
+  },
 }
 
 struct.ColonyEvolution {
