@@ -6,7 +6,9 @@ let s:stems = [
  \ 'colony-evolve',
  \ 'colony-buildings',
  \ 'colview-buildings',
- \ 'teaching',
+ \ 'market',
+ \ 'buy-sell',
+ \ 'custom-house',
 \]
 
 let s:luas = [
