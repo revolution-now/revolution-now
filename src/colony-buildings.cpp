@@ -346,4 +346,43 @@ e_unit_activity activity_for_indoor_job( e_indoor_job job ) {
   }
 }
 
+maybe<e_school_type> school_type_from_building(
+    e_colony_building building ) {
+  switch( building ) {
+    case e_colony_building::schoolhouse:
+      return e_school_type::schoolhouse;
+    case e_colony_building::college:
+      return e_school_type::college;
+    case e_colony_building::university:
+      return e_school_type::university;
+    default: break;
+  }
+  return nothing;
+}
+
+e_colony_building building_for_school_type(
+    e_school_type school_type ) {
+  switch( school_type ) {
+    case e_school_type::schoolhouse:
+      return e_colony_building::schoolhouse;
+    case e_school_type::college:
+      return e_colony_building::college;
+    case e_school_type::university:
+      return e_colony_building::university;
+  }
+}
+
+int max_workers_for_building( e_colony_building building ) {
+  if( maybe<e_school_type> school_type =
+          school_type_from_building( building );
+      school_type.has_value() )
+    return config_colony.teaching.max_teachers[*school_type];
+  e_colony_building_slot const slot =
+      slot_for_building( building );
+  maybe<e_indoor_job> const indoor_job =
+      indoor_job_for_slot( slot );
+  if( !indoor_job.has_value() ) return 0;
+  return config_colony.max_workers_per_building;
+}
+
 } // namespace rn

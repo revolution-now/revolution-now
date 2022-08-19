@@ -362,5 +362,32 @@ TEST_CASE( "[colony-buildings] colony_warehouse_capacity" ) {
   REQUIRE( colony_warehouse_capacity( colony ) == 100 );
 }
 
+TEST_CASE( "[colony-buildings] max_workers_for_building" ) {
+  e_colony_building building = {};
+
+  auto f = [&] { return max_workers_for_building( building ); };
+
+  building = e_colony_building::stable;
+  REQUIRE( f() == 0 );
+  building = e_colony_building::carpenters_shop;
+  REQUIRE( f() == 3 );
+  building = e_colony_building::blacksmiths_shop;
+  REQUIRE( f() == 3 );
+  building = e_colony_building::newspaper;
+  REQUIRE( f() == 0 );
+  building = e_colony_building::custom_house;
+  REQUIRE( f() == 0 );
+  building = e_colony_building::town_hall;
+  REQUIRE( f() == 3 );
+  building = e_colony_building::iron_works;
+  REQUIRE( f() == 3 );
+  building = e_colony_building::schoolhouse;
+  REQUIRE( f() == 1 );
+  building = e_colony_building::college;
+  REQUIRE( f() == 2 );
+  building = e_colony_building::university;
+  REQUIRE( f() == 3 );
+}
+
 } // namespace
 } // namespace rn

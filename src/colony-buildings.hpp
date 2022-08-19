@@ -58,4 +58,17 @@ int colony_warehouse_capacity( Colony const& colony );
 
 e_unit_activity activity_for_indoor_job( e_indoor_job job );
 
+// If the building is a school / college / university then this
+// will the relevant type.
+maybe<e_school_type> school_type_from_building(
+    e_colony_building building );
+
+e_colony_building building_for_school_type(
+    e_school_type school_type );
+
+// Maximum number of colonists that can be dragged onto work in a
+// building. In the original game this is always three except for
+// schoolhouse (1) and college (2).
+int max_workers_for_building( e_colony_building building );
+
 } // namespace rn
