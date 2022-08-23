@@ -6688,6 +6688,11 @@ TEST_CASE(
                               e_outdoor_job::fish );
   W.add_unit_outdoors( colony.id, e_direction::ne,
                        e_outdoor_job::fish );
+  // An expert but not at the thing being done, should behave
+  // like free colonist.
+  W.add_unit_outdoors( colony.id, e_direction::s,
+                       e_outdoor_job::food,
+                       e_unit_type::elder_statesman );
 
   SECTION( "no bonus no penalty" ) {
     int const XE = 0; // expert
@@ -6701,12 +6706,15 @@ TEST_CASE(
     REQUIRE( pr.land_production[e_direction::ne] ==
              SquareProduction{ .what     = e_outdoor_job::fish,
                                .quantity = 4 + XN } );
+    REQUIRE( pr.land_production[e_direction::s] ==
+             SquareProduction{ .what     = e_outdoor_job::food,
+                               .quantity = 3 + XN } );
   }
 
   SECTION( "50% SoL" ) {
     int const XE = 2; // expert
     int const XN = 1; // non-expert
-    colony.sons_of_liberty.num_rebels_from_bells_only = 1.0;
+    colony.sons_of_liberty.num_rebels_from_bells_only = 1.5;
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production[e_direction::nw] ==
@@ -6715,12 +6723,15 @@ TEST_CASE(
     REQUIRE( pr.land_production[e_direction::ne] ==
              SquareProduction{ .what     = e_outdoor_job::fish,
                                .quantity = 4 + XN } );
+    REQUIRE( pr.land_production[e_direction::s] ==
+             SquareProduction{ .what     = e_outdoor_job::food,
+                               .quantity = 3 + XN } );
   }
 
   SECTION( "100% SoL" ) {
     int const XE = 4; // expert
     int const XN = 2; // non-expert
-    colony.sons_of_liberty.num_rebels_from_bells_only = 2.0;
+    colony.sons_of_liberty.num_rebels_from_bells_only = 3.0;
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production[e_direction::nw] ==
@@ -6729,6 +6740,9 @@ TEST_CASE(
     REQUIRE( pr.land_production[e_direction::ne] ==
              SquareProduction{ .what     = e_outdoor_job::fish,
                                .quantity = 4 + XN } );
+    REQUIRE( pr.land_production[e_direction::s] ==
+             SquareProduction{ .what     = e_outdoor_job::food,
+                               .quantity = 3 + XN } );
   }
 }
 

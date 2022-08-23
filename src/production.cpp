@@ -48,9 +48,10 @@ namespace {
 ** BellsModifiers
 *****************************************************************/
 struct BellsModifiers {
-  void apply( e_unit_type type, int& to ) const {
+  void apply( e_unit_activity activity, e_unit_type type,
+              int& to ) const {
     bool const is_expert =
-        unit_attr( type ).expertise.has_value();
+        unit_attr( type ).expertise == activity;
     if( to == 0 ) return;
     to += is_expert ? sons_of_liberty_bonus_expert
                     : sons_of_liberty_bonus_non_expert;
@@ -260,7 +261,8 @@ int bells_production( UnitsState const& units_state,
     int unit_quantity =
         base_indoor_production_for_colonist_indoor_job(
             unit_type );
-    bells_modifiers.apply( unit_type, unit_quantity );
+    bells_modifiers.apply( e_unit_activity::bell_ringing,
+                           unit_type, unit_quantity );
     if( indoor_unit_is_expert( e_indoor_job::bells, unit_type ) )
       apply_int_percent_bonus_rnd_down(
           unit_quantity,
@@ -359,7 +361,8 @@ int crosses_production_for_colony(
       apply_int_percent_bonus_rnd_down(
           unit_quantity,
           config_production.indoor_production.expert_bonus );
-    bells_modifiers.apply( unit_type, unit_quantity );
+    bells_modifiers.apply( e_unit_activity::preaching, unit_type,
+                           unit_quantity );
     apply_int_percent_bonus_rnd_down(
         unit_quantity,
         config_production.building_production_bonus[building] );
@@ -391,7 +394,8 @@ void compute_food_production(
       int quantity = production_on_square(
           e_outdoor_job::food, terrain_state, player, unit_type,
           colony.location.moved( d ) );
-      bells_modifiers.apply( unit_type, quantity );
+      bells_modifiers.apply( e_unit_activity::farming, unit_type,
+                             quantity );
       out.corn_produced += quantity;
       out_land_production[d] = SquareProduction{
           .what = e_outdoor_job::food, .quantity = quantity };
@@ -408,7 +412,8 @@ void compute_food_production(
       int quantity = production_on_square(
           e_outdoor_job::fish, terrain_state, player, unit_type,
           colony.location.moved( d ) );
-      bells_modifiers.apply( unit_type, quantity );
+      bells_modifiers.apply( e_unit_activity::fishing, unit_type,
+                             quantity );
       out.fish_produced += quantity;
       out_land_production[d] = SquareProduction{
           .what = e_outdoor_job::fish, .quantity = quantity };
@@ -528,7 +533,9 @@ void compute_raw(
       int quantity = production_on_square(
           outdoor_job, terrain_state, player, unit_type,
           colony.location.moved( d ) );
-      bells_modifiers.apply( unit_type, quantity );
+      bells_modifiers.apply(
+          activity_for_outdoor_job( outdoor_job ), unit_type,
+          quantity );
       out.raw_produced += quantity;
       out_land_production[d] = SquareProduction{
           .what = outdoor_job, .quantity = quantity };
@@ -588,7 +595,8 @@ void compute_product( Colony const&          colony,
     apply_int_percent_bonus_rnd_down(
         unit_quantity_put,
         config_production.building_production_bonus[*building] );
-    bells_modifiers.apply( unit_type, unit_quantity_put );
+    bells_modifiers.apply( activity_for_indoor_job( indoor_job ),
+                           unit_type, unit_quantity_put );
     // Note the factory bonus may be zero.
     apply_int_percent_bonus_rnd_down(
         unit_quantity_put,
@@ -795,22 +803,26 @@ void fill_in_center_square(
   // Food.
   pr.center_food_production = food_production_on_center_square(
       square, ss.settings.difficulty );
-  bells_modifiers.apply( unit_type, pr.center_food_production );
+  bells_modifiers.apply( e_unit_activity::farming, unit_type,
+                         pr.center_food_production );
 
   // Secondary good.
   maybe<e_outdoor_commons_secondary_job> center_secondary =
       choose_secondary_job( player, square,
                             ss.settings.difficulty );
   if( !center_secondary.has_value() ) return;
+  e_outdoor_job const outdoor_job =
+      to_outdoor_job( *center_secondary );
   pr.center_extra_production = SquareProduction{
-      .what = to_outdoor_job( *center_secondary ),
+      .what = outdoor_job,
       // Note that this quantity must be checked by the functions
       // dedicated to individual goods in order to factor them in
       // to the total calculations.
       .quantity = commodity_production_on_center_square(
           *center_secondary, square, player,
           ss.settings.difficulty ) };
-  bells_modifiers.apply( unit_type,
+  bells_modifiers.apply( activity_for_outdoor_job( outdoor_job ),
+                         unit_type,
                          pr.center_extra_production->quantity );
 }
 
