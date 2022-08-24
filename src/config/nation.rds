@@ -12,6 +12,9 @@
 include "ss/nation.rds.hpp"
 include "ss/unit-type.rds.hpp"
 
+# gfx
+include "gfx/pixel.hpp"
+
 # refl
 include "refl/cdr.hpp"
 include "refl/enum-map.hpp"

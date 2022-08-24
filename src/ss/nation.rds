@@ -8,12 +8,6 @@
 # Description: RDS definitions for the nation module.
 #
 # ===============================================================
-# gfx
-include "gfx/pixel.hpp"
-
-# C++ standard library
-include "<string>"
-
 namespace "rn"
 
 enum.e_nation {
