@@ -1,0 +1,16 @@
+# ===============================================================
+# market.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-08-23.
+#
+# Description: Rds definitions for the market module.
+#
+# ===============================================================
+namespace "rn"
+
+struct.CommodityPrice {
+  bid 'int', # in hundreds.
+  ask 'int', # in hundreds.
+}

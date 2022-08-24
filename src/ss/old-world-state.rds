@@ -9,12 +9,9 @@
 #
 # ===============================================================
 # gs
-include "ss/commodity.rds.hpp"
+include "ss/market.rds.hpp"
 include "ss/unit-id.hpp"
 include "ss/unit-type.rds.hpp"
-
-# refl
-include "refl/enum-map.hpp"
 
 # base
 include "base/maybe.hpp"
@@ -23,59 +20,6 @@ include "base/maybe.hpp"
 include "<array>"
 
 namespace "rn"
-
-struct.MarketItem {
-  # When multiplied by 100 this is the price that you get when
-  # selling 100 tons of a commodity in Europe (that would be at
-  # zero tax rate; since taxes are subtracted, you will generally
-  # get less than this).
-  #
-  # In the original game the spread (buy-sell) is fixed for each
-  # commodity. Most have a spread of 100, while some have a very
-  # large spread (e.g. food has a spread of 800). Not sure why,
-  # but that is the reason that we don't have a buy price here,
-  # since it can always be inferred from this.
-  #
-  # In particular, the sell price is always less than the buy
-  # price. This may be in order to prevent making a quick profit
-  # by buying something, causing the price to rise, and then im-
-  # mediately selling it back, but not sure.
-  #
-  # In the original game this was always in the range [1, 19].
-  sell_price_in_hundreds 'int',
-
-  # Is there an active boycott for this.
-  boycott 'bool',
-
-  # Price movement pressure. Starts off at zero, then when com-
-  # modities are purchased this will increase, and when they are
-  # sold it will decrease. When it hits 1.0 (-1.0) the price will
-  # increase (decrease) by 1 and this will be reset to zero.
-  #
-  # This can also be modified independently of player trading ac-
-  # tivity since prices in Europe will fluctuate due to sup-
-  # ply/demand within Europe. The mechanics of said supply/demand
-  # are commodity-dependent and may be driven partly by some
-  # gameplay balancing logic as well as some randomness.
-  #
-  # It seems sensible that this value should be modified in such
-  # a way that, in the following situation:
-  #
-  #   * Tax rate is zero.
-  #   * Bid/ask spread is zero.
-  #   * Player has infinite gold.
-  #
-  # that the player should neither gain nor lose any gold on av-
-  # erage by alternatively buying/selling the good (in any quan-
-  # tities).
-  price_movement 'double',
-
-  _features { equality, validation }
-}
-
-struct.MarketState {
-  commodities 'refl::enum_map<e_commodity, MarketItem>',
-}
 
 # How many of each unit the king has added into his expeditionary
 # force. These will grow as the game progresses.

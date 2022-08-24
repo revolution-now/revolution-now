@@ -26,6 +26,7 @@ void linker_dont_discard_module_time();
 void linker_dont_discard_module_ss_land_view();
 void linker_dont_discard_module_ss_map_square();
 void linker_dont_discard_module_irand();
+void linker_dont_discard_module_market();
 
 void linker_dont_discard_me() {
   linker_dont_discard_module_map_updater_lua();
@@ -42,6 +43,7 @@ void linker_dont_discard_me() {
   linker_dont_discard_module_ss_land_view();
   linker_dont_discard_module_ss_map_square();
   linker_dont_discard_module_irand();
+  linker_dont_discard_module_market();
   // Add more here as needed.
 }
 

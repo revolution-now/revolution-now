@@ -1,0 +1,116 @@
+# ===============================================================
+# market.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-08-21.
+#
+# Description: Config info for market prices.
+#
+# ===============================================================
+# ss
+include "ss/commodity.rds.hpp"
+
+# refl
+include "refl/cdr.hpp"
+include "refl/enum-map.hpp"
+
+# cdr
+include "cdr/ext-builtin.hpp"
+
+namespace "rn.config.market"
+
+struct.PriceLimits {
+  # Upper/lower bounds on the starting value of the ask price.
+  ask_price_start_min 'int',
+  ask_price_start_max 'int',
+
+  # Upper and lower bounds on the possible range of ask prices.
+  ask_price_min 'int',
+  ask_price_max 'int',
+
+  # The amount subtracted from the ask price to get the bid
+  # price. In the original game this has a fixed value for each
+  # commodity that never changes. In the original game's config
+  # file, this is referred to as "burden" (actually their value
+  # is one less than ours since it doesn't include the baseline
+  # spread of 1).
+  bid_ask_spread 'int',
+
+  _features { validation, equality },
+}
+
+# The economic model used here along with the associated configu-
+# ration parameters are essentially taken/inferred from the orig-
+# inal game's NAMES.TXT file in the section titled "Cargo types &
+# economic model."
+#
+# Experiments with the original game seems to suggest that the
+# game keeps track of the total accumulated traffic of a com-
+# modity (i.e., it increases when a commodity is sold to europe
+# and decreases when it is bought). It then manipulates that
+# number as commodities are bought and sold, as well as applying
+# an "attrition" (drift) each turn. It also likely manipulates it
+# when commodities are bought and sold by foreign nations.
+struct.EconomicModel {
+  # This is the amount by which the total accumulated traded
+  # volume ("traffic" in the original config file) must decrease
+  # in order for the price to go up by one. In the original
+  # game's config file this was in multiples of 100, but here it
+  # is not.
+  rise 'int',
+
+  # This is the amount by which the total accumulated traded
+  # volume ("traffic" in the original config file) must increase
+  # in order for the price to go down by one. In the original
+  # game's config file this was in multiples of 100, but here it
+  # is not.
+  fall 'int',
+
+  # This is the amount added to the total traffic volume each
+  # turn to allow the price to drift. If this is negative then
+  # the price will tend to increase when nothing is traded; if it
+  # is positive then it will tend to decrease.
+  attrition 'int',
+
+  # The original game's config file describes this field as the
+  # "shift value for traffic volume." Experiments seem to indi-
+  # cate that it literally represents the number of times to left
+  # shift (i.e., bit shift) a traded amount before adding it onto
+  # the accumulated traffic. So e.g., a value of 2 for this field
+  # would mean that, if the player sells 50 of a commodity, then
+  # 50<<2 = 50*4 = 200 will actually be added (since it is a
+  # sell) to the total traffic. This makes the price more respon-
+  # sive to traffic (more volatile in that sense). Note that even
+  # if this value is zero the price will still respond to traf-
+  # fic, since a value of 0 just means not to amplify the trading
+  # volume; but the trading volume is still non-zero.
+  volatility 'int',
+
+  _features { validation, equality },
+}
+
+struct.MarketCommodity {
+  price_limits   'PriceLimits',
+  economic_model 'EconomicModel',
+}
+
+# Of the Dutch, the original game says that "Commodity prices in
+# Amsterdam do not collapse as quickly as in other European ports
+# and they recover more quickly.
+struct.DutchAdvantage {
+  # TODO
+}
+
+namespace "rn"
+
+struct.config_market_t {
+  # Describes the properties and price movement model for each
+  # market commodity.
+  price_behavior 'refl::enum_map<e_commodity, config::market::MarketCommodity>',
+
+  # Models/configures the dutch bonuses with regard to trading.
+  dutch_advantage 'config::market::DutchAdvantage',
+}
+
+config.market {}

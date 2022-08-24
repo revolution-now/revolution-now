@@ -11,6 +11,7 @@
 #include "old-world-state.hpp"
 
 // gs
+#include "ss/market.hpp"
 #include "ss/unit-type.hpp"
 
 // luapp
@@ -29,20 +30,6 @@
 using namespace std;
 
 namespace rn {
-
-base::valid_or<string> MarketItem::validate() const {
-  // Keep in mind that this sell price is hundreds.
-  REFL_VALIDATE( sell_price_in_hundreds >= 0,
-                 "the sell price of a commodity must be >= 1" );
-  REFL_VALIDATE( sell_price_in_hundreds < 100,
-                 "the sell price of a commodity must be < 100" );
-
-  REFL_VALIDATE(
-      fabs( price_movement ) <= 1.0,
-      "the price_movement field must be in [-1.0, 1.0]." );
-
-  return base::valid;
-}
 
 base::valid_or<string> ExpeditionaryForce::validate() const {
   REFL_VALIDATE( regulars >= 0,
@@ -90,40 +77,6 @@ base::valid_or<string> TaxationState::validate() const {
 ** Lua Bindings
 *****************************************************************/
 namespace {
-
-// MarketItem
-LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::MarketItem;
-  auto u  = st.usertype.create<U>();
-
-  u["sell_price_in_hundreds"] = &U::sell_price_in_hundreds;
-  u["boycott"]                = &U::boycott;
-  u["price_movement"]         = &U::price_movement;
-};
-
-// MarketState
-LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::MarketState;
-  auto u  = st.usertype.create<U>();
-
-  u["commodities"] = &U::commodities;
-};
-
-// MarketStateCommoditiesEnumMap
-LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::MarketStateCommoditiesEnumMap;
-  auto u  = st.usertype.create<U>();
-
-  u[lua::metatable_key]["__index"] =
-      []( U& obj, e_commodity comm ) -> decltype( auto ) {
-    return obj[comm];
-  };
-
-  // !! NOTE: because we overwrote the __index metamethod on this
-  // userdata we cannot add any further (non-metatable) members
-  // on this object, since there will be no way to look them up
-  // by name.
-};
 
 // ExpeditionaryForce
 LUA_STARTUP( lua::state& st ) {
