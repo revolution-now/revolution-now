@@ -1,7 +1,8 @@
+# ---------------------------------------------------------------
 # The economic model used here along with the associated configu-
 # ration parameters are essentially taken/inferred from the orig-
 # inal game's NAMES.TXT file in the section titled "Cargo types &
-# economic model."
+# economic model" together with experimentation.
 #
 # Experiments with the original game seems to suggest that the
 # game keeps track of the total accumulated traffic of a com-
@@ -11,22 +12,29 @@
 # an "attrition" (drift) each turn. It also likely manipulates it
 # when commodities are bought and sold by foreign nations.
 #
-# rise: This is the amount by which the total accumulated traded
+# Rise: This is the amount by which the total accumulated traded
 # volume ("traffic" in the original config file) must decrease in
 # order for the price to go up by one. In the original game's
 # config file this was in multiples of 100, but here it is not.
+# Note that a decrease in said volume as a result of a buy will
+# be determined not only by the amount purchased, but also on the
+# difficulty level.
 #
-# fall: This is the amount by which the total accumulated traded
+# Fall: This is the amount by which the total accumulated traded
 # volume ("traffic" in the original config file) must increase in
 # order for the price to go down by one. In the original game's
 # config file this was in multiples of 100, but here it is not.
+# Note that an increase in said volume as a result of a sell will
+# be determined not only by the amount sold, but also on the dif-
+# ficulty level, as well as which nation the player is playing.
 #
-# attrition: This is the amount added to the total traffic volume
+# Attrition: This is the amount added to the total traffic volume
 # each turn to allow the price to drift. If this is negative then
 # the price will tend to increase when nothing is traded; if it
-# is positive then it will tend to decrease.
+# is positive then it will tend to decrease. The actual attrition
+# value can be scaled based on the nation chosen.
 #
-# volatility: The original game's config file describes this
+# Volatility: The original game's config file describes this
 # field as the "shift value for traffic volume." Experiments seem
 # to indicate that it literally represents the number of times to
 # left shift (i.e., bit shift) a traded amount before adding it
@@ -38,6 +46,25 @@
 # if this value is zero the price will still respond to traffic,
 # since a value of 0 just means not to amplify the trading vol-
 # ume; but the trading volume is still non-zero.
+#
+# Difficulty and Dutch: as alluded to above, some of the parame-
+# ters can be tweaked depending on difficulty level and on
+# whether the player is playing as the dutch. In short, the dutch
+# get their traffic volumes scaled down and their attrition mag-
+# nitude scaled up, which puts things more in their favor in both
+# situations. Depending on the difficulty level, the traffic
+# volume (i.e., explicitly traded by the player) gets scaled up
+# or down to make price swings more/less pronounced.
+#
+# Ordering: There are various bonuses/penalties involved in the
+# model described above, including those applied for difficulty
+# and Dutch bonuses. But what's nice is that they are all multi-
+# plicative (even the volatility "shift"), and so it does not
+# matter in what order they are applied.
+# ---------------------------------------------------------------
+
+# Describes the properties and price movement model for each
+# market commodity.
 price_behavior {
   food {
     # original game [Food]: 1,  3,  1,  6,  7,  3,  2, -1,  0
@@ -195,8 +222,13 @@ price_behavior {
   rum {
     # original game [Rum]: 11, 13,  1, 20,  0,  4,  4,-12,  1
     price_limits {
-      ask_price_start_min:  11
-      ask_price_start_max:  13
+      # Despite what the config numbers show, in the original
+      # game, rum actually has starting bounds of more like [9,
+      # 15], though sources say that they follow a binomial dis-
+      # tribution and so it is not clear what mechanism exactly
+      # is used to generate them.
+      ask_price_start_min:  9
+      ask_price_start_max:  15
       ask_price_min:        1
       ask_price_max:        20
       bid_ask_spread:       1
@@ -212,8 +244,13 @@ price_behavior {
   cigars {
     # original game [Cigars]: 11, 13,  1, 20,  0,  4,  4,-11,  1
     price_limits {
-      ask_price_start_min:  11
-      ask_price_start_max:  13
+      # Despite what the config numbers show, in the original
+      # game, cigars actually has starting bounds of more like
+      # [9, 15], though sources say that they follow a binomial
+      # distribution and so it is not clear what mechanism ex-
+      # actly is used to generate them.
+      ask_price_start_min:  9
+      ask_price_start_max:  15
       ask_price_min:        1
       ask_price_max:        20
       bid_ask_spread:       1
@@ -229,8 +266,13 @@ price_behavior {
   cloth {
     # original game [Cloth]: 11, 13,  1, 20,  0,  4,  4,-13,  1
     price_limits {
-      ask_price_start_min:  11
-      ask_price_start_max:  13
+      # Despite what the config numbers show, in the original
+      # game, cloth actually has starting bounds of more like [9,
+      # 15], though sources say that they follow a binomial dis-
+      # tribution and so it is not clear what mechanism exactly
+      # is used to generate them.
+      ask_price_start_min:  9
+      ask_price_start_max:  15
       ask_price_min:        1
       ask_price_max:        20
       bid_ask_spread:       1
@@ -246,8 +288,13 @@ price_behavior {
   coats {
     # original game [Coats]: 11, 13,  1, 20,  0,  4,  4,-11,  1
     price_limits {
-      ask_price_start_min:  11
-      ask_price_start_max:  13
+      # Despite what the config numbers show, in the original
+      # game, coats actually has starting bounds of more like [9,
+      # 15], though sources say that they follow a binomial dis-
+      # tribution and so it is not clear what mechanism exactly
+      # is used to generate them.
+      ask_price_start_min:  9
+      ask_price_start_max:  15
       ask_price_min:        1
       ask_price_max:        20
       bid_ask_spread:       1
@@ -312,6 +359,130 @@ price_behavior {
   }
 }
 
-dutch_advantage {
-  # TODO
+# Models/configures the nation-specific bonuses with regard to
+# trading, which in the original game only applies to the Dutch,
+# as it does in this game (by default).
+nation_advantage {
+  english {
+    # No bonuses/penalties.
+    attrition_scale:   1.0
+    sell_volume_scale: 1.0
+    buy_volume_scale:  1.0
+  }
+
+  french {
+    # No bonuses/penalties.
+    attrition_scale:   1.0
+    sell_volume_scale: 1.0
+    buy_volume_scale:  1.0
+  }
+
+  spanish {
+    # No bonuses/penalties.
+    attrition_scale:   1.0
+    sell_volume_scale: 1.0
+    buy_volume_scale:  1.0
+  }
+
+  # Of the Dutch, the original game states that "Commodity prices
+  # in Amsterdam do not collapse as quickly as in other European
+  # ports and they recover more quickly.
+  dutch {
+    # This is the "recover more quickly" part. In this case, "re-
+    # cover" seems to mean that the prices recover to values that
+    # are typically favorable to players; in some cases that can
+    # mean rise, and in others fall. Specifically, experiments on
+    # the original game seem to indicate that the dutch have
+    # their "attrition" values scaled up, so that, in the absence
+    # of trading with the new world, prices naturally either rise
+    # or fall (depending on the sign of the attrition) more
+    # quickly. This may at first seem more like a disadvantage,
+    # but it is actually an advantage because the sign of the at-
+    # trition (in general) is chosen to make it favorable for the
+    # player. E.g., goods such as rum and coats which are almost
+    # always sold to europe by the player have negative attri-
+    # tion, meaning that, left on their own, their prices will
+    # gradually rise, which is favorable to the player. Tools and
+    # muskets, on the other hand, which are normally bought by
+    # the player, have a positive attrition, so their prices
+    # would gradually drop, which is again favorable to the
+    # player. Thus, as mentioned, we multiply the dutch's attri-
+    # tion value (keeping the same sign) by this factor, which,
+    # in the original game appears to be 1/(2/3)=1.5, since the
+    # price movements appear to happen in about 2/3 the number of
+    # turns.
+    attrition_scale: 1.5
+
+    # This is the "do not collapse as quickly" part. In this
+    # case, it refers only to price drops (not price rises) and
+    # it appears to only apply when selling goods, not when at-
+    # trition is applied (on goods with positive attrition,
+    # meaning that they normally fall when left alone). Experi-
+    # ments in the original game seem to indicate that when
+    # selling goods in europe, the volume sold is scaled down by
+    # a factor of 2/3 before it is added to the net traffic vol-
+    # ume. This results in taking 1.5 times the number of turns
+    # to cause a price drop when selling. Note that the "fall"
+    # parameter for each commodity does not seem to be changed
+    # per se, since when commodities with positive attrition
+    # (falling) are let to evolve (with the Dutch's scaled attri-
+    # tion) the game appears to use the unmodififed "fall" num-
+    # ber. That probably makes sense, since if the "fall" number
+    # were scaled up in order to delay price falling, then it
+    # would cancel out the scaling up of attrition, so therefore
+    # muskets would effectively not get the "price recovery"
+    # bonus (which for them means that their price "recovers" to
+    # low values more quickly for the dutch). Another reason that
+    # the original game might not opt to scale up the "fall" pa-
+    # rameter as a means of reducing price collapse is that it
+    # could potentially then cause the fall parameter to be sig-
+    # nificantly larger than the rise parameter, which might
+    # allow a form of cheating where you buy a lot of a commodity
+    # (causing the price to rise quickly), then you sell it off
+    # immediately while the price drops more slowly, resulting in
+    # a profit that might even exceed what is lost via the
+    # bid/ask spread. I think that the bid/ask spread together
+    # with max values of prices might be sufficient to thwart
+    # that mode of cheating, but then if the fall parameter were
+    # changed then in theory those other parameters would have to
+    # be adjusted to compensate, which is probably too much com-
+    # plexity.
+    sell_volume_scale: 0.666666
+
+    # In the original game, not even the dutch seem to get a
+    # scaling on volume when buying.
+    buy_volume_scale: 1.0
+  }
+}
+
+# Some of the parameters in the economic model are tweaked de-
+# pending on difficulty level.
+#
+# Depending on difficulty level, the traffic volume is scaled
+# down by this factor when buying and selling. This effectively
+# causes prices to not rise/fall as quickly as a result. Note
+# that this does not affect attrition in either direction, only
+# to actual traffic from the new world. In the original game this
+# value appears to be 2/3, since it takes 1.5 (=1/(2/3)) the
+# number of buys/sells for the price to move.
+difficulty_modifiers {
+  discoverer {
+    traffic_volume_scale: 0.666666
+  }
+
+  explorer {
+    traffic_volume_scale: 0.833333
+  }
+
+  conquistador {
+    traffic_volume_scale: 1.000000
+  }
+
+  governor {
+    traffic_volume_scale: 1.166666
+  }
+
+  viceroy {
+    traffic_volume_scale: 1.333333
+  }
 }

@@ -39,4 +39,15 @@ base::valid_or<string> config::market::EconomicModel::validate()
   return base::valid;
 }
 
+base::valid_or<string>
+config::market::NationAdvantage::validate() const {
+  REFL_VALIDATE(
+      attrition_scale >= 1.0,
+      "the attrition scaling for the dutch must be >= 1.0." );
+  REFL_VALIDATE(
+      sell_volume_scale <= 1.0,
+      "the sell volume scaling for the dutch must be <= 1.0." );
+  return base::valid;
+}
+
 } // namespace rn
