@@ -113,6 +113,7 @@ TEST_CASE( "[save-game] no default values (compact)" ) {
   };
 
 #  if REGENERATE_FILES
+  expect_rands( W );
   generate_save_file( W, src, opts );
 #  else
   (void)generate_save_file;
@@ -154,6 +155,7 @@ TEST_CASE( "[save-game] default values (full)" ) {
   };
 
 #  if REGENERATE_FILES
+  expect_rands( W );
   generate_save_file( W, src, opts );
 #  else
   (void)generate_save_file;

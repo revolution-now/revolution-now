@@ -182,14 +182,14 @@ local function create_old_world_state( settings, player )
 
   -- Market state.
   local cotton_item = old_world.market.commodities['cotton']
-  cotton_item.sell_price_in_hundreds = 4
+  cotton_item.bid_price_in_hundreds = 4
   cotton_item.boycott = true
-  cotton_item.price_movement = .33
+  cotton_item.traffic_since_last_price_change = 0;
 
   local muskets_item = old_world.market.commodities['muskets']
-  muskets_item.sell_price_in_hundreds = 5
+  muskets_item.bid_price_in_hundreds = 5
   muskets_item.boycott = false
-  muskets_item.price_movement = .44
+  muskets_item.traffic_since_last_price_change = 0;
 
   -- Expeditionary force.
   old_world.expeditionary_force.regulars = 3

@@ -19,24 +19,13 @@ players.players.dutch {
       men_of_war: 3
       regulars: 3
     }
-    immigration {
-      immigrants_pool: [
-        expert_fisherman,
-        free_colonist,
-        missionary,
-      ]
-      next_recruit_cost_base: 50
-    }
+    immigration.next_recruit_cost_base: 50
     market.commodities {
       cotton {
+        bid_price_in_hundreds: 4
         boycott: true
-        price_movement: 0.33
-        sell_price_in_hundreds: 4
       }
-      muskets {
-        price_movement: 0.44
-        sell_price_in_hundreds: 5
-      }
+      muskets.bid_price_in_hundreds: 5
     }
     taxes.tax_rate: 7
   }
