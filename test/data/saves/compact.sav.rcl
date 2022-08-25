@@ -21,11 +21,70 @@ players.players.dutch {
     }
     immigration.next_recruit_cost_base: 50
     market.commodities {
-      cotton {
-        bid_price_in_hundreds: 4
-        boycott: true
+      cigars {
+        current_ask_price_in_hundreds: 10
+        starting_ask_price_in_hundreds: 10
       }
-      muskets.bid_price_in_hundreds: 5
+      cloth {
+        current_ask_price_in_hundreds: 10
+        starting_ask_price_in_hundreds: 10
+      }
+      coats {
+        current_ask_price_in_hundreds: 10
+        starting_ask_price_in_hundreds: 10
+      }
+      cotton {
+        current_ask_price_in_hundreds: 10
+        starting_ask_price_in_hundreds: 10
+      }
+      food {
+        current_ask_price_in_hundreds: 10
+        starting_ask_price_in_hundreds: 10
+      }
+      fur {
+        current_ask_price_in_hundreds: 10
+        starting_ask_price_in_hundreds: 10
+      }
+      horses {
+        current_ask_price_in_hundreds: 10
+        starting_ask_price_in_hundreds: 10
+      }
+      lumber {
+        current_ask_price_in_hundreds: 10
+        starting_ask_price_in_hundreds: 10
+      }
+      muskets {
+        current_ask_price_in_hundreds: 10
+        starting_ask_price_in_hundreds: 10
+      }
+      ore {
+        current_ask_price_in_hundreds: 10
+        starting_ask_price_in_hundreds: 10
+      }
+      rum {
+        current_ask_price_in_hundreds: 10
+        starting_ask_price_in_hundreds: 10
+      }
+      silver {
+        current_ask_price_in_hundreds: 10
+        starting_ask_price_in_hundreds: 10
+      }
+      sugar {
+        current_ask_price_in_hundreds: 10
+        starting_ask_price_in_hundreds: 10
+      }
+      tobacco {
+        current_ask_price_in_hundreds: 10
+        starting_ask_price_in_hundreds: 10
+      }
+      tools {
+        current_ask_price_in_hundreds: 10
+        starting_ask_price_in_hundreds: 10
+      }
+      trade_goods {
+        current_ask_price_in_hundreds: 10
+        starting_ask_price_in_hundreds: 10
+      }
     }
     taxes.tax_rate: 7
   }

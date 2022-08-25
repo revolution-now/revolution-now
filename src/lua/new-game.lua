@@ -181,15 +181,29 @@ local function create_old_world_state( settings, player )
   old_world.taxes.tax_rate = 7
 
   -- Market state.
-  local cotton_item = old_world.market.commodities['cotton']
-  cotton_item.bid_price_in_hundreds = 4
-  cotton_item.boycott = true
-  cotton_item.traffic_since_last_price_change = 0;
+  local init_commodity = function( comm, ask_price )
+    old_world.market.commodities[comm]
+        .current_ask_price_in_hundreds = ask_price
+    old_world.market.commodities[comm]
+        .starting_ask_price_in_hundreds = ask_price
+  end
 
-  local muskets_item = old_world.market.commodities['muskets']
-  muskets_item.bid_price_in_hundreds = 5
-  muskets_item.boycott = false
-  muskets_item.traffic_since_last_price_change = 0;
+  init_commodity( 'food', 10 )
+  init_commodity( 'sugar', 10 )
+  init_commodity( 'tobacco', 10 )
+  init_commodity( 'cotton', 10 )
+  init_commodity( 'fur', 10 )
+  init_commodity( 'lumber', 10 )
+  init_commodity( 'ore', 10 )
+  init_commodity( 'silver', 10 )
+  init_commodity( 'horses', 10 )
+  init_commodity( 'rum', 10 )
+  init_commodity( 'cigars', 10 )
+  init_commodity( 'cloth', 10 )
+  init_commodity( 'coats', 10 )
+  init_commodity( 'trade_goods', 10 )
+  init_commodity( 'tools', 10 )
+  init_commodity( 'muskets', 10 )
 
   -- Expeditionary force.
   old_world.expeditionary_force.regulars = 3

@@ -16,34 +16,83 @@ include "refl/enum-map.hpp"
 
 namespace "rn"
 
+# The "ask price", when multiplied by 100, is the price that you
+# pay when buying 100 tons of a commodity in Europe.
+#
+# In the original game the bid/ask spread is fixed for each com-
+# modity. Most have a spread of 100, while some have a very large
+# spread (e.g. food has a spread of 800). That is the reason that
+# we don't have the bid prices here, since those can always be
+# derived from the ask price.
+#
+# In the original game, as in this game, bid prices were always
+# in the range [0, 19] and ask prices were always in the range
+# [1, 20].
 struct.MarketItem {
-  # When multiplied by 100 this is the price that you get when
-  # selling 100 tons of a commodity in Europe (that would be at
-  # zero tax rate; since taxes are subtracted, you will generally
-  # get less than this).
-  #
-  # In the original game the bid/ask spread is fixed for each
-  # commodity. Most have a spread of 100, while some have a very
-  # large spread (e.g. food has a spread of 800). That is the
-  # reason that we don't have an ask price here, since it can al-
-  # ways be derived from this.
-  #
-  # In the original game this was always in the range [0, 19].
-  bid_price_in_hundreds 'int',
+  # This is the price that this commodity started off at; it will
+  # have some amount of randomness. This value is needed because
+  # it provides a reference point from which to apply the net
+  # supply delta to compute the current price.
+  starting_ask_price_in_hundreds 'int',
 
-  # Is there an active boycott for this.
+  # This is field is essentially the only state held as part of
+  # the "economic model" for price movement in the game for a
+  # single commodity. It represents an imaginary supply of this
+  # commodity in europe. Only changes to this imaginary supply
+  # are important, and thus it always starts off with a value of
+  # zero. It holds the net accumulated amount of commodities sold
+  # to europe throughout the game minus the amount bought. The
+  # basic idea is that, any force in the game that can move
+  # prices will do so by adding or subtracting something from
+  # this quantity. Then, this quantity, together with the
+  # starting price and the rise/fall configuration parameters of
+  # the commodity, allows us to compute the current "target"
+  # price for the commodity. Finally, when the target price is
+  # different from the current price, the current price will be
+  # incremented or decremented (by at most one) toward the target
+  # price.
+  #
+  # Note that this is not in hundreds but in individual units,
+  # which is important because the player can buy/sell in any
+  # quantity.
+  net_supply_in_europe 'int',
+
+  # This is the current ask price and the one that will always be
+  # shown to the player and the one to be used to make transac-
+  # tions (though upon making a transaction it could be adjusted
+  # immediately thereafter).
+  #
+  # This has to be stored separately and cannot be computed from
+  # the starting price+net supply because of a few reasons:
+  #
+  #   1. There are some forces that can move prices (such as in-
+  #      fluence from foreign markets, and custom houses making
+  #      sales) where the resulting price changes won't be ap-
+  #      plied immediately and need to wait until the player's
+  #      turn, since we only want to notify them once about a
+  #      given commodity's price change per turn. And without
+  #      storing the current price, we wouldn't know if it had
+  #      moved or not and thus wouldn't know whether to notify
+  #      them.
+  #   2. The net supply can change such as to induce a price
+  #      change of more than 1; but in the original game (as in
+  #      this game) the current price can only changed by at most
+  #      1 each time it is changed (it can change by more than
+  #      one per turn if there is manual buying/selling in-
+  #      volved); but each time the new target price is recom-
+  #      puted and the current price moved, it can only be moved
+  #      by at most one.
+  #
+  # And so therefore, each turn, we increment or decrement the
+  # current bid/ask price until it hits the target (moving tar-
+  # get) that is computed from the starting price + net supply,
+  # and if the current price changes, we notify the user. Note
+  # that this recomputing of bid/ask price also happens upon each
+  # transaction in europe.
+  current_ask_price_in_hundreds 'int',
+
+  # Is there an active boycott on this commodity.
   boycott 'bool',
-
-  # This is the net accumulated traffic (quantity sold to europe)
-  # since the last price change. So each time it increases (de-
-  # creases) beyond a rise (fall) threshold, the number will be
-  # modded by that and the price will be increased/decreased ac-
-  # cordingly. It will decrease when commodities are purchased
-  # (and for this reason it can be negative for commodities that
-  # are typically only bought). Note that there may be a small
-  # amount of randomess incorporated into this value so that
-  # price rises/drops are not totally predictable.
-  traffic_since_last_price_change 'int',
 
   _features { equality, validation }
 }

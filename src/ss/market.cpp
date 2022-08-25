@@ -30,10 +30,15 @@ namespace rn {
 ** MarketItem
 *****************************************************************/
 base::valid_or<string> MarketItem::validate() const {
-  REFL_VALIDATE( bid_price_in_hundreds >= 0,
-                 "bid_price_in_hundreds must be > 0" );
-  REFL_VALIDATE( bid_price_in_hundreds <= 20,
-                 "bid_price_in_hundreds must be <= 20" );
+  REFL_VALIDATE( starting_ask_price_in_hundreds >= 1,
+                 "starting_ask_price_in_hundreds must be >= 1" );
+  REFL_VALIDATE(
+      starting_ask_price_in_hundreds <= 20,
+      "starting_ask_price_in_hundreds must be <= 20" );
+  REFL_VALIDATE( current_ask_price_in_hundreds >= 1,
+                 "current_ask_price_in_hundreds must be >= 1" );
+  REFL_VALIDATE( current_ask_price_in_hundreds <= 20,
+                 "current_ask_price_in_hundreds must be <= 20" );
   return base::valid;
 }
 
@@ -47,10 +52,12 @@ LUA_STARTUP( lua::state& st ) {
   using U = ::rn::MarketItem;
   auto u  = st.usertype.create<U>();
 
-  u["bid_price_in_hundreds"] = &U::bid_price_in_hundreds;
-  u["boycott"]               = &U::boycott;
-  u["traffic_since_last_price_change"] =
-      &U::traffic_since_last_price_change;
+  u["starting_ask_price_in_hundreds"] =
+      &U::starting_ask_price_in_hundreds;
+  u["net_supply_in_europe"] = &U::net_supply_in_europe;
+  u["current_ask_price_in_hundreds"] =
+      &U::current_ask_price_in_hundreds;
+  u["boycott"] = &U::boycott;
 };
 
 // MarketState

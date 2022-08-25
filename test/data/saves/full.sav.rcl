@@ -72,84 +72,100 @@ players.players {
       }
       market.commodities {
         cigars {
-          bid_price_in_hundreds: 0
           boycott: false
-          traffic_since_last_price_change: 0
+          current_ask_price_in_hundreds: 10
+          net_supply_in_europe: 0
+          starting_ask_price_in_hundreds: 10
         }
         cloth {
-          bid_price_in_hundreds: 0
           boycott: false
-          traffic_since_last_price_change: 0
+          current_ask_price_in_hundreds: 10
+          net_supply_in_europe: 0
+          starting_ask_price_in_hundreds: 10
         }
         coats {
-          bid_price_in_hundreds: 0
           boycott: false
-          traffic_since_last_price_change: 0
+          current_ask_price_in_hundreds: 10
+          net_supply_in_europe: 0
+          starting_ask_price_in_hundreds: 10
         }
         cotton {
-          bid_price_in_hundreds: 4
-          boycott: true
-          traffic_since_last_price_change: 0
+          boycott: false
+          current_ask_price_in_hundreds: 10
+          net_supply_in_europe: 0
+          starting_ask_price_in_hundreds: 10
         }
         food {
-          bid_price_in_hundreds: 0
           boycott: false
-          traffic_since_last_price_change: 0
+          current_ask_price_in_hundreds: 10
+          net_supply_in_europe: 0
+          starting_ask_price_in_hundreds: 10
         }
         fur {
-          bid_price_in_hundreds: 0
           boycott: false
-          traffic_since_last_price_change: 0
+          current_ask_price_in_hundreds: 10
+          net_supply_in_europe: 0
+          starting_ask_price_in_hundreds: 10
         }
         horses {
-          bid_price_in_hundreds: 0
           boycott: false
-          traffic_since_last_price_change: 0
+          current_ask_price_in_hundreds: 10
+          net_supply_in_europe: 0
+          starting_ask_price_in_hundreds: 10
         }
         lumber {
-          bid_price_in_hundreds: 0
           boycott: false
-          traffic_since_last_price_change: 0
+          current_ask_price_in_hundreds: 10
+          net_supply_in_europe: 0
+          starting_ask_price_in_hundreds: 10
         }
         muskets {
-          bid_price_in_hundreds: 5
           boycott: false
-          traffic_since_last_price_change: 0
+          current_ask_price_in_hundreds: 10
+          net_supply_in_europe: 0
+          starting_ask_price_in_hundreds: 10
         }
         ore {
-          bid_price_in_hundreds: 0
           boycott: false
-          traffic_since_last_price_change: 0
+          current_ask_price_in_hundreds: 10
+          net_supply_in_europe: 0
+          starting_ask_price_in_hundreds: 10
         }
         rum {
-          bid_price_in_hundreds: 0
           boycott: false
-          traffic_since_last_price_change: 0
+          current_ask_price_in_hundreds: 10
+          net_supply_in_europe: 0
+          starting_ask_price_in_hundreds: 10
         }
         silver {
-          bid_price_in_hundreds: 0
           boycott: false
-          traffic_since_last_price_change: 0
+          current_ask_price_in_hundreds: 10
+          net_supply_in_europe: 0
+          starting_ask_price_in_hundreds: 10
         }
         sugar {
-          bid_price_in_hundreds: 0
           boycott: false
-          traffic_since_last_price_change: 0
+          current_ask_price_in_hundreds: 10
+          net_supply_in_europe: 0
+          starting_ask_price_in_hundreds: 10
         }
         tobacco {
-          bid_price_in_hundreds: 0
           boycott: false
-          traffic_since_last_price_change: 0
+          current_ask_price_in_hundreds: 10
+          net_supply_in_europe: 0
+          starting_ask_price_in_hundreds: 10
         }
         tools {
-          bid_price_in_hundreds: 0
           boycott: false
-          traffic_since_last_price_change: 0
+          current_ask_price_in_hundreds: 10
+          net_supply_in_europe: 0
+          starting_ask_price_in_hundreds: 10
         }
         trade_goods {
-          bid_price_in_hundreds: 0
           boycott: false
-          traffic_since_last_price_change: 0
+          current_ask_price_in_hundreds: 10
+          net_supply_in_europe: 0
+          starting_ask_price_in_hundreds: 10
         }
       }
       taxes.tax_rate: 7
