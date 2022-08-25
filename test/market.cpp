@@ -51,7 +51,7 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[market] some test" ) {
+TEST_CASE( "[market] market_price" ) {
   World   W;
   Player& french = W.player( e_nation::french );
 
