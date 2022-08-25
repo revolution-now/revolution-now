@@ -52,6 +52,7 @@ sumtype.LandViewRawInput {
   next_turn {},
   hidden_terrain {},
   leave_hidden_terrain {},
+  european_status {},
 }
 
 # These are animation primitives. A unit "move" is a slide, and a

@@ -493,6 +493,12 @@ struct LandViewPlane::Impl : public Plane {
         case e::leave_hidden_terrain: {
           SHOULD_NOT_BE_HERE;
         }
+        case e::european_status: {
+          translated_input_stream_.send( PlayerInput(
+              LandViewPlayerInput::european_status{},
+              raw_input.when ) );
+          break;
+        }
         case e::hidden_terrain: {
           auto new_state = LandViewMode::hidden_terrain{};
           SCOPED_SET_AND_RESTORE( landview_mode_, new_state );
@@ -1339,6 +1345,10 @@ struct LandViewPlane::Impl : public Plane {
               break;
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::hidden_terrain{} ) );
+            break;
+          case ::SDLK_e:
+            raw_input_stream_.send( RawInput(
+                LandViewRawInput::european_status{} ) );
             break;
           case ::SDLK_SPACE:
           case ::SDLK_KP_5:

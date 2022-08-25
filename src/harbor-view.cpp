@@ -2123,8 +2123,14 @@ struct HarborPlane::Impl : public Plane {
         // Generally we should return no here because this is an
         // event that we want all planes to see.
         return e_input_handled::no;
-      case input::e_input_event::key_event:
+      case input::e_input_event::key_event: {
+        auto& o = event.get<input::key_event_t>();
+        if( o.keycode == ::SDLK_ESCAPE ) {
+          S_.exit_promise.set_value_emplace();
+          return e_input_handled::yes;
+        }
         return e_input_handled::no;
+      }
       case input::e_input_event::mouse_wheel_event:
         return e_input_handled::no;
       case input::e_input_event::mouse_move_event:

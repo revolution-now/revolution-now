@@ -35,6 +35,12 @@ sumtype.LandViewPlayerInput {
     id 'ColonyId',
   },
 
+  # Show the harbor view. We could handle this theoretically di-
+  # rectly in the land-view module, but it seems cleaner (depen-
+  # dency wise) and more consistent (with e.g. the `colony` com-
+  # mand above) that we just let the turn module handle it.
+  european_status {},
+
   # Player has given orders to a unit.
   give_orders {
     orders 'orders_t',

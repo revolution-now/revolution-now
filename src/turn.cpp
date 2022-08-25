@@ -428,7 +428,7 @@ wait<> process_player_input( UnitId, e_menu_item item,
 wait<> process_player_input( UnitId                       id,
                              LandViewPlayerInput_t const& input,
                              Planes& planes, SS& ss, TS& ts,
-                             Player&,
+                             Player&          player,
                              NationTurnState& nat_turn_st ) {
   auto& st = nat_turn_st;
   auto& q  = st.units;
@@ -447,6 +447,11 @@ wait<> process_player_input( UnitId                       id,
       if( abandoned == e_colony_abandoned::yes )
         // Nothing really special to do here.
         co_return;
+      break;
+    }
+    case e::european_status: {
+      co_await show_harbor_view( planes, ss, ts, player,
+                                 /*selected_unit=*/nothing );
       break;
     }
     // We have some orders for the current unit.
