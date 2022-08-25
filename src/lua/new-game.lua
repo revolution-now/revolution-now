@@ -243,8 +243,9 @@ end
 -- Testing
 -----------------------------------------------------------------
 local function add_testing_options( options )
-  options.nations = { dutch={ human=true } }
-  options.map.type = 'half_and_half'
+  options.nations = { english={ human=true } }
+  options.difficulty = 'discoverer'
+  -- options.map.type = 'half_and_half'
   -- options.map.world_size = { w=4, h=4 }
 end
 
