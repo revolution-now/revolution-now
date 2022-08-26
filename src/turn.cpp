@@ -351,7 +351,7 @@ wait<> process_player_input( e_menu_item item, Planes& planes,
 
 wait<> process_player_input( LandViewPlayerInput_t const& input,
                              Planes& planes, SS& ss, TS& ts,
-                             Player& ) {
+                             Player& player ) {
   switch( input.to_enum() ) {
     using namespace LandViewPlayerInput;
     case e::colony: {
@@ -364,7 +364,18 @@ wait<> process_player_input( LandViewPlayerInput_t const& input,
         co_return;
       break;
     }
-    default: break;
+    case e::european_status: {
+      co_await show_harbor_view( planes, ss, ts, player,
+                                 /*selected_unit=*/nothing );
+      break;
+    }
+    case e::next_turn:
+      // This one is relevant but handled in the calling func-
+      // tion.
+      break;
+    case e::give_orders:
+    case e::prioritize: //
+      break;
   }
 }
 
@@ -602,7 +613,7 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
       co_await ts.gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return( unit.orders() != e_unit_orders::road );
+    co_return ( unit.orders() != e_unit_orders::road );
   }
 
   if( unit.orders() == e_unit_orders::plow ) {
@@ -619,7 +630,7 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
       co_await ts.gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return( unit.orders() != e_unit_orders::plow );
+    co_return ( unit.orders() != e_unit_orders::plow );
   }
 
   if( is_unit_in_port( ss.units, id ) ) {
