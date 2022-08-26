@@ -184,9 +184,13 @@ void check_construction( SS& ss, TS& ts, Colony& colony,
           construction.get_if<Construction::building>();
       building.has_value() ) {
     if( colony.buildings[building->what] ) {
-      ev.notifications.emplace_back(
-          ColonyNotification::construction_already_finished{
-              .what = construction } );
+      // We already have the building, but we will only notify
+      // the player (to minimize spam) if there are active car-
+      // penter's building.
+      if( !colony.indoor_jobs[e_indoor_job::hammers].empty() )
+        ev.notifications.emplace_back(
+            ColonyNotification::construction_already_finished{
+                .what = construction } );
       return;
     }
   }
