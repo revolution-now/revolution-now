@@ -1,0 +1,7 @@
+Here are some links of detailed analyses of the Col1 combat sta-
+tistics mechanism as well as a list of some of the bonuses and
+penalties that are applied (very non-trivial):
+
+  https://sourceforge.net/p/freecol/pending-features-for-freecol/65/
+
+  https://forums.civfanatics.com/threads/combats.97381/

@@ -24,6 +24,8 @@ namespace rn {
 
 namespace {} // namespace
 
+// NOTE: see doc/col1-fighting.txt for links that explain how the
+// original game computes the bonuses.
 FightStatistics fight_statistics( IRand&      rand,
                                   Unit const& attacker,
                                   Unit const& defender ) {
