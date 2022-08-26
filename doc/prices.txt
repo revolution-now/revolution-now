@@ -1,0 +1,12 @@
+This doc has some info related to economics models and price
+movement.
+
+Useful links:
+
+  * Here is a good forum thread explaining the algorithm used for
+    price movement in civ4-col. It is somewhat different from the
+    original game, and there is discussion on its shortcomings.
+    Our game does not use this exact model, but it is good for
+    comparison.
+
+      https://forums.civfanatics.com/threads/price-change-mechanics.292862/
