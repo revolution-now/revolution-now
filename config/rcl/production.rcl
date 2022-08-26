@@ -240,6 +240,8 @@ outdoor_production {
     silver:  expert_silver_miner
   }
 
+  # TODO: check these production values against the ones in
+  # NAMES.TXT.
   jobs {
     food: {
       minor_river_bonus.add { non_expert=1, expert=1 }

@@ -21,6 +21,9 @@ include "cdr/ext-std.hpp"
 
 namespace "rn"
 
+# TODO: see bottom of NAMES.TXT for the weights of the various
+# founding fathers in each game epoch.
+
 struct.FoundingFather {
   id 'e_founding_father',
   name 'std::string',
@@ -35,6 +38,8 @@ struct.FoundingFatherType {
 struct.config_fathers_t {
   types 'refl::enum_map<e_founding_father_type, FoundingFatherType>',
   fathers 'refl::enum_map<e_founding_father, FoundingFather>',
+  # TODO: see bottom of NAMES.TXT for the weights of the various
+  # founding fathers in each game epoch.
 }
 
 config.fathers {}

@@ -24,8 +24,11 @@ namespace rn {
 
 namespace {} // namespace
 
-// NOTE: see doc/col1-fighting.txt for links that explain how the
+// TODO: see doc/col1-fighting.txt for links that explain how the
 // original game computes the bonuses.
+//
+// TODO: See NAMES.TXT for the stats on the unit types and check
+// them against those in our config file.
 FightStatistics fight_statistics( IRand&      rand,
                                   Unit const& attacker,
                                   Unit const& defender ) {
