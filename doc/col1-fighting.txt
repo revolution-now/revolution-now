@@ -5,3 +5,12 @@ penalties that are applied (very non-trivial):
   https://sourceforge.net/p/freecol/pending-features-for-freecol/65/
 
   https://forums.civfanatics.com/threads/combats.97381/
+
+Observations
+============
+
+  * If an ambush bonus is applied, it uses the terrain bonus of
+    the square of the defender (counterintuitively) and the de-
+    fender gets no terrain (defense) bonus.
+  * It appears that the ambush bonus does not take effect if the
+    defender is fortified.

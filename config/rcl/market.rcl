@@ -222,11 +222,6 @@ price_behavior {
   rum {
     # original game [Rum]: 11, 13,  1, 20,  0,  4,  4,-12,  1
     price_limits {
-      # Despite what the config numbers show, in the original
-      # game, rum actually has starting bounds of more like [9,
-      # 15], though sources say that they follow a binomial dis-
-      # tribution and so it is not clear what mechanism exactly
-      # is used to generate them.
       ask_price_start_min:  9
       ask_price_start_max:  15
       ask_price_min:        1
@@ -244,11 +239,6 @@ price_behavior {
   cigars {
     # original game [Cigars]: 11, 13,  1, 20,  0,  4,  4,-11,  1
     price_limits {
-      # Despite what the config numbers show, in the original
-      # game, cigars actually has starting bounds of more like
-      # [9, 15], though sources say that they follow a binomial
-      # distribution and so it is not clear what mechanism ex-
-      # actly is used to generate them.
       ask_price_start_min:  9
       ask_price_start_max:  15
       ask_price_min:        1
@@ -266,11 +256,6 @@ price_behavior {
   cloth {
     # original game [Cloth]: 11, 13,  1, 20,  0,  4,  4,-13,  1
     price_limits {
-      # Despite what the config numbers show, in the original
-      # game, cloth actually has starting bounds of more like [9,
-      # 15], though sources say that they follow a binomial dis-
-      # tribution and so it is not clear what mechanism exactly
-      # is used to generate them.
       ask_price_start_min:  9
       ask_price_start_max:  15
       ask_price_min:        1
@@ -288,11 +273,6 @@ price_behavior {
   coats {
     # original game [Coats]: 11, 13,  1, 20,  0,  4,  4,-11,  1
     price_limits {
-      # Despite what the config numbers show, in the original
-      # game, coats actually has starting bounds of more like [9,
-      # 15], though sources say that they follow a binomial dis-
-      # tribution and so it is not clear what mechanism exactly
-      # is used to generate them.
       ask_price_start_min:  9
       ask_price_start_max:  15
       ask_price_min:        1

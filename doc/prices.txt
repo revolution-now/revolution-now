@@ -10,3 +10,117 @@ Useful links:
     comparison.
 
       https://forums.civfanatics.com/threads/price-change-mechanics.292862/
+
+
+Processed Goods Price Group
+===========================
+
+In the original game, the four processed goods (rum, cigars,
+cloth, and coats) don't seem to follow the same economic model as
+the other goods. Instead, their prices are linked to each other
+(confirmed by experimentation and the strategy guide) and evolve
+according to a very different mechanism.
+The precise algo-
+rithm is not known, but the following are some empirical observa-
+tions.
+
+Generally speaking, it seems that the goal of the designers of
+the original game were to prevent all four of the goods from
+having very high prices and all four from having very low prices.
+This may have been done in order to ensure that, as time moves
+on, the average total value that can be obtained by selling the
+four goods remains constant, but only if they are traded in
+roughly equal proportions.
+
+  * Out of the parameters from the normal model for other goods,
+    these are the ones that seem to play a role in the price
+    group model:
+
+      * ask_price_start_min:  no
+      * ask_price_start_max:  no
+      * ask_price_min:        yes (same role)
+      * ask_price_max:        yes (same role)
+      * bid_ask_spread:       yes (same role)
+      * rise:                 yes (but plays different role)
+      * fall:                 yes (but plays different role)
+      * attrition:            ?
+      * volatility:           yes (same role)
+
+  * Generally, the game appears to try to maintain the sum of the
+    bid prices for these four goods at around ~42.
+  * If the price of one good is driven down by some means, then
+    the other three are driven up to compensate.
+  * In some cases, selling one of these goods can cause its price
+    to rise, clearly implying that the usual mechanism is not
+    being employed.
+  * When all of the goods' prices are roughly equal and the sum
+    is above 42, selling can easily make the all drop.
+  * When all of the goods' prices are roughly equal and the sum
+    is above 42, buying the goods in round robin fashion causes
+    no price movement at all.
+  * When all of the goods' prices are roughly equal and the sum
+    is about 42, you can buy an arbitrarily large quantity of a
+    single good and the price will never rise.
+  * The ability to make a price move as a result of a buy or sell
+    is easier if that action puts the sum closer to 42.
+  * If all of the prices all very low (e.g. 1) then they all rise
+    by one each turn until they all get to about 10.
+  * If all of the prices all very high (e.g. 19) then they all
+    fall by one each turn until they all get to about 10.
+  * When one is at 13 and we try to lower the others to zero with
+    a volatility of 1 then they seem to hit a floor of about 7.
+    This also happens with a volatility of 2. But with a
+    volatility of three then can be brought down to zero.
+  * When two of them are at the max price and two are at the min
+    price, then the two low ones will start increasing until the
+    sum gets to about 50.
+  * When two are at the min price and two are much higher but not
+    at the max price, then the two that are not at the max will
+    go up.
+  * Start with all the prices roughy equal (around 9-11), and
+    start selling all the goods in a round robin fashion. Ob-
+    served:
+      - With 'fall' set to 1:
+        - With volatility 0:                1/1=1
+          - They won't drop below 9-10.
+        - With volatility = 1:              2/1=2
+          - They will drop to 0.
+      - With 'fall' set to 2:
+        - With volatility 0:                1/2=.5
+          - They won't drop below 9-10.
+        - With volatility=1:                2/2=1
+          - They will drop to about 7-8.
+        - With volatility=2:                4/2=2
+          - They will drop to 0.
+      - With 'fall' set to 4:
+        - With volatility 0:                1/4=.25
+          - They won't drop below 10.
+        - With volatility=1:                2/4=.5
+          - They won't drop below 9-10.
+        - With volatility=2:                4/4=1
+          - They won't drop below 7-8.
+        - With volatility 3:                8/4=2
+          - They will drop to 0.
+  * Start with all the prices roughy equal (around 9-11), and
+    start buying a single good repeatedly.
+      - With 'rise' set to 1:
+        - With volatility 0:                 1/1=1
+          - Won't rise to max.
+        - With volatility = 1:               2/1=2
+          - Will rise to the max.
+      - With 'rise' set to 2:
+        - With volatility 0:                 1/2=.5
+          - Won't rise to max.
+        - With volatility=1:                 2/2=1
+          - Won't rise to max.
+        - With volatility=2:                 4/2=2
+          - Will rise to the max.
+      - With 'rise' set to 4:
+        - With volatility 0:                 1/4=.25
+          - Won't rise to max.
+        - With volatility=1:                 2/4=.5
+          - Won't rise to max.
+        - With volatility=2:                 4/4=1
+          - Won't rise to max.
+        - With volatility 3:                 8/4=2
+          - Will rise to the max.
