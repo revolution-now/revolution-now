@@ -584,13 +584,21 @@ local RESOURCES_FOREST = {
 
 -- The original game checks to see if there is at least one land
 -- square within *two* tiles from the water square in order to
--- allow placing a fish there. However, there isn't any point to
--- going beyond a one-tile distance in the check because those
--- are the only squares that will be accessible to any colony. So
--- here we will just do one square.
+-- allow placing a fish there. There isn't any point to going be-
+-- yond a one-tile distance in the check because those are the
+-- only squares that will be accessible to any colony. That be-
+-- havior may have been left from a previous time when colonies
+-- were able to work squares at a radius of two around them, and
+-- was never changed when that radius was lowered to one). In any
+-- case, we could just check that we are one square away from
+-- land, but we will replicate the behavior of the original game
+-- and place them two squares away, since 1) there is no harm,
+-- and 2) it does make navigating by ship a bit easier since you
+-- can effectively spot land from further away by noticing
+-- fishes, which is a help.
 local function can_place_fish( coord )
   local squares =
-      filter_on_map( surrounding_squares_3x3( coord ) )
+      filter_on_map( surrounding_squares_5x5( coord ) )
   for _, coord in ipairs( squares ) do
     if square_at( coord ).surface == 'land' then return true end
   end
