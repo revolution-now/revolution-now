@@ -11,35 +11,49 @@
 |
 --]] ------------------------------------------------------------
 local goods = { 'rum', 'cigars', 'cloth', 'coats' }
-local initial_prices = { rum=10, cigars=10, cloth=10, coats=10 }
+local equilibrium_prices =
+    { rum=13, cigars=10, cloth=9, coats=10 }
+local initial_prices = { rum=13, cigars=10, cloth=9, coats=10 }
 
-local prices = {
-  rum=initial_prices.rum,
-  cigars=initial_prices.cigars,
-  cloth=initial_prices.cloth,
-  coats=initial_prices.coats
-}
+-----------------------------------------------------------------
+-- State
+-----------------------------------------------------------------
+local prices = { rum=0, cigars=0, cloth=0, coats=0 }
+
+local volumes = { rum=0, cigars=0, cloth=0, coats=0 }
+
+local num_turns = 0
+
+local gold = 100000
 
 -----------------------------------------------------------------
 -- Model
 -----------------------------------------------------------------
+local RF = 4 * 100 -- rise/fall
+local VOL = 1
+local EQ_SUM = 42
+
 local params = {
   -- LuaFormatter off
-  rum    = { rise=100, fall=100, attrition=-10, volatility=0 },
-  cigars = { rise=100, fall=100, attrition=-10, volatility=0 },
-  cloth  = { rise=100, fall=100, attrition=-10, volatility=0 },
-  coats  = { rise=100, fall=100, attrition=-10, volatility=0 },
+  rum    = { rise=RF, fall=RF, attrition=-10, volatility=VOL },
+  cigars = { rise=RF, fall=RF, attrition=-10, volatility=VOL },
+  cloth  = { rise=RF, fall=RF, attrition=-10, volatility=VOL },
+  coats  = { rise=RF, fall=RF, attrition=-10, volatility=VOL },
   -- LuaFormatter on
 }
 
-local volumes = { rum=0, cigars=0, cloth=0, coats=0 }
+local function price_sum()
+  local sum = 0
+  for good, price in pairs( prices ) do sum = sum + price end
+  return sum
+end
 
 local function target_price( good )
   assert( good )
   local p = params[good]
   local v = volumes[good]
-  local initial = initial_prices[good]
-  local res = initial
+  local eq = equilibrium_prices[good]
+  local res = eq
   if v > 0 then res = res - (v // p.rise) end
   -- The // integer division operator does weird things when the
   -- numerator is negative, so we'll make it positive.
@@ -62,25 +76,63 @@ local function update_price( good )
   prices[good] = new_price
 end
 
-local function buy( good )
-  local p = params[good]
+local function buy( good_to_buy )
+  local p = params[good_to_buy]
   local quantity = 100
+  gold = gold - quantity * prices[good_to_buy]
+  local sum = price_sum()
   quantity = quantity * (1 << p.volatility)
+  local volume = quantity
 
-  -- TODO: apply correlations.
+  if sum > EQ_SUM then
+    volume = math.max( volume - p.rise, 0 )
+  end
+  for _, good in ipairs( goods ) do
+    if good ~= good_to_buy then
+      volumes[good] = volumes[good] + (volume // 3)
+    end
+  end
 
-  volumes[good] = volumes[good] - quantity
-  update_price( good )
+  volumes[good_to_buy] = volumes[good_to_buy] - volume
+  update_price( good_to_buy )
 end
 
-local function sell( good )
-  local p = params[good]
+local function sell( good_to_sell )
+  local p = params[good_to_sell]
   local quantity = 100
+  gold = gold + quantity * prices[good_to_sell]
+  local sum = price_sum()
   quantity = quantity * (1 << p.volatility)
+  local volume = quantity
 
-  -- TODO: apply correlations.
+  if sum < EQ_SUM then
+    volume = math.max( volume - p.fall, 0 )
+  end
+  for _, good in ipairs( goods ) do
+    if good ~= good_to_buy then
+      volumes[good] = volumes[good] - (volume // 3)
+    end
+  end
 
-  volumes[good] = volumes[good] + quantity
+  volumes[good_to_sell] = volumes[good_to_sell] + volume
+  update_price( good_to_sell )
+end
+
+-- One round of price recovery for one good. Need to pass in the
+-- current prices sum here because we want to use the one com-
+-- puted before any of the goods begin their recovery.
+local function recover( sum, good )
+  local p = params[good]
+  local bought_more_than_sold = (volumes[good] < 0)
+  local price_avg_too_high = (sum > EQ_SUM)
+  if price_avg_too_high and bought_more_than_sold then
+    volumes[good] = volumes[good] + p.fall
+  end
+  local sold_more_than_bought = (volumes[good] > 0)
+  local price_avg_too_los = (sum < EQ_SUM)
+  if price_avg_too_los and sold_more_than_bought then
+    volumes[good] = volumes[good] - p.rise
+  end
   update_price( good )
 end
 
@@ -88,8 +140,9 @@ end
 -- turn. But note that this will not simulate interactions with
 -- foreign markets because there are none in this simulation.
 local function evolve()
-  --
-  for _, good in ipairs( goods ) do update_price( good ) end
+  local sum = price_sum()
+  -- Recovery model.
+  for _, good in ipairs( goods ) do recover( sum, good ) end
 end
 
 -----------------------------------------------------------------
@@ -101,12 +154,22 @@ local prompt = [[
   b3 - buy  cloth   s3 - sell cloth
   b4 - buy  coats   s4 - sell coats
   e to evolve one turn.
+  'reset' to reset to starting state
   <enter> to repeat last command.
 
 > ]]
 
+local function reset()
+  for _, good in ipairs( goods ) do
+    prices[good] = initial_prices[good]
+    volumes[good] = 0
+  end
+  num_turns = 0
+end
+
 local chart = [[
   turns: %d
+  gold:  %d
   ----------------------------------------------------------
   |     #1      |      #2      |     #3      |     #4      |
   ----------------------------------------------------------
@@ -115,6 +178,8 @@ local chart = [[
   |     Rum     |    Cigars    |    Cloth    |    Coats    |
   |    %2d/%2d    |    %2d/%2d     |    %2d/%2d    |    %2d/%2d    | <- bid prices
   ----------------------------------------------------------
+  price sum: %d
+  last cmd:  %s
 ]]
 
 local function clear_screen()
@@ -126,19 +191,21 @@ end
 local function char( str, idx ) return
     string.sub( str, idx, idx ) end
 
-local last_cmd = nil
-
-local num_turns = 0
+-- By initializing this to 'e', which means "evolve", the user
+-- can just run the program and immediately start hitting <enter>
+-- to start evolving the initial prices without buying or selling
+-- anything.
+local last_cmd = 'e'
 
 local function loop()
   clear_screen()
-  print( string.format( chart, num_turns, volumes.rum,
+  print( string.format( chart, num_turns, gold, volumes.rum,
                         volumes.cigars, volumes.cloth,
                         volumes.coats, prices.rum,
                         prices.rum + 1, prices.cigars,
                         prices.cigars + 1, prices.cloth,
                         prices.cloth + 1, prices.coats,
-                        prices.coats + 1 ) )
+                        prices.coats + 1, price_sum(), last_cmd or 'none' ) )
   print()
   io.write( prompt )
 
@@ -148,6 +215,10 @@ local function loop()
   if choice == 'e' then
     evolve()
     num_turns = num_turns + 1
+    return
+  end
+  if choice == 'reset' then
+    reset()
     return
   end
   if #choice ~= 2 then return end
@@ -163,4 +234,5 @@ local function loop()
   print()
 end
 
+reset()
 while true do loop() end
