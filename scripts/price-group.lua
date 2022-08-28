@@ -70,7 +70,12 @@ local last_cmd = INITIAL_CMD
 -- until now, then it might be a winner since it will allow us to
 -- account for the fact that when we buy large amounts of a
 -- single good at max price, we need to sell all of them back be-
--- fore the price starts dropping.
+-- fore the price starts dropping.  The three players are:
+--
+--   * price: tracks equilibrium price
+--   * eq price: can be derived from static values of the volumes
+--     of the goods.
+--   * volume: net traded volume in europe.
 --
 -- ************** vvvvv
 -- It is possible that the volume is only changed when the equi-
