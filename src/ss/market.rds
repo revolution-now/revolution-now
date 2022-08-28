@@ -55,6 +55,10 @@ struct.MarketItem {
   # Note that this is not in hundreds but in individual units,
   # which is important because the player can buy/sell in any
   # quantity.
+  #
+  # FIXME: this may not be able to account for different rise and
+  # fall rates.
+  #
   net_supply_in_europe 'int',
 
   # This is the current ask price and the one that will always be
