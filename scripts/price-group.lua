@@ -59,6 +59,19 @@ local last_cmd = INITIAL_CMD
 --      determine either the price or the direction that the
 --      price is moving.
 --
+-- Current theory:
+--
+-- We need to keep the volumes as we were before. Then, at any
+-- given time, we can derive a price equilibrium point from the
+-- volume and the relative volumes of the other three goods, and
+-- then the price seeks to this equilibrium as usual (can over-
+-- shoot with high volatility as usual). If we can get this model
+-- to account for the selling behavior that we've accounted for
+-- until now, then it might be a winner since it will allow us to
+-- account for the fact that when we buy large amounts of a
+-- single good at max price, we need to sell all of them back be-
+-- fore the price starts dropping.
+--
 -- ************** vvvvv
 -- It is possible that the volume is only changed when the equi-
 -- librium price reaches an extreme. If that is the case, then in
