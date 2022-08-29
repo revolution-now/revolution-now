@@ -12,10 +12,10 @@
 --]] ------------------------------------------------------------
 local GOODS = { 'rum', 'cigars', 'cloth', 'coats' }
 local STARTING_EQ_PRICES = {
-  rum=1200, --
-  cigars=900, --
-  cloth=1200, --
-  coats=1000 --
+  rum=1100, --
+  cigars=1000, --
+  cloth=1400, --
+  coats=900 --
 }
 local INITIAL_GOLD = 0
 local INITIAL_CMD = 'e'
@@ -36,6 +36,20 @@ local last_cmd = INITIAL_CMD
 -- Model
 -----------------------------------------------------------------
 
+-- Things known for sure:
+--
+--   1. We know that selling a good manually will bump up the eq
+--      prices of the other goods during the sale, since if you
+--      sell many of one good in one turn, then start selling an-
+--      other in the same turn, you can see that good's price
+--      start to rise for the first few sales (as opposed to
+--      fall).
+--   2. Buying does not always affect eq prices. If you start a
+--      new game then you can buy an arbitrary amount of a single
+--      good (or multiple goods) and none of the eq prices will
+--      be affected.
+--
+--
 -- Things Learned:
 --
 --   1. A price simply being low will not push the other prices
@@ -111,26 +125,23 @@ local params = {
   -- LuaFormatter on
 }
 
--- Things known for sure:
---
---   1. We know that selling a good manually will bump up the eq
---      prices of the other goods during the sale, since if you
---      sell many of one good in one turn, then start selling an-
---      other in the same turn, you can see that good's price
---      start to rise for the first few sales (as opposed to
---      fall).
---   2. Buying does not always affect eq prices. If you start a
---      new game then you can buy an arbitrary amount of a single
---      good (or multiple goods) and none of the eq prices will
---      be affected.
---
-
+-----------------------------------------------------------------
+-- Update Equilibrium Prices.
+-----------------------------------------------------------------
 local function clamp( what, low, high )
   if what < low then return low end
   if what > high then return high end
   return what
 end
 
+local function clamp_price( tbl, good )
+  tbl[good] = clamp( tbl[good], params[good].min,
+                     params[good].max )
+end
+
+-----------------------------------------------------------------
+-- Price Evolution
+-----------------------------------------------------------------
 local function target_price( good )
   assert( good )
   local eq = eq_prices[good]
@@ -155,22 +166,16 @@ local function update_price( good )
   prices[good] = new_price
 end
 
-local function recover( good ) update_price( good ) end
-
 -- Evolve the goods in the way that is done when starting a new
 -- turn. But note that this will not simulate interactions with
 -- foreign markets because there are none in this simulation.
 local function evolve()
-  for _, good in ipairs( GOODS ) do recover( good ) end
+  for _, good in ipairs( GOODS ) do update_price( good ) end
 end
 
-local function int( x )
-  if x >= 0 then return math.floor( x ) end
-  return -int( -x )
-end
-
-local COUPLING_ENHANCEMENT = .1
-
+-----------------------------------------------------------------
+-- Buy/Sell logic.
+-----------------------------------------------------------------
 local function transaction(good, quantity, sign,
                            transaction_price )
   local p = params[good]
@@ -187,6 +192,11 @@ local function transaction(good, quantity, sign,
     update_price( good )
     return
   end
+
+  ---------------------------------------------------------------
+  -- Update Equilibrium Prices.
+  ---------------------------------------------------------------
+  local COUPLING_ENHANCEMENT = .1
 
   local this_eq_movement = -sign * quantity
 
@@ -207,21 +217,19 @@ local function transaction(good, quantity, sign,
   end
 
   for _, good in ipairs( GOODS ) do
-    eq_prices[good] = clamp( eq_prices[good], params[good].min,
-                             params[good].max )
+    clamp_price( eq_prices, good )
   end
 
-  do
-    -- The only place that the volatility and fall should be used
-    -- is together in this manner.
-    local price_velocity = (1 << p.volatility) / (p.fall // 100)
-    assert( price_velocity > 0 )
-    local price_movement =
-        math.floor( quantity * price_velocity )
-    prices[good] = prices[good] - sign * price_movement
-  end
-
-  update_price( good )
+  ---------------------------------------------------------------
+  -- Perturb prices.
+  ---------------------------------------------------------------
+  -- The only place that the volatility and fall should be used
+  -- is together in this manner.
+  local price_velocity = (1 << p.volatility) / (p.fall // 100)
+  assert( price_velocity > 0 )
+  local price_movement = math.floor( quantity * price_velocity )
+  prices[good] = prices[good] - sign * price_movement
+  clamp_price( prices, good )
 end
 
 local function buy( good, quantity )
@@ -251,18 +259,6 @@ local prompt = [[
 
 > ]]
 
-local function reset()
-  for _, good in ipairs( GOODS ) do
-    eq_prices[good] = STARTING_EQ_PRICES[good]
-    prices[good] = eq_prices[good]
-    volumes[good] = 0
-  end
-  num_turns = 0
-  num_actions = 0
-  gold = INITIAL_GOLD
-  last_cmd = INITIAL_CMD
-end
-
 local chart = [[
   turns:   %d
   gold:    %d
@@ -278,6 +274,18 @@ local chart = [[
   ----------------------------------------------------------
   last cmd:  %s
 ]]
+
+local function reset()
+  for _, good in ipairs( GOODS ) do
+    eq_prices[good] = STARTING_EQ_PRICES[good]
+    prices[good] = eq_prices[good]
+    volumes[good] = 0
+  end
+  num_turns = 0
+  num_actions = 0
+  gold = INITIAL_GOLD
+  last_cmd = INITIAL_CMD
+end
 
 local function clear_screen()
   -- 27 is '\033'.
