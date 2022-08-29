@@ -12,16 +12,12 @@
 --]] ------------------------------------------------------------
 local GOODS = { 'rum', 'cigars', 'cloth', 'coats' }
 local STARTING_EQ_PRICES = {
-  rum=1000, --
-  cigars=1000, --
-  cloth=1000, --
+  rum=1200, --
+  cigars=900, --
+  cloth=1200, --
   coats=1000 --
 }
 local INITIAL_GOLD = 0
--- By initializing this to 'e', which means "evolve", the user
--- can just run the program and immediately start hitting <enter>
--- to start evolving the initial prices without buying or selling
--- anything.
 local INITIAL_CMD = 'e'
 
 -----------------------------------------------------------------
@@ -32,6 +28,7 @@ local prices = { rum=0, cigars=0, cloth=0, coats=0 }
 local volumes = { rum=0, cigars=0, cloth=0, coats=0 }
 
 local num_turns = 0
+local num_actions = 0
 local gold = INITIAL_GOLD
 local last_cmd = INITIAL_CMD
 
@@ -59,31 +56,6 @@ local last_cmd = INITIAL_CMD
 --      determine either the price or the direction that the
 --      price is moving.
 --
--- Current theory:
---
--- We need to keep the volumes as we were before. Then, at any
--- given time, we can derive a price equilibrium point from the
--- volume and the relative volumes of the other three goods, and
--- then the price seeks to this equilibrium as usual (can over-
--- shoot with high volatility as usual). If we can get this model
--- to account for the selling behavior that we've accounted for
--- until now, then it might be a winner since it will allow us to
--- account for the fact that when we buy large amounts of a
--- single good at max price, we need to sell all of them back be-
--- fore the price starts dropping.  The three players are:
---
---   * price: tracks equilibrium price
---   * eq price: can be derived from static values of the volumes
---     of the goods.
---   * volume: net traded volume in europe.
---
--- ************** vvvvv
--- It is possible that the volume is only changed when the equi-
--- librium price reaches an extreme. If that is the case, then in
--- fact maybe we don't need the volume if we allow the equilib-
--- rium points to go above 19 and below 0.
--- ************** ^^^^^
---
 -- It is possible that the price seeks toward the equilibrium
 -- with a speed that is proportional to distance (with a cap of
 -- one movement per evaluation); any oscillating behavior is
@@ -98,18 +70,7 @@ local last_cmd = INITIAL_CMD
 -- be at their equilibrium point otherwise they'd be moving each
 -- turn to get there:
 --
---   1. When a good has a negative volume (bought more than sold)
---      and you sell it, the price will not move, only the volume
---      will decrease. When the volume gets to zero and you keep
---      selling it then the volume continues to go down and prob-
---      ably the equilibrium point is pushed down. The equilib-
---      rium point is probably pushed down by three times the
---      amount that each of the other goods' equilibrium points
---      are pushed up. The selling of the good probably does not
---      cause any change in volume to the other goods, only
---      changes their equilibrium points to make them want to
---      rise.
---   2. [maybe] When a stationary good has zero volume and you
+--   1. [maybe] When a stationary good has zero volume and you
 --      buy it, it appears that it does not push up its equilib-
 --      rium price, but instead just pushes up its price, then
 --      evolves and the price moves back to the equilibrium point
@@ -117,7 +78,7 @@ local last_cmd = INITIAL_CMD
 --      price will float up, then immediately return back down
 --      one unit at a time). That said, it will still subtract
 --      the quantity from the total volume.
---   3. When a stationary good has zero volume and you sell it,
+--   2. When a stationary good has zero volume and you sell it,
 --      two things appear to happen: 1) it will drive down its
 --      equilibrium price by the quantity sold, and 2) it will
 --      drive down its actual price (volume)
@@ -137,7 +98,7 @@ local last_cmd = INITIAL_CMD
 --     about 42-44.
 
 local RF = 4 * 100
-local VOL = 1
+local VOL = 0
 local MIN = 0
 local MAX = 1900
 
@@ -149,6 +110,26 @@ local params = {
   coats  = { min=MIN, max=MAX, rise=RF, fall=RF, attrition=-10, volatility=VOL },
   -- LuaFormatter on
 }
+
+-- Things known for sure:
+--
+--   1. We know that selling a good manually will bump up the eq
+--      prices of the other goods during the sale, since if you
+--      sell many of one good in one turn, then start selling an-
+--      other in the same turn, you can see that good's price
+--      start to rise for the first few sales (as opposed to
+--      fall).
+--   2. Buying does not always affect eq prices. If you start a
+--      new game then you can buy an arbitrary amount of a single
+--      good (or multiple goods) and none of the eq prices will
+--      be affected.
+--
+
+local function copy_table( tbl )
+  local res = {}
+  for k, v in pairs( tbl ) do res[k] = v end
+  return res
+end
 
 local function clamp( what, low, high )
   if what < low then return low end
@@ -189,31 +170,48 @@ local function evolve()
   for _, good in ipairs( GOODS ) do recover( good ) end
 end
 
-local function buy( good_to_buy, quantity )
-  error( 'buy not implemented' )
+local function int( x )
+  if x >= 0 then return math.floor( x ) end
+  return -int( -x )
 end
 
-local function sell( good, quantity )
-  local p = params[good]
-  gold = gold + quantity * (prices[good] // 100)
+local COUPLING_ENHANCEMENT = .2
 
-  local eq_velocity = eq_prices[good] - 950 -- STARTING_EQ_PRICES[good]
-  local this_eq_price_movement =
-      math.floor( quantity + eq_velocity / 4 )
+local function transaction(good, quantity, sign,
+                           transaction_price )
+  local p = params[good]
+
+  gold = gold + sign * quantity * transaction_price
+  volumes[good] = volumes[good] + sign * quantity
+
+  -- We only update prices if there is a net positive volume,
+  -- meaning that more has been sold that bought. Note that we
+  -- have already changed the volume at this point, so that will
+  -- allow selling when the initial volume was zero but not buy-
+  -- ing, which appears to conform to the original game.
+  if volumes[good] <= 0 then
+    update_price( good )
+    return
+  end
+
+  local this_eq_movement = -sign * quantity
+
+  local eq_velocity = STARTING_EQ_PRICES[good] - eq_prices[good]
+  this_eq_movement = this_eq_movement + int( eq_velocity / 8 )
+  eq_prices[good] = eq_prices[good] + this_eq_movement
 
   for _, other_good in ipairs( GOODS ) do
     if other_good ~= good then
-      local other_eq_price_movement = -this_eq_price_movement / 3
+      local other_eq_price_movement = -this_eq_movement / 3
       local other_eq_velocity = eq_velocity
       other_eq_price_movement = math.floor(
                                     other_eq_price_movement +
-                                        other_eq_velocity / 5 )
-      eq_prices[other_good] = eq_prices[other_good] -
+                                        other_eq_velocity *
+                                        COUPLING_ENHANCEMENT )
+      eq_prices[other_good] = eq_prices[other_good] +
                                   other_eq_price_movement
     end
   end
-
-  eq_prices[good] = eq_prices[good] - this_eq_price_movement
 
   do
     -- The only place that the volatility and fall should be used
@@ -222,10 +220,25 @@ local function sell( good, quantity )
     assert( price_velocity > 0 )
     local price_movement =
         math.floor( quantity * price_velocity )
-    prices[good] = prices[good] - price_movement
+    prices[good] = prices[good] - sign * price_movement
+  end
+
+  for _, good in ipairs( GOODS ) do
+    eq_prices[good] = clamp( eq_prices[good], params[good].min,
+                             params[good].max )
   end
 
   update_price( good )
+end
+
+local function buy( good, quantity )
+  local sign = -1
+  return transaction( good, quantity, sign, prices[good] + 100 )
+end
+
+local function sell( good, quantity )
+  local sign = 1
+  return transaction( good, quantity, sign, prices[good] )
 end
 
 -----------------------------------------------------------------
@@ -238,8 +251,10 @@ local prompt = [[
   b4 - buy  coats   s4 - sell coats
   ba - buy  all     sa - sell all
   e to evolve one turn.
+  E to evolve 1000 times.
   r to reset to starting state
   <enter> to repeat last command.
+  # <cmd> to run <cmd> # times, e.g. "12 s3".
 
 > ]]
 
@@ -250,21 +265,23 @@ local function reset()
     volumes[good] = 0
   end
   num_turns = 0
+  num_actions = 0
   gold = INITIAL_GOLD
   last_cmd = INITIAL_CMD
 end
 
 local chart = [[
-  turns: %d
-  gold:  %d
+  turns:   %d
+  gold:    %d
+  actions: %d
   ----------------------------------------------------------
   |     #1      |      #2      |     #3      |     #4      |
   ----------------------------------------------------------
   |  %6d     |  %6d      |  %6d     |  %6d     | <- net volume in europe
-  |  %6d     |  %6d      |  %6d     |  %6d     | <- eq prices
+  |      %2d     |      %2d      |      %2d     |      %2d     | <- eq prices
   ----------------------------------------------------------
   |     Rum     |    Cigars    |    Cloth    |    Coats    |
-  |  %4d/%4d  |  %4d/%4d   |  %4d/%4d  |  %4d/%4d  | <- bid prices
+  |    %2d/%2d    |    %2d/%2d     |    %2d/%2d    |    %2d/%2d    | <- bid prices
   ----------------------------------------------------------
   last cmd:  %s
 ]]
@@ -278,34 +295,33 @@ end
 local function char( str, idx ) return
     string.sub( str, idx, idx ) end
 
-local function loop()
-  clear_screen()
-  print( string.format( chart, num_turns, gold, volumes.rum,
-                        volumes.cigars, volumes.cloth,
-                        volumes.coats, eq_prices.rum,
-                        eq_prices.cigars, eq_prices.cloth,
-                        eq_prices.coats, prices.rum,
-                        prices.rum + 100, prices.cigars,
-                        prices.cigars + 100, prices.cloth,
-                        prices.cloth + 100, prices.coats,
-                        prices.coats + 100, last_cmd or 'none' ) )
-  print()
-  io.write( prompt )
+local function split( str )
+  local words = {}
+  for word in str:gmatch( '%S+' ) do table.insert( words, word ) end
+  return words
+end
 
-  local choice = io.read()
-  if last_cmd ~= nil and #choice == 0 then choice = last_cmd end
-  last_cmd = choice
-  if choice == 'e' then
+local function run_cmd( cmd )
+  if last_cmd ~= nil and #cmd == 0 then cmd = last_cmd end
+  last_cmd = cmd
+  if cmd == 'e' then
     evolve()
     num_turns = num_turns + 1
     return
   end
-  if choice == 'r' then
+  if cmd == 'E' then
+    for i = 1, 1000 do
+      evolve()
+      num_turns = num_turns + 1
+    end
+    return
+  end
+  if cmd == 'r' then
     reset()
     return
   end
-  if #choice ~= 2 then return end
-  local what = char( choice, 2 )
+  if #cmd ~= 2 then return end
+  local what = char( cmd, 2 )
   local goods_inputted = {}
   if what == 'a' then
     goods_inputted = GOODS
@@ -314,16 +330,51 @@ local function loop()
     if good == nil then return end
     table.insert( goods_inputted, good )
   end
-  local buy_sell = char( choice, 1 )
+  local buy_sell = char( cmd, 1 )
   print()
   for _, good in ipairs( goods_inputted ) do
     if buy_sell == 'b' then
       buy( good, 100 )
+      num_actions = num_actions + 1
     elseif buy_sell == 's' then
-      sell( good, 100 )
+      sell( good, 100, --[[sign=]] 1, prices[good] )
+      num_actions = num_actions + 1
     end
   end
-  print()
+end
+
+local function loop()
+  clear_screen()
+  print( string.format( chart, num_turns, gold, num_actions,
+                        volumes.rum, volumes.cigars,
+                        volumes.cloth, volumes.coats,
+                        eq_prices.rum // 100,
+                        eq_prices.cigars // 100,
+                        eq_prices.cloth // 100,
+                        eq_prices.coats // 100,
+                        prices.rum // 100, prices.rum // 100 + 1,
+                        prices.cigars // 100,
+                        prices.cigars // 100 + 1,
+                        prices.cloth // 100,
+                        prices.cloth // 100 + 1,
+                        prices.coats // 100,
+                        prices.coats // 100 + 1,
+                        last_cmd or 'none' ) )
+  io.write( prompt )
+
+  local choice = io.read()
+  local times = 1
+  local cmds = split( choice )
+  if #cmds > 2 then return end
+  if #cmds == 1 then choice = cmds[1] end
+  if #cmds == 2 then
+    choice = cmds[2]
+    times = math.tointeger( cmds[1] )
+  end
+  for i = 1, times do
+    run_cmd( choice )
+    print()
+  end
 end
 
 reset()
