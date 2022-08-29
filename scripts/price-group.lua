@@ -23,7 +23,7 @@ local INITIAL_CMD = 'e'
 -----------------------------------------------------------------
 -- State
 -----------------------------------------------------------------
-local eq_prices = { rum=0, cigars=0, cloth=0, coats=0 }
+local eq_prices = { rum=0.0, cigars=0.0, cloth=0.0, coats=0.0 }
 local prices = { rum=0, cigars=0, cloth=0, coats=0 }
 local volumes = { rum=0, cigars=0, cloth=0, coats=0 }
 
@@ -125,12 +125,6 @@ local params = {
 --      be affected.
 --
 
-local function copy_table( tbl )
-  local res = {}
-  for k, v in pairs( tbl ) do res[k] = v end
-  return res
-end
-
 local function clamp( what, low, high )
   if what < low then return low end
   if what > high then return high end
@@ -142,7 +136,7 @@ local function target_price( good )
   local eq = eq_prices[good]
   local current = prices[good]
   local velocity = (eq - current) / 1.0
-  return math.floor( current + velocity )
+  return current + velocity
 end
 
 local function update_price( good )
@@ -175,13 +169,13 @@ local function int( x )
   return -int( -x )
 end
 
-local COUPLING_ENHANCEMENT = .2
+local COUPLING_ENHANCEMENT = .1
 
 local function transaction(good, quantity, sign,
                            transaction_price )
   local p = params[good]
 
-  gold = gold + sign * quantity * transaction_price
+  gold = gold + sign * quantity * (transaction_price // 100)
   volumes[good] = volumes[good] + sign * quantity
 
   -- We only update prices if there is a net positive volume,
@@ -197,20 +191,24 @@ local function transaction(good, quantity, sign,
   local this_eq_movement = -sign * quantity
 
   local eq_velocity = STARTING_EQ_PRICES[good] - eq_prices[good]
-  this_eq_movement = this_eq_movement + int( eq_velocity / 8 )
+  this_eq_movement = this_eq_movement + eq_velocity / 8
   eq_prices[good] = eq_prices[good] + this_eq_movement
 
   for _, other_good in ipairs( GOODS ) do
     if other_good ~= good then
       local other_eq_price_movement = -this_eq_movement / 3
       local other_eq_velocity = eq_velocity
-      other_eq_price_movement = math.floor(
-                                    other_eq_price_movement +
-                                        other_eq_velocity *
-                                        COUPLING_ENHANCEMENT )
+      other_eq_price_movement = other_eq_price_movement +
+                                    other_eq_velocity *
+                                    COUPLING_ENHANCEMENT
       eq_prices[other_good] = eq_prices[other_good] +
                                   other_eq_price_movement
     end
+  end
+
+  for _, good in ipairs( GOODS ) do
+    eq_prices[good] = clamp( eq_prices[good], params[good].min,
+                             params[good].max )
   end
 
   do
@@ -221,11 +219,6 @@ local function transaction(good, quantity, sign,
     local price_movement =
         math.floor( quantity * price_velocity )
     prices[good] = prices[good] - sign * price_movement
-  end
-
-  for _, good in ipairs( GOODS ) do
-    eq_prices[good] = clamp( eq_prices[good], params[good].min,
-                             params[good].max )
   end
 
   update_price( good )
@@ -348,10 +341,10 @@ local function loop()
   print( string.format( chart, num_turns, gold, num_actions,
                         volumes.rum, volumes.cigars,
                         volumes.cloth, volumes.coats,
-                        eq_prices.rum // 100,
-                        eq_prices.cigars // 100,
-                        eq_prices.cloth // 100,
-                        eq_prices.coats // 100,
+                        math.floor( eq_prices.rum / 100 ),
+                        math.floor( eq_prices.cigars / 100 ),
+                        math.floor( eq_prices.cloth / 100 ),
+                        math.floor( eq_prices.coats / 100 ),
                         prices.rum // 100, prices.rum // 100 + 1,
                         prices.cigars // 100,
                         prices.cigars // 100 + 1,
