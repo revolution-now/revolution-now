@@ -108,6 +108,7 @@ local function target_price( good )
   local eq = eq_prices[good]
   local current = prices[good]
   local velocity = (eq - current) / 1.0
+  velocity = clamp( velocity, -1, 1 )
   return current + velocity
 end
 
@@ -164,7 +165,7 @@ local function transaction( good, quantity, unit_price )
   ---------------------------------------------------------------
   -- Perturb prices.
   ---------------------------------------------------------------
-  local price_movement = quantity * ALPHA
+  local price_movement = (quantity/100) * ALPHA
   prices[good] = prices[good] - price_movement
   clamp_price( prices, good )
 end
