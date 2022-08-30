@@ -11,7 +11,7 @@
 |
 --]] ------------------------------------------------------------
 local GOODS = { 'rum', 'cigars', 'cloth', 'coats' }
-local STARTING_PRICES = { rum=12, cigars=9, cloth=14, coats=8 }
+local STARTING_PRICES = { rum=11, cigars=10, cloth=14, coats=9 }
 local INITIAL_GOLD = 0
 local INITIAL_CMD = 'e'
 
@@ -92,6 +92,12 @@ local function on_all_except( skip, f )
   end
 end
 
+local function eq_price_sum()
+  local sum = 0
+  on_all( function( good ) sum = sum + eq_prices[good] end )
+  return sum
+end
+
 local function scale_cap( tbl, good, by )
   local delta = tbl[good] * by - tbl[good]
   -- TODO: see if we need these caps
@@ -152,9 +158,11 @@ local function transaction( good, quantity, unit_price )
   end )
 
   local D = max( 9.5 - eq_prices[good], 0 )
-  eq_prices[good] = eq_prices[good] + abs( Q ) * (D / 6)
+  D = D / 6
+
+  eq_prices[good] = eq_prices[good] + abs( Q ) * D
   on_all_except( good, function( other )
-    eq_prices[other] = eq_prices[other] + Q * (D / 6) / 3
+    eq_prices[other] = eq_prices[other] + Q * (D / 2) / 3
   end )
 
   on_all( function( good ) clamp_price( eq_prices, good ) end )
@@ -197,6 +205,7 @@ local chart = [[
   turns:   %d
   gold:    %d
   actions: %d
+  eq sum:  %d
   ----------------------------------------------------------
   |     #1      |      #2      |     #3      |     #4      |
   ----------------------------------------------------------
@@ -304,6 +313,7 @@ end
 local function looped()
   clear_screen()
   print( string.format( chart, num_turns, gold, num_actions,
+                        floor( eq_price_sum() ),
                         STARTING_PRICES.rum,
                         STARTING_PRICES.cigars,
                         STARTING_PRICES.cloth,
