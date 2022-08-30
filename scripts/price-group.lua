@@ -12,10 +12,10 @@
 --]] ------------------------------------------------------------
 local GOODS = { 'rum', 'cigars', 'cloth', 'coats' }
 local STARTING_EQ_PRICES = {
-  rum=11, --
-  cigars=10, --
+  rum=12, --
+  cigars=9, --
   cloth=14, --
-  coats=9 --
+  coats=8 --
 }
 local INITIAL_GOLD = 0
 local INITIAL_CMD = 'e'
@@ -63,6 +63,9 @@ local ALPHA = (1 << VOL) / RF
 local PRECISION_BITS = 6
 
 local floor = math.floor
+local abs = math.abs
+local min = math.min
+local max = math.max
 
 -----------------------------------------------------------------
 -- Update Equilibrium Prices.
@@ -91,6 +94,12 @@ end
 
 local function on_all( f )
   for _, good in ipairs( GOODS ) do f( good ) end
+end
+
+local function on_all_except( skip, f )
+  for _, good in ipairs( GOODS ) do
+    if good ~= skip then f( good ) end
+  end
 end
 
 local function scale_cap( tbl, good, by )
@@ -145,19 +154,19 @@ local function transaction( good, quantity, unit_price )
   ---------------------------------------------------------------
   -- Update Equilibrium Prices.
   ---------------------------------------------------------------
-  -- FIXME: the below does not depend on quantity.
-  local SCALE = .92
+  local Q = quantity / 100
 
-  local this = SCALE
-  local other = 1 / SCALE
-  if quantity < 0 then this, other = other, this end
-  other = math.pow( other, 1 / 3 )
+  eq_prices[good] = eq_prices[good] - Q
+  on_all_except( good, function( other_good )
+    eq_prices[other_good] = eq_prices[other_good] + Q / 3
+  end )
 
-  scale_cap( eq_prices, good, this )
-  on_all( function( other_good )
-    if other_good ~= good then
-      scale_cap( eq_prices, other_good, other )
-    end
+  local D = max( STARTING_EQ_PRICES[good] - eq_prices[good], 0 )
+  assert( D >= 0 )
+
+  eq_prices[good] = eq_prices[good] + abs( Q ) * (D / 6)
+  on_all_except( good, function( other_good )
+    eq_prices[other_good] = eq_prices[other_good] + Q * (D / 18)
   end )
 
   on_all( function( good ) clamp_price( eq_prices, good ) end )
@@ -165,7 +174,7 @@ local function transaction( good, quantity, unit_price )
   ---------------------------------------------------------------
   -- Perturb prices.
   ---------------------------------------------------------------
-  local price_movement = (quantity/100) * ALPHA
+  local price_movement = (quantity / 100) * ALPHA
   prices[good] = prices[good] - price_movement
   clamp_price( prices, good )
 end
@@ -200,6 +209,7 @@ local chart = [[
   ----------------------------------------------------------
   |     #1      |      #2      |     #3      |     #4      |
   ----------------------------------------------------------
+  |      %2d     |      %2d      |      %2d     |      %2d     | <- initial prices
   |  %6d     |  %6d      |  %6d     |  %6d     | <- net volume in europe
   |      %2d     |      %2d      |      %2d     |      %2d     | <- eq prices
   ----------------------------------------------------------
@@ -301,9 +311,12 @@ end
 local function looped()
   clear_screen()
   print( string.format( chart, num_turns, gold, num_actions,
-                        volumes.rum, volumes.cigars,
-                        volumes.cloth, volumes.coats,
-                        floor( eq_prices.rum ),
+                        STARTING_EQ_PRICES.rum,
+                        STARTING_EQ_PRICES.cigars,
+                        STARTING_EQ_PRICES.cloth,
+                        STARTING_EQ_PRICES.coats, volumes.rum,
+                        volumes.cigars, volumes.cloth,
+                        volumes.coats, floor( eq_prices.rum ),
                         floor( eq_prices.cigars ),
                         floor( eq_prices.cloth ),
                         floor( eq_prices.coats ),
