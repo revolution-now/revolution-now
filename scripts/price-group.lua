@@ -11,27 +11,17 @@
 |
 --]] ------------------------------------------------------------
 local GOODS = { 'rum', 'cigars', 'cloth', 'coats' }
-local STARTING_EQ_PRICES = {
-  rum=12, --
-  cigars=9, --
-  cloth=14, --
-  coats=8 --
-}
+local STARTING_PRICES = { rum=12, cigars=9, cloth=14, coats=8 }
 local INITIAL_GOLD = 0
 local INITIAL_CMD = 'e'
 
 -----------------------------------------------------------------
--- State
+-- Model State
 -----------------------------------------------------------------
 local eq_prices = { rum=0.0, cigars=0.0, cloth=0.0, coats=0.0 }
 local prices = { rum=0, cigars=0, cloth=0, coats=0 }
 local volumes = { rum=0, cigars=0, cloth=0, coats=0 }
-
-local num_turns = 0
-local num_actions = 0
 local gold = INITIAL_GOLD
-local last_cmd = INITIAL_CMD
-local last_input = nil
 
 -----------------------------------------------------------------
 -- Model
@@ -157,16 +147,14 @@ local function transaction( good, quantity, unit_price )
   local Q = quantity / 100
 
   eq_prices[good] = eq_prices[good] - Q
-  on_all_except( good, function( other_good )
-    eq_prices[other_good] = eq_prices[other_good] + Q / 3
+  on_all_except( good, function( other )
+    eq_prices[other] = eq_prices[other] + Q / 3
   end )
 
-  local D = max( STARTING_EQ_PRICES[good] - eq_prices[good], 0 )
-  assert( D >= 0 )
-
+  local D = max( 9.5 - eq_prices[good], 0 )
   eq_prices[good] = eq_prices[good] + abs( Q ) * (D / 6)
-  on_all_except( good, function( other_good )
-    eq_prices[other_good] = eq_prices[other_good] + Q * (D / 18)
+  on_all_except( good, function( other )
+    eq_prices[other] = eq_prices[other] + Q * (D / 6) / 3
   end )
 
   on_all( function( good ) clamp_price( eq_prices, good ) end )
@@ -181,17 +169,20 @@ end
 
 local function buy( good, quantity )
   transaction( good, -quantity, prices[good] + 1 )
-  update_price( good )
 end
 
 local function sell( good, quantity )
   transaction( good, quantity, prices[good] )
-  update_price( good )
 end
 
 -----------------------------------------------------------------
 -- User Interaction
 -----------------------------------------------------------------
+local num_turns = 0
+local num_actions = 0
+local last_cmd = INITIAL_CMD
+local last_input = nil
+
 local prompt = [[
   b1: buy rum    s1: sell rum    b2: buy cigars  s2: sell cigars
   b3: buy cloth  s3: sell cloth  b4: buy coats   s4: sell coats
@@ -222,7 +213,7 @@ local chart = [[
 
 local function reset()
   on_all( function( good )
-    eq_prices[good] = STARTING_EQ_PRICES[good]
+    eq_prices[good] = STARTING_PRICES[good]
     prices[good] = eq_prices[good]
     volumes[good] = 0
   end )
@@ -300,9 +291,11 @@ local function run_cmd( cmd )
   for _, good in ipairs( goods_inputted ) do
     if buy_sell == 'b' then
       buy( good, 100 )
+      update_price( good )
       num_actions = num_actions + 1
     elseif buy_sell == 's' then
       sell( good, 100, --[[sign=]] 1, prices[good] )
+      update_price( good )
       num_actions = num_actions + 1
     end
   end
@@ -311,10 +304,10 @@ end
 local function looped()
   clear_screen()
   print( string.format( chart, num_turns, gold, num_actions,
-                        STARTING_EQ_PRICES.rum,
-                        STARTING_EQ_PRICES.cigars,
-                        STARTING_EQ_PRICES.cloth,
-                        STARTING_EQ_PRICES.coats, volumes.rum,
+                        STARTING_PRICES.rum,
+                        STARTING_PRICES.cigars,
+                        STARTING_PRICES.cloth,
+                        STARTING_PRICES.coats, volumes.rum,
                         volumes.cigars, volumes.cloth,
                         volumes.coats, floor( eq_prices.rum ),
                         floor( eq_prices.cigars ),
