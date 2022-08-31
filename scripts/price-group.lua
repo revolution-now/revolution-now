@@ -157,12 +157,11 @@ local function transaction( good, quantity, unit_price )
     eq_prices[other] = eq_prices[other] + Q / 3
   end )
 
-  local D = max( 9.5 - eq_prices[good], 0 )
-  D = D / 6
+  local D = Q * (9.5 - eq_prices[good]) / 6
 
-  eq_prices[good] = eq_prices[good] + abs( Q ) * D
+  eq_prices[good] = eq_prices[good] + D
   on_all_except( good, function( other )
-    eq_prices[other] = eq_prices[other] + Q * (D / 2) / 3
+    eq_prices[other] = eq_prices[other] + D / 2 / 3
   end )
 
   on_all( function( good ) clamp_price( eq_prices, good ) end )
