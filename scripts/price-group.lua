@@ -12,6 +12,7 @@
 --]] ------------------------------------------------------------
 local GOODS = { 'rum', 'cigars', 'cloth', 'coats' }
 local STARTING_PRICES = { rum=11, cigars=10, cloth=14, coats=9 }
+-- local STARTING_PRICES = { rum=12, cigars=9, cloth=14, coats=8 }
 local INITIAL_GOLD = 0
 local INITIAL_CMD = 'e'
 
@@ -19,6 +20,7 @@ local INITIAL_CMD = 'e'
 -- Model State
 -----------------------------------------------------------------
 local eq_prices = { rum=0.0, cigars=0.0, cloth=0.0, coats=0.0 }
+local eq_velocity = { rum=0.0, cigars=0.0, cloth=0.0, coats=0.0 }
 local prices = { rum=0, cigars=0, cloth=0, coats=0 }
 local volumes = { rum=0, cigars=0, cloth=0, coats=0 }
 local gold = INITIAL_GOLD
@@ -66,8 +68,16 @@ local function clamp( what, low, high )
   return what
 end
 
+local function clamp_key( tbl, key, min, max )
+  tbl[key] = clamp( tbl[key], min, max )
+end
+
 local function clamp_price( tbl, good )
-  tbl[good] = clamp( tbl[good], MIN, MAX )
+  clamp_key( tbl, good, MIN, MAX )
+end
+
+local function add_to_val( tbl, key, what )
+  tbl[key] = tbl[key] + what
 end
 
 local function display_price( good )
@@ -105,24 +115,45 @@ local function scale_cap( tbl, good, by )
   tbl[good] = tbl[good] + delta
 end
 
+local function sign( x )
+  if x < 0 then return -1 end
+  return 1
+end
+
 -----------------------------------------------------------------
 -- Price Evolution
 -----------------------------------------------------------------
 local function target_price( good )
-  assert( good )
-  local eq = eq_prices[good]
-  local current = prices[good]
-  local velocity = (eq - current) / 1.0
-  velocity = clamp( velocity, -1, 1 )
-  return current + velocity
+  return floor( eq_prices[good] + .5 )
+  -- assert( good )
+  -- local eq = eq_prices[good]
+  -- local current = prices[good]
+  -- local velocity = (eq - current) / 1.0
+  -- velocity = clamp( velocity, -1, 1 )
+  -- return current + velocity
 end
 
 local function update_price( good )
   assert( good )
+  -- Evolve price.
   local new_price = target_price( good )
   if new_price < MIN then new_price = MIN end
   if new_price > MAX then new_price = MAX end
   prices[good] = new_price
+  clamp_price( prices, good )
+  -- Evolve equilibrium price.
+  local X = 1
+  eq_prices[good] = eq_prices[good] +
+                        clamp( eq_velocity[good], -X, X )
+  clamp_price( eq_prices, good )
+  -- Evolve equilibrium price velocity.
+  if eq_velocity[good] > 0 then
+    add_to_val( eq_velocity, good, -X )
+    clamp_key( eq_velocity, good, 0, 1000 )
+  elseif eq_velocity[good] < 0 then
+    add_to_val( eq_velocity, good, X )
+    clamp_key( eq_velocity, good, -1000, 0 )
+  end
 end
 
 -- Evolve the goods in the way that is done when starting a new
@@ -152,17 +183,15 @@ local function transaction( good, quantity, unit_price )
   ---------------------------------------------------------------
   local Q = quantity / 100
 
-  eq_prices[good] = eq_prices[good] - Q
-  on_all_except( good, function( other )
-    eq_prices[other] = eq_prices[other] + Q / 3
-  end )
+  eq_velocity[good] = eq_velocity[good] - Q
 
-  local D = Q * (9.5 - eq_prices[good]) / 6
-
-  eq_prices[good] = eq_prices[good] + D
-  on_all_except( good, function( other )
-    eq_prices[other] = eq_prices[other] + D / 2 / 3
-  end )
+  if eq_velocity[good] <= 0.00001 then
+    local delta = abs( Q ) * (9.5 - eq_prices[good]) / 6
+    eq_velocity[good] = eq_velocity[good] + delta
+    on_all_except( good, function( other )
+      add_to_val( eq_velocity, other, Q * .4333 )
+    end )
+  end
 
   on_all( function( good ) clamp_price( eq_prices, good ) end )
 
@@ -210,7 +239,8 @@ local chart = [[
   ----------------------------------------------------------
   |      %2d     |      %2d      |      %2d     |      %2d     | <- initial prices
   |  %6d     |  %6d      |  %6d     |  %6d     | <- net volume in europe
-  |      %2d     |      %2d      |      %2d     |      %2d     | <- eq prices
+  |      %.1f    |      %.1f     |      %.1f    |      %.1f    | <- eq velocities
+  |      %.1f   |      %.1f    |      %.1f   |      %.1f   | <- eq prices
   ----------------------------------------------------------
   |     Rum     |    Cigars    |    Cloth    |    Coats    |
   |    %2d/%2d    |    %2d/%2d     |    %2d/%2d    |    %2d/%2d    | <- bid prices
@@ -222,6 +252,7 @@ local chart = [[
 local function reset()
   on_all( function( good )
     eq_prices[good] = STARTING_PRICES[good]
+    eq_velocity[good] = 0
     prices[good] = eq_prices[good]
     volumes[good] = 0
   end )
@@ -313,15 +344,16 @@ local function looped()
   clear_screen()
   print( string.format( chart, num_turns, gold, num_actions,
                         floor( eq_price_sum() ),
-                        STARTING_PRICES.rum,
-                        STARTING_PRICES.cigars,
-                        STARTING_PRICES.cloth,
-                        STARTING_PRICES.coats, volumes.rum,
-                        volumes.cigars, volumes.cloth,
-                        volumes.coats, floor( eq_prices.rum ),
-                        floor( eq_prices.cigars ),
-                        floor( eq_prices.cloth ),
-                        floor( eq_prices.coats ),
+                        floor( STARTING_PRICES.rum ),
+                        floor( STARTING_PRICES.cigars ),
+                        floor( STARTING_PRICES.cloth ),
+                        floor( STARTING_PRICES.coats ),
+                        volumes.rum, volumes.cigars,
+                        volumes.cloth, volumes.coats,
+                        eq_velocity.rum, eq_velocity.cigars,
+                        eq_velocity.cloth, eq_velocity.coats,
+                        eq_prices.rum, eq_prices.cigars,
+                        eq_prices.cloth, eq_prices.coats,
                         display_price( 'rum' ),
                         display_price( 'rum' ) + 1,
                         display_price( 'cigars' ),
