@@ -98,11 +98,17 @@ outdoors {
 }
 
 requirements_for_building {
-  # The carpenter's shop is the only one that must cost nothing
-  # to build, since without it you would not be able to build
-  # anything else, including the carpenter's shop.
+  # When one edits a save file from the original game and removes
+  # all buildings, one can see that they are all buildable and
+  # they all have a cost in hammers, including the carpenter's
+  # shop, which appears to cost 39 hammers. Of course, without a
+  # carpenter's shop one cannot build anything else (including a
+  # carpenter's shop) but one can still buy it. That might be an
+  # interest game mode to play in, where you start with no build-
+  # ings and have to earn enough money to buy a carpenter's shop
+  # so that you can start building other things.
   carpenters_shop: {
-    hammers:             0
+    hammers:             39
     tools:               0
     required_building:   null
     minimum_population:  1
@@ -120,7 +126,7 @@ requirements_for_building {
   }
 
   blacksmiths_house: {
-    hammers:             10
+    hammers:             64
     tools:               0
     required_building:   null
     minimum_population:  1
@@ -174,7 +180,7 @@ requirements_for_building {
   }
 
   tobacconists_house: {
-    hammers:             10
+    hammers:             64
     tools:               0
     required_building:   null
     minimum_population:  1
@@ -201,7 +207,7 @@ requirements_for_building {
   }
 
   weavers_house: {
-    hammers:             10
+    hammers:             64
     tools:               0
     required_building:   null
     minimum_population:  1
@@ -228,7 +234,7 @@ requirements_for_building {
   }
 
   rum_distillers_house: {
-    hammers:             10
+    hammers:             64
     tools:               0
     required_building:   null
     minimum_population:  1
@@ -255,7 +261,7 @@ requirements_for_building {
   }
 
   fur_traders_house: {
-    hammers:             10
+    hammers:             56
     tools:               0
     required_building:   null
     minimum_population:  1
@@ -426,7 +432,7 @@ requirements_for_building {
   }
 
   town_hall: {
-    hammers:             10
+    hammers:             64
     tools:               0
     required_building:   null
     minimum_population:  1

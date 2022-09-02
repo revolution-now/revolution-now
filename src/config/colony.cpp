@@ -40,23 +40,6 @@ config::colony::on_the_job_training::validate() const {
 }
 
 base::valid_or<string> config_colony_t::validate() const {
-  // The capenter's shop must not cost any hammers to build,
-  // since one would not be able to produce the hammers to build
-  // it without the building itself.
-  REFL_VALIDATE(
-      requirements_for_building
-              [e_colony_building::carpenters_shop]
-                  .hammers == 0,
-      "The carpenter's shop must cost no hammers to build." );
-
-  // Similarly, it should not have any prerequisites, since those
-  // would not be buildable.
-  REFL_VALIDATE( requirements_for_building
-                         [e_colony_building::carpenters_shop]
-                             .required_building == base::nothing,
-                 "The carpenter's shop must not require any "
-                 "prerequisites to build." );
-
   return base::valid;
 }
 
