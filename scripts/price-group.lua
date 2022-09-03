@@ -176,26 +176,25 @@ end
 
 local eq_prices = eq_prices_walk
 
-local function evolve_ratios()
-  on_all( function( good )
-    local vol = volumes[good]
-    local r = ratios[good]
-    -- if vol > 0 then r = r + vol end
-    r = r + vol
-    -- Simulate the original game's apparent inability to scale
-    -- down an integer when the difference between the result and
-    -- the starting value would be less than one. This critical
-    -- point, which is ~128, is given by 1/(1-.9921875). The
-    -- number .9921875, in turn, is the closest representation of
-    -- .99 that we can have in a fixed point representation with
-    -- 8 fractional bits, which is likely what the original game
-    -- used.
-    if r >= 128 or r <= -128 then r = r * .9921875 end
-    -- if vol > 0 then r = r - vol end
-    r = r - vol
-    ratios[good] = r
-  end )
+local function evolve_ratio( good )
+  local vol = volumes[good]
+  local r = ratios[good]
+  -- if vol > 0 then r = r + vol end
+  r = r + vol
+  -- Simulate the original game's apparent inability to scale
+  -- down an integer when the difference between the result and
+  -- the starting value would be less than one. This critical
+  -- point, which is ~128, is given by 1/(1-.9921875). The number
+  -- .9921875, in turn, is the closest representation of .99 that
+  -- we can have in a fixed point representation with 8 frac-
+  -- tional bits, which is likely what the original game used.
+  if r >= 128 or r <= -128 then r = r * .9921875 end
+  -- if vol > 0 then r = r - vol end
+  r = r - vol
+  ratios[good] = r
 end
+
+local function evolve_ratios() on_all( evolve_ratio ) end
 
 local function update_price( good, target )
   -- Evolve price.
@@ -218,12 +217,8 @@ end
 -- volume in europe.
 local function transaction( good, quantity, unit_price )
   gold = floor( gold + quantity * unit_price )
-  volumes[good] = volumes[good] + quantity
   evolve_ratios()
-
-  ---------------------------------------------------------------
-  -- Perturb prices.
-  ---------------------------------------------------------------
+  volumes[good] = volumes[good] + quantity
   -- local price_movement = (quantity / 100) * ALPHA
   -- prices[good] = prices[good] - price_movement
   -- clamp_price( prices, good )
