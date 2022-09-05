@@ -17,8 +17,7 @@ local M = {}
 local price_group = require( 'prices.price-group' )
 local U = require( 'test.unit' )
 
-local ASSERT_LE = U.ASSERT_LE
-local abs = math.abs
+local ASSERT_EQ = U.ASSERT_EQ
 local format = string.format
 local PriceGroup = price_group.PriceGroup
 
@@ -61,9 +60,8 @@ local STARTING_12_9_14_8 = {
 -----------------------------------------------------------------
 -- Scenario Runner.
 -----------------------------------------------------------------
-local function assert_price(step_idx, good, eq_prices, expected,
-                            tolerance )
-  ASSERT_LE( abs( eq_prices[good] - expected[good] ), tolerance,
+local function assert_price( step_idx, good, eq_prices, expected )
+  ASSERT_EQ( eq_prices[good], expected[good],
              format( 'equilibrium price for commodity %s at ' ..
                          'step %d. actual=%f, expected=%f.',
                      good, step_idx, eq_prices[good],
@@ -91,19 +89,28 @@ local function run_scenario( scenario )
   local pg_config = default_price_group_config()
   pg_config.starting_euro_volumes =
       scenario.starting_euro_volumes
-  local group = PriceGroup( pg_config )
+  pg_config.starting_traded_volumes =
+      scenario.starting_traded_volumes
 
-  for i, step in ipairs( scenario.steps ) do
-    run_action( group, step )
+  -- This is kind of slow (quadratic in the number of steps), but
+  -- we need to do this because the empirical data for each step
+  -- was found by running all of the steps up to that point and
+  -- then evolving for about 20 turns. So then when we move on to
+  -- the next step we have to start over because the 20 turns of
+  -- evolution would mess it up.
+  for final_step = 1, #scenario.steps do
+    local group = PriceGroup( pg_config )
+    for i = 1, final_step do
+      local step = scenario.steps[i]
+      run_action( group, step )
+    end
+    for j = 1, 20 do group:evolve() end
     local eq_prices = group:equilibrium_prices()
-    assert_price( i, 'rum', eq_prices, step.expected,
-                  scenario.tolerance )
-    assert_price( i, 'cigars', eq_prices, step.expected,
-                  scenario.tolerance )
-    assert_price( i, 'cloth', eq_prices, step.expected,
-                  scenario.tolerance )
-    assert_price( i, 'coats', eq_prices, step.expected,
-                  scenario.tolerance )
+    local step = scenario.steps[final_step]
+    assert_price( final_step, 'rum', eq_prices, step.expected )
+    assert_price( final_step, 'cigars', eq_prices, step.expected )
+    assert_price( final_step, 'cloth', eq_prices, step.expected )
+    assert_price( final_step, 'coats', eq_prices, step.expected )
   end
 end
 
@@ -111,12 +118,13 @@ end
 -- Test Cases.
 -----------------------------------------------------------------
 function Test.eq_prices_scenario_0()
+  local STARTING_11_10_14_9_plus_30_new_ships =
+      { rum=0x0295, cigars=0x02b2, cloth=0x0214, coats=0x0324 }
   run_scenario{
-    starting_euro_volumes=STARTING_11_10_14_9,
-    tolerance=1,
+    starting_euro_volumes=STARTING_11_10_14_9_plus_30_new_ships,
     steps={
       {
-        action={ count=30, type='sell_all', what='cloth' },
+        action={ count=30, type='sell_all', what=nil },
         expected={ rum=12, cigars=11, cloth=12, coats=11 }
       }
     }
@@ -124,9 +132,12 @@ function Test.eq_prices_scenario_0()
 end
 
 function Test.eq_prices_scenario_1()
+  -- 11/12  10/11  14/15  9/10
+  local STARTING_11_10_14_9_plus_more_cotton =
+      { rum=0x0295, cigars=0x02b2, cloth=0x0214, coats=0x0324 }
+
   run_scenario{
-    starting_euro_volumes=STARTING_11_10_14_9,
-    tolerance=0,
+    starting_euro_volumes=STARTING_11_10_14_9_plus_more_cotton,
     steps={
       {
         action={ count=28, type='sell', what='cloth' },
@@ -142,7 +153,6 @@ end
 function Test.eq_prices_scenario_2()
   run_scenario{
     starting_euro_volumes=STARTING_11_10_14_9,
-    tolerance=1,
     steps={
       {
         action={ count=18, type='sell', what='cigars' },
@@ -164,7 +174,6 @@ end
 function Test.eq_prices_scenario_3()
   run_scenario{
     starting_euro_volumes=STARTING_11_10_14_9,
-    tolerance=0,
     steps={
       {
         action={ count=6, type='sell', what='rum' },
@@ -192,7 +201,6 @@ end
 function Test.eq_prices_scenario_4()
   run_scenario{
     starting_euro_volumes=STARTING_11_10_14_9,
-    tolerance=0,
     steps={
       {
         action={ count=6, type='sell', what='cloth' },
@@ -226,7 +234,6 @@ end
 function Test.eq_prices_scenario_5()
   run_scenario{
     starting_euro_volumes=STARTING_12_9_14_8,
-    tolerance=1,
     steps={
       {
         action={ count=6, type='sell', what='cigars' },
