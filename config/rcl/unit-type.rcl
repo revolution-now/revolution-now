@@ -1400,7 +1400,7 @@ composition {
       can_found:             no
       nat_icon_front:        false
       nat_icon_position:     ne
-      visibility:            1
+      visibility:            2
       movement_points:       6
       attack_points:         0
       defense_points:        10
@@ -1426,7 +1426,7 @@ composition {
       can_found:             no
       nat_icon_front:        false
       nat_icon_position:     nw
-      visibility:            1
+      visibility:            2
       movement_points:       8
       attack_points:         8
       defense_points:        8
@@ -1452,7 +1452,7 @@ composition {
       can_found:             no
       nat_icon_front:        false
       nat_icon_position:     nw
-      visibility:            1
+      visibility:            2
       movement_points:       6
       attack_points:         16
       defense_points:        16
