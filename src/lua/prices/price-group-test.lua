@@ -252,4 +252,18 @@ function Test.eq_prices_scenario_5()
   }
 end
 
+-- This one tests that nan can be handled, which will emerge in
+-- the model calculations if all of the volumes are zero.
+function Test.eq_prices_all_zeros()
+  local pg_config = default_price_group_config()
+  local starting = { rum=0, cigars=0, cloth=0, coats=0 }
+  pg_config.starting_euro_volumes = starting
+  local group = PriceGroup( pg_config )
+  local eq_prices = group:equilibrium_prices()
+  ASSERT_EQ( eq_prices.rum, 20, 'equilibrium price of rum' )
+  ASSERT_EQ( eq_prices.cigars, 20, 'equilibrium price of rum' )
+  ASSERT_EQ( eq_prices.cloth, 20, 'equilibrium price of rum' )
+  ASSERT_EQ( eq_prices.coats, 20, 'equilibrium price of rum' )
+end
+
 return Test

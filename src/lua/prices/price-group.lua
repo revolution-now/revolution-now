@@ -52,10 +52,6 @@ end
 -----------------------------------------------------------------
 -- Description of model: TODO
 --
--- The original game basically seems to ignore the traded volume
--- in all cases if it is negative (meaning that more of the good
--- has been bought than sold).
-
 -- Define the price group object interface.
 local PriceGroup = {}
 PriceGroup.__index = PriceGroup
@@ -81,6 +77,9 @@ function PriceGroup:equilibrium_prices()
     -- and it makes a difference.
     local normalized = max( q, 0 ) / avg_total_volume
     res[good] = floor( self.config.target_price / normalized )
+    -- nan can happen if both the numerator and denominator in
+    -- the above are both zero, which is not expected to happen
+    -- in normal game play, but just in case let's handle it.
     if is_nan( res[good] ) then res[good] = math.huge end
     clamp_price( self, res, good )
   end )
@@ -89,30 +88,35 @@ end
 
 local function evolve_euro_volume( group, good )
   local r = group.euro_volumes[good]
+  -- The original game basically seems to ignore the traded
+  -- volume in all cases if it is negative (meaning that more of
+  -- the good has been bought than sold).
   local vol = max( group.traded_volumes[good], 0 )
+
   -- The OG evolves the volumes each turn by multiplying the
   -- total volume (euro + traded) by .99. That said, it never
   -- modifies the traded volumes, and so the evolution of total
   -- volume is only reflected in the euro volume. Hence why we
   -- add in the traded volume, then multiply by .99, then remove
   -- it again.
-  r = r + vol
-  -- The OG stores volumes as integers, and because of that it is
-  -- unable to scale down small numbers that are below the
-  -- threshold where 1% ~ 1. Also, while it likely wanted to
-  -- scale r down by 1%, it likely uses a fixed point representa-
-  -- tion with 8 decimal bits. In that representation, .9921875
-  -- is the closest one can get to .99. And the cutoff (128) is
-  -- given by 1/(1-.9921875). This is also convenient because
-  -- this evolution algorithm becomes unstable if r were allowed
-  -- to approach zero (which can happen if you just evolve the
-  -- volumes for a few hundred turns without selling anything);
-  -- this prevents that.
-  r = r + .5
-  r = r * .9921875
-  r = r - vol
-  -- The original game represents the euro volumes as integers.
-  -- We do that here too because it can have noticeable effects.
+  --
+  -- Although the OG likely wanted to scale r down by 1%, it
+  -- likely uses a fixed point representation with 8 decimal
+  -- bits. In that representation, .9921875 is the closest one
+  -- can get to .99.
+  --
+  -- The addition of .5 is needed to make the numbers match the
+  -- empirical data exactly. Not sure if the OG explicitly does
+  -- this or if it some kind of artifact of the way it does
+  -- floating point math. One possibility is that adding this
+  -- bias will prevent the euro volumes from drifting all the way
+  -- to zero, which would not be good because this model does not
+  -- behave well when they hit zero.
+  r = ((r + vol + .5) * .9921875) - vol
+
+  -- The original game represents the euro volumes as integers,
+  -- and so to simulate that we need to round the euro volume
+  -- after every evolution step.
   group.euro_volumes[good] = round( r )
 end
 
