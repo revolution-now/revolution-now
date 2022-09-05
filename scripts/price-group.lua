@@ -16,9 +16,11 @@ package.path = 'src/lua/?.lua'
 -- Imports
 -----------------------------------------------------------------
 local price_group = require( 'prices.price-group' )
+local tables = require( 'util.tables' )
 
 local floor = math.floor
 local format = string.format
+local copy_table = tables.copy_table
 
 -----------------------------------------------------------------
 -- Config
@@ -27,7 +29,6 @@ local GOODS = { 'rum', 'cigars', 'cloth', 'coats' }
 local VOLUME_INIT_CONFIG = { center=700, window=380 }
 local TARGET_PRICE = 12
 
--- local STARTING_PRICES = { rum=11, cigars=10, cloth=14, coats=9 }
 local STARTING_EURO_VOLUMES = {
   -- 11/12 10/11 14/15 9/10
   rum=0x02a9,
@@ -48,12 +49,21 @@ local PRICE_GROUP_CONFIG = {
   names={ 'rum', 'cigars', 'cloth', 'coats' },
   dutch=DUTCH,
   starting_euro_volumes=STARTING_EURO_VOLUMES,
+  starting_traded_volumes=nil, -- zeroes.
   min=1,
   max=20,
   rise_fall=4,
   volatility=1,
   target_price=12
 }
+
+local group
+local starting_prices
+
+local function reset_group()
+  group = price_group.new_price_group( PRICE_GROUP_CONFIG )
+  starting_prices = copy_table( group.prices )
+end
 
 -----------------------------------------------------------------
 -- UI State
@@ -63,8 +73,8 @@ local num_turns = 0
 local num_actions = 0
 local last_cmd = INITIAL_CMD
 
-local function reset( group )
-  group:reset()
+local function reset()
+  reset_group()
   num_turns = 0
   num_actions = 0
   last_cmd = INITIAL_CMD
@@ -74,7 +84,7 @@ end
 -----------------------------------------------------------------
 -- Prompt
 -----------------------------------------------------------------
-local chart = [[
+local display = [[
   turns:   %d
   actions: %d
   gold:    %d
@@ -116,14 +126,13 @@ local function clear_screen()
   io.write( string.char( 27 ) .. '[H' ) -- move cursor to upper left.
 end
 
-local function redraw( group )
+local function redraw()
   clear_screen()
   local eqs = group:equilibrium_prices()
-  local starting_prices = group.config.starting_prices
   local euro_volumes = group.euro_volumes
   local traded_volumes = group.traded_volumes
   local prices = group.prices
-  io.write( format( chart, num_turns, num_actions, gold,
+  io.write( format( display, num_turns, num_actions, gold,
                     floor( starting_prices.rum ),
                     floor( starting_prices.cigars ),
                     floor( starting_prices.cloth ),
@@ -175,7 +184,7 @@ local function parse_cmds( str )
   return res
 end
 
-local function run_cmd( group, cmd )
+local function run_cmd( cmd )
   if cmd == 'e' then
     group:evolve()
     num_turns = num_turns + 1
@@ -189,7 +198,7 @@ local function run_cmd( group, cmd )
     return
   end
   if cmd == 'r' then
-    reset( group )
+    reset()
     return
   end
   if #cmd ~= 2 then return end
@@ -218,8 +227,8 @@ local function run_cmd( group, cmd )
   end
 end
 
-local function looped( group )
-  redraw( group )
+local function looped()
+  redraw()
   local choice = io.read()
   if choice == nil then os.exit() end
   if #choice == 0 and last_cmd then choice = last_cmd end
@@ -236,7 +245,7 @@ local function looped( group )
       to_run = pieces[2]
     end
     for i = 1, times do
-      run_cmd( group, to_run )
+      run_cmd( to_run )
       print()
     end
   end
@@ -246,9 +255,8 @@ end
 -- Main
 -----------------------------------------------------------------
 local function main()
-  local group = price_group.new_price_group( PRICE_GROUP_CONFIG )
-  reset( group )
-  while true do looped( group ) end
+  reset()
+  while true do looped() end
 end
 
 main()

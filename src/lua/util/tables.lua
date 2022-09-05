@@ -13,7 +13,9 @@ local M = {}
 
 -- Clones a table.  But note that this is not a deep clone.
 function M.copy_table( tbl )
-  for k, v in pairs( tbl ) do tbl[k] = v end
+  local res = {}
+  for k, v in pairs( tbl ) do res[k] = v end
+  return res
 end
 
 return M

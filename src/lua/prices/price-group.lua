@@ -13,6 +13,7 @@
 local M = {}
 
 local freeze = require( 'util.freeze' )
+local tables = require( 'util.tables' )
 
 -- Don't allow this module to set globals.
 local _ENV = freeze.globals( _ENV )
@@ -22,6 +23,7 @@ local _ENV = freeze.globals( _ENV )
 -----------------------------------------------------------------
 local floor = math.floor
 local max = math.max
+local copy_table = tables.copy_table
 
 -----------------------------------------------------------------
 -- Helpers
@@ -112,9 +114,10 @@ local function evolve_euro_volume( group, good )
   group.euro_volumes[good] = floor( r )
 end
 
-function PriceGroup:evolve_euro_volumes()
-  self:on_all(
-      function( good ) evolve_euro_volume( self, good ) end )
+local function evolve_euro_volumes( group )
+  group:on_all( function( good )
+    evolve_euro_volume( group, good )
+  end )
 end
 
 local function price_eq_push( group, good, target )
@@ -139,7 +142,7 @@ function PriceGroup:evolve()
                    price_eq_push( self, good, eqs[good] ) )
     clamp_price( self, self.prices, good )
   end )
-  self:evolve_euro_volumes()
+  evolve_euro_volumes( self )
 end
 
 -- The sign of `quantity` should represent the change in net
@@ -150,7 +153,9 @@ local function transaction( group, good, quantity, unit_price )
   if group.traded_volumes[good] >= 0 then
     -- This is one of the benefits that the Dutch get. TODO: need
     -- to research more about the dutch benefits.
-    if not group.config.dutch then group:evolve_euro_volumes() end
+    if not group.config.dutch then
+      evolve_euro_volumes( group )
+    end
   end
   -- The only place that the volatility and fall should be used
   -- is together in this manner.
@@ -171,17 +176,6 @@ end
 
 function PriceGroup:sell( good, quantity )
   transaction( self, good, quantity, self.prices[good] )
-end
-
--- Shouldn't really be needed by the game, but is useful while
--- testing.
-function PriceGroup:reset()
-  self:on_all( function( good )
-    self.euro_volumes[good] =
-        self.config.starting_euro_volumes[good]
-    set_price( self, good, self.config.starting_prices[good] )
-    self.traded_volumes[good] = 0
-  end )
 end
 
 -----------------------------------------------------------------
@@ -213,12 +207,16 @@ function M.new_price_group( config )
     o.traded_volumes[good] = 0
   end )
 
-  if not config.starting_prices then
-    config.starting_prices = o:equilibrium_prices()
-    o:on_all( function( good )
-      set_price( o, good, config.starting_prices[good] )
-    end )
+  if config.starting_traded_volumes then
+    o.traded_volumes =
+        copy_table( config.starting_traded_volumes )
   end
+
+  local starting_prices = config.starting_prices or
+                              o:equilibrium_prices()
+  o:on_all( function( good )
+    set_price( o, good, starting_prices[good] )
+  end )
 
   return o
 end
