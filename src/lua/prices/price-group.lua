@@ -43,6 +43,10 @@ local function clamp_price( group, tbl, good )
                      group.config.max )
 end
 
+local function set_price( group, good, price )
+  group.prices[good] = round( price )
+end
+
 -----------------------------------------------------------------
 -- Price Group Model
 -----------------------------------------------------------------
@@ -59,10 +63,6 @@ PriceGroup.__metatable = false
 
 function PriceGroup:on_all( f )
   for _, good in ipairs( self.config.names ) do f( good ) end
-end
-
-local function set_price( group, good, price )
-  group.prices[good] = round( price )
 end
 
 function PriceGroup:equilibrium_prices()
@@ -178,23 +178,8 @@ function PriceGroup:sell( good, quantity )
   transaction( self, good, quantity, self.prices[good] )
 end
 
------------------------------------------------------------------
--- Public API
------------------------------------------------------------------
--- This will generate a random starting euro volume for one of
--- the processed goods (rum, cigars, cloth, coats). It will
--- choice based on a uniform distribution over a certain window,
--- and, because of the algorithm used in this model for trans-
--- lating volumes to prices, this will lead to the characteristic
--- "skewed hill" distribution that governs the starting prices in
--- the OG.
-function M.generate_random_euro_volume( config )
-  local bottom = config.center - config.window / 2
-  return math.floor( math.random() * config.window + bottom )
-end
-
--- Create a new price group object.
-function M.new_price_group( config )
+-- Create a new PriceGroup object.
+local function new_price_group( config )
   local o = setmetatable( {}, PriceGroup )
   o.config = config
 
@@ -220,5 +205,22 @@ function M.new_price_group( config )
 
   return o
 end
+
+-----------------------------------------------------------------
+-- Public API
+-----------------------------------------------------------------
+-- This will generate a random starting euro volume for one of
+-- the processed goods (rum, cigars, cloth, coats). It will
+-- choice based on a uniform distribution over a certain window,
+-- and, because of the algorithm used in this model for trans-
+-- lating volumes to prices, this will lead to the characteristic
+-- "skewed hill" distribution that governs the starting prices in
+-- the OG.
+function M.generate_random_euro_volume( config )
+  local bottom = config.center - config.window / 2
+  return math.floor( math.random() * config.window + bottom )
+end
+
+function M.PriceGroup( config ) return new_price_group( config ) end
 
 return M

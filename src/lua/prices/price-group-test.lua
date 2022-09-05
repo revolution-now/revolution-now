@@ -20,6 +20,7 @@ local U = require( 'test.unit' )
 local ASSERT_LE = U.ASSERT_LE
 local abs = math.abs
 local format = string.format
+local PriceGroup = price_group.PriceGroup
 
 local Test = U.new_test_pack()
 
@@ -90,7 +91,7 @@ local function run_scenario( scenario )
   local pg_config = default_price_group_config()
   pg_config.starting_euro_volumes =
       scenario.starting_euro_volumes
-  local group = price_group.new_price_group( pg_config )
+  local group = PriceGroup( pg_config )
 
   for i, step in ipairs( scenario.steps ) do
     run_action( group, step )

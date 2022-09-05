@@ -21,6 +21,7 @@ local tables = require( 'util.tables' )
 local floor = math.floor
 local format = string.format
 local copy_table = tables.copy_table
+local PriceGroup = price_group.PriceGroup
 
 -----------------------------------------------------------------
 -- Config
@@ -61,7 +62,7 @@ local group
 local starting_prices
 
 local function reset_group()
-  group = price_group.new_price_group( PRICE_GROUP_CONFIG )
+  group = PriceGroup( PRICE_GROUP_CONFIG )
   starting_prices = copy_table( group.prices )
 end
 
