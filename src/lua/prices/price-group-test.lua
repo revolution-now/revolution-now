@@ -113,7 +113,7 @@ end
 function Test.eq_prices_scenario_0()
   run_scenario{
     starting_euro_volumes=STARTING_11_10_14_9,
-    tolerance=0,
+    tolerance=1,
     steps={
       {
         action={ count=30, type='sell_all', what='cloth' },
@@ -164,7 +164,7 @@ end
 function Test.eq_prices_scenario_3()
   run_scenario{
     starting_euro_volumes=STARTING_11_10_14_9,
-    tolerance=1,
+    tolerance=0,
     steps={
       {
         action={ count=6, type='sell', what='rum' },
@@ -192,7 +192,7 @@ end
 function Test.eq_prices_scenario_4()
   run_scenario{
     starting_euro_volumes=STARTING_11_10_14_9,
-    tolerance=1,
+    tolerance=0,
     steps={
       {
         action={ count=6, type='sell', what='cloth' },

@@ -77,7 +77,8 @@ function PriceGroup:equilibrium_prices()
   self:on_all( function( good )
     local q = self.euro_volumes[good] +
                   max( self.traded_volumes[good], 0 )
-    -- The original game seems to ues floor here and not round.
+    -- The original game seems to use floor here and not round,
+    -- and it makes a difference.
     local normalized = max( q, 0 ) / avg_total_volume
     res[good] = floor( self.config.target_price / normalized )
     if is_nan( res[good] ) then res[good] = math.huge end
@@ -107,11 +108,12 @@ local function evolve_euro_volume( group, good )
   -- to approach zero (which can happen if you just evolve the
   -- volumes for a few hundred turns without selling anything);
   -- this prevents that.
-  if r < -128 or r > 128 then r = r * .9921875 end
+  r = r + .5
+  r = r * .9921875
   r = r - vol
   -- The original game represents the euro volumes as integers.
   -- We do that here too because it can have noticeable effects.
-  group.euro_volumes[good] = floor( r )
+  group.euro_volumes[good] = round( r )
 end
 
 local function evolve_euro_volumes( group )

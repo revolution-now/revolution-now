@@ -54,6 +54,7 @@ function M.runner( quiet, pack )
   for _, name in ipairs( sorted_names ) do
     if not quiet then
       io.write( 'running test ' .. name .. '...' )
+      io.flush()
       for i = 1, longest_length - #name do io.write( ' ' ) end
     end
     pack[name]()
