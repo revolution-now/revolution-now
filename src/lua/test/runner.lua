@@ -13,7 +13,9 @@ local M = {}
 
 local U = require( 'test.unit' )
 
-local files = { 'map-gen.classic.resource-dist-test' }
+local files = {
+  'map-gen.classic.resource-dist', 'prices.price-group'
+}
 
 local function bar()
   print( '-----------------------------------------------' )
@@ -30,7 +32,9 @@ local function run_test_file( quiet, file )
 end
 
 local function main( quiet )
-  for _, file in ipairs( files ) do run_test_file( quiet, file ) end
+  for _, file in ipairs( files ) do
+    run_test_file( quiet, file .. '-test' )
+  end
 end
 
 return main

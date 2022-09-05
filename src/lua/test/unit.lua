@@ -18,10 +18,16 @@ local YELLOW = string.char( 27 ) .. '[93m'
 local BOLD = string.char( 27 ) .. '[1m'
 local UNDER = string.char( 27 ) .. '[4m'
 
-function M.ASSERT_EQ( l, r, name )
+function M.ASSERT_EQ( l, r, desc )
   if l == r then return end
-  error( name .. ' are not equal: ' .. tostring( l ) .. ' != ' ..
+  error( desc .. ' are not equal: ' .. tostring( l ) .. ' != ' ..
              tostring( r ) )
+end
+
+function M.ASSERT_LE( l, r, desc )
+  if l <= r then return end
+  error( desc .. ' are not less-or-equal: ' .. tostring( l ) ..
+             ' > ' .. tostring( r ) )
 end
 
 function M.new_test_pack()

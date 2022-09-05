@@ -204,11 +204,14 @@ local function run_cmd( group, cmd )
   end
   local buy_sell = char( cmd, 1 )
   print()
+  local q = 100
   for _, good in ipairs( goods_inputted ) do
     if buy_sell == 'b' then
+      gold = gold - group.prices[good] * q
       group:buy( good, 100 )
       num_actions = num_actions + 1
     elseif buy_sell == 's' then
+      gold = gold + (group.prices[good] - 1) * q
       group:sell( good, 100 )
       num_actions = num_actions + 1
     end
