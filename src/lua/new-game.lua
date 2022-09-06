@@ -181,11 +181,12 @@ local function create_old_world_state( settings, player )
   old_world.taxes.tax_rate = 7
 
   -- Market state.
-  local init_commodity = function( comm, ask_price )
+  local init_commodity = function( comm, bid_price )
     old_world.market.commodities[comm]
-        .current_ask_price_in_hundreds = ask_price
+        .current_bid_price_in_hundreds = bid_price
     old_world.market.commodities[comm]
-        .starting_ask_price_in_hundreds = ask_price
+        .starting_bid_price_in_hundreds = bid_price
+    old_world.market.commodities[comm].intrinsic_volume = 0x200
   end
 
   init_commodity( 'food', 10 )
