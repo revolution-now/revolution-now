@@ -30,9 +30,9 @@ void linker_dont_discard_module_market() {}
 *****************************************************************/
 CommodityPrice market_price( Player const& player,
                              e_commodity   commodity ) {
-  int const ask = player.old_world.market.commodities[commodity]
-                      .current_ask_price_in_hundreds;
-  int const bid = ask - config_market.price_behavior[commodity]
+  int const bid = player.old_world.market.commodities[commodity]
+                      .current_bid_price_in_hundreds;
+  int const ask = bid + config_market.price_behavior[commodity]
                             .price_limits.bid_ask_spread;
   return CommodityPrice{ .bid = bid, .ask = ask };
 }

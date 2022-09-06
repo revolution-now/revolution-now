@@ -245,7 +245,8 @@ local function transaction( group, good, quantity, unit_price )
 end
 
 function PriceGroup:buy( good, quantity )
-  transaction( self, good, -quantity, self.prices[good] + 1 )
+  transaction( self, good, -quantity,
+               self.prices[good] + self.config.bid_ask_spread )
 end
 
 function PriceGroup:sell( good, quantity )

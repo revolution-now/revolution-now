@@ -20,14 +20,32 @@ namespace rn {
 base::valid_or<string> config::market::PriceLimits::validate()
     const {
   REFL_VALIDATE(
-      ask_price_start_min <= ask_price_start_max,
-      "ask_price_start_min must be <= ask_price_start_max" );
-  REFL_VALIDATE( ask_price_start_min > 0,
-                 "ask_price_start_min must be > 0." );
-  REFL_VALIDATE( ask_price_start_max <= 20,
-                 "ask_price_start_max must be <= 20." );
-  REFL_VALIDATE( bid_ask_spread > 0,
-                 "bid_ask_spread must be > 0." );
+      bid_price_start_min <= bid_price_start_max,
+      "bid_price_start_min must be <= bid_price_start_max" );
+  REFL_VALIDATE( bid_price_min <= bid_price_max,
+                 "bid_price_min must be <= bid_price_max" );
+  REFL_VALIDATE( bid_price_start_min >= 0,
+                 "bid_price_start_min must be >= 0." );
+  REFL_VALIDATE( bid_price_start_max <= 19,
+                 "bid_price_start_max must be <= 19." );
+  // The original game always has at least 1 for bid/ask spread,
+  // but we'll allow it to be zero in case someone wants to mod
+  // the game in that way.
+  REFL_VALIDATE( bid_ask_spread >= 0,
+                 "bid_bid_spread must be >= 0." );
+  REFL_VALIDATE(
+      bid_price_start_max + bid_ask_spread <= 20,
+      "bid_price_start_max + bid_ask_spread must be <= 20" );
+  REFL_VALIDATE(
+      bid_price_max + bid_ask_spread <= 20,
+      "bid_price_max + bid_ask_spread must be <= 20" );
+  return base::valid;
+}
+
+base::valid_or<string> config::market::PriceGroup::validate()
+    const {
+  REFL_VALIDATE( bid_price_min <= bid_price_max,
+                 "bid_price_min must be <= bid_price_max" );
   return base::valid;
 }
 

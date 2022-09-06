@@ -37,6 +37,7 @@ local function default_price_group_config()
     max=20,
     rise_fall=4,
     volatility=1,
+    bid_ask_spread=1,
     target_price=12
   }
 end

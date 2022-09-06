@@ -1,78 +1,93 @@
 # ---------------------------------------------------------------
-# The economic model used here along with the associated configu-
+# There are two market models (governing price movement) in the
+# original game: one for the four processed goods (rum, cigars,
+# cloth, coats), and one for the remainder. The former we will
+# refer to as the "processed goods model" and the latter the "de-
+# fault model."
+#
+# The default model used here along with the associated configu-
 # ration parameters are essentially taken/inferred from the orig-
 # inal game's NAMES.TXT file in the section titled "Cargo types &
-# economic model" together with experimentation.
+# economic model" together with some experimentation.
 #
-# Experiments with the original game seems to suggest that the
-# game keeps track of the total accumulated traffic of a com-
-# modity (i.e., it increases when a commodity is sold to europe
-# and decreases when it is bought). It then manipulates that
-# number as commodities are bought and sold, as well as applying
-# an "attrition" (drift) each turn. It also likely manipulates it
-# when commodities are bought and sold by foreign nations.
+# In the default model, the OG appears to keep track of the total
+# net volume of a commodity in europe (i.e., it increases when a
+# commodity is sold to europe and decreases when it is bought).
+# It then manipulates that number as commodities are bought and
+# sold, as well as applying an "attrition" (drift) each turn.
 #
-# Rise: This is the amount by which the total accumulated traded
-# volume ("traffic" in the original config file) must decrease in
-# order for the price to go up by one. In the original game's
-# config file this was in multiples of 100, but here it is not.
-# Note that a decrease in said volume as a result of a buy will
-# be determined not only by the amount purchased, but also on the
-# difficulty level.
+# Default Model
+# =============
 #
-# Fall: This is the amount by which the total accumulated traded
-# volume ("traffic" in the original config file) must increase in
-# order for the price to go down by one. In the original game's
-# config file this was in multiples of 100, but here it is not.
-# Note that an increase in said volume as a result of a sell will
-# be determined not only by the amount sold, but also on the dif-
-# ficulty level, as well as which nation the player is playing.
+# Rise/Fall: This is the amount by which the net volume must de-
+# crease (increase) in order for the price to go up (down) by
+# one. In the original game's config file these were in multiples
+# of 100, but here they are not. Note that when using these vol-
+# umes to compute price changes, the volume will be scaled up or
+# down first depending on difficulty level in such a way as to
+# make prices less (more) volatile on easier (harder) difficulty
+# levels.
 #
-# Attrition: This is the amount added to the total traffic volume
-# each turn to allow the price to drift. If this is negative then
-# the price will tend to increase when nothing is traded; if it
-# is positive then it will tend to decrease. The actual attrition
-# value can be scaled based on the nation chosen.
+# Attrition: This is the amount added to the net volume each turn
+# to allow the price to drift. If this is negative (positive)
+# then the price will tend to increase (decrease) when nothing is
+# traded. The actual attrition value will be scaled when playing
+# as the dutch.
 #
 # Volatility: The original game's config file describes this
-# field as the "shift value for traffic volume." Experiments seem
-# to indicate that it literally represents the number of times to
-# left shift (i.e., bit shift) a traded amount before adding it
-# onto the accumulated traffic. So e.g., a value of 2 for this
-# field would mean that, if the player sells 50 of a commodity,
-# then 50<<2 = 50*4 = 200 will actually be added (since it is a
-# sell) to the total traffic. This makes the price more respon-
-# sive to traffic (more volatile in that sense). Note that even
-# if this value is zero the price will still respond to traffic,
-# since a value of 0 just means not to amplify the trading vol-
-# ume; but the trading volume is still non-zero.
+# field as the "shift value for traffic volume." Experiments in-
+# dicate that it literally represents the number of times to left
+# shift (i.e., bit shift) a traded amount before adding it onto
+# the accumulated traffic. So e.g., a value of 2 for this field
+# would mean that, if the player sells 50 of a commodity, then
+# 50<<2 = 50*4 = 200 will actually be added (since it is a sell)
+# to the total traffic. This makes the price more responsive to
+# traffic (more volatile in that sense).
 #
-# Difficulty and Dutch: as alluded to above, some of the parame-
-# ters can be tweaked depending on difficulty level and on
-# whether the player is playing as the dutch. In short, the dutch
-# get their traffic volumes scaled down and their attrition mag-
-# nitude scaled up, which puts things more in their favor in both
-# situations. Depending on the difficulty level, the traffic
-# volume (i.e., explicitly traded by the player) gets scaled up
-# or down to make price swings more/less pronounced.
+# Dutch: the dutch get their traffic volumes scaled down and
+# their attrition magnitude scaled up when computing price
+# changes This puts things more in their favor in both situa-
+# tions.
+#
+# Difficulty level: depending on the difficulty level, the
+# traffic volume (i.e., explicitly traded by the player) gets
+# scaled up or down to make price swings more/less pronounced.
 #
 # Ordering: There are various bonuses/penalties involved in the
-# model described above, including those applied for difficulty
-# and Dutch bonuses. But what's nice is that they are all multi-
-# plicative (even the volatility "shift"), and so it does not
-# matter in what order they are applied.
+# default model, but what's nice is that they are all multiplica-
+# tive (even the volatility "shift"), and so it does not matter
+# in what order they are applied.
+#
+# Processed Goods Model
+# =====================
+#
+# This model is quite different from the default model, and is
+# described elsewhere. In short, for that model, there are two
+# volumes maintained, and the (equilibrium) prices of the goods
+# are derived from the volumes using a somewhat complicated
+# process whose goal is to try to keep the average price of the
+# four goods afloat; e.g. when one good is sold, its price falls
+# but the others rise.
 # ---------------------------------------------------------------
 
 # Describes the properties and price movement model for each
-# market commodity.
+# market commodity. Note: in the original game's config file, the
+# values representing price limits appear to be equal to the bid
+# price + 1, regardless of the bid/ask spread. So e.g. food is
+# listed as having a min/max price of 1 and 6; if these repre-
+# sented real ask prices then it wouldn't make any sense because
+# food has a bid/ask spread of 8, and so that would put the bid
+# price below zero. So in reality that means that the limits are
+# 0/5 on the bid price, and 8/13 on the ask. In this config
+# though, we always refer to bid prices to keep it simple.
 price_behavior {
   food {
-    # original game [Food]: 1,  3,  1,  6,  7,  3,  2, -1,  0
+    # original game: 1,  3,  1,  6,  7,  3,  2, -1,  0
     price_limits {
-      ask_price_start_min:  1
-      ask_price_start_max:  3
-      ask_price_min:        1
-      ask_price_max:        6
+      bid_price_start_min:  0
+      bid_price_start_max:  2
+      bid_price_min:        0
+      bid_price_max:        5
       bid_ask_spread:       8
     }
     economic_model {
@@ -84,12 +99,12 @@ price_behavior {
   }
 
   sugar {
-    # original game [Sugar]: 4,  7,  3,  7,  1,  4,  6, -8,  1
+    # original game: 4,  7,  3,  7,  1,  4,  6, -8,  1
     price_limits {
-      ask_price_start_min:  4
-      ask_price_start_max:  7
-      ask_price_min:        3
-      ask_price_max:        7
+      bid_price_start_min:  3
+      bid_price_start_max:  6
+      bid_price_min:        2
+      bid_price_max:        6
       bid_ask_spread:       2
     }
     economic_model {
@@ -101,12 +116,12 @@ price_behavior {
   }
 
   tobacco {
-    # original game [Tobacco]: 3,  5,  2,  5,  1,  4,  8,-10,  1
+    # original game: 3,  5,  2,  5,  1,  4,  8,-10,  1
     price_limits {
-      ask_price_start_min:  3
-      ask_price_start_max:  5
-      ask_price_min:        2
-      ask_price_max:        5
+      bid_price_start_min:  2
+      bid_price_start_max:  4
+      bid_price_min:        1
+      bid_price_max:        4
       bid_ask_spread:       2
     }
     economic_model {
@@ -118,12 +133,12 @@ price_behavior {
   }
 
   cotton {
-    # original game [Cotton]: 2,  5,  2,  5,  1,  4,  6,-11,  1
+    # original game: 2,  5,  2,  5,  1,  4,  6,-11,  1
     price_limits {
-      ask_price_start_min:  2
-      ask_price_start_max:  5
-      ask_price_min:        2
-      ask_price_max:        5
+      bid_price_start_min:  1
+      bid_price_start_max:  4
+      bid_price_min:        1
+      bid_price_max:        4
       bid_ask_spread:       2
     }
     economic_model {
@@ -135,12 +150,12 @@ price_behavior {
   }
 
   fur {
-    # original game [Furs]: 4,  6,  2,  6,  1,  4, 20,-13,  1
+    # original game: 4,  6,  2,  6,  1,  4, 20,-13,  1
     price_limits {
-      ask_price_start_min:  4
-      ask_price_start_max:  6
-      ask_price_min:        2
-      ask_price_max:        6
+      bid_price_start_min:  3
+      bid_price_start_max:  5
+      bid_price_min:        1
+      bid_price_max:        5
       bid_ask_spread:       2
     }
     economic_model {
@@ -152,12 +167,12 @@ price_behavior {
   }
 
   lumber {
-    # original game [Lumber]: 2,  2,  2,  2,  4,  3,  2,  0,  0
+    # original game: 2,  2,  2,  2,  4,  3,  2,  0,  0
     price_limits {
-      ask_price_start_min:  2
-      ask_price_start_max:  2
-      ask_price_min:        2
-      ask_price_max:        2
+      bid_price_start_min:  1
+      bid_price_start_max:  1
+      bid_price_min:        1
+      bid_price_max:        1
       bid_ask_spread:       5
     }
     economic_model {
@@ -169,12 +184,12 @@ price_behavior {
   }
 
   ore {
-    # original game [Ore]: 3,  6,  2,  6,  2,  2,  4, -7,  0
+    # original game: 3,  6,  2,  6,  2,  2,  4, -7,  0
     price_limits {
-      ask_price_start_min:  3
-      ask_price_start_max:  6
-      ask_price_min:        2
-      ask_price_max:        6
+      bid_price_start_min:  2
+      bid_price_start_max:  5
+      bid_price_min:        1
+      bid_price_max:        5
       bid_ask_spread:       3
     }
     economic_model {
@@ -186,12 +201,12 @@ price_behavior {
   }
 
   silver {
-    # original game [Silver]: 1,  1,  2, 20,  0,  8,  1, -8,  2
+    # original game: 1,  1,  2, 20,  0,  8,  1, -8,  2
     price_limits {
-      ask_price_start_min:  1
-      ask_price_start_max:  1
-      ask_price_min:        2
-      ask_price_max:        20
+      bid_price_start_min:  0
+      bid_price_start_max:  0
+      bid_price_min:        1
+      bid_price_max:        19
       bid_ask_spread:       1
     }
     economic_model {
@@ -203,12 +218,12 @@ price_behavior {
   }
 
   horses {
-    # original game [Horses]: 2,  3,  2, 11,  0,  3,  2, -3,  0
+    # original game: 2,  3,  2, 11,  0,  3,  2, -3,  0
     price_limits {
-      ask_price_start_min:  2
-      ask_price_start_max:  3
-      ask_price_min:        2
-      ask_price_max:        11
+      bid_price_start_min:  1
+      bid_price_start_max:  2
+      bid_price_min:        1
+      bid_price_max:        10
       bid_ask_spread:       1
     }
     economic_model {
@@ -220,12 +235,15 @@ price_behavior {
   }
 
   rum {
-    # original game [Rum]: 11, 13,  1, 20,  0,  4,  4,-12,  1
+    # These fields are here for completeness since the OG's
+    # config file provided them, but they are ignored, as the
+    # four processed commodities use a separate market model.
+    # original game: 11, 13,  1, 20,  0,  4,  4,-12,  1
     price_limits {
-      ask_price_start_min:  9
-      ask_price_start_max:  15
-      ask_price_min:        1
-      ask_price_max:        20
+      bid_price_start_min:  10
+      bid_price_start_max:  12
+      bid_price_min:        0
+      bid_price_max:        19
       bid_ask_spread:       1
     }
     economic_model {
@@ -237,12 +255,15 @@ price_behavior {
   }
 
   cigars {
-    # original game [Cigars]: 11, 13,  1, 20,  0,  4,  4,-11,  1
+    # These fields are here for completeness since the OG's
+    # config file provided them, but they are ignored, as the
+    # four processed commodities use a separate market model.
+    # original game: 11, 13,  1, 20,  0,  4,  4,-11,  1
     price_limits {
-      ask_price_start_min:  9
-      ask_price_start_max:  15
-      ask_price_min:        1
-      ask_price_max:        20
+      bid_price_start_min:  10
+      bid_price_start_max:  12
+      bid_price_min:        0
+      bid_price_max:        19
       bid_ask_spread:       1
     }
     economic_model {
@@ -254,12 +275,15 @@ price_behavior {
   }
 
   cloth {
-    # original game [Cloth]: 11, 13,  1, 20,  0,  4,  4,-13,  1
+    # These fields are here for completeness since the OG's
+    # config file provided them, but they are ignored, as the
+    # four processed commodities use a separate market model.
+    # original game: 11, 13,  1, 20,  0,  4,  4,-13,  1
     price_limits {
-      ask_price_start_min:  9
-      ask_price_start_max:  15
-      ask_price_min:        1
-      ask_price_max:        20
+      bid_price_start_min:  10
+      bid_price_start_max:  12
+      bid_price_min:        0
+      bid_price_max:        19
       bid_ask_spread:       1
     }
     economic_model {
@@ -271,12 +295,15 @@ price_behavior {
   }
 
   coats {
-    # original game [Coats]: 11, 13,  1, 20,  0,  4,  4,-11,  1
+    # These fields are here for completeness since the OG's
+    # config file provided them, but they are ignored, as the
+    # four processed commodities use a separate market model.
+    # original game: 11, 13,  1, 20,  0,  4,  4,-11,  1
     price_limits {
-      ask_price_start_min:  9
-      ask_price_start_max:  15
-      ask_price_min:        1
-      ask_price_max:        20
+      bid_price_start_min:  10
+      bid_price_start_max:  12
+      bid_price_min:        0
+      bid_price_max:        19
       bid_ask_spread:       1
     }
     economic_model {
@@ -288,12 +315,12 @@ price_behavior {
   }
 
   trade_goods {
-    # original game [TradeGoods]: 2,  3,  2, 12,  0,  2,  3,  4,  0
+    # original game: 2,  3,  2, 12,  0,  2,  3,  4,  0
     price_limits {
-      ask_price_start_min:  2
-      ask_price_start_max:  3
-      ask_price_min:        2
-      ask_price_max:        12
+      bid_price_start_min:  1
+      bid_price_start_max:  2
+      bid_price_min:        1
+      bid_price_max:        11
       bid_ask_spread:       1
     }
     economic_model {
@@ -305,12 +332,12 @@ price_behavior {
   }
 
   tools {
-    # original game [Tools]: 2,  2,  2,  9,  0,  2,  2,  5,  0
+    # original game: 2,  2,  2,  9,  0,  2,  2,  5,  0
     price_limits {
-      ask_price_start_min:  2
-      ask_price_start_max:  2
-      ask_price_min:        2
-      ask_price_max:        9
+      bid_price_start_min:  1
+      bid_price_start_max:  1
+      bid_price_min:        1
+      bid_price_max:        8
       bid_ask_spread:       1
     }
     economic_model {
@@ -322,12 +349,12 @@ price_behavior {
   }
 
   muskets {
-    # original game [Muskets]: 3,  3,  2, 20,  0,  2,  2,  6,  0
+    # original game: 3,  3,  2, 20,  0,  2,  2,  6,  0
     price_limits {
-      ask_price_start_min:  3
-      ask_price_start_max:  3
-      ask_price_min:        2
-      ask_price_max:        20
+      bid_price_start_min:  2
+      bid_price_start_max:  2
+      bid_price_min:        1
+      bid_price_max:        19
       bid_ask_spread:       1
     }
     economic_model {
@@ -379,18 +406,13 @@ nation_advantage {
     # quickly. This may at first seem more like a disadvantage,
     # but it is actually an advantage because the sign of the at-
     # trition (in general) is chosen to make it favorable for the
-    # player. E.g., goods such as rum and coats which are almost
-    # always sold to europe by the player have negative attri-
-    # tion, meaning that, left on their own, their prices will
-    # gradually rise, which is favorable to the player. Tools and
-    # muskets, on the other hand, which are normally bought by
-    # the player, have a positive attrition, so their prices
-    # would gradually drop, which is again favorable to the
-    # player. Thus, as mentioned, we multiply the dutch's attri-
-    # tion value (keeping the same sign) by this factor, which,
-    # in the original game appears to be 1/(2/3)=1.5, since the
-    # price movements appear to happen in about 2/3 the number of
-    # turns.
+    # player. E.g., tools and muskets, which are normally bought
+    # by the player, have a positive attrition, so their prices
+    # would gradually drop, which is favorable to the player.
+    # Thus, as mentioned, we multiply the dutch's attrition value
+    # (keeping the same sign) by this factor, which, in the orig-
+    # inal game appears to be 1/(2/3)=1.5, since the price move-
+    # ments appear to happen in about 2/3 the number of turns.
     attrition_scale: 1.5
 
     # This is the "do not collapse as quickly" part. In this
@@ -439,12 +461,12 @@ nation_advantage {
 # pending on difficulty level.
 #
 # Depending on difficulty level, the traffic volume is scaled
-# down by this factor when buying and selling. This effectively
-# causes prices to not rise/fall as quickly as a result. Note
-# that this does not affect attrition in either direction, only
-# to actual traffic from the new world. In the original game this
-# value appears to be 2/3, since it takes 1.5 (=1/(2/3)) the
-# number of buys/sells for the price to move.
+# down by this factor when calculating price rises/falls. This
+# effectively causes prices to not rise/fall as quickly as a re-
+# sult. Note that this does not affect attrition in either direc-
+# tion, only to actual traffic from the new world. In the orig-
+# inal game this value appears to be 2/3, since it takes 1.5
+# (=1/(2/3)) the number of buys/sells for the price to move.
 difficulty_modifiers {
   discoverer {
     traffic_volume_scale: 0.666666
@@ -465,4 +487,17 @@ difficulty_modifiers {
   viceroy {
     traffic_volume_scale: 1.333333
   }
+}
+
+# The OG's strategy guide describes the idea of "price groups",
+# where one price change in one commodity in the group affects
+# the others. This price group model is quite different from the
+# default model. This particular one governs the group consisting
+# of rum, cigars, cloth, and coats.
+processed_goods_model {
+  bid_price_min: 0
+  bid_price_max: 19
+  rise_fall:     4
+  volatility:    1
+  target_price:  12
 }

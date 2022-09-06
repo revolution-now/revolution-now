@@ -95,7 +95,6 @@
   1. Implement gold.
   2. Allow purchasing things from old world.
   3. Implement that immigrants appear on the doc.
-  4. Implement old world prices and price changes.
   5. Add basic auto unit outlining so that the units will be vis-
      ible. In the original game, the outline/shadow has a dif-
      ferent color depending on context (e.g., it is black when on

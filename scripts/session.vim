@@ -7,7 +7,6 @@ let s:stems = [
  \ 'colony-buildings',
  \ 'colview-buildings',
  \ 'custom-house',
- \ 'ss/old-world-state',
  \ 'ss/market',
  \ 'config/market',
  \ 'market',
