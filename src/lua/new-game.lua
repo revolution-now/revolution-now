@@ -23,10 +23,10 @@ function M.default_options()
     -- This determines which nations are enabled and some proper-
     -- ties.
     nations={
-      ['english']={ human=false },
+      ['english']={ human=true },
       ['french']={ human=false },
       ['spanish']={ human=false },
-      ['dutch']={ human=true }
+      ['dutch']={ human=false }
     },
     map={} -- use default map options.
   }
