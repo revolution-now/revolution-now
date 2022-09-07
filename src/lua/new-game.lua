@@ -329,10 +329,9 @@ function M.create( options )
   end
 
   -- Temporary.
-  root.land_view.viewport:center_on_tile{
-    x=world_size.w // 2 - 2,
-    y=world_size.h // 2 - 1
-  }
+  local player_nation = 'english'
+  local coord = map_gen.initial_ships_pos()[player_nation]
+  root.land_view.viewport:center_on_tile( coord )
 end
 
 return M
