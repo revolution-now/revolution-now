@@ -201,10 +201,10 @@ price_behavior {
   }
 
   silver {
-    # original game: 1,  1,  2, 20,  0,  8,  1, -8,  2
+    # original game: 20,  20,  2, 20,  0,  8,  1, -8,  2
     price_limits {
-      bid_price_start_min:  0
-      bid_price_start_max:  0
+      bid_price_start_min:  19
+      bid_price_start_max:  19
       bid_price_min:        1
       bid_price_max:        19
       bid_ask_spread:       1
