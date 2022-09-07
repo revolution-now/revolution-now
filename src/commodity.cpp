@@ -76,8 +76,10 @@ e_tile tile_for_commodity( e_commodity c ) {
 void render_commodity_label( rr::Renderer& renderer, Coord where,
                              string_view label ) {
   if( label.empty() ) return;
-  TextMarkupInfo info{ /*normal=*/gfx::pixel::white(),
-                       /*highlight=*/gfx::pixel::green() };
+  TextMarkupInfo info{
+      /*normal=*/gfx::pixel{
+          .r = 0x00, .g = 0x00, .b = 0x00, .a = 255 },
+      /*highlight=*/gfx::pixel::green() };
   render_text_markup( renderer, where, font::small(), info,
                       label );
 }
