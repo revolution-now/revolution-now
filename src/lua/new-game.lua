@@ -56,17 +56,19 @@ end
 local function create_initial_units_for_nation( nation, root )
   local player = root.players.players:get( nation )
   local coord = map_gen.initial_ships_pos()[nation]
-  local merchantman = build_unit_type( 'merchantman' )
+  local ship_type
+  if nation == 'dutch' then
+    ship_type = build_unit_type( 'merchantman' )
+  else
+    ship_type = build_unit_type( 'caravel' )
+  end
   local soldier = build_unit_type( 'soldier' )
   local pioneer = build_unit_type( 'pioneer' )
 
-  local merchantman_unit = ustate.create_unit_on_map( nation,
-                                                      merchantman,
-                                                      coord )
-  ustate.create_unit_in_cargo( nation, soldier,
-                               merchantman_unit:id() )
-  ustate.create_unit_in_cargo( nation, pioneer,
-                               merchantman_unit:id() )
+  local ship_unit = ustate.create_unit_on_map( nation, ship_type,
+                                               coord )
+  ustate.create_unit_in_cargo( nation, soldier, ship_unit:id() )
+  ustate.create_unit_in_cargo( nation, pioneer, ship_unit:id() )
 
   player.starting_position = coord
 end
