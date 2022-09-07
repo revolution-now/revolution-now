@@ -27,12 +27,26 @@ struct.MarketItem {
   # needed in the default price model.
   starting_bid_price_in_hundreds 'int',
 
-  # Net traded volume in europe. Starts off as zero, then in-
-  # creases (decreases) each time a commodity is sold (bought).
-  # The way it is used depends on the price model. Note that this
-  # is not in hundreds but in individual units, which is impor-
-  # tant because the player can buy/sell in any quantity.
-  net_traded_volume 'int',
+  # Net traded volume in europe and, in the default price model,
+  # scaled by the "volatility" parameter. Starts off as zero,
+  # then increases (decreases) each time a commodity is sold
+  # (bought). The way it is used depends on the price model. Note
+  # that this is not in hundreds but in individual units, which
+  # is important because the player can buy/sell in any quantity.
+  #
+  # This is the parameter that is actually used to compute price
+  # changes.
+  #
+  # As mentioned above, this is not exactly the amount traded by
+  # the player, since it can be scaled by the "volatility" para-
+  # meter in the default price model. The amount actually traded
+  # by the player (and visible on the economics report screen) is
+  # the one below.
+  scaled_net_traded_volume 'int',
+
+  # The net amount that the player has traded. This is not used
+  # to compute price changes, but only to display as a stat.
+  unscaled_net_traded_volume 'int',
 
   # The price group model also requires a separate (intrinsic)
   # volume that is not directly changed by buying selling. This

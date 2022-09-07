@@ -53,8 +53,10 @@ LUA_STARTUP( lua::state& st ) {
 
   u["starting_bid_price_in_hundreds"] =
       &U::starting_bid_price_in_hundreds;
-  u["net_traded_volume"] = &U::net_traded_volume;
-  u["intrinsic_volume"]  = &U::intrinsic_volume;
+  u["scaled_net_traded_volume"] = &U::scaled_net_traded_volume;
+  u["unscaled_net_traded_volume"] =
+      &U::unscaled_net_traded_volume;
+  u["intrinsic_volume"] = &U::intrinsic_volume;
   u["current_bid_price_in_hundreds"] =
       &U::current_bid_price_in_hundreds;
   u["boycott"] = &U::boycott;
