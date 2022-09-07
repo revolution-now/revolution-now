@@ -222,7 +222,7 @@ maybe<ColViewObject_t> ColViewBuildings::can_receive(
   return o; // allowed.
 }
 
-wait<base::valid_or<IColViewDragSinkCheck::Rejection>>
+wait<base::valid_or<IDragSinkCheck::Rejection>>
 ColViewBuildings::check( ColViewObject_t const& o,
                          e_colview_entity,
                          Coord const where ) const {
@@ -236,7 +236,7 @@ ColViewBuildings::check( ColViewObject_t const& o,
   // were to let the drag proceed then it would change the or-
   // dering of the units which would be strange.
   if( dragging_.has_value() && slot == dragging_->slot )
-    co_return IColViewDragSinkCheck::Rejection{};
+    co_return IDragSinkCheck::Rejection{};
   // This should have already been checked.
   UNWRAP_CHECK( building, building_for_slot( colony_, slot ) );
   // Check that there aren't more than the max allowed units in
@@ -248,7 +248,7 @@ ColViewBuildings::check( ColViewObject_t const& o,
         allowed_units > 1
             ? config_colony.worker_names_plural[indoor_job]
             : config_colony.worker_names_singular[indoor_job];
-    co_return IColViewDragSinkCheck::Rejection{
+    co_return IDragSinkCheck::Rejection{
         .reason = fmt::format(
             "There can be at most @[H]{}@[] {} in a @[H]{}@[].",
             allowed_units, worker_name,
@@ -267,14 +267,14 @@ ColViewBuildings::check( ColViewObject_t const& o,
     base::valid_or<string> can_teach =
         can_unit_teach_in_building( unit.type(), *school_type );
     if( !can_teach.valid() )
-      co_return IColViewDragSinkCheck::Rejection{
+      co_return IDragSinkCheck::Rejection{
           .reason = can_teach.error() };
   }
 
   co_return base::valid; // proceed.
 }
 
-// Implement IColViewDragSink.
+// Implement IDragSink.
 void ColViewBuildings::drop( ColViewObject_t const& o,
                              Coord const&           where ) {
   UNWRAP_CHECK( unit_id, o.get_if<ColViewObject::unit>().member(
@@ -314,10 +314,10 @@ bool ColViewBuildings::try_drag( ColViewObject_t const& o,
   return true;
 }
 
-// Implement IColViewDragSource.
+// Implement IDragSource.
 void ColViewBuildings::cancel_drag() { dragging_ = nothing; }
 
-// Implement IColViewDragSource.
+// Implement IDragSource.
 void ColViewBuildings::disown_dragged_object() {
   CHECK( dragging_.has_value() );
   remove_unit_from_colony( ss_.units, colony_, dragging_->id );

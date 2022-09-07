@@ -196,7 +196,7 @@ maybe<ColViewObject_t> ColonyLandView::can_receive(
   return o;
 }
 
-wait<base::valid_or<IColViewDragSinkCheck::Rejection>>
+wait<base::valid_or<IDragSinkCheck::Rejection>>
 ColonyLandView::check( ColViewObject_t const&, e_colview_entity,
                        Coord const where ) const {
   Colony const& colony = ss_.colonies.colony_for( colony_.id );
@@ -208,14 +208,14 @@ ColonyLandView::check( ColViewObject_t const&, e_colview_entity,
   if( is_water( square ) &&
       !colony_has_building_level( colony,
                                   e_colony_building::docks ) ) {
-    co_return IColViewDragSinkCheck::Rejection{
+    co_return IDragSinkCheck::Rejection{
         .reason =
             "We must build @[H]docks@[] in this colony in "
             "order to work on sea squares." };
   }
 
   if( square.lost_city_rumor ) {
-    co_return IColViewDragSinkCheck::Rejection{
+    co_return IDragSinkCheck::Rejection{
         .reason =
             "We must explore this Lost City Rumor before we "
             "can work this square." };

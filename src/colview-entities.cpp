@@ -70,24 +70,23 @@ namespace rn {
 // These are used to test views for supported interfaces and to
 // then get references to the views as those interfaces.
 
-maybe<IColViewDragSourceUserInput const&>
-IColViewDragSource::drag_user_input() const {
-  return base::maybe_dynamic_cast<
-      IColViewDragSourceUserInput const&>( *this );
-}
-
-maybe<IColViewDragSinkCheck const&>
-IColViewDragSink::drag_check() const {
-  return base::maybe_dynamic_cast<IColViewDragSinkCheck const&>(
+maybe<IDragSourceUserInput const&> IDragSource::drag_user_input()
+    const {
+  return base::maybe_dynamic_cast<IDragSourceUserInput const&>(
       *this );
 }
 
-maybe<IColViewDragSource&> ColonySubView::drag_source() {
-  return base::maybe_dynamic_cast<IColViewDragSource&>( *this );
+maybe<IDragSinkCheck const&> IDragSink::drag_check() const {
+  return base::maybe_dynamic_cast<IDragSinkCheck const&>(
+      *this );
 }
 
-maybe<IColViewDragSink&> ColonySubView::drag_sink() {
-  return base::maybe_dynamic_cast<IColViewDragSink&>( *this );
+maybe<IDragSource&> ColonySubView::drag_source() {
+  return base::maybe_dynamic_cast<IDragSource&>( *this );
+}
+
+maybe<IDragSink&> ColonySubView::drag_sink() {
+  return base::maybe_dynamic_cast<IDragSink&>( *this );
 }
 
 // Use this as the vtable key function.
@@ -211,9 +210,9 @@ class TitleBar : public ui::View, public ColonySubView {
 
 class MarketCommodities : public ui::View,
                           public ColonySubView,
-                          public IColViewDragSource,
-                          public IColViewDragSourceUserInput,
-                          public IColViewDragSink {
+                          public IDragSource,
+                          public IDragSourceUserInput,
+                          public IDragSink {
  public:
   static unique_ptr<MarketCommodities> create( SS& ss, TS& ts,
                                                Colony& colony,
@@ -380,10 +379,10 @@ class MarketCommodities : public ui::View,
 
 class CargoView : public ui::View,
                   public ColonySubView,
-                  public IColViewDragSource,
-                  public IColViewDragSourceUserInput,
-                  public IColViewDragSink,
-                  public IColViewDragSinkCheck {
+                  public IDragSource,
+                  public IDragSourceUserInput,
+                  public IDragSink,
+                  public IDragSinkCheck {
  public:
   static unique_ptr<CargoView> create( SS& ss, TS& ts,
                                        Colony& colony,
@@ -543,14 +542,14 @@ class CargoView : public ui::View,
     }
   }
 
-  wait<base::valid_or<IColViewDragSinkCheck::Rejection>> check(
+  wait<base::valid_or<IDragSinkCheck::Rejection>> check(
       ColViewObject_t const& o, e_colview_entity from,
       Coord const ) const override {
     CHECK( holder_.has_value() );
     if( ss_.units.unit_for( *holder_ ).type() ==
             e_unit_type::wagon_train &&
         o.holds<ColViewObject::unit>() )
-      co_return IColViewDragSinkCheck::Rejection{
+      co_return IDragSinkCheck::Rejection{
           .reason =
               "Only ships can hold other units as cargo." };
     switch( from ) {
@@ -564,11 +563,10 @@ class CargoView : public ui::View,
           // If we're rejecting then that means that the player
           // has opted not to abandon the colony, so there is no
           // need to display a reason message.
-          co_return IColViewDragSinkCheck::Rejection{
-              .reason = nothing };
+          co_return IDragSinkCheck::Rejection{ .reason =
+                                                   nothing };
         if( auto msg = check_seige(); msg.has_value() )
-          co_return IColViewDragSinkCheck::Rejection{ .reason =
-                                                          *msg };
+          co_return IDragSinkCheck::Rejection{ .reason = *msg };
         co_return base::valid;
       case e_colview_entity::population:
       case e_colview_entity::title_bar:
@@ -716,9 +714,9 @@ class CargoView : public ui::View,
     int                     min  = 1;
     int                     max  = comm.obj.quantity;
     string                  text = fmt::format(
-        "What quantity of @[H]{}@[] would you like to move? "
-                         "({}-{}):",
-        commodity_display_name( comm.obj.type ), min, max );
+                         "What quantity of @[H]{}@[] would you like to move? "
+                                          "({}-{}):",
+                         commodity_display_name( comm.obj.type ), min, max );
     maybe<int> quantity = co_await ts_.gui.optional_int_input(
         { .msg           = text,
           .initial_value = max,
@@ -748,9 +746,9 @@ class CargoView : public ui::View,
 
 class UnitsAtGateColonyView : public ui::View,
                               public ColonySubView,
-                              public IColViewDragSource,
-                              public IColViewDragSink,
-                              public IColViewDragSinkCheck {
+                              public IDragSource,
+                              public IDragSink,
+                              public IDragSinkCheck {
  public:
   static unique_ptr<UnitsAtGateColonyView> create(
       SS& ss, TS& ts, Colony& colony, CargoView* cargo_view,
@@ -884,7 +882,7 @@ class UnitsAtGateColonyView : public ui::View,
     return ColViewObject::unit{ .id = dragged };
   }
 
-  wait<base::valid_or<IColViewDragSinkCheck::Rejection>> check(
+  wait<base::valid_or<IDragSinkCheck::Rejection>> check(
       ColViewObject_t const&, e_colview_entity from,
       Coord const ) const override {
     switch( from ) {
@@ -898,11 +896,10 @@ class UnitsAtGateColonyView : public ui::View,
           // If we're rejecting then that means that the player
           // has opted not to abandon the colony, so there is no
           // need to display a reason message.
-          co_return IColViewDragSinkCheck::Rejection{
-              .reason = nothing };
+          co_return IDragSinkCheck::Rejection{ .reason =
+                                                   nothing };
         if( auto msg = check_seige(); msg.has_value() )
-          co_return IColViewDragSinkCheck::Rejection{ .reason =
-                                                          *msg };
+          co_return IDragSinkCheck::Rejection{ .reason = *msg };
         co_return base::valid;
       case e_colview_entity::population:
       case e_colview_entity::title_bar:

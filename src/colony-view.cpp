@@ -194,12 +194,12 @@ wait<> drag_drop_routine(
           source_upper_left );
 
   // Next check if source view allows dragging from that spot.
-  maybe<IColViewDragSource&> maybe_drag_source =
+  maybe<IDragSource&> maybe_drag_source =
       source_view.drag_source();
   if( !maybe_drag_source )
     NO_DRAG(
         "the source view does not allow dragging in general." );
-  IColViewDragSource& drag_source = *maybe_drag_source;
+  IDragSource& drag_source = *maybe_drag_source;
 
   bool can_drag = drag_source.try_drag(
       source_object,
@@ -299,11 +299,10 @@ wait<> drag_drop_routine(
         maybe_target_p_view->upper_left;
 
     // Check if the target view can accept drags.
-    maybe<IColViewDragSink&> maybe_drag_sink =
-        target_view.drag_sink();
+    maybe<IDragSink&> maybe_drag_sink = target_view.drag_sink();
     if( !maybe_drag_sink ) continue;
-    IColViewDragSink& drag_sink = *maybe_drag_sink;
-    Coord             sink_coord =
+    IDragSink& drag_sink = *maybe_drag_sink;
+    Coord      sink_coord =
         mouse_pos.with_new_origin( target_upper_left );
     // Assume the drag won't work unless we find out otherwise.
     drag_state->indicator = drag::e_status_indicator::bad;
@@ -321,7 +320,7 @@ wait<> drag_drop_routine(
     // Check if the user is allowed to request user input. If so,
     // then check if they are holding down shift, which is how
     // they do so.
-    maybe<IColViewDragSourceUserInput const&> drag_user_input =
+    maybe<IDragSourceUserInput const&> drag_user_input =
         drag_source.drag_user_input();
     if( drag_user_input ) {
       auto const& base =
@@ -398,10 +397,10 @@ wait<> drag_drop_routine(
     // nity to involve some user input to e.g. either confirm the
     // drag or to cancel it with a message box explaining why,
     // etc.
-    maybe<IColViewDragSinkCheck const&> drag_check =
+    maybe<IDragSinkCheck const&> drag_check =
         drag_sink.drag_check();
     if( drag_check ) {
-      base::valid_or<IColViewDragSinkCheck::Rejection> proceed =
+      base::valid_or<IDragSinkCheck::Rejection> proceed =
           co_await drag_check->check(
               source_object, *source_entity, sink_coord );
       if( !proceed.valid() ) {

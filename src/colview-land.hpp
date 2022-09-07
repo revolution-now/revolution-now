@@ -27,9 +27,9 @@ struct Player;
 
 struct ColonyLandView : public ui::View,
                         public ColonySubView,
-                        public IColViewDragSource,
-                        public IColViewDragSink,
-                        public IColViewDragSinkCheck {
+                        public IDragSource,
+                        public IDragSink,
+                        public IDragSinkCheck {
   enum class e_render_mode {
     // Three tiles by three tiles, with unscaled tiles and
     // colonists on the land files.
@@ -82,7 +82,7 @@ struct ColonyLandView : public ui::View,
       ColViewObject_t const& o, e_colview_entity,
       Coord const&           where ) const override;
 
-  wait<base::valid_or<IColViewDragSinkCheck::Rejection>> check(
+  wait<base::valid_or<IDragSinkCheck::Rejection>> check(
       ColViewObject_t const&, e_colview_entity,
       Coord const where ) const override;
 

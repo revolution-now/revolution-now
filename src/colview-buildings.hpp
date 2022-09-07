@@ -29,9 +29,9 @@ struct Player;
 *****************************************************************/
 class ColViewBuildings : public ui::View,
                          public ColonySubView,
-                         public IColViewDragSink,
-                         public IColViewDragSinkCheck,
-                         public IColViewDragSource {
+                         public IDragSink,
+                         public IDragSinkCheck,
+                         public IDragSource {
  public:
   static std::unique_ptr<ColViewBuildings> create(
       SS& ss, TS& ts, Colony& colony, Delta size,
@@ -66,28 +66,28 @@ class ColViewBuildings : public ui::View,
     return *this;
   }
 
-  // Implement IColViewDragSink.
+  // Implement IDragSink.
   maybe<ColViewObject_t> can_receive(
       ColViewObject_t const& o, e_colview_entity from,
       Coord const& where ) const override;
 
-  // Implement IColViewDragSink.
+  // Implement IDragSink.
   void drop( ColViewObject_t const& o,
              Coord const&           where ) override;
 
-  // Implement IColViewDragSinkCheck.
-  wait<base::valid_or<IColViewDragSinkCheck::Rejection>> check(
+  // Implement IDragSinkCheck.
+  wait<base::valid_or<IDragSinkCheck::Rejection>> check(
       ColViewObject_t const&, e_colview_entity from,
       Coord const ) const override;
 
-  // Implement IColViewDragSource.
+  // Implement IDragSource.
   bool try_drag( ColViewObject_t const& o,
                  Coord const&           where ) override;
 
-  // Implement IColViewDragSource.
+  // Implement IDragSource.
   void cancel_drag() override;
 
-  // Implement IColViewDragSource.
+  // Implement IDragSource.
   void disown_dragged_object() override;
 
   // Implement ColonySubView.
