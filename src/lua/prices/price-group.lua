@@ -224,9 +224,11 @@ end
 local function transaction( group, good, quantity, unit_price )
   group.traded_volumes[good] = group.traded_volumes[good] +
                                    quantity
+  -- TODO: we might be able to remove this branch, but we have to
+  -- verify that it doesn't affect the equilibrium prices, which
+  -- the unit test is not currently testing.
   if group.traded_volumes[good] >= 0 then
-    -- This is one of the benefits that the Dutch get. TODO: need
-    -- to research more about the dutch benefits.
+    -- This is one of the benefits that the Dutch get.
     if not group.config.dutch then
       evolve_euro_volumes( group )
     end
