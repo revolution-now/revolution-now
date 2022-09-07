@@ -256,8 +256,6 @@ local function create_player_state(settings, nation, player,
   player.nation = nation
   player.human = is_human
   player.money = 1000 -- TODO: depends on difficulty.
-  -- This is temporary so that it doesn't keep asking us.
-  player.discovered_new_world = 'New Netherlands'
   create_old_world_state( settings, player )
 end
 
