@@ -255,8 +255,8 @@ maybe<string> commodity_label_to_markup(
                           commodity_number_to_markup( value ) );
     }
     case CommodityLabel::e::buy_sell: {
-      auto& [sell, buy] = label.get<CommodityLabel::buy_sell>();
-      return fmt::format( "{}/{}", sell / 100, buy / 100 );
+      auto& [bid, ask] = label.get<CommodityLabel::buy_sell>();
+      return fmt::format( "{}/{}", bid, ask );
     }
   };
 }

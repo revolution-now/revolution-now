@@ -16,7 +16,8 @@ sumtype.CommodityLabel {
     value 'int',
   },
   buy_sell {
-    sell 'int',
-    buy 'int',
+    # These are in hundreds.
+    bid 'int',
+    ask 'int',
   },
 }

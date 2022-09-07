@@ -24,6 +24,7 @@
 #include "input.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
+#include "market.hpp"
 #include "old-world-state.rds.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
@@ -222,23 +223,27 @@ class MarketCommodities : EntityBase {
     auto        bds     = bounds();
     auto        grid    = bds.to_grid_noalign( sprite_delta );
     auto        comm_it = refl::enum_values<e_commodity>.begin();
-    auto        label   = CommodityLabel::buy_sell{ 100, 200 };
+    auto        label   = CommodityLabel::buy_sell{};
     for( auto rect : range_of_rects( grid ) ) {
+      CHECK( comm_it !=
+             std::end( refl::enum_values<e_commodity> ) );
       painter.draw_empty_rect(
           rect.shifted_by( offset ),
           rr::Painter::e_border_mode::in_out,
           gfx::pixel::white() );
+      CommodityPrice price = market_price( S->player, *comm_it );
+      label.bid            = price.bid;
+      label.ask            = price.ask;
       render_commodity_annotated(
           renderer,
           rect.shifted_by( offset ).upper_left() +
               kCommodityInCargoHoldRenderingOffset,
-          *comm_it++, label );
-      label.buy += 120;
-      label.sell += 120;
+          *comm_it, label );
+      ++comm_it;
     }
   }
 
-  MarketCommodities( MarketCommodities&& ) = default;
+  MarketCommodities( MarketCommodities&& )            = default;
   MarketCommodities& operator=( MarketCommodities&& ) = default;
 
   static maybe<MarketCommodities> create( PS&          S,
@@ -332,7 +337,7 @@ class ActiveCargoBox : EntityBase {
           gfx::pixel::white() );
   }
 
-  ActiveCargoBox( ActiveCargoBox&& ) = default;
+  ActiveCargoBox( ActiveCargoBox&& )            = default;
   ActiveCargoBox& operator=( ActiveCargoBox&& ) = default;
 
   static maybe<ActiveCargoBox> create(
@@ -395,7 +400,7 @@ class DockAnchor : EntityBase {
     renderer.typer( loc, gfx::pixel::white() ).write( "X" );
   }
 
-  DockAnchor( DockAnchor&& ) = default;
+  DockAnchor( DockAnchor&& )            = default;
   DockAnchor& operator=( DockAnchor&& ) = default;
 
   static maybe<DockAnchor> create(
@@ -444,7 +449,7 @@ class Backdrop : EntityBase {
         Rect::from( upper_left_of_render_rect_, size_ ) );
   }
 
-  Backdrop( Backdrop&& ) = default;
+  Backdrop( Backdrop&& )            = default;
   Backdrop& operator=( Backdrop&& ) = default;
 
   static maybe<Backdrop> create(
@@ -493,7 +498,7 @@ class InPortBox : EntityBase {
     typer.write( "In Port" );
   }
 
-  InPortBox( InPortBox&& ) = default;
+  InPortBox( InPortBox&& )            = default;
   InPortBox& operator=( InPortBox&& ) = default;
 
   static maybe<InPortBox> create(
@@ -556,7 +561,7 @@ class InboundBox : EntityBase {
     typer.write( "Inbound" );
   }
 
-  InboundBox( InboundBox&& ) = default;
+  InboundBox( InboundBox&& )            = default;
   InboundBox& operator=( InboundBox&& ) = default;
 
   static maybe<InboundBox> create(
@@ -623,7 +628,7 @@ class OutboundBox : EntityBase {
     typer.write( "outbound" );
   }
 
-  OutboundBox( OutboundBox&& ) = default;
+  OutboundBox( OutboundBox&& )            = default;
   OutboundBox& operator=( OutboundBox&& ) = default;
 
   static maybe<OutboundBox> create(
@@ -683,7 +688,7 @@ class Exit : EntityBase {
     auto          bds       = bounds();
     static string text      = "Exit";
     Delta         text_size = Delta::from_gfx(
-                rr::rendered_text_line_size_pixels( text ) );
+        rr::rendered_text_line_size_pixels( text ) );
     rr::Typer typer = renderer.typer(
         centered( text_size, bds + Delta{ .w = 1, .h = 1 } ) +
             offset,
@@ -694,7 +699,7 @@ class Exit : EntityBase {
                              gfx::pixel::white() );
   }
 
-  Exit( Exit&& ) = default;
+  Exit( Exit&& )            = default;
   Exit& operator=( Exit&& ) = default;
 
   static maybe<Exit> create( PS& S, Delta const& size,
@@ -754,7 +759,7 @@ class Dock : EntityBase {
           gfx::pixel::white() );
   }
 
-  Dock( Dock&& ) = default;
+  Dock( Dock&& )            = default;
   Dock& operator=( Dock&& ) = default;
 
   static maybe<Dock> create(
@@ -850,7 +855,7 @@ class UnitCollection : EntityBase {
     return res;
   }
 
-  UnitCollection( UnitCollection&& ) = default;
+  UnitCollection( UnitCollection&& )            = default;
   UnitCollection& operator=( UnitCollection&& ) = default;
 
  protected:
@@ -872,7 +877,7 @@ NOTHROW_MOVE( UnitCollection );
 
 class UnitsOnDock : public UnitCollection {
  public:
-  UnitsOnDock( UnitsOnDock&& ) = default;
+  UnitsOnDock( UnitsOnDock&& )            = default;
   UnitsOnDock& operator=( UnitsOnDock&& ) = default;
 
   static maybe<UnitsOnDock> create(
@@ -921,7 +926,7 @@ NOTHROW_MOVE( UnitsOnDock );
 
 class ShipsInPort : public UnitCollection {
  public:
-  ShipsInPort( ShipsInPort&& ) = default;
+  ShipsInPort( ShipsInPort&& )            = default;
   ShipsInPort& operator=( ShipsInPort&& ) = default;
 
   static maybe<ShipsInPort> create(
@@ -967,7 +972,7 @@ NOTHROW_MOVE( ShipsInPort );
 
 class ShipsInbound : public UnitCollection {
  public:
-  ShipsInbound( ShipsInbound&& ) = default;
+  ShipsInbound( ShipsInbound&& )            = default;
   ShipsInbound& operator=( ShipsInbound&& ) = default;
 
   static maybe<ShipsInbound> create(
@@ -1013,7 +1018,7 @@ NOTHROW_MOVE( ShipsInbound );
 
 class ShipsOutbound : public UnitCollection {
  public:
-  ShipsOutbound( ShipsOutbound&& ) = default;
+  ShipsOutbound( ShipsOutbound&& )            = default;
   ShipsOutbound& operator=( ShipsOutbound&& ) = default;
 
   static maybe<ShipsOutbound> create(
@@ -1125,7 +1130,7 @@ class ActiveCargo : EntityBase {
     }
   }
 
-  ActiveCargo( ActiveCargo&& ) = default;
+  ActiveCargo( ActiveCargo&& )            = default;
   ActiveCargo& operator=( ActiveCargo&& ) = default;
 
   static maybe<ActiveCargo> create(
