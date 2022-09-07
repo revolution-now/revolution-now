@@ -12,6 +12,7 @@
 local M = {}
 
 local map_gen = require( 'map-gen' )
+local processed_goods = require( 'prices.processed-goods' )
 
 -----------------------------------------------------------------
 -- Options
@@ -182,37 +183,72 @@ local function create_old_world_state( settings, player )
   -- Tax rate.
   old_world.taxes.tax_rate = 7
 
-  -- Market state.
-  local init_commodity = function( comm, bid_price )
-    old_world.market.commodities[comm]
-        .current_bid_price_in_hundreds = bid_price
-    old_world.market.commodities[comm]
-        .starting_bid_price_in_hundreds = bid_price
-    old_world.market.commodities[comm].intrinsic_volume = 0x200
-  end
-
-  init_commodity( 'food', 10 )
-  init_commodity( 'sugar', 10 )
-  init_commodity( 'tobacco', 10 )
-  init_commodity( 'cotton', 10 )
-  init_commodity( 'fur', 10 )
-  init_commodity( 'lumber', 10 )
-  init_commodity( 'ore', 10 )
-  init_commodity( 'silver', 10 )
-  init_commodity( 'horses', 10 )
-  init_commodity( 'rum', 10 )
-  init_commodity( 'cigars', 10 )
-  init_commodity( 'cloth', 10 )
-  init_commodity( 'coats', 10 )
-  init_commodity( 'trade_goods', 10 )
-  init_commodity( 'tools', 10 )
-  init_commodity( 'muskets', 10 )
-
   -- Expeditionary force.
   old_world.expeditionary_force.regulars = 3
   old_world.expeditionary_force.cavalry = 2
   old_world.expeditionary_force.artillery = 2
   old_world.expeditionary_force.men_of_war = 3
+end
+
+local function init_non_processed_goods_prices( options, players )
+  -- Initializes the same commodity for all players to the same
+  -- value.
+  local init_commodity = function( comm, bid_price )
+    local limits = market.starting_price_limits( comm )
+    local min = assert( limits.bid_price_start_min )
+    local max = assert( limits.bid_price_start_max )
+    assert( min <= max )
+    local bid_price = math.random( min, max )
+    for nation, tbl in pairs( options.nations ) do
+      local player = players:get( nation )
+      player.old_world.market.commodities[comm]
+          .current_bid_price_in_hundreds = bid_price
+      player.old_world.market.commodities[comm]
+          .starting_bid_price_in_hundreds = bid_price
+    end
+  end
+
+  init_commodity( 'food' )
+  init_commodity( 'sugar' )
+  init_commodity( 'tobacco' )
+  init_commodity( 'cotton' )
+  init_commodity( 'fur' )
+  init_commodity( 'lumber' )
+  init_commodity( 'ore' )
+  init_commodity( 'silver' )
+  init_commodity( 'horses' )
+  -- Skip processed goods.
+  init_commodity( 'trade_goods' )
+  init_commodity( 'tools' )
+  init_commodity( 'muskets' )
+end
+
+local function init_processed_goods_prices( options, players )
+  -- This will create a price group object which will randomly
+  -- initialize the starting volumes in the correct way and allow
+  -- us to get the initial prices. Then we assign those same
+  -- prices to all players.
+  local group = processed_goods.ProcessedGoodsPriceGroup()
+  local eq_prices = group:equilibrium_prices()
+  group:on_all( function( comm )
+    for nation, tbl in pairs( options.nations ) do
+      local player = players:get( nation )
+      local c = player.old_world.market.commodities[comm]
+      c.current_bid_price_in_hundreds = eq_prices[comm]
+      c.starting_bid_price_in_hundreds = eq_prices[comm]
+      c.scaled_net_traded_volume = 0
+      c.unscaled_net_traded_volume = 0
+      c.intrinsic_volume = group.euro_volumes[comm]
+    end
+  end )
+end
+
+-- This needs to be done for all players together, since all of
+-- their markets should start out with the same (random) prices.
+local function init_prices( options, root )
+  local players = root.players.players
+  init_non_processed_goods_prices( options, players )
+  init_processed_goods_prices( options, players )
 end
 
 local function create_player_state(settings, nation, player,
@@ -232,6 +268,7 @@ local function create_nations( options, root )
     local player = players:reset_player( nation )
     create_player_state( settings, nation, player, tbl.human )
   end
+  init_prices( options, root )
 end
 
 -----------------------------------------------------------------
