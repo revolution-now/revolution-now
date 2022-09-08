@@ -27,7 +27,6 @@ local PriceGroup = price_group.PriceGroup
 -- Config
 -----------------------------------------------------------------
 local GOODS = { 'rum', 'cigars', 'cloth', 'coats' }
-local VOLUME_INIT_CONFIG = { center=700, window=380 }
 local TARGET_PRICE = 12
 
 local STARTING_EURO_VOLUMES = {

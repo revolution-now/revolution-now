@@ -13,7 +13,7 @@ local M = {}
 
 local PG = require( 'prices.price-group' )
 
-local VOLUME_INIT_CONFIG = { center=700, window=380 }
+local VOLUME_INIT_CONFIG = { center=600, window=350 }
 
 local function default_price_group_config()
   return {
