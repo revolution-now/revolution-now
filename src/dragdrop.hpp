@@ -64,13 +64,6 @@ struct DragState {
 struct IDragSourceUserInput {
   virtual ~IDragSourceUserInput() = default;
 
-  // FIXME: We're wrapping the std::any in this struct to avoid a
-  // strange clang compiler error that happens when we try to in-
-  // stantiate a wait<maybe<any>>.
-  struct Edited {
-    std::any o;
-  };
-
   // This will only be called if the user requests it, typically
   // by holding down a modifier key such as shift when releasing
   // the drag. Using this method, the view has the opportunity to
@@ -78,9 +71,17 @@ struct IDragSourceUserInput {
   // target view. If it edits it, then it will update its in-
   // ternal record. Either way, it will return the current object
   // being dragged after editing (which could be unchanged). If
-  // it returns `nothing` then the drag is considered to be can-
-  // celled.
-  virtual wait<maybe<Edited>> user_edit_object() const = 0;
+  // it returns a nullptr then the drag is considered to be can-
+  // celled. FIXME: we should be returning a wait<maybe<any>>
+  // here, but that causes strange compile errors where its con-
+  // cept constraints end up being circular (same with std::op-
+  // tional, and same with wait<std::any> since it internally
+  // will create a maybe<std::any>). So we will wrap the std::any
+  // in a unique_ptr in order to prevent that error, and will use
+  // unique_ptr's nullptr state to signify a non-result, but need
+  // to remember to check it.
+  virtual wait<std::unique_ptr<std::any>> user_edit_object()
+      const = 0;
 };
 
 // Interface for views that can be the source for dragging. The
@@ -205,10 +206,9 @@ using EntityStringifier = base::function_ref<std::string( int )>;
 
 wait<> drag_drop_routine( co::stream<input::event_t>& input,
                           IDraggableObjectsView&      top_view,
-                          maybe<DragState>& drag_state, SS& ss,
-                          IGui&                            gui,
+                          maybe<DragState>&           drag_state,
+                          IGui&                       gui,
                           input::mouse_drag_event_t const& event,
-                          ObjectStringifier obj_str_func,
-                          EntityStringifier entity_str_func );
+                          ObjectStringifier obj_str_func );
 
 } // namespace rn

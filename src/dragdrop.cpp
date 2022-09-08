@@ -67,11 +67,10 @@ wait<> eat_remaining_drag_events(
 *****************************************************************/
 wait<> drag_drop_routine( co::stream<input::event_t>& input,
                           IDraggableObjectsView&      top_view,
-                          maybe<DragState>& drag_state, SS& ss,
-                          IGui&                            gui,
+                          maybe<DragState>&           drag_state,
+                          IGui&                       gui,
                           input::mouse_drag_event_t const& event,
-                          ObjectStringifier obj_str_func,
-                          EntityStringifier entity_str_func ) {
+                          ObjectStringifier obj_str_func ) {
   CHECK( event.state.phase == input::e_drag_phase::begin );
   CHECK( !drag_state.has_value() );
   if( event.button != input::e_mouse_button::l )
@@ -131,6 +130,7 @@ wait<> drag_drop_routine( co::stream<input::event_t>& input,
             source_object_bounds );
 
   drag_state = DragState{
+      .stream              = {},
       .object              = source_object,
       .indicator           = e_drag_status_indicator::none,
       .user_requests_input = event.mod.shf_down,
@@ -256,14 +256,14 @@ wait<> drag_drop_routine( co::stream<input::event_t>& input,
     // Check if the user wants to input anything.
     if( drag_user_input.has_value() &&
         drag_state->user_requests_input ) {
-      maybe<IDragSourceUserInput::Edited> new_obj =
+      unique_ptr<any> new_obj =
           co_await drag_user_input->user_edit_object();
-      if( !new_obj ) {
+      if( new_obj == nullptr ) {
         lg.debug( "drag of object {} cancelled by user.",
                   obj_str_func( source_object ) );
         break;
       }
-      source_object = new_obj->o;
+      source_object = *new_obj;
       lg.debug( "user requests {}.",
                 obj_str_func( source_object ) );
     }

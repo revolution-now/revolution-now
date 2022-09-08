@@ -354,8 +354,7 @@ class MarketCommodities : public ui::View,
     colony_.commodities[c.type] = q;
   }
 
-  wait<maybe<IDragSourceUserInput::Edited>> user_edit_object()
-      const override {
+  wait<unique_ptr<any>> user_edit_object() const override {
     CHECK( dragging_ );
     int    min  = 1;
     int    max  = dragging_->quantity;
@@ -368,12 +367,12 @@ class MarketCommodities : public ui::View,
           .initial_value = max,
           .min           = min,
           .max           = max } );
-    if( !quantity ) co_return nothing;
+    if( !quantity ) co_return nullptr;
     Commodity new_comm = *dragging_;
     new_comm.quantity  = *quantity;
     CHECK( new_comm.quantity > 0 );
-    co_return IDragSourceUserInput::Edited{
-        .o = from_cargo( Cargo::commodity{ new_comm } ) };
+    co_return make_unique<any>(
+        from_cargo( Cargo::commodity{ new_comm } ) );
   }
 
  private:
@@ -709,15 +708,13 @@ class CargoView : public ui::View,
         } );
   }
 
-  wait<maybe<IDragSourceUserInput::Edited>> user_edit_object()
-      const override {
+  wait<unique_ptr<any>> user_edit_object() const override {
     CHECK( dragging_ );
     UNWRAP_CHECK( cargo_and_rect,
                   cargo_item_with_rect( dragging_->slot ) );
     Cargo_t const& cargo = cargo_and_rect.first;
     if( !cargo.holds<Cargo::commodity>() )
-      co_return IDragSourceUserInput::Edited{
-          .o = from_cargo( cargo ) };
+      co_return make_unique<any>( from_cargo( cargo ) );
     // We have a commodity.
     Cargo::commodity const& comm = cargo.get<Cargo::commodity>();
     int                     min  = 1;
@@ -731,12 +728,11 @@ class CargoView : public ui::View,
           .initial_value = max,
           .min           = min,
           .max           = max } );
-    if( !quantity ) co_return nothing;
+    if( !quantity ) co_return nullptr;
     Commodity new_comm = comm.obj;
     new_comm.quantity  = *quantity;
     CHECK( new_comm.quantity > 0 );
-    co_return IDragSourceUserInput::Edited{
-        .o = Cargo::commodity{ new_comm } };
+    co_return make_unique<any>( Cargo::commodity{ new_comm } );
   }
 
  private:

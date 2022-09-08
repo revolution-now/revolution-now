@@ -50,7 +50,7 @@ T pick_from_weighted_enum_values(
   int running = 0;
   // This iteration will be in order of enum values since that is
   // guaranteed by the container.
-  for( auto const [item, weight] : weights ) {
+  for( auto const& [item, weight] : weights ) {
     running += weight;
     if( running > stop ) return item;
   }
@@ -69,7 +69,7 @@ T pick_from_weighted_enum_values(
   T      res     = {};
   // This iteration will be in order of enum values since that is
   // guaranteed by the container.
-  for( auto const [item, weight] : weights ) {
+  for( auto const& [item, weight] : weights ) {
     res = item;
     running += weight;
     if( running > stop ) break;

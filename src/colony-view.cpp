@@ -290,13 +290,9 @@ struct ColonyPlane::Impl : public Plane {
       UNWRAP_DRAGGABLE( o, a );
       return fmt::to_string( o );
     };
-    auto entity_str_func = []( int int_entity ) {
-      CONVERT_ENTITY( enum_entity, int_entity );
-      return fmt::to_string( enum_entity );
-    };
     co_await drag_drop_routine( input_, colview_top_level(),
-                                drag_state_, ss_, ts_.gui, event,
-                                obj_str_func, entity_str_func );
+                                drag_state_, ts_.gui, event,
+                                obj_str_func );
     update_colony_view( ss_, colony_ );
     co_return false;
   }

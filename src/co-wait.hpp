@@ -51,7 +51,7 @@ struct awaitable {
   T await_resume() {
     if( std::exception_ptr eptr = w_.exception(); eptr )
       std::rethrow_exception( eptr );
-    return w_.get();
+    return std::move( w_.get() );
   }
 };
 
