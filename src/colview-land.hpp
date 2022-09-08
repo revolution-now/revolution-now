@@ -68,7 +68,8 @@ struct ColonyLandView : public ui::View,
 
   maybe<UnitId> unit_under_cursor( Coord where ) const;
 
-  maybe<e_colview_entity> entity() const override;
+  // Implement IDraggableObjectsView.
+  maybe<int> entity() const override;
 
   ui::View& view() noexcept override;
 
@@ -78,20 +79,18 @@ struct ColonyLandView : public ui::View,
   wait<> perform_click(
       input::mouse_button_event_t const& event ) override;
 
-  maybe<ColViewObject_t> can_receive(
-      ColViewObject_t const& o, e_colview_entity,
-      Coord const&           where ) const override;
+  maybe<std::any> can_receive(
+      std::any const& o, int,
+      Coord const&    where ) const override;
 
   wait<base::valid_or<IDragSinkCheck::Rejection>> check(
-      ColViewObject_t const&, e_colview_entity,
-      Coord const where ) const override;
+      std::any const&, int, Coord const where ) const override;
 
   ColonyJob_t make_job_for_square( e_direction d ) const;
 
-  void drop( ColViewObject_t const& o,
-             Coord const&           where ) override;
+  void drop( std::any const& o, Coord const& where ) override;
 
-  maybe<ColViewObjectWithBounds> object_here(
+  maybe<DraggableObjectWithBounds> object_here(
       Coord const& where ) const override;
 
   struct Draggable {
@@ -99,8 +98,7 @@ struct ColonyLandView : public ui::View,
     e_outdoor_job job = {};
   };
 
-  bool try_drag( ColViewObject_t const&,
-                 Coord const& where ) override;
+  bool try_drag( std::any const&, Coord const& where ) override;
 
   void cancel_drag() override;
 

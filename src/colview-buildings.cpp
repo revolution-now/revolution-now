@@ -195,9 +195,9 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
   }
 }
 
-maybe<ColViewObject_t> ColViewBuildings::can_receive(
-    ColViewObject_t const& o, e_colview_entity,
-    Coord const&           where ) const {
+maybe<any> ColViewBuildings::can_receive(
+    any const& a, int, Coord const& where ) const {
+  UNWRAP_DRAGGABLE( o, a );
   // Verify that there is a slot under the cursor.
   UNWRAP_RETURN( slot, slot_for_coord( where ) );
   // Check that the colony has a building in this slot.
@@ -223,9 +223,9 @@ maybe<ColViewObject_t> ColViewBuildings::can_receive(
 }
 
 wait<base::valid_or<IDragSinkCheck::Rejection>>
-ColViewBuildings::check( ColViewObject_t const& o,
-                         e_colview_entity,
+ColViewBuildings::check( any const&  a, int,
                          Coord const where ) const {
+  UNWRAP_DRAGGABLE( o, a );
   // These should have already been checked.
   UNWRAP_CHECK( slot, slot_for_coord( where ) );
   UNWRAP_CHECK( indoor_job, indoor_job_for_slot( slot ) );
@@ -275,8 +275,8 @@ ColViewBuildings::check( ColViewObject_t const& o,
 }
 
 // Implement IDragSink.
-void ColViewBuildings::drop( ColViewObject_t const& o,
-                             Coord const&           where ) {
+void ColViewBuildings::drop( any const& a, Coord const& where ) {
+  UNWRAP_DRAGGABLE( o, a );
   UNWRAP_CHECK( unit_id, o.get_if<ColViewObject::unit>().member(
                              &ColViewObject::unit::id ) );
   UNWRAP_CHECK( slot, slot_for_coord( where ) );
@@ -286,7 +286,7 @@ void ColViewBuildings::drop( ColViewObject_t const& o,
   CHECK_HAS_VALUE( colony_.validate() );
 }
 
-maybe<ColViewObjectWithBounds> ColViewBuildings::object_here(
+maybe<DraggableObjectWithBounds> ColViewBuildings::object_here(
     Coord const& where ) const {
   UNWRAP_RETURN( slot, slot_for_coord( where ) );
   UNWRAP_RETURN( indoor_job, indoor_job_for_slot( slot ) );
@@ -296,19 +296,20 @@ maybe<ColViewObjectWithBounds> ColViewBuildings::object_here(
   for( int idx = colonists.size() - 1; idx >= 0; --idx ) {
     Rect rect = visible_rect_for_unit_in_slot( slot, idx );
     if( where.is_inside( rect ) )
-      return ColViewObjectWithBounds{
+      return DraggableObjectWithBounds{
           .obj    = ColViewObject::unit{ .id = colonists[idx] },
           .bounds = sprite_rect_for_unit_in_slot( slot, idx ) };
   }
   return nothing;
 }
 
-bool ColViewBuildings::try_drag( ColViewObject_t const& o,
-                                 Coord const&           where ) {
+bool ColViewBuildings::try_drag( any const&   a,
+                                 Coord const& where ) {
+  UNWRAP_DRAGGABLE( o, a );
   UNWRAP_CHECK( obj_with_bounds, object_here( where ) );
   UNWRAP_CHECK( slot, slot_for_coord( where ) );
-  UNWRAP_CHECK(
-      unit, obj_with_bounds.obj.get_if<ColViewObject::unit>() );
+  UNWRAP_DRAGGABLE( obj, obj_with_bounds.obj );
+  UNWRAP_CHECK( unit, obj.get_if<ColViewObject::unit>() );
   CHECK( o == ColViewObject_t{ unit } ); // Sanity check.
   dragging_ = Dragging{ .id = unit.id, .slot = slot };
   return true;

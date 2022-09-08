@@ -39,8 +39,8 @@ class PopulationView : public ui::View, public ColonySubView {
 
   Delta delta() const override { return size_; }
 
-  maybe<e_colview_entity> entity() const override {
-    return e_colview_entity::population;
+  maybe<int> entity() const override {
+    return static_cast<int>( e_colview_entity::population );
   }
 
   ui::View&       view() noexcept override { return *this; }

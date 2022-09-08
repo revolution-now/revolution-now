@@ -84,8 +84,8 @@ struct PS {
 
   wait_promise<> exit_promise = {};
 
-  maybe<drag::State<HarborDraggableObject_t>> drag_state  = {};
-  maybe<wait<>>                               drag_thread = {};
+  maybe<DragState> drag_state  = {};
+  maybe<wait<>>    drag_thread = {};
 
   HarborState& harbor_state() {
     return player.old_world.harbor_state;
@@ -243,7 +243,7 @@ class MarketCommodities : EntityBase {
     }
   }
 
-  MarketCommodities( MarketCommodities&& )            = default;
+  MarketCommodities( MarketCommodities&& ) = default;
   MarketCommodities& operator=( MarketCommodities&& ) = default;
 
   static maybe<MarketCommodities> create( PS&          S,
@@ -337,7 +337,7 @@ class ActiveCargoBox : EntityBase {
           gfx::pixel::white() );
   }
 
-  ActiveCargoBox( ActiveCargoBox&& )            = default;
+  ActiveCargoBox( ActiveCargoBox&& ) = default;
   ActiveCargoBox& operator=( ActiveCargoBox&& ) = default;
 
   static maybe<ActiveCargoBox> create(
@@ -400,7 +400,7 @@ class DockAnchor : EntityBase {
     renderer.typer( loc, gfx::pixel::white() ).write( "X" );
   }
 
-  DockAnchor( DockAnchor&& )            = default;
+  DockAnchor( DockAnchor&& ) = default;
   DockAnchor& operator=( DockAnchor&& ) = default;
 
   static maybe<DockAnchor> create(
@@ -449,7 +449,7 @@ class Backdrop : EntityBase {
         Rect::from( upper_left_of_render_rect_, size_ ) );
   }
 
-  Backdrop( Backdrop&& )            = default;
+  Backdrop( Backdrop&& ) = default;
   Backdrop& operator=( Backdrop&& ) = default;
 
   static maybe<Backdrop> create(
@@ -498,7 +498,7 @@ class InPortBox : EntityBase {
     typer.write( "In Port" );
   }
 
-  InPortBox( InPortBox&& )            = default;
+  InPortBox( InPortBox&& ) = default;
   InPortBox& operator=( InPortBox&& ) = default;
 
   static maybe<InPortBox> create(
@@ -561,7 +561,7 @@ class InboundBox : EntityBase {
     typer.write( "Inbound" );
   }
 
-  InboundBox( InboundBox&& )            = default;
+  InboundBox( InboundBox&& ) = default;
   InboundBox& operator=( InboundBox&& ) = default;
 
   static maybe<InboundBox> create(
@@ -628,7 +628,7 @@ class OutboundBox : EntityBase {
     typer.write( "outbound" );
   }
 
-  OutboundBox( OutboundBox&& )            = default;
+  OutboundBox( OutboundBox&& ) = default;
   OutboundBox& operator=( OutboundBox&& ) = default;
 
   static maybe<OutboundBox> create(
@@ -688,7 +688,7 @@ class Exit : EntityBase {
     auto          bds       = bounds();
     static string text      = "Exit";
     Delta         text_size = Delta::from_gfx(
-        rr::rendered_text_line_size_pixels( text ) );
+                rr::rendered_text_line_size_pixels( text ) );
     rr::Typer typer = renderer.typer(
         centered( text_size, bds + Delta{ .w = 1, .h = 1 } ) +
             offset,
@@ -699,7 +699,7 @@ class Exit : EntityBase {
                              gfx::pixel::white() );
   }
 
-  Exit( Exit&& )            = default;
+  Exit( Exit&& ) = default;
   Exit& operator=( Exit&& ) = default;
 
   static maybe<Exit> create( PS& S, Delta const& size,
@@ -759,7 +759,7 @@ class Dock : EntityBase {
           gfx::pixel::white() );
   }
 
-  Dock( Dock&& )            = default;
+  Dock( Dock&& ) = default;
   Dock& operator=( Dock&& ) = default;
 
   static maybe<Dock> create(
@@ -819,10 +819,12 @@ class UnitCollection : EntityBase {
     // painter.draw_empty_rect( bds.shifted_by( offset ),
     // rr::Painter::e_border_mode::inside, gfx::pixel::white() );
     for( auto const& unit_with_pos : units_ )
-      if( !S->drag_state || S->drag_state->object !=
-                                HarborDraggableObject_t{
-                                    HarborDraggableObject::unit{
-                                        unit_with_pos.id } } )
+      if( !S->drag_state ||
+          any_cast<HarborDraggableObject_t const&>(
+              S->drag_state->object ) !=
+              HarborDraggableObject_t{
+                  HarborDraggableObject::unit{
+                      unit_with_pos.id } } )
         render_unit( renderer,
                      unit_with_pos.pixel_coord + offset,
                      S->ss_.units.unit_for( unit_with_pos.id ),
@@ -855,7 +857,7 @@ class UnitCollection : EntityBase {
     return res;
   }
 
-  UnitCollection( UnitCollection&& )            = default;
+  UnitCollection( UnitCollection&& ) = default;
   UnitCollection& operator=( UnitCollection&& ) = default;
 
  protected:
@@ -877,7 +879,7 @@ NOTHROW_MOVE( UnitCollection );
 
 class UnitsOnDock : public UnitCollection {
  public:
-  UnitsOnDock( UnitsOnDock&& )            = default;
+  UnitsOnDock( UnitsOnDock&& ) = default;
   UnitsOnDock& operator=( UnitsOnDock&& ) = default;
 
   static maybe<UnitsOnDock> create(
@@ -926,7 +928,7 @@ NOTHROW_MOVE( UnitsOnDock );
 
 class ShipsInPort : public UnitCollection {
  public:
-  ShipsInPort( ShipsInPort&& )            = default;
+  ShipsInPort( ShipsInPort&& ) = default;
   ShipsInPort& operator=( ShipsInPort&& ) = default;
 
   static maybe<ShipsInPort> create(
@@ -972,7 +974,7 @@ NOTHROW_MOVE( ShipsInPort );
 
 class ShipsInbound : public UnitCollection {
  public:
-  ShipsInbound( ShipsInbound&& )            = default;
+  ShipsInbound( ShipsInbound&& ) = default;
   ShipsInbound& operator=( ShipsInbound&& ) = default;
 
   static maybe<ShipsInbound> create(
@@ -1018,7 +1020,7 @@ NOTHROW_MOVE( ShipsInbound );
 
 class ShipsOutbound : public UnitCollection {
  public:
-  ShipsOutbound( ShipsOutbound&& )            = default;
+  ShipsOutbound( ShipsOutbound&& ) = default;
   ShipsOutbound& operator=( ShipsOutbound&& ) = default;
 
   static maybe<ShipsOutbound> create(
@@ -1077,7 +1079,8 @@ class ActiveCargo : EntityBase {
                                          range_of_rects( grid ) );
       for( auto const [idx, cargo_slot, rect] : zipped ) {
         if( S->drag_state.has_value() ) {
-          if_get( S->drag_state->object,
+          if_get( any_cast<HarborDraggableObject_t const&>(
+                      S->drag_state->object ),
                   HarborDraggableObject::cargo_commodity, cc ) {
             if( cc.slot == idx ) continue;
           }
@@ -1097,7 +1100,8 @@ class ActiveCargo : EntityBase {
                 cargo.contents,
                 [&]( Cargo::unit u ) {
                   if( !S->drag_state ||
-                      S->drag_state->object !=
+                      any_cast<HarborDraggableObject_t const&>(
+                          S->drag_state->object ) !=
                           HarborDraggableObject_t{
                               HarborDraggableObject::unit{
                                   u.id } } )
@@ -1130,7 +1134,7 @@ class ActiveCargo : EntityBase {
     }
   }
 
-  ActiveCargo( ActiveCargo&& )            = default;
+  ActiveCargo( ActiveCargo&& ) = default;
   ActiveCargo& operator=( ActiveCargo&& ) = default;
 
   static maybe<ActiveCargo> create(
@@ -1918,7 +1922,7 @@ void drag_n_drop_draw( PS const& S, rr::Renderer& renderer,
   if( !S.drag_state ) return;
   auto& state            = *S.drag_state;
   auto  to_screen_coords = [&]( Coord const& c ) {
-    return c + canvas.upper_left().distance_from_origin();
+     return c + canvas.upper_left().distance_from_origin();
   };
   auto origin_for = [&]( Delta const& tile_size ) {
     return to_screen_coords( state.where ) -
@@ -1928,7 +1932,7 @@ void drag_n_drop_draw( PS const& S, rr::Renderer& renderer,
   using namespace HarborDraggableObject;
   // Render the dragged item.
   overload_visit(
-      state.object,
+      any_cast<HarborDraggableObject_t const&>( state.object ),
       [&]( unit const& o ) {
         auto size = sprite_size(
             S.ss_.units.unit_for( o.id ).desc().tile );
@@ -1947,7 +1951,7 @@ void drag_n_drop_draw( PS const& S, rr::Renderer& renderer,
       } );
   // Render any indicators on top of it.
   switch( state.indicator ) {
-    using e = drag::e_status_indicator;
+    using e = e_drag_status_indicator;
     case e::none: break;
     case e::bad: {
       Delta char_size = Delta::from_gfx(
@@ -1976,8 +1980,8 @@ void drag_n_drop_draw( PS const& S, rr::Renderer& renderer,
 }
 
 void drag_n_drop_handle_input(
-    input::event_t const&          event,
-    co::finite_stream<drag::Step>& drag_stream ) {
+    input::event_t const&        event,
+    co::finite_stream<DragStep>& drag_stream ) {
   auto key_event = event.get_if<input::key_event_t>();
   if( !key_event ) return;
   if( key_event->keycode != ::SDLK_LSHIFT &&
@@ -1985,8 +1989,8 @@ void drag_n_drop_handle_input(
     return;
   // This input event is a shift key being pressed or released.
   drag_stream.send(
-      drag::Step{ .mod     = key_event->mod,
-                  .current = input::current_mouse_position() } );
+      DragStep{ .mod     = key_event->mod,
+                .current = input::current_mouse_position() } );
 }
 
 // This function takes a coordinate relative to the canvas and
@@ -2004,35 +2008,35 @@ wait<> dragging_thread( PS& S, Entities* entities,
   HarborDragSrc_t& src = src_info->src;
 
   // Now we have a valid drag that has initiated.
-  S.drag_state = drag::State<HarborDraggableObject_t>{
+  S.drag_state = DragState{
       .stream              = {},
       .object              = draggable_from_src( S, src ),
-      .indicator           = drag::e_status_indicator::none,
+      .indicator           = e_drag_status_indicator::none,
       .user_requests_input = false,
       .where               = origin,
       .click_offset        = origin - src_info->rect.center() };
   SCOPE_EXIT( S.drag_state = nothing );
   auto& state = *S.drag_state;
 
-  drag::Step             latest;
+  DragStep               latest;
   maybe<HarborDragDst_t> dst;
-  while( maybe<drag::Step> d = co_await state.stream.next() ) {
+  while( maybe<DragStep> d = co_await state.stream.next() ) {
     latest      = *d;
     state.where = d->current;
     dst         = drag_dst_from_coord( entities, d->current );
     if( !dst ) {
-      state.indicator = drag::e_status_indicator::none;
+      state.indicator = e_drag_status_indicator::none;
       continue;
     }
     if( !DragConnector::visit( S, entities, src, *dst ) ) {
-      state.indicator = drag::e_status_indicator::bad;
+      state.indicator = e_drag_status_indicator::bad;
       continue;
     }
     state.user_requests_input = d->mod.l_shf_down;
-    state.indicator           = drag::e_status_indicator::good;
+    state.indicator           = e_drag_status_indicator::good;
   }
 
-  if( state.indicator == drag::e_status_indicator::good ) {
+  if( state.indicator == e_drag_status_indicator::good ) {
     CHECK( dst );
     bool proceed = true;
     if( state.user_requests_input )
@@ -2051,7 +2055,7 @@ wait<> dragging_thread( PS& S, Entities* entities,
   }
 
   // Rubber-band back to starting point.
-  state.indicator           = drag::e_status_indicator::none;
+  state.indicator           = e_drag_status_indicator::none;
   state.user_requests_input = false;
 
   Coord         start   = state.where;
@@ -2199,7 +2203,7 @@ struct HarborPlane::Impl : public Plane {
                 Coord /*origin*/, Coord /*prev*/,
                 Coord current ) override {
     CHECK( S_.drag_state );
-    S_.drag_state->stream.send( drag::Step{
+    S_.drag_state->stream.send( DragStep{
         .mod = mod,
         .current =
             current.with_new_origin( canvas_.upper_left() ) } );

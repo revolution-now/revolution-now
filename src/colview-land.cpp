@@ -141,8 +141,8 @@ Delta ColonyLandView::delta() const {
   return size_needed( mode_ );
 }
 
-maybe<e_colview_entity> ColonyLandView::entity() const {
-  return e_colview_entity::land;
+maybe<int> ColonyLandView::entity() const {
+  return static_cast<int>( e_colview_entity::land );
 }
 
 ui::View& ColonyLandView::view() noexcept { return *this; }
@@ -167,9 +167,9 @@ wait<> ColonyLandView::perform_click(
   update_production( ss_, colony_ );
 }
 
-maybe<ColViewObject_t> ColonyLandView::can_receive(
-    ColViewObject_t const& o, e_colview_entity,
-    Coord const&           where ) const {
+maybe<any> ColonyLandView::can_receive(
+    any const& a, int, Coord const& where ) const {
+  UNWRAP_DRAGGABLE( o, a );
   // Verify that the dragged object is a unit.
   maybe<UnitId> unit_id = o.get_if<ColViewObject::unit>().member(
       &ColViewObject::unit::id );
@@ -197,7 +197,7 @@ maybe<ColViewObject_t> ColonyLandView::can_receive(
 }
 
 wait<base::valid_or<IDragSinkCheck::Rejection>>
-ColonyLandView::check( ColViewObject_t const&, e_colview_entity,
+ColonyLandView::check( any const&, int,
                        Coord const where ) const {
   Colony const& colony = ss_.colonies.colony_for( colony_.id );
   maybe<e_direction> d = direction_under_cursor( where );
@@ -231,8 +231,8 @@ ColonyJob_t ColonyLandView::make_job_for_square(
                              .job       = e_outdoor_job::food };
 }
 
-void ColonyLandView::drop( ColViewObject_t const& o,
-                           Coord const&           where ) {
+void ColonyLandView::drop( any const& a, Coord const& where ) {
+  UNWRAP_DRAGGABLE( o, a );
   UNWRAP_CHECK( unit_id, o.get_if<ColViewObject::unit>().member(
                              &ColViewObject::unit::id ) );
   Colony& colony = ss_.colonies.colony_for( colony_.id );
@@ -248,17 +248,16 @@ void ColonyLandView::drop( ColViewObject_t const& o,
   CHECK_HAS_VALUE( colony.validate() );
 }
 
-maybe<ColViewObjectWithBounds> ColonyLandView::object_here(
+maybe<DraggableObjectWithBounds> ColonyLandView::object_here(
     Coord const& where ) const {
   UNWRAP_RETURN( unit_id, unit_under_cursor( where ) );
   UNWRAP_RETURN( d, direction_under_cursor( where ) );
-  return ColViewObjectWithBounds{
+  return DraggableObjectWithBounds{
       .obj    = ColViewObject::unit{ .id = unit_id },
       .bounds = rect_for_unit( d ) };
 }
 
-bool ColonyLandView::try_drag( ColViewObject_t const&,
-                               Coord const& where ) {
+bool ColonyLandView::try_drag( any const&, Coord const& where ) {
   UNWRAP_CHECK( d, direction_under_cursor( where ) );
   UNWRAP_CHECK( job, job_for_direction( d ) );
   dragging_ = Draggable{ .d = d, .job = job };

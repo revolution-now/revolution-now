@@ -53,9 +53,9 @@ class ColViewBuildings : public ui::View,
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override;
 
-  // Implement ColonySubView.
-  maybe<e_colview_entity> entity() const override {
-    return e_colview_entity::buildings;
+  // Implement IDraggableObjectsView.
+  maybe<int> entity() const override {
+    return static_cast<int>( e_colview_entity::buildings );
   }
 
   // Implement ColonySubView.
@@ -67,22 +67,21 @@ class ColViewBuildings : public ui::View,
   }
 
   // Implement IDragSink.
-  maybe<ColViewObject_t> can_receive(
-      ColViewObject_t const& o, e_colview_entity from,
+  maybe<std::any> can_receive(
+      std::any const& o, int from_entity,
       Coord const& where ) const override;
 
   // Implement IDragSink.
-  void drop( ColViewObject_t const& o,
-             Coord const&           where ) override;
+  void drop( std::any const& o, Coord const& where ) override;
 
   // Implement IDragSinkCheck.
   wait<base::valid_or<IDragSinkCheck::Rejection>> check(
-      ColViewObject_t const&, e_colview_entity from,
+      std::any const&, int from_entity,
       Coord const ) const override;
 
   // Implement IDragSource.
-  bool try_drag( ColViewObject_t const& o,
-                 Coord const&           where ) override;
+  bool try_drag( std::any const& o,
+                 Coord const&    where ) override;
 
   // Implement IDragSource.
   void cancel_drag() override;
@@ -91,7 +90,7 @@ class ColViewBuildings : public ui::View,
   void disown_dragged_object() override;
 
   // Implement ColonySubView.
-  maybe<ColViewObjectWithBounds> object_here(
+  maybe<DraggableObjectWithBounds> object_here(
       Coord const& /*where*/ ) const override;
 
   // Implement AwaitView.
