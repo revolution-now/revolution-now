@@ -17,12 +17,12 @@
 #include "colony-view.hpp"
 #include "gui.hpp"
 #include "harbor-units.hpp"
-#include "harbor-view.hpp"
 #include "interrupts.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "map-edit.hpp"
 #include "menu.hpp"
+#include "new-harbor-view.hpp"
 #include "on-map.hpp"
 #include "orders.hpp"
 #include "panel.hpp"
@@ -197,8 +197,8 @@ wait<> menu_handler( Planes& planes, SS& ss, TS& ts,
       break;
     }
     case e_menu_item::harbor_view: {
-      co_await show_harbor_view( planes, ss, ts, player,
-                                 /*selected_unit=*/nothing );
+      co_await show_new_harbor_view( planes, ss, ts, player,
+                                     /*selected_unit=*/nothing );
       break;
     }
     case e_menu_item::map_editor: {
@@ -365,8 +365,8 @@ wait<> process_player_input( LandViewPlayerInput_t const& input,
       break;
     }
     case e::european_status: {
-      co_await show_harbor_view( planes, ss, ts, player,
-                                 /*selected_unit=*/nothing );
+      co_await show_new_harbor_view( planes, ss, ts, player,
+                                     /*selected_unit=*/nothing );
       break;
     }
     case e::next_turn:
@@ -461,8 +461,8 @@ wait<> process_player_input( UnitId                       id,
       break;
     }
     case e::european_status: {
-      co_await show_harbor_view( planes, ss, ts, player,
-                                 /*selected_unit=*/nothing );
+      co_await show_new_harbor_view( planes, ss, ts, player,
+                                     /*selected_unit=*/nothing );
       break;
     }
     // We have some orders for the current unit.
@@ -676,7 +676,8 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
       case e_high_seas_result::arrived_in_harbor: {
         lg.debug( "unit has arrived in old world." );
         finish_turn( unit );
-        co_await show_harbor_view( planes, ss, ts, player, id );
+        co_await show_new_harbor_view( planes, ss, ts, player,
+                                       id );
         co_return false; // do not ask for orders.
       }
     }

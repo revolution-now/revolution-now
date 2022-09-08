@@ -1,0 +1,38 @@
+# ===============================================================
+# harbor-view-entities.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-09-08.
+#
+# Description: Rds definitions for the harbor-view-entities module.
+#
+# ===============================================================
+# ss
+include "ss/cargo.hpp"
+include "ss/commodity.rds.hpp"
+include "ss/unit-id.hpp"
+
+namespace "rn"
+
+enum.e_harbor_view_entity {
+  market,
+}
+
+# This object needs to specify all of the information necessary
+# for a dragged item to be drawn. We cannot simply use a tile
+# here because we need to know where the item came from so that
+# it can (potentially) be left out when rendering the scene, to
+# create the appearance that the mouse is dragging it.
+sumtype.HarborDraggableObject {
+  unit {
+    id 'UnitId',
+  },
+  market_commodity {
+    type 'e_commodity',
+  },
+  cargo_commodity {
+    comm 'Commodity',
+    slot 'CargoSlotIndex',
+  },
+}

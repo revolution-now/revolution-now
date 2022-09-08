@@ -57,6 +57,7 @@ struct ILandViewPlane;
 struct MapEditPlane;
 struct ColonyPlane;
 struct HarborPlane;
+struct NewHarborPlane;
 
 /****************************************************************
 ** PlaneGroup
@@ -74,6 +75,7 @@ struct PlaneGroup {
   MapEditPlane*   map_edit;
   ColonyPlane*    colony;
   HarborPlane*    harbor;
+  NewHarborPlane* new_harbor;
 };
 
 maybe<Plane&> plane_pointer( PlaneGroup const& group,
@@ -119,6 +121,7 @@ struct Planes {
   PLANE_ACCESSOR_DECL( MapEditPlane, map_edit );
   PLANE_ACCESSOR_DECL( ColonyPlane, colony );
   PLANE_ACCESSOR_DECL( HarborPlane, harbor );
+  PLANE_ACCESSOR_DECL( NewHarborPlane, new_harbor );
 
   // This will call the advance_state method on each plane to up-
   // date any state that it has. It will only be called on frames
