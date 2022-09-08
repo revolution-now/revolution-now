@@ -54,4 +54,15 @@ V extract_variant_from_any( std::any const& a ) {
       demangled_typename<V>(), demangle( a.type().name() ) );
 }
 
+// Does an any_cast but returns a maybe if the result fails.
+template<typename T>
+auto maybe_any_cast( std::any const& a ATTR_LIFETIMEBOUND )
+    -> base::maybe<typename std::remove_cvref_t<T> const&> {
+  CHECK( a.has_value() );
+  using U    = std::remove_cvref_t<T>;
+  U const* p = std::any_cast<U const>( &a );
+  if( p == nullptr ) return nothing;
+  return *p;
+}
+
 } // namespace base
