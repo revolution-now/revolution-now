@@ -72,8 +72,8 @@ struct ColViewObjectWithBounds {
 
 // Interface for views that support prompting a user for informa-
 // tion on the parameters of a drag.
-struct IColViewDragSourceUserInput {
-  virtual ~IColViewDragSourceUserInput() = default;
+struct IDragSourceUserInput {
+  virtual ~IDragSourceUserInput() = default;
   // This will only be called if the user requests it, typically
   // by holding down a modifier key such as shift when releasing
   // the drag. Using this method, the view has the opportunity to
@@ -90,8 +90,8 @@ struct IColViewDragSourceUserInput {
 // Interface for views that can be the source for dragging. The
 // idea here is that the view must keep track of what is being
 // dragged.
-struct IColViewDragSource {
-  virtual ~IColViewDragSource() = default;
+struct IDragSource {
+  virtual ~IDragSource() = default;
   // Decides whether a drag can happen on the given object. Note
   // that in some cases the coordinate parameter will not be
   // needed. If this returns true, this means that the view has
@@ -113,8 +113,7 @@ struct IColViewDragSource {
   // wish to be prompted and asked for information to customize
   // the drag, such as e.g. specifying the amount of a commodity
   // to be dragged.
-  maybe<IColViewDragSourceUserInput const&> drag_user_input()
-      const;
+  maybe<IDragSourceUserInput const&> drag_user_input() const;
 
   // This will permanently remove the object from the source
   // view's ownership, so should only be called just before the
@@ -133,8 +132,8 @@ struct IColViewDragSource {
 // contain docks; we want to all the drag UI-wise, but we want to
 // then show a message to the user explaining why we are can-
 // celling it. Returning `true` means "proceed".
-struct IColViewDragSinkCheck {
-  virtual ~IColViewDragSinkCheck() = default;
+struct IDragSinkCheck {
+  virtual ~IDragSinkCheck() = default;
 
   struct Rejection {
     maybe<std::string> reason;
@@ -146,8 +145,8 @@ struct IColViewDragSinkCheck {
 };
 
 // Interface for views that can accept dragged items.
-struct IColViewDragSink {
-  virtual ~IColViewDragSink() = default;
+struct IDragSink {
+  virtual ~IDragSink() = default;
   // Coordinates are relative to view's upper left corner. If the
   // object can be received, then a new object will be returned
   // that is either the same or possibly altered from the origi-
@@ -160,7 +159,7 @@ struct IColViewDragSink {
       ColViewObject_t const& o, e_colview_entity from,
       Coord const& where ) const = 0;
 
-  maybe<IColViewDragSinkCheck const&> drag_check() const;
+  maybe<IDragSinkCheck const&> drag_check() const;
 
   // Coordinates are relative to view's upper left corner. The
   // sink MUST accept the object as-is.
@@ -193,8 +192,8 @@ class ColonySubView : public AwaitView {
   }
 
   // For convenience.
-  maybe<IColViewDragSource&> drag_source();
-  maybe<IColViewDragSink&>   drag_sink();
+  maybe<IDragSource&> drag_source();
+  maybe<IDragSink&>   drag_sink();
 
   // This will update any internal state held inside the view
   // that needs to be recomputed if any state external to the
