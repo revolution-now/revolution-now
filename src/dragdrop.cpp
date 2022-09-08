@@ -21,6 +21,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/maybe-util.hpp"
 #include "base/scope-exit.hpp"
 
 /****************************************************************
@@ -61,6 +62,31 @@ wait<> eat_remaining_drag_events(
 }
 
 } // namespace
+
+/****************************************************************
+** Casting
+*****************************************************************/
+// These are used to test views for supported interfaces and to
+// then get references to the views as those interfaces.
+
+maybe<IDragSourceUserInput const&> IDragSource::drag_user_input()
+    const {
+  return base::maybe_dynamic_cast<IDragSourceUserInput const&>(
+      *this );
+}
+
+maybe<IDragSinkCheck const&> IDragSink::drag_check() const {
+  return base::maybe_dynamic_cast<IDragSinkCheck const&>(
+      *this );
+}
+
+maybe<IDragSource&> IDraggableObjectsView::drag_source() {
+  return base::maybe_dynamic_cast<IDragSource&>( *this );
+}
+
+maybe<IDragSink&> IDraggableObjectsView::drag_sink() {
+  return base::maybe_dynamic_cast<IDragSink&>( *this );
+}
 
 /****************************************************************
 ** Public API

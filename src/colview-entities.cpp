@@ -64,31 +64,6 @@ using namespace std;
 
 namespace rn {
 
-/****************************************************************
-** Casting
-*****************************************************************/
-// These are used to test views for supported interfaces and to
-// then get references to the views as those interfaces.
-
-maybe<IDragSourceUserInput const&> IDragSource::drag_user_input()
-    const {
-  return base::maybe_dynamic_cast<IDragSourceUserInput const&>(
-      *this );
-}
-
-maybe<IDragSinkCheck const&> IDragSink::drag_check() const {
-  return base::maybe_dynamic_cast<IDragSinkCheck const&>(
-      *this );
-}
-
-maybe<IDragSource&> IDraggableObjectsView::drag_source() {
-  return base::maybe_dynamic_cast<IDragSource&>( *this );
-}
-
-maybe<IDragSink&> IDraggableObjectsView::drag_sink() {
-  return base::maybe_dynamic_cast<IDragSink&>( *this );
-}
-
 // Use this as the vtable key function.
 void ColonySubView::update_this_and_children() {}
 
@@ -306,7 +281,7 @@ class MarketCommodities : public ui::View,
                .type = type, .quantity = quantity } },
         .bounds = Rect::from(
             box_upper_left + rendered_commodity_offset(),
-            Delta{ .w = 1, .h = 1 } * kCommodityTileSize ) };
+            Delta{ .w = 1, .h = 1 }* kCommodityTileSize ) };
   }
 
   bool try_drag( any const& a, Coord const& where ) override {
@@ -720,9 +695,9 @@ class CargoView : public ui::View,
     int                     min  = 1;
     int                     max  = comm.obj.quantity;
     string                  text = fmt::format(
-                         "What quantity of @[H]{}@[] would you like to move? "
-                                          "({}-{}):",
-                         commodity_display_name( comm.obj.type ), min, max );
+        "What quantity of @[H]{}@[] would you like to move? "
+                         "({}-{}):",
+        commodity_display_name( comm.obj.type ), min, max );
     maybe<int> quantity = co_await ts_.gui.optional_int_input(
         { .msg           = text,
           .initial_value = max,
@@ -1498,10 +1473,6 @@ void recomposite( SS& ss, TS& ts, Colony& colony,
 /****************************************************************
 ** Public API
 *****************************************************************/
-ColonySubView& colview_entity( e_colview_entity ) {
-  NOT_IMPLEMENTED;
-}
-
 ColonySubView& colview_top_level() {
   return *g_composition.top_level;
 }

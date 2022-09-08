@@ -65,7 +65,7 @@ struct UnitsState;
 ** Interfaces
 *****************************************************************/
 // TODO: Keep this generic and move it into the ui namespace
-// eventually.
+// eventually, and dedupe it with the one in harbor view.
 struct AwaitView {
   virtual ~AwaitView() = default;
 
@@ -115,7 +115,6 @@ class ColonySubView : public IDraggableObjectsView,
 
 // The pointer returned from these will be invalidated if
 // set_colview_colony is called with a new colony id.
-ColonySubView& colview_entity( e_colview_entity entity );
 ColonySubView& colview_top_level();
 
 // FIXME: global state.

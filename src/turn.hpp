@@ -15,9 +15,6 @@
 // Revolution Now
 #include "wait.hpp"
 
-// C++ standard library
-#include <exception>
-
 namespace rn {
 
 struct Planes;
