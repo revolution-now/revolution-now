@@ -383,7 +383,7 @@ struct Rect {
   [[nodiscard]] Rect uni0n( Rect const& rhs ) const;
 
   // Will return y*w + x if the coord is in the rect.
-  base::maybe<int> rasterize( Coord coord );
+  base::maybe<int> rasterize( Coord coord ) const;
 
   int area() const { return delta().area(); }
 

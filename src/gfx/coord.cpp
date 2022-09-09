@@ -180,7 +180,7 @@ Rect Rect::centered_on( Coord coord ) const {
   return Rect::from( coord - this->delta() / 2, this->delta() );
 }
 
-base::maybe<int> Rect::rasterize( Coord coord ) {
+base::maybe<int> Rect::rasterize( Coord coord ) const {
   if( !coord.is_inside( *this ) ) return base::nothing;
   return ( coord.y - y ) * w + ( coord.x - x );
 }
