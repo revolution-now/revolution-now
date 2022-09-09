@@ -42,6 +42,8 @@ struct UnitsState;
 constexpr Delta const kCommodityInCargoHoldRenderingOffset{
     .w = 8, .h = 3 };
 
+constexpr Delta kCommodityTileSize = Delta{ .w = 16, .h = 16 };
+
 /****************************************************************
 ** Commodity List
 *****************************************************************/

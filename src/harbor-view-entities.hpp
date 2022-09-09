@@ -19,6 +19,7 @@
 // Revolution Now
 #include "dragdrop.hpp"
 #include "input.hpp"
+#include "view.hpp"
 #include "wait.hpp"
 
 // base
@@ -71,6 +72,7 @@ struct AwaitView {
 /****************************************************************
 ** HarborSubView
 *****************************************************************/
+// FIXME: try to dedupe this with the one in the colony view.
 class HarborSubView : public IDraggableObjectsView,
                       public ui::AwaitView {
  public:
@@ -109,9 +111,15 @@ class HarborSubView : public IDraggableObjectsView,
   Player& player_;
 };
 
+struct PositionedHarborSubView {
+  ui::OwningPositionedView owned;
+  HarborSubView*           harbor = nullptr;
+};
+
 void update_harbor_view( SSConst const& ss );
 
 struct HarborViewComposited {
+  Delta                          canvas_size;
   std::unique_ptr<HarborSubView> top_level;
   std::unordered_map<e_harbor_view_entity, HarborSubView*>
       entities;

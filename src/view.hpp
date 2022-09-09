@@ -23,7 +23,7 @@
 
 namespace rn::ui {
 
-class View : public Object {};
+struct View : public Object {};
 
 // This is a View coupled with a coordinate representing the po-
 // sition of the upper-left corner of the view. Note that the co-

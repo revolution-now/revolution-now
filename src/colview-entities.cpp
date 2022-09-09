@@ -72,9 +72,7 @@ namespace {
 /****************************************************************
 ** Constants
 *****************************************************************/
-constexpr Delta kCommodityTileSize = Delta{ .w = 16, .h = 16 };
-
-constexpr W kCommodityTileWidth = 16;
+constexpr W kCommodityTileWidth = kCommodityTileSize.w;
 
 /****************************************************************
 ** Globals

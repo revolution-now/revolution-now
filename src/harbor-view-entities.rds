@@ -16,6 +16,7 @@ include "ss/unit-id.hpp"
 namespace "rn"
 
 enum.e_harbor_view_entity {
+  status_bar,
   market,
 }
 
