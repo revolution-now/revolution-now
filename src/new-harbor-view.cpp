@@ -321,7 +321,11 @@ wait<> show_new_harbor_view( Planes& planes, SS& ss, TS& ts,
   if( selected_unit.has_value() )
     harbor_plane.set_selected_unit( *selected_unit );
   new_group.new_harbor = &harbor_plane;
-  co_await harbor_plane.show_harbor_view();
+  try {
+    // This coroutine should never return but by throwing the
+    // exit exception.
+    co_await harbor_plane.show_harbor_view();
+  } catch( harbor_view_exit_interrupt const& ) {}
 }
 
 } // namespace rn

@@ -83,9 +83,9 @@ HarborMarketCommodities::object_here(
   Coord const box_origin =
       where.rounded_to_multiple_to_minus_inf( g_tile_delta ) +
       kCommodityInCargoHoldRenderingOffset;
-  Rect const box = Rect::from(
-      box_origin,
-      Delta{ .w = 1, .h = 1 }* Delta{ .w = 16, .h = 16 } );
+  Rect const box =
+      Rect::from( box_origin, Delta{ .w = 1, .h = 1 } *
+                                  Delta{ .w = 16, .h = 16 } );
   return DraggableObjectWithBounds{
       .obj =
           HarborDraggableObject::market_commodity{
@@ -97,12 +97,17 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
                                     Coord         coord ) const {
   rr::Painter painter = renderer.painter();
   auto        bds     = rect( coord );
-  auto        grid    = bds.to_grid_noalign( g_tile_delta );
-  auto        comm_it = refl::enum_values<e_commodity>.begin();
-  auto        label   = CommodityLabel::buy_sell{};
+  // Our delta for this view has one extra pixel added to the
+  // width and height to allow for the border, and so we need to
+  // remove that otherwise the to-grid method below will create
+  // too many grid boxes.
+  --bds.w;
+  --bds.h;
+  auto grid    = bds.to_grid_noalign( g_tile_delta );
+  auto comm_it = refl::enum_values<e_commodity>.begin();
+  auto label   = CommodityLabel::buy_sell{};
   for( auto rect : range_of_rects( grid ) ) {
-    CHECK( comm_it !=
-           std::end( refl::enum_values<e_commodity> ) );
+    CHECK( comm_it != refl::enum_values<e_commodity>.end() );
     painter.draw_empty_rect( rect,
                              rr::Painter::e_border_mode::in_out,
                              gfx::pixel::white() );
@@ -115,6 +120,7 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
         *comm_it, label );
     ++comm_it;
   }
+  CHECK( comm_it == refl::enum_values<e_commodity>.end() );
 }
 
 PositionedHarborSubView HarborMarketCommodities::create(
