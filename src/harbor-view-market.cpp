@@ -55,7 +55,7 @@ Delta HarborMarketCommodities::delta() const {
     x_boxes = 8;
     y_boxes = 2;
   }
-  return Delta{ .w = 32 * x_boxes + 1, 32 * y_boxes + 1 };
+  return Delta{ .w = 32 * x_boxes + 1, .h = 32 * y_boxes + 1 };
 }
 
 maybe<int> HarborMarketCommodities::entity() const {
@@ -83,9 +83,9 @@ HarborMarketCommodities::object_here(
   Coord const box_origin =
       where.rounded_to_multiple_to_minus_inf( g_tile_delta ) +
       kCommodityInCargoHoldRenderingOffset;
-  Rect const box =
-      Rect::from( box_origin, Delta{ .w = 1, .h = 1 } *
-                                  Delta{ .w = 16, .h = 16 } );
+  Rect const box = Rect::from(
+      box_origin,
+      Delta{ .w = 1, .h = 1 }* Delta{ .w = 16, .h = 16 } );
   return DraggableObjectWithBounds{
       .obj =
           HarborDraggableObject::market_commodity{
