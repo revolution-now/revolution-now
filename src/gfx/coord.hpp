@@ -299,7 +299,7 @@ struct Rect {
     return Coord{ .x = x + w / 2, .y = y + h / 2 };
   }
 
-  Rect centered_on( Coord coord ) const;
+  [[nodiscard]] Rect centered_on( Coord coord ) const;
 
   Delta delta() const { return { w, h }; }
 
@@ -338,44 +338,49 @@ struct Rect {
   //
   // unless one of the dimensions has width 0 in which case
   // that dimension will remain as-is.
-  Rect edges_removed() const;
+  [[nodiscard]] Rect edges_removed() const;
 
-  Rect with_border_added( int thickness = 1 ) const;
+  [[nodiscard]] Rect with_border_added(
+      int thickness = 1 ) const;
 
-  Rect shifted_by( Delta const& delta ) const {
+  [[nodiscard]] Rect shifted_by( Delta const& delta ) const {
     return Rect{ x + delta.w, y + delta.h, w, h };
   }
-  Rect with_new_upper_left( Coord const& coord ) const {
+  [[nodiscard]] Rect with_new_upper_left(
+      Coord const& coord ) const {
     return Rect{ coord.x, coord.y, w, h };
   }
 
   // Returns this rect with respect to a new origin.
-  Rect with_new_origin( Coord new_origin ) const;
+  [[nodiscard]] Rect with_new_origin( Coord new_origin ) const;
 
-  Rect as_if_origin_were( Coord const& coord ) const;
+  [[nodiscard]] Rect as_if_origin_were(
+      Coord const& coord ) const;
 
-  Rect with_inc_size() const { return { x, y, w + 1, h + 1 }; }
+  [[nodiscard]] Rect with_inc_size() const {
+    return { x, y, w + 1, h + 1 };
+  }
 
-  Rect with_new_right_edge( X xp ) const {
+  [[nodiscard]] Rect with_new_right_edge( X xp ) const {
     return Rect{ x, y, xp - x, h }.normalized();
   }
-  Rect with_new_left_edge( X xp ) const {
+  [[nodiscard]] Rect with_new_left_edge( X xp ) const {
     return Rect{ xp, y, w + ( x - xp ), h }.normalized();
   }
-  Rect with_new_top_edge( Y yp ) const {
+  [[nodiscard]] Rect with_new_top_edge( Y yp ) const {
     return Rect{ x, yp, w, h + ( y - yp ) }.normalized();
   }
-  Rect with_new_bottom_edge( Y yp ) const {
+  [[nodiscard]] Rect with_new_bottom_edge( Y yp ) const {
     return Rect{ x, y, w, yp - y }.normalized();
   }
 
   // Returns a rect that is equivalent to this one but where x
   // and y represent the upper left corner of the rect.
-  Rect normalized() const;
+  [[nodiscard]] Rect normalized() const;
 
   // Result will be the smallest rect that encompasses both
   // this one and the parameter.
-  Rect uni0n( Rect const& rhs ) const;
+  [[nodiscard]] Rect uni0n( Rect const& rhs ) const;
 
   // Will return y*w + x if the coord is in the rect.
   base::maybe<int> rasterize( Coord coord );
@@ -407,7 +412,7 @@ struct Rect {
       : it( c ), rect( r ) {}
 
     const_iterator& operator=( const_iterator const& ) = default;
-    const_iterator& operator=( const_iterator&& ) = default;
+    const_iterator& operator=( const_iterator&& )      = default;
 
     Coord const& operator*() const {
       DCHECK( rect );
@@ -494,8 +499,8 @@ struct RectGridProxyIteratorHelper {
     Coord                              it;
     RectGridProxyIteratorHelper const* rect_proxy;
     auto const&                        operator*() const {
-                             DCHECK( it.is_inside( rect_proxy->rect ) );
-                             return it;
+      DCHECK( it.is_inside( rect_proxy->rect ) );
+      return it;
     }
     const_iterator& operator++() {
       it.x += rect_proxy->chunk_size.w;
