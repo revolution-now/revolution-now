@@ -69,8 +69,8 @@ struct PanelPlane::Impl : public Plane {
                                        ( button_size.w / 2 ) };
     where += Delta{ .h = 16 };
 
-    ui::OwningPositionedView p_view( std::move( button_view ),
-                                     where );
+    ui::OwningPositionedView p_view{
+        .view = std::move( button_view ), .coord = where };
     view_vec.emplace_back( std::move( p_view ) );
 
     view = make_unique<ui::InvisibleView>(

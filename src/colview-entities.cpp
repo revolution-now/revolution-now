@@ -1345,8 +1345,8 @@ void recomposite( SS& ss, TS& ts, Colony& colony,
   pos = Coord{};
   Y const title_bar_bottom =
       title_bar->rect( pos ).bottom_edge();
-  views.push_back(
-      ui::OwningPositionedView( std::move( title_bar ), pos ) );
+  views.push_back( ui::OwningPositionedView{
+      .view = std::move( title_bar ), .coord = pos } );
 
   // [MarketCommodities] ----------------------------------------
   W comm_block_width =
@@ -1360,8 +1360,8 @@ void recomposite( SS& ss, TS& ts, Colony& colony,
   pos = centered_bottom( market_commodities->delta(),
                          Rect::from( Coord{}, canvas_size ) );
   auto const market_commodities_top = pos.y;
-  views.push_back( ui::OwningPositionedView(
-      std::move( market_commodities ), pos ) );
+  views.push_back( ui::OwningPositionedView{
+      .view = std::move( market_commodities ), .coord = pos } );
 
   // [Middle Strip] ---------------------------------------------
   Delta   middle_strip_size{ canvas_size.w, 32 + 32 + 16 };
@@ -1377,8 +1377,8 @@ void recomposite( SS& ss, TS& ts, Colony& colony,
   pos = Coord{ .x = 0, .y = middle_strip_top };
   X const population_right_edge =
       population_view->rect( pos ).right_edge();
-  views.push_back( ui::OwningPositionedView(
-      std::move( population_view ), pos ) );
+  views.push_back( ui::OwningPositionedView{
+      .view = std::move( population_view ), .coord = pos } );
 
   // [Cargo] ----------------------------------------------------
   auto cargo_view = CargoView::create(
@@ -1392,8 +1392,8 @@ void recomposite( SS& ss, TS& ts, Colony& colony,
   X const cargo_right_edge =
       cargo_view->rect( pos ).right_edge();
   auto* p_cargo_view = cargo_view.get();
-  views.push_back(
-      ui::OwningPositionedView( std::move( cargo_view ), pos ) );
+  views.push_back( ui::OwningPositionedView{
+      .view = std::move( cargo_view ), .coord = pos } );
 
   // [Units at Gate outside colony] -----------------------------
   auto units_at_gate_view = UnitsAtGateColonyView::create(
@@ -1404,8 +1404,8 @@ void recomposite( SS& ss, TS& ts, Colony& colony,
       units_at_gate_view.get();
   pos =
       Coord{ .x = population_right_edge, .y = middle_strip_top };
-  views.push_back( ui::OwningPositionedView(
-      std::move( units_at_gate_view ), pos ) );
+  views.push_back( ui::OwningPositionedView{
+      .view = std::move( units_at_gate_view ), .coord = pos } );
 
   // [Production] -----------------------------------------------
   auto production_view = ProductionView::create(
@@ -1414,8 +1414,8 @@ void recomposite( SS& ss, TS& ts, Colony& colony,
   g_composition.entities[e_colview_entity::production] =
       production_view.get();
   pos = Coord{ .x = cargo_right_edge, .y = middle_strip_top };
-  views.push_back( ui::OwningPositionedView(
-      std::move( production_view ), pos ) );
+  views.push_back( ui::OwningPositionedView{
+      .view = std::move( production_view ), .coord = pos } );
 
   // [ColonyLandView] -------------------------------------------
   available = Delta{ canvas_size.w,
@@ -1441,8 +1441,8 @@ void recomposite( SS& ss, TS& ts, Colony& colony,
             .lower_right() -
         Delta{ .w = land_view->delta().w };
   X const land_view_left_edge = pos.x;
-  views.push_back(
-      ui::OwningPositionedView( std::move( land_view ), pos ) );
+  views.push_back( ui::OwningPositionedView{
+      .view = std::move( land_view ), .coord = pos } );
 
   // [Buildings] ------------------------------------------------
   Delta buildings_size{
@@ -1453,8 +1453,8 @@ void recomposite( SS& ss, TS& ts, Colony& colony,
   g_composition.entities[e_colview_entity::buildings] =
       buildings.get();
   pos = Coord{ .x = 0, .y = title_bar_bottom };
-  views.push_back(
-      ui::OwningPositionedView( std::move( buildings ), pos ) );
+  views.push_back( ui::OwningPositionedView{
+      .view = std::move( buildings ), .coord = pos } );
 
   // [Finish] ---------------------------------------------------
   auto invisible_view = std::make_unique<CompositeColSubView>(

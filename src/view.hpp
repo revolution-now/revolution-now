@@ -46,24 +46,11 @@ struct PositionedViewConst {
 NOTHROW_MOVE( PositionedViewConst );
 
 // Same as above, but owns the view.  The
-class OwningPositionedView {
- public:
-  OwningPositionedView( std::unique_ptr<View> view,
-                        Coord const&          coord )
-    : view_( std::move( view ) ), coord_( coord ) {}
+struct OwningPositionedView {
+  std::unique_ptr<View> view;
+  Coord                 coord;
 
-  View* view() const { return view_.get(); }
-  View* view() { return view_.get(); }
-
-  std::unique_ptr<View>& mutable_view() { return view_; }
-
-  Coord const& coord() const { return coord_; }
-  Coord&       coord() { return coord_; }
-
- private:
-  std::unique_ptr<View> view_;
-  Coord                 coord_;
+  Rect rect() const { return view->rect( coord ); }
 };
-NOTHROW_MOVE( OwningPositionedView );
 
 } // namespace rn::ui

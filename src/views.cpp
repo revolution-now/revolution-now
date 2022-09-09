@@ -161,12 +161,12 @@ unique_ptr<View>& CompositeSingleView::mutable_at( int idx ) {
 *****************************************************************/
 Coord VectorView::pos_of( int idx ) const {
   CHECK( idx >= 0 && idx < int( views_.size() ) );
-  return views_[idx].coord();
+  return views_[idx].coord;
 }
 
 unique_ptr<View>& VectorView::mutable_at( int idx ) {
   CHECK( idx >= 0 && idx < int( views_.size() ) );
-  return views_[idx].mutable_view();
+  return views_[idx].view;
 }
 
 /****************************************************************
@@ -404,7 +404,7 @@ LineEditorView::LineEditorView( e_font font, W pixels_wide,
     cursor_width_{} {
   string text( 100, 'X' );
   Delta  char_delta = Delta::from_gfx(
-       rr::rendered_text_line_size_pixels( text ) );
+      rr::rendered_text_line_size_pixels( text ) );
 
   cursor_width_ = char_delta.w / SX{ int( text.size() ) };
 
@@ -467,7 +467,7 @@ void LineEditorView::draw( rr::Renderer& renderer,
                ? W{ 0 }
           // The rendered text might have width 1 in this case.
                : Delta::from_gfx( rr::rendered_text_line_size_pixels(
-                                      string_up_to_cursor ) )
+                                 string_up_to_cursor ) )
                 .w;
   Rect cursor{ .x = coord.x + 1 + rel_cursor_pixels,
                .y = coord.y + 1,
@@ -718,7 +718,8 @@ VerticalArrayView::VerticalArrayView(
     vector<unique_ptr<View>> views, align how )
   : alignment_( how ) {
   for( auto& view : views ) {
-    OwningPositionedView pos_view( std::move( view ), Coord{} );
+    OwningPositionedView pos_view{ .view  = std::move( view ),
+                                   .coord = Coord{} };
     push_back( std::move( pos_view ) );
   }
   recompute_child_positions();
@@ -750,8 +751,9 @@ void VerticalArrayView::recompute_child_positions() {
     }
     CHECK( x >= 0 );
     CHECK( x <= 0 + max_width );
-    OwningPositionedView pos_view( std::move( view ),
-                                   Coord{ .x = x, .y = y } );
+    OwningPositionedView pos_view{
+        .view  = std::move( view ),
+        .coord = Coord{ .x = x, .y = y } };
     ( *this )[i] = std::move( pos_view );
     y += size.h;
   }
@@ -764,7 +766,8 @@ HorizontalArrayView::HorizontalArrayView(
     vector<unique_ptr<View>> views, align how )
   : alignment_( how ) {
   for( auto& view : views ) {
-    OwningPositionedView pos_view( std::move( view ), Coord{} );
+    OwningPositionedView pos_view{ .view  = std::move( view ),
+                                   .coord = Coord{} };
     push_back( std::move( pos_view ) );
   }
   recompute_child_positions();
@@ -796,8 +799,9 @@ void HorizontalArrayView::recompute_child_positions() {
     }
     CHECK( y >= 0 );
     CHECK( y <= 0 + max_height );
-    OwningPositionedView pos_view( std::move( view ),
-                                   Coord{ .x = x, .y = y } );
+    OwningPositionedView pos_view{
+        .view  = std::move( view ),
+        .coord = Coord{ .x = x, .y = y } };
     ( *this )[i] = std::move( pos_view );
     x += size.w;
   }
@@ -898,8 +902,8 @@ OptionSelectView::OptionSelectView(
     auto view   = make_unique<OptionSelectItemView>( option );
     auto width  = view->delta().w;
     auto height = view->delta().h;
-    this->push_back(
-        OwningPositionedView( std::move( view ), so_far ) );
+    this->push_back( OwningPositionedView{
+        .view = std::move( view ), .coord = so_far } );
     // `view` is no longer available here (moved from).
     so_far.y += height;
     min_width = std::max( min_width, width );
