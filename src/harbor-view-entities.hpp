@@ -57,7 +57,8 @@ namespace ui {
 struct View;
 
 // TODO: Keep this generic and dedupe it with the one in colony
-// view.
+// view. Also, need to figure out how its methods override (or
+// not) the methods in ui::Object that accept the same events.
 struct AwaitView {
   virtual ~AwaitView() = default;
 

@@ -43,6 +43,7 @@ struct HarborCargo : public ui::View, public HarborSubView {
   maybe<DraggableObjectWithBounds> object_here(
       Coord const& where ) const override;
 
+  // Implement ui::Object.
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override;
 

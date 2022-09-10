@@ -13,12 +13,16 @@
 
 // Revolution Now
 #include "harbor-view-cargo.hpp"
+#include "harbor-view-inport.hpp"
 #include "harbor-view-market.hpp"
 #include "logger.hpp"
 #include "views.hpp"
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/maybe-util.hpp"
 
 using namespace std;
 
@@ -212,6 +216,10 @@ HarborViewComposited recomposite_harbor_view(
   PositionedHarborSubView market_commodities =
       HarborMarketCommodities::create( ss, ts, player,
                                        available );
+  UNWRAP_CHECK(
+      market_commodities_ref,
+      base::maybe_dynamic_cast<HarborMarketCommodities>(
+          *market_commodities.harbor ) );
   composition.entities[e_harbor_view_entity::market] =
       market_commodities.harbor;
   available = available.with_new_bottom_edge(
@@ -223,7 +231,18 @@ HarborViewComposited recomposite_harbor_view(
       HarborCargo::create( ss, ts, player, available );
   composition.entities[e_harbor_view_entity::cargo] =
       cargo.harbor;
+  available = available.with_new_bottom_edge(
+      cargo.owned.rect().top_edge() );
+  Coord const cargo_upper_left = cargo.owned.rect().upper_left();
   views.push_back( std::move( cargo.owned ) );
+
+  // [HarborInPortShips] ----------------------------------------
+  PositionedHarborSubView in_port = HarborInPortShips::create(
+      ss, ts, player, available, market_commodities_ref,
+      cargo_upper_left );
+  composition.entities[e_harbor_view_entity::in_port] =
+      in_port.harbor;
+  views.push_back( std::move( in_port.owned ) );
 
   // [Finish] ---------------------------------------------------
   auto invisible_view = std::make_unique<CompositeHarborSubView>(

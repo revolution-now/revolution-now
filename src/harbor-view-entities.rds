@@ -19,6 +19,7 @@ enum.e_harbor_view_entity {
   status_bar,
   market,
   cargo,
+  in_port,
 }
 
 # This object needs to specify all of the information necessary

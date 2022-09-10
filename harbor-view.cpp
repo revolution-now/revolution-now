@@ -265,73 +265,6 @@ class Backdrop : EntityBase {
 };
 NOTHROW_MOVE( Backdrop );
 
-class InPortBox : EntityBase {
- public:
-  static constexpr Delta block_size{ .w = 32, .h = 32 };
-  static constexpr SY    height_blocks{ 3 };
-  static constexpr SX    width_wide{ 3 };
-  static constexpr SX    width_narrow{ 2 };
-
-  Rect bounds() const {
-    return Rect::from( origin_, block_size * size_in_blocks_ +
-                                    Delta{ .w = 1, .h = 1 } );
-  }
-
-  void draw( rr::Renderer& renderer, Delta offset ) const {
-    rr::Painter painter = renderer.painter();
-    painter.draw_empty_rect( bounds().shifted_by( offset ),
-                             rr::Painter::e_border_mode::inside,
-                             gfx::pixel::white() );
-    rr::Typer typer = renderer.typer(
-        bounds().upper_left() + Delta{ .w = 2, .h = 2 } + offset,
-        gfx::pixel::white() );
-    typer.write( "In Port" );
-  }
-
-  InPortBox( InPortBox&& ) = default;
-  InPortBox& operator=( InPortBox&& ) = default;
-
-  static maybe<InPortBox> create(
-      PS& S, Delta const& size,
-      maybe<ActiveCargoBox> const& maybe_active_cargo_box,
-      maybe<MarketCommodities> const&
-          maybe_market_commodities ) {
-    maybe<InPortBox> res;
-    if( maybe_active_cargo_box && maybe_market_commodities ) {
-      bool  is_wide = !maybe_market_commodities->doubled_;
-      Delta size_in_blocks;
-      size_in_blocks.h = height_blocks;
-      size_in_blocks.w = is_wide ? width_wide : width_narrow;
-      auto origin =
-          maybe_active_cargo_box->bounds().upper_left() -
-          Delta{ .h = block_size.h } * size_in_blocks.h;
-      if( origin.y < 0 || origin.x < 0 ) return res;
-
-      res = InPortBox( S, origin,      //
-                       size_in_blocks, //
-                       is_wide );
-
-      auto lr_delta = res->bounds().lower_right() - Coord{};
-      if( lr_delta.w > size.w || lr_delta.h > size.h )
-        res = nothing;
-    }
-    return res;
-  }
-
-  Coord origin_{};
-  Delta size_in_blocks_{};
-  bool  is_wide_{};
-
- private:
-  InPortBox( PS& S, Coord origin, Delta size_in_blocks,
-             bool is_wide )
-    : EntityBase( S ),
-      origin_( origin ),
-      size_in_blocks_( size_in_blocks ),
-      is_wide_( is_wide ) {}
-};
-NOTHROW_MOVE( InPortBox );
-
 class InboundBox : EntityBase {
  public:
   Rect bounds() const {
@@ -588,85 +521,6 @@ class Dock : EntityBase {
 };
 NOTHROW_MOVE( Dock );
 
-// Base class for other entities that just consist of a collec-
-// tion of units.
-class UnitCollection : EntityBase {
- public:
-  Rect bounds() const {
-    auto Union = L2( _1.uni0n( _2 ) );
-    auto to_rect =
-        L( Rect::from( _.pixel_coord, g_tile_delta ) );
-    auto maybe_rect =
-        rl::all( units_ ).map( to_rect ).accumulate_monoid(
-            Union );
-    return maybe_rect.value_or( bounds_when_no_units_ );
-  }
-
-  void draw( rr::Renderer& renderer, Delta offset ) const {
-    rr::Painter        painter  = renderer.painter();
-    HarborState const& hb_state = S->harbor_state();
-    // auto bds = bounds();
-    // painter.draw_empty_rect( bds.shifted_by( offset ),
-    // rr::Painter::e_border_mode::inside, gfx::pixel::white() );
-    for( auto const& unit_with_pos : units_ )
-      if( !S->drag_state ||
-          any_cast<HarborDraggableObject_t const&>(
-              S->drag_state->object ) !=
-              HarborDraggableObject_t{
-                  HarborDraggableObject::unit{
-                      unit_with_pos.id } } )
-        render_unit( renderer,
-                     unit_with_pos.pixel_coord + offset,
-                     S->ss_.units.unit_for( unit_with_pos.id ),
-                     UnitRenderOptions{ .flag = false } );
-    if( hb_state.selected_unit ) {
-      for( auto [id, coord] : units_ ) {
-        if( id == *hb_state.selected_unit ) {
-          painter.draw_empty_rect(
-              Rect::from( coord, g_tile_delta )
-                      .shifted_by( offset ) -
-                  Delta{ .w = 1, .h = 1 },
-              rr::Painter::e_border_mode::in_out,
-              gfx::pixel::green() );
-          break;
-        }
-      }
-    }
-  }
-
-  maybe<pair<UnitId, Rect>> obj_under_cursor(
-      Coord const& pos ) const {
-    maybe<pair<UnitId, Rect>> res;
-    for( auto [id, coord] : units_ ) {
-      auto rect = Rect::from( coord, g_tile_delta );
-      if( pos.is_inside( rect ) ) {
-        res = pair{ id, rect };
-        // !! don't break in case units are overlapping.
-      }
-    }
-    return res;
-  }
-
-  UnitCollection( UnitCollection&& ) = default;
-  UnitCollection& operator=( UnitCollection&& ) = default;
-
- protected:
-  struct UnitWithPosition {
-    UnitId id;
-    Coord  pixel_coord;
-  };
-
-  UnitCollection( PS& S, Rect bounds_when_no_units,
-                  vector<UnitWithPosition>&& units )
-    : EntityBase( S ),
-      bounds_when_no_units_( bounds_when_no_units ),
-      units_( std::move( units ) ) {}
-  // Returned as rect when no units. This is actaully a point.
-  Rect                     bounds_when_no_units_;
-  vector<UnitWithPosition> units_;
-};
-NOTHROW_MOVE( UnitCollection );
-
 class UnitsOnDock : public UnitCollection {
  public:
   UnitsOnDock( UnitsOnDock&& ) = default;
@@ -715,52 +569,6 @@ class UnitsOnDock : public UnitCollection {
     : UnitCollection( S, dock_anchor, std::move( units ) ) {}
 };
 NOTHROW_MOVE( UnitsOnDock );
-
-class ShipsInPort : public UnitCollection {
- public:
-  ShipsInPort( ShipsInPort&& ) = default;
-  ShipsInPort& operator=( ShipsInPort&& ) = default;
-
-  static maybe<ShipsInPort> create(
-      PS& S, Delta const& size,
-      maybe<InPortBox> const& maybe_in_port_box ) {
-    maybe<ShipsInPort> res;
-    if( maybe_in_port_box ) {
-      vector<UnitWithPosition> units;
-      auto  in_port_bds = maybe_in_port_box->bounds();
-      Coord coord = in_port_bds.lower_right() - g_tile_delta;
-      for( auto id : harbor_units_in_port( S.ss_.units,
-                                           S.player.nation ) ) {
-        units.push_back( { id, coord } );
-        coord -= Delta{ .w = g_tile_delta.w };
-        if( coord.x < in_port_bds.left_edge() )
-          coord = Coord{
-              ( in_port_bds.upper_right() - g_tile_delta ).x,
-              coord.y - g_tile_delta.h };
-      }
-      // populate units...
-      res = ShipsInPort(
-          S, /*bounds_when_no_units_=*/
-          Rect::from( in_port_bds.lower_right(), Delta{} ),
-          /*units_=*/std::move( units ) );
-      auto bds = res->bounds();
-      auto lr_delta =
-          ( bds.lower_right() - Delta{ .w = 1, .h = 1 } ) -
-          Coord{};
-      if( lr_delta.w > size.w || lr_delta.h > size.h )
-        res = nothing;
-      if( bds.y < 0 ) res = nothing;
-      if( bds.x < 0 ) res = nothing;
-    }
-    return res;
-  }
-
- private:
-  ShipsInPort( PS& S, Rect dock_anchor,
-               vector<UnitWithPosition>&& units )
-    : UnitCollection( S, dock_anchor, std::move( units ) ) {}
-};
-NOTHROW_MOVE( ShipsInPort );
 
 class ShipsInbound : public UnitCollection {
  public:
@@ -863,22 +671,17 @@ NOTHROW_MOVE( ShipsOutbound );
 struct Entities {
   maybe<entity::DockAnchor>        dock_anchor;
   maybe<entity::Backdrop>          backdrop;
-  maybe<entity::InPortBox>         in_port_box;
   maybe<entity::InboundBox>        inbound_box;
   maybe<entity::OutboundBox>       outbound_box;
   maybe<entity::Exit>              exit_label;
   maybe<entity::Dock>              dock;
   maybe<entity::UnitsOnDock>       units_on_dock;
-  maybe<entity::ShipsInPort>       ships_in_port;
   maybe<entity::ShipsInbound>      ships_inbound;
   maybe<entity::ShipsOutbound>     ships_outbound;
 };
 NOTHROW_MOVE( Entities );
 
 void create_entities( PS& S, Entities* entities ) {
-  entities->active_cargo_box =         //
-      ActiveCargoBox::create( S, clip, //
-                              entities->market_commodities );
   entities->dock_anchor =                             //
       DockAnchor::create( S, clip,                    //
                           entities->active_cargo_box, //
@@ -886,10 +689,6 @@ void create_entities( PS& S, Entities* entities ) {
   entities->backdrop =           //
       Backdrop::create( S, clip, //
                         entities->dock_anchor );
-  entities->in_port_box =                            //
-      InPortBox::create( S, clip,                    //
-                         entities->active_cargo_box, //
-                         entities->market_commodities );
   entities->inbound_box =          //
       InboundBox::create( S, clip, //
                           entities->in_port_box );
@@ -907,19 +706,12 @@ void create_entities( PS& S, Entities* entities ) {
       UnitsOnDock::create( S, clip,               //
                            entities->dock_anchor, //
                            entities->dock );
-  entities->ships_in_port =         //
-      ShipsInPort::create( S, clip, //
-                           entities->in_port_box );
   entities->ships_inbound =          //
       ShipsInbound::create( S, clip, //
                             entities->inbound_box );
   entities->ships_outbound =          //
       ShipsOutbound::create( S, clip, //
                              entities->outbound_box );
-  entities->active_cargo =                             //
-      ActiveCargo::create( S, clip,                    //
-                           entities->active_cargo_box, //
-                           entities->ships_in_port );
 }
 
 void draw_entities( rr::Renderer&   renderer,
@@ -1023,17 +815,6 @@ maybe<HarborDragSrcInfo> drag_src_from_coord(
           /*rect=*/rect };
     }
   }
-  if( entities->ships_in_port.has_value() ) {
-    if( auto maybe_pair =
-            entities->ships_in_port->obj_under_cursor( coord );
-        maybe_pair ) {
-      auto const& [id, rect] = *maybe_pair;
-
-      res = HarborDragSrcInfo{
-          /*src=*/HarborDragSrc::inport{ /*id=*/id },
-          /*rect=*/rect };
-    }
-  }
   return res;
 }
 
@@ -1044,17 +825,6 @@ maybe<HarborDragDst_t> drag_dst_from_coord(
     Entities const* entities, Coord const& coord ) {
   using namespace entity;
   maybe<HarborDragDst_t> res;
-  if( entities->active_cargo.has_value() ) {
-    if( auto maybe_pair =
-            entities->active_cargo->obj_under_cursor( coord );
-        maybe_pair ) {
-      auto const& slot = maybe_pair->first;
-
-      res = HarborDragDst::cargo{
-          /*slot=*/slot //
-      };
-    }
-  }
   if( entities->dock.has_value() ) {
     if( coord.is_inside( entities->dock->bounds() ) )
       res = HarborDragDst::dock{};
@@ -1070,26 +840,6 @@ maybe<HarborDragDst_t> drag_dst_from_coord(
   if( entities->inbound_box.has_value() ) {
     if( coord.is_inside( entities->inbound_box->bounds() ) )
       res = HarborDragDst::inbound{};
-  }
-  if( entities->in_port_box.has_value() ) {
-    if( coord.is_inside( entities->in_port_box->bounds() ) )
-      res = HarborDragDst::inport{};
-  }
-  if( entities->ships_in_port.has_value() ) {
-    if( auto maybe_pair =
-            entities->ships_in_port->obj_under_cursor( coord );
-        maybe_pair ) {
-      auto const& ship = maybe_pair->first;
-
-      res = HarborDragDst::inport_ship{
-          /*id=*/ship, //
-      };
-    }
-  }
-  if( entities->market_commodities.has_value() ) {
-    if( coord.is_inside(
-            entities->market_commodities->bounds() ) )
-      return HarborDragDst::market{};
   }
   return res;
 }

@@ -46,8 +46,11 @@ struct HarborMarketCommodities : public ui::View,
   maybe<DraggableObjectWithBounds> object_here(
       Coord const& where ) const override;
 
+  // Implement ui::Object.
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override;
+
+  bool stacked() const { return stacked_; }
 
  private:
   static constexpr W single_layer_blocks_width  = 16;
@@ -58,7 +61,7 @@ struct HarborMarketCommodities : public ui::View,
   // Commodities will be 24x24 + 8 pixels for text.
   static constexpr auto sprite_scale = Delta{ .w = 32, .h = 32 };
   static inline auto    sprite_delta =
-      Delta{ .w = 1, .h = 1 }* sprite_scale;
+      Delta{ .w = 1, .h = 1 } * sprite_scale;
 
   static constexpr W single_layer_width =
       single_layer_blocks_width * sprite_scale.w;
