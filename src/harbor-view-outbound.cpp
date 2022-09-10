@@ -1,14 +1,14 @@
 /****************************************************************
-**harbor-view-inport.cpp
+**harbor-view-outbound.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2022-09-10.
 *
-* Description: In-port ships UI element within the harbor view.
+* Description: Outbound ships UI element within the harbor view.
 *
 *****************************************************************/
-#include "harbor-view-inport.hpp"
+#include "harbor-view-outbound.hpp"
 
 // Revolution Now
 #include "co-wait.hpp"
@@ -34,9 +34,9 @@ namespace rn {
 namespace {} // namespace
 
 /****************************************************************
-** HarborInPortShips
+** HarborOutboundShips
 *****************************************************************/
-Delta HarborInPortShips::size_blocks( bool is_wide ) {
+Delta HarborOutboundShips::size_blocks( bool is_wide ) {
   static constexpr H height_blocks{ 3 };
   static constexpr W width_wide{ 3 };
   static constexpr W width_narrow{ 2 };
@@ -45,12 +45,12 @@ Delta HarborInPortShips::size_blocks( bool is_wide ) {
 }
 
 // This is the size without the lower/right border.
-Delta HarborInPortShips::size_pixels( bool is_wide ) {
+Delta HarborOutboundShips::size_pixels( bool is_wide ) {
   Delta res = size_blocks( is_wide );
   return res * g_tile_delta;
 }
 
-Delta HarborInPortShips::delta() const {
+Delta HarborOutboundShips::delta() const {
   Delta res = size_pixels( is_wide_ );
   // +1 in each dimension for the border.
   ++res.w;
@@ -58,29 +58,29 @@ Delta HarborInPortShips::delta() const {
   return res;
 }
 
-maybe<int> HarborInPortShips::entity() const {
-  return static_cast<int>( e_harbor_view_entity::in_port );
+maybe<int> HarborOutboundShips::entity() const {
+  return static_cast<int>( e_harbor_view_entity::outbound );
 }
 
-ui::View& HarborInPortShips::view() noexcept { return *this; }
+ui::View& HarborOutboundShips::view() noexcept { return *this; }
 
-ui::View const& HarborInPortShips::view() const noexcept {
+ui::View const& HarborOutboundShips::view() const noexcept {
   return *this;
 }
 
-maybe<UnitId> HarborInPortShips::get_active_unit() const {
+maybe<UnitId> HarborOutboundShips::get_active_unit() const {
   return player_.old_world.harbor_state.selected_unit;
 }
 
-void HarborInPortShips::set_active_unit( UnitId unit_id ) {
+void HarborOutboundShips::set_active_unit( UnitId unit_id ) {
   CHECK( as_const( ss_.units )
              .ownership_of( unit_id )
              .holds<UnitOwnership::harbor>() );
   player_.old_world.harbor_state.selected_unit = unit_id;
 }
 
-maybe<HarborInPortShips::UnitWithPosition>
-HarborInPortShips::unit_at_location( Coord where ) const {
+maybe<HarborOutboundShips::UnitWithPosition>
+HarborOutboundShips::unit_at_location( Coord where ) const {
   for( auto [id, coord] : units( Coord{} ) ) {
     Rect const r = Rect::from( coord, g_tile_delta );
     if( where.is_inside( r ) )
@@ -89,8 +89,8 @@ HarborInPortShips::unit_at_location( Coord where ) const {
   return nothing;
 }
 
-maybe<DraggableObjectWithBounds> HarborInPortShips::object_here(
-    Coord const& where ) const {
+maybe<DraggableObjectWithBounds>
+HarborOutboundShips::object_here( Coord const& where ) const {
   maybe<UnitWithPosition> const unit = unit_at_location( where );
   if( !unit.has_value() ) return nothing;
   return DraggableObjectWithBounds{
@@ -98,13 +98,13 @@ maybe<DraggableObjectWithBounds> HarborInPortShips::object_here(
       .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
 }
 
-vector<HarborInPortShips::UnitWithPosition>
-HarborInPortShips::units( Coord origin ) const {
+vector<HarborOutboundShips::UnitWithPosition>
+HarborOutboundShips::units( Coord origin ) const {
   vector<UnitWithPosition> units;
   Rect const               r = rect( origin );
   Coord coord                = r.lower_right() - g_tile_delta;
   for( UnitId id :
-       harbor_units_in_port( ss_.units, player_.nation ) ) {
+       harbor_units_outbound( ss_.units, player_.nation ) ) {
     units.push_back( { .id = id, .pixel_coord = coord } );
     coord -= Delta{ .w = g_tile_delta.w };
     if( coord.x < r.left_edge() )
@@ -114,7 +114,7 @@ HarborInPortShips::units( Coord origin ) const {
   return units;
 }
 
-wait<> HarborInPortShips::click_on_unit( UnitId unit_id ) {
+wait<> HarborOutboundShips::click_on_unit( UnitId unit_id ) {
   if( get_active_unit() == unit_id ) {
     Unit const&  unit = ss_.units.unit_for( unit_id );
     ChoiceConfig config{
@@ -125,17 +125,17 @@ wait<> HarborInPortShips::click_on_unit( UnitId unit_id ) {
         .sort    = false,
     };
     config.options.push_back(
-        { .key          = "set sail",
-          .display_name = "Set sail for the New World." } );
+        { .key          = "sail to port",
+          .display_name = "Sail back to the European port." } );
     config.options.push_back(
         { .key = "no changes", .display_name = "No Changes." } );
 
     maybe<string> choice =
         co_await ts_.gui.optional_choice( config );
     if( !choice.has_value() ) co_return;
-    if( choice == "set sail" ) {
-      unit_sail_to_new_world( ss_.terrain, ss_.units, player_,
-                              unit_id );
+    if( choice == "sail to port" ) {
+      unit_sail_to_harbor( ss_.terrain, ss_.units, player_,
+                           unit_id );
       co_return;
     }
   }
@@ -143,7 +143,7 @@ wait<> HarborInPortShips::click_on_unit( UnitId unit_id ) {
   co_return;
 }
 
-wait<> HarborInPortShips::perform_click(
+wait<> HarborOutboundShips::perform_click(
     input::mouse_button_event_t const& event ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return;
@@ -154,8 +154,8 @@ wait<> HarborInPortShips::perform_click(
   co_await click_on_unit( unit->id );
 }
 
-void HarborInPortShips::draw( rr::Renderer& renderer,
-                              Coord         coord ) const {
+void HarborOutboundShips::draw( rr::Renderer& renderer,
+                                Coord         coord ) const {
   rr::Painter painter = renderer.painter();
   auto        r       = rect( coord );
   painter.draw_empty_rect( r, rr::Painter::e_border_mode::inside,
@@ -163,7 +163,7 @@ void HarborInPortShips::draw( rr::Renderer& renderer,
   rr::Typer typer =
       renderer.typer( r.upper_left() + Delta{ .w = 2, .h = 2 },
                       gfx::pixel::white() );
-  typer.write( "In Port" );
+  typer.write( "Outbound" );
 
   HarborState const& hb_state = player_.old_world.harbor_state;
 
@@ -182,30 +182,30 @@ void HarborInPortShips::draw( rr::Renderer& renderer,
   }
 }
 
-PositionedHarborSubView HarborInPortShips::create(
+PositionedHarborSubView HarborOutboundShips::create(
     SS& ss, TS& ts, Player& player, Rect,
     HarborMarketCommodities const& market_commodities,
-    Coord                          harbor_cargo_upper_left ) {
+    Coord                          harbor_inport_upper_left ) {
   // The canvas will exclude the market commodities.
-  unique_ptr<HarborInPortShips> view;
-  HarborSubView*                harbor_sub_view = nullptr;
+  unique_ptr<HarborOutboundShips> view;
+  HarborSubView*                  harbor_sub_view = nullptr;
 
   bool const  is_wide = !market_commodities.stacked();
   Delta const size    = size_pixels( is_wide );
   Coord const pos =
-      harbor_cargo_upper_left - Delta{ .h = size.h };
+      harbor_inport_upper_left - Delta{ .w = size.w };
 
-  view =
-      make_unique<HarborInPortShips>( ss, ts, player, is_wide );
+  view = make_unique<HarborOutboundShips>( ss, ts, player,
+                                           is_wide );
   harbor_sub_view = view.get();
   return PositionedHarborSubView{
       .owned  = { .view = std::move( view ), .coord = pos },
       .harbor = harbor_sub_view };
 }
 
-HarborInPortShips::HarborInPortShips( SS& ss, TS& ts,
-                                      Player& player,
-                                      bool    is_wide )
+HarborOutboundShips::HarborOutboundShips( SS& ss, TS& ts,
+                                          Player& player,
+                                          bool    is_wide )
   : HarborSubView( ss, ts, player ), is_wide_( is_wide ) {}
 
 } // namespace rn

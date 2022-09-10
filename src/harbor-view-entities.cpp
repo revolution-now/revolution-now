@@ -15,6 +15,7 @@
 #include "harbor-view-cargo.hpp"
 #include "harbor-view-inport.hpp"
 #include "harbor-view-market.hpp"
+#include "harbor-view-outbound.hpp"
 #include "logger.hpp"
 #include "views.hpp"
 
@@ -242,7 +243,18 @@ HarborViewComposited recomposite_harbor_view(
       cargo_upper_left );
   composition.entities[e_harbor_view_entity::in_port] =
       in_port.harbor;
+  Coord const inport_upper_left =
+      in_port.owned.rect().upper_left();
   views.push_back( std::move( in_port.owned ) );
+
+  // [HarborOutboundShips]
+  // ----------------------------------------
+  PositionedHarborSubView outbound = HarborOutboundShips::create(
+      ss, ts, player, available, market_commodities_ref,
+      inport_upper_left );
+  composition.entities[e_harbor_view_entity::outbound] =
+      outbound.harbor;
+  views.push_back( std::move( outbound.owned ) );
 
   // [Finish] ---------------------------------------------------
   auto invisible_view = std::make_unique<CompositeHarborSubView>(

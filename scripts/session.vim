@@ -17,10 +17,9 @@ let s:stems = [
  \ 'new-harbor-view',
  \ 'colview-entities',
  \ 'harbor-view-entities',
- \ 'harbor-view-cargo',
- \ 'harbor-view-inport',
+ \ 'harbor-view-outbound',
+ \ 'harbor-view-inbound',
  \ 'harbor-view-dock',
- \ 'harbor-view-inout-bound',
 \]
 
 let s:luas = [
