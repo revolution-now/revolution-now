@@ -120,6 +120,10 @@ void HarborCargo::draw( rr::Renderer& renderer,
   --r.h;
   auto const grid = r.to_grid_noalign( g_tile_delta );
   for( Rect const rect : grid )
+    painter.draw_empty_rect( rect,
+                             rr::Painter::e_border_mode::in_out,
+                             gfx::pixel::white() );
+  for( Rect const rect : grid )
     painter.draw_solid_rect( rect, gfx::pixel::white() );
   maybe<UnitId> active_unit = get_active_unit();
   if( !active_unit.has_value() ) return;
@@ -130,8 +134,9 @@ void HarborCargo::draw( rr::Renderer& renderer,
   auto const& cargo_slots = unit.cargo().slots();
   auto        zipped = rl::zip( rl::ints(), cargo_slots, grid );
   for( auto const [idx, cargo_slot, rect] : zipped ) {
-    painter.draw_solid_rect( rect.edges_removed(),
-                             gfx::pixel::wood() );
+    painter.draw_solid_rect(
+        rect.with_inc_size().edges_removed(),
+        gfx::pixel::wood() );
     if( dragging_.has_value() && dragging_->slot == idx )
       continue;
     Coord const dst_coord       = rect.upper_left();
