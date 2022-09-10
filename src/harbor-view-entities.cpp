@@ -14,6 +14,7 @@
 // Revolution Now
 #include "harbor-view-backdrop.hpp"
 #include "harbor-view-cargo.hpp"
+#include "harbor-view-dock.hpp"
 #include "harbor-view-exit.hpp"
 #include "harbor-view-inbound.hpp"
 #include "harbor-view-inport.hpp"
@@ -269,6 +270,9 @@ HarborViewComposited recomposite_harbor_view(
   PositionedHarborSubView backdrop = HarborBackdrop::create(
       ss, ts, player, canvas_rect, cargo_upper_right,
       inport_upper_right );
+  UNWRAP_CHECK( backdrop_ref,
+                base::maybe_dynamic_cast<HarborBackdrop>(
+                    *backdrop.harbor ) );
   composition.entities[e_harbor_view_entity::backdrop] =
       backdrop.harbor;
   // NOTE: this one needs to be inserted at the beginning because
@@ -294,6 +298,13 @@ HarborViewComposited recomposite_harbor_view(
   composition.entities[e_harbor_view_entity::inbound] =
       inbound.harbor;
   views.push_back( std::move( inbound.owned ) );
+
+  // [HarborDockUnits]
+  // ----------------------------------------
+  PositionedHarborSubView dock = HarborDockUnits::create(
+      ss, ts, player, available, backdrop_ref );
+  composition.entities[e_harbor_view_entity::dock] = dock.harbor;
+  views.push_back( std::move( dock.owned ) );
 
   // [Finish] ---------------------------------------------------
   auto invisible_view = std::make_unique<CompositeHarborSubView>(
