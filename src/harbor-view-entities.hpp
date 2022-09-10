@@ -70,6 +70,8 @@ struct AwaitView {
 
 } // namespace ui
 
+struct harbor_view_exit_interrupt : std::exception {};
+
 /****************************************************************
 ** HarborSubView
 *****************************************************************/

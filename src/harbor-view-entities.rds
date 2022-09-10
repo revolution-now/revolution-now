@@ -22,6 +22,7 @@ enum.e_harbor_view_entity {
   in_port,
   outbound,
   inbound,
+  exit,
 }
 
 # This object needs to specify all of the information necessary

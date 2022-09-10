@@ -41,8 +41,6 @@ namespace {
 
 using namespace std;
 
-struct harbor_view_exit_interrupt : std::exception {};
-
 } // namespace
 
 /****************************************************************

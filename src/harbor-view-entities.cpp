@@ -13,6 +13,7 @@
 
 // Revolution Now
 #include "harbor-view-cargo.hpp"
+#include "harbor-view-exit.hpp"
 #include "harbor-view-inbound.hpp"
 #include "harbor-view-inport.hpp"
 #include "harbor-view-market.hpp"
@@ -226,7 +227,18 @@ HarborViewComposited recomposite_harbor_view(
       market_commodities.harbor;
   available = available.with_new_bottom_edge(
       market_commodities.owned.rect().top_edge() );
+  Coord const market_lower_right =
+      market_commodities.owned.rect().lower_right();
+  Coord const market_upper_right =
+      market_commodities.owned.rect().upper_right();
   views.push_back( std::move( market_commodities.owned ) );
+
+  // [HarborExitButton] -----------------------------------------
+  PositionedHarborSubView exit = HarborExitButton::create(
+      ss, ts, player, canvas_rect, market_upper_right,
+      market_lower_right );
+  composition.entities[e_harbor_view_entity::exit] = exit.harbor;
+  views.push_back( std::move( exit.owned ) );
 
   // [HarborCargo] ----------------------------------------------
   PositionedHarborSubView cargo =

@@ -75,99 +75,9 @@ namespace {
 constexpr int const k_default_market_quantity = 100;
 
 /****************************************************************
-** Draggable Object
-*****************************************************************/
-maybe<HarborDraggableObject_t> cargo_slot_to_draggable(
-    CargoSlotIndex slot_idx, CargoSlot_t const& slot ) {
-  switch( slot.to_enum() ) {
-    case CargoSlot::e::empty: {
-      return nothing;
-    }
-    case CargoSlot::e::overflow: {
-      return nothing;
-    }
-    case CargoSlot::e::cargo: {
-      auto& cargo = slot.get<CargoSlot::cargo>();
-      return overload_visit(
-          cargo.contents,
-          []( Cargo::unit u ) -> HarborDraggableObject_t {
-            return HarborDraggableObject::unit{ /*id=*/u.id };
-          },
-          [&]( Cargo::commodity const& c )
-              -> HarborDraggableObject_t {
-            return HarborDraggableObject::cargo_commodity{
-                /*comm=*/c.obj,
-                /*slot=*/slot_idx };
-          } );
-    }
-  }
-}
-
-maybe<Cargo_t> draggable_to_cargo_object(
-    HarborDraggableObject_t const& draggable ) {
-  switch( draggable.to_enum() ) {
-    case HarborDraggableObject::e::unit: {
-      auto& val = draggable.get<HarborDraggableObject::unit>();
-      return Cargo::unit{ val.id };
-    }
-    case HarborDraggableObject::e::market_commodity:
-      return nothing;
-    case HarborDraggableObject::e::cargo_commodity: {
-      auto& val =
-          draggable
-              .get<HarborDraggableObject::cargo_commodity>();
-      return Cargo::commodity{ val.comm };
-    }
-  }
-}
-
-maybe<HarborDraggableObject_t> draggable_in_cargo_slot(
-    PS& S, int slot ) {
-  HarborState const& hb_state = S.harbor_state();
-  return hb_state.selected_unit
-      .fmap( [&]( UnitId id ) {
-        return S.ss_.units.unit_for( id );
-      } )
-      .bind( LC( _.cargo().at( slot ) ) )
-      .bind( LC( cargo_slot_to_draggable( slot, _ ) ) );
-}
-
-/****************************************************************
-** Helpers
-*****************************************************************/
-// Both rl::all and the lambda will take rect_proxy by reference
-// so we therefore must have this function take a reference to a
-// rect_proxy that outlives the use of the returned range. And of
-// course the Rect referred to by the rect_proxy must outlive
-// everything.
-auto range_of_rects( RectGridProxyIteratorHelper const&
-                         rect_proxy ATTR_LIFETIMEBOUND ) {
-  return rl::all( rect_proxy )
-      .map( [&rect_proxy]( Coord coord ) {
-        return Rect::from( coord, rect_proxy.delta() );
-      } );
-}
-
-auto range_of_rects( RectGridProxyIteratorHelper&& ) = delete;
-
-/****************************************************************
 ** Harbor View Entities
 *****************************************************************/
 namespace entity {
-
-struct EntityBase {
-  EntityBase( PS& S ) : S{ &S } {}
-
-  PS* S;
-};
-
-// Each entity is defined by a struct that holds its state and
-// that has the following methods:
-//
-//  void draw( rr::Renderer& renderer, Delta offset ) const;
-//  Rect bounds() const;
-//  static maybe<EntityClass> create( ... );
-//  maybe<pair<T,Rect>> obj_under_cursor( Coord const& );
 
 class DockAnchor : EntityBase {
   static constexpr H above_active_cargo_box{ 32 };
@@ -190,7 +100,7 @@ class DockAnchor : EntityBase {
     renderer.typer( loc, gfx::pixel::white() ).write( "X" );
   }
 
-  DockAnchor( DockAnchor&& ) = default;
+  DockAnchor( DockAnchor&& )            = default;
   DockAnchor& operator=( DockAnchor&& ) = default;
 
   static maybe<DockAnchor> create(
@@ -239,7 +149,7 @@ class Backdrop : EntityBase {
         Rect::from( upper_left_of_render_rect_, size_ ) );
   }
 
-  Backdrop( Backdrop&& ) = default;
+  Backdrop( Backdrop&& )            = default;
   Backdrop& operator=( Backdrop&& ) = default;
 
   static maybe<Backdrop> create(
@@ -265,66 +175,6 @@ class Backdrop : EntityBase {
 };
 NOTHROW_MOVE( Backdrop );
 
-class Exit : EntityBase {
-  static constexpr Delta exit_block_pixels{ .w = 26, .h = 26 };
-
- public:
-  Rect bounds() const {
-    return Rect::from( origin_, exit_block_pixels );
-  }
-
-  void draw( rr::Renderer& renderer, Delta offset ) const {
-    rr::Painter   painter   = renderer.painter();
-    auto          bds       = bounds();
-    static string text      = "Exit";
-    Delta         text_size = Delta::from_gfx(
-                rr::rendered_text_line_size_pixels( text ) );
-    rr::Typer typer = renderer.typer(
-        centered( text_size, bds + Delta{ .w = 1, .h = 1 } ) +
-            offset,
-        gfx::pixel::red() );
-    typer.write( text );
-    painter.draw_empty_rect( bds.shifted_by( offset ),
-                             rr::Painter::e_border_mode::in_out,
-                             gfx::pixel::white() );
-  }
-
-  Exit( Exit&& ) = default;
-  Exit& operator=( Exit&& ) = default;
-
-  static maybe<Exit> create( PS& S, Delta const& size,
-                             maybe<MarketCommodities> const&
-                                 maybe_market_commodities ) {
-    maybe<Exit> res;
-    if( maybe_market_commodities ) {
-      auto origin =
-          maybe_market_commodities->bounds().lower_right() -
-          Delta{ .h = exit_block_pixels.h };
-      auto lr_delta = origin + exit_block_pixels - Coord{};
-      if( lr_delta.w > size.w || lr_delta.h > size.h ) {
-        origin =
-            maybe_market_commodities->bounds().upper_right() -
-            exit_block_pixels;
-      }
-      res      = Exit( S, origin );
-      lr_delta = ( res->bounds().lower_right() -
-                   Delta{ .w = 1, .h = 1 } ) -
-                 Coord{};
-      if( lr_delta.w > size.w || lr_delta.h > size.h )
-        res = nothing;
-      if( res->bounds().y < 0 ) res = nothing;
-      if( res->bounds().x < 0 ) res = nothing;
-    }
-    return res;
-  }
-
- private:
-  Exit( PS& S, Coord origin )
-    : EntityBase( S ), origin_( origin ) {}
-  Coord origin_{};
-};
-NOTHROW_MOVE( Exit );
-
 class Dock : EntityBase {
   static constexpr Delta dock_block_pixels{ .w = 24, .h = 24 };
   static inline Delta    dock_block_pixels_delta =
@@ -349,7 +199,7 @@ class Dock : EntityBase {
           gfx::pixel::white() );
   }
 
-  Dock( Dock&& ) = default;
+  Dock( Dock&& )            = default;
   Dock& operator=( Dock&& ) = default;
 
   static maybe<Dock> create(
@@ -390,7 +240,7 @@ NOTHROW_MOVE( Dock );
 
 class UnitsOnDock : public UnitCollection {
  public:
-  UnitsOnDock( UnitsOnDock&& ) = default;
+  UnitsOnDock( UnitsOnDock&& )            = default;
   UnitsOnDock& operator=( UnitsOnDock&& ) = default;
 
   static maybe<UnitsOnDock> create(
@@ -444,11 +294,10 @@ NOTHROW_MOVE( UnitsOnDock );
 //- Stats area (money, tax rate, etc.)
 
 struct Entities {
-  maybe<entity::DockAnchor>        dock_anchor;
-  maybe<entity::Backdrop>          backdrop;
-  maybe<entity::Exit>              exit_label;
-  maybe<entity::Dock>              dock;
-  maybe<entity::UnitsOnDock>       units_on_dock;
+  maybe<entity::DockAnchor>  dock_anchor;
+  maybe<entity::Backdrop>    backdrop;
+  maybe<entity::Dock>        dock;
+  maybe<entity::UnitsOnDock> units_on_dock;
 };
 NOTHROW_MOVE( Entities );
 
@@ -460,9 +309,6 @@ void create_entities( PS& S, Entities* entities ) {
   entities->backdrop =           //
       Backdrop::create( S, clip, //
                         entities->dock_anchor );
-  entities->exit_label =     //
-      Exit::create( S, clip, //
-                    entities->market_commodities );
   entities->dock =                         //
       Dock::create( S, clip,               //
                     entities->dock_anchor, //
@@ -483,8 +329,6 @@ void draw_entities( rr::Renderer&   renderer,
     entities.backdrop->draw( renderer, offset );
   if( entities.dock_anchor.has_value() )
     entities.dock_anchor->draw( renderer, offset );
-  if( entities.exit_label.has_value() )
-    entities.exit_label->draw( renderer, offset );
   if( entities.dock.has_value() )
     entities.dock->draw( renderer, offset );
   if( entities.units_on_dock.has_value() )
@@ -566,7 +410,7 @@ HarborDraggableObject_t draggable_from_src(
   return overload_visit<HarborDraggableObject_t>(
       drag_src,
       [&]( dock const& o ) {
-        return HarborDraggableObject::unit{ o.id };
+    return HarborDraggableObject::unit{ o.id };
       },
 }
 
@@ -966,36 +810,4 @@ struct DragPerform {
 };
 
 } // namespace
-
-/****************************************************************
-** The Harbor Plane
-*****************************************************************/
-struct HarborPlane::Impl : public Plane {
-  e_input_handled input(
-      input::event_t const& event_untranslated ) override {
-    switch( event.to_enum() ) {
-      case input::e_input_event::mouse_button_event: {
-        auto& val = event.get<input::mouse_button_event_t>();
-        if( val.buttons !=
-            input::e_mouse_button_event::left_down )
-          return e_input_handled::yes;
-
-        // Exit button.
-        if( entities_.exit_label.has_value() ) {
-          if( val.pos.is_inside(
-                  entities_.exit_label->bounds() ) ) {
-            S_.exit_promise.set_value_emplace();
-            return e_input_handled::yes;
-          }
-        }
-        return handled;
-      }
-      case input::e_input_event::mouse_drag_event:
-        return e_input_handled::no;
-    }
-    UNREACHABLE_LOCATION;
-  }
-};
-
 } // namespace rn
-
