@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "dragdrop.hpp"
 #include "harbor-view-entities.hpp"
 
 namespace rn {
@@ -24,7 +25,10 @@ struct Player;
 /****************************************************************
 ** HarborCargo
 *****************************************************************/
-struct HarborCargo : public ui::View, public HarborSubView {
+struct HarborCargo : public ui::View,
+                     public HarborSubView,
+                     public IDragSource,
+                     public IDragSink {
   static PositionedHarborSubView<HarborCargo> create(
       SS& ss, TS& ts, Player& player, Rect canvas );
 
@@ -46,11 +50,31 @@ struct HarborCargo : public ui::View, public HarborSubView {
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override;
 
+  // Implement IDragSource.
+  bool try_drag( std::any const& a,
+                 Coord const&    where ) override;
+
+  // Implement IDragSource.
+  void cancel_drag() override;
+
+  // Implement IDragSource.
+  void disown_dragged_object() override;
+
+  // Impelement IDragSink.
+  maybe<std::any> can_receive(
+      std::any const& a, int from_entity,
+      Coord const& where ) const override;
+
+  // Impelement IDragSink.
+  void drop( std::any const& a, Coord const& where ) override;
+
  private:
   maybe<UnitId> get_active_unit() const;
 
   maybe<HarborDraggableObject_t> draggable_in_cargo_slot(
       int slot ) const;
+
+  maybe<int> slot_under_cursor( Coord where ) const;
 
   struct Draggable {
     int slot = {};

@@ -124,7 +124,7 @@ struct NewHarborPlane::Impl : public Plane {
         },
         [&]( market_commodity const& o ) {
           render_commodity( renderer, sprite_upper_left,
-                            o.type );
+                            o.comm.type );
         },
         [&]( cargo_commodity const& o ) {
           render_commodity( renderer, sprite_upper_left,

@@ -67,7 +67,8 @@ HarborMarketCommodities::object_here(
   return DraggableObjectWithBounds{
       .obj =
           HarborDraggableObject::market_commodity{
-              .type = comm_type },
+              .comm = Commodity{ .type     = comm_type,
+                                 .quantity = 100 } },
       .bounds = box };
 }
 

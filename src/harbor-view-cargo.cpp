@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "commodity.hpp"
+#include "harbor-units.hpp"
 #include "render.hpp"
 #include "tiles.hpp"
 
@@ -19,6 +20,7 @@
 #include "ss/cargo.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/unit.hpp"
 #include "ss/units.hpp"
 
 // base
@@ -84,14 +86,19 @@ HarborCargo::draggable_in_cargo_slot( int slot ) const {
   }
 }
 
-maybe<DraggableObjectWithBounds> HarborCargo::object_here(
-    Coord const& where ) const {
+maybe<int> HarborCargo::slot_under_cursor( Coord where ) const {
   maybe<UnitId> active_unit = get_active_unit();
   if( !active_unit.has_value() ) return nothing;
   Unit const& unit  = ss_.units.unit_for( *active_unit );
   auto        boxes = rect( Coord{} ) / g_tile_delta;
-  UNWRAP_CHECK( slot, boxes.rasterize( where / g_tile_delta ) );
+  UNWRAP_RETURN( slot, boxes.rasterize( where / g_tile_delta ) );
   if( slot >= unit.cargo().slots_total() ) return nothing;
+  return slot;
+}
+
+maybe<DraggableObjectWithBounds> HarborCargo::object_here(
+    Coord const& where ) const {
+  UNWRAP_RETURN( slot, slot_under_cursor( where ) );
   maybe<HarborDraggableObject_t> const draggable =
       draggable_in_cargo_slot( slot );
   if( !draggable.has_value() ) return nothing;
@@ -104,8 +111,161 @@ maybe<DraggableObjectWithBounds> HarborCargo::object_here(
     scale = kCommodityTileSize;
   }
   Rect const box = Rect::from( box_origin, scale );
-  return DraggableObjectWithBounds{ .obj    = draggable,
+  return DraggableObjectWithBounds{ .obj    = *draggable,
                                     .bounds = box };
+}
+
+bool HarborCargo::try_drag( any const& a, Coord const& ) {
+  // This method will only be called if there was already an ob-
+  // ject under the cursor, which can always be dragged, so long
+  // as the active ship is in port.
+  UNWRAP_CHECK( active_unit, get_active_unit() );
+  if( !is_unit_in_port( ss_.units, active_unit ) ) return false;
+  // Now we have to get the slot of the thing being dragged.
+  UNWRAP_DRAGGABLE( o, a );
+  int slot = 0;
+  switch( o.to_enum() ) {
+    case HarborDraggableObject::e::unit: {
+      UnitId const unit_id =
+          o.get<HarborDraggableObject::unit>().id;
+      UNWRAP_CHECK( unit_slot, ss_.units.unit_for( active_unit )
+                                   .cargo()
+                                   .find_unit( unit_id ) );
+      slot = unit_slot;
+      break;
+    }
+    case HarborDraggableObject::e::market_commodity: {
+      SHOULD_NOT_BE_HERE;
+    }
+    case HarborDraggableObject::e::cargo_commodity: {
+      slot =
+          o.get<HarborDraggableObject::cargo_commodity>().slot;
+      break;
+    }
+  }
+  dragging_ = Draggable{ .slot = slot };
+  return true;
+}
+
+void HarborCargo::cancel_drag() { dragging_ = nothing; }
+
+void HarborCargo::disown_dragged_object() {
+  UNWRAP_CHECK( slot, dragging_.member( &Draggable::slot ) );
+  UNWRAP_CHECK( active_unit_id, get_active_unit() );
+  Unit const& active_unit = ss_.units.unit_for( active_unit_id );
+  CargoSlot_t const& held = active_unit.cargo()[slot];
+  switch( held.to_enum() ) {
+    case CargoSlot::e::empty:
+    case CargoSlot::e::overflow: //
+      SHOULD_NOT_BE_HERE;
+    case CargoSlot::e::cargo: {
+      Cargo_t const& cargo =
+          held.get<CargoSlot::cargo>().contents;
+      switch( cargo.to_enum() ) {
+        case Cargo::e::unit: {
+          UnitId const held_id = cargo.get<Cargo::unit>().id;
+          ss_.units.disown_unit( held_id );
+          break;
+        }
+        case Cargo::e::commodity: {
+          rm_commodity_from_cargo( ss_.units, active_unit_id,
+                                   slot );
+          break;
+        }
+      }
+    }
+  }
+}
+
+maybe<any> HarborCargo::can_receive( any const&   a,
+                                     int          from_entity,
+                                     Coord const& where ) const {
+  UNWRAP_CHECK( active_unit_id, get_active_unit() );
+  CONVERT_ENTITY( entity_enum, from_entity );
+  if( !is_unit_in_port( ss_.units, active_unit_id ) )
+    return false;
+  Unit const& active_unit = ss_.units.unit_for( active_unit_id );
+  UNWRAP_DRAGGABLE( o, a );
+  UNWRAP_RETURN( slot, slot_under_cursor( where ) );
+  switch( o.to_enum() ) {
+    case HarborDraggableObject::e::unit: {
+      auto const&  alt = o.get<HarborDraggableObject::unit>();
+      UnitId const dragged_id = alt.id;
+      if( entity_enum == e_harbor_view_entity::cargo ) {
+        UNWRAP_CHECK( from_slot, active_unit.cargo().find_unit(
+                                     dragged_id ) );
+        if( !active_unit.cargo()
+                 .fits_somewhere_with_item_removed(
+                     ss_.units, Cargo::unit{ .id = dragged_id },
+                     from_slot, slot ) )
+          return nothing;
+      } else {
+        if( !active_unit.cargo().fits_somewhere(
+                ss_.units, Cargo::unit{ .id = dragged_id },
+                slot ) )
+          return nothing;
+      }
+      return HarborDraggableObject::unit{ .id = dragged_id };
+    }
+    case HarborDraggableObject::e::market_commodity: {
+      auto const& alt =
+          o.get<HarborDraggableObject::market_commodity>();
+      Commodity const& comm      = alt.comm;
+      Commodity        corrected = comm;
+      corrected.quantity         = std::min(
+          corrected.quantity,
+          active_unit.cargo().max_commodity_quantity_that_fits(
+              comm.type ) );
+      if( corrected.quantity == 0 ) return nothing;
+      return HarborDraggableObject::market_commodity{
+          .comm = corrected };
+    }
+    case HarborDraggableObject::e::cargo_commodity: {
+      auto const& alt =
+          o.get<HarborDraggableObject::cargo_commodity>();
+      Commodity const& comm      = alt.comm;
+      Commodity        corrected = comm;
+      corrected.quantity         = std::min(
+          corrected.quantity,
+          active_unit.cargo().max_commodity_quantity_that_fits(
+              comm.type ) );
+      if( corrected.quantity == 0 ) return nothing;
+      return HarborDraggableObject::cargo_commodity{
+          .comm = corrected, .slot = alt.slot };
+    }
+  }
+}
+
+void HarborCargo::drop( any const& a, Coord const& where ) {
+  UNWRAP_CHECK( slot, slot_under_cursor( where ) );
+  UNWRAP_CHECK( active_unit_id, get_active_unit() );
+  UNWRAP_DRAGGABLE( o, a );
+  switch( o.to_enum() ) {
+    case HarborDraggableObject::e::unit: {
+      auto const&  alt = o.get<HarborDraggableObject::unit>();
+      UnitId const dragged_id = alt.id;
+      ss_.units.change_to_cargo_somewhere( active_unit_id,
+                                           dragged_id, slot );
+      break;
+    }
+    case HarborDraggableObject::e::market_commodity: {
+      auto const& alt =
+          o.get<HarborDraggableObject::market_commodity>();
+      Commodity const& comm = alt.comm;
+      add_commodity_to_cargo( ss_.units, comm, active_unit_id,
+                              slot,
+                              /*try_other_slots=*/true );
+      break;
+    }
+    case HarborDraggableObject::e::cargo_commodity: {
+      auto const& alt =
+          o.get<HarborDraggableObject::cargo_commodity>();
+      Commodity const& comm = alt.comm;
+      add_commodity_to_cargo( ss_.units, comm, active_unit_id,
+                              slot,
+                              /*try_other_slots=*/true );
+    }
+  }
 }
 
 void HarborCargo::draw( rr::Renderer& renderer,

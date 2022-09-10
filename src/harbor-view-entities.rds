@@ -37,7 +37,7 @@ sumtype.HarborDraggableObject {
     id 'UnitId',
   },
   market_commodity {
-    type 'e_commodity',
+    comm 'Commodity',
   },
   cargo_commodity {
     comm 'Commodity',
