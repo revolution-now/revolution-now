@@ -27,9 +27,8 @@ struct Player;
 *****************************************************************/
 struct HarborMarketCommodities : public ui::View,
                                  public HarborSubView {
-  static PositionedHarborSubView create( SS& ss, TS& ts,
-                                         Player& player,
-                                         Rect    canvas );
+  static PositionedHarborSubView<HarborMarketCommodities> create(
+      SS& ss, TS& ts, Player& player, Rect canvas );
 
   HarborMarketCommodities( SS& ss, TS& ts, Player& player,
                            bool stacked );

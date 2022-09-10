@@ -63,9 +63,10 @@ void HarborExitButton::draw( rr::Renderer& renderer,
                            gfx::pixel::white() );
 }
 
-PositionedHarborSubView HarborExitButton::create(
-    SS& ss, TS& ts, Player& player, Rect canvas,
-    Coord market_upper_right, Coord market_lower_right ) {
+PositionedHarborSubView<HarborExitButton>
+HarborExitButton::create( SS& ss, TS& ts, Player& player,
+                          Rect canvas, Coord market_upper_right,
+                          Coord market_lower_right ) {
   // The canvas will exclude the market commodities.
   unique_ptr<HarborExitButton> view;
   HarborSubView*               harbor_sub_view = nullptr;
@@ -79,10 +80,12 @@ PositionedHarborSubView HarborExitButton::create(
   origin -= Delta{ .w = 1, .h = 1 };
 
   view = make_unique<HarborExitButton>( ss, ts, player );
-  harbor_sub_view = view.get();
-  return PositionedHarborSubView{
+  harbor_sub_view            = view.get();
+  HarborExitButton* p_actual = view.get();
+  return PositionedHarborSubView<HarborExitButton>{
       .owned  = { .view = std::move( view ), .coord = origin },
-      .harbor = harbor_sub_view };
+      .harbor = harbor_sub_view,
+      .actual = p_actual };
 }
 
 HarborExitButton::HarborExitButton( SS& ss, TS& ts,

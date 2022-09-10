@@ -28,7 +28,7 @@ struct Player;
 *****************************************************************/
 struct HarborOutboundShips : public ui::View,
                              public HarborSubView {
-  static PositionedHarborSubView create(
+  static PositionedHarborSubView<HarborOutboundShips> create(
       SS& ss, TS& ts, Player& player, Rect canvas,
       HarborMarketCommodities const& market_commodities,
       Coord                          harbor_inport_upper_left );

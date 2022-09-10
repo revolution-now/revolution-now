@@ -104,8 +104,9 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
   CHECK( comm_it == refl::enum_values<e_commodity>.end() );
 }
 
-PositionedHarborSubView HarborMarketCommodities::create(
-    SS& ss, TS& ts, Player& player, Rect canvas ) {
+PositionedHarborSubView<HarborMarketCommodities>
+HarborMarketCommodities::create( SS& ss, TS& ts, Player& player,
+                                 Rect canvas ) {
   Delta const size = canvas.delta();
   W           comm_block_width =
       size.w / SX{ refl::enum_count<e_commodity> };
@@ -133,10 +134,12 @@ PositionedHarborSubView HarborMarketCommodities::create(
   };
   view = make_unique<HarborMarketCommodities>( ss, ts, player,
                                                stacked );
-  harbor_sub_view = view.get();
-  return PositionedHarborSubView{
+  harbor_sub_view                   = view.get();
+  HarborMarketCommodities* p_actual = view.get();
+  return PositionedHarborSubView<HarborMarketCommodities>{
       .owned  = { .view = std::move( view ), .coord = pos },
-      .harbor = harbor_sub_view };
+      .harbor = harbor_sub_view,
+      .actual = p_actual };
 }
 
 HarborMarketCommodities::HarborMarketCommodities( SS& ss, TS& ts,

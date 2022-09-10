@@ -26,7 +26,7 @@ struct Player;
 ** HarborExitButton
 *****************************************************************/
 struct HarborExitButton : public ui::View, public HarborSubView {
-  static PositionedHarborSubView create(
+  static PositionedHarborSubView<HarborExitButton> create(
       SS& ss, TS& ts, Player& player, Rect canvas,
       Coord market_upper_right, Coord market_lower_right );
 

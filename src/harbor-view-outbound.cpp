@@ -182,7 +182,8 @@ void HarborOutboundShips::draw( rr::Renderer& renderer,
   }
 }
 
-PositionedHarborSubView HarborOutboundShips::create(
+PositionedHarborSubView<HarborOutboundShips>
+HarborOutboundShips::create(
     SS& ss, TS& ts, Player& player, Rect,
     HarborMarketCommodities const& market_commodities,
     Coord                          harbor_inport_upper_left ) {
@@ -197,10 +198,12 @@ PositionedHarborSubView HarborOutboundShips::create(
 
   view = make_unique<HarborOutboundShips>( ss, ts, player,
                                            is_wide );
-  harbor_sub_view = view.get();
-  return PositionedHarborSubView{
+  harbor_sub_view               = view.get();
+  HarborOutboundShips* p_actual = view.get();
+  return PositionedHarborSubView<HarborOutboundShips>{
       .owned  = { .view = std::move( view ), .coord = pos },
-      .harbor = harbor_sub_view };
+      .harbor = harbor_sub_view,
+      .actual = p_actual };
 }
 
 HarborOutboundShips::HarborOutboundShips( SS& ss, TS& ts,

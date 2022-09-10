@@ -158,7 +158,7 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
   return res;
 }
 
-PositionedHarborSubView HarborBackdrop::create(
+PositionedHarborSubView<HarborBackdrop> HarborBackdrop::create(
     SS& ss, TS& ts, Player& player, Rect canvas,
     Coord cargo_upper_right, Coord inport_upper_right ) {
   // The canvas will exclude the market commodities.
@@ -172,9 +172,11 @@ PositionedHarborSubView HarborBackdrop::create(
   view            = make_unique<HarborBackdrop>( ss, ts, player,
                                       canvas.delta(), layout );
   harbor_sub_view = view.get();
-  return PositionedHarborSubView{
+  HarborBackdrop* p_actual = view.get();
+  return PositionedHarborSubView<HarborBackdrop>{
       .owned  = { .view = std::move( view ), .coord = origin },
-      .harbor = harbor_sub_view };
+      .harbor = harbor_sub_view,
+      .actual = p_actual };
 }
 
 HarborBackdrop::HarborBackdrop( SS& ss, TS& ts, Player& player,

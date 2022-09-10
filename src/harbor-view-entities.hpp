@@ -114,9 +114,11 @@ class HarborSubView : public IDraggableObjectsView,
   Player& player_;
 };
 
+template<typename T>
 struct PositionedHarborSubView {
   ui::OwningPositionedView owned;
   HarborSubView*           harbor = nullptr;
+  T*                       actual = nullptr;
 };
 
 void update_harbor_view( SSConst const& ss );

@@ -136,7 +136,7 @@ void HarborDockUnits::draw( rr::Renderer& renderer,
   }
 }
 
-PositionedHarborSubView HarborDockUnits::create(
+PositionedHarborSubView<HarborDockUnits> HarborDockUnits::create(
     SS& ss, TS& ts, Player& player, Rect,
     HarborBackdrop const& backdrop ) {
   // The canvas will exclude the market commodities.
@@ -157,9 +157,11 @@ PositionedHarborSubView HarborDockUnits::create(
   view            = make_unique<HarborDockUnits>( ss, ts, player,
                                        size_blocks );
   harbor_sub_view = view.get();
-  return PositionedHarborSubView{
+  HarborDockUnits* p_actual = view.get();
+  return PositionedHarborSubView<HarborDockUnits>{
       .owned  = { .view = std::move( view ), .coord = pos },
-      .harbor = harbor_sub_view };
+      .harbor = harbor_sub_view,
+      .actual = p_actual };
 }
 
 HarborDockUnits::HarborDockUnits( SS& ss, TS& ts, Player& player,

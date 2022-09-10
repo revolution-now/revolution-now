@@ -25,7 +25,7 @@ struct Player;
 ** HarborBackdrop
 *****************************************************************/
 struct HarborBackdrop : public ui::View, public HarborSubView {
-  static PositionedHarborSubView create(
+  static PositionedHarborSubView<HarborBackdrop> create(
       SS& ss, TS& ts, Player& player, Rect canvas,
       Coord cargo_upper_right, Coord inport_upper_right );
 

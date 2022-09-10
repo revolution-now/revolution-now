@@ -26,9 +26,6 @@
 // refl
 #include "refl/to-str.hpp"
 
-// base
-#include "base/maybe-util.hpp"
-
 using namespace std;
 
 namespace rn {
@@ -218,13 +215,11 @@ HarborViewComposited recomposite_harbor_view(
   available = available.with_new_top_edge( status_bar_bottom );
 
   // [HarborMarketCommodities] ----------------------------------
-  PositionedHarborSubView market_commodities =
-      HarborMarketCommodities::create( ss, ts, player,
-                                       available );
-  UNWRAP_CHECK(
-      market_commodities_ref,
-      base::maybe_dynamic_cast<HarborMarketCommodities>(
-          *market_commodities.harbor ) );
+  PositionedHarborSubView<HarborMarketCommodities>
+      market_commodities = HarborMarketCommodities::create(
+          ss, ts, player, available );
+  HarborMarketCommodities const& market_commodities_ref =
+      *market_commodities.actual;
   composition.entities[e_harbor_view_entity::market] =
       market_commodities.harbor;
   available = available.with_new_bottom_edge(
@@ -236,14 +231,15 @@ HarborViewComposited recomposite_harbor_view(
   views.push_back( std::move( market_commodities.owned ) );
 
   // [HarborExitButton] -----------------------------------------
-  PositionedHarborSubView exit = HarborExitButton::create(
-      ss, ts, player, canvas_rect, market_upper_right,
-      market_lower_right );
+  PositionedHarborSubView<HarborExitButton> exit =
+      HarborExitButton::create( ss, ts, player, canvas_rect,
+                                market_upper_right,
+                                market_lower_right );
   composition.entities[e_harbor_view_entity::exit] = exit.harbor;
   views.push_back( std::move( exit.owned ) );
 
   // [HarborCargo] ----------------------------------------------
-  PositionedHarborSubView cargo =
+  PositionedHarborSubView<HarborCargo> cargo =
       HarborCargo::create( ss, ts, player, available );
   composition.entities[e_harbor_view_entity::cargo] =
       cargo.harbor;
@@ -255,9 +251,10 @@ HarborViewComposited recomposite_harbor_view(
   views.push_back( std::move( cargo.owned ) );
 
   // [HarborInPortShips] ----------------------------------------
-  PositionedHarborSubView in_port = HarborInPortShips::create(
-      ss, ts, player, available, market_commodities_ref,
-      cargo_upper_left );
+  PositionedHarborSubView<HarborInPortShips> in_port =
+      HarborInPortShips::create( ss, ts, player, available,
+                                 market_commodities_ref,
+                                 cargo_upper_left );
   composition.entities[e_harbor_view_entity::in_port] =
       in_port.harbor;
   Coord const inport_upper_left =
@@ -267,12 +264,11 @@ HarborViewComposited recomposite_harbor_view(
   views.push_back( std::move( in_port.owned ) );
 
   // [HarborBackdrop] -------------------------------------------
-  PositionedHarborSubView backdrop = HarborBackdrop::create(
-      ss, ts, player, canvas_rect, cargo_upper_right,
-      inport_upper_right );
-  UNWRAP_CHECK( backdrop_ref,
-                base::maybe_dynamic_cast<HarborBackdrop>(
-                    *backdrop.harbor ) );
+  PositionedHarborSubView<HarborBackdrop> backdrop =
+      HarborBackdrop::create( ss, ts, player, canvas_rect,
+                              cargo_upper_right,
+                              inport_upper_right );
+  HarborBackdrop const& backdrop_ref = *backdrop.actual;
   composition.entities[e_harbor_view_entity::backdrop] =
       backdrop.harbor;
   // NOTE: this one needs to be inserted at the beginning because
@@ -281,9 +277,10 @@ HarborViewComposited recomposite_harbor_view(
 
   // [HarborOutboundShips]
   // ----------------------------------------
-  PositionedHarborSubView outbound = HarborOutboundShips::create(
-      ss, ts, player, available, market_commodities_ref,
-      inport_upper_left );
+  PositionedHarborSubView<HarborOutboundShips> outbound =
+      HarborOutboundShips::create( ss, ts, player, available,
+                                   market_commodities_ref,
+                                   inport_upper_left );
   composition.entities[e_harbor_view_entity::outbound] =
       outbound.harbor;
   Coord const outbound_upper_left =
@@ -292,17 +289,19 @@ HarborViewComposited recomposite_harbor_view(
 
   // [HarborInboundShips]
   // ----------------------------------------
-  PositionedHarborSubView inbound = HarborInboundShips::create(
-      ss, ts, player, available, market_commodities_ref,
-      outbound_upper_left );
+  PositionedHarborSubView<HarborInboundShips> inbound =
+      HarborInboundShips::create( ss, ts, player, available,
+                                  market_commodities_ref,
+                                  outbound_upper_left );
   composition.entities[e_harbor_view_entity::inbound] =
       inbound.harbor;
   views.push_back( std::move( inbound.owned ) );
 
   // [HarborDockUnits]
   // ----------------------------------------
-  PositionedHarborSubView dock = HarborDockUnits::create(
-      ss, ts, player, available, backdrop_ref );
+  PositionedHarborSubView<HarborDockUnits> dock =
+      HarborDockUnits::create( ss, ts, player, available,
+                               backdrop_ref );
   composition.entities[e_harbor_view_entity::dock] = dock.harbor;
   views.push_back( std::move( dock.owned ) );
 

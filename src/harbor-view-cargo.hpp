@@ -25,9 +25,8 @@ struct Player;
 ** HarborCargo
 *****************************************************************/
 struct HarborCargo : public ui::View, public HarborSubView {
-  static PositionedHarborSubView create( SS& ss, TS& ts,
-                                         Player& player,
-                                         Rect    canvas );
+  static PositionedHarborSubView<HarborCargo> create(
+      SS& ss, TS& ts, Player& player, Rect canvas );
 
   HarborCargo( SS& ss, TS& ts, Player& player );
 

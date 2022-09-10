@@ -170,9 +170,8 @@ void HarborCargo::draw( rr::Renderer& renderer,
   }
 }
 
-PositionedHarborSubView HarborCargo::create( SS& ss, TS& ts,
-                                             Player& player,
-                                             Rect    canvas ) {
+PositionedHarborSubView<HarborCargo> HarborCargo::create(
+    SS& ss, TS& ts, Player& player, Rect canvas ) {
   // The canvas will exclude the market commodities.
   unique_ptr<HarborCargo> view;
   HarborSubView*          harbor_sub_view = nullptr;
@@ -185,9 +184,11 @@ PositionedHarborSubView HarborCargo::create( SS& ss, TS& ts,
 
   view            = make_unique<HarborCargo>( ss, ts, player );
   harbor_sub_view = view.get();
-  return PositionedHarborSubView{
+  HarborCargo* p_actual = view.get();
+  return PositionedHarborSubView<HarborCargo>{
       .owned  = { .view = std::move( view ), .coord = pos },
-      .harbor = harbor_sub_view };
+      .harbor = harbor_sub_view,
+      .actual = p_actual };
 }
 
 HarborCargo::HarborCargo( SS& ss, TS& ts, Player& player )
