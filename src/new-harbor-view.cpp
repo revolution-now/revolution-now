@@ -199,6 +199,7 @@ struct NewHarborPlane::Impl : public Plane {
     }
     switch( event.keycode ) {
       case ::SDLK_ESCAPE: //
+      case ::SDLK_e:      //
         throw harbor_view_exit_interrupt{};
       default: //
         break;
