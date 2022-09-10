@@ -18,6 +18,7 @@ namespace "rn"
 enum.e_harbor_view_entity {
   status_bar,
   market,
+  cargo,
 }
 
 # This object needs to specify all of the information necessary

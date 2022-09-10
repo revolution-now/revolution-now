@@ -169,73 +169,6 @@ struct EntityBase {
 //  static maybe<EntityClass> create( ... );
 //  maybe<pair<T,Rect>> obj_under_cursor( Coord const& );
 
-class ActiveCargoBox : EntityBase {
-  static constexpr Delta size_blocks{ .w = 6, .h = 1 };
-
- public:
-  // Commodities will be 24x24.
-  static constexpr auto box_scale = Delta{ .w = 32, .h = 32 };
-  static inline auto    box_delta =
-      Delta{ .w = 1, .h = 1 } * box_scale;
-  static inline Delta size_pixels = size_blocks * box_scale;
-
-  Rect bounds() const {
-    return Rect::from( origin_, size_pixels );
-  }
-
-  void draw( rr::Renderer& renderer, Delta offset ) const {
-    rr::Painter painter = renderer.painter();
-    auto        bds     = bounds();
-    auto        grid    = bds.to_grid_noalign( box_delta );
-    for( auto rect : range_of_rects( grid ) )
-      painter.draw_empty_rect(
-          rect.shifted_by( offset ),
-          rr::Painter::e_border_mode::in_out,
-          gfx::pixel::white() );
-  }
-
-  ActiveCargoBox( ActiveCargoBox&& ) = default;
-  ActiveCargoBox& operator=( ActiveCargoBox&& ) = default;
-
-  static maybe<ActiveCargoBox> create(
-      PS& S, Delta const& size,
-      maybe<MarketCommodities> const&
-          maybe_market_commodities ) {
-    maybe<ActiveCargoBox> res;
-    auto                  rect = Rect::from( Coord{}, size );
-    if( size.w < size_pixels.w || size.h < size_pixels.h )
-      return res;
-    if( maybe_market_commodities.has_value() ) {
-      auto const& market_commodities = *maybe_market_commodities;
-      if( market_commodities.origin_.y < 0 + size_pixels.h )
-        return res;
-      if( market_commodities.doubled_ ) {
-        res = ActiveCargoBox(
-            S,
-            /*origin_=*/Coord{
-                .x = rect.center().x - size_pixels.w / 2,
-                .y = market_commodities.origin_.y -
-                     size_pixels.h } );
-      } else {
-        // Possibly just for now do this.
-        res = ActiveCargoBox(
-            S,
-            /*origin_=*/Coord{
-                .x = rect.center().x - size_pixels.w / 2,
-                .y = market_commodities.origin_.y -
-                     size_pixels.h } );
-      }
-    }
-    return res;
-  }
-
- private:
-  ActiveCargoBox( PS& S, Coord origin )
-    : EntityBase( S ), origin_( origin ) {}
-  Coord origin_{};
-};
-NOTHROW_MOVE( ActiveCargoBox );
-
 class DockAnchor : EntityBase {
   static constexpr H above_active_cargo_box{ 32 };
 
@@ -921,165 +854,6 @@ class ShipsOutbound : public UnitCollection {
 };
 NOTHROW_MOVE( ShipsOutbound );
 
-class ActiveCargo : EntityBase {
- public:
-  Rect bounds() const { return bounds_; }
-
-  void draw( rr::Renderer& renderer, Delta offset ) const {
-    rr::Painter painter = renderer.painter();
-    auto        bds     = bounds();
-    auto grid = bds.to_grid_noalign( ActiveCargoBox::box_delta );
-    if( maybe_active_unit_ ) {
-      auto& unit = S->ss_.units.unit_for( *maybe_active_unit_ );
-      auto const& cargo_slots = unit.cargo().slots();
-      auto        zipped      = rl::zip( rl::ints(), cargo_slots,
-                                         range_of_rects( grid ) );
-      for( auto const [idx, cargo_slot, rect] : zipped ) {
-        if( S->drag_state.has_value() ) {
-          if_get( any_cast<HarborDraggableObject_t const&>(
-                      S->drag_state->object ),
-                  HarborDraggableObject::cargo_commodity, cc ) {
-            if( cc.slot == idx ) continue;
-          }
-        }
-        auto dst_coord       = rect.upper_left() + offset;
-        auto cargo_slot_copy = cargo_slot;
-        switch( auto& v = cargo_slot_copy; v.to_enum() ) {
-          case CargoSlot::e::empty: {
-            break;
-          }
-          case CargoSlot::e::overflow: {
-            break;
-          }
-          case CargoSlot::e::cargo: {
-            auto& cargo = v.get<CargoSlot::cargo>();
-            overload_visit(
-                cargo.contents,
-                [&]( Cargo::unit u ) {
-                  if( !S->drag_state ||
-                      any_cast<HarborDraggableObject_t const&>(
-                          S->drag_state->object ) !=
-                          HarborDraggableObject_t{
-                              HarborDraggableObject::unit{
-                                  u.id } } )
-                    render_unit(
-                        renderer, dst_coord,
-                        S->ss_.units.unit_for( u.id ),
-                        UnitRenderOptions{ .flag = false } );
-                },
-                [&]( Cargo::commodity const& c ) {
-                  render_commodity_annotated(
-                      renderer,
-                      dst_coord +
-                          kCommodityInCargoHoldRenderingOffset,
-                      c.obj );
-                } );
-            break;
-          }
-        }
-      }
-      for( auto [idx, rect] :
-           rl::zip( rl::ints(), range_of_rects( grid ) ) ) {
-        if( idx >= unit.cargo().slots_total() )
-          painter.draw_solid_rect( rect.shifted_by( offset ),
-                                   gfx::pixel::white() );
-      }
-    } else {
-      for( auto rect : range_of_rects( grid ) )
-        painter.draw_solid_rect( rect.shifted_by( offset ),
-                                 gfx::pixel::white() );
-    }
-  }
-
-  ActiveCargo( ActiveCargo&& ) = default;
-  ActiveCargo& operator=( ActiveCargo&& ) = default;
-
-  static maybe<ActiveCargo> create(
-      PS& S, Delta const& size,
-      maybe<ActiveCargoBox> const& maybe_active_cargo_box,
-      maybe<ShipsInPort> const&    maybe_ships_in_port ) {
-    HarborState const& hb_state = S.harbor_state();
-    maybe<ActiveCargo> res;
-    if( maybe_active_cargo_box && maybe_ships_in_port ) {
-      res = ActiveCargo(
-          S,
-          /*maybe_active_unit_=*/hb_state.selected_unit,
-          /*bounds_=*/maybe_active_cargo_box->bounds() );
-      // FIXME: if we are inside the active cargo box, and the
-      // active cargo box exists, do we need the following
-      // checks?
-      auto lr_delta = ( res->bounds().lower_right() -
-                        Delta{ .w = 1, .h = 1 } ) -
-                      Coord{};
-      if( lr_delta.w > size.w || lr_delta.h > size.h )
-        res = nothing;
-      if( res->bounds().y < 0 ) res = nothing;
-      if( res->bounds().x < 0 ) res = nothing;
-    }
-    return res;
-  }
-
-  maybe<pair<CargoSlotIndex, Rect>> obj_under_cursor(
-      Coord const& coord ) const {
-    maybe<pair<CargoSlotIndex, Rect>> res;
-    if( maybe_active_unit_ ) {
-      if( coord.is_inside( bounds_ ) ) {
-        auto boxes = bounds_.with_new_upper_left( Coord{} ) /
-                     ActiveCargoBox::box_scale;
-        auto maybe_slot = boxes.rasterize(
-            coord.with_new_origin( bounds_.upper_left() ) /
-            ActiveCargoBox::box_scale );
-        if( maybe_slot ) {
-          auto box_origin =
-              coord.with_new_origin( bounds().upper_left() )
-                  .rounded_to_multiple_to_minus_inf(
-                      ActiveCargoBox::box_scale )
-                  .as_if_origin_were( bounds().upper_left() );
-          auto scale = ActiveCargoBox::box_scale;
-
-          using HarborDraggableObject::cargo_commodity;
-          if( draggable_in_cargo_slot( *S, *maybe_slot )
-                  .bind( L( holds<cargo_commodity>( _ ) ) ) ) {
-            box_origin += kCommodityInCargoHoldRenderingOffset;
-            scale = Delta{ .w = 16, .h = 16 };
-          }
-          auto box = Rect::from(
-              box_origin, Delta{ .w = 1, .h = 1 } * scale );
-
-          res = pair{ *maybe_slot, box };
-        }
-      }
-      auto& unit = S->ss_.units.unit_for( *maybe_active_unit_ );
-      if( res && res->first >= unit.cargo().slots_total() )
-        res = nothing;
-    }
-    return res;
-  }
-
-  // maybe<CargoSlot_t const&>> cargo_slot_from_coord(
-  //    Coord coord ) const {
-  //  // Lambda will only be called if a valid index is returned,
-  //  // in which case there is guaranteed to be an active unit.
-  //  return slot_idx_from_coord( coord ) //
-  //         .fmap( LC( unit_from_id( *maybe_active_unit_ )
-  //                         .cargo()[_] ) );
-  //}
-
-  maybe<UnitId> active_unit() const {
-    return maybe_active_unit_;
-  }
-
- private:
-  ActiveCargo( PS& S, maybe<UnitId> maybe_active_unit,
-               Rect bounds )
-    : EntityBase( S ),
-      maybe_active_unit_( maybe_active_unit ),
-      bounds_( bounds ) {}
-  maybe<UnitId> maybe_active_unit_;
-  Rect          bounds_;
-};
-NOTHROW_MOVE( ActiveCargo );
-
 } // namespace entity
 
 //- Buttons
@@ -1087,8 +861,6 @@ NOTHROW_MOVE( ActiveCargo );
 //- Stats area (money, tax rate, etc.)
 
 struct Entities {
-  maybe<entity::MarketCommodities> market_commodities;
-  maybe<entity::ActiveCargoBox>    active_cargo_box;
   maybe<entity::DockAnchor>        dock_anchor;
   maybe<entity::Backdrop>          backdrop;
   maybe<entity::InPortBox>         in_port_box;
@@ -1100,18 +872,10 @@ struct Entities {
   maybe<entity::ShipsInPort>       ships_in_port;
   maybe<entity::ShipsInbound>      ships_inbound;
   maybe<entity::ShipsOutbound>     ships_outbound;
-  maybe<entity::ActiveCargo>       active_cargo;
 };
 NOTHROW_MOVE( Entities );
 
 void create_entities( PS& S, Entities* entities ) {
-  using namespace entity;
-  UNWRAP_CHECK(
-      normal_area,
-      compositor::section( compositor::e_section::normal ) );
-  Delta clip                   = normal_area.delta();
-  entities->market_commodities = //
-      MarketCommodities::create( S, clip );
   entities->active_cargo_box =         //
       ActiveCargoBox::create( S, clip, //
                               entities->market_commodities );
