@@ -265,73 +265,6 @@ class Backdrop : EntityBase {
 };
 NOTHROW_MOVE( Backdrop );
 
-class InboundBox : EntityBase {
- public:
-  Rect bounds() const {
-    return Rect::from( origin_,
-                       InPortBox::block_size * size_in_blocks_ +
-                           Delta{ .w = 1, .h = 1 } );
-  }
-
-  void draw( rr::Renderer& renderer, Delta offset ) const {
-    rr::Painter painter = renderer.painter();
-    painter.draw_empty_rect( bounds().shifted_by( offset ),
-                             rr::Painter::e_border_mode::inside,
-                             gfx::pixel::white() );
-    rr::Typer typer = renderer.typer(
-        bounds().upper_left() + Delta{ .w = 2, .h = 2 } + offset,
-        gfx::pixel::white() );
-    typer.write( "Inbound" );
-  }
-
-  InboundBox( InboundBox&& ) = default;
-  InboundBox& operator=( InboundBox&& ) = default;
-
-  static maybe<InboundBox> create(
-      PS& S, Delta const& size,
-      maybe<InPortBox> const& maybe_in_port_box ) {
-    maybe<InboundBox> res;
-    if( maybe_in_port_box ) {
-      bool  is_wide = maybe_in_port_box->is_wide_;
-      Delta size_in_blocks;
-      size_in_blocks.h = InPortBox::height_blocks;
-      size_in_blocks.w = is_wide ? InPortBox::width_wide
-                                 : InPortBox::width_narrow;
-      auto origin = maybe_in_port_box->bounds().upper_left() -
-                    Delta{ .w = InPortBox::block_size.w } *
-                        size_in_blocks.w;
-      if( origin.x < 0 ) {
-        // Screen is too narrow horizontally to fit this box, so
-        // we need to try to put it on top of the InPortBox.
-        origin = maybe_in_port_box->bounds().upper_left() -
-                 Delta{ .h = InPortBox::block_size.h } *
-                     size_in_blocks.h;
-      }
-      res = InboundBox( S, origin, size_in_blocks, is_wide );
-      auto lr_delta = res->bounds().lower_right() - Coord{};
-      if( lr_delta.w > size.w || lr_delta.h > size.h )
-        res = nothing;
-      if( res->bounds().y < 0 ) res = nothing;
-      if( res->bounds().x < 0 ) res = nothing;
-    }
-    return res;
-  }
-
-  bool is_wide() const { return is_wide_; }
-
- private:
-  InboundBox( PS& S, Coord origin, Delta size_in_blocks,
-              bool is_wide )
-    : EntityBase( S ),
-      origin_( origin ),
-      size_in_blocks_( size_in_blocks ),
-      is_wide_( is_wide ) {}
-  Coord origin_{};
-  Delta size_in_blocks_{};
-  bool  is_wide_{};
-};
-NOTHROW_MOVE( InboundBox );
-
 class Exit : EntityBase {
   static constexpr Delta exit_block_pixels{ .w = 26, .h = 26 };
 
@@ -504,52 +437,6 @@ class UnitsOnDock : public UnitCollection {
 };
 NOTHROW_MOVE( UnitsOnDock );
 
-class ShipsInbound : public UnitCollection {
- public:
-  ShipsInbound( ShipsInbound&& ) = default;
-  ShipsInbound& operator=( ShipsInbound&& ) = default;
-
-  static maybe<ShipsInbound> create(
-      PS& S, Delta const& size,
-      maybe<InboundBox> const& maybe_inbound_box ) {
-    maybe<ShipsInbound> res;
-    if( maybe_inbound_box ) {
-      vector<UnitWithPosition> units;
-      auto  frame_bds = maybe_inbound_box->bounds();
-      Coord coord     = frame_bds.lower_right() - g_tile_delta;
-      for( auto id : harbor_units_inbound( S.ss_.units,
-                                           S.player.nation ) ) {
-        units.push_back( { id, coord } );
-        coord -= Delta{ .w = g_tile_delta.w };
-        if( coord.x < frame_bds.left_edge() )
-          coord = Coord{
-              .x = ( frame_bds.upper_right() - g_tile_delta ).x,
-              .y = coord.y - g_tile_delta.h };
-      }
-      // populate units...
-      res = ShipsInbound(
-          S, /*bounds_when_no_units_=*/
-          Rect::from( frame_bds.lower_right(), Delta{} ),
-          /*units_=*/std::move( units ) );
-      auto bds = res->bounds();
-      auto lr_delta =
-          ( bds.lower_right() - Delta{ .w = 1, .h = 1 } ) -
-          Coord{};
-      if( lr_delta.w > size.w || lr_delta.h > size.h )
-        res = nothing;
-      if( bds.y < 0 ) res = nothing;
-      if( bds.x < 0 ) res = nothing;
-    }
-    return res;
-  }
-
- private:
-  ShipsInbound( PS& S, Rect dock_anchor,
-                vector<UnitWithPosition>&& units )
-    : UnitCollection( S, dock_anchor, std::move( units ) ) {}
-};
-NOTHROW_MOVE( ShipsInbound );
-
 } // namespace entity
 
 //- Buttons
@@ -559,11 +446,9 @@ NOTHROW_MOVE( ShipsInbound );
 struct Entities {
   maybe<entity::DockAnchor>        dock_anchor;
   maybe<entity::Backdrop>          backdrop;
-  maybe<entity::InboundBox>        inbound_box;
   maybe<entity::Exit>              exit_label;
   maybe<entity::Dock>              dock;
   maybe<entity::UnitsOnDock>       units_on_dock;
-  maybe<entity::ShipsInbound>      ships_inbound;
 };
 NOTHROW_MOVE( Entities );
 
@@ -575,9 +460,6 @@ void create_entities( PS& S, Entities* entities ) {
   entities->backdrop =           //
       Backdrop::create( S, clip, //
                         entities->dock_anchor );
-  entities->inbound_box =          //
-      InboundBox::create( S, clip, //
-                          entities->in_port_box );
   entities->exit_label =     //
       Exit::create( S, clip, //
                     entities->market_commodities );
@@ -589,9 +471,6 @@ void create_entities( PS& S, Entities* entities ) {
       UnitsOnDock::create( S, clip,               //
                            entities->dock_anchor, //
                            entities->dock );
-  entities->ships_inbound =          //
-      ShipsInbound::create( S, clip, //
-                            entities->inbound_box );
 }
 
 void draw_entities( rr::Renderer&   renderer,
@@ -604,16 +483,12 @@ void draw_entities( rr::Renderer&   renderer,
     entities.backdrop->draw( renderer, offset );
   if( entities.dock_anchor.has_value() )
     entities.dock_anchor->draw( renderer, offset );
-  if( entities.inbound_box.has_value() )
-    entities.inbound_box->draw( renderer, offset );
   if( entities.exit_label.has_value() )
     entities.exit_label->draw( renderer, offset );
   if( entities.dock.has_value() )
     entities.dock->draw( renderer, offset );
   if( entities.units_on_dock.has_value() )
     entities.units_on_dock->draw( renderer, offset );
-  if( entities.ships_inbound.has_value() )
-    entities.ships_inbound->draw( renderer, offset );
 }
 
 /****************************************************************
@@ -659,17 +534,6 @@ maybe<HarborDragSrcInfo> drag_src_from_coord(
           /*rect=*/rect };
     }
   }
-  if( entities->ships_inbound.has_value() ) {
-    if( auto maybe_pair =
-            entities->ships_inbound->obj_under_cursor( coord );
-        maybe_pair ) {
-      auto const& [id, rect] = *maybe_pair;
-
-      res = HarborDragSrcInfo{
-          /*src=*/HarborDragSrc::inbound{ /*id=*/id },
-          /*rect=*/rect };
-    }
-  }
   return res;
 }
 
@@ -688,10 +552,6 @@ maybe<HarborDragDst_t> drag_dst_from_coord(
     if( coord.is_inside( entities->units_on_dock->bounds() ) )
       res = HarborDragDst::dock{};
   }
-  if( entities->inbound_box.has_value() ) {
-    if( coord.is_inside( entities->inbound_box->bounds() ) )
-      res = HarborDragDst::inbound{};
-  }
   return res;
 }
 
@@ -706,9 +566,6 @@ HarborDraggableObject_t draggable_from_src(
   return overload_visit<HarborDraggableObject_t>(
       drag_src,
       [&]( dock const& o ) {
-        return HarborDraggableObject::unit{ o.id };
-      },
-      [&]( inbound const& o ) {
         return HarborDraggableObject::unit{ o.id };
       },
 }
@@ -1131,24 +988,6 @@ struct HarborPlane::Impl : public Plane {
             return e_input_handled::yes;
           }
         }
-
-        // Unit selection.
-        auto handled         = e_input_handled::no;
-        auto try_select_unit = [&]( auto const& maybe_entity ) {
-          HarborState& hb_state = S_.harbor_state();
-          if( maybe_entity ) {
-            if( auto maybe_pair =
-                    maybe_entity->obj_under_cursor( val.pos );
-                maybe_pair ) {
-              hb_state.selected_unit = maybe_pair->first;
-              handled                = e_input_handled::yes;
-              create_entities( S_, &entities_ );
-            }
-          }
-        };
-        try_select_unit( entities_.ships_in_port );
-        try_select_unit( entities_.ships_inbound );
-        try_select_unit( entities_.ships_outbound );
         return handled;
       }
       case input::e_input_event::mouse_drag_event:

@@ -21,6 +21,7 @@ enum.e_harbor_view_entity {
   cargo,
   in_port,
   outbound,
+  inbound,
 }
 
 # This object needs to specify all of the information necessary

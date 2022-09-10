@@ -13,6 +13,7 @@
 
 // Revolution Now
 #include "harbor-view-cargo.hpp"
+#include "harbor-view-inbound.hpp"
 #include "harbor-view-inport.hpp"
 #include "harbor-view-market.hpp"
 #include "harbor-view-outbound.hpp"
@@ -254,7 +255,18 @@ HarborViewComposited recomposite_harbor_view(
       inport_upper_left );
   composition.entities[e_harbor_view_entity::outbound] =
       outbound.harbor;
+  Coord const outbound_upper_left =
+      outbound.owned.rect().upper_left();
   views.push_back( std::move( outbound.owned ) );
+
+  // [HarborInboundShips]
+  // ----------------------------------------
+  PositionedHarborSubView inbound = HarborInboundShips::create(
+      ss, ts, player, available, market_commodities_ref,
+      outbound_upper_left );
+  composition.entities[e_harbor_view_entity::inbound] =
+      inbound.harbor;
+  views.push_back( std::move( inbound.owned ) );
 
   // [Finish] ---------------------------------------------------
   auto invisible_view = std::make_unique<CompositeHarborSubView>(
