@@ -163,8 +163,9 @@ void render_backdrop( rr::Renderer& renderer ) {
         painter_mods.repos.translation,
         gfx::to_double( gfx::size( shift ) ) );
     rr::Painter painter = renderer.painter();
-    for( Coord coord : tiled_rect.to_grid_noalign( tile_size ) )
-      render_sprite( painter, Rect::from( coord, tile_size ),
+    for( Rect rect : tiled_rect.to_grid_noalign( tile_size ) )
+      render_sprite( painter,
+                     Rect::from( rect.upper_left(), tile_size ),
                      e_tile::terrain_ocean );
     scale += kScaleInc;
   }

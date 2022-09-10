@@ -16,37 +16,14 @@
 #include "market.hpp"
 #include "tiles.hpp"
 
-// base
-#include "base/range-lite.hpp"
-
 using namespace std;
 
 namespace rn {
 
-namespace {
+namespace {} // namespace
 
 /****************************************************************
-** Helpers
-*****************************************************************/
-// Both rl::all and the lambda will take rect_proxy by reference
-// so we therefore must have this function take a reference to a
-// rect_proxy that outlives the use of the returned range. And of
-// course the Rect referred to by the rect_proxy must outlive
-// everything.
-auto range_of_rects( RectGridProxyIteratorHelper const&
-                         rect_proxy ATTR_LIFETIMEBOUND ) {
-  return base::rl::all( rect_proxy )
-      .map( [&rect_proxy]( Coord coord ) {
-        return Rect::from( coord, rect_proxy.delta() );
-      } );
-}
-
-auto range_of_rects( RectGridProxyIteratorHelper&& ) = delete;
-
-} // namespace
-
-/****************************************************************
-** Public API
+** HarborMarketCommodities
 *****************************************************************/
 Delta HarborMarketCommodities::delta() const {
   int x_boxes = 16;
@@ -55,6 +32,7 @@ Delta HarborMarketCommodities::delta() const {
     x_boxes = 8;
     y_boxes = 2;
   }
+  // +1 in each dimension for the border.
   return Delta{ .w = 32 * x_boxes + 1, .h = 32 * y_boxes + 1 };
 }
 
@@ -106,7 +84,7 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
   auto grid    = bds.to_grid_noalign( g_tile_delta );
   auto comm_it = refl::enum_values<e_commodity>.begin();
   auto label   = CommodityLabel::buy_sell{};
-  for( auto rect : range_of_rects( grid ) ) {
+  for( Rect const rect : grid ) {
     CHECK( comm_it != refl::enum_values<e_commodity>.end() );
     painter.draw_empty_rect( rect,
                              rr::Painter::e_border_mode::in_out,

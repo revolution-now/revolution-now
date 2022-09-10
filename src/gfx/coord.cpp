@@ -185,15 +185,13 @@ base::maybe<int> Rect::rasterize( Coord coord ) const {
   return ( coord.y - y ) * w + ( coord.x - x );
 }
 
-RectGridProxyIteratorHelper Rect::to_grid_noalign(
-    Delta delta ) const& {
-  return RectGridProxyIteratorHelper( *this, delta );
+RectGridIterable Rect::to_grid_noalign( Delta delta ) const& {
+  return RectGridIterable( *this, delta );
 }
 
-int RectGridProxyIteratorHelper::const_iterator::operator-(
-    RectGridProxyIteratorHelper::const_iterator const& rhs )
-    const {
-  auto delta = it - rhs.it;
+int RectGridIterable::const_iterator::operator-(
+    RectGridIterable::const_iterator const& rhs ) const {
+  auto delta = it.upper_left() - rhs.it.upper_left();
   return delta.h * rect_proxy->rect.w + delta.w;
 }
 

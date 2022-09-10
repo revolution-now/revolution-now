@@ -21,6 +21,7 @@
 
 // base
 #include "base/adl-tag.hpp"
+#include "base/attributes.hpp"
 #include "base/error.hpp"
 #include "base/maybe.hpp"
 
@@ -50,7 +51,7 @@ struct DimensionH;
 struct Coord;
 struct Delta;
 struct Rect;
-struct RectGridProxyIteratorHelper;
+struct RectGridIterable;
 
 /****************************************************************
 ** e_direction
@@ -391,10 +392,10 @@ struct Rect {
   // the given delta and will return an object which, when iter-
   // ated over, will yield a series of Coord's representing the
   // upper-left corners of each of those sub rects.
-  RectGridProxyIteratorHelper to_grid_noalign(
-      Delta delta ) const&;
-  RectGridProxyIteratorHelper to_grid_noalign(
-      Delta delta ) const&& = delete;
+  RectGridIterable to_grid_noalign(
+      Delta delta ) const& ATTR_LIFETIMEBOUND;
+  RectGridIterable to_grid_noalign( Delta delta ) const&& =
+      delete;
 
   // This iterator will iterate over all of the points in the
   // rect in a well-defined order: top to bottom, left to right.
@@ -466,22 +467,20 @@ static_assert( std::input_iterator<Rect::const_iterator> );
 #endif
 
 /****************************************************************
-** RectGridProxyIteratorHelper
+** RectGridIterable
 *****************************************************************/
 // This object will be returned as a proxy by the Rect class to
 // facilitate iterating over the inside of the rect in jumps of a
 // certain size.
-struct RectGridProxyIteratorHelper {
+struct RectGridIterable {
  private:
   Rect const& rect;
   Delta       chunk_size;
 
  public:
-  RectGridProxyIteratorHelper( Rect&& rect_,
-                               Delta  chunk_size_ ) = delete;
+  RectGridIterable( Rect&& rect_, Delta chunk_size_ ) = delete;
 
-  RectGridProxyIteratorHelper( Rect const& rect_,
-                               Delta       chunk_size_ )
+  RectGridIterable( Rect const& rect_, Delta chunk_size_ )
     : rect( rect_ ), chunk_size( chunk_size_ ) {}
 
   Delta delta() const { return chunk_size; }
@@ -492,14 +491,14 @@ struct RectGridProxyIteratorHelper {
   struct const_iterator {
     using iterator_category = std::input_iterator_tag;
     using difference_type   = int;
-    using value_type        = Coord;
-    using pointer           = Coord const*;
-    using reference         = Coord const&;
+    using value_type        = Rect;
+    using pointer           = Rect const*;
+    using reference         = Rect const&;
 
-    Coord                              it;
-    RectGridProxyIteratorHelper const* rect_proxy;
-    auto const&                        operator*() const {
-      DCHECK( it.is_inside( rect_proxy->rect ) );
+    Rect                    it;
+    RectGridIterable const* rect_proxy;
+    auto const&             operator*() const {
+      DCHECK( it.upper_left().is_inside( rect_proxy->rect ) );
       return it;
     }
     const_iterator& operator++() {
@@ -509,15 +508,19 @@ struct RectGridProxyIteratorHelper {
         it.y += rect_proxy->chunk_size.h;
         // If we've finished iterating then put the coordinate in
         // a well defined position (lower left corner, one past
-        // the bottom edge).
+        // the bottom edge). It may not already be at this posi-
+        // tion at this point because the size of the large rect
+        // over which we're iterating might not be an even mul-
+        // tiple of the chunk size.
         if( it.y >= rect_proxy->rect.bottom_edge() ) {
           it.x = rect_proxy->rect.left_edge();
           it.y = rect_proxy->rect.bottom_edge();
-          DCHECK( it == rect_proxy->rect.lower_left() );
+          DCHECK( it.upper_left() ==
+                  rect_proxy->rect.lower_left() );
         }
       }
-      DCHECK( it == rect_proxy->rect.lower_left() ||
-              it.is_inside( rect_proxy->rect ) );
+      DCHECK( it.upper_left() == rect_proxy->rect.lower_left() ||
+              it.upper_left().is_inside( rect_proxy->rect ) );
       return *this;
     }
     const_iterator operator++( int ) { return ++( *this ); }
@@ -530,15 +533,15 @@ struct RectGridProxyIteratorHelper {
     int operator-( const_iterator const& rhs ) const;
   };
 
-  const_iterator begin() const {
-    return { rect.upper_left(), this };
+  const_iterator begin() const ATTR_LIFETIMEBOUND {
+    return { Rect::from( rect.upper_left(), chunk_size ), this };
   }
-  const_iterator end() const {
+  const_iterator end() const ATTR_LIFETIMEBOUND {
     // The "end", by convention, is the _start_ of the row that
     // is one passed the last row. Also note that, when the rect
     // has zero area, upper_left() and lower_left are the same
     // point.
-    return { rect.lower_left(), this };
+    return { Rect::from( rect.lower_left(), chunk_size ), this };
   }
 
   using iterator = const_iterator;
@@ -547,8 +550,8 @@ struct RectGridProxyIteratorHelper {
 #if defined( _LIBCPP_VERSION ) // libc++
 // FIXME: re-enable this when libc++ gets std::input_iterator.
 #else // libstdc++
-static_assert( std::input_iterator<
-               RectGridProxyIteratorHelper::const_iterator> );
+static_assert(
+    std::input_iterator<RectGridIterable::const_iterator> );
 #endif
 
 /****************************************************************

@@ -151,24 +151,6 @@ maybe<HarborDraggableObject_t> draggable_in_cargo_slot(
 }
 
 /****************************************************************
-** Helpers
-*****************************************************************/
-// Both rl::all and the lambda will take rect_proxy by reference
-// so we therefore must have this function take a reference to a
-// rect_proxy that outlives the use of the returned range. And of
-// course the Rect referred to by the rect_proxy must outlive
-// everything.
-auto range_of_rects( RectGridProxyIteratorHelper const&
-                         rect_proxy ATTR_LIFETIMEBOUND ) {
-  return rl::all( rect_proxy )
-      .map( [&rect_proxy]( Coord coord ) {
-        return Rect::from( coord, rect_proxy.delta() );
-      } );
-}
-
-auto range_of_rects( RectGridProxyIteratorHelper&& ) = delete;
-
-/****************************************************************
 ** Harbor View Entities
 *****************************************************************/
 namespace entity {
@@ -198,7 +180,7 @@ class MarketCommodities : EntityBase {
   // Commodities will be 24x24 + 8 pixels for text.
   static constexpr auto sprite_scale = Delta{ .w = 32, .h = 32 };
   static inline auto    sprite_delta =
-      Delta{ .w = 1, .h = 1 } * sprite_scale;
+      Delta{ .w = 1, .h = 1 }* sprite_scale;
 
   static constexpr W single_layer_width =
       single_layer_blocks_width * sprite_scale.w;
@@ -224,7 +206,7 @@ class MarketCommodities : EntityBase {
     auto        grid    = bds.to_grid_noalign( sprite_delta );
     auto        comm_it = refl::enum_values<e_commodity>.begin();
     auto        label   = CommodityLabel::buy_sell{};
-    for( auto rect : range_of_rects( grid ) ) {
+    for( Rect const rect : grid ) {
       CHECK( comm_it !=
              std::end( refl::enum_values<e_commodity> ) );
       painter.draw_empty_rect(
@@ -243,7 +225,7 @@ class MarketCommodities : EntityBase {
     }
   }
 
-  MarketCommodities( MarketCommodities&& ) = default;
+  MarketCommodities( MarketCommodities&& )            = default;
   MarketCommodities& operator=( MarketCommodities&& ) = default;
 
   static maybe<MarketCommodities> create( PS&          S,
@@ -293,9 +275,9 @@ class MarketCommodities : EntityBase {
                 .rounded_to_multiple_to_minus_inf( sprite_scale )
                 .as_if_origin_were( bounds().upper_left() ) +
             kCommodityInCargoHoldRenderingOffset;
-        auto box = Rect::from( box_origin,
-                               Delta{ .w = 1, .h = 1 } *
-                                   Delta{ .w = 16, .h = 16 } );
+        auto box = Rect::from(
+            box_origin,
+            Delta{ .w = 1, .h = 1 }* Delta{ .w = 16, .h = 16 } );
 
         res = pair{ *maybe_type, box };
       }
@@ -319,7 +301,7 @@ class ActiveCargoBox : EntityBase {
   // Commodities will be 24x24.
   static constexpr auto box_scale = Delta{ .w = 32, .h = 32 };
   static inline auto    box_delta =
-      Delta{ .w = 1, .h = 1 } * box_scale;
+      Delta{ .w = 1, .h = 1 }* box_scale;
   static inline Delta size_pixels = size_blocks * box_scale;
 
   Rect bounds() const {
@@ -330,14 +312,14 @@ class ActiveCargoBox : EntityBase {
     rr::Painter painter = renderer.painter();
     auto        bds     = bounds();
     auto        grid    = bds.to_grid_noalign( box_delta );
-    for( auto rect : range_of_rects( grid ) )
+    for( Rect const rect : grid )
       painter.draw_empty_rect(
           rect.shifted_by( offset ),
           rr::Painter::e_border_mode::in_out,
           gfx::pixel::white() );
   }
 
-  ActiveCargoBox( ActiveCargoBox&& ) = default;
+  ActiveCargoBox( ActiveCargoBox&& )            = default;
   ActiveCargoBox& operator=( ActiveCargoBox&& ) = default;
 
   static maybe<ActiveCargoBox> create(
@@ -400,7 +382,7 @@ class DockAnchor : EntityBase {
     renderer.typer( loc, gfx::pixel::white() ).write( "X" );
   }
 
-  DockAnchor( DockAnchor&& ) = default;
+  DockAnchor( DockAnchor&& )            = default;
   DockAnchor& operator=( DockAnchor&& ) = default;
 
   static maybe<DockAnchor> create(
@@ -449,7 +431,7 @@ class Backdrop : EntityBase {
         Rect::from( upper_left_of_render_rect_, size_ ) );
   }
 
-  Backdrop( Backdrop&& ) = default;
+  Backdrop( Backdrop&& )            = default;
   Backdrop& operator=( Backdrop&& ) = default;
 
   static maybe<Backdrop> create(
@@ -498,7 +480,7 @@ class InPortBox : EntityBase {
     typer.write( "In Port" );
   }
 
-  InPortBox( InPortBox&& ) = default;
+  InPortBox( InPortBox&& )            = default;
   InPortBox& operator=( InPortBox&& ) = default;
 
   static maybe<InPortBox> create(
@@ -514,7 +496,7 @@ class InPortBox : EntityBase {
       size_in_blocks.w = is_wide ? width_wide : width_narrow;
       auto origin =
           maybe_active_cargo_box->bounds().upper_left() -
-          Delta{ .h = block_size.h } * size_in_blocks.h;
+          Delta{ .h = block_size.h }* size_in_blocks.h;
       if( origin.y < 0 || origin.x < 0 ) return res;
 
       res = InPortBox( S, origin,      //
@@ -561,7 +543,7 @@ class InboundBox : EntityBase {
     typer.write( "Inbound" );
   }
 
-  InboundBox( InboundBox&& ) = default;
+  InboundBox( InboundBox&& )            = default;
   InboundBox& operator=( InboundBox&& ) = default;
 
   static maybe<InboundBox> create(
@@ -574,15 +556,17 @@ class InboundBox : EntityBase {
       size_in_blocks.h = InPortBox::height_blocks;
       size_in_blocks.w = is_wide ? InPortBox::width_wide
                                  : InPortBox::width_narrow;
-      auto origin = maybe_in_port_box->bounds().upper_left() -
-                    Delta{ .w = InPortBox::block_size.w } *
-                        size_in_blocks.w;
+      auto origin =
+          maybe_in_port_box->bounds().upper_left() -
+          Delta{ .w =
+                     InPortBox::block_size.w }* size_in_blocks.w;
       if( origin.x < 0 ) {
         // Screen is too narrow horizontally to fit this box, so
         // we need to try to put it on top of the InPortBox.
-        origin = maybe_in_port_box->bounds().upper_left() -
-                 Delta{ .h = InPortBox::block_size.h } *
-                     size_in_blocks.h;
+        origin =
+            maybe_in_port_box->bounds().upper_left() -
+            Delta{
+                .h = InPortBox::block_size.h }* size_in_blocks.h;
       }
       res = InboundBox( S, origin, size_in_blocks, is_wide );
       auto lr_delta = res->bounds().lower_right() - Coord{};
@@ -628,7 +612,7 @@ class OutboundBox : EntityBase {
     typer.write( "outbound" );
   }
 
-  OutboundBox( OutboundBox&& ) = default;
+  OutboundBox( OutboundBox&& )            = default;
   OutboundBox& operator=( OutboundBox&& ) = default;
 
   static maybe<OutboundBox> create(
@@ -641,15 +625,17 @@ class OutboundBox : EntityBase {
       size_in_blocks.h = InPortBox::height_blocks;
       size_in_blocks.w = is_wide ? InPortBox::width_wide
                                  : InPortBox::width_narrow;
-      auto origin = maybe_inbound_box->bounds().upper_left() -
-                    Delta{ .w = InPortBox::block_size.w } *
-                        size_in_blocks.w;
+      auto origin =
+          maybe_inbound_box->bounds().upper_left() -
+          Delta{ .w =
+                     InPortBox::block_size.w }* size_in_blocks.w;
       if( origin.x < 0 ) {
         // Screen is too narrow horizontally to fit this box, so
         // we need to try to put it on top of the InboundBox.
-        origin = maybe_inbound_box->bounds().upper_left() -
-                 Delta{ .h = InPortBox::block_size.h } *
-                     size_in_blocks.h;
+        origin =
+            maybe_inbound_box->bounds().upper_left() -
+            Delta{
+                .h = InPortBox::block_size.h }* size_in_blocks.h;
       }
       res = OutboundBox{
           S,
@@ -688,7 +674,7 @@ class Exit : EntityBase {
     auto          bds       = bounds();
     static string text      = "Exit";
     Delta         text_size = Delta::from_gfx(
-                rr::rendered_text_line_size_pixels( text ) );
+        rr::rendered_text_line_size_pixels( text ) );
     rr::Typer typer = renderer.typer(
         centered( text_size, bds + Delta{ .w = 1, .h = 1 } ) +
             offset,
@@ -699,7 +685,7 @@ class Exit : EntityBase {
                              gfx::pixel::white() );
   }
 
-  Exit( Exit&& ) = default;
+  Exit( Exit&& )            = default;
   Exit& operator=( Exit&& ) = default;
 
   static maybe<Exit> create( PS& S, Delta const& size,
@@ -738,7 +724,7 @@ NOTHROW_MOVE( Exit );
 class Dock : EntityBase {
   static constexpr Delta dock_block_pixels{ .w = 24, .h = 24 };
   static inline Delta    dock_block_pixels_delta =
-      Delta{ .w = 1, .h = 1 } * dock_block_pixels;
+      Delta{ .w = 1, .h = 1 }* dock_block_pixels;
 
  public:
   Rect bounds() const {
@@ -752,14 +738,14 @@ class Dock : EntityBase {
     rr::Painter painter = renderer.painter();
     auto        bds     = bounds();
     auto grid = bds.to_grid_noalign( dock_block_pixels_delta );
-    for( auto rect : range_of_rects( grid ) )
+    for( Rect const rect : grid )
       painter.draw_empty_rect(
           rect.shifted_by( offset ),
           rr::Painter::e_border_mode::in_out,
           gfx::pixel::white() );
   }
 
-  Dock( Dock&& ) = default;
+  Dock( Dock&& )            = default;
   Dock& operator=( Dock&& ) = default;
 
   static maybe<Dock> create(
@@ -857,7 +843,7 @@ class UnitCollection : EntityBase {
     return res;
   }
 
-  UnitCollection( UnitCollection&& ) = default;
+  UnitCollection( UnitCollection&& )            = default;
   UnitCollection& operator=( UnitCollection&& ) = default;
 
  protected:
@@ -879,7 +865,7 @@ NOTHROW_MOVE( UnitCollection );
 
 class UnitsOnDock : public UnitCollection {
  public:
-  UnitsOnDock( UnitsOnDock&& ) = default;
+  UnitsOnDock( UnitsOnDock&& )            = default;
   UnitsOnDock& operator=( UnitsOnDock&& ) = default;
 
   static maybe<UnitsOnDock> create(
@@ -928,7 +914,7 @@ NOTHROW_MOVE( UnitsOnDock );
 
 class ShipsInPort : public UnitCollection {
  public:
-  ShipsInPort( ShipsInPort&& ) = default;
+  ShipsInPort( ShipsInPort&& )            = default;
   ShipsInPort& operator=( ShipsInPort&& ) = default;
 
   static maybe<ShipsInPort> create(
@@ -974,7 +960,7 @@ NOTHROW_MOVE( ShipsInPort );
 
 class ShipsInbound : public UnitCollection {
  public:
-  ShipsInbound( ShipsInbound&& ) = default;
+  ShipsInbound( ShipsInbound&& )            = default;
   ShipsInbound& operator=( ShipsInbound&& ) = default;
 
   static maybe<ShipsInbound> create(
@@ -1020,7 +1006,7 @@ NOTHROW_MOVE( ShipsInbound );
 
 class ShipsOutbound : public UnitCollection {
  public:
-  ShipsOutbound( ShipsOutbound&& ) = default;
+  ShipsOutbound( ShipsOutbound&& )            = default;
   ShipsOutbound& operator=( ShipsOutbound&& ) = default;
 
   static maybe<ShipsOutbound> create(
@@ -1075,8 +1061,7 @@ class ActiveCargo : EntityBase {
     if( maybe_active_unit_ ) {
       auto& unit = S->ss_.units.unit_for( *maybe_active_unit_ );
       auto const& cargo_slots = unit.cargo().slots();
-      auto        zipped      = rl::zip( rl::ints(), cargo_slots,
-                                         range_of_rects( grid ) );
+      auto zipped = rl::zip( rl::ints(), cargo_slots, grid );
       for( auto const [idx, cargo_slot, rect] : zipped ) {
         if( S->drag_state.has_value() ) {
           if_get( any_cast<HarborDraggableObject_t const&>(
@@ -1121,20 +1106,19 @@ class ActiveCargo : EntityBase {
           }
         }
       }
-      for( auto [idx, rect] :
-           rl::zip( rl::ints(), range_of_rects( grid ) ) ) {
+      for( auto [idx, rect] : rl::zip( rl::ints(), grid ) ) {
         if( idx >= unit.cargo().slots_total() )
           painter.draw_solid_rect( rect.shifted_by( offset ),
                                    gfx::pixel::white() );
       }
     } else {
-      for( auto rect : range_of_rects( grid ) )
+      for( Rect const rect : grid )
         painter.draw_solid_rect( rect.shifted_by( offset ),
                                  gfx::pixel::white() );
     }
   }
 
-  ActiveCargo( ActiveCargo&& ) = default;
+  ActiveCargo( ActiveCargo&& )            = default;
   ActiveCargo& operator=( ActiveCargo&& ) = default;
 
   static maybe<ActiveCargo> create(
@@ -1187,7 +1171,7 @@ class ActiveCargo : EntityBase {
             scale = Delta{ .w = 16, .h = 16 };
           }
           auto box = Rect::from(
-              box_origin, Delta{ .w = 1, .h = 1 } * scale );
+              box_origin, Delta{ .w = 1, .h = 1 }* scale );
 
           res = pair{ *maybe_slot, box };
         }
@@ -1922,7 +1906,7 @@ void drag_n_drop_draw( PS const& S, rr::Renderer& renderer,
   if( !S.drag_state ) return;
   auto& state            = *S.drag_state;
   auto  to_screen_coords = [&]( Coord const& c ) {
-     return c + canvas.upper_left().distance_from_origin();
+    return c + canvas.upper_left().distance_from_origin();
   };
   auto origin_for = [&]( Delta const& tile_size ) {
     return to_screen_coords( state.where ) -

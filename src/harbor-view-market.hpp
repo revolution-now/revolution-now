@@ -22,6 +22,9 @@ struct SS;
 struct TS;
 struct Player;
 
+/****************************************************************
+** HarborMarketCommodities
+*****************************************************************/
 struct HarborMarketCommodities : public ui::View,
                                  public HarborSubView {
   static PositionedHarborSubView create( SS& ss, TS& ts,
