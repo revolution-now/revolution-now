@@ -12,20 +12,6 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "harbor-units.hpp"
-#include "harbor-view-market.hpp"
-#include "igui.hpp"
-#include "render.hpp"
-#include "tiles.hpp"
-#include "ts.hpp"
-
-// config
-#include "config/unit-type.rds.hpp"
-
-// ss
-#include "ss/player.rds.hpp"
-#include "ss/ref.hpp"
-#include "ss/units.hpp"
 
 using namespace std;
 
