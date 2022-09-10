@@ -142,7 +142,7 @@ struct CompositeHarborSubView : public ui::InvisibleView,
 
   maybe<PositionedDraggableSubView> view_here(
       Coord coord ) override {
-    for( int i = count(); i >= 0; --i ) {
+    for( int i = count() - 1; i >= 0; --i ) {
       ui::PositionedView pos_view = at( i );
       if( !coord.is_inside( pos_view.rect() ) ) continue;
       maybe<PositionedDraggableSubView> p_view =
@@ -160,7 +160,7 @@ struct CompositeHarborSubView : public ui::InvisibleView,
 
   maybe<DraggableObjectWithBounds> object_here(
       Coord const& coord ) const override {
-    for( int i = count(); i >= 0; --i ) {
+    for( int i = count() - 1; i >= 0; --i ) {
       ui::PositionedViewConst pos_view = at( i );
       if( !coord.is_inside( pos_view.rect() ) ) continue;
       maybe<DraggableObjectWithBounds> obj =
