@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "dragdrop.hpp"
 #include "harbor-view-entities.hpp"
 #include "wait.hpp"
 
@@ -26,7 +27,10 @@ struct Player;
 /****************************************************************
 ** HarborDockUnits
 *****************************************************************/
-struct HarborDockUnits : public ui::View, public HarborSubView {
+struct HarborDockUnits : public ui::View,
+                         public HarborSubView,
+                         public IDragSource,
+                         public IDragSink {
   static PositionedHarborSubView<HarborDockUnits> create(
       SS& ss, TS& ts, Player& player, Rect canvas,
       HarborBackdrop const& backdrop );
@@ -53,6 +57,24 @@ struct HarborDockUnits : public ui::View, public HarborSubView {
   // Implement ui::AwaitView.
   virtual wait<> perform_click(
       input::mouse_button_event_t const& ) override;
+
+  // Implement IDragSource.
+  bool try_drag( std::any const& a,
+                 Coord const&    where ) override;
+
+  // Implement IDragSource.
+  void cancel_drag() override;
+
+  // Implement IDragSource.
+  void disown_dragged_object() override;
+
+  // Impelement IDragSink.
+  maybe<std::any> can_receive(
+      std::any const& a, int from_entity,
+      Coord const& where ) const override;
+
+  // Impelement IDragSink.
+  void drop( std::any const& a, Coord const& where ) override;
 
  private:
   struct UnitWithPosition {

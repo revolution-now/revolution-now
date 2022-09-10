@@ -125,6 +125,38 @@ wait<> HarborDockUnits::perform_click(
   co_await click_on_unit( unit->id );
 }
 
+bool HarborDockUnits::try_drag( any const& a, Coord const& ) {
+  // This method will only be called if there was already an ob-
+  // ject under the cursor, which for us means a unit, and units
+  // can always be dragged.
+  UNWRAP_DRAGGABLE( o, a );
+  UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
+  dragging_ = Draggable{ .unit_id = unit.id };
+  return true;
+}
+
+void HarborDockUnits::cancel_drag() { dragging_ = nothing; }
+
+void HarborDockUnits::disown_dragged_object() {
+  UNWRAP_CHECK( unit_id,
+                dragging_.member( &Draggable::unit_id ) );
+  ss_.units.disown_unit( unit_id );
+}
+
+maybe<any> HarborDockUnits::can_receive( any const& a,
+                                         int /*from_entity*/,
+                                         Coord const& ) const {
+  UNWRAP_DRAGGABLE( o, a );
+  if( !o.holds<HarborDraggableObject::unit>() ) return nothing;
+  return a;
+}
+
+void HarborDockUnits::drop( any const& a, Coord const& ) {
+  UNWRAP_DRAGGABLE( o, a );
+  UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
+  unit_move_to_port( ss_.units, unit.id );
+}
+
 void HarborDockUnits::draw( rr::Renderer& renderer,
                             Coord         coord ) const {
   for( auto const& [unit_id, unit_coord] : units( coord ) ) {
