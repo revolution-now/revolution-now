@@ -142,12 +142,7 @@ class Backdrop : EntityBase {
                                                      .h = 544 };
 
  public:
-  void draw( rr::Renderer& renderer, Delta offset ) const {
-    rr::Painter painter = renderer.painter();
-    render_sprite_section(
-        painter, e_tile::harbor_background, Coord{} + offset,
-        Rect::from( upper_left_of_render_rect_, size_ ) );
-  }
+  void draw( rr::Renderer&, Delta ) const {}
 
   Backdrop( Backdrop&& )            = default;
   Backdrop& operator=( Backdrop&& ) = default;

@@ -23,6 +23,7 @@ enum.e_harbor_view_entity {
   outbound,
   inbound,
   exit,
+  backdrop,
 }
 
 # This object needs to specify all of the information necessary

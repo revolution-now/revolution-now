@@ -69,7 +69,7 @@ void init_renderer() {
 
   rr::RendererConfig renderer_config = {
       .logical_screen_size = logical_screen_size,
-      .max_atlas_size      = { .w = 1500, .h = 1000 },
+      .max_atlas_size      = { .w = 3000, .h = 2000 },
       // These are taken by reference.
       .sprite_sheets =
           config_tile_sheet.sheets.refl().sprite_sheets,

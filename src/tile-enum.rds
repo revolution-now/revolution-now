@@ -671,9 +671,16 @@ enum.e_tile {
   crown,
 
   # =============================================================
-  # Images
+  # Harbor View.
   # =============================================================
-  harbor_background,
+  harbor_water_slice,
+  harbor_land_front,
+  harbor_land_right_slice,
+  harbor_land_bottom_slice,
+  harbor_land_right_bottom_slice,
+  harbor_dock_left,
+  harbor_dock_middle,
+  harbor_dock_right,
 
   # =============================================================
   # Mouse Cursors

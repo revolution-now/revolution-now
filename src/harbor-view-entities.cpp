@@ -12,6 +12,7 @@
 #include "harbor-view-entities.hpp"
 
 // Revolution Now
+#include "harbor-view-backdrop.hpp"
 #include "harbor-view-cargo.hpp"
 #include "harbor-view-exit.hpp"
 #include "harbor-view-inbound.hpp"
@@ -125,7 +126,7 @@ struct CompositeHarborSubView : public ui::InvisibleView,
   // Implement AwaitView.
   wait<> perform_click(
       input::mouse_button_event_t const& event ) override {
-    for( int i = 0; i < count(); ++i ) {
+    for( int i = count() - 1; i >= 0; --i ) {
       ui::PositionedView pos_view = at( i );
       if( !event.pos.is_inside( pos_view.rect() ) ) continue;
       input::event_t const shifted_event =
@@ -143,7 +144,7 @@ struct CompositeHarborSubView : public ui::InvisibleView,
 
   maybe<PositionedDraggableSubView> view_here(
       Coord coord ) override {
-    for( int i = 0; i < count(); ++i ) {
+    for( int i = count(); i >= 0; --i ) {
       ui::PositionedView pos_view = at( i );
       if( !coord.is_inside( pos_view.rect() ) ) continue;
       maybe<PositionedDraggableSubView> p_view =
@@ -161,7 +162,7 @@ struct CompositeHarborSubView : public ui::InvisibleView,
 
   maybe<DraggableObjectWithBounds> object_here(
       Coord const& coord ) const override {
-    for( int i = 0; i < count(); ++i ) {
+    for( int i = count(); i >= 0; --i ) {
       ui::PositionedViewConst pos_view = at( i );
       if( !coord.is_inside( pos_view.rect() ) ) continue;
       maybe<DraggableObjectWithBounds> obj =
@@ -248,6 +249,8 @@ HarborViewComposited recomposite_harbor_view(
   available = available.with_new_bottom_edge(
       cargo.owned.rect().top_edge() );
   Coord const cargo_upper_left = cargo.owned.rect().upper_left();
+  Coord const cargo_upper_right =
+      cargo.owned.rect().upper_right();
   views.push_back( std::move( cargo.owned ) );
 
   // [HarborInPortShips] ----------------------------------------
@@ -258,7 +261,19 @@ HarborViewComposited recomposite_harbor_view(
       in_port.harbor;
   Coord const inport_upper_left =
       in_port.owned.rect().upper_left();
+  Coord const inport_upper_right =
+      in_port.owned.rect().upper_right();
   views.push_back( std::move( in_port.owned ) );
+
+  // [HarborBackdrop] -------------------------------------------
+  PositionedHarborSubView backdrop = HarborBackdrop::create(
+      ss, ts, player, canvas_rect, cargo_upper_right,
+      inport_upper_right );
+  composition.entities[e_harbor_view_entity::backdrop] =
+      backdrop.harbor;
+  // NOTE: this one needs to be inserted at the beginning because
+  // it needs to be drawn first.
+  views.insert( views.begin(), std::move( backdrop.owned ) );
 
   // [HarborOutboundShips]
   // ----------------------------------------

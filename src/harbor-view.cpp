@@ -180,7 +180,7 @@ class MarketCommodities : EntityBase {
   // Commodities will be 24x24 + 8 pixels for text.
   static constexpr auto sprite_scale = Delta{ .w = 32, .h = 32 };
   static inline auto    sprite_delta =
-      Delta{ .w = 1, .h = 1 }* sprite_scale;
+      Delta{ .w = 1, .h = 1 } * sprite_scale;
 
   static constexpr W single_layer_width =
       single_layer_blocks_width * sprite_scale.w;
@@ -275,9 +275,9 @@ class MarketCommodities : EntityBase {
                 .rounded_to_multiple_to_minus_inf( sprite_scale )
                 .as_if_origin_were( bounds().upper_left() ) +
             kCommodityInCargoHoldRenderingOffset;
-        auto box = Rect::from(
-            box_origin,
-            Delta{ .w = 1, .h = 1 }* Delta{ .w = 16, .h = 16 } );
+        auto box = Rect::from( box_origin,
+                               Delta{ .w = 1, .h = 1 } *
+                                   Delta{ .w = 16, .h = 16 } );
 
         res = pair{ *maybe_type, box };
       }
@@ -301,7 +301,7 @@ class ActiveCargoBox : EntityBase {
   // Commodities will be 24x24.
   static constexpr auto box_scale = Delta{ .w = 32, .h = 32 };
   static inline auto    box_delta =
-      Delta{ .w = 1, .h = 1 }* box_scale;
+      Delta{ .w = 1, .h = 1 } * box_scale;
   static inline Delta size_pixels = size_blocks * box_scale;
 
   Rect bounds() const {
@@ -424,12 +424,7 @@ class Backdrop : EntityBase {
                                                      .h = 544 };
 
  public:
-  void draw( rr::Renderer& renderer, Delta offset ) const {
-    rr::Painter painter = renderer.painter();
-    render_sprite_section(
-        painter, e_tile::harbor_background, Coord{} + offset,
-        Rect::from( upper_left_of_render_rect_, size_ ) );
-  }
+  void draw( rr::Renderer&, Delta ) const {}
 
   Backdrop( Backdrop&& )            = default;
   Backdrop& operator=( Backdrop&& ) = default;
@@ -496,7 +491,7 @@ class InPortBox : EntityBase {
       size_in_blocks.w = is_wide ? width_wide : width_narrow;
       auto origin =
           maybe_active_cargo_box->bounds().upper_left() -
-          Delta{ .h = block_size.h }* size_in_blocks.h;
+          Delta{ .h = block_size.h } * size_in_blocks.h;
       if( origin.y < 0 || origin.x < 0 ) return res;
 
       res = InPortBox( S, origin,      //
@@ -556,17 +551,15 @@ class InboundBox : EntityBase {
       size_in_blocks.h = InPortBox::height_blocks;
       size_in_blocks.w = is_wide ? InPortBox::width_wide
                                  : InPortBox::width_narrow;
-      auto origin =
-          maybe_in_port_box->bounds().upper_left() -
-          Delta{ .w =
-                     InPortBox::block_size.w }* size_in_blocks.w;
+      auto origin = maybe_in_port_box->bounds().upper_left() -
+                    Delta{ .w = InPortBox::block_size.w } *
+                        size_in_blocks.w;
       if( origin.x < 0 ) {
         // Screen is too narrow horizontally to fit this box, so
         // we need to try to put it on top of the InPortBox.
-        origin =
-            maybe_in_port_box->bounds().upper_left() -
-            Delta{
-                .h = InPortBox::block_size.h }* size_in_blocks.h;
+        origin = maybe_in_port_box->bounds().upper_left() -
+                 Delta{ .h = InPortBox::block_size.h } *
+                     size_in_blocks.h;
       }
       res = InboundBox( S, origin, size_in_blocks, is_wide );
       auto lr_delta = res->bounds().lower_right() - Coord{};
@@ -625,17 +618,15 @@ class OutboundBox : EntityBase {
       size_in_blocks.h = InPortBox::height_blocks;
       size_in_blocks.w = is_wide ? InPortBox::width_wide
                                  : InPortBox::width_narrow;
-      auto origin =
-          maybe_inbound_box->bounds().upper_left() -
-          Delta{ .w =
-                     InPortBox::block_size.w }* size_in_blocks.w;
+      auto origin = maybe_inbound_box->bounds().upper_left() -
+                    Delta{ .w = InPortBox::block_size.w } *
+                        size_in_blocks.w;
       if( origin.x < 0 ) {
         // Screen is too narrow horizontally to fit this box, so
         // we need to try to put it on top of the InboundBox.
-        origin =
-            maybe_inbound_box->bounds().upper_left() -
-            Delta{
-                .h = InPortBox::block_size.h }* size_in_blocks.h;
+        origin = maybe_inbound_box->bounds().upper_left() -
+                 Delta{ .h = InPortBox::block_size.h } *
+                     size_in_blocks.h;
       }
       res = OutboundBox{
           S,
@@ -724,7 +715,7 @@ NOTHROW_MOVE( Exit );
 class Dock : EntityBase {
   static constexpr Delta dock_block_pixels{ .w = 24, .h = 24 };
   static inline Delta    dock_block_pixels_delta =
-      Delta{ .w = 1, .h = 1 }* dock_block_pixels;
+      Delta{ .w = 1, .h = 1 } * dock_block_pixels;
 
  public:
   Rect bounds() const {
@@ -1171,7 +1162,7 @@ class ActiveCargo : EntityBase {
             scale = Delta{ .w = 16, .h = 16 };
           }
           auto box = Rect::from(
-              box_origin, Delta{ .w = 1, .h = 1 }* scale );
+              box_origin, Delta{ .w = 1, .h = 1 } * scale );
 
           res = pair{ *maybe_slot, box };
         }

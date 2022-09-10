@@ -61,9 +61,9 @@ HarborMarketCommodities::object_here(
   Coord const box_origin =
       where.rounded_to_multiple_to_minus_inf( g_tile_delta ) +
       kCommodityInCargoHoldRenderingOffset;
-  Rect const box = Rect::from(
-      box_origin,
-      Delta{ .w = 1, .h = 1 }* Delta{ .w = 16, .h = 16 } );
+  Rect const box =
+      Rect::from( box_origin, Delta{ .w = 1, .h = 1 } *
+                                  Delta{ .w = 16, .h = 16 } );
   return DraggableObjectWithBounds{
       .obj =
           HarborDraggableObject::market_commodity{
@@ -86,6 +86,9 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
   auto label   = CommodityLabel::buy_sell{};
   for( Rect const rect : grid ) {
     CHECK( comm_it != refl::enum_values<e_commodity>.end() );
+    static gfx::pixel const bg_color =
+        gfx::pixel{ .r = 0x90, .g = 0x90, .b = 0xc0, .a = 0xff };
+    painter.draw_solid_rect( rect, bg_color );
     painter.draw_empty_rect( rect,
                              rr::Painter::e_border_mode::in_out,
                              gfx::pixel::white() );
