@@ -120,10 +120,10 @@ struct CodeGenerator {
     AutoPopper( CodeGenerator& gen ) : gen_( &gen ) {
       CHECK( gen_ != nullptr );
     }
-    AutoPopper( AutoPopper const& ) = delete;
+    AutoPopper( AutoPopper const& )            = delete;
     AutoPopper& operator=( AutoPopper const& ) = delete;
-    AutoPopper& operator=( AutoPopper&& ) = delete;
-    AutoPopper( AutoPopper&& rhs )        = delete;
+    AutoPopper& operator=( AutoPopper&& )      = delete;
+    AutoPopper( AutoPopper&& rhs )             = delete;
     ~AutoPopper() {
       if( gen_ ) gen_->pop();
     }
@@ -248,7 +248,7 @@ struct CodeGenerator {
         int  max_type_len =
             max_of( alt.members, L( _.type.size() ), 0 );
         for( expr::StructMember const& alt_mem : alt.members )
-          line( "{: <{}} {};", alt_mem.type, max_type_len,
+          line( "{: <{}} {} = {{}};", alt_mem.type, max_type_len,
                 alt_mem.var );
         if( emit_equality ) {
           comment( "{}",

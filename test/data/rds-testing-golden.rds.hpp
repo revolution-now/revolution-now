@@ -46,7 +46,7 @@ namespace rdstest {
 
     template<typename T>
     struct just {
-      T val;
+      T val = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct just const& ) const = default;
@@ -127,7 +127,7 @@ namespace rdstest {
   namespace MyVariant1 {
 
     struct happy {
-      std::pair<char, int> p;
+      std::pair<char, int> p = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct happy const& ) const = default;
@@ -135,8 +135,8 @@ namespace rdstest {
     };
 
     struct sad {
-      bool  hello;
-      bool* ptr;
+      bool  hello = {};
+      bool* ptr = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct sad const& ) const = default;
@@ -233,17 +233,17 @@ namespace rdstest {
   namespace MyVariant2 {
 
     struct first {
-      std::string name;
-      bool        b;
+      std::string name = {};
+      bool        b = {};
     };
 
     struct second {
-      bool flag1;
-      bool flag2;
+      bool flag1 = {};
+      bool flag2 = {};
     };
 
     struct third {
-      int cost;
+      int cost = {};
     };
 
     enum class e {
@@ -332,7 +332,7 @@ namespace rdstest::inner {
   namespace MyVariant3 {
 
     struct a1 {
-      MyVariant0_t var0;
+      MyVariant0_t var0 = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct a1 const& ) const = default;
@@ -340,8 +340,8 @@ namespace rdstest::inner {
     };
 
     struct a2 {
-      MyVariant0_t var1;
-      MyVariant2_t var2;
+      MyVariant0_t var1 = {};
+      MyVariant2_t var2 = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct a2 const& ) const = default;
@@ -349,7 +349,7 @@ namespace rdstest::inner {
     };
 
     struct a3 {
-      char c;
+      char c = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct a3 const& ) const = default;
@@ -441,10 +441,10 @@ namespace rdstest::inner {
   namespace MyVariant4 {
 
     struct first {
-      int                 i;
-      char                c;
-      bool                b;
-      rn::maybe<uint32_t> op;
+      int                 i = {};
+      char                c = {};
+      bool                b = {};
+      rn::maybe<uint32_t> op = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct first const& ) const = default;
@@ -459,8 +459,8 @@ namespace rdstest::inner {
     };
 
     struct third {
-      std::string  s;
-      MyVariant3_t var3;
+      std::string  s = {};
+      MyVariant3_t var3 = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct third const& ) const = default;
@@ -554,8 +554,8 @@ namespace rdstest::inner {
 
     template<typename T, typename U>
     struct first_alternative {
-      T    t;
-      char c;
+      T    t = {};
+      char c = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct first_alternative const& ) const = default;
@@ -572,8 +572,8 @@ namespace rdstest::inner {
 
     template<typename T, typename U>
     struct third_alternative {
-      Maybe_t<T> hello;
-      U          u;
+      Maybe_t<T> hello = {};
+      U          u = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct third_alternative const& ) const = default;
@@ -666,7 +666,7 @@ namespace rdstest::inner {
 
     template<typename T, typename U>
     struct first {
-      rdstest::inner::TemplateTwoParams_t<T,U> ttp;
+      rdstest::inner::TemplateTwoParams_t<T,U> ttp = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct first const& ) const = default;
@@ -753,8 +753,8 @@ namespace rn {
     };
 
     struct some {
-      std::string s;
-      int         y;
+      std::string s = {};
+      int         y = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct some const& ) const = default;
@@ -762,7 +762,7 @@ namespace rn {
     };
 
     struct more {
-      double d;
+      double d = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct more const& ) const = default;
@@ -859,7 +859,7 @@ namespace rn {
     };
 
     struct on {
-      std::string user;
+      std::string user = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct on const& ) const = default;
@@ -867,7 +867,7 @@ namespace rn {
     };
 
     struct switching_on {
-      double percent;
+      double percent = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct switching_on const& ) const = default;
@@ -875,7 +875,7 @@ namespace rn {
     };
 
     struct switching_off {
-      double percent;
+      double percent = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct switching_off const& ) const = default;
