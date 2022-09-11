@@ -28,20 +28,24 @@ struct.MarketItem {
   starting_bid_price_in_hundreds 'int',
 
   # Net traded volume in europe and, in the default price model,
-  # scaled by the "volatility" parameter. Starts off as zero,
-  # then increases (decreases) each time a commodity is sold
-  # (bought). The way it is used depends on the price model. Note
-  # that this is not in hundreds but in individual units, which
-  # is important because the player can buy/sell in any quantity.
+  # scaled by the "volatility" parameter and moved each turn by
+  # the "attrition" parameter. Starts off as zero, then increases
+  # (decreases) each time a commodity is sold (bought). The way
+  # it is used depends on the price model. Note that this is not
+  # in hundreds but in individual units, which is important be-
+  # cause the player can buy/sell in any quantity.
   #
   # This is the parameter that is actually used to compute price
   # changes.
   #
   # As mentioned above, this is not exactly the amount traded by
-  # the player, since it can be scaled by the "volatility" para-
-  # meter in the default price model. The amount actually traded
-  # by the player (and visible on the economics report screen) is
-  # the one below.
+  # the player, since it can be scaled by the "volatility" and
+  # "attrition" parameters in the default price model. Further-
+  # more, depending on the model used for the interaction of the
+  # four european markets, this might be affected by the activity
+  # of other players. The amount actually traded by the player
+  # (and visible on the economics report screen) is the one be-
+  # low.
   scaled_net_traded_volume 'int',
 
   # The net amount that the player has traded. This is not used

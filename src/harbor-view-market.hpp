@@ -73,6 +73,10 @@ struct HarborMarketCommodities : public ui::View,
   // Implement IDragSource.
   void disown_dragged_object() override;
 
+  // Override IDragSource.
+  wait<> post_successful_source( std::any const&,
+                                 Coord const& ) override;
+
   // Impelement IDragSink.
   maybe<std::any> can_receive(
       std::any const& a, int from_entity,
@@ -85,6 +89,10 @@ struct HarborMarketCommodities : public ui::View,
 
   // Impelement IDragSink.
   void drop( std::any const& a, Coord const& where ) override;
+
+  // Override IDragSink.
+  wait<> post_successful_sink( std::any const&, int from_entity,
+                               Coord const& ) override;
 
   bool stacked() const { return stacked_; }
 

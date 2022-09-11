@@ -72,10 +72,10 @@ TEST_CASE( "[market] market_price" ) {
 }
 
 TEST_CASE( "[market] cost_to_buy" ) {
-  World     W;
-  Player&   player = W.default_player();
-  Commodity input;
-  int       expected = {};
+  World           W;
+  Player&         player = W.default_player();
+  Commodity       input;
+  PurchaseInvoice expected;
 
   auto f = [&] { return cost_to_buy( player, input ); };
 
@@ -83,11 +83,11 @@ TEST_CASE( "[market] cost_to_buy" ) {
   W.set_current_bid_price( e_commodity::food, 2 );
 
   input    = { .type = e_commodity::horses, .quantity = 50 };
-  expected = ( 4 + 1 ) * 100 / 2;
+  expected = { .purchased = input, .cost = ( 4 + 1 ) * 100 / 2 };
   REQUIRE( f() == expected );
 
   input    = { .type = e_commodity::food, .quantity = 100 };
-  expected = ( 2 + 8 ) * 100;
+  expected = { .purchased = input, .cost = ( 2 + 8 ) * 100 };
   REQUIRE( f() == expected );
 }
 

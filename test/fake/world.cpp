@@ -337,7 +337,7 @@ void World::set_current_bid_price( e_commodity type,
 
 void World::set_stable_bid_price( e_commodity type,
                                   int price_in_hundreds ) {
-  CHECK( !is_in_price_group( type ),
+  CHECK( !is_in_processed_goods_price_group( type ),
          "cannot set the equilibrium price for goods in a price "
          "group." );
   Player& player    = default_player();

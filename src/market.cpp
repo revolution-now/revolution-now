@@ -41,10 +41,12 @@ CommodityPrice market_price( Player const& player,
   return CommodityPrice{ .bid = bid, .ask = ask };
 }
 
-int cost_to_buy( Player const& player, Commodity comm ) {
+PurchaseInvoice cost_to_buy( Player const& player,
+                             Commodity     comm ) {
   CommodityPrice const prices =
       market_price( player, comm.type );
-  return prices.ask * comm.quantity;
+  return PurchaseInvoice{ .purchased = comm,
+                          .cost = prices.ask * comm.quantity };
 }
 
 SaleInvoice sale_transaction( Player const& player,
@@ -66,7 +68,7 @@ SaleInvoice sale_transaction( Player const& player,
   return res;
 }
 
-bool is_in_price_group( e_commodity type ) {
+bool is_in_processed_goods_price_group( e_commodity type ) {
   switch( type ) {
     case e_commodity::rum:
     case e_commodity::cigars:

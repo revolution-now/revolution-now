@@ -18,10 +18,20 @@ struct.CommodityPrice {
   ask 'int', # in hundreds.
 }
 
+struct.PurchaseInvoice {
+  purchased 'Commodity',
+  cost 'int',
+}
+
 struct.SaleInvoice {
   sold 'Commodity',
   received_before_taxes 'int',
   tax_rate 'int',
   tax_amount 'int',
   received_final 'int',
+}
+
+struct.PriceChange {
+  from 'int',
+  to 'int',
 }

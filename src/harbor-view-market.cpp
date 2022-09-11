@@ -132,8 +132,8 @@ HarborMarketCommodities::source_check( any const&,
 
   // TODO: check for boycotts.
 
-  int const cost = cost_to_buy( player_, comm );
-  if( cost > player_.money )
+  PurchaseInvoice const invoice = cost_to_buy( player_, comm );
+  if( invoice.cost > player_.money )
     co_return DragRejection{
         .reason = fmt::format(
             "You do not have enough gold to purchase @[H]{} "
@@ -147,9 +147,17 @@ void HarborMarketCommodities::disown_dragged_object() {
   UNWRAP_CHECK( comm, dragging_.member( &Draggable::comm ) );
   // The player is buying. Here we are officially releasing the
   // goods from the market, and so we must charge the player now.
-  int const cost = cost_to_buy( player_, comm );
-  player_.money -= cost;
+  PurchaseInvoice const invoice = cost_to_buy( player_, comm );
+  player_.money -= invoice.cost;
   CHECK_GE( player_.money, 0 );
+}
+
+wait<> HarborMarketCommodities::post_successful_source(
+    any const& a, Coord const& ) {
+  UNWRAP_DRAGGABLE( o, a );
+  // TODO
+  (void)o;
+  co_return;
 }
 
 maybe<any> HarborMarketCommodities::can_receive(
@@ -181,6 +189,14 @@ void HarborMarketCommodities::drop( any const& a,
   // player now.
   SaleInvoice const invoice = sale_transaction( player_, comm );
   player_.money += invoice.received_final;
+}
+
+wait<> HarborMarketCommodities::post_successful_sink(
+    any const& a, int /*from_entity*/, Coord const& ) {
+  UNWRAP_DRAGGABLE( o, a );
+  // TODO
+  (void)o;
+  co_return;
 }
 
 void HarborMarketCommodities::draw( rr::Renderer& renderer,
