@@ -1,43 +1,47 @@
 nations {
 
   dutch {
-    enum_val:        dutch
-    display_name:    Dutch
-    country_name:    The Netherlands
-    adjective:       Dutch
-    new_world_name:  New Netherlands
-    article:         a
-    flag_color:     "#FF7100"
+    enum_val:         dutch
+    display_name:     Dutch
+    country_name:     The Netherlands
+    harbor_city_name: Amsterdam
+    adjective:        Dutch
+    new_world_name:   New Netherlands
+    article:          a
+    flag_color:      "#FF7100"
   }
 
   french {
-    enum_val:        french
-    display_name:    French
-    country_name:    France
-    adjective:       French
-    new_world_name:  New France
-    article:         a
-    flag_color:     "#5555FF"
+    enum_val:         french
+    display_name:     French
+    country_name:     France
+    harbor_city_name: La Rochelle
+    adjective:        French
+    new_world_name:   New France
+    article:          a
+    flag_color:      "#5555FF"
   }
 
   english {
-    enum_val:        english
-    display_name:    English
-    country_name:    England
-    adjective:       English
-    new_world_name:  New England
-    article:         an
-    flag_color:     "#FF0000"
+    enum_val:         english
+    display_name:     English
+    country_name:     England
+    harbor_city_name: London
+    adjective:        English
+    new_world_name:   New England
+    article:          an
+    flag_color:      "#FF0000"
   }
 
   spanish {
-    enum_val:        spanish
-    display_name:    Spanish
-    country_name:    Spain
-    adjective:       Spanish
-    new_world_name:  New Spain
-    article:         a
-    flag_color:     "#FFFE54"
+    enum_val:         spanish
+    display_name:     Spanish
+    country_name:     Spain
+    harbor_city_name: Seville
+    adjective:        Spanish
+    new_world_name:   New Spain
+    article:          a
+    flag_color:      "#FFFE54"
   }
 
 }
