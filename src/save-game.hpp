@@ -51,4 +51,8 @@ valid_or<std::string> load_game_from_rcl_file(
 
 void autosave( RootState const& root );
 
+// Given the current turn index, this will tell us if it is time
+// to autosave.
+bool should_autosave( int turns );
+
 } // namespace rn

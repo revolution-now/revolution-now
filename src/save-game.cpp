@@ -233,4 +233,8 @@ void autosave( RootState const& root ) {
   if( !res ) lg.warn( "autosave failed: {}", res.error() );
 }
 
+bool should_autosave( int turns ) {
+  return turns % config_savegame.autosave_frequency == 0;
+}
+
 } // namespace rn

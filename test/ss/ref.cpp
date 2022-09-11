@@ -71,6 +71,7 @@ cdr::value cdr_game_state_default =
                     cdr::table{
                         "year"_key   = 0,
                         "season"_key = "winter",
+                        "turns"_key  = 0,
                     },
                 "started"_key   = false,
                 "nation"_key    = cdr::null,

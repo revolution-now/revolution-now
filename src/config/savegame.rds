@@ -18,6 +18,9 @@ namespace "rn"
 
 struct.config_savegame_t {
   folder 'fs::path',
+
+  # Do an autosave every N turns.
+  autosave_frequency 'int',
 }
 
 config.savegame {}

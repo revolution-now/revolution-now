@@ -34,6 +34,9 @@ struct.TurnTimePoint {
   year 'int',
   season 'e_season',
 
+  # Total number of turns since the start of the game.
+  turns 'int',
+
   _features { validation, equality }
 }
 

@@ -106,7 +106,9 @@ NationTurnState new_nation_turn_obj( e_nation nat ) {
   };
 }
 
+// To be called once per turn.
 wait<> advance_time( IGui& gui, TurnTimePoint& time_point ) {
+  ++time_point.turns;
   if( time_point.year == 1600 &&
       time_point.season == e_season::spring )
     co_await gui.message_box(
@@ -891,7 +893,8 @@ wait<> next_turn( Planes& planes, SS& ss, TS& ts ) {
   co_await advance_time( ts.gui, st.time_point );
 
   // Autosave.
-  autosave( ss.root );
+  if( should_autosave( st.time_point.turns ) )
+    autosave( ss.root );
 }
 
 } // namespace
