@@ -112,9 +112,11 @@ namespace detail {
 
 template<typename T>
 struct RetHolder {
-  RetHolder( T& val ) requires std::is_reference_v<T>
+  RetHolder( T& val )
+  requires std::is_reference_v<T>
     : o( val ) {}
-  RetHolder( T val ) requires( !std::is_reference_v<T> )
+  RetHolder( T val )
+  requires( !std::is_reference_v<T> )
     : o( std::move( val ) ) {}
   decltype( auto ) get() {
     // If our return type is a non-const l-value ref then we need
@@ -169,12 +171,12 @@ struct exhaust_checker {
 };
 
 template<typename T>
-concept SettablePointer = std::is_pointer_v<T> &&
-    !std::is_const_v<std::remove_pointer_t<T>>;
+concept SettablePointer = std::is_pointer_v<T> && !
+std::is_const_v<std::remove_pointer_t<T>>;
 
 template<typename T>
-concept SettableReference = std::is_reference_v<T> &&
-    !std::is_const_v<std::remove_reference_t<T>>;
+concept SettableReference = std::is_reference_v<T> && !
+std::is_const_v<std::remove_reference_t<T>>;
 
 template<typename T>
 concept Settable = SettablePointer<T> || SettableReference<T>;
@@ -250,10 +252,16 @@ struct Responder<RetT, std::tuple<Args...>,
                                          T&& src, U& dst ) {
         if constexpr( !std::is_same_v<std::remove_reference_t<T>,
                                       None> ) {
-          if constexpr( std::is_pointer_v<U> )
-            *dst = *src;
-          else // reference
-            dst = *src;
+          // If we're here then the user has requested to set at
+          // least one argument on this function call, but poten-
+          // tially not all of the ones that are possible (purely
+          // based on type) to set.
+          if( src.has_value() ) {
+            if constexpr( std::is_pointer_v<U> )
+              *dst = *src;
+            else // reference
+              dst = *src;
+          }
         }
       };
       ( setter( std::get<Idx>( *setters_ ),
