@@ -79,8 +79,7 @@ HarborCargo::draggable_in_cargo_slot( int slot ) const {
         }
         case Cargo::e::unit: {
           UnitId const unit_id = draggable.get<Cargo::unit>().id;
-          return HarborDraggableObject::unit{
-              .id = unit_id, .harbor_state = nothing };
+          return HarborDraggableObject::unit{ .id = unit_id };
         }
       }
     }

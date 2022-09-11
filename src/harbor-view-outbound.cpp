@@ -93,12 +93,8 @@ maybe<DraggableObjectWithBounds>
 HarborOutboundShips::object_here( Coord const& where ) const {
   maybe<UnitWithPosition> const unit = unit_at_location( where );
   if( !unit.has_value() ) return nothing;
-  UNWRAP_CHECK(
-      state, ss_.units.maybe_harbor_view_state_of( unit->id ) );
   return DraggableObjectWithBounds{
-      .obj =
-          HarborDraggableObject::unit{ .id           = unit->id,
-                                       .harbor_state = state },
+      .obj    = HarborDraggableObject::unit{ .id = unit->id },
       .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
 }
 
@@ -169,9 +165,13 @@ bool HarborOutboundShips::try_drag( any const& a,
 void HarborOutboundShips::cancel_drag() { dragging_ = nothing; }
 
 void HarborOutboundShips::disown_dragged_object() {
-  UNWRAP_CHECK( unit_id,
-                dragging_.member( &Draggable::unit_id ) );
-  ss_.units.disown_unit( unit_id );
+  // Ideally we should do as the API spec says and disown the ob-
+  // ject here. However, we're not actually going to do that, be-
+  // cause the object is a ship which is being dragged either to
+  // the inbound or in-port boxes, and if we disown it first then
+  // it will lose its existing harbor state. In any case, we
+  // don't have to disown it since the methods used to move it to
+  // its new home will do that automatically.
 }
 
 maybe<any> HarborOutboundShips::can_receive(
@@ -187,12 +187,8 @@ void HarborOutboundShips::drop( any const& a, Coord const& ) {
   UNWRAP_DRAGGABLE( o, a );
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
   UnitId const dragged_id = unit.id;
-  // If we're dragging a unit into the outbound box then it has
-  // to be a ship, which means that it must already have a harbor
-  // state.
-  UNWRAP_CHECK( state, unit.harbor_state );
   unit_sail_to_new_world( ss_.terrain, ss_.units, player_,
-                          dragged_id, state );
+                          dragged_id );
 }
 
 void HarborOutboundShips::draw( rr::Renderer& renderer,
