@@ -79,7 +79,8 @@ HarborCargo::draggable_in_cargo_slot( int slot ) const {
         }
         case Cargo::e::unit: {
           UnitId const unit_id = draggable.get<Cargo::unit>().id;
-          return HarborDraggableObject::unit{ .id = unit_id };
+          return HarborDraggableObject::unit{
+              .id = unit_id, .harbor_state = nothing };
         }
       }
     }
@@ -205,7 +206,7 @@ maybe<any> HarborCargo::can_receive( any const&   a,
                 slot ) )
           return nothing;
       }
-      return HarborDraggableObject::unit{ .id = dragged_id };
+      return alt;
     }
     case HarborDraggableObject::e::market_commodity: {
       auto const& alt =

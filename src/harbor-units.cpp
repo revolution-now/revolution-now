@@ -267,6 +267,39 @@ void unit_move_to_port( UnitsState& units_state, UnitId id ) {
   units_state.change_to_harbor_view( id, new_state );
 }
 
+void unit_sail_to_harbor(
+    TerrainState const& terrain_state, UnitsState& units_state,
+    Player& player, UnitId id,
+    UnitHarborViewState const& previous_harbor_state ) {
+  int const turns_needed = turns_needed_for_high_seas(
+      terrain_state, player, previous_harbor_state );
+  switch( auto& v = previous_harbor_state.port_status;
+          v.to_enum() ) {
+    case PortStatus::e::in_port: return;
+    case PortStatus::e::inbound: {
+      auto const& [turns] = v.get<PortStatus::inbound>();
+      if( turns >= turns_needed )
+        // Unit has not yet made any progress, so we can imme-
+        // diately move it to in_port.
+        unit_move_to_port( units_state, id );
+      return;
+    }
+    case PortStatus::e::outbound: {
+      auto const& [turns] = v.get<PortStatus::outbound>();
+      UnitHarborViewState new_state = previous_harbor_state;
+      // Unit must "turn around" and go the other way.
+      new_state.port_status =
+          PortStatus::inbound{ .turns = turns_needed - turns };
+      units_state.change_to_harbor_view( id, new_state );
+      // Recurse to deal with the inbound state, which might in
+      // turn need to be translated to in_port.
+      unit_sail_to_harbor( terrain_state, units_state, player,
+                           id );
+      return;
+    }
+  }
+}
+
 void unit_sail_to_harbor( TerrainState const& terrain_state,
                           UnitsState&         units_state,
                           Player& player, UnitId id ) {
@@ -274,37 +307,12 @@ void unit_sail_to_harbor( TerrainState const& terrain_state,
   //        ship is not damaged.
   CHECK( units_state.unit_for( id ).desc().ship );
 
-  if( maybe<UnitHarborViewState const&> existing_state =
+  if( maybe<UnitHarborViewState const&> previous_harbor_state =
           units_state.maybe_harbor_view_state_of( id );
-      existing_state.has_value() ) {
-    int const turns_needed = turns_needed_for_high_seas(
-        terrain_state, player, *existing_state );
-    switch( auto& v = existing_state->port_status;
-            v.to_enum() ) {
-      case PortStatus::e::in_port: return;
-      case PortStatus::e::inbound: {
-        auto const& [turns] = v.get<PortStatus::inbound>();
-        if( turns >= turns_needed )
-          // Unit has not yet made any progress, so we can imme-
-          // diately move it to in_port.
-          unit_move_to_port( units_state, id );
-        return;
-      }
-      case PortStatus::e::outbound: {
-        auto const& [turns] = v.get<PortStatus::outbound>();
-        UnitHarborViewState new_state = *existing_state;
-        // Unit must "turn around" and go the other way.
-        new_state.port_status =
-            PortStatus::inbound{ .turns = turns_needed - turns };
-        units_state.change_to_harbor_view( id, new_state );
-        // Recurse to deal with the inbound state, which might in
-        // turn need to be translated to in_port.
-        unit_sail_to_harbor( terrain_state, units_state, player,
-                             id );
-        return;
-      }
-    }
-  }
+      previous_harbor_state.has_value() )
+    return unit_sail_to_harbor( terrain_state, units_state,
+                                player, id,
+                                *previous_harbor_state );
 
   maybe<Coord> sailed_from = units_state.maybe_coord_for( id );
   // Even though last_high_seas is a maybe<Coord>, don't over-
@@ -321,20 +329,19 @@ void unit_sail_to_harbor( TerrainState const& terrain_state,
               .sailed_from = sailed_from } );
 }
 
-void unit_sail_to_new_world( TerrainState const& terrain_state,
-                             UnitsState&         units_state,
-                             Player const& player, UnitId id ) {
+void unit_sail_to_new_world(
+    TerrainState const& terrain_state, UnitsState& units_state,
+    Player const& player, UnitId id,
+    UnitHarborViewState const& previous_harbor_state ) {
   // FIXME: do other checks here, e.g., make sure that the
   //        ship is not damaged.
   CHECK( units_state.unit_for( id ).desc().ship );
 
-  UNWRAP_CHECK( existing_state,
-                units_state.maybe_harbor_view_state_of( id ) );
-
   // Note that we are always reusing the `sailed_from`.
-  UnitHarborViewState new_state = existing_state;
+  UnitHarborViewState new_state = previous_harbor_state;
 
-  switch( auto& v = existing_state.port_status; v.to_enum() ) {
+  switch( auto& v = previous_harbor_state.port_status;
+          v.to_enum() ) {
     case PortStatus::e::outbound: //
       // Even if the progress is complete, we don't move the unit
       // onto the map, since that is not the job of this func-
@@ -343,7 +350,7 @@ void unit_sail_to_new_world( TerrainState const& terrain_state,
     case PortStatus::e::inbound: {
       auto& [turns]          = v.get<PortStatus::inbound>();
       int const turns_needed = turns_needed_for_high_seas(
-          terrain_state, player, existing_state );
+          terrain_state, player, previous_harbor_state );
       // Unit must "turn around" and go the other way.
       new_state.port_status =
           PortStatus::outbound{ .turns = turns_needed - turns };
@@ -356,6 +363,16 @@ void unit_sail_to_new_world( TerrainState const& terrain_state,
   }
 
   units_state.change_to_harbor_view( id, new_state );
+}
+
+void unit_sail_to_new_world( TerrainState const& terrain_state,
+                             UnitsState&         units_state,
+                             Player const& player, UnitId id ) {
+  UNWRAP_CHECK( previous_harbor_state,
+                units_state.maybe_harbor_view_state_of( id ) );
+  return unit_sail_to_new_world( terrain_state, units_state,
+                                 player, id,
+                                 previous_harbor_state );
 }
 
 e_high_seas_result advance_unit_on_high_seas(

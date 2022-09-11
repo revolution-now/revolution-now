@@ -50,7 +50,23 @@ std::vector<UnitId> harbor_units_outbound(
 // This is called on a ship that is in the harbor to make it sail
 // to the new world. This just puts it into inbound state with
 // the appropriate percentage given its current state; it will
-// not ever move the unit to the map.
+// not ever move the unit to the map. It only makes sense to sail
+// to the new world if the ship is already in port on on the high
+// seas, and so there will be an existing harbor state associated
+// with it that is needed in order to properly transition it to
+// outbound. In general that state may need to be explicitly
+// passed in because the unit may not have that state currently,
+// e.g. if it is being drag and dropped, it will be disowned in
+// the process and will lose its harbor state. If it is not
+// passed in then it will be assumed that the unit already has
+// that state.
+void unit_sail_to_new_world(
+    TerrainState const& terrain_state, UnitsState& units_state,
+    Player const& player, UnitId id,
+    UnitHarborViewState const& previous_harbor_state );
+
+// This is the one where the unit is assumed to already have a
+// harbor state.
 void unit_sail_to_new_world( TerrainState const& terrain_state,
                              UnitsState&         units_state,
                              Player const& player, UnitId id );
@@ -63,6 +79,18 @@ void unit_sail_to_new_world( TerrainState const& terrain_state,
 // If it is a unit owned by the map then it record its position
 // so that it can return to that position when it emerges back in
 // the new world eventually.
+//
+// For the same reason that is documented above for the "sail to
+// new world" function, we have two variants of these, one which
+// takes a previous harbor state and one which does not.
+void unit_sail_to_harbor(
+    TerrainState const& terrain_state, UnitsState& units_state,
+    Player& player, UnitId id,
+    UnitHarborViewState const& previous_harbor_state );
+
+// This is the one where the unit's existing state will be
+// checked taken from the unit itself (it may or may not be a
+// harbor state; e.g. it could be on the map).
 void unit_sail_to_harbor( TerrainState const& terrain_state,
                           UnitsState&         units_state,
                           Player& player, UnitId id );

@@ -8,10 +8,14 @@
 # Description: Rds definitions for the harbor-view-entities module.
 #
 # ===============================================================
+# Revolution Now
+include "maybe.hpp"
+
 # ss
 include "ss/cargo.hpp"
 include "ss/commodity.rds.hpp"
 include "ss/unit-id.hpp"
+include "ss/units.rds.hpp"
 
 namespace "rn"
 
@@ -35,6 +39,13 @@ enum.e_harbor_view_entity {
 sumtype.HarborDraggableObject {
   unit {
     id 'UnitId',
+    # If the unit has a harbor state (i.e., it is not in a ship's
+    # cargo) then that state needs to be preserved so that when
+    # the unit is disowned from the source we can remember what
+    # its harbor state was, which is needed if e.g. a unit is
+    # moved from inbound to outbound so that it can keep its po-
+    # sition on the high seas.
+    harbor_state 'maybe<UnitHarborViewState>',
   },
   market_commodity {
     comm 'Commodity',

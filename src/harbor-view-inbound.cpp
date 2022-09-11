@@ -93,8 +93,12 @@ maybe<DraggableObjectWithBounds> HarborInboundShips::object_here(
     Coord const& where ) const {
   maybe<UnitWithPosition> const unit = unit_at_location( where );
   if( !unit.has_value() ) return nothing;
+  UNWRAP_CHECK(
+      state, ss_.units.maybe_harbor_view_state_of( unit->id ) );
   return DraggableObjectWithBounds{
-      .obj    = HarborDraggableObject::unit{ .id = unit->id },
+      .obj =
+          HarborDraggableObject::unit{ .id           = unit->id,
+                                       .harbor_state = state },
       .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
 }
 
@@ -152,6 +156,40 @@ wait<> HarborInboundShips::perform_click(
       unit_at_location( event.pos );
   if( !unit.has_value() ) co_return;
   co_await click_on_unit( unit->id );
+}
+
+bool HarborInboundShips::try_drag( any const& a, Coord const& ) {
+  UNWRAP_DRAGGABLE( o, a );
+  UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
+  dragging_ = Draggable{ .unit_id = unit.id };
+  return true;
+}
+
+void HarborInboundShips::cancel_drag() { dragging_ = nothing; }
+
+void HarborInboundShips::disown_dragged_object() {
+  UNWRAP_CHECK( unit_id,
+                dragging_.member( &Draggable::unit_id ) );
+  ss_.units.disown_unit( unit_id );
+}
+
+maybe<any> HarborInboundShips::can_receive(
+    any const& a, int from_entity, Coord const& ) const {
+  CONVERT_ENTITY( entity_enum, from_entity );
+  if( entity_enum == e_harbor_view_entity::outbound ) return a;
+  return nothing;
+}
+
+void HarborInboundShips::drop( any const& a, Coord const& ) {
+  UNWRAP_DRAGGABLE( o, a );
+  UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
+  UnitId const dragged_id = unit.id;
+  // If we're dragging a unit into the outbound box then it has
+  // to be a ship, which means that it must already have a harbor
+  // state.
+  UNWRAP_CHECK( state, unit.harbor_state );
+  unit_sail_to_harbor( ss_.terrain, ss_.units, player_,
+                       dragged_id, state );
 }
 
 void HarborInboundShips::draw( rr::Renderer& renderer,

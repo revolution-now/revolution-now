@@ -72,8 +72,12 @@ maybe<DraggableObjectWithBounds> HarborDockUnits::object_here(
     Coord const& where ) const {
   maybe<UnitWithPosition> const unit = unit_at_location( where );
   if( !unit.has_value() ) return nothing;
+  UNWRAP_CHECK(
+      state, ss_.units.maybe_harbor_view_state_of( unit->id ) );
   return DraggableObjectWithBounds{
-      .obj    = HarborDraggableObject::unit{ .id = unit->id },
+      .obj =
+          HarborDraggableObject::unit{ .id           = unit->id,
+                                       .harbor_state = state },
       .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
 }
 

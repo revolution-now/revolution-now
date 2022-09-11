@@ -119,7 +119,7 @@ wait<> drag_drop_routine( co::stream<input::event_t>& input,
     NO_DRAG( "source view has no entity ID." );
 
   // Next check if there is an object under the cursor.
-  maybe<DraggableObjectWithBounds> source_bounded_object =
+  maybe<DraggableObjectWithBounds> const source_bounded_object =
       source_view.object_here(
           origin.with_new_origin( source_upper_left ) );
   if( !source_bounded_object )
