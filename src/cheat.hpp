@@ -32,6 +32,7 @@ struct ColoniesState;
 struct Colony;
 struct IGui;
 struct IMapUpdater;
+struct Player;
 struct SS;
 struct SSConst;
 struct TS;
@@ -79,5 +80,16 @@ void cheat_advance_colony_one_turn( SS& ss, TS& ts,
 // the map. It will allow the player to select the unit type.
 wait<> cheat_create_unit_on_map( SS& ss, TS& ts, e_nation nation,
                                  Coord tile );
+
+/****************************************************************
+** In Harbor View
+*****************************************************************/
+void cheat_increase_tax_rate( Player& player );
+
+void cheat_decrease_tax_rate( Player& player );
+
+void cheat_increase_gold( Player& player );
+
+void cheat_decrease_gold( Player& player );
 
 } // namespace rn

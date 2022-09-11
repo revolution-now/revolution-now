@@ -26,7 +26,7 @@
 #include "config/rn.rds.hpp"
 #include "config/unit-type.hpp"
 
-// gs
+// ss
 #include "ss/colony.hpp"
 #include "ss/players.rds.hpp"
 
@@ -61,6 +61,33 @@ bool can_remove_building( Colony const&     colony,
 }
 
 } // namespace
+
+/****************************************************************
+** In Harbor View
+*****************************************************************/
+void cheat_increase_tax_rate( Player& player ) {
+  RETURN_IF_NO_CHEAT;
+  int& rate = player.old_world.taxes.tax_rate;
+  rate      = clamp( rate + 1, 0, 100 );
+}
+
+void cheat_decrease_tax_rate( Player& player ) {
+  RETURN_IF_NO_CHEAT;
+  int& rate = player.old_world.taxes.tax_rate;
+  rate      = clamp( rate - 1, 0, 100 );
+}
+
+void cheat_increase_gold( Player& player ) {
+  RETURN_IF_NO_CHEAT;
+  int& gold = player.money;
+  gold      = gold + 1000;
+}
+
+void cheat_decrease_gold( Player& player ) {
+  RETURN_IF_NO_CHEAT;
+  int& gold = player.money;
+  gold      = std::max( gold - 1000, 0 );
+}
 
 /****************************************************************
 ** In Colony View

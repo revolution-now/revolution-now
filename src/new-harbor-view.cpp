@@ -11,6 +11,7 @@
 #include "new-harbor-view.hpp"
 
 // Revolution Now
+#include "cheat.hpp"
 #include "commodity.hpp"
 #include "compositor.hpp"
 #include "dragdrop.hpp"
@@ -194,7 +195,20 @@ struct NewHarborPlane::Impl : public Plane {
     if( event.change != input::e_key_change::down ) co_return;
     if( event.mod.shf_down ) {
       // Cheat commands.
-      // TODO
+      switch( event.keycode ) {
+        case ::SDLK_LEFTBRACKET:
+          cheat_decrease_tax_rate( player_ );
+          break;
+        case ::SDLK_RIGHTBRACKET:
+          cheat_increase_tax_rate( player_ );
+          break;
+        case ::SDLK_3: //
+          cheat_decrease_gold( player_ );
+          break;
+        case ::SDLK_4: //
+          cheat_increase_gold( player_ );
+          break;
+      }
       co_return;
     }
     switch( event.keycode ) {
