@@ -6,20 +6,15 @@
  " \ 'colony-buildings',
  " \ 'colview-buildings',
  " \ 'custom-house',
- " \ 'ss/market',
- " \ 'config/market',
- " \ 'market',
 let s:stems = [
  \ 'dragdrop',
- \ 'colview-land',
  \ 'harbor-view',
- \ 'colony-view',
  \ 'new-harbor-view',
- \ 'colview-entities',
  \ 'harbor-view-entities',
- \ 'harbor-view-outbound',
- \ 'harbor-view-inbound',
- \ 'harbor-view-dock',
+ \ 'harbor-view-market',
+ \ 'ss/market',
+ \ 'config/market',
+ \ 'market',
 \]
 
 let s:luas = [
