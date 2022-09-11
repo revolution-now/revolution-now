@@ -1,70 +1,7 @@
 namespace rn {
 namespace {
 
-/****************************************************************
-** Drag & Drop
-*****************************************************************/
-struct HarborDragSrcInfo {
-  HarborDragSrc_t src;
-  Rect            rect;
-};
-
-maybe<HarborDragSrcInfo> drag_src_from_coord(
-    PS& S, Coord const& coord, Entities const* entities ) {
-  using namespace entity;
-  maybe<HarborDragSrcInfo> res;
-  if( entities->active_cargo.has_value() ) {
-    auto const& active_cargo = *entities->active_cargo;
-    auto        in_port =
-        active_cargo.active_unit()
-            .fmap( [&]( UnitId id ) {
-              return is_unit_in_port( S.ss_.units, id );
-            } )
-            .is_value_truish();
-    auto maybe_pair = base::just( coord ).bind(
-        LC( active_cargo.obj_under_cursor( _ ) ) );
-    if( in_port &&
-        maybe_pair.fmap( L( _.first ) )
-            .bind( LC( draggable_in_cargo_slot( S, _ ) ) ) ) {
-      auto const& [slot, rect] = *maybe_pair;
-
-      res = HarborDragSrcInfo{
-          /*src=*/HarborDragSrc::cargo{ /*slot=*/slot,
-                                        /*quantity=*/nothing },
-          /*rect=*/rect };
-    }
-  }
-  return res;
-}
-
-maybe<UnitId> active_cargo_ship( Entities const* entities ) {
-  return entities->active_cargo.bind(
-      &entity::ActiveCargo::active_unit );
-}
-
-#define DRAG_CONNECT_CASE( src_, dst_ )                        \
-  operator()( [[maybe_unused]] HarborDragSrc::src_ const& src, \
-              [[maybe_unused]] HarborDragDst::dst_ const& dst )
-
 struct DragConnector {
-  PS& S;
-
-  static bool visit( PS& S, Entities const* entities,
-                     HarborDragSrc_t const& drag_src,
-                     HarborDragDst_t const& drag_dst ) {
-    DragConnector connector( S, entities );
-    return std::visit( connector, drag_src, drag_dst );
-  }
-
-  Entities const* entities = nullptr;
-  DragConnector( PS& S_arg, Entities const* entities_ )
-    : S( S_arg ), entities( entities_ ) {}
-  bool DRAG_CONNECT_CASE( dock, cargo ) const {
-    UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
-    if( !is_unit_in_port( S.ss_.units, ship ) ) return false;
-    return S.ss_.units.unit_for( ship ).cargo().fits_somewhere(
-        S.ss_.units, Cargo::unit{ src.id }, dst.slot );
-  }
   bool DRAG_CONNECT_CASE( cargo, dock ) const {
     return holds<HarborDraggableObject2::unit>(
                draggable_from_src( S, src ) )
@@ -101,9 +38,6 @@ struct DragConnector {
               /*slot=*/dst.slot );
         } );
   }
-  bool DRAG_CONNECT_CASE( outbound, inbound ) const {
-    return true;
-  }
   bool DRAG_CONNECT_CASE( outbound, inport ) const {
     UNWRAP_CHECK(
         info, S.ss_.units.maybe_harbor_view_state_of( src.id ) );
@@ -112,12 +46,6 @@ struct DragConnector {
     // We'd like to do == 0.0 here, but this will avoid rounding
     // errors.
     return outbound.turns == 0;
-  }
-  bool DRAG_CONNECT_CASE( inbound, outbound ) const {
-    return true;
-  }
-  bool DRAG_CONNECT_CASE( inport, outbound ) const {
-    return true;
   }
   bool DRAG_CONNECT_CASE( dock, inport_ship ) const {
     return S.ss_.units.unit_for( dst.id ).cargo().fits_somewhere(
@@ -187,25 +115,7 @@ struct DragConnector {
   }
 };
 
-#define DRAG_CONFIRM_CASE( src_, dst_ )                  \
-  operator()( [[maybe_unused]] HarborDragSrc::src_& src, \
-              [[maybe_unused]] HarborDragDst::dst_& dst )
-
 struct DragUserInput {
-  PS&             S;
-  Entities const* entities = nullptr;
-  DragUserInput( PS& S_arg, Entities const* entities_ )
-    : S( S_arg ), entities( entities_ ) {}
-
-  static wait<base::NoDiscard<bool>> visit(
-      PS& S, Entities const* entities, HarborDragSrc_t* drag_src,
-      HarborDragDst_t* drag_dst ) {
-    // Need to co_await here to keep parameters alive.
-    bool proceed = co_await std::visit(
-        DragUserInput( S, entities ), *drag_src, *drag_dst );
-    co_return proceed;
-  }
-
   static wait<maybe<int>> ask_for_quantity( PS&         S,
                                             e_commodity type,
                                             string_view verb ) {
@@ -261,45 +171,9 @@ struct DragUserInput {
         S, maybe_commodity_ref->obj.type, "move" );
     co_return src.quantity.has_value();
   }
-  wait<bool> operator()( auto const&, auto const& ) const {
-    co_return true;
-  }
 };
 
-#define DRAG_PERFORM_CASE( src_, dst_ )                        \
-  operator()( [[maybe_unused]] HarborDragSrc::src_ const& src, \
-              [[maybe_unused]] HarborDragDst::dst_ const& dst )
-
 struct DragPerform {
-  PS& S;
-
-  Entities const* entities = nullptr;
-  DragPerform( PS& S_arg, Entities const* entities_ )
-    : S( S_arg ), entities( entities_ ) {}
-
-  static void visit( PS& S, Entities const* entities,
-                     HarborDragSrc_t const& src,
-                     HarborDragDst_t const& dst ) {
-    lg.debug( "performing drag: {} to {}", src, dst );
-    std::visit( DragPerform( S, entities ), src, dst );
-  }
-
-  void DRAG_PERFORM_CASE( dock, cargo ) const {
-    UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
-    // First try to respect the destination slot chosen by
-    // the player,
-    if( S.ss_.units.unit_for( ship ).cargo().fits(
-            S.ss_.units, Cargo::unit{ src.id }, dst.slot ) )
-      S.ss_.units.change_to_cargo_somewhere( ship, src.id,
-                                             dst.slot );
-    else
-      S.ss_.units.change_to_cargo_somewhere( ship, src.id );
-  }
-  void DRAG_PERFORM_CASE( cargo, dock ) const {
-    ASSIGN_CHECK_V( unit, draggable_from_src( S, src ),
-                    HarborDraggableObject2::unit );
-    unit_move_to_port( S.ss_.units, unit.id );
-  }
   void DRAG_PERFORM_CASE( cargo, cargo ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     UNWRAP_CHECK( cargo_object,
@@ -320,17 +194,9 @@ struct DragPerform {
               /*try_other_dst_slots=*/false );
         } );
   }
-  void DRAG_PERFORM_CASE( outbound, inbound ) const {
-    unit_sail_to_harbor( S.ss_.terrain, S.ss_.units, S.player,
-                         src.id );
-  }
   void DRAG_PERFORM_CASE( outbound, inport ) const {
     unit_sail_to_harbor( S.ss_.terrain, S.ss_.units, S.player,
                          src.id );
-  }
-  void DRAG_PERFORM_CASE( inbound, outbound ) const {
-    unit_sail_to_new_world( S.ss_.terrain, S.ss_.units, S.player,
-                            src.id );
   }
   void DRAG_PERFORM_CASE( inport, outbound ) const {
     HarborState& hb_state = S.harbor_state();
