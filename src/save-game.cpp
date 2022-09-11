@@ -228,4 +228,9 @@ expect<fs::path> load_game( RootState& root, int slot ) {
   }
 }
 
+void autosave( RootState const& root ) {
+  expect<fs::path> res = save_game( root, 9 );
+  if( !res ) lg.warn( "autosave failed: {}", res.error() );
+}
+
 } // namespace rn

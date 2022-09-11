@@ -889,6 +889,9 @@ wait<> next_turn( Planes& planes, SS& ss, TS& ts ) {
 
   reset_turn_obj( ss.players, st );
   co_await advance_time( ts.gui, st.time_point );
+
+  // Autosave.
+  autosave( ss.root );
 }
 
 } // namespace

@@ -49,4 +49,6 @@ valid_or<std::string> load_game_from_rcl_file(
     RootState& root, fs::path const& p,
     SaveGameOptions const& opts );
 
+void autosave( RootState const& root );
+
 } // namespace rn
