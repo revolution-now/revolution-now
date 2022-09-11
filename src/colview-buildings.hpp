@@ -75,7 +75,7 @@ class ColViewBuildings : public ui::View,
   void drop( std::any const& o, Coord const& where ) override;
 
   // Implement IDragSinkCheck.
-  wait<base::valid_or<IDragSinkCheck::Rejection>> check(
+  wait<base::valid_or<DragRejection>> sink_check(
       std::any const&, int from_entity,
       Coord const ) const override;
 

@@ -56,6 +56,10 @@ struct DragState {
   Delta                   click_offset;
 };
 
+struct DragRejection {
+  maybe<std::string> reason;
+};
+
 /****************************************************************
 ** Drag/Drop Interfaces
 *****************************************************************/
@@ -132,11 +136,7 @@ struct IDragSource {
 struct IDragSinkCheck {
   virtual ~IDragSinkCheck() = default;
 
-  struct Rejection {
-    maybe<std::string> reason;
-  };
-
-  virtual wait<base::valid_or<Rejection>> check(
+  virtual wait<base::valid_or<DragRejection>> sink_check(
       std::any const&, int from_entity, Coord const ) const = 0;
 };
 

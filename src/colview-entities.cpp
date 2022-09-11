@@ -279,7 +279,7 @@ class MarketCommodities : public ui::View,
                .type = type, .quantity = quantity } },
         .bounds = Rect::from(
             box_upper_left + rendered_commodity_offset(),
-            Delta{ .w = 1, .h = 1 }* kCommodityTileSize ) };
+            Delta{ .w = 1, .h = 1 } * kCommodityTileSize ) };
   }
 
   bool try_drag( any const& a, Coord const& where ) override {
@@ -520,7 +520,7 @@ class CargoView : public ui::View,
     }
   }
 
-  wait<base::valid_or<IDragSinkCheck::Rejection>> check(
+  wait<base::valid_or<DragRejection>> sink_check(
       any const& a, int from_entity,
       Coord const ) const override {
     CHECK( holder_.has_value() );
@@ -528,7 +528,7 @@ class CargoView : public ui::View,
     if( ss_.units.unit_for( *holder_ ).type() ==
             e_unit_type::wagon_train &&
         o.holds<ColViewObject::unit>() )
-      co_return IDragSinkCheck::Rejection{
+      co_return DragRejection{
           .reason =
               "Only ships can hold other units as cargo." };
     CONVERT_ENTITY( from_enum, from_entity );
@@ -543,10 +543,9 @@ class CargoView : public ui::View,
           // If we're rejecting then that means that the player
           // has opted not to abandon the colony, so there is no
           // need to display a reason message.
-          co_return IDragSinkCheck::Rejection{ .reason =
-                                                   nothing };
+          co_return DragRejection{ .reason = nothing };
         if( auto msg = check_seige(); msg.has_value() )
-          co_return IDragSinkCheck::Rejection{ .reason = *msg };
+          co_return DragRejection{ .reason = *msg };
         co_return base::valid;
       case e_colview_entity::population:
       case e_colview_entity::title_bar:
@@ -862,7 +861,7 @@ class UnitsAtGateColonyView : public ui::View,
     return ColViewObject::unit{ .id = dragged };
   }
 
-  wait<base::valid_or<IDragSinkCheck::Rejection>> check(
+  wait<base::valid_or<DragRejection>> sink_check(
       any const&, int from_entity, Coord const ) const override {
     CONVERT_ENTITY( from_enum, from_entity );
     switch( from_enum ) {
@@ -876,10 +875,9 @@ class UnitsAtGateColonyView : public ui::View,
           // If we're rejecting then that means that the player
           // has opted not to abandon the colony, so there is no
           // need to display a reason message.
-          co_return IDragSinkCheck::Rejection{ .reason =
-                                                   nothing };
+          co_return DragRejection{ .reason = nothing };
         if( auto msg = check_seige(); msg.has_value() )
-          co_return IDragSinkCheck::Rejection{ .reason = *msg };
+          co_return DragRejection{ .reason = *msg };
         co_return base::valid;
       case e_colview_entity::population:
       case e_colview_entity::title_bar:

@@ -222,9 +222,8 @@ maybe<any> ColViewBuildings::can_receive(
   return o; // allowed.
 }
 
-wait<base::valid_or<IDragSinkCheck::Rejection>>
-ColViewBuildings::check( any const&  a, int,
-                         Coord const where ) const {
+wait<base::valid_or<DragRejection>> ColViewBuildings::sink_check(
+    any const& a, int, Coord const where ) const {
   UNWRAP_DRAGGABLE( o, a );
   // These should have already been checked.
   UNWRAP_CHECK( slot, slot_for_coord( where ) );
@@ -236,7 +235,7 @@ ColViewBuildings::check( any const&  a, int,
   // were to let the drag proceed then it would change the or-
   // dering of the units which would be strange.
   if( dragging_.has_value() && slot == dragging_->slot )
-    co_return IDragSinkCheck::Rejection{};
+    co_return DragRejection{};
   // This should have already been checked.
   UNWRAP_CHECK( building, building_for_slot( colony_, slot ) );
   // Check that there aren't more than the max allowed units in
@@ -248,7 +247,7 @@ ColViewBuildings::check( any const&  a, int,
         allowed_units > 1
             ? config_colony.worker_names_plural[indoor_job]
             : config_colony.worker_names_singular[indoor_job];
-    co_return IDragSinkCheck::Rejection{
+    co_return DragRejection{
         .reason = fmt::format(
             "There can be at most @[H]{}@[] {} in a @[H]{}@[].",
             allowed_units, worker_name,
@@ -267,8 +266,7 @@ ColViewBuildings::check( any const&  a, int,
     base::valid_or<string> can_teach =
         can_unit_teach_in_building( unit.type(), *school_type );
     if( !can_teach.valid() )
-      co_return IDragSinkCheck::Rejection{
-          .reason = can_teach.error() };
+      co_return DragRejection{ .reason = can_teach.error() };
   }
 
   co_return base::valid; // proceed.

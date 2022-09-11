@@ -335,15 +335,16 @@ wait<> drag_drop_routine( co::stream<input::event_t>& input,
     // nity to involve some user input to e.g. either confirm the
     // drag or to cancel it with a message box explaining why,
     // etc.
-    maybe<IDragSinkCheck const&> drag_check =
+
+    maybe<IDragSinkCheck const&> drag_sink_check =
         drag_sink.drag_check();
-    if( drag_check ) {
-      base::valid_or<IDragSinkCheck::Rejection> proceed =
-          co_await drag_check->check(
+    if( drag_sink_check ) {
+      base::valid_or<DragRejection> proceed =
+          co_await drag_sink_check->sink_check(
               source_object, *source_entity, sink_coord );
       if( !proceed.valid() ) {
         post_reject_message = proceed.error().reason;
-        lg.debug( "drag of object {} cancelled.",
+        lg.debug( "drag of object {} cancelled by sink.",
                   obj_str_func( source_object ) );
         break;
       }
