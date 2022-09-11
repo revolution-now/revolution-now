@@ -63,6 +63,15 @@ struct DragRejection {
 /****************************************************************
 ** Drag/Drop Interfaces
 *****************************************************************/
+// FIXME: find a way to get rid of the std::any in this inter-
+// face, it causes various problems and is very error prone.
+// Maybe the interface can be made into templates and the algo-
+// rithm can be given a bunch of callbacks to use to call the
+// methods. Currently the framework is set up so that it accepts
+// an arbitrary object from the user and holds it, then gives it
+// back. But maybe this is not necessary. Maybe the individual
+// sink/source classes can hold their own info. ??
+
 // Interface for views that support prompting a user for informa-
 // tion on the parameters of a drag.
 struct IDragSourceUserInput {
@@ -135,6 +144,11 @@ struct IDragSource {
   // view's ownership, so should only be called just before the
   // drop is to take effect.
   virtual void disown_dragged_object() = 0;
+
+  // Optional. After a successful drag this will be called to do
+  // anything that needs to be done on the source side post-drag.
+  virtual wait<> post_successful_source( std::any const&,
+                                         Coord const& );
 };
 
 // Interface for drag targets that can/might need to do some fur-
@@ -175,6 +189,12 @@ struct IDragSink {
   // Coordinates are relative to view's upper left corner. The
   // sink MUST accept the object as-is.
   virtual void drop( std::any const& o, Coord const& where ) = 0;
+
+  // Optional. After a successful drag this will be called to do
+  // anything that needs to be done on the sink side post-drag.
+  virtual wait<> post_successful_sink( std::any const&,
+                                       int /*from_entity*/,
+                                       Coord const& );
 };
 
 struct IDraggableObjectsView;

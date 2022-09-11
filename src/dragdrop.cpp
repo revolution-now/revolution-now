@@ -94,6 +94,20 @@ maybe<IDragSink&> IDraggableObjectsView::drag_sink() {
 }
 
 /****************************************************************
+** Default Implementations.
+*****************************************************************/
+wait<> IDragSource::post_successful_source( std::any const&,
+                                            Coord const& ) {
+  co_return;
+}
+
+wait<> IDragSink::post_successful_sink( std::any const&,
+                                        int /*from_entity*/,
+                                        Coord const& ) {
+  co_return;
+}
+
+/****************************************************************
 ** Public API
 *****************************************************************/
 wait<> drag_drop_routine( co::stream<input::event_t>& input,
@@ -375,6 +389,14 @@ wait<> drag_drop_routine( co::stream<input::event_t>& input,
     // Drag happened successfully.
     lg.debug( "drag of object {} successful.",
               obj_str_func( source_object ) );
+
+    // Now call the post-successful-drag hooks.
+    co_await drag_source.post_successful_source(
+        source_object,
+        origin.with_new_origin( source_upper_left ) );
+    co_await drag_sink.post_successful_sink(
+        source_object, *source_entity, sink_coord );
+
     co_return;
   }
 
