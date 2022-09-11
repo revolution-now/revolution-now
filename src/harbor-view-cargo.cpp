@@ -183,7 +183,7 @@ maybe<any> HarborCargo::can_receive( any const&   a,
   UNWRAP_CHECK( active_unit_id, get_active_unit() );
   CONVERT_ENTITY( entity_enum, from_entity );
   if( !is_unit_in_port( ss_.units, active_unit_id ) )
-    return false;
+    return nothing;
   Unit const& active_unit = ss_.units.unit_for( active_unit_id );
   UNWRAP_DRAGGABLE( o, a );
   UNWRAP_RETURN( slot, slot_under_cursor( where ) );
