@@ -13,8 +13,10 @@
 // Revolution Now
 #include "commodity.hpp"
 #include "harbor-units.hpp"
+#include "igui.hpp"
 #include "render.hpp"
 #include "tiles.hpp"
+#include "ts.hpp"
 
 // ss
 #include "ss/cargo.hpp"
@@ -116,38 +118,80 @@ maybe<DraggableObjectWithBounds> HarborCargo::object_here(
 }
 
 bool HarborCargo::try_drag( any const& a, Coord const& ) {
+  dragging_ = nothing;
   // This method will only be called if there was already an ob-
   // ject under the cursor, which can always be dragged, so long
   // as the active ship is in port.
-  UNWRAP_CHECK( active_unit, get_active_unit() );
-  if( !is_unit_in_port( ss_.units, active_unit ) ) return false;
+  UNWRAP_CHECK( active_unit_id, get_active_unit() );
+  if( !is_unit_in_port( ss_.units, active_unit_id ) )
+    return false;
+  Unit const& active_unit = ss_.units.unit_for( active_unit_id );
   // Now we have to get the slot of the thing being dragged.
   UNWRAP_DRAGGABLE( o, a );
-  int slot = 0;
   switch( o.to_enum() ) {
     case HarborDraggableObject::e::unit: {
       UnitId const unit_id =
           o.get<HarborDraggableObject::unit>().id;
-      UNWRAP_CHECK( unit_slot, ss_.units.unit_for( active_unit )
-                                   .cargo()
-                                   .find_unit( unit_id ) );
-      slot = unit_slot;
+      UNWRAP_CHECK( unit_slot,
+                    active_unit.cargo().find_unit( unit_id ) );
+      dragging_ =
+          Draggable{ .slot = unit_slot, .quantity = nothing };
       break;
     }
     case HarborDraggableObject::e::market_commodity: {
       SHOULD_NOT_BE_HERE;
     }
     case HarborDraggableObject::e::cargo_commodity: {
-      slot =
+      int const slot =
           o.get<HarborDraggableObject::cargo_commodity>().slot;
+      int const quantity =
+          o.get<HarborDraggableObject::cargo_commodity>()
+              .comm.quantity;
+      dragging_ =
+          Draggable{ .slot = slot, .quantity = quantity };
       break;
     }
   }
-  dragging_ = Draggable{ .slot = slot };
   return true;
 }
 
 void HarborCargo::cancel_drag() { dragging_ = nothing; }
+
+wait<unique_ptr<any>> HarborCargo::user_edit_object() const {
+  UNWRAP_CHECK( slot, dragging_.member( &Draggable::slot ) );
+  UNWRAP_CHECK( draggable, draggable_in_cargo_slot( slot ) );
+  auto cargo_commodity =
+      draggable.get_if<HarborDraggableObject::cargo_commodity>();
+  if( !cargo_commodity.has_value() ) co_return nullptr;
+  Commodity const& comm        = cargo_commodity->comm;
+  int const        max_allowed = comm.quantity;
+  CHECK_GT( max_allowed, 0 );
+  // FIXME: need to find the right verb here; could be "move" if
+  // we're moving to another ship, or could be "sell" if we are
+  // selling.
+  string const text = fmt::format(
+      "What quantity of @[H]{}@[] would you like to move? "
+      "(0-{}):",
+      commodity_display_name( comm.type ), max_allowed );
+
+  maybe<int> const quantity =
+      co_await ts_.gui.optional_int_input(
+          { .msg           = text,
+            .initial_value = comm.quantity,
+            .min           = 0,
+            .max           = max_allowed } );
+  if( !quantity.has_value() ) co_return nullptr;
+  if( quantity == 0 ) co_return nullptr;
+  // We shouldn't have to update the dragging_ member here be-
+  // cause the framework should call try_drag again with the mod-
+  // ified value.
+  Commodity new_comm = comm;
+  new_comm.quantity  = *quantity;
+  CHECK( new_comm.quantity > 0 );
+  co_return make_unique<any>(
+      HarborDraggableObject::cargo_commodity{ .comm = new_comm,
+                                              .slot = slot } );
+}
 
 void HarborCargo::disown_dragged_object() {
   UNWRAP_CHECK( slot, dragging_.member( &Draggable::slot ) );
@@ -168,8 +212,20 @@ void HarborCargo::disown_dragged_object() {
           break;
         }
         case Cargo::e::commodity: {
-          rm_commodity_from_cargo( ss_.units, active_unit_id,
-                                   slot );
+          // We might be moving a partial amount of the commodity
+          // in this slot. So remove all of it, then restore the
+          // part that is left, if any.
+          UNWRAP_CHECK( quantity, dragging_.maybe_member(
+                                      &Draggable::quantity ) );
+          Commodity const removed = rm_commodity_from_cargo(
+              ss_.units, active_unit_id, slot );
+          Commodity to_add = removed;
+          to_add.quantity -= quantity;
+          CHECK_GE( to_add.quantity, 0 );
+          if( to_add.quantity > 0 )
+            add_commodity_to_cargo( ss_.units, to_add,
+                                    active_unit_id, slot,
+                                    /*try_other_slots=*/false );
           break;
         }
       }

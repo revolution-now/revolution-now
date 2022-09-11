@@ -22,7 +22,6 @@ enum.e_plane {
   panel,
   menu,
   colony,
-  harbor,
   new_harbor,
   window,
   console,

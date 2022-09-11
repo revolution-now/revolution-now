@@ -29,6 +29,7 @@ struct Player;
 struct HarborMarketCommodities : public ui::View,
                                  public HarborSubView,
                                  public IDragSource,
+                                 public IDragSourceUserInput,
                                  public IDragSourceCheck,
                                  public IDragSink,
                                  public IDragSinkCheck {
@@ -60,6 +61,10 @@ struct HarborMarketCommodities : public ui::View,
 
   // Implement IDragSource.
   void cancel_drag() override;
+
+  // Implement IDragSourceUserInput.
+  wait<std::unique_ptr<std::any>> user_edit_object()
+      const override;
 
   // Implement IDragSourceCheck.
   wait<base::valid_or<DragRejection>> source_check(

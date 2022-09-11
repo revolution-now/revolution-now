@@ -13,8 +13,10 @@
 
 // Revolution Now
 #include "commodity.hpp"
+#include "igui.hpp"
 #include "market.hpp"
 #include "tiles.hpp"
+#include "ts.hpp"
 
 // ss
 #include "ss/player.rds.hpp"
@@ -94,6 +96,33 @@ bool HarborMarketCommodities::try_drag( any const& a,
 
 void HarborMarketCommodities::cancel_drag() {
   dragging_ = nothing;
+}
+
+wait<unique_ptr<any>> HarborMarketCommodities::user_edit_object()
+    const {
+  UNWRAP_CHECK( comm, dragging_.member( &Draggable::comm ) );
+  string const text = fmt::format(
+      "What quantity of @[H]{}@[] would you like to buy? "
+      "(0-100):",
+      commodity_display_name( comm.type ) );
+
+  maybe<int> const quantity =
+      co_await ts_.gui.optional_int_input(
+          { .msg           = text,
+            .initial_value = 100,
+            .min           = 0,
+            .max           = 100 } );
+  if( !quantity.has_value() ) co_return nullptr;
+  if( quantity == 0 ) co_return nullptr;
+  // We shouldn't have to update the dragging_ member here be-
+  // cause the framework should call try_drag again with the mod-
+  // ified value.
+  Commodity new_comm = comm;
+  new_comm.quantity  = *quantity;
+  CHECK( new_comm.quantity > 0 );
+  co_return make_unique<any>(
+      HarborDraggableObject::market_commodity{ .comm =
+                                                   new_comm } );
 }
 
 wait<base::valid_or<DragRejection>>

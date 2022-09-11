@@ -28,6 +28,7 @@ struct Player;
 struct HarborCargo : public ui::View,
                      public HarborSubView,
                      public IDragSource,
+                     public IDragSourceUserInput,
                      public IDragSink {
   static PositionedHarborSubView<HarborCargo> create(
       SS& ss, TS& ts, Player& player, Rect canvas );
@@ -57,6 +58,10 @@ struct HarborCargo : public ui::View,
   // Implement IDragSource.
   void cancel_drag() override;
 
+  // Implement IDragSourceUserInput.
+  wait<std::unique_ptr<std::any>> user_edit_object()
+      const override;
+
   // Implement IDragSource.
   void disown_dragged_object() override;
 
@@ -77,7 +82,8 @@ struct HarborCargo : public ui::View,
   maybe<int> slot_under_cursor( Coord where ) const;
 
   struct Draggable {
-    int slot = {};
+    int        slot = {};
+    maybe<int> quantity; // if it's a commodity.
   };
 
   maybe<Draggable> dragging_;
