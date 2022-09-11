@@ -95,7 +95,7 @@ struct PS {
 /****************************************************************
 ** Draggable Object
 *****************************************************************/
-maybe<HarborDraggableObject_t> cargo_slot_to_draggable(
+maybe<HarborDraggableObject2_t> cargo_slot_to_draggable(
     CargoSlotIndex slot_idx, CargoSlot_t const& slot ) {
   switch( slot.to_enum() ) {
     case CargoSlot::e::empty: {
@@ -108,12 +108,12 @@ maybe<HarborDraggableObject_t> cargo_slot_to_draggable(
       auto& cargo = slot.get<CargoSlot::cargo>();
       return overload_visit(
           cargo.contents,
-          []( Cargo::unit u ) -> HarborDraggableObject_t {
-            return HarborDraggableObject::unit{ /*id=*/u.id };
+          []( Cargo::unit u ) -> HarborDraggableObject2_t {
+            return HarborDraggableObject2::unit{ /*id=*/u.id };
           },
           [&]( Cargo::commodity const& c )
-              -> HarborDraggableObject_t {
-            return HarborDraggableObject::cargo_commodity{
+              -> HarborDraggableObject2_t {
+            return HarborDraggableObject2::cargo_commodity{
                 /*comm=*/c.obj,
                 /*slot=*/slot_idx };
           } );
@@ -122,24 +122,24 @@ maybe<HarborDraggableObject_t> cargo_slot_to_draggable(
 }
 
 maybe<Cargo_t> draggable_to_cargo_object(
-    HarborDraggableObject_t const& draggable ) {
+    HarborDraggableObject2_t const& draggable ) {
   switch( draggable.to_enum() ) {
-    case HarborDraggableObject::e::unit: {
-      auto& val = draggable.get<HarborDraggableObject::unit>();
+    case HarborDraggableObject2::e::unit: {
+      auto& val = draggable.get<HarborDraggableObject2::unit>();
       return Cargo::unit{ val.id };
     }
-    case HarborDraggableObject::e::market_commodity:
+    case HarborDraggableObject2::e::market_commodity:
       return nothing;
-    case HarborDraggableObject::e::cargo_commodity: {
+    case HarborDraggableObject2::e::cargo_commodity: {
       auto& val =
           draggable
-              .get<HarborDraggableObject::cargo_commodity>();
+              .get<HarborDraggableObject2::cargo_commodity>();
       return Cargo::commodity{ val.comm };
     }
   }
 }
 
-maybe<HarborDraggableObject_t> draggable_in_cargo_slot(
+maybe<HarborDraggableObject2_t> draggable_in_cargo_slot(
     PS& S, int slot ) {
   HarborState const& hb_state = S.harbor_state();
   return hb_state.selected_unit
@@ -797,10 +797,10 @@ class UnitCollection : EntityBase {
     // rr::Painter::e_border_mode::inside, gfx::pixel::white() );
     for( auto const& unit_with_pos : units_ )
       if( !S->drag_state ||
-          any_cast<HarborDraggableObject_t const&>(
+          any_cast<HarborDraggableObject2_t const&>(
               S->drag_state->object ) !=
-              HarborDraggableObject_t{
-                  HarborDraggableObject::unit{
+              HarborDraggableObject2_t{
+                  HarborDraggableObject2::unit{
                       unit_with_pos.id } } )
         render_unit( renderer,
                      unit_with_pos.pixel_coord + offset,
@@ -1055,9 +1055,9 @@ class ActiveCargo : EntityBase {
       auto zipped = rl::zip( rl::ints(), cargo_slots, grid );
       for( auto const [idx, cargo_slot, rect] : zipped ) {
         if( S->drag_state.has_value() ) {
-          if_get( any_cast<HarborDraggableObject_t const&>(
+          if_get( any_cast<HarborDraggableObject2_t const&>(
                       S->drag_state->object ),
-                  HarborDraggableObject::cargo_commodity, cc ) {
+                  HarborDraggableObject2::cargo_commodity, cc ) {
             if( cc.slot == idx ) continue;
           }
         }
@@ -1076,10 +1076,10 @@ class ActiveCargo : EntityBase {
                 cargo.contents,
                 [&]( Cargo::unit u ) {
                   if( !S->drag_state ||
-                      any_cast<HarborDraggableObject_t const&>(
+                      any_cast<HarborDraggableObject2_t const&>(
                           S->drag_state->object ) !=
-                          HarborDraggableObject_t{
-                              HarborDraggableObject::unit{
+                          HarborDraggableObject2_t{
+                              HarborDraggableObject2::unit{
                                   u.id } } )
                     render_unit(
                         renderer, dst_coord,
@@ -1155,7 +1155,7 @@ class ActiveCargo : EntityBase {
                   .as_if_origin_were( bounds().upper_left() );
           auto scale = ActiveCargoBox::box_scale;
 
-          using HarborDraggableObject::cargo_commodity;
+          using HarborDraggableObject2::cargo_commodity;
           if( draggable_in_cargo_slot( *S, *maybe_slot )
                   .bind( L( holds<cargo_commodity>( _ ) ) ) ) {
             box_origin += kCommodityInCargoHoldRenderingOffset;
@@ -1467,13 +1467,13 @@ maybe<UnitId> active_cargo_ship( Entities const* entities ) {
       &entity::ActiveCargo::active_unit );
 }
 
-HarborDraggableObject_t draggable_from_src(
+HarborDraggableObject2_t draggable_from_src(
     PS& S, HarborDragSrc_t const& drag_src ) {
   using namespace HarborDragSrc;
-  return overload_visit<HarborDraggableObject_t>(
+  return overload_visit<HarborDraggableObject2_t>(
       drag_src,
       [&]( dock const& o ) {
-        return HarborDraggableObject::unit{ o.id };
+        return HarborDraggableObject2::unit{ o.id };
       },
       [&]( cargo const& o ) {
         // Not all cargo slots must have an item in them, but in
@@ -1484,16 +1484,17 @@ HarborDraggableObject_t draggable_from_src(
         return object;
       },
       [&]( outbound const& o ) {
-        return HarborDraggableObject::unit{ o.id };
+        return HarborDraggableObject2::unit{ o.id };
       },
       [&]( inbound const& o ) {
-        return HarborDraggableObject::unit{ o.id };
+        return HarborDraggableObject2::unit{ o.id };
       },
       [&]( inport const& o ) {
-        return HarborDraggableObject::unit{ o.id };
+        return HarborDraggableObject2::unit{ o.id };
       },
       [&]( market const& o ) {
-        return HarborDraggableObject::market_commodity{ o.type };
+        return HarborDraggableObject2::market_commodity{
+            o.type };
       } );
 }
 
@@ -1521,7 +1522,7 @@ struct DragConnector {
         S.ss_.units, Cargo::unit{ src.id }, dst.slot );
   }
   bool DRAG_CONNECT_CASE( cargo, dock ) const {
-    return holds<HarborDraggableObject::unit>(
+    return holds<HarborDraggableObject2::unit>(
                draggable_from_src( S, src ) )
         .has_value();
   }
@@ -1752,7 +1753,7 @@ struct DragPerform {
   }
   void DRAG_PERFORM_CASE( cargo, dock ) const {
     ASSIGN_CHECK_V( unit, draggable_from_src( S, src ),
-                    HarborDraggableObject::unit );
+                    HarborDraggableObject2::unit );
     unit_move_to_port( S.ss_.units, unit.id );
   }
   void DRAG_PERFORM_CASE( cargo, cargo ) const {
@@ -1904,10 +1905,10 @@ void drag_n_drop_draw( PS const& S, rr::Renderer& renderer,
            tile_size / Delta{ .w = 2, .h = 2 } -
            state.click_offset;
   };
-  using namespace HarborDraggableObject;
+  using namespace HarborDraggableObject2;
   // Render the dragged item.
   overload_visit(
-      any_cast<HarborDraggableObject_t const&>( state.object ),
+      any_cast<HarborDraggableObject2_t const&>( state.object ),
       [&]( unit const& o ) {
         auto size = sprite_size(
             S.ss_.units.unit_for( o.id ).desc().tile );

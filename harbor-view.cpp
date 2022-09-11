@@ -66,7 +66,7 @@ struct DragConnector {
         S.ss_.units, Cargo::unit{ src.id }, dst.slot );
   }
   bool DRAG_CONNECT_CASE( cargo, dock ) const {
-    return holds<HarborDraggableObject::unit>(
+    return holds<HarborDraggableObject2::unit>(
                draggable_from_src( S, src ) )
         .has_value();
   }
@@ -297,7 +297,7 @@ struct DragPerform {
   }
   void DRAG_PERFORM_CASE( cargo, dock ) const {
     ASSIGN_CHECK_V( unit, draggable_from_src( S, src ),
-                    HarborDraggableObject::unit );
+                    HarborDraggableObject2::unit );
     unit_move_to_port( S.ss_.units, unit.id );
   }
   void DRAG_PERFORM_CASE( cargo, cargo ) const {

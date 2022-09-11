@@ -23,7 +23,7 @@ namespace "rn"
 # here because we need to know where the item came from so that
 # it can (potentially) be left out when rendering the scene, to
 # create the appearance that the mouse is dragging it.
-sumtype.HarborDraggableObject {
+sumtype.HarborDraggableObject2 {
   unit {
     id 'UnitId',
   },
