@@ -75,6 +75,11 @@ maybe<IDragSourceUserInput const&> IDragSource::drag_user_input()
       *this );
 }
 
+maybe<IDragSourceCheck const&> IDragSource::drag_check() const {
+  return base::maybe_dynamic_cast<IDragSourceCheck const&>(
+      *this );
+}
+
 maybe<IDragSinkCheck const&> IDragSink::drag_check() const {
   return base::maybe_dynamic_cast<IDragSinkCheck const&>(
       *this );
@@ -331,10 +336,24 @@ wait<> drag_drop_routine( co::stream<input::event_t>& input,
     }
 
     // The source and sink have agreed on an object that can be
-    // transferred, so let's let give the sink a final opportu-
-    // nity to involve some user input to e.g. either confirm the
-    // drag or to cancel it with a message box explaining why,
-    // etc.
+    // transferred, so let's let give the source and sink each
+    // one final opportunity to involve some user input to e.g.
+    // either confirm the drag or to cancel it with a message box
+    // explaining why, etc.
+
+    maybe<IDragSourceCheck const&> drag_src_check =
+        drag_source.drag_check();
+    if( drag_src_check ) {
+      base::valid_or<DragRejection> proceed =
+          co_await drag_src_check->source_check( source_object,
+                                                 sink_coord );
+      if( !proceed.valid() ) {
+        post_reject_message = proceed.error().reason;
+        lg.debug( "drag of object {} cancelled by source.",
+                  obj_str_func( source_object ) );
+        break;
+      }
+    }
 
     maybe<IDragSinkCheck const&> drag_sink_check =
         drag_sink.drag_check();

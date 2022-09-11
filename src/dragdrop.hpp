@@ -88,6 +88,19 @@ struct IDragSourceUserInput {
       const = 0;
 };
 
+// Interface for drag sources that can/might need to do some fur-
+// ther checks before the drag is greenlighted that require some
+// user input or message boxes. E.g., if the player is trying to
+// buy a commodity from europe but they don't have enough money
+// and we want to pop up a message box telling them that before
+// rejecting it.
+struct IDragSourceCheck {
+  virtual ~IDragSourceCheck() = default;
+
+  virtual wait<base::valid_or<DragRejection>> source_check(
+      std::any const& a, Coord const ) const = 0;
+};
+
 // Interface for views that can be the source for dragging. The
 // idea here is that the view must keep track of what is being
 // dragged.
@@ -115,6 +128,8 @@ struct IDragSource {
   // the drag, such as e.g. specifying the amount of a commodity
   // to be dragged.
   maybe<IDragSourceUserInput const&> drag_user_input() const;
+
+  maybe<IDragSourceCheck const&> drag_check() const;
 
   // This will permanently remove the object from the source
   // view's ownership, so should only be called just before the
