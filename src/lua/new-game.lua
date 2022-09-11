@@ -251,11 +251,19 @@ local function init_prices( options, root )
   init_processed_goods_prices( options, players )
 end
 
+local STARTING_GOLD = {
+  discoverer=1000,
+  explorer=300,
+  conquistador=0,
+  governor=0,
+  viceroy=0
+}
+
 local function create_player_state(settings, nation, player,
                                    is_human )
   player.nation = nation
   player.human = is_human
-  player.money = 1000 -- TODO: depends on difficulty.
+  player.money = assert( STARTING_GOLD[settings.difficulty] )
   create_old_world_state( settings, player )
 end
 
