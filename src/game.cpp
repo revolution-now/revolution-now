@@ -112,7 +112,7 @@ wait<> run_game(
   MenuPlane menu_plane;
   group.menu = &menu_plane;
 
-  PanelPlane panel_plane( planes, ss );
+  PanelPlane panel_plane( planes, ss, ts );
   group.panel = &panel_plane;
 
   LandViewPlane land_view_plane( planes, ss, ts );

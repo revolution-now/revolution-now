@@ -27,7 +27,7 @@ enum.e_season {
   winter,
   spring,
   summer,
-  fall,
+  autumn,
 }
 
 struct.TurnTimePoint {

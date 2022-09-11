@@ -165,6 +165,8 @@ struct IGui {
   /* ============================================================
   ** Utilities
   ** ===========================================================*/
+
+ public:
   // For convenience while developing, shouldn't really be used
   // to provide proper names for things for the player.
   std::string identifier_to_display_name(

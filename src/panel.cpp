@@ -14,11 +14,13 @@
 #include "co-wait.hpp"
 #include "compositor.hpp"
 #include "error.hpp"
+#include "gui.hpp" // FIXME
 #include "logger.hpp"
 #include "menu.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
+#include "ts.hpp" // FIXME
 #include "views.hpp"
 
 // ss
@@ -45,11 +47,13 @@ namespace {} // namespace
 struct PanelPlane::Impl : public Plane {
   Planes&                       planes_;
   SS&                           ss_;
+  TS&                           ts_;
   unique_ptr<ui::InvisibleView> view;
   wait_promise<>                w_promise;
   MenuPlane::Deregistrar        eot_click_dereg_;
 
-  Impl( Planes& planes, SS& ss ) : planes_( planes ), ss_( ss ) {
+  Impl( Planes& planes, SS& ss, TS& ts )
+    : planes_( planes ), ss_( ss ), ts_( ts ) {
     // Register menu handlers.
     eot_click_dereg_ = planes_.menu().register_handler(
         e_menu_item::next_turn, *this );
@@ -99,15 +103,6 @@ struct PanelPlane::Impl : public Plane {
     return *p_view.view->cast<ui::ButtonView>();
   }
 
-  string season_str( e_season season ) const {
-    switch( season ) {
-      case e_season::winter: return "Winter";
-      case e_season::spring: return "Spring";
-      case e_season::summer: return "Summer";
-      case e_season::fall: return "Autumn";
-    }
-  }
-
   void draw_some_stats( rr::Renderer& renderer,
                         Coord const   where ) const {
     rr::Typer typer =
@@ -116,7 +111,10 @@ struct PanelPlane::Impl : public Plane {
     // First some general stats that are not player specific.
     TurnState const& turn_state = ss_.turn;
     typer.write( "{} {}\n",
-                 season_str( turn_state.time_point.season ),
+                 // FIXME
+                 ts_.gui.identifier_to_display_name(
+                     refl::enum_value_name(
+                         turn_state.time_point.season ) ),
                  turn_state.time_point.year );
 
     typer.newline();
@@ -212,8 +210,8 @@ Plane& PanelPlane::impl() { return *impl_; }
 
 PanelPlane::~PanelPlane() = default;
 
-PanelPlane::PanelPlane( Planes& planes, SS& ss )
-  : impl_( new Impl( planes, ss ) ) {}
+PanelPlane::PanelPlane( Planes& planes, SS& ss, TS& ts )
+  : impl_( new Impl( planes, ss, ts ) ) {}
 
 wait<> PanelPlane::wait_for_eot_button_click() {
   return impl_->wait_for_eot_button_click();

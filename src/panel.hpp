@@ -20,12 +20,13 @@ namespace rn {
 struct Plane;
 struct Planes;
 struct SS;
+struct TS;
 
 /****************************************************************
 ** PanelPlane
 *****************************************************************/
 struct PanelPlane {
-  PanelPlane( Planes& planes, SS& ss );
+  PanelPlane( Planes& planes, SS& ss, TS& ts );
   ~PanelPlane();
 
   wait<> wait_for_eot_button_click();

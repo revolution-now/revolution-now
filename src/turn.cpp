@@ -123,7 +123,7 @@ wait<> advance_time( IGui& gui, TurnTimePoint& time_point ) {
     case e_season::spring:
       if( two_turns ) {
         // Two seasons per year.
-        time_point.season = e_season::fall;
+        time_point.season = e_season::autumn;
       } else {
         // Stay in Spring and just go to the next year.
         ++time_point.year;
@@ -132,9 +132,9 @@ wait<> advance_time( IGui& gui, TurnTimePoint& time_point ) {
     case e_season::summer:
       // We're not currently supporting four seasons per year, so
       // just revert it to the spring/fall cycle.
-      time_point.season = e_season::fall;
+      time_point.season = e_season::autumn;
       break;
-    case e_season::fall:
+    case e_season::autumn:
       // Two seasons per year.
       time_point.season = e_season::spring;
       ++time_point.year;
