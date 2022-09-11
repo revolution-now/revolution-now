@@ -15,6 +15,7 @@
 
 // base
 #include "attributes.hpp"
+#include "error.hpp"
 #include "fmt.hpp"
 #include "meta.hpp"
 #include "source-loc.hpp"
@@ -60,11 +61,13 @@ inline constexpr nothing_t nothing( 0 );
 // class declaration, the deduction guide, and the friend decla-
 // ration.
 template<typename T>
-concept MaybeTypeRequirements = requires {
-  requires(
-      !std::is_same_v<std::remove_cvref_t<T>, std::in_place_t> &&
-      !std::is_same_v<std::remove_cvref_t<T>, nothing_t> );
-};
+concept MaybeTypeRequirements =
+    requires {
+      requires(
+          !std::is_same_v<std::remove_cvref_t<T>,
+                          std::in_place_t> &&
+          !std::is_same_v<std::remove_cvref_t<T>, nothing_t> );
+    };
 
 /****************************************************************
 ** Forward Declaration
@@ -140,14 +143,15 @@ class [[nodiscard]] maybe { /* clang-format on */
   ** Default Constructor
   ***************************************************************/
 #ifdef HAS_CONDITIONALLY_TRIVIAL_SPECIAL_MEMBERS
-  constexpr maybe() requires(
-      std::is_trivially_default_constructible_v<T> ) = default;
+  constexpr maybe()
+  requires( std::is_trivially_default_constructible_v<T> )
+  = default;
 #endif
 
   // This does not initialize the union member.
   constexpr maybe() noexcept
 #ifdef HAS_CONDITIONALLY_TRIVIAL_SPECIAL_MEMBERS
-      requires( !std::is_trivially_default_constructible_v<T> )
+  requires( !std::is_trivially_default_constructible_v<T> )
 #endif
     : active_{ false } {
   }
@@ -171,9 +175,11 @@ class [[nodiscard]] maybe { /* clang-format on */
  public:
 #ifdef HAS_CONDITIONALLY_TRIVIAL_SPECIAL_MEMBERS
   constexpr ~maybe() noexcept
-      requires( std::is_trivially_destructible_v<T> ) = default;
+  requires( std::is_trivially_destructible_v<T> )
+  = default;
   constexpr ~maybe() noexcept
-      requires( !std::is_trivially_destructible_v<T> ) {
+  requires( !std::is_trivially_destructible_v<T> )
+  {
     destroy_if_active();
   }
 #else
@@ -390,7 +396,8 @@ class [[nodiscard]] maybe { /* clang-format on */
   // to maybe<T::value_type&>.
   template<typename U>
   constexpr operator maybe<U&>() const noexcept
-      requires( mp::is_reference_wrapper_v<T> ) {
+  requires( mp::is_reference_wrapper_v<T> )
+  {
     if( !has_value() ) return nothing;
     return ( **this ).get();
   }
@@ -398,16 +405,18 @@ class [[nodiscard]] maybe { /* clang-format on */
   // Always allow implici conversions to maybe<T&>.
   template<typename U>
   constexpr operator maybe<U const&>() const noexcept
-      requires( !mp::is_reference_wrapper_v<T> &&
-                std::is_convertible_v<T const&, U const&> ) {
+  requires( !mp::is_reference_wrapper_v<T> &&
+            std::is_convertible_v<T const&, U const&> )
+  {
     if( !has_value() ) return nothing;
     return **this;
   }
 
   template<typename U>
   constexpr operator maybe<U&>() noexcept
-      requires( !mp::is_reference_wrapper_v<T> &&
-                std::is_convertible_v<T&, U&> ) {
+  requires( !mp::is_reference_wrapper_v<T> &&
+            std::is_convertible_v<T&, U&> )
+  {
     if( !has_value() ) return nothing;
     return **this;
   }
@@ -721,20 +730,29 @@ class [[nodiscard]] maybe { /* clang-format on */
       // whether there is a value, or call the is_value_truish()
       // method to return true iff there is a value and it's
       // true.
-      requires( !std::is_same_v<std::remove_cvref_t<T>, bool> ) {
+  requires( !std::is_same_v<std::remove_cvref_t<T>, bool> )
+  {
     return active_;
   }
 
   /**************************************************************
   ** Deference operators
   ***************************************************************/
-  constexpr T const& operator*() const& noexcept { return val_; }
-  constexpr T&       operator*() & noexcept { return val_; }
+  constexpr T const& operator*() const& noexcept {
+    DCHECK( has_value() );
+    return val_;
+  }
+  constexpr T& operator*() & noexcept {
+    DCHECK( has_value() );
+    return val_;
+  }
 
   constexpr T const&& operator*() const&& noexcept {
+    DCHECK( has_value() );
     return std::move( val_ );
   }
   constexpr T&& operator*() && noexcept {
+    DCHECK( has_value() );
     return std::move( val_ );
   }
 
@@ -1056,7 +1074,8 @@ class [[nodiscard]] maybe<T&> { /* clang-format on */
   // We don't want to form a non-const rvalue reference to a tem-
   // porary, mirroring the behavior of normal references.
   constexpr maybe( T&& ref ATTR_LIFETIMEBOUND ) noexcept
-      requires( std::is_const_v<T> ) {
+  requires( std::is_const_v<T> )
+  {
     p_ = &ref;
   }
 
@@ -1080,7 +1099,7 @@ class [[nodiscard]] maybe<T&> { /* clang-format on */
   ** Assignment Operators.
   ***************************************************************/
   maybe<T&> operator=( maybe<T&> const& ) = delete;
-  maybe<T&> operator=( maybe<T&>&& ) = delete;
+  maybe<T&> operator=( maybe<T&>&& )      = delete;
 
   /**************************************************************
   ** value
@@ -1133,7 +1152,8 @@ class [[nodiscard]] maybe<T&> { /* clang-format on */
       // checking whether there is a value, or call the
       // is_value_truish() method to return true iff there is a
       // value and it's true.
-      requires( !std::is_same_v<std::remove_cvref_t<T>, bool> ) {
+  requires( !std::is_same_v<std::remove_cvref_t<T>, bool> )
+  {
     return p_ != nullptr;
   }
 
@@ -1351,9 +1371,10 @@ template<typename T, typename... Args>
 *****************************************************************/
 // Will infer T.
 template<typename T>
-maybe<std::decay_t<T>> just( T&& arg ) requires(
-    !is_maybe_v<std::remove_cvref_t<T>> &&
-    !is_nothing_v<std::remove_cvref_t<T>> ) {
+maybe<std::decay_t<T>> just( T&& arg )
+requires( !is_maybe_v<std::remove_cvref_t<T>> &&
+          !is_nothing_v<std::remove_cvref_t<T>> )
+{
   return maybe<std::decay_t<T>>( std::forward<T>( arg ) );
 }
 
@@ -1365,9 +1386,10 @@ maybe<T> just( std::in_place_t, Args&&... args ) {
 }
 
 template<typename T>
-maybe<T&> just_ref( T& arg ) requires(
-    !is_maybe_v<std::remove_cvref_t<T>> &&
-    !is_nothing_v<std::remove_cvref_t<T>> ) {
+maybe<T&> just_ref( T& arg )
+requires( !is_maybe_v<std::remove_cvref_t<T>> &&
+          !is_nothing_v<std::remove_cvref_t<T>> )
+{
   return maybe<T&>( arg );
 }
 
@@ -1480,7 +1502,8 @@ template<typename T> /* clang-format off */
 void swap( ::base::maybe<T>& lhs, ::base::maybe<T>& rhs )
     noexcept( noexcept( lhs.swap( rhs ) ) )
     requires( is_move_constructible_v<T> &&
-              is_swappable_v<T> ) /* clang-format on */ {
+              is_swappable_v<T> )
+/* clang-format on */ {
   lhs.swap( rhs );
 }
 
