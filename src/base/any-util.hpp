@@ -30,7 +30,7 @@ namespace base {
 // will fail if the std::any holds an alternative type.
 template<typename V>
 V extract_variant_from_any( std::any const& a ) {
-  maybe<V> res = {};
+  maybe<V> res;
   FOR_CONSTEXPR_IDX( Idx, std::variant_size_v<V> ) {
     using Alt_t    = std::variant_alternative_t<Idx, V>;
     Alt_t const* p = std::any_cast<Alt_t const>( &a );
@@ -44,10 +44,7 @@ V extract_variant_from_any( std::any const& a ) {
   // At this point, the std::any does not contain any of the al-
   // ternatives, so check for the variant itself.
   V const* p = std::any_cast<V const>( &a );
-  if( p != nullptr ) {
-    res = V{ *p };
-    return *res;
-  }
+  if( p != nullptr ) return *p;
   FATAL(
       "std::any expected to contain variant type {} or one of "
       "its alternatives; instead it contains a {}.",
