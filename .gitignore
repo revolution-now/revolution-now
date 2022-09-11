@@ -49,3 +49,6 @@ saves/slot*
 /.builds
 /build
 /Makefile
+
+# environment specific.
+/source-me.fish
