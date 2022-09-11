@@ -16,6 +16,12 @@
 #include "market.hpp"
 #include "tiles.hpp"
 
+// ss
+#include "ss/player.rds.hpp"
+
+// refl
+#include "refl/to-str.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -72,6 +78,82 @@ HarborMarketCommodities::object_here(
       .bounds = box };
 }
 
+bool HarborMarketCommodities::try_drag( any const& a,
+                                        Coord const& ) {
+  UNWRAP_DRAGGABLE( o, a );
+  UNWRAP_CHECK(
+      comm,
+      o.get_if<HarborDraggableObject::market_commodity>() );
+  dragging_ = Draggable{ .comm = comm.comm };
+  CHECK_GT( dragging_->comm.quantity, 0 );
+  // Note that we allow this even if there is an active boycott
+  // on the commodity, since we will handle that in the interac-
+  // tive confirmation process.
+  return true;
+}
+
+void HarborMarketCommodities::cancel_drag() {
+  dragging_ = nothing;
+}
+
+wait<base::valid_or<DragRejection>>
+HarborMarketCommodities::source_check( any const&,
+                                       Coord const ) const {
+  UNWRAP_CHECK( comm, dragging_.member( &Draggable::comm ) );
+
+  // TODO: check for boycotts.
+
+  int const cost = cost_to_buy( player_, comm );
+  if( cost > player_.money )
+    co_return DragRejection{
+        .reason = fmt::format(
+            "You do not have enough gold to purchase @[H]{} "
+            "{}@[].  Try holding down the @[H]shift@[] key to "
+            "reduce the quantity of your purchase.",
+            comm.quantity, comm.type ) };
+  co_return base::valid;
+}
+
+void HarborMarketCommodities::disown_dragged_object() {
+  UNWRAP_CHECK( comm, dragging_.member( &Draggable::comm ) );
+  // The player is buying. Here we are officially releasing the
+  // goods from the market, and so we must charge the player now.
+  int const cost = cost_to_buy( player_, comm );
+  player_.money -= cost;
+  CHECK_GE( player_.money, 0 );
+}
+
+maybe<any> HarborMarketCommodities::can_receive(
+    any const& a, int /*from_entity*/,
+    Coord const& /*where*/ ) const {
+  UNWRAP_DRAGGABLE( o, a );
+  if( o.holds<HarborDraggableObject::cargo_commodity>() )
+    return a;
+  return nothing;
+}
+
+wait<base::valid_or<DragRejection>>
+HarborMarketCommodities::sink_check( any const&,
+                                     int /*from_entity*/,
+                                     Coord const ) const {
+  // TODO: check for boycotts.
+  co_return base::valid;
+}
+
+void HarborMarketCommodities::drop( any const& a,
+                                    Coord const& ) {
+  UNWRAP_DRAGGABLE( o, a );
+  UNWRAP_CHECK(
+      cargo_comm,
+      o.get_if<HarborDraggableObject::cargo_commodity>() );
+  Commodity const& comm = cargo_comm.comm;
+  // The player is selling. Here the market is officially ac-
+  // cepting the goods from the player, and so we must pay the
+  // player now.
+  SaleInvoice const invoice = sale_transaction( player_, comm );
+  player_.money += invoice.received_final;
+}
+
 void HarborMarketCommodities::draw( rr::Renderer& renderer,
                                     Coord         coord ) const {
   rr::Painter painter = renderer.painter();
@@ -112,7 +194,7 @@ HarborMarketCommodities::create( SS& ss, TS& ts, Player& player,
   W           comm_block_width =
       size.w / SX{ refl::enum_count<e_commodity> };
   comm_block_width =
-      std::clamp( comm_block_width, kCommodityTileSize.w, 32 );
+      clamp( comm_block_width, kCommodityTileSize.w, 32 );
   unique_ptr<HarborMarketCommodities> view;
   HarborSubView*                      harbor_sub_view = nullptr;
   Coord                               pos;

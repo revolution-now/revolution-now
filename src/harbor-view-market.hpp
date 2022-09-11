@@ -14,6 +14,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "dragdrop.hpp"
 #include "harbor-view-entities.hpp"
 
 namespace rn {
@@ -26,7 +27,11 @@ struct Player;
 ** HarborMarketCommodities
 *****************************************************************/
 struct HarborMarketCommodities : public ui::View,
-                                 public HarborSubView {
+                                 public HarborSubView,
+                                 public IDragSource,
+                                 public IDragSourceCheck,
+                                 public IDragSink,
+                                 public IDragSinkCheck {
   static PositionedHarborSubView<HarborMarketCommodities> create(
       SS& ss, TS& ts, Player& player, Rect canvas );
 
@@ -48,6 +53,33 @@ struct HarborMarketCommodities : public ui::View,
   // Implement ui::Object.
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override;
+
+  // Implement IDragSource.
+  bool try_drag( std::any const& a,
+                 Coord const&    where ) override;
+
+  // Implement IDragSource.
+  void cancel_drag() override;
+
+  // Implement IDragSourceCheck.
+  wait<base::valid_or<DragRejection>> source_check(
+      std::any const& a, Coord const ) const override;
+
+  // Implement IDragSource.
+  void disown_dragged_object() override;
+
+  // Impelement IDragSink.
+  maybe<std::any> can_receive(
+      std::any const& a, int from_entity,
+      Coord const& where ) const override;
+
+  // Implement IDragSinkCheck.
+  wait<base::valid_or<DragRejection>> sink_check(
+      std::any const& a, int from_entity,
+      Coord const ) const override;
+
+  // Impelement IDragSink.
+  void drop( std::any const& a, Coord const& where ) override;
 
   bool stacked() const { return stacked_; }
 
@@ -72,7 +104,7 @@ struct HarborMarketCommodities : public ui::View,
       double_layer_blocks_height * sprite_scale.h;
 
   struct Draggable {
-    e_commodity c = {};
+    Commodity comm = {};
   };
 
   maybe<Draggable> dragging_;
