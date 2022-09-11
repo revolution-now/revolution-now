@@ -1,12 +1,4 @@
-namespace rn {
-namespace {
-
 struct DragConnector {
-  bool DRAG_CONNECT_CASE( cargo, dock ) const {
-    return holds<HarborDraggableObject2::unit>(
-               draggable_from_src( S, src ) )
-        .has_value();
-  }
   bool DRAG_CONNECT_CASE( cargo, cargo ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     if( !is_unit_in_port( S.ss_.units, ship ) ) return false;
@@ -37,19 +29,6 @@ struct DragConnector {
               /*cargo=*/Cargo::commodity{ size_one },
               /*slot=*/dst.slot );
         } );
-  }
-  bool DRAG_CONNECT_CASE( outbound, inport ) const {
-    UNWRAP_CHECK(
-        info, S.ss_.units.maybe_harbor_view_state_of( src.id ) );
-    ASSIGN_CHECK_V( outbound, info.port_status,
-                    PortStatus::outbound );
-    // We'd like to do == 0.0 here, but this will avoid rounding
-    // errors.
-    return outbound.turns == 0;
-  }
-  bool DRAG_CONNECT_CASE( dock, inport_ship ) const {
-    return S.ss_.units.unit_for( dst.id ).cargo().fits_somewhere(
-        S.ss_.units, Cargo::unit{ src.id } );
   }
   bool DRAG_CONNECT_CASE( cargo, inport_ship ) const {
     auto dst_ship = dst.id;
@@ -100,18 +79,6 @@ struct DragConnector {
     return S.ss_.units.unit_for( dst.id ).cargo().fits_somewhere(
         S.ss_.units, Cargo::commodity{ comm },
         /*starting_slot=*/0 );
-  }
-  bool DRAG_CONNECT_CASE( cargo, market ) const {
-    UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
-    if( !is_unit_in_port( S.ss_.units, ship ) ) return false;
-    return S.ss_.units.unit_for( ship )
-        .cargo()
-        .template slot_holds_cargo_type<Cargo::commodity>(
-            src.slot )
-        .has_value();
-  }
-  bool operator()( auto const&, auto const& ) const {
-    return false;
   }
 };
 
@@ -194,27 +161,22 @@ struct DragPerform {
               /*try_other_dst_slots=*/false );
         } );
   }
-  void DRAG_PERFORM_CASE( outbound, inport ) const {
-    unit_sail_to_harbor( S.ss_.terrain, S.ss_.units, S.player,
-                         src.id );
-  }
   void DRAG_PERFORM_CASE( inport, outbound ) const {
     HarborState& hb_state = S.harbor_state();
     unit_sail_to_new_world( S.ss_.terrain, S.ss_.units, S.player,
                             src.id );
+    // TODO TODO TODO TODO
     // This is not strictly necessary, but for a nice user expe-
     // rience we will auto-select another unit that is in-port
     // (if any) since that is likely what the user wants to work
     // with, as opposed to keeping the selection on the unit that
     // is now outbound. Or if there are no more units in port,
     // just deselect.
+    // TODO TODO TODO TODO
     hb_state.selected_unit = nothing;
     vector<UnitId> units_in_port =
         harbor_units_in_port( S.ss_.units, S.player.nation );
     hb_state.selected_unit = rl::all( units_in_port ).head();
-  }
-  void DRAG_PERFORM_CASE( dock, inport_ship ) const {
-    S.ss_.units.change_to_cargo_somewhere( dst.id, src.id );
   }
   void DRAG_PERFORM_CASE( cargo, inport_ship ) const {
     UNWRAP_CHECK( cargo_object,
@@ -298,10 +260,4 @@ struct DragPerform {
                               /*slot=*/src.slot,
                               /*try_other_slots=*/false );
   }
-  void operator()( auto const&, auto const& ) const {
-    SHOULD_NOT_BE_HERE;
-  }
 };
-
-} // namespace
-} // namespace rn
