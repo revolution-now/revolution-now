@@ -236,6 +236,7 @@ void HarborCargo::disown_dragged_object() {
 maybe<any> HarborCargo::can_receive( any const&   a,
                                      int          from_entity,
                                      Coord const& where ) const {
+  if( !get_active_unit().has_value() ) return nothing;
   UNWRAP_CHECK( active_unit_id, get_active_unit() );
   CONVERT_ENTITY( entity_enum, from_entity );
   if( !is_unit_in_port( ss_.units, active_unit_id ) )
