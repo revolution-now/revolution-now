@@ -41,6 +41,43 @@ CommodityPrice market_price( Player const& player,
   return CommodityPrice{ .bid = bid, .ask = ask };
 }
 
+int cost_to_buy( Player const& player, Commodity comm ) {
+  CommodityPrice const prices =
+      market_price( player, comm.type );
+  return prices.ask * comm.quantity;
+}
+
+SaleInvoice sale_transaction( Player const& player,
+                              Commodity     comm ) {
+  CommodityPrice const prices =
+      market_price( player, comm.type );
+  SaleInvoice res;
+  res.sold                  = comm;
+  res.received_before_taxes = prices.bid * comm.quantity;
+  res.tax_rate              = player.old_world.taxes.tax_rate;
+  // Rounding is not an issue here because the amount received
+  // will always be a multiple of 100, since bid/ask prices in
+  // the game are always so.
+  res.tax_amount =
+      ( res.received_before_taxes / 100 ) * res.tax_rate;
+  res.received_final =
+      res.received_before_taxes - res.tax_amount;
+  CHECK_GE( res.received_final, 0 );
+  return res;
+}
+
+bool is_in_price_group( e_commodity type ) {
+  switch( type ) {
+    case e_commodity::rum:
+    case e_commodity::cigars:
+    case e_commodity::cloth:
+    case e_commodity::coats: //
+      return true;
+    default: //
+      return false;
+  }
+}
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/

@@ -20,6 +20,7 @@
 #include "src/lua.hpp"
 #include "src/map-updater-lua.hpp"
 #include "src/map-updater.hpp"
+#include "src/market.hpp"
 #include "src/plane-stack.hpp"
 #include "src/ts.hpp"
 #include "src/ustate.hpp"
@@ -301,8 +302,8 @@ Colony& World::add_colony( Coord           where,
   string name =
       fmt::to_string( colonies().last_colony_id() + 1 );
   Colony& colony   = colonies().colony_for( create_empty_colony(
-        colonies(), nation.value_or( default_nation_ ), where,
-        name ) );
+      colonies(), nation.value_or( default_nation_ ), where,
+      name ) );
   colony.buildings = config_colony.initial_colony_buildings;
   return colony;
 }
@@ -322,6 +323,31 @@ void World::give_all_buildings( Colony& colony ) {
   for( e_colony_building b :
        refl::enum_values<e_colony_building> )
     colony.buildings[b] = true;
+}
+
+// ------------------------------------------------------------
+// Market Prices.
+// ------------------------------------------------------------
+void World::set_current_bid_price( e_commodity type,
+                                   int price_in_hundreds ) {
+  Player& player    = default_player();
+  auto& comm_config = player.old_world.market.commodities[type];
+  comm_config.current_bid_price_in_hundreds = price_in_hundreds;
+}
+
+void World::set_stable_bid_price( e_commodity type,
+                                  int price_in_hundreds ) {
+  CHECK( !is_in_price_group( type ),
+         "cannot set the equilibrium price for goods in a price "
+         "group." );
+  Player& player    = default_player();
+  auto& comm_config = player.old_world.market.commodities[type];
+  comm_config.current_bid_price_in_hundreds  = price_in_hundreds;
+  comm_config.starting_bid_price_in_hundreds = price_in_hundreds;
+}
+
+void World::set_tax_rate( int rate ) {
+  default_player().old_world.taxes.tax_rate = rate;
 }
 
 // --------------------------------------------------------------

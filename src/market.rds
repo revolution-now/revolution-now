@@ -8,9 +8,20 @@
 # Description: Rds definitions for the market module.
 #
 # ===============================================================
+# ss
+include "ss/commodity.rds.hpp"
+
 namespace "rn"
 
 struct.CommodityPrice {
   bid 'int', # in hundreds.
   ask 'int', # in hundreds.
+}
+
+struct.SaleInvoice {
+  sold 'Commodity',
+  received_before_taxes 'int',
+  tax_rate 'int',
+  tax_amount 'int',
+  received_final 'int',
 }

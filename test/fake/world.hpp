@@ -161,6 +161,26 @@ struct World {
   void give_all_buildings( Colony& colony );
 
   // ------------------------------------------------------------
+  // Market Prices.
+  // ------------------------------------------------------------
+  // This will set the current bid price for the default player
+  // to the given amount. But note that it will not change the
+  // starting bid price or any volumes, so the equilibrium price
+  // won't be affected.
+  void set_current_bid_price( e_commodity type,
+                              int         price_in_hundreds );
+
+  // This will set both the current price and the starting price,
+  // effectively setting the equilibrium price as well. But note
+  // that this won't work for the processed goods which are in a
+  // price group, and so this will check fail for those.
+  void set_stable_bid_price( e_commodity type,
+                             int         price_in_hundreds );
+
+  // Sets it for the default player.
+  void set_tax_rate( int rate );
+
+  // ------------------------------------------------------------
   // Players.
   // ------------------------------------------------------------
   void add_player( e_nation nation );

@@ -71,5 +71,76 @@ TEST_CASE( "[market] market_price" ) {
            CommodityPrice{ .bid = 3, .ask = 4 } );
 }
 
+TEST_CASE( "[market] cost_to_buy" ) {
+  World     W;
+  Player&   player = W.default_player();
+  Commodity input;
+  int       expected = {};
+
+  auto f = [&] { return cost_to_buy( player, input ); };
+
+  W.set_current_bid_price( e_commodity::horses, 4 );
+  W.set_current_bid_price( e_commodity::food, 2 );
+
+  input    = { .type = e_commodity::horses, .quantity = 50 };
+  expected = ( 4 + 1 ) * 100 / 2;
+  REQUIRE( f() == expected );
+
+  input    = { .type = e_commodity::food, .quantity = 100 };
+  expected = ( 2 + 8 ) * 100;
+  REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[market] sale_transaction" ) {
+  World       W;
+  Player&     player = W.default_player();
+  Commodity   input;
+  SaleInvoice expected = {};
+
+  auto f = [&] { return sale_transaction( player, input ); };
+
+  W.set_current_bid_price( e_commodity::horses, 4 );
+  W.set_current_bid_price( e_commodity::food, 2 );
+
+  // Zero tax rate.
+  W.set_tax_rate( 0 );
+
+  input    = { .type = e_commodity::horses, .quantity = 50 };
+  expected = SaleInvoice{ .sold                  = input,
+                          .received_before_taxes = 4 * 100 / 2,
+                          .tax_rate              = 0,
+                          .tax_amount            = 0,
+                          .received_final        = 4 * 100 / 2 };
+  REQUIRE( f() == expected );
+
+  input    = { .type = e_commodity::food, .quantity = 100 };
+  expected = SaleInvoice{ .sold                  = input,
+                          .received_before_taxes = 2 * 100,
+                          .tax_rate              = 0,
+                          .tax_amount            = 0,
+                          .received_final        = 2 * 100 };
+  REQUIRE( f() == expected );
+
+  // 7% tax rate.
+  W.set_tax_rate( 7 );
+
+  input = { .type = e_commodity::horses, .quantity = 50 };
+  expected =
+      SaleInvoice{ .sold                  = input,
+                   .received_before_taxes = 4 * 100 / 2,
+                   .tax_rate              = 7,
+                   .tax_amount            = 7 * 4 / 2,
+                   .received_final = 4 * 100 / 2 - 7 * 4 / 2 };
+  REQUIRE( f() == expected );
+
+  input    = { .type = e_commodity::food, .quantity = 100 };
+  expected = SaleInvoice{ .sold                  = input,
+                          .received_before_taxes = 2 * 100,
+                          .tax_rate              = 7,
+                          .tax_amount            = 7 * 2,
+                          .received_final = 2 * 100 - 7 * 2 };
+  REQUIRE( f() == expected );
+}
+
 } // namespace
 } // namespace rn
