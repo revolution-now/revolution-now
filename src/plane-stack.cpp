@@ -14,11 +14,11 @@
 // Revolution Now
 #include "colony-view.hpp"
 #include "console.hpp"
+#include "harbor-view.hpp"
 #include "land-view.hpp"
 #include "main-menu.hpp"
 #include "map-edit.hpp"
 #include "menu.hpp"
-#include "new-harbor-view.hpp"
 #include "omni.hpp"
 #include "panel.hpp"
 #include "plane.hpp"
@@ -99,8 +99,8 @@ maybe<Plane&> plane_pointer( PlaneGroup const& group,
       if( p == nullptr ) return nothing;
       return p->impl();
     }
-    case e_plane::new_harbor: {
-      auto* p = group.new_harbor;
+    case e_plane::harbor: {
+      auto* p = group.harbor;
       if( p == nullptr ) return nothing;
       return p->impl();
     }
@@ -131,7 +131,7 @@ PLANE_ACCESSOR_IMPL( PanelPlane, panel );
 PLANE_ACCESSOR_IMPL( ILandViewPlane, land_view );
 PLANE_ACCESSOR_IMPL( MapEditPlane, map_edit );
 PLANE_ACCESSOR_IMPL( ColonyPlane, colony );
-PLANE_ACCESSOR_IMPL( NewHarborPlane, new_harbor );
+PLANE_ACCESSOR_IMPL( HarborPlane, harbor );
 
 Planes::popper Planes::new_group() {
   groups_.emplace_back();

@@ -8,7 +8,6 @@
  " \ 'custom-house',
 let s:stems = [
  \ 'harbor-view',
- \ 'new-harbor-view',
  \ 'harbor-view-entities',
  \ 'dragdrop',
  \ 'harbor-view-market',

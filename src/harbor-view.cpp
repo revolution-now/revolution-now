@@ -1,5 +1,5 @@
 /****************************************************************
-**new-harbor-view.cpp
+**harbor-view.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: The european harbor view.
 *
 *****************************************************************/
-#include "new-harbor-view.hpp"
+#include "harbor-view.hpp"
 
 // Revolution Now
 #include "cheat.hpp"
@@ -51,7 +51,7 @@ using namespace std;
 /****************************************************************
 ** Harbor Plane
 *****************************************************************/
-struct NewHarborPlane::Impl : public Plane {
+struct HarborPlane::Impl : public Plane {
   SS&     ss_;
   TS&     ts_;
   Player& player_;
@@ -330,36 +330,36 @@ struct NewHarborPlane::Impl : public Plane {
 };
 
 /****************************************************************
-** NewHarborPlane
+** HarborPlane
 *****************************************************************/
-Plane& NewHarborPlane::impl() { return *impl_; }
+Plane& HarborPlane::impl() { return *impl_; }
 
-NewHarborPlane::~NewHarborPlane() = default;
+HarborPlane::~HarborPlane() = default;
 
-NewHarborPlane::NewHarborPlane( SS& ss, TS& ts, Player& player )
+HarborPlane::HarborPlane( SS& ss, TS& ts, Player& player )
   : impl_( new Impl( ss, ts, player ) ) {}
 
-void NewHarborPlane::set_selected_unit( UnitId id ) {
+void HarborPlane::set_selected_unit( UnitId id ) {
   impl_->set_selected_unit( id );
 }
 
-wait<> NewHarborPlane::show_harbor_view() {
+wait<> HarborPlane::show_harbor_view() {
   return impl_->show_harbor_view();
 }
 
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> show_new_harbor_view( Planes& planes, SS& ss, TS& ts,
-                             Player&       player,
-                             maybe<UnitId> selected_unit ) {
+wait<> show_harbor_view( Planes& planes, SS& ss, TS& ts,
+                         Player&       player,
+                         maybe<UnitId> selected_unit ) {
   auto        popper    = planes.new_copied_group();
   PlaneGroup& new_group = planes.back();
 
-  NewHarborPlane harbor_plane( ss, ts, player );
+  HarborPlane harbor_plane( ss, ts, player );
   if( selected_unit.has_value() )
     harbor_plane.set_selected_unit( *selected_unit );
-  new_group.new_harbor = &harbor_plane;
+  new_group.harbor = &harbor_plane;
   try {
     // This coroutine should never return but by throwing the
     // exit exception.

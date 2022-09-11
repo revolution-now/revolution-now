@@ -1,5 +1,5 @@
 /****************************************************************
-**new-harbor-view.hpp
+**harbor-view.hpp
 *
 * Project: Revolution Now
 *
@@ -27,10 +27,10 @@ struct TS;
 /****************************************************************
 ** ColonyPlane
 *****************************************************************/
-struct NewHarborPlane {
-  NewHarborPlane( SS& ss, TS& ts, Player& player );
+struct HarborPlane {
+  HarborPlane( SS& ss, TS& ts, Player& player );
 
-  ~NewHarborPlane();
+  ~HarborPlane();
 
   void set_selected_unit( UnitId id );
 
@@ -47,8 +47,8 @@ struct NewHarborPlane {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> show_new_harbor_view( Planes& planes, SS& ss, TS& ts,
-                             Player&       player,
-                             maybe<UnitId> selected_unit );
+wait<> show_harbor_view( Planes& planes, SS& ss, TS& ts,
+                         Player&       player,
+                         maybe<UnitId> selected_unit );
 
 } // namespace rn
