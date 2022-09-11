@@ -45,10 +45,6 @@ struct DragStep {
 };
 
 struct DragState {
-  // FIXME: remove
-  co::finite_stream<DragStep> stream;
-
-  // Output state.
   std::any                object;
   e_drag_status_indicator indicator;
   bool                    user_requests_input;

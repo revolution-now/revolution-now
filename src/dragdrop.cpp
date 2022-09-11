@@ -175,7 +175,6 @@ wait<> drag_drop_routine( co::stream<input::event_t>& input,
             source_object_bounds );
 
   drag_state = DragState{
-      .stream              = {},
       .object              = source_object,
       .indicator           = e_drag_status_indicator::none,
       .user_requests_input = event.mod.shf_down,
