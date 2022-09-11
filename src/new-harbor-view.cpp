@@ -23,9 +23,13 @@
 #include "ts.hpp"
 #include "view.hpp"
 
+// config
+#include "config/nation.hpp"
+
 // ss
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/turn.rds.hpp"
 #include "ss/units.hpp"
 
 // refl
@@ -103,6 +107,28 @@ struct NewHarborPlane::Impl : public Plane {
     harbor_view_top_level().view().draw( renderer,
                                          canvas_.upper_left() );
     harbor_view_drag_n_drop_draw( renderer );
+    draw_stats( renderer );
+  }
+
+  void draw_stats( rr::Renderer& renderer ) const {
+    UNWRAP_CHECK( canvas, compositor::section(
+                              compositor::e_section::normal ) );
+    auto&        nation = nation_obj( player_.nation );
+    string const stats  = fmt::format(
+        "{}, {}. {}, {}. Tax: {}%  Gold: ${}",
+        nation.harbor_city_name, nation.country_name,
+        // FIXME
+        ts_.gui.identifier_to_display_name(
+            refl::enum_value_name(
+                ss_.turn.time_point.season ) ),
+        ss_.turn.time_point.year,
+        player_.old_world.taxes.tax_rate, player_.money );
+    Coord start = canvas.center();
+    start.y     = 1;
+    start.x -= rr::rendered_text_line_size_pixels( stats ).w / 2;
+    rr::Typer typer =
+        renderer.typer( start, gfx::pixel::banana() );
+    typer.write( stats );
   }
 
   void harbor_view_drag_n_drop_draw(
