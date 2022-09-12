@@ -90,13 +90,8 @@ struct HarborMarketCommodities
       Coord const ) const override;
 
   // Impelement IDragSink.
-  void drop( HarborDraggableObject_t const& a,
-             Coord const&                   where ) override;
-
-  // Override IDragSink.
-  wait<> post_successful_sink( HarborDraggableObject_t const&,
-                               int from_entity,
-                               Coord const& ) override;
+  wait<> drop( HarborDraggableObject_t const& a,
+               Coord const&                   where ) override;
 
   bool stacked() const { return stacked_; }
 

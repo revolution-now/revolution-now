@@ -89,8 +89,8 @@ struct ColonyLandView : public ui::View,
 
   ColonyJob_t make_job_for_square( e_direction d ) const;
 
-  void drop( ColViewObject_t const& o,
-             Coord const&           where ) override;
+  wait<> drop( ColViewObject_t const& o,
+               Coord const&           where ) override;
 
   maybe<DraggableObjectWithBounds<ColViewObject_t>> object_here(
       Coord const& where ) const override;

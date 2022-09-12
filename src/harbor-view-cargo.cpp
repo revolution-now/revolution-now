@@ -292,8 +292,8 @@ maybe<HarborDraggableObject_t> HarborCargo::can_receive(
   }
 }
 
-void HarborCargo::drop( HarborDraggableObject_t const& o,
-                        Coord const&                   where ) {
+wait<> HarborCargo::drop( HarborDraggableObject_t const& o,
+                          Coord const& where ) {
   UNWRAP_CHECK( slot, slot_under_cursor( where ) );
   UNWRAP_CHECK( active_unit_id, get_active_unit() );
   switch( o.to_enum() ) {
@@ -322,6 +322,7 @@ void HarborCargo::drop( HarborDraggableObject_t const& o,
                               /*try_other_slots=*/true );
     }
   }
+  co_return;
 }
 
 void HarborCargo::draw( rr::Renderer& renderer,

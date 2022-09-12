@@ -7,13 +7,10 @@
  " \ 'colview-buildings',
  " \ 'custom-house',
 let s:stems = [
- \ 'harbor-view',
- \ 'harbor-view-entities',
- \ 'dragdrop',
- \ 'harbor-view-market',
  \ 'ss/market',
  \ 'config/market',
  \ 'market',
+ \ 'harbor-view-market',
 \]
 
 let s:luas = [

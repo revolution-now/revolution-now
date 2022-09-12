@@ -181,12 +181,13 @@ maybe<HarborDraggableObject_t> HarborInboundShips::can_receive(
   return nothing;
 }
 
-void HarborInboundShips::drop( HarborDraggableObject_t const& o,
-                               Coord const& ) {
+wait<> HarborInboundShips::drop(
+    HarborDraggableObject_t const& o, Coord const& ) {
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
   UnitId const dragged_id = unit.id;
   unit_sail_to_harbor( ss_.terrain, ss_.units, player_,
                        dragged_id );
+  co_return;
 }
 
 void HarborInboundShips::draw( rr::Renderer& renderer,

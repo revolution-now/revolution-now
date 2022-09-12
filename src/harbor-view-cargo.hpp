@@ -72,8 +72,8 @@ struct HarborCargo
       Coord const& where ) const override;
 
   // Impelement IDragSink.
-  void drop( HarborDraggableObject_t const& a,
-             Coord const&                   where ) override;
+  wait<> drop( HarborDraggableObject_t const& a,
+               Coord const&                   where ) override;
 
  private:
   maybe<UnitId> get_active_unit() const;

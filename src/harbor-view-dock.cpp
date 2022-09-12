@@ -150,10 +150,11 @@ maybe<HarborDraggableObject_t> HarborDockUnits::can_receive(
   return o;
 }
 
-void HarborDockUnits::drop( HarborDraggableObject_t const& o,
-                            Coord const& ) {
+wait<> HarborDockUnits::drop( HarborDraggableObject_t const& o,
+                              Coord const& ) {
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
   unit_move_to_port( ss_.units, unit.id );
+  co_return;
 }
 
 void HarborDockUnits::draw( rr::Renderer& renderer,

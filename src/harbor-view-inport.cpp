@@ -264,8 +264,8 @@ maybe<HarborDraggableObject_t> HarborInPortShips::can_receive(
   }
 }
 
-void HarborInPortShips::drop( HarborDraggableObject_t const& o,
-                              Coord const& where ) {
+wait<> HarborInPortShips::drop( HarborDraggableObject_t const& o,
+                                Coord const& where ) {
   switch( o.to_enum() ) {
     case HarborDraggableObject::e::unit: {
       auto const&  alt = o.get<HarborDraggableObject::unit>();
@@ -303,6 +303,7 @@ void HarborInPortShips::drop( HarborDraggableObject_t const& o,
                               /*try_other_slots=*/true );
     }
   }
+  co_return;
 }
 
 void HarborInPortShips::draw( rr::Renderer& renderer,

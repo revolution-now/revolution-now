@@ -72,8 +72,8 @@ class ColViewBuildings : public ui::View,
       Coord const& where ) const override;
 
   // Implement IDragSink.
-  void drop( ColViewObject_t const& o,
-             Coord const&           where ) override;
+  wait<> drop( ColViewObject_t const& o,
+               Coord const&           where ) override;
 
   // Implement IDragSinkCheck.
   wait<base::valid_or<DragRejection>> sink_check(

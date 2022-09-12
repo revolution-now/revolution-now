@@ -229,8 +229,8 @@ ColonyJob_t ColonyLandView::make_job_for_square(
                              .job       = e_outdoor_job::food };
 }
 
-void ColonyLandView::drop( ColViewObject_t const& o,
-                           Coord const&           where ) {
+wait<> ColonyLandView::drop( ColViewObject_t const& o,
+                             Coord const&           where ) {
   UNWRAP_CHECK( unit_id, o.get_if<ColViewObject::unit>().member(
                              &ColViewObject::unit::id ) );
   Colony& colony = ss_.colonies.colony_for( colony_.id );
@@ -244,6 +244,7 @@ void ColonyLandView::drop( ColViewObject_t const& o,
   }
   move_unit_to_colony( ss_.units, colony, unit_id, job );
   CHECK_HAS_VALUE( colony.validate() );
+  co_return;
 }
 
 maybe<DraggableObjectWithBounds<ColViewObject_t>>

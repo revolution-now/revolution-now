@@ -271,8 +271,8 @@ wait<base::valid_or<DragRejection>> ColViewBuildings::sink_check(
 }
 
 // Implement IDragSink.
-void ColViewBuildings::drop( ColViewObject_t const& o,
-                             Coord const&           where ) {
+wait<> ColViewBuildings::drop( ColViewObject_t const& o,
+                               Coord const&           where ) {
   UNWRAP_CHECK( unit_id, o.get_if<ColViewObject::unit>().member(
                              &ColViewObject::unit::id ) );
   UNWRAP_CHECK( slot, slot_for_coord( where ) );
@@ -280,6 +280,7 @@ void ColViewBuildings::drop( ColViewObject_t const& o,
   ColonyJob_t job = ColonyJob::indoor{ .job = indoor_job };
   move_unit_to_colony( ss_.units, colony_, unit_id, job );
   CHECK_HAS_VALUE( colony_.validate() );
+  co_return;
 }
 
 maybe<DraggableObjectWithBounds<ColViewObject_t>>

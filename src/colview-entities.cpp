@@ -319,12 +319,13 @@ class MarketCommodities
     return nothing;
   }
 
-  void drop( ColViewObject_t const& o,
-             Coord const& /*where*/ ) override {
+  wait<> drop( ColViewObject_t const& o,
+               Coord const& /*where*/ ) override {
     UNWRAP_CHECK( [c], o.get_if<ColViewObject::commodity>() );
     int q = colony_.commodities[c.type];
     q += c.quantity;
     colony_.commodities[c.type] = q;
+    co_return;
   }
 
   wait<maybe<ColViewObject_t>> user_edit_object()
@@ -553,8 +554,8 @@ class CargoView : public ui::View,
     }
   }
 
-  void drop( ColViewObject_t const& o,
-             Coord const&           where ) override {
+  wait<> drop( ColViewObject_t const& o,
+               Coord const&           where ) override {
     CHECK( holder_ );
     auto&   cargo_hold = ss_.units.unit_for( *holder_ ).cargo();
     Cargo_t cargo      = to_cargo( o );
@@ -578,6 +579,7 @@ class CargoView : public ui::View,
                                   slot_idx,
                                   /*try_other_slots=*/true );
         } );
+    co_return;
   }
 
   // Returns the rect that bounds the sprite corresponding to the
@@ -988,8 +990,8 @@ class UnitsAtGateColonyView
         } );
   }
 
-  void drop( ColViewObject_t const& o,
-             Coord const&           where ) override {
+  wait<> drop( ColViewObject_t const& o,
+               Coord const&           where ) override {
     maybe<UnitId> target_unit = contains_unit( where );
     overload_visit(
         o, //
@@ -1042,6 +1044,7 @@ class UnitsAtGateColonyView
                 ss_, ts_, unit.id(), colony_.location );
           }
         } );
+    co_return;
   }
 
   bool try_drag( ColViewObject_t const& o,

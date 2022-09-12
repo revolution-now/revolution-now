@@ -192,16 +192,8 @@ struct IDragSink {
 
   // Coordinates are relative to view's upper left corner. The
   // sink MUST accept the object as-is.
-  virtual void drop( Draggable const& o,
-                     Coord const&     where ) = 0;
-
-  // Optional. After a successful drag this will be called to do
-  // anything that needs to be done on the sink side post-drag.
-  virtual wait<> post_successful_sink( Draggable const&,
-                                       int /*from_entity*/,
-                                       Coord const& ) {
-    co_return;
-  }
+  virtual wait<> drop( Draggable const& o,
+                       Coord const&     where ) = 0;
 };
 
 template<typename Draggable>
@@ -552,16 +544,22 @@ wait<> drag_drop_routine(
 
     // Finally we can do the drag.
     drag_source.disown_dragged_object();
-    drag_sink.drop( source_object, sink_coord );
+    co_await drag_sink.drop( source_object, sink_coord );
     // Drag happened successfully.
     lg.debug( "drag of object {} successful.", source_object );
 
-    // Now call the post-successful-drag hooks.
+    // Now call the post-successful-drag hook on the source. We
+    // don't have one for the sink because the sink can just use
+    // the "drop" method.
     co_await drag_source.post_successful_source(
         source_object,
         origin.with_new_origin( source_upper_left ) );
-    co_await drag_sink.post_successful_sink(
-        source_object, *source_entity, sink_coord );
+
+    // This will ensure that the drag source clears its locally
+    // held dragging state so that it doesn't have to remember to
+    // do it. This is not really that necessary, but could pre-
+    // vent potential errors.
+    drag_source.cancel_drag();
 
     co_return;
   }

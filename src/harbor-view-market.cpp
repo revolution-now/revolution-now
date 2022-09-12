@@ -174,7 +174,7 @@ HarborMarketCommodities::sink_check(
   co_return base::valid;
 }
 
-void HarborMarketCommodities::drop(
+wait<> HarborMarketCommodities::drop(
     HarborDraggableObject_t const& o, Coord const& ) {
   UNWRAP_CHECK(
       cargo_comm,
