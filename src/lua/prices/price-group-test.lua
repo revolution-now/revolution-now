@@ -60,12 +60,28 @@ local STARTING_12_9_14_8 = {
 -----------------------------------------------------------------
 -- Scenario Runner.
 -----------------------------------------------------------------
-local function assert_price( step_idx, good, eq_prices, expected )
-  ASSERT_EQ( eq_prices[good], expected[good],
+local function assert_price( step_idx, good, eq_prices, expect_eq )
+  ASSERT_EQ( eq_prices[good], expect_eq[good],
              format( 'equilibrium price for commodity %s at ' ..
-                         'step %d. actual=%f, expected=%f.',
+                         'step %d. actual=%f, expect_eq=%f.',
                      good, step_idx, eq_prices[good],
-                     expected[good] ) )
+                     expect_eq[good] ) )
+end
+
+local function assert_volume(step_idx, good, euro_volumes,
+                             expect_vol )
+  expect_vol = expect_vol[good]
+  -- The volume will be in the form 0xNNNN, i.e. a signed 16 bit
+  -- hex number, since that is what is seen when looking at the
+  -- save files in a hex editor (i.e., easy comparison). But
+  -- since they could be negative, we need to transform them back
+  -- to what Lua understands.
+  if expect_vol >= 0x8000 then expect_vol = expect_vol - 0x10000 end
+  ASSERT_EQ( euro_volumes[good], expect_vol,
+             format( 'euro volume for commodity %s at ' ..
+                         'step %d. actual=%f, expect_vol=%f.',
+                     good, step_idx, euro_volumes[good],
+                     expect_vol ) )
 end
 
 local function run_action( group, info )
@@ -107,10 +123,19 @@ local function run_scenario( scenario )
     for j = 1, 20 do group:evolve() end
     local eq_prices = group:equilibrium_prices()
     local step = scenario.steps[final_step]
-    assert_price( final_step, 'rum', eq_prices, step.expected )
-    assert_price( final_step, 'cigars', eq_prices, step.expected )
-    assert_price( final_step, 'cloth', eq_prices, step.expected )
-    assert_price( final_step, 'coats', eq_prices, step.expected )
+    assert_price( final_step, 'rum', eq_prices, step.expect_eq )
+    assert_price( final_step, 'cigars', eq_prices, step.expect_eq )
+    assert_price( final_step, 'cloth', eq_prices, step.expect_eq )
+    assert_price( final_step, 'coats', eq_prices, step.expect_eq )
+    local euro_volumes = group.euro_volumes
+    assert_volume( final_step, 'rum', euro_volumes,
+                   step.expect_vol )
+    assert_volume( final_step, 'cigars', euro_volumes,
+                   step.expect_vol )
+    assert_volume( final_step, 'cloth', euro_volumes,
+                   step.expect_vol )
+    assert_volume( final_step, 'coats', euro_volumes,
+                   step.expect_vol )
   end
 end
 
@@ -125,7 +150,14 @@ function Test.eq_prices_scenario_0()
     steps={
       {
         action={ count=30, type='sell_all', what=nil },
-        expected={ rum=12, cigars=11, cloth=12, coats=11 }
+        expect_eq={ rum=12, cigars=11, cloth=12, coats=11 },
+        expect_vol={
+          rum=0xFBB2,
+          cigars=0xFBCB,
+          cloth=0xFBA4,
+          coats=0xFC09
+        }
+
       }
     }
   }
@@ -141,10 +173,22 @@ function Test.eq_prices_scenario_1()
     steps={
       {
         action={ count=28, type='sell', what='cloth' },
-        expected={ rum=20, cigars=20, cloth=4, coats=20 }
+        expect_eq={ rum=20, cigars=20, cloth=4, coats=20 },
+        expect_vol={
+          rum=0x01DB,
+          cigars=0x01ED,
+          cloth=0xFEEE,
+          coats=0x023D
+        }
       }, {
         action={ count=28, type='buy', what='cloth' },
-        expected={ rum=8, cigars=8, cloth=20, coats=7 }
+        expect_eq={ rum=8, cigars=8, cloth=20, coats=7 },
+        expect_vol={
+          rum=0x0187,
+          cigars=0x0199,
+          cloth=0xFF94,
+          coats=0x01D9
+        }
       }
     }
   }
@@ -156,16 +200,40 @@ function Test.eq_prices_scenario_2()
     steps={
       {
         action={ count=18, type='sell', what='cigars' },
-        expected={ rum=20, cigars=5, cloth=20, coats=16 }
+        expect_eq={ rum=20, cigars=5, cloth=20, coats=16 },
+        expect_vol={
+          rum=0x0208,
+          cigars=0x00AC,
+          cloth=0x01A8,
+          coats=0x0275
+        }
       }, {
         action={ count=12, type='buy', what='coats' },
-        expected={ rum=20, cigars=5, cloth=20, coats=16 }
+        expect_eq={ rum=20, cigars=5, cloth=20, coats=16 },
+        expect_vol={
+          rum=0x0208,
+          cigars=0x00AC,
+          cloth=0x01A8,
+          coats=0x0275
+        }
       }, {
         action={ count=1, type='sell', what='rum' },
-        expected={ rum=17, cigars=5, cloth=20, coats=17 }
+        expect_eq={ rum=17, cigars=5, cloth=20, coats=17 },
+        expect_vol={
+          rum=0x01F7,
+          cigars=0x009D,
+          cloth=0x01A5,
+          coats=0x0271
+        }
       }, {
         action={ count=1, type='buy', what='rum' },
-        expected={ rum=20, cigars=5, cloth=20, coats=16 }
+        expect_eq={ rum=20, cigars=5, cloth=20, coats=16 },
+        expect_vol={
+          rum=0x01FF,
+          cigars=0x008E,
+          cloth=0x01A2,
+          coats=0x026D
+        }
       }
     }
   }
@@ -177,22 +245,58 @@ function Test.eq_prices_scenario_3()
     steps={
       {
         action={ count=6, type='sell', what='rum' },
-        expected={ rum=7, cigars=14, cloth=18, coats=12 }
+        expect_eq={ rum=7, cigars=14, cloth=18, coats=12 },
+        expect_vol={
+          rum=0x01D2,
+          cigars=0x024F,
+          cloth=0x01CC,
+          coats=0x02AF
+        }
       }, {
         action={ count=8, type='sell', what='cloth' },
-        expected={ rum=9, cigars=17, cloth=9, coats=15 }
+        expect_eq={ rum=9, cigars=17, cloth=9, coats=15 },
+        expect_vol={
+          rum=0x0194,
+          cigars=0x022F,
+          cloth=0x0127,
+          coats=0x0287
+        }
       }, {
         action={ count=3, type='sell', what='coats' },
-        expected={ rum=10, cigars=19, cloth=9, coats=11 }
+        expect_eq={ rum=10, cigars=19, cloth=9, coats=11 },
+        expect_vol={
+          rum=0x017F,
+          cigars=0x0223,
+          cloth=0x010F,
+          coats=0x024A
+        }
       }, {
         action={ count=8, type='buy', what='rum' },
-        expected={ rum=19, cigars=16, cloth=8, coats=10 }
+        expect_eq={ rum=19, cigars=16, cloth=8, coats=10 },
+        expect_vol={
+          rum=0x01BD,
+          cigars=0x020B,
+          cloth=0x00DF,
+          coats=0x0226
+        }
       }, {
         action={ count=10, type='sell', what='cigars' },
-        expected={ rum=20, cigars=7, cloth=10, coats=13 }
+        expect_eq={ rum=20, cigars=7, cloth=10, coats=13 },
+        expect_vol={
+          rum=0x019F,
+          cigars=0x0136,
+          cloth=0x0099,
+          coats=0x01EA
+        }
       }, {
         action={ count=8, type='buy', what='cloth' },
-        expected={ rum=20, cigars=6, cloth=20, coats=10 }
+        expect_eq={ rum=20, cigars=6, cloth=20, coats=10 },
+        expect_vol={
+          rum=0x0187,
+          cigars=0x00EA,
+          cloth=0x00F1,
+          coats=0x01BE
+        }
       }
     }
   }
@@ -204,28 +308,76 @@ function Test.eq_prices_scenario_4()
     steps={
       {
         action={ count=6, type='sell', what='cloth' },
-        expected={ rum=14, cigars=14, cloth=8, coats=12 }
+        expect_eq={ rum=14, cigars=14, cloth=8, coats=12 },
+        expect_vol={
+          rum=0x0238,
+          cigars=0x024F,
+          cloth=0x0166,
+          coats=0x02AF
+        }
       }, {
         action={ count=3, type='buy', what='cloth' },
-        expected={ rum=13, cigars=12, cloth=10, coats=11 }
+        expect_eq={ rum=13, cigars=12, cloth=10, coats=11 },
+        expect_vol={
+          rum=0x022C,
+          cigars=0x0243,
+          cloth=0x0181,
+          coats=0x02A0
+        }
       }, {
         action={ count=12, type='sell', what='cigars' },
-        expected={ rum=19, cigars=6, cloth=15, coats=15 }
+        expect_eq={ rum=19, cigars=6, cloth=15, coats=15 },
+        expect_vol={
+          rum=0x01FC,
+          cigars=0x0133,
+          cloth=0x0147,
+          coats=0x0269
+        }
       }, {
         action={ count=6, type='sell', what='cigars' },
-        expected={ rum=20, cigars=5, cloth=18, coats=18 }
+        expect_eq={ rum=20, cigars=5, cloth=18, coats=18 },
+        expect_vol={
+          rum=0x01EA,
+          cigars=0x008C,
+          cloth=0x012F,
+          coats=0x0251
+        }
       }, {
         action={ count=6, type='sell', what='cloth' },
-        expected={ rum=20, cigars=6, cloth=11, coats=20 }
+        expect_eq={ rum=20, cigars=6, cloth=11, coats=20 },
+        expect_vol={
+          rum=0x01D8,
+          cigars=0x0036,
+          cloth=0x00B3,
+          coats=0x0239
+        }
       }, {
         action={ count=6, type='sell', what='coats' },
-        expected={ rum=20, cigars=7, cloth=12, coats=12 }
+        expect_eq={ rum=20, cigars=7, cloth=12, coats=12 },
+        expect_vol={
+          rum=0x01C6,
+          cigars=0xFFE3,
+          cloth=0x0083,
+          coats=0x01BA
+        }
       }, {
         action={ count=6, type='sell', what='coats' },
-        expected={ rum=20, cigars=8, cloth=14, coats=9 }
+        expect_eq={ rum=20, cigars=8, cloth=14, coats=9 },
+        expect_vol={
+          rum=0x01B4,
+          cigars=0xFF95,
+          cloth=0x0058,
+          coats=0x0129
+        }
       }, {
         action={ count=18, type='buy', what='cigars' },
-        expected={ rum=20, cigars=20, cloth=9, coats=5 }
+        expect_eq={ rum=20, cigars=20, cloth=9, coats=5 },
+        expect_vol={
+          rum=0x017E,
+          cigars=0x002F,
+          cloth=0xFFDE,
+          coats=0x006C
+        }
       }
     }
   }
@@ -237,16 +389,40 @@ function Test.eq_prices_scenario_5()
     steps={
       {
         action={ count=6, type='sell', what='cigars' },
-        expected={ rum=17, cigars=7, cloth=19, coats=12 }
+        expect_eq={ rum=17, cigars=7, cloth=19, coats=12 },
+        expect_vol={
+          rum=0x01A5,
+          cigars=0x01A8,
+          cloth=0x017A,
+          coats=0x0242
+        }
       }, {
         action={ count=6, type='sell', what='cigars' },
-        expected={ rum=20, cigars=5, cloth=20, coats=15 }
+        expect_eq={ rum=20, cigars=5, cloth=20, coats=15 },
+        expect_vol={
+          rum=0x0193,
+          cigars=0x0118,
+          cloth=0x016E,
+          coats=0x022A
+        }
       }, {
         action={ count=6, type='sell', what='cigars' },
-        expected={ rum=20, cigars=4, cloth=20, coats=18 }
+        expect_eq={ rum=20, cigars=4, cloth=20, coats=18 },
+        expect_vol={
+          rum=0x0181,
+          cigars=0x0071,
+          cloth=0x0162,
+          coats=0x0212
+        }
       }, {
         action={ count=6, type='sell', what='cigars' },
-        expected={ rum=20, cigars=4, cloth=20, coats=20 }
+        expect_eq={ rum=20, cigars=4, cloth=20, coats=20 },
+        expect_vol={
+          rum=0x0174,
+          cigars=0xFFB8,
+          cloth=0x0156,
+          coats=0x01FB
+        }
       }
     }
   }

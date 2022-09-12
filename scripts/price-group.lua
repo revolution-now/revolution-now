@@ -104,7 +104,7 @@ local display = [[
 
 > ]]
 
-local function format_hex32( x )
+local function format_hex16( x )
   local res = '+'
   if x < 0 then
     res = '-'
@@ -126,10 +126,10 @@ local function redraw()
   local euro_volumes = group.euro_volumes
   local traded_volumes = group.traded_volumes
   io.write( format( display, num_turns, num_actions,
-                    format_hex32( euro_volumes.rum ),
-                    format_hex32( euro_volumes.cigars ),
-                    format_hex32( euro_volumes.cloth ),
-                    format_hex32( euro_volumes.coats ),
+                    format_hex16( euro_volumes.rum ),
+                    format_hex16( euro_volumes.cigars ),
+                    format_hex16( euro_volumes.cloth ),
+                    format_hex16( euro_volumes.coats ),
                     traded_volumes.rum, traded_volumes.cigars,
                     traded_volumes.cloth, traded_volumes.coats,
                     format( '%.1f', eqs.rum ),
