@@ -140,13 +140,13 @@ struct CompositeHarborSubView : public ui::InvisibleView,
     }
   }
 
-  maybe<PositionedDraggableSubView> view_here(
-      Coord coord ) override {
+  maybe<PositionedDraggableSubView<HarborDraggableObject_t>>
+  view_here( Coord coord ) override {
     for( int i = count() - 1; i >= 0; --i ) {
       ui::PositionedView pos_view = at( i );
       if( !coord.is_inside( pos_view.rect() ) ) continue;
-      maybe<PositionedDraggableSubView> p_view =
-          ptrs_[i]->view_here(
+      maybe<PositionedDraggableSubView<HarborDraggableObject_t>>
+          p_view = ptrs_[i]->view_here(
               coord.with_new_origin( pos_view.coord ) );
       if( !p_view ) continue;
       p_view->upper_left =
@@ -154,17 +154,18 @@ struct CompositeHarborSubView : public ui::InvisibleView,
       return p_view;
     }
     if( coord.is_inside( rect( {} ) ) )
-      return PositionedDraggableSubView{ this, Coord{} };
+      return PositionedDraggableSubView<HarborDraggableObject_t>{
+          this, Coord{} };
     return nothing;
   }
 
-  maybe<DraggableObjectWithBounds> object_here(
-      Coord const& coord ) const override {
+  maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>
+  object_here( Coord const& coord ) const override {
     for( int i = count() - 1; i >= 0; --i ) {
       ui::PositionedViewConst pos_view = at( i );
       if( !coord.is_inside( pos_view.rect() ) ) continue;
-      maybe<DraggableObjectWithBounds> obj =
-          ptrs_[i]->object_here(
+      maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>
+          obj = ptrs_[i]->object_here(
               coord.with_new_origin( pos_view.coord ) );
       if( !obj ) continue;
       obj->bounds =

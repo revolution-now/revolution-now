@@ -76,13 +76,13 @@ void draw_colony_view( Colony const&, rr::Renderer& renderer ) {
 *****************************************************************/
 void try_promote_demote_unit( SS& ss, Colony& colony,
                               Coord where, bool demote ) {
-  maybe<DraggableObjectWithBounds> has_any =
+  maybe<DraggableObjectWithBounds<ColViewObject_t>> o =
       colview_top_level().object_here( where );
-  if( !has_any.has_value() ) return;
-  UNWRAP_DRAGGABLE( o, has_any->obj );
+  if( !o.has_value() ) return;
   // Could be a commodity.
-  maybe<UnitId> unit_id = o.get_if<ColViewObject::unit>().member(
-      &ColViewObject::unit::id );
+  maybe<UnitId> unit_id =
+      o->obj.get_if<ColViewObject::unit>().member(
+          &ColViewObject::unit::id );
   if( !unit_id.has_value() ) return;
 
   Unit& unit = ss.units.unit_for( *unit_id );
@@ -95,13 +95,12 @@ void try_promote_demote_unit( SS& ss, Colony& colony,
 
 void try_increase_commodity( SS& ss, Colony& colony,
                              Coord where ) {
-  maybe<DraggableObjectWithBounds> has_any =
+  maybe<DraggableObjectWithBounds<ColViewObject_t>> o =
       colview_top_level().object_here( where );
-  if( !has_any.has_value() ) return;
-  UNWRAP_DRAGGABLE( o, has_any->obj );
+  if( !o.has_value() ) return;
   // Could be a unit.
   maybe<Commodity> comm =
-      o.get_if<ColViewObject::commodity>().member(
+      o->obj.get_if<ColViewObject::commodity>().member(
           &ColViewObject::commodity::comm );
   if( !comm.has_value() ) return;
 
@@ -111,13 +110,12 @@ void try_increase_commodity( SS& ss, Colony& colony,
 
 void try_decrease_commodity( SS& ss, Colony& colony,
                              Coord where ) {
-  maybe<DraggableObjectWithBounds> has_any =
+  maybe<DraggableObjectWithBounds<ColViewObject_t>> o =
       colview_top_level().object_here( where );
-  if( !has_any.has_value() ) return;
-  UNWRAP_DRAGGABLE( o, has_any->obj );
+  if( !o.has_value() ) return;
   // Could be a unit.
   maybe<Commodity> comm =
-      o.get_if<ColViewObject::commodity>().member(
+      o->obj.get_if<ColViewObject::commodity>().member(
           &ColViewObject::commodity::comm );
   if( !comm.has_value() ) return;
 
@@ -136,9 +134,9 @@ struct ColonyPlane::Impl : public Plane {
   Player& player_;
   Colony& colony_;
 
-  ColonyId                   colony_id_  = {};
-  co::stream<input::event_t> input_      = {};
-  maybe<DragState>           drag_state_ = {};
+  ColonyId                          colony_id_  = {};
+  co::stream<input::event_t>        input_      = {};
+  maybe<DragState<ColViewObject_t>> drag_state_ = {};
 
   Impl( SS& ss, TS& ts, Colony& colony )
     : ss_( ss ),
@@ -286,13 +284,8 @@ struct ColonyPlane::Impl : public Plane {
 
   wait<bool> handle_event(
       input::mouse_drag_event_t const& event ) {
-    auto obj_str_func = []( any const& a ) {
-      UNWRAP_DRAGGABLE( o, a );
-      return fmt::to_string( o );
-    };
     co_await drag_drop_routine( input_, colview_top_level(),
-                                drag_state_, ts_.gui, event,
-                                obj_str_func );
+                                drag_state_, ts_.gui, event );
     update_colony_view( ss_, colony_ );
     co_return false;
   }

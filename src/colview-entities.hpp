@@ -30,9 +30,6 @@
 // gfx
 #include "gfx/coord.hpp"
 
-// base
-#include "base/any-util.hpp"
-
 namespace rn {
 
 struct SS;
@@ -49,14 +46,6 @@ struct UnitsState;
 /****************************************************************
 ** Macros
 *****************************************************************/
-// This will take a std::any and extract either a ColViewObject_t
-// from it or any of its alternative types, and check-fail if it
-// doesn't contain any of them.
-#define UNWRAP_DRAGGABLE( v, std_any )                 \
-  ColViewObject_t const v =                            \
-      base::extract_variant_from_any<ColViewObject_t>( \
-          std_any );
-
 #define CONVERT_ENTITY( to, from_entity )                       \
   UNWRAP_CHECK( to, refl::enum_from_integral<e_colview_entity>( \
                         from_entity ) );
@@ -77,8 +66,9 @@ struct AwaitView {
   }
 };
 
-class ColonySubView : public IDraggableObjectsView,
-                      public AwaitView {
+class ColonySubView
+  : public IDraggableObjectsView<ColViewObject_t>,
+    public AwaitView {
  public:
   ColonySubView( SS& ss, TS& ts, Colony& colony )
     : ss_( ss ), ts_( ts ), colony_( colony ) {}
@@ -89,14 +79,15 @@ class ColonySubView : public IDraggableObjectsView,
   virtual ui::View const& view() const noexcept = 0;
 
   // Implement IDraggableObjectsView.
-  virtual maybe<PositionedDraggableSubView> view_here(
-      Coord ) override {
-    return PositionedDraggableSubView{ this, Coord{} };
+  virtual maybe<PositionedDraggableSubView<ColViewObject_t>>
+  view_here( Coord ) override {
+    return PositionedDraggableSubView<ColViewObject_t>{
+        this, Coord{} };
   }
 
   // Implement IDraggableObjectsView.
-  virtual maybe<DraggableObjectWithBounds> object_here(
-      Coord const& /*where*/ ) const override {
+  virtual maybe<DraggableObjectWithBounds<ColViewObject_t>>
+  object_here( Coord const& /*where*/ ) const override {
     return nothing;
   }
 
@@ -131,8 +122,9 @@ void update_production( SSConst const& ss,
 // Must be called before any other method in this module.
 void set_colview_colony( SS& ss, TS& ts, Colony& colony );
 
-void colview_drag_n_drop_draw( SS& ss, rr::Renderer& renderer,
-                               DragState const& state,
-                               Coord const&     canvas_origin );
+void colview_drag_n_drop_draw(
+    SS& ss, rr::Renderer& renderer,
+    DragState<ColViewObject_t> const& state,
+    Coord const&                      canvas_origin );
 
 } // namespace rn

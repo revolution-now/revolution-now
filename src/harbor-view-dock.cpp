@@ -68,11 +68,11 @@ HarborDockUnits::unit_at_location( Coord where ) const {
   return nothing;
 }
 
-maybe<DraggableObjectWithBounds> HarborDockUnits::object_here(
-    Coord const& where ) const {
+maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>
+HarborDockUnits::object_here( Coord const& where ) const {
   maybe<UnitWithPosition> const unit = unit_at_location( where );
   if( !unit.has_value() ) return nothing;
-  return DraggableObjectWithBounds{
+  return DraggableObjectWithBounds<HarborDraggableObject_t>{
       .obj    = HarborDraggableObject::unit{ .id = unit->id },
       .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
 }
@@ -125,11 +125,11 @@ wait<> HarborDockUnits::perform_click(
   co_await click_on_unit( unit->id );
 }
 
-bool HarborDockUnits::try_drag( any const& a, Coord const& ) {
+bool HarborDockUnits::try_drag( HarborDraggableObject_t const& o,
+                                Coord const& ) {
   // This method will only be called if there was already an ob-
   // ject under the cursor, which for us means a unit, and units
   // can always be dragged.
-  UNWRAP_DRAGGABLE( o, a );
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
   dragging_ = Draggable{ .unit_id = unit.id };
   return true;
@@ -143,16 +143,15 @@ void HarborDockUnits::disown_dragged_object() {
   ss_.units.disown_unit( unit_id );
 }
 
-maybe<any> HarborDockUnits::can_receive( any const& a,
-                                         int /*from_entity*/,
-                                         Coord const& ) const {
-  UNWRAP_DRAGGABLE( o, a );
+maybe<HarborDraggableObject_t> HarborDockUnits::can_receive(
+    HarborDraggableObject_t const& o, int /*from_entity*/,
+    Coord const& ) const {
   if( !o.holds<HarborDraggableObject::unit>() ) return nothing;
-  return a;
+  return o;
 }
 
-void HarborDockUnits::drop( any const& a, Coord const& ) {
-  UNWRAP_DRAGGABLE( o, a );
+void HarborDockUnits::drop( HarborDraggableObject_t const& o,
+                            Coord const& ) {
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
   unit_move_to_port( ss_.units, unit.id );
 }

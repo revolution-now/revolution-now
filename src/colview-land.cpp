@@ -167,9 +167,8 @@ wait<> ColonyLandView::perform_click(
   update_production( ss_, colony_ );
 }
 
-maybe<any> ColonyLandView::can_receive(
-    any const& a, int, Coord const& where ) const {
-  UNWRAP_DRAGGABLE( o, a );
+maybe<ColViewObject_t> ColonyLandView::can_receive(
+    ColViewObject_t const& o, int, Coord const& where ) const {
   // Verify that the dragged object is a unit.
   maybe<UnitId> unit_id = o.get_if<ColViewObject::unit>().member(
       &ColViewObject::unit::id );
@@ -197,7 +196,7 @@ maybe<any> ColonyLandView::can_receive(
 }
 
 wait<base::valid_or<DragRejection>> ColonyLandView::sink_check(
-    any const&, int, Coord const where ) const {
+    ColViewObject_t const&, int, Coord const where ) const {
   Colony const& colony = ss_.colonies.colony_for( colony_.id );
   maybe<e_direction> d = direction_under_cursor( where );
   CHECK( d );
@@ -230,8 +229,8 @@ ColonyJob_t ColonyLandView::make_job_for_square(
                              .job       = e_outdoor_job::food };
 }
 
-void ColonyLandView::drop( any const& a, Coord const& where ) {
-  UNWRAP_DRAGGABLE( o, a );
+void ColonyLandView::drop( ColViewObject_t const& o,
+                           Coord const&           where ) {
   UNWRAP_CHECK( unit_id, o.get_if<ColViewObject::unit>().member(
                              &ColViewObject::unit::id ) );
   Colony& colony = ss_.colonies.colony_for( colony_.id );
@@ -247,16 +246,17 @@ void ColonyLandView::drop( any const& a, Coord const& where ) {
   CHECK_HAS_VALUE( colony.validate() );
 }
 
-maybe<DraggableObjectWithBounds> ColonyLandView::object_here(
-    Coord const& where ) const {
+maybe<DraggableObjectWithBounds<ColViewObject_t>>
+ColonyLandView::object_here( Coord const& where ) const {
   UNWRAP_RETURN( unit_id, unit_under_cursor( where ) );
   UNWRAP_RETURN( d, direction_under_cursor( where ) );
-  return DraggableObjectWithBounds{
+  return DraggableObjectWithBounds<ColViewObject_t>{
       .obj    = ColViewObject::unit{ .id = unit_id },
       .bounds = rect_for_unit( d ) };
 }
 
-bool ColonyLandView::try_drag( any const&, Coord const& where ) {
+bool ColonyLandView::try_drag( ColViewObject_t const&,
+                               Coord const& where ) {
   UNWRAP_CHECK( d, direction_under_cursor( where ) );
   UNWRAP_CHECK( job, job_for_direction( d ) );
   dragging_ = Draggable{ .d = d, .job = job };

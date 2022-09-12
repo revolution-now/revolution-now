@@ -89,11 +89,11 @@ HarborInboundShips::unit_at_location( Coord where ) const {
   return nothing;
 }
 
-maybe<DraggableObjectWithBounds> HarborInboundShips::object_here(
-    Coord const& where ) const {
+maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>
+HarborInboundShips::object_here( Coord const& where ) const {
   maybe<UnitWithPosition> const unit = unit_at_location( where );
   if( !unit.has_value() ) return nothing;
-  return DraggableObjectWithBounds{
+  return DraggableObjectWithBounds<HarborDraggableObject_t>{
       .obj    = HarborDraggableObject::unit{ .id = unit->id },
       .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
 }
@@ -154,8 +154,8 @@ wait<> HarborInboundShips::perform_click(
   co_await click_on_unit( unit->id );
 }
 
-bool HarborInboundShips::try_drag( any const& a, Coord const& ) {
-  UNWRAP_DRAGGABLE( o, a );
+bool HarborInboundShips::try_drag(
+    HarborDraggableObject_t const& o, Coord const& ) {
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
   dragging_ = Draggable{ .unit_id = unit.id };
   return true;
@@ -173,15 +173,16 @@ void HarborInboundShips::disown_dragged_object() {
   // its new home will do that automatically.
 }
 
-maybe<any> HarborInboundShips::can_receive(
-    any const& a, int from_entity, Coord const& ) const {
+maybe<HarborDraggableObject_t> HarborInboundShips::can_receive(
+    HarborDraggableObject_t const& a, int from_entity,
+    Coord const& ) const {
   CONVERT_ENTITY( entity_enum, from_entity );
   if( entity_enum == e_harbor_view_entity::outbound ) return a;
   return nothing;
 }
 
-void HarborInboundShips::drop( any const& a, Coord const& ) {
-  UNWRAP_DRAGGABLE( o, a );
+void HarborInboundShips::drop( HarborDraggableObject_t const& o,
+                               Coord const& ) {
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
   UnitId const dragged_id = unit.id;
   unit_sail_to_harbor( ss_.terrain, ss_.units, player_,

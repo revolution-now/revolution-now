@@ -29,9 +29,9 @@ struct Player;
 *****************************************************************/
 class ColViewBuildings : public ui::View,
                          public ColonySubView,
-                         public IDragSink,
-                         public IDragSinkCheck,
-                         public IDragSource {
+                         public IDragSink<ColViewObject_t>,
+                         public IDragSinkCheck<ColViewObject_t>,
+                         public IDragSource<ColViewObject_t> {
  public:
   static std::unique_ptr<ColViewBuildings> create(
       SS& ss, TS& ts, Colony& colony, Delta size,
@@ -67,21 +67,22 @@ class ColViewBuildings : public ui::View,
   }
 
   // Implement IDragSink.
-  maybe<std::any> can_receive(
-      std::any const& o, int from_entity,
+  maybe<ColViewObject_t> can_receive(
+      ColViewObject_t const& o, int from_entity,
       Coord const& where ) const override;
 
   // Implement IDragSink.
-  void drop( std::any const& o, Coord const& where ) override;
+  void drop( ColViewObject_t const& o,
+             Coord const&           where ) override;
 
   // Implement IDragSinkCheck.
   wait<base::valid_or<DragRejection>> sink_check(
-      std::any const&, int from_entity,
+      ColViewObject_t const&, int from_entity,
       Coord const ) const override;
 
   // Implement IDragSource.
-  bool try_drag( std::any const& o,
-                 Coord const&    where ) override;
+  bool try_drag( ColViewObject_t const& o,
+                 Coord const&           where ) override;
 
   // Implement IDragSource.
   void cancel_drag() override;
@@ -90,7 +91,7 @@ class ColViewBuildings : public ui::View,
   void disown_dragged_object() override;
 
   // Implement ColonySubView.
-  maybe<DraggableObjectWithBounds> object_here(
+  maybe<DraggableObjectWithBounds<ColViewObject_t>> object_here(
       Coord const& /*where*/ ) const override;
 
   // Implement AwaitView.

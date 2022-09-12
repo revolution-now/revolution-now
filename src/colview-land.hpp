@@ -27,9 +27,9 @@ struct Player;
 
 struct ColonyLandView : public ui::View,
                         public ColonySubView,
-                        public IDragSource,
-                        public IDragSink,
-                        public IDragSinkCheck {
+                        public IDragSource<ColViewObject_t>,
+                        public IDragSink<ColViewObject_t>,
+                        public IDragSinkCheck<ColViewObject_t> {
   enum class e_render_mode {
     // Three tiles by three tiles, with unscaled tiles and
     // colonists on the land files.
@@ -79,18 +79,20 @@ struct ColonyLandView : public ui::View,
   wait<> perform_click(
       input::mouse_button_event_t const& event ) override;
 
-  maybe<std::any> can_receive(
-      std::any const& o, int,
-      Coord const&    where ) const override;
+  maybe<ColViewObject_t> can_receive(
+      ColViewObject_t const& o, int,
+      Coord const&           where ) const override;
 
   wait<base::valid_or<DragRejection>> sink_check(
-      std::any const&, int, Coord const where ) const override;
+      ColViewObject_t const&, int,
+      Coord const where ) const override;
 
   ColonyJob_t make_job_for_square( e_direction d ) const;
 
-  void drop( std::any const& o, Coord const& where ) override;
+  void drop( ColViewObject_t const& o,
+             Coord const&           where ) override;
 
-  maybe<DraggableObjectWithBounds> object_here(
+  maybe<DraggableObjectWithBounds<ColViewObject_t>> object_here(
       Coord const& where ) const override;
 
   struct Draggable {
@@ -98,7 +100,8 @@ struct ColonyLandView : public ui::View,
     e_outdoor_job job = {};
   };
 
-  bool try_drag( std::any const&, Coord const& where ) override;
+  bool try_drag( ColViewObject_t const&,
+                 Coord const& where ) override;
 
   void cancel_drag() override;
 

@@ -26,13 +26,14 @@ struct Player;
 /****************************************************************
 ** HarborMarketCommodities
 *****************************************************************/
-struct HarborMarketCommodities : public ui::View,
-                                 public HarborSubView,
-                                 public IDragSource,
-                                 public IDragSourceUserInput,
-                                 public IDragSourceCheck,
-                                 public IDragSink,
-                                 public IDragSinkCheck {
+struct HarborMarketCommodities
+  : public ui::View,
+    public HarborSubView,
+    public IDragSource<HarborDraggableObject_t>,
+    public IDragSourceUserInput<HarborDraggableObject_t>,
+    public IDragSourceCheck<HarborDraggableObject_t>,
+    public IDragSink<HarborDraggableObject_t>,
+    public IDragSinkCheck<HarborDraggableObject_t> {
   static PositionedHarborSubView<HarborMarketCommodities> create(
       SS& ss, TS& ts, Player& player, Rect canvas );
 
@@ -48,50 +49,53 @@ struct HarborMarketCommodities : public ui::View,
   ui::View&       view() noexcept override;
   ui::View const& view() const noexcept override;
 
-  maybe<DraggableObjectWithBounds> object_here(
-      Coord const& where ) const override;
+  maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>
+  object_here( Coord const& where ) const override;
 
   // Implement ui::Object.
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override;
 
   // Implement IDragSource.
-  bool try_drag( std::any const& a,
-                 Coord const&    where ) override;
+  bool try_drag( HarborDraggableObject_t const& a,
+                 Coord const&                   where ) override;
 
   // Implement IDragSource.
   void cancel_drag() override;
 
   // Implement IDragSourceUserInput.
-  wait<std::unique_ptr<std::any>> user_edit_object()
+  wait<maybe<HarborDraggableObject_t>> user_edit_object()
       const override;
 
   // Implement IDragSourceCheck.
   wait<base::valid_or<DragRejection>> source_check(
-      std::any const& a, Coord const ) const override;
+      HarborDraggableObject_t const& a,
+      Coord const ) const override;
 
   // Implement IDragSource.
   void disown_dragged_object() override;
 
   // Override IDragSource.
-  wait<> post_successful_source( std::any const&,
+  wait<> post_successful_source( HarborDraggableObject_t const&,
                                  Coord const& ) override;
 
   // Impelement IDragSink.
-  maybe<std::any> can_receive(
-      std::any const& a, int from_entity,
+  maybe<HarborDraggableObject_t> can_receive(
+      HarborDraggableObject_t const& a, int from_entity,
       Coord const& where ) const override;
 
   // Implement IDragSinkCheck.
   wait<base::valid_or<DragRejection>> sink_check(
-      std::any const& a, int from_entity,
+      HarborDraggableObject_t const& a, int from_entity,
       Coord const ) const override;
 
   // Impelement IDragSink.
-  void drop( std::any const& a, Coord const& where ) override;
+  void drop( HarborDraggableObject_t const& a,
+             Coord const&                   where ) override;
 
   // Override IDragSink.
-  wait<> post_successful_sink( std::any const&, int from_entity,
+  wait<> post_successful_sink( HarborDraggableObject_t const&,
+                               int from_entity,
                                Coord const& ) override;
 
   bool stacked() const { return stacked_; }

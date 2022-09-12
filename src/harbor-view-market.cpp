@@ -56,7 +56,7 @@ ui::View const& HarborMarketCommodities::view() const noexcept {
   return *this;
 }
 
-maybe<DraggableObjectWithBounds>
+maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>
 HarborMarketCommodities::object_here(
     Coord const& where ) const {
   maybe<pair<e_commodity, Rect>> res;
@@ -72,7 +72,7 @@ HarborMarketCommodities::object_here(
   Rect const box =
       Rect::from( box_origin, Delta{ .w = 1, .h = 1 } *
                                   Delta{ .w = 16, .h = 16 } );
-  return DraggableObjectWithBounds{
+  return DraggableObjectWithBounds<HarborDraggableObject_t>{
       .obj =
           HarborDraggableObject::market_commodity{
               .comm = Commodity{ .type     = comm_type,
@@ -80,9 +80,8 @@ HarborMarketCommodities::object_here(
       .bounds = box };
 }
 
-bool HarborMarketCommodities::try_drag( any const& a,
-                                        Coord const& ) {
-  UNWRAP_DRAGGABLE( o, a );
+bool HarborMarketCommodities::try_drag(
+    HarborDraggableObject_t const& o, Coord const& ) {
   UNWRAP_CHECK(
       comm,
       o.get_if<HarborDraggableObject::market_commodity>() );
@@ -98,8 +97,8 @@ void HarborMarketCommodities::cancel_drag() {
   dragging_ = nothing;
 }
 
-wait<unique_ptr<any>> HarborMarketCommodities::user_edit_object()
-    const {
+wait<maybe<HarborDraggableObject_t>>
+HarborMarketCommodities::user_edit_object() const {
   UNWRAP_CHECK( comm, dragging_.member( &Draggable::comm ) );
   string const text = fmt::format(
       "What quantity of @[H]{}@[] would you like to buy? "
@@ -112,22 +111,21 @@ wait<unique_ptr<any>> HarborMarketCommodities::user_edit_object()
             .initial_value = 100,
             .min           = 0,
             .max           = 100 } );
-  if( !quantity.has_value() ) co_return nullptr;
-  if( quantity == 0 ) co_return nullptr;
+  if( !quantity.has_value() ) co_return nothing;
+  if( quantity == 0 ) co_return nothing;
   // We shouldn't have to update the dragging_ member here be-
   // cause the framework should call try_drag again with the mod-
   // ified value.
   Commodity new_comm = comm;
   new_comm.quantity  = *quantity;
   CHECK( new_comm.quantity > 0 );
-  co_return make_unique<any>(
-      HarborDraggableObject::market_commodity{ .comm =
-                                                   new_comm } );
+  co_return HarborDraggableObject::market_commodity{
+      .comm = new_comm };
 }
 
 wait<base::valid_or<DragRejection>>
-HarborMarketCommodities::source_check( any const&,
-                                       Coord const ) const {
+HarborMarketCommodities::source_check(
+    HarborDraggableObject_t const&, Coord const ) const {
   UNWRAP_CHECK( comm, dragging_.member( &Draggable::comm ) );
 
   // TODO: check for boycotts.
@@ -153,33 +151,31 @@ void HarborMarketCommodities::disown_dragged_object() {
 }
 
 wait<> HarborMarketCommodities::post_successful_source(
-    any const& a, Coord const& ) {
-  UNWRAP_DRAGGABLE( o, a );
+    HarborDraggableObject_t const& o, Coord const& ) {
   // TODO
   (void)o;
   co_return;
 }
 
-maybe<any> HarborMarketCommodities::can_receive(
-    any const& a, int /*from_entity*/,
+maybe<HarborDraggableObject_t>
+HarborMarketCommodities::can_receive(
+    HarborDraggableObject_t const& o, int /*from_entity*/,
     Coord const& /*where*/ ) const {
-  UNWRAP_DRAGGABLE( o, a );
   if( o.holds<HarborDraggableObject::cargo_commodity>() )
-    return a;
+    return o;
   return nothing;
 }
 
 wait<base::valid_or<DragRejection>>
-HarborMarketCommodities::sink_check( any const&,
-                                     int /*from_entity*/,
-                                     Coord const ) const {
+HarborMarketCommodities::sink_check(
+    HarborDraggableObject_t const&, int /*from_entity*/,
+    Coord const ) const {
   // TODO: check for boycotts.
   co_return base::valid;
 }
 
-void HarborMarketCommodities::drop( any const& a,
-                                    Coord const& ) {
-  UNWRAP_DRAGGABLE( o, a );
+void HarborMarketCommodities::drop(
+    HarborDraggableObject_t const& o, Coord const& ) {
   UNWRAP_CHECK(
       cargo_comm,
       o.get_if<HarborDraggableObject::cargo_commodity>() );
@@ -192,8 +188,8 @@ void HarborMarketCommodities::drop( any const& a,
 }
 
 wait<> HarborMarketCommodities::post_successful_sink(
-    any const& a, int /*from_entity*/, Coord const& ) {
-  UNWRAP_DRAGGABLE( o, a );
+    HarborDraggableObject_t const& o, int /*from_entity*/,
+    Coord const& ) {
   // TODO
   (void)o;
   co_return;

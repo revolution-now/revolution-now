@@ -22,9 +22,6 @@
 #include "view.hpp"
 #include "wait.hpp"
 
-// base
-#include "base/any-util.hpp"
-
 // C++ standard library
 #include <memory>
 #include <unordered_map>
@@ -32,14 +29,6 @@
 /****************************************************************
 ** Macros
 *****************************************************************/
-// This will take a std::any and extract either a
-// HarborDraggableObject_t from it or any of its alternative
-// types, and check-fail if it doesn't contain any of them.
-#define UNWRAP_DRAGGABLE( v, std_any )                         \
-  HarborDraggableObject_t const v =                            \
-      base::extract_variant_from_any<HarborDraggableObject_t>( \
-          std_any );
-
 #define CONVERT_ENTITY( to, from_entity )                       \
   UNWRAP_CHECK( to,                                             \
                 refl::enum_from_integral<e_harbor_view_entity>( \
@@ -76,8 +65,9 @@ struct harbor_view_exit_interrupt : std::exception {};
 ** HarborSubView
 *****************************************************************/
 // FIXME: try to dedupe this with the one in the colony view.
-class HarborSubView : public IDraggableObjectsView,
-                      public ui::AwaitView {
+class HarborSubView
+  : public IDraggableObjectsView<HarborDraggableObject_t>,
+    public ui::AwaitView {
  public:
   HarborSubView( SS& ss, TS& ts, Player& player )
     : ss_( ss ), ts_( ts ), player_( player ) {}
@@ -88,14 +78,17 @@ class HarborSubView : public IDraggableObjectsView,
   virtual ui::View const& view() const noexcept = 0;
 
   // Implement IDraggableObjectsView.
-  virtual maybe<PositionedDraggableSubView> view_here(
-      Coord ) override {
-    return PositionedDraggableSubView{ this, Coord{} };
+  virtual maybe<
+      PositionedDraggableSubView<HarborDraggableObject_t>>
+  view_here( Coord ) override {
+    return PositionedDraggableSubView<HarborDraggableObject_t>{
+        this, Coord{} };
   }
 
   // Implement IDraggableObjectsView.
-  virtual maybe<DraggableObjectWithBounds> object_here(
-      Coord const& /*where*/ ) const override {
+  virtual maybe<
+      DraggableObjectWithBounds<HarborDraggableObject_t>>
+  object_here( Coord const& /*where*/ ) const override {
     return nothing;
   }
 

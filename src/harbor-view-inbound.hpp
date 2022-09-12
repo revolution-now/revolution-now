@@ -27,10 +27,11 @@ struct Player;
 /****************************************************************
 ** HarborInboundShips
 *****************************************************************/
-struct HarborInboundShips : public ui::View,
-                            public HarborSubView,
-                            public IDragSource,
-                            public IDragSink {
+struct HarborInboundShips
+  : public ui::View,
+    public HarborSubView,
+    public IDragSource<HarborDraggableObject_t>,
+    public IDragSink<HarborDraggableObject_t> {
   static PositionedHarborSubView<HarborInboundShips> create(
       SS& ss, TS& ts, Player& player, Rect canvas,
       HarborMarketCommodities const& market_commodities,
@@ -48,8 +49,8 @@ struct HarborInboundShips : public ui::View,
   ui::View&       view() noexcept override;
   ui::View const& view() const noexcept override;
 
-  maybe<DraggableObjectWithBounds> object_here(
-      Coord const& where ) const override;
+  maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>
+  object_here( Coord const& where ) const override;
 
   // Implement ui::Object.
   void draw( rr::Renderer& renderer,
@@ -60,8 +61,8 @@ struct HarborInboundShips : public ui::View,
       input::mouse_button_event_t const& ) override;
 
   // Implement IDragSource.
-  bool try_drag( std::any const& a,
-                 Coord const&    where ) override;
+  bool try_drag( HarborDraggableObject_t const& a,
+                 Coord const&                   where ) override;
 
   // Implement IDragSource.
   void cancel_drag() override;
@@ -70,12 +71,13 @@ struct HarborInboundShips : public ui::View,
   void disown_dragged_object() override;
 
   // Impelement IDragSink.
-  maybe<std::any> can_receive(
-      std::any const& a, int from_entity,
+  maybe<HarborDraggableObject_t> can_receive(
+      HarborDraggableObject_t const& a, int from_entity,
       Coord const& where ) const override;
 
   // Impelement IDragSink.
-  void drop( std::any const& a, Coord const& where ) override;
+  void drop( HarborDraggableObject_t const& a,
+             Coord const&                   where ) override;
 
  private:
   struct UnitWithPosition {

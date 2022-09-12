@@ -89,11 +89,11 @@ HarborOutboundShips::unit_at_location( Coord where ) const {
   return nothing;
 }
 
-maybe<DraggableObjectWithBounds>
+maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>
 HarborOutboundShips::object_here( Coord const& where ) const {
   maybe<UnitWithPosition> const unit = unit_at_location( where );
   if( !unit.has_value() ) return nothing;
-  return DraggableObjectWithBounds{
+  return DraggableObjectWithBounds<HarborDraggableObject_t>{
       .obj    = HarborDraggableObject::unit{ .id = unit->id },
       .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
 }
@@ -154,9 +154,8 @@ wait<> HarborOutboundShips::perform_click(
   co_await click_on_unit( unit->id );
 }
 
-bool HarborOutboundShips::try_drag( any const& a,
-                                    Coord const& ) {
-  UNWRAP_DRAGGABLE( o, a );
+bool HarborOutboundShips::try_drag(
+    HarborDraggableObject_t const& o, Coord const& ) {
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
   dragging_ = Draggable{ .unit_id = unit.id };
   return true;
@@ -174,8 +173,9 @@ void HarborOutboundShips::disown_dragged_object() {
   // its new home will do that automatically.
 }
 
-maybe<any> HarborOutboundShips::can_receive(
-    any const& a, int from_entity, Coord const& ) const {
+maybe<HarborDraggableObject_t> HarborOutboundShips::can_receive(
+    HarborDraggableObject_t const& a, int from_entity,
+    Coord const& ) const {
   CONVERT_ENTITY( entity_enum, from_entity );
   if( entity_enum == e_harbor_view_entity::inbound ||
       entity_enum == e_harbor_view_entity::in_port )
@@ -183,8 +183,8 @@ maybe<any> HarborOutboundShips::can_receive(
   return nothing;
 }
 
-void HarborOutboundShips::drop( any const& a, Coord const& ) {
-  UNWRAP_DRAGGABLE( o, a );
+void HarborOutboundShips::drop( HarborDraggableObject_t const& o,
+                                Coord const& ) {
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
   UnitId const dragged_id = unit.id;
   unit_sail_to_new_world( ss_.terrain, ss_.units, player_,

@@ -56,9 +56,9 @@ struct HarborPlane::Impl : public Plane {
   TS&     ts_;
   Player& player_;
 
-  Rect                       canvas_;
-  co::stream<input::event_t> input_      = {};
-  maybe<DragState>           drag_state_ = {};
+  Rect                                      canvas_;
+  co::stream<input::event_t>                input_      = {};
+  maybe<DragState<HarborDraggableObject_t>> drag_state_ = {};
 
   HarborViewComposited composition_;
 
@@ -134,16 +134,16 @@ struct HarborPlane::Impl : public Plane {
   void harbor_view_drag_n_drop_draw(
       rr::Renderer& renderer ) const {
     if( !drag_state_.has_value() ) return;
-    DragState const& state         = *drag_state_;
-    Coord const      canvas_origin = canvas_.upper_left();
-    Coord const      sprite_upper_left =
+    DragState<HarborDraggableObject_t> const& state =
+        *drag_state_;
+    Coord const canvas_origin = canvas_.upper_left();
+    Coord const sprite_upper_left =
         state.where - state.click_offset +
         canvas_origin.distance_from_origin();
     using namespace HarborDraggableObject;
     // Render the dragged item.
-    UNWRAP_DRAGGABLE( object, state.object );
     overload_visit(
-        object,
+        state.object,
         [&]( unit const& o ) {
           render_unit( renderer, sprite_upper_left,
                        ss_.units.unit_for( o.id ),
@@ -270,13 +270,8 @@ struct HarborPlane::Impl : public Plane {
   }
 
   wait<> handle_event( input::mouse_drag_event_t const& event ) {
-    auto obj_str_func = []( any const& a ) {
-      UNWRAP_DRAGGABLE( o, a );
-      return fmt::to_string( o );
-    };
     co_await drag_drop_routine( input_, harbor_view_top_level(),
-                                drag_state_, ts_.gui, event,
-                                obj_str_func );
+                                drag_state_, ts_.gui, event );
   }
 
   wait<> handle_event( auto const& ) { co_return; }

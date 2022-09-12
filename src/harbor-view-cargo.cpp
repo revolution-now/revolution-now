@@ -98,8 +98,8 @@ maybe<int> HarborCargo::slot_under_cursor( Coord where ) const {
   return slot;
 }
 
-maybe<DraggableObjectWithBounds> HarborCargo::object_here(
-    Coord const& where ) const {
+maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>
+HarborCargo::object_here( Coord const& where ) const {
   UNWRAP_RETURN( slot, slot_under_cursor( where ) );
   maybe<HarborDraggableObject_t> const draggable =
       draggable_in_cargo_slot( slot );
@@ -113,11 +113,12 @@ maybe<DraggableObjectWithBounds> HarborCargo::object_here(
     scale = kCommodityTileSize;
   }
   Rect const box = Rect::from( box_origin, scale );
-  return DraggableObjectWithBounds{ .obj    = *draggable,
-                                    .bounds = box };
+  return DraggableObjectWithBounds<HarborDraggableObject_t>{
+      .obj = *draggable, .bounds = box };
 }
 
-bool HarborCargo::try_drag( any const& a, Coord const& ) {
+bool HarborCargo::try_drag( HarborDraggableObject_t const& o,
+                            Coord const& ) {
   dragging_ = nothing;
   // This method will only be called if there was already an ob-
   // ject under the cursor, which can always be dragged, so long
@@ -127,7 +128,6 @@ bool HarborCargo::try_drag( any const& a, Coord const& ) {
     return false;
   Unit const& active_unit = ss_.units.unit_for( active_unit_id );
   // Now we have to get the slot of the thing being dragged.
-  UNWRAP_DRAGGABLE( o, a );
   switch( o.to_enum() ) {
     case HarborDraggableObject::e::unit: {
       UnitId const unit_id =
@@ -157,12 +157,13 @@ bool HarborCargo::try_drag( any const& a, Coord const& ) {
 
 void HarborCargo::cancel_drag() { dragging_ = nothing; }
 
-wait<unique_ptr<any>> HarborCargo::user_edit_object() const {
+wait<maybe<HarborDraggableObject_t>>
+HarborCargo::user_edit_object() const {
   UNWRAP_CHECK( slot, dragging_.member( &Draggable::slot ) );
   UNWRAP_CHECK( draggable, draggable_in_cargo_slot( slot ) );
   auto cargo_commodity =
       draggable.get_if<HarborDraggableObject::cargo_commodity>();
-  if( !cargo_commodity.has_value() ) co_return nullptr;
+  if( !cargo_commodity.has_value() ) co_return nothing;
   Commodity const& comm        = cargo_commodity->comm;
   int const        max_allowed = comm.quantity;
   CHECK_GT( max_allowed, 0 );
@@ -180,17 +181,16 @@ wait<unique_ptr<any>> HarborCargo::user_edit_object() const {
             .initial_value = comm.quantity,
             .min           = 0,
             .max           = max_allowed } );
-  if( !quantity.has_value() ) co_return nullptr;
-  if( quantity == 0 ) co_return nullptr;
+  if( !quantity.has_value() ) co_return nothing;
+  if( quantity == 0 ) co_return nothing;
   // We shouldn't have to update the dragging_ member here be-
   // cause the framework should call try_drag again with the mod-
   // ified value.
   Commodity new_comm = comm;
   new_comm.quantity  = *quantity;
   CHECK( new_comm.quantity > 0 );
-  co_return make_unique<any>(
-      HarborDraggableObject::cargo_commodity{ .comm = new_comm,
-                                              .slot = slot } );
+  co_return HarborDraggableObject::cargo_commodity{
+      .comm = new_comm, .slot = slot };
 }
 
 void HarborCargo::disown_dragged_object() {
@@ -233,16 +233,15 @@ void HarborCargo::disown_dragged_object() {
   }
 }
 
-maybe<any> HarborCargo::can_receive( any const&   a,
-                                     int          from_entity,
-                                     Coord const& where ) const {
+maybe<HarborDraggableObject_t> HarborCargo::can_receive(
+    HarborDraggableObject_t const& o, int from_entity,
+    Coord const& where ) const {
   if( !get_active_unit().has_value() ) return nothing;
   UNWRAP_CHECK( active_unit_id, get_active_unit() );
   CONVERT_ENTITY( entity_enum, from_entity );
   if( !is_unit_in_port( ss_.units, active_unit_id ) )
     return nothing;
   Unit const& active_unit = ss_.units.unit_for( active_unit_id );
-  UNWRAP_DRAGGABLE( o, a );
   UNWRAP_RETURN( slot, slot_under_cursor( where ) );
   switch( o.to_enum() ) {
     case HarborDraggableObject::e::unit: {
@@ -293,10 +292,10 @@ maybe<any> HarborCargo::can_receive( any const&   a,
   }
 }
 
-void HarborCargo::drop( any const& a, Coord const& where ) {
+void HarborCargo::drop( HarborDraggableObject_t const& o,
+                        Coord const&                   where ) {
   UNWRAP_CHECK( slot, slot_under_cursor( where ) );
   UNWRAP_CHECK( active_unit_id, get_active_unit() );
-  UNWRAP_DRAGGABLE( o, a );
   switch( o.to_enum() ) {
     case HarborDraggableObject::e::unit: {
       auto const&  alt = o.get<HarborDraggableObject::unit>();
