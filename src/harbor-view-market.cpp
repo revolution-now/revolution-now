@@ -130,7 +130,8 @@ HarborMarketCommodities::source_check(
 
   // TODO: check for boycotts.
 
-  PurchaseInvoice const invoice = cost_to_buy( player_, comm );
+  PurchaseInvoice const invoice =
+      purchase_invoice( player_, comm );
   if( invoice.cost > player_.money )
     co_return DragRejection{
         .reason = fmt::format(
@@ -145,9 +146,18 @@ wait<> HarborMarketCommodities::disown_dragged_object() {
   UNWRAP_CHECK( comm, dragging_.member( &Draggable::comm ) );
   // The player is buying. Here we are officially releasing the
   // goods from the market, and so we must charge the player now.
-  PurchaseInvoice const invoice = cost_to_buy( player_, comm );
-  player_.money -= invoice.cost;
-  CHECK_GE( player_.money, 0 );
+  PurchaseInvoice const invoice =
+      purchase_invoice( player_, comm );
+  maybe<PriceChange> price_change =
+      buy_commodity_from_harbor( ss_, player_, invoice );
+  if( price_change.has_value() ) {
+    change_price( player_, invoice.purchased.type,
+                  *price_change );
+    // FIXME: this is not an ideal place to put this since the
+    // drag animation hasn't yet finished.
+    co_await display_price_change_notification(
+        ts_, player_, comm.type, *price_change );
+  }
   co_return;
 }
 
@@ -184,16 +194,16 @@ wait<> HarborMarketCommodities::drop(
   // The player is selling. Here the market is officially ac-
   // cepting the goods from the player, and so we must pay the
   // player now.
-  SaleInvoice const invoice = sale_transaction( player_, comm );
-  player_.money += invoice.received_final;
-}
-
-wait<> HarborMarketCommodities::post_successful_sink(
-    HarborDraggableObject_t const& o, int /*from_entity*/,
-    Coord const& ) {
-  // TODO
-  (void)o;
-  co_return;
+  SaleInvoice const  invoice = sale_invoice( player_, comm );
+  maybe<PriceChange> price_change =
+      sell_commodity_from_harbor( ss_, player_, invoice );
+  if( price_change.has_value() ) {
+    change_price( player_, invoice.sold.type, *price_change );
+    // FIXME: this is not an ideal place to put this since the
+    // drag animation hasn't yet finished.
+    co_await display_price_change_notification(
+        ts_, player_, comm.type, *price_change );
+  }
 }
 
 void HarborMarketCommodities::draw( rr::Renderer& renderer,

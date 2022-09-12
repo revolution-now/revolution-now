@@ -71,13 +71,13 @@ TEST_CASE( "[market] market_price" ) {
            CommodityPrice{ .bid = 3, .ask = 4 } );
 }
 
-TEST_CASE( "[market] cost_to_buy" ) {
+TEST_CASE( "[market] purchase_invoice" ) {
   World           W;
   Player&         player = W.default_player();
   Commodity       input;
   PurchaseInvoice expected;
 
-  auto f = [&] { return cost_to_buy( player, input ); };
+  auto f = [&] { return purchase_invoice( player, input ); };
 
   W.set_current_bid_price( e_commodity::horses, 4 );
   W.set_current_bid_price( e_commodity::food, 2 );
@@ -91,13 +91,13 @@ TEST_CASE( "[market] cost_to_buy" ) {
   REQUIRE( f() == expected );
 }
 
-TEST_CASE( "[market] sale_transaction" ) {
+TEST_CASE( "[market] sale_invoice" ) {
   World       W;
   Player&     player = W.default_player();
   Commodity   input;
   SaleInvoice expected = {};
 
-  auto f = [&] { return sale_transaction( player, input ); };
+  auto f = [&] { return sale_invoice( player, input ); };
 
   W.set_current_bid_price( e_commodity::horses, 4 );
   W.set_current_bid_price( e_commodity::food, 2 );
@@ -140,6 +140,26 @@ TEST_CASE( "[market] sale_transaction" ) {
                           .tax_amount            = 7 * 2,
                           .received_final = 2 * 100 - 7 * 2 };
   REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[market] compute_equilibrium_prices" ) {
+  // TODO
+}
+
+TEST_CASE( "[market] compute_price_change" ) {
+  // TODO
+}
+
+TEST_CASE( "[market] buy_comomdity_from_harbor" ) {
+  // TODO
+}
+
+TEST_CASE( "[market] sell_comomdity_from_harbor" ) {
+  // TODO
+}
+
+TEST_CASE( "[market] evolve_volume" ) {
+  // TODO
 }
 
 } // namespace

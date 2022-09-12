@@ -46,6 +46,12 @@ struct.MarketItem {
   # of other players. The amount actually traded by the player
   # (and visible on the economics report screen) is the one be-
   # low.
+  #
+  # FIXME: this alone doesn't seem to be able to account for dif-
+  # ferent rise/fall rates, e.g. when we sell a lot of silver and
+  # then start buying it back again, it should rise at a slower
+  # rate than it fell.
+  #
   scaled_net_traded_volume 'int',
 
   # The net amount that the player has traded. This is not used

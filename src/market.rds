@@ -21,6 +21,16 @@ struct.CommodityPrice {
 struct.PurchaseInvoice {
   purchased 'Commodity',
   cost 'int',
+
+  # Some commodities (namely the ones in price groups) get an im-
+  # mediate manual bump to their current price after a transac-
+  # tion, in addition to any that may occur due to normal
+  # price-to-equilibrium-price evolution which also sometimes
+  # happens after a purchase. This one needs to be added to any
+  # other bumps before determining the final price change, if
+  # any, since the current price can only change by one in each
+  # transaction or turn.
+  manual_price_bump 'int',
 }
 
 struct.SaleInvoice {
@@ -29,6 +39,12 @@ struct.SaleInvoice {
   tax_rate 'int',
   tax_amount 'int',
   received_final 'int',
+
+  # See comments from PurchaseInvoice.
+  manual_price_bump 'int',
+
+  # See comments from PurchaseInvoice.
+  evolve_volumes 'bool',
 }
 
 struct.PriceChange {
