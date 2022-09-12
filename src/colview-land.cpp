@@ -266,11 +266,12 @@ bool ColonyLandView::try_drag( ColViewObject_t const&,
 
 void ColonyLandView::cancel_drag() { dragging_ = nothing; }
 
-void ColonyLandView::disown_dragged_object() {
+wait<> ColonyLandView::disown_dragged_object() {
   UNWRAP_CHECK( draggable, dragging_ );
   UNWRAP_CHECK( unit_id, unit_for_direction( draggable.d ) );
   Colony& colony = ss_.colonies.colony_for( colony_.id );
   remove_unit_from_colony( ss_.units, colony, unit_id );
+  co_return;
 }
 
 void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,

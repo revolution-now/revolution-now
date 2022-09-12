@@ -73,7 +73,7 @@ struct HarborMarketCommodities
       Coord const ) const override;
 
   // Implement IDragSource.
-  void disown_dragged_object() override;
+  wait<> disown_dragged_object() override;
 
   // Override IDragSource.
   wait<> post_successful_source( HarborDraggableObject_t const&,

@@ -303,12 +303,13 @@ class MarketCommodities
 
   void cancel_drag() override { dragging_ = nothing; }
 
-  void disown_dragged_object() override {
+  wait<> disown_dragged_object() override {
     CHECK( dragging_ );
     e_commodity type = dragging_->type;
     int new_quantity = quantity_of( type ) - dragging_->quantity;
     CHECK( new_quantity >= 0 );
     colony_.commodities[type] = new_quantity;
+    co_return;
   }
 
   maybe<ColViewObject_t> can_receive(
@@ -645,7 +646,7 @@ class CargoView : public ui::View,
 
   void cancel_drag() override { dragging_ = nothing; }
 
-  void disown_dragged_object() override {
+  wait<> disown_dragged_object() override {
     CHECK( holder_ );
     CHECK( dragging_ );
     // We need to take the stored object instead of just re-
@@ -679,6 +680,7 @@ class CargoView : public ui::View,
                                     *holder_, dragging_->slot,
                                     /*try_other_slots=*/false );
         } );
+    co_return;
   }
 
   wait<maybe<ColViewObject_t>> user_edit_object()
@@ -1059,9 +1061,10 @@ class UnitsAtGateColonyView
 
   void cancel_drag() override { dragging_ = nothing; }
 
-  void disown_dragged_object() override {
+  wait<> disown_dragged_object() override {
     UNWRAP_CHECK( unit_id, dragging_ );
     ss_.units.disown_unit( unit_id );
+    co_return;
   }
 
  private:

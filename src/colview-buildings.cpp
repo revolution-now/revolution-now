@@ -315,9 +315,10 @@ bool ColViewBuildings::try_drag( ColViewObject_t const& o,
 void ColViewBuildings::cancel_drag() { dragging_ = nothing; }
 
 // Implement IDragSource.
-void ColViewBuildings::disown_dragged_object() {
+wait<> ColViewBuildings::disown_dragged_object() {
   CHECK( dragging_.has_value() );
   remove_unit_from_colony( ss_.units, colony_, dragging_->id );
+  co_return;
 }
 
 // Implement AwaitView.

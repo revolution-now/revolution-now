@@ -141,13 +141,14 @@ HarborMarketCommodities::source_check(
   co_return base::valid;
 }
 
-void HarborMarketCommodities::disown_dragged_object() {
+wait<> HarborMarketCommodities::disown_dragged_object() {
   UNWRAP_CHECK( comm, dragging_.member( &Draggable::comm ) );
   // The player is buying. Here we are officially releasing the
   // goods from the market, and so we must charge the player now.
   PurchaseInvoice const invoice = cost_to_buy( player_, comm );
   player_.money -= invoice.cost;
   CHECK_GE( player_.money, 0 );
+  co_return;
 }
 
 wait<> HarborMarketCommodities::post_successful_source(

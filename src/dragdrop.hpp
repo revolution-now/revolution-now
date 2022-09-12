@@ -140,7 +140,7 @@ struct IDragSource {
   // This will permanently remove the object from the source
   // view's ownership, so should only be called just before the
   // drop is to take effect.
-  virtual void disown_dragged_object() = 0;
+  virtual wait<> disown_dragged_object() = 0;
 
   // Optional. After a successful drag this will be called to do
   // anything that needs to be done on the source side post-drag.
@@ -543,7 +543,7 @@ wait<> drag_drop_routine(
     }
 
     // Finally we can do the drag.
-    drag_source.disown_dragged_object();
+    co_await drag_source.disown_dragged_object();
     co_await drag_sink.drop( source_object, sink_coord );
     // Drag happened successfully.
     lg.debug( "drag of object {} successful.", source_object );

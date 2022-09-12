@@ -105,7 +105,7 @@ struct ColonyLandView : public ui::View,
 
   void cancel_drag() override;
 
-  void disown_dragged_object() override;
+  wait<> disown_dragged_object() override;
 
   void draw_land_3x3( rr::Renderer& renderer,
                       Coord         coord ) const;

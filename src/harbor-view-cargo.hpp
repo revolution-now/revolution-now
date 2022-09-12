@@ -64,7 +64,7 @@ struct HarborCargo
       const override;
 
   // Implement IDragSource.
-  void disown_dragged_object() override;
+  wait<> disown_dragged_object() override;
 
   // Impelement IDragSink.
   maybe<HarborDraggableObject_t> can_receive(

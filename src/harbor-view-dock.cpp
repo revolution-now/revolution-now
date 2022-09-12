@@ -137,10 +137,11 @@ bool HarborDockUnits::try_drag( HarborDraggableObject_t const& o,
 
 void HarborDockUnits::cancel_drag() { dragging_ = nothing; }
 
-void HarborDockUnits::disown_dragged_object() {
+wait<> HarborDockUnits::disown_dragged_object() {
   UNWRAP_CHECK( unit_id,
                 dragging_.member( &Draggable::unit_id ) );
   ss_.units.disown_unit( unit_id );
+  co_return;
 }
 
 maybe<HarborDraggableObject_t> HarborDockUnits::can_receive(

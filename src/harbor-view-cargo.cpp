@@ -193,7 +193,7 @@ HarborCargo::user_edit_object() const {
       .comm = new_comm, .slot = slot };
 }
 
-void HarborCargo::disown_dragged_object() {
+wait<> HarborCargo::disown_dragged_object() {
   UNWRAP_CHECK( slot, dragging_.member( &Draggable::slot ) );
   UNWRAP_CHECK( active_unit_id, get_active_unit() );
   Unit const& active_unit = ss_.units.unit_for( active_unit_id );
@@ -231,6 +231,7 @@ void HarborCargo::disown_dragged_object() {
       }
     }
   }
+  co_return;
 }
 
 maybe<HarborDraggableObject_t> HarborCargo::can_receive(

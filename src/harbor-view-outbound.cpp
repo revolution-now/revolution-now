@@ -163,7 +163,7 @@ bool HarborOutboundShips::try_drag(
 
 void HarborOutboundShips::cancel_drag() { dragging_ = nothing; }
 
-void HarborOutboundShips::disown_dragged_object() {
+wait<> HarborOutboundShips::disown_dragged_object() {
   // Ideally we should do as the API spec says and disown the ob-
   // ject here. However, we're not actually going to do that, be-
   // cause the object is a ship which is being dragged either to
@@ -171,6 +171,7 @@ void HarborOutboundShips::disown_dragged_object() {
   // it will lose its existing harbor state. In any case, we
   // don't have to disown it since the methods used to move it to
   // its new home will do that automatically.
+  co_return;
 }
 
 maybe<HarborDraggableObject_t> HarborOutboundShips::can_receive(
