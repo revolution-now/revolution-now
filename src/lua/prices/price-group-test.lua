@@ -32,7 +32,6 @@ local function default_price_group_config()
     dutch=false,
     starting_euro_volumes=nil,
     starting_traded_volumes=nil, -- zeroes.
-    starting_prices=nil, -- default to eq prices.
     min=1,
     max=20,
     rise_fall=4,

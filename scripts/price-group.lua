@@ -59,17 +59,14 @@ local PRICE_GROUP_CONFIG = {
 }
 
 local group
-local starting_prices
 
 local function reset_group()
   group = PriceGroup( PRICE_GROUP_CONFIG )
-  starting_prices = copy_table( group.prices )
 end
 
 -----------------------------------------------------------------
 -- UI State
 -----------------------------------------------------------------
-local gold = 0
 local num_turns = 0
 local num_actions = 0
 local last_cmd = INITIAL_CMD
@@ -79,7 +76,6 @@ local function reset()
   num_turns = 0
   num_actions = 0
   last_cmd = INITIAL_CMD
-  gold = 0
 end
 
 -----------------------------------------------------------------
@@ -88,17 +84,14 @@ end
 local display = [[
   turns:   %d
   actions: %d
-  gold:    %d
   ----------------------------------------------------------
   |     #1      |      #2      |     #3      |     #4      |
   ----------------------------------------------------------
-  |      %2d     |      %2d      |      %2d     |      %2d     | < initial prices
   |    %s    |    %s     |    %s    |    %s    | < euro volumes
   |  %6d     |  %6d      |  %6d     |  %6d     | < traded volumes
-  |     %4s    |     %4s     |     %4s    |     %4s    | < eq prices
   ----------------------------------------------------------
   |     Rum     |    Cigars    |    Cloth    |    Coats    |
-  |    %2d/%2d    |    %2d/%2d     |    %2d/%2d    |    %2d/%2d    | < prices
+  |     %4s    |     %4s     |     %4s    |     %4s    | < eq prices
   ----------------------------------------------------------
   last cmd: %s (will be repeated by hitting enter)
 
@@ -132,12 +125,7 @@ local function redraw()
   local eqs = group:equilibrium_prices()
   local euro_volumes = group.euro_volumes
   local traded_volumes = group.traded_volumes
-  local prices = group.prices
-  io.write( format( display, num_turns, num_actions, gold,
-                    floor( starting_prices.rum ),
-                    floor( starting_prices.cigars ),
-                    floor( starting_prices.cloth ),
-                    floor( starting_prices.coats ),
+  io.write( format( display, num_turns, num_actions,
                     format_hex32( euro_volumes.rum ),
                     format_hex32( euro_volumes.cigars ),
                     format_hex32( euro_volumes.cloth ),
@@ -147,10 +135,7 @@ local function redraw()
                     format( '%.1f', eqs.rum ),
                     format( '%.1f', eqs.cigars ),
                     format( '%.1f', eqs.cloth ),
-                    format( '%.1f', eqs.coats ), prices.rum - 1,
-                    prices.rum, prices.cigars - 1, prices.cigars,
-                    prices.cloth - 1, prices.cloth,
-                    prices.coats - 1, prices.coats,
+                    format( '%.1f', eqs.coats ),
                     last_cmd or 'none' ) )
 end
 
@@ -217,11 +202,9 @@ local function run_cmd( cmd )
   local q = 100
   for _, good in ipairs( goods_inputted ) do
     if buy_sell == 'b' then
-      gold = gold - group.prices[good] * q
       group:buy( good, 100 )
       num_actions = num_actions + 1
     elseif buy_sell == 's' then
-      gold = gold + (group.prices[good] - 1) * q
       group:sell( good, 100 )
       num_actions = num_actions + 1
     end

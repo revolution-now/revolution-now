@@ -6,8 +6,8 @@
 |
 | Created by dsicilia on 2022-09-04.
 |
-| Description: Logic for evolving market prices for commodities
-|              that are part of a "price group".
+| Description: Logic for evolving the equilibrium market prices
+|              for commodities that are part of a "price group".
 |
 --]] ------------------------------------------------------------
 local M = {}
@@ -41,10 +41,6 @@ end
 local function clamp_price( group, tbl, good )
   tbl[good] = clamp( tbl[good], group.config.min,
                      group.config.max )
-end
-
-local function set_price( group, good, price )
-  group.prices[good] = round( price )
 end
 
 local function sum_values( tbl )
@@ -194,34 +190,14 @@ local function evolve_euro_volumes( group )
   end )
 end
 
-local function price_eq_push( group, good, target )
-  target = round( target )
-  local p = group.prices[good]
-  if p > target then
-    p = p - 1
-    if p < target then p = target end
-  elseif p < target then
-    p = p + 1
-    if p > target then p = target end
-  end
-  local push = p - group.prices[good]
-  push = clamp( push, -1, 1 )
-  return push
-end
-
 function PriceGroup:evolve()
   local eqs = self:equilibrium_prices()
-  self:on_all( function( good )
-    set_price( self, good, self.prices[good] +
-                   price_eq_push( self, good, eqs[good] ) )
-    clamp_price( self, self.prices, good )
-  end )
   evolve_euro_volumes( self )
 end
 
 -- The sign of `quantity` should represent the change in net
 -- volume in europe.
-local function transaction( group, good, quantity, unit_price )
+local function transaction( group, good, quantity )
   group.traded_volumes[good] = group.traded_volumes[good] +
                                    quantity
   -- TODO: we might be able to remove this branch, but we have to
@@ -235,24 +211,21 @@ local function transaction( group, good, quantity, unit_price )
   end
   -- The only place that the volatility and fall should be used
   -- is together in this manner.
-  local volatility_push = -(quantity / 100) *
-                              (1 << group.config.volatility) /
-                              group.config.rise_fall
-  local eq_push = price_eq_push( group, good,
-                                 group:equilibrium_prices()[good] )
-  local net_push = eq_push + volatility_push
-  net_push = clamp( net_push, -1, 1 )
-  set_price( group, good, group.prices[good] + net_push )
-  clamp_price( group, group.prices, good )
+  -- local volatility_push = -(quantity / 100) *
+  --                             (1 << group.config.volatility) /
+  --                             group.config.rise_fall
+  -- local eq_push = price_eq_push( group, good,
+  --                                group:equilibrium_prices()[good] )
+  -- local net_push = eq_push + volatility_push
+  -- net_push = clamp( net_push, -1, 1 )
 end
 
 function PriceGroup:buy( good, quantity )
-  transaction( self, good, -quantity,
-               self.prices[good] + self.config.bid_ask_spread )
+  transaction( self, good, -quantity )
 end
 
 function PriceGroup:sell( good, quantity )
-  transaction( self, good, quantity, self.prices[good] )
+  transaction( self, good, quantity )
 end
 
 -- Create a new PriceGroup object.
@@ -273,13 +246,6 @@ local function new_price_group( config )
     o.traded_volumes =
         copy_table( config.starting_traded_volumes )
   end
-
-  local starting_prices = config.starting_prices or
-                              o:equilibrium_prices()
-  o:on_all( function( good )
-    set_price( o, good, starting_prices[good] )
-  end )
-
   return o
 end
 
