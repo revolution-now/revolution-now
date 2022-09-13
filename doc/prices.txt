@@ -1,25 +1,132 @@
-This doc has some info related to economics models and price
-movement.
+Colonization I Market Price Movement Models
+-------------------------------------------
 
-Useful links:
+There appear to be two market models (governing price movement)
+in the original game: one for the four processed goods (rum, cig-
+ars, cloth, coats), and one for the remainder. The former we will
+refer to as the "price group" model and the latter the "default
+model."
 
-  * Here is a good forum thread explaining the algorithm used for
-    price movement in civ4-col. It is somewhat different from the
-    original game, and there is discussion on its shortcomings.
-    Our game does not use this exact model, but it is good for
-    comparison.
+The default model used here along with the associated configura-
+tion parameters are essentially taken/inferred from the original
+game's NAMES.TXT file in the section titled "Cargo types & eco-
+nomic model" together with some in-game experimentation and save
+faile analysis.
 
-      https://forums.civfanatics.com/threads/price-change-mechanics.292862/
+In both models, there are four static parameters and three dy-
+namic quantities that are relevant for determining current prices
+and price movement:
 
+  Static Parameters:
 
-Processed Goods Price Group
-===========================
+    1. Rise
+    2. Fall
+    3. Attrition
+    4. Volatility
 
-In the original game, the four processed goods (rum, cigars,
-cloth, and coats) don't seem to follow the same economic model as
-the other goods. Instead, their prices are linked to each other
-(confirmed by experimentation and the strategy guide) and evolve
-according to a very different mechanism.
+  Dynamic Parameters:
+
+    1. Current price
+    2. Net traded volume
+    3. "Intrinsic" volume
+
+Most of these parameters and quantities have a different meaning
+depending on the price model in question. The exceptions are the
+"current price" and "net traded volume." The former is what it
+sounds like, and the latter is just the net traded volume (on the
+european side) that the player (only) has made throughout the
+game. The meanings of the other parameters will be described
+below in the context of each particular model.
+
+Default Model
+=============
+
+Intrinsic volume:
+
+  This is a volume-like quantity that is maintained internally
+  and is not directly visible to the player. In the default price
+  model, it gets added to/subtracted from after each sell/buy,
+  and drifts once per turn. Whenever any nation buys/sells, a
+  certain amount will be added to this intrinsic volume of all
+  nations, possibly modified by various multipliers that depend
+  on difficulty level, nation, and player/AI status.
+
+  When the price is stable, the intrinsic volume is around zero.
+  When the intrinsic volume exceeds the fall threshold (in the
+  positive direction) then the price is lowered by one and said
+  threshold is subtracted from the intrinsic volume (and simi-
+  larly for rises with the opposite sign). Even if the price
+  cannot change any further, the rise/fall is still added/sub-
+  tracted from the volume each turn if it is in excess of those.
+
+  At the start of each turn, the attrition value for each com-
+  modity is added to this volume, and this is done before any po-
+  tential price changes are evaluated.
+
+Rise/Fall:
+
+  This is the amount by which the net volume must decrease (in-
+  crease) in order for the price to go up (down) by one. In the
+  original game's config file these were in multiples of 100,
+  but here they are not. Note that when using these volumes to
+  compute price changes, the volume will be scaled up or down
+  first depending on difficulty level in such a way as to make
+  prices less (more) volatile on easier (harder) difficulty
+  levels.
+
+Attrition:
+
+  This is the amount added to the intrinsic volume each turn to
+  allow the price to drift. If this is negative (positive) then
+  the price will tend to increase (decrease) when nothing is
+  traded. The actual attrition value will be scaled when playing
+  as the dutch; but note that the attrition does not receive the
+  usual bonus that the dutch get on reduced selling volumes.
+
+Volatility:
+
+  The original game's config file describes this field as the
+  "shift value for traffic volume." Experiments indicate that it
+  literally represents the number of times to left shift (i.e.,
+  bit shift) a quantity. In the default price model, it is used
+  to bit shift the traded amount before adding it onto the in-
+  trinsic volume. So e.g., a value of 2 for this field would mean
+  that, if the player sells 50 of a commodity, then 50<<2 = 50*4
+  = 200 will actually be added (since it is a sell) to the in-
+  trinsic volume. This makes the price more responsive to traffic
+  (more volatile in that sense). Note that in the price group
+  model it plays a different role.
+
+Modifiers:
+
+  Dutch: the dutch get their traffic volumes changes scaled down
+  when selling (by any player) and their attrition magnitude
+  scaled up when computing price changes. This puts things more
+  in their favor in both situations.
+
+  Difficulty level: depending on the difficulty level, the
+  traffic volume (i.e., explicitly traded by the player) gets
+  scaled up or down to make price swings more/less pronounced.
+
+  Note on ordering of the application of bonuses and modifiers:
+  Although there are various bonuses/penalties involved in the
+  default model, but what's nice is that they are all multiplica-
+  tive (even the volatility "shift"), and so it does not matter
+  in what order they are applied.
+
+Price Group Model
+=================
+
+This model is quite different from the default model.
+
+The OG's strategy guide mentions that some sets of commodities
+form groups, where one price change in one affects the others in
+the opposite direction. In particular, the OG appears to put rum,
+cigars, cloth, and coats into such a group.
+
+The precise workings of the model are best understood by just
+looking at this game's implementation, but we will just give an
+overview here.
 
 Generally speaking, it seems that the goal of the designers of
 the original game were to encourage selling all four of the goods
@@ -31,16 +138,66 @@ four goods together in such a way that when one goes down, the
 others go up. The game tries to maintain a fixed average of the
 prices of the four goods.
 
-  * Out of the parameters from the normal model for other goods,
-    these are the ones that seem to play a role in the price
-    group model:
+In particular, although each commodity in a price group gets its
+own intrinsic volume, and these intrinsic volumes are evolved
+separate in all cases, the "magic" happens when the equilibrium
+(target) prices are derived from the volumes; the algorithm for
+this ensures that the (inverse) volumes determine not the prices
+themselves, but the ratios of the prices, and thus the game can
+impose a desired average price and find a set of prices that have
+the specified ratios while roughly meeting the target average.
+This average will not always be produced exactly, but it is what
+the algorithm tends toward.
 
-      * ask_price_start_min:  ignored
-      * ask_price_start_max:  ignored
-      * ask_price_min:        yes (same role)
-      * ask_price_max:        yes (same role)
-      * bid_ask_spread:       yes (same role)
-      * rise:                 yes (but plays different role)
-      * fall:                 yes (but plays different role)
-      * attrition:            ignored
-      * volatility:           yes (same role)
+Intrinsic volume:
+
+  This is a volume-like quantity that is maintained internally
+  and is not directly visible to the player. In the price group
+  model, the relevant quantity is the "total" volume, defined as
+  intrinsic+actual. These total volumes specify on the ratios of
+  the equilibrium prices with each other; thus when they are all
+  the same within a group, the prices all tend to become equal.
+  Specifically, the ratios of the inverses of the total volumes
+  specify the ratios of the equilibrium prices (modulo some tech-
+  nicalities). As a result, the game must specify a target av-
+  erage price value for these commodities to normalize them, and
+  in the OG it is bid=11.
+
+  These intrinsic volumes evolve by first adding them to the ac-
+  tual player-traded volume to get the total volume, then scaling
+  down by 1%, then again removing the player traded volume. This
+  effectively allows these intrinsic volumes to evolve in such a
+  way as to make the "total" traded volume decrease by 1% each
+  turn. It is a bit hard to intuit what consequences this will
+  have, if any, since scaling them all down uniformly does not
+  change their ratios and thus does not change the prices. When a
+  buy/sell is made, the quantity transacted gets added not to the
+  intrinsic volume, but to the actual volume (as usual).
+
+  The are some minor technical details by which the actual algo-
+  rithm slightly deviates from the above, but the above is basi-
+  cally the way it works.
+
+Rise/Fall/Volatility:
+
+  These are used in a different way from the default model. In
+  particular, whenever the player makes a trade, the volumes are
+  NOT affected by these; instead, after the volumes are adjusted,
+  the current price is also bumped, and it is bumped by an amount
+  proporational to (rise/(1<<volatility)), and equivalently for
+  falls. Again, neither the equilibrium prices nor the volumes
+  are affected by this.
+
+Attrition: Not used in this model.
+
+Modifiers:
+
+  Dutch: They get a different kind of bonus than in the default
+  model. Here they don't get their volumes scaled down; instead,
+  when the make a transaction in europe, although the price is
+  recomputed on the spot as usual, the intrinsic volumes are not
+  also evolved in the process, which happens to move things more
+  in their favor by making prices slightly less volatile.
+
+  Difficulty level: there doesn't seem to be any different in the
+  price group model by difficulty level.

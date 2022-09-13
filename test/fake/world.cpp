@@ -332,7 +332,7 @@ void World::set_current_bid_price( e_commodity type,
                                    int price_in_hundreds ) {
   Player& player    = default_player();
   auto& comm_config = player.old_world.market.commodities[type];
-  comm_config.current_bid_price_in_hundreds = price_in_hundreds;
+  comm_config.bid_price = price_in_hundreds;
 }
 
 void World::set_stable_bid_price( e_commodity type,
@@ -342,8 +342,8 @@ void World::set_stable_bid_price( e_commodity type,
          "group." );
   Player& player    = default_player();
   auto& comm_config = player.old_world.market.commodities[type];
-  comm_config.current_bid_price_in_hundreds  = price_in_hundreds;
-  comm_config.starting_bid_price_in_hundreds = price_in_hundreds;
+  comm_config.bid_price        = price_in_hundreds;
+  comm_config.intrinsic_volume = 0;
 }
 
 void World::set_tax_rate( int rate ) {

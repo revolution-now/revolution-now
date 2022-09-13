@@ -56,17 +56,17 @@ TEST_CASE( "[market] market_price" ) {
   Player& french = W.player( e_nation::french );
 
   french.old_world.market.commodities[e_commodity::ore]
-      .current_bid_price_in_hundreds = 5;
+      .bid_price = 5;
   REQUIRE( market_price( french, e_commodity::ore ) ==
            CommodityPrice{ .bid = 5, .ask = 8 } );
 
   french.old_world.market.commodities[e_commodity::food]
-      .current_bid_price_in_hundreds = 1;
+      .bid_price = 1;
   REQUIRE( market_price( french, e_commodity::food ) ==
            CommodityPrice{ .bid = 1, .ask = 9 } );
 
   french.old_world.market.commodities[e_commodity::muskets]
-      .current_bid_price_in_hundreds = 3;
+      .bid_price = 3;
   REQUIRE( market_price( french, e_commodity::muskets ) ==
            CommodityPrice{ .bid = 3, .ask = 4 } );
 }

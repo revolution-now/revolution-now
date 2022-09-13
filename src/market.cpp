@@ -38,13 +38,55 @@ namespace {} // namespace
 void linker_dont_discard_module_market();
 void linker_dont_discard_module_market() {}
 
+// TODO: for normal price model:
+//
+//   - Each nation has their own volumes.
+//   - Each turn, the attrition is applied first before the game
+//     considers price changes.
+//   - When a transaction is made, it changes the other volumes
+//     of the other nations. The amount of this change depends on
+//     difficulty level and the player's nation. The dutch will
+//     have their intrinsic volume deltas scaled by 66% (whether
+//     the trade was made by them or someone else), but only on
+//     sells.
+//   - When non-player nations buy/sell it seems to only affect
+//     the volumes by 66%, regardless of difficulty level. But
+//     when the human player buys/sells, it affects the volumes
+//     (of all nations) by an amount that varies depending on
+//     difficulty level (and which is also subject to the dutch
+//     sale multiplier). Actually, experiments indicate that,
+//     when volatility is non-zero (enabling the player to add
+//     more than 100 to the intrinsic volume in each trade), some
+//     of these multipliers only apply to the first 100 sold in a
+//     transaction; not sure if this was intentional, but we will
+//     not replicate that in this game, since it feels like it
+//     could have been a bug and doesn't seem to make sense.
+//
+//         Difficulty         P  NP
+//         ------------------------
+//         Discoverer:      .66 .66
+//         Explorer:        .83 .66
+//         Conquistador:   1.00 .66
+//         Governor:       1.16 .66
+//         Viceroy:        1.33 .66
+//
+//   - When any nation buys, it affects all nations (including
+//     the dutch the same way); but on selling, it affects the
+//     dutch with only 66%, compounded with any other multipli-
+//     ers.
+//   - When there is no transaction activity, the nations' mar-
+//     kets do not tend to equilibrate (apart from the usual at-
+//     trition drift). This means that the only interaction be-
+//     tween them is that transactions in one nation affect vol-
+//     umes in the others.
+
 /****************************************************************
 ** Public API
 *****************************************************************/
 CommodityPrice market_price( Player const& player,
                              e_commodity   commodity ) {
-  int const bid = player.old_world.market.commodities[commodity]
-                      .current_bid_price_in_hundreds;
+  int const bid =
+      player.old_world.market.commodities[commodity].bid_price;
   int const ask = bid + config_market.price_behavior[commodity]
                             .price_limits.bid_ask_spread;
   return CommodityPrice{ .bid = bid, .ask = ask };
@@ -102,11 +144,11 @@ maybe<PriceChange> buy_commodity_from_harbor(
   MarketItem& market_item =
       player.old_world.market
           .commodities[invoice.purchased.type];
-  market_item.unscaled_net_traded_volume -= quantity;
+  market_item.player_traded_volume -= quantity;
   // TODO: Apply dutch bonus.
   // TODO: Apply difficulty bonus.
   // TODO: Apply to other players' markets.
-  market_item.scaled_net_traded_volume -= quantity;
+  market_item.intrinsic_volume -= quantity;
   // market_item.intrinsic_volume = 0;
   // market_item.current_bid_price_in_hundreds = 0;
   refl::enum_map<e_commodity, CommodityPrice> const&
@@ -122,11 +164,11 @@ maybe<PriceChange> sell_commodity_from_harbor(
   player.money += invoice.received_final;
   MarketItem& market_item =
       player.old_world.market.commodities[invoice.sold.type];
-  market_item.unscaled_net_traded_volume += quantity;
+  market_item.player_traded_volume += quantity;
   // TODO: Apply dutch bonus.
   // TODO: Apply difficulty bonus.
   // TODO: Apply to other players' markets.
-  market_item.scaled_net_traded_volume += quantity;
+  market_item.intrinsic_volume += quantity;
   // market_item.intrinsic_volume = 0;
   // market_item.current_bid_price_in_hundreds = 0;
   refl::enum_map<e_commodity, CommodityPrice> const&
@@ -142,13 +184,11 @@ compute_equilibrium_prices( Player const& player ) {
     MarketItem const& market_item =
         player.old_world.market.commodities[type];
     auto& model =
-        config_market.price_behavior[type].economic_model;
-    int bid = market_item.starting_bid_price_in_hundreds;
-    if( market_item.scaled_net_traded_volume > 0 )
-      bid -= market_item.scaled_net_traded_volume / model.fall;
-    else
-      bid += -market_item.scaled_net_traded_volume / model.rise;
-    bid = clamp( bid, 0, 19 );
+        config_market.price_behavior[type].model_parameters;
+    // TODO
+    (void)model;
+    int bid = market_item.bid_price;
+    bid     = clamp( bid, 0, 19 );
     CommodityPrice eq_price{ .bid = bid,
                              .ask = ask_from_bid( type, bid ) };
     res[type] = eq_price;
@@ -164,7 +204,7 @@ maybe<PriceChange> compute_price_change(
   MarketItem const& market_item =
       player.old_world.market.commodities[type];
   int       eq_bid  = equilibrium_prices[type].bid;
-  int const current = market_item.current_bid_price_in_hundreds;
+  int const current = market_item.bid_price;
   if( current < eq_bid )
     return PriceChange{ .from = current, .to = current + 1 };
   else if( current > eq_bid )
@@ -188,8 +228,8 @@ wait<> display_price_change_notification(
 
 void change_price( Player& player, e_commodity type,
                    PriceChange price_change ) {
-  player.old_world.market.commodities[type]
-      .current_bid_price_in_hundreds = price_change.to;
+  player.old_world.market.commodities[type].bid_price =
+      price_change.to;
 }
 
 /****************************************************************

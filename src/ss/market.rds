@@ -16,116 +16,36 @@ include "refl/enum-map.hpp"
 
 namespace "rn"
 
-# TODO: for normal price model:
-#
-#   - Each nation has their own volumes.
-#   - Each turn, the attrition is applied first before the game
-#     considers price changes.
-#   - When the price is stable, the volume is around zero. When
-#     the volume exceeds the fall threshold then the price is
-#     lowered by one and said threshold is subtracted from the
-#     volume (and similarly for rises with the opposite sign).
-#     Even if the price cannot change any further, the rise/fall
-#     is still added/subtracted from the volume each turn if it
-#     is in excess of those.
-#   - When a transaction is made, it changes the other volumes of
-#     the other nations. But the dutch, as usual, will have their
-#     sell volumes scaled by 66%, but only on a sale.
-#   - When non-player nations buy/sell it seems to only affect
-#     the volumes by 66%, regardless of difficulty level. But
-#     when the human player buys/sells, it affects the volumes
-#     (of all nations) by an amount that varies depending on dif-
-#     ficulty level (and which is also subject to the dutch sale
-#     multiplier). Actually, experiments indicate that, when
-#     volatility is non-zero, some of these multipliers only
-#     apply to the first 100 sold in a transaction; not sure if
-#     this was intentional, but we will not replicate that in
-#     this game, since it feels like it could have been a bug.
-#           Difficulty       P  NP
-#       --------------------------
-#         Discoverer:      .66 .66
-#         Explorer:        .83 .66
-#         Conquistador:   1.00 .66
-#         Governor:       1.16 .66
-#         Viceroy:        1.33 .66
-#   - When one nation buys, it affects all nations (including the
-#     dutch the same way); but on selling, it affects the dutch
-#     with only 66%, compounded with any other multipliers.
-#   - In general, a sale, whether by the dutch or not, only seems
-#     to affect dutch volume by 66%. But a buy will affect them
-#     by 100%.
-#   - When the player buys 100 it adds 100 to all non-player na-
-#     tions, even the dutch. But when the player sells, it adds
-#     only 66% to the dutch, but 100 to the others.
-#   - When there is no transaction activity, the nations' markets
-#     do not tend to equilibrate (apart from the usual attrition
-#     drift). This means that the only interaction between them
-#     is that transactions in one nation affect volumes in the
-#     others.
-#
 # In the OG the bid/ask spread is fixed for each commodity. That
-# is the reason that we don't have the ask prices here, since
+# is the reason that we don't have the ask price here, since
 # those can always be derived from the bid price.
 struct.MarketItem {
-  # This is the price that this commodity started off at; it will
-  # have some amount of randomness. This value is needed because
-  # it provides a reference point from which to apply the net
-  # supply delta to compute the current price, though it is only
-  # needed in the default price model.
-  starting_bid_price_in_hundreds 'int',
+  # This is the current bid price in hundreds. This has to be
+  # stored on its own since in general it cannot be derived from
+  # the state of the price model at any given time, since the
+  # game has a rule where the price can only move one unit per
+  # turn. The idea is that we use one of the models to compute a
+  # target price each turn, and then we increment or decrement
+  # this current price once per turn until it hits the target.
+  bid_price 'int',
 
-  # Net traded volume in europe and, in the default price model,
-  # scaled by the "volatility" parameter and moved each turn by
-  # the "attrition" parameter. Starts off as zero, then increases
-  # (decreases) each time a commodity is sold (bought). The way
-  # it is used depends on the price model. Note that this is not
-  # in hundreds but in individual units, which is important be-
-  # cause the player can buy/sell in any quantity.
-  #
-  # This is the parameter that is actually used to compute price
-  # changes.
-  #
-  # As mentioned above, this is not exactly the amount traded by
-  # the player, since it can be scaled by the "volatility" and
-  # "attrition" parameters in the default price model. Further-
-  # more, depending on the model used for the interaction of the
-  # four european markets, this might be affected by the activity
-  # of other players. The amount actually traded by the player
-  # (and visible on the economics report screen) is the one be-
-  # low.
-  #
-  # FIXME: this alone doesn't seem to be able to account for dif-
-  # ferent rise/fall rates, e.g. when we sell a lot of silver and
-  # then start buying it back again, it should rise at a slower
-  # rate than it fell.
-  #
-  scaled_net_traded_volume 'int',
-
-  # The net amount that the player has traded. This is not used
-  # to compute price changes, but only to display as a stat.
-  unscaled_net_traded_volume 'int',
-
-  # The price group model also requires a separate (intrinsic)
-  # volume that is not directly changed by buying selling. This
-  # is only relevant for the commodities in the price groups.
+  # This is an internal model variable that represents a kind of
+  # volume. The semantics of it depend on the price model being
+  # used, which is different for different commodities; it
+  # evolves as part of the model of price movement. Although it
+  # is not directly visible or meaningful to the player, is in-
+  # fluenced by the quantities traded by the player; it is also
+  # influenced by attrition/volatility and other model parame-
+  # ters, as well as the trading activity of other nations.
   intrinsic_volume 'int',
 
-  # This is the current bid price and the one that will always be
-  # shown to the player and the one to be used to make transac-
-  # tions (though upon making a transaction it could be adjusted
-  # immediately thereafter).
-  #
-  # This has to be stored separately since in general it cannot
-  # be derived from the state of the price model at any given
-  # time, since the game has a rule where the price can only move
-  # one unit per turn. And also we need to what the previous
-  # price was each turn so that we can know when to notify the
-  # player about changes to it.
-  #
-  # The idea is that we use one of the models to compute a target
-  # price each turn, and then we increment or decrement this cur-
-  # rent price until it hits the target (moving target).
-  current_bid_price_in_hundreds 'int',
+  # The net amount that the player has traded. This is used by
+  # the price-group model to evolve the price, and is also used
+  # in general to display trading volume stats to the player, be-
+  # cause it always strictly holds the net amount that the player
+  # has traded to date. Note that this is not affected by the
+  # "volatility" parameter.
+  player_traded_volume 'int',
 
   # Is there an active boycott on this commodity.
   boycott 'bool',

@@ -42,43 +42,17 @@ struct.PriceLimits {
 }
 
 struct.EconomicModel {
-  # This is the amount by which the total accumulated traded
-  # volume ("traffic" in the original config file) must decrease
-  # in order for the price to go up by one. In the original
-  # game's config file this was in multiples of 100, but here it
-  # is not.
-  rise 'int',
-
-  # This is the amount by which the total accumulated traded
-  # volume ("traffic" in the original config file) must increase
-  # in order for the price to go down by one. In the original
-  # game's config file this was in multiples of 100, but here it
-  # is not.
-  fall 'int',
-
-  # This is the amount added to the total traffic volume each
-  # turn to allow the price to drift. If this is negative then
-  # the price will tend to increase when nothing is traded; if it
-  # is positive then it will tend to decrease.
-  attrition 'int',
-
-  # The original game's config file describes this field as the
-  # "shift value for traffic volume." Experiments seem to indi-
-  # cate that it literally represents the number of times to left
-  # shift (i.e., bit shift) a traded amount before adding it onto
-  # the accumulated traffic. So e.g., a value of 2 for this field
-  # would mean that, if the player sells 50 of a commodity, then
-  # 50<<2 = 50*4 = 200 will actually be added (since it is a
-  # sell) to the total traffic. This makes the price more respon-
-  # sive to traffic (more volatile in that sense).
+  rise       'int',
+  fall       'int',
+  attrition  'int',
   volatility 'int',
 
   _features { validation, equality },
 }
 
 struct.MarketCommodity {
-  price_limits   'PriceLimits',
-  economic_model 'EconomicModel',
+  price_limits     'PriceLimits',
+  model_parameters 'EconomicModel',
 }
 
 struct.PriceGroup {
@@ -91,106 +65,30 @@ struct.PriceGroup {
   _features { validation, equality },
 }
 
-# Of the Dutch, the original game states that "Commodity prices
-# in Amsterdam do not collapse as quickly as in other European
-# ports and they recover more quickly.
 struct.NationAdvantage {
-  # This is the "recover more quickly" part. In this case, "re-
-  # cover" seems to mean that the prices recover to values that
-  # are typically favorable to players; in some cases that can
-  # mean rise, and in others fall. Specifically, experiments on
-  # the original game seem to indicate that the dutch have their
-  # "attrition" values scaled up, so that, in the absence of
-  # trading with the new world, prices naturally either rise or
-  # fall (depending on the sign of the attrition) more quickly.
-  # This may at first seem more like a disadvantage, but it is
-  # actually an advantage because the sign of the attrition (in
-  # general) is chosen to make it favorable for the player. E.g.,
-  # goods such as rum and coats which are almost always sold to
-  # europe by the player have negative attrition, meaning that,
-  # left on their own, their prices will gradually rise, which is
-  # favorable to the player. Tools and muskets, on the other
-  # hand, which are normally bought by the player, have a posi-
-  # tive attrition, so their prices would gradually drop, which
-  # is again favorable to the player. Thus, as mentioned, we mul-
-  # tiply the dutch's attrition value (keeping the same sign) by
-  # this factor, which, in the original game appears to be
-  # 1/(2/3)=1.5, since the price movements appear to happen in
-  # about 2/3 the number of turns.
-  attrition_scale 'double',
-
-  # This is the "do not collapse as quickly" part. In this case,
-  # it refers only to price drops (not price rises) and it ap-
-  # pears to only apply when selling goods, not when attrition is
-  # applied (on goods with positive attrition, meaning that they
-  # normally fall when left alone). Experiments in the original
-  # game seem to indicate that when selling goods in europe, the
-  # volume sold is scaled down by a factor of 2/3 before it is
-  # added to the net traffic volume. This results in taking 1.5
-  # times the number of turns to cause a price drop when selling.
-  # Note that the "fall" parameter for each commodity does not
-  # seem to be changed per se, since when commodities with posi-
-  # tive attrition (falling) are let to evolve (with the Dutch's
-  # scaled attrition) the game appears to use the unmodififed
-  # "fall" number. That probably makes sense, since if the "fall"
-  # number were scaled up in order to delay price falling, then
-  # it would cancel out the scaling up of attrition, so therefore
-  # muskets would effectively not get the "price recovery" bonus
-  # (which for them means that their price "recovers" to low
-  # values more quickly for the dutch). Another reason that the
-  # original game might not opt to scale up the "fall" parameter
-  # as a means of reducing price collapse is that it could poten-
-  # tially then cause the fall parameter to be significantly
-  # larger than the rise parameter, which might allow a form of
-  # cheating where you buy a lot of a commodity (causing the
-  # price to rise quickly), then you sell it off immediately
-  # while the price drops more slowly, resulting in a profit that
-  # might even exceed what is lost via the bid/ask spread. I
-  # think that the bid/ask spread together with max values of
-  # prices might be sufficient to thwart that mode of cheating,
-  # but then if the fall parameter were changed then in theory
-  # those other parameters would have to be adjusted to compen-
-  # sate, which is probably too much complexity.
+  attrition_scale   'double',
   sell_volume_scale 'double',
-
-  # In the original game, not even the dutch seem to get a
-  # scaling on volume when buying.
-  buy_volume_scale 'double',
+  buy_volume_scale  'double',
 
   _features { validation, equality },
 }
 
 struct.DifficultyModifiers {
-  # Depending on difficulty level, the traffic volume is scaled
-  # down by this factor when buying and selling. This effectively
-  # causes prices to not rise/fall as quickly as a result. Note
-  # that this does not affect attrition in either direction, only
-  # to actual traffic from the new world.
   traffic_volume_scale 'double',
 }
 
 namespace "rn"
 
 struct.config_market_t {
-  # Describes the properties and price movement model for each
-  # market commodity.
   price_behavior 'refl::enum_map<e_commodity, config::market::MarketCommodity>',
 
-  # The OG's strategy guide describes the idea of "price groups",
-  # where one price change in one commodity in the group affects
-  # the others. This price group model is quite different from
-  # the default model. This particular one governs the group con-
-  # sisting of rum, cigars, cloth, and coats.
   processed_goods_model 'config::market::PriceGroup',
 
-  # Models/configures the nation-specific bonuses with regard to
-  # trading, which in the original game only applies to the
-  # Dutch, as it does in this game (by default).
   nation_advantage 'refl::enum_map<e_nation, config::market::NationAdvantage>',
 
-  # Some of the parameters in the economic model are tweaked de-
-  # pending on difficulty level.
   difficulty_modifiers 'refl::enum_map<e_difficulty, config::market::DifficultyModifiers>',
+
+  non_player_volume_change_scale 'double',
 }
 
 config.market {}

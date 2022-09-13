@@ -30,14 +30,8 @@ namespace rn {
 ** MarketItem
 *****************************************************************/
 base::valid_or<string> MarketItem::validate() const {
-  REFL_VALIDATE( starting_bid_price_in_hundreds >= 0,
-                 "starting_bid_price_in_hundreds must be >= 0" );
-  REFL_VALIDATE( starting_bid_price_in_hundreds < 20,
-                 "starting_bid_price_in_hundreds must be < 20" );
-  REFL_VALIDATE( current_bid_price_in_hundreds >= 0,
-                 "current_bid_price_in_hundreds must be >= 0" );
-  REFL_VALIDATE( current_bid_price_in_hundreds < 20,
-                 "current_bid_price_in_hundreds must be < 20" );
+  REFL_VALIDATE( bid_price >= 0, "bid_price must be >= 0" );
+  REFL_VALIDATE( bid_price < 20, "bid_price must be < 20" );
   return base::valid;
 }
 
@@ -51,15 +45,10 @@ LUA_STARTUP( lua::state& st ) {
   using U = ::rn::MarketItem;
   auto u  = st.usertype.create<U>();
 
-  u["starting_bid_price_in_hundreds"] =
-      &U::starting_bid_price_in_hundreds;
-  u["scaled_net_traded_volume"] = &U::scaled_net_traded_volume;
-  u["unscaled_net_traded_volume"] =
-      &U::unscaled_net_traded_volume;
-  u["intrinsic_volume"] = &U::intrinsic_volume;
-  u["current_bid_price_in_hundreds"] =
-      &U::current_bid_price_in_hundreds;
-  u["boycott"] = &U::boycott;
+  u["bid_price"]            = &U::bid_price;
+  u["intrinsic_volume"]     = &U::intrinsic_volume;
+  u["player_traded_volume"] = &U::player_traded_volume;
+  u["boycott"]              = &U::boycott;
 };
 
 // MarketState
