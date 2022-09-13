@@ -464,9 +464,7 @@ nation_advantage {
 # down by this factor when calculating price rises/falls. This
 # effectively causes prices to not rise/fall as quickly as a re-
 # sult. Note that this does not affect attrition in either direc-
-# tion, only to actual traffic from the new world. In the orig-
-# inal game this value appears to be 2/3, since it takes 1.5
-# (=1/(2/3)) the number of buys/sells for the price to move.
+# tion, only to actual traffic from the new world.
 difficulty_modifiers {
   discoverer {
     traffic_volume_scale: 0.666666

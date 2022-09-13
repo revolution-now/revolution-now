@@ -16,6 +16,53 @@ include "refl/enum-map.hpp"
 
 namespace "rn"
 
+# TODO: for normal price model:
+#
+#   - Each nation has their own volumes.
+#   - Each turn, the attrition is applied first before the game
+#     considers price changes.
+#   - When the price is stable, the volume is around zero. When
+#     the volume exceeds the fall threshold then the price is
+#     lowered by one and said threshold is subtracted from the
+#     volume (and similarly for rises with the opposite sign).
+#     Even if the price cannot change any further, the rise/fall
+#     is still added/subtracted from the volume each turn if it
+#     is in excess of those.
+#   - When a transaction is made, it changes the other volumes of
+#     the other nations. But the dutch, as usual, will have their
+#     sell volumes scaled by 66%, but only on a sale.
+#   - When non-player nations buy/sell it seems to only affect
+#     the volumes by 66%, regardless of difficulty level. But
+#     when the human player buys/sells, it affects the volumes
+#     (of all nations) by an amount that varies depending on dif-
+#     ficulty level (and which is also subject to the dutch sale
+#     multiplier). Actually, experiments indicate that, when
+#     volatility is non-zero, some of these multipliers only
+#     apply to the first 100 sold in a transaction; not sure if
+#     this was intentional, but we will not replicate that in
+#     this game, since it feels like it could have been a bug.
+#           Difficulty       P  NP
+#       --------------------------
+#         Discoverer:      .66 .66
+#         Explorer:        .83 .66
+#         Conquistador:   1.00 .66
+#         Governor:       1.16 .66
+#         Viceroy:        1.33 .66
+#   - When one nation buys, it affects all nations (including the
+#     dutch the same way); but on selling, it affects the dutch
+#     with only 66%, compounded with any other multipliers.
+#   - In general, a sale, whether by the dutch or not, only seems
+#     to affect dutch volume by 66%. But a buy will affect them
+#     by 100%.
+#   - When the player buys 100 it adds 100 to all non-player na-
+#     tions, even the dutch. But when the player sells, it adds
+#     only 66% to the dutch, but 100 to the others.
+#   - When there is no transaction activity, the nations' markets
+#     do not tend to equilibrate (apart from the usual attrition
+#     drift). This means that the only interaction between them
+#     is that transactions in one nation affect volumes in the
+#     others.
+#
 # In the OG the bid/ask spread is fixed for each commodity. That
 # is the reason that we don't have the ask prices here, since
 # those can always be derived from the bid price.

@@ -165,9 +165,7 @@ struct.DifficultyModifiers {
   # down by this factor when buying and selling. This effectively
   # causes prices to not rise/fall as quickly as a result. Note
   # that this does not affect attrition in either direction, only
-  # to actual traffic from the new world. In the original game
-  # this value appears to be 2/3, since it takes 1.5 (=1/(2/3))
-  # the number of buys/sells for the price to move.
+  # to actual traffic from the new world.
   traffic_volume_scale 'double',
 }
 
