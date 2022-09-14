@@ -20,6 +20,7 @@
 
 // ss
 #include "ss/player.rds.hpp"
+#include "ss/ref.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -130,9 +131,10 @@ HarborMarketCommodities::source_check(
 
   // TODO: check for boycotts.
 
-  PurchaseInvoice const invoice =
-      purchase_invoice( player_, comm );
-  if( invoice.cost > player_.money )
+  Invoice const invoice = transaction_invoice(
+      ss_, player_, comm, e_transaction::buy );
+  CHECK_LE( invoice.money_delta_final, 0 );
+  if( -invoice.money_delta_final > player_.money )
     co_return DragRejection{
         .reason = fmt::format(
             "You do not have enough gold to purchase @[H]{} "
@@ -146,17 +148,14 @@ wait<> HarborMarketCommodities::disown_dragged_object() {
   UNWRAP_CHECK( comm, dragging_.member( &Draggable::comm ) );
   // The player is buying. Here we are officially releasing the
   // goods from the market, and so we must charge the player now.
-  PurchaseInvoice const invoice =
-      purchase_invoice( player_, comm );
-  maybe<PriceChange> price_change =
-      buy_commodity_from_harbor( ss_, player_, invoice );
-  if( price_change.has_value() ) {
-    change_price( player_, invoice.purchased.type,
-                  *price_change );
+  Invoice const invoice = transaction_invoice(
+      ss_, player_, comm, e_transaction::buy );
+  apply_invoice( ss_, player_, invoice );
+  if( invoice.price_change != 0 ) {
     // FIXME: this is not an ideal place to put this since the
     // drag animation hasn't yet finished.
     co_await display_price_change_notification(
-        ts_, player_, comm.type, *price_change );
+        ts_, player_, comm.type, invoice.price_change );
   }
   co_return;
 }
@@ -194,15 +193,14 @@ wait<> HarborMarketCommodities::drop(
   // The player is selling. Here the market is officially ac-
   // cepting the goods from the player, and so we must pay the
   // player now.
-  SaleInvoice const  invoice = sale_invoice( player_, comm );
-  maybe<PriceChange> price_change =
-      sell_commodity_from_harbor( ss_, player_, invoice );
-  if( price_change.has_value() ) {
-    change_price( player_, invoice.sold.type, *price_change );
+  Invoice const invoice = transaction_invoice(
+      ss_, player_, comm, e_transaction::sell );
+  apply_invoice( ss_, player_, invoice );
+  if( invoice.price_change != 0 ) {
     // FIXME: this is not an ideal place to put this since the
     // drag animation hasn't yet finished.
     co_await display_price_change_notification(
-        ts_, player_, comm.type, *price_change );
+        ts_, player_, comm.type, invoice.price_change );
   }
 }
 

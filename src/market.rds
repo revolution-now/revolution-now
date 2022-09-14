@@ -10,44 +10,38 @@
 # ===============================================================
 # ss
 include "ss/commodity.rds.hpp"
+include "ss/nation.rds.hpp"
+
+# refl
+include "refl/enum-map.hpp"
 
 namespace "rn"
 
+# This is from the point of view of the player.
+enum.e_transaction {
+  buy,
+  sell,
+}
+
+# These are in hundreds.
 struct.CommodityPrice {
-  bid 'int', # in hundreds.
-  ask 'int', # in hundreds.
+  bid 'int',
+  ask 'int',
 }
 
-struct.PurchaseInvoice {
-  purchased 'Commodity',
-  cost 'int',
+struct.Invoice {
+  what 'Commodity',
 
-  # Some commodities (namely the ones in price groups) get an im-
-  # mediate manual bump to their current price after a transac-
-  # tion, in addition to any that may occur due to normal
-  # price-to-equilibrium-price evolution which also sometimes
-  # happens after a purchase. This one needs to be added to any
-  # other bumps before determining the final price change, if
-  # any, since the current price can only change by one in each
-  # transaction or turn.
-  manual_price_bump 'int',
-}
-
-struct.SaleInvoice {
-  sold 'Commodity',
-  received_before_taxes 'int',
+  money_delta_before_taxes 'int',
   tax_rate 'int',
   tax_amount 'int',
-  received_final 'int',
+  money_delta_final 'int',
 
-  # See comments from PurchaseInvoice.
-  manual_price_bump 'int',
+  player_volume_delta 'int',
 
-  # See comments from PurchaseInvoice.
-  evolve_volumes 'bool',
-}
+  # This includes any change the player's intrinsic volume that
+  # introduced by a price change (default model).
+  intrinsic_volume_delta 'refl::enum_map<e_nation, int>',
 
-struct.PriceChange {
-  from 'int',
-  to 'int',
+  price_change 'int',
 }

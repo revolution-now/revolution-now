@@ -25,8 +25,8 @@ price_behavior {
       bid_ask_spread:       8
     }
     model_parameters {
-      rise:                 300
-      fall:                 200
+      rise:                 3
+      fall:                 2
       attrition:           -1
       volatility:           0
     }
@@ -42,8 +42,8 @@ price_behavior {
       bid_ask_spread:       2
     }
     model_parameters {
-      rise:                 400
-      fall:                 600
+      rise:                 4
+      fall:                 6
       attrition:           -8
       volatility:           1
     }
@@ -59,8 +59,8 @@ price_behavior {
       bid_ask_spread:       2
     }
     model_parameters {
-      rise:                 400
-      fall:                 800
+      rise:                 4
+      fall:                 8
       attrition:           -10
       volatility:           1
     }
@@ -76,8 +76,8 @@ price_behavior {
       bid_ask_spread:       2
     }
     model_parameters {
-      rise:                 400
-      fall:                 600
+      rise:                 4
+      fall:                 6
       attrition:           -11
       volatility:           1
     }
@@ -93,8 +93,8 @@ price_behavior {
       bid_ask_spread:       2
     }
     model_parameters {
-      rise:                 400
-      fall:                 2000
+      rise:                 4
+      fall:                 20
       attrition:           -13
       volatility:           1
     }
@@ -110,8 +110,8 @@ price_behavior {
       bid_ask_spread:       5
     }
     model_parameters {
-      rise:                 300
-      fall:                 200
+      rise:                 3
+      fall:                 2
       attrition:            0
       volatility:           0
     }
@@ -127,8 +127,8 @@ price_behavior {
       bid_ask_spread:       3
     }
     model_parameters {
-      rise:                 200
-      fall:                 400
+      rise:                 2
+      fall:                 4
       attrition:           -7
       volatility:           0
     }
@@ -144,8 +144,8 @@ price_behavior {
       bid_ask_spread:       1
     }
     model_parameters {
-      rise:                 800
-      fall:                 100
+      rise:                 8
+      fall:                 1
       attrition:           -8
       volatility:           2
     }
@@ -161,8 +161,8 @@ price_behavior {
       bid_ask_spread:       1
     }
     model_parameters {
-      rise:                 300
-      fall:                 200
+      rise:                 3
+      fall:                 2
       attrition:           -3
       volatility:           0
     }
@@ -178,8 +178,8 @@ price_behavior {
       bid_ask_spread:       1
     }
     model_parameters {
-      rise:                 400
-      fall:                 400
+      rise:                 4
+      fall:                 4
       attrition:           -12  # Not used
       volatility:           1
     }
@@ -195,8 +195,8 @@ price_behavior {
       bid_ask_spread:       1
     }
     model_parameters {
-      rise:                 400
-      fall:                 400
+      rise:                 4
+      fall:                 4
       attrition:           -11  # Not used
       volatility:           1
     }
@@ -212,8 +212,8 @@ price_behavior {
       bid_ask_spread:       1
     }
     model_parameters {
-      rise:                 400
-      fall:                 400
+      rise:                 4
+      fall:                 4
       attrition:           -13  # Not used
       volatility:           1
     }
@@ -229,8 +229,8 @@ price_behavior {
       bid_ask_spread:       1
     }
     model_parameters {
-      rise:                 400
-      fall:                 400
+      rise:                 4
+      fall:                 4
       attrition:           -11  # Not used
       volatility:           1
     }
@@ -246,8 +246,8 @@ price_behavior {
       bid_ask_spread:       1
     }
     model_parameters {
-      rise:                 200
-      fall:                 300
+      rise:                 2
+      fall:                 3
       attrition:            4
       volatility:           0
     }
@@ -263,8 +263,8 @@ price_behavior {
       bid_ask_spread:       1
     }
     model_parameters {
-      rise:                 200
-      fall:                 200
+      rise:                 2
+      fall:                 2
       attrition:            5
       volatility:           0
     }
@@ -280,8 +280,8 @@ price_behavior {
       bid_ask_spread:       1
     }
     model_parameters {
-      rise:                 200
-      fall:                 200
+      rise:                 2
+      fall:                 2
       attrition:            6
       volatility:           0
     }
@@ -356,19 +356,46 @@ nation_advantage {
   }
 }
 
-# Depending on difficulty level, traffic volume changes induced
-# by the player (only) are scaled by this factor when adding them
-# into the intrinsic volume. This effectively causes prices to
-# not rise/fall as quickly on easier difficulty levels as a re-
-# sult of the player's trading. Note that this does not affect
-# attrition in either direction, only to actual traffic from the
-# new world.
+# Depending on difficulty level, traffic volume changes (to all
+# players) induced by a player (buy or sell) are scaled by these
+# factors when adding them into the intrinsic volumes of all na-
+# tions (including the player that initiated the trade). For the
+# human player this effectively causes prices to not rise/fall as
+# quickly on easier difficulty levels as a result of the player's
+# trading.
+#
+# Note that this does not affect attrition in either direction,
+# only to actual traffic from the new world.
+#
+# Non-human players get a different scale, but in the OG it does
+# not seem to vary by difficulty level. It's hard to say whether
+# the sub-unity non-human scale makes it more or less difficult
+# for the player, since changing that parameter could both ben-
+# efit and hinder the AI players. In fact, in the OG, it appears
+# that this value is 66% on all difficulty levels, suggesting
+# that the designers felt that it wasn't suitable to vary to make
+# the game more or less difficult for the player.
 difficulty_modifiers {
-  discoverer   { traffic_volume_scale: 0.666666 }
-  explorer     { traffic_volume_scale: 0.833333 }
-  conquistador { traffic_volume_scale: 1.000000 }
-  governor     { traffic_volume_scale: 1.166666 }
-  viceroy      { traffic_volume_scale: 1.333333 }
+  discoverer {
+    human_traffic_volume_scale:     0.666666
+    non_human_traffic_volume_scale: 0.666666
+  }
+  explorer {
+    human_traffic_volume_scale:     0.833333
+    non_human_traffic_volume_scale: 0.666666
+  }
+  conquistador {
+    human_traffic_volume_scale:     1.000000
+    non_human_traffic_volume_scale: 0.666666
+  }
+  governor {
+    human_traffic_volume_scale:     1.166666
+    non_human_traffic_volume_scale: 0.666666
+  }
+  viceroy {
+    human_traffic_volume_scale:     1.333333
+    non_human_traffic_volume_scale: 0.666666
+  }
 }
 
 # The OG's strategy guide describes the idea of "price groups,"
@@ -383,14 +410,3 @@ processed_goods_model {
   volatility:    1
   target_price:  12
 }
-
-# In the OG, it appears that whenever a non-player nation makes a
-# trade (buy or sell), it only affects volumes (including their
-# own) by 66% of what it would if the player had traded. It's
-# hard to say whether this makes it more or less difficult for
-# the player, since changing that parameter could both benefit
-# and hinder the AI players. In fact, in the OG, it appears that
-# this value is 66% on all difficulty levels, suggesting that the
-# designers felt that it wasn't suitable to vary to make the game
-# more or less difficult for the player.
-non_player_volume_change_scale: .666666

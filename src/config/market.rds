@@ -74,7 +74,8 @@ struct.NationAdvantage {
 }
 
 struct.DifficultyModifiers {
-  traffic_volume_scale 'double',
+  human_traffic_volume_scale     'double',
+  non_human_traffic_volume_scale 'double',
 }
 
 namespace "rn"
@@ -87,8 +88,6 @@ struct.config_market_t {
   nation_advantage 'refl::enum_map<e_nation, config::market::NationAdvantage>',
 
   difficulty_modifiers 'refl::enum_map<e_difficulty, config::market::DifficultyModifiers>',
-
-  non_player_volume_change_scale 'double',
 }
 
 config.market {}
