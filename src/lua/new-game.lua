@@ -201,10 +201,8 @@ local function init_non_processed_goods_prices( options, players )
     local bid_price = math.random( min, max )
     for nation, tbl in pairs( options.nations ) do
       local player = players:get( nation )
-      player.old_world.market.commodities[comm]
-          .current_bid_price_in_hundreds = bid_price
-      player.old_world.market.commodities[comm]
-          .starting_bid_price_in_hundreds = bid_price
+      player.old_world.market.commodities[comm].bid_price =
+          bid_price
     end
   end
 
@@ -234,10 +232,7 @@ local function init_processed_goods_prices( options, players )
     for nation, tbl in pairs( options.nations ) do
       local player = players:get( nation )
       local c = player.old_world.market.commodities[comm]
-      c.current_bid_price_in_hundreds = eq_prices[comm]
-      c.starting_bid_price_in_hundreds = eq_prices[comm]
-      c.scaled_net_traded_volume = 0
-      c.unscaled_net_traded_volume = 0
+      c.bid_price = eq_prices[comm]
       c.intrinsic_volume = group.euro_volumes[comm]
     end
   end )
