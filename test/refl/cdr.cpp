@@ -487,20 +487,20 @@ my_ns::Rolodex const native_rolodex_1{
            .height = 5.5,
            .male   = true,
            .houses =
-               {
-                   {
+            {
+                {
                        .street_number = 444,
                        .state         = "CA",
                 },
-                   {
+                {
                        .street_number = 555,
                        .state         = "MD",
                 },
             },
            .pets =
-               {
-                   { my_ns::e_pet::cat, 3 },
-                   { my_ns::e_pet::frog, 6 },
+            {
+                { my_ns::e_pet::cat, 3 },
+                { my_ns::e_pet::frog, 6 },
             },
     } },
     .updated = "1900-02-01",
@@ -696,7 +696,7 @@ TEST_CASE( "[refl] missing field" ) {
   using namespace ::refl::my_ns;
   converter  conv;
   cdr::error expected = conv.err(
-      "message: key 'houses' not found in table.\n"
+      "key 'houses' not found in table.\n"
       "frame trace (most recent frame last):\n"
       "---------------------------------------------------\n"
       "refl::my_ns::Rolodex\n"
@@ -716,7 +716,7 @@ TEST_CASE( "[refl] extra field" ) {
   using namespace ::refl::my_ns;
   converter  conv;
   cdr::error expected = conv.err( //
-      "message: unrecognized key 'xyz' in table.\n"
+      "unrecognized key 'xyz' in table.\n"
       "frame trace (most recent frame last):\n"
       "---------------------------------------------------\n"
       "refl::my_ns::Rolodex\n"
@@ -775,7 +775,7 @@ TEST_CASE( "[refl] variant" ) {
                        "found 0 key(s)." ) );
 
     cdr::error expected1 = conv.err( //
-        "message: unrecognized key 'xyz' in table.\n"
+        "unrecognized key 'xyz' in table.\n"
         "frame trace (most recent frame last):\n"
         "---------------------------------------------------\n"
         "base::variant<refl::my_ns::Address, "
@@ -790,7 +790,7 @@ TEST_CASE( "[refl] variant" ) {
                  conv, cdr_variant3_extra_field_inner ) ==
              expected1 );
     cdr::error expected2 = conv.err( //
-        "message: unrecognized variant alternative 'abc'.\n"
+        "unrecognized variant alternative 'abc'.\n"
         "frame trace (most recent frame last):\n"
         "---------------------------------------------------\n"
         "base::variant<refl::my_ns::Address, "
@@ -800,7 +800,7 @@ TEST_CASE( "[refl] variant" ) {
                  conv, cdr_variant3_unknown_field ) ==
              expected2 );
     cdr::error expected3 = conv.err( //
-        "message: expected table with 1 key(s), instead found 2 "
+        "expected table with 1 key(s), instead found 2 "
         "key(s).\n"
         "frame trace (most recent frame last):\n"
         "---------------------------------------------------\n"
@@ -810,7 +810,7 @@ TEST_CASE( "[refl] variant" ) {
     REQUIRE( conv_from_bt<Variant3>(
                  conv, cdr_variant3_extra_field ) == expected3 );
     cdr::error expected4 = conv.err( //
-        "message: expected table with 1 key(s), instead found 0 "
+        "expected table with 1 key(s), instead found 0 "
         "key(s).\n"
         "frame trace (most recent frame last):\n"
         "---------------------------------------------------\n"

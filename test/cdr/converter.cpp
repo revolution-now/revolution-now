@@ -546,7 +546,7 @@ TEST_CASE( "[cdr/converter] backtrace" ) {
   value  v = list{ table{ { "key", "one" }, { "val", 1 } },
                   table{ { "key", "two" }, { "val", "2" } } };
   string expected =
-      "message: failed to convert value of type string to int.\n"
+      "failed to convert value of type string to int.\n"
       "frame trace (most recent frame last):\n"
       "---------------------------------------------------\n"
       "std::unordered_map<std::string, int, "
