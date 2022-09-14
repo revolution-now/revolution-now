@@ -197,21 +197,19 @@
   {                                                 \
     auto const& STRING_JOIN( __e, __LINE__ ) = e;   \
     if( !bool( STRING_JOIN( __e, __LINE__ ) ) ) {   \
-      ::base::abort_with_msg( fmt::format(          \
-          "bad unwrap, original error: {}",         \
+      ::base::abort_with_msg( fmt::to_string(       \
           STRING_JOIN( __e, __LINE__ ).error() ) ); \
     }                                               \
   }
 
-#define CHECK_HAS_VALUE_MULTI( e, ... )                  \
-  {                                                      \
-    auto const& STRING_JOIN( __e, __LINE__ ) = e;        \
-    if( !bool( STRING_JOIN( __e, __LINE__ ) ) ) {        \
-      ::base::abort_with_msg( fmt::format(               \
-          "bad unwrap, original error: {}, message: {}", \
-          STRING_JOIN( __e, __LINE__ ).error(),          \
-          fmt::format( __VA_ARGS__ ) ) );                \
-    }                                                    \
+#define CHECK_HAS_VALUE_MULTI( e, ... )             \
+  {                                                 \
+    auto const& STRING_JOIN( __e, __LINE__ ) = e;   \
+    if( !bool( STRING_JOIN( __e, __LINE__ ) ) ) {   \
+      ::base::abort_with_msg( fmt::format(          \
+          "{}: {}", fmt::format( __VA_ARGS__ ),     \
+          STRING_JOIN( __e, __LINE__ ).error() ) ); \
+    }                                               \
   }
 
 #define HAS_VALUE_OR_RET( ... )                  \
@@ -223,13 +221,12 @@
 /****************************************************************
 ** Try to unwrap a wrapped type.
 *****************************************************************/
-#define UNWRAP_CHECK( a, ... )                                 \
-  auto&& STRING_JOIN( __e, __LINE__ ) = __VA_ARGS__;           \
-  if( !STRING_JOIN( __e, __LINE__ ).has_value() ) {            \
-    ::base::abort_with_msg(                                    \
-        fmt::format( "bad unwrap, original error: {}",         \
-                     STRING_JOIN( __e, __LINE__ ).error() ) ); \
-  }                                                            \
+#define UNWRAP_CHECK( a, ... )                       \
+  auto&& STRING_JOIN( __e, __LINE__ ) = __VA_ARGS__; \
+  if( !STRING_JOIN( __e, __LINE__ ).has_value() ) {  \
+    ::base::abort_with_msg( fmt::to_string(          \
+        STRING_JOIN( __e, __LINE__ ).error() ) );    \
+  }                                                  \
   auto&& BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )
 
 #define UNWRAP_BREAK( a, e )                             \
@@ -237,14 +234,13 @@
   if( !STRING_JOIN( __e, __LINE__ ).has_value() ) break; \
   auto&& BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )
 
-#define UNWRAP_CHECK_MSG( a, e, ... )                  \
-  auto&& STRING_JOIN( __e, __LINE__ ) = e;             \
-  if( !STRING_JOIN( __e, __LINE__ ).has_value() ) {    \
-    ::base::abort_with_msg( fmt::format(               \
-        "bad unwrap, original error: {}, message: {}", \
-        STRING_JOIN( __e, __LINE__ ).error(),          \
-        fmt::format( __VA_ARGS__ ) ) );                \
-  }                                                    \
+#define UNWRAP_CHECK_MSG( a, e, ... )                          \
+  auto&& STRING_JOIN( __e, __LINE__ ) = e;                     \
+  if( !STRING_JOIN( __e, __LINE__ ).has_value() ) {            \
+    ::base::abort_with_msg(                                    \
+        fmt::format( "{}: {}", fmt::format( __VA_ARGS__ ),     \
+                     STRING_JOIN( __e, __LINE__ ).error() ) ); \
+  }                                                            \
   auto&& BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )
 
 #define UNWRAP_RETURN( var, ... )                             \

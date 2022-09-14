@@ -83,7 +83,7 @@ string converter::dump_error_stack() const {
 
 error converter::from_canonical_readable_error(
     error const& err_obj ) const {
-  return error( fmt::format( "message: {}\n", err_obj.what() ) +
+  return error( fmt::format( "{}\n", err_obj.what() ) +
                 dump_error_stack() );
 }
 
