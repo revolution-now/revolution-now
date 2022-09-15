@@ -181,7 +181,7 @@ local function create_old_world_state( settings, player )
       immigration.pick_next_unit_for_pool( player, settings )
 
   -- Tax rate.
-  old_world.taxes.tax_rate = 7
+  old_world.taxes.tax_rate = 0
 
   -- Expeditionary force.
   old_world.expeditionary_force.regulars = 3
