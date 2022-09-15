@@ -10,7 +10,8 @@
 *****************************************************************/
 #include "ss/players.hpp"
 
-// gs
+// ss
+#include "ss/market.hpp"
 #include "ss/player.hpp"
 
 // luapp
@@ -63,7 +64,8 @@ LUA_STARTUP( lua::state& st ) {
   using U = ::rn::PlayersState;
   auto u  = st.usertype.create<U>();
 
-  u["players"] = &U::players;
+  u["players"]             = &U::players;
+  u["global_market_state"] = &U::global_market_state;
 };
 
 // PlayersMap

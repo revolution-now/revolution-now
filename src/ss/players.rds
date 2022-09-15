@@ -11,6 +11,7 @@
 # gs
 include "ss/nation.rds.hpp"
 include "ss/player.rds.hpp"
+include "ss/market.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"
@@ -19,6 +20,9 @@ namespace "rn"
 
 struct.PlayersState {
   players 'refl::enum_map<e_nation, maybe<Player>>',
+
+  # Market state that is shared by all nations.
+  global_market_state 'GlobalMarketState',
 
   _features { equality, validation }
 }

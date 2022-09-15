@@ -16,10 +16,11 @@ include "refl/enum-map.hpp"
 
 namespace "rn"
 
-# In the OG the bid/ask spread is fixed for each commodity. That
-# is the reason that we don't have the ask price here, since
-# those can always be derived from the bid price.
-struct.MarketItem {
+# Per-player per-commodity market state. In the OG the bid/ask
+# spread is fixed for each commodity. That is the reason that we
+# don't have the ask price here, since those can always be de-
+# rived from the bid price.
+struct.PlayerMarketItem {
   # This is the current bid price in hundreds. This has to be
   # stored on its own since in general it cannot be derived from
   # the state of the price model at any given time, since the
@@ -29,14 +30,13 @@ struct.MarketItem {
   # this current price once per turn until it hits the target.
   bid_price 'int',
 
-  # This is an internal model variable that represents a kind of
-  # volume. The semantics of it depend on the price model being
-  # used, which is different for different commodities; it
-  # evolves as part of the model of price movement. Although it
-  # is not directly visible or meaningful to the player, is in-
-  # fluenced by the quantities traded by the player; it is also
-  # influenced by attrition/volatility and other model parame-
-  # ters, as well as the trading activity of other nations.
+  # This is an internal model variable that is used by the de-
+  # fault price model and represents a kind of volume. It evolves
+  # as part of the model of price movement. Although it is not
+  # directly visible or meaningful to the player, is influenced
+  # by the quantities traded by the player; it is also influenced
+  # by attrition/volatility and other model parameters, as well
+  # as the trading activity of other nations.
   intrinsic_volume 'int',
 
   # The net amount that the player has traded. This is used by
@@ -53,9 +53,23 @@ struct.MarketItem {
   _features { equality, validation }
 }
 
-struct.MarketState {
+# Per-commodity market state shared by all players.
+struct.GlobalMarketItem {
+  # This is used only by the price-group model. The OG appears to
+  # evolve those prices using a single set of internal volumes
+  # that are shared by all of the players.
+  intrinsic_volume 'int',
+}
+
+# Per-player market state.
+struct.PlayerMarketState {
   # This holds data representing the market state for each com-
   # modity, but does not apply for rum, cigars, cloth, and coats,
   # since they have a separate model.
-  commodities 'refl::enum_map<e_commodity, MarketItem>',
+  commodities 'refl::enum_map<e_commodity, PlayerMarketItem>',
+}
+
+# Market state that is shared by all players.
+struct.GlobalMarketState {
+  commodities 'refl::enum_map<e_commodity, GlobalMarketItem>',
 }

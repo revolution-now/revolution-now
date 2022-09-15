@@ -11,7 +11,7 @@ The default model used here along with the associated configura-
 tion parameters are essentially taken/inferred from the original
 game's NAMES.TXT file in the section titled "Cargo types & eco-
 nomic model" together with some in-game experimentation and save
-faile analysis.
+file analysis.
 
 In both models, there are four static parameters and three dy-
 namic quantities that are relevant for determining current prices
@@ -27,21 +27,21 @@ and price movement:
   Dynamic Parameters:
 
     1. Current price
-    2. Net traded volume
-    3. "Intrinsic" volume
+    2. Net total traded volume
+    3. Per-player intrinsic volume
+    4. Shared intrinsic volume
 
-Most of these parameters and quantities have a different meaning
-depending on the price model in question. The exceptions are the
-"current price" and "net traded volume." The former is what it
-sounds like, and the latter is just the net traded volume (on the
-european side) that the player (only) has made throughout the
-game. The meanings of the other parameters will be described
-below in the context of each particular model.
+Most of these parameters and quantities have a different meanings
+and roles depending on the price model in question. The exception
+is the "current price," which simply represents the current price
+of the commodity as seen by the player. The meanings of the other
+parameters will be described below in the context of each partic-
+ular model.
 
 Default Model
 =============
 
-Intrinsic volume:
+Per-player intrinsic volume:
 
   This is a volume-like quantity that is maintained internally
   and is not directly visible to the player. In the default price
@@ -62,6 +62,14 @@ Intrinsic volume:
   At the start of each turn, the attrition value for each com-
   modity is added to this volume, and this is done before any po-
   tential price changes are evaluated.
+
+Shared intrinsic volume:
+
+  This quantity is not used in the default model.
+
+Net total traded volume:
+
+  This quantity is not used in the default model.
 
 Rise/Fall:
 
@@ -114,6 +122,13 @@ Modifiers:
   tive (even the volatility "shift"), and so it does not matter
   in what order they are applied.
 
+Coupling of Markets:
+
+  As mentioned above, in the default model, the way that one
+  player's activity influences the others' markets is that when a
+  player buys/sells, that volume (potentially scaled in some way)
+  is added also to the other player's intrinsic volumes.
+
 Price Group Model
 =================
 
@@ -121,22 +136,24 @@ This model is quite different from the default model.
 
 The OG's strategy guide mentions that some sets of commodities
 form groups, where one price change in one affects the others in
-the opposite direction. In particular, the OG appears to put rum,
-cigars, cloth, and coats into such a group.
+the opposite direction. In particular, the OG puts rum, cigars,
+cloth, and coats into such a group. Note that it also puts sugar,
+tobacco, cotton, and fur in a group, but experiments on the orig-
+inal game suggest that they are not actually in a group.
 
 The precise workings of the model are best understood by just
 looking at this game's implementation, but we will just give an
 overview here.
 
 Generally speaking, it seems that the goal of the designers of
-the original game were to encourage selling all four of the goods
-instead of just a single one repeatedly. To this end, no matter
-how much you sell, the prices will not drop as long as you sell
-all four goods. The fewer types of goods you sell, the more the
-prices will drop. This is implemented by tying the prices of the
-four goods together in such a way that when one goes down, the
-others go up. The game tries to maintain a fixed average of the
-prices of the four goods.
+the original game were to encourage the selling of all four of
+the goods instead of just a single one repeatedly. To this end,
+no matter how much you sell, the prices will not drop as long as
+you sell all four goods. The fewer types of goods you sell, the
+more the prices will drop. This is implemented by tying the
+prices of the four goods together in such a way that when one
+goes down, the others go up. The game roughly tries to maintain a
+fixed average of the prices of the four goods.
 
 In particular, although each commodity in a price group gets its
 own intrinsic volume, and these intrinsic volumes are evolved
@@ -149,34 +166,58 @@ the specified ratios while roughly meeting the target average.
 This average will not always be produced exactly, but it is what
 the algorithm tends toward.
 
-Intrinsic volume:
+Per-player intrinsic volume:
 
-  This is a volume-like quantity that is maintained internally
-  and is not directly visible to the player. In the price group
-  model, the relevant quantity is the "total" volume, defined as
-  intrinsic+actual. These total volumes specify on the ratios of
-  the equilibrium prices with each other; thus when they are all
-  the same within a group, the prices all tend to become equal.
-  Specifically, the ratios of the inverses of the total volumes
-  specify the ratios of the equilibrium prices (modulo some tech-
-  nicalities). As a result, the game must specify a target av-
-  erage price value for these commodities to normalize them, and
-  in the OG it is bid=11.
+  This quantity is not used in the price-group model.
+
+Shared intrinsic volume:
+
+  These are a set of volume-like quantities, one per commodity,
+  that are shared among all players, and are used in the price
+  group model instead of the per-player intrinsic volumes.
+
+  These volume-like quantities are maintained internally and not
+  not directly visible to the player. In the price group model,
+  the relevant quantity is the "total" volume, defined as the in-
+  trinsic volume plus the sum of the net traded values for all
+  players. These total volumes, for each commodity, specify the
+  ratios of the equilibrium prices with each other; specifically,
+  the ratios of the inverses of the total volumes specify the ra-
+  tios of the equilibrium prices (modulo some technicalities). As
+  a result, the game must specify a target average price value
+  for these commodities to normalize them, and in the OG it is
+  ask=12.
 
   These intrinsic volumes evolve by first adding them to the ac-
-  tual player-traded volume to get the total volume, then scaling
-  down by 1%, then again removing the player traded volume. This
-  effectively allows these intrinsic volumes to evolve in such a
-  way as to make the "total" traded volume decrease by 1% each
-  turn. It is a bit hard to intuit what consequences this will
-  have, if any, since scaling them all down uniformly does not
-  change their ratios and thus does not change the prices. When a
-  buy/sell is made, the quantity transacted gets added not to the
-  intrinsic volume, but to the actual volume (as usual).
+  tual players-summed traded volume to get the total volume, then
+  scaling down by 1%, then again removing the player traded vol-
+  ume. This effectively allows these intrinsic volumes to evolve
+  in such a way as to make the "total" traded volume decrease by
+  1% each turn. It is a bit hard to intuit what consequences this
+  will have, if any, since scaling them all down uniformly does
+  not change their ratios and thus does not change the prices.
+  When a buy/sell is made, the quantity transacted gets added not
+  to the intrinsic volume, but to the actual volume. But, in con-
+  trast to the default model, it does not get added to the other
+  player's volumes since there is no need to do that, since when
+  we evolve or evaluate the price group model, we use the sum of
+  all player's traded volumes.
 
   The are some minor technical details by which the actual algo-
   rithm slightly deviates from the above, but the above is basi-
   cally the way it works.
+
+Net total traded volume:
+
+  This quantity represents the sum of all players' net traded
+  amounts of a commodity. So e.g. if hitherto in the game the
+  English net sold 200 ore, the French net bought 100 ore, the
+  Spanish net sold none, and the Dutch net sold 400, then this
+  quantity will be 200-100+400=500. The reason that the sum of
+  all four are used is because the intrinsic volume used in the
+  model are the global ones shared by all players; hence the fact
+  that we are summing the traded volumes is the way in which the
+  four markets affect each other in the price group model.
 
 Rise/Fall/Volatility:
 
@@ -201,3 +242,11 @@ Modifiers:
 
   Difficulty level: there doesn't seem to be any different in the
   price group model by difficulty level.
+
+Coupling of Markets:
+
+  In contrast to the default model, in the price group model, the
+  way that one player's activity influences the others' markets
+  is that 1) all players share one set of intrinsic volumes, and
+  2) when the price group model is evolved or evaluated, we use
+  as the traded volume the sum of all of the player's volumes.

@@ -21,8 +21,10 @@
 
 namespace rn {
 
-using MarketStateCommoditiesEnumMap =
-    ::refl::enum_map<::rn::e_commodity, ::rn::MarketItem>;
+using PlayerMarketStateCommoditiesEnumMap =
+    ::refl::enum_map<::rn::e_commodity, ::rn::PlayerMarketItem>;
+using GlobalMarketStateCommoditiesEnumMap =
+    ::refl::enum_map<::rn::e_commodity, ::rn::GlobalMarketItem>;
 
 } // namespace rn
 
@@ -31,9 +33,13 @@ using MarketStateCommoditiesEnumMap =
 *****************************************************************/
 namespace lua {
 
-LUA_USERDATA_TRAITS( ::rn::MarketItem, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::MarketState, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::MarketStateCommoditiesEnumMap,
+LUA_USERDATA_TRAITS( ::rn::PlayerMarketItem, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( ::rn::GlobalMarketItem, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( ::rn::PlayerMarketState, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( ::rn::GlobalMarketState, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( ::rn::PlayerMarketStateCommoditiesEnumMap,
+                     owned_by_cpp ){};
+LUA_USERDATA_TRAITS( ::rn::GlobalMarketStateCommoditiesEnumMap,
                      owned_by_cpp ){};
 
 } // namespace lua

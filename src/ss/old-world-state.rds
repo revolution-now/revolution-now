@@ -96,8 +96,8 @@ struct.OldWorldState {
   # All things taxes.
   taxes 'TaxationState',
 
-  # The commodity market.
-  market 'MarketState',
+  # Player-specific market state.
+  market 'PlayerMarketState',
 
   # Royal expeditionary force.
   expeditionary_force 'ExpeditionaryForce',

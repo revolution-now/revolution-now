@@ -88,7 +88,7 @@ Invoice transaction_invoice( SSConst const& ss,
   int const volatility = item_config.model_parameters.volatility;
   auto const& difficulty_modifiers =
       config_market.difficulty_modifiers[ss.settings.difficulty];
-  MarketItem const player_market_item =
+  PlayerMarketItem const player_market_item =
       player.old_world.market.commodities[comm_type];
   int const price = ( transaction_type == e_transaction::buy )
                         ? prices.ask
