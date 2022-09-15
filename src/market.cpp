@@ -102,12 +102,12 @@ Invoice transaction_invoice( SSConst const& ss,
   res.tax_rate                 = player.old_world.taxes.tax_rate;
   if( transaction_type == e_transaction::sell ) {
     CHECK_GE( res.money_delta_before_taxes, 0 );
-    CHECK( res.money_delta_before_taxes % 100 == 0 );
     // Rounding is not an issue here because the amount received
     // will always be a multiple of 100, since bid/ask prices in
     // the game are always so.
     res.tax_amount =
-        res.tax_rate * ( res.money_delta_before_taxes / 100 );
+        int( res.tax_rate *
+             ( res.money_delta_before_taxes / 100.0 ) );
   }
   res.money_delta_final =
       res.money_delta_before_taxes - res.tax_amount;

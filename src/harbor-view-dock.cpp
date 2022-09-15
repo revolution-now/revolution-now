@@ -147,7 +147,10 @@ wait<> HarborDockUnits::disown_dragged_object() {
 maybe<HarborDraggableObject_t> HarborDockUnits::can_receive(
     HarborDraggableObject_t const& o, int /*from_entity*/,
     Coord const& ) const {
-  if( !o.holds<HarborDraggableObject::unit>() ) return nothing;
+  auto const& unit = o.get_if<HarborDraggableObject::unit>();
+  if( !unit.has_value() ) return nothing;
+  if( ss_.units.unit_for( unit->id ).desc().ship )
+    return nothing;
   return o;
 }
 
