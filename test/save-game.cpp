@@ -46,12 +46,6 @@ using ::testing::data_dir;
 // files, but then make sure to change it back to zero!
 #define REGENERATE_FILES 0 // !!! DO NOT COMMIT
 
-// Currently these are only implemented in release mode because
-// they are slow, since the world is large. TODO: once we can
-// generate a test world with smaller size we should enable this
-// in debug mode.
-#ifdef NDEBUG
-
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
@@ -62,9 +56,9 @@ struct World : testing::World {};
 *****************************************************************/
 void print_line( string_view what ) {
   (void)what;
-#  if 0
+#if 0
   fmt::print( "---------- {} ----------\n", what );
-#  endif
+#endif
 }
 
 void reset_seeds( lua::state& st ) {
@@ -84,6 +78,7 @@ void create_new_game_from_lua( World& world ) {
   lua::table  new_game = st["new_game"].as<lua::table>();
   UNWRAP_CHECK(
       options, new_game["default_options"].pcall<lua::table>() );
+  options["map"]["world_size"] = Delta{ .w = 8, .h = 8 };
   CHECK_HAS_VALUE( new_game["create"].pcall( options ) );
 }
 
@@ -112,12 +107,12 @@ TEST_CASE( "[save-game] no default values (compact)" ) {
       .verbosity = e_savegame_verbosity::compact,
   };
 
-#  if REGENERATE_FILES
+#if REGENERATE_FILES
   expect_rands( W );
   generate_save_file( W, src, opts );
-#  else
+#else
   (void)generate_save_file;
-#  endif
+#endif
 
   CHECK( fs::exists( src ) );
 
@@ -145,7 +140,7 @@ TEST_CASE( "[save-game] no default values (compact)" ) {
 // This test is disabled because it is not always supposed to
 // pass; e.g. when we add a new field to the schema it fails, but
 // that situation is normal and allowed as the schema evolves.
-#  if 0
+#if 0
 TEST_CASE( "[save-game] default values (full)" ) {
   World W;
   W.expensive_run_lua_init();
@@ -158,12 +153,12 @@ TEST_CASE( "[save-game] default values (full)" ) {
       .verbosity = e_savegame_verbosity::full,
   };
 
-#    if REGENERATE_FILES
+#  if REGENERATE_FILES
   expect_rands( W );
   generate_save_file( W, src, opts );
-#    else
+#  else
   (void)generate_save_file;
-#    endif
+#  endif
 
   CHECK( fs::exists( src ) );
 
@@ -187,7 +182,7 @@ TEST_CASE( "[save-game] default values (full)" ) {
   // file to the console if they don't match.
   REQUIRE( ( src_text == dst_text ) );
 }
-#  endif
+#endif
 
 TEST_CASE( "[save-game] world gen with default values (full)" ) {
   World W;
@@ -259,8 +254,6 @@ TEST_CASE(
   // file to the console if they don't match.
   REQUIRE( ( backup == W.root() ) );
 }
-
-#endif
 
 TEST_CASE( "[save-game] no regen" ) {
   // This will flag if we forget to turn off file regeneration.
