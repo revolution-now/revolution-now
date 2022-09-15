@@ -19,13 +19,10 @@ local function default_price_group_config()
   return {
     names={ 'rum', 'cigars', 'cloth', 'coats' },
     dutch=false,
-    starting_euro_volumes=nil,
+    starting_intrinsic_volumes=nil,
     starting_traded_volumes=nil, -- zeroes.
-    starting_prices=nil, -- default to eq prices.
     min=1,
     max=20,
-    rise_fall=4,
-    volatility=1,
     target_price=12
   }
 end
@@ -33,20 +30,24 @@ end
 -----------------------------------------------------------------
 -- Public API
 -----------------------------------------------------------------
-function M.generate_random_euro_volume()
-  return PG.generate_random_euro_volume( VOLUME_INIT_CONFIG )
+function M.generate_random_intrinsic_volume()
+  return
+      PG.generate_random_intrinsic_volume( VOLUME_INIT_CONFIG )
 end
 
-function M.ProcessedGoodsPriceGroup( euro_volumes )
-  if not euro_volumes then
-    euro_volumes = {}
-    euro_volumes.rum = M.generate_random_euro_volume()
-    euro_volumes.cigars = M.generate_random_euro_volume()
-    euro_volumes.cloth = M.generate_random_euro_volume()
-    euro_volumes.coats = M.generate_random_euro_volume()
+function M.ProcessedGoodsPriceGroup( intrinsic_volumes )
+  if not intrinsic_volumes then
+    intrinsic_volumes = {}
+    intrinsic_volumes.rum = M.generate_random_intrinsic_volume()
+    intrinsic_volumes.cigars =
+        M.generate_random_intrinsic_volume()
+    intrinsic_volumes.cloth =
+        M.generate_random_intrinsic_volume()
+    intrinsic_volumes.coats =
+        M.generate_random_intrinsic_volume()
   end
   local config = default_price_group_config()
-  config.starting_euro_volumes = euro_volumes
+  config.starting_intrinsic_volumes = intrinsic_volumes
   return PG.PriceGroup( config )
 end
 

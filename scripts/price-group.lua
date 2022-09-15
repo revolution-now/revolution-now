@@ -29,32 +29,30 @@ local PriceGroup = price_group.PriceGroup
 local GOODS = { 'rum', 'cigars', 'cloth', 'coats' }
 local TARGET_PRICE = 12
 
-local STARTING_EURO_VOLUMES = {
-  -- 11/12 10/11 14/15 9/10
-  rum=0x02a9,
-  cigars=0x02c6,
-  cloth=0x0224,
-  coats=0x033c
+local STARTING_INTRINSIC_VOLUMES =
+    {
+      -- 11/12 10/11 14/15 9/10
+      rum=0x02a9,
+      cigars=0x02c6,
+      cloth=0x0224,
+      coats=0x033c
 
-  -- 12/13 9/10 14/15 8/9
-  -- rum=0x1f3,
-  -- cigars=0x277,
-  -- cloth=0x1c6,
-  -- coats=0x2b5
-}
+      -- 12/13 9/10 14/15 8/9
+      -- rum=0x1f3,
+      -- cigars=0x277,
+      -- cloth=0x1c6,
+      -- coats=0x2b5
+    }
 local INITIAL_CMD = 'e'
 local DUTCH = false
 
 local PRICE_GROUP_CONFIG = {
   names={ 'rum', 'cigars', 'cloth', 'coats' },
   dutch=DUTCH,
-  starting_euro_volumes=STARTING_EURO_VOLUMES,
+  starting_intrinsic_volumes=STARTING_INTRINSIC_VOLUMES,
   starting_traded_volumes=nil, -- zeroes.
   min=1,
   max=20,
-  rise_fall=4,
-  volatility=1,
-  bid_ask_spread=1,
   target_price=12
 }
 
@@ -87,7 +85,7 @@ local display = [[
   ----------------------------------------------------------
   |     #1      |      #2      |     #3      |     #4      |
   ----------------------------------------------------------
-  |    %s    |    %s     |    %s    |    %s    | < euro volumes
+  |    %s    |    %s     |    %s    |    %s    | < intrinsic volumes
   |  %6d     |  %6d      |  %6d     |  %6d     | < traded volumes
   ----------------------------------------------------------
   |     Rum     |    Cigars    |    Cloth    |    Coats    |
@@ -123,13 +121,13 @@ end
 local function redraw()
   clear_screen()
   local eqs = group:equilibrium_prices()
-  local euro_volumes = group.euro_volumes
+  local intrinsic_volumes = group.intrinsic_volumes
   local traded_volumes = group.traded_volumes
   io.write( format( display, num_turns, num_actions,
-                    format_hex16( euro_volumes.rum ),
-                    format_hex16( euro_volumes.cigars ),
-                    format_hex16( euro_volumes.cloth ),
-                    format_hex16( euro_volumes.coats ),
+                    format_hex16( intrinsic_volumes.rum ),
+                    format_hex16( intrinsic_volumes.cigars ),
+                    format_hex16( intrinsic_volumes.cloth ),
+                    format_hex16( intrinsic_volumes.coats ),
                     traded_volumes.rum, traded_volumes.cigars,
                     traded_volumes.cloth, traded_volumes.coats,
                     format( '%.1f', eqs.rum ),

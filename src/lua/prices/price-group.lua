@@ -63,9 +63,9 @@ function PriceGroup:on_all( f )
   for _, good in ipairs( self.config.names ) do f( good ) end
 end
 
--- This is the function that takes the two volumes (euro volume
--- and traded volume) and from them derives the equilibrium
--- prices (the prices toward which the actual player-visible
+-- This is the function that takes the two volumes (intrinsic
+-- volume and traded volume) and from them derives the equilib-
+-- rium prices (the prices toward which the actual player-visible
 -- prices will tend toward). The basic idea is is that the equi-
 -- librium prices are proportional to the inverses of the total
 -- volumes. The OG appears to do this:
@@ -120,7 +120,7 @@ function PriceGroup:equilibrium_prices()
   local res = {}
   local total_volumes = {}
   self:on_all( function( good )
-    total_volumes[good] = self.euro_volumes[good] +
+    total_volumes[good] = self.intrinsic_volumes[good] +
                               max( self.traded_volumes[good], 0 )
   end )
   local avg_total_volume = sum_values( total_volumes ) /
@@ -143,26 +143,26 @@ function PriceGroup:equilibrium_prices()
   return res
 end
 
--- This is the function that will evolve the euro volumes. It is
--- done at the start of each turn, and also when buying selling a
--- good in the harbor (unless the player is dutch).
+-- This is the function that will evolve the intrinsic volumes.
+-- It is done at the start of each turn, and also when buying
+-- selling a good in the harbor (unless the player is dutch).
 --
 -- This function appears to reproduces the OG's numbers *exact-
 -- ly*, despite the complex behaviors of the prices, and is thus
 -- quite astonishing.
-local function evolve_euro_volume( group, good )
-  local r = group.euro_volumes[good]
+local function evolve_intrinsic_volume( group, good )
+  local r = group.intrinsic_volumes[good]
   -- The original game basically seems to ignore the traded
   -- volume in all cases if it is negative (meaning that more of
   -- the good has been bought than sold).
   local vol = max( group.traded_volumes[good], 0 )
 
   -- The OG evolves the volumes each turn by multiplying the
-  -- total volume (euro + traded) by .99. That said, it never
-  -- modifies the traded volumes, and so the evolution of total
-  -- volume is only reflected in the euro volume. Hence why we
-  -- add in the traded volume, then multiply by .99, then remove
-  -- it again.
+  -- total volume (intrinsic + traded) by .99. That said, it
+  -- never modifies the traded volumes, and so the evolution of
+  -- total volume is only reflected in the intrinsic volume.
+  -- Hence why we add in the traded volume, then multiply by .99,
+  -- then remove it again.
   --
   -- Although the OG likely wanted to scale r down by 1%, it
   -- likely uses a fixed point representation with 8 decimal
@@ -173,26 +173,26 @@ local function evolve_euro_volume( group, good )
   -- empirical data exactly. Not sure if the OG explicitly does
   -- this or if it some kind of artifact of the way it does
   -- floating point math. One possibility is that adding this
-  -- bias will prevent the euro volumes from drifting all the way
-  -- to zero, which would not be good because this model does not
-  -- behave well when they hit zero.
+  -- bias will prevent the intrinsic volumes from drifting all
+  -- the way to zero, which would not be good because this model
+  -- does not behave well when they hit zero.
   r = ((r + vol + .5) * .9921875) - vol
 
-  -- The original game represents the euro volumes as integers,
-  -- and so to simulate that we need to round the euro volume
-  -- after every evolution step.
-  group.euro_volumes[good] = round( r )
+  -- The original game represents the intrinsic volumes as inte-
+  -- gers, and so to simulate that we need to round the intrinsic
+  -- volume after every evolution step.
+  group.intrinsic_volumes[good] = round( r )
 end
 
-local function evolve_euro_volumes( group )
+local function evolve_intrinsic_volumes( group )
   group:on_all( function( good )
-    evolve_euro_volume( group, good )
+    evolve_intrinsic_volume( group, good )
   end )
 end
 
 function PriceGroup:evolve()
   local eqs = self:equilibrium_prices()
-  evolve_euro_volumes( self )
+  evolve_intrinsic_volumes( self )
 end
 
 -- The sign of `quantity` should represent the change in net
@@ -203,18 +203,9 @@ local function transaction( group, good, quantity )
   if group.traded_volumes[good] >= 0 then
     -- This is one of the benefits that the Dutch get.
     if not group.config.dutch then
-      evolve_euro_volumes( group )
+      evolve_intrinsic_volumes( group )
     end
   end
-  -- The only place that the volatility and fall should be used
-  -- is together in this manner.
-  -- local volatility_push = -(quantity / 100) *
-  --                             (1 << group.config.volatility) /
-  --                             group.config.rise_fall
-  -- local eq_push = price_eq_push( group, good,
-  --                                group:equilibrium_prices()[good] )
-  -- local net_push = eq_push + volatility_push
-  -- net_push = clamp( net_push, -1, 1 )
 end
 
 function PriceGroup:buy( good, quantity )
@@ -230,11 +221,12 @@ local function new_price_group( config )
   local o = setmetatable( {}, PriceGroup )
   o.config = config
 
-  o.euro_volumes = {}
+  o.intrinsic_volumes = {}
   o.traded_volumes = {}
   o.prices = {}
   o:on_all( function( good )
-    o.euro_volumes[good] = o.config.starting_euro_volumes[good]
+    o.intrinsic_volumes[good] = o.config
+                                    .starting_intrinsic_volumes[good]
     o.prices[good] = 0
     o.traded_volumes[good] = 0
   end )
@@ -249,14 +241,14 @@ end
 -----------------------------------------------------------------
 -- Public API
 -----------------------------------------------------------------
--- This will generate a random starting euro volume for one of
--- the processed goods (rum, cigars, cloth, coats). It will
+-- This will generate a random starting intrinsic volume for one
+-- of the processed goods (rum, cigars, cloth, coats). It will
 -- choice based on a uniform distribution over a certain window,
 -- and, because of the algorithm used in this model for trans-
 -- lating volumes to prices, this will lead to the characteristic
 -- "skewed hill" distribution that governs the starting prices in
 -- the OG.
-function M.generate_random_euro_volume( config )
+function M.generate_random_intrinsic_volume( config )
   local bottom = config.center - config.window / 2
   return math.floor( math.random() * config.window + bottom )
 end

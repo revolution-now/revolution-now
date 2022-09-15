@@ -30,13 +30,10 @@ local function default_price_group_config()
   return {
     names={ 'rum', 'cigars', 'cloth', 'coats' },
     dutch=false,
-    starting_euro_volumes=nil,
+    starting_intrinsic_volumes=nil,
     starting_traded_volumes=nil, -- zeroes.
     min=1,
     max=20,
-    rise_fall=4,
-    volatility=1,
-    bid_ask_spread=1,
     target_price=12
   }
 end
@@ -68,7 +65,7 @@ local function assert_price( step_idx, good, eq_prices, expect_eq )
                      expect_eq[good] ) )
 end
 
-local function assert_volume(step_idx, good, euro_volumes,
+local function assert_volume(step_idx, good, intrinsic_volumes,
                              expect_vol )
   expect_vol = expect_vol[good]
   -- The volume will be in the form 0xNNNN, i.e. a signed 16 bit
@@ -77,10 +74,10 @@ local function assert_volume(step_idx, good, euro_volumes,
   -- since they could be negative, we need to transform them back
   -- to what Lua understands.
   if expect_vol >= 0x8000 then expect_vol = expect_vol - 0x10000 end
-  ASSERT_EQ( euro_volumes[good], expect_vol,
-             format( 'euro volume for commodity %s at ' ..
+  ASSERT_EQ( intrinsic_volumes[good], expect_vol,
+             format( 'intrinsic volume for commodity %s at ' ..
                          'step %d. actual=%f, expect_vol=%f.',
-                     good, step_idx, euro_volumes[good],
+                     good, step_idx, intrinsic_volumes[good],
                      expect_vol ) )
 end
 
@@ -103,8 +100,8 @@ end
 
 local function run_scenario( scenario )
   local pg_config = default_price_group_config()
-  pg_config.starting_euro_volumes =
-      scenario.starting_euro_volumes
+  pg_config.starting_intrinsic_volumes =
+      scenario.starting_intrinsic_volumes
   pg_config.starting_traded_volumes =
       scenario.starting_traded_volumes
 
@@ -127,14 +124,14 @@ local function run_scenario( scenario )
     assert_price( final_step, 'cigars', eq_prices, step.expect_eq )
     assert_price( final_step, 'cloth', eq_prices, step.expect_eq )
     assert_price( final_step, 'coats', eq_prices, step.expect_eq )
-    local euro_volumes = group.euro_volumes
-    assert_volume( final_step, 'rum', euro_volumes,
+    local intrinsic_volumes = group.intrinsic_volumes
+    assert_volume( final_step, 'rum', intrinsic_volumes,
                    step.expect_vol )
-    assert_volume( final_step, 'cigars', euro_volumes,
+    assert_volume( final_step, 'cigars', intrinsic_volumes,
                    step.expect_vol )
-    assert_volume( final_step, 'cloth', euro_volumes,
+    assert_volume( final_step, 'cloth', intrinsic_volumes,
                    step.expect_vol )
-    assert_volume( final_step, 'coats', euro_volumes,
+    assert_volume( final_step, 'coats', intrinsic_volumes,
                    step.expect_vol )
   end
 end
@@ -146,7 +143,7 @@ function Test.eq_prices_scenario_0()
   local STARTING_11_10_14_9_plus_30_new_ships =
       { rum=0x0295, cigars=0x02b2, cloth=0x0214, coats=0x0324 }
   run_scenario{
-    starting_euro_volumes=STARTING_11_10_14_9_plus_30_new_ships,
+    starting_intrinsic_volumes=STARTING_11_10_14_9_plus_30_new_ships,
     steps={
       {
         action={ count=30, type='sell_all', what=nil },
@@ -169,7 +166,7 @@ function Test.eq_prices_scenario_1()
       { rum=0x0295, cigars=0x02b2, cloth=0x0214, coats=0x0324 }
 
   run_scenario{
-    starting_euro_volumes=STARTING_11_10_14_9_plus_more_cotton,
+    starting_intrinsic_volumes=STARTING_11_10_14_9_plus_more_cotton,
     steps={
       {
         action={ count=28, type='sell', what='cloth' },
@@ -196,7 +193,7 @@ end
 
 function Test.eq_prices_scenario_2()
   run_scenario{
-    starting_euro_volumes=STARTING_11_10_14_9,
+    starting_intrinsic_volumes=STARTING_11_10_14_9,
     steps={
       {
         action={ count=18, type='sell', what='cigars' },
@@ -241,7 +238,7 @@ end
 
 function Test.eq_prices_scenario_3()
   run_scenario{
-    starting_euro_volumes=STARTING_11_10_14_9,
+    starting_intrinsic_volumes=STARTING_11_10_14_9,
     steps={
       {
         action={ count=6, type='sell', what='rum' },
@@ -304,7 +301,7 @@ end
 
 function Test.eq_prices_scenario_4()
   run_scenario{
-    starting_euro_volumes=STARTING_11_10_14_9,
+    starting_intrinsic_volumes=STARTING_11_10_14_9,
     steps={
       {
         action={ count=6, type='sell', what='cloth' },
@@ -385,7 +382,7 @@ end
 
 function Test.eq_prices_scenario_5()
   run_scenario{
-    starting_euro_volumes=STARTING_12_9_14_8,
+    starting_intrinsic_volumes=STARTING_12_9_14_8,
     steps={
       {
         action={ count=6, type='sell', what='cigars' },
@@ -433,7 +430,7 @@ end
 function Test.eq_prices_all_zeros()
   local pg_config = default_price_group_config()
   local starting = { rum=0, cigars=0, cloth=0, coats=0 }
-  pg_config.starting_euro_volumes = starting
+  pg_config.starting_intrinsic_volumes = starting
   local group = PriceGroup( pg_config )
   local eq_prices = group:equilibrium_prices()
   ASSERT_EQ( eq_prices.rum, 20, 'equilibrium price of rum' )
