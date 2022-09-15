@@ -233,7 +233,7 @@ local function init_processed_goods_prices( options, players )
       local player = players:get( nation )
       local c = player.old_world.market.commodities[comm]
       c.bid_price = eq_prices[comm]
-      c.intrinsic_volume = group.euro_volumes[comm]
+      c.intrinsic_volume = group.intrinsic_volumes[comm]
     end
   end )
 end
