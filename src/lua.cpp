@@ -38,34 +38,44 @@ namespace rn {
 
 namespace {
 
-lua::table require( lua::state&   st,
-                    string const& unsanitized_name ) {
-  lua::table ext  = lua::table::create_or_get( st["ext"] );
-  string     name = base::str_replace_all( unsanitized_name,
-                                           { { "-", "_" } } );
-  lg.debug( "requiring lua module \"{}\".", name );
-  if( ext[name] != lua::nil ) {
-    LUA_CHECK( st, ext[name] != "loading",
+fs::path module_name_to_file_name( string const& m ) {
+  string const with_slashes =
+      base::str_replace_all( m, { { ".", "/" } } );
+  fs::path const file_name = "src/lua/" + with_slashes + ".lua";
+  return file_name;
+}
+
+lua::table require( lua::state& st, string const& required ) {
+  string const key = base::str_replace_all(
+      required, { { "-", "_" }, { "/", "." } } );
+  lg.debug( "requiring lua module \"{}\".", key );
+  lua::table modules =
+      lua::table::create_or_get( st["__modules"] );
+  if( modules[key] != lua::nil ) {
+    LUA_CHECK( st, modules[key] != "loading",
                "cyclic dependency detected." )
-    return ext[name].as<lua::table>();
+    return modules[key].as<lua::table>();
   }
-  lg.info( "loading lua module \"{}\".", name );
-  // Set the module to something while we're loading in order to
-  // detect and break cyclic dependencies.
-  ext[name]           = "loading";
-  string with_slashes = base::str_replace_all(
-      unsanitized_name, { { ".", "/" } } );
-  fs::path file_name = "src/lua/" + with_slashes + ".lua";
+  // The module has not already been loaded.
+  lg.info( "loading lua module \"{}\".", key );
+  fs::path const file_name =
+      module_name_to_file_name( required );
   LUA_CHECK( st, fs::exists( file_name ),
              "file {} does not exist.", file_name );
-  lua::table module_table =
+  // Set the module to something while we're loading in order to
+  // detect and break cyclic dependencies.
+  modules[key] = "loading";
+  lua::table const module_table =
       st.script.run_file<lua::table>( file_name.string() );
-  ext[name] = module_table;
-  // In case the symbol already exists we will assume that it is
-  // a table and merge its contents into this one.
-  auto old_table = lua::table::create_or_get( st[name] );
-  st[name]       = module_table;
-  for( auto [k, v] : old_table ) st[name][k] = v;
+  modules[key] = module_table;
+  // Create nested tables to hold the module.
+  vector<string> const components = base::str_split( key, '.' );
+  CHECK_GE( int( components.size() ), 1 );
+  lua::table curr = st.table.global();
+  for( string const& component : components )
+    curr = lua::table::create_or_get( curr[component] );
+  // If the table already exists then merge int the new symbols.
+  for( auto [k, v] : module_table ) curr[k] = v;
   return module_table;
 }
 

@@ -133,7 +133,15 @@ TEST_CASE( "[terminal] autocomplete" ) {
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "map_gen";
-  out = { "map_gen", "map_gen.classic.resource_dist" };
+  out = { "map_gen." };
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "map_gen.cl";
+  out = { "map_gen.classic" };
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "map_gen.classic";
+  out = { "map_gen.classic." };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "map_gen.nation_xxx";
@@ -251,7 +259,11 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "map_g";
-  out = { "map_gen" };
+  out = { "map_gen." };
+  REQUIRE_THAT( ac_i( in ), Contains( out ) );
+
+  in  = "map_gen.cl";
+  out = { "map_gen.classic.resource_dist.compute_" };
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
   in  = "map_gen.ge";
