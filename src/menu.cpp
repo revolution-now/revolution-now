@@ -66,8 +66,6 @@ struct Menu {
   string name;
   bool   right_side;
   char   shortcut;
-
-  bool operator==( Menu const& ) const = default;
 };
 
 refl::enum_map<e_menu, Menu> const g_menus{
