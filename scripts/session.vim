@@ -9,9 +9,9 @@
 let s:stems = [
  \ 'ss/market',
  \ 'config/market',
+ \ 'price-group',
  \ 'market',
  \ 'harbor-view-market',
- \ 'price-group',
 \]
 
 let s:luas = [
