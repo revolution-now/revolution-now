@@ -71,6 +71,8 @@ TEST_CASE( "[market] market_price" ) {
            CommodityPrice{ .bid = 3, .ask = 4 } );
 }
 
+TEST_CASE( "[market] ask_from_bid" ) {}
+
 TEST_CASE( "[market] transaction_invoice" ) {
   World W;
   // TODO
@@ -78,6 +80,10 @@ TEST_CASE( "[market] transaction_invoice" ) {
 
 TEST_CASE( "[market] apply_invoice" ) {
   World W;
+  // TODO
+}
+
+TEST_CASE( "[market] display_price_change_notification" ) {
   // TODO
 }
 

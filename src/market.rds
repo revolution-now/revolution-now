@@ -43,5 +43,9 @@ struct.Invoice {
   # introduced by a price change (default model).
   intrinsic_volume_delta 'refl::enum_map<e_nation, int>',
 
+  # This is used by the price group model, which uses only the
+  # global intrinsic volumes (shared by all players).
+  global_intrinsic_volume_deltas 'refl::enum_map<e_commodity, int>',
+
   price_change 'int',
 }
