@@ -45,6 +45,7 @@ namespace refl {
 // enum elements because the backing container is ordered.
 template<refl::ReflectedEnum Enum, typename ValT>
 struct enum_map : public std::vector<std::pair<Enum, ValT>> {
+  static_assert( std::is_default_constructible_v<ValT> );
   using base = std::vector<std::pair<Enum, ValT>>;
 
   static constexpr int kSize = refl::enum_count<Enum>;
@@ -63,8 +64,13 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
     // At this point the backing container has the correct size
     // and all of its values are default constructed, but we
     // still need to initialize the keys.
-    for( Enum e : refl::enum_values<Enum> )
-      this->as_base()[static_cast<size_t>( e )].first = e;
+    for( Enum e : refl::enum_values<Enum> ) {
+      auto& p = this->as_base()[static_cast<size_t>( e )];
+      p.first = e;
+      if constexpr( std::equality_comparable<ValT> ) {
+        DCHECK( p.second == ValT{} );
+      }
+    }
     // Now insert any values that were provided.
     for( auto& [e, val] : b ) ( *this )[e] = std::move( val );
   }
