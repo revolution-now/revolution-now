@@ -13,9 +13,7 @@ local M = {}
 
 local U = require( 'test.unit' )
 
-local files = {
-  'map-gen.classic.resource-dist', 'prices.price-group'
-}
+local files = { 'map-gen.classic.resource-dist' }
 
 local function bar()
   print( '-----------------------------------------------' )

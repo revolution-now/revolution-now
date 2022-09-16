@@ -117,17 +117,20 @@ MockIRand& World::rand() {
 namespace {
 
 // We need this because we can't (yet?) do aggregate initializa-
-// tion for an object on the heap.
-TS make_ts( World& world ) {
-  return TS( world.map_updater(), world.lua(), world.gui(),
-             world.rand() );
+// tion for an object on the heap. We have to use new and return
+// a pointer because the TS objects are not relocatable, since
+// they currently store a reference to themselves in the lua
+// state (please FIXME).
+TS* make_ts( World& world ) {
+  return new TS( world.map_updater(), world.lua(), world.gui(),
+                 world.rand() );
 }
 
 }
 
 TS& World::ts() {
   if( uninitialized_ts_ == nullptr )
-    uninitialized_ts_ = make_unique<TS>( make_ts( *this ) );
+    uninitialized_ts_ = unique_ptr<TS>( make_ts( *this ) );
   return *uninitialized_ts_;
 }
 

@@ -14,7 +14,24 @@
 
 // Revolution Now
 #include "irand.hpp"
+#include "logger.hpp"
 #include "ts.hpp"
+
+// config
+#include "config/market.rds.hpp"
+
+// luapp
+#include "luapp/as.hpp"
+#include "luapp/enum.hpp"
+#include "luapp/ext-base.hpp"
+#include "luapp/register.hpp"
+#include "luapp/state.hpp"
+
+// refl
+#include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
 
 using namespace std;
 
@@ -31,17 +48,25 @@ int sum_values(
 
 } // namespace
 
+void linker_dont_discard_module_price_group();
+void linker_dont_discard_module_price_group() {}
+
 /****************************************************************
 ** ProcessedGoodsPriceGroup
 *****************************************************************/
+void to_str( ProcessedGoodsPriceGroup const& o, string& out,
+             base::ADL_t ) {
+  out += fmt::format(
+      "ProcessedGoodsPriceGroup{{config={},intrinsic_volumes={},"
+      "traded_volumes={}}}",
+      o.config_, o.intrinsic_volumes_, o.traded_volumes_ );
+}
+
 ProcessedGoodsPriceGroup::ProcessedGoodsPriceGroup(
-    SS& ss, Player& player,
     ProcessedGoodsPriceGroupConfig const& config )
   : config_( config ),
     intrinsic_volumes_( config.starting_intrinsic_volumes ),
-    traded_volumes_( config.starting_traded_volumes ),
-    ss_( ss ),
-    player_( player ) {}
+    traded_volumes_( config.starting_traded_volumes ) {}
 
 // The sign of `quantity` should represent the change in net
 // volume in europe.
@@ -126,7 +151,7 @@ ProcessedGoodsPriceGroup::equilibrium_prices() {
     total_volumes[good] = intrinsic_volumes_[good] +
                           std::max( traded_volumes_[good], 0 );
   double const avg_total_volume =
-      sum_values( total_volumes ) /
+      double( sum_values( total_volumes ) ) /
       refl::enum_count<e_processed_good>;
   for( e_processed_good good :
        refl::enum_values<e_processed_good> ) {
@@ -139,7 +164,15 @@ ProcessedGoodsPriceGroup::equilibrium_prices() {
     // nan can happen if both the numerator and denominator in
     // the above are both zero, which is not expected to happen
     // in normal game play, but just in case let's handle it.
-    if( isnan( floating_res ) ) floating_res = 0;
+    if( isnan( floating_res ) ) {
+      floating_res = 1;
+      lg.warn( "nan encountered in price group model." );
+    }
+    if( isinf( floating_res ) ) {
+      // This can happen if the normalized_volume is zero.
+      res[good] = config_.max;
+      continue;
+    }
     // The original game seems to use floor here and not round,
     // and it makes a difference.
     res[good] = static_cast<int>( floor( floating_res ) );
@@ -206,4 +239,80 @@ int generate_random_intrinsic_volume( TS& ts, int center,
       ts.rand.between_doubles( 0.0, 1.0 ) * window + bottom ) );
 }
 
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_STARTUP( lua::state& st ) {
+  {
+    using U = ::rn::ProcessedGoodsPriceGroup;
+    auto u  = st.usertype.create<U>();
+
+    lua::table pg_tbl =
+        lua::table::create_or_get( st["price_group"] );
+
+    lua::table pg_constructor = lua::table::create_or_get(
+        pg_tbl["ProcessedGoodsPriceGroup"] );
+
+    pg_constructor["new_with_random_volumes"] =
+        []( lua::table t ) {
+          lua::state  st = lua::state::view( t.this_cthread() );
+          auto const& model_params =
+              config_market.processed_goods_model;
+          ProcessedGoodsPriceGroupConfig config{
+              .dutch                      = false,
+              .starting_intrinsic_volumes = {},
+              .starting_traded_volumes    = {},
+              .min          = model_params.bid_price_min + 1,
+              .max          = model_params.bid_price_max + 1,
+              .target_price = model_params.target_price };
+          CHECK( lua::safe_as<TS&>( st["TS"] ) );
+          TS& ts = st["TS"].as<TS&>();
+          for( e_processed_good good :
+               refl::enum_values<e_processed_good> )
+            config.starting_intrinsic_volumes[good] =
+                generate_random_intrinsic_volume(
+                    ts, model_params.random_init_center,
+                    model_params.random_init_window );
+          return ProcessedGoodsPriceGroup( config );
+        };
+
+    pg_constructor["new_with_zero_volumes"] = [] {
+      auto const& model_params =
+          config_market.processed_goods_model;
+      ProcessedGoodsPriceGroupConfig config{
+          .dutch                      = false,
+          .starting_intrinsic_volumes = {},
+          .starting_traded_volumes    = {},
+          .min          = model_params.bid_price_min + 1,
+          .max          = model_params.bid_price_max + 1,
+          .target_price = model_params.target_price };
+      return ProcessedGoodsPriceGroup( config );
+    };
+
+    u["equilibrium_prices"] =
+        [&]( ProcessedGoodsPriceGroup& group ) {
+          lua::table res       = st.table.create();
+          auto       eq_prices = group.equilibrium_prices();
+          res["rum"]    = eq_prices[e_processed_good::rum];
+          res["cigars"] = eq_prices[e_processed_good::cigars];
+          res["cloth"]  = eq_prices[e_processed_good::cloth];
+          res["coats"]  = eq_prices[e_processed_good::coats];
+          return res;
+        };
+
+    u["intrinsic_volume"] = []( ProcessedGoodsPriceGroup& group,
+                                e_processed_good good ) -> int {
+      return group.intrinsic_volumes()[good];
+    };
+
+    u["traded_volumes"] = []( ProcessedGoodsPriceGroup& group,
+                              e_processed_good good ) -> int {
+      return group.traded_volumes()[good];
+    };
+  };
+};
+
+} // namespace
 } // namespace rn

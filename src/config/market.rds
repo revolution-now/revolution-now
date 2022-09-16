@@ -62,6 +62,12 @@ struct.PriceGroup {
   volatility    'int',
   target_price  'int',
 
+  # These define the interval overwhich the initial intrinsic
+  # volumes are chosen for these commodities at the start of a
+  # game.
+  random_init_center 'int',
+  random_init_window 'int',
+
   _features { validation, equality },
 }
 

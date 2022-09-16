@@ -12,7 +12,6 @@
 local M = {}
 
 local map_gen = require( 'map-gen' )
-local processed_goods = require( 'prices.processed-goods' )
 
 -----------------------------------------------------------------
 -- Options
@@ -226,9 +225,10 @@ local function init_processed_goods_prices(options, players, root )
   -- initialize the starting volumes in the correct way and allow
   -- us to get the initial prices. Then we assign those same
   -- prices to all players.
-  local group = processed_goods.ProcessedGoodsPriceGroup()
+  local group = price_group.ProcessedGoodsPriceGroup
+                    .new_with_random_volumes( {} )
   local eq_prices = group:equilibrium_prices()
-  group:on_all( function( comm )
+  for _, comm in ipairs{ 'rum', 'cigars', 'cloth', 'coats' } do
     for nation, tbl in pairs( options.nations ) do
       local player = players:get( nation )
       local c = player.old_world.market.commodities[comm]
@@ -236,8 +236,8 @@ local function init_processed_goods_prices(options, players, root )
       c.intrinsic_volume = 0 -- not used.
     end
     root.players.global_market_state.commodities[comm]
-        .intrinsic_volume = group.intrinsic_volumes[comm]
-  end )
+        .intrinsic_volume = group:intrinsic_volume( comm )
+  end
 end
 
 -- This needs to be done for all players together, since all of

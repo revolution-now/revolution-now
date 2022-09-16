@@ -17,10 +17,11 @@
 // Rds
 #include "price-group.rds.hpp"
 
+// luapp
+#include "luapp/ext-userdata.hpp"
+
 namespace rn {
 
-struct Player;
-struct SS;
 struct TS;
 
 /****************************************************************
@@ -28,7 +29,6 @@ struct TS;
 *****************************************************************/
 struct ProcessedGoodsPriceGroup {
   ProcessedGoodsPriceGroup(
-      SS& ss, Player& player,
       ProcessedGoodsPriceGroupConfig const& config );
 
   // Player buys.
@@ -41,6 +41,19 @@ struct ProcessedGoodsPriceGroup {
 
   void evolve();
 
+  refl::enum_map<e_processed_good, int> const&
+  intrinsic_volumes() const {
+    return intrinsic_volumes_;
+  }
+
+  refl::enum_map<e_processed_good, int> const& traded_volumes()
+      const {
+    return traded_volumes_;
+  }
+
+  friend void to_str( ProcessedGoodsPriceGroup const& o,
+                      std::string& out, base::ADL_t );
+
  private:
   void transaction( e_processed_good good, int quantity );
 
@@ -49,8 +62,6 @@ struct ProcessedGoodsPriceGroup {
   ProcessedGoodsPriceGroupConfig const  config_;
   refl::enum_map<e_processed_good, int> intrinsic_volumes_;
   refl::enum_map<e_processed_good, int> traded_volumes_;
-  SS&                                   ss_;
-  Player&                               player_;
 };
 
 /****************************************************************
@@ -60,3 +71,13 @@ int generate_random_intrinsic_volume( TS& ts, int center,
                                       int window );
 
 } // namespace rn
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace lua {
+
+LUA_USERDATA_TRAITS( ::rn::ProcessedGoodsPriceGroup,
+                     owned_by_lua ){};
+
+} // namespace lua

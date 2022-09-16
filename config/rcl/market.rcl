@@ -409,4 +409,21 @@ processed_goods_model {
   rise_fall:     4
   volatility:    1
   target_price:  12
+
+  # Since the commodities in a price group don't store their
+  # equilibrium prices in the model (instead they have an in-
+  # trinsic volume from which those are derived), the way that we
+  # randomly set the processed goods' prices at the start of the
+  # game is by randomly selecting the intrinsic volumes. These
+  # will be selected through a uniform distribution over the
+  # window dictated by the two parameters below. The "center" is
+  # the center of the possible range, and the "window" is the
+  # lengh of the range (which straddles the center). Note that
+  # choosing uniformly over this interval reproduces the behavior
+  # observed from the original game where the initial prices of
+  # these commodities seems to follow something that looks like a
+  # skewed binomial distribution with a center at around 11 and
+  # which drops nearly to zero at around 8 and 15.
+  random_init_center: 600
+  random_init_window: 350
 }
