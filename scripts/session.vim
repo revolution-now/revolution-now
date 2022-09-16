@@ -11,6 +11,7 @@ let s:stems = [
  \ 'config/market',
  \ 'market',
  \ 'harbor-view-market',
+ \ 'price-group',
 \]
 
 let s:luas = [
