@@ -221,7 +221,7 @@ local function init_non_processed_goods_prices( options, players )
   init_commodity( 'muskets' )
 end
 
-local function init_processed_goods_prices( options, players )
+local function init_processed_goods_prices(options, players, root )
   -- This will create a price group object which will randomly
   -- initialize the starting volumes in the correct way and allow
   -- us to get the initial prices. Then we assign those same
@@ -233,8 +233,10 @@ local function init_processed_goods_prices( options, players )
       local player = players:get( nation )
       local c = player.old_world.market.commodities[comm]
       c.bid_price = eq_prices[comm]
-      c.intrinsic_volume = group.intrinsic_volumes[comm]
+      c.intrinsic_volume = 0 -- not used.
     end
+    root.players.global_market_state.commodities[comm]
+        .intrinsic_volume = group.intrinsic_volumes[comm]
   end )
 end
 
@@ -243,7 +245,7 @@ end
 local function init_prices( options, root )
   local players = root.players.players
   init_non_processed_goods_prices( options, players )
-  init_processed_goods_prices( options, players )
+  init_processed_goods_prices( options, players, root )
 end
 
 local STARTING_GOLD = {
@@ -311,14 +313,17 @@ function M.create( options )
 
   set_default_settings( options, root.settings )
 
+  create_turn_state( root.turn )
+
+  create_nations( options, root )
+
+  -- Do this as late as possible because it's slow and we want to
+  -- catch errors in the other parts of the process as quickly as
+  -- possible.
   map_gen.generate( options.map )
 
   local world_size = root.terrain:size()
   root.land_view.viewport:set_world_size_tiles( world_size )
-
-  create_turn_state( root.turn )
-
-  create_nations( options, root )
 
   if options.map.type == 'battlefield' then
     create_battlefield_units( options, root )
