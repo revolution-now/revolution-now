@@ -184,15 +184,10 @@ local function evolve_intrinsic_volume( group, good )
   group.intrinsic_volumes[good] = round( r )
 end
 
-local function evolve_intrinsic_volumes( group )
-  group:on_all( function( good )
-    evolve_intrinsic_volume( group, good )
-  end )
-end
-
 function PriceGroup:evolve()
-  local eqs = self:equilibrium_prices()
-  evolve_intrinsic_volumes( self )
+  self:on_all( function( good )
+    evolve_intrinsic_volume( self, good )
+  end )
 end
 
 -- The sign of `quantity` should represent the change in net
@@ -202,9 +197,7 @@ local function transaction( group, good, quantity )
                                    quantity
   if group.traded_volumes[good] >= 0 then
     -- This is one of the benefits that the Dutch get.
-    if not group.config.dutch then
-      evolve_intrinsic_volumes( group )
-    end
+    if not group.config.dutch then group:evolve() end
   end
 end
 

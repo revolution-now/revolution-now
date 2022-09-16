@@ -1,0 +1,46 @@
+# ===============================================================
+# price-group.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-09-16.
+#
+# Description: Rds definitions for the price-group module.
+#
+# ===============================================================
+# refl
+include "refl/enum-map.hpp"
+
+namespace "rn"
+
+enum.e_processed_good {
+  rum,
+  cigars,
+  cloth,
+  coats
+}
+
+struct.ProcessedGoodsPriceGroupConfig {
+  dutch 'bool',
+
+  # These would correspond to the player-shared (global) in-
+  # trinsic volumes.
+  starting_intrinsic_volumes 'refl::enum_map<e_processed_good, int>',
+
+  # Sum of all the player-traded volume across all players for
+  # each commodity.
+  starting_traded_volumes 'refl::enum_map<e_processed_good, int>',
+
+  # Min ask price allowed.
+  min 'int',
+
+  # Max ask price allowed.
+  max 'int',
+
+  # Target ask price that should be used when constructing the
+  # target average with which to normalize the inverse price
+  # ratios in the model. This roughly determines the price that
+  # the average ask price of the four goods tends to hover
+  # around.
+  target_price 'int',
+}
