@@ -61,6 +61,8 @@ local Layout = {
 }
 
 function M.open( layout )
+  -- FIXME: find out how to detect when we don't need to create a
+  -- new tab, i.e. when we are opening the first one.
   win.tab()
   Layout:dispatch( layout )
 end

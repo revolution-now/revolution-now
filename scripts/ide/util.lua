@@ -57,7 +57,7 @@ end )
 -- Returns a function that will call the named vim command with a
 -- string-formatted argument, which will be formatted into a
 -- single string and given as the first argument to the command.
-function M.fmt_func_with_file_arg( vim_name )
+function M.fmt_func_with_arg( vim_name )
   return M.formattable( function( file )
     if file == nil then
       vim.cmd( 'silent ' .. vim_name )

@@ -13,12 +13,8 @@ local module_cpp = require( 'ide.module-cpp' )
 -----------------------------------------------------------------
 -- Aliases.
 -----------------------------------------------------------------
-local call = vim.call
 local keymap = vim.keymap
 local format = string.format
-local match = string.match
-local exists = util.exists
-local map = util.map
 
 -----------------------------------------------------------------
 -- Layout Functions.
@@ -31,13 +27,12 @@ local module_types = {
 
 -- This will increase the cmd height each time we log something
 -- in order to avoid getting 'Press ENTER to continue...'.
-local function cmdlog( fmt, ... )
+local function log( fmt, ... )
   vim.o.cmdheight = vim.o.cmdheight + 1
   print( format( fmt, ... ) )
 end
 
 local function open_module( stem )
-  cmdlog( '  - %s', stem )
   for _, module_type in ipairs( module_types ) do
     if module_type.matches( stem ) then
       return module_type.open( stem )
@@ -53,14 +48,11 @@ local function open_module_with_input()
 end
 
 local function create_tabs()
-  cmdlog( 'opening modules...' )
-  map( open_module, contents.stems )
-
-  vim.cmd[[tabdo set cmdheight=1]]
-  vim.cmd[[tabdo wincmd =]]
-
-  -- When nvim supports it.
-  -- vim.cmd[[tabdo set cmdheight=0]]
+  log( 'opening modules...' )
+  for _, stem in ipairs( contents.stems ) do
+    log( '  - %s', stem )
+    open_module( stem )
+  end
 end
 
 -----------------------------------------------------------------
@@ -87,6 +79,12 @@ function M.main()
 
   -- Creates all of the tabs/splits.
   create_tabs()
+
+  -- In case anyone changed it.
+  vim.cmd[[tabdo set cmdheight=1]]
+  vim.cmd[[tabdo wincmd =]]
+  -- When nvim supports it.
+  -- vim.cmd[[tabdo set cmdheight=0]]
 end
 
 return M
