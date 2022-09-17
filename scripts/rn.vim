@@ -25,24 +25,6 @@ au BufNewFile,BufRead *.jsav set syntax=yaml
 au BufNewFile,BufRead *.rds set filetype=rds
 au BufNewFile,BufRead *.rcl set syntax=yaml
 
-"function! CloseTerminal()
-"		let s:term_buf_name = bufname( "*bin/fish*" )
-"    if s:term_buf_name != ""
-"        let bnr = bufwinnr( s:term_buf_name )
-"        if bnr > 0
-"            :exe bnr . "wincmd w"
-"            call feedkeys( "\<C-D>" )
-"        endif
-"    endif
-"endfunction
-
-"function CloseTerminal()
-"  call feedkeys( ":tabn 1\<CR>\<C-W>\<C-T>\<C-W>l\<C-W>l\<C-D>\<C-W>\<C-T>" )
-"  call feedkeys( ":qa\<CR>" )
-"endfunction
-
-"nnoremap Q :call CloseTerminal()<CR>
-
 function! MyTabLine()
   let s = ''
   for i in range(tabpagenr('$'))

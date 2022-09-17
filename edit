@@ -1,2 +1,2 @@
 #!/bin/sh
-vim -S scripts/session.vim
+nvim -S scripts/run-ide.lua
