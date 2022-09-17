@@ -49,9 +49,6 @@ int sum_values( PGMap const& m ) {
 
 } // namespace
 
-void linker_dont_discard_module_price_group();
-void linker_dont_discard_module_price_group() {}
-
 /****************************************************************
 ** e_processed_good
 *****************************************************************/
