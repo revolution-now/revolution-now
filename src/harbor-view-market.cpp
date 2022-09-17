@@ -132,7 +132,7 @@ HarborMarketCommodities::source_check(
   // TODO: check for boycotts.
 
   Invoice const invoice = transaction_invoice(
-      ss_, ts_, player_, comm, e_transaction::buy );
+      ss_, player_, comm, e_transaction::buy );
   CHECK_LE( invoice.money_delta_final, 0 );
   if( -invoice.money_delta_final > player_.money )
     co_return DragRejection{
@@ -149,7 +149,7 @@ wait<> HarborMarketCommodities::disown_dragged_object() {
   // The player is buying. Here we are officially releasing the
   // goods from the market, and so we must charge the player now.
   Invoice const invoice = transaction_invoice(
-      ss_, ts_, player_, comm, e_transaction::buy );
+      ss_, player_, comm, e_transaction::buy );
   apply_invoice( ss_, player_, invoice );
   if( invoice.price_change != 0 ) {
     // FIXME: this is not an ideal place to put this since the
@@ -194,7 +194,7 @@ wait<> HarborMarketCommodities::drop(
   // cepting the goods from the player, and so we must pay the
   // player now.
   Invoice const invoice = transaction_invoice(
-      ss_, ts_, player_, comm, e_transaction::sell );
+      ss_, player_, comm, e_transaction::sell );
   apply_invoice( ss_, player_, invoice );
   if( invoice.price_change != 0 ) {
     // FIXME: this is not an ideal place to put this since the

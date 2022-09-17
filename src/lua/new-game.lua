@@ -226,7 +226,7 @@ local function init_processed_goods_prices(options, players, root )
   -- us to get the initial prices. Then we assign those same
   -- prices to all players.
   local group = price_group.ProcessedGoodsPriceGroup
-                    .new_with_random_volumes( {} )
+                    .new_with_random_volumes()
   local eq_prices = group:equilibrium_prices()
   for _, comm in ipairs{ 'rum', 'cigars', 'cloth', 'coats' } do
     for nation, tbl in pairs( options.nations ) do

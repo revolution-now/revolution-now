@@ -13,6 +13,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "igui.hpp"
+#include "price-group.hpp"
 #include "ts.hpp"
 
 // config
@@ -148,7 +149,7 @@ Invoice transaction_invoice_default_model(
 }
 
 Invoice transaction_invoice_processed_group_model(
-    SSConst const& ss, TS& ts, Player const& player,
+    SSConst const& ss, Player const& player,
     Commodity transacted, e_transaction transaction_type ) {
   CHECK( is_in_processed_goods_price_group( transacted.type ) );
   CommodityPrice const prices =
@@ -195,93 +196,38 @@ Invoice transaction_invoice_processed_group_model(
     return sum;
   };
 
-  GlobalMarketItem const& global_rum_item =
-      ss.players.global_market_state
-          .commodities[e_commodity::rum];
-  GlobalMarketItem const& global_cigars_item =
-      ss.players.global_market_state
-          .commodities[e_commodity::cigars];
-  GlobalMarketItem const& global_cloth_item =
-      ss.players.global_market_state
-          .commodities[e_commodity::cloth];
-  GlobalMarketItem const& global_coats_item =
-      ss.players.global_market_state
-          .commodities[e_commodity::coats];
+  ProcessedGoodsPriceGroupConfig config =
+      default_processed_goods_price_group_config();
 
-  lua::state& st = ts.lua;
+  config.dutch = ( player.nation == e_nation::dutch );
 
-  lua::table config  = st.table.create();
-  config["names"]    = st.table.create();
-  config["names"][1] = "rum";
-  config["names"][2] = "cigars";
-  config["names"][3] = "cloth";
-  config["names"][4] = "coats";
-  config["dutch"]    = ( player.nation == e_nation::dutch );
-  config["starting_intrinsic_volumes"] = st.table.create();
-  config["starting_intrinsic_volumes"]["rum"] =
-      global_rum_item.intrinsic_volume;
-  config["starting_intrinsic_volumes"]["cigars"] =
-      global_cigars_item.intrinsic_volume;
-  config["starting_intrinsic_volumes"]["cloth"] =
-      global_cloth_item.intrinsic_volume;
-  config["starting_intrinsic_volumes"]["coats"] =
-      global_coats_item.intrinsic_volume;
-  config["starting_traded_volumes"] = st.table.create();
-  config["starting_traded_volumes"]["rum"] =
-      total_volume( e_commodity::rum );
-  config["starting_traded_volumes"]["cigars"] =
-      total_volume( e_commodity::cigars );
-  config["starting_traded_volumes"]["cloth"] =
-      total_volume( e_commodity::cloth );
-  config["starting_traded_volumes"]["coats"] =
-      total_volume( e_commodity::coats );
-  // FIXME: Assuming that all of them have the same spread.
-  config["min"] = ask_from_bid(
-      e_commodity::rum,
-      config_market.processed_goods_model.bid_price_min );
-  config["max"] = ask_from_bid(
-      e_commodity::rum,
-      config_market.processed_goods_model.bid_price_max );
-  config["target_price"] =
-      config_market.processed_goods_model.target_price;
-
-  UNWRAP_CHECK(
-      price_group_module,
-      st["require"].pcall<lua::table>( "prices.price-group" ) );
-  // Create price group object.
-  UNWRAP_CHECK(
-      group, price_group_module["PriceGroup"].pcall<lua::table>(
-                 config ) );
-  if( transaction_type == e_transaction::buy ) {
-    CHECK_HAS_VALUE( group["buy"].pcall(
-        group, fmt::to_string( transacted.type ),
-        transacted.quantity ) );
-  } else {
-    CHECK_HAS_VALUE( group["sell"].pcall(
-        group, fmt::to_string( transacted.type ),
-        transacted.quantity ) );
+  for( e_processed_good good :
+       refl::enum_values<e_processed_good> ) {
+    e_commodity const comm = to_commodity( good );
+    config.starting_intrinsic_volumes[good] =
+        ss.players.global_market_state.commodities[comm]
+            .intrinsic_volume;
+    config.starting_traded_volumes[good] = total_volume( comm );
   }
 
-  invoice.global_intrinsic_volume_deltas[e_commodity::rum] =
-      group["intrinsic_volumes"]["rum"].as<int>() -
-      ss.players.global_market_state
-          .commodities[e_commodity::rum]
-          .intrinsic_volume;
-  invoice.global_intrinsic_volume_deltas[e_commodity::cigars] =
-      group["intrinsic_volumes"]["cigars"].as<int>() -
-      ss.players.global_market_state
-          .commodities[e_commodity::cigars]
-          .intrinsic_volume;
-  invoice.global_intrinsic_volume_deltas[e_commodity::cloth] =
-      group["intrinsic_volumes"]["cloth"].as<int>() -
-      ss.players.global_market_state
-          .commodities[e_commodity::cloth]
-          .intrinsic_volume;
-  invoice.global_intrinsic_volume_deltas[e_commodity::coats] =
-      group["intrinsic_volumes"]["coats"].as<int>() -
-      ss.players.global_market_state
-          .commodities[e_commodity::coats]
-          .intrinsic_volume;
+  // Create price group object.
+  ProcessedGoodsPriceGroup group( config );
+
+  UNWRAP_CHECK( processed_type,
+                from_commodity( transacted.type ) );
+  if( transaction_type == e_transaction::buy )
+    group.buy( processed_type, transacted.quantity );
+  else
+    group.sell( processed_type, transacted.quantity );
+
+  for( e_processed_good good :
+       refl::enum_values<e_processed_good> ) {
+    e_commodity const comm = to_commodity( good );
+    invoice.global_intrinsic_volume_deltas[comm] =
+        group.intrinsic_volume( good ) -
+        ss.players.global_market_state.commodities[comm]
+            .intrinsic_volume;
+  }
 
   // 3. Evolve the player's price, but only for the transacted
   // commodity and only for player making the transaction.
@@ -296,22 +242,27 @@ Invoice transaction_invoice_processed_group_model(
   CHECK_GE( volatility_push, 0 );
   if( transaction_type == e_transaction::sell )
     volatility_push = -volatility_push;
-  UNWRAP_CHECK(
-      equilibrium_prices,
-      group["equilibrium_prices"].pcall<lua::table>( group ) );
+  ProcessedGoodsPriceGroup::Map const equilibrium_prices =
+      group.equilibrium_prices();
   // Need to clamp at both steps, since it is observed in the OG
   // that when the volatility_push becomes unity that it can
   // overtake the eq_push. And then we need to clamp the net_push
   // because in general in the OG the price can never move more
   // than one unit per sale.
-  double const eq_push =
-      clamp( equilibrium_prices[refl::enum_value_name(
-                                    transacted.type )]
-                     .as<double>() -
-                 prices.ask,
-             -1.0, 1.0 );
+  int const eq_push = clamp(
+      equilibrium_prices[processed_type] - prices.ask, -1, 1 );
+  // The round is important here since otherwise any pushes that
+  // are between -1 and 1 would get ironed out to zero, and that
+  // changes the behavior because in the OG the volatility is 1,
+  // meaning that the volatility push when purchasing 100 of
+  // something will be +/.5, and so if that's in the opposite di-
+  // rection as the eq_push then the net push will be +/.5 and
+  // nothing will happen. By rounding, we accept this .5 as
+  // enough to push the price, and this seems to more closey
+  // mirror the OG's behavior (though not sure the exact formula
+  // it uses for deciding how to push the price).
   int const net_push =
-      int( clamp( eq_push + volatility_push, -1.0, 1.0 ) );
+      lround( clamp( eq_push + volatility_push, -1.0, 1.0 ) );
   invoice.price_change = net_push;
   CHECK_GE( invoice.price_change, -1 );
   CHECK_LE( invoice.price_change, 1 );
@@ -337,13 +288,13 @@ int ask_from_bid( e_commodity type, int bid ) {
                    .price_limits.bid_ask_spread;
 }
 
-Invoice transaction_invoice( SSConst const& ss, TS& ts,
-                             Player const& player,
-                             Commodity     transacted,
-                             e_transaction transaction_type ) {
+Invoice transaction_invoice( SSConst const& ss,
+                             Player const&  player,
+                             Commodity      transacted,
+                             e_transaction  transaction_type ) {
   if( is_in_processed_goods_price_group( transacted.type ) )
     return transaction_invoice_processed_group_model(
-        ss, ts, player, transacted, transaction_type );
+        ss, player, transacted, transaction_type );
   else
     return transaction_invoice_default_model(
         ss, player, transacted, transaction_type );

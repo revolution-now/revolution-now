@@ -13,6 +13,9 @@
 // Under test.
 #include "src/price-group.hpp"
 
+// config
+#include "config/market.rds.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -24,10 +27,12 @@ namespace {
 
 using namespace std;
 
+using PGMap = ProcessedGoodsPriceGroup::Map;
+
 /****************************************************************
 ** Test scenario configuration.
 *****************************************************************/
-struct PGMap {
+struct PGStruct {
   int rum    = 0;
   int cigars = 0;
   int cloth  = 0;
@@ -43,8 +48,7 @@ struct PGMap {
   }
 };
 
-void copy( PGMap const&                           l,
-           refl::enum_map<e_processed_good, int>& r ) {
+void copy( PGStruct const& l, PGMap& r ) {
   r[e_processed_good::rum]    = l.rum;
   r[e_processed_good::cigars] = l.cigars;
   r[e_processed_good::cloth]  = l.cloth;
@@ -61,38 +65,29 @@ struct TestCaseConfig {
   };
 
   struct Step {
-    Action action;
-    PGMap  expect_eq;
-    PGMap  expect_vol;
+    Action   action;
+    PGStruct expect_eq;
+    PGStruct expect_vol;
   };
 
-  PGMap        starting_intrinsic_volumes;
+  PGStruct     starting_intrinsic_volumes;
   vector<Step> steps;
 };
 
 /****************************************************************
 ** Default model config.
 *****************************************************************/
-ProcessedGoodsPriceGroupConfig default_price_group_config() {
-  return { .dutch                      = false,
-           .starting_intrinsic_volumes = {},
-           .starting_traded_volumes    = {},
-           .min                        = 1,
-           .max                        = 20,
-           .target_price               = 12 };
-}
-
 // 11/12  10/11  14/15  9/10
-PGMap const STARTING_11_10_14_9{ .rum    = 0x02a9,
-                                 .cigars = 0x02c6,
-                                 .cloth  = 0x0224,
-                                 .coats  = 0x033c };
+PGStruct const STARTING_11_10_14_9{ .rum    = 0x02a9,
+                                    .cigars = 0x02c6,
+                                    .cloth  = 0x0224,
+                                    .coats  = 0x033c };
 
 // 12/13  9/10  14/15  8/9
-PGMap const STARTING_12_9_14_8{ .rum    = 0x1f3,
-                                .cigars = 0x277,
-                                .cloth  = 0x1c6,
-                                .coats  = 0x2b5 };
+PGStruct const STARTING_12_9_14_8{ .rum    = 0x1f3,
+                                   .cigars = 0x277,
+                                   .cloth  = 0x1c6,
+                                   .coats  = 0x2b5 };
 
 #define ACTION_SELL_ALL TestCaseConfig::e_action_type::sell_all
 #define ACTION_BUY      TestCaseConfig::e_action_type::buy
@@ -411,10 +406,9 @@ TestCaseConfig const scenario_5{
 /****************************************************************
 ** Scenario Runners.
 *****************************************************************/
-void assert_price(
-    int step_idx, e_processed_good good,
-    refl::enum_map<e_processed_good, int> const& eq_prices,
-    PGMap const&                                 expect_eq ) {
+void assert_price( int step_idx, e_processed_good good,
+                   PGMap const&    eq_prices,
+                   PGStruct const& expect_eq ) {
   INFO( fmt::format(
       "equilibrium price for commodity {} at step {}. "
       "actual={}, .expect_eq={}.",
@@ -422,10 +416,9 @@ void assert_price(
   REQUIRE( eq_prices[good] == expect_eq.get( good ) );
 }
 
-void assert_volume(
-    int step_idx, e_processed_good good,
-    refl::enum_map<e_processed_good, int> intrinsic_volumes,
-    PGMap const&                          expected_volumes ) {
+void assert_volume( int step_idx, e_processed_good good,
+                    PGMap           intrinsic_volumes,
+                    PGStruct const& expected_volumes ) {
   int expect_vol = expected_volumes.get( good );
   // The volume will be in the form 0xNNNN, i.e. a signed 16 bit
   // hex number, since that is what is seen when looking at the
@@ -462,7 +455,7 @@ void run_action( ProcessedGoodsPriceGroup&   group,
 
 void run_scenario( TestCaseConfig const& scenario ) {
   ProcessedGoodsPriceGroupConfig pg_config =
-      default_price_group_config();
+      default_processed_goods_price_group_config();
   copy( scenario.starting_intrinsic_volumes,
         pg_config.starting_intrinsic_volumes );
 
@@ -482,11 +475,9 @@ void run_scenario( TestCaseConfig const& scenario ) {
     // the data we evolved for 20 turns at the end of each subse-
     // quence of steps.
     for( int i = 0; i < 20; ++i ) group.evolve();
-    refl::enum_map<e_processed_good, int> const&
-        intrinsic_volumes = group.intrinsic_volumes();
-    refl::enum_map<e_processed_good, int> const eq_prices =
-        group.equilibrium_prices();
-    auto& step = scenario.steps[final_step];
+    PGMap const& intrinsic_volumes = group.intrinsic_volumes();
+    PGMap const  eq_prices         = group.equilibrium_prices();
+    auto&        step              = scenario.steps[final_step];
     assert_price( final_step, e_processed_good::rum, eq_prices,
                   step.expect_eq );
     assert_price( final_step, e_processed_good::cigars,
@@ -520,11 +511,10 @@ TEST_CASE( "[price-group] scenario cases" ) {
 
 TEST_CASE( "[price-group] eq prices all zero/nan" ) {
   ProcessedGoodsPriceGroupConfig pg_config =
-      default_price_group_config();
+      default_processed_goods_price_group_config();
   pg_config.starting_intrinsic_volumes = {};
-  ProcessedGoodsPriceGroup                    group( pg_config );
-  refl::enum_map<e_processed_good, int> const eq_prices =
-      group.equilibrium_prices();
+  ProcessedGoodsPriceGroup group( pg_config );
+  PGMap const eq_prices = group.equilibrium_prices();
   REQUIRE( eq_prices[e_processed_good::rum] == 1 );
   REQUIRE( eq_prices[e_processed_good::cigars] == 1 );
   REQUIRE( eq_prices[e_processed_good::cloth] == 1 );

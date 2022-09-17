@@ -17,6 +17,12 @@
 // Rds
 #include "price-group.rds.hpp"
 
+// Revolution Now
+#include "maybe.hpp"
+
+// ss
+#include "ss/commodity.rds.hpp"
+
 // luapp
 #include "luapp/ext-userdata.hpp"
 
@@ -25,9 +31,24 @@ namespace rn {
 struct TS;
 
 /****************************************************************
+** e_processed_good
+*****************************************************************/
+e_commodity to_commodity( e_processed_good good );
+
+maybe<e_processed_good> from_commodity( e_commodity comm );
+
+/****************************************************************
+** ProcessedGoodsPriceGroupConfig
+*****************************************************************/
+ProcessedGoodsPriceGroupConfig
+default_processed_goods_price_group_config();
+
+/****************************************************************
 ** ProcessedGoodsPriceGroup
 *****************************************************************/
 struct ProcessedGoodsPriceGroup {
+  using Map = refl::enum_map<e_processed_good, int>;
+
   ProcessedGoodsPriceGroup(
       ProcessedGoodsPriceGroupConfig const& config );
 
@@ -41,15 +62,19 @@ struct ProcessedGoodsPriceGroup {
 
   void evolve();
 
-  refl::enum_map<e_processed_good, int> const&
-  intrinsic_volumes() const {
+  int intrinsic_volume( e_processed_good good ) const {
+    return intrinsic_volumes_[good];
+  }
+
+  int traded_volume( e_processed_good good ) const {
+    return traded_volumes_[good];
+  }
+
+  auto const& intrinsic_volumes() const {
     return intrinsic_volumes_;
   }
 
-  refl::enum_map<e_processed_good, int> const& traded_volumes()
-      const {
-    return traded_volumes_;
-  }
+  auto const& traded_volumes() const { return traded_volumes_; }
 
   friend void to_str( ProcessedGoodsPriceGroup const& o,
                       std::string& out, base::ADL_t );

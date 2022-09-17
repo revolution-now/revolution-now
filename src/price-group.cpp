@@ -39,8 +39,9 @@ namespace rn {
 
 namespace {
 
-int sum_values(
-    refl::enum_map<e_processed_good, int> const& m ) {
+using PGMap = ProcessedGoodsPriceGroup::Map;
+
+int sum_values( PGMap const& m ) {
   int res = 0;
   for( auto const& [k, v] : m ) res = res + v;
   return res;
@@ -50,6 +51,42 @@ int sum_values(
 
 void linker_dont_discard_module_price_group();
 void linker_dont_discard_module_price_group() {}
+
+/****************************************************************
+** e_processed_good
+*****************************************************************/
+e_commodity to_commodity( e_processed_good good ) {
+  switch( good ) {
+    case e_processed_good::rum: return e_commodity::rum;
+    case e_processed_good::cigars: return e_commodity::cigars;
+    case e_processed_good::cloth: return e_commodity::cloth;
+    case e_processed_good::coats: return e_commodity::coats;
+  }
+}
+
+maybe<e_processed_good> from_commodity( e_commodity comm ) {
+  switch( comm ) {
+    case e_commodity::rum: return e_processed_good::rum;
+    case e_commodity::cigars: return e_processed_good::cigars;
+    case e_commodity::cloth: return e_processed_good::cloth;
+    case e_commodity::coats: return e_processed_good::coats;
+    default: return nothing;
+  }
+}
+
+/****************************************************************
+** ProcessedGoodsPriceGroupConfig
+*****************************************************************/
+ProcessedGoodsPriceGroupConfig
+default_processed_goods_price_group_config() {
+  auto const& model_params = config_market.processed_goods_model;
+  return { .dutch                      = false,
+           .starting_intrinsic_volumes = {},
+           .starting_traded_volumes    = {},
+           .min          = model_params.bid_price_min + 1,
+           .max          = model_params.bid_price_max + 1,
+           .target_price = model_params.target_price };
+}
 
 /****************************************************************
 ** ProcessedGoodsPriceGroup
@@ -142,10 +179,9 @@ void ProcessedGoodsPriceGroup::sell( e_processed_good good,
 // This function appears to reproduces the OG's numbers *exact-
 // ly*, despite the complex behaviors of the prices, and is thus
 // quite astonishing.
-refl::enum_map<e_processed_good, int>
-ProcessedGoodsPriceGroup::equilibrium_prices() {
-  refl::enum_map<e_processed_good, int> res;
-  refl::enum_map<e_processed_good, int> total_volumes;
+PGMap ProcessedGoodsPriceGroup::equilibrium_prices() {
+  PGMap res;
+  PGMap total_volumes;
   for( e_processed_good good :
        refl::enum_values<e_processed_good> )
     total_volumes[good] = intrinsic_volumes_[good] +
@@ -249,68 +285,46 @@ LUA_STARTUP( lua::state& st ) {
     using U = ::rn::ProcessedGoodsPriceGroup;
     auto u  = st.usertype.create<U>();
 
-    lua::table pg_tbl =
+    lua::table price_group =
         lua::table::create_or_get( st["price_group"] );
 
-    lua::table pg_constructor = lua::table::create_or_get(
-        pg_tbl["ProcessedGoodsPriceGroup"] );
+    lua::table constructor = lua::table::create_or_get(
+        price_group["ProcessedGoodsPriceGroup"] );
 
-    pg_constructor["new_with_random_volumes"] =
-        []( lua::table t ) {
-          lua::state  st = lua::state::view( t.this_cthread() );
-          auto const& model_params =
-              config_market.processed_goods_model;
-          ProcessedGoodsPriceGroupConfig config{
-              .dutch                      = false,
-              .starting_intrinsic_volumes = {},
-              .starting_traded_volumes    = {},
-              .min          = model_params.bid_price_min + 1,
-              .max          = model_params.bid_price_max + 1,
-              .target_price = model_params.target_price };
-          CHECK( lua::safe_as<TS&>( st["TS"] ) );
-          TS& ts = st["TS"].as<TS&>();
-          for( e_processed_good good :
-               refl::enum_values<e_processed_good> )
-            config.starting_intrinsic_volumes[good] =
-                generate_random_intrinsic_volume(
-                    ts, model_params.random_init_center,
-                    model_params.random_init_window );
-          return ProcessedGoodsPriceGroup( config );
-        };
-
-    pg_constructor["new_with_zero_volumes"] = [] {
+    // FIXME: move this into a separate API function.
+    constructor["new_with_random_volumes"] = [&] {
+      UNWRAP_CHECK( ts, safe_as<TS&>( st["TS"] ) );
+      ProcessedGoodsPriceGroupConfig config =
+          default_processed_goods_price_group_config();
       auto const& model_params =
           config_market.processed_goods_model;
-      ProcessedGoodsPriceGroupConfig config{
-          .dutch                      = false,
-          .starting_intrinsic_volumes = {},
-          .starting_traded_volumes    = {},
-          .min          = model_params.bid_price_min + 1,
-          .max          = model_params.bid_price_max + 1,
-          .target_price = model_params.target_price };
+      for( e_processed_good good :
+           refl::enum_values<e_processed_good> )
+        config.starting_intrinsic_volumes[good] =
+            generate_random_intrinsic_volume(
+                ts, model_params.random_init_center,
+                model_params.random_init_window );
       return ProcessedGoodsPriceGroup( config );
     };
 
-    u["equilibrium_prices"] =
-        [&]( ProcessedGoodsPriceGroup& group ) {
-          lua::table res       = st.table.create();
-          auto       eq_prices = group.equilibrium_prices();
-          res["rum"]    = eq_prices[e_processed_good::rum];
-          res["cigars"] = eq_prices[e_processed_good::cigars];
-          res["cloth"]  = eq_prices[e_processed_good::cloth];
-          res["coats"]  = eq_prices[e_processed_good::coats];
-          return res;
-        };
-
-    u["intrinsic_volume"] = []( ProcessedGoodsPriceGroup& group,
-                                e_processed_good good ) -> int {
-      return group.intrinsic_volumes()[good];
+    constructor["new_with_zero_volumes"] = [] {
+      return ProcessedGoodsPriceGroup(
+          default_processed_goods_price_group_config() );
     };
 
-    u["traded_volumes"] = []( ProcessedGoodsPriceGroup& group,
-                              e_processed_good good ) -> int {
-      return group.traded_volumes()[good];
+    u["equilibrium_prices"] = [&]( U& group ) {
+      lua::table res       = st.table.create();
+      PGMap      eq_prices = group.equilibrium_prices();
+
+      res["rum"]    = eq_prices[e_processed_good::rum];
+      res["cigars"] = eq_prices[e_processed_good::cigars];
+      res["cloth"]  = eq_prices[e_processed_good::cloth];
+      res["coats"]  = eq_prices[e_processed_good::coats];
+      return res;
     };
+
+    u["intrinsic_volume"] = &U::intrinsic_volume;
+    u["traded_volume"]    = &U::traded_volume;
   };
 };
 

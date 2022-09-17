@@ -84,6 +84,7 @@ TEST_CASE( "[market] apply_invoice" ) {
 }
 
 TEST_CASE( "[market] display_price_change_notification" ) {
+  World W;
   // TODO
 }
 
