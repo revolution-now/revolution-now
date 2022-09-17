@@ -57,7 +57,7 @@ local Layout = {
       assert( type( layout.what ) == 'table' )
       self[layout.type]( self, layout.what )
     end
-  end,
+  end
 }
 
 function M.open( layout )
