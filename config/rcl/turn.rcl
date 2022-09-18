@@ -1,0 +1,5 @@
+turns_to_wait {
+  # Give the player at least one turn before prices start moving
+  # on their own.
+  market_evolution: 1
+}

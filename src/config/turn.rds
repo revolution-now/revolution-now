@@ -1,0 +1,32 @@
+# ===============================================================
+# turn.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-09-18.
+#
+# Description: Rds definitions for the turn module.
+#
+# ===============================================================
+# refl
+include "refl/cdr.hpp"
+
+# Cdr.
+include "cdr/ext-builtin.hpp"
+
+namespace "rn.config.turn"
+
+# How many turns to wait from the start of the game until certain
+# things start happening. Specifically, each thing will not be
+# done until the turns elapsed is >= to the specified value.
+struct.turns_to_wait {
+  market_evolution 'int',
+}
+
+namespace "rn"
+
+struct.config_turn_t {
+  turns_to_wait 'config::turn::turns_to_wait',
+}
+
+config.turn {}
