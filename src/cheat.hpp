@@ -92,4 +92,7 @@ void cheat_increase_gold( Player& player );
 
 void cheat_decrease_gold( Player& player );
 
+wait<> cheat_evolve_market_prices( SS& ss, TS& ts,
+                                   Player& player );
+
 } // namespace rn

@@ -16,6 +16,7 @@
 #include "colony-evolve.hpp"
 #include "igui.hpp"
 #include "logger.hpp"
+#include "market.hpp"
 #include "promotion.hpp"
 #include "ts.hpp"
 #include "unit.hpp"
@@ -87,6 +88,14 @@ void cheat_decrease_gold( Player& player ) {
   RETURN_IF_NO_CHEAT;
   int& gold = player.money;
   gold      = std::max( gold - 1000, 0 );
+}
+
+wait<> cheat_evolve_market_prices( SS& ss, TS& ts,
+                                   Player& player ) {
+  CO_RETURN_IF_NO_CHEAT;
+  evolve_group_model_volumes( ss );
+  co_await evolve_player_prices(
+      static_cast<SSConst const&>( ss ), ts, player );
 }
 
 /****************************************************************
