@@ -7,7 +7,6 @@ local M = {}
 -- Imports.
 -----------------------------------------------------------------
 local util = require( 'ide.util' )
-local layout = require( 'ide.layout' )
 
 -----------------------------------------------------------------
 -- Aliases.
@@ -36,7 +35,7 @@ local function layout_wide( stem )
   local rcl = assert( rcl_path( stem ) )
   local F = files( stem )
   -- LuaFormatter off
-  layout.open{
+  return {
     type='vsplit',
     what={
       F.rds,
@@ -52,7 +51,7 @@ local function layout_narrow( stem )
   local rcl = assert( rcl_path( stem ) )
   local F = files( stem )
   -- LuaFormatter off
-  layout.open {
+  return {
     type='vsplit',
     what={
       F.rds,
@@ -74,11 +73,11 @@ end
 -----------------------------------------------------------------
 function M.matches( stem ) return rcl_path( stem ) ~= nil end
 
-function M.open( stem )
+function M.create( stem )
   if util.is_wide() then
-    layout_wide( stem )
+    return layout_wide( stem )
   else
-    layout_narrow( stem )
+    return layout_narrow( stem )
   end
 end
 

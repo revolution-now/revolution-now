@@ -6,7 +6,6 @@ local M = {}
 -----------------------------------------------------------------
 -- Imports.
 -----------------------------------------------------------------
-local layout = require( 'ide.layout' )
 local util = require( 'ide.util' )
 
 -----------------------------------------------------------------
@@ -28,7 +27,7 @@ end
 local function layout_all( stem )
   local F = files( stem )
   -- LuaFormatter off
-  layout.open {
+  return {
     type='vsplit',
     what={
       F.vert,
@@ -45,10 +44,10 @@ function M.matches( stem )
   return exists( 'src/' .. stem .. '.vert' )
 end
 
-function M.open( stem )
+function M.create( stem )
   -- No distinction between wide/narrow here since we only have
   -- two files.
-  layout_all( stem )
+  return layout_all( stem )
 end
 
 return M

@@ -1,2 +1,9 @@
-#!/bin/sh
-nvim -S scripts/run-ide.lua
+#!/bin/bash
+
+what=rn
+
+if (( $# > 0 )); then
+  what=$1
+fi
+
+nvim -S .vimrc -c 'lua loadfile( "scripts/run-ide.lua" )( "'$what'" )'

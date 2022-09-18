@@ -1,14 +1,14 @@
---[[-------------------------------------------------------------
---                  Creates the editor session.
---]] -------------------------------------------------------------
-local M = {}
+-----------------------------------------------------------------
+--                 Creates the RN editor session.
+------------------------------------------------------------------
 
 -----------------------------------------------------------------
 -- Imports.
 -----------------------------------------------------------------
-local contents = require( 'ide.contents' )
-local util = require( 'ide.util' )
+local rn = require( 'ide.contents.rn' )
+local layout = require( 'ide.layout' )
 local module_cpp = require( 'ide.module-cpp' )
+local util = require( 'ide.util' )
 
 -----------------------------------------------------------------
 -- Aliases.
@@ -35,12 +35,12 @@ end
 local function open_module( stem )
   for _, module_type in ipairs( module_types ) do
     if module_type.matches( stem ) then
-      return module_type.open( stem )
+      return layout.open( module_type.create( stem ) )
     end
   end
   -- If the module doesn't exist as any recognized type then it
   -- is likely that we want to create a new C++ module.
-  module_cpp.open( stem )
+  return layout.open( module_cpp.create( stem ) )
 end
 
 local function open_module_with_input()
@@ -49,7 +49,7 @@ end
 
 local function create_tabs()
   log( 'opening modules...' )
-  for _, stem in ipairs( contents.stems ) do
+  for _, stem in ipairs( rn ) do
     log( '  - %s', stem )
     open_module( stem )
   end
@@ -71,9 +71,7 @@ end
 -----------------------------------------------------------------
 -- Main.
 -----------------------------------------------------------------
-function M.main()
-  vim.cmd[[source .vimrc]]
-
+local function main()
   -- Create key mappings.
   mappings()
 
@@ -87,4 +85,4 @@ function M.main()
   -- vim.cmd[[tabdo set cmdheight=0]]
 end
 
-return M
+main()

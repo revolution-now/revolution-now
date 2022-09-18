@@ -7,7 +7,6 @@ local M = {}
 -- Imports.
 -----------------------------------------------------------------
 local util = require( 'ide.util' )
-local layout = require( 'ide.layout' )
 local win = require( 'ide.win' )
 
 -----------------------------------------------------------------
@@ -93,7 +92,7 @@ local function layout_wide( stem )
   else
     plan.what[1] = F.hpp
   end
-  layout.open( plan )
+  return plan
 end
 
 -- For the non-wide monitors.
@@ -133,17 +132,17 @@ local function layout_narrow( stem )
   else
     plan.what[1] = F.hpp
   end
-  layout.open( plan )
+  return plan
 end
 
 -----------------------------------------------------------------
 -- Public API.
 -----------------------------------------------------------------
-function M.open( stem )
+function M.create( stem )
   if util.is_wide() then
-    layout_wide( stem )
+    return layout_wide( stem )
   else
-    layout_narrow( stem )
+    return layout_narrow( stem )
   end
 end
 

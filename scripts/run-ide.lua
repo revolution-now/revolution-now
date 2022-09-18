@@ -10,6 +10,14 @@ package.path = package.path --
 package.cpath = package.cpath --
 .. ';/usr/lib/x86_64-linux-gnu/lua/5.1/?.so'
 
-local ide = require( 'ide' )
+-----------------------------------------------------------------
+-- Aliases
+-----------------------------------------------------------------
+local format = string.format
 
-ide.build.main()
+local mode = ...
+if not mode then
+  mode = 'rn'
+end
+
+require( format( 'ide.edit-%s', mode ) )
