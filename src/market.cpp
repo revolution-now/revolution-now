@@ -300,6 +300,43 @@ Invoice transaction_invoice_processed_group_model(
   return invoice;
 }
 
+// This will evolve the european volumes for a single commodity,
+// and for a single player, and it is done at the start of the
+// that player's turn. In the default model it is the case that
+// if the internal volume changes (which is what this function
+// generally results in) then the price may need to be moved as
+// well, and that in requires that the internal volume again be
+// adjusted. Thus the two are coupled. Any price change that re-
+// sults is returned.
+PriceChange evolve_default_model_commodity(
+    Player& player, e_commodity commodity ) {
+  int intrinsic_volume_delta = 0;
+  int price_change           = 0;
+
+  // 1. Apply attrition. The attition is applied before any po-
+  // tential price changes are evaluated.
+  intrinsic_volume_delta +=
+      config_market.price_behavior[commodity]
+          .model_parameters.attrition;
+
+  // 2. See if we should move the price. This will potentially
+  // mutate the volume and price change variables.
+  try_price_change_default_model(
+      player, commodity, intrinsic_volume_delta, price_change );
+
+  // Create this before affecting the changes.
+  PriceChange const change =
+      create_price_change( player, commodity, price_change );
+
+  // Actually change the price.
+  PlayerMarketItem& item =
+      player.old_world.market.commodities[change.type];
+  item.bid_price += price_change;
+  item.intrinsic_volume += intrinsic_volume_delta;
+
+  return change;
+}
+
 // This is done once at the start of each player turn.
 refl::enum_map<e_commodity, PriceChange>
 evolve_group_model_prices( SSConst const& ss, Player& player ) {
@@ -421,35 +458,6 @@ bool is_in_processed_goods_price_group( e_commodity type ) {
     default: //
       return false;
   }
-}
-
-PriceChange evolve_default_model_commodity(
-    Player& player, e_commodity commodity ) {
-  int intrinsic_volume_delta = 0;
-  int price_change           = 0;
-
-  // 1. Apply attrition. The attition is applied before any po-
-  // tential price changes are evaluated.
-  intrinsic_volume_delta +=
-      config_market.price_behavior[commodity]
-          .model_parameters.attrition;
-
-  // 2. See if we should move the price. This will potentially
-  // mutate the volume and price change variables.
-  try_price_change_default_model(
-      player, commodity, intrinsic_volume_delta, price_change );
-
-  // Create this before affecting the changes.
-  PriceChange const change =
-      create_price_change( player, commodity, price_change );
-
-  // Actually change the price.
-  PlayerMarketItem& item =
-      player.old_world.market.commodities[change.type];
-  item.bid_price += price_change;
-  item.intrinsic_volume += intrinsic_volume_delta;
-
-  return change;
 }
 
 void evolve_group_model_volumes( SS& ss ) {

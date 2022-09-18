@@ -60,17 +60,6 @@ void apply_invoice( SS& ss, Player& player,
 wait<> display_price_change_notification(
     TS& ts, Player const& player, PriceChange const& change );
 
-// This will evolve the european volumes for a single commodity,
-// and for a single player, and it is done at the start of the
-// that player's turn. In the default model it is the case that
-// if the internal volume changes (which is what this function
-// generally results in) then the price may need to be moved as
-// well, and that in requires that the internal volume again be
-// adjusted. Thus the two are coupled. Any price change that re-
-// sults is returned.
-PriceChange evolve_default_model_commodity(
-    Player& player, e_commodity commodity );
-
 // This will evolve non-price market state for the commodities
 // that are in price gruops. This is done once at the start of
 // each full turn (where in this case one "turn" is where all of
