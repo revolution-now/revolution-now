@@ -2,9 +2,10 @@
 
 return {
   'exe/main',
-  'ss/market',
   'config/market',
-  'price-group',
-  'market',
+  'harbor-view',
   'harbor-view-market',
+  'price-group',
+  'ss/market',
+  'market',
 }
