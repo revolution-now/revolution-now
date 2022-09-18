@@ -46,17 +46,19 @@ int with_volatility( int what, int volatility ) {
     return what * ( 1 >> ( -volatility ) );
 }
 
-PriceChange create_price_change( e_commodity comm,
-                                 int         current_bid,
-                                 int         price_change ) {
+PriceChange create_price_change( Player const& player,
+                                 e_commodity   comm,
+                                 int           price_change ) {
+  int const current_bid =
+      player.old_world.market.commodities[comm].bid_price;
   int const current_ask = ask_from_bid( comm, current_bid );
   return PriceChange{
-      .type = comm,
-      .from = CommodityPrice{ .bid = current_bid,
-                              .ask = current_ask },
-      .to =
-          CommodityPrice{ .bid = current_bid + price_change,
-                          .ask = current_ask + price_change } };
+      .type  = comm,
+      .from  = CommodityPrice{ .bid = current_bid,
+                               .ask = current_ask },
+      .to    = CommodityPrice{ .bid = current_bid + price_change,
+                               .ask = current_ask + price_change },
+      .delta = price_change };
 }
 
 // The sum of the player-traded volume across all players for a
@@ -124,11 +126,9 @@ void try_price_change_default_model( Player const& player,
   CHECK_LE( price_change, 1 );
 }
 
-void try_price_change_group_model( Player const& player,
-                                   int         equilibrium_price,
-                                   e_commodity type,
-                                   double      volatility_push,
-                                   int&        price_change ) {
+PriceChange try_price_change_group_model(
+    Player const& player, int equilibrium_price,
+    e_commodity type, double volatility_push ) {
   int const ask_price = ask_from_bid(
       type,
       player.old_world.market.commodities[type].bid_price );
@@ -151,9 +151,10 @@ void try_price_change_group_model( Player const& player,
   // it uses for deciding how to push the price).
   int const net_push =
       lround( clamp( eq_push + volatility_push, -1.0, 1.0 ) );
-  price_change = net_push;
+  int const price_change = net_push;
   CHECK_GE( price_change, -1 );
   CHECK_LE( price_change, 1 );
+  return create_price_change( player, type, price_change );
 }
 
 Invoice transaction_invoice_default_model(
@@ -225,10 +226,13 @@ Invoice transaction_invoice_default_model(
   // transacted commodity (only for player). Note that we need to
   // consider both rises and falls here, since the current in-
   // trinsic volume could have started off at any value.
+  int price_change = 0;
   try_price_change_default_model(
       player, comm_type,
       invoice.intrinsic_volume_delta[player.nation],
-      invoice.price_change );
+      price_change );
+  invoice.price_change =
+      create_price_change( player, comm_type, price_change );
 
   return invoice;
 }
@@ -304,11 +308,40 @@ Invoice transaction_invoice_processed_group_model(
     volatility_push = -volatility_push;
   ProcessedGoodsPriceGroup::Map const equilibrium_prices =
       group.equilibrium_prices();
-  try_price_change_group_model(
+  invoice.price_change = try_price_change_group_model(
       player, equilibrium_prices[processed_type],
-      transacted.type, volatility_push, invoice.price_change );
+      transacted.type, volatility_push );
 
   return invoice;
+}
+
+// This is done once at the start of each player turn.
+refl::enum_map<e_commodity, PriceChange>
+evolve_group_model_prices( SSConst const& ss, Player& player ) {
+  refl::enum_map<e_commodity, PriceChange> res;
+
+  // Note that there is no designated player in the context of
+  // this evolution, so the is_dutch parameter is not relevant.
+  // In the price group model the dutch status only comes into
+  // play when buying/selling.
+  ProcessedGoodsPriceGroup group =
+      create_price_group( ss, /*is_dutch=*/nothing );
+  auto equilibrium_prices = group.equilibrium_prices();
+
+  // Attempt a price change and record it.
+  for( e_processed_good good :
+       refl::enum_values<e_processed_good> ) {
+    e_commodity const comm   = to_commodity( good );
+    PriceChange const change = try_price_change_group_model(
+        player, equilibrium_prices[good], comm,
+        /*volatility_push=*/0 );
+    res[comm] = change;
+    // Now make the change.
+    player.old_world.market.commodities[comm].bid_price +=
+        change.delta;
+  }
+
+  return res;
 }
 
 } // namespace
@@ -359,20 +392,23 @@ void apply_invoice( SS& ss, Player& player,
     ss.players.global_market_state.commodities[comm]
         .intrinsic_volume += delta;
   player.old_world.market.commodities[invoice.what.type]
-      .bid_price += invoice.price_change;
+      .bid_price += invoice.price_change.delta;
 }
 
 wait<> display_price_change_notification(
-    TS& ts, Player const& player, e_commodity commodity,
-    int const price_change ) {
+    TS& ts, Player const& player, PriceChange const& change ) {
+  if( change.from == change.to ) co_return;
   string const country_name =
       nation_obj( player.nation ).country_name;
+  CHECK( change.to.bid - change.from.bid ==
+         change.to.ask - change.from.ask );
+  int const    price_change = change.to.bid - change.from.bid;
   string const verb = ( price_change > 0 ) ? "risen" : "fallen";
   CommodityPrice const prices =
-      market_price( player, commodity );
+      market_price( player, change.type );
   string const msg =
       fmt::format( "The price of @[H]{}@[] in {} has {} to {}.",
-                   commodity, country_name, verb, prices.bid );
+                   change.type, country_name, verb, prices.bid );
   co_await ts.gui.message_box( msg );
 }
 
@@ -405,10 +441,8 @@ PriceChange evolve_default_model_commodity(
       player, commodity, intrinsic_volume_delta, price_change );
 
   // Create this before affecting the changes.
-  PriceChange const change = create_price_change(
-      commodity,
-      player.old_world.market.commodities[commodity].bid_price,
-      price_change );
+  PriceChange const change =
+      create_price_change( player, commodity, price_change );
 
   // Actually change the price.
   PlayerMarketItem& item =
@@ -438,37 +472,23 @@ void evolve_group_model_volumes( SS& ss ) {
   }
 }
 
-refl::enum_map<e_commodity, PriceChange>
-evolve_group_model_prices( SS& ss, Player& player ) {
-  refl::enum_map<e_commodity, PriceChange> res;
-
-  // Note that there is no designated player in the context of
-  // this evolution, so the is_dutch parameter is not relevant.
-  // In the price group model the dutch status only comes into
-  // play when buying/selling.
-  ProcessedGoodsPriceGroup group =
-      create_price_group( ss, /*is_dutch=*/nothing );
-  auto equilibrium_prices = group.equilibrium_prices();
-
-  // Attempt a price change and record it.
-  for( e_processed_good good :
-       refl::enum_values<e_processed_good> ) {
-    e_commodity const comm         = to_commodity( good );
-    int const         price_change = [&] {
-      int res = 0; // output parameter.
-      try_price_change_group_model(
-          player, equilibrium_prices[good], comm,
-          /*volatility_push=*/0, res );
-      return res;
-    }();
-    // Set the result.
-    int const current_bid =
-        player.old_world.market.commodities[comm].bid_price;
-    res[comm] =
-        create_price_change( comm, current_bid, price_change );
+wait<> evolve_player_prices( SSConst const& ss, TS& ts,
+                             Player& player ) {
+  refl::enum_map<e_commodity, PriceChange> const
+       processed_goods = evolve_group_model_prices( ss, player );
+  auto try_change = [&]( PriceChange const& change ) -> wait<> {
+    if( !player.human ) co_return;
+    if( change.to != change.from )
+      co_await display_price_change_notification( ts, player,
+                                                  change );
+  };
+  for( e_commodity c : refl::enum_values<e_commodity> ) {
+    if( is_in_processed_goods_price_group( c ) )
+      co_await try_change( processed_goods[c] );
+    else
+      co_await try_change(
+          evolve_default_model_commodity( player, c ) );
   }
-
-  return res;
 }
 
 /****************************************************************

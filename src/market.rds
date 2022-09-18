@@ -30,9 +30,10 @@ struct.CommodityPrice {
 }
 
 struct.PriceChange {
-  type 'e_commodity',
-  from 'CommodityPrice',
-  to   'CommodityPrice',
+  type  'e_commodity',
+  from  'CommodityPrice',
+  to    'CommodityPrice',
+  delta 'int',
 }
 
 struct.Invoice {
@@ -53,5 +54,5 @@ struct.Invoice {
   # global intrinsic volumes (shared by all players).
   global_intrinsic_volume_deltas 'refl::enum_map<e_commodity, int>',
 
-  price_change 'int',
+  price_change 'PriceChange',
 }

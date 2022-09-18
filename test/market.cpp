@@ -100,7 +100,7 @@ TEST_CASE( "[market] evolve_group_model_volumes" ) {
   // TODO
 }
 
-TEST_CASE( "[market] evolve_group_model_prices" ) {
+TEST_CASE( "[market] evolve_player_prices" ) {
   World W;
   // TODO
 }

@@ -54,8 +54,7 @@ void apply_invoice( SS& ss, Player& player,
 // Just displays a message saying how and in which country the
 // eprice changed.
 wait<> display_price_change_notification(
-    TS& ts, Player const& player, e_commodity commodity,
-    int const price_change );
+    TS& ts, Player const& player, PriceChange const& change );
 
 // This will evolve the european volumes for a single commodity,
 // and for a single player, and it is done at the start of the
@@ -78,8 +77,10 @@ PriceChange evolve_default_model_commodity(
 // attempt to move prices.
 void evolve_group_model_volumes( SS& ss );
 
-// This is done once at the start of each player turn.
-refl::enum_map<e_commodity, PriceChange>
-evolve_group_model_prices( SS& ss, Player& player );
+// This is called once at the start of each player turn and it
+// will evolve their prices (for all commodities) and potentially
+// show a popup if the player is human.
+wait<> evolve_player_prices( SSConst const& ss, TS& ts,
+                             Player& player );
 
 } // namespace rn
