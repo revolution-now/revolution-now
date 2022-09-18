@@ -16,6 +16,12 @@
 // mock
 #include "src/mock/mock.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
+
 #define MOCK_GUI_METHOD( ret_type, name, params ) \
   MOCK_METHOD( ret_type, name, params, () )
 
