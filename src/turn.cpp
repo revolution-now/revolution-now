@@ -22,6 +22,7 @@
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "map-edit.hpp"
+#include "market.hpp"
 #include "menu.hpp"
 #include "on-map.hpp"
 #include "orders.hpp"
@@ -38,6 +39,7 @@
 #include "ustate.hpp"
 
 // config
+#include "config/turn.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
@@ -814,6 +816,25 @@ wait<> colonies_turn( Planes& planes, SS& ss, TS& ts,
 /****************************************************************
 ** Per-Nation Turn Processor
 *****************************************************************/
+// Here we do things that must be done once at the start of each
+// nation's turn but where the player can't save the game until
+// they are complete.
+wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
+  // Evolve market prices.
+  if( ss.turn.time_point.turns >
+      config_turn.turns_to_wait.market_evolution )
+    co_await evolve_player_prices( ss, ts, player );
+
+  // TODO:
+  //
+  //   1. Taxes.
+  //   2. REF.
+  //   3. Sending units.
+  //   4. Founding fathers.
+  //   5. etc.
+  //
+}
+
 wait<> nation_turn( Planes& planes, SS& ss, TS& ts,
                     NationTurnState& nat_turn_st ) {
   auto& st = nat_turn_st;
@@ -825,6 +846,7 @@ wait<> nation_turn( Planes& planes, SS& ss, TS& ts,
   // Starting.
   if( !st.started ) {
     print_bar( '-', fmt::format( "[ {} ]", st.nation ) );
+    co_await nation_start_of_turn( ss, ts, player );
     st.started = true;
   }
 
@@ -863,6 +885,21 @@ wait<> nation_turn( Planes& planes, SS& ss, TS& ts,
 /****************************************************************
 ** Turn Processor
 *****************************************************************/
+// Here we do things that must be done once at the start of each
+// full turn cycle but where the player can't save the game until
+// they are complete.
+void start_of_turn_cycle( SS& ss ) {
+  // This will evolve the internal market model state of the
+  // processed goods (rum, cigars, cloth, coats). It is done once
+  // per turn cycle instead of once per player turn because said
+  // model state is shared among all players. That said, the
+  // price movement of these goods will happen at the start of
+  // each player turn for that respective player.
+  if( ss.turn.time_point.turns >
+      config_turn.turns_to_wait.market_evolution )
+    evolve_group_model_volumes( ss );
+}
+
 wait<> next_turn( Planes& planes, SS& ss, TS& ts ) {
   planes.land_view().landview_start_new_turn();
   auto& st = ss.turn;
@@ -873,6 +910,7 @@ wait<> next_turn( Planes& planes, SS& ss, TS& ts ) {
     map_all_units( ss.units,
                    []( Unit& unit ) { unit.new_turn(); } );
     reset_turn_obj( ss.players, st );
+    start_of_turn_cycle( ss );
     st.started = true;
   }
 
