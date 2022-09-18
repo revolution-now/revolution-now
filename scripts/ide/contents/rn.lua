@@ -5,7 +5,6 @@ return {
   'config/market',
   'harbor-view',
   'harbor-view-market',
-  'price-group',
   'ss/market',
   'market',
 }
