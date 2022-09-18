@@ -13,6 +13,11 @@
 // Under test.
 #include "src/price-group.hpp"
 
+// Testing
+#include "test/fake/world.hpp"
+#include "test/mocking.hpp"
+#include "test/mocks/irand.hpp"
+
 // config
 #include "config/market.rds.hpp"
 
@@ -28,6 +33,23 @@ namespace {
 using namespace std;
 
 using PGMap = ProcessedGoodsPriceGroup::Map;
+
+/****************************************************************
+** Fake World Setup
+*****************************************************************/
+struct World : testing::World {
+  using Base = testing::World;
+  World() : Base() {
+    create_default_map();
+    add_player( e_nation::french );
+  }
+
+  void create_default_map() {
+    MapSquare const   L = make_grassland();
+    vector<MapSquare> tiles{ L };
+    build_map( std::move( tiles ), 1 );
+  }
+};
 
 /****************************************************************
 ** Test scenario configuration.
@@ -501,11 +523,114 @@ void run_scenario( TestCaseConfig const& scenario ) {
 ** Unit test cases.
 *****************************************************************/
 TEST_CASE( "[price-group] evolve without buy/sell" ) {
-  // TODO
+  ProcessedGoodsPriceGroupConfig config =
+      default_processed_goods_price_group_config();
+  // We'll set dutch=true just to make sure that nothing special
+  // happens during the evolution; the dutch should only get an
+  // advantage when buying/selling in the price group model.
+  config.dutch = true;
+  config.starting_intrinsic_volumes[e_processed_good::rum] =
+      5000;
+  config.starting_intrinsic_volumes[e_processed_good::cigars] =
+      4000;
+  config.starting_intrinsic_volumes[e_processed_good::cloth] =
+      3000;
+  config.starting_intrinsic_volumes[e_processed_good::coats] =
+      2000;
+
+  // These should influence the evolution but they should not
+  // change.
+  config.starting_traded_volumes[e_processed_good::rum] = 1000;
+  config.starting_traded_volumes[e_processed_good::cigars] =
+      2000;
+  config.starting_traded_volumes[e_processed_good::cloth] = 3000;
+  config.starting_traded_volumes[e_processed_good::coats] = 4000;
+
+  ProcessedGoodsPriceGroup group( config );
+
+  // Sanity check.
+  REQUIRE( group.intrinsic_volume( e_processed_good::rum ) ==
+           5000 );
+  REQUIRE( group.intrinsic_volume( e_processed_good::cigars ) ==
+           4000 );
+  REQUIRE( group.intrinsic_volume( e_processed_good::cloth ) ==
+           3000 );
+  REQUIRE( group.intrinsic_volume( e_processed_good::coats ) ==
+           2000 );
+
+  // Do the evolution.
+  group.evolve();
+
+  // Tests.
+  REQUIRE(
+      config.starting_traded_volumes[e_processed_good::rum] ==
+      1000 );
+  REQUIRE(
+      config.starting_traded_volumes[e_processed_good::cigars] ==
+      2000 );
+  REQUIRE(
+      config.starting_traded_volumes[e_processed_good::cloth] ==
+      3000 );
+  REQUIRE(
+      config.starting_traded_volumes[e_processed_good::coats] ==
+      4000 );
+
+  int expected = 0;
+
+  expected =
+      lround( ( 5000.0 + 1000.0 + .5 ) * .9921875 - 1000.0 );
+  REQUIRE( group.intrinsic_volume( e_processed_good::rum ) ==
+           expected );
+
+  expected =
+      lround( ( 4000.0 + 2000.0 + .5 ) * .9921875 - 2000.0 );
+  REQUIRE( group.intrinsic_volume( e_processed_good::cigars ) ==
+           expected );
+
+  expected =
+      lround( ( 3000.0 + 3000.0 + .5 ) * .9921875 - 3000.0 );
+  REQUIRE( group.intrinsic_volume( e_processed_good::cloth ) ==
+           expected );
+
+  expected =
+      lround( ( 2000.0 + 4000.0 + .5 ) * .9921875 - 4000.0 );
+  REQUIRE( group.intrinsic_volume( e_processed_good::coats ) ==
+           expected );
 }
 
 TEST_CASE( "[price-group] generate_random_intrinsic_volume" ) {
-  // TODO
+  World W;
+
+  int const center = 10;
+  int const window = 10;
+
+  auto f = [&] {
+    return generate_random_intrinsic_volume( W.ts(), center,
+                                             window );
+  };
+
+  auto expect = [&]( int ret ) {
+    int const bottom = 5;
+    int const top    = 15;
+    CHECK( ret >= bottom );
+    CHECK( ret <= top );
+    EXPECT_CALL(
+        W.rand(),
+        between_ints( bottom, top, IRand::e_interval::closed ) )
+        .returns( ret );
+  };
+
+  expect( 10 );
+  REQUIRE( f() == 10 );
+
+  expect( 12 );
+  REQUIRE( f() == 12 );
+
+  expect( 5 );
+  REQUIRE( f() == 5 );
+
+  expect( 15 );
+  REQUIRE( f() == 15 );
 }
 
 TEST_CASE( "[price-group] scenario cases" ) {

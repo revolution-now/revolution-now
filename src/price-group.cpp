@@ -272,8 +272,9 @@ void ProcessedGoodsPriceGroup::evolve() {
 int generate_random_intrinsic_volume( TS& ts, int center,
                                       int window ) {
   int const bottom = center - window / 2;
-  return static_cast<int>( floor(
-      ts.rand.between_doubles( 0.0, 1.0 ) * window + bottom ) );
+  int const top    = center + window / 2;
+  return ts.rand.between_ints( bottom, top,
+                               IRand::e_interval::closed );
 }
 
 /****************************************************************
