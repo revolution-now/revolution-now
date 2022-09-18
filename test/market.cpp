@@ -71,7 +71,9 @@ TEST_CASE( "[market] market_price" ) {
            CommodityPrice{ .bid = 3, .ask = 4 } );
 }
 
-TEST_CASE( "[market] ask_from_bid" ) {}
+TEST_CASE( "[market] ask_from_bid" ) {
+  // TODO
+}
 
 TEST_CASE( "[market] transaction_invoice" ) {
   World W;
@@ -88,7 +90,17 @@ TEST_CASE( "[market] display_price_change_notification" ) {
   // TODO
 }
 
-TEST_CASE( "[market] evolve_market_commodity" ) {
+TEST_CASE( "[market] evolve_default_model_commodity" ) {
+  World W;
+  // TODO
+}
+
+TEST_CASE( "[market] evolve_group_model_volumes" ) {
+  World W;
+  // TODO
+}
+
+TEST_CASE( "[market] evolve_group_model_prices" ) {
   World W;
   // TODO
 }

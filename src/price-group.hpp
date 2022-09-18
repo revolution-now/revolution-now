@@ -62,6 +62,8 @@ struct ProcessedGoodsPriceGroup {
 
   void evolve();
 
+  void evolve( e_processed_good good );
+
   int intrinsic_volume( e_processed_good good ) const {
     return intrinsic_volumes_[good];
   }

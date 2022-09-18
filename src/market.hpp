@@ -34,6 +34,8 @@ struct TS;
 /****************************************************************
 ** Public API
 *****************************************************************/
+bool is_in_processed_goods_price_group( e_commodity type );
+
 CommodityPrice market_price( Player const& player,
                              e_commodity   commodity );
 
@@ -56,12 +58,28 @@ wait<> display_price_change_notification(
     int const price_change );
 
 // This will evolve the european volumes for a single commodity,
-// since in all of the models used here, they can be evolved in-
-// dependently, and also sometimes in the game they need to be
-// evolved independently.
-void evolve_market_commodity( Player&     player,
-                              e_commodity commodity );
+// and for a single player, and it is done at the start of the
+// that player's turn. In the default model it is the case that
+// if the internal volume changes (which is what this function
+// generally results in) then the price may need to be moved as
+// well, and that in requires that the internal volume again be
+// adjusted. Thus the two are coupled. Any price change that re-
+// sults is returned.
+PriceChange evolve_default_model_commodity(
+    Player& player, e_commodity commodity );
 
-bool is_in_processed_goods_price_group( e_commodity type );
+// This will evolve non-price market state for the commodities
+// that are in price gruops. This is done once at the start of
+// each full turn (where in this case one "turn" is where all of
+// the nations move), before any players get their turn, because
+// the price group model goods use shared market state. Then, at
+// the start of each player turn, the game will use this new
+// state to check for a price move. Hence this function does not
+// attempt to move prices.
+void evolve_group_model_volumes( SS& ss );
+
+// This is done once at the start of each player turn.
+refl::enum_map<e_commodity, PriceChange>
+evolve_group_model_prices( SS& ss, Player& player );
 
 } // namespace rn

@@ -256,6 +256,10 @@ void ProcessedGoodsPriceGroup::evolve_intrinsic_volume(
   intrinsic_volumes_[good] = lround( r );
 }
 
+void ProcessedGoodsPriceGroup::evolve( e_processed_good good ) {
+  evolve_intrinsic_volume( good );
+}
+
 void ProcessedGoodsPriceGroup::evolve() {
   for( e_processed_good good :
        refl::enum_values<e_processed_good> )

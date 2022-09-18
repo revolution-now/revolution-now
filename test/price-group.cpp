@@ -500,6 +500,14 @@ void run_scenario( TestCaseConfig const& scenario ) {
 /****************************************************************
 ** Unit test cases.
 *****************************************************************/
+TEST_CASE( "[price-group] evolve without buy/sell" ) {
+  // TODO
+}
+
+TEST_CASE( "[price-group] generate_random_intrinsic_volume" ) {
+  // TODO
+}
+
 TEST_CASE( "[price-group] scenario cases" ) {
   run_scenario( scenario_0 );
   run_scenario( scenario_1 );

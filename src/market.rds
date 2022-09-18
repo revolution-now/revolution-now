@@ -29,6 +29,12 @@ struct.CommodityPrice {
   ask 'int',
 }
 
+struct.PriceChange {
+  type 'e_commodity',
+  from 'CommodityPrice',
+  to   'CommodityPrice',
+}
+
 struct.Invoice {
   what 'Commodity',
 

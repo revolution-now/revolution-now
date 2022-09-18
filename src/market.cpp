@@ -39,16 +39,121 @@ namespace rn {
 
 namespace {
 
-// TODO: for the default price model:
-//
-//   - Each turn, the attrition is applied first before the game
-//     considers price changes.
-
 int with_volatility( int what, int volatility ) {
   if( volatility >= 0 )
     return what * ( 1 << volatility );
   else
     return what * ( 1 >> ( -volatility ) );
+}
+
+PriceChange create_price_change( e_commodity comm,
+                                 int         current_bid,
+                                 int         price_change ) {
+  int const current_ask = ask_from_bid( comm, current_bid );
+  return PriceChange{
+      .type = comm,
+      .from = CommodityPrice{ .bid = current_bid,
+                              .ask = current_ask },
+      .to =
+          CommodityPrice{ .bid = current_bid + price_change,
+                          .ask = current_ask + price_change } };
+}
+
+// The sum of the player-traded volume across all players for a
+// single commodity.
+int total_traded_volume_for_commodity( SSConst const& ss,
+                                       e_commodity    c ) {
+  int sum = 0;
+  for( auto const& [nation, player] : ss.players.players )
+    if( player.has_value() )
+      sum += player->old_world.market.commodities[c]
+                 .player_traded_volume;
+  return sum;
+}
+
+ProcessedGoodsPriceGroup create_price_group(
+    SSConst const& ss, maybe<bool> is_dutch ) {
+  ProcessedGoodsPriceGroupConfig config =
+      default_processed_goods_price_group_config();
+  if( is_dutch.has_value() and *is_dutch == true )
+    config.dutch = true;
+  for( e_processed_good good :
+       refl::enum_values<e_processed_good> ) {
+    e_commodity const comm = to_commodity( good );
+    config.starting_intrinsic_volumes[good] =
+        ss.players.global_market_state.commodities[comm]
+            .intrinsic_volume;
+    config.starting_traded_volumes[good] =
+        total_traded_volume_for_commodity( ss, comm );
+  }
+  return ProcessedGoodsPriceGroup( config );
+}
+
+// Note that the intrinsic value passed in will generally already
+// have a value that needs to be taken into account.
+void try_price_change_default_model( Player const& player,
+                                     e_commodity   type,
+                                     int& intrinsic_volume_delta,
+                                     int& price_change ) {
+  PlayerMarketItem const player_market_item =
+      player.old_world.market.commodities[type];
+  auto const& item_config = config_market.price_behavior[type];
+  int const   fall_threshold =
+      item_config.model_parameters.fall * 100;
+  int const rise_threshold =
+      -item_config.model_parameters.rise * 100;
+  int const new_player_volume =
+      player_market_item.intrinsic_volume +
+      intrinsic_volume_delta;
+  if( new_player_volume >= fall_threshold ) {
+    // Price drop.
+    intrinsic_volume_delta -= fall_threshold;
+    int const new_price =
+        std::max( player_market_item.bid_price - 1,
+                  item_config.price_limits.bid_price_min );
+    price_change = new_price - player_market_item.bid_price;
+  } else if( new_player_volume <= rise_threshold ) {
+    // Price increase.
+    intrinsic_volume_delta -= rise_threshold;
+    int const new_price =
+        std::min( player_market_item.bid_price + 1,
+                  item_config.price_limits.bid_price_max );
+    price_change = new_price - player_market_item.bid_price;
+  }
+  CHECK_GE( price_change, -1 );
+  CHECK_LE( price_change, 1 );
+}
+
+void try_price_change_group_model( Player const& player,
+                                   int         equilibrium_price,
+                                   e_commodity type,
+                                   double      volatility_push,
+                                   int&        price_change ) {
+  int const ask_price = ask_from_bid(
+      type,
+      player.old_world.market.commodities[type].bid_price );
+  // Need to clamp at both steps, since it is observed in the OG
+  // that when the volatility_push becomes unity that it can
+  // overtake the eq_push. And then we need to clamp the net_push
+  // because in general in the OG the price can never move more
+  // than one unit per sale.
+  int const eq_push =
+      clamp( equilibrium_price - ask_price, -1, 1 );
+  // The round is important here since otherwise any pushes that
+  // are between -1 and 1 would get ironed out to zero, and that
+  // changes the behavior because in the OG the volatility is 1,
+  // meaning that the volatility push when purchasing 100 of
+  // something will be +/.5, and so if that's in the opposite di-
+  // rection as the eq_push then the net push will be +/.5 and
+  // nothing will happen. By rounding, we accept this .5 as
+  // enough to push the price, and this seems to more closey
+  // mirror the OG's behavior (though not sure the exact formula
+  // it uses for deciding how to push the price).
+  int const net_push =
+      lround( clamp( eq_push + volatility_push, -1.0, 1.0 ) );
+  price_change = net_push;
+  CHECK_GE( price_change, -1 );
+  CHECK_LE( price_change, 1 );
 }
 
 Invoice transaction_invoice_default_model(
@@ -69,33 +174,31 @@ Invoice transaction_invoice_default_model(
   int const volatility = item_config.model_parameters.volatility;
   auto const& difficulty_modifiers =
       config_market.difficulty_modifiers[ss.settings.difficulty];
-  PlayerMarketItem const player_market_item =
-      player.old_world.market.commodities[comm_type];
   int const price = ( transaction_type == e_transaction::buy )
                         ? prices.ask
                         : prices.bid;
 
-  Invoice res;
-  res.what = transacted;
+  Invoice invoice;
+  invoice.what = transacted;
 
   // 1. Player money adjustment.
-  res.money_delta_before_taxes = price * transacted.quantity;
-  res.tax_rate                 = player.old_world.taxes.tax_rate;
+  invoice.money_delta_before_taxes = price * transacted.quantity;
+  invoice.tax_rate = player.old_world.taxes.tax_rate;
   if( transaction_type == e_transaction::sell ) {
-    CHECK_GE( res.money_delta_before_taxes, 0 );
+    CHECK_GE( invoice.money_delta_before_taxes, 0 );
     // Rounding is not an issue here because the amount received
     // will always be a multiple of 100, since bid/ask prices in
     // the game are always so.
-    res.tax_amount =
-        int( res.tax_rate *
-             ( res.money_delta_before_taxes / 100.0 ) );
+    invoice.tax_amount =
+        int( invoice.tax_rate *
+             ( invoice.money_delta_before_taxes / 100.0 ) );
   }
-  res.money_delta_final =
-      res.money_delta_before_taxes - res.tax_amount;
+  invoice.money_delta_final =
+      invoice.money_delta_before_taxes - invoice.tax_amount;
 
   // 2. Change player-traded volume (recall that this is defined
   // as the volume from the european perspective).
-  res.player_volume_delta = quantity;
+  invoice.player_volume_delta = quantity;
 
   // 3. Change the intrinsic volumes.
   double base_volume_change =
@@ -106,7 +209,7 @@ Invoice transaction_invoice_default_model(
           : difficulty_modifiers.non_human_traffic_volume_scale;
 
   for( e_nation nation : refl::enum_values<e_nation> ) {
-    res.intrinsic_volume_delta[nation] = 0;
+    invoice.intrinsic_volume_delta[nation] = 0;
     maybe<Player const&> some_player =
         ss.players.players[nation];
     if( !some_player.has_value() ) continue;
@@ -114,38 +217,20 @@ Invoice transaction_invoice_default_model(
         base_volume_change *
         config_market.nation_advantage[nation].buy_volume_scale;
     // Here we want to round toward zero.
-    res.intrinsic_volume_delta[nation] = int( volume_change );
+    invoice.intrinsic_volume_delta[nation] =
+        int( volume_change );
   }
 
   // 4. Evolve the player's price and intrinsic volume for the
   // transacted commodity (only for player). Note that we need to
   // consider both rises and falls here, since the current in-
   // trinsic volume could have started off at any value.
-  int const fall_threshold =
-      item_config.model_parameters.fall * 100;
-  int const rise_threshold =
-      -item_config.model_parameters.rise * 100;
-  int const new_player_volume =
-      player_market_item.intrinsic_volume +
-      res.intrinsic_volume_delta[player.nation];
-  if( new_player_volume >= fall_threshold ) {
-    // Price drop.
-    res.intrinsic_volume_delta[player.nation] -= fall_threshold;
-    int const new_price =
-        std::max( player_market_item.bid_price - 1,
-                  item_config.price_limits.bid_price_min );
-    res.price_change = new_price - player_market_item.bid_price;
-  } else if( new_player_volume <= rise_threshold ) {
-    // Price increase.
-    res.intrinsic_volume_delta[player.nation] -= rise_threshold;
-    int const new_price =
-        std::min( player_market_item.bid_price + 1,
-                  item_config.price_limits.bid_price_max );
-    res.price_change = new_price - player_market_item.bid_price;
-  }
-  CHECK_GE( res.price_change, -1 );
-  CHECK_LE( res.price_change, 1 );
-  return res;
+  try_price_change_default_model(
+      player, comm_type,
+      invoice.intrinsic_volume_delta[player.nation],
+      invoice.price_change );
+
+  return invoice;
 }
 
 Invoice transaction_invoice_processed_group_model(
@@ -184,34 +269,9 @@ Invoice transaction_invoice_processed_group_model(
           : transacted.quantity;
 
   // 2. Evolve the global intrinsic volumes.
-
-  // The sum of the player-traded volume across all players for a
-  // single commodity.
-  auto total_volume = [&]( e_commodity c ) {
-    int sum = 0;
-    for( auto const& [nation, player] : ss.players.players )
-      if( player.has_value() )
-        sum += player->old_world.market.commodities[c]
-                   .player_traded_volume;
-    return sum;
-  };
-
-  ProcessedGoodsPriceGroupConfig config =
-      default_processed_goods_price_group_config();
-
-  config.dutch = ( player.nation == e_nation::dutch );
-
-  for( e_processed_good good :
-       refl::enum_values<e_processed_good> ) {
-    e_commodity const comm = to_commodity( good );
-    config.starting_intrinsic_volumes[good] =
-        ss.players.global_market_state.commodities[comm]
-            .intrinsic_volume;
-    config.starting_traded_volumes[good] = total_volume( comm );
-  }
-
-  // Create price group object.
-  ProcessedGoodsPriceGroup group( config );
+  bool const is_dutch = ( player.nation == e_nation::dutch );
+  ProcessedGoodsPriceGroup group =
+      create_price_group( ss, is_dutch );
 
   UNWRAP_CHECK( processed_type,
                 from_commodity( transacted.type ) );
@@ -244,28 +304,10 @@ Invoice transaction_invoice_processed_group_model(
     volatility_push = -volatility_push;
   ProcessedGoodsPriceGroup::Map const equilibrium_prices =
       group.equilibrium_prices();
-  // Need to clamp at both steps, since it is observed in the OG
-  // that when the volatility_push becomes unity that it can
-  // overtake the eq_push. And then we need to clamp the net_push
-  // because in general in the OG the price can never move more
-  // than one unit per sale.
-  int const eq_push = clamp(
-      equilibrium_prices[processed_type] - prices.ask, -1, 1 );
-  // The round is important here since otherwise any pushes that
-  // are between -1 and 1 would get ironed out to zero, and that
-  // changes the behavior because in the OG the volatility is 1,
-  // meaning that the volatility push when purchasing 100 of
-  // something will be +/.5, and so if that's in the opposite di-
-  // rection as the eq_push then the net push will be +/.5 and
-  // nothing will happen. By rounding, we accept this .5 as
-  // enough to push the price, and this seems to more closey
-  // mirror the OG's behavior (though not sure the exact formula
-  // it uses for deciding how to push the price).
-  int const net_push =
-      lround( clamp( eq_push + volatility_push, -1.0, 1.0 ) );
-  invoice.price_change = net_push;
-  CHECK_GE( invoice.price_change, -1 );
-  CHECK_LE( invoice.price_change, 1 );
+  try_price_change_group_model(
+      player, equilibrium_prices[processed_type],
+      transacted.type, volatility_push, invoice.price_change );
+
   return invoice;
 }
 
@@ -344,6 +386,89 @@ bool is_in_processed_goods_price_group( e_commodity type ) {
     default: //
       return false;
   }
+}
+
+PriceChange evolve_default_model_commodity(
+    Player& player, e_commodity commodity ) {
+  int intrinsic_volume_delta = 0;
+  int price_change           = 0;
+
+  // 1. Apply attrition. The attition is applied before any po-
+  // tential price changes are evaluated.
+  intrinsic_volume_delta +=
+      config_market.price_behavior[commodity]
+          .model_parameters.attrition;
+
+  // 2. See if we should move the price. This will potentially
+  // mutate the volume and price change variables.
+  try_price_change_default_model(
+      player, commodity, intrinsic_volume_delta, price_change );
+
+  // Create this before affecting the changes.
+  PriceChange const change = create_price_change(
+      commodity,
+      player.old_world.market.commodities[commodity].bid_price,
+      price_change );
+
+  // Actually change the price.
+  PlayerMarketItem& item =
+      player.old_world.market.commodities[change.type];
+  item.bid_price += price_change;
+  item.intrinsic_volume += intrinsic_volume_delta;
+
+  return change;
+}
+
+void evolve_group_model_volumes( SS& ss ) {
+  // Note that there is no designated player in the context of
+  // this evolution, so the is_dutch parameter is not relevant.
+  // In the price group model the dutch status only comes into
+  // play when buying/selling.
+  ProcessedGoodsPriceGroup group =
+      create_price_group( ss, /*is_dutch=*/nothing );
+
+  // Do the evolution (only affects intrinsic volumes).
+  group.evolve();
+
+  for( e_processed_good good :
+       refl::enum_values<e_processed_good> ) {
+    e_commodity const comm = to_commodity( good );
+    ss.players.global_market_state.commodities[comm]
+        .intrinsic_volume = group.intrinsic_volume( good );
+  }
+}
+
+refl::enum_map<e_commodity, PriceChange>
+evolve_group_model_prices( SS& ss, Player& player ) {
+  refl::enum_map<e_commodity, PriceChange> res;
+
+  // Note that there is no designated player in the context of
+  // this evolution, so the is_dutch parameter is not relevant.
+  // In the price group model the dutch status only comes into
+  // play when buying/selling.
+  ProcessedGoodsPriceGroup group =
+      create_price_group( ss, /*is_dutch=*/nothing );
+  auto equilibrium_prices = group.equilibrium_prices();
+
+  // Attempt a price change and record it.
+  for( e_processed_good good :
+       refl::enum_values<e_processed_good> ) {
+    e_commodity const comm         = to_commodity( good );
+    int const         price_change = [&] {
+      int res = 0; // output parameter.
+      try_price_change_group_model(
+          player, equilibrium_prices[good], comm,
+          /*volatility_push=*/0, res );
+      return res;
+    }();
+    // Set the result.
+    int const current_bid =
+        player.old_world.market.commodities[comm].bid_price;
+    res[comm] =
+        create_price_change( comm, current_bid, price_change );
+  }
+
+  return res;
 }
 
 /****************************************************************
