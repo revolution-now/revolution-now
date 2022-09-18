@@ -7,6 +7,8 @@ local M = {}
 -- Imports.
 -----------------------------------------------------------------
 local util = require( 'ide.util' )
+local LU = require( 'ide.layout-util' )
+local vsplit = LU.vsplit
 
 -----------------------------------------------------------------
 -- Aliases.
@@ -27,12 +29,9 @@ end
 local function layout_all( stem )
   local F = files( stem )
   -- LuaFormatter off
-  return {
-    type='vsplit',
-    what={
-      F.vert,
-      F.frag,
-    }
+  return vsplit {
+    F.vert,
+    F.frag,
   }
   -- LuaFormatter on
 end

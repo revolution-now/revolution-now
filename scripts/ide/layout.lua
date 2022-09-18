@@ -54,8 +54,8 @@ local Layout = {
       self:func( layout )
     else
       assert( type( layout ) == 'table' )
-      assert( type( layout.what ) == 'table' )
-      self[layout.type]( self, layout.what )
+      assert( layout.type )
+      self[layout.type]( self, layout )
     end
   end
 }

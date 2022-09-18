@@ -8,12 +8,15 @@ local M = {}
 -----------------------------------------------------------------
 local util = require( 'ide.util' )
 local win = require( 'ide.win' )
+local LU = require( 'ide.layout-util' )
 
 -----------------------------------------------------------------
 -- Aliases.
 -----------------------------------------------------------------
 local format = string.format
 local exists = util.exists
+local vsplit = LU.vsplit
+local hsplit = LU.hsplit
 
 -----------------------------------------------------------------
 -- Private Functions.
@@ -54,43 +57,31 @@ end
 local function layout_wide( stem )
   local F = files( stem )
   -- LuaFormatter off
-  local plan = {
-    type='vsplit',
-    what={
-      {}, -- will be filled out.
-      F.cpp,
-      F.test,
-    }
+  local plan = vsplit {
+    {}, -- will be filled out.
+    F.cpp,
+    F.test,
   }
   -- LuaFormatter on
   if exists( F.rds ) and exists( F.rds_impl ) then
     -- LuaFormatter off
-    plan.what[1] = {
-      type='vsplit',
-      what={
-        {
-          type='hsplit',
-          what={
-            F.rds,
-            F.rds_impl
-          }
-        },
-        F.hpp
-      }
+    plan[1] = vsplit {
+      hsplit {
+        F.rds,
+        F.rds_impl
+      },
+      F.hpp
     }
     -- LuaFormatter on
   elseif exists( F.rds ) then
     -- LuaFormatter off
-    plan.what[1] = {
-      type='vsplit',
-      what={
-        F.rds,
-        F.hpp
-      }
+    plan[1] = vsplit {
+      F.rds,
+      F.hpp
     }
     -- LuaFormatter on
   else
-    plan.what[1] = F.hpp
+    plan[1] = F.hpp
   end
   return plan
 end
@@ -99,38 +90,29 @@ end
 local function layout_narrow( stem )
   local F = files( stem )
   -- LuaFormatter off
-  local plan = {
-    type='vsplit',
-    what={
-      {}, -- will be filled out.
-      F.cpp,
-      F.test,
-    }
+  local plan = vsplit {
+    {}, -- will be filled out.
+    F.cpp,
+    F.test,
   }
   -- LuaFormatter on
   if exists( F.rds ) and exists( F.rds_impl ) then
     -- LuaFormatter off
-    plan.what[1] = {
-      type='hsplit',
-      what={
-        F.rds,
-        F.hpp,
-        F.rds_impl
-      }
+    plan[1] = hsplit {
+      F.rds,
+      F.hpp,
+      F.rds_impl
     }
     -- LuaFormatter on
   elseif exists( F.rds ) then
     -- LuaFormatter off
-    plan.what[1] = {
-      type='hsplit',
-      what={
-        F.rds,
-        F.hpp
-      }
+    plan[1] = hsplit {
+      F.rds,
+      F.hpp
     }
     -- LuaFormatter on
   else
-    plan.what[1] = F.hpp
+    plan[1] = F.hpp
   end
   return plan
 end
