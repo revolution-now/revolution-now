@@ -562,18 +562,14 @@ TEST_CASE( "[price-group] evolve without buy/sell" ) {
   group.evolve();
 
   // Tests.
-  REQUIRE(
-      config.starting_traded_volumes[e_processed_good::rum] ==
-      1000 );
-  REQUIRE(
-      config.starting_traded_volumes[e_processed_good::cigars] ==
-      2000 );
-  REQUIRE(
-      config.starting_traded_volumes[e_processed_good::cloth] ==
-      3000 );
-  REQUIRE(
-      config.starting_traded_volumes[e_processed_good::coats] ==
-      4000 );
+  REQUIRE( group.traded_volume( e_processed_good::rum ) ==
+           1000 );
+  REQUIRE( group.traded_volume( e_processed_good::cigars ) ==
+           2000 );
+  REQUIRE( group.traded_volume( e_processed_good::cloth ) ==
+           3000 );
+  REQUIRE( group.traded_volume( e_processed_good::coats ) ==
+           4000 );
 
   int expected = 0;
 
