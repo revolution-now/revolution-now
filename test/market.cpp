@@ -228,17 +228,88 @@ TEST_CASE( "[market] apply_invoice" ) {
                .bid_price == 16 );
 }
 
-TEST_CASE( "[market] transaction_invoice" ) {
-  World W;
-  // TODO
-}
-
-TEST_CASE( "[market] evolve_default_model_commodity" ) {
-  World W;
-  // TODO
-}
-
 TEST_CASE( "[market] evolve_group_model_volumes" ) {
+  World W;
+  // We'll set dutch=true just to make sure that nothing special
+  // happens during the evolution; the dutch should only get an
+  // advantage when buying/selling in the price group model.
+  Player& player = W.player( e_nation::dutch );
+
+  W.ss()
+      .players.global_market_state.commodities[e_commodity::rum]
+      .intrinsic_volume = 5000;
+  W.ss()
+      .players.global_market_state
+      .commodities[e_commodity::cigars]
+      .intrinsic_volume = 4000;
+  W.ss()
+      .players.global_market_state
+      .commodities[e_commodity::cloth]
+      .intrinsic_volume = 3000;
+  W.ss()
+      .players.global_market_state
+      .commodities[e_commodity::coats]
+      .intrinsic_volume = 2000;
+
+  // These should influence the evolution but they should not
+  // change.
+  player.old_world.market.commodities[e_commodity::rum]
+      .player_traded_volume = 1000;
+  player.old_world.market.commodities[e_commodity::cigars]
+      .player_traded_volume = 2000;
+  player.old_world.market.commodities[e_commodity::cloth]
+      .player_traded_volume = 3000;
+  player.old_world.market.commodities[e_commodity::coats]
+      .player_traded_volume = 4000;
+
+  // Do the evolution.
+  evolve_group_model_volumes( W.ss() );
+
+  // Tests.
+  REQUIRE( player.old_world.market.commodities[e_commodity::rum]
+               .player_traded_volume == 1000 );
+  REQUIRE(
+      player.old_world.market.commodities[e_commodity::cigars]
+          .player_traded_volume == 2000 );
+  REQUIRE(
+      player.old_world.market.commodities[e_commodity::cloth]
+          .player_traded_volume == 3000 );
+  REQUIRE(
+      player.old_world.market.commodities[e_commodity::coats]
+          .player_traded_volume == 4000 );
+
+  int expected = 0;
+
+  expected =
+      lround( ( 5000.0 + 1000.0 + .5 ) * .9921875 - 1000.0 );
+  REQUIRE( W.ss()
+               .players.global_market_state
+               .commodities[e_commodity::rum]
+               .intrinsic_volume == expected );
+
+  expected =
+      lround( ( 4000.0 + 2000.0 + .5 ) * .9921875 - 2000.0 );
+  REQUIRE( W.ss()
+               .players.global_market_state
+               .commodities[e_commodity::cigars]
+               .intrinsic_volume == expected );
+
+  expected =
+      lround( ( 3000.0 + 3000.0 + .5 ) * .9921875 - 3000.0 );
+  REQUIRE( W.ss()
+               .players.global_market_state
+               .commodities[e_commodity::cloth]
+               .intrinsic_volume == expected );
+
+  expected =
+      lround( ( 2000.0 + 4000.0 + .5 ) * .9921875 - 4000.0 );
+  REQUIRE( W.ss()
+               .players.global_market_state
+               .commodities[e_commodity::coats]
+               .intrinsic_volume == expected );
+}
+
+TEST_CASE( "[market] transaction_invoice" ) {
   World W;
   // TODO
 }
