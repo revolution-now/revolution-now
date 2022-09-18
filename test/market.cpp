@@ -13,11 +13,15 @@
 // Under test.
 #include "src/market.hpp"
 
-// ss
-#include "ss/player.hpp"
-
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocking.hpp"
+#include "test/mocks/igui.hpp"
+
+// ss
+#include "ss/player.hpp"
+#include "ss/players.hpp"
+#include "ss/ref.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -37,7 +41,9 @@ struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
     create_default_map();
+    set_default_player( e_nation::french );
     add_player( e_nation::french );
+    add_player( e_nation::english );
     add_player( e_nation::dutch );
   }
 
@@ -71,21 +77,158 @@ TEST_CASE( "[market] market_price" ) {
            CommodityPrice{ .bid = 3, .ask = 4 } );
 }
 
-TEST_CASE( "[market] ask_from_bid" ) {
-  // TODO
-}
-
-TEST_CASE( "[market] transaction_invoice" ) {
+TEST_CASE( "[market] create_price_change" ) {
   World W;
-  // TODO
-}
-
-TEST_CASE( "[market] apply_invoice" ) {
-  World W;
-  // TODO
+  W.set_current_bid_price( e_commodity::ore, 10 );
+  PriceChange const change =
+      create_price_change( W.player(), e_commodity::ore,
+                           /*price_change=*/3 );
+  PriceChange const expected{ .type  = e_commodity::ore,
+                              .from  = { .bid = 10, .ask = 13 },
+                              .to    = { .bid = 13, .ask = 16 },
+                              .delta = 3 };
+  REQUIRE( change == expected );
 }
 
 TEST_CASE( "[market] display_price_change_notification" ) {
+  World         W;
+  Player const& player = W.default_player();
+  PriceChange   change;
+  wait<>        w = make_wait<>();
+
+  W.set_current_bid_price( e_commodity::ore, 10 );
+
+  auto f = [&] {
+    return display_price_change_notification( W.ts(), player,
+                                              change );
+  };
+
+  change = {};
+  w      = f();
+  REQUIRE_FALSE( w.exception() );
+  REQUIRE( w.ready() );
+
+  change = create_price_change( W.default_player(),
+                                e_commodity::ore, 3 );
+  EXPECT_CALL( W.gui(),
+               message_box( "The price of @[H]ore@[] in La "
+                            "Rochelle has risen to 13." )
+                   .returns( make_wait<>() ) );
+  w = f();
+  REQUIRE_FALSE( w.exception() );
+  REQUIRE( w.ready() );
+
+  change = create_price_change( W.default_player(),
+                                e_commodity::ore, -1 );
+  EXPECT_CALL( W.gui(),
+               message_box( "The price of @[H]ore@[] in La "
+                            "Rochelle has fallen to 9." )
+                   .returns( make_wait<>() ) );
+  w = f();
+  REQUIRE_FALSE( w.exception() );
+  REQUIRE( w.ready() );
+}
+
+TEST_CASE( "[market] ask_from_bid" ) {
+  REQUIRE( ask_from_bid( e_commodity::food, 2 ) == 10 );
+  REQUIRE( ask_from_bid( e_commodity::silver, 2 ) == 3 );
+}
+
+TEST_CASE( "[market] apply_invoice" ) {
+  World   W;
+  Invoice invoice;
+
+  W.set_current_bid_price( e_commodity::silver, 10 );
+
+  invoice = {
+      .what = Commodity{ .type     = e_commodity::silver,
+                         .quantity = 100 },
+      .money_delta_before_taxes = 9999, // shouldn't be used.
+      .tax_rate                 = 9999, // shouldn't be used.
+      .tax_amount               = 9999, // shouldn't be used.
+      .money_delta_final        = 123,
+      .player_volume_delta      = 345,
+      .intrinsic_volume_delta =
+          {
+              { e_nation::english, 9 },
+              { e_nation::french, 11 },
+          },
+      .global_intrinsic_volume_deltas =
+          {
+              { e_commodity::food, 13 },
+              { e_commodity::muskets, 15 },
+          },
+      .price_change = create_price_change(
+          W.player(), e_commodity::silver, 3 ),
+  };
+
+  Player const& p = W.default_player();
+  REQUIRE( p.money == 0 );
+  REQUIRE( p.old_world.market.commodities[e_commodity::silver]
+               .player_traded_volume == 0 );
+  REQUIRE( W.player( e_nation::english )
+               .old_world.market.commodities[e_commodity::silver]
+               .intrinsic_volume == 0 );
+  REQUIRE( W.player( e_nation::french )
+               .old_world.market.commodities[e_commodity::silver]
+               .intrinsic_volume == 0 );
+  REQUIRE( W.ss()
+               .players.global_market_state
+               .commodities[e_commodity::food]
+               .intrinsic_volume == 0 );
+  REQUIRE( W.ss()
+               .players.global_market_state
+               .commodities[e_commodity::muskets]
+               .intrinsic_volume == 0 );
+  REQUIRE( p.old_world.market.commodities[e_commodity::silver]
+               .bid_price == 10 );
+
+  apply_invoice( W.ss(), W.default_player(), invoice );
+
+  REQUIRE( p.money == 123 );
+  REQUIRE( p.old_world.market.commodities[e_commodity::silver]
+               .player_traded_volume == 345 );
+  REQUIRE( W.player( e_nation::english )
+               .old_world.market.commodities[e_commodity::silver]
+               .intrinsic_volume == 9 );
+  REQUIRE( W.player( e_nation::french )
+               .old_world.market.commodities[e_commodity::silver]
+               .intrinsic_volume == 11 );
+  REQUIRE( W.ss()
+               .players.global_market_state
+               .commodities[e_commodity::food]
+               .intrinsic_volume == 13 );
+  REQUIRE( W.ss()
+               .players.global_market_state
+               .commodities[e_commodity::muskets]
+               .intrinsic_volume == 15 );
+  REQUIRE( p.old_world.market.commodities[e_commodity::silver]
+               .bid_price == 13 );
+
+  apply_invoice( W.ss(), W.default_player(), invoice );
+
+  REQUIRE( p.money == 123 * 2 );
+  REQUIRE( p.old_world.market.commodities[e_commodity::silver]
+               .player_traded_volume == 345 * 2 );
+  REQUIRE( W.player( e_nation::english )
+               .old_world.market.commodities[e_commodity::silver]
+               .intrinsic_volume == 9 * 2 );
+  REQUIRE( W.player( e_nation::french )
+               .old_world.market.commodities[e_commodity::silver]
+               .intrinsic_volume == 11 * 2 );
+  REQUIRE( W.ss()
+               .players.global_market_state
+               .commodities[e_commodity::food]
+               .intrinsic_volume == 13 * 2 );
+  REQUIRE( W.ss()
+               .players.global_market_state
+               .commodities[e_commodity::muskets]
+               .intrinsic_volume == 15 * 2 );
+  REQUIRE( p.old_world.market.commodities[e_commodity::silver]
+               .bid_price == 16 );
+}
+
+TEST_CASE( "[market] transaction_invoice" ) {
   World W;
   // TODO
 }

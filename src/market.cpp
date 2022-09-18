@@ -46,21 +46,6 @@ int with_volatility( int what, int volatility ) {
     return what * ( 1 >> ( -volatility ) );
 }
 
-PriceChange create_price_change( Player const& player,
-                                 e_commodity   comm,
-                                 int           price_change ) {
-  int const current_bid =
-      player.old_world.market.commodities[comm].bid_price;
-  int const current_ask = ask_from_bid( comm, current_bid );
-  return PriceChange{
-      .type  = comm,
-      .from  = CommodityPrice{ .bid = current_bid,
-                               .ask = current_ask },
-      .to    = CommodityPrice{ .bid = current_bid + price_change,
-                               .ask = current_ask + price_change },
-      .delta = price_change };
-}
-
 // The sum of the player-traded volume across all players for a
 // single commodity.
 int total_traded_volume_for_commodity( SSConst const& ss,
@@ -349,6 +334,21 @@ evolve_group_model_prices( SSConst const& ss, Player& player ) {
 /****************************************************************
 ** Public API
 *****************************************************************/
+PriceChange create_price_change( Player const& player,
+                                 e_commodity   comm,
+                                 int           price_change ) {
+  int const current_bid =
+      player.old_world.market.commodities[comm].bid_price;
+  int const current_ask = ask_from_bid( comm, current_bid );
+  return PriceChange{
+      .type  = comm,
+      .from  = CommodityPrice{ .bid = current_bid,
+                               .ask = current_ask },
+      .to    = CommodityPrice{ .bid = current_bid + price_change,
+                               .ask = current_ask + price_change },
+      .delta = price_change };
+}
+
 CommodityPrice market_price( Player const& player,
                              e_commodity   commodity ) {
   int const bid =
@@ -398,17 +398,16 @@ void apply_invoice( SS& ss, Player& player,
 wait<> display_price_change_notification(
     TS& ts, Player const& player, PriceChange const& change ) {
   if( change.from == change.to ) co_return;
-  string const country_name =
-      nation_obj( player.nation ).country_name;
+  string const harbor_name =
+      nation_obj( player.nation ).harbor_city_name;
   CHECK( change.to.bid - change.from.bid ==
          change.to.ask - change.from.ask );
   int const    price_change = change.to.bid - change.from.bid;
   string const verb = ( price_change > 0 ) ? "risen" : "fallen";
-  CommodityPrice const prices =
-      market_price( player, change.type );
-  string const msg =
+  CommodityPrice const prices = change.to;
+  string const         msg =
       fmt::format( "The price of @[H]{}@[] in {} has {} to {}.",
-                   change.type, country_name, verb, prices.bid );
+                   change.type, harbor_name, verb, prices.bid );
   co_await ts.gui.message_box( msg );
 }
 

@@ -36,6 +36,10 @@ struct TS;
 *****************************************************************/
 bool is_in_processed_goods_price_group( e_commodity type );
 
+PriceChange create_price_change( Player const& player,
+                                 e_commodity   comm,
+                                 int           price_change );
+
 CommodityPrice market_price( Player const& player,
                              e_commodity   commodity );
 
