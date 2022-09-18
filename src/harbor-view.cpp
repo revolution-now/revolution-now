@@ -234,6 +234,10 @@ struct HarborPlane::Impl : public Plane {
         case ::SDLK_4: //
           cheat_increase_gold( player_ );
           break;
+        case ::SDLK_SPACE: //
+          co_await cheat_evolve_market_prices( ss_, ts_,
+                                               player_ );
+          break;
       }
       co_return;
     }

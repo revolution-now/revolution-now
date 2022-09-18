@@ -151,11 +151,11 @@ wait<> HarborMarketCommodities::disown_dragged_object() {
   Invoice const invoice = transaction_invoice(
       ss_, player_, comm, e_transaction::buy );
   apply_invoice( ss_, player_, invoice );
-  if( invoice.price_change != 0 ) {
+  if( invoice.price_change.delta != 0 ) {
     // FIXME: this is not an ideal place to put this since the
     // drag animation hasn't yet finished.
     co_await display_price_change_notification(
-        ts_, player_, comm.type, invoice.price_change );
+        ts_, player_, invoice.price_change );
   }
   co_return;
 }
@@ -196,11 +196,11 @@ wait<> HarborMarketCommodities::drop(
   Invoice const invoice = transaction_invoice(
       ss_, player_, comm, e_transaction::sell );
   apply_invoice( ss_, player_, invoice );
-  if( invoice.price_change != 0 ) {
+  if( invoice.price_change.delta != 0 ) {
     // FIXME: this is not an ideal place to put this since the
     // drag animation hasn't yet finished.
     co_await display_price_change_notification(
-        ts_, player_, comm.type, invoice.price_change );
+        ts_, player_, invoice.price_change );
   }
 }
 
