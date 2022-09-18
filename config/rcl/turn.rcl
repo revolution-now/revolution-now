@@ -1,5 +1,8 @@
 turns_to_wait {
-  # Give the player at least one turn before prices start moving
-  # on their own.
-  market_evolution: 1
+  # Give the player some time before prices start moving on their
+  # own. This way when the game starts the player isn't immedi-
+  # ately bombarded with price change notifications, which would
+  # probably just be confused and not relevant to the player at
+  # that stage anyway.
+  market_evolution: 10
 }
