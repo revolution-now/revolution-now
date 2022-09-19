@@ -139,7 +139,16 @@ PriceChange try_price_change_group_model(
   int const price_change = net_push;
   CHECK_GE( price_change, -1 );
   CHECK_LE( price_change, 1 );
-  return create_price_change( player, type, price_change );
+  int const current_bid = market_price( player, type ).bid;
+  int const proposed_bid =
+      clamp( current_bid + price_change,
+             config_market.price_behavior[type]
+                 .price_limits.bid_price_min,
+             config_market.price_behavior[type]
+                 .price_limits.bid_price_max );
+  int const allowed_price_change = proposed_bid - current_bid;
+  return create_price_change( player, type,
+                              allowed_price_change );
 }
 
 Invoice transaction_invoice_default_model(
@@ -228,6 +237,12 @@ Invoice transaction_invoice_default_model(
   invoice.price_change =
       create_price_change( player, comm_type, price_change );
 
+  CHECK_GE( invoice.price_change.to.bid,
+            config_market.price_behavior[transacted.type]
+                .price_limits.bid_price_min );
+  CHECK_LE( invoice.price_change.to.bid,
+            config_market.price_behavior[transacted.type]
+                .price_limits.bid_price_max );
   return invoice;
 }
 
@@ -415,12 +430,20 @@ Invoice transaction_invoice( SSConst const& ss,
                              Player const&  player,
                              Commodity      transacted,
                              e_transaction  transaction_type ) {
+  Invoice invoice;
   if( is_in_processed_goods_price_group( transacted.type ) )
-    return transaction_invoice_processed_group_model(
+    invoice = transaction_invoice_processed_group_model(
         ss, player, transacted, transaction_type );
   else
-    return transaction_invoice_default_model(
+    invoice = transaction_invoice_default_model(
         ss, player, transacted, transaction_type );
+  CHECK_GE( invoice.price_change.to.bid,
+            config_market.price_behavior[transacted.type]
+                .price_limits.bid_price_min );
+  CHECK_LE( invoice.price_change.to.bid,
+            config_market.price_behavior[transacted.type]
+                .price_limits.bid_price_max );
+  return invoice;
 }
 
 void apply_invoice( SS& ss, Player& player,
@@ -500,6 +523,10 @@ refl::enum_map<e_commodity, PriceChange> evolve_player_prices(
       res[c] = processed_goods[c];
     else
       res[c] = evolve_default_model_commodity( player, c );
+    CHECK_GE( res[c].to.bid, config_market.price_behavior[c]
+                                 .price_limits.bid_price_min );
+    CHECK_LE( res[c].to.bid, config_market.price_behavior[c]
+                                 .price_limits.bid_price_max );
   }
   return res;
 }

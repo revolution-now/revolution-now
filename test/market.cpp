@@ -985,6 +985,63 @@ TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
   REQUIRE( changes[e_commodity::coats].delta == 0 );
 }
 
+// Tests that when we buy a processed good that is at is maximum
+// price that the price doesn't go over the limit.
+TEST_CASE(
+    "[market] processed good buy remains within limits" ) {
+  World W;
+  W.set_default_player( e_nation::french );
+  GlobalMarketItem& global_rum =
+      W.ss()
+          .players.global_market_state
+          .commodities[e_commodity::rum];
+  GlobalMarketItem& global_cigars =
+      W.ss()
+          .players.global_market_state
+          .commodities[e_commodity::cigars];
+  GlobalMarketItem& global_cloth =
+      W.ss()
+          .players.global_market_state
+          .commodities[e_commodity::cloth];
+  GlobalMarketItem& global_coats =
+      W.ss()
+          .players.global_market_state
+          .commodities[e_commodity::coats];
+
+  global_rum.intrinsic_volume    = 100;
+  global_cigars.intrinsic_volume = 100;
+  global_cloth.intrinsic_volume  = 10;
+  global_coats.intrinsic_volume  = 100;
+
+  W.set_current_bid_price( e_commodity::cloth, 19 );
+
+  Invoice const invoice = transaction_invoice(
+      W.ss(), W.player(),
+      Commodity{ .type = e_commodity::cloth, .quantity = 100 },
+      e_transaction::buy );
+
+  REQUIRE( invoice.price_change.delta == 0 );
+}
+
+TEST_CASE(
+    "[market] default model good buy remains within limits" ) {
+  World W;
+  W.set_default_player( e_nation::french );
+
+  W.set_current_bid_price( e_commodity::muskets, 19 );
+
+  // Do the first evolution, which should not move the prices be-
+  // cause we've set all of the prices to their equilibrium
+  // values and the attrition isn't enough to move them.
+  Invoice const invoice = transaction_invoice(
+      W.ss(), W.player(),
+      Commodity{ .type     = e_commodity::muskets,
+                 .quantity = 1000 },
+      e_transaction::buy );
+
+  REQUIRE( invoice.price_change.delta == 0 );
+}
+
 TEST_CASE( "[market] transaction_invoice buy" ) {
   World     W;
   Commodity to_buy;
@@ -1235,17 +1292,17 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::ore]
-        .bid_price = 10;
+        .bid_price = 3;
     player.old_world.market.commodities[e_commodity::cigars]
         .bid_price = 10;
 
     to_buy   = { e_commodity::ore, 50 };
     expected = {
         .what                     = to_buy,
-        .money_delta_before_taxes = -13 * 50,
+        .money_delta_before_taxes = -6 * 50,
         .tax_rate                 = 50,
         .tax_amount               = 0,
-        .money_delta_final        = -13 * 50,
+        .money_delta_final        = -6 * 50,
         .player_volume_delta      = -50,
         .intrinsic_volume_delta =
             {
@@ -1288,18 +1345,18 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::ore]
+    player.old_world.market.commodities[e_commodity::muskets]
         .bid_price = 10;
     player.old_world.market.commodities[e_commodity::cigars]
         .bid_price = 10;
 
-    to_buy   = { e_commodity::ore, 50 };
+    to_buy   = { e_commodity::muskets, 50 };
     expected = {
         .what                     = to_buy,
-        .money_delta_before_taxes = -13 * 50,
+        .money_delta_before_taxes = -11 * 50,
         .tax_rate                 = 50,
         .tax_amount               = 0,
-        .money_delta_final        = -13 * 50,
+        .money_delta_final        = -11 * 50,
         .player_volume_delta      = -50,
         .intrinsic_volume_delta =
             {
@@ -1309,8 +1366,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
                 { e_nation::dutch, -33 },
             },
         .global_intrinsic_volume_deltas = {},
-        .price_change =
-            create_price_change( player, e_commodity::ore, 0 ),
+        .price_change                   = create_price_change(
+            player, e_commodity::muskets, 0 ),
     };
     REQUIRE( f() == expected );
 
@@ -1342,18 +1399,18 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::ore]
+    player.old_world.market.commodities[e_commodity::muskets]
         .bid_price = 10;
     player.old_world.market.commodities[e_commodity::cigars]
         .bid_price = 10;
 
-    to_buy   = { e_commodity::ore, 50 };
+    to_buy   = { e_commodity::muskets, 50 };
     expected = {
         .what                     = to_buy,
-        .money_delta_before_taxes = -13 * 50,
+        .money_delta_before_taxes = -11 * 50,
         .tax_rate                 = 50,
         .tax_amount               = 0,
-        .money_delta_final        = -13 * 50,
+        .money_delta_final        = -11 * 50,
         .player_volume_delta      = -50,
         .intrinsic_volume_delta =
             {
@@ -1363,8 +1420,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
                 { e_nation::dutch, -33 },
             },
         .global_intrinsic_volume_deltas = {},
-        .price_change =
-            create_price_change( player, e_commodity::ore, 0 ),
+        .price_change                   = create_price_change(
+            player, e_commodity::muskets, 0 ),
     };
     REQUIRE( f() == expected );
 
@@ -1396,18 +1453,18 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::ore]
+    player.old_world.market.commodities[e_commodity::muskets]
         .bid_price = 10;
     player.old_world.market.commodities[e_commodity::cigars]
         .bid_price = 10;
 
-    to_buy   = { e_commodity::ore, 50 };
+    to_buy   = { e_commodity::muskets, 50 };
     expected = {
         .what                     = to_buy,
-        .money_delta_before_taxes = -13 * 50,
+        .money_delta_before_taxes = -11 * 50,
         .tax_rate                 = 50,
         .tax_amount               = 0,
-        .money_delta_final        = -13 * 50,
+        .money_delta_final        = -11 * 50,
         .player_volume_delta      = -50,
         .intrinsic_volume_delta =
             {
@@ -1417,8 +1474,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
                 { e_nation::dutch, -33 },
             },
         .global_intrinsic_volume_deltas = {},
-        .price_change =
-            create_price_change( player, e_commodity::ore, 0 ),
+        .price_change                   = create_price_change(
+            player, e_commodity::muskets, 0 ),
     };
     REQUIRE( f() == expected );
 
@@ -1694,29 +1751,29 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::silver]
-        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::ore]
+        .bid_price = 3;
     player.old_world.market.commodities[e_commodity::cloth]
         .bid_price = 10;
 
-    to_sell  = { e_commodity::silver, 50 };
+    to_sell  = { e_commodity::ore, 50 };
     expected = {
         .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 50,
+        .money_delta_before_taxes = 3 * 50,
         .tax_rate                 = 50,
-        .tax_amount               = 250,
-        .money_delta_final        = 250,
+        .tax_amount               = 75,
+        .money_delta_final        = 75,
         .player_volume_delta      = 50,
         .intrinsic_volume_delta =
             {
-                { e_nation::english, 133 }, // volatility...
-                { e_nation::french, 33 },   // price fell...
-                { e_nation::spanish, 133 },
-                { e_nation::dutch, 88 },
+                { e_nation::english, 33 }, // volatility...
+                { e_nation::french, 33 },  // price fell...
+                { e_nation::spanish, 33 },
+                { e_nation::dutch, 22 },
             },
         .global_intrinsic_volume_deltas = {},
-        .price_change                   = create_price_change(
-            player, e_commodity::silver, -1 ),
+        .price_change =
+            create_price_change( player, e_commodity::ore, 0 ),
     };
     REQUIRE( f() == expected );
 
