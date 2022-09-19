@@ -150,21 +150,17 @@ wait<> HarborMarketCommodities::disown_dragged_object() {
   // goods from the market, and so we must charge the player now.
   Invoice const invoice = transaction_invoice(
       ss_, player_, comm, e_transaction::buy );
+  dragging_->price_change = invoice.price_change;
   apply_invoice( ss_, player_, invoice );
-  if( invoice.price_change.delta != 0 ) {
-    // FIXME: this is not an ideal place to put this since the
-    // drag animation hasn't yet finished.
-    co_await display_price_change_notification(
-        ts_, player_, invoice.price_change );
-  }
   co_return;
 }
 
 wait<> HarborMarketCommodities::post_successful_source(
-    HarborDraggableObject_t const& o, Coord const& ) {
-  // TODO
-  (void)o;
-  co_return;
+    HarborDraggableObject_t const&, Coord const& ) {
+  CHECK( dragging_.has_value() );
+  if( dragging_->price_change.delta != 0 )
+    co_await display_price_change_notification(
+        ts_, player_, dragging_->price_change );
 }
 
 maybe<HarborDraggableObject_t>
@@ -196,12 +192,9 @@ wait<> HarborMarketCommodities::drop(
   Invoice const invoice = transaction_invoice(
       ss_, player_, comm, e_transaction::sell );
   apply_invoice( ss_, player_, invoice );
-  if( invoice.price_change.delta != 0 ) {
-    // FIXME: this is not an ideal place to put this since the
-    // drag animation hasn't yet finished.
+  if( invoice.price_change.delta != 0 )
     co_await display_price_change_notification(
         ts_, player_, invoice.price_change );
-  }
 }
 
 void HarborMarketCommodities::draw( rr::Renderer& renderer,

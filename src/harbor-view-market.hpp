@@ -16,6 +16,7 @@
 // Revolution Now
 #include "dragdrop.hpp"
 #include "harbor-view-entities.hpp"
+#include "market.rds.hpp"
 
 namespace rn {
 
@@ -116,7 +117,8 @@ struct HarborMarketCommodities
       double_layer_blocks_height * sprite_scale.h;
 
   struct Draggable {
-    Commodity comm = {};
+    Commodity   comm         = {};
+    PriceChange price_change = {};
   };
 
   maybe<Draggable> dragging_;

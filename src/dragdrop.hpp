@@ -114,11 +114,10 @@ struct IDragSource {
   virtual bool try_drag( Draggable const& o,
                          Coord const&     where ) = 0;
 
-  // This function must be called if the drag is cancelled for
-  // any reason before it is affected. It is recommended to call
-  // this function in a SCOPE_EXIT just after calling try_drag.
-  // Note that an implementation of this MUST be idempotent,
-  // since this may be called more than once.
+  // This function will always be called at the end of any drag,
+  // whether it is successful, failed, or cancelled. Furthermore,
+  // it may be called multiple times, and so it shouldn't have
+  // side affects and should be idempotent.
   virtual void cancel_drag() = 0;
 
   // This is used to indicate whether the user can hold down a
@@ -541,6 +540,13 @@ wait<> drag_drop_routine(
         break;
       }
     }
+
+    // This is optional, but makes things look better. We want to
+    // reset this before calling the post-success hooks below so
+    // that the dragged object is not hovering at the sink loca-
+    // tion while they run (since then it won't appear that the
+    // drag has finished).
+    drag_state = nothing;
 
     // Finally we can do the drag.
     co_await drag_source.disown_dragged_object();
