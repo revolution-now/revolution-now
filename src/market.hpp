@@ -71,9 +71,9 @@ wait<> display_price_change_notification(
 void evolve_group_model_volumes( SS& ss );
 
 // This is called once at the start of each player turn and it
-// will evolve their prices (for all commodities) and potentially
-// show a popup if the player is human.
-wait<> evolve_player_prices( SSConst const& ss, TS& ts,
-                             Player& player );
+// will evolve their prices (for all commodities) and will return
+// any price changes that occurred.
+[[nodiscard]] refl::enum_map<e_commodity, PriceChange>
+evolve_player_prices( SSConst const& ss, Player& player );
 
 } // namespace rn

@@ -94,8 +94,13 @@ wait<> cheat_evolve_market_prices( SS& ss, TS& ts,
                                    Player& player ) {
   CO_RETURN_IF_NO_CHEAT;
   evolve_group_model_volumes( ss );
-  co_await evolve_player_prices(
-      static_cast<SSConst const&>( ss ), ts, player );
+  refl::enum_map<e_commodity, PriceChange> const changes =
+      evolve_player_prices( static_cast<SSConst const&>( ss ),
+                            player );
+  for( e_commodity comm : refl::enum_values<e_commodity> )
+    if( changes[comm].delta != 0 )
+      co_await display_price_change_notification(
+          ts, player, changes[comm] );
 }
 
 /****************************************************************

@@ -479,23 +479,18 @@ void evolve_group_model_volumes( SS& ss ) {
   }
 }
 
-wait<> evolve_player_prices( SSConst const& ss, TS& ts,
-                             Player& player ) {
+refl::enum_map<e_commodity, PriceChange> evolve_player_prices(
+    SSConst const& ss, Player& player ) {
+  refl::enum_map<e_commodity, PriceChange> res;
   refl::enum_map<e_commodity, PriceChange> const
-       processed_goods = evolve_group_model_prices( ss, player );
-  auto try_change = [&]( PriceChange const& change ) -> wait<> {
-    if( !player.human ) co_return;
-    if( change.to != change.from )
-      co_await display_price_change_notification( ts, player,
-                                                  change );
-  };
+      processed_goods = evolve_group_model_prices( ss, player );
   for( e_commodity c : refl::enum_values<e_commodity> ) {
     if( is_in_processed_goods_price_group( c ) )
-      co_await try_change( processed_goods[c] );
+      res[c] = processed_goods[c];
     else
-      co_await try_change(
-          evolve_default_model_commodity( player, c ) );
+      res[c] = evolve_default_model_commodity( player, c );
   }
+  return res;
 }
 
 /****************************************************************

@@ -822,8 +822,16 @@ wait<> colonies_turn( Planes& planes, SS& ss, TS& ts,
 wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
   // Evolve market prices.
   if( ss.turn.time_point.turns >
-      config_turn.turns_to_wait.market_evolution )
-    co_await evolve_player_prices( ss, ts, player );
+      config_turn.turns_to_wait.market_evolution ) {
+    // This will actually change the prices, then will return
+    // info about which ones it changed.
+    refl::enum_map<e_commodity, PriceChange> changes =
+        evolve_player_prices( ss, player );
+    for( e_commodity comm : refl::enum_values<e_commodity> )
+      if( changes[comm].delta != 0 )
+        co_await display_price_change_notification(
+            ts, player, changes[comm] );
+  }
 
   // TODO:
   //
