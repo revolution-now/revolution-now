@@ -25,9 +25,13 @@
 #include "ss/player.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
+#include "ss/settings.hpp"
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -647,9 +651,924 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
   REQUIRE( changes[e_commodity::coats].delta == 0 );
 }
 
-TEST_CASE( "[market] transaction_invoice" ) {
-  World W;
-  // TODO
+TEST_CASE( "[market] transaction_invoice buy" ) {
+  World     W;
+  Commodity to_buy;
+  Invoice   expected;
+
+  auto f = [&] {
+    return transaction_invoice( W.ss(), W.default_player(),
+                                to_buy, e_transaction::buy );
+  };
+
+  W.ss()
+      .players.global_market_state.commodities[e_commodity::rum]
+      .intrinsic_volume = 1000;
+  W.ss()
+      .players.global_market_state
+      .commodities[e_commodity::cigars]
+      .intrinsic_volume = 1000;
+  W.ss()
+      .players.global_market_state
+      .commodities[e_commodity::cloth]
+      .intrinsic_volume = 1000;
+  W.ss()
+      .players.global_market_state
+      .commodities[e_commodity::coats]
+      .intrinsic_volume = 1000;
+
+  SECTION( "human, conquistador, non-dutch" ) {
+    W.set_default_player( e_nation::french );
+    Player& player          = W.default_player();
+    player.human            = true;
+    W.settings().difficulty = e_difficulty::conquistador;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::silver]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cloth]
+        .bid_price = 10;
+
+    to_buy   = { e_commodity::silver, 50 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -11 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -11 * 50,
+        .player_volume_delta      = -50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, -200 }, // volatility...
+                { e_nation::french, -200 },
+                { e_nation::spanish, -200 },
+                { e_nation::dutch, -200 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change                   = create_price_change(
+            player, e_commodity::silver, 0 ),
+    };
+    REQUIRE( f() == expected );
+
+    to_buy   = { e_commodity::cloth, 100 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -11 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -11 * 100,
+        .player_volume_delta      = -100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, 0 },
+                { e_commodity::cigars, 0 },
+                { e_commodity::cloth, 0 },
+                { e_commodity::coats, 0 },
+            },
+        .price_change =
+            create_price_change( player, e_commodity::cloth, 1 ),
+    };
+    REQUIRE( f() == expected );
+  }
+  SECTION( "human, conquistador, dutch" ) {
+    W.set_default_player( e_nation::dutch );
+    Player& player          = W.default_player();
+    player.human            = true;
+    W.settings().difficulty = e_difficulty::conquistador;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::silver]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cloth]
+        .bid_price = 10;
+
+    to_buy   = { e_commodity::silver, 50 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -11 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -11 * 50,
+        .player_volume_delta      = -50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, -200 }, // volatility...
+                { e_nation::french, -200 },
+                { e_nation::spanish, -200 },
+                { e_nation::dutch, -200 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change                   = create_price_change(
+            player, e_commodity::silver, 0 ),
+    };
+    REQUIRE( f() == expected );
+
+    to_buy   = { e_commodity::cloth, 100 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -11 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -11 * 100,
+        .player_volume_delta      = -100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, 0 },
+                { e_commodity::cigars, 0 },
+                { e_commodity::cloth, 0 },
+                { e_commodity::coats, 0 },
+            },
+        .price_change =
+            create_price_change( player, e_commodity::cloth, 1 ),
+    };
+    REQUIRE( f() == expected );
+  }
+  SECTION( "human, discoverer, non-dutch" ) {
+    W.set_default_player( e_nation::french );
+    Player& player          = W.default_player();
+    player.human            = true;
+    W.settings().difficulty = e_difficulty::discoverer;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::silver]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cloth]
+        .bid_price = 10;
+
+    to_buy   = { e_commodity::silver, 50 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -11 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -11 * 50,
+        .player_volume_delta      = -50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, -133 }, // volatility...
+                { e_nation::french, -133 },
+                { e_nation::spanish, -133 },
+                { e_nation::dutch, -133 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change                   = create_price_change(
+            player, e_commodity::silver, 0 ),
+    };
+    REQUIRE( f() == expected );
+
+    to_buy   = { e_commodity::cloth, 100 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -11 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -11 * 100,
+        .player_volume_delta      = -100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, 0 },
+                { e_commodity::cigars, 0 },
+                { e_commodity::cloth, 0 },
+                { e_commodity::coats, 0 },
+            },
+        .price_change =
+            create_price_change( player, e_commodity::cloth, 1 ),
+    };
+    REQUIRE( f() == expected );
+  }
+  SECTION( "human, discoverer, dutch" ) {
+    W.set_default_player( e_nation::dutch );
+    Player& player          = W.default_player();
+    player.human            = true;
+    W.settings().difficulty = e_difficulty::discoverer;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::silver]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cloth]
+        .bid_price = 10;
+
+    to_buy   = { e_commodity::silver, 50 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -11 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -11 * 50,
+        .player_volume_delta      = -50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, -133 }, // volatility...
+                { e_nation::french, -133 },
+                { e_nation::spanish, -133 },
+                { e_nation::dutch, -133 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change                   = create_price_change(
+            player, e_commodity::silver, 0 ),
+    };
+    REQUIRE( f() == expected );
+
+    to_buy   = { e_commodity::cloth, 100 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -11 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -11 * 100,
+        .player_volume_delta      = -100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, 0 },
+                { e_commodity::cigars, 0 },
+                { e_commodity::cloth, 0 },
+                { e_commodity::coats, 0 },
+            },
+        .price_change =
+            create_price_change( player, e_commodity::cloth, 1 ),
+    };
+    REQUIRE( f() == expected );
+  }
+  SECTION( "AI, conquistador, non-dutch" ) {
+    W.set_default_player( e_nation::french );
+    Player& player          = W.default_player();
+    player.human            = false;
+    W.settings().difficulty = e_difficulty::conquistador;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::ore]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cigars]
+        .bid_price = 10;
+
+    to_buy   = { e_commodity::ore, 50 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -13 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -13 * 50,
+        .player_volume_delta      = -50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, -33 },
+                { e_nation::french, -33 },
+                { e_nation::spanish, -33 },
+                { e_nation::dutch, -33 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change =
+            create_price_change( player, e_commodity::ore, 0 ),
+    };
+    REQUIRE( f() == expected );
+
+    to_buy   = { e_commodity::cigars, 100 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -11 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -11 * 100,
+        .player_volume_delta      = -100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, 0 },
+                { e_commodity::cigars, 0 },
+                { e_commodity::cigars, 0 },
+                { e_commodity::coats, 0 },
+            },
+        .price_change = create_price_change(
+            player, e_commodity::cigars, 1 ),
+    };
+    REQUIRE( f() == expected );
+  }
+  SECTION( "AI, conquistador, dutch" ) {
+    W.set_default_player( e_nation::dutch );
+    Player& player          = W.default_player();
+    player.human            = false;
+    W.settings().difficulty = e_difficulty::conquistador;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::ore]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cigars]
+        .bid_price = 10;
+
+    to_buy   = { e_commodity::ore, 50 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -13 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -13 * 50,
+        .player_volume_delta      = -50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, -33 },
+                { e_nation::french, -33 },
+                { e_nation::spanish, -33 },
+                { e_nation::dutch, -33 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change =
+            create_price_change( player, e_commodity::ore, 0 ),
+    };
+    REQUIRE( f() == expected );
+
+    to_buy   = { e_commodity::cigars, 100 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -11 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -11 * 100,
+        .player_volume_delta      = -100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, 0 },
+                { e_commodity::cigars, 0 },
+                { e_commodity::cigars, 0 },
+                { e_commodity::coats, 0 },
+            },
+        .price_change = create_price_change(
+            player, e_commodity::cigars, 1 ),
+    };
+    REQUIRE( f() == expected );
+  }
+  SECTION( "AI, discoverer, non-dutch" ) {
+    W.set_default_player( e_nation::french );
+    Player& player          = W.default_player();
+    player.human            = false;
+    W.settings().difficulty = e_difficulty::conquistador;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::ore]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cigars]
+        .bid_price = 10;
+
+    to_buy   = { e_commodity::ore, 50 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -13 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -13 * 50,
+        .player_volume_delta      = -50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, -33 },
+                { e_nation::french, -33 },
+                { e_nation::spanish, -33 },
+                { e_nation::dutch, -33 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change =
+            create_price_change( player, e_commodity::ore, 0 ),
+    };
+    REQUIRE( f() == expected );
+
+    to_buy   = { e_commodity::cigars, 100 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -11 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -11 * 100,
+        .player_volume_delta      = -100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, 0 },
+                { e_commodity::cigars, 0 },
+                { e_commodity::cigars, 0 },
+                { e_commodity::coats, 0 },
+            },
+        .price_change = create_price_change(
+            player, e_commodity::cigars, 1 ),
+    };
+    REQUIRE( f() == expected );
+  }
+  SECTION( "AI, discoverer, dutch" ) {
+    W.set_default_player( e_nation::dutch );
+    Player& player          = W.default_player();
+    player.human            = false;
+    W.settings().difficulty = e_difficulty::conquistador;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::ore]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cigars]
+        .bid_price = 10;
+
+    to_buy   = { e_commodity::ore, 50 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -13 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -13 * 50,
+        .player_volume_delta      = -50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, -33 },
+                { e_nation::french, -33 },
+                { e_nation::spanish, -33 },
+                { e_nation::dutch, -33 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change =
+            create_price_change( player, e_commodity::ore, 0 ),
+    };
+    REQUIRE( f() == expected );
+
+    to_buy   = { e_commodity::cigars, 100 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -11 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -11 * 100,
+        .player_volume_delta      = -100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, 0 },
+                { e_commodity::cigars, 0 },
+                { e_commodity::cigars, 0 },
+                { e_commodity::coats, 0 },
+            },
+        .price_change = create_price_change(
+            player, e_commodity::cigars, 1 ),
+    };
+    REQUIRE( f() == expected );
+  }
+}
+
+TEST_CASE( "[market] transaction_invoice sell" ) {
+  World     W;
+  Commodity to_sell;
+  Invoice   expected;
+
+  auto f = [&] {
+    return transaction_invoice( W.ss(), W.default_player(),
+                                to_sell, e_transaction::sell );
+  };
+
+  W.ss()
+      .players.global_market_state.commodities[e_commodity::rum]
+      .intrinsic_volume = 1000;
+  W.ss()
+      .players.global_market_state
+      .commodities[e_commodity::cigars]
+      .intrinsic_volume = 1000;
+  W.ss()
+      .players.global_market_state
+      .commodities[e_commodity::cloth]
+      .intrinsic_volume = 1000;
+  W.ss()
+      .players.global_market_state
+      .commodities[e_commodity::coats]
+      .intrinsic_volume = 1000;
+
+  SECTION( "human, conquistador, non-dutch, tax=50" ) {
+    W.set_default_player( e_nation::french );
+    Player& player          = W.default_player();
+    player.human            = true;
+    W.settings().difficulty = e_difficulty::conquistador;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::silver]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cloth]
+        .bid_price = 10;
+
+    to_sell  = { e_commodity::silver, 50 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 250,
+        .money_delta_final        = 250,
+        .player_volume_delta      = 50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, 200 }, // volatility...
+                { e_nation::french, 100 },  // price fell...
+                { e_nation::spanish, 200 },
+                { e_nation::dutch, 133 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change                   = create_price_change(
+            player, e_commodity::silver, -1 ),
+    };
+    REQUIRE( f() == expected );
+
+    to_sell  = { e_commodity::cloth, 100 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 500,
+        .money_delta_final        = 500,
+        .player_volume_delta      = 100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, -7 },
+                { e_commodity::cigars, -7 },
+                { e_commodity::cloth, -8 },
+                { e_commodity::coats, -7 },
+            },
+        .price_change = create_price_change(
+            player, e_commodity::cloth, -1 ),
+    };
+    REQUIRE( f() == expected );
+  }
+  SECTION( "human, conquistador, dutch, tax=50" ) {
+    W.set_default_player( e_nation::dutch );
+    Player& player          = W.default_player();
+    player.human            = true;
+    W.settings().difficulty = e_difficulty::conquistador;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::silver]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cloth]
+        .bid_price = 10;
+
+    to_sell  = { e_commodity::silver, 50 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 250,
+        .money_delta_final        = 250,
+        .player_volume_delta      = 50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, 200 }, // volatility...
+                { e_nation::french, 200 },  // price fell...
+                { e_nation::spanish, 200 },
+                { e_nation::dutch, 33 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change                   = create_price_change(
+            player, e_commodity::silver, -1 ),
+    };
+    REQUIRE( f() == expected );
+
+    to_sell  = { e_commodity::cloth, 100 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 500,
+        .money_delta_final        = 500,
+        .player_volume_delta      = 100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, 0 },
+                { e_commodity::cigars, 0 },
+                { e_commodity::cloth, 0 },
+                { e_commodity::coats, 0 },
+            },
+        .price_change = create_price_change(
+            player, e_commodity::cloth, -1 ),
+    };
+    REQUIRE( f() == expected );
+  }
+  SECTION( "human, discoverer, non-dutch, tax=50" ) {
+    W.set_default_player( e_nation::french );
+    Player& player          = W.default_player();
+    player.human            = true;
+    W.settings().difficulty = e_difficulty::discoverer;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::silver]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cloth]
+        .bid_price = 10;
+
+    to_sell  = { e_commodity::silver, 50 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 250,
+        .money_delta_final        = 250,
+        .player_volume_delta      = 50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, 133 }, // volatility...
+                { e_nation::french, 33 },   // price fell...
+                { e_nation::spanish, 133 },
+                { e_nation::dutch, 88 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change                   = create_price_change(
+            player, e_commodity::silver, -1 ),
+    };
+    REQUIRE( f() == expected );
+
+    to_sell  = { e_commodity::cloth, 100 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 500,
+        .money_delta_final        = 500,
+        .player_volume_delta      = 100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, -7 },
+                { e_commodity::cigars, -7 },
+                { e_commodity::cloth, -8 },
+                { e_commodity::coats, -7 },
+            },
+        .price_change = create_price_change(
+            player, e_commodity::cloth, -1 ),
+    };
+    REQUIRE( f() == expected );
+  }
+  SECTION( "human, discoverer, dutch, tax=50" ) {
+    W.set_default_player( e_nation::dutch );
+    Player& player          = W.default_player();
+    player.human            = true;
+    W.settings().difficulty = e_difficulty::discoverer;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::silver]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cloth]
+        .bid_price = 10;
+
+    to_sell  = { e_commodity::silver, 50 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 250,
+        .money_delta_final        = 250,
+        .player_volume_delta      = 50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, 133 }, // volatility...
+                { e_nation::french, 133 },  // price fell...
+                { e_nation::spanish, 133 },
+                { e_nation::dutch, 88 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change                   = create_price_change(
+            player, e_commodity::silver, 0 ),
+    };
+    REQUIRE( f() == expected );
+
+    to_sell  = { e_commodity::cloth, 100 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 500,
+        .money_delta_final        = 500,
+        .player_volume_delta      = 100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, 0 },
+                { e_commodity::cigars, 0 },
+                { e_commodity::cloth, 0 },
+                { e_commodity::coats, 0 },
+            },
+        .price_change = create_price_change(
+            player, e_commodity::cloth, -1 ),
+    };
+    REQUIRE( f() == expected );
+  }
+  SECTION( "AI, conquistador, non-dutch, tax=50" ) {
+    W.set_default_player( e_nation::french );
+    Player& player          = W.default_player();
+    player.human            = false;
+    W.settings().difficulty = e_difficulty::conquistador;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::silver]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cloth]
+        .bid_price = 10;
+
+    to_sell  = { e_commodity::silver, 50 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 250,
+        .money_delta_final        = 250,
+        .player_volume_delta      = 50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, 133 }, // volatility...
+                { e_nation::french, 33 },   // price fell...
+                { e_nation::spanish, 133 },
+                { e_nation::dutch, 88 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change                   = create_price_change(
+            player, e_commodity::silver, -1 ),
+    };
+    REQUIRE( f() == expected );
+
+    to_sell  = { e_commodity::cloth, 100 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 500,
+        .money_delta_final        = 500,
+        .player_volume_delta      = 100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, -7 },
+                { e_commodity::cigars, -7 },
+                { e_commodity::cloth, -8 },
+                { e_commodity::coats, -7 },
+            },
+        .price_change = create_price_change(
+            player, e_commodity::cloth, -1 ),
+    };
+    REQUIRE( f() == expected );
+  }
+  SECTION( "AI, conquistador, dutch, tax=50" ) {
+    W.set_default_player( e_nation::dutch );
+    Player& player          = W.default_player();
+    player.human            = false;
+    W.settings().difficulty = e_difficulty::conquistador;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::silver]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cloth]
+        .bid_price = 10;
+
+    to_sell  = { e_commodity::silver, 50 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 250,
+        .money_delta_final        = 250,
+        .player_volume_delta      = 50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, 133 }, // volatility...
+                { e_nation::french, 133 },  // price fell...
+                { e_nation::spanish, 133 },
+                { e_nation::dutch, 88 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change                   = create_price_change(
+            player, e_commodity::silver, 0 ),
+    };
+    REQUIRE( f() == expected );
+
+    to_sell  = { e_commodity::cloth, 100 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 500,
+        .money_delta_final        = 500,
+        .player_volume_delta      = 100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, 0 },
+                { e_commodity::cigars, 0 },
+                { e_commodity::cloth, 0 },
+                { e_commodity::coats, 0 },
+            },
+        .price_change = create_price_change(
+            player, e_commodity::cloth, -1 ),
+    };
+    REQUIRE( f() == expected );
+  }
+  SECTION( "AI, discoverer, non-dutch, tax=50" ) {
+    W.set_default_player( e_nation::french );
+    Player& player          = W.default_player();
+    player.human            = false;
+    W.settings().difficulty = e_difficulty::conquistador;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::silver]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cloth]
+        .bid_price = 10;
+
+    to_sell  = { e_commodity::silver, 50 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 250,
+        .money_delta_final        = 250,
+        .player_volume_delta      = 50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, 133 }, // volatility...
+                { e_nation::french, 33 },   // price fell...
+                { e_nation::spanish, 133 },
+                { e_nation::dutch, 88 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change                   = create_price_change(
+            player, e_commodity::silver, -1 ),
+    };
+    REQUIRE( f() == expected );
+
+    to_sell  = { e_commodity::cloth, 100 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 500,
+        .money_delta_final        = 500,
+        .player_volume_delta      = 100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, -7 },
+                { e_commodity::cigars, -7 },
+                { e_commodity::cloth, -8 },
+                { e_commodity::coats, -7 },
+            },
+        .price_change = create_price_change(
+            player, e_commodity::cloth, -1 ),
+    };
+    REQUIRE( f() == expected );
+  }
+  SECTION( "AI, discoverer, dutch, tax=50" ) {
+    W.set_default_player( e_nation::dutch );
+    Player& player          = W.default_player();
+    player.human            = false;
+    W.settings().difficulty = e_difficulty::conquistador;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::silver]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cloth]
+        .bid_price = 10;
+
+    to_sell  = { e_commodity::silver, 50 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 250,
+        .money_delta_final        = 250,
+        .player_volume_delta      = 50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, 133 }, // volatility...
+                { e_nation::french, 133 },  // price fell...
+                { e_nation::spanish, 133 },
+                { e_nation::dutch, 88 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change                   = create_price_change(
+            player, e_commodity::silver, 0 ),
+    };
+    REQUIRE( f() == expected );
+
+    to_sell  = { e_commodity::cloth, 100 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 500,
+        .money_delta_final        = 500,
+        .player_volume_delta      = 100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, 0 },
+                { e_commodity::cigars, 0 },
+                { e_commodity::cloth, 0 },
+                { e_commodity::coats, 0 },
+            },
+        .price_change = create_price_change(
+            player, e_commodity::cloth, -1 ),
+    };
+    REQUIRE( f() == expected );
+  }
 }
 
 } // namespace

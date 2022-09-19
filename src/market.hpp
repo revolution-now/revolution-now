@@ -47,10 +47,9 @@ CommodityPrice market_price( Player const& player,
 int ask_from_bid( e_commodity type, int bid );
 
 // The sign of the quantity in the commodity must be >= 0.
-Invoice transaction_invoice( SSConst const& ss,
-                             Player const&  player,
-                             Commodity      comm,
-                             e_transaction  transaction_type );
+[[nodiscard]] Invoice transaction_invoice(
+    SSConst const& ss, Player const& player, Commodity comm,
+    e_transaction transaction_type );
 
 void apply_invoice( SS& ss, Player& player,
                     Invoice const& invoice );

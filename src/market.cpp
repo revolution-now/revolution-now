@@ -144,15 +144,20 @@ PriceChange try_price_change_group_model(
 
 Invoice transaction_invoice_default_model(
     SSConst const& ss, Player const& player,
-    Commodity transacted, e_transaction transaction_type ) {
+    Commodity const orig_transacted,
+    e_transaction   transaction_type ) {
+  // Make the quantity so that its sign reflects the sign of the
+  // change in volume from the perspective of europe, since that
+  // makes the below calculations easier.
+  Commodity const transacted{
+      .type     = orig_transacted.type,
+      .quantity = ( transaction_type == e_transaction::buy )
+                      ? -orig_transacted.quantity
+                      : orig_transacted.quantity };
+
   CHECK( !is_in_processed_goods_price_group( transacted.type ) );
   CommodityPrice const prices =
       market_price( player, transacted.type );
-  if( transaction_type == e_transaction::buy )
-    // Make the quantity so that its sign reflects the sign of
-    // the change in volume from the perspective of europe, since
-    // that makes the below calculations easier.
-    transacted.quantity = -transacted.quantity;
   int const         quantity  = transacted.quantity;
   e_commodity const comm_type = transacted.type;
   auto const&       item_config =
@@ -165,7 +170,7 @@ Invoice transaction_invoice_default_model(
                         : prices.bid;
 
   Invoice invoice;
-  invoice.what = transacted;
+  invoice.what = orig_transacted;
 
   // 1. Player money adjustment.
   invoice.money_delta_before_taxes = price * transacted.quantity;
@@ -199,9 +204,13 @@ Invoice transaction_invoice_default_model(
     maybe<Player const&> some_player =
         ss.players.players[nation];
     if( !some_player.has_value() ) continue;
-    double const volume_change =
-        base_volume_change *
-        config_market.nation_advantage[nation].buy_volume_scale;
+    double const scale =
+        ( transaction_type == e_transaction::sell )
+            ? config_market.nation_advantage[nation]
+                  .sell_volume_scale
+            : config_market.nation_advantage[nation]
+                  .buy_volume_scale;
+    double const volume_change = base_volume_change * scale;
     // Here we want to round toward zero.
     invoice.intrinsic_volume_delta[nation] =
         int( volume_change );
