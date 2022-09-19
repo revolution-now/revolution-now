@@ -651,6 +651,340 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
   REQUIRE( changes[e_commodity::coats].delta == 0 );
 }
 
+TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
+  World W;
+  W.set_default_player( e_nation::dutch );
+  Player& player = W.default_player();
+  // Set each price to its middle value.
+  for( e_commodity c : refl::enum_values<e_commodity> ) {
+    if( is_in_processed_goods_price_group( c ) ) continue;
+    int const min = config_market.price_behavior[c]
+                        .price_limits.bid_price_min;
+    int const max = config_market.price_behavior[c]
+                        .price_limits.bid_price_max;
+    int const middle = ( min + max ) / 2;
+    W.set_stable_bid_price( c, middle );
+  }
+  GlobalMarketItem& global_rum =
+      W.ss()
+          .players.global_market_state
+          .commodities[e_commodity::rum];
+  GlobalMarketItem& global_cigars =
+      W.ss()
+          .players.global_market_state
+          .commodities[e_commodity::cigars];
+  GlobalMarketItem& global_cloth =
+      W.ss()
+          .players.global_market_state
+          .commodities[e_commodity::cloth];
+  GlobalMarketItem& global_coats =
+      W.ss()
+          .players.global_market_state
+          .commodities[e_commodity::coats];
+
+  W.player( e_nation::dutch )
+      .old_world.market.commodities[e_commodity::rum]
+      .player_traded_volume = 100;
+  W.player( e_nation::french )
+      .old_world.market.commodities[e_commodity::rum]
+      .player_traded_volume   = 100;
+  global_rum.intrinsic_volume = 200;
+  // Rum total: 400.
+
+  W.player( e_nation::french )
+      .old_world.market.commodities[e_commodity::cigars]
+      .player_traded_volume      = 100;
+  global_cigars.intrinsic_volume = 200;
+  // Cigars total: 300.
+
+  global_cloth.intrinsic_volume = 200;
+  // Cloth total: 200.
+
+  W.player( e_nation::english )
+      .old_world.market.commodities[e_commodity::coats]
+      .player_traded_volume = 100;
+  W.player( e_nation::french )
+      .old_world.market.commodities[e_commodity::coats]
+      .player_traded_volume = 100;
+  W.player( e_nation::spanish )
+      .old_world.market.commodities[e_commodity::coats]
+      .player_traded_volume     = 100;
+  global_coats.intrinsic_volume = 100;
+  // Coats total: 400.
+
+  // These should be the equilibrium bid prices.
+  int const starting_rum_bid    = 8;
+  int const starting_cigars_bid = 12;
+  int const starting_cloth_bid  = 18;
+  int const starting_coats_bid  = 8;
+  W.set_current_bid_price( e_commodity::rum, starting_rum_bid );
+  W.set_current_bid_price( e_commodity::cigars,
+                           starting_cigars_bid );
+  W.set_current_bid_price( e_commodity::cloth,
+                           starting_cloth_bid );
+  W.set_current_bid_price( e_commodity::coats,
+                           starting_coats_bid );
+
+  auto curr_price = [&]( e_commodity c ) {
+    return player.old_world.market.commodities[c].bid_price;
+  };
+  auto intrinsic_vol = [&]( e_commodity c ) {
+    return player.old_world.market.commodities[c]
+        .intrinsic_volume;
+  };
+  auto traded_vol = [&]( e_commodity c ) {
+    return player.old_world.market.commodities[c]
+        .player_traded_volume;
+  };
+  auto total_traded_vol = [&]( e_commodity c ) {
+    int sum = 0;
+    for( auto const& [nation, player] : W.ss().players.players )
+      if( player.has_value() )
+        sum += player->old_world.market.commodities[c]
+                   .player_traded_volume;
+    return sum;
+  };
+
+  refl::enum_map<e_commodity, PriceChange> changes;
+
+  // Do the first evolution, which should not move the prices be-
+  // cause we've set all of the prices to their equilibrium
+  // values and the attrition isn't enough to move them.
+  changes = evolve_player_prices( W.ss(), player );
+
+  // None of the prices should have evolved.
+  for( e_commodity c : refl::enum_values<e_commodity> ) {
+    REQUIRE( changes[c].type == c );
+    REQUIRE( changes[c].delta == 0 );
+    REQUIRE( changes[c].from == changes[c].to );
+  }
+
+  REQUIRE( curr_price( e_commodity::food ) == 2 );
+  REQUIRE( intrinsic_vol( e_commodity::food ) == -2 );
+  REQUIRE( traded_vol( e_commodity::food ) == 0 );
+
+  REQUIRE( curr_price( e_commodity::sugar ) == 4 );
+  REQUIRE( intrinsic_vol( e_commodity::sugar ) == -12 );
+  REQUIRE( traded_vol( e_commodity::sugar ) == 0 );
+
+  REQUIRE( curr_price( e_commodity::tobacco ) == 2 );
+  REQUIRE( intrinsic_vol( e_commodity::tobacco ) == -15 );
+  REQUIRE( traded_vol( e_commodity::tobacco ) == 0 );
+
+  REQUIRE( curr_price( e_commodity::cotton ) == 2 );
+  REQUIRE( intrinsic_vol( e_commodity::cotton ) == -17 );
+  REQUIRE( traded_vol( e_commodity::cotton ) == 0 );
+
+  REQUIRE( curr_price( e_commodity::fur ) == 3 );
+  REQUIRE( intrinsic_vol( e_commodity::fur ) == -20 );
+  REQUIRE( traded_vol( e_commodity::fur ) == 0 );
+
+  REQUIRE( curr_price( e_commodity::lumber ) == 1 );
+  REQUIRE( intrinsic_vol( e_commodity::lumber ) == 0 );
+  REQUIRE( traded_vol( e_commodity::lumber ) == 0 );
+
+  REQUIRE( curr_price( e_commodity::ore ) == 3 );
+  REQUIRE( intrinsic_vol( e_commodity::ore ) == -11 );
+  REQUIRE( traded_vol( e_commodity::ore ) == 0 );
+
+  REQUIRE( curr_price( e_commodity::silver ) == 10 );
+  REQUIRE( intrinsic_vol( e_commodity::silver ) == -12 );
+  REQUIRE( traded_vol( e_commodity::silver ) == 0 );
+
+  REQUIRE( curr_price( e_commodity::horses ) == 5 );
+  REQUIRE( intrinsic_vol( e_commodity::horses ) == -5 );
+  REQUIRE( traded_vol( e_commodity::horses ) == 0 );
+
+  REQUIRE( curr_price( e_commodity::rum ) == 8 );
+  REQUIRE( intrinsic_vol( e_commodity::rum ) == 0 );
+  REQUIRE( traded_vol( e_commodity::rum ) == 100 );
+  REQUIRE( total_traded_vol( e_commodity::rum ) == 200 );
+
+  REQUIRE( curr_price( e_commodity::cigars ) == 12 );
+  REQUIRE( intrinsic_vol( e_commodity::cigars ) == 0 );
+  REQUIRE( traded_vol( e_commodity::cigars ) == 0 );
+  REQUIRE( total_traded_vol( e_commodity::cigars ) == 100 );
+
+  REQUIRE( curr_price( e_commodity::cloth ) == 18 );
+  REQUIRE( intrinsic_vol( e_commodity::cloth ) == 0 );
+  REQUIRE( traded_vol( e_commodity::cloth ) == 0 );
+  REQUIRE( total_traded_vol( e_commodity::cloth ) == 0 );
+
+  REQUIRE( curr_price( e_commodity::coats ) == 8 );
+  REQUIRE( intrinsic_vol( e_commodity::coats ) == 0 );
+  REQUIRE( traded_vol( e_commodity::coats ) == 0 );
+  REQUIRE( total_traded_vol( e_commodity::coats ) == 300 );
+
+  REQUIRE( curr_price( e_commodity::trade_goods ) == 6 );
+  REQUIRE( intrinsic_vol( e_commodity::trade_goods ) == 6 );
+  REQUIRE( traded_vol( e_commodity::trade_goods ) == 0 );
+
+  REQUIRE( curr_price( e_commodity::tools ) == 4 );
+  REQUIRE( intrinsic_vol( e_commodity::tools ) == 8 );
+  REQUIRE( traded_vol( e_commodity::tools ) == 0 );
+
+  REQUIRE( curr_price( e_commodity::muskets ) == 10 );
+  REQUIRE( intrinsic_vol( e_commodity::muskets ) == 9 );
+  REQUIRE( traded_vol( e_commodity::muskets ) == 0 );
+
+  // Now let's bump some of the volumes.
+  auto vol = [&]( e_commodity c ) -> int& {
+    return player.old_world.market.commodities[c]
+        .intrinsic_volume;
+  };
+
+  // For the below we need to add the opposite of the attrition
+  // in order to put the target where we want it. As a convenient
+  // means for doing that, we will just negate the current val-
+  // ues, since they hold the attritions from the evolution that
+  // we just did.
+  for( e_commodity c : refl::enum_values<e_commodity> )
+    vol( c ) = -vol( c );
+
+  vol( e_commodity::food ) += -300 + 1; // not quite a rise.
+  vol( e_commodity::sugar ) += -400;    // just at a rise.
+  vol( e_commodity::tobacco ) += -401;  // just over the rise.
+  vol( e_commodity::cotton ) += -850; // more than twice a rise.
+  vol( e_commodity::fur ) += 0;       // no change.
+  vol( e_commodity::lumber ) += -500; // rise, but won't move.
+  vol( e_commodity::ore ) += 399;     // just below fall.
+  vol( e_commodity::silver ) += 100;  // just at fall.
+  vol( e_commodity::horses ) += 201;  // just above fall.
+  vol( e_commodity::rum )    = 9999; // shouldn't have an effect.
+  vol( e_commodity::cigars ) = 9999; // shouldn't have an effect.
+  vol( e_commodity::cloth ) = -9999; // shouldn't have an effect.
+  vol( e_commodity::coats ) = -9999; // shouldn't have an effect.
+  vol( e_commodity::trade_goods ) += 900; // three falls.
+  vol( e_commodity::tools ) += 100;       // below a fall.
+  vol( e_commodity::muskets ) += 200;     // just at a fall.
+
+  global_rum.intrinsic_volume    = 0;
+  global_cigars.intrinsic_volume = 200;
+  global_cloth.intrinsic_volume  = 400;
+  global_coats.intrinsic_volume  = 100;
+  // Equilibrium prices should be:
+  //   rum    = 18
+  //   cigars = 12
+  //   cloth  = 8
+  //   coats  = 8
+  // This basically swaps rum with cloth, which should cause
+  // movement in only those two.
+
+  // Second evolution.
+  changes = evolve_player_prices( W.ss(), player );
+
+  REQUIRE( curr_price( e_commodity::food ) == 2 );
+  REQUIRE( intrinsic_vol( e_commodity::food ) == -299 );
+  REQUIRE( traded_vol( e_commodity::food ) == 0 );
+  REQUIRE( changes[e_commodity::food].delta == 2 - 2 );
+
+  REQUIRE( curr_price( e_commodity::sugar ) == 5 );
+  REQUIRE( intrinsic_vol( e_commodity::sugar ) == 0 );
+  REQUIRE( traded_vol( e_commodity::sugar ) == 0 );
+  REQUIRE( changes[e_commodity::sugar].delta == 5 - 4 );
+
+  REQUIRE( curr_price( e_commodity::tobacco ) == 3 );
+  REQUIRE( intrinsic_vol( e_commodity::tobacco ) == -1 );
+  REQUIRE( traded_vol( e_commodity::tobacco ) == 0 );
+  REQUIRE( changes[e_commodity::tobacco].delta == 3 - 2 );
+
+  REQUIRE( curr_price( e_commodity::cotton ) == 3 );
+  REQUIRE( intrinsic_vol( e_commodity::cotton ) == -450 );
+  REQUIRE( traded_vol( e_commodity::cotton ) == 0 );
+  REQUIRE( changes[e_commodity::cotton].delta == 3 - 2 );
+
+  REQUIRE( curr_price( e_commodity::fur ) == 3 );
+  REQUIRE( intrinsic_vol( e_commodity::fur ) == 0 );
+  REQUIRE( traded_vol( e_commodity::fur ) == 0 );
+  REQUIRE( changes[e_commodity::fur].delta == 3 - 3 );
+
+  REQUIRE( curr_price( e_commodity::lumber ) == 1 );
+  REQUIRE( intrinsic_vol( e_commodity::lumber ) == -200 );
+  REQUIRE( traded_vol( e_commodity::lumber ) == 0 );
+  REQUIRE( changes[e_commodity::lumber].delta == 1 - 1 );
+
+  REQUIRE( curr_price( e_commodity::ore ) == 3 );
+  REQUIRE( intrinsic_vol( e_commodity::ore ) == 399 );
+  REQUIRE( traded_vol( e_commodity::ore ) == 0 );
+  REQUIRE( changes[e_commodity::ore].delta == 3 - 3 );
+
+  REQUIRE( curr_price( e_commodity::silver ) == 9 );
+  REQUIRE( intrinsic_vol( e_commodity::silver ) == 0 );
+  REQUIRE( traded_vol( e_commodity::silver ) == 0 );
+  REQUIRE( changes[e_commodity::silver].delta == 9 - 10 );
+
+  REQUIRE( curr_price( e_commodity::horses ) == 4 );
+  REQUIRE( intrinsic_vol( e_commodity::horses ) == 1 );
+  REQUIRE( traded_vol( e_commodity::horses ) == 0 );
+  REQUIRE( changes[e_commodity::horses].delta == 4 - 5 );
+
+  REQUIRE( curr_price( e_commodity::rum ) == 9 );
+  REQUIRE( intrinsic_vol( e_commodity::rum ) == 9999 );
+  REQUIRE( traded_vol( e_commodity::rum ) == 100 );
+  REQUIRE( total_traded_vol( e_commodity::rum ) == 200 );
+  REQUIRE( changes[e_commodity::rum].delta == 1 );
+
+  REQUIRE( curr_price( e_commodity::cigars ) == 12 );
+  REQUIRE( intrinsic_vol( e_commodity::cigars ) == 9999 );
+  REQUIRE( traded_vol( e_commodity::cigars ) == 0 );
+  REQUIRE( total_traded_vol( e_commodity::cigars ) == 100 );
+  REQUIRE( changes[e_commodity::cigars].delta == 0 );
+
+  REQUIRE( curr_price( e_commodity::cloth ) == 17 );
+  REQUIRE( intrinsic_vol( e_commodity::cloth ) == -9999 );
+  REQUIRE( traded_vol( e_commodity::cloth ) == 0 );
+  REQUIRE( total_traded_vol( e_commodity::cloth ) == 0 );
+  REQUIRE( changes[e_commodity::cloth].delta == -1 );
+
+  REQUIRE( curr_price( e_commodity::coats ) == 8 );
+  REQUIRE( intrinsic_vol( e_commodity::coats ) == -9999 );
+  REQUIRE( traded_vol( e_commodity::coats ) == 0 );
+  REQUIRE( total_traded_vol( e_commodity::coats ) == 300 );
+  REQUIRE( changes[e_commodity::coats].delta == 0 );
+
+  REQUIRE( curr_price( e_commodity::trade_goods ) == 5 );
+  REQUIRE( intrinsic_vol( e_commodity::trade_goods ) == 600 );
+  REQUIRE( traded_vol( e_commodity::trade_goods ) == 0 );
+  REQUIRE( changes[e_commodity::trade_goods].delta == 5 - 6 );
+
+  REQUIRE( curr_price( e_commodity::tools ) == 4 );
+  REQUIRE( intrinsic_vol( e_commodity::tools ) == 100 );
+  REQUIRE( traded_vol( e_commodity::tools ) == 0 );
+  REQUIRE( changes[e_commodity::tools].delta == 4 - 4 );
+
+  REQUIRE( curr_price( e_commodity::muskets ) == 9 );
+  REQUIRE( intrinsic_vol( e_commodity::muskets ) == 0 );
+  REQUIRE( traded_vol( e_commodity::muskets ) == 0 );
+  REQUIRE( changes[e_commodity::muskets].delta == 9 - 10 );
+
+  // We'll do this again just for the processed goods.
+  changes = evolve_player_prices( W.ss(), player );
+
+  REQUIRE( curr_price( e_commodity::rum ) == 10 );
+  REQUIRE( intrinsic_vol( e_commodity::rum ) == 9999 );
+  REQUIRE( traded_vol( e_commodity::rum ) == 100 );
+  REQUIRE( total_traded_vol( e_commodity::rum ) == 200 );
+  REQUIRE( changes[e_commodity::rum].delta == 1 );
+
+  REQUIRE( curr_price( e_commodity::cigars ) == 12 );
+  REQUIRE( intrinsic_vol( e_commodity::cigars ) == 9999 );
+  REQUIRE( traded_vol( e_commodity::cigars ) == 0 );
+  REQUIRE( total_traded_vol( e_commodity::cigars ) == 100 );
+  REQUIRE( changes[e_commodity::cigars].delta == 0 );
+
+  REQUIRE( curr_price( e_commodity::cloth ) == 16 );
+  REQUIRE( intrinsic_vol( e_commodity::cloth ) == -9999 );
+  REQUIRE( traded_vol( e_commodity::cloth ) == 0 );
+  REQUIRE( total_traded_vol( e_commodity::cloth ) == 0 );
+  REQUIRE( changes[e_commodity::cloth].delta == -1 );
+
+  REQUIRE( curr_price( e_commodity::coats ) == 8 );
+  REQUIRE( intrinsic_vol( e_commodity::coats ) == -9999 );
+  REQUIRE( traded_vol( e_commodity::coats ) == 0 );
+  REQUIRE( total_traded_vol( e_commodity::coats ) == 300 );
+  REQUIRE( changes[e_commodity::coats].delta == 0 );
+}
+
 TEST_CASE( "[market] transaction_invoice buy" ) {
   World     W;
   Commodity to_buy;

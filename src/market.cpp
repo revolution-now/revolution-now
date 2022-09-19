@@ -322,11 +322,13 @@ PriceChange evolve_default_model_commodity(
   int intrinsic_volume_delta = 0;
   int price_change           = 0;
 
-  // 1. Apply attrition. The attition is applied before any po-
+  // 1. Apply attrition. The attrition is applied before any po-
   // tential price changes are evaluated.
   intrinsic_volume_delta +=
-      config_market.price_behavior[commodity]
-          .model_parameters.attrition;
+      lround( config_market.price_behavior[commodity]
+                  .model_parameters.attrition *
+              config_market.nation_advantage[player.nation]
+                  .attrition_scale );
 
   // 2. See if we should move the price. This will potentially
   // mutate the volume and price change variables.
