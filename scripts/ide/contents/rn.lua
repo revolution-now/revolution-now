@@ -3,8 +3,11 @@
 return {
   'exe/main',
   'config/market',
-  'harbor-view',
-  'harbor-view-market',
   'ss/market',
   'market',
+  'config/harbor',
+  'harbor-view',
+  'harbor-view-entities',
+  'harbor-view-rpt',
+  'rpt',
 }

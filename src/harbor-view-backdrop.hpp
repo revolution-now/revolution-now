@@ -50,6 +50,10 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
   // Returns the lower right pixel of the l
   DockUnitsLayout dock_units_layout() const;
 
+  // Distance from the bottom of the screen to the top of the
+  // houses on the horizon.
+  H top_of_houses() const;
+
  private:
   static W const kDockEdgeThickness = 7;
   static W const kDockSegmentWidth  = 32;

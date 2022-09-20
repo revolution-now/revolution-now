@@ -20,6 +20,7 @@
 #include "harbor-view-inport.hpp"
 #include "harbor-view-market.hpp"
 #include "harbor-view-outbound.hpp"
+#include "harbor-view-rpt.hpp"
 #include "logger.hpp"
 #include "views.hpp"
 
@@ -305,6 +306,15 @@ HarborViewComposited recomposite_harbor_view(
                                backdrop_ref );
   composition.entities[e_harbor_view_entity::dock] = dock.harbor;
   views.push_back( std::move( dock.owned ) );
+
+  // [HarborRptButtons]
+  // ----------------------------------------
+  PositionedHarborSubView<HarborRptButtons> buttons =
+      HarborRptButtons::create( ss, ts, player, canvas_rect,
+                                backdrop_ref );
+  composition.entities[e_harbor_view_entity::rpt] =
+      buttons.harbor;
+  views.push_back( std::move( buttons.owned ) );
 
   // [Finish] ---------------------------------------------------
   auto invisible_view = std::make_unique<CompositeHarborSubView>(

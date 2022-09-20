@@ -63,7 +63,14 @@ struct HarborPlane::Impl : public Plane {
   HarborViewComposited composition_;
 
   Impl( SS& ss, TS& ts, Player& player )
-    : ss_( ss ), ts_( ts ), player_( player ) {}
+    : ss_( ss ), ts_( ts ), player_( player ) {
+    UNWRAP_CHECK(
+        new_canvas,
+        compositor::section( compositor::e_section::normal ) );
+    composition_ = recomposite_harbor_view( ss_, ts_, player_,
+                                            new_canvas.delta() );
+    canvas_      = new_canvas;
+  }
 
   bool covers_screen() const override { return true; }
 
@@ -205,6 +212,7 @@ struct HarborPlane::Impl : public Plane {
   }
 
   wait<> run_harbor_view() {
+    CHECK( composition_.top_level != nullptr );
     while( true ) {
       input::event_t event      = co_await input_.next();
       auto [ignored, suspended] = co_await co::detect_suspend(

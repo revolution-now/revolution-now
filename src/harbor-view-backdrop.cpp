@@ -131,6 +131,10 @@ HarborBackdrop::dock_units_layout() const {
           layout_.num_dock_segments * kDockSegmentWidth };
 }
 
+H HarborBackdrop::top_of_houses() const {
+  return layout_.horizon + 16;
+}
+
 HarborBackdrop::Layout HarborBackdrop::recomposite(
     Delta size, Coord cargo_upper_right,
     Coord inport_upper_right ) {

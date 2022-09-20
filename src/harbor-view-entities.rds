@@ -29,6 +29,7 @@ enum.e_harbor_view_entity {
   exit,
   backdrop,
   dock,
+  rpt, # recruit/purchase/train buttons.
 }
 
 # This object needs to specify all of the information necessary
