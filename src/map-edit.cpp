@@ -637,7 +637,7 @@ wait<> run_map_editor_standalone( Planes& planes ) {
   WindowPlane window_plane;
   RealGui     gui( window_plane );
   Rand        rand;
-  TS          ts( map_updater, st, gui, rand );
+  TS          ts( map_updater, st, gui, rand, ss.root );
   co_await run_map_editor( planes, ss, ts );
 }
 

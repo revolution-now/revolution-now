@@ -84,6 +84,7 @@ TerrainState const& World::terrain() const {
 RootState const& World::root() const { return ss_->root; }
 
 SS& World::ss() { return *ss_; }
+SS& World::ss_saved() { return *ss_saved_; }
 
 Planes& World::planes() {
   if( uninitialized_planes_ == nullptr )
@@ -123,7 +124,7 @@ namespace {
 // state (please FIXME).
 TS* make_ts( World& world ) {
   return new TS( world.map_updater(), world.lua(), world.gui(),
-                 world.rand() );
+                 world.rand(), world.ss_saved().root );
 }
 
 }
@@ -445,6 +446,7 @@ void World::initialize_ts() { ts(); }
 
 World::World()
   : ss_( new SS ),
+    ss_saved_( new SS ),
     map_updater_(
         new NonRenderingMapUpdater( ss_->root.zzz_terrain ) ),
     // These are left uninitialized until they are needed.

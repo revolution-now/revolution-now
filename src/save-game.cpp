@@ -14,6 +14,7 @@
 #include "igui.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
+#include "time.hpp"
 #include "ts.hpp"
 
 // ss
@@ -73,6 +74,11 @@ int number_of_total_slots() {
 }
 
 int autosave_slot() { return number_of_total_slots() - 1; }
+
+bool is_autosave_slot( int slot ) {
+  int const last_normal_slot = number_of_normal_slots() - 1;
+  return slot > last_normal_slot;
+}
 
 fs::path rcl_file_path( string const& slot_path ) {
   return slot_path + ".sav.rcl";
@@ -234,6 +240,25 @@ string construct_rcl_title( RootState const& root ) {
                       nation_name, time_point );
 }
 
+// We must record the serialized state of the game each time it
+// is loaded or saved so that we can check when it is dirty.
+void record_saved_state( SSConst const& ss, TS& ts ) {
+  // If we're trying to copy to ourselves then something is
+  // wrong.
+  CHECK( &ts.saved != &ss.root );
+  time_it( "copying root baseline", [&] { //
+    ts.saved = ss.root;
+  } );
+}
+// Checks if the serializable game state has been modified in any
+// way since the last time it was saved or loaded.
+bool is_game_saved( SSConst const& ss, TS& ts ) {
+  bool const equal = time_it( "saved state comparison", [&] {
+    return ( ss.root == ts.saved );
+  } );
+  return equal;
+}
+
 } // namespace
 
 /****************************************************************
@@ -281,20 +306,26 @@ valid_or<std::string> load_game_from_rcl_file(
   return valid;
 }
 
-expect<fs::path> save_game( RootState const& root, int slot ) {
+expect<fs::path> save_game( SSConst const& ss, TS& ts,
+                            int slot ) {
   auto p = path_for_slot( slot );
   p.replace_extension( ".sav.rcl" );
   // Serialize to rcl. Do this before b64 for timestamp reasons.
   HAS_VALUE_OR_RET(
-      save_game_to_rcl_file( root, p, SaveGameOptions{} ) );
+      save_game_to_rcl_file( ss.root, p, SaveGameOptions{} ) );
   // Serialize to b64.
   p.replace_extension( ".sav.b64" );
   // HAS_VALUE_OR_RET( blob.write( p ) );
   p.replace_extension();
+  // Note that we don't update the ts.saved state here, since we
+  // don't want auto-saves to count as saves in that regard,
+  // since otherwise the player would not be prompted to save the
+  // game on exit if it had just been auto-saved.
+  if( !is_autosave_slot( slot ) ) record_saved_state( ss, ts );
   return p;
 }
 
-expect<fs::path> load_game( RootState& root, int slot ) {
+expect<fs::path> load_game( SS& ss, TS& ts, int slot ) {
   auto rcl_path =
       path_for_slot( slot ).replace_extension( ".sav.rcl" );
   auto b64_path =
@@ -329,18 +360,16 @@ expect<fs::path> load_game( RootState& root, int slot ) {
           rcl_path );
   }
 
-  if( use_rcl ) {
-    HAS_VALUE_OR_RET( load_game_from_rcl_file(
-        root, rcl_path, SaveGameOptions{} ) );
-    return rcl_path;
-  } else {
-    lg.info( "loading game from {}.", b64_path );
-    NOT_IMPLEMENTED;
-  }
+  CHECK( use_rcl, "other formats not implemented." );
+  HAS_VALUE_OR_RET( load_game_from_rcl_file(
+      ss.root, rcl_path, SaveGameOptions{} ) );
+
+  record_saved_state( ss, ts );
+  return rcl_path;
 }
 
-void autosave( RootState const& root ) {
-  expect<fs::path> res = save_game( root, autosave_slot() );
+void autosave( SSConst const& ss, TS& ts ) {
+  expect<fs::path> res = save_game( ss, ts, autosave_slot() );
   if( !res ) lg.warn( "autosave failed: {}", res.error() );
 }
 
@@ -348,12 +377,11 @@ bool should_autosave( int turns ) {
   return turns % config_savegame.autosave_frequency == 0;
 }
 
-wait<base::NoDiscard<bool>> save_game_menu( SSConst const& ss,
-                                            TS&            ts ) {
+wait<bool> save_game_menu( SSConst const& ss, TS& ts ) {
   maybe<int> const slot = co_await select_slot(
       ts, /*include_autosaves=*/false, /*allow_empty=*/true );
   if( !slot.has_value() ) co_return false;
-  expect<fs::path> result = save_game( ss.root, *slot );
+  expect<fs::path> result = save_game( ss, ts, *slot );
   if( !result.has_value() ) {
     co_await ts.gui.message_box( "Error: failed to save game." );
     lg.error( "failed to save game: {}.", result.error() );
@@ -370,7 +398,7 @@ wait<base::NoDiscard<bool>> load_game_menu( SS& ss, TS& ts ) {
   maybe<int> const slot = co_await select_slot(
       ts, /*include_autosaves=*/true, /*allow_empty=*/false );
   if( !slot.has_value() ) co_return false;
-  expect<fs::path> result = load_game( ss.root, *slot );
+  expect<fs::path> result = load_game( ss, ts, *slot );
   if( !result.has_value() ) {
     co_await ts.gui.message_box( "Error: failed to load game." );
     lg.error( "failed to load game: {}.", result.error() );
@@ -381,6 +409,22 @@ wait<base::NoDiscard<bool>> load_game_menu( SS& ss, TS& ts ) {
                    path_for_slot( *slot ) ) );
   lg.info( "loaded game from {}.", path_for_slot( *slot ) );
   co_return true;
+}
+
+// Will return whether a save happened or not.
+wait<> check_ask_save( SSConst const& ss, TS& ts ) {
+  if( is_game_saved( ss, ts ) ) co_return;
+  YesNoConfig const config{ .msg =
+                                "This game has unsaved changes. "
+                                "Would you like to save?",
+                            .yes_label      = "Yes",
+                            .no_label       = "No",
+                            .no_comes_first = false };
+
+  maybe<ui::e_confirm> const answer =
+      co_await ts.gui.optional_yes_no( config );
+  if( !answer.has_value() ) co_return;
+  co_await save_game_menu( ss, ts );
 }
 
 } // namespace rn

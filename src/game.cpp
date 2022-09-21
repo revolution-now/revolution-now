@@ -85,6 +85,9 @@ using LoaderFunc =
 wait<> run_game( Planes& planes, LoaderFunc loader ) {
   // This is the entire (serializable) state representing a game.
   SS ss;
+  // This will hold the state of the game the last time it was
+  // saved (not including auto-save) and/or loaded.
+  RootState saved;
 
   MapUpdater map_updater(
       ss.mutable_terrain_use_with_care,
@@ -102,7 +105,7 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
 
   Rand rand; // random seed.
 
-  TS ts( map_updater, st, gui, rand );
+  TS ts( map_updater, st, gui, rand, saved );
 
   st["ROOT"] = ss.root;
   st["SS"]   = ss;

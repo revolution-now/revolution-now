@@ -28,13 +28,14 @@ struct Planes;
 struct IMapUpdater;
 struct IGui;
 struct IRand;
+struct RootState;
 
 /****************************************************************
 ** TS
 *****************************************************************/
 struct TS {
   TS( IMapUpdater& map_updater_, lua::state& lua_, IGui& gui_,
-      IRand& rand_ );
+      IRand& rand_, RootState& saved );
 
   ~TS();
 
@@ -44,6 +45,11 @@ struct TS {
   lua::state&  lua;
   IGui&        gui;
   IRand&       rand;
+  // This refers to a serialized state data structure that holds
+  // the game state as it was when the game was most recently
+  // saved or loaded. It is used to determine if the game needs
+  // to be saved when the player tries to exit.
+  RootState& saved;
 
  private:
   struct LuaRefSetAndRestore;

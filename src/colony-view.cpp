@@ -332,7 +332,8 @@ wait<> show_colony_view_impl( Planes& planes, SS& ss, TS& ts_old,
 
   RealGui gui( window_plane );
 
-  TS ts( ts_old.map_updater, ts_old.lua, gui, ts_old.rand );
+  TS ts( ts_old.map_updater, ts_old.lua, gui, ts_old.rand,
+         ts_old.saved );
 
   ColonyPlane colony_plane( ss, ts, colony );
   new_group.colony = &colony_plane;

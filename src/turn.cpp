@@ -160,35 +160,16 @@ void reset_turn_obj( PlayersState const& players_state,
 /****************************************************************
 ** Helpers
 *****************************************************************/
-bool game_unsaved() {
-  // TODO: we can implement this by keeping a copy (sans terrain)
-  // of the game state when it was last saved (or loaded) and
-  // just using operator== on each component to see if it needs
-  // to be saved.
-  return false;
-}
-
-wait<> proceed_to_exit( TS& ts ) {
-  if( game_unsaved() ) {
-    YesNoConfig const config{
-        .msg =
-            "This game has changed since it was last saved.  "
-            "Would you like to save before exiting?",
-        .yes_label      = "Yes",
-        .no_label       = "No",
-        .no_comes_first = false };
-    maybe<ui::e_confirm> const answer =
-        co_await ts.gui.optional_yes_no( config );
-    if( answer == ui::e_confirm::yes )
-      throw game_quit_interrupt{};
-  }
+wait<> proceed_to_exit( SSConst const& ss, TS& ts ) {
   YesNoConfig const          config{ .msg       = "Exit to DOS?",
                                      .yes_label = "Yes",
                                      .no_label  = "No",
                                      .no_comes_first = true };
   maybe<ui::e_confirm> const answer =
       co_await ts.gui.optional_yes_no( config );
-  if( answer == ui::e_confirm::yes ) throw game_quit_interrupt{};
+  if( answer != ui::e_confirm::yes ) co_return;
+  co_await check_ask_save( ss, ts );
+  throw game_quit_interrupt{};
 }
 
 // If the element is present in the deque then it will be erased.
@@ -313,16 +294,15 @@ wait<> menu_handler( Planes& planes, SS& ss, TS& ts,
                      Player& player, e_menu_item item ) {
   switch( item ) {
     case e_menu_item::exit: {
-      co_await proceed_to_exit( ts );
+      co_await proceed_to_exit( ss, ts );
       break;
     }
     case e_menu_item::save: {
-      bool const saved = co_await save_game_menu( ss, ts );
-      (void)saved;
+      co_await save_game_menu( ss, ts );
       break;
     }
     case e_menu_item::load: {
-      // FIXME: check if the game needs to be saved.
+      co_await check_ask_save( ss, ts );
       throw game_load_interrupt{};
     }
     case e_menu_item::revolution: {
@@ -397,7 +377,7 @@ wait<> process_player_input( LandViewPlayerInput_t const& input,
       // This one is relevant but handled in the calling func-
       // tion.
       break;
-    case e::exit: co_await proceed_to_exit( ts ); break;
+    case e::exit: co_await proceed_to_exit( ss, ts ); break;
     case e::give_orders:
     case e::prioritize: //
       break;
@@ -475,7 +455,7 @@ wait<> process_player_input( UnitId                       id,
       // when we are not at the end of a turn.
       SHOULD_NOT_BE_HERE;
     }
-    case e::exit: co_await proceed_to_exit( ts ); break;
+    case e::exit: co_await proceed_to_exit( ss, ts ); break;
     case e::colony: {
       e_colony_abandoned const abandoned =
           co_await show_colony_view(
@@ -962,7 +942,7 @@ wait<> next_turn( Planes& planes, SS& ss, TS& ts ) {
 
   // Autosave.
   if( should_autosave( st.time_point.turns ) )
-    autosave( ss.root );
+    autosave( ss, ts );
 }
 
 } // namespace

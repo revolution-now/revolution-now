@@ -233,6 +233,7 @@ struct World {
   RootState const& root() const;
 
   SS& ss();
+  SS& ss_saved();
 
   // These will initialize their respective objects the first
   // time they are called, so they should always be used.
@@ -260,6 +261,7 @@ struct World {
   // Otherwise every unit test would have to pull in all of these
   // headers.
   std::unique_ptr<SS>          ss_;
+  std::unique_ptr<SS>          ss_saved_;
   std::unique_ptr<IMapUpdater> map_updater_;
   // These should not be accessed directly since they are ini-
   // tially nullptr.

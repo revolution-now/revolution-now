@@ -58,11 +58,12 @@ struct TS::LuaRefSetAndRestore {
 ** TS
 *****************************************************************/
 TS::TS( IMapUpdater& map_updater_, lua::state& lua_, IGui& gui_,
-        IRand& rand_ )
+        IRand& rand_, RootState& saved )
   : map_updater( map_updater_ ),
     lua( lua_ ),
     gui( gui_ ),
     rand( rand_ ),
+    saved( saved ),
     pimpl_( new LuaRefSetAndRestore( lua, *this ) ) {}
 
 // These are here because we are using the pimpl idiom.
