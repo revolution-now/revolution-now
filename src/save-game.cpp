@@ -14,7 +14,6 @@
 #include "igui.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
-#include "time.hpp"
 #include "ts.hpp"
 
 // ss
@@ -246,16 +245,23 @@ void record_saved_state( SSConst const& ss, TS& ts ) {
   // If we're trying to copy to ourselves then something is
   // wrong.
   CHECK( &ts.saved != &ss.root );
-  time_it( "copying root baseline", [&] { //
+  util::StopWatch watch;
+  watch.timeit( "copy", [&] { //
     ts.saved = ss.root;
   } );
+  lg.debug( "copying root baseline took {}.",
+            watch.human( "copy" ) );
 }
 // Checks if the serializable game state has been modified in any
 // way since the last time it was saved or loaded.
 bool is_game_saved( SSConst const& ss, TS& ts ) {
-  bool const equal = time_it( "saved state comparison", [&] {
-    return ( ss.root == ts.saved );
-  } );
+  util::StopWatch watch;
+
+  bool equal = {};
+  watch.timeit( "save",
+                [&] { equal = ( ss.root == ts.saved ); } );
+  lg.debug( "saved state comparison took {}.",
+            watch.human( "save" ) );
   return equal;
 }
 
