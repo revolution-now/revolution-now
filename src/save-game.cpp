@@ -210,7 +210,7 @@ wait<maybe<int>> select_slot( TS& ts, bool include_autosaves,
     // We're not allowing to select empty slots.
     if( slots.contains( slot ) ) co_return slot;
     co_await ts.gui.message_box(
-        "There is not game saved in this slot." );
+        "There is no game saved in this slot." );
   }
 }
 
