@@ -684,11 +684,16 @@ wait<> WindowPlane::message_box( string_view msg ) {
 }
 
 wait<maybe<int>> WindowPlane::select_box(
-    string_view msg, vector<string> const& options,
+    string_view msg, vector<SelectBoxOption> const& options,
     e_input_required required, maybe<int> initial_selection ) {
   lg.info( "question: \"{}\"", msg );
+  vector<ui::OptionSelectItemView::Option> view_options;
+  view_options.reserve( options.size() );
+  for( auto& option : options )
+    view_options.push_back(
+        { .name = option.name, .enabled = option.enabled } );
   auto selector_view = make_unique<ui::OptionSelectView>(
-      options,
+      view_options,
       /*initial_selection=*/initial_selection.value_or( 0 ) );
   auto* p_selector_view = selector_view.get();
 
@@ -719,10 +724,18 @@ wait<maybe<int>> WindowPlane::select_box(
       case input::e_input_event::mouse_button_event: {
         auto const& button_event =
             event.as<input::mouse_button_event_t>();
+        // The way this works is that the bottom-down event will
+        // not be handled here, so it will pass through to the
+        // OptionSelectView's mouse button handler, causing an
+        // option to potentially be selected, then on the
+        // mouse-up event we will intercept it here and set se-
+        // lected=true, then get the selected item.
         if( button_event.buttons !=
             input::e_mouse_button_event::left_up )
           break;
-        selected = true;
+        if( p_selector_view->enabled_option_at_point(
+                button_event.pos ) )
+          selected = true;
         break;
       }
       default: break;
@@ -730,7 +743,7 @@ wait<maybe<int>> WindowPlane::select_box(
     if( selected ) {
       int result = p_selector_view->get_selected();
       CHECK( result >= 0 && result < int( options.size() ) );
-      lg.info( "selected: {}", options[result] );
+      lg.info( "selected: {}", options[result].name );
       p.set_value( result );
     }
     bool handled = selected;
@@ -769,8 +782,8 @@ wait<maybe<string>> WindowPlane::str_input_box(
     e_input_required required ) {
   wait_promise<maybe<string>> p;
   unique_ptr<Window>          win = text_input_box(
-               *this, msg, initial_text, required, L( _.size() > 0 ),
-               [p]( maybe<string> result ) { p.set_value( result ); } );
+      *this, msg, initial_text, required, L( _.size() > 0 ),
+      [p]( maybe<string> result ) { p.set_value( result ); } );
   co_return co_await p.wait();
 }
 

@@ -828,20 +828,28 @@ OkCancelAdapterView::OkCancelAdapterView( unique_ptr<View> view,
 /****************************************************************
 ** OptionSelectItemView
 *****************************************************************/
-OptionSelectItemView::OptionSelectItemView( string msg )
+OptionSelectItemView::OptionSelectItemView( Option option )
   : active_{ e_option_active::inactive },
-    background_active_( make_unique<SolidRectView>( gfx::pixel{
-        .r = 0xDB, .g = 0xC9, .b = 0x5A, .a = 255 } ) ),
-    background_inactive_( make_unique<SolidRectView>( gfx::pixel{
-        .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } ) ),
-    foreground_active_( make_unique<OneLineStringView>(
-        msg,
+    enabled_( option.enabled ) {
+  background_active_ = make_unique<SolidRectView>(
+      gfx::pixel{ .r = 0xDB, .g = 0xC9, .b = 0x5A, .a = 255 } );
+  background_inactive_ = make_unique<SolidRectView>(
+      gfx::pixel{ .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
+  foreground_active_ = make_unique<OneLineStringView>(
+      option.name,
+      gfx::pixel{ .r = 0x42, .g = 0x2D, .b = 0x22, .a = 255 } );
+  if( enabled_ ) {
+    foreground_inactive_ = make_unique<OneLineStringView>(
+        option.name,
         gfx::pixel{
-            .r = 0x42, .g = 0x2D, .b = 0x22, .a = 255 } ) ),
-    foreground_inactive_( make_unique<OneLineStringView>(
-        msg,
+            .r = 0xE4, .g = 0xC8, .b = 0x90, .a = 255 } );
+  } else {
+    foreground_inactive_ = make_unique<OneLineStringView>(
+        option.name,
         gfx::pixel{
-            .r = 0xE4, .g = 0xC8, .b = 0x90, .a = 255 } ) ) {
+            .r = 0x80, .g = 0x80, .b = 0x80, .a = 255 } );
+  }
+
   auto delta_active   = foreground_active_->delta();
   auto delta_inactive = foreground_inactive_->delta();
   background_active_->cast<SolidRectView>()->set_delta(
@@ -892,7 +900,8 @@ void OptionSelectItemView::grow_to( W w ) {
 ** OptionSelectView
 *****************************************************************/
 OptionSelectView::OptionSelectView(
-    vector<string> const& options, int initial_selection )
+    vector<OptionSelectItemView::Option> const& options,
+    int initial_selection )
   : selected_{ initial_selection } {
   CHECK( options.size() > 0 );
   CHECK( selected_ >= 0 && selected_ < int( options.size() ) );
@@ -914,7 +923,7 @@ OptionSelectView::OptionSelectView(
 
   // Now that we have the individual options populated we can
   // officially set a selected one.
-  set_selected( selected_ );
+  update_selected();
 }
 
 OptionSelectItemView* OptionSelectView::get_view( int item ) {
@@ -935,10 +944,11 @@ OptionSelectItemView const* OptionSelectView::get_view(
   return o_s_i_v;
 }
 
-void OptionSelectView::set_selected( int item ) {
-  get_view( selected_ )->set_active( e_option_active::inactive );
-  get_view( item )->set_active( e_option_active::active );
-  selected_ = item;
+void OptionSelectView::update_selected() {
+  CHECK( get_view( selected_ )->enabled() );
+  for( int i = 0; i < count(); ++i )
+    get_view( i )->set_active( e_option_active::inactive );
+  get_view( selected_ )->set_active( e_option_active::active );
 }
 
 void OptionSelectView::grow_to( W w ) {
@@ -957,12 +967,18 @@ bool OptionSelectView::on_key(
     case ::SDLK_UP:
     case ::SDLK_KP_8:
     case ::SDLK_k: // TODO: temporary?
-      set_selected( cyclic_modulus( selected_ - 1, count() ) );
+      do {
+        selected_ = cyclic_modulus( selected_ - 1, count() );
+      } while( !get_view( selected_ )->enabled() );
+      update_selected();
       return true;
     case ::SDLK_DOWN:
     case ::SDLK_KP_2:
     case ::SDLK_j: // TODO: temporary?
-      set_selected( cyclic_modulus( selected_ + 1, count() ) );
+      do {
+        selected_ = cyclic_modulus( selected_ + 1, count() );
+      } while( !get_view( selected_ )->enabled() );
+      update_selected();
       return true;
     default: break;
   }
@@ -979,15 +995,28 @@ maybe<int> OptionSelectView::item_under_point(
   return nothing;
 }
 
+bool OptionSelectView::enabled_option_at_point(
+    Coord coord ) const {
+  maybe<int> item = item_under_point( coord );
+  if( !item.has_value() ) return false;
+  return get_view( *item )->enabled();
+}
+
 bool OptionSelectView::on_mouse_button(
     input::mouse_button_event_t const& event ) {
   maybe<int> item = item_under_point( event.pos );
   if( !item.has_value() ) return false;
-  set_selected( *item );
+  if( get_view( *item )->enabled() ) {
+    selected_ = *item;
+    update_selected();
+  }
   return true;
 }
 
-int OptionSelectView::get_selected() const { return selected_; }
+int OptionSelectView::get_selected() const {
+  CHECK( get_view( selected_ )->enabled() );
+  return selected_;
+}
 
 /****************************************************************
 ** FakeUnitView

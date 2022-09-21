@@ -547,7 +547,12 @@ enum class e_option_active { inactive, active };
 
 class OptionSelectItemView : public CompositeView {
  public:
-  OptionSelectItemView( std::string msg );
+  struct Option {
+    std::string name    = {};
+    bool        enabled = {};
+  };
+
+  OptionSelectItemView( Option option );
 
   // Implement CompositeView
   Coord pos_of( int idx ) const override;
@@ -570,20 +575,24 @@ class OptionSelectItemView : public CompositeView {
     return false;
   }
 
+  bool enabled() const { return enabled_; }
+
  private:
   e_option_active       active_;
   std::unique_ptr<View> background_active_;
   std::unique_ptr<View> background_inactive_;
   std::unique_ptr<View> foreground_active_;
   std::unique_ptr<View> foreground_inactive_;
+  bool                  enabled_ = true;
 };
 
 // TODO: reimplement this by inheriting from the VerticalAr-
 // rayView.
 class OptionSelectView : public VectorView {
  public:
-  OptionSelectView( std::vector<std::string> const& options,
-                    int initial_selection );
+  OptionSelectView(
+      std::vector<OptionSelectItemView::Option> const& options,
+      int initial_selection );
 
   // Implement CompositeView
   void notify_children_updated() override {}
@@ -604,12 +613,14 @@ class OptionSelectView : public VectorView {
   }
   bool needs_padding() const override { return true; }
 
+  bool enabled_option_at_point( Coord coord ) const;
+
  private:
   maybe<int> item_under_point( Coord coord ) const;
 
   OptionSelectItemView*       get_view( int item );
   OptionSelectItemView const* get_view( int item ) const;
-  void                        set_selected( int item );
+  void                        update_selected();
 
   int selected_;
 };

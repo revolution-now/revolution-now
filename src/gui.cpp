@@ -39,6 +39,18 @@ wait<chrono::microseconds> RealGui::wait_for(
 
 wait<maybe<string>> RealGui::choice(
     ChoiceConfig const& config, e_input_required required ) {
+  if( required == e_input_required::yes ) {
+    // If the input is required then there must be at least one
+    // enabled choice.
+    bool has_enabled = false;
+    for( auto& option : config.options ) {
+      bool const enabled = !option.disabled;
+      has_enabled |= enabled;
+    }
+    CHECK( has_enabled,
+           "The game attempted to open a select box with input "
+           "required but with no enabled items." );
+  }
   if( config.sort ) {
     ChoiceConfig new_config = config;
     std::sort( new_config.options.begin(),
@@ -63,9 +75,11 @@ wait<maybe<string>> RealGui::choice(
       seen_display.insert( option.display_name );
     }
   }
-  vector<string> options;
+  vector<SelectBoxOption> options;
+  options.reserve( config.options.size() );
   for( ChoiceConfigOption option : config.options )
-    options.push_back( option.display_name );
+    options.push_back( { .name    = option.display_name,
+                         .enabled = !option.disabled } );
   if( config.initial_selection.has_value() ) {
     CHECK_GE( *config.initial_selection, 0 );
     CHECK_LT( *config.initial_selection, int( options.size() ) );

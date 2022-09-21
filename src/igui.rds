@@ -23,6 +23,7 @@ namespace "rn"
 struct.ChoiceConfigOption {
   key 'std::string',
   display_name 'std::string',
+  disabled 'bool',
 }
 
 # Used to configure a message box that presents the user with

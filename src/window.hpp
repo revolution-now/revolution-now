@@ -41,6 +41,11 @@ struct IntInputBoxOptions {
   e_input_required required = e_input_required::no;
 };
 
+struct SelectBoxOption {
+  std::string name    = {};
+  bool        enabled = {};
+};
+
 /****************************************************************
 ** WindowPlane
 *****************************************************************/
@@ -65,8 +70,8 @@ struct WindowPlane {
   // cancels (e.g. but hitting escape or clicking outside the
   // window).
   wait<maybe<int>> select_box(
-      std::string_view                msg,
-      std::vector<std::string> const& options,
+      std::string_view                    msg,
+      std::vector<SelectBoxOption> const& options,
       e_input_required required, maybe<int> initial_selection );
 
   wait<maybe<std::string>> str_input_box(
