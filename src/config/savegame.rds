@@ -21,6 +21,11 @@ struct.config_savegame_t {
 
   # Do an autosave every N turns.
   autosave_frequency 'int',
+
+  # How many normal savegame slots do we allow. Note that this
+  # does not include the auto save slot, which will be added onto
+  # the end.
+  num_save_slots 'int',
 }
 
 config.savegame {}

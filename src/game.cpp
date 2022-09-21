@@ -78,9 +78,11 @@ void play( IRand& rand, e_game_module_tune_points tune ) {
   }
 }
 
-wait<> run_game(
-    Planes&                                            planes,
-    base::function_ref<void( SS& ss, lua::state& st )> loader ) {
+using LoaderFunc =
+    base::function_ref<wait<base::NoDiscard<bool>>( SS& ss,
+                                                    TS& ts )>;
+
+wait<> run_game( Planes& planes, LoaderFunc loader ) {
   // This is the entire (serializable) state representing a game.
   SS ss;
 
@@ -104,7 +106,9 @@ wait<> run_game(
 
   st["ROOT"] = ss.root;
   st["SS"]   = ss;
-  loader( ss, st );
+  if( !co_await loader( ss, ts ) )
+    // Failed to load game.
+    co_return;
 
   map_updater.redraw();
   ensure_human_player( ss.players );
@@ -132,15 +136,20 @@ wait<> run_game(
 ** Public API
 *****************************************************************/
 wait<> run_existing_game( Planes& planes ) {
-  co_await run_game( planes, []( SS& ss, lua::state& ) {
-    CHECK_HAS_VALUE( load_game( ss.root, 0 ) );
-  } );
+  co_await run_game(
+      planes,
+      []( SS& ss, TS& ts ) -> wait<base::NoDiscard<bool>> {
+        bool const loaded = co_await load_game_menu( ss, ts );
+        co_return loaded;
+      } );
 }
 
 wait<> run_new_game( Planes& planes ) {
-  co_await run_game( planes, []( SS&, lua::state& st ) {
-    CHECK_HAS_VALUE( st["new_game"]["create"].pcall() );
-  } );
+  co_await run_game(
+      planes, []( SS&, TS& ts ) -> wait<base::NoDiscard<bool>> {
+        CHECK_HAS_VALUE( ts.lua["new_game"]["create"].pcall() );
+        co_return true;
+      } );
 }
 
 } // namespace rn

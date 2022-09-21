@@ -1,3 +1,8 @@
 folder: "saves"
 
 autosave_frequency: 5
+
+# How many normal savegame slots do we allow. Note that this does
+# not include the auto save slot, which will be added onto the
+# end.
+num_save_slots: 9

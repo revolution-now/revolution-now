@@ -15,13 +15,18 @@
 // Revolution Now
 #include "error.hpp"
 #include "expect.hpp"
+#include "wait.hpp"
 
 // base
 #include "base/fs.hpp"
+#include "base/vocab.hpp"
 
 namespace rn {
 
 struct RootState;
+struct SSConst;
+struct SS;
+struct TS;
 
 enum e_savegame_verbosity {
   // This will write every field within the data structure when
@@ -54,5 +59,14 @@ void autosave( RootState const& root );
 // Given the current turn index, this will tell us if it is time
 // to autosave.
 bool should_autosave( int turns );
+
+// Opens the save-game box. Returns if the game was actually
+// saved.
+wait<base::NoDiscard<bool>> save_game_menu( SSConst const& ss,
+                                            TS&            ts );
+
+// Opens the load-game box. Returns if a game was actually
+// loaded.
+wait<base::NoDiscard<bool>> load_game_menu( SS& ss, TS& ts );
 
 } // namespace rn

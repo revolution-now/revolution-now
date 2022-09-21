@@ -11,14 +11,18 @@
 #include "save-game.hpp"
 
 // Revolution Now
+#include "igui.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
+#include "ts.hpp"
 
 // ss
+#include "ss/ref.hpp"
 #include "ss/root.hpp"
 #include "ss/terrain.hpp"
 
 // config
+#include "config/nation.rds.hpp"
 #include "config/savegame.rds.hpp"
 
 // refl
@@ -36,7 +40,9 @@
 #include "cdr/ext-std.hpp"
 
 // base
+#include "base/conv.hpp"
 #include "base/io.hpp"
+#include "base/string.hpp"
 #include "base/to-str-ext-std.hpp"
 
 // base-util
@@ -55,6 +61,38 @@ fs::path path_for_slot( int slot ) {
   CHECK( slot >= 0 );
   return config_savegame.folder /
          fmt::format( "slot{:02}", slot );
+}
+
+int number_of_normal_slots() {
+  return config_savegame.num_save_slots;
+}
+
+int number_of_total_slots() {
+  int const kNumAutosaveSlots = 1;
+  return number_of_normal_slots() + kNumAutosaveSlots;
+}
+
+int autosave_slot() { return number_of_total_slots() - 1; }
+
+fs::path rcl_file_path( string const& slot_path ) {
+  return slot_path + ".sav.rcl";
+}
+
+bool rcl_file_exists( string const& slot_path ) {
+  return fs::exists( rcl_file_path( slot_path ) );
+}
+
+maybe<string> rcl_file_title( fs::path const& rcl_path ) {
+  ifstream in( rcl_path );
+  if( !in.good() ) return nothing;
+  string line;
+  getline( in, line );
+  if( line.empty() ) return nothing;
+  if( !line.starts_with( "#" ) ) return nothing;
+  string const title( line.begin() + 1, line.end() );
+  string const trimmed = base::trim( title );
+  if( trimmed.empty() ) return nothing;
+  return trimmed;
 }
 
 void print_time( util::StopWatch const& watch,
@@ -124,6 +162,78 @@ valid_or<string> load_game_from_rcl( RootState&    out_root,
   return valid;
 }
 
+unordered_map<int, string> description_for_slots() {
+  unordered_map<int, string> res;
+  for( int i = 0; i < number_of_total_slots(); ++i ) {
+    if( rcl_file_exists( path_for_slot( i ) ) ) {
+      maybe<string> const descriptor =
+          rcl_file_title( rcl_file_path( path_for_slot( i ) ) );
+      res[i] =
+          descriptor.has_value()
+              ? *descriptor
+              : ( path_for_slot( i ).string() + " (no title)" );
+    }
+  }
+  return res;
+}
+
+wait<maybe<int>> select_slot( TS& ts, bool include_autosaves,
+                              bool allow_empty ) {
+  unordered_map<int, string> slots = description_for_slots();
+  ChoiceConfig               config{
+                    .msg  = "Select a slot:",
+                    .sort = false,
+  };
+  int const    num_slots  = include_autosaves
+                                ? number_of_total_slots()
+                                : number_of_normal_slots();
+  string const kEmptyName = "(none)";
+  for( int i = 0; i < num_slots; ++i ) {
+    string summary = kEmptyName;
+    if( slots.contains( i ) ) summary = slots[i];
+    if( i >= number_of_normal_slots() )
+      summary = "Autosave: " + summary;
+    config.options.push_back( { .key = fmt::to_string( i ),
+                                .display_name = summary } );
+  }
+  while( true ) {
+    maybe<string> selection =
+        co_await ts.gui.optional_choice( config );
+    if( !selection.has_value() ) co_return nothing;
+    UNWRAP_CHECK( slot, base::from_chars<int>( *selection ) );
+    if( allow_empty ) co_return slot;
+    // We're not allowing to select empty slots.
+    if( slots.contains( slot ) ) co_return slot;
+    co_await ts.gui.message_box(
+        "There is not game saved in this slot." );
+  }
+}
+
+string construct_rcl_title( RootState const& root ) {
+  string const difficulty = base::capitalize_initials(
+      refl::enum_value_name( root.settings.difficulty ) );
+  string const    name = "David"; // FIXME: temporary
+  maybe<e_nation> human;
+  for( e_nation nation : refl::enum_values<e_nation> ) {
+    maybe<Player const&> player = root.players.players[nation];
+    if( !player.has_value() ) continue;
+    if( !player->human ) continue;
+    human = nation;
+    break;
+  }
+  string const nation_name =
+      human.has_value() ? config_nation.nations[*human].adjective
+                        : "(AI only)";
+  TurnState const& turn_state = root.turn;
+  string const     time_point = fmt::format(
+      "{} {}",
+      base::capitalize_initials( refl::enum_value_name(
+          turn_state.time_point.season ) ),
+      turn_state.time_point.year );
+  return fmt::format( "{} {} of the {}, {}", difficulty, name,
+                      nation_name, time_point );
+}
+
 } // namespace
 
 /****************************************************************
@@ -147,6 +257,7 @@ valid_or<std::string> save_game_to_rcl_file(
   ofstream out( p );
   if( !out.good() )
     return fmt::format( "failed to open {} for writing.", p );
+  out << "# " << construct_rcl_title( root ) << "\n";
   out << rcl_output;
   return valid;
 }
@@ -229,12 +340,47 @@ expect<fs::path> load_game( RootState& root, int slot ) {
 }
 
 void autosave( RootState const& root ) {
-  expect<fs::path> res = save_game( root, 9 );
+  expect<fs::path> res = save_game( root, autosave_slot() );
   if( !res ) lg.warn( "autosave failed: {}", res.error() );
 }
 
 bool should_autosave( int turns ) {
   return turns % config_savegame.autosave_frequency == 0;
+}
+
+wait<base::NoDiscard<bool>> save_game_menu( SSConst const& ss,
+                                            TS&            ts ) {
+  maybe<int> const slot = co_await select_slot(
+      ts, /*include_autosaves=*/false, /*allow_empty=*/true );
+  if( !slot.has_value() ) co_return false;
+  expect<fs::path> result = save_game( ss.root, *slot );
+  if( !result.has_value() ) {
+    co_await ts.gui.message_box( "Error: failed to save game." );
+    lg.error( "failed to save game: {}.", result.error() );
+    co_return false;
+  }
+  co_await ts.gui.message_box(
+      fmt::format( "Successfully saved game to {}.",
+                   path_for_slot( *slot ) ) );
+  lg.info( "saved game to {}.", path_for_slot( *slot ) );
+  co_return true;
+}
+
+wait<base::NoDiscard<bool>> load_game_menu( SS& ss, TS& ts ) {
+  maybe<int> const slot = co_await select_slot(
+      ts, /*include_autosaves=*/true, /*allow_empty=*/false );
+  if( !slot.has_value() ) co_return false;
+  expect<fs::path> result = load_game( ss.root, *slot );
+  if( !result.has_value() ) {
+    co_await ts.gui.message_box( "Error: failed to load game." );
+    lg.error( "failed to load game: {}.", result.error() );
+    co_return false;
+  }
+  co_await ts.gui.message_box(
+      fmt::format( "Successfully loaded game from {}.",
+                   path_for_slot( *slot ) ) );
+  lg.info( "loaded game from {}.", path_for_slot( *slot ) );
+  co_return true;
 }
 
 } // namespace rn

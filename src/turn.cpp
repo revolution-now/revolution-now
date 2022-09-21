@@ -158,10 +158,30 @@ void reset_turn_obj( PlayersState const& players_state,
 }
 
 /****************************************************************
-** Menu Handlers
+** Helpers
 *****************************************************************/
+bool game_unsaved() {
+  // TODO: we can implement this by keeping a copy (sans terrain)
+  // of the game state when it was last saved (or loaded) and
+  // just using operator== on each component to see if it needs
+  // to be saved.
+  return false;
+}
+
 wait<> proceed_to_exit( TS& ts ) {
-  // FIXME: check if the game needs to be saved.
+  if( game_unsaved() ) {
+    YesNoConfig const config{
+        .msg =
+            "This game has changed since it was last saved.  "
+            "Would you like to save before exiting?",
+        .yes_label      = "Yes",
+        .no_label       = "No",
+        .no_comes_first = false };
+    maybe<ui::e_confirm> const answer =
+        co_await ts.gui.optional_yes_no( config );
+    if( answer == ui::e_confirm::yes )
+      throw game_quit_interrupt{};
+  }
   YesNoConfig const          config{ .msg       = "Exit to DOS?",
                                      .yes_label = "Yes",
                                      .no_label  = "No",
@@ -171,68 +191,6 @@ wait<> proceed_to_exit( TS& ts ) {
   if( answer == ui::e_confirm::yes ) throw game_quit_interrupt{};
 }
 
-wait<> menu_handler( Planes& planes, SS& ss, TS& ts,
-                     Player& player, e_menu_item item ) {
-  switch( item ) {
-    case e_menu_item::exit: {
-      co_await proceed_to_exit( ts );
-      break;
-    }
-    case e_menu_item::save: {
-      if( auto res = save_game( ss.root, 0 ); !res ) {
-        co_await ts.gui.message_box(
-            "There was a problem saving the game." );
-        lg.error( "failed to save game: {}", res.error() );
-      } else {
-        co_await ts.gui.message_box( fmt::format(
-            "Successfully saved game to {}.", res ) );
-        lg.info( "saved game to {}.", res );
-      }
-      break;
-    }
-    case e_menu_item::load: {
-      // FIXME: check if the game needs to be saved.
-      throw game_load_interrupt{};
-    }
-    case e_menu_item::revolution: {
-      ChoiceConfig config{
-          .msg     = "Declare Revolution?",
-          .options = {
-              { .key = "no", .display_name = "Not Yet..." },
-              { .key          = "yes",
-                .display_name = "Give me liberty or give me "
-                                "death!" } } };
-      maybe<string> const answer =
-          co_await ts.gui.optional_choice( config );
-      co_await ts.gui.message_box( "You selected: {}", answer );
-      break;
-    }
-    case e_menu_item::harbor_view: {
-      co_await show_harbor_view( planes, ss, ts, player,
-                                 /*selected_unit=*/nothing );
-      break;
-    }
-    case e_menu_item::map_editor: {
-      // Need to co_await so that the map_updater stays alive.
-      co_await run_map_editor( planes, ss, ts );
-      break;
-    }
-    default: {
-      FATAL( "Not supposed to be handling menu item {} here.",
-             item );
-    }
-  }
-}
-
-wait<e_menu_item> wait_for_menu_selection(
-    MenuPlane& menu_plane ) {
-  TurnPlane turn_plane( menu_plane );
-  co_return co_await turn_plane.next_menu_action();
-}
-
-/****************************************************************
-** Helpers
-*****************************************************************/
 // If the element is present in the deque then it will be erased.
 // The function will return true if the value was found (and
 // erased). This will erase multiple instances of the element if
@@ -346,6 +304,61 @@ void map_active_units( UnitsState& units_state, e_nation nation,
     if( unit.mv_pts_exhausted() ) continue;
     if( unit.nation() == nation ) func( unit );
   }
+}
+
+/****************************************************************
+** Menu Handlers
+*****************************************************************/
+wait<> menu_handler( Planes& planes, SS& ss, TS& ts,
+                     Player& player, e_menu_item item ) {
+  switch( item ) {
+    case e_menu_item::exit: {
+      co_await proceed_to_exit( ts );
+      break;
+    }
+    case e_menu_item::save: {
+      bool const saved = co_await save_game_menu( ss, ts );
+      (void)saved;
+      break;
+    }
+    case e_menu_item::load: {
+      // FIXME: check if the game needs to be saved.
+      throw game_load_interrupt{};
+    }
+    case e_menu_item::revolution: {
+      ChoiceConfig config{
+          .msg     = "Declare Revolution?",
+          .options = {
+              { .key = "no", .display_name = "Not Yet..." },
+              { .key          = "yes",
+                .display_name = "Give me liberty or give me "
+                                "death!" } } };
+      maybe<string> const answer =
+          co_await ts.gui.optional_choice( config );
+      co_await ts.gui.message_box( "You selected: {}", answer );
+      break;
+    }
+    case e_menu_item::harbor_view: {
+      co_await show_harbor_view( planes, ss, ts, player,
+                                 /*selected_unit=*/nothing );
+      break;
+    }
+    case e_menu_item::map_editor: {
+      // Need to co_await so that the map_updater stays alive.
+      co_await run_map_editor( planes, ss, ts );
+      break;
+    }
+    default: {
+      FATAL( "Not supposed to be handling menu item {} here.",
+             item );
+    }
+  }
+}
+
+wait<e_menu_item> wait_for_menu_selection(
+    MenuPlane& menu_plane ) {
+  TurnPlane turn_plane( menu_plane );
+  co_return co_await turn_plane.next_menu_action();
 }
 
 /****************************************************************
