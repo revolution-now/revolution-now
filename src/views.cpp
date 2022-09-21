@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "logger.hpp"
+#include "math.hpp"
 #include "render.hpp"
 #include "text.hpp"
 #include "util.hpp"
@@ -956,13 +957,12 @@ bool OptionSelectView::on_key(
     case ::SDLK_UP:
     case ::SDLK_KP_8:
     case ::SDLK_k: // TODO: temporary?
-      if( selected_ > 0 ) set_selected( selected_ - 1 );
+      set_selected( cyclic_modulus( selected_ - 1, count() ) );
       return true;
     case ::SDLK_DOWN:
     case ::SDLK_KP_2:
     case ::SDLK_j: // TODO: temporary?
-      if( selected_ < count() - 1 )
-        set_selected( selected_ + 1 );
+      set_selected( cyclic_modulus( selected_ + 1, count() ) );
       return true;
     default: break;
   }
