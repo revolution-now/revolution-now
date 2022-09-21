@@ -36,6 +36,22 @@ using namespace std;
 
 namespace rn {
 
+namespace {
+
+string item_name( e_main_menu_item item ) {
+  switch( item ) {
+    case e_main_menu_item::new_: return "New Game";
+    case e_main_menu_item::load: return "Load Game";
+    case e_main_menu_item::settings_graphics:
+      return "Graphics Settings";
+    case e_main_menu_item::settings_sound:
+      return "Sound Settings";
+    case e_main_menu_item::quit: return "Quit";
+  }
+}
+
+} // namespace
+
 /****************************************************************
 ** MainMenuPlane::Impl
 *****************************************************************/
@@ -63,16 +79,15 @@ struct MainMenuPlane::Impl : public Plane {
     h -= H{ rr::rendered_text_line_size_pixels( "X" ).h } *
          SY{ int( num_items ) } / 2;
     for( auto e : refl::enum_values<e_main_menu_item> ) {
-      gfx::pixel c = gfx::pixel::banana().shaded( 3 );
-      Delta      text_size =
-          Delta::from_gfx( rr::rendered_text_line_size_pixels(
-              enum_to_display_name( e ) ) );
+      gfx::pixel c         = gfx::pixel::banana().shaded( 3 );
+      Delta      text_size = Delta::from_gfx(
+          rr::rendered_text_line_size_pixels( item_name( e ) ) );
       auto w   = normal_area.w / 2 - text_size.w / 2;
       auto dst = Rect::from( Coord{}, text_size )
                      .shifted_by( Delta{ .w = w, .h = h } );
       dst = dst.as_if_origin_were( normal_area.upper_left() );
       rr::Typer typer = renderer.typer( dst.upper_left(), c );
-      typer.write( enum_to_display_name( e ) );
+      typer.write( item_name( e ) );
       dst = dst.with_border_added( 2 );
       dst.x -= 3;
       dst.w += 6;

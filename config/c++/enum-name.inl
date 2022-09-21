@@ -29,11 +29,3 @@ TRANSLATION( e_commodity,
   ( trade_goods,     "trade goods"     ),
   ( tools,           "tools"           ),
   ( muskets,         "muskets"         ))
-
-TRANSLATION( e_main_menu_item,
-
-  ( new_,              "New Game"          ),
-  ( load,              "Load Game"         ),
-  ( settings_graphics, "Graphics Settings" ),
-  ( settings_sound,    "Sound Settings"    ),
-  ( quit,              "Quit"              ))
