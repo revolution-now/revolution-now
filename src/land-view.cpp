@@ -476,6 +476,11 @@ struct LandViewPlane::Impl : public Plane {
 
       switch( raw_input.input.to_enum() ) {
         using namespace LandViewRawInput;
+        case e::escape: {
+          translated_input_stream_.send( PlayerInput(
+              LandViewPlayerInput::exit{}, raw_input.when ) );
+          break;
+        }
         case e::next_turn: {
           translated_input_stream_.send(
               PlayerInput( LandViewPlayerInput::next_turn{},
@@ -1350,6 +1355,10 @@ struct LandViewPlane::Impl : public Plane {
           case ::SDLK_e:
             raw_input_stream_.send( RawInput(
                 LandViewRawInput::european_status{} ) );
+            break;
+          case ::SDLK_ESCAPE:
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::escape{} ) );
             break;
           case ::SDLK_SPACE:
           case ::SDLK_KP_5:

@@ -160,14 +160,22 @@ void reset_turn_obj( PlayersState const& players_state,
 /****************************************************************
 ** Menu Handlers
 *****************************************************************/
-wait<bool> proceed_to_leave_game() { co_return true; }
+wait<> proceed_to_exit( TS& ts ) {
+  // FIXME: check if the game needs to be saved.
+  YesNoConfig const          config{ .msg       = "Exit to DOS?",
+                                     .yes_label = "Yes",
+                                     .no_label  = "No",
+                                     .no_comes_first = true };
+  maybe<ui::e_confirm> const answer =
+      co_await ts.gui.optional_yes_no( config );
+  if( answer == ui::e_confirm::yes ) throw game_quit_interrupt{};
+}
 
 wait<> menu_handler( Planes& planes, SS& ss, TS& ts,
                      Player& player, e_menu_item item ) {
   switch( item ) {
     case e_menu_item::exit: {
-      if( co_await proceed_to_leave_game() )
-        throw game_quit_interrupt{};
+      co_await proceed_to_exit( ts );
       break;
     }
     case e_menu_item::save: {
@@ -183,9 +191,8 @@ wait<> menu_handler( Planes& planes, SS& ss, TS& ts,
       break;
     }
     case e_menu_item::load: {
-      if( co_await proceed_to_leave_game() )
-        throw game_load_interrupt{};
-      break;
+      // FIXME: check if the game needs to be saved.
+      throw game_load_interrupt{};
     }
     case e_menu_item::revolution: {
       ChoiceConfig config{
@@ -377,6 +384,7 @@ wait<> process_player_input( LandViewPlayerInput_t const& input,
       // This one is relevant but handled in the calling func-
       // tion.
       break;
+    case e::exit: co_await proceed_to_exit( ts ); break;
     case e::give_orders:
     case e::prioritize: //
       break;
@@ -454,6 +462,7 @@ wait<> process_player_input( UnitId                       id,
       // when we are not at the end of a turn.
       SHOULD_NOT_BE_HERE;
     }
+    case e::exit: co_await proceed_to_exit( ts ); break;
     case e::colony: {
       e_colony_abandoned const abandoned =
           co_await show_colony_view(

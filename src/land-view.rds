@@ -58,4 +58,7 @@ sumtype.LandViewPlayerInput {
   # When at the end of a turn, this will advance to the next
   # turn. It is equivalent to clicking on "end of turn".
   next_turn {},
+
+  # When the user hits escape this will be sent.
+  exit {},
 }
