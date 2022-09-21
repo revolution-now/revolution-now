@@ -22,6 +22,7 @@
 
 // C++ standard library
 #include <algorithm>
+#include <regex>
 
 #define GENERIC_SINGLE_ARG_MATCHER( name )             \
   template<MatchableValue T>                           \
@@ -187,6 +188,15 @@ MATCHER_DEFINE_NODE( StrContains, held, actual ) {
 };
 
 CONCRETE_SINGLE_ARG_MATCHER( StrContains, std::string );
+
+/****************************************************************
+** Matches
+*****************************************************************/
+MATCHER_DEFINE_NODE( Matches, held, actual ) {
+  return std::regex_match( actual, std::regex( held ) );
+};
+
+CONCRETE_SINGLE_ARG_MATCHER( Matches, std::string );
 
 /****************************************************************
 ** Empty

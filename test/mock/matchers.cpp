@@ -22,7 +22,7 @@
 #define REQUIRE_UNEXPECTED_ARGS( ... ) \
   REQUIRE_THROWS_WITH(                 \
       __VA_ARGS__,                     \
-      Matches(                         \
+      Catch::Matches(                  \
           "mock function call with unexpected arguments.*" ) );
 
 namespace mock {
@@ -31,8 +31,6 @@ namespace {
 using namespace std;
 using namespace ::mock::matchers;
 using namespace Catch::literals;
-
-using ::Catch::Matches;
 
 struct Foo {
   bool operator==( Foo const& ) const = default;
@@ -521,6 +519,20 @@ TEST_CASE( "[mock] StrContains" ) {
       .returns( "hello bob" );
   REQUIRE_UNEXPECTED_ARGS( user.say_hello( "bob bob" ) );
   REQUIRE( user.say_hello( "bob ccc bob" ) == "hello bob" );
+}
+
+TEST_CASE( "[mock] Matches" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, say_hello( Matches( "bob b.b"s ) ) )
+      .returns( "hello bob" );
+  REQUIRE( user.say_hello( "bob bob" ) == "hello bob" );
+
+  EXPECT_CALL( mp, say_hello( Matches( "h.*c" ) ) )
+      .returns( "hello bob" );
+  REQUIRE_UNEXPECTED_ARGS( user.say_hello( "bob bob" ) );
+  REQUIRE( user.say_hello( "hob ccc" ) == "hello bob" );
 }
 
 TEST_CASE( "[mock] Empty" ) {
