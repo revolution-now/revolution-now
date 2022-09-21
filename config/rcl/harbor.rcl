@@ -10,3 +10,13 @@ high_seas_turns_west: 4
 
 # Same as the above, but after Magellan is acquired.
 high_seas_turns_west_post_magellan: 2
+
+purchases {
+  artillery_initial_price: 500
+  artillery_increase_rate: 100
+  caravel_cost:            1000
+  merchantman_cost:        2000
+  galleon_cost:            3000
+  privateer_cost:          2000
+  frigate_cost:            5000
+}

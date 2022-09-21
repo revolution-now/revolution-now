@@ -12,6 +12,21 @@
 # Cdr.
 include "cdr/ext-builtin.hpp"
 
+namespace "rn.config.harbor"
+
+# Configures things related to the "Purchase" popup menu that ap-
+# pears in the harbor view when clicking on the button of the
+# same name.
+struct.Purchases {
+  artillery_initial_price 'int',
+  artillery_increase_rate 'int',
+  caravel_cost 'int',
+  merchantman_cost 'int',
+  galleon_cost 'int',
+  privateer_cost 'int',
+  frigate_cost 'int',
+}
+
 namespace "rn"
 
 struct.config_harbor_t {
@@ -27,6 +42,8 @@ struct.config_harbor_t {
 
   # Same as the above, but after Magellan is acquired.
   high_seas_turns_west_post_magellan 'int',
+
+  purchases 'config::harbor::Purchases',
 }
 
 config.harbor {}
