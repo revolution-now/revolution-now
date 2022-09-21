@@ -21,11 +21,38 @@ namespace {
 using namespace std;
 using namespace rn;
 
-TEST_CASE( "[math] modulus" ) {
-  REQUIRE( ::rn::modulus( 7, 3 ) == 1 );
-  REQUIRE( ::rn::modulus( 7, -3 ) == 1 );
-  REQUIRE( ::rn::modulus( -7, 3 ) == 2 );
-  REQUIRE( ::rn::modulus( -7, -3 ) == 2 );
+TEST_CASE( "[math] cyclic_modulus" ) {
+  REQUIRE( rn::cyclic_modulus( 7, 3 ) == 1 );
+  REQUIRE( rn::cyclic_modulus( 6, 3 ) == 0 );
+  REQUIRE( rn::cyclic_modulus( 5, 3 ) == 2 );
+  REQUIRE( rn::cyclic_modulus( 4, 3 ) == 1 );
+  REQUIRE( rn::cyclic_modulus( 3, 3 ) == 0 );
+  REQUIRE( rn::cyclic_modulus( 2, 3 ) == 2 );
+  REQUIRE( rn::cyclic_modulus( 1, 3 ) == 1 );
+  REQUIRE( rn::cyclic_modulus( 0, 3 ) == 0 );
+  REQUIRE( rn::cyclic_modulus( -1, 3 ) == 2 );
+  REQUIRE( rn::cyclic_modulus( -2, 3 ) == 1 );
+  REQUIRE( rn::cyclic_modulus( -3, 3 ) == 0 );
+  REQUIRE( rn::cyclic_modulus( -4, 3 ) == 2 );
+  REQUIRE( rn::cyclic_modulus( -5, 3 ) == 1 );
+  REQUIRE( rn::cyclic_modulus( -6, 3 ) == 0 );
+  REQUIRE( rn::cyclic_modulus( -7, 3 ) == 2 );
+
+  REQUIRE( rn::cyclic_modulus( 7, -3 ) == 1 );
+  REQUIRE( rn::cyclic_modulus( 6, -3 ) == 0 );
+  REQUIRE( rn::cyclic_modulus( 5, -3 ) == 2 );
+  REQUIRE( rn::cyclic_modulus( 4, -3 ) == 1 );
+  REQUIRE( rn::cyclic_modulus( 3, -3 ) == 0 );
+  REQUIRE( rn::cyclic_modulus( 2, -3 ) == 2 );
+  REQUIRE( rn::cyclic_modulus( 1, -3 ) == 1 );
+  REQUIRE( rn::cyclic_modulus( 0, -3 ) == 0 );
+  REQUIRE( rn::cyclic_modulus( -1, -3 ) == 2 );
+  REQUIRE( rn::cyclic_modulus( -2, -3 ) == 1 );
+  REQUIRE( rn::cyclic_modulus( -3, -3 ) == 0 );
+  REQUIRE( rn::cyclic_modulus( -4, -3 ) == 2 );
+  REQUIRE( rn::cyclic_modulus( -5, -3 ) == 1 );
+  REQUIRE( rn::cyclic_modulus( -6, -3 ) == 0 );
+  REQUIRE( rn::cyclic_modulus( -7, -3 ) == 2 );
 }
 
 TEST_CASE( "[math] round_up_to_nearest_int_multiple" ) {

@@ -18,8 +18,9 @@
 namespace rn {
 
 template<typename T>
-constexpr T modulus( T a, T b ) requires(
-    std::is_signed_v<T>&& std::is_integral_v<T> ) {
+constexpr T cyclic_modulus( T a, T b )
+requires( std::is_signed_v<T> && std::is_integral_v<T> )
+{
   auto m = a % b;
   if( m < 0 ) m = ( b < 0 ) ? m - b : m + b;
   return m;
