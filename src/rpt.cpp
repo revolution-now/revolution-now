@@ -13,14 +13,35 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "harbor-units.hpp"
 #include "igui.hpp"
 #include "ts.hpp"
+
+// config
+#include "config/harbor.rds.hpp"
+
+// ss
+#include "ss/player.rds.hpp"
+#include "ss/ref.hpp"
+#include "ss/unit-type.rds.hpp"
+
+// base
+#include "base/keyval.hpp"
+#include "base/string.hpp"
 
 using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+int artillery_price( Player const& player ) {
+  return config_harbor.purchases.artillery_initial_price +
+         player.artillery_purchases *
+             config_harbor.purchases.artillery_increase_rate;
+}
+
+} // namespace
 
 /****************************************************************
 ** Public API
@@ -30,7 +51,51 @@ wait<> click_recruit( SS& ss, TS& ts, Player& player ) {
 }
 
 wait<> click_purchase( SS& ss, TS& ts, Player& player ) {
-  co_await ts.gui.message_box( "Clicked Purchase." );
+  ChoiceConfig config{ .msg = "What would you like to purchase?",
+                       .initial_selection = 0 };
+  static string const kNone = "none";
+  config.options.push_back(
+      { .key = kNone, .display_name = "None" } );
+  auto& costs = config_harbor.purchases;
+  unordered_map<e_unit_type, int> const prices{
+      { e_unit_type::artillery, artillery_price( player ) },
+      { e_unit_type::caravel, costs.caravel_cost },
+      { e_unit_type::merchantman, costs.merchantman_cost },
+      { e_unit_type::galleon, costs.galleon_cost },
+      { e_unit_type::privateer, costs.privateer_cost },
+      { e_unit_type::frigate, costs.frigate_cost },
+  };
+  auto push = [&]( e_unit_type type ) {
+    string const key = string( refl::enum_value_name( type ) );
+    UNWRAP_CHECK( price, base::lookup( prices, type ) );
+    string const display_name = fmt::format(
+        "{: <20}{: >20}", base::capitalize_initials( key ),
+        fmt::format( "(Cost: {})", price ) );
+    bool const enabled = ( player.money >= price );
+    config.options.push_back( { .key          = key,
+                                .display_name = display_name,
+                                .disabled     = !enabled } );
+  };
+  push( e_unit_type::artillery );
+  push( e_unit_type::caravel );
+  push( e_unit_type::merchantman );
+  push( e_unit_type::galleon );
+  push( e_unit_type::privateer );
+  push( e_unit_type::frigate );
+  maybe<string> selected_str =
+      co_await ts.gui.optional_choice( config );
+  if( !selected_str.has_value() ) co_return;
+  if( *selected_str == kNone ) co_return;
+  UNWRAP_CHECK(
+      selected_type,
+      refl::enum_from_string<e_unit_type>( *selected_str ) );
+  UNWRAP_CHECK( price, base::lookup( prices, selected_type ) );
+  player.money -= price;
+  CHECK_GE( player.money, 0 );
+  create_unit_in_harbor( ss.units, player.nation,
+                         selected_type );
+  if( selected_type == e_unit_type::artillery )
+    ++player.artillery_purchases;
 }
 
 wait<> click_train( SS& ss, TS& ts, Player& player ) {

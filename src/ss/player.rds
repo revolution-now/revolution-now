@@ -78,4 +78,9 @@ struct.Player {
   # because now ships have sailed to europe, and so in that case
   # the game will use the starting_position.
   last_high_seas 'maybe<Coord>',
+
+  # How many artillery units has the player purchased from europe
+  # to date. We need to know this because the price goes up by
+  # 100 after each purcahse.
+  artillery_purchases 'int',
 }
