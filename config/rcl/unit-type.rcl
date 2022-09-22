@@ -668,11 +668,11 @@ composition {
       }
     }
 
-    master_rum_distiller {
-      type:                  master_rum_distiller
-      name:                  Master Rum Distiller
-      name_plural:           Master Rum Distillers
-      tile:                  master_rum_distiller
+    master_distiller {
+      type:                  master_distiller
+      name:                  Master Distiller
+      name_plural:           Master Distillers
+      tile:                  master_distiller
       expertise:             rum_distilling
       type_activity:         null
       cleared_expertise:     free_colonist

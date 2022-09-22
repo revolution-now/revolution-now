@@ -39,7 +39,7 @@ indoor_production {
     bells:   elder_statesman
     crosses: firebrand_preacher
     hammers: master_carpenter
-    rum:     master_rum_distiller
+    rum:     master_distiller
     cigars:  master_tobacconist
     cloth:   master_weaver
     coats:   master_fur_trader

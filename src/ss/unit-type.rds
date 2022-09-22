@@ -35,7 +35,7 @@ enum.e_unit_type {
   expert_ore_miner,
   expert_silver_miner,
   master_carpenter,
-  master_rum_distiller,
+  master_distiller,
   master_tobacconist,
   master_weaver,
   master_fur_trader,

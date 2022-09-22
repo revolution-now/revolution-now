@@ -28,7 +28,7 @@ base_weights {
   expert_ore_miner:         240.0
   expert_silver_miner:      240.0
   master_carpenter:         240.0
-  master_rum_distiller:     240.0
+  master_distiller:         240.0
   master_tobacconist:       240.0
   master_weaver:            240.0
   master_fur_trader:        240.0
@@ -102,7 +102,7 @@ difficulty_factor_per_level {
   expert_ore_miner:        0.5623413252
   expert_silver_miner:     0.5623413252
   master_carpenter:        0.5623413252
-  master_rum_distiller:    0.5623413252
+  master_distiller:        0.5623413252
   master_tobacconist:      0.5623413252
   master_weaver:           0.5623413252
   master_fur_trader:       0.5623413252

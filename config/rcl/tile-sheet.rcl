@@ -663,7 +663,7 @@ sheets {
         expert_ore_miner:       { y: 6, x: 4 }
         expert_silver_miner:    { y: 6, x: 5 }
         master_carpenter:       { y: 6, x: 3 }
-        master_rum_distiller:   { y: 5, x: 2 }
+        master_distiller:       { y: 5, x: 2 }
         master_tobacconist:     { y: 5, x: 0 }
         master_weaver:          { y: 5, x: 1 }
         master_fur_trader:      { y: 5, x: 3 }

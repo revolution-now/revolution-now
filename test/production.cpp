@@ -1110,7 +1110,7 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
   SECTION( "no tobacco center square/with rum distiller" ) {
     Colony& colony = W.add_colony( W.kPrairieTile );
     W.add_unit_indoors( colony.id, e_indoor_job::rum,
-                        e_unit_type::master_rum_distiller );
+                        e_unit_type::master_distiller );
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
@@ -1903,7 +1903,7 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
   SECTION( "no cotton center square/with rum distiller" ) {
     Colony& colony = W.add_colony( W.kGrasslandTile );
     W.add_unit_indoors( colony.id, e_indoor_job::rum,
-                        e_unit_type::master_rum_distiller );
+                        e_unit_type::master_distiller );
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );

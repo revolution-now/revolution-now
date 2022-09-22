@@ -536,7 +536,7 @@ requirements_for_unit  {
   expert_ore_miner:       null
   expert_silver_miner:    null
   master_carpenter:       null
-  master_rum_distiller:   null
+  master_distiller:       null
   master_tobacconist:     null
   master_weaver:          null
   master_fur_trader:      null

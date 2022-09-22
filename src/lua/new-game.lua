@@ -121,7 +121,7 @@ local function create_all_units( options, root )
     'expert_cotton_planter', 'expert_fur_trapper',
     'expert_lumberjack', 'expert_ore_miner',
     'expert_silver_miner', 'master_carpenter',
-    'master_rum_distiller', 'master_tobacconist',
+    'master_distiller', 'master_tobacconist',
     'master_weaver', 'master_fur_trader', 'master_blacksmith',
     'master_gunsmith', 'elder_statesman', 'firebrand_preacher',
     'hardy_colonist', 'jesuit_colonist', 'seasoned_colonist',

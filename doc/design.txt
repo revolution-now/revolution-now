@@ -484,7 +484,7 @@ Types of expertise that can be gained:
   8.  master carpenter
   9.  expert ore miner
   10. expert silver miner
-  11. master rum distiller
+  11. master distiller
   12. master tobacconist
   13. master weaver
   14. master fur trader
