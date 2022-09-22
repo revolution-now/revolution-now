@@ -126,6 +126,10 @@ struct MainMenuPlane::Impl : public Plane {
             selection_stream_.send( curr_item_ );
             handled = e_input_handled::yes;
             break;
+          case ::SDLK_ESCAPE:
+            selection_stream_.send( e_main_menu_item::quit );
+            handled = e_input_handled::yes;
+            break;
           default: break;
         }
         break;
