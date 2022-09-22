@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "commodity.hpp"
 #include "igui.hpp"
 #include "price-group.hpp"
 #include "ts.hpp"
@@ -478,7 +479,8 @@ wait<> display_price_change_notification(
   CommodityPrice const prices = change.to;
   string const         msg =
       fmt::format( "The price of @[H]{}@[] in {} has {} to {}.",
-                   change.type, harbor_name, verb, prices.bid );
+                   commodity_display_name( change.type ),
+                   harbor_name, verb, prices.bid );
   co_await ts.gui.message_box( msg );
 }
 

@@ -140,7 +140,8 @@ HarborMarketCommodities::source_check(
             "You do not have enough gold to purchase @[H]{} "
             "{}@[].  Try holding down the @[H]shift@[] key to "
             "reduce the quantity of your purchase.",
-            comm.quantity, comm.type ) };
+            comm.quantity,
+            commodity_display_name( comm.type ) ) };
   co_return base::valid;
 }
 
