@@ -77,7 +77,7 @@ string HarborRptButtons::button_text_markup(
 Delta HarborRptButtons::total_size() {
   Delta const single = button_size();
   return Delta{ .w = single.w,
-                single.h * 3 + kVerticalSpacing * 2 };
+                .h = single.h * 3 + kVerticalSpacing * 2 };
 }
 
 Delta HarborRptButtons::delta() const { return total_size(); }
