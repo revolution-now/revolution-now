@@ -4,10 +4,9 @@ return {
   'exe/main',
   'config/market',
   'ss/market',
-  'market',
+  'ss/old-world-state',
+  'immigration',
+  'config/immigration',
   'config/harbor',
-  'harbor-view',
-  'harbor-view-entities',
-  'harbor-view-rpt',
   'rpt',
 }
