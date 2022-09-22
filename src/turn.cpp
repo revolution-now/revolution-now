@@ -673,6 +673,12 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
         maybe<UnitDeleted> unit_deleted =
             co_await unit_to_map_square( ss, ts, id,
                                          *dst_coord );
+        // This is not required, but it is for a good player ex-
+        // perience. If there are more ships still in port then
+        // select one of them, because ideally if there are ships
+        // in port then when the player goes to the harbor view,
+        // one of them should always be selected.
+        update_harbor_selected_unit( ss.units, player );
         // There are no LCR tiles on water squares.
         CHECK( !unit_deleted.has_value() );
         unsentry_surroundings( ss.units,

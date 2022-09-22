@@ -170,7 +170,7 @@ wait<> take_one_immigrant( UnitsState& units_state, IGui& gui,
       pick_next_unit_for_pool( rand, cplayer, settings );
   e_unit_type taken = take_immigrant_from_pool(
       player.old_world.immigration, *choice, replacement );
-  create_unit_in_harbor( units_state, player.nation, taken );
+  create_unit_in_harbor( units_state, player, taken );
 }
 
 wait<> run_fountain_of_youth( UnitsState& units_state, IGui& gui,

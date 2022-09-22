@@ -135,6 +135,23 @@ bool is_unit_on_dock( UnitsState const& units_state,
 /****************************************************************
 ** Public API
 *****************************************************************/
+void update_harbor_selected_unit( UnitsState const& units,
+                                  Player&           player ) {
+  maybe<UnitId>& selected_unit =
+      player.old_world.harbor_state.selected_unit;
+  if( selected_unit.has_value() ) {
+    if( !units.exists( *selected_unit ) ||
+        !units.ownership_of( *selected_unit )
+             .holds<UnitOwnership::harbor>() )
+      // This can happen just after a ship that was selected
+      // moves to the new world and/or gets disbanded.
+      selected_unit.reset();
+  }
+  vector<UnitId> ships =
+      harbor_units_in_port( units, player.nation );
+  if( !ships.empty() ) selected_unit = ships[0];
+}
+
 // Find the right place to put a ship which has just arrived from
 // europe.
 maybe<Coord> find_new_world_arrival_square(
@@ -253,7 +270,8 @@ vector<UnitId> harbor_units_outbound(
                                    is_unit_outbound );
 }
 
-void unit_move_to_port( UnitsState& units_state, UnitId id ) {
+void unit_move_to_port( UnitsState& units_state, Player& player,
+                        UnitId id ) {
   UnitHarborViewState new_state;
   if( maybe<UnitHarborViewState const&> existing_state =
           units_state.maybe_harbor_view_state_of( id );
@@ -265,6 +283,7 @@ void unit_move_to_port( UnitsState& units_state, UnitId id ) {
                   .sailed_from = nothing };
   }
   units_state.change_to_harbor_view( id, new_state );
+  update_harbor_selected_unit( units_state, player );
 }
 
 void unit_sail_to_harbor( TerrainState const& terrain_state,
@@ -287,7 +306,7 @@ void unit_sail_to_harbor( TerrainState const& terrain_state,
         if( turns >= turns_needed )
           // Unit has not yet made any progress, so we can imme-
           // diately move it to in_port.
-          unit_move_to_port( units_state, id );
+          unit_move_to_port( units_state, player, id );
         return;
       }
       case PortStatus::e::outbound: {
@@ -361,7 +380,7 @@ void unit_sail_to_new_world( TerrainState const& terrain_state,
 
 e_high_seas_result advance_unit_on_high_seas(
     TerrainState const& terrain_state, UnitsState& units_state,
-    Player const& player, UnitId id ) {
+    Player& player, UnitId id ) {
   UNWRAP_CHECK( info,
                 units_state.maybe_harbor_view_state_of( id ) );
   int const turns_needed =
@@ -385,7 +404,7 @@ e_high_seas_result advance_unit_on_high_seas(
               debug_string( units_state, id ), inbound.turns );
     if( inbound.turns >= turns_needed ) {
       // This should preserve the `sailed_from`.
-      unit_move_to_port( units_state, id );
+      unit_move_to_port( units_state, player, id );
       return e_high_seas_result::arrived_in_harbor;
     }
     return e_high_seas_result::still_traveling;
@@ -396,19 +415,19 @@ e_high_seas_result advance_unit_on_high_seas(
 }
 
 UnitId create_unit_in_harbor( UnitsState&     units_state,
-                              e_nation        nation,
+                              Player&         player,
                               UnitComposition comp ) {
-  UnitId id =
-      create_free_unit( units_state, nation, std::move( comp ) );
-  unit_move_to_port( units_state, id );
+  UnitId id = create_free_unit( units_state, player.nation,
+                                std::move( comp ) );
+  unit_move_to_port( units_state, player, id );
   return id;
 }
 
 UnitId create_unit_in_harbor( UnitsState& units_state,
-                              e_nation    nation,
+                              Player&     player,
                               e_unit_type type ) {
   return create_unit_in_harbor(
-      units_state, nation, UnitComposition::create( type ) );
+      units_state, player, UnitComposition::create( type ) );
 }
 
 } // namespace rn

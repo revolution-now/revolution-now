@@ -25,6 +25,7 @@ namespace rn {
 
 struct ColoniesState;
 struct Player;
+struct SS;
 struct TerrainState;
 struct UnitHarborViewState;
 struct UnitsState;
@@ -73,7 +74,8 @@ void unit_sail_to_harbor( TerrainState const& terrain_state,
 // and needs to be moved to port, 2. a ship that is damaged and
 // needs to be immediately relocated to port, 3. a unit that is
 // purchased in europe. Also useful for creating testing setups.
-void unit_move_to_port( UnitsState& units_state, UnitId id );
+void unit_move_to_port( UnitsState& units_state, Player& player,
+                        UnitId id );
 
 // Takes a unit on the high seas and increases the turn count of
 // its journey. If the turn count reaches the maximum as a result
@@ -83,7 +85,7 @@ void unit_move_to_port( UnitsState& units_state, UnitId id );
 // error will be thrown.
 [[nodiscard]] e_high_seas_result advance_unit_on_high_seas(
     TerrainState const& terrain_state, UnitsState& units_state,
-    Player const& player, UnitId id );
+    Player& player, UnitId id );
 
 // When a unit arrives in the new world from the high seas we
 // need to find a square on which to place the unit. That is ac-
@@ -94,11 +96,18 @@ maybe<Coord> find_new_world_arrival_square(
     TerrainState const& terrain_state, Player const& player,
     UnitHarborViewState const& info );
 
+// This will check if there are ships in port and, if so, it will
+// ensure that at least one of them are selected (for a good
+// player experience, so that they never go to the harbor view
+// and see ships sitting there and none of them are selected).
+void update_harbor_selected_unit( UnitsState const& units_state,
+                                  Player&           player );
+
 UnitId create_unit_in_harbor( UnitsState& units_state,
-                              e_nation    nation,
-                              e_unit_type type );
+                              Player& player, e_unit_type type );
 
 UnitId create_unit_in_harbor( UnitsState&     units_state,
-                              e_nation        nation,
+                              Player&         player,
                               UnitComposition comp );
+
 } // namespace rn

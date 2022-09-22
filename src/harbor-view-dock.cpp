@@ -157,7 +157,7 @@ maybe<HarborDraggableObject_t> HarborDockUnits::can_receive(
 wait<> HarborDockUnits::drop( HarborDraggableObject_t const& o,
                               Coord const& ) {
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
-  unit_move_to_port( ss_.units, unit.id );
+  unit_move_to_port( ss_.units, player_, unit.id );
   co_return;
 }
 

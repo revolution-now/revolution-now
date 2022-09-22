@@ -269,8 +269,7 @@ wait<maybe<UnitId>> check_for_new_immigrant(
       pick_next_unit_for_pool( ts.rand, player, ss.settings );
   e_unit_type type = take_immigrant_from_pool(
       player.old_world.immigration, immigrant_idx, replacement );
-  co_return create_unit_in_harbor( ss.units, player.nation,
-                                   type );
+  co_return create_unit_in_harbor( ss.units, player, type );
 }
 
 /****************************************************************

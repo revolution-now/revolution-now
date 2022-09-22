@@ -46,6 +46,16 @@ namespace {
 
 using namespace std;
 
+void check_selected_unit_in_harbor( SSConst const& ss,
+                                    Player const&  player ) {
+  // In case the unit that was selected
+  HarborState const& hb_state = player.old_world.harbor_state;
+  if( !hb_state.selected_unit.has_value() ) return;
+  UnitId id = *hb_state.selected_unit;
+  CHECK( ss.units.exists( id ) );
+  CHECK( ss.units.maybe_harbor_view_state_of( id ) );
+}
+
 } // namespace
 
 /****************************************************************
@@ -310,16 +320,6 @@ struct HarborPlane::Impl : public Plane {
   }
 
   wait<> show_harbor_view() {
-    HarborState& hb_state = harbor_state();
-    if( hb_state.selected_unit ) {
-      UnitId id = *hb_state.selected_unit;
-      // We could have a case where the unit that was last se-
-      // lected went to the new world and was then disbanded, or
-      // is just no longer in the harbor.
-      if( !ss_.units.exists( id ) ||
-          !ss_.units.maybe_harbor_view_state_of( id ) )
-        hb_state.selected_unit = nothing;
-    }
     lg.info( "entering harbor view." );
     co_await run_harbor_view();
     lg.info( "leaving harbor view." );
@@ -364,6 +364,7 @@ wait<> show_harbor_view( Planes& planes, SS& ss, TS& ts,
   PlaneGroup& new_group = planes.back();
 
   HarborPlane harbor_plane( ss, ts, player );
+  check_selected_unit_in_harbor( ss, player );
   if( selected_unit.has_value() )
     harbor_plane.set_selected_unit( *selected_unit );
   new_group.harbor = &harbor_plane;

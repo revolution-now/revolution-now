@@ -212,8 +212,9 @@ void World::add_major_river( gfx::point p ) {
 
 UnitId World::add_unit_in_port( e_unit_type     type,
                                 maybe<e_nation> nation ) {
-  if( !nation ) nation = default_nation_;
-  return create_unit_in_harbor( root().units, *nation, type );
+  return create_unit_in_harbor(
+      root().units, player( nation.value_or( default_nation_ ) ),
+      type );
 }
 
 UnitId World::add_unit_on_map( e_unit_type type, Coord where,
