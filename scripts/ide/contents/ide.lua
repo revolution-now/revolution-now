@@ -8,7 +8,8 @@ return
 -----------------------------------------------------------------
 vsplit {
   hsplit {
-    'scripts/ide/contents.lua',
+    'scripts/ide/contents/ide.lua',
+    'scripts/ide/contents/rn.lua',
     'scripts/ide/util.lua',
   },
   'scripts/ide/edit-rn.lua',

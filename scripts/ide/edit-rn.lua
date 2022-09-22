@@ -1,7 +1,6 @@
 -----------------------------------------------------------------
 --                 Creates the RN editor session.
 ------------------------------------------------------------------
-
 -----------------------------------------------------------------
 -- Imports.
 -----------------------------------------------------------------
@@ -44,7 +43,9 @@ local function open_module( stem )
 end
 
 local function open_module_with_input()
-  open_module( util.input( 'Enter name: ' ) )
+  local stem = util.input( 'Enter name: ' )
+  if stem == nil or #stem == 0 then return end
+  open_module( stem )
 end
 
 local function create_tabs()
