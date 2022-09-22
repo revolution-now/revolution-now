@@ -25,12 +25,6 @@
 
 using namespace std;
 
-// Number of arguments that the caller is expected to have pushed
-// before calling this.
-#define DECLARE_NUM_CONSUMED_VALUES( n ) \
-  int ninputs = n;                       \
-  enforce_stack_size_ge( ninputs )
-
 namespace lua {
 namespace {
 
@@ -43,18 +37,6 @@ using ::base::nothing;
 // least alert us that something has changed.
 static_assert( sizeof( integer ) == sizeof( long long ) );
 static_assert( sizeof( long long ) >= 8 );
-
-// This is used when we are pushing values onto the stack and all
-// pointers should be pushed as light userdata. If we didn't use
-// this, e.g. pushing a `char const*` would push it as a string
-// instead of a light user data.
-template<typename T>
-auto to_void_star_if_ptr( T v ) {
-  if constexpr( is_pointer_v<T> )
-    return const_cast<void*>( static_cast<void const*>( v ) );
-  else
-    return v;
-}
 
 int msghandler( lua_State* L ) {
   const char* msg = lua_tostring( L, 1 );
@@ -120,39 +102,12 @@ void c_api::setglobal( string const& key ) noexcept {
   return setglobal( key.c_str() );
 }
 
-lua_valid c_api::setglobal_safe( char const* key ) noexcept {
-  DECLARE_NUM_CONSUMED_VALUES( 1 );
-  // [-1,+0,e]
-  return pinvoke( ninputs, lua_setglobal, key );
-}
-
-lua_valid c_api::setglobal_safe( string const& key ) noexcept {
-  return setglobal_safe( key.c_str() );
-}
-
 type c_api::getglobal( char const* name ) noexcept {
   return lua_type_to_enum( lua_getglobal( L_, name ) );
 }
 
 type c_api::getglobal( string const& name ) noexcept {
   return getglobal( name.c_str() );
-}
-
-lua_expect<type> c_api::getglobal_safe(
-    char const* name ) noexcept {
-  DECLARE_NUM_CONSUMED_VALUES( 0 );
-  UNWRAP_RETURN( type, pinvoke( ninputs, lua_getglobal, name ) );
-  // Should get here even when the name does not exist, in which
-  // case it will have returned nil and pushed it onto the
-  // stack..
-  enforce_stack_size_ge( 1 );
-  CHECK_EQ( lua_type_to_enum( type ), type_of( -1 ) );
-  return lua_type_to_enum( type );
-}
-
-lua_expect<type> c_api::getglobal_safe(
-    string const& name ) noexcept {
-  return getglobal_safe( name.c_str() );
 }
 
 lua_valid c_api::loadstring( char const* script ) noexcept {
@@ -170,118 +125,6 @@ lua_valid c_api::dostring( char const* script ) noexcept {
   HAS_VALUE_OR_RET( loadstring( script ) );
   enforce_stack_size_ge( 1 );
   return pcall( /*nargs=*/0, /*nresults=*/LUA_MULTRET );
-}
-
-// See header file for explanation of this function.
-// clang-format off
-template<typename R, typename... Params, typename... Args>
-requires( sizeof...( Params ) == sizeof...( Args ) &&
-          std::is_invocable_v<LuaApiFunc<R, Params...>*,
-                              cthread,
-                              Args...> )
-auto c_api::pinvoke( int ninputs,
-                     LuaApiFunc<R, Params...>* func,
-                     Args... args )
-    -> error_type_for_return_type<R> {
-  // clang-format on
-  constexpr bool has_result = !is_same_v<R, void>;
-
-  constexpr int kNInputsIdx = 1;
-  constexpr int kFuncIdx    = 2;
-  // equal to last one.
-  constexpr int kNumRunnerArgs = 2;
-
-  auto runner = []( lua_State* L ) -> int {
-    c_api api( L );
-
-    // 1. Get number of arguments that were pushed onto the stack
-    //    for this Lua API function to consume.
-    CHECK( lua_isinteger( L, kNInputsIdx ) );
-    UNWRAP_CHECK( ninputs, api.get<int>( kNInputsIdx ) );
-    CHECK_GE( ninputs, 0 );
-
-    // 2. Get pointer to Lua API function that we will call.
-    //    e.g., this will be a pointer to lua_gettable.
-    CHECK( lua_islightuserdata( L, kFuncIdx ) );
-    UNWRAP_CHECK( void_func, api.get<void*>( kFuncIdx ) );
-    auto* func =
-        reinterpret_cast<LuaApiFunc<R, Params...>*>( void_func );
-    CHECK( func );
-
-    // 3. Check stack size.
-    CHECK_GE( api.stack_size(), int( kNumRunnerArgs + ninputs +
-                                     sizeof...( Args ) ) );
-
-    // 4. Pop parameters into tuple.
-    int  idx    = kNumRunnerArgs + 1 + ninputs;
-    auto getter = [&]<typename Arg>( Arg* ) {
-      UNWRAP_CHECK( res, api.get<Arg>( idx ) );
-      ++idx;
-      return res;
-    };
-    auto tuple_args =
-        tuple{ L, getter( static_cast<Args*>( nullptr ) )... };
-
-    // 5. Now pop everything so that it doesn't get in the way of
-    //    our stack size calculation.
-    api.pop( sizeof...( Args ) );
-    CHECK( api.stack_size() == kNumRunnerArgs + ninputs );
-    api.rotate( -ninputs - kNumRunnerArgs, ninputs );
-    api.pop( kNumRunnerArgs );
-
-    // At this point on the stack we have only this C function
-    // object (just below the zero point which we cannot access),
-    // then all of the values that will be popped by the Lua API
-    // function we are about to call.
-    CHECK( api.stack_size() == ninputs );
-
-    // 6. Run it
-    if constexpr( has_result ) {
-      R res = apply( func, tuple_args );
-      api.push( res );
-    } else {
-      apply( func, tuple_args );
-    }
-
-    return api.stack_size();
-  };
-
-  // For sanity checking.
-  type tip_type = ninputs > 0 ? type_of( -1 ) : type::nil;
-
-  // 1. Push func onto the stack.
-  push( runner );
-
-  // 2. Push initial stack size so that our helper function above
-  //    can compute how many results are being returned.
-  push( ninputs );
-
-  // 3. Push the actual Lua API function we want to run.
-  push( reinterpret_cast<void*>( func ) );
-
-  // 4. Put the initial args behind those that are to be read
-  //    by the Lua API function we will call.
-  rotate( -ninputs - kNumRunnerArgs - 1, kNumRunnerArgs + 1 );
-
-  // For sanity checking.
-  if( ninputs > 0 ) { CHECK( type_of( -1 ) == tip_type ); }
-
-  // k. Push arguments.
-  ( push( to_void_star_if_ptr( args ) ), ... );
-
-  // 6. Run it.
-  HAS_VALUE_OR_RET( pcall(
-      /*ninputs=*/kNumRunnerArgs + ninputs +
-          static_cast<int>( sizeof...( args ) ),
-      /*nresults=*/LUA_MULTRET ) );
-
-  if constexpr( has_result ) {
-    UNWRAP_CHECK( ret, get<R>( -1 ) );
-    pop();
-    return ret;
-  } else {
-    return base::valid;
-  }
 }
 
 int c_api::multret() noexcept { return LUA_MULTRET; }

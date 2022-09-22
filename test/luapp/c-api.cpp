@@ -98,61 +98,6 @@ LUA_TEST_CASE( "[lua-c-api] {get,set}global" ) {
   C.pop();
 }
 
-LUA_TEST_CASE( "[lua-c-api] getglobal with __index/error" ) {
-  C.openlibs();
-  REQUIRE( C.dostring( R"(
-    setmetatable( _G, {
-      __index = function( k )
-        error( 'this is an error.' )
-      end
-    } )
-  )" ) == valid );
-
-  // clang-format off
-  char const* err =
-    "[string \"...\"]:4: this is an error."                  "\n"
-    "stack traceback:"                                       "\n"
-    "\t[C]: in function 'error'"                             "\n"
-    "\t[string \"...\"]:4: in function <[string \"...\"]:3>" "\n"
-    "\t[C]: in ?";
-  // clang-format on
-  REQUIRE( C.getglobal_safe( "xyz" ) ==
-           lua_unexpected<type>( err ) );
-  REQUIRE( C.stack_size() == 0 );
-  REQUIRE( C.dostring( "xyz = 1" ) == valid );
-  REQUIRE( C.getglobal( "xyz" ) == type::number );
-  REQUIRE( C.stack_size() == 1 );
-  C.pop();
-}
-
-LUA_TEST_CASE( "[lua-c-api] setglobal with __index/error" ) {
-  C.openlibs();
-  REQUIRE( C.dostring( R"(
-    setmetatable( _G, {
-      __newindex = function( k )
-        error( 'this is an error.' )
-      end
-    } )
-  )" ) == valid );
-  REQUIRE( C.getglobal( "xyz" ) == type::nil );
-  REQUIRE( C.stack_size() == 1 );
-  C.pop();
-  REQUIRE( C.stack_size() == 0 );
-  C.push( 1 );
-  // clang-format off
-  char const* err =
-    "[string \"...\"]:4: this is an error."                  "\n"
-    "stack traceback:"                                       "\n"
-    "\t[C]: in function 'error'"                             "\n"
-    "\t[string \"...\"]:4: in function <[string \"...\"]:3>" "\n"
-    "\t[C]: in ?";
-  // clang-format on
-  REQUIRE( C.setglobal_safe( "xyz" ) == lua_invalid( err ) );
-
-  // The pinvoke will get rid of the parameter.
-  REQUIRE( C.stack_size() == 0 );
-}
-
 LUA_TEST_CASE( "[lua-c-api] dofile" ) {
   C.openlibs();
 

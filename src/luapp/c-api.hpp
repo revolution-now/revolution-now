@@ -230,22 +230,11 @@ struct c_api {
   void setglobal( char const* key ) noexcept;
   void setglobal( std::string const& key ) noexcept;
 
-  // These versions are much slower, but will run in a protected
-  // environment.
-  lua_valid setglobal_safe( char const* key ) noexcept;
-  lua_valid setglobal_safe( std::string const& key ) noexcept;
-
   // Gets the global named `name` and pushes it onto the stack.
   // Returns the type of the object. If the object doesn't exist
   // then it will push nil.
   type getglobal( char const* name ) noexcept;
   type getglobal( std::string const& name ) noexcept;
-
-  // These versions are much slower, but will run in a protected
-  // environment.
-  lua_expect<type> getglobal_safe( char const* name ) noexcept;
-  lua_expect<type> getglobal_safe(
-      std::string const& name ) noexcept;
 
   /**************************************************************
   ** Get value from stack
@@ -650,30 +639,6 @@ struct c_api {
   c_api( c_api&& )      = delete;
   c_api& operator=( c_api const& ) = delete;
   c_api& operator=( c_api&& ) = delete;
-
-  // This is used as a wrapper to invoke a Lua C API method, such
-  // as e.g. ::lua_getglobal. Functions like that can cause er-
-  // rors to be thrown (in the case of ::lua_getglobal, it might
-  // run the __index metamethod of the global table to get the
-  // value and in doing so an error could be thrown), and so they
-  // must be called under the auspices of pcall otherwise an
-  // error will cause the process to immediately terminate.
-  //
-  // Args and Params are all by value, since we assume that we're
-  // only going to be dealing with primitive types (objects and
-  // strings get passed in as pointers).
-  //
-  // clang-format off
-  template<typename R, typename... Params, typename... Args>
-  requires( sizeof...( Params ) == sizeof...( Args ) &&
-            std::is_invocable_v<LuaApiFunc<R, Params...>*,
-                                cthread,
-                                Args...> )
-  auto pinvoke( int ninputs,
-                LuaApiFunc<R, Params...>* func,
-                Args... args )
-    -> error_type_for_return_type<R>;
-  // clang-format on
 
   // Not necessarily the main thread.
   cthread L_;

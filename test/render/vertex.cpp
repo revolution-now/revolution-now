@@ -102,30 +102,6 @@ TEST_CASE( "[render/vertex] StencilVertex" ) {
   REQUIRE( gv.alpha_multiplier == 1.0f );
 }
 
-TEST_CASE( "[render/vertex] add_vertex" ) {
-  SpriteVertex vert1( point{ .x = 1, .y = 2 },
-                      point{ .x = 3, .y = 4 },
-                      point{ .x = 5, .y = 6 } );
-  SolidVertex  vert2(
-       point{ .x = 1, .y = 2 },
-       pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
-  SilhouetteVertex vert3(
-      point{ .x = 1, .y = 2 }, point{ .x = 3, .y = 4 },
-      point{ .x = 5, .y = 6 },
-      pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
-
-  vector<GenericVertex> vec;
-
-  SpriteVertex& added1 = add_vertex( vec, vert1 );
-  REQUIRE( added1 == vert1 );
-
-  SolidVertex& added2 = add_vertex( vec, vert2 );
-  REQUIRE( added2 == vert2 );
-
-  SilhouetteVertex& added3 = add_vertex( vec, vert3 );
-  REQUIRE( added3 == vert3 );
-}
-
 TEST_CASE( "[render/vertex] depixelation" ) {
   SpriteVertex vert( point{ .x = 1, .y = 2 },
                      point{ .x = 3, .y = 4 },

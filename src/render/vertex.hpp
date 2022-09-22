@@ -145,30 +145,4 @@ struct StencilVertex : public VertexBase {
 
 STATIC_VERTEX_CHECKS( StencilVertex );
 
-/****************************************************************
-** Helpers
-*****************************************************************/
-template<VertexType V>
-V& vertex_cast( GenericVertex& gvert ) {
-  STATIC_VERTEX_CHECKS( V );
-  // Try to prevent UB by passing through char* which can alias
-  // anything.
-  char* p = reinterpret_cast<char*>( &gvert );
-  return reinterpret_cast<V&>( *p );
-}
-
-template<VertexType V>
-V& install_vertex( GenericVertex& gvert, V const& vert ) {
-  gvert = vert.generic();
-  return vertex_cast<V>( gvert );
-}
-
-// WARNING: the reference returned here will only remain valid
-// until the next vertex is pushed!
-template<VertexType V>
-V& add_vertex( std::vector<GenericVertex>& vec, V const& vert ) {
-  GenericVertex& gvert = vec.emplace_back();
-  return install_vertex( gvert, vert );
-}
-
 } // namespace rr
