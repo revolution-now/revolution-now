@@ -32,6 +32,7 @@ namespace {
 using namespace std;
 
 using ::mock::matchers::AllOf;
+using ::mock::matchers::Any;
 using ::mock::matchers::Field;
 using ::mock::matchers::IterableElementsAre;
 using ::mock::matchers::Matches;
@@ -47,7 +48,7 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[rpt] some test" ) {
+TEST_CASE( "[rpt] click_purchase" ) {
   World   W;
   Player& player             = W.default_player();
   player.money               = 2000;
@@ -105,16 +106,108 @@ TEST_CASE( "[rpt] some test" ) {
 
   UnitsState const& units = W.ss().units;
   REQUIRE( units.all().size() == 0 );
+  REQUIRE( player.artillery_purchases == 2 );
 
   wait<> w = click_purchase( W.ss(), W.ts(), player );
   REQUIRE( !w.exception() );
   REQUIRE( w.ready() );
 
   // Check that we've created the artillery.
+  REQUIRE( player.artillery_purchases == 3 );
   REQUIRE( player.money == 1300 );
   REQUIRE( units.all().size() == 1 );
   REQUIRE( units.unit_for( UnitId{ 1 } ).type() ==
            e_unit_type::artillery );
+  REQUIRE( units.unit_for( UnitId{ 1 } ).nation() ==
+           player.nation );
+  REQUIRE( units.ownership_of( UnitId{ 1 } )
+               .holds<UnitOwnership::harbor>() );
+}
+
+TEST_CASE( "[rpt] click_train" ) {
+  World   W;
+  Player& player             = W.default_player();
+  player.money               = 1010;
+  player.artillery_purchases = 2;
+
+  using C             = ChoiceConfig;
+  using CO            = ChoiceConfigOption;
+  auto config_matcher = AllOf(
+      Field(
+          &C::msg,
+          Matches(
+              ".*Royal University.*specialists.*grease.*"s ) ),
+      Field(
+          &C::options,
+          IterableElementsAre(
+              AllOf( Field( &CO::key, "none"s ),
+                     Field( &CO::display_name, "None"s ),
+                     Field( &CO::disabled, false ) ),
+              AllOf(
+                  Field( &CO::key, "expert_ore_miner"s ),
+                  Field(
+                      &CO::display_name,
+                      Matches(
+                          R"(Expert Ore Miners +\(Cost: 600\))" ) ),
+                  Field( &CO::disabled, false ) ),
+              Any(), // expert_lumberjack
+              Any(), // master_gunsmith
+              Any(), // expert_silver_miner
+              Any(), // master_fur_trader
+              AllOf(
+                  Field( &CO::key, "expert_fisherman"s ),
+                  Field(
+                      &CO::display_name,
+                      Matches(
+                          R"(Expert Fishermen +\(Cost: 1000\))" ) ),
+                  Field( &CO::disabled, false ) ),
+              Any(), // master_carpenter
+              AllOf(
+                  Field( &CO::key, "master_blacksmith"s ),
+                  Field(
+                      &CO::display_name,
+                      Matches(
+                          R"(Master Blacksmiths +\(Cost: 1050\))" ) ),
+                  Field( &CO::disabled, true ) ),
+              Any(), // expert_farmer
+              Any(), // master_distiller
+              Any(), // hardy_pioneer
+              Any(), // master_tobacconist
+              Any(), // master_weaver
+              Any(), // jesuit_missionary
+              Any(), // firebrand_preacher
+              AllOf(
+                  Field( &CO::key, "elder_statesman"s ),
+                  Field(
+                      &CO::display_name,
+                      Matches(
+                          R"(Elder Statesmen +\(Cost: 1900\))" ) ),
+                  Field( &CO::disabled, true ) ),
+              AllOf(
+                  Field( &CO::key, "veteran_soldier"s ),
+                  Field(
+                      &CO::display_name,
+                      Matches(
+                          R"(Veteran Soldiers +\(Cost: 2000\))" ) ),
+                  Field( &CO::disabled, true ) ) ) ),
+      Field( &C::initial_selection, 0 ) );
+
+  EXPECT_CALL( W.gui(),
+               choice( config_matcher, e_input_required::no ) )
+      .returns( make_wait<maybe<string>>( "expert_fisherman" ) );
+
+  UnitsState const& units = W.ss().units;
+  REQUIRE( units.all().size() == 0 );
+
+  wait<> w = click_train( W.ss(), W.ts(), player );
+  REQUIRE( !w.exception() );
+  REQUIRE( w.ready() );
+
+  // Check that we've created the fisherman.
+  REQUIRE( player.money == 10 );
+  REQUIRE( units.all().size() == 1 );
+  REQUIRE( units.unit_for( UnitId{ 1 } ).type() ==
+           e_unit_type::expert_fisherman );
   REQUIRE( units.unit_for( UnitId{ 1 } ).nation() ==
            player.nation );
   REQUIRE( units.ownership_of( UnitId{ 1 } )

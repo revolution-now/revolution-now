@@ -19,6 +19,7 @@
 
 // config
 #include "config/harbor.rds.hpp"
+#include "config/unit-type.hpp"
 
 // ss
 #include "ss/player.rds.hpp"
@@ -98,7 +99,50 @@ wait<> click_purchase( SS& ss, TS& ts, Player& player ) {
 }
 
 wait<> click_train( SS& ss, TS& ts, Player& player ) {
-  co_await ts.gui.message_box( "Clicked Train." );
+  ChoiceConfig config{
+      .msg =
+          "The @[H]Royal University@[] can provide us with "
+          "specialists if we grease the right palms.  Which "
+          "skill shall we request?",
+      .initial_selection = 0 };
+  static string const kNone = "none";
+  config.options.push_back(
+      { .key = kNone, .display_name = "None" } );
+  auto&               costs = config_harbor.train.unit_prices;
+  vector<e_unit_type> ordering;
+  for( e_unit_type type : refl::enum_values<e_unit_type> )
+    if( costs[type].has_value() ) ordering.push_back( type );
+  sort( ordering.begin(), ordering.end(),
+        [&]( e_unit_type l, e_unit_type r ) {
+          UNWRAP_CHECK( cost_l, costs[l] );
+          UNWRAP_CHECK( cost_r, costs[r] );
+          return cost_l < cost_r;
+        } );
+  auto push = [&]( e_unit_type type ) {
+    UNWRAP_CHECK( price, costs[type] );
+    string const key = string( refl::enum_value_name( type ) );
+    string const display_name =
+        fmt::format( "{: <20}{: >20}",
+                     base::capitalize_initials(
+                         unit_attr( type ).name_plural ),
+                     fmt::format( "(Cost: {})", price ) );
+    bool const enabled = ( player.money >= price );
+    config.options.push_back( { .key          = key,
+                                .display_name = display_name,
+                                .disabled     = !enabled } );
+  };
+  for( e_unit_type type : ordering ) push( type );
+  maybe<string> selected_str =
+      co_await ts.gui.optional_choice( config );
+  if( !selected_str.has_value() ) co_return;
+  if( *selected_str == kNone ) co_return;
+  UNWRAP_CHECK(
+      selected_type,
+      refl::enum_from_string<e_unit_type>( *selected_str ) );
+  UNWRAP_CHECK( price, costs[selected_type] );
+  player.money -= price;
+  CHECK_GE( player.money, 0 );
+  create_unit_in_harbor( ss.units, player, selected_type );
 }
 
 } // namespace rn

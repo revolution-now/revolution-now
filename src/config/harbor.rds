@@ -9,8 +9,18 @@
 #              view.
 #
 # ===============================================================
+# ss
+include "ss/unit-type.rds.hpp"
+
+# refl
+include "refl/enum-map.hpp"
+
 # Cdr.
+include "cdr/ext-base.hpp"
 include "cdr/ext-builtin.hpp"
+
+# base
+include "base/maybe.hpp"
 
 namespace "rn.config.harbor"
 
@@ -25,6 +35,15 @@ struct.Purchases {
   galleon_cost 'int',
   privateer_cost 'int',
   frigate_cost 'int',
+}
+
+# Configures things related to the "Train" popup menu that ap-
+# pears in the harbor view when clicking on the button of the
+# same name.
+struct.Train {
+  unit_prices 'refl::enum_map<e_unit_type, base::maybe<int>>',
+
+  _features { equality, validation }
 }
 
 namespace "rn"
@@ -44,6 +63,8 @@ struct.config_harbor_t {
   high_seas_turns_west_post_magellan 'int',
 
   purchases 'config::harbor::Purchases',
+
+  train 'config::harbor::Train',
 }
 
 config.harbor {}

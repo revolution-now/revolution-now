@@ -20,3 +20,59 @@ purchases {
   privateer_cost:          2000
   frigate_cost:            5000
 }
+
+train {
+  unit_prices {
+    petty_criminal:          null
+    indentured_servant:      null
+    free_colonist:           null
+    native_convert:          null
+    soldier:                 null
+    dragoon:                 null
+    pioneer:                 null
+    missionary:              null
+    scout:                   null
+    expert_farmer:           1100
+    expert_fisherman:        1000
+    expert_sugar_planter:    null
+    expert_tobacco_planter:  null
+    expert_cotton_planter:   null
+    expert_fur_trapper:      null
+    expert_lumberjack:       700
+    expert_ore_miner:        600
+    expert_silver_miner:     900
+    master_carpenter:        1000
+    master_distiller:        1100
+    master_tobacconist:      1200
+    master_weaver:           1300
+    master_fur_trader:       950
+    master_blacksmith:       1050
+    master_gunsmith:         850
+    elder_statesman:         1900
+    firebrand_preacher:      1500
+    hardy_colonist:          null
+    jesuit_colonist:         null
+    seasoned_colonist:       null
+    veteran_colonist:        null
+    veteran_soldier:         2000
+    veteran_dragoon:         null
+    continental_army:        null
+    continental_cavalry:     null
+    regular:                 null
+    cavalry:                 null
+    hardy_pioneer:           1200
+    jesuit_missionary:       1400
+    seasoned_scout:          null
+    artillery:               null
+    damaged_artillery:       null
+    caravel:                 null
+    merchantman:             null
+    galleon:                 null
+    privateer:               null
+    frigate:                 null
+    man_o_war:               null
+    wagon_train:             null
+    small_treasure:          null
+    large_treasure:          null
+  }
+}
