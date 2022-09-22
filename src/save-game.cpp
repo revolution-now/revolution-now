@@ -430,6 +430,7 @@ wait<> check_ask_save( SSConst const& ss, TS& ts ) {
   maybe<ui::e_confirm> const answer =
       co_await ts.gui.optional_yes_no( config );
   if( !answer.has_value() ) co_return;
+  if( answer == ui::e_confirm::no ) co_return;
   co_await save_game_menu( ss, ts );
 }
 
