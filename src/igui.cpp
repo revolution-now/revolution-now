@@ -92,8 +92,7 @@ wait<ui::e_confirm> IGui::required_yes_no(
   FATAL( "unexpected input result: {}", str_res );
 }
 
-string IGui::identifier_to_display_name(
-    string_view ident ) const {
+string IGui::identifier_to_display_name( string_view ident ) {
   return base::capitalize_initials(
       base::str_replace_all( ident, { { "_", " " } } ) );
 }

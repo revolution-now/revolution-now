@@ -169,8 +169,8 @@ struct IGui {
  public:
   // For convenience while developing, shouldn't really be used
   // to provide proper names for things for the player.
-  std::string identifier_to_display_name(
-      std::string_view ident ) const;
+  static std::string identifier_to_display_name(
+      std::string_view ident );
 };
 
 template<refl::ReflectedEnum E>
