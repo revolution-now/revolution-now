@@ -91,6 +91,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     UnitTypeAttributes const& desc =
         unit_attr( e_unit_type::expert_cotton_planter );
     REQUIRE( desc.name == "Expert Cotton Planter" );
+    REQUIRE( desc.name_plural == "Expert Cotton Planters" );
     REQUIRE( desc.tile == e_tile::expert_cotton_planter );
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::sw );
@@ -136,6 +137,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     UnitTypeAttributes const& desc =
         unit_attr( e_unit_type::petty_criminal );
     REQUIRE( desc.name == "Petty Criminal" );
+    REQUIRE( desc.name_plural == "Petty Criminals" );
     REQUIRE( desc.tile == e_tile::petty_criminal );
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::sw );
@@ -182,6 +184,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     UnitTypeAttributes const& desc =
         unit_attr( e_unit_type::free_colonist );
     REQUIRE( desc.name == "Free Colonist" );
+    REQUIRE( desc.name_plural == "Free Colonists" );
     REQUIRE( desc.tile == e_tile::free_colonist );
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::sw );
@@ -227,6 +230,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     UnitTypeAttributes const& desc =
         unit_attr( e_unit_type::veteran_dragoon );
     REQUIRE( desc.name == "Veteran Dragoon" );
+    REQUIRE( desc.name_plural == "Veteran Dragoons" );
     REQUIRE( desc.tile == e_tile::veteran_dragoon );
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::sw );
@@ -266,6 +270,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     UnitTypeAttributes const& desc =
         unit_attr( e_unit_type::scout );
     REQUIRE( desc.name == "Scout" );
+    REQUIRE( desc.name_plural == "Scouts" );
     REQUIRE( desc.tile == e_tile::scout );
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::sw );
@@ -302,6 +307,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     UnitTypeAttributes const& desc =
         unit_attr( e_unit_type::pioneer );
     REQUIRE( desc.name == "Pioneer" );
+    REQUIRE( desc.name_plural == "Pioneers" );
     REQUIRE( desc.tile == e_tile::pioneer );
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::sw );
@@ -339,6 +345,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     UnitTypeAttributes const& desc =
         unit_attr( e_unit_type::large_treasure );
     REQUIRE( desc.name == "Large Treasure" );
+    REQUIRE( desc.name_plural == "Large Treasures" );
     REQUIRE( desc.tile == e_tile::large_treasure );
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::n );

@@ -72,6 +72,7 @@ composition {
     petty_criminal {
       type:                  petty_criminal
       name:                  Petty Criminal
+      name_plural:           Petty Criminals
       tile:                  petty_criminal
       expertise:             null
       type_activity:         null
@@ -104,6 +105,7 @@ composition {
     indentured_servant {
       type:                  indentured_servant
       name:                  Indentured Servant
+      name_plural:           Indentured Servants
       tile:                  indentured_servant
       expertise:             null
       type_activity:         null
@@ -136,6 +138,7 @@ composition {
     free_colonist {
       type:                  free_colonist
       name:                  Free Colonist
+      name_plural:           Free Colonists
       tile:                  free_colonist
       expertise:             null
       type_activity:         null
@@ -168,6 +171,7 @@ composition {
     native_convert {
       type:                  native_convert
       name:                  Native Convert
+      name_plural:           Native Converts
       tile:                  native_convert
       expertise:             null
       type_activity:         null
@@ -197,6 +201,7 @@ composition {
     pioneer {
       type:                  pioneer
       name:                  Pioneer
+      name_plural:           Pioneers
       tile:                  pioneer
       expertise:             null
       type_activity:         pioneering
@@ -223,6 +228,7 @@ composition {
     missionary {
       type:                  missionary
       name:                  Missionary
+      name_plural:           Missionaries
       tile:                  missionary
       expertise:             null
       type_activity:         missioning
@@ -249,6 +255,7 @@ composition {
     scout {
       type:                  scout
       name:                  Scout
+      name_plural:           Scouts
       tile:                  scout
       expertise:             null
       type_activity:         scouting
@@ -277,6 +284,7 @@ composition {
     soldier {
       type:                  soldier
       name:                  Soldier
+      name_plural:           Soldiers
       tile:                  soldier
       expertise:             null
       type_activity:         fighting
@@ -303,6 +311,7 @@ composition {
     dragoon {
       type:                  dragoon
       name:                  Dragoon
+      name_plural:           Dragoons
       tile:                  dragoon
       expertise:             null
       type_activity:         fighting
@@ -332,6 +341,7 @@ composition {
     expert_farmer {
       type:                  expert_farmer
       name:                  Expert Farmer
+      name_plural:           Expert Farmers
       tile:                  expert_farmer
       expertise:             farming
       type_activity:         null
@@ -364,6 +374,7 @@ composition {
     expert_fisherman {
       type:                  expert_fisherman
       name:                  Expert Fisherman
+      name_plural:           Expert Fishermen
       tile:                  expert_fisherman
       expertise:             fishing
       type_activity:         null
@@ -396,6 +407,7 @@ composition {
     expert_sugar_planter {
       type:                  expert_sugar_planter
       name:                  Expert Sugar Planter
+      name_plural:           Expert Sugar Planters
       tile:                  expert_sugar_planter
       expertise:             sugar_planting
       type_activity:         null
@@ -428,6 +440,7 @@ composition {
     expert_tobacco_planter {
       type:                  expert_tobacco_planter
       name:                  Expert Tobacco Planter
+      name_plural:           Expert Tobacco Planters
       tile:                  expert_tobacco_planter
       expertise:             tobacco_planting
       type_activity:         null
@@ -460,6 +473,7 @@ composition {
     expert_cotton_planter {
       type:                  expert_cotton_planter
       name:                  Expert Cotton Planter
+      name_plural:           Expert Cotton Planters
       tile:                  expert_cotton_planter
       expertise:             cotton_planting
       type_activity:         null
@@ -492,6 +506,7 @@ composition {
     expert_fur_trapper {
       type:                  expert_fur_trapper
       name:                  Expert Fur Trapper
+      name_plural:           Expert Fur Trappers
       tile:                  expert_fur_trapper
       expertise:             fur_trapping
       type_activity:         null
@@ -524,6 +539,7 @@ composition {
     expert_lumberjack {
       type:                  expert_lumberjack
       name:                  Expert Lumberjack
+      name_plural:           Expert Lumberjacks
       tile:                  expert_lumberjack
       expertise:             lumberjacking
       type_activity:         null
@@ -556,6 +572,7 @@ composition {
     expert_ore_miner {
       type:                  expert_ore_miner
       name:                  Expert Ore Miner
+      name_plural:           Expert Ore Miners
       tile:                  expert_ore_miner
       expertise:             ore_mining
       type_activity:         null
@@ -588,6 +605,7 @@ composition {
     expert_silver_miner {
       type:                  expert_silver_miner
       name:                  Expert Silver Miner
+      name_plural:           Expert Silver Miners
       tile:                  expert_silver_miner
       expertise:             silver_mining
       type_activity:         null
@@ -620,6 +638,7 @@ composition {
     master_carpenter {
       type:                  master_carpenter
       name:                  Master Carpenter
+      name_plural:           Master Carpenters
       tile:                  master_carpenter
       expertise:             carpentry
       type_activity:         null
@@ -652,6 +671,7 @@ composition {
     master_rum_distiller {
       type:                  master_rum_distiller
       name:                  Master Rum Distiller
+      name_plural:           Master Rum Distillers
       tile:                  master_rum_distiller
       expertise:             rum_distilling
       type_activity:         null
@@ -684,6 +704,7 @@ composition {
     master_tobacconist {
       type:                  master_tobacconist
       name:                  Master Tobacconist
+      name_plural:           Master Tobacconists
       tile:                  master_tobacconist
       expertise:             tobacconistry
       type_activity:         null
@@ -716,6 +737,7 @@ composition {
     master_weaver {
       type:                  master_weaver
       name:                  Master Weaver
+      name_plural:           Master Weavers
       tile:                  master_weaver
       expertise:             weaving
       type_activity:         null
@@ -748,6 +770,7 @@ composition {
     master_fur_trader {
       type:                  master_fur_trader
       name:                  Master Fur Trader
+      name_plural:           Master Fur Traders
       tile:                  master_fur_trader
       expertise:             fur_trading
       type_activity:         null
@@ -780,6 +803,7 @@ composition {
     master_blacksmith {
       type:                  master_blacksmith
       name:                  Master Blacksmith
+      name_plural:           Master Blacksmiths
       tile:                  master_blacksmith
       expertise:             blacksmithing
       type_activity:         null
@@ -812,6 +836,7 @@ composition {
     master_gunsmith {
       type:                  master_gunsmith
       name:                  Master Gunsmith
+      name_plural:           Master Gunsmiths
       tile:                  master_gunsmith
       expertise:             gunsmithing
       type_activity:         null
@@ -844,6 +869,7 @@ composition {
     elder_statesman {
       type:                  elder_statesman
       name:                  Elder Statesman
+      name_plural:           Elder Statesmen
       tile:                  elder_statesman
       expertise:             bell_ringing
       type_activity:         null
@@ -876,6 +902,7 @@ composition {
     firebrand_preacher {
       type:                  firebrand_preacher
       name:                  Firebrand Preacher
+      name_plural:           Firebrand Preachers
       tile:                  firebrand_preacher
       expertise:             preaching
       type_activity:         null
@@ -908,6 +935,7 @@ composition {
     hardy_colonist {
       type:                  hardy_colonist
       name:                  Hardy Colonist
+      name_plural:           Hardy Colonists
       tile:                  hardy_colonist
       expertise:             pioneering
       type_activity:         null
@@ -940,6 +968,7 @@ composition {
     jesuit_colonist {
       type:                  jesuit_colonist
       name:                  Jesuit Colonist
+      name_plural:           Jesuit Colonists
       tile:                  jesuit_colonist
       expertise:             missioning
       type_activity:         null
@@ -972,6 +1001,7 @@ composition {
     seasoned_colonist {
       type:                  seasoned_colonist
       name:                  Seasoned Colonist
+      name_plural:           Seasoned Colonists
       tile:                  seasoned_colonist
       expertise:             scouting
       type_activity:         null
@@ -1004,6 +1034,7 @@ composition {
     veteran_colonist {
       type:                  veteran_colonist
       name:                  Veteran Colonist
+      name_plural:           Veteran Colonists
       tile:                  veteran_colonist
       expertise:             fighting
       type_activity:         null
@@ -1041,6 +1072,7 @@ composition {
     veteran_soldier {
       type:                  veteran_soldier
       name:                  Veteran Soldier
+      name_plural:           Veteran Soldiers
       tile:                  veteran_soldier
       expertise:             null
       type_activity:         fighting
@@ -1067,6 +1099,7 @@ composition {
     veteran_dragoon {
       type:                  veteran_dragoon
       name:                  Veteran Dragoon
+      name_plural:           Veteran Dragoons
       tile:                  veteran_dragoon
       expertise:             null
       type_activity:         fighting
@@ -1093,6 +1126,7 @@ composition {
     continental_army {
       type:                  continental_army
       name:                  Continental Army
+      name_plural:           Continental Armies
       tile:                  continental_army
       expertise:             null
       type_activity:         fighting
@@ -1119,6 +1153,7 @@ composition {
     continental_cavalry {
       type:                  continental_cavalry
       name:                  Continental Cavalry
+      name_plural:           Continental Cavalries
       tile:                  continental_cavalry
       expertise:             null
       type_activity:         fighting
@@ -1145,6 +1180,7 @@ composition {
     regular {
       type:                  regular
       name:                  Regular
+      name_plural:           Regulars
       tile:                  regular
       expertise:             null
       type_activity:         fighting
@@ -1173,6 +1209,7 @@ composition {
     cavalry {
       type:                  cavalry
       name:                  Cavalry
+      name_plural:           Cavalries
       tile:                  cavalry
       expertise:             null
       type_activity:         fighting
@@ -1199,6 +1236,7 @@ composition {
     hardy_pioneer {
       type:                  hardy_pioneer
       name:                  Hardy Pioneer
+      name_plural:           Hardy Pioneers
       tile:                  hardy_pioneer
       expertise:             null
       type_activity:         pioneering
@@ -1225,6 +1263,7 @@ composition {
     jesuit_missionary {
       type:                  jesuit_missionary
       name:                  Jesuit Missionary
+      name_plural:           Jesuit Missionaries
       tile:                  jesuit_missionary
       expertise:             null
       type_activity:         missioning
@@ -1251,6 +1290,7 @@ composition {
     seasoned_scout {
       type:                  seasoned_scout
       name:                  Seasoned Scout
+      name_plural:           Seasoned Scouts
       tile:                  seasoned_scout
       expertise:             null
       type_activity:         scouting
@@ -1282,6 +1322,7 @@ composition {
     damaged_artillery {
       type:                  damaged_artillery
       name:                  Damaged Artillery
+      name_plural:           Damaged Artilleries
       tile:                  damaged_artillery
       expertise:             null
       type_activity:         null
@@ -1310,6 +1351,7 @@ composition {
     artillery {
       type:                  artillery
       name:                  Artillery
+      name_plural:           Artilleries
       tile:                  artillery
       expertise:             null
       type_activity:         null
@@ -1339,6 +1381,7 @@ composition {
     caravel {
       type:                  caravel
       name:                  Caravel
+      name_plural:           Caravels
       tile:                  caravel
       expertise:             null
       type_activity:         null
@@ -1365,6 +1408,7 @@ composition {
     merchantman {
       type:                  merchantman
       name:                  Merchantman
+      name_plural:           Merchantmen
       tile:                  merchantman
       expertise:             null
       type_activity:         null
@@ -1391,6 +1435,7 @@ composition {
     galleon {
       type:                  galleon
       name:                  Galleon
+      name_plural:           Galleons
       tile:                  galleon
       expertise:             null
       type_activity:         null
@@ -1417,6 +1462,7 @@ composition {
     privateer {
       type:                  privateer
       name:                  Privateer
+      name_plural:           Privateers
       tile:                  privateer
       expertise:             null
       type_activity:         null
@@ -1443,6 +1489,7 @@ composition {
     frigate {
       type:                  frigate
       name:                  Frigate
+      name_plural:           Frigates
       tile:                  frigate
       expertise:             null
       type_activity:         null
@@ -1469,6 +1516,7 @@ composition {
     man_o_war {
       type:                  man_o_war
       name:                  Man-O-War
+      name_plural:           Man-O-Wars
       tile:                  man_o_war
       expertise:             null
       type_activity:         null
@@ -1498,6 +1546,7 @@ composition {
     wagon_train {
       type:                  wagon_train
       name:                  Wagon Train
+      name_plural:           Wagon Trains
       tile:                  wagon_train
       expertise:             null
       type_activity:         null
@@ -1528,6 +1577,7 @@ composition {
     small_treasure {
       type:                  small_treasure
       name:                  Small Treasure
+      name_plural:           Small Treasures
       tile:                  small_treasure
       expertise:             null
       type_activity:         null
@@ -1554,6 +1604,7 @@ composition {
     large_treasure {
       type:                  large_treasure
       name:                  Large Treasure
+      name_plural:           Large Treasures
       tile:                  large_treasure
       expertise:             null
       type_activity:         null

@@ -146,6 +146,7 @@ struct.UnitTypeAttributes {
   type 'e_unit_type',
 
   name 'std::string',
+  name_plural 'std::string',
 
   # Rendering
   tile 'e_tile',
