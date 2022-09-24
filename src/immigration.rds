@@ -24,6 +24,7 @@ struct.CrossesCalculation {
   # the player's accumulated crosses to decrease).
   dock_crosses_bonus 'int',
 
-  # Crosses needed for next immigration.
+  # Total crosses needed for next immigration (note that this
+  # does not factor in the player's accumulated cross count).
   crosses_needed 'int',
 }

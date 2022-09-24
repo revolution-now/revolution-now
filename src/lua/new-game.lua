@@ -171,7 +171,6 @@ end
 local function create_old_world_state( settings, player )
   local old_world = player.old_world
   -- Immigrants state.
-  old_world.immigration.next_recruit_cost_base = 50
   old_world.immigration.immigrants_pool[1] =
       immigration.pick_next_unit_for_pool( player, settings )
   old_world.immigration.immigrants_pool[2] =

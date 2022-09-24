@@ -152,3 +152,34 @@ difficulty_factor_per_level {
   cavalry:                 1.0
   native_convert:          1.0
 }
+
+# The formula that the OG appears to use to compute the cost of a
+# rushed recruitment is:
+#
+#   cost = max( ((T-X)/T)*(M+P*N)+B, I )
+#
+# where:
+#
+#   T: total crosses needed for immigrant.
+#   X: crosses accumulated since last immigrant.
+#   M: a difficulty dependent term.
+#   P: amount by which the starting price increases as a
+#      result of each additional rushed recruit.
+#   N: number of rushed recuits to date.
+#   B: fixed baseline cost.
+#
+# The below values are what the OG appears to use.
+#
+rush_cost_baseline: 100 # B
+
+multiplier_increase_per_rushed_immigrant: 20 # P
+
+rush_cost_crosses_multiplier { # M
+  discoverer:   40
+  explorer:     60
+  conquistador: 80
+  governor:     100
+  viceroy:      120
+}
+
+rush_cost_min: 10 # I

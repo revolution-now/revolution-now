@@ -433,7 +433,7 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     player.crosses                     = 10;
     int const           crosses_needed = 11;
     wait<maybe<UnitId>> w              = check_for_new_immigrant(
-                     W.ss(), W.ts(), player, crosses_needed );
+        W.ss(), W.ts(), player, crosses_needed );
     REQUIRE( w.ready() );
     REQUIRE( *w == nothing );
     REQUIRE( player.crosses == 10 );
@@ -531,6 +531,145 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     REQUIRE( W.units().all().begin()->second.ownership ==
              expected_ownership );
   }
+}
+
+TEST_CASE( "[immigration] cost_of_recruit" ) {
+  World        W;
+  Player&      player         = W.default_player();
+  e_difficulty difficulty     = {};
+  int          crosses_needed = 0;
+
+  auto f = [&] {
+    return cost_of_recruit( player, crosses_needed, difficulty );
+  };
+
+  difficulty     = e_difficulty::discoverer;
+  crosses_needed = 10;
+  player.crosses = 0;
+  player.old_world.immigration.num_recruits_rushed = 0;
+  REQUIRE( f() == 140 );
+
+  difficulty     = e_difficulty::discoverer;
+  crosses_needed = 10;
+  player.crosses = 5;
+  player.old_world.immigration.num_recruits_rushed = 0;
+  REQUIRE( f() == 120 );
+
+  difficulty     = e_difficulty::discoverer;
+  crosses_needed = 10;
+  player.crosses = 10;
+  player.old_world.immigration.num_recruits_rushed = 0;
+  REQUIRE( f() == 100 );
+
+  difficulty     = e_difficulty::discoverer;
+  crosses_needed = 100;
+  player.crosses = 50;
+  player.old_world.immigration.num_recruits_rushed = 0;
+  REQUIRE( f() == 120 );
+
+  difficulty     = e_difficulty::explorer;
+  crosses_needed = 100;
+  player.crosses = 77;
+  player.old_world.immigration.num_recruits_rushed = 4;
+  REQUIRE( f() == 132 );
+
+  difficulty     = e_difficulty::conquistador;
+  crosses_needed = 85;
+  player.crosses = 33;
+  player.old_world.immigration.num_recruits_rushed = 1;
+  REQUIRE( f() == 161 );
+
+  difficulty     = e_difficulty::viceroy;
+  crosses_needed = 1;
+  player.crosses = 1;
+  player.old_world.immigration.num_recruits_rushed = 0;
+  REQUIRE( f() == 100 );
+
+  difficulty     = e_difficulty::viceroy;
+  crosses_needed = 1;
+  player.crosses = 0;
+  player.old_world.immigration.num_recruits_rushed = 0;
+  REQUIRE( f() == 220 );
+
+  difficulty     = e_difficulty::viceroy;
+  crosses_needed = 14;
+  player.crosses = 10;
+  player.old_world.immigration.num_recruits_rushed = 10;
+  REQUIRE( f() == 191 );
+
+  difficulty     = e_difficulty::governor;
+  crosses_needed = 20;
+  player.crosses = 30;
+  player.old_world.immigration.num_recruits_rushed = 1;
+  REQUIRE( f() == 40 );
+
+  difficulty     = e_difficulty::discoverer;
+  crosses_needed = 200;
+  player.crosses = 613;
+  player.old_world.immigration.num_recruits_rushed = 1;
+  // Would be -24, but it bottoms out at the minimum=10.
+  REQUIRE( f() == 10 );
+
+  difficulty     = e_difficulty::discoverer;
+  crosses_needed = 200;
+  player.crosses = 510;
+  player.old_world.immigration.num_recruits_rushed = 1;
+  // Would be 7, but it bottoms out at the minimum=10.
+  REQUIRE( f() == 10 );
+}
+
+TEST_CASE( "[immigration] rush_recruit_next_immigrant" ) {
+  World   W;
+  Player& player = W.default_player();
+
+  W.settings().difficulty = e_difficulty::conquistador;
+  // Calculated theoretically by computing all of the weights for
+  // all unit types on the conquistador difficulty level and sum-
+  // ming them, then truncating, since this needs to be slightly
+  // smaller than the result if it is not equal so that d does
+  // not exceed it.
+  double const kUpperLimit = 6808.69;
+  // The 2229.0 should just barely put us in the range of the
+  // free colonist.
+  EXPECT_CALL( W.rand(),
+               between_doubles( 0, Approx( kUpperLimit, .1 ) ) )
+      .returns( 2229.0 );
+
+  auto& pool   = player.old_world.immigration.immigrants_pool;
+  pool[0]      = e_unit_type::veteran_soldier;
+  pool[1]      = e_unit_type::pioneer;
+  pool[2]      = e_unit_type::petty_criminal;
+  player.money = 1000;
+  REQUIRE( compute_crosses( W.units(), player.nation )
+               .crosses_needed == 8 ); // sanity check.
+  player.crosses                                   = 5;
+  player.old_world.immigration.num_recruits_rushed = 3;
+
+  REQUIRE( W.ss().units.all().size() == 0 );
+
+  rush_recruit_next_immigrant( W.ss(), W.ts(), player,
+                               /*slot_selected=*/1 );
+
+  REQUIRE( player.crosses == 0 );
+  REQUIRE( player.old_world.immigration.num_recruits_rushed ==
+           4 );
+  REQUIRE( player.money == 1000 - 153 );
+
+  REQUIRE( pool[0] == e_unit_type::veteran_soldier );
+  REQUIRE( pool[1] == e_unit_type::free_colonist ); // replaced
+  REQUIRE( pool[2] == e_unit_type::petty_criminal );
+
+  // Make sure that the unit was created on the dock.
+  REQUIRE( W.ss().units.all().size() == 1 );
+  REQUIRE( W.units().all().begin()->first == UnitId{ 1 } );
+  REQUIRE( W.units().all().begin()->second.unit.type() ==
+           e_unit_type::pioneer );
+  UnitOwnership_t const expected_ownership{
+      UnitOwnership::harbor{
+          .st = UnitHarborViewState{
+              .port_status = PortStatus::in_port{} } } };
+  REQUIRE( W.units().all().begin()->second.ownership ==
+           expected_ownership );
 }
 
 } // namespace

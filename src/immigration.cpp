@@ -272,6 +272,59 @@ wait<maybe<UnitId>> check_for_new_immigrant(
   co_return create_unit_in_harbor( ss.units, player, type );
 }
 
+int cost_of_recruit( Player const& player, int crosses_needed,
+                     e_difficulty difficulty ) {
+  // The formula that the OG appears to use to compute the cost
+  // of a rushed recruitment is:
+  //
+  //   cost = max( ((T-X)/T)*(M+P*N)+B, I )
+  //
+  // where:
+  //
+  //   T: total crosses needed for immigrant.
+  //   X: crosses accumulated since last immigrant.
+  //   M: a difficulty dependent term.
+  //   P: amount by which the starting price increases as a
+  //      result of each additional rushed recruit.
+  //   N: number of rushed recuits to date.
+  //   B: fixed baseline cost.
+  //   I: minimum cost.
+  //
+  int const B = config_immigration.rush_cost_baseline;
+  int const P = config_immigration
+                    .multiplier_increase_per_rushed_immigrant;
+  int const M = config_immigration
+                    .rush_cost_crosses_multiplier[difficulty];
+  int const T = crosses_needed;
+  int const X = player.crosses;
+  int const N = player.old_world.immigration.num_recruits_rushed;
+  int const I = config_immigration.rush_cost_min;
+
+  CHECK_GT( T, 0 );
+  int const cost =
+      lround( ( ( T - X ) / double( T ) ) * ( M + P * N ) + B );
+  return std::max( cost, I );
+}
+
+void rush_recruit_next_immigrant( SS& ss, TS& ts, Player& player,
+                                  int slot_selected ) {
+  auto& pool = player.old_world.immigration.immigrants_pool;
+  e_unit_type const selected_type = pool[slot_selected];
+  e_unit_type const replacement =
+      pick_next_unit_for_pool( ts.rand, player, ss.settings );
+  CHECK( take_immigrant_from_pool(
+             player.old_world.immigration, slot_selected,
+             replacement ) == selected_type );
+  CrossesCalculation const crosses =
+      compute_crosses( ss.units, player.nation );
+  player.money -= cost_of_recruit(
+      player, crosses.crosses_needed, ss.settings.difficulty );
+  CHECK_GE( player.money, 0 );
+  ++player.old_world.immigration.num_recruits_rushed;
+  player.crosses = 0;
+  create_unit_in_harbor( ss.units, player, selected_type );
+}
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/

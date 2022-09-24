@@ -17,10 +17,15 @@
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/mocks/irand.hpp"
+
+// Revolution Now
+#include "src/irand.hpp"
 
 // ss
 #include "ss/player.hpp"
 #include "ss/ref.hpp"
+#include "ss/settings.hpp"
 #include "ss/units.hpp"
 
 // Must be last.
@@ -33,6 +38,7 @@ using namespace std;
 
 using ::mock::matchers::AllOf;
 using ::mock::matchers::Any;
+using ::mock::matchers::Approx;
 using ::mock::matchers::Field;
 using ::mock::matchers::IterableElementsAre;
 using ::mock::matchers::Matches;
@@ -212,6 +218,91 @@ TEST_CASE( "[rpt] click_train" ) {
            player.nation );
   REQUIRE( units.ownership_of( UnitId{ 1 } )
                .holds<UnitOwnership::harbor>() );
+}
+
+TEST_CASE( "[rpt] click_recruit" ) {
+  World   W;
+  Player& player = W.default_player();
+
+  W.settings().difficulty = e_difficulty::conquistador;
+  // Calculated theoretically by computing all of the weights for
+  // all unit types on the conquistador difficulty level and sum-
+  // ming them, then truncating, since this needs to be slightly
+  // smaller than the result if it is not equal so that d does
+  // not exceed it.
+  double const kUpperLimit = 6808.69;
+  // The 2229.0 should just barely put us in the range of the
+  // free colonist.
+  EXPECT_CALL( W.rand(),
+               between_doubles( 0, Approx( kUpperLimit, .1 ) ) )
+      .returns( 2229.0 );
+
+  auto& pool     = player.old_world.immigration.immigrants_pool;
+  pool[0]        = e_unit_type::veteran_soldier;
+  pool[1]        = e_unit_type::pioneer;
+  pool[2]        = e_unit_type::petty_criminal;
+  player.money   = 1000;
+  player.crosses = 5;
+  player.old_world.immigration.num_recruits_rushed = 3;
+
+  REQUIRE( W.ss().units.all().size() == 0 );
+
+  using C             = ChoiceConfig;
+  using CO            = ChoiceConfigOption;
+  auto config_matcher = AllOf(
+      Field(
+          &C::msg,
+          Matches( "The following individuals.*153 gold.*" ) ),
+      Field( &C::options,
+             IterableElementsAre(
+                 AllOf( Field( &CO::key, "none"s ),
+                        Field( &CO::display_name, "(None)"s ),
+                        Field( &CO::disabled, false ) ),
+                 AllOf( Field( &CO::key, "0"s ),
+                        Field( &CO::display_name,
+                               "Veteran Soldiers"s ),
+                        Field( &CO::disabled, false ) ),
+                 AllOf( Field( &CO::key, "1"s ),
+                        Field( &CO::display_name, "Pioneers"s ),
+                        Field( &CO::disabled, false ) ),
+                 AllOf( Field( &CO::key, "2"s ),
+                        Field( &CO::display_name,
+                               "Petty Criminals"s ),
+                        Field( &CO::disabled, false ) ) ) ),
+      Field( &C::initial_selection, 0 ) );
+
+  EXPECT_CALL( W.gui(),
+               choice( config_matcher, e_input_required::no ) )
+      .returns( make_wait<maybe<string>>( "1" ) );
+
+  UnitsState const& units = W.ss().units;
+  REQUIRE( units.all().size() == 0 );
+
+  wait<> w = click_recruit( W.ss(), W.ts(), player );
+  REQUIRE( !w.exception() );
+  REQUIRE( w.ready() );
+
+  // Check that we've created the pioneer.
+  REQUIRE( player.artillery_purchases == 0 );
+  REQUIRE( player.money == 1000 - 153 );
+  REQUIRE( player.crosses == 0 );
+  REQUIRE( player.old_world.immigration.num_recruits_rushed ==
+           4 );
+  REQUIRE( units.all().size() == 1 );
+  REQUIRE( units.unit_for( UnitId{ 1 } ).type() ==
+           e_unit_type::pioneer );
+  REQUIRE( units.unit_for( UnitId{ 1 } ).nation() ==
+           player.nation );
+  UnitOwnership_t const expected_ownership{
+      UnitOwnership::harbor{
+          .st = UnitHarborViewState{
+              .port_status = PortStatus::in_port{} } } };
+  REQUIRE( units.ownership_of( UnitId{ 1 } ) ==
+           expected_ownership );
+
+  REQUIRE( pool[0] == e_unit_type::veteran_soldier );
+  REQUIRE( pool[1] == e_unit_type::free_colonist ); // replaced
+  REQUIRE( pool[2] == e_unit_type::petty_criminal );
 }
 
 } // namespace

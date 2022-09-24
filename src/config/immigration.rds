@@ -10,6 +10,7 @@
 # ===============================================================
 # gs
 include "ss/unit-type.rds.hpp"
+include "ss/difficulty.rds.hpp"
 
 # refl
 include "refl/cdr.hpp"
@@ -40,6 +41,31 @@ struct.config_immigration_t {
   # an additive one is that they don't necessarily have to be re-
   # computed when the base weights are adjusted.
   difficulty_factor_per_level 'refl::enum_map<e_unit_type, double>',
+
+  # The formula that the OG appears to use to compute the cost of
+  # a rushed recruitment is:
+  #
+  #   cost = max( ((T-X)/T)*(M+P*N)+B, I )
+  #
+  # where:
+  #
+  #   T: total crosses needed for immigrant.
+  #   X: crosses accumulated since last immigrant.
+  #   M: a difficulty dependent term.
+  #   P: amount by which the starting price increases as a
+  #      result of each additional rushed recruit.
+  #   N: number of rushed recuits to date.
+  #   B: fixed baseline cost.
+  #   I: minimum cost.
+  #
+  # B:
+  rush_cost_baseline 'int',
+  # P:
+  multiplier_increase_per_rushed_immigrant 'int',
+  # M:
+  rush_cost_crosses_multiplier 'refl::enum_map<e_difficulty, int>',
+  # I:
+  rush_cost_min 'int',
 }
 
 config.immigration {}

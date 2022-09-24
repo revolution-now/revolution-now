@@ -48,12 +48,6 @@ base::valid_or<string> ExpeditionaryForce::validate() const {
 }
 
 base::valid_or<string> ImmigrationState::validate() const {
-  // Validate that next_recruit_cost_base is in the right range.
-  REFL_VALIDATE(
-      next_recruit_cost_base >= 0,
-      "next_recruit_cost_base must be >= 0, instead found {}.",
-      next_recruit_cost_base );
-
   // Validate that all immigrants in the pool are human.
   for( e_unit_type type : immigrants_pool ) {
     REFL_VALIDATE( is_unit_human( UnitType::create( type ) ),
@@ -126,8 +120,8 @@ LUA_STARTUP( lua::state& st ) {
   using U = ::rn::ImmigrationState;
   auto u  = st.usertype.create<U>();
 
-  u["immigrants_pool"]        = &U::immigrants_pool;
-  u["next_recruit_cost_base"] = &U::next_recruit_cost_base;
+  u["immigrants_pool"]     = &U::immigrants_pool;
+  u["num_recruits_rushed"] = &U::num_recruits_rushed;
 };
 
 // TaxationState

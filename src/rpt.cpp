@@ -13,8 +13,10 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "conv.hpp"
 #include "harbor-units.hpp"
 #include "igui.hpp"
+#include "immigration.hpp"
 #include "ts.hpp"
 
 // config
@@ -24,6 +26,7 @@
 // ss
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/settings.hpp"
 #include "ss/unit-type.rds.hpp"
 
 // base
@@ -48,7 +51,48 @@ int artillery_price( Player const& player ) {
 ** Public API
 *****************************************************************/
 wait<> click_recruit( SS& ss, TS& ts, Player& player ) {
-  co_await ts.gui.message_box( "Clicked Recruit." );
+  CrossesCalculation const crosses =
+      compute_crosses( ss.units, player.nation );
+  int const price = cost_of_recruit(
+      player, crosses.crosses_needed, ss.settings.difficulty );
+  ChoiceConfig config{
+      .msg = fmt::format(
+          "The following individuals will accompany us to the "
+          "new world if we pay their passage (@[H]{} gold@[]).  "
+          "Whom shall we recruit?",
+          price ),
+      .initial_selection = 0 };
+  static string const kNone = "none";
+  config.options.push_back(
+      { .key = kNone, .display_name = "(None)" } );
+  auto& pool = player.old_world.immigration.immigrants_pool;
+  static_assert(
+      tuple_size_v<remove_cvref_t<decltype( pool )>> == 3 );
+  auto push = [&]( int n ) {
+    e_unit_type const type         = pool[n];
+    string const      key          = fmt::to_string( n );
+    string const      display_name = base::capitalize_initials(
+        unit_attr( type ).name_plural );
+    bool const enabled = ( player.money >= price );
+    config.options.push_back( { .key          = key,
+                                .display_name = display_name,
+                                .disabled     = !enabled } );
+  };
+  push( 0 );
+  push( 1 );
+  push( 2 );
+  // FIXME: there's got to be a better way of getting an integer
+  // back than manually creating stringified integer keys and
+  // converting them back to ints.
+  maybe<string> selected_str =
+      co_await ts.gui.optional_choice( config );
+  if( !selected_str.has_value() ) co_return;
+  if( *selected_str == kNone ) co_return;
+  UNWRAP_CHECK( selected_n,
+                base::from_chars<int>( *selected_str ) );
+  CHECK_GE( selected_n, 0 );
+  CHECK_LT( selected_n, 3 );
+  rush_recruit_next_immigrant( ss, ts, player, selected_n );
 }
 
 wait<> click_purchase( SS& ss, TS& ts, Player& player ) {

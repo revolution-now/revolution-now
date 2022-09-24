@@ -19,6 +19,7 @@
 #include "wait.hpp"
 
 // gs
+#include "ss/difficulty.rds.hpp"
 #include "ss/nation.rds.hpp"
 #include "ss/unit-id.hpp"
 #include "ss/unit-type.rds.hpp"
@@ -31,6 +32,7 @@ struct IRand;
 struct Player;
 struct SettingsState;
 struct SS;
+struct SSConst;
 struct TS;
 struct UnitsState;
 
@@ -74,5 +76,15 @@ void add_player_crosses( Player& player,
 // (which can only happen after Brewster is obtained).
 wait<maybe<UnitId>> check_for_new_immigrant(
     SS& ss, TS& ts, Player& player, int crosses_needed );
+
+// This is the cost that the player will have to pay to rush re-
+// cruit the next immigrant. The "crosses_needed" will be the
+// total crosses needed for this immigrant, including any crosses
+// that the player has already accumulated.
+int cost_of_recruit( Player const& player, int crosses_needed,
+                     e_difficulty difficulty );
+
+void rush_recruit_next_immigrant( SS& ss, TS& ts, Player& player,
+                                  int slot_selected );
 
 } // namespace rn

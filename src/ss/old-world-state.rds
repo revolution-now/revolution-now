@@ -47,21 +47,21 @@ struct.ImmigrationState {
   # must be non-revolutionary types.
   immigrants_pool 'std::array<e_unit_type, 3>',
 
-  # This is NOT the exact cost of recruiting the next immigrant,
-  # it is just a base value which must be added to the (normally
-  # calculated) cost. The reason for this is that the cost of an
-  # immigrant cannot be computed simply from the instantaneous
-  # values of the usual inputs (i.e., current number of crosses,
-  # current number units, current number of units on dock, etc.)
-  # because it must increase each time the player pays the re-
-  # cruitment cost, at least until the next immigration that is
-  # earned through crosses. Once the next immigration happens
-  # that is earned through cross accumulation (alone) then this
-  # value gets reset to zero. This seems to be the way the orig-
-  # inal game works (increasing this by 20 per recruitment) prob-
-  # ably to make it more difficult to just recruit a large number
-  # of immigrants at once.
-  next_recruit_cost_base 'int',
+  # In the OG you can rush the recruitment of an immigrant in the
+  # immigrant pool by clicking on the Recruit button in the
+  # harbor view. When this happens, the game computes a price
+  # that depends on a baseline price along with an additional
+  # term that depends on how many recruits have been rushed to
+  # date in the game (each subsequent one increases that term).
+  # The result of this is that the zero-crossess price of a rush
+  # recruitment increases on each rush recruitment, and never
+  # again decreases. That said, the actual price of a rushed re-
+  # cruitment can be (almost) arbitrarily low by just accumu-
+  # lating the necessary amount of crosses. But once a recruit-
+  # ment happens via cross accumulation, the price resets again
+  # to the higher value determined by the number of total rushed
+  # recruits.
+  num_recruits_rushed 'int',
 
   _features { equality, validation }
 }
