@@ -112,6 +112,25 @@ wait<> HarborRptButtons::perform_click(
   }
 }
 
+wait<bool> HarborRptButtons::perform_key(
+    input::key_event_t const& event ) {
+  if( event.change != input::e_key_change::down )
+    co_return false;
+  if( event.mod.shf_down ) co_return false;
+  switch( event.keycode ) {
+    case ::SDLK_r:
+      co_await click_recruit( ss_, ts_, player_ );
+      co_return true;
+    case ::SDLK_p:
+      co_await click_purchase( ss_, ts_, player_ );
+      co_return true;
+    case ::SDLK_t:
+      co_await click_train( ss_, ts_, player_ );
+      co_return true;
+  }
+  co_return false; // not handled.
+}
+
 void HarborRptButtons::draw( rr::Renderer& renderer,
                              Coord         coord ) const {
   rr::Painter painter = renderer.painter();

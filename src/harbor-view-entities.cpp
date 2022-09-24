@@ -141,6 +141,17 @@ struct CompositeHarborSubView : public ui::InvisibleView,
     }
   }
 
+  // Implement AwaitView.
+  wait<bool> perform_key(
+      input::key_event_t const& event ) override {
+    for( int i = count() - 1; i >= 0; --i ) {
+      bool const handled =
+          co_await ptrs_[i]->perform_key( event );
+      if( handled ) break;
+    }
+    co_return false; // not handled.
+  }
+
   maybe<PositionedDraggableSubView<HarborDraggableObject_t>>
   view_here( Coord coord ) override {
     for( int i = count() - 1; i >= 0; --i ) {

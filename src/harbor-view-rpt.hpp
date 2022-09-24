@@ -50,9 +50,13 @@ struct HarborRptButtons : public ui::View, public HarborSubView {
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override;
 
-  // Implement ui::AwaitView.
+  // Override ui::AwaitView.
   virtual wait<> perform_click(
-      input::mouse_button_event_t const& ) override;
+      input::mouse_button_event_t const& event ) override;
+
+  // Override ui::AwaitView.
+  virtual wait<bool> perform_key(
+      input::key_event_t const& event ) override;
 
  private:
   static constexpr H kVerticalSpacing = 4;

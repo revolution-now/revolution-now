@@ -237,8 +237,9 @@ struct HarborPlane::Impl : public Plane {
   // Returns true if the user wants to exit the colony view.
   wait<> handle_event( input::key_event_t const& event ) {
     if( event.change != input::e_key_change::down ) co_return;
+
+    // Intercept cheat commands.
     if( event.mod.shf_down ) {
-      // Cheat commands.
       switch( event.keycode ) {
         case ::SDLK_LEFTBRACKET:
           cheat_decrease_tax_rate( player_ );
@@ -259,6 +260,8 @@ struct HarborPlane::Impl : public Plane {
       }
       co_return;
     }
+
+    // Intercept harbor view global commands.
     switch( event.keycode ) {
       case ::SDLK_ESCAPE: //
       case ::SDLK_e:      //
@@ -266,6 +269,13 @@ struct HarborPlane::Impl : public Plane {
       default: //
         break;
     }
+
+    // Try the no-coro handler.
+    bool handled = harbor_view_top_level().view().input( event );
+    if( handled ) co_return;
+
+    // Finally fall back to the coroutine key handler.
+    co_await harbor_view_top_level().perform_key( event );
   }
 
   // Returns true if the user wants to exit the colony view.

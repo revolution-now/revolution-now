@@ -55,6 +55,11 @@ struct AwaitView {
       input::mouse_button_event_t const& ) {
     return make_wait<>();
   }
+
+  // Returns whether or not it was handled.
+  virtual wait<bool> perform_key( input::key_event_t const& ) {
+    return make_wait<bool>( false );
+  }
 };
 
 } // namespace ui
