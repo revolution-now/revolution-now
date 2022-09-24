@@ -121,15 +121,15 @@ local function create_all_units( options, root )
     'expert_cotton_planter', 'expert_fur_trapper',
     'expert_lumberjack', 'expert_ore_miner',
     'expert_silver_miner', 'master_carpenter',
-    'master_distiller', 'master_tobacconist',
-    'master_weaver', 'master_fur_trader', 'master_blacksmith',
-    'master_gunsmith', 'elder_statesman', 'firebrand_preacher',
-    'hardy_colonist', 'jesuit_colonist', 'seasoned_colonist',
-    'veteran_colonist', 'veteran_soldier', 'veteran_dragoon',
-    'continental_army', 'continental_cavalry', 'regular',
-    'cavalry', 'hardy_pioneer', 'jesuit_missionary',
-    'seasoned_scout', 'artillery', 'damaged_artillery',
-    'wagon_train', 'small_treasure', 'large_treasure'
+    'master_distiller', 'master_tobacconist', 'master_weaver',
+    'master_fur_trader', 'master_blacksmith', 'master_gunsmith',
+    'elder_statesman', 'firebrand_preacher', 'hardy_colonist',
+    'jesuit_colonist', 'seasoned_colonist', 'veteran_colonist',
+    'veteran_soldier', 'veteran_dragoon', 'continental_army',
+    'continental_cavalry', 'regular', 'cavalry', 'hardy_pioneer',
+    'jesuit_missionary', 'seasoned_scout', 'artillery',
+    'damaged_artillery', 'wagon_train', 'small_treasure',
+    'large_treasure'
   }
 
   local function create( where, unit_name )
