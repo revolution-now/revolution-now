@@ -185,21 +185,31 @@ unordered_map<int, string> description_for_slots() {
 wait<maybe<int>> select_slot( TS& ts, bool include_autosaves,
                               bool allow_empty ) {
   unordered_map<int, string> slots = description_for_slots();
-  ChoiceConfig               config{
-                    .msg  = "Select a slot:",
-                    .sort = false,
+  if( slots.size() == 0 ) {
+    co_await ts.gui.message_box(
+        "There are no available games to load." );
+    co_return nothing;
+  }
+  ChoiceConfig config{
+      .msg  = "Select a slot:",
+      .sort = false,
   };
   int const    num_slots  = include_autosaves
                                 ? number_of_total_slots()
                                 : number_of_normal_slots();
   string const kEmptyName = "(none)";
   for( int i = 0; i < num_slots; ++i ) {
-    string summary = kEmptyName;
-    if( slots.contains( i ) ) summary = slots[i];
-    if( i >= number_of_normal_slots() )
-      summary = "Autosave: " + summary;
+    string summary  = kEmptyName;
+    bool   disabled = true;
+    if( slots.contains( i ) ) {
+      summary  = slots[i];
+      disabled = false;
+      if( i >= number_of_normal_slots() )
+        summary = "Autosave: " + summary;
+    }
     config.options.push_back( { .key = fmt::to_string( i ),
-                                .display_name = summary } );
+                                .display_name = summary,
+                                .disabled     = disabled } );
   }
   while( true ) {
     maybe<string> selection =

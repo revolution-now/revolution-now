@@ -110,7 +110,8 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   st["ROOT"] = ss.root;
   st["SS"]   = ss;
   if( !co_await loader( ss, ts ) )
-    // Failed to load game.
+    // Didn't load a game for some reason. Could have failed or
+    // maybe there are no games to load.
     co_return;
 
   map_updater.redraw();
