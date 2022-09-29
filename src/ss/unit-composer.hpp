@@ -35,8 +35,7 @@ namespace rn {
 /****************************************************************
 ** UnitComposition
 *****************************************************************/
-class UnitComposition {
- public:
+struct UnitComposition {
   using UnitInventoryMap = refl::enum_map<e_unit_inventory, int>;
 
   UnitComposition() = default;
