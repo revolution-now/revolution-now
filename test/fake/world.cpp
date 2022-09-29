@@ -410,6 +410,10 @@ Player& World::default_player() {
   return player( default_nation_ );
 }
 
+Player const& World::default_player() const {
+  return player( default_nation_ );
+}
+
 Player& World::player( maybe<e_nation> nation ) {
   switch( nation.value_or( default_nation_ ) ) {
     case e_nation::dutch: return dutch();

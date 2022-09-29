@@ -204,7 +204,8 @@ struct World {
   Player const& spanish() const;
   Player const& french() const;
 
-  Player& default_player();
+  Player&       default_player();
+  Player const& default_player() const;
 
   Player&       player( maybe<e_nation> nation = nothing );
   Player const& player( maybe<e_nation> nation = nothing ) const;
