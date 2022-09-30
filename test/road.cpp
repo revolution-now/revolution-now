@@ -46,6 +46,7 @@ struct World : testing::World {
   World() : Base() {}
 
   void initialize( e_unit_type unit_type ) {
+    add_default_player();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{ L };
     build_map( std::move( tiles ), 1 );

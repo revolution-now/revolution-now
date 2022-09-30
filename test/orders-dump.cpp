@@ -36,6 +36,7 @@ using namespace std;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
+    add_default_player();
     MapSquare const _ = make_ocean();
     MapSquare const L = make_grassland();
     // clang-format off

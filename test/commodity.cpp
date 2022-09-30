@@ -35,7 +35,7 @@ using namespace rn;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    // add_player( e_nation::dutch );
+    add_player( e_nation::dutch );
     MapSquare const   O = make_ocean();
     vector<MapSquare> tiles{ O };
     build_map( std::move( tiles ), 1 );

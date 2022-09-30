@@ -51,7 +51,7 @@ using Catch::Equals;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    // add_player( e_nation::dutch );
+    add_player( e_nation::dutch );
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{ L };
     build_map( std::move( tiles ), 1 );
