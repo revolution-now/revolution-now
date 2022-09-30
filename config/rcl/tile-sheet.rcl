@@ -85,6 +85,8 @@ sheets {
         terrain_mountain_island:     { y: 6, x: 4 }
         terrain_hills_island:        { y: 6, x: 5 }
         terrain_forest_scrub_island: { y: 7, x: 5 }
+
+        terrain_hidden:              { y: 8, x: 4 }
       }
     }
     {
