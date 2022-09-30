@@ -200,7 +200,7 @@ wait<maybe<int>> select_slot( TS& ts, bool include_autosaves,
   string const kEmptyName = "(none)";
   for( int i = 0; i < num_slots; ++i ) {
     string summary  = kEmptyName;
-    bool   disabled = true;
+    bool   disabled = !allow_empty;
     if( slots.contains( i ) ) {
       summary  = slots[i];
       disabled = false;
