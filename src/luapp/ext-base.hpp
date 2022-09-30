@@ -15,7 +15,7 @@
 #include "types.hpp"
 
 // base
-#include "maybe.hpp"
+#include "base/maybe.hpp"
 
 namespace lua {
 
