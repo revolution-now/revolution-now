@@ -393,6 +393,32 @@ TEST_CASE( "[equip] equip_options" ) {
           .new_comp = UC::create( e_unit_type::soldier ) } };
     REQUIRE( f( e_unit_type::free_colonist ) == expected );
   }
+  SECTION( "money=1000, muskets/horses boycotted" ) {
+    player.money = 1000;
+
+    player.old_world.market.commodities[e_commodity::horses]
+        .boycott = true;
+    player.old_world.market.commodities[e_commodity::muskets]
+        .boycott = true;
+
+    // free_colonist
+    expected = {
+        { .modifier        = e_unit_type_modifier::blessing,
+          .modifier_delta  = e_unit_type_modifier_delta::add,
+          .money_delta     = 0,
+          .can_afford      = true,
+          .commodity_delta = nothing,
+          .new_comp = UC::create( e_unit_type::missionary ) },
+        { .modifier       = e_unit_type_modifier::tools,
+          .modifier_delta = e_unit_type_modifier_delta::add,
+          .money_delta    = -500,
+          .can_afford     = true,
+          .commodity_delta =
+              Commodity{ .type     = e_commodity::tools,
+                         .quantity = 100 },
+          .new_comp = UC::create( e_unit_type::pioneer ) } };
+    REQUIRE( f( e_unit_type::free_colonist ) == expected );
+  }
 }
 
 TEST_CASE( "[equip] equip_description" ) {
