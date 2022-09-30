@@ -142,6 +142,11 @@ namespace "rn"
 # Note that this config is for non-production related things. For
 # production-related things there is a dedicated config file.
 struct.config_colony_t {
+  # How many tiles around the colony can the colony see? In the
+  # OG this is 1, meaning that only the 3x3 grid around the
+  # colony is visible to it.
+  colony_visibility_radius 'int',
+
   warehouses 'config::colony::warehouses',
 
   food_for_creating_new_colonist 'int',
