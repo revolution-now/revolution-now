@@ -8,9 +8,10 @@
 # Description: RDS definitions for the gs-terrain module.
 #
 # ===============================================================
-# gs
+# ss
 include "ss/map-square.rds.hpp"
 include "ss/matrix.hpp"
+include "ss/nation.rds.hpp"
 
 # gfx
 include "gfx/coord.rds.hpp"
@@ -18,10 +19,45 @@ include "gfx/coord.rds.hpp"
 # refl
 include "refl/enum-map.hpp"
 
+# base
+include "base/maybe.hpp"
+
+namespace "rn"
+
+enum.e_barricade_type {
+  stockade,
+  fort,
+  fortress,
+}
+
+# All of the visual characteristics of a colony that need to be
+# recorded to implement the fog of war.
+struct.FogColony {
+  nation 'e_nation',
+  population 'int',
+  barricade_type 'base::maybe<e_barricade_type>',
+}
+
+# All of the visual characteristics of a square that need to be
+# recorded to implement the fog of war.
+struct.FogSquare {
+  square 'MapSquare',
+  colony 'base::maybe<FogColony>',
+}
+
+# What each player sees. Some tiles may not be visible, and
+# others might not be up to date with the real map.
+struct.PlayerTerrain {
+  map 'Matrix<base::maybe<FogSquare>>',
+}
+
 namespace "rn.wrapped"
 
 struct.TerrainState {
   placement_seed 'int',
+
+  player_terrain 'refl::enum_map<e_nation, base::maybe<PlayerTerrain>>',
+
   world_map 'Matrix<MapSquare>',
 
   # For rendering purposes it is necessary to know the contents

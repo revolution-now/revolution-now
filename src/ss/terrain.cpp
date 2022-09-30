@@ -10,11 +10,12 @@
 *****************************************************************/
 #include "terrain.hpp"
 
-// gs
+// ss
 #include "ss/map-square.hpp"
 
 // luapp
 #include "luapp/enum.hpp"
+#include "luapp/ext-base.hpp"
 #include "luapp/register.hpp"
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
@@ -82,6 +83,18 @@ base::maybe<MapSquare&> TerrainState::mutable_maybe_square_at(
   return mutable_world_map()[coord.y][coord.x];
 }
 
+PlayerTerrain const& TerrainState::player_terrain(
+    e_nation nation ) const {
+  UNWRAP_CHECK( res, o_.player_terrain[nation] );
+  return res;
+}
+
+PlayerTerrain& TerrainState::mutable_player_terrain(
+    e_nation nation ) {
+  UNWRAP_CHECK( res, o_.player_terrain[nation] );
+  return res;
+}
+
 base::maybe<MapSquare const&> TerrainState::maybe_square_at(
     Coord coord ) const {
   if( !square_exists( coord ) ) return base::nothing;
@@ -138,12 +151,77 @@ bool TerrainState::is_land( Coord coord ) const {
   return square_at( coord ).surface == e_surface::land;
 }
 
+void TerrainState::initialize_player_terrain( e_nation nation,
+                                              bool visible ) {
+  if( !o_.player_terrain[nation].has_value() )
+    o_.player_terrain[nation].emplace();
+  Matrix<base::maybe<FogSquare>>& map =
+      o_.player_terrain[nation]->map;
+  map = Matrix<base::maybe<FogSquare>>( o_.world_map.size() );
+  if( visible ) {
+    Matrix<MapSquare> const& world_map = o_.world_map;
+    for( Coord tile : o_.world_map.rect() ) {
+      map[tile].emplace();
+      map[tile]->square = world_map[tile];
+    }
+  }
+}
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/
 namespace {
 
 LUA_STARTUP( lua::state& st ) {
+  // FogSquare.
+  [&] {
+    using U = ::rn::FogSquare;
+
+    auto u = st.usertype.create<U>();
+
+    u["square"] = &U::square;
+  }();
+
+  // PlayerTerrainMatrix.
+  [&] {
+    using U = ::rn::PlayerTerrainMatrix;
+
+    auto u = st.usertype.create<U>();
+
+    u["size"]          = &U::size;
+    u["square_exists"] = []( U& o, Coord tile ) {
+      return tile.is_inside( o.rect() );
+    };
+    u["square_at"] =
+        []( U& o, Coord tile ) -> base::maybe<FogSquare&> {
+      if( !tile.is_inside( o.rect() ) ) return base::nothing;
+      return o[tile];
+    };
+  }();
+
+  // PlayerTerrain.
+  [&] {
+    using U = ::rn::PlayerTerrain;
+    auto u  = st.usertype.create<U>();
+
+    u["map"] = &U::map;
+  }();
+
+  // PlayerTerrainMap.
+  [&] {
+    using U = ::rn::PlayerTerrainMap;
+    auto u  = st.usertype.create<U>();
+
+    u["for_nation"] = [&]( U& obj, e_nation c )
+        -> base::maybe<PlayerTerrain&> { return obj[c]; };
+
+    u["add_nation"] = [&]( U&       obj,
+                           e_nation c ) -> PlayerTerrain& {
+      if( !obj[c].has_value() ) obj[c].emplace();
+      return *obj[c];
+    };
+  }();
+
   // ProtoSquaresMap.
   // TODO: make this generic.
   [&] {
@@ -168,6 +246,8 @@ LUA_STARTUP( lua::state& st ) {
     u["square_exists"]      = &U::square_exists;
     u["square_at"]          = &U::mutable_square_at;
     u["proto_square"]       = &U::mutable_proto_square;
+    u["initialize_player_terrain"] =
+        &U::initialize_player_terrain;
 
     u["reset"] = []( U& o, Delta size ) {
       o.mutable_world_map() = Matrix<MapSquare>( size );

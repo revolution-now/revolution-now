@@ -273,6 +273,14 @@ local function create_nations( options, root )
   init_prices( options, root )
 end
 
+local function create_player_maps( options, root )
+  local terrain = root.terrain
+  for nation, tbl in pairs( options.nations ) do
+    terrain:initialize_player_terrain( nation, --[[visible=]]
+                                       false )
+  end
+end
+
 -----------------------------------------------------------------
 -- Turn State
 -----------------------------------------------------------------
@@ -320,6 +328,9 @@ function M.create( options )
   -- catch errors in the other parts of the process as quickly as
   -- possible.
   map_gen.generate( options.map )
+
+  -- Initializes the maps that track what each player can see.
+  create_player_maps( options, root )
 
   local world_size = root.terrain:size()
   root.land_view.viewport:set_world_size_tiles( world_size )

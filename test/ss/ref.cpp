@@ -157,6 +157,13 @@ cdr::value cdr_game_state_default =
         "zzz_terrain"_key =
             cdr::table{
                 "placement_seed"_key = 0,
+                "player_terrain"_key =
+                    cdr::table{
+                        "dutch"_key   = cdr::null,
+                        "english"_key = cdr::null,
+                        "french"_key  = cdr::null,
+                        "spanish"_key = cdr::null,
+                    },
                 "world_map"_key =
                     cdr::table{
                         "size"_key =

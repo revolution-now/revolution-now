@@ -51,6 +51,15 @@ struct TerrainState {
     o_.placement_seed = seed;
   }
 
+  PlayerTerrain const& player_terrain( e_nation nation ) const;
+
+  // This add (or overwrite) the nation's terrain object and, if
+  // visible=true, will copy all the terrain squares over to it,
+  // making them visible (otherwise all squares will be
+  // non-visible).
+  void initialize_player_terrain( e_nation nation,
+                                  bool     visible );
+
   // This essentially returns what square_at does, except it also
   // returns valid values for any squares outside of the map, in
   // which case it will return the "proto" squares specified in
@@ -83,6 +92,7 @@ struct TerrainState {
   Matrix<MapSquare>&      mutable_world_map();
   MapSquare&              mutable_square_at( Coord coord );
   base::maybe<MapSquare&> mutable_maybe_square_at( Coord coord );
+  PlayerTerrain& mutable_player_terrain( e_nation nation );
 
   // This should only be called by code doing map generation.
   // Once a map is generated, the proto squares should not be
@@ -102,6 +112,9 @@ struct TerrainState {
 
 using ProtoSquaresMap =
     refl::enum_map<e_cardinal_direction, MapSquare>;
+using PlayerTerrainMap =
+    refl::enum_map<e_nation, base::maybe<PlayerTerrain>>;
+using PlayerTerrainMatrix = Matrix<base::maybe<FogSquare>>;
 
 } // namespace rn
 
@@ -109,6 +122,10 @@ using ProtoSquaresMap =
 ** Lua
 *****************************************************************/
 namespace lua {
-LUA_USERDATA_TRAITS( ::rn::TerrainState, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::ProtoSquaresMap, owned_by_cpp ){};
-}
+LUA_USERDATA_TRAITS( rn::TerrainState, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( rn::ProtoSquaresMap, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( rn::PlayerTerrain, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( rn::PlayerTerrainMap, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( rn::PlayerTerrainMatrix, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( rn::FogSquare, owned_by_cpp ){};
+} // namespace lua
