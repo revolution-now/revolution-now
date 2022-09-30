@@ -2,7 +2,7 @@
 
 return {
   'exe/main',
-  'market',
-  'ss/unit-composer',
-  'equip',
+  'ss/terrain',
+  'render-terrain',
+  'on-map',
 }
