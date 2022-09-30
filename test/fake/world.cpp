@@ -27,6 +27,7 @@
 
 // config
 #include "config/colony.rds.hpp"
+#include "config/market.rds.hpp"
 #include "config/production.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
@@ -83,8 +84,9 @@ TerrainState const& World::terrain() const {
 }
 RootState const& World::root() const { return ss_->root; }
 
-SS& World::ss() { return *ss_; }
-SS& World::ss_saved() { return *ss_saved_; }
+SS&            World::ss() { return *ss_; }
+SSConst const& World::ss() const { return *ss_const_; }
+SS&            World::ss_saved() { return *ss_saved_; }
 
 Planes& World::planes() {
   if( uninitialized_planes_ == nullptr )
@@ -351,6 +353,16 @@ void World::set_stable_bid_price( e_commodity type,
   comm_config.intrinsic_volume = 0;
 }
 
+void World::init_prices_to_average() {
+  for( e_commodity type : refl::enum_values<e_commodity> ) {
+    auto const& limits =
+        config_market.price_behavior[type].price_limits;
+    int const price =
+        ( limits.bid_price_min + limits.bid_price_max ) / 2;
+    set_current_bid_price( type, price );
+  }
+}
+
 void World::set_tax_rate( int rate ) {
   default_player().old_world.taxes.tax_rate = rate;
 }
@@ -451,6 +463,7 @@ void World::initialize_ts() { ts(); }
 
 World::World()
   : ss_( new SS ),
+    ss_const_( new SSConst( *ss_ ) ),
     ss_saved_( new SS ),
     map_updater_(
         new NonRenderingMapUpdater( ss_->root.zzz_terrain ) ),

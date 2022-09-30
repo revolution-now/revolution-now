@@ -36,6 +36,9 @@ struct TS;
 *****************************************************************/
 bool is_in_processed_goods_price_group( e_commodity type );
 
+// Will create a PriceChange object representing a change in
+// price from the current price up by `price_change` (which can
+// be negative for a price drop).
 PriceChange create_price_change( Player const& player,
                                  e_commodity   comm,
                                  int           price_change );

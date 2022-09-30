@@ -57,6 +57,7 @@ struct MockIGui;
 struct MockIRand;
 struct Planes;
 struct SS;
+struct SSConst;
 struct TS;
 
 } // namespace rn
@@ -177,6 +178,10 @@ struct World {
   void set_stable_bid_price( e_commodity type,
                              int         price_in_hundreds );
 
+  // This will set the price of each commodity to the middle of
+  // its range, rounded down.
+  void init_prices_to_average();
+
   // Sets it for the default player.
   void set_tax_rate( int rate );
 
@@ -233,8 +238,9 @@ struct World {
   RootState&       root();
   RootState const& root() const;
 
-  SS& ss();
-  SS& ss_saved();
+  SS&            ss();
+  SSConst const& ss() const;
+  SS&            ss_saved();
 
   // These will initialize their respective objects the first
   // time they are called, so they should always be used.
@@ -261,9 +267,10 @@ struct World {
   // These are unique_ptrs so that we can forward declare them.
   // Otherwise every unit test would have to pull in all of these
   // headers.
-  std::unique_ptr<SS>          ss_;
-  std::unique_ptr<SS>          ss_saved_;
-  std::unique_ptr<IMapUpdater> map_updater_;
+  std::unique_ptr<SS>            ss_;
+  std::unique_ptr<SSConst const> ss_const_;
+  std::unique_ptr<SS>            ss_saved_;
+  std::unique_ptr<IMapUpdater>   map_updater_;
   // These should not be accessed directly since they are ini-
   // tially nullptr.
   std::unique_ptr<Planes>     uninitialized_planes_;
