@@ -67,10 +67,10 @@ class Matrix {
   Matrix( std::vector<T>&& data, W w )
     : w_{ w }, data_{ std::move( data ) } {}
 
-  Matrix( Matrix const& ) = default;
+  Matrix( Matrix const& )            = default;
   Matrix& operator=( Matrix const& ) = default;
   Matrix( Matrix&& )                 = default;
-  Matrix& operator=( Matrix&& ) = default;
+  Matrix& operator=( Matrix&& )      = default;
 
   bool operator==( Matrix<T> const& rhs ) const {
     return w_ == rhs.w_ && data_ == rhs.data_;
