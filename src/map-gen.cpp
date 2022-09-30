@@ -17,6 +17,7 @@
 // ss
 #include "ss/land-view.hpp"
 #include "ss/map-square.hpp"
+#include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 
 // luapp
@@ -55,11 +56,10 @@ void generate_terrain( lua::state&  st,
   } );
 }
 
-void ascii_map_gen( lua::state&   st,
-                    TerrainState& terrain_state ) {
-  NonRenderingMapUpdater map_updater( terrain_state );
+void ascii_map_gen( lua::state& st, SS& ss ) {
+  NonRenderingMapUpdater map_updater( ss );
   generate_terrain( st, map_updater );
-  Matrix<MapSquare> const& world_map = terrain_state.world_map();
+  Matrix<MapSquare> const& world_map = ss.terrain.world_map();
 
   auto bar = [&] {
     fmt::print( "+" );

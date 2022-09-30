@@ -22,13 +22,12 @@ struct state;
 namespace rn {
 
 struct IMapUpdater;
-struct TerrainState;
+struct SS;
 
 void generate_terrain( lua::state&  st,
                        IMapUpdater& map_updater );
 
-void ascii_map_gen( lua::state&   st,
-                    TerrainState& terrain_state );
+void ascii_map_gen( lua::state& st, SS& ss );
 
 void reset_terrain( IMapUpdater& map_updater, Delta size );
 
