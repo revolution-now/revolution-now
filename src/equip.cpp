@@ -54,6 +54,12 @@ vector<EquipOption> equip_options(
       // unit changes to itself (zero modifier changes) and where
       // e.g. a colonist changes to a dragoon (two modifier
       // changes, for muskets and horses).
+      //
+      // There are some legitimate transformations with zero mod-
+      // ifier changes, e.g. when a pioneer that has 60 tools
+      // gains 40 tools, but we don't support that because it
+      // would make things more complicated and it is unlikely
+      // that we need to support that on the harbor dock.
       continue;
     auto [modifier, modifier_delta] =
         *transformation.modifier_deltas.begin();

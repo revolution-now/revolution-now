@@ -12,9 +12,11 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "equip.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view-backdrop.hpp"
 #include "igui.hpp"
+#include "market.hpp"
 #include "render.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
@@ -26,6 +28,9 @@
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
+
+// base
+#include "base/conv.hpp"
 
 using namespace std;
 
@@ -103,15 +108,34 @@ wait<> HarborDockUnits::click_on_unit( UnitId unit_id ) {
       .options = {},
       .sort    = false,
   };
+  vector<EquipOption> const equip_opts =
+      equip_options( ss_, player_, unit.composition() );
+  for( int idx = 0; idx < int( equip_opts.size() ); ++idx ) {
+    EquipOption const& equip_opt = equip_opts[idx];
+    ChoiceConfigOption option{
+        .key          = fmt::to_string( idx ),
+        .display_name = equip_description( equip_opt ),
+        .disabled     = !equip_opt.can_afford };
+    config.options.push_back( std::move( option ) );
+  }
+  static string const kNoChangesKey = "no changes";
   config.options.push_back(
-      { .key = "no changes", .display_name = "No Changes." } );
+      { .key = kNoChangesKey, .display_name = "No Changes." } );
 
   maybe<string> choice =
       co_await ts_.gui.optional_choice( config );
   if( !choice.has_value() ) co_return;
-  if( choice == "TODO" ) {
-    // TODO
-  }
+  if( choice == kNoChangesKey ) co_return;
+  // Assume that we have an index into the EquipOptions vector.
+  UNWRAP_CHECK( chosen_idx, base::from_chars<int>( *choice ) );
+  CHECK_GE( chosen_idx, 0 );
+  CHECK_LT( chosen_idx, int( equip_opts.size() ) );
+  // This will change the unit type.
+  PriceChange const price_change = perform_equip_option(
+      ss_, unit.id(), equip_opts[chosen_idx] );
+  // Will only display something if there is a price change.
+  co_await display_price_change_notification( ts_, player_,
+                                              price_change );
 }
 
 wait<> HarborDockUnits::perform_click(
