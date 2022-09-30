@@ -193,7 +193,12 @@ Delta OneLineStringView::delta() const { return text_size_; }
 
 void OneLineStringView::draw( rr::Renderer& renderer,
                               Coord         coord ) const {
-  renderer.typer( coord, color_ ).write( msg_ );
+  TextMarkupInfo const markup_info{
+      .normal = color_,
+      // FIXME
+      .highlight = gfx::pixel::white() };
+  render_text_markup( renderer, coord, e_font{}, markup_info,
+                      msg_ );
 }
 
 /****************************************************************
