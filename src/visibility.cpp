@@ -15,6 +15,7 @@
 
 // config
 #include "config/colony.hpp"
+#include "config/fathers.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss
@@ -50,7 +51,24 @@ int unit_sight_radius( SSConst const& ss, e_nation nation,
   UNWRAP_CHECK( player, ss.players.players[nation] );
   bool const has_de_soto =
       player.fathers.has[e_founding_father::hernando_de_soto];
-  return unit_attr( type ).visibility + ( has_de_soto ? 1 : 0 );
+  int visibility = unit_attr( type ).visibility;
+  if( has_de_soto ) {
+    if( !unit_attr( type ).ship )
+      ++visibility;
+    else if( config_fathers.rules
+                 .ships_get_de_soto_sighting_bonus )
+      // The original games that De Soto will give all units an
+      // extended sighting radius. The meaning of this apparently
+      // is that it takes the sighting radius of each unit and
+      // adds one to it (even if it was already 2), since that is
+      // what it does for land units. However, it does not do
+      // this for ships at all. In this game do default to giving
+      // the bonus to ships in order to make De Soto a bit more
+      // useful, but that can be safely turned off here if the
+      // OG's behavior is desired.
+      ++visibility;
+  }
+  return visibility;
 }
 
 vector<Coord> unit_visible_squares( SSConst const& ss,

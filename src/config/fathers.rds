@@ -19,25 +19,40 @@ include "refl/enum-map.hpp"
 include "cdr/ext-builtin.hpp"
 include "cdr/ext-std.hpp"
 
-namespace "rn"
+namespace "rn.config.fathers"
 
 # TODO: see bottom of NAMES.TXT for the weights of the various
 # founding fathers in each game epoch.
 
-struct.FoundingFather {
+struct.Type {
+  id 'e_founding_father_type',
+  name 'std::string',
+}
+
+struct.Description {
   id 'e_founding_father',
   name 'std::string',
   type 'e_founding_father_type',
 }
 
-struct.FoundingFatherType {
-  id 'e_founding_father_type',
-  name 'std::string',
+struct.Rules {
+  # The original games that De Soto will give all units an ex-
+  # tended sighting radius. The meaning of this apparently is
+  # that it takes the sighting radius of each unit and adds one
+  # to it (even if it was already 2), since that is what it does
+  # for land units. However, it does not do this for ships at
+  # all. In this game do default to giving the bonus to ships in
+  # order to make De Soto a bit more useful, but that can be
+  # safely turned off here if the OG's behavior is desired.
+  ships_get_de_soto_sighting_bonus 'bool',
 }
 
+namespace "rn"
+
 struct.config_fathers_t {
-  types 'refl::enum_map<e_founding_father_type, FoundingFatherType>',
-  fathers 'refl::enum_map<e_founding_father, FoundingFather>',
+  types 'refl::enum_map<e_founding_father_type, config::fathers::Type>',
+  fathers 'refl::enum_map<e_founding_father, config::fathers::Description>',
+  rules 'config::fathers::Rules',
   # TODO: see bottom of NAMES.TXT for the weights of the various
   # founding fathers in each game epoch.
 }

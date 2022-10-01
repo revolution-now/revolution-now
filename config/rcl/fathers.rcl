@@ -163,3 +163,18 @@ fathers {
     type: religious
   }
 }
+
+# ===============================================================
+# Rules
+# ===============================================================
+rules {
+  # The original games that De Soto will give all units an ex-
+  # tended sighting radius. The meaning of this apparently is
+  # that it takes the sighting radius of each unit and adds one
+  # to it (even if it was already 2), since that is what it does
+  # for land units. However, it does not do this for ships at
+  # all. In this game do default to giving the bonus to ships in
+  # order to make De Soto a bit more useful, but that can be
+  # safely turned off here if the OG's behavior is desired.
+  ships_get_de_soto_sighting_bonus: true
+}
