@@ -75,6 +75,11 @@ struct World {
   // ------------------------------------------------------------
   void build_map( std::vector<MapSquare> tiles, W width );
 
+  // For each player that exists, this will re-initialize its
+  // player map to be the size of the real map with all tiles
+  // hidden.
+  void init_player_maps();
+
   static MapSquare make_ocean();
   static MapSquare make_sea_lane();
   static MapSquare make_grassland();

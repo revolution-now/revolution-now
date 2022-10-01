@@ -36,16 +36,17 @@ int largest_possible_sighting_radius() {
     int res = 0;
     for( e_unit_type type : refl::enum_values<e_unit_type> )
       res = std::max( res, unit_attr( type ).visibility );
-    return res;
+    // +1 in case a player has.
+    return res + 1;
   }();
   return largest;
 }
 
-} // namespace
-
-/****************************************************************
-** Public API
-*****************************************************************/
+// The unit's site radius is 1 for most units and two for scouts
+// and some ships, and then having De Soto gives a +1 to all
+// units. In the OG ships don't get the De Soto bonus, but in
+// this game we do give it to ships. A radius of 1 means 3x3
+// visibility, while a radius of 2 means 5x5 visibility, etc.
 int unit_sight_radius( SSConst const& ss, e_nation nation,
                        e_unit_type type ) {
   UNWRAP_CHECK( player, ss.players.players[nation] );
@@ -71,6 +72,59 @@ int unit_sight_radius( SSConst const& ss, e_nation nation,
   return visibility;
 }
 
+} // namespace
+
+/****************************************************************
+** Visibility
+*****************************************************************/
+bool Visibility::visible( Coord tile ) const {
+  if( !player_terrain_.has_value() )
+    // No player, so always visible.
+    return true;
+  // We're rendering from the player's point of view.
+  if( !tile.is_inside( terrain_.world_rect_tiles() ) )
+    // Proto squares are always considered visible.
+    return true;
+  DCHECK( player_terrain_.has_value() );
+  maybe<MapSquare const&> square =
+      player_terrain_->map[tile].member( &FogSquare::square );
+  if( !square.has_value() )
+    // There is a player and they can't see this tile.
+    return false;
+  // There is a player and they can see this tile.
+  return true;
+}
+
+MapSquare const& Visibility::square_at( Coord tile ) const {
+  if( !player_terrain_.has_value() )
+    // Real map.
+    return terrain_.total_square_at( tile );
+  // We're rendering from the player's point of view.
+  if( !tile.is_inside( terrain_.world_rect_tiles() ) )
+    // Will yield a proto square.
+    return terrain_.total_square_at( tile );
+  DCHECK( player_terrain_.has_value() );
+  maybe<MapSquare const&> square =
+      player_terrain_->map[tile].member( &FogSquare::square );
+  if( !square.has_value() )
+    // Player can't see this tile.
+    return terrain_.total_square_at( tile );
+  // The player can see this tile, so return the player's version
+  // of it.
+  return *square;
+};
+
+Rect Visibility::rect_tiles() const {
+  return terrain_.world_rect_tiles();
+}
+
+bool Visibility::on_map( Coord tile ) const {
+  return tile.is_inside( rect_tiles() );
+}
+
+/****************************************************************
+** Public API
+*****************************************************************/
 vector<Coord> unit_visible_squares( SSConst const& ss,
                                     e_nation       nation,
                                     e_unit_type    type,
@@ -129,7 +183,7 @@ refl::enum_map<e_nation, bool> nations_with_visibility_of_square(
         break;
       vector<Coord> const visible = unit_visible_squares(
           ss, unit.nation(), unit.type(), coord );
-      if( find( visible.begin(), visible.end(), coord ) !=
+      if( find( visible.begin(), visible.end(), tile ) !=
           visible.end() ) {
         res[unit.nation()] = true;
         // Again, any other units on this tile will be from the

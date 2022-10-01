@@ -161,6 +161,14 @@ void World::build_map( vector<MapSquare> tiles, W width ) {
   } );
 }
 
+void World::init_player_maps() {
+  for( e_nation nation : refl::enum_values<e_nation> ) {
+    if( !ss().players.players[nation].has_value() ) continue;
+    ss().mutable_terrain_use_with_care.initialize_player_terrain(
+        nation, /*visible=*/false );
+  }
+}
+
 MapSquare& World::square( gfx::point p ) {
   return terrain().mutable_square_at( Coord::from_gfx( p ) );
 }
@@ -467,8 +475,7 @@ World::World()
   : ss_( new SS ),
     ss_const_( new SSConst( *ss_ ) ),
     ss_saved_( new SS ),
-    map_updater_(
-        new NonRenderingMapUpdater( ss_->root.zzz_terrain ) ),
+    map_updater_( new NonRenderingMapUpdater( *ss_ ) ),
     // These are left uninitialized until they are needed.
     uninitialized_planes_(),
     uninitialized_lua_(),
