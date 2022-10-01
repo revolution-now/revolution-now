@@ -6,6 +6,6 @@ return {
   'ss/map-square',
   'render-terrain',
   'map-updater',
-  'visibility',
   'on-map',
+  'visibility',
 }
