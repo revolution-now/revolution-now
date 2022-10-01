@@ -51,7 +51,8 @@ struct TerrainState {
     o_.placement_seed = seed;
   }
 
-  PlayerTerrain const& player_terrain( e_nation nation ) const;
+  base::maybe<PlayerTerrain const&> player_terrain(
+      e_nation nation ) const;
 
   // This add (or overwrite) the nation's terrain object and, if
   // visible=true, will copy all the terrain squares over to it,

@@ -14,6 +14,7 @@
 #include "logger.hpp"
 #include "map-updater.hpp"
 #include "tiles.hpp"
+#include "visibility.hpp"
 
 // config
 #include "config/orders.rds.hpp"
@@ -64,9 +65,10 @@ void clear_road( IMapUpdater& map_updater, Coord tile ) {
       tile, []( MapSquare& square ) { square.road = false; } );
 }
 
+bool has_road( MapSquare const& square ) { return square.road; }
+
 bool has_road( TerrainState const& terrain_state, Coord tile ) {
-  MapSquare const& square = terrain_state.square_at( tile );
-  return square.road;
+  return has_road( terrain_state.square_at( tile ) );
 }
 
 /****************************************************************
@@ -102,8 +104,8 @@ void perform_road_work( UnitsState const&   units_state,
   // The unit is still building the road.
   int       turns_worked = unit.turns_worked();
   int const road_turns   = turns_required(
-        unit.type(),
-        effective_terrain( terrain_state.square_at( location ) ) );
+      unit.type(),
+      effective_terrain( terrain_state.square_at( location ) ) );
   CHECK_LE( turns_worked, road_turns );
   if( turns_worked == road_turns ) {
     // We're finished building the road.
@@ -129,9 +131,14 @@ bool can_build_road( Unit const& unit ) {
 ** Rendering
 *****************************************************************/
 void render_road_if_present( rr::Painter& painter, Coord where,
-                             TerrainState const& terrain_state,
-                             Coord               world_tile ) {
-  if( !has_road( terrain_state, world_tile ) ) return;
+                             Visibility const& viz,
+                             Coord             world_tile ) {
+  auto has_road = [&]( Coord tile ) {
+    return viz.visible( tile ) &&
+           rn::has_road( viz.square_at( tile ) );
+  };
+
+  if( !has_road( world_tile ) ) return;
 
   static constexpr array<pair<e_direction, e_tile>, 8> const
       road_tiles{
@@ -148,9 +155,10 @@ void render_road_if_present( rr::Painter& painter, Coord where,
   bool road_in_surroundings = false;
   for( auto [direction, tile] : road_tiles ) {
     Coord shifted = world_tile.moved( direction );
-    if( !terrain_state.square_exists( shifted ) ||
-        !has_road( terrain_state, shifted ) )
-      continue;
+    // If the square is off the map then this should yield one of
+    // the proto squares which will not have a road, which is
+    // what we want.
+    if( !has_road( shifted ) ) continue;
     road_in_surroundings = true;
     render_sprite( painter, where, tile );
   }

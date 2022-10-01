@@ -90,8 +90,7 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   RootState saved;
 
   MapUpdater map_updater(
-      ss.mutable_terrain_use_with_care,
-      global_renderer_use_only_when_needed() );
+      ss, global_renderer_use_only_when_needed() );
 
   lua::state& st = planes.console().lua_state();
 
@@ -114,7 +113,6 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
     // maybe there are no games to load.
     co_return;
 
-  map_updater.redraw();
   ensure_human_player( ss.players );
 
   MenuPlane menu_plane;

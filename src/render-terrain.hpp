@@ -12,15 +12,16 @@
 
 #include "core-config.hpp"
 
-// render
-#include "render/renderer.hpp"
-
 // gfx
 #include "gfx/coord.hpp"
 
+namespace rr {
+struct Renderer;
+}
+
 namespace rn {
 
-struct TerrainState;
+struct Visibility;
 
 /****************************************************************
 ** TerrainRenderOptions
@@ -35,17 +36,16 @@ struct TerrainRenderOptions {
 /****************************************************************
 ** Rendering
 *****************************************************************/
-// This will fully render a map square with no units or colonies
-// on it.
+// Render the terrain square as seen by a player (meaning that it
+// might not be visible).
 void render_terrain_square(
-    TerrainState const& terrain_state, rr::Renderer& renderer,
-    Coord where, Coord world_square,
-    TerrainRenderOptions const& options );
+    rr::Renderer& renderer, Coord where, Coord world_square,
+    Visibility const& viz, TerrainRenderOptions const& options );
 
 // Render the entire map to the landscape buffer. Should only be
 // called once after the map is generated.
-void render_terrain( TerrainState const&         terrain_state,
-                     rr::Renderer&               renderer,
+void render_terrain( rr::Renderer&               renderer,
+                     Visibility const&           viz,
                      TerrainRenderOptions const& options );
 
 } // namespace rn

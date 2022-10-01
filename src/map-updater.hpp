@@ -38,7 +38,9 @@ struct Renderer;
 namespace rn {
 
 struct IMapUpdater;
-struct TerrainState;
+struct SS;
+struct TerrainRenderOptions;
+struct Visibility;
 
 /****************************************************************
 ** MapUpdaterOptions
@@ -88,14 +90,27 @@ struct IMapUpdater {
 
   virtual ~IMapUpdater() = default;
 
-  // This function should be used whenever a map square
-  // (specifically, a MapSquare object) must be updated as it
-  // will handler re-rendering the surrounding squares.
-  virtual void modify_map_square( Coord            tile,
+  // This function should be used whenever a map square (specifi-
+  // cally, a MapSquare object) must be updated as it will han-
+  // dler re-rendering the surrounding squares. Returns true if
+  // the new square is different from the old one.
+  virtual bool modify_map_square( Coord            tile,
                                   SquareUpdateFunc mutator ) = 0;
 
-  // This function should be used when generating the map.
+  // This function should be used when generating the map. It
+  // will not (re)draw the map or update player maps, since it is
+  // only expected to be called when setting up the world, and in
+  // that process the player maps and drawing happen subse-
+  // quently.
   virtual void modify_entire_map( MapUpdateFunc mutator ) = 0;
+
+  // If the given nation cannot see the square it will be made
+  // visible, and if it was already visible then it will be up-
+  // dated in case it was stale. In the case that it was updated
+  // (and changed) it will be redrawn. Returns true if the play-
+  // er's map square was changed as a result.
+  virtual bool make_square_visible( Coord    tile,
+                                    e_nation nation ) = 0;
 
   // Will redraw the entire map.
   virtual void redraw() = 0;
@@ -125,40 +140,49 @@ struct IMapUpdater {
 };
 
 /****************************************************************
-** MapUpdater
-*****************************************************************/
-struct MapUpdater : IMapUpdater {
-  MapUpdater( TerrainState& terrain_state,
-              rr::Renderer& renderer )
-    : terrain_state_( terrain_state ),
-      renderer_( renderer ),
-      tiles_updated_( 0 ) {}
-
-  // Implement IMapUpdater.
-  void modify_map_square( Coord            tile,
-                          SquareUpdateFunc mutator ) override;
-
-  // Implement IMapUpdater.
-  void modify_entire_map( MapUpdateFunc mutator ) override;
-
-  // Implement IMapUpdater.
-  void redraw() override;
-
- private:
-  TerrainState& terrain_state_;
-  rr::Renderer& renderer_;
-  int           tiles_updated_;
-};
-
-/****************************************************************
 ** NonRenderingMapUpdater
 *****************************************************************/
 struct NonRenderingMapUpdater : IMapUpdater {
-  NonRenderingMapUpdater( TerrainState& terrain_state )
-    : terrain_state_( terrain_state ) {}
+  NonRenderingMapUpdater( SS& ss ) : ss_( ss ) {}
 
   // Implement IMapUpdater.
-  void modify_map_square( Coord, SquareUpdateFunc ) override;
+  bool modify_map_square( Coord, SquareUpdateFunc ) override;
+
+  // Implement IMapUpdater.
+  bool make_square_visible( Coord    tile,
+                            e_nation nation ) override;
+
+  // Implement IMapUpdater.
+  void modify_entire_map( MapUpdateFunc mutator ) override;
+
+  // Implement IMapUpdater.
+  void redraw() override;
+
+ protected:
+  SS& ss_;
+};
+
+/****************************************************************
+** MapUpdater
+*****************************************************************/
+// The real map updater used by the game. This one delegates to
+// the non-rendering version to make changes to the maps, then
+// proceeds (if necessary) to do rendering.
+struct MapUpdater : NonRenderingMapUpdater {
+  using Base = NonRenderingMapUpdater;
+
+  MapUpdater( SS& ss, rr::Renderer& renderer )
+    : NonRenderingMapUpdater( ss ),
+      renderer_( renderer ),
+      tiles_redrawn_( 0 ) {}
+
+  // Implement IMapUpdater.
+  bool modify_map_square( Coord            tile,
+                          SquareUpdateFunc mutator ) override;
+
+  // Implement IMapUpdater.
+  bool make_square_visible( Coord    tile,
+                            e_nation nation ) override;
 
   // Implement IMapUpdater.
   void modify_entire_map( MapUpdateFunc mutator ) override;
@@ -167,7 +191,14 @@ struct NonRenderingMapUpdater : IMapUpdater {
   void redraw() override;
 
  private:
-  TerrainState& terrain_state_;
+  void redraw_square(
+      Visibility const&           viz,
+      TerrainRenderOptions const& terrain_options, Coord tile );
+
+  Visibility visibility() const;
+
+  rr::Renderer& renderer_;
+  int           tiles_redrawn_;
 };
 
 /****************************************************************
@@ -181,7 +212,11 @@ struct TrappingMapUpdater : IMapUpdater {
   TrappingMapUpdater() = default;
 
   // Implement IMapUpdater.
-  void modify_map_square( Coord, SquareUpdateFunc ) override;
+  bool modify_map_square( Coord, SquareUpdateFunc ) override;
+
+  // Implement IMapUpdater.
+  bool make_square_visible( Coord    tile,
+                            e_nation nation ) override;
 
   // Implement IMapUpdater.
   void modify_entire_map( MapUpdateFunc mutator ) override;

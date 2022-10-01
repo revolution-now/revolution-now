@@ -22,6 +22,7 @@
 #include "tile-enum.rds.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
+#include "visibility.hpp"
 
 // config
 #include "config/colony.rds.hpp"
@@ -29,6 +30,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/player.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
@@ -289,6 +291,9 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
   // here.
   rr::Painter painter      = renderer.painter();
   Coord const world_square = colony_.location;
+  UNWRAP_CHECK( player_terrain,
+                ss_.terrain.player_terrain( player_.nation ) );
+  Visibility const viz( ss_.terrain, player_terrain );
   // Render terrain.
   for( auto local_coord :
        Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) {
@@ -299,9 +304,9 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
         Rect::from( local_coord * g_tile_delta, g_tile_delta ),
         gfx::pixel{ .r = 128, .g = 128, .b = 128, .a = 255 } );
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
-    render_terrain_square(
-        ss_.terrain, renderer, local_coord * g_tile_delta,
-        render_square, TerrainRenderOptions{} );
+    render_terrain_square( renderer, local_coord * g_tile_delta,
+                           render_square, viz,
+                           TerrainRenderOptions{} );
     static Coord const local_colony_loc =
         Coord{ .x = 1, .y = 1 };
     if( local_coord == local_colony_loc ) continue;

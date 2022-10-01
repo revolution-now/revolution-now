@@ -83,10 +83,9 @@ base::maybe<MapSquare&> TerrainState::mutable_maybe_square_at(
   return mutable_world_map()[coord.y][coord.x];
 }
 
-PlayerTerrain const& TerrainState::player_terrain(
+base::maybe<PlayerTerrain const&> TerrainState::player_terrain(
     e_nation nation ) const {
-  UNWRAP_CHECK( res, o_.player_terrain[nation] );
-  return res;
+  return o_.player_terrain[nation];
 }
 
 PlayerTerrain& TerrainState::mutable_player_terrain(

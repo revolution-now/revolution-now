@@ -52,6 +52,8 @@ bool can_irrigate( MapSquare const& square );
 bool has_irrigation( TerrainState const& terrain_state,
                      Coord               tile );
 
+bool has_irrigation( MapSquare const& square );
+
 /****************************************************************
 ** Unit State
 *****************************************************************/
@@ -74,7 +76,6 @@ bool can_plow( Unit const& unit );
 ** Rendering
 *****************************************************************/
 void render_plow_if_present( rr::Painter& painter, Coord where,
-                             TerrainState const& terrain_state,
-                             Coord               world_tile );
+                             MapSquare const& square );
 
 } // namespace rn

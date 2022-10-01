@@ -18,6 +18,7 @@
 #include "renderer.hpp" // FIXME: remove
 #include "road.hpp"
 #include "tiles.hpp"
+#include "visibility.hpp"
 
 // ss
 #include "ss/terrain.hpp"
@@ -65,41 +66,41 @@ e_tile tile_for_ground_terrain( e_ground_terrain terrain ) {
 }
 
 maybe<e_ground_terrain> ground_terrain_for_square(
-    TerrainState const& terrain_state, MapSquare const& square,
+    Visibility const& viz, MapSquare const& square,
     Coord world_square ) {
   if( square.surface == e_surface::land ) return square.ground;
   // We have a water so get it from the surroundings.
-  MapSquare const& left = terrain_state.total_square_at(
-      world_square - Delta{ .w = 1 } );
+  MapSquare const& left =
+      viz.square_at( world_square - Delta{ .w = 1 } );
   if( left.surface == e_surface::land ) return left.ground;
 
-  MapSquare const& up = terrain_state.total_square_at(
-      world_square - Delta{ .h = 1 } );
+  MapSquare const& up =
+      viz.square_at( world_square - Delta{ .h = 1 } );
   if( up.surface == e_surface::land ) return up.ground;
 
-  MapSquare const& right = terrain_state.total_square_at(
-      world_square + Delta{ .w = 1 } );
+  MapSquare const& right =
+      viz.square_at( world_square + Delta{ .w = 1 } );
   if( right.surface == e_surface::land ) return right.ground;
 
-  MapSquare const& down = terrain_state.total_square_at(
-      world_square + Delta{ .h = 1 } );
+  MapSquare const& down =
+      viz.square_at( world_square + Delta{ .h = 1 } );
   if( down.surface == e_surface::land ) return down.ground;
 
-  MapSquare const& up_left = terrain_state.total_square_at(
+  MapSquare const& up_left = viz.square_at(
       world_square - Delta{ .w = 1 } - Delta{ .h = 1 } );
   if( up_left.surface == e_surface::land ) return up_left.ground;
 
-  MapSquare const& up_right = terrain_state.total_square_at(
+  MapSquare const& up_right = viz.square_at(
       world_square - Delta{ .h = 1 } + Delta{ .w = 1 } );
   if( up_right.surface == e_surface::land )
     return up_right.ground;
 
-  MapSquare const& down_right = terrain_state.total_square_at(
+  MapSquare const& down_right = viz.square_at(
       world_square + Delta{ .w = 1 } + Delta{ .h = 1 } );
   if( down_right.surface == e_surface::land )
     return down_right.ground;
 
-  MapSquare const& down_left = terrain_state.total_square_at(
+  MapSquare const& down_left = viz.square_at(
       world_square + Delta{ .h = 1 } - Delta{ .w = 1 } );
   if( down_left.surface == e_surface::land )
     return down_left.ground;
@@ -107,11 +108,9 @@ maybe<e_ground_terrain> ground_terrain_for_square(
   return nothing;
 }
 
-void render_forest( TerrainState const& terrain_state,
-                    rr::Painter& painter, Coord where,
-                    Coord world_square ) {
-  MapSquare const& here =
-      terrain_state.total_square_at( world_square );
+void render_forest( Visibility const& viz, rr::Painter& painter,
+                    Coord where, Coord world_square ) {
+  MapSquare const& here = viz.square_at( world_square );
   DCHECK( here.surface == e_surface::land );
   if( here.ground == e_ground_terrain::desert ) {
     render_sprite( painter, where,
@@ -123,7 +122,7 @@ void render_forest( TerrainState const& terrain_state,
   // non-desert, and it has a forest.
   auto is_forest = [&]( e_direction d ) {
     MapSquare const& s =
-        terrain_state.total_square_at( world_square.moved( d ) );
+        viz.square_at( world_square.moved( d ) );
     return s.surface == e_surface::land &&
            s.overlay == e_land_overlay::forest &&
            s.ground != e_ground_terrain::desert;
@@ -246,19 +245,19 @@ e_tile overlay_tile( MapSquare const& square ) {
 // for each segment other wise overlaping segments (in the cor-
 // ners) will depixelate the exact same pixels and only one will
 // be visible.
-void render_adjacent_overlap( TerrainState const& terrain_state,
-                              rr::Renderer&       renderer,
+void render_adjacent_overlap( Visibility const& viz,
+                              rr::Renderer&     renderer,
                               Coord where, Coord world_square,
                               double chop_percent,
                               Delta  anchor_offset ) {
-  MapSquare const& west = terrain_state.total_square_at(
-      world_square - Delta{ .w = 1 } );
-  MapSquare const& north = terrain_state.total_square_at(
-      world_square - Delta{ .h = 1 } );
-  MapSquare const& east = terrain_state.total_square_at(
-      world_square + Delta{ .w = 1 } );
-  MapSquare const& south = terrain_state.total_square_at(
-      world_square + Delta{ .h = 1 } );
+  MapSquare const& west =
+      viz.square_at( world_square - Delta{ .w = 1 } );
+  MapSquare const& north =
+      viz.square_at( world_square - Delta{ .h = 1 } );
+  MapSquare const& east =
+      viz.square_at( world_square + Delta{ .w = 1 } );
+  MapSquare const& south =
+      viz.square_at( world_square + Delta{ .h = 1 } );
 
   int chop_pixels = std::lround( g_tile_delta.w * chop_percent );
   W   chop_w      = W{ chop_pixels };
@@ -276,7 +275,7 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
-         terrain_state, west, world_square - Delta{ .w = 1 } );
+        viz, west, world_square - Delta{ .w = 1 } );
     if( ground )
       render_sprite_section( painter,
                              tile_for_ground_terrain( *ground ),
@@ -295,7 +294,7 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
-         terrain_state, north, world_square - Delta{ .h = 1 } );
+        viz, north, world_square - Delta{ .h = 1 } );
     if( ground )
       render_sprite_section( painter,
                              tile_for_ground_terrain( *ground ),
@@ -314,7 +313,7 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
-         terrain_state, south, world_square + Delta{ .h = 1 } );
+        viz, south, world_square + Delta{ .h = 1 } );
     if( ground )
       render_sprite_section( painter,
                              tile_for_ground_terrain( *ground ),
@@ -333,7 +332,7 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
-         terrain_state, east, world_square + Delta{ .w = 1 } );
+        viz, east, world_square + Delta{ .w = 1 } );
     if( ground )
       render_sprite_section( painter,
                              tile_for_ground_terrain( *ground ),
@@ -341,8 +340,8 @@ void render_adjacent_overlap( TerrainState const& terrain_state,
   }
 }
 
-void render_terrain_ground( TerrainState const& terrain_state,
-                            rr::Painter&        painter,
+void render_terrain_ground( Visibility const& viz,
+                            rr::Painter&      painter,
                             rr::Renderer& renderer, Coord where,
                             Coord            world_square,
                             e_ground_terrain ground ) {
@@ -375,7 +374,7 @@ void render_terrain_ground( TerrainState const& terrain_state,
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                              g_tile_overlap_stage_two_stage );
     render_adjacent_overlap(
-        terrain_state, renderer, where, world_square,
+        viz, renderer, where, world_square,
         /*chop_percent=*/
         clamp( 1.0 - g_tile_overlap_width_percent *
                          g_tile_overlap_scaling,
@@ -388,7 +387,7 @@ void render_terrain_ground( TerrainState const& terrain_state,
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                              g_tile_overlap_stage_one_stage );
     render_adjacent_overlap(
-        terrain_state, renderer, where, world_square,
+        viz, renderer, where, world_square,
         /*chop_percent=*/
         clamp( 1.0 - ( g_tile_overlap_width_percent / 2.0 ) *
                          g_tile_overlap_scaling,
@@ -397,15 +396,15 @@ void render_terrain_ground( TerrainState const& terrain_state,
 #endif
   }
 
-  MapSquare const& left = terrain_state.total_square_at(
-      world_square - Delta{ .w = 1 } );
-  MapSquare const& up = terrain_state.total_square_at(
-      world_square - Delta{ .h = 1 } );
-  MapSquare const& right = terrain_state.total_square_at(
-      world_square + Delta{ .w = 1 } );
-  MapSquare const& up_left = terrain_state.total_square_at(
+  MapSquare const& left =
+      viz.square_at( world_square - Delta{ .w = 1 } );
+  MapSquare const& up =
+      viz.square_at( world_square - Delta{ .h = 1 } );
+  MapSquare const& right =
+      viz.square_at( world_square + Delta{ .w = 1 } );
+  MapSquare const& up_left = viz.square_at(
       world_square - Delta{ .h = 1 } - Delta{ .w = 1 } );
-  MapSquare const& up_right = terrain_state.total_square_at(
+  MapSquare const& up_right = viz.square_at(
       world_square + Delta{ .w = 1 } - Delta{ .h = 1 } );
 
   // This should be done at the end.
@@ -435,12 +434,13 @@ void render_terrain_ground( TerrainState const& terrain_state,
 }
 
 // Pass in the painter as well for efficiency.
-void render_terrain_land_square(
-    TerrainState const& terrain_state, rr::Painter& painter,
-    rr::Renderer& renderer, Coord where, Coord world_square,
-    MapSquare const& square ) {
+void render_terrain_land_square( Visibility const& viz,
+                                 rr::Painter&      painter,
+                                 rr::Renderer&     renderer,
+                                 Coord where, Coord world_square,
+                                 MapSquare const& square ) {
   DCHECK( square.surface == e_surface::land );
-  render_terrain_ground( terrain_state, painter, renderer, where,
+  render_terrain_ground( viz, painter, renderer, where,
                          world_square, square.ground );
 }
 
@@ -501,19 +501,19 @@ void render_river_water_tile( rr::Renderer& renderer,
 //   3. We draw special fan-out tiles, one for each surrounding
 //      square that has a river.
 //
-void render_river_on_ocean( TerrainState const& terrain_state,
+void render_river_on_ocean( Visibility const& viz,
                             rr::Renderer& renderer, Coord where,
                             Coord            world_square,
                             MapSquare const& square ) {
   CHECK( square.river.has_value() );
-  MapSquare const& up = terrain_state.total_square_at(
-      world_square - Delta{ .h = 1 } );
-  MapSquare const& right = terrain_state.total_square_at(
-      world_square + Delta{ .w = 1 } );
-  MapSquare const& down = terrain_state.total_square_at(
-      world_square + Delta{ .h = 1 } );
-  MapSquare const& left = terrain_state.total_square_at(
-      world_square - Delta{ .w = 1 } );
+  MapSquare const& up =
+      viz.square_at( world_square - Delta{ .h = 1 } );
+  MapSquare const& right =
+      viz.square_at( world_square + Delta{ .w = 1 } );
+  MapSquare const& down =
+      viz.square_at( world_square + Delta{ .h = 1 } );
+  MapSquare const& left =
+      viz.square_at( world_square - Delta{ .w = 1 } );
 
   bool river_up =
       up.river.has_value() && up.surface == e_surface::land;
@@ -557,20 +557,20 @@ void render_river_on_ocean( TerrainState const& terrain_state,
   }
 }
 
-void render_river_on_land( TerrainState const& terrain_state,
+void render_river_on_land( Visibility const& viz,
                            rr::Renderer& renderer, Coord where,
                            Coord            world_square,
                            MapSquare const& square,
                            bool             no_bank ) {
   DCHECK( square.river.has_value() );
-  MapSquare const& up = terrain_state.total_square_at(
-      world_square - Delta{ .h = 1 } );
-  MapSquare const& right = terrain_state.total_square_at(
-      world_square + Delta{ .w = 1 } );
-  MapSquare const& down = terrain_state.total_square_at(
-      world_square + Delta{ .h = 1 } );
-  MapSquare const& left = terrain_state.total_square_at(
-      world_square - Delta{ .w = 1 } );
+  MapSquare const& up =
+      viz.square_at( world_square - Delta{ .h = 1 } );
+  MapSquare const& right =
+      viz.square_at( world_square + Delta{ .w = 1 } );
+  MapSquare const& down =
+      viz.square_at( world_square + Delta{ .h = 1 } );
+  MapSquare const& left =
+      viz.square_at( world_square - Delta{ .w = 1 } );
 
   bool river_up    = up.river.has_value();
   bool river_right = right.river.has_value();
@@ -815,15 +815,15 @@ void render_river_on_land( TerrainState const& terrain_state,
 }
 
 bool has_surrounding_nonforest_river_squares(
-    TerrainState const& terrain_state, Coord world_square ) {
-  MapSquare const& up = terrain_state.total_square_at(
-      world_square - Delta{ .h = 1 } );
-  MapSquare const& right = terrain_state.total_square_at(
-      world_square + Delta{ .w = 1 } );
-  MapSquare const& down = terrain_state.total_square_at(
-      world_square + Delta{ .h = 1 } );
-  MapSquare const& left = terrain_state.total_square_at(
-      world_square - Delta{ .w = 1 } );
+    Visibility const& viz, Coord world_square ) {
+  MapSquare const& up =
+      viz.square_at( world_square - Delta{ .h = 1 } );
+  MapSquare const& right =
+      viz.square_at( world_square + Delta{ .w = 1 } );
+  MapSquare const& down =
+      viz.square_at( world_square + Delta{ .h = 1 } );
+  MapSquare const& left =
+      viz.square_at( world_square - Delta{ .w = 1 } );
 
   int res = 0;
 
@@ -847,7 +847,7 @@ bool has_surrounding_nonforest_river_squares(
   return res > 0;
 }
 
-void render_river_hinting( TerrainState const& terrain_state,
+void render_river_hinting( Visibility const& viz,
                            rr::Renderer& renderer, Coord where,
                            Coord            world_square,
                            MapSquare const& square ) {
@@ -858,7 +858,7 @@ void render_river_hinting( TerrainState const& terrain_state,
   static double constexpr kInnerDepixelStage = 0.6;
   static_assert( kInnerAlpha >= kEdgeAlpha );
   bool is_edge = has_surrounding_nonforest_river_squares(
-      terrain_state, world_square );
+      viz, world_square );
   double const alpha = is_edge ? kEdgeAlpha : kInnerAlpha;
   double const stage =
       is_edge ? kEdgeDepixelStage : kInnerDepixelStage;
@@ -867,12 +867,12 @@ void render_river_hinting( TerrainState const& terrain_state,
                            where );
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                            stage );
-  render_river_on_land( terrain_state, renderer, where,
-                        world_square, square, /*no_bank=*/true );
+  render_river_on_land( viz, renderer, where, world_square,
+                        square, /*no_bank=*/true );
 }
 
-void render_land_overlay( TerrainState const& terrain_state,
-                          rr::Renderer&       renderer,
+void render_land_overlay( Visibility const& viz,
+                          rr::Renderer&     renderer,
                           rr::Painter& painter, Coord where,
                           Coord            world_square,
                           MapSquare const& square,
@@ -881,7 +881,7 @@ void render_land_overlay( TerrainState const& terrain_state,
     // Need to do this inside the if since we don't want to go to
     // the outter else branch.
     if( !options.render_forests ) return;
-    render_forest( terrain_state, painter, where, world_square );
+    render_forest( viz, painter, where, world_square );
     if( square.river.has_value() ) {
       if( square.ground != e_ground_terrain::desert )
         // This forest square, which contains a river, has al-
@@ -895,14 +895,14 @@ void render_land_overlay( TerrainState const& terrain_state,
         // For the best visual effect, we will only render this
         // hint on forest tiles that are completely surrounded
         // (in the cardinal directions) by other forest tiles.
-        render_river_hinting( terrain_state, renderer, where,
-                              world_square, square );
+        render_river_hinting( viz, renderer, where, world_square,
+                              square );
       else
         // If it's a forest in a desert (scrub forest) then just
         // render the river over top of it seems to make more
         // sense visually.
-        render_river_on_land( terrain_state, renderer, where,
-                              world_square, square,
+        render_river_on_land( viz, renderer, where, world_square,
+                              square,
                               /*no_bank=*/false );
     }
   } else if( square.overlay.has_value() ) {
@@ -911,27 +911,29 @@ void render_land_overlay( TerrainState const& terrain_state,
   }
 }
 
-void render_terrain_ocean_square(
-    rr::Renderer& renderer, rr::Painter& painter, Coord where,
-    TerrainState const& terrain_state, MapSquare const& square,
-    Coord world_square ) {
+void render_terrain_ocean_square( rr::Renderer&     renderer,
+                                  rr::Painter&      painter,
+                                  Coord             where,
+                                  Visibility const& viz,
+                                  MapSquare const&  square,
+                                  Coord world_square ) {
   DCHECK( square.surface == e_surface::water );
 
-  MapSquare const& up = terrain_state.total_square_at(
-      world_square - Delta{ .h = 1 } );
-  MapSquare const& right = terrain_state.total_square_at(
-      world_square + Delta{ .w = 1 } );
-  MapSquare const& down = terrain_state.total_square_at(
-      world_square + Delta{ .h = 1 } );
-  MapSquare const& left = terrain_state.total_square_at(
-      world_square - Delta{ .w = 1 } );
-  MapSquare const& up_left = terrain_state.total_square_at(
+  MapSquare const& up =
+      viz.square_at( world_square - Delta{ .h = 1 } );
+  MapSquare const& right =
+      viz.square_at( world_square + Delta{ .w = 1 } );
+  MapSquare const& down =
+      viz.square_at( world_square + Delta{ .h = 1 } );
+  MapSquare const& left =
+      viz.square_at( world_square - Delta{ .w = 1 } );
+  MapSquare const& up_left = viz.square_at(
       world_square - Delta{ .h = 1 } - Delta{ .w = 1 } );
-  MapSquare const& up_right = terrain_state.total_square_at(
+  MapSquare const& up_right = viz.square_at(
       world_square + Delta{ .w = 1 } - Delta{ .h = 1 } );
-  MapSquare const& down_right = terrain_state.total_square_at(
+  MapSquare const& down_right = viz.square_at(
       world_square + Delta{ .h = 1 } + Delta{ .w = 1 } );
-  MapSquare const& down_left = terrain_state.total_square_at(
+  MapSquare const& down_left = viz.square_at(
       world_square - Delta{ .w = 1 } + Delta{ .h = 1 } );
 
   bool water_up    = up.surface == e_surface::water;
@@ -970,7 +972,7 @@ void render_terrain_ocean_square(
 
   auto is_land_if_exists = [&]( e_direction d ) {
     MapSquare const& s =
-        terrain_state.total_square_at( world_square.moved( d ) );
+        viz.square_at( world_square.moved( d ) );
     return s.surface == e_surface::land;
   };
 
@@ -1599,10 +1601,9 @@ void render_terrain_ocean_square(
   // We have at least one bordering land square, so we need to
   // render a ground tile first because there will be a bit of
   // land visible on this tile.
-  UNWRAP_CHECK( ground,
-                ground_terrain_for_square( terrain_state, square,
-                                           world_square ) );
-  render_terrain_ground( terrain_state, painter, renderer, where,
+  UNWRAP_CHECK( ground, ground_terrain_for_square(
+                            viz, square, world_square ) );
+  render_terrain_ground( viz, painter, renderer, where,
                          world_square, ground );
 
   e_tile ocean_background = square.sea_lane
@@ -1688,15 +1689,14 @@ void render_lost_city_rumor( rr::Painter& painter, Coord where,
     render_sprite( painter, where, e_tile::lost_city_rumor );
 }
 
-void render_fish( TerrainState const& terrain_state,
-                  rr::Renderer& renderer, Coord where,
-                  Coord world_square ) {
-  MapSquare const& up = terrain_state.total_square_at(
-      world_square - Delta{ .h = 1 } );
-  MapSquare const& left = terrain_state.total_square_at(
-      world_square - Delta{ .w = 1 } );
-  MapSquare const& down = terrain_state.total_square_at(
-      world_square + Delta{ .h = 1 } );
+void render_fish( Visibility const& viz, rr::Renderer& renderer,
+                  Coord where, Coord world_square ) {
+  MapSquare const& up =
+      viz.square_at( world_square - Delta{ .h = 1 } );
+  MapSquare const& left =
+      viz.square_at( world_square - Delta{ .w = 1 } );
+  MapSquare const& down =
+      viz.square_at( world_square + Delta{ .h = 1 } );
 
   bool const land_up   = up.surface == e_surface::land;
   bool const land_left = left.surface == e_surface::land;
@@ -1767,54 +1767,59 @@ e_tile resource_tile( e_natural_resource resource ) {
   }
 }
 
-void render_resources( rr::Renderer&       renderer,
-                       rr::Painter&        painter,
-                       TerrainState const& terrain_state,
-                       Coord where, MapSquare const& square,
-                       Coord world_square ) {
+void render_resources( rr::Renderer&     renderer,
+                       rr::Painter&      painter,
+                       Visibility const& viz, Coord where,
+                       MapSquare const& square,
+                       Coord            world_square ) {
   maybe<e_natural_resource> resource =
       effective_resource( square );
   if( !resource.has_value() ) return;
   if( *resource == e_natural_resource::fish )
-    return render_fish( terrain_state, renderer, where,
-                        world_square );
+    return render_fish( viz, renderer, where, world_square );
   render_sprite( painter, where, resource_tile( *resource ) );
+}
+
+void render_invisible_terrain_square(
+    rr::Renderer& renderer, Coord where, Coord const,
+    Visibility const&, TerrainRenderOptions const& ) {
+  rr::Painter painter = renderer.painter();
+  render_sprite( painter, where, e_tile::terrain_hidden );
 }
 
 } // namespace
 
-// Pass in the painter as well for efficiency.
 void render_terrain_square(
-    TerrainState const& terrain_state, rr::Renderer& renderer,
-    Coord where, Coord const world_square,
+    rr::Renderer& renderer, Coord where,
+    Coord const world_square, Visibility const& viz,
     TerrainRenderOptions const& options ) {
+  if( !viz.visible( world_square ) )
+    return render_invisible_terrain_square(
+        renderer, where, world_square, viz, options );
   rr::Painter      painter = renderer.painter();
-  MapSquare const& square =
-      terrain_state.square_at( world_square );
+  MapSquare const& square  = viz.square_at( world_square );
   if( square.surface == e_surface::water ) {
-    render_terrain_ocean_square( renderer, painter, where,
-                                 terrain_state, square,
-                                 world_square );
+    render_terrain_ocean_square( renderer, painter, where, viz,
+                                 square, world_square );
     if( square.river.has_value() )
-      render_river_on_ocean( terrain_state, renderer, where,
-                             world_square, square );
+      render_river_on_ocean( viz, renderer, where, world_square,
+                             square );
   } else {
-    render_terrain_land_square( terrain_state, painter, renderer,
-                                where, world_square, square );
+    render_terrain_land_square( viz, painter, renderer, where,
+                                world_square, square );
     if( square.river.has_value() )
-      render_river_on_land( terrain_state, renderer, where,
-                            world_square, square,
+      render_river_on_land( viz, renderer, where, world_square,
+                            square,
                             /*no_bank=*/false );
   }
-  render_land_overlay( terrain_state, renderer, painter, where,
+  render_land_overlay( viz, renderer, painter, where,
                        world_square, square, options );
-  render_plow_if_present( painter, where, terrain_state,
-                          world_square );
+  render_plow_if_present( painter, where,
+                          viz.square_at( world_square ) );
   if( !square.lost_city_rumor && options.render_resources )
-    render_resources( renderer, painter, terrain_state, where,
-                      square, world_square );
-  render_road_if_present( painter, where, terrain_state,
-                          world_square );
+    render_resources( renderer, painter, viz, where, square,
+                      world_square );
+  render_road_if_present( painter, where, viz, world_square );
   if( options.render_lcrs )
     render_lost_city_rumor( painter, where, square );
   if( options.grid )
@@ -1823,8 +1828,8 @@ void render_terrain_square(
                              gfx::pixel{ 0, 0, 0, 30 } );
 }
 
-void render_terrain( TerrainState const&         terrain_state,
-                     rr::Renderer&               renderer,
+void render_terrain( rr::Renderer&               renderer,
+                     Visibility const&           viz,
                      TerrainRenderOptions const& options ) {
   SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
   auto const kLandscapeBuf =
@@ -1832,10 +1837,9 @@ void render_terrain( TerrainState const&         terrain_state,
   renderer.clear_buffer( kLandscapeBuf );
   SCOPED_RENDERER_MOD_SET( buffer_mods.buffer, kLandscapeBuf );
   auto start_time = chrono::system_clock::now();
-  for( Coord square : terrain_state.world_rect_tiles() )
-    render_terrain_square( terrain_state, renderer,
-                           square * g_tile_delta, square,
-                           options );
+  for( Coord square : viz.rect_tiles() )
+    render_terrain_square( renderer, square * g_tile_delta,
+                           square, viz, options );
   auto end_time = chrono::system_clock::now();
   lg.info(
       "rendered landscape: {}ms with {} vertices, occupying "

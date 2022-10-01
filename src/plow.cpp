@@ -110,6 +110,10 @@ bool can_irrigate( TerrainState const& terrain_state,
 bool has_irrigation( TerrainState const& terrain_state,
                      Coord               tile ) {
   MapSquare const& square = terrain_state.square_at( tile );
+  return has_irrigation( square );
+}
+
+bool has_irrigation( MapSquare const& square ) {
   return square.irrigation;
 }
 
@@ -145,8 +149,8 @@ void perform_plow_work( UnitsState const&   units_state,
   // The unit is still plowing.
   int       turns_worked = unit.turns_worked();
   int const plow_turns   = turns_required(
-        unit.type(),
-        effective_terrain( terrain_state.square_at( location ) ) );
+      unit.type(),
+      effective_terrain( terrain_state.square_at( location ) ) );
   CHECK_LE( turns_worked, plow_turns );
   if( turns_worked == plow_turns ) {
     // We're finished plowing.
@@ -172,9 +176,8 @@ bool can_plow( Unit const& unit ) {
 ** Rendering
 *****************************************************************/
 void render_plow_if_present( rr::Painter& painter, Coord where,
-                             TerrainState const& terrain_state,
-                             Coord               world_tile ) {
-  if( !has_irrigation( terrain_state, world_tile ) ) return;
+                             MapSquare const& square ) {
+  if( !has_irrigation( square ) ) return;
   render_sprite( painter, where, e_tile::irrigation );
 }
 

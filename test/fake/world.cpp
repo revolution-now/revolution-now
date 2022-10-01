@@ -159,6 +159,7 @@ void World::build_map( vector<MapSquare> tiles, W width ) {
   map_updater().modify_entire_map( [&]( Matrix<MapSquare>& m ) {
     m = Matrix<MapSquare>( std::move( tiles ), width );
   } );
+  init_player_maps();
 }
 
 void World::init_player_maps() {

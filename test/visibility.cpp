@@ -92,8 +92,6 @@ struct World : testing::World {
     terrain()
         .mutable_proto_square( e_cardinal_direction::s )
         .surface = e_surface::land;
-
-    init_player_maps();
   }
 
   void give_de_soto() {

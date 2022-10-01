@@ -24,8 +24,10 @@
 namespace rn {
 
 struct IMapUpdater;
+struct MapSquare;
 struct TerrainState;
 struct UnitsState;
+struct Visibility;
 
 /****************************************************************
 ** Road State
@@ -34,6 +36,7 @@ struct UnitsState;
 void set_road( IMapUpdater& map_updater, Coord tile );
 void clear_road( IMapUpdater& map_updater, Coord tile );
 bool has_road( TerrainState const& terrain_state, Coord tile );
+bool has_road( MapSquare const& square );
 
 /****************************************************************
 ** Unit State
@@ -57,7 +60,7 @@ bool can_build_road( Unit const& unit );
 ** Rendering
 *****************************************************************/
 void render_road_if_present( rr::Painter& painter, Coord where,
-                             TerrainState const& terrain_state,
-                             Coord               world_tile );
+                             Visibility const& viz,
+                             Coord             world_tile );
 
 } // namespace rn
