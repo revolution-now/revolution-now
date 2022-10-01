@@ -22,6 +22,7 @@
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "map-edit.hpp"
+#include "map-updater.hpp"
 #include "market.hpp"
 #include "menu.hpp"
 #include "on-map.hpp"
@@ -858,6 +859,13 @@ wait<> nation_turn( Planes& planes, SS& ss, TS& ts,
   UNWRAP_CHECK( player, ss.players.players[st.nation] );
 
   if( !player.human ) co_return; // TODO: Until we have AI.
+
+  // This should trigger a redraw but only if we're changing the
+  // nation.
+  ts.map_updater.mutate_options_and_redraw(
+      [&]( MapUpdaterOptions& options ) {
+        options.nation = st.nation;
+      } );
 
   // Starting.
   if( !st.started ) {

@@ -15,6 +15,10 @@
 // Revolution Now
 #include "map-square.hpp"
 #include "matrix.hpp"
+#include "maybe.hpp"
+
+// ss
+#include "ss/nation.rds.hpp"
 
 // gfx
 #include "gfx/coord.hpp"
@@ -40,10 +44,13 @@ struct TerrainState;
 ** MapUpdaterOptions
 *****************************************************************/
 struct MapUpdaterOptions {
-  bool render_forests   = true;
-  bool render_resources = true;
-  bool render_lcrs      = true;
-  bool grid             = false;
+  maybe<e_nation> nation           = nothing;
+  bool            render_forests   = true;
+  bool            render_resources = true;
+  bool            render_lcrs      = true;
+  bool            grid             = false;
+
+  bool operator==( MapUpdaterOptions const& ) const = default;
 };
 
 namespace detail {
@@ -95,16 +102,18 @@ struct IMapUpdater {
 
   // Will call the function with the existing set of options and
   // allow modifying them, then will push a new (modified) copy
-  // onto the stack, perform a full redraw, and return a popper.
-  // Note that since this does perform a full redraw, you should
-  // modify multiple options in one shot.
+  // onto the stack, perform a full redraw if the options have
+  // changed, and return a popper. Note that since this does per-
+  // form a full redraw, you should modify multiple options in
+  // one shot.
   Popper push_options_and_redraw( OptionsUpdateFunc mutator );
 
   MapUpdaterOptions const& options() const;
 
   // Before using this consider if it would be better to use the
-  // push/pop method.
-  MapUpdaterOptions& mutable_options();
+  // push/pop method. This will allow mutating the current op-
+  // tions and will redraw only they've actually changed.
+  void mutate_options_and_redraw( OptionsUpdateFunc mutator );
 
   friend void to_str( IMapUpdater const& o, std::string& out,
                       base::ADL_t );

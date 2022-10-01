@@ -656,6 +656,14 @@ wait<> run_map_editor( Planes& planes, SS& ss, TS& ts ) {
   new_group.console  = old_group.console;
   new_group.omni     = old_group.omni;
 
+  auto map_updater_options_popper =
+      ts.map_updater.push_options_and_redraw(
+          []( MapUpdaterOptions& options ) {
+            // Will cause the entire map to be revealed and
+            // redrawn during the map editor session.
+            options.nation = nothing;
+          } );
+
   co_await map_edit_plane.run_map_editor();
 }
 

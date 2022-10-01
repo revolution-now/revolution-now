@@ -42,9 +42,11 @@ namespace detail {
 
 MapUpdaterOptionsPopper::~MapUpdaterOptionsPopper() noexcept {
   CHECK( !map_updater_.options_.empty() );
+  MapUpdaterOptions const popped = map_updater_.options_.top();
   map_updater_.options_.pop();
   CHECK( !map_updater_.options_.empty() );
-  map_updater_.redraw();
+  if( popped != map_updater_.options_.top() )
+    map_updater_.redraw();
 }
 
 } // namespace detail
@@ -71,9 +73,12 @@ MapUpdaterOptions const& IMapUpdater::options() const {
   return options_.top();
 }
 
-MapUpdaterOptions& IMapUpdater::mutable_options() {
+void IMapUpdater::mutate_options_and_redraw(
+    OptionsUpdateFunc mutator ) {
   CHECK( !options_.empty() );
-  return options_.top();
+  MapUpdaterOptions const old_options = options();
+  mutator( options_.top() );
+  if( options_.top() != old_options ) redraw();
 }
 
 void to_str( IMapUpdater const&, string& out, base::ADL_t ) {

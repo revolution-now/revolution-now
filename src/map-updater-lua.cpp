@@ -36,9 +36,10 @@ LUA_STARTUP( lua::state& st ) {
 
   u["redraw"]      = &U::redraw;
   u["toggle_grid"] = []( U& o ) {
-    bool grid                = o.options().grid;
-    o.mutable_options().grid = !grid;
-    o.redraw();
+    o.mutate_options_and_redraw(
+        []( MapUpdaterOptions& options ) {
+          options.grid = !options.grid;
+        } );
   };
 };
 
