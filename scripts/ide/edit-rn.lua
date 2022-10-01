@@ -13,7 +13,6 @@ local util = require( 'ide.util' )
 -- Aliases.
 -----------------------------------------------------------------
 local keymap = vim.keymap
-local format = string.format
 
 -----------------------------------------------------------------
 -- Layout Functions.
@@ -23,13 +22,6 @@ local module_types = {
   require( 'ide.module-main' ), --
   require( 'ide.module-shader' ) --
 }
-
--- This will increase the cmd height each time we log something
--- in order to avoid getting 'Press ENTER to continue...'.
-local function log( fmt, ... )
-  vim.o.cmdheight = vim.o.cmdheight + 1
-  print( format( fmt, ... ) )
-end
 
 local function open_module( stem )
   for _, module_type in ipairs( module_types ) do
@@ -49,10 +41,11 @@ local function open_module_with_input()
 end
 
 local function create_tabs()
-  log( 'opening modules...' )
   for _, stem in ipairs( rn ) do
-    log( '  - %s', stem )
     open_module( stem )
+    -- This is optional but allows us to see the tabs appearing
+    -- as they are opened, which is cool.
+    vim.cmd[[redraw!]]
   end
 end
 
