@@ -93,8 +93,6 @@ struct IMapUpdater {
   // Will redraw the entire map.
   virtual void redraw() = 0;
 
-  Popper push_options_no_redraw( OptionsUpdateFunc mutator );
-
   // Will call the function with the existing set of options and
   // allow modifying them, then will push a new (modified) copy
   // onto the stack, perform a full redraw, and return a popper.
