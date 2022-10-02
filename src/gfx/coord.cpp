@@ -69,17 +69,19 @@ Rect Rect::from( Coord const& coord, Delta const& delta ) {
 
 // New coord equal to this one unit of edge trimmed off
 // on all sides.  (width,height) ==> (width-2,height-2)
-Rect Rect::edges_removed() const {
+Rect Rect::edges_removed( int times ) const {
   Rect rect( *this );
 
-  // We always advance location unless length is zero.
-  if( w >= 1 ) ++rect.x;
-  if( h >= 1 ) ++rect.y;
+  for( int i = 0; i < times; ++i ) {
+    // We always advance location unless length is zero.
+    if( w >= 1 ) ++rect.x;
+    if( h >= 1 ) ++rect.y;
 
-  rect.w -= 2;
-  rect.h -= 2;
-  if( rect.w < 0 ) rect.w = 0;
-  if( rect.h < 0 ) rect.h = 0;
+    rect.w -= 2;
+    rect.h -= 2;
+    if( rect.w < 0 ) rect.w = 0;
+    if( rect.h < 0 ) rect.h = 0;
+  }
 
   return rect;
 }

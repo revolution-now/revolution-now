@@ -339,7 +339,7 @@ struct Rect {
   //
   // unless one of the dimensions has width 0 in which case
   // that dimension will remain as-is.
-  [[nodiscard]] Rect edges_removed() const;
+  [[nodiscard]] Rect edges_removed( int times = 1 ) const;
 
   [[nodiscard]] Rect with_border_added(
       int thickness = 1 ) const;
