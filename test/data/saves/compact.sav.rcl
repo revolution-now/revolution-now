@@ -1,4 +1,4 @@
-# Conquistador David of the English, Spring 1492
+# Conquistador David of the English, Spring 1492, 8x8
 land_view.viewport {
   center_x: 240
   center_y: 144
@@ -130,7 +130,58 @@ units {
 }
 
 zzz_terrain {
-  placement_seed: 2
+  placement_seed: 23
+  player_terrain.english.map {
+    data: [
+      {
+        key {
+          x: 6
+          y: 3
+        }
+        val.square.ground_resource: fish
+      },
+      {
+        key {
+          x: 7
+          y: 3
+        }
+        val.square.sea_lane: true
+      },
+      {
+        key {
+          x: 6
+          y: 4
+        }
+        val {}
+      },
+      {
+        key {
+          x: 7
+          y: 4
+        }
+        val.square.sea_lane: true
+      },
+      {
+        key {
+          x: 6
+          y: 5
+        }
+        val {}
+      },
+      {
+        key {
+          x: 7
+          y: 5
+        }
+        val.square.sea_lane: true
+      },
+    ]
+    has_coords: true
+    size {
+      h: 8
+      w: 8
+    }
+  }
   proto_squares {
     e.sea_lane: true
     n.surface: land
@@ -143,11 +194,15 @@ zzz_terrain {
         val.sea_lane: true
       },
       {
-        key.x: 2
+        key.x: 3
         val.surface: land
       },
       {
-        key.x: 3
+        key.x: 5
+        val.ground_resource: fish
+      },
+      {
+        key.x: 6
         val.surface: land
       },
       {
@@ -163,7 +218,12 @@ zzz_terrain {
           x: 1
           y: 1
         }
-        val.ground_resource: fish
+        val {
+          ground: marsh
+          overlay: forest
+          river: major
+          surface: land
+        }
       },
       {
         key {
@@ -171,10 +231,17 @@ zzz_terrain {
           y: 1
         }
         val {
-          ground: marsh
+          ground: prairie
           overlay: forest
           surface: land
         }
+      },
+      {
+        key {
+          x: 3
+          y: 1
+        }
+        val.river: minor
       },
       {
         key {
@@ -193,8 +260,9 @@ zzz_terrain {
           y: 2
         }
         val {
-          ground: plains
+          ground: swamp
           overlay: forest
+          river: major
           surface: land
         }
       },
@@ -204,7 +272,8 @@ zzz_terrain {
           y: 2
         }
         val {
-          ground: plains
+          ground: savannah
+          ground_resource: sugar
           overlay: forest
           surface: land
         }
@@ -227,17 +296,10 @@ zzz_terrain {
           y: 2
         }
         val {
-          ground: marsh
+          ground: savannah
           overlay: forest
           surface: land
         }
-      },
-      {
-        key {
-          x: 5
-          y: 2
-        }
-        val.ground_resource: fish
       },
       {
         key {
@@ -258,6 +320,7 @@ zzz_terrain {
         val {
           ground: grassland
           overlay: forest
+          river: major
           surface: land
         }
       },
@@ -267,8 +330,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          forest_resource: minerals
-          ground: marsh
+          ground: plains
           overlay: forest
           surface: land
         }
@@ -291,11 +353,17 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: grassland
-          ground_resource: tobacco
+          ground: desert
           overlay: forest
           surface: land
         }
+      },
+      {
+        key {
+          x: 6
+          y: 3
+        }
+        val.ground_resource: fish
       },
       {
         key {
@@ -306,7 +374,10 @@ zzz_terrain {
       },
       {
         key.y: 4
-        val.sea_lane: true
+        val {
+          ground_resource: fish
+          sea_lane: true
+        }
       },
       {
         key {
@@ -314,8 +385,9 @@ zzz_terrain {
           y: 4
         }
         val {
-          ground: grassland
+          ground: marsh
           overlay: forest
+          river: major
           surface: land
         }
       },
@@ -325,8 +397,7 @@ zzz_terrain {
           y: 4
         }
         val {
-          ground: grassland
-          ground_resource: tobacco
+          ground: swamp
           overlay: forest
           surface: land
         }
@@ -337,9 +408,8 @@ zzz_terrain {
           y: 4
         }
         val {
-          ground: swamp
+          ground: savannah
           overlay: forest
-          river: minor
           surface: land
         }
       },
@@ -349,18 +419,8 @@ zzz_terrain {
           y: 4
         }
         val {
-          ground: savannah
-          overlay: forest
-          surface: land
-        }
-      },
-      {
-        key {
-          x: 5
-          y: 4
-        }
-        val {
-          ground: prairie
+          forest_resource: minerals
+          ground: marsh
           overlay: forest
           surface: land
         }
@@ -374,7 +434,10 @@ zzz_terrain {
       },
       {
         key.y: 5
-        val.sea_lane: true
+        val {
+          river: minor
+          sea_lane: true
+        }
       },
       {
         key {
@@ -382,8 +445,10 @@ zzz_terrain {
           y: 5
         }
         val {
-          ground: grassland
+          forest_resource: beaver
+          ground: plains
           overlay: forest
+          river: minor
           surface: land
         }
       },
@@ -393,8 +458,9 @@ zzz_terrain {
           y: 5
         }
         val {
-          ground: prairie
+          ground: savannah
           overlay: forest
+          river: minor
           surface: land
         }
       },
@@ -416,28 +482,11 @@ zzz_terrain {
           y: 5
         }
         val {
-          ground: swamp
+          ground: desert
+          ground_resource: oasis
           overlay: forest
           surface: land
         }
-      },
-      {
-        key {
-          x: 5
-          y: 5
-        }
-        val {
-          ground: swamp
-          overlay: forest
-          surface: land
-        }
-      },
-      {
-        key {
-          x: 6
-          y: 5
-        }
-        val.ground_resource: fish
       },
       {
         key {
@@ -448,38 +497,52 @@ zzz_terrain {
       },
       {
         key.y: 6
-        val {
-          ground_resource: fish
-          sea_lane: true
-        }
+        val.sea_lane: true
       },
       {
         key {
           x: 1
           y: 6
         }
-        val {
-          ground: prairie
-          overlay: forest
-          surface: land
-        }
+        val.river: major
       },
       {
         key {
           x: 2
           y: 6
         }
-        val.river: minor
+        val {
+          ground: grassland
+          overlay: forest
+          surface: land
+        }
       },
       {
         key {
           x: 3
           y: 6
         }
+        val.ground_resource: fish
+      },
+      {
+        key {
+          x: 4
+          y: 6
+        }
         val {
           ground: swamp
           overlay: forest
-          river: minor
+          surface: land
+        }
+      },
+      {
+        key {
+          x: 5
+          y: 6
+        }
+        val {
+          ground: marsh
+          overlay: forest
           surface: land
         }
       },
@@ -492,14 +555,10 @@ zzz_terrain {
       },
       {
         key.y: 7
-        val.sea_lane: true
-      },
-      {
-        key {
-          x: 1
-          y: 7
+        val {
+          ground_resource: fish
+          sea_lane: true
         }
-        val.surface: land
       },
       {
         key {
@@ -510,24 +569,13 @@ zzz_terrain {
       },
       {
         key {
-          x: 5
-          y: 7
-        }
-        val.surface: land
-      },
-      {
-        key {
-          x: 6
-          y: 7
-        }
-        val.surface: land
-      },
-      {
-        key {
           x: 7
           y: 7
         }
-        val.sea_lane: true
+        val {
+          ground_resource: fish
+          sea_lane: true
+        }
       },
     ]
     has_coords: true

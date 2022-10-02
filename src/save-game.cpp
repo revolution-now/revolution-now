@@ -245,8 +245,10 @@ string construct_rcl_title( RootState const& root ) {
       base::capitalize_initials( refl::enum_value_name(
           turn_state.time_point.season ) ),
       turn_state.time_point.year );
-  return fmt::format( "{} {} of the {}, {}", difficulty, name,
-                      nation_name, time_point );
+  Delta const map_size = root.zzz_terrain.world_size_tiles();
+  return fmt::format( "{} {} of the {}, {}, {}x{}", difficulty,
+                      name, nation_name, time_point, map_size.w,
+                      map_size.h );
 }
 
 // We must record the serialized state of the game each time it
