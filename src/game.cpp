@@ -56,16 +56,11 @@ enum class e_game_module_tune_points {
 };
 
 // TODO: temporary until we have AI.
-void ensure_human_player( PlayersState const& players_state ) {
-  maybe<e_nation> human_nation;
-  for( auto const& [nation, player] : players_state.players ) {
-    if( player.has_value() && player->human ) {
-      human_nation = nation;
-      break;
-    }
-  }
-  CHECK( human_nation.has_value(),
-         "there must be at least one human player." );
+e_nation ensure_human_player(
+    PlayersState const& players_state ) {
+  for( auto const& [nation, player] : players_state.players )
+    if( player.has_value() && player->human ) return nation;
+  FATAL( "there must be at least one human player." );
 }
 
 void play( IRand& rand, e_game_module_tune_points tune ) {
@@ -125,7 +120,15 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
                                  /*visibility=*/nothing );
   group.land_view = &land_view_plane;
 
-  // land_view_plane.zoom_out_full();
+  // Perform the initial rendering of the map. Even though it
+  // will be wasteful, we will render the entire map (with all
+  // tiles visible), in order to catch any rendering is-
+  // sues/crashes up from, as opposed to waiting for the problem-
+  // atic tile to be encountered and exposed by the player. This
+  // will render the entire map because that is the default set-
+  // ting of the map updater.
+  lg.info( "performing initial full map render." );
+  ts.map_updater.redraw();
 
   play( rand, e_game_module_tune_points::start_game );
   // All of the above needs to stay alive, so we must wait.
