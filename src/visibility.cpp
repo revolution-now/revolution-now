@@ -83,8 +83,8 @@ bool Visibility::visible( Coord tile ) const {
     return true;
   // We're rendering from the player's point of view.
   if( !tile.is_inside( terrain_.world_rect_tiles() ) )
-    // Proto squares are always considered visible.
-    return true;
+    // Proto squares are never considered visible.
+    return false;
   DCHECK( player_terrain_.has_value() );
   maybe<MapSquare const&> square =
       player_terrain_->map[tile].member( &FogSquare::square );

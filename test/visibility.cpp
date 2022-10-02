@@ -918,10 +918,10 @@ TEST_CASE( "[visibility] Visibility" ) {
     REQUIRE( viz.visible( { .x = 0, .y = 1 } ) == false );
     REQUIRE( viz.visible( { .x = 1, .y = 1 } ) == false );
     // proto visible.
-    REQUIRE( viz.visible( { .x = -1, .y = 0 } ) == true );
-    REQUIRE( viz.visible( { .x = 2, .y = 0 } ) == true );
-    REQUIRE( viz.visible( { .x = 0, .y = -1 } ) == true );
-    REQUIRE( viz.visible( { .x = 1, .y = 2 } ) == true );
+    REQUIRE( viz.visible( { .x = -1, .y = 0 } ) == false );
+    REQUIRE( viz.visible( { .x = 2, .y = 0 } ) == false );
+    REQUIRE( viz.visible( { .x = 0, .y = -1 } ) == false );
+    REQUIRE( viz.visible( { .x = 1, .y = 2 } ) == false );
     // square_at.
     REQUIRE( viz.square_at( { .x = 0, .y = 0 } ).surface ==
              e_surface::water );
@@ -959,10 +959,10 @@ TEST_CASE( "[visibility] Visibility" ) {
     REQUIRE( viz.visible( { .x = 0, .y = 1 } ) == false );
     REQUIRE( viz.visible( { .x = 1, .y = 1 } ) == false );
     // proto visible.
-    REQUIRE( viz.visible( { .x = -1, .y = 0 } ) == true );
-    REQUIRE( viz.visible( { .x = 2, .y = 0 } ) == true );
-    REQUIRE( viz.visible( { .x = 0, .y = -1 } ) == true );
-    REQUIRE( viz.visible( { .x = 1, .y = 2 } ) == true );
+    REQUIRE( viz.visible( { .x = -1, .y = 0 } ) == false );
+    REQUIRE( viz.visible( { .x = 2, .y = 0 } ) == false );
+    REQUIRE( viz.visible( { .x = 0, .y = -1 } ) == false );
+    REQUIRE( viz.visible( { .x = 1, .y = 2 } ) == false );
     // square_at.
     REQUIRE( viz.square_at( { .x = 0, .y = 0 } ).surface ==
              e_surface::water );

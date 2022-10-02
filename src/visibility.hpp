@@ -48,7 +48,7 @@ struct Visibility {
     : terrain_( terrain ), player_terrain_( player_terrain ) {}
 
   // Returns if the tile is visible in this rendering. If the
-  // tile if off-map then true is returned (proto square).
+  // tile if off-map then false is returned (proto square).
   bool visible( Coord tile ) const;
 
   // In general we're rendering the terrain from the point of

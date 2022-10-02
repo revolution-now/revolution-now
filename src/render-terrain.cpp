@@ -1780,22 +1780,237 @@ void render_resources( rr::Renderer&     renderer,
   render_sprite( painter, where, resource_tile( *resource ) );
 }
 
-void render_invisible_terrain_square(
+void render_fully_invisible_terrain_square(
     rr::Renderer& renderer, Coord where, Coord const,
     Visibility const&, TerrainRenderOptions const& ) {
   rr::Painter painter = renderer.painter();
   render_sprite( painter, where, e_tile::terrain_hidden );
 }
 
-} // namespace
+// This function is for squares that have some hidden overlay but
+// also reveal some part of the underlying tile.
+void render_hidden_overlay(
+    rr::Renderer& renderer, Coord where,
+    Coord const world_square, Visibility const& viz,
+    refl::enum_map<e_direction, bool> const& visibility ) {
+  SCOPED_RENDERER_MOD_SET(
+      painter_mods.depixelate.anchor,
+      ( where / Delta{ .w = 32, .h = 32 } ) );
+  rr::Painter painter = renderer.painter();
+  // The below will render 9 pieces, and will do so with dif-
+  // ferent depixelation stages and alphas depending on the visi-
+  // bility of the surrounding squares.
+  // +------------+
+  // |  |      |  |
+  // |--+------+--|
+  // |  |      |  |
+  // |  |      |  |
+  // |--+------+--|
+  // |  |      |  |
+  // +------------+
+  bool const self_visible = viz.visible( world_square );
 
-void render_terrain_square(
+  Rect const tile_rect = Rect::from( Coord{}, g_tile_delta );
+
+  int const kTotalEdgeThickness = 6;
+  // Must be even because it straddles two tiles.
+  static_assert( kTotalEdgeThickness % 2 == 0 );
+
+  int const    kEdgeThickness        = kTotalEdgeThickness / 2;
+  double const kDepixelateStage      = .3;
+  double const kDepixelateStageLight = .7;
+  double const kDpAlpha              = 1.0;
+  double const kDpAlphaLight         = .8;
+
+  // --------------- Center ----------------
+
+  if( !self_visible )
+    render_sprite_section(
+        painter, e_tile::terrain_hidden,
+        where +
+            Delta{ .w = kEdgeThickness, .h = kEdgeThickness },
+        tile_rect.edges_removed( kEdgeThickness ) );
+
+  // --------------- Sides ----------------
+
+  // Draw a transition on tile with visibility X to an adjacent
+  // tile that is invisible.
+  auto x_to_inviz = [&]( Delta delta, Rect part ) {
+    double const stage =
+        self_visible ? kDepixelateStageLight : 0.0;
+    double const alpha = self_visible ? kDpAlphaLight : 1.0;
+    SCOPED_RENDERER_MOD_SET( painter_mods.alpha, alpha );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                             stage );
+    rr::Painter painter = renderer.painter();
+    render_sprite_section( painter, e_tile::terrain_hidden,
+                           where + delta, part );
+  };
+
+  // Draw a transition on an invisible tile to an adjacent tile
+  // that is visible.
+  auto inviz_to_viz = [&]( Delta delta, Rect part ) {
+    if( self_visible ) return;
+    SCOPED_RENDERER_MOD_SET( painter_mods.alpha, kDpAlpha );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                             kDepixelateStage );
+    rr::Painter painter = renderer.painter();
+    render_sprite_section( painter, e_tile::terrain_hidden,
+                           where + delta, part );
+  };
+
+  auto transition = [&]( Delta delta, Rect rect,
+                         e_direction d ) {
+    if( visibility[d] )
+      inviz_to_viz( delta, rect );
+    else {
+      Coord const moved = world_square.moved( d );
+      if( self_visible && !viz.on_map( moved ) )
+        // This prevents drawing shadow transitions at the edge
+        // of the map when those tiles are visible.
+        return;
+      x_to_inviz( delta, rect );
+    }
+  };
+
+  // Top middle.
+  {
+    e_direction const d = e_direction::n;
+    Delta const       delta{ .w = kEdgeThickness, .h = 0 };
+    Rect const        rect =
+        tile_rect.with_new_left_edge( kEdgeThickness )
+            .with_new_right_edge( g_tile_width - kEdgeThickness )
+            .with_new_bottom_edge( kEdgeThickness );
+    transition( delta, rect, d );
+  }
+
+  // Bottom middle.
+  {
+    e_direction const d = e_direction::s;
+    Delta const       delta{ .w = kEdgeThickness,
+                             .h = g_tile_height - kEdgeThickness };
+    Rect const        rect =
+        tile_rect.with_new_left_edge( kEdgeThickness )
+            .with_new_right_edge( g_tile_width - kEdgeThickness )
+            .with_new_top_edge( g_tile_height - kEdgeThickness );
+    transition( delta, rect, d );
+  }
+
+  // Left middle.
+  {
+    e_direction const d = e_direction::w;
+    Delta const       delta{ .w = 0, .h = kEdgeThickness };
+    Rect const        rect =
+        tile_rect.with_new_top_edge( kEdgeThickness )
+            .with_new_right_edge( kEdgeThickness )
+            .with_new_bottom_edge( g_tile_height -
+                                   kEdgeThickness );
+    transition( delta, rect, d );
+  }
+
+  // Right middle.
+  {
+    e_direction const d = e_direction::e;
+    Delta const       delta{ .w = g_tile_width - kEdgeThickness,
+                             .h = kEdgeThickness };
+    Rect const        rect =
+        tile_rect.with_new_top_edge( kEdgeThickness )
+            .with_new_left_edge( g_tile_width - kEdgeThickness )
+            .with_new_bottom_edge( g_tile_height -
+                                   kEdgeThickness );
+    transition( delta, rect, d );
+  }
+
+  // --------------- Corners ----------------
+
+  auto corner = [&]( Delta delta, Rect part, e_direction d1,
+                     e_direction d2 ) {
+    Coord const moved = world_square.moved( d1 ).moved( d2 );
+    if( self_visible && !viz.on_map( moved ) )
+      // This prevents drawing shadow transitions at the edge
+      // of the map when those tiles are visible.
+      return;
+    bool const viz1      = visibility[d1];
+    bool const viz2      = visibility[d2];
+    int const  viz_count = ( viz1 ? 1 : 0 ) + ( viz2 ? 1 : 0 );
+    double     stage = 0.0, alpha = 0.0;
+    if( self_visible ) {
+      stage = ( viz_count == 0 )   ? kDepixelateStage
+              : ( viz_count == 1 ) ? kDepixelateStageLight
+                                   : 1.0;
+      alpha = ( viz_count == 0 )   ? kDpAlpha
+              : ( viz_count == 1 ) ? kDpAlphaLight
+                                   : 1.0;
+    } else {
+      stage = ( viz_count == 0 )   ? 0.0
+              : ( viz_count == 1 ) ? kDepixelateStage
+                                   : kDepixelateStageLight;
+      alpha = ( viz_count == 0 )   ? 1.0
+              : ( viz_count == 1 ) ? kDpAlpha
+                                   : kDpAlphaLight;
+    }
+    SCOPED_RENDERER_MOD_SET( painter_mods.alpha, alpha );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                             stage );
+    rr::Painter painter = renderer.painter();
+    render_sprite_section( painter, e_tile::terrain_hidden,
+                           where + delta, part );
+  };
+
+  // Upper left.
+  {
+    e_direction const d1 = e_direction::w;
+    e_direction const d2 = e_direction::n;
+    Delta const       delta{ .w = 0, .h = 0 };
+    Rect const        rect =
+        tile_rect.with_new_right_edge( kEdgeThickness )
+            .with_new_bottom_edge( kEdgeThickness );
+    corner( delta, rect, d1, d2 );
+  }
+
+  // Upper right.
+  {
+    e_direction const d1 = e_direction::n;
+    e_direction const d2 = e_direction::e;
+    Delta const       delta{ .w = g_tile_width - kEdgeThickness,
+                             .h = 0 };
+    Rect const        rect =
+        tile_rect
+            .with_new_left_edge( g_tile_width - kEdgeThickness )
+            .with_new_bottom_edge( kEdgeThickness );
+    corner( delta, rect, d1, d2 );
+  }
+
+  // Bottom left.
+  {
+    e_direction const d1 = e_direction::s;
+    e_direction const d2 = e_direction::w;
+    Delta const       delta{ .w = 0,
+                             .h = g_tile_width - kEdgeThickness };
+    Rect const        rect =
+        tile_rect.with_new_right_edge( kEdgeThickness )
+            .with_new_top_edge( g_tile_width - kEdgeThickness );
+    corner( delta, rect, d1, d2 );
+  }
+
+  // Bottom right.
+  {
+    e_direction const d1 = e_direction::e;
+    e_direction const d2 = e_direction::s;
+    Delta const       delta{ .w = g_tile_width - kEdgeThickness,
+                             .h = g_tile_width - kEdgeThickness };
+    Rect const        rect =
+        tile_rect
+            .with_new_left_edge( g_tile_width - kEdgeThickness )
+            .with_new_top_edge( g_tile_width - kEdgeThickness );
+    corner( delta, rect, d1, d2 );
+  }
+}
+
+void render_visible_terrain_square(
     rr::Renderer& renderer, Coord where,
     Coord const world_square, Visibility const& viz,
     TerrainRenderOptions const& options ) {
-  if( !viz.visible( world_square ) )
-    return render_invisible_terrain_square(
-        renderer, where, world_square, viz, options );
   rr::Painter      painter = renderer.painter();
   MapSquare const& square  = viz.square_at( world_square );
   if( square.surface == e_surface::water ) {
@@ -1822,6 +2037,39 @@ void render_terrain_square(
   render_road_if_present( painter, where, viz, world_square );
   if( options.render_lcrs )
     render_lost_city_rumor( painter, where, square );
+}
+
+} // namespace
+
+void render_terrain_square(
+    rr::Renderer& renderer, Coord where,
+    Coord const world_square, Visibility const& viz,
+    TerrainRenderOptions const& options ) {
+  // Get visibility info about surroundings.
+  refl::enum_map<e_direction, bool> visibility;
+  bool const self_visible = viz.visible( world_square );
+  // A square is fully invisible if it and all surrounding
+  // squares are invisible.
+  bool fully_invisible = !self_visible;
+  for( e_direction d : refl::enum_values<e_direction> ) {
+    bool const visible = viz.visible( world_square.moved( d ) );
+    visibility[d]      = visible;
+    fully_invisible &= !visible;
+  }
+  if( fully_invisible ) {
+    render_fully_invisible_terrain_square(
+        renderer, where, world_square, viz, options );
+  } else {
+    // Either this tile or one of the surroundings is visible,
+    // which means we need to render the underlying tile first.
+    render_visible_terrain_square( renderer, where, world_square,
+                                   viz, options );
+    render_hidden_overlay( renderer, where, world_square, viz,
+                           visibility );
+  }
+
+  // Always last.
+  rr::Painter painter = renderer.painter();
   if( options.grid )
     painter.draw_empty_rect( Rect::from( where, g_tile_delta ),
                              rr::Painter::e_border_mode::in_out,
