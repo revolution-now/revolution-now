@@ -390,7 +390,9 @@ void autosave( SSConst const& ss, TS& ts ) {
 }
 
 bool should_autosave( int turns ) {
-  return turns % config_savegame.autosave_frequency == 0;
+  if( !config_savegame.autosave_frequency.has_value() )
+    return false;
+  return turns % *config_savegame.autosave_frequency == 0;
 }
 
 wait<bool> save_game_menu( SSConst const& ss, TS& ts ) {

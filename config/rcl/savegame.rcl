@@ -1,5 +1,6 @@
 folder: "saves"
 
+# Do an autosave every N turns. Set to null to disable auto-save.
 autosave_frequency: 5
 
 # How many normal savegame slots do we allow. Note that this does

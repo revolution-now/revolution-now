@@ -8,19 +8,22 @@
 # Description: Config info for game saving.
 #
 # ===============================================================
+# Cdr.
+include "cdr/ext-base.hpp"
+include "cdr/ext-std.hpp"
+
 # base
 include "base/fs.hpp"
-
-# Cdr.
-include "cdr/ext-std.hpp"
+include "base/maybe.hpp"
 
 namespace "rn"
 
 struct.config_savegame_t {
   folder 'fs::path',
 
-  # Do an autosave every N turns.
-  autosave_frequency 'int',
+  # Do an autosave every N turns. Set to nothing to disable
+  # auto-save.
+  autosave_frequency 'base::maybe<int>',
 
   # How many normal savegame slots do we allow. Note that this
   # does not include the auto save slot, which will be added onto
