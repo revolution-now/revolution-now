@@ -91,6 +91,7 @@ struct Renderer::Impl {
   Impl( PresentFn present_fn_arg, ProgramType program_arg,
         VertexArray_t vertex_array_arg,
         VertexArray_t landscape_vertex_array_arg,
+        VertexArray_t landscape_annex_vertex_array_arg,
         VertexArray_t backdrop_vertex_array_arg,
         AtlasMap atlas_map_arg, size atlas_size_arg,
         gl::Texture                      atlas_tx_arg,
@@ -106,6 +107,8 @@ struct Renderer::Impl {
       vertex_array( std::move( vertex_array_arg ) ),
       landscape_vertex_array(
           std::move( landscape_vertex_array_arg ) ),
+      landscape_annex_vertex_array(
+          std::move( landscape_annex_vertex_array_arg ) ),
       backdrop_vertex_array(
           std::move( backdrop_vertex_array_arg ) ),
       atlas_map( std::move( atlas_map_arg ) ),
@@ -118,15 +121,19 @@ struct Renderer::Impl {
       ascii_fonts_fast( std::move( ascii_fonts_fast_arg ) ),
       vertices{},
       landscape_vertices{},
+      landscape_annex_vertices{},
       backdrop_vertices{},
       emitter( vertices ),
       landscape_emitter( landscape_vertices ),
+      landscape_annex_emitter( landscape_annex_vertices ),
       backdrop_emitter( backdrop_vertices ),
       logical_screen_size( logical_screen_size_arg ),
-      landscape_dirty( true ) {
+      landscape_dirty( true ),
+      landscape_annex_dirty( true ) {
     mod_stack.push( RendererMods{} );
     emitter.log_capacity_changes( false );
     landscape_emitter.log_capacity_changes( false );
+    landscape_annex_emitter.log_capacity_changes( false );
     backdrop_emitter.log_capacity_changes( false );
   };
 
@@ -151,6 +158,8 @@ struct Renderer::Impl {
         vertex_array;
     gl::VertexArray<gl::VertexBuffer<GenericVertex>>
         landscape_vertex_array;
+    gl::VertexArray<gl::VertexBuffer<GenericVertex>>
+        landscape_annex_vertex_array;
     gl::VertexArray<gl::VertexBuffer<GenericVertex>>
          backdrop_vertex_array;
     auto pgrm = [&] {
@@ -221,6 +230,8 @@ struct Renderer::Impl {
         /*vertex_array=*/std::move( vertex_array ),
         /*landscape_vertex_array=*/
         std::move( landscape_vertex_array ),
+        /*landscape_annex_vertex_array=*/
+        std::move( landscape_annex_vertex_array ),
         /*backdrop_vertex_array=*/
         std::move( backdrop_vertex_array ),
         /*atlas_map=*/std::move( atlas.dict ),
@@ -252,7 +263,7 @@ struct Renderer::Impl {
       DCHECK( backdrop_vertices.empty() );
       backdrop_emitter.set_position( 0 );
     }
-    // We don't reset the position of the landscape emitter.
+    // We don't reset the position of the landscape emitters.
   }
 
   int end_pass() {
@@ -268,6 +279,9 @@ struct Renderer::Impl {
         break;
       case e_render_target_buffer::landscape:
         modded_emitter = &landscape_emitter;
+        break;
+      case e_render_target_buffer::landscape_annex:
+        modded_emitter = &landscape_annex_emitter;
         break;
       case e_render_target_buffer::backdrop:
         modded_emitter = &backdrop_emitter;
@@ -320,6 +334,9 @@ struct Renderer::Impl {
     if( mods.buffer_mods.buffer ==
         e_render_target_buffer::landscape )
       landscape_dirty = true;
+    if( mods.buffer_mods.buffer ==
+        e_render_target_buffer::landscape_annex )
+      landscape_annex_dirty = true;
   }
 
   void mods_pop() {
@@ -337,6 +354,10 @@ struct Renderer::Impl {
       case e_render_target_buffer::landscape:
         landscape_vertices.clear();
         landscape_emitter.set_position( 0 );
+        break;
+      case e_render_target_buffer::landscape_annex:
+        landscape_annex_vertices.clear();
+        landscape_annex_emitter.set_position( 0 );
         break;
       case e_render_target_buffer::backdrop:
         // We don't currently have a use for this, because the
@@ -372,31 +393,48 @@ struct Renderer::Impl {
                      landscape_vertices.size() );
         break;
       }
+      case e_render_target_buffer::landscape_annex: {
+        if( landscape_annex_dirty ) {
+          landscape_annex_vertex_array.buffer<0>()
+              .upload_data_replace( landscape_annex_vertices,
+                                    gl::e_draw_mode::stat1c );
+          landscape_annex_dirty = false;
+        }
+        // Still need to run even if landscape_annex has not been
+        // modified because the camera uniforms may have changed.
+        program.run( landscape_annex_vertex_array,
+                     landscape_annex_vertices.size() );
+        break;
+      }
     }
   }
 
-  stack<RendererMods>                    mod_stack;
-  PresentFn                              present_fn;
-  ProgramType                            program;
-  VertexArray_t const                    vertex_array;
-  VertexArray_t const                    landscape_vertex_array;
-  VertexArray_t const                    backdrop_vertex_array;
-  AtlasMap const                         atlas_map;
-  size const                             atlas_size;
-  gl::Texture const                      atlas_tx;
-  TextureBinder                          atlas_tx_binder;
-  unordered_map<string, int> const       atlas_ids;
-  unordered_map<string_view, int> const  atlas_ids_fast;
-  unordered_map<string, AsciiFont> const ascii_fonts;
+  stack<RendererMods>              mod_stack;
+  PresentFn                        present_fn;
+  ProgramType                      program;
+  VertexArray_t const              vertex_array;
+  VertexArray_t const              landscape_vertex_array;
+  VertexArray_t const              landscape_annex_vertex_array;
+  VertexArray_t const              backdrop_vertex_array;
+  AtlasMap const                   atlas_map;
+  size const                       atlas_size;
+  gl::Texture const                atlas_tx;
+  TextureBinder                    atlas_tx_binder;
+  unordered_map<string, int> const atlas_ids;
+  unordered_map<string_view, int> const        atlas_ids_fast;
+  unordered_map<string, AsciiFont> const       ascii_fonts;
   unordered_map<string_view, AsciiFont*> const ascii_fonts_fast;
   vector<GenericVertex>                        vertices;
   vector<GenericVertex> landscape_vertices;
+  vector<GenericVertex> landscape_annex_vertices;
   vector<GenericVertex> backdrop_vertices;
   Emitter               emitter;
   Emitter               landscape_emitter;
+  Emitter               landscape_annex_emitter;
   Emitter               backdrop_emitter;
   gfx::size             logical_screen_size;
   bool                  landscape_dirty;
+  bool                  landscape_annex_dirty;
 };
 
 /****************************************************************
@@ -510,6 +548,8 @@ long Renderer::buffer_vertex_count(
       return impl_->vertices.size();
     case e_render_target_buffer::landscape:
       return impl_->landscape_vertices.size();
+    case e_render_target_buffer::landscape_annex:
+      return impl_->landscape_annex_vertices.size();
   }
 }
 

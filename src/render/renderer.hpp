@@ -97,6 +97,10 @@ enum class e_render_target_buffer {
   // scape buffer because it might need to be dynamic.
   backdrop,
   landscape,
+  // This is used to modify tiles in the landscape buffer by just
+  // overwriting them. This buffer will be drawn overtop of the
+  // landscape buffer.
+  landscape_annex,
   normal,
 };
 

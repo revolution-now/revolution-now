@@ -1083,6 +1083,8 @@ struct LandViewPlane::Impl : public Plane {
     // Should do this after setting the camera.
     renderer.render_buffer(
         rr::e_render_target_buffer::landscape );
+    renderer.render_buffer(
+        rr::e_render_target_buffer::landscape_annex );
   }
 
   void render_land_view( rr::Renderer& renderer ) const {

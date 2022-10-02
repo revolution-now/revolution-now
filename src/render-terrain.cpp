@@ -2080,6 +2080,11 @@ void render_terrain( rr::Renderer&               renderer,
                      Visibility const&           viz,
                      TerrainRenderOptions const& options ) {
   SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
+  // We can throw away all of the tile overwrites that we've
+  // made, since we are now going to redraw everything from
+  // scratch.
+  renderer.clear_buffer(
+      rr::e_render_target_buffer::landscape_annex );
   auto const kLandscapeBuf =
       rr::e_render_target_buffer::landscape;
   renderer.clear_buffer( kLandscapeBuf );

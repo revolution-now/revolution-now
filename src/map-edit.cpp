@@ -168,6 +168,8 @@ struct MapEditPlane::Impl : public Plane {
     // Should do this after setting the camera.
     renderer.render_buffer(
         rr::e_render_target_buffer::landscape );
+    renderer.render_buffer(
+        rr::e_render_target_buffer::landscape_annex );
     render_sidebar( renderer );
     render_toolbar( renderer );
   }

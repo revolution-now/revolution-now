@@ -121,12 +121,17 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   group.land_view = &land_view_plane;
 
   // Perform the initial rendering of the map. Even though it
-  // will be wasteful, we will render the entire map (with all
-  // tiles visible), in order to catch any rendering is-
-  // sues/crashes up from, as opposed to waiting for the problem-
-  // atic tile to be encountered and exposed by the player. This
-  // will render the entire map because that is the default set-
-  // ting of the map updater.
+  // will be wasteful in a sense, we will render the entire map
+  // (with all tiles visible), in order to catch any rendering
+  // issues up front, including just making sure there is enough
+  // memory and GPU memory to whole the fully rendered map. This
+  // is wasteful in the sense that, when the first player takes
+  // there turn, this rendering will be thrown out and the play-
+  // er's view will be drawn; however, it is prudent to do this
+  // up front as opposed to waiting for the problematic tile (or
+  // exposed map size) to be encountered by the player and have
+  // the game crash mid-play. This will render the entire map be-
+  // cause that is the default setting of the map updater.
   lg.info( "performing initial full map render." );
   ts.map_updater.redraw();
 

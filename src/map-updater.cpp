@@ -100,20 +100,37 @@ void MapUpdater::redraw_square(
   SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
   SCOPED_RENDERER_MOD_SET(
       buffer_mods.buffer,
-      rr::e_render_target_buffer::landscape );
+      rr::e_render_target_buffer::landscape_annex );
 
   render_terrain_square( renderer_, tile * g_tile_delta, tile,
                          viz, terrain_options );
 
   ++tiles_redrawn_;
-  // If we've redrawn 1000 tiles then probably a good time to
-  // just redraw the entire thing. In fact we need to do this be-
-  // cause otherwise rendering significantly slows down when we
-  // have a large number of screen pixels covering tiles that
-  // have been updated multiple times (presumably because the
-  // fragment shaders for each layer are still being run even
-  // though the under layers are not visible).
-  if( tiles_redrawn_ == 1000 ) redraw();
+  // If we've redrawn a number of tiles that are beyond the below
+  // threshold then we will just redraw the entire thing. We do
+  // this for two reasons. First, each time a tile gets redrawn
+  // (and the landscape annex buffer gets appended to, the entire
+  // annex buffer needs to get re-uploaded to the GPU, which
+  // would then happen potentially on each move of a unit (where
+  // new terrain is exposed). By redrawing the entire thing peri-
+  // odically we clear the annex buffer and eliminate this la-
+  // tency. Second, when the same tile is redrawn multiple times
+  // it can (depending on GPU) lead to a decrease in framerate
+  // especially when the view is zoomed in on that tile, and this
+  // is due to the fact that each picture needs many more frag-
+  // ment shader runs since there are multiple redrawn layers on
+  // it, and the GPU apparently can't deduce that some layers are
+  // opaque before running them all. The redraw will also elimi-
+  // nate that. This threshold is set somewhat arbitrarily, but
+  // it is set to a value that is not so low as to cause a map
+  // redraw too often (which will be slow on large maps) and not
+  // too large as to let the annex buffer get too large (which
+  // would increase latency of redrawing a tile by having to
+  // re-upload a large annex buffer to the GPU).  We will just
+  // set it to the number of tiles on the OG's map.
+  int const redraw_threshold = 70 * 56;
+  // The > is defensive.
+  if( tiles_redrawn_ >= redraw_threshold ) redraw();
 }
 
 bool MapUpdater::modify_map_square(
