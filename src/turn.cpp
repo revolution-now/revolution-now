@@ -864,12 +864,17 @@ wait<> nation_turn( Planes& planes, SS& ss, TS& ts,
 
   if( !player.human ) co_return; // TODO: Until we have AI.
 
-  // This should trigger a redraw but only if we're changing the
-  // nation.
+  // `visibility` determines from whose point of view the map is
+  // drawn with respect to which tiles are hidden. Change this to
+  // `nothing` here to make the map and all units fully visible.
+  maybe<e_nation> const visibility = st.nation;
   ts.map_updater.mutate_options_and_redraw(
       [&]( MapUpdaterOptions& options ) {
-        options.nation = st.nation;
+        // This should trigger a redraw but only if we're
+        // changing the nation.
+        options.nation = visibility;
       } );
+  planes.land_view().set_visibility( visibility );
 
   // Starting.
   if( !st.started ) {

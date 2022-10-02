@@ -121,7 +121,8 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   PanelPlane panel_plane( planes, ss, ts );
   group.panel = &panel_plane;
 
-  LandViewPlane land_view_plane( planes, ss, ts );
+  LandViewPlane land_view_plane( planes, ss, ts,
+                                 /*visibility=*/nothing );
   group.land_view = &land_view_plane;
 
   // land_view_plane.zoom_out_full();

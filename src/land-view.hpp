@@ -12,14 +12,16 @@
 
 #include "core-config.hpp"
 
+// Rds
+#include "land-view.rds.hpp"
+
 // Revolution Now
 #include "colony-id.hpp"
 #include "unit-id.hpp"
 #include "wait.hpp"
 
-// Rds
-#include "land-view.rds.hpp"
-#include "orders.rds.hpp"
+// ss
+#include "ss/nation.rds.hpp"
 
 // gfx
 #include "gfx/coord.hpp"
@@ -39,6 +41,8 @@ enum class e_depixelate_anim { death, demote };
 *****************************************************************/
 struct ILandViewPlane {
   virtual ~ILandViewPlane() = default;
+
+  virtual void set_visibility( maybe<e_nation> nation ) = 0;
 
   virtual wait<> landview_ensure_visible(
       Coord const& coord ) = 0;
@@ -86,9 +90,12 @@ struct ILandViewPlane {
 ** LandViewPlane
 *****************************************************************/
 struct LandViewPlane : ILandViewPlane {
-  LandViewPlane( Planes& planes, SS& ss, TS& ts );
+  LandViewPlane( Planes& planes, SS& ss, TS& ts,
+                 maybe<e_nation> visibility );
 
   ~LandViewPlane() override;
+
+  void set_visibility( maybe<e_nation> nation ) override;
 
   wait<> landview_ensure_visible( Coord const& coord ) override;
   wait<> landview_ensure_visible_unit( UnitId id ) override;

@@ -37,6 +37,7 @@
 #include "ustate.hpp"
 #include "variant.hpp"
 #include "viewport.hpp"
+#include "visibility.hpp"
 #include "window.hpp"
 
 // ss
@@ -174,9 +175,10 @@ void render_backdrop( rr::Renderer& renderer ) {
 } // namespace
 
 struct LandViewPlane::Impl : public Plane {
-  Planes& planes_;
-  SS&     ss_;
-  TS&     ts_;
+  Planes&    planes_;
+  SS&        ss_;
+  TS&        ts_;
+  Visibility viz_;
 
   MenuPlane::Deregistrar zoom_in_dereg_;
   MenuPlane::Deregistrar zoom_out_dereg_;
@@ -228,8 +230,11 @@ struct LandViewPlane::Impl : public Plane {
         e_menu_item::hidden_terrain, *this );
   }
 
-  Impl( Planes& planes, SS& ss, TS& ts )
-    : planes_( planes ), ss_( ss ), ts_( ts ) {
+  Impl( Planes& planes, SS& ss, TS& ts, maybe<e_nation> nation )
+    : planes_( planes ),
+      ss_( ss ),
+      ts_( ts ),
+      viz_( Visibility::create( ss, nation ) ) {
     register_menu_items( planes.menu() );
     // Initialize general global data.
     unit_animations_.clear();
@@ -688,6 +693,7 @@ struct LandViewPlane::Impl : public Plane {
   void render_units_on_square( rr::Renderer& renderer,
                                Rect covered, Coord tile,
                                UnitSkipFunc skip ) const {
+    if( !viz_.visible( tile ) ) return;
     // TODO: When there are multiple units on a square, just
     // render one (which one?) and then render multiple flags
     // (stacked) to indicate that visually.
@@ -861,6 +867,7 @@ struct LandViewPlane::Impl : public Plane {
   void render_colony( rr::Renderer& renderer,
                       rr::Painter& painter, Rect covered,
                       Colony const& colony ) const {
+    if( !viz_.visible( colony.location ) ) return;
     Coord tile_coord =
         render_rect_for_tile( covered, colony.location )
             .upper_left();
@@ -1512,6 +1519,10 @@ struct LandViewPlane::Impl : public Plane {
     return landview_ensure_visible( coord );
   }
 
+  void set_visibility( maybe<e_nation> nation ) {
+    viz_ = Visibility::create( ss_, nation );
+  }
+
   void zoom_out_full() {
     viewport().set_zoom( viewport().optimal_min_zoom() );
   }
@@ -1632,12 +1643,17 @@ Plane& LandViewPlane::impl() { return *impl_; }
 
 LandViewPlane::~LandViewPlane() = default;
 
-LandViewPlane::LandViewPlane( Planes& planes, SS& ss, TS& ts )
-  : impl_( new Impl( planes, ss, ts ) ) {}
+LandViewPlane::LandViewPlane( Planes& planes, SS& ss, TS& ts,
+                              maybe<e_nation> visibility )
+  : impl_( new Impl( planes, ss, ts, visibility ) ) {}
 
 wait<> LandViewPlane::landview_ensure_visible(
     Coord const& coord ) {
   return impl_->landview_ensure_visible( coord );
+}
+
+void LandViewPlane::set_visibility( maybe<e_nation> nation ) {
+  return impl_->set_visibility( nation );
 }
 
 wait<> LandViewPlane::landview_ensure_visible_unit( UnitId id ) {

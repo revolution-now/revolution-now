@@ -45,7 +45,12 @@ struct TerrainState;
 struct Visibility {
   Visibility( TerrainState const&               terrain,
               base::maybe<PlayerTerrain const&> player_terrain )
-    : terrain_( terrain ), player_terrain_( player_terrain ) {}
+    : terrain_( &terrain ),
+      player_terrain_( player_terrain.fmap(
+          []( auto& arg ) { return &arg; } ) ) {}
+
+  static Visibility create( SSConst const&        ss,
+                            base::maybe<e_nation> nation );
 
   // Returns if the tile is visible in this rendering. If the
   // tile if off-map then false is returned (proto square).
@@ -70,11 +75,14 @@ struct Visibility {
   bool on_map( Coord tile ) const;
 
  private:
-  TerrainState const& terrain_;
+  // These are pointers instead of references so that the class
+  // can be assigned.
+
+  TerrainState const* terrain_;
 
   // If this does not have a value then we are rendering in the
   // mode where all tiles are fully visible.
-  base::maybe<PlayerTerrain const&> player_terrain_;
+  base::maybe<PlayerTerrain const*> player_terrain_;
 };
 
 /****************************************************************

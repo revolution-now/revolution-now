@@ -77,17 +77,29 @@ int unit_sight_radius( SSConst const& ss, e_nation nation,
 /****************************************************************
 ** Visibility
 *****************************************************************/
+Visibility Visibility::create( SSConst const&  ss,
+                               maybe<e_nation> nation ) {
+  maybe<PlayerTerrain const&> player_terrain =
+      nation.has_value() ? ss.terrain.player_terrain( *nation )
+                         : base::nothing;
+  return Visibility( ss.terrain, player_terrain );
+}
+
 bool Visibility::visible( Coord tile ) const {
+  DCHECK( terrain_ != nullptr );
   if( !player_terrain_.has_value() )
     // No player, so always visible.
     return true;
+  DCHECK( *player_terrain_ != nullptr );
   // We're rendering from the player's point of view.
-  if( !tile.is_inside( terrain_.world_rect_tiles() ) )
+  if( !tile.is_inside( terrain_->world_rect_tiles() ) )
     // Proto squares are never considered visible.
     return false;
   DCHECK( player_terrain_.has_value() );
   maybe<MapSquare const&> square =
-      player_terrain_->map[tile].member( &FogSquare::square );
+      ( *player_terrain_ )
+          ->map[tile]
+          .member( &FogSquare::square );
   if( !square.has_value() )
     // There is a player and they can't see this tile.
     return false;
@@ -96,26 +108,30 @@ bool Visibility::visible( Coord tile ) const {
 }
 
 MapSquare const& Visibility::square_at( Coord tile ) const {
+  DCHECK( terrain_ != nullptr );
   if( !player_terrain_.has_value() )
     // Real map.
-    return terrain_.total_square_at( tile );
+    return terrain_->total_square_at( tile );
+  DCHECK( *player_terrain_ != nullptr );
   // We're rendering from the player's point of view.
-  if( !tile.is_inside( terrain_.world_rect_tiles() ) )
+  if( !tile.is_inside( terrain_->world_rect_tiles() ) )
     // Will yield a proto square.
-    return terrain_.total_square_at( tile );
-  DCHECK( player_terrain_.has_value() );
+    return terrain_->total_square_at( tile );
   maybe<MapSquare const&> square =
-      player_terrain_->map[tile].member( &FogSquare::square );
+      ( *player_terrain_ )
+          ->map[tile]
+          .member( &FogSquare::square );
   if( !square.has_value() )
     // Player can't see this tile.
-    return terrain_.total_square_at( tile );
+    return terrain_->total_square_at( tile );
   // The player can see this tile, so return the player's version
   // of it.
   return *square;
 };
 
 Rect Visibility::rect_tiles() const {
-  return terrain_.world_rect_tiles();
+  DCHECK( terrain_ != nullptr );
+  return terrain_->world_rect_tiles();
 }
 
 bool Visibility::on_map( Coord tile ) const {

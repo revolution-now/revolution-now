@@ -195,8 +195,6 @@ struct MapUpdater : NonRenderingMapUpdater {
       Visibility const&           viz,
       TerrainRenderOptions const& terrain_options, Coord tile );
 
-  Visibility visibility() const;
-
   rr::Renderer& renderer_;
   int           tiles_redrawn_;
 };

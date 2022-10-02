@@ -116,14 +116,6 @@ void MapUpdater::redraw_square(
   if( tiles_redrawn_ == 1000 ) redraw();
 }
 
-Visibility MapUpdater::visibility() const {
-  maybe<PlayerTerrain const&> player_terrain =
-      options().nation.has_value()
-          ? ss_.terrain.player_terrain( *options().nation )
-          : base::nothing;
-  return Visibility( ss_.terrain, player_terrain );
-}
-
 bool MapUpdater::modify_map_square(
     Coord                                  tile,
     base::function_ref<void( MapSquare& )> mutator ) {
@@ -146,7 +138,8 @@ bool MapUpdater::modify_map_square(
           .with_border_added( 2 );
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
-  Visibility const viz = visibility();
+  Visibility const viz =
+      Visibility::create( ss_, options().nation );
   for( Coord moved : to_update )
     if( ss_.terrain.square_exists( moved ) )
       redraw_square( viz, terrain_options, moved );
@@ -169,7 +162,8 @@ bool MapUpdater::make_square_visible( Coord const tile,
 
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
-  Visibility const viz = visibility();
+  Visibility const viz =
+      Visibility::create( ss_, options().nation );
   redraw_square( viz, terrain_options, tile );
   // We need to draw the surrounding squares because a visibility
   // change in one square can reveal part of the adjacent files
@@ -199,7 +193,9 @@ void MapUpdater::redraw() {
   this->Base::redraw();
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
-  render_terrain( renderer_, visibility(), terrain_options );
+  Visibility const viz =
+      Visibility::create( ss_, options().nation );
+  render_terrain( renderer_, viz, terrain_options );
   // Reset this since we just redrew the map.
   tiles_redrawn_ = 0;
 }
