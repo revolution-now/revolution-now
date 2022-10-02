@@ -132,26 +132,53 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
       [&] { return turn_loop( planes, ss, ts ); } ) );
 }
 
+wait<> handle_mode( Planes& planes, StartMode::new_ const& ) {
+  auto factory = []( SS&,
+                     TS& ts ) -> wait<base::NoDiscard<bool>> {
+    CHECK_HAS_VALUE( ts.lua["new_game"]["create"].pcall() );
+    co_return true;
+  };
+  co_await run_game( planes, factory );
+}
+
+wait<> handle_mode( Planes&                planes,
+                    StartMode::load const& load ) {
+  auto factory = [&]( SS& ss,
+                      TS& ts ) -> wait<base::NoDiscard<bool>> {
+    maybe<int> slot = load.slot;
+    if( !slot.has_value() ) {
+      // Pop open the load-game box to let the player choose what
+      // they want to load.
+      slot = co_await choose_load_slot( ts );
+      if( !slot.has_value() )
+        // The player has cancelled, or the load did not succeed
+        // for some other reason.
+        co_return false;
+    }
+    CHECK( slot.has_value() );
+    co_return co_await load_slot( ss, ts, *slot );
+  };
+  co_await run_game( planes, factory );
+}
+
 } // namespace
 
 /****************************************************************
 ** Public API
 *****************************************************************/
-wait<> run_existing_game( Planes& planes ) {
-  co_await run_game(
-      planes,
-      []( SS& ss, TS& ts ) -> wait<base::NoDiscard<bool>> {
-        bool const loaded = co_await load_game_menu( ss, ts );
-        co_return loaded;
-      } );
-}
-
-wait<> run_new_game( Planes& planes ) {
-  co_await run_game(
-      planes, []( SS&, TS& ts ) -> wait<base::NoDiscard<bool>> {
-        CHECK_HAS_VALUE( ts.lua["new_game"]["create"].pcall() );
-        co_return true;
-      } );
+wait<> run_game_with_mode( Planes&            planes,
+                           StartMode_t const& mode ) {
+  StartMode_t next_mode = mode;
+  while( true ) {
+    try {
+      co_await std::visit(
+          [&]( auto& m ) { return handle_mode( planes, m ); },
+          next_mode );
+      break;
+    } catch( game_load_interrupt const& load ) {
+      next_mode = StartMode::load{ .slot = load.slot };
+    }
+  }
 }
 
 } // namespace rn

@@ -13,13 +13,21 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "maybe.hpp"
+
 // C++ standard library
 #include <exception>
 
 namespace rn {
 
 struct game_quit_interrupt : std::exception {};
-struct game_load_interrupt : std::exception {};
+
+struct game_load_interrupt : std::exception {
+  // If this is populated then it will be loaded, otherwise the
+  // load-game box will pop up.
+  maybe<int> slot;
+};
 
 // This is thrown when the user drags the last in-colony unit to
 // the gate. Throwing an exception allows us to immediately abort

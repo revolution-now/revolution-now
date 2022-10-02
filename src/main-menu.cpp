@@ -143,10 +143,12 @@ struct MainMenuPlane::Impl : public Plane {
   wait<> item_selected( e_main_menu_item item ) {
     switch( item ) {
       case e_main_menu_item::new_: //
-        co_await run_new_game( planes_ );
+        co_await run_game_with_mode( planes_,
+                                     StartMode::new_{} );
         break;
       case e_main_menu_item::load:
-        co_await run_existing_game( planes_ );
+        co_await run_game_with_mode( planes_,
+                                     StartMode::load{} );
         break;
       case e_main_menu_item::quit: //
         throw game_quit_interrupt{};
@@ -179,11 +181,7 @@ wait<> MainMenuPlane::run() {
     e_main_menu_item item = co_await selections.next();
     try {
       co_await impl_->item_selected( item );
-    } catch( game_quit_interrupt const& ) {
-      co_return;
-    } catch( game_load_interrupt const& ) {
-      selections.send( e_main_menu_item::load );
-    }
+    } catch( game_quit_interrupt const& ) { co_return; }
   }
 }
 

@@ -169,8 +169,8 @@ wait<> proceed_to_exit( SSConst const& ss, TS& ts ) {
   maybe<ui::e_confirm> const answer =
       co_await ts.gui.optional_yes_no( config );
   if( answer != ui::e_confirm::yes ) co_return;
-  co_await check_ask_save( ss, ts );
-  throw game_quit_interrupt{};
+  bool const can_proceed = co_await check_ask_save( ss, ts );
+  if( can_proceed ) throw game_quit_interrupt{};
 }
 
 // If the element is present in the deque then it will be erased.
@@ -303,8 +303,12 @@ wait<> menu_handler( Planes& planes, SS& ss, TS& ts,
       break;
     }
     case e_menu_item::load: {
-      co_await check_ask_save( ss, ts );
-      throw game_load_interrupt{};
+      bool const can_proceed = co_await check_ask_save( ss, ts );
+      if( !can_proceed ) break;
+      game_load_interrupt load;
+      load.slot = co_await choose_load_slot( ts );
+      if( load.slot.has_value() ) throw load;
+      break;
     }
     case e_menu_item::revolution: {
       ChoiceConfig config{

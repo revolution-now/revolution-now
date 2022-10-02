@@ -410,11 +410,15 @@ wait<bool> save_game_menu( SSConst const& ss, TS& ts ) {
   co_return true;
 }
 
-wait<base::NoDiscard<bool>> load_game_menu( SS& ss, TS& ts ) {
+wait<maybe<int>> choose_load_slot( TS& ts ) {
   maybe<int> const slot = co_await select_slot(
       ts, /*include_autosaves=*/true, /*allow_empty=*/false );
-  if( !slot.has_value() ) co_return false;
-  expect<fs::path> result = load_game( ss, ts, *slot );
+  co_return slot;
+}
+
+wait<base::NoDiscard<bool>> load_slot( SS& ss, TS& ts,
+                                       int slot ) {
+  expect<fs::path> result = load_game( ss, ts, slot );
   if( !result.has_value() ) {
     co_await ts.gui.message_box( "Error: failed to load game." );
     lg.error( "failed to load game: {}.", result.error() );
@@ -422,14 +426,21 @@ wait<base::NoDiscard<bool>> load_game_menu( SS& ss, TS& ts ) {
   }
   co_await ts.gui.message_box(
       fmt::format( "Successfully loaded game from {}.",
-                   path_for_slot( *slot ) ) );
-  lg.info( "loaded game from {}.", path_for_slot( *slot ) );
+                   path_for_slot( slot ) ) );
+  lg.info( "loaded game from {}.", path_for_slot( slot ) );
   co_return true;
 }
 
+wait<base::NoDiscard<bool>> load_game_menu( SS& ss, TS& ts ) {
+  maybe<int> const slot = co_await choose_load_slot( ts );
+  if( !slot.has_value() ) co_return false;
+  co_return co_await load_slot( ss, ts, *slot );
+}
+
 // Will return whether a save happened or not.
-wait<> check_ask_save( SSConst const& ss, TS& ts ) {
-  if( is_game_saved( ss, ts ) ) co_return;
+wait<base::NoDiscard<bool>> check_ask_save( SSConst const& ss,
+                                            TS&            ts ) {
+  if( is_game_saved( ss, ts ) ) co_return true;
   YesNoConfig const config{ .msg =
                                 "This game has unsaved changes. "
                                 "Would you like to save?",
@@ -439,9 +450,10 @@ wait<> check_ask_save( SSConst const& ss, TS& ts ) {
 
   maybe<ui::e_confirm> const answer =
       co_await ts.gui.optional_yes_no( config );
-  if( !answer.has_value() ) co_return;
-  if( answer == ui::e_confirm::no ) co_return;
+  if( !answer.has_value() ) co_return false;
+  if( answer == ui::e_confirm::no ) co_return true;
   co_await save_game_menu( ss, ts );
+  co_return true;
 }
 
 } // namespace rn

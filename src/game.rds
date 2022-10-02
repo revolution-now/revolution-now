@@ -1,0 +1,21 @@
+# ===============================================================
+# game.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-09-22.
+#
+# Description: Rds definitions for the game module.
+#
+# ===============================================================
+# Revolution Now
+include "maybe.hpp"
+
+namespace "rn"
+
+sumtype.StartMode {
+  new_ {},
+  load {
+    slot 'maybe<int>',
+  },
+}

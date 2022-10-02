@@ -3,8 +3,8 @@
 return {
   'exe/main',
   'ss/terrain',
-  'render-terrain',
   'map-updater',
   'on-map',
   'visibility',
+  'render-terrain',
 }
