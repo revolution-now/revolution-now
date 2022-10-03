@@ -75,7 +75,7 @@ refl::enum_map<e_menu, Menu> const g_menus{
     { e_menu::advisors, { "Advisors", false, 'A' } },
     { e_menu::music, { "Music", false, 'M' } },
     { e_menu::window, { "Window", false, 'W' } },
-    { e_menu::debug, { "Debug", true, 'D' } },
+    { e_menu::cheat, { "Cheat", true, 'C' } },
     { e_menu::pedia, { "Revolopedia", true, 'R' } } };
 
 /****************************************************************
@@ -152,7 +152,7 @@ refl::enum_map<e_menu, vector<MenuItem_t>> const g_menu_def{
           ITEM( scale_down, "Scale Down" ),               //
           ITEM( scale_optimal, "Scale Optimal" )          //
       } },
-    { e_menu::debug,
+    { e_menu::cheat,
       {
           ITEM( map_editor, "Enter Map Editor" ) //
       } },

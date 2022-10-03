@@ -27,7 +27,7 @@ enum.e_menu {
   advisors,
   music,
   window,
-  debug,
+  cheat,
   pedia,
 }
 
