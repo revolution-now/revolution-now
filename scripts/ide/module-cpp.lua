@@ -73,6 +73,13 @@ local function layout_wide( stem )
       F.hpp
     }
     -- LuaFormatter on
+  elseif not exists( F.rds ) and exists( F.rds_impl ) then
+    -- LuaFormatter off
+    plan[1] = vsplit {
+      F.rds_impl,
+      F.hpp
+    }
+    -- LuaFormatter on
   elseif exists( F.rds ) then
     -- LuaFormatter off
     plan[1] = vsplit {
