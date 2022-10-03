@@ -10,6 +10,15 @@
 # ===============================================================
 namespace "rn"
 
+enum.e_cheat_reveal_map {
+  english,
+  french,
+  spanish,
+  dutch,
+  entire_map,
+  no_special_view,
+}
+
 enum.e_cheat_colony_buildings_option {
   give_all_buildings,
   remove_all_buildings,

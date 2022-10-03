@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "cheat.hpp"
 
+// Rds
+#include "cheat-impl.rds.hpp"
+
 // Revolution Now
 #include "co-wait.hpp"
 #include "colony-buildings.hpp"
