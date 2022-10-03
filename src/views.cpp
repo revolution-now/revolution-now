@@ -184,21 +184,30 @@ void SolidRectView::draw( rr::Renderer& renderer,
 // NOTE: If you add reflow info to this constructor, don't forget
 // to add it into the calculation of the text size as well.
 OneLineStringView::OneLineStringView( string     msg,
-                                      gfx::pixel color )
+                                      gfx::pixel color,
+                                      Delta      size_override )
   : msg_( std::move( msg ) ),
-    text_size_( rendered_text_size_no_reflow( msg_ ) ),
+    view_size_( size_override ),
+    text_size_( rendered_text_size_no_reflow( msg ) ),
     color_( color ) {}
 
-Delta OneLineStringView::delta() const { return text_size_; }
+OneLineStringView::OneLineStringView( string     msg,
+                                      gfx::pixel color )
+  : OneLineStringView( msg, color,
+                       rendered_text_size_no_reflow( msg ) ) {}
+
+Delta OneLineStringView::delta() const { return view_size_; }
 
 void OneLineStringView::draw( rr::Renderer& renderer,
                               Coord         coord ) const {
+  int const start_offset = ( view_size_.h - text_size_.h ) / 2;
   TextMarkupInfo const markup_info{
       .normal = color_,
       // FIXME
       .highlight = gfx::pixel::white() };
-  render_text_markup( renderer, coord, e_font{}, markup_info,
-                      msg_ );
+  render_text_markup( renderer,
+                      coord + Delta{ .h = start_offset },
+                      e_font{}, markup_info, msg_ );
 }
 
 /****************************************************************
@@ -836,27 +845,31 @@ OkCancelAdapterView::OkCancelAdapterView( unique_ptr<View> view,
 OptionSelectItemView::OptionSelectItemView( Option option )
   : active_{ e_option_active::inactive },
     enabled_( option.enabled ) {
+  Delta const text_size =
+      rendered_text_size_no_reflow( option.name ) +
+      Delta{ .h = 2 };
   background_active_ = make_unique<SolidRectView>(
       gfx::pixel{ .r = 0xDB, .g = 0xC9, .b = 0x5A, .a = 255 } );
   background_inactive_ = make_unique<SolidRectView>(
       gfx::pixel{ .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
   foreground_active_ = make_unique<OneLineStringView>(
       option.name,
-      gfx::pixel{ .r = 0x42, .g = 0x2D, .b = 0x22, .a = 255 } );
+      gfx::pixel{ .r = 0x42, .g = 0x2D, .b = 0x22, .a = 255 },
+      text_size );
   if( enabled_ ) {
     foreground_inactive_ = make_unique<OneLineStringView>(
         option.name,
-        gfx::pixel{
-            .r = 0xE4, .g = 0xC8, .b = 0x90, .a = 255 } );
+        gfx::pixel{ .r = 0xE4, .g = 0xC8, .b = 0x90, .a = 255 },
+        text_size );
   } else {
     foreground_inactive_ = make_unique<OneLineStringView>(
         option.name,
-        gfx::pixel{
-            .r = 0x80, .g = 0x80, .b = 0x80, .a = 255 } );
+        gfx::pixel{ .r = 0x80, .g = 0x80, .b = 0x80, .a = 255 },
+        text_size );
   }
 
-  auto delta_active   = foreground_active_->delta();
-  auto delta_inactive = foreground_inactive_->delta();
+  Delta delta_active   = foreground_active_->delta();
+  Delta delta_inactive = foreground_inactive_->delta();
   background_active_->cast<SolidRectView>()->set_delta(
       delta_active );
   background_inactive_->cast<SolidRectView>()->set_delta(
