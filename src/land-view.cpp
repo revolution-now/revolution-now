@@ -180,6 +180,7 @@ struct LandViewPlane::Impl : public Plane {
   TS&        ts_;
   Visibility viz_;
 
+  MenuPlane::Deregistrar reveal_map_dereg_;
   MenuPlane::Deregistrar zoom_in_dereg_;
   MenuPlane::Deregistrar zoom_out_dereg_;
   MenuPlane::Deregistrar restore_zoom_dereg_;
@@ -208,6 +209,8 @@ struct LandViewPlane::Impl : public Plane {
 
   void register_menu_items( MenuPlane& menu_plane ) {
     // Register menu handlers.
+    reveal_map_dereg_ = menu_plane.register_handler(
+        e_menu_item::reveal_map, *this );
     zoom_in_dereg_ = menu_plane.register_handler(
         e_menu_item::zoom_in, *this );
     zoom_out_dereg_ = menu_plane.register_handler(
@@ -481,6 +484,10 @@ struct LandViewPlane::Impl : public Plane {
 
       switch( raw_input.input.to_enum() ) {
         using namespace LandViewRawInput;
+        case e::reveal_map: {
+          co_await cheat_reveal_map( planes_, ss_, ts_ );
+          break;
+        }
         case e::escape: {
           translated_input_stream_.send( PlayerInput(
               LandViewPlayerInput::exit{}, raw_input.when ) );
@@ -1128,6 +1135,13 @@ struct LandViewPlane::Impl : public Plane {
     // store to previous state.
     static_assert( zoom_in_factor * zoom_out_factor == 1.0 );
     switch( item ) {
+      case e_menu_item::reveal_map: {
+        auto handler = [this] {
+          raw_input_stream_.send(
+              RawInput( LandViewRawInput::reveal_map{} ) );
+        };
+        return handler;
+      }
       case e_menu_item::zoom_in: {
         auto handler = [this] {
           // A user zoom request halts any auto zooming that may

@@ -24,6 +24,7 @@
 #include "ts.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
+#include "visibility.hpp"
 
 // config
 #include "config/colony.rds.hpp"
@@ -33,6 +34,7 @@
 // ss
 #include "ss/colony.hpp"
 #include "ss/players.rds.hpp"
+#include "ss/turn.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -65,6 +67,56 @@ bool can_remove_building( Colony const&     colony,
 }
 
 } // namespace
+
+/****************************************************************
+** In Land View
+*****************************************************************/
+wait<> cheat_reveal_map( Planes& planes, SS& ss, TS& ts ) {
+  CO_RETURN_IF_NO_CHEAT;
+  // All enabled by default.
+  refl::enum_map<e_cheat_reveal_map, bool> disabled;
+  for( e_nation nation : refl::enum_values<e_nation> ) {
+    if( !ss.players.players[nation].has_value() ) {
+      string_view const name = refl::enum_value_name( nation );
+      UNWRAP_CHECK(
+          menu_item,
+          refl::enum_from_string<e_cheat_reveal_map>( name ) );
+      disabled[menu_item] = true;
+    }
+  }
+  maybe<e_cheat_reveal_map> const selected =
+      co_await ts.gui.optional_enum_choice<e_cheat_reveal_map>(
+          disabled );
+  if( !selected.has_value() ) co_return;
+
+  maybe<MapRevealed_t> revealed;
+
+  switch( *selected ) {
+    case e_cheat_reveal_map::english:
+      revealed =
+          MapRevealed::nation{ .nation = e_nation::english };
+      break;
+    case e_cheat_reveal_map::french:
+      revealed =
+          MapRevealed::nation{ .nation = e_nation::french };
+      break;
+    case e_cheat_reveal_map::spanish:
+      revealed =
+          MapRevealed::nation{ .nation = e_nation::spanish };
+      break;
+    case e_cheat_reveal_map::dutch:
+      revealed =
+          MapRevealed::nation{ .nation = e_nation::dutch };
+      break;
+    case e_cheat_reveal_map::entire_map:
+      revealed = MapRevealed::entire{};
+      break;
+    case e_cheat_reveal_map::no_special_view: break;
+  }
+
+  maybe<e_nation> const active = active_player( ss.turn );
+  set_map_visibility( planes, ss, ts, revealed, active );
+}
 
 /****************************************************************
 ** In Harbor View

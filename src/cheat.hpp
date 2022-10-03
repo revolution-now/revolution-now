@@ -29,12 +29,18 @@ struct ColoniesState;
 struct Colony;
 struct IGui;
 struct IMapUpdater;
+struct Planes;
 struct Player;
 struct SS;
 struct SSConst;
 struct TS;
 struct Unit;
 struct UnitsState;
+
+/****************************************************************
+** In Land View
+*****************************************************************/
+wait<> cheat_reveal_map( Planes& planes, SS& ss, TS& ts );
 
 /****************************************************************
 ** In Colony View

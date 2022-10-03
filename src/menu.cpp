@@ -154,7 +154,8 @@ refl::enum_map<e_menu, vector<MenuItem_t>> const g_menu_def{
       } },
     { e_menu::cheat,
       {
-          ITEM( map_editor, "Enter Map Editor" ) //
+          ITEM( map_editor, "Enter Map Editor" ), //
+          ITEM( reveal_map, "Reveal Map" )        //
       } },
     { e_menu::pedia,
       {
