@@ -1068,25 +1068,22 @@ local function generate_land( options )
     h=(size.h - buffer.top * 2 - buffer.bottom * 2)
   }
   local quadrants = {
-    upper_left={
+    { -- upper left
       x=seed_rect.x,
       y=seed_rect.y,
       w=seed_rect.w // 2,
       h=seed_rect.h // 2
-    },
-    upper_right={
+    }, { -- upper right
       x=seed_rect.x + seed_rect.w // 2,
       y=seed_rect.y,
       w=seed_rect.w // 2,
       h=seed_rect.h // 2
-    },
-    lower_left={
+    }, { -- lower left
       x=seed_rect.x,
       y=seed_rect.y + seed_rect.h // 2,
       w=seed_rect.w // 2,
       h=seed_rect.h // 2
-    },
-    lower_right={
+    }, { -- lower right
       x=seed_rect.x + seed_rect.w // 2,
       y=seed_rect.y + seed_rect.h // 2,
       w=seed_rect.w // 2,
@@ -1095,7 +1092,7 @@ local function generate_land( options )
   }
   local land_squares = 0
   for i = 1, 1000 do
-    for quadrant_name, rect in pairs( quadrants ) do
+    for _, rect in ipairs( quadrants ) do
       land_squares = land_squares +
                          generate_continent_in_rect( options,
                                                      rect )
