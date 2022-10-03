@@ -153,6 +153,7 @@ cdr::value cdr_game_state_default =
                                 "w"_key = 0,
                             },
                     },
+                "map_revealed"_key = cdr::null,
             },
         "zzz_terrain"_key =
             cdr::table{

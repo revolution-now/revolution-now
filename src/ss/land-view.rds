@@ -11,8 +11,28 @@
 # Revolution Now
 include "viewport.hpp"
 
+# ss
+include "ss/nation.rds.hpp"
+
+# base
+include "base/maybe.hpp"
+
 namespace "rn"
+
+sumtype.MapRevealed {
+  # This should be first so that it is the default.
+  entire {},
+  nation {
+    nation 'e_nation',
+  },
+}
 
 struct.LandViewState {
   viewport 'SmoothViewport',
+
+  # This is only set by a cheat function which will reveal a map
+  # from a point of view other than the player. If it is nothing
+  # then that is equivalent to "no special view," meaning that
+  # each player sees their own view.
+  map_revealed 'base::maybe<MapRevealed_t>',
 }
