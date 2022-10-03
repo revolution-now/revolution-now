@@ -104,6 +104,13 @@ local function layout_narrow( stem )
       F.rds_impl
     }
     -- LuaFormatter on
+  elseif not exists( F.rds ) and exists( F.rds_impl ) then
+    -- LuaFormatter off
+    plan[1] = hsplit {
+      F.hpp,
+      F.rds_impl
+    }
+    -- LuaFormatter on
   elseif exists( F.rds ) then
     -- LuaFormatter off
     plan[1] = hsplit {
