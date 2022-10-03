@@ -38,6 +38,7 @@
 #include "turn-plane.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
+#include "visibility.hpp"
 
 // config
 #include "config/turn.rds.hpp"
@@ -856,6 +857,27 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
   //
 }
 
+void set_nation_map_visibility( Planes& planes, SS& ss, TS& ts,
+                                e_nation nation ) {
+  maybe<MapRevealed_t const&> revealed =
+      ss.land_view.map_revealed;
+  if( revealed.has_value() &&
+      revealed->holds<MapRevealed::entire>() ) {
+    set_map_visibility( planes, ss, ts,
+                        ss.land_view.map_revealed, nation );
+    return;
+  }
+  // At this point the map reveal status is not "entire map," and
+  // so since we're about to do the turn of a player, whatever
+  // player it's currently set to we're going to override, be-
+  // cause it wouldn't really make sense to e.g. start blinking
+  // units of another nation when they are not visible.
+  set_map_visibility(
+      planes, ss, ts,
+      MapRevealed_t{ MapRevealed::nation{ .nation = nation } },
+      /*default_nation=*/nothing );
+}
+
 wait<> nation_turn( Planes& planes, SS& ss, TS& ts,
                     NationTurnState& nat_turn_st ) {
   auto& st = nat_turn_st;
@@ -865,16 +887,8 @@ wait<> nation_turn( Planes& planes, SS& ss, TS& ts,
   if( !player.human ) co_return; // TODO: Until we have AI.
 
   // `visibility` determines from whose point of view the map is
-  // drawn with respect to which tiles are hidden. Change this to
-  // `nothing` here to make the map and all units fully visible.
-  maybe<e_nation> const visibility = st.nation;
-  ts.map_updater.mutate_options_and_redraw(
-      [&]( MapUpdaterOptions& options ) {
-        // This should trigger a redraw but only if we're
-        // changing the nation.
-        options.nation = visibility;
-      } );
-  planes.land_view().set_visibility( visibility );
+  // drawn with respect to which tiles are hidden.
+  set_nation_map_visibility( planes, ss, ts, st.nation );
 
   // Starting.
   if( !st.started ) {

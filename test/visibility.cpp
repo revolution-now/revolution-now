@@ -15,6 +15,11 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/land-view-plane.hpp"
+
+// Revolution Now
+#include "src/map-updater.hpp"
+#include "src/plane-stack.hpp"
 
 // ss
 #include "ss/player.rds.hpp"
@@ -980,6 +985,55 @@ TEST_CASE( "[visibility] Visibility" ) {
     REQUIRE( viz.square_at( { .x = 1, .y = 2 } ).surface ==
              e_surface::land );
   }
+}
+
+TEST_CASE( "[visibility] set_map_visibility" ) {
+  World W;
+
+  MockLandViewPlane mock_land_view;
+  W.planes().back().land_view = &mock_land_view;
+
+  maybe<e_nation>      default_nation;
+  maybe<MapRevealed_t> revealed;
+  maybe<MapRevealed_t> expected;
+
+  auto f = [&] {
+    set_map_visibility( W.planes(), W.ss(), W.ts(), revealed,
+                        default_nation );
+  };
+
+  expected = nothing;
+  REQUIRE( W.land_view().map_revealed == expected );
+  REQUIRE( W.map_updater().options().nation == nothing );
+
+  EXPECT_CALL( mock_land_view,
+               set_visibility( maybe<e_nation>{} ) );
+  revealed       = MapRevealed::entire{};
+  default_nation = e_nation::french; // should be irrelevant.
+  expected       = revealed;
+  f();
+  REQUIRE( W.land_view().map_revealed == expected );
+  REQUIRE( W.map_updater().options().nation == nothing );
+
+  EXPECT_CALL( mock_land_view,
+               set_visibility( e_nation::spanish ) );
+  revealed = MapRevealed::nation{ .nation = e_nation::spanish };
+  default_nation = e_nation::french; // should be irrelevant.
+  expected       = revealed;
+  f();
+  REQUIRE( W.land_view().map_revealed == expected );
+  REQUIRE( W.map_updater().options().nation ==
+           e_nation::spanish );
+
+  EXPECT_CALL( mock_land_view,
+               set_visibility( e_nation::french ) );
+  revealed       = nothing;
+  default_nation = e_nation::french;
+  expected       = revealed;
+  f();
+  REQUIRE( W.land_view().map_revealed == expected );
+  REQUIRE( W.map_updater().options().nation ==
+           e_nation::french );
 }
 
 } // namespace

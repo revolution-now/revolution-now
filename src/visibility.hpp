@@ -12,7 +12,11 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "maybe.hpp"
+
 // ss
+#include "ss/land-view.rds.hpp"
 #include "ss/nation.rds.hpp"
 #include "ss/unit-type.rds.hpp"
 
@@ -25,9 +29,12 @@
 namespace rn {
 
 struct MapSquare;
+struct Planes;
 struct PlayerTerrain;
+struct SS;
 struct SSConst;
 struct TerrainState;
+struct TS;
 
 /****************************************************************
 ** Visibility
@@ -109,5 +116,18 @@ std::vector<Coord> unit_visible_squares( SSConst const& ss,
                                          e_nation       nation,
                                          e_unit_type    type,
                                          Coord          tile );
+
+// This is the function that should be used to determine the per-
+// spective from which the land map should be rendered. It can be
+// rendered from the perspective of a particular player, no
+// player (entire map), or current player. This is used at the
+// start of each player's turn (if they are human) to set the map
+// to their view, and is also used by the cheat function "reveal
+// map." The default_nation is the nation that we will use if
+// `revealed` is nothing; if default_nation in turn is nothing
+// then it means "entire map."
+void set_map_visibility( Planes& planes, SS& ss, TS& ts,
+                         maybe<MapRevealed_t const&> revealed,
+                         maybe<e_nation> default_nation );
 
 } // namespace rn
