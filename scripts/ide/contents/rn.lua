@@ -5,4 +5,9 @@ return {
   'render/renderer',
   'map-updater',
   'render-terrain',
+  'visibility',
+  'turn',
+  'menu',
+  'land-view',
+  'cheat',
 }
