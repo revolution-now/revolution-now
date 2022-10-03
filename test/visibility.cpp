@@ -876,7 +876,7 @@ TEST_CASE( "[visibility] Visibility" ) {
   W.create_small_map();
 
   SECTION( "no player" ) {
-    Visibility viz( W.terrain(), /*player_terrain=*/nothing );
+    auto viz = Visibility::create( W.ss(), /*nation=*/nothing );
 
     // visible.
     REQUIRE( viz.visible( { .x = 0, .y = 0 } ) == true );
@@ -909,8 +909,7 @@ TEST_CASE( "[visibility] Visibility" ) {
   }
 
   SECTION( "with player, no visibility" ) {
-    Visibility viz( W.terrain(), W.terrain().player_terrain(
-                                     e_nation::english ) );
+    auto viz = Visibility::create( W.ss(), e_nation::english );
 
     // visible.
     REQUIRE( viz.visible( { .x = 0, .y = 0 } ) == false );
@@ -943,8 +942,7 @@ TEST_CASE( "[visibility] Visibility" ) {
   }
 
   SECTION( "with player, some visibility" ) {
-    Visibility viz( W.terrain(), W.terrain().player_terrain(
-                                     e_nation::english ) );
+    auto viz = Visibility::create( W.ss(), e_nation::english );
 
     Matrix<maybe<FogSquare>>& player_map =
         W.terrain()

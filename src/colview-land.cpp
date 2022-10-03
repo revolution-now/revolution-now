@@ -291,9 +291,7 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
   // here.
   rr::Painter painter      = renderer.painter();
   Coord const world_square = colony_.location;
-  UNWRAP_CHECK( player_terrain,
-                ss_.terrain.player_terrain( player_.nation ) );
-  Visibility const viz( ss_.terrain, player_terrain );
+  auto        viz = Visibility::create( ss_, player_.nation );
   // Render terrain.
   for( auto local_coord :
        Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) {

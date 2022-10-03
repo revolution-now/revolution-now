@@ -43,12 +43,6 @@ struct TerrainState;
 // methods in this class are total, because they will return
 // proto squares for tiles that are off-map.
 struct Visibility {
-  Visibility( TerrainState const&               terrain,
-              base::maybe<PlayerTerrain const&> player_terrain )
-    : terrain_( &terrain ),
-      player_terrain_( player_terrain.fmap(
-          []( auto& arg ) { return &arg; } ) ) {}
-
   static Visibility create( SSConst const&        ss,
                             base::maybe<e_nation> nation );
 
@@ -75,6 +69,12 @@ struct Visibility {
   bool on_map( Coord tile ) const;
 
  private:
+  Visibility( TerrainState const&               terrain,
+              base::maybe<PlayerTerrain const&> player_terrain )
+    : terrain_( &terrain ),
+      player_terrain_( player_terrain.fmap(
+          []( auto& arg ) { return &arg; } ) ) {}
+
   // These are pointers instead of references so that the class
   // can be assigned.
 
