@@ -18,7 +18,6 @@ players {
   }
   players.english {
     human: true
-    nation: english
     old_world {
       expeditionary_force {
         artillery: 2
@@ -87,7 +86,6 @@ units {
           }
           id: 1
           mv_pts.atoms: 12
-          nation: english
         }
       }
     },
@@ -102,7 +100,6 @@ units {
           }
           id: 2
           mv_pts.atoms: 3
-          nation: english
           orders: sentry
         }
       }
@@ -121,7 +118,6 @@ units {
           }
           id: 3
           mv_pts.atoms: 3
-          nation: english
           orders: sentry
         }
       }

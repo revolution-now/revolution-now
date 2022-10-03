@@ -11,8 +11,8 @@
 namespace "rn"
 
 enum.e_nation {
-  dutch,
-  french,
   english,
+  french,
   spanish,
+  dutch,
 }

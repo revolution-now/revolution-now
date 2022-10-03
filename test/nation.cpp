@@ -27,10 +27,10 @@ using namespace std;
 TEST_CASE( "[test/nation] some test" ) {
   auto all = all_nations();
   REQUIRE( all.size() == 4 );
-  REQUIRE( all[0] == e_nation::dutch );
+  REQUIRE( all[0] == e_nation::english );
   REQUIRE( all[1] == e_nation::french );
-  REQUIRE( all[2] == e_nation::english );
-  REQUIRE( all[3] == e_nation::spanish );
+  REQUIRE( all[2] == e_nation::spanish );
+  REQUIRE( all[3] == e_nation::dutch );
 
   Nationality const& dutch = nation_obj( e_nation::dutch );
   REQUIRE( dutch.enum_val == e_nation::dutch );
