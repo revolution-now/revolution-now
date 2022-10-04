@@ -1835,6 +1835,7 @@ void render_hidden_overlay(
   // Draw a transition on tile with visibility X to an adjacent
   // tile that is invisible.
   auto x_to_inviz = [&]( Delta delta, Rect part ) {
+    if( part.area() == 0 ) return;
     double const stage =
         self_visible ? kDepixelateStageLight : 0.0;
     double const alpha = self_visible ? kDpAlphaLight : 1.0;
@@ -1924,6 +1925,7 @@ void render_hidden_overlay(
 
   auto corner = [&]( Delta delta, Rect part, e_direction d1,
                      e_direction d2 ) {
+    if( part.area() == 0 ) return;
     Coord const moved = world_square.moved( d1 ).moved( d2 );
     if( self_visible && !viz.on_map( moved ) )
       // This prevents drawing shadow transitions at the edge
@@ -1948,6 +1950,7 @@ void render_hidden_overlay(
               : ( viz_count == 1 ) ? kDpAlpha
                                    : kDpAlphaLight;
     }
+    if( stage == 1.0 || alpha == 0.0 ) return;
     SCOPED_RENDERER_MOD_SET( painter_mods.alpha, alpha );
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                              stage );
