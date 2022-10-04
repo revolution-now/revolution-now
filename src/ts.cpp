@@ -11,9 +11,9 @@
 #include "ts.hpp"
 
 // Revolution Now
+#include "imap-updater.hpp"
 #include "irand.hpp"
 #include "map-updater-lua.hpp"
-#include "map-updater.hpp"
 
 // luapp
 #include "luapp/any.hpp"

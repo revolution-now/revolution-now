@@ -11,8 +11,8 @@
 #include "map-gen.hpp"
 
 // Revolution Now
+#include "imap-updater.hpp"
 #include "map-square.hpp"
-#include "map-updater.hpp"
 
 // ss
 #include "ss/land-view.hpp"

@@ -13,10 +13,10 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "harbor-units.hpp"
+#include "imap-updater.hpp"
 #include "immigration.hpp"
 #include "irand.hpp"
 #include "logger.hpp"
-#include "map-updater.hpp"
 #include "rand-enum.hpp"
 #include "ts.hpp"
 #include "ustate.hpp"

@@ -18,7 +18,7 @@
 #include "test/mocks/land-view-plane.hpp"
 
 // Revolution Now
-#include "src/map-updater.hpp"
+#include "src/imap-updater.hpp"
 #include "src/plane-stack.hpp"
 
 // ss

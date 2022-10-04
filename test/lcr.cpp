@@ -20,7 +20,7 @@
 #include "test/mocks/irand.hpp"
 
 // Revolution Now
-#include "map-updater.hpp"
+#include "imap-updater.hpp"
 #include "ustate.hpp"
 
 // ss

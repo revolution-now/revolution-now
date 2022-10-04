@@ -11,7 +11,7 @@
 #include "map-updater-lua.hpp"
 
 // Revolution Now
-#include "map-updater.hpp"
+#include "imap-updater.hpp"
 
 // luapp
 #include "luapp/register.hpp"

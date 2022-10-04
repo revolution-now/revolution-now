@@ -11,9 +11,9 @@
 #include "plow.hpp"
 
 // Revolution Now
+#include "imap-updater.hpp"
 #include "logger.hpp"
 #include "map-square.hpp"
-#include "map-updater.hpp"
 #include "terrain.hpp"
 #include "tiles.hpp"
 

@@ -3,6 +3,6 @@
 return {
   'exe/main',
   'render/renderer',
-  'map-updater',
+  'imap-updater',
   'render-terrain',
 }

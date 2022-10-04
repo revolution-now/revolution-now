@@ -11,8 +11,8 @@
 #include "road.hpp"
 
 // Revolution Now
+#include "imap-updater.hpp"
 #include "logger.hpp"
-#include "map-updater.hpp"
 #include "tiles.hpp"
 #include "visibility.hpp"
 

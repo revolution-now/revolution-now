@@ -17,8 +17,8 @@
 
 // Revolution Now
 #include "colony-mgr.hpp"
+#include "imap-updater.hpp"
 #include "map-square.hpp"
-#include "map-updater.hpp"
 #include "plane-stack.hpp"
 #include "ustate.hpp"
 

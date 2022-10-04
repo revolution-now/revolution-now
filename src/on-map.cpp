@@ -15,9 +15,9 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "igui.hpp"
+#include "imap-updater.hpp"
 #include "lcr.hpp"
 #include "logger.hpp"
-#include "map-updater.hpp"
 #include "ts.hpp"
 #include "visibility.hpp"
 

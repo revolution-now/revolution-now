@@ -1,5 +1,5 @@
 /****************************************************************
-**map-updater.hpp
+**imap-updater.hpp
 *
 * Project: Revolution Now
 *
@@ -165,6 +165,20 @@ struct NonRenderingMapUpdater : IMapUpdater {
 /****************************************************************
 ** MapUpdater
 *****************************************************************/
+// TODO:
+//
+//   1. Move this to its own file.
+//   2. Rename it to RenderingMapUpdater.
+//   3. Consider changing to pimpl, though it may not be neces-
+//      sary as only one place should include it.
+//   4. Implement the vertex zapper, and let it be able to zap
+//      vertices in either the landscape or annex buffer.
+//   5. Give it the ability to perform a full re-render in a
+//      background thread (use jthread and re-watch the video on
+//      C++20 threading enhancements).
+//   6. At that point we should be able to support arbitrarily
+//      large maps seemlessly.
+//
 // The real map updater used by the game. This one delegates to
 // the non-rendering version to make changes to the maps, then
 // proceeds (if necessary) to do rendering.

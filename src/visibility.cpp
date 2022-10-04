@@ -11,9 +11,9 @@
 #include "visibility.hpp"
 
 // Revolution Now
+#include "imap-updater.hpp"
 #include "land-view.hpp"
 #include "map-square.hpp"
-#include "map-updater.hpp"
 #include "plane-stack.hpp"
 #include "ts.hpp"
 

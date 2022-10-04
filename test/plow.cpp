@@ -17,8 +17,8 @@
 #include "test/fake/world.hpp"
 
 // Revolution Now
+#include "src/imap-updater.hpp"
 #include "src/map-square.hpp"
-#include "src/map-updater.hpp"
 #include "src/on-map.hpp"
 #include "src/terrain.hpp"
 #include "src/ustate.hpp"

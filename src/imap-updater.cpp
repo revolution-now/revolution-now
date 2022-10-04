@@ -1,5 +1,5 @@
 /****************************************************************
-**map-updater.cpp
+**imap-updater.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: Handlers when a map square needs to be modified.
 *
 *****************************************************************/
-#include "map-updater.hpp"
+#include "imap-updater.hpp"
 
 // Revolution Now
 #include "logger.hpp"
