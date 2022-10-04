@@ -12,11 +12,11 @@
 
 #include "core-config.hpp"
 
-// Rds
-#include "render-terrain.rds.hpp"
-
 // ss
 #include "ss/matrix.hpp"
+
+// render
+#include "render/renderer.rds.hpp"
 
 // gfx
 #include "gfx/coord.hpp"
@@ -53,6 +53,6 @@ void render_terrain_square(
 void render_terrain( rr::Renderer&               renderer,
                      Visibility const&           viz,
                      TerrainRenderOptions const& options,
-                     Matrix<TileBounds>&         tile_bounds );
+                     Matrix<rr::TileBounds>&     tile_bounds );
 
 } // namespace rn
