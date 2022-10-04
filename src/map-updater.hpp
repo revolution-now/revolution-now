@@ -55,15 +55,9 @@ struct NonRenderingMapUpdater : IMapUpdater {
 /****************************************************************
 ** RenderingMapUpdater
 *****************************************************************/
-// TODO:
-//
-//   1. Implement the vertex zapper, and let it be able to zap
-//      vertices in either the landscape or annex buffer.
-//   2. Give it the ability to perform a full re-render in a
-//      background thread (use jthread and re-watch the video on
-//      C++20 threading enhancements).
-//   3. At that point we should be able to support arbitrarily
-//      large maps seemlessly.
+// TODO: Give this the ability to perform a full re-render in a
+// background thread. At that point we should be able to support
+// arbitrarily large maps seemlessly.
 //
 // The real map updater used by the game. This one delegates to
 // the non-rendering version to make changes to the maps, then
