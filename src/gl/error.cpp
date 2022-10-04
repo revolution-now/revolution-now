@@ -39,7 +39,7 @@ vector<string> has_errors() {
 
 bool print_errors() {
   vector<string> errors = has_errors();
-  for( string const& error : errors ) cerr << error;
+  for( string const& error : errors ) cerr << error << "\n";
   return !errors.empty();
 }
 
