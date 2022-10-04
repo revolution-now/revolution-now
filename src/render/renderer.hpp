@@ -163,6 +163,18 @@ struct Renderer {
   // only.
   VertexRange range_for( base::function_ref<void()> f ) const;
 
+  // This will edit the vertex buffer to zero-out all vertices
+  // from [start, end). The GenericVertex is set up so that when
+  // it is zero'd its `visible` field will be false (0) which
+  // will cause the vertex shader to discard it, thus it won't
+  // take any (expensive) fragment shader time. This is used when
+  // we want to overwrite a tile with another tile and we don't
+  // want the fragment shader to bother running on the vertices
+  // from the previous tile for performance reasons. Once the
+  // vertex buffer is edited that subsection (only) will be
+  // re-uploaded to the GPU.
+  void zap( VertexRange const& rng );
+
   Painter painter();
 
   Typer typer( gfx::point start, gfx::pixel color );

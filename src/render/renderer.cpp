@@ -383,6 +383,19 @@ struct Renderer::Impl {
     return rng;
   }
 
+  vector<GenericVertex>& get_buffer(
+      e_render_target_buffer buffer ) {
+    switch( buffer ) {
+      case e_render_target_buffer::normal: return vertices;
+      case e_render_target_buffer::landscape:
+        return landscape_vertices;
+      case e_render_target_buffer::landscape_annex:
+        return landscape_annex_vertices;
+      case e_render_target_buffer::backdrop:
+        return backdrop_vertices;
+    }
+  }
+
   Emitter& get_emitter( e_render_target_buffer buffer ) {
     switch( buffer ) {
       case e_render_target_buffer::normal: return emitter;
@@ -392,6 +405,64 @@ struct Renderer::Impl {
         return landscape_annex_emitter;
       case e_render_target_buffer::backdrop:
         return backdrop_emitter;
+    }
+  }
+
+  VertexArray_t const& get_vertex_array(
+      e_render_target_buffer buffer ) {
+    switch( buffer ) {
+      case e_render_target_buffer::normal: return vertex_array;
+      case e_render_target_buffer::landscape:
+        return landscape_vertex_array;
+      case e_render_target_buffer::landscape_annex:
+        return landscape_annex_vertex_array;
+      case e_render_target_buffer::backdrop:
+        return backdrop_vertex_array;
+    }
+  }
+
+  bool is_buffer_dirty( e_render_target_buffer buffer ) {
+    switch( buffer ) {
+      case e_render_target_buffer::normal:
+        // This is equivalent to always being dirty because it is
+        // reuploaded to the GPU each frame.
+        return true;
+      case e_render_target_buffer::landscape:
+        return landscape_dirty;
+      case e_render_target_buffer::landscape_annex:
+        return landscape_annex_dirty;
+      case e_render_target_buffer::backdrop:
+        // This is equivalent to always being dirty because it is
+        // reuploaded to the GPU each frame.
+        return true;
+    }
+  }
+
+  void zap( VertexRange const& rng ) {
+    CHECK_GE( rng.finish, rng.start );
+    if( rng.finish == rng.start ) return;
+    vector<GenericVertex>& vertices = get_buffer( rng.buffer );
+    CHECK_GT( int( vertices.size() ), rng.start );
+    CHECK_LE( rng.finish, int( vertices.size() ) );
+    auto start_iter = vertices.begin() + rng.start;
+    auto end_iter   = vertices.begin() + rng.finish;
+
+    // zero it out.
+    fill( start_iter, end_iter, GenericVertex{} );
+
+    // If the buffer is dirty then that means that the buffer on
+    // the GPU may not correspond to the vertex array and so it
+    // is not safe to modify a subsection of it. That's ok, be-
+    // cause if it is dirty then the entire buffer will get
+    // re-uploaded to the GPU anyway at the end of the next
+    // render pass.
+    if( !is_buffer_dirty( rng.buffer ) ) {
+      // Re-upload only this segment to the GPU.
+      span const           segment{ start_iter, end_iter };
+      VertexArray_t const& vertex_array =
+          get_vertex_array( rng.buffer );
+      vertex_array.buffer<0>().upload_data_modify( segment,
+                                                   rng.start );
     }
   }
 
@@ -590,6 +661,10 @@ double Renderer::buffer_size_mb(
     e_render_target_buffer buffer ) {
   return buffer_vertex_count( buffer ) *
          sizeof( GenericVertex ) / ( 1024.0 * 1024.0 );
+}
+
+void Renderer::zap( VertexRange const& rng ) {
+  impl_->zap( rng );
 }
 
 VertexRange Renderer::range_for(

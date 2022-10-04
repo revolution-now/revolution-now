@@ -18,7 +18,8 @@
 #include "test/mocks/gl/iface.hpp"
 
 // render
-#include "render/vertex.hpp"
+#include "render/emitter.hpp"
+#include "render/painter.hpp"
 
 // gl
 #include "src/gl/shader.hpp"
@@ -310,14 +311,19 @@ TEST_CASE( "[render/renderer] workflows" ) {
   EXPECT_CALL( mock, gl_Uniform2f( 90, 500.0, 400.0 ) );
 
   // Create the atlas texture.
-  auto expect_bind = [&] {
+  auto expect_bind_tx = [&] {
     EXPECT_CALL( mock, gl_GetError() )
-        .times( 5 )
+        .times( 2 )
         .returns( GL_NO_ERROR );
     EXPECT_CALL( mock, gl_GetIntegerv( GL_TEXTURE_BINDING_2D,
                                        Not( Null() ) ) )
         .sets_arg<1>( 41 );
     EXPECT_CALL( mock, gl_BindTexture( GL_TEXTURE_2D, 42 ) );
+  };
+  auto expect_unbind_tx = [&] {
+    EXPECT_CALL( mock, gl_GetError() )
+        .times( 3 )
+        .returns( GL_NO_ERROR );
     EXPECT_CALL( mock, gl_GetIntegerv( GL_TEXTURE_BINDING_2D,
                                        Not( Null() ) ) )
         .sets_arg<1>( 42 );
@@ -329,7 +335,8 @@ TEST_CASE( "[render/renderer] workflows" ) {
 
   EXPECT_CALL( mock, gl_GenTextures( 1, Not( Null() ) ) )
       .sets_arg<1>( 42 );
-  expect_bind();
+  expect_bind_tx();
+  expect_unbind_tx();
   EXPECT_CALL( mock, gl_TexParameteri( GL_TEXTURE_2D,
                                        GL_TEXTURE_MIN_FILTER,
                                        GL_NEAREST ) );
@@ -345,7 +352,8 @@ TEST_CASE( "[render/renderer] workflows" ) {
   EXPECT_CALL( mock, gl_DeleteTextures( 1, Pointee( 42 ) ) );
 
   // Set texture image.
-  expect_bind();
+  expect_bind_tx();
+  expect_unbind_tx();
   EXPECT_CALL(
       mock, gl_TexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 64, 32, 0,
                            GL_RGBA, GL_UNSIGNED_BYTE,
@@ -356,8 +364,10 @@ TEST_CASE( "[render/renderer] workflows" ) {
   EXPECT_CALL( mock, gl_Uniform2f( 89, 64, 32 ) );
 
   // We bind the atlas texture on construction of the renderer
-  // one final time.
-  expect_bind();
+  // one final time. The corresponding unbind must come at the
+  // end of this test case otherwise it interferes with other ex-
+  // pect calls that we need to make in the mean time.
+  expect_bind_tx();
 
   // *** The test.
 
@@ -383,6 +393,98 @@ TEST_CASE( "[render/renderer] workflows" ) {
   };
   unique_ptr<Renderer> renderer =
       Renderer::create( config, [] {} );
+
+  // Try zapping.
+  {
+    VertexRange vertex_range{
+        .buffer = e_render_target_buffer::landscape_annex,
+        .start  = 6, // zap the second rect.
+        .finish = 12 };
+    auto popper = renderer->push_mods( []( RendererMods& mods ) {
+      mods.buffer_mods.buffer =
+          e_render_target_buffer::landscape_annex;
+    } );
+    rr::Painter painter = renderer->painter();
+    painter.draw_solid_rect( gfx::rect{}, gfx::pixel{} );
+    painter.draw_solid_rect( gfx::rect{}, gfx::pixel{} );
+    // Should not upload since the buffer is dirty.
+    renderer->zap( vertex_range );
+
+    // Now lets remove the dirty status by rendering.
+    {
+      EXPECT_CALL( mock, gl_GetError() )
+          .times( 13 )
+          .returns( GL_NO_ERROR );
+      // Bind/unbind vertex buffer.
+      EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
+                                         Not( Null() ) ) )
+          .sets_arg<1>( 99 );
+      EXPECT_CALL( mock, gl_BindBuffer( GL_ARRAY_BUFFER, 41 ) );
+      EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
+                                         Not( Null() ) ) )
+          .sets_arg<1>( 41 );
+      EXPECT_CALL( mock, gl_BindBuffer( GL_ARRAY_BUFFER, 99 ) );
+      EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
+                                         Not( Null() ) ) )
+          .sets_arg<1>( 99 );
+
+      // Upload the data.
+      EXPECT_CALL(
+          mock, gl_BufferData( GL_ARRAY_BUFFER,
+                               12 * sizeof( GenericVertex ),
+                               Not( Null() ), GL_STATIC_DRAW ) );
+
+      EXPECT_CALL( mock, gl_UseProgram( 9 ) );
+
+      // Bind/unbind vertex array.
+      EXPECT_CALL( mock, gl_GetIntegerv( GL_VERTEX_ARRAY_BINDING,
+                                         Not( Null() ) ) )
+          .sets_arg<1>( 98 );
+      EXPECT_CALL( mock, gl_BindVertexArray( 21 ) );
+      EXPECT_CALL( mock, gl_GetIntegerv( GL_VERTEX_ARRAY_BINDING,
+                                         Not( Null() ) ) )
+          .sets_arg<1>( 21 );
+      EXPECT_CALL( mock, gl_BindVertexArray( 98 ) );
+      EXPECT_CALL( mock, gl_GetIntegerv( GL_VERTEX_ARRAY_BINDING,
+                                         Not( Null() ) ) )
+          .sets_arg<1>( 98 );
+
+      EXPECT_CALL( mock, gl_DrawArrays( GL_TRIANGLES, 0, 12 ) );
+
+      renderer->render_buffer(
+          e_render_target_buffer::landscape_annex );
+    }
+
+    {
+      // Now zap again that the buffer is not dirty and verify
+      // that the sub data is re-uploaded.
+      EXPECT_CALL( mock, gl_GetError() )
+          .times( 6 )
+          .returns( GL_NO_ERROR );
+      // Bind/unbind vertex buffer.
+      EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
+                                         Not( Null() ) ) )
+          .sets_arg<1>( 99 );
+      EXPECT_CALL( mock, gl_BindBuffer( GL_ARRAY_BUFFER, 41 ) );
+      EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
+                                         Not( Null() ) ) )
+          .sets_arg<1>( 41 );
+      EXPECT_CALL( mock, gl_BindBuffer( GL_ARRAY_BUFFER, 99 ) );
+      EXPECT_CALL( mock, gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
+                                         Not( Null() ) ) )
+          .sets_arg<1>( 99 );
+
+      // Upload the sub section of data.
+      EXPECT_CALL( mock,
+                   gl_BufferSubData( GL_ARRAY_BUFFER,
+                                     6 * sizeof( GenericVertex ),
+                                     6 * sizeof( GenericVertex ),
+                                     Not( Null() ) ) );
+      renderer->zap( vertex_range );
+    }
+  }
+
+  expect_unbind_tx();
 }
 
 } // namespace
