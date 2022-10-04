@@ -12,6 +12,12 @@
 
 #include "core-config.hpp"
 
+// Rds
+#include "render-terrain.rds.hpp"
+
+// ss
+#include "ss/matrix.hpp"
+
 // gfx
 #include "gfx/coord.hpp"
 
@@ -46,6 +52,7 @@ void render_terrain_square(
 // called once after the map is generated.
 void render_terrain( rr::Renderer&               renderer,
                      Visibility const&           viz,
-                     TerrainRenderOptions const& options );
+                     TerrainRenderOptions const& options,
+                     Matrix<TileBounds>&         tile_bounds );
 
 } // namespace rn

@@ -1,0 +1,22 @@
+# ===============================================================
+# render-terrain.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-10-04.
+#
+# Description: Rds definitions for the render-terrain module.
+#
+# ===============================================================
+include "render/renderer.rds.hpp"
+
+namespace "rn"
+
+# Describes where the vertices are for a given tile. This is used
+# when we need to overwrite those vertices in the buffer without
+# reconstructing the entire buffer.
+struct.TileBounds {
+  buffer 'rr::e_render_target_buffer',
+  start  'long',
+  finish 'long',
+}
