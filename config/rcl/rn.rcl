@@ -21,6 +21,19 @@ viewport {
   # until there is space around the map revealed, or do we stop
   # the zooming just when that is about to happen.
   can_reveal_space_around_map: true
+
+  # When the map view needs to scroll to reveal a tile that is
+  # off screen it will only perform a smooth scroll if the tile
+  # is not too far away. This parameter control how far it is
+  # willing to do a smooth scroll; beyond that point if will just
+  # jump immediately. This is a multiplicative factor; basically
+  # the real distance is divided by this factor before deter-
+  # mining whether it is too far away, and so the larger it is,
+  # the further the map is willing to smooth scroll. When this is
+  # 1.0 then the threshold for scrolling will be roughly one
+  # screen length, where screen length is defined as the average
+  # of the two screen dimensions. This can be fractional.
+  smooth_scroll_threshold: 1.5
 }
 
 console {

@@ -773,6 +773,27 @@ void SmoothViewport::ensure_tile_visible( Coord const& coord ) {
   center_on_tile_y( coord );
 }
 
+bool SmoothViewport::is_tile_too_far( Coord tile ) const {
+  Rect const covered = covered_tiles();
+  // Get the approximate distance of this coord to the nearest
+  // covered tile.
+  int const w = ( tile.x <= covered.x ) ? ( covered.x - tile.x )
+                : ( tile.x >= covered.right_edge() )
+                    ? ( tile.x - covered.right_edge() )
+                    : 0;
+  int const h = ( tile.y <= covered.y ) ? ( covered.y - tile.y )
+                : ( tile.y >= covered.bottom_edge() )
+                    ? ( tile.y - covered.bottom_edge() )
+                    : 0;
+  CHECK_GE( w, 0 );
+  CHECK_GE( h, 0 );
+  double const dist = sqrt( double( w * w + h * h ) );
+  double const threshold =
+      ( covered.w + covered.h ) / 2.0 *
+      config_rn.viewport.smooth_scroll_threshold;
+  return dist > threshold;
+}
+
 wait<> SmoothViewport::ensure_tile_visible_smooth(
     Coord const& coord ) {
   // FIXME: this seems to never finish if the viewport is zoomed
@@ -781,6 +802,13 @@ wait<> SmoothViewport::ensure_tile_visible_smooth(
   if( !need_to_scroll_to_reveal_tile( coord ) )
     return make_wait<>();
   stop_auto_panning();
+  if( is_tile_too_far( coord ) ) {
+    // If it's too far from the current view then we'll forgo
+    // smooth scrolling otherwise it can get annoying to the
+    // player.
+    center_on_tile( coord );
+    return make_wait<>();
+  }
   coro_smooth_scroll_ = SmoothScroll{
       .x_target    = double( ( coord.x * g_tile_width ) ),
       .y_target    = double( ( coord.y * g_tile_height ) ),

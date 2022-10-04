@@ -60,9 +60,11 @@ class SmoothViewport {
   // shifting if it is already visible in that sense.
   void ensure_tile_visible( Coord const& coord );
   // Same as above but will animate the motion as opposed to a
-  // sudden shift. The wait will be fulfilled when the given
-  // tile becomes visible, but the scrolling may continue for a
-  // bit after that.
+  // sudden shift. The wait will be fulfilled when the given tile
+  // becomes visible, but the scrolling may continue for a bit
+  // after that. If the target area of the map is too far from
+  // the current area then it will just jump immediately there to
+  // avoid too much scrolling.
   wait<> ensure_tile_visible_smooth( Coord const& coord );
 
   // This function computes the rectangle on the screen to which
@@ -172,6 +174,8 @@ class SmoothViewport {
                 e_push_direction zoom_push );
 
   void advance_zoom_point_seek( DissipativeVelocity const& vel );
+
+  bool is_tile_too_far( Coord tile ) const;
 
   template<typename C>
   friend bool are_tile_surroundings_as_fully_visible_as_can_be(
