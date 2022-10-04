@@ -236,12 +236,17 @@ struct Responder<RetT, std::tuple<Args...>,
           auto const& matcher_wrapper =
               std::get<ArgIdx>( matchers_ );
           auto const& matcher = matcher_wrapper.matcher();
+          std::string arg_str = "<non-formattable>";
+          if constexpr( base::Show<std::remove_cvref_t<
+                            decltype( arg )>> )
+            arg_str = fmt::to_string( arg );
           if( !matcher.matches( arg ) )
             throw_unexpected_error( fmt::format(
                 "mock function call with unexpected arguments: "
                 "{}( {} ); Argument #{} (one-based) does not "
-                "match.",
-                fn_name_, formatted_args, ArgIdx + 1 ) );
+                "match actual value {}.",
+                fn_name_, formatted_args, ArgIdx + 1,
+                arg_str ) );
         };
     ( check_argument( std::integral_constant<size_t, Idx>{} ),
       ... );
