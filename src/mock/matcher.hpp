@@ -49,6 +49,10 @@ struct IMatcher {
   virtual ~IMatcher() = default;
 
   virtual bool matches( T const& val ) const = 0;
+
+  virtual std::string format_expected() const {
+    return "<unformatted>";
+  }
 };
 
 /****************************************************************
@@ -72,6 +76,13 @@ struct Value : IMatcher<T> {
 
   bool matches( T const& val ) const override {
     return val == val_;
+  }
+
+  std::string format_expected() const override {
+    if constexpr( base::Show<T> )
+      return base::to_str( val_ );
+    else
+      return this->IMatcher<T>::format_expected();
   }
 
  private:
@@ -103,7 +114,7 @@ struct MatcherWrapper {
   requires( MatchableValue<std::remove_cvref_t<U>> &&
             !Matcher<std::remove_cvref_t<U>> &&
             std::is_constructible_v<T, U> )
-      MatcherWrapper( U&& val )
+  MatcherWrapper( U&& val )
     : matcher_( std::make_unique<matchers::detail::Value<T>>(
           std::forward<U>( val ) ) ) {}
 
