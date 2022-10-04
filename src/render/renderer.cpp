@@ -367,6 +367,18 @@ struct Renderer::Impl {
     }
   }
 
+  Emitter& get_emitter( e_render_target_buffer buffer ) {
+    switch( buffer ) {
+      case e_render_target_buffer::normal: return emitter;
+      case e_render_target_buffer::landscape:
+        return landscape_emitter;
+      case e_render_target_buffer::landscape_annex:
+        return landscape_annex_emitter;
+      case e_render_target_buffer::backdrop:
+        return backdrop_emitter;
+    }
+  }
+
   void render_buffer( e_render_target_buffer buffer ) {
     switch( buffer ) {
       case e_render_target_buffer::backdrop: {
@@ -537,6 +549,11 @@ void Renderer::clear_buffer( e_render_target_buffer buffer ) {
 
 void Renderer::render_buffer( e_render_target_buffer buffer ) {
   impl_->render_buffer( buffer );
+}
+
+long Renderer::buffer_vertex_cur_pos(
+    e_render_target_buffer buffer ) {
+  return impl_->get_emitter( buffer ).position();
 }
 
 long Renderer::buffer_vertex_count(
