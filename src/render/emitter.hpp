@@ -31,12 +31,14 @@ struct Emitter {
   Emitter( std::vector<GenericVertex>& buffer )
     : Emitter( buffer, 0 ) {}
 
-  Emitter( std::vector<GenericVertex>& buffer, int pos )
+  Emitter( std::vector<GenericVertex>& buffer, long pos )
     : buffer_( &buffer ),
       pos_( pos ),
       log_capacity_changes_( false ) {}
 
-  void set_position( int new_pos );
+  void set_position( long new_pos );
+
+  long position() const { return pos_; }
 
   template<VertexType V>
   void emit( V const& vert ) {
@@ -65,7 +67,7 @@ struct Emitter {
   void emit( std::span<GenericVertex const> vertices );
 
   std::vector<GenericVertex>* buffer_;
-  int                         pos_;
+  long                        pos_;
   bool                        log_capacity_changes_;
 };
 
