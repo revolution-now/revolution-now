@@ -40,7 +40,13 @@ struct UnitsState;
 /****************************************************************
 ** In Land View
 *****************************************************************/
+// Ask the user which map they want to reveal.
 wait<> cheat_reveal_map( Planes& planes, SS& ss, TS& ts );
+
+// No dialog box, just toggle the map view between the entire map
+// and the view for the active player.
+void cheat_toggle_reveal_full_map( Planes& planes, SS& ss,
+                                   TS& ts );
 
 /****************************************************************
 ** In Colony View

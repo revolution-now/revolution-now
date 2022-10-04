@@ -118,6 +118,23 @@ wait<> cheat_reveal_map( Planes& planes, SS& ss, TS& ts ) {
   set_map_visibility( planes, ss, ts, revealed, active );
 }
 
+void cheat_toggle_reveal_full_map( Planes& planes, SS& ss,
+                                   TS& ts ) {
+  RETURN_IF_NO_CHEAT;
+  maybe<MapRevealed_t&> revealed = ss.land_view.map_revealed;
+  if( !revealed.has_value() ||
+      !revealed->holds<MapRevealed::entire>() ) {
+    // Reveal the entire map.
+    set_map_visibility( planes, ss, ts,
+                        MapRevealed_t{ MapRevealed::entire{} },
+                        /*default_nation=*/nothing );
+    return;
+  }
+  // Reveal for active player.
+  maybe<e_nation> const active = active_player( ss.turn );
+  set_map_visibility( planes, ss, ts, nothing, active );
+}
+
 /****************************************************************
 ** In Harbor View
 *****************************************************************/

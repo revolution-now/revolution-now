@@ -488,6 +488,10 @@ struct LandViewPlane::Impl : public Plane {
           co_await cheat_reveal_map( planes_, ss_, ts_ );
           break;
         }
+        case e::toggle_map_reveal: {
+          cheat_toggle_reveal_full_map( planes_, ss_, ts_ );
+          break;
+        }
         case e::escape: {
           translated_input_stream_.send( PlayerInput(
               LandViewPlayerInput::exit{}, raw_input.when ) );
@@ -1374,6 +1378,12 @@ struct LandViewPlane::Impl : public Plane {
               break;
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::hidden_terrain{} ) );
+            break;
+          case ::SDLK_r:
+            // Cheat function -- reveal entire map.
+            if( !key_event.mod.shf_down ) break;
+            raw_input_stream_.send( RawInput(
+                LandViewRawInput::toggle_map_reveal{} ) );
             break;
           case ::SDLK_e:
             raw_input_stream_.send( RawInput(
