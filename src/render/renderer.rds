@@ -1,0 +1,26 @@
+# ===============================================================
+# renderer.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-10-04.
+#
+# Description: Rds definitions for the renderer module.
+#
+# ===============================================================
+namespace "rr"
+
+enum.e_render_target_buffer {
+  # The backdrop buffer can be used if something needs to be ren-
+  # dered behind the landscape buffer. We can't put it in the
+  # normal buffer since that will be rendered on top of the land-
+  # scape buffer. But we may not want to put it in the landscape
+  # buffer because it might need to be dynamic.
+  backdrop,
+  landscape,
+  # This is used to modify tiles in the landscape buffer by just
+  # overwriting them. This buffer will be drawn overtop of the
+  # landscape buffer.
+  landscape_annex,
+  normal,
+}
