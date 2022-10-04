@@ -33,7 +33,7 @@ viewport {
   # 1.0 then the threshold for scrolling will be roughly one
   # screen length, where screen length is defined as the average
   # of the two screen dimensions. This can be fractional.
-  smooth_scroll_threshold: 1.5
+  smooth_scroll_threshold: 1.0
 }
 
 console {
