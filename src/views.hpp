@@ -233,6 +233,9 @@ class OneLineStringView : public View {
  public:
   OneLineStringView( std::string msg, gfx::pixel color );
 
+  OneLineStringView( std::string msg, gfx::pixel color,
+                     Delta size_override );
+
   // Implement Object
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override;
@@ -245,6 +248,7 @@ class OneLineStringView : public View {
 
  protected:
   std::string msg_;
+  Delta       view_size_;
   Delta       text_size_; // rendered pixel size.
   gfx::pixel  color_;
 };
