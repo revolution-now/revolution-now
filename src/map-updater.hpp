@@ -13,6 +13,9 @@
 // Revolution Now
 #include "imap-updater.hpp"
 
+// render
+#include "render/renderer.rds.hpp"
+
 namespace rr {
 struct Renderer;
 }
@@ -68,10 +71,7 @@ struct NonRenderingMapUpdater : IMapUpdater {
 struct RenderingMapUpdater : NonRenderingMapUpdater {
   using Base = NonRenderingMapUpdater;
 
-  RenderingMapUpdater( SS& ss, rr::Renderer& renderer )
-    : NonRenderingMapUpdater( ss ),
-      renderer_( renderer ),
-      tiles_redrawn_( 0 ) {}
+  RenderingMapUpdater( SS& ss, rr::Renderer& renderer );
 
   // Implement IMapUpdater.
   bool modify_map_square( Coord            tile,
@@ -92,8 +92,9 @@ struct RenderingMapUpdater : NonRenderingMapUpdater {
       Visibility const&           viz,
       TerrainRenderOptions const& terrain_options, Coord tile );
 
-  rr::Renderer& renderer_;
-  int           tiles_redrawn_;
+  rr::Renderer&           renderer_;
+  int                     tiles_redrawn_;
+  Matrix<rr::VertexRange> tile_bounds_;
 };
 
 /****************************************************************

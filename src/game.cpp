@@ -84,10 +84,9 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   // saved (not including auto-save) and/or loaded.
   RootState saved;
 
-  RenderingMapUpdater map_updater(
-      ss, global_renderer_use_only_when_needed() );
-
   lua::state& st = planes.console().lua_state();
+  st["ROOT"]     = ss.root;
+  st["SS"]       = ss;
 
   auto        popper = planes.new_copied_group();
   PlaneGroup& group  = planes.back();
@@ -99,14 +98,21 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
 
   Rand rand; // random seed.
 
-  TS ts( map_updater, st, gui, rand, saved );
+  {
+    // The real map updater needs to know the map size during
+    // construction, so use the non-rendering one, which is fine
+    // because we don't need to render yet anyway.
+    NonRenderingMapUpdater map_updater( ss );
+    TS ts( map_updater, st, gui, rand, saved );
+    if( !co_await loader( ss, ts ) )
+      // Didn't load a game for some reason. Could have failed or
+      // maybe there are no games to load.
+      co_return;
+  }
 
-  st["ROOT"] = ss.root;
-  st["SS"]   = ss;
-  if( !co_await loader( ss, ts ) )
-    // Didn't load a game for some reason. Could have failed or
-    // maybe there are no games to load.
-    co_return;
+  RenderingMapUpdater map_updater(
+      ss, global_renderer_use_only_when_needed() );
+  TS ts( map_updater, st, gui, rand, saved );
 
   ensure_human_player( ss.players );
 

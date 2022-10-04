@@ -96,6 +96,16 @@ void NonRenderingMapUpdater::redraw() {}
 /****************************************************************
 ** RenderingMapUpdater
 *****************************************************************/
+RenderingMapUpdater::RenderingMapUpdater(
+    SS& ss, rr::Renderer& renderer )
+  : NonRenderingMapUpdater( ss ),
+    renderer_( renderer ),
+    tiles_redrawn_( 0 ),
+    tile_bounds_( ss.terrain.world_size_tiles() ) {
+  // Something is probably wrong if this happens.
+  CHECK_GT( tile_bounds_.size().area(), 0 );
+}
+
 void RenderingMapUpdater::redraw_square(
     Visibility const&           viz,
     TerrainRenderOptions const& terrain_options, Coord tile ) {
@@ -105,10 +115,19 @@ void RenderingMapUpdater::redraw_square(
       buffer_mods.buffer,
       rr::e_render_target_buffer::landscape_annex );
 
-  render_terrain_square( renderer_, tile * g_tile_delta, tile,
-                         viz, terrain_options );
+  rr::VertexRange const old_bounds = tile_bounds_[tile];
+  tile_bounds_[tile]               = renderer_.range_for( [&] {
+    render_terrain_square( renderer_, tile * g_tile_delta, tile,
+                                         viz, terrain_options );
+  } );
 
-  ++tiles_redrawn_;
+  // Now we zero out the vertices from the old tile. If we don't
+  // do this then, over time, as we overwite a tile many times,
+  // the tile accumulates so many renderable vertices that frame
+  // rate significantly drops when a large number of screen
+  // pixels are occupied by such tiles.
+  renderer_.zap( old_bounds );
+
   // If we've redrawn a number of tiles that are beyond the below
   // threshold then we will just redraw the entire thing. We do
   // this for two reasons. First, each time a tile gets redrawn
@@ -117,21 +136,14 @@ void RenderingMapUpdater::redraw_square(
   // would then happen potentially on each move of a unit (where
   // new terrain is exposed). By redrawing the entire thing peri-
   // odically we clear the annex buffer and eliminate this la-
-  // tency. Second, when the same tile is redrawn multiple times
-  // it can (depending on GPU) lead to a decrease in framerate
-  // especially when the view is zoomed in on that tile, and this
-  // is due to the fact that each picture needs many more frag-
-  // ment shader runs since there are multiple redrawn layers on
-  // it, and the GPU apparently can't deduce that some layers are
-  // opaque before running them all. The redraw will also elimi-
-  // nate that. This threshold is set somewhat arbitrarily, but
-  // it is set to a value that is not so low as to cause a map
-  // redraw too often (which will be slow on large maps) and not
-  // too large as to let the annex buffer get too large (which
-  // would increase latency of redrawing a tile by having to
-  // re-upload a large annex buffer to the GPU).  We will just
-  // set it to the number of tiles on the OG's map.
-  int const redraw_threshold = 70 * 56;
+  // tency. This threshold is set somewhat arbitrarily, but it is
+  // set to a value that is not so low as to cause a map redraw
+  // too often (which will be slow on large maps) and not too
+  // large as to let the annex buffer get too large (which would
+  // increase latency of redrawing a tile by having to re-upload
+  // a large annex buffer to the GPU).
+  ++tiles_redrawn_;
+  int const redraw_threshold = 20000;
   // The > is defensive.
   if( tiles_redrawn_ >= redraw_threshold ) redraw();
 }
@@ -211,11 +223,14 @@ void RenderingMapUpdater::modify_entire_map(
 
 void RenderingMapUpdater::redraw() {
   this->Base::redraw();
+  // No changing map size mid game.
+  CHECK( ss_.terrain.world_size_tiles() == tile_bounds_.size() );
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
   Visibility const viz =
       Visibility::create( ss_, options().nation );
-  render_terrain( renderer_, viz, terrain_options );
+  render_terrain( renderer_, viz, terrain_options,
+                  tile_bounds_ );
   // Reset this since we just redrew the map.
   tiles_redrawn_ = 0;
 }
