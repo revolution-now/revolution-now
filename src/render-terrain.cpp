@@ -15,7 +15,6 @@
 #include "imap-updater.hpp"
 #include "logger.hpp"
 #include "plow.hpp"
-#include "renderer.hpp" // FIXME: remove
 #include "road.hpp"
 #include "tiles.hpp"
 #include "visibility.hpp"
