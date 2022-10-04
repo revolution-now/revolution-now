@@ -150,7 +150,10 @@ struct Renderer {
   void clear_buffer( e_render_target_buffer buffer );
   void render_buffer( e_render_target_buffer buffer );
 
-  long   buffer_vertex_cur_pos( e_render_target_buffer buffer );
+  // If the buffer is not specified then use the current one.
+  long buffer_vertex_cur_pos( base::maybe<e_render_target_buffer>
+                                  buffer = base::nothing );
+
   long   buffer_vertex_count( e_render_target_buffer buffer );
   double buffer_size_mb( e_render_target_buffer buffer );
 

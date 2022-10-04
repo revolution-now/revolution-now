@@ -367,6 +367,13 @@ struct Renderer::Impl {
     }
   }
 
+  long buffer_vertex_cur_pos( base::maybe<e_render_target_buffer>
+                                  buffer = base::nothing ) {
+    return get_emitter(
+               buffer.value_or( mods().buffer_mods.buffer ) )
+        .position();
+  }
+
   Emitter& get_emitter( e_render_target_buffer buffer ) {
     switch( buffer ) {
       case e_render_target_buffer::normal: return emitter;
@@ -552,8 +559,8 @@ void Renderer::render_buffer( e_render_target_buffer buffer ) {
 }
 
 long Renderer::buffer_vertex_cur_pos(
-    e_render_target_buffer buffer ) {
-  return impl_->get_emitter( buffer ).position();
+    base::maybe<e_render_target_buffer> buffer ) {
+  return impl_->buffer_vertex_cur_pos( buffer );
 }
 
 long Renderer::buffer_vertex_count(
