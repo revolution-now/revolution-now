@@ -14,12 +14,12 @@
 #include "co-combinator.hpp"
 #include "compositor.hpp"
 #include "gui.hpp" // FIXME
-#include "imap-updater.hpp"
 #include "input.hpp"
 #include "logger.hpp"
 #include "lua.hpp" // FIXME
 #include "map-gen.hpp"
 #include "map-square.hpp"
+#include "map-updater.hpp"
 #include "menu.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
@@ -622,9 +622,9 @@ wait<> MapEditPlane::run_map_editor() {
 *****************************************************************/
 wait<> run_map_editor_standalone( Planes& planes ) {
   // FIXME: this duplicates initialization code in app-ctrl.
-  SS         ss;
-  Delta      size{ .w = 100, .h = 100 };
-  MapUpdater map_updater(
+  SS                  ss;
+  Delta               size{ .w = 100, .h = 100 };
+  RenderingMapUpdater map_updater(
       ss, global_renderer_use_only_when_needed() );
   reset_terrain( map_updater, size );
   ss.land_view.viewport.set_world_size_tiles( size );

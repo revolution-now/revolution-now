@@ -22,7 +22,6 @@
 #include "compositor.hpp"
 #include "construction.hpp"
 #include "gui.hpp"
-#include "imap-updater.hpp"
 #include "interrupts.hpp"
 #include "land-production.hpp"
 #include "logger.hpp"
@@ -1003,7 +1002,6 @@ class UnitsAtGateColonyView
                 /*new_holder=*/*target_unit,
                 /*held=*/unit.id );
           } else {
-            TrappingMapUpdater map_updater;
             unit_to_map_square_non_interactive(
                 ss_, ts_, unit.id, colony_.location );
             // This is not strictly necessary, but as a conve-

@@ -17,9 +17,9 @@
 // Revolution Now
 #include "src/colony-mgr.hpp"
 #include "src/harbor-units.hpp"
-#include "src/imap-updater.hpp"
 #include "src/lua.hpp"
 #include "src/map-updater-lua.hpp"
+#include "src/map-updater.hpp"
 #include "src/market.hpp"
 #include "src/plane-stack.hpp"
 #include "src/ts.hpp"

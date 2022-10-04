@@ -16,12 +16,12 @@
 #include "conductor.hpp"
 #include "console.hpp"
 #include "gui.hpp"
-#include "imap-updater.hpp"
 #include "interrupts.hpp"
 #include "irand.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
+#include "map-updater.hpp"
 #include "menu.hpp"
 #include "panel.hpp"
 #include "plane-stack.hpp"
@@ -84,7 +84,7 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   // saved (not including auto-save) and/or loaded.
   RootState saved;
 
-  MapUpdater map_updater(
+  RenderingMapUpdater map_updater(
       ss, global_renderer_use_only_when_needed() );
 
   lua::state& st = planes.console().lua_state();
