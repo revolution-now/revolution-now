@@ -374,6 +374,15 @@ struct Renderer::Impl {
         .position();
   }
 
+  VertexRange range_for( base::function_ref<void()> f ) {
+    VertexRange rng;
+    rng.buffer = mods().buffer_mods.buffer;
+    rng.start  = buffer_vertex_cur_pos();
+    f();
+    rng.finish = buffer_vertex_cur_pos();
+    return rng;
+  }
+
   Emitter& get_emitter( e_render_target_buffer buffer ) {
     switch( buffer ) {
       case e_render_target_buffer::normal: return emitter;
@@ -581,6 +590,11 @@ double Renderer::buffer_size_mb(
     e_render_target_buffer buffer ) {
   return buffer_vertex_count( buffer ) *
          sizeof( GenericVertex ) / ( 1024.0 * 1024.0 );
+}
+
+VertexRange Renderer::range_for(
+    base::function_ref<void()> f ) const {
+  return impl_->range_for( f );
 }
 
 } // namespace rr

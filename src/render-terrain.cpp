@@ -2081,7 +2081,7 @@ void render_terrain_square(
 void render_terrain( rr::Renderer&               renderer,
                      Visibility const&           viz,
                      TerrainRenderOptions const& options,
-                     Matrix<rr::TileBounds>&     tile_bounds ) {
+                     Matrix<rr::VertexRange>&    tile_bounds ) {
   SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
   // We can throw away all of the tile overwrites that we've
   // made, since we are now going to redraw everything from
@@ -2094,14 +2094,10 @@ void render_terrain( rr::Renderer&               renderer,
   SCOPED_RENDERER_MOD_SET( buffer_mods.buffer, kLandscapeBuf );
   auto start_time = chrono::system_clock::now();
   for( Coord square : viz.rect_tiles() ) {
-    rr::TileBounds& square_bounds = tile_bounds[square];
-    square_bounds.buffer          = kLandscapeBuf;
-    square_bounds.start =
-        renderer.buffer_vertex_cur_pos( kLandscapeBuf );
-    render_terrain_square( renderer, square * g_tile_delta,
-                           square, viz, options );
-    square_bounds.finish =
-        renderer.buffer_vertex_cur_pos( kLandscapeBuf );
+    tile_bounds[square] = renderer.range_for( [&] {
+      render_terrain_square( renderer, square * g_tile_delta,
+                             square, viz, options );
+    } );
   }
   auto end_time = chrono::system_clock::now();
   lg.info(

@@ -28,7 +28,7 @@ enum.e_render_target_buffer {
 # Describes a range of vertices and the buffer the are in. This
 # is used to record the location of the vertices corresponding to
 # a map tile in case they need to be overwritten.
-struct.TileBounds {
+struct.VertexRange {
   buffer 'rr::e_render_target_buffer',
   start  'long',
   finish 'long',

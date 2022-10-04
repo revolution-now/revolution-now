@@ -157,6 +157,12 @@ struct Renderer {
   long   buffer_vertex_count( e_render_target_buffer buffer );
   double buffer_size_mb( e_render_target_buffer buffer );
 
+  // Will run the function and return the range corresponding to
+  // the vertices that were added in this function. Note that
+  // this only works if the function writes to the current buffer
+  // only.
+  VertexRange range_for( base::function_ref<void()> f ) const;
+
   Painter painter();
 
   Typer typer( gfx::point start, gfx::pixel color );

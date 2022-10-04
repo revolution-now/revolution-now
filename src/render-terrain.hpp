@@ -53,6 +53,6 @@ void render_terrain_square(
 void render_terrain( rr::Renderer&               renderer,
                      Visibility const&           viz,
                      TerrainRenderOptions const& options,
-                     Matrix<rr::TileBounds>&     tile_bounds );
+                     Matrix<rr::VertexRange>&    tile_bounds );
 
 } // namespace rn
