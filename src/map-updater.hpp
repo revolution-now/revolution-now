@@ -55,10 +55,6 @@ struct NonRenderingMapUpdater : IMapUpdater {
 /****************************************************************
 ** RenderingMapUpdater
 *****************************************************************/
-// TODO: Give this the ability to perform a full re-render in a
-// background thread. At that point we should be able to support
-// arbitrarily large maps seemlessly.
-//
 // The real map updater used by the game. This one delegates to
 // the non-rendering version to make changes to the maps, then
 // proceeds (if necessary) to do rendering.

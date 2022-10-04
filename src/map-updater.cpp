@@ -106,6 +106,19 @@ RenderingMapUpdater::RenderingMapUpdater(
   CHECK_GT( tile_bounds_.size().area(), 0 );
 }
 
+// FIXME: The approach used here, which consists of rendering the
+// entire map to one buffer, then redrawing individual tiles to
+// the annex buffer (with zeroing of old vertices) with periodic
+// redrawing, may not be ideal. Probably what is best and sim-
+// plest is to just divide the map into chunks and give each its
+// own buffer, and each time a tile changes in a chunk the entire
+// chunk gets redrawn. This is simpler and also solves the one
+// remaining issue with the current approach which is that peri-
+// odically the entire map has to get redrawn, which is not ideal
+// for large maps. The downside to the chunk approach will be
+// that there will be more draw calls per frame, but that might
+// not matter, since all the rest of the (non-map) drawing in the
+// game is in a single draw call.
 void RenderingMapUpdater::redraw_square(
     Visibility const&           viz,
     TerrainRenderOptions const& terrain_options, Coord tile ) {
