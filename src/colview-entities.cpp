@@ -1209,17 +1209,29 @@ class ProductionView : public ui::View, public ColonySubView {
                                       gfx::pixel::black() );
     typer.write( "Hammers:      {}\n", colony_.hammers );
     typer.write( "Construction: " );
-    if( colony_.construction.has_value() )
+    if( colony_.construction.has_value() ) {
       typer.write( "{}\n",
                    construction_name( *colony_.construction ) );
-    else
+      typer.write( "right-click to buy.\n" );
+    } else {
       typer.write( "nothing\n" );
+    }
   }
 
   // Implement AwaitView.
   wait<> perform_click(
       input::mouse_button_event_t const& event ) override {
     CHECK( event.pos.is_inside( rect( {} ) ) );
+    if( event.buttons ==
+        input::e_mouse_button_event::right_up ) {
+      if( !colony_.construction.has_value() ) co_return;
+      int const cost = rush_construction_cost( ss_, colony_ );
+      co_await rush_construction_prompt(
+          ss_, colony_, ts_.gui, cost,
+          config_colony.rush_construction
+              .allow_rushing_tools_during_boycott );
+      co_return;
+    }
     co_await select_colony_construction( ss_, colony_, ts_.gui );
   }
 

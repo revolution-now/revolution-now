@@ -16,9 +16,11 @@
 #include "colony-mgr.hpp"
 #include "colony.hpp"
 #include "igui.hpp"
+#include "market.hpp"
 
 // config
 #include "config/colony.hpp"
+#include "config/nation.hpp"
 #include "config/unit-type.hpp"
 
 // ss
@@ -61,6 +63,29 @@ void adjust_materials( Colony const&              colony,
   materials.tools = std::max(
       materials.tools - colony.commodities[e_commodity::tools],
       0 );
+}
+
+maybe<construction_requirements> requirements_for_construction(
+    Construction_t const& project ) {
+  switch( project.to_enum() ) {
+    case Construction::e::building:
+      return config_colony.requirements_for_building
+          [project.get<Construction::building>().what];
+    case Construction::e::unit:
+      return config_colony.requirements_for_unit
+          [project.get<Construction::unit>().type];
+  }
+}
+
+maybe<construction_requirements>
+remaining_requirements_for_construction( Colony const& colony ) {
+  if( !colony.construction.has_value() ) return nothing;
+  // Since we got the project from the colony, it should be valid
+  // and thus have requirements.
+  UNWRAP_CHECK( requirements, requirements_for_construction(
+                                  *colony.construction ) );
+  adjust_materials( colony, requirements );
+  return requirements;
 }
 
 string fmt_building( Colony const&     colony,
@@ -204,6 +229,87 @@ wait<> select_colony_construction( SSConst const& ss,
   }
 
   FATAL( "unknown building name {}.", *what );
+}
+
+int rush_construction_cost( SSConst const& ss,
+                            Colony const&  colony ) {
+  UNWRAP_CHECK( player, ss.players.players[colony.nation] );
+  UNWRAP_CHECK( project, colony.construction );
+  UNWRAP_CHECK( requirements,
+                requirements_for_construction( project ) );
+  adjust_materials( colony, requirements );
+  int const hammers_cost =
+      config_colony.rush_construction.cost_per_hammer *
+      requirements.hammers;
+  int const tools_ask =
+      market_price( player, e_commodity::tools ).ask;
+  int const tools_cost =
+      ( config_colony.rush_construction.base_cost_per_tool +
+        config_colony.rush_construction
+                .tools_ask_price_multiplier *
+            tools_ask ) *
+      requirements.tools;
+  return hammers_cost + tools_cost;
+}
+
+wait<> rush_construction_prompt( SS& ss, Colony& colony,
+                                 IGui& gui, int cost_to_charge,
+                                 bool allow_tools_boycott ) {
+  UNWRAP_CHECK( player, ss.players.players[colony.nation] );
+  UNWRAP_CHECK( project, colony.construction );
+  string const msg = fmt::format(
+      "Cost to complete @[H]{}@[]: {}.  Treasury: {}.",
+      construction_name( project ), cost_to_charge,
+      player.money );
+  if( cost_to_charge > player.money ) {
+    // The player cannot afford it.
+    co_await gui.message_box( msg );
+    co_return;
+  }
+
+  // The player can afford it.
+  if( !allow_tools_boycott &&
+      player.old_world.market.commodities[e_commodity::tools]
+          .boycott ) {
+    // There is currently a tools boycott and the game is config-
+    // ured to now allow acquiring tools via rush construction in
+    // those circumstances.
+    UNWRAP_CHECK(
+        requirements,
+        remaining_requirements_for_construction( colony ) );
+    if( requirements.tools > 0 ) {
+      co_await gui.message_box(
+          "Rushing the construction of the @[H]{}@[] requires "
+          "acquiring @[H]{} tools@[], but this is not allowed "
+          "because tools are currently boycotted in {}.",
+          construction_name( project ), requirements.tools,
+          config_nation.nations[player.nation]
+              .harbor_city_name );
+      co_return;
+    }
+  }
+
+  maybe<ui::e_confirm> const answer =
+      co_await gui.optional_yes_no(
+          YesNoConfig{ .msg            = msg,
+                       .yes_label      = "Complete it.",
+                       .no_label       = "Never mind.",
+                       .no_comes_first = true } );
+  if( answer != ui::e_confirm::yes ) co_return;
+
+  // Player has said to make it happen. As in the OG, we won't
+  // actually build the thing, we will just provide the necessary
+  // hammers and tools, and the project will finish at the start
+  // of the next turn.
+  player.money -= cost_to_charge;
+  CHECK_GE( player.money, 0 );
+  UNWRAP_CHECK( requirements,
+                requirements_for_construction( project ) );
+  if( colony.hammers < requirements.hammers )
+    colony.hammers = requirements.hammers;
+  if( colony.commodities[e_commodity::tools] <
+      requirements.tools )
+    colony.commodities[e_commodity::tools] = requirements.tools;
 }
 
 } // namespace rn

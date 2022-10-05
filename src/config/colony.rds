@@ -137,6 +137,23 @@ struct.Teaching {
   max_teachers 'refl::enum_map<e_school_type, int>',
 }
 
+struct.RushConstruction {
+  # Cost per remaining hammer.
+  cost_per_hammer 'int',
+
+  # The cost per remaining tool is given by B+M*A, where B is a
+  # fixed base cost, A is the current market ask price in hun-
+  # dreds, and M is a fixed multiplier. In the OG B=8 and M=2,
+  # and this is independent of difficulty level.
+  base_cost_per_tool 'int',
+  tools_ask_price_multiplier 'int',
+
+  # If tools are boycotted, are we still allowed to rush a con-
+  # struction that would require acquiring tools? In the OG we
+  # are allowed.
+  allow_rushing_tools_during_boycott 'bool',
+}
+
 namespace "rn"
 
 # Note that this config is for non-production related things. For
@@ -169,6 +186,10 @@ struct.config_colony_t {
   # This gives the list of units that are buildable in a colony
   # as well as how many hammers and tools are needed for each.
   requirements_for_unit 'refl::enum_map<e_unit_type, base::maybe<config::colony::construction_requirements>>',
+
+  # Parameters describing what happens when a construction
+  # project that is not yet finished is rushed (buy).
+  rush_construction 'config::colony::RushConstruction',
 
   # For a given difficulty level, this gives the size N of the
   # tory population which, when met or exceeded, causes a produc-

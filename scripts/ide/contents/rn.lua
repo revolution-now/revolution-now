@@ -2,7 +2,7 @@
 
 return {
   'exe/main',
-  'render/renderer',
-  'imap-updater',
-  'render-terrain',
+  'colview-entities',
+  'config-colony',
+  'construction',
 }

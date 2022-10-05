@@ -823,3 +823,23 @@ teaching {
     preaching:        university
   }
 }
+
+# Parameters describing what happens when a construction project
+# that is not yet finished is rushed (buy).
+rush_construction {
+  # Cost per remaining hammer.
+  cost_per_hammer: 26
+
+  # The cost per remaining tool is given by B+M*A, where B is a
+  # fixed base cost, A is the current market ask price in hun-
+  # dreds, and M is a fixed multiplier. In the OG B=8 and M=2,
+  # and this is independent of difficulty level.
+  base_cost_per_tool: 8
+  tools_ask_price_multiplier: 2
+
+  # If tools are boycotted, are we still allowed to rush a con-
+  # struction that would require acquiring tools? In the OG we
+  # are allowed, though putting this to false might make things
+  # more interesting (difficult).
+  allow_rushing_tools_during_boycott: true
+}
