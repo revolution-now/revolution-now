@@ -2,7 +2,9 @@
 
 return {
   'exe/main',
-  'colview-entities',
-  'config-colony',
-  'construction',
+  'turn',
+  'ss/old-world-state',
+  'config/old-world',
+  'harbor-view-market',
+  'tax',
 }
