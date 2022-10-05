@@ -16,6 +16,7 @@
 // ss
 #include "src/ss/colony-id.hpp"
 #include "src/ss/colony.rds.hpp"
+#include "src/ss/fog-square.rds.hpp"
 #include "src/ss/map-square.rds.hpp"
 #include "src/ss/nation.rds.hpp"
 #include "src/ss/unit-id.hpp"
@@ -90,6 +91,10 @@ struct World {
   // always use the IMapUpdater interface to update the map.
   // Const versions of it are fine though.
   MapSquare& square( gfx::point p );
+
+  // This gets the terrain info from the player-specific map.
+  maybe<FogSquare>& player_square(
+      gfx::point p, maybe<e_nation> nation = nothing );
 
   void add_forest( gfx::point p );
   void add_mountains( gfx::point p );

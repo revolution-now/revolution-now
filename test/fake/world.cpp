@@ -174,6 +174,15 @@ MapSquare& World::square( gfx::point p ) {
   return terrain().mutable_square_at( Coord::from_gfx( p ) );
 }
 
+maybe<FogSquare>& World::player_square(
+    gfx::point p, maybe<e_nation> nation ) {
+  return ss()
+      .mutable_terrain_use_with_care
+      .mutable_player_terrain(
+          nation.value_or( default_nation() ) )
+      .map[Coord::from_gfx( p )];
+}
+
 void World::add_forest( gfx::point p ) {
   map_updater_->modify_map_square(
       Coord::from_gfx( p ), []( MapSquare& square ) {
