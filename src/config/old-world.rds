@@ -1,0 +1,85 @@
+# ===============================================================
+# old-world.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-10-05.
+#
+# Description: Config info for things in the Old World.
+#
+# ===============================================================
+# ss
+include "ss/difficulty.rds.hpp"
+
+# refl
+include "refl/cdr.hpp"
+include "refl/enum-map.hpp"
+
+# cdr
+include "cdr/ext-builtin.hpp"
+
+namespace "rn.config.old_world"
+
+# FIXME: move this to a common location.
+struct.IntRange {
+  min 'int',
+  max 'int',
+
+  _features { equality, validation }
+}
+
+struct.Taxes {
+  # Taxes will never be increased above this.
+  maximum_tax_rate 'int',
+
+  # Below this turn count there will never be tax change events.
+  min_turn_for_tax_change_events 'int',
+
+  # The number of turns between each tax change event will be se-
+  # lected uniformly from this interval.
+  turns_between_tax_change_events 'IntRange',
+
+  # Probability that a tax change event will be an increase (as
+  # opposed to a decrease).
+  tax_increase_probability 'double',
+
+  # When a tax change happens, this is the range of values. These
+  # should always be positive; if the tax event is a lowering
+  # then this will be subtracted from the current rate instead of
+  # added.
+  tax_rate_change 'IntRange',
+
+  # Just after accepting help from the king there is a proba-
+  # bility that a tax increase will happen immediately. These
+  # give the probability of an increase along with range.
+  intervention_increase_probability 'double',
+  intervention_increase_range 'IntRange',
+
+  _features { equality, validation }
+}
+
+struct.Boycotts {
+  # After each tax increase is refused (and a tea party had) the
+  # sons of libery membership will get a boost in the colony that
+  # had the party, and the boost will be chosen randomly from
+  # this range. Note that the boost is not permanent; if the
+  # colony's bell production is not sufficient to sustain it then
+  # it will start decreasing again.
+  sons_of_liberty_bump_after_party 'IntRange',
+
+  # The formula that the OG seems to use to compute back taxes is
+  # to take the current ask price (in hundreds) and multiply it
+  # by 500, which would be equivalent to purchasing (without
+  # taxes) 5 cargo holds of the commodity.
+  backtaxes_ask_multiplier 'int',
+}
+
+namespace "rn"
+
+struct.config_old_world_t {
+  taxes 'refl::enum_map<e_difficulty, config::old_world::Taxes>',
+
+  boycotts 'config::old_world::Boycotts',
+}
+
+config.old_world {}
