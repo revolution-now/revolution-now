@@ -779,6 +779,7 @@ sheets {
         product_hammers:       { y: 1, x: 1  }
         product_crosses:       { y: 1, x: 2  }
         product_bells:         { y: 1, x: 3  }
+        boycott:               { y: 1, x: 4  }
       }
     }
     {

@@ -226,6 +226,11 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
         renderer,
         rect.upper_left() + kCommodityInCargoHoldRenderingOffset,
         *comm_it, label );
+    if( player_.old_world.market.commodities[*comm_it].boycott )
+      render_sprite( painter,
+                     rect.upper_left() +
+                         kCommodityInCargoHoldRenderingOffset,
+                     e_tile::boycott );
     ++comm_it;
   }
   CHECK( comm_it == refl::enum_values<e_commodity>.end() );
