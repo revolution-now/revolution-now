@@ -365,13 +365,18 @@ TEST_CASE( "[lcr] unit lost" ) {
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
 
-  MapSquare& square      = W.square( Coord{} );
+  MapSquare&              square = W.square( Coord{} );
+  maybe<FogSquare> const& player_square =
+      W.player_square( Coord{} );
   square.lost_city_rumor = true;
+  REQUIRE( !player_square.has_value() );
 
   // Create unit on map.
   UnitId unit_id =
       W.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
   REQUIRE( W.units().all().size() == 1 );
+  REQUIRE( player_square.has_value() );
+  REQUIRE( player_square->square.lost_city_rumor == true );
 
   // Set outcome types.
   e_rumor_type         rumor_type = e_rumor_type::unit_lost;
@@ -400,6 +405,12 @@ TEST_CASE( "[lcr] unit lost" ) {
   REQUIRE( player.money == 0 );
   REQUIRE_FALSE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 0 );
+  // Make sure that, even though the unit was lost, that the
+  // player map was updated to remove the LCR. Otherwise the tile
+  // will still appear to be there to the player until they move
+  // another unit near it, at which point it will disappear mys-
+  // teriously.
+  REQUIRE( player_square->square.lost_city_rumor == false );
 }
 
 TEST_CASE( "[lcr] cibola / treasure" ) {

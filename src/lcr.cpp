@@ -390,6 +390,17 @@ wait<LostCityRumorResult_t> run_lost_city_rumor_result(
         CHECK_EQ( square.lost_city_rumor, true );
         square.lost_city_rumor = false;
       } );
+  // Normally the modify_map_square handles updating the
+  // per-player maps, but in the case that the unit was lost (and
+  // there are no other friendly units with visibility on this
+  // square) the player's map won't get updated, and the LCR tile
+  // won't disappear until the player moves another unit near
+  // that square. This is not correct because the player did move
+  // this unit onto the square, and so it would be expected that
+  // the LCR should disappear. In order to ensure that happens,
+  // we will explicitly do that here.
+  ts.map_updater.make_square_visible( world_square,
+                                      player.nation );
 
   co_return result;
 }
