@@ -1,0 +1,28 @@
+# ===============================================================
+# construction.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-10-05.
+#
+# Description: Rds definitions for the construction module.
+#
+# ===============================================================
+include "ss/colony.rds.hpp"
+
+namespace "rn"
+
+struct.RushConstruction {
+  project 'Construction_t',
+  cost 'int',
+  # The total number of hammers and tools needed for the project,
+  # independent of how many the colony has.
+  total_hammers 'int',
+  total_tools 'int',
+  # The needed number of hammers and tools for the project.
+  needed_hammers 'int',
+  needed_tools 'int',
+  # If we are disallowing rushing tools and there is a boycott on
+  # tools this will be true.
+  blocked_by_tools_boycott 'bool',
+}

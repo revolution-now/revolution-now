@@ -77,17 +77,6 @@ maybe<construction_requirements> requirements_for_construction(
   }
 }
 
-maybe<construction_requirements>
-remaining_requirements_for_construction( Colony const& colony ) {
-  if( !colony.construction.has_value() ) return nothing;
-  // Since we got the project from the colony, it should be valid
-  // and thus have requirements.
-  UNWRAP_CHECK( requirements, requirements_for_construction(
-                                  *colony.construction ) );
-  adjust_materials( colony, requirements );
-  return requirements;
-}
-
 string fmt_building( Colony const&     colony,
                      e_colony_building building ) {
   construction_requirements requirements =
@@ -231,16 +220,20 @@ wait<> select_colony_construction( SSConst const& ss,
   FATAL( "unknown building name {}.", *what );
 }
 
-int rush_construction_cost( SSConst const& ss,
-                            Colony const&  colony ) {
+maybe<RushConstruction> rush_construction_cost(
+    SSConst const& ss, Colony const& colony ) {
   UNWRAP_CHECK( player, ss.players.players[colony.nation] );
-  UNWRAP_CHECK( project, colony.construction );
-  UNWRAP_CHECK( requirements,
+  UNWRAP_RETURN( project, colony.construction );
+  UNWRAP_CHECK( total_requirements,
                 requirements_for_construction( project ) );
-  adjust_materials( colony, requirements );
+  if( auto building = project.get_if<Construction::building>();
+      building.has_value() && colony.buildings[building->what] )
+    return nothing;
+  auto needed_requirements = total_requirements;
+  adjust_materials( colony, needed_requirements );
   int const hammers_cost =
       config_colony.rush_construction.cost_per_hammer *
-      requirements.hammers;
+      needed_requirements.hammers;
   int const tools_ask =
       market_price( player, e_commodity::tools ).ask;
   int const tools_cost =
@@ -248,46 +241,47 @@ int rush_construction_cost( SSConst const& ss,
         config_colony.rush_construction
                 .tools_ask_price_multiplier *
             tools_ask ) *
-      requirements.tools;
-  return hammers_cost + tools_cost;
+      needed_requirements.tools;
+  bool const boycott_block =
+      ( !config_colony.rush_construction
+             .allow_rushing_tools_during_boycott &&
+        player.old_world.market.commodities[e_commodity::tools]
+            .boycott &&
+        needed_requirements.tools > 0 );
+  return RushConstruction{
+      .project                  = project,
+      .cost                     = hammers_cost + tools_cost,
+      .total_hammers            = total_requirements.hammers,
+      .total_tools              = total_requirements.tools,
+      .needed_hammers           = needed_requirements.hammers,
+      .needed_tools             = needed_requirements.tools,
+      .blocked_by_tools_boycott = boycott_block };
 }
 
-wait<> rush_construction_prompt( SS& ss, Colony& colony,
-                                 IGui& gui, int cost_to_charge,
-                                 bool allow_tools_boycott ) {
-  UNWRAP_CHECK( player, ss.players.players[colony.nation] );
-  UNWRAP_CHECK( project, colony.construction );
+wait<> rush_construction_prompt(
+    Player& player, Colony& colony, IGui& gui,
+    RushConstruction const& invoice ) {
+  if( invoice.blocked_by_tools_boycott ) {
+    co_await gui.message_box(
+        "Rushing the construction of the @[H]{}@[] requires "
+        "acquiring @[H]{} tools@[], but this is not allowed "
+        "because tools are currently boycotted in {}.",
+        construction_name( invoice.project ),
+        invoice.needed_tools,
+        config_nation.nations[player.nation].harbor_city_name );
+    co_return;
+  }
+
   string const msg = fmt::format(
       "Cost to complete @[H]{}@[]: {}.  Treasury: {}.",
-      construction_name( project ), cost_to_charge,
+      construction_name( invoice.project ), invoice.cost,
       player.money );
-  if( cost_to_charge > player.money ) {
+  if( invoice.cost > player.money ) {
     // The player cannot afford it.
     co_await gui.message_box( msg );
     co_return;
   }
-
   // The player can afford it.
-  if( !allow_tools_boycott &&
-      player.old_world.market.commodities[e_commodity::tools]
-          .boycott ) {
-    // There is currently a tools boycott and the game is config-
-    // ured to now allow acquiring tools via rush construction in
-    // those circumstances.
-    UNWRAP_CHECK(
-        requirements,
-        remaining_requirements_for_construction( colony ) );
-    if( requirements.tools > 0 ) {
-      co_await gui.message_box(
-          "Rushing the construction of the @[H]{}@[] requires "
-          "acquiring @[H]{} tools@[], but this is not allowed "
-          "because tools are currently boycotted in {}.",
-          construction_name( project ), requirements.tools,
-          config_nation.nations[player.nation]
-              .harbor_city_name );
-      co_return;
-    }
-  }
 
   maybe<ui::e_confirm> const answer =
       co_await gui.optional_yes_no(
@@ -301,15 +295,13 @@ wait<> rush_construction_prompt( SS& ss, Colony& colony,
   // actually build the thing, we will just provide the necessary
   // hammers and tools, and the project will finish at the start
   // of the next turn.
-  player.money -= cost_to_charge;
+  player.money -= invoice.cost;
   CHECK_GE( player.money, 0 );
-  UNWRAP_CHECK( requirements,
-                requirements_for_construction( project ) );
-  if( colony.hammers < requirements.hammers )
-    colony.hammers = requirements.hammers;
+  if( colony.hammers < invoice.total_hammers )
+    colony.hammers = invoice.total_hammers;
   if( colony.commodities[e_commodity::tools] <
-      requirements.tools )
-    colony.commodities[e_commodity::tools] = requirements.tools;
+      invoice.total_tools )
+    colony.commodities[e_commodity::tools] = invoice.total_tools;
 }
 
 } // namespace rn

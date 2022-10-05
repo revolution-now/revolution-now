@@ -406,5 +406,391 @@ TEST_CASE(
   }
 }
 
+TEST_CASE( "[construction] rush_construction_cost" ) {
+  World   W;
+  Colony& colony =
+      W.add_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
+  Player& player = W.default_player();
+
+  maybe<RushConstruction> expected;
+
+  auto f = [&] {
+    return rush_construction_cost( W.ss(), colony );
+  };
+
+  auto set_tools = [&]( int n ) {
+    colony.commodities[e_commodity::tools] = n;
+  };
+  auto set_tools_ask = [&]( int ask ) {
+    player.old_world.market.commodities[e_commodity::tools]
+        .bid_price = ask - 1;
+  };
+
+  SECTION( "no construction" ) {
+    expected = nothing;
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "already has building" ) {
+    colony.construction = Construction::building{
+        .what = e_colony_building::docks };
+    colony.buildings[e_colony_building::docks] = true;
+    expected                                   = nothing;
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "docks" ) {
+    colony.construction = Construction::building{
+        .what = e_colony_building::docks };
+
+    colony.hammers = 0;
+    expected =
+        RushConstruction{ .project = colony.construction.value(),
+                          .cost    = 52 * 26,
+                          .total_hammers            = 52,
+                          .total_tools              = 0,
+                          .needed_hammers           = 52,
+                          .needed_tools             = 0,
+                          .blocked_by_tools_boycott = false };
+    REQUIRE( f() == expected );
+
+    colony.hammers = 10;
+    expected =
+        RushConstruction{ .project = colony.construction.value(),
+                          .cost    = 42 * 26,
+                          .total_hammers            = 52,
+                          .total_tools              = 0,
+                          .needed_hammers           = 42,
+                          .needed_tools             = 0,
+                          .blocked_by_tools_boycott = false };
+    REQUIRE( f() == expected );
+
+    colony.hammers = 51;
+    expected =
+        RushConstruction{ .project = colony.construction.value(),
+                          .cost    = 1 * 26,
+                          .total_hammers            = 52,
+                          .total_tools              = 0,
+                          .needed_hammers           = 1,
+                          .needed_tools             = 0,
+                          .blocked_by_tools_boycott = false };
+    REQUIRE( f() == expected );
+
+    colony.hammers = 52;
+    expected =
+        RushConstruction{ .project = colony.construction.value(),
+                          .cost    = 0,
+                          .total_hammers            = 52,
+                          .total_tools              = 0,
+                          .needed_hammers           = 0,
+                          .needed_tools             = 0,
+                          .blocked_by_tools_boycott = false };
+    REQUIRE( f() == expected );
+
+    colony.hammers = 100;
+    expected =
+        RushConstruction{ .project = colony.construction.value(),
+                          .cost    = 0,
+                          .total_hammers            = 52,
+                          .total_tools              = 0,
+                          .needed_hammers           = 0,
+                          .needed_tools             = 0,
+                          .blocked_by_tools_boycott = false };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "frigate" ) {
+    colony.construction =
+        Construction::unit{ .type = e_unit_type::frigate };
+
+    colony.hammers = 0;
+    set_tools( 0 );
+    set_tools_ask( 2 );
+    expected =
+        RushConstruction{ .project = colony.construction.value(),
+                          .cost = 512 * 26 + 200 * ( 8 + 2 * 2 ),
+                          .total_hammers            = 512,
+                          .total_tools              = 200,
+                          .needed_hammers           = 512,
+                          .needed_tools             = 200,
+                          .blocked_by_tools_boycott = false };
+    REQUIRE( f() == expected );
+
+    colony.hammers = 100;
+    set_tools( 0 );
+    set_tools_ask( 2 );
+    expected =
+        RushConstruction{ .project = colony.construction.value(),
+                          .cost = 412 * 26 + 200 * ( 8 + 2 * 2 ),
+                          .total_hammers            = 512,
+                          .total_tools              = 200,
+                          .needed_hammers           = 412,
+                          .needed_tools             = 200,
+                          .blocked_by_tools_boycott = false };
+    REQUIRE( f() == expected );
+
+    colony.hammers = 0;
+    set_tools( 100 );
+    set_tools_ask( 2 );
+    expected =
+        RushConstruction{ .project = colony.construction.value(),
+                          .cost = 512 * 26 + 100 * ( 8 + 2 * 2 ),
+                          .total_hammers            = 512,
+                          .total_tools              = 200,
+                          .needed_hammers           = 512,
+                          .needed_tools             = 100,
+                          .blocked_by_tools_boycott = false };
+    REQUIRE( f() == expected );
+
+    colony.hammers = 0;
+    set_tools( 100 );
+    set_tools_ask( 6 );
+    expected =
+        RushConstruction{ .project = colony.construction.value(),
+                          .cost = 512 * 26 + 100 * ( 8 + 2 * 6 ),
+                          .total_hammers            = 512,
+                          .total_tools              = 200,
+                          .needed_hammers           = 512,
+                          .needed_tools             = 100,
+                          .blocked_by_tools_boycott = false };
+    REQUIRE( f() == expected );
+
+    colony.hammers = 200;
+    set_tools( 100 );
+    set_tools_ask( 6 );
+    expected =
+        RushConstruction{ .project = colony.construction.value(),
+                          .cost = 312 * 26 + 100 * ( 8 + 2 * 6 ),
+                          .total_hammers            = 512,
+                          .total_tools              = 200,
+                          .needed_hammers           = 312,
+                          .needed_tools             = 100,
+                          .blocked_by_tools_boycott = false };
+    REQUIRE( f() == expected );
+
+    colony.hammers = 511;
+    set_tools( 100 );
+    set_tools_ask( 6 );
+    expected =
+        RushConstruction{ .project = colony.construction.value(),
+                          .cost = 1 * 26 + 100 * ( 8 + 2 * 6 ),
+                          .total_hammers            = 512,
+                          .total_tools              = 200,
+                          .needed_hammers           = 1,
+                          .needed_tools             = 100,
+                          .blocked_by_tools_boycott = false };
+    REQUIRE( f() == expected );
+
+    colony.hammers = 512;
+    set_tools( 100 );
+    set_tools_ask( 6 );
+    expected =
+        RushConstruction{ .project = colony.construction.value(),
+                          .cost = 0 * 26 + 100 * ( 8 + 2 * 6 ),
+                          .total_hammers            = 512,
+                          .total_tools              = 200,
+                          .needed_hammers           = 0,
+                          .needed_tools             = 100,
+                          .blocked_by_tools_boycott = false };
+    REQUIRE( f() == expected );
+
+    colony.hammers = 600;
+    set_tools( 199 );
+    set_tools_ask( 3 );
+    expected =
+        RushConstruction{ .project = colony.construction.value(),
+                          .cost    = 0 * 26 + 1 * ( 8 + 2 * 3 ),
+                          .total_hammers            = 512,
+                          .total_tools              = 200,
+                          .needed_hammers           = 0,
+                          .needed_tools             = 1,
+                          .blocked_by_tools_boycott = false };
+    REQUIRE( f() == expected );
+
+    colony.hammers = 600;
+    set_tools( 200 );
+    set_tools_ask( 3 );
+    expected =
+        RushConstruction{ .project = colony.construction.value(),
+                          .cost    = 0 * 26 + 0 * ( 8 + 2 * 3 ),
+                          .total_hammers            = 512,
+                          .total_tools              = 200,
+                          .needed_hammers           = 0,
+                          .needed_tools             = 0,
+                          .blocked_by_tools_boycott = false };
+    REQUIRE( f() == expected );
+
+    colony.hammers = 600;
+    set_tools( 300 );
+    set_tools_ask( 3 );
+    expected =
+        RushConstruction{ .project = colony.construction.value(),
+                          .cost    = 0,
+                          .total_hammers            = 512,
+                          .total_tools              = 200,
+                          .needed_hammers           = 0,
+                          .needed_tools             = 0,
+                          .blocked_by_tools_boycott = false };
+    REQUIRE( f() == expected );
+  }
+}
+
+TEST_CASE( "[construction] rush_construction_prompt" ) {
+  World   W;
+  Colony& colony =
+      W.add_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
+  Player& player = W.default_player();
+
+  Construction_t   project;
+  RushConstruction invoice;
+  string           msg;
+  ChoiceConfig     config;
+
+  auto f = [&] {
+    return rush_construction_prompt( player, colony, W.gui(),
+                                     invoice );
+  };
+
+  // With boycott.
+  project = Construction::unit{ .type = e_unit_type::frigate };
+  invoice = RushConstruction{ .project        = project,
+                              .cost           = 100,
+                              .total_hammers  = 20,
+                              .total_tools    = 30,
+                              .needed_hammers = 10,
+                              .needed_tools   = 5,
+                              .blocked_by_tools_boycott = true };
+  player.money = 99;
+  msg =
+      "Rushing the construction of the @[H]Frigate@[] requires "
+      "acquiring @[H]5 tools@[], but this is not allowed "
+      "because tools are currently boycotted in Amsterdam.";
+  EXPECT_CALL( W.gui(), message_box( msg ) )
+      .returns( make_wait<>() );
+  {
+    wait<> w = f();
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+    REQUIRE( player.money == 99 );
+    REQUIRE( colony.hammers == 0 );
+    REQUIRE( colony.commodities[e_commodity::tools] == 0 );
+  }
+
+  // Can't afford.
+  project = Construction::unit{ .type = e_unit_type::frigate };
+  invoice =
+      RushConstruction{ .project                  = project,
+                        .cost                     = 100,
+                        .total_hammers            = 20,
+                        .total_tools              = 30,
+                        .needed_hammers           = 10,
+                        .needed_tools             = 5,
+                        .blocked_by_tools_boycott = false };
+  player.money = 99;
+  msg = "Cost to complete @[H]Frigate@[]: 100.  Treasury: 99.";
+  EXPECT_CALL( W.gui(), message_box( msg ) )
+      .returns( make_wait<>() );
+  {
+    wait<> w = f();
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+    REQUIRE( player.money == 99 );
+    REQUIRE( colony.hammers == 0 );
+    REQUIRE( colony.commodities[e_commodity::tools] == 0 );
+  }
+
+  // Can afford, escapes.
+  project = Construction::unit{ .type = e_unit_type::frigate };
+  invoice =
+      RushConstruction{ .project                  = project,
+                        .cost                     = 100,
+                        .total_hammers            = 20,
+                        .total_tools              = 30,
+                        .needed_hammers           = 10,
+                        .needed_tools             = 5,
+                        .blocked_by_tools_boycott = false };
+  player.money = 110;
+  msg = "Cost to complete @[H]Frigate@[]: 100.  Treasury: 110.";
+  config = ChoiceConfig{
+      .msg     = msg,
+      .options = {
+          ChoiceConfigOption{ .key          = "no",
+                              .display_name = "Never mind." },
+          ChoiceConfigOption{
+              .key = "yes", .display_name = "Complete it." } } };
+  EXPECT_CALL( W.gui(), choice( config, e_input_required::no ) )
+      .returns( make_wait<maybe<string>>( nothing ) );
+  {
+    wait<> w = f();
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+    REQUIRE( player.money == 110 );
+    REQUIRE( colony.hammers == 0 );
+    REQUIRE( colony.commodities[e_commodity::tools] == 0 );
+  }
+
+  // Can afford, chooses no.
+  project = Construction::unit{ .type = e_unit_type::frigate };
+  invoice =
+      RushConstruction{ .project                  = project,
+                        .cost                     = 100,
+                        .total_hammers            = 20,
+                        .total_tools              = 30,
+                        .needed_hammers           = 10,
+                        .needed_tools             = 5,
+                        .blocked_by_tools_boycott = false };
+  player.money = 110;
+  msg = "Cost to complete @[H]Frigate@[]: 100.  Treasury: 110.";
+  config = ChoiceConfig{
+      .msg     = msg,
+      .options = {
+          ChoiceConfigOption{ .key          = "no",
+                              .display_name = "Never mind." },
+          ChoiceConfigOption{
+              .key = "yes", .display_name = "Complete it." } } };
+  EXPECT_CALL( W.gui(), choice( config, e_input_required::no ) )
+      .returns( make_wait<maybe<string>>( "no" ) );
+  {
+    wait<> w = f();
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+    REQUIRE( player.money == 110 );
+    REQUIRE( colony.hammers == 0 );
+    REQUIRE( colony.commodities[e_commodity::tools] == 0 );
+  }
+
+  // Can afford, chooses yes.
+  project = Construction::unit{ .type = e_unit_type::frigate };
+  invoice =
+      RushConstruction{ .project                  = project,
+                        .cost                     = 100,
+                        .total_hammers            = 20,
+                        .total_tools              = 30,
+                        .needed_hammers           = 10,
+                        .needed_tools             = 5,
+                        .blocked_by_tools_boycott = false };
+  colony.hammers                         = 10;
+  colony.commodities[e_commodity::tools] = 5;
+  player.money                           = 110;
+  msg = "Cost to complete @[H]Frigate@[]: 100.  Treasury: 110.";
+  config = ChoiceConfig{
+      .msg     = msg,
+      .options = {
+          ChoiceConfigOption{ .key          = "no",
+                              .display_name = "Never mind." },
+          ChoiceConfigOption{
+              .key = "yes", .display_name = "Complete it." } } };
+  EXPECT_CALL( W.gui(), choice( config, e_input_required::no ) )
+      .returns( make_wait<maybe<string>>( "yes" ) );
+  {
+    wait<> w = f();
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+    REQUIRE( player.money == 10 );
+    REQUIRE( colony.hammers == 20 );
+    REQUIRE( colony.commodities[e_commodity::tools] == 30 );
+  }
+}
+
 } // namespace
 } // namespace rn

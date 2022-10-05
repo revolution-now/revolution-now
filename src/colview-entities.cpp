@@ -1224,12 +1224,17 @@ class ProductionView : public ui::View, public ColonySubView {
     CHECK( event.pos.is_inside( rect( {} ) ) );
     if( event.buttons ==
         input::e_mouse_button_event::right_up ) {
-      if( !colony_.construction.has_value() ) co_return;
-      int const cost = rush_construction_cost( ss_, colony_ );
-      co_await rush_construction_prompt(
-          ss_, colony_, ts_.gui, cost,
-          config_colony.rush_construction
-              .allow_rushing_tools_during_boycott );
+      maybe<RushConstruction> const invoice =
+          rush_construction_cost( ss_, colony_ );
+      if( !invoice.has_value() )
+        // This can happen if either the colony is not building
+        // anything or if it is building something that it al-
+        // ready has.
+        co_return;
+      UNWRAP_CHECK( player,
+                    ss_.players.players[colony_.nation] );
+      co_await rush_construction_prompt( player, colony_,
+                                         ts_.gui, *invoice );
       co_return;
     }
     co_await select_colony_construction( ss_, colony_, ts_.gui );
