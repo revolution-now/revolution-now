@@ -1,0 +1,65 @@
+# ===============================================================
+# tax.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-10-05.
+#
+# Description: Rds definitions for the tax module.
+#
+# ===============================================================
+# ss
+include "ss/colony-id.hpp"
+include "ss/commodity.rds.hpp"
+
+namespace "rn"
+
+enum.e_tax_proposal_answer {
+  accept,
+  reject,
+}
+
+sumtype.TaxChange {
+  none {},
+
+  # This one is rare -- it only happens when a tax increase hap-
+  # pens but there are no commodities in any colonies. In that
+  # case it doesn't make sense to boycott anything.
+  increase {
+    amount 'int', # Positive number.
+  },
+
+  # This is the one that happens most of the time. The player is
+  # presented with a proposed tax hike by the crown and they have
+  # the opportunity to accept or reject it. If they reject it
+  # then the given colony loses a certain quantity of the given
+  # commodity ("tea party"), that commodity becomes boycotted,
+  # and the colony in question gets a temporary SoL boost.
+  increase_or_party {
+    # Positive number.
+    amount 'int',
+
+    # Colony in which the party would take place.
+    colony_id 'ColonyId',
+
+    # Commodity type and quantity to be thrown out if partying.
+    to_throw_out 'Commodity',
+
+    # If rejecting the tax hike the colony will get a temporary
+    # SoL boost. This is the fractional number of rebels to add
+    # to the colony.
+    rebels_bump 'double',
+  },
+
+  # This one is very rare, it is when the crown decides to lower
+  # taxes. Not sure how often the OG does this, but it is rare.
+  decrease {
+    amount 'int', # Positive number.
+  },
+}
+
+struct.TaxationUpdate {
+  next_tax_event_turn 'int',
+
+  proposed_tax_change 'TaxChange_t',
+}

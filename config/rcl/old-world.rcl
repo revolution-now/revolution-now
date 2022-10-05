@@ -71,12 +71,12 @@ taxes {
 
 boycotts {
   # After each tax increase is refused (and a tea party had) the
-  # sons of libery membership will get a boost in the colony that
-  # had the party, and the boost will be chosen randomly from
-  # this range. Note that the boost is not permanent; if the
+  # number of (fractional) rebels will get a boost in the colony
+  # that had the party, and the boost will be chosen randomly
+  # from this range. Note that the boost is not permanent; if the
   # colony's bell production is not sufficient to sustain it then
   # it will start decreasing again.
-  sons_of_liberty_bump_after_party: { min=0, max=40 }
+  rebels_bump_after_party: { min=0.0, max=1.0 }
 
   # The formula that the OG seems to use to compute back taxes is
   # to take the current ask price (in hundreds) and multiply it

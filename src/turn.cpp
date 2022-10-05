@@ -34,6 +34,7 @@
 #include "road.hpp"
 #include "save-game.hpp"
 #include "sound.hpp"
+#include "tax.hpp"
 #include "ts.hpp"
 #include "turn-plane.hpp"
 #include "unit.hpp"
@@ -847,13 +848,17 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
             ts, player, changes[comm] );
   }
 
+  // Check for tax events (typically increases).
+  co_await start_of_turn_tax_check( ss, ts, player );
+
   // TODO:
   //
-  //   1. Taxes.
-  //   2. REF.
-  //   3. Sending units.
-  //   4. Founding fathers.
-  //   5. etc.
+  //   1. REF.
+  //   2. Sending units. NOTE: when your home country does this
+  //      there is a probability for an immediate large tax in-
+  //      crease; see config/tax file.
+  //   3. Founding fathers.
+  //   4. etc.
   //
 }
 

@@ -28,6 +28,14 @@ struct.IntRange {
   _features { equality, validation }
 }
 
+# FIXME: move this to a common location.
+struct.DoubleRange {
+  min 'double',
+  max 'double',
+
+  _features { equality, validation }
+}
+
 struct.Taxes {
   # Taxes will never be increased above this.
   maximum_tax_rate 'int',
@@ -60,12 +68,12 @@ struct.Taxes {
 
 struct.Boycotts {
   # After each tax increase is refused (and a tea party had) the
-  # sons of libery membership will get a boost in the colony that
-  # had the party, and the boost will be chosen randomly from
-  # this range. Note that the boost is not permanent; if the
+  # number of (fractional) rebels will get a boost in the colony
+  # that had the party, and the boost will be chosen randomly
+  # from this range. Note that the boost is not permanent; if the
   # colony's bell production is not sufficient to sustain it then
   # it will start decreasing again.
-  sons_of_liberty_bump_after_party 'IntRange',
+  rebels_bump_after_party 'DoubleRange',
 
   # The formula that the OG seems to use to compute back taxes is
   # to take the current ask price (in hundreds) and multiply it

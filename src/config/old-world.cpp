@@ -23,6 +23,12 @@ base::valid_or<string> config::old_world::IntRange::validate()
   return base::valid;
 }
 
+base::valid_or<string> config::old_world::DoubleRange::validate()
+    const {
+  REFL_VALIDATE( min <= max, "min must be <= max in range." );
+  return base::valid;
+}
+
 base::valid_or<string> config::old_world::Taxes::validate()
     const {
   REFL_VALIDATE( tax_increase_probability >= 0,
