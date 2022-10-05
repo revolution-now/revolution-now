@@ -71,6 +71,16 @@ struct.TaxationState {
   # Tax rate (%) imposed by the king: [0, 100].
   tax_rate 'int',
 
+  # The future turn number on which the next tax event (increase
+  # or decrease, but usually always an increase) will happen.
+  # Each time a tax event happens this number is recomputed. When
+  # the turn it refers to comes, the game will check some other
+  # conditions (such as the year, and number of colonies) to see
+  # if it is greenlighted to trigger a tax event. If so it will
+  # trigger one. But either way it will recompute this number and
+  # set it to something in the future.
+  next_tax_event_turn 'int',
+
   _features { equality, validation }
 }
 
