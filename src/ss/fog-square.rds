@@ -1,0 +1,50 @@
+# ===============================================================
+# fog-square.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-10-05.
+#
+# Description: Rds definitions for the fog-square module.
+#
+# ===============================================================
+# ss
+include "ss/colony-id.hpp"
+include "ss/map-square.rds.hpp"
+include "ss/nation.rds.hpp"
+
+# base
+include "base/maybe.hpp"
+
+# C++ standard library
+include "<string>"
+
+namespace "rn"
+
+enum.e_barricade_type {
+  stockade,
+  fort,
+  fortress,
+}
+
+# All of the visual characteristics of a colony that need to be
+# recorded to implement the fog of war.
+struct.FogColony {
+  # Note that this ID may no longer exist if the colony has since
+  # been abandoned! That said, the game should never reuse such
+  # IDs, so it is safe to check if a colony with the given ID ex-
+  # ists or not and, if it does, it is the colony originally re-
+  # ferred to.
+  id 'ColonyId',
+  nation 'e_nation',
+  name 'std::string',
+  population 'int',
+  barricade_type 'base::maybe<e_barricade_type>',
+}
+
+# All of the visual characteristics of a square that need to be
+# recorded to implement the fog of war.
+struct.FogSquare {
+  square 'MapSquare',
+  colony 'base::maybe<FogColony>',
+}

@@ -11,6 +11,7 @@
 #include "terrain.hpp"
 
 // ss
+#include "ss/fog-square.hpp"
 #include "ss/map-square.hpp"
 
 // luapp
@@ -172,15 +173,6 @@ void TerrainState::initialize_player_terrain( e_nation nation,
 namespace {
 
 LUA_STARTUP( lua::state& st ) {
-  // FogSquare.
-  [&] {
-    using U = ::rn::FogSquare;
-
-    auto u = st.usertype.create<U>();
-
-    u["square"] = &U::square;
-  }();
-
   // PlayerTerrainMatrix.
   [&] {
     using U = ::rn::PlayerTerrainMatrix;

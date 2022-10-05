@@ -128,5 +128,4 @@ LUA_USERDATA_TRAITS( rn::ProtoSquaresMap, owned_by_cpp ){};
 LUA_USERDATA_TRAITS( rn::PlayerTerrain, owned_by_cpp ){};
 LUA_USERDATA_TRAITS( rn::PlayerTerrainMap, owned_by_cpp ){};
 LUA_USERDATA_TRAITS( rn::PlayerTerrainMatrix, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( rn::FogSquare, owned_by_cpp ){};
 } // namespace lua
