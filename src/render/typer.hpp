@@ -36,6 +36,7 @@ inline gfx::size rendered_text_line_size_pixels(
     std::string_view text ) {
   return gfx::size{ .w = 6 * int( text.size() ), .h = 8 };
 }
+inline int rendered_text_line_spacing_pixels() { return 1; }
 
 /****************************************************************
 ** Typer

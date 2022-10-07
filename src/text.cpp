@@ -403,6 +403,10 @@ Delta rendered_text_size( TextReflowInfo const& reflow_info,
           W{ int( segment.text.size() ) * kCharSize.w };
     res.w = std::max( res.w, line_width );
   }
+  if( lines.size() > 0 )
+    // Add spacing between lines.
+    res.h += rr::rendered_text_line_spacing_pixels() *
+             ( lines.size() - 1 );
   return res;
 }
 

@@ -83,7 +83,6 @@ struct Window {
   Coord inside_border() const;
   Rect  inside_border_rect() const;
   Coord inside_padding() const;
-  Rect  inside_padding_rect() const;
   // abs coord of upper-left corner of view.
   Coord view_pos() const;
 
@@ -212,11 +211,11 @@ void Window::draw( rr::Renderer& renderer ) const {
   painter.draw_solid_rect( r + Delta{ .w = 4, .h = 4 },
                            gfx::pixel{ 0, 0, 0, 64 } );
   painter.draw_solid_rect(
-      inside_border_rect(),
+      rect(),
       gfx::pixel{ .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
   // Render window border, highlights on top and right.
   painter.draw_horizontal_line(
-      r.lower_left(), r.w,
+      r.lower_left() - Delta{ .h = 1 }, r.w,
       gfx::pixel{ .r = 0x42, .g = 0x2D, .b = 0x22, .a = 255 } );
   painter.draw_vertical_line(
       r.upper_left(), r.h,
@@ -225,13 +224,13 @@ void Window::draw( rr::Renderer& renderer ) const {
       r.upper_left(), r.w,
       gfx::pixel{ .r = 0x6D, .g = 0x49, .b = 0x3C, .a = 255 } );
   painter.draw_vertical_line(
-      r.upper_right(), r.h,
+      r.upper_right() - Delta{ .w = 1 }, r.h,
       gfx::pixel{ .r = 0x6D, .g = 0x49, .b = 0x3C, .a = 255 } );
   painter.draw_point(
       r.upper_left(),
       gfx::pixel{ .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
   painter.draw_point(
-      r.lower_right(),
+      r.lower_right() - Delta{ .w = 1, .h = 1 },
       gfx::pixel{ .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
 
   view->draw( renderer, view_pos() );
@@ -241,10 +240,11 @@ void Window::draw( rr::Renderer& renderer ) const {
 Delta Window::delta() const {
   CHECK( view );
   Delta res;
-  res.w = view->delta().w;
-  res.h += view->delta().h + window_padding().h * 2;
+  res.w += view->delta().w;
+  res.h += view->delta().h;
   // Padding inside window border.
   res.w += config_ui.window.window_padding * 2;
+  res.h += config_ui.window.window_padding * 2;
   // multiply by two since there is top/bottom or left/right.
   res += window_border() * 2;
   return res;
@@ -254,30 +254,13 @@ Rect Window::rect() const {
   return Rect::from( position, delta() );
 }
 
-// Coord Window::inside_border() const {
-//   return position + window_border();
-// }
-
 Rect Window::inside_border_rect() const {
   return Rect::from( position + window_border(),
-                     delta() - window_border() );
+                     delta() - window_border() * 2 );
 }
 
 Coord Window::inside_padding() const {
   return position + window_border() + window_padding();
-}
-
-Rect Window::inside_padding_rect() const {
-  auto res = rect();
-  res.x += window_border().w;
-  res.y += window_border().h;
-  res.w -= window_border().w * 2;
-  res.h -= window_border().h * 2;
-  res.x += window_padding().w;
-  res.y += window_padding().h;
-  res.w -= window_padding().w * 2;
-  res.h -= window_padding().h * 2;
-  return res;
 }
 
 Coord Window::view_pos() const { return inside_padding(); }

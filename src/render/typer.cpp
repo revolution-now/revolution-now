@@ -47,7 +47,8 @@ gfx::size Typer::scale() const {
 
 void Typer::write( char c ) {
   if( c == '\n' ) {
-    line_start_.y += scale().h + 1;
+    line_start_.y +=
+        scale().h + rendered_text_line_spacing_pixels();
     pos_ = line_start_;
     return;
   }
