@@ -14,19 +14,31 @@ include "ss/commodity.rds.hpp"
 
 namespace "rn"
 
-enum.e_tax_proposal_answer {
-  accept,
-  reject,
+struct.CommodityInColony {
+  colony_id 'ColonyId',
+  type_and_quantity 'Commodity',
 }
 
-sumtype.TaxChange {
+struct.TeaParty {
+  # Commodity type and quantity to be thrown out if partying,
+  # along with the colony in which it resides.
+  commodity 'CommodityInColony',
+
+  # If rejecting the tax hike the colony will get a temporary SoL
+  # boost. This is the fractional number of rebels to add to the
+  # colony.
+  rebels_bump 'double',
+}
+
+sumtype.TaxChangeProposal {
+  # This should be first so that it is the default.
   none {},
 
   # This one is rare -- it only happens when a tax increase hap-
   # pens but there are no commodities in any colonies. In that
   # case it doesn't make sense to boycott anything.
   increase {
-    amount 'int', # Positive number.
+    amount 'int',
   },
 
   # This is the one that happens most of the time. The player is
@@ -36,19 +48,8 @@ sumtype.TaxChange {
   # commodity ("tea party"), that commodity becomes boycotted,
   # and the colony in question gets a temporary SoL boost.
   increase_or_party {
-    # Positive number.
     amount 'int',
-
-    # Colony in which the party would take place.
-    colony_id 'ColonyId',
-
-    # Commodity type and quantity to be thrown out if partying.
-    to_throw_out 'Commodity',
-
-    # If rejecting the tax hike the colony will get a temporary
-    # SoL boost. This is the fractional number of rebels to add
-    # to the colony.
-    rebels_bump 'double',
+    party 'TeaParty',
   },
 
   # This one is very rare, it is when the crown decides to lower
@@ -58,8 +59,18 @@ sumtype.TaxChange {
   },
 }
 
-struct.TaxationUpdate {
+sumtype.TaxChangeResult {
+  none {},
+  tax_change {
+    amount 'int', # positive or negative.
+  },
+  party {
+    how 'TeaParty',
+  }
+}
+
+struct.TaxUpdateComputation {
   next_tax_event_turn 'int',
 
-  proposed_tax_change 'TaxChange_t',
+  proposed_tax_change 'TaxChangeProposal_t',
 }

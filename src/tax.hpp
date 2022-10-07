@@ -30,31 +30,24 @@ struct TS;
 // Computes any changes that need to be made to the player's tax
 // state and if there is a tax event this turn. If there is a tax
 // event it will provide all of the precomputed results of it for
-// each choice that the player makes. If this function returns
-// nothing then there is nothing further to do this turn. If it
-// returns something then we need to call apply_tax_change with
-// that object to actually make the changes and run through the
-// UI routine.
-maybe<TaxationUpdate> compute_tax_change( SSConst const& ss,
-                                          Player const& player );
+// each choice that the player makes.
+TaxUpdateComputation compute_tax_change( SSConst const& ss,
+                                         TS&            ts,
+                                         Player const&  player );
 
-// Given a TaxationUpdate object this function will determine if
-// the player needs to be prompted and, if so, will go through
-// the UI sequence, and return whether they accept or reject the
-// change. For anything other than the increase-or-party, this
-// will just return "accept," since the player has no reason to
-// ever reject the others. Technically, they could want to reject
-// a tax decrease if they have Thomas Paine (causes bell produc-
-// tion to go up with tax rate) but the OG doesn't do that and it
-// would be kind of strange.
-wait<e_tax_proposal_answer> prompt_player_for_tax_change(
-    SSConst const& ss, TS& ts, Player const& player,
-    TaxationUpdate const& update );
+// This function will take a tax change proposal (which gives
+// possible outcomes) and translate it to a final result that in-
+// dicates the changes that actually need to be made, and in gen-
+// eral this requires UI routines and player input.
+wait<TaxChangeResult_t> prompt_for_tax_change_result(
+    SSConst const& ss, TS& ts, Player& player,
+    TaxChangeProposal_t const& update );
 
-// Takes the TaxationUpdate object and applies any changes that
-// it requires.
-void apply_tax_change( SS& ss, TS& ts, Player& player,
-                       TaxationUpdate const& update );
+// Takes the TaxChangeResult_t object and applies any changes
+// that it requires.
+void apply_tax_result( SS& ss, Player& player,
+                       int next_tax_event_turn,
+                       TaxChangeResult_t const& change );
 
 // This runs through the entire routine for a human player:
 // checks for tax events, possibly prompts the player, and then

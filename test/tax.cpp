@@ -49,12 +49,12 @@ TEST_CASE( "[tax] compute_tax_change" ) {
   // TODO
 }
 
-TEST_CASE( "[tax] prompt_player_for_tax_change" ) {
+TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
   World W;
   // TODO
 }
 
-TEST_CASE( "[tax] apply_tax_change" ) {
+TEST_CASE( "[tax] apply_tax_result" ) {
   World W;
   // TODO
 }
