@@ -40,6 +40,10 @@ LUA_STARTUP( lua::state& st ) {
   using U = IRand;
   auto u  = st.usertype.create<U>();
 
+  // This is an address of a pure virtual function, but somehow
+  // through compiler magic it does the right thing and does vir-
+  // tual dispatch, so we can actually call it from Lua and it
+  // will call the right method on the derived object.
   u["bernoulli"] = &U::bernoulli;
 };
 
