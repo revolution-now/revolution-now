@@ -79,7 +79,7 @@ struct.Boycotts {
   # to take the current ask price (in hundreds) and multiply it
   # by 500, which would be equivalent to purchasing (without
   # taxes) 5 cargo holds of the commodity.
-  backtaxes_ask_multiplier 'int',
+  back_taxes_ask_multiplier 'int',
 
   # When a tea party is held, this is the maximum quantity of a
   # commodity that will be thrown overboard. Sometimes a colony
