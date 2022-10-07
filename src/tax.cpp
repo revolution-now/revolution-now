@@ -226,21 +226,20 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
 }
 
 wait<TaxChangeResult_t> prompt_for_tax_change_result(
-    SSConst const& ss, TS& ts, Player& player,
-    TaxChangeProposal_t const& change ) {
+    SSConst const& ss, TS& ts, Player& player_non_const,
+    TaxChangeProposal_t const& proposal ) {
+  Player const& player = player_non_const;
   string_view constexpr increase_msg =
       "In honor of our marriage to our {}{} wife, we have "
       "decided to raise your tax rate by @[H]{}%@[].  The tax "
-      "rate is now @[H]{}%@[].";
-  string const decrease_msg =
-      "The crown has graciously decided to LOWER your tax rate "
-      "by @[H]{}%@[].  The tax rate is now @[H]{}%@[].";
-  switch( change.to_enum() ) {
+      "rate is now @[H]{}%@[]. We will graciously allow you to "
+      "kiss our royal pinky ring.";
+  switch( proposal.to_enum() ) {
     case TaxChangeProposal::e::none:
       co_return TaxChangeResult::none{};
     case TaxChangeProposal::e::increase: {
-      auto&     o = change.get<TaxChangeProposal::increase>();
-      int const new_wife = remarry( ts, player );
+      auto&     o = proposal.get<TaxChangeProposal::increase>();
+      int const new_wife = remarry( ts, player_non_const );
       co_await ts.gui.message_box(
           increase_msg, new_wife, ordinal_for( new_wife ),
           o.amount, player.old_world.taxes.tax_rate + o.amount );
@@ -249,17 +248,11 @@ wait<TaxChangeResult_t> prompt_for_tax_change_result(
     }
     case TaxChangeProposal::e::increase_or_party: {
       auto& o =
-          change.get<TaxChangeProposal::increase_or_party>();
-      static string const kiss =
-          " We will graciously allow you to kiss our royal "
-          "pinky ring.";
-      int const    new_wife = remarry( ts, player );
-      string const msg =
-          fmt::format(
-              increase_msg, new_wife, ordinal_for( new_wife ),
-              o.amount,
-              player.old_world.taxes.tax_rate + o.amount ) +
-          kiss;
+          proposal.get<TaxChangeProposal::increase_or_party>();
+      int const    new_wife = remarry( ts, player_non_const );
+      string const msg      = fmt::format(
+          increase_msg, new_wife, ordinal_for( new_wife ),
+          o.amount, player.old_world.taxes.tax_rate + o.amount );
       string const party = fmt::format(
           "Hold '@[H]{} {} party@[]'!",
           ss.colonies.colony_for( o.party.commodity.colony_id )
@@ -283,10 +276,13 @@ wait<TaxChangeResult_t> prompt_for_tax_change_result(
       }
     }
     case TaxChangeProposal::e::decrease: {
-      auto& o = change.get<TaxChangeProposal::decrease>();
+      auto& o = proposal.get<TaxChangeProposal::decrease>();
+      string const decrease_msg =
+          "The crown has graciously decided to LOWER your tax "
+          "rate by @[H]{}%@[].  The tax rate is now @[H]{}%@[].";
       co_await ts.gui.message_box(
           decrease_msg, o.amount,
-          player.old_world.taxes.tax_rate + o.amount );
+          player.old_world.taxes.tax_rate - o.amount );
       co_return TaxChangeResult::tax_change{ .amount =
                                                  -o.amount };
     }
@@ -364,7 +360,7 @@ wait<> try_trade_boycotted_commodity( TS& ts, Player& player,
   string_view const to_be =
       config_commodity.types[type].plural ? "are" : "is";
   string const msg = fmt::format(
-      "@[H]{}@[] {} current under Parliamentary boycott. We "
+      "@[H]{}@[] {} currently under Parliamentary boycott. We "
       "cannot trade {} until Parliament lifts the boycott, "
       "which it will not do unless we agree to pay @[H]{}@[] in "
       "back taxes.",

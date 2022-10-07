@@ -41,7 +41,7 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
 // eral this requires UI routines and player input.
 wait<TaxChangeResult_t> prompt_for_tax_change_result(
     SSConst const& ss, TS& ts, Player& player,
-    TaxChangeProposal_t const& update );
+    TaxChangeProposal_t const& proposal );
 
 // Takes the TaxChangeResult_t object and applies any changes
 // that it requires.
