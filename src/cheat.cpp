@@ -175,6 +175,13 @@ wait<> cheat_evolve_market_prices( SS& ss, TS& ts,
           ts, player, changes[comm] );
 }
 
+void cheat_toggle_boycott( Player& player, e_commodity type ) {
+  RETURN_IF_NO_CHEAT;
+  bool& boycott =
+      player.old_world.market.commodities[type].boycott;
+  boycott = !boycott;
+}
+
 /****************************************************************
 ** In Colony View
 *****************************************************************/

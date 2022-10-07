@@ -57,6 +57,10 @@ struct HarborMarketCommodities
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override;
 
+  // Implement ui::AwaitView.
+  wait<> perform_click(
+      input::mouse_button_event_t const& ) override;
+
   // Implement IDragSource.
   bool try_drag( HarborDraggableObject_t const& a,
                  Coord const&                   where ) override;

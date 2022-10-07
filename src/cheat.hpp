@@ -104,4 +104,6 @@ void cheat_decrease_gold( Player& player );
 wait<> cheat_evolve_market_prices( SS& ss, TS& ts,
                                    Player& player );
 
+void cheat_toggle_boycott( Player& player, e_commodity type );
+
 } // namespace rn

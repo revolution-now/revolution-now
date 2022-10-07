@@ -289,7 +289,9 @@ struct HarborPlane::Impl : public Plane {
     if( event.mod.shf_down ) {
       // Cheat commands.
       // TODO
-      co_return;
+
+      // If not handled then fall through, since some cheat com-
+      // mands are implemented in the individual views.
     }
     co_await harbor_view_top_level().perform_click( event );
   }

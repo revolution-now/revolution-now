@@ -56,7 +56,7 @@ struct HarborDockUnits
              Coord         coord ) const override;
 
   // Implement ui::AwaitView.
-  virtual wait<> perform_click(
+  wait<> perform_click(
       input::mouse_button_event_t const& ) override;
 
   // Implement IDragSource.

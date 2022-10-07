@@ -12,6 +12,7 @@
 #include "harbor-view-market.hpp"
 
 // Revolution Now
+#include "cheat.hpp"
 #include "commodity.hpp"
 #include "igui.hpp"
 #include "market.hpp"
@@ -55,6 +56,27 @@ ui::View& HarborMarketCommodities::view() noexcept {
 
 ui::View const& HarborMarketCommodities::view() const noexcept {
   return *this;
+}
+
+wait<> HarborMarketCommodities::perform_click(
+    input::mouse_button_event_t const& event ) {
+  if( event.buttons != input::e_mouse_button_event::left_up )
+    co_return;
+  CHECK( event.pos.is_inside( rect( {} ) ) );
+  auto obj = object_here( event.pos );
+  if( !obj.has_value() ) co_return;
+  HarborDraggableObject_t const& harbor_obj = obj->obj;
+  UNWRAP_CHECK(
+      comm,
+      harbor_obj
+          .get_if<HarborDraggableObject::market_commodity>() );
+  e_commodity const type = comm.comm.type;
+
+  if( event.mod.shf_down ) {
+    // Cheat functions.
+    cheat_toggle_boycott( player_, type );
+    co_return;
+  }
 }
 
 maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>
