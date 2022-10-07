@@ -42,4 +42,8 @@ base::valid_or<string> config::old_world::Taxes::validate()
   return base::valid;
 }
 
+base::valid_or<string> config_old_world_t::validate() const {
+  return base::valid;
+}
+
 } // namespace rn

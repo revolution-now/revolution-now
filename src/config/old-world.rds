@@ -80,6 +80,12 @@ struct.Boycotts {
   # by 500, which would be equivalent to purchasing (without
   # taxes) 5 cargo holds of the commodity.
   backtaxes_ask_multiplier 'int',
+
+  # When a tea party is held, this is the maximum quantity of a
+  # commodity that will be thrown overboard. Sometimes a colony
+  # can have more than 100 of something if it has a warehouse,
+  # but even in that case the OG does not seem to exceed 100.
+  max_commodity_quantity_to_throw 'int',
 }
 
 namespace "rn"
@@ -88,6 +94,14 @@ struct.config_old_world_t {
   taxes 'refl::enum_map<e_difficulty, config::old_world::Taxes>',
 
   boycotts 'config::old_world::Boycotts',
+
+  # When the king raises taxes, occasionally he will do so in
+  # honor of his recent marriage to his Nth wife. This is the
+  # minimum number of wives that he can have, and will be used to
+  # initialize his wife count.
+  min_king_wife_number 'int',
+
+  _features { equality, validation }
 }
 
 config.old_world {}

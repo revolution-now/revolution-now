@@ -83,4 +83,17 @@ boycotts {
   # by 500, which would be equivalent to purchasing (without
   # taxes) 5 cargo holds of the commodity.
   backtaxes_ask_multiplier: 500
+
+  # When a tea party is held, this is the maximum quantity of a
+  # commodity that will be thrown overboard. Sometimes a colony
+  # can have more than 100 of something if it has a warehouse,
+  # but even in that case the OG does not seem to exceed 100.
+  max_commodity_quantity_to_throw: 100
 }
+
+# When the king raises taxes, occasionally he will do so in honor
+# of his recent marriage to his Nth wife. This is the minimum
+# number of wives that he can have, and will be used to ini-
+# tialize his wife count. It should be larger than 3 so that we
+# can write Nth.
+min_king_wife_number: 6
