@@ -186,7 +186,7 @@ unordered_map<int, string> description_for_slots() {
 wait<maybe<int>> select_slot( TS& ts, bool include_autosaves,
                               bool allow_empty ) {
   unordered_map<int, string> slots = description_for_slots();
-  if( slots.size() == 0 ) {
+  if( slots.size() == 0 && !allow_empty ) {
     co_await ts.gui.message_box(
         "There are no available games to load." );
     co_return nothing;
