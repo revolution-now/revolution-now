@@ -198,7 +198,7 @@ maybe<ColViewObject_t> ColonyLandView::can_receive(
 }
 
 wait<base::valid_or<DragRejection>> ColonyLandView::sink_check(
-    ColViewObject_t const&, int, Coord const where ) const {
+    ColViewObject_t const&, int, Coord const where ) {
   Colony const& colony = ss_.colonies.colony_for( colony_.id );
   maybe<e_direction> d = direction_under_cursor( where );
   CHECK( d );

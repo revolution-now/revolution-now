@@ -84,8 +84,7 @@ struct ColonyLandView : public ui::View,
       Coord const&           where ) const override;
 
   wait<base::valid_or<DragRejection>> sink_check(
-      ColViewObject_t const&, int,
-      Coord const where ) const override;
+      ColViewObject_t const&, int, Coord const where ) override;
 
   ColonyJob_t make_job_for_square( e_direction d ) const;
 

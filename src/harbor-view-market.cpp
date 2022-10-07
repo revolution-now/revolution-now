@@ -148,7 +148,7 @@ HarborMarketCommodities::user_edit_object() const {
 
 wait<base::valid_or<DragRejection>>
 HarborMarketCommodities::source_check(
-    HarborDraggableObject_t const&, Coord const ) const {
+    HarborDraggableObject_t const&, Coord const ) {
   UNWRAP_CHECK( comm, dragging_.member( &Draggable::comm ) );
 
   // TODO: check for boycotts.
@@ -197,9 +197,8 @@ HarborMarketCommodities::can_receive(
 
 wait<base::valid_or<DragRejection>>
 HarborMarketCommodities::sink_check(
-    HarborDraggableObject_t const&, int /*from_entity*/,
-    Coord const ) const {
-  // TODO: check for boycotts.
+    HarborDraggableObject_t const& o, int /*from_entity*/,
+    Coord const ) {
   co_return base::valid;
 }
 

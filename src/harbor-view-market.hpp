@@ -74,8 +74,7 @@ struct HarborMarketCommodities
 
   // Implement IDragSourceCheck.
   wait<base::valid_or<DragRejection>> source_check(
-      HarborDraggableObject_t const& a,
-      Coord const ) const override;
+      HarborDraggableObject_t const& a, Coord const ) override;
 
   // Implement IDragSource.
   wait<> disown_dragged_object() override;
@@ -92,7 +91,7 @@ struct HarborMarketCommodities
   // Implement IDragSinkCheck.
   wait<base::valid_or<DragRejection>> sink_check(
       HarborDraggableObject_t const& a, int from_entity,
-      Coord const ) const override;
+      Coord const ) override;
 
   // Impelement IDragSink.
   wait<> drop( HarborDraggableObject_t const& a,

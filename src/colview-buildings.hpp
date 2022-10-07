@@ -78,7 +78,7 @@ class ColViewBuildings : public ui::View,
   // Implement IDragSinkCheck.
   wait<base::valid_or<DragRejection>> sink_check(
       ColViewObject_t const&, int from_entity,
-      Coord const ) const override;
+      Coord const ) override;
 
   // Implement IDragSource.
   bool try_drag( ColViewObject_t const& o,

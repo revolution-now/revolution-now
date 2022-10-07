@@ -222,7 +222,7 @@ maybe<ColViewObject_t> ColViewBuildings::can_receive(
 }
 
 wait<base::valid_or<DragRejection>> ColViewBuildings::sink_check(
-    ColViewObject_t const& o, int, Coord const where ) const {
+    ColViewObject_t const& o, int, Coord const where ) {
   // These should have already been checked.
   UNWRAP_CHECK( slot, slot_for_coord( where ) );
   UNWRAP_CHECK( indoor_job, indoor_job_for_slot( slot ) );

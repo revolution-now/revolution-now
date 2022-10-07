@@ -96,7 +96,7 @@ struct IDragSourceCheck {
   virtual ~IDragSourceCheck() = default;
 
   virtual wait<base::valid_or<DragRejection>> source_check(
-      Draggable const& a, Coord const ) const = 0;
+      Draggable const& a, Coord const ) = 0;
 };
 
 // Interface for views that can be the source for dragging. The
@@ -131,9 +131,9 @@ struct IDragSource {
         IDragSourceUserInput<Draggable> const&>( *this );
   }
 
-  maybe<IDragSourceCheck<Draggable> const&> drag_check() const {
+  maybe<IDragSourceCheck<Draggable>&> drag_check() {
     return base::maybe_dynamic_cast<
-        IDragSourceCheck<Draggable> const&>( *this );
+        IDragSourceCheck<Draggable>&>( *this );
   }
 
   // This will permanently remove the object from the source
@@ -165,7 +165,7 @@ struct IDragSinkCheck {
   virtual ~IDragSinkCheck() = default;
 
   virtual wait<base::valid_or<DragRejection>> sink_check(
-      Draggable const&, int from_entity, Coord const ) const = 0;
+      Draggable const&, int from_entity, Coord const ) = 0;
 };
 
 // Interface for views that can accept dragged items.
@@ -184,9 +184,9 @@ struct IDragSink {
       Draggable const& o, int from_entity,
       Coord const& where ) const = 0;
 
-  maybe<IDragSinkCheck<Draggable> const&> drag_check() const {
-    return base::maybe_dynamic_cast<
-        IDragSinkCheck<Draggable> const&>( *this );
+  maybe<IDragSinkCheck<Draggable>&> drag_check() {
+    return base::maybe_dynamic_cast<IDragSinkCheck<Draggable>&>(
+        *this );
   }
 
   // Coordinates are relative to view's upper left corner. The
@@ -513,7 +513,7 @@ wait<> drag_drop_routine(
     // either confirm the drag or to cancel it with a message box
     // explaining why, etc.
 
-    maybe<IDragSourceCheck<Draggable> const&> drag_src_check =
+    maybe<IDragSourceCheck<Draggable>&> drag_src_check =
         drag_source.drag_check();
     if( drag_src_check ) {
       base::valid_or<DragRejection> proceed =
@@ -527,7 +527,7 @@ wait<> drag_drop_routine(
       }
     }
 
-    maybe<IDragSinkCheck<Draggable> const&> drag_sink_check =
+    maybe<IDragSinkCheck<Draggable>&> drag_sink_check =
         drag_sink.drag_check();
     if( drag_sink_check ) {
       base::valid_or<DragRejection> proceed =

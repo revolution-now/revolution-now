@@ -524,7 +524,7 @@ class CargoView : public ui::View,
 
   wait<base::valid_or<DragRejection>> sink_check(
       ColViewObject_t const& o, int from_entity,
-      Coord const ) const override {
+      Coord const ) override {
     CHECK( holder_.has_value() );
     if( ss_.units.unit_for( *holder_ ).type() ==
             e_unit_type::wagon_train &&
@@ -869,7 +869,7 @@ class UnitsAtGateColonyView
 
   wait<base::valid_or<DragRejection>> sink_check(
       ColViewObject_t const&, int from_entity,
-      Coord const ) const override {
+      Coord const ) override {
     CONVERT_ENTITY( from_enum, from_entity );
     switch( from_enum ) {
       case e_colview_entity::units_at_gate:
