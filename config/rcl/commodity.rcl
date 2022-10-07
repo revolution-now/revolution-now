@@ -1,0 +1,81 @@
+types {
+  food {
+    lowercase_display_name: "food"
+    plural: false
+  }
+
+  sugar {
+    lowercase_display_name: "sugar"
+    plural: false
+  }
+
+  tobacco {
+    lowercase_display_name: "tobacco"
+    plural: false
+  }
+
+  cotton {
+    lowercase_display_name: "cotton"
+    plural: false
+  }
+
+  fur {
+    lowercase_display_name: "fur"
+    plural: false
+  }
+
+  lumber {
+    lowercase_display_name: "lumber"
+    plural: false
+  }
+
+  ore {
+    lowercase_display_name: "ore"
+    plural: false
+  }
+
+  silver {
+    lowercase_display_name: "silver"
+    plural: false
+  }
+
+  horses {
+    lowercase_display_name: "horses"
+    plural: true
+  }
+
+  rum {
+    lowercase_display_name: "rum"
+    plural: false
+  }
+
+  cigars {
+    lowercase_display_name: "cigars"
+    plural: true
+  }
+
+  cloth {
+    lowercase_display_name: "cloth"
+    plural: false
+  }
+
+  coats {
+    lowercase_display_name: "coats"
+    plural: true
+  }
+
+  trade_goods {
+    lowercase_display_name: "trade goods"
+    plural: true
+  }
+
+  tools {
+    lowercase_display_name: "tools"
+    plural: true
+  }
+
+  muskets {
+    lowercase_display_name: "muskets"
+    plural: true
+  }
+}

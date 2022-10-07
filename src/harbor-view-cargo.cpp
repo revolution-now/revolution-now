@@ -173,7 +173,7 @@ HarborCargo::user_edit_object() const {
   string const text = fmt::format(
       "What quantity of @[H]{}@[] would you like to move? "
       "(0-{}):",
-      commodity_display_name( comm.type ), max_allowed );
+      lowercase_commodity_display_name( comm.type ), max_allowed );
 
   maybe<int> const quantity =
       co_await ts_.gui.optional_int_input(

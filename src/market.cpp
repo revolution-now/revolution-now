@@ -477,10 +477,10 @@ wait<> display_price_change_notification(
   int const    price_change = change.to.bid - change.from.bid;
   string const verb = ( price_change > 0 ) ? "risen" : "fallen";
   CommodityPrice const prices = change.to;
-  string const         msg =
-      fmt::format( "The price of @[H]{}@[] in {} has {} to {}.",
-                   commodity_display_name( change.type ),
-                   harbor_name, verb, prices.bid );
+  string const         msg    = fmt::format(
+      "The price of @[H]{}@[] in {} has {} to {}.",
+      lowercase_commodity_display_name( change.type ),
+      harbor_name, verb, prices.bid );
   co_await ts.gui.message_box( msg );
 }
 

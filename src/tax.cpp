@@ -20,6 +20,7 @@
 #include "ts.hpp"
 
 // config
+#include "config/commodity.rds.hpp"
 #include "config/nation.rds.hpp"
 #include "config/old-world.rds.hpp"
 
@@ -29,9 +30,6 @@
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
 #include "ss/turn.hpp"
-
-// base
-#include "base/string.hpp"
 
 using namespace std;
 
@@ -105,8 +103,12 @@ wait<> boycott_msg( SSConst const& ss, TS& ts,
   string_view const colony_name =
       ss.colonies.colony_for( party.how.commodity.colony_id )
           .name;
-  string_view const commodity_name = commodity_display_name(
-      party.how.commodity.type_and_quantity.type );
+  string_view const lower_commodity_name =
+      lowercase_commodity_display_name(
+          party.how.commodity.type_and_quantity.type );
+  string_view const upper_commodity_name =
+      uppercase_commodity_display_name(
+          party.how.commodity.type_and_quantity.type );
   string_view const country_adjective =
       config_nation.nations[player.nation].adjective;
   string_view const harbor_city_name =
@@ -120,10 +122,9 @@ wait<> boycott_msg( SSConst const& ss, TS& ts,
       "tons of {} into the sea!  The {} Parliament announces "
       "boycott of {}.  {} cannot be traded in {} until boycott "
       "is lifted.",
-      colony_name, base::capitalize_initials( commodity_name ),
-      quantity, commodity_name, country_adjective,
-      commodity_name,
-      base::capitalize_initials( commodity_name ),
+      colony_name, upper_commodity_name, quantity,
+      lower_commodity_name, country_adjective,
+      lower_commodity_name, upper_commodity_name,
       harbor_city_name );
   co_await ts.gui.message_box( msg );
 }
@@ -263,7 +264,7 @@ wait<TaxChangeResult_t> prompt_for_tax_change_result(
           "Hold '@[H]{} {} party@[]'!",
           ss.colonies.colony_for( o.party.commodity.colony_id )
               .name,
-          commodity_display_name(
+          uppercase_commodity_display_name(
               o.party.commodity.type_and_quantity.type ) );
       YesNoConfig const config{
           .msg            = msg,

@@ -1,0 +1,41 @@
+# ===============================================================
+# commodity.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-10-07.
+#
+# Description: Config info for commodities.
+#
+# ===============================================================
+# ss
+include "ss/commodity.rds.hpp"
+
+# refl
+include "refl/cdr.hpp"
+include "refl/enum-map.hpp"
+
+# cdr
+include "cdr/ext-builtin.hpp"
+include "cdr/ext-std.hpp"
+
+# C++ standard library
+include "<string>"
+
+namespace "rn.config.commodity"
+
+struct.Type {
+  lowercase_display_name 'std::string',
+
+  # Is the name of this commodity plural. E.g. "ore" is not,
+  # while "muskets" is plural.
+  plural 'bool',
+}
+
+namespace "rn"
+
+struct.config_commodity_t {
+  types 'refl::enum_map<e_commodity, config::commodity::Type>',
+}
+
+config.commodity {}

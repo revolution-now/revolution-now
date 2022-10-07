@@ -126,7 +126,7 @@ HarborMarketCommodities::user_edit_object() const {
   string const text = fmt::format(
       "What quantity of @[H]{}@[] would you like to buy? "
       "(0-100):",
-      commodity_display_name( comm.type ) );
+      lowercase_commodity_display_name( comm.type ) );
 
   maybe<int> const quantity =
       co_await ts_.gui.optional_int_input(
@@ -163,7 +163,7 @@ HarborMarketCommodities::source_check(
             "{}@[].  Try holding down the @[H]shift@[] key to "
             "reduce the quantity of your purchase.",
             comm.quantity,
-            commodity_display_name( comm.type ) ) };
+            lowercase_commodity_display_name( comm.type ) ) };
   co_return base::valid;
 }
 

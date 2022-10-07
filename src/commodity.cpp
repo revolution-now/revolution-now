@@ -18,6 +18,9 @@
 #include "ustate.hpp"
 #include "variant.hpp"
 
+// config
+#include "config/commodity.rds.hpp"
+
 // ss
 #include "ss/units.hpp"
 
@@ -29,6 +32,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/string.hpp"
 #include "base/variant.hpp"
 
 // luapp
@@ -138,8 +142,15 @@ maybe<e_commodity> commodity_from_index( int index ) {
   return res;
 }
 
-string_view commodity_display_name( e_commodity type ) {
+string_view lowercase_commodity_display_name(
+    e_commodity type ) {
   return enum_to_display_name( type );
+}
+
+string_view uppercase_commodity_display_name(
+    e_commodity type ) {
+  return base::capitalize_initials(
+      lowercase_commodity_display_name( type ) );
 }
 
 void add_commodity_to_cargo( UnitsState&      units_state,

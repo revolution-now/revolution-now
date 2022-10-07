@@ -53,7 +53,10 @@ constexpr int kNumCommodityTypes = refl::enum_count<e_commodity>;
 maybe<e_commodity> commodity_from_index( int index );
 
 // Gets a nice display name; may contain spaces.
-std::string_view commodity_display_name( e_commodity type );
+std::string_view lowercase_commodity_display_name(
+    e_commodity type );
+std::string_view uppercase_commodity_display_name(
+    e_commodity type );
 
 /****************************************************************
 ** Commodity Labels

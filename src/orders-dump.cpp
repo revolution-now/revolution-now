@@ -88,7 +88,7 @@ struct DumpHandler : public OrdersHandler {
       // both singular and plural versions.
       string const text =
           fmt::format( "{} {}", comm.quantity,
-                       commodity_display_name( comm.type ) );
+                       lowercase_commodity_display_name( comm.type ) );
       ChoiceConfigOption option{
           .key          = fmt::to_string( slot ),
           .display_name = text,

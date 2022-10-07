@@ -336,7 +336,8 @@ class MarketCommodities
     string text = fmt::format(
         "What quantity of @[H]{}@[] would you like to move? "
         "({}-{}):",
-        commodity_display_name( dragging_->type ), min, max );
+        lowercase_commodity_display_name( dragging_->type ), min,
+        max );
     maybe<int> quantity = co_await ts_.gui.optional_int_input(
         { .msg           = text,
           .initial_value = max,
@@ -697,7 +698,8 @@ class CargoView : public ui::View,
     string                  text = fmt::format(
         "What quantity of @[H]{}@[] would you like to move? "
                          "({}-{}):",
-        commodity_display_name( comm.obj.type ), min, max );
+        lowercase_commodity_display_name( comm.obj.type ), min,
+        max );
     maybe<int> quantity = co_await ts_.gui.optional_int_input(
         { .msg           = text,
           .initial_value = max,

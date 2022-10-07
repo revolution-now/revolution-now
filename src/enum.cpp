@@ -11,7 +11,6 @@
 #include "enum.hpp"
 
 // Revolution Now
-#include "commodity.hpp"
 #include "error.hpp"
 #include "macros.hpp"
 
@@ -74,7 +73,6 @@ EnumNameMap& enum_display_names() {
         /*************************************************/
         ui::e_confirm,  //
         e_music_player, //
-        e_commodity,    //
         /*************************************************/
         ) ) };
   }();

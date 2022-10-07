@@ -128,7 +128,7 @@ wait<bool> present_colony_update(
           notification.get<ColonyNotification::full_cargo>();
       msg = fmt::format(
           "A new cargo of @[H]{}@[] is available in @[H]{}@[]!",
-          commodity_display_name( o.what ), colony.name );
+          lowercase_commodity_display_name( o.what ), colony.name );
       break;
     }
     case ColonyNotification::e::construction_missing_tools: {
