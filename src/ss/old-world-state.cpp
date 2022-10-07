@@ -129,7 +129,9 @@ LUA_STARTUP( lua::state& st ) {
   using U = ::rn::TaxationState;
   auto u  = st.usertype.create<U>();
 
-  u["tax_rate"] = &U::tax_rate;
+  u["tax_rate"]              = &U::tax_rate;
+  u["next_tax_event_turn"]   = &U::next_tax_event_turn;
+  u["king_remarriage_count"] = &U::king_remarriage_count;
 };
 
 // OldWorldState

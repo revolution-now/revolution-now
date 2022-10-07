@@ -81,6 +81,14 @@ struct.TaxationState {
   # set it to something in the future.
   next_tax_event_turn 'int',
 
+  # This is not required for tax state, but it is required for
+  # the messages that the king is raising taxes in honor of his
+  # marriage to his Nth wife. Each time such a message appears,
+  # we want the wife number to be larger than it was before, so
+  # we have to track it. This tracks the number of times he has
+  # been remarried since the start of the game.
+  king_remarriage_count 'int',
+
   _features { equality, validation }
 }
 
