@@ -117,7 +117,7 @@ wait<> boycott_msg( SSConst const& ss, TS& ts,
       party.how.commodity.type_and_quantity.quantity;
 
   string const msg = fmt::format(
-      "Colonists in {} hold @[H]{} Party@[]!  Amid colonists "
+      "Colonists in {} hold @[H]{} Party@[]!  Amid colonists' "
       "refusal to pay new tax, Sons of Liberty throw @[H]{}@[] "
       "tons of {} into the sea!  The {} Parliament announces "
       "boycott of {}.  {} cannot be traded in {} until boycott "
@@ -188,6 +188,7 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
       ts.rand.bernoulli( tax_config.tax_increase_probability );
   int const curr_tax = player.old_world.taxes.tax_rate;
   if( !increase ) {
+    if( curr_tax == 0 ) return update;
     // Make sure the tax rate doesn't go below zero.
     int const new_tax_rate   = std::max( curr_tax - amount, 0 );
     int const clamped_amount = curr_tax - new_tax_rate;
