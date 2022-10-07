@@ -11,7 +11,6 @@
 #include "commodity.hpp"
 
 // Revolution Now
-#include "enum.hpp"
 #include "macros.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -142,13 +141,11 @@ maybe<e_commodity> commodity_from_index( int index ) {
   return res;
 }
 
-string_view lowercase_commodity_display_name(
-    e_commodity type ) {
-  return enum_to_display_name( type );
+string lowercase_commodity_display_name( e_commodity type ) {
+  return config_commodity.types[type].lowercase_display_name;
 }
 
-string_view uppercase_commodity_display_name(
-    e_commodity type ) {
+string uppercase_commodity_display_name( e_commodity type ) {
   return base::capitalize_initials(
       lowercase_commodity_display_name( type ) );
 }
