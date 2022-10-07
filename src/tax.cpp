@@ -349,4 +349,50 @@ wait<> start_of_turn_tax_check( SS& ss, TS& ts,
     co_await boycott_msg( ss, ts, player, *party );
 }
 
+int back_tax_for_boycotted_commodity( Player const& player,
+                                      e_commodity   type ) {
+  return market_price( player, type ).ask *
+         config_old_world.boycotts.back_taxes_ask_multiplier;
+}
+
+wait<> try_trade_boycotted_commodity( TS& ts, Player& player,
+                                      e_commodity type,
+                                      int         back_taxes ) {
+  bool& boycott =
+      player.old_world.market.commodities[type].boycott;
+  CHECK( boycott );
+  string_view const to_be =
+      config_commodity.types[type].plural ? "are" : "is";
+  string const msg = fmt::format(
+      "@[H]{}@[] {} current under Parliamentary boycott. We "
+      "cannot trade {} until Parliament lifts the boycott, "
+      "which it will not do unless we agree to pay @[H]{}@[] in "
+      "back taxes.",
+      uppercase_commodity_display_name( type ), to_be,
+      lowercase_commodity_display_name( type ), back_taxes );
+  if( player.money < back_taxes ) {
+    // Player can't afford it.
+    co_await ts.gui.message_box(
+        msg + fmt::format( " Treasury: {}.", player.money ) );
+    co_return;
+  }
+  YesNoConfig const config{
+      .msg       = msg,
+      .yes_label = fmt::format( "Pay @[H]{}@[].", back_taxes ),
+      .no_label  = "This is taxation without representation!",
+      .no_comes_first = true,
+  };
+  ui::e_confirm const answer =
+      co_await ts.gui.required_yes_no( config );
+  switch( answer ) {
+    case ui::e_confirm::yes:
+      // Lift the boycott.
+      boycott = false;
+      player.money -= back_taxes;
+      CHECK_GE( player.money, 0 );
+      co_return;
+    case ui::e_confirm::no: co_return;
+  }
+}
+
 } // namespace rn

@@ -64,5 +64,15 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
   // TODO
 }
 
+TEST_CASE( "[tax] back_tax_for_boycotted_commodity" ) {
+  World W;
+  // TODO
+}
+
+TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
+  World W;
+  // TODO
+}
+
 } // namespace
 } // namespace rn

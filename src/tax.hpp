@@ -54,4 +54,18 @@ void apply_tax_result( SS& ss, Player& player,
 // makes any changes if necessary.
 wait<> start_of_turn_tax_check( SS& ss, TS& ts, Player& player );
 
+// If this commodity were currently boycotted then how much back-
+// taxes would the player have to pay to remove it?
+int back_tax_for_boycotted_commodity( Player const& player,
+                                      e_commodity   type );
+
+// This will run through the UI routine that happens when a
+// player tries to trade a boycotted commodity. It will present
+// them with the back tax amount and ask if they want to pay it.
+// The commodity should be boycotted here otherwise it will
+// check-fail.
+wait<> try_trade_boycotted_commodity( TS& ts, Player& player,
+                                      e_commodity type,
+                                      int         back_taxes );
+
 } // namespace rn

@@ -16,6 +16,7 @@
 #include "commodity.hpp"
 #include "igui.hpp"
 #include "market.hpp"
+#include "tax.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
 
@@ -146,12 +147,27 @@ HarborMarketCommodities::user_edit_object() const {
       .comm = new_comm };
 }
 
+wait<base::NoDiscard<bool>>
+HarborMarketCommodities::check_boycott( e_commodity type ) {
+  bool const& boycott =
+      player_.old_world.market.commodities[type].boycott;
+  if( !boycott ) co_return false;
+  int const back_tax =
+      back_tax_for_boycotted_commodity( player_, type );
+  co_await try_trade_boycotted_commodity( ts_, player_, type,
+                                          back_tax );
+  co_return boycott;
+}
+
 wait<base::valid_or<DragRejection>>
 HarborMarketCommodities::source_check(
     HarborDraggableObject_t const&, Coord const ) {
   UNWRAP_CHECK( comm, dragging_.member( &Draggable::comm ) );
 
-  // TODO: check for boycotts.
+  // Need to check for boycotts before checking the player money
+  // because the player might be charged to lift the boycott.
+  if( co_await check_boycott( comm.type ) )
+    co_return DragRejection{};
 
   Invoice const invoice = transaction_invoice(
       ss_, player_, comm, e_transaction::buy );
@@ -199,6 +215,12 @@ wait<base::valid_or<DragRejection>>
 HarborMarketCommodities::sink_check(
     HarborDraggableObject_t const& o, int /*from_entity*/,
     Coord const ) {
+  CHECK( o.holds<HarborDraggableObject::cargo_commodity>() );
+  e_commodity const type =
+      o.get<HarborDraggableObject::cargo_commodity>().comm.type;
+
+  if( co_await check_boycott( type ) ) co_return DragRejection{};
+
   co_return base::valid;
 }
 

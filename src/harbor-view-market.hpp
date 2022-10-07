@@ -18,6 +18,9 @@
 #include "harbor-view-entities.hpp"
 #include "market.rds.hpp"
 
+// base
+#include "base/vocab.hpp"
+
 namespace rn {
 
 struct SS;
@@ -100,6 +103,10 @@ struct HarborMarketCommodities
   bool stacked() const { return stacked_; }
 
  private:
+  // Returns true if the commodity is boycotted and the player
+  // did not lift it, i.e. we are blocked.
+  wait<base::NoDiscard<bool>> check_boycott( e_commodity type );
+
   static constexpr W single_layer_blocks_width  = 16;
   static constexpr W double_layer_blocks_width  = 8;
   static constexpr H single_layer_blocks_height = 1;
