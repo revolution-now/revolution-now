@@ -103,10 +103,10 @@ wait<> boycott_msg( SSConst const& ss, TS& ts,
   string_view const colony_name =
       ss.colonies.colony_for( party.how.commodity.colony_id )
           .name;
-  string_view const lower_commodity_name =
+  string const lower_commodity_name =
       lowercase_commodity_display_name(
           party.how.commodity.type_and_quantity.type );
-  string_view const upper_commodity_name =
+  string const upper_commodity_name =
       uppercase_commodity_display_name(
           party.how.commodity.type_and_quantity.type );
   string_view const country_adjective =
