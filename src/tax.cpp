@@ -30,6 +30,9 @@
 #include "ss/settings.rds.hpp"
 #include "ss/turn.hpp"
 
+// base
+#include "base/string.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -117,8 +120,10 @@ wait<> boycott_msg( SSConst const& ss, TS& ts,
       "tons of {} into the sea!  The {} Parliament announces "
       "boycott of {}.  {} cannot be traded in {} until boycott "
       "is lifted.",
-      colony_name, commodity_name, quantity, commodity_name,
-      country_adjective, commodity_name, commodity_name,
+      colony_name, base::capitalize_initials( commodity_name ),
+      quantity, commodity_name, country_adjective,
+      commodity_name,
+      base::capitalize_initials( commodity_name ),
       harbor_city_name );
   co_await ts.gui.message_box( msg );
 }
@@ -191,6 +196,7 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
     return update;
   }
   // We have an increase.
+  if( curr_tax == tax_config.maximum_tax_rate ) return update;
   int const new_tax_rate =
       std::min( curr_tax + amount, tax_config.maximum_tax_rate );
   int const clamped_amount = new_tax_rate - curr_tax;
