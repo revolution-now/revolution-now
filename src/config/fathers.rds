@@ -9,6 +9,7 @@
 #
 # ===============================================================
 # gs
+include "ss/difficulty.rds.hpp"
 include "ss/fathers.rds.hpp"
 
 # refl
@@ -33,6 +34,9 @@ struct.Description {
   id 'e_founding_father',
   name 'std::string',
   type 'e_founding_father_type',
+  weight_1492_1600 'int',
+  weight_1600_1700 'int',
+  weight_1700_plus 'int',
 }
 
 struct.Rules {
@@ -51,10 +55,14 @@ namespace "rn"
 
 struct.config_fathers_t {
   types 'refl::enum_map<e_founding_father_type, config::fathers::Type>',
+
   fathers 'refl::enum_map<e_founding_father, config::fathers::Description>',
+
   rules 'config::fathers::Rules',
-  # TODO: see bottom of NAMES.TXT for the weights of the various
-  # founding fathers in each game epoch.
+
+  # The incremental cost for each additional father beyond the
+  # first (the first only requires half of this cost).
+  cost_in_bells 'refl::enum_map<e_difficulty, int>',
 }
 
 config.fathers {}

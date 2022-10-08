@@ -27,32 +27,56 @@ types {
 # ===============================================================
 # Founding Fathers
 # ===============================================================
+# Each father has a weight (determines the probability of appear-
+# ance) for a given century, and these numbers are taken from the
+# OG's NAMES.TXT file.
+#
+# That file also mentions that a "Father of higher level will not
+# appear until at least one father of next lower level (of same
+# type) has joined the Congress", but that does not seem to be
+# the case when testing with the OG; all that seems to matter are
+# the per-century weights.
 fathers {
   # trade
   adam_smith {
     id: adam_smith
     name: Adam Smith
     type: trade
+    weight_1492_1600: 2
+    weight_1600_1700: 8
+    weight_1700_plus: 6
   }
   jakob_fugger {
     id: jakob_fugger
     name: Jakob Fugger
     type: trade
+    weight_1492_1600: 0
+    weight_1600_1700: 5
+    weight_1700_plus: 8
   }
   peter_minuit {
     id: peter_minuit
     name: Peter Minuit
     type: trade
+    weight_1492_1600: 9
+    weight_1600_1700: 1
+    weight_1700_plus: 0
   }
   peter_stuyvesant {
     id: peter_stuyvesant
     name: Peter Stuyvesant
     type: trade
+    weight_1492_1600: 2
+    weight_1600_1700: 4
+    weight_1700_plus: 8
   }
   jan_de_witt {
     id: jan_de_witt
     name: Jan de Witt
     type: trade
+    weight_1492_1600: 2
+    weight_1600_1700: 6
+    weight_1700_plus: 10
   }
 
   # exploration
@@ -60,26 +84,41 @@ fathers {
     id: ferdinand_magellan
     name: Ferdinand Magellan
     type: exploration
+    weight_1492_1600: 2
+    weight_1600_1700: 10
+    weight_1700_plus: 10
   }
   francisco_de_coronado {
     id: francisco_de_coronado
     name: Francisco de Coronado
     type: exploration
+    weight_1492_1600: 3
+    weight_1600_1700: 5
+    weight_1700_plus: 7
   }
   hernando_de_soto {
     id: hernando_de_soto
     name: Hernando de Soto
     type: exploration
+    weight_1492_1600: 5
+    weight_1600_1700: 10
+    weight_1700_plus: 5
   }
   henry_hudson {
     id: henry_hudson
     name: Henry Hudson
     type: exploration
+    weight_1492_1600: 10
+    weight_1600_1700: 1
+    weight_1700_plus: 0
   }
   sieur_de_la_salle {
     id: sieur_de_la_salle
     name: Sieur de La Salle
     type: exploration
+    weight_1492_1600: 7
+    weight_1600_1700: 5
+    weight_1700_plus: 3
   }
 
   # military
@@ -87,26 +126,41 @@ fathers {
     id: hernan_cortes
     name: Hernan Cortes
     type: military
+    weight_1492_1600: 6
+    weight_1600_1700: 5
+    weight_1700_plus: 1
   }
   george_washington {
     id: george_washington
     name: George Washington
     type: military
+    weight_1492_1600: 0
+    weight_1600_1700: 4
+    weight_1700_plus: 10
   }
   paul_revere {
     id: paul_revere
     name: Paul Revere
     type: military
+    weight_1492_1600: 10
+    weight_1600_1700: 2
+    weight_1700_plus: 1
   }
   francis_drake {
     id: francis_drake
     name: Francis Drake
     type: military
+    weight_1492_1600: 4
+    weight_1600_1700: 8
+    weight_1700_plus: 6
   }
   john_paul_jones {
     id: john_paul_jones
     name: John Paul Jones
     type: military
+    weight_1492_1600: 0
+    weight_1600_1700: 6
+    weight_1700_plus: 7
   }
 
   # political
@@ -114,26 +168,41 @@ fathers {
     id: thomas_jefferson
     name: Thomas Jefferson
     type: political
+    weight_1492_1600: 4
+    weight_1600_1700: 5
+    weight_1700_plus: 6
   }
   pocahontas {
     id: pocahontas
     name: Pocahontas
     type: political
+    weight_1492_1600: 7
+    weight_1600_1700: 5
+    weight_1700_plus: 3
   }
   thomas_paine {
     id: thomas_paine
     name: Thomas Paine
     type: political
+    weight_1492_1600: 1
+    weight_1600_1700: 2
+    weight_1700_plus: 8
   }
   simon_bolivar {
     id: simon_bolivar
     name: Simon Bolivar
     type: political
+    weight_1492_1600: 0
+    weight_1600_1700: 4
+    weight_1700_plus: 6
   }
   benjamin_franklin {
     id: benjamin_franklin
     name: Benjamin Franklin
     type: political
+    weight_1492_1600: 5
+    weight_1600_1700: 5
+    weight_1700_plus: 5
   }
 
   # religious
@@ -141,26 +210,41 @@ fathers {
     id: william_brewster
     name: William Brewster
     type: religious
+    weight_1492_1600: 7
+    weight_1600_1700: 4
+    weight_1700_plus: 1
   }
   william_penn {
     id: william_penn
     name: William Penn
     type: religious
+    weight_1492_1600: 8
+    weight_1600_1700: 5
+    weight_1700_plus: 2
   }
   father_jean_de_brebeuf {
     id: father_jean_de_brebeuf
     name: Father Jean de Brebeuf
     type: religious
+    weight_1492_1600: 6
+    weight_1600_1700: 6
+    weight_1700_plus: 1
   }
   juan_de_sepulveda {
     id: juan_de_sepulveda
     name: Juan de Sepulveda
     type: religious
+    weight_1492_1600: 3
+    weight_1600_1700: 8
+    weight_1700_plus: 3
   }
   bartolome_de_las_casas {
     id: bartolome_de_las_casas
     name: Bartolome de las Casas
     type: religious
+    weight_1492_1600: 0
+    weight_1600_1700: 5
+    weight_1700_plus: 10
   }
 }
 
@@ -177,4 +261,12 @@ rules {
   # order to make De Soto a bit more useful, but that can be
   # safely turned off here if the OG's behavior is desired.
   ships_get_de_soto_sighting_bonus: true
+}
+
+cost_in_bells {
+  discoverer:   48
+  explorer:     64
+  conquistador: 80
+  governor:     96
+  viceroy:      112
 }
