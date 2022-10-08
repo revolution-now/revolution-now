@@ -293,6 +293,11 @@ void apply_commodity_increase(
   store[what] = new_value;
 }
 
+void apply_bells_for_founding_fathers( Player& player,
+                                       int     bells_produced ) {
+  player.fathers.bells += bells_produced;
+}
+
 void evolve_sons_of_liberty(
     Player const& player, int bells_produced, Colony& colony,
     vector<ColonyNotification_t>& notifications ) {
@@ -465,6 +470,8 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
 
   apply_production_to_colony( colony, ev.production,
                               ev.notifications );
+  apply_bells_for_founding_fathers( player,
+                                    ev.production.bells );
 
   check_ran_out_of_raw_materials( ev );
 

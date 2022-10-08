@@ -12,6 +12,7 @@
 
 // luapp
 #include "luapp/enum.hpp"
+#include "luapp/ext-base.hpp"
 #include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
@@ -56,12 +57,37 @@ LUA_STARTUP( lua::state& st ) {
 };
 
 LUA_STARTUP( lua::state& st ) {
+  using U = ::rn::FoundingFathersPoolMap;
+  auto u  = st.usertype.create<U>();
+
+  // TODO: make this generic for enum maps.
+  u[lua::metatable_key]["__index"] =
+      []( U& o, e_founding_father_type type ) {
+        return o[type];
+      };
+
+  // TODO: make this generic for enum maps.
+  u[lua::metatable_key]["__newindex"] =
+      []( U& o, e_founding_father_type type,
+          base::maybe<e_founding_father> father ) {
+        o[type] = father;
+      };
+
+  // !! NOTE: because we overwrote the __*index metamethods on
+  // this userdata we cannot add any further (non-metatable) mem-
+  // bers on this object, since there will be no way to look them
+  // up by name.
+};
+
+LUA_STARTUP( lua::state& st ) {
   using U = ::rn::FoundingFathersState;
 
   auto u = st.usertype.create<U>();
 
-  u["bells"] = &U::bells;
-  u["has"]   = &U::has;
+  u["bells"]       = &U::bells;
+  u["has"]         = &U::has;
+  u["pool"]        = &U::pool;
+  u["in_progress"] = &U::in_progress;
 };
 
 } // namespace

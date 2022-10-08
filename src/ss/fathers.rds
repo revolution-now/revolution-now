@@ -11,6 +11,9 @@
 # refl
 include "refl/enum-map.hpp"
 
+# base
+include "base/maybe.hpp"
+
 namespace "rn"
 
 enum.e_founding_father {
@@ -61,11 +64,18 @@ enum.e_founding_father_type {
 struct.FoundingFathersState {
   # This is the total number of bells thus accumulated toward the
   # next founding father. This will be reset to zero when a new
-  # father joins the congress. Sources say that the original game
-  # keeps this count separate from the accumulation of bells in
-  # each individual colony.
+  # father joins the congress.
   bells 'int',
 
   # Which founding fathers does this player have.
   has 'refl::enum_map<e_founding_father, bool>',
+
+  # These are the fathers that will be up next for selection.
+  # This does not include the one currently being worked on. In
+  # the OG these seem to persist each time the menu is presented
+  # and a father is only removed when he is obtained.
+  pool 'refl::enum_map<e_founding_father_type, base::maybe<e_founding_father>>',
+
+  # The father currently being worked on.
+  in_progress 'base::maybe<e_founding_father>',
 }

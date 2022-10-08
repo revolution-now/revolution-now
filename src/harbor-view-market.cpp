@@ -78,6 +78,10 @@ wait<> HarborMarketCommodities::perform_click(
     cheat_toggle_boycott( player_, type );
     co_return;
   }
+
+  // If the commodity is boycotted this will allow the player to
+  // pay the back taxes.
+  (void)co_await check_boycott( type );
 }
 
 maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>

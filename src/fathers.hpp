@@ -12,7 +12,10 @@
 
 #include "core-config.hpp"
 
-// gs
+// Revolution Now
+#include "wait.hpp"
+
+// ss
 #include "ss/fathers.rds.hpp"
 
 // C++ standard library
@@ -20,6 +23,10 @@
 #include <vector>
 
 namespace rn {
+
+struct Player;
+struct SSConst;
+struct TS;
 
 /****************************************************************
 ** e_founding_father
@@ -33,10 +40,35 @@ std::string_view founding_father_name(
 e_founding_father_type founding_father_type(
     e_founding_father father );
 
-std::vector<e_founding_father> founding_fathers_for_type(
+std::vector<e_founding_father> const& founding_fathers_for_type(
     e_founding_father_type type );
 
 std::string_view founding_father_type_name(
     e_founding_father_type type );
+
+/****************************************************************
+** Father Selection
+*****************************************************************/
+// If the player has some bells and is not currently working to-
+// ward a founding father then this will pop up a menu allowing
+// (requiring) the player to choose a founding father. Before it
+// does so it will re-populate the pool of fathers. If there are
+// no fathers left then it will do nothing.
+wait<> pick_founding_father_if_needed( SSConst const& ss, TS& ts,
+                                       Player& player );
+
+// This is called once per turn to check if we need to choose a
+// new founding father and/or if we've obtained one. If we've ob-
+// tained one then it will be awarded to the player and also will
+// be returned. This will not play the continental congress
+// cut-scene animation though when a new father is obtained; that
+// should be done by the caller if a father is returned.
+maybe<e_founding_father> check_founding_fathers(
+    SSConst const& ss, Player& player );
+
+// Cuts to a view of the Continental Congress hall and animates
+// the appearance of the new founding father, as in the OG.
+wait<> play_new_father_cut_scene( TS& ts, Player const& player,
+                                  e_founding_father new_father );
 
 } // namespace rn

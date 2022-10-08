@@ -135,6 +135,7 @@ struct PanelPlane::Impl : public Plane {
                  player.old_world.taxes.tax_rate );
 
     typer.newline();
+    typer.write( "Bells:   {}\n", player.fathers.bells );
     typer.write( "Crosses: {}\n", player.crosses );
 
     typer.newline();

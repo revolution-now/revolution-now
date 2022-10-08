@@ -15,6 +15,7 @@
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
+#include "fathers.hpp"
 #include "gui.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view.hpp"
@@ -828,6 +829,18 @@ wait<> colonies_turn( Planes& planes, SS& ss, TS& ts,
   co_await evolve_colonies_for_player( planes, ss, ts, player );
 }
 
+// Here we do things that must be done once per turn but where we
+// want the colonies to be evolved first.
+wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
+  // Founding fathers.
+  co_await pick_founding_father_if_needed( ss, ts, player );
+  maybe<e_founding_father> const new_father =
+      check_founding_fathers( ss, player );
+  if( new_father.has_value() )
+    co_await play_new_father_cut_scene( ts, player,
+                                        *new_father );
+}
+
 /****************************************************************
 ** Per-Nation Turn Processor
 *****************************************************************/
@@ -857,8 +870,7 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
   //   2. Sending units. NOTE: when your home country does this
   //      there is a probability for an immediate large tax in-
   //      crease; see config/tax file.
-  //   3. Founding fathers.
-  //   4. etc.
+  //   3. etc.
   //
 }
 
@@ -905,6 +917,7 @@ wait<> nation_turn( Planes& planes, SS& ss, TS& ts,
   // Colonies.
   if( !st.did_colonies ) {
     co_await colonies_turn( planes, ss, ts, player );
+    co_await post_colonies( ss, ts, player );
     st.did_colonies = true;
   }
 

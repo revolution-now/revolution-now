@@ -21,6 +21,10 @@ namespace rn {
 using FoundingFathersMap =
     refl::enum_map<e_founding_father, bool>;
 
+using FoundingFathersPoolMap =
+    refl::enum_map<e_founding_father_type,
+                   base::maybe<e_founding_father>>;
+
 } // namespace rn
 
 /****************************************************************
@@ -31,5 +35,7 @@ namespace lua {
 LUA_USERDATA_TRAITS( ::rn::FoundingFathersState,
                      owned_by_cpp ){};
 LUA_USERDATA_TRAITS( ::rn::FoundingFathersMap, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( ::rn::FoundingFathersPoolMap,
+                     owned_by_cpp ){};
 
 }
