@@ -774,7 +774,7 @@ wait<maybe<int>> WindowPlane::select_box(
   TextMarkupInfo const& m_info = ui::default_text_markup_info();
   TextReflowInfo const& r_info = ui::default_text_reflow_info();
   auto                  text_view =
-      make_unique<ui::TextView>( msg, m_info, r_info );
+      make_unique<ui::TextView>( string( msg ), m_info, r_info );
   vector<unique_ptr<ui::View>> vert_views;
   vert_views.push_back( std::move( text_view ) );
   vert_views.push_back( std::move( on_input_view ) );

@@ -255,7 +255,9 @@ class OneLineStringView : public View {
 
 class TextView : public View {
  public:
-  TextView( std::string_view msg, TextMarkupInfo const& m_info,
+  TextView( std::string msg );
+
+  TextView( std::string msg, TextMarkupInfo const& m_info,
             TextReflowInfo const& r_info );
 
   // Implement Object
