@@ -882,6 +882,89 @@ void HorizontalArrayView::recompute_child_positions() {
 }
 
 /****************************************************************
+** CheckBoxView
+*****************************************************************/
+CheckBoxView::CheckBoxView( bool on ) : on_( on ) {}
+
+Delta CheckBoxView::delta() const {
+  return { .w = 11, .h = 11 };
+}
+
+void CheckBoxView::draw( rr::Renderer& renderer,
+                         Coord         coord ) const {
+  rr::Painter             painter = renderer.painter();
+  static gfx::pixel const color =
+      gfx::pixel{ .r = 0x3b, .g = 0x76, .b = 0x35, .a = 0xff };
+  static gfx::pixel const border = color.shaded( 2 );
+  static gfx::pixel const x_color =
+      gfx::pixel{ .r = 0x33, .g = 0x33, .b = 0x33, .a = 0xff };
+  painter.draw_solid_rect( rect( coord ), color );
+  painter.draw_empty_rect( rect( coord ),
+                           rr::Painter::e_border_mode::inside,
+                           border );
+  if( on_ ) {
+    // This creates an anti-aliased x.
+    {
+      rr::Typer typer =
+          renderer.typer( coord + Delta{ .w = 1, .h = 1 },
+                          x_color.with_alpha( 64 ) );
+      typer.write( 'x' );
+    }
+    {
+      rr::Typer typer =
+          renderer.typer( coord + Delta{ .w = 3, .h = 1 },
+                          x_color.with_alpha( 64 ) );
+      typer.write( 'x' );
+    }
+    {
+      rr::Typer typer =
+          renderer.typer( coord + Delta{ .w = 2, .h = 0 },
+                          x_color.with_alpha( 64 ) );
+      typer.write( 'x' );
+    }
+    {
+      rr::Typer typer =
+          renderer.typer( coord + Delta{ .w = 2, .h = 2 },
+                          x_color.with_alpha( 64 ) );
+      typer.write( 'x' );
+    }
+    // This is the main foreground x.
+    {
+      rr::Typer typer = renderer.typer(
+          coord + Delta{ .w = 2, .h = 1 }, x_color );
+      typer.write( 'x' );
+    }
+  }
+}
+
+bool CheckBoxView::on_mouse_button(
+    input::mouse_button_event_t const& event ) {
+  if( event.buttons != input::e_mouse_button_event::left_up )
+    return false;
+  on_ = !on_;
+  return true;
+}
+
+/****************************************************************
+** LabeledCheckBoxView
+*****************************************************************/
+LabeledCheckBoxView::LabeledCheckBoxView( string label, bool on )
+  : HorizontalArrayView( HorizontalArrayView::align::middle ) {
+  auto check_box = make_unique<CheckBoxView>( on );
+  check_box_     = check_box.get();
+  add_view( std::move( check_box ) );
+  auto label_view = make_unique<TextView>( std::move( label ) );
+  add_view( std::move( label_view ) );
+  recompute_child_positions();
+}
+
+bool LabeledCheckBoxView::on_mouse_button(
+    input::mouse_button_event_t const& event ) {
+  // Clicking on the label is equivalent to clicking in the box.
+  return check_box_->on_mouse_button( event );
+}
+
+/****************************************************************
 ** OkCancelAdapterView
 *****************************************************************/
 OkCancelAdapterView::OkCancelAdapterView( unique_ptr<View> view,

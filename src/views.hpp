@@ -596,6 +596,39 @@ class HorizontalArrayView : public VectorView {
   align alignment_;
 };
 
+struct CheckBoxView : public View {
+  CheckBoxView( bool on = false );
+
+  // Implement Object
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override;
+
+  // Implement Object
+  Delta delta() const override;
+
+  bool on() const { return on_; }
+
+  // Override ui::Object.
+  bool on_mouse_button(
+      input::mouse_button_event_t const& event ) override;
+
+ private:
+  bool on_ = false;
+};
+
+struct LabeledCheckBoxView : public HorizontalArrayView {
+  LabeledCheckBoxView( std::string label, bool on = false );
+
+  bool on() const { return check_box_->on(); }
+
+  // Override ui::Object.
+  bool on_mouse_button(
+      input::mouse_button_event_t const& event ) override;
+
+ private:
+  CheckBoxView* check_box_ = nullptr;
+};
+
 class OkCancelAdapterView : public VerticalArrayView {
  public:
   using OnClickFunc = std::function<void( e_ok_cancel )>;
