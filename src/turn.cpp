@@ -338,7 +338,6 @@ wait<> menu_handler( Planes& planes, SS& ss, TS& ts,
       break;
     }
     case e_menu_item::cheat_edit_fathers: {
-      // Need to co_await so that the map_updater stays alive.
       co_await cheat_edit_fathers( planes, ts, player );
       break;
     }
