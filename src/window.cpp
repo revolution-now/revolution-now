@@ -54,48 +54,42 @@ namespace rl = ::base::rl;
 
 using ::base::function_ref;
 
+namespace {
+
 /****************************************************************
-** Window
+** Misc. Helpers
 *****************************************************************/
-struct Window {
-  Window( WindowPlane& window_plane, Coord position_ );
-  // Removes this window from the window manager.
-  ~Window() noexcept;
+// This returns the width in pixels of the window border ( same
+// for left/right sides as for top/bottom sides). Don't forget
+// that this Delta must be multiplied by two to get the total
+// change in width/height of a window with such a border.
+Delta const& window_border() {
+  static Delta const delta{ W( config_ui.window.border_width ),
+                            H( config_ui.window.border_width ) };
+  return delta;
+}
 
-  void set_view( unique_ptr<ui::View> view_ ) {
-    view = std::move( view_ );
-  }
+// Number of pixels of padding between border and start of the
+// window's view.
+Delta const& window_padding() {
+  static Delta const delta{
+      W( config_ui.window.window_padding ),
+      H( config_ui.window.window_padding ) };
+  return delta;
+}
 
-  void center_window() {
-    UNWRAP_CHECK(
-        normal_area,
-        compositor::section( compositor::e_section::normal ) );
-    position = centered( delta(), normal_area );
-  }
-
-  bool operator==( Window const& rhs ) const {
-    return this == &rhs;
-  }
-
-  void  draw( rr::Renderer& renderer ) const;
-  Delta delta() const;
-  Rect  rect() const;
-  Coord inside_border() const;
-  Rect  inside_border_rect() const;
-  Coord inside_padding() const;
-  // abs coord of upper-left corner of view.
-  Coord view_pos() const;
-
-  WindowPlane&              window_plane_;
-  std::unique_ptr<ui::View> view;
-  Coord                     position;
-};
+} // namespace
 
 /****************************************************************
 ** WindowManager
 *****************************************************************/
-class WindowManager {
+struct WindowManager {
  public:
+  struct PositionedWindow {
+    Window* win = nullptr;
+    Coord   pos = {};
+  };
+
   void draw_layout( rr::Renderer& renderer ) const;
 
   ND e_input_handled input( input::event_t const& event );
@@ -106,20 +100,54 @@ class WindowManager {
                                 input::e_mouse_button button, Coord origin,
                                 Coord prev, Coord current );
 
-  vector<Window*>& active_windows() { return windows_; }
+  vector<PositionedWindow>& active_windows() { return windows_; }
 
-  vector<Window*> const& active_windows() const {
+  vector<PositionedWindow> const& active_windows() const {
     return windows_;
   }
 
   int num_windows() const { return windows_.size(); }
 
- public:
-  void add_window( Window* win ) { windows_.push_back( win ); }
+  void center_window( Window const& win ) {
+    UNWRAP_CHECK(
+        normal_area,
+        compositor::section( compositor::e_section::normal ) );
+    find_window( win ).pos =
+        centered( win.delta(), normal_area );
+  }
 
-  void remove_window( Window* p_win ) {
-    erase_if( windows_, LC( _ == p_win ) );
-    if( dragging_win_ == p_win ) dragging_win_ = nullptr;
+  void add_window( Window& window ) {
+    windows_.push_back( { .win = &window, .pos = Coord{} } );
+  }
+
+  void set_position( Window const& window, Coord pos ) {
+    find_window( window ).pos = pos;
+  }
+
+  Coord position( Window const& window ) {
+    return find_window( window ).pos;
+  }
+
+  Coord position( Window const& window ) const {
+    return find_window( window ).pos;
+  }
+
+  PositionedWindow& find_window( Window const& window ) {
+    for( PositionedWindow& pw : windows_ )
+      if( pw.win == &window ) return pw;
+    FATAL( "window not found." );
+  }
+
+  PositionedWindow const& find_window(
+      Window const& window ) const {
+    for( PositionedWindow const& pw : windows_ )
+      if( pw.win == &window ) return pw;
+    FATAL( "window not found." );
+  }
+
+  void remove_window( Window const& win ) {
+    erase_if( windows_, LC( _.win == &win ) );
+    if( dragging_win_ == &win ) dragging_win_ = nullptr;
   }
 
  private:
@@ -132,7 +160,7 @@ class WindowManager {
   maybe<Window&> window_for_cursor_pos_in_view(
       Coord const& pos );
 
-  vector<Window*> windows_;
+  vector<PositionedWindow> windows_;
   // The value of this is only relevant during a drag.
   Window* dragging_win_ = nullptr;
 };
@@ -163,85 +191,80 @@ struct WindowPlane::Impl : public Plane {
   WindowManager wm;
 };
 
-namespace {
-
 /****************************************************************
-** Misc. Helpers
+** Window
 *****************************************************************/
-// This returns the width in pixels of the window border ( same
-// for left/right sides as for top/bottom sides). Don't forget
-// that this Delta must be multiplied by two to get the total
-// change in width/height of a window with such a border.
-Delta const& window_border() {
-  static Delta const delta{ W( config_ui.window.border_width ),
-                            H( config_ui.window.border_width ) };
-  return delta;
+void Window::set_view( unique_ptr<ui::View> view ) {
+  view_ = std::move( view );
 }
 
-// Number of pixels of padding between border and start of the
-// window's view.
-Delta const& window_padding() {
-  static Delta const delta{
-      W( config_ui.window.window_padding ),
-      H( config_ui.window.window_padding ) };
-  return delta;
+bool Window::operator==( Window const& rhs ) const {
+  return this == &rhs;
 }
 
-} // namespace
-
-/****************************************************************
-** WindowManager
-*****************************************************************/
-Window::Window( WindowPlane& window_plane, Coord position_ )
-  : window_plane_( window_plane ),
-    view{},
-    position( position_ ) {
-  window_plane_.impl_->wm.add_window( this );
+Window::Window( WindowManager& window_manager )
+  : window_manager_( window_manager ), view_{} {
+  window_manager_.add_window( *this );
 }
 
 Window::~Window() noexcept {
-  window_plane_.impl_->wm.remove_window( this );
+  window_manager_.remove_window( *this );
 }
 
-void Window::draw( rr::Renderer& renderer ) const {
-  CHECK( view );
-  rr::Painter painter = renderer.painter();
-  Rect        r       = rect();
-  // Render shadow behind window.
-  painter.draw_solid_rect( r + Delta{ .w = 4, .h = 4 },
-                           gfx::pixel{ 0, 0, 0, 64 } );
-  painter.draw_solid_rect(
-      rect(),
-      gfx::pixel{ .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
-  // Render window border, highlights on top and right.
-  painter.draw_horizontal_line(
-      r.lower_left() - Delta{ .h = 1 }, r.w,
-      gfx::pixel{ .r = 0x42, .g = 0x2D, .b = 0x22, .a = 255 } );
-  painter.draw_vertical_line(
-      r.upper_left(), r.h,
-      gfx::pixel{ .r = 0x42, .g = 0x2D, .b = 0x22, .a = 255 } );
-  painter.draw_horizontal_line(
-      r.upper_left(), r.w,
-      gfx::pixel{ .r = 0x6D, .g = 0x49, .b = 0x3C, .a = 255 } );
-  painter.draw_vertical_line(
-      r.upper_right() - Delta{ .w = 1 }, r.h,
-      gfx::pixel{ .r = 0x6D, .g = 0x49, .b = 0x3C, .a = 255 } );
-  painter.draw_point(
-      r.upper_left(),
-      gfx::pixel{ .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
-  painter.draw_point(
-      r.lower_right() - Delta{ .w = 1, .h = 1 },
-      gfx::pixel{ .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
+void Window::draw( rr::Renderer& renderer, Coord where ) const {
+  CHECK( view_ );
+  {
+    // FIXME: remove this once the translation is done automati-
+    // cally.
+    SCOPED_RENDERER_MOD_ADD(
+        painter_mods.repos.translation,
+        gfx::to_double(
+            gfx::size( where.distance_from_origin() ) ) );
+    rr::Painter painter = renderer.painter();
+    Rect        r       = rect( Coord{} );
+    // Render shadow behind window.
+    painter.draw_solid_rect( r + Delta{ .w = 4, .h = 4 },
+                             gfx::pixel{ 0, 0, 0, 64 } );
+    painter.draw_solid_rect(
+        rect( Coord{} ),
+        gfx::pixel{
+            .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
+    // Render window border, highlights on top and right.
+    painter.draw_horizontal_line(
+        r.lower_left() - Delta{ .h = 1 }, r.w,
+        gfx::pixel{
+            .r = 0x42, .g = 0x2D, .b = 0x22, .a = 255 } );
+    painter.draw_vertical_line(
+        r.upper_left(), r.h,
+        gfx::pixel{
+            .r = 0x42, .g = 0x2D, .b = 0x22, .a = 255 } );
+    painter.draw_horizontal_line(
+        r.upper_left(), r.w,
+        gfx::pixel{
+            .r = 0x6D, .g = 0x49, .b = 0x3C, .a = 255 } );
+    painter.draw_vertical_line(
+        r.upper_right() - Delta{ .w = 1 }, r.h,
+        gfx::pixel{
+            .r = 0x6D, .g = 0x49, .b = 0x3C, .a = 255 } );
+    painter.draw_point(
+        r.upper_left(),
+        gfx::pixel{
+            .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
+    painter.draw_point(
+        r.lower_right() - Delta{ .w = 1, .h = 1 },
+        gfx::pixel{
+            .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
+  }
 
-  view->draw( renderer, view_pos() );
+  view_->draw( renderer, view_pos( where ) );
 }
 
 // Includes border
 Delta Window::delta() const {
-  CHECK( view );
+  CHECK( view_ );
   Delta res;
-  res.w += view->delta().w;
-  res.h += view->delta().h;
+  res.w += view_->delta().w;
+  res.h += view_->delta().h;
   // Padding inside window border.
   res.w += config_ui.window.window_padding * 2;
   res.h += config_ui.window.window_padding * 2;
@@ -250,41 +273,48 @@ Delta Window::delta() const {
   return res;
 }
 
-Rect Window::rect() const {
-  return Rect::from( position, delta() );
+Rect Window::rect( Coord origin ) const {
+  return Rect::from( origin, delta() );
 }
 
-Rect Window::inside_border_rect() const {
-  return Rect::from( position + window_border(),
+Rect Window::inside_border_rect( Coord origin ) const {
+  return Rect::from( origin + window_border(),
                      delta() - window_border() * 2 );
 }
 
-Coord Window::inside_padding() const {
-  return position + window_border() + window_padding();
+Coord Window::inside_padding( Coord origin ) const {
+  return origin + window_border() + window_padding();
 }
 
-Coord Window::view_pos() const { return inside_padding(); }
+Coord Window::view_pos( Coord origin ) const {
+  return inside_padding( origin );
+}
 
+/****************************************************************
+** WindowManager
+*****************************************************************/
 void WindowManager::draw_layout( rr::Renderer& renderer ) const {
-  for( Window* window : active_windows() )
-    window->draw( renderer );
+  for( PositionedWindow const& pw : active_windows() )
+    pw.win->draw( renderer, pw.pos );
 }
 
 maybe<Window&> WindowManager::window_for_cursor_pos(
-    Coord const& pos ) {
-  for( Window* win : rl::rall( active_windows() ) )
-    if( pos.is_inside( win->rect() ) ) //
-      return *win;
+    Coord const& cursor ) {
+  for( PositionedWindow const& pw :
+       rl::rall( active_windows() ) )
+    if( cursor.is_inside( pw.win->rect( pw.pos ) ) ) //
+      return *pw.win;
   return nothing;
 }
 
 maybe<Window&> WindowManager::window_for_cursor_pos_in_view(
-    Coord const& pos ) {
-  for( Window* win : rl::rall( active_windows() ) ) {
-    auto view_rect =
-        Rect::from( win->view_pos(), win->view->delta() );
-    if( pos.is_inside( view_rect ) ) //
-      return *win;
+    Coord const& cursor ) {
+  for( PositionedWindow const& pw :
+       rl::rall( active_windows() ) ) {
+    auto view_rect = Rect::from( pw.win->view_pos( pw.pos ),
+                                 pw.win->view()->delta() );
+    if( cursor.is_inside( view_rect ) ) //
+      return *pw.win;
   }
   return nothing;
 }
@@ -300,7 +330,7 @@ e_input_handled WindowManager::input(
   if( !mouse_event ) {
     // It's a non-mouse event, so just send it to the top-most
     // window and declare it to be handled.
-    (void)focused().view->input( event );
+    (void)focused().view()->input( event );
     return e_input_handled::yes;
   }
 
@@ -326,12 +356,12 @@ e_input_handled WindowManager::input(
         .keycode   = ::SDLK_ESCAPE,
         .scancode  = ::SDL_SCANCODE_ESCAPE,
         .direction = nothing };
-    (void)focused().view->input( escape_event );
+    (void)focused().view()->input( escape_event );
 
     return e_input_handled::yes;
   }
-  auto view_rect =
-      Rect::from( win->view_pos(), win->view->delta() );
+  auto view_rect = Rect::from( win->view_pos( position( *win ) ),
+                               win->view()->delta() );
 
   // If it's a movement event then see if we need to send
   // on-leave and on-enter notifications to any views that are
@@ -346,10 +376,10 @@ e_input_handled WindowManager::input(
         window_for_cursor_pos_in_view( new_pos );
     if( old_view != new_view ) {
       if( old_view )
-        old_view->view->on_mouse_leave(
+        old_view->view()->on_mouse_leave(
             old_pos.with_new_origin( view_rect.upper_left() ) );
       if( new_view )
-        new_view->view->on_mouse_enter(
+        new_view->view()->on_mouse_enter(
             new_pos.with_new_origin( view_rect.upper_left() ) );
     }
   }
@@ -359,8 +389,8 @@ e_input_handled WindowManager::input(
   // tive to the upper left corner of the view.
   if( mouse_event->pos.is_inside( view_rect ) ) {
     auto new_event = input::move_mouse_origin_by(
-        event, win->view_pos() - Coord{} );
-    (void)win->view->input( new_event );
+        event, win->view_pos( position( *win ) ) - Coord{} );
+    (void)win->view()->input( new_event );
   }
   // Always handle the event if there is a window open.
   return e_input_handled::yes;
@@ -388,7 +418,7 @@ void WindowManager::on_drag( input::mod_keys const& /*unused*/,
     // the window is cancelled.
     return;
   if( button == input::e_mouse_button::l ) {
-    auto& pos = dragging_win_->position;
+    Coord pos = position( *dragging_win_ );
     pos += ( current - prev );
     // Now prevent the window from being dragged off screen.
     UNWRAP_CHECK(
@@ -397,12 +427,13 @@ void WindowManager::on_drag( input::mod_keys const& /*unused*/,
     pos.y = clamp( pos.y, 16, normal_area.bottom_edge() - 16 );
     pos.x = clamp( pos.x, 0 - focused().delta().w + 16,
                    normal_area.right_edge() - 16 );
+    set_position( *dragging_win_, pos );
   }
 }
 
 Window& WindowManager::focused() {
   CHECK( num_windows() > 0 );
-  return *active_windows().back();
+  return *active_windows().back().win;
 }
 
 /****************************************************************
@@ -431,12 +462,12 @@ ui::ValidatorFunc make_int_validator( maybe<int> min,
 // its address needs to go into callbacks.
 namespace {
 [[nodiscard]] unique_ptr<Window> async_window_builder(
-    WindowPlane& window_plane, unique_ptr<ui::View> view,
+    WindowManager& window_manager, unique_ptr<ui::View> view,
     bool auto_pad ) {
-  auto win = make_unique<Window>( window_plane, Coord{} );
+  auto win = make_unique<Window>( window_manager );
   if( auto_pad ) autopad( *view, /*use_fancy=*/false );
   win->set_view( std::move( view ) );
-  win->center_window();
+  window_manager.center_window( *win );
   return win;
 }
 } // namespace
@@ -447,7 +478,8 @@ using GetOkCancelSubjectViewFunc = unique_ptr<ui::View>(
 
 template<typename ResultT>
 [[nodiscard]] unique_ptr<Window> ok_cancel_window_builder(
-    WindowPlane& window_plane, function<ResultT()> get_result,
+    WindowManager&                   window_manager,
+    function<ResultT()>              get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
     function<void( maybe<ResultT> )>         on_result,
@@ -486,7 +518,7 @@ template<typename ResultT>
   auto view = make_unique<ui::VerticalArrayView>(
       std::move( view_vec ),
       ui::VerticalArrayView::align::center );
-  return async_window_builder( window_plane, std::move( view ),
+  return async_window_builder( window_manager, std::move( view ),
                                /*auto_pad=*/true );
 }
 
@@ -496,7 +528,8 @@ using GetOkBoxSubjectViewFunc = unique_ptr<ui::View>(
 
 template<typename ResultT>
 [[nodiscard]] unique_ptr<Window> ok_box_window_builder(
-    WindowPlane& window_plane, function<ResultT()> get_result,
+    WindowManager&                   window_manager,
+    function<ResultT()>              get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
     function<void( ResultT )>             on_result,
@@ -526,14 +559,14 @@ template<typename ResultT>
   auto view = make_unique<ui::VerticalArrayView>(
       std::move( view_vec ),
       ui::VerticalArrayView::align::center );
-  return async_window_builder( window_plane, std::move( view ),
+  return async_window_builder( window_manager, std::move( view ),
                                /*auto_pad=*/true );
 }
 
 namespace {
 
 [[nodiscard]] unique_ptr<Window> text_input_box(
-    WindowPlane& window_plane, string_view msg,
+    WindowManager& window_manager, string_view msg,
     string_view initial_text, e_input_required required,
     ui::ValidatorFunc               validator,
     function<void( maybe<string> )> on_result ) {
@@ -587,7 +620,7 @@ namespace {
   auto view = make_unique<ui::OnInputView>(
       std::move( va_view ), std::move( on_input ) );
 
-  return async_window_builder( window_plane, std::move( view ),
+  return async_window_builder( window_manager, std::move( view ),
                                /*auto_pad=*/true );
 }
 
@@ -636,7 +669,7 @@ wait<vector<UnitSelection>> unit_selection_box(
 
   unique_ptr<Window> win = ok_cancel_window_builder<
       unordered_map<UnitId, UnitActivationInfo>>(
-      window_plane,
+      window_plane.manager(),
       /*get_result=*/
       [p_unit_activation_view]() {
         return p_unit_activation_view->info_map();
@@ -658,10 +691,13 @@ WindowPlane::~WindowPlane() = default;
 
 WindowPlane::WindowPlane() : impl_( new Impl() ) {}
 
+WindowManager& WindowPlane::manager() { return impl_->wm; }
+
 wait<> WindowPlane::message_box( string_view msg ) {
   wait_promise<>     p;
   unique_ptr<Window> win = async_window_builder(
-      *this, ui::PlainMessageBoxView::create( string( msg ), p ),
+      impl_->wm,
+      ui::PlainMessageBoxView::create( string( msg ), p ),
       /*auto_pad=*/true );
   co_await p.wait();
 }
@@ -749,7 +785,7 @@ wait<maybe<int>> WindowPlane::select_box(
   unique_ptr<ui::View> view   = std::move( va_view );
   ui::CompositeView*   p_view = view->cast<ui::CompositeView>();
   unique_ptr<Window>   win =
-      async_window_builder( *this, std::move( view ),
+      async_window_builder( impl_->wm, std::move( view ),
                             /*auto_pad=*/true );
 
   p_selector_view->grow_to( p_view->delta().w );
@@ -765,7 +801,7 @@ wait<maybe<string>> WindowPlane::str_input_box(
     e_input_required required ) {
   wait_promise<maybe<string>> p;
   unique_ptr<Window>          win = text_input_box(
-      *this, msg, initial_text, required, L( _.size() > 0 ),
+      impl_->wm, msg, initial_text, required, L( _.size() > 0 ),
       [p]( maybe<string> result ) { p.set_value( result ); } );
   co_return co_await p.wait();
 }
@@ -779,7 +815,7 @@ wait<maybe<int>> WindowPlane::int_input_box(
           ? fmt::format( "{}", *options.initial )
           : "";
   unique_ptr<Window> win = text_input_box(
-      *this, options.msg, initial_text, options.required,
+      impl_->wm, options.msg, initial_text, options.required,
       make_int_validator( options.min, options.max ),
       [p]( maybe<string> result ) {
         p.set_value( result.bind( L( base::stoi( _ ) ) ) );

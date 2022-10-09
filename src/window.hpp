@@ -20,6 +20,9 @@
 #include "unit-id.hpp"
 #include "wait.hpp"
 
+// gfx
+#include "gfx/coord.hpp"
+
 // refl
 #include "refl/query-enum.hpp"
 
@@ -28,11 +31,60 @@
 #include <string_view>
 #include <vector>
 
+namespace rr {
+struct Renderer;
+}
+
 namespace rn {
 
 struct Plane;
 struct UnitsState;
+struct WindowManager;
 
+namespace ui {
+struct View;
+}
+
+/****************************************************************
+** Window
+*****************************************************************/
+struct Window {
+  Window( WindowManager& window_manager );
+  // Removes this window from the window manager.
+  ~Window() noexcept;
+
+  void set_view( std::unique_ptr<ui::View> view_ );
+
+  bool operator==( Window const& rhs ) const;
+
+  void draw( rr::Renderer& renderer, Coord where ) const;
+
+  Delta delta() const;
+
+  // We need to pass in the upper left of the window because a
+  // window does not know its position on screen.
+  Rect rect( Coord origin ) const;
+
+  Coord inside_border( Coord origin ) const;
+
+  Rect inside_border_rect( Coord origin ) const;
+
+  Coord inside_padding( Coord origin ) const;
+
+  // ABS coord of upper-left corner of view.
+  Coord view_pos( Coord origin ) const;
+
+  std::unique_ptr<ui::View> const& view() const { return view_; }
+  std::unique_ptr<ui::View>&       view() { return view_; }
+
+ private:
+  WindowManager&            window_manager_;
+  std::unique_ptr<ui::View> view_;
+};
+
+/****************************************************************
+** Helper Configs.
+*****************************************************************/
 struct IntInputBoxOptions {
   std::string_view msg      = "";
   maybe<int>       min      = nothing;
@@ -55,6 +107,8 @@ struct SelectBoxOption {
 struct WindowPlane {
   WindowPlane();
   ~WindowPlane();
+
+  WindowManager& manager();
 
   wait<> message_box( std::string_view msg );
 
