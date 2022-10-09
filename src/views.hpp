@@ -459,6 +459,8 @@ class ButtonView : public ButtonBaseView {
 
   void blink( bool enabled = true );
 
+  void click() const;
+
  private:
   OnClickFunc on_click_;
 };

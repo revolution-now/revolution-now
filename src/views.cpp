@@ -684,6 +684,8 @@ void ButtonView::blink( bool enabled ) {
   }
 }
 
+void ButtonView::click() const { on_click_(); }
+
 /****************************************************************
 ** OkCancelView
 *****************************************************************/
