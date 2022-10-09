@@ -213,13 +213,17 @@ void OneLineStringView::draw( rr::Renderer& renderer,
 /****************************************************************
 ** TextView
 *****************************************************************/
-TextView::TextView( std::string_view      msg,
+TextView::TextView( std::string           msg,
                     TextMarkupInfo const& m_info,
                     TextReflowInfo const& r_info )
-  : msg_( msg ),
-    text_size_{ rendered_text_size( r_info, msg ) },
+  : msg_( std::move( msg ) ),
+    text_size_{ rendered_text_size( r_info, msg_ ) },
     markup_info_( m_info ),
     reflow_info_( r_info ) {}
+
+TextView::TextView( std::string msg )
+  : TextView( std::move( msg ), default_text_markup_info(),
+              default_text_reflow_info() ) {}
 
 Delta TextView::delta() const { return text_size_; }
 
