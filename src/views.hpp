@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "co-combinator.hpp"
 #include "line-editor.hpp"
 #include "nation.hpp"
 #include "text.hpp"
@@ -465,6 +466,42 @@ class ButtonView : public ButtonBaseView {
   OnClickFunc on_click_;
 };
 
+// TODO: Rename to OkCancelView when the original is removed.
+class OkCancelView2 : public CompositeView {
+ public:
+  OkCancelView2();
+
+  wait<e_ok_cancel> next();
+
+  ButtonView* ok_button() { return ok_ref_; }
+  ButtonView* cancel_button() { return cancel_ref_; }
+
+  // Implement CompositeView
+  Coord pos_of( int idx ) const override;
+
+  // Implement CompositeView
+  std::unique_ptr<View>& mutable_at( int idx ) override;
+
+  // Implement CompositeView
+  int count() const override { return 2; }
+
+  // Implement CompositeView
+  void notify_children_updated() override {}
+
+  // Override ui::Object.
+  bool on_key( input::key_event_t const& event ) override;
+
+ private:
+  std::unique_ptr<View> ok_;
+  std::unique_ptr<View> cancel_;
+  // Cache these to avoid dynamic_casts.
+  ButtonView* ok_ref_;
+  ButtonView* cancel_ref_;
+  // Feeds clicks to the consumer coroutine.
+  co::stream<e_ok_cancel> clicks_;
+};
+
+// Deprecated.
 class OkCancelView : public CompositeView {
  public:
   OkCancelView( ButtonView::OnClickFunc on_ok,

@@ -545,7 +545,7 @@ unique_ptr<PlainMessageBoxView> PlainMessageBoxView::create(
   TextMarkupInfo const& m_info = default_text_markup_info();
   TextReflowInfo const& r_info = default_text_reflow_info();
   unique_ptr<TextView>  tview =
-      make_unique<TextView>( msg, m_info, r_info );
+      make_unique<TextView>( string( msg ), m_info, r_info );
   return make_unique<PlainMessageBoxView>(
       std::move( tview ), std::move( on_close ) );
 }
@@ -691,10 +691,53 @@ void ButtonView::blink( bool enabled ) {
 void ButtonView::click() const { on_click_(); }
 
 /****************************************************************
-** OkCancelView
+** OkCancelView2
 *****************************************************************/
 constexpr Delta ok_cancel_button_size_blocks{ .w = 8, .h = 2 };
 
+OkCancelView2::OkCancelView2() {
+  auto ok_button = make_unique<ButtonView>(
+      "OK", ok_cancel_button_size_blocks,
+      [this] { clicks_.send( e_ok_cancel::ok ); } );
+  auto cancel_button = make_unique<ButtonView>(
+      "Cancel", ok_cancel_button_size_blocks,
+      [this] { clicks_.send( e_ok_cancel::cancel ); } );
+
+  ok_ref_     = ok_button.get();
+  cancel_ref_ = cancel_button.get();
+
+  ok_     = std::move( ok_button );
+  cancel_ = std::move( cancel_button );
+}
+
+Coord OkCancelView2::pos_of( int idx ) const {
+  if( idx == 0 ) return Coord{};
+  if( idx == 1 ) return Coord{} + Delta{ .w = ok_->delta().w };
+  SHOULD_NOT_BE_HERE;
+}
+
+unique_ptr<View>& OkCancelView2::mutable_at( int idx ) {
+  CHECK( idx == 0 || idx == 1 );
+  return ( idx == 0 ) ? ok_ : cancel_;
+}
+
+wait<e_ok_cancel> OkCancelView2::next() {
+  return clicks_.next();
+}
+
+bool OkCancelView2::on_key( input::key_event_t const& event ) {
+  if( event.change != input::e_key_change::down ) return false;
+  // It's a key down.
+  switch( event.keycode ) {
+    case ::SDLK_ESCAPE: cancel_ref_->click(); return true;
+    default: break;
+  }
+  return false;
+}
+
+/****************************************************************
+** OkCancelView (deprecated)
+*****************************************************************/
 OkCancelView::OkCancelView( ButtonView::OnClickFunc on_ok,
                             ButtonView::OnClickFunc on_cancel ) {
   auto ok_button = make_unique<ButtonView>(
