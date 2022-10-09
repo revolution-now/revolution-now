@@ -48,6 +48,11 @@ wait<> cheat_reveal_map( Planes& planes, SS& ss, TS& ts );
 void cheat_toggle_reveal_full_map( Planes& planes, SS& ss,
                                    TS& ts );
 
+// Open a dialog box containing one check box for each founding
+// father and allow the player to select/deselect.
+wait<> cheat_edit_fathers( Planes& planes, TS& ts,
+                           Player& player );
+
 /****************************************************************
 ** In Colony View
 *****************************************************************/

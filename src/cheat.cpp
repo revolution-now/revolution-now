@@ -17,14 +17,18 @@
 #include "co-wait.hpp"
 #include "colony-buildings.hpp"
 #include "colony-evolve.hpp"
+#include "fathers.hpp"
 #include "igui.hpp"
 #include "logger.hpp"
 #include "market.hpp"
+#include "plane-stack.hpp"
 #include "promotion.hpp"
 #include "ts.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
+#include "views.hpp"
 #include "visibility.hpp"
+#include "window.hpp"
 
 // config
 #include "config/colony.rds.hpp"
@@ -133,6 +137,57 @@ void cheat_toggle_reveal_full_map( Planes& planes, SS& ss,
   // Reveal for active player.
   maybe<e_nation> const active = active_player( ss.turn );
   set_map_visibility( planes, ss, ts, nothing, active );
+}
+
+wait<> cheat_edit_fathers( Planes& planes, TS& ts,
+                           Player& player ) {
+  using namespace ui;
+
+  auto top_array = make_unique<VerticalArrayView>(
+      VerticalArrayView::align::center );
+
+  // Add text.
+  auto text_view = make_unique<TextView>(
+      "Select or unselect founding fathers:" );
+  top_array->add_view( std::move( text_view ) );
+
+  // Add check boxes.
+  auto boxes_array = make_unique<VerticalArrayView>(
+      VerticalArrayView::align::left );
+  refl::enum_map<e_founding_father, LabeledCheckBoxView const*>
+      boxes;
+  for( e_founding_father father :
+       refl::enum_values<e_founding_father> ) {
+    auto labeled_box = make_unique<LabeledCheckBoxView>(
+        string( founding_father_name( father ) ),
+        player.fathers.has[father] );
+    boxes[father] = labeled_box.get();
+    boxes_array->add_view( std::move( labeled_box ) );
+  }
+  boxes_array->recompute_child_positions();
+  top_array->add_view( std::move( boxes_array ) );
+
+  // Add buttons.
+  auto buttons_view          = make_unique<ui::OkCancelView2>();
+  ui::OkCancelView2* buttons = buttons_view.get();
+  top_array->add_view( std::move( buttons_view ) );
+
+  // Finalize top-level array.
+  top_array->recompute_child_positions();
+
+  // Create window.
+  WindowManager& wm = planes.window().manager();
+  Window         window( wm );
+  window.set_view( std::move( top_array ) );
+  window.autopad_me();
+  // Must be done after auto-padding.
+  window.center_me();
+
+  ui::e_ok_cancel const finished = co_await buttons->next();
+  if( finished == ui::e_ok_cancel::cancel ) co_return;
+
+  for( auto [father, box] : boxes )
+    player.fathers.has[father] = box->on();
 }
 
 /****************************************************************

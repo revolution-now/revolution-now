@@ -49,6 +49,9 @@ enum.e_menu_item {
   harbor_view,
   find_blinking_unit,
   next_turn,
-  map_editor,
-  reveal_map,
+
+  # Cheat menu.
+  cheat_reveal_map,
+  cheat_map_editor,
+  cheat_edit_fathers,
 }

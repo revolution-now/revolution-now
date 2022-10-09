@@ -180,17 +180,7 @@ struct LandViewPlane::Impl : public Plane {
   TS&        ts_;
   Visibility viz_;
 
-  MenuPlane::Deregistrar reveal_map_dereg_;
-  MenuPlane::Deregistrar zoom_in_dereg_;
-  MenuPlane::Deregistrar zoom_out_dereg_;
-  MenuPlane::Deregistrar restore_zoom_dereg_;
-  MenuPlane::Deregistrar find_blinking_unit_dereg_;
-  MenuPlane::Deregistrar sentry_dereg_;
-  MenuPlane::Deregistrar fortify_dereg_;
-  MenuPlane::Deregistrar dump_dereg_;
-  MenuPlane::Deregistrar plow_dereg_;
-  MenuPlane::Deregistrar road_dereg_;
-  MenuPlane::Deregistrar hidden_terrain_dereg_;
+  vector<MenuPlane::Deregistrar> dereg;
 
   co::stream<RawInput>    raw_input_stream_;
   co::stream<PlayerInput> translated_input_stream_;
@@ -209,28 +199,28 @@ struct LandViewPlane::Impl : public Plane {
 
   void register_menu_items( MenuPlane& menu_plane ) {
     // Register menu handlers.
-    reveal_map_dereg_ = menu_plane.register_handler(
-        e_menu_item::reveal_map, *this );
-    zoom_in_dereg_ = menu_plane.register_handler(
-        e_menu_item::zoom_in, *this );
-    zoom_out_dereg_ = menu_plane.register_handler(
-        e_menu_item::zoom_out, *this );
-    restore_zoom_dereg_ = menu_plane.register_handler(
-        e_menu_item::restore_zoom, *this );
-    find_blinking_unit_dereg_ = menu_plane.register_handler(
-        e_menu_item::find_blinking_unit, *this );
-    sentry_dereg_ = menu_plane.register_handler(
-        e_menu_item::sentry, *this );
-    fortify_dereg_ = menu_plane.register_handler(
-        e_menu_item::fortify, *this );
-    dump_dereg_ =
-        menu_plane.register_handler( e_menu_item::dump, *this );
-    plow_dereg_ =
-        menu_plane.register_handler( e_menu_item::plow, *this );
-    road_dereg_ =
-        menu_plane.register_handler( e_menu_item::road, *this );
-    hidden_terrain_dereg_ = menu_plane.register_handler(
-        e_menu_item::hidden_terrain, *this );
+    dereg.push_back( menu_plane.register_handler(
+        e_menu_item::cheat_reveal_map, *this ) );
+    dereg.push_back( menu_plane.register_handler(
+        e_menu_item::zoom_in, *this ) );
+    dereg.push_back( menu_plane.register_handler(
+        e_menu_item::zoom_out, *this ) );
+    dereg.push_back( menu_plane.register_handler(
+        e_menu_item::restore_zoom, *this ) );
+    dereg.push_back( menu_plane.register_handler(
+        e_menu_item::find_blinking_unit, *this ) );
+    dereg.push_back( menu_plane.register_handler(
+        e_menu_item::sentry, *this ) );
+    dereg.push_back( menu_plane.register_handler(
+        e_menu_item::fortify, *this ) );
+    dereg.push_back( menu_plane.register_handler(
+        e_menu_item::dump, *this ) );
+    dereg.push_back( menu_plane.register_handler(
+        e_menu_item::plow, *this ) );
+    dereg.push_back( menu_plane.register_handler(
+        e_menu_item::road, *this ) );
+    dereg.push_back( menu_plane.register_handler(
+        e_menu_item::hidden_terrain, *this ) );
   }
 
   Impl( Planes& planes, SS& ss, TS& ts, maybe<e_nation> nation )
@@ -1139,7 +1129,7 @@ struct LandViewPlane::Impl : public Plane {
     // store to previous state.
     static_assert( zoom_in_factor * zoom_out_factor == 1.0 );
     switch( item ) {
-      case e_menu_item::reveal_map: {
+      case e_menu_item::cheat_reveal_map: {
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::reveal_map{} ) );

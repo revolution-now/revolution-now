@@ -11,6 +11,7 @@
 #include "turn.hpp"
 
 // Revolution Now
+#include "cheat.hpp"
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
@@ -331,9 +332,14 @@ wait<> menu_handler( Planes& planes, SS& ss, TS& ts,
                                  /*selected_unit=*/nothing );
       break;
     }
-    case e_menu_item::map_editor: {
+    case e_menu_item::cheat_map_editor: {
       // Need to co_await so that the map_updater stays alive.
       co_await run_map_editor( planes, ss, ts );
+      break;
+    }
+    case e_menu_item::cheat_edit_fathers: {
+      // Need to co_await so that the map_updater stays alive.
+      co_await cheat_edit_fathers( planes, ts, player );
       break;
     }
     default: {

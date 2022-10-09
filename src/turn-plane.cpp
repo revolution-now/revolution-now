@@ -15,9 +15,22 @@
 #include "menu.hpp"
 #include "plane.hpp"
 
+// C++ standard library
+#include <unordered_set>
+
 using namespace std;
 
 namespace rn {
+
+unordered_set<e_menu_item> const kSupportedMenuItems{
+    e_menu_item::exit,
+    e_menu_item::save,
+    e_menu_item::load,
+    e_menu_item::revolution,
+    e_menu_item::harbor_view,
+    e_menu_item::cheat_map_editor,
+    e_menu_item::cheat_edit_fathers,
+};
 
 /****************************************************************
 ** TurnPlane::Impl
@@ -26,41 +39,18 @@ struct TurnPlane::Impl : public Plane {
   // State.
   co::stream<e_menu_item> menu_actions;
 
-  MenuPlane::Deregistrar exit_dereg;
-  MenuPlane::Deregistrar save_dereg;
-  MenuPlane::Deregistrar load_dereg;
-  MenuPlane::Deregistrar revolution_dereg;
-  MenuPlane::Deregistrar harbor_view_dereg;
-  MenuPlane::Deregistrar map_editor_dereg;
+  vector<MenuPlane::Deregistrar> dereg;
 
   Impl( MenuPlane& menu_plane ) {
-    exit_dereg =
-        menu_plane.register_handler( e_menu_item::exit, *this );
-    save_dereg =
-        menu_plane.register_handler( e_menu_item::save, *this );
-    load_dereg =
-        menu_plane.register_handler( e_menu_item::load, *this );
-    revolution_dereg = menu_plane.register_handler(
-        e_menu_item::revolution, *this );
-    harbor_view_dereg = menu_plane.register_handler(
-        e_menu_item::harbor_view, *this );
-    map_editor_dereg = menu_plane.register_handler(
-        e_menu_item::map_editor, *this );
+    for( e_menu_item item : kSupportedMenuItems )
+      dereg.push_back(
+          menu_plane.register_handler( item, *this ) );
   }
 
   bool covers_screen() const override { return false; }
 
   bool will_handle_menu_click( e_menu_item item ) override {
-    switch( item ) {
-      case e_menu_item::exit:
-      case e_menu_item::save:
-      case e_menu_item::load:
-      case e_menu_item::revolution:
-      case e_menu_item::harbor_view:
-      case e_menu_item::map_editor: return true;
-      default: break;
-    }
-    return false;
+    return kSupportedMenuItems.contains( item );
   }
 
   void handle_menu_click( e_menu_item item ) override {
