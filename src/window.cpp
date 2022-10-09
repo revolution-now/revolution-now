@@ -198,6 +198,14 @@ void Window::set_view( unique_ptr<ui::View> view ) {
   view_ = std::move( view );
 }
 
+void Window::center_me() const {
+  window_manager_.center_window( *this );
+}
+
+void Window::autopad_me() {
+  autopad( *view_, /*use_fancy=*/false );
+}
+
 bool Window::operator==( Window const& rhs ) const {
   return this == &rhs;
 }

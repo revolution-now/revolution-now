@@ -53,11 +53,17 @@ struct Window {
   // Removes this window from the window manager.
   ~Window() noexcept;
 
-  void set_view( std::unique_ptr<ui::View> view_ );
+  void set_view( std::unique_ptr<ui::View> view );
 
   bool operator==( Window const& rhs ) const;
 
   void draw( rr::Renderer& renderer, Coord where ) const;
+
+  // Tell the window manager to center this window.
+  void center_me() const;
+
+  // Run auto-padding recursively through all of the views.
+  void autopad_me();
 
   Delta delta() const;
 
