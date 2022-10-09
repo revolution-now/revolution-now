@@ -734,12 +734,17 @@ OkButtonView::OkButtonView( ButtonView::OnClickFunc on_ok )
 VerticalArrayView::VerticalArrayView(
     vector<unique_ptr<View>> views, align how )
   : alignment_( how ) {
-  for( auto& view : views ) {
-    OwningPositionedView pos_view{ .view  = std::move( view ),
-                                   .coord = Coord{} };
-    push_back( std::move( pos_view ) );
-  }
+  for( auto& view : views ) add_view( std::move( view ) );
   recompute_child_positions();
+}
+
+VerticalArrayView::VerticalArrayView( align how )
+  : VerticalArrayView( {}, how ) {}
+
+void VerticalArrayView::add_view( unique_ptr<View> view ) {
+  OwningPositionedView pos_view{ .view  = std::move( view ),
+                                 .coord = Coord{} };
+  push_back( std::move( pos_view ) );
 }
 
 // When a child view is updated then we must recompute the posi-
@@ -782,12 +787,17 @@ void VerticalArrayView::recompute_child_positions() {
 HorizontalArrayView::HorizontalArrayView(
     vector<unique_ptr<View>> views, align how )
   : alignment_( how ) {
-  for( auto& view : views ) {
-    OwningPositionedView pos_view{ .view  = std::move( view ),
-                                   .coord = Coord{} };
-    push_back( std::move( pos_view ) );
-  }
+  for( auto& view : views ) add_view( std::move( view ) );
   recompute_child_positions();
+}
+
+HorizontalArrayView::HorizontalArrayView( align how )
+  : HorizontalArrayView( {}, how ) {}
+
+void HorizontalArrayView::add_view( unique_ptr<View> view ) {
+  OwningPositionedView pos_view{ .view  = std::move( view ),
+                                 .coord = Coord{} };
+  push_back( std::move( pos_view ) );
 }
 
 // When a child view is updated then we must recompute the posi-

@@ -512,8 +512,15 @@ class OkButtonView : public CompositeSingleView {
 class VerticalArrayView : public VectorView {
  public:
   enum class align { left, right, center };
+  VerticalArrayView( align how );
+
+  // This will compute child positions.
   VerticalArrayView( std::vector<std::unique_ptr<View>> views,
                      align                              how );
+
+  // Will add a view. After finished adding views, need to call
+  // recompute_child_positions.
+  void add_view( std::unique_ptr<View> view );
 
   // Implement CompositeView
   void notify_children_updated() override;
@@ -532,8 +539,16 @@ class VerticalArrayView : public VectorView {
 class HorizontalArrayView : public VectorView {
  public:
   enum class align { up, down, middle };
+
+  HorizontalArrayView( align how );
+
+  // This will compute child positions.
   HorizontalArrayView( std::vector<std::unique_ptr<View>> views,
                        align                              how );
+
+  // Will add a view. After finished adding views, need to call
+  // recompute_child_positions.
+  void add_view( std::unique_ptr<View> view );
 
   // Implement CompositeView
   void notify_children_updated() override;
