@@ -49,6 +49,16 @@ std::string_view founding_father_type_name(
 /****************************************************************
 ** Father Selection
 *****************************************************************/
+// Does the player have all founding fathers?
+bool has_all_fathers( Player const& player );
+
+// This will return the total number of bells that are needed to
+// get the next father, not accounting for the bells that the
+// player already has. Will return nothing if all fathers have
+// been obtained.
+maybe<int> bells_needed_for_next_father( SSConst const& ss,
+                                         Player const&  player );
+
 // If the player has some bells and is not currently working to-
 // ward a founding father then this will pop up a menu allowing
 // (requiring) the player to choose a founding father. Before it

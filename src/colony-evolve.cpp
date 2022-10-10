@@ -14,6 +14,7 @@
 #include "colony-buildings.hpp"
 #include "colony-mgr.hpp"
 #include "colony.hpp"
+#include "fathers.hpp"
 #include "irand.hpp"
 #include "on-map.hpp"
 #include "production.hpp"
@@ -295,6 +296,13 @@ void apply_commodity_increase(
 
 void apply_bells_for_founding_fathers( Player& player,
                                        int     bells_produced ) {
+  if( has_all_fathers( player ) ) {
+    // When all fathers have been obtained we want to stop accu-
+    // mulating bells for them, otherwise this number would keep
+    // increasing indefinitely for no purpose.
+    player.fathers.bells = 0;
+    return;
+  }
   player.fathers.bells += bells_produced;
 }
 

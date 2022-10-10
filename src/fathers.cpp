@@ -74,26 +74,25 @@ maybe<e_founding_father> pick_next_father_for_type(
 void fill_father_selection( SSConst const& ss, TS& ts,
                             Player& player ) {
   for( auto& [type, father] : player.fathers.pool ) {
-    if( father.has_value() ) continue;
+    if( father.has_value() ) {
+      if( player.fathers.has[*father] )
+        // This would only happen in cheat mode when giving a fa-
+        // ther that is already in the pool.
+        father = nothing;
+      else
+        continue;
+    }
     // Could be nothing if there are no fathers left in this cat-
     // egory.
     father = pick_next_father_for_type( ss, ts, player, type );
   }
 }
 
-int bells_needed_for_next_father( SSConst const& ss,
-                                  Player const&  player ) {
-  int const incremental_cost =
-      config_fathers.cost_in_bells[ss.settings.difficulty];
+int father_count( Player const& player ) {
   int father_count = 0;
   for( auto& [father, has] : player.fathers.has )
     father_count += has ? 1 : 0;
-  int const total_cost =
-      ( father_count + 1 ) * incremental_cost + 1;
-  if( father_count == 0 )
-    // First father costs half.
-    return total_cost / 2;
-  return total_cost;
+  return father_count;
 }
 
 } // namespace
@@ -137,6 +136,26 @@ string_view founding_father_type_name(
 /****************************************************************
 ** Father Selection
 *****************************************************************/
+bool has_all_fathers( Player const& player ) {
+  return ( father_count( player ) ==
+           refl::enum_count<e_founding_father> );
+}
+
+maybe<int> bells_needed_for_next_father( SSConst const& ss,
+                                         Player const& player ) {
+  int const incremental_cost =
+      config_fathers.cost_in_bells[ss.settings.difficulty];
+  int const count = father_count( player );
+  if( count == refl::enum_count<e_founding_father> )
+    // All fathers obtained.
+    return nothing;
+  int const total_cost = ( count + 1 ) * incremental_cost + 1;
+  if( count == 0 )
+    // First father costs half.
+    return total_cost / 2;
+  return total_cost;
+}
+
 wait<> pick_founding_father_if_needed( SSConst const& ss, TS& ts,
                                        Player& player ) {
   // Make sure that if we're working on someone that we don't al-
@@ -163,6 +182,10 @@ wait<> pick_founding_father_if_needed( SSConst const& ss, TS& ts,
           "member of the Continental Congress?" };
   for( auto& [type, father] : player.fathers.pool ) {
     if( !father.has_value() ) continue;
+    if( player.fathers.has[*father] )
+      // This should only happen via cheat mode when adding fa-
+      // thers that are already in the pool.
+      continue;
     string const label = fmt::format(
         "{} ({} Advisor)", config_fathers.fathers[*father].name,
         config_fathers.types[type].name );
@@ -186,8 +209,12 @@ maybe<e_founding_father> check_founding_fathers(
   // If for whatever reason we're not working on someone then
   // we're done.
   if( !player.fathers.in_progress.has_value() ) return nothing;
-  int const needed = bells_needed_for_next_father( ss, player );
-  if( player.fathers.bells < needed ) return nothing;
+  maybe<int> const needed =
+      bells_needed_for_next_father( ss, player );
+  if( !needed.has_value() )
+    // We have all fathers.
+    return nothing;
+  if( player.fathers.bells < *needed ) return nothing;
   // We've got the next father.
   CHECK( player.fathers.in_progress.has_value() );
   e_founding_father const new_father =
@@ -196,7 +223,7 @@ maybe<e_founding_father> check_founding_fathers(
   player.fathers.has[new_father] = true;
   // The OG does not seem to keep any extra bells modulo the
   // amount needed for the father, but we will do so.
-  player.fathers.bells = player.fathers.bells - needed;
+  player.fathers.bells = player.fathers.bells - *needed;
   CHECK_GE( player.fathers.bells, 0 );
   // We will select a new father and repopulate the pool on the
   // next turn.

@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "compositor.hpp"
 #include "error.hpp"
+#include "fathers.hpp"
 #include "gui.hpp" // FIXME
 #include "logger.hpp"
 #include "menu.hpp"
@@ -135,7 +136,8 @@ struct PanelPlane::Impl : public Plane {
                  player.old_world.taxes.tax_rate );
 
     typer.newline();
-    typer.write( "Bells:   {}\n", player.fathers.bells );
+    typer.write( "Bells:   {}/{}\n", player.fathers.bells,
+                 bells_needed_for_next_father( ss_, player ) );
     typer.write( "Crosses: {}\n", player.crosses );
 
     typer.newline();
