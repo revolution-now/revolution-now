@@ -13,7 +13,6 @@
 // Revolution Now
 #include "auto-pad.hpp"
 #include "co-wait.hpp"
-#include "compositor.hpp"
 #include "error.hpp"
 #include "game-ui-views.hpp"
 #include "input.hpp"
@@ -109,11 +108,8 @@ struct WindowManager {
   int num_windows() const { return windows_.size(); }
 
   void center_window( Window const& win ) {
-    UNWRAP_CHECK(
-        normal_area,
-        compositor::section( compositor::e_section::normal ) );
     find_window( win ).pos =
-        centered( win.delta(), normal_area );
+        centered( win.delta(), main_window_logical_rect() );
   }
 
   void add_window( Window& window ) {
@@ -429,12 +425,10 @@ void WindowManager::on_drag( input::mod_keys const& /*unused*/,
     Coord pos = position( *dragging_win_ );
     pos += ( current - prev );
     // Now prevent the window from being dragged off screen.
-    UNWRAP_CHECK(
-        normal_area,
-        compositor::section( compositor::e_section::normal ) );
-    pos.y = clamp( pos.y, 16, normal_area.bottom_edge() - 16 );
-    pos.x = clamp( pos.x, 0 - focused().delta().w + 16,
-                   normal_area.right_edge() - 16 );
+    Rect const total_area = main_window_logical_rect();
+    pos.y = clamp( pos.y, 0, total_area.bottom_edge() - 16 );
+    pos.x = clamp( pos.x, 16 - focused().delta().w,
+                   total_area.right_edge() - 16 );
     set_position( *dragging_win_, pos );
   }
 }

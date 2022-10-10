@@ -897,7 +897,7 @@ void CheckBoxView::draw( rr::Renderer& renderer,
       gfx::pixel{ .r = 0x3b, .g = 0x76, .b = 0x35, .a = 0xff };
   static gfx::pixel const border = color.shaded( 2 );
   static gfx::pixel const x_color =
-      gfx::pixel{ .r = 0x33, .g = 0x33, .b = 0x33, .a = 0xff };
+      gfx::pixel{ .r = 0x22, .g = 0x22, .b = 0x22, .a = 0xff };
   painter.draw_solid_rect( rect( coord ), color );
   painter.draw_empty_rect( rect( coord ),
                            rr::Painter::e_border_mode::inside,
