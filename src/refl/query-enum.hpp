@@ -20,6 +20,9 @@
 #include <array>
 #include <concepts>
 
+#define FOR_ENUM( var, enum_type ) \
+  for( enum_type const var : refl::enum_values<enum_type> )
+
 namespace refl {
 
 template<ReflectedEnum E>
