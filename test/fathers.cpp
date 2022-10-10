@@ -407,15 +407,53 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
 }
 
 TEST_CASE( "[fathers] check_founding_fathers" ) {
-  World W;
-  // Player& player = W.default_player();
-  // TODO
-}
+  World   W;
+  Player& player = W.default_player();
 
-TEST_CASE( "[fathers] play_new_father_cut_scene" ) {
-  World W;
-  // Player& player = W.default_player();
-  // TODO
+  auto f = [&] {
+    return check_founding_fathers( W.ss(), player );
+  };
+
+  auto fathers_copy = player.fathers;
+
+  W.settings().difficulty = e_difficulty::conquistador;
+
+  player.fathers.pool[e_founding_father_type::trade] =
+      e_founding_father::jan_de_witt;
+  player.fathers.pool[e_founding_father_type::exploration] =
+      e_founding_father::sieur_de_la_salle;
+  player.fathers.pool[e_founding_father_type::military] =
+      e_founding_father::hernan_cortes;
+  player.fathers.pool[e_founding_father_type::political] =
+      e_founding_father::thomas_paine;
+  player.fathers.pool[e_founding_father_type::religious] =
+      e_founding_father::juan_de_sepulveda;
+
+  player.fathers.in_progress = nothing;
+  fathers_copy               = player.fathers;
+  REQUIRE( f() == nothing );
+  REQUIRE( player.fathers == fathers_copy );
+
+  player.fathers.has[e_founding_father::hernando_de_soto] = true;
+  player.fathers.in_progress = e_founding_father::hernan_cortes;
+  // Takes 161 bells.
+
+  player.fathers.bells = 1;
+  fathers_copy         = player.fathers;
+  REQUIRE( f() == nothing );
+
+  player.fathers.bells = 160;
+  fathers_copy         = player.fathers;
+  REQUIRE( f() == nothing );
+
+  player.fathers.bells = 162; // should leave one remaining.
+  fathers_copy         = player.fathers;
+  REQUIRE( f() == e_founding_father::hernan_cortes );
+  fathers_copy.has[e_founding_father::hernan_cortes]  = true;
+  fathers_copy.bells                                  = 1;
+  fathers_copy.in_progress                            = nothing;
+  fathers_copy.pool[e_founding_father_type::military] = nothing;
+  REQUIRE( player.fathers == fathers_copy );
 }
 
 } // namespace
