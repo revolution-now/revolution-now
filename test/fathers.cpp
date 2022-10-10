@@ -44,6 +44,16 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
+TEST_CASE( "[fathers] has_all_fathers" ) {
+  World W;
+  // TODO
+}
+
+TEST_CASE( "[fathers] bells_needed_for_next_father" ) {
+  World W;
+  // TODO
+}
+
 TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
   World W;
   // TODO
