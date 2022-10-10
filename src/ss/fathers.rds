@@ -54,11 +54,11 @@ enum.e_founding_father {
 }
 
 enum.e_founding_father_type {
+  trade,
   exploration,
   military,
   political,
   religious,
-  trade,
 }
 
 struct.FoundingFathersState {
