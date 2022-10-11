@@ -72,9 +72,9 @@ TEST_CASE( "[gfx/cartesian] dsize::operator+=( size )" ) {
   REQUIRE( s2 == dsize{ .w = 4, .h = 3 } );
 }
 
-TEST_CASE( "[gfx/cartesian] dsize::truncate" ) {
+TEST_CASE( "[gfx/cartesian] dsize::truncated" ) {
   dsize s{ .w = 4.3, .h = 2.1 };
-  REQUIRE( s.truncate() == size{ .w = 4, .h = 2 } );
+  REQUIRE( s.truncated() == size{ .w = 4, .h = 2 } );
 }
 
 TEST_CASE( "[gfx/cartesian] to_double( size )" ) {
@@ -82,7 +82,7 @@ TEST_CASE( "[gfx/cartesian] to_double( size )" ) {
   REQUIRE( to_double( s ) == dsize{ .w = 4, .h = 2 } );
 }
 
-TEST_CASE( "[gfx/cartesian] dsize::operator*( double )" ) {
+TEST_CASE( "[gfx/cartesian] operator*( dsize, double )" ) {
   dsize s{ .w = 4, .h = 2 };
   REQUIRE( s * 10 == dsize{ .w = 40, .h = 20 } );
 }
@@ -104,9 +104,9 @@ TEST_CASE( "[gfx/cartesian] point::moved_left" ) {
 /****************************************************************
 ** dpoint
 *****************************************************************/
-TEST_CASE( "[gfx/cartesian] dpoint::truncate" ) {
+TEST_CASE( "[gfx/cartesian] dpoint::truncated" ) {
   dpoint p{ .x = 4.4, .y = 2.4 };
-  REQUIRE( p.truncate() == point{ .x = 4, .y = 2 } );
+  REQUIRE( p.truncated() == point{ .x = 4, .y = 2 } );
 }
 
 TEST_CASE( "[gfx/cartesian] dpoint::fmod" ) {
@@ -124,6 +124,11 @@ TEST_CASE( "[gfx/cartesian] dpoint::operator-=( dsize )" ) {
   REQUIRE( p.y == .9_a );
   REQUIRE( ( p - s ).x == -6.0_a );
   REQUIRE( ( p - s ).y == -.6_a );
+}
+
+TEST_CASE( "[gfx/cartesian] operator*( dpoint, double )" ) {
+  dpoint p{ .x = 4, .y = 2 };
+  REQUIRE( p * 1.5 == dpoint{ .x = 6, .y = 3 } );
 }
 
 /****************************************************************
@@ -524,6 +529,14 @@ TEST_CASE( "[gfx/cartesian] rect::center" ) {
 /****************************************************************
 ** drect
 *****************************************************************/
+TEST_CASE( "[gfx/cartesian] drect::truncated" ) {
+  dsize const  s{ .w = 4.3, .h = 2.1 };
+  dpoint const p{ .x = 4.4, .y = 2.4 };
+  drect const  r{ .origin = p, .size = s };
+  REQUIRE( r.truncated() == rect{ .origin = { .x = 4, .y = 2 },
+                                  .size = { .w = 4, .h = 2 } } );
+}
+
 TEST_CASE( "[gfx/cartesian] to_double( rect )" ) {
   rect r{ .origin = { .x = 3, .y = 4 },
           .size   = { .w = 4, .h = 2 } };

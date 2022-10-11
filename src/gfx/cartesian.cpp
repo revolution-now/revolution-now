@@ -60,11 +60,8 @@ dsize to_double( size s ) {
   };
 }
 
-dsize dsize::operator*( double factor ) const {
-  dsize res = *this;
-  res.w *= factor;
-  res.h *= factor;
-  return res;
+dsize operator*( dsize const s, double scale ) {
+  return dsize{ .w = s.w * scale, .h = s.h * scale };
 }
 
 /****************************************************************
@@ -97,8 +94,8 @@ dpoint operator-( dpoint p, dsize s ) {
   return res;
 }
 
-dpoint dpoint::operator*( double factor ) const {
-  return dpoint{ .x = x * factor, .y = y * factor };
+dpoint operator*( dpoint const p, double scale ) {
+  return dpoint{ .x = p.x * scale, .y = p.y * scale };
 }
 
 /****************************************************************
@@ -299,6 +296,16 @@ drect drect::normalized() const {
     res.size.h = -res.size.h;
   }
   return res;
+}
+
+drect operator*( drect const r, double scale ) {
+  return drect{ .origin = r.origin * scale,
+                .size   = r.size * scale };
+}
+
+rect drect::truncated() const {
+  return rect{ .origin = origin.truncated(),
+               .size   = size.truncated() };
 }
 
 /****************************************************************

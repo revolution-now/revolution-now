@@ -53,18 +53,18 @@ struct dsize {
 
   bool negative() const { return w < 0 || h < 0; }
 
-  size truncate() const {
+  size truncated() const {
     return size{ .w = int( w ), .h = int( h ) };
   }
 
   void operator+=( dsize term );
 
-  dsize operator*( double factor ) const;
-
   bool operator==( dsize const& ) const = default;
 };
 
 dsize to_double( size s );
+
+dsize operator*( dsize const s, double scale );
 
 /****************************************************************
 ** point
@@ -97,7 +97,7 @@ struct dpoint {
     return dsize{ .w = x, .h = y };
   }
 
-  point truncate() const {
+  point truncated() const {
     return point{ .x = int( x ), .y = int( y ) };
   }
 
@@ -107,12 +107,12 @@ struct dpoint {
 
   dpoint operator-() const { return dpoint{ .x = -x, .y = -y }; }
 
-  dpoint operator*( double factor ) const;
-
   bool operator==( dpoint const& ) const = default;
 };
 
 dpoint operator-( dpoint p, dsize s );
+
+dpoint operator*( dpoint const p, double scale );
 
 /****************************************************************
 ** rect
@@ -197,10 +197,14 @@ struct drect {
   double right() const;
   double left() const;
 
+  rect truncated() const;
+
   bool operator==( drect const& ) const = default;
 };
 
 drect to_double( rect r );
+
+drect operator*( drect const r, double scale );
 
 /****************************************************************
 ** Free Functions
