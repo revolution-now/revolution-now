@@ -58,6 +58,9 @@ class Object {
     return casted;
   }
 
+  // Called once per frame.
+  virtual void advance_state();
+
   virtual void draw( rr::Renderer& renderer,
                      Coord         coord ) const = 0;
   // This is the physical size of the object in pixels.

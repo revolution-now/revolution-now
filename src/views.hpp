@@ -55,6 +55,9 @@ class CompositeView : public View {
   // Implement Object
   Delta delta() const override;
 
+  // Override ui::Object.
+  virtual void advance_state() override;
+
   bool on_key( input::key_event_t const& event ) override;
   bool on_wheel(
       input::mouse_wheel_event_t const& event ) override;

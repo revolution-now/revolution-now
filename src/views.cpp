@@ -50,6 +50,10 @@ void CompositeView::children_updated() {
   notify_children_updated();
 }
 
+void CompositeView::advance_state() {
+  for( auto p_view : *this ) p_view.view->advance_state();
+}
+
 void CompositeView::draw( rr::Renderer& renderer,
                           Coord         coord ) const {
   // Draw each of the sub views, by augmenting its origin (which

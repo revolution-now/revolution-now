@@ -14,6 +14,8 @@ namespace rn::ui {
 
 namespace {} // namespace
 
+void Object::advance_state() {}
+
 bool Object::input( input::event_t const& event ) {
   switch( event.to_enum() ) {
     case input::e_input_event::unknown_event: //
