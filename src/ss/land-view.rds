@@ -14,6 +14,9 @@ include "viewport.hpp"
 # ss
 include "ss/nation.rds.hpp"
 
+# gfx
+include "gfx/cartesian.hpp"
+
 # base
 include "base/maybe.hpp"
 
@@ -27,8 +30,14 @@ sumtype.MapRevealed {
   },
 }
 
+struct.MiniMapState {
+  origin 'gfx::point',
+}
+
 struct.LandViewState {
   viewport 'SmoothViewport',
+
+  minimap 'MiniMapState',
 
   # This is only set by a cheat function which will reveal a map
   # from a point of view other than the player. If it is nothing

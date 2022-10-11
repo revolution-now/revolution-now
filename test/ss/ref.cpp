@@ -153,6 +153,11 @@ cdr::value cdr_game_state_default =
                                 "w"_key = 0,
                             },
                     },
+                "minimap"_key =
+                    cdr::table{
+                        "origin"_key = cdr::table{ "x"_key = 0,
+                                                   "y"_key = 0 },
+                    },
                 "map_revealed"_key = cdr::null,
             },
         "zzz_terrain"_key =
