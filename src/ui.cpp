@@ -20,8 +20,10 @@ bool Object::input( input::event_t const& event ) {
       return false;
     case input::e_input_event::quit_event: //
       return false;
-    case input::e_input_event::win_event: //
-      return false;
+    case input::e_input_event::win_event: {
+      auto& val = event.get<input::win_event_t>();
+      return on_win_event( val );
+    }
     case input::e_input_event::key_event: {
       auto& val = event.get<input::key_event_t>();
       return on_key( val );
@@ -59,6 +61,11 @@ bool Object::on_mouse_move(
 
 bool Object::on_mouse_button(
     input::mouse_button_event_t const& /*unused*/ ) {
+  return false;
+}
+
+bool Object::on_win_event(
+    input::win_event_t const& /*unused*/ ) {
   return false;
 }
 

@@ -28,7 +28,7 @@ class Object {
   Object( Object&& )      = delete;
 
   Object& operator=( Object const& ) = delete;
-  Object& operator=( Object&& ) = delete;
+  Object& operator=( Object&& )      = delete;
 
   template<typename T>
   T* cast() {
@@ -94,6 +94,9 @@ class Object {
       input::mouse_button_event_t const& event );
   virtual void on_mouse_leave( Coord from );
   virtual void on_mouse_enter( Coord to );
+
+  ND virtual bool on_win_event(
+      input::win_event_t const& event );
 };
 
 } // namespace rn::ui
