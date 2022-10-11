@@ -223,7 +223,7 @@ int Coord::coordinate<DimensionY>() const {
   return y;
 }
 
-void Coord::clip( Rect const& rect ) {
+void Coord::clamp( Rect const& rect ) {
   if( y < rect.y ) y = rect.y;
   if( y > rect.y + rect.h ) y = rect.y + rect.h;
   if( x < rect.x ) x = rect.x;
@@ -445,6 +445,13 @@ ND Coord operator*( Coord const& coord, Delta const& delta ) {
   return res;
 }
 
+ND Coord operator*( Coord const& coord, int scale ) {
+  Coord res = coord;
+  res.x *= scale;
+  res.y *= scale;
+  return res;
+}
+
 ND Coord operator*( Delta const& delta, Coord const& coord ) {
   Coord res = coord;
   res *= delta;
@@ -461,6 +468,11 @@ ND Delta operator*( Delta const& lhs, Delta const& rhs ) {
 Rect operator*( Rect const& rect, Delta const& delta ) {
   return Rect::from( rect.upper_left() * delta,
                      rect.delta() * delta );
+}
+
+Rect operator*( Rect const& rect, int scale ) {
+  return Rect::from( rect.upper_left() * scale,
+                     rect.delta() * scale );
 }
 
 Rect operator*( Delta const& delta, Rect const& rect ) {

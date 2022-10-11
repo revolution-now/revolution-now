@@ -69,6 +69,8 @@ struct Delta {
     return gfx::size{ .w = w, .h = h };
   }
 
+  gfx::size to_gfx() const { return *this; }
+
   static Delta from_gfx( gfx::size s ) {
     return Delta{ .w = s.w, .h = s.h };
   }
@@ -168,6 +170,8 @@ struct Coord {
     return gfx::point{ .x = x, .y = y };
   }
 
+  gfx::point to_gfx() const { return *this; }
+
   static Coord from_gfx( gfx::point p ) {
     return Coord{ .x = p.x, .y = p.y };
   }
@@ -205,8 +209,7 @@ struct Coord {
   // If this coord is outside the rect then it will be brought
   // into the rect by traveling in precisely one straight line
   // in each direction (or possibly only one direction).
-  // TODO: change to clamp
-  void clip( Rect const& rect );
+  void clamp( Rect const& rect );
 
   Coord rounded_to_multiple_to_plus_inf( Delta multiple ) const;
   Coord rounded_to_multiple_to_minus_inf( Delta multiple ) const;
@@ -255,6 +258,8 @@ struct Rect {
     return gfx::rect{ .origin = { .x = x, .y = y },
                       .size   = { .w = w, .h = h } };
   }
+
+  gfx::rect to_gfx() const { return *this; }
 
   static Rect from_gfx( gfx::rect r ) {
     return Rect::from( Coord{ .x = r.origin.x, .y = r.origin.y },
@@ -599,6 +604,7 @@ ND Rect operator-( Rect const& rect, Delta const& delta );
 void operator-=( Coord& coord, Delta delta );
 
 ND Coord operator*( Coord const& coord, Delta const& delta );
+ND Coord operator*( Coord const& coord, int scale );
 ND inline constexpr Delta operator*( Delta const& delta,
                                      int          scale ) {
   Delta res = delta;
@@ -609,6 +615,7 @@ ND inline constexpr Delta operator*( Delta const& delta,
 ND Coord operator*( Delta const& delta, Coord const& coord );
 ND Delta operator*( Delta const& lhs, Delta const& rhs );
 ND Rect  operator*( Rect const& rect, Delta const& delta );
+ND Rect  operator*( Rect const& rect, int scale );
 ND Rect  operator*( Delta const& delta, Rect const& rect );
 // FIXME: deprecated
 ND Rect  operator/( Rect const& rect, Delta const& delta );
