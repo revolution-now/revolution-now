@@ -57,6 +57,9 @@ struct Window {
 
   bool operator==( Window const& rhs ) const;
 
+  // Called once per frame.
+  void advance_state();
+
   void draw( rr::Renderer& renderer, Coord where ) const;
 
   // Tell the window manager to center this window.

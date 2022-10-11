@@ -91,6 +91,11 @@ struct WindowManager {
 
   void draw_layout( rr::Renderer& renderer ) const;
 
+  void advance_state() {
+    for( PositionedWindow const& pw : windows_ )
+      pw.win->advance_state();
+  }
+
   ND e_input_handled input( input::event_t const& event );
 
   Plane::e_accept_drag can_drag( input::e_mouse_button button,
@@ -168,6 +173,7 @@ NOTHROW_MOVE( WindowManager );
 struct WindowPlane::Impl : public Plane {
   Impl() = default;
   bool covers_screen() const override { return false; }
+  void advance_state() override { wm.advance_state(); }
   void draw( rr::Renderer& renderer ) const override {
     wm.draw_layout( renderer );
   }
@@ -192,6 +198,11 @@ struct WindowPlane::Impl : public Plane {
 *****************************************************************/
 void Window::set_view( unique_ptr<ui::View> view ) {
   view_ = std::move( view );
+}
+
+void Window::advance_state() {
+  CHECK( view_ != nullptr );
+  view_->advance_state();
 }
 
 void Window::center_me() const {
