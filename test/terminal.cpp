@@ -263,6 +263,10 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
   in  = "map_gen.cl";
+  out = { "map_gen.classic." };
+  REQUIRE_THAT( ac_i( in ), Contains( out ) );
+
+  in  = "map_gen.classic.r";
   out = { "map_gen.classic.resource_dist.compute_" };
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 

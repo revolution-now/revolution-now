@@ -11,7 +11,11 @@
 --]] ------------------------------------------------------------
 local M = {}
 
+-----------------------------------------------------------------
+-- Imports
+-----------------------------------------------------------------
 local dist = require( 'map-gen.classic.resource-dist' )
+local weights = require( 'map-gen.classic.terrain-weights' )
 local timer = require( 'util.timer' )
 
 -----------------------------------------------------------------
@@ -62,13 +66,6 @@ end
 -----------------------------------------------------------------
 local function debug_log( msg )
   -- io.write( msg )
-end
-
--- Enforces that n is in [min, max].
-local function clamp( n, min, max )
-  if n < min then return min end
-  if n > max then return max end
-  return n
 end
 
 local function append( tbl, elem ) tbl[#tbl + 1] = elem end
@@ -240,6 +237,15 @@ end
 
 local function square_has_river( square )
   return square.river ~= nil
+end
+
+local function square_is_water_source( square )
+  return square_has_river( square ) or is_square_water( square )
+end
+
+local function square_is_indirect_water_source( square )
+  return square_is_water_source( square ) or square.ground ==
+             'marsh' or square.ground == 'swamp'
 end
 
 -- row is zero-based.
@@ -689,19 +695,53 @@ end
 -----------------------------------------------------------------
 -- Ground Terrain Assignment
 -----------------------------------------------------------------
-local function assign_ground_types()
+local function assign_dry_ground_types()
   local size = world_size()
+  local dry_weights = {}
+  for y = 0, size.h - 1 do
+    dry_weights[y] = weights.dry_weights_for_row( size.h, y )
+  end
   on_all( function( coord, square )
     if is_water( square ) then return end
     if coord.y == 0 or coord.y == size.h - 1 then
       square.ground = 'arctic'
       return
     end
-    -- TODO
-    square.ground = random_list_elem{
-      'plains', 'grassland', 'prairie', 'marsh', 'savannah',
-      'desert', 'swamp'
-    }
+    square.ground = weights.select_from_weights(
+                        dry_weights[coord.y] )
+  end )
+end
+
+-- Is this tile or an adjacent tile a direct water source, e.g.
+-- an ocean/lake or river.
+local function has_water_source( coord )
+  local squares =
+      filter_on_map( surrounding_squares_3x3( coord ) )
+  table.insert( squares, coord )
+  for _, adjacent in ipairs( squares ) do
+    if square_is_indirect_water_source( square_at( adjacent ) ) then
+      return true
+    end
+  end
+  return false
+end
+
+local function assign_wet_ground_types()
+  local size = world_size()
+  local wet_weights = {}
+  for y = 0, size.h - 1 do
+    wet_weights[y] = weights.wet_weights_for_row( size.h, y )
+  end
+  on_all( function( coord, square )
+    if is_water( square ) then return end
+    if coord.y == 0 or coord.y == size.h - 1 then return end
+    if not has_water_source( coord ) then return end
+    -- This is a land tile not on the border and it is on or ad-
+    -- jacent to a river or ocean/lake.
+    local type = weights.select_from_weights(
+                     wet_weights[coord.y] )
+    if type == 'none' then return end
+    square.ground = type
   end )
 end
 
@@ -1110,14 +1150,16 @@ local function generate_land( options )
   if options.remove_Xs then remove_Xs() end
   remove_islands()
   create_arctic()
-  assign_ground_types()
+  create_rivers( options )
+  assign_dry_ground_types()
+  -- We need to have already created the rivers before this.
+  assign_wet_ground_types()
+
   forest_cover()
 
   local placement_seed = set_random_placement_seed()
   distribute_prime_resources( placement_seed )
   distribute_lost_city_rumors( placement_seed )
-
-  create_rivers( options )
 end
 
 -----------------------------------------------------------------
