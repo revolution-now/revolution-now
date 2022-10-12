@@ -31,7 +31,8 @@ sumtype.MapRevealed {
 }
 
 struct.MiniMapState {
-  origin 'gfx::point',
+  # This is the origin of the minimap in fractional tiles.
+  origin 'gfx::dpoint',
 }
 
 struct.LandViewState {

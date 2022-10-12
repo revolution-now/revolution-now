@@ -155,8 +155,9 @@ cdr::value cdr_game_state_default =
                     },
                 "minimap"_key =
                     cdr::table{
-                        "origin"_key = cdr::table{ "x"_key = 0,
-                                                   "y"_key = 0 },
+                        "origin"_key =
+                            cdr::table{ "x"_key = 0.0,
+                                        "y"_key = 0.0 },
                     },
                 "map_revealed"_key = cdr::null,
             },
