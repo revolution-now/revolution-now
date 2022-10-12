@@ -113,7 +113,7 @@ void MiniMap::zoom_in() {
   SmoothViewport& viewport = ss_.land_view.viewport;
   viewport.stop_auto_zoom();
   viewport.stop_auto_panning();
-  viewport.set_zoom_push( e_push_direction::negative, nothing );
+  viewport.set_zoom_push( e_push_direction::positive, nothing );
 }
 
 void MiniMap::zoom_out() {
@@ -121,7 +121,7 @@ void MiniMap::zoom_out() {
   SmoothViewport& viewport = ss_.land_view.viewport;
   viewport.stop_auto_zoom();
   viewport.stop_auto_panning();
-  viewport.set_zoom_push( e_push_direction::positive, nothing );
+  viewport.set_zoom_push( e_push_direction::negative, nothing );
 }
 
 void MiniMap::center_box_on_tile( Coord where ) {
