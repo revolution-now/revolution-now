@@ -47,7 +47,7 @@ TEST_CASE( "[gfx/cartesian] size::operator/( int )" ) {
   REQUIRE( s / 2 == size{ .w = 2, .h = 1 } );
 }
 
-TEST_CASE( "[gfx/cartesian] operator+( size, size )" ) {
+TEST_CASE( "[gfx/cartesian] operator+( size )" ) {
   size s1{ .w = 4, .h = 2 };
   size s2{ .w = 4, .h = 3 };
   REQUIRE( s1 + s2 == size{ .w = 8, .h = 5 } );
@@ -82,9 +82,14 @@ TEST_CASE( "[gfx/cartesian] to_double( size )" ) {
   REQUIRE( to_double( s ) == dsize{ .w = 4, .h = 2 } );
 }
 
-TEST_CASE( "[gfx/cartesian] operator*( dsize, double )" ) {
+TEST_CASE( "[gfx/cartesian] dsize::operator*( double )" ) {
   dsize s{ .w = 4, .h = 2 };
   REQUIRE( s * 10 == dsize{ .w = 40, .h = 20 } );
+}
+
+TEST_CASE( "[gfx/cartesian] dsize::operator/( double )" ) {
+  dsize s{ .w = 4.2, .h = 2.2 };
+  REQUIRE( s / 2 == dsize{ .w = 2.1, .h = 1.1 } );
 }
 
 /****************************************************************
@@ -99,6 +104,29 @@ TEST_CASE( "[gfx/cartesian] point::moved_left" ) {
   point p{ .x = 4, .y = 2 };
   REQUIRE( p.moved_left() == point{ .x = 3, .y = 2 } );
   REQUIRE( p.moved_left( 2 ) == point{ .x = 2, .y = 2 } );
+}
+
+TEST_CASE( "[gfx/cartesian] operator+=( size )" ) {
+  point      p{ .x = 4, .y = 2 };
+  size const s{ .w = 5, .h = 1 };
+  p += s;
+  REQUIRE( p == point{ .x = 9, .y = 3 } );
+}
+
+TEST_CASE( "[gfx/cartesian] operator-( point )" ) {
+  point p1{ .x = 4, .y = 2 };
+  point p2{ .x = 5, .y = 1 };
+  REQUIRE( p1 - p2 == size{ .w = -1, .h = 1 } );
+}
+
+TEST_CASE( "[gfx/cartesian] operator*( int )" ) {
+  point p{ .x = 4, .y = 2 };
+  REQUIRE( p * 10 == point{ .x = 40, .y = 20 } );
+}
+
+TEST_CASE( "[gfx/cartesian] operator/( int )" ) {
+  point p{ .x = 4, .y = 2 };
+  REQUIRE( p / 2 == point{ .x = 2, .y = 1 } );
 }
 
 /****************************************************************
@@ -116,6 +144,14 @@ TEST_CASE( "[gfx/cartesian] dpoint::fmod" ) {
   REQUIRE( p.fmod( 2.1 ).h == .3_a );
 }
 
+TEST_CASE( "[gfx/cartesian] dpoint::operator+=( dsize )" ) {
+  dpoint p{ .x = 4.4, .y = 2.4 };
+  dsize  s{ .w = 5.2, .h = 1.5 };
+  p += s;
+  REQUIRE( p.x == 9.6_a );
+  REQUIRE( p.y == 3.9_a );
+}
+
 TEST_CASE( "[gfx/cartesian] dpoint::operator-=( dsize )" ) {
   dpoint p{ .x = 4.4, .y = 2.4 };
   dsize  s{ .w = 5.2, .h = 1.5 };
@@ -126,52 +162,31 @@ TEST_CASE( "[gfx/cartesian] dpoint::operator-=( dsize )" ) {
   REQUIRE( ( p - s ).y == -.6_a );
 }
 
+TEST_CASE( "[gfx/cartesian] operator-( dsize )" ) {
+  dpoint p{ .x = 4, .y = 2 };
+  dsize  s{ .w = 5.2, .h = 1.5 };
+  REQUIRE( ( p - s ).x == -1.2_a );
+  REQUIRE( ( p - s ).y == .5_a );
+}
+
+TEST_CASE( "[gfx/cartesian] operator-()" ) {
+  dpoint p{ .x = 4, .y = 2 };
+  REQUIRE( -p == dpoint{ .x = -4, .y = -2 } );
+}
+
 TEST_CASE( "[gfx/cartesian] operator*( dpoint, double )" ) {
   dpoint p{ .x = 4, .y = 2 };
   REQUIRE( p * 1.5 == dpoint{ .x = 6, .y = 3 } );
 }
 
-/****************************************************************
-** Combining Operators
-*****************************************************************/
-TEST_CASE( "[gfx/cartesian] point + size" ) {
-  point p{ .x = 4, .y = 2 };
-  size  s{ .w = 2, .h = 8 };
-  REQUIRE( p + s == point{ .x = 6, .y = 10 } );
-  REQUIRE( s + p == point{ .x = 6, .y = 10 } );
+TEST_CASE( "[gfx/cartesian] dpoint::operator*( double )" ) {
+  dpoint p{ .x = 4.2, .y = 2.1 };
+  REQUIRE( p * 10 == dpoint{ .x = 42, .y = 21 } );
 }
 
-TEST_CASE( "[gfx/cartesian] point += size" ) {
-  point p{ .x = 4, .y = 2 };
-  size  s{ .w = 2, .h = 8 };
-  p += s;
-  REQUIRE( p == point{ .x = 6, .y = 10 } );
-}
-
-TEST_CASE( "[gfx/cartesian] point - point" ) {
-  point p1{ .x = 4, .y = 2 };
-  point p2{ .x = 2, .y = 4 };
-  REQUIRE( p1 - p2 == size{ .w = 2, .h = -2 } );
-}
-
-TEST_CASE( "[gfx/cartesian] dpoint - dpoint" ) {
-  dpoint p1{ .x = 4.1, .y = 2 };
-  dpoint p2{ .x = 2, .y = 4 };
-  REQUIRE( ( p1 - p2 ).w == 2.1_a );
-  REQUIRE( ( p1 - p2 ).h == -2.0_a );
-}
-
-TEST_CASE( "[gfx/cartesian] point*size" ) {
-  point p{ .x = 4, .y = 2 };
-  size  s{ .w = 2, .h = 8 };
-  REQUIRE( p * s == point{ .x = 8, .y = 16 } );
-}
-
-TEST_CASE( "[gfx/cartesian] dpoint + dsize" ) {
-  dpoint p{ .x = 4, .y = 2 };
-  dsize  s{ .w = 2, .h = 8 };
-  REQUIRE( p + s == dpoint{ .x = 6, .y = 10 } );
-  REQUIRE( s + p == dpoint{ .x = 6, .y = 10 } );
+TEST_CASE( "[gfx/cartesian] dpoint::operator/( double )" ) {
+  dpoint p{ .x = 4.2, .y = 2.2 };
+  REQUIRE( p / 2 == dpoint{ .x = 2.1, .y = 1.1 } );
 }
 
 /****************************************************************
@@ -526,6 +541,15 @@ TEST_CASE( "[gfx/cartesian] rect::center" ) {
   REQUIRE( r.center() == expected );
 }
 
+TEST_CASE( "[gfx/cartesian] rect::operator{*,/}( double )" ) {
+  rect r{ .origin = { .x = 3, .y = 4 },
+          .size   = { .w = 6, .h = 7 } };
+  REQUIRE( r * 2 == rect{ .origin = { .x = 6, .y = 8 },
+                          .size   = { .w = 12, .h = 14 } } );
+  REQUIRE( r / 2 == rect{ .origin = { .x = 1, .y = 2 },
+                          .size   = { .w = 3, .h = 3 } } );
+}
+
 /****************************************************************
 ** drect
 *****************************************************************/
@@ -652,6 +676,58 @@ TEST_CASE( "[gfx/cartesian] drect::nw, rect::se, etc." ) {
   REQUIRE( r.bottom() == 7 );
   REQUIRE( r.right() == 4 );
   REQUIRE( r.left() == 3 );
+}
+
+TEST_CASE( "[gfx/cartesian] drect::operator{*,/}( double )" ) {
+  drect r{ .origin = { .x = 3, .y = 4 },
+           .size   = { .w = 6, .h = 7 } };
+  REQUIRE( r * 2 == drect{ .origin = { .x = 6, .y = 8 },
+                           .size   = { .w = 12, .h = 14 } } );
+  REQUIRE( r / 2 == drect{ .origin = { .x = 1.5, .y = 2 },
+                           .size   = { .w = 3, .h = 3.5 } } );
+}
+
+/****************************************************************
+** Combining Operators
+*****************************************************************/
+TEST_CASE( "[gfx/cartesian] point + size" ) {
+  point p{ .x = 4, .y = 2 };
+  size  s{ .w = 2, .h = 8 };
+  REQUIRE( p + s == point{ .x = 6, .y = 10 } );
+  REQUIRE( s + p == point{ .x = 6, .y = 10 } );
+}
+
+TEST_CASE( "[gfx/cartesian] point += size" ) {
+  point p{ .x = 4, .y = 2 };
+  size  s{ .w = 2, .h = 8 };
+  p += s;
+  REQUIRE( p == point{ .x = 6, .y = 10 } );
+}
+
+TEST_CASE( "[gfx/cartesian] point - point" ) {
+  point p1{ .x = 4, .y = 2 };
+  point p2{ .x = 2, .y = 4 };
+  REQUIRE( p1 - p2 == size{ .w = 2, .h = -2 } );
+}
+
+TEST_CASE( "[gfx/cartesian] dpoint - dpoint" ) {
+  dpoint p1{ .x = 4.1, .y = 2 };
+  dpoint p2{ .x = 2, .y = 4 };
+  REQUIRE( ( p1 - p2 ).w == 2.1_a );
+  REQUIRE( ( p1 - p2 ).h == -2.0_a );
+}
+
+TEST_CASE( "[gfx/cartesian] point*size" ) {
+  point p{ .x = 4, .y = 2 };
+  size  s{ .w = 2, .h = 8 };
+  REQUIRE( p * s == point{ .x = 8, .y = 16 } );
+}
+
+TEST_CASE( "[gfx/cartesian] dpoint + dsize" ) {
+  dpoint p{ .x = 4, .y = 2 };
+  dsize  s{ .w = 2, .h = 8 };
+  REQUIRE( p + s == dpoint{ .x = 6, .y = 10 } );
+  REQUIRE( s + p == dpoint{ .x = 6, .y = 10 } );
 }
 
 /****************************************************************

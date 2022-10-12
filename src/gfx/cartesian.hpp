@@ -35,10 +35,13 @@ struct size {
 
   size max_with( size const rhs ) const;
 
-  size operator*( int factor ) const;
-  size operator/( int factor ) const;
+  size operator+( size term ) const;
 
   void operator+=( size term );
+
+  size operator*( int scale ) const;
+
+  size operator/( int scale ) const;
 
   bool operator==( size const& ) const = default;
 };
@@ -59,12 +62,14 @@ struct dsize {
 
   void operator+=( dsize term );
 
+  dsize operator*( double scale ) const;
+
+  dsize operator/( double scale ) const;
+
   bool operator==( dsize const& ) const = default;
 };
 
 dsize to_double( size s );
-
-dsize operator*( dsize const s, double scale );
 
 /****************************************************************
 ** point
@@ -81,6 +86,14 @@ struct point {
   static point origin();
 
   bool operator==( point const& ) const = default;
+
+  void operator+=( size const s );
+
+  size operator-( point const rhs ) const;
+
+  point operator*( int scale ) const;
+
+  point operator/( int scale ) const;
 
   point moved_left( int by = 1 ) const;
 };
@@ -103,16 +116,23 @@ struct dpoint {
 
   dsize fmod( double d ) const;
 
+  void operator+=( dsize s );
+
   void operator-=( dsize s );
 
+  dpoint operator-( dsize s ) const;
+
+  dsize operator-( dpoint const rhs ) const;
+
   dpoint operator-() const { return dpoint{ .x = -x, .y = -y }; }
+
+  dpoint operator*( double scale ) const;
+
+  dpoint operator/( double scale ) const;
 
   bool operator==( dpoint const& ) const = default;
 };
 
-dpoint operator-( dpoint p, dsize s );
-
-dpoint operator*( dpoint const p, double scale );
 
 /****************************************************************
 ** rect
@@ -165,6 +185,10 @@ struct rect {
   int right() const;
   int left() const;
 
+  rect operator*( int scale ) const;
+
+  rect operator/( int scale ) const;
+
   bool operator==( rect const& ) const = default;
 };
 
@@ -199,12 +223,14 @@ struct drect {
 
   rect truncated() const;
 
+  drect operator*( double scale ) const;
+
+  drect operator/( double scale ) const;
+
   bool operator==( drect const& ) const = default;
 };
 
 drect to_double( rect r );
-
-drect operator*( drect const r, double scale );
 
 /****************************************************************
 ** Free Functions
@@ -219,13 +245,6 @@ point operator+( size const s, point const p );
 
 dpoint operator+( dpoint const p, dsize const s );
 dpoint operator+( dsize const s, dpoint const p );
-
-size operator+( size const s1, size const s2 );
-
-void operator+=( point& p, size const s );
-
-size  operator-( point const p1, point const p2 );
-dsize operator-( dpoint const p1, dpoint const p2 );
 
 point operator*( point const p, size const s );
 

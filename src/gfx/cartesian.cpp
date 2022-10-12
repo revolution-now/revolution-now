@@ -26,23 +26,27 @@ size size::max_with( size const rhs ) const {
   return size{ std::max( w, rhs.w ), std::max( h, rhs.h ) };
 }
 
-size size::operator*( int factor ) const {
-  size res = *this;
-  res.w *= factor;
-  res.h *= factor;
-  return res;
-}
-
-size size::operator/( int factor ) const {
-  size res = *this;
-  res.w /= factor;
-  res.h /= factor;
-  return res;
-}
+size size::operator+( size const term ) const {
+  return size{ .w = w + term.w, .h = h + term.h };
+};
 
 void size::operator+=( size term ) {
   w += term.w;
   h += term.h;
+}
+
+size size::operator*( int scale ) const {
+  size res = *this;
+  res.w *= scale;
+  res.h *= scale;
+  return res;
+}
+
+size size::operator/( int scale ) const {
+  size res = *this;
+  res.w /= scale;
+  res.h /= scale;
+  return res;
 }
 
 /****************************************************************
@@ -60,8 +64,18 @@ dsize to_double( size s ) {
   };
 }
 
-dsize operator*( dsize const s, double scale ) {
-  return dsize{ .w = s.w * scale, .h = s.h * scale };
+dsize dsize::operator*( double scale ) const {
+  dsize res = *this;
+  res.w *= scale;
+  res.h *= scale;
+  return res;
+}
+
+dsize dsize::operator/( double scale ) const {
+  dsize res = *this;
+  res.w /= scale;
+  res.h /= scale;
+  return res;
 }
 
 /****************************************************************
@@ -76,6 +90,29 @@ point point::moved_left( int by ) const {
   return point{ .x = x - by, .y = y };
 }
 
+void point::operator+=( size const s ) {
+  x += s.w;
+  y += s.h;
+}
+
+size point::operator-( point rhs ) const {
+  return size{ .w = x - rhs.x, .h = y - rhs.y };
+}
+
+point point::operator*( int scale ) const {
+  point res = *this;
+  res.x *= scale;
+  res.y *= scale;
+  return res;
+}
+
+point point::operator/( int scale ) const {
+  point res = *this;
+  res.x /= scale;
+  res.y /= scale;
+  return res;
+}
+
 /****************************************************************
 ** dpoint
 *****************************************************************/
@@ -83,19 +120,38 @@ dsize dpoint::fmod( double d ) const {
   return dsize{ .w = std::fmod( x, d ), .h = std::fmod( y, d ) };
 }
 
+void dpoint::operator+=( dsize s ) {
+  x += s.w;
+  y += s.h;
+}
+
 void dpoint::operator-=( dsize s ) {
   x -= s.w;
   y -= s.h;
 }
 
-dpoint operator-( dpoint p, dsize s ) {
-  dpoint res = p;
-  res -= s;
+dpoint dpoint::operator-( dsize s ) const {
+  return dpoint{ .x = x - s.w, .y = y - s.h };
+}
+
+dsize dpoint::operator-( dpoint rhs ) const {
+  return dsize{ .w = x - rhs.x, .h = y - rhs.y };
+}
+
+dpoint dpoint::operator*( double scale ) const {
+  dpoint res = *this;
+  res.x *= scale;
+  res.y *= scale;
   return res;
 }
 
-dpoint operator*( dpoint const p, double scale ) {
-  return dpoint{ .x = p.x * scale, .y = p.y * scale };
+dpoint dpoint::operator/( double scale ) const {
+  dpoint res = *this;
+  res.x /= scale;
+  res.y /= scale;
+  return res;
+}
+
 }
 
 /****************************************************************
@@ -205,6 +261,20 @@ point rect::center() const {
   };
 }
 
+rect rect::operator*( int scale ) const {
+  rect res   = *this;
+  res.origin = res.origin * scale;
+  res.size   = res.size * scale;
+  return res;
+}
+
+rect rect::operator/( int scale ) const {
+  rect res   = *this;
+  res.origin = res.origin / scale;
+  res.size   = res.size / scale;
+  return res;
+}
+
 /****************************************************************
 ** drect
 *****************************************************************/
@@ -298,14 +368,23 @@ drect drect::normalized() const {
   return res;
 }
 
-drect operator*( drect const r, double scale ) {
-  return drect{ .origin = r.origin * scale,
-                .size   = r.size * scale };
-}
-
 rect drect::truncated() const {
   return rect{ .origin = origin.truncated(),
                .size   = size.truncated() };
+}
+
+drect drect::operator*( double scale ) const {
+  drect res  = *this;
+  res.origin = res.origin * scale;
+  res.size   = res.size * scale;
+  return res;
+}
+
+drect drect::operator/( double scale ) const {
+  drect res  = *this;
+  res.origin = res.origin / scale;
+  res.size   = res.size / scale;
+  return res;
 }
 
 /****************************************************************
@@ -333,22 +412,8 @@ dpoint operator+( dsize const s, dpoint const p ) {
   return p + s;
 }
 
-size operator+( size const s1, size const s2 ) {
-  return size{ .w = s1.w + s2.w, .h = s1.h + s2.h };
-};
-
-void operator+=( point& p, size const s ) { p = p + s; }
-
 point operator*( point const p, size const s ) {
   return point{ .x = p.x * s.w, .y = p.y * s.h };
-}
-
-size operator-( point const p1, point const p2 ) {
-  return size{ .w = p1.x - p2.x, .h = p1.y - p2.y };
-}
-
-dsize operator-( dpoint const p1, dpoint const p2 ) {
-  return dsize{ .w = p1.x - p2.x, .h = p1.y - p2.y };
 }
 
 } // namespace gfx
