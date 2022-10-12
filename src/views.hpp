@@ -66,6 +66,8 @@ class CompositeView : public View {
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
 
+  bool on_win_event( input::win_event_t const& event ) override;
+
   // Implement ui::Object
   void on_mouse_leave( Coord from ) override;
   void on_mouse_enter( Coord to ) override;

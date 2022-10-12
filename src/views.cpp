@@ -119,6 +119,15 @@ bool CompositeView::on_mouse_button(
   return dispatch_mouse_event( event );
 }
 
+bool CompositeView::on_win_event(
+    input::win_event_t const& event ) {
+  // Window events are special; we want all child views to get
+  // them.
+  for( auto p_view : *this )
+    (void)p_view.view->on_win_event( event );
+  return false;
+}
+
 void CompositeView::on_mouse_leave( Coord from ) {
   for( auto p_view : *this )
     if( from.is_inside( p_view.rect() ) )
