@@ -33,13 +33,60 @@ struct TS;
 struct Visibility;
 
 /****************************************************************
+** MiniMap
+*****************************************************************/
+struct MiniMap {
+  MiniMap( SS& ss, Delta available_size );
+
+  // This should be called when any external state changes that
+  // could affect the minimap.
+  void update();
+
+  void zoom_in();
+
+  void zoom_out();
+
+  void center_box_on_tile( Coord where );
+
+  void drag_map( Delta mouse_delta );
+
+  void drag_box( Delta mouse_delta );
+
+  gfx::size pixels_occupied() const { return pixels_occupied_; }
+
+  // White box rect relative to this view in pixels.
+  gfx::rect white_box_pixels() const;
+
+  // Given a cursor position relative to the origin of this view
+  // it will compute which map tile it is on, if any.
+  maybe<gfx::point> tile_under_cursor( gfx::point p ) const;
+
+  gfx::drect tiles_visible_on_minimap() const;
+
+  // This gives the upper left map tile that is currently on the
+  // minimap.
+  gfx::dpoint upper_left_visible_tile() const;
+
+  // This is the covered tiles, meaning the part inside the white
+  // box, first computed in terms of fractional tiles, then trun-
+  // cated.
+  gfx::drect fractional_tiles_inside_white_box() const;
+
+ private:
+  // Any non-const method should call this at the end.
+  void fix_invariants();
+
+  SS& ss_;
+  // Size in pixels of the mini-map.
+  gfx::size pixels_occupied_;
+};
+
+/****************************************************************
 ** MiniMapView
 *****************************************************************/
 struct MiniMapView : ui::View {
-  MiniMapView( SS& ss, TS& ts, Delta available_size )
-    : ss_( ss ), ts_( ts ), available_size_( available_size ) {}
-
-  void set_area( Delta size ) { available_size_ = size; }
+  MiniMapView( SS& ss, TS& ts, Delta available )
+    : ss_( ss ), ts_( ts ), mini_map_( ss, available ) {}
 
   // Implement ui::Object.
   void draw( rr::Renderer& renderer,
@@ -72,30 +119,9 @@ struct MiniMapView : ui::View {
   void draw_impl( rr::Renderer&     renderer,
                   Visibility const& viz ) const;
 
-  // Given a cursor position relative to the origin of this view
-  // it will compute which map tile it is on, if any.
-  maybe<gfx::point> tile_under_cursor( gfx::point p ) const;
-
-  // Size in pixels of the mini-map.
-  gfx::size pixels_occupied() const;
-
-  gfx::drect tiles_visible_on_minimap() const;
-
-  // This gives the upper left map tile that is currently on the
-  // minimap.
-  gfx::dpoint upper_left_visible_tile() const;
-
-  // This is the covered tiles, meaning the part inside the white
-  // box, first computed in terms of fractional tiles, then trun-
-  // cated.
-  gfx::drect fractional_tiles_inside_white_box() const;
-
-  // White box rect relative to this view in pixels.
-  gfx::rect white_box_pixels() const;
-
   SS&                    ss_;
   TS&                    ts_;
-  Delta                  available_size_;
+  MiniMap                mini_map_;
   maybe<e_mini_map_drag> drag_state_;
 };
 
