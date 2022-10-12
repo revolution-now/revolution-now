@@ -11,7 +11,6 @@
 #include "views.hpp"
 
 // Revolution Now
-#include "logger.hpp"
 #include "math.hpp"
 #include "render.hpp"
 #include "text.hpp"
@@ -69,6 +68,20 @@ Delta CompositeView::delta() const {
   return { .w = rect.w, .h = rect.h };
 }
 
+maybe<PositionedView> CompositeView::first_view_under_cursor(
+    Coord pos ) {
+  for( PositionedView pview : *this )
+    if( pos.is_inside( pview.rect() ) ) return pview;
+  return nothing;
+}
+
+maybe<PositionedViewConst>
+CompositeView::first_view_under_cursor( Coord pos ) const {
+  for( PositionedViewConst pview : *this )
+    if( pos.is_inside( pview.rect() ) ) return pview;
+  return nothing;
+}
+
 bool CompositeView::dispatch_mouse_event(
     input::event_t const& event ) {
   UNWRAP_CHECK( pos, input::mouse_position( event ) );
@@ -94,7 +107,7 @@ bool CompositeView::on_wheel(
   return dispatch_mouse_event( event );
 }
 
-bool CompositeView::on_mouse_move(
+void CompositeView::send_mouse_enter_leave_events(
     input::mouse_move_event_t const& event ) {
   auto to   = event.pos;
   auto from = event.prev;
@@ -110,13 +123,37 @@ bool CompositeView::on_mouse_move(
       p_view.view->on_mouse_enter(
           from.with_new_origin( p_view.rect().upper_left() ) );
   }
+}
 
+bool CompositeView::on_mouse_move(
+    input::mouse_move_event_t const& event ) {
+  send_mouse_enter_leave_events( event );
   return dispatch_mouse_event( event );
 }
 
 bool CompositeView::on_mouse_button(
     input::mouse_button_event_t const& event ) {
   return dispatch_mouse_event( event );
+}
+
+bool CompositeView::on_mouse_drag(
+    input::mouse_drag_event_t const& event ) {
+  send_mouse_enter_leave_events( event );
+
+  maybe<PositionedView> const origin_pview =
+      first_view_under_cursor( event.state.origin );
+  if( !origin_pview.has_value() ) return false;
+
+  // We don't use dispatch_mouse_event here because that will se-
+  // lect the view that is under the mouse position, which we
+  // don't want to do in the case of drag events. For drag events
+  // all that matters is the view under the origin, namely the
+  // one where the drag started. Moreover, that view will con-
+  // tinue to receive drag events even if the cursor leaves the
+  // view during the drag.
+  input::event_t const new_event = move_mouse_origin_by(
+      event, origin_pview->coord - Coord{} );
+  return origin_pview->view->input( new_event );
 }
 
 bool CompositeView::on_win_event(

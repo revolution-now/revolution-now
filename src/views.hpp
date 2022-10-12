@@ -59,12 +59,18 @@ class CompositeView : public View {
   virtual void advance_state() override;
 
   bool on_key( input::key_event_t const& event ) override;
+
   bool on_wheel(
       input::mouse_wheel_event_t const& event ) override;
+
   bool on_mouse_move(
       input::mouse_move_event_t const& event ) override;
+
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
+
+  bool on_mouse_drag(
+      input::mouse_drag_event_t const& event ) override;
 
   bool on_win_event( input::win_event_t const& event ) override;
 
@@ -130,6 +136,17 @@ class CompositeView : public View {
   virtual void notify_children_updated() = 0;
 
  private:
+  // As usual, pos is relative to this view.
+  maybe<PositionedViewConst> first_view_under_cursor(
+      Coord pos ) const;
+  maybe<PositionedView> first_view_under_cursor( Coord pos );
+
+  // This is reused by any mouse event that involves a motion
+  // (which should inherit from mouse_move_event); in those cases
+  // we need to send on_mouse_leave and on_mouse_enter events.
+  void send_mouse_enter_leave_events(
+      input::mouse_move_event_t const& event );
+
   bool dispatch_mouse_event( input::event_t const& event );
 };
 
