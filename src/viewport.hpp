@@ -158,6 +158,12 @@ class SmoothViewport {
   // edge of the viewport hids x=0.
   void pan_by_screen_coords( Delta delta );
 
+  // No scaling.
+  void pan_by_world_coords( Delta delta );
+
+  // When more precision is needed.
+  void pan_by_world_coords( gfx::dsize size );
+
   // Will not throw or die if invariants are broken; instead, if
   // an invariant is broken it will be fixed, and this is a
   // normal part of the behavior of this class.

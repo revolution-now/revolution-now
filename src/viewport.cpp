@@ -672,6 +672,14 @@ void SmoothViewport::pan_by_screen_coords( Delta delta ) {
   pan( double( delta.h ), double( delta.w ), /*scale=*/true );
 }
 
+void SmoothViewport::pan_by_world_coords( Delta delta ) {
+  pan( double( delta.h ), double( delta.w ), /*scale=*/false );
+}
+
+void SmoothViewport::pan_by_world_coords( gfx::dsize size ) {
+  pan( size.h, size.w, /*scale=*/false );
+}
+
 void SmoothViewport::center_on_tile_x( Coord const& coords ) {
   o_.center_x =
       double( coords.x * g_tile_width + g_tile_width / 2 );
