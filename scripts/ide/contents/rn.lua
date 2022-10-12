@@ -6,4 +6,7 @@ return {
   'ss/fathers',
   'config/fathers',
   'fathers',
+  'render-terrain',
+  'panel',
+  'mini-map',
 }
