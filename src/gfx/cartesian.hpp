@@ -85,6 +85,9 @@ struct point {
 
   static point origin();
 
+  point point_becomes_origin( point p ) const;
+  point origin_becomes_point( point p ) const;
+
   bool operator==( point const& ) const = default;
 
   void operator+=( size const s );
@@ -113,6 +116,9 @@ struct dpoint {
   point truncated() const {
     return point{ .x = int( x ), .y = int( y ) };
   }
+
+  dpoint point_becomes_origin( dpoint p ) const;
+  dpoint origin_becomes_point( dpoint p ) const;
 
   dsize fmod( double d ) const;
 
@@ -185,6 +191,9 @@ struct rect {
   int right() const;
   int left() const;
 
+  rect point_becomes_origin( point p ) const;
+  rect origin_becomes_point( point p ) const;
+
   rect operator*( int scale ) const;
 
   rect operator/( int scale ) const;
@@ -222,6 +231,9 @@ struct drect {
   double left() const;
 
   rect truncated() const;
+
+  drect point_becomes_origin( dpoint p ) const;
+  drect origin_becomes_point( dpoint p ) const;
 
   drect operator*( double scale ) const;
 

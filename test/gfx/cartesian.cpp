@@ -129,6 +129,20 @@ TEST_CASE( "[gfx/cartesian] operator/( int )" ) {
   REQUIRE( p / 2 == point{ .x = 2, .y = 1 } );
 }
 
+TEST_CASE( "[gfx/cartesian] point::point_becomes_origin" ) {
+  point const p{ .x = 4, .y = 2 };
+  point const arg{ .x = 2, .y = 1 };
+  point       expected{ .x = 2, .y = 1 };
+  REQUIRE( p.point_becomes_origin( arg ) == expected );
+}
+
+TEST_CASE( "[gfx/cartesian] point::origin_becomes_point" ) {
+  point const p{ .x = 4, .y = 2 };
+  point const arg{ .x = 2, .y = 1 };
+  point       expected{ .x = 6, .y = 3 };
+  REQUIRE( p.origin_becomes_point( arg ) == expected );
+}
+
 /****************************************************************
 ** dpoint
 *****************************************************************/
@@ -187,6 +201,20 @@ TEST_CASE( "[gfx/cartesian] dpoint::operator*( double )" ) {
 TEST_CASE( "[gfx/cartesian] dpoint::operator/( double )" ) {
   dpoint p{ .x = 4.2, .y = 2.2 };
   REQUIRE( p / 2 == dpoint{ .x = 2.1, .y = 1.1 } );
+}
+
+TEST_CASE( "[gfx/cartesian] dpoint::point_becomes_origin" ) {
+  dpoint const p{ .x = 4.2, .y = 2 };
+  dpoint const arg{ .x = 2, .y = 1 };
+  dpoint       expected{ .x = 2.2, .y = 1 };
+  REQUIRE( p.point_becomes_origin( arg ) == expected );
+}
+
+TEST_CASE( "[gfx/cartesian] dpoint::origin_becomes_point" ) {
+  dpoint const p{ .x = 4.2, .y = 2 };
+  dpoint const arg{ .x = 2, .y = 1 };
+  dpoint       expected{ .x = 6.2, .y = 3 };
+  REQUIRE( p.origin_becomes_point( arg ) == expected );
 }
 
 /****************************************************************
@@ -550,6 +578,24 @@ TEST_CASE( "[gfx/cartesian] rect::operator{*,/}( double )" ) {
                           .size   = { .w = 3, .h = 3 } } );
 }
 
+TEST_CASE( "[gfx/cartesian] rect::point_becomes_origin" ) {
+  rect const  r{ .origin = { .x = 4, .y = 2 },
+                 .size   = { .w = 7, .h = 8 } };
+  point const arg{ .x = 2, .y = 1 };
+  rect        expected{ .origin = { .x = 2, .y = 1 },
+                        .size   = { .w = 7, .h = 8 } };
+  REQUIRE( r.point_becomes_origin( arg ) == expected );
+}
+
+TEST_CASE( "[gfx/cartesian] rect::origin_becomes_point" ) {
+  rect const  r{ .origin = { .x = 4, .y = 2 },
+                 .size   = { .w = 7, .h = 8 } };
+  point const arg{ .x = 2, .y = 1 };
+  rect        expected{ .origin = { .x = 6, .y = 3 },
+                        .size   = { .w = 7, .h = 8 } };
+  REQUIRE( r.origin_becomes_point( arg ) == expected );
+}
+
 /****************************************************************
 ** drect
 *****************************************************************/
@@ -685,6 +731,26 @@ TEST_CASE( "[gfx/cartesian] drect::operator{*,/}( double )" ) {
                            .size   = { .w = 12, .h = 14 } } );
   REQUIRE( r / 2 == drect{ .origin = { .x = 1.5, .y = 2 },
                            .size   = { .w = 3, .h = 3.5 } } );
+}
+
+TEST_CASE( "[gfx/cartesian] drect::point_becomes_origin" ) {
+  drect const  r{ .origin = { .x = 4.2, .y = 2 },
+                  .size   = { .w = 7.2, .h = 8 } };
+  dpoint const arg{ .x = 2.1, .y = 1 };
+  drect        expected{ .origin = { .x = 2.1, .y = 1 },
+                         .size   = { .w = 7.2, .h = 8 } };
+  REQUIRE( r.point_becomes_origin( arg ) == expected );
+}
+
+TEST_CASE( "[gfx/cartesian] drect::origin_becomes_point" ) {
+  drect const  r{ .origin = { .x = 4.2, .y = 2 },
+                  .size   = { .w = 7.2, .h = 8 } };
+  dpoint const arg{ .x = 2.1, .y = 1 };
+  drect const  res = r.origin_becomes_point( arg );
+  REQUIRE( res.origin.x == 6.3_a );
+  REQUIRE( res.origin.y == 3_a );
+  REQUIRE( res.size.w == 7.2_a );
+  REQUIRE( res.size.h == 8_a );
 }
 
 /****************************************************************

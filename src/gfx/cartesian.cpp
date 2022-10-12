@@ -90,6 +90,14 @@ point point::moved_left( int by ) const {
   return point{ .x = x - by, .y = y };
 }
 
+point point::point_becomes_origin( point p ) const {
+  return point{ .x = x - p.x, .y = y - p.y };
+}
+
+point point::origin_becomes_point( point p ) const {
+  return point{ .x = x + p.x, .y = y + p.y };
+}
+
 void point::operator+=( size const s ) {
   x += s.w;
   y += s.h;
@@ -152,6 +160,12 @@ dpoint dpoint::operator/( double scale ) const {
   return res;
 }
 
+dpoint dpoint::point_becomes_origin( dpoint p ) const {
+  return dpoint{ .x = x - p.x, .y = y - p.y };
+}
+
+dpoint dpoint::origin_becomes_point( dpoint p ) const {
+  return dpoint{ .x = x + p.x, .y = y + p.y };
 }
 
 /****************************************************************
@@ -259,6 +273,16 @@ point rect::center() const {
       .x = origin.x + size.w / 2,
       .y = origin.y + size.h / 2,
   };
+}
+
+rect rect::point_becomes_origin( point p ) const {
+  return rect{ .origin = origin.point_becomes_origin( p ),
+               .size   = size };
+}
+
+rect rect::origin_becomes_point( point p ) const {
+  return rect{ .origin = origin.origin_becomes_point( p ),
+               .size   = size };
 }
 
 rect rect::operator*( int scale ) const {
@@ -371,6 +395,16 @@ drect drect::normalized() const {
 rect drect::truncated() const {
   return rect{ .origin = origin.truncated(),
                .size   = size.truncated() };
+}
+
+drect drect::point_becomes_origin( dpoint p ) const {
+  return drect{ .origin = origin.point_becomes_origin( p ),
+                .size   = size };
+}
+
+drect drect::origin_becomes_point( dpoint p ) const {
+  return drect{ .origin = origin.origin_becomes_point( p ),
+                .size   = size };
 }
 
 drect drect::operator*( double scale ) const {
