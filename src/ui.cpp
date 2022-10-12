@@ -42,8 +42,10 @@ bool Object::input( input::event_t const& event ) {
       auto& val = event.get<input::mouse_button_event_t>();
       return on_mouse_button( val );
     }
-    case input::e_input_event::mouse_drag_event: //
-      return false;
+    case input::e_input_event::mouse_drag_event: {
+      auto& val = event.get<input::mouse_drag_event_t>();
+      return on_mouse_drag( val );
+    }
   }
 }
 
@@ -58,6 +60,11 @@ bool Object::on_wheel(
 
 bool Object::on_mouse_move(
     input::mouse_move_event_t const& /*unused*/ ) {
+  return false;
+}
+
+bool Object::on_mouse_drag(
+    input::mouse_drag_event_t const& /*unused*/ ) {
   return false;
 }
 

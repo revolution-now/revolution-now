@@ -89,13 +89,24 @@ class Object {
   ** Input handlers
   ***************************************************************/
   ND virtual bool on_key( input::key_event_t const& event );
+
   ND virtual bool on_wheel(
       input::mouse_wheel_event_t const& event );
+
   ND virtual bool on_mouse_move(
       input::mouse_move_event_t const& event );
+
+  // This is for when you want to receive raw drag events, which
+  // is sometimes but not always. E.g., the drag-and-drop frame-
+  // work will receive these so that you don't have to directly.
+  ND virtual bool on_mouse_drag(
+      input::mouse_drag_event_t const& event );
+
   ND virtual bool on_mouse_button(
       input::mouse_button_event_t const& event );
+
   virtual void on_mouse_leave( Coord from );
+
   virtual void on_mouse_enter( Coord to );
 
   ND virtual bool on_win_event(
