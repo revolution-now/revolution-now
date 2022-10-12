@@ -106,6 +106,40 @@ TEST_CASE( "[gfx/cartesian] point::moved_left" ) {
   REQUIRE( p.moved_left( 2 ) == point{ .x = 2, .y = 2 } );
 }
 
+TEST_CASE( "[gfx/cartesian] point::clamped" ) {
+  rect const r{ .origin = { .x = 3, .y = 4 },
+                .size   = { .w = 2, .h = 3 } };
+  point      p, ex;
+
+  p  = { .x = 3, .y = 4 };
+  ex = { .x = 3, .y = 4 };
+  REQUIRE( p.clamped( r ) == ex );
+
+  p  = { .x = 2, .y = 4 };
+  ex = { .x = 3, .y = 4 };
+  REQUIRE( p.clamped( r ) == ex );
+
+  p  = { .x = 2, .y = 3 };
+  ex = { .x = 3, .y = 4 };
+  REQUIRE( p.clamped( r ) == ex );
+
+  p  = { .x = 4, .y = 1 };
+  ex = { .x = 4, .y = 4 };
+  REQUIRE( p.clamped( r ) == ex );
+
+  p  = { .x = 4, .y = 10 };
+  ex = { .x = 4, .y = 7 };
+  REQUIRE( p.clamped( r ) == ex );
+
+  p  = { .x = 10, .y = 6 };
+  ex = { .x = 5, .y = 6 };
+  REQUIRE( p.clamped( r ) == ex );
+
+  p  = { .x = 10, .y = 10 };
+  ex = { .x = 5, .y = 7 };
+  REQUIRE( p.clamped( r ) == ex );
+}
+
 TEST_CASE( "[gfx/cartesian] operator+=( size )" ) {
   point      p{ .x = 4, .y = 2 };
   size const s{ .w = 5, .h = 1 };

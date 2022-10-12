@@ -98,6 +98,15 @@ point point::origin_becomes_point( point p ) const {
   return point{ .x = x + p.x, .y = y + p.y };
 }
 
+point point::clamped( rect const& r ) const {
+  point res = *this;
+  if( y < r.origin.y ) res.y = r.origin.y;
+  if( y > r.origin.y + r.size.h ) res.y = r.origin.y + r.size.h;
+  if( x < r.origin.x ) res.x = r.origin.x;
+  if( x > r.origin.x + r.size.w ) res.x = r.origin.x + r.size.w;
+  return res;
+}
+
 void point::operator+=( size const s ) {
   x += s.w;
   y += s.h;

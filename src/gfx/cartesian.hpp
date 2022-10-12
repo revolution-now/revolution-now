@@ -21,6 +21,8 @@
 
 namespace gfx {
 
+struct rect;
+
 /****************************************************************
 ** size
 *****************************************************************/
@@ -87,6 +89,11 @@ struct point {
 
   point point_becomes_origin( point p ) const;
   point origin_becomes_point( point p ) const;
+
+  // If this point is outside the rect then it will be brought
+  // into the rect by traveling in precisely one straight line in
+  // each direction (or possibly only one direction).
+  point clamped( rect const& r ) const;
 
   bool operator==( point const& ) const = default;
 
