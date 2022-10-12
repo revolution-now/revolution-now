@@ -47,7 +47,7 @@ function M.default_options()
     -- 25% on normal map generation settings. However we will put
     -- the average slightly lower because it tends to end up
     -- slightly higher than the target.
-    land_density = math.random()*.20 + .10,
+    land_density = math.random()*.23 + .05,
     remove_Xs=true,
     brush='rand',
     -- This is the probability that, given a land square, we will
