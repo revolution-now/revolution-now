@@ -16,8 +16,52 @@ using namespace std;
 
 namespace gfx {
 
+namespace {
+
 using ::base::maybe;
 using ::base::nothing;
+
+template<typename R>
+R rect_clamped( R const src, R const bounds ) {
+  static const decltype( std::declval<R>().origin.x ) zero{};
+
+  R res = src;
+  if( bounds.size.w == 0 ) {
+    res.origin.x = bounds.origin.x;
+    res.size.w   = 0;
+  } else {
+    if( res.origin.x < bounds.origin.x ) {
+      res.size.w -= ( bounds.origin.x - res.origin.x );
+      res.size.w   = std::max( zero, res.size.w );
+      res.origin.x = bounds.origin.x;
+    }
+    if( res.origin.x >= bounds.right() ) {
+      res.size.w += ( res.origin.x - bounds.right() );
+      res.origin.x = bounds.right();
+    }
+    if( res.right() > bounds.right() )
+      res.size.w = bounds.right() - res.origin.x;
+  }
+  if( bounds.size.h == 0 ) {
+    res.origin.y = bounds.origin.y;
+    res.size.h   = 0;
+  } else {
+    if( res.origin.y < bounds.origin.y ) {
+      res.size.h -= ( bounds.origin.y - res.origin.y );
+      res.size.h   = std::max( zero, res.size.h );
+      res.origin.y = bounds.origin.y;
+    }
+    if( res.origin.y >= bounds.bottom() ) {
+      res.size.h += ( res.origin.y - bounds.bottom() );
+      res.origin.y = bounds.bottom();
+    }
+    if( res.bottom() > bounds.bottom() )
+      res.size.h = bounds.bottom() - res.origin.y;
+  }
+  return res;
+}
+
+} // namespace
 
 /****************************************************************
 ** size
@@ -278,6 +322,10 @@ maybe<rect> rect::clipped_by( rect const other ) const {
   return res;
 }
 
+rect rect::clamped( rect bounds ) const {
+  return rect_clamped( *this, bounds );
+}
+
 rect rect::with_origin( point const p ) const {
   rect res   = *this;
   res.origin = p;
@@ -411,6 +459,10 @@ drect drect::normalized() const {
 rect drect::truncated() const {
   return rect{ .origin = origin.truncated(),
                .size   = size.truncated() };
+}
+
+drect drect::clamped( drect bounds ) const {
+  return rect_clamped( *this, bounds );
 }
 
 drect drect::point_becomes_origin( dpoint p ) const {

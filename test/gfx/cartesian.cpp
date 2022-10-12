@@ -582,6 +582,109 @@ TEST_CASE( "[gfx/cartesian] rect::clipped_by" ) {
   REQUIRE( r1.clipped_by( r2 ) == expected );
 }
 
+TEST_CASE( "[gfx/cartesian] rect::clamped" ) {
+  rect r, bounds, expected;
+
+  r = { .origin = { .x = 4, .y = 2 },
+        .size   = { .w = 7, .h = 4 } };
+
+  bounds   = { .origin = { .x = 6, .y = 3 },
+               .size   = { .w = 13, .h = 5 } };
+  expected = { .origin = { .x = 6, .y = 3 },
+               .size   = { .w = 5, .h = 3 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 6, .y = 3 },
+               .size   = { .w = 2, .h = 3 } };
+  expected = { .origin = { .x = 6, .y = 3 },
+               .size   = { .w = 2, .h = 3 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 5, .y = 1 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 5, .y = 2 },
+               .size   = { .w = 6, .h = 3 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 3, .y = 3 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 3 },
+               .size   = { .w = 6, .h = 3 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 3, .y = 1 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 6, .h = 3 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 5, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 5, .y = 2 },
+               .size   = { .w = 6, .h = 4 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 10, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 10, .y = 2 },
+               .size   = { .w = 1, .h = 4 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 11, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 11, .y = 2 },
+               .size   = { .w = 0, .h = 4 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 12, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 12, .y = 2 },
+               .size   = { .w = 0, .h = 4 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = -2, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 1, .h = 4 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = -3, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 0, .h = 4 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = -4, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 3, .y = 2 },
+               .size   = { .w = 0, .h = 4 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 4, .y = -1 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 7, .h = 1 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 4, .y = -2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 7, .h = 0 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 4, .y = -3 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 1 },
+               .size   = { .w = 7, .h = 0 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+}
+
 TEST_CASE( "[gfx/cartesian] rect::with_origin" ) {
   rect r{ .origin = { .x = 4, .y = 2 },
           .size   = { .w = 2, .h = 4 } };
@@ -732,6 +835,109 @@ TEST_CASE( "[gfx/cartesian] drect::clipped_by" ) {
       drect{ .origin = { .x = 0, .y = 459.980374966315 },
              .size   = { .w = 1792, .h = 1186.539546539801 } };
   REQUIRE( r1.clipped_by( r2 ) == expected );
+}
+
+TEST_CASE( "[gfx/cartesian] drect::clamped" ) {
+  drect r, bounds, expected;
+
+  r = { .origin = { .x = 4, .y = 2 },
+        .size   = { .w = 7, .h = 4 } };
+
+  bounds   = { .origin = { .x = 6, .y = 3 },
+               .size   = { .w = 13, .h = 5 } };
+  expected = { .origin = { .x = 6, .y = 3 },
+               .size   = { .w = 5, .h = 3 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 6, .y = 3 },
+               .size   = { .w = 2, .h = 3 } };
+  expected = { .origin = { .x = 6, .y = 3 },
+               .size   = { .w = 2, .h = 3 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 5, .y = 1 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 5, .y = 2 },
+               .size   = { .w = 6, .h = 3 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 3, .y = 3 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 3 },
+               .size   = { .w = 6, .h = 3 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 3, .y = 1 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 6, .h = 3 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 5, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 5, .y = 2 },
+               .size   = { .w = 6, .h = 4 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 10, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 10, .y = 2 },
+               .size   = { .w = 1, .h = 4 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 11, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 11, .y = 2 },
+               .size   = { .w = 0, .h = 4 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 12, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 12, .y = 2 },
+               .size   = { .w = 0, .h = 4 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = -2, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 1, .h = 4 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = -3, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 0, .h = 4 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = -4, .y = 2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 3, .y = 2 },
+               .size   = { .w = 0, .h = 4 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 4, .y = -1 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 7, .h = 1 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 4, .y = -2 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 7, .h = 0 } };
+  REQUIRE( r.clamped( bounds ) == expected );
+
+  bounds   = { .origin = { .x = 4, .y = -3 },
+               .size   = { .w = 7, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 1 },
+               .size   = { .w = 7, .h = 0 } };
+  REQUIRE( r.clamped( bounds ) == expected );
 }
 
 TEST_CASE( "[gfx/cartesian] drect::nw, rect::se, etc." ) {

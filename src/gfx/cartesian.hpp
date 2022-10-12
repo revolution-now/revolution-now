@@ -189,6 +189,8 @@ struct rect {
 
   rect normalized() const;
 
+  rect clamped( rect bounds ) const;
+
   point nw() const;
   point ne() const;
   point se() const;
@@ -239,6 +241,8 @@ struct drect {
   double left() const;
 
   rect truncated() const;
+
+  drect clamped( drect bounds ) const;
 
   drect point_becomes_origin( dpoint p ) const;
   drect origin_becomes_point( dpoint p ) const;
