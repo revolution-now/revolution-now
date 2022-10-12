@@ -16,8 +16,8 @@
 #include "error.hpp"
 #include "fathers.hpp"
 #include "gui.hpp" // FIXME
-#include "logger.hpp"
 #include "menu.hpp"
+#include "mini-map.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
@@ -53,6 +53,22 @@ struct PanelPlane::Impl : public Plane {
   wait_promise<>                w_promise;
   MenuPlane::Deregistrar        eot_click_dereg_;
 
+  static Rect rect() {
+    UNWRAP_CHECK( res, compositor::section(
+                           compositor::e_section::panel ) );
+    return res;
+  }
+
+  Rect mini_map_available_rect() const {
+    Rect      mini_map_available_rect = rect();
+    int const kBorder                 = 4;
+    mini_map_available_rect.x += kBorder;
+    mini_map_available_rect.y += kBorder;
+    mini_map_available_rect.w -= kBorder * 2;
+    mini_map_available_rect.h = mini_map_available_rect.w;
+    return mini_map_available_rect;
+  }
+
   Impl( Planes& planes, SS& ss, TS& ts )
     : planes_( planes ), ss_( ss ), ts_( ts ) {
     // Register menu handlers.
@@ -60,6 +76,16 @@ struct PanelPlane::Impl : public Plane {
         e_menu_item::next_turn, *this );
 
     vector<ui::OwningPositionedView> view_vec;
+
+    Rect const mini_map_available = mini_map_available_rect();
+    auto       mini_map           = make_unique<MiniMapView>(
+        ss, ts, mini_map_available.delta() );
+    Coord const mini_map_upper_left =
+        centered( mini_map->delta(), mini_map_available );
+    view_vec.emplace_back( ui::OwningPositionedView{
+        .view  = std::move( mini_map ),
+        .coord = mini_map_upper_left.with_new_origin(
+            rect().upper_left() ) } );
 
     auto button_view =
         make_unique<ui::ButtonView>( "Next Turn", [this] {
@@ -69,10 +95,10 @@ struct PanelPlane::Impl : public Plane {
         } );
     button_view->blink( /*enabled=*/true );
 
-    auto button_size = button_view->delta();
-    auto where = Coord{} + Delta{ .w = ( panel_width() / 2 ) -
-                                       ( button_size.w / 2 ) };
-    where += Delta{ .h = 16 };
+    auto  button_size = button_view->delta();
+    Coord where       = centered( button_size, rect() );
+    where.y           = panel_height() - button_size.h * 2;
+    where = Coord{} + ( where - rect().upper_left() );
 
     ui::OwningPositionedView p_view{
         .view = std::move( button_view ), .coord = where };
@@ -86,11 +112,8 @@ struct PanelPlane::Impl : public Plane {
 
   bool covers_screen() const override { return false; }
 
-  static auto rect() {
-    UNWRAP_CHECK( res, compositor::section(
-                           compositor::e_section::panel ) );
-    return res;
-  }
+  void advance_state() override { view->advance_state(); }
+
   static W panel_width() { return rect().w; }
   static H panel_height() { return rect().h; }
 
@@ -100,7 +123,7 @@ struct PanelPlane::Impl : public Plane {
   Coord origin() const { return rect().upper_left(); };
 
   ui::ButtonView& next_turn_button() const {
-    auto p_view = view->at( 0 );
+    auto p_view = view->at( 1 );
     return *p_view.view->cast<ui::ButtonView>();
   }
 
@@ -149,8 +172,11 @@ struct PanelPlane::Impl : public Plane {
     rr::Painter painter = renderer.painter();
     tile_sprite( painter, e_tile::wood_middle, rect() );
     view->draw( renderer, origin() );
+
+    Rect const mini_map_rect = mini_map_available_rect();
+
     Coord p =
-        rect().upper_left() + Delta{ .h = 44 } + Delta{ .w = 8 };
+        mini_map_rect.lower_left() + Delta{ .w = 8, .h = 8 };
     draw_some_stats( renderer, p );
   }
 
@@ -159,7 +185,14 @@ struct PanelPlane::Impl : public Plane {
     // plicating logic between here and the window module.
     if( input::is_mouse_event( event ) ) {
       UNWRAP_CHECK( pos, input::mouse_position( event ) );
-      if( pos.is_inside( rect() ) ) {
+      // Normally we require that the cursor be over this view to
+      // send input events, but the one exception is for drag
+      // events. If we are receiving a drag event here that means
+      // that we started within this view, and so (for a smooth
+      // UX) we allow the subsequent drag events to be received
+      // even if the cursor runs out of this view in the process.
+      if( pos.is_inside( rect() ) ||
+          event.holds<input::mouse_drag_event_t>() ) {
         auto new_event =
             move_mouse_origin_by( event, origin() - Coord{} );
         (void)view->input( new_event );
@@ -169,6 +202,17 @@ struct PanelPlane::Impl : public Plane {
     } else
       return view->input( event ) ? e_input_handled::yes
                                   : e_input_handled::no;
+  }
+
+  // Override Plane.
+  e_accept_drag can_drag( input::e_mouse_button,
+                          Coord origin ) override {
+    if( !origin.is_inside( rect() ) ) return e_accept_drag::no;
+    // We're doing this so that the minimap can handle dragging
+    // without adding the special drag methods to the interface.
+    // If we need to change this then we will need to fix the
+    // minimap.
+    return e_accept_drag::yes_but_raw;
   }
 
   wait<> user_hits_eot_button() {
