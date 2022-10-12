@@ -139,6 +139,7 @@ struct dpoint {
   bool operator==( dpoint const& ) const = default;
 };
 
+dpoint to_double( point p );
 
 /****************************************************************
 ** rect

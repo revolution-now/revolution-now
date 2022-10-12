@@ -128,6 +128,13 @@ dsize dpoint::fmod( double d ) const {
   return dsize{ .w = std::fmod( x, d ), .h = std::fmod( y, d ) };
 }
 
+dpoint to_double( point p ) {
+  return dpoint{
+      .x = double( p.x ),
+      .y = double( p.y ),
+  };
+}
+
 void dpoint::operator+=( dsize s ) {
   x += s.w;
   y += s.h;
