@@ -13,7 +13,10 @@ local M = {}
 
 local U = require( 'test.unit' )
 
-local files = { 'map-gen.classic.resource-dist' }
+local files = {
+  'map-gen.classic.resource-dist',
+  'map-gen.classic.terrain-weights'
+}
 
 local function bar()
   print( '-----------------------------------------------' )
