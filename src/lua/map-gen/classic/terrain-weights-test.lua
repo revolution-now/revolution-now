@@ -9,7 +9,7 @@
 | Description:  Unit tests for terrain ground type weights.
 |
 --]] ------------------------------------------------------------
-local dist = require( 'map-gen.classic.terrain-weights' )
+local W = require( 'map-gen.classic.terrain-weights' )
 
 local U = require( 'test.unit' )
 local ASSERT_EQ = U.ASSERT_EQ
