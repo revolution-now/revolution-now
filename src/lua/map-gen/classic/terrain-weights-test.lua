@@ -16,9 +16,6 @@ local ASSERT_EQ = U.ASSERT_EQ
 
 local Test = U.new_test_pack()
 
--- Map size in original game.
-local MAP_SIZE = { w=56, h=70 }
-
 local function validate_weights( weights, expected )
   ASSERT_EQ( #weights, #expected,
              'lengths of result and expected result' )
