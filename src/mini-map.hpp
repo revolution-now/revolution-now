@@ -46,7 +46,9 @@ struct MiniMap {
 
   void zoom_out();
 
-  void center_box_on_tile( Coord where );
+  void center_box_on_tile( gfx::point where );
+
+  void center_map_on_tile( gfx::point where );
 
   void drag_map( Delta mouse_delta );
 
@@ -62,6 +64,10 @@ struct MiniMap {
   maybe<gfx::point> tile_under_cursor( gfx::point p ) const;
 
   gfx::drect tiles_visible_on_minimap() const;
+
+  // Returns true if the given tile is at least partially visible
+  // on the minimap.
+  bool tile_visible_on_minimap( gfx::point tile ) const;
 
   // This gives the upper left map tile that is currently on the
   // minimap.

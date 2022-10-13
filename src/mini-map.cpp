@@ -35,6 +35,8 @@ namespace rn {
 
 namespace {
 
+double const kSpeed = 3;
+
 int constexpr kPixelsPerPoint = 2;
 
 gfx::pixel parse_color( string_view hex ) {
@@ -96,6 +98,29 @@ gfx::pixel color_for_square( MapSquare const& square ) {
 /****************************************************************
 ** MiniMap
 *****************************************************************/
+void MiniMap::fix_invariants() {
+  // These two won't change as we make changes.
+  gfx::drect const world =
+      gfx::to_double( ss_.terrain.world_rect_tiles().to_gfx() );
+  MiniMapState& minimap = ss_.land_view.minimap;
+
+  // This one needs to be recomputed each time we change the
+  // mini-map origin and then again look at the same coordinate.
+  // We don't have to recompute it between examinations or x and
+  // y dimensions though.
+  gfx::drect visible = tiles_visible_on_minimap();
+  if( visible.left() < world.left() )
+    minimap.origin.x = world.origin.x;
+  if( visible.top() < world.top() )
+    minimap.origin.y = world.origin.y;
+
+  visible = tiles_visible_on_minimap();
+  if( visible.right() > world.right() )
+    minimap.origin.x -= ( visible.right() - world.right() );
+  if( visible.bottom() > world.bottom() )
+    minimap.origin.y -= ( visible.bottom() - world.bottom() );
+}
+
 MiniMap::MiniMap( SS& ss, Delta available_size ) : ss_( ss ) {
   SCOPE_EXIT( fix_invariants() );
   // Compute pixels_occupied_.
@@ -124,12 +149,19 @@ void MiniMap::zoom_out() {
   viewport.set_zoom_push( e_push_direction::negative, nothing );
 }
 
-void MiniMap::center_box_on_tile( Coord where ) {
+void MiniMap::center_box_on_tile( gfx::point where ) {
   SCOPE_EXIT( fix_invariants() );
   SmoothViewport&         viewport = ss_.land_view.viewport;
   maybe<gfx::point> const tile     = tile_under_cursor( where );
   if( !tile.has_value() ) return;
   viewport.center_on_tile( Coord::from_gfx( *tile ) );
+}
+
+void MiniMap::center_map_on_tile( gfx::point where ) {
+  SCOPE_EXIT( fix_invariants() );
+  ss_.land_view.minimap.origin =
+      gfx::to_double( where ) -
+      tiles_visible_on_minimap().size / 2;
 }
 
 void MiniMap::drag_map( Delta mouse_delta ) {
@@ -139,8 +171,6 @@ void MiniMap::drag_map( Delta mouse_delta ) {
   viewport.stop_auto_panning();
   gfx::drect const world =
       gfx::to_double( ss_.terrain.world_rect_tiles().to_gfx() );
-  gfx::drect const white_box =
-      fractional_tiles_inside_white_box();
 
   ss_.land_view.minimap.origin -=
       gfx::to_double( mouse_delta.to_gfx() ) / kPixelsPerPoint;
@@ -148,27 +178,74 @@ void MiniMap::drag_map( Delta mouse_delta ) {
   // Needs to be computed after changing the origin.
   gfx::drect const visible = tiles_visible_on_minimap();
 
+  // Needs to be recomputed after each viewport change.
+  gfx::drect white_box = fractional_tiles_inside_white_box();
+
   // This is what makes the viewport (white box) change position
   // when we are dragging the mini-map and it pushes the white
   // box up against the edge while there is still more mini-map
   // to scroll. If we didn't do this, then the mini-map would
   // stop panning when the white box's edges hit the edges of the
   // mini-map.
-  if( white_box.left() < visible.left() &&
-      visible.right() < world.right() )
-    ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
-        .w = -( white_box.left() - visible.left() ) * 32 } );
-  if( white_box.top() < visible.top() &&
-      visible.bottom() < world.bottom() )
-    ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
-        .h = -( white_box.top() - visible.top() ) * 32 } );
-  if( white_box.right() > visible.right() && visible.left() > 0 )
-    ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
-        .w = -( white_box.right() - visible.right() ) * 32 } );
-  if( white_box.bottom() > visible.bottom() &&
-      visible.top() > 0 )
-    ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
-        .h = -( white_box.bottom() - visible.bottom() ) * 32 } );
+
+  auto left = [&] {
+    if( white_box.left() < visible.left() &&
+        visible.right() <= world.right() &&
+        white_box.right() <= visible.right() ) {
+      ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
+          .w = -( white_box.left() - visible.left() ) * 32 } );
+      white_box = fractional_tiles_inside_white_box();
+    }
+  };
+
+  auto right = [&] {
+    if( white_box.right() > visible.right() &&
+        visible.left() >= 0 &&
+        white_box.left() >= visible.left() ) {
+      ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
+          .w = -( white_box.right() - visible.right() ) * 32 } );
+      white_box = fractional_tiles_inside_white_box();
+    }
+  };
+
+  auto top = [&] {
+    if( white_box.top() < visible.top() &&
+        visible.bottom() <= world.bottom() &&
+        white_box.bottom() <= visible.bottom() ) {
+      ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
+          .h = -( white_box.top() - visible.top() ) * 32 } );
+      white_box = fractional_tiles_inside_white_box();
+    }
+  };
+
+  auto bottom = [&] {
+    if( white_box.bottom() > visible.bottom() &&
+        visible.top() >= 0 &&
+        white_box.top() >= visible.top() ) {
+      ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
+          .h = -( white_box.bottom() - visible.bottom() ) *
+               32 } );
+      white_box = fractional_tiles_inside_white_box();
+    }
+  };
+
+  if( mouse_delta.w < 0 ) {
+    left();
+    right();
+  }
+  if( mouse_delta.w > 0 ) {
+    right();
+    left();
+  }
+
+  if( mouse_delta.h < 0 ) {
+    top();
+    bottom();
+  }
+  if( mouse_delta.h > 0 ) {
+    bottom();
+    top();
+  }
 }
 
 void MiniMap::drag_box( Delta mouse_delta ) {
@@ -214,6 +291,12 @@ gfx::drect MiniMap::tiles_visible_on_minimap() const {
   return visible;
 }
 
+bool MiniMap::tile_visible_on_minimap( gfx::point tile ) const {
+  gfx::rect const visible_rect =
+      tiles_visible_on_minimap().truncated();
+  return tile.is_inside( visible_rect );
+}
+
 gfx::dpoint MiniMap::upper_left_visible_tile() const {
   return ss_.land_view.minimap.origin;
 }
@@ -222,52 +305,62 @@ gfx::drect MiniMap::fractional_tiles_inside_white_box() const {
   return ss_.land_view.viewport.covered_pixels() / 32.0;
 }
 
-void MiniMap::fix_invariants() {
-  // These two won't change as we make changes.
-  gfx::drect const world =
-      gfx::to_double( ss_.terrain.world_rect_tiles().to_gfx() );
-  gfx::drect const covered = fractional_tiles_inside_white_box();
+void MiniMap::update() {
+  SCOPE_EXIT( fix_invariants() );
+  MiniMapState&         minimap  = ss_.land_view.minimap;
+  SmoothViewport const& viewport = ss_.land_view.viewport;
+  gfx::point const      viewport_center =
+      viewport.covered_tiles().center();
+  gfx::drect visible = tiles_visible_on_minimap();
+  gfx::drect covered = fractional_tiles_inside_white_box();
 
-  // This one needs to be recomputed each time we change the
-  // mini-map origin and then again look at the same coordinate.
-  // We don't have to recompute it between examinations or x and
-  // y dimensions though.
-  gfx::drect visible;
-
-  visible = tiles_visible_on_minimap();
-  if( visible.left() < world.left() )
-    ss_.land_view.minimap.origin.x = world.origin.x;
-  if( visible.top() < world.top() )
-    ss_.land_view.minimap.origin.y = world.origin.y;
-
-  visible = tiles_visible_on_minimap();
-  if( visible.right() >= world.right() )
-    ss_.land_view.minimap.origin.x -=
-        ( visible.right() - world.right() );
-  if( visible.bottom() >= world.bottom() )
-    ss_.land_view.minimap.origin.y -=
-        ( visible.bottom() - world.bottom() );
-
-  if( covered.size.w <= visible.size.w ) {
-    if( covered.left() < visible.left() )
-      ss_.land_view.minimap.origin.x = covered.origin.x;
-    if( covered.right() > visible.right() )
-      ss_.land_view.minimap.origin.x +=
-          covered.right() - visible.right();
+  // FIXME: this auto panning needs to be made to happen at a
+  // rate that is independent of frame rate. Currently it only
+  // seems to matter on large maps, and so it is not urgent.
+  auto advance = [&]( double& from, double const to ) {
+    double const speed = ( to >= from ) ? kSpeed : -kSpeed;
+    from += speed;
+    if( speed >= 0 )
+      from = std::min( from, to );
+    else
+      from = std::max( from, to );
+    fix_invariants();
     visible = tiles_visible_on_minimap();
+    covered = fractional_tiles_inside_white_box();
+  };
+
+  if( !tile_visible_on_minimap( viewport_center ) ) {
+    gfx::dpoint const target_origin =
+        gfx::to_double( viewport_center ) -
+        tiles_visible_on_minimap().size / 2;
+    if( target_origin.x > minimap.origin.x )
+      advance( minimap.origin.x, target_origin.x );
+    if( target_origin.x < minimap.origin.x )
+      advance( minimap.origin.x, target_origin.x );
+    if( target_origin.y > minimap.origin.y )
+      advance( minimap.origin.y, target_origin.y );
+    if( target_origin.y < minimap.origin.y )
+      advance( minimap.origin.y, target_origin.y );
   }
 
-  if( covered.size.h <= visible.size.h ) {
-    if( covered.top() < visible.top() )
-      ss_.land_view.minimap.origin.y = covered.origin.y;
-    if( covered.bottom() > visible.bottom() )
-      ss_.land_view.minimap.origin.y +=
-          covered.bottom() - visible.bottom();
-    visible = tiles_visible_on_minimap();
-  }
+  if( covered.left() < visible.left() &&
+      covered.right() < visible.right() )
+    advance( minimap.origin.x, covered.origin.x );
+  if( covered.right() > visible.right() &&
+      covered.left() > visible.left() )
+    advance( minimap.origin.x,
+             minimap.origin.x +
+                 ( covered.right() - visible.right() ) );
+
+  if( covered.top() < visible.top() &&
+      covered.bottom() < visible.bottom() )
+    advance( minimap.origin.y, covered.origin.y );
+  if( covered.bottom() > visible.bottom() &&
+      covered.top() > visible.top() )
+    advance( minimap.origin.y,
+             minimap.origin.y +
+                 ( covered.bottom() - visible.bottom() ) );
 }
-
-void MiniMap::update() { fix_invariants(); }
 
 /****************************************************************
 ** MiniMapView
