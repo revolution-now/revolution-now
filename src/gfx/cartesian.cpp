@@ -151,6 +151,12 @@ point point::clamped( rect const& r ) const {
   return res;
 }
 
+bool point::is_inside( rect const& r ) const {
+  return ( x >= r.origin.x ) && ( y >= r.origin.y ) &&
+         ( x < r.origin.x + r.size.w ) &&
+         ( y < r.origin.y + r.size.h );
+}
+
 void point::operator+=( size const s ) {
   x += s.w;
   y += s.h;
@@ -226,6 +232,21 @@ dpoint dpoint::point_becomes_origin( dpoint p ) const {
 
 dpoint dpoint::origin_becomes_point( dpoint p ) const {
   return dpoint{ .x = x + p.x, .y = y + p.y };
+}
+
+dpoint dpoint::clamped( drect const& r ) const {
+  dpoint res = *this;
+  if( y < r.origin.y ) res.y = r.origin.y;
+  if( y > r.origin.y + r.size.h ) res.y = r.origin.y + r.size.h;
+  if( x < r.origin.x ) res.x = r.origin.x;
+  if( x > r.origin.x + r.size.w ) res.x = r.origin.x + r.size.w;
+  return res;
+}
+
+bool dpoint::is_inside( drect const& r ) const {
+  return ( x >= r.origin.x ) && ( y >= r.origin.y ) &&
+         ( x < r.origin.x + r.size.w ) &&
+         ( y < r.origin.y + r.size.h );
 }
 
 /****************************************************************

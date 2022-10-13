@@ -140,6 +140,49 @@ TEST_CASE( "[gfx/cartesian] point::clamped" ) {
   REQUIRE( p.clamped( r ) == ex );
 }
 
+TEST_CASE( "[gfx/cartesian] point::is_inside" ) {
+  rect const r{ .origin = { .x = 3, .y = 4 },
+                .size   = { .w = 2, .h = 3 } };
+  point      p;
+  bool       ex = {};
+
+  p  = { .x = 3, .y = 4 };
+  ex = true;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 4, .y = 5 };
+  ex = true;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 2, .y = 4 };
+  ex = false;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 2, .y = 3 };
+  ex = false;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 4, .y = 1 };
+  ex = false;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 4, .y = 10 };
+  ex = false;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 4, .y = 6 };
+  ex = true;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 4, .y = 7 };
+  ex = false;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 10, .y = 10 };
+  ex = false;
+  REQUIRE( p.is_inside( r ) == ex );
+}
+
 TEST_CASE( "[gfx/cartesian] operator+=( size )" ) {
   point      p{ .x = 4, .y = 2 };
   size const s{ .w = 5, .h = 1 };
@@ -190,6 +233,91 @@ TEST_CASE( "[gfx/cartesian] dpoint::fmod" ) {
   // _a is a literal from Catch2 that means "approximately".
   REQUIRE( p.fmod( 2.1 ).w == .2_a );
   REQUIRE( p.fmod( 2.1 ).h == .3_a );
+}
+
+TEST_CASE( "[gfx/cartesian] dpoint::clamped" ) {
+  drect const r{ .origin = { .x = 3.1, .y = 4 },
+                 .size   = { .w = 2, .h = 3.1 } };
+  dpoint      p, ex;
+
+  p  = { .x = 3.1, .y = 4 };
+  ex = { .x = 3.1, .y = 4 };
+  REQUIRE( p.clamped( r ) == ex );
+
+  p  = { .x = 2, .y = 4 };
+  ex = { .x = 3.1, .y = 4 };
+  REQUIRE( p.clamped( r ) == ex );
+
+  p  = { .x = 2, .y = 3 };
+  ex = { .x = 3.1, .y = 4 };
+  REQUIRE( p.clamped( r ) == ex );
+
+  p  = { .x = 4, .y = 1 };
+  ex = { .x = 4, .y = 4 };
+  REQUIRE( p.clamped( r ) == ex );
+
+  p  = { .x = 4, .y = 10 };
+  ex = { .x = 4, .y = 7.1 };
+  REQUIRE( p.clamped( r ) == ex );
+
+  p  = { .x = 10, .y = 6 };
+  ex = { .x = 5.1, .y = 6 };
+  REQUIRE( p.clamped( r ) == ex );
+
+  p  = { .x = 10, .y = 10 };
+  ex = { .x = 5.1, .y = 7.1 };
+  REQUIRE( p.clamped( r ) == ex );
+}
+
+TEST_CASE( "[gfx/cartesian] dpoint::is_inside" ) {
+  drect const r{ .origin = { .x = 3.1, .y = 4 },
+                 .size   = { .w = 2, .h = 3.1 } };
+  dpoint      p;
+  bool        ex = {};
+
+  p  = { .x = 3, .y = 4 };
+  ex = false;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 3.1, .y = 4 };
+  ex = true;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 4, .y = 5 };
+  ex = true;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 2, .y = 4 };
+  ex = false;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 2, .y = 3 };
+  ex = false;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 4, .y = 1 };
+  ex = false;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 4, .y = 10 };
+  ex = false;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 4, .y = 6 };
+  ex = true;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 4, .y = 7 };
+  ex = true;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 4, .y = 7.1 };
+  ex = false;
+  REQUIRE( p.is_inside( r ) == ex );
+
+  p  = { .x = 10, .y = 10 };
+  ex = false;
+  REQUIRE( p.is_inside( r ) == ex );
 }
 
 TEST_CASE( "[gfx/cartesian] dpoint::operator+=( dsize )" ) {

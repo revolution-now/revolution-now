@@ -21,6 +21,7 @@
 
 namespace gfx {
 
+struct drect;
 struct rect;
 
 /****************************************************************
@@ -95,6 +96,8 @@ struct point {
   // each direction (or possibly only one direction).
   point clamped( rect const& r ) const;
 
+  bool is_inside( rect const& r ) const;
+
   bool operator==( point const& ) const = default;
 
   void operator+=( size const s );
@@ -123,6 +126,10 @@ struct dpoint {
   point truncated() const {
     return point{ .x = int( x ), .y = int( y ) };
   }
+
+  dpoint clamped( drect const& r ) const;
+
+  bool is_inside( drect const& r ) const;
 
   dpoint point_becomes_origin( dpoint p ) const;
   dpoint origin_becomes_point( dpoint p ) const;
