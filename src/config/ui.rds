@@ -23,22 +23,22 @@ include "refl/cdr.hpp"
 # Cdr.
 include "cdr/ext-builtin.hpp"
 
-namespace "rn"
+namespace "rn.config.ui"
 
-struct.config_ui_window {
+struct.window {
   border_width 'int',
   window_padding 'int',
   border_color 'gfx::pixel',
   ui_padding 'int',
 }
 
-struct.config_ui_dialog_text {
+struct.dialog_text {
   normal 'gfx::pixel',
   highlighted 'gfx::pixel',
   columns 'int',
 }
 
-struct.config_ui_menus {
+struct.menus {
   first_menu_start_x_offset 'int',
   item_vertical_padding 'int',
   padding_x 'int',
@@ -48,15 +48,25 @@ struct.config_ui_menus {
   menu_bar_height 'int',
 }
 
-struct.config_ui_console {
+struct.console {
   default_location 'compositor::e_composite_location',
+
+  # How high (or wide, depending on location) is the console in
+  # percentage of the screen's size along that dimension. E.g. if
+  # the console is at the bottom of the screen and this number is
+  # .25 then that would make it cover 1/4 of the screen's height.
+  size_percentage 'double',
+
+  _features { equality, validation }
 }
 
+namespace "rn"
+
 struct.config_ui_t {
-  window 'config_ui_window',
-  dialog_text 'config_ui_dialog_text',
-  menus 'config_ui_menus',
-  console 'config_ui_console',
+  window 'config::ui::window',
+  dialog_text 'config::ui::dialog_text',
+  menus 'config::ui::menus',
+  console 'config::ui::console',
 }
 
 config.ui {}

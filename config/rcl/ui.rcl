@@ -23,4 +23,10 @@ menus {
 
 console {
   default_location: bottom
+
+  # How high (or wide, depending on location) is the console in
+  # percentage of the screen's size along that dimension. E.g. if
+  # the console is at the bottom of the screen and this number is
+  # .25 then that would make it cover 1/4 of the screen's height.
+  size_percentage: .25
 }

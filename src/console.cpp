@@ -24,6 +24,7 @@
 
 // config
 #include "config/rn.rds.hpp"
+#include "config/ui.rds.hpp"
 
 // gfx
 #include "gfx/coord.hpp"
@@ -106,7 +107,7 @@ struct ConsolePlane::Impl : public Plane {
         divider_rect.h = kDividerHeight;
         divider_rect.y = console_rect.top_edge();
         console_rect   = console_rect.with_new_top_edge(
-              console_rect.top_edge() + kDividerHeight );
+            console_rect.top_edge() + kDividerHeight );
       }
     }
     if( console_rect.w < total_area.w ) {
@@ -122,7 +123,7 @@ struct ConsolePlane::Impl : public Plane {
         divider_rect.w = kDividerWidth;
         divider_rect.x = console_rect.left_edge();
         console_rect   = console_rect.with_new_left_edge(
-              console_rect.left_edge() + kDividerWidth );
+            console_rect.left_edge() + kDividerWidth );
       }
     }
 
@@ -271,7 +272,9 @@ struct ConsolePlane::Impl : public Plane {
                : e_input_handled::no;
   }
 
-  double console_height() const { return show_percent_ * .25; }
+  double console_height() const {
+    return show_percent_ * config_ui.console.size_percentage;
+  }
 
   bool is_mouse_over_rect( Rect rect ) const {
     return input::current_mouse_position().is_inside( rect );
