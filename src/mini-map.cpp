@@ -183,8 +183,7 @@ void MiniMap::drag_map( Delta mouse_delta ) {
   // would just run off of the mini-map.
 
   auto left = [&] {
-    if( white_box.left() < visible.left() &&
-        white_box.right() <= visible.right() ) {
+    if( white_box.left() < visible.left() ) {
       ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
           .w = -( white_box.left() - visible.left() ) * 32 } );
       white_box = fractional_tiles_inside_white_box();
@@ -192,8 +191,7 @@ void MiniMap::drag_map( Delta mouse_delta ) {
   };
 
   auto right = [&] {
-    if( white_box.right() > visible.right() &&
-        white_box.left() >= visible.left() ) {
+    if( white_box.right() > visible.right() ) {
       ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
           .w = -( white_box.right() - visible.right() ) * 32 } );
       white_box = fractional_tiles_inside_white_box();
@@ -201,8 +199,7 @@ void MiniMap::drag_map( Delta mouse_delta ) {
   };
 
   auto top = [&] {
-    if( white_box.top() < visible.top() &&
-        white_box.bottom() <= visible.bottom() ) {
+    if( white_box.top() < visible.top() ) {
       ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
           .h = -( white_box.top() - visible.top() ) * 32 } );
       white_box = fractional_tiles_inside_white_box();
@@ -210,8 +207,7 @@ void MiniMap::drag_map( Delta mouse_delta ) {
   };
 
   auto bottom = [&] {
-    if( white_box.bottom() > visible.bottom() &&
-        white_box.top() >= visible.top() ) {
+    if( white_box.bottom() > visible.bottom() ) {
       ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
           .h = -( white_box.bottom() - visible.bottom() ) *
                32 } );
