@@ -37,6 +37,9 @@ namespace {
 
 int constexpr kPixelsPerPoint = 2;
 
+// Used to implement <= and >= on doubles below.
+double const kEp = .0001;
+
 gfx::pixel parse_color( string_view hex ) {
   UNWRAP_CHECK_MSG( res, gfx::pixel::parse_from_hex( hex ),
                     "failed to parse hex color '{}'.", hex );
@@ -160,11 +163,15 @@ void MiniMap::center_box_on_tile( gfx::point where ) {
   viewport.center_on_tile( Coord::from_gfx( *tile ) );
 }
 
-void MiniMap::drag_map( Delta mouse_delta ) {
+void MiniMap::drag_map( Delta const mouse_delta ) {
   SCOPE_EXIT( fix_invariants() );
   SmoothViewport& viewport = ss_.land_view.viewport;
   viewport.stop_auto_zoom();
   viewport.stop_auto_panning();
+
+  gfx::drect const prev_visible = tiles_visible_on_minimap();
+  gfx::drect const prev_white_box =
+      fractional_tiles_inside_white_box();
 
   ss_.land_view.minimap.origin -=
       gfx::to_double( mouse_delta.to_gfx() ) / kPixelsPerPoint;
@@ -176,61 +183,68 @@ void MiniMap::drag_map( Delta mouse_delta ) {
   // Needs to be recomputed after each viewport change.
   gfx::drect white_box = fractional_tiles_inside_white_box();
 
+  auto pan_horizontal = [&]( double const w ) {
+    viewport.pan_by_world_coords( gfx::dsize{ .w = w * 32 } );
+    white_box = fractional_tiles_inside_white_box();
+  };
+
+  auto pan_vertical = [&]( double const h ) {
+    viewport.pan_by_world_coords( gfx::dsize{ .h = h * 32 } );
+    white_box = fractional_tiles_inside_white_box();
+  };
+
   // The below is what makes the viewport (white box) change po-
   // sition when we are dragging the mini-map and it pushes the
   // white box up against the edge while there is still more
   // mini-map to scroll. If we didn't do this, then the white box
-  // would just run off of the mini-map.
+  // would just run off of the mini-map. For each direction of
+  // drag, we have to deal with two edges of the white box that
+  // can come up against the edge of the mini-map: one in the
+  // "push" direction and the other in the "pull" direction.
 
-  auto left = [&] {
-    if( white_box.left() < visible.left() ) {
-      ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
-          .w = -( white_box.left() - visible.left() ) * 32 } );
-      white_box = fractional_tiles_inside_white_box();
-    }
-  };
+  if( mouse_delta.w > 0 ) {
+    if( white_box.left() > visible.left() &&
+        prev_white_box.left() < prev_visible.left() + kEp &&
+        white_box.right() > visible.right() )
+      pan_horizontal( visible.left() - white_box.left() );
+    if( white_box.right() > visible.right() &&
+        prev_white_box.right() < prev_visible.right() + kEp &&
+        white_box.left() > visible.left() )
+      pan_horizontal( visible.right() - white_box.right() );
+  }
 
-  auto right = [&] {
-    if( white_box.right() > visible.right() ) {
-      ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
-          .w = -( white_box.right() - visible.right() ) * 32 } );
-      white_box = fractional_tiles_inside_white_box();
-    }
-  };
+  if( mouse_delta.w < 0 ) {
+    if( white_box.right() < visible.right() &&
+        prev_white_box.right() > prev_visible.right() - kEp &&
+        white_box.left() < visible.left() )
+      pan_horizontal( visible.right() - white_box.right() );
+    if( white_box.left() < visible.left() &&
+        prev_white_box.left() > prev_visible.left() - kEp &&
+        white_box.right() < visible.right() )
+      pan_horizontal( visible.left() - white_box.left() );
+  }
 
-  auto top = [&] {
-    if( white_box.top() < visible.top() ) {
-      ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
-          .h = -( white_box.top() - visible.top() ) * 32 } );
-      white_box = fractional_tiles_inside_white_box();
-    }
-  };
+  if( mouse_delta.h > 0 ) {
+    if( white_box.top() > visible.top() &&
+        prev_white_box.top() < prev_visible.top() + kEp &&
+        white_box.bottom() > visible.bottom() )
+      pan_vertical( visible.top() - white_box.top() );
+    if( white_box.bottom() > visible.bottom() &&
+        prev_white_box.bottom() < prev_visible.bottom() + kEp &&
+        white_box.top() > visible.top() )
+      pan_vertical( visible.bottom() - white_box.bottom() );
+  }
 
-  auto bottom = [&] {
-    if( white_box.bottom() > visible.bottom() ) {
-      ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
-          .h = -( white_box.bottom() - visible.bottom() ) *
-               32 } );
-      white_box = fractional_tiles_inside_white_box();
-    }
-  };
-
-  // This is a bit tricky to reason about, but each edge needs to
-  // be done in a certain order relative to the direction of the
-  // drag. If this is not done then if we're scrolling the map
-  // and the white box is larger than the mini-map along some di-
-  // mension then the map will jump instead of smooth scrolling.
-  // Basically when we are dragging the map to the right and the
-  // left edge of the white box coincides with the left edge of
-  // the mini-map then we want that to remain so as we drag, and
-  // so for that purpose we need to do the left edge last so that
-  // it leaves it that way.
-  // clang-format off
-  if( mouse_delta.w < 0 ) { left();   right();  }
-  if( mouse_delta.w > 0 ) { right();  left();   }
-  if( mouse_delta.h < 0 ) { top();    bottom(); }
-  if( mouse_delta.h > 0 ) { bottom(); top();    }
-  // clang-format on
+  if( mouse_delta.h < 0 ) {
+    if( white_box.bottom() < visible.bottom() &&
+        prev_white_box.bottom() > prev_visible.bottom() - kEp &&
+        white_box.top() < visible.top() )
+      pan_vertical( visible.bottom() - white_box.bottom() );
+    if( white_box.top() < visible.top() &&
+        prev_white_box.top() > prev_visible.top() - kEp &&
+        white_box.bottom() < visible.bottom() )
+      pan_vertical( visible.top() - white_box.top() );
+  }
 }
 
 void MiniMap::drag_box( Delta mouse_delta ) {
@@ -252,36 +266,43 @@ void MiniMap::drag_box( Delta mouse_delta ) {
   // This is what causes the mini-map to scroll when we push
   // the white box up against the boundaries.
 
-  if( white_box.left() < visible.left() &&
-      white_box.right() < visible.right() ) {
-    minimap.origin.x = white_box.origin.x;
-    fix_invariants();
-    visible = tiles_visible_on_minimap();
+  if( white_box.size.w <= visible.size.w ) {
+    if( mouse_delta.w < 0 ) {
+      if( white_box.left() < visible.left() &&
+          white_box.right() < visible.right() ) {
+        minimap.origin.x = white_box.origin.x;
+        fix_invariants();
+        visible = tiles_visible_on_minimap();
+      }
+    }
+
+    if( mouse_delta.w > 0 ) {
+      visible = tiles_visible_on_minimap();
+      if( white_box.right() > visible.right() &&
+          white_box.left() > visible.left() ) {
+        minimap.origin.x +=
+            ( white_box.right() - visible.right() );
+        fix_invariants();
+        visible = tiles_visible_on_minimap();
+      }
+    }
   }
 
-  visible = tiles_visible_on_minimap();
-  if( white_box.right() > visible.right() &&
-      white_box.left() > visible.left() ) {
-    minimap.origin.x += ( white_box.right() - visible.right() );
-    fix_invariants();
-    visible = tiles_visible_on_minimap();
-  }
+  if( white_box.size.h <= visible.size.h ) {
+    if( white_box.top() < visible.top() &&
+        white_box.bottom() < visible.bottom() ) {
+      minimap.origin.y = white_box.origin.y;
+      fix_invariants();
+      visible = tiles_visible_on_minimap();
+    }
 
-  visible = tiles_visible_on_minimap();
-  if( white_box.top() < visible.top() &&
-      white_box.bottom() < visible.bottom() ) {
-    minimap.origin.y = white_box.origin.y;
-    fix_invariants();
-    visible = tiles_visible_on_minimap();
-  }
-
-  visible = tiles_visible_on_minimap();
-  if( white_box.bottom() > visible.bottom() &&
-      white_box.top() > visible.top() ) {
-    minimap.origin.y +=
-        ( white_box.bottom() - visible.bottom() );
-    fix_invariants();
-    visible = tiles_visible_on_minimap();
+    if( white_box.bottom() > visible.bottom() &&
+        white_box.top() > visible.top() ) {
+      minimap.origin.y +=
+          ( white_box.bottom() - visible.bottom() );
+      fix_invariants();
+      visible = tiles_visible_on_minimap();
+    }
   }
 }
 
@@ -527,12 +548,6 @@ bool MiniMapView::on_mouse_drag(
     // This is just defensive... it could potentially happen if
     // the game window gets resized during a drag (I think).
     return false;
-
-  // For some reason we get a lot of zero delta drag events even
-  // in the middle of a drag. These events are expected as
-  // drag-end events, but not in the middle of a drag. Should
-  // probably figure out why this is.
-  if( event.delta() == Delta{} ) return true;
 
   switch( *drag_state_ ) {
     case e_mini_map_drag::white_box: {
