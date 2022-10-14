@@ -100,11 +100,6 @@ void set_mouse_position( Coord new_pos );
 /****************************************************************
 ** Mouse Dragging
 *****************************************************************/
-struct drag_state_t {
-  Coord        origin{};
-  e_drag_phase phase{};
-};
-
 // NOTE: this derives from the move event and not the base event.
 struct mouse_drag_event_t : public mouse_move_event_t {
   e_mouse_button button{};

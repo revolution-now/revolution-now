@@ -35,8 +35,6 @@ namespace rn {
 
 namespace {
 
-double const kSpeed = 3;
-
 int constexpr kPixelsPerPoint = 2;
 
 gfx::pixel parse_color( string_view hex ) {
@@ -99,7 +97,6 @@ gfx::pixel color_for_square( MapSquare const& square ) {
 ** MiniMap
 *****************************************************************/
 void MiniMap::fix_invariants() {
-  // These two won't change as we make changes.
   gfx::drect const world =
       gfx::to_double( ss_.terrain.world_rect_tiles().to_gfx() );
   MiniMapState& minimap = ss_.land_view.minimap;
@@ -119,6 +116,12 @@ void MiniMap::fix_invariants() {
     minimap.origin.x -= ( visible.right() - world.right() );
   if( visible.bottom() > world.bottom() )
     minimap.origin.y -= ( visible.bottom() - world.bottom() );
+
+  visible = tiles_visible_on_minimap();
+  CHECK_GE( visible.left(), world.left() );
+  CHECK_GE( visible.top(), world.top() );
+  CHECK_LE( visible.right(), world.right() );
+  CHECK_LE( visible.bottom(), world.bottom() );
 }
 
 MiniMap::MiniMap( SS& ss, Delta available_size ) : ss_( ss ) {
@@ -157,23 +160,15 @@ void MiniMap::center_box_on_tile( gfx::point where ) {
   viewport.center_on_tile( Coord::from_gfx( *tile ) );
 }
 
-void MiniMap::center_map_on_tile( gfx::point where ) {
-  SCOPE_EXIT( fix_invariants() );
-  ss_.land_view.minimap.origin =
-      gfx::to_double( where ) -
-      tiles_visible_on_minimap().size / 2;
-}
-
 void MiniMap::drag_map( Delta mouse_delta ) {
   SCOPE_EXIT( fix_invariants() );
   SmoothViewport& viewport = ss_.land_view.viewport;
   viewport.stop_auto_zoom();
   viewport.stop_auto_panning();
-  gfx::drect const world =
-      gfx::to_double( ss_.terrain.world_rect_tiles().to_gfx() );
 
   ss_.land_view.minimap.origin -=
       gfx::to_double( mouse_delta.to_gfx() ) / kPixelsPerPoint;
+  fix_invariants();
 
   // Needs to be computed after changing the origin.
   gfx::drect const visible = tiles_visible_on_minimap();
@@ -181,16 +176,14 @@ void MiniMap::drag_map( Delta mouse_delta ) {
   // Needs to be recomputed after each viewport change.
   gfx::drect white_box = fractional_tiles_inside_white_box();
 
-  // This is what makes the viewport (white box) change position
-  // when we are dragging the mini-map and it pushes the white
-  // box up against the edge while there is still more mini-map
-  // to scroll. If we didn't do this, then the mini-map would
-  // stop panning when the white box's edges hit the edges of the
-  // mini-map.
+  // The below is what makes the viewport (white box) change po-
+  // sition when we are dragging the mini-map and it pushes the
+  // white box up against the edge while there is still more
+  // mini-map to scroll. If we didn't do this, then the white box
+  // would just run off of the mini-map.
 
   auto left = [&] {
     if( white_box.left() < visible.left() &&
-        visible.right() <= world.right() &&
         white_box.right() <= visible.right() ) {
       ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
           .w = -( white_box.left() - visible.left() ) * 32 } );
@@ -200,7 +193,6 @@ void MiniMap::drag_map( Delta mouse_delta ) {
 
   auto right = [&] {
     if( white_box.right() > visible.right() &&
-        visible.left() >= 0 &&
         white_box.left() >= visible.left() ) {
       ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
           .w = -( white_box.right() - visible.right() ) * 32 } );
@@ -210,7 +202,6 @@ void MiniMap::drag_map( Delta mouse_delta ) {
 
   auto top = [&] {
     if( white_box.top() < visible.top() &&
-        visible.bottom() <= world.bottom() &&
         white_box.bottom() <= visible.bottom() ) {
       ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
           .h = -( white_box.top() - visible.top() ) * 32 } );
@@ -220,7 +211,6 @@ void MiniMap::drag_map( Delta mouse_delta ) {
 
   auto bottom = [&] {
     if( white_box.bottom() > visible.bottom() &&
-        visible.top() >= 0 &&
         white_box.top() >= visible.top() ) {
       ss_.land_view.viewport.pan_by_world_coords( gfx::dsize{
           .h = -( white_box.bottom() - visible.bottom() ) *
@@ -229,23 +219,22 @@ void MiniMap::drag_map( Delta mouse_delta ) {
     }
   };
 
-  if( mouse_delta.w < 0 ) {
-    left();
-    right();
-  }
-  if( mouse_delta.w > 0 ) {
-    right();
-    left();
-  }
-
-  if( mouse_delta.h < 0 ) {
-    top();
-    bottom();
-  }
-  if( mouse_delta.h > 0 ) {
-    bottom();
-    top();
-  }
+  // This is a bit tricky to reason about, but each edge needs to
+  // be done in a certain order relative to the direction of the
+  // drag. If this is not done then if we're scrolling the map
+  // and the white box is larger than the mini-map along some di-
+  // mension then the map will jump instead of smooth scrolling.
+  // Basically when we are dragging the map to the right and the
+  // left edge of the white box coincides with the left edge of
+  // the mini-map then we want that to remain so as we drag, and
+  // so for that purpose we need to do the left edge last so that
+  // it leaves it that way.
+  // clang-format off
+  if( mouse_delta.w < 0 ) { left();   right();  }
+  if( mouse_delta.w > 0 ) { right();  left();   }
+  if( mouse_delta.h < 0 ) { top();    bottom(); }
+  if( mouse_delta.h > 0 ) { bottom(); top();    }
+  // clang-format on
 }
 
 void MiniMap::drag_box( Delta mouse_delta ) {
@@ -256,6 +245,48 @@ void MiniMap::drag_box( Delta mouse_delta ) {
   static_assert( kPixelsPerPoint / 2 > 0 );
   viewport.pan_by_world_coords( mouse_delta * 32 /
                                 kPixelsPerPoint );
+  MiniMapState& minimap = ss_.land_view.minimap;
+
+  gfx::drect const white_box =
+      fractional_tiles_inside_white_box();
+
+  // Needs to be recomputed after each origin change.
+  gfx::drect visible = tiles_visible_on_minimap();
+
+  // This is what causes the mini-map to scroll when we push
+  // the white box up against the boundaries.
+
+  if( white_box.left() < visible.left() &&
+      white_box.right() < visible.right() ) {
+    minimap.origin.x = white_box.origin.x;
+    fix_invariants();
+    visible = tiles_visible_on_minimap();
+  }
+
+  visible = tiles_visible_on_minimap();
+  if( white_box.right() > visible.right() &&
+      white_box.left() > visible.left() ) {
+    minimap.origin.x += ( white_box.right() - visible.right() );
+    fix_invariants();
+    visible = tiles_visible_on_minimap();
+  }
+
+  visible = tiles_visible_on_minimap();
+  if( white_box.top() < visible.top() &&
+      white_box.bottom() < visible.bottom() ) {
+    minimap.origin.y = white_box.origin.y;
+    fix_invariants();
+    visible = tiles_visible_on_minimap();
+  }
+
+  visible = tiles_visible_on_minimap();
+  if( white_box.bottom() > visible.bottom() &&
+      white_box.top() > visible.top() ) {
+    minimap.origin.y +=
+        ( white_box.bottom() - visible.bottom() );
+    fix_invariants();
+    visible = tiles_visible_on_minimap();
+  }
 }
 
 gfx::rect MiniMap::white_box_pixels() const {
@@ -268,8 +299,8 @@ gfx::rect MiniMap::white_box_pixels() const {
 
 maybe<gfx::point> MiniMap::tile_under_cursor(
     gfx::point p ) const {
-  if( !Coord::from_gfx( p ).is_inside( Rect::from_gfx( gfx::rect{
-          .origin = {}, .size = pixels_occupied_ } ) ) )
+  if( !p.is_inside(
+          gfx::rect{ .origin = {}, .size = pixels_occupied_ } ) )
     return nothing;
   gfx::point const tile =
       p / kPixelsPerPoint + upper_left_visible_tile()
@@ -292,9 +323,8 @@ gfx::drect MiniMap::tiles_visible_on_minimap() const {
 }
 
 bool MiniMap::tile_visible_on_minimap( gfx::point tile ) const {
-  gfx::rect const visible_rect =
-      tiles_visible_on_minimap().truncated();
-  return tile.is_inside( visible_rect );
+  gfx::drect const visible_rect = tiles_visible_on_minimap();
+  return gfx::to_double( tile ).is_inside( visible_rect );
 }
 
 gfx::dpoint MiniMap::upper_left_visible_tile() const {
@@ -311,22 +341,24 @@ void MiniMap::update() {
   SmoothViewport const& viewport = ss_.land_view.viewport;
   gfx::point const      viewport_center =
       viewport.covered_tiles().center();
-  gfx::drect visible = tiles_visible_on_minimap();
-  gfx::drect covered = fractional_tiles_inside_white_box();
+  gfx::drect visible   = tiles_visible_on_minimap();
+  gfx::drect white_box = fractional_tiles_inside_white_box();
 
   // FIXME: this auto panning needs to be made to happen at a
   // rate that is independent of frame rate. Currently it only
   // seems to matter on large maps, and so it is not urgent.
+  static double const kAnimationSpeed = 3;
   auto advance = [&]( double& from, double const to ) {
-    double const speed = ( to >= from ) ? kSpeed : -kSpeed;
+    double const speed =
+        ( to >= from ) ? kAnimationSpeed : -kAnimationSpeed;
     from += speed;
     if( speed >= 0 )
       from = std::min( from, to );
     else
       from = std::max( from, to );
     fix_invariants();
-    visible = tiles_visible_on_minimap();
-    covered = fractional_tiles_inside_white_box();
+    visible   = tiles_visible_on_minimap();
+    white_box = fractional_tiles_inside_white_box();
   };
 
   if( !tile_visible_on_minimap( viewport_center ) ) {
@@ -343,29 +375,33 @@ void MiniMap::update() {
       advance( minimap.origin.y, target_origin.y );
   }
 
-  if( covered.left() < visible.left() &&
-      covered.right() < visible.right() )
-    advance( minimap.origin.x, covered.origin.x );
-  if( covered.right() > visible.right() &&
-      covered.left() > visible.left() )
+  if( white_box.left() < visible.left() &&
+      white_box.right() < visible.right() )
+    advance( minimap.origin.x, white_box.origin.x );
+
+  if( white_box.right() > visible.right() &&
+      white_box.left() > visible.left() )
     advance( minimap.origin.x,
              minimap.origin.x +
-                 ( covered.right() - visible.right() ) );
+                 ( white_box.right() - visible.right() ) );
 
-  if( covered.top() < visible.top() &&
-      covered.bottom() < visible.bottom() )
-    advance( minimap.origin.y, covered.origin.y );
-  if( covered.bottom() > visible.bottom() &&
-      covered.top() > visible.top() )
+  if( white_box.top() < visible.top() &&
+      white_box.bottom() < visible.bottom() )
+    advance( minimap.origin.y, white_box.origin.y );
+
+  if( white_box.bottom() > visible.bottom() &&
+      white_box.top() > visible.top() )
     advance( minimap.origin.y,
              minimap.origin.y +
-                 ( covered.bottom() - visible.bottom() ) );
+                 ( white_box.bottom() - visible.bottom() ) );
 }
 
 /****************************************************************
 ** MiniMapView
 *****************************************************************/
-void MiniMapView::advance_state() { mini_map_.update(); }
+void MiniMapView::advance_state() {
+  if( !drag_state_.has_value() ) mini_map_.update();
+}
 
 void MiniMapView::draw_impl( rr::Renderer&     renderer,
                              Visibility const& viz ) const {
@@ -486,6 +522,7 @@ bool MiniMapView::on_mouse_drag(
     if( event.button == input::e_mouse_button::r )
       drag_state_ = e_mini_map_drag::map;
   } else if( event.state.phase == input::e_drag_phase::end ) {
+    CHECK( event.delta() == Delta{} );
     drag_state_.reset();
     return true;
   }
@@ -494,6 +531,12 @@ bool MiniMapView::on_mouse_drag(
     // This is just defensive... it could potentially happen if
     // the game window gets resized during a drag (I think).
     return false;
+
+  // For some reason we get a lot of zero delta drag events even
+  // in the middle of a drag. These events are expected as
+  // drag-end events, but not in the middle of a drag. Should
+  // probably figure out why this is.
+  if( event.delta() == Delta{} ) return true;
 
   switch( *drag_state_ ) {
     case e_mini_map_drag::white_box: {

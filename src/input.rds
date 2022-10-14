@@ -8,6 +8,9 @@
 # Description: RDS definitions for the input module.
 #
 # ===============================================================
+# gfx
+include "gfx/coord.hpp"
+
 namespace "rn"
 
 enum.e_input_handled {
@@ -22,6 +25,11 @@ enum.e_drag_phase {
   in_progress,
   # 'end' is a Lua keyword, so we have to do this. :-E
   function() return {name='end'} end,
+}
+
+struct.drag_state_t {
+  origin 'Coord',
+  phase 'e_drag_phase',
 }
 
 struct.mod_keys {

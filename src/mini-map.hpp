@@ -48,8 +48,6 @@ struct MiniMap {
 
   void center_box_on_tile( gfx::point where );
 
-  void center_map_on_tile( gfx::point where );
-
   void drag_map( Delta mouse_delta );
 
   void drag_box( Delta mouse_delta );
@@ -79,7 +77,7 @@ struct MiniMap {
   gfx::drect fractional_tiles_inside_white_box() const;
 
  private:
-  // Any non-const method should call this at the end.
+  // This needs to be called anytime the mini-map origin changes.
   void fix_invariants();
 
   SS& ss_;
