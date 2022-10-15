@@ -67,9 +67,9 @@ std::vector<UnitId> units_from_coord_recursive(
     UnitsState const& units_state, Coord coord );
 
 // These will return the coordinates for a unit if it is owned by
-// the map or the coordinates of its owner if it is ultimately
-// owned by something that is on the map. This would fail to re-
-// turn a value if e.g. the unit is not yet in the new world.
+// the map or if it is the cargo of something that is owned by
+// the map. So this would fail to return a value if e.g. the unit
+// is working in a colony or is not yet in the new world.
 ND Coord coord_for_unit_indirect_or_die(
     UnitsState const& units_state, UnitId id );
 
