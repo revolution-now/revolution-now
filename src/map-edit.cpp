@@ -98,7 +98,7 @@ refl::enum_map<editor::e_toolbar_item, ToolbarItem>
         { editor::e_toolbar_item::ground_tundra,
           { .tile = e_tile::terrain_tundra } },
         { editor::e_toolbar_item::mountain,
-          { .tile = e_tile::terrain_mountain_island } },
+          { .tile = e_tile::terrain_mountains_island } },
         { editor::e_toolbar_item::hills,
           { .tile = e_tile::terrain_hills_island } },
         { editor::e_toolbar_item::forest,

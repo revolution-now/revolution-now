@@ -107,6 +107,232 @@ maybe<e_ground_terrain> ground_terrain_for_square(
   return nothing;
 }
 
+void render_mountains( Visibility const& viz,
+                       rr::Painter& painter, Coord where,
+                       Coord world_square ) {
+  DCHECK( here.surface == e_surface::land );
+
+  // Returns true if the tile is land and it has mountains.
+  auto is_mountains = [&]( e_direction d ) {
+    MapSquare const& s =
+        viz.square_at( world_square.moved( d ) );
+    return s.surface == e_surface::land &&
+           s.overlay == e_land_overlay::mountains;
+  };
+
+  bool has_left  = is_mountains( e_direction::w );
+  bool has_up    = is_mountains( e_direction::n );
+  bool has_right = is_mountains( e_direction::e );
+  bool has_down  = is_mountains( e_direction::s );
+
+  // 0000abcd:
+  // a=mountains up, b=mountains right, c=mountains down,
+  // d=mountains left.
+  int mask = ( has_up ? ( 1 << 3 ) : 0 ) |
+             ( has_right ? ( 1 << 2 ) : 0 ) |
+             ( has_down ? ( 1 << 1 ) : 0 ) |
+             ( has_left ? ( 1 << 0 ) : 0 );
+
+  e_tile mountains_tile = {};
+
+  switch( mask ) {
+    case 0b0001: {
+      // mountains on left.
+      mountains_tile = e_tile::terrain_mountains_left;
+      break;
+    }
+    case 0b1000: {
+      // mountains on top.
+      mountains_tile = e_tile::terrain_mountains_up;
+      break;
+    }
+    case 0b0100: {
+      // mountains on right.
+      mountains_tile = e_tile::terrain_mountains_right;
+      break;
+    }
+    case 0b0010: {
+      // mountains on bottom.
+      mountains_tile = e_tile::terrain_mountains_down;
+      break;
+    }
+    case 0b1001: {
+      // mountains on left and top.
+      mountains_tile = e_tile::terrain_mountains_left_up;
+      break;
+    }
+    case 0b1100: {
+      // mountains on top and right.
+      mountains_tile = e_tile::terrain_mountains_up_right;
+      break;
+    }
+    case 0b0110: {
+      // mountains on right and bottom.
+      mountains_tile = e_tile::terrain_mountains_right_down;
+      break;
+    }
+    case 0b0011: {
+      // mountains on bottom and left.
+      mountains_tile = e_tile::terrain_mountains_down_left;
+      break;
+    }
+    case 0b0101: {
+      // mountains on left and right.
+      mountains_tile = e_tile::terrain_mountains_left_right;
+      break;
+    }
+    case 0b1010: {
+      // mountains on top and bottom.
+      mountains_tile = e_tile::terrain_mountains_up_down;
+      break;
+    }
+    case 0b0111: {
+      // mountains on right, bottom, left.
+      mountains_tile = e_tile::terrain_mountains_right_down_left;
+      break;
+    }
+    case 0b1011: {
+      // mountains on bottom, left, top.
+      mountains_tile = e_tile::terrain_mountains_down_left_up;
+      break;
+    }
+    case 0b1101: {
+      // mountains on left, top, right.
+      mountains_tile = e_tile::terrain_mountains_left_up_right;
+      break;
+    }
+    case 0b1110: {
+      // mountains on top, right, bottom.
+      mountains_tile = e_tile::terrain_mountains_up_right_down;
+      break;
+    }
+    case 0b1111:
+      // mountains on all sides.
+      mountains_tile = e_tile::terrain_mountains_all;
+      break;
+    case 0b0000:
+      // mountains on no sides.
+      mountains_tile = e_tile::terrain_mountains_island;
+      break;
+    default: {
+      FATAL( "invalid mountains mask: {}", mask );
+    }
+  }
+  render_sprite( painter, where, mountains_tile );
+}
+
+void render_hills( Visibility const& viz, rr::Painter& painter,
+                   Coord where, Coord world_square ) {
+  DCHECK( here.surface == e_surface::land );
+
+  // Returns true if the tile is land and it has hills.
+  auto is_hills = [&]( e_direction d ) {
+    MapSquare const& s =
+        viz.square_at( world_square.moved( d ) );
+    return s.surface == e_surface::land &&
+           s.overlay == e_land_overlay::hills;
+  };
+
+  bool has_left  = is_hills( e_direction::w );
+  bool has_up    = is_hills( e_direction::n );
+  bool has_right = is_hills( e_direction::e );
+  bool has_down  = is_hills( e_direction::s );
+
+  // 0000abcd:
+  // a=hills up, b=hills right, c=hills down, d=hills left.
+  int mask = ( has_up ? ( 1 << 3 ) : 0 ) |
+             ( has_right ? ( 1 << 2 ) : 0 ) |
+             ( has_down ? ( 1 << 1 ) : 0 ) |
+             ( has_left ? ( 1 << 0 ) : 0 );
+
+  e_tile hills_tile = {};
+
+  switch( mask ) {
+    case 0b0001: {
+      // hills on left.
+      hills_tile = e_tile::terrain_hills_left;
+      break;
+    }
+    case 0b1000: {
+      // hills on top.
+      hills_tile = e_tile::terrain_hills_up;
+      break;
+    }
+    case 0b0100: {
+      // hills on right.
+      hills_tile = e_tile::terrain_hills_right;
+      break;
+    }
+    case 0b0010: {
+      // hills on bottom.
+      hills_tile = e_tile::terrain_hills_down;
+      break;
+    }
+    case 0b1001: {
+      // hills on left and top.
+      hills_tile = e_tile::terrain_hills_left_up;
+      break;
+    }
+    case 0b1100: {
+      // hills on top and right.
+      hills_tile = e_tile::terrain_hills_up_right;
+      break;
+    }
+    case 0b0110: {
+      // hills on right and bottom.
+      hills_tile = e_tile::terrain_hills_right_down;
+      break;
+    }
+    case 0b0011: {
+      // hills on bottom and left.
+      hills_tile = e_tile::terrain_hills_down_left;
+      break;
+    }
+    case 0b0101: {
+      // hills on left and right.
+      hills_tile = e_tile::terrain_hills_left_right;
+      break;
+    }
+    case 0b1010: {
+      // hills on top and bottom.
+      hills_tile = e_tile::terrain_hills_up_down;
+      break;
+    }
+    case 0b0111: {
+      // hills on right, bottom, left.
+      hills_tile = e_tile::terrain_hills_right_down_left;
+      break;
+    }
+    case 0b1011: {
+      // hills on bottom, left, top.
+      hills_tile = e_tile::terrain_hills_down_left_up;
+      break;
+    }
+    case 0b1101: {
+      // hills on left, top, right.
+      hills_tile = e_tile::terrain_hills_left_up_right;
+      break;
+    }
+    case 0b1110: {
+      // hills on top, right, bottom.
+      hills_tile = e_tile::terrain_hills_up_right_down;
+      break;
+    }
+    case 0b1111:
+      // hills on all sides.
+      hills_tile = e_tile::terrain_hills_all;
+      break;
+    case 0b0000:
+      // hills on no sides.
+      hills_tile = e_tile::terrain_hills_island;
+      break;
+    default: {
+      FATAL( "invalid hills mask: {}", mask );
+    }
+  }
+  render_sprite( painter, where, hills_tile );
+}
+
 void render_forest( Visibility const& viz, rr::Painter& painter,
                     Coord where, Coord world_square ) {
   MapSquare const& here = viz.square_at( world_square );
@@ -225,19 +451,6 @@ void render_forest( Visibility const& viz, rr::Painter& painter,
     }
   }
   render_sprite( painter, where, forest_tile );
-}
-
-e_tile overlay_tile( MapSquare const& square ) {
-  DCHECK( square.overlay.has_value() );
-  switch( *square.overlay ) {
-    case e_land_overlay::forest: {
-      SHOULD_NOT_BE_HERE;
-    }
-    case e_land_overlay::hills:
-      return e_tile::terrain_hills_island;
-    case e_land_overlay::mountains:
-      return e_tile::terrain_mountain_island;
-  }
 }
 
 // Note that in this function the anchor needs to be different
@@ -876,37 +1089,44 @@ void render_land_overlay( Visibility const& viz,
                           Coord            world_square,
                           MapSquare const& square,
                           TerrainRenderOptions const& options ) {
-  if( square.overlay == e_land_overlay::forest ) {
-    // Need to do this inside the if since we don't want to go to
-    // the outter else branch.
-    if( !options.render_forests ) return;
-    render_forest( viz, painter, where, world_square );
-    if( square.river.has_value() ) {
-      if( square.ground != e_ground_terrain::desert )
-        // This forest square, which contains a river, has al-
-        // ready had its river rendered under the forest tile
-        // (which it looks best), but that means that it won't be
-        // visible to the player. That's not ideal because the
-        // river will give production bonuses. So let's draw a
-        // light (faded and depixelated) river overtop of the
-        // forest to hint about it to the player.
-        //
-        // For the best visual effect, we will only render this
-        // hint on forest tiles that are completely surrounded
-        // (in the cardinal directions) by other forest tiles.
-        render_river_hinting( viz, renderer, where, world_square,
-                              square );
-      else
-        // If it's a forest in a desert (scrub forest) then just
-        // render the river over top of it seems to make more
-        // sense visually.
-        render_river_on_land( viz, renderer, where, world_square,
-                              square,
-                              /*no_bank=*/false );
+  if( !square.overlay.has_value() ) return;
+  switch( *square.overlay ) {
+    case e_land_overlay::forest: {
+      // Need to do this inside the if since we don't want to go
+      // to the outter else branch.
+      if( !options.render_forests ) return;
+      render_forest( viz, painter, where, world_square );
+      if( square.river.has_value() ) {
+        if( square.ground != e_ground_terrain::desert )
+          // This forest square, which contains a river, has al-
+          // ready had its river rendered under the forest tile
+          // (which it looks best), but that means that it won't
+          // be visible to the player. That's not ideal because
+          // the river will give production bonuses. So let's
+          // draw a light (faded and depixelated) river overtop
+          // of the forest to hint about it to the player.
+          //
+          // For the best visual effect, we will only render this
+          // hint on forest tiles that are completely surrounded
+          // (in the cardinal directions) by other forest tiles.
+          render_river_hinting( viz, renderer, where,
+                                world_square, square );
+        else
+          // If it's a forest in a desert (scrub forest) then
+          // just render the river over top of it seems to make
+          // more sense visually.
+          render_river_on_land( viz, renderer, where,
+                                world_square, square,
+                                /*no_bank=*/false );
+      }
+      break;
     }
-  } else if( square.overlay.has_value() ) {
-    e_tile overlay = overlay_tile( square );
-    render_sprite( painter, where, overlay );
+    case e_land_overlay::hills:
+      render_hills( viz, painter, where, world_square );
+      break;
+    case e_land_overlay::mountains:
+      render_mountains( viz, painter, where, world_square );
+      break;
   }
 }
 

@@ -446,14 +446,50 @@ enum.e_tile {
   # =============================================================
   # Mountain Overlays
   # =============================================================
-  # Currently just an island mountain tile.
-  terrain_mountain_island,
+  terrain_mountains_island,
+  terrain_mountains_all,
+
+  terrain_mountains_left,
+  terrain_mountains_up,
+  terrain_mountains_right,
+  terrain_mountains_down,
+
+  terrain_mountains_left_up,
+  terrain_mountains_up_right,
+  terrain_mountains_right_down,
+  terrain_mountains_down_left,
+
+  terrain_mountains_left_right,
+  terrain_mountains_up_down,
+
+  terrain_mountains_left_up_right,
+  terrain_mountains_up_right_down,
+  terrain_mountains_right_down_left,
+  terrain_mountains_down_left_up,
 
   # =============================================================
   # Hill Overlays
   # =============================================================
-  # Currently just an island hill tile.
   terrain_hills_island,
+  terrain_hills_all,
+
+  terrain_hills_left,
+  terrain_hills_up,
+  terrain_hills_right,
+  terrain_hills_down,
+
+  terrain_hills_left_up,
+  terrain_hills_up_right,
+  terrain_hills_right_down,
+  terrain_hills_down_left,
+
+  terrain_hills_left_right,
+  terrain_hills_up_down,
+
+  terrain_hills_left_up_right,
+  terrain_hills_up_right_down,
+  terrain_hills_right_down_left,
+  terrain_hills_down_left_up,
 
   # =============================================================
   # Forest Overlays
