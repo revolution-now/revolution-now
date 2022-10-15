@@ -524,12 +524,15 @@ bool MiniMapView::on_mouse_button(
     input::mouse_button_event_t const& event ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
     return true;
+  SmoothViewport& viewport = ss_.land_view.viewport;
+  viewport.stop_auto_zoom();
+  viewport.stop_auto_panning();
   // We shouldn't have received this event if the position was
   // not in the view, and the view is exactly the size of the
   // mini-map, so we can assume that the location of the click
   // will always correspond to a real tile.
   gfx::dpoint const p = event.pos.to_gfx().to_double();
-  ss_.land_view.viewport.center_on_tile( Coord::from_gfx(
+  viewport.center_on_tile( Coord::from_gfx(
       ( p / kPixelsPerPoint +
         mini_map_.origin().distance_from_origin() )
           .truncated() ) );
