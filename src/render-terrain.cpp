@@ -110,7 +110,8 @@ maybe<e_ground_terrain> ground_terrain_for_square(
 void render_mountains( Visibility const& viz,
                        rr::Painter& painter, Coord where,
                        Coord world_square ) {
-  DCHECK( here.surface == e_surface::land );
+  MapSquare const& here = viz.square_at( world_square );
+  CHECK( here.surface == e_surface::land );
 
   // Returns true if the tile is land and it has mountains.
   auto is_mountains = [&]( e_direction d ) {
@@ -223,7 +224,8 @@ void render_mountains( Visibility const& viz,
 
 void render_hills( Visibility const& viz, rr::Painter& painter,
                    Coord where, Coord world_square ) {
-  DCHECK( here.surface == e_surface::land );
+  MapSquare const& here = viz.square_at( world_square );
+  CHECK( here.surface == e_surface::land );
 
   // Returns true if the tile is land and it has hills.
   auto is_hills = [&]( e_direction d ) {
@@ -336,7 +338,7 @@ void render_hills( Visibility const& viz, rr::Painter& painter,
 void render_forest( Visibility const& viz, rr::Painter& painter,
                     Coord where, Coord world_square ) {
   MapSquare const& here = viz.square_at( world_square );
-  DCHECK( here.surface == e_surface::land );
+  CHECK( here.surface == e_surface::land );
   if( here.ground == e_ground_terrain::desert ) {
     render_sprite( painter, where,
                    e_tile::terrain_forest_scrub_island );
