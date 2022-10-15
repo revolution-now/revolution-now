@@ -121,6 +121,17 @@ local function random_list_elem( lst )
   return lst[math.random( 1, #lst )]
 end
 
+-- Mutates the list.
+local function shuffle( lst )
+  for i = 2, #lst do
+    local elem = lst[i - 1]
+    local other_idx = math.random( i, #lst )
+    local other = lst[other_idx]
+    lst[i - 1] = other
+    lst[other_idx] = elem
+  end
+end
+
 local function random_point_in_rect( rect )
   local size = { w=rect.w, h=rect.h }
   local x = math.random( 0, rect.w - 1 ) + rect.x
@@ -137,13 +148,22 @@ end
 -----------------------------------------------------------------
 -- Basic map access.
 -----------------------------------------------------------------
--- The square must exist.
-local function square_at( coord )
-  assert( ROOT.terrain:square_exists( coord ) )
-  return ROOT.terrain:square_at( coord )
+local function world_size() return ROOT.terrain:size() end
+
+local function square_exists( square )
+  local size = world_size()
+  return
+      square.x >= 0 and square.y >= 0 and square.x < size.w and
+          square.y < size.h
 end
 
-local function world_size() return ROOT.terrain:size() end
+-- The square must exist.
+local function square_at( coord )
+  assert( square_exists( coord ),
+          string.format( 'square {x=%d,y=%x} does not exist.',
+                         coord.x, coord.y ) )
+  return ROOT.terrain:square_at( coord )
+end
 
 -----------------------------------------------------------------
 -- Algorithms
@@ -167,19 +187,30 @@ end
 -----------------------------------------------------------------
 local function initial_ships_pos_for_row( y )
   local size = world_size()
+  assert( size.w > 0 and size.h > 0 )
   local x = size.w - 1
-  while square_at{ x=x, y=y }.sea_lane do x = x - 1 end
+  while square_at{ x=x, y=y }.sea_lane do
+    x = x - 1
+    if not square_exists{ x=x, y=y } then
+      return { x=size.w - 1, y=y }
+    end
+  end
   return x + 1
 end
 
+-- TODO: Move this into new-game.lua.
 function M.initial_ships_pos()
   local size = world_size()
   local quintile = size.h // 5
   local y = size.h / 2
-  local spanish_y = quintile
-  local dutch_y = quintile * 2
-  local french_y = quintile * 3
-  local english_y = quintile * 4
+  local quintiles = {
+    quintile, quintile * 2, quintile * 3, quintile * 4
+  }
+  shuffle( quintiles )
+  local spanish_y = quintiles[1]
+  local dutch_y = quintiles[2]
+  local french_y = quintiles[3]
+  local english_y = quintiles[4]
   local dutch_x = initial_ships_pos_for_row( dutch_y )
   local french_x = initial_ships_pos_for_row( french_y )
   local english_x = initial_ships_pos_for_row( english_y )
@@ -353,13 +384,6 @@ local function surrounding_squares_cardinal( square )
     { x=square.x + 0, y=square.y + 1 } --
   }
   return possible
-end
-
-local function square_exists( square )
-  local size = world_size()
-  return
-      square.x >= 0 and square.y >= 0 and square.x < size.w and
-          square.y < size.h
 end
 
 local function filter_on_map( coords )

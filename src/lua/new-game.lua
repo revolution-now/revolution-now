@@ -20,12 +20,13 @@ function M.default_options()
   return {
     difficulty='discoverer',
     -- This determines which nations are enabled and some proper-
-    -- ties.
+    -- ties. If initial ship position is null then the randomly
+    -- generated one will be used.
     nations={
-      ['english']={ human=true },
-      ['french']={ human=false },
-      ['spanish']={ human=false },
-      ['dutch']={ human=false }
+      ['english']={ human=true, ship_pos=nil },
+      ['french']={ human=false, ship_pos=nil },
+      ['spanish']={ human=false, ship_pos=nil },
+      ['dutch']={ human=false, ship_pos=nil }
     },
     map={} -- use default map options.
   }
@@ -53,9 +54,10 @@ local function build_unit_type( type, base_type )
   end
 end
 
-local function create_initial_units_for_nation( nation, root )
+local function create_initial_units_for_nation(options, nation,
+                                               root )
   local player = root.players.players:get( nation )
-  local coord = map_gen.initial_ships_pos()[nation]
+  local coord = assert( options.nations[nation].ship_pos )
   local ship_type
   if nation == 'dutch' then
     ship_type = build_unit_type( 'merchantman' )
@@ -75,7 +77,7 @@ end
 
 local function create_initial_units( options, root )
   for nation, _ in pairs( options.nations ) do
-    create_initial_units_for_nation( nation, root )
+    create_initial_units_for_nation( options, nation, root )
   end
 end
 
@@ -293,7 +295,12 @@ end
 -- Testing
 -----------------------------------------------------------------
 local function add_testing_options( options )
-  options.nations = { english={ human=true } }
+  options.nations = {
+    english={ human=true, ship_pos=nil }
+    -- french={ human=true, ship_pos=nil },
+    -- spanish={ human=true, ship_pos=nil },
+    -- dutch={ human=true, ship_pos=nil },
+  }
   options.difficulty = 'conquistador'
   -- options.map.type = 'half_and_half'
   -- options.map.world_size = { w=4, h=4 }
@@ -329,6 +336,20 @@ function M.create( options )
   -- possible.
   map_gen.generate( options.map )
 
+  -- Needs to be done after the map is generated because we need
+  -- to know the dimensions.
+  do
+    -- These random ship positions should not be accessed di-
+    -- rectly hereafter; we should use the ones in the options,
+    -- just in case the user overrided it.
+    local random_ship_positions = map_gen.initial_ships_pos()
+    for nation, info in pairs( options.nations ) do
+      if info.ship_pos == nil then
+        info.ship_pos = random_ship_positions[nation]
+      end
+    end
+  end
+
   -- Initializes the maps that track what each player can see.
   create_player_maps( options, root )
 
@@ -346,7 +367,7 @@ function M.create( options )
 
   -- Temporary.
   local player_nation = 'english'
-  local coord = map_gen.initial_ships_pos()[player_nation]
+  local coord = assert( options.nations[player_nation].ship_pos )
   root.land_view.viewport:center_on_tile( coord )
 end
 
