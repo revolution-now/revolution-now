@@ -22,6 +22,7 @@
 #include "render/atlas.hpp"
 
 // refl
+#include "refl/enum-map.hpp"
 #include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"
 
@@ -71,8 +72,22 @@ REGISTER_INIT_ROUTINE( sprites );
 } // namespace
 
 Delta sprite_size( e_tile tile ) {
-  return Delta::from_gfx(
-      config_tile_sheet.sheets.sprite_size( tile ) );
+  // FIXME: find a better way to do this. Maybe store it in the
+  // renderer object.
+  static auto const sizes = [] {
+    refl::enum_map<e_tile, gfx::size> res;
+    for( rr::SpriteSheetConfig const& sheet :
+         config_tile_sheet.sheets.sprite_sheets ) {
+      for( auto const& [sprite_name, pos] : sheet.sprites ) {
+        // This should have already been validated.
+        UNWRAP_CHECK( tile, refl::enum_from_string<e_tile>(
+                                sprite_name ) );
+        res[tile] = sheet.sprite_size;
+      }
+    }
+    return res;
+  }();
+  return Delta::from_gfx( sizes[tile] );
 }
 
 void render_sprite( rr::Painter& painter, Rect where,

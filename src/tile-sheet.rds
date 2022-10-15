@@ -14,7 +14,7 @@ include "render/sprite-sheet.hpp"
 # C++ standard library.
 include "<vector>"
 
-namespace "rn.wrapped"
+namespace "rn"
 
 struct.TileSheetsConfig {
   font_sheets 'std::vector<rr::AsciiFontSheetConfig>',

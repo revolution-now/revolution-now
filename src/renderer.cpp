@@ -71,9 +71,8 @@ void init_renderer() {
       .logical_screen_size = logical_screen_size,
       .max_atlas_size      = { .w = 3000, .h = 2000 },
       // These are taken by reference.
-      .sprite_sheets =
-          config_tile_sheet.sheets.refl().sprite_sheets,
-      .font_sheets = config_tile_sheet.sheets.refl().font_sheets,
+      .sprite_sheets = config_tile_sheet.sheets.sprite_sheets,
+      .font_sheets   = config_tile_sheet.sheets.font_sheets,
   };
 
   // This renderer needs to be released before the SDL context is

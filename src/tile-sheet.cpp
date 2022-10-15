@@ -8,7 +8,7 @@
 * Description: All things related to tile sheet configuration.
 *
 *****************************************************************/
-#include "tile-sheet.hpp"
+#include "tile-sheet.rds.hpp"
 
 // Revolution Now
 #include "expect.hpp"
@@ -98,46 +98,12 @@ valid_or<string> validate_sprite_sheets(
 } // namespace
 
 /****************************************************************
-** wrapped::TileSheetsConfig
+** TileSheetsConfig
 *****************************************************************/
-valid_or<string> wrapped::TileSheetsConfig::validate() const {
+valid_or<string> TileSheetsConfig::validate() const {
   HAS_VALUE_OR_RET( validate_font_sheets( font_sheets ) );
   HAS_VALUE_OR_RET( validate_sprite_sheets( sprite_sheets ) );
   return valid;
-}
-
-/****************************************************************
-** TileSheetsConfig
-*****************************************************************/
-TileSheetsConfig::TileSheetsConfig()
-  : TileSheetsConfig( wrapped::TileSheetsConfig{} ) {}
-
-TileSheetsConfig::TileSheetsConfig(
-    wrapped::TileSheetsConfig&& o )
-  : o_( std::move( o ) ) {
-  // Populate any transient fields.
-  for( rr::SpriteSheetConfig const& sheet : o_.sprite_sheets ) {
-    for( auto const& [sprite_name, pos] : sheet.sprites ) {
-      // This should have already been validated.
-      UNWRAP_CHECK(
-          tile, refl::enum_from_string<e_tile>( sprite_name ) );
-      sizes_[tile] = sheet.sprite_size;
-    }
-  }
-  validate_or_die();
-}
-
-gfx::size TileSheetsConfig::sprite_size( e_tile tile ) const {
-  return sizes_[tile];
-}
-
-valid_or<string> TileSheetsConfig::validate() const {
-  // No additional validation for now.
-  return valid;
-}
-
-void TileSheetsConfig::validate_or_die() const {
-  CHECK_HAS_VALUE( validate() );
 }
 
 } // namespace rn

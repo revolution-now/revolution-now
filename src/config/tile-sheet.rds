@@ -9,7 +9,7 @@
 #
 # ===============================================================
 # Revolution Now
-include "tile-sheet.hpp"
+include "../tile-sheet.rds.hpp" # FIXME
 
 # Cdr.
 include "cdr/ext-builtin.hpp"
