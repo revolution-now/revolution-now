@@ -83,6 +83,10 @@ struct ILandViewPlane {
   // border around it.
   virtual void zoom_out_full() = 0;
 
+  // If there is a unit blinking and asking for orders then this
+  // will return it.
+  virtual maybe<UnitId> unit_blinking() = 0;
+
   virtual Plane& impl() = 0;
 };
 
@@ -125,6 +129,8 @@ struct LandViewPlane : ILandViewPlane {
   void landview_start_new_turn() override;
 
   void zoom_out_full() override;
+
+  maybe<UnitId> unit_blinking() override;
 
  private:
   struct Impl;

@@ -79,7 +79,7 @@ struct PanelPlane::Impl : public Plane {
 
     Rect const mini_map_available = mini_map_available_rect();
     auto       mini_map           = make_unique<MiniMapView>(
-        ss, ts, mini_map_available.delta() );
+        ss, ts, planes, mini_map_available.delta() );
     Coord const mini_map_upper_left =
         centered( mini_map->delta(), mini_map_available );
     view_vec.emplace_back( ui::OwningPositionedView{

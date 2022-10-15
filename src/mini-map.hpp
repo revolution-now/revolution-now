@@ -28,6 +28,7 @@ struct Renderer;
 
 namespace rn {
 
+struct Planes;
 struct SS;
 struct TS;
 struct Visibility;
@@ -85,8 +86,11 @@ struct MiniMap {
 ** MiniMapView
 *****************************************************************/
 struct MiniMapView : ui::View {
-  MiniMapView( SS& ss, TS& ts, Delta available )
-    : ss_( ss ), ts_( ts ), mini_map_( ss, available ) {}
+  MiniMapView( SS& ss, TS& ts, Planes& planes, Delta available )
+    : ss_( ss ),
+      ts_( ts ),
+      planes_( planes ),
+      mini_map_( ss, available ) {}
 
   // Implement ui::Object.
   void draw( rr::Renderer& renderer,
@@ -124,6 +128,7 @@ struct MiniMapView : ui::View {
 
   SS&                    ss_;
   TS&                    ts_;
+  Planes&                planes_;
   MiniMap                mini_map_;
   maybe<e_mini_map_drag> drag_state_;
 };

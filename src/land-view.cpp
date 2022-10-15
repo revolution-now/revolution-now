@@ -307,6 +307,8 @@ struct LandViewPlane::Impl : public Plane {
       unit_animations_.erase( it );
     } );
 
+    // TODO: this animation needs to be sync'd with the one in
+    // the mini-map.
     AnimThrottler throttle( 500ms, /*initial_delay=*/true );
     while( true ) {
       co_await throttle();
@@ -1542,6 +1544,11 @@ struct LandViewPlane::Impl : public Plane {
     viewport().set_zoom( viewport().optimal_min_zoom() );
   }
 
+  maybe<UnitId> unit_blinking() {
+    return landview_mode_.get_if<LandViewMode::unit_input>()
+        .member( &LandViewMode::unit_input::unit_id );
+  }
+
   wait<LandViewPlayerInput_t> landview_get_next_input(
       UnitId id ) {
     // When we start on a new unit clear the input queue so that
@@ -1719,6 +1726,10 @@ void LandViewPlane::landview_start_new_turn() {
 
 void LandViewPlane::zoom_out_full() {
   return impl_->zoom_out_full();
+}
+
+maybe<UnitId> LandViewPlane::unit_blinking() {
+  return impl_->unit_blinking();
 }
 
 } // namespace rn

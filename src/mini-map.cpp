@@ -12,8 +12,12 @@
 
 // Revolution Now
 #include "imap-updater.hpp"
+#include "land-view.hpp"
 #include "nation.hpp"
+#include "plane-stack.hpp"
+#include "time.hpp"
 #include "ts.hpp"
+#include "ustate.hpp"
 #include "visibility.hpp"
 
 // config
@@ -377,16 +381,38 @@ void MiniMapView::draw_impl( rr::Renderer&     renderer,
   static Delta const pixel_size =
       Delta{ .w = kPixelsPerPoint, .h = kPixelsPerPoint };
 
+  // See if there is a unit blinking; if so then we want to show
+  // the dot blinking on the mini-map as well so that the player
+  // can easily find the blinking unit.
+  maybe<UnitId> const blinker =
+      planes_.land_view().unit_blinking();
+  maybe<Coord> const blinker_coord =
+      blinker.has_value()
+          ? maybe<Coord>{ coord_for_unit_multi_ownership_or_die(
+                ss_, *blinker ) }
+          : nothing;
+  // FIXME: this blinking logic needs to be sync'd with the one
+  // in land-view.
+  bool const blink_on =
+      chrono::duration_cast<chrono::milliseconds>(
+          Clock_t::now().time_since_epoch() ) %
+          chrono::milliseconds{ 1000 } >
+      chrono::milliseconds{ 500 };
+
   for( Coord c : Rect::from_gfx( squares.truncated() ) ) {
     Coord const land_coord = c;
     CHECK( viz.on_map( land_coord ) );
     if( !viz.visible( land_coord ) ) continue;
+    bool const blinking_but_off =
+        ( c == blinker_coord && !blink_on );
     gfx::pixel color = color_for_square( viz.square_at( c ) );
     // First check if there is a unit/colony on the square.
     if( maybe<e_nation> nation =
             nation_from_coord( ss_.units, ss_.colonies, c );
-        nation.has_value() )
-      color = config_nation.nations[*nation].flag_color;
+        nation.has_value() ) {
+      if( !blinking_but_off )
+        color = config_nation.nations[*nation].flag_color;
+    }
     gfx::rect const pixel{
         .origin = actual.nw() +
                   ( c.to_gfx() - squares.nw().truncated() ) *
