@@ -13,7 +13,7 @@
 // Revolution Now
 #include "expect.hpp"
 #include "maybe.hpp"
-#include "tile-enum.hpp"
+#include "tile-enum.rds.hpp"
 
 // refl
 #include "refl/ext.hpp"

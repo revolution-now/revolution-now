@@ -14,7 +14,7 @@
 
 // Revolution Now
 #include "expect.hpp"
-#include "tile-enum.hpp"
+#include "tile-enum.rds.hpp"
 
 // Rds
 #include "tile-sheet.rds.hpp"
