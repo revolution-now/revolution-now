@@ -151,9 +151,17 @@ wait<> cheat_edit_fathers( Planes& planes, TS& ts,
       "Select or unselect founding fathers:" );
   top_array->add_view( std::move( text_view ) );
 
+  // Add vertical split, since there are too many fathers to put
+  // them all vertically.
+  auto vsplit_array = make_unique<HorizontalArrayView>(
+      HorizontalArrayView::align::up );
+
   // Add check boxes.
-  auto boxes_array = make_unique<VerticalArrayView>(
+  auto l_boxes_array = make_unique<VerticalArrayView>(
       VerticalArrayView::align::left );
+  auto r_boxes_array = make_unique<VerticalArrayView>(
+      VerticalArrayView::align::left );
+
   refl::enum_map<e_founding_father, LabeledCheckBoxView const*>
       boxes;
   for( e_founding_father father :
@@ -162,10 +170,18 @@ wait<> cheat_edit_fathers( Planes& planes, TS& ts,
         string( founding_father_name( father ) ),
         player.fathers.has[father] );
     boxes[father] = labeled_box.get();
-    boxes_array->add_view( std::move( labeled_box ) );
+    if( static_cast<int>( father ) < 13 )
+      l_boxes_array->add_view( std::move( labeled_box ) );
+    else
+      r_boxes_array->add_view( std::move( labeled_box ) );
   }
-  boxes_array->recompute_child_positions();
-  top_array->add_view( std::move( boxes_array ) );
+  l_boxes_array->recompute_child_positions();
+  r_boxes_array->recompute_child_positions();
+
+  vsplit_array->add_view( std::move( l_boxes_array ) );
+  vsplit_array->add_view( std::move( r_boxes_array ) );
+  vsplit_array->recompute_child_positions();
+  top_array->add_view( std::move( vsplit_array ) );
 
   // Add buttons.
   auto buttons_view          = make_unique<ui::OkCancelView2>();

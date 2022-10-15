@@ -647,6 +647,8 @@ struct LabeledCheckBoxView : public HorizontalArrayView {
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
 
+  bool needs_padding() const override { return true; }
+
  private:
   CheckBoxView* check_box_ = nullptr;
 };
