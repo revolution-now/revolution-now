@@ -407,29 +407,33 @@ void MiniMapView::draw_impl( rr::Renderer&     renderer,
   if( white_box.left() >= 0 ) {
     gfx::point const start = white_box.nw().clamped( bounds );
     gfx::point const end   = white_box.sw().clamped( bounds );
-    painter.draw_vertical_line( start, end.y - start.y,
-                                kBoxColor );
+    painter.draw_vertical_line(
+        start + gfx::size{ .h = 1 },
+        std::max( 0, end.y - start.y - 2 + 1 ), kBoxColor );
   }
   // Right.
   if( white_box.right() <= delta().w ) {
     gfx::point const start = white_box.ne().clamped( bounds );
     gfx::point const end   = white_box.se().clamped( bounds );
-    painter.draw_vertical_line( start, end.y - start.y + 1,
-                                kBoxColor );
+    painter.draw_vertical_line(
+        start + gfx::size{ .h = 1 },
+        std::max( 0, end.y - start.y - 2 + 1 ), kBoxColor );
   }
   // Top.
   if( white_box.top() >= 0 ) {
     gfx::point const start = white_box.nw().clamped( bounds );
     gfx::point const end   = white_box.ne().clamped( bounds );
-    painter.draw_horizontal_line( start, end.x - start.x,
-                                  kBoxColor );
+    painter.draw_horizontal_line(
+        start + gfx::size{ .w = 1 },
+        std::max( 0, end.x - start.x - 2 + 1 ), kBoxColor );
   }
   // Bottom.
   if( white_box.bottom() <= delta().h ) {
     gfx::point const start = white_box.sw().clamped( bounds );
     gfx::point const end   = white_box.se().clamped( bounds );
-    painter.draw_horizontal_line( start, end.x - start.x + 1,
-                                  kBoxColor );
+    painter.draw_horizontal_line(
+        start + gfx::size{ .w = 1 },
+        std::max( 0, end.x - start.x - 2 + 1 ), kBoxColor );
   }
 }
 
