@@ -7,6 +7,4 @@ return {
   'config/fathers',
   'fathers',
   'render-terrain',
-  'panel',
-  'mini-map',
 }
