@@ -11,6 +11,7 @@
 #include "tiles.hpp"
 
 // Revolution Now
+#include "config-files.hpp"
 #include "error.hpp"
 #include "init.hpp"
 #include "renderer.hpp"
@@ -75,6 +76,7 @@ Delta sprite_size( e_tile tile ) {
   // FIXME: find a better way to do this. Maybe store it in the
   // renderer object.
   static auto const sizes = [] {
+    CHECK( configs_loaded() );
     refl::enum_map<e_tile, gfx::size> res;
     for( rr::SpriteSheetConfig const& sheet :
          config_tile_sheet.sheets.sprite_sheets ) {

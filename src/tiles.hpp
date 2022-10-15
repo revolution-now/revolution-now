@@ -13,8 +13,10 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "tile-enum.rds.hpp"
 #include "util.hpp"
+
+// config
+#include "config/tile-enum.rds.hpp"
 
 // render
 #include "render/painter.hpp"

@@ -8,8 +8,8 @@
 # Description: Config info for unit types.
 #
 # ===============================================================
-# Revolution Now
-include "../tile-enum.rds.hpp" # FIXME
+# config
+include "config/tile-enum.rds.hpp"
 
 # gs
 include "ss/commodity.rds.hpp"

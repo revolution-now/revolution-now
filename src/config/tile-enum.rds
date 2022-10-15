@@ -3,13 +3,17 @@
 #
 # Project: Revolution Now
 #
-# Created by dsicilia on 2022-03-19.
+# Created by dsicilia on 2022-10-15.
 #
-# Description: Rds definitions for the tile-enum module.
+# Description: List of all tiles in the game.
 #
 # ===============================================================
 namespace "rn"
 
+# We could have put this in the tile-sheet config module, but we
+# don't want everyone who needs to use the e_tile enum to have to
+# include the config/tile-sheet module and instantiate that con-
+# fig.
 enum.e_tile {
   # =============================================================
   # Hidden

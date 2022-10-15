@@ -4,4 +4,5 @@ add_rn_library(
   rn-base
   rn-ss
   rn-luapp
+  rn-render
 )

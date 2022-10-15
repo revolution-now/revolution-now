@@ -3,22 +3,22 @@
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2022-03-19.
+* Created by dsicilia on 2022-10-15.
 *
-* Description: All things related to tile sheet configuration.
+* Description: Config data for sprite locations.
 *
 *****************************************************************/
-#include "tile-sheet.rds.hpp"
+#include "config/tile-sheet.rds.hpp"
 
-// Revolution Now
-#include "expect.hpp"
-#include "maybe.hpp"
+// config
 #include "tile-enum.rds.hpp"
 
 // refl
-#include "refl/ext.hpp"
 #include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"
+
+// base
+#include "base/valid.hpp"
 
 // C++ standard library
 #include <string>
@@ -29,6 +29,9 @@ using namespace std;
 namespace rn {
 
 namespace {
+
+using ::base::valid;
+using ::base::valid_or;
 
 /****************************************************************
 ** Validation Methods
@@ -65,7 +68,7 @@ valid_or<string> validate_sprite_sheets(
                    "zero, but the {}th one does not.",
                    idx );
     for( auto const& [sprite_name, pos] : sheet.sprites ) {
-      maybe<e_tile> tile =
+      base::maybe<e_tile> tile =
           refl::enum_from_string<e_tile>( sprite_name );
       REFL_VALIDATE( tile.has_value(),
                      "found tile name '{}' in config file but "

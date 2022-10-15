@@ -5,17 +5,27 @@
 #
 # Created by dsicilia on 2022-05-05.
 #
-# Description: Sprite locations.
+# Description: Config data for sprite locations.
 #
 # ===============================================================
-# Revolution Now
-include "../tile-sheet.rds.hpp" # FIXME
+# render
+include "render/sprite-sheet.hpp"
 
-# Cdr.
+# cdr.
 include "cdr/ext-builtin.hpp"
 include "cdr/ext-std.hpp"
 
+# C++ standard library.
+include "<vector>"
+
 namespace "rn"
+
+struct.TileSheetsConfig {
+  font_sheets 'std::vector<rr::AsciiFontSheetConfig>',
+  sprite_sheets 'std::vector<rr::SpriteSheetConfig>',
+
+  _features { equality, validation }
+}
 
 struct.config_tile_sheet_t {
   sheets 'TileSheetsConfig',
