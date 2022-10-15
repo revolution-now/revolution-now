@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "maybe.hpp"
-#include "tile-enum.rds.hpp"
 
 // gs
 #include "ss/colony-enums.rds.hpp"
