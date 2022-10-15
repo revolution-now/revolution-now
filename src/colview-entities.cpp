@@ -1205,8 +1205,7 @@ class ProductionView : public ui::View, public ColonySubView {
                              gfx::pixel::black() );
     SCOPED_RENDERER_MOD_ADD(
         painter_mods.repos.translation,
-        gfx::to_double(
-            gfx::size( coord.distance_from_origin() ) ) );
+        gfx::size( coord.distance_from_origin() ).to_double() );
     rr::Typer typer = renderer.typer( Coord{ .x = 2, .y = 2 },
                                       gfx::pixel::black() );
     typer.write( "Hammers:      {}\n", colony_.hammers );

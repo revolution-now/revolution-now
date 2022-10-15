@@ -233,8 +233,7 @@ void Window::draw( rr::Renderer& renderer, Coord where ) const {
     // cally.
     SCOPED_RENDERER_MOD_ADD(
         painter_mods.repos.translation,
-        gfx::to_double(
-            gfx::size( where.distance_from_origin() ) ) );
+        gfx::size( where.distance_from_origin() ).to_double() );
     rr::Painter painter = renderer.painter();
     Rect        r       = rect( Coord{} );
     // Render shadow behind window.

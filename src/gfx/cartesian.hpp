@@ -38,6 +38,9 @@ struct size {
 
   size max_with( size const rhs ) const;
 
+  // Returns a dsize; auto is used to avoid circular dependency.
+  auto to_double() const;
+
   size operator+( size term ) const;
 
   void operator+=( size term );
@@ -72,7 +75,12 @@ struct dsize {
   bool operator==( dsize const& ) const = default;
 };
 
-dsize to_double( size s );
+inline auto size::to_double() const {
+  return dsize{
+      .w = static_cast<double>( w ),
+      .h = static_cast<double>( h ),
+  };
+}
 
 /****************************************************************
 ** point
@@ -90,6 +98,9 @@ struct point {
 
   point point_becomes_origin( point p ) const;
   point origin_becomes_point( point p ) const;
+
+  // Returns a dpoint; auto is used to avoid circular dependency.
+  auto to_double() const;
 
   // If this point is outside the rect then it will be brought
   // into the rect by traveling in precisely one straight line in
@@ -153,7 +164,10 @@ struct dpoint {
   bool operator==( dpoint const& ) const = default;
 };
 
-dpoint to_double( point p );
+inline auto point::to_double() const {
+  return dpoint{ .x = static_cast<double>( x ),
+                 .y = static_cast<double>( y ) };
+}
 
 /****************************************************************
 ** rect
@@ -197,6 +211,9 @@ struct rect {
   rect normalized() const;
 
   rect clamped( rect bounds ) const;
+
+  // Returns a drect; auto is used to avoid circular dependency.
+  auto to_double() const;
 
   point nw() const;
   point ne() const;
@@ -261,7 +278,14 @@ struct drect {
   bool operator==( drect const& ) const = default;
 };
 
-drect to_double( rect r );
+inline auto rect::to_double() const {
+  return drect{
+      .origin = { .x = static_cast<double>( origin.x ),
+                  .y = static_cast<double>( origin.y ) },
+      .size   = { .w = static_cast<double>( size.w ),
+                  .h = static_cast<double>( size.h ) },
+  };
+}
 
 /****************************************************************
 ** Free Functions

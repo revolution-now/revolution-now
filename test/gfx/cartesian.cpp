@@ -61,6 +61,11 @@ TEST_CASE( "[gfx/cartesian] size::operator+=( size )" ) {
   REQUIRE( s2 == size{ .w = 4, .h = 3 } );
 }
 
+TEST_CASE( "[gfx/cartesian] size::to_double" ) {
+  size s{ .w = 4, .h = 2 };
+  REQUIRE( s.to_double() == dsize{ .w = 4, .h = 2 } );
+}
+
 /****************************************************************
 ** dsize
 *****************************************************************/
@@ -75,11 +80,6 @@ TEST_CASE( "[gfx/cartesian] dsize::operator+=( size )" ) {
 TEST_CASE( "[gfx/cartesian] dsize::truncated" ) {
   dsize s{ .w = 4.3, .h = 2.1 };
   REQUIRE( s.truncated() == size{ .w = 4, .h = 2 } );
-}
-
-TEST_CASE( "[gfx/cartesian] to_double( size )" ) {
-  size s{ .w = 4, .h = 2 };
-  REQUIRE( to_double( s ) == dsize{ .w = 4, .h = 2 } );
 }
 
 TEST_CASE( "[gfx/cartesian] dsize::operator*( double )" ) {
@@ -218,6 +218,11 @@ TEST_CASE( "[gfx/cartesian] point::origin_becomes_point" ) {
   point const arg{ .x = 2, .y = 1 };
   point       expected{ .x = 6, .y = 3 };
   REQUIRE( p.origin_becomes_point( arg ) == expected );
+}
+
+TEST_CASE( "[gfx/cartesian] point::to_double" ) {
+  point const p{ .x = 4, .y = 2 };
+  REQUIRE( p.to_double() == dpoint{ .x = 4.0, .y = 2.0 } );
 }
 
 /****************************************************************
@@ -861,6 +866,14 @@ TEST_CASE( "[gfx/cartesian] rect::origin_becomes_point" ) {
   REQUIRE( r.origin_becomes_point( arg ) == expected );
 }
 
+TEST_CASE( "[gfx/cartesian] rect::to_double" ) {
+  rect r{ .origin = { .x = 3, .y = 4 },
+          .size   = { .w = 4, .h = 2 } };
+  REQUIRE( r.to_double() ==
+           drect{ .origin = { .x = 3.0, .y = 4.0 },
+                  .size   = { .w = 4.0, .h = 2.0 } } );
+}
+
 /****************************************************************
 ** drect
 *****************************************************************/
@@ -870,14 +883,6 @@ TEST_CASE( "[gfx/cartesian] drect::truncated" ) {
   drect const  r{ .origin = p, .size = s };
   REQUIRE( r.truncated() == rect{ .origin = { .x = 4, .y = 2 },
                                   .size = { .w = 4, .h = 2 } } );
-}
-
-TEST_CASE( "[gfx/cartesian] to_double( rect )" ) {
-  rect r{ .origin = { .x = 3, .y = 4 },
-          .size   = { .w = 4, .h = 2 } };
-  REQUIRE( to_double( r ) ==
-           drect{ .origin = { .x = 3.0, .y = 4.0 },
-                  .size   = { .w = 4.0, .h = 2.0 } } );
 }
 
 TEST_CASE( "[gfx/cartesian] drect::normalized()" ) {

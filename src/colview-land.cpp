@@ -280,7 +280,7 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
                                     Coord         coord ) const {
   SCOPED_RENDERER_MOD_ADD(
       painter_mods.repos.translation,
-      to_double( gfx::size( coord.distance_from_origin() ) ) );
+      gfx::size( coord.distance_from_origin() ).to_double() );
 
   // This alpha is to fade the land tiles behind the units so
   // as to make the units more visible. Not sure yet if we want

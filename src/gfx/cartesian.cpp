@@ -101,13 +101,6 @@ void dsize::operator+=( dsize term ) {
   h += term.h;
 }
 
-dsize to_double( size s ) {
-  return dsize{
-      .w = double( s.w ),
-      .h = double( s.h ),
-  };
-}
-
 dsize dsize::operator*( double scale ) const {
   dsize res = *this;
   res.w *= scale;
@@ -185,13 +178,6 @@ point point::operator/( int scale ) const {
 *****************************************************************/
 dsize dpoint::fmod( double d ) const {
   return dsize{ .w = std::fmod( x, d ), .h = std::fmod( y, d ) };
-}
-
-dpoint to_double( point p ) {
-  return dpoint{
-      .x = double( p.x ),
-      .y = double( p.y ),
-  };
 }
 
 void dpoint::operator+=( dsize s ) {
@@ -387,15 +373,6 @@ rect rect::operator/( int scale ) const {
 /****************************************************************
 ** drect
 *****************************************************************/
-drect to_double( rect r ) {
-  return drect{
-      .origin = { .x = double( r.origin.x ),
-                  .y = double( r.origin.y ) },
-      .size   = { .w = double( r.size.w ),
-                  .h = double( r.size.h ) },
-  };
-}
-
 maybe<drect> drect::clipped_by( drect const other ) const {
   drect res = this->normalized();
   if( res.right() > other.right() )

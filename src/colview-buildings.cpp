@@ -122,8 +122,7 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
                              Coord         coord ) const {
   SCOPED_RENDERER_MOD_ADD(
       painter_mods.repos.translation,
-      gfx::to_double(
-          gfx::size( coord.distance_from_origin() ) ) );
+      gfx::size( coord.distance_from_origin() ).to_double() );
   rr::Painter painter = renderer.painter();
   for( e_colony_building_slot slot :
        refl::enum_values<e_colony_building_slot> ) {

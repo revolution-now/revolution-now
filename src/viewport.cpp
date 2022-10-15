@@ -508,8 +508,10 @@ gfx::drect SmoothViewport::covered_pixels() const {
       gfx::drect{ .origin = { .x = start_x(), .y = start_y() },
                   .size   = { .w = end_x() - start_x(),
                               .h = end_y() - start_y() } };
-  UNWRAP_CHECK( clipped, res.clipped_by( to_double( gfx::rect(
-                             world_rect_pixels() ) ) ) );
+  UNWRAP_CHECK(
+      clipped,
+      res.clipped_by(
+          gfx::rect( world_rect_pixels() ).to_double() ) );
   return clipped;
 }
 
@@ -523,9 +525,9 @@ Rect SmoothViewport::covered_pixels_rounded() const {
 
 gfx::drect SmoothViewport::rendering_dest_rect() const {
   gfx::drect const viewport(
-      to_double( gfx::rect( viewport_rect_pixels_ ) ) );
+      gfx::rect( viewport_rect_pixels_ ).to_double() );
   gfx::dsize const world_size_screen_pixels =
-      to_double( gfx::size( world_size_pixels() ) ) * get_zoom();
+      gfx::size( world_size_pixels() ).to_double() * get_zoom();
   gfx::dpoint const centered =
       centered_in( world_size_screen_pixels, viewport );
   gfx::drect res = viewport;
@@ -555,9 +557,9 @@ Rect SmoothViewport::rendering_dest_rect_rounded() const {
 gfx::dpoint SmoothViewport::landscape_buffer_render_upper_left()
     const {
   gfx::drect const dest(
-      to_double( gfx::rect( viewport_rect_pixels_ ) ) );
+      gfx::rect( viewport_rect_pixels_ ).to_double() );
   gfx::dpoint const centered = centered_in(
-      to_double( gfx::size( world_size_pixels() ) ) * get_zoom(),
+      gfx::size( world_size_pixels() ).to_double() * get_zoom(),
       dest );
   gfx::dpoint res = centered;
   if( !is_fully_visible_x() )

@@ -35,46 +35,38 @@ struct Visibility;
 /****************************************************************
 ** MiniMap
 *****************************************************************/
+// This object contains the logic that evolves the layout of the
+// mini-map and the operations that can be performed on it by the
+// user, such as dragging the map, dragging the viewport, click-
+// ing, and zooming.
 struct MiniMap {
-  MiniMap( SS& ss, Delta available_size );
+  MiniMap( SS& ss, gfx::size available_size );
 
-  // This should be called when any external state changes that
-  // could affect the minimap.
-  void update();
+  void set_origin( gfx::dpoint p );
 
-  void zoom_in();
+  void drag_map( gfx::size mouse_delta );
 
-  void zoom_out();
+  void drag_box( gfx::size mouse_delta );
 
-  void center_box_on_tile( gfx::point where );
+  void advance_auto_pan();
 
-  void drag_map( Delta mouse_delta );
+  // This gives the map coordinate in fractional tiles that is
+  // currently in the upper left corner of the mini-map.
+  gfx::dpoint origin() const;
 
-  void drag_box( Delta mouse_delta );
-
-  gfx::size pixels_occupied() const { return pixels_occupied_; }
-
-  // White box rect relative to this view in pixels.
-  gfx::rect white_box_pixels() const;
-
-  // Given a cursor position relative to the origin of this view
-  // it will compute which map tile it is on, if any.
-  maybe<gfx::point> tile_under_cursor( gfx::point p ) const;
+  gfx::size size_screen_pixels() const {
+    return size_screen_pixels_;
+  }
 
   gfx::drect tiles_visible_on_minimap() const;
 
-  // Returns true if the given tile is at least partially visible
-  // on the minimap.
-  bool tile_visible_on_minimap( gfx::point tile ) const;
-
-  // This gives the upper left map tile that is currently on the
-  // minimap.
-  gfx::dpoint upper_left_visible_tile() const;
-
-  // This is the covered tiles, meaning the part inside the white
-  // box, first computed in terms of fractional tiles, then trun-
-  // cated.
+  // This is the part inside the white box in fractional tiles.
   gfx::drect fractional_tiles_inside_white_box() const;
+
+  // Just for testing.
+  void set_animation_speed( double speed ) {
+    animation_speed_ = speed;
+  }
 
  private:
   // This needs to be called anytime the mini-map origin changes.
@@ -82,7 +74,11 @@ struct MiniMap {
 
   SS& ss_;
   // Size in pixels of the mini-map.
-  gfx::size pixels_occupied_;
+  gfx::size size_screen_pixels_;
+
+  // FIXME: this animation speed needs to be made
+  // frame-rate-independent.
+  double animation_speed_ = 3.0;
 };
 
 /****************************************************************
@@ -115,6 +111,9 @@ struct MiniMapView : ui::View {
       input::mouse_button_event_t const& event ) override;
 
  private:
+  // White box rect relative to this view in pixels.
+  gfx::rect white_box_pixels() const;
+
   enum class e_mini_map_drag { map, white_box };
 
   // Any non-const method should call this at the end.

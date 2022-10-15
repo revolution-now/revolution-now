@@ -160,9 +160,8 @@ void render_backdrop( rr::Renderer& renderer ) {
   int const    kNumLayers = 4;
   for( int i = 0; i < kNumLayers; ++i ) {
     SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, scale );
-    SCOPED_RENDERER_MOD_ADD(
-        painter_mods.repos.translation,
-        gfx::to_double( gfx::size( shift ) ) );
+    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
+                             gfx::size( shift ).to_double() );
     rr::Painter painter = renderer.painter();
     for( Rect rect : tiled_rect.to_grid_noalign( tile_size ) )
       render_sprite( painter,
