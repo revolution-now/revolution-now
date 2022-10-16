@@ -12,10 +12,12 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "harbor-units.hpp"
 #include "igui.hpp"
 #include "irand.hpp"
 #include "logger.hpp"
 #include "ts.hpp"
+#include "ustate.hpp"
 
 // config
 #include "config/fathers.rds.hpp"
@@ -242,7 +244,7 @@ wait<> play_new_father_cut_scene( TS& ts, Player const&,
       config_fathers.fathers[father].name );
 }
 
-void on_father_received( SS&, TS&, Player const&,
+void on_father_received( SS& ss, TS& ts, Player const& player,
                          e_founding_father father ) {
   lg.info( "performing one-time effects for {}.", father );
   switch( father ) {
@@ -266,31 +268,45 @@ void on_father_received( SS&, TS&, Player const&,
     case e_founding_father::father_jean_de_brebeuf:
     case e_founding_father::juan_de_sepulveda:
       // The above fathers don't have any one-time effects.
-      break;
+      return;
     case e_founding_father::bartolome_de_las_casas:
       // TODO: all currently existing indian converts are changed
       // to free colonists.
-      break;
+      return;
     case e_founding_father::francisco_de_coronado:
       // TODO: all existing colonies and the area around them be-
       // come visible on the map.
-      break;
+      return;
     case e_founding_father::jakob_fugger:
       // TODO: all boycotts currently in effect are forgiven
       // without backtaxes.
-      break;
-    case e_founding_father::john_paul_jones:
+      return;
+    case e_founding_father::john_paul_jones: {
       // TODO: a frigate is added.
-      break;
+      maybe<Coord> const loc = find_new_world_arrival_square(
+          ss.units, ss.colonies, ss.terrain, player,
+          /*sailed_from=*/nothing );
+      if( !loc.has_value() ) {
+        lg.error(
+            "cannot find a place on the map to put the new "
+            "frigate." );
+        return;
+      }
+      create_unit_on_map_non_interactive(
+          ss, ts, player,
+          UnitComposition::create( e_unit_type::frigate ),
+          *loc );
+      return;
+    }
     case e_founding_father::pocahontas:
       // TODO: all tension levels between you and the natives are
       // reduced to "content," and alarm is generated only half
       // as fast afterward.
-      break;
+      return;
     case e_founding_father::sieur_de_la_salle:
       // TODO: La Salle gives all current and future colonies a
       // stockade when the population reaches three.
-      break;
+      return;
   }
 }
 

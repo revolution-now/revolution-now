@@ -669,9 +669,11 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
         co_return false; // do not ask for orders.
       case e_high_seas_result::arrived_in_new_world: {
         lg.debug( "unit has arrived in new world." );
-        maybe<Coord> dst_coord = find_new_world_arrival_square(
-            ss.units, ss.colonies, ss.terrain, player,
-            ss.units.harbor_view_state_of( id ) );
+        maybe<Coord> const dst_coord =
+            find_new_world_arrival_square(
+                ss.units, ss.colonies, ss.terrain, player,
+                ss.units.harbor_view_state_of( id )
+                    .sailed_from );
         if( !dst_coord.has_value() ) {
           co_await ts.gui.message_box(
               "Unfortunately, while our @[H]{}@[] has arrived "

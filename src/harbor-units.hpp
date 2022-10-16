@@ -87,14 +87,18 @@ void unit_move_to_port( UnitsState& units_state, Player& player,
     TerrainState const& terrain_state, UnitsState& units_state,
     Player& player, UnitId id );
 
-// When a unit arrives in the new world from the high seas we
-// need to find a square on which to place the unit. That is ac-
-// tually a non-trivial process, and this function does that.
+// When a ship appears in the new world (e.g. it arrives from the
+// high seas, or it was created) we need to find a square on
+// which to place the unit. That is actually a non-trivial
+// process, and this function does that. If the unit was previ-
+// ously in the new world and sailed to the harbor then you can
+// pass the square that it sailed from as a preference for where
+// the ship should be placed.
 maybe<Coord> find_new_world_arrival_square(
     UnitsState const&    units_state,
     ColoniesState const& colonies_state,
     TerrainState const& terrain_state, Player const& player,
-    UnitHarborViewState const& info );
+    maybe<Coord> sailed_from );
 
 // This will check if there are ships in port and, if so, it will
 // ensure that at least one of them are selected (for a good

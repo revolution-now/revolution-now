@@ -99,28 +99,6 @@ vector<UnitId> units_in_harbor_filtered(
   return res;
 }
 
-// Find the place where we are supposed to put the unit when it
-// arrives from the new world. This is just a candidate because
-// there are some further checks that need to be done on the
-// square to make sure it is valid. The vast majority of the time
-// it will be valid though.
-Coord find_new_world_arrival_square_candidate(
-    Player const& player, UnitHarborViewState const& info ) {
-  if( info.sailed_from.has_value() )
-    // The unit sailed from the new world, so the square from
-    // which it came will have been recorded.
-    return *info.sailed_from;
-
-  if( player.last_high_seas.has_value() )
-    // Fall back to the source square from which the last ship
-    // moved that sailed the high seas.
-    return *player.last_high_seas;
-
-  // Finally, fall back to the original ship starting position
-  // for this player.
-  return player.starting_position;
-}
-
 bool is_unit_on_dock( UnitsState const& units_state,
                       UnitId            id ) {
   auto harbor_status =
@@ -205,18 +183,11 @@ maybe<Coord> find_new_world_arrival_square(
     UnitsState const&    units_state,
     ColoniesState const& colonies_state,
     TerrainState const& terrain_state, Player const& player,
-    UnitHarborViewState const& info ) {
-  Coord const candidate =
-      find_new_world_arrival_square_candidate( player, info );
-
-  maybe<e_nation> const nation = nation_from_coord(
-      units_state, colonies_state, candidate );
-
-  if( !nation.has_value() ) return candidate;
-
-  // We have a case where there are units on the candidate
-  // square, so let's make sure they are friendly.
-  if( nation == player.nation ) return candidate;
+    maybe<Coord> sailed_from ) {
+  Coord const candidate = sailed_from.has_value() ? *sailed_from
+                          : player.last_high_seas.has_value()
+                              ? *player.last_high_seas
+                              : player.starting_position;
 
   // The units on the square are not friendly, so we cannot drop
   // the unit here. We will procede to search the squares in an
