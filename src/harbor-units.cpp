@@ -179,8 +179,10 @@ maybe<Coord> find_new_world_arrival_square(
   int  max_radius = std::max( world_size.w, world_size.h );
 
   for( int radius = 0; radius < max_radius; ++radius ) {
-    search = search.with_border_added();
     for( Coord c : search ) {
+      // Only search the squares on the edge because we've al-
+      // ready searched the inside.
+      if( c.is_inside( search.edges_removed() ) ) continue;
       maybe<MapSquare const&> square =
           terrain_state.maybe_square_at( c );
       if( !square.has_value() ) continue;
@@ -192,6 +194,7 @@ maybe<Coord> find_new_world_arrival_square(
         // tain a foreign nation.
         return c;
     }
+    search = search.with_border_added();
   }
 
   // Theoretically at this point we should also make sure that we
