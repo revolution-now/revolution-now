@@ -70,8 +70,11 @@ class ColonySubView
   : public IDraggableObjectsView<ColViewObject_t>,
     public AwaitView {
  public:
-  ColonySubView( SS& ss, TS& ts, Colony& colony )
-    : ss_( ss ), ts_( ts ), colony_( colony ) {}
+  ColonySubView( SS& ss, TS& ts, Player& player, Colony& colony )
+    : ss_( ss ),
+      ts_( ts ),
+      player_( player ),
+      colony_( colony ) {}
 
   // All ColonySubView's will also be unspecified subclassess of
   // ui::View.
@@ -103,6 +106,7 @@ class ColonySubView
  protected:
   SS&     ss_;
   TS&     ts_;
+  Player& player_;
   Colony& colony_;
 };
 
@@ -120,7 +124,8 @@ void update_production( SSConst const& ss,
                         Colony const&  colony );
 
 // Must be called before any other method in this module.
-void set_colview_colony( SS& ss, TS& ts, Colony& colony );
+void set_colview_colony( SS& ss, TS& ts, Player& player,
+                         Colony& colony );
 
 void colview_drag_n_drop_draw(
     SS& ss, rr::Renderer& renderer,

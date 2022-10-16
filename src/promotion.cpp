@@ -234,6 +234,7 @@ maybe<UnitType> promoted_unit_type( UnitType        ut,
 ** Public API
 *****************************************************************/
 bool try_promote_unit_for_current_activity( SSConst const& ss,
+                                            Player const& player,
                                             Unit& unit ) {
   if( !is_unit_human( unit.type_obj() ) ) return false;
   maybe<e_unit_activity> activity = current_activity_for_unit(
@@ -244,7 +245,7 @@ bool try_promote_unit_for_current_activity( SSConst const& ss,
   expect<UnitComposition> promoted =
       promoted_from_activity( unit.composition(), *activity );
   if( !promoted.has_value() ) return false;
-  unit.change_type( *promoted );
+  unit.change_type( player, *promoted );
   return true;
 }
 

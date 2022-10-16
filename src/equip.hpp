@@ -53,6 +53,7 @@ std::vector<EquipOption> equip_options(
 std::string equip_description( EquipOption const& option );
 
 [[nodiscard]] PriceChange perform_equip_option(
-    SS& ss, UnitId unit_id, EquipOption const& option );
+    SS& ss, Player& player, UnitId unit_id,
+    EquipOption const& option );
 
 } // namespace rn

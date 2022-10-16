@@ -18,12 +18,13 @@
 
 namespace rn {
 
+struct Planes;
+struct Player;
 struct SS;
 struct TS;
-struct Planes;
 
 std::unique_ptr<OrdersHandler> handle_orders(
-    Planes& planes, SS& ss, TS& ts, UnitId id,
+    Planes& planes, SS& ss, TS& ts, Player& player, UnitId id,
     orders::move const& mv );
 
 } // namespace rn

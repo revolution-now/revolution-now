@@ -18,6 +18,7 @@
 
 namespace rn {
 
+struct Player;
 struct TS;
 struct Unit;
 
@@ -96,6 +97,7 @@ struct [[nodiscard]] MovementPointsAnalysis {
 // be the final points required after considering e.g. colonies,
 // roads, rivers, or ships on the square.
 MovementPointsAnalysis can_unit_move_based_on_mv_points(
-    TS& ts, Unit const& unit, MovementPoints needed );
+    TS& ts, Player const& player, Unit const& unit,
+    MovementPoints needed );
 
 } // namespace rn

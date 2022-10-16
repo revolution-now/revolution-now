@@ -417,8 +417,8 @@ e_high_seas_result advance_unit_on_high_seas(
 UnitId create_unit_in_harbor( UnitsState&     units_state,
                               Player&         player,
                               UnitComposition comp ) {
-  UnitId id = create_free_unit( units_state, player.nation,
-                                std::move( comp ) );
+  UnitId id =
+      create_free_unit( units_state, player, std::move( comp ) );
   unit_move_to_port( units_state, player, id );
   return id;
 }

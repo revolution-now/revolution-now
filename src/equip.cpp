@@ -190,12 +190,12 @@ string equip_description( EquipOption const& option ) {
   return res;
 }
 
-PriceChange perform_equip_option( SS& ss, UnitId unit_id,
+PriceChange perform_equip_option( SS& ss, Player& player,
+                                  UnitId             unit_id,
                                   EquipOption const& option ) {
   PriceChange price_change = {};
   Unit&       unit         = ss.units.unit_for( unit_id );
-  unit.change_type( option.new_comp );
-  UNWRAP_CHECK( player, ss.players.players[unit.nation()] );
+  unit.change_type( player, option.new_comp );
   if( option.commodity_delta.has_value() ) {
     Invoice const invoice =
         transaction_invoice( ss, player, *option.commodity_delta,

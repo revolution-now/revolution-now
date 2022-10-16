@@ -13,6 +13,9 @@
 // config
 #include "config/unit-type.hpp"
 
+// ss
+#include "ss/player.hpp"
+
 // luapp
 #include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
@@ -93,6 +96,15 @@ bool is_military_unit( e_unit_type type ) {
   return can_attack( type );
 }
 
+MvPoints movement_points( Player const& player,
+                          e_unit_type   type ) {
+  UnitTypeAttributes const& attr = unit_attr( type );
+  if( attr.ship &&
+      player.fathers.has[e_founding_father::ferdinand_magellan] )
+    return attr.base_movement_points + MvPoints( 1 );
+  return attr.base_movement_points;
+}
+
 // Lua
 namespace {
 
@@ -111,7 +123,10 @@ LUA_STARTUP( lua::state& st ) {
   LUA_ADD_MEMBER( ship );
   LUA_ADD_MEMBER( human );
   LUA_ADD_MEMBER( visibility );
-  LUA_ADD_MEMBER( movement_points );
+  // Should not be accessing this in Lua since it would probably
+  // indicate a bug. Intead Lua should call the movement_points
+  // function defined below since it accounts for bonuses.
+  // LUA_ADD_MEMBER( base_movement_points );
   LUA_ADD_MEMBER( attack_points );
   LUA_ADD_MEMBER( defense_points );
   LUA_ADD_MEMBER( cargo_slots );
@@ -127,6 +142,8 @@ LUA_STARTUP( lua::state& st ) {
   // LUA_ADD_MEMBER( promotion );
   // LUA_ADD_MEMBER( modifiers );
 };
+
+LUA_AUTO_FN( "movement_points", movement_points );
 
 } // namespace
 

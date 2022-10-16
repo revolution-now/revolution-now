@@ -27,6 +27,7 @@
 namespace rn {
 
 struct Planes;
+struct Player;
 struct SS;
 struct TS;
 
@@ -37,10 +38,10 @@ struct OrdersHandler {
   OrdersHandler()          = default;
   virtual ~OrdersHandler() = default;
 
-  OrdersHandler( OrdersHandler const& ) = delete;
+  OrdersHandler( OrdersHandler const& )            = delete;
   OrdersHandler& operator=( OrdersHandler const& ) = delete;
   OrdersHandler( OrdersHandler&& )                 = delete;
-  OrdersHandler& operator=( OrdersHandler&& ) = delete;
+  OrdersHandler& operator=( OrdersHandler&& )      = delete;
 
   struct RunResult {
     // Was the order carried out or not.
@@ -91,7 +92,7 @@ struct OrdersHandler {
 };
 
 std::unique_ptr<OrdersHandler> orders_handler(
-    Planes& planes, SS& ss, TS& ts, UnitId id,
+    Planes& planes, SS& ss, TS& ts, Player& player, UnitId id,
     orders_t const& orders );
 
 } // namespace rn

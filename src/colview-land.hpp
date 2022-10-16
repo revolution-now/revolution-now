@@ -43,11 +43,11 @@ struct ColonyLandView : public ui::View,
   };
 
   static std::unique_ptr<ColonyLandView> create(
-      SS& ss, TS& ts, Colony& colony, Player const& player,
+      SS& ss, TS& ts, Player& player, Colony& colony,
       e_render_mode mode );
 
-  ColonyLandView( SS& ss, TS& ts, Colony& colony,
-                  Player const& player, e_render_mode mode );
+  ColonyLandView( SS& ss, TS& ts, Player& player, Colony& colony,
+                  e_render_mode mode );
 
   static Delta size_needed( e_render_mode mode );
 
@@ -115,7 +115,6 @@ struct ColonyLandView : public ui::View,
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override;
 
-  Player const&    player_;
   e_render_mode    mode_;
   maybe<Draggable> dragging_;
   // These are squares that are occupied by colonists from other

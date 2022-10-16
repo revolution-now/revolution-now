@@ -125,9 +125,10 @@ struct UnitsState {
   // colonies state.
   void change_to_colony( UnitId id, ColonyId col_id );
 
-  friend void move_unit_to_colony( UnitsState& units_state,
-                                   Colony&     colony,
-                                   UnitId      unit_id,
+  friend void move_unit_to_colony( UnitsState&   units_state,
+                                   Player const& player,
+                                   Colony&       colony,
+                                   UnitId        unit_id,
                                    ColonyJob_t const& job );
 
  public:

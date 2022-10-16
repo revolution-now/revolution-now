@@ -47,7 +47,8 @@ struct Unit;
 // TODO: promote veterans to continentals after independence.
 //
 bool try_promote_unit_for_current_activity( SSConst const& ss,
-                                            Unit& unit );
+                                            Player const& player,
+                                            Unit&         unit );
 
 // This function will promote a unit given an activity. It will
 // first promote the unit type given the activity, then preserve

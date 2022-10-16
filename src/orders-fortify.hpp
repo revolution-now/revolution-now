@@ -18,15 +18,16 @@
 namespace rn {
 
 struct Planes;
+struct Player;
 struct SS;
 struct TS;
 
 std::unique_ptr<OrdersHandler> handle_orders(
-    Planes& planes, SS& ss, TS& ts, UnitId id,
+    Planes& planes, SS& ss, TS& ts, Player& player, UnitId id,
     orders::fortify const& fortify );
 
 std::unique_ptr<OrdersHandler> handle_orders(
-    Planes& planes, SS& ss, TS& ts, UnitId id,
+    Planes& planes, SS& ss, TS& ts, Player& player, UnitId id,
     orders::sentry const& sentry );
 
 } // namespace rn

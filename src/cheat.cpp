@@ -312,6 +312,7 @@ wait<> cheat_colony_buildings( Colony& colony, IGui& gui ) {
 }
 
 void cheat_upgrade_unit_expertise( SSConst const& ss,
+                                   Player const&  player,
                                    Unit&          unit ) {
   RETURN_IF_NO_CHEAT;
   UnitType const original_type = unit.type_obj();
@@ -324,7 +325,8 @@ void cheat_upgrade_unit_expertise( SSConst const& ss,
   // motion when the unit has no activity and it won't change an
   // expert's type to be a new expert, both things that we will
   // want to do with this cheat feature.
-  if( try_promote_unit_for_current_activity( ss, unit ) ) return;
+  if( try_promote_unit_for_current_activity( ss, player, unit ) )
+    return;
 
   maybe<e_unit_activity> activity = current_activity_for_unit(
       ss.units, ss.colonies, unit.id() );
@@ -348,7 +350,7 @@ void cheat_upgrade_unit_expertise( SSConst const& ss,
         UnitComposition::create( to_promote ), *activity );
     if( !promoted.has_value() ) return;
     CHECK( promoted.has_value() );
-    unit.change_type( *promoted );
+    unit.change_type( player, *promoted );
     return;
   }
 
@@ -356,18 +358,21 @@ void cheat_upgrade_unit_expertise( SSConst const& ss,
   // how to upgrade are petty criminals and indentured servants.
   switch( unit.type() ) {
     case e_unit_type::petty_criminal:
-      unit.change_type( UnitComposition::create(
-          e_unit_type::indentured_servant ) );
+      unit.change_type( player,
+                        UnitComposition::create(
+                            e_unit_type::indentured_servant ) );
       return;
     case e_unit_type::indentured_servant:
-      unit.change_type( UnitComposition::create(
-          e_unit_type::free_colonist ) );
+      unit.change_type( player,
+                        UnitComposition::create(
+                            e_unit_type::free_colonist ) );
       break;
     default: return;
   }
 }
 
-void cheat_downgrade_unit_expertise( Unit& unit ) {
+void cheat_downgrade_unit_expertise( Player const& player,
+                                     Unit&         unit ) {
   RETURN_IF_NO_CHEAT;
   UnitType const original_type = unit.type_obj();
   SCOPE_EXIT(
@@ -386,7 +391,8 @@ void cheat_downgrade_unit_expertise( Unit& unit ) {
         break;
       default: new_type = e_unit_type::free_colonist; break;
     }
-    unit.change_type( UnitComposition::create( new_type ) );
+    unit.change_type( player,
+                      UnitComposition::create( new_type ) );
     return;
   }
 
@@ -400,7 +406,7 @@ void cheat_downgrade_unit_expertise( Unit& unit ) {
       UNWRAP_CHECK( comp,
                     UnitComposition::create(
                         ut, unit.composition().inventory() ) );
-      unit.change_type( comp );
+      unit.change_type( player, comp );
       return;
     }
     case e_unit_type::free_colonist: {
@@ -410,7 +416,7 @@ void cheat_downgrade_unit_expertise( Unit& unit ) {
       UNWRAP_CHECK( comp,
                     UnitComposition::create(
                         ut, unit.composition().inventory() ) );
-      unit.change_type( comp );
+      unit.change_type( player, comp );
       return;
     }
     default:
@@ -422,16 +428,17 @@ void cheat_downgrade_unit_expertise( Unit& unit ) {
       UNWRAP_CHECK(
           comp, UnitComposition::create(
                     *cleared, unit.composition().inventory() ) );
-      unit.change_type( comp );
+      unit.change_type( player, comp );
       return;
   }
 }
 
 void cheat_create_new_colonist( SS& ss, TS& ts,
+                                Player const& player,
                                 Colony const& colony ) {
   RETURN_IF_NO_CHEAT;
   create_unit_on_map_non_interactive(
-      ss, ts, colony.nation,
+      ss, ts, player,
       UnitComposition::create( e_unit_type::free_colonist ),
       colony.location );
 }
@@ -456,10 +463,12 @@ void cheat_decrease_commodity( Colony&     colony,
 }
 
 void cheat_advance_colony_one_turn( SS& ss, TS& ts,
+                                    Player& player,
                                     Colony& colony ) {
   RETURN_IF_NO_CHEAT;
   lg.debug( "advancing colony {}. notifications:", colony.name );
-  ColonyEvolution ev = evolve_colony_one_turn( ss, ts, colony );
+  ColonyEvolution ev =
+      evolve_colony_one_turn( ss, ts, player, colony );
   for( ColonyNotification_t const& notification :
        ev.notifications )
     lg.debug( "{}", notification );

@@ -98,18 +98,20 @@ maybe<UnitId> is_unit_onboard( UnitsState const& units_state,
 *****************************************************************/
 // Creates a unit that is registered (with a valid ID) but with
 // no ownership.
-UnitId create_free_unit( UnitsState& units_state,
-                         e_nation nation, UnitComposition comp );
-UnitId create_free_unit( UnitsState& units_state,
-                         e_nation nation, UnitType type );
-UnitId create_free_unit( UnitsState& units_state,
-                         e_nation nation, e_unit_type type );
+UnitId create_free_unit( UnitsState&     units_state,
+                         Player const&   player,
+                         UnitComposition comp );
+UnitId create_free_unit( UnitsState&   units_state,
+                         Player const& player, UnitType type );
+UnitId create_free_unit( UnitsState&   units_state,
+                         Player const& player,
+                         e_unit_type   type );
 
 // Create unit that is not registered in the unit database, and
 // thus has no ID and no ownership. The unit will always have
 // id=0, since a unit does not get assigned an ID until it is
 // added into the units database.
-Unit create_unregistered_unit( e_nation        nation,
+Unit create_unregistered_unit( Player const&   player,
                                UnitComposition comp );
 
 // This has to return a maybe because the unit could theoreti-
@@ -124,7 +126,7 @@ wait<maybe<UnitId>> create_unit_on_map( SS& ss, TS& ts,
 // Note: when calling from a coroutine, call the coroutine ver-
 // sion above since it will run through any UI actions.
 UnitId create_unit_on_map_non_interactive( SS& ss, TS& ts,
-                                           e_nation nation,
+                                           Player const& player,
                                            UnitComposition comp,
                                            Coord coord );
 

@@ -83,7 +83,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -116,7 +116,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -149,7 +149,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -182,7 +182,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -212,7 +212,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -239,7 +239,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -266,7 +266,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            2
-      movement_points:       4
+      base_movement_points:  4
       attack_points:         1
       defense_points:        1
       # Does not simply lose horses; the game rules say that scout
@@ -295,7 +295,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         2
       defense_points:        2
       on_death               demote{ lose=[muskets] }
@@ -322,7 +322,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       4
+      base_movement_points:  4
       attack_points:         3
       defense_points:        3
       on_death               demote{ lose=[horses] }
@@ -352,7 +352,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -385,7 +385,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -418,7 +418,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -451,7 +451,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -484,7 +484,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -517,7 +517,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -550,7 +550,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -583,7 +583,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -616,7 +616,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -649,7 +649,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -682,7 +682,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -715,7 +715,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -748,7 +748,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -781,7 +781,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -814,7 +814,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -847,7 +847,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -880,7 +880,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -913,7 +913,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -946,7 +946,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -979,7 +979,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -1012,7 +1012,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -1045,7 +1045,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture_and_demote{type=free_colonist}
@@ -1083,7 +1083,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         3
       defense_points:        3
       on_death               demote{ lose=[muskets] }
@@ -1110,7 +1110,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       4
+      base_movement_points:  4
       attack_points:         4
       defense_points:        4
       on_death               demote{ lose=[horses] }
@@ -1137,7 +1137,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         4
       defense_points:        4
       on_death               demote{ lose=[muskets, independence] }
@@ -1164,7 +1164,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       4
+      base_movement_points:  4
       attack_points:         5
       defense_points:        5
       on_death               demote{ lose=[horses] }
@@ -1191,7 +1191,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         5
       defense_points:        5
       on_death               destroy{}
@@ -1220,7 +1220,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       4
+      base_movement_points:  4
       attack_points:         6
       defense_points:        6
       on_death               demote{ lose=[horses] }
@@ -1247,7 +1247,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -1274,7 +1274,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -1301,7 +1301,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            2
-      movement_points:       4
+      base_movement_points:  4
       attack_points:         1
       defense_points:        1
       # Does not simply lose horses; the game rules say that scout
@@ -1333,7 +1333,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     w
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         5
       defense_points:        3
       on_death               destroy{}
@@ -1362,7 +1362,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     w
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         7
       defense_points:        5
       on_death               demote{ lose=[strength] }
@@ -1392,7 +1392,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     nw
       visibility:            1
-      movement_points:       4
+      base_movement_points:  4
       attack_points:         0
       defense_points:        2
       on_death               naval{}
@@ -1419,7 +1419,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     nw
       visibility:            1
-      movement_points:       5
+      base_movement_points:  5
       attack_points:         0
       defense_points:        5
       on_death               naval{}
@@ -1446,7 +1446,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     ne
       visibility:            2
-      movement_points:       6
+      base_movement_points:  6
       attack_points:         0
       defense_points:        10
       on_death               naval{}
@@ -1473,7 +1473,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     nw
       visibility:            2
-      movement_points:       8
+      base_movement_points:  8
       attack_points:         8
       defense_points:        8
       on_death               naval{}
@@ -1500,7 +1500,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     nw
       visibility:            2
-      movement_points:       6
+      base_movement_points:  6
       attack_points:         16
       defense_points:        16
       on_death               naval{}
@@ -1527,7 +1527,7 @@ composition {
       nat_icon_front:        true
       nat_icon_position:     ne
       visibility:            1
-      movement_points:       5
+      base_movement_points:  5
       attack_points:         24
       defense_points:        24
       on_death               naval{}
@@ -1557,7 +1557,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     n
       visibility:            1
-      movement_points:       2
+      base_movement_points:  2
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -1588,7 +1588,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     n
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -1615,7 +1615,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     n
       visibility:            1
-      movement_points:       1
+      base_movement_points:  1
       attack_points:         0
       defense_points:        1
       on_death               capture{}

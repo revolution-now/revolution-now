@@ -86,9 +86,9 @@ struct DumpHandler : public OrdersHandler {
     for( auto const& [slot, comm] : commodities ) {
       // FIXME: need to put these names into a config file with
       // both singular and plural versions.
-      string const text =
-          fmt::format( "{} {}", comm.quantity,
-                       lowercase_commodity_display_name( comm.type ) );
+      string const text = fmt::format(
+          "{} {}", comm.quantity,
+          lowercase_commodity_display_name( comm.type ) );
       ChoiceConfigOption option{
           .key          = fmt::to_string( slot ),
           .display_name = text,
@@ -128,7 +128,7 @@ struct DumpHandler : public OrdersHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders( Planes&, SS& ss, TS& ts,
-                                         UnitId id,
+                                         Player&, UnitId id,
                                          orders::dump const& ) {
   return make_unique<DumpHandler>( ss, ts, id );
 }

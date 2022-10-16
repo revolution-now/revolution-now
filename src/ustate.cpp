@@ -28,9 +28,10 @@
 // config
 #include "config/unit-type.hpp"
 
-// gs
+// ss
 #include "ss/colonies.hpp"
 #include "ss/player.rds.hpp"
+#include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
 
@@ -118,50 +119,51 @@ string debug_string( UnitsState const& units_state, UnitId id ) {
 }
 
 UnitId create_free_unit( UnitsState&     units_state,
-                         e_nation        nation,
+                         Player const&   player,
                          UnitComposition comp ) {
   wrapped::Unit refl_unit{
       .id          = UnitId{ 0 }, // will be set later.
       .composition = std::move( comp ),
       .orders      = e_unit_orders::none,
       .cargo = CargoHold( unit_attr( comp.type() ).cargo_slots ),
-      .nation = nation,
-      .mv_pts = unit_attr( comp.type() ).movement_points,
+      .nation = player.nation,
+      .mv_pts = movement_points( player, comp.type() ),
   };
   return units_state.add_unit( Unit( std::move( refl_unit ) ) );
 }
 
-Unit create_unregistered_unit( e_nation        nation,
+Unit create_unregistered_unit( Player const&   player,
                                UnitComposition comp ) {
   wrapped::Unit refl_unit{
       .id          = UnitId{ 0 }, // will be set later.
       .composition = std::move( comp ),
       .orders      = e_unit_orders::none,
       .cargo = CargoHold( unit_attr( comp.type() ).cargo_slots ),
-      .nation = nation,
-      .mv_pts = unit_attr( comp.type() ).movement_points,
+      .nation = player.nation,
+      .mv_pts = movement_points( player, comp.type() ),
   };
   return Unit( std::move( refl_unit ) );
 }
 
-UnitId create_free_unit( UnitsState& units_state,
-                         e_nation nation, UnitType type ) {
-  return create_free_unit( units_state, nation,
+UnitId create_free_unit( UnitsState&   units_state,
+                         Player const& player, UnitType type ) {
+  return create_free_unit( units_state, player,
                            UnitComposition::create( type ) );
 }
 
-UnitId create_free_unit( UnitsState& units_state,
-                         e_nation nation, e_unit_type type ) {
-  return create_free_unit( units_state, nation,
+UnitId create_free_unit( UnitsState&   units_state,
+                         Player const& player,
+                         e_unit_type   type ) {
+  return create_free_unit( units_state, player,
                            UnitType::create( type ) );
 }
 
 UnitId create_unit_on_map_non_interactive( SS& ss, TS& ts,
-                                           e_nation nation,
+                                           Player const& player,
                                            UnitComposition comp,
                                            Coord coord ) {
   UnitId id =
-      create_free_unit( ss.units, nation, std::move( comp ) );
+      create_free_unit( ss.units, player, std::move( comp ) );
   unit_to_map_square_non_interactive( ss, ts, id, coord );
   return id;
 }
@@ -170,8 +172,8 @@ wait<maybe<UnitId>> create_unit_on_map( SS& ss, TS& ts,
                                         Player&         player,
                                         UnitComposition comp,
                                         Coord           coord ) {
-  UnitId id = create_free_unit( ss.units, player.nation,
-                                std::move( comp ) );
+  UnitId id =
+      create_free_unit( ss.units, player, std::move( comp ) );
   maybe<UnitDeleted> unit_deleted =
       co_await unit_to_map_square( ss, ts, id, coord );
   if( unit_deleted.has_value() ) co_return nothing;
@@ -271,34 +273,37 @@ namespace {
 
 LUA_FN( create_unit_on_map, Unit&, e_nation nation,
         UnitComposition& comp, Coord const& coord ) {
-  SS&    ss = st["SS"].as<SS&>();
-  TS&    ts = st["TS"].as<TS&>();
-  UnitId id = create_unit_on_map_non_interactive( ss, ts, nation,
-                                                  comp, coord );
+  SS&                  ss     = st["SS"].as<SS&>();
+  TS&                  ts     = st["TS"].as<TS&>();
+  maybe<Player const&> player = ss.players.players[nation];
+  LUA_CHECK( st, player.has_value(),
+             "player for nation {} does not exist.", nation );
+  UnitId id = create_unit_on_map_non_interactive(
+      ss, ts, *player, comp, coord );
   lg.info( "created a {} on square {}.",
            unit_attr( comp.type() ).name, coord );
   return ss.units.unit_for( id );
 }
 
 LUA_FN( add_unit_to_cargo, void, UnitId held, UnitId holder ) {
-  UnitsState& units_state =
-      st["ROOT"]["units"].as<UnitsState&>();
+  SS& ss = st["SS"].as<SS&>();
   lg.info( "adding unit {} to cargo of unit {}.",
-           debug_string( units_state, held ),
-           debug_string( units_state, holder ) );
-  units_state.change_to_cargo_somewhere( holder, held );
+           debug_string( ss.units, held ),
+           debug_string( ss.units, holder ) );
+  ss.units.change_to_cargo_somewhere( holder, held );
 }
 
 LUA_FN( create_unit_in_cargo, Unit&, e_nation nation,
         UnitComposition& comp, UnitId holder ) {
-  UnitsState& units_state =
-      st["ROOT"]["units"].as<UnitsState&>();
-  UnitId unit_id = create_free_unit( units_state, nation, comp );
-  lg.info( "created unit {}.",
-           debug_string( units_state, unit_id ),
-           debug_string( units_state, holder ) );
-  units_state.change_to_cargo_somewhere( holder, unit_id );
-  return units_state.unit_for( unit_id );
+  SS&                  ss     = st["SS"].as<SS&>();
+  maybe<Player const&> player = ss.players.players[nation];
+  LUA_CHECK( st, player.has_value(),
+             "player for nation {} does not exist.", nation );
+  UnitId unit_id = create_free_unit( ss.units, *player, comp );
+  lg.info( "created unit {}.", debug_string( ss.units, unit_id ),
+           debug_string( ss.units, holder ) );
+  ss.units.change_to_cargo_somewhere( holder, unit_id );
+  return ss.units.unit_for( unit_id );
 }
 
 } // namespace

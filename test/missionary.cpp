@@ -108,7 +108,8 @@ TEST_CASE( "[missionary] bless_as_missionary" ) {
 
   auto f = [&]( UnitType type ) {
     UnitId unit_id = W.add_unit_on_map( type, Coord{} );
-    bless_as_missionary( colony, W.units().unit_for( unit_id ) );
+    bless_as_missionary( W.default_player(), colony,
+                         W.units().unit_for( unit_id ) );
     return W.units().unit_for( unit_id ).type_obj();
   };
 

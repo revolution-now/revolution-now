@@ -78,8 +78,9 @@ TEST_CASE( "[colony-mgr] found_colony on land successful" ) {
   UnitId      id =
       W.add_unit_on_map( e_unit_type::free_colonist, coord );
   REQUIRE( unit_can_found_colony( W.ss(), id ) == base::valid );
-  ColonyId col_id = found_colony( W.ss(), W.ts(), id, "colony" );
-  Colony&  col    = W.colonies().colony_for( col_id );
+  ColonyId col_id = found_colony(
+      W.ss(), W.ts(), W.default_player(), id, "colony" );
+  Colony& col = W.colonies().colony_for( col_id );
   for( auto [type, q] : col.commodities ) {
     INFO( fmt::format( "type: {}, q: {}", type, q ) );
     REQUIRE( q == 0 );
@@ -109,8 +110,8 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
     Unit& founder = W.units().unit_for( id );
     REQUIRE( founder.type() == e_unit_type::dragoon );
     REQUIRE( unit_can_found_colony( W.ss(), id ).valid() );
-    ColonyId col_id =
-        found_colony( W.ss(), W.ts(), id, "colony" );
+    ColonyId col_id = found_colony(
+        W.ss(), W.ts(), W.default_player(), id, "colony" );
     REQUIRE( founder.type() == e_unit_type::petty_criminal );
     Colony& col = W.colonies().colony_for( col_id );
     // Make sure that the founding unit has shed all of its com-
@@ -132,8 +133,8 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
     Unit& founder = W.units().unit_for( id );
     REQUIRE( founder.type() == e_unit_type::hardy_pioneer );
     REQUIRE( unit_can_found_colony( W.ss(), id ).valid() );
-    ColonyId col_id =
-        found_colony( W.ss(), W.ts(), id, "colony" );
+    ColonyId col_id = found_colony(
+        W.ss(), W.ts(), W.default_player(), id, "colony" );
     REQUIRE( founder.type() == e_unit_type::hardy_colonist );
     Colony& col = W.colonies().colony_for( col_id );
     // Make sure that the founding unit has shed all of its com-
@@ -156,8 +157,8 @@ TEST_CASE(
   UnitId      id =
       W.add_unit_on_map( e_unit_type::free_colonist, coord );
   REQUIRE( unit_can_found_colony( W.ss(), id ).valid() );
-  ColonyId col_id =
-      found_colony( W.ss(), W.ts(), id, "colony 1" );
+  ColonyId col_id = found_colony(
+      W.ss(), W.ts(), W.default_player(), id, "colony 1" );
   Colony& col = W.colonies().colony_for( col_id );
   for( auto [type, q] : col.commodities ) {
     INFO( fmt::format( "type: {}, q: {}", type, q ) );
@@ -178,7 +179,8 @@ TEST_CASE(
   UnitId id =
       W.add_unit_on_map( e_unit_type::free_colonist, coord );
   REQUIRE( unit_can_found_colony( W.ss(), id ).valid() );
-  found_colony( W.ss(), W.ts(), id, "colony" );
+  found_colony( W.ss(), W.ts(), W.default_player(), id,
+                "colony" );
   coord.x += 1;
   id = W.add_unit_on_map( e_unit_type::free_colonist, coord );
   REQUIRE( unit_can_found_colony( W.ss(), id ) ==
@@ -193,7 +195,7 @@ TEST_CASE( "[colony-mgr] can't build colony in water" ) {
   UnitId ship_id =
       W.add_unit_on_map( e_unit_type::merchantman, coord );
   UnitId unit_id =
-      create_free_unit( W.units(), W.default_nation(),
+      create_free_unit( W.units(), W.default_player(),
                         e_unit_type::free_colonist );
   W.units().change_to_cargo_somewhere( ship_id, unit_id );
   REQUIRE( unit_can_found_colony( W.ss(), unit_id ) ==
@@ -216,7 +218,7 @@ TEST_CASE(
     "[colony-mgr] found_colony by unit not on map fails" ) {
   World W;
 
-  UnitId id = create_free_unit( W.units(), W.default_nation(),
+  UnitId id = create_free_unit( W.units(), W.default_player(),
                                 e_unit_type::free_colonist );
   W.units().change_to_harbor_view(
       id,
@@ -315,9 +317,9 @@ TEST_CASE( "[colony-mgr] found_colony places initial unit." ) {
                                       Coord{ .x = 1, .y = 1 } );
   // Don't use W.add_colony here because we are testing
   // found_colony specifically.
-  ColonyId id =
-      found_colony( W.ss(), W.ts(), founder, "my colony" );
-  Colony& colony = W.colonies().colony_for( id );
+  ColonyId id = found_colony( W.ss(), W.ts(), W.default_player(),
+                              founder, "my colony" );
+  Colony&  colony = W.colonies().colony_for( id );
 
   REQUIRE( colony.outdoor_jobs[e_direction::nw] == nothing );
   REQUIRE( colony.outdoor_jobs[e_direction::ne] == nothing );

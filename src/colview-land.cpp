@@ -244,7 +244,8 @@ wait<> ColonyLandView::drop( ColViewObject_t const& o,
     job = ColonyJob::outdoor{ .direction = d,
                               .job       = dragging_->job };
   }
-  move_unit_to_colony( ss_.units, colony, unit_id, job );
+  move_unit_to_colony( ss_.units, player_, colony, unit_id,
+                       job );
   CHECK_HAS_VALUE( colony.validate() );
   co_return;
 }
@@ -454,17 +455,16 @@ void ColonyLandView::draw( rr::Renderer& renderer,
 }
 
 unique_ptr<ColonyLandView> ColonyLandView::create(
-    SS& ss, TS& ts, Colony& colony, Player const& player,
+    SS& ss, TS& ts, Player& player, Colony& colony,
     e_render_mode mode ) {
-  return make_unique<ColonyLandView>( ss, ts, colony, player,
+  return make_unique<ColonyLandView>( ss, ts, player, colony,
                                       mode );
 }
 
-ColonyLandView::ColonyLandView( SS& ss, TS& ts, Colony& colony,
-                                Player const& player,
+ColonyLandView::ColonyLandView( SS& ss, TS& ts, Player& player,
+                                Colony&       colony,
                                 e_render_mode mode )
-  : ColonySubView( ss, ts, colony ),
-    player_( player ),
+  : ColonySubView( ss, ts, player, colony ),
     mode_( mode ),
     occupied_red_box_( find_occupied_surrounding_colony_squares(
         ss, colony ) ) {}

@@ -249,15 +249,16 @@ UnitId World::add_unit_on_map( UnitType type, Coord where,
                                maybe<e_nation> nation ) {
   if( !nation ) nation = default_nation_;
   return create_unit_on_map_non_interactive(
-      ss(), ts(), *nation, UnitComposition::create( type ),
-      where );
+      ss(), ts(), player( *nation ),
+      UnitComposition::create( type ), where );
 }
 
 UnitId World::add_unit_in_cargo( e_unit_type type, UnitId holder,
                                  maybe<e_nation> nation ) {
   if( !nation ) nation = default_nation_;
-  UnitId held = create_free_unit(
-      units(), *nation, UnitComposition::create( type ) );
+  UnitId held =
+      create_free_unit( units(), player( *nation ),
+                        UnitComposition::create( type ) );
   units().change_to_cargo_somewhere( holder, held );
   return held;
 }
@@ -269,7 +270,8 @@ UnitId World::add_unit_indoors( ColonyId     colony_id,
   Coord   loc     = colonies().coord_for( colony_id );
   UnitId  unit_id = add_unit_on_map( type, loc, colony.nation );
   ColonyJob::indoor job{ .job = indoor_job };
-  move_unit_to_colony( units(), colony, unit_id, job );
+  move_unit_to_colony( units(), player( colony.nation ), colony,
+                       unit_id, job );
   return unit_id;
 }
 
@@ -295,7 +297,8 @@ UnitId World::add_unit_outdoors( ColonyId      colony_id,
   Coord   loc     = colonies().coord_for( colony_id );
   UnitId  unit_id = add_unit_on_map( type, loc, colony.nation );
   ColonyJob::outdoor job{ .direction = d, .job = outdoor_job };
-  move_unit_to_colony( units(), colony, unit_id, job );
+  move_unit_to_colony( units(), player( colony.nation ), colony,
+                       unit_id, job );
   return unit_id;
 }
 
@@ -322,7 +325,10 @@ void World::add_default_player() {
 Colony& World::add_colony( UnitId founder ) {
   string name =
       fmt::to_string( colonies().last_colony_id() + 1 );
-  ColonyId id = found_colony( ss(), ts(), founder, name );
+  ColonyId id = found_colony(
+      ss(), ts(),
+      player( ss().units.unit_for( founder ).nation() ), founder,
+      name );
   return colonies().colony_for( id );
 }
 

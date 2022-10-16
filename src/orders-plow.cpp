@@ -106,7 +106,7 @@ struct PlowHandler : public OrdersHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders( Planes&, SS& ss, TS& ts,
-                                         UnitId id,
+                                         Player&, UnitId id,
                                          orders::plow const& ) {
   return make_unique<PlowHandler>( ss, ts, id );
 }

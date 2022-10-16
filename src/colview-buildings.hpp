@@ -34,18 +34,17 @@ class ColViewBuildings : public ui::View,
                          public IDragSource<ColViewObject_t> {
  public:
   static std::unique_ptr<ColViewBuildings> create(
-      SS& ss, TS& ts, Colony& colony, Delta size,
-      Player const& player ) {
-    return std::make_unique<ColViewBuildings>( ss, ts, colony,
-                                               size, player );
+      SS& ss, TS& ts, Player& player, Colony& colony,
+      Delta size ) {
+    return std::make_unique<ColViewBuildings>( ss, ts, player,
+                                               colony, size );
   }
 
-  ColViewBuildings( SS& ss, TS& ts, Colony& colony, Delta size,
-                    Player const& player )
-    : ColonySubView( ss, ts, colony ),
+  ColViewBuildings( SS& ss, TS& ts, Player& player,
+                    Colony& colony, Delta size )
+    : ColonySubView( ss, ts, player, colony ),
       size_( size ),
-      colony_( colony ),
-      player_( player ) {}
+      colony_( colony ) {}
 
   Delta delta() const override { return size_; }
 
@@ -118,7 +117,6 @@ class ColViewBuildings : public ui::View,
 
   Delta           size_;
   Colony&         colony_;
-  Player const&   player_;
   maybe<Dragging> dragging_ = {};
 };
 

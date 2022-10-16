@@ -156,7 +156,9 @@ struct.UnitTypeAttributes {
   # Movement
   ship 'bool',
   visibility 'int',
-  movement_points 'MvPoints',
+  # These are the point without any bonuses applied (e.g. without
+  # the Magellan bonus for ships).
+  base_movement_points 'MvPoints',
 
   # Combat
   attack_points 'int',

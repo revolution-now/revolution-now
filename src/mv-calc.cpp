@@ -15,10 +15,8 @@
 #include "irand.hpp"
 #include "ts.hpp"
 
-// config
-#include "config/unit-type.rds.hpp"
-
 // ss
+#include "ss/unit-type.hpp"
 #include "ss/unit.hpp"
 
 // base
@@ -47,7 +45,8 @@ MovementPoints MovementPointsAnalysis::points_to_subtract()
 ** Public API
 *****************************************************************/
 MovementPointsAnalysis can_unit_move_based_on_mv_points(
-    TS& ts, Unit const& unit, MovementPoints needed ) {
+    TS& ts, Player const& player, Unit const& unit,
+    MovementPoints needed ) {
   MovementPoints const   has = unit.movement_points();
   MovementPointsAnalysis res{
       .has                           = has,
@@ -59,7 +58,7 @@ MovementPointsAnalysis can_unit_move_based_on_mv_points(
   // At this point the unit does not have enough movement points
   // to make the move, so check the exceptions.
   res.using_start_of_turn_exemption =
-      ( has == unit.desc().movement_points );
+      ( has == movement_points( player, unit.type() ) );
   if( res.using_start_of_turn_exemption ) return res;
   CHECK_LT( has, needed );
   double const probability =

@@ -91,7 +91,7 @@ UnitId create_treasure_train( SS& ss, TS& ts,
   // actions needed in response to creating this unit, apart from
   // what we will do here.
   return create_unit_on_map_non_interactive(
-      ss, ts, player.nation, uc_treasure, world_square );
+      ss, ts, player, uc_treasure, world_square );
 }
 
 wait<LostCityRumorResult_t> run_burial_mounds_result(
@@ -269,7 +269,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
       // further UI actions needed in response to creating this
       // unit, apart from what we will do here.
       UnitId id = create_unit_on_map_non_interactive(
-          ss, ts, player.nation,
+          ss, ts, player,
           UnitComposition::create(
               UnitType::create( e_unit_type::free_colonist ) ),
           world_square );

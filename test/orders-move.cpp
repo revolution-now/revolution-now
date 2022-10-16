@@ -74,10 +74,11 @@ TEST_CASE( "[orders-move] ship can move from land to ocean" ) {
 #ifdef COMPILER_GCC
   return;
 #endif
-  World W;
+  World   W;
+  Player& player = W.default_player();
   // This is so that we don't try to pop up a box telling the
   // player that they've discovered the new world.
-  W.default_player().discovered_new_world = "";
+  player.discovered_new_world = "";
   UnitId id = W.add_unit_on_map( e_unit_type::galleon,
                                  Coord{ .x = 1, .y = 1 } );
   // Sanity check to make sure we are testing what we think we're
@@ -90,7 +91,7 @@ TEST_CASE( "[orders-move] ship can move from land to ocean" ) {
   {
     // First make sure that it can't move from land to land.
     unique_ptr<OrdersHandler> handler =
-        handle_orders( W.planes(), W.ss(), W.ts(), id,
+        handle_orders( W.planes(), W.ss(), W.ts(), player, id,
                        orders::move{ .d = e_direction::n } );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
@@ -103,7 +104,7 @@ TEST_CASE( "[orders-move] ship can move from land to ocean" ) {
   {
     // Now make sure that it can move from land to water.
     unique_ptr<OrdersHandler> handler =
-        handle_orders( W.planes(), W.ss(), W.ts(), id,
+        handle_orders( W.planes(), W.ss(), W.ts(), player, id,
                        orders::move{ .d = e_direction::ne } );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
@@ -146,9 +147,9 @@ TEST_CASE( "[orders-move] land unit can attack ship on land" ) {
   REQUIRE( W.units().unit_for( ship ).desc().ship );
 
   // Now make sure that it can move from land to water.
-  unique_ptr<OrdersHandler> handler =
-      handle_orders( W.planes(), W.ss(), W.ts(), soldier,
-                     orders::move{ .d = e_direction::e } );
+  unique_ptr<OrdersHandler> handler = handle_orders(
+      W.planes(), W.ss(), W.ts(), W.french(), soldier,
+      orders::move{ .d = e_direction::e } );
   wait<bool> w_confirm = handler->confirm();
   REQUIRE( !w_confirm.exception() );
   REQUIRE( w_confirm.ready() );

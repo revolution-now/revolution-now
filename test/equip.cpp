@@ -527,7 +527,8 @@ TEST_CASE( "[equip] perform_equip_option" ) {
   using UC = UnitComposition;
 
   auto f = [&] {
-    return perform_equip_option( W.ss(), unit_id, option );
+    return perform_equip_option( W.ss(), player, unit_id,
+                                 option );
   };
 
   player.money = 10000;

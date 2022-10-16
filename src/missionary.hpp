@@ -18,6 +18,7 @@
 namespace rn {
 
 struct Colony;
+struct Player;
 struct Unit;
 
 // This will determine if a colony can bless a missionary; in the
@@ -33,6 +34,7 @@ bool unit_can_be_blessed( UnitType type );
 // The unit does not have to be working in the colony or even in
 // the colony square, though in practice the unit will always be
 // one of those two.
-void bless_as_missionary( Colony& colony, Unit& unit );
+void bless_as_missionary( Player const& player, Colony& colony,
+                          Unit& unit );
 
 } // namespace rn

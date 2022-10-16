@@ -44,7 +44,7 @@ using ::mock::matchers::Approx;
 *****************************************************************/
 struct World : testing::World {
   using Base = testing::World;
-  World() : Base() { add_player( e_nation::dutch ); }
+  World() : Base() { add_default_player(); }
 
   void create_default_map() {
     MapSquare const _ = make_ocean();
@@ -71,7 +71,8 @@ TEST_CASE(
   W.create_default_map();
 
   auto up = [&]( Unit& unit ) {
-    return try_promote_unit_for_current_activity( W.ss(), unit );
+    return try_promote_unit_for_current_activity(
+        W.ss(), W.default_player(), unit );
   };
 
   SECTION( "expert_farmer carpentry" ) {
@@ -140,8 +141,8 @@ TEST_CASE(
     UnitComposition expected;
     Colony&         colony = W.add_colony( W.kLand );
     UnitId          id     = W.add_unit_outdoors(
-                     colony.id, e_direction::w, e_outdoor_job::food,
-                     e_unit_type::petty_criminal );
+        colony.id, e_direction::w, e_outdoor_job::food,
+        e_unit_type::petty_criminal );
     Unit& unit = W.units().unit_for( id );
     expected   = UnitComposition( wrapped::UnitComposition{
           .type = UnitType::create( e_unit_type::petty_criminal ),
@@ -307,7 +308,7 @@ TEST_CASE(
                           e_unit_type::petty_criminal ) );
     UnitId id   = W.add_unit_on_map( initial_ut, W.kLand );
     Unit&  unit = W.units().unit_for( id );
-    unit.consume_20_tools();
+    unit.consume_20_tools( W.default_player() );
     REQUIRE( unit.composition()
                  .inventory()[e_unit_inventory::tools] == 80 );
     REQUIRE( unit.type_obj() ==

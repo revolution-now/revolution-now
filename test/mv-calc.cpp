@@ -50,13 +50,13 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
   MovementPoints         needed;
 
   auto f = [&] {
-    return can_unit_move_based_on_mv_points( W.ts(), unit,
-                                             needed );
+    return can_unit_move_based_on_mv_points(
+        W.ts(), W.default_player(), unit, needed );
   };
 
   auto create = [&]( e_unit_type type ) {
     return create_unregistered_unit(
-        W.default_nation(), UnitComposition::create( type ) );
+        W.default_player(), UnitComposition::create( type ) );
   };
 
   SECTION( "has=0, needed=0" ) {

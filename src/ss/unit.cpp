@@ -22,6 +22,8 @@
 #include "config/unit-type.hpp"
 
 // ss
+#include "ss/player.hpp"
+#include "ss/unit-type.hpp"
 #include "ss/units.hpp"
 
 // luapp
@@ -71,8 +73,8 @@ void Unit::forfeight_mv_points() {
 }
 
 // Marks unit as not having moved this turn.
-void Unit::new_turn() {
-  o_.mv_pts = desc().movement_points;
+void Unit::new_turn( Player const& player ) {
+  o_.mv_pts = rn::movement_points( player, type() );
   CHECK_HAS_VALUE( o_.validate() );
 }
 
@@ -135,7 +137,8 @@ void Unit::change_nation( UnitsState& units_state,
   o_.nation = nation;
 }
 
-void Unit::change_type( UnitComposition new_comp ) {
+void Unit::change_type( Player const&   player,
+                        UnitComposition new_comp ) {
   UnitType const& new_type = new_comp.type_obj();
   CHECK( o_.cargo.slots_occupied() == 0,
          "cannot change the type of a unit holding cargo." );
@@ -158,10 +161,12 @@ void Unit::change_type( UnitComposition new_comp ) {
   // then give it horses again, hoping that it will then have a
   // full four movement points. This will cause those used move-
   // ment points to persist across type changes.
-  MovementPoints used = old_desc.movement_points - o_.mv_pts;
+  MovementPoints used =
+      rn::movement_points( player, old_desc.type ) - o_.mv_pts;
 
-  o_.mv_pts = std::max( MovementPoints{ 0 },
-                        new_desc.movement_points - used );
+  o_.mv_pts = std::max(
+      MovementPoints{ 0 },
+      rn::movement_points( player, new_desc.type ) - used );
 
   // This should be done last.
   o_.composition = std::move( new_comp );
@@ -173,25 +178,26 @@ string debug_string( Unit const& unit ) {
       unit.nation(), unit.desc().name, unit.movement_points() );
 }
 
-void Unit::demote_from_lost_battle() {
+void Unit::demote_from_lost_battle( Player const& player ) {
   UNWRAP_CHECK( new_type, on_death_demoted_type( type_obj() ) );
   UNWRAP_CHECK( new_comp,
                 o_.composition.with_new_type( new_type ) );
-  change_type( std::move( new_comp ) );
+  change_type( player, std::move( new_comp ) );
 }
 
-void Unit::demote_from_capture() {
+void Unit::demote_from_capture( Player const& player ) {
   UNWRAP_CHECK( new_type,
                 on_capture_demoted_type( type_obj() ) );
   UNWRAP_CHECK( new_comp, o_.composition.with_new_type(
                               UnitType::create( new_type ) ) );
-  change_type( std::move( new_comp ) );
+  change_type( player, std::move( new_comp ) );
 }
 
-UnitTransformationResult Unit::strip_to_base_type() {
+UnitTransformationResult Unit::strip_to_base_type(
+    Player const& player ) {
   UnitTransformationResult res =
       rn::strip_to_base_type( o_.composition );
-  change_type( res.new_comp );
+  change_type( player, res.new_comp );
   return res;
 }
 
@@ -221,7 +227,7 @@ void Unit::plow() {
   o_.orders = e_unit_orders::plow;
 }
 
-void Unit::consume_20_tools() {
+void Unit::consume_20_tools( Player const& player ) {
   vector<UnitTransformationFromCommodityResult> results =
       with_commodity_removed( Commodity{
           .type = e_commodity::tools, .quantity = 20 } );
@@ -248,7 +254,7 @@ void Unit::consume_20_tools() {
   // This won't always change the type; e.g. it might just re-
   // place the type with the same type but with fewer tools in
   // the inventory.
-  change_type( valid_results[0].new_comp );
+  change_type( player, valid_results[0].new_comp );
 }
 
 /****************************************************************

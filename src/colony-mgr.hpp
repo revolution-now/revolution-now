@@ -62,8 +62,8 @@ void change_colony_nation( Colony&     colony,
 // Before calling this, it should already have been the case that
 // `can_found_colony` was called to validate; so it should work,
 // and thus if it doesn't, it will check-fail.
-ColonyId found_colony( SS& ss, TS& ts, UnitId founder,
-                       std::string_view name );
+ColonyId found_colony( SS& ss, TS& ts, Player const& player,
+                       UnitId founder, std::string_view name );
 
 // Evolve the colony by one turn.
 wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
@@ -79,7 +79,8 @@ ColonyId create_empty_colony( ColoniesState& colonies_state,
 
 // Will strip the unit of any commodities (including inventory
 // and modifiers) and deposit the commodities into the colony.
-void strip_unit_to_base_type( Unit& unit, Colony& colony );
+void strip_unit_to_base_type( Player const& player, Unit& unit,
+                              Colony& colony );
 
 void move_unit_to_colony( UnitsState& units_state,
                           Colony& colony, UnitId unit_id,

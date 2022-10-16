@@ -74,8 +74,9 @@ void draw_colony_view( Colony const&, rr::Renderer& renderer ) {
 /****************************************************************
 ** Cheat Stuff
 *****************************************************************/
-void try_promote_demote_unit( SS& ss, Colony& colony,
-                              Coord where, bool demote ) {
+void try_promote_demote_unit( SS& ss, Player const& player,
+                              Colony& colony, Coord where,
+                              bool demote ) {
   maybe<DraggableObjectWithBounds<ColViewObject_t>> o =
       colview_top_level().object_here( where );
   if( !o.has_value() ) return;
@@ -87,9 +88,9 @@ void try_promote_demote_unit( SS& ss, Colony& colony,
 
   Unit& unit = ss.units.unit_for( *unit_id );
   if( demote )
-    cheat_downgrade_unit_expertise( unit );
+    cheat_downgrade_unit_expertise( player, unit );
   else
-    cheat_upgrade_unit_expertise( ss, unit );
+    cheat_upgrade_unit_expertise( ss, player, unit );
   update_colony_view( ss, colony );
 }
 
@@ -143,7 +144,7 @@ struct ColonyPlane::Impl : public Plane {
       ts_( ts ),
       player_( ss.players.players[colony.nation].value() ),
       colony_( colony ) {
-    set_colview_colony( ss_, ts_, colony_ );
+    set_colview_colony( ss_, ts_, player_, colony_ );
   }
 
   bool covers_screen() const override { return true; }
@@ -226,11 +227,13 @@ struct ColonyPlane::Impl : public Plane {
           update_colony_view( ss_, colony_ );
           break;
         case ::SDLK_t:
-          cheat_create_new_colonist( ss_, ts_, colony_ );
+          cheat_create_new_colonist( ss_, ts_, player_,
+                                     colony_ );
           update_colony_view( ss_, colony_ );
           break;
         case ::SDLK_SPACE:
-          cheat_advance_colony_one_turn( ss_, ts_, colony_ );
+          cheat_advance_colony_one_turn( ss_, ts_, player_,
+                                         colony_ );
           update_colony_view( ss_, colony_ );
           break;
         default: //
@@ -258,12 +261,14 @@ struct ColonyPlane::Impl : public Plane {
       // Cheat commands.
       switch( event.buttons ) {
         case input::e_mouse_button_event::left_up:
-          try_promote_demote_unit( ss_, colony_, event.pos,
+          try_promote_demote_unit( ss_, player_, colony_,
+                                   event.pos,
                                    /*demote=*/false );
           try_increase_commodity( ss_, colony_, event.pos );
           break;
         case input::e_mouse_button_event::right_up:
-          try_promote_demote_unit( ss_, colony_, event.pos,
+          try_promote_demote_unit( ss_, player_, colony_,
+                                   event.pos,
                                    /*demote=*/true );
           try_decrease_commodity( ss_, colony_, event.pos );
           break;
@@ -278,7 +283,7 @@ struct ColonyPlane::Impl : public Plane {
   wait<bool> handle_event( input::win_event_t const& event ) {
     if( event.type == input::e_win_event_type::resized )
       // Force a re-composite.
-      set_colview_colony( ss_, ts_, colony_ );
+      set_colview_colony( ss_, ts_, player_, colony_ );
     co_return false;
   }
 

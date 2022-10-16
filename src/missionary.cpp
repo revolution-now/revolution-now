@@ -39,12 +39,13 @@ bool unit_can_be_blessed( UnitType type ) {
   return is_unit_human( type );
 }
 
-void bless_as_missionary( Colony& colony, Unit& unit ) {
-  strip_unit_to_base_type( unit, colony );
+void bless_as_missionary( Player const& player, Colony& colony,
+                          Unit& unit ) {
+  strip_unit_to_base_type( player, unit, colony );
   UNWRAP_CHECK( ut, add_unit_type_modifiers(
                         unit.type_obj(),
                         { e_unit_type_modifier::blessing } ) );
-  unit.change_type( UnitComposition::create( ut ) );
+  unit.change_type( player, UnitComposition::create( ut ) );
 }
 
 } // namespace rn

@@ -518,7 +518,7 @@ wait<> process_player_input( UnitId                       id,
       }
 
       unique_ptr<OrdersHandler> handler =
-          orders_handler( planes, ss, ts, id, orders );
+          orders_handler( planes, ss, ts, player, id, orders );
       CHECK( handler );
       Coord old_loc =
           coord_for_unit_indirect_or_die( ss.units, id );
@@ -623,8 +623,8 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
   CHECK( !should_remove_unit_from_queue( unit ) );
 
   if( unit.orders() == e_unit_orders::road ) {
-    perform_road_work( ss.units, ss.terrain, ts.map_updater,
-                       unit );
+    perform_road_work( ss.units, ss.terrain, as_const( player ),
+                       ts.map_updater, unit );
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders() == e_unit_orders::none );
       co_await planes.land_view().landview_ensure_visible_unit(
@@ -636,8 +636,8 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
   }
 
   if( unit.orders() == e_unit_orders::plow ) {
-    perform_plow_work( ss.units, ss.terrain, ts.map_updater,
-                       unit );
+    perform_plow_work( ss.units, ss.terrain, as_const( player ),
+                       ts.map_updater, unit );
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders() == e_unit_orders::none );
       co_await planes.land_view().landview_ensure_visible_unit(
@@ -970,6 +970,14 @@ void start_of_turn_cycle( SS& ss ) {
     evolve_group_model_volumes( ss );
 }
 
+void reset_units( SS& ss ) {
+  refl::enum_map<e_nation, Player const*> players;
+  map_all_units( ss.units, [&]( Unit& unit ) {
+    UNWRAP_CHECK( player, ss.players.players[unit.nation()] );
+    unit.new_turn( player );
+  } );
+}
+
 wait<> next_turn( Planes& planes, SS& ss, TS& ts ) {
   planes.land_view().landview_start_new_turn();
   auto& st = ss.turn;
@@ -977,8 +985,7 @@ wait<> next_turn( Planes& planes, SS& ss, TS& ts ) {
   // Starting.
   if( !st.started ) {
     print_bar( '=', "[ Starting Turn ]" );
-    map_all_units( ss.units,
-                   []( Unit& unit ) { unit.new_turn(); } );
+    reset_units( ss );
     reset_turn_obj( ss.players, st );
     start_of_turn_cycle( ss );
     st.started = true;

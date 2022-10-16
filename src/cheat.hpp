@@ -72,11 +72,14 @@ wait<> cheat_colony_buildings( Colony& colony, IGui& gui );
 // the colony view) and it will be upgraded based on what it is
 // currently doing or being.
 void cheat_upgrade_unit_expertise( SSConst const& ss,
+                                   Player const&  player,
                                    Unit&          unit );
 
-void cheat_downgrade_unit_expertise( Unit& unit );
+void cheat_downgrade_unit_expertise( Player const& player,
+                                     Unit&         unit );
 
 void cheat_create_new_colonist( SS& ss, TS& ts,
+                                Player const& player,
                                 Colony const& colony );
 
 void cheat_increase_commodity( Colony&     colony,
@@ -88,6 +91,7 @@ void cheat_decrease_commodity( Colony&     colony,
 // done when it is evolved at the start of a turn, though it
 // won't display any notifications, it will just log them.
 void cheat_advance_colony_one_turn( SS& ss, TS& ts,
+                                    Player& player,
                                     Colony& colony );
 
 // This is called when the player asks to just create a unit on

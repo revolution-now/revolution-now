@@ -120,14 +120,14 @@ struct ND Unit {
   // The unit must have at least 20 tools, which will be sub-
   // tracted. If the unit ends up with zero tools then the type
   // will be demoted.
-  void consume_20_tools();
+  void consume_20_tools( Player const& player );
 
   /************************* Orders ****************************/
 
   // Returns true if the unit's orders are other than `none`.
   bool has_orders() const;
   // Marks unit as not having moved this turn.
-  void new_turn();
+  void new_turn( Player const& player );
   // Mark a unit as sentry.
   void sentry() { o_.orders = e_unit_orders::sentry; }
   // Unit is building a road. Note: after calling this don't
@@ -148,13 +148,14 @@ struct ND Unit {
   /********************** Type Changing ************************/
 
   // Take by value because we will move it out.
-  void change_type( UnitComposition new_comp );
+  void change_type( Player const&   player,
+                    UnitComposition new_comp );
 
   // Will check-fail if the unit cannot be demoted.
-  void demote_from_lost_battle();
+  void demote_from_lost_battle( Player const& player );
   // This is for e.g. a veteran colonist that (in the original
   // game) loses veteran status upon capture.
-  void demote_from_capture();
+  void demote_from_capture( Player const& player );
 
   // This is used to transform the unit when e.g. founding a
   // colony. In that situation, the unit needs to be stripped to
@@ -165,7 +166,8 @@ struct ND Unit {
   // method (defined elsewhere) that takes a colony as input so
   // that it can deposit any commodities there that are stripped
   // from the unit.
-  UnitTransformationResult strip_to_base_type();
+  UnitTransformationResult strip_to_base_type(
+      Player const& player );
 
   maybe<e_unit_type> demoted_type() const;
 

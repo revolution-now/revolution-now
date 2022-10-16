@@ -42,7 +42,7 @@ using ::base::valid;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::dutch );
+    add_default_player();
     create_default_map();
   }
 
@@ -211,7 +211,8 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
   using TM = unordered_map<UnitId, int>;
 
   auto f = [&] {
-    return evolve_teachers( W.ss(), W.ts(), colony );
+    return evolve_teachers( W.ss(), W.ts(), W.default_player(),
+                            colony );
   };
 
   SECTION( "teachers=0, teachable=0" ) {

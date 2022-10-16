@@ -13,11 +13,17 @@
 // Under test.
 #include "src/ss/unit-type.hpp"
 
+// Testing
+#include "test/fake/world.hpp"
+
 // Revolution Now
 #include "src/lua.hpp"
 
-// Config
+// config
 #include "config/unit-type.hpp"
+
+// ss
+#include "ss/player.rds.hpp"
 
 // luapp
 #include "src/luapp/state.hpp"
@@ -38,6 +44,17 @@ using namespace std;
 
 using Catch::Contains;
 
+/****************************************************************
+** Fake World Setup
+*****************************************************************/
+struct World : testing::World {
+  using Base = testing::World;
+  World() : Base() { add_default_player(); }
+};
+
+/****************************************************************
+** Test Cases
+*****************************************************************/
 TEST_CASE( "[unit-type] inventory_traits" ) {
   auto& traits = config_unit_type.composition
                      .inventory_traits[e_unit_inventory::tools];
@@ -99,7 +116,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.human == e_unit_human::yes );
     REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
     REQUIRE( desc.visibility == 1 );
-    REQUIRE( desc.movement_points == 1 );
+    REQUIRE( desc.base_movement_points == 1 );
     REQUIRE( desc.attack_points == 0 );
     REQUIRE( desc.defense_points == 1 );
     REQUIRE( desc.cargo_slots == 0 );
@@ -145,7 +162,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.human == e_unit_human::yes );
     REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
     REQUIRE( desc.visibility == 1 );
-    REQUIRE( desc.movement_points == 1 );
+    REQUIRE( desc.base_movement_points == 1 );
     REQUIRE( desc.attack_points == 0 );
     REQUIRE( desc.defense_points == 1 );
     REQUIRE( desc.cargo_slots == 0 );
@@ -192,7 +209,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.human == e_unit_human::yes );
     REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
     REQUIRE( desc.visibility == 1 );
-    REQUIRE( desc.movement_points == 1 );
+    REQUIRE( desc.base_movement_points == 1 );
     REQUIRE( desc.attack_points == 0 );
     REQUIRE( desc.defense_points == 1 );
     REQUIRE( desc.cargo_slots == 0 );
@@ -239,7 +256,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.can_found ==
              e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 1 );
-    REQUIRE( desc.movement_points == 4 );
+    REQUIRE( desc.base_movement_points == 4 );
     REQUIRE( desc.attack_points == 4 );
     REQUIRE( desc.defense_points == 4 );
     REQUIRE( desc.cargo_slots == 0 );
@@ -279,7 +296,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.can_found ==
              e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 2 );
-    REQUIRE( desc.movement_points == 4 );
+    REQUIRE( desc.base_movement_points == 4 );
     REQUIRE( desc.attack_points == 1 );
     REQUIRE( desc.defense_points == 1 );
     REQUIRE( desc.cargo_slots == 0 );
@@ -316,7 +333,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.can_found ==
              e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 1 );
-    REQUIRE( desc.movement_points == 1 );
+    REQUIRE( desc.base_movement_points == 1 );
     REQUIRE( desc.attack_points == 0 );
     REQUIRE( desc.defense_points == 1 );
     REQUIRE( desc.cargo_slots == 0 );
@@ -353,7 +370,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.human == e_unit_human::no );
     REQUIRE( desc.can_found == e_unit_can_found_colony::no );
     REQUIRE( desc.visibility == 1 );
-    REQUIRE( desc.movement_points == 1 );
+    REQUIRE( desc.base_movement_points == 1 );
     REQUIRE( desc.attack_points == 0 );
     REQUIRE( desc.defense_points == 1 );
     REQUIRE( desc.cargo_slots == 0 );
@@ -776,6 +793,34 @@ TEST_CASE( "[unit-type] unit can_found status" ) {
   ut       = UnitType::create( e_unit_type::small_treasure );
   expected = false;
   REQUIRE( can_unit_found( ut ) == expected );
+}
+
+TEST_CASE( "[unit-type] movement_points" ) {
+  World   W;
+  Player& player = W.default_player();
+
+  REQUIRE(
+      movement_points( player, e_unit_type::free_colonist ) ==
+      MvPoints( 1 ) );
+  REQUIRE( movement_points( player, e_unit_type::dragoon ) ==
+           MvPoints( 4 ) );
+  REQUIRE( movement_points( player, e_unit_type::privateer ) ==
+           MvPoints( 8 ) );
+  REQUIRE( movement_points( player, e_unit_type::caravel ) ==
+           MvPoints( 4 ) );
+
+  player.fathers.has[e_founding_father::ferdinand_magellan] =
+      true;
+
+  REQUIRE(
+      movement_points( player, e_unit_type::free_colonist ) ==
+      MvPoints( 1 ) );
+  REQUIRE( movement_points( player, e_unit_type::dragoon ) ==
+           MvPoints( 4 ) );
+  REQUIRE( movement_points( player, e_unit_type::privateer ) ==
+           MvPoints( 9 ) );
+  REQUIRE( movement_points( player, e_unit_type::caravel ) ==
+           MvPoints( 5 ) );
 }
 
 } // namespace

@@ -122,6 +122,7 @@ bool has_irrigation( MapSquare const& square ) {
 *****************************************************************/
 void perform_plow_work( UnitsState const&   units_state,
                         TerrainState const& terrain_state,
+                        Player const&       player,
                         IMapUpdater& map_updater, Unit& unit ) {
   Coord location = units_state.coord_for( unit.id() );
   CHECK( unit.orders() == e_unit_orders::plow );
@@ -157,7 +158,7 @@ void perform_plow_work( UnitsState const&   units_state,
     plow_square( terrain_state, map_updater, location );
     unit.clear_orders();
     unit.set_turns_worked( 0 );
-    unit.consume_20_tools();
+    unit.consume_20_tools( player );
     log( "finished" );
     return;
   }

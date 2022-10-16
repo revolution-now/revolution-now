@@ -77,7 +77,8 @@ int max_teachers_allowed( Colony const& colony ) {
 
 // This will actuall evolve the teachers and promote any units.
 ColonyTeachingEvolution evolve_teachers( SS& ss, TS& ts,
-                                         Colony& colony ) {
+                                         Player const& player,
+                                         Colony&       colony ) {
   ColonyTeachingEvolution ev;
   if( colony.teachers.empty() ) return ev;
 
@@ -132,7 +133,7 @@ ColonyTeachingEvolution evolve_teachers( SS& ss, TS& ts,
             .from_type = to_promote.type(),
             .to_type   = new_comp.type() };
         shuffled_teachable().pop_back();
-        to_promote.change_type( new_comp );
+        to_promote.change_type( player, new_comp );
       }
       turns = 0;
     } else {

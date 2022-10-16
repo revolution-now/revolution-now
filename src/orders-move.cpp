@@ -150,9 +150,11 @@ BEHAVIOR( water, friendly, unit, always, never, move_onto_ship,
 // movement points, e.g. if a unit is moving onto a colony
 // square.
 maybe<MovementPoints> check_movement_points(
-    TS& ts, Unit const& unit, MovementPoints needed ) {
+    TS& ts, Player const& player, Unit const& unit,
+    MovementPoints needed ) {
   MovementPointsAnalysis const analysis =
-      can_unit_move_based_on_mv_points( ts, unit, needed );
+      can_unit_move_based_on_mv_points( ts, player, unit,
+                                        needed );
   if( analysis.allowed() ) {
     if( analysis.using_start_of_turn_exemption )
       lg.debug( "move allowed by start-of-turn exemption." );
@@ -168,11 +170,12 @@ maybe<MovementPoints> check_movement_points(
 // of when this would not be the case is what there is a colony
 // on the destination square.
 maybe<MovementPoints> check_movement_points(
-    TS& ts, Unit const& unit, MapSquare const& src_square,
-    MapSquare const& dst_square, e_direction direction ) {
+    TS& ts, Player const& player, Unit const& unit,
+    MapSquare const& src_square, MapSquare const& dst_square,
+    e_direction direction ) {
   MovementPoints const needed = movement_points_required(
       src_square, dst_square, direction );
-  return check_movement_points( ts, unit, needed );
+  return check_movement_points( ts, player, unit, needed );
 }
 
 /****************************************************************
@@ -524,10 +527,11 @@ TravelHandler::confirm_travel_impl() {
                      nothing ) -> base::NoDiscard<bool> {
     this->checked_mv_points_ = true;
     maybe<MovementPoints> const to_subtract =
-        needed.has_value()
-            ? check_movement_points( ts_, unit, *needed )
-            : check_movement_points( ts_, unit, src_square,
-                                     dst_square, direction );
+        needed.has_value() ? check_movement_points(
+                                 ts_, player_, unit, *needed )
+                           : check_movement_points(
+                                 ts_, player_, unit, src_square,
+                                 dst_square, direction );
     if( !to_subtract.has_value() ) {
       unit_would_move = false;
       return false;
@@ -1510,7 +1514,7 @@ wait<> AttackHandler::perform() {
       co_await capture_unit();
       break;
     case e::demote:
-      loser.demote_from_lost_battle();
+      loser.demote_from_lost_battle( player_ );
       // TODO: if a unit loses, should it lose all of its move-
       // ment points? Check the original game.
       break;
@@ -1520,7 +1524,7 @@ wait<> AttackHandler::perform() {
       if( loser.type() == e_unit_type::veteran_colonist )
         msg = "Veteran status lost upon capture!";
       co_await capture_unit();
-      loser.demote_from_capture();
+      loser.demote_from_capture( player_ );
       co_await ts_.gui.message_box( msg );
       break;
   }
@@ -1531,13 +1535,11 @@ wait<> AttackHandler::perform() {
 ** Dispatch
 *****************************************************************/
 unique_ptr<OrdersHandler> dispatch( Planes& planes, SS& ss,
-                                    TS& ts, UnitId id,
-                                    e_direction d ) {
+                                    TS& ts, Player& player,
+                                    UnitId id, e_direction d ) {
   Coord dst =
       coord_for_unit_indirect_or_die( ss.units, id ).moved( d );
   auto& unit = ss.units.unit_for( id );
-
-  UNWRAP_CHECK( player, ss.players.players[unit.nation()] );
 
   if( !dst.is_inside( ss.terrain.world_rect_tiles() ) )
     // This is an invalid move, but the TravelHandler is the one
@@ -1569,9 +1571,9 @@ unique_ptr<OrdersHandler> dispatch( Planes& planes, SS& ss,
 ** Public API
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
-    Planes& planes, SS& ss, TS& ts, UnitId id,
+    Planes& planes, SS& ss, TS& ts, Player& player, UnitId id,
     orders::move const& mv ) {
-  return dispatch( planes, ss, ts, id, mv.d );
+  return dispatch( planes, ss, ts, player, id, mv.d );
 }
 
 } // namespace rn

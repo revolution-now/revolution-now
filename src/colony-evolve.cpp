@@ -124,8 +124,8 @@ config::colony::construction_requirements materials_needed(
 }
 
 void check_create_or_starve_colonist(
-    SS& ss, TS& ts, Colony& colony, ColonyProduction const& pr,
-    bool&                         colony_disappeared,
+    SS& ss, TS& ts, Player const& player, Colony& colony,
+    ColonyProduction const& pr, bool& colony_disappeared,
     vector<ColonyNotification_t>& notifications ) {
   if( pr.food_horses.colonist_starved ) {
     vector<UnitId> const units_in_colony =
@@ -164,7 +164,7 @@ void check_create_or_starve_colonist(
 
   current_food -= food_needed_for_creation;
   UnitId unit_id = create_free_unit(
-      ss.units, colony.nation,
+      ss.units, player,
       UnitType::create( e_unit_type::free_colonist ) );
   unit_to_map_square_non_interactive( ss, ts, unit_id,
                                       colony.location );
@@ -175,8 +175,8 @@ void check_create_or_starve_colonist(
   CHECK_GE( colony.commodities[e_commodity::food], 0 );
 }
 
-void check_construction( SS& ss, TS& ts, Colony& colony,
-                         ColonyEvolution& ev ) {
+void check_construction( SS& ss, TS& ts, Player const& player,
+                         Colony& colony, ColonyEvolution& ev ) {
   if( !colony.construction.has_value() ) return;
   Construction_t const& construction = *colony.construction;
 
@@ -270,8 +270,8 @@ void check_construction( SS& ss, TS& ts, Colony& colony,
       // structed in this manner has a sighting radius of more
       // than one.
       create_unit_on_map_non_interactive(
-          ss, ts, colony.nation,
-          UnitComposition::create( o.type ), colony.location );
+          ss, ts, player, UnitComposition::create( o.type ),
+          colony.location );
       break;
     }
   }
@@ -375,7 +375,8 @@ void apply_production_to_colony(
 }
 
 void check_colonist_on_the_job_training(
-    SS& ss, TS& ts, Colony& colony, ColonyProduction const& pr,
+    SS& ss, TS& ts, Player const& player, Colony& colony,
+    ColonyProduction const&       pr,
     vector<ColonyNotification_t>& notifications ) {
   vector<OnTheJobPromotionResult> const res =
       workers_to_promote_for_on_the_job_training( ss, ts,
@@ -423,7 +424,8 @@ void check_colonist_on_the_job_training(
     }
     if( should_promote ) {
       Unit& unit = ss.units.unit_for( unit_id );
-      unit.change_type( UnitComposition::create( promoted_to ) );
+      unit.change_type( player,
+                        UnitComposition::create( promoted_to ) );
       notifications.push_back( ColonyNotification::unit_promoted{
           .promoted_to = promoted_to } );
     }
@@ -431,10 +433,10 @@ void check_colonist_on_the_job_training(
 }
 
 void check_colonists_teaching(
-    SS& ss, TS& ts, Colony& colony,
+    SS& ss, TS& ts, Player const& player, Colony& colony,
     vector<ColonyNotification_t>& notifications ) {
   ColonyTeachingEvolution const ev =
-      evolve_teachers( ss, ts, colony );
+      evolve_teachers( ss, ts, player, colony );
   CHECK_LE( int( ev.teachers.size() ), 3 );
 
   // First check if we have teachers but no one teachable.
@@ -465,15 +467,16 @@ void check_colonists_teaching(
 } // namespace
 
 ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
+                                        Player& player,
                                         Colony& colony ) {
-  UNWRAP_CHECK( player, ss.players.players[colony.nation] );
   ColonyEvolution ev;
   ev.production = production_for_colony( ss, colony );
 
   // This must be done after computing the production for the
   // colony since we want the production to use last turn's SoL %
   // and associated bonuses.
-  evolve_sons_of_liberty( player, ev.production.bells, colony,
+  evolve_sons_of_liberty( as_const( player ),
+                          ev.production.bells, colony,
                           ev.notifications );
 
   apply_production_to_colony( colony, ev.production,
@@ -483,12 +486,12 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
 
   check_ran_out_of_raw_materials( ev );
 
-  check_construction( ss, ts, colony, ev );
+  check_construction( ss, ts, as_const( player ), colony, ev );
 
   // Needs to be done after food deltas have been applied.
-  check_create_or_starve_colonist( ss, ts, colony, ev.production,
-                                   ev.colony_disappeared,
-                                   ev.notifications );
+  check_create_or_starve_colonist(
+      ss, ts, as_const( player ), colony, ev.production,
+      ev.colony_disappeared, ev.notifications );
   if( ev.colony_disappeared )
     // If the colony is to disappear then there isn't much point
     // in doing anything further.
@@ -507,9 +510,11 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
   // possible so that production has already been computed and
   // any other changes to colonists (such as starvation) have al-
   // ready been done.
-  check_colonist_on_the_job_training(
-      ss, ts, colony, ev.production, ev.notifications );
-  check_colonists_teaching( ss, ts, colony, ev.notifications );
+  check_colonist_on_the_job_training( ss, ts, as_const( player ),
+                                      colony, ev.production,
+                                      ev.notifications );
+  check_colonists_teaching( ss, ts, as_const( player ), colony,
+                            ev.notifications );
 
   return ev;
 }

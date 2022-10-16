@@ -25,6 +25,7 @@ namespace rn {
 
 struct IMapUpdater;
 struct MapSquare;
+struct Player;
 struct TerrainState;
 struct UnitsState;
 
@@ -68,6 +69,7 @@ bool has_irrigation( MapSquare const& square );
 // then the unit will be demoted.
 void perform_plow_work( UnitsState const&   units_state,
                         TerrainState const& terrain_state,
+                        Player const&       player,
                         IMapUpdater& map_updater, Unit& unit );
 
 bool can_plow( Unit const& unit );

@@ -11,6 +11,7 @@
 #include "test/testing.hpp"
 
 // ss
+#include "src/ss/player.rds.hpp"
 #include "src/ss/unit.hpp"
 
 // Revolution Now
@@ -27,30 +28,31 @@ using namespace std;
 TEST_CASE( "[test/unit] consume_20_tools pioneer" ) {
   UnitComposition comp =
       UnitComposition::create( e_unit_type::pioneer );
-  Unit unit =
-      create_unregistered_unit( e_nation::english, comp );
+  Player player;
+  player.nation = e_nation::english;
+  Unit unit     = create_unregistered_unit( player, comp );
 
   // Initially.
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 100 );
   // Consume.
-  unit.consume_20_tools();
+  unit.consume_20_tools( player );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 80 );
   // Consume.
-  unit.consume_20_tools();
+  unit.consume_20_tools( player );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 60 );
   // Consume.
-  unit.consume_20_tools();
+  unit.consume_20_tools( player );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 40 );
   // Consume.
-  unit.consume_20_tools();
+  unit.consume_20_tools( player );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 20 );
   // Consume.
-  unit.consume_20_tools();
+  unit.consume_20_tools( player );
   REQUIRE( unit.type() == e_unit_type::free_colonist );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 0 );
 }
@@ -58,30 +60,31 @@ TEST_CASE( "[test/unit] consume_20_tools pioneer" ) {
 TEST_CASE( "[test/unit] consume_20_tools hardy_pioneer" ) {
   UnitComposition comp =
       UnitComposition::create( e_unit_type::hardy_pioneer );
-  Unit unit =
-      create_unregistered_unit( e_nation::english, comp );
+  Player player;
+  player.nation = e_nation::english;
+  Unit unit     = create_unregistered_unit( player, comp );
 
   // Initially.
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 100 );
   // Consume.
-  unit.consume_20_tools();
+  unit.consume_20_tools( player );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 80 );
   // Consume.
-  unit.consume_20_tools();
+  unit.consume_20_tools( player );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 60 );
   // Consume.
-  unit.consume_20_tools();
+  unit.consume_20_tools( player );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 40 );
   // Consume.
-  unit.consume_20_tools();
+  unit.consume_20_tools( player );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 20 );
   // Consume.
-  unit.consume_20_tools();
+  unit.consume_20_tools( player );
   REQUIRE( unit.type() == e_unit_type::hardy_colonist );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 0 );
 }

@@ -132,7 +132,7 @@ wait<> HarborDockUnits::click_on_unit( UnitId unit_id ) {
   CHECK_LT( chosen_idx, int( equip_opts.size() ) );
   // This will change the unit type.
   PriceChange const price_change = perform_equip_option(
-      ss_, unit.id(), equip_opts[chosen_idx] );
+      ss_, player_, unit.id(), equip_opts[chosen_idx] );
   // Will only display something if there is a price change.
   co_await display_price_change_notification( ts_, player_,
                                               price_change );

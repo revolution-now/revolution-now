@@ -18,6 +18,7 @@
 namespace rn {
 
 struct Colony;
+struct Player;
 struct SS;
 struct TS;
 
@@ -27,6 +28,7 @@ struct TS;
 // to evolve a colony (e.g. for cheat mode) where we can control
 // what is shown to the user.
 ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
+                                        Player& player,
                                         Colony& colony );
 
 } // namespace rn

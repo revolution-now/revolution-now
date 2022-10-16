@@ -40,7 +40,7 @@ using namespace std;
 *****************************************************************/
 struct World : testing::World {
   using Base = testing::World;
-  World() : Base() { add_player( e_nation::dutch ); }
+  World() : Base() { add_default_player(); }
 
   void create_default_map() {
     MapSquare const _ = make_ocean();
@@ -66,11 +66,12 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
   W.create_default_map();
 
   auto up = [&]( Unit& unit ) {
-    cheat_upgrade_unit_expertise( W.ss(), unit );
+    cheat_upgrade_unit_expertise( W.ss(), W.default_player(),
+                                  unit );
   };
 
   auto down = [&]( Unit& unit ) {
-    cheat_downgrade_unit_expertise( unit );
+    cheat_downgrade_unit_expertise( W.default_player(), unit );
   };
 
   SECTION( "expert_farmer carpentry" ) {
@@ -420,7 +421,7 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
     UnitId id =
         W.add_unit_on_map( e_unit_type::hardy_pioneer, W.kLand );
     Unit& unit = W.units().unit_for( id );
-    unit.consume_20_tools();
+    unit.consume_20_tools( W.default_player() );
     REQUIRE( unit.composition()
                  .inventory()[e_unit_inventory::tools] == 80 );
     REQUIRE( unit.type_obj() ==

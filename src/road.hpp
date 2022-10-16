@@ -52,6 +52,7 @@ bool has_road( MapSquare const& square );
 // tools removed by this function then the unit will be demoted.
 void perform_road_work( UnitsState const&   units_state,
                         TerrainState const& terrain_state,
+                        Player const&       player,
                         IMapUpdater& map_updater, Unit& unit );
 
 bool can_build_road( Unit const& unit );

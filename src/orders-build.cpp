@@ -48,10 +48,12 @@ valid_or<string> is_valid_colony_name_msg(
 }
 
 struct BuildHandler : public OrdersHandler {
-  BuildHandler( Planes& planes, SS& ss, TS& ts, UnitId unit_id_ )
+  BuildHandler( Planes& planes, SS& ss, TS& ts,
+                Player const& player, UnitId unit_id_ )
     : planes_( planes ),
       ss_( ss ),
       ts_( ts ),
+      player_( player ),
       unit_id( unit_id_ ) {}
 
   wait<bool> confirm() override {
@@ -120,7 +122,8 @@ struct BuildHandler : public OrdersHandler {
   }
 
   wait<> perform() override {
-    colony_id = found_colony( ss_, ts_, unit_id, *colony_name );
+    colony_id =
+        found_colony( ss_, ts_, player_, unit_id, *colony_name );
     co_return;
   }
 
@@ -134,9 +137,10 @@ struct BuildHandler : public OrdersHandler {
       co_return;
   }
 
-  Planes& planes_;
-  SS&     ss_;
-  TS&     ts_;
+  Planes&       planes_;
+  SS&           ss_;
+  TS&           ts_;
+  Player const& player_;
 
   UnitId unit_id;
 
@@ -150,9 +154,10 @@ struct BuildHandler : public OrdersHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders( Planes& planes, SS& ss,
-                                         TS& ts, UnitId id,
+                                         TS& ts, Player& player,
+                                         UnitId id,
                                          orders::build const& ) {
-  return make_unique<BuildHandler>( planes, ss, ts, id );
+  return make_unique<BuildHandler>( planes, ss, ts, player, id );
 }
 
 } // namespace rn

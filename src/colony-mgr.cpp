@@ -128,7 +128,8 @@ wait<bool> present_colony_update(
           notification.get<ColonyNotification::full_cargo>();
       msg = fmt::format(
           "A new cargo of @[H]{}@[] is available in @[H]{}@[]!",
-          lowercase_commodity_display_name( o.what ), colony.name );
+          lowercase_commodity_display_name( o.what ),
+          colony.name );
       break;
     }
     case ColonyNotification::e::construction_missing_tools: {
@@ -492,8 +493,8 @@ valid_or<e_found_colony_err> unit_can_found_colony(
   return valid;
 }
 
-ColonyId found_colony( SS& ss, TS& ts, UnitId founder,
-                       std::string_view name ) {
+ColonyId found_colony( SS& ss, TS& ts, Player const& player,
+                       UnitId founder, std::string_view name ) {
   if( auto res = is_valid_new_colony_name( ss.colonies, name );
       !res )
     // FIXME: improve error message generation.
@@ -520,13 +521,13 @@ ColonyId found_colony( SS& ss, TS& ts, UnitId founder,
 
   // Strip unit of commodities and modifiers and put the commodi-
   // ties into the colony.
-  strip_unit_to_base_type( unit, col );
+  strip_unit_to_base_type( player, unit, col );
 
   // Find initial job for founder. (TODO)
   ColonyJob_t job = find_job_for_initial_colonist( ss, col );
 
   // Move unit into it.
-  move_unit_to_colony( ss.units, col, founder, job );
+  move_unit_to_colony( ss.units, player, col, founder, job );
 
   // Add road onto colony square.
   set_road( ts.map_updater, where );
@@ -551,9 +552,10 @@ void change_colony_nation( Colony&     colony,
   colony.nation = new_nation;
 }
 
-void strip_unit_to_base_type( Unit& unit, Colony& colony ) {
+void strip_unit_to_base_type( Player const& player, Unit& unit,
+                              Colony& colony ) {
   UnitTransformationResult tranform_res =
-      unit.strip_to_base_type();
+      unit.strip_to_base_type( player );
   for( auto [type, q] : tranform_res.commodity_deltas ) {
     CHECK_GT( q, 0 );
     lg.debug( "adding {} {} to colony {}.", q, type,
@@ -562,12 +564,13 @@ void strip_unit_to_base_type( Unit& unit, Colony& colony ) {
   }
 }
 
-void move_unit_to_colony( UnitsState& units_state,
-                          Colony& colony, UnitId unit_id,
+void move_unit_to_colony( UnitsState&   units_state,
+                          Player const& player, Colony& colony,
+                          UnitId             unit_id,
                           ColonyJob_t const& job ) {
   Unit& unit = units_state.unit_for( unit_id );
   CHECK( unit.nation() == colony.nation );
-  strip_unit_to_base_type( unit, colony );
+  strip_unit_to_base_type( player, unit, colony );
   units_state.change_to_colony( unit_id, colony.id );
   // Now add the unit to the colony.
   SCOPE_EXIT( CHECK( colony.validate() ) );
@@ -688,7 +691,7 @@ wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
     Colony& colony = ss.colonies.colony_for( colony_id );
     lg.debug( "evolving colony \"{}\".", colony.name );
     evolutions.push_back(
-        evolve_colony_one_turn( ss, ts, colony ) );
+        evolve_colony_one_turn( ss, ts, player, colony ) );
     ColonyEvolution const& ev = evolutions.back();
     if( ev.colony_disappeared ) {
       co_await run_colony_starvation( planes, ss, ts, colony );

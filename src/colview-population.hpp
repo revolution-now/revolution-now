@@ -24,18 +24,17 @@ struct Player;
 *****************************************************************/
 class PopulationView : public ui::View, public ColonySubView {
  public:
-  static std::unique_ptr<PopulationView> create(
-      SS& ss, TS& ts, Colony& colony, Player const& player,
-      Delta size ) {
-    return std::make_unique<PopulationView>( ss, ts, colony,
-                                             player, size );
+  static std::unique_ptr<PopulationView> create( SS& ss, TS& ts,
+                                                 Player& player,
+                                                 Colony& colony,
+                                                 Delta   size ) {
+    return std::make_unique<PopulationView>( ss, ts, player,
+                                             colony, size );
   }
 
-  PopulationView( SS& ss, TS& ts, Colony& colony,
-                  Player const& player, Delta size )
-    : ColonySubView( ss, ts, colony ),
-      player_( player ),
-      size_( size ) {}
+  PopulationView( SS& ss, TS& ts, Player& player, Colony& colony,
+                  Delta size )
+    : ColonySubView( ss, ts, player, colony ), size_( size ) {}
 
   Delta delta() const override { return size_; }
 
@@ -55,8 +54,7 @@ class PopulationView : public ui::View, public ColonySubView {
   void draw_sons_of_liberty( rr::Renderer& renderer,
                              Coord         coord ) const;
 
-  Player const& player_;
-  Delta         size_;
+  Delta size_;
 };
 
 } // namespace rn

@@ -16,8 +16,9 @@
 #include "expect.hpp"
 #include "maybe.hpp"
 
-// gs
+// ss
 #include "ss/commodity.rds.hpp"
+#include "ss/mv-points.hpp"
 #include "ss/unit-type.rds.hpp"
 
 // luapp
@@ -30,6 +31,8 @@
 #include <unordered_set>
 
 namespace rn {
+
+struct Player;
 
 /****************************************************************
 ** Unit Inventory
@@ -46,6 +49,12 @@ maybe<e_commodity> inventory_to_commodity(
 bool can_attack( e_unit_type type );
 
 bool is_military_unit( e_unit_type type );
+
+// This is the only way that code outside of this module should
+// query a unit's movement points, since it will take into ac-
+// count bonuses.
+MvPoints movement_points( Player const& player,
+                          e_unit_type   type );
 
 /****************************************************************
 ** UnitType

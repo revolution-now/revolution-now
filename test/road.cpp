@@ -91,8 +91,9 @@ TEST_CASE( "[road] perform_road_work 100 tools" ) {
   // Do the work.
   for( int i = 0; i < kTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
-    unit.new_turn();
-    perform_road_work( W.units(), W.terrain(), W.map_updater(),
+    unit.new_turn( W.default_player() );
+    perform_road_work( W.units(), W.terrain(),
+                       W.default_player(), W.map_updater(),
                        unit );
     REQUIRE( has_road( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
@@ -104,9 +105,9 @@ TEST_CASE( "[road] perform_road_work 100 tools" ) {
   }
 
   // Finished.
-  unit.new_turn();
-  perform_road_work( W.units(), W.terrain(), W.map_updater(),
-                     unit );
+  unit.new_turn( W.default_player() );
+  perform_road_work( W.units(), W.terrain(), W.default_player(),
+                     W.map_updater(), unit );
   REQUIRE( has_road( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
@@ -148,8 +149,9 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer" ) {
   // Do the work.
   for( int i = 0; i < kTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
-    unit.new_turn();
-    perform_road_work( W.units(), W.terrain(), W.map_updater(),
+    unit.new_turn( W.default_player() );
+    perform_road_work( W.units(), W.terrain(),
+                       W.default_player(), W.map_updater(),
                        unit );
     REQUIRE( has_road( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
@@ -161,9 +163,9 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer" ) {
   }
 
   // Finished.
-  unit.new_turn();
-  perform_road_work( W.units(), W.terrain(), W.map_updater(),
-                     unit );
+  unit.new_turn( W.default_player() );
+  perform_road_work( W.units(), W.terrain(), W.default_player(),
+                     W.map_updater(), unit );
   REQUIRE( has_road( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( unit.turns_worked() == 0 );
@@ -183,10 +185,10 @@ TEST_CASE( "[road] perform_road_work 20 tools" ) {
   REQUIRE( location == kSquare );
 
   // Take away most of the units tools.
-  unit.consume_20_tools();
-  unit.consume_20_tools();
-  unit.consume_20_tools();
-  unit.consume_20_tools();
+  unit.consume_20_tools( W.default_player() );
+  unit.consume_20_tools( W.default_player() );
+  unit.consume_20_tools( W.default_player() );
+  unit.consume_20_tools( W.default_player() );
 
   // Before starting road work.
   REQUIRE( has_road( W.terrain(), kSquare ) == false );
@@ -211,8 +213,9 @@ TEST_CASE( "[road] perform_road_work 20 tools" ) {
   // Do the work.
   for( int i = 0; i < kTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
-    unit.new_turn();
-    perform_road_work( W.units(), W.terrain(), W.map_updater(),
+    unit.new_turn( W.default_player() );
+    perform_road_work( W.units(), W.terrain(),
+                       W.default_player(), W.map_updater(),
                        unit );
     REQUIRE( has_road( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
@@ -223,9 +226,9 @@ TEST_CASE( "[road] perform_road_work 20 tools" ) {
   }
 
   // Finished.
-  unit.new_turn();
-  perform_road_work( W.units(), W.terrain(), W.map_updater(),
-                     unit );
+  unit.new_turn( W.default_player() );
+  perform_road_work( W.units(), W.terrain(), W.default_player(),
+                     W.map_updater(), unit );
   REQUIRE( has_road( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::free_colonist );
   REQUIRE( unit.turns_worked() == 0 );
@@ -245,10 +248,10 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer 20 tools" ) {
   REQUIRE( location == kSquare );
 
   // Take away most of the units tools.
-  unit.consume_20_tools();
-  unit.consume_20_tools();
-  unit.consume_20_tools();
-  unit.consume_20_tools();
+  unit.consume_20_tools( W.default_player() );
+  unit.consume_20_tools( W.default_player() );
+  unit.consume_20_tools( W.default_player() );
+  unit.consume_20_tools( W.default_player() );
 
   // Before starting road work.
   REQUIRE( has_road( W.terrain(), kSquare ) == false );
@@ -273,8 +276,9 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer 20 tools" ) {
   // Do the work.
   for( int i = 0; i < kTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
-    unit.new_turn();
-    perform_road_work( W.units(), W.terrain(), W.map_updater(),
+    unit.new_turn( W.default_player() );
+    perform_road_work( W.units(), W.terrain(),
+                       W.default_player(), W.map_updater(),
                        unit );
     REQUIRE( has_road( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
@@ -285,9 +289,9 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer 20 tools" ) {
   }
 
   // Finished.
-  unit.new_turn();
-  perform_road_work( W.units(), W.terrain(), W.map_updater(),
-                     unit );
+  unit.new_turn( W.default_player() );
+  perform_road_work( W.units(), W.terrain(), W.default_player(),
+                     W.map_updater(), unit );
   REQUIRE( has_road( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::hardy_colonist );
   REQUIRE( unit.turns_worked() == 0 );
@@ -329,8 +333,9 @@ TEST_CASE( "[road] perform_road_work with cancel" ) {
   // Do part of the work.
   for( int i = 0; i < kTurnsRequired - 2; ++i ) {
     INFO( fmt::format( "i={}", i ) );
-    unit.new_turn();
-    perform_road_work( W.units(), W.terrain(), W.map_updater(),
+    unit.new_turn( W.default_player() );
+    perform_road_work( W.units(), W.terrain(),
+                       W.default_player(), W.map_updater(),
                        unit );
     REQUIRE( has_road( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
@@ -345,9 +350,9 @@ TEST_CASE( "[road] perform_road_work with cancel" ) {
   set_road( W.map_updater(), kSquare );
 
   // Cancelled.
-  unit.new_turn();
-  perform_road_work( W.units(), W.terrain(), W.map_updater(),
-                     unit );
+  unit.new_turn( W.default_player() );
+  perform_road_work( W.units(), W.terrain(), W.default_player(),
+                     W.map_updater(), unit );
   REQUIRE( has_road( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( unit.turns_worked() == 0 );
