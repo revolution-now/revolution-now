@@ -50,7 +50,7 @@ void cheat_toggle_reveal_full_map( Planes& planes, SS& ss,
 
 // Open a dialog box containing one check box for each founding
 // father and allow the player to select/deselect.
-wait<> cheat_edit_fathers( Planes& planes, TS& ts,
+wait<> cheat_edit_fathers( Planes& planes, SS& ss, TS& ts,
                            Player& player );
 
 /****************************************************************

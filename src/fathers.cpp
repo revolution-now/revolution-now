@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "igui.hpp"
 #include "irand.hpp"
+#include "logger.hpp"
 #include "ts.hpp"
 
 // config
@@ -239,6 +240,58 @@ wait<> play_new_father_cut_scene( TS& ts, Player const&,
   co_await ts.gui.message_box(
       "@[H]{}@[] has joined the Continental Congress!",
       config_fathers.fathers[father].name );
+}
+
+void on_father_received( SS&, TS&, Player const&,
+                         e_founding_father father ) {
+  lg.info( "performing one-time effects for {}.", father );
+  switch( father ) {
+    case e_founding_father::adam_smith:
+    case e_founding_father::peter_minuit:
+    case e_founding_father::peter_stuyvesant:
+    case e_founding_father::jan_de_witt:
+    case e_founding_father::ferdinand_magellan:
+    case e_founding_father::hernando_de_soto:
+    case e_founding_father::henry_hudson:
+    case e_founding_father::hernan_cortes:
+    case e_founding_father::george_washington:
+    case e_founding_father::paul_revere:
+    case e_founding_father::francis_drake:
+    case e_founding_father::thomas_jefferson:
+    case e_founding_father::thomas_paine:
+    case e_founding_father::simon_bolivar:
+    case e_founding_father::benjamin_franklin:
+    case e_founding_father::william_brewster:
+    case e_founding_father::william_penn:
+    case e_founding_father::father_jean_de_brebeuf:
+    case e_founding_father::juan_de_sepulveda:
+      // The above fathers don't have any one-time effects.
+      break;
+    case e_founding_father::bartolome_de_las_casas:
+      // TODO: all currently existing indian converts are changed
+      // to free colonists.
+      break;
+    case e_founding_father::francisco_de_coronado:
+      // TODO: all existing colonies and the area around them be-
+      // come visible on the map.
+      break;
+    case e_founding_father::jakob_fugger:
+      // TODO: all boycotts currently in effect are forgiven
+      // without backtaxes.
+      break;
+    case e_founding_father::john_paul_jones:
+      // TODO: a frigate is added.
+      break;
+    case e_founding_father::pocahontas:
+      // TODO: all tension levels between you and the natives are
+      // reduced to "content," and alarm is generated only half
+      // as fast afterward.
+      break;
+    case e_founding_father::sieur_de_la_salle:
+      // TODO: La Salle gives all current and future colonies a
+      // stockade when the population reaches three.
+      break;
+  }
 }
 
 } // namespace rn

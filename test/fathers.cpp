@@ -456,5 +456,10 @@ TEST_CASE( "[fathers] check_founding_fathers" ) {
   REQUIRE( player.fathers == fathers_copy );
 }
 
+TEST_CASE( "[fathers] on_father_received" ) {
+  World W;
+  // TODO
+}
+
 } // namespace
 } // namespace rn

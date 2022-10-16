@@ -338,7 +338,7 @@ wait<> menu_handler( Planes& planes, SS& ss, TS& ts,
       break;
     }
     case e_menu_item::cheat_edit_fathers: {
-      co_await cheat_edit_fathers( planes, ts, player );
+      co_await cheat_edit_fathers( planes, ss, ts, player );
       break;
     }
     default: {
@@ -841,9 +841,14 @@ wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
   co_await pick_founding_father_if_needed( ss, ts, player );
   maybe<e_founding_father> const new_father =
       check_founding_fathers( ss, player );
-  if( new_father.has_value() )
+  if( new_father.has_value() ) {
     co_await play_new_father_cut_scene( ts, player,
                                         *new_father );
+    // This will affect any one-time changes that the new father
+    // causes. E.g. for John Paul Jones it will create the
+    // frigate.
+    on_father_received( ss, ts, player, *new_father );
+  }
 }
 
 /****************************************************************

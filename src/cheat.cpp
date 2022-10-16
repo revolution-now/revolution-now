@@ -139,7 +139,7 @@ void cheat_toggle_reveal_full_map( Planes& planes, SS& ss,
   set_map_visibility( planes, ss, ts, nothing, active );
 }
 
-wait<> cheat_edit_fathers( Planes& planes, TS& ts,
+wait<> cheat_edit_fathers( Planes& planes, SS& ss, TS& ts,
                            Player& player ) {
   using namespace ui;
 
@@ -202,8 +202,13 @@ wait<> cheat_edit_fathers( Planes& planes, TS& ts,
   ui::e_ok_cancel const finished = co_await buttons->next();
   if( finished == ui::e_ok_cancel::cancel ) co_return;
 
-  for( auto [father, box] : boxes )
-    player.fathers.has[father] = box->on();
+  for( auto [father, box] : boxes ) {
+    bool const had_previously  = player.fathers.has[father];
+    bool const has_now         = box->on();
+    player.fathers.has[father] = has_now;
+    if( has_now && !had_previously )
+      on_father_received( ss, ts, player, father );
+  }
 }
 
 /****************************************************************

@@ -25,6 +25,7 @@
 namespace rn {
 
 struct Player;
+struct SS;
 struct SSConst;
 struct TS;
 
@@ -80,5 +81,13 @@ maybe<e_founding_father> check_founding_fathers(
 // the appearance of the new founding father, as in the OG.
 wait<> play_new_father_cut_scene( TS& ts, Player const& player,
                                   e_founding_father new_father );
+
+// This should be called just after a founding father is ob-
+// tained. It's purpose is to affect any one-time changes that
+// are supposed to happen as a result of obtaining that father
+// (some founding fathers have one-time effects while others' ef-
+// fects are ongoing; this function is for the former).
+void on_father_received( SS& ss, TS& ts, Player const& player,
+                         e_founding_father father );
 
 } // namespace rn
