@@ -20,7 +20,7 @@
 // config
 #include "config/unit-type.rds.hpp"
 
-// gs
+// ss
 #include "ss/player.rds.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
@@ -32,6 +32,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/generator.hpp"
 #include "base/lambda.hpp"
 
 // base-util
@@ -130,6 +131,52 @@ bool is_unit_on_dock( UnitsState const& units_state,
              harbor_status->port_status );
 }
 
+base::generator<Coord> search_from_square( Coord const start,
+                                           int max_radius ) {
+  Coord upper_left = start;
+  co_yield start;
+  for( int radius = 1; radius < max_radius; ++radius ) {
+    --upper_left.x;
+    --upper_left.y;
+    int const side_length = radius * 2 + 1;
+    // Now we're going to yield the coordinates that comprise the
+    // edge squares around the square of side length
+    // `side_length` centered on `start`:
+    //
+    //   2 3 4 5 6
+    //   7       8
+    //   9   1   a
+    //   b       c
+    //   d e f g h
+    //
+    // First yield the top row of the square.
+    Coord c = upper_left;
+    for( int j = 0; j < side_length; ++j ) {
+      co_yield c;
+      ++c.x;
+    }
+
+    // Now yield the sides, one row at a time.
+    c = upper_left;
+    for( int j = 0; j < side_length - 2; ++j ) {
+      ++c.y;
+      Coord left  = c;
+      Coord right = c;
+      right.x += side_length - 1;
+      co_yield left;
+      co_yield right;
+    }
+
+    // Now yield bottom.
+    c = upper_left;
+    c.y += side_length - 1;
+    for( int j = 0; j < side_length; ++j ) {
+      co_yield c;
+      ++c.x;
+    }
+  }
+}
+
 } // namespace
 
 /****************************************************************
@@ -159,10 +206,10 @@ maybe<Coord> find_new_world_arrival_square(
     ColoniesState const& colonies_state,
     TerrainState const& terrain_state, Player const& player,
     UnitHarborViewState const& info ) {
-  Coord candidate =
+  Coord const candidate =
       find_new_world_arrival_square_candidate( player, info );
 
-  maybe<e_nation> nation = nation_from_coord(
+  maybe<e_nation> const nation = nation_from_coord(
       units_state, colonies_state, candidate );
 
   if( !nation.has_value() ) return candidate;
@@ -175,33 +222,26 @@ maybe<Coord> find_new_world_arrival_square(
   // the unit here. We will procede to search the squares in an
   // outward fashion until we find one.
   Delta const world_size = terrain_state.world_size_tiles();
-  Rect search = Rect::from( candidate, Delta{ .w = 1, .h = 1 } );
-  int  max_radius = std::max( world_size.w, world_size.h );
+  int max_radius = std::max( world_size.w, world_size.h );
 
-  for( int radius = 0; radius < max_radius; ++radius ) {
-    for( Coord c : search ) {
-      // Only search the squares on the edge because we've al-
-      // ready searched the inside.
-      if( c.is_inside( search.edges_removed() ) ) continue;
-      maybe<MapSquare const&> square =
-          terrain_state.maybe_square_at( c );
-      if( !square.has_value() ) continue;
-      if( square->surface != e_surface::water ) continue;
-      maybe<e_nation> nation =
-          nation_from_coord( units_state, colonies_state, c );
-      if( !nation.has_value() || nation == player.nation )
-        // We've found a square that is water and does not con-
-        // tain a foreign nation.
-        //
-        // Theoretically at this point we should also make sure
-        // that we haven't placed the ship into a lake in which
-        // it will be trapped... but that seems like a rare oc-
-        // currence. TODO: this should be easy to implement once
-        // we have precomputed data about oceans and continents
-        // which will be needed anyway for the AI and goto algos.
-        return c;
-    }
-    search = search.with_border_added();
+  for( Coord c : search_from_square( candidate, max_radius ) ) {
+    maybe<MapSquare const&> square =
+        terrain_state.maybe_square_at( c );
+    if( !square.has_value() ) continue;
+    if( square->surface != e_surface::water ) continue;
+    maybe<e_nation> nation =
+        nation_from_coord( units_state, colonies_state, c );
+    if( !nation.has_value() || nation == player.nation )
+      // We've found a square that is water and does not con-
+      // tain a foreign nation.
+      //
+      // Theoretically at this point we should also make sure
+      // that we haven't placed the ship into a lake in which
+      // it will be trapped... but that seems like a rare oc-
+      // currence. TODO: this should be easy to implement once
+      // we have precomputed data about oceans and continents
+      // which will be needed anyway for the AI and goto algos.
+      return c;
   }
 
   return nothing;

@@ -575,12 +575,12 @@ TEST_CASE(
                        dutch_caravel );
     REQUIRE( w.units().from_coord( ship_loc ).empty() );
 
-    UnitId dutch_caravel2 = w.add_unit_on_map(
+    UnitId french_caravel = w.add_unit_on_map(
         e_unit_type::caravel, ship_loc, e_nation::french );
     REQUIRE( w.units().from_coord( ship_loc ).size() == 1 );
     REQUIRE( w.units()
                  .from_coord( ship_loc )
-                 .contains( dutch_caravel2 ) );
+                 .contains( french_caravel ) );
     Coord const expected{ .x = 7, .y = 4 };
     REQUIRE( find_new_world_arrival_square(
                  w.units(), w.colonies(), w.terrain(), w.dutch(),
