@@ -192,14 +192,18 @@ maybe<Coord> find_new_world_arrival_square(
       if( !nation.has_value() || nation == player.nation )
         // We've found a square that is water and does not con-
         // tain a foreign nation.
+        //
+        // Theoretically at this point we should also make sure
+        // that we haven't placed the ship into a lake in which
+        // it will be trapped... but that seems like a rare oc-
+        // currence. TODO: this should be easy to implement once
+        // we have precomputed data about oceans and continents
+        // which will be needed anyway for the AI and goto algos.
         return c;
     }
     search = search.with_border_added();
   }
 
-  // Theoretically at this point we should also make sure that we
-  // haven't placed the ship into a lake in which it will be
-  // trapped... but that seems like a rare occurrence.
   return nothing;
 }
 
