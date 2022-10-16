@@ -29,6 +29,12 @@ namespace {} // namespace
 //
 // TODO: See NAMES.TXT for the stats on the unit types and check
 // them against those in our config file.
+//
+// TODO: need to take into account Francis Drake who increases
+// the strength of privateers by 50%.
+//
+// TODO: need to take into account George Washington here who
+// makes winners upgrade with 100% probability.
 FightStatistics fight_statistics( IRand&      rand,
                                   Unit const& attacker,
                                   Unit const& defender ) {
