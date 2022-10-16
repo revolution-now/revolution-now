@@ -33,6 +33,9 @@ class wait_promise;
 namespace detail {
 
 template<typename T>
+struct promise_type;
+
+template<typename T>
 class wait_shared_state {
  public:
   wait_shared_state()  = default;
@@ -43,7 +46,7 @@ class wait_shared_state {
       delete;
   // Note that this object is in general self-referential, there-
   // fore it cannot be moved.
-  wait_shared_state( wait_shared_state&& ) = delete;
+  wait_shared_state( wait_shared_state&& )            = delete;
   wait_shared_state& operator=( wait_shared_state&& ) = delete;
 
   using NotifyFunc = void( T const& );
@@ -73,7 +76,7 @@ class wait_shared_state {
           std::forward<Func>( func ) );
   }
 
-  void set_coro( base::unique_coro coro ) {
+  void set_coro( base::unique_coro<promise_type<T>> coro ) {
     CHECK( !coro_ );
     coro_ = std::move( coro );
   }
@@ -198,7 +201,7 @@ class wait_shared_state {
 
   // Will be populated if this shared state is created by a
   // coroutine.
-  maybe<base::unique_coro> coro_;
+  maybe<base::unique_coro<promise_type<T>>> coro_;
 };
 
 } // namespace detail
@@ -228,7 +231,7 @@ class [[nodiscard]] wait {
   // owns promise which owns shared_state.
   ~wait() noexcept { cancel(); }
 
-  wait( wait const& ) = delete;
+  wait( wait const& )            = delete;
   wait& operator=( wait const& ) = delete;
   wait( wait&& )                 = default;
 
@@ -355,7 +358,8 @@ class wait_promise {
 
   // For convenience.
   void finish() const
-      requires( std::is_same_v<T, std::monostate> ) {
+  requires( std::is_same_v<T, std::monostate> )
+  {
     set_value_emplace();
   }
 

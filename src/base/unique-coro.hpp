@@ -18,9 +18,13 @@
 
 namespace base {
 
+template<typename Promise>
 struct unique_coro;
+
+template<typename Promise>
 using unique_coro_base =
-    base::zero<unique_coro, std::coroutine_handle<>>;
+    base::zero<unique_coro<Promise>,
+               std::coroutine_handle<Promise>>;
 
 // unique_coro
 //
@@ -38,15 +42,16 @@ using unique_coro_base =
 // above whereby a coroutine can destroy itself after it finishes
 // running, we must have the coroutine always suspend at the
 // final suspend point.
-struct unique_coro : unique_coro_base {
-  explicit unique_coro( std::coroutine_handle<> h )
-    : unique_coro_base( h ) {}
+template<typename Promise>
+struct unique_coro : unique_coro_base<Promise> {
+  explicit unique_coro( std::coroutine_handle<Promise> h )
+    : unique_coro_base<Promise>( h ) {}
   MOVABLE_ONLY( unique_coro );
 
  private:
-  friend unique_coro_base;
+  friend unique_coro_base<Promise>;
   // Implement base::zero.
-  void free_resource() { resource().destroy(); }
+  void free_resource() { this->resource().destroy(); }
 };
 
 } // namespace base

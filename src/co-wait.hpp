@@ -97,7 +97,7 @@ struct promise_type final : public promise_type_base<T> {
     auto h = std::coroutine_handle<promise_type>::from_promise(
         *this );
     wait_promise_.shared_state()->set_coro(
-        base::unique_coro( h ) );
+        base::unique_coro<promise_type>( h ) );
   }
 
   ~promise_type() noexcept {
@@ -135,7 +135,7 @@ struct promise_type<std::monostate> final
     auto h = std::coroutine_handle<promise_type>::from_promise(
         *this );
     wait_promise_.shared_state()->set_coro(
-        base::unique_coro( h ) );
+        base::unique_coro<promise_type>( h ) );
   }
 
   ~promise_type() noexcept {
