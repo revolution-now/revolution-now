@@ -13,6 +13,7 @@
 // Revolution Now
 #include "auto-pad.hpp"
 #include "co-wait.hpp"
+#include "compositor.hpp"
 #include "error.hpp"
 #include "game-ui-views.hpp"
 #include "input.hpp"
@@ -113,8 +114,9 @@ struct WindowManager {
   int num_windows() const { return windows_.size(); }
 
   void center_window( Window const& win ) {
-    find_window( win ).pos =
-        centered( win.delta(), main_window_logical_rect() );
+    UNWRAP_CHECK( area, compositor::section(
+                            compositor::e_section::normal ) );
+    find_window( win ).pos = centered( win.delta(), area );
   }
 
   void add_window( Window& window ) {
