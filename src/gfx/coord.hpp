@@ -27,9 +27,6 @@
 
 // c++ standard library
 #include <cmath>
-#include <concepts>
-#include <iterator>
-#include <type_traits>
 
 namespace rn {
 
@@ -51,7 +48,6 @@ struct DimensionH;
 struct Coord;
 struct Delta;
 struct Rect;
-struct RectGridIterable;
 
 /****************************************************************
 ** e_direction
@@ -392,172 +388,7 @@ struct Rect {
   base::maybe<int> rasterize( Coord coord ) const;
 
   int area() const { return delta().area(); }
-
-  // These will divide the inside of the rect into subrects of
-  // the given delta and will return an object which, when iter-
-  // ated over, will yield a series of Coord's representing the
-  // upper-left corners of each of those sub rects.
-  RectGridIterable to_grid_noalign(
-      Delta delta ) const& ATTR_LIFETIMEBOUND;
-  RectGridIterable to_grid_noalign( Delta delta ) const&& =
-      delete;
-
-  // This iterator will iterate over all of the points in the
-  // rect in a well-defined order: top to bottom, left to right.
-  struct const_iterator {
-    using iterator_category = std::input_iterator_tag;
-    using difference_type   = int;
-    using value_type        = Coord;
-    using pointer           = Coord const*;
-    using reference         = Coord const&;
-
-    const_iterator()                        = default;
-    const_iterator( const_iterator const& ) = default;
-    const_iterator( const_iterator&& )      = default;
-    const_iterator( Coord c, Rect const* r )
-      : it( c ), rect( r ) {}
-
-    const_iterator& operator=( const_iterator const& ) = default;
-    const_iterator& operator=( const_iterator&& )      = default;
-
-    Coord const& operator*() const {
-      DCHECK( rect );
-      DCHECK( it.is_inside( *rect ) );
-      return it;
-    }
-    const_iterator& operator++() {
-      DCHECK( rect );
-      ++it.x;
-      if( it.x == rect->right_edge() ) {
-        it.x = rect->left_edge();
-        ++it.y;
-      }
-      DCHECK( it == rect->lower_left() ||
-              it.is_inside( *rect ) );
-      return *this;
-    }
-    const_iterator operator++( int ) {
-      auto res = *this;
-      ++( *this );
-      return res;
-    }
-    bool operator!=( const_iterator const& rhs ) const {
-      return it != rhs.it;
-    }
-    bool operator==( const_iterator const& rhs ) const {
-      return it == rhs.it;
-    }
-
-    Coord       it{};
-    Rect const* rect = nullptr;
-  };
-
-  const_iterator begin() const {
-    if( w == 0 || h == 0 ) return end();
-    return const_iterator( upper_left(), this );
-  }
-  const_iterator end() const {
-    // The "end" is the _start_ of the row that is one passed the
-    // last row. This is because this will be the position of the
-    // iterator after advancing it past the lower right corner of
-    // the rectangle.
-    return const_iterator( lower_left(), this );
-  }
 };
-
-#if defined( _LIBCPP_VERSION ) // libc++
-// FIXME: re-enable this when libc++ gets std::input_iterator.
-#else // libstdc++
-static_assert( std::input_iterator<Rect::const_iterator> );
-#endif
-
-/****************************************************************
-** RectGridIterable
-*****************************************************************/
-// This object will be returned as a proxy by the Rect class to
-// facilitate iterating over the inside of the rect in jumps of a
-// certain size.
-struct RectGridIterable {
- private:
-  Rect const& rect;
-  Delta       chunk_size;
-
- public:
-  RectGridIterable( Rect&& rect_, Delta chunk_size_ ) = delete;
-
-  RectGridIterable( Rect const& rect_, Delta chunk_size_ )
-    : rect( rect_ ), chunk_size( chunk_size_ ) {}
-
-  Delta delta() const { return chunk_size; }
-
-  // This iterator will iterate through the points within the
-  // rect in jumps given by chunk_size in a well-defined order:
-  // top to bottom, left to right.
-  struct const_iterator {
-    using iterator_category = std::input_iterator_tag;
-    using difference_type   = int;
-    using value_type        = Rect;
-    using pointer           = Rect const*;
-    using reference         = Rect const&;
-
-    Rect                    it;
-    RectGridIterable const* rect_proxy;
-    auto const&             operator*() const {
-      DCHECK( it.upper_left().is_inside( rect_proxy->rect ) );
-      return it;
-    }
-    const_iterator& operator++() {
-      it.x += rect_proxy->chunk_size.w;
-      if( it.x >= rect_proxy->rect.right_edge() ) {
-        it.x = rect_proxy->rect.left_edge();
-        it.y += rect_proxy->chunk_size.h;
-        // If we've finished iterating then put the coordinate in
-        // a well defined position (lower left corner, one past
-        // the bottom edge). It may not already be at this posi-
-        // tion at this point because the size of the large rect
-        // over which we're iterating might not be an even mul-
-        // tiple of the chunk size.
-        if( it.y >= rect_proxy->rect.bottom_edge() ) {
-          it.x = rect_proxy->rect.left_edge();
-          it.y = rect_proxy->rect.bottom_edge();
-          DCHECK( it.upper_left() ==
-                  rect_proxy->rect.lower_left() );
-        }
-      }
-      DCHECK( it.upper_left() == rect_proxy->rect.lower_left() ||
-              it.upper_left().is_inside( rect_proxy->rect ) );
-      return *this;
-    }
-    const_iterator operator++( int ) { return ++( *this ); }
-    bool operator!=( const_iterator const& rhs ) const {
-      return it != rhs.it;
-    }
-    bool operator==( const_iterator const& rhs ) const {
-      return it == rhs.it;
-    }
-    int operator-( const_iterator const& rhs ) const;
-  };
-
-  const_iterator begin() const ATTR_LIFETIMEBOUND {
-    return { Rect::from( rect.upper_left(), chunk_size ), this };
-  }
-  const_iterator end() const ATTR_LIFETIMEBOUND {
-    // The "end", by convention, is the _start_ of the row that
-    // is one passed the last row. Also note that, when the rect
-    // has zero area, upper_left() and lower_left are the same
-    // point.
-    return { Rect::from( rect.lower_left(), chunk_size ), this };
-  }
-
-  using iterator = const_iterator;
-};
-
-#if defined( _LIBCPP_VERSION ) // libc++
-// FIXME: re-enable this when libc++ gets std::input_iterator.
-#else // libstdc++
-static_assert(
-    std::input_iterator<RectGridIterable::const_iterator> );
-#endif
 
 /****************************************************************
 ** Misc Functions

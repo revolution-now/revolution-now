@@ -60,6 +60,7 @@
 
 // gfx
 #include "gfx/coord.hpp"
+#include "gfx/iter.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -163,7 +164,7 @@ void render_backdrop( rr::Renderer& renderer ) {
     SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
                              gfx::size( shift ).to_double() );
     rr::Painter painter = renderer.painter();
-    for( Rect rect : tiled_rect.to_grid_noalign( tile_size ) )
+    for( Rect rect : gfx::subrects( tiled_rect, tile_size ) )
       render_sprite( painter,
                      Rect::from( rect.upper_left(), tile_size ),
                      e_tile::terrain_ocean );
@@ -729,9 +730,10 @@ struct LandViewPlane::Impl : public Plane {
           res.emplace_back( *coord, id );
     } else {
       // Iterate over covered tiles.
-      for( Coord tile : covered )
-        for( UnitId id : ss_.units.from_coord( tile ) )
-          res.emplace_back( tile, id );
+      for( Rect tile : gfx::subrects( covered ) )
+        for( UnitId id :
+             ss_.units.from_coord( tile.upper_left() ) )
+          res.emplace_back( tile.upper_left(), id );
     }
     return res;
   }

@@ -22,6 +22,9 @@
 // render
 #include "render/renderer.hpp"
 
+// gfx
+#include "gfx/iter.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -185,9 +188,9 @@ bool RenderingMapUpdater::modify_map_square(
       make_terrain_options( options() );
   Visibility const viz =
       Visibility::create( ss_, options().nation );
-  for( Coord moved : to_update )
-    if( ss_.terrain.square_exists( moved ) )
-      redraw_square( viz, terrain_options, moved );
+  for( Rect moved : gfx::subrects( to_update ) )
+    if( ss_.terrain.square_exists( moved.upper_left() ) )
+      redraw_square( viz, terrain_options, moved.upper_left() );
 
   return changed;
 }

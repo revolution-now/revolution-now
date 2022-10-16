@@ -17,6 +17,9 @@
 // config
 #include "config/ui.rds.hpp"
 
+// gfx
+#include "gfx/iter.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -40,11 +43,14 @@ struct block {
   Matrix<int> to_matrix() const {
     Matrix<int> res( size );
     if( size.area() == 0 ) return res;
-    for( auto coord : res.rect() ) res[coord] = 0;
+    for( Rect const r : gfx::subrects( res.rect() ) )
+      res[r.upper_left()] = 0;
     for( auto const& [origin, b] : subdivisions ) {
       auto matrix = b.to_matrix();
-      for( auto coord : Rect::from( origin, b.size ) ) {
-        auto i = matrix[coord.with_new_origin( origin )];
+      for( Rect const r :
+           gfx::subrects( Rect::from( origin, b.size ) ) ) {
+        Coord const coord = r.upper_left();
+        auto        i = matrix[coord.with_new_origin( origin )];
         if( i == -1 || res[coord] == -1 )
           res[coord] = -1;
         else

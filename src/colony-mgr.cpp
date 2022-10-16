@@ -32,6 +32,12 @@
 #include "ts.hpp"
 #include "ustate.hpp"
 
+// config
+#include "config/colony.rds.hpp"
+#include "config/nation.hpp"
+#include "config/production.rds.hpp"
+#include "config/unit-type.hpp"
+
 // ss
 #include "ss/colonies.hpp"
 #include "ss/player.rds.hpp"
@@ -39,11 +45,8 @@
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
-// config
-#include "config/colony.rds.hpp"
-#include "config/nation.hpp"
-#include "config/production.rds.hpp"
-#include "config/unit-type.hpp"
+// gfx
+#include "gfx/iter.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -735,11 +738,12 @@ find_occupied_surrounding_colony_squares(
       Rect::from( loc - Delta{ .w = 2, .h = 2 },
                   Delta{ .w = 5, .h = 5 } )
           .with_inc_size();
-  for( Coord square : search_space ) {
-    if( !ss.terrain.square_exists( square ) ) continue;
-    if( square == loc ) continue;
+  for( Rect const square : gfx::subrects( search_space ) ) {
+    if( !ss.terrain.square_exists( square.upper_left() ) )
+      continue;
+    if( square.upper_left() == loc ) continue;
     maybe<ColonyId> const colony_id =
-        ss.colonies.maybe_from_coord( square );
+        ss.colonies.maybe_from_coord( square.upper_left() );
     if( !colony_id.has_value() ) continue;
     Colony const& other_colony =
         ss.colonies.colony_for( *colony_id );

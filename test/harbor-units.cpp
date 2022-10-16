@@ -21,6 +21,9 @@
 #include "src/ss/terrain.hpp"
 #include "src/ss/units.hpp"
 
+// gfx
+#include "gfx/iter.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -682,10 +685,11 @@ TEST_CASE(
 
     // Fill all ocean squares with foreign units to test the case
     // where we cannot find any where to place the unit.
-    for( Coord c : w.terrain().world_rect_tiles() )
-      if( w.terrain().square_at( c ).surface ==
+    for( Rect const r :
+         gfx::subrects( w.terrain().world_rect_tiles() ) )
+      if( w.terrain().square_at( r.upper_left() ).surface ==
           e_surface::water )
-        w.add_unit_on_map( e_unit_type::caravel, c,
+        w.add_unit_on_map( e_unit_type::caravel, r.upper_left(),
                            e_nation::french );
 
     REQUIRE( find_new_world_arrival_square(

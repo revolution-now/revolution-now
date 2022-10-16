@@ -22,6 +22,9 @@
 // render
 #include "render/atlas.hpp"
 
+// gfx
+#include "gfx/iter.hpp"
+
 // refl
 #include "refl/enum-map.hpp"
 #include "refl/query-enum.hpp"
@@ -142,21 +145,22 @@ void tile_sprite( rr::Painter& painter, e_tile tile,
   auto smaller_rect =
       Rect::from( rect.upper_left(),
                   rect.delta() - Delta{ .w = 1, .h = 1 } );
-  for( auto coord :
-       Rect::from( Coord{}, smaller_rect.delta() / info ) )
-    render_sprite( painter, tile,
-                   rect.upper_left() +
-                       coord.distance_from_origin() * info );
+  for( Rect const r : gfx::subrects(
+           Rect::from( Coord{}, smaller_rect.delta() / info ) ) )
+    render_sprite(
+        painter, tile,
+        rect.upper_left() +
+            r.upper_left().distance_from_origin() * info );
   for( H h = 0; h < smaller_rect.h / info.h; ++h ) {
     auto where = rect.upper_right() - Delta{ .w = mod.w } +
-                 Delta{ .h = h } * info.h;
+                 Delta{ .h = h }* info.h;
     render_sprite_section(
         painter, tile, where,
         Rect::from( Coord{}, mod.with_height( 1 * info.h ) ) );
   }
   for( W w = 0; w < smaller_rect.w / info.w; ++w ) {
     auto where = rect.lower_left() - Delta{ .h = mod.h } +
-                 Delta{ .w = w } * info.w;
+                 Delta{ .w = w }* info.w;
     render_sprite_section(
         painter, tile, where,
         Rect::from( Coord{}, mod.with_width( 1 * info.w ) ) );
@@ -197,8 +201,10 @@ void render_rect_of_sprites_with_border(
   };
 
   Rect dst_tile_rect = Rect::from( Coord{}, size_tiles );
-  for( auto coord : dst_tile_rect.edges_removed() )
-    render_sprite( painter, middle, to_pixels( coord ) );
+  for( Rect const r :
+       gfx::subrects( dst_tile_rect.edges_removed() ) )
+    render_sprite( painter, middle,
+                   to_pixels( r.upper_left() ) );
 
   for( X x = dst_tile_rect.x + 1;
        x < dst_tile_rect.right_edge() - 1; ++x )

@@ -35,6 +35,9 @@
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
+// gfx
+#include "gfx/iter.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -78,9 +81,8 @@ Delta ColonyLandView::size_needed( e_render_mode mode ) {
     case e_render_mode::_5x5: side_length_in_squares = 5; break;
     case e_render_mode::_6x6: side_length_in_squares = 6; break;
   }
-  return Delta{ .w = 32, .h = 32 } *
-         Delta{ .w = side_length_in_squares,
-                .h = side_length_in_squares };
+  return Delta{ .w = 32, .h = 32 }* Delta{
+      .w = side_length_in_squares, .h = side_length_in_squares };
 }
 
 maybe<e_direction> ColonyLandView::direction_under_cursor(
@@ -294,9 +296,10 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
   Coord const world_square = colony_.location;
   auto        viz = Visibility::create( ss_, player_.nation );
   // Render terrain.
-  for( auto local_coord :
-       Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) {
-    Coord render_square = world_square +
+  for( Rect const local_rect : gfx::subrects(
+           Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) ) {
+    Coord const local_coord   = local_rect.upper_left();
+    Coord       render_square = world_square +
                           local_coord.distance_from_origin() -
                           Delta{ .w = 1, .h = 1 };
     painter.draw_solid_rect(
@@ -320,9 +323,10 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
           gfx::pixel::red() );
   }
   // Render colonies.
-  for( auto local_coord :
-       Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) {
-    auto render_square = world_square +
+  for( Rect const local_rect : gfx::subrects(
+           Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) ) {
+    Coord const local_coord   = local_rect.upper_left();
+    auto        render_square = world_square +
                          local_coord.distance_from_origin() -
                          Delta{ .w = 1, .h = 1 };
     auto maybe_col_id =

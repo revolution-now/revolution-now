@@ -187,16 +187,6 @@ base::maybe<int> Rect::rasterize( Coord coord ) const {
   return ( coord.y - y ) * w + ( coord.x - x );
 }
 
-RectGridIterable Rect::to_grid_noalign( Delta delta ) const& {
-  return RectGridIterable( *this, delta );
-}
-
-int RectGridIterable::const_iterator::operator-(
-    RectGridIterable::const_iterator const& rhs ) const {
-  auto delta = it.upper_left() - rhs.it.upper_left();
-  return delta.h * rect_proxy->rect.w + delta.w;
-}
-
 template<>
 int Rect::coordinate<DimensionX>() const {
   return x;

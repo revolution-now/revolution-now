@@ -25,6 +25,9 @@
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
 
+// gfx
+#include "gfx/iter.hpp"
+
 // base
 #include "base/range-lite.hpp"
 
@@ -173,7 +176,8 @@ HarborCargo::user_edit_object() const {
   string const text = fmt::format(
       "What quantity of @[H]{}@[] would you like to move? "
       "(0-{}):",
-      lowercase_commodity_display_name( comm.type ), max_allowed );
+      lowercase_commodity_display_name( comm.type ),
+      max_allowed );
 
   maybe<int> const quantity =
       co_await ts_.gui.optional_int_input(
@@ -336,12 +340,11 @@ void HarborCargo::draw( rr::Renderer& renderer,
   // too many grid boxes.
   --r.w;
   --r.h;
-  auto const grid = r.to_grid_noalign( g_tile_delta );
-  for( Rect const rect : grid )
+  for( Rect const rect : gfx::subrects( r, g_tile_delta ) )
     painter.draw_empty_rect( rect,
                              rr::Painter::e_border_mode::in_out,
                              gfx::pixel::white() );
-  for( Rect const rect : grid )
+  for( Rect const rect : gfx::subrects( r, g_tile_delta ) )
     painter.draw_solid_rect( rect, gfx::pixel::white() );
   maybe<UnitId> active_unit = get_active_unit();
   if( !active_unit.has_value() ) return;
@@ -350,7 +353,8 @@ void HarborCargo::draw( rr::Renderer& renderer,
   // in port.
   auto&       unit        = ss_.units.unit_for( *active_unit );
   auto const& cargo_slots = unit.cargo().slots();
-  auto        zipped = rl::zip( rl::ints(), cargo_slots, grid );
+  base::generator<Rect> grid = gfx::subrects( r, g_tile_delta );
+  auto zipped = rl::zip( rl::ints(), cargo_slots, grid );
   for( auto const [idx, cargo_slot, rect] : zipped ) {
     painter.draw_solid_rect(
         rect.with_inc_size().edges_removed(),

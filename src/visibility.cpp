@@ -29,6 +29,9 @@
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
+// gfx
+#include "gfx/iter.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -162,7 +165,8 @@ vector<Coord> unit_visible_squares( SSConst const& ss,
   int const largest_block_size =
       largest_possible_sighting_radius() * 2 + 1;
   res.reserve( largest_block_size * largest_block_size );
-  for( Coord coord : possible ) {
+  for( Rect rect : gfx::subrects( possible ) ) {
+    Coord                   coord = rect.upper_left();
     maybe<MapSquare const&> square =
         terrain.maybe_square_at( coord );
     if( !square.has_value() ) continue;
@@ -188,7 +192,8 @@ refl::enum_map<e_nation, bool> nations_with_visibility_of_square(
       Rect::from( tile, Delta{ .w = 1, .h = 1 } )
           .with_border_added(
               largest_possible_sighting_radius() );
-  for( Coord coord : possible_for_units ) {
+  for( Rect rect : gfx::subrects( possible_for_units ) ) {
+    Coord coord = rect.upper_left();
     // We don't use the recursive variant because we don't want
     // e.g. a scout on a ship to increase the sighting radius.
     unordered_set<UnitId> const& units =
@@ -219,7 +224,8 @@ refl::enum_map<e_nation, bool> nations_with_visibility_of_square(
       Rect::from( tile, Delta{ .w = 1, .h = 1 } )
           .with_border_added(
               config_colony.colony_visibility_radius );
-  for( Coord coord : possible_for_colonies ) {
+  for( Rect rect : gfx::subrects( possible_for_colonies ) ) {
+    Coord                  coord = rect.upper_left();
     maybe<ColonyId> const& colony_id =
         ss.colonies.maybe_from_coord( coord );
     if( !colony_id.has_value() ) continue;

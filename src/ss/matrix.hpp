@@ -20,6 +20,7 @@
 
 // gfx
 #include "gfx/coord.hpp"
+#include "gfx/iter.hpp"
 
 // Cdr
 #include "cdr/converter.hpp"
@@ -179,11 +180,12 @@ cdr::value to_canonical( cdr::converter&  conv,
   lst.reserve( m.data().size() );
   if( !write_defaults ) {
     conv.to_field( tbl, "has_coords", true );
-    for( Coord c : m.rect() ) {
-      T const&       elem = m[c];
+    for( Rect const r : gfx::subrects( m.rect() ) ) {
+      T const&       elem = m[r.upper_left()];
       static const T def{};
       if( elem == def ) continue;
-      lst.emplace_back( conv.to( std::pair{ c, m[c] } ) );
+      lst.emplace_back( conv.to(
+          std::pair{ r.upper_left(), m[r.upper_left()] } ) );
     }
   } else {
     // Write defaults.

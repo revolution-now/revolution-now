@@ -21,6 +21,9 @@
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
 
+// gfx
+#include "gfx/iter.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -160,9 +163,11 @@ void TerrainState::initialize_player_terrain( e_nation nation,
   map = Matrix<base::maybe<FogSquare>>( o_.world_map.size() );
   if( visible ) {
     Matrix<MapSquare> const& world_map = o_.world_map;
-    for( Coord tile : o_.world_map.rect() ) {
-      map[tile].emplace();
-      map[tile]->square = world_map[tile];
+    for( Rect const tile :
+         gfx::subrects( o_.world_map.rect() ) ) {
+      map[tile.upper_left()].emplace();
+      map[tile.upper_left()]->square =
+          world_map[tile.upper_left()];
     }
   }
 }

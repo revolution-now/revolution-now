@@ -30,6 +30,9 @@
 // render
 #include "render/renderer.hpp"
 
+// gfx
+#include "gfx/iter.hpp"
+
 // base
 #include "base/scope-exit.hpp"
 
@@ -399,24 +402,25 @@ void MiniMapView::draw_impl( rr::Renderer&     renderer,
           chrono::milliseconds{ 1000 } >
       chrono::milliseconds{ 500 };
 
-  for( Coord c : Rect::from_gfx( squares.truncated() ) ) {
-    Coord const land_coord = c;
+  for( gfx::rect r : gfx::subrects( squares.truncated() ) ) {
+    Coord const land_coord = Coord::from_gfx( r.nw() );
     CHECK( viz.on_map( land_coord ) );
     if( !viz.visible( land_coord ) ) continue;
     bool const blinking_but_off =
-        ( c == blinker_coord && !blink_on );
-    gfx::pixel color = color_for_square( viz.square_at( c ) );
+        ( land_coord == blinker_coord && !blink_on );
+    gfx::pixel color =
+        color_for_square( viz.square_at( land_coord ) );
     // First check if there is a unit/colony on the square.
-    if( maybe<e_nation> nation =
-            nation_from_coord( ss_.units, ss_.colonies, c );
+    if( maybe<e_nation> nation = nation_from_coord(
+            ss_.units, ss_.colonies, land_coord );
         nation.has_value() ) {
       if( !blinking_but_off )
         color = config_nation.nations[*nation].flag_color;
     }
     gfx::rect const pixel{
-        .origin = actual.nw() +
-                  ( c.to_gfx() - squares.nw().truncated() ) *
-                      kPixelsPerPoint,
+        .origin = actual.nw() + ( land_coord.to_gfx() -
+                                  squares.nw().truncated() ) *
+                                    kPixelsPerPoint,
         .size = pixel_size };
     painter.draw_solid_rect( pixel, color );
   }

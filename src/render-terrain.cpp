@@ -25,6 +25,9 @@
 // render
 #include "render/renderer.hpp"
 
+// gfx
+#include "gfx/iter.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -578,9 +581,8 @@ void render_terrain_ground( Visibility const& viz,
   //      that is what the hash function in the fragment shader
   //      is calibrated for.
   //
-  Delta const anchor_offset =
-      Delta{ .w = 10, .h = 10 } *
-      ( world_square % Delta{ .w = 10, .h = 10 } );
+  Delta const anchor_offset = Delta{ .w = 10, .h = 10 }*(
+      world_square % Delta{ .w = 10, .h = 10 } );
   {
 #if 1
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
@@ -2315,10 +2317,11 @@ void render_terrain( rr::Renderer&               renderer,
   renderer.clear_buffer( kLandscapeBuf );
   SCOPED_RENDERER_MOD_SET( buffer_mods.buffer, kLandscapeBuf );
   auto start_time = chrono::system_clock::now();
-  for( Coord square : viz.rect_tiles() ) {
-    tile_bounds[square] = renderer.range_for( [&] {
-      render_terrain_square( renderer, square * g_tile_delta,
-                             square, viz, options );
+  for( Rect const square : gfx::subrects( viz.rect_tiles() ) ) {
+    tile_bounds[square.upper_left()] = renderer.range_for( [&] {
+      render_terrain_square( renderer,
+                             square.upper_left() * g_tile_delta,
+                             square.upper_left(), viz, options );
     } );
   }
   auto end_time = chrono::system_clock::now();
