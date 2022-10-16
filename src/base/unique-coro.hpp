@@ -48,6 +48,12 @@ struct unique_coro : unique_coro_base<Promise> {
     : unique_coro_base<Promise>( h ) {}
   MOVABLE_ONLY( unique_coro );
 
+  Promise const& promise() const {
+    return this->resource().promise();
+  }
+
+  Promise& promise() { return this->resource().promise(); }
+
  private:
   friend unique_coro_base<Promise>;
   // Implement base::zero.
