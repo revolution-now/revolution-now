@@ -119,13 +119,13 @@ base::generator<Coord> search_from_square( Coord const start,
     int const side_length = radius * 2 + 1;
     // Now we're going to yield the coordinates that comprise the
     // edge squares around the square of side length
-    // `side_length` centered on `start`:
+    // `side_length` centered on `start` (1-9,a-p):
     //
-    //   2 3 4 5 6
-    //   7       8
-    //   9   1   a
-    //   b       c
-    //   d e f g h
+    //   a b c d e
+    //   f 2 3 4 g
+    //   h 5 1 6 i
+    //   j 7 8 9 k
+    //   l m n o p
     //
     // First yield the top row of the square.
     Coord c = upper_left;
