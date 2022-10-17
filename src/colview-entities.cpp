@@ -87,6 +87,10 @@ struct ColViewComposited {
 ColViewComposited g_composition;
 ColonyProduction  g_production;
 
+string_view constexpr kReduceStockadeThreeMsg =
+    "We cannot willingly reduce the population of a colony with "
+    "a stockade below three.";
+
 /****************************************************************
 ** Helpers
 *****************************************************************/
@@ -109,6 +113,17 @@ ColViewObject_t from_cargo( Cargo_t const& o ) {
       []( Cargo::commodity const& c ) {
         return ColViewObject::commodity{ .comm = c.obj };
       } );
+}
+
+// Returns whether the action should be rejected, which will
+// happen if the user tries to reduce the population of a colony
+// with a stockade below three.
+bool check_stockade_3( Colony const& colony ) {
+  bool const has_stockade_or_higher = colony_has_building_level(
+      colony, e_colony_building::stockade );
+  bool const should_reject =
+      has_stockade_or_higher && colony_population( colony ) <= 3;
+  return should_reject;
 }
 
 // Returns whether the action should be rejected.
@@ -546,6 +561,9 @@ class CargoView : public ui::View,
         co_return base::valid;
       case e_colview_entity::land:
       case e_colview_entity::buildings: //
+        if( check_stockade_3( colony_ ) )
+          co_return DragRejection{
+              .reason = string( kReduceStockadeThreeMsg ) };
         if( co_await check_abandon( colony_, ts_.gui ) )
           // If we're rejecting then that means that the player
           // has opted not to abandon the colony, so there is no
@@ -885,6 +903,9 @@ class UnitsAtGateColonyView
         co_return base::valid;
       case e_colview_entity::land:
       case e_colview_entity::buildings: //
+        if( check_stockade_3( colony_ ) )
+          co_return DragRejection{
+              .reason = string( kReduceStockadeThreeMsg ) };
         if( co_await check_abandon( colony_, ts_.gui ) )
           // If we're rejecting then that means that the player
           // has opted not to abandon the colony, so there is no
