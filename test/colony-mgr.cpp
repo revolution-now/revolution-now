@@ -488,7 +488,6 @@ TEST_CASE( "[colony-mgr] give_stockade_if_needed" ) {
   W.add_unit_indoors( english1.id, e_indoor_job::bells );
   W.add_unit_indoors( english1.id, e_indoor_job::bells );
   W.add_unit_indoors( english1.id, e_indoor_job::bells );
-  W.add_unit_indoors( english1.id, e_indoor_job::hammers );
   english.fathers.has[e_founding_father::sieur_de_la_salle] =
       true;
 
@@ -515,7 +514,6 @@ TEST_CASE( "[colony-mgr] give_stockade_if_needed" ) {
 
   dutch.fathers.has[e_founding_father::sieur_de_la_salle] =
       false;
-  W.add_unit_indoors( dutch1.id, e_indoor_job::bells );
   W.add_unit_indoors( dutch1.id, e_indoor_job::bells );
   give_stockade_if_needed( dutch, dutch1 );
   give_stockade_if_needed( dutch, dutch2 );

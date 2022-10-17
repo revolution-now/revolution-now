@@ -20,6 +20,7 @@
 
 // ss
 #include "src/ss/colony.hpp"
+#include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
 #include "src/ss/units.hpp"
@@ -426,6 +427,30 @@ TEST_CASE( "[colony-evolve] promotes units" ) {
            e_unit_type::indentured_servant );
   REQUIRE( W.ss().units.unit_for( 5 ).type() ==
            e_unit_type::expert_cotton_planter );
+}
+
+TEST_CASE( "[colony-evolve] gives stockade if needed" ) {
+  World   W;
+  Player& dutch = W.dutch();
+  // _, L, _,
+  // L, L, L,
+  // _, L, L,
+  Colony& colony = W.add_colony_with_new_unit(
+      { .x = 1, .y = 1 }, e_nation::dutch );
+  W.add_unit_indoors( colony.id, e_indoor_job::bells );
+  // So that the colony doesn't starve when we evolve it.
+  colony.commodities[e_commodity::food]                   = 100;
+  dutch.fathers.has[e_founding_father::sieur_de_la_salle] = true;
+
+  // Sanity check.
+  REQUIRE_FALSE( colony.buildings[e_colony_building::stockade] );
+
+  evolve_colony_one_turn( W.ss(), W.ts(), dutch, colony );
+  REQUIRE_FALSE( colony.buildings[e_colony_building::stockade] );
+
+  W.add_unit_indoors( colony.id, e_indoor_job::bells );
+  evolve_colony_one_turn( W.ss(), W.ts(), dutch, colony );
+  REQUIRE( colony.buildings[e_colony_building::stockade] );
 }
 
 TEST_CASE( "[colony-evolve] applies production" ) {

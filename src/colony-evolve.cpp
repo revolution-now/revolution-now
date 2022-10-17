@@ -516,6 +516,8 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
   check_colonists_teaching( ss, ts, as_const( player ), colony,
                             ev.notifications );
 
+  give_stockade_if_needed( player, colony );
+
   return ev;
 }
 
