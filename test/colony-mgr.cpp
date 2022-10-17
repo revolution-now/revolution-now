@@ -24,6 +24,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/player.rds.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
@@ -51,6 +52,8 @@ struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
     add_player( e_nation::dutch );
+    set_default_player( e_nation::dutch );
+    add_player( e_nation::english );
     create_default_map();
   }
 
@@ -464,6 +467,92 @@ TEST_CASE(
   };
 
   REQUIRE( occupied_red_box == expected );
+}
+
+TEST_CASE( "[colony-mgr] give_stockade_if_needed" ) {
+  World   W;
+  Player& dutch   = W.dutch();
+  Player& english = W.english();
+  // _, L, _, L, L, L,
+  // L, L, L, L, L, L,
+  // _, L, L, L, L, L,
+  // _, L, _, L, L, L,
+  // _, L, L, L, L, L,
+  // L, L, L, L, L, L,
+  Colony& dutch1 = W.add_colony_with_new_unit(
+      { .x = 1, .y = 1 }, e_nation::dutch );
+  Colony& dutch2 = W.add_colony_with_new_unit(
+      { .x = 1, .y = 3 }, e_nation::dutch );
+  Colony& english1 = W.add_colony_with_new_unit(
+      { .x = 3, .y = 1 }, e_nation::english );
+  W.add_unit_indoors( english1.id, e_indoor_job::bells );
+  W.add_unit_indoors( english1.id, e_indoor_job::bells );
+  W.add_unit_indoors( english1.id, e_indoor_job::bells );
+  W.add_unit_indoors( english1.id, e_indoor_job::hammers );
+  english.fathers.has[e_founding_father::sieur_de_la_salle] =
+      true;
+
+  // Sanity check.
+  REQUIRE_FALSE( dutch1.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE( dutch2.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE(
+      english1.buildings[e_colony_building::stockade] );
+
+  give_stockade_if_needed( dutch, dutch1 );
+  give_stockade_if_needed( dutch, dutch2 );
+  REQUIRE_FALSE( dutch1.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE( dutch2.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE(
+      english1.buildings[e_colony_building::stockade] );
+
+  dutch.fathers.has[e_founding_father::sieur_de_la_salle] = true;
+  give_stockade_if_needed( dutch, dutch1 );
+  give_stockade_if_needed( dutch, dutch2 );
+  REQUIRE_FALSE( dutch1.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE( dutch2.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE(
+      english1.buildings[e_colony_building::stockade] );
+
+  dutch.fathers.has[e_founding_father::sieur_de_la_salle] =
+      false;
+  W.add_unit_indoors( dutch1.id, e_indoor_job::bells );
+  W.add_unit_indoors( dutch1.id, e_indoor_job::bells );
+  give_stockade_if_needed( dutch, dutch1 );
+  give_stockade_if_needed( dutch, dutch2 );
+  REQUIRE_FALSE( dutch1.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE( dutch2.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE(
+      english1.buildings[e_colony_building::stockade] );
+
+  dutch.fathers.has[e_founding_father::sieur_de_la_salle] =
+      false;
+  W.add_unit_indoors( dutch1.id, e_indoor_job::bells );
+  give_stockade_if_needed( dutch, dutch1 );
+  give_stockade_if_needed( dutch, dutch2 );
+  REQUIRE_FALSE( dutch1.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE( dutch2.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE(
+      english1.buildings[e_colony_building::stockade] );
+
+  dutch.fathers.has[e_founding_father::sieur_de_la_salle] = true;
+  give_stockade_if_needed( dutch, dutch1 );
+  give_stockade_if_needed( dutch, dutch2 );
+  REQUIRE( dutch1.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE( dutch2.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE(
+      english1.buildings[e_colony_building::stockade] );
+
+  give_stockade_if_needed( dutch, dutch1 );
+  give_stockade_if_needed( dutch, dutch2 );
+  REQUIRE( dutch1.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE( dutch2.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE(
+      english1.buildings[e_colony_building::stockade] );
+
+  give_stockade_if_needed( dutch, english1 );
+  REQUIRE( dutch1.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE( dutch2.buildings[e_colony_building::stockade] );
+  REQUIRE( english1.buildings[e_colony_building::stockade] );
 }
 
 TEST_CASE( "[colony-mgr] found_colony finds job for unit." ) {

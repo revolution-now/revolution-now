@@ -129,4 +129,10 @@ refl::enum_map<e_direction, bool>
 find_occupied_surrounding_colony_squares( SSConst const& ss,
                                           Colony const& colony );
 
+// If the colony doesn't already have a stockade and the player
+// has Sieur de La Salle and its population >= 3 then it will be
+// given a stockade.
+void give_stockade_if_needed( Player const& player,
+                              Colony&       colony );
+
 } // namespace rn

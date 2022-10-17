@@ -763,4 +763,16 @@ find_occupied_surrounding_colony_squares(
   return res;
 }
 
+void give_stockade_if_needed( Player const& player,
+                              Colony&       colony ) {
+  // Even if the player has a fort (but not a stockade), which
+  // could happen via cheat mode or save-file editing, we'll
+  // still just test for the stockade anyway.
+  if( colony.buildings[e_colony_building::stockade] ) return;
+  if( colony_population( colony ) < 3 ) return;
+  if( !player.fathers.has[e_founding_father::sieur_de_la_salle] )
+    return;
+  colony.buildings[e_colony_building::stockade] = true;
+}
+
 } // namespace rn
