@@ -12,8 +12,10 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "colony-mgr.hpp"
 #include "harbor-units.hpp"
 #include "igui.hpp"
+#include "imap-updater.hpp"
 #include "irand.hpp"
 #include "logger.hpp"
 #include "ts.hpp"
@@ -23,10 +25,16 @@
 #include "config/fathers.rds.hpp"
 
 // ss
+#include "ss/colonies.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
+#include "ss/terrain.hpp"
 #include "ss/turn.hpp"
+#include "ss/units.hpp"
+
+// gfx
+#include "gfx/iter.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -98,6 +106,7 @@ int father_count( Player const& player ) {
   return father_count;
 }
 
+// A frigate is added to the player's navy.
 void john_paul_jones( SS& ss, TS& ts, Player const& player ) {
   maybe<Coord> const loc = find_new_world_arrival_square(
       ss.units, ss.colonies, ss.terrain, player,
@@ -111,6 +120,69 @@ void john_paul_jones( SS& ss, TS& ts, Player const& player ) {
   create_unit_on_map_non_interactive(
       ss, ts, player,
       UnitComposition::create( e_unit_type::frigate ), *loc );
+}
+
+// All currently existing indian converts are changed to free
+// colonists.
+void bartolome_de_las_casas( SS& ss, Player const& player ) {
+  unordered_map<UnitId, UnitState> const& units_all =
+      ss.units.all();
+  auto free_colonist_type =
+      UnitComposition::create( e_unit_type::free_colonist );
+  for( auto& [unit_id, state] : units_all ) {
+    Unit& unit = ss.units.unit_for( unit_id );
+    if( unit.nation() != player.nation ) continue;
+    if( unit.type() != e_unit_type::native_convert ) continue;
+    // We have a native convert of the appropriate nation.
+    unit.change_type( player, free_colonist_type );
+  }
+}
+
+// All boycotts currently in effect are forgiven without back-
+// taxes.
+void jakob_fugger( Player& player ) {
+  for( auto& [commodity, market_item] :
+       player.old_world.market.commodities )
+    market_item.boycott = false;
+}
+
+// All existing colonies and the area around them become visible
+// on the map.
+void francisco_de_coronado( SS& ss, TS& ts,
+                            Player const& player ) {
+  unordered_map<ColonyId, Colony> const& colonies_all =
+      ss.colonies.all();
+  for( auto& [colony_id, colony] : colonies_all ) {
+    Rect const to_reveal =
+        Rect::from( colony.location, Delta{ .w = 1, .h = 1 } )
+            .with_border_added( 5 );
+    for( Rect const sub : gfx::subrects( to_reveal ) ) {
+      Coord const tile = sub.upper_left();
+      if( !ss.terrain.square_exists( tile ) ) continue;
+      ts.map_updater.make_square_visible( tile, player.nation );
+    }
+  }
+}
+
+// La Salle gives all current and future colonies a stockade when
+// the population reaches three. This will be checked at the
+// start of each turn from here on, but we will make one pass im-
+// mediately so that the player sees the stockades appear in the
+// same turn as receiving Sieur de La Salle.
+void sieur_de_la_salle( SS& ss, Player& player ) {
+  unordered_map<ColonyId, Colony> const& colonies_all =
+      ss.colonies.all();
+  for( auto& [colony_id, _] : colonies_all ) {
+    Colony& colony = ss.colonies.colony_for( colony_id );
+    if( colony.nation != player.nation ) continue;
+    give_stockade_if_needed( player, colony );
+  }
+}
+
+// All tension levels between you and the natives are reduced to
+// "content," and alarm is generated only half as fast afterward.
+void pocahontas( SS&, Player const& ) {
+  lg.warn( "pocahontas' effects not implemented." );
 }
 
 } // namespace
@@ -259,7 +331,7 @@ wait<> play_new_father_cut_scene( TS& ts, Player const&,
       config_fathers.fathers[father].name );
 }
 
-void on_father_received( SS& ss, TS& ts, Player const& player,
+void on_father_received( SS& ss, TS& ts, Player& player,
                          e_founding_father father ) {
   lg.info( "performing one-time effects for {}.", father );
   switch( father ) {
@@ -285,31 +357,17 @@ void on_father_received( SS& ss, TS& ts, Player const& player,
       // The above fathers don't have any one-time effects.
       return;
     case e_founding_father::bartolome_de_las_casas:
-      // TODO: all currently existing indian converts are changed
-      // to free colonists.
-      return;
+      return bartolome_de_las_casas( ss, player );
     case e_founding_father::francisco_de_coronado:
-      // TODO: all existing colonies and the area around them be-
-      // come visible on the map.
-      return;
+      return francisco_de_coronado( ss, ts, player );
     case e_founding_father::jakob_fugger:
-      // TODO: all boycotts currently in effect are forgiven
-      // without backtaxes.
-      return;
-    case e_founding_father::john_paul_jones: {
-      // A frigate is added to the player's navy.
-      john_paul_jones( ss, ts, player );
-      return;
-    }
+      return jakob_fugger( player );
+    case e_founding_father::john_paul_jones:
+      return john_paul_jones( ss, ts, player );
     case e_founding_father::pocahontas:
-      // TODO: all tension levels between you and the natives are
-      // reduced to "content," and alarm is generated only half
-      // as fast afterward.
-      return;
+      return pocahontas( ss, player );
     case e_founding_father::sieur_de_la_salle:
-      // TODO: La Salle gives all current and future colonies a
-      // stockade when the population reaches three.
-      return;
+      return sieur_de_la_salle( ss, player );
   }
 }
 

@@ -87,7 +87,7 @@ wait<> play_new_father_cut_scene( TS& ts, Player const& player,
 // are supposed to happen as a result of obtaining that father
 // (some founding fathers have one-time effects while others' ef-
 // fects are ongoing; this function is for the former).
-void on_father_received( SS& ss, TS& ts, Player const& player,
+void on_father_received( SS& ss, TS& ts, Player& player,
                          e_founding_father father );
 
 } // namespace rn
