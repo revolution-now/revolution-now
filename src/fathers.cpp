@@ -282,6 +282,7 @@ void on_father_received( SS& ss, TS& ts, Player const& player,
       // without backtaxes.
       return;
     case e_founding_father::john_paul_jones: {
+      // A frigate is added to the player's navy.
       maybe<Coord> const loc = find_new_world_arrival_square(
           ss.units, ss.colonies, ss.terrain, player,
           /*sailed_from=*/nothing );
