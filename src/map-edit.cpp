@@ -452,18 +452,21 @@ wait<> MapEditPlane::Impl::click_on_tile( Coord    tile,
       new_square = map_square_for_terrain( e_terrain::tundra );
       break;
     case editor::e_toolbar_item::mountain:
+      if( new_square.surface != e_surface::land ) break;
       if( action == e_action::add )
         new_square.overlay = e_land_overlay::mountains;
       else if( new_square.overlay == e_land_overlay::mountains )
         new_square.overlay = nothing;
       break;
     case editor::e_toolbar_item::hills:
+      if( new_square.surface != e_surface::land ) break;
       if( action == e_action::add )
         new_square.overlay = e_land_overlay::hills;
       else if( new_square.overlay == e_land_overlay::hills )
         new_square.overlay = nothing;
       break;
     case editor::e_toolbar_item::forest:
+      if( new_square.surface != e_surface::land ) break;
       if( action == e_action::add &&
           new_square.ground != e_ground_terrain::arctic )
         new_square.overlay = e_land_overlay::forest;
