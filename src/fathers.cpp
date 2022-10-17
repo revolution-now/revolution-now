@@ -98,6 +98,21 @@ int father_count( Player const& player ) {
   return father_count;
 }
 
+void john_paul_jones( SS& ss, TS& ts, Player const& player ) {
+  maybe<Coord> const loc = find_new_world_arrival_square(
+      ss.units, ss.colonies, ss.terrain, player,
+      /*sailed_from=*/nothing );
+  if( !loc.has_value() ) {
+    lg.error(
+        "cannot find a place on the map to put the new "
+        "frigate." );
+    return;
+  }
+  create_unit_on_map_non_interactive(
+      ss, ts, player,
+      UnitComposition::create( e_unit_type::frigate ), *loc );
+}
+
 } // namespace
 
 /****************************************************************
@@ -283,19 +298,7 @@ void on_father_received( SS& ss, TS& ts, Player const& player,
       return;
     case e_founding_father::john_paul_jones: {
       // A frigate is added to the player's navy.
-      maybe<Coord> const loc = find_new_world_arrival_square(
-          ss.units, ss.colonies, ss.terrain, player,
-          /*sailed_from=*/nothing );
-      if( !loc.has_value() ) {
-        lg.error(
-            "cannot find a place on the map to put the new "
-            "frigate." );
-        return;
-      }
-      create_unit_on_map_non_interactive(
-          ss, ts, player,
-          UnitComposition::create( e_unit_type::frigate ),
-          *loc );
+      john_paul_jones( ss, ts, player );
       return;
     }
     case e_founding_father::pocahontas:

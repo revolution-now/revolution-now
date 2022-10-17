@@ -456,7 +456,7 @@ TEST_CASE( "[fathers] check_founding_fathers" ) {
   REQUIRE( player.fathers == fathers_copy );
 }
 
-TEST_CASE( "[fathers] on_father_received" ) {
+TEST_CASE( "[fathers] on_father_received: john_paul_jones" ) {
   World W;
   // TODO
 }
