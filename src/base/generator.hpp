@@ -148,14 +148,6 @@ struct generator<T>::iterator {
     return !coro_.promise().value().has_value();
   }
 
-  bool operator!=( iterator const& ) const {
-    SHOULD_NOT_BE_HERE;
-  }
-
-  bool operator==( iterator const& ) const {
-    SHOULD_NOT_BE_HERE;
-  }
-
   // Non-owning.
   std::coroutine_handle<promise_type> coro_;
 };
