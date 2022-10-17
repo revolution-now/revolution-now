@@ -148,6 +148,15 @@ struct generator<T>::iterator {
     return !coro_.promise().value().has_value();
   }
 
+  // You should never need to compare an iterator with another
+  // iterator; you should only need to use the operators above to
+  // compare an iterator with a sentinel, which is what marks the
+  // end of an iterator. Even if we wanted to compare two itera-
+  // tors we wouldn't be able to, since we don't really have a
+  // notion of "position" within the stream.
+  bool operator!=( iterator const& ) const = delete;
+  bool operator==( iterator const& ) const = delete;
+
   // Non-owning.
   std::coroutine_handle<promise_type> coro_;
 };
