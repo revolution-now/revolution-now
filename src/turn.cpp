@@ -888,12 +888,16 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
 
 void set_nation_map_visibility( Planes& planes, SS& ss, TS& ts,
                                 e_nation nation ) {
-  maybe<MapRevealed_t const&> revealed =
-      ss.land_view.map_revealed;
-  if( revealed.has_value() &&
+  if( maybe<MapRevealed_t const&> revealed =
+          ss.land_view.map_revealed;
+      revealed.has_value() &&
       revealed->holds<MapRevealed::entire>() ) {
+    // We have "entire" map visibility, and we're going to keep
+    // it that way, but we should call this anyway just to make
+    // sure this is what is currently in effect.
     set_map_visibility( planes, ss, ts,
-                        ss.land_view.map_revealed, nation );
+                        MapRevealed_t{ MapRevealed::entire{} },
+                        /*default_nation=*/nothing );
     return;
   }
   // At this point the map reveal status is not "entire map," and
