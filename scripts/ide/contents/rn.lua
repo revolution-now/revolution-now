@@ -3,8 +3,6 @@
 return {
   'exe/main',
   'turn',
-  'ss/fathers',
   'config/fathers',
   'fathers',
-  'render-terrain',
 }

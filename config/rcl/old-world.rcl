@@ -97,3 +97,39 @@ boycotts {
 # tialize his wife count. It should be larger than 3 so that we
 # can write Nth.
 min_king_wife_number: 6
+
+# Things having to do with treasure train reimbursement by the
+# king.
+treasure {
+  discoverer: {
+    # When the king offers to transport the treasure for you the
+    # cut he will take is given by:
+    #
+    #   clamp( tax_rate*M, min, max )
+    #
+    # where the M multiplier along with min and max are specified
+    # below.
+    king_transport_tax_multiplier: 2
+    king_transport_cut_range: { min=50, max=90 }
+  }
+
+  explorer: {
+    king_transport_tax_multiplier: 2
+    king_transport_cut_range: { min=55, max=90 }
+  }
+
+  conquistador: {
+    king_transport_tax_multiplier: 2
+    king_transport_cut_range: { min=60, max=90 }
+  }
+
+  governor: {
+    king_transport_tax_multiplier: 2
+    king_transport_cut_range: { min=65, max=90 }
+  }
+
+  viceroy: {
+    king_transport_tax_multiplier: 2
+    king_transport_cut_range: { min=70, max=90 }
+  }
+}

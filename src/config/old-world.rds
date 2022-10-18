@@ -88,6 +88,11 @@ struct.Boycotts {
   max_commodity_quantity_to_throw 'int',
 }
 
+struct.Treasure {
+  king_transport_tax_multiplier 'int',
+  king_transport_cut_range 'IntRange',
+}
+
 namespace "rn"
 
 struct.config_old_world_t {
@@ -100,6 +105,10 @@ struct.config_old_world_t {
   # minimum number of wives that he can have, and will be used to
   # initialize his wife count.
   min_king_wife_number 'int',
+
+  # Things having to do with treasure train reimbursement by the
+  # king.
+  treasure 'refl::enum_map<e_difficulty, config::old_world::Treasure>',
 
   _features { equality, validation }
 }
