@@ -63,8 +63,7 @@ base_weights {
   artillery:                  0.0
   damaged_artillery:          0.0
   wagon_train:                0.0
-  small_treasure:             0.0
-  large_treasure:             0.0
+  treasure:                   0.0
   caravel:                    0.0
   merchantman:                0.0
   galleon:                    0.0
@@ -138,8 +137,7 @@ difficulty_factor_per_level {
   artillery:               1.0
   damaged_artillery:       1.0
   wagon_train:             1.0
-  small_treasure:          1.0
-  large_treasure:          1.0
+  treasure:                1.0
   caravel:                 1.0
   merchantman:             1.0
   galleon:                 1.0

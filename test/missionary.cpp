@@ -98,7 +98,7 @@ TEST_CASE( "[missionary] unit_can_be_blessed" ) {
 
   REQUIRE( f( e_unit_type::artillery ) == false );
   REQUIRE( f( e_unit_type::caravel ) == false );
-  REQUIRE( f( e_unit_type::large_treasure ) == false );
+  REQUIRE( f( e_unit_type::treasure ) == false );
 }
 
 TEST_CASE( "[missionary] bless_as_missionary" ) {

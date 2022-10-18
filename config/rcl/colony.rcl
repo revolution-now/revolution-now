@@ -560,8 +560,7 @@ requirements_for_unit  {
   jesuit_missionary:      null
   seasoned_scout:         null
   damaged_artillery:      null
-  small_treasure:         null
-  large_treasure:         null
+  treasure:               null
 }
 
 building_display_names {

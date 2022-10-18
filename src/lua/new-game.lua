@@ -130,8 +130,7 @@ local function create_all_units( options, root )
     'veteran_soldier', 'veteran_dragoon', 'continental_army',
     'continental_cavalry', 'regular', 'cavalry', 'hardy_pioneer',
     'jesuit_missionary', 'seasoned_scout', 'artillery',
-    'damaged_artillery', 'wagon_train', 'small_treasure',
-    'large_treasure'
+    'damaged_artillery', 'wagon_train', 'treasure'
   }
 
   local function create( where, unit_name )

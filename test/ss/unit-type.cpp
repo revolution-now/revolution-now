@@ -358,12 +358,12 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( can_attack( desc.type ) == false );
     REQUIRE( is_military_unit( desc.type ) == false );
   }
-  SECTION( "large_treasure" ) {
+  SECTION( "treasure" ) {
     UnitTypeAttributes const& desc =
-        unit_attr( e_unit_type::large_treasure );
-    REQUIRE( desc.name == "Large Treasure" );
-    REQUIRE( desc.name_plural == "Large Treasures" );
-    REQUIRE( desc.tile == e_tile::large_treasure );
+        unit_attr( e_unit_type::treasure );
+    REQUIRE( desc.name == "Treasure" );
+    REQUIRE( desc.name_plural == "Treasures" );
+    REQUIRE( desc.tile == e_tile::treasure );
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::n );
     REQUIRE( desc.ship == false );
@@ -388,7 +388,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
              unordered_set<e_unit_inventory>{
                  e_unit_inventory::gold } );
     // Derived fields.
-    REQUIRE( desc.type == e_unit_type::large_treasure );
+    REQUIRE( desc.type == e_unit_type::treasure );
     REQUIRE( desc.is_derived == false );
     REQUIRE( can_attack( desc.type ) == false );
     REQUIRE( is_military_unit( desc.type ) == false );
@@ -757,7 +757,7 @@ TEST_CASE( "[unit-type] unit human status" ) {
   expected = false;
   REQUIRE( is_unit_human( ut ) == expected );
 
-  ut       = UnitType::create( e_unit_type::small_treasure );
+  ut       = UnitType::create( e_unit_type::treasure );
   expected = false;
   REQUIRE( is_unit_human( ut ) == expected );
 }
@@ -790,7 +790,7 @@ TEST_CASE( "[unit-type] unit can_found status" ) {
   expected = false;
   REQUIRE( can_unit_found( ut ) == expected );
 
-  ut       = UnitType::create( e_unit_type::small_treasure );
+  ut       = UnitType::create( e_unit_type::treasure );
   expected = false;
   REQUIRE( can_unit_found( ut ) == expected );
 }

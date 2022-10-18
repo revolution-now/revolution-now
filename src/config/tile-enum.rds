@@ -612,8 +612,7 @@ enum.e_tile {
   frigate,
   man_o_war,
   wagon_train,
-  small_treasure,
-  large_treasure,
+  treasure,
 
   # =============================================================
   # Menu

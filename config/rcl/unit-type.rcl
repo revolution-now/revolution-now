@@ -1574,38 +1574,11 @@ composition {
     #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
     # Treasure.
     #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-    small_treasure {
-      type:                  small_treasure
-      name:                  Small Treasure
-      name_plural:           Small Treasures
-      tile:                  small_treasure
-      expertise:             null
-      type_activity:         null
-      cleared_expertise:     null
-      ship:                  false
-      human:                 no
-      can_found:             no
-      nat_icon_front:        false
-      nat_icon_position:     n
-      visibility:            1
-      base_movement_points:  1
-      attack_points:         0
-      defense_points:        1
-      on_death               capture{}
-      canonical_base:        null
-      cargo_slots:           0
-      cargo_slots_occupies:  4
-      inventory_types:       [gold]
-      promotion:             null
-      is_derived:            false
-      modifiers:             {}
-    }
-
-    large_treasure {
-      type:                  large_treasure
-      name:                  Large Treasure
-      name_plural:           Large Treasures
-      tile:                  large_treasure
+    treasure {
+      type:                  treasure
+      name:                  Treasure
+      name_plural:           Treasures
+      tile:                  treasure
       expertise:             null
       type_activity:         null
       cleared_expertise:     null

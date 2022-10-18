@@ -554,8 +554,7 @@ wait<> cheat_create_unit_on_map( SS& ss, TS& ts, e_nation nation,
       { e_cheat_unit_creation_categories::miscellaneous,
         {
             e_unit_type::wagon_train,
-            e_unit_type::small_treasure,
-            e_unit_type::large_treasure,
+            e_unit_type::treasure,
         } },
   };
   maybe<e_cheat_unit_creation_categories> category =

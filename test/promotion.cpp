@@ -490,8 +490,8 @@ TEST_CASE( "[unit-type] promoted_from_activity" ) {
     REQUIRE_FALSE( f( ut, act ).has_value() );
     act = Act::cotton_planting;
     REQUIRE_FALSE( f( ut, act ).has_value() );
-    // large_treasure.
-    ut  = UnitType::create( UT::large_treasure );
+    // treasure.
+    ut  = UnitType::create( UT::treasure );
     act = Act::farming;
     REQUIRE_FALSE( f( ut, act ).has_value() );
     act = Act::bell_ringing;

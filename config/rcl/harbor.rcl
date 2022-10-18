@@ -72,7 +72,6 @@ train {
     frigate:                 null
     man_o_war:               null
     wagon_train:             null
-    small_treasure:          null
-    large_treasure:          null
+    treasure:                null
   }
 }

@@ -460,7 +460,7 @@ TEST_CASE( "[lcr] cibola / treasure" ) {
       lcr_res->get<LostCityRumorResult::unit_created>().id ==
       2 );
   Unit const& unit = W.units().unit_for( 2 );
-  REQUIRE( unit.type() == e_unit_type::large_treasure );
+  REQUIRE( unit.type() == e_unit_type::treasure );
   refl::enum_map<e_unit_inventory, int> const& inventory =
       unit.composition().inventory();
   int const gold = inventory[e_unit_inventory::gold];
@@ -525,7 +525,7 @@ TEST_CASE( "[lcr] burial mounds / treasure" ) {
       lcr_res->get<LostCityRumorResult::unit_created>().id ==
       2 );
   Unit const& unit = W.units().unit_for( 2 );
-  REQUIRE( unit.type() == e_unit_type::large_treasure );
+  REQUIRE( unit.type() == e_unit_type::treasure );
   refl::enum_map<e_unit_inventory, int> const& inventory =
       unit.composition().inventory();
   int const gold = inventory[e_unit_inventory::gold];

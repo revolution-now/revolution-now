@@ -745,8 +745,7 @@ sheets {
         frigate:                { y: 0, x: 4 }
         man_o_war:              { y: 0, x: 5 }
         wagon_train:            { y: 2, x: 4 }
-        small_treasure:         { y: 2, x: 1 }
-        large_treasure:         { y: 2, x: 0 }
+        treasure:               { y: 2, x: 0 }
       }
     }
     {

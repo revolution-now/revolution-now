@@ -83,7 +83,7 @@ UnitId create_treasure_train( SS& ss, TS& ts,
   UNWRAP_CHECK(
       uc_treasure,
       UnitComposition::create(
-          UnitType::create( e_unit_type::large_treasure ),
+          UnitType::create( e_unit_type::treasure ),
           { { e_unit_inventory::gold, amount } } ) );
   // Use the non-coroutine version of this because it avoids an
   // inifinite-regress issue where the new unit created redis-

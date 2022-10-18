@@ -75,8 +75,7 @@ enum.e_unit_type {
   wagon_train,
 
   # Treasure.
-  small_treasure,
-  large_treasure,
+  treasure,
 }
 
 # This is used to represent two different things:
