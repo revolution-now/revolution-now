@@ -1,0 +1,30 @@
+# ===============================================================
+# treasure.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-10-17.
+#
+# Description: Rds definitions for the treasure module.
+#
+# ===============================================================
+# ss
+include "ss/unit-id.hpp"
+
+namespace "rn"
+
+enum.e_treasure_transport_mode {
+  player,
+  king_with_charge,
+  king_no_extra_charge,
+}
+
+struct.TreasureReceipt {
+  treasure_id 'int', # unit id
+  transport_mode 'e_treasure_transport_mode',
+  original_worth 'int',
+  kings_cut_percent 'int',
+  net_received 'int',
+
+  _features { equality, nodiscard }
+}

@@ -3,6 +3,8 @@
 return {
   'exe/main',
   'turn',
-  'config/fathers',
   'fathers',
+  'harbor-view-dock',
+  'on-map',
+  'treasure',
 }

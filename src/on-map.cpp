@@ -18,10 +18,12 @@
 #include "imap-updater.hpp"
 #include "lcr.hpp"
 #include "logger.hpp"
+#include "treasure.hpp"
 #include "ts.hpp"
 #include "visibility.hpp"
 
 // ss
+#include "ss/colonies.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
@@ -30,6 +32,9 @@
 
 // config
 #include "config/nation.rds.hpp"
+
+// refl
+#include "refl/to-str.hpp"
 
 using namespace std;
 
@@ -91,6 +96,27 @@ wait<bool> try_lost_city_rumor( SS& ss, TS& ts, Player& player,
   co_return lcr_res.holds<LostCityRumorResult::unit_lost>();
 }
 
+// Returns true if the treasure was transported by the king and
+// thus deleted.
+wait<bool> try_king_transport_treasure( SS& ss, TS& ts,
+                                        Player&     player,
+                                        Unit const& unit,
+                                        Coord world_square ) {
+  if( unit.type() != e_unit_type::treasure ) co_return false;
+  maybe<ColonyId> const colony_id =
+      ss.colonies.maybe_from_coord( world_square );
+  if( !colony_id.has_value() ) co_return false;
+  Colony const& colony = ss.colonies.colony_for( *colony_id );
+  CHECK_EQ( colony.nation, player.nation );
+  maybe<TreasureReceipt> const receipt =
+      co_await treasure_enter_colony( ss, ts, player, unit );
+  if( !receipt.has_value() ) co_return false;
+  apply_treasure_reimbursement( ss, player, *receipt );
+  // !! Treasure unit has been deleted here.
+  co_await show_treasure_receipt( ts, player, *receipt );
+  co_return true; // treasure unit deleted.
+}
+
 } // namespace
 
 /****************************************************************
@@ -129,10 +155,18 @@ void unit_to_map_square_non_interactive( SS& ss, TS& ts,
 
 wait<maybe<UnitDeleted>> unit_to_map_square(
     SS& ss, TS& ts, UnitId id, Coord world_square ) {
+  // FIXME: need to be defensive here and check that the unit is
+  // not being created on a square containing foreign entities,
+  // otherwise other things will check-fail. Though there could
+  // be exceptions to this, e.g. when an indian village is de-
+  // stroyed and there emerges either a treasure train or a mis-
+  // sionary unit before the village is deleted.
+
   unit_to_map_square_non_interactive( ss, ts, id, world_square );
-  UNWRAP_CHECK(
-      player,
-      ss.players.players[ss.units.unit_for( id ).nation()] );
+
+  Unit& unit = ss.units.unit_for( id );
+  UNWRAP_CHECK( player, ss.players.players[unit.nation()] );
+
   if( !player.discovered_new_world.has_value() )
     co_await try_discover_new_world( ss.terrain, player, ts.gui,
                                      world_square );
@@ -141,6 +175,13 @@ wait<maybe<UnitDeleted>> unit_to_map_square(
     if( co_await try_lost_city_rumor( ss, ts, player, id,
                                       world_square ) )
       co_return UnitDeleted{};
+
+  if( co_await try_king_transport_treasure( ss, ts, player, unit,
+                                            world_square ) )
+    // The unit was a treasure train, it entered a colony square,
+    // the king asked to transport it, the player accepted, and
+    // the treasure unit was deleted.
+    co_return UnitDeleted{};
 
   // Unit is still alive.
   co_return nothing;

@@ -19,6 +19,7 @@
 #include "market.hpp"
 #include "render.hpp"
 #include "tiles.hpp"
+#include "treasure.hpp"
 #include "ts.hpp"
 
 // config
@@ -180,8 +181,20 @@ maybe<HarborDraggableObject_t> HarborDockUnits::can_receive(
 
 wait<> HarborDockUnits::drop( HarborDraggableObject_t const& o,
                               Coord const& ) {
-  UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
-  unit_move_to_port( ss_.units, player_, unit.id );
+  UNWRAP_CHECK( draggable_unit,
+                o.get_if<HarborDraggableObject::unit>() );
+  e_unit_type const type =
+      ss_.units.unit_for( draggable_unit.id ).type();
+  if( type == e_unit_type::treasure ) {
+    TreasureReceipt const receipt = treasure_in_harbor_receipt(
+        player_, ss_.units.unit_for( draggable_unit.id ) );
+    apply_treasure_reimbursement( ss_, player_, receipt );
+    co_await show_treasure_receipt( ts_, player_, receipt );
+    // Note: the treasure unit is now destroyed!
+    CHECK( !ss_.units.exists( draggable_unit.id ) );
+    co_return;
+  }
+  unit_move_to_port( ss_.units, player_, draggable_unit.id );
   co_return;
 }
 
