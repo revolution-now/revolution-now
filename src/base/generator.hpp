@@ -23,6 +23,9 @@ struct generator;
 
 namespace detail {
 
+// TODO: Consider replacing base::generator with std::generator
+// once the C++23 standard library is implemented.
+
 template<typename T>
 struct generator_promise {
   auto initial_suspend() const { return std::suspend_never{}; }

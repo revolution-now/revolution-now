@@ -56,6 +56,9 @@ target_include_directories(
   ${SDL2_MIXER_INCLUDE_DIR}
 )
 
+# TODO: When the C++23 standard library is available, consider
+# replacing the backward-cpp library with std::stacktrace.
+
 # If this is a debug build then link with the backward-cpp
 # library which provides stack traces.
 if( CMAKE_BUILD_TYPE STREQUAL Debug )

@@ -18,6 +18,9 @@
 
 namespace base {
 
+// TODO: consider replacing this with std::move_only_function
+// when the C++23 standard library is implemented.
+
 // This is so that this file can be compiled standalone so that
 // syntax checkers will work in the editor.
 #ifndef UNIQUE_FUNC_CONST
@@ -71,10 +74,10 @@ class unique_func<R( Args... ) UNIQUE_FUNC_CONST> {
   unique_func( R ( *&f )( Args... ) ) : unique_func( f, 0 ) {}
   unique_func( R ( *f )( Args... ) ) : unique_func( f, 0 ) {}
 
-  unique_func( unique_func const& ) = delete;
+  unique_func( unique_func const& )            = delete;
   unique_func& operator=( unique_func const& ) = delete;
 
-  unique_func( unique_func&& ) = default;
+  unique_func( unique_func&& )            = default;
   unique_func& operator=( unique_func&& ) = default;
 
   template<typename... RealArgs>

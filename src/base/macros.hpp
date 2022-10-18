@@ -17,7 +17,7 @@
 // TODO: remove this guard once we no longer depend on
 // base-util/macros.hpp.
 #ifndef TO_STRING
-#  define TO_STR1NG( x ) #  x
+#  define TO_STR1NG( x ) #x
 #  define TO_STRING( x ) TO_STR1NG( x )
 #endif
 
@@ -29,6 +29,8 @@
 #endif
 
 // TODO: When C++20 comes change this to the new [[unreachable]].
+// TODO: Update: When C++23 comes, change this to
+//       std::unreachable();
 #ifndef _MSC_VER
 // POSIX.
 #  define UNREACHABLE_LOCATION __builtin_unreachable()
@@ -47,20 +49,20 @@
 #define CALLER_LOCATION( var ) \
   const base::SourceLoc& var = base::SourceLoc::current()
 
-#define NON_COPYABLE( C ) \
-  C( C const& ) = delete; \
+#define NON_COPYABLE( C )            \
+  C( C const& )            = delete; \
   C& operator=( C const& ) = delete
 
-#define MOVABLE_ONLY( C )            \
-  C( C const& ) = delete;            \
-  C( C&& )      = default;           \
-  C& operator=( C const& ) = delete; \
-  C& operator=( C&& ) = default
+#define MOVABLE_ONLY( C )             \
+  C( C const& )            = delete;  \
+  C( C&& )                 = default; \
+  C& operator=( C const& ) = delete;  \
+  C& operator=( C&& )      = default
 
 #define NO_COPY_NO_MOVE( C )         \
-  C( C const& ) = delete;            \
-  C( C&& )      = delete;            \
+  C( C const& )            = delete; \
+  C( C&& )                 = delete; \
   C& operator=( C const& ) = delete; \
-  C& operator=( C&& ) = delete
+  C& operator=( C&& )      = delete
 
 #define NO_MOVE_NO_COPY( C ) NO_COPY_NO_MOVE( C )

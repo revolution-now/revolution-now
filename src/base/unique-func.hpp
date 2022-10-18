@@ -19,6 +19,9 @@
 
 namespace base {
 
+// TODO: consider replacing this with std::move_only_function
+// when the C++23 standard library is implemented.
+
 template<typename T>
 class unique_func;
 
