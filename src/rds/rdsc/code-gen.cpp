@@ -435,11 +435,15 @@ struct CodeGenerator {
     emit_template_decl( strukt.tmpl_params );
     bool comparable =
         item_has_feature( strukt, expr::e_feature::equality );
-    bool has_members = !strukt.members.empty();
+    bool         has_members = !strukt.members.empty();
+    string const nodiscard_str =
+        item_has_feature( strukt, expr::e_feature::nodiscard )
+            ? "[[nodiscard]] "
+            : "";
     if( !has_members && !comparable ) {
-      line( "struct {} {{}};", strukt.name );
+      line( "struct {}{} {{}};", nodiscard_str, strukt.name );
     } else {
-      line( "struct {} {{", strukt.name );
+      line( "struct {}{} {{", nodiscard_str, strukt.name );
       int max_type_len =
           max_of( strukt.members, L( _.type.size() ), 0 );
       int max_var_len =

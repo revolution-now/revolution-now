@@ -33,7 +33,12 @@ struct StructMember {
   std::string var;
 };
 
-enum class e_feature { equality, validation, offsets };
+enum class e_feature {
+  equality,
+  validation,
+  offsets,
+  nodiscard
+};
 
 /****************************************************************
 ** sumtype

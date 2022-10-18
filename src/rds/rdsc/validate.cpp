@@ -41,11 +41,12 @@ struct Validator {
         switch( feat ) {
           case expr::e_feature::equality: break;
           case expr::e_feature::offsets: break;
-          case expr::e_feature::validation:
+          case expr::e_feature::validation: break;
+          case expr::e_feature::nodiscard:
+            error(
+                "sumtypes do not support the 'nodiscard' "
+                "feature." );
             break;
-            // case expr::e_feature::some_new_feature:
-            //   error( "error msg goes here." );
-            //   break;
         }
       }
     }

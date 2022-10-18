@@ -135,7 +135,7 @@ syn keyword  rdsStructFeatures _features contained nextgroup=rdsStructFeaturesLi
 syn region   rdsStructFeaturesListBlock start='{' end='}' contained fold contains=rdsStructFeaturesListItem,rdsStructFeaturesListItemErr nextgroup=rdsStructFeaturesListBlockComma skipwhite skipempty
 syn match    rdsStructFeaturesListBlockComma ',' contained nextgroup=rdsStructVar,rdsStructTemplate skipwhite skipempty
 syn match    rdsStructFeaturesListItemErr '[^{} ,]\+' contained
-syn match    rdsStructFeaturesListItem '\(equality\|validation\|offsets\)' contained
+syn match    rdsStructFeaturesListItem '\(equality\|nodiscard\|validation\|offsets\)' contained
 
 hi def link  rdsStructVarComma               Comment
 hi def link  rdsStructTemplateListItemComma  Comment

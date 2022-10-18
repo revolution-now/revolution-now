@@ -1317,7 +1317,7 @@ namespace refl {
 *****************************************************************/
 namespace rn {
 
-  struct MyStruct {
+  struct [[nodiscard]] MyStruct {
     int                                          xxx     = {};
     double                                       yyy     = {};
     std::unordered_map<std::string, std::string> zzz_map = {};

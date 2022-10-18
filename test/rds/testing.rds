@@ -211,7 +211,7 @@ struct.MyStruct {
   yyy 'double',
   zzz_map 'std::unordered_map<std::string, std::string>',
 
-  _features { equality, offsets }
+  _features { equality, offsets, nodiscard }
 }
 
 struct.StructWithValidation {
