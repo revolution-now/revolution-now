@@ -461,5 +461,32 @@ TEST_CASE( "[fathers] on_father_received: john_paul_jones" ) {
   // TODO
 }
 
+TEST_CASE(
+    "[fathers] on_father_received: bartolome_de_las_casas" ) {
+  World W;
+  // TODO
+}
+
+TEST_CASE( "[fathers] on_father_received: jakob_fugger" ) {
+  World W;
+  // TODO
+}
+
+TEST_CASE(
+    "[fathers] on_father_received: francisco_de_coronado" ) {
+  World W;
+  // TODO
+}
+
+TEST_CASE( "[fathers] on_father_received: sieur_de_la_salle" ) {
+  World W;
+  // TODO
+}
+
+TEST_CASE( "[fathers] on_father_received: pocahontas" ) {
+  World W;
+  // TODO
+}
+
 } // namespace
 } // namespace rn
