@@ -19,6 +19,12 @@ local weights = require( 'map-gen.classic.terrain-weights' )
 local timer = require( 'util.timer' )
 
 -----------------------------------------------------------------
+-- aliases
+-----------------------------------------------------------------
+local min = math.min
+local max = math.max
+
+-----------------------------------------------------------------
 -- Constants
 -----------------------------------------------------------------
 -- The maps in the original game are 58x72, but the tiles on the
@@ -1072,11 +1078,9 @@ end
 --
 local function continent_stretch_for_seed( seed_square, scale )
   local size = world_size()
-  local stretch_x = math.min( seed_square.x,
-                              size.w - seed_square.x )
-  local stretch_y = math.min( seed_square.y,
-                              size.h - seed_square.y )
-  local stretch = scale * math.min( stretch_x, stretch_y )
+  local stretch_x = min( seed_square.x, size.w - seed_square.x )
+  local stretch_y = min( seed_square.y, size.h - seed_square.y )
+  local stretch = scale * min( stretch_x, stretch_y )
   return { x=stretch, y=stretch }
 end
 
@@ -1173,7 +1177,7 @@ local function generate_continent_in_rect( options, seed_rect )
 end
 
 local function round_buffer( target )
-  return math.min( math.max( round( target ), 1 ), 10 )
+  return min( max( round( target ), 1 ), 10 )
 end
 
 local function generate_land( options )
@@ -1195,8 +1199,8 @@ local function generate_land( options )
   local seed_rect = {
     x=buffer.left * 2,
     y=buffer.top * 2,
-    w=(size.w - buffer.left * 2 - buffer.right * 4),
-    h=(size.h - buffer.top * 2 - buffer.bottom * 2)
+    w=max( size.w - buffer.left * 2 - buffer.right * 4, 2 ),
+    h=max( size.h - buffer.top * 2 - buffer.bottom * 2, 2 )
   }
   local quadrants = {
     { -- upper left
