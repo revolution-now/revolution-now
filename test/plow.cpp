@@ -163,9 +163,9 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
   for( int i = 0; i < kClearTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn( W.default_player() );
-    perform_plow_work( W.units(), W.terrain(),
-                       W.default_player(), W.map_updater(),
-                       unit );
+    PlowResult_t const plow_result = perform_plow_work(
+        W.ss(), W.default_player(), W.map_updater(), unit );
+    REQUIRE( plow_result.holds<PlowResult::ongoing>() );
     REQUIRE( can_plow( unit ) == true );
     REQUIRE( can_plow( W.terrain(), kSquare ) == true );
     REQUIRE( has_forest( square ) );
@@ -181,8 +181,11 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
 
   // Finished clearing.
   unit.new_turn( W.default_player() );
-  perform_plow_work( W.units(), W.terrain(), W.default_player(),
-                     W.map_updater(), unit );
+  PlowResult_t plow_result = perform_plow_work(
+      W.ss(), W.default_player(), W.map_updater(), unit );
+  REQUIRE( plow_result ==
+           PlowResult_t{ PlowResult::cleared_forest{
+               .yield = nothing } } );
   REQUIRE( can_plow( unit ) == true );
   REQUIRE( can_plow( W.terrain(), kSquare ) == true );
   REQUIRE( !has_forest( square ) );
@@ -216,9 +219,9 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
   for( int i = 0; i < kPlowTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn( W.default_player() );
-    perform_plow_work( W.units(), W.terrain(),
-                       W.default_player(), W.map_updater(),
-                       unit );
+    PlowResult_t const plow_result = perform_plow_work(
+        W.ss(), W.default_player(), W.map_updater(), unit );
+    REQUIRE( plow_result.holds<PlowResult::ongoing>() );
     REQUIRE( can_plow( unit ) == true );
     REQUIRE( can_plow( W.terrain(), kSquare ) == true );
     REQUIRE( !has_forest( square ) );
@@ -234,8 +237,9 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
 
   // Finished irrigating.
   unit.new_turn( W.default_player() );
-  perform_plow_work( W.units(), W.terrain(), W.default_player(),
-                     W.map_updater(), unit );
+  plow_result = perform_plow_work( W.ss(), W.default_player(),
+                                   W.map_updater(), unit );
+  REQUIRE( plow_result.holds<PlowResult::irrigated>() );
   REQUIRE( can_plow( unit ) == false );
   REQUIRE( can_plow( W.terrain(), kSquare ) == false );
   REQUIRE( !has_forest( square ) );
@@ -294,9 +298,9 @@ TEST_CASE( "[src/plow] plow_square hardy_pioneer" ) {
   for( int i = 0; i < kPlowTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn( W.default_player() );
-    perform_plow_work( W.units(), W.terrain(),
-                       W.default_player(), W.map_updater(),
-                       unit );
+    PlowResult_t const plow_result = perform_plow_work(
+        W.ss(), W.default_player(), W.map_updater(), unit );
+    REQUIRE( plow_result.holds<PlowResult::ongoing>() );
     REQUIRE( can_plow( unit ) == true );
     REQUIRE( can_plow( W.terrain(), kSquare ) == true );
     REQUIRE( !has_forest( square ) );
@@ -311,10 +315,11 @@ TEST_CASE( "[src/plow] plow_square hardy_pioneer" ) {
     REQUIRE( unit.movement_points() == 0 );
   }
 
-  // Finished clearing.
+  // Finished irrigating.
   unit.new_turn( W.default_player() );
-  perform_plow_work( W.units(), W.terrain(), W.default_player(),
-                     W.map_updater(), unit );
+  PlowResult_t const plow_result = perform_plow_work(
+      W.ss(), W.default_player(), W.map_updater(), unit );
+  REQUIRE( plow_result.holds<PlowResult::irrigated>() );
   REQUIRE( can_plow( unit ) == true );
   REQUIRE( can_plow( W.terrain(), kSquare ) == false );
   REQUIRE( !has_forest( square ) );
@@ -379,9 +384,9 @@ TEST_CASE( "[src/plow] plow_square with cancellation" ) {
   for( int i = 0; i < kTurnsRequired - 2; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn( W.default_player() );
-    perform_plow_work( W.units(), W.terrain(),
-                       W.default_player(), W.map_updater(),
-                       unit );
+    PlowResult_t const plow_result = perform_plow_work(
+        W.ss(), W.default_player(), W.map_updater(), unit );
+    REQUIRE( plow_result.holds<PlowResult::ongoing>() );
     REQUIRE( can_plow( unit ) == true );
     REQUIRE( can_plow( W.terrain(), kSquare ) == true );
     REQUIRE( !has_forest( square ) );
@@ -399,10 +404,11 @@ TEST_CASE( "[src/plow] plow_square with cancellation" ) {
   // Effectively cancel it by putting a road on the tile.
   plow_square( W.terrain(), W.map_updater(), kSquare );
 
-  // Finished clearing.
+  // Finished irrigating.
   unit.new_turn( W.default_player() );
-  perform_plow_work( W.units(), W.terrain(), W.default_player(),
-                     W.map_updater(), unit );
+  PlowResult_t const plow_result = perform_plow_work(
+      W.ss(), W.default_player(), W.map_updater(), unit );
+  REQUIRE( plow_result.holds<PlowResult::cancelled>() );
   REQUIRE( can_plow( unit ) == true );
   REQUIRE( can_plow( W.terrain(), kSquare ) == false );
   REQUIRE( !has_forest( square ) );

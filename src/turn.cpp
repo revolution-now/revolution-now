@@ -636,16 +636,23 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
   }
 
   if( unit.orders() == e_unit_orders::plow ) {
-    perform_plow_work( ss.units, ss.terrain, as_const( player ),
-                       ts.map_updater, unit );
+    PlowResult_t const plow_result = perform_plow_work(
+        ss, as_const( player ), ts.map_updater, unit );
+    if( auto o =
+            plow_result.get_if<PlowResult::cleared_forest>();
+        o.has_value() && o->yield.has_value() ) {
+      LumberYield const& yield = *o->yield;
+      string const       msg   = fmt::format(
+          "Forest cleared near @[H]{}@[].  @[H]{}@[] lumber "
+                  "added to colony's stockpile.",
+          ss.colonies.colony_for( yield.colony_id ).name,
+          yield.yield_to_add_to_colony );
+      co_await ts.gui.message_box( msg );
+    }
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders() == e_unit_orders::none );
       co_await planes.land_view().landview_ensure_visible_unit(
           id );
-      // TODO: if we were clearing a forest then we should pick a
-      // colony in the vicinity and add a certain amount of
-      // lumber to it (see strategy guide for formula) and give a
-      // message to the user.
       co_await ts.gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }

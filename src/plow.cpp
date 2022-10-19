@@ -22,6 +22,7 @@
 #include "config/unit-type.rds.hpp"
 
 // ss
+#include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
@@ -60,6 +61,21 @@ int turns_required( e_unit_type unit_type, e_terrain terrain ) {
     default: break;
   }
   FATAL( "unit type {} cannot plow/clear.", unit_type );
+}
+
+// If the player has at least one colony in the vicinity then
+// this will pick the closest one and compute how much lumber
+// should yield to the colony, though it won't actually add it.
+maybe<LumberYield> lumber_yield( SSConst const&, Coord,
+                                 e_unit_type ) {
+  // TODO
+  return nothing;
+}
+
+// Applies the yield to the colony and displays a message to the
+// player.
+void apply_lumber_yield( SS&, LumberYield const& ) {
+  // TODO
 }
 
 } // namespace
@@ -120,11 +136,10 @@ bool has_irrigation( MapSquare const& square ) {
 /****************************************************************
 ** Unit State
 *****************************************************************/
-void perform_plow_work( UnitsState const&   units_state,
-                        TerrainState const& terrain_state,
-                        Player const&       player,
-                        IMapUpdater& map_updater, Unit& unit ) {
-  Coord location = units_state.coord_for( unit.id() );
+PlowResult_t perform_plow_work( SS& ss, Player const& player,
+                                IMapUpdater& map_updater,
+                                Unit&        unit ) {
+  Coord location = ss.units.coord_for( unit.id() );
   CHECK( unit.orders() == e_unit_orders::plow );
   CHECK( unit.type() == e_unit_type::pioneer ||
              unit.type() == e_unit_type::hardy_pioneer,
@@ -141,31 +156,39 @@ void perform_plow_work( UnitsState const&   units_state,
   // square and the other unit finished first. In that case, we
   // will just clear this unit's orders and not charge it any
   // tools.
-  if( has_irrigation( terrain_state, location ) ) {
+  if( has_irrigation( ss.terrain, location ) ) {
     log( "cancelled" );
     unit.clear_orders();
     unit.set_turns_worked( 0 );
-    return;
+    return PlowResult::cancelled{};
   }
   // The unit is still plowing.
   int       turns_worked = unit.turns_worked();
   int const plow_turns   = turns_required(
       unit.type(),
-      effective_terrain( terrain_state.square_at( location ) ) );
+      effective_terrain( ss.terrain.square_at( location ) ) );
   CHECK_LE( turns_worked, plow_turns );
   if( turns_worked == plow_turns ) {
+    PlowResult_t res = PlowResult::irrigated{};
+    if( has_forest( ss.terrain.square_at( location ) ) ) {
+      maybe<LumberYield> const yield =
+          lumber_yield( ss, location, unit.type() );
+      res = PlowResult::cleared_forest{ .yield = yield };
+      if( yield.has_value() ) apply_lumber_yield( ss, *yield );
+    }
     // We're finished plowing.
-    plow_square( terrain_state, map_updater, location );
+    plow_square( ss.terrain, map_updater, location );
     unit.clear_orders();
     unit.set_turns_worked( 0 );
     unit.consume_20_tools( player );
     log( "finished" );
-    return;
+    return res;
   }
   // We need more work.
   log( "ongoing" );
   unit.forfeight_mv_points();
   unit.set_turns_worked( turns_worked + 1 );
+  return PlowResult::ongoing{};
 }
 
 bool can_plow( Unit const& unit ) {

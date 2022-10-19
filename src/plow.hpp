@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// Rds
+#include "plow.rds.hpp"
+
 // Revolution Now
 #include "unit.hpp"
 
@@ -26,8 +29,8 @@ namespace rn {
 struct IMapUpdater;
 struct MapSquare;
 struct Player;
+struct SS;
 struct TerrainState;
-struct UnitsState;
 
 /****************************************************************
 ** Plow State
@@ -63,14 +66,18 @@ bool has_irrigation( MapSquare const& square );
 // tract some of its tools, and create the plowing's result. Oth-
 // erwise, it will increase the units number of turns worked and
 // consume the unit's movement points. The unit must have plowing
-// orders in order to call this method, and you will know that
-// the unit finished plowing when its orders are cleared. If the
-// unit has the remainder of its tools removed by this function
-// then the unit will be demoted.
-void perform_plow_work( UnitsState const&   units_state,
-                        TerrainState const& terrain_state,
-                        Player const&       player,
-                        IMapUpdater& map_updater, Unit& unit );
+// orders in order to call this method. If the unit has the re-
+// mainder of its tools removed by this function then the unit
+// will be demoted.
+//
+// Note that if this function call results in a forest getting
+// cleared then it will compute the lumber yield and the colony
+// in which to place it (if any) and will add the lumber to the
+// colony's stockpile. It will return the lumber yield info in
+// the result so that a message can be displayed to the user.
+[[nodiscard]] PlowResult_t perform_plow_work(
+    SS& ss, Player const& player, IMapUpdater& map_updater,
+    Unit& unit );
 
 bool can_plow( Unit const& unit );
 
