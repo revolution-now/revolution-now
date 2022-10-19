@@ -190,7 +190,7 @@ wait<> HarborDockUnits::drop( HarborDraggableObject_t const& o,
         player_, ss_.units.unit_for( draggable_unit.id ) );
     apply_treasure_reimbursement( ss_, player_, receipt );
     co_await show_treasure_receipt( ts_, player_, receipt );
-    // Note: the treasure unit is now destroyed!
+    // !! Note: the treasure unit is now destroyed!
     CHECK( !ss_.units.exists( draggable_unit.id ) );
     co_return;
   }

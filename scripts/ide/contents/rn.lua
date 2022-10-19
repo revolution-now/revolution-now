@@ -2,9 +2,8 @@
 
 return {
   'exe/main',
-  'turn',
-  'fathers',
   'harbor-view-dock',
-  'on-map',
   'treasure',
+  'render/vertex',
+  'render/generic',
 }
