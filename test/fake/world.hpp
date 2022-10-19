@@ -29,6 +29,10 @@
 #include <memory>
 #include <vector>
 
+// This allows us to define a test case whose body runs as a
+// method in the World class (or something derived from it).
+#define TEST_WORLD( ... ) TEST_CASE_METHOD( World, __VA_ARGS__ )
+
 namespace lua {
 struct state;
 }
