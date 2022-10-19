@@ -168,6 +168,13 @@ check_weights( dry_weights )
 check_weights( wet_weights )
 
 local function weights_for_row( map_height, weights, row )
+  if map_height % 2 == 1 and row == map_height//2 then
+    -- This happens if we have an odd map height and the row in
+    -- questing is the center row, which will cause the code fur-
+    -- ther below to not work right, so we'll just use the same
+    -- weights as for the previous row.
+    row = row - 1
+  end
   if row >= map_height // 2 then row = (map_height - row - 1) end
   assert( row < map_height // 2, format(
               '%d is not less than %d.', row, map_height // 2 ) )
