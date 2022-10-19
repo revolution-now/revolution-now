@@ -22,7 +22,12 @@
 #include "ss/player.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
+#include "ss/terrain.hpp"
 #include "ss/turn.hpp"
+#include "ss/units.hpp"
+
+// gfx
+#include "gfx/iter.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -44,14 +49,39 @@ using namespace std;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
+    add_player( e_nation::dutch );
+    add_player( e_nation::french );
+    set_default_player( e_nation::dutch );
     create_default_map();
-    add_default_player();
   }
 
   void create_default_map() {
+    MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
-    vector<MapSquare> tiles{ L, L, L };
+    vector<MapSquare> tiles{
+        // clang-format off
+        L, L, L,
+        L, L, L,
+        L, _, _,
+        // clang-format on
+    };
     build_map( std::move( tiles ), 3 );
+  }
+
+  void create_large_map() {
+    MapSquare const   O = make_ocean();
+    MapSquare const   L = make_grassland();
+    vector<MapSquare> tiles;
+    tiles.reserve( 20 * 20 );
+    for( int y = 0; y < 20; ++y ) {
+      for( int x = 0; x < 20; ++x ) {
+        if( x == 0 || x == 19 )
+          tiles.push_back( O );
+        else
+          tiles.push_back( L );
+      }
+    }
+    build_map( std::move( tiles ), 20 );
   }
 };
 
@@ -457,34 +487,198 @@ TEST_CASE( "[fathers] check_founding_fathers" ) {
 }
 
 TEST_CASE( "[fathers] on_father_received: john_paul_jones" ) {
-  World W;
-  // TODO
+  World                   W;
+  Player&                 player = W.default_player();
+  e_founding_father const father =
+      e_founding_father::john_paul_jones;
+
+  REQUIRE( W.units().all().size() == 0 );
+  player.fathers.has[father] = true;
+  on_father_received( W.ss(), W.ts(), player, father );
+  REQUIRE( W.units().all().size() == 1 );
+  UnitState const& state = as_const( W.units() ).state_of( 1 );
+  Unit const&      unit  = state.unit;
+  REQUIRE( unit.type() == e_unit_type::frigate );
+  REQUIRE( unit.nation() == player.nation );
+  maybe<UnitOwnership::world const&> world =
+      state.ownership.get_if<UnitOwnership::world>();
+  REQUIRE( world.has_value() );
+  REQUIRE( world->coord == Coord{ .x = 1, .y = 2 } );
 }
 
 TEST_CASE(
     "[fathers] on_father_received: bartolome_de_las_casas" ) {
-  World W;
-  // TODO
+  World                   W;
+  Player&                 player = W.default_player();
+  e_founding_father const father =
+      e_founding_father::bartolome_de_las_casas;
+
+  W.add_unit_on_map( e_unit_type::native_convert,
+                     { .x = 1, .y = 1 }, e_nation::dutch );
+  W.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 1, .y = 1 }, e_nation::dutch );
+  W.add_unit_on_map( e_unit_type::native_convert,
+                     { .x = 1, .y = 1 }, e_nation::dutch );
+  W.add_unit_on_map( e_unit_type::petty_criminal,
+                     { .x = 1, .y = 1 }, e_nation::dutch );
+  W.add_unit_on_map( e_unit_type::native_convert,
+                     { .x = 1, .y = 0 }, e_nation::french );
+  W.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 1, .y = 0 }, e_nation::french );
+  W.add_unit_on_map( e_unit_type::native_convert,
+                     { .x = 1, .y = 0 }, e_nation::french );
+
+  REQUIRE( W.units().all().size() == 7 );
+  REQUIRE( W.units().unit_for( 1 ).type() ==
+           e_unit_type::native_convert );
+  REQUIRE( W.units().unit_for( 2 ).type() ==
+           e_unit_type::free_colonist );
+  REQUIRE( W.units().unit_for( 3 ).type() ==
+           e_unit_type::native_convert );
+  REQUIRE( W.units().unit_for( 4 ).type() ==
+           e_unit_type::petty_criminal );
+  REQUIRE( W.units().unit_for( 5 ).type() ==
+           e_unit_type::native_convert );
+  REQUIRE( W.units().unit_for( 6 ).type() ==
+           e_unit_type::free_colonist );
+  REQUIRE( W.units().unit_for( 7 ).type() ==
+           e_unit_type::native_convert );
+
+  player.fathers.has[father] = true;
+  on_father_received( W.ss(), W.ts(), player, father );
+
+  REQUIRE( W.units().all().size() == 7 );
+  REQUIRE( W.units().unit_for( 1 ).type() ==
+           e_unit_type::free_colonist );
+  REQUIRE( W.units().unit_for( 2 ).type() ==
+           e_unit_type::free_colonist );
+  REQUIRE( W.units().unit_for( 3 ).type() ==
+           e_unit_type::free_colonist );
+  REQUIRE( W.units().unit_for( 4 ).type() ==
+           e_unit_type::petty_criminal );
+  REQUIRE( W.units().unit_for( 5 ).type() ==
+           e_unit_type::native_convert );
+  REQUIRE( W.units().unit_for( 6 ).type() ==
+           e_unit_type::free_colonist );
+  REQUIRE( W.units().unit_for( 7 ).type() ==
+           e_unit_type::native_convert );
 }
 
 TEST_CASE( "[fathers] on_father_received: jakob_fugger" ) {
-  World W;
-  // TODO
+  World                   W;
+  Player&                 player = W.default_player();
+  e_founding_father const father =
+      e_founding_father::jakob_fugger;
+  player.old_world.market.commodities[e_commodity::food]
+      .boycott = true;
+  player.old_world.market.commodities[e_commodity::fur].boycott =
+      true;
+  player.old_world.market.commodities[e_commodity::muskets]
+      .boycott = true;
+  W.french()
+      .old_world.market.commodities[e_commodity::food]
+      .boycott               = true;
+  player.fathers.has[father] = true;
+  on_father_received( W.ss(), W.ts(), player, father );
+  for( auto& [comm, market_item] :
+       player.old_world.market.commodities ) {
+    INFO( fmt::format( "comm={}, market_item={}", comm,
+                       market_item ) );
+    REQUIRE_FALSE( market_item.boycott );
+  }
+  REQUIRE( W.french()
+               .old_world.market.commodities[e_commodity::food]
+               .boycott );
 }
 
 TEST_CASE(
     "[fathers] on_father_received: francisco_de_coronado" ) {
-  World W;
-  // TODO
+  World                   W;
+  Player&                 dutch = W.dutch();
+  e_founding_father const father =
+      e_founding_father::francisco_de_coronado;
+  W.create_large_map();
+  Coord const kDutchColony{ .x = 6, .y = 6 };
+  Coord const kFrenchColony{ .x = 18, .y = 18 };
+  W.add_colony_with_new_unit( kDutchColony, e_nation::dutch );
+  W.add_colony_with_new_unit( kFrenchColony, e_nation::french );
+
+  // First make sure that the dutch player can only see the
+  // squares around their colony.
+  Rect expected_visible{ .x = 5, .y = 5, .w = 3, .h = 3 };
+  UNWRAP_CHECK( dutch_map, W.terrain()
+                               .player_terrain( e_nation::dutch )
+                               .member( &PlayerTerrain::map ) );
+  for( Rect r :
+       gfx::subrects( W.terrain().world_rect_tiles() ) ) {
+    INFO( fmt::format( "r={}", r ) );
+    if( r.upper_left().is_inside( expected_visible ) ) {
+      REQUIRE( dutch_map[r.upper_left()].has_value() );
+    } else {
+      REQUIRE_FALSE( dutch_map[r.upper_left()].has_value() );
+    }
+  }
+
+  dutch.fathers.has[father] = true;
+  on_father_received( W.ss(), W.ts(), dutch, father );
+
+  Rect const expected_visible_1 =
+      Rect{ .x = 1, .y = 1, .w = 11, .h = 11 };
+  Rect const expected_visible_2 =
+      Rect{ .x = 13, .y = 13, .w = 11, .h = 11 };
+  for( Rect r :
+       gfx::subrects( W.terrain().world_rect_tiles() ) ) {
+    INFO( fmt::format( "r={}", r ) );
+    if( r.upper_left().is_inside( expected_visible_1 ) ||
+        r.upper_left().is_inside( expected_visible_2 ) ) {
+      REQUIRE( dutch_map[r.upper_left()].has_value() );
+    } else {
+      REQUIRE_FALSE( dutch_map[r.upper_left()].has_value() );
+    }
+  }
 }
 
 TEST_CASE( "[fathers] on_father_received: sieur_de_la_salle" ) {
-  World W;
-  // TODO
+  World                   W;
+  Player&                 dutch = W.dutch();
+  e_founding_father const father =
+      e_founding_father::sieur_de_la_salle;
+  Coord const kDutchColony1{ .x = 0, .y = 0 };
+  Coord const kDutchColony2{ .x = 2, .y = 0 };
+  Coord const kFrenchColony{ .x = 0, .y = 2 };
+  Colony&     dutch_colony1 = W.add_colony_with_new_unit(
+      kDutchColony1, e_nation::dutch );
+  Colony& dutch_colony2 = W.add_colony_with_new_unit(
+      kDutchColony2, e_nation::dutch );
+  Colony& french_colony = W.add_colony_with_new_unit(
+      kFrenchColony, e_nation::french );
+  W.add_unit_indoors( dutch_colony1.id, e_indoor_job::bells );
+  W.add_unit_indoors( dutch_colony2.id, e_indoor_job::bells );
+  W.add_unit_indoors( dutch_colony2.id, e_indoor_job::bells );
+  W.add_unit_indoors( french_colony.id, e_indoor_job::bells );
+  W.add_unit_indoors( french_colony.id, e_indoor_job::bells );
+  W.add_unit_indoors( french_colony.id, e_indoor_job::bells );
+  W.add_unit_indoors( french_colony.id, e_indoor_job::hammers );
+
+  REQUIRE_FALSE(
+      dutch_colony1.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE(
+      dutch_colony2.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE(
+      french_colony.buildings[e_colony_building::stockade] );
+
+  dutch.fathers.has[father] = true;
+  on_father_received( W.ss(), W.ts(), dutch, father );
+
+  REQUIRE_FALSE(
+      dutch_colony1.buildings[e_colony_building::stockade] );
+  REQUIRE(
+      dutch_colony2.buildings[e_colony_building::stockade] );
+  REQUIRE_FALSE(
+      french_colony.buildings[e_colony_building::stockade] );
 }
 
 TEST_CASE( "[fathers] on_father_received: pocahontas" ) {
-  World W;
   // TODO
 }
 
