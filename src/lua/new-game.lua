@@ -58,20 +58,37 @@ local function create_initial_units_for_nation(options, nation,
                                                root )
   local player = root.players.players:get( nation )
   local coord = assert( options.nations[nation].ship_pos )
+
+  -- Ship.
   local ship_type
   if nation == 'dutch' then
     ship_type = build_unit_type( 'merchantman' )
   else
     ship_type = build_unit_type( 'caravel' )
   end
-  local soldier = build_unit_type( 'soldier' )
-  local pioneer = build_unit_type( 'pioneer' )
-
   local ship_unit = ustate.create_unit_on_map( nation, ship_type,
                                                coord )
-  ustate.create_unit_in_cargo( nation, soldier, ship_unit:id() )
-  ustate.create_unit_in_cargo( nation, pioneer, ship_unit:id() )
 
+  -- Soldier.
+  local soldier_type
+  if nation == 'spanish' or options.difficulty == 'discoverer' then
+    soldier_type = build_unit_type( 'veteran_soldier' )
+  else
+    soldier_type = build_unit_type( 'soldier' )
+  end
+
+  -- Pioneer.
+  local pioneer_type
+  if nation == 'french' then
+    pioneer_type = build_unit_type( 'hardy_pioneer' )
+  else
+    pioneer_type = build_unit_type( 'pioneer' )
+  end
+
+  ustate.create_unit_in_cargo( nation, soldier_type,
+                               ship_unit:id() )
+  ustate.create_unit_in_cargo( nation, pioneer_type,
+                               ship_unit:id() )
   player.starting_position = coord
 end
 
@@ -365,9 +382,16 @@ function M.create( options )
   end
 
   -- Temporary.
-  local player_nation = 'english'
-  local coord = assert( options.nations[player_nation].ship_pos )
-  root.land_view.viewport:center_on_tile( coord )
+  local all_nations = { 'english', 'french', 'spanish', 'dutch' }
+  for _, nation in ipairs( all_nations ) do
+    if options.nations[nation] then
+      if options.nations[nation].human then
+        local coord = assert( options.nations[nation].ship_pos )
+        root.land_view.viewport:center_on_tile( coord )
+        break
+      end
+    end
+  end
 end
 
 return M
