@@ -56,3 +56,30 @@ plow_turns {
   tundra:    6
   wetland:   8
 }
+
+# Config info regarding how much lumber is yielded when clearing
+# a forest. Note that this only applies when there is a friendly
+# colony nearby to receive the lumber (and even then, it can only
+# receive what it has capacity for).
+lumber_yield {
+  # When there is no lumber mill in the colony the base yield is
+  # tile-independent. In the OG this value is 20.
+  base_yield_no_lumber_mill: 20
+
+  # When there is a lumber mill in the colony the following for-
+  # mulate applies:
+  #
+  #   base yield = (E + Y)*M
+  #
+  # where Y is the amount of lumber produced by a free colonist
+  # on the tile without any bonuses (e.g. river), E is an addi-
+  # tional fixed amount added on, and M is a fixed multiplier.
+  # The strategy guide's formula suggests that E=0, but experi-
+  # ments suggest it is 2. In the OG M=10.
+  tile_yield_extra: 2
+  multiplier: 10
+
+  # The total yield is then the base yield, but potentially mul-
+  # tiplied by this factor if the pioneer is hardy.
+  hardy_multiplier: 2
+}

@@ -22,6 +22,31 @@ include "cdr/ext-std.hpp"
 # base
 include "base/maybe.hpp"
 
+namespace "rn.config.orders"
+
+struct.LumberYield {
+  # When there is no lumber mill in the colony the base yield is
+  # tile-independent. In the OG this value is 20.
+  base_yield_no_lumber_mill 'int',
+
+  # When there is a lumber mill in the colony the following for-
+  # mulate applies:
+  #
+  #   base yield = (E + Y)*M
+  #
+  # where Y is the amount of lumber produced by a free colonist
+  # on the tile without any bonuses (e.g. river), E is an addi-
+  # tional fixed amount added on, and M is a fixed multiplier.
+  # The strategy guide's formula suggests that E=0, but experi-
+  # ments suggest it is 2. In the OG M=10.
+  tile_yield_extra 'int', # E
+  multiplier 'int',       # M
+
+  # The total yield is then the base yield, but potentially mul-
+  # tiplied by this factor if the pioneer is hardy.
+  hardy_multiplier 'int',
+}
+
 namespace "rn"
 
 struct.config_orders_t {
@@ -38,6 +63,8 @@ struct.config_orders_t {
   # half that many turns (rounded down), with one turn minimum,
   # which is how the original game appears to do it.
   plow_turns 'refl::enum_map<e_terrain, base::maybe<int>>',
+
+  lumber_yield 'config::orders::LumberYield',
 }
 
 config.orders {}
