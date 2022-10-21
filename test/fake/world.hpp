@@ -52,7 +52,9 @@ struct TurnState;
 struct ColoniesState;
 struct LandViewState;
 struct TerrainState;
+struct Unit;
 struct UnitType;
+struct UnitComposition;
 
 struct Colony;
 struct IMapUpdater;
@@ -116,6 +118,10 @@ struct World {
 
   UnitId add_unit_on_map( e_unit_type type, Coord where,
                           maybe<e_nation> nation = nothing );
+
+  Unit& add_unit_on_map( UnitComposition const& comp,
+                         Coord                  where,
+                         maybe<e_nation> nation = nothing );
 
   UnitId add_unit_on_map( UnitType type, Coord where,
                           maybe<e_nation> nation = nothing );

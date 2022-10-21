@@ -253,6 +253,15 @@ UnitId World::add_unit_on_map( UnitType type, Coord where,
       UnitComposition::create( type ), where );
 }
 
+Unit& World::add_unit_on_map( UnitComposition const& comp,
+                              Coord                  where,
+                              maybe<e_nation>        nation ) {
+  if( !nation ) nation = default_nation_;
+  UnitId const unit_id = create_unit_on_map_non_interactive(
+      ss(), ts(), player( *nation ), comp, where );
+  return units().unit_for( unit_id );
+}
+
 UnitId World::add_unit_in_cargo( e_unit_type type, UnitId holder,
                                  maybe<e_nation> nation ) {
   if( !nation ) nation = default_nation_;

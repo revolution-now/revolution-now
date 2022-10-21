@@ -90,6 +90,7 @@ TreasureReceipt treasure_in_harbor_receipt(
   int const cut_percent = tax_rate;
   int const cut =
       static_cast<int>( worth * ( cut_percent / 100.0 ) );
+  // Defensive, if tax rate is over 100.
   int const net = std::max( worth - cut, 0 );
   return TreasureReceipt{ .treasure_id       = treasure.id(),
                           .transport_mode    = transport_mode,
@@ -126,7 +127,7 @@ wait<maybe<TreasureReceipt>> treasure_enter_colony(
     case e_treasure_transport_mode::king_no_extra_charge:
       msg +=
           "and we will do so for @[H]no extra charge@[], only "
-          "witholding an amount determined by the current tax "
+          "withholding an amount determined by the current tax "
           "rate.";
       break;
   }
