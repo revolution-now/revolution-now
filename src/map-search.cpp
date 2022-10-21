@@ -45,7 +45,7 @@ generator<gfx::point> outward_spiral_search(
 }
 
 generator<gfx::point> outward_spiral_search_existing(
-    SSConst const& ss, gfx::point const start ) {
+    SSConst const ss, gfx::point const start ) {
   int remaining = ss.terrain.world_size_tiles().area();
   for( gfx::point const p : outward_spiral_search( start ) ) {
     if( !ss.terrain.square_exists( Coord::from_gfx( p ) ) )

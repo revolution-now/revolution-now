@@ -36,8 +36,11 @@ base::generator<gfx::point> outward_spiral_search(
 
 // Same as above but will only yield squares that exist on the
 // map. It will stop spiral-searching when it has yielded all of
-// the points on the map once.
+// the points on the map once. NOTE: since this is a coroutine,
+// to be safe, this must take all paramters by value that could
+// potentially be supplied from temporaries. This include SS-
+// Const, which is constructed implicitly from SS.
 base::generator<gfx::point> outward_spiral_search_existing(
-    SSConst const& ss, gfx::point const start );
+    SSConst const ss, gfx::point const start );
 
 } // namespace rn
