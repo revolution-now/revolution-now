@@ -376,5 +376,79 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
   }
 }
 
+TEST_CASE( "[lumber-yield] best_lumber_yield" ) {
+  vector<LumberYield> input;
+  maybe<LumberYield>  expected;
+
+  auto f = [&] { return best_lumber_yield( input ); };
+
+  // No inputs.
+  input    = {};
+  expected = nothing;
+  REQUIRE( f() == expected );
+
+  // One empty input.
+  input    = { LumberYield{ .colony_id              = 1,
+                            .total_yield            = 10,
+                            .yield_to_add_to_colony = 0 } };
+  expected = nothing;
+  REQUIRE( f() == expected );
+
+  // Two empty inputs.
+  input    = { LumberYield{ .colony_id              = 1,
+                            .total_yield            = 10,
+                            .yield_to_add_to_colony = 0 },
+               LumberYield{ .colony_id              = 2,
+                            .total_yield            = 10,
+                            .yield_to_add_to_colony = 0 } };
+  expected = nothing;
+  REQUIRE( f() == expected );
+
+  // One empty, one non-empty.
+  input    = { LumberYield{ .colony_id              = 1,
+                            .total_yield            = 10,
+                            .yield_to_add_to_colony = 0 },
+               LumberYield{ .colony_id              = 2,
+                            .total_yield            = 10,
+                            .yield_to_add_to_colony = 1 } };
+  expected = LumberYield{ .colony_id              = 2,
+                          .total_yield            = 10,
+                          .yield_to_add_to_colony = 1 };
+  REQUIRE( f() == expected );
+
+  // One empty, one non-empty.
+  input    = { LumberYield{ .colony_id              = 1,
+                            .total_yield            = 10,
+                            .yield_to_add_to_colony = 1 },
+               LumberYield{ .colony_id              = 2,
+                            .total_yield            = 10,
+                            .yield_to_add_to_colony = 0 } };
+  expected = LumberYield{ .colony_id              = 1,
+                          .total_yield            = 10,
+                          .yield_to_add_to_colony = 1 };
+  REQUIRE( f() == expected );
+
+  // Both non-empty.
+  input    = { LumberYield{ .colony_id              = 1,
+                            .total_yield            = 10,
+                            .yield_to_add_to_colony = 1 },
+               LumberYield{ .colony_id              = 2,
+                            .total_yield            = 10,
+                            .yield_to_add_to_colony = 1 } };
+  expected = LumberYield{ .colony_id              = 1,
+                          .total_yield            = 10,
+                          .yield_to_add_to_colony = 1 };
+  REQUIRE( f() == expected );
+
+  // One non-empty.
+  input    = { LumberYield{ .colony_id              = 1,
+                            .total_yield            = 10,
+                            .yield_to_add_to_colony = 1 } };
+  expected = LumberYield{ .colony_id              = 1,
+                          .total_yield            = 10,
+                          .yield_to_add_to_colony = 1 };
+  REQUIRE( f() == expected );
+}
+
 } // namespace
 } // namespace rn

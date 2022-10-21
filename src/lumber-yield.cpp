@@ -130,4 +130,20 @@ vector<LumberYield> lumber_yields( SSConst const& ss,
   return res;
 }
 
+maybe<LumberYield> best_lumber_yield(
+    vector<LumberYield> const& yields ) {
+  maybe<LumberYield> res;
+  for( LumberYield const& yield : yields ) {
+    if( yield.yield_to_add_to_colony == 0 ) continue;
+    if( !res.has_value() ) res = yield;
+    // By using > and not >= we will prefer earlier colonies in
+    // the list (all else being equal), which is important be-
+    // cause they will generally be closer in distance.
+    if( yield.yield_to_add_to_colony >
+        res->yield_to_add_to_colony )
+      res = yield;
+  }
+  return res;
+}
+
 } // namespace rn
