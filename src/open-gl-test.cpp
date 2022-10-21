@@ -26,8 +26,9 @@ void paint_things( rr::Renderer& renderer ) {
 
   rr::Painter painter = renderer.painter();
 
-  painter.draw_point(
-      point{ .x = 50, .y = 50 },
+  painter.draw_solid_rect(
+      rect{ .origin = { .x = 50, .y = 50 },
+            .size   = { .w = 100, .h = 100 } },
       pixel{ .r = 255, .g = 0, .b = 0, .a = 255 } );
 }
 
