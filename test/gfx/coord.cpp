@@ -43,6 +43,40 @@ TEST_CASE( "[e_direction] direction type*" ) {
            e_direction_type::cardinal );
 }
 
+TEST_CASE( "[e_direction] to_diagonal*" ) {
+  REQUIRE( to_diagonal( e_direction::nw ) ==
+           e_diagonal_direction::nw );
+  REQUIRE( to_diagonal( e_direction::ne ) ==
+           e_diagonal_direction::ne );
+  REQUIRE( to_diagonal( e_direction::sw ) ==
+           e_diagonal_direction::sw );
+  REQUIRE( to_diagonal( e_direction::se ) ==
+           e_diagonal_direction::se );
+  REQUIRE( to_diagonal( e_direction::n ) == base::nothing );
+  REQUIRE( to_diagonal( e_direction::w ) == base::nothing );
+  REQUIRE( to_diagonal( e_direction::e ) == base::nothing );
+  REQUIRE( to_diagonal( e_direction::s ) == base::nothing );
+}
+
+TEST_CASE( "[e_direction] to_direction*" ) {
+  REQUIRE( to_direction( e_diagonal_direction::nw ) ==
+           e_direction::nw );
+  REQUIRE( to_direction( e_diagonal_direction::ne ) ==
+           e_direction::ne );
+  REQUIRE( to_direction( e_diagonal_direction::sw ) ==
+           e_direction::sw );
+  REQUIRE( to_direction( e_diagonal_direction::se ) ==
+           e_direction::se );
+  REQUIRE( to_direction( e_cardinal_direction::n ) ==
+           e_direction::n );
+  REQUIRE( to_direction( e_cardinal_direction::w ) ==
+           e_direction::w );
+  REQUIRE( to_direction( e_cardinal_direction::e ) ==
+           e_direction::e );
+  REQUIRE( to_direction( e_cardinal_direction::s ) ==
+           e_direction::s );
+}
+
 TEST_CASE( "[coord] centered*" ) {
   Rect  rect;
   Delta delta;
