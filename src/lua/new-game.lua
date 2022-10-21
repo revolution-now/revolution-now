@@ -312,8 +312,8 @@ end
 -----------------------------------------------------------------
 local function add_testing_options( options )
   options.nations = {
-    english={ human=true, ship_pos=nil }
-    -- french={ human=true, ship_pos=nil },
+    -- english={ human=true, ship_pos=nil },
+    french={ human=true, ship_pos=nil }
     -- spanish={ human=true, ship_pos=nil },
     -- dutch={ human=true, ship_pos=nil },
   }
