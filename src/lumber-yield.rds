@@ -1,0 +1,21 @@
+# ===============================================================
+# lumber-yield.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-10-20.
+#
+# Description: Rds definitions for the lumber-yield module.
+#
+# ===============================================================
+# ss
+include "ss/colony-id.hpp"
+
+namespace "rn"
+
+# Describes the lumber that is yielded when a forest is cleared.
+struct.LumberYield {
+  colony_id 'ColonyId',
+  total_yield 'int',
+  yield_to_add_to_colony 'int',
+}
