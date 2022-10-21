@@ -8,20 +8,13 @@
 # Description: Rds definitions for the plow module.
 #
 # ===============================================================
-# ss
-include "ss/colony-id.hpp"
+# Revolution Now
+include "lumber-yield.rds.hpp"
 
 # base
 include "base/maybe.hpp"
 
 namespace "rn"
-
-# Describes the lumber that is yielded when a forest is cleared.
-struct.LumberYield {
-  colony_id 'ColonyId',
-  total_yield 'int',
-  yield_to_add_to_colony 'int',
-}
 
 sumtype.PlowResult {
   cancelled {},

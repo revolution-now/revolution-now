@@ -11,9 +11,10 @@
 #include "plow.hpp"
 
 // Revolution Now
+#include "colony-buildings.hpp"
 #include "imap-updater.hpp"
 #include "logger.hpp"
-#include "map-square.hpp"
+#include "lumber-yield.hpp"
 #include "terrain.hpp"
 #include "tiles.hpp"
 
@@ -22,6 +23,7 @@
 #include "config/unit-type.rds.hpp"
 
 // ss
+#include "ss/colonies.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
@@ -63,19 +65,14 @@ int turns_required( e_unit_type unit_type, e_terrain terrain ) {
   FATAL( "unit type {} cannot plow/clear.", unit_type );
 }
 
-// If the player has at least one colony in the vicinity then
-// this will pick the closest one and compute how much lumber
-// should yield to the colony, though it won't actually add it.
-maybe<LumberYield> lumber_yield( SSConst const&, Coord,
-                                 e_unit_type ) {
-  // TODO
-  return nothing;
-}
-
 // Applies the yield to the colony and displays a message to the
 // player.
-void apply_lumber_yield( SS&, LumberYield const& ) {
-  // TODO
+void apply_lumber_yield( SS& ss, LumberYield const& yield ) {
+  Colony&   colony   = ss.colonies.colony_for( yield.colony_id );
+  int const capacity = colony_warehouse_capacity( colony );
+  int&      lumber   = colony.commodities[e_commodity::lumber];
+  lumber += yield.yield_to_add_to_colony;
+  CHECK_LE( lumber, capacity );
 }
 
 } // namespace
@@ -171,8 +168,8 @@ PlowResult_t perform_plow_work( SS& ss, Player const& player,
   if( turns_worked == plow_turns ) {
     PlowResult_t res = PlowResult::irrigated{};
     if( has_forest( ss.terrain.square_at( location ) ) ) {
-      maybe<LumberYield> const yield =
-          lumber_yield( ss, location, unit.type() );
+      maybe<LumberYield> const yield = best_lumber_yield(
+          lumber_yields( ss, player, location, unit.type() ) );
       res = PlowResult::cleared_forest{ .yield = yield };
       if( yield.has_value() ) apply_lumber_yield( ss, *yield );
     }

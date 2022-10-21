@@ -24,6 +24,7 @@
 #include "src/ustate.hpp"
 
 // ss
+#include "src/ss/colonies.hpp"
 #include "src/ss/terrain.hpp"
 #include "src/ss/units.hpp"
 
@@ -50,8 +51,18 @@ struct World : testing::World {
   void initialize( e_unit_type unit_type, e_terrain terrain ) {
     add_default_player();
     MapSquare const   L = make_terrain( terrain );
-    vector<MapSquare> tiles{ L };
-    build_map( std::move( tiles ), 1 );
+    vector<MapSquare> tiles{
+        // clang-format off
+        L,L,L,L,L,L,L,
+        L,L,L,L,L,L,L,
+        L,L,L,L,L,L,L,
+        L,L,L,L,L,L,L,
+        L,L,L,L,L,L,L,
+        L,L,L,L,L,L,L,
+        L,L,L,L,L,L,L,
+        // clang-format on
+    };
+    build_map( std::move( tiles ), 7 );
 
     add_unit_on_map( unit_type, Coord{} );
   }
@@ -420,6 +431,201 @@ TEST_CASE( "[src/plow] plow_square with cancellation" ) {
   REQUIRE( unit.orders() == e_unit_orders::none );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 40 );
   REQUIRE( unit.movement_points() == 1 );
+}
+
+TEST_CASE( "[src/plow] lumber yield / pioneer" ) {
+  // Here we're not going to test in detail the algorithm for de-
+  // termining the location/quantity of the yield since that is
+  // done separately in the lumber-yield module. We're just going
+  // to run through a basic scenario to make sure that they yield
+  // is being applied at all.
+  //
+  //   L,L,L,L,L,L,L,
+  //   L,L,L,L,L,L,L,
+  //   L,L,L,L,L,L,L,
+  //   L,L,L,L,L,L,L,
+  //   L,L,L,L,L,L,L,
+  //   L,L,L,L,L,L,L,
+  //   L,L,L,L,L,L,L,
+  SECTION( "no colonies" ) {
+    World W;
+    W.initialize( e_unit_type::pioneer, e_terrain::scrub );
+    UnitId id   = 1;
+    Unit&  unit = W.units().unit_for( id );
+
+    int const kClearTurnsRequired = 6;
+    int const kPlowTurnsRequired  = 5;
+
+    // Tell unit to start clearing work.
+    unit.plow();
+    unit.set_turns_worked( 0 );
+
+    // Do the work.
+    for( int i = 0; i < kClearTurnsRequired; ++i ) {
+      INFO( fmt::format( "i={}", i ) );
+      unit.new_turn( W.default_player() );
+      PlowResult_t const plow_result = perform_plow_work(
+          W.ss(), W.default_player(), W.map_updater(), unit );
+      REQUIRE( plow_result.holds<PlowResult::ongoing>() );
+    }
+
+    // Finished clearing.
+    unit.new_turn( W.default_player() );
+    PlowResult_t plow_result = perform_plow_work(
+        W.ss(), W.default_player(), W.map_updater(), unit );
+    REQUIRE( plow_result ==
+             PlowResult_t{ PlowResult::cleared_forest{
+                 .yield = nothing } } );
+
+    // Tell unit to start plowing work.
+    unit.plow();
+    unit.set_turns_worked( 0 );
+
+    // Do the work.
+    for( int i = 0; i < kPlowTurnsRequired; ++i ) {
+      INFO( fmt::format( "i={}", i ) );
+      unit.new_turn( W.default_player() );
+      PlowResult_t const plow_result = perform_plow_work(
+          W.ss(), W.default_player(), W.map_updater(), unit );
+      REQUIRE( plow_result.holds<PlowResult::ongoing>() );
+    }
+
+    // Finished plowing.
+    unit.new_turn( W.default_player() );
+    plow_result = perform_plow_work( W.ss(), W.default_player(),
+                                     W.map_updater(), unit );
+    REQUIRE( plow_result ==
+             PlowResult_t{ PlowResult::irrigated{} } );
+  }
+
+  SECTION( "one colony" ) {
+    World W;
+    W.initialize( e_unit_type::pioneer, e_terrain::scrub );
+    UnitId id   = 1;
+    Unit&  unit = W.units().unit_for( id );
+
+    int const kClearTurnsRequired = 6;
+    int const kPlowTurnsRequired  = 5;
+
+    W.add_colony_with_new_unit( { .x = 1, .y = 1 } );
+
+    // Tell unit to start clearing work.
+    unit.plow();
+    unit.set_turns_worked( 0 );
+
+    // Do the work.
+    for( int i = 0; i < kClearTurnsRequired; ++i ) {
+      INFO( fmt::format( "i={}", i ) );
+      unit.new_turn( W.default_player() );
+      PlowResult_t const plow_result = perform_plow_work(
+          W.ss(), W.default_player(), W.map_updater(), unit );
+      REQUIRE( plow_result.holds<PlowResult::ongoing>() );
+    }
+
+    // Finished clearing.
+    unit.new_turn( W.default_player() );
+    PlowResult_t plow_result = perform_plow_work(
+        W.ss(), W.default_player(), W.map_updater(), unit );
+    REQUIRE( plow_result ==
+             PlowResult_t{ PlowResult::cleared_forest{
+                 .yield = LumberYield{
+                     .colony_id              = 1,
+                     .total_yield            = 20,
+                     .yield_to_add_to_colony = 20 } } } );
+
+    // Tell unit to start plowing work.
+    unit.plow();
+    unit.set_turns_worked( 0 );
+
+    // Do the work.
+    for( int i = 0; i < kPlowTurnsRequired; ++i ) {
+      INFO( fmt::format( "i={}", i ) );
+      unit.new_turn( W.default_player() );
+      PlowResult_t const plow_result = perform_plow_work(
+          W.ss(), W.default_player(), W.map_updater(), unit );
+      REQUIRE( plow_result.holds<PlowResult::ongoing>() );
+    }
+
+    // Finished plowing.
+    unit.new_turn( W.default_player() );
+    plow_result = perform_plow_work( W.ss(), W.default_player(),
+                                     W.map_updater(), unit );
+    REQUIRE( plow_result ==
+             PlowResult_t{ PlowResult::irrigated{} } );
+  }
+
+  SECTION(
+      "two colonies in range, one with lumber mill, hardy "
+      "pioneer" ) {
+    World W;
+    W.initialize( e_unit_type::hardy_pioneer,
+                  e_terrain::conifer );
+    UnitId id   = 1;
+    Unit&  unit = W.units().unit_for( id );
+
+    int const kClearTurnsRequired = 3;
+    int const kPlowTurnsRequired  = 2;
+
+    W.add_colony_with_new_unit( { .x = 0, .y = 0 } );
+    Colony& with_lumber_mill =
+        W.add_colony_with_new_unit( { .x = 1, .y = 2 } );
+    with_lumber_mill.buildings[e_colony_building::lumber_mill] =
+        true;
+    // Give this one just enough lumber so that the one that also
+    // has a lumber mill (but is too far) would normally be pre-
+    // ferred were it not too far.
+    with_lumber_mill.commodities[e_commodity::lumber] = 20;
+    // Should be too far.
+    Colony& with_lumber_mill_too_far =
+        W.add_colony_with_new_unit( { .x = 4, .y = 0 } );
+    with_lumber_mill_too_far
+        .buildings[e_colony_building::lumber_mill] = true;
+    BASE_CHECK( W.ss().colonies.all().size() == 3 );
+
+    // Tell unit to start clearing work.
+    unit.plow();
+    unit.set_turns_worked( 0 );
+
+    // Do the work.
+    for( int i = 0; i < kClearTurnsRequired; ++i ) {
+      INFO( fmt::format( "i={}", i ) );
+      unit.new_turn( W.default_player() );
+      PlowResult_t const plow_result = perform_plow_work(
+          W.ss(), W.default_player(), W.map_updater(), unit );
+      REQUIRE( plow_result.holds<PlowResult::ongoing>() );
+    }
+
+    // Finished clearing.
+    unit.new_turn( W.default_player() );
+    PlowResult_t plow_result = perform_plow_work(
+        W.ss(), W.default_player(), W.map_updater(), unit );
+    REQUIRE( plow_result ==
+             PlowResult_t{ PlowResult::cleared_forest{
+                 .yield = LumberYield{
+                     .colony_id              = 2,
+                     .total_yield            = 160,
+                     .yield_to_add_to_colony = 80 } } } );
+
+    // Tell unit to start plowing work.
+    unit.plow();
+    unit.set_turns_worked( 0 );
+
+    // Do the work.
+    for( int i = 0; i < kPlowTurnsRequired; ++i ) {
+      INFO( fmt::format( "i={}", i ) );
+      unit.new_turn( W.default_player() );
+      PlowResult_t const plow_result = perform_plow_work(
+          W.ss(), W.default_player(), W.map_updater(), unit );
+      REQUIRE( plow_result.holds<PlowResult::ongoing>() );
+    }
+
+    // Finished plowing.
+    unit.new_turn( W.default_player() );
+    plow_result = perform_plow_work( W.ss(), W.default_player(),
+                                     W.map_updater(), unit );
+    REQUIRE( plow_result ==
+             PlowResult_t{ PlowResult::irrigated{} } );
+  }
 }
 
 } // namespace
