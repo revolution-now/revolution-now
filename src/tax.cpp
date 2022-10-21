@@ -198,7 +198,7 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
     return update;
   }
   // We have an increase.
-  if( curr_tax == tax_config.maximum_tax_rate ) return update;
+  if( curr_tax >= tax_config.maximum_tax_rate ) return update;
   int const new_tax_rate =
       std::min( curr_tax + amount, tax_config.maximum_tax_rate );
   int const clamped_amount = new_tax_rate - curr_tax;

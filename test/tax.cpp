@@ -18,6 +18,9 @@
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
 
+// config
+#include "config/old-world.rds.hpp"
+
 // ss
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
@@ -684,6 +687,51 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
   market_saved.commodities[e_commodity::trade_goods].boycott =
       true;
   REQUIRE( player.old_world.market == market_saved );
+}
+
+TEST_CASE( "[tax] compute_tax_change when over max" ) {
+  World                W;
+  Player&              player = W.default_player();
+  TaxUpdateComputation expected;
+
+  auto f = [&] {
+    return compute_tax_change( W.ss(), W.ts(), player );
+  };
+
+  W.settings().difficulty = e_difficulty::conquistador;
+
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 14, 18, IRand::e_interval::closed ) )
+      .returns( 13 );
+
+  W.turn().time_point.turns                  = 37;
+  player.old_world.taxes.next_tax_event_turn = 37;
+
+  W.turn().time_point.turns                  = 38;
+  player.old_world.taxes.next_tax_event_turn = 37;
+
+  W.add_colony_with_new_unit( Coord{} );
+  W.add_colony_with_new_unit( Coord{ .x = 2 } );
+
+  // Tax change amount.
+  EXPECT_CALL( W.rand(),
+               between_ints( 1, 8, IRand::e_interval::closed ) )
+      .returns( 4 );
+
+  // Tax increase probability.
+  EXPECT_CALL( W.rand(), bernoulli( .98 ) ).returns( true );
+
+  player.old_world.taxes.tax_rate = 76;
+  BASE_CHECK( player.old_world.taxes.tax_rate >
+              config_old_world.taxes[W.settings().difficulty]
+                  .maximum_tax_rate );
+
+  expected = {
+      .next_tax_event_turn = 51,
+      .proposed_tax_change = TaxChangeProposal::none{} };
+
+  REQUIRE( f() == expected );
 }
 
 } // namespace
