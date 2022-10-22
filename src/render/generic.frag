@@ -13,6 +13,7 @@
 flat in int   frag_type;
 flat in vec4  frag_depixelate;
 flat in vec4  frag_depixelate_stages;
+flat in vec4  frag_depixelate_stages_unscaled;
      in vec2  frag_position;
      in vec2  frag_atlas_position;
 flat in vec2  frag_atlas_center;
@@ -165,12 +166,19 @@ float depixel_stage() {
   // right since it yields pixels of different sizes.
   vec2 dist_from_anchor =
       floor( (frag_position-stage_anchor)/frag_scaling );
-  // The gradient has units of inverse logical pixels, so to un-
-  // scale it we multiply by the scaling. We can't cancel out
-  // this factor with the one in the dist_from_anchor because
-  // that one needs to be floor'd first.
-  vec2 stage_deltas = frag_depixelate_stages.zw*
-                      dist_from_anchor*frag_scaling;
+  // The gradient has units of inverse scaled logical pixels, so
+  // we need to unscale it because we're multiplying by the dis-
+  // tance from the anchor which was unscaled (for its own rea-
+  // sons, see above). To do that, theoretically, we multiply by
+  // the frag_scaling (we can't cancel out this factor with the
+  // one in the dist_from_anchor because that one needs to be
+  // floor'd first). That works most of the time, but occasion-
+  // ally produces some weird visual flickering when zooming in
+  // probably due to rounding errors caused by first scaling the
+  // gradient (in the vertex shader) then unscaling the same num-
+  // ber. So we just use the unscaled version directly.
+  vec2 stage_deltas = frag_depixelate_stages_unscaled.zw*
+                      dist_from_anchor;
   // Think of the stage as a 2d plane, f(x,y). We know the value
   // at the upper left corner of the tile (stage_base) and we
   // need to extrapolate down to our point (really, the upper
@@ -182,7 +190,7 @@ float depixel_stage() {
 
 vec4 depixelate( in vec4 c ) {
   float animation_stage = depixel_stage();
-  bool on = ( hash_position() >  animation_stage );
+  bool on = ( hash_position() > animation_stage );
   float inverted = frag_depixelate.w;
   if( inverted != 0.0 ) on = !on;
   return on ? c : vec4( 0.0 );

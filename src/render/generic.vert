@@ -28,6 +28,7 @@ layout (location = 13) in int   in_use_camera;
 flat out int   frag_type;
 flat out vec4  frag_depixelate;
 flat out vec4  frag_depixelate_stages;
+flat out vec4  frag_depixelate_stages_unscaled;
      out vec2  frag_position;
      out vec2  frag_atlas_position;
 flat out vec2  frag_atlas_center;
@@ -75,6 +76,12 @@ void forwarding() {
   frag_depixelate.xy        = shift_and_scale( in_depixelate.xy );
   frag_depixelate_stages.zw = inverse_scale( in_depixelate_stages.zw );
   frag_depixelate_stages.xy = shift_and_scale( in_depixelate_stages.xy );
+  // In the fragment shader there is a place where we need to use
+  // the unscaled depixelation stage gradient, and so instead of
+  // unscaling the scaled one (that we just scaled above) we will
+  // just pass the original through since it avoids rounding er-
+  // rors and associated visual artifacts when zoomed in.
+  frag_depixelate_stages_unscaled = in_depixelate_stages;
   frag_position             = shift_and_scale( in_position );
   frag_atlas_position       = in_atlas_position;
   frag_atlas_center         = in_atlas_center;
