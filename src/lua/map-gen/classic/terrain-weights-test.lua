@@ -91,7 +91,31 @@ function Test.test_dry_weights()
 end
 
 function Test.test_wet_weights()
-  -- ASSERT_EQ( 3, 4, '3 and 4' ) --
+  local weights, expected
+
+  weights = W.wet_weights_for_row( 100, 0 )
+  expected = { none=1.0, marsh=0.0, swamp=0.0 }
+  validate_weights( weights, expected )
+
+  weights = W.wet_weights_for_row( 100, 99 )
+  expected = { none=1.0, marsh=0.0, swamp=0.0 }
+  validate_weights( weights, expected )
+
+  weights = W.wet_weights_for_row( 100, 49 )
+  expected = { none=.7, marsh=.15, swamp=.15 }
+  validate_weights( weights, expected )
+
+  weights = W.wet_weights_for_row( 100, 10 )
+  expected = { none=1.0, marsh=0.0, swamp=0.0 }
+  validate_weights( weights, expected )
+
+  weights = W.wet_weights_for_row( 100, 20 )
+  expected = { none=.95, marsh=.025, swamp=.025 }
+  validate_weights( weights, expected )
+
+  weights = W.wet_weights_for_row( 100, 30 )
+  expected = { none=.85, marsh=.075, swamp=.075 }
+  validate_weights( weights, expected )
 end
 
 return Test
