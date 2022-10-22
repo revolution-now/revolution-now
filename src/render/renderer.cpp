@@ -508,6 +508,10 @@ struct Renderer::Impl {
     }
   }
 
+  // TODO: we probably don't need to keep the mods in a std::s-
+  // tack, instead we can keep them in the popper object since
+  // those will be stored on the stack and popped in reverse
+  // order as they were applied, which should do the same job.
   stack<RendererMods>              mod_stack;
   PresentFn                        present_fn;
   ProgramType                      program;

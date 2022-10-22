@@ -46,7 +46,23 @@ struct DepixelateInfo {
   // value that this requires is a bit arbitrary, it just has to
   // move with the sprite. So using the upper left corner of the
   // sprite seems to be a good idea.
-  base::maybe<gfx::point> anchor = {};
+  base::maybe<gfx::point> hash_anchor = {};
+
+  // This allows varying the depixelation stage across the body
+  // of the triangle. If this is set then the anchor point will
+  // have the stage value specified in the `stage` attribute and
+  // it will be varied throughout the body of the triangle using
+  // this gradient by extrapolating linearly in each dimension.
+  // Specifically, each component of this quantity has the dimen-
+  // sions of delta(stage)/delta(logical-pixels).
+  base::maybe<gfx::dsize> stage_gradient = {};
+
+  // When the depixelation stage is gradiated, this is the loca-
+  // tion in game coordinates that will be assumed to hold the
+  // base stage value and from which the other values across the
+  // triangle will be computed using the stage_gradient slopes to
+  // extrapolate.
+  base::maybe<gfx::dpoint> stage_anchor = {};
 };
 
 // These options allow specifying a global rescaling and transla-

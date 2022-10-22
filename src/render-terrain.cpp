@@ -37,18 +37,7 @@ namespace rn {
 
 namespace {
 
-constexpr double g_tile_overlap_scaling       = .8;
 constexpr double g_tile_overlap_width_percent = .2;
-
-constexpr double g_tile_overlap_stage_two_alpha = .5;
-constexpr double g_tile_overlap_stage_two_stage = .85;
-
-// This will get applied multiplicatively after the stage two al-
-// pha, so we need to divide it to yield the end value that we
-// want.
-constexpr double g_tile_overlap_stage_one_alpha =
-    .85 / g_tile_overlap_stage_two_alpha;
-constexpr double g_tile_overlap_stage_one_stage = .70;
 
 e_tile tile_for_ground_terrain( e_ground_terrain terrain ) {
   switch( terrain ) {
@@ -458,15 +447,11 @@ void render_forest( Visibility const& viz, rr::Painter& painter,
   render_sprite( painter, where, forest_tile );
 }
 
-// Note that in this function the anchor needs to be different
-// for each segment other wise overlaping segments (in the cor-
-// ners) will depixelate the exact same pixels and only one will
-// be visible.
 void render_adjacent_overlap( Visibility const& viz,
                               rr::Renderer&     renderer,
                               Coord where, Coord world_square,
                               double chop_percent,
-                              Delta  anchor_offset ) {
+                              Coord  hash_anchor ) {
   MapSquare const& west =
       viz.square_at( world_square - Delta{ .w = 1 } );
   MapSquare const& north =
@@ -480,24 +465,17 @@ void render_adjacent_overlap( Visibility const& viz,
   W   chop_w      = W{ chop_pixels };
   H   chop_h      = H{ chop_pixels };
 
-  {
-    // Render east part of western tile.
-    Rect  src = Rect::from( Coord{}, g_tile_delta );
-    Coord dst = where;
-    src.w -= chop_w;
-    src.x += chop_w;
-    dst.x += 0;
-    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
-                             dst + anchor_offset );
-    // Need a new painter since we changed the mods.
-    rr::Painter             painter = renderer.painter();
-    maybe<e_ground_terrain> ground  = ground_terrain_for_square(
-        viz, west, world_square - Delta{ .w = 1 } );
-    if( ground )
-      render_sprite_section( painter,
-                             tile_for_ground_terrain( *ground ),
-                             dst, src );
-  }
+  // In the below, when two adjacent segments touch, we want
+  // their depixelations to be .5, otherwise there will be a hard
+  // edge between the tiles which will kill the smooth transi-
+  // tion.
+  int const overgrowth_pixels = ( g_tile_delta.w - chop_pixels );
+  float const depixel_stage_slope = 0.5 / overgrowth_pixels;
+
+  // Note in the below we set the top/bottom segments to be in-
+  // verted so that the overlapping segment does not depixelate
+  // the same set of pixels; if it did the only the segment that
+  // was drawn first would be visible.
 
   {
     // Render bottom part of north tile.
@@ -506,8 +484,18 @@ void render_adjacent_overlap( Visibility const& viz,
     src.h -= chop_h;
     src.y += chop_h;
     dst.y += 0;
-    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
-                             dst + anchor_offset );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
+                             hash_anchor );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.depixelate.stage,
+                             0.5 );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.inverted,
+                             true );
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.depixelate.stage_gradient,
+        gfx::dsize{ .h = -depixel_stage_slope } );
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.depixelate.stage_anchor,
+        dst.to_gfx().to_double() );
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
@@ -525,12 +513,49 @@ void render_adjacent_overlap( Visibility const& viz,
     src.h -= chop_h;
     src.y += 0;
     dst.y += chop_h;
-    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
-                             dst + anchor_offset );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
+                             hash_anchor );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.depixelate.stage,
+                             0.0 );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.inverted,
+                             true );
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.depixelate.stage_gradient,
+        gfx::dsize{ .h = depixel_stage_slope } );
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.depixelate.stage_anchor,
+        dst.to_gfx().to_double() );
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
         viz, south, world_square + Delta{ .h = 1 } );
+    if( ground )
+      render_sprite_section( painter,
+                             tile_for_ground_terrain( *ground ),
+                             dst, src );
+  }
+
+  {
+    // Render east part of western tile.
+    Rect  src = Rect::from( Coord{}, g_tile_delta );
+    Coord dst = where;
+    src.w -= chop_w;
+    src.x += chop_w;
+    dst.x += 0;
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
+                             hash_anchor );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.depixelate.stage,
+                             0.5 );
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.depixelate.stage_gradient,
+        gfx::dsize{ .w = depixel_stage_slope } );
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.depixelate.stage_anchor,
+        dst.to_gfx().to_double() );
+    // Need a new painter since we changed the mods.
+    rr::Painter             painter = renderer.painter();
+    maybe<e_ground_terrain> ground  = ground_terrain_for_square(
+        viz, west, world_square - Delta{ .w = 1 } );
     if( ground )
       render_sprite_section( painter,
                              tile_for_ground_terrain( *ground ),
@@ -544,8 +569,16 @@ void render_adjacent_overlap( Visibility const& viz,
     src.w -= chop_w;
     src.x += 0;
     dst.x += chop_w;
-    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
-                             dst + anchor_offset );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
+                             hash_anchor );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.depixelate.stage,
+                             1.0 );
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.depixelate.stage_gradient,
+        gfx::dsize{ .w = -depixel_stage_slope } );
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.depixelate.stage_anchor,
+        dst.to_gfx().to_double() );
     // Need a new painter since we changed the mods.
     rr::Painter             painter = renderer.painter();
     maybe<e_ground_terrain> ground  = ground_terrain_for_square(
@@ -575,42 +608,18 @@ void render_terrain_ground( Visibility const& viz,
   //      would appear to change as the map is scrolled.
   //   2. It should be different for each square (or at least ap-
   //      proximately.
-  //   3. It should be different for the two overlap stages below
-  //      (this is most important of the three).
-  //   4. It should be in the range of screen coordinates because
+  //   3. It should be in the range of screen coordinates because
   //      that is what the hash function in the fragment shader
   //      is calibrated for.
   //
-  Delta const anchor_offset = Delta{ .w = 10, .h = 10 }*(
-      world_square % Delta{ .w = 10, .h = 10 } );
-  {
-#if 1
-    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
-                             g_tile_overlap_stage_two_alpha );
-    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
-                             g_tile_overlap_stage_two_stage );
-    render_adjacent_overlap(
-        viz, renderer, where, world_square,
-        /*chop_percent=*/
-        clamp( 1.0 - g_tile_overlap_width_percent *
-                         g_tile_overlap_scaling,
-               0.0, 1.0 ),
-        anchor_offset );
-#endif
-#if 1
-    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
-                             g_tile_overlap_stage_one_alpha );
-    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
-                             g_tile_overlap_stage_one_stage );
-    render_adjacent_overlap(
-        viz, renderer, where, world_square,
-        /*chop_percent=*/
-        clamp( 1.0 - ( g_tile_overlap_width_percent / 2.0 ) *
-                         g_tile_overlap_scaling,
-               0.0, 1.0 ),
-        anchor_offset + g_tile_delta );
-#endif
-  }
+  Delta const hash_anchor_offset =
+      Delta{ .w = 10, .h = 10 } *
+      ( world_square % Delta{ .w = 10, .h = 10 } );
+  render_adjacent_overlap(
+      viz, renderer, where, world_square,
+      /*chop_percent=*/
+      clamp( 1.0 - g_tile_overlap_width_percent, 0.0, 1.0 ),
+      where + hash_anchor_offset );
 
   MapSquare const& left =
       viz.square_at( world_square - Delta{ .w = 1 } );
@@ -1079,7 +1088,7 @@ void render_river_hinting( Visibility const& viz,
   double const stage =
       is_edge ? kEdgeDepixelStage : kInnerDepixelStage;
   SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
-  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
+  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
                            where );
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                            stage );
@@ -2017,7 +2026,7 @@ void render_hidden_overlay(
     Coord const world_square, Visibility const& viz,
     refl::enum_map<e_direction, bool> const& visibility ) {
   SCOPED_RENDERER_MOD_SET(
-      painter_mods.depixelate.anchor,
+      painter_mods.depixelate.hash_anchor,
       ( where / Delta{ .w = 32, .h = 32 } ) );
   rr::Painter painter = renderer.painter();
   // The below will render 9 pieces, and will do so with dif-
@@ -2035,15 +2044,11 @@ void render_hidden_overlay(
 
   Rect const tile_rect = Rect::from( Coord{}, g_tile_delta );
 
-  int const kTotalEdgeThickness = 6;
+  int const kTotalEdgeThickness = 8;
   // Must be even because it straddles two tiles.
   static_assert( kTotalEdgeThickness % 2 == 0 );
 
-  int const    kEdgeThickness        = kTotalEdgeThickness / 2;
-  double const kDepixelateStage      = .3;
-  double const kDepixelateStageLight = .7;
-  double const kDpAlpha              = 1.0;
-  double const kDpAlphaLight         = .8;
+  int const kEdgeThickness = kTotalEdgeThickness / 2;
 
   // --------------- Center ----------------
 
@@ -2058,14 +2063,40 @@ void render_hidden_overlay(
 
   // Draw a transition on tile with visibility X to an adjacent
   // tile that is invisible.
-  auto x_to_inviz = [&]( Delta delta, Rect part ) {
+  auto x_to_inviz = [&]( Delta delta, Rect part,
+                         e_cardinal_direction d ) {
     if( part.area() == 0 ) return;
-    double const stage =
-        self_visible ? kDepixelateStageLight : 0.0;
-    double const alpha = self_visible ? kDpAlphaLight : 1.0;
-    SCOPED_RENDERER_MOD_SET( painter_mods.alpha, alpha );
+    double const stage_from = self_visible ? 1.0 : 0.0;
+    double const stage_to   = self_visible ? 0.5 : 0.0;
+    double const stage_slope =
+        abs( stage_to - stage_from ) / kEdgeThickness;
+    double     stage_nw = 0;
+    gfx::dsize gradient = {};
+    switch( d ) {
+      case e_cardinal_direction::n:
+        stage_nw = self_visible ? 0.5 : 0.0;
+        gradient = { .h = stage_slope };
+        break;
+      case e_cardinal_direction::s:
+        stage_nw = self_visible ? 1.0 : 0.0;
+        gradient = { .h = -stage_slope };
+        break;
+      case e_cardinal_direction::e:
+        stage_nw = self_visible ? 1.0 : 0.0;
+        gradient = { .w = -stage_slope };
+        break;
+      case e_cardinal_direction::w:
+        stage_nw = self_visible ? 0.5 : 0.0;
+        gradient = { .w = stage_slope };
+        break;
+    }
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
-                             stage );
+                             stage_nw );
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.depixelate.stage_gradient, gradient );
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.depixelate.stage_anchor,
+        ( where + delta ).to_gfx().to_double() );
     rr::Painter painter = renderer.painter();
     render_sprite_section( painter, e_tile::terrain_hidden,
                            where + delta, part );
@@ -2073,35 +2104,65 @@ void render_hidden_overlay(
 
   // Draw a transition on an invisible tile to an adjacent tile
   // that is visible.
-  auto inviz_to_viz = [&]( Delta delta, Rect part ) {
+  auto inviz_to_viz = [&]( Delta delta, Rect part,
+                           e_cardinal_direction d ) {
     if( self_visible ) return;
-    SCOPED_RENDERER_MOD_SET( painter_mods.alpha, kDpAlpha );
+    double const stage_from = 0.0;
+    double const stage_to   = 0.5;
+    double const stage_slope =
+        abs( stage_to - stage_from ) / kEdgeThickness;
+    gfx::dsize gradient = {};
+    double     stage_nw = 0;
+    switch( d ) {
+      case e_cardinal_direction::n:
+        stage_nw = 0.5;
+        gradient = { .h = -stage_slope };
+        break;
+      case e_cardinal_direction::s:
+        stage_nw = 0.0;
+        gradient = { .h = stage_slope };
+        break;
+      case e_cardinal_direction::e:
+        stage_nw = 0.0;
+        gradient = { .w = stage_slope };
+        break;
+      case e_cardinal_direction::w:
+        stage_nw = 0.5;
+        gradient = { .w = -stage_slope };
+        break;
+    }
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
-                             kDepixelateStage );
+                             stage_nw );
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.depixelate.stage_gradient, gradient );
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.depixelate.stage_anchor,
+        ( where + delta ).to_gfx().to_double() );
     rr::Painter painter = renderer.painter();
     render_sprite_section( painter, e_tile::terrain_hidden,
                            where + delta, part );
   };
 
   auto transition = [&]( Delta delta, Rect rect,
-                         e_direction d ) {
-    if( visibility[d] )
-      inviz_to_viz( delta, rect );
+                         e_cardinal_direction d ) {
+    if( visibility[to_direction( d )] )
+      inviz_to_viz( delta, rect, d );
     else {
-      Coord const moved = world_square.moved( d );
+      Coord const moved =
+          world_square.moved( to_direction( d ) );
       if( self_visible && !viz.on_map( moved ) )
         // This prevents drawing shadow transitions at the edge
         // of the map when those tiles are visible.
         return;
-      x_to_inviz( delta, rect );
+      x_to_inviz( delta, rect, d );
     }
   };
 
   // Top middle.
   {
-    e_direction const d = e_direction::n;
-    Delta const       delta{ .w = kEdgeThickness, .h = 0 };
-    Rect const        rect =
+    e_cardinal_direction const d = e_cardinal_direction::n;
+    Delta const delta{ .w = kEdgeThickness, .h = 0 };
+    Rect const  rect =
         tile_rect.with_new_left_edge( kEdgeThickness )
             .with_new_right_edge( g_tile_width - kEdgeThickness )
             .with_new_bottom_edge( kEdgeThickness );
@@ -2110,10 +2171,10 @@ void render_hidden_overlay(
 
   // Bottom middle.
   {
-    e_direction const d = e_direction::s;
-    Delta const       delta{ .w = kEdgeThickness,
-                             .h = g_tile_height - kEdgeThickness };
-    Rect const        rect =
+    e_cardinal_direction const d = e_cardinal_direction::s;
+    Delta const                delta{ .w = kEdgeThickness,
+                                      .h = g_tile_height - kEdgeThickness };
+    Rect const                 rect =
         tile_rect.with_new_left_edge( kEdgeThickness )
             .with_new_right_edge( g_tile_width - kEdgeThickness )
             .with_new_top_edge( g_tile_height - kEdgeThickness );
@@ -2122,9 +2183,9 @@ void render_hidden_overlay(
 
   // Left middle.
   {
-    e_direction const d = e_direction::w;
-    Delta const       delta{ .w = 0, .h = kEdgeThickness };
-    Rect const        rect =
+    e_cardinal_direction const d = e_cardinal_direction::w;
+    Delta const delta{ .w = 0, .h = kEdgeThickness };
+    Rect const  rect =
         tile_rect.with_new_top_edge( kEdgeThickness )
             .with_new_right_edge( kEdgeThickness )
             .with_new_bottom_edge( g_tile_height -
@@ -2134,10 +2195,10 @@ void render_hidden_overlay(
 
   // Right middle.
   {
-    e_direction const d = e_direction::e;
-    Delta const       delta{ .w = g_tile_width - kEdgeThickness,
-                             .h = kEdgeThickness };
-    Rect const        rect =
+    e_cardinal_direction const d = e_cardinal_direction::e;
+    Delta const delta{ .w = g_tile_width - kEdgeThickness,
+                       .h = kEdgeThickness };
+    Rect const  rect =
         tile_rect.with_new_top_edge( kEdgeThickness )
             .with_new_left_edge( g_tile_width - kEdgeThickness )
             .with_new_bottom_edge( g_tile_height -
@@ -2147,16 +2208,23 @@ void render_hidden_overlay(
 
   // --------------- Corners ----------------
 
-  auto corner = [&]( Delta delta, Rect part, e_direction d1,
-                     e_direction d2 ) {
+  double const kDepixelateStage      = .3;
+  double const kDepixelateStageLight = .7;
+  double const kDpAlpha              = 1.0;
+  double const kDpAlphaLight         = 0.8;
+
+  auto corner = [&]( Delta delta, Rect part,
+                     e_cardinal_direction d1,
+                     e_cardinal_direction d2 ) {
     if( part.area() == 0 ) return;
-    Coord const moved = world_square.moved( d1 ).moved( d2 );
+    Coord const moved = world_square.moved( to_direction( d1 ) )
+                            .moved( to_direction( d2 ) );
     if( self_visible && !viz.on_map( moved ) )
       // This prevents drawing shadow transitions at the edge
       // of the map when those tiles are visible.
       return;
-    bool const viz1      = visibility[d1];
-    bool const viz2      = visibility[d2];
+    bool const viz1      = visibility[to_direction( d1 )];
+    bool const viz2      = visibility[to_direction( d2 )];
     int const  viz_count = ( viz1 ? 1 : 0 ) + ( viz2 ? 1 : 0 );
     double     stage = 0.0, alpha = 0.0;
     if( self_visible ) {
@@ -2185,10 +2253,10 @@ void render_hidden_overlay(
 
   // Upper left.
   {
-    e_direction const d1 = e_direction::w;
-    e_direction const d2 = e_direction::n;
-    Delta const       delta{ .w = 0, .h = 0 };
-    Rect const        rect =
+    e_cardinal_direction const d1 = e_cardinal_direction::w;
+    e_cardinal_direction const d2 = e_cardinal_direction::n;
+    Delta const                delta{ .w = 0, .h = 0 };
+    Rect const                 rect =
         tile_rect.with_new_right_edge( kEdgeThickness )
             .with_new_bottom_edge( kEdgeThickness );
     corner( delta, rect, d1, d2 );
@@ -2196,11 +2264,11 @@ void render_hidden_overlay(
 
   // Upper right.
   {
-    e_direction const d1 = e_direction::n;
-    e_direction const d2 = e_direction::e;
-    Delta const       delta{ .w = g_tile_width - kEdgeThickness,
-                             .h = 0 };
-    Rect const        rect =
+    e_cardinal_direction const d1 = e_cardinal_direction::n;
+    e_cardinal_direction const d2 = e_cardinal_direction::e;
+    Delta const delta{ .w = g_tile_width - kEdgeThickness,
+                       .h = 0 };
+    Rect const  rect =
         tile_rect
             .with_new_left_edge( g_tile_width - kEdgeThickness )
             .with_new_bottom_edge( kEdgeThickness );
@@ -2209,11 +2277,11 @@ void render_hidden_overlay(
 
   // Bottom left.
   {
-    e_direction const d1 = e_direction::s;
-    e_direction const d2 = e_direction::w;
-    Delta const       delta{ .w = 0,
-                             .h = g_tile_width - kEdgeThickness };
-    Rect const        rect =
+    e_cardinal_direction const d1 = e_cardinal_direction::s;
+    e_cardinal_direction const d2 = e_cardinal_direction::w;
+    Delta const                delta{ .w = 0,
+                                      .h = g_tile_width - kEdgeThickness };
+    Rect const                 rect =
         tile_rect.with_new_right_edge( kEdgeThickness )
             .with_new_top_edge( g_tile_width - kEdgeThickness );
     corner( delta, rect, d1, d2 );
@@ -2221,11 +2289,11 @@ void render_hidden_overlay(
 
   // Bottom right.
   {
-    e_direction const d1 = e_direction::e;
-    e_direction const d2 = e_direction::s;
-    Delta const       delta{ .w = g_tile_width - kEdgeThickness,
-                             .h = g_tile_width - kEdgeThickness };
-    Rect const        rect =
+    e_cardinal_direction const d1 = e_cardinal_direction::e;
+    e_cardinal_direction const d2 = e_cardinal_direction::s;
+    Delta const delta{ .w = g_tile_width - kEdgeThickness,
+                       .h = g_tile_width - kEdgeThickness };
+    Rect const  rect =
         tile_rect
             .with_new_left_edge( g_tile_width - kEdgeThickness )
             .with_new_top_edge( g_tile_width - kEdgeThickness );

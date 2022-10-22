@@ -13,6 +13,9 @@
 // Under test.
 #include "src/render/vertex.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -34,6 +37,7 @@ TEST_CASE( "[render/vertex] SpriteVertex" ) {
   REQUIRE( gv.type == 0 );
   REQUIRE( gv.visible == 1 );
   REQUIRE( gv.depixelate == gl::vec4{} );
+  REQUIRE( gv.depixelate_stages == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{ .x = 3, .y = 4 } );
   REQUIRE( gv.atlas_center == gl::vec2{ .x = 5, .y = 6 } );
@@ -50,6 +54,7 @@ TEST_CASE( "[render/vertex] SolidVertex" ) {
   REQUIRE( gv.type == 1 );
   REQUIRE( gv.visible == 1 );
   REQUIRE( gv.depixelate == gl::vec4{} );
+  REQUIRE( gv.depixelate_stages == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{} );
   REQUIRE( gv.atlas_center == gl::vec2{} );
@@ -70,6 +75,7 @@ TEST_CASE( "[render/vertex] SilhouetteVertex" ) {
   REQUIRE( gv.type == 2 );
   REQUIRE( gv.visible == 1 );
   REQUIRE( gv.depixelate == gl::vec4{} );
+  REQUIRE( gv.depixelate_stages == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{ .x = 3, .y = 4 } );
   REQUIRE( gv.atlas_center == gl::vec2{ .x = 5, .y = 6 } );
@@ -90,6 +96,7 @@ TEST_CASE( "[render/vertex] StencilVertex" ) {
   REQUIRE( gv.type == 3 );
   REQUIRE( gv.visible == 1 );
   REQUIRE( gv.depixelate == gl::vec4{} );
+  REQUIRE( gv.depixelate_stages == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
   REQUIRE( gv.atlas_position == gl::vec2{ .x = 3, .y = 4 } );
   REQUIRE( gv.atlas_center == gl::vec2{ .x = 5, .y = 6 } );
@@ -107,30 +114,42 @@ TEST_CASE( "[render/vertex] depixelation" ) {
                      point{ .x = 3, .y = 4 },
                      point{ .x = 5, .y = 6 } );
   REQUIRE( vert.depixelation_stage() == 0.0 );
-  REQUIRE( vert.depixelation_anchor() == gl::vec2{} );
+  REQUIRE( vert.depixelation_hash_anchor() == gl::vec2{} );
+  REQUIRE( vert.depixelation_gradient() == gl::vec2{} );
+  REQUIRE( vert.depixelation_stage_anchor() == gl::vec2{} );
   REQUIRE( vert.generic().atlas_target_offset == gl::vec2{} );
   REQUIRE( vert.generic().depixelate == gl::vec4{} );
-  REQUIRE( vert.depixelation_stage() == 0.0 );
-  REQUIRE( vert.depixelation_anchor() == gl::vec2{} );
-  REQUIRE( vert.generic().atlas_target_offset == gl::vec2{} );
-  REQUIRE( vert.generic().depixelate == gl::vec4{} );
+  REQUIRE( vert.generic().depixelate_stages == gl::vec4{} );
+
   vert.set_depixelation_stage( .5 );
-  vert.set_depixelation_anchor( { .x = 1, .y = 2 } );
+  vert.set_depixelation_hash_anchor( { .x = 1, .y = 2 } );
+  vert.set_depixelation_gradient( { .w = 4.4, .h = 5.5 } );
+  vert.set_depixelation_stage_anchor( { .x = 3.3, .y = 4 } );
   vert.set_depixelation_inversion( false );
   REQUIRE( vert.depixelation_stage() == 0.5 );
-  REQUIRE( vert.depixelation_anchor() ==
+  REQUIRE( vert.depixelation_hash_anchor() ==
            gl::vec2{ .x = 1, .y = 2 } );
+  REQUIRE( vert.depixelation_gradient() ==
+           gl::vec2{ .x = 4.4, .y = 5.5 } );
   REQUIRE( vert.generic().atlas_target_offset == gl::vec2{} );
   REQUIRE( vert.generic().depixelate ==
            gl::vec4{ .x = 1, .y = 2, .z = .5, .w = 0 } );
+  REQUIRE( vert.generic().depixelate_stages ==
+           gl::vec4{ .x = 3.3, .y = 4, .z = 4.4, .w = 5.5 } );
+
   vert.set_depixelation_stage( 1.0 );
+  vert.set_depixelation_gradient( {} );
+  vert.set_depixelation_stage_anchor( {} );
   vert.set_depixelation_inversion( true );
   REQUIRE( vert.depixelation_stage() == 1.0 );
-  REQUIRE( vert.depixelation_anchor() ==
+  REQUIRE( vert.depixelation_hash_anchor() ==
            gl::vec2{ .x = 1, .y = 2 } );
+  REQUIRE( vert.depixelation_gradient() == gl::vec2{} );
+  REQUIRE( vert.depixelation_stage_anchor() == gl::vec2{} );
   REQUIRE( vert.generic().atlas_target_offset == gl::vec2{} );
   REQUIRE( vert.generic().depixelate ==
            gl::vec4{ .x = 1, .y = 2, .z = 1.0, .w = 1 } );
+  REQUIRE( vert.generic().depixelate_stages == gl::vec4{} );
 }
 
 TEST_CASE( "[render/vertex] visibility" ) {

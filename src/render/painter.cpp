@@ -95,8 +95,31 @@ void Painter::add_mods( VertexBase&        vert,
                         PainterMods const& mods ) {
   if( mods.depixelate.stage.has_value() )
     vert.set_depixelation_stage( *mods.depixelate.stage );
-  if( mods.depixelate.anchor.has_value() )
-    vert.set_depixelation_anchor( *mods.depixelate.anchor );
+  if( mods.depixelate.hash_anchor.has_value() )
+    vert.set_depixelation_hash_anchor(
+        *mods.depixelate.hash_anchor );
+  if( mods.depixelate.stage_gradient.has_value() ) {
+    // Sanity check to help debugging.
+    CHECK( mods.depixelate.stage.has_value(),
+           "to use a depixelation gradient you have to set a "
+           "depixelation stage." );
+    CHECK( mods.depixelate.stage_anchor.has_value(),
+           "depixelation stage gradient set but not stage "
+           "anchor." );
+    vert.set_depixelation_gradient(
+        *mods.depixelate.stage_gradient );
+  }
+  if( mods.depixelate.stage_anchor.has_value() ) {
+    // Sanity check to help debugging.
+    CHECK( mods.depixelate.stage.has_value(),
+           "to use a depixelation gradient you have to set a "
+           "depixelation stage." );
+    CHECK( mods.depixelate.stage_gradient.has_value(),
+           "depixelation stage anchor set but not stage "
+           "gradient." );
+    vert.set_depixelation_stage_anchor(
+        *mods.depixelate.stage_anchor );
+  }
   if( mods.depixelate.inverted.has_value() )
     vert.set_depixelation_inversion( *mods.depixelate.inverted );
   if( mods.repos.scale.has_value() )

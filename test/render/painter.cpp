@@ -826,9 +826,10 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
 
   Painter painter = unmodded_painter.with_mods(
       { .depixelate =
-            DepixelateInfo{ .stage    = .7,
-                            .inverted = {},
-                            .anchor = point{ .x = 1, .y = 2 } },
+            DepixelateInfo{
+                .stage       = .7,
+                .inverted    = {},
+                .hash_anchor = point{ .x = 1, .y = 2 } },
         .alpha = nothing,
         .repos = {} } );
 
@@ -839,7 +840,7 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
   auto Vert = [&]( point p, point atlas_p ) {
     auto vert = SilhouetteVertex( p, atlas_p, atlas_center, R );
     vert.set_depixelation_stage( .7 );
-    vert.set_depixelation_anchor( { .x = 1, .y = 2 } );
+    vert.set_depixelation_hash_anchor( { .x = 1, .y = 2 } );
     return vert.generic();
   };
 
@@ -867,9 +868,10 @@ TEST_CASE( "[render/painter] mod depixelate with inversion" ) {
 
   Painter painter = unmodded_painter.with_mods(
       { .depixelate =
-            DepixelateInfo{ .stage    = .7,
-                            .inverted = true,
-                            .anchor = point{ .x = 1, .y = 2 } },
+            DepixelateInfo{
+                .stage       = .7,
+                .inverted    = true,
+                .hash_anchor = point{ .x = 1, .y = 2 } },
         .alpha = nothing,
         .repos = {} } );
 
@@ -881,7 +883,7 @@ TEST_CASE( "[render/painter] mod depixelate with inversion" ) {
     auto vert = SilhouetteVertex( p, atlas_p, atlas_center, R );
     vert.set_depixelation_stage( .7 );
     vert.set_depixelation_inversion( true );
-    vert.set_depixelation_anchor( { .x = 1, .y = 2 } );
+    vert.set_depixelation_hash_anchor( { .x = 1, .y = 2 } );
     return vert.generic();
   };
 

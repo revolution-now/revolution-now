@@ -53,8 +53,17 @@ struct VertexBase : protected GenericVertex {
   // Used to allow the depixelation animation to proceed deter-
   // ministically even as the sprite being depixelated moves
   // around.
-  void     set_depixelation_anchor( gfx::point anchor );
-  gl::vec2 depixelation_anchor() const;
+  void     set_depixelation_hash_anchor( gfx::point anchor );
+  gl::vec2 depixelation_hash_anchor() const;
+  // Specifies how the depixelation stage should vary across the
+  // triangle. Each component is a slope, thus the depixelation
+  // stage will vary like a 2d plane.
+  void     set_depixelation_gradient( gfx::dsize gradient );
+  gl::vec2 depixelation_gradient() const;
+  // This is the anchor point from which the depixelation stage
+  // will be extrapolated if it is gradiated.
+  void     set_depixelation_stage_anchor( gfx::dpoint anchor );
+  gl::vec2 depixelation_stage_anchor() const;
   // Flips the state of each pixel.
   void set_depixelation_inversion( bool inverted );
   bool depixelation_inversion() const;

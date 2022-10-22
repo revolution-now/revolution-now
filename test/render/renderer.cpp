@@ -45,6 +45,7 @@ vector<tuple<int, string, bool>> const kExpectedAttributes{
     { GL_INT, "in_type", true },                        //
     { GL_INT, "in_visible", true },                     //
     { GL_FLOAT_VEC4, "in_depixelate", false },          //
+    { GL_FLOAT_VEC4, "in_depixelate_stages", false },   //
     { GL_FLOAT_VEC2, "in_position", false },            //
     { GL_FLOAT_VEC2, "in_atlas_position", false },      //
     { GL_FLOAT_VEC2, "in_atlas_center", false },        //

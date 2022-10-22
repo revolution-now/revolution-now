@@ -12,6 +12,7 @@
 
 flat in int   frag_type;
 flat in vec4  frag_depixelate;
+flat in vec4  frag_depixelate_stages;
      in vec2  frag_position;
      in vec2  frag_atlas_position;
 flat in vec2  frag_atlas_center;
@@ -138,8 +139,49 @@ float hash_position() {
   return hash_vec2( floor( hash_position )/screen_scale );
 }
 
+// This function will compute the depixelation stage by taking
+// the base stage and extrapolating it over the triangle using
+// the gradient. The reason that we don't let OpenGL interpolate
+// this for us is because 1) then we'd have to set the depixela-
+// tion stage differently at each vertex in the triangle which is
+// more complex for the renderer, and 2) we wouldn't have a way
+// to sample the depixelation stage at the upper left corner of
+// the logic pixel which is what we need to maintain the illusion
+// of logical pixels and is what we do below (otherwise the stage
+// would vary continuously within the logical pixels and produce
+// differently-sized pixels). #1 is an inconvenience, but #2
+// proved to be a deal breaker; hence we do it the way we do it.
+float depixel_stage() {
+  // When depixelation is gradiated, the anchor is required to
+  // represent the upper left of the tile (a stronger requirement
+  // than it just being fixed relative to the points on the tri-
+  // angle, which is the requirement for non-gradiated depixela-
+  // tion).
+  vec2 stage_anchor = frag_depixelate_stages.xy;
+  // We need to floor the distance from the anchor so that we
+  // sample the depixelation stage at a fixed point within each
+  // logical pixel. If we don't do this them the depixelation
+  // starts to appear within logical pixels, which does not look
+  // right since it yields pixels of different sizes.
+  vec2 dist_from_anchor =
+      floor( (frag_position-stage_anchor)/frag_scaling );
+  // The gradient has units of inverse logical pixels, so to un-
+  // scale it we multiply by the scaling. We can't cancel out
+  // this factor with the one in the dist_from_anchor because
+  // that one needs to be floor'd first.
+  vec2 stage_deltas = frag_depixelate_stages.zw*
+                      dist_from_anchor*frag_scaling;
+  // Think of the stage as a 2d plane, f(x,y). We know the value
+  // at the upper left corner of the tile (stage_base) and we
+  // need to extrapolate down to our point (really, the upper
+  // left corner of the logical pixel that we're currently in).
+  float stage_base = frag_depixelate.z;
+  float stage = stage_base + stage_deltas.x + stage_deltas.y;
+  return stage;
+}
+
 vec4 depixelate( in vec4 c ) {
-  float animation_stage = frag_depixelate.z;
+  float animation_stage = depixel_stage();
   bool on = ( hash_position() >  animation_stage );
   float inverted = frag_depixelate.w;
   if( inverted != 0.0 ) on = !on;
@@ -214,7 +256,9 @@ void main() {
   }
 
   // Depixelation.
-  if( frag_depixelate.z > 0.0 )
+  bool depixel_enabled = frag_depixelate.z != 0 ||
+                         frag_depixelate_stages.zw != vec2( 0, 0 );
+  if( depixel_enabled )
     color = depixelate( color );
 
   // Color cycling.

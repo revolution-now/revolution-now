@@ -841,7 +841,7 @@ struct LandViewPlane::Impl : public Plane {
     // Now render the depixelating unit.
     Coord loc = render_rect_for_tile( covered, depixelate_tile )
                     .upper_left();
-    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
                              loc );
     // Check if we are depixelating to another unit.
     switch( dp_anim.type ) {
@@ -896,15 +896,15 @@ struct LandViewPlane::Impl : public Plane {
         animation,
         base::lookup( colony_animations_, colony.id )
             .get_if<UnitAnimation::depixelate_colony>() );
-    // As usual, the anchor coord is arbitrary so long as its po-
-    // sition is fixed relative to the sprite.
-    Coord anchor =
+    // As usual, the hash anchor coord is arbitrary so long as
+    // its position is fixed relative to the sprite.
+    Coord const hash_anchor =
         render_rect_for_tile( covered, colony.location )
             .upper_left();
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                              animation.stage );
-    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
-                             anchor );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
+                             hash_anchor );
     rr::Painter painter = renderer.painter();
     render_colony( renderer, painter, covered, colony );
   }

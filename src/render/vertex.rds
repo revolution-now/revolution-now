@@ -13,6 +13,8 @@ include "gl/attribs.hpp"
 
 namespace "rr"
 
+# TODO: to avoid wasting space on padding, these fields should be
+# sorted in terms of largest first.
 struct.GenericVertex {
   # The type of object that this vertex is a part of.  Possible
   # value are:
@@ -68,22 +70,31 @@ struct.GenericVertex {
   # tion is governed by hashing the screen coordinate. To support
   # this we use the xy coordinates of this vector.
   #
-  # The xy component specifies a reference point which is a
-  # screen/game coordinate that moves with the square being ren-
-  # dered, such that the distance between this coordinate a given
-  # vertex on the square remains fixed even as that square moves
-  # around on screen. For example, this could be the screen coor-
-  # dinate of the upper left corner of the sprite being depixe-
-  # lated. This is used in the depixelation hashing algorithm to
-  # make the hashing values independent of where the square is
-  # located on screen. This way, if something is depixelating,
-  # the animation proceeds properly even if the square is simul-
-  # taneously moving. It can be an arbitrary position relative to
-  # the square, but it would usually be the upper left corner.
+  # The xy component specifies a reference point ("hash anchor")
+  # which is a screen/game coordinate that moves with the square
+  # being rendered, such that the distance between this coordi-
+  # nate a given vertex on the square remains fixed even as that
+  # square moves around on screen. For example, this could be the
+  # screen coordinate of the upper left corner of the sprite
+  # being depixelated. This is used in the depixelation hashing
+  # algorithm to make the hashing values independent of where the
+  # square is located on screen. This way, if something is depix-
+  # elating, the animation proceeds properly even if the square
+  # is simultaneously moving. It can be an arbitrary position
+  # relative to the square, but it would usually be the upper
+  # left corner.
   #
   # This is a flat vertex attribute, meaning that it must be the
   # same for all vertices in the square.
   depixelate 'gl::vec4',
+
+  # Specifies how the depixelation stage should vary across the
+  # triangle. The zw components form slopes, thus the depixela-
+  # tion stage will vary like a 2d plane. The xy components are
+  # the anchor point from which the base value should be extrapo-
+  # lated. In general this can be different from the depixelation
+  # anchor.
+  depixelate_stages 'gl::vec4',
 
   # Position of the vertex in game coordinates, i.e. where one
   # unit corresponds to one logical pixel and where the origin is

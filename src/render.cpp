@@ -145,11 +145,11 @@ void render_nationality_icon( rr::Renderer&             renderer,
 }
 
 void depixelate_from_to(
-    rr::Renderer& renderer, double stage, gfx::point anchor,
+    rr::Renderer& renderer, double stage, gfx::point hash_anchor,
     base::function_ref<void( rr::Painter& painter )> from,
     base::function_ref<void( rr::Painter& painter )> to ) {
-  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.anchor,
-                           anchor );
+  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
+                           hash_anchor );
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                            stage );
   // The ordering of these should actually not matter, because we
