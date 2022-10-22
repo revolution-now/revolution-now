@@ -38,6 +38,9 @@ namespace lua {
 // The current iterator could be kept since it could theoreti-
 // cally be useful, but if so, then at least it should be renamed
 // to something like "explicit k/v table iterator."
+//
+// FIXME: do the above using base::generator<T>.
+
 struct raw_table_iterator {
   using iterator_category = std::input_iterator_tag;
   using difference_type   = int;
