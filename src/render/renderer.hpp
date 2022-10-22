@@ -48,24 +48,24 @@ namespace rr {
 // possible so that nested scopes can compound their changes in-
 // stead of overwriting them.
 //
-#define SCOPED_RENDERER_MOD_SET( leaf_path, mod )           \
+#define SCOPED_RENDERER_MOD_SET( leaf_path, ... )           \
   auto STRING_JOIN( __scoped_renderer_popper_, __LINE__ ) = \
       renderer.push_mods( [&]( rr::RendererMods& mods ) {   \
-        mods.leaf_path = mod;                               \
+        mods.leaf_path = __VA_ARGS__;                       \
       } );
 
-#define SCOPED_RENDERER_MOD_ADD( leaf_path, mod )           \
+#define SCOPED_RENDERER_MOD_ADD( leaf_path, ... )           \
   auto STRING_JOIN( __scoped_renderer_popper_, __LINE__ ) = \
       renderer.push_mods( [&]( rr::RendererMods& mods ) {   \
         if( !mods.leaf_path.has_value() )                   \
           mods.leaf_path.emplace();                         \
-        *mods.leaf_path += mod;                             \
+        *mods.leaf_path += __VA_ARGS__;                     \
       } );
 
 // This one only really works for numbers, since we have to ini-
 // tialize it to something that is the identity, and it's hard to
 // do that for types in general.
-#define SCOPED_RENDERER_MOD_MUL( leaf_path, mod )             \
+#define SCOPED_RENDERER_MOD_MUL( leaf_path, ... )             \
   static_assert(                                              \
       std::is_integral_v<std::remove_cvref_t<                 \
           decltype( *std::declval<::rr::RendererMods>()       \
@@ -76,7 +76,7 @@ namespace rr {
   auto STRING_JOIN( __scoped_renderer_popper_, __LINE__ ) =   \
       renderer.push_mods( [&]( rr::RendererMods& mods ) {     \
         if( !mods.leaf_path.has_value() ) mods.leaf_path = 1; \
-        *mods.leaf_path *= mod;                               \
+        *mods.leaf_path *= __VA_ARGS__;                       \
       } );
 
 /****************************************************************
