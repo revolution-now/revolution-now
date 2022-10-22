@@ -18,6 +18,12 @@ local YELLOW = string.char( 27 ) .. '[93m'
 local BOLD = string.char( 27 ) .. '[1m'
 local UNDER = string.char( 27 ) .. '[4m'
 
+function M.ASSERT_EQ_APPROX( l, r, desc )
+  if math.abs( l - r ) < .000001 then return end
+  error( desc .. ' are not equal: ' .. tostring( l ) .. ' != ' ..
+             tostring( r ) )
+end
+
 function M.ASSERT_EQ( l, r, desc )
   if l == r then return end
   error( desc .. ' are not equal: ' .. tostring( l ) .. ' != ' ..

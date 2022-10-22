@@ -168,7 +168,7 @@ check_weights( dry_weights )
 check_weights( wet_weights )
 
 local function weights_for_row( map_height, weights, row )
-  if map_height % 2 == 1 and row == map_height//2 then
+  if map_height % 2 == 1 and row == map_height // 2 then
     -- This happens if we have an odd map height and the row in
     -- questing is the center row, which will cause the code fur-
     -- ther below to not work right, so we'll just use the same
@@ -198,15 +198,6 @@ local function weights_for_row( map_height, weights, row )
   for type, _ in pairs( weights[adjacent_slice_idx] ) do
     unique_types[type] = true
   end
-  -- This needs to be an array because the order has to be deter-
-  -- ministic because we are going to iterate over the types it
-  -- contains when randomly choosing one.
-  local all_types = {}
-  for type, _ in pairs( weights[slice_idx] ) do
-    table.insert( all_types, type )
-  end
-  table.sort( all_types )
-
   local total = 0
   -- Weight the two slices according to how close the row is to
   -- each of them. If the row is in the center of a slice, then
@@ -220,21 +211,18 @@ local function weights_for_row( map_height, weights, row )
   assert( weight2 >= 0.0 )
   assert( weight1 <= 1.0 )
   assert( weight2 <= 1.0 )
-  -- This needs to be an array because the order matters.
   local linear_combo_weights = {}
-  for _, type in ipairs( all_types ) do
+  for type, _ in pairs( unique_types ) do
     local slice1 = weights[slice_idx][type] or 0
     local slice2 = weights[adjacent_slice_idx][type] or 0
-    local weight_for_type = {
-      type=type,
-      value=weight1 * slice1 + weight2 * slice2
-    }
-    table.insert( linear_combo_weights, weight_for_type )
-    total = total + weight_for_type.value
+    linear_combo_weights[type] =
+        weight1 * slice1 + weight2 * slice2
+    total = total + linear_combo_weights[type]
   end
   -- Normalize the weights so that they sum to 1.
-  for _, weight in ipairs( linear_combo_weights ) do
-    weight.value = weight.value / total
+  for type, weight in pairs( linear_combo_weights ) do
+    linear_combo_weights[type] =
+        linear_combo_weights[type] / total
   end
   return linear_combo_weights
 end
@@ -251,9 +239,9 @@ end
 function M.select_from_weights( weights )
   local cut = math.random()
   local total = 0.0
-  for _, weight in ipairs( weights ) do
-    total = total + weight.value
-    if total > cut then return weight.type end
+  for type, weight in pairs( weights ) do
+    total = total + weight
+    if total > cut then return type end
   end
   error( 'should not be here.' )
 end

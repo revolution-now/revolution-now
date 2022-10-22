@@ -18,4 +18,11 @@ function M.copy_table( tbl )
   return res
 end
 
+-- Counts the number of key/value pairs in a table.
+function M.table_size( tbl )
+  local count = 0
+  for k, v in pairs( tbl ) do count = count + 1 end
+  return count
+end
+
 return M
