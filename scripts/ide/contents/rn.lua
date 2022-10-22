@@ -2,8 +2,5 @@
 
 return {
   'exe/main',
-  'harbor-view-dock',
-  'treasure',
-  'render/vertex',
-  'render/generic',
+  'render-terrain',
 }
