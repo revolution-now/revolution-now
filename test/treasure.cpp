@@ -209,6 +209,7 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
   f();
 }
 
+#ifndef COMPILER_GCC
 TEST_CASE( "[treasure] treasure_enter_colony" ) {
   World   W;
   Player& player = W.default_player();
@@ -317,6 +318,7 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
       .returns<maybe<string>>( "yes" );
   REQUIRE( f() == expected );
 }
+#endif
 
 } // namespace
 } // namespace rn

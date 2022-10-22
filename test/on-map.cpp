@@ -76,6 +76,7 @@ TEST_CASE( "[on-map] non-interactive: moves the unit" ) {
            Coord{ .x = 0, .y = 1 } );
 }
 
+#ifndef COMPILER_GCC
 TEST_CASE( "[on-map] interactive: discovers new world" ) {
   World        W;
   Player&      player  = W.default_player();
@@ -163,6 +164,7 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
     REQUIRE( !W.units().exists( unit_id ) );
   }
 }
+#endif
 
 TEST_CASE( "[on-map] non-interactive: updates visibility" ) {
   World W;
