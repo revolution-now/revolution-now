@@ -39,11 +39,11 @@ void paint_things( rr::Renderer& renderer ) {
       { dsize{ .w = -grad_mag, .h = -grad_mag }, 1.0 },
   };
 
-  for( auto [d, base_stage] : directions ) {
+  for( auto p : directions ) {
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
-                             base_stage );
+                             p.second );
     SCOPED_RENDERER_MOD_SET(
-        painter_mods.depixelate.stage_gradient, d );
+        painter_mods.depixelate.stage_gradient, p.first );
     r = rect{ .origin = { .x = x, .y = 50 },
               .size   = { .w = 100, .h = 100 } };
     SCOPED_RENDERER_MOD_SET(
