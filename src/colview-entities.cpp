@@ -582,8 +582,9 @@ class CargoView : public ui::View,
   wait<> drop( ColViewObject_t const& o,
                Coord const&           where ) override {
     CHECK( holder_ );
-    auto&   cargo_hold = ss_.units.unit_for( *holder_ ).cargo();
-    Cargo_t cargo      = to_cargo( o );
+    Unit&   holder_unit = ss_.units.unit_for( *holder_ );
+    auto&   cargo_hold  = holder_unit.cargo();
+    Cargo_t cargo       = to_cargo( o );
     CHECK( cargo_hold.fits_somewhere( ss_.units, cargo ) );
     UNWRAP_CHECK( slot_info, slot_idx_from_coord( where ) );
     auto [is_open, slot_idx] = slot_info;
@@ -604,6 +605,9 @@ class CargoView : public ui::View,
                                   slot_idx,
                                   /*try_other_slots=*/true );
         } );
+    // We've added something to the cargo; the OG will clear the
+    // orders of the cargo holder for a good player experience.
+    holder_unit.clear_orders();
     co_return;
   }
 
