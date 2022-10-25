@@ -30,7 +30,7 @@ namespace rn {
 namespace {} // namespace
 
 /****************************************************************
-** Public API
+** Harbor
 *****************************************************************/
 vector<HarborEquipOption> harbor_equip_options(
     SSConst const& ss, Player const& player,
@@ -209,6 +209,62 @@ PriceChange perform_harbor_equip_option(
     price_change = invoice.price_change;
   }
   return price_change;
+}
+
+/****************************************************************
+** Colony
+*****************************************************************/
+vector<ColonyEquipOption> colony_equip_options(
+    Colony const& colony, UnitComposition const& unit_comp ) {
+  unordered_map<e_commodity, int> const commodity_store = [&] {
+    unordered_map<e_commodity, int> res;
+    // Should be enough for any change.
+    for( e_commodity comm : refl::enum_values<e_commodity> )
+      res[comm] = colony.commodities[comm];
+    return res;
+  }();
+  vector<UnitTransformationResult> const transformations =
+      possible_unit_transformations( unit_comp,
+                                     commodity_store );
+  vector<ColonyEquipOption> options;
+  for( auto const& transformation : transformations ) {
+    for( auto& [modifier, modifier_delta] :
+         transformation.modifier_deltas ) {
+      if( !config_unit_type.composition.modifier_traits[modifier]
+               .player_can_grant )
+        // This will prevent us from e.g. granting "independence"
+        // status to a veteran soldier and making it a conti-
+        // nental soldier.
+        goto skip;
+    }
+    {
+      ColonyEquipOption option;
+      option.new_comp = transformation.new_comp;
+      for( auto [comm, q] : transformation.commodity_deltas )
+        if( q > 0 ) //
+          option.commodity_deltas[comm] = q;
+      options.push_back( std::move( option ) );
+    }
+  skip:;
+  }
+  return options;
+}
+
+string colony_equip_description(
+    ColonyEquipOption const& option ) {
+  return config_unit_type.composition
+      .unit_types[option.new_comp.type()]
+      .name;
+}
+
+void perform_colony_equip_option(
+    Colony& colony, Player const& player, Unit& unit,
+    ColonyEquipOption const& option ) {
+  unit.change_type( player, option.new_comp );
+  for( auto& [comm, delta] : option.commodity_deltas ) {
+    colony.commodities[comm] += delta;
+    CHECK_GE( colony.commodities[comm], 0 );
+  }
 }
 
 } // namespace rn

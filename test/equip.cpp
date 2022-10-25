@@ -421,7 +421,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
   }
 }
 
-TEST_CASE( "[equip] equip_description" ) {
+TEST_CASE( "[equip] harbor_equip_description" ) {
   HarborEquipOption option;
 
   auto f = [&] { return harbor_equip_description( option ); };
@@ -516,7 +516,7 @@ TEST_CASE( "[equip] equip_description" ) {
   REQUIRE( f() == "Cancel @[H]Missionary@[] status." );
 }
 
-TEST_CASE( "[equip] perform_equip_option" ) {
+TEST_CASE( "[equip] perform_harbor_equip_option" ) {
   World             W;
   Player&           player = W.default_player();
   HarborEquipOption option;

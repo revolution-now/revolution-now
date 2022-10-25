@@ -44,6 +44,7 @@
 
 // base
 #include "base/lambda.hpp"
+#include "base/to-str-ext-std.hpp"
 
 using namespace std;
 

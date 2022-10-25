@@ -21,6 +21,7 @@
 #include "commodity.hpp"
 #include "compositor.hpp"
 #include "construction.hpp"
+#include "equip.hpp"
 #include "gui.hpp"
 #include "interrupts.hpp"
 #include "land-production.hpp"
@@ -57,6 +58,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/conv.hpp"
 #include "base/maybe-util.hpp"
 
 using namespace std;
@@ -145,6 +147,58 @@ maybe<string> check_seige() {
   // colonists are not allowed to move from the fields to the
   // gates.
   return nothing;
+}
+
+// This function is called when we are dragging a unit who is
+// working inside the colony to a place outside the colony,
+// meaning that it will be removed from the colony. Before we do
+// that, we need to check if we are abandoning this colony by
+// doing so. In that case, we should allow the user to salvage
+// any horses, tools, or muskets in the store to transform the
+// unit into a scout, pioneer, or soldier. Otherwise, the colony
+// would be abandoned and those commodities would be lost. In
+// other words, if we didn't do this, there would be no way to
+// e.g. found a colony with a scout (leaving 50 horses in the
+// colony) and then abandon it reproducing the same scout (this
+// is useful e.g. when a scout finds treasure in a remote part of
+// the map and needs to move it into a colony for transport by
+// the king).
+wait<maybe<ColonyEquipOption>> ask_transorm_unit_on_leave(
+    TS& ts, Player const& player, Colony const& colony,
+    Unit const& unit ) {
+  if( colony_population( colony ) > 1 ) co_return nothing;
+  ChoiceConfig config{
+      .msg = fmt::format(
+          "As this action would abandon the colony and discard "
+          "all of its contents, shall we equip this @[H]{}@[] "
+          "before proceeding?",
+          unit.desc().name ),
+      .options = {},
+      .sort    = false,
+  };
+  vector<ColonyEquipOption> const equip_opts =
+      colony_equip_options( colony, unit.composition() );
+  static string const kNoChangesKey = "no changes";
+  config.options.push_back(
+      { .key = kNoChangesKey, .display_name = "No Changes." } );
+  for( int idx = 0; idx < int( equip_opts.size() ); ++idx ) {
+    ColonyEquipOption const& equip_opt = equip_opts[idx];
+    if( equip_opt.new_comp == unit.composition() ) continue;
+    ChoiceConfigOption option{
+        .key          = fmt::to_string( idx ),
+        .display_name = colony_equip_description( equip_opt ) };
+    config.options.push_back( std::move( option ) );
+  }
+  maybe<string> const choice =
+      co_await ts.gui.optional_choice( config );
+  if( !choice.has_value() ) co_return nothing;
+  if( choice == kNoChangesKey ) co_return nothing;
+  // Assume we have an index into the ColonyEquipOptions vector.
+  UNWRAP_CHECK( chosen_idx, base::from_chars<int>( *choice ) );
+  CHECK_GE( chosen_idx, 0 );
+  CHECK_LT( chosen_idx, int( equip_opts.size() ) );
+  // This will change the unit type.
+  co_return equip_opts[chosen_idx];
 }
 
 /****************************************************************
@@ -378,6 +432,7 @@ class CargoView : public ui::View,
                   public IDragSource<ColViewObject_t>,
                   public IDragSourceUserEdit<ColViewObject_t>,
                   public IDragSink<ColViewObject_t>,
+                  public IDragSinkUserEdit<ColViewObject_t>,
                   public IDragSinkCheck<ColViewObject_t> {
  public:
   static unique_ptr<CargoView> create( SS& ss, TS& ts,
@@ -543,6 +598,42 @@ class CargoView : public ui::View,
     }
   }
 
+  // Implement IDragSinkUserEdit.
+  wait<maybe<ColViewObject_t>> user_edit_object(
+      ColViewObject_t const& o, int from_entity,
+      Coord const ) const override {
+    CONVERT_ENTITY( from_enum, from_entity );
+    switch( from_enum ) {
+      case e_colview_entity::units_at_gate:
+      case e_colview_entity::commodities:
+      case e_colview_entity::cargo: //
+        co_return o;
+      case e_colview_entity::land:
+      case e_colview_entity::buildings: {
+        // We're dragging an in-colony unit to the gate, so check
+        // if it is the last remaining colonist in the colony
+        // and, if so, if the user wants to equip it with any
+        // horses, tools, or muskets as it leaves and the colony
+        // disappears.
+        UNWRAP_CHECK( draggable_unit,
+                      o.get_if<ColViewObject::unit>() );
+        ColViewObject::unit new_draggable_unit = draggable_unit;
+        Unit const&         unit =
+            ss_.units.unit_for( draggable_unit.id );
+        maybe<ColonyEquipOption> const equip_options =
+            co_await ask_transorm_unit_on_leave( ts_, player_,
+                                                 colony_, unit );
+        if( equip_options.has_value() )
+          new_draggable_unit.transformed = *equip_options;
+        co_return new_draggable_unit;
+      }
+      case e_colview_entity::population:
+      case e_colview_entity::title_bar:
+      case e_colview_entity::production:
+        FATAL( "unexpected source entity." );
+    }
+  }
+
   wait<base::valid_or<DragRejection>> sink_check(
       ColViewObject_t const& o, int from_entity,
       Coord const ) override {
@@ -590,7 +681,18 @@ class CargoView : public ui::View,
     auto [is_open, slot_idx] = slot_info;
     overload_visit(
         cargo, //
-        [this, slot_idx = slot_idx]( Cargo::unit u ) {
+        [&, this]( Cargo::unit u ) {
+          UNWRAP_CHECK( draggable_unit,
+                        o.get_if<ColViewObject::unit>() );
+          CHECK( draggable_unit.id == u.id );
+          if( draggable_unit.transformed.has_value() ) {
+            Unit& to_transform = ss_.units.unit_for( u.id );
+            // This will change the unit type and modify colony
+            // commodity quantities.
+            perform_colony_equip_option(
+                colony_, player_, to_transform,
+                *draggable_unit.transformed );
+          }
           ss_.units.change_to_cargo_somewhere(
               *holder_, u.id, /*starting_slot=*/slot_idx );
           // Check if we've abandoned the colony, which could
@@ -760,6 +862,7 @@ class UnitsAtGateColonyView
     public ColonySubView,
     public IDragSource<ColViewObject_t>,
     public IDragSink<ColViewObject_t>,
+    public IDragSinkUserEdit<ColViewObject_t>,
     public IDragSinkCheck<ColViewObject_t> {
  public:
   static unique_ptr<UnitsAtGateColonyView> create(
@@ -888,6 +991,42 @@ class UnitsAtGateColonyView
             ss_.units, Cargo::unit{ dragged } ) )
       return nothing;
     return ColViewObject::unit{ .id = dragged };
+  }
+
+  // Implement IDragSinkUserEdit.
+  wait<maybe<ColViewObject_t>> user_edit_object(
+      ColViewObject_t const& o, int from_entity,
+      Coord const ) const override {
+    CONVERT_ENTITY( from_enum, from_entity );
+    switch( from_enum ) {
+      case e_colview_entity::units_at_gate:
+      case e_colview_entity::commodities:
+      case e_colview_entity::cargo: //
+        co_return o;
+      case e_colview_entity::land:
+      case e_colview_entity::buildings: {
+        // We're dragging an in-colony unit to the gate, so check
+        // if it is the last remaining colonist in the colony
+        // and, if so, if the user wants to equip it with any
+        // horses, tools, or muskets as it leaves and the colony
+        // disappears.
+        UNWRAP_CHECK( draggable_unit,
+                      o.get_if<ColViewObject::unit>() );
+        ColViewObject::unit new_draggable_unit = draggable_unit;
+        Unit const&         unit =
+            ss_.units.unit_for( draggable_unit.id );
+        maybe<ColonyEquipOption> const equip_options =
+            co_await ask_transorm_unit_on_leave( ts_, player_,
+                                                 colony_, unit );
+        if( equip_options.has_value() )
+          new_draggable_unit.transformed = *equip_options;
+        co_return new_draggable_unit;
+      }
+      case e_colview_entity::population:
+      case e_colview_entity::title_bar:
+      case e_colview_entity::production:
+        FATAL( "unexpected source entity." );
+    }
   }
 
   wait<base::valid_or<DragRejection>> sink_check(
@@ -1024,21 +1163,31 @@ class UnitsAtGateColonyView
     maybe<UnitId> target_unit = contains_unit( where );
     overload_visit(
         o, //
-        [&]( ColViewObject::unit const& unit ) {
+        [&]( ColViewObject::unit const& draggable_unit ) {
+          if( draggable_unit.transformed.has_value() ) {
+            Unit& to_transform =
+                ss_.units.unit_for( draggable_unit.id );
+            // This will change the unit type and modify colony
+            // commodity quantities.
+            perform_colony_equip_option(
+                colony_, player_, to_transform,
+                *draggable_unit.transformed );
+          }
           if( target_unit ) {
             ss_.units.change_to_cargo_somewhere(
                 /*new_holder=*/*target_unit,
-                /*held=*/unit.id );
+                /*held=*/draggable_unit.id );
             // !! Need to fall through here since we may have
             // abandoned the colony.
           } else {
             unit_to_map_square_non_interactive(
-                ss_, ts_, unit.id, colony_.location );
+                ss_, ts_, draggable_unit.id, colony_.location );
             // This is not strictly necessary, but as a conve-
             // nience to the user, clear the orders, otherwise it
             // would be sentry'd, which is probably not what the
             // player wants.
-            ss_.units.unit_for( unit.id ).clear_orders();
+            ss_.units.unit_for( draggable_unit.id )
+                .clear_orders();
           }
           // Check if we've abandoned the colony.
           if( colony_population( colony_ ) == 0 )
@@ -1080,11 +1229,13 @@ class UnitsAtGateColonyView
 
   bool try_drag( ColViewObject_t const& o,
                  Coord const& /*where*/ ) override {
-    UNWRAP_CHECK( [id], o.get_if<ColViewObject::unit>() );
-    bool is_cargo_unit =
-        ss_.units.unit_for( id ).desc().cargo_slots > 0;
+    UNWRAP_CHECK( draggable_unit,
+                  o.get_if<ColViewObject::unit>() );
+    bool is_cargo_unit = ss_.units.unit_for( draggable_unit.id )
+                             .desc()
+                             .cargo_slots > 0;
     if( is_cargo_unit ) return false;
-    dragging_ = id;
+    dragging_ = draggable_unit.id;
     return true;
   }
 

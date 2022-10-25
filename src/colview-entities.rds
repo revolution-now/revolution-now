@@ -10,6 +10,8 @@
 # ===============================================================
 # Revolution Now
 include "commodity.hpp"
+include "equip.rds.hpp"
+include "maybe.hpp"
 include "unit-id.hpp"
 
 namespace "rn"
@@ -28,6 +30,14 @@ enum.e_colview_entity {
 sumtype.ColViewObject {
   unit {
     id 'UnitId',
+    # If a unit is to be transformed when the drag is complete
+    # then this will hold the new unit type. This is used when
+    # dragging the last remaining unit out of a colony (and thus
+    # abandoning the colony) but where the player wants to e.g.
+    # use some horses that are remaining in the colony to equip
+    # the colonist as a scout upon leaving the colony. Otherwise,
+    # those horses would be lost when the colony gets abandoned.
+    transformed 'maybe<ColonyEquipOption>',
   },
   commodity {
     comm 'Commodity',

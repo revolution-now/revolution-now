@@ -13,6 +13,9 @@ include "ss/commodity.rds.hpp"
 include "ss/unit-composer.hpp"
 include "ss/unit-type.rds.hpp"
 
+# refl
+include "refl/enum-map.hpp"
+
 # base
 include "base/maybe.hpp"
 
@@ -30,5 +33,10 @@ struct.HarborEquipOption {
   can_afford 'bool',
   # Quantity is always positive.
   commodity_delta 'base::maybe<Commodity>',
+  new_comp 'UnitComposition',
+}
+
+struct.ColonyEquipOption {
+  commodity_deltas 'refl::enum_map<e_commodity, int>',
   new_comp 'UnitComposition',
 }

@@ -26,11 +26,16 @@
 
 namespace rn {
 
+struct Colony;
 struct Player;
 struct SS;
 struct SSConst;
+struct Unit;
 struct UnitComposition;
 
+/****************************************************************
+** Harbor
+*****************************************************************/
 // Will return the list of options that the unit has for equip-
 // ping and unequipping while on the dock in the harbor. This as-
 // sumes that there is an infinite amount of each commodity
@@ -56,5 +61,23 @@ std::string harbor_equip_description(
 [[nodiscard]] PriceChange perform_harbor_equip_option(
     SS& ss, Player& player, UnitId unit_id,
     HarborEquipOption const& option );
+
+/****************************************************************
+** Colony
+*****************************************************************/
+// Given a unit this will look at the commodity store in the
+// colony and return all of the possible transformations that the
+// unit can undergo. Note that it will include even transitions
+// that require multiple commodities, such as a colonist to a
+// dragoon.
+std::vector<ColonyEquipOption> colony_equip_options(
+    Colony const& colony, UnitComposition const& unit_comp );
+
+std::string colony_equip_description(
+    ColonyEquipOption const& option );
+
+void perform_colony_equip_option(
+    Colony& colony, Player const& player, Unit& unit,
+    ColonyEquipOption const& option );
 
 } // namespace rn
