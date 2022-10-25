@@ -29,7 +29,7 @@ struct HarborCargo
   : public ui::View,
     public HarborSubView,
     public IDragSource<HarborDraggableObject_t>,
-    public IDragSourceUserInput<HarborDraggableObject_t>,
+    public IDragSourceUserEdit<HarborDraggableObject_t>,
     public IDragSink<HarborDraggableObject_t> {
   static PositionedHarborSubView<HarborCargo> create(
       SS& ss, TS& ts, Player& player, Rect canvas );
@@ -59,7 +59,7 @@ struct HarborCargo
   // Implement IDragSource.
   void cancel_drag() override;
 
-  // Implement IDragSourceUserInput.
+  // Implement IDragSourceUserEdit.
   wait<maybe<HarborDraggableObject_t>> user_edit_object()
       const override;
 

@@ -55,7 +55,7 @@ template<typename Draggable>
 struct DragState {
   Draggable               object;
   e_drag_status_indicator indicator;
-  bool                    user_requests_input;
+  bool                    source_requests_edit;
   Coord                   where;
   Delta                   click_offset;
 };
@@ -70,8 +70,8 @@ struct DragRejection {
 // Interface for views that support prompting a user for informa-
 // tion on the parameters of a drag.
 template<typename Draggable>
-struct IDragSourceUserInput {
-  virtual ~IDragSourceUserInput() = default;
+struct IDragSourceUserEdit {
+  virtual ~IDragSourceUserEdit() = default;
 
   // This will only be called if the user requests it, typically
   // by holding down a modifier key such as shift when releasing
@@ -125,10 +125,10 @@ struct IDragSource {
   // wish to be prompted and asked for information to customize
   // the drag, such as e.g. specifying the amount of a commodity
   // to be dragged.
-  maybe<IDragSourceUserInput<Draggable> const&> drag_user_input()
+  maybe<IDragSourceUserEdit<Draggable> const&> user_edit()
       const {
     return base::maybe_dynamic_cast<
-        IDragSourceUserInput<Draggable> const&>( *this );
+        IDragSourceUserEdit<Draggable> const&>( *this );
   }
 
   maybe<IDragSourceCheck<Draggable>&> drag_check() {
@@ -147,6 +147,21 @@ struct IDragSource {
                                          Coord const& ) {
     co_return;
   }
+};
+
+// Interface for sink views that support prompting a user to ask
+// if they'd like to modify the dragged thing.
+template<typename Draggable>
+struct IDragSinkUserEdit {
+  virtual ~IDragSinkUserEdit() = default;
+
+  // Using this method, the view has the opportunity to either
+  // edit the object (potentially with user input) Whether or not
+  // it edits it, it should return the draggable object, for if
+  // it returns nothing the the drag will be cancelled.
+  virtual wait<maybe<Draggable>> user_edit_object(
+      Draggable const& o, int from_entity,
+      Coord const ) const = 0;
 };
 
 // Interface for drag targets that can/might need to do some fur-
@@ -183,6 +198,13 @@ struct IDragSink {
   virtual maybe<Draggable> can_receive(
       Draggable const& o, int from_entity,
       Coord const& where ) const = 0;
+
+  // This is used to allow the sink to ask the user if it would
+  // like to edit the object.
+  maybe<IDragSinkUserEdit<Draggable> const&> user_edit() const {
+    return base::maybe_dynamic_cast<
+        IDragSinkUserEdit<Draggable> const&>( *this );
+  }
 
   maybe<IDragSinkCheck<Draggable>&> drag_check() {
     return base::maybe_dynamic_cast<IDragSinkCheck<Draggable>&>(
@@ -334,10 +356,10 @@ wait<> drag_drop_routine(
             source_object_bounds );
 
   drag_state = DragState<Draggable>{
-      .object              = source_object,
-      .indicator           = e_drag_status_indicator::none,
-      .user_requests_input = event.mod.shf_down,
-      .where               = origin,
+      .object               = source_object,
+      .indicator            = e_drag_status_indicator::none,
+      .source_requests_edit = event.mod.shf_down,
+      .where                = origin,
       .click_offset = origin - source_object_bounds.upper_left(),
   };
   SCOPE_EXIT( drag_state = nothing );
@@ -402,7 +424,7 @@ wait<> drag_drop_routine(
 
     drag_state->where     = mouse_pos;
     drag_state->indicator = e_drag_status_indicator::none;
-    drag_state->user_requests_input = false;
+    drag_state->source_requests_edit = false;
 
     // Check if there is a view under the current mouse pos.
     maybe<PositionedDraggableSubView<Draggable>>
@@ -436,12 +458,12 @@ wait<> drag_drop_routine(
     // Check if the user is allowed to request user input. If so,
     // then check if they are holding down shift, which is how
     // they do so.
-    maybe<IDragSourceUserInput<Draggable> const&>
-        drag_user_input = drag_source.drag_user_input();
-    if( drag_user_input ) {
+    maybe<IDragSourceUserEdit<Draggable> const&>
+        source_user_edit = drag_source.user_edit();
+    if( source_user_edit ) {
       auto const& base =
           variant_base<input::event_base_t>( latest );
-      drag_state->user_requests_input = base.mod.shf_down;
+      drag_state->source_requests_edit = base.mod.shf_down;
     }
 
     // E.g. if this is a keyboard event, then we're done with it.
@@ -457,61 +479,118 @@ wait<> drag_drop_routine(
     // to `continue`, since we have already received the end drag
     // event.
 
-    // Check if the user wants to input anything.
-    if( drag_user_input.has_value() &&
-        drag_state->user_requests_input ) {
-      maybe<Draggable> new_obj =
-          co_await drag_user_input->user_edit_object();
-      if( new_obj == nothing ) {
-        lg.debug( "drag of object {} cancelled by user.",
+    // At this point we have the first candidate for the dragged
+    // object. Now we will do two rounds of "negotiation" between
+    // the source and since, the first where the source gets to
+    // ask the user to edit the object and the second where the
+    // sink gets to.
+
+    // First round of negotiation:
+    //
+    //   1. Source allows user to potentially edit the object if
+    //      requested.
+    //   2. The sink responds whether it can receive it and po-
+    //      tentially proposes a modified version.
+    //   3. One more confirmation with the source that it can
+    //      supply the latest object.
+    //
+    // Note that even the source does not want to edit the object
+    // we still need to perform the remainder of this block since
+    // we need to check at least one final time whether the drag
+    // sink can receive the object.
+    {
+      // Check if the user wants to input anything.
+      if( source_user_edit.has_value() &&
+          drag_state->source_requests_edit ) {
+        maybe<Draggable> new_obj =
+            co_await source_user_edit->user_edit_object();
+        if( new_obj == nothing ) {
+          lg.debug( "drag of object {} cancelled by user.",
+                    source_object );
+          break;
+        }
+        source_object = *new_obj;
+        lg.debug( "user requests {}.", source_object );
+      }
+
+      // Check that the target view can receive this object as it
+      // currently is, and/or allow it to adjust it.
+      maybe<Draggable> const sink_edited = drag_sink.can_receive(
+          source_object, *source_entity, sink_coord );
+      if( !sink_edited ) {
+        // The sink can't find a way to make it work, drag is
+        // cancelled.
+        lg.debug( "drag sink cannot receive object {}.",
                   source_object );
         break;
       }
-      source_object = *new_obj;
-      lg.debug( "user requests {}.", source_object );
+      lg.debug( "drag sink responded with object {}.",
+                *sink_edited );
+      source_object = *sink_edited;
+
+      // Since the sink may have edited the object, lets make
+      // sure that the source can handle it.
+      bool can_drag = drag_source.try_drag(
+          source_object,
+          origin.with_new_origin( source_upper_left ) );
+      if( !can_drag ) {
+        // The source and sink can't negotiate a way to make this
+        // drag work, so cancel it.
+        lg.debug(
+            "drag source and sink cannot negotiate a draggable "
+            "object, last attempt was {}.",
+            source_object );
+        break;
+      }
     }
 
-    // Check that the target view can receive this object as it
-    // currently is, and/or allow it to adjust it.
-    maybe<Draggable> sink_edited = drag_sink.can_receive(
-        source_object, *source_entity, sink_coord );
-    if( !sink_edited ) {
-      // The sink can't find a way to make it work, drag is can-
-      // celled.
-      lg.debug( "drag sink cannot receive object {}.",
-                source_object );
-      break;
-    }
-    lg.debug( "drag sink responded with object {}.",
-              *sink_edited );
-    // Ideally here we would check that the new object does not
-    // have a larger quantity than the dragged object, if/where
-    // that makes sense. In other words, if the user is dragging
-    // 50 of a commodity, the drag sink cannot request more,
-    // though it can request less. Not sure how to do that in a
-    // generic way though.
-    source_object = *sink_edited;
-
-    // Since the sink may have edited the object, lets make sure
-    // that the source can handle it.
-    bool can_drag = drag_source.try_drag(
-        source_object,
-        origin.with_new_origin( source_upper_left ) );
-    if( !can_drag ) {
-      // The source and sink can't negotiate a way to make this
-      // drag work, so cancel it.
+    // Second round of negotiation:
+    //
+    //   1. Sink allows user to potentially edit the object if
+    //      requested.
+    //   2. The source responds whether it can receive it.
+    //
+    maybe<IDragSinkUserEdit<Draggable> const&> sink_user_edit =
+        drag_sink.user_edit();
+    if( sink_user_edit.has_value() ) {
+      // Check that the target view can receive this object as it
+      // currently is, and/or allow it to adjust it.
+      maybe<Draggable> const sink_user_edited =
+          co_await sink_user_edit->user_edit_object(
+              source_object, *source_entity, sink_coord );
+      if( !sink_user_edited ) {
+        // The drag was cancelled.
+        lg.debug( "drag cancelled during sink user edit: {}",
+                  source_object );
+        break;
+      }
       lg.debug(
-          "drag source and sink cannot negotiate a draggable "
-          "object, last attempt was {}.",
-          source_object );
-      break;
+          "drag sink responded with user-edited object {}.",
+          *sink_user_edited );
+      source_object = *sink_user_edited;
+
+      // Since the sink may have edited the object, lets make
+      // sure that the source can handle it.
+      bool can_drag = drag_source.try_drag(
+          source_object,
+          origin.with_new_origin( source_upper_left ) );
+      if( !can_drag ) {
+        // The source and sink can't negotiate a way to make this
+        // drag work, so cancel it.
+        lg.debug(
+            "drag source and sink cannot negotiate a draggable "
+            "object after sink user edit, last attempt was {}.",
+            source_object );
+        break;
+      }
     }
 
     // The source and sink have agreed on an object that can be
     // transferred, so let's let give the source and sink each
     // one final opportunity to involve some user input to e.g.
     // either confirm the drag or to cancel it with a message box
-    // explaining why, etc.
+    // explaining why, etc. But no more editing of the dragged
+    // object at this point.
 
     maybe<IDragSourceCheck<Draggable>&> drag_src_check =
         drag_source.drag_check();
@@ -572,7 +651,7 @@ wait<> drag_drop_routine(
 
   // Rubber-band back to starting point.
   drag_state->indicator = e_drag_status_indicator::none;
-  drag_state->user_requests_input = false;
+  drag_state->source_requests_edit = false;
 
   Coord         start   = drag_state->where;
   Coord         end     = origin;

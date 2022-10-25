@@ -34,7 +34,7 @@ struct HarborMarketCommodities
   : public ui::View,
     public HarborSubView,
     public IDragSource<HarborDraggableObject_t>,
-    public IDragSourceUserInput<HarborDraggableObject_t>,
+    public IDragSourceUserEdit<HarborDraggableObject_t>,
     public IDragSourceCheck<HarborDraggableObject_t>,
     public IDragSink<HarborDraggableObject_t>,
     public IDragSinkCheck<HarborDraggableObject_t> {
@@ -71,7 +71,7 @@ struct HarborMarketCommodities
   // Implement IDragSource.
   void cancel_drag() override;
 
-  // Implement IDragSourceUserInput.
+  // Implement IDragSourceUserEdit.
   wait<maybe<HarborDraggableObject_t>> user_edit_object()
       const override;
 

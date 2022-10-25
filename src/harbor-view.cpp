@@ -188,7 +188,7 @@ struct HarborPlane::Impl : public Plane {
         rr::Typer typer = renderer.typer( sprite_upper_left,
                                           gfx::pixel::green() );
         typer.write( "+" );
-        if( state.user_requests_input ) {
+        if( state.source_requests_edit ) {
           auto mod_pos = state.where;
           mod_pos.y -=
               H{ rr::rendered_text_line_size_pixels( "?" ).h };
