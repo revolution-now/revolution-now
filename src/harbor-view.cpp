@@ -14,7 +14,7 @@
 #include "cheat.hpp"
 #include "commodity.hpp"
 #include "compositor.hpp"
-#include "dragdrop.hpp"
+#include "drag-drop.hpp"
 #include "harbor-view-entities.hpp"
 #include "logger.hpp"
 #include "plane-stack.hpp"

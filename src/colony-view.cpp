@@ -18,7 +18,7 @@
 #include "colony.hpp"
 #include "colview-entities.hpp"
 #include "compositor.hpp"
-#include "dragdrop.hpp"
+#include "drag-drop.hpp"
 #include "gui.hpp"
 #include "interrupts.hpp"
 #include "logger.hpp"

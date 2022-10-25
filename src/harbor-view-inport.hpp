@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "dragdrop.hpp"
+#include "drag-drop.hpp"
 #include "harbor-view-entities.hpp"
 #include "wait.hpp"
 

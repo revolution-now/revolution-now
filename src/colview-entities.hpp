@@ -19,7 +19,7 @@
 #include "cargo.hpp"
 #include "colony-id.hpp"
 #include "commodity.hpp"
-#include "dragdrop.hpp"
+#include "drag-drop.hpp"
 #include "input.hpp"
 #include "view.hpp"
 #include "wait.hpp"

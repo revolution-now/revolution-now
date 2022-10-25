@@ -1,5 +1,5 @@
 /****************************************************************
-**dragdrop.cpp
+**drag-drop.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: A framework for drag & drop of entities.
 *
 *****************************************************************/
-#include "dragdrop.hpp"
+#include "drag-drop.hpp"
 
 // Revolution Now
 #include "co-combinator.hpp"
