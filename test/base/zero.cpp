@@ -61,6 +61,13 @@ struct MockFile : public zero<MockFile, int> {
   }
 };
 
+// These test that a) the zero class has noexcept on its move op-
+// erations and b) that this is preserved by subclasses. Having
+// noexcept move operations is important for e.g. allowing a
+// std::vector to optimize the process of growing its size.
+static_assert( is_nothrow_move_constructible_v<MockFile> );
+static_assert( is_nothrow_move_assignable_v<MockFile> );
+
 TEST_CASE( "[zero] frees resource" ) {
   reset_resources();
   REQUIRE( resources.size() == 0 );
