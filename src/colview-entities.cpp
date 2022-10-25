@@ -1035,6 +1035,8 @@ class UnitsAtGateColonyView
             ss_.units.change_to_cargo_somewhere(
                 /*new_holder=*/*target_unit,
                 /*held=*/unit.id );
+            // !! Need to fall through here since we may have
+            // abandoned the colony.
           } else {
             unit_to_map_square_non_interactive(
                 ss_, ts_, unit.id, colony_.location );
@@ -1043,10 +1045,10 @@ class UnitsAtGateColonyView
             // would be sentry'd, which is probably not what the
             // player wants.
             ss_.units.unit_for( unit.id ).clear_orders();
-            // Check if we've abandoned the colony.
-            if( colony_population( colony_ ) == 0 )
-              throw colony_abandon_interrupt{};
           }
+          // Check if we've abandoned the colony.
+          if( colony_population( colony_ ) == 0 )
+            throw colony_abandon_interrupt{};
         },
         [&]( ColViewObject::commodity const& comm ) {
           CHECK( target_unit );
