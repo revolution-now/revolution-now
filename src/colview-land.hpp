@@ -25,13 +25,11 @@ struct SS;
 struct TS;
 struct Player;
 
-struct ColonyLandView
-  : public ui::View,
-    public ColonySubView,
-    public IDragSource<ColViewObject_t>,
-    public IDragSourceUserInput<ColViewObject_t>,
-    public IDragSink<ColViewObject_t>,
-    public IDragSinkCheck<ColViewObject_t> {
+struct ColonyLandView : public ui::View,
+                        public ColonySubView,
+                        public IDragSource<ColViewObject_t>,
+                        public IDragSink<ColViewObject_t>,
+                        public IDragSinkCheck<ColViewObject_t> {
   enum class e_render_mode {
     // Three tiles by three tiles, with unscaled tiles and
     // colonists on the land files.
@@ -108,9 +106,6 @@ struct ColonyLandView
   // Implement IDragSource.
   bool try_drag( ColViewObject_t const&,
                  Coord const& where ) override;
-
-  // Implement IDragSourceUserInput.
-  wait<maybe<ColViewObject_t>> user_edit_object() const override;
 
   // Implement IDragSource.
   void cancel_drag() override;
