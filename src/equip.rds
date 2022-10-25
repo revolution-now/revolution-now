@@ -21,7 +21,7 @@ include "<string>"
 
 namespace "rn"
 
-struct.EquipOption {
+struct.HarborEquipOption {
   modifier 'e_unit_type_modifier',
   modifier_delta 'e_unit_type_modifier_delta',
   # This is the delta that must be applied to the player's money

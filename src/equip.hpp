@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2022-09-28.
 *
-* Description: Equipping and unequipping units on the dock.
+* Description: Equipping and unequipping units from commodities.
 *
 *****************************************************************/
 #pragma once
@@ -45,15 +45,16 @@ struct UnitComposition;
 // be a single option to transform a colonist into a dragoon (or
 // vice versa) because that requires equipping with both muskets
 // and horses.
-std::vector<EquipOption> equip_options(
+std::vector<HarborEquipOption> harbor_equip_options(
     SSConst const& ss, Player const& player,
     UnitComposition const& unit_comp );
 
 // Returns markup text with the description of the action.
-std::string equip_description( EquipOption const& option );
+std::string harbor_equip_description(
+    HarborEquipOption const& option );
 
-[[nodiscard]] PriceChange perform_equip_option(
+[[nodiscard]] PriceChange perform_harbor_equip_option(
     SS& ss, Player& player, UnitId unit_id,
-    EquipOption const& option );
+    HarborEquipOption const& option );
 
 } // namespace rn

@@ -109,14 +109,14 @@ wait<> HarborDockUnits::click_on_unit( UnitId unit_id ) {
       .options = {},
       .sort    = false,
   };
-  vector<EquipOption> const equip_opts =
-      equip_options( ss_, player_, unit.composition() );
+  vector<HarborEquipOption> const equip_opts =
+      harbor_equip_options( ss_, player_, unit.composition() );
   for( int idx = 0; idx < int( equip_opts.size() ); ++idx ) {
-    EquipOption const& equip_opt = equip_opts[idx];
-    ChoiceConfigOption option{
-        .key          = fmt::to_string( idx ),
-        .display_name = equip_description( equip_opt ),
-        .disabled     = !equip_opt.can_afford };
+    HarborEquipOption const& equip_opt = equip_opts[idx];
+    ChoiceConfigOption       option{
+              .key = fmt::to_string( idx ),
+              .display_name = harbor_equip_description( equip_opt ),
+              .disabled = !equip_opt.can_afford };
     config.options.push_back( std::move( option ) );
   }
   static string const kNoChangesKey = "no changes";
@@ -132,7 +132,7 @@ wait<> HarborDockUnits::click_on_unit( UnitId unit_id ) {
   CHECK_GE( chosen_idx, 0 );
   CHECK_LT( chosen_idx, int( equip_opts.size() ) );
   // This will change the unit type.
-  PriceChange const price_change = perform_equip_option(
+  PriceChange const price_change = perform_harbor_equip_option(
       ss_, player_, unit.id(), equip_opts[chosen_idx] );
   // Will only display something if there is a price change.
   co_await display_price_change_notification( ts_, player_,

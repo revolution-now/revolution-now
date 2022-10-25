@@ -48,12 +48,12 @@ struct World : testing::World {
     init_prices_to_average();
   }
 
-  vector<EquipOption> call_equip_options(
+  vector<HarborEquipOption> call_equip_options(
       UnitComposition comp ) const {
-    return equip_options( ss(), default_player(), comp );
+    return harbor_equip_options( ss(), default_player(), comp );
   }
 
-  vector<EquipOption> call_equip_options(
+  vector<HarborEquipOption> call_equip_options(
       e_unit_type type ) const {
     return call_equip_options( UnitComposition::create( type ) );
   }
@@ -62,10 +62,10 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[equip] equip_options" ) {
-  World               W;
-  Player&             player = W.default_player();
-  vector<EquipOption> expected;
+TEST_CASE( "[equip] harbor_equip_options" ) {
+  World                     W;
+  Player&                   player = W.default_player();
+  vector<HarborEquipOption> expected;
   using UC = UnitComposition;
   using UT = UnitType;
 
@@ -422,9 +422,9 @@ TEST_CASE( "[equip] equip_options" ) {
 }
 
 TEST_CASE( "[equip] equip_description" ) {
-  EquipOption option;
+  HarborEquipOption option;
 
-  auto f = [&] { return equip_description( option ); };
+  auto f = [&] { return harbor_equip_description( option ); };
 
   option = {
       .modifier        = e_unit_type_modifier::horses,
@@ -517,18 +517,18 @@ TEST_CASE( "[equip] equip_description" ) {
 }
 
 TEST_CASE( "[equip] perform_equip_option" ) {
-  World        W;
-  Player&      player = W.default_player();
-  EquipOption  option;
-  UnitId const unit_id =
+  World             W;
+  Player&           player = W.default_player();
+  HarborEquipOption option;
+  UnitId const      unit_id =
       W.add_unit_in_port( e_unit_type::free_colonist );
   PriceChange expected;
 
   using UC = UnitComposition;
 
   auto f = [&] {
-    return perform_equip_option( W.ss(), player, unit_id,
-                                 option );
+    return perform_harbor_equip_option( W.ss(), player, unit_id,
+                                        option );
   };
 
   player.money = 10000;

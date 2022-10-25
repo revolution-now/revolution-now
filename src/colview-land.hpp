@@ -25,11 +25,13 @@ struct SS;
 struct TS;
 struct Player;
 
-struct ColonyLandView : public ui::View,
-                        public ColonySubView,
-                        public IDragSource<ColViewObject_t>,
-                        public IDragSink<ColViewObject_t>,
-                        public IDragSinkCheck<ColViewObject_t> {
+struct ColonyLandView
+  : public ui::View,
+    public ColonySubView,
+    public IDragSource<ColViewObject_t>,
+    public IDragSourceUserInput<ColViewObject_t>,
+    public IDragSink<ColViewObject_t>,
+    public IDragSinkCheck<ColViewObject_t> {
   enum class e_render_mode {
     // Three tiles by three tiles, with unscaled tiles and
     // colonists on the land files.
@@ -79,18 +81,22 @@ struct ColonyLandView : public ui::View,
   wait<> perform_click(
       input::mouse_button_event_t const& event ) override;
 
+  // Implement IDragSink.
   maybe<ColViewObject_t> can_receive(
       ColViewObject_t const& o, int,
       Coord const&           where ) const override;
 
+  // Implement IDragSinkCheck.
   wait<base::valid_or<DragRejection>> sink_check(
       ColViewObject_t const&, int, Coord const where ) override;
 
-  ColonyJob_t make_job_for_square( e_direction d ) const;
-
+  // Implement IDragSink.
   wait<> drop( ColViewObject_t const& o,
                Coord const&           where ) override;
 
+  ColonyJob_t make_job_for_square( e_direction d ) const;
+
+  // Implement IDraggableObjectsView.
   maybe<DraggableObjectWithBounds<ColViewObject_t>> object_here(
       Coord const& where ) const override;
 
@@ -99,11 +105,17 @@ struct ColonyLandView : public ui::View,
     e_outdoor_job job = {};
   };
 
+  // Implement IDragSource.
   bool try_drag( ColViewObject_t const&,
                  Coord const& where ) override;
 
+  // Implement IDragSourceUserInput.
+  wait<maybe<ColViewObject_t>> user_edit_object() const override;
+
+  // Implement IDragSource.
   void cancel_drag() override;
 
+  // Implement IDragSource.
   wait<> disown_dragged_object() override;
 
   void draw_land_3x3( rr::Renderer& renderer,

@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2022-09-28.
 *
-* Description: Equipping and unequipping units on the dock.
+* Description: Equipping and unequipping units from commodities.
 *
 *****************************************************************/
 #include "equip.hpp"
@@ -32,7 +32,7 @@ namespace {} // namespace
 /****************************************************************
 ** Public API
 *****************************************************************/
-vector<EquipOption> equip_options(
+vector<HarborEquipOption> harbor_equip_options(
     SSConst const& ss, Player const& player,
     UnitComposition const& unit_comp ) {
   static unordered_map<e_commodity, int> const commodity_store =
@@ -46,7 +46,7 @@ vector<EquipOption> equip_options(
   vector<UnitTransformationResult> transformations =
       possible_unit_transformations( unit_comp,
                                      commodity_store );
-  vector<EquipOption> options;
+  vector<HarborEquipOption> options;
   for( auto const& transformation : transformations ) {
     if( transformation.modifier_deltas.size() != 1 )
       // Only consider transformations that entail precisely one
@@ -69,7 +69,7 @@ vector<EquipOption> equip_options(
       // status to a veteran soldier and making it a continental
       // soldier.
       continue;
-    EquipOption option;
+    HarborEquipOption option;
     option.new_comp       = transformation.new_comp;
     option.modifier       = modifier;
     option.modifier_delta = modifier_delta;
@@ -122,7 +122,8 @@ vector<EquipOption> equip_options(
 }
 
 // Returns markup text with the description of the action.
-string equip_description( EquipOption const& option ) {
+string harbor_equip_description(
+    HarborEquipOption const& option ) {
   string res;
   switch( option.modifier_delta ) {
     case e_unit_type_modifier_delta::add:
@@ -190,9 +191,9 @@ string equip_description( EquipOption const& option ) {
   return res;
 }
 
-PriceChange perform_equip_option( SS& ss, Player& player,
-                                  UnitId             unit_id,
-                                  EquipOption const& option ) {
+PriceChange perform_harbor_equip_option(
+    SS& ss, Player& player, UnitId unit_id,
+    HarborEquipOption const& option ) {
   PriceChange price_change = {};
   Unit&       unit         = ss.units.unit_for( unit_id );
   unit.change_type( player, option.new_comp );
