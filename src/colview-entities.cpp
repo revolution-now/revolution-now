@@ -681,7 +681,7 @@ class CargoView : public ui::View,
     auto [is_open, slot_idx] = slot_info;
     overload_visit(
         cargo, //
-        [&, this]( Cargo::unit u ) {
+        [&, this, slot_idx=slot_idx]( Cargo::unit u ) {
           UNWRAP_CHECK( draggable_unit,
                         o.get_if<ColViewObject::unit>() );
           CHECK( draggable_unit.id == u.id );
