@@ -241,8 +241,7 @@ vector<ColonyEquipOption> colony_equip_options(
       ColonyEquipOption option;
       option.new_comp = transformation.new_comp;
       for( auto [comm, q] : transformation.commodity_deltas )
-        if( q > 0 ) //
-          option.commodity_deltas[comm] = q;
+        option.commodity_deltas[comm] = q;
       options.push_back( std::move( option ) );
     }
   skip:;

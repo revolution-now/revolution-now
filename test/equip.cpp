@@ -46,6 +46,7 @@ struct World : testing::World {
   World() : Base() {
     add_default_player();
     init_prices_to_average();
+    create_1x1_map();
   }
 
   vector<HarborEquipOption> call_equip_options(
@@ -56,6 +57,12 @@ struct World : testing::World {
   vector<HarborEquipOption> call_equip_options(
       e_unit_type type ) const {
     return call_equip_options( UnitComposition::create( type ) );
+  }
+
+  void create_1x1_map() {
+    MapSquare const   L = make_grassland();
+    vector<MapSquare> tiles{ L };
+    build_map( std::move( tiles ), 1 );
   }
 };
 
@@ -605,6 +612,159 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
   REQUIRE( W.ss().units.unit_for( unit_id ).type() ==
            e_unit_type::soldier );
   REQUIRE( player.money == 3150 );
+}
+
+TEST_CASE( "[equip] colony_equip_description" ) {
+  e_unit_type input;
+  string      expected;
+
+  auto f = [&] {
+    ColonyEquipOption const option = {
+        .new_comp = UnitComposition::create( input ) };
+    return colony_equip_description( option );
+  };
+
+  input    = e_unit_type::dragoon;
+  expected = "Dragoon";
+  REQUIRE( f() == expected );
+
+  input    = e_unit_type::hardy_pioneer;
+  expected = "Hardy Pioneer";
+  REQUIRE( f() == expected );
+
+  input    = e_unit_type::veteran_soldier;
+  expected = "Veteran Soldier";
+  REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[equip] perform_colony_equip_option" ) {
+  World   W;
+  Unit&   unit   = W.add_free_unit( e_unit_type::free_colonist );
+  Colony& colony = W.add_colony_with_new_unit( Coord{} );
+  colony.commodities[e_commodity::sugar]   = 50;
+  colony.commodities[e_commodity::muskets] = 50;
+  colony.commodities[e_commodity::horses]  = 100;
+
+  ColonyEquipOption const option{
+      .commodity_deltas = { { e_commodity::muskets, -50 },
+                            { e_commodity::horses, -50 } },
+      .new_comp =
+          UnitComposition::create( e_unit_type::dragoon ) };
+
+  refl::enum_map<e_commodity, int> expected;
+
+  // Sanity check.
+  expected = { { e_commodity::sugar, 50 },
+               { e_commodity::horses, 100 },
+               { e_commodity::muskets, 50 } };
+  REQUIRE( colony.commodities == expected );
+  REQUIRE( unit.type() == e_unit_type::free_colonist );
+
+  perform_colony_equip_option( colony, W.default_player(), unit,
+                               option );
+
+  expected = { { e_commodity::sugar, 50 },
+               { e_commodity::horses, 50 },
+               { e_commodity::muskets, 0 } };
+  REQUIRE( colony.commodities == expected );
+  REQUIRE( unit.type_obj() ==
+           UnitType::create( e_unit_type::dragoon,
+                             e_unit_type::free_colonist )
+               .value() );
+}
+
+TEST_CASE( "[equip] colony_equip_options" ) {
+  // We're not going to do an exhaustive test of all possible
+  // unit transformations here because that is done elsewhere.
+  World   W;
+  Colony& colony = W.add_colony_with_new_unit( Coord{} );
+  colony.commodities[e_commodity::sugar]   = 50;
+  colony.commodities[e_commodity::muskets] = 50;
+  colony.commodities[e_commodity::horses]  = 100;
+
+  SECTION( "seasoned colonist" ) {
+    Unit const& unit =
+        W.add_free_unit( e_unit_type::seasoned_colonist );
+
+    auto f = [&] {
+      return colony_equip_options( colony, unit.composition() );
+    };
+
+    vector<ColonyEquipOption> expected{
+        ColonyEquipOption{
+            .commodity_deltas = { { e_commodity::muskets, -50 },
+                                  { e_commodity::horses, -50 } },
+            .new_comp         = UnitComposition::create(
+                UnitType::create(
+                    e_unit_type::dragoon,
+                    e_unit_type::seasoned_colonist )
+                    .value() ) },
+        ColonyEquipOption{
+            .commodity_deltas = {},
+            .new_comp         = UnitComposition::create(
+                e_unit_type::seasoned_colonist ) },
+        ColonyEquipOption{
+            .commodity_deltas = {},
+            .new_comp         = UnitComposition::create(
+                UnitType::create(
+                    e_unit_type::missionary,
+                    e_unit_type::seasoned_colonist )
+                    .value() ) },
+        ColonyEquipOption{
+            .commodity_deltas = { { e_commodity::horses, -50 } },
+            .new_comp         = UnitComposition::create(
+                e_unit_type::seasoned_scout ) },
+        ColonyEquipOption{
+            .commodity_deltas = { { e_commodity::muskets,
+                                    -50 } },
+            .new_comp         = UnitComposition::create(
+                UnitType::create(
+                    e_unit_type::soldier,
+                    e_unit_type::seasoned_colonist )
+                    .value() ) },
+    };
+    REQUIRE( f() == expected );
+  }
+
+  // Make sure that we don't transform to any types that have the
+  // "independence" modifier.
+  SECTION( "veteran colonist" ) {
+    Unit const& unit =
+        W.add_free_unit( e_unit_type::veteran_colonist );
+
+    auto f = [&] {
+      return colony_equip_options( colony, unit.composition() );
+    };
+
+    vector<ColonyEquipOption> expected{
+        ColonyEquipOption{ .commodity_deltas = {},
+                           .new_comp = UnitComposition::create(
+                               e_unit_type::veteran_colonist ) },
+        ColonyEquipOption{
+            .commodity_deltas = {},
+            .new_comp         = UnitComposition::create(
+                UnitType::create( e_unit_type::missionary,
+                                          e_unit_type::veteran_colonist )
+                    .value() ) },
+        ColonyEquipOption{
+            .commodity_deltas = { { e_commodity::horses, -50 } },
+            .new_comp         = UnitComposition::create(
+                UnitType::create( e_unit_type::scout,
+                                          e_unit_type::veteran_colonist )
+                    .value() ) },
+        ColonyEquipOption{
+            .commodity_deltas = { { e_commodity::muskets, -50 },
+                                  { e_commodity::horses, -50 } },
+            .new_comp         = UnitComposition::create(
+                e_unit_type::veteran_dragoon ) },
+        ColonyEquipOption{
+            .commodity_deltas = { { e_commodity::muskets,
+                                    -50 } },
+            .new_comp         = UnitComposition::create(
+                e_unit_type::veteran_soldier ) },
+    };
+    REQUIRE( f() == expected );
+  }
 }
 
 } // namespace

@@ -272,6 +272,15 @@ UnitId World::add_unit_in_cargo( e_unit_type type, UnitId holder,
   return held;
 }
 
+Unit& World::add_free_unit( e_unit_type     type,
+                            maybe<e_nation> nation ) {
+  if( !nation ) nation = default_nation_;
+  UnitId const id =
+      create_free_unit( units(), player( *nation ),
+                        UnitComposition::create( type ) );
+  return units().unit_for( id );
+}
+
 UnitId World::add_unit_indoors( ColonyId     colony_id,
                                 e_indoor_job indoor_job,
                                 e_unit_type  type ) {

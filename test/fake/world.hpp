@@ -129,6 +129,11 @@ struct World {
   UnitId add_unit_in_cargo( e_unit_type type, UnitId holder,
                             maybe<e_nation> nation = nothing );
 
+  // This will create a unit that is registered in the game but
+  // without any ownership.
+  Unit& add_free_unit( e_unit_type     type,
+                       maybe<e_nation> nation = nothing );
+
   // Create a unit and add give it the specified indoor job in
   // the colony.
   UnitId add_unit_indoors(
