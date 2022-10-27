@@ -309,6 +309,10 @@ class MarketCommodities
     auto        label   = CommodityLabel::quantity{ 0 };
     Coord       pos     = coord;
     auto const& colony  = ss_.colonies.colony_for( colony_.id );
+    int const   warehouse_limit =
+        colony_warehouse_capacity( colony );
+    bool const has_custom_house =
+        colony.buildings[e_colony_building::custom_house];
     for( int i = 0; i < kNumCommodityTypes; ++i ) {
       auto rect =
           Rect::from( pos, Delta{ .w = block_width_, .h = 32 } );
@@ -316,6 +320,31 @@ class MarketCommodities
           rect, rr::Painter::e_border_mode::in_out,
           gfx::pixel::black() );
       label.value = colony.commodities[*comm_it];
+      // Regarding the choice of colors: the OG will color the
+      // label red when it exceeds the warehouse capacity of the
+      // colony regardless of whether the commodity is being sold
+      // by the custom house. But in this game we will suppress
+      // the red colors if the commodity is being sold by the
+      // custom house (even if it is over capacity) since that
+      // arguably gives a better indication to the player of what
+      // will and won't spoil (note that when a custom house is
+      // selling a commodity it cannot spoil, since the selling
+      // happens before the spoiling each turn).
+      //
+      // The reason that we're checking to see if the custom
+      // house is present here (instead of just checking the
+      // custom house state per commodity) is because it is pos-
+      // sible that a colony's custom house could go away after
+      // construction, e.g. if it is destroyed by the indians or
+      // if the player removes it via cheat mode.
+      if( has_custom_house && colony_.custom_house[*comm_it] )
+        label.colors = e_commodity_label_render_colors::
+            custom_house_selling;
+      else if( colony_.commodities[*comm_it] > warehouse_limit )
+        label.colors =
+            e_commodity_label_render_colors::over_limit;
+      else
+        label.colors = e_commodity_label_render_colors::standard;
       // When we drag a commodity we want the effect to be that
       // the commodity icon is still drawn (because it is a kind
       // of label for buckets), but we want the quantity to
@@ -686,7 +715,7 @@ class CargoView : public ui::View,
     auto [is_open, slot_idx] = slot_info;
     overload_visit(
         cargo, //
-        [&, this, slot_idx=slot_idx]( Cargo::unit u ) {
+        [&, this, slot_idx = slot_idx]( Cargo::unit u ) {
           UNWRAP_CHECK( draggable_unit,
                         o.get_if<ColViewObject::unit>() );
           CHECK( draggable_unit.id == u.id );
