@@ -11,6 +11,7 @@
 # Revolution Now
 include "maybe.hpp"
 include "production.rds.hpp"
+include "custom-house.rds.hpp"
 
 # gs
 include "ss/colony.rds.hpp"
@@ -98,6 +99,10 @@ sumtype.ColonyNotification {
     # There are teachers in the colony but no units that can be
     # promoted (they are all experts working in the colony).
     teacher_type 'e_unit_type',
+  },
+  custom_house_sales {
+    # What did the custom house sell this turn.
+    what 'std::vector<CustomHouseSale>',
   },
 }
 

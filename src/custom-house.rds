@@ -1,0 +1,18 @@
+# ===============================================================
+# custom-house.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-10-27.
+#
+# Description: Rds definitions for the custom-house module.
+#
+# ===============================================================
+# Revolution Now
+include "market.rds.hpp"
+
+namespace "rn"
+
+struct.CustomHouseSale {
+  invoice 'Invoice',
+}

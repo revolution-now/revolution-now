@@ -291,6 +291,28 @@ wait<bool> present_colony_update(
           colony.name, unit_attr( o.teacher_type ).name );
       break;
     }
+    case ColonyNotification::e::custom_house_sales: {
+      auto& o =
+          notification
+              .get<ColonyNotification::custom_house_sales>();
+      // FIXME: temporary; need to display this in a better way.
+      string goods;
+      for( CustomHouseSale const& sale : o.what )
+        goods += fmt::format(
+            "{} {} for {} at a {}% charge yielding @[H]{}@[], ",
+            sale.invoice.what.quantity, sale.invoice.what.type,
+            sale.invoice.money_delta_before_taxes,
+            sale.invoice.tax_rate,
+            sale.invoice.money_delta_final );
+      // Remove trailing comma.
+      goods.resize( goods.size() - 2 );
+      goods += '.';
+      msg = fmt::format(
+          "The @[H]Custom House@[] in @[H]{}@[] has sold the "
+          "following goods: {}",
+          colony.name, goods );
+      break;
+    }
   }
 
   if( ask_to_zoom ) {

@@ -14,6 +14,7 @@
 #include "colony-buildings.hpp"
 #include "colony-mgr.hpp"
 #include "colony.hpp"
+#include "custom-house.hpp"
 #include "fathers.hpp"
 #include "irand.hpp"
 #include "on-map.hpp"
@@ -464,6 +465,20 @@ void check_colonists_teaching(
   }
 }
 
+void process_custom_house( SS& ss, Player& player,
+                           Colony&          colony,
+                           ColonyEvolution& ev ) {
+  if( !colony.buildings[e_colony_building::custom_house] )
+    return;
+  vector<CustomHouseSale> sales =
+      compute_custom_house_sales( ss, player, colony );
+  if( sales.empty() ) return;
+  apply_custom_house_sales( ss, player, colony, sales );
+  ev.notifications.push_back(
+      ColonyNotification::custom_house_sales{
+          .what = std::move( sales ) } );
+}
+
 } // namespace
 
 ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
@@ -488,6 +503,39 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
 
   check_construction( ss, ts, as_const( player ), colony, ev );
 
+  // This determines which (and how much) of each commodity
+  // should be sold this turn by the custom house. It will then
+  // subtract that quantity from the colony and record the re-
+  // ceipts, but will not actually process the transaction (so
+  // the player's money will not change and the market won't ac-
+  // tually receive the goods); that needs to be done at the end
+  // of colony processing for all colonies together in such a way
+  // as to not cause the prices of any goods to move more than
+  // one unit per turn.
+  //
+  // Note: the custom house should be processed:
+  //
+  //   * After production is computed and applied to the colony.
+  //   * After construction is checked so that any tools needed
+  //     for a construction project this turn will not be sold.
+  //     This allowed rushing the completion of a project without
+  //     worrying that the custom house will sell the tools
+  //     (though this would only be a concern if tools are being
+  //     sold by the custom house, which is not likely).
+  //   * Before new colonists are created from food; this allows
+  //     the custom house to always prevent the creation of a new
+  //     colonist buy enabling the selling of food. That would
+  //     only be an issue though if a ship or wagon train dumped
+  //     a large amount of food into the colony, since if the
+  //     food was just accumulating normally the custom house
+  //     would have an opportunity to sell it off before it got
+  //     to 200 (which is needed for a new colonist).
+  //   * Before spoilage is assessed, so that when a custom house
+  //     is selling something in a colony, no amount will ever
+  //     cause spoilage, which is how the OG works.
+  //
+  process_custom_house( ss, player, colony, ev );
+
   // Needs to be done after food deltas have been applied.
   check_create_or_starve_colonist(
       ss, ts, as_const( player ), colony, ev.production,
@@ -497,9 +545,9 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
     // in doing anything further.
     return ev;
 
-  // NOTE: This should be done last, so that anything above that
-  // could potentially consume commodities can do so before they
-  // spoil.
+  // Note: This should be done late enough so that anything above
+  // that could potentially consume commodities (including the
+  // custom house) can do so before they spoil.
   maybe<ColonyNotification::spoilage> spoilage_notification =
       check_spoilage( colony );
   if( spoilage_notification.has_value() )
