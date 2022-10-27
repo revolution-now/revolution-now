@@ -70,4 +70,10 @@ e_colony_building building_for_school_type(
 // schoolhouse (1) and college (2).
 int max_workers_for_building( e_colony_building building );
 
+// Should be called when a colony building is added to the colony
+// as it will ensure that any one-time changes that need to be
+// made will be made.
+void add_colony_building( Colony&           colony,
+                          e_colony_building building );
+
 } // namespace rn

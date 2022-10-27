@@ -254,8 +254,8 @@ void check_construction( SS& ss, TS& ts, Player const& player,
   switch( construction.to_enum() ) {
     using namespace Construction;
     case e::building: {
-      auto& o                  = construction.get<building>();
-      colony.buildings[o.what] = true;
+      auto& o = construction.get<building>();
+      add_colony_building( colony, o.what );
       DCHECK( !ev.built.has_value() );
       ev.built = o.what;
       return;

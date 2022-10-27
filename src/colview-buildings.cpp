@@ -13,6 +13,7 @@
 // Revolution Now
 #include "colony-buildings.hpp"
 #include "colony-mgr.hpp"
+#include "custom-house.hpp"
 #include "production.hpp"
 #include "render.hpp"
 #include "teaching.hpp"
@@ -326,7 +327,18 @@ wait<> ColViewBuildings::perform_click(
     input::mouse_button_event_t const& event ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return;
-  // TODO
+  maybe<e_colony_building_slot> const slot =
+      slot_for_coord( event.pos );
+  if( !slot.has_value() ) co_return;
+  maybe<e_colony_building> const building =
+      building_for_slot( colony_, *slot );
+  if( !building.has_value() ) co_return;
+  switch( *building ) {
+    case e_colony_building::custom_house:
+      co_await open_custom_house_menu( planes_, ts_, colony_ );
+      break;
+    default: break;
+  }
   co_return;
 }
 

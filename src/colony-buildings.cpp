@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "colony.hpp"
+#include "custom-house.hpp"
 #include "production.hpp"
 
 // config
@@ -383,6 +384,18 @@ int max_workers_for_building( e_colony_building building ) {
       indoor_job_for_slot( slot );
   if( !indoor_job.has_value() ) return 0;
   return config_colony.max_workers_per_building;
+}
+
+void add_colony_building( Colony&           colony,
+                          e_colony_building building ) {
+  if( colony.buildings[building] ) return;
+  colony.buildings[building] = true;
+  switch( building ) {
+    case e_colony_building::custom_house:
+      set_default_custom_house_state( colony );
+      break;
+    default: break;
+  }
 }
 
 } // namespace rn

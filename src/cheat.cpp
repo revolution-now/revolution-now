@@ -271,7 +271,7 @@ wait<> cheat_colony_buildings( Colony& colony, IGui& gui ) {
     case e_cheat_colony_buildings_option::give_all_buildings:
       for( e_colony_building building :
            refl::enum_values<e_colony_building> )
-        colony.buildings[building] = true;
+        add_colony_building( colony, building );
       break;
     case e_cheat_colony_buildings_option::remove_all_buildings: {
       bool can_not_remove_all = false;
@@ -296,7 +296,7 @@ wait<> cheat_colony_buildings( Colony& colony, IGui& gui ) {
           co_await gui.optional_enum_choice<e_colony_building>(
               /*sort=*/true );
       if( building.has_value() )
-        colony.buildings[*building] = true;
+        add_colony_building( colony, *building );
       break;
     }
     case e_cheat_colony_buildings_option::remove_one_building: {
