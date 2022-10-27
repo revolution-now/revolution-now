@@ -76,20 +76,42 @@ e_tile tile_for_commodity( e_commodity c ) {
   }
 }
 
-void render_commodity_label( rr::Renderer& renderer, Coord where,
-                             string_view label ) {
+void render_commodity_label_impl(
+    rr::Renderer& renderer, Coord where, string_view label,
+    TextMarkupInfo const& markup_info ) {
   if( label.empty() ) return;
-  TextMarkupInfo info{
-      /*normal=*/gfx::pixel{
-          .r = 0x00, .g = 0x00, .b = 0x00, .a = 255 },
-      /*highlight=*/gfx::pixel::green() };
-  render_text_markup( renderer, where, font::small(), info,
-                      label );
+  render_text_markup( renderer, where, font::small(),
+                      markup_info, label );
 }
 
-void render_commodity_impl( rr::Renderer& renderer, Coord where,
-                            e_commodity   type,
-                            maybe<string> label ) {
+void render_commodity_label(
+    rr::Renderer& renderer, Coord where, string_view label,
+    e_commodity_label_render_colors colors ) {
+  TextMarkupInfo info;
+  switch( colors ) {
+    case e_commodity_label_render_colors::standard:
+      info = { /*normal=*/gfx::pixel{
+                   .r = 0x00, .g = 0x00, .b = 0x00, .a = 255 },
+               /*highlight=*/gfx::pixel::green() };
+      break;
+    case e_commodity_label_render_colors::over_limit:
+      info = { /*normal=*/gfx::pixel{
+                   .r = 0xaa, .g = 0x00, .b = 0x00, .a = 255 },
+               /*highlight=*/gfx::pixel::red() };
+      break;
+    case e_commodity_label_render_colors::custom_house_selling:
+      info = { /*normal=*/gfx::pixel{
+                   .r = 0x00, .g = 0xff, .b = 0x00, .a = 255 },
+               /*highlight=*/gfx::pixel::yellow() };
+      break;
+  }
+  render_commodity_label_impl( renderer, where, label, info );
+}
+
+void render_commodity_impl(
+    rr::Renderer& renderer, Coord where, e_commodity type,
+    maybe<string>                   label,
+    e_commodity_label_render_colors colors ) {
   auto        tile    = tile_for_commodity( type );
   rr::Painter painter = renderer.painter();
   render_sprite( painter, tile, where );
@@ -101,7 +123,7 @@ void render_commodity_impl( rr::Renderer& renderer, Coord where,
   auto origin =
       where + Delta{ .w = -( label_size.w - comm_size.w ) / 2,
                      .h = comm_size.h + 2 };
-  render_commodity_label( renderer, origin, *label );
+  render_commodity_label( renderer, origin, *label, colors );
 }
 
 string commodity_number_to_markup( int value ) {
@@ -260,7 +282,8 @@ maybe<string> commodity_label_to_markup(
       return nothing;
     }
     case CommodityLabel::e::quantity: {
-      auto& [value] = label.get<CommodityLabel::quantity>();
+      auto& [value, colors] =
+          label.get<CommodityLabel::quantity>();
       return fmt::format( "{}",
                           commodity_number_to_markup( value ) );
     }
@@ -274,14 +297,19 @@ maybe<string> commodity_label_to_markup(
 void render_commodity( rr::Renderer& renderer, Coord where,
                        e_commodity type ) {
   render_commodity_impl( renderer, where, type,
-                         /*label=*/nothing );
+                         /*label=*/nothing, /*colors=*/{} );
 }
 
 void render_commodity_annotated(
     rr::Renderer& renderer, Coord where, e_commodity type,
     CommodityLabel_t const& label ) {
+  e_commodity_label_render_colors const colors =
+      label.get_if<CommodityLabel::quantity>()
+          .member( &CommodityLabel::quantity::colors )
+          .value_or( e_commodity_label_render_colors::standard );
   render_commodity_impl( renderer, where, type,
-                         commodity_label_to_markup( label ) );
+                         commodity_label_to_markup( label ),
+                         colors );
 }
 
 // Will use quantity as label.
@@ -290,7 +318,8 @@ void render_commodity_annotated( rr::Renderer&    renderer,
                                  Commodity const& comm ) {
   render_commodity_annotated(
       renderer, where, comm.type,
-      CommodityLabel::quantity{ comm.quantity } );
+      CommodityLabel::quantity{ .value  = comm.quantity,
+                                .colors = {} } );
 }
 
 } // namespace rn

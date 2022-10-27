@@ -10,10 +10,24 @@
 # ===============================================================
 namespace "rn"
 
+enum.e_commodity_label_render_colors {
+  # Default colors, includes highlighting for the hundreds digit.
+  # Should be first so that it is the default.
+  standard,
+
+  # This is for when the quantity of the commodity is exceeding
+  # the colony warehouse capacity and is at risk for spoiling.
+  over_limit,
+
+  # When the custom house is selling a commodity.
+  custom_house_selling,
+}
+
 sumtype.CommodityLabel {
   none {},
   quantity {
     value 'int',
+    colors 'e_commodity_label_render_colors',
   },
   buy_sell {
     # These are in hundreds.

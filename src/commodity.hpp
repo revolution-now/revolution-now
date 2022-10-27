@@ -63,11 +63,6 @@ std::string uppercase_commodity_display_name( e_commodity type );
 maybe<std::string> commodity_label_to_markup(
     CommodityLabel_t const& label );
 
-// Will be rendered as a one-line text string with transparent
-// background. Could return nothing if label is `none`.
-void render_commodity_label( rr::Renderer& renderer, Coord where,
-                             CommodityLabel_t const& label );
-
 /****************************************************************
 ** Commodity
 *****************************************************************/
