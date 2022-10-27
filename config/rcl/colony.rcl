@@ -842,3 +842,34 @@ rush_construction {
   # more interesting (difficult).
   allow_rushing_tools_during_boycott: true
 }
+
+# Things related to the operation of the custom house building.
+custom_house {
+  # When the quantity of a commodity reaches this value then it
+  # will be sold (though perhaps only partially).
+  threshold_for_sell: 100
+
+  # When selling a commodity, always leave at least this amount.
+  amount_to_retain: 50
+
+  # When the custom house is first built, these will be the com-
+  # modities selected for selling.
+  initial_commodities {
+    food:        false
+    sugar:       true
+    tobacco:     true
+    cotton:      true
+    fur:         true
+    lumber:      false
+    ore:         true
+    silver:      true
+    horses:      false
+    rum:         true
+    cigars:      true
+    cloth:       true
+    coats:       true
+    trade_goods: false
+    tools:       false
+    muskets:     false
+  }
+}

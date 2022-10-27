@@ -14,6 +14,14 @@ using namespace std;
 
 namespace rn {
 
+base::valid_or<string> config::colony::CustomHouse::validate()
+    const {
+  REFL_VALIDATE(
+      threshold_for_sell >= amount_to_retain,
+      "threshold_for_sell must be >= amount_to_retrain." );
+  return base::valid;
+}
+
 base::valid_or<string> config::colony::warehouses::validate()
     const {
   REFL_VALIDATE(

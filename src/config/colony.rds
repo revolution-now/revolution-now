@@ -154,6 +154,21 @@ struct.RushConstruction {
   allow_rushing_tools_during_boycott 'bool',
 }
 
+struct.CustomHouse {
+  # When the quantity of a commodity reaches this value then it
+  # will be sold (though perhaps only partially).
+  threshold_for_sell 'int',
+
+  # When selling a commodity, always leave at least this amount.
+  amount_to_retain 'int',
+
+  # When the custom house is first built, these will be the com-
+  # modities selected for selling.
+  initial_commodities 'refl::enum_map<e_commodity, bool>',
+
+  _features { equality, validation }
+}
+
 namespace "rn"
 
 # Note that this config is for non-production related things. For
@@ -259,6 +274,9 @@ struct.config_colony_t {
   # Describes parameters related to teachers teaching in schools
   # / colleges / universities.
   teaching 'config::colony::Teaching',
+
+  # Things related to the operation of the custom house building.
+  custom_house 'config::colony::CustomHouse',
 
   _features { validation, equality }
 }
