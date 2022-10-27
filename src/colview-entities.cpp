@@ -178,6 +178,18 @@ wait<maybe<ColonyEquipOption>> ask_transorm_unit_on_leave(
   };
   vector<ColonyEquipOption> const equip_opts =
       colony_equip_options( colony, unit.composition() );
+  // We should always at least have the option to leave the unit
+  // unchanged.
+  CHECK_GT( equip_opts.size(), 0U );
+  if( equip_opts.size() == 1 ) {
+    // We have only the option to keep the unit the same. Since
+    // the unit was original a colonist with no modifiers, we can
+    // say that this one option should have an identical composi-
+    // tion (e.g., we're not keeping the unit type the same but
+    // increasing its tool count).
+    CHECK( equip_opts[0].new_comp == unit.composition() );
+    co_return nothing;
+  }
   static string const kNoChangesKey = "no changes";
   config.options.push_back(
       { .key = kNoChangesKey, .display_name = "No Changes." } );

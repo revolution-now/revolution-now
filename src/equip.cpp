@@ -11,6 +11,7 @@
 #include "equip.hpp"
 
 // Revolution Now
+#include "colony-buildings.hpp"
 #include "market.hpp"
 
 // config
@@ -236,6 +237,13 @@ vector<ColonyEquipOption> colony_equip_options(
         // status to a veteran soldier and making it a conti-
         // nental soldier.
         goto skip;
+      if( modifier == e_unit_type_modifier::blessing &&
+          !building_for_slot(
+              colony, e_colony_building_slot::crosses ) ) {
+        // We cannot bless units as missionaries unless the
+        // colony has a church/cathedral.
+        goto skip;
+      }
     }
     {
       ColonyEquipOption option;
