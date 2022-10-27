@@ -49,28 +49,28 @@ wait<> open_custom_house_menu( Planes& planes, TS& ts,
   auto vsplit_array = make_unique<HorizontalArrayView>(
       HorizontalArrayView::align::up );
 
-  // Add check boxes.
-  auto l_boxes_array = make_unique<VerticalArrayView>(
-      VerticalArrayView::align::left );
-  auto r_boxes_array = make_unique<VerticalArrayView>(
-      VerticalArrayView::align::left );
+  // Add check boxes into four columns.
+  vector<unique_ptr<VerticalArrayView>> boxes_arrays;
+  int constexpr kNumColumns = 4;
+  for( int i = 0; i < kNumColumns; ++i )
+    boxes_arrays.push_back( make_unique<VerticalArrayView>(
+        VerticalArrayView::align::left ) );
 
   refl::enum_map<e_commodity, LabeledCheckBoxView const*> boxes;
   for( e_commodity comm : refl::enum_values<e_commodity> ) {
     auto labeled_box = make_unique<LabeledCheckBoxView>(
         string( uppercase_commodity_display_name( comm ) ),
         colony.custom_house[comm] );
-    boxes[comm] = labeled_box.get();
-    if( static_cast<int>( comm ) < 8 )
-      l_boxes_array->add_view( std::move( labeled_box ) );
-    else
-      r_boxes_array->add_view( std::move( labeled_box ) );
+    boxes[comm]      = labeled_box.get();
+    int const column = static_cast<int>( comm ) / 4;
+    CHECK_LT( column, kNumColumns );
+    boxes_arrays[column]->add_view( std::move( labeled_box ) );
   }
-  l_boxes_array->recompute_child_positions();
-  r_boxes_array->recompute_child_positions();
+  for( int i = 0; i < kNumColumns; ++i ) {
+    boxes_arrays[i]->recompute_child_positions();
+    vsplit_array->add_view( std::move( boxes_arrays[i] ) );
+  }
 
-  vsplit_array->add_view( std::move( l_boxes_array ) );
-  vsplit_array->add_view( std::move( r_boxes_array ) );
   vsplit_array->recompute_child_positions();
   top_array->add_view( std::move( vsplit_array ) );
 
