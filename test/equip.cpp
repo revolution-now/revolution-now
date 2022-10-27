@@ -681,6 +681,8 @@ TEST_CASE( "[equip] colony_equip_options" ) {
   colony.commodities[e_commodity::sugar]   = 50;
   colony.commodities[e_commodity::muskets] = 50;
   colony.commodities[e_commodity::horses]  = 100;
+  // To enable the missionary to appear.
+  colony.buildings[e_colony_building::church] = true;
 
   SECTION( "seasoned colonist" ) {
     Unit const& unit =
@@ -762,6 +764,39 @@ TEST_CASE( "[equip] colony_equip_options" ) {
                                     -50 } },
             .new_comp         = UnitComposition::create(
                 e_unit_type::veteran_soldier ) },
+    };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "no church" ) {
+    // Make sure the missionary does not appear.
+    colony.buildings[e_colony_building::church] = false;
+
+    Unit const& unit =
+        W.add_free_unit( e_unit_type::free_colonist );
+
+    auto f = [&] {
+      return colony_equip_options( colony, unit.composition() );
+    };
+
+    vector<ColonyEquipOption> expected{
+        ColonyEquipOption{ .commodity_deltas = {},
+                           .new_comp = UnitComposition::create(
+                               e_unit_type::free_colonist ) },
+        ColonyEquipOption{
+            .commodity_deltas = { { e_commodity::muskets, -50 },
+                                  { e_commodity::horses, -50 } },
+            .new_comp         = UnitComposition::create(
+                e_unit_type::dragoon ) },
+        ColonyEquipOption{
+            .commodity_deltas = { { e_commodity::horses, -50 } },
+            .new_comp =
+                UnitComposition::create( e_unit_type::scout ) },
+        ColonyEquipOption{
+            .commodity_deltas = { { e_commodity::muskets,
+                                    -50 } },
+            .new_comp         = UnitComposition::create(
+                e_unit_type::soldier ) },
     };
     REQUIRE( f() == expected );
   }
