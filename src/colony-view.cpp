@@ -131,6 +131,7 @@ void try_decrease_commodity( SS& ss, Colony& colony,
 ** Colony Plane
 *****************************************************************/
 struct ColonyPlane::Impl : public Plane {
+  Planes& planes_;
   SS&     ss_;
   TS&     ts_;
   Player& player_;
@@ -140,12 +141,13 @@ struct ColonyPlane::Impl : public Plane {
   co::stream<input::event_t>        input_      = {};
   maybe<DragState<ColViewObject_t>> drag_state_ = {};
 
-  Impl( SS& ss, TS& ts, Colony& colony )
-    : ss_( ss ),
+  Impl( Planes& planes, SS& ss, TS& ts, Colony& colony )
+    : planes_( planes ),
+      ss_( ss ),
       ts_( ts ),
       player_( ss.players.players[colony.nation].value() ),
       colony_( colony ) {
-    set_colview_colony( ss_, ts_, player_, colony_ );
+    set_colview_colony( planes_, ss_, ts_, player_, colony_ );
   }
 
   bool covers_screen() const override { return true; }
@@ -284,7 +286,7 @@ struct ColonyPlane::Impl : public Plane {
   wait<bool> handle_event( input::win_event_t const& event ) {
     if( event.type == input::e_win_event_type::resized )
       // Force a re-composite.
-      set_colview_colony( ss_, ts_, player_, colony_ );
+      set_colview_colony( planes_, ss_, ts_, player_, colony_ );
     co_return false;
   }
 
@@ -341,7 +343,7 @@ wait<> show_colony_view_impl( Planes& planes, SS& ss, TS& ts_old,
   TS ts( ts_old.map_updater, ts_old.lua, gui, ts_old.rand,
          ts_old.saved );
 
-  ColonyPlane colony_plane( ss, ts, colony );
+  ColonyPlane colony_plane( planes, ss, ts, colony );
   new_group.colony = &colony_plane;
 
   lg.info( "viewing colony '{}'.", colony.name );
@@ -358,8 +360,9 @@ Plane& ColonyPlane::impl() { return *impl_; }
 
 ColonyPlane::~ColonyPlane() = default;
 
-ColonyPlane::ColonyPlane( SS& ss, TS& ts, Colony& colony )
-  : impl_( new Impl( ss, ts, colony ) ) {}
+ColonyPlane::ColonyPlane( Planes& planes, SS& ss, TS& ts,
+                          Colony& colony )
+  : impl_( new Impl( planes, ss, ts, colony ) ) {}
 
 wait<> ColonyPlane::show_colony_view() const {
   co_await impl_->run_colview();

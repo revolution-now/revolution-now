@@ -32,7 +32,7 @@ struct TS;
 ** ColonyPlane
 *****************************************************************/
 struct ColonyPlane {
-  ColonyPlane( SS& ss, TS& ts, Colony& colony );
+  ColonyPlane( Planes& planes, SS& ss, TS& ts, Colony& colony );
 
   ~ColonyPlane();
 

@@ -81,8 +81,9 @@ Delta ColonyLandView::size_needed( e_render_mode mode ) {
     case e_render_mode::_5x5: side_length_in_squares = 5; break;
     case e_render_mode::_6x6: side_length_in_squares = 6; break;
   }
-  return Delta{ .w = 32, .h = 32 }* Delta{
-      .w = side_length_in_squares, .h = side_length_in_squares };
+  return Delta{ .w = 32, .h = 32 } *
+         Delta{ .w = side_length_in_squares,
+                .h = side_length_in_squares };
 }
 
 maybe<e_direction> ColonyLandView::direction_under_cursor(
@@ -459,16 +460,16 @@ void ColonyLandView::draw( rr::Renderer& renderer,
 }
 
 unique_ptr<ColonyLandView> ColonyLandView::create(
-    SS& ss, TS& ts, Player& player, Colony& colony,
-    e_render_mode mode ) {
-  return make_unique<ColonyLandView>( ss, ts, player, colony,
-                                      mode );
+    Planes& planes, SS& ss, TS& ts, Player& player,
+    Colony& colony, e_render_mode mode ) {
+  return make_unique<ColonyLandView>( planes, ss, ts, player,
+                                      colony, mode );
 }
 
-ColonyLandView::ColonyLandView( SS& ss, TS& ts, Player& player,
-                                Colony&       colony,
+ColonyLandView::ColonyLandView( Planes& planes, SS& ss, TS& ts,
+                                Player& player, Colony& colony,
                                 e_render_mode mode )
-  : ColonySubView( ss, ts, player, colony ),
+  : ColonySubView( planes, ss, ts, player, colony ),
     mode_( mode ),
     occupied_red_box_( find_occupied_surrounding_colony_squares(
         ss, colony ) ) {}
