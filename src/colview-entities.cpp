@@ -352,7 +352,9 @@ class MarketCommodities
       if( has_custom_house && colony_.custom_house[*comm_it] )
         label.colors = e_commodity_label_render_colors::
             custom_house_selling;
-      else if( colony_.commodities[*comm_it] > warehouse_limit )
+      else if( config_colony.warehouses
+                   .commodities_with_warehouse_limit[*comm_it] &&
+               colony_.commodities[*comm_it] > warehouse_limit )
         label.colors =
             e_commodity_label_render_colors::over_limit;
       else
