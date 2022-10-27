@@ -20,6 +20,8 @@ namespace rn {
 
 using CommodityQuantityMap = refl::enum_map<e_commodity, int>;
 
+using CustomHouseMap = refl::enum_map<e_commodity, bool>;
+
 using TeachersMap = std::unordered_map<UnitId, int>;
 
 using ColonyBuildingsMap =
@@ -38,6 +40,8 @@ LUA_USERDATA_TRAITS( ::rn::Colony, owned_by_cpp ){};
 
 LUA_USERDATA_TRAITS( ::rn::CommodityQuantityMap,
                      owned_by_cpp ){};
+
+LUA_USERDATA_TRAITS( ::rn::CustomHouseMap, owned_by_cpp ){};
 
 LUA_USERDATA_TRAITS( ::rn::ColonyBuildingsMap, owned_by_cpp ){};
 

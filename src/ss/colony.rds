@@ -87,5 +87,9 @@ struct.Colony {
   # (SoL) membership for this colony.
   sons_of_liberty 'SonsOfLiberty',
 
+  # Which goods are being sold by the custom house. Only relevant
+  # if there is a custom house.
+  custom_house 'refl::enum_map<e_commodity, bool>',
+
   _features { equality, validation }
 }

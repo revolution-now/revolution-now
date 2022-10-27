@@ -204,6 +204,21 @@ LUA_STARTUP( lua::state& st ) {
         };
   }();
 
+  // CustomHouseMap.
+  // TODO: make this generic.
+  [&] {
+    using U = ::rn::CustomHouseMap;
+    auto u  = st.usertype.create<U>();
+
+    u[lua::metatable_key]["__index"] =
+        [&]( U& obj, e_commodity c ) { return obj[c]; };
+
+    u[lua::metatable_key]["__newindex"] =
+        [&]( U& obj, e_commodity c, int quantity ) {
+          obj[c] = quantity;
+        };
+  }();
+
   // ColonyBuildingsMap
   // TODO: make this generic.
   [&] {
@@ -237,6 +252,7 @@ LUA_STARTUP( lua::state& st ) {
   u["sons_of_liberty"] = &U::sons_of_liberty;
   u["buildings"]       = &U::buildings;
   u["commodities"]     = &U::commodities;
+  u["custom_house"]    = &U::custom_house;
   // FIXME: figure out how to expose C++ maps to Lua.
   u["teachers"] = &U::teachers;
 };
