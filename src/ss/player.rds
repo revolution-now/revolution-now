@@ -21,6 +21,15 @@ include "gfx/coord.hpp"
 
 namespace "rn"
 
+# Note: it is important that these go in chronological order so
+# that we can use inequality operators on them, which we do in
+# some places. E.g. if status <= declared then...
+enum.e_revolution_status {
+  not_declared,
+  declared,
+  won,
+}
+
 struct.Player {
   # Somewhat just for convenience.
   nation 'e_nation',
@@ -44,7 +53,7 @@ struct.Player {
   # and will be the name given to the new world by the player.
   discovered_new_world 'maybe<std::string>',
 
-  independence_declared 'bool',
+  revolution_status 'e_revolution_status',
 
   # Anything related to founding fathers is in here.
   fathers 'FoundingFathersState',

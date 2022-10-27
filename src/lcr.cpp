@@ -74,17 +74,17 @@ bool is_native_land() {
 
 // The fountain of youth is only allowed pre-independence.
 bool allow_fountain_of_youth( Player const& player ) {
-  return !player.independence_declared;
+  return player.revolution_status ==
+         e_revolution_status::not_declared;
 }
 
 UnitId create_treasure_train( SS& ss, TS& ts,
                               Player const& player,
                               Coord world_square, int amount ) {
-  UNWRAP_CHECK(
-      uc_treasure,
-      UnitComposition::create(
-          UnitType::create( e_unit_type::treasure ),
-          { { e_unit_inventory::gold, amount } } ) );
+  UNWRAP_CHECK( uc_treasure,
+                UnitComposition::create(
+                    UnitType::create( e_unit_type::treasure ),
+                    { { e_unit_inventory::gold, amount } } ) );
   // Use the non-coroutine version of this because it avoids an
   // inifinite-regress issue where the new unit created redis-
   // covers the LCR on this tile; also, there are no further UI

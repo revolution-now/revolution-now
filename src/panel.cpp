@@ -166,6 +166,12 @@ struct PanelPlane::Impl : public Plane {
     typer.newline();
     typer.write( "Zoom: {:.4}\n",
                  ss_.land_view.viewport.get_zoom() );
+
+    typer.newline();
+    typer.write(
+        "Independence:\n   {}\n",
+        IGui::identifier_to_display_name( refl::enum_value_name(
+            player.revolution_status ) ) );
   }
 
   void draw( rr::Renderer& renderer ) const override {
