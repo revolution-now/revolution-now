@@ -872,4 +872,12 @@ custom_house {
     tools:       false
     muskets:     false
   }
+
+  # What percent charge (intead of the current tax rate) should
+  # be imposed on a custom house sale after independence is de-
+  # clared? The strategy guide (and other resources) seem to in-
+  # dicate that this charge is supposed to be used
+  # post-declaration, though it may not be working in all ver-
+  # sions of the game.
+  charge_during_revolution: 50
 }

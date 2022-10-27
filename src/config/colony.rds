@@ -166,6 +166,11 @@ struct.CustomHouse {
   # modities selected for selling.
   initial_commodities 'refl::enum_map<e_commodity, bool>',
 
+  # What percent charge (intead of the current tax rate) should
+  # be imposed on a custom house sale after independence is de-
+  # clared?
+  charge_during_revolution 'int',
+
   _features { equality, validation }
 }
 
