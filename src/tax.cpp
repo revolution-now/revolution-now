@@ -275,6 +275,8 @@ wait<TaxChangeResult_t> prompt_for_tax_change_result(
         case ui::e_confirm::no:
           co_return TaxChangeResult::party{ .how = o.party };
       }
+      FATAL( "unexpected value for e_confirm enum: {}",
+             static_cast<int>( answer ) );
     }
     case TaxChangeProposal::e::decrease: {
       auto& o = proposal.get<TaxChangeProposal::decrease>();

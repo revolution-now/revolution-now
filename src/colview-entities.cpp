@@ -164,8 +164,7 @@ maybe<string> check_seige() {
 // the map and needs to move it into a colony for transport by
 // the king).
 wait<maybe<ColonyEquipOption>> ask_transorm_unit_on_leave(
-    TS& ts, Player const& player, Colony const& colony,
-    Unit const& unit ) {
+    TS& ts, Colony const& colony, Unit const& unit ) {
   if( colony_population( colony ) > 1 ) co_return nothing;
   ChoiceConfig config{
       .msg = fmt::format(
@@ -674,8 +673,8 @@ class CargoView : public ui::View,
         Unit const&         unit =
             ss_.units.unit_for( draggable_unit.id );
         maybe<ColonyEquipOption> const equip_options =
-            co_await ask_transorm_unit_on_leave( ts_, player_,
-                                                 colony_, unit );
+            co_await ask_transorm_unit_on_leave( ts_, colony_,
+                                                 unit );
         if( equip_options.has_value() )
           new_draggable_unit.transformed = *equip_options;
         co_return new_draggable_unit;
@@ -1069,8 +1068,8 @@ class UnitsAtGateColonyView
         Unit const&         unit =
             ss_.units.unit_for( draggable_unit.id );
         maybe<ColonyEquipOption> const equip_options =
-            co_await ask_transorm_unit_on_leave( ts_, player_,
-                                                 colony_, unit );
+            co_await ask_transorm_unit_on_leave( ts_, colony_,
+                                                 unit );
         if( equip_options.has_value() )
           new_draggable_unit.transformed = *equip_options;
         co_return new_draggable_unit;
