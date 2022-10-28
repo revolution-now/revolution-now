@@ -1016,6 +1016,9 @@ local function create_river( options, coord )
   end
 end
 
+-- TODO: in the original game, all rivers seem to originate on
+-- ocean tiles, even inland ocean tiles (which makes sense).
+-- Also, it looks like rivers can fork mid-way.
 local function create_rivers( options )
   on_all( function( coord, square )
     if is_land( square ) then
