@@ -162,7 +162,13 @@ void apply_custom_house_sales(
   for( CustomHouseSale const& sale : sales ) {
     // The custom house is selling this commodity.
     int& quantity = colony.commodities[sale.invoice.what.type];
-    quantity      = config_colony.custom_house.amount_to_retain;
+    // The custom house will only sell when the quantity becomes
+    // larger than a threshold, which in turn is larger than the
+    // amount that the colony retains, and it will sell as much
+    // as it can to leave only the minimum retaining amount.
+    // Therefore, we can just set the quantity to the minimum re-
+    // taining amount.
+    quantity = config_colony.custom_house.amount_to_retain;
     apply_invoice( ss, player, sale.invoice );
   }
 }
