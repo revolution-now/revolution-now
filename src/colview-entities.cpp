@@ -1266,6 +1266,9 @@ class UnitsAtGateColonyView
                    dropping_comm.quantity );
             unit.change_type( as_const( player_ ),
                               xform_res.new_comp );
+            // For the convenience of the player, since this is
+            // likely what they would do next.
+            unit.clear_orders();
             // The unit, being at the colony gate, is actually on
             // the map at the site of this colony. In the event
             // that we are e.g. changing a colonist to a scout
