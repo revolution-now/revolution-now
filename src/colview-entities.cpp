@@ -1269,6 +1269,10 @@ class UnitsAtGateColonyView
             // For the convenience of the player, since this is
             // likely what they would do next.
             unit.clear_orders();
+            // The OG ends a units turn when they change type in
+            // this way, even if a pioneer simply gets equipped
+            // with more tools.
+            unit.forfeight_mv_points();
             // The unit, being at the colony gate, is actually on
             // the map at the site of this colony. In the event
             // that we are e.g. changing a colonist to a scout
