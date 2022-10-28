@@ -100,9 +100,9 @@ HarborMarketCommodities::object_here(
   Coord const box_origin =
       where.rounded_to_multiple_to_minus_inf( g_tile_delta ) +
       kCommodityInCargoHoldRenderingOffset;
-  Rect const box = Rect::from(
-      box_origin,
-      Delta{ .w = 1, .h = 1 }* Delta{ .w = 16, .h = 16 } );
+  Rect const box =
+      Rect::from( box_origin, Delta{ .w = 1, .h = 1 } *
+                                  Delta{ .w = 16, .h = 16 } );
   return DraggableObjectWithBounds<HarborDraggableObject_t>{
       .obj =
           HarborDraggableObject::market_commodity{
@@ -262,6 +262,8 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
   auto label   = CommodityLabel::buy_sell{};
   for( Rect const rect : gfx::subrects( bds, g_tile_delta ) ) {
     CHECK( comm_it != refl::enum_values<e_commodity>.end() );
+    // FIXME: this color should be deduped with the one in the
+    // colony view.
     static gfx::pixel const bg_color =
         gfx::pixel{ .r = 0x90, .g = 0x90, .b = 0xc0, .a = 0xff };
     painter.draw_solid_rect( rect, bg_color );

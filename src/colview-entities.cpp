@@ -328,6 +328,11 @@ class MarketCommodities
     for( int i = 0; i < kNumCommodityTypes; ++i ) {
       auto rect =
           Rect::from( pos, Delta{ .w = block_width_, .h = 32 } );
+      // FIXME: this color should be deduped with the one in the
+      // harbor view.
+      static gfx::pixel const bg_color = gfx::pixel{
+          .r = 0x90, .g = 0x90, .b = 0xc0, .a = 0xff };
+      painter.draw_solid_rect( rect, bg_color );
       painter.draw_empty_rect(
           rect, rr::Painter::e_border_mode::in_out,
           gfx::pixel::black() );
