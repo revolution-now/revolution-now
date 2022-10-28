@@ -235,6 +235,10 @@ void add_player_crosses( Player& player,
   player.crosses += delta;
 }
 
+// TODO: When a new colonist arrives on the dock, the OG seems to
+// show the harbor view just after displaying the message but
+// only when there is a ship in the harbor. We may want to repli-
+// cate this.
 wait<maybe<UnitId>> check_for_new_immigrant(
     SS& ss, TS& ts, Player& player, int crosses_needed ) {
   CHECK_GE( crosses_needed, 0 );
