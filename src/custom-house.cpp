@@ -17,7 +17,6 @@ using namespace std;
 #include "igui.hpp"
 #include "market.hpp"
 #include "plane-stack.hpp"
-#include "ts.hpp"
 #include "views.hpp"
 #include "window.hpp"
 
@@ -35,8 +34,7 @@ namespace {} // namespace
 /****************************************************************
 ** Public API
 *****************************************************************/
-wait<> open_custom_house_menu( Planes& planes, TS& ts,
-                               Colony& colony ) {
+wait<> open_custom_house_menu( Planes& planes, Colony& colony ) {
   using namespace ::rn::ui;
   auto top_array = make_unique<VerticalArrayView>(
       VerticalArrayView::align::center );

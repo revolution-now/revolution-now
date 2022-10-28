@@ -18,7 +18,6 @@
 #include "render.hpp"
 #include "teaching.hpp"
 #include "tiles.hpp"
-#include "ts.hpp"
 
 // ss
 #include "ss/colony.hpp"
@@ -335,7 +334,7 @@ wait<> ColViewBuildings::perform_click(
   if( !building.has_value() ) co_return;
   switch( *building ) {
     case e_colony_building::custom_house:
-      co_await open_custom_house_menu( planes_, ts_, colony_ );
+      co_await open_custom_house_menu( planes_, colony_ );
       break;
     default: break;
   }
