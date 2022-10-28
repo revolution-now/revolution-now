@@ -1369,8 +1369,13 @@ class UnitsAtGateColonyView
       if( unit.orders() == e_unit_orders::road ||
           unit.orders() == e_unit_orders::plow )
         unit.clear_orders();
+      UnitComposition const old_comp = unit.composition();
       strip_unit_to_base_type( as_const( player_ ), unit,
                                colony_ );
+      if( unit.composition() != old_comp )
+        // The OG ends a units turn when they change type by any
+        // means in the colony view.
+        unit.forfeight_mv_points();
     } else if( mode == "missionary" ) {
       // TODO: play blessing tune.
       bless_as_missionary( as_const( player_ ), colony_, unit );
