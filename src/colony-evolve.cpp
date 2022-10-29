@@ -279,20 +279,29 @@ void check_construction( SS& ss, TS& ts, Player const& player,
 }
 
 void apply_commodity_increase(
-    refl::enum_map<e_commodity, int>& store, e_commodity what,
-    int delta, vector<ColonyNotification_t>& notifications ) {
-  int const old_value = store[what];
-  int const new_value = old_value + delta;
-  if( old_value < 100 && new_value >= 100 )
-    // Don't report food because food is not typically something
-    // that gets loaded as cargo and traded. Typically the player
-    // will want to allow it to grow beyond 100 to 200 (which it
-    // can always do because there are no warehouse limits on
-    // food) in order to produce a new colonist.
-    if( what != e_commodity::food )
-      notifications.emplace_back(
-          ColonyNotification::full_cargo{ .what = what } );
-  store[what] = new_value;
+    Colony& colony, e_commodity what, int delta,
+    vector<ColonyNotification_t>& notifications ) {
+  int const old_value      = colony.commodities[what];
+  int const new_value      = old_value + delta;
+  colony.commodities[what] = new_value;
+  bool const new_full_cargo =
+      ( old_value < 100 && new_value >= 100 );
+  if( !new_full_cargo ) return;
+  // Don't report food because food is not typically something
+  // that gets sold. Typically the player will want to allow it
+  // to grow beyond 100 to 200 (which it can always do because
+  // there are no warehouse limits on food) in order to produce a
+  // new colonist.
+  if( what == e_commodity::food ) return;
+  // Don't report a full cargo on something that is being managed
+  // by the custom house, since the player will be notified sepa-
+  // rately when the custom house sells it.
+  if( colony.custom_house[what] ) return;
+  // Notify the player of a full cargo since they will likely
+  // want to quickly move a ship into the colony to pick it up to
+  // sell it, or take some other action.
+  notifications.emplace_back(
+      ColonyNotification::full_cargo{ .what = what } );
 }
 
 void apply_bells_for_founding_fathers( Player& player,
@@ -355,23 +364,19 @@ void evolve_sons_of_liberty(
 void apply_production_to_colony(
     Colony& colony, ColonyProduction const& production,
     vector<ColonyNotification_t>& notifications ) {
-  refl::enum_map<e_commodity, int>& commodities =
-      colony.commodities;
-
   for( e_commodity c : refl::enum_values<e_commodity> ) {
     int delta =
         final_production_delta_for_commodity( production, c );
-    apply_commodity_increase( commodities, c, delta,
-                              notifications );
+    apply_commodity_increase( colony, c, delta, notifications );
   }
 
   colony.hammers +=
       production.lumber_hammers.product_delta_final;
 
   for( e_commodity c : refl::enum_values<e_commodity> ) {
-    CHECK( commodities[c] >= 0,
+    CHECK( colony.commodities[c] >= 0,
            "colony {} has a negative quantity ({}) of {}.",
-           colony.name, commodities[c], c );
+           colony.name, colony.commodities[c], c );
   }
 }
 
@@ -513,7 +518,10 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
   // as to not cause the prices of any goods to move more than
   // one unit per turn.
   //
-  // Note: the custom house should be processed:
+  // Note: the custom house should be processed at a point in
+  //       the process relative to the other steps in the
+  //       following way (FIXME: encode the below in the form of
+  //       unit tests):
   //
   //   * After production is computed and applied to the colony.
   //   * After construction is checked so that any tools needed
