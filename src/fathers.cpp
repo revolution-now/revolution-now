@@ -292,6 +292,13 @@ wait<> pick_founding_father_if_needed( SSConst const& ss, TS& ts,
       choice,
       refl::enum_from_string<e_founding_father>( choice_str ) );
   player.fathers.in_progress = choice;
+  // We've now started working on someone, so reset the bells. If
+  // we don't do this then we can have a situation where a large
+  // number of bells accumulate (e.g. because there were no more
+  // founding fathers available in the era) and then suddently
+  // they become available and the first one is given immediately
+  // because of the accumulation of bells, which feels wrong.
+  player.fathers.bells = 0;
 }
 
 maybe<e_founding_father> check_founding_fathers(
