@@ -85,7 +85,7 @@ TEST_CASE( "[treasure] treasure_in_harbor_receipt" ) {
 
   tax_rate = 0;
   expected = {
-      .treasure_id       = 1,
+      .treasure_id       = UnitId{ 1 },
       .transport_mode    = e_treasure_transport_mode::player,
       .original_worth    = 100,
       .kings_cut_percent = 0,
@@ -94,7 +94,7 @@ TEST_CASE( "[treasure] treasure_in_harbor_receipt" ) {
 
   tax_rate = 10;
   expected = {
-      .treasure_id       = 1,
+      .treasure_id       = UnitId{ 1 },
       .transport_mode    = e_treasure_transport_mode::player,
       .original_worth    = 100,
       .kings_cut_percent = 10,
@@ -103,7 +103,7 @@ TEST_CASE( "[treasure] treasure_in_harbor_receipt" ) {
 
   tax_rate = 99;
   expected = {
-      .treasure_id       = 1,
+      .treasure_id       = UnitId{ 1 },
       .transport_mode    = e_treasure_transport_mode::player,
       .original_worth    = 100,
       .kings_cut_percent = 99,
@@ -112,7 +112,7 @@ TEST_CASE( "[treasure] treasure_in_harbor_receipt" ) {
 
   tax_rate = 100;
   expected = {
-      .treasure_id       = 1,
+      .treasure_id       = UnitId{ 1 },
       .transport_mode    = e_treasure_transport_mode::player,
       .original_worth    = 100,
       .kings_cut_percent = 100,
@@ -121,7 +121,7 @@ TEST_CASE( "[treasure] treasure_in_harbor_receipt" ) {
 
   tax_rate = 110;
   expected = {
-      .treasure_id       = 1,
+      .treasure_id       = UnitId{ 1 },
       .transport_mode    = e_treasure_transport_mode::player,
       .original_worth    = 100,
       .kings_cut_percent = 110,
@@ -143,7 +143,7 @@ TEST_CASE( "[treasure] apply_treasure_reimbursement" ) {
   REQUIRE( player.money == 0 );
 
   TreasureReceipt const receipt{
-      .treasure_id       = 1,
+      .treasure_id       = UnitId{ 1 },
       .transport_mode    = e_treasure_transport_mode::player,
       .original_worth    = 100,
       .kings_cut_percent = 10,
@@ -167,7 +167,7 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
   };
 
   receipt = {
-      .treasure_id       = 1,
+      .treasure_id       = UnitId{ 1 },
       .transport_mode    = e_treasure_transport_mode::player,
       .original_worth    = 100,
       .kings_cut_percent = 10,
@@ -179,7 +179,7 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
       .returns( monostate{} );
   f();
 
-  receipt = { .treasure_id = 1,
+  receipt = { .treasure_id = UnitId{ 1 },
               .transport_mode =
                   e_treasure_transport_mode::king_with_charge,
               .original_worth    = 100,
@@ -194,7 +194,7 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
   f();
 
   receipt = {
-      .treasure_id = 1,
+      .treasure_id = UnitId{ 1 },
       .transport_mode =
           e_treasure_transport_mode::king_no_extra_charge,
       .original_worth    = 100,
@@ -234,7 +234,7 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
 
   // No galleons.
   expected = TreasureReceipt{
-      .treasure_id = 1,
+      .treasure_id = UnitId{ 1 },
       .transport_mode =
           e_treasure_transport_mode::king_with_charge,
       .original_worth    = 100,
@@ -261,7 +261,7 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
   // No galleons, with hernan cortes.
   player.fathers.has[e_founding_father::hernan_cortes] = true;
   expected = TreasureReceipt{
-      .treasure_id = 1,
+      .treasure_id = UnitId{ 1 },
       .transport_mode =
           e_treasure_transport_mode::king_no_extra_charge,
       .original_worth    = 100,
@@ -294,7 +294,7 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
   W.add_unit_on_map( e_unit_type::galleon, { .x = 0, .y = 0 } );
   player.fathers.has[e_founding_father::hernan_cortes] = false;
   expected = TreasureReceipt{
-      .treasure_id = 1,
+      .treasure_id = UnitId{ 1 },
       .transport_mode =
           e_treasure_transport_mode::king_with_charge,
       .original_worth    = 100,

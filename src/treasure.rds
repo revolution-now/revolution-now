@@ -20,7 +20,7 @@ enum.e_treasure_transport_mode {
 }
 
 struct.TreasureReceipt {
-  treasure_id 'int', # unit id
+  treasure_id 'UnitId',
   transport_mode 'e_treasure_transport_mode',
   original_worth 'int',
   kings_cut_percent 'int',

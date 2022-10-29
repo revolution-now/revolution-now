@@ -1013,9 +1013,9 @@ TEST_CASE( "[unit-type] on the job promotion" ) {
                                                   colony );
 
   vector<OnTheJobPromotionResult> const expected{
-      { .unit_id     = 7,
+      { .unit_id     = UnitId{ 7 },
         .promoted_to = e_unit_type::expert_sugar_planter },
-      { .unit_id     = 11,
+      { .unit_id     = UnitId{ 11 },
         .promoted_to = e_unit_type::expert_cotton_planter } };
 
   REQUIRE( res == expected );

@@ -500,8 +500,9 @@ TEST_CASE( "[fathers] on_father_received: john_paul_jones" ) {
   player.fathers.has[father] = true;
   on_father_received( W.ss(), W.ts(), player, father );
   REQUIRE( W.units().all().size() == 1 );
-  UnitState const& state = as_const( W.units() ).state_of( 1 );
-  Unit const&      unit  = state.unit;
+  UnitState const& state =
+      as_const( W.units() ).state_of( UnitId{ 1 } );
+  Unit const& unit = state.unit;
   REQUIRE( unit.type() == e_unit_type::frigate );
   REQUIRE( unit.nation() == player.nation );
   maybe<UnitOwnership::world const&> world =
@@ -533,38 +534,38 @@ TEST_CASE(
                      { .x = 1, .y = 0 }, e_nation::french );
 
   REQUIRE( W.units().all().size() == 7 );
-  REQUIRE( W.units().unit_for( 1 ).type() ==
+  REQUIRE( W.units().unit_for( UnitId{ 1 } ).type() ==
            e_unit_type::native_convert );
-  REQUIRE( W.units().unit_for( 2 ).type() ==
+  REQUIRE( W.units().unit_for( UnitId{ 2 } ).type() ==
            e_unit_type::free_colonist );
-  REQUIRE( W.units().unit_for( 3 ).type() ==
+  REQUIRE( W.units().unit_for( UnitId{ 3 } ).type() ==
            e_unit_type::native_convert );
-  REQUIRE( W.units().unit_for( 4 ).type() ==
+  REQUIRE( W.units().unit_for( UnitId{ 4 } ).type() ==
            e_unit_type::petty_criminal );
-  REQUIRE( W.units().unit_for( 5 ).type() ==
+  REQUIRE( W.units().unit_for( UnitId{ 5 } ).type() ==
            e_unit_type::native_convert );
-  REQUIRE( W.units().unit_for( 6 ).type() ==
+  REQUIRE( W.units().unit_for( UnitId{ 6 } ).type() ==
            e_unit_type::free_colonist );
-  REQUIRE( W.units().unit_for( 7 ).type() ==
+  REQUIRE( W.units().unit_for( UnitId{ 7 } ).type() ==
            e_unit_type::native_convert );
 
   player.fathers.has[father] = true;
   on_father_received( W.ss(), W.ts(), player, father );
 
   REQUIRE( W.units().all().size() == 7 );
-  REQUIRE( W.units().unit_for( 1 ).type() ==
+  REQUIRE( W.units().unit_for( UnitId{ 1 } ).type() ==
            e_unit_type::free_colonist );
-  REQUIRE( W.units().unit_for( 2 ).type() ==
+  REQUIRE( W.units().unit_for( UnitId{ 2 } ).type() ==
            e_unit_type::free_colonist );
-  REQUIRE( W.units().unit_for( 3 ).type() ==
+  REQUIRE( W.units().unit_for( UnitId{ 3 } ).type() ==
            e_unit_type::free_colonist );
-  REQUIRE( W.units().unit_for( 4 ).type() ==
+  REQUIRE( W.units().unit_for( UnitId{ 4 } ).type() ==
            e_unit_type::petty_criminal );
-  REQUIRE( W.units().unit_for( 5 ).type() ==
+  REQUIRE( W.units().unit_for( UnitId{ 5 } ).type() ==
            e_unit_type::native_convert );
-  REQUIRE( W.units().unit_for( 6 ).type() ==
+  REQUIRE( W.units().unit_for( UnitId{ 6 } ).type() ==
            e_unit_type::free_colonist );
-  REQUIRE( W.units().unit_for( 7 ).type() ==
+  REQUIRE( W.units().unit_for( UnitId{ 7 } ).type() ==
            e_unit_type::native_convert );
 }
 

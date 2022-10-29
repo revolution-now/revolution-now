@@ -87,7 +87,7 @@ TEST_CASE( "[teaching] sync_colony_teachers" ) {
   Colony& colony = W.add_colony( World::kColonySquare );
   colony.buildings[e_colony_building::university] = true;
 
-  colony.teachers = { { 5, 3 }, { 6, 2 } };
+  colony.teachers = { { UnitId{ 5 }, 3 }, { UnitId{ 6 }, 2 } };
   unordered_map<UnitId, int> expected;
 
   SECTION( "no teachers" ) {
@@ -97,23 +97,26 @@ TEST_CASE( "[teaching] sync_colony_teachers" ) {
   }
 
   SECTION( "one new teacher" ) {
-    colony.indoor_jobs[e_indoor_job::teacher] = { 1 };
+    colony.indoor_jobs[e_indoor_job::teacher] = { UnitId{ 1 } };
     sync_colony_teachers( colony );
-    expected = { { 1, 0 } };
+    expected = { { UnitId{ 1 }, 0 } };
     REQUIRE( colony.teachers == expected );
   }
 
   SECTION( "one existing teacher" ) {
-    colony.indoor_jobs[e_indoor_job::teacher] = { 6 };
+    colony.indoor_jobs[e_indoor_job::teacher] = { UnitId{ 6 } };
     sync_colony_teachers( colony );
-    expected = { { 6, 2 } };
+    expected = { { UnitId{ 6 }, 2 } };
     REQUIRE( colony.teachers == expected );
   }
 
   SECTION( "mixed" ) {
-    colony.indoor_jobs[e_indoor_job::teacher] = { 6, 4, 3 };
+    colony.indoor_jobs[e_indoor_job::teacher] = {
+        UnitId{ 6 }, UnitId{ 4 }, UnitId{ 3 } };
     sync_colony_teachers( colony );
-    expected = { { 6, 2 }, { 4, 0 }, { 3, 0 } };
+    expected = { { UnitId{ 6 }, 2 },
+                 { UnitId{ 4 }, 0 },
+                 { UnitId{ 3 }, 0 } };
     REQUIRE( colony.teachers == expected );
   }
 }
@@ -292,7 +295,7 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
         .teachers = {
             { .teacher_unit_id = teacher1,
               .action          = TeacherAction::taught_unit{
-                           .taught_id = 1,
+                           .taught_id = UnitId{ 1 },
                            .from_type = e_unit_type::petty_criminal,
                            .to_type =
                       e_unit_type::indentured_servant } } } };
@@ -313,7 +316,7 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
         .teachers = {
             { .teacher_unit_id = teacher1,
               .action          = TeacherAction::taught_unit{
-                           .taught_id = 1,
+                           .taught_id = UnitId{ 1 },
                            .from_type = e_unit_type::indentured_servant,
                            .to_type = e_unit_type::free_colonist } } } };
     REQUIRE( f() == expected );
@@ -333,7 +336,7 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
         .teachers = {
             { .teacher_unit_id = teacher1,
               .action          = TeacherAction::taught_unit{
-                           .taught_id = 1,
+                           .taught_id = UnitId{ 1 },
                            .from_type = e_unit_type::free_colonist,
                            .to_type =
                       e_unit_type::master_carpenter } } } };

@@ -301,16 +301,16 @@ TEST_CASE( "[lcr] fountain of youth" ) {
   REQUIRE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 9 );
   // The unit that entered the LCR; sanity check.
-  REQUIRE( W.units().unit_for( 1 ).type() ==
+  REQUIRE( W.units().unit_for( UnitId{ 1 } ).type() ==
            e_unit_type::free_colonist );
   // The 8 new units created must all be scouts except for the
   // first, which was just the default petty_criminal in the im-
   // migrant pool in that slot.
-  REQUIRE( W.units().unit_for( 2 ).type() ==
+  REQUIRE( W.units().unit_for( UnitId{ 2 } ).type() ==
            e_unit_type::petty_criminal );
   for( int i = 3; i <= 9; ++i ) { // unit idxs start at 1.
     INFO( fmt::format( "i: {}", i ) );
-    REQUIRE( W.units().unit_for( i ).type() ==
+    REQUIRE( W.units().unit_for( UnitId{ i } ).type() ==
              e_unit_type::scout );
   }
 }
@@ -354,7 +354,7 @@ TEST_CASE( "[lcr] free colonist" ) {
   REQUIRE( lcr_res->holds<LostCityRumorResult::unit_created>() );
   REQUIRE(
       lcr_res->get<LostCityRumorResult::unit_created>().id ==
-      2 );
+      UnitId{ 2 } );
   REQUIRE( player.money == 0 );
   REQUIRE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 2 );
@@ -458,8 +458,8 @@ TEST_CASE( "[lcr] cibola / treasure" ) {
   REQUIRE( lcr_res->holds<LostCityRumorResult::unit_created>() );
   REQUIRE(
       lcr_res->get<LostCityRumorResult::unit_created>().id ==
-      2 );
-  Unit const& unit = W.units().unit_for( 2 );
+      UnitId{ 2 } );
+  Unit const& unit = W.units().unit_for( UnitId{ 2 } );
   REQUIRE( unit.type() == e_unit_type::treasure );
   refl::enum_map<e_unit_inventory, int> const& inventory =
       unit.composition().inventory();
@@ -523,8 +523,8 @@ TEST_CASE( "[lcr] burial mounds / treasure" ) {
   REQUIRE( lcr_res->holds<LostCityRumorResult::unit_created>() );
   REQUIRE(
       lcr_res->get<LostCityRumorResult::unit_created>().id ==
-      2 );
-  Unit const& unit = W.units().unit_for( 2 );
+      UnitId{ 2 } );
+  Unit const& unit = W.units().unit_for( UnitId{ 2 } );
   REQUIRE( unit.type() == e_unit_type::treasure );
   refl::enum_map<e_unit_inventory, int> const& inventory =
       unit.composition().inventory();

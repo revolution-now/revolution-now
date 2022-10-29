@@ -127,7 +127,7 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
   World W;
   W.initialize( e_unit_type::pioneer, e_terrain::conifer );
 
-  UnitId           id       = 1;
+  UnitId           id{ 1 };
   Unit&            unit     = W.units().unit_for( id );
   Coord            location = W.units().coord_for( id );
   MapSquare const& square   = W.square( kSquare );
@@ -268,7 +268,7 @@ TEST_CASE( "[src/plow] plow_square hardy_pioneer" ) {
   World W;
   W.initialize( e_unit_type::hardy_pioneer, e_terrain::desert );
 
-  UnitId           id       = 1;
+  UnitId           id{ 1 };
   Unit&            unit     = W.units().unit_for( id );
   Coord            location = W.units().coord_for( id );
   MapSquare const& square   = W.terrain().square_at( kSquare );
@@ -348,7 +348,7 @@ TEST_CASE( "[src/plow] plow_square with cancellation" ) {
   World W;
   W.initialize( e_unit_type::pioneer, e_terrain::grassland );
 
-  UnitId           id       = 1;
+  UnitId           id{ 1 };
   Unit&            unit     = W.units().unit_for( id );
   Coord            location = W.units().coord_for( id );
   MapSquare const& square   = W.terrain().square_at( kSquare );
@@ -450,7 +450,7 @@ TEST_CASE( "[src/plow] lumber yield / pioneer" ) {
   SECTION( "no colonies" ) {
     World W;
     W.initialize( e_unit_type::pioneer, e_terrain::scrub );
-    UnitId id   = 1;
+    UnitId id{ 1 };
     Unit&  unit = W.units().unit_for( id );
 
     int const kClearTurnsRequired = 6;
@@ -501,7 +501,7 @@ TEST_CASE( "[src/plow] lumber yield / pioneer" ) {
   SECTION( "one colony" ) {
     World W;
     W.initialize( e_unit_type::pioneer, e_terrain::scrub );
-    UnitId id   = 1;
+    UnitId id{ 1 };
     Unit&  unit = W.units().unit_for( id );
 
     int const kClearTurnsRequired = 6;
@@ -560,7 +560,7 @@ TEST_CASE( "[src/plow] lumber yield / pioneer" ) {
     World W;
     W.initialize( e_unit_type::hardy_pioneer,
                   e_terrain::conifer );
-    UnitId id   = 1;
+    UnitId id{ 1 };
     Unit&  unit = W.units().unit_for( id );
 
     int const kClearTurnsRequired = 3;

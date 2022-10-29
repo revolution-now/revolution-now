@@ -62,7 +62,7 @@ TEST_CASE( "[road] perform_road_work 100 tools" ) {
   World W;
   W.initialize( e_unit_type::pioneer );
 
-  UnitId id       = 1;
+  UnitId id{ 1 };
   Unit&  unit     = W.units().unit_for( id );
   Coord  location = W.units().coord_for( id );
   REQUIRE( unit.type() == e_unit_type::pioneer );
@@ -120,7 +120,7 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer" ) {
   World W;
   W.initialize( e_unit_type::hardy_pioneer );
 
-  UnitId id       = 1;
+  UnitId id{ 1 };
   Unit&  unit     = W.units().unit_for( id );
   Coord  location = W.units().coord_for( id );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
@@ -178,7 +178,7 @@ TEST_CASE( "[road] perform_road_work 20 tools" ) {
   World W;
   W.initialize( e_unit_type::pioneer );
 
-  UnitId id       = 1;
+  UnitId id{ 1 };
   Unit&  unit     = W.units().unit_for( id );
   Coord  location = W.units().coord_for( id );
   REQUIRE( unit.type() == e_unit_type::pioneer );
@@ -241,7 +241,7 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer 20 tools" ) {
   World W;
   W.initialize( e_unit_type::hardy_pioneer );
 
-  UnitId id       = 1;
+  UnitId id{ 1 };
   Unit&  unit     = W.units().unit_for( id );
   Coord  location = W.units().coord_for( id );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
@@ -304,7 +304,7 @@ TEST_CASE( "[road] perform_road_work with cancel" ) {
   World W;
   W.initialize( e_unit_type::pioneer );
 
-  UnitId id       = 1;
+  UnitId id{ 1 };
   Unit&  unit     = W.units().unit_for( id );
   Coord  location = W.units().coord_for( id );
   REQUIRE( unit.type() == e_unit_type::pioneer );

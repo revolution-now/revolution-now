@@ -176,7 +176,7 @@ TEST_CASE( "[colony-evolve] spoilage" ) {
   // In practice, for a new empty colony, there should not be any
   // other notifications.
   expected = {
-      ColonyNotification::new_colonist{ .id = 1 },
+      ColonyNotification::new_colonist{ .id = UnitId{ 1 } },
       ColonyNotification::spoilage{
           .spoiled = {
               { .type = e_commodity::sugar, .quantity = 1 },
@@ -291,7 +291,7 @@ TEST_CASE(
       .returns( true );
 
   // Sanity check. Note unit ids start at 1.
-  REQUIRE( W.ss().units.unit_for( 1 ).type() ==
+  REQUIRE( W.ss().units.unit_for( UnitId{ 1 } ).type() ==
            e_unit_type::petty_criminal );
 
   ColonyEvolution const ev = evolve_colony_one_turn(
@@ -301,7 +301,7 @@ TEST_CASE(
   REQUIRE( ev.notifications == expected );
 
   // Check that the unit has not been changed.
-  REQUIRE( W.ss().units.unit_for( 1 ).type() ==
+  REQUIRE( W.ss().units.unit_for( UnitId{ 1 } ).type() ==
            e_unit_type::petty_criminal );
 }
 
@@ -369,15 +369,15 @@ TEST_CASE( "[colony-evolve] promotes units" ) {
       .returns( true );
 
   // Sanity check. Note unit ids start at 1.
-  REQUIRE( W.ss().units.unit_for( 1 ).type() ==
+  REQUIRE( W.ss().units.unit_for( UnitId{ 1 } ).type() ==
            e_unit_type::petty_criminal );
-  REQUIRE( W.ss().units.unit_for( 2 ).type() ==
+  REQUIRE( W.ss().units.unit_for( UnitId{ 2 } ).type() ==
            e_unit_type::petty_criminal );
-  REQUIRE( W.ss().units.unit_for( 3 ).type() ==
+  REQUIRE( W.ss().units.unit_for( UnitId{ 3 } ).type() ==
            e_unit_type::indentured_servant );
-  REQUIRE( W.ss().units.unit_for( 4 ).type() ==
+  REQUIRE( W.ss().units.unit_for( UnitId{ 4 } ).type() ==
            e_unit_type::indentured_servant );
-  REQUIRE( W.ss().units.unit_for( 5 ).type() ==
+  REQUIRE( W.ss().units.unit_for( UnitId{ 5 } ).type() ==
            e_unit_type::free_colonist );
 
   // Here we don't have to test the logic that decides which
@@ -417,15 +417,15 @@ TEST_CASE( "[colony-evolve] promotes units" ) {
 
   // Check that the unit types have actually been changed, but
   // only those that were promoted.
-  REQUIRE( W.ss().units.unit_for( 1 ).type() ==
+  REQUIRE( W.ss().units.unit_for( UnitId{ 1 } ).type() ==
            e_unit_type::expert_sugar_planter );
-  REQUIRE( W.ss().units.unit_for( 2 ).type() ==
+  REQUIRE( W.ss().units.unit_for( UnitId{ 2 } ).type() ==
            e_unit_type::petty_criminal );
-  REQUIRE( W.ss().units.unit_for( 3 ).type() ==
+  REQUIRE( W.ss().units.unit_for( UnitId{ 3 } ).type() ==
            e_unit_type::indentured_servant );
-  REQUIRE( W.ss().units.unit_for( 4 ).type() ==
+  REQUIRE( W.ss().units.unit_for( UnitId{ 4 } ).type() ==
            e_unit_type::indentured_servant );
-  REQUIRE( W.ss().units.unit_for( 5 ).type() ==
+  REQUIRE( W.ss().units.unit_for( UnitId{ 5 } ).type() ==
            e_unit_type::expert_cotton_planter );
 }
 
