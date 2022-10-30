@@ -1,0 +1,35 @@
+# ===============================================================
+# dwelling.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-10-30.
+#
+# Description: Rds definitions for the dwelling module.
+#
+# ===============================================================
+# ss
+include "ss/native-enums.rds.hpp"
+
+namespace "rn"
+
+struct.DwellingTradingState {
+  # TODO
+}
+
+struct.Dwelling {
+  tribe 'e_tribe',
+
+  # The number of times the dwelling needs to be attacked (suc-
+  # cessfully) for it to be burned. This number will recover over
+  # time if it is partially lowered.
+  population 'int',
+
+  # TODO: Not sure yet how this should be represented and/or if
+  # this is supposed to be done at the tribe level or dwelling
+  # level.
+  muskets 'int',
+  horses 'int',
+
+  trading 'DwellingTradingState',
+}
