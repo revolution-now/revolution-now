@@ -1,0 +1,41 @@
+# ===============================================================
+# natives.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-10-30.
+#
+# Description: Rds definitions for the natives module.
+#
+# ===============================================================
+# ss
+include "ss/dwelling-id.hpp"
+include "ss/dwelling.rds.hpp"
+include "ss/native-enums.rds.hpp"
+include "ss/tribe.rds.hpp"
+
+# gfx
+include "gfx/coord.hpp"
+
+# refl
+include "refl/enum-map.hpp"
+
+# base
+include "base/maybe.hpp"
+
+# C++ standard library
+include "<unordered_map>"
+
+namespace "rn.wrapped"
+
+struct.NativesState {
+  next_dwelling_id 'DwellingId',
+
+  tribes 'refl::enum_map<e_tribe, base::maybe<Tribe>>',
+
+  dwellings 'std::unordered_map<DwellingId, Dwelling>',
+
+  owned_land 'std::unordered_map<Coord, DwellingId>',
+
+  _features { equality, validation }
+}

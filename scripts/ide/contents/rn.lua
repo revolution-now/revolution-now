@@ -4,11 +4,11 @@ return {
   'exe/main',
   'ss/root',
   'ss/ref',
-  'ss/natives',
   'ss/units',
   'ss/native-enums',
   'config/natives',
-  'ss/native-unit',
+  'ss/natives',
   'ss/tribe',
   'ss/dwelling',
+  'ss/native-unit',
 }

@@ -10,8 +10,6 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // Rds
 #include "ss/colonies.rds.hpp"
 

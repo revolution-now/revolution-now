@@ -9,9 +9,13 @@
 #
 # ===============================================================
 # ss
-include "ss/native-enums.rds.hpp"
+include "ss/dwelling-id.hpp"
 include "ss/nation.rds.hpp"
+include "ss/native-enums.rds.hpp"
 include "ss/unit-type.rds.hpp"
+
+# gfx
+include "gfx/coord.hpp"
 
 # refl
 include "refl/enum-map.hpp"
@@ -32,9 +36,13 @@ struct.DwellingRelationship {
 }
 
 struct.Dwelling {
+  id 'DwellingId',
+
   tribe 'e_tribe',
 
   is_capital 'bool',
+
+  location 'Coord',
 
   # The number of times the dwelling needs to be attacked (suc-
   # cessfully) for it to be burned. This number will recover over

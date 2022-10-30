@@ -1,13 +1,13 @@
 /****************************************************************
-**colony-id.hpp
+**dwelling-id.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2022-02-13.
+* Created by dsicilia on 2022-10-30.
 *
-* Description: Id for colonies.
+* Description: Id for indian dwellings.
 *
 *****************************************************************/
 #pragma once
 
-using ColonyId = int;
+using DwellingId = int;

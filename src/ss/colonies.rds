@@ -8,7 +8,7 @@
 # Description: RDS definitions for the sg-colonies module.
 #
 # ===============================================================
-# gs
+# ss
 include "ss/colony.hpp"
 include "ss/colony-id.hpp"
 
@@ -18,7 +18,7 @@ include "<unordered_map>"
 namespace "rn.wrapped"
 
 struct.ColoniesState {
-  next_colony_id 'int',
+  next_colony_id 'ColonyId',
   colonies 'std::unordered_map<ColonyId, rn::Colony>',
 
   _features { equality, validation }
