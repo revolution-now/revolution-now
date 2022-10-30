@@ -615,6 +615,25 @@ enum.e_tile {
   treasure,
 
   # =============================================================
+  # Natives.
+  # =============================================================
+  # Units
+  brave,
+  armed_brave,
+  mounted_brave,
+  mounted_warrior,
+
+  # Dwellings
+  camp,
+  village,
+  tan_pyramid,
+  grey_pyramid,
+
+  # Other
+  native_land,
+  capital_star,
+
+  # =============================================================
   # Menu
   # =============================================================
   menu_top_left,

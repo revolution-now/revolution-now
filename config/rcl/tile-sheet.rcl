@@ -35,6 +35,22 @@ sheets {
       }
     }
     {
+      img_path: assets/art/harbor/natives.png
+      sprite_size: { w: 32, h: 32 }
+      sprites {
+        brave:              { y: 0, x: 0 }
+        armed_brave:        { y: 0, x: 1 }
+        mounted_brave:      { y: 0, x: 2 }
+        mounted_warrior:    { y: 0, x: 3 }
+        camp:               { y: 1, x: 0 }
+        village:            { y: 1, x: 1 }
+        tan_pyramid:        { y: 1, x: 2 }
+        grey_pyramid:       { y: 1, x: 3 }
+        native_land:        { y: 2, x: 0 }
+        capital_star:       { y: 2, x: 1 }
+      }
+    }
+    {
       img_path: assets/art/tiles/resources.png
       sprite_size: { w: 32, h: 32 }
       sprites {

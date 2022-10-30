@@ -1,0 +1,87 @@
+# ===============================================================
+# natives.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-10-29.
+#
+# Description: Rds definitions for the natives module.
+#
+# ===============================================================
+# config
+include "config/tile-enum.rds.hpp"
+
+# ss
+include "ss/native-enums.rds.hpp"
+
+# cdr.
+include "cdr/ext-builtin.hpp"
+include "cdr/ext-std.hpp"
+
+# gfx
+include "gfx/pixel.hpp"
+
+# refl
+include "refl/enum-map.hpp"
+
+# C++ standard library
+include "<string>"
+
+namespace "rn"
+
+# Size of the land around the dwelling owned by a dwelling.
+enum.e_dwelling_radius {
+  small,
+  large,
+}
+
+enum.e_native_civilized {
+  semi_nomadic,
+  agrarian,
+  civilized,
+}
+
+enum.e_dwelling_type {
+  camp,
+  village,
+  city,
+}
+
+namespace "rn.config.natives"
+
+struct.UnitType {
+  movement_points 'int',
+  combat 'int',
+  tile 'e_tile',
+}
+
+struct.DwellingType {
+  radius 'e_dwelling_radius',
+}
+
+struct.Tribe {
+  name_singular 'std::string',
+  name_plural 'std::string',
+  name_posessive 'std::string',
+
+  civilized 'e_native_civilized',
+  dwelling_type 'e_dwelling_type',
+
+  max_population 'int',
+  max_population_capital 'int',
+
+  dwelling_tile 'e_tile',
+  flag_color 'gfx::pixel',
+}
+
+namespace "rn"
+
+struct.config_natives_t {
+  unit_types 'refl::enum_map<e_native_unit_type, config::natives::UnitType>',
+
+  dwelling_types 'refl::enum_map<e_dwelling_type, config::natives::DwellingType>',
+
+  tribes 'refl::enum_map<e_tribe, config::natives::Tribe>',
+}
+
+config.natives {}
