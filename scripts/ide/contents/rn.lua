@@ -2,5 +2,11 @@
 
 return {
   'exe/main',
-  'render-terrain',
+  'ss/root',
+  'ss/ref',
+  'ss/units',
+  'ss/native-enums',
+  'config/natives',
+  'ss/native-unit',
+  'ss/dwelling',
 }
