@@ -50,6 +50,7 @@ struct UnitsState;
 struct PlayersState;
 struct TurnState;
 struct ColoniesState;
+struct NativesState;
 struct LandViewState;
 struct TerrainState;
 struct Unit;
@@ -247,6 +248,7 @@ struct World {
   PlayersState&  players();
   TurnState&     turn();
   ColoniesState& colonies();
+  NativesState&  natives();
   LandViewState& land_view();
   TerrainState&  terrain();
 
@@ -257,6 +259,7 @@ struct World {
   PlayersState const&  players() const;
   TurnState const&     turn() const;
   ColoniesState const& colonies() const;
+  NativesState const&  natives() const;
   LandViewState const& land_view() const;
   TerrainState const&  terrain() const;
 

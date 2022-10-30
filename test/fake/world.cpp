@@ -55,6 +55,7 @@ UnitsState&    World::units() { return root().units; }
 PlayersState&  World::players() { return root().players; }
 TurnState&     World::turn() { return root().turn; }
 ColoniesState& World::colonies() { return root().colonies; }
+NativesState&  World::natives() { return root().natives; }
 LandViewState& World::land_view() { return root().land_view; }
 TerrainState&  World::terrain() { return root().zzz_terrain; }
 RootState&     World::root() { return ss_->root; }
@@ -75,6 +76,9 @@ PlayersState const& World::players() const {
 TurnState const&     World::turn() const { return root().turn; }
 ColoniesState const& World::colonies() const {
   return root().colonies;
+}
+NativesState const& World::natives() const {
+  return root().natives;
 }
 LandViewState const& World::land_view() const {
   return root().land_view;

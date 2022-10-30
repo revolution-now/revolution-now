@@ -36,6 +36,7 @@ struct UnitsState;
 struct PlayersState;
 struct TurnState;
 struct ColoniesState;
+struct NativesState;
 struct LandViewState;
 struct TerrainState;
 
@@ -60,6 +61,7 @@ struct SS {
   PlayersState&       players;
   TurnState&          turn;
   ColoniesState&      colonies;
+  NativesState&       natives;
   LandViewState&      land_view;
   TerrainState const& terrain;
 
@@ -86,6 +88,7 @@ struct SSConst {
   PlayersState const&  players;
   TurnState const&     turn;
   ColoniesState const& colonies;
+  NativesState const&  natives;
   LandViewState const& land_view;
   TerrainState const&  terrain;
 

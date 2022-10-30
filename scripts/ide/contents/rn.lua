@@ -2,8 +2,6 @@
 
 return {
   'exe/main',
-  'ss/root',
-  'ss/ref',
   'ss/units',
   'ss/native-enums',
   'config/natives',

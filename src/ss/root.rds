@@ -11,8 +11,9 @@
 # ===============================================================
 # Revolution Now
 include "ss/colonies.hpp"
-include "ss/units.hpp"
+include "ss/natives.hpp"
 include "ss/terrain.hpp"
+include "ss/units.hpp"
 
 # Rds
 include "ss/settings.rds.hpp"
@@ -41,6 +42,7 @@ struct.RootState {
   players 'rn::PlayersState',
   turn 'rn::TurnState',
   colonies 'rn::ColoniesState',
+  natives 'rn::NativesState',
   land_view 'rn::LandViewState',
   # Use a zzz prefix to make sure that the terrain field will be
   # last in the save file (keys are alphabetized) for convenience

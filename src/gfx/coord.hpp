@@ -250,6 +250,13 @@ struct Coord {
   friend void lua_push( lua::cthread L, Coord const& coord );
 };
 
+// This will be a lexical ordering (y, then x) so that we can use
+// Coords in contexts where they need some well-defined ordering.
+inline auto operator<=>( Coord l, Coord r ) {
+  if( l.y != r.y ) return l.y <=> r.y;
+  return l.x <=> r.x;
+}
+
 /****************************************************************
 ** Rect
 *****************************************************************/

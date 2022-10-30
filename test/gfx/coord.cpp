@@ -77,6 +77,22 @@ TEST_CASE( "[e_direction] to_direction*" ) {
            e_direction::s );
 }
 
+TEST_CASE( "[coord] lexical ordering*" ) {
+  REQUIRE( Coord{ .x = 10, .y = 1 } < Coord{ .x = 20, .y = 2 } );
+  REQUIRE( Coord{ .x = 10, .y = 2 } < Coord{ .x = 20, .y = 2 } );
+  REQUIRE(
+      !( Coord{ .x = 20, .y = 2 } < Coord{ .x = 10, .y = 2 } ) );
+  REQUIRE(
+      !( Coord{ .x = 10, .y = 2 } < Coord{ .x = 10, .y = 2 } ) );
+
+  REQUIRE( Coord{ .x = 20, .y = 2 } > Coord{ .x = 10, .y = 1 } );
+  REQUIRE( Coord{ .x = 20, .y = 2 } > Coord{ .x = 10, .y = 2 } );
+  REQUIRE(
+      !( Coord{ .x = 10, .y = 2 } > Coord{ .x = 20, .y = 2 } ) );
+  REQUIRE(
+      !( Coord{ .x = 10, .y = 2 } > Coord{ .x = 10, .y = 2 } ) );
+}
+
 TEST_CASE( "[coord] centered*" ) {
   Rect  rect;
   Delta delta;

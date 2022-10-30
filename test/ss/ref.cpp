@@ -140,6 +140,23 @@ cdr::value cdr_game_state_default =
                 "next_colony_id"_key = 1,
                 "colonies"_key       = cdr::list{},
             },
+        "natives"_key =
+            cdr::table{
+                "next_dwelling_id"_key = 1,
+                "tribes"_key =
+                    cdr::table{
+                        "apache"_key   = cdr::null,
+                        "sioux"_key    = cdr::null,
+                        "tupi"_key     = cdr::null,
+                        "arawak"_key   = cdr::null,
+                        "cherokee"_key = cdr::null,
+                        "iroquois"_key = cdr::null,
+                        "aztec"_key    = cdr::null,
+                        "inca"_key     = cdr::null,
+                    },
+                "dwellings"_key  = cdr::list{},
+                "owned_land"_key = cdr::list{},
+            },
         "land_view"_key =
             cdr::table{
                 "viewport"_key =
@@ -254,6 +271,7 @@ cdr::value cdr_game_state_default =
 // static_assert( equality_comparable<PlayersState> );
 // static_assert( equality_comparable<TurnState> );
 // static_assert( equality_comparable<ColoniesState> );
+// static_assert( equality_comparable<NativesState> );
 // static_assert( equality_comparable<LandViewState> );
 // static_assert( equality_comparable<TerrainState> );
 // static_assert( equality_comparable<RootState> );

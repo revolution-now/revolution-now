@@ -18,6 +18,7 @@
 // ss
 #include "ss/colonies.hpp"
 #include "ss/land-view.hpp"
+#include "ss/natives.hpp"
 #include "ss/players.hpp"
 #include "ss/settings.hpp"
 #include "ss/terrain.hpp"
@@ -91,6 +92,21 @@ valid_or<string> validate_interaction(
   return base::valid;
 }
 
+// NativesState & TerrainState
+valid_or<string> validate_interaction(
+    NativesState const& natives_state,
+    TerrainState const& terrain ) {
+  for( auto const& [dwelling_id, dwelling] :
+       natives_state.all() ) {
+    // Colony is on land.
+    REFL_VALIDATE(
+        terrain.world_map()[dwelling.location].surface ==
+            e_surface::land,
+        "Dwelling {} is not on land.", dwelling.id );
+  }
+  return base::valid;
+}
+
 } // namespace
 
 valid_or<string> FormatVersion::validate() const {
@@ -107,6 +123,8 @@ valid_or<string> RootState::validate() const {
   HAS_VALUE_OR_RET( validate_interaction( colonies, units ) );
   HAS_VALUE_OR_RET(
       validate_interaction( colonies, zzz_terrain ) );
+  HAS_VALUE_OR_RET(
+      validate_interaction( natives, zzz_terrain ) );
   return valid;
 }
 
@@ -127,6 +145,7 @@ LUA_STARTUP( lua::state& st ) {
   u["players"]   = &U::players;
   u["turn"]      = &U::turn;
   u["colonies"]  = &U::colonies;
+  u["natives"]   = &U::natives;
   u["land_view"] = &U::land_view;
   u["terrain"]   = &U::zzz_terrain;
 };

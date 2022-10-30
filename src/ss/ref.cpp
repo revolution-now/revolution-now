@@ -44,6 +44,7 @@ SS::SS()
     players( impl_->top.players ),
     turn( impl_->top.turn ),
     colonies( impl_->top.colonies ),
+    natives( impl_->top.natives ),
     land_view( impl_->top.land_view ),
     terrain( impl_->top.zzz_terrain ),
     mutable_terrain_use_with_care( impl_->top.zzz_terrain ),
@@ -66,6 +67,7 @@ SSConst::SSConst( SS& ss )
     players( ss_.players ),
     turn( ss_.turn ),
     colonies( ss_.colonies ),
+    natives( ss_.natives ),
     land_view( ss_.land_view ),
     terrain( ss_.terrain ),
     root( ss_.root ) {}
