@@ -9,8 +9,8 @@
 #
 # ===============================================================
 # ss
-include "native-enums.rds.hpp"
-include "unit-id.hpp"
+include "ss/native-enums.rds.hpp"
+include "ss/unit-id.hpp"
 
 namespace "rn"
 

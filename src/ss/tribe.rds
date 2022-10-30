@@ -1,0 +1,35 @@
+# ===============================================================
+# tribe.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-10-30.
+#
+# Description: Rds definitions for the tribe module.
+#
+# ===============================================================
+# ss
+include "ss/nation.rds.hpp"
+include "ss/native-enums.rds.hpp"
+
+# refl
+include "refl/enum-map.hpp"
+
+# base
+include "base/maybe.hpp"
+
+namespace "rn"
+
+# Describes a tribe's relationship with a European nation.
+struct.TribeRelationship {
+  at_war 'bool',
+}
+
+struct.Tribe {
+  type 'e_tribe',
+
+  # Describes a tribe's relationship with a European nation. If a
+  # value is nothing that means that the initial encounter has
+  # not yet happened.
+  relationship 'refl::enum_map<e_nation, base::maybe<TribeRelationship>>',
+}

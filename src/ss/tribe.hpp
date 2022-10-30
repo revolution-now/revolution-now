@@ -1,25 +1,25 @@
 /****************************************************************
-**dwelling.hpp
+**tribe.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2022-10-30.
 *
-* Description: Represents an indian dwelling.
+* Description: Represents one indian tribe.
 *
 *****************************************************************/
 #pragma once
 
 // Rds
-#include "ss/dwelling.rds.hpp"
+#include "tribe.rds.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"
 
 namespace rn {
 
-using DwellingRelationshipMap =
-    refl::enum_map<e_nation, DwellingRelationship>;
+using TribeRelationshipMap =
+    refl::enum_map<e_nation, base::maybe<TribeRelationship>>;
 
 } // namespace rn
 
@@ -28,12 +28,9 @@ using DwellingRelationshipMap =
 *****************************************************************/
 namespace lua {
 
-LUA_USERDATA_TRAITS( ::rn::Dwelling, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::DwellingTradingState,
-                     owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::DwellingRelationship,
-                     owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::DwellingRelationshipMap,
+LUA_USERDATA_TRAITS( ::rn::Tribe, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( ::rn::TribeRelationship, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( ::rn::TribeRelationshipMap,
                      owned_by_cpp ){};
 
 }

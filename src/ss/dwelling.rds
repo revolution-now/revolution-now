@@ -10,6 +10,11 @@
 # ===============================================================
 # ss
 include "ss/native-enums.rds.hpp"
+include "ss/nation.rds.hpp"
+include "ss/unit-type.rds.hpp"
+
+# refl
+include "refl/enum-map.hpp"
 
 namespace "rn"
 
@@ -17,8 +22,19 @@ struct.DwellingTradingState {
   # TODO
 }
 
+# Describes the relationship of a single dwelling with a nation.
+struct.DwellingRelationship {
+  alarm 'int',
+
+  # For non-capital dwellings this is relevant since they can
+  # only teach once.
+  has_taught 'bool',
+}
+
 struct.Dwelling {
   tribe 'e_tribe',
+
+  is_capital 'bool',
 
   # The number of times the dwelling needs to be attacked (suc-
   # cessfully) for it to be burned. This number will recover over
@@ -32,4 +48,8 @@ struct.Dwelling {
   horses 'int',
 
   trading 'DwellingTradingState',
+
+  relationship 'refl::enum_map<e_nation, DwellingRelationship>',
+
+  teaches 'e_unit_activity',
 }

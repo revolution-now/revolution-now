@@ -1,17 +1,18 @@
 /****************************************************************
-**dwelling.cpp
+**tribe.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2022-10-30.
 *
-* Description: Represents an indian dwelling.
+* Description: Represents one indian tribe.
 *
 *****************************************************************/
-#include "dwelling.hpp"
+#include "tribe.hpp"
 
 // luapp
 #include "luapp/enum.hpp"
+#include "luapp/ext-base.hpp"
 #include "luapp/register.hpp"
 
 // refl
@@ -32,51 +33,38 @@ namespace {} // namespace
 namespace {
 
 LUA_STARTUP( lua::state& st ) {
-  // DwellingTradingState.
-  [&] {
-    using U = ::rn::DwellingTradingState;
-
-    auto u = st.usertype.create<U>();
-
-    (void)u; // TODO
-  }();
-
-  // DwellingRelationshipMap.
+  // TribeRelationshipMap.
   // TODO: make this generic.
   [&] {
-    using U = ::rn::DwellingRelationshipMap;
+    using U = ::rn::TribeRelationshipMap;
     auto u  = st.usertype.create<U>();
 
     u[lua::metatable_key]["__index"] =
-        [&]( U& obj, e_nation nation ) -> DwellingRelationship& {
-      return obj[nation];
+        [&]( U& obj, e_nation nation ) -> TribeRelationship& {
+      LUA_CHECK( st, obj[nation].has_value(),
+                 "this tribe has not yet encountered the {}.",
+                 nation );
+      return *obj[nation];
     };
   }();
 
-  // DwellingRelationship.
+  // TribeRelationship.
   [&] {
-    using U = ::rn::DwellingRelationship;
+    using U = ::rn::TribeRelationship;
 
     auto u = st.usertype.create<U>();
 
-    u["alarm"]      = &U::alarm;
-    u["has_taught"] = &U::has_taught;
+    u["at_war"] = &U::at_war;
   }();
 
-  // Dwelling.
+  // Tribe.
   [&] {
-    using U = ::rn::Dwelling;
+    using U = ::rn::Tribe;
 
     auto u = st.usertype.create<U>();
 
-    u["tribe"]      = &U::tribe;
-    u["is_capital"] = &U::is_capital;
-    u["population"] = &U::population;
-    u["muskets"]    = &U::muskets;
-    u["horses"]     = &U::horses;
-    u["trading"]    = &U::trading;
-    // u["relationship"]    = &U::relationship;
-    u["teaches"] = &U::teaches;
+    u["type"]         = &U::type;
+    u["relationship"] = &U::relationship;
   }();
 };
 

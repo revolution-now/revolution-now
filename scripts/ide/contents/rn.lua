@@ -9,5 +9,6 @@ return {
   'ss/native-enums',
   'config/natives',
   'ss/native-unit',
+  'ss/tribe',
   'ss/dwelling',
 }
