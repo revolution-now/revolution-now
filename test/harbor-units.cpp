@@ -206,10 +206,14 @@ TEST_CASE( "[harbor-units] create_unit_in_harbor" ) {
           .sailed_from = nothing } };
   auto& all = w.units().all();
   REQUIRE( all.size() == 2 );
-  REQUIRE( all.contains( id1 ) );
-  REQUIRE( all.contains( id2 ) );
-  REQUIRE( all.find( id1 )->second.ownership == expected[id1] );
-  REQUIRE( all.find( id2 )->second.ownership == expected[id2] );
+  REQUIRE(
+      all.contains( GenericUnitId{ to_underlying( id1 ) } ) );
+  REQUIRE(
+      all.contains( GenericUnitId{ to_underlying( id2 ) } ) );
+  REQUIRE( as_const( w.units() ).ownership_of( id1 ) ==
+           expected[id1] );
+  REQUIRE( as_const( w.units() ).ownership_of( id2 ) ==
+           expected[id2] );
 }
 
 TEST_CASE( "[harbor-units] unit_sail_to_new_world" ) {
@@ -576,7 +580,8 @@ TEST_CASE(
     REQUIRE( w.units().from_coord( ship_loc ).size() == 1 );
     REQUIRE( w.units()
                  .from_coord( ship_loc )
-                 .contains( dutch_caravel2 ) );
+                 .contains( GenericUnitId{
+                     to_underlying( dutch_caravel2 ) } ) );
   }
 
   SECTION( "foreign unit" ) {
@@ -594,7 +599,8 @@ TEST_CASE(
     REQUIRE( w.units().from_coord( ship_loc ).size() == 1 );
     REQUIRE( w.units()
                  .from_coord( ship_loc )
-                 .contains( french_caravel ) );
+                 .contains( GenericUnitId{
+                     to_underlying( french_caravel ) } ) );
     Coord const expected{ .x = 7, .y = 4 };
     REQUIRE( find_new_world_arrival_square(
                  w.units(), w.colonies(), w.terrain(), w.dutch(),

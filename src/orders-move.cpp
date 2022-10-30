@@ -746,7 +746,9 @@ TravelHandler::confirm_travel_impl() {
         // We have at least one ship, so iterate
         // through and find the first one (if any) that
         // the unit can board.
-        for( auto ship_id : ships ) {
+        for( auto generic_ship_id : ships ) {
+          UnitId const ship_id =
+              ss_.units.check_euro_unit( generic_ship_id );
           auto const& ship_unit = ss_.units.unit_for( ship_id );
           CHECK( ship_unit.desc().ship );
           lg.debug( "checking ship cargo: {}",
@@ -1164,11 +1166,14 @@ AttackHandler::confirm_attack_impl() {
   if( ss_.colonies.maybe_from_coord( attack_dst ).has_value() )
     category = e_entity_category::colony;
 
-  auto const& units_at_dst_set =
+  unordered_set<GenericUnitId> const& units_at_dst_set =
       ss_.units.from_coord( attack_dst );
-  vector<UnitId> units_at_dst( units_at_dst_set.begin(),
-                               units_at_dst_set.end() );
-  auto           colony_at_dst =
+  vector<UnitId> units_at_dst;
+  units_at_dst.reserve( units_at_dst_set.size() );
+  for( GenericUnitId generic_id : units_at_dst_set )
+    units_at_dst.push_back(
+        ss_.units.check_euro_unit( generic_id ) );
+  auto colony_at_dst =
       ss_.colonies.maybe_from_coord( attack_dst );
 
   // If we have a colony then we only want to get units that are

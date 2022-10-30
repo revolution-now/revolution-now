@@ -73,8 +73,9 @@ unordered_set<UnitId> units_at_or_in_colony(
     Colony const& colony, UnitsState const& units_state ) {
   unordered_set<UnitId> all = units_state.from_colony( colony );
   Coord                 colony_loc = colony.location;
-  for( UnitId map_id : units_state.from_coord( colony_loc ) )
-    all.insert( map_id );
+  for( GenericUnitId map_id :
+       units_state.from_coord( colony_loc ) )
+    all.insert( units_state.check_euro_unit( map_id ) );
   return all;
 }
 
@@ -687,9 +688,11 @@ wait<> run_colony_destruction( Planes& planes, SS& ss, TS& ts,
   destroy_colony( ss, ts.map_updater, colony );
   if( msg.has_value() ) co_await ts.gui.message_box( *msg );
   // Check if there are any ships in port.
-  unordered_set<UnitId> const& at_gate =
+  unordered_set<GenericUnitId> const& at_gate =
       ss.units.from_coord( location );
-  for( UnitId unit_id : at_gate ) {
+  for( GenericUnitId generic_id : at_gate ) {
+    UnitId const unit_id =
+        ss.units.check_euro_unit( generic_id );
     if( !ss.units.unit_for( unit_id ).desc().ship ) continue;
     string const msg = fmt::format(
         "@[H]{}@[] had ships in its port that are now exposed "

@@ -42,8 +42,8 @@ int king_transport_cost_percent( int          tax_rate,
 
 bool player_has_galleons( SSConst const& ss,
                           Player const&  player ) {
-  unordered_map<UnitId, UnitState> const& units_all =
-      ss.units.all();
+  unordered_map<UnitId, EuroUnitState const*> const& units_all =
+      ss.units.euro_all();
   for( auto& [unit_id, state] : units_all ) {
     Unit const& unit = ss.units.unit_for( unit_id );
     if( unit.nation() != player.nation ) continue;

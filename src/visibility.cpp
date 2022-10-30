@@ -196,10 +196,12 @@ refl::enum_map<e_nation, bool> nations_with_visibility_of_square(
     Coord coord = rect.upper_left();
     // We don't use the recursive variant because we don't want
     // e.g. a scout on a ship to increase the sighting radius.
-    unordered_set<UnitId> const& units =
+    unordered_set<GenericUnitId> const& units =
         ss.units.from_coord( coord );
-    for( UnitId unit_id : units ) {
-      Unit const& unit = ss.units.unit_for( unit_id );
+    for( GenericUnitId generic_id : units ) {
+      if( ss.units.unit_kind( generic_id ) != e_unit_kind::euro )
+        continue;
+      Unit const& unit = ss.units.euro_unit_for( generic_id );
       if( res[unit.nation()] )
         // If one unit on this square has a nation that can al-
         // ready see the tile in question then we can stop this

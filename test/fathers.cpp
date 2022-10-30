@@ -500,7 +500,7 @@ TEST_CASE( "[fathers] on_father_received: john_paul_jones" ) {
   player.fathers.has[father] = true;
   on_father_received( W.ss(), W.ts(), player, father );
   REQUIRE( W.units().all().size() == 1 );
-  UnitState const& state =
+  EuroUnitState const& state =
       as_const( W.units() ).state_of( UnitId{ 1 } );
   Unit const& unit = state.unit;
   REQUIRE( unit.type() == e_unit_type::frigate );

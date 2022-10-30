@@ -40,16 +40,13 @@ maybe<e_nation> nation_from_coord(
       maybe_colony_id )
     return colonies_state.colony_for( *maybe_colony_id ).nation;
 
-  unordered_set<UnitId> const& units =
+  unordered_set<GenericUnitId> const& units =
       units_state.from_coord( coord );
   if( units.empty() ) return nothing;
-  e_nation first =
-      units_state.unit_for( *units.begin() ).nation();
-  for( auto const& id : units ) {
-    (void)id; // for release builds.
-    DCHECK( first == units_state.unit_for( id ).nation() );
-  }
-  return first;
+  GenericUnitId const first = *units.begin();
+  if( units_state.unit_kind( first ) != e_unit_kind::euro )
+    return nothing;
+  return units_state.euro_unit_for( first ).nation();
 }
 
 } // namespace rn

@@ -220,12 +220,14 @@ bool should_remove_unit_from_queue( Unit const& unit ) {
 }
 
 // Get all units in the eight squares that surround coord.
-vector<UnitId> surrounding_units( UnitsState const& units_state,
-                                  Coord const&      coord ) {
+vector<UnitId> surrounding_euro_units(
+    UnitsState const& units_state, Coord const& coord ) {
   vector<UnitId> res;
   for( e_direction d : refl::enum_values<e_direction> )
-    for( auto id : units_state.from_coord( coord.moved( d ) ) )
-      res.push_back( id );
+    for( GenericUnitId id :
+         units_state.from_coord( coord.moved( d ) ) )
+      if( units_state.unit_kind( id ) == e_unit_kind::euro )
+        res.push_back( units_state.check_euro_unit( id ) );
   return res;
 }
 
@@ -237,7 +239,7 @@ void try_unsentry_unit( SS& ss, Unit& unit ) {
   // to e.g. wake up units that are sentry'd on ships.
   maybe<Coord> loc = ss.units.maybe_coord_for( unit.id() );
   if( !loc.has_value() ) return;
-  for( UnitId id : surrounding_units( ss.units, *loc ) ) {
+  for( UnitId id : surrounding_euro_units( ss.units, *loc ) ) {
     if( ss.units.unit_for( id ).nation() != unit.nation() ) {
       unit.clear_orders();
       return;
@@ -256,7 +258,8 @@ void unsentry_surroundings( UnitsState& units_state,
                             Unit const& src_unit ) {
   Coord src_loc = coord_for_unit_indirect_or_die(
       units_state, src_unit.id() );
-  for( UnitId id : surrounding_units( units_state, src_loc ) ) {
+  for( UnitId id :
+       surrounding_euro_units( units_state, src_loc ) ) {
     Unit& unit = units_state.unit_for( id );
     if( unit.orders() != e_unit_orders::sentry ) continue;
     if( unit.nation() == src_unit.nation() ) continue;
@@ -264,28 +267,30 @@ void unsentry_surroundings( UnitsState& units_state,
   }
 }
 
-vector<UnitId> units_all( UnitsState const& units_state,
-                          e_nation          n ) {
+vector<UnitId> euro_units_all( UnitsState const& units_state,
+                               e_nation          n ) {
   vector<UnitId> res;
   res.reserve( units_state.all().size() );
-  for( auto const& p : units_state.all() )
-    if( n == p.second.unit.nation() ) res.push_back( p.first );
+  for( auto const& p : units_state.euro_all() )
+    if( n == p.second->unit.nation() ) res.push_back( p.first );
   return res;
 }
 
 // Apply a function to all units. The function may mutate the
 // units.
-void map_all_units( UnitsState& units_state,
-                    base::function_ref<void( Unit& )> func ) {
-  for( auto& p : units_state.all() )
+void map_all_euro_units(
+    UnitsState&                       units_state,
+    base::function_ref<void( Unit& )> func ) {
+  for( auto& p : units_state.euro_all() )
     func( units_state.unit_for( p.first ) );
 }
 
 // This will map only over those that haven't yet moved this
 // turn.
-void map_active_units( UnitsState& units_state, e_nation nation,
-                       base::function_ref<void( Unit& )> func ) {
-  for( auto& p : units_state.all() ) {
+void map_active_euro_units(
+    UnitsState& units_state, e_nation nation,
+    base::function_ref<void( Unit& )> func ) {
+  for( auto& p : units_state.euro_all() ) {
     Unit& unit = units_state.unit_for( p.first );
     if( unit.mv_pts_exhausted() ) continue;
     if( unit.nation() == nation ) func( unit );
@@ -779,7 +784,7 @@ wait<> units_turn( Planes& planes, SS& ss, TS& ts,
   // Unsentry any units that are sentried but have foreign units
   // in an adjacent square. FIXME: move this to the the function
   // that is called to put a unit on a new map square.
-  map_active_units( ss.units, st.nation, [&]( Unit& unit ) {
+  map_active_euro_units( ss.units, st.nation, [&]( Unit& unit ) {
     return try_unsentry_unit( ss, unit );
   } );
 
@@ -805,7 +810,7 @@ wait<> units_turn( Planes& planes, SS& ss, TS& ts,
   // go even further an implement a general mechanism for holding
   // the state of the turn in serialized form so that we don't
   // rely on a bunch of ad hoc bool flags.
-  map_active_units( ss.units, st.nation, fortify_units );
+  map_active_euro_units( ss.units, st.nation, fortify_units );
 
   // Here we will keep reloading all of the units (that still
   // need to move) and making passes over them in order make sure
@@ -827,7 +832,7 @@ wait<> units_turn( Planes& planes, SS& ss, TS& ts,
                                   nat_turn_st, q );
     CHECK( q.empty() );
     // Refill the queue.
-    vector<UnitId> units = units_all( ss.units, st.nation );
+    vector<UnitId> units = euro_units_all( ss.units, st.nation );
     util::sort_by_key( units, []( auto id ) { return id; } );
     erase_if( units, [&]( UnitId id ) {
       return should_remove_unit_from_queue(
@@ -993,10 +998,12 @@ void start_of_turn_cycle( SS& ss ) {
 
 void reset_units( SS& ss ) {
   refl::enum_map<e_nation, Player const*> players;
-  map_all_units( ss.units, [&]( Unit& unit ) {
+  map_all_euro_units( ss.units, [&]( Unit& unit ) {
     UNWRAP_CHECK( player, ss.players.players[unit.nation()] );
     unit.new_turn( player );
   } );
+
+  // TODO: handle native units.
 }
 
 wait<> next_turn( Planes& planes, SS& ss, TS& ts ) {

@@ -35,7 +35,7 @@ sheets {
       }
     }
     {
-      img_path: assets/art/harbor/natives.png
+      img_path: assets/art/tiles/natives.png
       sprite_size: { w: 32, h: 32 }
       sprites {
         brave:              { y: 0, x: 0 }

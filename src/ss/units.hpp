@@ -35,7 +35,11 @@ struct TS;
 
 struct UnitsState {
   UnitsState();
-  bool operator==( UnitsState const& ) const = default;
+  // We don't default this because we don't want to compare the
+  // caches (at the time of writing some of them contain pointers
+  // whose values shouldn't be compared from instance to in-
+  // stance).
+  bool operator==( UnitsState const& ) const;
 
   // Implement refl::WrapsReflected.
   UnitsState( wrapped::UnitsState&& o );
@@ -48,21 +52,48 @@ struct UnitsState {
   // variants. Any more complicated game logic that gets layered
   // on top of these should go elsewhere.
 
-  UnitId last_unit_id() const;
+  GenericUnitId last_unit_id() const;
 
-  std::unordered_map<UnitId, UnitState> const& all() const;
+  std::unordered_map<GenericUnitId, UnitState_t> const& all()
+      const;
+  std::unordered_map<UnitId, EuroUnitState const*> const&
+  euro_all() const;
+  std::unordered_map<NativeUnitId, NativeUnitState const*> const&
+  native_all() const;
 
-  // This one we allow non-const access to publicly. The unit
+  // Is this a European or native unit.
+  e_unit_kind unit_kind( GenericUnitId id ) const;
+
+  // Verify that the id represents a unit of the given kind and
+  // return that unit's casted ID.
+  UnitId       check_euro_unit( GenericUnitId id ) const;
+  NativeUnitId check_native_unit( GenericUnitId id ) const;
+
+  // For these we allow non-const access to publicly. The unit
   // must exist.
-  Unit const& unit_for( UnitId id ) const;
-  Unit&       unit_for( UnitId id );
+  Unit const&       unit_for( UnitId id ) const;
+  Unit&             unit_for( UnitId id );
+  NativeUnit const& unit_for( NativeUnitId id ) const;
+  NativeUnit&       unit_for( NativeUnitId id );
+  // This one will check if the unit is in fact a European unit
+  // and if so return it (otherwise check fail). This is for con-
+  // venience so that the caller doesn't have to convert IDs when
+  // they know what type of unit it is.
+  Unit const& euro_unit_for( GenericUnitId id ) const;
+  Unit&       euro_unit_for( GenericUnitId id );
 
   // Unit must exist.
-  UnitState const&       state_of( UnitId id ) const;
+  UnitState_t const&     state_of( GenericUnitId id ) const;
+  EuroUnitState const&   state_of( UnitId id ) const;
+  NativeUnitState const& state_of( NativeUnitId id ) const;
   UnitOwnership_t const& ownership_of( UnitId id ) const;
+  NativeUnitOwnership_t const& ownership_of(
+      NativeUnitId id ) const;
 
   maybe<Coord> maybe_coord_for( UnitId id ) const;
   Coord        coord_for( UnitId id ) const;
+  maybe<Coord> maybe_coord_for( NativeUnitId id ) const;
+  Coord        coord_for( NativeUnitId id ) const;
 
   maybe<UnitId> maybe_holder_of( UnitId id ) const;
   UnitId        holder_of( UnitId id ) const;
@@ -76,7 +107,7 @@ struct UnitsState {
 
   UnitHarborViewState& harbor_view_state_of( UnitId id );
 
-  std::unordered_set<UnitId> const& from_coord(
+  std::unordered_set<GenericUnitId> const& from_coord(
       Coord const& c ) const;
 
   // Note this returns only units that are working in the colony,
@@ -86,10 +117,13 @@ struct UnitsState {
 
   // The id of this unit must be zero (i.e., you can't select the
   // ID); a new ID will be generated for this unit and returned.
-  [[nodiscard]] UnitId add_unit( Unit&& unit );
+  [[nodiscard]] UnitId       add_unit( Unit&& unit );
+  [[nodiscard]] NativeUnitId add_unit( NativeUnit&& unit );
 
   // Should not be holding any references to the unit after this.
+  void destroy_unit( GenericUnitId id );
   void destroy_unit( UnitId id );
+  void destroy_unit( NativeUnitId id );
 
   // This should probably only be used in unit tests. Returns
   // false if the unit currently exists; returns true if the unit
@@ -98,7 +132,9 @@ struct UnitsState {
   // this does not use the deleted-units cache, it uses the
   // next_unit_id, and so should be ok to call across saves. That
   // said, normal game code probably shouldn't need to call this.
+  bool exists( GenericUnitId id ) const;
   bool exists( UnitId id ) const;
+  bool exists( NativeUnitId id ) const;
 
  private:
   // Changes a unit's ownership from whatever it is (map or oth-
@@ -114,6 +150,7 @@ struct UnitsState {
   // practice, it should only be called by the higher level
   // function in in the on-map module.
   void change_to_map( UnitId id, Coord target );
+  void change_to_map( NativeUnitId id, Coord target );
 
   // This is the function that calls the above.
   friend void unit_to_map_square_non_interactive(
@@ -149,12 +186,16 @@ struct UnitsState {
   // new owernership in order to uphold invariants. This function
   // should rarely be called.
   void disown_unit( UnitId id );
+  void disown_unit( NativeUnitId id );
 
  private:
-  [[nodiscard]] UnitId next_unit_id();
+  [[nodiscard]] GenericUnitId next_unit_id();
 
-  UnitState&       state_of( UnitId id );
-  UnitOwnership_t& ownership_of( UnitId id );
+  UnitState_t&           state_of( GenericUnitId id );
+  EuroUnitState&         state_of( UnitId id );
+  NativeUnitState&       state_of( NativeUnitId id );
+  UnitOwnership_t&       ownership_of( UnitId id );
+  NativeUnitOwnership_t& ownership_of( NativeUnitId id );
 
   valid_or<std::string> validate() const;
   void                  validate_or_die() const;
@@ -168,15 +209,21 @@ struct UnitsState {
   // be resurrected and their IDs will never be reused). Holding
   // the IDs here is technically redundant, but this is on pur-
   // pose in the hope that it might catch a bug.
-  std::unordered_set<UnitId> deleted_;
+  std::unordered_set<GenericUnitId> deleted_;
 
   // For units that are on (owned by) the world (map).
-  std::unordered_map<Coord, std::unordered_set<UnitId>>
+  std::unordered_map<Coord, std::unordered_set<GenericUnitId>>
       units_from_coords_;
 
   // For units that are held in a colony.
   std::unordered_map<ColonyId, std::unordered_set<UnitId>>
       worker_units_from_colony_;
+
+  // All units of a given kind. The pointers will always be
+  // non-null if an element exists in the map.
+  std::unordered_map<UnitId, EuroUnitState const*> euro_units_;
+  std::unordered_map<NativeUnitId, NativeUnitState const*>
+      native_units_;
 };
 
 } // namespace rn

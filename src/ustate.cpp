@@ -183,12 +183,15 @@ wait<maybe<UnitId>> create_unit_on_map( SS& ss, TS& ts,
 /****************************************************************
 ** Map Ownership
 *****************************************************************/
-vector<UnitId> units_from_coord_recursive(
+vector<UnitId> euro_units_from_coord_recursive(
     UnitsState const& units_state, Coord coord ) {
   vector<UnitId> res;
-  for( auto id : units_state.from_coord( coord ) ) {
-    res.push_back( id );
-    auto held_units = units_state.unit_for( id )
+  for( GenericUnitId id : units_state.from_coord( coord ) ) {
+    if( units_state.unit_kind( id ) != e_unit_kind::euro )
+      continue;
+    UnitId const unit_id = units_state.check_euro_unit( id );
+    res.push_back( unit_id );
+    auto held_units = units_state.unit_for( unit_id )
                           .cargo()
                           .items_of_type<Cargo::unit>();
     for( auto held : held_units ) res.push_back( held.id );

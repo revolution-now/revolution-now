@@ -474,12 +474,13 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
 
     REQUIRE( player.crosses == 0 );
     REQUIRE( W.units().all().size() == 1 );
-    REQUIRE( W.units().all().begin()->first == UnitId{ 1 } );
+    REQUIRE( W.units().all().begin()->first ==
+             GenericUnitId{ 1 } );
     UnitOwnership_t const expected_ownership{
         UnitOwnership::harbor{
             .st = UnitHarborViewState{
                 .port_status = PortStatus::in_port{} } } };
-    REQUIRE( W.units().all().begin()->second.ownership ==
+    REQUIRE( as_const( W.units() ).ownership_of( UnitId{ 1 } ) ==
              expected_ownership );
   }
 
@@ -523,12 +524,13 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
 
     REQUIRE( player.crosses == 2 );
     REQUIRE( W.units().all().size() == 1 );
-    REQUIRE( W.units().all().begin()->first == UnitId{ 1 } );
+    REQUIRE( W.units().all().begin()->first ==
+             GenericUnitId{ 1 } );
     UnitOwnership_t const expected_ownership{
         UnitOwnership::harbor{
             .st = UnitHarborViewState{
                 .port_status = PortStatus::in_port{} } } };
-    REQUIRE( W.units().all().begin()->second.ownership ==
+    REQUIRE( as_const( W.units() ).ownership_of( UnitId{ 1 } ) ==
              expected_ownership );
   }
 }
@@ -661,14 +663,15 @@ TEST_CASE( "[immigration] rush_recruit_next_immigrant" ) {
 
   // Make sure that the unit was created on the dock.
   REQUIRE( W.ss().units.all().size() == 1 );
-  REQUIRE( W.units().all().begin()->first == UnitId{ 1 } );
-  REQUIRE( W.units().all().begin()->second.unit.type() ==
+  REQUIRE( W.units().all().begin()->first ==
+           GenericUnitId{ 1 } );
+  REQUIRE( W.units().unit_for( UnitId{ 1 } ).type() ==
            e_unit_type::pioneer );
   UnitOwnership_t const expected_ownership{
       UnitOwnership::harbor{
           .st = UnitHarborViewState{
               .port_status = PortStatus::in_port{} } } };
-  REQUIRE( W.units().all().begin()->second.ownership ==
+  REQUIRE( as_const( W.units() ).ownership_of( UnitId{ 1 } ) ==
            expected_ownership );
 }
 

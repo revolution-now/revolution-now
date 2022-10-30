@@ -1,0 +1,27 @@
+# ===============================================================
+# native-unit.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-10-29.
+#
+# Description: Rds definitions for the native-unit module.
+#
+# ===============================================================
+# ss
+include "native-enums.rds.hpp"
+include "unit-id.hpp"
+
+namespace "rn"
+
+struct.NativeUnit {
+  id 'NativeUnitId',
+
+  type 'e_native_unit_type',
+
+  tribe 'e_tribe',
+
+  # All native units (which are always on the map if they exist)
+  # are owned by a dwelling.
+  dwelling_id 'int',
+}

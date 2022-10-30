@@ -125,8 +125,8 @@ void john_paul_jones( SS& ss, TS& ts, Player const& player ) {
 // All currently existing indian converts are changed to free
 // colonists.
 void bartolome_de_las_casas( SS& ss, Player const& player ) {
-  unordered_map<UnitId, UnitState> const& units_all =
-      ss.units.all();
+  unordered_map<UnitId, EuroUnitState const*> const& units_all =
+      ss.units.euro_all();
   auto free_colonist_type =
       UnitComposition::create( e_unit_type::free_colonist );
   for( auto& [unit_id, state] : units_all ) {

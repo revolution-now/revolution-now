@@ -197,12 +197,6 @@ TEST_CASE( "[save-game] world gen with default values (full)" ) {
   expect_rands( W );
   create_new_game_from_lua( W );
   RootState backup = W.root();
-  // The game-creation routine expects to be working on a
-  // default-constructed game state.
-  W.root() = {};
-  reset_seeds( W.lua() );
-  expect_rands( W );
-  create_new_game_from_lua( W );
 
   // FIXME: find a better way to get a random temp folder.
   static fs::path const dst = "/tmp/test-world-gen-full.sav.rcl";
@@ -216,6 +210,7 @@ TEST_CASE( "[save-game] world gen with default values (full)" ) {
   // Make a round trip.
   print_line( "Save Gen" );
   REQUIRE( save_game_to_rcl_file( W.root(), dst, opts ) );
+  W.root() = {};
   print_line( "Load Gen" );
   REQUIRE( load_game_from_rcl_file( W.root(), dst, opts ) );
 
@@ -233,12 +228,6 @@ TEST_CASE(
   expect_rands( W );
   create_new_game_from_lua( W );
   RootState backup = W.root();
-  // The game-creation routine expects to be working on a
-  // default-constructed game state.
-  W.root() = {};
-  reset_seeds( W.lua() );
-  expect_rands( W );
-  create_new_game_from_lua( W );
 
   // FIXME: find a better way to get a random temp folder.
   static fs::path const dst =
@@ -253,7 +242,9 @@ TEST_CASE(
   // Make a round trip.
   print_line( "Save Gen" );
   REQUIRE( save_game_to_rcl_file( W.root(), dst, opts ) );
+  W.root() = {};
   print_line( "Load Gen" );
+  REQUIRE( load_game_from_rcl_file( W.root(), dst, opts ) );
 
   // Use parenthesis here so that it doesn't dump the entire save
   // file to the console if they don't match.

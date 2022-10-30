@@ -63,7 +63,7 @@ maybe<e_unit_activity> current_activity_for_unit(
 // level deep (beyond the first) because it is a game rule that a
 // unit cannot be held as cargo if it itself if capable of
 // holding cargo (e.g., a ship can't hold a wagon as cargo).
-std::vector<UnitId> units_from_coord_recursive(
+std::vector<UnitId> euro_units_from_coord_recursive(
     UnitsState const& units_state, Coord coord );
 
 // These will return the coordinates for a unit if it is owned by

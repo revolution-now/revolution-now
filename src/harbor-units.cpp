@@ -79,9 +79,9 @@ int turns_needed_for_high_seas(
 vector<UnitId> units_in_harbor_view(
     UnitsState const& units_state, e_nation nation ) {
   vector<UnitId> res;
-  for( auto const& [id, st] : units_state.all() ) {
-    if( st.unit.nation() == nation &&
-        st.ownership.holds<UnitOwnership::harbor>() )
+  for( auto const& [id, st] : units_state.euro_all() ) {
+    if( st->unit.nation() == nation &&
+        st->ownership.holds<UnitOwnership::harbor>() )
       res.push_back( id );
   }
   return res;

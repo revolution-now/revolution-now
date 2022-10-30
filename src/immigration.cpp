@@ -68,12 +68,12 @@ struct UnitCounts {
 UnitCounts unit_counts( UnitsState const& units_state,
                         e_nation          nation ) {
   UnitCounts counts;
-  for( auto const& [id, state] : units_state.all() ) {
-    Unit const& unit = state.unit;
+  for( auto const& [id, state] : units_state.euro_all() ) {
+    Unit const& unit = state->unit;
     if( unit.nation() != nation ) continue;
     ++counts.total_units;
     if( auto harbor =
-            state.ownership.get_if<UnitOwnership::harbor>();
+            state->ownership.get_if<UnitOwnership::harbor>();
         harbor.has_value() ) {
       if( !unit.desc().ship ) {
         ++counts.units_on_dock;

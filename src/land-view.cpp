@@ -408,7 +408,7 @@ struct LandViewPlane::Impl : public Plane {
 
     // Now check for units.
     auto const& units =
-        units_from_coord_recursive( ss_.units, coord );
+        euro_units_from_coord_recursive( ss_.units, coord );
     if( units.size() != 0 ) {
       // Decide which units are selected and for what actions.
       vector<UnitSelection> selections;
@@ -702,9 +702,14 @@ struct LandViewPlane::Impl : public Plane {
     // (stacked) to indicate that visually.
     Coord loc =
         render_rect_for_tile( covered, tile ).upper_left();
-    for( UnitId id : ss_.units.from_coord( tile ) ) {
-      if( skip( id ) ) continue;
-      render_unit( renderer, loc, ss_.units.unit_for( id ),
+    for( GenericUnitId generic_id :
+         ss_.units.from_coord( tile ) ) {
+      if( ss_.units.unit_kind( generic_id ) !=
+          e_unit_kind::euro )
+        continue;
+      UnitId const unit_id{ to_underlying( generic_id ) };
+      if( skip( unit_id ) ) continue;
+      render_unit( renderer, loc, ss_.units.unit_for( unit_id ),
                    UnitRenderOptions{ .flag   = true,
                                       .shadow = UnitShadow{} } );
     }
@@ -715,8 +720,8 @@ struct LandViewPlane::Impl : public Plane {
     // This is for efficiency. When we are sufficiently zoomed
     // out then it is more efficient to iterate over units then
     // covered tiles, whereas the reverse is true when zoomed in.
-    unordered_map<UnitId, UnitState> const& all =
-        ss_.units.all();
+    unordered_map<UnitId, EuroUnitState const*> const& all =
+        ss_.units.euro_all();
     int const                   num_units = all.size();
     int const                   num_tiles = covered.area();
     vector<pair<Coord, UnitId>> res;
@@ -730,10 +735,16 @@ struct LandViewPlane::Impl : public Plane {
           res.emplace_back( *coord, id );
     } else {
       // Iterate over covered tiles.
-      for( Rect tile : gfx::subrects( covered ) )
-        for( UnitId id :
-             ss_.units.from_coord( tile.upper_left() ) )
-          res.emplace_back( tile.upper_left(), id );
+      for( Rect tile : gfx::subrects( covered ) ) {
+        for( GenericUnitId generic_id :
+             ss_.units.from_coord( tile.upper_left() ) ) {
+          if( ss_.units.unit_kind( generic_id ) !=
+              e_unit_kind::euro )
+            continue;
+          UnitId const unit_id{ to_underlying( generic_id ) };
+          res.emplace_back( tile.upper_left(), unit_id );
+        }
+      }
     }
     return res;
   }

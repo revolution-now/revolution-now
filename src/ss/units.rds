@@ -12,6 +12,7 @@
 include "ss/colony-id.hpp"
 include "ss/unit-id.hpp"
 include "ss/unit.hpp"
+include "ss/native-unit.rds.hpp"
 
 # gfx
 include "gfx/coord.hpp"
@@ -20,6 +21,11 @@ include "gfx/coord.hpp"
 include "<unordered_map>"
 
 namespace "rn"
+
+enum.e_unit_kind {
+  euro,
+  native,
+}
 
 sumtype.PortStatus {
   # For ships that are venturing to europe. ``turns` gives the
@@ -85,16 +91,37 @@ sumtype.UnitOwnership {
   },
 }
 
-struct.UnitState {
+sumtype.NativeUnitOwnership {
+  free {},
+  world {
+    coord 'Coord',
+  },
+}
+
+struct.EuroUnitState {
   unit 'Unit',
   ownership 'UnitOwnership_t',
+}
+
+struct.NativeUnitState {
+  unit 'NativeUnit',
+  ownership 'NativeUnitOwnership_t',
+}
+
+sumtype.UnitState {
+  euro {
+    state 'EuroUnitState',
+  },
+  native {
+    state 'NativeUnitState',
+  },
 }
 
 namespace "rn.wrapped"
 
 struct.UnitsState {
-  next_unit_id 'int',
-  units 'std::unordered_map<UnitId, UnitState>',
+  next_unit_id 'GenericUnitId',
+  units 'std::unordered_map<GenericUnitId, UnitState_t>',
 
   _features { equality, validation }
 }

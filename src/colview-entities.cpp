@@ -402,7 +402,7 @@ class MarketCommodities
                .type = type, .quantity = quantity } },
         .bounds = Rect::from(
             box_upper_left + rendered_commodity_offset(),
-            Delta{ .w = 1, .h = 1 } * kCommodityTileSize ) };
+            Delta{ .w = 1, .h = 1 }* kCommodityTileSize ) };
   }
 
   bool try_drag( ColViewObject_t const& o,
@@ -1388,7 +1388,9 @@ class UnitsAtGateColonyView
     auto        unit_pos = Coord{} + Delta{ .w = 1, .h = 16 };
     positioned_units_.clear();
     maybe<UnitId> first_with_cargo;
-    for( auto unit_id : units ) {
+    for( GenericUnitId generic_id : units ) {
+      UnitId const unit_id =
+          ss_.units.check_euro_unit( generic_id );
       positioned_units_.push_back(
           { .id = unit_id, .pos = unit_pos } );
       unit_pos.x += 32;
@@ -1396,7 +1398,9 @@ class UnitsAtGateColonyView
           ss_.units.unit_for( unit_id ).desc().cargo_slots > 0 )
         first_with_cargo = unit_id;
     }
-    if( selected_.has_value() && !units.contains( *selected_ ) )
+    if( selected_.has_value() &&
+        !units.contains(
+            GenericUnitId{ to_underlying( *selected_ ) } ) )
       set_selected_unit( nothing );
     if( !selected_.has_value() )
       set_selected_unit( first_with_cargo );
