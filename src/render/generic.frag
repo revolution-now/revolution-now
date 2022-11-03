@@ -16,7 +16,7 @@ flat in vec4  frag_depixelate_stages;
 flat in vec4  frag_depixelate_stages_unscaled;
      in vec2  frag_position;
      in vec2  frag_atlas_position;
-flat in vec2  frag_atlas_center;
+flat in vec4  frag_atlas_rect;
 flat in vec2  frag_atlas_target_offset;
      in vec4  frag_fixed_color;
      in float frag_alpha_multiplier;
@@ -34,30 +34,40 @@ out vec4 final_color;
 /****************************************************************
 ** Helpers
 *****************************************************************/
-// Fix atlas coordinate rounding error. It happens sometimes that
-// when a scaling or zoom has been applied, pixels that are right
-// on the boundary of sprites can (probably due to rounding er-
-// rors) end up sampling an adjacent sprite in the texture atlas,
-// which leads to unsightly artifacts when rendered (horizontal
-// and vertical lines appear). To fix this, we will use the
-// atlas_center which is the coordinate of the center of this
-// sprite in the atlas (it is the same for all vertices). We will
-// then take the sampling coordinate and move it very slightly
-// closer to the center; this ensure that boundary pixels will
-// not spill over into other sprites due to rounding errors. Note
-// that if some day this needs to be made more aggresive then the
-// multiplier should be made smaller. It's chosen to be 1.0-1e-5,
-// where 1e-5 is small but within the precision of a float.
-vec2 fix_atlas_rounding( in vec2 atlas_pos, in vec2 atlas_center ) {
-  float scaling = 0.9999;
-  return (atlas_pos-atlas_center)*scaling + atlas_center;
+// Fix atlas coordinate sampling edge bleeing. It happens some-
+// times that when a scaling or zoom has been applied, pixels
+// that are right on the boundary of sprites can (apparently due
+// to interpolation and/or rounding) end up sampling the atlas
+// just outside of the target sprite, which leads to unsightly
+// artifacts when rendered (horizontal and vertical lines appear
+// at the edges of some sprites at some zoom levels). To fix
+// this, we will use the atlas_rect, a flat per-sprite vertex at-
+// tribute, which gives the bounding rect of a sprite in the at-
+// las. We will clamp the atlas coordinate to within this box.
+// Actually, this clamping is apparently not enough; we need to
+// clamp it to within a slightly smaller box by removing a tiny
+// buffer around the edge. This finally seems to guarantee that
+// we don't sample outside of the sprite. that if some day these
+// artifacts appear again and this needs to be made more aggre-
+// sive then the buf number can be slightly increased (it has
+// units of atlas pixels). See for example:
+//
+//   stackoverflow.com/questions/33307779/
+//       opengl-4-4-texture-atlas-artifacts
+//
+vec2 fix_atlas_pos( in vec2 atlas_pos, in vec4 bounds ) {
+  float BUFFER = 0.002;
+  vec2 delta = vec2( BUFFER )/u_atlas_size;
+  vec2 atlas_pos_min = vec2(bounds.x+delta.x, bounds.y+delta.y);
+  vec2 atlas_pos_max = vec2(bounds.x+bounds.z-delta.x,
+                            bounds.y+bounds.w-delta.y);
+  return clamp( atlas_pos, atlas_pos_min, atlas_pos_max );
 }
 
-vec4 atlas_lookup( in vec2 atlas_pixel_pos,
-                   in vec2 atlas_pixel_center ) {
-  vec2 atlas_pos    = atlas_pixel_pos/u_atlas_size;
-  vec2 atlas_center = atlas_pixel_center/u_atlas_size;
-  atlas_pos = fix_atlas_rounding( atlas_pos, atlas_center );
+vec4 atlas_lookup( in vec2 atlas_pos, in vec4 atlas_rect ) {
+  atlas_pos /= u_atlas_size;
+  atlas_rect /= vec4(u_atlas_size.xy, u_atlas_size.xy);
+  atlas_pos =fix_atlas_pos( atlas_pos, atlas_rect );
   return texture( u_atlas, atlas_pos );
 }
 
@@ -65,7 +75,7 @@ vec4 atlas_lookup( in vec2 atlas_pixel_pos,
 ** Sprites.
 *****************************************************************/
 vec4 type_sprite() {
-  return atlas_lookup( frag_atlas_position, frag_atlas_center );
+  return atlas_lookup( frag_atlas_position, frag_atlas_rect );
 }
 
 /****************************************************************
@@ -87,15 +97,16 @@ vec4 type_silhouette() {
 *****************************************************************/
 vec4 type_stencil() {
   vec4 candidate = atlas_lookup( frag_atlas_position,
-                                 frag_atlas_center );
+                                 frag_atlas_rect );
   if( candidate.rgb != frag_fixed_color.rgb )
     return candidate;
   // We have the key color, so replace it with a pixel from the
   // alternate sprite.
+  vec4 target_atlas_rect = frag_atlas_rect;
+  target_atlas_rect.xy += frag_atlas_target_offset;
   vec4 target_color = atlas_lookup( frag_atlas_position +
                                     frag_atlas_target_offset,
-                                    frag_atlas_center +
-                                    frag_atlas_target_offset );
+                                    target_atlas_rect );
   return vec4( target_color.rgb, target_color.a*candidate.a );
 }
 
