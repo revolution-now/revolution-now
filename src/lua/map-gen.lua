@@ -18,7 +18,6 @@ local dist = require( 'map-gen.classic.resource-dist' )
 local partition = require( 'map-gen.classic.land-partition' )
 local weights = require( 'map-gen.classic.terrain-weights' )
 local timer = require( 'util.timer' )
-local util_tables = require( 'util.tables' )
 
 -----------------------------------------------------------------
 -- aliases
@@ -72,11 +71,7 @@ function M.default_options()
     -- a major river. This should really be smaller than .5 be-
     -- cause major rivers give a production bonus over minor
     -- rivers.
-    major_river_fraction=.15,
-    native_tribes={
-      'apache', 'sioux', 'tupi', 'arawak', 'cherokee',
-      'iroquois', 'aztec', 'inca'
-    }
+    major_river_fraction=.15
   }
 end
 
@@ -698,8 +693,19 @@ local function create_indian_villages( options )
   -- the lost city rumors, though they can be placed on top of
   -- natural resources.
   local size = world_size()
-  local tribes = util_tables.copy_table( options.native_tribes )
-  shuffle( tribes )
+  local native_tribes_cities = { 'inca', 'aztec' }
+  local native_tribes_other = {
+    'apache', 'sioux', 'tupi', 'arawak', 'cherokee', 'iroquois'
+  }
+  -- This shuffling and recombination ensures that the tribes are
+  -- placed into random partitions subject to the constraint that
+  -- the incas and aztecs should go toward the left half of the
+  -- map.
+  shuffle( native_tribes_cities )
+  shuffle( native_tribes_other )
+  local tribes = native_tribes_other
+  table.insert( tribes, 2, native_tribes_cities[1] )
+  table.insert( tribes, 4, native_tribes_cities[2] )
   local function has_land( coord )
     return square_at( coord ).surface == 'land'
   end
