@@ -79,7 +79,7 @@ end
 -- Utils
 -----------------------------------------------------------------
 local function debug_log( fmt, ... )
-  io.write( string.format( fmt .. '\n', ... ) )
+  -- io.write( string.format( fmt .. '\n', ... ) )
 end
 
 local function append( tbl, elem ) tbl[#tbl + 1] = elem end
