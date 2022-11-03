@@ -15,6 +15,7 @@ local M = {}
 -- Imports
 -----------------------------------------------------------------
 local dist = require( 'map-gen.classic.resource-dist' )
+local partition = require( 'map-gen.classic.land-partition' )
 local weights = require( 'map-gen.classic.terrain-weights' )
 local timer = require( 'util.timer' )
 
@@ -166,7 +167,7 @@ end
 -- The square must exist.
 local function square_at( coord )
   assert( square_exists( coord ),
-          string.format( 'square {x=%d,y=%x} does not exist.',
+          string.format( 'square {x=%d,y=%d} does not exist.',
                          coord.x, coord.y ) )
   return ROOT.terrain:square_at( coord )
 end
@@ -232,6 +233,12 @@ end
 -----------------------------------------------------------------
 -- Terrain Manipulation
 -----------------------------------------------------------------
+local function is_on_map_edge( world_size, coord )
+  return
+      coord.x == 0 or coord.y == 0 or coord.x == world_size.w - 1 or
+          coord.y == world_size.h - 1
+end
+
 local function set_land( coord )
   local square = square_at( coord )
   square.surface = 'land'
@@ -633,8 +640,42 @@ local function create_sea_lanes()
 end
 
 -----------------------------------------------------------------
--- Villages
+-- Natives
 -----------------------------------------------------------------
+local function test_native_land_partition()
+  local size = world_size()
+  local partition_to_ground = {
+    [0]='grassland',
+    [1]='prairie',
+    [2]='savannah',
+    [3]='plains',
+    [4]='desert',
+    [5]='arctic',
+    [6]='tundra',
+    [7]='swamp'
+  }
+  local function has_land( coord )
+    return square_at( coord ).surface == 'land'
+  end
+  local partitions = partition.generate( size, 8, has_land )
+  for rasterized_coord, n in pairs( partitions ) do
+    local coord = {
+      x=rasterized_coord % size.w,
+      y=rasterized_coord // size.w
+    }
+    local square = assert( square_at( coord ) )
+    if not is_on_map_edge( size, coord ) and square.surface ==
+        'land' then
+      square.overlay = nil
+      square.ground_resource = nil
+      square.forest_resource = nil
+      square.lost_city_rumor = nil
+      square.river = nil
+      square.ground = assert( partition_to_ground[n] )
+    end
+  end
+end
+
 local function create_indian_villages()
   -- Note that indian villages never seem to be placed on top of
   -- the lost city rumors, though they can be placed on top of
@@ -1389,6 +1430,10 @@ local function generate( options )
 
   if options.type == 'battlefield' then
     generate_battlefield( options )
+    return
+  elseif options.type == 'land-partition' then
+    generate_land( options )
+    test_native_land_partition()
     return
   elseif options.type == 'half_and_half' then
     generate_half_land()
