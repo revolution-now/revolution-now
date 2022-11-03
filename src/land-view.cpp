@@ -889,7 +889,8 @@ struct LandViewPlane::Impl : public Plane {
     if( !viz_.visible( dwelling.location ) ) return;
     Coord tile_coord =
         render_rect_for_tile( covered, dwelling.location )
-            .upper_left();
+            .upper_left() -
+        Delta{ .w = 6, .h = 6 };
     render_dwelling( painter, tile_coord, dwelling );
   }
 

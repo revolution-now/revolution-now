@@ -728,6 +728,14 @@ local function create_indian_villages( options )
         local dwelling = ROOT.natives:new_dwelling( coord )
         dwelling.tribe = tribes[n + 1]
         dwelling.population = 3
+        -- Get rid of any forest if we're placing one of the city
+        -- dwellings. The OG does not do this, but they don't re-
+        -- ally look good floating above a forest given that they
+        -- are supposed to represent advanced cities, so we will
+        -- remove them.
+        if dwelling.tribe == 'aztec' or dwelling.tribe == 'inca' then
+          square.overlay = nil
+        end
         table.insert( dwellings[dwelling.tribe], dwelling )
       end
     end

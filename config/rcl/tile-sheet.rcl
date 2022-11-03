@@ -42,12 +42,18 @@ sheets {
         armed_brave:        { y: 0, x: 1 }
         mounted_brave:      { y: 0, x: 2 }
         mounted_warrior:    { y: 0, x: 3 }
-        camp:               { y: 1, x: 0 }
-        village:            { y: 1, x: 1 }
-        tan_pyramid:        { y: 1, x: 2 }
-        grey_pyramid:       { y: 1, x: 3 }
         native_land:        { y: 2, x: 0 }
         capital_star:       { y: 2, x: 1 }
+      }
+    }
+    {
+      img_path: assets/art/tiles/dwellings.png
+      sprite_size: { w: 44, h: 44 }
+      sprites {
+        camp:               { y: 0, x: 0 }
+        village:            { y: 0, x: 1 }
+        tan_pyramid:        { y: 0, x: 2 }
+        grey_pyramid:       { y: 0, x: 3 }
       }
     }
     {

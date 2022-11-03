@@ -138,9 +138,25 @@ tribes {
 
 flag_rects {
   camp: [
+    # teepee left.
+    { origin={ x=11, y=20 }, size={ w=1, h=2} },
+    { origin={ x=14, y=20 }, size={ w=1, h=2} },
+    { origin={ x=12, y=21 }, size={ w=2, h=2} },
+    # teepee middle.
+    { origin={ x=19, y=16 }, size={ w=1, h=2} },
+    { origin={ x=23, y=16 }, size={ w=1, h=2} },
+    { origin={ x=20, y=17 }, size={ w=3, h=2} },
+    # teepee right.
+    { origin={ x=29, y=20 }, size={ w=1, h=2} },
+    { origin={ x=33, y=20 }, size={ w=1, h=2} },
+    { origin={ x=30, y=21 }, size={ w=3, h=2} },
   ]
 
   village: [
+    # Left house.
+    { origin={ x=12, y=20 }, size={ w=4, h=2} },
+    # Right house.
+    { origin={ x=25, y=26 }, size={ w=4, h=2} },
   ]
 
   city: [

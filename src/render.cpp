@@ -252,14 +252,20 @@ void render_colony( rr::Painter& painter, Coord where,
 
 void render_dwelling( rr::Painter& painter, Coord where,
                       Dwelling const& dwelling ) {
-  e_tile const tile =
-      config_natives.tribes[dwelling.tribe].dwelling_tile;
-  render_sprite( painter, where, tile );
-  // render_dwelling_flag(
-  //     painter, where + Delta{ .w = 8, .h = 8 },
-  //     config_natives.tribes[dwelling.tribe].flag_color );
+  auto& tribe_conf = config_natives.tribes[dwelling.tribe];
+  e_tile const dwelling_tile = tribe_conf.dwelling_tile;
+  render_sprite( painter, where, dwelling_tile );
+  // Flags.
+  e_dwelling_type const dwelling_type = tribe_conf.dwelling_type;
+  gfx::pixel const      flag_color    = tribe_conf.flag_color;
+  for( gfx::rect flag :
+       config_natives.flag_rects[dwelling_type] )
+    painter.draw_solid_rect( flag.origin_becomes_point( where ),
+                             flag_color );
+  // Yellow star to mark the capital.
   if( dwelling.is_capital )
-    render_sprite( painter, where, e_tile::capital_star );
+    render_sprite( painter, where + Delta{ .w = 6, .h = 6 },
+                   e_tile::capital_star );
 }
 
 void render_unit_depixelate( rr::Renderer& renderer, Coord where,
