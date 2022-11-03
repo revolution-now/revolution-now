@@ -18,6 +18,7 @@ local dist = require( 'map-gen.classic.resource-dist' )
 local partition = require( 'map-gen.classic.land-partition' )
 local weights = require( 'map-gen.classic.terrain-weights' )
 local timer = require( 'util.timer' )
+local util_tables = require( 'util.tables' )
 
 -----------------------------------------------------------------
 -- aliases
@@ -71,7 +72,11 @@ function M.default_options()
     -- a major river. This should really be smaller than .5 be-
     -- cause major rivers give a production bonus over minor
     -- rivers.
-    major_river_fraction=.15
+    major_river_fraction=.15,
+    native_tribes={
+      'apache', 'sioux', 'tupi', 'arawak', 'cherokee',
+      'iroquois', 'aztec', 'inca'
+    }
   }
 end
 
@@ -676,10 +681,57 @@ local function test_native_land_partition()
   end
 end
 
-local function create_indian_villages()
+local function has_dwelling_in_surroundings( coord )
+  local squares =
+      filter_on_map( surrounding_squares_5x5( coord ) )
+  for _, coord in ipairs( squares ) do
+    local square = square_at( coord )
+    if ROOT.natives:has_dwelling_on_square( coord ) then
+      return true
+    end
+  end
+  return false
+end
+
+local function create_indian_villages( options )
   -- Note that indian villages never seem to be placed on top of
   -- the lost city rumors, though they can be placed on top of
   -- natural resources.
+  local size = world_size()
+  local tribes = util_tables.copy_table( options.native_tribes )
+  shuffle( tribes )
+  local function has_land( coord )
+    return square_at( coord ).surface == 'land'
+  end
+  local partitions =
+      partition.generate( size, #tribes, has_land )
+  local dwellings = {}
+  for _, tribe in ipairs( tribes ) do dwellings[tribe] = {} end
+  for rasterized_coord, n in pairs( partitions ) do
+    local coord = {
+      x=rasterized_coord % size.w,
+      y=rasterized_coord // size.w
+    }
+    local square = square_at( coord )
+    if not square.lost_city_rumor and square.overlay ~=
+        'mountains' and not is_on_map_edge( size, coord ) and
+        not has_dwelling_in_surroundings( coord ) then
+      if math.random() < .5 then
+        local dwelling = ROOT.natives:new_dwelling( coord )
+        dwelling.tribe = tribes[n + 1]
+        dwelling.population = 3
+        table.insert( dwellings[dwelling.tribe], dwelling )
+      end
+    end
+  end
+  -- Pick a capital for each tribe.
+  for _, tribe in ipairs( tribes ) do
+    local tribe_dwellings = dwellings[tribe]
+    shuffle( tribe_dwellings )
+    if #tribe_dwellings > 0 then
+      tribe_dwellings[1].is_capital = true
+    end
+  end
 end
 
 -----------------------------------------------------------------
@@ -1445,7 +1497,7 @@ local function generate( options )
 
   create_sea_lanes()
 
-  create_indian_villages()
+  create_indian_villages( options )
 end
 
 function M.generate( ... )

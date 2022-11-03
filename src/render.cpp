@@ -23,10 +23,12 @@
 // config
 #include "config/gfx.rds.hpp"
 #include "config/nation.hpp"
+#include "config/natives.rds.hpp"
 #include "config/unit-type.hpp"
 
-// gs
+// ss
 #include "ss/colony.hpp"
+#include "ss/dwelling.rds.hpp"
 
 // base
 #include "base/keyval.hpp"
@@ -246,6 +248,18 @@ void render_colony( rr::Painter& painter, Coord where,
   auto const& nation = nation_obj( colony.nation );
   render_colony_flag( painter, where + Delta{ .w = 8, .h = 8 },
                       nation.flag_color );
+}
+
+void render_dwelling( rr::Painter& painter, Coord where,
+                      Dwelling const& dwelling ) {
+  e_tile const tile =
+      config_natives.tribes[dwelling.tribe].dwelling_tile;
+  render_sprite( painter, where, tile );
+  // render_dwelling_flag(
+  //     painter, where + Delta{ .w = 8, .h = 8 },
+  //     config_natives.tribes[dwelling.tribe].flag_color );
+  if( dwelling.is_capital )
+    render_sprite( painter, where, e_tile::capital_star );
 }
 
 void render_unit_depixelate( rr::Renderer& renderer, Coord where,

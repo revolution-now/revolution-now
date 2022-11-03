@@ -318,7 +318,7 @@ local function add_testing_options( options )
     -- dutch={ human=true, ship_pos=nil },
   }
   options.difficulty = 'conquistador'
-  -- options.map.type = 'half_and_half'
+  -- options.map.type = 'land-partition'
   -- options.map.world_size = { w=4, h=4 }
 end
 

@@ -42,7 +42,9 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/dwelling.rds.hpp"
 #include "ss/land-view.hpp"
+#include "ss/natives.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.hpp"
 #include "ss/terrain.hpp"
@@ -186,6 +188,8 @@ struct LandViewPlane::Impl : public Plane {
   co::stream<PlayerInput> translated_input_stream_;
   unordered_map<UnitId, UnitAnimation_t>   unit_animations_;
   unordered_map<ColonyId, UnitAnimation_t> colony_animations_;
+  unordered_map<DwellingId, UnitAnimation_t>
+                 dwelling_animations_;
   LandViewMode_t landview_mode_ = LandViewMode::none{};
   maybe<UnitId>  last_unit_input_;
 
@@ -879,6 +883,69 @@ struct LandViewPlane::Impl : public Plane {
     }
   }
 
+  void render_native_dwelling( rr::Painter&    painter,
+                               Rect            covered,
+                               Dwelling const& dwelling ) const {
+    if( !viz_.visible( dwelling.location ) ) return;
+    Coord tile_coord =
+        render_rect_for_tile( covered, dwelling.location )
+            .upper_left();
+    render_dwelling( painter, tile_coord, dwelling );
+  }
+
+  void render_native_dwelling_depixelate(
+      rr::Renderer& renderer, Rect covered,
+      Dwelling const& dwelling ) const {
+    UNWRAP_CHECK(
+        animation,
+        base::lookup( dwelling_animations_, dwelling.id )
+            .get_if<UnitAnimation::depixelate_dwelling>() );
+    // As usual, the hash anchor coord is arbitrary so long as
+    // its position is fixed relative to the sprite.
+    Coord const hash_anchor =
+        render_rect_for_tile( covered, dwelling.location )
+            .upper_left();
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                             animation.stage );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
+                             hash_anchor );
+    rr::Painter painter = renderer.painter();
+    render_native_dwelling( painter, covered, dwelling );
+  }
+
+  void render_native_dwellings( rr::Renderer& renderer,
+                                Rect          covered ) const {
+    rr::Painter painter = renderer.painter();
+    unordered_map<DwellingId, Dwelling> const& all =
+        ss_.natives.all();
+    switch( landview_mode_.to_enum() ) {
+      using namespace LandViewMode;
+      case e::dwelling_disappearing: {
+        auto& o =
+            landview_mode_
+                .get<LandViewMode::dwelling_disappearing>();
+        DwellingId const disappearing_id = o.dwelling_id;
+        for( auto const& [id, dwelling] : all ) {
+          if( dwelling.location.is_inside( covered ) ) {
+            if( id == disappearing_id )
+              render_native_dwelling_depixelate(
+                  renderer, covered, dwelling );
+            else
+              render_native_dwelling( painter, covered,
+                                      dwelling );
+          }
+        }
+        break;
+      }
+      default: {
+        for( auto const& [id, dwelling] : all )
+          if( dwelling.location.is_inside( covered ) )
+            render_native_dwelling( painter, covered, dwelling );
+        break;
+      }
+    }
+  }
+
   void render_colony( rr::Renderer& renderer,
                       rr::Painter& painter, Rect covered,
                       Colony const& colony ) const {
@@ -1015,6 +1082,10 @@ struct LandViewPlane::Impl : public Plane {
         render_units_default( renderer, covered );
         break;
       }
+      case e::dwelling_disappearing: {
+        render_units_default( renderer, covered );
+        break;
+      }
       case e::unit_move: {
         auto& o = landview_mode_.get<unit_move>();
         CHECK( unit_animations_.size() == 1 );
@@ -1125,6 +1196,7 @@ struct LandViewPlane::Impl : public Plane {
                              corner.distance_from_origin() );
     Rect const covered_tiles = viewport().covered_tiles();
     render_units_under_colonies( renderer, covered_tiles );
+    render_native_dwellings( renderer, covered_tiles );
     render_colonies( renderer, covered_tiles );
     render_units( renderer, covered_tiles );
   }

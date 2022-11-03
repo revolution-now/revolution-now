@@ -23,6 +23,7 @@
 namespace rn {
 
 struct Colony;
+struct Dwelling;
 
 /****************************************************************
 ** UnitShadow
@@ -70,6 +71,9 @@ void render_unit_depixelate_to( rr::Renderer& renderer,
 
 void render_colony( rr::Painter& painter, Coord where,
                     Colony const& colony );
+
+void render_dwelling( rr::Painter& painter, Coord where,
+                      Dwelling const& dwelling );
 
 // Note that the coordinate provided here is the coordinate of
 // the unit whose flag is being drawn, not the flag position it-

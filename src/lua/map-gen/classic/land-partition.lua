@@ -58,9 +58,12 @@ local function split_vertical( land_coords, world_size )
   local x_bottom
   local scale = (1.0 - VARIATION) + math.random() *
                     (VARIATION * 2)
-  while true do
+  for iters = 1, 1000 do
     log( 'iter 1' )
+    local iters = 0
     repeat
+      iters = iters + 1
+      if iters > 100 then return land_coords, {} end
       x_top = math.random( x_min, x_max )
       x_bottom = x_min
       local line =
@@ -79,6 +82,9 @@ local function split_vertical( land_coords, world_size )
       x_bottom = x_bottom + 1
     end
   end
+  -- We weren't able to split; typically because the map is too
+  -- small.
+  return land_coords, {}
 end
 
 local function split_horizontal( land_coords, world_size )
@@ -94,9 +100,12 @@ local function split_horizontal( land_coords, world_size )
   local y_right
   local scale = (1.0 - VARIATION) + math.random() *
                     (VARIATION * 2)
-  while true do
+  for iters = 1, 1000 do
     log( 'iter a' )
+    local iters = 0
     repeat
+      iters = iters + 1
+      if iters > 100 then return land_coords, {} end
       y_left = math.random( y_min, y_max )
       y_right = y_min
       local line = {
@@ -119,6 +128,9 @@ local function split_horizontal( land_coords, world_size )
       y_right = y_right + 1
     end
   end
+  -- We weren't able to split; typically because the map is too
+  -- small.
+  return land_coords, {}
 end
 
 local function set_coords_to_partition(output, world_size,
@@ -163,8 +175,8 @@ function M.generate( world_size, partitions, has_land )
     func=split_horizontal,
     next={ func=split_vertical, next={ func=split_horizontal } }
   }
-  do_split( res, split_funcs, { min=0, max=7 }, land_coords,
-            world_size )
+  do_split( res, split_funcs, { min=0, max=partitions - 1 },
+            land_coords, world_size )
   return res
 end
 

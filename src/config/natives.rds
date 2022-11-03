@@ -82,6 +82,13 @@ struct.config_natives_t {
   dwelling_types 'refl::enum_map<e_dwelling_type, config::natives::DwellingType>',
 
   tribes 'refl::enum_map<e_tribe, config::natives::Tribe>',
+
+  # Each camp/village has a couple pixels of color (matching the
+  # flag color of the tribe) to indicate their tribe. They can be
+  # single pixels, lines, or rects. These give the rects that
+  # should be filled in relative to the upper left corner of the
+  # camp/village sprite.
+  flag_rects 'refl::enum_map<e_dwelling_type, std::vector<gfx::rect>>',
 }
 
 config.natives {}

@@ -135,3 +135,14 @@ tribes {
     max_population_capital: 11
   }
 }
+
+flag_rects {
+  camp: [
+  ]
+
+  village: [
+  ]
+
+  city: [
+  ]
+}

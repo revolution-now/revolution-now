@@ -12,9 +12,10 @@
 include "input.hpp"
 include "physics.hpp"
 include "unit-id.hpp"
-
-# Rds
 include "orders.rds.hpp"
+
+# ss
+include "ss/dwelling-id.hpp"
 
 # gfx
 include "gfx/coord.hpp"
@@ -36,6 +37,9 @@ sumtype.LandViewMode {
   },
   colony_disappearing {
     colony_id 'ColonyId',
+  },
+  dwelling_disappearing {
+    dwelling_id 'DwellingId',
   },
   hidden_terrain {},
 }
@@ -78,6 +82,9 @@ sumtype.UnitAnimation {
     target 'maybe<e_unit_type>',
   },
   depixelate_colony {
+    stage 'double',
+  },
+  depixelate_dwelling {
     stage 'double',
   },
 

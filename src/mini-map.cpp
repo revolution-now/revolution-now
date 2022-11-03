@@ -22,8 +22,11 @@
 
 // config
 #include "config/nation.rds.hpp"
+#include "config/natives.rds.hpp"
 
 // ss
+#include "ss/native-enums.rds.hpp"
+#include "ss/natives.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 
@@ -411,11 +414,19 @@ void MiniMapView::draw_impl( rr::Renderer&     renderer,
     gfx::pixel color =
         color_for_square( viz.square_at( land_coord ) );
     // First check if there is a unit/colony on the square.
+    // FIXME: need to merge nation_from_coord and
+    // tribe_from_coord.
     if( maybe<e_nation> nation = nation_from_coord(
             ss_.units, ss_.colonies, land_coord );
         nation.has_value() ) {
       if( !blinking_but_off )
         color = config_nation.nations[*nation].flag_color;
+    }
+    if( maybe<e_tribe> tribe = tribe_from_coord(
+            ss_.units, ss_.natives, land_coord );
+        tribe.has_value() ) {
+      if( !blinking_but_off )
+        color = config_natives.tribes[*tribe].flag_color;
     }
     gfx::rect const pixel{
         .origin = actual.nw() + ( land_coord.to_gfx() -

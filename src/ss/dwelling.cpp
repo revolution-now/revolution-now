@@ -26,6 +26,9 @@ namespace rn {
 
 namespace {} // namespace
 
+void linker_dont_discard_module_ss_dwelling();
+void linker_dont_discard_module_ss_dwelling() {}
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/
@@ -77,8 +80,12 @@ LUA_STARTUP( lua::state& st ) {
     u["muskets"]    = &U::muskets;
     u["horses"]     = &U::horses;
     u["trading"]    = &U::trading;
-    // u["relationship"]    = &U::relationship;
-    u["teaches"] = &U::teaches;
+    u["teaches"]    = &U::teaches;
+
+    u["relationship"] =
+        []( U& o, e_nation nation ) -> DwellingRelationship& {
+      return o.relationship[nation];
+    };
   }();
 };
 

@@ -22,6 +22,8 @@
 
 namespace rn {
 
+struct UnitsState;
+
 struct NativesState {
   NativesState();
   bool operator==( NativesState const& ) const = default;
@@ -73,6 +75,11 @@ struct NativesState {
   // ----- Non-serializable (transient) state.
   std::unordered_map<Coord, DwellingId> dwelling_from_coord_;
 };
+
+// FIXME: need to move this and merge it with nation_from_coord.
+base::maybe<e_tribe> tribe_from_coord(
+    UnitsState const& units, NativesState const& natives,
+    Coord where );
 
 } // namespace rn
 
