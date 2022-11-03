@@ -78,8 +78,8 @@ end
 -----------------------------------------------------------------
 -- Utils
 -----------------------------------------------------------------
-local function debug_log( msg )
-  -- io.write( msg )
+local function debug_log( fmt, ... )
+  io.write( string.format( fmt .. '\n', ... ) )
 end
 
 local function append( tbl, elem ) tbl[#tbl + 1] = elem end
@@ -593,7 +593,7 @@ local function create_sea_lanes()
       end
     end
   end
-  debug_log( 'starting row: ' .. tostring( closest_row ) .. '\n' )
+  debug_log( 'starting row: %d', closest_row )
   -- Now get the sea lane width where we are starting.
   local sea_lane_width = function( y )
     local width = 0
@@ -604,8 +604,7 @@ local function create_sea_lanes()
     return width
   end
   local curr_sea_lane_width = sea_lane_width( closest_row )
-  debug_log( 'curr width: ' .. tostring( curr_sea_lane_width ) ..
-                 '\n' )
+  debug_log( 'curr width: %d', curr_sea_lane_width )
   -- Now start at the row that we found and go upward.
   for y = closest_row - 1, 0, -1 do
     if row_has_land( y ) then
@@ -693,19 +692,22 @@ local function create_indian_villages( options )
   -- the lost city rumors, though they can be placed on top of
   -- natural resources.
   local size = world_size()
-  local native_tribes_cities = { 'inca', 'aztec' }
-  local native_tribes_other = {
+  local city_tribes = { 'inca', 'aztec' }
+  local non_city_tribes = {
     'apache', 'sioux', 'tupi', 'arawak', 'cherokee', 'iroquois'
   }
   -- This shuffling and recombination ensures that the tribes are
   -- placed into random partitions subject to the constraint that
   -- the incas and aztecs should go toward the left half of the
   -- map.
-  shuffle( native_tribes_cities )
-  shuffle( native_tribes_other )
-  local tribes = native_tribes_other
-  table.insert( tribes, 2, native_tribes_cities[1] )
-  table.insert( tribes, 4, native_tribes_cities[2] )
+  shuffle( city_tribes )
+  shuffle( non_city_tribes )
+  local tribes = non_city_tribes
+  table.insert( tribes, 2, city_tribes[1] )
+  table.insert( tribes, 5, city_tribes[2] )
+  for i, tribe in ipairs( tribes ) do
+    debug_log( 'tribe[%d]=%s', i, tribe )
+  end
   local function has_land( coord )
     return square_at( coord ).surface == 'land'
   end
