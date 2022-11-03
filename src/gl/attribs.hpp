@@ -130,6 +130,8 @@ struct vec4 {
   float z = 0.0f;
   float w = 0.0f;
 
+  static vec4 from_rect( gfx::rect r );
+
   bool operator==( vec4 const& ) const = default;
 };
 

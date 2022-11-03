@@ -209,30 +209,26 @@ Painter& Painter::draw_solid_rect( rect r, pixel color ) {
 }
 
 void Painter::draw_sprite_impl( rect src, rect dst ) {
-  point atlas_center = src.center();
   emit_texture_quad(
       src, dst, [&, this]( point pos, point atlas_pos ) {
-        emit( SpriteVertex( pos, atlas_pos, atlas_center ) );
+        emit( SpriteVertex( pos, atlas_pos, src ) );
       } );
 }
 
 void Painter::draw_silhouette_impl( rect src, rect dst,
                                     gfx::pixel color ) {
-  point atlas_center = src.center();
   emit_texture_quad(
       src, dst, [&, this]( point pos, point atlas_pos ) {
-        emit( SilhouetteVertex( pos, atlas_pos, atlas_center,
-                                color ) );
+        emit( SilhouetteVertex( pos, atlas_pos, src, color ) );
       } );
 }
 
 void Painter::draw_stencil_impl(
     rect src, rect dst, gfx::size replacement_atlas_offset,
     gfx::pixel key_color ) {
-  point atlas_center = src.center();
   emit_texture_quad(
       src, dst, [&, this]( point pos, point atlas_pos ) {
-        emit( StencilVertex( pos, atlas_pos, atlas_center,
+        emit( StencilVertex( pos, atlas_pos, src,
                              replacement_atlas_offset,
                              key_color ) );
       } );

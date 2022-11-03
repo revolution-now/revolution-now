@@ -99,7 +99,7 @@ STATIC_VERTEX_CHECKS( VertexBase );
 // ture atlas as a source.
 struct SpriteVertex : public VertexBase {
   SpriteVertex( gfx::point position, gfx::point atlas_position,
-                gfx::point atlas_center );
+                gfx::rect atlas_rect );
 
   bool operator==( SpriteVertex const& ) const = default;
 };
@@ -129,7 +129,7 @@ STATIC_VERTEX_CHECKS( SolidVertex );
 struct SilhouetteVertex : public VertexBase {
   SilhouetteVertex( gfx::point position,
                     gfx::point atlas_position,
-                    gfx::point atlas_center, gfx::pixel color );
+                    gfx::rect atlas_rect, gfx::pixel color );
 
   bool operator==( SilhouetteVertex const& ) const = default;
 };
@@ -145,7 +145,7 @@ STATIC_VERTEX_CHECKS( SilhouetteVertex );
 // ternate sprite with alpha multiplication.
 struct StencilVertex : public VertexBase {
   StencilVertex( gfx::point position, gfx::point atlas_position,
-                 gfx::point atlas_center,
+                 gfx::rect  atlas_rect,
                  gfx::size  atlas_target_offset,
                  gfx::pixel key_color );
 

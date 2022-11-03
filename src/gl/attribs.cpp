@@ -107,6 +107,18 @@ vec2 vec2::from_dsize( gfx::dsize ds ) {
 }
 
 /****************************************************************
+** vec4
+*****************************************************************/
+vec4 vec4::from_rect( gfx::rect r ) {
+  return vec4{
+      .x = static_cast<float>( r.origin.x ),
+      .y = static_cast<float>( r.origin.y ),
+      .z = static_cast<float>( r.size.w ),
+      .w = static_cast<float>( r.size.h ),
+  };
+}
+
+/****************************************************************
 ** color
 *****************************************************************/
 color color::from_pixel( gfx::pixel p ) {
