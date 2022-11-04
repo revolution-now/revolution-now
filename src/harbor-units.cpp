@@ -14,6 +14,7 @@
 #include "error.hpp"
 #include "logger.hpp"
 #include "on-map.hpp"
+#include "society.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
 
@@ -180,9 +181,7 @@ void update_harbor_selected_unit( UnitsState const& units,
 // Find the right place to put a ship which has just arrived from
 // europe.
 maybe<Coord> find_new_world_arrival_square(
-    UnitsState const&    units_state,
-    ColoniesState const& colonies_state,
-    TerrainState const& terrain_state, Player const& player,
+    SSConst const& ss, Player const& player,
     maybe<Coord> sailed_from ) {
   Coord const candidate = sailed_from.has_value() ? *sailed_from
                           : player.last_high_seas.has_value()
@@ -192,17 +191,18 @@ maybe<Coord> find_new_world_arrival_square(
   // The units on the square are not friendly, so we cannot drop
   // the unit here. We will procede to search the squares in an
   // outward fashion until we find one.
-  Delta const world_size = terrain_state.world_size_tiles();
+  Delta const world_size = ss.terrain.world_size_tiles();
   int max_radius = std::max( world_size.w, world_size.h );
 
   for( Coord c : search_from_square( candidate, max_radius ) ) {
     maybe<MapSquare const&> square =
-        terrain_state.maybe_square_at( c );
+        ss.terrain.maybe_square_at( c );
     if( !square.has_value() ) continue;
     if( square->surface != e_surface::water ) continue;
-    maybe<e_nation> nation =
-        nation_from_coord( units_state, colonies_state, c );
-    if( !nation.has_value() || nation == player.nation )
+    maybe<Society_t> society = society_on_square( ss, c );
+    if( !society.has_value() ||
+        society == Society_t{ Society::european{
+                       .nation = player.nation } } )
       // We've found a square that is water and does not con-
       // tain a foreign nation.
       //

@@ -152,9 +152,11 @@ struct UnitsState {
   void change_to_map( UnitId id, Coord target );
   void change_to_map( NativeUnitId id, Coord target );
 
-  // This is the function that calls the above.
+  // These are the function that calls the above.
   friend void unit_to_map_square_non_interactive(
       SS& ss, TS& ts, UnitId id, Coord world_square );
+  friend void unit_to_map_square_non_interactive(
+      SS& ss, NativeUnitId id, Coord world_square );
 
  private:
   // This is private because it should only be called via the

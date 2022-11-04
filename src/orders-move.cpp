@@ -25,6 +25,7 @@
 #include "mv-calc.hpp"
 #include "on-map.hpp"
 #include "plane-stack.hpp"
+#include "society.hpp"
 #include "ts.hpp"
 #include "ustate.hpp"
 
@@ -83,7 +84,7 @@ namespace {
       UnitTypeAttributes const& desc )
 
 enum class e_unit_relationship { neutral, friendly, foreign };
-enum class e_entity_category { empty, unit, colony, village };
+enum class e_entity_category { empty, unit, colony, dwelling };
 
 TEMPLATE_BEHAVIOR
 struct to_behaviors {
@@ -105,7 +106,7 @@ behavior( UnitTypeAttributes const& desc );
 BEHAVIOR( land, foreign, unit, no_attack, attack, no_bombard,
           bombard, attack_land_ship );
 BEHAVIOR( land, foreign, colony, never, attack, trade );
-// BEHAVIOR( land, foreign, village, unused );
+// BEHAVIOR( land, foreign, dwelling, unused );
 BEHAVIOR( land, neutral, empty, never, always, unload );
 BEHAVIOR( land, friendly, unit, always, never, unload );
 BEHAVIOR( land, friendly, colony, always );
@@ -546,10 +547,11 @@ TravelHandler::confirm_travel_impl() {
 
   e_unit_relationship relationship =
       e_unit_relationship::neutral;
-  if( auto dst_nation =
-          nation_from_coord( ss_.units, ss_.colonies, move_dst );
-      dst_nation.has_value() ) {
-    CHECK( *dst_nation == unit.nation() );
+  if( maybe<Society_t> const society =
+          society_on_square( ss_, move_dst );
+      society.has_value() ) {
+    CHECK( *society == Society_t{ Society::european{
+                           .nation = unit.nation() } } );
     relationship = e_unit_relationship::friendly;
   }
 
@@ -787,16 +789,16 @@ TravelHandler::confirm_travel_impl() {
   //   3) Don't do #1 without doing #2
   //
   STATIC_ASSERT_NO_BEHAVIOR( land, friendly, empty );
-  STATIC_ASSERT_NO_BEHAVIOR( land, friendly, village );
+  STATIC_ASSERT_NO_BEHAVIOR( land, friendly, dwelling );
   STATIC_ASSERT_NO_BEHAVIOR( land, neutral, colony );
   STATIC_ASSERT_NO_BEHAVIOR( land, neutral, unit );
-  STATIC_ASSERT_NO_BEHAVIOR( land, neutral, village );
+  STATIC_ASSERT_NO_BEHAVIOR( land, neutral, dwelling );
   STATIC_ASSERT_NO_BEHAVIOR( water, friendly, colony );
   STATIC_ASSERT_NO_BEHAVIOR( water, friendly, empty );
-  STATIC_ASSERT_NO_BEHAVIOR( water, friendly, village );
+  STATIC_ASSERT_NO_BEHAVIOR( water, friendly, dwelling );
   STATIC_ASSERT_NO_BEHAVIOR( water, neutral, colony );
   STATIC_ASSERT_NO_BEHAVIOR( water, neutral, unit );
-  STATIC_ASSERT_NO_BEHAVIOR( water, neutral, village );
+  STATIC_ASSERT_NO_BEHAVIOR( water, neutral, dwelling );
 
   SHOULD_NOT_BE_HERE;
 }
@@ -1151,10 +1153,11 @@ AttackHandler::confirm_attack_impl() {
 
   // Make sure there is a foreign entity in the square otherwise
   // there can be no combat.
-  auto dst_nation =
-      nation_from_coord( ss_.units, ss_.colonies, attack_dst );
-  CHECK( dst_nation.has_value() &&
-         *dst_nation != unit.nation() );
+  maybe<Society_t> const society =
+      society_on_square( ss_, attack_dst );
+  CHECK( society.has_value() &&
+         *society != Society_t{ Society::european{
+                         .nation = unit.nation() } } );
   CHECK(
       attack_dst.is_inside( ss_.terrain.world_rect_tiles() ) );
 
@@ -1381,7 +1384,7 @@ AttackHandler::confirm_attack_impl() {
   //      with that particular situation.
   //   3) Don't do #1 without doing #2
   //
-  STATIC_ASSERT_NO_BEHAVIOR( land, foreign, village );
+  STATIC_ASSERT_NO_BEHAVIOR( land, foreign, dwelling );
 
   SHOULD_NOT_BE_HERE;
 }
@@ -1552,20 +1555,20 @@ unique_ptr<OrdersHandler> dispatch( Planes& planes, SS& ss,
     return make_unique<TravelHandler>( planes, ss, ts, id, d,
                                        player );
 
-  auto dst_nation =
-      nation_from_coord( ss.units, ss.colonies, dst );
+  maybe<Society_t> const society = society_on_square( ss, dst );
 
-  if( !dst_nation.has_value() )
-    // No units on target sqaure, so it is just a travel.
+  if( !society.has_value() )
+    // No entities on target sqaure, so it is just a travel.
     return make_unique<TravelHandler>( planes, ss, ts, id, d,
                                        player );
 
-  if( *dst_nation == unit.nation() )
+  if( *society ==
+      Society_t{ Society::european{ .nation = unit.nation() } } )
     // Friendly unit on target square, so not an attack.
     return make_unique<TravelHandler>( planes, ss, ts, id, d,
                                        player );
 
-  // Must be an attack.
+  // Must be an attack (or an attempted attack).
   return make_unique<AttackHandler>( planes, ss, ts, id, d,
                                      player );
 }

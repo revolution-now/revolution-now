@@ -15,7 +15,6 @@
 // Revolution Now
 #include "co-combinator.hpp"
 #include "line-editor.hpp"
-#include "nation.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
 #include "ui-enums.hpp"
@@ -24,7 +23,8 @@
 #include "view.hpp"
 #include "wait.hpp"
 
-// gs
+// ss
+#include "ss/nation.rds.hpp"
 #include "ss/unit-type.hpp"
 
 // render

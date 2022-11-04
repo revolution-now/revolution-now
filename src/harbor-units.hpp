@@ -14,20 +14,21 @@
 
 // Revolution Now
 #include "harbor-units.rds.hpp"
-#include "nation.hpp"
 #include "unit-composer.hpp"
 #include "unit-id.hpp"
 
-// gs
+// ss
+#include "ss/nation.rds.hpp"
 #include "ss/unit-type.rds.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 namespace rn {
 
-struct ColoniesState;
 struct Player;
-struct SS;
+struct SSConst;
 struct TerrainState;
-struct UnitHarborViewState;
 struct UnitsState;
 
 bool is_unit_inbound( UnitsState const& units_state, UnitId id );
@@ -95,9 +96,7 @@ void unit_move_to_port( UnitsState& units_state, Player& player,
 // pass the square that it sailed from as a preference for where
 // the ship should be placed.
 maybe<Coord> find_new_world_arrival_square(
-    UnitsState const&    units_state,
-    ColoniesState const& colonies_state,
-    TerrainState const& terrain_state, Player const& player,
+    SSConst const& ss, Player const& player,
     maybe<Coord> sailed_from );
 
 // This will check if there are ships in port and, if so, it will

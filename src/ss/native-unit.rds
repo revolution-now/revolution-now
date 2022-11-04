@@ -12,6 +12,9 @@
 include "ss/native-enums.rds.hpp"
 include "ss/unit-id.hpp"
 
+# base
+include "base/maybe.hpp"
+
 namespace "rn"
 
 struct.NativeUnit {
@@ -21,7 +24,9 @@ struct.NativeUnit {
 
   tribe 'e_tribe',
 
-  # All native units (which are always on the map if they exist)
-  # are owned by a dwelling.
-  dwelling_id 'int',
+  # Normally in the game all native units that exist are 1) al-
+  # ways on the map, and 2) owned by a dwelling. That said, we
+  # will allow free non/owned units since they can be convenient
+  # for testing.
+  dwelling_id 'base::maybe<int>',
 }

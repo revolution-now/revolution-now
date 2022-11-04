@@ -179,28 +179,6 @@ bool NativesState::exists( DwellingId id ) const {
   return o_.dwellings.contains( id );
 }
 
-maybe<e_tribe> tribe_from_coord( UnitsState const&   units,
-                                 NativesState const& natives,
-                                 Coord               where ) {
-  maybe<DwellingId> dwelling_id =
-      natives.maybe_from_coord( where );
-  if( dwelling_id.has_value() ) {
-    Dwelling const& dwelling =
-        natives.dwelling_for( *dwelling_id );
-    return dwelling.tribe;
-  }
-  unordered_set<GenericUnitId> const& units_on_square =
-      units.from_coord( where );
-  if( units_on_square.empty() ) return nothing;
-  GenericUnitId const first_id = *units_on_square.begin();
-  if( units.unit_kind( first_id ) == e_unit_kind::native ) {
-    NativeUnit const& native_unit =
-        units.unit_for( units.check_native_unit( first_id ) );
-    return native_unit.tribe;
-  }
-  return nothing;
-}
-
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/

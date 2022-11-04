@@ -28,6 +28,7 @@
 // config
 #include "config/colony.rds.hpp"
 #include "config/market.rds.hpp"
+#include "config/natives.rds.hpp"
 #include "config/production.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
@@ -249,6 +250,13 @@ UnitId World::add_unit_on_map( e_unit_type type, Coord where,
                           nation );
 }
 
+NativeUnitId World::add_unit_on_map( e_native_unit_type type,
+                                     Coord              where,
+                                     e_tribe            tribe ) {
+  return create_unit_on_map_non_interactive( ss(), tribe, type,
+                                             where );
+}
+
 UnitId World::add_unit_on_map( UnitType type, Coord where,
                                maybe<e_nation> nation ) {
   if( !nation ) nation = default_nation_;
@@ -371,6 +379,18 @@ Colony& World::add_colony_with_new_unit(
   UnitId founder = add_unit_on_map( e_unit_type::free_colonist,
                                     where, *nation );
   return add_colony( founder );
+}
+
+// --------------------------------------------------------------
+// Creating Native Dwellings.
+// --------------------------------------------------------------
+Dwelling& World::add_dwelling( Coord where, e_tribe tribe ) {
+  DwellingId const id = natives().add_dwelling( Dwelling{
+      .tribe      = tribe,
+      .location   = where,
+      .population = config_natives.tribes[tribe].max_population,
+  } );
+  return natives().dwelling_for( id );
 }
 
 // --------------------------------------------------------------

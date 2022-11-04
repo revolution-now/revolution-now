@@ -9,4 +9,6 @@ return {
   'ss/tribe',
   'ss/dwelling',
   'ss/native-unit',
+  'society',
+  'orders-move',
 }

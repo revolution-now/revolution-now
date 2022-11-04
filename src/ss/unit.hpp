@@ -12,9 +12,6 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "nation.hpp"
-
 // luapp
 #include "luapp/ext-userdata.hpp"
 

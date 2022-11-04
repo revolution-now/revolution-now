@@ -18,6 +18,9 @@
 #include "unit-id.hpp"
 #include "wait.hpp"
 
+// ss
+#include "ss/unit-id.hpp"
+
 // gfx
 #include "gfx/coord.hpp"
 
@@ -49,5 +52,7 @@ wait<maybe<UnitDeleted>> unit_to_map_square(
 void unit_to_map_square_non_interactive( SS& ss, TS& ts,
                                          UnitId id,
                                          Coord  world_square );
+void unit_to_map_square_non_interactive( SS& ss, NativeUnitId id,
+                                         Coord world_square );
 
 } // namespace rn

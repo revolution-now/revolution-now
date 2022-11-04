@@ -686,7 +686,7 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
         lg.debug( "unit has arrived in new world." );
         maybe<Coord> const dst_coord =
             find_new_world_arrival_square(
-                ss.units, ss.colonies, ss.terrain, player,
+                ss, player,
                 ss.units.harbor_view_state_of( id )
                     .sailed_from );
         if( !dst_coord.has_value() ) {

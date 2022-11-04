@@ -19,6 +19,7 @@
 #include "src/ss/fog-square.rds.hpp"
 #include "src/ss/map-square.rds.hpp"
 #include "src/ss/nation.rds.hpp"
+#include "src/ss/native-enums.rds.hpp"
 #include "src/ss/unit-id.hpp"
 #include "src/ss/unit-type.rds.hpp"
 
@@ -58,6 +59,7 @@ struct UnitType;
 struct UnitComposition;
 
 struct Colony;
+struct Dwelling;
 struct IMapUpdater;
 struct Player;
 
@@ -120,6 +122,9 @@ struct World {
   UnitId add_unit_on_map( e_unit_type type, Coord where,
                           maybe<e_nation> nation = nothing );
 
+  NativeUnitId add_unit_on_map( e_native_unit_type type,
+                                Coord where, e_tribe tribe );
+
   Unit& add_unit_on_map( UnitComposition const& comp,
                          Coord                  where,
                          maybe<e_nation> nation = nothing );
@@ -181,6 +186,11 @@ struct World {
   // found a colony, this it should be a realistic valid colony.
   Colony& add_colony_with_new_unit(
       Coord where, maybe<e_nation> nation = nothing );
+
+  // ------------------------------------------------------------
+  // Creating Native Dwellings.
+  // ------------------------------------------------------------
+  Dwelling& add_dwelling( Coord where, e_tribe tribe );
 
   // ------------------------------------------------------------
   // Colony setup.

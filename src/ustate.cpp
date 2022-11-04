@@ -121,15 +121,14 @@ string debug_string( UnitsState const& units_state, UnitId id ) {
 UnitId create_free_unit( UnitsState&     units_state,
                          Player const&   player,
                          UnitComposition comp ) {
-  wrapped::Unit refl_unit{
-      .id          = UnitId{ 0 }, // will be set later.
-      .composition = std::move( comp ),
-      .orders      = e_unit_orders::none,
-      .cargo = CargoHold( unit_attr( comp.type() ).cargo_slots ),
-      .nation = player.nation,
-      .mv_pts = movement_points( player, comp.type() ),
-  };
-  return units_state.add_unit( Unit( std::move( refl_unit ) ) );
+  return units_state.add_unit(
+      create_unregistered_unit( player, comp ) );
+}
+
+NativeUnitId create_free_unit( SS& ss, e_tribe tribe,
+                               e_native_unit_type type ) {
+  return ss.units.add_unit(
+      create_unregistered_unit( tribe, type ) );
 }
 
 Unit create_unregistered_unit( Player const&   player,
@@ -143,6 +142,15 @@ Unit create_unregistered_unit( Player const&   player,
       .mv_pts = movement_points( player, comp.type() ),
   };
   return Unit( std::move( refl_unit ) );
+}
+
+NativeUnit create_unregistered_unit( e_tribe            tribe,
+                                     e_native_unit_type type ) {
+  return NativeUnit{
+      .id    = NativeUnitId{ 0 }, // will be set later.
+      .type  = type,
+      .tribe = tribe,
+  };
 }
 
 UnitId create_free_unit( UnitsState&   units_state,
@@ -165,6 +173,14 @@ UnitId create_unit_on_map_non_interactive( SS& ss, TS& ts,
   UnitId id =
       create_free_unit( ss.units, player, std::move( comp ) );
   unit_to_map_square_non_interactive( ss, ts, id, coord );
+  return id;
+}
+
+NativeUnitId create_unit_on_map_non_interactive(
+    SS& ss, e_tribe tribe, e_native_unit_type type,
+    Coord coord ) {
+  NativeUnitId const id = create_free_unit( ss, tribe, type );
+  unit_to_map_square_non_interactive( ss, id, coord );
   return id;
 }
 

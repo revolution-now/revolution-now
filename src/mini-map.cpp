@@ -13,18 +13,15 @@
 // Revolution Now
 #include "imap-updater.hpp"
 #include "land-view.hpp"
-#include "nation.hpp"
 #include "plane-stack.hpp"
+#include "society.hpp"
 #include "time.hpp"
 #include "ts.hpp"
 #include "ustate.hpp"
 #include "visibility.hpp"
 
-// config
-#include "config/nation.rds.hpp"
-#include "config/natives.rds.hpp"
-
 // ss
+#include "ss/nation.rds.hpp"
 #include "ss/native-enums.rds.hpp"
 #include "ss/natives.hpp"
 #include "ss/ref.hpp"
@@ -416,20 +413,11 @@ void MiniMapView::draw_impl( rr::Renderer&     renderer,
         ( land_coord == blinker_coord && !blink_on );
     gfx::pixel color =
         color_for_square( viz.square_at( land_coord ) );
-    // First check if there is a unit/colony on the square.
-    // FIXME: need to merge nation_from_coord and
-    // tribe_from_coord.
-    if( maybe<e_nation> nation = nation_from_coord(
-            ss_.units, ss_.colonies, land_coord );
-        nation.has_value() ) {
+    if( maybe<Society_t> const society =
+            society_on_square( ss_, land_coord );
+        society.has_value() ) {
       if( !blinking_but_off )
-        color = config_nation.nations[*nation].flag_color;
-    }
-    if( maybe<e_tribe> tribe = tribe_from_coord(
-            ss_.units, ss_.natives, land_coord );
-        tribe.has_value() ) {
-      if( !blinking_but_off )
-        color = config_natives.tribes[*tribe].flag_color;
+        color = flag_color_for_society( *society );
     }
     gfx::rect const pixel{
         .origin = actual.nw() + ( land_coord.to_gfx() -

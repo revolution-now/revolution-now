@@ -20,7 +20,12 @@
 #include "wait.hpp"
 
 // ss
+#include "ss/native-enums.rds.hpp"
+#include "ss/native-unit.rds.hpp"
 #include "ss/ref.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // base
 #include "base/function-ref.hpp"
@@ -98,21 +103,25 @@ maybe<UnitId> is_unit_onboard( UnitsState const& units_state,
 *****************************************************************/
 // Creates a unit that is registered (with a valid ID) but with
 // no ownership.
-UnitId create_free_unit( UnitsState&     units_state,
-                         Player const&   player,
-                         UnitComposition comp );
-UnitId create_free_unit( UnitsState&   units_state,
-                         Player const& player, UnitType type );
-UnitId create_free_unit( UnitsState&   units_state,
-                         Player const& player,
-                         e_unit_type   type );
+UnitId       create_free_unit( UnitsState&     units_state,
+                               Player const&   player,
+                               UnitComposition comp );
+UnitId       create_free_unit( UnitsState&   units_state,
+                               Player const& player, UnitType type );
+UnitId       create_free_unit( UnitsState&   units_state,
+                               Player const& player,
+                               e_unit_type   type );
+NativeUnitId create_free_unit( SS& ss, e_tribe tribe,
+                               e_native_unit_type type );
 
 // Create unit that is not registered in the unit database, and
 // thus has no ID and no ownership. The unit will always have
 // id=0, since a unit does not get assigned an ID until it is
 // added into the units database.
-Unit create_unregistered_unit( Player const&   player,
-                               UnitComposition comp );
+Unit       create_unregistered_unit( Player const&   player,
+                                     UnitComposition comp );
+NativeUnit create_unregistered_unit( e_tribe            tribe,
+                                     e_native_unit_type type );
 
 // This has to return a maybe because the unit could theoreti-
 // cally by placed on an LCR square, and, since this is the
@@ -129,6 +138,10 @@ UnitId create_unit_on_map_non_interactive( SS& ss, TS& ts,
                                            Player const& player,
                                            UnitComposition comp,
                                            Coord coord );
+
+NativeUnitId create_unit_on_map_non_interactive(
+    SS& ss, e_tribe tribe, e_native_unit_type type,
+    Coord coord );
 
 /****************************************************************
 ** Multi

@@ -18,6 +18,7 @@
 
 // ss
 #include "src/ss/player.rds.hpp"
+#include "src/ss/ref.hpp"
 #include "src/ss/terrain.hpp"
 #include "src/ss/units.hpp"
 
@@ -131,7 +132,7 @@ TEST_CASE( "[harbor-units] is_unit_?" ) {
            caravel );
 
   REQUIRE( find_new_world_arrival_square(
-               w.units(), w.colonies(), w.terrain(), w.dutch(),
+               w.ss(), w.dutch(),
                w.units()
                    .harbor_view_state_of( caravel )
                    .sailed_from ) == coord );
@@ -390,7 +391,7 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
                .sailed_from = coord } );
   REQUIRE(
       find_new_world_arrival_square(
-          w.units(), w.colonies(), w.terrain(), w.dutch(),
+          w.ss(), w.dutch(),
           w.units().harbor_view_state_of( id ).sailed_from ) ==
       coord );
 
@@ -436,7 +437,7 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
                            .sailed_from = coord } );
   REQUIRE(
       find_new_world_arrival_square(
-          w.units(), w.colonies(), w.terrain(), w.dutch(),
+          w.ss(), w.dutch(),
           w.units().harbor_view_state_of( id ).sailed_from ) ==
       coord );
 
@@ -481,7 +482,7 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
 
   REQUIRE(
       find_new_world_arrival_square(
-          w.units(), w.colonies(), w.terrain(), w.dutch(),
+          w.ss(), w.dutch(),
           w.units().harbor_view_state_of( id ).sailed_from ) ==
       coord );
 }
@@ -505,7 +506,7 @@ TEST_CASE( "[harbor-units] find_new_world_arrival_square" ) {
     unit_sail_to_new_world( w.terrain(), w.units(), w.dutch(),
                             caravel2 );
     REQUIRE( find_new_world_arrival_square(
-                 w.units(), w.colonies(), w.terrain(), w.dutch(),
+                 w.ss(), w.dutch(),
                  w.units()
                      .harbor_view_state_of( caravel2 )
                      .sailed_from ) == starting );
@@ -519,7 +520,7 @@ TEST_CASE( "[harbor-units] find_new_world_arrival_square" ) {
     unit_sail_to_new_world( w.terrain(), w.units(), w.dutch(),
                             caravel2 );
     REQUIRE( find_new_world_arrival_square(
-                 w.units(), w.colonies(), w.terrain(), w.dutch(),
+                 w.ss(), w.dutch(),
                  w.units()
                      .harbor_view_state_of( caravel2 )
                      .sailed_from ) == ship_loc );
@@ -548,7 +549,7 @@ TEST_CASE( "[harbor-units] find_new_world_arrival_square" ) {
             .port_status = PortStatus::outbound{ .turns = 2 },
             .sailed_from = ship_loc } );
     REQUIRE( find_new_world_arrival_square(
-                 w.units(), w.colonies(), w.terrain(), w.dutch(),
+                 w.ss(), w.dutch(),
                  w.units()
                      .harbor_view_state_of( caravel1 )
                      .sailed_from ) == ship_loc );
@@ -573,7 +574,7 @@ TEST_CASE(
     UnitId dutch_caravel2 = w.add_unit_on_map(
         e_unit_type::caravel, ship_loc, e_nation::dutch );
     REQUIRE( find_new_world_arrival_square(
-                 w.units(), w.colonies(), w.terrain(), w.dutch(),
+                 w.ss(), w.dutch(),
                  w.units()
                      .harbor_view_state_of( dutch_caravel )
                      .sailed_from ) == ship_loc );
@@ -603,7 +604,7 @@ TEST_CASE(
                      to_underlying( french_caravel ) } ) );
     Coord const expected{ .x = 7, .y = 4 };
     REQUIRE( find_new_world_arrival_square(
-                 w.units(), w.colonies(), w.terrain(), w.dutch(),
+                 w.ss(), w.dutch(),
                  w.units()
                      .harbor_view_state_of( dutch_caravel )
                      .sailed_from ) == expected );
@@ -623,7 +624,7 @@ TEST_CASE(
                        e_nation::french );
     Coord const expected{ .x = 1, .y = 0 };
     REQUIRE( find_new_world_arrival_square(
-                 w.units(), w.colonies(), w.terrain(), w.dutch(),
+                 w.ss(), w.dutch(),
                  w.units()
                      .harbor_view_state_of( dutch_caravel )
                      .sailed_from ) == expected );
@@ -673,7 +674,7 @@ TEST_CASE(
         e_nation::french );
     Coord const expected{ .x = 3, .y = 0 };
     REQUIRE( find_new_world_arrival_square(
-                 w.units(), w.colonies(), w.terrain(), w.dutch(),
+                 w.ss(), w.dutch(),
                  w.units()
                      .harbor_view_state_of( dutch_caravel )
                      .sailed_from ) == expected );
@@ -699,7 +700,7 @@ TEST_CASE(
                            e_nation::french );
 
     REQUIRE( find_new_world_arrival_square(
-                 w.units(), w.colonies(), w.terrain(), w.dutch(),
+                 w.ss(), w.dutch(),
                  w.units()
                      .harbor_view_state_of( dutch_caravel )
                      .sailed_from ) == nothing );

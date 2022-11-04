@@ -74,6 +74,14 @@ TEST_CASE( "[on-map] non-interactive: moves the unit" ) {
                                       { .x = 0, .y = 1 } );
   REQUIRE( W.units().coord_for( unit_id ) ==
            Coord{ .x = 0, .y = 1 } );
+
+  NativeUnitId const unit_id2 =
+      W.add_unit_on_map( e_native_unit_type::armed_brave,
+                         { .x = 1, .y = 0 }, e_tribe::apache );
+  unit_to_map_square_non_interactive( W.ss(), unit_id2,
+                                      { .x = 1, .y = 1 } );
+  REQUIRE( W.units().coord_for( unit_id ) ==
+           Coord{ .x = 0, .y = 1 } );
 }
 
 #ifndef COMPILER_GCC
