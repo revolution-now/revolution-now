@@ -154,9 +154,9 @@ flag_rects {
 
   village: [
     # Left house.
-    { origin={ x=12, y=20 }, size={ w=4, h=2} },
+    { origin={ x=12, y=21 }, size={ w=4, h=2} },
     # Right house.
-    { origin={ x=25, y=26 }, size={ w=4, h=2} },
+    { origin={ x=25, y=25 }, size={ w=4, h=2} },
   ]
 
   city: [
