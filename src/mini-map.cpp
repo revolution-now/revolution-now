@@ -150,6 +150,9 @@ MiniMap::MiniMap( SS& ss, gfx::size available_size )
                  .size   = pixels_needed }
           .clamped( available );
   size_screen_pixels_ = clamped_pixels.size;
+  // We want to make it square.
+  size_screen_pixels_.w = size_screen_pixels_.h =
+      std::min( size_screen_pixels_.w, size_screen_pixels_.h );
 }
 
 void MiniMap::drag_map( gfx::size const mouse_delta ) {
