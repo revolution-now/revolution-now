@@ -23,6 +23,14 @@ namespace "rn"
 # Describes a tribe's relationship with a European nation.
 struct.TribeRelationship {
   at_war 'bool',
+  # According to the manual there is both tribe-level anger and
+  # dwelling-level anger (alarm). According to the manual:
+  # "Overall tribal anger is affected by direct action you take
+  # against the Indians. Alarm in individual settlements is af-
+  # fected not by direct action, but by indirect pressures such
+  # as your proximity to that settlement, the size of your
+  # colony, the presence of weapons, and so on."
+  anger 'int',
 }
 
 struct.Tribe {
