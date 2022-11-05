@@ -61,6 +61,9 @@ struct NativesState {
   // turned.
   DwellingId add_dwelling( Dwelling&& Dwelling );
 
+  // NOTE: this should not be called directly since it will not
+  // do associated cleanup such as deleting (or at least disown-
+  // ing) native units that are owned by this dwelling.
   void destroy_dwelling( DwellingId id );
 
  private:
