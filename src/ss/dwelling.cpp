@@ -77,8 +77,6 @@ LUA_STARTUP( lua::state& st ) {
     u["is_capital"] = &U::is_capital;
     u["location"]   = &U::location;
     u["population"] = &U::population;
-    u["muskets"]    = &U::muskets;
-    u["horses"]     = &U::horses;
     u["trading"]    = &U::trading;
     u["teaches"]    = &U::teaches;
 

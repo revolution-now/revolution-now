@@ -36,6 +36,11 @@ struct.TribeRelationship {
 struct.Tribe {
   type 'e_tribe',
 
+  # When muskets and/or horses are sold to a dwelling they are
+  # then owned by the tribe and shared among all dwellings.
+  muskets 'int',
+  horses 'int',
+
   # Describes a tribe's relationship with a European nation. If a
   # value is nothing that means that the initial encounter has
   # not yet happened.

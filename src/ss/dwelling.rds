@@ -56,12 +56,6 @@ struct.Dwelling {
   # time if it is partially lowered.
   population 'int',
 
-  # TODO: Not sure yet how this should be represented and/or if
-  # this is supposed to be done at the tribe level or dwelling
-  # level.
-  muskets 'int',
-  horses 'int',
-
   trading 'DwellingTradingState',
 
   relationship 'refl::enum_map<e_nation, DwellingRelationship>',
