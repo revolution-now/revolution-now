@@ -1141,7 +1141,7 @@ struct LandViewPlane::Impl : public Plane {
         // This is the shadow behind the land rectangle.
         SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, 0.5 );
         double const zoom          = viewport().get_zoom();
-        int          shadow_offset = int( 40 * zoom );
+        int          shadow_offset = 6;
         gfx::dpoint  corner =
             viewport().landscape_buffer_render_upper_left();
         corner.x += shadow_offset;
