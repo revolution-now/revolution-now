@@ -71,7 +71,11 @@ function M.default_options()
     -- a major river. This should really be smaller than .5 be-
     -- cause major rivers give a production bonus over minor
     -- rivers.
-    major_river_fraction=.15
+    major_river_fraction=.15,
+    native_tribes={
+      'inca', 'aztec', 'apache', 'sioux', 'tupi', 'arawak',
+      'cherokee', 'iroquois'
+    }
   }
 end
 
@@ -316,6 +320,10 @@ local function row_has_land( row )
 end
 
 local function is_land( square ) return square.surface == 'land' end
+
+local function is_coord_land( coord )
+  return square_at( coord ).surface == 'land'
+end
 
 local function is_water( square ) return
     square.surface == 'water' end
@@ -641,7 +649,9 @@ end
 -----------------------------------------------------------------
 -- Natives
 -----------------------------------------------------------------
-local function test_native_land_partition()
+-- Generates partitions, colors the land according to them, and
+-- returns the partitions.
+local function paint_native_land_partitions( partitions )
   local size = world_size()
   local partition_to_ground = {
     [0]='grassland',
@@ -653,10 +663,6 @@ local function test_native_land_partition()
     [6]='tundra',
     [7]='swamp'
   }
-  local function has_land( coord )
-    return square_at( coord ).surface == 'land'
-  end
-  local partitions = partition.generate( size, 8, has_land )
   for rasterized_coord, n in pairs( partitions ) do
     local coord = {
       x=rasterized_coord % size.w,
@@ -677,7 +683,7 @@ end
 
 local function has_dwelling_in_surroundings( coord )
   local squares =
-      filter_on_map( surrounding_squares_5x5( coord ) )
+      filter_on_map( surrounding_squares_3x3( coord ) )
   for _, coord in ipairs( squares ) do
     local square = square_at( coord )
     if ROOT.natives:has_dwelling_on_square( coord ) then
@@ -687,7 +693,8 @@ local function has_dwelling_in_surroundings( coord )
   return false
 end
 
-local function create_indian_villages( options )
+local function create_indian_villages_using_partition(options,
+                                                      partitions )
   -- Note that indian villages never seem to be placed on top of
   -- the lost city rumors, though they can be placed on top of
   -- natural resources.
@@ -705,14 +712,6 @@ local function create_indian_villages( options )
   local tribes = non_city_tribes
   table.insert( tribes, 2, city_tribes[1] )
   table.insert( tribes, 5, city_tribes[2] )
-  for i, tribe in ipairs( tribes ) do
-    debug_log( 'tribe[%d]=%s', i, tribe )
-  end
-  local function has_land( coord )
-    return square_at( coord ).surface == 'land'
-  end
-  local partitions =
-      partition.generate( size, #tribes, has_land )
   local dwellings = {}
   for _, tribe in ipairs( tribes ) do dwellings[tribe] = {} end
   for rasterized_coord, n in pairs( partitions ) do
@@ -724,7 +723,7 @@ local function create_indian_villages( options )
     if not square.lost_city_rumor and square.overlay ~=
         'mountains' and not is_on_map_edge( size, coord ) and
         not has_dwelling_in_surroundings( coord ) then
-      if math.random() < .5 then
+      if math.random() < .15 then
         local dwelling = ROOT.natives:new_dwelling( coord )
         dwelling.tribe = tribes[n + 1]
         dwelling.population = 3
@@ -748,6 +747,17 @@ local function create_indian_villages( options )
       tribe_dwellings[1].is_capital = true
     end
   end
+end
+
+local function create_indian_villages( options )
+  local function has_land( coord )
+    return square_at( coord ).surface == 'land'
+  end
+  local partitions = partition.generate( size,
+                                         #options.native_tribes,
+                                         has_land )
+  return create_indian_villages_using_partition( options,
+                                                 partitions )
 end
 
 -----------------------------------------------------------------
@@ -1417,6 +1427,34 @@ local function generate_testing_land()
   -- end )
 end
 
+local function generate_circles_land( options )
+  local circles = {
+    { x=10, y=10, r=3 },
+    { x=46, y=10, r=3 },
+    { x=10, y=60, r=3 },
+    { x=46, y=60, r=3 },
+    --
+    { x=28, y=20, r=3 },
+    { x=28, y=50, r=3 },
+    { x=10, y=35, r=3 },
+    { x=46, y=35, r=3 },
+  }
+  on_all( function( coord, square )
+    local in_circle = false
+    for _, circle in ipairs( circles ) do
+      local dist = math.sqrt( (coord.x - circle.x) ^ 2 +
+                                  (coord.y - circle.y) ^ 2 )
+      if dist <= circle.r then
+        in_circle = true
+        break
+      end
+    end
+    if not in_circle then return end
+    square.surface = 'land'
+    square.ground = 'grassland'
+  end )
+end
+
 -- FIXME move this
 local function generate_battlefield()
   local size = world_size()
@@ -1471,6 +1509,18 @@ function M.remake_rivers( options )
   ROOT_TS.map_updater:redraw()
 end
 
+-- Note that this will not regenerate the indian dwellings.
+function M.regenerate_native_land_partitions(
+    paint_map_by_partition )
+  local size = world_size()
+  local NUM_TRIBES = 8
+  local partitions = partition.generate( size, NUM_TRIBES, is_coord_land )
+  if paint_map_by_partition then
+    paint_native_land_partitions( partitions )
+  end
+  ROOT_TS.map_updater:redraw()
+end
+
 -----------------------------------------------------------------
 -- Map Generator
 -----------------------------------------------------------------
@@ -1500,8 +1550,9 @@ local function generate( options )
     generate_battlefield( options )
     return
   elseif options.type == 'land-partition' then
-    generate_land( options )
-    test_native_land_partition()
+    generate_circles_land( options )
+    create_sea_lanes()
+    M.regenerate_native_land_partitions( true )
     return
   elseif options.type == 'half_and_half' then
     generate_half_land()
