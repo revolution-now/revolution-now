@@ -349,7 +349,12 @@ double SmoothViewport::min_zoom_for_no_border() const {
 }
 
 double SmoothViewport::min_zoom_allowed() const {
-  return optimal_min_zoom() / config_rn.viewport.zoom_min_factor;
+  // Can this at 1.0. This is optional, but without this, for
+  // super small maps (e.g. 4x4) the min zoom could be larger
+  // than one, and would not allow the player to zoom out to 1.0
+  // to make the sprites appear normal sized.
+  return std::min( 1.0, optimal_min_zoom() /
+                            config_rn.viewport.zoom_min_factor );
 }
 
 double SmoothViewport::x_world_pixels_in_viewport() const {
