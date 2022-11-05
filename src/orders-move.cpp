@@ -84,7 +84,7 @@ namespace {
       UnitTypeAttributes const& desc )
 
 enum class e_unit_relationship { neutral, friendly, foreign };
-enum class e_entity_category { empty, unit, colony, dwelling };
+enum class e_entity_category { empty, unit, colony };
 
 TEMPLATE_BEHAVIOR
 struct to_behaviors {
@@ -106,7 +106,6 @@ behavior( UnitTypeAttributes const& desc );
 BEHAVIOR( land, foreign, unit, no_attack, attack, no_bombard,
           bombard, attack_land_ship );
 BEHAVIOR( land, foreign, colony, never, attack, trade );
-// BEHAVIOR( land, foreign, dwelling, unused );
 BEHAVIOR( land, neutral, empty, never, always, unload );
 BEHAVIOR( land, friendly, unit, always, never, unload );
 BEHAVIOR( land, friendly, colony, always );
@@ -789,16 +788,12 @@ TravelHandler::confirm_travel_impl() {
   //   3) Don't do #1 without doing #2
   //
   STATIC_ASSERT_NO_BEHAVIOR( land, friendly, empty );
-  STATIC_ASSERT_NO_BEHAVIOR( land, friendly, dwelling );
   STATIC_ASSERT_NO_BEHAVIOR( land, neutral, colony );
   STATIC_ASSERT_NO_BEHAVIOR( land, neutral, unit );
-  STATIC_ASSERT_NO_BEHAVIOR( land, neutral, dwelling );
   STATIC_ASSERT_NO_BEHAVIOR( water, friendly, colony );
   STATIC_ASSERT_NO_BEHAVIOR( water, friendly, empty );
-  STATIC_ASSERT_NO_BEHAVIOR( water, friendly, dwelling );
   STATIC_ASSERT_NO_BEHAVIOR( water, neutral, colony );
   STATIC_ASSERT_NO_BEHAVIOR( water, neutral, unit );
-  STATIC_ASSERT_NO_BEHAVIOR( water, neutral, dwelling );
 
   SHOULD_NOT_BE_HERE;
 }
@@ -1376,15 +1371,6 @@ AttackHandler::confirm_attack_impl() {
         co_return e_attack_verdict::ship_on_ship;
     }
   }
-
-  // If one of these triggers then that means that:
-  //
-  //   1) The line should be removed
-  //   2) Some logic should be added above to deal
-  //      with that particular situation.
-  //   3) Don't do #1 without doing #2
-  //
-  STATIC_ASSERT_NO_BEHAVIOR( land, foreign, dwelling );
 
   SHOULD_NOT_BE_HERE;
 }
