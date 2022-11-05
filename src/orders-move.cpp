@@ -1526,6 +1526,62 @@ wait<> AttackHandler::perform() {
 }
 
 /****************************************************************
+** NativesHandler
+*****************************************************************/
+struct NativesHandler : public OrdersHandler {
+  NativesHandler( Planes& planes, SS& ss, TS& ts, Player& player,
+                  UnitId unit_id, e_direction d )
+    : planes_( planes ),
+      ss_( ss ),
+      ts_( ts ),
+      player_( player ),
+      unit_( ss_.units.unit_for( unit_id ) ),
+      direction_( d ),
+      move_src_( coord_for_unit_indirect_or_die( ss.units,
+                                                 unit_.id() ) ),
+      move_dst_( move_src_.moved( d ) ) {}
+
+  // Returns true if the move is allowed.
+  wait<bool> confirm() override {
+    // TODO
+    co_return false;
+  }
+
+  wait<> animate() const override {
+    // TODO
+    co_return;
+  }
+
+  wait<> perform() override {
+    // TODO
+    co_return;
+  }
+
+  wait<> post() const override {
+    // !! Note that the unit being moved theoretically may not
+    // exist here if it was destroyed as part of this action,
+    // e.g. losing losing a battle or being "used for target
+    // practice."
+
+    // TODO
+    co_return;
+  }
+
+  Planes& planes_;
+  SS&     ss_;
+  TS&     ts_;
+  Player& player_;
+
+  // The unit doing the attacking.
+  Unit& unit_;
+
+  // Source and destination squares of the move.
+  e_direction direction_;
+  Coord       move_src_;
+  Coord       move_dst_;
+};
+
+/****************************************************************
 ** Dispatch
 *****************************************************************/
 unique_ptr<OrdersHandler> dispatch( Planes& planes, SS& ss,
@@ -1547,12 +1603,17 @@ unique_ptr<OrdersHandler> dispatch( Planes& planes, SS& ss,
     // No entities on target sqaure, so it is just a travel.
     return make_unique<TravelHandler>( planes, ss, ts, id, d,
                                        player );
+  CHECK( society.has_value() );
 
   if( *society ==
       Society_t{ Society::european{ .nation = unit.nation() } } )
     // Friendly unit on target square, so not an attack.
     return make_unique<TravelHandler>( planes, ss, ts, id, d,
                                        player );
+
+  if( society->holds<Society::native>() )
+    return make_unique<NativesHandler>( planes, ss, ts, player,
+                                        id, d );
 
   // Must be an attack (or an attempted attack).
   return make_unique<AttackHandler>( planes, ss, ts, id, d,
