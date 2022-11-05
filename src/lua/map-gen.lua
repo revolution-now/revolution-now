@@ -63,6 +63,11 @@ function M.default_options()
     -- Probability that each land square will have mountain-
     -- s/hills on it.
     hills_density=.05,
+    -- If the map height is not at least this tall then the
+    -- arctic rows at the top and bottom of the map will be
+    -- omitted to save space. That said, the top and bottom proto
+    -- squares will still be artic.
+    min_map_height_for_arctic=10,
     mountains_density=.1,
     -- Probability that a tile that has been chosen to have a
     -- mountain on it will be the start of a mountain range.
@@ -516,8 +521,11 @@ local function create_arctic_along_row( y )
   end
 end
 
-local function create_arctic()
+local function create_arctic( options )
   local size = world_size()
+  if size.h < options.min_map_height_for_arctic then
+    return
+  end
   create_arctic_along_row( 0 )
   create_arctic_along_row( size.h - 1 )
 end
@@ -1366,7 +1374,7 @@ local function generate_land( options )
   clear_buffer_area( buffer )
   if options.remove_Xs then remove_Xs() end
   remove_islands()
-  create_arctic()
+  create_arctic( options )
   assign_dry_ground_types()
   -- We need to have already created the rivers before this.
   assign_wet_ground_types()
