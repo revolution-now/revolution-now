@@ -1,0 +1,50 @@
+This doc lists some ideas for rebalancing the special abilities
+of the four european nations. It seems to be the case that people
+generally feel that the Dutch overall have the strongest advan-
+tages (slower price movement and merchantman), so here we will
+list some possibilities for bringing the four nations on par. In-
+stead of reducing the abilities of the Dutch, we will increase
+the abilities of the other nations, since that seems like it
+would produce a more fun game since there'd be a more diverse set
+of possible strategies.
+
+  French:
+
+    * Hardy pioneer.
+    * Reduced native alarm rate.
+    * The french start with Jean de Brebeuf, so all missionaries
+      function as experts.
+    * The cost of blessing missionaries in europe does not in-
+      crease (see general changes section).
+
+  Spanish:
+
+    * Veteran soldier.
+    * In addition to the 50% bonus when attacking native
+      dwellings, they get a 50% bonus in any combat against na-
+      tives.
+    * When burning a native village it yields more treasure on
+      average (50%?), when it yields treasure. This will compound
+      with Hernan Cortez. Another option would have been to give
+      the Spanish Hernan Cortez at the start of the game, but
+      that might be too much since that also means that the king
+      transports the treasure free of charge, which makes a huge
+      difference in the early game.
+
+  English:
+
+    * 2/3 crosses needed to attract immigrants as usual.
+    * Probability of criminals and servants appearing on the dock
+      is noticeably lower than for the other nations, though not
+      zero. Another option would have been to give the English
+      William Brewster at the start of the game, but that might
+      be a bit too much.
+
+  General changes to the game:
+
+    * The player has to pay to bless missionaries in Europe, with
+      an increasing cost as with artillery. This does two things:
+      First, it incentivizes building a church and makes churches
+      more valuable. Second, it allows giving the French an ad-
+      vantage in that the cost of blessing missionaries for them
+      does not increase.

@@ -3,72 +3,28 @@
 # ===============================================================
 
   1.  Render natural resource tiles.
-  2.  Add overlay connector tiles.
-  3.  Render rivers, with color cycling.
-  4.  Add color cycling to sea lane tile.
-  5.  Fix beach tiles.
-  6.  Consider adding connectors to diagonally adjacent forest
+  2.  Render rivers, with color cycling.
+  3.  Add color cycling to sea lane tile.
+  4.  Fix beach tiles.
+  5.  Consider adding connectors to diagonally adjacent forest
       island tiles.
-  7.  Implement world generation.
-  8.  Implement terrain visibility. This probably has to be de-
-      signed together with the zones-of-control and fog-of-war
-      mechanisms. Current thinking is that the TerrainState will
-      contain additional maps for each nation containing a sepa-
-      rate set of MapSquares that are visible to them. This will
-      be extra space, but will allow for a simple implementation
-      of fog-of-war.
-  9.  [reproducible on darter, lenovo, and macbook] There is cur-
-      rently a (potentially significant) performance problem with
-      rendering the map that needs to be better understood and
-      fixed. The problem is that, after some map squares have
-      been updated and before the entire map has been rerendered,
-      zooming in on those squares causes the FPS to drop signifi-
-      cantly. The way to reproduce it is to create a new map,
-      then use the map editor to edit some tiles (but not enough
-      to cause the map to be redrawn), then zoom in on those re-
-      drawn tiles, and observe the FPS drop significantly. This
-      could be due to the fact that the same tile now has ver-
-      tices both in the middle of the landscape buffer and at the
-      end, which may be interfering with some of the driver/hard-
-      ware's rendering optimizations. This really needs to be
-      fixed, otherwise, if the player is zoomed in, and they move
-      a unit and expose some new terrain, the FPS will drop,
-      since the map has been edited (in this case, by removing
-      the fog). This doesn't seem to be reproducible on all sys-
-      tems, so it could be driver-specific. But it is repro-
-      ducible on enough systems such that it must be fixed.
-  10. On large maps the current method of updating tiles is to
-      laggy due to the time taken to upload it to the GPU, and
-      this is bad because it could happen often. To fix this,
-      split the landscape buffer into two -- the main buffer and
-      the adjunct buffer, and there will be two draw calls per
-      frame. When tiles are added they are added to the adjunct
-      buffer and so only that has to be uploaded. When the map is
-      redrawn, the adjunct buffer will be empty.
-  11. Need to make sure that units at the colony gate have an
+  6.  Need to make sure that units at the colony gate have an
       order to them for a good UX. Actually we may want to have
       an ordering of units on all map squares. Need to see what
-      the original game does in this regard.
-  12. Fix that a land unit entering a water square when it has
-      partial movement points left presents the player with a
-      message that it doesn't have enough movement points left,
-      when it should not be able to enter that square anyway.
-  13. Make sure that the immediate starting area doesn't have any
-      lost city rumors on it, since that would be a weird experi-
-      ence to e.g. land in the new world for the first time and
-      discover the fountain of youth.
-  14. Fix that when clicking outside of an open menu to close it
+      the original game does in this regard. Ditto for units
+      (ships and non-ships) in the harbor.
+  7.  Fix that when clicking outside of an open menu to close it
       the menu plane does not handle the click and it goes
       through to what is underneath of it.
-  15. Fix that when clicking on the exit tile in the harbor view,
+  8.  Fix that when clicking on the exit tile in the harbor view,
       up click carries through to the land view and scrolls the
       map. Also, the same things seems to happen when closing an
       open menu by clicking away from it.
-  16. In the original game, when a ship defeats (sinks or dam-
+  9.  In the original game, when a ship defeats (sinks or dam-
       ages) another ship in battle, it advances to its square
       after doing so (as opposed to land units where this does
       not happen).
-  17. When a colony is captured a certain amount of gold is
+  10. When a colony is captured a certain amount of gold is
       stolen (investigate how this is calculated). In the case
       where there is only one colony and it is captured, it ap-
       pears that all of that players gold is taken. It seems rea-
@@ -76,75 +32,20 @@
       the percentage that the captured colony's population repre-
       sents of the entire population.
 
-# Minimap:
-
-  1. Implement mini map.
-
-# Colony land production:
-
-  1. Draw expert_farmer.
-  2. Implement colony land production.
-  3. Implement selecting colonist profession in colony view.
-
-# Side panel stats:
-
-  1. Implement stats in panel.
-
-# Old world:
-
-  1. Implement gold.
-  2. Allow purchasing things from old world.
-  3. Implement that immigrants appear on the doc.
-  5. Add basic auto unit outlining so that the units will be vis-
-     ible. In the original game, the outline/shadow has a dif-
-     ferent color depending on context (e.g., it is black when on
-     land, but it is grey when working in a building).
-
 # Colony buildings and production:
 
   1. Create colony building art.
   2. Render colony buildings in colony.
-  3. Implement colony building workers.
-  4. Implement colony production (from lumber/tools).
-
-# ===============================================================
-# Global State
-# ===============================================================
-
-  1. Figure out a better way to handle remaining global variables
-     used by the planes. This will probably involve putting the
-     plane objects on the stack, which may be where they should
-     go anyway. Maybe then we would not need plane configs since
-     they could just somehow register themselves into a stack as
-     they are created/destroyed.
-  2. See if it is possible to create the game state on the stack
-     somewhere instead of in a global variable and pass it down
-     as function parameters (possibly only sub components).
 
 # ===============================================================
 # Game Saving
 # ===============================================================
 
-  1. Consider how to handle forward/backward compatibility in a
-     generic way with model-based serialization. We could poten-
-     tially have a way to define a schema (in Rcl) that would be
-     used to check the model data as it is being serialized. We
-     could save each version's schema and check all of them.
-  2. Look into data compression for save files. I). Minify rcl as
+  1. Look into data compression for save files. I). Minify rcl as
      much as possible (maybe just add an option to not indent
      while emitting rcl). II). Compress with brotli or zstd.
      III). Export with base64.
-  3. Replay?
-  4. When saving the game, consider not saving any of the land
-     data. Instead, just save the seed used to generate it, and
-     allow the user the option to save in that format. That would
-     produce 1) extremely small save files, and 2) extremely fast
-     save times. That would be at the expense of 1) slower load
-     times, since the land would have to be regenerated, and 2)
-     version sensitivity in loading save files. At the very
-     least, this method could be used for autosave files and for
-     replay save files, since presumably those only need to be
-     reopened by the same version of the game.
+  2. Replay?
 
 # ===============================================================
 # Reflection
@@ -162,25 +63,6 @@
      C++ types as Lua userdata (C++-owned).
 
 # ===============================================================
-# Config System
-# ===============================================================
-
-  1. Replace the config *.inl files with an Rds solution con-
-     sisting of a reflected struct defining the config structure
-     for each module. These Rds files can go in the config folder
-     next to the rcl files.
-
-# ===============================================================
-# Type Safety
-# ===============================================================
-
-  1. Consider making `Commodity` move-only in order to enforce
-     via the type system that commodities don't accidentally get
-     created or destroyed except by sanctioned means. If a com-
-     modity needs to be split, there can be a new method added
-     onto it to break it up.
-
-# ===============================================================
 # Lua
 # ===============================================================
 
@@ -195,18 +77,17 @@
      the rn library. Another tricky thing will be dealing with
      empty lists, which in Lua are just empty tables, which are
      difficult to distinguish from empty tables...
-  2. Add Lua module for generating a game state in Lua.
-  3. Look into using the Teal language, a typed lua. It looks re-
+  2. Look into using the Teal language, a typed lua. It looks re-
      ally good, though some have said that it is not mature...
      https://github.com/teal-language/tl
-  4. Add support for equality of userdata types in Lua. By de-
+  3. Add support for equality of userdata types in Lua. By de-
      fault a usertype should get an __equal metamethod that
      throws a Lua error when attempting to compare with anything,
      unless the cpp type is equality comparable, in which case it
      should get a proper comparison method.
-  5. Create proper Lua API design in order to avoid coupling with
+  4. Create proper Lua API design in order to avoid coupling with
      the C++ modules.
-  6. Add some other standard containers like vector,
+  5. Add some other standard containers like vector,
      unordered_map, etc.
 
 # ===============================================================
@@ -242,21 +123,6 @@ Low priority:
 
   - Consider replacing any string-joining stuff with fmt::join,
     but first see if it will be included in C++20.
-
-  - Add a generic texture cache to the cache module that can
-    cache textures. It will also support pruning and/or automatic
-    regeneration.
-
-  - Add a cache to the cache module that invalidates when the
-    scaling is changed. This may not be necessary since, as of
-    now, it seems possible to write code that will work and ad-
-    just to any scale.
-
-# ===============================================================
-# UI
-# ===============================================================
-
-  - Minimap
 
 # ===============================================================
 # Rendering
@@ -295,7 +161,7 @@ Low priority:
         x military unit attacking military unit
         x military unit attacking civilian
         - military unit attacking trade wagon / treasure
-        - unit moving into lost city
+        x unit moving into lost city
 
     * Ships
 
@@ -307,42 +173,10 @@ Low priority:
         x ship holding units
         x land unit boarding ship
         x landfall
-        - treasure boarding ship
-
-# ===============================================================
-# Old World View
-# ===============================================================
-
-  - Determine layout of europe background image
-  - high seas
-  - player gold
-  - tax rate
-  - unit immigration
-  - purchasing units
-
-# ===============================================================
-# Terrain
-# ===============================================================
-
-  - movement affected by terrain
-  - pioneer plow
-  - pioneer road
-
-# ===============================================================
-# Colonies
-# ===============================================================
-
-  - Determine layout of europe background image
+        x treasure boarding ship
 
 # ===============================================================
 # Game Narrative
 # ===============================================================
 
-  - game year/season
   - royal army
-
-# ===============================================================
-# Graphics Engine
-# ===============================================================
-
-  - Remove color palette from config, it's kind of rediculous.
