@@ -428,15 +428,15 @@ void MiniMapView::draw_impl( rr::Renderer&     renderer,
   }
 
   // Finally we draw the white box. Actually we draw each segment
-  // separately in case the viewing area is larger (possibly
-  // along only one dimension) than the mini-map can show.
-  gfx::rect const white_box = white_box_pixels();
-  gfx::rect const bounds    = gfx::rect{
-         .origin = {}, .size = mini_map_.size_screen_pixels() };
+  // separately so that we can make rounded corners.
+  gfx::rect const white_box =
+      white_box_pixels().clamped( rect( Coord{} ) );
+  gfx::rect const bounds = gfx::rect{
+      .origin = {}, .size = mini_map_.size_screen_pixels() };
   gfx::pixel const kBoxColor =
       gfx::pixel{ .r = 0xdf, .g = 0xdf, .b = 0xef, .a = 0xff };
   // Left.
-  if( white_box.left() >= 0 ) {
+  {
     gfx::point const start = white_box.nw().clamped( bounds );
     gfx::point const end   = white_box.sw().clamped( bounds );
     painter.draw_vertical_line(
@@ -444,7 +444,7 @@ void MiniMapView::draw_impl( rr::Renderer&     renderer,
         std::max( 0, end.y - start.y - 2 + 1 ), kBoxColor );
   }
   // Right.
-  if( white_box.right() <= delta().w ) {
+  {
     gfx::point const start = white_box.ne().clamped( bounds );
     gfx::point const end   = white_box.se().clamped( bounds );
     painter.draw_vertical_line(
@@ -452,7 +452,7 @@ void MiniMapView::draw_impl( rr::Renderer&     renderer,
         std::max( 0, end.y - start.y - 2 + 1 ), kBoxColor );
   }
   // Top.
-  if( white_box.top() >= 0 ) {
+  {
     gfx::point const start = white_box.nw().clamped( bounds );
     gfx::point const end   = white_box.ne().clamped( bounds );
     painter.draw_horizontal_line(
@@ -460,7 +460,7 @@ void MiniMapView::draw_impl( rr::Renderer&     renderer,
         std::max( 0, end.x - start.x - 2 + 1 ), kBoxColor );
   }
   // Bottom.
-  if( white_box.bottom() <= delta().h ) {
+  {
     gfx::point const start = white_box.sw().clamped( bounds );
     gfx::point const end   = white_box.se().clamped( bounds );
     painter.draw_horizontal_line(
