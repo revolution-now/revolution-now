@@ -1371,7 +1371,7 @@ struct LandViewPlane::Impl : public Plane {
             key_event.keycode, key_event.mod.ctrl_down,
             key_event.mod.shf_down );
         if( lua_orders ) {
-          lg.debug( "received key from lua: {}", lua_orders );
+          // lg.debug( "received key from lua: {}", lua_orders );
           raw_input_stream_.send(
               RawInput( LandViewRawInput::orders{
                   .orders = *lua_orders } ) );
