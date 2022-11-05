@@ -204,6 +204,9 @@ LUA_STARTUP( lua::state& st ) {
     if( !dwelling_id.has_value() ) return nothing;
     return o.dwelling_for( *dwelling_id );
   };
+  // FIXME: temporary; need to move this somewhere else which can
+  // create the dwelling properly with all of the fields initial-
+  // ized to the correct values.
   u["new_dwelling"] = [&]( U& o, Coord where ) -> Dwelling& {
     Dwelling dwelling;
     dwelling.location = where;

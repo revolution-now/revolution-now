@@ -701,6 +701,30 @@ local function has_dwelling_in_surroundings( coord )
   return false
 end
 
+local function add_dwelling( coord, tribe )
+  assert( coord )
+  local square = square_at( coord )
+  local dwelling = ROOT.natives:new_dwelling( coord )
+  dwelling.tribe = tribe
+  -- FIXME
+  dwelling.population = 3
+  -- Get rid of any forest if we're placing one of the city
+  -- dwellings. The OG does not do this, but they don't really
+  -- look good floating above a forest given that they are sup-
+  -- posed to represent advanced cities, so we will remove
+  -- them.
+  if tribe == 'aztec' or tribe == 'inca' then
+    square.overlay = nil
+  end
+  square.road = true
+  -- We'll try not to build on LCRs or mountains, but occasion-
+  -- ally we are forced to place a settlement there, so clear
+  -- them anyway.
+  square.lost_city_rumor = false
+  if square.overlay == 'mountains' then square.overlay = nil end
+  return dwelling
+end
+
 local function create_indian_villages_using_partition(options,
                                                       partitions )
   -- Note that indian villages never seem to be placed on top of
@@ -711,6 +735,9 @@ local function create_indian_villages_using_partition(options,
   local non_city_tribes = {
     'apache', 'sioux', 'tupi', 'arawak', 'cherokee', 'iroquois'
   }
+  -- Helps to make sure that we place at least one dwelling for
+  -- each tribe.
+  local placed_at_least_one = {}
   -- This shuffling and recombination ensures that the tribes are
   -- placed into random partitions subject to the constraint that
   -- the incas and aztecs should go toward the left half of the
@@ -722,29 +749,39 @@ local function create_indian_villages_using_partition(options,
   table.insert( tribes, 5, city_tribes[2] )
   local dwellings = {}
   for _, tribe in ipairs( tribes ) do dwellings[tribe] = {} end
+  local coords_for_partition = {}
+  for i = 1, #tribes do coords_for_partition[i] = {} end
   for rasterized_coord, n in pairs( partitions ) do
+    local tribe = tribes[n + 1]
     local coord = {
       x=rasterized_coord % size.w,
       y=rasterized_coord // size.w
     }
+    if is_on_map_edge( size, coord ) then goto continue end
+    table.insert( coords_for_partition[n + 1], coord )
     local square = square_at( coord )
-    if not square.lost_city_rumor and square.overlay ~=
-        'mountains' and not is_on_map_edge( size, coord ) and
-        not has_dwelling_in_surroundings( coord ) then
-      if math.random() < .15 then
-        local dwelling = ROOT.natives:new_dwelling( coord )
-        dwelling.tribe = tribes[n + 1]
-        dwelling.population = 3
-        -- Get rid of any forest if we're placing one of the city
-        -- dwellings. The OG does not do this, but they don't re-
-        -- ally look good floating above a forest given that they
-        -- are supposed to represent advanced cities, so we will
-        -- remove them.
-        if dwelling.tribe == 'aztec' or dwelling.tribe == 'inca' then
-          square.overlay = nil
-        end
-        table.insert( dwellings[dwelling.tribe], dwelling )
-      end
+    local should_place = not square.lost_city_rumor and
+                             square.overlay ~= 'mountains' and
+                             not has_dwelling_in_surroundings(
+                                 coord ) and math.random() < .15
+    if not should_place then goto continue end
+    -- We're clear to place the dwelling.
+    local dwelling = add_dwelling( coord, tribe )
+    table.insert( dwellings[tribe], dwelling )
+    placed_at_least_one[tribe] = true
+    ::continue::
+  end
+  -- Check if we haven't placed any dwellings for each tribe and,
+  -- if not, just pick a random place to put it within its parti-
+  -- tion.
+  for n, tribe in ipairs( tribes ) do
+    if not placed_at_least_one[tribe] and
+        #coords_for_partition[n] > 0 then
+      local coord =
+          random_list_elem( coords_for_partition[n] )
+      assert( coord )
+      local dwelling = add_dwelling( coord, tribe )
+      table.insert( dwellings[tribe], dwelling )
     end
   end
   -- Pick a capital for each tribe.
