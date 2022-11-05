@@ -758,6 +758,7 @@ local function create_indian_villages_using_partition(options,
 end
 
 local function create_indian_villages( options )
+  local size = world_size()
   local function has_land( coord )
     return square_at( coord ).surface == 'land'
   end
