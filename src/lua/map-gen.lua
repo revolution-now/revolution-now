@@ -1550,7 +1550,7 @@ local function generate( options )
     generate_battlefield( options )
     return
   elseif options.type == 'land-partition' then
-    generate_circles_land( options )
+    generate_land( options )
     create_sea_lanes()
     M.regenerate_native_land_partitions( true )
     return
