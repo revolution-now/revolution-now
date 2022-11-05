@@ -1437,15 +1437,10 @@ end
 
 local function generate_circles_land( options )
   local circles = {
-    { x=10, y=10, r=3 },
-    { x=46, y=10, r=3 },
-    { x=10, y=60, r=3 },
-    { x=46, y=60, r=3 },
-    --
-    { x=28, y=20, r=3 },
-    { x=28, y=50, r=3 },
-    { x=10, y=35, r=3 },
-    { x=46, y=35, r=3 },
+    { x=10, y=10, r=3 }, { x=46, y=10, r=3 },
+    { x=10, y=60, r=3 }, { x=46, y=60, r=3 }, --
+    { x=28, y=20, r=3 }, { x=28, y=50, r=3 },
+    { x=10, y=35, r=3 }, { x=46, y=35, r=3 }
   }
   on_all( function( coord, square )
     local in_circle = false
@@ -1522,7 +1517,8 @@ function M.regenerate_native_land_partitions(
     paint_map_by_partition )
   local size = world_size()
   local NUM_TRIBES = 8
-  local partitions = partition.generate( size, NUM_TRIBES, is_coord_land )
+  local partitions = partition.generate( size, NUM_TRIBES,
+                                         is_coord_land )
   if paint_map_by_partition then
     paint_native_land_partitions( partitions )
   end
