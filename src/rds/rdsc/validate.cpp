@@ -52,9 +52,33 @@ struct Validator {
     }
   }
 
+  void validate_enum( expr::Enum const& e ) {
+    using F = expr::e_feature;
+    if( e.features.has_value() ) {
+      unordered_set<F> const& features = *e.features;
+
+      for( expr::e_feature feat : features ) {
+        switch( feat ) {
+          case expr::e_feature::nodiscard: break;
+          case expr::e_feature::equality:
+          case expr::e_feature::offsets:
+          case expr::e_feature::validation:
+            error(
+                "enums only support the 'nodiscard' feature." );
+            break;
+        }
+      }
+    }
+  }
+
   void validate_sumtypes( expr::Rds const& rds ) {
     perform_on_item_type<expr::Sumtype>(
         rds, LC( validate_sumtype( _ ) ) );
+  }
+
+  void validate_enums( expr::Rds const& rds ) {
+    perform_on_item_type<expr::Enum>( rds,
+                                      LC( validate_enum( _ ) ) );
   }
 
   void validate_configs( expr::Rds const& rds ) {
@@ -73,6 +97,7 @@ struct Validator {
 vector<string> validate( expr::Rds const& rds ) {
   Validator validator;
   validator.validate_sumtypes( rds );
+  validator.validate_enums( rds );
   validator.validate_configs( rds );
   return std::move( validator.errors_ );
 }

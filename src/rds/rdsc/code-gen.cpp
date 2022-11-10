@@ -319,7 +319,11 @@ struct CodeGenerator {
   void emit( string_view ns, expr::Enum const& e ) {
     section( "Enum: "s + e.name );
     open_ns( ns );
-    line( "enum class {} {{", e.name );
+    string const nodiscard_str =
+        item_has_feature( e, expr::e_feature::nodiscard )
+            ? "[[nodiscard]] "
+            : "";
+    line( "enum class {}{} {{", nodiscard_str, e.name );
     {
       auto _ = indent();
       emit_vert_list( e.values, "," );

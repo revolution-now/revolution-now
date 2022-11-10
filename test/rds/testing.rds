@@ -198,6 +198,8 @@ enum.e_count {
   thirteen,
   fourteen,
   fifteen,
+
+  _features { nodiscard }
 }
 
 struct.EmptyStruct {}

@@ -94,6 +94,21 @@ void add_enum( string_view ns, string_view name, lua::table tbl,
   expr::Enum enum_;
   enum_.name = name;
   for( int i = 1; tbl[i] != lua::nil; ++i ) {
+    if( lua::type_of(tbl[i]) == lua::type::table && tbl[i]["name"] == features_key ) {
+      enum_.features.emplace();
+      lua::table features = tbl[i]["obj"].as<lua::table>();
+      for( int j = 1; features[j] != lua::nil; ++j ) {
+        string feature_name = features[j]
+                                  .as<lua::rfunction>()()["name"]
+                                  .as<string>();
+        maybe<expr::e_feature> feat =
+            expr::feature_from_str( feature_name );
+        CHECK( feat, "unknown feature name: {}", feature_name );
+        enum_.features->insert( *feat );
+      }
+      continue;
+    }
+
     lua::any   item_fn = tbl[i].as<lua::rfunction>();
     lua::table item_tbl =
         item_fn.as<lua::rfunction>()().as<lua::table>();

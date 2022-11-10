@@ -1204,7 +1204,7 @@ namespace refl {
 *****************************************************************/
 namespace rn {
 
-  enum class e_count {
+  enum class [[nodiscard]] e_count {
     one,
     two,
     three,

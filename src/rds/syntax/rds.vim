@@ -44,15 +44,25 @@ hi def link  rdsNamespaceQuotedContents String
 syn keyword  rdsEnumKeyword enum nextgroup=rdsEnumDot,rdsEnumName skipwhite skipempty
 syn match    rdsEnumDot '\.' contained nextgroup=rdsEnumName
 syn match    rdsEnumName '[a-zA-Z_][a-zA-Z0-9_]*' contained nextgroup=rdsEnumListBlock,rdsEnumListBlockErr skipwhite skipempty
-syn region   rdsEnumListBlock start='{' end='}' contained fold contains=rdsEnumItem,rdsLineComment skipwhite skipempty
+syn region   rdsEnumListBlock start='{' end='}' contained fold contains=rdsEnumItem,rdsLineComment,rdsEnumFeatures skipwhite skipempty
 syn match    rdsEnumItem '[a-zA-Z_][a-zA-Z0-9_]*' contained nextgroup=rdsEnumItemComma skipwhite skipempty
-syn match    rdsEnumItemComma ',' contained nextgroup=rdsEnumItem skipwhite skipempty
+syn match    rdsEnumItemComma ',' contained nextgroup=rdsEnumItem,rdsEnumFeatures skipwhite skipempty
+
+syn keyword  rdsEnumFeatures _features contained nextgroup=rdsEnumFeaturesListBlock skipwhite skipempty
+syn region   rdsEnumFeaturesListBlock start='{' end='}' contained fold contains=rdsEnumFeaturesListItem,rdsEnumFeaturesListItemErr nextgroup=rdsEnumFeaturesListBlockComma skipwhite skipempty
+syn match    rdsEnumFeaturesListBlockComma ',' contained nextgroup=rdsEnumName skipwhite skipempty
+syn match    rdsEnumFeaturesListItemErr '[^{} ,]\+' contained
+syn match    rdsEnumFeaturesListItem '\(nodiscard\)' contained
 
 hi def link  rdsEnumKeyword      Keyword
 hi def link  rdsEnumName         None
 hi def link  rdsEnumItem         Identifier
 hi def link  rdsEnumItemComma    Comment
 hi def link  rdsEnumListBlockErr Error
+
+hi def link  rdsEnumFeatures            Keyword
+hi def link  rdsEnumFeaturesListItemErr Error
+hi def link  rdsEnumFeaturesListItem    Tag
 
 " ===============================================================
 " Sumtype

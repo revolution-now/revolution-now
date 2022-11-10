@@ -13,6 +13,8 @@ namespace "rn"
 enum.e_input_required {
   no,
   yes,
+
+  _features { nodiscard }
 }
 
 namespace "rn.ui"
@@ -20,9 +22,13 @@ namespace "rn.ui"
 enum.e_ok_cancel {
   ok,
   cancel,
+
+  _features { nodiscard }
 }
 
 enum.e_confirm {
   yes,
   no,
+
+  _features { nodiscard }
 }

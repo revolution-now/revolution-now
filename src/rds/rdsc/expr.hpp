@@ -74,6 +74,9 @@ struct Config {
 struct Enum {
   std::string              name;
   std::vector<std::string> values;
+  // A specified-but-empty feature list means something different
+  // from one that was not specified at all.
+  base::maybe<std::unordered_set<e_feature>> features;
 };
 
 /****************************************************************
