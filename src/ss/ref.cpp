@@ -72,6 +72,20 @@ SSConst::SSConst( SS& ss )
     terrain( ss_.terrain ),
     root( ss_.root ) {}
 
+SSConst::SSConst( SS const& ss )
+  : ss_( ss ),
+    version( ss_.version ),
+    settings( ss_.settings ),
+    events( ss_.events ),
+    units( ss_.units ),
+    players( ss_.players ),
+    turn( ss_.turn ),
+    colonies( ss_.colonies ),
+    natives( ss_.natives ),
+    land_view( ss_.land_view ),
+    terrain( ss_.terrain ),
+    root( ss_.root ) {}
+
 base::valid_or<std::string> SSConst::validate_game_state()
     const {
   // TODO: just do a quick-and-dirty recursive approach within

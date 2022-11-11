@@ -76,9 +76,10 @@ struct SS {
 
 struct SSConst {
   SSConst( SS& ss );
+  SSConst( SS const& ss );
 
  private:
-  SS& ss_;
+  SS const& ss_;
 
  public:
   FormatVersion const& version;
