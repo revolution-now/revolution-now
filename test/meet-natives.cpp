@@ -265,10 +265,5 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
   }
 }
 
-TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
-  World W;
-  // TODO
-}
-
 } // namespace
 } // namespace rn

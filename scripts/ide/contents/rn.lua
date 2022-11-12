@@ -15,4 +15,5 @@ return {
   'alarm',
   'meet-natives',
   'colview-land',
+  'native-expertise',
 }
