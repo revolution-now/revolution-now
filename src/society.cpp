@@ -38,7 +38,8 @@ maybe<Society_t> society_on_square( SSConst const& ss,
   }
 
   // Check for native dwelling.
-  if( auto id = ss.natives.maybe_from_coord( coord ); id ) {
+  if( auto id = ss.natives.maybe_dwelling_from_coord( coord );
+      id ) {
     e_tribe const tribe = ss.natives.dwelling_for( *id ).tribe;
     return Society::native{ .tribe = tribe };
   }

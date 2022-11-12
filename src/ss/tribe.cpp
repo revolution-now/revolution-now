@@ -28,6 +28,15 @@ namespace rn {
 namespace {} // namespace
 
 /****************************************************************
+** TribeRelationship
+*****************************************************************/
+base::valid_or<string> TribeRelationship::validate() const {
+  REFL_VALIDATE( tribal_alarm >= 0 && tribal_alarm <= 99,
+                 "tribal_alarm must be in [0, 99]." );
+  return base::valid;
+}
+
+/****************************************************************
 ** Lua Bindings
 *****************************************************************/
 namespace {
@@ -54,7 +63,8 @@ LUA_STARTUP( lua::state& st ) {
 
     auto u = st.usertype.create<U>();
 
-    u["at_war"] = &U::at_war;
+    u["at_war"]       = &U::at_war;
+    u["tribal_alarm"] = &U::tribal_alarm;
   }();
 
   // Tribe.

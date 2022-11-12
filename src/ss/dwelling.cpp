@@ -15,6 +15,7 @@
 #include "luapp/register.hpp"
 
 // refl
+#include "refl/ext.hpp"
 #include "refl/to-str.hpp"
 
 // base
@@ -28,6 +29,15 @@ namespace {} // namespace
 
 void linker_dont_discard_module_ss_dwelling();
 void linker_dont_discard_module_ss_dwelling() {}
+
+/****************************************************************
+** DwellingRelationship
+*****************************************************************/
+base::valid_or<string> DwellingRelationship::validate() const {
+  REFL_VALIDATE( non_tribal_alarm >= 0 && non_tribal_alarm <= 99,
+                 "non_tribal_alarm must be in [0, 99]." );
+  return base::valid;
+}
 
 /****************************************************************
 ** Lua Bindings
@@ -62,8 +72,7 @@ LUA_STARTUP( lua::state& st ) {
 
     auto u = st.usertype.create<U>();
 
-    u["alarm"]      = &U::alarm;
-    u["has_taught"] = &U::has_taught;
+    u["non_tribal_alarm"] = &U::non_tribal_alarm;
   }();
 
   // Dwelling.
@@ -79,6 +88,7 @@ LUA_STARTUP( lua::state& st ) {
     u["population"] = &U::population;
     u["trading"]    = &U::trading;
     u["teaches"]    = &U::teaches;
+    u["has_taught"] = &U::has_taught;
 
     u["relationship"] =
         []( U& o, e_nation nation ) -> DwellingRelationship& {

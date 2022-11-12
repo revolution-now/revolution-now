@@ -39,20 +39,36 @@ struct NativesState {
   // variants. Any more complicated game logic that gets layered
   // on top of these should go elsewhere.
 
+  // ------------------------------------------------------------
+  // Tribes
+  // ------------------------------------------------------------
+  bool tribe_exists( e_tribe tribe ) const;
+
+  // Tribe must exist or check fail.
+  Tribe&       tribe_for( e_tribe tribe );
+  Tribe const& tribe_for( e_tribe tribe ) const;
+
+  Tribe& create_or_add_tribe( e_tribe tribe );
+
+  // ------------------------------------------------------------
+  // Dwellings
+  // ------------------------------------------------------------
   DwellingId last_dwelling_id() const;
 
-  std::unordered_map<DwellingId, Dwelling> const& all() const;
+  std::unordered_map<DwellingId, Dwelling> const& dwellings_all()
+      const;
 
-  std::vector<DwellingId> for_tribe( e_tribe tribe ) const;
+  std::vector<DwellingId> dwellings_for_tribe(
+      e_tribe tribe ) const;
 
   Dwelling const& dwelling_for( DwellingId id ) const;
   Dwelling&       dwelling_for( DwellingId id );
 
   Coord coord_for( DwellingId id ) const;
 
-  base::maybe<DwellingId> maybe_from_coord(
+  base::maybe<DwellingId> maybe_dwelling_from_coord(
       Coord const& c ) const;
-  DwellingId from_coord( Coord const& c ) const;
+  DwellingId dwelling_from_coord( Coord const& c ) const;
 
   bool exists( DwellingId id ) const;
 
@@ -65,6 +81,20 @@ struct NativesState {
   // do associated cleanup such as deleting (or at least disown-
   // ing) native units that are owned by this dwelling.
   void destroy_dwelling( DwellingId id );
+
+  // ------------------------------------------------------------
+  // Owned Land
+  // ------------------------------------------------------------
+  std::unordered_map<Coord, DwellingId>& owned_land() {
+    return o_.owned_land;
+  }
+
+  std::unordered_map<Coord, DwellingId> const& owned_land()
+      const {
+    return o_.owned_land;
+  }
+
+  void mark_land_owned( DwellingId dwelling_id, Coord where );
 
  private:
   [[nodiscard]] DwellingId next_dwelling_id();

@@ -918,7 +918,7 @@ struct LandViewPlane::Impl : public Plane {
                                 Rect          covered ) const {
     rr::Painter painter = renderer.painter();
     unordered_map<DwellingId, Dwelling> const& all =
-        ss_.natives.all();
+        ss_.natives.dwellings_all();
     switch( landview_mode_.to_enum() ) {
       using namespace LandViewMode;
       case e::dwelling_disappearing: {

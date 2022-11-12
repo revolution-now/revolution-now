@@ -12,6 +12,7 @@
 include "ss/dwelling-id.hpp"
 include "ss/nation.rds.hpp"
 include "ss/native-enums.rds.hpp"
+include "ss/unit-id.hpp"
 include "ss/unit-type.rds.hpp"
 
 # gfx
@@ -35,11 +36,13 @@ struct.DwellingRelationship {
   # fected not by direct action, but by indirect pressures such
   # as your proximity to that settlement, the size of your
   # colony, the presence of weapons, and so on."
-  alarm 'int',
+  #
+  # This number is in [0, 99], with 99 being most alarmed. The
+  # effective alarm of a dwelling must take into account both
+  # this number and the tribal level anger.
+  non_tribal_alarm 'int',
 
-  # For non-capital dwellings this is relevant since they can
-  # only teach once.
-  has_taught 'bool',
+  _features { equality, validation }
 }
 
 struct.Dwelling {
@@ -58,7 +61,15 @@ struct.Dwelling {
 
   trading 'DwellingTradingState',
 
+  # These are only relevant once the tribe encounters the nation.
   relationship 'refl::enum_map<e_nation, DwellingRelationship>',
 
   teaches 'e_unit_activity',
+  # For non-capital dwellings this is relevant since they can
+  # only teach once (for all nations, as in OG).
+  has_taught 'bool',
+
+  # If there is a mission in this dwelling then the dwelling owns
+  # the unit.
+  mission 'base::maybe<UnitId>',
 }

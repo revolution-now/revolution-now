@@ -13,9 +13,11 @@
 
 // ss
 #include "ss/dwelling.hpp"
+#include "ss/tribe.hpp"
 #include "ss/units.hpp"
 
 // luapp
+#include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
 #include "luapp/register.hpp"
 
@@ -104,8 +106,31 @@ NativesState::NativesState()
   validate_or_die();
 }
 
-unordered_map<DwellingId, Dwelling> const& NativesState::all()
-    const {
+bool NativesState::tribe_exists( e_tribe tribe ) const {
+  return o_.tribes[tribe].has_value();
+}
+
+Tribe& NativesState::tribe_for( e_tribe tribe ) {
+  UNWRAP_CHECK_MSG( res, o_.tribes[tribe],
+                    "the {} tribe does not exist in this game.",
+                    tribe );
+  return res;
+}
+
+Tribe const& NativesState::tribe_for( e_tribe tribe ) const {
+  UNWRAP_CHECK_MSG( res, o_.tribes[tribe],
+                    "the {} tribe does not exist in this game.",
+                    tribe );
+  return res;
+}
+
+Tribe& NativesState::create_or_add_tribe( e_tribe tribe ) {
+  if( o_.tribes[tribe].has_value() ) return *o_.tribes[tribe];
+  return o_.tribes[tribe].emplace();
+}
+
+unordered_map<DwellingId, Dwelling> const&
+NativesState::dwellings_all() const {
   return o_.dwellings;
 }
 
@@ -126,7 +151,7 @@ Coord NativesState::coord_for( DwellingId id ) const {
   return dwelling_for( id ).location;
 }
 
-vector<DwellingId> NativesState::for_tribe(
+vector<DwellingId> NativesState::dwellings_for_tribe(
     e_tribe tribe ) const {
   vector<DwellingId> res;
   res.reserve( o_.dwellings.size() );
@@ -165,18 +190,24 @@ DwellingId NativesState::last_dwelling_id() const {
   return DwellingId{ o_.next_dwelling_id - 1 };
 }
 
-base::maybe<DwellingId> NativesState::maybe_from_coord(
+base::maybe<DwellingId> NativesState::maybe_dwelling_from_coord(
     Coord const& coord ) const {
   return base::lookup( dwelling_from_coord_, coord );
 }
 
-DwellingId NativesState::from_coord( Coord const& coord ) const {
-  UNWRAP_CHECK( id, maybe_from_coord( coord ) );
+DwellingId NativesState::dwelling_from_coord(
+    Coord const& coord ) const {
+  UNWRAP_CHECK( id, maybe_dwelling_from_coord( coord ) );
   return id;
 }
 
 bool NativesState::exists( DwellingId id ) const {
   return o_.dwellings.contains( id );
+}
+
+void NativesState::mark_land_owned( DwellingId dwelling_id,
+                                    Coord      where ) {
+  o_.owned_land[where] = dwelling_id;
 }
 
 /****************************************************************
@@ -200,7 +231,7 @@ LUA_STARTUP( lua::state& st ) {
   u["has_dwelling_on_square"] =
       []( U& o, Coord where ) -> maybe<Dwelling&> {
     maybe<DwellingId> const dwelling_id =
-        o.maybe_from_coord( where );
+        o.maybe_dwelling_from_coord( where );
     if( !dwelling_id.has_value() ) return nothing;
     return o.dwelling_for( *dwelling_id );
   };
@@ -214,6 +245,8 @@ LUA_STARTUP( lua::state& st ) {
         o.add_dwelling( std::move( dwelling ) );
     return o.dwelling_for( id );
   };
+  u["create_or_add_tribe"] = &U::create_or_add_tribe;
+  u["mark_land_owned"]     = &U::mark_land_owned;
 };
 
 } // namespace

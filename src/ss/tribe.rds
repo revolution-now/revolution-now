@@ -30,7 +30,13 @@ struct.TribeRelationship {
   # fected not by direct action, but by indirect pressures such
   # as your proximity to that settlement, the size of your
   # colony, the presence of weapons, and so on."
-  anger 'int',
+  #
+  # This number is in [0, 99], with 99 being most alarmed. The
+  # effective alarm of a dwelling must take into account both
+  # this number and the dwelling-level alarm.
+  tribal_alarm 'int',
+
+  _features { equality, validation }
 }
 
 struct.Tribe {

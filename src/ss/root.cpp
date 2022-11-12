@@ -97,7 +97,7 @@ valid_or<string> validate_interaction(
     NativesState const& natives_state,
     TerrainState const& terrain ) {
   for( auto const& [dwelling_id, dwelling] :
-       natives_state.all() ) {
+       natives_state.dwellings_all() ) {
     // Colony is on land.
     REFL_VALIDATE(
         terrain.world_map()[dwelling.location].surface ==
