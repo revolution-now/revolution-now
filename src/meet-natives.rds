@@ -1,0 +1,46 @@
+# ===============================================================
+# meet-natives.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-11-10.
+#
+# Description: Rds definitions for the meet-natives module.
+#
+# ===============================================================
+# ss
+include "ss/native-enums.rds.hpp"
+
+# gfx
+include "gfx/coord.hpp"
+
+# C++ standard library
+include "<vector>"
+
+namespace "rn"
+
+enum.e_declare_war_on_natives {
+  no,
+  yes,
+
+  _features { nodiscard }
+}
+
+struct.MeetTribe {
+  # Is this the first native tribe that the player is meeting?
+  is_first 'bool',
+  tribe 'e_tribe',
+  num_dwellings 'int',
+  # These are the squares currently being used by the player's
+  # colonies that are also owned by the tribe and that the tribe
+  # is awarding to the player. This includes squares occuiped by
+  # the colony itself as well as any outdoor workers in the
+  # colony. The OG does this, probably because there wouldn't be
+  # a clear way to prevent the player from using the land before
+  # meeting the natives and no clear way to evict them after
+  # they've founded a colony. Also, it enables an interesting
+  # strategy where the player can attempt to found colonies ini-
+  # tially while avoiding contact with the natives in order to
+  # not have to pay for the first few land squares.
+  land_awarded 'std::vector<Coord>',
+}
