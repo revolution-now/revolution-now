@@ -40,6 +40,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
@@ -377,9 +378,12 @@ ColonyJob_t find_job_for_initial_colonist(
     // player to (risk) exploring the LCR if they want to work
     // the square.
     if( square.lost_city_rumor ) continue;
-    // TODO: Check if there is an indian village on the square.
-
-    // TODO: Check if the land is owned by an indian village.
+    // Check if there is an indian village on the square.
+    if( ss.natives.maybe_dwelling_from_coord( coord )
+            .has_value() )
+      continue;
+    // Check if the land is owned by an indian village.
+    if( ss.natives.owned_land().contains( coord ) ) continue;
 
     // TODO: check if there are any foreign units fortified on
     //       the square.
@@ -557,6 +561,12 @@ ColonyId found_colony( SS& ss, TS& ts, Player const& player,
 
   // Add road onto colony square.
   set_road( ts.map_updater, where );
+
+  // NOTE: we do not remove native-owned land from the colony
+  // tile. Although the OG does not seem to require the player to
+  // pay for this land to found a colony, the game does not re-
+  // move the owned status, so if the colony is then abandoned
+  // the square still shows as owned..
 
   // Done.
   auto& desc = nation_obj( nation );

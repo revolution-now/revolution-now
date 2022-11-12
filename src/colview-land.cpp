@@ -30,6 +30,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/natives.hpp"
 #include "ss/player.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
@@ -37,6 +38,9 @@
 
 // gfx
 #include "gfx/iter.hpp"
+
+// base
+#include "base/keyval.hpp"
 
 using namespace std;
 
@@ -69,6 +73,29 @@ void render_glow( rr::Renderer& renderer, Coord unit_coord,
       config_colony.colors.outdoor_unit_glow_color );
 }
 
+refl::enum_map<e_direction, maybe<e_tribe>>
+find_native_owned_land( SSConst const& ss, Player const& player,
+                        Coord loc ) {
+  refl::enum_map<e_direction, maybe<e_tribe>> res;
+  for( e_direction d : refl::enum_values<e_direction> ) {
+    Coord const             moved = loc.moved( d );
+    maybe<DwellingId> const dwelling_id =
+        base::lookup( ss.natives.owned_land(), moved );
+    if( !dwelling_id.has_value() ) continue;
+    Tribe const& tribe = ss.natives.tribe_for(
+        ss.natives.dwelling_for( *dwelling_id ).tribe );
+    if( !tribe.relationship[player.nation].has_value() )
+      // If the player has not encountered the tribe yet then we
+      // don't display the totem poles. In that case, the player
+      // is free to take the land, since when the natives are
+      // first encountered they will gift that land to the
+      // player.
+      continue;
+    res[d] = tribe.type;
+  }
+  return res;
+}
+
 } // namespace
 
 /****************************************************************
@@ -81,9 +108,8 @@ Delta ColonyLandView::size_needed( e_render_mode mode ) {
     case e_render_mode::_5x5: side_length_in_squares = 5; break;
     case e_render_mode::_6x6: side_length_in_squares = 6; break;
   }
-  return Delta{ .w = 32, .h = 32 } *
-         Delta{ .w = side_length_in_squares,
-                .h = side_length_in_squares };
+  return Delta{ .w = 32, .h = 32 }* Delta{
+      .w = side_length_in_squares, .h = side_length_in_squares };
 }
 
 maybe<e_direction> ColonyLandView::direction_under_cursor(
@@ -185,6 +211,7 @@ maybe<ColViewObject_t> ColonyLandView::can_receive(
   // not the center.
   maybe<e_direction> d = direction_under_cursor( where );
   if( !d.has_value() ) return nothing;
+  Coord const world_square = colony_.location.moved( *d );
   // Check if this is the same unit currently being dragged, if
   // so we'll allow it.
   if( dragging_.has_value() && d == dragging_->d ) return o;
@@ -193,6 +220,10 @@ maybe<ColViewObject_t> ColonyLandView::can_receive(
   // Check if there is a colonist from another colony (friendly
   // or foreign) that is already working on this square.
   if( occupied_red_box_[*d] ) return nothing;
+  // Check if there is a native dwelling on the tile.
+  if( ss_.natives.maybe_dwelling_from_coord( world_square )
+          .has_value() )
+    return nothing;
   // Note that we don't check for water/docks here; that is
   // done in the check function.
 
@@ -203,10 +234,15 @@ maybe<ColViewObject_t> ColonyLandView::can_receive(
 wait<base::valid_or<DragRejection>> ColonyLandView::sink_check(
     ColViewObject_t const&, int, Coord const where ) {
   Colony const& colony = ss_.colonies.colony_for( colony_.id );
-  maybe<e_direction> d = direction_under_cursor( where );
-  CHECK( d );
+  UNWRAP_CHECK( d, direction_under_cursor( where ) );
   MapSquare const& square =
-      ss_.terrain.square_at( colony.location.moved( *d ) );
+      ss_.terrain.square_at( colony.location.moved( d ) );
+
+  if( native_owned_land_[d] ) {
+    // TODO
+    co_return DragRejection{ .reason =
+                                 "This is native-owned land." };
+  }
 
   if( is_water( square ) &&
       !colony_has_building_level( colony,
@@ -293,22 +329,22 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
 
   // FIXME: Should not be duplicating land-view rendering code
   // here.
-  rr::Painter painter      = renderer.painter();
-  Coord const world_square = colony_.location;
+  rr::Painter painter       = renderer.painter();
+  Coord const colony_square = colony_.location;
   auto        viz = Visibility::create( ss_, player_.nation );
   // Render terrain.
   for( Rect const local_rect : gfx::subrects(
            Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) ) {
-    Coord const local_coord   = local_rect.upper_left();
-    Coord       render_square = world_square +
-                          local_coord.distance_from_origin() -
-                          Delta{ .w = 1, .h = 1 };
+    Coord const local_coord  = local_rect.upper_left();
+    Coord       world_square = colony_square +
+                         local_coord.distance_from_origin() -
+                         Delta{ .w = 1, .h = 1 };
     painter.draw_solid_rect(
         Rect::from( local_coord * g_tile_delta, g_tile_delta ),
         gfx::pixel{ .r = 128, .g = 128, .b = 128, .a = 255 } );
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
     render_terrain_square( renderer, local_coord * g_tile_delta,
-                           render_square, viz,
+                           world_square, viz,
                            TerrainRenderOptions{} );
     static Coord const local_colony_loc =
         Coord{ .x = 1, .y = 1 };
@@ -323,20 +359,63 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
           rr::Painter::e_border_mode::inside,
           gfx::pixel::red() );
   }
+
   // Render colonies.
   for( Rect const local_rect : gfx::subrects(
            Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) ) {
-    Coord const local_coord   = local_rect.upper_left();
-    auto        render_square = world_square +
-                         local_coord.distance_from_origin() -
-                         Delta{ .w = 1, .h = 1 };
+    Coord const local_coord  = local_rect.upper_left();
+    auto        world_square = colony_square +
+                        local_coord.distance_from_origin() -
+                        Delta{ .w = 1, .h = 1 };
     auto maybe_col_id =
-        ss_.colonies.maybe_from_coord( render_square );
+        ss_.colonies.maybe_from_coord( world_square );
     if( !maybe_col_id ) continue;
     render_colony(
         painter,
         local_coord * g_tile_delta - Delta{ .w = 6, .h = 6 },
         ss_.colonies.colony_for( *maybe_col_id ) );
+  }
+
+  // Render native dwellings.
+  for( Rect const local_rect : gfx::subrects(
+           Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) ) {
+    Coord const local_coord  = local_rect.upper_left();
+    auto        world_square = colony_square +
+                        local_coord.distance_from_origin() -
+                        Delta{ .w = 1, .h = 1 };
+    auto maybe_dwelling_id =
+        ss_.natives.maybe_dwelling_from_coord( world_square );
+    if( !maybe_dwelling_id ) continue;
+    render_dwelling(
+        painter,
+        local_coord * g_tile_delta - Delta{ .w = 6, .h = 6 },
+        ss_.natives.dwelling_for( *maybe_dwelling_id ) );
+  }
+
+  // Render native-owned land markers (totem poles).
+  for( Rect const local_rect : gfx::subrects(
+           Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) ) {
+    Coord const        local_coord = local_rect.upper_left();
+    static Coord const local_colony_loc =
+        Coord{ .x = 1, .y = 1 };
+    auto world_square = colony_square +
+                        local_coord.distance_from_origin() -
+                        Delta{ .w = 1, .h = 1 };
+    // We never show the totem pole over the colony square even
+    // if it is owned land (which it might be, because the game
+    // does allow the player to found colonies on native-owned
+    // land without paying and without removing the native owner-
+    // ship).
+    if( local_coord == local_colony_loc ) continue;
+    // Don't draw a totem pole over a native dwelling.
+    if( ss_.natives.maybe_dwelling_from_coord( world_square )
+            .has_value() )
+      continue;
+    UNWRAP_CHECK( d,
+                  local_colony_loc.direction_to( local_coord ) );
+    if( !native_owned_land_[d].has_value() ) continue;
+    render_sprite( painter, local_coord * g_tile_delta,
+                   e_tile::totem_pole );
   }
 }
 
@@ -471,7 +550,9 @@ ColonyLandView::ColonyLandView( Planes& planes, SS& ss, TS& ts,
                                 e_render_mode mode )
   : ColonySubView( planes, ss, ts, player, colony ),
     mode_( mode ),
-    occupied_red_box_( find_occupied_surrounding_colony_squares(
-        ss, colony ) ) {}
+    occupied_red_box_(
+        find_occupied_surrounding_colony_squares( ss, colony ) ),
+    native_owned_land_( find_native_owned_land(
+        ss, player, colony.location ) ) {}
 
 } // namespace rn

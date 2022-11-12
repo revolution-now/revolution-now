@@ -18,6 +18,7 @@
 // ss
 #include "ss/colony-enums.rds.hpp"
 #include "ss/colony.rds.hpp"
+#include "ss/native-enums.rds.hpp"
 
 namespace rn {
 
@@ -127,7 +128,8 @@ struct ColonyLandView : public ui::View,
   // These are squares that are occupied by colonists from other
   // colonies, either friendly or foreign. In the original game,
   // these tiles would have a red box drawn around them.
-  refl::enum_map<e_direction, bool> occupied_red_box_;
+  refl::enum_map<e_direction, bool>           occupied_red_box_;
+  refl::enum_map<e_direction, maybe<e_tribe>> native_owned_land_;
 };
 
 } // namespace rn

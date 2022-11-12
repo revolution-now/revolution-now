@@ -555,6 +555,9 @@ TEST_CASE( "[colony-mgr] give_stockade_if_needed" ) {
 
 TEST_CASE( "[colony-mgr] found_colony finds job for unit." ) {
   // TODO
+  //
+  // 1. Avoids indian villages.
+  // 2. Avoids indian-owned land.
 }
 
 TEST_CASE( "[colony-mgr] evolve colonies." ) {

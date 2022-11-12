@@ -42,7 +42,7 @@ sheets {
         armed_brave:        { y: 0, x: 1 }
         mounted_brave:      { y: 0, x: 2 }
         mounted_warrior:    { y: 0, x: 3 }
-        native_land:        { y: 2, x: 0 }
+        totem_pole:         { y: 2, x: 0 }
         capital_star:       { y: 2, x: 1 }
       }
     }

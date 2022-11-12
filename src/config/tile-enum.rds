@@ -630,7 +630,7 @@ enum.e_tile {
   grey_pyramid,
 
   # Other
-  native_land,
+  totem_pole,
   capital_star,
 
   # =============================================================
