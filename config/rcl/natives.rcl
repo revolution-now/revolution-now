@@ -27,14 +27,20 @@ unit_types {
 dwelling_types {
   camp {
     radius:         small
+    name_singular:  camp
+    name_plural:    camps
   }
 
   village {
     radius:         small
+    name_singular:  village
+    name_plural:    villages
   }
 
   city {
     radius:         large
+    name_singular:  city
+    name_plural:    cities
   }
 }
 
@@ -161,4 +167,13 @@ flag_rects {
 
   city: [
   ]
+}
+
+# Describes behaviors having to do with native alarm level. Note
+# that there is dwelling-level alarm and tribal alarm, and the
+# names will specify which one is being referred to.
+alarm {
+  # TODO: This needs to somehow be calibrated against the orig-
+  # inal game.
+  max_dwelling_alarm_for_teaching: 50
 }

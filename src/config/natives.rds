@@ -19,6 +19,7 @@ include "cdr/ext-builtin.hpp"
 include "cdr/ext-std.hpp"
 
 # gfx
+include "gfx/cartesian.hpp"
 include "gfx/pixel.hpp"
 
 # refl
@@ -57,6 +58,8 @@ struct.UnitType {
 
 struct.DwellingType {
   radius 'e_dwelling_radius',
+  name_singular 'std::string',
+  name_plural 'std::string',
 }
 
 struct.Tribe {
@@ -74,6 +77,13 @@ struct.Tribe {
   flag_color 'gfx::pixel',
 }
 
+struct.Alarm {
+  # If the effective alarm of a dwelling is larger than this then
+  # they will not teach. Note that this is only relevant when not
+  # at war (when at war, they will never teach).
+  max_dwelling_alarm_for_teaching 'int',
+}
+
 namespace "rn"
 
 struct.config_natives_t {
@@ -89,6 +99,11 @@ struct.config_natives_t {
   # should be filled in relative to the upper left corner of the
   # camp/village sprite.
   flag_rects 'refl::enum_map<e_dwelling_type, std::vector<gfx::rect>>',
+
+  # Describes behaviors having to do with native alarm level.
+  # Note that there is dwelling-level alarm and tribal alarm, and
+  # the names will specify which one is being referred to.
+  alarm 'config::natives::Alarm',
 }
 
 config.natives {}
