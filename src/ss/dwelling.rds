@@ -40,7 +40,7 @@ struct.DwellingRelationship {
   # This number is in [0, 99], with 99 being most alarmed. The
   # effective alarm of a dwelling must take into account both
   # this number and the tribal level anger.
-  non_tribal_alarm 'int',
+  dwelling_only_alarm 'int',
 
   _features { equality, validation }
 }

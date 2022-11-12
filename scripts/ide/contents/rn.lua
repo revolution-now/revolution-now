@@ -11,4 +11,8 @@ return {
   'ss/native-unit',
   'society',
   'orders-move',
+  'enter-dwelling',
+  'alarm',
+  'meet-natives',
+  'colview-land',
 }

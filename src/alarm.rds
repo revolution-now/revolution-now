@@ -1,0 +1,20 @@
+# ===============================================================
+# alarm.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-11-07.
+#
+# Description: Rds definitions for the alarm module.
+#
+# ===============================================================
+namespace "rn"
+
+# These go in order of happiest to not.
+enum.e_enter_dwelling_reaction {
+  wave_happily,
+  wave_happily_with_scalps,
+  frowning_archers,
+  wary_warriors,
+  scalps_and_war_drums,
+}

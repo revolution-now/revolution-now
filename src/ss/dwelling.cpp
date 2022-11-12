@@ -34,8 +34,9 @@ void linker_dont_discard_module_ss_dwelling() {}
 ** DwellingRelationship
 *****************************************************************/
 base::valid_or<string> DwellingRelationship::validate() const {
-  REFL_VALIDATE( non_tribal_alarm >= 0 && non_tribal_alarm <= 99,
-                 "non_tribal_alarm must be in [0, 99]." );
+  REFL_VALIDATE(
+      dwelling_only_alarm >= 0 && dwelling_only_alarm <= 99,
+      "dwelling_only_alarm must be in [0, 99]." );
   return base::valid;
 }
 
@@ -72,7 +73,7 @@ LUA_STARTUP( lua::state& st ) {
 
     auto u = st.usertype.create<U>();
 
-    u["non_tribal_alarm"] = &U::non_tribal_alarm;
+    u["dwelling_only_alarm"] = &U::dwelling_only_alarm;
   }();
 
   // Dwelling.

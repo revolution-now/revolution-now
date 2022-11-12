@@ -126,7 +126,9 @@ Tribe const& NativesState::tribe_for( e_tribe tribe ) const {
 
 Tribe& NativesState::create_or_add_tribe( e_tribe tribe ) {
   if( o_.tribes[tribe].has_value() ) return *o_.tribes[tribe];
-  return o_.tribes[tribe].emplace();
+  Tribe& obj = o_.tribes[tribe].emplace();
+  obj.type   = tribe;
+  return obj;
 }
 
 unordered_map<DwellingId, Dwelling> const&
