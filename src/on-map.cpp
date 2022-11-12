@@ -18,6 +18,7 @@
 #include "imap-updater.hpp"
 #include "lcr.hpp"
 #include "logger.hpp"
+#include "meet-natives.hpp"
 #include "treasure.hpp"
 #include "ts.hpp"
 #include "visibility.hpp"
@@ -117,6 +118,18 @@ wait<bool> try_king_transport_treasure( SS& ss, TS& ts,
   co_return true; // treasure unit deleted.
 }
 
+wait<> try_meet_natives( SS& ss, TS& ts, Player const& player,
+                         Coord square ) {
+  vector<MeetTribe> const meet_tribes =
+      check_meet_tribes( as_const( ss ), player, square );
+  for( MeetTribe const& meet_tribe : meet_tribes ) {
+    e_declare_war_on_natives const declare_war =
+        co_await perform_meet_tribe_ui_sequence( ts, player,
+                                                 meet_tribe );
+    perform_meet_tribe( ss, player, meet_tribe, declare_war );
+  }
+}
+
 } // namespace
 
 /****************************************************************
@@ -189,6 +202,8 @@ wait<maybe<UnitDeleted>> unit_to_map_square(
     // the king asked to transport it, the player accepted, and
     // the treasure unit was deleted.
     co_return UnitDeleted{};
+
+  co_await try_meet_natives( ss, ts, player, world_square );
 
   // Unit is still alive.
   co_return nothing;
