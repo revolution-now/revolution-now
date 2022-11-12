@@ -167,6 +167,11 @@ struct IGui {
   // values.
   template<refl::ReflectedEnum E>
   wait<maybe<E>> partial_optional_enum_choice(
+      std::string const& msg, std::vector<E> const& options,
+      bool sort = false );
+
+  template<refl::ReflectedEnum E>
+  wait<maybe<E>> partial_optional_enum_choice(
       std::vector<E> const& options, bool sort = false );
 
  protected:
@@ -327,8 +332,9 @@ wait<E> IGui::required_enum_choice( bool sort ) {
 
 template<refl::ReflectedEnum E>
 wait<maybe<E>> IGui::partial_optional_enum_choice(
-    std::vector<E> const& options, bool sort ) {
-  ChoiceConfig config{ .msg = "Select One", .sort = sort };
+    std::string const& msg, std::vector<E> const& options,
+    bool sort ) {
+  ChoiceConfig config{ .msg = msg, .sort = sort };
   for( E item : options ) {
     auto key = std::string( refl::enum_value_name( item ) );
     config.options.push_back( ChoiceConfigOption{
@@ -340,6 +346,13 @@ wait<maybe<E>> IGui::partial_optional_enum_choice(
   if( !str_res.has_value() ) co_return nothing;
   UNWRAP_CHECK( res, refl::enum_from_string<E>( *str_res ) );
   co_return res;
+}
+
+template<refl::ReflectedEnum E>
+wait<maybe<E>> IGui::partial_optional_enum_choice(
+    std::vector<E> const& options, bool sort ) {
+  co_return co_await partial_optional_enum_choice(
+      "Select One", options, sort );
 }
 
 } // namespace rn
