@@ -359,7 +359,8 @@ void give_new_crosses_to_player(
 }
 
 ColonyJob_t find_job_for_initial_colonist(
-    SSConst const& ss, Colony const& colony ) {
+    SSConst const& ss, Player const& player,
+    Colony const& colony ) {
   refl::enum_map<e_direction, bool> const occupied_squares =
       find_occupied_surrounding_colony_squares( ss, colony );
   // In an unmodded game the colony will not start off with
@@ -383,7 +384,10 @@ ColonyJob_t find_job_for_initial_colonist(
             .has_value() )
       continue;
     // Check if the land is owned by an indian village.
-    if( ss.natives.owned_land().contains( coord ) ) continue;
+    if( !player.fathers.has[e_founding_father::peter_minuit] &&
+        ss.natives.owned_land_without_minuit().contains(
+            coord ) )
+      continue;
 
     // TODO: check if there are any foreign units fortified on
     //       the square.
@@ -553,8 +557,9 @@ ColonyId found_colony( SS& ss, TS& ts, Player const& player,
   // ties into the colony.
   strip_unit_to_base_type( player, unit, col );
 
-  // Find initial job for founder. (TODO)
-  ColonyJob_t job = find_job_for_initial_colonist( ss, col );
+  // Find initial job for founder.
+  ColonyJob_t job =
+      find_job_for_initial_colonist( ss, player, col );
 
   // Move unit into it.
   move_unit_to_colony( ss.units, player, col, founder, job );
@@ -566,7 +571,7 @@ ColonyId found_colony( SS& ss, TS& ts, Player const& player,
   // tile. Although the OG does not seem to require the player to
   // pay for this land to found a colony, the game does not re-
   // move the owned status, so if the colony is then abandoned
-  // the square still shows as owned..
+  // the square still shows as owned.
 
   // Done.
   auto& desc = nation_obj( nation );

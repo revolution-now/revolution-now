@@ -41,6 +41,7 @@ struct.MeetTribe {
   # they've founded a colony. Also, it enables an interesting
   # strategy where the player can attempt to found colonies ini-
   # tially while avoiding contact with the natives in order to
-  # not have to pay for the first few land squares.
+  # not have to pay for the first few land squares. Note that
+  # this will be empty if the player has Peter Minuit.
   land_awarded 'std::vector<Coord>',
 }

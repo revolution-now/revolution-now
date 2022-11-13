@@ -85,14 +85,14 @@ struct NativesState {
   // ------------------------------------------------------------
   // Owned Land
   // ------------------------------------------------------------
-  std::unordered_map<Coord, DwellingId>& owned_land() {
-    return o_.owned_land;
-  }
-
-  std::unordered_map<Coord, DwellingId> const& owned_land()
-      const {
-    return o_.owned_land;
-  }
+  // NOTE: When calling these methods be careful to also check
+  // that whether the player has Peter Minuit, in which case
+  // there is effectively no land ownership by the natives from
+  // the perspective of that player.
+  std::unordered_map<Coord, DwellingId>&
+  owned_land_without_minuit();
+  std::unordered_map<Coord, DwellingId> const&
+  owned_land_without_minuit() const;
 
   void mark_land_owned( DwellingId dwelling_id, Coord where );
 

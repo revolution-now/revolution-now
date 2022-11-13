@@ -207,6 +207,16 @@ bool NativesState::exists( DwellingId id ) const {
   return o_.dwellings.contains( id );
 }
 
+unordered_map<Coord, DwellingId>&
+NativesState::owned_land_without_minuit() {
+  return o_.owned_land;
+}
+
+unordered_map<Coord, DwellingId> const&
+NativesState::owned_land_without_minuit() const {
+  return o_.owned_land;
+}
+
 void NativesState::mark_land_owned( DwellingId dwelling_id,
                                     Coord      where ) {
   o_.owned_land[where] = dwelling_id;

@@ -77,10 +77,13 @@ refl::enum_map<e_direction, maybe<e_tribe>>
 find_native_owned_land( SSConst const& ss, Player const& player,
                         Coord loc ) {
   refl::enum_map<e_direction, maybe<e_tribe>> res;
+  if( player.fathers.has[e_founding_father::peter_minuit] )
+    // Effectively no native land ownership when we have Minuit.
+    return res;
   for( e_direction d : refl::enum_values<e_direction> ) {
-    Coord const             moved = loc.moved( d );
-    maybe<DwellingId> const dwelling_id =
-        base::lookup( ss.natives.owned_land(), moved );
+    Coord const             moved       = loc.moved( d );
+    maybe<DwellingId> const dwelling_id = base::lookup(
+        ss.natives.owned_land_without_minuit(), moved );
     if( !dwelling_id.has_value() ) continue;
     Tribe const& tribe = ss.natives.tribe_for(
         ss.natives.dwelling_for( *dwelling_id ).tribe );

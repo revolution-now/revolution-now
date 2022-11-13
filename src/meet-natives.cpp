@@ -81,17 +81,19 @@ MeetTribe check_meet_tribe_single( SSConst const& ss,
 
   // 3. For each occupied square, see if it is owned by one of
   // the above dwellings.
-  unordered_map<Coord, DwellingId> const& land_owned =
-      ss.natives.owned_land();
   unordered_set<Coord> land_awarded;
-  for( Coord occupied : land_occupied ) {
-    if( !land_owned.contains( occupied ) ) continue;
-    UNWRAP_CHECK( dwelling_id,
-                  base::lookup( land_owned, occupied ) );
-    if( !dwellings.contains( dwelling_id ) ) continue;
-    // The square is owned by natives of this tribe, so award it
-    // to the player.
-    land_awarded.insert( occupied );
+  if( !player.fathers.has[e_founding_father::peter_minuit] ) {
+    unordered_map<Coord, DwellingId> const& land_owned =
+        ss.natives.owned_land_without_minuit();
+    for( Coord occupied : land_occupied ) {
+      if( !land_owned.contains( occupied ) ) continue;
+      UNWRAP_CHECK( dwelling_id,
+                    base::lookup( land_owned, occupied ) );
+      if( !dwellings.contains( dwelling_id ) ) continue;
+      // The square is owned by natives of this tribe, so award
+      // it to the player.
+      land_awarded.insert( occupied );
+    }
   }
   vector<Coord> sorted_land_awarded( land_awarded.begin(),
                                      land_awarded.end() );
@@ -224,10 +226,14 @@ void perform_meet_tribe( SS& ss, Player const& player,
       .at_war = ( declare_war == e_declare_war_on_natives::yes ),
       .tribal_alarm = 0 };
 
-  // Award player any land they "occupy" that is owned by this
-  // tribe.
   unordered_map<Coord, DwellingId>& owned_land =
-      ss.natives.owned_land();
+      ss.natives.owned_land_without_minuit();
+  // Award player any land they "occupy" that is owned by this
+  // tribe. Note that if the player has Peter Minuit then this
+  // should be an empty list.
+  if( player.fathers.has[e_founding_father::peter_minuit] ) {
+    CHECK( meet_tribe.land_awarded.empty() );
+  }
   for( Coord to_award : meet_tribe.land_awarded ) {
     CHECK( owned_land.contains( to_award ),
            "square {} was supposed to be owned by the {} tribe "
