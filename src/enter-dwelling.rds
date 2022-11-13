@@ -1,0 +1,91 @@
+# ===============================================================
+# enter-dwelling.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-11-06.
+#
+# Description: Rds definitions for the enter-dwelling module.
+#
+# ===============================================================
+# Revolution Now
+include "alarm.rds.hpp"
+
+# ss
+include "ss/dwelling-id.hpp"
+include "ss/native-enums.rds.hpp"
+include "ss/unit-composer.hpp"
+include "ss/unit-type.rds.hpp"
+
+# C++ standard library
+include "<vector>"
+
+namespace "rn"
+
+# ===============================================================
+# General.
+# ===============================================================
+enum.e_enter_dwelling_option {
+  live_among_the_natives,
+  speak_with_chief,
+  attack_village,
+  demand_tribute,
+  establish_mission,
+  incite_indians,
+  denounce_foreign_mission,
+  trade,
+  cancel,
+}
+
+enum.e_dwelling_interaction_category {
+  scout,
+  military,
+  colonist,
+  missionary,
+  trade,
+  none,
+}
+
+struct.EnterNativeDwellingOptions {
+  dwelling_id 'DwellingId',
+  reaction 'e_enter_dwelling_reaction',
+  category 'e_dwelling_interaction_category',
+  # These will be in the order that they should be presented to
+  # the player.
+  options 'std::vector<e_enter_dwelling_option>',
+}
+
+# ===============================================================
+# Live among the natives.
+# ===============================================================
+sumtype.LiveAmongTheNatives {
+  # Cannot train wagon trains, military units, etc. These units
+  # will be prevented from even attempting, but just in case.
+  generally_ineligible {},
+
+  # These are two ineligible units that are special in that they
+  # present the player with a unique message.
+  petty_criminal {},
+  native_convert {},
+
+  # The natives will not teach when their unhappiness level is
+  # high enough.
+  unhappy {},
+
+  # The dwelling (if it is a non-capital) will not teach a
+  # colonist twice, even if they are of a different nation.
+  already_taught {},
+
+  # The unit cannot be taught if it already has some expertise.
+  has_expertise {
+    in_what 'e_unit_activity',
+  },
+
+  # Success.
+  promoted {
+    # By specifying the composition here it allows us (as in the
+    # OG) to have the natives teach a pioneer but have the pio-
+    # neer still retain its tools.
+    to 'UnitComposition',
+  },
+}

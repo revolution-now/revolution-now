@@ -1,0 +1,60 @@
+/****************************************************************
+**enter-dwelling.hpp
+*
+* Project: Revolution Now
+*
+* Created by dsicilia on 2022-11-06.
+*
+* Description: Drives the sequence of events that happen when a
+*              unit attempts to enter a native dwelling.
+*
+*****************************************************************/
+#pragma once
+
+#include "core-config.hpp"
+
+// Rds
+#include "enter-dwelling.rds.hpp"
+
+// Revolution Now
+#include "wait.hpp"
+
+// base
+#include "base/vocab.hpp"
+
+namespace rn {
+
+struct Dwelling;
+struct Player;
+struct SSConst;
+struct TS;
+struct TribeRelationship;
+struct Unit;
+
+/****************************************************************
+** General.
+*****************************************************************/
+EnterNativeDwellingOptions enter_native_dwelling_options(
+    SSConst const& ss, Player const& player,
+    e_unit_type unit_type, Dwelling const& dwelling );
+
+wait<base::NoDiscard<e_enter_dwelling_option>>
+present_dwelling_entry_options(
+    SSConst const& ss, TS& ts,
+    EnterNativeDwellingOptions const& options );
+
+/****************************************************************
+** Live Among the Natives.
+*****************************************************************/
+// Passing in the tribe relationship object helps to guarantee
+// that the tribe has made contact; if it hasn't then we
+// shouldn't even be calling this.
+LiveAmongTheNatives_t compute_live_among_the_natives(
+    SSConst const& ss, TribeRelationship const& relationship,
+    Dwelling const& dwelling, Unit const& unit );
+
+wait<> do_live_among_the_natives(
+    TS& ts, Dwelling& dwelling, Player const& player, Unit& unit,
+    LiveAmongTheNatives_t const& outcome );
+
+} // namespace rn
