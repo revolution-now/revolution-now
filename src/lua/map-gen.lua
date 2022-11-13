@@ -523,9 +523,7 @@ end
 
 local function create_arctic( options )
   local size = world_size()
-  if size.h < options.min_map_height_for_arctic then
-    return
-  end
+  if size.h < options.min_map_height_for_arctic then return end
   create_arctic_along_row( 0 )
   create_arctic_along_row( size.h - 1 )
 end
@@ -701,6 +699,41 @@ local function has_dwelling_in_surroundings( coord )
   return false
 end
 
+local function pick_expertise_for_dwelling()
+  -- FIXME: Temporary, need to move this to C++ and choose based
+  -- on the surrounding territory.
+  local can_teach = {
+    -- Note that the OG actually allows a couple of more skills to
+    -- be taught by the natives than are listed in the quick refer-
+    -- ence card; those are marked with a star below.
+
+    -- This one could probably be taught at any dwelling.
+    'scouting',
+
+    -- These seem to be taught based on the terrain around the
+    -- dwelling, probably two squares around.
+    'farming', --
+    'fishing', --
+    'sugar_planting', --
+    'tobacco_planting', --
+    'cotton_planting', --
+    'fur_trapping', --
+    'ore_mining', -- *
+    -- This appears to only be taught by the Inca and Aztec.
+    'silver_mining', --
+    -- This one can be taught by any tribe but appears to be quite
+    -- rare.
+    'fur_trading', -- *
+    -- Some of these have been seen and obtained, but only very
+    -- rarely and only by the Aztec. Not clear if it was inten-
+    -- tional or if it is a bug.
+    'rum_distilling', -- ??
+    'tobacconistry', -- ??
+    'weaving' -- *
+  }
+  return random_list_elem( can_teach )
+end
+
 local function add_dwelling( coord, tribe )
   assert( coord )
   local square = square_at( coord )
@@ -708,6 +741,7 @@ local function add_dwelling( coord, tribe )
   dwelling.tribe = tribe
   -- FIXME
   dwelling.population = 3
+  dwelling.teaches = pick_expertise_for_dwelling()
   -- Get rid of any forest if we're placing one of the city
   -- dwellings. The OG does not do this, but they don't really
   -- look good floating above a forest given that they are sup-
@@ -722,6 +756,23 @@ local function add_dwelling( coord, tribe )
   -- them anyway.
   square.lost_city_rumor = false
   if square.overlay == 'mountains' then square.overlay = nil end
+  -- Mark the land around the dwelling as owned by this village.
+  -- If it's already owned by another dwelling that's ok, we'll
+  -- just overwrite it.
+  local owned_squares
+  -- FIXME: dwelling radius is specified in the config files,
+  -- should not be duplicated here.
+  if tribe == 'aztec' or tribe == 'inca' then
+    owned_squares = filter_on_map(
+                        surrounding_squares_5x5( coord ) )
+  else
+    owned_squares = filter_on_map(
+                        surrounding_squares_3x3( coord ) )
+  end
+  ROOT.natives:mark_land_owned( dwelling.id, coord )
+  for _, coord in ipairs( owned_squares ) do
+    ROOT.natives:mark_land_owned( dwelling.id, coord )
+  end
   return dwelling
 end
 
@@ -777,19 +828,22 @@ local function create_indian_villages_using_partition(options,
   for n, tribe in ipairs( tribes ) do
     if not placed_at_least_one[tribe] and
         #coords_for_partition[n] > 0 then
-      local coord =
-          random_list_elem( coords_for_partition[n] )
+      local coord = random_list_elem( coords_for_partition[n] )
       assert( coord )
       local dwelling = add_dwelling( coord, tribe )
       table.insert( dwellings[tribe], dwelling )
+      placed_at_least_one[tribe] = true
     end
   end
-  -- Pick a capital for each tribe.
+  -- Create each tribe (that has at least one dwelling) and pick
+  -- a capital for each tribe.
   for _, tribe in ipairs( tribes ) do
     local tribe_dwellings = dwellings[tribe]
     shuffle( tribe_dwellings )
     if #tribe_dwellings > 0 then
       tribe_dwellings[1].is_capital = true
+      local tribe_obj = ROOT.natives:create_or_add_tribe( tribe )
+      tribe_obj.type = tribe
     end
   end
 end
