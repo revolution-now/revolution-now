@@ -362,10 +362,10 @@ maybe<e_outdoor_commons_secondary_job> choose_secondary_job(
   return res;
 }
 
-int production_on_square( e_outdoor_job       job,
-                          TerrainState const& terrain_state,
-                          Player const& player, e_unit_type type,
-                          Coord where ) {
+int production_on_square(
+    e_outdoor_job job, TerrainState const& terrain_state,
+    refl::enum_map<e_founding_father, bool> const& fathers,
+    e_unit_type type, Coord where ) {
   auto const& conf =
       config_production.outdoor_production.jobs[job];
 
@@ -497,7 +497,7 @@ int production_on_square( e_outdoor_job       job,
 
   // 6. Fathers bonus.
   if( conf.father_bonus.has_value() &&
-      player.fathers.has[conf.father_bonus->father] )
+      fathers[conf.father_bonus->father] )
     res = apply_outdoor_bonus( res, is_expert,
                                conf.father_bonus->bonus );
 

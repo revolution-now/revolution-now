@@ -19,6 +19,7 @@
 #include "ss/colony.rds.hpp"
 #include "ss/commodity.rds.hpp"
 #include "ss/difficulty.rds.hpp"
+#include "ss/fathers.rds.hpp"
 #include "ss/map-square.rds.hpp"
 #include "ss/unit-type.rds.hpp"
 
@@ -27,10 +28,10 @@ namespace rn {
 struct Player;
 struct TerrainState;
 
-int production_on_square( e_outdoor_job       job,
-                          TerrainState const& terrain_state,
-                          Player const&       player,
-                          e_unit_type unit_type, Coord where );
+int production_on_square(
+    e_outdoor_job job, TerrainState const& terrain_state,
+    refl::enum_map<e_founding_father, bool> const& fathers,
+    e_unit_type unit_type, Coord where );
 
 int food_production_on_center_square( MapSquare const& square,
                                       e_difficulty difficulty );

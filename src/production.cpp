@@ -392,8 +392,8 @@ void compute_food_production(
       e_unit_type const unit_type =
           units_state.unit_for( unit->unit_id ).type();
       int quantity = production_on_square(
-          e_outdoor_job::food, terrain_state, player, unit_type,
-          colony.location.moved( d ) );
+          e_outdoor_job::food, terrain_state, player.fathers.has,
+          unit_type, colony.location.moved( d ) );
       bells_modifiers.apply( e_unit_activity::farming, unit_type,
                              quantity );
       out.corn_produced += quantity;
@@ -410,8 +410,8 @@ void compute_food_production(
       e_unit_type const unit_type =
           units_state.unit_for( unit->unit_id ).type();
       int quantity = production_on_square(
-          e_outdoor_job::fish, terrain_state, player, unit_type,
-          colony.location.moved( d ) );
+          e_outdoor_job::fish, terrain_state, player.fathers.has,
+          unit_type, colony.location.moved( d ) );
       bells_modifiers.apply( e_unit_activity::fishing, unit_type,
                              quantity );
       out.fish_produced += quantity;
@@ -531,8 +531,8 @@ void compute_raw(
       e_unit_type const unit_type =
           units_state.unit_for( unit->unit_id ).type();
       int quantity = production_on_square(
-          outdoor_job, terrain_state, player, unit_type,
-          colony.location.moved( d ) );
+          outdoor_job, terrain_state, player.fathers.has,
+          unit_type, colony.location.moved( d ) );
       bells_modifiers.apply(
           activity_for_outdoor_job( outdoor_job ), unit_type,
           quantity );
