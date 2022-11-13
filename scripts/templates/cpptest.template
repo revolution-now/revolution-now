@@ -5,16 +5,16 @@
 *
 * Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
 *
-* Description: Unit tests for the src/{{CURSOR}}{{FILEP}}/{{FILE}}.* module.
+* Description: Unit tests for the src/{{FILE}}.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/{{CURSOR}}{{FILEP}}/{{FILE}}.hpp"
+#include "src/{{FILE}}.hpp"
 
-// Revolution Now
-#include "src/luapp/state.hpp" // FIXME: remove if not needed.
+// Testing
+#include "test/fake/world.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -24,31 +24,33 @@ namespace {
 
 using namespace std;
 
-// using Catch::Contains;
+/****************************************************************
+** Fake World Setup
+*****************************************************************/
+struct World : testing::World {
+  using Base = testing::World;
+  World() : Base() {
+    add_default_player();
+    create_default_map();
+  }
 
-TEST_CASE( "[{{FILEP}}/{{FILE}}] some test" ) {
+  void create_default_map() {
+    MapSquare const   _ = make_ocean();
+    MapSquare const   L = make_grassland();
+    vector<MapSquare> tiles{
+        _, L, _, //
+        L, L, L, //
+        _, L, L, //
+    };
+    build_map( std::move( tiles ), 3 );
+  }
+};
+
+/****************************************************************
+** Test Cases
+*****************************************************************/
+TEST_CASE( "[{{FILE}}] some test" ) {
   // TODO
-}
-
-TEST_CASE( "[{{FILEP}}/{{FILE}}] lua bindings" ) {
-  lua::state st;
-
-  auto script = R"(
-    local x = 5+6
-  )";
-  REQUIRE( st.script.run_safe( script ) == valid );
-
-  script = R"(
-    local x =
-  )";
-  auto xp = st.script.run_safe( script );
-  REQUIRE( !xp.valid() );
-  REQUIRE_THAT( xp.error(), Contains( "unexpected symbol" ) );
-
-  script = R"(
-    return 5+8.5
-  )";
-  REQUIRE( st.script.run_safe<double>( script ) == 13.5 );
 }
 
 } // namespace
