@@ -16,6 +16,7 @@
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "conductor.hpp"
+#include "enter-dwelling.hpp"
 #include "fight.hpp"
 #include "harbor-units.hpp"
 #include "igui.hpp"
@@ -35,6 +36,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
@@ -53,6 +55,8 @@
 using namespace std;
 
 namespace rn {
+
+struct Dwelling;
 
 namespace {
 
@@ -1526,16 +1530,20 @@ wait<> AttackHandler::perform() {
 }
 
 /****************************************************************
-** NativesHandler
+** NativeDwellingHandler
 *****************************************************************/
-struct NativesHandler : public OrdersHandler {
-  NativesHandler( Planes& planes, SS& ss, TS& ts, Player& player,
-                  UnitId unit_id, e_direction d )
+struct NativeDwellingHandler : public OrdersHandler {
+  NativeDwellingHandler( Planes& planes, SS& ss, TS& ts,
+                         Player& player, UnitId unit_id,
+                         e_direction d, Dwelling& dwelling )
     : planes_( planes ),
       ss_( ss ),
       ts_( ts ),
       player_( player ),
+      unit_id_( unit_id ),
       unit_( ss_.units.unit_for( unit_id ) ),
+      tribe_( ss.natives.tribe_for( dwelling.tribe ) ),
+      dwelling_( dwelling ),
       direction_( d ),
       move_src_( coord_for_unit_indirect_or_die( ss.units,
                                                  unit_.id() ) ),
@@ -1543,17 +1551,81 @@ struct NativesHandler : public OrdersHandler {
 
   // Returns true if the move is allowed.
   wait<bool> confirm() override {
-    // TODO
-    co_return false;
+    if( !unit_.desc().ship &&
+        ss_.terrain.square_at( move_src_ ).surface ==
+            e_surface::water ) {
+      co_await ts_.gui.message_box(
+          "A land unit cannot enter a square occupied by an "
+          "enemy power directly from a ship.  We must first "
+          "move them onto a land square that is either empty or "
+          "occupied by friendly forces." );
+      co_return false;
+    }
+
+    EnterNativeDwellingOptions const options =
+        enter_native_dwelling_options( ss_, player_,
+                                       unit_.type(), dwelling_ );
+    chosen_option_ = co_await present_dwelling_entry_options(
+        ss_, ts_, options );
+    // The move is always allowed for any unit; if the unit can't
+    // do anything or if the unit cancels then the unit's move-
+    // ment points will still be consumed.
+    co_return true;
   }
 
   wait<> animate() const override {
-    // TODO
+    // TODO: May add some animation in the future for:
+    //   1. Tales of nearby lands.
+    //   2. Colonist learning skill.
     co_return;
   }
 
   wait<> perform() override {
-    // TODO
+    // The OG will always drain the movement points of the unit
+    // completely (even a scout) when it enters a village, and
+    // will do so even when the user then cancels the action.
+    unit_.forfeight_mv_points();
+
+    switch( chosen_option_ ) {
+      case e_enter_dwelling_option::live_among_the_natives: {
+        // This should have a value because we should not have
+        // allowed the player to choose to live among the natives
+        // otherwise.
+        UNWRAP_CHECK( relationship,
+                      tribe_.relationship[unit_.nation()] );
+        maybe<LiveAmongTheNatives_t> const outcome =
+            compute_live_among_the_natives( ss_, relationship,
+                                            dwelling_, unit_ );
+        if( !outcome.has_value() ) break;
+        co_await do_live_among_the_natives(
+            ts_, dwelling_, player_, unit_, *outcome );
+        break;
+      }
+      case e_enter_dwelling_option::speak_with_chief:
+        co_await ts_.gui.message_box( "Not Implemented" );
+        co_return;
+      case e_enter_dwelling_option::attack_village:
+        co_await ts_.gui.message_box( "Not Implemented" );
+        co_return;
+      case e_enter_dwelling_option::demand_tribute:
+        co_await ts_.gui.message_box( "Not Implemented" );
+        co_return;
+      case e_enter_dwelling_option::establish_mission:
+        co_await ts_.gui.message_box( "Not Implemented" );
+        co_return;
+      case e_enter_dwelling_option::incite_indians:
+        co_await ts_.gui.message_box( "Not Implemented" );
+        co_return;
+      case e_enter_dwelling_option::denounce_foreign_mission:
+        co_await ts_.gui.message_box( "Not Implemented" );
+        co_return;
+      case e_enter_dwelling_option::trade:
+        co_await ts_.gui.message_box( "Not Implemented" );
+        co_return;
+      case e_enter_dwelling_option::cancel:
+        // Do nothing.
+        co_return;
+    }
     co_return;
   }
 
@@ -1562,8 +1634,7 @@ struct NativesHandler : public OrdersHandler {
     // exist here if it was destroyed as part of this action,
     // e.g. losing losing a battle or being "used for target
     // practice."
-
-    // TODO
+    if( !ss_.units.exists( unit_id_ ) ) co_return;
     co_return;
   }
 
@@ -1572,13 +1643,21 @@ struct NativesHandler : public OrdersHandler {
   TS&     ts_;
   Player& player_;
 
-  // The unit doing the attacking.
-  Unit& unit_;
+  // The unit doing the attacking. We need to record the unit id
+  // so that we can test if the unit has been destroyed.
+  UnitId    unit_id_;
+  Unit&     unit_;
+  Tribe&    tribe_;
+  Dwelling& dwelling_;
 
   // Source and destination squares of the move.
   e_direction direction_;
   Coord       move_src_;
   Coord       move_dst_;
+
+  // These get filled out after construction.
+  e_enter_dwelling_option chosen_option_ =
+      e_enter_dwelling_option::cancel;
 };
 
 /****************************************************************
@@ -1586,37 +1665,54 @@ struct NativesHandler : public OrdersHandler {
 *****************************************************************/
 unique_ptr<OrdersHandler> dispatch( Planes& planes, SS& ss,
                                     TS& ts, Player& player,
-                                    UnitId id, e_direction d ) {
-  Coord dst =
-      coord_for_unit_indirect_or_die( ss.units, id ).moved( d );
-  auto& unit = ss.units.unit_for( id );
+                                    UnitId      unit_id,
+                                    e_direction d ) {
+  Coord const dst =
+      coord_for_unit_indirect_or_die( ss.units, unit_id )
+          .moved( d );
+  auto& unit = ss.units.unit_for( unit_id );
 
   if( !dst.is_inside( ss.terrain.world_rect_tiles() ) )
     // This is an invalid move, but the TravelHandler is the one
     // that knows how to handle it.
-    return make_unique<TravelHandler>( planes, ss, ts, id, d,
-                                       player );
+    return make_unique<TravelHandler>( planes, ss, ts, unit_id,
+                                       d, player );
 
   maybe<Society_t> const society = society_on_square( ss, dst );
 
   if( !society.has_value() )
     // No entities on target sqaure, so it is just a travel.
-    return make_unique<TravelHandler>( planes, ss, ts, id, d,
-                                       player );
+    return make_unique<TravelHandler>( planes, ss, ts, unit_id,
+                                       d, player );
   CHECK( society.has_value() );
 
   if( *society ==
       Society_t{ Society::european{ .nation = unit.nation() } } )
     // Friendly unit on target square, so not an attack.
-    return make_unique<TravelHandler>( planes, ss, ts, id, d,
-                                       player );
+    return make_unique<TravelHandler>( planes, ss, ts, unit_id,
+                                       d, player );
 
-  if( society->holds<Society::native>() )
-    return make_unique<NativesHandler>( planes, ss, ts, player,
-                                        id, d );
+  if( society->holds<Society::native>() ) {
+    // First check if we are attacking a brave. We need to do
+    // this first because it is sometimes possible that the
+    // "walker" braves might be sitting over a dwelling, in which
+    // case the attack should first go to them as if they were
+    // out in the open.
+    unordered_set<GenericUnitId> const& braves =
+        ss.units.from_coord( dst );
+    if( !braves.empty() )
+      return make_unique<AttackHandler>( planes, ss, ts, unit_id,
+                                         d, player );
+    // Must be a dwelling.
+    DwellingId const dwelling_id =
+        ss.natives.dwelling_from_coord( dst );
+    return make_unique<NativeDwellingHandler>(
+        planes, ss, ts, player, unit_id, d,
+        ss.natives.dwelling_for( dwelling_id ) );
+  }
 
   // Must be an attack (or an attempted attack).
-  return make_unique<AttackHandler>( planes, ss, ts, id, d,
+  return make_unique<AttackHandler>( planes, ss, ts, unit_id, d,
                                      player );
 }
 
