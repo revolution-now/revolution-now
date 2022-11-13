@@ -30,6 +30,12 @@ struct SSConst;
 struct TS;
 struct Unit;
 
+// Gets the one (unique) unit type that is the expert for this
+// activity. Note that During config deserialization it should
+// have been verified that there is precisely one expert for each
+// activity.
+e_unit_type expert_for_activity( e_unit_activity activity );
+
 // This is the function that top-level game logic should call
 // whenever it is determined that a unit is up for promotion (the
 // it is ok if the unit cannot be promoted further). This will
@@ -70,6 +76,22 @@ bool try_promote_unit_for_current_activity( SSConst const& ss,
 // the order of once per battle, although that probably won't
 // happen since the probability of promotion in a battle is low.
 expect<UnitComposition> promoted_from_activity(
+    UnitComposition const& comp, e_unit_activity activity );
+
+// Called when promoting a unit as a result of having been taught
+// by the natives. This will yield a unit that is an expert in
+// the given activity (even if starting as an indentured servant)
+// but also has the same inventory as `comp`. We don't use the
+// `promoted_from_activity` method above for this because it
+// sometimes ignores the `activity`; that method is for when a
+// unit gets promoted in a way that may depend on its activity or
+// not, depending on unit type (e.g. if a free_colonist/pioneer
+// wins while defending in battle it would be promoted not to a
+// veteran colonist/pioneer but to a hardy pioneer). In our case
+// we don't want that: if a free_colonist/pioneer gets trained by
+// the natives in fishing, we want it to become an
+// expert_fisherman/pioneer.
+expect<UnitComposition> promoted_by_natives(
     UnitComposition const& comp, e_unit_activity activity );
 
 // Will attempt to clear the expertise (if any) of the base type

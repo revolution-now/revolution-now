@@ -1021,5 +1021,66 @@ TEST_CASE( "[unit-type] on the job promotion" ) {
   REQUIRE( res == expected );
 }
 
+TEST_CASE( "[unit-type] expert_for_activity" ) {
+  auto f = [&]( e_unit_activity activity ) {
+    return expert_for_activity( activity );
+  };
+
+  REQUIRE( f( e_unit_activity::fishing ) ==
+           e_unit_type::expert_fisherman );
+  REQUIRE( f( e_unit_activity::pioneering ) ==
+           e_unit_type::hardy_colonist );
+  REQUIRE( f( e_unit_activity::fighting ) ==
+           e_unit_type::veteran_colonist );
+}
+
+TEST_CASE( "[unit-type] promoted_by_natives" ) {
+  UnitComposition comp, expected;
+  e_unit_activity activity = {};
+
+  auto f = [&] {
+    UNWRAP_CHECK( new_comp,
+                  promoted_by_natives( comp, activity ) );
+    return new_comp;
+  };
+
+  activity = e_unit_activity::fishing;
+  comp     = UnitComposition::create(
+             UnitType::create( e_unit_type::pioneer,
+                                   e_unit_type::indentured_servant )
+                 .value(),
+             { { e_unit_inventory::tools, 80 } } )
+             .value();
+  expected =
+      UnitComposition::create(
+          UnitType::create( e_unit_type::pioneer,
+                            e_unit_type::expert_fisherman )
+              .value(),
+          { { e_unit_inventory::tools, 80 } } )
+          .value();
+  REQUIRE( f() == expected );
+
+  activity = e_unit_activity::farming;
+  comp =
+      UnitComposition::create( e_unit_type::indentured_servant );
+  expected =
+      UnitComposition::create( e_unit_type::expert_farmer );
+  REQUIRE( f() == expected );
+
+  activity = e_unit_activity::bell_ringing;
+  comp = UnitComposition::create( e_unit_type::free_colonist );
+  expected =
+      UnitComposition::create( e_unit_type::elder_statesman );
+  REQUIRE( f() == expected );
+
+  // In practice the natives won't teach a petty criminal, but
+  // this function should be able to handle it anyway.
+  activity = e_unit_activity::pioneering;
+  comp = UnitComposition::create( e_unit_type::petty_criminal );
+  expected =
+      UnitComposition::create( e_unit_type::hardy_colonist );
+  REQUIRE( f() == expected );
+}
+
 } // namespace
 } // namespace rn

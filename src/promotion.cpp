@@ -41,20 +41,6 @@ namespace rn {
 
 namespace {
 
-// Gets the one (unique) unit type that is the expert for this
-// activity. Note that During config deserialization it should
-// have been verified that there is precisely one expert for each
-// activity.
-e_unit_type expert_for_activity( e_unit_activity activity ) {
-  // During config deserialization it should have been verified
-  // that there is precisely one expert for each activity.
-  for( auto& [type, attr] :
-       config_unit_type.composition.unit_types )
-    if( attr.expertise == activity ) return type;
-  FATAL( "expert unit type for activity {} not found.",
-         activity );
-}
-
 // This will attempt to change only the base type while holding
 // the modifier list constant. If a valid unit results, it will
 // be returned.
@@ -233,6 +219,16 @@ maybe<UnitType> promoted_unit_type( UnitType        ut,
 /****************************************************************
 ** Public API
 *****************************************************************/
+e_unit_type expert_for_activity( e_unit_activity activity ) {
+  // During config deserialization it should have been verified
+  // that there is precisely one expert for each activity.
+  for( auto& [type, attr] :
+       config_unit_type.composition.unit_types )
+    if( attr.expertise == activity ) return type;
+  FATAL( "expert unit type for activity {} not found.",
+         activity );
+}
+
 bool try_promote_unit_for_current_activity( SSConst const& ss,
                                             Player const& player,
                                             Unit& unit ) {
@@ -258,6 +254,29 @@ expect<UnitComposition> promoted_from_activity(
         "viable unit type not found" );
   return UnitComposition::create( *new_type_obj,
                                   comp.inventory() );
+}
+
+expect<UnitComposition> promoted_by_natives(
+    UnitComposition const& comp, e_unit_activity activity ) {
+  if( comp.type_obj().type() != comp.type_obj().base_type() ) {
+    // This will attempt to preserve the unit type and only pro-
+    // mote the base type, so that e.g. when a pioneer enters a
+    // native village and learns a skill it will continue to be a
+    // pioneer with the same number of tools, but its base type
+    // will be an expert.
+    e_unit_type const new_unit_type =
+        expert_for_activity( activity );
+    UNWRAP_CHECK(
+        new_type_obj,
+        UnitType::create( comp.type(), new_unit_type ) );
+    return UnitComposition::create( new_type_obj,
+                                    comp.inventory() );
+  } else {
+    e_unit_type const new_unit_type =
+        expert_for_activity( activity );
+    return UnitComposition::create(
+        UnitType::create( new_unit_type ), comp.inventory() );
+  }
 }
 
 maybe<UnitType> cleared_expertise( UnitType ut ) {
