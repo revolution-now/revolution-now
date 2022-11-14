@@ -39,8 +39,11 @@ struct.ChoiceConfig {
   # Should they be sorted by display name before being displayed.
   sort 'bool',
 
-  # Should something be selected initially? The default if this
-  # is not set is just the first one.
+  # Should something be selected initially? If this is either not
+  # set or it is set to an item that is disabled then the initial
+  # section will be the first first enabled item. If there are no
+  # enabled items then nothing will be selected (though note in
+  # that case that input must be optional).
   initial_selection 'maybe<int>',
 };
 

@@ -726,8 +726,7 @@ wait<maybe<int>> WindowPlane::select_box(
     view_options.push_back(
         { .name = option.name, .enabled = option.enabled } );
   auto selector_view = make_unique<ui::OptionSelectView>(
-      view_options,
-      /*initial_selection=*/initial_selection.value_or( 0 ) );
+      view_options, initial_selection );
   auto* p_selector_view = selector_view.get();
 
   wait_promise<maybe<int>> p;
@@ -750,8 +749,10 @@ wait<maybe<int>> WindowPlane::select_box(
             key_event.keycode != ::SDLK_SPACE &&
             key_event.keycode != ::SDLK_KP_5 )
           return false; // not handled.
-        // An enter-like key is being released, so take action.
-        selected = true;
+        // An enter-like key is being released, so take action,
+        // but only if there is an option highlighted. There may
+        // not be if there are no enabled items.
+        selected = p_selector_view->get_selected().has_value();
         break;
       }
       case input::e_input_event::mouse_button_event: {
@@ -774,7 +775,7 @@ wait<maybe<int>> WindowPlane::select_box(
       default: break;
     }
     if( selected ) {
-      int result = p_selector_view->get_selected();
+      UNWRAP_CHECK( result, p_selector_view->get_selected() );
       CHECK( result >= 0 && result < int( options.size() ) );
       lg.info( "selected: {}", options[result].name );
       p.set_value( result );

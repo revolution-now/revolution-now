@@ -707,9 +707,13 @@ class OptionSelectItemView : public CompositeView {
 // rayView.
 class OptionSelectView : public VectorView {
  public:
+  // If the initial selection is either not set or refers to an
+  // item that is not enabled then the initial selection will be
+  // set to the first enabled item. If there are no enabled items
+  // then nothing will be selected.
   OptionSelectView(
       std::vector<OptionSelectItemView::Option> const& options,
-      int initial_selection );
+      maybe<int> initial_selection );
 
   // Implement CompositeView
   void notify_children_updated() override {}
@@ -721,7 +725,7 @@ class OptionSelectView : public VectorView {
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
 
-  int get_selected() const;
+  maybe<int> get_selected() const;
 
   void grow_to( W w );
 
@@ -739,7 +743,7 @@ class OptionSelectView : public VectorView {
   OptionSelectItemView const* get_view( int item ) const;
   void                        update_selected();
 
-  int selected_;
+  maybe<int> selected_;
 };
 
 class FakeUnitView : public CompositeSingleView {

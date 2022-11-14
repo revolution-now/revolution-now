@@ -131,7 +131,10 @@ struct WindowPlane {
 
   // The result will be nothing iff required==no and the user
   // cancels (e.g. but hitting escape or clicking outside the
-  // window).
+  // window). If the initial selection is either not set or
+  // refers to an item that is not enabled then the initial se-
+  // lection will be set to the first enabled item. If there are
+  // no enabled items then nothing will be selected.
   wait<maybe<int>> select_box(
       std::string_view                    msg,
       std::vector<SelectBoxOption> const& options,

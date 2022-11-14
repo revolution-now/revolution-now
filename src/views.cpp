@@ -1111,10 +1111,25 @@ void OptionSelectItemView::grow_to( W w ) {
 *****************************************************************/
 OptionSelectView::OptionSelectView(
     vector<OptionSelectItemView::Option> const& options,
-    int initial_selection )
+    maybe<int> initial_selection )
   : selected_{ initial_selection } {
   CHECK( options.size() > 0 );
-  CHECK( selected_ >= 0 && selected_ < int( options.size() ) );
+  if( selected_.has_value() ) {
+    CHECK( *selected_ >= 0 &&
+           *selected_ < int( options.size() ) );
+  }
+
+  if( !selected_.has_value() || !options[*selected_].enabled ) {
+    // We either don't have a selected item or the item that was
+    // requested to be selected is not enabled. So we will deal
+    // with that by just selecting the first enabled item if
+    // there is one.
+    for( int i = 0; i < int( options.size() ); ++i ) {
+      if( !options[i].enabled ) continue;
+      selected_ = i;
+      break;
+    }
+  }
 
   Coord so_far{};
   W     min_width{ 0 };
@@ -1155,10 +1170,13 @@ OptionSelectItemView const* OptionSelectView::get_view(
 }
 
 void OptionSelectView::update_selected() {
-  CHECK( get_view( selected_ )->enabled() );
   for( int i = 0; i < count(); ++i )
     get_view( i )->set_active( e_option_active::inactive );
-  get_view( selected_ )->set_active( e_option_active::active );
+  if( selected_.has_value() ) {
+    CHECK( get_view( *selected_ )->enabled() );
+    get_view( *selected_ )
+        ->set_active( e_option_active::active );
+  }
 }
 
 void OptionSelectView::grow_to( W w ) {
@@ -1177,18 +1195,22 @@ bool OptionSelectView::on_key(
     case ::SDLK_UP:
     case ::SDLK_KP_8:
     case ::SDLK_k: // TODO: temporary?
-      do {
-        selected_ = cyclic_modulus( selected_ - 1, count() );
-      } while( !get_view( selected_ )->enabled() );
-      update_selected();
+      if( selected_.has_value() ) {
+        do {
+          selected_ = cyclic_modulus( *selected_ - 1, count() );
+        } while( !get_view( *selected_ )->enabled() );
+        update_selected();
+      }
       return true;
     case ::SDLK_DOWN:
     case ::SDLK_KP_2:
     case ::SDLK_j: // TODO: temporary?
-      do {
-        selected_ = cyclic_modulus( selected_ + 1, count() );
-      } while( !get_view( selected_ )->enabled() );
-      update_selected();
+      if( selected_.has_value() ) {
+        do {
+          selected_ = cyclic_modulus( *selected_ + 1, count() );
+        } while( !get_view( *selected_ )->enabled() );
+        update_selected();
+      }
       return true;
     default: break;
   }
@@ -1223,8 +1245,10 @@ bool OptionSelectView::on_mouse_button(
   return true;
 }
 
-int OptionSelectView::get_selected() const {
-  CHECK( get_view( selected_ )->enabled() );
+maybe<int> OptionSelectView::get_selected() const {
+  if( selected_.has_value() ) {
+    CHECK( get_view( *selected_ )->enabled() );
+  }
   return selected_;
 }
 

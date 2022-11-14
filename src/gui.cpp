@@ -85,8 +85,7 @@ wait<maybe<string>> RealGui::choice(
     CHECK_LT( *config.initial_selection, int( options.size() ) );
   }
   maybe<int> const selected = co_await window_plane_.select_box(
-      config.msg, options, required,
-      config.initial_selection.value_or( 0 ) );
+      config.msg, options, required, config.initial_selection );
   if( !selected.has_value() ) {
     // User cancelled.
     CHECK( required == e_input_required::no );
