@@ -27,6 +27,7 @@ void linker_dont_discard_module_ss_land_view();
 void linker_dont_discard_module_ss_map_square();
 void linker_dont_discard_module_irand();
 void linker_dont_discard_module_ss_dwelling();
+void linker_dont_discard_module_native_expertise();
 
 void linker_dont_discard_me() {
   linker_dont_discard_module_map_updater_lua();
@@ -44,6 +45,7 @@ void linker_dont_discard_me() {
   linker_dont_discard_module_ss_map_square();
   linker_dont_discard_module_irand();
   linker_dont_discard_module_ss_dwelling();
+  linker_dont_discard_module_native_expertise();
   // Add more here as needed.
 }
 

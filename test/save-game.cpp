@@ -76,6 +76,12 @@ void expect_rands( World& W ) {
   EXPECT_CALL( W.rand(), between_ints( _, _, _ ) )
       .times( 4 )
       .returns( 0x200 );
+
+  // These are for choosing the expertise of each native
+  // dwelling.
+  EXPECT_CALL( W.rand(), between_ints( _, _, _ ) )
+      .times( 7 )
+      .returns( 0 );
 }
 
 void create_new_game_from_lua( World& world ) {

@@ -699,41 +699,6 @@ local function has_dwelling_in_surroundings( coord )
   return false
 end
 
-local function pick_expertise_for_dwelling()
-  -- FIXME: Temporary, need to move this to C++ and choose based
-  -- on the surrounding territory.
-  local can_teach = {
-    -- Note that the OG actually allows a couple of more skills to
-    -- be taught by the natives than are listed in the quick refer-
-    -- ence card; those are marked with a star below.
-
-    -- This one could probably be taught at any dwelling.
-    'scouting',
-
-    -- These seem to be taught based on the terrain around the
-    -- dwelling, probably two squares around.
-    'farming', --
-    'fishing', --
-    'sugar_planting', --
-    'tobacco_planting', --
-    'cotton_planting', --
-    'fur_trapping', --
-    'ore_mining', -- *
-    -- This appears to only be taught by the Inca and Aztec.
-    'silver_mining', --
-    -- This one can be taught by any tribe but appears to be quite
-    -- rare.
-    'fur_trading', -- *
-    -- Some of these have been seen and obtained, but only very
-    -- rarely and only by the Aztec. Not clear if it was inten-
-    -- tional or if it is a bug.
-    'rum_distilling', -- ??
-    'tobacconistry', -- ??
-    'weaving' -- *
-  }
-  return random_list_elem( can_teach )
-end
-
 local function add_dwelling( coord, tribe )
   assert( coord )
   local square = square_at( coord )
@@ -741,7 +706,8 @@ local function add_dwelling( coord, tribe )
   dwelling.tribe = tribe
   -- FIXME
   dwelling.population = 3
-  dwelling.teaches = pick_expertise_for_dwelling()
+  dwelling.teaches =
+      native_expertise.select_expertise_for_dwelling( dwelling )
   -- Get rid of any forest if we're placing one of the city
   -- dwellings. The OG does not do this, but they don't really
   -- look good floating above a forest given that they are sup-
