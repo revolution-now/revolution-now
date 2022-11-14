@@ -15,6 +15,7 @@ include "config/tile-enum.rds.hpp"
 include "ss/native-enums.rds.hpp"
 
 # cdr.
+include "cdr/ext-base.hpp"
 include "cdr/ext-builtin.hpp"
 include "cdr/ext-std.hpp"
 
@@ -84,6 +85,34 @@ struct.Alarm {
   max_dwelling_alarm_for_teaching 'int',
 }
 
+struct.DwellingExpertise {
+  # The tribe must have at least this level in order to teach
+  # this skill. If it is nothing then it cannot be taught.
+  minimum_level 'refl::enum_map<e_unit_activity, base::maybe<e_native_civilized>>',
+
+  # After the base weights are computed based on production vol-
+  # ume, they will be further scaled by these values to change
+  # the probability of the various outcomes.
+  scale_factors 'refl::enum_map<e_unit_activity, double>',
+
+  # After all of the outdoor production-based weights are com-
+  # puted the probability of the fur trading expertise will still
+  # be zero because it is not derived from outdoor production. So
+  # a fur trading weight will be generated that is equal to the
+  # weight of fur trapping multiplied by this fraction, which
+  # should be smaller than one.
+  fur_trader_fraction 'double',
+
+  # After all of the production-based weights are computed the
+  # probability of the scouting expertise will still be zero be-
+  # cause it is not derived from production. So the a scouting
+  # weight will be generated that is equal to the total weights
+  # multiplied by this fraction, which should be smaller than
+  # one. Roughly speaking, this is the percentage of dwellings
+  # that will teach this skill.
+  seasoned_scout_fraction 'double',
+}
+
 namespace "rn"
 
 struct.config_natives_t {
@@ -104,6 +133,10 @@ struct.config_natives_t {
   # Note that there is dwelling-level alarm and tribal alarm, and
   # the names will specify which one is being referred to.
   alarm 'config::natives::Alarm',
+
+  # Configures how each dwelling is assigned an expertise for
+  # teaching.
+  dwelling_expertise 'config::natives::DwellingExpertise',
 }
 
 config.natives {}
