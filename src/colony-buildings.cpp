@@ -308,7 +308,10 @@ bool colony_has_building_level( Colony const&     colony,
     if( colony.buildings[possible_building] ) return true;
     if( possible_building == building ) return false;
   }
-  return false;
+  FATAL(
+      "colony building `{}` not in list of buildings for slot "
+      "`{}`.",
+      building, slot );
 }
 
 int colony_warehouse_capacity( Colony const& colony ) {
