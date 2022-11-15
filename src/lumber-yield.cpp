@@ -69,18 +69,17 @@ generator<ColonyId> close_friendly_colonies(
 }
 
 LumberYield yield_for_colony( SSConst const& ss,
-                              ColonyId       colony_id,
-                              e_unit_type    pioneer_type ) {
+                              ColonyId colony_id, Coord plow_loc,
+                              e_unit_type pioneer_type ) {
   Colony const& colony = ss.colonies.colony_for( colony_id );
-
   // First base yield.
   int base_yield = 0;
   // Just in case in the future we add a building higher than the
   // lumber mill.
   if( colony_has_building_level(
           colony, e_colony_building::lumber_mill ) ) {
-    e_terrain const terrain_type = effective_terrain(
-        ss.terrain.square_at( colony.location ) );
+    e_terrain const terrain_type =
+        effective_terrain( ss.terrain.square_at( plow_loc ) );
     int const tile_yield = config_production.outdoor_production
                                .jobs[e_outdoor_job::lumber]
                                .base_productions[terrain_type];
@@ -102,12 +101,13 @@ LumberYield yield_for_colony( SSConst const& ss,
       std::max( colony_warehouse_capacity( colony ) -
                     colony.commodities[e_commodity::lumber],
                 0 );
-  return LumberYield{
+  auto res = LumberYield{
       .colony_id   = colony_id,
       .total_yield = total_yield,
       .yield_to_add_to_colony =
           std::min( total_yield, amount_that_can_fit ),
   };
+  return res;
 }
 
 } // namespace
@@ -126,7 +126,7 @@ vector<LumberYield> lumber_yields( SSConst const& ss,
   for( ColonyId colony_id :
        close_friendly_colonies( ss, player, loc ) )
     res.push_back(
-        yield_for_colony( ss, colony_id, pioneer_type ) );
+        yield_for_colony( ss, colony_id, loc, pioneer_type ) );
   return res;
 }
 

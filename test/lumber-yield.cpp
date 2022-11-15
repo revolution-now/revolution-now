@@ -147,11 +147,27 @@ TEST_CASE( "[lumber-yield] pioneer" ) {
   }
 
   SECTION(
+      "one colony, empty capacity, lumber mill, different "
+      "terrain" ) {
+    Colony& colony =
+        W.add_colony_with_new_unit( { .x = 2, .y = 2 } );
+    // Remove forest under colony to make sure that we compute
+    // the lumber produced from the square being plowed and not
+    // the colony square.
+    W.square( { .x = 2, .y = 2 } ).overlay           = nothing;
+    colony.buildings[e_colony_building::lumber_mill] = true;
+    colony.commodities[e_commodity::lumber]          = 0;
+    expected = { LumberYield{ .colony_id              = 1,
+                              .total_yield            = 80,
+                              .yield_to_add_to_colony = 80 } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION(
       "one colony, empty capacity, lumber mill, broadleaf" ) {
     Colony& colony =
         W.add_colony_with_new_unit( { .x = 2, .y = 2 } );
-    W.square( colony.location ).ground =
-        e_ground_terrain::prairie;
+    W.square( plow_loc ).ground = e_ground_terrain::prairie;
     colony.buildings[e_colony_building::lumber_mill] = true;
     colony.commodities[e_commodity::lumber]          = 0;
     expected = { LumberYield{ .colony_id              = 1,
@@ -312,8 +328,7 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
       "one colony, empty capacity, lumber mill, broadleaf" ) {
     Colony& colony =
         W.add_colony_with_new_unit( { .x = 2, .y = 2 } );
-    W.square( colony.location ).ground =
-        e_ground_terrain::prairie;
+    W.square( plow_loc ).ground = e_ground_terrain::prairie;
     colony.buildings[e_colony_building::lumber_mill] = true;
     colony.commodities[e_commodity::lumber]          = 0;
     expected = { LumberYield{ .colony_id              = 1,
