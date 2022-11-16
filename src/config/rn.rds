@@ -68,7 +68,6 @@ struct.config_rn_power {
 }
 
 struct.config_rn_t {
-  player_nation 'e_nation',
   depixelate_per_frame 'double',
   ideal_tile_angular_size 'double',
 
