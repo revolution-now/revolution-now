@@ -1,0 +1,37 @@
+Farmer:          27
+Tobacco Planter: 56
+Fisherman:       1
+
+Grassland:
+ Semi-nomadic:        Agrarian              Civilized
+  Fur Trapper:     0   Fur Trapper:     0    Fur Trapper:     0
+  Farmer:          7   Farmer:          32   Farmer:          33
+  Tobacco Planter: 57  Tobacco Planter: 27   Tobacco Planter: 8
+                                             Fur trader:      1
+                                             Weaver:          2
+
+Conifer forest:
+ Semi-nomadic:        Agrarian              Civilized
+  Fur Trapper:     12  Fur Trapper:     10   Fur Trapper:     0
+  Farmer:          0   Farmer:          5    Farmer:          36
+  Tobacco Planter: 40  Tobacco Planter: 43   Tobacco Planter: 8
+  Scout:           9   Fur Trader:      2
+
+Plains:
+ Semi-nomadic:        Agrarian              Civilized
+  Fur Trapper:     0   Fur Trapper:     0    Fur Trapper:     0
+  Farmer:          26  Farmer:          22   Farmer:          23
+  Cotton Planter:  9   Cotton Planter:  2    Cotton Planter:  0
+
+Mixed forest:
+ Semi-nomadic:        Agrarian              Civilized
+  Fur Trapper:     30  Fur Trapper:     6    Fur Trapper:     1
+  Farmer:          0   Farmer:          6    Farmer:          17
+  Cotton Planter:  0   Cotton Planter:  0    Cotton Planter:  0
+  Scout:           15  Fur Trader:      3
+                       Scout            5
+
+Tundra:
+ Semi-nomadic:        Agrarian              Civilized
+  Ore Miner:       0   Ore Miner:       0    Ore Miner:       0
+  Farmer:          0   Farmer:          0    Farmer:          0
