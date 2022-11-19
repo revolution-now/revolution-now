@@ -17,6 +17,7 @@
 #include "promotion.rds.hpp"
 
 // ss
+#include "ss/native-enums.rds.hpp"
 #include "ss/unit-composer.hpp"
 #include "ss/unit-type.hpp"
 
@@ -80,7 +81,7 @@ expect<UnitComposition> promoted_from_activity(
 
 // Called when promoting a unit as a result of having been taught
 // by the natives. This will yield a unit that is an expert in
-// the given activity (even if starting as an indentured servant)
+// the given skill (even if starting as an indentured servant)
 // but also has the same inventory as `comp`. We don't use the
 // `promoted_from_activity` method above for this because it
 // sometimes ignores the `activity`; that method is for when a
@@ -92,7 +93,7 @@ expect<UnitComposition> promoted_from_activity(
 // the natives in fishing, we want it to become an
 // expert_fisherman/pioneer.
 expect<UnitComposition> promoted_by_natives(
-    UnitComposition const& comp, e_unit_activity activity );
+    UnitComposition const& comp, e_native_skill skill );
 
 // Will attempt to clear the expertise (if any) of the base type
 // while holding any modifiers constant. Though if the derived

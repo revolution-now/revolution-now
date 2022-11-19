@@ -203,7 +203,7 @@ DwellingId NativesState::dwelling_from_coord(
   return id;
 }
 
-bool NativesState::exists( DwellingId id ) const {
+bool NativesState::dwelling_exists( DwellingId id ) const {
   return o_.dwellings.contains( id );
 }
 
@@ -233,11 +233,11 @@ LUA_STARTUP( lua::state& st ) {
   auto u  = st.usertype.create<U>();
 
   u["last_dwelling_id"] = &U::last_dwelling_id;
-  u["exists"]           = &U::exists;
+  u["dwelling_exists"]  = &U::dwelling_exists;
   u["dwelling_for_id"]  = [&]( U&         o,
                               DwellingId id ) -> Dwelling& {
-    LUA_CHECK( st, o.exists( id ), "dwelling {} does not exist.",
-                id );
+    LUA_CHECK( st, o.dwelling_exists( id ),
+                "dwelling {} does not exist.", id );
     return o.dwelling_for( id );
   };
   u["has_dwelling_on_square"] =

@@ -14,7 +14,7 @@
 #include "core-config.hpp"
 
 // ss
-#include "ss/unit-type.rds.hpp"
+#include "ss/native-enums.rds.hpp"
 
 // refl
 #include "refl/enum-map.hpp"
@@ -31,11 +31,11 @@ struct TS;
 // thing is produced. Guarantees that the weights returned will
 // always contain at least one item with a non-zero weight, and
 // all weights will be >= 0.
-refl::enum_map<e_unit_activity, int> dwelling_expertise_weights(
+refl::enum_map<e_native_skill, int> dwelling_expertise_weights(
     SSConst const& ss, Dwelling const& dwelling );
 
 // Randomly selects an expertise according to the weights.
-e_unit_activity select_expertise_for_dwelling(
-    TS& ts, refl::enum_map<e_unit_activity, int> weights );
+e_native_skill select_expertise_for_dwelling(
+    TS& ts, refl::enum_map<e_native_skill, int> weights );
 
 } // namespace rn

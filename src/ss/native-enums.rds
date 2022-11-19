@@ -32,3 +32,17 @@ enum.e_native_unit_type {
   mounted_brave,
   mounted_warrior,
 }
+
+# Skills that can be taught by native dwellings.
+enum.e_native_skill {
+  farming,
+  fishing,
+  sugar_planting,
+  tobacco_planting,
+  cotton_planting,
+  fur_trapping,
+  ore_mining,
+  silver_mining,
+  fur_trading,
+  scouting,
+}

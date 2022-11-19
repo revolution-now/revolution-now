@@ -1036,18 +1036,17 @@ TEST_CASE( "[unit-type] expert_for_activity" ) {
 
 TEST_CASE( "[unit-type] promoted_by_natives" ) {
   UnitComposition comp, expected;
-  e_unit_activity activity = {};
+  e_native_skill  skill = {};
 
   auto f = [&] {
-    UNWRAP_CHECK( new_comp,
-                  promoted_by_natives( comp, activity ) );
+    UNWRAP_CHECK( new_comp, promoted_by_natives( comp, skill ) );
     return new_comp;
   };
 
-  activity = e_unit_activity::fishing;
-  comp     = UnitComposition::create(
+  skill = e_native_skill::fishing;
+  comp  = UnitComposition::create(
              UnitType::create( e_unit_type::pioneer,
-                                   e_unit_type::indentured_servant )
+                                e_unit_type::indentured_servant )
                  .value(),
              { { e_unit_inventory::tools, 80 } } )
              .value();
@@ -1060,25 +1059,25 @@ TEST_CASE( "[unit-type] promoted_by_natives" ) {
           .value();
   REQUIRE( f() == expected );
 
-  activity = e_unit_activity::farming;
+  skill = e_native_skill::farming;
   comp =
       UnitComposition::create( e_unit_type::indentured_servant );
   expected =
       UnitComposition::create( e_unit_type::expert_farmer );
   REQUIRE( f() == expected );
 
-  activity = e_unit_activity::bell_ringing;
-  comp = UnitComposition::create( e_unit_type::free_colonist );
+  skill = e_native_skill::fur_trading;
+  comp  = UnitComposition::create( e_unit_type::free_colonist );
   expected =
-      UnitComposition::create( e_unit_type::elder_statesman );
+      UnitComposition::create( e_unit_type::master_fur_trader );
   REQUIRE( f() == expected );
 
   // In practice the natives won't teach a petty criminal, but
   // this function should be able to handle it anyway.
-  activity = e_unit_activity::pioneering;
-  comp = UnitComposition::create( e_unit_type::petty_criminal );
+  skill = e_native_skill::scouting;
+  comp  = UnitComposition::create( e_unit_type::petty_criminal );
   expected =
-      UnitComposition::create( e_unit_type::hardy_colonist );
+      UnitComposition::create( e_unit_type::seasoned_colonist );
   REQUIRE( f() == expected );
 }
 

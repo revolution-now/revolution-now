@@ -14,6 +14,9 @@ return {
   'enter-dwelling',
   'alarm',
   'meet-natives',
-  'colview-land',
   'native-expertise',
+  'native-owned',
+  'colview-land',
+  'orders-plow',
+  'orders-road',
 }

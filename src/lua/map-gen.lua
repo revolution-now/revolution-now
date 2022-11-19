@@ -777,8 +777,12 @@ local function create_indian_villages_using_partition(options,
     if is_on_map_edge( size, coord ) then goto continue end
     table.insert( coords_for_partition[n + 1], coord )
     local square = square_at( coord )
+    -- The OG does not seem to place native dwellings on moun-
+    -- tains, hills, or desert.
     local should_place = not square.lost_city_rumor and
                              square.overlay ~= 'mountains' and
+                             square.overlay ~= 'hills' and
+                             square.ground ~= 'desert' and
                              not has_dwelling_in_surroundings(
                                  coord ) and math.random() < .15
     if not should_place then goto continue end
@@ -814,6 +818,55 @@ local function create_indian_villages_using_partition(options,
   end
 end
 
+local tribe_level = {
+  apache='semi_nomadic',
+  sioux='semi_nomadic',
+  tupi='semi_nomadic',
+  arawak='agrarian',
+  cherokee='agrarian',
+  iroquois='agrarian',
+  aztec='civilized',
+  inca='civilized'
+}
+
+local function log_dwelling_expertises( level )
+  local dwelling_id = 1
+  local natives = ROOT.natives
+  local histogram = {}
+  local total_dwellings = 0
+  while natives:dwelling_exists( dwelling_id ) do
+    local dwelling = natives:dwelling_for_id( dwelling_id )
+    if level == nil or assert( tribe_level[dwelling.tribe] ) ==
+        level then
+      local teaches = assert( dwelling.teaches )
+      if histogram[teaches] == nil then
+        histogram[teaches] = 0
+      end
+      histogram[teaches] = histogram[teaches] + 1
+      total_dwellings = total_dwellings + 1
+    end
+    dwelling_id = dwelling_id + 1
+  end
+  local sorted_buckets = {}
+  for expertise, weight in pairs( histogram ) do
+    table.insert( sorted_buckets,
+                  { expertise=expertise, weight=weight } )
+  end
+  table.sort( sorted_buckets,
+              function( l, r ) return l.weight > r.weight end )
+  log.debug( string.format( 'Dwelling expertise weights [%s]:',
+                            level or 'all' ) )
+  for _, pair in ipairs( sorted_buckets ) do
+    local fraction = pair.weight / total_dwellings
+    local num_dwellings = math.floor(
+                              total_dwellings * fraction + .5 )
+    log.debug( string.format( ' |%18s: %6s, %4d dwellings.',
+                              pair.expertise, string.format(
+                                  '%.1f%%', fraction * 100.0 ),
+                              num_dwellings ) )
+  end
+end
+
 local function create_indian_villages( options )
   local size = world_size()
   local function has_land( coord )
@@ -822,8 +875,11 @@ local function create_indian_villages( options )
   local partitions = partition.generate( size,
                                          #options.native_tribes,
                                          has_land )
-  return create_indian_villages_using_partition( options,
-                                                 partitions )
+  create_indian_villages_using_partition( options, partitions )
+  log_dwelling_expertises( 'semi_nomadic' )
+  log_dwelling_expertises( 'agrarian' )
+  log_dwelling_expertises( 'civilized' )
+  log_dwelling_expertises()
 end
 
 -----------------------------------------------------------------

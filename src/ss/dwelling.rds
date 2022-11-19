@@ -64,7 +64,7 @@ struct.Dwelling {
   # These are only relevant once the tribe encounters the nation.
   relationship 'refl::enum_map<e_nation, DwellingRelationship>',
 
-  teaches 'e_unit_activity',
+  teaches 'e_native_skill',
   # For non-capital dwellings this is relevant since they can
   # only teach once (for all nations, as in OG).
   has_taught 'bool',

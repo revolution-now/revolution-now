@@ -309,7 +309,7 @@ TEST_CASE( "[enter-dwelling] compute_live_among_the_natives" ) {
   World     W;
   Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::tupi );
-  dwelling.teaches = e_unit_activity::ore_mining;
+  dwelling.teaches = e_native_skill::ore_mining;
   Tribe& tribe     = W.natives().tribe_for( e_tribe::tupi );
   tribe.relationship[W.default_nation()].emplace();
   TribeRelationship& relationship =

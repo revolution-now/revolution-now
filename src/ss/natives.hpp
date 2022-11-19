@@ -70,7 +70,7 @@ struct NativesState {
       Coord const& c ) const;
   DwellingId dwelling_from_coord( Coord const& c ) const;
 
-  bool exists( DwellingId id ) const;
+  bool dwelling_exists( DwellingId id ) const;
 
   // The id of this dwelling must be zero (i.e., you can't select
   // the ID); a new ID will be generated for this unit and re-

@@ -12,6 +12,7 @@
 include "config/tile-enum.rds.hpp"
 
 # ss
+include "ss/colony-enums.rds.hpp"
 include "ss/native-enums.rds.hpp"
 
 # cdr.
@@ -86,31 +87,38 @@ struct.Alarm {
 }
 
 struct.DwellingExpertise {
-  # The tribe must have at least this level in order to teach
-  # this skill. If it is nothing then it cannot be taught.
-  minimum_level 'refl::enum_map<e_unit_activity, base::maybe<e_native_civilized>>',
+  # When we are computing the dwelling expertise we need to com-
+  # pute the production quantity of each outdoor job on each sur-
+  # rounding tile. This map determines whether we should do that
+  # assuming an expert (true) or a free colonist (false). This
+  # makes a difference because it will change the relative pro-
+  # portions of produced quantities from the various jobs and
+  # thus change the weights.
+  production_from_expert 'refl::enum_map<e_outdoor_job, bool>',
 
   # After the base weights are computed based on production vol-
   # ume, they will be further scaled by these values to change
   # the probability of the various outcomes.
-  scale_factors 'refl::enum_map<e_unit_activity, double>',
+  scale_factors 'refl::enum_map<e_native_civilized, refl::enum_map<e_native_skill, double>>',
 
   # After all of the outdoor production-based weights are com-
-  # puted the probability of the fur trading expertise will still
-  # be zero because it is not derived from outdoor production. So
-  # a fur trading weight will be generated that is equal to the
-  # weight of fur trapping multiplied by this fraction, which
-  # should be smaller than one.
+  # puted the probability of the fur trading and scouting exper-
+  # tises will still be zero because they are not derived from
+  # outdoor production. So fur trading and scouting weights will
+  # be generated that are equal to the weight of fur trapping
+  # multiplied by these fractions.
   fur_trader_fraction 'double',
 
   # After all of the production-based weights are computed the
   # probability of the scouting expertise will still be zero be-
   # cause it is not derived from production. So the a scouting
-  # weight will be generated that is equal to the total weights
-  # multiplied by this fraction, which should be smaller than
-  # one. Roughly speaking, this is the percentage of dwellings
-  # that will teach this skill.
-  seasoned_scout_fraction 'double',
+  # weight will be generated that is equal to T*F*S, where T is
+  # the sum of all weights, F is the fraction ([0,1]) of sur-
+  # rounding tiles that are forested (since the OG seems to only
+  # teaching scouting when the dwelling is surrounded one or more
+  # forested tiles) and S is the below scale factor that will
+  # normally be larger than one.
+  seasoned_scout_scale 'double',
 }
 
 namespace "rn"

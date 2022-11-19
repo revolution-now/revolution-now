@@ -24,6 +24,7 @@
 
 // ss
 #include "ss/colony.rds.hpp"
+#include "ss/native-enums.hpp"
 #include "ss/ref.hpp"
 #include "ss/unit-composer.hpp"
 #include "ss/unit.hpp"
@@ -257,7 +258,9 @@ expect<UnitComposition> promoted_from_activity(
 }
 
 expect<UnitComposition> promoted_by_natives(
-    UnitComposition const& comp, e_unit_activity activity ) {
+    UnitComposition const& comp, e_native_skill skill ) {
+  e_unit_activity const activity =
+      activity_for_native_skill( skill );
   if( comp.type_obj().type() != comp.type_obj().base_type() ) {
     // This will attempt to preserve the unit type and only pro-
     // mote the base type, so that e.g. when a pioneer enters a

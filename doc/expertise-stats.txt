@@ -1,3 +1,18 @@
+------------------------------------------
+Expertises        %        Dwellings
+Farmer:           27.14%   38
+Fur.Trapper:      21.43%   30
+Scout:            13.57%   19
+Fisherman:        10.00%   14
+Sugar.Planter:    9.29%    13
+Ore.Miner:        6.43%    9
+Silver.Miner:     5.00%    7
+Cotton.Planter:   4.29%    6
+Fur.Trader:       2.14%    3
+Tobacco.Planter:  0.71%    1
+Total:            100.00%  140
+------------------------------------------
+
 Farmer:          27
 Tobacco Planter: 56
 Fisherman:       1

@@ -181,75 +181,74 @@ alarm {
 # Configures how each dwelling is assigned an expertise for
 # teaching.
 dwelling_expertise {
-  # The tribe must have at least this level in order to teach
-  # this skill.
-  minimum_level {
-    # Raw commodities.
-    farming:           semi_nomadic
-    fishing:           semi_nomadic
-    sugar_planting:    semi_nomadic
-    tobacco_planting:  semi_nomadic
-    cotton_planting:   semi_nomadic
-    fur_trapping:      semi_nomadic
-    lumberjacking:     semi_nomadic
-    ore_mining:        semi_nomadic
-    silver_mining:     civilized
-
-    # Production.
-    carpentry:         null
-    rum_distilling:    null
-    tobacconistry:     null
-    weaving:           null
-    fur_trading:       semi_nomadic
-    blacksmithing:     null
-    gunsmithing:       null
-
-    # External to colony.
-    fighting:          null
-    pioneering:        null
-    scouting:          semi_nomadic
-    missioning:        null
-
-    # Misc.
-    bell_ringing:      null
-    preaching:         null
-    teaching:          null
+  # When we are computing the dwelling expertise we need to com-
+  # pute the production quantity of each outdoor job on each sur-
+  # rounding tile. This map determines whether we should do that
+  # assuming an expert (true) or a free colonist (false). This
+  # makes a difference because it will change the relative pro-
+  # portions of produced quantities from the various jobs and
+  # thus change the weights.
+  production_from_expert {
+    food:    false
+    fish:    false
+    sugar:   false
+    tobacco: false
+    cotton:  false
+    fur:     false
+    lumber:  false
+    ore:     false
+    # We use an expert to compute silver production because this
+    # game does not allow free colonists to produce silver from
+    # regular mountain squares with no resource, and so this
+    # helps to boost the number a bit since we don't need to rely
+    # on the (rare) occasion where a dwelling is surrounded by a
+    # silver prime resource.
+    silver:  true
   }
 
   # After the base weights are computed based on production vol-
-  # ume, they will be further scaled by these values to change
-  # the probability of the various outcomes.
+  # ume, they will be further scaled by these values in order to
+  # make the frequencies more closely match those of the original
+  # game.
   scale_factors {
-    # Raw commodities.
-    farming:           1.0
-    fishing:           1.0
-    sugar_planting:    1.0
-    tobacco_planting:  1.0
-    cotton_planting:   1.0
-    fur_trapping:      1.0
-    lumberjacking:     0.0
-    ore_mining:        1.0
-    silver_mining:    10.0
+    semi_nomadic {
+      farming:          1
+      fishing:          1
+      sugar_planting:   60
+      tobacco_planting: 15
+      cotton_planting:  10
+      fur_trapping:     10
+      ore_mining:       0
+      silver_mining:    0
+      fur_trading:      0
+      scouting:         30
+    }
 
-    # Production.
-    carpentry:         0.0
-    rum_distilling:    0.0
-    tobacconistry:     0.0
-    weaving:           0.0
-    fur_trading:       1.0
-    blacksmithing:     0.0
-    gunsmithing:       0.0
+    agrarian {
+      farming:          3
+      fishing:          6
+      sugar_planting:   20
+      tobacco_planting: 6
+      cotton_planting:  4
+      fur_trapping:     7
+      ore_mining:       8
+      silver_mining:    0
+      fur_trading:      7
+      scouting:         13
+    }
 
-    # External to colony.
-    fighting:          0.0
-    pioneering:        0.0
-    scouting:          1.0
-    missioning:        0.0
-
-    # Misc.
-    bell_ringing:      0.0
-    preaching:         0.0
-    teaching:          0.0
+    civilized {
+      farming:          50
+      fishing:          65
+      sugar_planting:   2.6
+      tobacco_planting: 0.4
+      cotton_planting:  0.3
+      fur_trapping:     0.7
+      ore_mining:       8
+      silver_mining:    200
+      fur_trading:      10
+      scouting:         1
+    }
   }
 
   # After all of the outdoor production-based weights are com-
@@ -257,15 +256,17 @@ dwelling_expertise {
   # be zero because it is not derived from outdoor production. So
   # a fur trading weight will be generated that is equal to the
   # weight of fur trapping multiplied by this fraction, which
-  # should be smaller than one.
-  fur_trader_fraction: .2
+  # will normally be smaller than one.
+  fur_trader_fraction: .1
 
   # After all of the production-based weights are computed the
   # probability of the scouting expertise will still be zero be-
   # cause it is not derived from production. So the a scouting
-  # weight will be generated that is equal to the total weights
-  # multiplied by this fraction, which should be smaller than
-  # one. Roughly speaking, this is the percentage of dwellings
-  # that will teach this skill.
-  seasoned_scout_fraction: .1
+  # weight will be generated that is equal to T*F*S, where T is
+  # the sum of all weights, F is the fraction ([0,1]) of sur-
+  # rounding tiles that are forested (since the OG seems to only
+  # teaching scouting when the dwelling is surrounded one or more
+  # forested tiles) and S is the below scale factor that will
+  # normally be larger than one.
+  seasoned_scout_scale: .1
 }
