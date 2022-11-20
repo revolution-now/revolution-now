@@ -193,6 +193,19 @@ struct.UnitTypeAttributes {
   # base type) in which case it must hold that value.
   canonical_base 'base::maybe<e_unit_type>',
 
+  # For expert units that are normally used with modifications
+  # (e.g. veteran_colonist, hardy_colonist, etc.) this will give
+  # the unit type corresponding to the associated canonical modi-
+  # fied colonist. Note that there could be more than one modi-
+  # fied types (e.g. a veteran colonist could become a veteran
+  # soldier or a veteran dragoon) hence this is just the canon-
+  # ical version. This field is used e.g. when the natives decide
+  # to teach a skill they will use this type for communicating to
+  # the player, that way they say "we will teach you to be a
+  # hardy pioneer" instead of saying "we will teach you to be a
+  # hardy colonist" which might look strange to the player.
+  canonical_modified 'base::maybe<e_unit_type>',
+
   # If this unit type has an expertise. This is only for some
   # base types.
   expertise 'base::maybe<e_unit_activity>',

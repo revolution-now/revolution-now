@@ -359,12 +359,19 @@ wait<> do_live_among_the_natives(
       auto&        o = outcome.get<promoted>();
       string const tribe_name =
           config_natives.tribes[dwelling.tribe].name_singular;
+      // This will allow us to show e.g. "Seasoned Scout" instead
+      // of "Seasoned Colonist".
+      string const new_name =
+          unit_attr( unit_attr( o.to.base_type() )
+                         .canonical_modified.value_or(
+                             o.to.base_type() ) )
+              .name;
       string const msg = fmt::format(
           "Young colonist, we see that you have much to learn.  "
           "You may live among us and learn the ways of the "
           "@[H]{}@[] from the wise {} people.  Would you like "
           "to learn this skill?",
-          unit_attr( o.to.base_type() ).name, tribe_name );
+          new_name, tribe_name );
       maybe<ui::e_confirm> const yes_no =
           co_await ts.gui.optional_yes_no(
               YesNoConfig{ .msg            = msg,
@@ -377,7 +384,7 @@ wait<> do_live_among_the_natives(
         co_await ts.gui.message_box(
             "Congratulations young one, you have learned the "
             "ways of the @[H]{}@[].",
-            unit_attr( o.to.base_type() ).name );
+            new_name );
         co_return;
       }
     }

@@ -88,6 +88,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -121,6 +122,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -154,6 +156,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -187,6 +190,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -217,6 +221,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        free_colonist
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       [tools]
@@ -244,6 +249,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        free_colonist
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -273,6 +279,7 @@ composition {
       # units are completely destroyed upon defeat.
       on_death               destroy{}
       canonical_base:        free_colonist
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -300,6 +307,7 @@ composition {
       defense_points:        2
       on_death               demote{ lose=[muskets] }
       canonical_base:        free_colonist
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -327,6 +335,7 @@ composition {
       defense_points:        3
       on_death               demote{ lose=[horses] }
       canonical_base:        free_colonist
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -357,6 +366,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -390,6 +400,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -423,6 +434,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -456,6 +468,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -489,6 +502,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -522,6 +536,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -555,6 +570,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -588,6 +604,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -621,6 +638,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -654,6 +672,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -687,6 +706,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -720,6 +740,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -753,6 +774,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -786,6 +808,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -819,6 +842,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -852,6 +876,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -885,6 +910,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -918,6 +944,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -951,6 +978,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    hardy_pioneer
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -984,6 +1012,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    jesuit_missionary
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -1017,6 +1046,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    seasoned_scout
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -1050,6 +1080,7 @@ composition {
       defense_points:        1
       on_death               capture_and_demote{type=free_colonist}
       canonical_base:        null
+      canonical_modified:    veteran_soldier
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -1088,6 +1119,7 @@ composition {
       defense_points:        3
       on_death               demote{ lose=[muskets] }
       canonical_base:        veteran_colonist
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -1115,6 +1147,7 @@ composition {
       defense_points:        4
       on_death               demote{ lose=[horses] }
       canonical_base:        veteran_colonist
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -1142,6 +1175,7 @@ composition {
       defense_points:        4
       on_death               demote{ lose=[muskets, independence] }
       canonical_base:        veteran_colonist
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -1169,6 +1203,7 @@ composition {
       defense_points:        5
       on_death               demote{ lose=[horses] }
       canonical_base:        veteran_colonist
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -1196,6 +1231,7 @@ composition {
       defense_points:        5
       on_death               destroy{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -1225,6 +1261,7 @@ composition {
       defense_points:        6
       on_death               demote{ lose=[horses] }
       canonical_base:        regular
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -1252,6 +1289,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        hardy_colonist
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       [tools]
@@ -1279,6 +1317,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        jesuit_colonist
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -1308,6 +1347,7 @@ composition {
       # units are completely destroyed upon defeat.
       on_death               destroy{}
       canonical_base:        seasoned_colonist
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -1338,6 +1378,7 @@ composition {
       defense_points:        3
       on_death               destroy{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -1367,6 +1408,7 @@ composition {
       defense_points:        5
       on_death               demote{ lose=[strength] }
       canonical_base:        damaged_artillery
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  1
       inventory_types:       []
@@ -1397,6 +1439,7 @@ composition {
       defense_points:        2
       on_death               naval{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           2
       cargo_slots_occupies:  null
       inventory_types:       []
@@ -1424,6 +1467,7 @@ composition {
       defense_points:        5
       on_death               naval{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           4
       cargo_slots_occupies:  null
       inventory_types:       []
@@ -1451,6 +1495,7 @@ composition {
       defense_points:        10
       on_death               naval{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           6
       cargo_slots_occupies:  null
       inventory_types:       []
@@ -1478,6 +1523,7 @@ composition {
       defense_points:        8
       on_death               naval{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           2
       cargo_slots_occupies:  null
       inventory_types:       []
@@ -1505,6 +1551,7 @@ composition {
       defense_points:        16
       on_death               naval{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           4
       cargo_slots_occupies:  null
       inventory_types:       []
@@ -1532,6 +1579,7 @@ composition {
       defense_points:        24
       on_death               naval{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           6
       cargo_slots_occupies:  null
       inventory_types:       []
@@ -1563,12 +1611,12 @@ composition {
       on_death               capture{}
       canonical_base:        null
       cargo_slots:           2
+      canonical_modified:    null
       cargo_slots_occupies:  null
       inventory_types:       []
       promotion:             null
       modifiers:             {}
       is_derived:            false
-      # TODO: requires capenter's shop to build.
     }
 
     #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
@@ -1593,6 +1641,7 @@ composition {
       defense_points:        1
       on_death               capture{}
       canonical_base:        null
+      canonical_modified:    null
       cargo_slots:           0
       cargo_slots_occupies:  6
       inventory_types:       [gold]

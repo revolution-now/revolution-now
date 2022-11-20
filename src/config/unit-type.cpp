@@ -183,6 +183,37 @@ valid_or<string> UnitCompositionConfig::validate() const {
     }
   }
 
+  // Validate that canonical_modifier is populated iff the type
+  // is a base type, the type is refers to is a derived type, and
+  // that the base type has a path to the derived type.
+  for( auto& [type, type_struct] : m ) {
+    if( !type_struct.is_derived ) {
+      if( !type_struct.canonical_modified.has_value() ) continue;
+      e_unit_type derived_type = *type_struct.canonical_modified;
+      UnitTypeAttributes const& derived_desc = m[derived_type];
+      if( !derived_desc.is_derived )
+        return fmt::format(
+            "base type {} lists the {} type as its canonical "
+            "modified type, but the {} type is not a modified "
+            "type.",
+            type, derived_type, derived_type );
+      if( !type_struct.modifiers.contains( derived_type ) )
+        return fmt::format(
+            "base type {} lists the {} type as its canonical "
+            "modified type, but the {} type does not have a "
+            "path to the modified type {}.",
+            type, derived_type, type, derived_type );
+      // We're good.
+    } else {
+      // Derived type.
+      if( type_struct.canonical_modified.has_value() )
+        return fmt::format(
+            "derived type {} must have `null` for its "
+            "`canonical_modified` field.",
+            type );
+    }
+  }
+
   // Validate that only base types have can_found == yes/no and
   // derived types have can_found == from_base.
   for( auto& [type, type_struct] : m ) {
