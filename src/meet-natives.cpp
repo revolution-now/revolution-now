@@ -15,6 +15,7 @@
 #include "co-wait.hpp"
 #include "igui.hpp"
 #include "logger.hpp"
+#include "native-owned.hpp"
 #include "society.hpp"
 #include "ts.hpp"
 
@@ -82,18 +83,15 @@ MeetTribe check_meet_tribe_single( SSConst const& ss,
   // 3. For each occupied square, see if it is owned by one of
   // the above dwellings.
   unordered_set<Coord> land_awarded;
-  if( !player.fathers.has[e_founding_father::peter_minuit] ) {
-    unordered_map<Coord, DwellingId> const& land_owned =
-        ss.natives.owned_land_without_minuit();
-    for( Coord occupied : land_occupied ) {
-      if( !land_owned.contains( occupied ) ) continue;
-      UNWRAP_CHECK( dwelling_id,
-                    base::lookup( land_owned, occupied ) );
-      if( !dwellings.contains( dwelling_id ) ) continue;
-      // The square is owned by natives of this tribe, so award
-      // it to the player.
-      land_awarded.insert( occupied );
-    }
+  for( Coord occupied : land_occupied ) {
+    maybe<DwellingId> const owning_dwelling_id =
+        is_land_native_owned_after_meeting( ss, player,
+                                            occupied );
+    if( !owning_dwelling_id.has_value() ) continue;
+    if( !dwellings.contains( *owning_dwelling_id ) ) continue;
+    // The square is owned by natives of this tribe, so award it
+    // to the player.
+    land_awarded.insert( occupied );
   }
   vector<Coord> sorted_land_awarded( land_awarded.begin(),
                                      land_awarded.end() );
@@ -226,8 +224,6 @@ void perform_meet_tribe( SS& ss, Player const& player,
       .at_war = ( declare_war == e_declare_war_on_natives::yes ),
       .tribal_alarm = 0 };
 
-  unordered_map<Coord, DwellingId>& owned_land =
-      ss.natives.owned_land_without_minuit();
   // Award player any land they "occupy" that is owned by this
   // tribe. Note that if the player has Peter Minuit then this
   // should be an empty list.
@@ -235,13 +231,11 @@ void perform_meet_tribe( SS& ss, Player const& player,
     CHECK( meet_tribe.land_awarded.empty() );
   }
   for( Coord to_award : meet_tribe.land_awarded ) {
-    CHECK( owned_land.contains( to_award ),
+    CHECK( is_land_native_owned( ss, player, to_award ),
            "square {} was supposed to be owned by the {} tribe "
            "but isn't owned at all.",
            to_award, meet_tribe.tribe );
-    auto it = owned_land.find( to_award );
-    CHECK( it != owned_land.end() );
-    owned_land.erase( it );
+    ss.natives.mark_land_unowned( to_award );
   }
 }
 

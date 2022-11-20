@@ -22,6 +22,8 @@
 
 namespace rn {
 
+struct Player;
+struct SSConst;
 struct UnitsState;
 
 struct NativesState {
@@ -85,7 +87,10 @@ struct NativesState {
   // ------------------------------------------------------------
   // Owned Land
   // ------------------------------------------------------------
-  // NOTE: When calling these methods be careful to also check
+
+ private:
+  // NOTE: Normal game logic should not be calling these methods
+  // directly since they don't take into account Peter Minuit.
   // that whether the player has Peter Minuit, in which case
   // there is effectively no land ownership by the natives from
   // the perspective of that player.
@@ -94,7 +99,15 @@ struct NativesState {
   std::unordered_map<Coord, DwellingId> const&
   owned_land_without_minuit() const;
 
+  friend base::maybe<DwellingId>
+  is_land_native_owned_after_meeting( SSConst const& ss,
+                                      Player const&  player,
+                                      Coord          coord );
+
+ public:
   void mark_land_owned( DwellingId dwelling_id, Coord where );
+
+  void mark_land_unowned( Coord where );
 
  private:
   [[nodiscard]] DwellingId next_dwelling_id();

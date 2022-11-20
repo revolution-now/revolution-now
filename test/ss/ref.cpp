@@ -154,8 +154,8 @@ cdr::value cdr_game_state_default =
                         "aztec"_key    = cdr::null,
                         "inca"_key     = cdr::null,
                     },
-                "dwellings"_key  = cdr::list{},
-                "owned_land"_key = cdr::list{},
+                "dwellings"_key                 = cdr::list{},
+                "owned_land_without_minuit"_key = cdr::list{},
             },
         "land_view"_key =
             cdr::table{

@@ -209,17 +209,23 @@ bool NativesState::dwelling_exists( DwellingId id ) const {
 
 unordered_map<Coord, DwellingId>&
 NativesState::owned_land_without_minuit() {
-  return o_.owned_land;
+  return o_.owned_land_without_minuit;
 }
 
 unordered_map<Coord, DwellingId> const&
 NativesState::owned_land_without_minuit() const {
-  return o_.owned_land;
+  return o_.owned_land_without_minuit;
 }
 
 void NativesState::mark_land_owned( DwellingId dwelling_id,
                                     Coord      where ) {
-  o_.owned_land[where] = dwelling_id;
+  o_.owned_land_without_minuit[where] = dwelling_id;
+}
+
+void NativesState::mark_land_unowned( Coord where ) {
+  auto it = o_.owned_land_without_minuit.find( where );
+  if( it == o_.owned_land_without_minuit.end() ) return;
+  o_.owned_land_without_minuit.erase( it );
 }
 
 /****************************************************************

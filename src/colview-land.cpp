@@ -15,6 +15,7 @@
 #include "colony-mgr.hpp"
 #include "gui.hpp"
 #include "map-square.hpp"
+#include "native-owned.hpp"
 #include "production.rds.hpp"
 #include "render-terrain.hpp"
 #include "render.hpp"
@@ -71,32 +72,6 @@ void render_glow( rr::Renderer& renderer, Coord unit_coord,
   render_sprite_silhouette(
       painter, unit_coord + Delta{ .w = 1 }, tile,
       config_colony.colors.outdoor_unit_glow_color );
-}
-
-refl::enum_map<e_direction, maybe<e_tribe>>
-find_native_owned_land( SSConst const& ss, Player const& player,
-                        Coord loc ) {
-  refl::enum_map<e_direction, maybe<e_tribe>> res;
-  if( player.fathers.has[e_founding_father::peter_minuit] )
-    // Effectively no native land ownership when we have Minuit.
-    return res;
-  for( e_direction d : refl::enum_values<e_direction> ) {
-    Coord const             moved       = loc.moved( d );
-    maybe<DwellingId> const dwelling_id = base::lookup(
-        ss.natives.owned_land_without_minuit(), moved );
-    if( !dwelling_id.has_value() ) continue;
-    Tribe const& tribe = ss.natives.tribe_for(
-        ss.natives.dwelling_for( *dwelling_id ).tribe );
-    if( !tribe.relationship[player.nation].has_value() )
-      // If the player has not encountered the tribe yet then we
-      // don't display the totem poles. In that case, the player
-      // is free to take the land, since when the natives are
-      // first encountered they will gift that land to the
-      // player.
-      continue;
-    res[d] = tribe.type;
-  }
-  return res;
 }
 
 } // namespace
@@ -555,7 +530,7 @@ ColonyLandView::ColonyLandView( Planes& planes, SS& ss, TS& ts,
     mode_( mode ),
     occupied_red_box_(
         find_occupied_surrounding_colony_squares( ss, colony ) ),
-    native_owned_land_( find_native_owned_land(
+    native_owned_land_( native_owned_land_around_square(
         ss, player, colony.location ) ) {}
 
 } // namespace rn

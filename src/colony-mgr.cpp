@@ -25,6 +25,7 @@
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "map-square.hpp"
+#include "native-owned.hpp"
 #include "plane-stack.hpp"
 #include "rand.hpp"
 #include "road.hpp"
@@ -384,10 +385,7 @@ ColonyJob_t find_job_for_initial_colonist(
             .has_value() )
       continue;
     // Check if the land is owned by an indian village.
-    if( !player.fathers.has[e_founding_father::peter_minuit] &&
-        ss.natives.owned_land_without_minuit().contains(
-            coord ) )
-      continue;
+    if( is_land_native_owned( ss, player, coord ) ) continue;
 
     // TODO: check if there are any foreign units fortified on
     //       the square.

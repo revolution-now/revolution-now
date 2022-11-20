@@ -16,6 +16,9 @@
 // Testing
 #include "test/fake/world.hpp"
 
+// Revolution Now
+#include "src/native-owned.hpp"
+
 // ss
 #include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
@@ -166,24 +169,24 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
   SECTION( "land owned no colonies" ) {
     Dwelling const& dwelling =
         W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::inca );
-    W.natives().owned_land_without_minuit()[{ .x = 1, .y = 1 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 2, .y = 1 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 3, .y = 1 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 1, .y = 2 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 2, .y = 2 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 3, .y = 2 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 1, .y = 3 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 2, .y = 3 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 3, .y = 3 }] =
-        dwelling.id;
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 1, .y = 1 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 2, .y = 1 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 3, .y = 1 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 1, .y = 2 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 2, .y = 2 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 3, .y = 2 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 1, .y = 3 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 2, .y = 3 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 3, .y = 3 } );
     square   = { .x = 3, .y = 3 };
     expected = {
         MeetTribe{
@@ -199,24 +202,24 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
   SECTION( "land owned with colonies" ) {
     Dwelling const& dwelling =
         W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::inca );
-    W.natives().owned_land_without_minuit()[{ .x = 1, .y = 1 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 2, .y = 1 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 3, .y = 1 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 1, .y = 2 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 2, .y = 2 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 3, .y = 2 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 1, .y = 3 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 2, .y = 3 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 3, .y = 3 }] =
-        dwelling.id;
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 1, .y = 1 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 2, .y = 1 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 3, .y = 1 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 1, .y = 2 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 2, .y = 2 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 3, .y = 2 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 1, .y = 3 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 2, .y = 3 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 3, .y = 3 } );
     Colony& colony = W.add_colony( { .x = 1, .y = 3 } );
     W.add_unit_outdoors( colony.id, e_direction::e,
                          e_outdoor_job::food );
@@ -236,24 +239,24 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
         .fathers.has[e_founding_father::peter_minuit] = true;
     Dwelling const& dwelling =
         W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::inca );
-    W.natives().owned_land_without_minuit()[{ .x = 1, .y = 1 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 2, .y = 1 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 3, .y = 1 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 1, .y = 2 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 2, .y = 2 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 3, .y = 2 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 1, .y = 3 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 2, .y = 3 }] =
-        dwelling.id;
-    W.natives().owned_land_without_minuit()[{ .x = 3, .y = 3 }] =
-        dwelling.id;
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 1, .y = 1 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 2, .y = 1 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 3, .y = 1 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 1, .y = 2 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 2, .y = 2 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 3, .y = 2 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 1, .y = 3 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 2, .y = 3 } );
+    W.natives().mark_land_owned( dwelling.id,
+                                 { .x = 3, .y = 3 } );
     Colony& colony = W.add_colony( { .x = 1, .y = 3 } );
     W.add_unit_outdoors( colony.id, e_direction::e,
                          e_outdoor_job::food );
@@ -270,6 +273,7 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
 
 TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
   World                    W;
+  Player const&            player = W.default_player();
   MeetTribe                meet_tribe;
   e_declare_war_on_natives declare_war = {};
   e_tribe const            tribe       = e_tribe::cherokee;
@@ -288,15 +292,14 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
                 .relationship[nation]
                 .has_value() );
 
-  meet_tribe       = { .is_first      = false,
-                       .tribe         = tribe,
-                       .num_dwellings = 3,
-                       .land_awarded  = { { .x = 1, .y = 0 },
-                                          { .x = 2, .y = 0 } } };
-  auto& owned_land = W.natives().owned_land_without_minuit();
-  owned_land[{ .x = 1, .y = 0 }] = dwelling.id;
-  owned_land[{ .x = 2, .y = 0 }] = dwelling.id;
-  owned_land[{ .x = 2, .y = 1 }] = dwelling.id;
+  meet_tribe = { .is_first      = false,
+                 .tribe         = tribe,
+                 .num_dwellings = 3,
+                 .land_awarded  = { { .x = 1, .y = 0 },
+                                    { .x = 2, .y = 0 } } };
+  W.natives().mark_land_owned( dwelling.id, { .x = 1, .y = 0 } );
+  W.natives().mark_land_owned( dwelling.id, { .x = 2, .y = 0 } );
+  W.natives().mark_land_owned( dwelling.id, { .x = 2, .y = 1 } );
 
   SECTION( "no declare war" ) {
     declare_war = e_declare_war_on_natives::no;
@@ -305,10 +308,14 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
         W.natives().tribe_for( tribe ).relationship[nation] ==
         TribeRelationship{ .at_war       = false,
                            .tribal_alarm = 0 } );
-    REQUIRE( !owned_land.contains( { .x = 1, .y = 0 } ) );
-    REQUIRE( !owned_land.contains( { .x = 2, .y = 0 } ) );
-    REQUIRE( owned_land.contains( { .x = 2, .y = 1 } ) );
-    REQUIRE( owned_land[{ .x = 2, .y = 1 }] == dwelling.id );
+    REQUIRE( !is_land_native_owned( W.ss(), player,
+                                    { .x = 1, .y = 0 } ) );
+    REQUIRE( !is_land_native_owned( W.ss(), player,
+                                    { .x = 2, .y = 0 } ) );
+    REQUIRE( is_land_native_owned( W.ss(), player,
+                                   { .x = 2, .y = 1 } ) );
+    REQUIRE( is_land_native_owned( W.ss(), player,
+                                   { .x = 2, .y = 1 } ) );
   }
 
   SECTION( "declare war" ) {

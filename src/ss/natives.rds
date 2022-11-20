@@ -35,16 +35,16 @@ struct.NativesState {
 
   dwellings 'std::unordered_map<DwellingId, Dwelling>',
 
-  # Note that all players see the same native land ownership in
-  # the sense that one one player takes a square from the natives
-  # it will appear unowned from then on to all nations. The ex-
-  # ception to this is the acquisition of Peter Minuit; he will
-  # cause all land to appear non-owned but only from the perspec-
-  # tive of that player. Therefore, acquiring Peter Minuit will
-  # not actually change this owned-land field. Instead, we need
-  # to remember to consult the Peter Minuit status when dealing
-  # with owned land in general.
-  owned_land 'std::unordered_map<Coord, DwellingId>',
+  # All players see the same native land ownership in the sense
+  # that if one player takes a square from the natives it will
+  # appear unowned from then on to all nations. The exception to
+  # this is the acquisition of Peter Minuit; he will cause all
+  # land to appear non-owned but only from the perspective of
+  # that player. Therefore, acquiring Peter Minuit will not actu-
+  # ally change this owned-land field. Therefore, this field
+  # should not be read directly by normal code; instead one
+  # should use the API functions in the native-owned module.
+  owned_land_without_minuit 'std::unordered_map<Coord, DwellingId>',
 
   _features { equality, validation }
 }
