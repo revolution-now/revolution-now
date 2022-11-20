@@ -48,5 +48,6 @@ Mixed forest:
 
 Tundra:
  Semi-nomadic:        Agrarian              Civilized
-  Ore Miner:       0   Ore Miner:       0    Ore Miner:       0
+  Ore Miner:       0   Ore Miner:       26   Ore Miner:       21
   Farmer:          0   Farmer:          0    Farmer:          0
+  Preacher:        35
