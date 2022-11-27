@@ -256,10 +256,9 @@ void render_dwelling( rr::Painter& painter, Coord where,
   e_tile const dwelling_tile = tribe_conf.dwelling_tile;
   render_sprite( painter, where, dwelling_tile );
   // Flags.
-  e_dwelling_type const dwelling_type = tribe_conf.dwelling_type;
-  gfx::pixel const      flag_color    = tribe_conf.flag_color;
-  for( gfx::rect flag :
-       config_natives.flag_rects[dwelling_type] )
+  e_native_level const native_level = tribe_conf.level;
+  gfx::pixel const     flag_color   = tribe_conf.flag_color;
+  for( gfx::rect flag : config_natives.flag_rects[native_level] )
     painter.draw_solid_rect( flag.origin_becomes_point( where ),
                              flag_color );
   // Yellow star to mark the capital.

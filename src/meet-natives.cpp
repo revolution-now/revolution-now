@@ -182,10 +182,10 @@ wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
               tribe_conf.name_singular, meet_tribe.num_dwellings,
               meet_tribe.num_dwellings > 1
                   ? config_natives
-                        .dwelling_types[tribe_conf.dwelling_type]
+                        .dwelling_types[tribe_conf.level]
                         .name_plural
                   : config_natives
-                        .dwelling_types[tribe_conf.dwelling_type]
+                        .dwelling_types[tribe_conf.level]
                         .name_singular ),
           .yes_label      = "Yes",
           .no_label       = "No",

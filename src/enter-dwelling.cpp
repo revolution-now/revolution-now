@@ -263,7 +263,9 @@ present_dwelling_entry_options(
   e_tribe const tribe = dwelling.tribe;
   string        msg   = fmt::format(
       "You have arrived at a {} of the @[H]{}@[].  {}",
-      config_natives.tribes[tribe].dwelling_type,
+      config_natives
+          .dwelling_types[config_natives.tribes[tribe].level]
+          .name_singular,
       base::capitalize_initials( base::to_str( tribe ) ),
       reaction_str( options.reaction ) );
   maybe<e_enter_dwelling_option> const res =

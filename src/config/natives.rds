@@ -38,16 +38,16 @@ enum.e_dwelling_radius {
   large,
 }
 
-enum.e_native_civilized {
+# This indicates how primitive or advanced a tribe is. In most
+# ways, the OG seems to treat all of the semi-nomadic tribes the
+# same and all of the agrarian tribes the same, but it differen-
+# tiates between the Aztec and Inca; the Inca is considered a bit
+# more advanced.
+enum.e_native_level {
   semi_nomadic,
   agrarian,
-  civilized,
-}
-
-enum.e_dwelling_type {
-  camp,
-  village,
-  city,
+  civilized_aztec,
+  civilized_inca,
 }
 
 namespace "rn.config.natives"
@@ -69,8 +69,7 @@ struct.Tribe {
   name_plural 'std::string',
   name_posessive 'std::string',
 
-  civilized 'e_native_civilized',
-  dwelling_type 'e_dwelling_type',
+  level 'e_native_level',
 
   max_population 'int',
   max_population_capital 'int',
@@ -99,7 +98,7 @@ struct.DwellingExpertise {
   # After the base weights are computed based on production vol-
   # ume, they will be further scaled by these values to change
   # the probability of the various outcomes.
-  scale_factors 'refl::enum_map<e_native_civilized, refl::enum_map<e_native_skill, double>>',
+  scale_factors 'refl::enum_map<e_native_level, refl::enum_map<e_native_skill, double>>',
 
   # After all of the outdoor production-based weights are com-
   # puted the probability of the fur trading and scouting exper-
@@ -126,7 +125,7 @@ namespace "rn"
 struct.config_natives_t {
   unit_types 'refl::enum_map<e_native_unit_type, config::natives::UnitType>',
 
-  dwelling_types 'refl::enum_map<e_dwelling_type, config::natives::DwellingType>',
+  dwelling_types 'refl::enum_map<e_native_level, config::natives::DwellingType>',
 
   tribes 'refl::enum_map<e_tribe, config::natives::Tribe>',
 
@@ -135,7 +134,7 @@ struct.config_natives_t {
   # single pixels, lines, or rects. These give the rects that
   # should be filled in relative to the upper left corner of the
   # camp/village sprite.
-  flag_rects 'refl::enum_map<e_dwelling_type, std::vector<gfx::rect>>',
+  flag_rects 'refl::enum_map<e_native_level, std::vector<gfx::rect>>',
 
   # Describes behaviors having to do with native alarm level.
   # Note that there is dwelling-level alarm and tribal alarm, and

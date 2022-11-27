@@ -110,9 +110,9 @@ refl::enum_map<e_native_skill, int> dwelling_expertise_weights(
   CHECK_GT( total_squares, 0 );
   double const forest_fraction =
       double( num_forest_squares ) / total_squares;
-  e_tribe const            tribe = dwelling.tribe;
-  e_native_civilized const civilized =
-      config_natives.tribes[tribe].civilized;
+  e_tribe const        tribe = dwelling.tribe;
+  e_native_level const level =
+      config_natives.tribes[tribe].level;
 
   int total_weights = 0;
   for( e_native_skill skill :
@@ -140,9 +140,8 @@ refl::enum_map<e_native_skill, int> dwelling_expertise_weights(
 
   // Finally, do the post-scaling.
   for( e_native_skill skill : refl::enum_values<e_native_skill> )
-    weights[skill] *=
-        lround( config_natives.dwelling_expertise
-                    .scale_factors[civilized][skill] );
+    weights[skill] *= lround( config_natives.dwelling_expertise
+                                  .scale_factors[level][skill] );
 
   // Recompute total weights after scaling.
   total_weights = 0;
