@@ -411,6 +411,7 @@ TEST_CASE( "[enter-dwelling] compute_live_among_the_natives" ) {
   REQUIRE( f() == expected );
 }
 
+#ifndef COMPILER_GCC
 TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
   World     W;
   Dwelling& dwelling =
@@ -460,6 +461,7 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
   REQUIRE( unit.type() == e_unit_type::expert_cotton_planter );
   REQUIRE( dwelling.has_taught == true );
 }
+#endif
 
 } // namespace
 } // namespace rn
