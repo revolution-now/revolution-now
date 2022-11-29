@@ -143,12 +143,9 @@ struct generator<T>::iterator {
   // user from doing that by returning void.
   void operator++( int ) { (void)( ++( *this ) ); }
 
-  bool operator!=( generator_sentinel const& ) const {
-    return coro_.promise().value().has_value();
-  }
-
-  bool operator==( generator_sentinel const& ) const {
-    return !coro_.promise().value().has_value();
+  friend bool operator==( iterator const& it,
+                          generator_sentinel const& ) {
+    return !it.coro_.promise().value().has_value();
   }
 
   // You should never need to compare an iterator with another

@@ -1640,14 +1640,6 @@ template<typename T, typename E, typename U>
                     : false;
 }
 
-// Delegate to the above.
-template<typename T, typename E, typename U>
-[[nodiscard]] constexpr bool operator!=(
-    expect<T, E> const& lhs, expect<U, E> const& rhs ) //
-    noexcept( noexcept( /*don't dereference*/ lhs == rhs ) ) {
-  return !( lhs == rhs );
-}
-
 /****************************************************************
 ** Equality with value
 *****************************************************************/
@@ -1671,25 +1663,6 @@ template<typename T, std::equality_comparable E>
   /* clang-format on */
   if( opt.has_value() ) return false;
   return ( opt.error() == err );
-}
-
-/* clang-format off */
-template<typename T, typename E, typename U>
-[[nodiscard]] constexpr bool operator!=( expect<T, E> const& opt,
-                                         U const&            val )
-    noexcept( noexcept( opt == val ) )
-    requires( !std::is_same_v<std::remove_cvref_t<U>, E> &&
-              !is_expect_v<std::remove_cvref_t<U>> ) {
-  /* clang-format on */
-  return !( opt == val );
-}
-
-/* clang-format off */
-template<typename T, std::equality_comparable E>
-[[nodiscard]] constexpr bool operator!=( expect<T, E> const& opt,
-                                         E const&            err )
-    noexcept( noexcept( opt == err ) ) {
-  return !( opt == err );
 }
 
 /****************************************************************

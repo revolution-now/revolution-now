@@ -31,6 +31,29 @@
 
 namespace lua {
 
+namespace internal {
+
+// Pushes (-2)[-1] onto the stack, and pops both table and key.
+void indexer_gettable( cthread L );
+
+// Pushes (-3)[-2] = (-1) onto the stack, and pops all three.
+void indexer_settable( cthread L );
+
+// Asks lua if (-2) == (-1), and pops both.
+bool indexer_eq( cthread L );
+
+// Pops n values from stack.
+void indexer_pop( cthread L, int n );
+
+// Gets the metatable for (-1) and pops (-1), leaving the metat-
+// able, which might be nil.
+void indexer_getmetatable( cthread L );
+
+// (-2)[metatable] = (-1), and pops both.
+void indexer_setmetatable( cthread L );
+
+} // namespace internal
+
 template<Pushable Predecessor>
 struct indexer_base {
   // Signal that objects of this type should not be treated as
@@ -98,9 +121,11 @@ struct indexer : indexer_base<Predecessor> {
         metatable_key_t{}, std::move( *this ) );
   }
 
-  template<Pushable IndexT_, Pushable Predecessor_>
-  friend void lua_push(
-      cthread L, indexer<IndexT_, Predecessor_> const& idxr );
+  friend void lua_push( cthread L, indexer const& idxr ) {
+    push( L, idxr.pred_ );
+    push( L, idxr.index_ );
+    internal::indexer_gettable( L );
+  }
 
   operator any() const noexcept;
 
@@ -126,40 +151,9 @@ struct indexer : indexer_base<Predecessor> {
   IndexT index_;
 };
 
-namespace internal {
-
-// Pushes (-2)[-1] onto the stack, and pops both table and key.
-void indexer_gettable( cthread L );
-
-// Pushes (-3)[-2] = (-1) onto the stack, and pops all three.
-void indexer_settable( cthread L );
-
-// Asks lua if (-2) == (-1), and pops both.
-bool indexer_eq( cthread L );
-
-// Pops n values from stack.
-void indexer_pop( cthread L, int n );
-
-// Gets the metatable for (-1) and pops (-1), leaving the metat-
-// able, which might be nil.
-void indexer_getmetatable( cthread L );
-
-// (-2)[metatable] = (-1), and pops both.
-void indexer_setmetatable( cthread L );
-
-} // namespace internal
-
 /****************************************************************
 ** Template implementations.
 *****************************************************************/
-template<Pushable IndexT, Pushable Predecessor>
-void lua_push( cthread                             L,
-               indexer<IndexT, Predecessor> const& idxr ) {
-  push( L, idxr.pred_ );
-  push( L, idxr.index_ );
-  internal::indexer_gettable( L );
-}
-
 template<typename IndexT, Pushable Predecessor>
 template<Pushable U>
 indexer<IndexT, Predecessor>&
