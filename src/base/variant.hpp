@@ -211,9 +211,13 @@ template<std::size_t I, typename... Types>
 struct variant_alternative<I, ::base::variant<Types...>>
   : public variant_alternative<I, variant<Types...>> {};
 
+} // namespace std
+
 /****************************************************************
 ** std::visit specializations.
 *****************************************************************/
+namespace base {
+
 template<typename Visitor, typename... Variants>
 /* clang-format off */
   requires( std::conjunction_v<::base::is_base_variant<
@@ -240,4 +244,4 @@ T visit( Visitor&& visitor, Variants&&... variants ) {
           variants.as_std() )... );
 }
 
-} // namespace std
+}
