@@ -55,7 +55,8 @@ gfx::pixel parse_color( string_view hex ) {
 
 gfx::pixel const kHiddenColor =
     parse_color( "2c3468" ).shaded( 3 );
-gfx::pixel const kOceanColor = parse_color( "404b78" );
+gfx::pixel const kOceanColor   = parse_color( "404b78" );
+gfx::pixel const kSeaLaneColor = parse_color( "46557d" );
 
 gfx::pixel const kMountainsColor = parse_color( "abafb0" );
 gfx::pixel const kHillsColor     = parse_color( "6b5f5c" );
@@ -71,7 +72,8 @@ gfx::pixel const kSwampColor     = parse_color( "257380" );
 gfx::pixel const kTundraColor    = parse_color( "cdad94" );
 
 gfx::pixel color_for_square( MapSquare const& square ) {
-  if( square.surface == e_surface::water ) return kOceanColor;
+  if( square.surface == e_surface::water )
+    return square.sea_lane ? kSeaLaneColor : kOceanColor;
   if( square.overlay.has_value() ) {
     switch( *square.overlay ) {
       case e_land_overlay::mountains: return kMountainsColor;
