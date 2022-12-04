@@ -36,6 +36,13 @@ struct.TribeRelationship {
   # this number and the dwelling-level alarm.
   tribal_alarm 'int',
 
+  # This keeps track of the number of squares that the player has
+  # acquired from this tribe via payment. It is used to have that
+  # price increase the more squares are purchased. Note that this
+  # does not increase if the player takes the land without pay-
+  # ing.
+  land_squares_paid_for 'int',
+
   _features { equality, validation }
 }
 

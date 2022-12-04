@@ -94,7 +94,6 @@ maybe<LandPrice> price_for_native_owned_land(
   Tribe const& tribe_obj = ss.natives.tribe_for( tribe );
   UNWRAP_RETURN( relationship,
                  tribe_obj.relationship[player.nation] );
-  if( relationship.at_war ) return nothing;
   int const num_colonies =
       ss.colonies.for_nation( player.nation ).size();
   auto&        conf = config_natives.land_prices;
@@ -104,6 +103,8 @@ maybe<LandPrice> price_for_native_owned_land(
                   conf.max_colonies_for_increase ) /
         2 ) *
           conf.increment_per_two_colonies +
+      relationship.land_squares_paid_for *
+          conf.increment_per_paid_land_square +
       static_cast<int>( level ) *
           conf.increment_per_tribe_level +
       static_cast<int>( ss.settings.difficulty ) *

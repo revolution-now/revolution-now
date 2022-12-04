@@ -128,7 +128,7 @@ struct.LandPrices {
   #   level, difficulty level, and the number of colonies that
   #   the player has:
   #
-  #     base price = B + floor(C/2)*IC + L*IL + D*ID
+  #     base price = B + floor(C/2)*IC + L*IL + D*ID + P*IP
   #
   #   where:
   #
@@ -142,6 +142,10 @@ struct.LandPrices {
   #         aztec, inca).
   #     ID: increment per difficulty level, 65 in OG.
   #     D:  difficulty level, starting at zero.
+  #     IP: increment per land square already acquired from
+  #         this tribe via payment. 32.5 in OG.
+  #     P:  number of land squares acquired from this tribe
+  #         via payment.
   #
   # Then there are a series of multiplicative modifiers:
   #
@@ -176,6 +180,9 @@ struct.LandPrices {
 
   # ID above. 65 in OG.
   increment_per_difficulty_level 'double',
+
+  # IP above. 32.5 in OG.
+  increment_per_paid_land_square 'double',
 
   # Multiplicative bonus applied when the tile has a prime re-
   # source on it.  2.0 in OG.
