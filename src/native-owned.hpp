@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// Rds
+#include "native-owned.rds.hpp"
+
 // Revolution Now
 #include "maybe.hpp"
 
@@ -49,5 +52,12 @@ refl::enum_map<e_direction, maybe<DwellingId>>
 native_owned_land_around_square( SSConst const& ss,
                                  Player const&  player,
                                  Coord          loc );
+
+// If the square is owned by a native tribe the it will return
+// the tribe and price. The player must have met the tribe in
+// order to call this, otherwise there is no price. If the player
+// has not met the tribe then nothing is returned.
+maybe<LandPrice> price_for_native_owned_land(
+    SSConst const& ss, Player const& player, Coord coord );
 
 } // namespace rn

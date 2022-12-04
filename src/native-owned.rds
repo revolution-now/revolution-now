@@ -1,0 +1,19 @@
+# ===============================================================
+# native-owned.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-11-27.
+#
+# Description: Rds definitions for the native-owned module.
+#
+# ===============================================================
+# ss
+include "ss/native-enums.rds.hpp"
+
+namespace "rn"
+
+struct.LandPrice {
+  owner 'e_tribe',
+  price 'int',
+}
