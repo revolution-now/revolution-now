@@ -120,6 +120,83 @@ struct.DwellingExpertise {
   seasoned_scout_scale 'double',
 }
 
+struct.LandPrices {
+  # The price demanded by a native tribe for a tile is computed
+  # as follows.
+  #
+  # * There is a base price that is computed based on tribe
+  #   level, difficulty level, and the number of colonies that
+  #   the player has:
+  #
+  #     base price = B + floor(C/2)*IC + L*IL + D*ID
+  #
+  #   where:
+  #
+  #     B:  anchor price, 65 in OG.
+  #     IC: increment per two colonies, 32.5 in OG.
+  #     C:  min( #colonies of player, MC ).
+  #     MC: Number of colonies beyond which the base price no
+  #         longer increases with additional colonies. 6 in OG.
+  #     IL: increment per tribe level, 32.5 in OG.
+  #     L:  tribe level, starting at zero (nomadic, agrarian,
+  #         aztec, inca).
+  #     ID: increment per difficulty level, 65 in OG.
+  #     D:  difficulty level, starting at zero.
+  #
+  # Then there are a series of multiplicative modifiers:
+  #
+  # * When a square has a prime resource on it. There do not seem
+  #   to be any other modifiers having to do with terrain type.
+  # * When the dwelling owning the tile is a capital.
+  # * The price increases the angrier the tribe. Through this
+  #   mechanism, the price can increase all the way up to 4x. The
+  #   tribal anger multiplier is (1+n), where n is an integer
+  #   that increases as the tribal anger increases and goes from
+  #   [0,4]. The dwelling anger does not seem to affect this.
+  # * When the tile is not adjacent to the dwelling. The "dis-
+  #   tance" to the tile in question is not the pythagorean dis-
+  #   tance, but the square around the dwelling in which the tile
+  #   lives. So immediately adjacent would be m=0, the square
+  #   around that (5x5) would be m=1, etc.
+
+  # B above. Anchor price. As can be seen from the base price
+  # formula, this is the base price of a tile for a semi-nomadic
+  # tribe on the discoverer difficulty level when the player has
+  # no colonies. 65 in OG.
+  anchor_price 'double',
+
+  # IC above. 32.5 in OG.
+  increment_per_two_colonies 'double',
+
+  # MC above. 6 in OG.
+  max_colonies_for_increase 'int',
+
+  # IL above. 32.5 in OG.
+  increment_per_tribe_level 'double',
+
+  # ID above. 65 in OG.
+  increment_per_difficulty_level 'double',
+
+  # Multiplicative bonus applied when the tile has a prime re-
+  # source on it.  2.0 in OG.
+  bonus_prime_resource 'double',
+
+  # Multiplicative bonus applied when dwelling that owns the tile
+  # is a capital. 1.5 in OG.
+  bonus_capital 'double',
+
+  # The tribal anger multiplier is given by (1+n), where n goes
+  # from zero up to this value inclusive. 3 in OG.
+  tribal_anger_max_n 'int',
+
+  # The multiplier is .9^m, where m=0 for adjacent squares, m=1
+  # for outter square, and m=2 for outter corner squares and be-
+  # yond.
+  distance_exponential 'double',
+
+  _features { validation, equality }
+}
+
 namespace "rn"
 
 struct.config_natives_t {
@@ -144,6 +221,10 @@ struct.config_natives_t {
   # Configures how each dwelling is assigned an expertise for
   # teaching.
   dwelling_expertise 'config::natives::DwellingExpertise',
+
+  # Determines how the price demanded by the natives for their
+  # land is computed.
+  land_prices 'config::natives::LandPrices',
 }
 
 config.natives {}
