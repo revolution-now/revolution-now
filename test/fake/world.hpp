@@ -62,6 +62,7 @@ struct Colony;
 struct Dwelling;
 struct IMapUpdater;
 struct Player;
+struct Tribe;
 
 struct MockIGui;
 struct MockIRand;
@@ -191,6 +192,8 @@ struct World {
   // Creating Native Dwellings.
   // ------------------------------------------------------------
   Dwelling& add_dwelling( Coord where, e_tribe tribe );
+
+  Tribe& add_tribe( e_tribe tribe );
 
   // ------------------------------------------------------------
   // Colony setup.
