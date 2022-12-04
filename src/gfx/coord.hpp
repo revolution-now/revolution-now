@@ -136,6 +136,9 @@ struct Delta {
   // will remain zero.
   Delta trimmed_by_one() const;
 
+  // Returns a new Delta with each component made non-negative.
+  [[nodiscard]] Delta abs() const;
+
   // Returns the length of the diagonal according to Pythagoras.
   double diagonal() const;
 

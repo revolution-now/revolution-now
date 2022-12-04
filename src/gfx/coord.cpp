@@ -352,6 +352,10 @@ Delta Delta::trimmed_by_one() const {
   return res;
 }
 
+[[nodiscard]] Delta Delta::abs() const {
+  return Delta{ .w = std::abs( w ), .h = std::abs( h ) };
+}
+
 double Delta::diagonal() const {
   return std::sqrt( w * w + h * h );
 }

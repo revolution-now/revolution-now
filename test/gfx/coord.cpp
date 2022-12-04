@@ -129,6 +129,11 @@ TEST_CASE( "[coord] centered*" ) {
   REQUIRE( centered_right( delta, rect ) == expect );
 }
 
+TEST_CASE( "[coord] Delta::abs" ) {
+  Delta d{ .w = -6, .h = -2 };
+  REQUIRE( d.abs() == Delta{ .w = 6, .h = 2 } );
+}
+
 TEST_CASE( "[coord] centered_on" ) {
   Coord coord;
   Rect  rect;
