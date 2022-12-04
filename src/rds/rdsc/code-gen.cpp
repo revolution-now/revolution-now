@@ -579,7 +579,7 @@ struct CodeGenerator {
     auto visitor = [&]( auto const& v ) { emit( cpp_ns, v ); };
     for( expr::Construct const& construct : item.constructs ) {
       newline();
-      visit( visitor, construct );
+      base::visit( visitor, construct );
     }
   }
 
@@ -592,7 +592,7 @@ struct CodeGenerator {
   bool rds_has_construct( expr::Rds const& rds ) {
     for( expr::Item const& item : rds.items ) {
       for( expr::Construct const& construct : item.constructs ) {
-        bool has_construct = visit(
+        bool has_construct = base::visit(
             mp::overload{ [&]( T const& ) { return true; },
                           []( auto const& ) { return false; } },
             construct );
