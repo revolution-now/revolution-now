@@ -28,13 +28,13 @@ using V = ::base::variant<Args...>;
 TEST_CASE( "[variant] visitation" ) {
   V<int, double> v = 4.4;
   auto f = []( auto&& _ ) { return fmt::format( "{}", _ ); };
-  REQUIRE( std::visit( f, v ) == "4.4" );
+  REQUIRE( base::visit( f, v ) == "4.4" );
 
   // FIXME: remove this guard once libc++ adds the C++20
   // std::visit<R> overload.
 #if !defined( _LIBCPP_VERSION )
   v = 3;
-  REQUIRE( std::visit<string>( f, v ) == "3" );
+  REQUIRE( base::visit<string>( f, v ) == "3" );
 #endif
 }
 

@@ -896,7 +896,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
       wait<base::variant<int, int, int>> w = il.next();
       run_all_cpp_coroutines();
       if( !w.ready() ) break;
-      found.push_back( std::visit( L( _ ), *w ) );
+      found.push_back( base::visit( L( _ ), *w ) );
     }
 
     vector<int> expected{ 3, 4, 5, 0, 1, 2, 6, 7, 8 };
@@ -912,7 +912,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
       run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == 0 );
-      found.push_back( std::visit( L( _ ), *w ) );
+      found.push_back( base::visit( L( _ ), *w ) );
     }
 
     for( int i = 0; i < 3; ++i ) s2.send( i );
@@ -921,7 +921,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
       run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == 1 );
-      found.push_back( std::visit( L( _ ), *w ) );
+      found.push_back( base::visit( L( _ ), *w ) );
     }
 
     for( int i = 6; i < 9; ++i ) s3.send( i );
@@ -930,7 +930,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
       run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == 2 );
-      found.push_back( std::visit( L( _ ), *w ) );
+      found.push_back( base::visit( L( _ ), *w ) );
     }
 
     vector<int> expected{ 3, 4, 5, 0, 1, 2, 6, 7, 8 };
@@ -950,7 +950,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
       run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == idx++ );
-      found.push_back( std::visit( L( _ ), *w ) );
+      found.push_back( base::visit( L( _ ), *w ) );
     }
 
     s1.send( 4 );
@@ -962,7 +962,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
       run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == idx++ );
-      found.push_back( std::visit( L( _ ), *w ) );
+      found.push_back( base::visit( L( _ ), *w ) );
     }
 
     s1.send( 5 );
@@ -974,7 +974,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
       run_all_cpp_coroutines();
       if( !w.ready() ) break;
       REQUIRE( w->index() == idx++ );
-      found.push_back( std::visit( L( _ ), *w ) );
+      found.push_back( base::visit( L( _ ), *w ) );
     }
 
     vector<int> expected{ 3, 0, 6, 4, 1, 7, 5, 2, 8 };
@@ -997,7 +997,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
         wait<base::variant<int, int, int>> w = il.next();
         run_all_cpp_coroutines();
         if( !w.ready() ) break;
-        found.push_back( std::visit( L( _ ), *w ) );
+        found.push_back( base::visit( L( _ ), *w ) );
       }
     }
 
@@ -1010,7 +1010,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
         wait<base::variant<int, int, int>> w = il.next();
         run_all_cpp_coroutines();
         if( !w.ready() ) break;
-        found.push_back( std::visit( L( _ ), *w ) );
+        found.push_back( base::visit( L( _ ), *w ) );
       }
     }
 
@@ -1023,7 +1023,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
         wait<base::variant<int, int, int>> w = il.next();
         run_all_cpp_coroutines();
         if( !w.ready() ) break;
-        found.push_back( std::visit( L( _ ), *w ) );
+        found.push_back( base::visit( L( _ ), *w ) );
       }
     }
 
