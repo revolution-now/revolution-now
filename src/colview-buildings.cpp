@@ -306,7 +306,11 @@ bool ColViewBuildings::try_drag( ColViewObject_t const& o,
   UNWRAP_CHECK( slot, slot_for_coord( where ) );
   UNWRAP_CHECK(
       unit, obj_with_bounds.obj.get_if<ColViewObject::unit>() );
-  CHECK( o == ColViewObject_t{ unit } ); // Sanity check.
+  // We can't test if o == unit because the `o` might have its
+  // `transformed` field filled out, which `unit` will not. So we
+  // will do the next best thing.
+  CHECK( o.holds<ColViewObject::unit>() );
+  CHECK( o.get<ColViewObject::unit>().id == unit.id );
   dragging_ = Dragging{ .id = unit.id, .slot = slot };
   return true;
 }
