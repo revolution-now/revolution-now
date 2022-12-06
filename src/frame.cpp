@@ -105,7 +105,7 @@ void notify_subscribers() {
   for( auto& sub : subscriptions() ) try_notify( sub );
   for( auto& sub : subscriptions_oneoff() ) try_notify( sub );
   erase_if( subscriptions_oneoff(), []( FrameSubscription& fs ) {
-    return std::visit( L( _.done ), fs );
+    return base::visit( L( _.done ), fs );
   } );
 }
 

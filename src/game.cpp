@@ -186,7 +186,7 @@ wait<> run_game_with_mode( Planes&            planes,
   StartMode_t next_mode = mode;
   while( true ) {
     try {
-      co_await std::visit(
+      co_await base::visit(
           [&]( auto& m ) { return handle_mode( planes, m ); },
           next_mode );
       break;

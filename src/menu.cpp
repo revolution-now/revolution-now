@@ -678,7 +678,7 @@ struct MenuPlane::Impl : public Plane {
       MenuRendererVisitor matcher{
           this, menu, background_upper_left,
           foreground_upper_left, renderer };
-      std::visit( matcher, menu_state_ );
+      base::visit( matcher, menu_state_ );
     }
   }
 
@@ -735,7 +735,7 @@ struct MenuPlane::Impl : public Plane {
 
   maybe<MouseOver_t> click_target( Coord screen_coord ) {
     ClickTargetVisitor matcher{ *this, screen_coord };
-    return std::visit( matcher, menu_state_ );
+    return base::visit( matcher, menu_state_ );
   }
 
   /****************************************************************
@@ -999,7 +999,7 @@ struct MenuPlane::Impl : public Plane {
           if( !over_what.has_value() )
             return e_input_handled::no;
           MouseMoveVisitor matcher{ *this };
-          return std::visit( matcher, *over_what );
+          return base::visit( matcher, *over_what );
         },
         [&, this]( input::mouse_button_event_t b_event ) {
           auto over_what = click_target( b_event.pos );

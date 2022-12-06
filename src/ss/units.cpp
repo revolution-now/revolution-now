@@ -40,7 +40,7 @@ constexpr GenericUnitId kFirstUnitId{ 1 };
 valid_or<generic_err> check_harbor_state_invariants(
     UnitHarborViewState const& info ) {
   valid_or<string> res =
-      std::visit( []( auto const& o ) { return o.validate(); },
+      base::visit( []( auto const& o ) { return o.validate(); },
                   info.port_status );
   if( !res ) return GENERIC_ERROR( "{}", res.error() );
   return base::valid;

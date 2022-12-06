@@ -190,7 +190,7 @@ value to_canonical( converter&                  conv,
       return res;
     }
   };
-  return std::visit( visitor, o );
+  return base::visit( visitor, o );
 }
 
 // clang-format off

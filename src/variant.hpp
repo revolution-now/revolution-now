@@ -115,7 +115,7 @@ auto apply_to_alternatives_with_base(
   static_assert(
       at_least_one,
       "There are no variants with the given base class!" );
-  return std::visit(
+  return base::visit(
       [&]<typename T>( T const& alternative ) -> Ret {
         if constexpr( std::is_base_of_v<Base,
                                         std::remove_cvref_t<T>> )
@@ -143,7 +143,7 @@ void apply_to_alternatives_with_base( base::variant<Args...>& v,
   static_assert(
       at_least_one,
       "There are no variants with the given base class!" );
-  std::visit(
+  base::visit(
       [&]<typename T>( T&& alternative ) {
         if constexpr( std::is_base_of_v<Base,
                                         std::remove_cvref_t<T>> )
@@ -167,7 +167,7 @@ void apply_to_alternatives_with_base( base::variant<Args...>& v,
 // is not in a valueless-by-exception state.
 template<typename Base, typename... Args>
 Base& variant_base( base::variant<Args...>& v ) {
-  return std::visit(
+  return base::visit(
       []<typename T>( T&& e ) -> Base& {
         static_assert(
             std::is_base_of_v<Base, std::decay_t<T>>,
@@ -180,7 +180,7 @@ Base& variant_base( base::variant<Args...>& v ) {
 // And one for const.
 template<typename Base, typename... Args>
 Base const& variant_base( base::variant<Args...> const& v ) {
-  return std::visit(
+  return base::visit(
       []<typename T>( T const& e ) -> Base const& {
         static_assert(
             std::is_base_of_v<Base, T>,
@@ -300,8 +300,8 @@ decltype( auto ) overload_visit(
     base::variant<VarArgs...> const& v, Funcs&&... funcs ) {
   detail::visit_checks<mp::list<VarArgs...>,
                        mp::list<Funcs...>>::go();
-  return std::visit( overload{ std::forward<Funcs>( funcs )... },
-                     v );
+  return base::visit(
+      overload{ std::forward<Funcs>( funcs )... }, v );
 }
 
 template<typename... VarArgs, typename... Funcs>
@@ -309,8 +309,8 @@ decltype( auto ) overload_visit( base::variant<VarArgs...>& v,
                                  Funcs&&... funcs ) {
   detail::visit_checks<mp::list<VarArgs...>,
                        mp::list<Funcs...>>::go();
-  return std::visit( overload{ std::forward<Funcs>( funcs )... },
-                     v );
+  return base::visit(
+      overload{ std::forward<Funcs>( funcs )... }, v );
 }
 
 // Allows forcing return type.
@@ -319,7 +319,7 @@ decltype( auto ) overload_visit(
     base::variant<VarArgs...> const& v, Funcs&&... funcs ) {
   detail::visit_checks<mp::list<VarArgs...>,
                        mp::list<Funcs...>>::go();
-  return std::visit<Ret>(
+  return base::visit<Ret>(
       overload{ std::forward<Funcs>( funcs )... }, v );
 }
 
@@ -329,16 +329,16 @@ decltype( auto ) overload_visit( base::variant<VarArgs...>& v,
                                  Funcs&&... funcs ) {
   detail::visit_checks<mp::list<VarArgs...>,
                        mp::list<Funcs...>>::go();
-  return std::visit<Ret>(
+  return base::visit<Ret>(
       overload{ std::forward<Funcs>( funcs )... }, v );
 }
 
-// A wrapper around std::visit which allows taking the variant as
-// the first argument.
+// A wrapper around visit which allows taking the variant as the
+// first argument.
 template<typename Variant, typename Func>
 decltype( auto ) visit( Variant&& v, Func&& func ) {
-  return std::visit( std::forward<Func>( func ),
-                     std::forward<Variant>( v ) );
+  return base::visit( std::forward<Func>( func ),
+                      std::forward<Variant>( v ) );
 }
 
 } // namespace rn

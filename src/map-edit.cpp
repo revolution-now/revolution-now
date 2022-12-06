@@ -287,7 +287,7 @@ struct MapEditPlane::Impl : public Plane {
     while( true ) {
       input::event_t event = co_await input_.next();
       auto [exit, suspended] =
-          co_await co::detect_suspend( std::visit(
+          co_await co::detect_suspend( base::visit(
               [&]( auto const& event ) {
                 return handle_event( event );
               },

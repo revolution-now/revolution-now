@@ -132,11 +132,11 @@ string_view type_name( value const& v ) {
     string_view operator()( table ) const { return "table"; }
     string_view operator()( list ) const { return "list"; }
   };
-  return std::visit( visitor{}, v.as_base() );
+  return base::visit( visitor{}, v.as_base() );
 }
 
 void to_str( value const& o, std::string& out, base::ADL_t ) {
-  std::visit(
+  base::visit(
       [&]( auto const& alt ) {
         to_str( alt, out, base::ADL_t{} );
       },

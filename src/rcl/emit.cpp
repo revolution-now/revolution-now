@@ -65,8 +65,9 @@ struct emitter {
         nested_val.get<table>().size() != 1 )
       out += ' ';
 
-    std::visit( [&]( auto const& o ) { emit( o, out, indent ); },
-                nested_val.as_base() );
+    base::visit(
+        [&]( auto const& o ) { emit( o, out, indent ); },
+        nested_val.as_base() );
   }
 
   // We need flatten_immediate so that we can tell this function
@@ -103,7 +104,7 @@ struct emitter {
       do_indent( indent, out );
       out += k_str;
       out += assign;
-      std::visit(
+      base::visit(
           [&]( auto const& o ) { emit( o, out, indent + 1 ); },
           v.as_base() );
       out += '\n';
@@ -145,8 +146,8 @@ struct emitter {
 
     for( value const& v : o ) {
       do_indent( indent, out );
-      std::visit( list_visitor{ *this, out, indent + 1 },
-                  v.as_base() );
+      base::visit( list_visitor{ *this, out, indent + 1 },
+                   v.as_base() );
       out += ",\n";
     }
 

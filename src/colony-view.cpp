@@ -209,7 +209,7 @@ struct ColonyPlane::Impl : public Plane {
     while( true ) {
       input::event_t event   = co_await input_.next();
       auto [exit, suspended] = co_await co::detect_suspend(
-          std::visit( LC( handle_event( _ ) ), event ) );
+          base::visit( LC( handle_event( _ ) ), event ) );
       if( suspended ) clear_non_essential_events();
       if( exit ) co_return;
     }
