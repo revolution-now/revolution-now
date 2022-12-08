@@ -100,9 +100,8 @@ struct NativesState {
   owned_land_without_minuit() const;
 
   friend base::maybe<DwellingId>
-  is_land_native_owned_after_meeting( SSConst const& ss,
-                                      Player const&  player,
-                                      Coord          coord );
+  is_land_native_owned_after_meeting_without_colonies(
+      SSConst const& ss, Player const& player, Coord coord );
 
  public:
   void mark_land_owned( DwellingId dwelling_id, Coord where );
