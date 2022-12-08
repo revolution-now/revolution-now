@@ -358,10 +358,10 @@ local function surrounding_squares_7x7( square )
   return possible
 end
 
-local function surrounding_squares_5x5( square )
+local function surrounding_squares_3x3( square )
   local possible = {}
-  for y = square.y - 2, square.y + 2 do
-    for x = square.x - 2, square.x + 2 do
+  for y = square.y - 1, square.y + 1 do
+    for x = square.x - 1, square.x + 1 do
       if x ~= square.x or y ~= square.y then
         append( possible, { x=x, y=y } )
       end
@@ -370,10 +370,53 @@ local function surrounding_squares_5x5( square )
   return possible
 end
 
-local function surrounding_squares_3x3( square )
+local function generate_large_tribe_owned_land()
+  local _ = false
+  local X = true
+  local map = {
+    _, _, X, X, X, _, _, --
+    _, X, X, X, X, X, _, --
+    X, X, X, X, X, X, X, --
+    X, X, X, X, X, X, X, --
+    X, X, X, X, X, X, X, --
+    _, X, X, X, X, X, _, --
+    _, _, X, X, X, _, _ --
+  }
+  assert( #map == 7 * 7 )
+  return map
+end
+-- Generate/cache this once for speed.
+local LARGE_TRIBE_OWNED_LAND_MAP =
+    generate_large_tribe_owned_land()
+
+local function surrounding_squares_tribe_owned( tribe, coord )
+  assert( tribe )
+  -- FIXME: dwelling radius is specified in the config files,
+  -- should not be duplicated here.
+  if tribe == 'aztec' or tribe == 'inca' then
+    local possible = {}
+    for h = -3, 3 do
+      for w = -3, 3 do
+        if w ~= 0 or h ~= 0 then
+          local on = LARGE_TRIBE_OWNED_LAND_MAP[(h + 3) * 7 +
+                         (w + 3) + 1] -- +1 for lua.
+          assert( on ~= nil ) -- must be true or false.
+          if on then
+            append( possible, { x=coord.x + w, y=coord.y + h } )
+          end
+        end
+      end
+    end
+    return possible
+  else
+    return surrounding_squares_3x3( coord )
+  end
+end
+
+local function surrounding_squares_5x5( square )
   local possible = {}
-  for y = square.y - 1, square.y + 1 do
-    for x = square.x - 1, square.x + 1 do
+  for y = square.y - 2, square.y + 2 do
+    for x = square.x - 2, square.x + 2 do
       if x ~= square.x or y ~= square.y then
         append( possible, { x=x, y=y } )
       end
@@ -726,15 +769,9 @@ local function add_dwelling( coord, tribe )
   -- If it's already owned by another dwelling that's ok, we'll
   -- just overwrite it.
   local owned_squares
-  -- FIXME: dwelling radius is specified in the config files,
-  -- should not be duplicated here.
-  if tribe == 'aztec' or tribe == 'inca' then
-    owned_squares = filter_on_map(
-                        surrounding_squares_5x5( coord ) )
-  else
-    owned_squares = filter_on_map(
-                        surrounding_squares_3x3( coord ) )
-  end
+  owned_squares = filter_on_map(
+                      surrounding_squares_tribe_owned( tribe,
+                                                       coord ) )
   ROOT.natives:mark_land_owned( dwelling.id, coord )
   for _, coord in ipairs( owned_squares ) do
     ROOT.natives:mark_land_owned( dwelling.id, coord )
