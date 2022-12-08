@@ -36,7 +36,8 @@ struct SSConst;
 // This is the only function that should be used to determine
 // whether a square is owned by the natives since it takes into
 // account whether the player has Peter Minuit and whether the
-// player has encountered the relevant tribe.
+// player has encountered the relevant tribe, and also whether
+// there is a friendly colony on the square.
 maybe<DwellingId> is_land_native_owned( SSConst const& ss,
                                         Player const&  player,
                                         Coord          coord );
@@ -44,6 +45,12 @@ maybe<DwellingId> is_land_native_owned( SSConst const& ss,
 // Same as above but returns the result that would be returned
 // assuming that the player has already encountered the tribe.
 maybe<DwellingId> is_land_native_owned_after_meeting(
+    SSConst const& ss, Player const& player, Coord coord );
+
+// Same as above but returns the result that would be returned
+// assuming that any colonies the player has were removed.
+maybe<DwellingId>
+is_land_native_owned_after_meeting_without_colonies(
     SSConst const& ss, Player const& player, Coord coord );
 
 // Determines whether each of the eight squares around `loc` are

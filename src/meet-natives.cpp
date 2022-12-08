@@ -85,8 +85,8 @@ MeetTribe check_meet_tribe_single( SSConst const& ss,
   unordered_set<Coord> land_awarded;
   for( Coord occupied : land_occupied ) {
     maybe<DwellingId> const owning_dwelling_id =
-        is_land_native_owned_after_meeting( ss, player,
-                                            occupied );
+        is_land_native_owned_after_meeting_without_colonies(
+            ss, player, occupied );
     if( !owning_dwelling_id.has_value() ) continue;
     if( !dwellings.contains( *owning_dwelling_id ) ) continue;
     // The square is owned by natives of this tribe, so award it
@@ -231,7 +231,24 @@ void perform_meet_tribe( SS& ss, Player const& player,
     CHECK( meet_tribe.land_awarded.empty() );
   }
   for( Coord to_award : meet_tribe.land_awarded ) {
-    CHECK( is_land_native_owned( ss, player, to_award ),
+    // We use this long version of the function to check here be-
+    // cause 1) we can assume that there already is a relation-
+    // ship (because we just created one above), and 2) because
+    // some of the owned land squares we get in this function
+    // might contain colonies, and so if we were to call the
+    // normal `is_land_native_owned` it would report those as not
+    // being owned. It does this in order to support that mode of
+    // the game (enabled in the config files) which mirrors the
+    // OG in that the game will not ask the player to acquire na-
+    // tive land to build a colony there, and so colony squares
+    // retain their native land ownership, just that it is ig-
+    // nored. For that reason, the `is_land_native_owned` will
+    // ignore native owned markers on squares with colonies. But
+    // that is not what we want here for this sanity check, which
+    // tests that we only receive squares that are actually owned
+    // by the natives from their point of view.
+    CHECK( is_land_native_owned_after_meeting_without_colonies(
+               ss, player, to_award ),
            "square {} was supposed to be owned by the {} tribe "
            "but isn't owned at all.",
            to_award, meet_tribe.tribe );

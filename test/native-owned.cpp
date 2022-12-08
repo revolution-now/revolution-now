@@ -65,6 +65,36 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE(
+    "[native-owned] "
+    "is_land_native_owned_after_meeting_without_colonies" ) {
+  World           W;
+  Coord const     loc = { .x = 1, .y = 1 };
+  Dwelling const& dwelling =
+      W.add_dwelling( loc, e_tribe::cherokee );
+  Player& player = W.default_player();
+  Tribe&  tribe  = W.natives().tribe_for( e_tribe::cherokee );
+
+  auto f = [&] {
+    return is_land_native_owned_after_meeting_without_colonies(
+        W.ss(), player, loc );
+  };
+
+  REQUIRE( f() == nothing );
+  W.natives().mark_land_owned( dwelling.id, loc );
+  REQUIRE( f() == dwelling.id );
+  tribe.relationship[player.nation].emplace();
+  REQUIRE( f() == dwelling.id );
+  player.fathers.has[e_founding_father::peter_minuit] = true;
+  REQUIRE( f() == nothing );
+
+  // Colony on square.
+  player.fathers.has[e_founding_father::peter_minuit] = false;
+  REQUIRE( f() == dwelling.id );
+  W.add_colony( { .x = 1, .y = 1 } );
+  REQUIRE( f() == dwelling.id );
+}
+
+TEST_CASE(
     "[native-owned] is_land_native_owned_after_meeting" ) {
   World           W;
   Coord const     loc = { .x = 1, .y = 1 };
@@ -84,6 +114,12 @@ TEST_CASE(
   tribe.relationship[player.nation].emplace();
   REQUIRE( f() == dwelling.id );
   player.fathers.has[e_founding_father::peter_minuit] = true;
+  REQUIRE( f() == nothing );
+
+  // Colony on square.
+  player.fathers.has[e_founding_father::peter_minuit] = false;
+  REQUIRE( f() == dwelling.id );
+  W.add_colony( { .x = 1, .y = 1 } );
   REQUIRE( f() == nothing );
 }
 
@@ -105,6 +141,12 @@ TEST_CASE( "[native-owned] is_land_native_owned" ) {
   tribe.relationship[player.nation].emplace();
   REQUIRE( f() == dwelling.id );
   player.fathers.has[e_founding_father::peter_minuit] = true;
+  REQUIRE( f() == nothing );
+
+  // Colony on square.
+  player.fathers.has[e_founding_father::peter_minuit] = false;
+  REQUIRE( f() == dwelling.id );
+  W.add_colony( { .x = 1, .y = 1 } );
   REQUIRE( f() == nothing );
 }
 

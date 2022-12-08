@@ -325,6 +325,28 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
         W.natives().tribe_for( tribe ).relationship[nation] ==
         TribeRelationship{ .at_war = true, .tribal_alarm = 0 } );
   }
+
+  // The perform_meet_tribe function may receive some owned land
+  // squares occupied by colonies, since those are among the ones
+  // given to the player upon meeting. This test makes sure that
+  // it doesn't check fail in that case.
+  SECTION( "with colony" ) {
+    declare_war = e_declare_war_on_natives::no;
+    W.add_colony( { .x = 1, .y = 0 } );
+    f();
+    REQUIRE(
+        W.natives().tribe_for( tribe ).relationship[nation] ==
+        TribeRelationship{ .at_war       = false,
+                           .tribal_alarm = 0 } );
+    REQUIRE( !is_land_native_owned( W.ss(), player,
+                                    { .x = 1, .y = 0 } ) );
+    REQUIRE( !is_land_native_owned( W.ss(), player,
+                                    { .x = 2, .y = 0 } ) );
+    REQUIRE( is_land_native_owned( W.ss(), player,
+                                   { .x = 2, .y = 1 } ) );
+    REQUIRE( is_land_native_owned( W.ss(), player,
+                                   { .x = 2, .y = 1 } ) );
+  }
 }
 
 } // namespace

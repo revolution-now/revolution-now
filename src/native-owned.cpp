@@ -36,13 +36,30 @@ namespace {} // namespace
 /****************************************************************
 ** Public API
 *****************************************************************/
-maybe<DwellingId> is_land_native_owned_after_meeting(
+maybe<DwellingId>
+is_land_native_owned_after_meeting_without_colonies(
     SSConst const& ss, Player const& player, Coord coord ) {
   if( player.fathers.has[e_founding_father::peter_minuit] )
     // Effectively no native land ownership when we have Minuit.
     return nothing;
   return base::lookup( ss.natives.owned_land_without_minuit(),
                        coord );
+}
+
+maybe<DwellingId> is_land_native_owned_after_meeting(
+    SSConst const& ss, Player const& player, Coord coord ) {
+  maybe<DwellingId> const dwelling_id =
+      is_land_native_owned_after_meeting_without_colonies(
+          ss, player, coord );
+  if( !dwelling_id.has_value() ) return nothing;
+  // If there is a friendly colony on the square then the square
+  // is effectively not owned. The OG does not require taking or
+  // paying for land when founding a colony, but it also will not
+  // remove the ownership (otherwise the player could just found
+  // a bunch of temporary colonies to remove native owned land).
+  if( ss.colonies.maybe_from_coord( coord ).has_value() )
+    return nothing;
+  return *dwelling_id;
 }
 
 maybe<DwellingId> is_land_native_owned( SSConst const& ss,
