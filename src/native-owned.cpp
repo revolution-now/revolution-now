@@ -155,8 +155,8 @@ maybe<LandPrice> price_for_native_owned_land(
   // distance, but instead is calculated in a way so as to match
   // the OG price falloff with distance.
   CHECK( dwelling_square != coord ); // checked above.
-  Delta const delta      = ( dwelling_square - coord ).abs();
-  int const   rect_level = std::max( delta.w, delta.h ) - 1;
+  int const rect_level =
+      dwelling_square.concentric_square_distance( coord ) - 1;
   CHECK_GE( rect_level, 0 );
   price *= pow( conf.distance_exponential, rect_level );
 

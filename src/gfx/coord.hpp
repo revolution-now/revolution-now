@@ -235,6 +235,10 @@ struct Coord {
   // turned.
   base::maybe<e_direction> direction_to( Coord dest ) const;
 
+  // How many concentric squares around this square do we have to
+  // draw before we arrive at a square that includes `other`.
+  int concentric_square_distance( Coord other ) const;
+
   // Returns this coordinate with respect to a new origin.
   Coord with_new_origin( Coord new_origin ) const;
 

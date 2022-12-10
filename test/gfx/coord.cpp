@@ -459,4 +459,30 @@ TEST_CASE( "[coord] Rect::with_new_origin" ) {
   REQUIRE( rect.with_new_origin( new_origin ) == expected );
 }
 
+TEST_CASE( "[coord] Coord::concentric_square_distance" ) {
+  Coord const src{ .x = 3, .y = 4 };
+  Coord       other;
+
+  auto f = [&] {
+    return src.concentric_square_distance( other );
+  };
+
+  other = src;
+  REQUIRE( f() == 0 );
+  --other.x;
+  REQUIRE( f() == 1 );
+  ++other.y;
+  REQUIRE( f() == 1 );
+  ++other.y;
+  REQUIRE( f() == 2 );
+  ++other.y;
+  REQUIRE( f() == 3 );
+  --other.x;
+  REQUIRE( f() == 3 );
+  --other.x;
+  REQUIRE( f() == 3 );
+  --other.x;
+  REQUIRE( f() == 4 );
+}
+
 } // namespace

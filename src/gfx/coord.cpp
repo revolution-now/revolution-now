@@ -311,6 +311,23 @@ base::maybe<e_direction> Coord::direction_to(
   return {};
 }
 
+int Coord::concentric_square_distance( Coord other ) const {
+  // If *this is the 0 below, then the result will be:
+  //
+  //       . . .
+  //   3 3 3 3 3 3 3
+  //   3 2 2 2 2 2 3
+  //  .3 2 1 1 1 2 3 .
+  //  .3 2 1 0 1 2 3 .
+  //  .3 2 1 1 1 2 3 .
+  //   3 2 2 2 2 2 3
+  //   3 3 3 3 3 3 3
+  //       . . .
+  //
+  Delta const delta = ( *this - other ).abs();
+  return std::max( delta.w, delta.h );
+}
+
 Coord Coord::with_new_origin( Coord new_origin ) const {
   return Coord{} + ( ( *this ) - new_origin );
 }
