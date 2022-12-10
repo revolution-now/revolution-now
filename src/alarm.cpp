@@ -11,22 +11,41 @@
 *****************************************************************/
 #include "alarm.hpp"
 
+// Revolution Now
+#include "map-square.hpp"
+#include "native-owned.hpp"
+
+// config
+#include "config/natives.rds.hpp"
+
 // ss
 #include "ss/dwelling.rds.hpp"
 #include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/terrain.hpp"
 #include "ss/tribe.rds.hpp"
 
 using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+[[nodiscard]] int clamp_alarm( int alarm ) {
+  return clamp( alarm, 0, 99 );
+}
+
+[[nodiscard]] int clamp_round_alarm( double alarm ) {
+  return clamp_alarm( lround( floor( alarm ) ) );
+}
+
+} // namespace
 
 /****************************************************************
 ** Public API
 *****************************************************************/
+// TODO: this may not be a relevant quantity in the OG.
 int effective_dwelling_alarm( SSConst const&  ss,
                               Dwelling const& dwelling,
                               e_nation        nation ) {
@@ -55,7 +74,7 @@ int effective_dwelling_alarm( SSConst const&  ss,
       ( 1.0 - ( 1.0 - tribal_alarm / 100.0 ) *
                   ( 1.0 - dwelling_only_alarm / 100.0 ) ) *
       100.0 );
-  return clamp( effective_alarm, 0, 99 );
+  return clamp_alarm( effective_alarm );
 }
 
 e_enter_dwelling_reaction reaction_for_dwelling(
@@ -79,6 +98,34 @@ e_enter_dwelling_reaction reaction_for_dwelling(
   // 100/20 == 5
   int const category = effective_alarm / 20;
   return static_cast<e_enter_dwelling_reaction>( category );
+}
+
+void increase_tribal_alarm_from_land_grab(
+    SSConst const& ss, Player const& player,
+    TribeRelationship& relationship, Coord tile ) {
+  auto& conf = config_natives.alarm.land_grab;
+
+  // Base.
+  double delta = conf.tribal_increase[ss.settings.difficulty];
+
+  // Prime resource penalty.
+  MapSquare const& square = ss.terrain.square_at( tile );
+  if( effective_resource( square ).has_value() )
+    delta *= conf.prime_resource_scale;
+
+  // Distance falloff.
+  UNWRAP_CHECK( dwelling_id,
+                is_land_native_owned( ss, player, tile ) );
+  Dwelling const& dwelling =
+      ss.natives.dwelling_for( dwelling_id );
+  int const rect_distance = std::max(
+      dwelling.location.concentric_square_distance( tile ) - 1,
+      0 );
+  delta *= pow( conf.distance_factor, rect_distance );
+
+  CHECK_GE( delta, 0.0 );
+  relationship.tribal_alarm =
+      clamp_round_alarm( relationship.tribal_alarm + delta );
 }
 
 } // namespace rn

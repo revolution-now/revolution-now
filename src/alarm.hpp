@@ -19,12 +19,16 @@
 // ss
 #include "ss/nation.rds.hpp"
 
+// gfx
+#include "gfx/coord.hpp"
+
 namespace rn {
 
 struct Dwelling;
 struct Player;
 struct SSConst;
 struct Tribe;
+struct TribeRelationship;
 
 // Combines the dwelling-level and tribal alarm to produce an ef-
 // fective alarm for a particular dwelling. This is used when a
@@ -43,5 +47,11 @@ int effective_dwelling_alarm( SSConst const&  ss,
 e_enter_dwelling_reaction reaction_for_dwelling(
     SSConst const& ss, Player const& player, Tribe const& tribe,
     Dwelling const& dwelling );
+
+// Called when the player steals land from the natives by any
+// means.
+void increase_tribal_alarm_from_land_grab(
+    SSConst const& ss, Player const& player,
+    TribeRelationship& relationship, Coord tile );
 
 } // namespace rn
