@@ -14,6 +14,7 @@ include "config/tile-enum.rds.hpp"
 # ss
 include "ss/colony-enums.rds.hpp"
 include "ss/native-enums.rds.hpp"
+include "ss/settings.rds.hpp"
 
 # cdr.
 include "cdr/ext-base.hpp"
@@ -78,11 +79,34 @@ struct.Tribe {
   flag_color 'gfx::pixel',
 }
 
+struct.AlarmLandGrab {
+  # Number of alarm points added to tribal alarm each time the
+  # player steals a tile of native-owned land without paying.
+  tribal_increase 'refl::enum_map<e_difficulty, int>',
+
+  # The alarm increase is scaled by this amount if the square
+  # contains a prime resource. Appears to be 2.0 in the OG.
+  prime_resource_scale 'double',
+
+  # This factor is applied for square of distance away from the
+  # dwelling to make the alarm delta decrease in magnitude with
+  # distance. Appears to be about .6 in the OG. This only applies
+  # to cities which have an owned-land radius larger than one.
+  distance_factor 'double',
+
+  _features { equality, validation }
+}
+
 struct.Alarm {
   # If the effective alarm of a dwelling is larger than this then
   # they will not teach. Note that this is only relevant when not
   # at war (when at war, they will never teach).
   max_dwelling_alarm_for_teaching 'int',
+
+  # Describes how alarm increases when the player takes a
+  # native-owned land tile without paying for it. Note that this
+  # only applies after having met the tribe.
+  land_grab 'config::natives::AlarmLandGrab',
 }
 
 struct.DwellingExpertise {

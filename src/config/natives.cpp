@@ -35,4 +35,13 @@ base::valid_or<string> config::natives::LandPrices::validate()
   return base::valid;
 }
 
+base::valid_or<string> config::natives::AlarmLandGrab::validate()
+    const {
+  REFL_VALIDATE( prime_resource_scale >= 1.0,
+                 "prime_resource_scale must be >= 1.0." );
+  REFL_VALIDATE( distance_factor <= 1.0,
+                 "distance_factor must be <= 1.0." );
+  return base::valid;
+}
+
 } // namespace rn
