@@ -213,13 +213,17 @@ wait<base::valid_or<DragRejection>> ColonyLandView::sink_check(
     ColViewObject_t const&, int, Coord const where ) {
   Colony const& colony = ss_.colonies.colony_for( colony_.id );
   UNWRAP_CHECK( d, direction_under_cursor( where ) );
+  Coord const tile_under_cursor = colony.location.moved( d );
   MapSquare const& square =
-      ss_.terrain.square_at( colony.location.moved( d ) );
+      ss_.terrain.square_at( tile_under_cursor );
 
   if( native_owned_land_[d] ) {
-    // TODO
-    co_return DragRejection{ .reason =
-                                 "This is native-owned land." };
+    bool const has_taken =
+        co_await prompt_player_for_taking_native_land(
+            ss_, ts_, player_, tile_under_cursor,
+            e_native_land_grab_type::in_colony );
+    if( !has_taken ) co_return DragRejection{};
+    native_owned_land_[d] = nothing;
   }
 
   if( is_water( square ) &&
