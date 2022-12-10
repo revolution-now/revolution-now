@@ -565,11 +565,15 @@ ColonyId found_colony( SS& ss, TS& ts, Player const& player,
   // Add road onto colony square.
   set_road( ts.map_updater, where );
 
-  // NOTE: we do not remove native-owned land from the colony
-  // tile. Although the OG does not seem to require the player to
-  // pay for this land to found a colony, the game does not re-
-  // move the owned status, so if the colony is then abandoned
-  // the square still shows as owned.
+  // The OG does not seem to require the player to pay for this
+  // land to found a colony; it just allows the player to found
+  // the colony on native-owned land without removing the owned
+  // status (and it just ignores the owned status from then on,
+  // at least until the colony is abandoned). So land under a
+  // colony should always be reported as being not owned by the
+  // below function.
+  CHECK(
+      !is_land_native_owned( ss, player, where ).has_value() );
 
   // Done.
   auto& desc = nation_obj( nation );

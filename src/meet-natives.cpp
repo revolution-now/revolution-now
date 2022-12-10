@@ -237,9 +237,8 @@ void perform_meet_tribe( SS& ss, Player const& player,
     // some of the owned land squares we get in this function
     // might contain colonies, and so if we were to call the
     // normal `is_land_native_owned` it would report those as not
-    // being owned. It does this in order to support that mode of
-    // the game (enabled in the config files) which mirrors the
-    // OG in that the game will not ask the player to acquire na-
+    // being owned. It does this in order to support the behavior
+    // of the OG where it will not ask the player to acquire na-
     // tive land to build a colony there, and so colony squares
     // retain their native land ownership, just that it is ig-
     // nored. For that reason, the `is_land_native_owned` will
