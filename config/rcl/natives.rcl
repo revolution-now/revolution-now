@@ -390,14 +390,3 @@ land_prices {
   # effectively be no change in price for more distance squares.
   distance_exponential: 0.9
 }
-
-# In the OG, if a tile is owned by natives (that the player has
-# encountered) then the natives will not demand payment for their
-# land when attempting to found a colony there (but the ownership
-# is not actually removed, it is just ignored; if the colony is
-# abandoned the ownership returns). In this game we break from
-# that behavior by default and require the player either take it
-# or pay for it first, at which point the ownership is perma-
-# nently removed. But, we leave this flag to go back to the OG's
-# behavior if desired.  Again, in the OG this is `false`.
-must_acquire_native_land_to_build_colony: false
