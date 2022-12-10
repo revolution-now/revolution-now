@@ -13,6 +13,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "logger.hpp"
+#include "native-owned.hpp"
 #include "road.hpp"
 #include "ts.hpp"
 
@@ -28,8 +29,11 @@ namespace rn {
 namespace {
 
 struct RoadHandler : public OrdersHandler {
-  RoadHandler( SS& ss, TS& ts, UnitId unit_id )
-    : ss_( ss ), ts_( ts ), unit_id_( unit_id ) {}
+  RoadHandler( SS& ss, TS& ts, Player& player, UnitId unit_id )
+    : ss_( ss ),
+      ts_( ts ),
+      player_( player ),
+      unit_id_( unit_id ) {}
 
   wait<bool> confirm() override {
     Unit const& unit = ss_.units.unit_for( unit_id_ );
@@ -57,12 +61,29 @@ struct RoadHandler : public OrdersHandler {
           "tile." );
       co_return false;
     }
-    Coord world_square = ss_.units.coord_for( unit_id_ );
-    CHECK( ss_.terrain.is_land( world_square ) );
-    if( has_road( ss_.terrain, world_square ) ) {
+    Coord const tile = ss_.units.coord_for( unit_id_ );
+    CHECK( ss_.terrain.is_land( tile ) );
+    if( has_road( ss_.terrain, tile ) ) {
       co_await ts_.gui.message_box(
           "There is already a road on this square." );
       co_return false;
+    }
+    if( is_land_native_owned( ss_, player_, tile ) ) {
+      bool const land_acquired =
+          co_await prompt_player_for_taking_native_land(
+              ss_, ts_, player_, tile,
+              e_native_land_grab_type::build_road );
+      if( !land_acquired ) {
+        // In the OG the player loses its movement points if it
+        // decided to retract the request after being presented
+        // with the native-owned land options, but we don't do
+        // that here since we don't expend movement points when a
+        // pioneer begins to build a road, so that would be in-
+        // consistent.
+        co_return false;
+      }
+      // The player has acquired the land from the natives
+      // through some means.
     }
     co_return true;
   }
@@ -84,9 +105,10 @@ struct RoadHandler : public OrdersHandler {
     co_return;
   }
 
-  SS&    ss_;
-  TS&    ts_;
-  UnitId unit_id_;
+  SS&     ss_;
+  TS&     ts_;
+  Player& player_;
+  UnitId  unit_id_;
 };
 
 } // namespace
@@ -95,9 +117,10 @@ struct RoadHandler : public OrdersHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders( Planes&, SS& ss, TS& ts,
-                                         Player&, UnitId id,
+                                         Player& player,
+                                         UnitId  id,
                                          orders::road const& ) {
-  return make_unique<RoadHandler>( ss, ts, id );
+  return make_unique<RoadHandler>( ss, ts, player, id );
 }
 
 } // namespace rn

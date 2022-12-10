@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "logger.hpp"
 #include "map-square.hpp"
+#include "native-owned.hpp"
 #include "plow.hpp"
 #include "ts.hpp"
 
@@ -32,8 +33,11 @@ namespace rn {
 namespace {
 
 struct PlowHandler : public OrdersHandler {
-  PlowHandler( SS& ss, TS& ts, UnitId unit_id )
-    : ss_( ss ), ts_( ts ), unit_id_( unit_id ) {}
+  PlowHandler( SS& ss, TS& ts, Player& player, UnitId unit_id )
+    : ss_( ss ),
+      ts_( ts ),
+      player_( player ),
+      unit_id_( unit_id ) {}
 
   wait<bool> confirm() override {
     Unit const& unit = ss_.units.unit_for( unit_id_ );
@@ -61,19 +65,39 @@ struct PlowHandler : public OrdersHandler {
           "tile." );
       co_return false;
     }
-    Coord world_square = ss_.units.coord_for( unit_id_ );
-    CHECK( ss_.terrain.is_land( world_square ) );
-    if( has_irrigation( ss_.terrain, world_square ) ) {
+    Coord const tile = ss_.units.coord_for( unit_id_ );
+    CHECK( ss_.terrain.is_land( tile ) );
+    if( has_irrigation( ss_.terrain, tile ) ) {
       co_await ts_.gui.message_box(
           "There is already irrigation on this square." );
       co_return false;
     }
-    if( !can_plow( ss_.terrain, world_square ) ) {
+    if( !can_plow( ss_.terrain, tile ) ) {
       co_await ts_.gui.message_box(
           "@[H]{}@[] tiles cannot be plowed or cleared.",
-          effective_terrain(
-              ss_.terrain.square_at( world_square ) ) );
+          effective_terrain( ss_.terrain.square_at( tile ) ) );
       co_return false;
+    }
+    if( is_land_native_owned( ss_, player_, tile ) ) {
+      MapSquare const& square = ss_.terrain.square_at( tile );
+      e_native_land_grab_type const type =
+          ( square.overlay == e_land_overlay::forest )
+              ? e_native_land_grab_type::clear_forest
+              : e_native_land_grab_type::irrigate;
+      bool const land_acquired =
+          co_await prompt_player_for_taking_native_land(
+              ss_, ts_, player_, tile, type );
+      if( !land_acquired ) {
+        // In the OG the player loses its movement points if it
+        // decided to retract the request after being presented
+        // with the native-owned land options, but we don't do
+        // that here since we don't expend movement points when a
+        // pioneer begins to plow successfully, so that would be
+        // inconsistent.
+        co_return false;
+      }
+      // The player has acquired the land from the natives
+      // through some means.
     }
     co_return true;
   }
@@ -95,9 +119,10 @@ struct PlowHandler : public OrdersHandler {
     co_return;
   }
 
-  SS&    ss_;
-  TS&    ts_;
-  UnitId unit_id_;
+  SS&     ss_;
+  TS&     ts_;
+  Player& player_;
+  UnitId  unit_id_;
 };
 
 } // namespace
@@ -106,9 +131,10 @@ struct PlowHandler : public OrdersHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders( Planes&, SS& ss, TS& ts,
-                                         Player&, UnitId id,
+                                         Player& player,
+                                         UnitId  id,
                                          orders::plow const& ) {
-  return make_unique<PlowHandler>( ss, ts, id );
+  return make_unique<PlowHandler>( ss, ts, player, id );
 }
 
 } // namespace rn
