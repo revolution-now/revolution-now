@@ -11,7 +11,11 @@
 #include "native-owned.hpp"
 
 // Revolution Now
+#include "alarm.hpp"
+#include "co-wait.hpp"
+#include "igui.hpp"
 #include "map-square.hpp"
+#include "ts.hpp"
 
 // config
 #include "config/natives.rds.hpp"
@@ -162,6 +166,112 @@ maybe<LandPrice> price_for_native_owned_land(
 
   res.price = lround( floor( price ) );
   return res;
+}
+
+wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
+    SS& ss, TS& ts, Player& player, Coord tile,
+    e_native_land_grab_type context ) {
+  UNWRAP_CHECK(
+      price, price_for_native_owned_land( ss, player, tile ) );
+  Tribe& tribe = ss.natives.tribe_for( price.owner );
+  UNWRAP_CHECK( relationship,
+                tribe.relationship[player.nation] );
+  if( relationship.at_war ) {
+    // In the case of being at war with the tribe, the OG still
+    // shows the totem poles, but just allows the player to place
+    // units anyway without prompting.
+    increase_tribal_alarm_from_land_grab( ss, player,
+                                          relationship, tile );
+    ss.natives.mark_land_unowned( tile );
+    co_return true;
+  }
+
+  EnumChoiceConfig                                  config;
+  refl::enum_map<e_native_land_grab_result, string> names;
+  refl::enum_map<e_native_land_grab_result, bool>   disabled;
+
+  names[e_native_land_grab_result::cancel] =
+      "Very well, we will respect your wishes.";
+  names[e_native_land_grab_result::pay] = fmt::format(
+      "We offer you @[H]{}@[] in compensation for this land.",
+      price.price );
+  if( price.price > player.money )
+    disabled[e_native_land_grab_result::pay] = true;
+
+  switch( context ) {
+    case e_native_land_grab_type::in_colony:
+      config.msg = fmt::format(
+          "You are trespassing on @[H]{}@[] land.  Please leave "
+          "promptly.",
+          config_natives.tribes[tribe.type].name_posessive );
+      names[e_native_land_grab_result::take] =
+          "You are mistaken... this is OUR land now!";
+      break;
+    case e_native_land_grab_type::found_colony:
+      config.msg = fmt::format(
+          "You are trespassing on @[H]{}@[] land.  Please leave "
+          "promptly.",
+          config_natives.tribes[tribe.type].name_posessive );
+      names[e_native_land_grab_result::take] =
+          "You are mistaken... this is OUR land now!";
+      break;
+    case e_native_land_grab_type::clear_forest:
+      config.msg = fmt::format(
+          "These @[H]forests@[] are a vital part of the "
+          "@[H]{}@[] way of life.  Please do not disturb them.",
+          config_natives.tribes[tribe.type].name_singular );
+      names[e_native_land_grab_result::cancel] =
+          "We will respect your wishes and not disturb these "
+          "forests.";
+      names[e_native_land_grab_result::take] =
+          "Feel free to watch and enjoy the sounds of these "
+          "trees falling!";
+      break;
+    case e_native_land_grab_type::irrigate:
+      config.msg = fmt::format(
+          "These grounds help to sustain the life and spirit of "
+          "the @[H]{}@[] people. Please do not disturb them.",
+          config_natives.tribes[tribe.type].name_singular );
+      names[e_native_land_grab_result::cancel] =
+          "We will respect your wishes and not irrigate this "
+          "land.";
+      names[e_native_land_grab_result::take] =
+          "You are mistaken... this is OUR land now!";
+      break;
+    case e_native_land_grab_type::build_road:
+      config.msg = fmt::format(
+          "Carving a @[H]road@[] through this land will do "
+          "likewise through the hearts of the @[H]{}@[] people "
+          "who occupy them. Please do not disturb them.",
+          config_natives.tribes[tribe.type].name_singular );
+      names[e_native_land_grab_result::take] =
+          "You are mistaken... this is OUR land now!";
+      break;
+  }
+
+  maybe<e_native_land_grab_result> const response =
+      co_await ts.gui
+          .optional_enum_choice<e_native_land_grab_result>(
+              config, names, disabled );
+  if( !response.has_value() ) co_return false;
+
+  switch( *response ) {
+    case e_native_land_grab_result::cancel: co_return false;
+    case e_native_land_grab_result::pay:
+      player.money -= price.price;
+      CHECK_GE( player.money, 0 );
+      // When paying the natives for the land it won't increase
+      // tribal alarm, but it will increase this counter which
+      // will cause the subsequent price to go up.
+      ++relationship.land_squares_paid_for;
+      ss.natives.mark_land_unowned( tile );
+      co_return true;
+    case e_native_land_grab_result::take:
+      increase_tribal_alarm_from_land_grab( ss, player,
+                                            relationship, tile );
+      ss.natives.mark_land_unowned( tile );
+      co_return true;
+  }
 }
 
 } // namespace rn

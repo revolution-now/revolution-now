@@ -17,6 +17,7 @@
 
 // Revolution Now
 #include "maybe.hpp"
+#include "wait.hpp"
 
 // ss
 #include "ss/dwelling-id.hpp"
@@ -28,10 +29,15 @@
 // refl
 #include "refl/enum-map.hpp"
 
+// base
+#include "base/vocab.hpp"
+
 namespace rn {
 
 struct Player;
+struct SS;
 struct SSConst;
+struct TS;
 
 // This is the only function that should be used to determine
 // whether a square is owned by the natives since it takes into
@@ -66,5 +72,16 @@ native_owned_land_around_square( SSConst const& ss,
 // has not met the tribe then nothing is returned.
 maybe<LandPrice> price_for_native_owned_land(
     SSConst const& ss, Player const& player, Coord coord );
+
+// This will show the prompt that gets shown when the player per-
+// forms an action that would occupy native-owned land. It will
+// allow the player to cancel the action, pay the tribe (and
+// hence get the land) or just take it. Returns true if the
+// player has acquired the land in some way. The land must be
+// owned by a tribe from the perspective of the player otherwise
+// check-fail.
+wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
+    SS& ss, TS& ts, Player& player, Coord tile,
+    e_native_land_grab_type context );
 
 } // namespace rn

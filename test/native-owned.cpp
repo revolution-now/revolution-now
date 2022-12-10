@@ -15,6 +15,8 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocking.hpp"
+#include "test/mocks/igui.hpp"
 
 // ss
 #include "ss/natives.hpp"
@@ -32,6 +34,12 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::mock::matchers::_;
+using ::mock::matchers::AllOf;
+using ::mock::matchers::Field;
+using ::mock::matchers::IterableElementsAre;
+using ::mock::matchers::StrContains;
 
 /****************************************************************
 ** Fake World Setup
@@ -900,6 +908,222 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     tile     = kDwellingLoc;
     expected = nothing;
     REQUIRE( f() == expected );
+  }
+}
+
+TEST_CASE(
+    "[native-owned] prompt_player_for_taking_native_land" ) {
+  World                   W;
+  Player&                 player = W.default_player();
+  Coord                   tile;
+  e_native_land_grab_type type = {};
+  Coord const             kDwellingLoc{ .x = 3, .y = 3 };
+  Dwelling&               dwelling =
+      W.add_dwelling( kDwellingLoc, e_tribe::cherokee );
+  W.settings().difficulty = e_difficulty::conquistador;
+  Tribe& tribe = W.natives().tribe_for( dwelling.tribe );
+  maybe<TribeRelationship>& relationship =
+      tribe.relationship[player.nation];
+  relationship.emplace();
+  player.money = 1000;
+
+  // Mark some tiles as owned.
+  for( int y = 0; y < 7; ++y )
+    for( int x = 0; x < 7; ++x )
+      W.natives().mark_land_owned( dwelling.id,
+                                   { .x = x, .y = y } );
+
+  auto f = [&]() -> bool {
+    wait<base::NoDiscard<bool>> w =
+        prompt_player_for_taking_native_land(
+            W.ss(), W.ts(), W.default_player(), tile, type );
+    CHECK( !w.exception() );
+    CHECK( w.ready() );
+    return *w;
+  };
+
+  SECTION( "at war" ) {
+    type                 = e_native_land_grab_type::in_colony;
+    tile                 = { .x = 2, .y = 2 };
+    relationship->at_war = true;
+    REQUIRE( f() == true );
+    REQUIRE( player.money == 1000 );
+    REQUIRE( relationship->land_squares_paid_for == 0 );
+    REQUIRE_FALSE(
+        is_land_native_owned( W.ss(), W.default_player(), tile )
+            .has_value() );
+    REQUIRE( relationship->tribal_alarm == 10 );
+  }
+
+  SECTION( "in colony / escape" ) {
+    type = e_native_land_grab_type::in_colony;
+    tile = { .x = 2, .y = 2 };
+    EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+        .returns<maybe<string>>( nothing );
+    REQUIRE( f() == false );
+    REQUIRE( player.money == 1000 );
+    REQUIRE( relationship->land_squares_paid_for == 0 );
+    REQUIRE( is_land_native_owned( W.ss(), W.default_player(),
+                                   tile ) );
+    REQUIRE( relationship->tribal_alarm == 0 );
+  }
+
+  SECTION( "in colony / cancel" ) {
+    type                = e_native_land_grab_type::in_colony;
+    tile                = { .x = 2, .y = 2 };
+    auto config_matcher = AllOf(
+        Field( &ChoiceConfig::msg,
+               StrContains( "You are trespassing" ) ),
+        Field(
+            &ChoiceConfig::options,
+            IterableElementsAre(
+                AllOf(
+                    Field( &ChoiceConfigOption::key, "cancel"s ),
+                    Field( &ChoiceConfigOption::disabled,
+                           false ) ),
+                AllOf( Field( &ChoiceConfigOption::key, "pay"s ),
+                       Field( &ChoiceConfigOption::disabled,
+                              false ) ),
+                AllOf(
+                    Field( &ChoiceConfigOption::key, "take"s ),
+                    Field( &ChoiceConfigOption::disabled,
+                           false ) ) ) ) );
+    EXPECT_CALL( W.gui(), choice( std::move( config_matcher ),
+                                  e_input_required::no ) )
+        .returns<maybe<string>>( "cancel" );
+    REQUIRE( f() == false );
+    REQUIRE( player.money == 1000 );
+    REQUIRE( relationship->land_squares_paid_for == 0 );
+    REQUIRE( is_land_native_owned( W.ss(), W.default_player(),
+                                   tile ) );
+    REQUIRE( relationship->tribal_alarm == 0 );
+  }
+
+  SECTION( "in colony / take / not enough money" ) {
+    type                = e_native_land_grab_type::in_colony;
+    tile                = { .x = 2, .y = 2 };
+    player.money        = 0;
+    auto config_matcher = AllOf(
+        Field( &ChoiceConfig::msg,
+               StrContains( "You are trespassing" ) ),
+        Field(
+            &ChoiceConfig::options,
+            IterableElementsAre(
+                AllOf(
+                    Field( &ChoiceConfigOption::key, "cancel"s ),
+                    Field( &ChoiceConfigOption::disabled,
+                           false ) ),
+                AllOf( Field( &ChoiceConfigOption::key, "pay"s ),
+                       Field( &ChoiceConfigOption::disabled,
+                              true ) ),
+                AllOf(
+                    Field( &ChoiceConfigOption::key, "take"s ),
+                    Field( &ChoiceConfigOption::disabled,
+                           false ) ) ) ) );
+    EXPECT_CALL( W.gui(), choice( std::move( config_matcher ),
+                                  e_input_required::no ) )
+        .returns<maybe<string>>( "take" );
+    REQUIRE( f() == true );
+    REQUIRE( player.money == 0 );
+    REQUIRE( relationship->land_squares_paid_for == 0 );
+    REQUIRE_FALSE( is_land_native_owned(
+        W.ss(), W.default_player(), tile ) );
+    REQUIRE( relationship->tribal_alarm == 10 );
+
+    tile = { .x = 1, .y = 2 };
+    EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+        .returns<maybe<string>>( "take" );
+    REQUIRE( f() == true );
+    REQUIRE( player.money == 0 );
+    REQUIRE( relationship->land_squares_paid_for == 0 );
+    REQUIRE_FALSE(
+        is_land_native_owned( W.ss(), W.default_player(), tile )
+            .has_value() );
+    REQUIRE( relationship->tribal_alarm == 10 + 6 );
+  }
+
+  SECTION( "in colony / pay" ) {
+    type = e_native_land_grab_type::in_colony;
+    tile = { .x = 2, .y = 2 };
+    // The tile will cost 227.
+    player.money        = 228;
+    auto config_matcher = AllOf(
+        Field( &ChoiceConfig::msg,
+               StrContains( "You are trespassing" ) ),
+        Field(
+            &ChoiceConfig::options,
+            IterableElementsAre(
+                AllOf(
+                    Field( &ChoiceConfigOption::key, "cancel"s ),
+                    Field( &ChoiceConfigOption::disabled,
+                           false ) ),
+                AllOf( Field( &ChoiceConfigOption::key, "pay"s ),
+                       Field( &ChoiceConfigOption::disabled,
+                              false ) ),
+                AllOf(
+                    Field( &ChoiceConfigOption::key, "take"s ),
+                    Field( &ChoiceConfigOption::disabled,
+                           false ) ) ) ) );
+    EXPECT_CALL( W.gui(), choice( std::move( config_matcher ),
+                                  e_input_required::no ) )
+        .returns<maybe<string>>( "pay" );
+    REQUIRE( f() == true );
+    REQUIRE( player.money == 1 );
+    REQUIRE( relationship->land_squares_paid_for == 1 );
+    REQUIRE_FALSE( is_land_native_owned(
+        W.ss(), W.default_player(), tile ) );
+    REQUIRE( relationship->tribal_alarm == 0 );
+
+    tile = { .x = 1, .y = 2 };
+    // Tile will cost 234.
+    player.money = 235;
+    EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+        .returns<maybe<string>>( "pay" );
+    REQUIRE( f() == true );
+    REQUIRE( player.money == 1 );
+    REQUIRE( relationship->land_squares_paid_for == 2 );
+    REQUIRE_FALSE( is_land_native_owned(
+        W.ss(), W.default_player(), tile ) );
+    REQUIRE( relationship->tribal_alarm == 0 );
+  }
+
+  SECTION( "build road / cancel" ) {
+    type = e_native_land_grab_type::build_road;
+    tile = { .x = 2, .y = 2 };
+    EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+        .returns<maybe<string>>( "cancel" );
+    REQUIRE( f() == false );
+    REQUIRE( player.money == 1000 );
+    REQUIRE( relationship->land_squares_paid_for == 0 );
+    REQUIRE( is_land_native_owned( W.ss(), W.default_player(),
+                                   tile ) );
+    REQUIRE( relationship->tribal_alarm == 0 );
+  }
+
+  SECTION( "irrigate / cancel" ) {
+    type = e_native_land_grab_type::irrigate;
+    tile = { .x = 2, .y = 2 };
+    EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+        .returns<maybe<string>>( "cancel" );
+    REQUIRE( f() == false );
+    REQUIRE( player.money == 1000 );
+    REQUIRE( relationship->land_squares_paid_for == 0 );
+    REQUIRE( is_land_native_owned( W.ss(), W.default_player(),
+                                   tile ) );
+    REQUIRE( relationship->tribal_alarm == 0 );
+  }
+
+  SECTION( "clear_forest / cancel" ) {
+    type = e_native_land_grab_type::clear_forest;
+    tile = { .x = 2, .y = 2 };
+    EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+        .returns<maybe<string>>( "cancel" );
+    REQUIRE( f() == false );
+    REQUIRE( player.money == 1000 );
+    REQUIRE( relationship->land_squares_paid_for == 0 );
+    REQUIRE( is_land_native_owned( W.ss(), W.default_player(),
+                                   tile ) );
+    REQUIRE( relationship->tribal_alarm == 0 );
   }
 }
 

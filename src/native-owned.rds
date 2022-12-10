@@ -17,3 +17,38 @@ struct.LandPrice {
   owner 'e_tribe',
   price 'int',
 }
+
+# There are a few scenarios wherein the player can attempt to oc-
+# cupy native land. This enumerates them, since there are some
+# ways in which they can have different effects.
+enum.e_native_land_grab_type {
+  # When the player drags a colonist onto an outdoor square with
+  # a totem pole on it.
+  in_colony,
+
+  # When the player attempts to found a colony on a square owned
+  # by the natives. The OG does not appear to object to this
+  # (though not clear if it increasing tribal alarm). In this
+  # game we do have the natives object to it.
+  found_colony,
+
+  # When clearing a forest on the map with a pioneer.
+  clear_forest,
+
+  # When irrigating a non-forest square. The OG does not seem to
+  # have the natives object to this, but that could be a bug,
+  # given that they do object to road building. In this game the
+  # natives will object to that.
+  irrigate,
+
+  # When building a road on a square.
+  build_road,
+}
+
+# When the player attempts to occupy native-owned land in some
+# way they will be presented with a box with a few options.
+enum.e_native_land_grab_result {
+  cancel,
+  pay,
+  take,
+}
