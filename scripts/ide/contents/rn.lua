@@ -2,21 +2,12 @@
 
 return {
   'exe/main',
-  'ss/units',
   'ss/native-enums',
   'config/natives',
   'ss/natives',
   'ss/tribe',
   'ss/dwelling',
   'ss/native-unit',
-  'society',
   'orders-move',
   'enter-dwelling',
-  'alarm',
-  'meet-natives',
-  'native-expertise',
-  'native-owned',
-  'colview-land',
-  'orders-plow',
-  'orders-road',
 }
