@@ -1593,12 +1593,11 @@ struct NativeDwellingHandler : public OrdersHandler {
         // otherwise.
         UNWRAP_CHECK( relationship,
                       tribe_.relationship[unit_.nation()] );
-        maybe<LiveAmongTheNatives_t> const outcome =
+        LiveAmongTheNatives_t const outcome =
             compute_live_among_the_natives( ss_, relationship,
                                             dwelling_, unit_ );
-        if( !outcome.has_value() ) break;
         co_await do_live_among_the_natives(
-            ts_, dwelling_, player_, unit_, *outcome );
+            ts_, dwelling_, player_, unit_, outcome );
         break;
       }
       case e_enter_dwelling_option::speak_with_chief:
