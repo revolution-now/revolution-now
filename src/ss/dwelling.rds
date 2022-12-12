@@ -40,6 +40,10 @@ struct.DwellingRelationship {
   # This number is in [0, 99], with 99 being most alarmed. The
   # effective alarm of a dwelling must take into account both
   # this number and the tribal level anger.
+  #
+  # TODO: The manual seems to mention that there is an alarm
+  # level called "happy" that is superior to "content"; in that
+  # case, we might want to start this off as non-zero.
   dwelling_only_alarm 'int',
 
   _features { equality, validation }

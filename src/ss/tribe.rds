@@ -23,6 +23,7 @@ namespace "rn"
 # Describes a tribe's relationship with a European nation.
 struct.TribeRelationship {
   at_war 'bool',
+
   # According to the manual there is both tribe-level anger and
   # dwelling-level anger (alarm). According to the manual:
   # "Overall tribal anger is affected by direct action you take
@@ -34,6 +35,13 @@ struct.TribeRelationship {
   # This number is in [0, 99], with 99 being most alarmed. The
   # effective alarm of a dwelling must take into account both
   # this number and the dwelling-level alarm.
+  #
+  # TODO: The manual seems to mention that there is an alarm
+  # level called "happy" that is superior to "content"; in that
+  # case, we might want to start this off as non-zero.
+  #
+  # TODO: for some tribes, e.g. the Arawak, this appears that it
+  # might need to start of at a higher value.
   tribal_alarm 'int',
 
   # This keeps track of the number of squares that the player has
