@@ -9,7 +9,8 @@
 #
 # ===============================================================
 # config
-include "config/tile-enum.rds.hpp"
+include "range-helpers.rds.hpp"
+include "tile-enum.rds.hpp"
 
 # ss
 include "ss/colony-enums.rds.hpp"
@@ -49,6 +50,22 @@ enum.e_native_level {
   agrarian,
   civilized_aztec,
   civilized_inca,
+}
+
+# Note that the negative outcome "target practice" is not here,
+# since that is always computed from the alarm rate of the na-
+# tives.
+enum.e_speak_with_chief_result {
+  none,
+  gift_money,
+  tales_of_nearby_lands,
+  promotion,
+}
+
+# May want to move this in the future.
+enum.e_scout_type {
+  non_seasoned,
+  seasoned,
 }
 
 namespace "rn.config.natives"
@@ -228,6 +245,19 @@ struct.LandPrices {
   _features { validation, equality }
 }
 
+struct.SpeakWithChief {
+  outcome_weights 'refl::enum_map<e_speak_with_chief_result, int>',
+
+  gift_range 'refl::enum_map<e_native_level, config::IntRange>',
+
+  # This is the minimum alarm level such that a dwelling will
+  # consider eliminating a scout. The probability of that then
+  # increases as the alarm increases beyond this value.
+  min_alarm_for_target_practice 'int',
+
+  _features { equality, validation }
+}
+
 namespace "rn"
 
 struct.config_natives_t {
@@ -256,6 +286,12 @@ struct.config_natives_t {
   # Determines how the price demanded by the natives for their
   # land is computed.
   land_prices 'config::natives::LandPrices',
+
+  # Configures what happens when a scout enters a native dwelling
+  # and asks to speak with the chief.
+  speak_with_chief 'refl::enum_map<e_scout_type, config::natives::SpeakWithChief>',
+
+  _features { equality, validation }
 }
 
 config.natives {}

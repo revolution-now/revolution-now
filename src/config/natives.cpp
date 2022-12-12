@@ -44,4 +44,24 @@ base::valid_or<string> config::natives::AlarmLandGrab::validate()
   return base::valid;
 }
 
+base::valid_or<string>
+config::natives::SpeakWithChief::validate() const {
+  REFL_VALIDATE( min_alarm_for_target_practice >= 0,
+                 "min_alarm_for_target_practice must be >= 0." );
+  REFL_VALIDATE(
+      min_alarm_for_target_practice <= 99,
+      "min_alarm_for_target_practice must be <= 99." );
+  return base::valid;
+}
+
+base::valid_or<string> config_natives_t::validate() const {
+  REFL_VALIDATE(
+      speak_with_chief[e_scout_type::seasoned].outcome_weights
+              [e_speak_with_chief_result::promotion] == 0,
+      "the probability weight for a seasoned scout to get "
+      "promoted while speaking to a chief must be zero since a "
+      "seasoned scout cannot get promoted." );
+  return base::valid;
+}
+
 } // namespace rn

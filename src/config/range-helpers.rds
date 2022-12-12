@@ -1,0 +1,25 @@
+# ===============================================================
+# range-helpers.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-12-11.
+#
+# Description: Rds definitions for the range-helpers module.
+#
+# ===============================================================
+namespace "rn.config"
+
+struct.IntRange {
+  min 'int',
+  max 'int',
+
+  _features { equality, validation }
+}
+
+struct.DoubleRange {
+  min 'double',
+  max 'double',
+
+  _features { equality, validation }
+}

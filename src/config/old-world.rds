@@ -8,6 +8,9 @@
 # Description: Config info for things in the Old World.
 #
 # ===============================================================
+# config
+include "range-helpers.rds.hpp"
+
 # ss
 include "ss/difficulty.rds.hpp"
 
@@ -19,22 +22,6 @@ include "refl/enum-map.hpp"
 include "cdr/ext-builtin.hpp"
 
 namespace "rn.config.old_world"
-
-# FIXME: move this to a common location.
-struct.IntRange {
-  min 'int',
-  max 'int',
-
-  _features { equality, validation }
-}
-
-# FIXME: move this to a common location.
-struct.DoubleRange {
-  min 'double',
-  max 'double',
-
-  _features { equality, validation }
-}
 
 struct.Taxes {
   # Taxes will never be increased above this.

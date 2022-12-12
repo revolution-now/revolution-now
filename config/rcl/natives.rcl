@@ -390,3 +390,59 @@ land_prices {
   # effectively be no change in price for more distance squares.
   distance_exponential: 0.9
 }
+
+# Configures what happens when a scout enters a native dwelling
+# and asks to speak with the chief.
+speak_with_chief {
+  non_seasoned {
+    # These don't need to sum to 100, but it is convenient if
+    # they do.
+    outcome_weights {
+      none:                  33
+      gift_money:            40
+      tales_of_nearby_lands:  7
+      promotion:             20
+    }
+
+    # If these are updated then the ones below for the seasoned
+    # scout might neeed to be updated as well.
+    gift_range {
+      semi_nomadic    { min=50,  max=300  }
+      agrarian        { min=75,  max=700  }
+      civilized_aztec { min=100, max=1100 }
+      civilized_inca  { min=125, max=1500 }
+    }
+
+    # This is the minimum alarm level such that a dwelling will
+    # consider eliminating a scout. The probability of that then
+    # increases as the alarm increases beyond this value. So a
+    # higher value means not only a higher threshold for this be-
+    # havior, but it means a lower probability of it happening
+    # for a given alarm level.
+    min_alarm_for_target_practice: 25
+  }
+
+  seasoned {
+    outcome_weights {
+    # These don't need to sum to 100, but it is convenient if
+    # they do.
+      none:                  20
+      gift_money:            50
+      tales_of_nearby_lands: 30
+      promotion:             0  # must be zero.
+    }
+
+    # If these are updated then the ones above for the
+    # non-seasoned scout might neeed to be updated as well.
+    gift_range {
+      # = non_seasoned*1.33
+      semi_nomadic    { min=66,  max=400  }
+      agrarian        { min=100, max=930  }
+      civilized_aztec { min=133, max=1460 }
+      civilized_inca  { min=166, max=2000 }
+    }
+
+    # See above for comments.
+    min_alarm_for_target_practice: 40
+  }
+}
