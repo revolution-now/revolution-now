@@ -246,14 +246,21 @@ struct.LandPrices {
 }
 
 struct.SpeakWithChief {
-  outcome_weights 'refl::enum_map<e_speak_with_chief_result, int>',
+  positive_outcome_weights 'refl::enum_map<e_speak_with_chief_result, int>',
 
   gift_range 'refl::enum_map<e_native_level, config::IntRange>',
 
-  # This is the minimum alarm level such that a dwelling will
-  # consider eliminating a scout. The probability of that then
-  # increases as the alarm increases beyond this value.
-  min_alarm_for_target_practice 'int',
+  # This is the range wherein a scout will be eliminated with a
+  # certain probability. Below this range it will never happen
+  # and above this range it will always happen. Within the range,
+  # the probability goes from 0% to 100% at the lower and upper
+  # limits, respectively.
+  alarm_range_for_maybe_target_practice 'config::IntRange',
+
+  # This is the length of the side of the large square of tiles
+  # that will be revealed to the player; that square will be cen-
+  # tered on the dwelling tile.
+  tales_of_nearby_land_radius 'int',
 
   _features { equality, validation }
 }
