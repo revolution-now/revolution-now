@@ -129,11 +129,13 @@ void MiniMap::fix_invariants() {
   if( visible.bottom() > world.bottom() )
     minimap.origin.y -= ( visible.bottom() - world.bottom() );
 
+  static constexpr double kEpsilon = 0.000001;
+
   visible = tiles_visible_on_minimap();
-  CHECK_GE( visible.left(), world.left() );
-  CHECK_GE( visible.top(), world.top() );
-  CHECK_LE( visible.right(), world.right() );
-  CHECK_LE( visible.bottom(), world.bottom() );
+  CHECK_GE( visible.left(), world.left() - kEpsilon );
+  CHECK_GE( visible.top(), world.top() - kEpsilon );
+  CHECK_LE( visible.right(), world.right() + kEpsilon );
+  CHECK_LE( visible.bottom(), world.bottom() + kEpsilon );
 }
 
 MiniMap::MiniMap( SS& ss, gfx::size available_size )
@@ -149,9 +151,12 @@ MiniMap::MiniMap( SS& ss, gfx::size available_size )
                  .size   = pixels_needed }
           .clamped( available );
   size_screen_pixels_ = clamped_pixels.size;
-  // We want to make it square.
-  size_screen_pixels_.w = size_screen_pixels_.h =
-      std::min( size_screen_pixels_.w, size_screen_pixels_.h );
+  // We want to make it square, but only if it doesn't fit along
+  // at least one dimension.
+  if( pixels_needed.w > available.size.w ||
+      pixels_needed.h > available.size.h )
+    size_screen_pixels_.w = size_screen_pixels_.h =
+        std::min( size_screen_pixels_.w, size_screen_pixels_.h );
 }
 
 void MiniMap::drag_map( gfx::size const mouse_delta ) {
