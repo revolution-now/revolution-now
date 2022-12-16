@@ -1,2 +1,39 @@
 colony_name_font: _7_12_serif_16pt
 colony_name_offset: { w: 2, h: 33 }
+
+# When the player is moving a unit and it runs out of movement
+# points there is a chance that the player will accidentally
+# issue a couple of extra input commands to the unit beyond the
+# end of its turn. If that happens then the very next unit to ask
+# for orders would get those commands and move in a way that the
+# player likely had not intended. So we have a mechanism for pre-
+# venting that whereby there is a small grace period after the
+# start of the new unit's turn where any input commands are
+# thrown out, and this configures the associated parameters. Vi-
+# sually, there will be an hourglass indicator temporarily drawn
+# on the new unit let the player know that a few input commands
+# were thrown out.
+input_overrun_detection {
+  enabled: true
+
+  # After a new unit starts asking for orders, this is the amount
+  # of time (in milliseconds) to wait until we can assume that
+  # the player is not going to enter any more commands for the
+  # previous unit.
+  wait_time: 500  # milliseconds
+
+  # This is the maximum number of relevant key presses (basically
+  # move commands) to eat during the wait_time. If this is ex-
+  # ceeded then the input command is allowed to stand even if the
+  # wait_time has not fully passed.
+  max_inputs_to_withold: 5
+
+  # Time in milliseconds to hold the hourglass icon in front of a
+  # unit (when commands are being eaten) before starting to fade
+  # it. This is purely visual.
+  hourglass_hold_time: 100  # milliseconds
+
+  # Time in milliseconds over which the hourglass icon gets faded
+  # to zero alpha. This is purely visual.
+  hourglass_fade_time: 400  # milliseconds
+}

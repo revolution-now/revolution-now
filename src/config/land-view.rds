@@ -18,15 +18,30 @@ include "gfx/coord.hpp"
 include "refl/cdr.hpp"
 
 # Cdr.
-# include "cdr/ext-builtin.hpp"
-# include "cdr/ext-std.hpp"
-# include "cdr/ext-base.hpp"
+include "cdr/ext-builtin.hpp"
+include "cdr/ext-std.hpp"
+
+namespace "rn.config.land_view"
+
+struct.InputOverrunDetection {
+  enabled 'bool',
+
+  wait_time 'std::chrono::milliseconds',
+
+  max_inputs_to_withold 'int',
+
+  hourglass_hold_time 'std::chrono::milliseconds',
+
+  hourglass_fade_time 'std::chrono::milliseconds',
+}
 
 namespace "rn"
 
 struct.config_land_view_t {
   colony_name_font 'e_font',
   colony_name_offset 'Delta',
+
+  input_overrun_detection 'config::land_view::InputOverrunDetection',
 }
 
 config.land_view {}

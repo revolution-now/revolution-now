@@ -14,6 +14,7 @@
 #include "anim.hpp"
 #include "cheat.hpp"
 #include "co-combinator.hpp"
+#include "co-time.hpp"
 #include "co-wait.hpp"
 #include "colony-id.hpp"
 #include "compositor.hpp"
@@ -191,7 +192,27 @@ struct LandViewPlane::Impl : public Plane {
   unordered_map<DwellingId, UnitAnimation_t>
                  dwelling_animations_;
   LandViewMode_t landview_mode_ = LandViewMode::none{};
-  maybe<UnitId>  last_unit_input_;
+
+  // Holds info about the previous unit that was asking for or-
+  // ders, since it can affect the UI behavior when asking for
+  // the current unit's orders (just some niceties that make it
+  // easier for the player to accurately control multiple units
+  // that are alternately asking for orders).
+  struct LastUnitInput {
+    UnitId unit_id                  = {};
+    bool   need_input_buffer_shield = false;
+  };
+  maybe<LastUnitInput> last_unit_input_;
+
+  // A fading hourglass icon will be drawn on this unit to signal
+  // to the player that the movement command just entered will be
+  // thrown out in order to avoid inadvertantly giving the new
+  // unit an order intended for the old unit.
+  struct InputOverrunIndicator {
+    UnitId unit_id    = {};
+    Time_t start_time = {};
+  };
+  maybe<InputOverrunIndicator> input_overrun_indicator_;
 
   bool g_needs_scroll_to_unit_on_input = true;
 
@@ -1038,8 +1059,8 @@ struct LandViewPlane::Impl : public Plane {
   }
 
   // Units (rendering strategy depends on land view state).
-  void render_units( rr::Renderer& renderer,
-                     Rect          covered ) const {
+  void render_units_impl( rr::Renderer& renderer,
+                          Rect          covered ) const {
     // The land view state should be set first, then the anima-
     // tion state; though occasionally we are in a frame where
     // the land view state has changed but the animation state
@@ -1125,6 +1146,63 @@ struct LandViewPlane::Impl : public Plane {
             "depixelate." );
       }
     }
+  }
+
+  // When the player is moving a unit and it runs out of movement
+  // points there is a chance that the player will accidentally
+  // issue a couple of extra input commands to the unit beyond
+  // the end of its turn. If that happens then the very next unit
+  // to ask for orders would get those commands and move in a way
+  // that the player likely had not intended. So we have a mecha-
+  // nism (logic elsewhere) of preventing that, and the visual
+  // indicator is an hourglass temporarily drawn on the new unit
+  // let the player know that a few input commands were thrown
+  // out in order to avoid inadvertantly giving them to the new
+  // unit.
+  //
+  // TODO: rendering this is technically optional. Decide whether
+  // to keep it. If this ends up being removed then the config
+  // options referenced can also be removed.
+  void render_input_overrun_indicator( rr::Renderer& renderer,
+                                       Rect covered ) const {
+    if( !input_overrun_indicator_.has_value() ) return;
+    InputOverrunIndicator const& indicator =
+        *input_overrun_indicator_;
+    maybe<Coord> const unit_coord =
+        coord_for_unit_indirect( ss_.units, indicator.unit_id );
+    if( !unit_coord.has_value() ) return;
+    if( !unit_coord->is_inside( covered.with_border_added() ) )
+      return;
+    Rect const indicator_render_rect =
+        render_rect_for_tile( covered, *unit_coord );
+    auto const kHoldTime =
+        config_land_view.input_overrun_detection
+            .hourglass_hold_time;
+    auto const kFadeTime =
+        config_land_view.input_overrun_detection
+            .hourglass_fade_time;
+    double     alpha = 1.0;
+    auto const delta = Clock_t::now() - indicator.start_time;
+    if( delta > kHoldTime ) {
+      auto fade_time =
+          clamp( duration_cast<chrono::milliseconds>(
+                     delta - kHoldTime ),
+                 0ms, kFadeTime );
+      alpha = double( fade_time.count() ) / kFadeTime.count();
+      alpha = 1.0 - alpha;
+    }
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
+    rr::Painter painter = renderer.painter();
+    render_sprite( painter, indicator_render_rect.upper_left(),
+                   e_tile::lift_key );
+  }
+
+  void render_units( rr::Renderer& renderer,
+                     Rect          covered ) const {
+    render_units_impl( renderer, covered );
+    // Do any post rendering steps that must be done after units
+    // rendering regardless of which mode we're in.
+    render_input_overrun_indicator( renderer, covered );
   }
 
   void render_non_entities( rr::Renderer& renderer ) const {
@@ -1635,17 +1713,48 @@ struct LandViewPlane::Impl : public Plane {
         .member( &LandViewMode::unit_input::unit_id );
   }
 
+  wait<> eat_cross_unit_buffered_input_events( UnitId id ) {
+    if( !config_land_view.input_overrun_detection.enabled )
+      co_return;
+    if( !is_unit_on_map( ss_.units, id ) ) co_return;
+    landview_reset_input_buffers();
+    auto const kWait =
+        config_land_view.input_overrun_detection.wait_time;
+    SCOPE_EXIT( input_overrun_indicator_ = nothing );
+    int const kMaxInputsToWithold =
+        config_land_view.input_overrun_detection
+            .max_inputs_to_withold;
+    for( int i = 0; i < kMaxInputsToWithold; ++i ) {
+      auto const res = co_await co::first(
+          raw_input_stream_.next(), wait_for_duration( kWait ) );
+      if( res.index() == 1 ) // timeout
+        break;
+      UNWRAP_CHECK( raw_input, res.get_if<RawInput>() );
+      auto orders =
+          raw_input.input.get_if<LandViewRawInput::orders>();
+      if( !orders.has_value() ) {
+        raw_input_stream_.reset();
+        raw_input_stream_.send( raw_input );
+        co_return;
+      }
+      if( Clock_t::now() - raw_input.when >= kWait ) break;
+      // The player may still be trying to move the old unit, so
+      // eat this command and display an indicator to signal that
+      // inputs are getting eaten.
+      input_overrun_indicator_ = InputOverrunIndicator{
+          .unit_id = id, .start_time = raw_input.when };
+    }
+    landview_reset_input_buffers();
+  }
+
   wait<LandViewPlayerInput_t> landview_get_next_input(
       UnitId id ) {
-    // When we start on a new unit clear the input queue so that
-    // commands that were accidentally buffered while controlling
-    // the previous unit don't affect this new one, which would
-    // almost certainly not be desirable. Also, we only pan to
-    // the unit here because if we did that outside of this if
-    // statement then the viewport would pan to the blinking unit
-    // after the player e.g. clicks on another unit to activate
-    // it.
-    if( last_unit_input_ != id )
+    // We only pan to the unit here because if we did that out-
+    // side of this if statement then the viewport would pan to
+    // the blinking unit after the player e.g. clicks on another
+    // unit to activate it.
+    if( !last_unit_input_.has_value() ||
+        last_unit_input_->unit_id != id )
       g_needs_scroll_to_unit_on_input = true;
 
     // This might be true either because we started a new turn,
@@ -1654,16 +1763,51 @@ struct LandViewPlane::Impl : public Plane {
       co_await landview_ensure_visible_unit( id );
     g_needs_scroll_to_unit_on_input = false;
 
-    if( last_unit_input_ != id ) landview_reset_input_buffers();
-    last_unit_input_ = id;
+    // When we start on a new unit clear the input queue so that
+    // commands that were accidentally buffered while controlling
+    // the previous unit don't affect this new one, which would
+    // almost certainly not be desirable. This function does that
+    // clearing in an interactive way in order to signal to the
+    // user what is happening.
+    if( last_unit_input_.has_value() &&
+        // If still moving same unit then no need to shield.
+        last_unit_input_->unit_id != id &&
+        last_unit_input_->need_input_buffer_shield &&
+        // E.g. if the previous unit got on a ship then the
+        // player doesn't expect them to continue moving, so no
+        // need to shield this unit.
+        is_unit_on_map( ss_.units, last_unit_input_->unit_id ) )
+      co_await eat_cross_unit_buffered_input_events( id );
+
+    if( !last_unit_input_.has_value() ||
+        last_unit_input_->unit_id != id )
+      last_unit_input_ = LastUnitInput{
+          .unit_id = id, .need_input_buffer_shield = true };
 
     SCOPED_SET_AND_RESTORE(
         landview_mode_,
         LandViewMode::unit_input{ .unit_id = id } );
 
     // Run the blinker while waiting for user input.
-    co_return co_await co::background(
+    LandViewPlayerInput_t input = co_await co::background(
         next_player_input_object(), animate_blink( id ) );
+
+    // Disable input buffer shielding when the unit issues a
+    // non-move command, because in that case it is unlikely that
+    // the player will assume that the subsequent command they
+    // issue would go to the same unit. E.g., if the unit issues
+    // a command to fortify this unit, then they know that the
+    // next command they issue would go to the new unit, so we
+    // don't need to shield it.
+    if( auto give_orders =
+            input.get_if<LandViewPlayerInput::give_orders>();
+        give_orders.has_value() &&
+        !give_orders->orders.holds<orders::move>() ) {
+      if( last_unit_input_.has_value() )
+        last_unit_input_->need_input_buffer_shield = false;
+    }
+
+    co_return input;
   }
 
   wait<LandViewPlayerInput_t> landview_eot_get_next_input() {
