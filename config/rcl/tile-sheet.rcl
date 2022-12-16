@@ -9,6 +9,13 @@ sheets {
 
   sprite_sheets [
     {
+      img_path: assets/art/tiles/ui-32x32.png
+      sprite_size: { w: 32, h: 32 }
+      sprites {
+        lift_key: { y: 0, x: 0 }
+      }
+    }
+    {
       img_path: assets/art/harbor/harbor-water.png
       sprite_size: { w: 100, h: 200 }
       sprites {
