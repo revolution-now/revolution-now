@@ -64,4 +64,19 @@ result<chrono::seconds> from_canonical(
   return chrono::seconds{ n };
 }
 
+/****************************************************************
+** std::chrono::milliseconds
+*****************************************************************/
+value to_canonical( converter&, chrono::milliseconds const& o,
+                    tag_t<chrono::milliseconds> ) {
+  return integer_type( o.count() );
+}
+
+result<chrono::milliseconds> from_canonical(
+    converter& conv, value const& v,
+    tag_t<chrono::milliseconds> ) {
+  UNWRAP_RETURN( n, conv.ensure_type<integer_type>( v ) );
+  return chrono::milliseconds{ n };
+}
+
 } // namespace cdr
