@@ -46,12 +46,23 @@ base::valid_or<string> config::natives::AlarmLandGrab::validate()
 
 base::valid_or<string>
 config::natives::SpeakWithChief::validate() const {
-  REFL_VALIDATE( alarm_range_for_maybe_target_practice.min >= 0,
-                 "alarm_range_for_maybe_target_practice.min "
+  REFL_VALIDATE( alarm_range_for_target_practice.min >= 0,
+                 "alarm_range_for_target_practice.min "
                  "must be >= 0." );
-  REFL_VALIDATE( alarm_range_for_maybe_target_practice.min <= 99,
-                 "alarm_range_for_maybe_target_practice.min "
+  REFL_VALIDATE( alarm_range_for_target_practice.min <= 99,
+                 "alarm_range_for_target_practice.min "
                  "must be <= 99." );
+  REFL_VALIDATE( alarm_range_for_target_practice.max >= 0,
+                 "alarm_range_for_target_practice.max "
+                 "must be >= 0." );
+  REFL_VALIDATE( alarm_range_for_target_practice.max <= 99,
+                 "alarm_range_for_target_practice.max "
+                 "must be <= 99." );
+  REFL_VALIDATE(
+      alarm_range_for_target_practice.max >=
+          alarm_range_for_target_practice.min,
+      "alarm_range_for_target_practice.max must be >= "
+      "than alarm_range_for_target_practice.min" );
   return base::valid;
 }
 
