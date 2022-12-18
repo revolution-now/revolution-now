@@ -424,13 +424,18 @@ speak_with_chief {
     # This is the length of the side of the large square of tiles
     # that will be revealed to the player; that square will be
     # centered on the dwelling tile.
-    tales_of_nearby_land_radius: 8
+    tales_of_nearby_land_radius: 9
+
+    # If the number of non-visible tiles in the "tales of nearby
+    # land" radius is less than this number, then the chief will
+    # not tell tales of nearby lands.
+    min_invisible_tiles_for_tales: 5
   }
 
   seasoned {
-    positive_outcome_weights {
     # These don't need to sum to 100, but it is convenient if
     # they do.
+    positive_outcome_weights {
       none:                  20
       gift_money:            50
       tales_of_nearby_lands: 30
@@ -450,9 +455,52 @@ speak_with_chief {
     # See above for comments.
     alarm_range_for_target_practice: { min=40, max=90 }
 
-    # This is the length of the side of the large square of tiles
-    # that will be revealed to the player; that square will be
-    # centered on the dwelling tile.
-    tales_of_nearby_land_radius: 12
+    # See above for comments.
+    tales_of_nearby_land_radius: 13
+
+    # See above for comments.
+    min_invisible_tiles_for_tales: 5
+  }
+}
+
+native_skills {
+  farming {
+    display_name: "farming"
+  }
+
+  fishing {
+    display_name: "fishing"
+  }
+
+  sugar_planting {
+    display_name: "sugar planting"
+  }
+
+  tobacco_planting {
+    display_name: "tobacco planting"
+  }
+
+  cotton_planting {
+    display_name: "cotton planting"
+  }
+
+  fur_trapping {
+    display_name: "fur trapping"
+  }
+
+  ore_mining {
+    display_name: "ore mining"
+  }
+
+  silver_mining {
+    display_name: "silver mining"
+  }
+
+  fur_trading {
+    display_name: "fur trading"
+  }
+
+  scouting {
+    display_name: "scouting"
   }
 }

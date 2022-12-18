@@ -63,6 +63,10 @@ config::natives::SpeakWithChief::validate() const {
           alarm_range_for_target_practice.min,
       "alarm_range_for_target_practice.max must be >= "
       "than alarm_range_for_target_practice.min" );
+  REFL_VALIDATE(
+      positive_outcome_weights[e_speak_with_chief_result::none] >
+          0,
+      "weight for positive_outcome_weights.none must be > 0." );
   return base::valid;
 }
 

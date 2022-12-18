@@ -262,7 +262,16 @@ struct.SpeakWithChief {
   # tered on the dwelling tile.
   tales_of_nearby_land_radius 'int',
 
+  # If the number of non-visible tiles in the "tales of nearby
+  # land" radius is less than this number, then the chief will
+  # not tell tales of nearby lands.
+  min_invisible_tiles_for_tales 'int',
+
   _features { equality, validation }
+}
+
+struct.NativeSkill {
+  display_name 'std::string',
 }
 
 namespace "rn"
@@ -297,6 +306,8 @@ struct.config_natives_t {
   # Configures what happens when a scout enters a native dwelling
   # and asks to speak with the chief.
   speak_with_chief 'refl::enum_map<e_scout_type, config::natives::SpeakWithChief>',
+
+  native_skills 'refl::enum_map<e_native_skill, config::natives::NativeSkill>',
 
   _features { equality, validation }
 }
