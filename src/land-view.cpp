@@ -268,8 +268,8 @@ struct LandViewPlane::Impl : public Plane {
     advance_viewport_state();
   }
 
-  wait<> animate_depixelation( UnitId            id,
-                               e_depixelate_anim dp_anim ) {
+  wait<> animate_depixelation( UnitId             id,
+                               maybe<e_unit_type> target ) {
     CHECK( !unit_animations_.contains( id ) );
     UnitAnimation::depixelate_unit& depixelate =
         unit_animations_[id]
@@ -278,9 +278,8 @@ struct LandViewPlane::Impl : public Plane {
       UNWRAP_CHECK( it, base::find( unit_animations_, id ) );
       unit_animations_.erase( it );
     } );
-    depixelate.type   = dp_anim;
     depixelate.stage  = 0.0;
-    depixelate.target = ss_.units.unit_for( id ).demoted_type();
+    depixelate.target = target;
 
     AnimThrottler throttle( kAlmostStandardFrame );
     while( depixelate.stage <= 1.0 ) {
@@ -880,27 +879,21 @@ struct LandViewPlane::Impl : public Plane {
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
                              loc );
     // Check if we are depixelating to another unit.
-    switch( dp_anim.type ) {
-      case e_depixelate_anim::death: {
-        // Render and depixelate both the unit and the flag.
-        render_unit_depixelate(
-            renderer, loc, ss_.units.unit_for( depixelate_id ),
-            dp_anim.stage,
-            UnitRenderOptions{ .flag   = true,
-                               .shadow = UnitShadow{} } );
-        break;
-      }
-      case e_depixelate_anim::demote: {
-        CHECK( dp_anim.target.has_value() );
-        // Render and the unit and the flag but only depixelate
-        // the unit to the target unit.
-        render_unit_depixelate_to(
-            renderer, loc, ss_.units.unit_for( depixelate_id ),
-            *dp_anim.target, dp_anim.stage,
-            UnitRenderOptions{ .flag   = true,
-                               .shadow = UnitShadow{} } );
-        break;
-      }
+    if( !dp_anim.target.has_value() ) {
+      // Render and depixelate both the unit and the flag.
+      render_unit_depixelate(
+          renderer, loc, ss_.units.unit_for( depixelate_id ),
+          dp_anim.stage,
+          UnitRenderOptions{ .flag   = true,
+                             .shadow = UnitShadow{} } );
+    } else {
+      // Render and the unit and the flag but only depixelate the
+      // unit to the target unit.
+      render_unit_depixelate_to(
+          renderer, loc, ss_.units.unit_for( depixelate_id ),
+          *dp_anim.target, dp_anim.stage,
+          UnitRenderOptions{ .flag   = true,
+                             .shadow = UnitShadow{} } );
     }
   }
 
@@ -1106,6 +1099,16 @@ struct LandViewPlane::Impl : public Plane {
       }
       case e::dwelling_disappearing: {
         render_units_default( renderer, covered );
+        break;
+      }
+      case e::unit_depixelating: {
+        auto& o = landview_mode_.get<unit_depixelating>();
+        UNWRAP_CHECK( animation, base::lookup( unit_animations_,
+                                               o.unit_id ) );
+        ASSIGN_CHECK_V( dp_anim, animation,
+                        UnitAnimation::depixelate_unit );
+        render_units_during_depixelate( renderer, covered,
+                                        o.unit_id, dp_anim );
         break;
       }
       case e::unit_move: {
@@ -1843,8 +1846,7 @@ struct LandViewPlane::Impl : public Plane {
 
   wait<> landview_animate_attack( UnitId attacker,
                                   UnitId defender,
-                                  bool   attacker_wins,
-                                  e_depixelate_anim dp_anim ) {
+                                  bool   attacker_wins ) {
     co_await landview_ensure_visible_unit( defender );
     co_await landview_ensure_visible_unit( attacker );
     auto new_state = LandViewMode::unit_attack{
@@ -1863,8 +1865,11 @@ struct LandViewPlane::Impl : public Plane {
 
     play_sound_effect( attacker_wins ? e_sfx::attacker_won
                                      : e_sfx::attacker_lost );
+    UnitId const unit_to_demote =
+        attacker_wins ? defender : attacker;
     co_await animate_depixelation(
-        attacker_wins ? defender : attacker, dp_anim );
+        unit_to_demote,
+        ss_.units.unit_for( unit_to_demote ).demoted_type() );
   }
 
   wait<> landview_animate_colony_depixelation(
@@ -1877,6 +1882,15 @@ struct LandViewPlane::Impl : public Plane {
     co_await animate_colony_depixelation( colony );
   }
 
+  wait<> landview_animate_unit_depixelation(
+      UnitId unit_id, maybe<e_unit_type> target_type ) {
+    co_await landview_ensure_visible_unit( unit_id );
+    auto new_state =
+        LandViewMode::unit_depixelating{ .unit_id = unit_id };
+    SCOPED_SET_AND_RESTORE( landview_mode_, new_state );
+    co_await animate_depixelation( unit_id, target_type );
+  }
+
   // FIXME: Would be nice to make this animation a bit more so-
   // phisticated, but we first need to fix the animation frame-
   // work in this module to be more flexible.
@@ -1884,8 +1898,7 @@ struct LandViewPlane::Impl : public Plane {
                                           UnitId   defender_id,
                                           ColonyId colony_id ) {
     co_await landview_animate_attack( attacker_id, defender_id,
-                                      /*attacker_wins=*/true,
-                                      e_depixelate_anim::death );
+                                      /*attacker_wins=*/true );
     UNWRAP_CHECK(
         direction,
         ss_.units.coord_for( attacker_id )
@@ -1939,11 +1952,16 @@ wait<> LandViewPlane::landview_animate_colony_depixelation(
   return impl_->landview_animate_colony_depixelation( colony );
 }
 
+wait<> LandViewPlane::landview_animate_unit_depixelation(
+    UnitId id, maybe<e_unit_type> target_type ) {
+  return impl_->landview_animate_unit_depixelation(
+      id, target_type );
+}
+
 wait<> LandViewPlane::landview_animate_attack(
-    UnitId attacker, UnitId defender, bool attacker_wins,
-    e_depixelate_anim dp_anim ) {
-  return impl_->landview_animate_attack(
-      attacker, defender, attacker_wins, dp_anim );
+    UnitId attacker, UnitId defender, bool attacker_wins ) {
+  return impl_->landview_animate_attack( attacker, defender,
+                                         attacker_wins );
 }
 
 wait<> LandViewPlane::landview_animate_colony_capture(

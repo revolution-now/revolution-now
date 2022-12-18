@@ -22,6 +22,7 @@
 
 // ss
 #include "ss/nation.rds.hpp"
+#include "ss/unit-type.rds.hpp"
 
 // gfx
 #include "gfx/coord.hpp"
@@ -33,8 +34,6 @@ struct Plane;
 struct Planes;
 struct SS;
 struct TS;
-
-enum class e_depixelate_anim { death, demote };
 
 /****************************************************************
 ** ILandViewPlane
@@ -63,9 +62,14 @@ struct ILandViewPlane {
   virtual wait<> landview_animate_colony_depixelation(
       Colony const& colony ) = 0;
 
+  // Just depixelates a unit that is on the map. If target_type
+  // has a value then we will depixelate to that type instead of
+  // to nothing.
+  virtual wait<> landview_animate_unit_depixelation(
+      UnitId id, maybe<e_unit_type> target_type ) = 0;
+
   virtual wait<> landview_animate_attack(
-      UnitId attacker, UnitId defender, bool attacker_wins,
-      e_depixelate_anim dp_anim ) = 0;
+      UnitId attacker, UnitId defender, bool attacker_wins ) = 0;
 
   virtual wait<> landview_animate_colony_capture(
       UnitId attacker_id, UnitId defender_id,
@@ -116,9 +120,12 @@ struct LandViewPlane : ILandViewPlane {
   wait<> landview_animate_colony_depixelation(
       Colony const& colony ) override;
 
-  wait<> landview_animate_attack(
-      UnitId attacker, UnitId defender, bool attacker_wins,
-      e_depixelate_anim dp_anim ) override;
+  wait<> landview_animate_unit_depixelation(
+      UnitId id, maybe<e_unit_type> target_type ) override;
+
+  wait<> landview_animate_attack( UnitId attacker,
+                                  UnitId defender,
+                                  bool attacker_wins ) override;
 
   wait<> landview_animate_colony_capture(
       UnitId attacker_id, UnitId defender_id,

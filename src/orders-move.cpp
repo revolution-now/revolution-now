@@ -1037,23 +1037,8 @@ struct AttackHandler : public OrdersHandler {
     auto attacker = unit_id;
     UNWRAP_CHECK( defender, target_unit );
     UNWRAP_CHECK( stats, fight_stats );
-    auto const& defender_unit = ss_.units.unit_for( defender );
-    auto const& attacker_unit = ss_.units.unit_for( attacker );
-
-    e_depixelate_anim dp_anim =
-        stats.attacker_wins
-            ? ( defender_unit.desc()
-                        .on_death
-                        .holds<UnitDeathAction::demote>()
-                    ? e_depixelate_anim::demote
-                    : e_depixelate_anim::death )
-            : ( attacker_unit.desc()
-                        .on_death
-                        .holds<UnitDeathAction::demote>()
-                    ? e_depixelate_anim::demote
-                    : e_depixelate_anim::death );
     return planes_.land_view().landview_animate_attack(
-        attacker, defender, stats.attacker_wins, dp_anim );
+        attacker, defender, stats.attacker_wins );
   }
 
   wait<> perform() override;

@@ -19,6 +19,9 @@
 // mock
 #include "src/mock/mock.hpp"
 
+// ss
+#include "src/ss/colonies.rds.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -41,8 +44,10 @@ struct MockLandViewPlane : ILandViewPlane {
                ( UnitId, e_direction ), () );
   MOCK_METHOD( wait<>, landview_animate_colony_depixelation,
                (Colony const&), () );
+  MOCK_METHOD( wait<>, landview_animate_unit_depixelation,
+               (UnitId, maybe<e_unit_type>), () );
   MOCK_METHOD( wait<>, landview_animate_attack,
-               ( UnitId, UnitId, bool, e_depixelate_anim ), () );
+               (UnitId, UnitId, bool), () );
   MOCK_METHOD( wait<>, landview_animate_colony_capture,
                ( UnitId, UnitId, ColonyId ), () );
   MOCK_METHOD( void, landview_reset_input_buffers, (), () );

@@ -41,6 +41,9 @@ sumtype.LandViewMode {
   dwelling_disappearing {
     dwelling_id 'DwellingId',
   },
+  unit_depixelating {
+    unit_id 'UnitId',
+  },
   hidden_terrain {},
 }
 
@@ -76,9 +79,9 @@ sumtype.UnitAnimation {
     percent_vel 'DissipativeVelocity',
   },
   depixelate_unit {
-    type 'e_depixelate_anim',
     stage 'double',
-    # If we're depixelating to another unit.
+    # If we're depixelating to another unit this will have a
+    # value; otherwise we are depixelating to nothing.
     target 'maybe<e_unit_type>',
   },
   depixelate_colony {
