@@ -1749,6 +1749,13 @@ struct LandViewPlane::Impl : public Plane {
 
   wait<LandViewPlayerInput_t> landview_get_next_input(
       UnitId id ) {
+    // There are some things that use last_unit_input_ below that
+    // will crash if the last unit that asked for orders no
+    // longer exists. So we'll just do this up here to be safe.
+    if( last_unit_input_.has_value() &&
+        !ss_.units.exists( last_unit_input_->unit_id ) )
+      last_unit_input_ = nothing;
+
     // We only pan to the unit here because if we did that out-
     // side of this if statement then the viewport would pan to
     // the blinking unit after the player e.g. clicks on another
