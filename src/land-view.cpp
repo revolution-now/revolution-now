@@ -1697,7 +1697,7 @@ struct LandViewPlane::Impl : public Plane {
     // attacking an undefended colony.
     UNWRAP_CHECK( coord,
                   coord_for_unit_multi_ownership( ss_, id ) );
-    return landview_ensure_visible( coord );
+    co_await landview_ensure_visible( coord );
   }
 
   void set_visibility( maybe<e_nation> nation ) {
