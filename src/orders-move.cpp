@@ -1585,9 +1585,17 @@ struct NativeDwellingHandler : public OrdersHandler {
             ts_, dwelling_, player_, unit_, outcome );
         break;
       }
-      case e_enter_dwelling_option::speak_with_chief:
-        co_await ts_.gui.message_box( "Not Implemented" );
+      case e_enter_dwelling_option::speak_with_chief: {
+        SpeakWithChiefResult const outcome =
+            compute_speak_with_chief( ss_, ts_, dwelling_,
+                                      unit_ );
+        co_await do_speak_with_chief( planes_, ss_, ts_,
+                                      dwelling_, player_, unit_,
+                                      outcome );
+        // !! Note that the unit may no longer exist here if the
+        // scout was used a target practice.
         co_return;
+      }
       case e_enter_dwelling_option::attack_village:
         co_await ts_.gui.message_box( "Not Implemented" );
         co_return;

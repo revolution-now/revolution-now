@@ -13,12 +13,22 @@
 
 // Revolution Now
 #include "alarm.hpp"
+#include "co-time.hpp"
 #include "co-wait.hpp"
+#include "commodity.hpp"
 #include "igui.hpp"
+#include "imap-updater.hpp"
+#include "irand.hpp"
+#include "land-view.hpp"
+#include "logger.hpp"
+#include "plane-stack.hpp"
 #include "promotion.hpp"
+#include "rand-enum.hpp"
 #include "ts.hpp"
+#include "visibility.hpp"
 
 // config
+#include "config/nation.rds.hpp"
 #include "config/natives.rds.hpp"
 #include "config/unit-type.hpp"
 
@@ -27,8 +37,13 @@
 #include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/terrain.hpp"
 #include "ss/tribe.rds.hpp"
 #include "ss/unit.hpp"
+#include "ss/units.hpp"
+
+// gfx
+#include "gfx/iter.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -236,6 +251,14 @@ string const& reaction_str(
   }
 }
 
+maybe<e_scout_type> scout_type( e_unit_type type ) {
+  if( type == e_unit_type::scout )
+    return e_scout_type::non_seasoned;
+  if( type == e_unit_type::seasoned_scout )
+    return e_scout_type::seasoned;
+  return nothing;
+}
+
 } // namespace
 
 /****************************************************************
@@ -389,6 +412,235 @@ wait<> do_live_among_the_natives(
             new_name );
         co_return;
       }
+    }
+  }
+}
+
+/****************************************************************
+** Speak with Chief
+*****************************************************************/
+static vector<Coord> compute_tales_of_nearby_lands_tiles(
+    SSConst const& ss, Dwelling const& dwelling,
+    Unit const& unit, int radius ) {
+  vector<Coord> tiles;
+  tiles.reserve( radius * radius );
+  // The standard values of the radius in the config are odd, so
+  // the following should lead to a square centered on the
+  // dwelling radius.
+  Rect const rect =
+      Rect::from( dwelling.location, Delta{ .w = 1, .h = 1 } )
+          .with_border_added( radius / 2 );
+  Visibility const viz = Visibility::create( ss, unit.nation() );
+  for( auto r : gfx::subrects( rect ) ) {
+    Coord const             coord = r.upper_left();
+    maybe<MapSquare const&> square =
+        ss.terrain.maybe_square_at( coord );
+    // Square must exist on the map.
+    if( !square.has_value() ) continue;
+    // Square must not be visible to player.
+    if( viz.visible( coord ) ) continue;
+    // Square must be land.  This seems to be what the OG does.
+    if( square->surface == e_surface::water ) continue;
+    tiles.push_back( coord );
+  }
+  return tiles;
+}
+
+static ChiefAction_t compute_speak_with_chief_action(
+    SSConst const& ss, TS& ts, Dwelling const& dwelling,
+    Unit const& unit ) {
+  UNWRAP_CHECK_MSG(
+      type, scout_type( unit.type() ),
+      "expected a scout or a seasoned scout but found type {}.",
+      unit.type() );
+  auto& conf = config_natives.speak_with_chief[type];
+
+  // First determine if we should eliminate the scout ("target
+  // practice"); note that this can happen even if the scout has
+  // already spoken to the chief.
+  config::IntRange const& elimination_range =
+      conf.alarm_range_for_target_practice;
+  int const alarm =
+      effective_dwelling_alarm( ss, dwelling, unit.nation() );
+  // Should have been validated during config loading.
+  CHECK_GE( elimination_range.max, elimination_range.min );
+  // Note that if max and min are equal, which they can be, then
+  // we should never enter the third brance where we divide by
+  // their difference (which would be zero).
+  double const eliminate_probability =
+      ( alarm >= elimination_range.max ) ? 1.0
+      : ( alarm < elimination_range.min )
+          ? 0.0
+          : double( alarm - elimination_range.min ) /
+                ( elimination_range.max -
+                  elimination_range.min );
+  lg.debug( "scout elimination probability: {}",
+            eliminate_probability );
+  bool const should_eliminate =
+      ts.rand.bernoulli( eliminate_probability );
+  if( should_eliminate ) return ChiefAction::target_practice{};
+
+  // At this point we know that the scout will not be eliminated
+  // and thus will get some kind of non-negative action from the
+  // chief. However, that is only the first time that the scout
+  // meets with the chief.
+  if( dwelling.relationship[unit.nation()]
+          .has_spoken_with_chief )
+    return ChiefAction::none{};
+
+  auto weights = conf.positive_outcome_weights;
+  // If the unit can't be promoted to seasoned scout then zero
+  // out that particular weight. This could happen if e.g. this
+  // is a regular scout made from a unit that is an expert in
+  // something other than scouting.
+  bool const can_be_promoted =
+      promoted_by_natives( unit.composition(),
+                           e_native_skill::scouting )
+          .has_value();
+  lg.debug( "scout can be promoted: {}", can_be_promoted );
+  if( !can_be_promoted )
+    weights[e_speak_with_chief_result::promotion] = 0;
+
+  // If there are not enough non-visible tiles in the radius then
+  // don't include the "tales of nearby lands" in the possible
+  // outcomes.
+  int const     tales_radius = conf.tales_of_nearby_land_radius;
+  vector<Coord> tiles = compute_tales_of_nearby_lands_tiles(
+      ss, dwelling, unit, tales_radius );
+  if( ssize( tiles ) < conf.min_invisible_tiles_for_tales )
+    weights[e_speak_with_chief_result::tales_of_nearby_lands] =
+        0;
+
+  lg.debug( "outcome weights: {}", weights );
+  auto const outcome =
+      pick_from_weighted_enum_values<e_speak_with_chief_result>(
+          ts.rand, weights );
+  switch( outcome ) {
+    case e_speak_with_chief_result::none:
+      return ChiefAction::none{};
+    case e_speak_with_chief_result::gift_money: {
+      config::IntRange const& gift_range =
+          conf.gift_range[config_natives.tribes[dwelling.tribe]
+                              .level];
+      int const quantity =
+          ts.rand.between_ints( gift_range.min, gift_range.max,
+                                IRand::e_interval::closed );
+      return ChiefAction::gift_money{ .quantity = quantity };
+    }
+    case e_speak_with_chief_result::tales_of_nearby_lands:
+      return ChiefAction::tales_of_nearby_lands{
+          .tiles = std::move( tiles ) };
+    case e_speak_with_chief_result::promotion:
+      return ChiefAction::promotion{};
+  }
+}
+
+SpeakWithChiefResult compute_speak_with_chief(
+    SSConst const& ss, TS& ts, Dwelling const& dwelling,
+    Unit const& unit ) {
+  return SpeakWithChiefResult{
+      .expertise         = dwelling.teaches,
+      .primary_trade     = dwelling.trading.seeking_primary,
+      .secondary_trade_1 = dwelling.trading.seeking_secondary_1,
+      .secondary_trade_2 = dwelling.trading.seeking_secondary_2,
+      .action            = compute_speak_with_chief_action(
+          ss, ts, dwelling, unit ) };
+}
+
+wait<> do_speak_with_chief(
+    Planes& planes, SS& ss, TS& ts, Dwelling& dwelling,
+    Player& player, Unit& unit,
+    SpeakWithChiefResult const& outcome ) {
+  dwelling.relationship[unit.nation()].has_spoken_with_chief =
+      true;
+  if( !outcome.action.holds<ChiefAction::target_practice>() )
+    co_await ts.gui.message_box(
+        "Greetings traveler, we are a peaceful @[H]{}@[] known "
+        "for our expertise in @[H]{}@[]. We will trade with you "
+        "if you bring us some @[H]{}@[], of which we are badly "
+        "in need.  We would also accept @[H]{}@[] and "
+        "@[H]{}@[].",
+        config_natives
+            .dwelling_types[config_natives.tribes[dwelling.tribe]
+                                .level]
+            .name_singular,
+        config_natives.native_skills[outcome.expertise]
+            .display_name,
+        lowercase_commodity_display_name(
+            outcome.primary_trade ),
+        lowercase_commodity_display_name(
+            outcome.secondary_trade_1 ),
+        lowercase_commodity_display_name(
+            outcome.secondary_trade_2 ) );
+  switch( outcome.action.to_enum() ) {
+    case ChiefAction::e::none: {
+      co_await ts.gui.message_box(
+          "We always welcome @[H]{}@[] travelors.",
+          config_nation.nations[unit.nation()].display_name );
+      co_return;
+    }
+    case ChiefAction::e::gift_money: {
+      auto const& o =
+          outcome.action.get<ChiefAction::gift_money>();
+      co_await ts.gui.message_box(
+          "Please take these valuable beads (worth @[H]{}@[]) "
+          "back to your chieftan.",
+          o.quantity );
+      player.money += o.quantity;
+      co_return;
+    }
+    case ChiefAction::e::tales_of_nearby_lands: {
+      auto const& o =
+          outcome.action
+              .get<ChiefAction::tales_of_nearby_lands>();
+      CHECK( !o.tiles.empty() );
+      auto tiles = o.tiles;
+      ts.rand.shuffle( tiles );
+      co_await ts.gui.message_box(
+          "We invite you to sit around the campfire with us as "
+          "we tell you the tales of nearby lands." );
+      co_await planes.land_view().center_on_tile(
+          dwelling.location );
+      for( Coord tile : tiles ) {
+        using namespace chrono_literals;
+        ts.map_updater.make_square_visible( tile,
+                                            unit.nation() );
+        co_await 20ms;
+      }
+      break;
+    }
+    case ChiefAction::e::promotion: {
+      co_await ts.gui.message_box(
+          "To help our traveler friends we will send guides "
+          "along with your scout." );
+      // We want to display the promotion message as the unit is
+      // depixelating to a seasoned scout, so run them in paral-
+      // lel. That said, the player can close the window early
+      // and the animatino will still finish.
+      wait<> promotion_msg = ts.gui.message_box(
+          "Our scout has been promoted to @[H]Seasoned "
+          "Scout@[]!" );
+      co_await planes.land_view().animate_unit_depixelation(
+          unit.id(), e_unit_type::seasoned_scout );
+      // Need to change type before awaiting on the promotion
+      // message otherwise the unit will change back temporarily
+      // after depixelating.
+      unit.change_type( player,
+                        UnitComposition::create(
+                            e_unit_type::seasoned_scout ) );
+      co_await std::move( promotion_msg );
+      co_return;
+    }
+    case ChiefAction::e::target_practice: {
+      co_await ts.gui.message_box(
+          "You have violated sacred taboos of the @[H]{}@[] "
+          "tribe and thus we have decided to use your scout as "
+          "target practice.",
+          config_natives.tribes[dwelling.tribe].name_singular );
+      co_await planes.land_view().animate_unit_depixelation(
+          unit.id(), /*target_type=*/nothing );
+      ss.units.destroy_unit( unit.id() );
+      co_return;
     }
   }
 }

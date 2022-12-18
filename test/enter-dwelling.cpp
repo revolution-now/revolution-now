@@ -463,5 +463,15 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
 }
 #endif
 
+TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
+  World W;
+  // TODO
+}
+
+TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
+  World W;
+  // TODO
+}
+
 } // namespace
 } // namespace rn

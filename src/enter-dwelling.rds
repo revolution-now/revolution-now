@@ -17,6 +17,9 @@ include "ss/native-enums.rds.hpp"
 include "ss/unit-composer.hpp"
 include "ss/unit-type.rds.hpp"
 
+# gfx
+include "gfx/coord.hpp"
+
 # C++ standard library
 include "<vector>"
 
@@ -88,4 +91,47 @@ sumtype.LiveAmongTheNatives {
     # neer still retain its tools.
     to 'UnitComposition',
   },
+}
+
+# ===============================================================
+# Speak with Chief
+# ===============================================================
+sumtype.ChiefAction {
+  # For this one, the player just receives a message saying "The
+  # {} are always pleased to welcome Dutch travelers."
+  none {},
+
+  # Gift from chief.
+  gift_money {
+    quantity 'int',
+  },
+
+  # Surrounding land tiles are revealed.
+  tales_of_nearby_lands {
+    tiles 'std::vector<Coord>',
+  },
+
+  # Non-expert non-seasoned scout is promoted to seasoned scout.
+  promotion {},
+
+  # The scout is eliminated ("used as target practice"). This is
+  # the only negative outcome.
+  target_practice {},
+}
+
+struct.SpeakWithChiefResult {
+  expertise 'e_native_skill',
+
+  # What this dwelling is most looking for trade-wise.
+  primary_trade 'e_commodity',
+
+  # The dwelling states that it will also accept the following
+  # two alternate goods.
+  secondary_trade_1 'e_commodity',
+  secondary_trade_2 'e_commodity',
+
+  # Finally, this is what the chief does to the scout. Can be a
+  # gift (positive), nothing (neutral) or eliminating the scout
+  # (negative).
+  action 'ChiefAction_t',
 }
