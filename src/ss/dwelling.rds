@@ -9,6 +9,7 @@
 #
 # ===============================================================
 # ss
+include "ss/commodity.rds.hpp"
 include "ss/dwelling-id.hpp"
 include "ss/nation.rds.hpp"
 include "ss/native-enums.rds.hpp"
@@ -24,7 +25,10 @@ include "refl/enum-map.hpp"
 namespace "rn"
 
 struct.DwellingTradingState {
-  # TODO
+  # TODO: not sure yet how this needs to look.
+  seeking_primary 'e_commodity',
+  seeking_secondary_1 'e_commodity',
+  seeking_secondary_2 'e_commodity',
 }
 
 # Describes the relationship of a single dwelling with a nation.
@@ -45,6 +49,17 @@ struct.DwellingRelationship {
   # level called "happy" that is superior to "content"; in that
   # case, we might want to start this off as non-zero.
   dwelling_only_alarm 'int',
+
+  # This is so that the player can't keep meeting with the chief
+  # and receiving gifts. After having met with the chief once,
+  # scouts can continue to meet with the chief, but they won't
+  # receive any gifts, even if the first encounter resulted in
+  # nothing. But note that a scout is always "eligible" for being
+  # used for "target practice" and eliminated, even if the chief
+  # has already been spoken with. So in other words, this flag
+  # only prevents the player from receiving multiple gifts from
+  # the same chief.
+  has_spoken_with_chief 'bool',
 
   _features { equality, validation }
 }

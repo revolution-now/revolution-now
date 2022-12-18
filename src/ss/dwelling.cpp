@@ -52,7 +52,9 @@ LUA_STARTUP( lua::state& st ) {
 
     auto u = st.usertype.create<U>();
 
-    (void)u; // TODO
+    u["seeking_primary"]     = &U::seeking_primary;
+    u["seeking_secondary_1"] = &U::seeking_secondary_1;
+    u["seeking_secondary_2"] = &U::seeking_secondary_2;
   }();
 
   // DwellingRelationshipMap.
@@ -73,7 +75,8 @@ LUA_STARTUP( lua::state& st ) {
 
     auto u = st.usertype.create<U>();
 
-    u["dwelling_only_alarm"] = &U::dwelling_only_alarm;
+    u["dwelling_only_alarm"]   = &U::dwelling_only_alarm;
+    u["has_spoken_with_chief"] = &U::has_spoken_with_chief;
   }();
 
   // Dwelling.
