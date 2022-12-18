@@ -257,28 +257,39 @@ expect<UnitComposition> promoted_from_activity(
                                   comp.inventory() );
 }
 
-expect<UnitComposition> promoted_by_natives(
+maybe<UnitComposition> promoted_by_natives(
     UnitComposition const& comp, e_native_skill skill ) {
   e_unit_activity const activity =
       activity_for_native_skill( skill );
+  maybe<e_unit_activity> const expertise =
+      unit_attr( comp.base_type() ).expertise;
+  if( expertise.has_value() ) return nothing;
   if( comp.type_obj().type() != comp.type_obj().base_type() ) {
-    // This will attempt to preserve the unit type and only pro-
-    // mote the base type, so that e.g. when a pioneer enters a
-    // native village and learns a skill it will continue to be a
-    // pioneer with the same number of tools, but its base type
-    // will be an expert.
-    e_unit_type const new_unit_type =
+    // This will attempt to preserve the unit type modifiers and
+    // inventory and only promote the base type, so that e.g.
+    // when a pioneer enters a native village and learns a skill
+    // it will continue to be a pioneer with the same number of
+    // tools, but its base type will be an expert. Or a regular
+    // scout might become a seasoned scout.
+    e_unit_type const new_base_type =
         expert_for_activity( activity );
-    UNWRAP_CHECK(
-        new_type_obj,
-        UnitType::create( comp.type(), new_unit_type ) );
-    return UnitComposition::create( new_type_obj,
-                                    comp.inventory() );
+    unordered_set<e_unit_type_modifier> const& modifiers =
+        comp.type_obj().unit_type_modifiers();
+    UNWRAP_RETURN(
+        with_modifiers,
+        add_unit_type_modifiers(
+            UnitType::create( new_base_type ), modifiers ) );
+    expect<UnitComposition> const res = UnitComposition::create(
+        with_modifiers, comp.inventory() );
+    if( res.has_value() ) return *res;
+    return nothing;
   } else {
     e_unit_type const new_unit_type =
         expert_for_activity( activity );
-    return UnitComposition::create(
+    expect<UnitComposition> const res = UnitComposition::create(
         UnitType::create( new_unit_type ), comp.inventory() );
+    if( res.has_value() ) return *res;
+    return nothing;
   }
 }
 

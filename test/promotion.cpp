@@ -1038,10 +1038,7 @@ TEST_CASE( "[unit-type] promoted_by_natives" ) {
   UnitComposition comp, expected;
   e_native_skill  skill = {};
 
-  auto f = [&] {
-    UNWRAP_CHECK( new_comp, promoted_by_natives( comp, skill ) );
-    return new_comp;
-  };
+  auto f = [&] { return promoted_by_natives( comp, skill ); };
 
   skill = e_native_skill::fishing;
   comp  = UnitComposition::create(
@@ -1072,12 +1069,41 @@ TEST_CASE( "[unit-type] promoted_by_natives" ) {
       UnitComposition::create( e_unit_type::master_fur_trader );
   REQUIRE( f() == expected );
 
-  // In practice the natives won't teach a petty criminal, but
-  // this function should be able to handle it anyway.
+  // The natives won't teach a petty criminal by living among the
+  // natives, but they can teach a petty criminal to become a
+  // seasoned scout when "speaking with the chief", so we need to
+  // support that.
   skill = e_native_skill::scouting;
   comp  = UnitComposition::create( e_unit_type::petty_criminal );
   expected =
       UnitComposition::create( e_unit_type::seasoned_colonist );
+  REQUIRE( f() == expected );
+
+  // Make sure that we don't succeed in promoting a colonist that
+  // is already an expert in something else.
+  skill = e_native_skill::farming;
+  comp  = UnitComposition::create(
+      UnitType::create( e_unit_type::pioneer,
+                         e_unit_type::expert_fisherman )
+          .value() );
+  REQUIRE( f() == nothing );
+
+  // Make sure that we don't succeed in promoting a colonist that
+  // is already an expert in the given skill.
+  skill = e_native_skill::fishing;
+  comp  = UnitComposition::create(
+      UnitType::create( e_unit_type::pioneer,
+                         e_unit_type::expert_fisherman )
+          .value() );
+  REQUIRE( f() == nothing );
+
+  // Make sure that we can promote a scout to a seasoned scout as
+  // is sometimes done when a scout speaks to the chief.
+  skill = e_native_skill::scouting;
+  comp  = UnitComposition::create(
+      UnitType::create( e_unit_type::scout ) );
+  expected =
+      UnitComposition::create( e_unit_type::seasoned_scout );
   REQUIRE( f() == expected );
 }
 

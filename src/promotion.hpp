@@ -80,19 +80,29 @@ expect<UnitComposition> promoted_from_activity(
     UnitComposition const& comp, e_unit_activity activity );
 
 // Called when promoting a unit as a result of having been taught
-// by the natives. This will yield a unit that is an expert in
-// the given skill (even if starting as an indentured servant)
-// but also has the same inventory as `comp`. We don't use the
-// `promoted_from_activity` method above for this because it
-// sometimes ignores the `activity`; that method is for when a
-// unit gets promoted in a way that may depend on its activity or
-// not, depending on unit type (e.g. if a free_colonist/pioneer
-// wins while defending in battle it would be promoted not to a
-// veteran colonist/pioneer but to a hardy pioneer). In our case
-// we don't want that: if a free_colonist/pioneer gets trained by
-// the natives in fishing, we want it to become an
-// expert_fisherman/pioneer.
-expect<UnitComposition> promoted_by_natives(
+// by the natives, meaning either "living with the natives" and
+// getting taught the expertise of the dwelling, or a scout "s-
+// peaking with the chief" and getting promoted to a seasoned
+// scout. This will yield a unit that is an expert in the given
+// skill (even if starting as a petty criminal) but also has the
+// same inventory as `comp`. If the unit's base type is already
+// an expert (in anything) this will return nothing, since a pro-
+// motion is not possible.
+//
+// Note that when "living with the natives" the natives will not
+// teach a petty criminal, but this method needs to support
+// training a petty criminal because a petty_criminal/scout, when
+// "speaking with the chief" can sometimes be promoted directly
+// to a seasoned scout. We don't use the `promoted_from_activity`
+// method above for this because it sometimes ignores the `activ-
+// ity`; that method is for when a unit gets promoted in a way
+// that may depend on its activity or not, depending on unit type
+// (e.g. if a free_colonist/pioneer wins while defending in
+// battle it would be promoted not to a veteran colonist/pioneer
+// but to a hardy pioneer). In our case we don't want that: if a
+// free_colonist/pioneer gets trained by the natives in fishing,
+// we want it to become an expert_fisherman/pioneer.
+maybe<UnitComposition> promoted_by_natives(
     UnitComposition const& comp, e_native_skill skill );
 
 // Will attempt to clear the expertise (if any) of the base type
