@@ -33,6 +33,7 @@ namespace rn {
 struct MockLandViewPlane : ILandViewPlane {
   MOCK_METHOD( void, set_visibility, (maybe<e_nation>), () );
   MOCK_METHOD( wait<>, ensure_visible, (Coord const&), () );
+  MOCK_METHOD( wait<>, center_on_tile, ( Coord ), () );
   MOCK_METHOD( wait<>, ensure_visible_unit, ( UnitId ), () );
   MOCK_METHOD( wait<LandViewPlayerInput_t>, get_next_input,
                ( UnitId ), () );

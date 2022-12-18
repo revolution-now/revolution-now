@@ -376,18 +376,6 @@ struct LandViewPlane::Impl : public Plane {
     }
   }
 
-  wait<> center_on_blinking_unit_if_any() {
-    using u_i = LandViewMode::unit_input;
-    auto blinking_unit =
-        landview_mode_.get_if<u_i>().member( &u_i::unit_id );
-    if( !blinking_unit ) {
-      lg.warn(
-          "There are no units currently asking for orders." );
-      return make_wait<>();
-    }
-    return ensure_visible_unit( *blinking_unit );
-  }
-
   /****************************************************************
   ** Tile Clicking
   *****************************************************************/
@@ -491,123 +479,131 @@ struct LandViewPlane::Impl : public Plane {
   /****************************************************************
   ** Input Processor
   *****************************************************************/
-  // Fetches one raw input and translates it, adding a new
-  // element into the "translated" stream. For each translated
-  // event cre- ated, preserve the time that the corresponding
-  // raw input event was received.
-  wait<> raw_input_translator() {
-    while( !translated_input_stream_.ready() ) {
-      RawInput raw_input = co_await raw_input_stream_.next();
+  // Fetches one raw input and translates it, adding a new ele-
+  // ment into the "translated" stream. For each translated event
+  // created, preserve the time that the corresponding raw input
+  // event was received.
+  wait<> single_raw_input_translator() {
+    RawInput raw_input = co_await raw_input_stream_.next();
 
-      switch( raw_input.input.to_enum() ) {
-        using namespace LandViewRawInput;
-        case e::reveal_map: {
-          co_await cheat_reveal_map( planes_, ss_, ts_ );
-          break;
-        }
-        case e::toggle_map_reveal: {
-          cheat_toggle_reveal_full_map( planes_, ss_, ts_ );
-          break;
-        }
-        case e::escape: {
-          translated_input_stream_.send( PlayerInput(
-              LandViewPlayerInput::exit{}, raw_input.when ) );
-          break;
-        }
-        case e::next_turn: {
-          translated_input_stream_.send(
-              PlayerInput( LandViewPlayerInput::next_turn{},
-                           raw_input.when ) );
-          break;
-        }
-        case e::orders: {
-          translated_input_stream_.send( PlayerInput(
-              LandViewPlayerInput::give_orders{
-                  .orders = raw_input.input
-                                .get<LandViewRawInput::orders>()
-                                .orders },
-              raw_input.when ) );
-          break;
-        }
-        case e::leave_hidden_terrain: {
-          SHOULD_NOT_BE_HERE;
-        }
-        case e::european_status: {
-          translated_input_stream_.send( PlayerInput(
-              LandViewPlayerInput::european_status{},
-              raw_input.when ) );
-          break;
-        }
-        case e::hidden_terrain: {
-          auto new_state = LandViewMode::hidden_terrain{};
-          SCOPED_SET_AND_RESTORE( landview_mode_, new_state );
-          auto popper = ts_.map_updater.push_options_and_redraw(
-              []( MapUpdaterOptions& options ) {
-                options.render_forests = false;
-                // The original game does not render LCRs or re-
-                // sources in the hidden terrain mode, likely be-
-                // cause this would allow the player to cheat and
-                // see if there is a resource under the forest or
-                // LCR tile instead of taking them time and risk
-                // to explore those tiles. What is rendered here
-                // (the underlying ground terrain) is already
-                // given to the player on the side panel (and we
-                // don't want to give away anything else).
-                options.render_resources = false;
-                options.render_lcrs      = false;
-              } );
-          // Consume further inputs but eat all of them except
-          // for the ones we want.
-          while( true ) {
-            RawInput raw_input =
-                co_await raw_input_stream_.next();
-            if( raw_input.input.holds<
-                    LandViewRawInput::leave_hidden_terrain>() )
-              break;
-            if( auto tile_click =
-                    raw_input.input
-                        .get_if<LandViewRawInput::tile_click>();
-                tile_click.has_value() )
-              viewport().set_point_seek(
-                  viewport().world_tile_to_world_pixel_center(
-                      tile_click->coord ) );
-          }
-          break;
-        }
-        case e::tile_click: {
-          auto& o = raw_input.input.get<tile_click>();
-          if( o.mods.shf_down ) {
-            // cheat mode.
-            maybe<e_nation> nation = active_player( ss_.turn );
-            if( !nation.has_value() ) break;
-            co_await cheat_create_unit_on_map( ss_, ts_, *nation,
-                                               o.coord );
+    switch( raw_input.input.to_enum() ) {
+      using namespace LandViewRawInput;
+      case e::reveal_map: {
+        co_await cheat_reveal_map( planes_, ss_, ts_ );
+        break;
+      }
+      case e::toggle_map_reveal: {
+        cheat_toggle_reveal_full_map( planes_, ss_, ts_ );
+        break;
+      }
+      case e::escape: {
+        translated_input_stream_.send( PlayerInput(
+            LandViewPlayerInput::exit{}, raw_input.when ) );
+        break;
+      }
+      case e::next_turn: {
+        translated_input_stream_.send( PlayerInput(
+            LandViewPlayerInput::next_turn{}, raw_input.when ) );
+        break;
+      }
+      case e::orders: {
+        translated_input_stream_.send( PlayerInput(
+            LandViewPlayerInput::give_orders{
+                .orders = raw_input.input
+                              .get<LandViewRawInput::orders>()
+                              .orders },
+            raw_input.when ) );
+        break;
+      }
+      case e::leave_hidden_terrain: {
+        SHOULD_NOT_BE_HERE;
+      }
+      case e::european_status: {
+        translated_input_stream_.send(
+            PlayerInput( LandViewPlayerInput::european_status{},
+                         raw_input.when ) );
+        break;
+      }
+      case e::hidden_terrain: {
+        auto new_state = LandViewMode::hidden_terrain{};
+        SCOPED_SET_AND_RESTORE( landview_mode_, new_state );
+        auto popper = ts_.map_updater.push_options_and_redraw(
+            []( MapUpdaterOptions& options ) {
+              options.render_forests = false;
+              // The original game does not render LCRs or re-
+              // sources in the hidden terrain mode, likely be-
+              // cause this would allow the player to cheat and
+              // see if there is a resource under the forest or
+              // LCR tile instead of taking them time and risk
+              // to explore those tiles. What is rendered here
+              // (the underlying ground terrain) is already
+              // given to the player on the side panel (and we
+              // don't want to give away anything else).
+              options.render_resources = false;
+              options.render_lcrs      = false;
+            } );
+        // Consume further inputs but eat all of them except
+        // for the ones we want.
+        while( true ) {
+          RawInput raw_input = co_await raw_input_stream_.next();
+          if( raw_input.input.holds<
+                  LandViewRawInput::leave_hidden_terrain>() )
             break;
-          }
-          vector<LandViewPlayerInput_t> inputs =
-              co_await click_on_world_tile( o.coord );
-          // Since we may have just popped open a box to ask the
-          // user to select units, just use the "now" time so
-          // that these events don't get disgarded. Also, mouse
-          // clicks are not likely to get buffered for too long
-          // anyway.
-          for( auto const& input : inputs )
-            translated_input_stream_.send(
-                PlayerInput( input, Clock_t::now() ) );
+          if( auto tile_click =
+                  raw_input.input
+                      .get_if<LandViewRawInput::tile_click>();
+              tile_click.has_value() )
+            viewport().set_point_seek(
+                viewport().world_tile_to_world_pixel_center(
+                    tile_click->coord ) );
+        }
+        break;
+      }
+      case e::tile_click: {
+        auto& o = raw_input.input.get<tile_click>();
+        if( o.mods.shf_down ) {
+          // cheat mode.
+          maybe<e_nation> nation = active_player( ss_.turn );
+          if( !nation.has_value() ) break;
+          co_await cheat_create_unit_on_map( ss_, ts_, *nation,
+                                             o.coord );
           break;
         }
-        case e::center:
-          // For this one, we just perform the action right here.
-          co_await center_on_blinking_unit_if_any();
+        vector<LandViewPlayerInput_t> inputs =
+            co_await click_on_world_tile( o.coord );
+        // Since we may have just popped open a box to ask the
+        // user to select units, just use the "now" time so
+        // that these events don't get disgarded. Also, mouse
+        // clicks are not likely to get buffered for too long
+        // anyway.
+        for( auto const& input : inputs )
+          translated_input_stream_.send(
+              PlayerInput( input, Clock_t::now() ) );
+        break;
+      }
+      case e::center: {
+        // For this one, we just perform the action right here.
+        using u_i = LandViewMode::unit_input;
+        auto blinking_unit =
+            landview_mode_.get_if<u_i>().member( &u_i::unit_id );
+        if( !blinking_unit ) {
+          lg.warn(
+              "There are no units currently asking for "
+              "orders." );
           break;
+        }
+        Coord const tile = coord_for_unit_indirect_or_die(
+            ss_.units, *blinking_unit );
+        co_await center_on_tile( tile );
+        break;
       }
     }
   }
 
   wait<LandViewPlayerInput_t> next_player_input_object() {
     while( true ) {
-      if( !translated_input_stream_.ready() )
-        co_await raw_input_translator();
+      while( !translated_input_stream_.ready() )
+        co_await single_raw_input_translator();
       PlayerInput res = co_await translated_input_stream_.next();
       // Ignore any input events that are too old.
       if( Clock_t::now() - res.when < chrono::seconds{ 2 } )
@@ -1695,6 +1691,10 @@ struct LandViewPlane::Impl : public Plane {
     return viewport().ensure_tile_visible_smooth( coord );
   }
 
+  wait<> center_on_tile( Coord coord ) {
+    co_await viewport().center_on_tile_smooth( coord );
+  }
+
   wait<> ensure_visible_unit( UnitId id ) {
     // Need multi-ownership variant because sometimes the unit in
     // question is a worker in a colony, as can happen if we are
@@ -1918,6 +1918,10 @@ LandViewPlane::LandViewPlane( Planes& planes, SS& ss, TS& ts,
 
 wait<> LandViewPlane::ensure_visible( Coord const& coord ) {
   return impl_->ensure_visible( coord );
+}
+
+wait<> LandViewPlane::center_on_tile( Coord coord ) {
+  return impl_->center_on_tile( coord );
 }
 
 void LandViewPlane::set_visibility( maybe<e_nation> nation ) {

@@ -120,11 +120,9 @@ class SmoothViewport {
   // it is in the viewport.
   bool screen_coord_in_viewport( Coord pixel_coord ) const;
 
-  // Immediate change. Note that it is tricky to make a coro ver-
-  // sion of this because we have to detect when to stop, which
-  // is not trivial because some tiles close to the edge of the
-  // map cannot reach the center.
-  void center_on_tile( Coord const& coords );
+  // Immediate change.
+  void   center_on_tile( Coord const& coords );
+  wait<> center_on_tile_smooth( Coord coord );
 
   void set_x_push( e_push_direction );
   void set_y_push( e_push_direction );

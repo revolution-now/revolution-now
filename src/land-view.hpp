@@ -45,6 +45,11 @@ struct ILandViewPlane {
 
   virtual wait<> ensure_visible( Coord const& coord ) = 0;
 
+  // Tries to center on the tile (smoothly, if not too far away)
+  // as much as is possible. E.g. if the tile is close to the
+  // world edge then it won't end up centered.
+  virtual wait<> center_on_tile( Coord coord ) = 0;
+
   virtual wait<> ensure_visible_unit( UnitId id ) = 0;
 
   virtual wait<LandViewPlayerInput_t> get_next_input(
@@ -105,6 +110,7 @@ struct LandViewPlane : ILandViewPlane {
   void set_visibility( maybe<e_nation> nation ) override;
 
   wait<> ensure_visible( Coord const& coord ) override;
+  wait<> center_on_tile( Coord coord ) override;
   wait<> ensure_visible_unit( UnitId id ) override;
 
   wait<LandViewPlayerInput_t> get_next_input(

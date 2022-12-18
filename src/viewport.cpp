@@ -12,6 +12,7 @@
 #include "viewport.hpp"
 
 // Revolution Now
+#include "co-wait.hpp"
 #include "error.hpp"
 #include "math.hpp"
 #include "tiles.hpp"
@@ -705,6 +706,25 @@ void SmoothViewport::center_on_tile( Coord const& coords ) {
   fix_invariants();
 }
 
+wait<> SmoothViewport::center_on_tile_smooth( Coord coord ) {
+  stop_auto_panning();
+  if( is_tile_too_far( coord ) ) {
+    // If it's too far from the current view then we'll forgo
+    // smooth scrolling otherwise it can get annoying to the
+    // player.
+    center_on_tile( coord );
+    co_return;
+  }
+  coro_smooth_scroll_ = SmoothScroll{
+      .x_target = double(
+          ( coord.x * g_tile_width + g_tile_width / 2 ) ),
+      .y_target = double(
+          ( coord.y * g_tile_height + g_tile_height / 2 ) ),
+      .tile_target = coord,
+      .promise     = {} };
+  co_await coro_smooth_scroll_->promise.wait();
+}
+
 bool SmoothViewport::is_tile_fully_visible(
     Coord const& coord ) const {
   Rect box = Rect::from( coord * g_tile_delta, g_tile_delta );
@@ -811,25 +831,8 @@ bool SmoothViewport::is_tile_too_far( Coord tile ) const {
 
 wait<> SmoothViewport::ensure_tile_visible_smooth(
     Coord const& coord ) {
-  // FIXME: this seems to never finish if the viewport is zoomed
-  // in too far (to where a unit and its surroundings are not
-  // fully visible).
-  if( !need_to_scroll_to_reveal_tile( coord ) )
-    return make_wait<>();
-  stop_auto_panning();
-  if( is_tile_too_far( coord ) ) {
-    // If it's too far from the current view then we'll forgo
-    // smooth scrolling otherwise it can get annoying to the
-    // player.
-    center_on_tile( coord );
-    return make_wait<>();
-  }
-  coro_smooth_scroll_ = SmoothScroll{
-      .x_target    = double( ( coord.x * g_tile_width ) ),
-      .y_target    = double( ( coord.y * g_tile_height ) ),
-      .tile_target = coord,
-      .promise     = {} };
-  return coro_smooth_scroll_->promise.wait();
+  if( !need_to_scroll_to_reveal_tile( coord ) ) co_return;
+  co_await center_on_tile_smooth( coord );
 }
 
 bool SmoothViewport::operator==(
