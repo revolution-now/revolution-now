@@ -15,33 +15,33 @@ fountain_of_youth_num_immigrants: 8
 # (within each leaf section) for readability.
 rumor_type_weights {
   seasoned_scout {
-    none:              46
-    fountain_of_youth: 13
-    free_colonist:     13
-    ruins:             10
-    burial_mounds:      7
-    chief_gift:         7
-    unit_lost:          2
+    none:              47
+    fountain_of_youth:  7
+    free_colonist:     14
+    ruins:             11
+    burial_mounds:      8
+    chief_gift:         8
+    unit_lost:          3
     cibola:             2
   }
   scout {
     none:              49
-    fountain_of_youth: 10
-    free_colonist:     11
-    ruins:             10
-    burial_mounds:      5
-    chief_gift:        11
-    unit_lost:          2
+    fountain_of_youth:  5
+    free_colonist:     12
+    ruins:             11
+    burial_mounds:      6
+    chief_gift:        12
+    unit_lost:          3
     cibola:             2
   }
   other {
-    none:              56
-    fountain_of_youth:  8
+    none:              58
+    fountain_of_youth:  4
     free_colonist:     13
     ruins:              8
     burial_mounds:      5
-    chief_gift:         6
-    unit_lost:          2
+    chief_gift:         7
+    unit_lost:          3
     cibola:             2
   }
 }

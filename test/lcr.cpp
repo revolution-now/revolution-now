@@ -84,8 +84,8 @@ TEST_CASE( "[lcr] de soto means no unit lost" ) {
   player.fathers.has[e_founding_father::hernando_de_soto] = true;
   // The rumor type weights are integral and are required to sum
   // to 100, but the logic zeroes out the unit-lost weight, which
-  // is currently two, so the total weight will be 98.
-  int const kUpperLimit = 98;
+  // is currently three, so the total weight will be 97.
+  int const kUpperLimit = 97;
   for( int i = 0; i < kUpperLimit; i += 1 ) {
     INFO( fmt::format( "i: {}", i ) );
     EXPECT_CALL( W.rand(),

@@ -932,7 +932,8 @@ local function distribute_lost_city_rumors( placement_seed )
       square.lost_city_rumor = true
     end
   end
-  log.debug( 'lost city rumor density: ' ..
+  log.debug( 'lost city rumor count=' .. tostring( #coords ) ..
+                 ', density=' ..
                  tostring( #coords / (size.w * size.h) ) )
 end
 
