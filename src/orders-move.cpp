@@ -294,8 +294,8 @@ struct TravelHandler : public OrdersHandler {
     if( verdict == e_travel_verdict::consume_remaining_points )
       co_return;
 
-    co_await planes_.land_view().landview_animate_move(
-        unit_id, direction );
+    co_await planes_.land_view().animate_move( unit_id,
+                                               direction );
   }
 
   wait<> perform() override;
@@ -1030,14 +1030,14 @@ struct AttackHandler : public OrdersHandler {
                                    attack_dst ) );
       auto attacker_id = unit_id;
       auto defender_id = *target_unit;
-      return planes_.land_view().landview_animate_colony_capture(
+      return planes_.land_view().animate_colony_capture(
           attacker_id, defender_id, colony_id );
     }
 
     auto attacker = unit_id;
     UNWRAP_CHECK( defender, target_unit );
     UNWRAP_CHECK( stats, fight_stats );
-    return planes_.land_view().landview_animate_attack(
+    return planes_.land_view().animate_attack(
         attacker, defender, stats.attacker_wins );
   }
 

@@ -288,7 +288,8 @@ struct LandViewPlane::Impl : public Plane {
     }
   }
 
-  wait<> animate_colony_depixelation( Colony const& colony ) {
+  wait<> animate_colony_depixelation_impl(
+      Colony const& colony ) {
     CHECK( !colony_animations_.contains( colony.id ) );
     UnitAnimation::depixelate_colony& depixelate =
         colony_animations_[colony.id]
@@ -384,7 +385,7 @@ struct LandViewPlane::Impl : public Plane {
           "There are no units currently asking for orders." );
       return make_wait<>();
     }
-    return landview_ensure_visible_unit( *blinking_unit );
+    return ensure_visible_unit( *blinking_unit );
   }
 
   /****************************************************************
@@ -1675,12 +1676,12 @@ struct LandViewPlane::Impl : public Plane {
     // its own after doing any post-drag stuff it needs to do.
   }
 
-  void landview_reset_input_buffers() {
+  void reset_input_buffers() {
     raw_input_stream_.reset();
     translated_input_stream_.reset();
   }
 
-  void landview_start_new_turn() {
+  void start_new_turn() {
     // An example of why this is needed is because when a unit is
     // moving (say, it is the only active unit) and the screen
     // scrolls away from it to show a colony update, then when
@@ -1690,17 +1691,17 @@ struct LandViewPlane::Impl : public Plane {
     g_needs_scroll_to_unit_on_input = true;
   }
 
-  wait<> landview_ensure_visible( Coord const& coord ) {
+  wait<> ensure_visible( Coord const& coord ) {
     return viewport().ensure_tile_visible_smooth( coord );
   }
 
-  wait<> landview_ensure_visible_unit( UnitId id ) {
+  wait<> ensure_visible_unit( UnitId id ) {
     // Need multi-ownership variant because sometimes the unit in
     // question is a worker in a colony, as can happen if we are
     // attacking an undefended colony.
     UNWRAP_CHECK( coord,
                   coord_for_unit_multi_ownership( ss_, id ) );
-    co_await landview_ensure_visible( coord );
+    co_await ensure_visible( coord );
   }
 
   void set_visibility( maybe<e_nation> nation ) {
@@ -1720,7 +1721,7 @@ struct LandViewPlane::Impl : public Plane {
     if( !config_land_view.input_overrun_detection.enabled )
       co_return;
     if( !is_unit_on_map( ss_.units, id ) ) co_return;
-    landview_reset_input_buffers();
+    reset_input_buffers();
     auto const kWait =
         config_land_view.input_overrun_detection.wait_time;
     SCOPE_EXIT( input_overrun_indicator_ = nothing );
@@ -1747,11 +1748,10 @@ struct LandViewPlane::Impl : public Plane {
       input_overrun_indicator_ = InputOverrunIndicator{
           .unit_id = id, .start_time = raw_input.when };
     }
-    landview_reset_input_buffers();
+    reset_input_buffers();
   }
 
-  wait<LandViewPlayerInput_t> landview_get_next_input(
-      UnitId id ) {
+  wait<LandViewPlayerInput_t> get_next_input( UnitId id ) {
     // There are some things that use last_unit_input_ below that
     // will crash if the last unit that asked for orders no
     // longer exists. So we'll just do this up here to be safe.
@@ -1770,7 +1770,7 @@ struct LandViewPlane::Impl : public Plane {
     // This might be true either because we started a new turn,
     // or because of the above assignment.
     if( g_needs_scroll_to_unit_on_input )
-      co_await landview_ensure_visible_unit( id );
+      co_await ensure_visible_unit( id );
     g_needs_scroll_to_unit_on_input = false;
 
     // When we start on a new unit clear the input queue so that
@@ -1820,23 +1820,22 @@ struct LandViewPlane::Impl : public Plane {
     co_return input;
   }
 
-  wait<LandViewPlayerInput_t> landview_eot_get_next_input() {
+  wait<LandViewPlayerInput_t> eot_get_next_input() {
     last_unit_input_ = nothing;
     landview_mode_   = LandViewMode::none{};
     return next_player_input_object();
   }
 
-  wait<> landview_animate_move( UnitId      id,
-                                e_direction direction ) {
+  wait<> animate_move( UnitId id, e_direction direction ) {
     // Ensure that both src and dst squares are visible.
     Coord src = coord_for_unit_indirect_or_die( ss_.units, id );
     Coord dst = src.moved( direction );
-    co_await landview_ensure_visible( src );
+    co_await ensure_visible( src );
     // The destination square may not exist if it is a ship
     // sailing the high seas by moving off of the map edge (which
     // the original game allows).
     if( ss_.terrain.square_exists( dst ) )
-      co_await landview_ensure_visible( dst );
+      co_await ensure_visible( dst );
     SCOPED_SET_AND_RESTORE(
         landview_mode_,
         LandViewMode::unit_move{ .unit_id = id } );
@@ -1844,11 +1843,10 @@ struct LandViewPlane::Impl : public Plane {
     co_await animate_slide( id, direction );
   }
 
-  wait<> landview_animate_attack( UnitId attacker,
-                                  UnitId defender,
-                                  bool   attacker_wins ) {
-    co_await landview_ensure_visible_unit( defender );
-    co_await landview_ensure_visible_unit( attacker );
+  wait<> animate_attack( UnitId attacker, UnitId defender,
+                         bool attacker_wins ) {
+    co_await ensure_visible_unit( defender );
+    co_await ensure_visible_unit( attacker );
     auto new_state = LandViewMode::unit_attack{
         .attacker      = attacker,
         .defender      = defender,
@@ -1872,19 +1870,18 @@ struct LandViewPlane::Impl : public Plane {
         ss_.units.unit_for( unit_to_demote ).demoted_type() );
   }
 
-  wait<> landview_animate_colony_depixelation(
-      Colony const& colony ) {
-    co_await landview_ensure_visible( colony.location );
+  wait<> animate_colony_depixelation( Colony const& colony ) {
+    co_await ensure_visible( colony.location );
     auto new_state = LandViewMode::colony_disappearing{
         .colony_id = colony.id };
     SCOPED_SET_AND_RESTORE( landview_mode_, new_state );
     // TODO: Sound effect?
-    co_await animate_colony_depixelation( colony );
+    co_await animate_colony_depixelation_impl( colony );
   }
 
-  wait<> landview_animate_unit_depixelation(
+  wait<> animate_unit_depixelation(
       UnitId unit_id, maybe<e_unit_type> target_type ) {
-    co_await landview_ensure_visible_unit( unit_id );
+    co_await ensure_visible_unit( unit_id );
     auto new_state =
         LandViewMode::unit_depixelating{ .unit_id = unit_id };
     SCOPED_SET_AND_RESTORE( landview_mode_, new_state );
@@ -1894,17 +1891,17 @@ struct LandViewPlane::Impl : public Plane {
   // FIXME: Would be nice to make this animation a bit more so-
   // phisticated, but we first need to fix the animation frame-
   // work in this module to be more flexible.
-  wait<> landview_animate_colony_capture( UnitId   attacker_id,
-                                          UnitId   defender_id,
-                                          ColonyId colony_id ) {
-    co_await landview_animate_attack( attacker_id, defender_id,
-                                      /*attacker_wins=*/true );
+  wait<> animate_colony_capture( UnitId   attacker_id,
+                                 UnitId   defender_id,
+                                 ColonyId colony_id ) {
+    co_await animate_attack( attacker_id, defender_id,
+                             /*attacker_wins=*/true );
     UNWRAP_CHECK(
         direction,
         ss_.units.coord_for( attacker_id )
             .direction_to( ss_.colonies.colony_for( colony_id )
                                .location ) );
-    co_await landview_animate_move( attacker_id, direction );
+    co_await animate_move( attacker_id, direction );
   }
 };
 
@@ -1919,64 +1916,62 @@ LandViewPlane::LandViewPlane( Planes& planes, SS& ss, TS& ts,
                               maybe<e_nation> visibility )
   : impl_( new Impl( planes, ss, ts, visibility ) ) {}
 
-wait<> LandViewPlane::landview_ensure_visible(
-    Coord const& coord ) {
-  return impl_->landview_ensure_visible( coord );
+wait<> LandViewPlane::ensure_visible( Coord const& coord ) {
+  return impl_->ensure_visible( coord );
 }
 
 void LandViewPlane::set_visibility( maybe<e_nation> nation ) {
   return impl_->set_visibility( nation );
 }
 
-wait<> LandViewPlane::landview_ensure_visible_unit( UnitId id ) {
-  return impl_->landview_ensure_visible_unit( id );
+wait<> LandViewPlane::ensure_visible_unit( UnitId id ) {
+  return impl_->ensure_visible_unit( id );
 }
 
-wait<LandViewPlayerInput_t>
-LandViewPlane::landview_get_next_input( UnitId id ) {
-  return impl_->landview_get_next_input( id );
+wait<LandViewPlayerInput_t> LandViewPlane::get_next_input(
+    UnitId id ) {
+  return impl_->get_next_input( id );
 }
 
-wait<LandViewPlayerInput_t>
-LandViewPlane::landview_eot_get_next_input() {
-  return impl_->landview_eot_get_next_input();
+wait<LandViewPlayerInput_t> LandViewPlane::eot_get_next_input() {
+  return impl_->eot_get_next_input();
 }
 
-wait<> LandViewPlane::landview_animate_move(
-    UnitId id, e_direction direction ) {
-  return impl_->landview_animate_move( id, direction );
+wait<> LandViewPlane::animate_move( UnitId      id,
+                                    e_direction direction ) {
+  return impl_->animate_move( id, direction );
 }
 
-wait<> LandViewPlane::landview_animate_colony_depixelation(
+wait<> LandViewPlane::animate_colony_depixelation(
     Colony const& colony ) {
-  return impl_->landview_animate_colony_depixelation( colony );
+  return impl_->animate_colony_depixelation( colony );
 }
 
-wait<> LandViewPlane::landview_animate_unit_depixelation(
+wait<> LandViewPlane::animate_unit_depixelation(
     UnitId id, maybe<e_unit_type> target_type ) {
-  return impl_->landview_animate_unit_depixelation(
-      id, target_type );
+  return impl_->animate_unit_depixelation( id, target_type );
 }
 
-wait<> LandViewPlane::landview_animate_attack(
-    UnitId attacker, UnitId defender, bool attacker_wins ) {
-  return impl_->landview_animate_attack( attacker, defender,
-                                         attacker_wins );
+wait<> LandViewPlane::animate_attack( UnitId attacker,
+                                      UnitId defender,
+                                      bool   attacker_wins ) {
+  return impl_->animate_attack( attacker, defender,
+                                attacker_wins );
 }
 
-wait<> LandViewPlane::landview_animate_colony_capture(
+wait<> LandViewPlane::animate_colony_capture(
     UnitId attacker_id, UnitId defender_id,
     ColonyId colony_id ) {
-  return impl_->landview_animate_colony_capture(
-      attacker_id, defender_id, colony_id );
+  return impl_->animate_colony_capture( attacker_id, defender_id,
+                                        colony_id );
 }
 
-void LandViewPlane::landview_reset_input_buffers() {
-  return impl_->landview_reset_input_buffers();
+void LandViewPlane::reset_input_buffers() {
+  return impl_->reset_input_buffers();
 }
 
-void LandViewPlane::landview_start_new_turn() {
-  return impl_->landview_start_new_turn();
+void LandViewPlane::start_new_turn() {
+  return impl_->start_new_turn();
 }
 
 void LandViewPlane::zoom_out_full() {

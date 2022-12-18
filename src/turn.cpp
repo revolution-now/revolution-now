@@ -413,7 +413,7 @@ wait<> process_player_input( next_turn_t, Planes&, SS&, TS&,
 
 wait<> process_inputs( Planes& planes, SS& ss, TS& ts,
                        Player& player ) {
-  planes.land_view().landview_reset_input_buffers();
+  planes.land_view().reset_input_buffers();
   while( true ) {
     auto wait_for_button =
         co::fmap( [] λ( next_turn_t{} ),
@@ -425,10 +425,10 @@ wait<> process_inputs( Planes& planes, SS& ss, TS& ts,
     // the effect of disabling further input on them (e.g., dis-
     // abling menu items), which is what we want for a good user
     // experience.
-    UserInput command = co_await co::first(               //
-        wait_for_menu_selection( planes.menu() ),         //
-        planes.land_view().landview_eot_get_next_input(), //
-        std::move( wait_for_button )                      //
+    UserInput command = co_await co::first(       //
+        wait_for_menu_selection( planes.menu() ), //
+        planes.land_view().eot_get_next_input(),  //
+        std::move( wait_for_button )              //
     );
     co_await rn::visit(
         command, LC( process_player_input( _, planes, ss, ts,
@@ -525,8 +525,7 @@ wait<> process_player_input( UnitId                       id,
         break;
       }
 
-      co_await planes.land_view().landview_ensure_visible_unit(
-          id );
+      co_await planes.land_view().ensure_visible_unit( id );
       unique_ptr<OrdersHandler> handler =
           orders_handler( planes, ss, ts, player, id, orders );
       CHECK( handler );
@@ -541,7 +540,7 @@ wait<> process_player_input( UnitId                       id,
       // intuitive user experience.
       if( run_result.suspended ) {
         lg.debug( "clearing land-view input buffers." );
-        planes.land_view().landview_reset_input_buffers();
+        planes.land_view().reset_input_buffers();
       }
       if( !run_result.order_was_run ) break;
       // !! The unit may no longer exist at this point, e.g. if
@@ -600,8 +599,7 @@ wait<LandViewPlayerInput_t> landview_player_input(
     lg.debug( "asking orders for: {}",
               debug_string( units_state, id ) );
     nat_turn_st.need_eot = false;
-    response =
-        co_await land_view_plane.landview_get_next_input( id );
+    response = co_await land_view_plane.get_next_input( id );
   }
   co_return response;
 }
@@ -637,8 +635,7 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
                        ts.map_updater, unit );
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders() == e_unit_orders::none );
-      co_await planes.land_view().landview_ensure_visible_unit(
-          id );
+      co_await planes.land_view().ensure_visible_unit( id );
       co_await ts.gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
@@ -661,8 +658,7 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
     }
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders() == e_unit_orders::none );
-      co_await planes.land_view().landview_ensure_visible_unit(
-          id );
+      co_await planes.land_view().ensure_visible_unit( id );
       co_await ts.gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
@@ -1009,7 +1005,7 @@ void reset_units( SS& ss ) {
 }
 
 wait<> next_turn( Planes& planes, SS& ss, TS& ts ) {
-  planes.land_view().landview_start_new_turn();
+  planes.land_view().start_new_turn();
   auto& st = ss.turn;
 
   // Starting.

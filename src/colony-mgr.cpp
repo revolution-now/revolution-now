@@ -700,8 +700,8 @@ wait<> run_colony_destruction( Planes& planes, SS& ss, TS& ts,
   Coord const  location = colony.location;
   clear_abandoned_colony_road( ss, ts.map_updater,
                                colony.location );
-  co_await planes.land_view()
-      .landview_animate_colony_depixelation( colony );
+  co_await planes.land_view().animate_colony_depixelation(
+      colony );
   destroy_colony( ss, ts.map_updater, colony );
   if( msg.has_value() ) co_await ts.gui.message_box( *msg );
   // Check if there are any ships in port.
@@ -746,7 +746,7 @@ wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
     }
     if( ev.notifications.empty() ) continue;
     // We have some notifications to present.
-    co_await planes.land_view().landview_ensure_visible(
+    co_await planes.land_view().ensure_visible(
         colony.location );
     bool zoom_to_colony = co_await present_colony_updates(
         ts.gui, colony, ev.notifications );
