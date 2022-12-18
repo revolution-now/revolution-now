@@ -525,6 +525,8 @@ wait<> process_player_input( UnitId                       id,
         break;
       }
 
+      co_await planes.land_view().landview_ensure_visible_unit(
+          id );
       unique_ptr<OrdersHandler> handler =
           orders_handler( planes, ss, ts, player, id, orders );
       CHECK( handler );
