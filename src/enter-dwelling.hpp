@@ -56,7 +56,8 @@ LiveAmongTheNatives_t compute_live_among_the_natives(
     Dwelling const& dwelling, Unit const& unit );
 
 wait<> do_live_among_the_natives(
-    TS& ts, Dwelling& dwelling, Player const& player, Unit& unit,
+    Planes& planes, TS& ts, Dwelling& dwelling,
+    Player const& player, Unit& unit,
     LiveAmongTheNatives_t const& outcome );
 
 /****************************************************************

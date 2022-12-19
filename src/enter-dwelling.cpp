@@ -334,7 +334,8 @@ LiveAmongTheNatives_t compute_live_among_the_natives(
 }
 
 wait<> do_live_among_the_natives(
-    TS& ts, Dwelling& dwelling, Player const& player, Unit& unit,
+    Planes& planes, TS& ts, Dwelling& dwelling,
+    Player const& player, Unit& unit,
     LiveAmongTheNatives_t const& outcome ) {
   switch( outcome.to_enum() ) {
     using namespace LiveAmongTheNatives;
@@ -404,6 +405,8 @@ wait<> do_live_among_the_natives(
                            .no_label       = "No",
                            .no_comes_first = false } );
       if( yes_no == ui::e_confirm::yes ) {
+        co_await planes.land_view().animate_unit_depixelation(
+            unit.id(), o.to.type() );
         unit.change_type( player, o.to );
         dwelling.has_taught = true;
         co_await ts.gui.message_box(

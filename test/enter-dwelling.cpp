@@ -16,9 +16,11 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/mocks/land-view-plane.hpp"
 
 // Revolution Now
 #include "src/mock/matchers.hpp"
+#include "src/plane-stack.hpp"
 #include "src/ustate.hpp"
 
 // ss
@@ -413,7 +415,9 @@ TEST_CASE( "[enter-dwelling] compute_live_among_the_natives" ) {
 
 #ifndef COMPILER_GCC
 TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
-  World     W;
+  World             W;
+  MockLandViewPlane mock_land_view;
+  W.planes().back().land_view = &mock_land_view;
   Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::inca );
   UnitId const unit_id = W.add_unit_on_map(
@@ -423,7 +427,8 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
 
   auto f = [&] {
     wait<> w = do_live_among_the_natives(
-        W.ts(), dwelling, W.default_player(), unit, outcome );
+        W.planes(), W.ts(), dwelling, W.default_player(), unit,
+        outcome );
     CHECK( !w.exception() );
     CHECK( w.ready() );
   };
@@ -457,6 +462,11 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
       W.gui(),
       message_box( Matches( "Congratulations.*Cotton.*"s ) ) )
       .returns<wait<>>( make_wait<>() );
+  EXPECT_CALL(
+      mock_land_view,
+      animate_unit_depixelation(
+          unit_id, e_unit_type::expert_cotton_planter ) )
+      .returns<monostate>();
   f();
   REQUIRE( unit.type() == e_unit_type::expert_cotton_planter );
   REQUIRE( dwelling.has_taught == true );

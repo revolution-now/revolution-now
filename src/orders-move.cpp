@@ -1582,7 +1582,7 @@ struct NativeDwellingHandler : public OrdersHandler {
             compute_live_among_the_natives( ss_, relationship,
                                             dwelling_, unit_ );
         co_await do_live_among_the_natives(
-            ts_, dwelling_, player_, unit_, outcome );
+            planes_, ts_, dwelling_, player_, unit_, outcome );
         break;
       }
       case e_enter_dwelling_option::speak_with_chief: {
