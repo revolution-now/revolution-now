@@ -13,7 +13,6 @@
 
 // Revolution Now
 #include "alarm.hpp"
-#include "co-time.hpp"
 #include "co-wait.hpp"
 #include "commodity.hpp"
 #include "igui.hpp"
@@ -608,21 +607,15 @@ wait<> do_speak_with_chief(
         using namespace chrono_literals;
         ts.map_updater.make_square_visible( tile,
                                             unit.nation() );
-        co_await 20ms;
+        co_await ts.gui.wait_for( 20ms );
       }
+      co_await ts.gui.wait_for( 600ms );
       break;
     }
     case ChiefAction::e::promotion: {
       co_await ts.gui.message_box(
           "To help our traveler friends we will send guides "
           "along with your scout." );
-      // We want to display the promotion message as the unit is
-      // depixelating to a seasoned scout, so run them in paral-
-      // lel. That said, the player can close the window early
-      // and the animatino will still finish.
-      wait<> promotion_msg = ts.gui.message_box(
-          "Our scout has been promoted to @[H]Seasoned "
-          "Scout@[]!" );
       co_await planes.land_view().animate_unit_depixelation(
           unit.id(), e_unit_type::seasoned_scout );
       // Need to change type before awaiting on the promotion
@@ -631,7 +624,9 @@ wait<> do_speak_with_chief(
       unit.change_type( player,
                         UnitComposition::create(
                             e_unit_type::seasoned_scout ) );
-      co_await std::move( promotion_msg );
+      co_await ts.gui.message_box(
+          "Our scout has been promoted to @[H]Seasoned "
+          "Scout@[]!" );
       co_return;
     }
     case ChiefAction::e::target_practice: {
