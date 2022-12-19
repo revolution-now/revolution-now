@@ -16,6 +16,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/mocks/irand.hpp"
 #include "test/mocks/land-view-plane.hpp"
 
 // Revolution Now
@@ -62,12 +63,25 @@ struct World : testing::World {
     MapSquare const L = make_grassland();
     // clang-format off
     vector<MapSquare> tiles{
-      _, L, _,
-      L, L, L,
-      _, L, L,
+      _, L, _, L, L, L, L, L, L, L, L, L, L, L, L, L,
+      L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
+      _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
+      _, L, L, _, L, L, L, L, L, L, L, L, L, L, L, L,
+      _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
+      _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
+      _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
+      _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
+      _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
+      _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
+      _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
+      _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
+      _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
+      _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
+      _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
+      _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
     };
     // clang-format on
-    build_map( std::move( tiles ), 3 );
+    build_map( std::move( tiles ), 16 );
   }
 };
 
@@ -473,13 +487,109 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
 #endif
 
 TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
-  World W;
-  // TODO
+  World       W;
+  Unit const* p_unit = nullptr;
+  Dwelling&   dwelling =
+      W.add_dwelling( { .x = 4, .y = 4 }, e_tribe::tupi );
+  W.add_tribe( e_tribe::tupi )
+      .relationship[W.default_nation()]
+      .emplace();
+  DwellingRelationship& relationship =
+      dwelling.relationship[W.default_nation()];
+  Unit& scout_petty = W.add_unit_on_map(
+      UnitType::create( e_unit_type::scout,
+                        e_unit_type::petty_criminal )
+          .value(),
+      { .x = 3, .y = 3 } );
+  Unit& scout_seasoned = W.add_unit_on_map(
+      UnitType::create( e_unit_type::seasoned_scout ),
+      { .x = 3, .y = 3 } );
+
+  // Prepare dwelling.
+  dwelling.teaches = e_native_skill::cotton_planting;
+  dwelling.trading.seeking_primary = e_commodity::trade_goods;
+  dwelling.trading.seeking_secondary_1 = e_commodity::ore;
+  dwelling.trading.seeking_secondary_2 = e_commodity::horses;
+
+  SpeakWithChiefResult expected{
+      .expertise         = e_native_skill::cotton_planting,
+      .primary_trade     = e_commodity::trade_goods,
+      .secondary_trade_1 = e_commodity::ore,
+      .secondary_trade_2 = e_commodity::horses };
+
+  auto f = [&] {
+    CHECK( p_unit != nullptr );
+    return compute_speak_with_chief( W.ss(), W.ts(), dwelling,
+                                     *p_unit );
+  };
+
+  // Target practice certain.
+  p_unit                           = &scout_petty;
+  relationship.dwelling_only_alarm = 99;
+  EXPECT_CALL( W.rand(), bernoulli( 1.0 ) ).returns( true );
+  expected.action = ChiefAction::target_practice{};
+  REQUIRE( f() == expected );
+
+  // Target practice certain.
+  p_unit                           = &scout_petty;
+  relationship.dwelling_only_alarm = 80;
+  EXPECT_CALL( W.rand(), bernoulli( 1.0 ) ).returns( true );
+  expected.action = ChiefAction::target_practice{};
+  REQUIRE( f() == expected );
+
+  // Target practice almost certain.
+  p_unit                           = &scout_petty;
+  relationship.dwelling_only_alarm = 77;
+  EXPECT_CALL( W.rand(), bernoulli( .95 ) ).returns( true );
+  expected.action = ChiefAction::target_practice{};
+  REQUIRE( f() == expected );
+
+  // Target practice sometimes
+  p_unit                           = &scout_petty;
+  relationship.dwelling_only_alarm = 50;
+  EXPECT_CALL( W.rand(), bernoulli( .50 ) ).returns( true );
+  expected.action = ChiefAction::target_practice{};
+  REQUIRE( f() == expected );
+
+  // Target practice sometimes
+  p_unit                           = &scout_seasoned;
+  relationship.dwelling_only_alarm = 55;
+  EXPECT_CALL( W.rand(), bernoulli( .50 ) ).returns( true );
+  expected.action = ChiefAction::target_practice{};
+  REQUIRE( f() == expected );
+
+  // Target practice almost never.
+  p_unit                           = &scout_petty;
+  relationship.dwelling_only_alarm = 23;
+  EXPECT_CALL( W.rand(), bernoulli( .05 ) ).returns( true );
+  expected.action = ChiefAction::target_practice{};
+  REQUIRE( f() == expected );
+
+  relationship.has_spoken_with_chief = true;
+
+  // Target practice never.
+  p_unit                           = &scout_petty;
+  relationship.dwelling_only_alarm = 20;
+  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
+  expected.action = ChiefAction::none{};
+  REQUIRE( f() == expected );
+
+  // Target practice never.
+  p_unit                           = &scout_petty;
+  relationship.dwelling_only_alarm = 0;
+  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
+  expected.action = ChiefAction::none{};
+  REQUIRE( f() == expected );
+
+  relationship.has_spoken_with_chief = true;
+
+  // TODO: finish this.
 }
 
 TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
   World W;
   // TODO
+  // TODO: finish previous test case first.
 }
 
 } // namespace
