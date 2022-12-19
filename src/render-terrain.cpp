@@ -610,16 +610,18 @@ void render_terrain_ground( Visibility const& viz,
   //      proximately.
   //   3. It should be in the range of screen coordinates because
   //      that is what the hash function in the fragment shader
-  //      is calibrated for.
+  //      is calibrated for (at the time of writing, the fragment
+  //      shader uses 320, which is 10 tiles*32 pixels per tile,
+  //      hence the block of 10 tiles used below).
   //
   Delta const hash_anchor_offset =
-      Delta{ .w = 10, .h = 10 } *
+      g_tile_delta *
       ( world_square % Delta{ .w = 10, .h = 10 } );
   render_adjacent_overlap(
       viz, renderer, where, world_square,
       /*chop_percent=*/
       clamp( 1.0 - g_tile_overlap_width_percent, 0.0, 1.0 ),
-      where + hash_anchor_offset );
+      where - hash_anchor_offset );
 
   MapSquare const& left =
       viz.square_at( world_square - Delta{ .w = 1 } );

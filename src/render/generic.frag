@@ -134,11 +134,6 @@ float hash_vec2( in vec2 vec ) {
 }
 
 float hash_position() {
-  // We need to divide by this screen scale to put the input in a
-  // good range (approximately in the range [0,1]) for the hash
-  // function to yield good results, otherwise we get repeating
-  // patterns.
-  float screen_scale = u_screen_size.x;
   // The position that we will hash will be 1) a position that is
   // relative to an anchor position so that the sprite will de-
   // pixelate deterministically even if it is moving on screen
@@ -148,7 +143,27 @@ float hash_position() {
   // pixels if we are zoomed).
   vec2 anchor = frag_depixelate.xy;
   vec2 hash_position = (frag_position-anchor)/frag_scaling;
-  return hash_vec2( floor( hash_position )/screen_scale );
+  // The number 320 is chosen because it is on the order of the
+  // width of the land view in logical pixels (i.e., about ten
+  // tiles across * 32 pixel width). This doesn't have to be ex-
+  // act, it just has to serve as a divisor that will map the
+  // logical pixels across the screen to [0,1) so that the hash
+  // function will produce good (and non-repeating) results
+  // across the screen. The reason that we don't use
+  // u_screen_size.x here (which would give us the real screen
+  // size in logical pixels) is that then as we resize the main
+  // game window and/or scale up/down the logical screen resolu-
+  // tion, the depixelation pattern changes, which looks kind of
+  // odd (although it is harmless).
+  float fixed_approx_screen_width_logical = 320.0;
+  // Use floor() so that all physical pixels inside a logical
+  // pixel are treated the same way, in order to create the illu-
+  // sion of low-resolution pixelated graphics. Use fract() to
+  // put the hash input in the range [0,1) for hash function to
+  // yield good results, otherwise we could get repeating pat-
+  // terns.
+  return hash_vec2( fract( floor( hash_position ) /
+                           fixed_approx_screen_width_logical ) );
 }
 
 // This function will compute the depixelation stage by taking
