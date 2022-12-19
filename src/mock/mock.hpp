@@ -312,7 +312,7 @@ struct Responder<RetT, std::tuple<Args...>,
   // clang-format off
   template<typename U>
   requires std::is_convertible_v<U, RetT>
-  Responder& returns( U&& val ) {
+  Responder& returns( U&& val = {} ) {
     // clang-format on
     ret_.emplace( static_cast<RetT>( std::forward<U>( val ) ) );
     return *this;
