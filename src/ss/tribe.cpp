@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "tribe.hpp"
 
+// config
+#include "config/natives.rds.hpp"
+
 // luapp
 #include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
@@ -33,6 +36,23 @@ namespace {} // namespace
 base::valid_or<string> TribeRelationship::validate() const {
   REFL_VALIDATE( tribal_alarm >= 0 && tribal_alarm <= 99,
                  "tribal_alarm must be in [0, 99]." );
+  return base::valid;
+}
+
+/****************************************************************
+** Tribe
+*****************************************************************/
+base::valid_or<string> Tribe::validate() const {
+  for( auto& [nation, relationship] : relationship ) {
+    if( !relationship.has_value() ) continue;
+    REFL_VALIDATE(
+        relationship->tribal_alarm >=
+            config_natives.alarm.minimum_tribal_alarm[type],
+        "the {} tribe is configured to have a minimum tribal "
+        "alarm of {}, but its alarm toward the {} is {}.",
+        type, config_natives.alarm.minimum_tribal_alarm[type],
+        nation, relationship->tribal_alarm );
+  }
   return base::valid;
 }
 

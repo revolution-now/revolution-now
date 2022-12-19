@@ -194,6 +194,19 @@ alarm {
     # cities which have an owned-land radius larger than one.
     distance_factor: .6
   }
+
+  # Each tribe's alarm does not go below this. When tribal alarm
+  # is recomputed it will be clamped to this minimum.
+  minimum_tribal_alarm {
+    apache:    0
+    sioux:     0
+    tupi:      0
+    arawak:   30
+    cherokee:  0
+    iroquois:  0
+    aztec:     0
+    inca:      0
+  }
 }
 
 # Configures how each dwelling is assigned an expertise for

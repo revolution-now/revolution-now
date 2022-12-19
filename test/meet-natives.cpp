@@ -349,5 +349,28 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
   }
 }
 
+// This one tests that when the relationship object is created
+// the tribal alarm is initialized with the minimum value.
+TEST_CASE( "[meet-natives] perform_meet_tribe arawak" ) {
+  World                    W;
+  MeetTribe                meet_tribe;
+  e_declare_war_on_natives declare_war = {};
+  e_tribe const            tribe       = e_tribe::arawak;
+  Tribe const&             tribe_obj   = W.add_tribe( tribe );
+  e_nation const           nation      = W.default_nation();
+
+  auto f = [&] {
+    perform_meet_tribe( W.ss(), W.default_player(), meet_tribe,
+                        declare_war );
+  };
+
+  meet_tribe = {
+      .is_first = false, .tribe = tribe, .num_dwellings = 3 };
+  f();
+  REQUIRE(
+      tribe_obj.relationship[nation] ==
+      TribeRelationship{ .at_war = false, .tribal_alarm = 30 } );
+}
+
 } // namespace
 } // namespace rn

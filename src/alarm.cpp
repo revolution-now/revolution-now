@@ -126,6 +126,10 @@ void increase_tribal_alarm_from_land_grab(
   CHECK_GE( delta, 0.0 );
   relationship.tribal_alarm =
       clamp_round_alarm( relationship.tribal_alarm + delta );
+  relationship.tribal_alarm =
+      std::max( relationship.tribal_alarm,
+                config_natives.alarm
+                    .minimum_tribal_alarm[dwelling.tribe] );
 }
 
 } // namespace rn

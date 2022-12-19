@@ -125,6 +125,10 @@ struct.Alarm {
   # native-owned land tile without paying for it. Note that this
   # only applies after having met the tribe.
   land_grab 'config::natives::AlarmLandGrab',
+
+  # Each tribe's alarm does not go below this. When tribal alarm
+  # is recomputed it will be clamped to this minimum.
+  minimum_tribal_alarm 'refl::enum_map<e_tribe, int>',
 }
 
 struct.DwellingExpertise {

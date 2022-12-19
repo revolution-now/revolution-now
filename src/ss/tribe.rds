@@ -32,16 +32,16 @@ struct.TribeRelationship {
   # as your proximity to that settlement, the size of your
   # colony, the presence of weapons, and so on."
   #
-  # This number is in [0, 99], with 99 being most alarmed. The
-  # effective alarm of a dwelling must take into account both
+  # This number is in [0, 99], with 99 being most alarmed. That
+  # said, each tribe is configured to have a minimum tribal
+  # alarm which this number will not go below.
+  #
+  # The effective alarm of a dwelling must take into account both
   # this number and the dwelling-level alarm.
   #
   # TODO: The manual seems to mention that there is an alarm
   # level called "happy" that is superior to "content"; in that
   # case, we might want to start this off as non-zero.
-  #
-  # TODO: for some tribes, e.g. the Arawak, this appears that it
-  # might need to start of at a higher value.
   tribal_alarm 'int',
 
   # This keeps track of the number of squares that the player has
@@ -66,4 +66,6 @@ struct.Tribe {
   # value is nothing that means that the initial encounter has
   # not yet happened.
   relationship 'refl::enum_map<e_nation, base::maybe<TribeRelationship>>',
+
+  _features { equality, validation }
 }

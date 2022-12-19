@@ -8,6 +8,7 @@ return {
   'ss/tribe',
   'ss/dwelling',
   'ss/native-unit',
+  'alarm',
   'orders-move',
   'enter-dwelling',
 }
