@@ -37,13 +37,13 @@ dwelling_types {
     name_plural:    villages
   }
 
-  civilized_aztec {
+  advanced {
     radius:         large
     name_singular:  city
     name_plural:    cities
   }
 
-  civilized_inca {
+  civilized {
     radius:         large
     name_singular:  city
     name_plural:    cities
@@ -121,7 +121,7 @@ tribes {
     name_singular:  Aztec
     name_plural:    Aztecs
     name_posessive: Aztec
-    level:          civilized_aztec
+    level:          advanced
     dwelling_tile:  tan_pyramid
     flag_color:     '#C6A21F'
     max_population: 7
@@ -132,7 +132,7 @@ tribes {
     name_singular:  Inca
     name_plural:    Incas
     name_posessive: Inca
-    level:          civilized_inca
+    level:          civilized
     dwelling_tile:  grey_pyramid
     flag_color:     '#F6F3C7'
     max_population: 9
@@ -163,8 +163,8 @@ flag_rects {
     { origin={ x=25, y=26 }, size={ w=4, h=2} },
   ]
 
-  civilized_aztec: []
-  civilized_inca:  []
+  advanced: []
+  civilized:  []
 }
 
 # Describes behaviors having to do with native alarm level. Note
@@ -260,7 +260,7 @@ dwelling_expertise {
     # seems to treat the semi-nomadic tribes the same and the
     # agrarian tribes the same, but there are sometimes differ-
     # ences between the Inca and Aztec.
-    civilized_aztec {
+    advanced {
       farming:          50
       fishing:          65
       sugar_planting:   2.6
@@ -273,7 +273,7 @@ dwelling_expertise {
       scouting:         1
     }
 
-    civilized_inca {
+    civilized {
       farming:          50
       fishing:          65
       sugar_planting:   2.6
@@ -407,10 +407,10 @@ speak_with_chief {
     # If these are updated then the ones below for the seasoned
     # scout might neeed to be updated as well.
     gift_range {
-      semi_nomadic    { min=50,  max=300  }
-      agrarian        { min=75,  max=700  }
-      civilized_aztec { min=100, max=1100 }
-      civilized_inca  { min=125, max=1500 }
+      semi_nomadic { min=50,  max=300  }
+      agrarian     { min=75,  max=700  }
+      advanced     { min=100, max=1100 }
+      civilized    { min=125, max=1500 }
     }
 
     # This is the minimum alarm level such that a dwelling will
@@ -446,10 +446,10 @@ speak_with_chief {
     # non-seasoned scout might neeed to be updated as well.
     gift_range {
       # = non_seasoned*1.33
-      semi_nomadic    { min=66,  max=400  }
-      agrarian        { min=100, max=930  }
-      civilized_aztec { min=133, max=1460 }
-      civilized_inca  { min=166, max=2000 }
+      semi_nomadic { min=66,  max=400  }
+      agrarian     { min=100, max=930  }
+      advanced     { min=133, max=1460 }
+      civilized    { min=166, max=2000 }
     }
 
     # See above for comments.

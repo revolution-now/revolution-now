@@ -40,16 +40,17 @@ enum.e_dwelling_radius {
   large,
 }
 
-# This indicates how primitive or advanced a tribe is. In most
-# ways, the OG seems to treat all of the semi-nomadic tribes the
-# same and all of the agrarian tribes the same, but it differen-
-# tiates between the Aztec and Inca; the Inca is considered a bit
+# This indicates how primitive or advanced a tribe is. The OG
+# seems to treat all of the semi-nomadic tribes the same and all
+# of the agrarian tribes the same at least with regard to ques-
+# tions of level, but it differentiates between the Aztec ("ad-
+# vanced") and Inca ("civilized"). The Inca are considered a bit
 # more advanced.
 enum.e_native_level {
   semi_nomadic,
   agrarian,
-  civilized_aztec,
-  civilized_inca,
+  advanced,  # Aztec only in OG.
+  civilized, # Inca only in OG.
 }
 
 # Note that the negative outcome "target practice" is not here,
