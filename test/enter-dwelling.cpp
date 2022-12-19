@@ -420,9 +420,8 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
   W.planes().back().land_view = &mock_land_view;
   Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::inca );
-  UnitId const unit_id = W.add_unit_on_map(
-      e_unit_type::free_colonist, { .x = 1, .y = 1 } );
-  Unit&                 unit = W.units().unit_for( unit_id );
+  Unit& unit = W.add_unit_on_map( e_unit_type::free_colonist,
+                                  { .x = 1, .y = 1 } );
   LiveAmongTheNatives_t outcome;
 
   auto f = [&] {
@@ -465,7 +464,7 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
   EXPECT_CALL(
       mock_land_view,
       animate_unit_depixelation(
-          unit_id, e_unit_type::expert_cotton_planter ) )
+          unit.id(), e_unit_type::expert_cotton_planter ) )
       .returns<monostate>();
   f();
   REQUIRE( unit.type() == e_unit_type::expert_cotton_planter );

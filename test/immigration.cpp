@@ -210,7 +210,8 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
     // This is done to uphold the spirit of the original game,
     // which did not have a concept of units being inside the
     // cargo of a ship in either the harbor view or colony view.
-    UnitId ship = world.add_unit_in_port( e_unit_type::caravel );
+    UnitId ship =
+        world.add_unit_in_port( e_unit_type::caravel ).id();
     world.add_unit_in_cargo( e_unit_type::free_colonist, ship );
     world.add_unit_in_cargo( e_unit_type::free_colonist, ship );
     crosses  = compute_crosses( units_state, player.nation );
@@ -232,7 +233,8 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
     // This is done to uphold the spirit of the original game,
     // which did not have a concept of units being inside the
     // cargo of a ship in either the harbor view or colony view.
-    UnitId ship = world.add_unit_in_port( e_unit_type::caravel );
+    UnitId ship =
+        world.add_unit_in_port( e_unit_type::caravel ).id();
     world.add_unit_in_cargo( e_unit_type::free_colonist, ship );
     world.add_unit_in_cargo( e_unit_type::free_colonist, ship );
     world.ship_to_outbound( ship );

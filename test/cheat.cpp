@@ -77,13 +77,12 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
   SECTION( "expert_farmer carpentry" ) {
     UnitComposition expected;
     Colony&         colony = W.add_colony( W.kLand );
-    UnitId          id =
+    Unit&           unit =
         W.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::expert_farmer );
-    Unit& unit = W.units().unit_for( id );
-    expected   = UnitComposition( wrapped::UnitComposition{
-          .type = UnitType::create( e_unit_type::expert_farmer ),
-          .inventory = {},
+    expected = UnitComposition( wrapped::UnitComposition{
+        .type = UnitType::create( e_unit_type::expert_farmer ),
+        .inventory = {},
     } );
     REQUIRE( unit.composition() == expected );
 
@@ -99,12 +98,11 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
   SECTION( "free_colonist fishing" ) {
     UnitComposition expected;
     Colony&         colony = W.add_colony( W.kLand );
-    UnitId id = W.add_unit_outdoors( colony.id, e_direction::ne,
-                                     e_outdoor_job::fish );
-    Unit&  unit = W.units().unit_for( id );
-    expected    = UnitComposition( wrapped::UnitComposition{
-           .type = UnitType::create( e_unit_type::free_colonist ),
-           .inventory = {},
+    Unit& unit = W.add_unit_outdoors( colony.id, e_direction::ne,
+                                      e_outdoor_job::fish );
+    expected   = UnitComposition( wrapped::UnitComposition{
+          .type = UnitType::create( e_unit_type::free_colonist ),
+          .inventory = {},
     } );
     REQUIRE( unit.composition() == expected );
 
@@ -119,12 +117,11 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
 
   SECTION( "expert_farmer no job" ) {
     UnitComposition expected;
-    UnitId          id =
+    Unit&           unit =
         W.add_unit_on_map( e_unit_type::expert_farmer, W.kLand );
-    Unit& unit = W.units().unit_for( id );
-    expected   = UnitComposition( wrapped::UnitComposition{
-          .type = UnitType::create( e_unit_type::expert_farmer ),
-          .inventory = {},
+    expected = UnitComposition( wrapped::UnitComposition{
+        .type = UnitType::create( e_unit_type::expert_farmer ),
+        .inventory = {},
     } );
     REQUIRE( unit.composition() == expected );
 
@@ -193,8 +190,7 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
         initial_ut,
         UnitType::create( e_unit_type::dragoon,
                           e_unit_type::master_carpenter ) );
-    UnitId unit_id = W.add_unit_on_map( initial_ut, W.kLand );
-    Unit&  unit    = W.units().unit_for( unit_id );
+    Unit& unit = W.add_unit_on_map( initial_ut, W.kLand );
     {
       UNWRAP_CHECK(
           expected_ut,
@@ -223,9 +219,8 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
 
   SECTION( "dragoon" ) {
     UnitComposition expected;
-    UnitId          unit_id =
+    Unit&           unit =
         W.add_unit_on_map( e_unit_type::dragoon, W.kLand );
-    Unit& unit = W.units().unit_for( unit_id );
     {
       UNWRAP_CHECK(
           expected_ut,
@@ -346,13 +341,12 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
   SECTION( "petty_criminal carpentry" ) {
     UnitComposition expected;
     Colony&         colony = W.add_colony( W.kLand );
-    UnitId          unit_id =
+    Unit&           unit =
         W.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::petty_criminal );
-    Unit& unit = W.units().unit_for( unit_id );
-    expected   = UnitComposition( wrapped::UnitComposition{
-          .type = UnitType::create( e_unit_type::petty_criminal ),
-          .inventory = {},
+    expected = UnitComposition( wrapped::UnitComposition{
+        .type = UnitType::create( e_unit_type::petty_criminal ),
+        .inventory = {},
     } );
     REQUIRE( unit.composition() == expected );
 
@@ -418,9 +412,8 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
   }
 
   SECTION( "hardy_pioneer" ) {
-    UnitId id =
+    Unit& unit =
         W.add_unit_on_map( e_unit_type::hardy_pioneer, W.kLand );
-    Unit& unit = W.units().unit_for( id );
     unit.consume_20_tools( W.default_player() );
     REQUIRE( unit.composition()
                  .inventory()[e_unit_inventory::tools] == 80 );

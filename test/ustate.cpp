@@ -67,7 +67,8 @@ TEST_CASE( "[ustate] current_activity_for_unit" ) {
     Colony&         colony = W.add_colony( W.kLand );
     UnitId          id =
         W.add_unit_indoors( colony.id, e_indoor_job::hammers,
-                            e_unit_type::expert_farmer );
+                            e_unit_type::expert_farmer )
+            .id();
     REQUIRE( f( id ) == e_unit_activity::carpentry );
   }
 
@@ -76,30 +77,35 @@ TEST_CASE( "[ustate] current_activity_for_unit" ) {
     Colony&         colony = W.add_colony( W.kLand );
     UnitId          id =
         W.add_unit_indoors( colony.id, e_indoor_job::hammers,
-                            e_unit_type::petty_criminal );
+                            e_unit_type::petty_criminal )
+            .id();
     REQUIRE( f( id ) == e_unit_activity::carpentry );
   }
 
   SECTION( "petty_criminal farmer" ) {
     UnitComposition expected;
     Colony&         colony = W.add_colony( W.kLand );
-    UnitId          id     = W.add_unit_outdoors(
-                     colony.id, e_direction::w, e_outdoor_job::food,
-                     e_unit_type::petty_criminal );
+    UnitId          id =
+        W.add_unit_outdoors( colony.id, e_direction::w,
+                             e_outdoor_job::food,
+                             e_unit_type::petty_criminal )
+            .id();
     REQUIRE( f( id ) == e_unit_activity::farming );
   }
 
   SECTION( "petty_criminal no job" ) {
     UnitComposition expected;
-    UnitId id = W.add_unit_on_map( e_unit_type::petty_criminal,
-                                   W.kLand );
+    UnitId          id =
+        W.add_unit_on_map( e_unit_type::petty_criminal, W.kLand )
+            .id();
     REQUIRE( f( id ) == nothing );
   }
 
   SECTION( "expert_farmer no job" ) {
     UnitComposition expected;
     UnitId          id =
-        W.add_unit_on_map( e_unit_type::expert_farmer, W.kLand );
+        W.add_unit_on_map( e_unit_type::expert_farmer, W.kLand )
+            .id();
     REQUIRE( f( id ) == nothing );
   }
 
@@ -108,7 +114,7 @@ TEST_CASE( "[ustate] current_activity_for_unit" ) {
     UNWRAP_CHECK( initial_ut, UnitType::create(
                                   e_unit_type::dragoon,
                                   e_unit_type::expert_farmer ) );
-    UnitId id = W.add_unit_on_map( initial_ut, W.kLand );
+    UnitId id = W.add_unit_on_map( initial_ut, W.kLand ).id();
     REQUIRE( f( id ) == e_unit_activity::fighting );
   }
 
@@ -117,7 +123,7 @@ TEST_CASE( "[ustate] current_activity_for_unit" ) {
     UNWRAP_CHECK( initial_ut, UnitType::create(
                                   e_unit_type::dragoon,
                                   e_unit_type::expert_farmer ) );
-    UnitId id = W.add_unit_on_map( initial_ut, W.kLand );
+    UnitId id = W.add_unit_on_map( initial_ut, W.kLand ).id();
     REQUIRE( f( id ) == e_unit_activity::fighting );
   }
 
@@ -127,7 +133,7 @@ TEST_CASE( "[ustate] current_activity_for_unit" ) {
         initial_ut,
         UnitType::create( e_unit_type::pioneer,
                           e_unit_type::petty_criminal ) );
-    UnitId id = W.add_unit_on_map( initial_ut, W.kLand );
+    UnitId id = W.add_unit_on_map( initial_ut, W.kLand ).id();
     REQUIRE( f( id ) == e_unit_activity::pioneering );
   }
 }

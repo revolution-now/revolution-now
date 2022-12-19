@@ -78,13 +78,12 @@ TEST_CASE(
   SECTION( "expert_farmer carpentry" ) {
     UnitComposition expected;
     Colony&         colony = W.add_colony( W.kLand );
-    UnitId          id =
+    Unit&           unit =
         W.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::expert_farmer );
-    Unit& unit = W.units().unit_for( id );
-    expected   = UnitComposition( wrapped::UnitComposition{
-          .type = UnitType::create( e_unit_type::expert_farmer ),
-          .inventory = {},
+    expected = UnitComposition( wrapped::UnitComposition{
+        .type = UnitType::create( e_unit_type::expert_farmer ),
+        .inventory = {},
     } );
     REQUIRE( unit.composition() == expected );
 
@@ -95,13 +94,12 @@ TEST_CASE(
   SECTION( "petty_criminal carpentry" ) {
     UnitComposition expected;
     Colony&         colony = W.add_colony( W.kLand );
-    UnitId          id =
+    Unit&           unit =
         W.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::petty_criminal );
-    Unit& unit = W.units().unit_for( id );
-    expected   = UnitComposition( wrapped::UnitComposition{
-          .type = UnitType::create( e_unit_type::petty_criminal ),
-          .inventory = {},
+    expected = UnitComposition( wrapped::UnitComposition{
+        .type = UnitType::create( e_unit_type::petty_criminal ),
+        .inventory = {},
     } );
     REQUIRE( unit.composition() == expected );
 
@@ -140,13 +138,12 @@ TEST_CASE(
   SECTION( "petty_criminal farmer" ) {
     UnitComposition expected;
     Colony&         colony = W.add_colony( W.kLand );
-    UnitId          id     = W.add_unit_outdoors(
+    Unit&           unit   = W.add_unit_outdoors(
         colony.id, e_direction::w, e_outdoor_job::food,
         e_unit_type::petty_criminal );
-    Unit& unit = W.units().unit_for( id );
-    expected   = UnitComposition( wrapped::UnitComposition{
-          .type = UnitType::create( e_unit_type::petty_criminal ),
-          .inventory = {},
+    expected = UnitComposition( wrapped::UnitComposition{
+        .type = UnitType::create( e_unit_type::petty_criminal ),
+        .inventory = {},
     } );
     REQUIRE( unit.composition() == expected );
 
@@ -182,12 +179,11 @@ TEST_CASE(
 
   SECTION( "petty_criminal no job" ) {
     UnitComposition expected;
-    UnitId id   = W.add_unit_on_map( e_unit_type::petty_criminal,
-                                     W.kLand );
-    Unit&  unit = W.units().unit_for( id );
-    expected    = UnitComposition( wrapped::UnitComposition{
-           .type = UnitType::create( e_unit_type::petty_criminal ),
-           .inventory = {},
+    Unit& unit = W.add_unit_on_map( e_unit_type::petty_criminal,
+                                    W.kLand );
+    expected   = UnitComposition( wrapped::UnitComposition{
+          .type = UnitType::create( e_unit_type::petty_criminal ),
+          .inventory = {},
     } );
     REQUIRE( unit.composition() == expected );
 
@@ -197,12 +193,11 @@ TEST_CASE(
 
   SECTION( "expert_farmer no job" ) {
     UnitComposition expected;
-    UnitId          id =
+    Unit&           unit =
         W.add_unit_on_map( e_unit_type::expert_farmer, W.kLand );
-    Unit& unit = W.units().unit_for( id );
-    expected   = UnitComposition( wrapped::UnitComposition{
-          .type = UnitType::create( e_unit_type::expert_farmer ),
-          .inventory = {},
+    expected = UnitComposition( wrapped::UnitComposition{
+        .type = UnitType::create( e_unit_type::expert_farmer ),
+        .inventory = {},
     } );
     REQUIRE( unit.composition() == expected );
 
@@ -215,11 +210,10 @@ TEST_CASE(
     UNWRAP_CHECK( initial_ut, UnitType::create(
                                   e_unit_type::dragoon,
                                   e_unit_type::expert_farmer ) );
-    UnitId id   = W.add_unit_on_map( initial_ut, W.kLand );
-    Unit&  unit = W.units().unit_for( id );
-    expected    = UnitComposition( wrapped::UnitComposition{
-           .type      = initial_ut,
-           .inventory = {},
+    Unit& unit = W.add_unit_on_map( initial_ut, W.kLand );
+    expected   = UnitComposition( wrapped::UnitComposition{
+          .type      = initial_ut,
+          .inventory = {},
     } );
     REQUIRE( unit.composition() == expected );
 
@@ -233,8 +227,7 @@ TEST_CASE(
         initial_ut,
         UnitType::create( e_unit_type::dragoon,
                           e_unit_type::petty_criminal ) );
-    UnitId unit_id = W.add_unit_on_map( initial_ut, W.kLand );
-    Unit&  unit    = W.units().unit_for( unit_id );
+    Unit& unit = W.add_unit_on_map( initial_ut, W.kLand );
     {
       UNWRAP_CHECK(
           expected_ut,
@@ -306,8 +299,7 @@ TEST_CASE(
         initial_ut,
         UnitType::create( e_unit_type::pioneer,
                           e_unit_type::petty_criminal ) );
-    UnitId id   = W.add_unit_on_map( initial_ut, W.kLand );
-    Unit&  unit = W.units().unit_for( id );
+    Unit& unit = W.add_unit_on_map( initial_ut, W.kLand );
     unit.consume_20_tools( W.default_player() );
     REQUIRE( unit.composition()
                  .inventory()[e_unit_inventory::tools] == 80 );

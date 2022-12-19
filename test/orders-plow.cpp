@@ -69,11 +69,10 @@ TEST_CASE( "[orders-plow] native-owned land" ) {
   W.settings().difficulty = e_difficulty::conquistador;
   Dwelling const& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::tupi );
-  Tribe&       tribe = W.natives().tribe_for( e_tribe::tupi );
-  Coord const  tile{ .x = 2, .y = 2 };
-  UnitId const pioneer_id =
+  Tribe&      tribe = W.natives().tribe_for( e_tribe::tupi );
+  Coord const tile{ .x = 2, .y = 2 };
+  Unit const& pioneer =
       W.add_unit_on_map( e_unit_type::pioneer, tile );
-  Unit const& pioneer = W.units().unit_for( pioneer_id );
   TribeRelationship const& relationship =
       tribe.relationship[W.default_nation()].emplace();
   for( int y = 0; y < 3; ++y )
@@ -81,8 +80,8 @@ TEST_CASE( "[orders-plow] native-owned land" ) {
       W.natives().mark_land_owned( dwelling.id,
                                    { .x = x, .y = y } );
   unique_ptr<OrdersHandler> handler = handle_orders(
-      W.planes(), W.ss(), W.ts(), W.default_player(), pioneer_id,
-      orders::plow{} );
+      W.planes(), W.ss(), W.ts(), W.default_player(),
+      pioneer.id(), orders::plow{} );
 
   REQUIRE( relationship.tribal_alarm == 0 );
   REQUIRE_FALSE( pioneer.mv_pts_exhausted() );

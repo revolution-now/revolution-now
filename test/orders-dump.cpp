@@ -56,7 +56,8 @@ struct World : testing::World {
 TEST_CASE( "[orders-dump] galleon" ) {
   World  W;
   UnitId id = W.add_unit_on_map( e_unit_type::galleon,
-                                 Coord{ .x = 0, .y = 0 } );
+                                 Coord{ .x = 0, .y = 0 } )
+                  .id();
   unique_ptr<OrdersHandler> handler =
       handle_orders( W.planes(), W.ss(), W.ts(),
                      W.default_player(), id, orders::dump{} );
@@ -357,7 +358,8 @@ TEST_CASE( "[orders-dump] galleon" ) {
 TEST_CASE( "[orders-dump] wagon train" ) {
   World  W;
   UnitId id = W.add_unit_on_map( e_unit_type::wagon_train,
-                                 Coord{ .x = 1, .y = 1 } );
+                                 Coord{ .x = 1, .y = 1 } )
+                  .id();
   unique_ptr<OrdersHandler> handler =
       handle_orders( W.planes(), W.ss(), W.ts(),
                      W.default_player(), id, orders::dump{} );
@@ -430,7 +432,8 @@ TEST_CASE( "[orders-dump] wagon train" ) {
 TEST_CASE( "[orders-dump] non-cargo unit" ) {
   World  W;
   UnitId id = W.add_unit_on_map( e_unit_type::free_colonist,
-                                 Coord{ .x = 1, .y = 1 } );
+                                 Coord{ .x = 1, .y = 1 } )
+                  .id();
   unique_ptr<OrdersHandler> handler =
       handle_orders( W.planes(), W.ss(), W.ts(),
                      W.default_player(), id, orders::dump{} );

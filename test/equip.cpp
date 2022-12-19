@@ -528,7 +528,7 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
   Player&           player = W.default_player();
   HarborEquipOption option;
   UnitId const      unit_id =
-      W.add_unit_in_port( e_unit_type::free_colonist );
+      W.add_unit_in_port( e_unit_type::free_colonist ).id();
   PriceChange expected;
 
   using UC = UnitComposition;

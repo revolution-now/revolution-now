@@ -20,6 +20,9 @@
 // Revolution Now
 #include "src/luapp/state.hpp" // FIXME: remove if not needed.
 
+// ss
+#include "src/ss/unit.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -236,7 +239,8 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
   SECTION( "teachers=1, teachable=0" ) {
     UnitId teacher1 =
         W.add_unit_indoors( colony.id, e_indoor_job::teacher,
-                            e_unit_type::master_carpenter );
+                            e_unit_type::master_carpenter )
+            .id();
     expected = {
         .teachers = {
             { .teacher_unit_id = teacher1,
@@ -278,7 +282,8 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
                          e_unit_type::petty_criminal );
     UnitId teacher1 =
         W.add_unit_indoors( colony.id, e_indoor_job::teacher,
-                            e_unit_type::master_carpenter );
+                            e_unit_type::master_carpenter )
+            .id();
     // First round goes to indentured servant.
     expected = {
         .teachers = {
@@ -362,23 +367,31 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
   }
 
   SECTION( "teachers=2, teachable=4" ) {
-    UnitId teachable1 = W.add_unit_outdoors(
-        colony.id, e_direction::n, e_outdoor_job::food,
-        e_unit_type::indentured_servant );
-    UnitId teachable2 = W.add_unit_outdoors(
-        colony.id, e_direction::ne, e_outdoor_job::lumber,
-        e_unit_type::free_colonist );
-    UnitId teachable3 = W.add_unit_outdoors(
-        colony.id, e_direction::e, e_outdoor_job::lumber,
-        e_unit_type::free_colonist );
+    UnitId teachable1 =
+        W.add_unit_outdoors( colony.id, e_direction::n,
+                             e_outdoor_job::food,
+                             e_unit_type::indentured_servant )
+            .id();
+    UnitId teachable2 =
+        W.add_unit_outdoors( colony.id, e_direction::ne,
+                             e_outdoor_job::lumber,
+                             e_unit_type::free_colonist )
+            .id();
+    UnitId teachable3 =
+        W.add_unit_outdoors( colony.id, e_direction::e,
+                             e_outdoor_job::lumber,
+                             e_unit_type::free_colonist )
+            .id();
     // This one will take 4 turns.
     UnitId teacher1 =
         W.add_unit_indoors( colony.id, e_indoor_job::teacher,
-                            e_unit_type::master_carpenter );
+                            e_unit_type::master_carpenter )
+            .id();
     // This one will take 8 turns.
     UnitId teacher2 =
         W.add_unit_indoors( colony.id, e_indoor_job::teacher,
-                            e_unit_type::elder_statesman );
+                            e_unit_type::elder_statesman )
+            .id();
     // First round goes to indentured servant.
     expected = { .teachers = {
                      { .teacher_unit_id = teacher1,

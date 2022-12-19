@@ -78,11 +78,12 @@ TEST_CASE( "[colony-mgr] found_colony on land successful" ) {
   World W;
 
   Coord const coord = { .x = 1, .y = 1 };
-  UnitId      id =
+  Unit&       unit =
       W.add_unit_on_map( e_unit_type::free_colonist, coord );
-  REQUIRE( unit_can_found_colony( W.ss(), id ) == base::valid );
+  REQUIRE( unit_can_found_colony( W.ss(), unit.id() ) ==
+           base::valid );
   ColonyId col_id = found_colony(
-      W.ss(), W.ts(), W.default_player(), id, "colony" );
+      W.ss(), W.ts(), W.default_player(), unit.id(), "colony" );
   Colony& col = W.colonies().colony_for( col_id );
   for( auto [type, q] : col.commodities ) {
     INFO( fmt::format( "type: {}, q: {}", type, q ) );
@@ -94,9 +95,9 @@ TEST_CASE( "[colony-mgr] native convert cannot found" ) {
   World W;
 
   Coord const coord = { .x = 1, .y = 1 };
-  UnitId      id =
+  Unit&       unit =
       W.add_unit_on_map( e_unit_type::native_convert, coord );
-  REQUIRE( unit_can_found_colony( W.ss(), id ) ==
+  REQUIRE( unit_can_found_colony( W.ss(), unit.id() ) ==
            e_found_colony_err::native_convert_cannot_found );
 }
 
@@ -104,17 +105,18 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
   World W;
 
   SECTION( "dragoon" ) {
-    Coord const coord = { .x = 1, .y = 1 };
-    UnitId      id    = W.add_unit_on_map(
+    Coord const coord   = { .x = 1, .y = 1 };
+    Unit&       founder = W.add_unit_on_map(
         UnitType::create( e_unit_type::dragoon,
-                                  e_unit_type::petty_criminal )
+                                e_unit_type::petty_criminal )
             .value(),
         coord );
-    Unit& founder = W.units().unit_for( id );
     REQUIRE( founder.type() == e_unit_type::dragoon );
-    REQUIRE( unit_can_found_colony( W.ss(), id ).valid() );
-    ColonyId col_id = found_colony(
-        W.ss(), W.ts(), W.default_player(), id, "colony" );
+    REQUIRE(
+        unit_can_found_colony( W.ss(), founder.id() ).valid() );
+    ColonyId col_id =
+        found_colony( W.ss(), W.ts(), W.default_player(),
+                      founder.id(), "colony" );
     REQUIRE( founder.type() == e_unit_type::petty_criminal );
     Colony& col = W.colonies().colony_for( col_id );
     // Make sure that the founding unit has shed all of its com-
@@ -131,13 +133,14 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
 
   SECTION( "hardy_pioneer" ) {
     Coord const coord = { .x = 1, .y = 1 };
-    UnitId      id =
+    Unit&       founder =
         W.add_unit_on_map( e_unit_type::hardy_pioneer, coord );
-    Unit& founder = W.units().unit_for( id );
     REQUIRE( founder.type() == e_unit_type::hardy_pioneer );
-    REQUIRE( unit_can_found_colony( W.ss(), id ).valid() );
-    ColonyId col_id = found_colony(
-        W.ss(), W.ts(), W.default_player(), id, "colony" );
+    REQUIRE(
+        unit_can_found_colony( W.ss(), founder.id() ).valid() );
+    ColonyId col_id =
+        found_colony( W.ss(), W.ts(), W.default_player(),
+                      founder.id(), "colony" );
     REQUIRE( founder.type() == e_unit_type::hardy_colonist );
     Colony& col = W.colonies().colony_for( col_id );
     // Make sure that the founding unit has shed all of its com-
@@ -158,7 +161,8 @@ TEST_CASE(
 
   Coord const coord = { .x = 1, .y = 1 };
   UnitId      id =
-      W.add_unit_on_map( e_unit_type::free_colonist, coord );
+      W.add_unit_on_map( e_unit_type::free_colonist, coord )
+          .id();
   REQUIRE( unit_can_found_colony( W.ss(), id ).valid() );
   ColonyId col_id = found_colony(
       W.ss(), W.ts(), W.default_player(), id, "colony 1" );
@@ -168,7 +172,8 @@ TEST_CASE(
     REQUIRE( q == 0 );
   }
 
-  id = W.add_unit_on_map( e_unit_type::free_colonist, coord );
+  id = W.add_unit_on_map( e_unit_type::free_colonist, coord )
+           .id();
   REQUIRE( unit_can_found_colony( W.ss(), id ) ==
            invalid( e_found_colony_err::colony_exists_here ) );
 }
@@ -180,12 +185,14 @@ TEST_CASE(
 
   Coord  coord = { .x = 1, .y = 1 };
   UnitId id =
-      W.add_unit_on_map( e_unit_type::free_colonist, coord );
+      W.add_unit_on_map( e_unit_type::free_colonist, coord )
+          .id();
   REQUIRE( unit_can_found_colony( W.ss(), id ).valid() );
   found_colony( W.ss(), W.ts(), W.default_player(), id,
                 "colony" );
   coord.x += 1;
-  id = W.add_unit_on_map( e_unit_type::free_colonist, coord );
+  id = W.add_unit_on_map( e_unit_type::free_colonist, coord )
+           .id();
   REQUIRE( unit_can_found_colony( W.ss(), id ) ==
            invalid( e_found_colony_err::too_close_to_colony ) );
 }
@@ -196,7 +203,7 @@ TEST_CASE( "[colony-mgr] can't build colony in water" ) {
   Coord const coord = { .x = 2, .y = 3 };
   CHECK( W.square( coord ).surface == e_surface::water );
   UnitId ship_id =
-      W.add_unit_on_map( e_unit_type::merchantman, coord );
+      W.add_unit_on_map( e_unit_type::merchantman, coord ).id();
   UnitId unit_id =
       create_free_unit( W.units(), W.default_player(),
                         e_unit_type::free_colonist );
@@ -212,7 +219,8 @@ TEST_CASE( "[colony-mgr] can't build colony on moutains" ) {
   CHECK( W.square( coord ).surface == e_surface::land );
   W.square( coord ).overlay = e_land_overlay::mountains;
   UnitId unit_id =
-      W.add_unit_on_map( e_unit_type::free_colonist, coord );
+      W.add_unit_on_map( e_unit_type::free_colonist, coord )
+          .id();
   REQUIRE( unit_can_found_colony( W.ss(), unit_id ) ==
            invalid( e_found_colony_err::no_mountain_colony ) );
 }
@@ -236,7 +244,8 @@ TEST_CASE( "[colony-mgr] found_colony by ship fails" ) {
 
   Coord const coord = { .x = 2, .y = 3 };
   CHECK( W.square( coord ).surface == e_surface::water );
-  auto id = W.add_unit_on_map( e_unit_type::merchantman, coord );
+  UnitId id =
+      W.add_unit_on_map( e_unit_type::merchantman, coord ).id();
   REQUIRE(
       unit_can_found_colony( W.ss(), id ) ==
       invalid( e_found_colony_err::ship_cannot_found_colony ) );
@@ -246,7 +255,8 @@ TEST_CASE( "[colony-mgr] found_colony by non-human fails" ) {
   World W;
 
   Coord const coord = { .x = 1, .y = 1 };
-  auto id = W.add_unit_on_map( e_unit_type::wagon_train, coord );
+  UnitId      id =
+      W.add_unit_on_map( e_unit_type::wagon_train, coord ).id();
   REQUIRE(
       unit_can_found_colony( W.ss(), id ) ==
       invalid(
@@ -316,12 +326,12 @@ TEST_CASE( "[colony-mgr] initial colony buildings." ) {
 TEST_CASE( "[colony-mgr] found_colony places initial unit." ) {
   World W;
 
-  UnitId founder = W.add_unit_on_map( e_unit_type::free_colonist,
-                                      Coord{ .x = 1, .y = 1 } );
+  Unit& founder = W.add_unit_on_map( e_unit_type::free_colonist,
+                                     Coord{ .x = 1, .y = 1 } );
   // Don't use W.add_colony here because we are testing
   // found_colony specifically.
   ColonyId id = found_colony( W.ss(), W.ts(), W.default_player(),
-                              founder, "my colony" );
+                              founder.id(), "my colony" );
   Colony&  colony = W.colonies().colony_for( id );
 
   REQUIRE( colony.outdoor_jobs[e_direction::nw] == nothing );
@@ -334,7 +344,7 @@ TEST_CASE( "[colony-mgr] found_colony places initial unit." ) {
 
   // Colonist should have been placed here.
   REQUIRE( colony.outdoor_jobs[e_direction::n] ==
-           ( OutdoorUnit{ .unit_id = founder,
+           ( OutdoorUnit{ .unit_id = founder.id(),
                           .job     = e_outdoor_job::food } ) );
 }
 
@@ -343,28 +353,28 @@ TEST_CASE( "[colony-mgr] change_unit_outdoor_job." ) {
   Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
   // Note that the founding colonist will have been placed on the
   // north tile.
-  UnitId farmer = W.add_unit_outdoors( colony.id, e_direction::w,
-                                       e_outdoor_job::food );
-  UnitId ore_miner = W.add_unit_outdoors(
+  Unit& farmer = W.add_unit_outdoors( colony.id, e_direction::w,
+                                      e_outdoor_job::food );
+  Unit& ore_miner = W.add_unit_outdoors(
       colony.id, e_direction::e, e_outdoor_job::ore );
 
   // Sanity check.
   REQUIRE( colony.outdoor_jobs[e_direction::w] ==
-           ( OutdoorUnit{ .unit_id = farmer,
+           ( OutdoorUnit{ .unit_id = farmer.id(),
                           .job     = e_outdoor_job::food } ) );
   REQUIRE( colony.outdoor_jobs[e_direction::e] ==
-           ( OutdoorUnit{ .unit_id = ore_miner,
+           ( OutdoorUnit{ .unit_id = ore_miner.id(),
                           .job     = e_outdoor_job::ore } ) );
 
   // Change job.
-  change_unit_outdoor_job( colony, farmer,
+  change_unit_outdoor_job( colony, farmer.id(),
                            e_outdoor_job::lumber );
 
   REQUIRE( colony.outdoor_jobs[e_direction::w] ==
-           ( OutdoorUnit{ .unit_id = farmer,
+           ( OutdoorUnit{ .unit_id = farmer.id(),
                           .job     = e_outdoor_job::lumber } ) );
   REQUIRE( colony.outdoor_jobs[e_direction::e] ==
-           ( OutdoorUnit{ .unit_id = ore_miner,
+           ( OutdoorUnit{ .unit_id = ore_miner.id(),
                           .job     = e_outdoor_job::ore } ) );
 }
 
@@ -385,9 +395,10 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
   }
 
   SECTION( "non interactive with ship" ) {
-    UnitId ship = W.add_unit_on_map( e_unit_type::caravel, loc );
+    Unit& ship = W.add_unit_on_map( e_unit_type::caravel, loc );
+    UnitId const ship_id = ship.id();
     destroy_colony( W.ss(), W.map_updater(), colony );
-    REQUIRE( W.units().exists( ship ) );
+    REQUIRE( W.units().exists( ship_id ) );
   }
 
   SECTION( "interactive" ) {
@@ -407,7 +418,8 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
   }
 
   SECTION( "interactive with ship" ) {
-    UnitId ship = W.add_unit_on_map( e_unit_type::caravel, loc );
+    Unit& ship = W.add_unit_on_map( e_unit_type::caravel, loc );
+    UnitId const ship_id = ship.id();
 
     MockLandViewPlane mock_land_view;
     W.planes().back().land_view = &mock_land_view;
@@ -427,7 +439,7 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
 
-    REQUIRE( W.units().exists( ship ) );
+    REQUIRE( W.units().exists( ship_id ) );
   }
 
   // !! Do not access colony after this point.

@@ -68,8 +68,10 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[on-map] non-interactive: moves the unit" ) {
   World        W;
-  UnitId const unit_id = W.add_unit_on_map(
-      e_unit_type::treasure, { .x = 1, .y = 0 } );
+  UnitId const unit_id =
+      W.add_unit_on_map( e_unit_type::treasure,
+                         { .x = 1, .y = 0 } )
+          .id();
   unit_to_map_square_non_interactive( W.ss(), W.ts(), unit_id,
                                       { .x = 0, .y = 1 } );
   REQUIRE( W.units().coord_for( unit_id ) ==
@@ -77,7 +79,8 @@ TEST_CASE( "[on-map] non-interactive: moves the unit" ) {
 
   NativeUnitId const unit_id2 =
       W.add_unit_on_map( e_native_unit_type::armed_brave,
-                         { .x = 1, .y = 0 }, e_tribe::apache );
+                         { .x = 1, .y = 0 }, e_tribe::apache )
+          .id;
   unit_to_map_square_non_interactive( W.ss(), unit_id2,
                                       { .x = 1, .y = 1 } );
   REQUIRE( W.units().coord_for( unit_id ) ==
@@ -87,9 +90,11 @@ TEST_CASE( "[on-map] non-interactive: moves the unit" ) {
 #ifndef COMPILER_GCC
 TEST_CASE( "[on-map] interactive: discovers new world" ) {
   World        W;
-  Player&      player  = W.default_player();
-  UnitId const unit_id = W.add_unit_on_map(
-      e_unit_type::treasure, { .x = 1, .y = 0 } );
+  Player&      player = W.default_player();
+  UnitId const unit_id =
+      W.add_unit_on_map( e_unit_type::treasure,
+                         { .x = 1, .y = 0 } )
+          .id();
   wait<maybe<UnitDeleted>> w = make_wait<maybe<UnitDeleted>>();
 
   REQUIRE( player.discovered_new_world == nothing );
@@ -125,8 +130,10 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
   World   W;
   Player& player = W.default_player();
   W.add_colony_with_new_unit( W.kColonySquare );
-  UnitId const unit_id = W.add_unit_on_map(
-      e_unit_type::treasure, { .x = 1, .y = 0 } );
+  UnitId const unit_id =
+      W.add_unit_on_map( e_unit_type::treasure,
+                         { .x = 1, .y = 0 } )
+          .id();
   wait<maybe<UnitDeleted>> w = make_wait<maybe<UnitDeleted>>();
 
   // This is so that the user doesn't get prompted to name the

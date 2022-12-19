@@ -110,7 +110,8 @@ TEST_CASE( "[lcr] nothing but rumors" ) {
 
   // Create unit on map.
   UnitId unit_id =
-      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
+      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
+          .id();
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
@@ -154,7 +155,8 @@ TEST_CASE( "[lcr] small village, chief gift" ) {
 
   // Create unit on map.
   UnitId unit_id =
-      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
+      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
+          .id();
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
@@ -201,7 +203,8 @@ TEST_CASE( "[lcr] small village, ruins of lost colony" ) {
 
   // Create unit on map.
   UnitId unit_id =
-      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
+      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
+          .id();
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
@@ -248,7 +251,8 @@ TEST_CASE( "[lcr] fountain of youth" ) {
 
   // Create unit on map.
   UnitId unit_id =
-      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
+      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
+          .id();
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
@@ -325,7 +329,8 @@ TEST_CASE( "[lcr] free colonist" ) {
 
   // Create unit on map.
   UnitId unit_id =
-      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
+      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
+          .id();
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
@@ -373,7 +378,8 @@ TEST_CASE( "[lcr] unit lost" ) {
 
   // Create unit on map.
   UnitId unit_id =
-      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
+      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
+          .id();
   REQUIRE( W.units().all().size() == 1 );
   REQUIRE( player_square.has_value() );
   REQUIRE( player_square->square.lost_city_rumor == true );
@@ -427,7 +433,8 @@ TEST_CASE( "[lcr] cibola / treasure" ) {
 
   // Create unit on map.
   UnitId unit_id =
-      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
+      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
+          .id();
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
@@ -488,7 +495,8 @@ TEST_CASE( "[lcr] burial mounds / treasure" ) {
 
   // Create unit on map.
   UnitId unit_id =
-      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
+      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
+          .id();
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
@@ -553,7 +561,8 @@ TEST_CASE( "[lcr] burial mounds / cold and empty" ) {
 
   // Create unit on map.
   UnitId unit_id =
-      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
+      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
+          .id();
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
@@ -600,7 +609,8 @@ TEST_CASE( "[lcr] burial mounds / trinkets" ) {
 
   // Create unit on map.
   UnitId unit_id =
-      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
+      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
+          .id();
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
@@ -656,7 +666,8 @@ TEST_CASE( "[lcr] burial mounds / no explore" ) {
 
   // Create unit on map.
   UnitId unit_id =
-      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
+      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
+          .id();
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
@@ -701,7 +712,8 @@ TEST_CASE(
 
   // Create unit on map.
   UnitId unit_id =
-      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
+      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
+          .id();
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.

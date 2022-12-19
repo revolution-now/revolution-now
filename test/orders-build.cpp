@@ -65,14 +65,13 @@ TEST_CASE( "[orders-build] build colony" ) {
 #ifdef COMPILER_GCC
   return;
 #endif
-  World        W;
-  Coord const  tile{ .x = 2, .y = 2 };
-  UnitId const colonist_id =
+  World       W;
+  Coord const tile{ .x = 2, .y = 2 };
+  Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
-  Unit const& unit = W.units().unit_for( colonist_id );
   unique_ptr<OrdersHandler> handler = handle_orders(
-      W.planes(), W.ss(), W.ts(), W.default_player(),
-      colonist_id, orders::build{} );
+      W.planes(), W.ss(), W.ts(), W.default_player(), unit.id(),
+      orders::build{} );
 
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 

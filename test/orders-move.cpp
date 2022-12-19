@@ -80,7 +80,8 @@ TEST_CASE( "[orders-move] ship can move from land to ocean" ) {
   // player that they've discovered the new world.
   player.discovered_new_world = "";
   UnitId id = W.add_unit_on_map( e_unit_type::galleon,
-                                 Coord{ .x = 1, .y = 1 } );
+                                 Coord{ .x = 1, .y = 1 } )
+                  .id();
   // Sanity check to make sure we are testing what we think we're
   // testing.
   REQUIRE( is_land( W.square( W.units().coord_for( id ) ) ) );
@@ -133,12 +134,14 @@ TEST_CASE( "[orders-move] land unit can attack ship on land" ) {
   // player that they've discovered the new world.
   W.dutch().discovered_new_world  = "";
   W.french().discovered_new_world = "";
-  UnitId ship    = W.add_unit_on_map( e_unit_type::galleon,
-                                      Coord{ .x = 1, .y = 1 },
-                                      e_nation::dutch );
+  UnitId ship = W.add_unit_on_map( e_unit_type::galleon,
+                                   Coord{ .x = 1, .y = 1 },
+                                   e_nation::dutch )
+                    .id();
   UnitId soldier = W.add_unit_on_map( e_unit_type::soldier,
                                       Coord{ .x = 0, .y = 1 },
-                                      e_nation::french );
+                                      e_nation::french )
+                       .id();
   // Sanity check to make sure we are testing what we think we're
   // testing.
   REQUIRE( is_land( W.square( W.units().coord_for( ship ) ) ) );

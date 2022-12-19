@@ -44,32 +44,31 @@ namespace rn {
 // tire save game state when it may not need all of it.
 struct RootState;
 
-struct FormatVersion;
-struct SettingsState;
-struct EventsState;
-struct UnitsState;
-struct PlayersState;
-struct TurnState;
 struct ColoniesState;
-struct NativesState;
-struct LandViewState;
-struct TerrainState;
-struct Unit;
-struct UnitType;
-struct UnitComposition;
-
 struct Colony;
 struct Dwelling;
+struct EventsState;
+struct FormatVersion;
 struct IMapUpdater;
-struct Player;
-struct Tribe;
-
+struct LandViewState;
 struct MockIGui;
 struct MockIRand;
+struct NativeUnit;
+struct NativesState;
 struct Planes;
+struct Player;
+struct PlayersState;
+struct SettingsState;
 struct SS;
 struct SSConst;
+struct TerrainState;
+struct Tribe;
 struct TS;
+struct TurnState;
+struct Unit;
+struct UnitComposition;
+struct UnitsState;
+struct UnitType;
 
 } // namespace rn
 
@@ -117,24 +116,24 @@ struct World {
   // ------------------------------------------------------------
   // Creating units.
   // ------------------------------------------------------------
-  UnitId add_unit_in_port( e_unit_type     type,
-                           maybe<e_nation> nation = nothing );
-
-  UnitId add_unit_on_map( e_unit_type type, Coord where,
+  Unit& add_unit_in_port( e_unit_type     type,
                           maybe<e_nation> nation = nothing );
 
-  NativeUnitId add_unit_on_map( e_native_unit_type type,
-                                Coord where, e_tribe tribe );
+  Unit& add_unit_on_map( e_unit_type type, Coord where,
+                         maybe<e_nation> nation = nothing );
+
+  NativeUnit& add_unit_on_map( e_native_unit_type type,
+                               Coord where, e_tribe tribe );
 
   Unit& add_unit_on_map( UnitComposition const& comp,
                          Coord                  where,
                          maybe<e_nation> nation = nothing );
 
-  UnitId add_unit_on_map( UnitType type, Coord where,
-                          maybe<e_nation> nation = nothing );
+  Unit& add_unit_on_map( UnitType type, Coord where,
+                         maybe<e_nation> nation = nothing );
 
-  UnitId add_unit_in_cargo( e_unit_type type, UnitId holder,
-                            maybe<e_nation> nation = nothing );
+  Unit& add_unit_in_cargo( e_unit_type type, UnitId holder,
+                           maybe<e_nation> nation = nothing );
 
   // This will create a unit that is registered in the game but
   // without any ownership.
@@ -143,25 +142,25 @@ struct World {
 
   // Create a unit and add give it the specified indoor job in
   // the colony.
-  UnitId add_unit_indoors(
+  Unit& add_unit_indoors(
       ColonyId colony_id, e_indoor_job indoor_job,
       e_unit_type type = e_unit_type::free_colonist );
 
   // Same as above but adds the expert colonist type for the job.
-  UnitId add_expert_unit_indoors( ColonyId     colony_id,
-                                  e_indoor_job indoor_job );
+  Unit& add_expert_unit_indoors( ColonyId     colony_id,
+                                 e_indoor_job indoor_job );
 
   // Create a unit and add give it the specified outdoor job in
   // the colony.
-  UnitId add_unit_outdoors(
+  Unit& add_unit_outdoors(
       ColonyId colony_id, e_direction d,
       e_outdoor_job outdoor_job,
       e_unit_type   type = e_unit_type::free_colonist );
 
   // Same as above but adds the expert colonist type for the job.
-  UnitId add_expert_unit_outdoors( ColonyId      colony_id,
-                                   e_direction   d,
-                                   e_outdoor_job outdoor_job );
+  Unit& add_expert_unit_outdoors( ColonyId      colony_id,
+                                  e_direction   d,
+                                  e_outdoor_job outdoor_job );
 
   // ------------------------------------------------------------
   // Steering ships.

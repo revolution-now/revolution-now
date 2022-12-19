@@ -49,8 +49,11 @@ TEST_CASE(
     "Commodity move_commodity_as_much_as_possible single "
     "ship" ) {
   World  W;
-  UnitId ship = W.add_unit_on_map(
-      UnitType::create( e_unit_type::merchantman ), Coord{} );
+  UnitId ship =
+      W.add_unit_on_map(
+           UnitType::create( e_unit_type::merchantman ),
+           Coord{} )
+          .id();
   auto food_full  = Commodity{ /*type=*/e_commodity::food,
                               /*quantity=*/100 };
   auto sugar_full = Commodity{ /*type=*/e_commodity::sugar,
@@ -361,10 +364,16 @@ TEST_CASE(
     "Commodity move_commodity_as_much_as_possible two "
     "ships" ) {
   World  W;
-  UnitId ship1 = W.add_unit_on_map(
-      UnitType::create( e_unit_type::merchantman ), Coord{} );
-  UnitId ship2 = W.add_unit_on_map(
-      UnitType::create( e_unit_type::merchantman ), Coord{} );
+  UnitId ship1 =
+      W.add_unit_on_map(
+           UnitType::create( e_unit_type::merchantman ),
+           Coord{} )
+          .id();
+  UnitId ship2 =
+      W.add_unit_on_map(
+           UnitType::create( e_unit_type::merchantman ),
+           Coord{} )
+          .id();
   auto sugar_full = Commodity{ /*type=*/e_commodity::sugar,
                                /*quantity=*/100 };
   auto food_part  = Commodity{ /*type=*/e_commodity::food,
