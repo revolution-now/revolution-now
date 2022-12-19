@@ -432,7 +432,7 @@ speak_with_chief {
     # higher value means not only a higher threshold for this be-
     # havior, but it means a lower probability of it happening
     # for a given alarm level.
-    alarm_range_for_target_practice: { min=25, max=80 }
+    alarm_range_for_target_practice: { min=20, max=80 }
 
     # This is the length of the side of the large square of tiles
     # that will be revealed to the player; that square will be
@@ -466,7 +466,7 @@ speak_with_chief {
     }
 
     # See above for comments.
-    alarm_range_for_target_practice: { min=40, max=90 }
+    alarm_range_for_target_practice: { min=25, max=85 }
 
     # See above for comments.
     tales_of_nearby_land_radius: 13
