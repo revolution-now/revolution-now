@@ -607,7 +607,6 @@ wait<> do_speak_with_chief(
       co_await planes.land_view().center_on_tile(
           dwelling.location );
       for( Coord tile : tiles ) {
-        using namespace chrono_literals;
         ts.map_updater.make_square_visible( tile,
                                             unit.nation() );
         co_await ts.gui.wait_for( 20ms );

@@ -23,10 +23,12 @@
 #include "src/mock/matchers.hpp"
 #include "src/plane-stack.hpp"
 #include "src/ustate.hpp"
+#include "src/visibility.hpp"
 
 // ss
 #include "ss/dwelling.rds.hpp"
 #include "ss/natives.hpp"
+#include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/tribe.rds.hpp"
 #include "ss/unit.hpp"
@@ -616,7 +618,9 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   REQUIRE( f() == expected );
 
   // outcome: gift + seasoned + civilized.
-  W.add_tribe( e_tribe::inca );
+  W.add_tribe( e_tribe::inca )
+      .relationship[W.default_nation()]
+      .emplace();
   dwelling.tribe = e_tribe::inca;
   p_unit         = &scout_seasoned;
   EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
@@ -705,9 +709,147 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
 }
 
 TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
-  World W;
-  // TODO
-  // TODO: finish previous test case first.
+  World             W;
+  MockLandViewPlane mock_land_view;
+  W.planes().back().land_view = &mock_land_view;
+  Player const&        player = W.default_player();
+  SpeakWithChiefResult outcome;
+  Unit*                p_unit = nullptr;
+  Dwelling&            dwelling =
+      W.add_dwelling( { .x = 4, .y = 4 }, e_tribe::tupi );
+  W.add_tribe( e_tribe::tupi )
+      .relationship[W.default_nation()]
+      .emplace();
+  DwellingRelationship& relationship =
+      dwelling.relationship[W.default_nation()];
+  Unit& scout_petty = W.add_unit_on_map(
+      UnitType::create( e_unit_type::scout,
+                        e_unit_type::petty_criminal )
+          .value(),
+      { .x = 3, .y = 3 } );
+  REQUIRE_FALSE( relationship.has_spoken_with_chief );
+
+  outcome = { .expertise     = e_native_skill::tobacco_planting,
+              .primary_trade = e_commodity::horses,
+              .secondary_trade_1 = e_commodity::muskets,
+              .secondary_trade_2 = e_commodity::cloth };
+
+  auto f = [&] {
+    wait<> w = do_speak_with_chief( W.planes(), W.ss(), W.ts(),
+                                    dwelling, W.default_player(),
+                                    *p_unit, outcome );
+    REQUIRE( !w.has_exception() );
+    REQUIRE( w.ready() );
+  };
+
+  SECTION( "none" ) {
+    p_unit         = &scout_petty;
+    outcome.action = ChiefAction::none{};
+    EXPECT_CALL(
+        W.gui(),
+        message_box( StrContains( "Greetings traveler" ) ) )
+        .returns<monostate>();
+    EXPECT_CALL(
+        W.gui(),
+        message_box( StrContains( "We always welcome" ) ) )
+        .returns<monostate>();
+    f();
+    REQUIRE( player.money == 0 );
+    REQUIRE( p_unit->type() == scout_petty.type() );
+  }
+
+  SECTION( "gift_money" ) {
+    p_unit         = &scout_petty;
+    outcome.action = ChiefAction::gift_money{ .quantity = 111 };
+    EXPECT_CALL(
+        W.gui(),
+        message_box( StrContains( "Greetings traveler" ) ) )
+        .returns<monostate>();
+    EXPECT_CALL(
+        W.gui(),
+        message_box( StrContains( "Please take these" ) ) )
+        .returns<monostate>();
+    f();
+    REQUIRE( player.money == 111 );
+    REQUIRE( p_unit->type() == scout_petty.type() );
+  }
+
+  SECTION( "tales" ) {
+    using namespace std::literals::chrono_literals;
+    p_unit         = &scout_petty;
+    outcome.action = ChiefAction::tales_of_nearby_lands{
+        .tiles = { { .x = 0, .y = 6 }, { .x = 1, .y = 6 } } };
+    EXPECT_CALL(
+        W.gui(),
+        message_box( StrContains( "Greetings traveler" ) ) )
+        .returns<monostate>();
+    vector<int> const shuffled_indices{ 1, 0 };
+    expect_shuffle( W.rand(), shuffled_indices );
+    EXPECT_CALL(
+        W.gui(),
+        message_box( StrContains( "sit around the campfire" ) ) )
+        .returns<monostate>();
+    EXPECT_CALL( mock_land_view,
+                 center_on_tile( Coord{ .x = 4, .y = 4 } ) )
+        .returns<monostate>();
+    EXPECT_CALL( W.gui(), wait_for( 20ms ) ).returns( 20000us );
+    EXPECT_CALL( W.gui(), wait_for( 20ms ) ).returns( 20000us );
+    EXPECT_CALL( W.gui(), wait_for( 600ms ) )
+        .returns( 600000us );
+    Visibility const viz =
+        Visibility::create( W.ss(), W.default_nation() );
+    REQUIRE_FALSE( viz.visible( { .x = 0, .y = 6 } ) );
+    REQUIRE_FALSE( viz.visible( { .x = 1, .y = 6 } ) );
+    REQUIRE_FALSE( viz.visible( { .x = 2, .y = 6 } ) );
+    f();
+    REQUIRE( viz.visible( { .x = 0, .y = 6 } ) );
+    REQUIRE( viz.visible( { .x = 1, .y = 6 } ) );
+    REQUIRE_FALSE( viz.visible( { .x = 2, .y = 6 } ) );
+    REQUIRE( player.money == 0 );
+    REQUIRE( p_unit->type() == scout_petty.type() );
+  }
+
+  SECTION( "promotion" ) {
+    p_unit         = &scout_petty;
+    outcome.action = ChiefAction::promotion{};
+    EXPECT_CALL(
+        W.gui(),
+        message_box( StrContains( "Greetings traveler" ) ) )
+        .returns<monostate>();
+    EXPECT_CALL( W.gui(),
+                 message_box( StrContains( "send guides" ) ) )
+        .returns<monostate>();
+    EXPECT_CALL( mock_land_view,
+                 animate_unit_depixelation(
+                     UnitId{ 1 }, e_unit_type::seasoned_scout ) )
+        .returns<monostate>();
+    EXPECT_CALL( W.gui(),
+                 message_box( StrContains(
+                     "promoted to @[H]Seasoned Scout@[]" ) ) )
+        .returns<monostate>();
+    f();
+    REQUIRE( player.money == 0 );
+    REQUIRE( p_unit->type() == e_unit_type::seasoned_scout );
+  }
+
+  SECTION( "target_practice" ) {
+    p_unit         = &scout_petty;
+    outcome.action = ChiefAction::target_practice{};
+    EXPECT_CALL(
+        W.gui(),
+        message_box( StrContains( "violated sacred taboos" ) ) )
+        .returns<monostate>();
+    EXPECT_CALL( mock_land_view,
+                 animate_unit_depixelation(
+                     UnitId{ 1 }, maybe<e_unit_type>{} ) )
+        .returns<monostate>();
+    REQUIRE( W.units().exists( UnitId{ 1 } ) );
+    f();
+    REQUIRE_FALSE( W.units().exists( UnitId{ 1 } ) );
+    REQUIRE( player.money == 0 );
+  }
+
+  REQUIRE( relationship.has_spoken_with_chief );
 }
 
 } // namespace
