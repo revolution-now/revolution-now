@@ -66,10 +66,10 @@ struct World : testing::World {
       _, L, _, L, L, L, L, L, L, L, L, L, L, L, L, L,
       L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
       _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
+      _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
       _, L, L, _, L, L, L, L, L, L, L, L, L, L, L, L,
       _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
-      _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
-      _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
+      _, L, L, L, _, L, L, L, L, L, L, L, L, L, L, L,
       _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
       _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
       _, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
@@ -487,9 +487,11 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
 #endif
 
 TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
-  World       W;
-  Unit const* p_unit = nullptr;
-  Dwelling&   dwelling =
+  World         W;
+  Unit const*   p_unit = nullptr;
+  vector<Coord> expected_tiles;
+  expected_tiles.reserve( 15 * 15 ); // should be enough.
+  Dwelling& dwelling =
       W.add_dwelling( { .x = 4, .y = 4 }, e_tribe::tupi );
   W.add_tribe( e_tribe::tupi )
       .relationship[W.default_nation()]
@@ -499,6 +501,11 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   Unit& scout_petty = W.add_unit_on_map(
       UnitType::create( e_unit_type::scout,
                         e_unit_type::petty_criminal )
+          .value(),
+      { .x = 3, .y = 3 } );
+  Unit& scout_other_expert = W.add_unit_on_map(
+      UnitType::create( e_unit_type::scout,
+                        e_unit_type::expert_farmer )
           .value(),
       { .x = 3, .y = 3 } );
   Unit& scout_seasoned = W.add_unit_on_map(
@@ -581,9 +588,120 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   expected.action = ChiefAction::none{};
   REQUIRE( f() == expected );
 
-  relationship.has_spoken_with_chief = true;
+  relationship.has_spoken_with_chief = false;
+  relationship.dwelling_only_alarm   = 0;
 
-  // TODO: finish this.
+  // outcome: none.
+  p_unit = &scout_petty;
+  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 0, 100, IRand::e_interval::half_open ) )
+      .returns( 0 );
+  expected.action = ChiefAction::none{};
+  REQUIRE( f() == expected );
+
+  // outcome: gift.
+  p_unit = &scout_petty;
+  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 0, 100, IRand::e_interval::half_open ) )
+      .returns( 33 );
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 50, 300, IRand::e_interval::closed ) )
+      .returns( 111 );
+  expected.action = ChiefAction::gift_money{ .quantity = 111 };
+  REQUIRE( f() == expected );
+
+  // outcome: gift + seasoned + civilized.
+  W.add_tribe( e_tribe::inca );
+  dwelling.tribe = e_tribe::inca;
+  p_unit         = &scout_seasoned;
+  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 0, 100, IRand::e_interval::half_open ) )
+      .returns( 20 );
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 166, 2000, IRand::e_interval::closed ) )
+      .returns( 1111 );
+  expected.action = ChiefAction::gift_money{ .quantity = 1111 };
+  REQUIRE( f() == expected );
+  dwelling.tribe = e_tribe::tupi;
+
+  // outcome: promotion.
+  p_unit = &scout_petty;
+  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 0, 100, IRand::e_interval::half_open ) )
+      .returns( 80 );
+  expected.action = ChiefAction::promotion{};
+  REQUIRE( f() == expected );
+
+  // outcome: failed promotion.
+  p_unit = &scout_other_expert;
+  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 0, 100, IRand::e_interval::half_open ) )
+      .returns( 80 );
+  expected.action = ChiefAction::none{};
+  REQUIRE( f() == expected );
+
+  // outcome: tales of nearby land non-seasoned.
+  p_unit = &scout_petty;
+  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 0, 100, IRand::e_interval::half_open ) )
+      .returns( 73 );
+  expected_tiles.clear();
+  for( int y = 4 - 9 / 2; y < 4 + 1 + 9 / 2; ++y ) {
+    for( int x = 4 - 9 / 2; x < 4 + 1 + 9 / 2; ++x ) {
+      Coord const c{ .x = x, .y = y };
+      if( W.square( c ).surface == e_surface::water ) continue;
+      // Remove squares in the radius of the scout, which are al-
+      // ready visible.
+      static Rect const scout_visible{
+          .x = 1, .y = 1, .w = 5, .h = 5 };
+      if( c.is_inside( scout_visible ) ) continue;
+      expected_tiles.push_back( c );
+    }
+  }
+  REQUIRE_FALSE( expected_tiles.empty() );
+  expected.action = ChiefAction::tales_of_nearby_lands{
+      .tiles = expected_tiles };
+  REQUIRE( f() == expected );
+
+  // outcome: tales of nearby land seasoned.
+  p_unit = &scout_seasoned;
+  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 0, 100, IRand::e_interval::half_open ) )
+      .returns( 70 );
+  expected_tiles.clear();
+  for( int y = 4 - 13 / 2; y < 4 + 1 + 13 / 2; ++y ) {
+    for( int x = 4 - 13 / 2; x < 4 + 1 + 13 / 2; ++x ) {
+      Coord const c{ .x = x, .y = y };
+      if( x < 0 || y < 0 ) continue;
+      if( W.square( c ).surface == e_surface::water ) continue;
+      // Remove squares in the radius of the scout, which are al-
+      // ready visible.
+      static Rect const scout_visible{
+          .x = 1, .y = 1, .w = 5, .h = 5 };
+      if( c.is_inside( scout_visible ) ) continue;
+      expected_tiles.push_back( c );
+    }
+  }
+  REQUIRE_FALSE( expected_tiles.empty() );
+  expected.action = ChiefAction::tales_of_nearby_lands{
+      .tiles = expected_tiles };
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {

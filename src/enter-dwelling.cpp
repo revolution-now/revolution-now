@@ -497,33 +497,9 @@ static ChiefAction_t compute_speak_with_chief_action(
           .has_spoken_with_chief )
     return ChiefAction::none{};
 
-  auto weights = conf.positive_outcome_weights;
-  // If the unit can't be promoted to seasoned scout then zero
-  // out that particular weight. This could happen if e.g. this
-  // is a regular scout made from a unit that is an expert in
-  // something other than scouting.
-  bool const can_be_promoted =
-      promoted_by_natives( unit.composition(),
-                           e_native_skill::scouting )
-          .has_value();
-  lg.debug( "scout can be promoted: {}", can_be_promoted );
-  if( !can_be_promoted )
-    weights[e_speak_with_chief_result::promotion] = 0;
-
-  // If there are not enough non-visible tiles in the radius then
-  // don't include the "tales of nearby lands" in the possible
-  // outcomes.
-  int const     tales_radius = conf.tales_of_nearby_land_radius;
-  vector<Coord> tiles = compute_tales_of_nearby_lands_tiles(
-      ss, dwelling, unit, tales_radius );
-  if( ssize( tiles ) < conf.min_invisible_tiles_for_tales )
-    weights[e_speak_with_chief_result::tales_of_nearby_lands] =
-        0;
-
-  lg.debug( "outcome weights: {}", weights );
   auto const outcome =
       pick_from_weighted_enum_values<e_speak_with_chief_result>(
-          ts.rand, weights );
+          ts.rand, conf.positive_outcome_weights );
   switch( outcome ) {
     case e_speak_with_chief_result::none:
       return ChiefAction::none{};
@@ -536,11 +512,31 @@ static ChiefAction_t compute_speak_with_chief_action(
                                 IRand::e_interval::closed );
       return ChiefAction::gift_money{ .quantity = quantity };
     }
-    case e_speak_with_chief_result::tales_of_nearby_lands:
+    case e_speak_with_chief_result::tales_of_nearby_lands: {
+      // If there are not enough non-visible tiles in the radius
+      // then don't bother otherwise it might be confusing to the
+      // player.
+      int const     tales_size = conf.tales_of_nearby_land_size;
+      vector<Coord> tiles = compute_tales_of_nearby_lands_tiles(
+          ss, dwelling, unit, tales_size );
+      if( ssize( tiles ) <= conf.min_invisible_tiles_for_tales )
+        return ChiefAction::none{};
       return ChiefAction::tales_of_nearby_lands{
           .tiles = std::move( tiles ) };
-    case e_speak_with_chief_result::promotion:
+    }
+    case e_speak_with_chief_result::promotion: {
+      // If the unit can't be promoted to seasoned scout then
+      // just do nothing. This could happen if e.g. this is a
+      // regular scout made from a unit that is an expert in
+      // something other than scouting.
+      bool const can_be_promoted =
+          promoted_by_natives( unit.composition(),
+                               e_native_skill::scouting )
+              .has_value();
+      lg.debug( "scout can be promoted: {}", can_be_promoted );
+      if( !can_be_promoted ) return ChiefAction::none{};
       return ChiefAction::promotion{};
+    }
   }
 }
 

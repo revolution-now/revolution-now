@@ -265,7 +265,7 @@ struct.SpeakWithChief {
   # This is the length of the side of the large square of tiles
   # that will be revealed to the player; that square will be cen-
   # tered on the dwelling tile.
-  tales_of_nearby_land_radius 'int',
+  tales_of_nearby_land_size 'int',
 
   # If the number of non-visible tiles in the "tales of nearby
   # land" radius is less than this number, then the chief will

@@ -437,7 +437,7 @@ speak_with_chief {
     # This is the length of the side of the large square of tiles
     # that will be revealed to the player; that square will be
     # centered on the dwelling tile.
-    tales_of_nearby_land_radius: 9
+    tales_of_nearby_land_size: 9
 
     # If the number of non-visible tiles in the "tales of nearby
     # land" radius is less than this number, then the chief will
@@ -469,7 +469,7 @@ speak_with_chief {
     alarm_range_for_target_practice: { min=25, max=85 }
 
     # See above for comments.
-    tales_of_nearby_land_radius: 13
+    tales_of_nearby_land_size: 13
 
     # See above for comments.
     min_invisible_tiles_for_tales: 5
