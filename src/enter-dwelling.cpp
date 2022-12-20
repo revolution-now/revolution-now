@@ -377,7 +377,7 @@ wait<> do_live_among_the_natives(
           "teach new skills to unskilled colonists.  Bring us a "
           "@[H]Free Colonist@[] or @[H]Indentured Servant@[] "
           "and we will train them.",
-          unit.desc().name );
+          unit_attr( unit.base_type() ).name );
       co_return;
     }
     case e::promoted: {
@@ -404,8 +404,15 @@ wait<> do_live_among_the_natives(
                            .no_label       = "No",
                            .no_comes_first = false } );
       if( yes_no == ui::e_confirm::yes ) {
-        co_await planes.land_view().animate_unit_depixelation(
-            unit.id(), o.to.type() );
+        if( o.to.type() != unit.type() )
+          // We only animate the transition if there is one visi-
+          // ble. Usually there is (e.g. free colonist changing
+          // to expert farmer), but sometimes there is not, e.g.
+          // when a pioneer's base type gets promoted but the
+          // unit type (and hence unit sprite) remains as a pio-
+          // neer.
+          co_await planes.land_view().animate_unit_depixelation(
+              unit.id(), o.to.type() );
         unit.change_type( player, o.to );
         dwelling.has_taught = true;
         co_await ts.gui.message_box(
