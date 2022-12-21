@@ -92,13 +92,12 @@ base::maybe<NativeUnitId> lua_get( lua::cthread L, int idx,
 *****************************************************************/
 void to_str( GenericUnitId o, std::string& out,
              base::ADL_t tag ) {
-  to_str( static_cast<int>( o ), out, tag );
+  to_str( o.id, out, tag );
 }
 
 cdr::value to_canonical( cdr::converter& conv, GenericUnitId o,
                          cdr::tag_t<GenericUnitId> ) {
-  return to_canonical( conv, static_cast<int>( o ),
-                       cdr::tag_t<int>{} );
+  return to_canonical( conv, o.id, cdr::tag_t<int>{} );
 }
 
 cdr::result<GenericUnitId> from_canonical(
@@ -109,7 +108,7 @@ cdr::result<GenericUnitId> from_canonical(
 }
 
 void lua_push( lua::cthread L, GenericUnitId o ) {
-  lua_push( L, static_cast<int>( o ) );
+  lua_push( L, o.id );
 }
 
 base::maybe<GenericUnitId> lua_get( lua::cthread L, int idx,

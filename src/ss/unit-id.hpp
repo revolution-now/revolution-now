@@ -81,8 +81,49 @@ base::maybe<NativeUnitId> lua_get( lua::cthread L, int idx,
 /****************************************************************
 ** GenericUnitId
 *****************************************************************/
-// Can represent either European units or native units.
-enum class GenericUnitId : int {};
+// Can represent either European units or native units. Define it
+// as a struct so that we can add some implicit conversions from
+// the more specific unit IDs, which are allowed in this case be-
+// cause we are moving from specific to general (the other direc-
+// tion is not allowed).
+struct GenericUnitId {
+  constexpr GenericUnitId() = default;
+
+  // Must be explicit for safety.
+  explicit constexpr GenericUnitId( int n ) noexcept : id( n ) {}
+
+  // Implicit conversions.
+  constexpr GenericUnitId( UnitId n ) noexcept
+    : id( to_underlying( n ) ) {}
+  constexpr GenericUnitId( NativeUnitId n ) noexcept
+    : id( to_underlying( n ) ) {}
+
+  // FIXME: these should be ideally replaced with a defaulted
+  // spaceship operator, but that emits a warning due to a bug in
+  // clang, see here:
+  //
+  //   https://github.com/llvm/llvm-project/issues/55919
+  //
+  // when that gets fixed, replace the below with:
+  //
+  //   auto operator<=>( GenericUnitId const& ) const = default;
+  //
+  bool operator==( GenericUnitId const& ) const = default;
+  bool operator<( GenericUnitId const& rhs ) const noexcept {
+    return id < rhs.id;
+  }
+  bool operator>( GenericUnitId const& rhs ) const noexcept {
+    return id > rhs.id;
+  }
+  bool operator<=( GenericUnitId const& rhs ) const noexcept {
+    return id <= rhs.id;
+  }
+  bool operator>=( GenericUnitId const& rhs ) const noexcept {
+    return id >= rhs.id;
+  }
+
+  int id = 0;
+};
 
 // to_str
 void to_str( GenericUnitId o, std::string& out, base::ADL_t );
@@ -101,4 +142,21 @@ void lua_push( lua::cthread L, GenericUnitId o );
 base::maybe<GenericUnitId> lua_get( lua::cthread L, int idx,
                                     lua::tag<GenericUnitId> );
 
+template<>
+inline constexpr auto to_underlying<GenericUnitId>(
+    GenericUnitId id ) noexcept {
+  return id.id;
+}
+
 } // namespace rn
+
+// std::hash
+namespace std {
+template<>
+struct hash<::rn::GenericUnitId> {
+  auto operator()( ::rn::GenericUnitId id ) const noexcept {
+    return hash<int>{}( id.id );
+  }
+};
+
+} // namespace std
