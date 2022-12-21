@@ -785,10 +785,13 @@ struct LandViewPlane::Impl : public Plane {
 
   void render_units_default( rr::Renderer& renderer,
                              Rect          covered ) const {
+    unordered_set<Coord> hit;
     for( auto [tile, id] : units_to_render( covered ) ) {
       if( ss_.colonies.maybe_from_coord( tile ).has_value() )
         continue;
+      if( hit.contains( tile ) ) continue;
       render_units_on_square( renderer, covered, tile );
+      hit.insert( tile );
     }
   }
 
