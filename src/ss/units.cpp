@@ -512,7 +512,7 @@ void UnitsState::change_to_map( NativeUnitId id, Coord target,
   units_from_coords_[target].insert(
       GenericUnitId{ to_underlying( id ) } );
   ownership_of( id ) = NativeUnitOwnership::world{
-      /*coord=*/target, .dwelling_id = dwelling_id };
+      .coord = target, .dwelling_id = dwelling_id };
   // We shouldn't be assigning this brave to a dwelling that al-
   // ready has a unit assigned to it (even if it is the same unit
   // ID, which it should never be, because we disowned this unit
