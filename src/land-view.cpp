@@ -712,7 +712,7 @@ struct LandViewPlane::Impl : public Plane {
     return Rect::from( Coord{} + delta_in_pixels, g_tile_delta );
   }
 
-  using UnitSkipFunc = base::function_ref<bool( UnitId )>;
+  using UnitSkipFunc = base::function_ref<bool( GenericUnitId )>;
 
   void render_units_on_square( rr::Renderer& renderer,
                                Rect covered, Coord tile,
@@ -725,27 +725,39 @@ struct LandViewPlane::Impl : public Plane {
         render_rect_for_tile( covered, tile ).upper_left();
     for( GenericUnitId generic_id :
          ss_.units.from_coord( tile ) ) {
-      if( ss_.units.unit_kind( generic_id ) !=
-          e_unit_kind::euro )
-        continue;
-      UnitId const unit_id{ to_underlying( generic_id ) };
-      if( skip( unit_id ) ) continue;
-      render_unit( renderer, loc, ss_.units.unit_for( unit_id ),
-                   UnitRenderOptions{ .flag   = true,
-                                      .shadow = UnitShadow{} } );
+      if( skip( generic_id ) ) continue;
+      switch( ss_.units.unit_kind( generic_id ) ) {
+        case e_unit_kind::euro: {
+          UnitId const unit_id{ to_underlying( generic_id ) };
+          render_unit(
+              renderer, loc, ss_.units.unit_for( unit_id ),
+              UnitRenderOptions{ .flag   = true,
+                                 .shadow = UnitShadow{} } );
+          break;
+        }
+        case e_unit_kind::native: {
+          NativeUnitId const unit_id{
+              to_underlying( generic_id ) };
+          render_native_unit(
+              renderer, loc, ss_, ss_.units.unit_for( unit_id ),
+              UnitRenderOptions{ .flag   = true,
+                                 .shadow = UnitShadow{} } );
+          break;
+        }
+      }
     }
   }
 
-  vector<pair<Coord, UnitId>> units_to_render(
+  vector<pair<Coord, GenericUnitId>> units_to_render(
       Rect covered ) const {
     // This is for efficiency. When we are sufficiently zoomed
     // out then it is more efficient to iterate over units then
     // covered tiles, whereas the reverse is true when zoomed in.
-    unordered_map<UnitId, EuroUnitState const*> const& all =
-        ss_.units.euro_all();
-    int const                   num_units = all.size();
-    int const                   num_tiles = covered.area();
-    vector<pair<Coord, UnitId>> res;
+    unordered_map<GenericUnitId, UnitState_t> const& all =
+        ss_.units.all();
+    int const num_units = all.size();
+    int const num_tiles = covered.area();
+    vector<pair<Coord, GenericUnitId>> res;
     res.reserve( num_units );
     if( num_tiles > num_units ) {
       // Iterate over units.
@@ -756,24 +768,19 @@ struct LandViewPlane::Impl : public Plane {
           res.emplace_back( *coord, id );
     } else {
       // Iterate over covered tiles.
-      for( Rect tile : gfx::subrects( covered ) ) {
+      for( Rect tile : gfx::subrects( covered ) )
         for( GenericUnitId generic_id :
-             ss_.units.from_coord( tile.upper_left() ) ) {
-          if( ss_.units.unit_kind( generic_id ) !=
-              e_unit_kind::euro )
-            continue;
-          UnitId const unit_id{ to_underlying( generic_id ) };
-          res.emplace_back( tile.upper_left(), unit_id );
-        }
-      }
+             ss_.units.from_coord( tile.upper_left() ) )
+          res.emplace_back( tile.upper_left(), generic_id );
     }
     return res;
   }
 
   void render_units_on_square( rr::Renderer& renderer,
                                Rect covered, Coord tile ) const {
-    render_units_on_square( renderer, covered, tile,
-                            []( UnitId ) { return false; } );
+    render_units_on_square(
+        renderer, covered, tile,
+        []( GenericUnitId ) { return false; } );
   }
 
   void render_units_default( rr::Renderer& renderer,
@@ -807,11 +814,11 @@ struct LandViewPlane::Impl : public Plane {
   }
 
   void render_units_during_slide(
-      rr::Renderer& renderer, Rect covered, UnitId id,
+      rr::Renderer& renderer, Rect covered, GenericUnitId id,
       maybe<UnitId>               target_unit,
       UnitAnimation::slide const& slide ) const {
-    UnitId mover_id = id;
-    Coord  mover_coord =
+    GenericUnitId const mover_id = id;
+    Coord const         mover_coord =
         coord_for_unit_indirect_or_die( ss_.units, mover_id );
     maybe<Coord> target_unit_coord =
         target_unit.bind( [this]( UnitId id ) {
@@ -824,7 +831,7 @@ struct LandViewPlane::Impl : public Plane {
       bool         has_colony =
           ss_.colonies.maybe_from_coord( coord ).has_value();
       if( has_colony && coord != target_unit_coord ) continue;
-      auto skip = [&]( UnitId id ) {
+      auto skip = [&]( GenericUnitId id ) {
         // Always draw the target unit, if any.
         if( id == target_unit ) return false;
         // On the square containing the unit being attacked, only
@@ -847,10 +854,22 @@ struct LandViewPlane::Impl : public Plane {
         render_rect_for_tile( covered, mover_coord )
             .upper_left();
     pixel_coord += pixel_delta;
-    render_unit( renderer, pixel_coord,
-                 ss_.units.unit_for( mover_id ),
-                 UnitRenderOptions{ .flag   = true,
-                                    .shadow = UnitShadow{} } );
+    switch( ss_.units.unit_kind( mover_id ) ) {
+      case e_unit_kind::euro:
+        render_unit(
+            renderer, pixel_coord,
+            ss_.units.euro_unit_for( mover_id ),
+            UnitRenderOptions{ .flag   = true,
+                               .shadow = UnitShadow{} } );
+        break;
+      case e_unit_kind::native:
+        render_native_unit(
+            renderer, pixel_coord, ss_,
+            ss_.units.native_unit_for( mover_id ),
+            UnitRenderOptions{ .flag   = true,
+                               .shadow = UnitShadow{} } );
+        break;
+    }
   }
 
   void render_units_during_depixelate(

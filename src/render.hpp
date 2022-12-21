@@ -15,7 +15,11 @@
 // Revolution Now
 #include "orders.hpp"
 #include "unit-id.hpp"
-#include "unit.hpp"
+
+// ss
+#include "ss/nation.rds.hpp"
+#include "ss/unit-type.rds.hpp"
+#include "ss/unit.rds.hpp"
 
 // render
 #include "render/renderer.hpp"
@@ -24,6 +28,9 @@ namespace rn {
 
 struct Colony;
 struct Dwelling;
+struct NativeUnit;
+struct SSConst;
+struct Unit;
 
 /****************************************************************
 ** UnitShadow
@@ -54,6 +61,12 @@ struct UnitRenderOptions {
 void render_unit( rr::Renderer& renderer, Coord where,
                   Unit const&              unit,
                   UnitRenderOptions const& options = {} );
+
+// Render an actual native unit.
+void render_native_unit( rr::Renderer& renderer, Coord where,
+                         SSConst const&           ss,
+                         NativeUnit const&        native_unit,
+                         UnitRenderOptions const& options = {} );
 
 // Render an abstract unit of a given type.
 void render_unit_type( rr::Painter& painter, Coord where,

@@ -13,4 +13,10 @@
 // Rds
 #include "natives.rds.hpp"
 
-namespace rn {} // namespace rn
+namespace rn {
+
+inline auto const& unit_attr( e_native_unit_type type ) {
+  return config_natives.unit_types[type];
+}
+
+} // namespace rn
