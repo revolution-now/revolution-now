@@ -243,6 +243,7 @@ maybe<Coord> coord_for_unit_indirect( UnitsState const& units,
         case UnitOwnership::e::colony: //
           return nothing;
       };
+      SHOULD_NOT_BE_HERE;
     }
     case e_unit_kind::native: {
       return units.maybe_coord_for(
