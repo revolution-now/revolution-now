@@ -21,6 +21,12 @@
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
 
+// luapp
+#include "luapp/enum.hpp"
+#include "luapp/ext-base.hpp"
+#include "luapp/register.hpp"
+#include "luapp/state.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -79,5 +85,21 @@ gfx::pixel flag_color_for_society( Society_t const& society ) {
     }
   }
 }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_FN( tribe_on_square, maybe<e_tribe>, Coord square ) {
+  SSConst const& ss = st["SS"].as<SS&>();
+  return society_on_square( ss, square )
+      .bind( []( Society_t const& society ) {
+        return society.get_if<Society::native>().member(
+            &Society::native::tribe );
+      } );
+}
+
+} // namespace
 
 } // namespace rn

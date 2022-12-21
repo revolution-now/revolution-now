@@ -463,6 +463,16 @@ local function filter_on_map( coords )
   return res
 end
 
+local function filter( lst, predicate )
+  local res = {}
+  for _, elem in ipairs( lst ) do
+    local retain = predicate( elem )
+    assert( retain == true or retain == false )
+    if retain then table.insert( res, elem ) end
+  end
+  return res
+end
+
 -----------------------------------------------------------------
 -- Hills/Mountains Generation
 -----------------------------------------------------------------
@@ -742,10 +752,28 @@ local function has_dwelling_in_surroundings( coord )
   return false
 end
 
+local function create_brave_for_dwelling( dwelling )
+  local squares = filter_on_map(
+                      surrounding_squares_3x3( dwelling.location ) )
+  squares = filter( squares, function( coord )
+    if square_at( coord ).surface ~= 'land' then return false end
+    local tribe = society.tribe_on_square( coord )
+    if tribe ~= nil and tribe ~= dwelling.tribe then
+      return false
+    end
+    return true
+  end )
+  append( squares, dwelling.location )
+  local coord = assert( random_list_elem( squares ) )
+  ustate.create_native_unit_on_map( dwelling.id, 'brave', coord )
+end
+
 local function add_dwelling( coord, tribe )
   assert( coord )
   local square = square_at( coord )
   local dwelling = ROOT.natives:new_dwelling( coord )
+  assert( dwelling.location.x == coord.x )
+  assert( dwelling.location.y == coord.y )
   dwelling.tribe = tribe
   -- FIXME
   dwelling.population = 3
@@ -776,6 +804,9 @@ local function add_dwelling( coord, tribe )
   for _, coord in ipairs( owned_squares ) do
     ROOT.natives:mark_land_owned( dwelling.id, coord )
   end
+  -- Create the brave associated with this dwelling.
+  create_brave_for_dwelling( dwelling )
+
   return dwelling
 end
 
