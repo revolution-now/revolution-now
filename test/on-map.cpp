@@ -21,6 +21,7 @@
 #include "src/mock/matchers.hpp"
 
 // ss
+#include "ss/dwelling.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/units.hpp"
 
@@ -67,24 +68,31 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[on-map] non-interactive: moves the unit" ) {
-  World        W;
-  UnitId const unit_id =
-      W.add_unit_on_map( e_unit_type::treasure,
-                         { .x = 1, .y = 0 } )
-          .id();
-  unit_to_map_square_non_interactive( W.ss(), W.ts(), unit_id,
-                                      { .x = 0, .y = 1 } );
-  REQUIRE( W.units().coord_for( unit_id ) ==
-           Coord{ .x = 0, .y = 1 } );
+  World W;
 
-  NativeUnitId const unit_id2 =
-      W.add_unit_on_map( e_native_unit_type::armed_brave,
-                         { .x = 1, .y = 0 }, e_tribe::apache )
-          .id;
-  unit_to_map_square_non_interactive( W.ss(), unit_id2,
-                                      { .x = 1, .y = 1 } );
-  REQUIRE( W.units().coord_for( unit_id ) ==
-           Coord{ .x = 0, .y = 1 } );
+  SECTION( "euro unit" ) {
+    UnitId const unit_id =
+        W.add_unit_on_map( e_unit_type::treasure,
+                           { .x = 1, .y = 0 } )
+            .id();
+    unit_to_map_square_non_interactive( W.ss(), W.ts(), unit_id,
+                                        { .x = 0, .y = 1 } );
+    REQUIRE( W.units().coord_for( unit_id ) ==
+             Coord{ .x = 0, .y = 1 } );
+  }
+
+  SECTION( "native unit" ) {
+    Dwelling const& dwelling =
+        W.add_dwelling( { .x = 0, .y = 0 }, e_tribe::apache );
+    NativeUnitId const unit_id =
+        W.add_unit_on_map( e_native_unit_type::armed_brave,
+                           { .x = 1, .y = 0 }, dwelling.id )
+            .id;
+    unit_to_map_square_non_interactive(
+        W.ss(), unit_id, { .x = 1, .y = 1 }, dwelling.id );
+    REQUIRE( W.units().coord_for( unit_id ) ==
+             Coord{ .x = 1, .y = 1 } );
+  }
 }
 
 #ifndef COMPILER_GCC

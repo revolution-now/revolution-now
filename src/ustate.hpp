@@ -15,14 +15,15 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "unit-id.hpp"
 #include "unit.hpp"
 #include "wait.hpp"
 
 // ss
+#include "ss/dwelling-id.hpp"
 #include "ss/native-enums.rds.hpp"
 #include "ss/native-unit.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/unit-id.hpp"
 
 // gfx
 #include "gfx/coord.hpp"
@@ -111,8 +112,7 @@ UnitId       create_free_unit( UnitsState&   units_state,
 UnitId       create_free_unit( UnitsState&   units_state,
                                Player const& player,
                                e_unit_type   type );
-NativeUnitId create_free_unit( SS& ss, e_tribe tribe,
-                               e_native_unit_type type );
+NativeUnitId create_free_unit( SS& ss, e_native_unit_type type );
 
 // Create unit that is not registered in the unit database, and
 // thus has no ID and no ownership. The unit will always have
@@ -120,8 +120,7 @@ NativeUnitId create_free_unit( SS& ss, e_tribe tribe,
 // added into the units database.
 Unit       create_unregistered_unit( Player const&   player,
                                      UnitComposition comp );
-NativeUnit create_unregistered_unit( e_tribe            tribe,
-                                     e_native_unit_type type );
+NativeUnit create_unregistered_unit( e_native_unit_type type );
 
 // This has to return a maybe because the unit could theoreti-
 // cally by placed on an LCR square, and, since this is the
@@ -140,8 +139,16 @@ UnitId create_unit_on_map_non_interactive( SS& ss, TS& ts,
                                            Coord coord );
 
 NativeUnitId create_unit_on_map_non_interactive(
-    SS& ss, e_tribe tribe, e_native_unit_type type,
-    Coord coord );
+    SS& ss, e_native_unit_type type, Coord coord,
+    DwellingId dwelling_id );
+
+/****************************************************************
+** Native-specific
+*****************************************************************/
+// This will check-fail if the unit is free and thus is not asso-
+// ciated with a dwelling or tribe.
+e_tribe tribe_for_unit( SSConst const&    ss,
+                        NativeUnit const& native_unit );
 
 /****************************************************************
 ** Multi

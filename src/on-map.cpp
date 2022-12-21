@@ -166,11 +166,12 @@ void unit_to_map_square_non_interactive( SS& ss, TS& ts,
   //    TODO
 }
 
-void unit_to_map_square_non_interactive( SS& ss, NativeUnitId id,
-                                         Coord world_square ) {
+void unit_to_map_square_non_interactive(
+    SS& ss, NativeUnitId id, Coord world_square,
+    DwellingId dwelling_id ) {
   // 1. Move the unit. This is the only place where this function
   //    should be called by normal game code.
-  ss.units.change_to_map( id, world_square );
+  ss.units.change_to_map( id, world_square, dwelling_id );
 }
 
 wait<maybe<UnitDeleted>> unit_to_map_square(

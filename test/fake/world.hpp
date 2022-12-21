@@ -16,6 +16,7 @@
 // ss
 #include "src/ss/colony-id.hpp"
 #include "src/ss/colony.rds.hpp"
+#include "src/ss/dwelling-id.hpp"
 #include "src/ss/fog-square.rds.hpp"
 #include "src/ss/map-square.rds.hpp"
 #include "src/ss/nation.rds.hpp"
@@ -123,7 +124,8 @@ struct World {
                          maybe<e_nation> nation = nothing );
 
   NativeUnit& add_unit_on_map( e_native_unit_type type,
-                               Coord where, e_tribe tribe );
+                               Coord              where,
+                               DwellingId         dwelling_id );
 
   Unit& add_unit_on_map( UnitComposition const& comp,
                          Coord                  where,

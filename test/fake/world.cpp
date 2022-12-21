@@ -252,9 +252,9 @@ Unit& World::add_unit_on_map( e_unit_type type, Coord where,
 
 NativeUnit& World::add_unit_on_map( e_native_unit_type type,
                                     Coord              where,
-                                    e_tribe            tribe ) {
+                                    DwellingId dwelling_id ) {
   return units().unit_for( create_unit_on_map_non_interactive(
-      ss(), tribe, type, where ) );
+      ss(), type, where, dwelling_id ) );
 }
 
 Unit& World::add_unit_on_map( UnitType type, Coord where,

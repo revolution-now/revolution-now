@@ -41,7 +41,7 @@ valid_or<generic_err> check_harbor_state_invariants(
     UnitHarborViewState const& info ) {
   valid_or<string> res =
       base::visit( []( auto const& o ) { return o.validate(); },
-                  info.port_status );
+                   info.port_status );
   if( !res ) return GENERIC_ERROR( "{}", res.error() );
   return base::valid;
 }
@@ -139,6 +139,28 @@ UnitsState::UnitsState( wrapped::UnitsState&& o )
         break;
       }
       case UnitState::e::native: break;
+    }
+  }
+
+  // Populate brave_for_dwelling_.
+  for( auto const& [id, unit_state] : o_.units ) {
+    switch( unit_state.to_enum() ) {
+      case UnitState::e::native: {
+        auto& o = unit_state.get<UnitState::native>();
+        NativeUnitOwnership_t const& st = o.state.ownership;
+        if_get( st, NativeUnitOwnership::world, val ) {
+          CHECK(
+              !brave_for_dwelling_.contains( val.dwelling_id ),
+              "multiple native units (id={} and id={}) have the "
+              "same dwelling_id={}.",
+              id, brave_for_dwelling_[val.dwelling_id],
+              val.dwelling_id );
+          brave_for_dwelling_[val.dwelling_id] =
+              NativeUnitId{ to_underlying( id ) };
+        }
+        break;
+      }
+      case UnitState::e::euro: break;
     }
   }
 
@@ -298,6 +320,22 @@ Unit& UnitsState::euro_unit_for( GenericUnitId id ) {
   return euro_state.state.unit;
 }
 
+NativeUnit const& UnitsState::native_unit_for(
+    GenericUnitId id ) const {
+  NativeUnitId const native_unit_id{ to_underlying( id ) };
+  UNWRAP_CHECK( state,
+                base::lookup( native_units_, native_unit_id ) );
+  CHECK( state != nullptr );
+  return state->unit;
+}
+
+NativeUnit& UnitsState::native_unit_for( GenericUnitId id ) {
+  UNWRAP_CHECK( state, base::lookup( o_.units, id ) );
+  UNWRAP_CHECK( native_state,
+                state.get_if<UnitState::native>() );
+  return native_state.state.unit;
+}
+
 NativeUnit const& UnitsState::unit_for( NativeUnitId id ) const {
   return state_of( id ).unit;
 }
@@ -355,6 +393,14 @@ UnitId UnitsState::holder_of( UnitId id ) const {
   UNWRAP_CHECK_MSG( holder, maybe_holder_of( id ),
                     "unit is not being held as cargo." );
   return holder;
+}
+
+DwellingId UnitsState::dwelling_for( NativeUnitId id ) const {
+  UNWRAP_CHECK(
+      world,
+      state_of( id )
+          .ownership.get_if<NativeUnitOwnership::world>() );
+  return world.dwelling_id;
 }
 
 maybe<UnitHarborViewState&>
@@ -436,7 +482,12 @@ void UnitsState::disown_unit( NativeUnitId id ) {
     case NativeUnitOwnership::e::free: //
       break;
     case NativeUnitOwnership::e::world: {
-      auto& [coord] = v.get<NativeUnitOwnership::world>();
+      auto& [coord, dwelling_id] =
+          v.get<NativeUnitOwnership::world>();
+      // First remove the unit's dwelling association.
+      CHECK( brave_for_dwelling_.contains( dwelling_id ) );
+      brave_for_dwelling_.erase( dwelling_id );
+      // Now remove it from the map.
       UNWRAP_CHECK( set_it,
                     base::find( units_from_coords_, coord ) );
       auto& units_set = set_it->second;
@@ -455,12 +506,19 @@ void UnitsState::change_to_map( UnitId id, Coord target ) {
   ownership_of( id ) = UnitOwnership::world{ /*coord=*/target };
 }
 
-void UnitsState::change_to_map( NativeUnitId id, Coord target ) {
+void UnitsState::change_to_map( NativeUnitId id, Coord target,
+                                DwellingId dwelling_id ) {
   disown_unit( id );
   units_from_coords_[target].insert(
       GenericUnitId{ to_underlying( id ) } );
-  ownership_of( id ) =
-      NativeUnitOwnership::world{ /*coord=*/target };
+  ownership_of( id ) = NativeUnitOwnership::world{
+      /*coord=*/target, .dwelling_id = dwelling_id };
+  // We shouldn't be assigning this brave to a dwelling that al-
+  // ready has a unit assigned to it (even if it is the same unit
+  // ID, which it should never be, because we disowned this unit
+  // above).
+  CHECK( !brave_for_dwelling_.contains( dwelling_id ) );
+  brave_for_dwelling_[dwelling_id] = id;
 }
 
 void UnitsState::change_to_cargo_somewhere( UnitId new_holder,
@@ -665,6 +723,11 @@ unordered_set<UnitId> const& UnitsState::from_colony(
   UNWRAP_CHECK( units, base::lookup( worker_units_from_colony_,
                                      colony.id ) );
   return units;
+}
+
+maybe<NativeUnitId> UnitsState::from_dwelling(
+    DwellingId dwelling_id ) const {
+  return base::lookup( brave_for_dwelling_, dwelling_id );
 }
 
 /****************************************************************

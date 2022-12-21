@@ -30,6 +30,8 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/dwelling.rds.hpp"
+#include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
@@ -125,10 +127,9 @@ UnitId create_free_unit( UnitsState&     units_state,
       create_unregistered_unit( player, comp ) );
 }
 
-NativeUnitId create_free_unit( SS& ss, e_tribe tribe,
+NativeUnitId create_free_unit( SS&                ss,
                                e_native_unit_type type ) {
-  return ss.units.add_unit(
-      create_unregistered_unit( tribe, type ) );
+  return ss.units.add_unit( create_unregistered_unit( type ) );
 }
 
 Unit create_unregistered_unit( Player const&   player,
@@ -144,13 +145,10 @@ Unit create_unregistered_unit( Player const&   player,
   return Unit( std::move( refl_unit ) );
 }
 
-NativeUnit create_unregistered_unit( e_tribe            tribe,
-                                     e_native_unit_type type ) {
+NativeUnit create_unregistered_unit( e_native_unit_type type ) {
   return NativeUnit{
-      .id    = NativeUnitId{ 0 }, // will be set later.
-      .type  = type,
-      .tribe = tribe,
-  };
+      .id   = NativeUnitId{ 0 }, // will be set later.
+      .type = type };
 }
 
 UnitId create_free_unit( UnitsState&   units_state,
@@ -177,10 +175,11 @@ UnitId create_unit_on_map_non_interactive( SS& ss, TS& ts,
 }
 
 NativeUnitId create_unit_on_map_non_interactive(
-    SS& ss, e_tribe tribe, e_native_unit_type type,
-    Coord coord ) {
-  NativeUnitId const id = create_free_unit( ss, tribe, type );
-  unit_to_map_square_non_interactive( ss, id, coord );
+    SS& ss, e_native_unit_type type, Coord coord,
+    DwellingId dwelling_id ) {
+  NativeUnitId const id = create_free_unit( ss, type );
+  unit_to_map_square_non_interactive( ss, id, coord,
+                                      dwelling_id );
   return id;
 }
 
@@ -263,6 +262,18 @@ bool is_unit_on_map( UnitsState const& units_state, UnitId id ) {
 maybe<UnitId> is_unit_onboard( UnitsState const& units_state,
                                UnitId            id ) {
   return units_state.maybe_holder_of( id );
+}
+
+/****************************************************************
+** Native-specific
+*****************************************************************/
+e_tribe tribe_for_unit( SSConst const&    ss,
+                        NativeUnit const& native_unit ) {
+  NativeUnitOwnership_t const& ownership =
+      ss.units.ownership_of( native_unit.id );
+  UNWRAP_CHECK( world,
+                ownership.get_if<NativeUnitOwnership::world>() );
+  return ss.natives.dwelling_for( world.dwelling_id ).tribe;
 }
 
 /****************************************************************

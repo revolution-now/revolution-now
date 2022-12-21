@@ -16,6 +16,7 @@
 // Revolution Now
 #include "ss/colony-id.hpp"
 #include "ss/colony.hpp"
+#include "ss/dwelling-id.hpp"
 #include "ss/unit-id.hpp"
 
 // gfx
@@ -75,12 +76,14 @@ struct UnitsState {
   Unit&             unit_for( UnitId id );
   NativeUnit const& unit_for( NativeUnitId id ) const;
   NativeUnit&       unit_for( NativeUnitId id );
-  // This one will check if the unit is in fact a European unit
-  // and if so return it (otherwise check fail). This is for con-
-  // venience so that the caller doesn't have to convert IDs when
-  // they know what type of unit it is.
-  Unit const& euro_unit_for( GenericUnitId id ) const;
-  Unit&       euro_unit_for( GenericUnitId id );
+  // These will check if the unit is in fact of the requested
+  // type and if so return it (otherwise check fail). This is for
+  // convenience so that the caller doesn't have to convert IDs
+  // when they know what type of unit it is.
+  Unit const&       euro_unit_for( GenericUnitId id ) const;
+  Unit&             euro_unit_for( GenericUnitId id );
+  NativeUnit const& native_unit_for( GenericUnitId id ) const;
+  NativeUnit&       native_unit_for( GenericUnitId id );
 
   // Unit must exist.
   UnitState_t const&     state_of( GenericUnitId id ) const;
@@ -98,6 +101,9 @@ struct UnitsState {
   maybe<UnitId> maybe_holder_of( UnitId id ) const;
   UnitId        holder_of( UnitId id ) const;
 
+  // Check-fail if the unit is a free unit.
+  DwellingId dwelling_for( NativeUnitId id ) const;
+
   // We allow non-const access to the harbor view state because
   // changing it will not affect the invariants of this class.
   maybe<UnitHarborViewState&> maybe_harbor_view_state_of(
@@ -114,6 +120,11 @@ struct UnitsState {
   // not units that are on the map at the location of the colony.
   std::unordered_set<UnitId> const& from_colony(
       Colony const& colony ) const;
+
+  // This will return the unit ID of the brave that is on the map
+  // that is associated with this dwelling, if any.
+  maybe<NativeUnitId> from_dwelling(
+      DwellingId dwelling_id ) const;
 
   // The id of this unit must be zero (i.e., you can't select the
   // ID); a new ID will be generated for this unit and returned.
@@ -150,13 +161,15 @@ struct UnitsState {
   // practice, it should only be called by the higher level
   // function in in the on-map module.
   void change_to_map( UnitId id, Coord target );
-  void change_to_map( NativeUnitId id, Coord target );
+  void change_to_map( NativeUnitId id, Coord target,
+                      DwellingId dwelling_id );
 
   // These are the function that calls the above.
   friend void unit_to_map_square_non_interactive(
       SS& ss, TS& ts, UnitId id, Coord world_square );
   friend void unit_to_map_square_non_interactive(
-      SS& ss, NativeUnitId id, Coord world_square );
+      SS& ss, NativeUnitId id, Coord world_square,
+      DwellingId dwelling_id );
 
  private:
   // This is private because it should only be called via the
@@ -220,6 +233,16 @@ struct UnitsState {
   // For units that are held in a colony.
   std::unordered_map<ColonyId, std::unordered_set<UnitId>>
       worker_units_from_colony_;
+
+  // For native units (braves) that are on the map but that are
+  // also associated with a dwelling. We can map native unit ->
+  // dwelling by way of the native unit state, and so this map-
+  // ping allows us to go the other way efficiently. Note that
+  // sometimes a dwelling may not have any braves (e.g. if one is
+  // destroyed in battle and not yet regenerated); in that case
+  // the dwelling will not have an entry here.
+  std::unordered_map<DwellingId, NativeUnitId>
+      brave_for_dwelling_;
 
   // All units of a given kind. The pointers will always be
   // non-null if an element exists in the map.

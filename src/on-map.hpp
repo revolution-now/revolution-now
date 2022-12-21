@@ -15,10 +15,10 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "unit-id.hpp"
 #include "wait.hpp"
 
 // ss
+#include "ss/dwelling-id.hpp"
 #include "ss/unit-id.hpp"
 
 // gfx
@@ -52,7 +52,8 @@ wait<maybe<UnitDeleted>> unit_to_map_square(
 void unit_to_map_square_non_interactive( SS& ss, TS& ts,
                                          UnitId id,
                                          Coord  world_square );
-void unit_to_map_square_non_interactive( SS& ss, NativeUnitId id,
-                                         Coord world_square );
+void unit_to_map_square_non_interactive(
+    SS& ss, NativeUnitId id, Coord world_square,
+    DwellingId dwelling_id );
 
 } // namespace rn

@@ -17,6 +17,8 @@
 #include "test/fake/world.hpp"
 
 // ss
+#include "src/ss/dwelling.rds.hpp"
+#include "src/ss/ref.hpp"
 #include "src/ss/units.hpp"
 
 // Must be last.
@@ -136,6 +138,16 @@ TEST_CASE( "[ustate] current_activity_for_unit" ) {
     UnitId id = W.add_unit_on_map( initial_ut, W.kLand ).id();
     REQUIRE( f( id ) == e_unit_activity::pioneering );
   }
+}
+
+TEST_CASE( "[ustate] tribe_for_unit" ) {
+  World           W;
+  Dwelling const& dwelling =
+      W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::arawak );
+  NativeUnit const& unit =
+      W.add_unit_on_map( e_native_unit_type::mounted_brave,
+                         { .x = 0, .y = 0 }, dwelling.id );
+  REQUIRE( tribe_for_unit( W.ss(), unit ) == e_tribe::arawak );
 }
 
 } // namespace
