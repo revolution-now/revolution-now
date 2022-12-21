@@ -77,10 +77,10 @@ std::vector<UnitId> euro_units_from_coord_recursive(
 // the map. So this would fail to return a value if e.g. the unit
 // is working in a colony or is not yet in the new world.
 ND Coord coord_for_unit_indirect_or_die(
-    UnitsState const& units_state, UnitId id );
+    UnitsState const& units_state, GenericUnitId id );
 
 ND maybe<Coord> coord_for_unit_indirect(
-    UnitsState const& units_state, UnitId id );
+    UnitsState const& units_state, GenericUnitId id );
 
 // This will return true for a unit if it is owned by the map or
 // if its owner is on the map.

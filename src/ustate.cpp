@@ -214,34 +214,40 @@ vector<UnitId> euro_units_from_coord_recursive(
   return res;
 }
 
-Coord coord_for_unit_indirect_or_die(
-    UnitsState const& units_state, UnitId id ) {
+ND Coord coord_for_unit_indirect_or_die(
+    UnitsState const& units_state, GenericUnitId id ) {
   UNWRAP_CHECK( res,
                 coord_for_unit_indirect( units_state, id ) );
   return res;
 }
 
-// If this function makes recursive calls it should always call
-// the _safe variant since this function should not throw.
-maybe<Coord> coord_for_unit_indirect(
-    UnitsState const& units_state, UnitId id ) {
-  CHECK( units_state.exists( id ) );
-  UnitOwnership_t const& ownership =
-      units_state.ownership_of( id );
-  switch( ownership.to_enum() ) {
-    case UnitOwnership::e::world: {
-      auto& [coord] = ownership.get<UnitOwnership::world>();
-      return coord;
+maybe<Coord> coord_for_unit_indirect( UnitsState const& units,
+                                      GenericUnitId     id ) {
+  switch( units.unit_kind( id ) ) {
+    case e_unit_kind::euro: {
+      CHECK( units.exists( id ) );
+      UnitOwnership_t const& ownership =
+          units.ownership_of( units.check_euro_unit( id ) );
+      switch( ownership.to_enum() ) {
+        case UnitOwnership::e::world: {
+          auto& [coord] = ownership.get<UnitOwnership::world>();
+          return coord;
+        }
+        case UnitOwnership::e::cargo: {
+          auto& [holder] = ownership.get<UnitOwnership::cargo>();
+          return coord_for_unit_indirect( units, holder );
+        }
+        case UnitOwnership::e::free:
+        case UnitOwnership::e::harbor:
+        case UnitOwnership::e::colony: //
+          return nothing;
+      };
     }
-    case UnitOwnership::e::cargo: {
-      auto& [holder] = ownership.get<UnitOwnership::cargo>();
-      return coord_for_unit_indirect( units_state, holder );
+    case e_unit_kind::native: {
+      return units.maybe_coord_for(
+          units.check_native_unit( id ) );
     }
-    case UnitOwnership::e::free:
-    case UnitOwnership::e::harbor:
-    case UnitOwnership::e::colony: //
-      return nothing;
-  };
+  }
 }
 
 bool is_unit_on_map_indirect( UnitsState const& units_state,
