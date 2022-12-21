@@ -24,6 +24,7 @@ include "cdr/ext-std.hpp"
 
 # gfx
 include "gfx/cartesian.hpp"
+include "gfx/coord.hpp"
 include "gfx/pixel.hpp"
 
 # refl
@@ -72,9 +73,12 @@ enum.e_scout_type {
 namespace "rn.config.natives"
 
 struct.UnitType {
+  name 'std::string',
   movement_points 'int',
   combat 'int',
   tile 'e_tile',
+  nat_icon_front 'bool',
+  nat_icon_position 'e_direction',
 }
 
 struct.DwellingType {

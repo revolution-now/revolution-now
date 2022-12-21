@@ -1,26 +1,38 @@
 unit_types {
   brave {
-    movement_points: 1
-    combat:          1
-    tile:            brave
+    name:              Brave
+    movement_points:   1
+    combat:            1
+    tile:              brave
+    nat_icon_front:    false
+    nat_icon_position: se
   }
 
   armed_brave {
-    movement_points: 1
-    combat:          2
-    tile:            armed_brave
+    name:              Armed Brave
+    movement_points:   1
+    combat:            2
+    tile:              armed_brave
+    nat_icon_front:    false
+    nat_icon_position: se
   }
 
   mounted_brave {
-    movement_points: 4
-    combat:          2
-    tile:            mounted_brave
+    name:              Mounted Brave
+    movement_points:   4
+    combat:            2
+    tile:              mounted_brave
+    nat_icon_front:    false
+    nat_icon_position: se
   }
 
   mounted_warrior {
-    movement_points: 4
-    combat:          3
-    tile:            mounted_warrior
+    name:              Mounted Warrior
+    movement_points:   4
+    combat:            3
+    tile:              mounted_warrior
+    nat_icon_front:    false
+    nat_icon_position: se
   }
 }
 
