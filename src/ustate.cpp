@@ -31,6 +31,7 @@
 // ss
 #include "ss/colonies.hpp"
 #include "ss/dwelling.rds.hpp"
+#include "ss/native-unit.hpp"
 #include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.hpp"
@@ -318,6 +319,17 @@ LUA_FN( create_unit_on_map, Unit&, e_nation nation,
       ss, ts, *player, comp, coord );
   lg.info( "created a {} on square {}.",
            unit_attr( comp.type() ).name, coord );
+  return ss.units.unit_for( id );
+}
+
+LUA_FN( create_native_unit_on_map, NativeUnit&,
+        DwellingId dwelling_id, e_native_unit_type type,
+        Coord coord ) {
+  SS& ss = st["SS"].as<SS&>();
+
+  NativeUnitId const id = create_unit_on_map_non_interactive(
+      ss, type, coord, dwelling_id );
+  lg.info( "created a {} on square {}.", type, coord );
   return ss.units.unit_for( id );
 }
 

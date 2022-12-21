@@ -255,6 +255,16 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "ustate.create";
+  out = { "ustate.create_" };
+  REQUIRE_THAT( ac_i( in ), Equals( out ) );
+
+  in  = "ustate.create_";
+  out = { "ustate.create_native_unit_on_map",
+          "ustate.create_unit_in_cargo",
+          "ustate.create_unit_on_map" };
+  REQUIRE_THAT( ac_i( in ), Equals( out ) );
+
+  in  = "ustate.create_u";
   out = { "ustate.create_unit_" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
