@@ -1,33 +1,30 @@
 [submodule "extern/base-util"]
 	path = extern/base-util
-	url = ../../dpacbach/base-util.git
+	url = ../base-util.git
 [submodule "extern/fmt"]
 	path = extern/fmt
 	url = https://github.com/fmtlib/fmt.git
 [submodule "extern/backward-cpp"]
 	path = extern/backward-cpp
-	url = ../../dpacbach/backward-cpp.git
-[submodule "extern/type_safe"]
-	path = extern/type_safe
-	url = https://github.com/foonathan/type_safe.git
+	url = ../backward-cpp.git
 [submodule "assets/art"]
 	path = assets/art
-	url = ../../dpacbach/rn-art.git
+	url = ../rn-art.git
 [submodule "extern/midifile"]
 	path = extern/midifile
-	url = ../../dpacbach/midifile.git
+	url = ../midifile.git
 [submodule "extern/rtmidi"]
 	path = extern/rtmidi
-	url = ../../dpacbach/rtmidi
+	url = ../rtmidi
 [submodule "assets/music"]
 	path = assets/music
-	url = ../../dpacbach/rn-music.git
+	url = ../rn-music.git
 [submodule "extern/rg-2-midi"]
 	path = extern/rg-2-midi
-	url = ../../dpacbach/rg-2-midi
+	url = ../rg-2-midi
 [submodule "extern/Catch2"]
 	path = extern/Catch2
 	url = ../Catch2.git
 [submodule "extern/stb"]
 	path = extern/stb
-	url = ../../dpacbach/stb
+	url = ../stb
