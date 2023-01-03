@@ -284,6 +284,14 @@ bool can_unit_found( UnitType ut ) {
   }
 }
 
+maybe<e_scout_type> scout_type( e_unit_type type ) {
+  if( type == e_unit_type::scout )
+    return e_scout_type::non_seasoned;
+  if( type == e_unit_type::seasoned_scout )
+    return e_scout_type::seasoned;
+  return nothing;
+}
+
 std::unordered_set<e_unit_type_modifier> const&
 UnitType::unit_type_modifiers() {
   UNWRAP_CHECK( res, unit_type_modifiers_for_path( o_.base_type,

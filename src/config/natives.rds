@@ -16,6 +16,7 @@ include "tile-enum.rds.hpp"
 include "ss/colony-enums.rds.hpp"
 include "ss/native-enums.rds.hpp"
 include "ss/settings.rds.hpp"
+include "ss/unit-type.rds.hpp"
 
 # cdr.
 include "cdr/ext-base.hpp"
@@ -62,12 +63,6 @@ enum.e_speak_with_chief_result {
   gift_money,
   tales_of_nearby_lands,
   promotion,
-}
-
-# May want to move this in the future.
-enum.e_scout_type {
-  non_seasoned,
-  seasoned,
 }
 
 namespace "rn.config.natives"
