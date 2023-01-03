@@ -160,8 +160,8 @@ e_tribe tribe_for_unit( SSConst const&    ss,
 // ownership, cargo ownership (where holder is on map), colony
 // ownership.
 maybe<Coord> coord_for_unit_multi_ownership( SSConst const& ss,
-                                             UnitId         id );
+                                             GenericUnitId  id );
 Coord coord_for_unit_multi_ownership_or_die( SSConst const& ss,
-                                             UnitId         id );
+                                             GenericUnitId  id );
 
 } // namespace rn
