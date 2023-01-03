@@ -288,18 +288,20 @@ e_tribe tribe_for_unit( SSConst const&    ss,
 ** Multi
 *****************************************************************/
 maybe<Coord> coord_for_unit_multi_ownership( SSConst const& ss,
-                                             UnitId id ) {
+                                             GenericUnitId id ) {
   if( auto maybe_map = coord_for_unit_indirect( ss.units, id );
       maybe_map )
     return maybe_map;
-  if( auto maybe_colony =
-          colony_for_unit_who_is_worker( ss.units, id ) )
-    return ss.colonies.colony_for( *maybe_colony ).location;
+  if( ss.units.unit_kind( id ) == e_unit_kind::euro ) {
+    if( auto maybe_colony = colony_for_unit_who_is_worker(
+            ss.units, ss.units.check_euro_unit( id ) ) )
+      return ss.colonies.colony_for( *maybe_colony ).location;
+  }
   return nothing;
 }
 
 Coord coord_for_unit_multi_ownership_or_die( SSConst const& ss,
-                                             UnitId id ) {
+                                             GenericUnitId id ) {
   UNWRAP_CHECK( res, coord_for_unit_multi_ownership( ss, id ) );
   return res;
 }

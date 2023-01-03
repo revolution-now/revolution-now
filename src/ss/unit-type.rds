@@ -131,6 +131,13 @@ enum.e_unit_inventory {
   tools,
 }
 
+# This is not needed for serialized state at the moment, but
+# there doesn't seem to be a good place for it at the moment.
+enum.e_scout_type {
+  non_seasoned,
+  seasoned,
+}
+
 namespace "rn.wrapped"
 
 # Note that this struct needs to maintain an invariant, namely

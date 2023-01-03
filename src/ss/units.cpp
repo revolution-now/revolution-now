@@ -377,6 +377,22 @@ Coord UnitsState::coord_for( NativeUnitId id ) const {
   return coord;
 }
 
+maybe<Coord> UnitsState::maybe_coord_for(
+    GenericUnitId id ) const {
+  switch( unit_kind( id ) ) {
+    case e_unit_kind::euro:
+      return maybe_coord_for( check_euro_unit( id ) );
+    case e_unit_kind::native:
+      return maybe_coord_for( check_native_unit( id ) );
+  }
+}
+
+Coord UnitsState::coord_for( GenericUnitId id ) const {
+  UNWRAP_CHECK_MSG( coord, maybe_coord_for( id ),
+                    "unit is not on map." );
+  return coord;
+}
+
 maybe<UnitId> UnitsState::maybe_holder_of( UnitId id ) const {
   switch( auto& o = ownership_of( id ); o.to_enum() ) {
     case UnitOwnership::e::cargo:

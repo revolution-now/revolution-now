@@ -38,6 +38,7 @@
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/tribe.rds.hpp"
+#include "ss/unit-type.hpp"
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
 
@@ -248,14 +249,6 @@ string const& reaction_str(
       return msg;
     }
   }
-}
-
-maybe<e_scout_type> scout_type( e_unit_type type ) {
-  if( type == e_unit_type::scout )
-    return e_scout_type::non_seasoned;
-  if( type == e_unit_type::seasoned_scout )
-    return e_scout_type::seasoned;
-  return nothing;
 }
 
 } // namespace

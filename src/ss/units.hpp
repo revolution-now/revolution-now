@@ -97,6 +97,8 @@ struct UnitsState {
   Coord        coord_for( UnitId id ) const;
   maybe<Coord> maybe_coord_for( NativeUnitId id ) const;
   Coord        coord_for( NativeUnitId id ) const;
+  maybe<Coord> maybe_coord_for( GenericUnitId id ) const;
+  Coord        coord_for( GenericUnitId id ) const;
 
   maybe<UnitId> maybe_holder_of( UnitId id ) const;
   UnitId        holder_of( UnitId id ) const;

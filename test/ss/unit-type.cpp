@@ -823,5 +823,14 @@ TEST_CASE( "[unit-type] movement_points" ) {
            MvPoints( 5 ) );
 }
 
+TEST_CASE( "[unit-type] scout_type" ) {
+  REQUIRE( scout_type( e_unit_type::free_colonist ) == nothing );
+  REQUIRE( scout_type( e_unit_type::scout ) ==
+           e_scout_type::non_seasoned );
+  REQUIRE( scout_type( e_unit_type::seasoned_scout ) ==
+           e_scout_type::seasoned );
+  REQUIRE( scout_type( e_unit_type::dragoon ) == nothing );
+}
+
 } // namespace
 } // namespace rn
