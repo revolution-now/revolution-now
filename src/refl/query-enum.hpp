@@ -65,4 +65,47 @@ constexpr base::maybe<E> enum_from_string(
   return res;
 }
 
+// Take an enum value of one enum and try to produce the corre-
+// sponding value (i.e., the one with the same name) in a dif-
+// ferent enum type, if such a value exists.
+template<typename EnumTo, typename EnumFrom>
+constexpr base::maybe<EnumTo> enum_value_as( EnumFrom value ) {
+  return refl::enum_from_string<EnumTo>(
+      refl::enum_value_name( value ) );
+}
+
+// Enums in C++ don't support inheritance, and so the way we do
+// it is just by replicating "base" enum members in a "derived"
+// enum, like so:
+//
+//   enum class e_base {
+//     red,
+//     blue
+//   };
+//
+//   enum class e_derived {
+//     // base.
+//     red,
+//     blue,
+//     // derived.
+//     green,
+//     yellow
+//   };
+//
+// This helper will then allow us to enforce that the "derived"
+// enum is in fact so:
+//
+// static_assert( refl::enum_derives_from<e_base, e_derived>() );
+//
+template<typename BaseEnum, typename DerivedEnum>
+constexpr bool enum_derives_from() {
+  for( auto e : refl::enum_values<BaseEnum> ) {
+    std::string_view const name = refl::enum_value_name( e );
+    if( !refl::enum_from_string<DerivedEnum>( name )
+             .has_value() )
+      return false;
+  }
+  return true;
+}
+
 } // namespace refl

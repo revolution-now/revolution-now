@@ -296,7 +296,7 @@ TEST_CASE( "[rds] Rds File Golden Comparison" ) {
   REQUIRE( golden.has_value() );
   fs::path root      = base::build_output_root();
   auto     generated = base::read_text_file_as_string(
-          root / "test" / "rds" / "testing.rds.hpp" );
+      root / "test" / "rds" / "testing.rds.hpp" );
   REQUIRE( generated.has_value() );
   // Do this comparison outside of the REQUIRE macro so that
   // Catch2 doesn't try to print the values when they are not
@@ -420,6 +420,14 @@ TEST_CASE( "[rds] enums" ) {
                  nothing );
   static_assert( refl::enum_from_string<e_color>( "green" ) ==
                  e_color::green );
+
+  // base/derived.
+  static_assert( refl::enum_value_as<e_count_short>(
+                     e_count::two ) == e_count_short::two );
+  static_assert(
+      refl::enum_derives_from<e_count_short, e_count>() );
+  static_assert(
+      !refl::enum_derives_from<e_count, e_count_short>() );
 }
 
 TEST_CASE( "[rds] structs" ) {

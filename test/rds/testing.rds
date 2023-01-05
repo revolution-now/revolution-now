@@ -182,6 +182,12 @@ enum.e_hand {
   right,
 }
 
+enum.e_count_short {
+  one,
+  two,
+  three,
+}
+
 enum.e_count {
   one,
   two,
