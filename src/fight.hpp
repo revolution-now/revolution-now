@@ -15,6 +15,7 @@
 namespace rn {
 
 struct IRand;
+struct NativeUnit;
 struct Unit;
 
 struct FightStatistics {
@@ -24,5 +25,9 @@ struct FightStatistics {
 FightStatistics fight_statistics( IRand&      rand,
                                   Unit const& attacker,
                                   Unit const& defender );
+
+FightStatistics fight_statistics( IRand&            rand,
+                                  Unit const&       attacker,
+                                  NativeUnit const& defender );
 
 } // namespace rn

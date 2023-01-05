@@ -14,7 +14,11 @@
 #include "irand.hpp"
 #include "logger.hpp"
 
+// config
+#include "config/natives.hpp"
+
 // ss
+#include "ss/native-unit.rds.hpp"
 #include "ss/unit.hpp"
 
 // config
@@ -22,7 +26,7 @@
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
 
 // TODO: see doc/col1-fighting.txt for links that explain how the
 // original game computes the bonuses.
@@ -35,18 +39,36 @@ namespace {} // namespace
 //
 // TODO: need to take into account George Washington here who
 // makes winners upgrade with 100% probability.
-FightStatistics fight_statistics( IRand&      rand,
-                                  Unit const& attacker,
-                                  Unit const& defender ) {
-  auto attack_points = attacker.desc().attack_points;
-  auto defend_points = defender.desc().defense_points;
+FightStatistics fight_statistics_impl( IRand& rand,
+                                       int    attack_points,
+                                       int    defense_points ) {
   auto winning_probability =
       double( attack_points ) /
-      double( attack_points + defend_points );
+      double( attack_points + defense_points );
   CHECK( attack_points > 0 );
   CHECK( winning_probability <= 1.0 );
   lg.info( "winning probability: {}", winning_probability );
   return { rand.bernoulli( winning_probability ) };
+}
+
+} // namespace
+
+FightStatistics fight_statistics( IRand&      rand,
+                                  Unit const& attacker,
+                                  Unit const& defender ) {
+  int const attack_points  = attacker.desc().attack_points;
+  int const defense_points = defender.desc().defense_points;
+  return fight_statistics_impl( rand, attack_points,
+                                defense_points );
+}
+
+FightStatistics fight_statistics( IRand&            rand,
+                                  Unit const&       attacker,
+                                  NativeUnit const& defender ) {
+  int const attack_points  = attacker.desc().attack_points;
+  int const defense_points = unit_attr( defender.type ).combat;
+  return fight_statistics_impl( rand, attack_points,
+                                defense_points );
 }
 
 } // namespace rn
