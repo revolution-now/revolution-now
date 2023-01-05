@@ -954,11 +954,87 @@ wait<> TravelHandler::perform() {
 }
 
 /****************************************************************
-** AttackHandler
+** General Attacking
 *****************************************************************/
-struct AttackHandler : public OrdersHandler {
-  AttackHandler( Planes& planes, SS& ss, TS& ts, UnitId unit_id_,
-                 e_direction d, Player& player )
+namespace {
+
+// These are possible results of an attack that are common to the
+// two cases of attacking a euro unit and a native unit. Because
+// they must be cases that are common to both, it follows that
+// they can only be cases that result in the move being cancelled
+// and/or not allowed.
+enum class e_attack_verdict_base {
+  cancelled,
+  unit_cannot_attack,
+  ship_attack_land_unit,
+  attack_from_ship
+};
+
+wait<> display_base_verdict_msg(
+    IGui& gui, e_attack_verdict_base verdict ) {
+  switch( verdict ) {
+    case e_attack_verdict_base::cancelled: //
+      break;
+    // Non-allowed (would break game rules).
+    case e_attack_verdict_base::ship_attack_land_unit:
+      co_await gui.message_box(
+          "Ships cannot attack land units." );
+      break;
+    case e_attack_verdict_base::unit_cannot_attack:
+      co_await gui.message_box( "This unit cannot attack." );
+      break;
+    case e_attack_verdict_base::attack_from_ship:
+      co_await gui.message_box(
+          "We cannot attack a land unit from a ship." );
+      break;
+  }
+}
+
+// This is for checking for no-go conditions that apply to both
+// attacking a euro unit and attacking native units.
+wait<maybe<e_attack_verdict_base>> check_attack_verdict_base(
+    SSConst const& ss, TS& ts, Unit const& attacker,
+    e_direction d ) {
+  Coord const source = ss.units.coord_for( attacker.id() );
+  Coord const target = source.moved( d );
+
+  if( is_unit_onboard( ss.units, attacker.id() ) )
+    co_return e_attack_verdict_base::attack_from_ship;
+
+  if( !can_attack( attacker.type() ) )
+    co_return e_attack_verdict_base::unit_cannot_attack;
+
+  if( attacker.desc().ship ) {
+    // Ship-specific checks.
+    if( ss.terrain.is_land( target ) )
+      co_return e_attack_verdict_base::ship_attack_land_unit;
+  }
+
+  if( attacker.movement_points() < 1 ) {
+    if( co_await ts.gui.optional_yes_no(
+            { .msg = fmt::format(
+                  "This unit only has @[H]{}@[] movement points "
+                  "and so will not be fighting at full "
+                  "strength.  Continue?",
+                  attacker.movement_points() ),
+              .yes_label =
+                  "Yes, let us proceed with full force!",
+              .no_label = "No, do not attack." } ) !=
+        ui::e_confirm::yes )
+      co_return e_attack_verdict_base::cancelled;
+  }
+  co_return nothing;
+}
+
+} // namespace
+
+/****************************************************************
+** EuroAttackHandler
+*****************************************************************/
+struct EuroAttackHandler : public OrdersHandler {
+  EuroAttackHandler( Planes& planes, SS& ss, TS& ts,
+                     UnitId unit_id_, e_direction d,
+                     Player& player )
     : planes_( planes ),
       ss_( ss ),
       ts_( ts ),
@@ -966,49 +1042,54 @@ struct AttackHandler : public OrdersHandler {
       direction( d ),
       player_( player ) {}
 
-  enum class e_attack_verdict {
-    cancelled,
-    // Allowed moves
+  // For when attacking a euro unit. These are in addition to the
+  // ones listed in the e_attack_verdict_base enum.
+  enum class [[nodiscard]] e_euro_attack_verdict {
+    // Non-allowed (errors).
+    land_unit_attack_ship,
+
+    // Allowed moves.
     colony_undefended,
     colony_defended,
-    eu_land_unit,
+    attacking_euro_unit,
     ship_on_ship,
-    // Non-allowed (errors)
-    land_unit_attack_ship,
-    ship_attack_land_unit,
-    unit_cannot_attack,
-    attack_from_ship,
     land_unit_attack_ship_on_land,
   };
 
+  using EuroAttackVerdict = base::variant<e_attack_verdict_base,
+                                          e_euro_attack_verdict>;
+
   wait<bool> confirm() override {
+    if( maybe<e_attack_verdict_base> const verdict =
+            co_await check_attack_verdict_base(
+                ss_, ts_, ss_.units.unit_for( unit_id ),
+                direction );
+        verdict.has_value() ) {
+      co_await display_base_verdict_msg( ts_.gui, *verdict );
+      co_return false;
+    }
+
     verdict = co_await confirm_attack_impl();
 
-    switch( verdict ) {
-      case e_attack_verdict::cancelled: co_return false;
-      // Non-allowed (errors)
-      case e_attack_verdict::land_unit_attack_ship:
+    if( verdict.holds<e_attack_verdict_base>() ) {
+      co_await display_base_verdict_msg(
+          ts_.gui, verdict.get<e_attack_verdict_base>() );
+      co_return false;
+    }
+
+    CHECK( verdict.holds<e_euro_attack_verdict>() );
+    switch( verdict.get<e_euro_attack_verdict>() ) {
+      // Non-allowed (would break game rules).
+      case e_euro_attack_verdict::land_unit_attack_ship:
         co_await ts_.gui.message_box(
             "Land units cannot attack ships that are at sea." );
         co_return false;
-      case e_attack_verdict::ship_attack_land_unit:
-        co_await ts_.gui.message_box(
-            "Ships cannot attack land units." );
-        co_return false;
-      case e_attack_verdict::unit_cannot_attack:
-        co_await ts_.gui.message_box(
-            "This unit cannot attack." );
-        co_return false;
-      case e_attack_verdict::attack_from_ship:
-        co_await ts_.gui.message_box(
-            "Cannot attack from a ship." );
-        co_return false;
-      // Allowed moves
-      case e_attack_verdict::colony_undefended:
-      case e_attack_verdict::colony_defended:
-      case e_attack_verdict::eu_land_unit:
-      case e_attack_verdict::land_unit_attack_ship_on_land:
-      case e_attack_verdict::ship_on_ship: //
+      // Allowed moves.
+      case e_euro_attack_verdict::colony_undefended:
+      case e_euro_attack_verdict::colony_defended:
+      case e_euro_attack_verdict::attacking_euro_unit:
+      case e_euro_attack_verdict::land_unit_attack_ship_on_land:
+      case e_euro_attack_verdict::ship_on_ship: //
         break;
     }
 
@@ -1024,7 +1105,9 @@ struct AttackHandler : public OrdersHandler {
   }
 
   wait<> animate() const override {
-    if( verdict == e_attack_verdict::colony_undefended &&
+    if( verdict ==
+            EuroAttackVerdict{
+                e_euro_attack_verdict::colony_undefended } &&
         fight_stats->attacker_wins ) {
       UNWRAP_CHECK( colony_id, ss_.colonies.maybe_from_coord(
                                    attack_dst ) );
@@ -1048,7 +1131,9 @@ struct AttackHandler : public OrdersHandler {
     // they were destroyed as part of this action, e.g. a ship
     // losing a battle.
 
-    if( verdict == e_attack_verdict::colony_undefended &&
+    if( verdict ==
+            EuroAttackVerdict{
+                e_euro_attack_verdict::colony_undefended } &&
         fight_stats->attacker_wins ) {
       conductor::play_request(
           ts_.rand, conductor::e_request::fife_drum_happy,
@@ -1072,7 +1157,7 @@ struct AttackHandler : public OrdersHandler {
     }
   }
 
-  wait<e_attack_verdict> confirm_attack_impl();
+  wait<EuroAttackVerdict> confirm_attack_impl();
 
   Planes& planes_;
   SS&     ss_;
@@ -1093,7 +1178,7 @@ struct AttackHandler : public OrdersHandler {
   // out. This can also serve as a binary indicator of whether
   // the move is possible by checking the type held, as the can_-
   // move() function does as a convenience.
-  e_attack_verdict verdict{};
+  EuroAttackVerdict verdict{};
 
   // Unit being attacked.
   maybe<UnitId> target_unit{};
@@ -1106,34 +1191,14 @@ struct AttackHandler : public OrdersHandler {
   Player& player_;
 };
 
-wait<AttackHandler::e_attack_verdict>
-AttackHandler::confirm_attack_impl() {
+wait<EuroAttackHandler::EuroAttackVerdict>
+EuroAttackHandler::confirm_attack_impl() {
   auto id    = unit_id;
   attack_src = coord_for_unit_indirect_or_die( ss_.units, id );
   attack_dst = attack_src.moved( direction );
 
   auto& unit = ss_.units.unit_for( id );
   CHECK( !unit.mv_pts_exhausted() );
-
-  if( is_unit_onboard( ss_.units, id ) )
-    co_return e_attack_verdict::attack_from_ship;
-
-  if( !can_attack( unit.type() ) )
-    co_return e_attack_verdict::unit_cannot_attack;
-
-  if( unit.movement_points() < 1 ) {
-    if( co_await ts_.gui.optional_yes_no(
-            { .msg = fmt::format(
-                  "This unit only has @[H]{}@[] movement points "
-                  "and so will not be fighting at full "
-                  "strength.  Continue?",
-                  unit.movement_points() ),
-              .yes_label =
-                  "Yes, let us proceed with full force!",
-              .no_label = "No, do not attack." } ) !=
-        ui::e_confirm::yes )
-      co_return e_attack_verdict::cancelled;
-  }
 
   // Make sure there is a foreign entity in the square otherwise
   // there can be no combat.
@@ -1236,17 +1301,17 @@ AttackHandler::confirm_attack_impl() {
     }
     switch( bh ) {
       case bh_t::no_attack:
-        co_return e_attack_verdict::unit_cannot_attack;
+        co_return e_attack_verdict_base::unit_cannot_attack;
       case bh_t::attack:
         target_unit = highest_defense_unit_id;
         fight_stats = run_stats();
-        co_return e_attack_verdict::eu_land_unit;
+        co_return e_euro_attack_verdict::attacking_euro_unit;
       case bh_t::no_bombard:
-        co_return e_attack_verdict::ship_attack_land_unit;
+        co_return e_attack_verdict_base::ship_attack_land_unit;
       case bh_t::bombard:
         target_unit = highest_defense_unit_id;
         fight_stats = run_stats();
-        co_return e_attack_verdict::eu_land_unit;
+        co_return e_euro_attack_verdict::attacking_euro_unit;
       case bh_t::attack_land_ship:
         target_unit = highest_defense_unit_id; // ship.
         CHECK( ss_.units.unit_for( *target_unit ).desc().ship );
@@ -1267,7 +1332,7 @@ AttackHandler::confirm_attack_impl() {
         fight_stats = FightStatistics{
             .attacker_wins = true,
         };
-        co_return e_attack_verdict::
+        co_return e_euro_attack_verdict::
             land_unit_attack_ship_on_land;
     }
   }
@@ -1284,7 +1349,7 @@ AttackHandler::confirm_attack_impl() {
       bh = bh_t::never;
     switch( bh ) {
       case bh_t::never:
-        co_return e_attack_verdict::unit_cannot_attack;
+        co_return e_attack_verdict_base::unit_cannot_attack;
       case bh_t::attack: {
         // TODO: Paul Revere will allow a colonist to pick up
         // stockpiled muskets. In the original game it appears
@@ -1320,19 +1385,19 @@ AttackHandler::confirm_attack_impl() {
         // to include ships in port, which then need to be sent
         // for repair to another colony or europe. Not sure if
         // this includes buildings.
-        e_attack_verdict which =
+        e_euro_attack_verdict which =
             is_military_unit(
                 ss_.units.unit_for( highest_defense_unit_id )
                     .type() )
-                ? e_attack_verdict::colony_defended
-                : e_attack_verdict::colony_undefended;
+                ? e_euro_attack_verdict::colony_defended
+                : e_euro_attack_verdict::colony_undefended;
         target_unit = highest_defense_unit_id;
         fight_stats = run_stats();
         co_return which;
       }
       case bh_t::trade:
         // FIXME: implement trade.
-        co_return e_attack_verdict::unit_cannot_attack;
+        co_return e_attack_verdict_base::unit_cannot_attack;
     }
   }
   // We are entering a water square containing a foreign unit.
@@ -1347,24 +1412,26 @@ AttackHandler::confirm_attack_impl() {
                                      : bh_t::no_attack;
     switch( bh ) {
       case bh_t::no_attack:
-        co_return e_attack_verdict::unit_cannot_attack;
+        co_return e_attack_verdict_base::unit_cannot_attack;
       case bh_t::attack:
         target_unit = highest_defense_unit_id;
         fight_stats = run_stats();
-        co_return e_attack_verdict::ship_on_ship;
+        co_return e_euro_attack_verdict::ship_on_ship;
       case bh_t::no_bombard:;
-        co_return e_attack_verdict::land_unit_attack_ship;
+        co_await ts_.gui.message_box(
+            "Land units cannot attack ships that are at sea." );
+        co_return e_euro_attack_verdict::land_unit_attack_ship;
       case bh_t::bombard:;
         target_unit = highest_defense_unit_id;
         fight_stats = run_stats();
-        co_return e_attack_verdict::ship_on_ship;
+        co_return e_euro_attack_verdict::ship_on_ship;
     }
   }
 
   SHOULD_NOT_BE_HERE;
 }
 
-wait<> AttackHandler::perform() {
+wait<> EuroAttackHandler::perform() {
   auto  id   = unit_id;
   auto& unit = ss_.units.unit_for( id );
 
@@ -1383,15 +1450,11 @@ wait<> AttackHandler::perform() {
   // unit when attacking.
   attacker.forfeight_mv_points();
 
-  switch( verdict ) {
-    // Non-allowed (errors)
-    case e_attack_verdict::cancelled:
-    case e_attack_verdict::land_unit_attack_ship:
-    case e_attack_verdict::ship_attack_land_unit:
-    case e_attack_verdict::unit_cannot_attack:
-    case e_attack_verdict::attack_from_ship: //
+  CHECK( verdict.holds<e_euro_attack_verdict>() );
+  switch( verdict.get<e_euro_attack_verdict>() ) {
+    case e_euro_attack_verdict::land_unit_attack_ship:
       SHOULD_NOT_BE_HERE;
-    case e_attack_verdict::colony_undefended: {
+    case e_euro_attack_verdict::colony_undefended: {
       if( !fight_stats->attacker_wins )
         // break since in this case the attacker lost, so nothing
         // special happens; we just do what we normally do when
@@ -1418,10 +1481,10 @@ wait<> AttackHandler::perform() {
                ss_.colonies.colony_for( colony_id ).name );
       co_return;
     }
-    case e_attack_verdict::colony_defended:
-    case e_attack_verdict::eu_land_unit:
-    case e_attack_verdict::land_unit_attack_ship_on_land:
-    case e_attack_verdict::ship_on_ship: //
+    case e_euro_attack_verdict::colony_defended:
+    case e_euro_attack_verdict::attacking_euro_unit:
+    case e_euro_attack_verdict::land_unit_attack_ship_on_land:
+    case e_euro_attack_verdict::ship_on_ship: //
       break;
   }
 
@@ -1558,12 +1621,7 @@ struct NativeDwellingHandler : public OrdersHandler {
     co_return true;
   }
 
-  wait<> animate() const override {
-    // TODO: May add some animation in the future for:
-    //   1. Tales of nearby lands.
-    //   2. Colonist learning skill.
-    co_return;
-  }
+  wait<> animate() const override { co_return; }
 
   wait<> perform() override {
     // The OG will always drain the movement points of the unit
@@ -1685,27 +1743,27 @@ unique_ptr<OrdersHandler> dispatch( Planes& planes, SS& ss,
                                        d, player );
 
   if( society->holds<Society::native>() ) {
-    // First check if we are attacking a brave. We need to do
-    // this first because it is sometimes possible that the
-    // "walker" braves might be sitting over a dwelling, in which
-    // case the attack should first go to them as if they were
-    // out in the open.
-    unordered_set<GenericUnitId> const& braves =
-        ss.units.from_coord( dst );
-    if( !braves.empty() )
-      return make_unique<AttackHandler>( planes, ss, ts, unit_id,
-                                         d, player );
-    // Must be a dwelling.
-    DwellingId const dwelling_id =
-        ss.natives.dwelling_from_coord( dst );
-    return make_unique<NativeDwellingHandler>(
-        planes, ss, ts, player, unit_id, d,
-        ss.natives.dwelling_for( dwelling_id ) );
+    maybe<DwellingId> const dwelling_id =
+        ss.natives.maybe_dwelling_from_coord( dst );
+
+    // First, if there is a dwelling on the tile then allow the
+    // unit to enter the dwelling regardless of whether there is
+    // a brave on the tile or not.
+    if( dwelling_id.has_value() )
+      return make_unique<NativeDwellingHandler>(
+          planes, ss, ts, player, unit_id, d,
+          ss.natives.dwelling_for( *dwelling_id ) );
+
+    // Must be attacking a brave.
+    CHECK( !ss.units.from_coord( dst ).empty() );
+    return make_unique<EuroAttackHandler>( planes, ss, ts,
+                                           unit_id, d, player );
   }
 
-  // Must be an attack (or an attempted attack).
-  return make_unique<AttackHandler>( planes, ss, ts, unit_id, d,
-                                     player );
+  // Must be an attack (or an attempted attack) on a foreign eu-
+  // ropean unit.
+  return make_unique<EuroAttackHandler>( planes, ss, ts, unit_id,
+                                         d, player );
 }
 
 } // namespace
