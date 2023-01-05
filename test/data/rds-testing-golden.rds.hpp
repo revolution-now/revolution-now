@@ -1200,6 +1200,39 @@ namespace refl {
 } // namespace refl
 
 /****************************************************************
+*                      Enum: e_count_short
+*****************************************************************/
+namespace rn {
+
+  enum class e_count_short {
+    one,
+    two,
+    three
+  };
+
+} // namespace rn
+
+namespace refl {
+
+  // Reflection info for enum e_count_short.
+  template<>
+  struct traits<rn::e_count_short> {
+    using type = rn::e_count_short;
+
+    static constexpr type_kind kind        = type_kind::enum_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "e_count_short";
+
+    static constexpr std::array<std::string_view, 3> value_names{
+      "one",
+      "two",
+      "three",
+    };
+  };
+
+} // namespace refl
+
+/****************************************************************
 *                         Enum: e_count
 *****************************************************************/
 namespace rn {
