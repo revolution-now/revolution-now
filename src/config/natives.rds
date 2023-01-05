@@ -68,6 +68,7 @@ enum.e_speak_with_chief_result {
 namespace "rn.config.natives"
 
 struct.UnitType {
+  type 'e_native_unit_type',
   name 'std::string',
   movement_points 'int',
   combat 'int',
