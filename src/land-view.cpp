@@ -1717,7 +1717,7 @@ struct LandViewPlane::Impl : public Plane {
     co_await viewport().center_on_tile_smooth( coord );
   }
 
-  wait<> ensure_visible_unit( UnitId id ) {
+  wait<> ensure_visible_unit( GenericUnitId id ) {
     // Need multi-ownership variant because sometimes the unit in
     // question is a worker in a colony, as can happen if we are
     // attacking an undefended colony.

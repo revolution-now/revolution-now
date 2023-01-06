@@ -50,7 +50,7 @@ struct ILandViewPlane {
   // world edge then it won't end up centered.
   virtual wait<> center_on_tile( Coord coord ) = 0;
 
-  virtual wait<> ensure_visible_unit( UnitId id ) = 0;
+  virtual wait<> ensure_visible_unit( GenericUnitId id ) = 0;
 
   virtual wait<LandViewPlayerInput_t> get_next_input(
       UnitId id ) = 0;
@@ -111,7 +111,7 @@ struct LandViewPlane : ILandViewPlane {
 
   wait<> ensure_visible( Coord const& coord ) override;
   wait<> center_on_tile( Coord coord ) override;
-  wait<> ensure_visible_unit( UnitId id ) override;
+  wait<> ensure_visible_unit( GenericUnitId id ) override;
 
   wait<LandViewPlayerInput_t> get_next_input(
       UnitId id ) override;
