@@ -1950,7 +1950,7 @@ void LandViewPlane::set_visibility( maybe<e_nation> nation ) {
   return impl_->set_visibility( nation );
 }
 
-wait<> LandViewPlane::ensure_visible_unit( UnitId id ) {
+wait<> LandViewPlane::ensure_visible_unit( GenericUnitId id ) {
   return impl_->ensure_visible_unit( id );
 }
 
