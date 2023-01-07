@@ -37,7 +37,7 @@ end
 -----------------------------------------------------------------
 local function set_default_settings( options, settings )
   settings.difficulty = options.difficulty
-  settings.fast_piece_slide = true
+  settings.fast_piece_slide = false
 end
 
 -----------------------------------------------------------------
