@@ -1267,13 +1267,11 @@ FakeUnitView::FakeUnitView( e_unit_type type, e_nation nation,
 void FakeUnitView::draw( rr::Renderer& renderer,
                          Coord         coord ) const {
   if( !unit_attr( type_ ).nat_icon_front ) {
-    render_nationality_icon( renderer, coord, type_, nation_,
-                             orders_ );
+    render_unit_flag( renderer, coord, type_, nation_, orders_ );
     this->CompositeSingleView::draw( renderer, coord );
   } else {
     this->CompositeSingleView::draw( renderer, coord );
-    render_nationality_icon( renderer, coord, type_, nation_,
-                             orders_ );
+    render_unit_flag( renderer, coord, type_, nation_, orders_ );
   }
 }
 

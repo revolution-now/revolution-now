@@ -402,7 +402,7 @@ class MarketCommodities
                .type = type, .quantity = quantity } },
         .bounds = Rect::from(
             box_upper_left + rendered_commodity_offset(),
-            Delta{ .w = 1, .h = 1 }* kCommodityTileSize ) };
+            Delta{ .w = 1, .h = 1 } * kCommodityTileSize ) };
   }
 
   bool try_drag( ColViewObject_t const& o,
@@ -581,10 +581,9 @@ class CargoView : public ui::View,
           overload_visit(
               cargo.contents,
               [&]( Cargo::unit u ) {
-                render_unit(
-                    renderer, rect.upper_left(),
-                    ss_.units.unit_for( u.id ),
-                    UnitRenderOptions{ .flag = false } );
+                render_unit( renderer, rect.upper_left(),
+                             ss_.units.unit_for( u.id ),
+                             UnitRenderOptions{} );
               },
               [&]( Cargo::commodity const& c ) {
                 render_commodity_annotated(
@@ -957,7 +956,7 @@ class UnitsAtGateColonyView
       render_unit(
           renderer, draw_pos, ss_.units.unit_for( unit_id ),
           UnitRenderOptions{
-              .flag   = true,
+              .flag   = e_flag_count::single,
               .shadow = UnitShadow{
                   .color = config_colony.colors
                                .unit_shadow_color_light } } );
@@ -1758,7 +1757,7 @@ void colview_drag_n_drop_draw(
       [&]( unit const& o ) {
         render_unit( renderer, sprite_upper_left,
                      ss.units.unit_for( o.id ),
-                     UnitRenderOptions{ .flag = false } );
+                     UnitRenderOptions{} );
       },
       [&]( commodity const& o ) {
         render_commodity( renderer, sprite_upper_left,

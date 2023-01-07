@@ -205,7 +205,7 @@ void HarborDockUnits::draw( rr::Renderer& renderer,
       continue;
     render_unit( renderer, unit_coord,
                  ss_.units.unit_for( unit_id ),
-                 UnitRenderOptions{ .flag = false } );
+                 UnitRenderOptions{} );
   }
 }
 

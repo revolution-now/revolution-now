@@ -14,6 +14,9 @@ include "physics.hpp"
 include "unit-id.hpp"
 include "orders.rds.hpp"
 
+# config
+include "config/tile-enum.rds.hpp"
+
 # ss
 include "ss/dwelling-id.hpp"
 
@@ -27,22 +30,12 @@ sumtype.LandViewMode {
   unit_input {
     unit_id 'UnitId',
   },
-  unit_move {
-    unit_id 'UnitId',
-  },
-  unit_attack {
-    attacker 'UnitId',
-    defender 'UnitId',
-    attacker_wins 'bool',
-  },
   colony_disappearing {
     colony_id 'ColonyId',
   },
   dwelling_disappearing {
     dwelling_id 'DwellingId',
-  },
-  unit_depixelating {
-    unit_id 'UnitId',
+    brave_id 'maybe<NativeUnitId>',
   },
   hidden_terrain {},
 }
@@ -68,28 +61,37 @@ sumtype.LandViewRawInput {
 # These are animation primitives. A unit "move" is a slide, and a
 # unit attack sequence is constructed from a slide + depixela-
 # tion.
-# FIXME: change the name of this.
 sumtype.UnitAnimation {
+  # This will draw the unit in front all other units and
+  # colonies, with the exception of units that are being animated
+  # in some other way, which will always go on top.
+  front {},
   blink {
     visible 'bool',
   },
   slide {
-    target 'Coord',
+    direction 'e_direction',
     percent 'double',
     percent_vel 'DissipativeVelocity',
   },
   depixelate_unit {
     stage 'double',
     # If we're depixelating to another unit this will have a
-    # value; otherwise we are depixelating to nothing.
-    target 'maybe<e_unit_type>',
+    # value; otherwise we are depixelating to nothing. For a na-
+    # tive unit this would happen if e.g. a brave wins a battle
+    # and acquires muskets or horses.
+    target 'maybe<e_tile>',
   },
-  depixelate_colony {
-    stage 'double',
-  },
-  depixelate_dwelling {
-    stage 'double',
-  },
+}
 
-  _features { equality }
+sumtype.ColonyAnimation {
+  depixelate {
+    stage 'double',
+  },
+}
+
+sumtype.DwellingAnimation {
+  depixelate {
+    stage 'double',
+  },
 }

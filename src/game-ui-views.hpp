@@ -28,7 +28,7 @@
 
 namespace rn {
 
-struct UnitsState;
+struct SSConst;
 
 /****************************************************************
 ** UnitActivationView
@@ -39,8 +39,8 @@ class UnitActivationView final : public ui::CompositeSingleView {
 
   // Preferred way to create.
   static std::unique_ptr<UnitActivationView> Create(
-      UnitsState const&          units_state,
-      std::vector<UnitId> const& ids_, bool allow_activation );
+      SSConst const& ss, std::vector<UnitId> const& ids_,
+      bool allow_activation );
 
   UnitActivationView( bool allow_activation );
 

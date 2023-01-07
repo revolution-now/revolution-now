@@ -164,7 +164,7 @@ struct HarborPlane::Impl : public Plane {
         [&]( unit const& o ) {
           render_unit( renderer, sprite_upper_left,
                        ss_.units.unit_for( o.id ),
-                       UnitRenderOptions{ .flag = false } );
+                       UnitRenderOptions{} );
         },
         [&]( market_commodity const& o ) {
           render_commodity( renderer, sprite_upper_left,

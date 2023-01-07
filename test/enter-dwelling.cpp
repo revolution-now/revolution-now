@@ -479,8 +479,9 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
       .returns<wait<>>( make_wait<>() );
   EXPECT_CALL(
       mock_land_view,
-      animate_unit_depixelation(
-          unit.id(), e_unit_type::expert_cotton_planter ) )
+      animate_unit_depixelation( UnitWithDepixelateTarget::euro{
+          .id     = unit.id(),
+          .target = e_unit_type::expert_cotton_planter } ) )
       .returns<monostate>();
   f();
   REQUIRE( unit.type() == e_unit_type::expert_cotton_planter );
@@ -819,9 +820,12 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
     EXPECT_CALL( W.gui(),
                  message_box( StrContains( "send guides" ) ) )
         .returns<monostate>();
-    EXPECT_CALL( mock_land_view,
-                 animate_unit_depixelation(
-                     UnitId{ 1 }, e_unit_type::seasoned_scout ) )
+    EXPECT_CALL(
+        mock_land_view,
+        animate_unit_depixelation(
+            UnitWithDepixelateTarget::euro{
+                .id     = UnitId{ 1 },
+                .target = e_unit_type::seasoned_scout } ) )
         .returns<monostate>();
     EXPECT_CALL( W.gui(),
                  message_box( StrContains(
@@ -841,7 +845,9 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
         .returns<monostate>();
     EXPECT_CALL( mock_land_view,
                  animate_unit_depixelation(
-                     UnitId{ 1 }, maybe<e_unit_type>{} ) )
+                     UnitWithDepixelateTarget::euro{
+                         .id     = UnitId{ 1 },
+                         .target = maybe<e_unit_type>{} } ) )
         .returns<monostate>();
     REQUIRE( W.units().exists( UnitId{ 1 } ) );
     f();

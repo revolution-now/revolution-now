@@ -35,11 +35,18 @@
 #include "time.hpp"
 #include "ts.hpp"
 #include "unit-id.hpp"
+#include "unit-stack.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
 #include "viewport.hpp"
 #include "visibility.hpp"
 #include "window.hpp"
+
+// config
+#include "config/land-view.rds.hpp"
+#include "config/natives.hpp"
+#include "config/rn.rds.hpp"
+#include "config/unit-type.hpp"
 
 // ss
 #include "ss/colonies.hpp"
@@ -52,11 +59,6 @@
 #include "ss/turn.hpp"
 #include "ss/unit-type.hpp"
 #include "ss/units.hpp"
-
-// config
-#include "config/land-view.rds.hpp"
-#include "config/rn.rds.hpp"
-#include "config/unit-type.rds.hpp"
 
 // render
 #include "render/renderer.hpp"
@@ -187,9 +189,9 @@ struct LandViewPlane::Impl : public Plane {
 
   co::stream<RawInput>    raw_input_stream_;
   co::stream<PlayerInput> translated_input_stream_;
-  unordered_map<UnitId, UnitAnimation_t>   unit_animations_;
-  unordered_map<ColonyId, UnitAnimation_t> colony_animations_;
-  unordered_map<DwellingId, UnitAnimation_t>
+  unordered_map<GenericUnitId, UnitAnimation_t> unit_animations_;
+  unordered_map<ColonyId, ColonyAnimation_t> colony_animations_;
+  unordered_map<DwellingId, DwellingAnimation_t>
                  dwelling_animations_;
   LandViewMode_t landview_mode_ = LandViewMode::none{};
 
@@ -268,18 +270,15 @@ struct LandViewPlane::Impl : public Plane {
     advance_viewport_state();
   }
 
-  wait<> animate_depixelation( UnitId             id,
-                               maybe<e_unit_type> target ) {
+  wait<> animate_depixelation( GenericUnitId id,
+                               maybe<e_tile> target_tile ) {
     CHECK( !unit_animations_.contains( id ) );
     UnitAnimation::depixelate_unit& depixelate =
         unit_animations_[id]
             .emplace<UnitAnimation::depixelate_unit>();
-    SCOPE_EXIT( {
-      UNWRAP_CHECK( it, base::find( unit_animations_, id ) );
-      unit_animations_.erase( it );
-    } );
+    SCOPE_EXIT( unit_animations_.erase( id ) );
     depixelate.stage  = 0.0;
-    depixelate.target = target;
+    depixelate.target = target_tile;
 
     AnimThrottler throttle( kAlmostStandardFrame );
     while( depixelate.stage <= 1.0 ) {
@@ -291,14 +290,10 @@ struct LandViewPlane::Impl : public Plane {
   wait<> animate_colony_depixelation_impl(
       Colony const& colony ) {
     CHECK( !colony_animations_.contains( colony.id ) );
-    UnitAnimation::depixelate_colony& depixelate =
+    ColonyAnimation::depixelate& depixelate =
         colony_animations_[colony.id]
-            .emplace<UnitAnimation::depixelate_colony>();
-    SCOPE_EXIT( {
-      UNWRAP_CHECK(
-          it, base::find( colony_animations_, colony.id ) );
-      colony_animations_.erase( it );
-    } );
+            .emplace<ColonyAnimation::depixelate>();
+    SCOPE_EXIT( colony_animations_.erase( colony.id ) );
     depixelate.stage = 0.0;
 
     AnimThrottler throttle( kAlmostStandardFrame );
@@ -328,10 +323,7 @@ struct LandViewPlane::Impl : public Plane {
     // are going to delete the animation object for this unit,
     // which leaves them visible by default. Do this via RAII be-
     // cause this coroutine will usually be interrupted.
-    SCOPE_EXIT( {
-      UNWRAP_CHECK( it, base::find( unit_animations_, id ) );
-      unit_animations_.erase( it );
-    } );
+    SCOPE_EXIT( unit_animations_.erase( id ) );
 
     // TODO: this animation needs to be sync'd with the one in
     // the mini-map.
@@ -342,23 +334,18 @@ struct LandViewPlane::Impl : public Plane {
     }
   }
 
-  wait<> animate_slide( UnitId id, e_direction d ) {
+  wait<> animate_slide( GenericUnitId id, e_direction d ) {
     CHECK( !unit_animations_.contains( id ) );
-    Coord target =
-        coord_for_unit_indirect_or_die( ss_.units, id );
     UnitAnimation::slide& mv =
         unit_animations_[id].emplace<UnitAnimation::slide>();
-    SCOPE_EXIT( {
-      UNWRAP_CHECK( it, base::find( unit_animations_, id ) );
-      unit_animations_.erase( it );
-    } );
+    SCOPE_EXIT( unit_animations_.erase( id ) );
 
     // TODO: make this a game option.
     double const kMaxVelocity =
         ss_.settings.fast_piece_slide ? .1 : .07;
 
     mv = UnitAnimation::slide{
-        .target      = target.moved( d ),
+        .direction   = d,
         .percent     = 0.0,
         .percent_vel = DissipativeVelocity{
             /*min_velocity=*/0,            //
@@ -435,7 +422,7 @@ struct LandViewPlane::Impl : public Plane {
         selections = vector{ selection };
       } else {
         selections = co_await unit_selection_box(
-            ss_.units, planes_.window(), units, allow_activate );
+            ss_, planes_.window(), units, allow_activate );
       }
 
       vector<UnitId> prioritize;
@@ -704,6 +691,61 @@ struct LandViewPlane::Impl : public Plane {
 
   void advance_state() override { advance_viewport_state(); }
 
+  /**************************************************************
+   * Unit Rendering.
+   **************************************************************/
+  // `multiple_units` is for the case when there are multiple
+  // units on the square and we want to indicate that visually.
+  void render_single_unit( rr::Renderer& renderer, Coord where,
+                           GenericUnitId id,
+                           e_flag_count  flag_count ) const {
+    switch( ss_.units.unit_kind( id ) ) {
+      case e_unit_kind::euro: {
+        UnitId const unit_id{ to_underlying( id ) };
+        render_unit(
+            renderer, where, ss_.units.unit_for( unit_id ),
+            UnitRenderOptions{ .flag   = flag_count,
+                               .shadow = UnitShadow{} } );
+        break;
+      }
+      case e_unit_kind::native: {
+        NativeUnitId const unit_id{ to_underlying( id ) };
+        render_native_unit(
+            renderer, where, ss_, ss_.units.unit_for( unit_id ),
+            UnitRenderOptions{ .flag   = flag_count,
+                               .shadow = UnitShadow{} } );
+        break;
+      }
+    }
+  }
+
+  // `multiple_units` is for the case when there are multiple
+  // units on the square and we want to indicate that visually.
+  void render_single_unit_depixelate_to(
+      rr::Renderer& renderer, Coord where, GenericUnitId id,
+      bool multiple_units, double stage,
+      e_tile target_tile ) const {
+    e_flag_count const flag_style = multiple_units
+                                        ? e_flag_count::multiple
+                                        : e_flag_count::single;
+    switch( ss_.units.unit_kind( id ) ) {
+      case e_unit_kind::euro:
+        render_unit_depixelate_to(
+            renderer, where, ss_, ss_.units.euro_unit_for( id ),
+            target_tile, stage,
+            UnitRenderOptions{ .flag   = flag_style,
+                               .shadow = UnitShadow{} } );
+        break;
+      case e_unit_kind::native:
+        render_native_unit_depixelate_to(
+            renderer, where, ss_,
+            ss_.units.native_unit_for( id ), target_tile, stage,
+            UnitRenderOptions{ .flag   = flag_style,
+                               .shadow = UnitShadow{} } );
+        break;
+    }
+  }
+
   // Given a tile, compute the screen rect where it should be
   // rendered.
   Rect render_rect_for_tile( Rect covered, Coord tile ) const {
@@ -712,40 +754,41 @@ struct LandViewPlane::Impl : public Plane {
     return Rect::from( Coord{} + delta_in_pixels, g_tile_delta );
   }
 
-  using UnitSkipFunc = base::function_ref<bool( GenericUnitId )>;
-
   void render_units_on_square( rr::Renderer& renderer,
                                Rect covered, Coord tile,
-                               UnitSkipFunc skip ) const {
+                               bool flags ) const {
     if( !viz_.visible( tile ) ) return;
-    // TODO: When there are multiple units on a square, just
-    // render one (which one?) and then render multiple flags
-    // (stacked) to indicate that visually.
-    Coord loc =
+    unordered_set<GenericUnitId> const& units =
+        ss_.units.from_coord( tile );
+    if( units.empty() ) return;
+    vector<GenericUnitId> sorted( units.begin(), units.end() );
+    maybe<GenericUnitId> const last_unit_id =
+        last_unit_input_.member( &LastUnitInput::unit_id );
+    // Sort in decreasing order of defense, then by id, but al-
+    // ways put first the most recent unit to ask for orders.
+    // This makes for a better UX since e.g. if a unit is on a
+    // square with other units and it attempts to make an invalid
+    // move, it will remain on top while the message box pops up
+    // with the explanation.
+    sort_unit_stack( ss_, sorted, /*force_top=*/last_unit_id );
+    // Sometimes this function will be called to render the stack
+    // of units under a unit that is being animated in some way;
+    // either way, skip those animated units.
+    erase_if( sorted, [this]( GenericUnitId id ) {
+      return unit_animations_.contains( id );
+    } );
+    if( sorted.empty() ) return;
+    GenericUnitId const max_defense = sorted[0];
+
+    Coord const where =
         render_rect_for_tile( covered, tile ).upper_left();
-    for( GenericUnitId generic_id :
-         ss_.units.from_coord( tile ) ) {
-      if( skip( generic_id ) ) continue;
-      switch( ss_.units.unit_kind( generic_id ) ) {
-        case e_unit_kind::euro: {
-          UnitId const unit_id{ to_underlying( generic_id ) };
-          render_unit(
-              renderer, loc, ss_.units.unit_for( unit_id ),
-              UnitRenderOptions{ .flag   = true,
-                                 .shadow = UnitShadow{} } );
-          break;
-        }
-        case e_unit_kind::native: {
-          NativeUnitId const unit_id{
-              to_underlying( generic_id ) };
-          render_native_unit(
-              renderer, loc, ss_, ss_.units.unit_for( unit_id ),
-              UnitRenderOptions{ .flag   = true,
-                                 .shadow = UnitShadow{} } );
-          break;
-        }
-      }
-    }
+    bool const         multiple_units = ( units.size() > 1 );
+    e_flag_count const flag_count = !flags ? e_flag_count::none
+                                    : !multiple_units
+                                        ? e_flag_count::single
+                                        : e_flag_count::multiple;
+    render_single_unit( renderer, where, max_defense,
+                        flag_count );
   }
 
   vector<pair<Coord, GenericUnitId>> units_to_render(
@@ -776,13 +819,6 @@ struct LandViewPlane::Impl : public Plane {
     return res;
   }
 
-  void render_units_on_square( rr::Renderer& renderer,
-                               Rect covered, Coord tile ) const {
-    render_units_on_square(
-        renderer, covered, tile,
-        []( GenericUnitId ) { return false; } );
-  }
-
   void render_units_default( rr::Renderer& renderer,
                              Rect          covered ) const {
     unordered_set<Coord> hit;
@@ -790,129 +826,160 @@ struct LandViewPlane::Impl : public Plane {
       if( ss_.colonies.maybe_from_coord( tile ).has_value() )
         continue;
       if( hit.contains( tile ) ) continue;
-      render_units_on_square( renderer, covered, tile );
+      render_units_on_square( renderer, covered, tile,
+                              /*flags=*/true );
       hit.insert( tile );
     }
   }
 
-  void render_units_blink( rr::Renderer& renderer, Rect covered,
-                           UnitId id, bool visible ) const {
-    UnitId blinker_id = id;
-    Coord  blink_coord =
-        coord_for_unit_indirect_or_die( ss_.units, blinker_id );
-    for( auto [coord, unit_id] : units_to_render( covered ) ) {
-      if( coord == blink_coord ) continue;
-      if( ss_.colonies.maybe_from_coord( coord ).has_value() )
-        continue;
-      render_units_on_square( renderer, covered, coord );
-    }
-    // Now render the blinking unit.
-    Coord loc = render_rect_for_tile( covered, blink_coord )
-                    .upper_left();
-    if( visible )
-      render_unit( renderer, loc,
-                   ss_.units.unit_for( blinker_id ),
-                   UnitRenderOptions{ .flag   = true,
-                                      .shadow = UnitShadow{} } );
-  }
+  void render_units_impl( rr::Renderer& renderer,
+                          Rect          covered ) const {
+    if( unit_animations_.empty() )
+      return render_units_default( renderer, covered );
+    // We have some units being animated, so now things get com-
+    // plicated. This will be the case most of the time, since
+    // there is usually at least one unit blinking. The exception
+    // would be the end-of-turn when there should be no anima-
+    // tions.
 
-  void render_units_during_slide(
-      rr::Renderer& renderer, Rect covered, GenericUnitId id,
-      maybe<UnitId>               target_unit,
-      UnitAnimation::slide const& slide ) const {
-    GenericUnitId const mover_id = id;
-    Coord const         mover_coord =
-        coord_for_unit_indirect_or_die( ss_.units, mover_id );
-    maybe<Coord> target_unit_coord =
-        target_unit.bind( [this]( UnitId id ) {
-          return coord_for_unit_multi_ownership( ss_, id );
-        } );
-    // First render all units other than the sliding unit and
-    // other than units on colony squares.
-    for( auto const& p : units_to_render( covered ) ) {
-      Coord const& coord = p.first;
-      bool         has_colony =
-          ss_.colonies.maybe_from_coord( coord ).has_value();
-      if( has_colony && coord != target_unit_coord ) continue;
-      auto skip = [&]( GenericUnitId id ) {
-        // Always draw the target unit, if any.
-        if( id == target_unit ) return false;
-        // On the square containing the unit being attacked, only
-        // draw the unit being attacked (if any).
-        if( coord == target_unit_coord ) return true;
-        if( has_colony ) return true;
-        if( id == mover_id ) return true;
-        return false;
-      };
-      render_units_on_square( renderer, covered, coord, skip );
+    unordered_map<GenericUnitId, UnitAnimation::front const*>
+        front;
+    unordered_map<GenericUnitId, UnitAnimation::blink const*>
+        blink;
+    unordered_map<GenericUnitId, UnitAnimation::slide const*>
+        slide;
+    unordered_map<GenericUnitId,
+                  UnitAnimation::depixelate_unit const*>
+        depixelate_unit;
+    // These are the tiles to skip when rendering units that are
+    // not animated. An example would be that if a unit is
+    // blinking then we don't want to render any other units on
+    // that tile.
+    unordered_set<Coord> tiles_to_skip;
+    // These are tiles where we want to draw units but faded and
+    // with no flags so that the unit in front will be more dis-
+    // cernible but the player will still see that there are
+    // units behind.
+    unordered_set<Coord> tiles_to_fade;
+    for( auto const& [id, anim] : unit_animations_ ) {
+      Coord const tile =
+          coord_for_unit_indirect_or_die( ss_.units, id );
+      switch( anim.to_enum() ) {
+        case UnitAnimation::e::front:
+          front[id] = &anim.get<UnitAnimation::front>();
+          tiles_to_skip.insert( tile );
+          break;
+        case UnitAnimation::e::blink:
+          blink[id] = &anim.get<UnitAnimation::blink>();
+          tiles_to_skip.insert( tile );
+          break;
+        case UnitAnimation::e::slide:
+          slide[id] = &anim.get<UnitAnimation::slide>();
+          tiles_to_fade.insert( tile );
+          break;
+        case UnitAnimation::e::depixelate_unit:
+          depixelate_unit[id] =
+              &anim.get<UnitAnimation::depixelate_unit>();
+          tiles_to_skip.insert( tile );
+          break;
+      }
     }
-    // Now render the sliding unit.
-    Delta tile_delta = slide.target - mover_coord;
-    CHECK( -1 <= tile_delta.w && tile_delta.w <= 1 );
-    CHECK( -1 <= tile_delta.h && tile_delta.h <= 1 );
-    tile_delta = tile_delta * g_tile_delta;
-    Delta pixel_delta =
-        tile_delta.multiply_and_round( slide.percent );
-    Coord pixel_coord =
-        render_rect_for_tile( covered, mover_coord )
-            .upper_left();
-    pixel_coord += pixel_delta;
-    switch( ss_.units.unit_kind( mover_id ) ) {
-      case e_unit_kind::euro:
-        render_unit(
-            renderer, pixel_coord,
-            ss_.units.euro_unit_for( mover_id ),
-            UnitRenderOptions{ .flag   = true,
-                               .shadow = UnitShadow{} } );
-        break;
-      case e_unit_kind::native:
-        render_native_unit(
-            renderer, pixel_coord, ss_,
-            ss_.units.native_unit_for( mover_id ),
-            UnitRenderOptions{ .flag   = true,
-                               .shadow = UnitShadow{} } );
-        break;
-    }
-  }
 
-  void render_units_during_depixelate(
-      rr::Renderer& renderer, Rect covered, UnitId depixelate_id,
-      UnitAnimation::depixelate_unit const& dp_anim ) const {
-    // Need the multi_ownership version because we could be de-
-    // pixelating a colonist that is owned by a colony, which
-    // happens when the colony is captured.
-    Coord depixelate_tile =
-        coord_for_unit_multi_ownership_or_die( ss_,
-                                               depixelate_id );
-    // First render all units other than units on colony squares
-    // and unites on the same tile as the depixelating unit.
+    // Render all non-animated units except for those on tiles
+    // that we want to skip.
+    unordered_set<Coord> hit;
     for( auto [tile, id] : units_to_render( covered ) ) {
-      if( tile == depixelate_tile ) continue;
+      if( tiles_to_skip.contains( tile ) ) continue;
       if( ss_.colonies.maybe_from_coord( tile ).has_value() )
         continue;
-      render_units_on_square( renderer, covered, tile );
+      if( unit_animations_.contains( id ) ) continue;
+      if( hit.contains( tile ) ) continue;
+      hit.insert( tile );
+      if( tiles_to_fade.contains( tile ) ) {
+        SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .25 );
+        render_units_on_square( renderer, covered, tile,
+                                /*flags=*/false );
+      } else {
+        render_units_on_square( renderer, covered, tile,
+                                /*flags=*/true );
+      }
     }
-    // Now render the depixelating unit.
-    Coord loc = render_rect_for_tile( covered, depixelate_tile )
-                    .upper_left();
-    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
-                             loc );
-    // Check if we are depixelating to another unit.
-    if( !dp_anim.target.has_value() ) {
-      // Render and depixelate both the unit and the flag.
-      render_unit_depixelate(
-          renderer, loc, ss_.units.unit_for( depixelate_id ),
-          dp_anim.stage,
-          UnitRenderOptions{ .flag   = true,
-                             .shadow = UnitShadow{} } );
-    } else {
-      // Render and the unit and the flag but only depixelate the
-      // unit to the target unit.
-      render_unit_depixelate_to(
-          renderer, loc, ss_.units.unit_for( depixelate_id ),
-          *dp_anim.target, dp_anim.stage,
-          UnitRenderOptions{ .flag   = true,
-                             .shadow = UnitShadow{} } );
+
+    auto render_impl = [&]( GenericUnitId id, auto const& f ) {
+      Coord const tile =
+          coord_for_unit_multi_ownership_or_die( ss_, id );
+      if( !viz_.visible( tile ) ) return;
+      Coord const where =
+          render_rect_for_tile( covered, tile ).upper_left();
+      bool const multiple_units =
+          ss_.units.from_coord( tile ).size() > 1;
+      e_flag_count const flag_count =
+          multiple_units ? e_flag_count::multiple
+                         : e_flag_count::single;
+      f( where, flag_count );
+    };
+
+    // 1. Render units that are supposed to hover above a colony.
+    for( auto const& [id, anim] : front ) {
+      render_impl( id, [&]( Coord        where,
+                            e_flag_count flag_count ) {
+        render_single_unit( renderer, where, id, flag_count );
+      } );
+    }
+
+    // 2. Render units that are blinking.
+    for( auto const& [id, anim] : blink ) {
+      if( !anim->visible ) continue;
+      render_impl( id, [&]( Coord where, e_flag_count ) {
+        render_single_unit( renderer, where, id,
+                            e_flag_count::single );
+      } );
+    }
+
+    // 3. Render units that are sliding.
+    for( auto const& [id, anim] : slide ) {
+      Coord const mover_coord =
+          coord_for_unit_indirect_or_die( ss_.units, id );
+      // Now render the sliding unit.
+      Delta const pixel_delta =
+          ( ( mover_coord.moved( anim->direction ) -
+              mover_coord ) *
+            g_tile_delta )
+              .multiply_and_round( anim->percent );
+      render_impl( id, [&]( Coord where, e_flag_count ) {
+        render_single_unit( renderer, where + pixel_delta, id,
+                            e_flag_count::single );
+      } );
+    }
+
+    // 4. Render units that are depixelating.
+    for( auto const& [id, anim] : depixelate_unit ) {
+      // Check if we are depixelating to another unit.
+      if( !anim->target.has_value() ) {
+        Coord const tile =
+            coord_for_unit_multi_ownership_or_die( ss_, id );
+        Coord const loc =
+            render_rect_for_tile( covered, tile ).upper_left();
+        // Render and depixelate both the unit and the flag.
+        SCOPED_RENDERER_MOD_SET(
+            painter_mods.depixelate.hash_anchor, loc );
+        SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                                 anim->stage );
+        render_impl( id, [&]( Coord where, e_flag_count ) {
+          render_single_unit( renderer, where, id,
+                              e_flag_count::single );
+        } );
+      } else {
+        CHECK( anim->target.has_value() );
+        // Render and the unit and the flag but only depixelate
+        // the unit to the target unit. This function will set
+        // the hash anchor and stage ultimately.
+        render_impl( id, [&]( Coord where, e_flag_count ) {
+          render_single_unit_depixelate_to(
+              renderer, where, id, /*multiple_units=*/false,
+              anim->stage, *anim->target );
+        } );
+      }
     }
   }
 
@@ -933,7 +1000,7 @@ struct LandViewPlane::Impl : public Plane {
     UNWRAP_CHECK(
         animation,
         base::lookup( dwelling_animations_, dwelling.id )
-            .get_if<UnitAnimation::depixelate_dwelling>() );
+            .get_if<DwellingAnimation::depixelate>() );
     // As usual, the hash anchor coord is arbitrary so long as
     // its position is fixed relative to the sprite.
     Coord const hash_anchor =
@@ -1004,10 +1071,9 @@ struct LandViewPlane::Impl : public Plane {
   void render_colony_depixelate( rr::Renderer& renderer,
                                  Rect          covered,
                                  Colony const& colony ) const {
-    UNWRAP_CHECK(
-        animation,
-        base::lookup( colony_animations_, colony.id )
-            .get_if<UnitAnimation::depixelate_colony>() );
+    UNWRAP_CHECK( animation,
+                  base::lookup( colony_animations_, colony.id )
+                      .get_if<ColonyAnimation::depixelate>() );
     // As usual, the hash anchor coord is arbitrary so long as
     // its position is fixed relative to the sprite.
     Coord const hash_anchor =
@@ -1067,107 +1133,8 @@ struct LandViewPlane::Impl : public Plane {
     Coord const location =
         ss_.colonies.colony_for( o->colony_id ).location;
     if( !location.is_inside( covered ) ) return;
-    render_units_on_square( renderer, covered, location );
-  }
-
-  // Units (rendering strategy depends on land view state).
-  void render_units_impl( rr::Renderer& renderer,
-                          Rect          covered ) const {
-    // The land view state should be set first, then the anima-
-    // tion state; though occasionally we are in a frame where
-    // the land view state has changed but the animation state
-    // has not been set yet.
-    if( unit_animations_.empty() ) {
-      render_units_default( renderer, covered );
-      return;
-    }
-
-    switch( landview_mode_.to_enum() ) {
-      using namespace LandViewMode;
-      case e::hidden_terrain:
-      case e::none: {
-        // In this case the global unit animations should always
-        // be empty, in which case the if statement above should
-        // have caught it.
-        SHOULD_NOT_BE_HERE;
-      }
-      case e::unit_input: {
-        auto& o = landview_mode_.get<unit_input>();
-        CHECK( unit_animations_.size() == 1 );
-        UNWRAP_CHECK( animation, base::lookup( unit_animations_,
-                                               o.unit_id ) );
-        ASSIGN_CHECK_V( blink_anim, animation,
-                        UnitAnimation::blink );
-        render_units_blink( renderer, covered, o.unit_id,
-                            blink_anim.visible );
-        break;
-      }
-      case e::colony_disappearing: {
-        // NOTE: while the colony is depixelating it will still
-        // technically exist, and so none of the units that are
-        // at the gate/port will be rendered by this default unit
-        // rendering method, which is what we want for the anima-
-        // tion, since then we can render the last unit under-
-        // neath of it (which we will have already done at this
-        // point, since it is done before the colony is ren-
-        // dered), which will create the effect of the colony de-
-        // pixelating into a unit (if there is one; there may not
-        // be, if the unit starved).
-        render_units_default( renderer, covered );
-        break;
-      }
-      case e::dwelling_disappearing: {
-        render_units_default( renderer, covered );
-        break;
-      }
-      case e::unit_depixelating: {
-        auto& o = landview_mode_.get<unit_depixelating>();
-        UNWRAP_CHECK( animation, base::lookup( unit_animations_,
-                                               o.unit_id ) );
-        ASSIGN_CHECK_V( dp_anim, animation,
-                        UnitAnimation::depixelate_unit );
-        render_units_during_depixelate( renderer, covered,
-                                        o.unit_id, dp_anim );
-        break;
-      }
-      case e::unit_move: {
-        auto& o = landview_mode_.get<unit_move>();
-        CHECK( unit_animations_.size() == 1 );
-        UNWRAP_CHECK( animation, base::lookup( unit_animations_,
-                                               o.unit_id ) );
-        ASSIGN_CHECK_V( slide_anim, animation,
-                        UnitAnimation::slide );
-        render_units_during_slide( renderer, covered, o.unit_id,
-                                   /*target_unit=*/nothing,
-                                   slide_anim );
-        break;
-      }
-      case e::unit_attack: {
-        auto& o = landview_mode_.get<unit_attack>();
-        CHECK( unit_animations_.size() == 1 );
-        UnitId anim_id = unit_animations_.begin()->first;
-        UnitAnimation_t const& animation =
-            unit_animations_.begin()->second;
-        if( auto slide_anim =
-                animation.get_if<UnitAnimation::slide>() ) {
-          CHECK( anim_id == o.attacker );
-          render_units_during_slide( renderer, covered,
-                                     o.attacker, o.defender,
-                                     *slide_anim );
-          break;
-        }
-        if( auto dp_anim =
-                animation
-                    .get_if<UnitAnimation::depixelate_unit>() ) {
-          render_units_during_depixelate( renderer, covered,
-                                          anim_id, *dp_anim );
-          break;
-        }
-        FATAL(
-            "Unit animation not found for either slide or "
-            "depixelate." );
-      }
-    }
+    render_units_on_square( renderer, covered, location,
+                            /*flags=*/false );
   }
 
   // When the player is moving a unit and it runs out of movement
@@ -1223,7 +1190,7 @@ struct LandViewPlane::Impl : public Plane {
                      Rect          covered ) const {
     render_units_impl( renderer, covered );
     // Do any post rendering steps that must be done after units
-    // rendering regardless of which mode we're in.
+    // rendering.
     render_input_overrun_indicator( renderer, covered );
   }
 
@@ -1808,8 +1775,15 @@ struct LandViewPlane::Impl : public Plane {
         // E.g. if the previous unit got on a ship then the
         // player doesn't expect them to continue moving, so no
         // need to shield this unit.
-        is_unit_on_map( ss_.units, last_unit_input_->unit_id ) )
+        is_unit_on_map( ss_.units,
+                        last_unit_input_->unit_id ) ) {
+      // We typically wait for a bit while eating input events;
+      // during that time, make sure that the unit who is about
+      // to ask for orders is rendered on the front.
+      unit_animations_[id].emplace<UnitAnimation::front>();
+      SCOPE_EXIT( unit_animations_.erase( id ) );
       co_await eat_cross_unit_buffered_input_events( id );
+    }
 
     if( !last_unit_input_.has_value() ||
         last_unit_input_->unit_id != id )
@@ -1858,38 +1832,67 @@ struct LandViewPlane::Impl : public Plane {
     // the original game allows).
     if( ss_.terrain.square_exists( dst ) )
       co_await ensure_visible( dst );
-    SCOPED_SET_AND_RESTORE(
-        landview_mode_,
-        LandViewMode::unit_move{ .unit_id = id } );
     play_sound_effect( e_sfx::move );
     co_await animate_slide( id, direction );
   }
 
-  wait<> animate_attack( UnitId attacker, UnitId defender,
-                         bool attacker_wins ) {
+  wait<> animate_attack(
+      GenericUnitId attacker, GenericUnitId defender,
+      vector<UnitWithDepixelateTarget_t> const& animations,
+      bool                                      attacker_wins ) {
     co_await ensure_visible_unit( defender );
     co_await ensure_visible_unit( attacker );
-    auto new_state = LandViewMode::unit_attack{
-        .attacker      = attacker,
-        .defender      = defender,
-        .attacker_wins = attacker_wins };
-    SCOPED_SET_AND_RESTORE( landview_mode_, new_state );
+
     UNWRAP_CHECK( attacker_coord,
                   ss_.units.maybe_coord_for( attacker ) );
     UNWRAP_CHECK( defender_coord, coord_for_unit_multi_ownership(
                                       ss_, defender ) );
     UNWRAP_CHECK(
         d, attacker_coord.direction_to( defender_coord ) );
-    play_sound_effect( e_sfx::move );
-    co_await animate_slide( attacker, d );
+
+    // While the attacker is sliding we want to make sure the de-
+    // fender comes to the front in case there are multiple units
+    // and/or a colony on the tile.
+    {
+      unit_animations_[defender].emplace<UnitAnimation::front>();
+      SCOPE_EXIT( unit_animations_.erase( defender ) );
+
+      play_sound_effect( e_sfx::move );
+      co_await animate_slide( attacker, d );
+      // Defender unit `front` animation stops.
+    }
 
     play_sound_effect( attacker_wins ? e_sfx::attacker_won
                                      : e_sfx::attacker_lost );
-    UnitId const unit_to_demote =
-        attacker_wins ? defender : attacker;
-    co_await animate_depixelation(
-        unit_to_demote,
-        ss_.units.unit_for( unit_to_demote ).demoted_type() );
+    vector<wait<>> waits;
+    for( UnitWithDepixelateTarget_t const& anim : animations ) {
+      GenericUnitId const id = rn::visit( anim, []( auto& o ) {
+        return GenericUnitId{ o.id };
+      } );
+      maybe<e_tile> const target_tile =
+          rn::visit( anim, []( auto& o ) {
+            return o.target.fmap( []( auto type ) {
+              return unit_attr( type ).tile;
+            } );
+          } );
+      // This starts the animation.
+      waits.push_back( animate_depixelation( id, target_tile ) );
+    }
+    // Depixelation animations have now already started. If a
+    // given unit (attacker or defender) does not already have a
+    // depixelation animation started then we will give it a
+    // `front` animation to ensure that it remains visible for
+    // the duration of the animation.
+    if( !unit_animations_.contains( attacker ) )
+      unit_animations_[attacker].emplace<UnitAnimation::front>();
+    if( !unit_animations_.contains( defender ) )
+      unit_animations_[defender].emplace<UnitAnimation::front>();
+    // These will do nothing if the animations have already been
+    // erased, which they will have if they were depixelation an-
+    // imations.
+    SCOPE_EXIT( unit_animations_.erase( attacker ) );
+    SCOPE_EXIT( unit_animations_.erase( defender ) );
+    co_await co::all( std::move( waits ) );
   }
 
   wait<> animate_colony_depixelation( Colony const& colony ) {
@@ -1902,21 +1905,27 @@ struct LandViewPlane::Impl : public Plane {
   }
 
   wait<> animate_unit_depixelation(
-      UnitId unit_id, maybe<e_unit_type> target_type ) {
-    co_await ensure_visible_unit( unit_id );
-    auto new_state =
-        LandViewMode::unit_depixelating{ .unit_id = unit_id };
-    SCOPED_SET_AND_RESTORE( landview_mode_, new_state );
-    co_await animate_depixelation( unit_id, target_type );
+      UnitWithDepixelateTarget_t const& what ) {
+    GenericUnitId const id = rn::visit(
+        what, []( auto& o ) { return GenericUnitId{ o.id }; } );
+    co_await ensure_visible_unit( id );
+    maybe<e_tile> const target_tile =
+        rn::visit( what, []( auto& o ) {
+          return o.target.fmap( []( auto type ) {
+            return unit_attr( type ).tile;
+          } );
+        } );
+    co_await animate_depixelation( id, target_tile );
   }
 
   // FIXME: Would be nice to make this animation a bit more so-
-  // phisticated, but we first need to fix the animation frame-
-  // work in this module to be more flexible.
-  wait<> animate_colony_capture( UnitId   attacker_id,
-                                 UnitId   defender_id,
-                                 ColonyId colony_id ) {
+  // phisticated.
+  wait<> animate_colony_capture(
+      UnitId attacker_id, UnitId defender_id,
+      vector<UnitWithDepixelateTarget_t> const& animations,
+      ColonyId                                  colony_id ) {
     co_await animate_attack( attacker_id, defender_id,
+                             animations,
                              /*attacker_wins=*/true );
     UNWRAP_CHECK(
         direction,
@@ -1974,22 +1983,24 @@ wait<> LandViewPlane::animate_colony_depixelation(
 }
 
 wait<> LandViewPlane::animate_unit_depixelation(
-    UnitId id, maybe<e_unit_type> target_type ) {
-  return impl_->animate_unit_depixelation( id, target_type );
+    UnitWithDepixelateTarget_t const& what ) {
+  return impl_->animate_unit_depixelation( what );
 }
 
-wait<> LandViewPlane::animate_attack( UnitId attacker,
-                                      UnitId defender,
-                                      bool   attacker_wins ) {
-  return impl_->animate_attack( attacker, defender,
+wait<> LandViewPlane::animate_attack(
+    GenericUnitId attacker, GenericUnitId defender,
+    vector<UnitWithDepixelateTarget_t> const& animations,
+    bool                                      attacker_wins ) {
+  return impl_->animate_attack( attacker, defender, animations,
                                 attacker_wins );
 }
 
 wait<> LandViewPlane::animate_colony_capture(
     UnitId attacker_id, UnitId defender_id,
-    ColonyId colony_id ) {
+    vector<UnitWithDepixelateTarget_t> const& animations,
+    ColonyId                                  colony_id ) {
   return impl_->animate_colony_capture( attacker_id, defender_id,
-                                        colony_id );
+                                        animations, colony_id );
 }
 
 void LandViewPlane::reset_input_buffers() {

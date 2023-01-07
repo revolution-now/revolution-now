@@ -43,7 +43,7 @@ void PopulationView::draw_sons_of_liberty(
       compute_colony_sons_of_liberty( player_, colony_ );
   gfx::pixel text_color         = gfx::pixel::white();
   int const  tory_penalty_level = compute_tory_penalty_level(
-       ss_.settings.difficulty, info.tories );
+      ss_.settings.difficulty, info.tories );
   switch( tory_penalty_level ) {
     case 0: {
       text_color = gfx::pixel::white();
@@ -113,7 +113,7 @@ void PopulationView::draw( rr::Renderer& renderer,
   for( UnitId unit_id : units ) {
     render_unit( renderer, unit_pos,
                  ss_.units.unit_for( unit_id ),
-                 UnitRenderOptions{ .flag = false } );
+                 UnitRenderOptions{} );
     unit_pos.x += 15;
   }
 }

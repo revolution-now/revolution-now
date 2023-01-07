@@ -28,6 +28,7 @@
 #include "plane-stack.hpp"
 #include "society.hpp"
 #include "ts.hpp"
+#include "unit-stack.hpp"
 #include "ustate.hpp"
 
 // config
@@ -1113,15 +1114,49 @@ struct EuroAttackHandler : public OrdersHandler {
                                    attack_dst ) );
       auto attacker_id = unit_id;
       auto defender_id = *target_unit;
-      return planes_.land_view().animate_colony_capture(
-          attacker_id, defender_id, colony_id );
+      vector<UnitWithDepixelateTarget_t> animations;
+      // Only one animation, namely the colonist defending the
+      // colony with depixelate to nothing.
+      //
+      // TODO: check stats.winner_promoted here to see if the at-
+      // tacker unit has been promoted.
+      animations.push_back( UnitWithDepixelateTarget::euro{
+          .id = defender_id, .target = nothing } );
+      co_await planes_.land_view().animate_colony_capture(
+          attacker_id, defender_id, animations, colony_id );
+      co_return;
     }
 
     auto attacker = unit_id;
     UNWRAP_CHECK( defender, target_unit );
     UNWRAP_CHECK( stats, fight_stats );
-    return planes_.land_view().animate_attack(
-        attacker, defender, stats.attacker_wins );
+
+    vector<UnitWithDepixelateTarget_t> animations;
+
+    // Attacker animation.
+    if( stats.attacker_wins ) {
+      // TODO: check stats.winner_promoted here to see if the
+      // player's unit has been promoted.
+    } else {
+      animations.push_back( UnitWithDepixelateTarget::euro{
+          .id = attacker,
+          .target =
+              ss_.units.unit_for( attacker ).demoted_type() } );
+    }
+
+    // Defender animation.
+    if( stats.attacker_wins ) {
+      animations.push_back( UnitWithDepixelateTarget::euro{
+          .id = defender,
+          .target =
+              ss_.units.unit_for( defender ).demoted_type() } );
+    } else {
+      // TODO: check stats.winner_promoted here to see if the de-
+      // fender unit has been promoted.
+    }
+
+    co_await planes_.land_view().animate_attack(
+        attacker, defender, animations, stats.attacker_wins );
   }
 
   wait<> perform() override;
@@ -1252,19 +1287,17 @@ EuroAttackHandler::confirm_attack_impl() {
                            units_working_in_colony.end() );
     CHECK( sorted.size() > 0 );
     // Sort since order is otherwise unspecified.
-    sort( sorted.begin(), sorted.end() );
+    sort_euro_unit_stack( ss_, sorted );
     units_at_dst.push_back( sorted[0] );
   }
   CHECK( !units_at_dst.empty() );
   // Now let's find the unit with the highest defense points
   // among the units in the target square.
-  vector<UnitId> sorted_by_defense( units_at_dst.begin(),
-                                    units_at_dst.end() );
-  util::sort_by_key(
-      sorted_by_defense,
-      LC( ss_.units.unit_for( _ ).desc().defense_points ) );
-  CHECK( !sorted_by_defense.empty() );
-  UnitId highest_defense_unit_id = sorted_by_defense.back();
+  vector<UnitId> sorted( units_at_dst.begin(),
+                         units_at_dst.end() );
+  sort_euro_unit_stack( ss_, sorted );
+  CHECK( !sorted.empty() );
+  UnitId highest_defense_unit_id = sorted.front();
   Unit&  highest_defense_unit =
       ss_.units.unit_for( highest_defense_unit_id );
   lg.info( "unit in target square with highest defense: {}",

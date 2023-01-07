@@ -38,7 +38,7 @@ struct Renderer;
 namespace rn {
 
 struct Plane;
-struct UnitsState;
+struct SSConst;
 struct WindowManager;
 
 namespace ui {
@@ -169,7 +169,7 @@ struct UnitSelection {
 NOTHROW_MOVE( UnitSelection );
 
 wait<std::vector<UnitSelection>> unit_selection_box(
-    UnitsState const& units_state, WindowPlane& window_plane,
+    SSConst const& ss, WindowPlane& window_plane,
     std::vector<UnitId> const& ids_, bool allow_activation );
 
 } // namespace rn

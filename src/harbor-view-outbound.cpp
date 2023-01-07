@@ -211,7 +211,7 @@ void HarborOutboundShips::draw( rr::Renderer& renderer,
       continue;
     render_unit( renderer, unit_coord,
                  ss_.units.unit_for( unit_id ),
-                 UnitRenderOptions{ .flag = false } );
+                 UnitRenderOptions{} );
     if( hb_state.selected_unit == unit_id )
       painter.draw_empty_rect(
           Rect::from( unit_coord, g_tile_delta ) -

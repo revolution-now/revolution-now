@@ -377,7 +377,7 @@ void HarborCargo::draw( rr::Renderer& renderer,
             [&]( Cargo::unit u ) {
               render_unit( renderer, dst_coord,
                            ss_.units.unit_for( u.id ),
-                           UnitRenderOptions{ .flag = false } );
+                           UnitRenderOptions{} );
             },
             [&]( Cargo::commodity const& c ) {
               render_commodity_annotated(

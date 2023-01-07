@@ -30,6 +30,9 @@
 // config
 #include "config/ui.rds.hpp"
 
+// ss
+#include "ss/ref.hpp"
+
 // render
 #include "render/renderer.hpp"
 
@@ -644,7 +647,7 @@ namespace {
 ** High-level Methods
 *****************************************************************/
 wait<vector<UnitSelection>> unit_selection_box(
-    UnitsState const& units_state, WindowPlane& window_plane,
+    SSConst const& ss, WindowPlane& window_plane,
     vector<UnitId> const& ids, bool allow_activation ) {
   wait_promise<vector<UnitSelection>> s_promise;
 
@@ -670,8 +673,8 @@ wait<vector<UnitSelection>> unit_selection_box(
         s_promise.set_value( std::move( selections ) );
       };
 
-  auto unit_activation_view = UnitActivationView::Create(
-      units_state, ids, allow_activation );
+  auto unit_activation_view =
+      UnitActivationView::Create( ss, ids, allow_activation );
   auto* p_unit_activation_view = unit_activation_view.get();
 
   // We can capture by reference here because the function will

@@ -24,6 +24,7 @@
 #include "config/gfx.rds.hpp"
 #include "config/nation.hpp"
 #include "config/natives.hpp"
+#include "config/tile-enum.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss
@@ -46,18 +47,17 @@ constexpr Delta nationality_icon_size{ .w = 14, .h = 14 };
 
 // Unit only, no flag.
 void render_unit_no_icon( rr::Painter& painter, Coord where,
-                          auto                     unit_type,
+                          e_tile                   tile,
                           UnitRenderOptions const& options ) {
-  auto const& desc = unit_attr( unit_type );
   if( options.shadow.has_value() )
     render_sprite_silhouette(
         painter, where + Delta{ .w = options.shadow->offset },
-        desc.tile, options.shadow->color );
+        tile, options.shadow->color );
   if( options.outline_right )
     render_sprite_silhouette( painter, where + Delta{ .w = 1 },
-                              desc.tile, options.outline_color );
+                              tile, options.outline_color );
   render_sprite( painter, Rect::from( where, g_tile_delta ),
-                 desc.tile );
+                 tile );
 }
 
 void render_colony_flag( rr::Painter& painter, Coord coord,
@@ -71,9 +71,9 @@ void render_colony_flag( rr::Painter& painter, Coord coord,
 /****************************************************************
 ** Rendering Building Blocks
 *****************************************************************/
-void render_nationality_icon( rr::Renderer& renderer,
-                              Coord where, gfx::pixel color,
-                              char c, bool is_greyed ) {
+void render_unit_flag_impl( rr::Renderer& renderer, Coord where,
+                            gfx::pixel color, char c,
+                            bool is_greyed ) {
   Delta delta = nationality_icon_size;
   Rect  rect  = Rect::from( where, delta );
 
@@ -93,36 +93,58 @@ void render_nationality_icon( rr::Renderer& renderer,
                font::nat_icon(), text_color, string( 1, c ) );
 }
 
-void render_nationality_icon( rr::Renderer& renderer,
-                              Coord where, auto const& desc,
-                              gfx::pixel    color,
-                              e_unit_orders orders ) {
+void render_unit_flag( rr::Renderer& renderer, Coord where,
+                       auto const& desc, gfx::pixel color,
+                       e_unit_orders orders,
+                       e_flag_count  flag ) {
   // Now we will advance the pixel_coord to put the icon at the
   // location specified in the unit descriptor.
   auto  position = desc.nat_icon_position;
   Delta delta{};
+  // If we're going to draw a stacked flag (i.e., one behind the
+  // front flag to indicated stacked units) then this will be its
+  // offset from the front flag.
+  Delta            delta_stacked;
+  static int const S = 2;
   switch( position ) {
-    case e_direction::nw: break;
+    case e_direction::nw:
+      delta_stacked = { .w = S, .h = S };
+      break;
     case e_direction::ne:
       delta.w +=
           ( ( 1 * g_tile_width ) - nationality_icon_size.w );
+      delta_stacked = { .w = -S, .h = S };
       break;
     case e_direction::se:
       delta += ( ( Delta{ .w = 1, .h = 1 } * g_tile_delta ) -
                  nationality_icon_size );
+      delta_stacked = { .w = -S, .h = -S };
       break;
     case e_direction::sw:
       delta.h +=
           ( ( 1 * g_tile_height ) - nationality_icon_size.h );
+      delta_stacked = { .w = S, .h = -S };
       break;
     case e_direction::w:
       delta.h += ( g_tile_height - nationality_icon_size.h ) / 2;
+      delta_stacked = { .w = S, .h = -S };
       break;
     case e_direction::n:
       delta.w += ( g_tile_width - nationality_icon_size.w ) / 2;
+      delta_stacked = { .w = 0, .h = S };
       break;
-      // By default we keep it in the northwest corner.
-    default: break;
+    case e_direction::e:
+      delta.h += ( g_tile_height - nationality_icon_size.h ) / 2;
+      delta.w +=
+          ( ( 1 * g_tile_width ) - nationality_icon_size.w );
+      delta_stacked = { .w = -S, .h = -S };
+      break;
+    case e_direction::s:
+      delta.w += ( g_tile_width - nationality_icon_size.w ) / 2;
+      delta.h +=
+          ( ( 1 * g_tile_height ) - nationality_icon_size.h );
+      delta_stacked = { .w = 0, .h = -S };
+      break;
   };
   where += delta;
 
@@ -139,8 +161,15 @@ void render_nationality_icon( rr::Renderer& renderer,
   // player that the unit is not yet fully fortified.
   bool is_greyed = ( orders == e_unit_orders::fortified ||
                      orders == e_unit_orders::sentry );
-  render_nationality_icon( renderer, where, color, c,
-                           is_greyed );
+  switch( flag ) {
+    case e_flag_count::none: break;
+    case e_flag_count::single: break;
+    case e_flag_count::multiple:
+      render_unit_flag_impl( renderer, where + delta_stacked,
+                             color, c, is_greyed );
+      break;
+  }
+  render_unit_flag_impl( renderer, where, color, c, is_greyed );
 }
 
 void depixelate_from_to(
@@ -177,29 +206,41 @@ W UnitShadow::default_offset() { return W{ -3 }; }
 /****************************************************************
 ** Public API
 *****************************************************************/
-void render_nationality_icon( rr::Renderer& renderer,
-                              Coord where, e_unit_type type,
-                              e_nation      nation,
-                              e_unit_orders orders ) {
-  render_nationality_icon( renderer, where, unit_attr( type ),
-                           nation_obj( nation ).flag_color,
-                           orders );
+void render_unit_flag( rr::Renderer& renderer, Coord where,
+                       e_unit_type type, e_nation nation,
+                       e_unit_orders orders ) {
+  render_unit_flag( renderer, where, unit_attr( type ),
+                    nation_obj( nation ).flag_color, orders,
+                    e_flag_count::single );
 }
 
-void render_nationality_icon( rr::Renderer& renderer,
-                              Coord where, Unit const& unit ) {
-  render_nationality_icon(
-      renderer, where, unit.desc(),
-      nation_obj( unit.nation() ).flag_color, unit.orders() );
+static void render_unit_flag( rr::Renderer& renderer,
+                              Coord        where, SSConst const&,
+                              Unit const&  unit,
+                              e_flag_count flag ) {
+  render_unit_flag( renderer, where, unit.desc(),
+                    nation_obj( unit.nation() ).flag_color,
+                    unit.orders(), flag );
+}
+
+static void render_unit_flag( rr::Renderer& renderer,
+                              Coord where, SSConst const& ss,
+                              NativeUnit const& unit,
+                              e_flag_count      flag ) {
+  e_tribe const    tribe = tribe_for_unit( ss, unit );
+  gfx::pixel const flag_color =
+      config_natives.tribes[tribe].flag_color;
+  render_unit_flag( renderer, where, unit_attr( unit.type ),
+                    flag_color, e_unit_orders::none, flag );
 }
 
 static void render_unit_impl(
-    rr::Renderer& renderer, Coord where, auto unit_type,
+    rr::Renderer& renderer, Coord where, e_tile tile,
     auto const& desc, gfx::pixel flag_color,
     e_unit_orders orders, UnitRenderOptions const& options ) {
   rr::Painter painter = renderer.painter();
-  if( !options.flag ) {
-    render_unit_no_icon( painter, where, unit_type, options );
+  if( options.flag == e_flag_count::none ) {
+    render_unit_no_icon( painter, where, tile, options );
     return;
   }
 
@@ -211,8 +252,8 @@ static void render_unit_impl(
       render_sprite_silhouette(
           painter, where + Delta{ .w = options.shadow->offset },
           desc.tile, options.shadow->color );
-    render_nationality_icon( renderer, where, desc, flag_color,
-                             orders );
+    render_unit_flag( renderer, where, desc, flag_color, orders,
+                      options.flag );
     if( options.shadow.has_value() ) {
       // Draw a light shadow over the flag so that we can dif-
       // ferentiate the edge of the unit from the flag, but not
@@ -225,16 +266,17 @@ static void render_unit_impl(
     }
     render_sprite( painter, where, desc.tile );
   } else {
-    render_unit_no_icon( painter, where, unit_type, options );
-    render_nationality_icon( renderer, where, desc, flag_color,
-                             orders );
+    render_unit_no_icon( painter, where, tile, options );
+    render_unit_flag( renderer, where, desc, flag_color, orders,
+                      options.flag );
   }
 }
 
 void render_unit( rr::Renderer& renderer, Coord where,
                   Unit const&              unit,
                   UnitRenderOptions const& options ) {
-  render_unit_impl( renderer, where, unit.type(), unit.desc(),
+  render_unit_impl( renderer, where, unit.desc().tile,
+                    unit.desc(),
                     nation_obj( unit.nation() ).flag_color,
                     unit.orders(), options );
 }
@@ -247,14 +289,29 @@ void render_native_unit( rr::Renderer& renderer, Coord where,
   e_tribe const    tribe = tribe_for_unit( ss, native_unit );
   gfx::pixel const flag_color =
       config_natives.tribes[tribe].flag_color;
-  render_unit_impl( renderer, where, native_unit.type, desc,
-                    flag_color, e_unit_orders::none, options );
+  render_unit_impl( renderer, where, desc.tile, desc, flag_color,
+                    e_unit_orders::none, options );
+}
+
+static void render_unit_type(
+    rr::Painter& painter, Coord where, e_tile tile,
+    UnitRenderOptions const& options ) {
+  render_unit_no_icon( painter, where, tile, options );
 }
 
 void render_unit_type( rr::Painter& painter, Coord where,
                        e_unit_type              unit_type,
                        UnitRenderOptions const& options ) {
-  render_unit_no_icon( painter, where, unit_type, options );
+  render_unit_no_icon( painter, where,
+                       unit_attr( unit_type ).tile, options );
+}
+
+void render_native_unit_type(
+    rr::Painter& painter, Coord where,
+    e_native_unit_type       unit_type,
+    UnitRenderOptions const& options ) {
+  render_unit_no_icon( painter, where,
+                       unit_attr( unit_type ).tile, options );
 }
 
 void render_colony( rr::Painter& painter, Coord where,
@@ -298,10 +355,10 @@ void render_unit_depixelate( rr::Renderer& renderer, Coord where,
 // and the shadow if the flag is to be behind the unit, and 2) we
 // don't want to depixelate the flag since we have a target unit,
 // so it would look strange if the flag depixelated.
-void render_unit_depixelate_to( rr::Renderer& renderer,
-                                Coord where, Unit const& unit,
-                                e_unit_type target, double stage,
-                                UnitRenderOptions options ) {
+static void render_unit_depixelate_to_impl(
+    rr::Renderer& renderer, Coord where, SSConst const& ss,
+    auto const& desc, auto const& unit, e_tile target_tile,
+    double stage, UnitRenderOptions options ) {
   // The shadow always goes in back of the flag, so if there is
   // one we can get that out of the way.
   if( options.shadow.has_value() )
@@ -311,36 +368,64 @@ void render_unit_depixelate_to( rr::Renderer& renderer,
           render_sprite_silhouette(
               painter,
               where + Delta{ .w = options.shadow->offset },
-              unit.desc().tile, options.shadow->color );
+              desc.tile, options.shadow->color );
         },
         /*to=*/
         [&]( rr::Painter& painter ) {
           render_sprite_silhouette(
               painter,
               where + Delta{ .w = options.shadow->offset },
-              unit_attr( target ).tile, options.shadow->color );
+              target_tile, options.shadow->color );
         } );
   options.shadow.reset();
 
   // If the flag is on then it goes in between the shadow and
   // unit.
-  if( options.flag && !unit.desc().nat_icon_front )
-    render_nationality_icon( renderer, where, unit );
+  if( options.flag != e_flag_count::none &&
+      !desc.nat_icon_front )
+    render_unit_flag( renderer, where, ss, unit, options.flag );
 
   // Now the unit.
   depixelate_from_to(
       renderer, stage, /*anchor=*/where, /*from=*/
       [&]( rr::Painter& painter ) {
-        render_unit_type( painter, where, unit.desc().type,
-                          options );
+        render_unit_type( painter, where, desc.tile, options );
       },
       /*to=*/
       [&]( rr::Painter& painter ) {
-        render_unit_type( painter, where, target, options );
+        render_unit_type( painter, where, target_tile, options );
       } );
 
-  if( options.flag && unit.desc().nat_icon_front )
-    render_nationality_icon( renderer, where, unit );
+  if( options.flag != e_flag_count::none && desc.nat_icon_front )
+    render_unit_flag( renderer, where, ss, unit, options.flag );
+}
+
+void render_unit_depixelate_to( rr::Renderer& renderer,
+                                Coord where, SSConst const& ss,
+                                Unit const& unit, e_tile target,
+                                double            stage,
+                                UnitRenderOptions options ) {
+  render_unit_depixelate_to_impl( renderer, where, ss,
+                                  unit.desc(), unit, target,
+                                  stage, options );
+}
+
+void render_native_unit_depixelate(
+    rr::Renderer& renderer, Coord where, SSConst const& ss,
+    NativeUnit const& unit, double stage,
+    UnitRenderOptions const& options ) {
+  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                           stage );
+  render_native_unit( renderer, where, ss, unit, options );
+}
+
+void render_native_unit_depixelate_to(
+    rr::Renderer& renderer, Coord where, SSConst const& ss,
+    NativeUnit const& unit, e_tile target, double stage,
+    UnitRenderOptions options ) {
+  render_unit_depixelate_to_impl( renderer, where, ss,
+                                  unit_attr( unit.type ), unit,
+                                  target, stage, options );
 }
 
 } // namespace rn

@@ -169,7 +169,6 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
                 .upper_left(),
             ss_.units.unit_for( unit_id ),
             UnitRenderOptions{
-                .flag   = false,
                 .shadow = UnitShadow{
                     .color = config_colony.colors
                                  .unit_shadow_color_light } } );

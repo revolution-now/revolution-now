@@ -69,14 +69,16 @@ struct ILandViewPlane {
   // has a value then we will depixelate to that type instead of
   // to nothing.
   virtual wait<> animate_unit_depixelation(
-      UnitId id, maybe<e_unit_type> target_type ) = 0;
+      UnitWithDepixelateTarget_t const& what ) = 0;
 
-  virtual wait<> animate_attack( UnitId attacker,
-                                 UnitId defender,
-                                 bool   attacker_wins ) = 0;
+  virtual wait<> animate_attack(
+      GenericUnitId attacker, GenericUnitId defender,
+      std::vector<UnitWithDepixelateTarget_t> const& animations,
+      bool attacker_wins ) = 0;
 
   virtual wait<> animate_colony_capture(
       UnitId attacker_id, UnitId defender_id,
+      std::vector<UnitWithDepixelateTarget_t> const& animations,
       ColonyId colony_id ) = 0;
 
   // Clear any buffer input.
@@ -125,14 +127,18 @@ struct LandViewPlane : ILandViewPlane {
       Colony const& colony ) override;
 
   wait<> animate_unit_depixelation(
-      UnitId id, maybe<e_unit_type> target_type ) override;
+      UnitWithDepixelateTarget_t const& what ) override;
 
-  wait<> animate_attack( UnitId attacker, UnitId defender,
-                         bool attacker_wins ) override;
+  wait<> animate_attack(
+      GenericUnitId attacker, GenericUnitId defender,
+      std::vector<UnitWithDepixelateTarget_t> const&
+           depixelations,
+      bool attacker_wins ) override;
 
-  wait<> animate_colony_capture( UnitId   attacker_id,
-                                 UnitId   defender_id,
-                                 ColonyId colony_id ) override;
+  wait<> animate_colony_capture(
+      UnitId attacker_id, UnitId defender_id,
+      std::vector<UnitWithDepixelateTarget_t> const& animations,
+      ColonyId colony_id ) override;
 
   void reset_input_buffers() override;
 
