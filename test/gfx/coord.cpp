@@ -16,6 +16,9 @@
 // refl
 #include "src/refl/to-str.hpp"
 
+// C++ standard library
+#include <unordered_set>
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -483,6 +486,47 @@ TEST_CASE( "[coord] Coord::concentric_square_distance" ) {
   REQUIRE( f() == 3 );
   --other.x;
   REQUIRE( f() == 4 );
+}
+
+TEST_CASE( "[coord] std::hash<Coord>" ) {
+  Coord                 input = {};
+  unordered_set<size_t> answers;
+
+  auto f = [&] { return std::hash<Coord>{}( input ); };
+
+  input = Coord{ .x = -2, .y = 0 };
+  answers.insert( f() );
+
+  input = Coord{ .x = 0, .y = -2 };
+  answers.insert( f() );
+
+  input = Coord{ .x = 0, .y = 0 };
+  answers.insert( f() );
+
+  input = Coord{ .x = 2, .y = 0 };
+  answers.insert( f() );
+
+  input = Coord{ .x = 0, .y = 2 };
+  answers.insert( f() );
+
+  input = Coord{ .x = 2, .y = 2 };
+  answers.insert( f() );
+
+  input = Coord{ .x = -2, .y = -2 };
+  answers.insert( f() );
+
+  input = Coord{ .x = -2, .y = 2 };
+  answers.insert( f() );
+
+  input = Coord{ .x = 2, .y = -2 };
+  answers.insert( f() );
+
+  // This will check that the hash of each of the above coordi-
+  // nates is unique. I guess this is not guaranteed, but any
+  // sensible implementation should satisfy this. If this breaks
+  // then the hashes should be examined as something might be
+  // wrong.
+  REQUIRE( answers.size() == 9 );
 }
 
 } // namespace
