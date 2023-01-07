@@ -141,6 +141,10 @@ struct World {
   // without any ownership.
   Unit& add_free_unit( e_unit_type     type,
                        maybe<e_nation> nation = nothing );
+  // This will create a unit that is registered in the game but
+  // without any ownership, which for native units also implies
+  // that it has no associated dwelling or tribe.
+  NativeUnit& add_free_unit( e_native_unit_type type );
 
   // Create a unit and add give it the specified indoor job in
   // the colony.

@@ -293,6 +293,10 @@ Unit& World::add_free_unit( e_unit_type     type,
   return units().unit_for( id );
 }
 
+NativeUnit& World::add_free_unit( e_native_unit_type type ) {
+  return units().unit_for( create_free_unit( ss(), type ) );
+}
+
 Unit& World::add_unit_indoors( ColonyId     colony_id,
                                e_indoor_job indoor_job,
                                e_unit_type  type ) {
