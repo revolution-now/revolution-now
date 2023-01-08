@@ -97,6 +97,9 @@ wait<OrdersHandler::RunResult> OrdersHandler::run() {
   bool confirmed = co_await record_suspend( confirm() );
   if( !confirmed ) co_return res;
 
+  unique_ptr<OrdersHandler> delegate = switch_handler();
+  if( delegate != nullptr ) co_return co_await delegate->run();
+
   res.order_was_run = true;
 
   // Orders can be carried out. We don't care about the sus-
@@ -108,6 +111,7 @@ wait<OrdersHandler::RunResult> OrdersHandler::run() {
   co_await record_suspend( perform() );
   co_await record_suspend( post() );
 
+  res.units_to_prioritize = units_to_prioritize();
   co_return res;
 }
 

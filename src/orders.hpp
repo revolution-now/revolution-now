@@ -53,6 +53,13 @@ struct OrdersHandler {
     // is useful to know in order for the caller to have a pol-
     // ished user interface.
     bool suspended = false;
+
+    // Any units that need to be prioritized (in the sense of
+    // asking for orders) after this order has been carried out.
+    // An example of this would be after units make landfall from
+    // a ship, it is natural for them to ask for orders right
+    // away.
+    std::vector<UnitId> units_to_prioritize;
   };
 
   // Run though the entire sequence of
@@ -70,6 +77,14 @@ struct OrdersHandler {
   //
   virtual wait<bool> confirm() = 0;
 
+  // This will be called when `confirm` has returned true to see
+  // if the handler wants to delegate to another handler for the
+  // remainder. If so, this function will return non-null, then
+  // the process will start over again with the new handler.
+  virtual std::unique_ptr<OrdersHandler> switch_handler() {
+    return nullptr;
+  }
+
   // Animate the orders being carried out, if any. This should be
   // run before `perform`.
   virtual wait<> animate() const { return make_wait<>(); }
@@ -82,10 +97,7 @@ struct OrdersHandler {
   // the colony view.
   virtual wait<> post() const { return make_wait<>(); }
 
-  // Any units that need to be prioritized (in the sense of
-  // asking for orders) after this order has been carried out. An
-  // example of this would be after units make landfall from a
-  // ship, it is natural for them to ask for orders right away.
+ protected:
   virtual std::vector<UnitId> units_to_prioritize() const {
     return {};
   }

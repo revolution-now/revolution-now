@@ -558,7 +558,7 @@ wait<> process_player_input( UnitId                       id,
                                  ss.units.unit_for( id ) );
       }
 
-      for( auto id : handler->units_to_prioritize() )
+      for( auto id : run_result.units_to_prioritize )
         prioritize_unit( q, id );
       break;
     }
