@@ -9,6 +9,8 @@ return {
   'ss/dwelling',
   'ss/native-unit',
   'alarm',
-  'orders-move',
   'enter-dwelling',
+  'orders-move',
+  'fight',
+  'land-view',
 }
