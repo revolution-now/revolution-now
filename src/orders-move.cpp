@@ -1853,6 +1853,45 @@ struct NativeDwellingHandler : public OrdersHandler {
     co_return true;
   }
 
+  unique_ptr<OrdersHandler> switch_handler() override {
+    if( chosen_option_ ==
+        e_enter_dwelling_option::attack_village ) {
+      // Check if there is a brave sitting on top of the
+      // dwelling. If so, then delegate to the handler that han-
+      // dles attacking free-standing braves.
+      unordered_set<GenericUnitId> const& braves_on_dwelling =
+          ss_.units.from_coord( dwelling_.location );
+      // There should only be one brave on the dwelling tile, but
+      // let's just be defensive.
+      vector<NativeUnitId> units;
+      for( GenericUnitId id : braves_on_dwelling )
+        units.push_back( ss_.units.check_native_unit( id ) );
+      sort_native_unit_stack( ss_, units );
+      if( units.empty() ) return nullptr;
+      NativeUnitId const highest_defense_id = units[0];
+      NativeUnit const&  highest_defense =
+          ss_.units.unit_for( highest_defense_id );
+      e_tribe const tribe =
+          tribe_for_unit( ss_, highest_defense );
+      CHECK( tribe == tribe_.type,
+             "there is a brave from tribe {} sitting on a "
+             "dwelling of tribe {}.",
+             tribe, tribe_.type );
+      UNWRAP_CHECK( relationship,
+                    tribe_.relationship[unit_.nation()] );
+      // The player has already confirmed that they want to at-
+      // tack, so no need to re-ask them.
+      relationship.nation_has_attacked_tribe = true;
+      // Delegate: the order handling process will be restarted
+      // with this new handler.
+      return make_unique<AttackNativeUnitHandler>(
+          planes_, ss_, ts_, player_, unit_id_, direction_,
+          tribe_ );
+    }
+
+    return nullptr; // Continue with this handler.
+  }
+
   wait<> animate() const override { co_return; }
 
   wait<> perform() override {
