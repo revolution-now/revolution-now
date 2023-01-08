@@ -143,6 +143,21 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
 
   play( rand, e_game_module_tune_points::start_game );
   // All of the above needs to stay alive, so we must wait.
+  //
+  // TODO: if this is a new game then Lua may have placed some
+  // units on the map.  Just before we start the turn loop we
+  // need to call the interactive on-map function for each of
+  // those units.  This will ensure that the game invariants
+  // are upheld, e.g.:
+  //
+  //   * A ship starting off next to land will have discovered
+  //     the new world.
+  //   * A unit next to a native entity will have met the tribe
+  //     and created a relationship.
+  //   * A unit on an LCR will have investigated it.
+  //   * ...
+  //
+  // But this should not be done when loading an existing game.
   co_await co::erase( co::try_<game_quit_interrupt>(
       [&] { return turn_loop( planes, ss, ts ); } ) );
 }
