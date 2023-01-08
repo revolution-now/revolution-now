@@ -1762,6 +1762,16 @@ struct LandViewPlane::Impl : public Plane {
       co_await ensure_visible_unit( id );
     g_needs_scroll_to_unit_on_input = false;
 
+    // Need to set this before taking any user input, otherwise
+    // we will be in the "none" state, which represents the
+    // end-of-turn, in which case e.g. a space bar gets sent as a
+    // "next turn" event as opposed to a "forfeight" event (which
+    // can happen because sometimes we take input while eating
+    // buffered input events below).
+    SCOPED_SET_AND_RESTORE(
+        landview_mode_,
+        LandViewMode::unit_input{ .unit_id = id } );
+
     // When we start on a new unit clear the input queue so that
     // commands that were accidentally buffered while controlling
     // the previous unit don't affect this new one, which would
@@ -1789,10 +1799,6 @@ struct LandViewPlane::Impl : public Plane {
         last_unit_input_->unit_id != id )
       last_unit_input_ = LastUnitInput{
           .unit_id = id, .need_input_buffer_shield = true };
-
-    SCOPED_SET_AND_RESTORE(
-        landview_mode_,
-        LandViewMode::unit_input{ .unit_id = id } );
 
     // Run the blinker while waiting for user input.
     LandViewPlayerInput_t input = co_await co::background(
