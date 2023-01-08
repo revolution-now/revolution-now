@@ -134,7 +134,7 @@ TEST_CASE( "[unit-stack] sort_unit_stack" ) {
 
   SECTION( "single" ) {
     add( e_native_unit_type::brave ); // 1
-    sort_unit_stack( W.ss(), units, /*force_top=*/nothing );
+    sort_unit_stack( W.ss(), units );
     expected = {
         GenericUnitId{ 1 },
     };
@@ -153,25 +153,7 @@ TEST_CASE( "[unit-stack] sort_unit_stack" ) {
                  GenericUnitId{ 2 }, GenericUnitId{ 6 },
                  GenericUnitId{ 1 }, GenericUnitId{ 7 },
                  GenericUnitId{ 3 } };
-    sort_unit_stack( W.ss(), units, /*force_top=*/nothing );
-    REQUIRE( units == expected );
-  }
-
-  SECTION( "multiple with forced" ) {
-    add( e_native_unit_type::mounted_brave );   // 1
-    add( e_native_unit_type::mounted_warrior ); // 2
-    add( e_native_unit_type::brave );           // 3
-    add( e_unit_type::veteran_soldier );        // 4
-    add( e_unit_type::caravel );                // 5
-    add( e_native_unit_type::armed_brave );     // 6
-    add( e_native_unit_type::brave );           // 7
-    add( e_native_unit_type::brave );           // 8
-    expected = { GenericUnitId{ 7 }, GenericUnitId{ 5 },
-                 GenericUnitId{ 4 }, GenericUnitId{ 2 },
-                 GenericUnitId{ 6 }, GenericUnitId{ 1 },
-                 GenericUnitId{ 8 }, GenericUnitId{ 3 } };
-    sort_unit_stack( W.ss(), units,
-                     /*force_top=*/GenericUnitId{ 7 } );
+    sort_unit_stack( W.ss(), units );
     REQUIRE( units == expected );
   }
 }

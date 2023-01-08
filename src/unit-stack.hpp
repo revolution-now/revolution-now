@@ -26,19 +26,23 @@ namespace rn {
 
 struct SSConst;
 
-// For convenience. Uses the above comparator. Top unit will be
-// first in the vector.
-void sort_unit_stack( SSConst const&              ss,
-                      std::vector<GenericUnitId>& units,
-                      maybe<GenericUnitId>        force_top );
+// These are the functions that contains the logic that deter-
+// mines the order in which units are visually stacked when there
+// are multiple on a square, and also how a defending unit is
+// chosen when attacking a square with multiple units. This is
+// factored out into a common location because it needs to be
+// consistent across various places in the code base in order to
+// ensure a consistent UI/UX.
 
-// For convenience. Uses the above comparator. Top unit will be
-// first in the vector.
+// Top unit will be first in the vector.
+void sort_unit_stack( SSConst const&              ss,
+                      std::vector<GenericUnitId>& units );
+
+// Top unit will be first in the vector.
 void sort_native_unit_stack( SSConst const&             ss,
                              std::vector<NativeUnitId>& units );
 
-// For convenience. Uses the above comparator. Top unit will be
-// first in the vector.
+// Top unit will be first in the vector.
 void sort_euro_unit_stack( SSConst const&       ss,
                            std::vector<UnitId>& units );
 

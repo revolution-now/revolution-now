@@ -303,30 +303,17 @@ struct LandViewPlane::Impl : public Plane {
     }
   }
 
-  wait<> animate_blink( UnitId id ) {
+  // TODO: this animation needs to be sync'd with the one in the
+  // mini-map.
+  wait<> animate_blink( UnitId id, bool visible_initially ) {
     using namespace std::literals::chrono_literals;
     CHECK( !unit_animations_.contains( id ) );
     UnitAnimation::blink& blink =
         unit_animations_[id].emplace<UnitAnimation::blink>();
-    // FIXME: this needs to be initially `true` for those units
-    // which are not visible by default, such as e.g. a ship in a
-    // colony that is asking for orders. The idea is that we want
-    // this to be the opposite of the unit's default visibility
-    // so that when the unit asks for orders, the player sees a
-    // visual signal immediately.
-    //
-    // FIXME: this causes the unit to remain invisible when the
-    // player continually tries to move a unit into a forbidden
-    // square.
-    blink = UnitAnimation::blink{ .visible = false };
-    // The unit will always end up visible after we stop since we
-    // are going to delete the animation object for this unit,
-    // which leaves them visible by default. Do this via RAII be-
-    // cause this coroutine will usually be interrupted.
+    blink = UnitAnimation::blink{ .visible = visible_initially };
     SCOPE_EXIT( unit_animations_.erase( id ) );
-
-    // TODO: this animation needs to be sync'd with the one in
-    // the mini-map.
+    // We use an initial delay so that our initial value of `vis-
+    // ible` will be the first to linger.
     AnimThrottler throttle( 500ms, /*initial_delay=*/true );
     while( true ) {
       co_await throttle();
@@ -754,35 +741,52 @@ struct LandViewPlane::Impl : public Plane {
     return Rect::from( Coord{} + delta_in_pixels, g_tile_delta );
   }
 
+  // Given a tile, this will return the ordered unit stack on
+  // that tile (if any units are present), in the order that they
+  // would be rendered. The top-most unit is first.
+  vector<GenericUnitId> unit_stack( Coord tile ) const {
+    unordered_set<GenericUnitId> const& units =
+        ss_.units.from_coord( tile );
+    vector<GenericUnitId> res;
+    if( units.empty() ) return res;
+    res = vector<GenericUnitId>( units.begin(), units.end() );
+    maybe<GenericUnitId> const last_unit_id =
+        last_unit_input_.member( &LastUnitInput::unit_id );
+    sort_unit_stack( ss_, res );
+    return res;
+  }
+
   void render_units_on_square( rr::Renderer& renderer,
                                Rect covered, Coord tile,
                                bool flags ) const {
     if( !viz_.visible( tile ) ) return;
-    unordered_set<GenericUnitId> const& units =
-        ss_.units.from_coord( tile );
-    if( units.empty() ) return;
-    vector<GenericUnitId> sorted( units.begin(), units.end() );
     maybe<GenericUnitId> const last_unit_id =
         last_unit_input_.member( &LastUnitInput::unit_id );
-    // Sort in decreasing order of defense, then by id, but al-
-    // ways put first the most recent unit to ask for orders.
-    // This makes for a better UX since e.g. if a unit is on a
-    // square with other units and it attempts to make an invalid
-    // move, it will remain on top while the message box pops up
-    // with the explanation.
-    sort_unit_stack( ss_, sorted, /*force_top=*/last_unit_id );
-    // Sometimes this function will be called to render the stack
-    // of units under a unit that is being animated in some way;
-    // either way, skip those animated units.
+    // This will be sorted in decreasing order of defense, then
+    // by decreasing id.
+    vector<GenericUnitId> sorted = unit_stack( tile );
+    if( sorted.empty() ) return;
     erase_if( sorted, [this]( GenericUnitId id ) {
       return unit_animations_.contains( id );
     } );
+    // This is optional, but always put the most recent unit to
+    // ask for orders at the top of the stack if they are in this
+    // tile. This makes for a better UX since e.g. if a unit is
+    // on a square with other units and it attempts to make an
+    // invalid move, it will remain on top while the message box
+    // pops up with the explanation.
+    if( last_unit_id.has_value() &&
+        find( sorted.begin(), sorted.end(), *last_unit_id ) !=
+            sorted.end() ) {
+      erase( sorted, *last_unit_id );
+      sorted.insert( sorted.begin(), *last_unit_id );
+    }
     if( sorted.empty() ) return;
     GenericUnitId const max_defense = sorted[0];
 
     Coord const where =
         render_rect_for_tile( covered, tile ).upper_left();
-    bool const         multiple_units = ( units.size() > 1 );
+    bool const         multiple_units = ( sorted.size() > 1 );
     e_flag_count const flag_count = !flags ? e_flag_count::none
                                     : !multiple_units
                                         ? e_flag_count::single
@@ -1709,7 +1713,6 @@ struct LandViewPlane::Impl : public Plane {
   wait<> eat_cross_unit_buffered_input_events( UnitId id ) {
     if( !config_land_view.input_overrun_detection.enabled )
       co_return;
-    if( !is_unit_on_map( ss_.units, id ) ) co_return;
     reset_input_buffers();
     auto const kWait =
         config_land_view.input_overrun_detection.wait_time;
@@ -1738,6 +1741,29 @@ struct LandViewPlane::Impl : public Plane {
           .unit_id = id, .start_time = raw_input.when };
     }
     reset_input_buffers();
+  }
+
+  bool is_unit_visible_on_map( GenericUnitId id ) const {
+    if( unit_animations_.contains( id ) ) return true;
+    maybe<Coord> const tile =
+        coord_for_unit_multi_ownership( ss_, id );
+    if( !tile.has_value() ) return false;
+    if( ss_.colonies.maybe_from_coord( *tile ).has_value() )
+      // Note that if the unit is in a colony square and is de-
+      // fending an attack (and hence visible) then the anima-
+      // tions check above should have caught it.
+      return false;
+    if( ss_.units.unit_kind( id ) == e_unit_kind::euro ) {
+      if( is_unit_onboard( ss_.units,
+                           ss_.units.check_euro_unit( id ) ) )
+        // Note that if the unit is onboard but is asking for or-
+        // ders then the animations check above should have
+        // caught it.
+        return false;
+    }
+    vector<GenericUnitId> sorted = unit_stack( *tile );
+    CHECK( !sorted.empty() );
+    return ( sorted[0] == id );
   }
 
   wait<LandViewPlayerInput_t> get_next_input( UnitId id ) {
@@ -1778,15 +1804,16 @@ struct LandViewPlane::Impl : public Plane {
     // almost certainly not be desirable. This function does that
     // clearing in an interactive way in order to signal to the
     // user what is happening.
-    if( last_unit_input_.has_value() &&
+    bool const eat_buffered =
+        last_unit_input_.has_value() &&
         // If still moving same unit then no need to shield.
         last_unit_input_->unit_id != id &&
         last_unit_input_->need_input_buffer_shield &&
         // E.g. if the previous unit got on a ship then the
         // player doesn't expect them to continue moving, so no
         // need to shield this unit.
-        is_unit_on_map( ss_.units,
-                        last_unit_input_->unit_id ) ) {
+        is_unit_on_map( ss_.units, last_unit_input_->unit_id );
+    if( eat_buffered ) {
       // We typically wait for a bit while eating input events;
       // during that time, make sure that the unit who is about
       // to ask for orders is rendered on the front.
@@ -1800,9 +1827,32 @@ struct LandViewPlane::Impl : public Plane {
       last_unit_input_ = LastUnitInput{
           .unit_id = id, .need_input_buffer_shield = true };
 
-    // Run the blinker while waiting for user input.
+    // Run the blinker while waiting for user input. The question
+    // is, do we want the blinking to start "on" or "off"? The
+    // idea is that we want to start it off in the opposite vi-
+    // sual state that the unit currently is in.
+    //
+    // Most of the time we start the blinking with the unit in-
+    // visible, that way the start of the animation creates an
+    // immediate visual change that draws the player's eye to the
+    // unit. However, in some cases, the unit is not initially
+    // visible even before the animation starts; this could be
+    // e.g. because it is on a colony square, it is the cargo of
+    // a ship, or it is in the middle of a stack of units. In
+    // those cases, we want the blinking animation to be ini-
+    // tially visible so that it creates a similar visual change
+    // to draw the player's eye. Note that if we did eat buffered
+    // input events above then the unit will have been made vis-
+    // ible for a brief time regardless, so in that case we know
+    // we that we should start with the unit invisible.
+    bool const visible_initially =
+        !is_unit_visible_on_map( id ) && !eat_buffered;
+    lg.trace( "visible={}, eat={}, init={}",
+              is_unit_visible_on_map( id ), eat_buffered,
+              visible_initially );
     LandViewPlayerInput_t input = co_await co::background(
-        next_player_input_object(), animate_blink( id ) );
+        next_player_input_object(),
+        animate_blink( id, visible_initially ) );
 
     // Disable input buffer shielding when the unit issues a
     // non-move command, because in that case it is unlikely that
