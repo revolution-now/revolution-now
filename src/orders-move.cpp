@@ -1611,139 +1611,6 @@ wait<> EuroAttackHandler::perform() {
 }
 
 /****************************************************************
-** NativeDwellingHandler
-*****************************************************************/
-struct NativeDwellingHandler : public OrdersHandler {
-  NativeDwellingHandler( Planes& planes, SS& ss, TS& ts,
-                         Player& player, UnitId unit_id,
-                         e_direction d, Dwelling& dwelling )
-    : planes_( planes ),
-      ss_( ss ),
-      ts_( ts ),
-      player_( player ),
-      unit_id_( unit_id ),
-      unit_( ss_.units.unit_for( unit_id ) ),
-      tribe_( ss.natives.tribe_for( dwelling.tribe ) ),
-      dwelling_( dwelling ),
-      direction_( d ),
-      move_src_( coord_for_unit_indirect_or_die( ss.units,
-                                                 unit_.id() ) ),
-      move_dst_( move_src_.moved( d ) ) {}
-
-  // Returns true if the move is allowed.
-  wait<bool> confirm() override {
-    if( !unit_.desc().ship &&
-        ss_.terrain.square_at( move_src_ ).surface ==
-            e_surface::water ) {
-      co_await ts_.gui.message_box(
-          "A land unit cannot enter a square occupied by an "
-          "enemy power directly from a ship.  We must first "
-          "move them onto a land square that is either empty or "
-          "occupied by friendly forces." );
-      co_return false;
-    }
-
-    EnterNativeDwellingOptions const options =
-        enter_native_dwelling_options( ss_, player_,
-                                       unit_.type(), dwelling_ );
-    chosen_option_ = co_await present_dwelling_entry_options(
-        ss_, ts_, options );
-    // The move is always allowed for any unit; if the unit can't
-    // do anything or if the unit cancels then the unit's move-
-    // ment points will still be consumed.
-    co_return true;
-  }
-
-  wait<> animate() const override { co_return; }
-
-  wait<> perform() override {
-    // The OG will always drain the movement points of the unit
-    // completely (even a scout) when it enters a village, and
-    // will do so even when the user then cancels the action.
-    unit_.forfeight_mv_points();
-
-    switch( chosen_option_ ) {
-      case e_enter_dwelling_option::live_among_the_natives: {
-        // This should have a value because we should not have
-        // allowed the player to choose to live among the natives
-        // otherwise.
-        UNWRAP_CHECK( relationship,
-                      tribe_.relationship[unit_.nation()] );
-        LiveAmongTheNatives_t const outcome =
-            compute_live_among_the_natives( ss_, relationship,
-                                            dwelling_, unit_ );
-        co_await do_live_among_the_natives(
-            planes_, ts_, dwelling_, player_, unit_, outcome );
-        break;
-      }
-      case e_enter_dwelling_option::speak_with_chief: {
-        SpeakWithChiefResult const outcome =
-            compute_speak_with_chief( ss_, ts_, dwelling_,
-                                      unit_ );
-        co_await do_speak_with_chief( planes_, ss_, ts_,
-                                      dwelling_, player_, unit_,
-                                      outcome );
-        // !! Note that the unit may no longer exist here if the
-        // scout was used a target practice.
-        co_return;
-      }
-      case e_enter_dwelling_option::attack_village:
-        co_await ts_.gui.message_box( "Not Implemented" );
-        co_return;
-      case e_enter_dwelling_option::demand_tribute:
-        co_await ts_.gui.message_box( "Not Implemented" );
-        co_return;
-      case e_enter_dwelling_option::establish_mission:
-        co_await ts_.gui.message_box( "Not Implemented" );
-        co_return;
-      case e_enter_dwelling_option::incite_indians:
-        co_await ts_.gui.message_box( "Not Implemented" );
-        co_return;
-      case e_enter_dwelling_option::denounce_foreign_mission:
-        co_await ts_.gui.message_box( "Not Implemented" );
-        co_return;
-      case e_enter_dwelling_option::trade:
-        co_await ts_.gui.message_box( "Not Implemented" );
-        co_return;
-      case e_enter_dwelling_option::cancel:
-        // Do nothing.
-        co_return;
-    }
-    co_return;
-  }
-
-  wait<> post() const override {
-    // !! Note that the unit being moved theoretically may not
-    // exist here if it was destroyed as part of this action,
-    // e.g. losing losing a battle or being "used for target
-    // practice."
-    if( !ss_.units.exists( unit_id_ ) ) co_return;
-    co_return;
-  }
-
-  Planes& planes_;
-  SS&     ss_;
-  TS&     ts_;
-  Player& player_;
-
-  // The unit doing the attacking. We need to record the unit id
-  // so that we can test if the unit has been destroyed.
-  UnitId    unit_id_;
-  Unit&     unit_;
-  Tribe&    tribe_;
-  Dwelling& dwelling_;
-
-  // Source and destination squares of the move.
-  e_direction direction_;
-  Coord       move_src_;
-  Coord       move_dst_;
-
-  // These get filled out after construction.
-  e_enter_dwelling_option chosen_option_ =
-      e_enter_dwelling_option::cancel;
-};
-
-/****************************************************************
 ** AttackNativeUnitHandler
 *****************************************************************/
 struct AttackNativeUnitHandler : public OrdersHandler {
@@ -1940,6 +1807,141 @@ struct AttackNativeUnitHandler : public OrdersHandler {
 
   // If the attack proceeds then this will hold the statistics.
   maybe<FightStatistics> fight_stats_;
+};
+
+/****************************************************************
+** NativeDwellingHandler
+*****************************************************************/
+struct NativeDwellingHandler : public OrdersHandler {
+  NativeDwellingHandler( Planes& planes, SS& ss, TS& ts,
+                         Player& player, UnitId unit_id,
+                         e_direction d, Dwelling& dwelling )
+    : planes_( planes ),
+      ss_( ss ),
+      ts_( ts ),
+      player_( player ),
+      unit_id_( unit_id ),
+      unit_( ss_.units.unit_for( unit_id ) ),
+      tribe_( ss.natives.tribe_for( dwelling.tribe ) ),
+      dwelling_( dwelling ),
+      direction_( d ),
+      move_src_( coord_for_unit_indirect_or_die( ss.units,
+                                                 unit_.id() ) ),
+      move_dst_( move_src_.moved( d ) ) {}
+
+  // Returns true if the move is allowed.
+  wait<bool> confirm() override {
+    if( !unit_.desc().ship &&
+        ss_.terrain.square_at( move_src_ ).surface ==
+            e_surface::water ) {
+      co_await ts_.gui.message_box(
+          "A land unit cannot enter a square occupied by an "
+          "enemy power directly from a ship.  We must first "
+          "move them onto a land square that is either empty or "
+          "occupied by friendly forces." );
+      co_return false;
+    }
+
+    EnterNativeDwellingOptions const options =
+        enter_native_dwelling_options( ss_, player_,
+                                       unit_.type(), dwelling_ );
+    chosen_option_ = co_await present_dwelling_entry_options(
+        ss_, ts_, options );
+    // The move is always allowed for any unit; if the unit can't
+    // do anything or if the unit cancels then the unit's move-
+    // ment points will still be consumed.
+    co_return true;
+  }
+
+  wait<> animate() const override { co_return; }
+
+  wait<> perform() override {
+    // The OG will always drain the movement points of the unit
+    // completely (even a scout) when it enters a village, and
+    // will do so even when the user then cancels the action.
+    unit_.forfeight_mv_points();
+
+    switch( chosen_option_ ) {
+      case e_enter_dwelling_option::live_among_the_natives: {
+        // This should have a value because we should not have
+        // allowed the player to choose to live among the natives
+        // otherwise.
+        UNWRAP_CHECK( relationship,
+                      tribe_.relationship[unit_.nation()] );
+        LiveAmongTheNatives_t const outcome =
+            compute_live_among_the_natives( ss_, relationship,
+                                            dwelling_, unit_ );
+        co_await do_live_among_the_natives(
+            planes_, ts_, dwelling_, player_, unit_, outcome );
+        break;
+      }
+      case e_enter_dwelling_option::speak_with_chief: {
+        SpeakWithChiefResult const outcome =
+            compute_speak_with_chief( ss_, ts_, dwelling_,
+                                      unit_ );
+        co_await do_speak_with_chief( planes_, ss_, ts_,
+                                      dwelling_, player_, unit_,
+                                      outcome );
+        // !! Note that the unit may no longer exist here if the
+        // scout was used a target practice.
+        co_return;
+      }
+      case e_enter_dwelling_option::attack_village:
+        // TODO: if there is a brave sitting on top of the
+        // dwelling then we should attack it first.
+        co_await ts_.gui.message_box( "Not Implemented" );
+        co_return;
+      case e_enter_dwelling_option::demand_tribute:
+        co_await ts_.gui.message_box( "Not Implemented" );
+        co_return;
+      case e_enter_dwelling_option::establish_mission:
+        co_await ts_.gui.message_box( "Not Implemented" );
+        co_return;
+      case e_enter_dwelling_option::incite_indians:
+        co_await ts_.gui.message_box( "Not Implemented" );
+        co_return;
+      case e_enter_dwelling_option::denounce_foreign_mission:
+        co_await ts_.gui.message_box( "Not Implemented" );
+        co_return;
+      case e_enter_dwelling_option::trade:
+        co_await ts_.gui.message_box( "Not Implemented" );
+        co_return;
+      case e_enter_dwelling_option::cancel:
+        // Do nothing.
+        co_return;
+    }
+    co_return;
+  }
+
+  wait<> post() const override {
+    // !! Note that the unit being moved theoretically may not
+    // exist here if it was destroyed as part of this action,
+    // e.g. losing losing a battle or being "used for target
+    // practice."
+    if( !ss_.units.exists( unit_id_ ) ) co_return;
+    co_return;
+  }
+
+  Planes& planes_;
+  SS&     ss_;
+  TS&     ts_;
+  Player& player_;
+
+  // The unit doing the attacking. We need to record the unit id
+  // so that we can test if the unit has been destroyed.
+  UnitId    unit_id_;
+  Unit&     unit_;
+  Tribe&    tribe_;
+  Dwelling& dwelling_;
+
+  // Source and destination squares of the move.
+  e_direction direction_;
+  Coord       move_src_;
+  Coord       move_dst_;
+
+  // These get filled out after construction.
+  e_enter_dwelling_option chosen_option_ =
+      e_enter_dwelling_option::cancel;
 };
 
 /****************************************************************
