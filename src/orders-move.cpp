@@ -12,6 +12,7 @@
 #include "orders-move.hpp"
 
 // Revolution Now
+#include "alarm.hpp"
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
@@ -33,6 +34,7 @@
 
 // config
 #include "config/nation.hpp"
+#include "config/natives.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
@@ -1594,8 +1596,6 @@ wait<> EuroAttackHandler::perform() {
       break;
     case e::demote:
       loser.demote_from_lost_battle( player_ );
-      // TODO: if a unit loses, should it lose all of its move-
-      // ment points? Check the original game.
       break;
     case e::capture_and_demote:
       // Need to do this first before demoting the unit.
@@ -1744,6 +1744,205 @@ struct NativeDwellingHandler : public OrdersHandler {
 };
 
 /****************************************************************
+** AttackNativeUnitHandler
+*****************************************************************/
+struct AttackNativeUnitHandler : public OrdersHandler {
+  AttackNativeUnitHandler( Planes& planes, SS& ss, TS& ts,
+                           Player& player, UnitId unit_id,
+                           e_direction d, Tribe& tribe )
+    : planes_( planes ),
+      ss_( ss ),
+      ts_( ts ),
+      player_( player ),
+      unit_( ss_.units.unit_for( unit_id ) ),
+      tribe_( tribe ),
+      direction_( d ),
+      move_src_( coord_for_unit_indirect_or_die( ss.units,
+                                                 unit_.id() ) ),
+      move_dst_( move_src_.moved( d ) ) {}
+
+  // Returns true if the move is allowed.
+  wait<bool> confirm() override {
+    if( maybe<e_attack_verdict_base> const verdict =
+            co_await check_attack_verdict_base( ss_, ts_, unit_,
+                                                direction_ );
+        verdict.has_value() ) {
+      // Base verdicts always imply the move is denied/cancelled.
+      co_await display_base_verdict_msg( ts_.gui, *verdict );
+      co_return false;
+    }
+
+    UNWRAP_CHECK( relationship,
+                  tribe_.relationship[unit_.nation()] );
+    if( !relationship.nation_has_attacked_tribe ) {
+      YesNoConfig const config{
+          .msg = fmt::format(
+              "Shall we attack the @[H]{}@[]?",
+              config_natives.tribes[tribe_.type].name_singular ),
+          .yes_label      = "Attack",
+          .no_label       = "Cancel",
+          .no_comes_first = true };
+      maybe<ui::e_confirm> const proceed =
+          co_await ts_.gui.optional_yes_no( config );
+      if( proceed != ui::e_confirm::yes ) co_return false;
+      relationship.nation_has_attacked_tribe = true;
+    }
+
+    unordered_set<GenericUnitId> const& braves =
+        ss_.units.from_coord( move_dst_ );
+    vector<NativeUnitId> native_unit_ids;
+    native_unit_ids.reserve( braves.size() );
+    for( GenericUnitId generic_id : braves )
+      native_unit_ids.push_back(
+          ss_.units.check_native_unit( generic_id ) );
+    sort_native_unit_stack( ss_, native_unit_ids );
+    CHECK( !native_unit_ids.empty() );
+    defender_id_ = native_unit_ids[0];
+
+    // Compute the outcome of the battle.
+    fight_stats_ = fight_statistics(
+        ts_.rand, ss_.units.unit_for( unit_.id() ),
+        ss_.units.unit_for( defender_id_ ) );
+
+    // Sanity checks.
+    CHECK( move_src_ == ss_.units.coord_for( unit_.id() ) );
+    CHECK( move_dst_ == ss_.units.coord_for( defender_id_ ) );
+    CHECK( move_src_.is_adjacent_to( move_dst_ ) );
+    CHECK( fight_stats_.has_value() );
+
+    co_return true;
+  }
+
+  wait<> animate() const override {
+    UnitId const attacker = unit_.id();
+    UNWRAP_CHECK( stats, fight_stats_ );
+    vector<UnitWithDepixelateTarget_t> animations;
+
+    // Attacker animation.
+    if( stats.attacker_wins ) {
+      // TODO: check stats.winner_promoted here to see if the
+      // player's unit has been promoted.
+    } else {
+      animations.push_back( UnitWithDepixelateTarget::euro{
+          .id = attacker,
+          .target =
+              ss_.units.unit_for( attacker ).demoted_type() } );
+    }
+
+    // Defender (brave) animation.
+    if( stats.attacker_wins ) {
+      animations.push_back( UnitWithDepixelateTarget::native{
+          .id = defender_id_, .target = nothing } );
+    } else {
+      // TODO: check stats.winner_promoted here to see if the
+      // brave has acquired any horses or muskets.
+    }
+
+    co_await planes_.land_view().animate_attack(
+        attacker, defender_id_, animations,
+        stats.attacker_wins );
+  }
+
+  wait<> perform() override {
+    CHECK( !unit_.mv_pts_exhausted() );
+    CHECK( unit_.orders() == e_unit_orders::none );
+    CHECK( to_underlying( defender_id_ ) > 0 );
+    CHECK( fight_stats_.has_value() );
+
+    Unit&       attacker = unit_;
+    NativeUnit& defender = ss_.units.unit_for( defender_id_ );
+
+    // The original game seems to consume all movement points of
+    // a unit when attacking.
+    attacker.forfeight_mv_points();
+
+    // The tribal alarm goes up regardless of the battle outcome.
+    UNWRAP_CHECK( relationship,
+                  tribe_.relationship[unit_.nation()] );
+    increase_tribal_alarm_from_attacking_brave( relationship );
+
+    if( fight_stats_->attacker_wins ) {
+      // The player's (european) unit has won:
+      //
+      //   1. The brave disappears.
+      //   2. The player's unit may have been promoted.
+      //
+      NativeUnit& loser = defender;
+      ss_.units.destroy_unit( loser.id );
+
+      // TODO: promote player's unit if necessary.
+
+    } else {
+      // The brave has won:
+      //
+      //   1. The player's unit gets demoted (or destroy in the
+      //      case of a scout).
+      //   2. The brave may have been promoted.
+      //
+      Unit& loser = attacker;
+      switch( loser.desc().on_death.to_enum() ) {
+        using namespace UnitDeathAction;
+        case e::naval: //
+          SHOULD_NOT_BE_HERE;
+        case e::capture_and_demote:
+        case e::capture: {
+          lg.error(
+              "unit set to be captured on defeat should not "
+              "have been the attacker in a battle against "
+              "another unit." );
+          break;
+        }
+        case e::destroy: {
+          // TODO: dedupe this with the euro case.
+          e_unit_type const loser_type   = loser.type();
+          e_nation const    loser_nation = loser.nation();
+          ss_.units.destroy_unit( loser.id() );
+          if( loser_type == e_unit_type::scout ||
+              loser_type == e_unit_type::seasoned_scout )
+            co_await ts_.gui.message_box(
+                "@[H]{}@[] scout has been lost!",
+                nation_obj( loser_nation ).adjective );
+          break;
+        }
+        case e::demote:
+          loser.demote_from_lost_battle( player_ );
+          break;
+      }
+
+      // TODO: promote brave if necessary.
+    }
+
+    co_return;
+  }
+
+  wait<> post() const override {
+    // !! Note that the unit being moved theoretically may not
+    // exist here if it was destroyed as part of this action.
+    if( !ss_.units.exists( unit_.id() ) ) co_return;
+    co_return;
+  }
+
+  Planes& planes_;
+  SS&     ss_;
+  TS&     ts_;
+  Player& player_;
+
+  // The unit doing the attacking. We need to record the unit id
+  // so that we can test if the unit has been destroyed.
+  Unit&  unit_;
+  Tribe& tribe_;
+
+  // Source and destination squares of the move.
+  e_direction  direction_;
+  Coord        move_src_;
+  Coord        move_dst_;
+  NativeUnitId defender_id_ = {};
+
+  // If the attack proceeds then this will hold the statistics.
+  maybe<FightStatistics> fight_stats_;
+};
+
+/****************************************************************
 ** Dispatch
 *****************************************************************/
 unique_ptr<OrdersHandler> dispatch( Planes& planes, SS& ss,
@@ -1789,8 +1988,10 @@ unique_ptr<OrdersHandler> dispatch( Planes& planes, SS& ss,
 
     // Must be attacking a brave.
     CHECK( !ss.units.from_coord( dst ).empty() );
-    return make_unique<EuroAttackHandler>( planes, ss, ts,
-                                           unit_id, d, player );
+    return make_unique<AttackNativeUnitHandler>(
+        planes, ss, ts, player, unit_id, d,
+        ss.natives.tribe_for(
+            society->get<Society::native>().tribe ) );
   }
 
   // Must be an attack (or an attempted attack) on a foreign eu-

@@ -51,6 +51,12 @@ struct.TribeRelationship {
   # ing.
   land_squares_paid_for 'int',
 
+  # When a european unit attacks a native unit the OG appears to
+  # present a confirmation box but only the first time; subse-
+  # quent attacks will just be made with prompting. This flag
+  # keeps track of that.
+  nation_has_attacked_tribe 'bool',
+
   _features { equality, validation }
 }
 
