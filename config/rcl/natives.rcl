@@ -223,6 +223,8 @@ alarm {
     aztec:     0
     inca:      0
   }
+
+  tribal_alarm_increase_from_attacking_brave: 10
 }
 
 # Configures how each dwelling is assigned an expertise for

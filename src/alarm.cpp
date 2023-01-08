@@ -132,4 +132,13 @@ void increase_tribal_alarm_from_land_grab(
                     .minimum_tribal_alarm[dwelling.tribe] );
 }
 
+void increase_tribal_alarm_from_attacking_brave(
+    TribeRelationship& relationship ) {
+  relationship.tribal_alarm +=
+      config_natives.alarm
+          .tribal_alarm_increase_from_attacking_brave;
+  relationship.tribal_alarm =
+      clamp_alarm( relationship.tribal_alarm );
+}
+
 } // namespace rn

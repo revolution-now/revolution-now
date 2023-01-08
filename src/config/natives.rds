@@ -129,6 +129,10 @@ struct.Alarm {
   # Each tribe's alarm does not go below this. When tribal alarm
   # is recomputed it will be clamped to this minimum.
   minimum_tribal_alarm 'refl::enum_map<e_tribe, int>',
+
+  # When we attack a brave on the map the tribe's alarm will in-
+  # crease by this amount.
+  tribal_alarm_increase_from_attacking_brave 'int',
 }
 
 struct.DwellingExpertise {

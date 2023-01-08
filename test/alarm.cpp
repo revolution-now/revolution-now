@@ -334,5 +334,28 @@ TEST_CASE( "[alarm] increase_tribal_alarm_from_land_grab" ) {
   }
 }
 
+TEST_CASE(
+    "[alarm] increase_tribal_alarm_from_attacking_brave" ) {
+  World W;
+
+  Tribe&             tribe = W.add_tribe( e_tribe::inca );
+  TribeRelationship& relationship =
+      tribe.relationship[W.default_nation()].emplace();
+
+  auto f = [&] {
+    increase_tribal_alarm_from_attacking_brave( relationship );
+  };
+
+  REQUIRE( relationship.tribal_alarm == 0 );
+  f();
+  REQUIRE( relationship.tribal_alarm == 10 );
+  f();
+  REQUIRE( relationship.tribal_alarm == 20 );
+
+  relationship.tribal_alarm = 95;
+  f();
+  REQUIRE( relationship.tribal_alarm == 99 );
+}
+
 } // namespace
 } // namespace rn

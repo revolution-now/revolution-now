@@ -54,4 +54,7 @@ void increase_tribal_alarm_from_land_grab(
     SSConst const& ss, Player const& player,
     TribeRelationship& relationship, Coord tile );
 
+void increase_tribal_alarm_from_attacking_brave(
+    TribeRelationship& relationship );
+
 } // namespace rn
