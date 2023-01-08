@@ -239,7 +239,7 @@ string const& reaction_str(
     case e_enter_dwelling_reaction::wary_warriors: {
       static string const msg =
           "You notice that there is no one in sight but for a "
-          "band of warriors looking at your with wariness.";
+          "band of warriors looking at you with wariness.";
       return msg;
     }
     case e_enter_dwelling_reaction::scalps_and_war_drums: {
