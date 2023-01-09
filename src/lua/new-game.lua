@@ -22,6 +22,9 @@ function M.default_options()
     -- This determines which nations are enabled and some proper-
     -- ties. If initial ship position is null then the randomly
     -- generated one will be used.
+    --
+    -- FIXME: this needs to be a list instead of a dict because
+    -- iteration order on a table in lua is non-deterministic.
     nations={
       ['english']={ human=true, ship_pos=nil },
       ['french']={ human=false, ship_pos=nil },

@@ -1854,11 +1854,13 @@ struct NativeDwellingHandler : public OrdersHandler {
   }
 
   unique_ptr<OrdersHandler> switch_handler() override {
+    // If we're attacking the dwelling then first check if there
+    // is a brave sitting on top of the dwelling. If so, then we
+    // delegate to the handler that handles attacking
+    // free-standing braves so that we don't have to duplicate
+    // that logic here.
     if( chosen_option_ ==
         e_enter_dwelling_option::attack_village ) {
-      // Check if there is a brave sitting on top of the
-      // dwelling. If so, then delegate to the handler that han-
-      // dles attacking free-standing braves.
       unordered_set<GenericUnitId> const& braves_on_dwelling =
           ss_.units.from_coord( dwelling_.location );
       // There should only be one brave on the dwelling tile, but
