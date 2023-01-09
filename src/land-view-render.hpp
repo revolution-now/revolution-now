@@ -62,8 +62,10 @@ struct LandViewRenderer {
       maybe<InputOverrunIndicator> input_overrun_indicator,
       SmoothViewport const&        viewport );
 
+  // Units, colonies, dwellings.
   void render_entities() const;
 
+  // Landscape, backdrop.
   void render_non_entities() const;
 
  private:
