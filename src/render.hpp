@@ -22,8 +22,13 @@
 #include "ss/unit-type.rds.hpp"
 #include "ss/unit.rds.hpp"
 
-// render
-#include "render/renderer.hpp"
+// gfx
+#include "gfx/pixel.hpp"
+
+namespace rr {
+struct Painter;
+struct Renderer;
+}
 
 namespace rn {
 

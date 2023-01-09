@@ -1,0 +1,75 @@
+# ===============================================================
+# land-view-render.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-01-09.
+#
+# Description: Rds definitions for the land-view-render module.
+#
+# ===============================================================
+# Revolution Now
+include "maybe.hpp"
+include "physics.hpp"
+include "time.hpp"
+
+# config
+include "config/tile-enum.rds.hpp"
+
+# ss
+include "ss/unit-id.hpp"
+
+# gfx
+include "gfx/coord.rds.hpp"
+
+# C++ standard library
+include "<string>"
+
+namespace "rn"
+
+# These are animation primitives. A unit "move" is a slide, and a
+# unit attack sequence is constructed from a slide + depixela-
+# tion.
+sumtype.UnitAnimation {
+  # This will draw the unit in front all other units and
+  # colonies, with the exception of units that are being animated
+  # in some other way, which will always go on top.
+  front {},
+  blink {
+    visible 'bool',
+  },
+  slide {
+    direction 'e_direction',
+    percent 'double',
+    percent_vel 'DissipativeVelocity',
+  },
+  depixelate_unit {
+    stage 'double',
+    # If we're depixelating to another unit this will have a
+    # value; otherwise we are depixelating to nothing. For a na-
+    # tive unit this would happen if e.g. a brave wins a battle
+    # and acquires muskets or horses.
+    target 'maybe<e_tile>',
+  },
+}
+
+sumtype.ColonyAnimation {
+  depixelate {
+    stage 'double',
+  },
+}
+
+sumtype.DwellingAnimation {
+  depixelate {
+    stage 'double',
+  },
+}
+
+# A fading hourglass icon will be drawn over a unit to signal to
+# the player that the movement command just entered will be
+# thrown out in order to avoid inadvertantly giving the new unit
+# an order intended for the old unit.
+struct.InputOverrunIndicator {
+  unit_id 'UnitId',
+  start_time 'Time_t',
+}
