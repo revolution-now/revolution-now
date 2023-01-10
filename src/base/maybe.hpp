@@ -97,7 +97,9 @@ struct bad_maybe_access : public std::exception {
   bad_maybe_access( SourceLoc loc )
     : std::exception{}, loc_{ std::move( loc ) }, error_msg_{} {
     error_msg_ = loc_.file_name();
-    error_msg_ += ":" + std::to_string( loc_.line() ) + ": ";
+    error_msg_ += ":";
+    error_msg_ += std::to_string( loc_.line() );
+    error_msg_ += ": ";
     error_msg_ += "value() called on an inactive maybe.";
   }
 

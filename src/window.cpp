@@ -370,11 +370,11 @@ e_input_handled WindowManager::input(
     // window as an escape key, and the window can decide what to
     // do with it; many windows will cancel/close the window in
     // response.
-    input::key_event_t const escape_event{
-        .change    = input::e_key_change::down,
-        .keycode   = ::SDLK_ESCAPE,
-        .scancode  = ::SDL_SCANCODE_ESCAPE,
-        .direction = nothing };
+    input::key_event_t escape_event;
+    escape_event.change    = input::e_key_change::down;
+    escape_event.keycode   = ::SDLK_ESCAPE;
+    escape_event.scancode  = ::SDL_SCANCODE_ESCAPE;
+    escape_event.direction = nothing;
     (void)focused().view()->input( escape_event );
 
     return e_input_handled::yes;

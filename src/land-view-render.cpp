@@ -364,7 +364,6 @@ void LandViewRenderer::render_native_dwelling_depixelate(
                            animation.stage );
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
                            hash_anchor );
-  rr::Painter painter = renderer.painter();
   render_native_dwelling( dwelling );
 }
 
@@ -543,7 +542,6 @@ void LandViewRenderer::render_units_under_colonies() const {
 }
 
 void LandViewRenderer::render_colonies() const {
-  rr::Painter painter = renderer.painter();
   // FIXME: since colony icons spill over the usual 32x32 tile
   // we need to render colonies that are beyond the `covered`
   // rect.

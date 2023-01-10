@@ -56,7 +56,10 @@ string template_params( vector<expr::TemplateParam> const& tmpls,
     names.push_back( tp_name + param.param );
   string sep = ",";
   if( space ) sep += ' ';
-  return "<"s + base::str_join( names, sep ) + ">";
+  string res = "<";
+  res += base::str_join( names, sep );
+  res += ">";
+  return res;
 }
 
 string all_int_tmpl_params( int count ) {

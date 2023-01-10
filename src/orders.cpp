@@ -82,7 +82,9 @@ unique_ptr<OrdersHandler> orders_handler(
 }
 
 wait<OrdersHandler::RunResult> OrdersHandler::run() {
-  RunResult res{ .order_was_run = false, .suspended = false };
+  RunResult res{ .order_was_run       = false,
+                 .suspended           = false,
+                 .units_to_prioritize = {} };
 
   // Run the given coroutine, await its result, and return it,
   // but run it under a detect that can detect if it suspended in

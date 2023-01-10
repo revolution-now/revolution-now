@@ -64,7 +64,9 @@ struct bad_expect_access : public std::exception {
   bad_expect_access( SourceLoc loc, bool error )
     : std::exception{}, loc_{ std::move( loc ) }, error_msg_{} {
     error_msg_ = loc_.file_name();
-    error_msg_ += ":" + std::to_string( loc_.line() ) + ": ";
+    error_msg_ += ":";
+    error_msg_ += std::to_string( loc_.line() );
+    error_msg_ += ": ";
     if( !error )
       error_msg_ += "value() called on an inactive expect.";
     else
