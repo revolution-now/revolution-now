@@ -1,29 +1,22 @@
 # ===============================================================
-# land-view-render.rds
+# land-view-anim.rds
 #
 # Project: Revolution Now
 #
 # Created by dsicilia on 2023-01-09.
 #
-# Description: Rds definitions for the land-view-render module.
+# Description: Rds definitions for the land-view-anim module.
 #
 # ===============================================================
 # Revolution Now
 include "maybe.hpp"
 include "physics.hpp"
-include "time.hpp"
 
 # config
 include "config/tile-enum.rds.hpp"
 
-# ss
-include "ss/unit-id.hpp"
-
 # gfx
 include "gfx/coord.rds.hpp"
-
-# C++ standard library
-include "<string>"
 
 namespace "rn"
 
@@ -63,13 +56,4 @@ sumtype.DwellingAnimation {
   depixelate {
     stage 'double',
   },
-}
-
-# A fading hourglass icon will be drawn over a unit to signal to
-# the player that the movement command just entered will be
-# thrown out in order to avoid inadvertantly giving the new unit
-# an order intended for the old unit.
-struct.InputOverrunIndicator {
-  unit_id 'UnitId',
-  start_time 'Time_t',
 }

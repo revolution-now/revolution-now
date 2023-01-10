@@ -12,11 +12,9 @@
 
 #include "core-config.hpp"
 
-// Rds
-#include "land-view-render.rds.hpp"
-
 // Revolution Now
 #include "render.hpp"
+#include "time.hpp"
 
 // ss
 #include "ss/colony-id.hpp"
@@ -38,27 +36,28 @@ struct Renderer;
 namespace rn {
 
 class SmoothViewport;
+
+struct LandViewAnimator;
 struct SSConst;
 struct Visibility;
+
+// A fading hourglass icon will be drawn over a unit to signal to
+// the player that the movement command just entered will be
+// thrown out in order to avoid inadvertantly giving the new unit
+// an order intended for the old unit.
+struct InputOverrunIndicator {
+  UnitId unit_id    = {};
+  Time_t start_time = {};
+};
 
 /****************************************************************
 ** LandViewRenderer
 *****************************************************************/
 struct LandViewRenderer {
-  using UnitAnimationsMap =
-      std::unordered_map<GenericUnitId, UnitAnimation_t>;
-  using DwellingAnimationsMap =
-      std::unordered_map<DwellingId, DwellingAnimation_t>;
-  using ColonyAnimationsMap =
-      std::unordered_map<ColonyId, ColonyAnimation_t>;
-
   LandViewRenderer(
       SSConst const& ss, rr::Renderer& renderer_arg,
-      UnitAnimationsMap const&     unit_animations,
-      DwellingAnimationsMap const& dwelling_animations,
-      ColonyAnimationsMap const&   colony_animations,
-      Visibility const& viz, maybe<UnitId> last_unit_input,
-      Rect                         viewport_rect_pixels,
+      LandViewAnimator const& lv_animator, Visibility const& viz,
+      maybe<UnitId> last_unit_input, Rect viewport_rect_pixels,
       maybe<InputOverrunIndicator> input_overrun_indicator,
       SmoothViewport const&        viewport );
 
@@ -114,9 +113,7 @@ struct LandViewRenderer {
   SSConst const                ss_;
   rr::Renderer&                renderer_;
   rr::Renderer&                renderer; // no _ for macros.
-  UnitAnimationsMap const&     unit_animations_;
-  DwellingAnimationsMap const& dwelling_animations_;
-  ColonyAnimationsMap const&   colony_animations_;
+  LandViewAnimator const&      lv_animator_;
   Rect                         covered_;
   Visibility const&            viz_;
   maybe<UnitId>                last_unit_input_;

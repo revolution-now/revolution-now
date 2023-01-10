@@ -14,7 +14,6 @@
 #include "land-view-impl.rds.hpp"
 
 // Revolution Now
-#include "anim.hpp"
 #include "cheat.hpp"
 #include "co-combinator.hpp"
 #include "co-time.hpp"
@@ -22,6 +21,7 @@
 #include "colony-id.hpp"
 #include "compositor.hpp"
 #include "imap-updater.hpp"
+#include "land-view-anim.hpp"
 #include "land-view-render.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
@@ -41,14 +41,12 @@
 // config
 #include "config/land-view.rds.hpp"
 #include "config/natives.hpp"
-#include "config/rn.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss
 #include "ss/colonies.hpp"
 #include "ss/land-view.hpp"
 #include "ss/ref.hpp"
-#include "ss/settings.hpp"
 #include "ss/terrain.hpp"
 #include "ss/turn.hpp"
 #include "ss/units.hpp"
@@ -92,20 +90,17 @@ struct PlayerInput {
 } // namespace
 
 struct LandViewPlane::Impl : public Plane {
-  Planes&    planes_;
-  SS&        ss_;
-  TS&        ts_;
-  Visibility viz_;
+  Planes&          planes_;
+  SS&              ss_;
+  TS&              ts_;
+  Visibility       viz_;
+  LandViewAnimator lv_animator_;
 
   vector<MenuPlane::Deregistrar> dereg;
 
   co::stream<RawInput>    raw_input_stream_;
   co::stream<PlayerInput> translated_input_stream_;
-  unordered_map<GenericUnitId, UnitAnimation_t> unit_animations_;
-  unordered_map<ColonyId, ColonyAnimation_t> colony_animations_;
-  unordered_map<DwellingId, DwellingAnimation_t>
-                 dwelling_animations_;
-  LandViewMode_t landview_mode_ = LandViewMode::none{};
+  LandViewMode_t          landview_mode_ = LandViewMode::none{};
 
   // Holds info about the previous unit that was asking for or-
   // ders, since it can affect the UI behavior when asking for
@@ -158,11 +153,10 @@ struct LandViewPlane::Impl : public Plane {
     : planes_( planes ),
       ss_( ss ),
       ts_( ts ),
-      viz_( Visibility::create( ss, nation ) ) {
+      viz_( Visibility::create( ss, nation ) ),
+      lv_animator_( ss ) {
     register_menu_items( planes.menu() );
     // Initialize general global data.
-    unit_animations_.clear();
-    colony_animations_.clear();
     landview_mode_   = LandViewMode::none{};
     last_unit_input_ = nothing;
     raw_input_stream_.reset();
@@ -172,86 +166,6 @@ struct LandViewPlane::Impl : public Plane {
     // the viewport size that cannot be known while it is being
     // constructed.
     advance_viewport_state();
-  }
-
-  wait<> animate_depixelation( GenericUnitId id,
-                               maybe<e_tile> target_tile ) {
-    CHECK( !unit_animations_.contains( id ) );
-    UnitAnimation::depixelate_unit& depixelate =
-        unit_animations_[id]
-            .emplace<UnitAnimation::depixelate_unit>();
-    SCOPE_EXIT( unit_animations_.erase( id ) );
-    depixelate.stage  = 0.0;
-    depixelate.target = target_tile;
-
-    AnimThrottler throttle( kAlmostStandardFrame );
-    while( depixelate.stage <= 1.0 ) {
-      co_await throttle();
-      depixelate.stage += config_rn.depixelate_per_frame;
-    }
-  }
-
-  wait<> animate_colony_depixelation_impl(
-      Colony const& colony ) {
-    CHECK( !colony_animations_.contains( colony.id ) );
-    ColonyAnimation::depixelate& depixelate =
-        colony_animations_[colony.id]
-            .emplace<ColonyAnimation::depixelate>();
-    SCOPE_EXIT( colony_animations_.erase( colony.id ) );
-    depixelate.stage = 0.0;
-
-    AnimThrottler throttle( kAlmostStandardFrame );
-    while( depixelate.stage <= 1.0 ) {
-      co_await throttle();
-      depixelate.stage += config_rn.depixelate_per_frame;
-    }
-  }
-
-  // TODO: this animation needs to be sync'd with the one in the
-  // mini-map.
-  wait<> animate_blink( UnitId id, bool visible_initially ) {
-    using namespace std::literals::chrono_literals;
-    CHECK( !unit_animations_.contains( id ) );
-    UnitAnimation::blink& blink =
-        unit_animations_[id].emplace<UnitAnimation::blink>();
-    blink = UnitAnimation::blink{ .visible = visible_initially };
-    SCOPE_EXIT( unit_animations_.erase( id ) );
-    // We use an initial delay so that our initial value of `vis-
-    // ible` will be the first to linger.
-    AnimThrottler throttle( 500ms, /*initial_delay=*/true );
-    while( true ) {
-      co_await throttle();
-      blink.visible = !blink.visible;
-    }
-  }
-
-  wait<> animate_slide( GenericUnitId id, e_direction d ) {
-    CHECK( !unit_animations_.contains( id ) );
-    UnitAnimation::slide& mv =
-        unit_animations_[id].emplace<UnitAnimation::slide>();
-    SCOPE_EXIT( unit_animations_.erase( id ) );
-
-    // TODO: make this a game option.
-    double const kMaxVelocity =
-        ss_.settings.fast_piece_slide ? .1 : .07;
-
-    mv = UnitAnimation::slide{
-        .direction   = d,
-        .percent     = 0.0,
-        .percent_vel = DissipativeVelocity{
-            /*min_velocity=*/0,            //
-            /*max_velocity=*/kMaxVelocity, //
-            /*initial_velocity=*/.1,       //
-            /*mag_acceleration=*/1,        //
-            /*mag_drag_acceleration=*/.002 //
-        }                                  //
-    };
-    AnimThrottler throttle( kAlmostStandardFrame );
-    while( mv.percent <= 1.0 ) {
-      co_await throttle();
-      mv.percent_vel.advance( e_push_direction::none );
-      mv.percent += mv.percent_vel.to_double();
-    }
   }
 
   /****************************************************************
@@ -587,8 +501,7 @@ struct LandViewPlane::Impl : public Plane {
         viewport_rect_pixels,
         compositor::section( compositor::e_section::viewport ) );
     LandViewRenderer const lv_renderer(
-        ss_, renderer, unit_animations_, dwelling_animations_,
-        colony_animations_, viz_,
+        ss_, renderer, lv_animator_, viz_,
         last_unit_input_.member( &LastUnitInput::unit_id ),
         viewport_rect_pixels, input_overrun_indicator_,
         viewport() );
@@ -1066,7 +979,8 @@ struct LandViewPlane::Impl : public Plane {
   }
 
   bool is_unit_visible_on_map( GenericUnitId id ) const {
-    if( unit_animations_.contains( id ) ) return true;
+    if( lv_animator_.unit_animations().contains( id ) )
+      return true;
     maybe<Coord> const tile =
         coord_for_unit_multi_ownership( ss_, id );
     if( !tile.has_value() ) return false;
@@ -1140,8 +1054,9 @@ struct LandViewPlane::Impl : public Plane {
       // We typically wait for a bit while eating input events;
       // during that time, make sure that the unit who is about
       // to ask for orders is rendered on the front.
-      unit_animations_[id].emplace<UnitAnimation::front>();
-      SCOPE_EXIT( unit_animations_.erase( id ) );
+      auto anim =
+          lv_animator_.add_unit_animation<UnitAnimation::front>(
+              id );
       co_await eat_cross_unit_buffered_input_events( id );
     }
 
@@ -1175,7 +1090,7 @@ struct LandViewPlane::Impl : public Plane {
               visible_initially );
     LandViewPlayerInput_t input = co_await co::background(
         next_player_input_object(),
-        animate_blink( id, visible_initially ) );
+        lv_animator_.animate_blink( id, visible_initially ) );
 
     // Disable input buffer shielding when the unit issues a
     // non-move command, because in that case it is unlikely that
@@ -1212,7 +1127,7 @@ struct LandViewPlane::Impl : public Plane {
     if( ss_.terrain.square_exists( dst ) )
       co_await ensure_visible( dst );
     play_sound_effect( e_sfx::move );
-    co_await animate_slide( id, direction );
+    co_await lv_animator_.animate_slide( id, direction );
   }
 
   wait<> animate_attack(
@@ -1229,17 +1144,22 @@ struct LandViewPlane::Impl : public Plane {
     UNWRAP_CHECK(
         d, attacker_coord.direction_to( defender_coord ) );
 
+    // Give each unit a baseline animation of "front," that way
+    // if the below doesn't end up giving one of them an anima-
+    // tion then at least it will have this `front` animation
+    // which guarantees that it will be visible.
+    auto attacker_front_popper =
+        lv_animator_.add_unit_animation<UnitAnimation::front>(
+            attacker );
+    auto defender_front_popper =
+        lv_animator_.add_unit_animation<UnitAnimation::front>(
+            defender );
+
     // While the attacker is sliding we want to make sure the de-
     // fender comes to the front in case there are multiple units
     // and/or a colony on the tile.
-    {
-      unit_animations_[defender].emplace<UnitAnimation::front>();
-      SCOPE_EXIT( unit_animations_.erase( defender ) );
-
-      play_sound_effect( e_sfx::move );
-      co_await animate_slide( attacker, d );
-      // Defender unit `front` animation stops.
-    }
+    play_sound_effect( e_sfx::move );
+    co_await lv_animator_.animate_slide( attacker, d );
 
     play_sound_effect( attacker_wins ? e_sfx::attacker_won
                                      : e_sfx::attacker_lost );
@@ -1255,29 +1175,16 @@ struct LandViewPlane::Impl : public Plane {
             } );
           } );
       // This starts the animation.
-      waits.push_back( animate_depixelation( id, target_tile ) );
+      waits.push_back(
+          lv_animator_.animate_depixelation( id, target_tile ) );
     }
-    // Depixelation animations have now already started. If a
-    // given unit (attacker or defender) does not already have a
-    // depixelation animation started then we will give it a
-    // `front` animation to ensure that it remains visible for
-    // the duration of the animation.
-    if( !unit_animations_.contains( attacker ) )
-      unit_animations_[attacker].emplace<UnitAnimation::front>();
-    if( !unit_animations_.contains( defender ) )
-      unit_animations_[defender].emplace<UnitAnimation::front>();
-    // These will do nothing if the animations have already been
-    // erased, which they will have if they were depixelation an-
-    // imations.
-    SCOPE_EXIT( unit_animations_.erase( attacker ) );
-    SCOPE_EXIT( unit_animations_.erase( defender ) );
     co_await co::all( std::move( waits ) );
   }
 
   wait<> animate_colony_depixelation( Colony const& colony ) {
     co_await ensure_visible( colony.location );
     // TODO: Sound effect?
-    co_await animate_colony_depixelation_impl( colony );
+    co_await lv_animator_.animate_colony_depixelation( colony );
   }
 
   wait<> animate_unit_depixelation(
@@ -1291,7 +1198,8 @@ struct LandViewPlane::Impl : public Plane {
             return unit_attr( type ).tile;
           } );
         } );
-    co_await animate_depixelation( id, target_tile );
+    co_await lv_animator_.animate_depixelation( id,
+                                                target_tile );
   }
 
   // FIXME: Would be nice to make this animation a bit more so-

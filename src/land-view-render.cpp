@@ -11,6 +11,7 @@
 #include "land-view-render.hpp"
 
 // Revolution Now
+#include "land-view-anim.hpp"
 #include "render.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -102,7 +103,7 @@ void LandViewRenderer::render_units_on_square(
       land_view_unit_stack( ss_, tile );
   if( sorted.empty() ) return;
   erase_if( sorted, [this]( GenericUnitId id ) {
-    return unit_animations_.contains( id );
+    return lv_animator_.unit_animations().contains( id );
   } );
   // This is optional, but always put the most recent unit to ask
   // for orders at the top of the stack if they are in this tile.
@@ -194,7 +195,8 @@ void LandViewRenderer::render_single_unit_depixelate_to(
 }
 
 void LandViewRenderer::render_units_impl() const {
-  if( unit_animations_.empty() ) return render_units_default();
+  if( lv_animator_.unit_animations().empty() )
+    return render_units_default();
   // We have some units being animated, so now things get compli-
   // cated. This will be the case most of the time, since there
   // is usually at least one unit blinking. The exception would
@@ -218,8 +220,11 @@ void LandViewRenderer::render_units_impl() const {
   // cernible but the player will still see that there are units
   // behind.
   unordered_set<Coord> tiles_to_fade;
-  for( auto const& [id, anim] : unit_animations_ ) {
-    Coord const tile =
+  for( auto const& [id, anim_stack] :
+       lv_animator_.unit_animations() ) {
+    CHECK( !anim_stack.empty() );
+    UnitAnimation_t const& anim = anim_stack.top();
+    Coord const            tile =
         coord_for_unit_multi_ownership_or_die( ss_, id );
     switch( anim.to_enum() ) {
       case UnitAnimation::e::front:
@@ -249,7 +254,7 @@ void LandViewRenderer::render_units_impl() const {
     if( tiles_to_skip.contains( tile ) ) continue;
     if( ss_.colonies.maybe_from_coord( tile ).has_value() )
       continue;
-    if( unit_animations_.contains( id ) ) continue;
+    if( lv_animator_.unit_animations().contains( id ) ) continue;
     if( hit.contains( tile ) ) continue;
     hit.insert( tile );
     if( tiles_to_fade.contains( tile ) ) {
@@ -349,7 +354,7 @@ void LandViewRenderer::render_native_dwelling(
 void LandViewRenderer::render_native_dwelling_depixelate(
     Dwelling const& dwelling ) const {
   UNWRAP_CHECK( animation,
-                base::lookup( dwelling_animations_, dwelling.id )
+                lv_animator_.dwelling_animation( dwelling.id )
                     .get_if<DwellingAnimation::depixelate>() );
   // As usual, the hash anchor coord is arbitrary so long as
   // its position is fixed relative to the sprite.
@@ -410,13 +415,13 @@ void LandViewRenderer::render_input_overrun_indicator() const {
 void LandViewRenderer::render_colony(
     Colony const& colony ) const {
   if( !viz_.visible( colony.location ) ) return;
-  Coord tile_coord =
+  Coord const tile_coord =
       render_rect_for_tile( colony.location ).upper_left();
-  Coord colony_sprite_upper_left =
+  Coord const colony_sprite_upper_left =
       tile_coord - Delta{ .w = 6, .h = 6 };
   rr::Painter painter = renderer_.painter();
   rn::render_colony( painter, colony_sprite_upper_left, colony );
-  Coord name_coord =
+  Coord const name_coord =
       tile_coord + config_land_view.colony_name_offset;
   render_text_markup(
       renderer, name_coord, config_land_view.colony_name_font,
@@ -429,7 +434,7 @@ void LandViewRenderer::render_colony(
 void LandViewRenderer::render_colony_depixelate(
     Colony const& colony ) const {
   UNWRAP_CHECK( animation,
-                base::lookup( colony_animations_, colony.id )
+                lv_animator_.colony_animation( colony.id )
                     .get_if<ColonyAnimation::depixelate>() );
   // As usual, the hash anchor coord is arbitrary so long as
   // its position is fixed relative to the sprite.
@@ -463,10 +468,6 @@ void LandViewRenderer::render_colony_depixelate(
 // fect.
 void LandViewRenderer::render_backdrop() const {
   SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, 0.4 );
-  // UNWRAP_CHECK(
-  //     viewport_rect_pixels,
-  //     compositor::section( compositor::e_section::viewport )
-  //     );
   auto const [shortest_side, longest_side] = [&] {
     Delta const delta         = viewport_rect_pixels_.delta();
     int         shortest_side = std::min( delta.w, delta.h );
@@ -512,8 +513,8 @@ void LandViewRenderer::render_native_dwellings() const {
       ss_.natives.dwellings_all();
   for( auto const& [id, dwelling] : all ) {
     if( !dwelling.location.is_inside( covered_ ) ) continue;
-    maybe<DwellingAnimation_t> const anim =
-        base::lookup( dwelling_animations_, id );
+    maybe<DwellingAnimation_t const&> anim =
+        lv_animator_.dwelling_animation( id );
     if( !anim.has_value() )
       render_native_dwelling( dwelling );
     else
@@ -525,7 +526,10 @@ void LandViewRenderer::render_units_under_colonies() const {
   // Currently the only use case for rendering a unit under a
   // colony is when the colony is depixelating and we want to re-
   // veal any units that are there.
-  for( auto const& [colony_id, anim] : colony_animations_ ) {
+  for( auto const& [colony_id, anim_stack] :
+       lv_animator_.colony_animations() ) {
+    CHECK( !anim_stack.empty() );
+    ColonyAnimation_t const& anim = anim_stack.top();
     switch( anim.to_enum() ) {
       case ColonyAnimation::e::depixelate: {
         Coord const location =
@@ -547,8 +551,8 @@ void LandViewRenderer::render_colonies() const {
       ss_.colonies.all();
   for( auto const& [id, colony] : all ) {
     if( !colony.location.is_inside( covered_ ) ) continue;
-    maybe<ColonyAnimation_t> const anim =
-        base::lookup( colony_animations_, id );
+    maybe<ColonyAnimation_t const&> anim =
+        lv_animator_.colony_animation( id );
     if( !anim.has_value() )
       this->render_colony( colony );
     else {
@@ -566,19 +570,14 @@ void LandViewRenderer::render_colonies() const {
 *****************************************************************/
 LandViewRenderer::LandViewRenderer(
     SSConst const& ss, rr::Renderer& renderer_arg,
-    UnitAnimationsMap const&     unit_animations,
-    DwellingAnimationsMap const& dwelling_animations,
-    ColonyAnimationsMap const&   colony_animations,
-    Visibility const& viz, maybe<UnitId> last_unit_input,
-    Rect                         viewport_rect_pixels,
+    LandViewAnimator const& lv_animator, Visibility const& viz,
+    maybe<UnitId> last_unit_input, Rect viewport_rect_pixels,
     maybe<InputOverrunIndicator> input_overrun_indicator,
     SmoothViewport const&        viewport )
   : ss_( ss ),
     renderer_( renderer_arg ),
     renderer( renderer_arg ),
-    unit_animations_( unit_animations ),
-    dwelling_animations_( dwelling_animations ),
-    colony_animations_( colony_animations ),
+    lv_animator_( lv_animator ),
     covered_( viewport.covered_tiles() ),
     viz_( viz ),
     last_unit_input_( last_unit_input ),
