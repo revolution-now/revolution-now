@@ -13,4 +13,6 @@ return {
   'orders-move',
   'fight',
   'land-view',
+  'land-view-render',
+  'land-view-anim',
 }
