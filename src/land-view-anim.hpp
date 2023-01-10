@@ -34,6 +34,7 @@
 namespace rn {
 
 struct Colony;
+class SmoothViewport;
 
 /****************************************************************
 ** LandViewAnimator
@@ -49,7 +50,8 @@ struct LandViewAnimator {
       std::unordered_map<ColonyId,
                          std::stack<ColonyAnimation_t>>;
 
-  LandViewAnimator( SSConst const& ss ) : ss_( ss ) {}
+  LandViewAnimator( SSConst const& ss, SmoothViewport& viewport )
+    : ss_( ss ), viewport_( viewport ) {}
 
   // Getters.
 
@@ -74,7 +76,26 @@ struct LandViewAnimator {
     return dwelling_animations_;
   }
 
-  // Animators.
+  // Animation sequences.
+
+  wait<> animate_move( UnitId id, e_direction direction );
+
+  wait<> animate_attack(
+      GenericUnitId attacker, GenericUnitId defender,
+      std::vector<UnitWithDepixelateTarget_t> const& animations,
+      bool attacker_wins );
+
+  wait<> animate_unit_depixelation(
+      UnitWithDepixelateTarget_t const& what );
+
+  wait<> animate_colony_destruction( Colony const& colony );
+
+  wait<> animate_colony_capture(
+      UnitId attacker_id, UnitId defender_id,
+      std::vector<UnitWithDepixelateTarget_t> const& animations,
+      ColonyId                                       colony_id );
+
+  // Animator primitives.
 
   wait<> animate_depixelation( GenericUnitId id,
                                maybe<e_tile> target_tile );
@@ -84,6 +105,12 @@ struct LandViewAnimator {
   wait<> animate_blink( UnitId id, bool visible_initially );
 
   wait<> animate_slide( GenericUnitId id, e_direction d );
+
+  // Smooth map scrolling.
+
+  wait<> ensure_visible( Coord const& coord );
+
+  wait<> ensure_visible_unit( GenericUnitId id );
 
  private:
   template<typename Anim, typename Map>
@@ -144,6 +171,7 @@ struct LandViewAnimator {
  private:
   // Note: SSConst should be held by value.
   SSConst const         ss_;
+  SmoothViewport&       viewport_;
   UnitAnimationsMap     unit_animations_;
   ColonyAnimationsMap   colony_animations_;
   DwellingAnimationsMap dwelling_animations_;

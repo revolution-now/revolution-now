@@ -10,13 +10,8 @@
 # ===============================================================
 # Revolution Now
 include "colony-id.hpp"
-include "maybe.hpp"
 include "orders.rds.hpp"
 include "unit-id.hpp"
-
-# ss
-include "ss/native-enums.rds.hpp"
-include "ss/unit-type.rds.hpp"
 
 # C++ standard library
 include "<vector>"
@@ -64,15 +59,4 @@ sumtype.LandViewPlayerInput {
 
   # When the user hits escape this will be sent.
   exit {},
-}
-
-sumtype.UnitWithDepixelateTarget {
-  euro {
-    id 'UnitId',
-    target 'maybe<e_unit_type>',
-  },
-  native {
-    id 'NativeUnitId',
-    target 'maybe<e_native_unit_type>',
-  },
 }

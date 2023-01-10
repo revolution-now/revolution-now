@@ -17,6 +17,7 @@
 
 // Revolution Now
 #include "colony-id.hpp"
+#include "land-view-anim.rds.hpp"
 #include "unit-id.hpp"
 #include "wait.hpp"
 

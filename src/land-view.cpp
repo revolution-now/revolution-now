@@ -29,7 +29,6 @@
 #include "physics.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
-#include "sound.hpp"
 #include "time.hpp"
 #include "ts.hpp"
 #include "unit-id.hpp"
@@ -40,14 +39,12 @@
 
 // config
 #include "config/land-view.rds.hpp"
-#include "config/natives.hpp"
-#include "config/unit-type.hpp"
+#include "config/unit-type.rds.hpp"
 
 // ss
 #include "ss/colonies.hpp"
 #include "ss/land-view.hpp"
 #include "ss/ref.hpp"
-#include "ss/terrain.hpp"
 #include "ss/turn.hpp"
 #include "ss/units.hpp"
 
@@ -154,7 +151,7 @@ struct LandViewPlane::Impl : public Plane {
       ss_( ss ),
       ts_( ts ),
       viz_( Visibility::create( ss, nation ) ),
-      lv_animator_( ss ) {
+      lv_animator_( ss, ss.land_view.viewport ) {
     register_menu_items( planes.menu() );
     // Initialize general global data.
     landview_mode_   = LandViewMode::none{};
@@ -915,21 +912,8 @@ struct LandViewPlane::Impl : public Plane {
     g_needs_scroll_to_unit_on_input = true;
   }
 
-  wait<> ensure_visible( Coord const& coord ) {
-    return viewport().ensure_tile_visible_smooth( coord );
-  }
-
   wait<> center_on_tile( Coord coord ) {
     co_await viewport().center_on_tile_smooth( coord );
-  }
-
-  wait<> ensure_visible_unit( GenericUnitId id ) {
-    // Need multi-ownership variant because sometimes the unit in
-    // question is a worker in a colony, as can happen if we are
-    // attacking an undefended colony.
-    UNWRAP_CHECK( coord,
-                  coord_for_unit_multi_ownership( ss_, id ) );
-    co_await ensure_visible( coord );
   }
 
   void set_visibility( maybe<e_nation> nation ) {
@@ -1022,7 +1006,7 @@ struct LandViewPlane::Impl : public Plane {
     // This might be true either because we started a new turn,
     // or because of the above assignment.
     if( g_needs_scroll_to_unit_on_input )
-      co_await ensure_visible_unit( id );
+      co_await lv_animator_.ensure_visible_unit( id );
     g_needs_scroll_to_unit_on_input = false;
 
     // Need to set this before taking any user input, otherwise
@@ -1115,109 +1099,6 @@ struct LandViewPlane::Impl : public Plane {
     landview_mode_   = LandViewMode::none{};
     return next_player_input_object();
   }
-
-  wait<> animate_move( UnitId id, e_direction direction ) {
-    // Ensure that both src and dst squares are visible.
-    Coord src = coord_for_unit_indirect_or_die( ss_.units, id );
-    Coord dst = src.moved( direction );
-    co_await ensure_visible( src );
-    // The destination square may not exist if it is a ship
-    // sailing the high seas by moving off of the map edge (which
-    // the original game allows).
-    if( ss_.terrain.square_exists( dst ) )
-      co_await ensure_visible( dst );
-    play_sound_effect( e_sfx::move );
-    co_await lv_animator_.animate_slide( id, direction );
-  }
-
-  wait<> animate_attack(
-      GenericUnitId attacker, GenericUnitId defender,
-      vector<UnitWithDepixelateTarget_t> const& animations,
-      bool                                      attacker_wins ) {
-    co_await ensure_visible_unit( defender );
-    co_await ensure_visible_unit( attacker );
-
-    UNWRAP_CHECK( attacker_coord,
-                  ss_.units.maybe_coord_for( attacker ) );
-    UNWRAP_CHECK( defender_coord, coord_for_unit_multi_ownership(
-                                      ss_, defender ) );
-    UNWRAP_CHECK(
-        d, attacker_coord.direction_to( defender_coord ) );
-
-    // Give each unit a baseline animation of "front," that way
-    // if the below doesn't end up giving one of them an anima-
-    // tion then at least it will have this `front` animation
-    // which guarantees that it will be visible.
-    auto attacker_front_popper =
-        lv_animator_.add_unit_animation<UnitAnimation::front>(
-            attacker );
-    auto defender_front_popper =
-        lv_animator_.add_unit_animation<UnitAnimation::front>(
-            defender );
-
-    // While the attacker is sliding we want to make sure the de-
-    // fender comes to the front in case there are multiple units
-    // and/or a colony on the tile.
-    play_sound_effect( e_sfx::move );
-    co_await lv_animator_.animate_slide( attacker, d );
-
-    play_sound_effect( attacker_wins ? e_sfx::attacker_won
-                                     : e_sfx::attacker_lost );
-    vector<wait<>> waits;
-    for( UnitWithDepixelateTarget_t const& anim : animations ) {
-      GenericUnitId const id = rn::visit( anim, []( auto& o ) {
-        return GenericUnitId{ o.id };
-      } );
-      maybe<e_tile> const target_tile =
-          rn::visit( anim, []( auto& o ) {
-            return o.target.fmap( []( auto type ) {
-              return unit_attr( type ).tile;
-            } );
-          } );
-      // This starts the animation.
-      waits.push_back(
-          lv_animator_.animate_depixelation( id, target_tile ) );
-    }
-    co_await co::all( std::move( waits ) );
-  }
-
-  wait<> animate_colony_depixelation( Colony const& colony ) {
-    co_await ensure_visible( colony.location );
-    // TODO: Sound effect?
-    co_await lv_animator_.animate_colony_depixelation( colony );
-  }
-
-  wait<> animate_unit_depixelation(
-      UnitWithDepixelateTarget_t const& what ) {
-    GenericUnitId const id = rn::visit(
-        what, []( auto& o ) { return GenericUnitId{ o.id }; } );
-    co_await ensure_visible_unit( id );
-    maybe<e_tile> const target_tile =
-        rn::visit( what, []( auto& o ) {
-          return o.target.fmap( []( auto type ) {
-            return unit_attr( type ).tile;
-          } );
-        } );
-    co_await lv_animator_.animate_depixelation( id,
-                                                target_tile );
-  }
-
-  // FIXME: Would be nice to make this animation a bit more so-
-  // phisticated.
-  wait<> animate_colony_capture(
-      UnitId attacker_id, UnitId defender_id,
-      vector<UnitWithDepixelateTarget_t> const& animations,
-      ColonyId                                  colony_id ) {
-    co_await animate_attack( attacker_id, defender_id,
-                             animations,
-                             /*attacker_wins=*/true );
-    UNWRAP_CHECK(
-        direction,
-        ss_.units.coord_for( attacker_id )
-            .direction_to( ss_.colonies.colony_for( colony_id )
-                               .location ) );
-    co_await animate_move( attacker_id, direction );
-  }
 };
 
 /****************************************************************
@@ -1232,7 +1113,7 @@ LandViewPlane::LandViewPlane( Planes& planes, SS& ss, TS& ts,
   : impl_( new Impl( planes, ss, ts, visibility ) ) {}
 
 wait<> LandViewPlane::ensure_visible( Coord const& coord ) {
-  return impl_->ensure_visible( coord );
+  return impl_->lv_animator_.ensure_visible( coord );
 }
 
 wait<> LandViewPlane::center_on_tile( Coord coord ) {
@@ -1244,7 +1125,7 @@ void LandViewPlane::set_visibility( maybe<e_nation> nation ) {
 }
 
 wait<> LandViewPlane::ensure_visible_unit( GenericUnitId id ) {
-  return impl_->ensure_visible_unit( id );
+  return impl_->lv_animator_.ensure_visible_unit( id );
 }
 
 wait<LandViewPlayerInput_t> LandViewPlane::get_next_input(
@@ -1258,33 +1139,34 @@ wait<LandViewPlayerInput_t> LandViewPlane::eot_get_next_input() {
 
 wait<> LandViewPlane::animate_move( UnitId      id,
                                     e_direction direction ) {
-  return impl_->animate_move( id, direction );
+  return impl_->lv_animator_.animate_move( id, direction );
 }
 
 wait<> LandViewPlane::animate_colony_depixelation(
     Colony const& colony ) {
-  return impl_->animate_colony_depixelation( colony );
+  return impl_->lv_animator_.animate_colony_destruction(
+      colony );
 }
 
 wait<> LandViewPlane::animate_unit_depixelation(
     UnitWithDepixelateTarget_t const& what ) {
-  return impl_->animate_unit_depixelation( what );
+  return impl_->lv_animator_.animate_unit_depixelation( what );
 }
 
 wait<> LandViewPlane::animate_attack(
     GenericUnitId attacker, GenericUnitId defender,
     vector<UnitWithDepixelateTarget_t> const& animations,
     bool                                      attacker_wins ) {
-  return impl_->animate_attack( attacker, defender, animations,
-                                attacker_wins );
+  return impl_->lv_animator_.animate_attack(
+      attacker, defender, animations, attacker_wins );
 }
 
 wait<> LandViewPlane::animate_colony_capture(
     UnitId attacker_id, UnitId defender_id,
     vector<UnitWithDepixelateTarget_t> const& animations,
     ColonyId                                  colony_id ) {
-  return impl_->animate_colony_capture( attacker_id, defender_id,
-                                        animations, colony_id );
+  return impl_->lv_animator_.animate_colony_capture(
+      attacker_id, defender_id, animations, colony_id );
 }
 
 void LandViewPlane::reset_input_buffers() {
