@@ -998,11 +998,11 @@ wait<> display_base_verdict_msg(
 wait<maybe<e_attack_verdict_base>> check_attack_verdict_base(
     SSConst const& ss, TS& ts, Unit const& attacker,
     e_direction d ) {
-  Coord const source = ss.units.coord_for( attacker.id() );
-  Coord const target = source.moved( d );
-
   if( is_unit_onboard( ss.units, attacker.id() ) )
     co_return e_attack_verdict_base::attack_from_ship;
+
+  Coord const source = ss.units.coord_for( attacker.id() );
+  Coord const target = source.moved( d );
 
   if( !can_attack( attacker.type() ) )
     co_return e_attack_verdict_base::unit_cannot_attack;

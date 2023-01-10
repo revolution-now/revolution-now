@@ -25,6 +25,7 @@
 #include "src/config/unit-type.rds.hpp"
 
 // ss
+#include "ss/dwelling.rds.hpp"
 #include "ss/player.hpp"
 #include "ss/units.hpp"
 
@@ -172,6 +173,32 @@ TEST_CASE( "[orders-move] land unit can attack ship on land" ) {
   REQUIRE( W.units().coord_for( soldier ) ==
            Coord{ .x = 0, .y = 1 } );
   REQUIRE( !W.units().exists( ship ) );
+}
+
+TEST_CASE(
+    "[orders-move] unit on ship attempting to attack brave" ) {
+  World W;
+  Unit& caravel  = W.add_unit_on_map( e_unit_type::caravel,
+                                      { .x = 0, .y = 0 } );
+  Unit& colonist = W.add_unit_in_cargo(
+      e_unit_type::free_colonist, caravel.id() );
+  Dwelling& dwelling =
+      W.add_dwelling( { .x = 1, .y = 0 }, e_tribe::cherokee );
+  W.add_unit_on_map( e_native_unit_type::brave,
+                     { .x = 1, .y = 1 }, dwelling.id );
+
+  unique_ptr<OrdersHandler> handler = handle_orders(
+      W.planes(), W.ss(), W.ts(), W.french(), colonist.id(),
+      orders::move{ .d = e_direction::se } );
+  EXPECT_CALL(
+      W.gui(),
+      message_box(
+          "We cannot attack a land unit from a ship." ) )
+      .returns<monostate>();
+  wait<bool> w_confirm = handler->confirm();
+  REQUIRE( !w_confirm.exception() );
+  REQUIRE( w_confirm.ready() );
+  REQUIRE_FALSE( *w_confirm );
 }
 
 } // namespace
