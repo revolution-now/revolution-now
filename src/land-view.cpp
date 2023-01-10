@@ -1066,7 +1066,7 @@ struct LandViewPlane::Impl : public Plane {
     // top for various UX reasons).
     bool const visible_initially =
         !is_unit_visible_on_map( id ) && !eat_buffered;
-    lg.debug( "visible={}, eat={}, init={}",
+    lg.trace( "visible={}, eat={}, init={}",
               is_unit_visible_on_map( id ), eat_buffered,
               visible_initially );
 
