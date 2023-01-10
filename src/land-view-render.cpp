@@ -48,7 +48,23 @@ using namespace std;
 
 namespace rn {
 
-namespace {}
+namespace {
+
+bool last_unit_input_is_in_stack_indirect(
+    SSConst const& ss, UnitId last_unit_input,
+    vector<GenericUnitId> const& units ) {
+  maybe<UnitId> const holder =
+      is_unit_onboard( ss.units, last_unit_input );
+  for( GenericUnitId id : units ) {
+    // Is this the unit we're looking for?
+    if( id == last_unit_input ) return true;
+    // Is this unit holding the unit we're looking for?
+    if( id == holder ) return true;
+  }
+  return false;
+}
+
+} // namespace
 
 // Given a tile, compute the screen rect where it should be ren-
 // dered.
@@ -58,14 +74,29 @@ Rect LandViewRenderer::render_rect_for_tile( Coord tile ) const {
   return Rect::from( Coord{} + delta_in_pixels, g_tile_delta );
 }
 
-vector<GenericUnitId> land_view_unit_stack( SSConst const& ss,
-                                            Coord tile ) {
+vector<GenericUnitId> land_view_unit_stack(
+    SSConst const& ss, Coord tile,
+    maybe<UnitId> last_unit_input ) {
   unordered_set<GenericUnitId> const& units =
       ss.units.from_coord( tile );
   vector<GenericUnitId> res;
   if( units.empty() ) return res;
   res = vector<GenericUnitId>( units.begin(), units.end() );
   sort_unit_stack( ss, res );
+  bool const has_last_unit_input =
+      last_unit_input.has_value() &&
+      last_unit_input_is_in_stack_indirect( ss, *last_unit_input,
+                                            res );
+  // This is optional, but always put the most recent unit to ask
+  // for orders at the top of the stack if they are in this tile.
+  // This makes for a better UX since e.g. if a unit is on a
+  // square with other units and it attempts to make an invalid
+  // move, it will remain on top while the message box pops up
+  // with the explanation.
+  if( has_last_unit_input ) {
+    erase( res, *last_unit_input );
+    res.insert( res.begin(), *last_unit_input );
+  }
   return res;
 }
 
@@ -100,23 +131,15 @@ void LandViewRenderer::render_units_on_square(
   // This will be sorted in decreasing order of defense, then by
   // decreasing id.
   vector<GenericUnitId> sorted =
-      land_view_unit_stack( ss_, tile );
-  if( sorted.empty() ) return;
+      land_view_unit_stack( ss_, tile, last_unit_input_ );
+  // We shouldn't draw units that are being animated because they
+  // will be drawn on top separately. If we did draw them here
+  // then it would cause problems for e.g. a unit that is doing a
+  // blinking animation; when the blink is in the "off" state the
+  // unit would still be visible.
   erase_if( sorted, [this]( GenericUnitId id ) {
     return lv_animator_.unit_animations().contains( id );
   } );
-  // This is optional, but always put the most recent unit to ask
-  // for orders at the top of the stack if they are in this tile.
-  // This makes for a better UX since e.g. if a unit is on a
-  // square with other units and it attempts to make an invalid
-  // move, it will remain on top while the message box pops up
-  // with the explanation.
-  if( last_unit_input_.has_value() &&
-      find( sorted.begin(), sorted.end(), *last_unit_input_ ) !=
-          sorted.end() ) {
-    erase( sorted, *last_unit_input_ );
-    sorted.insert( sorted.begin(), *last_unit_input_ );
-  }
   if( sorted.empty() ) return;
   GenericUnitId const max_defense = sorted[0];
 

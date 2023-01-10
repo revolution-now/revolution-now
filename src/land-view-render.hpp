@@ -129,6 +129,7 @@ struct LandViewRenderer {
 // tile (if any units are present), in the order that they would
 // be rendered. The top-most unit is first.
 std::vector<GenericUnitId> land_view_unit_stack(
-    SSConst const& ss, Coord tile );
+    SSConst const& ss, Coord tile,
+    maybe<UnitId> last_unit_input );
 
 } // namespace rn

@@ -981,8 +981,9 @@ struct LandViewPlane::Impl : public Plane {
         // caught it.
         return false;
     }
-    vector<GenericUnitId> const sorted =
-        land_view_unit_stack( ss_, *tile );
+    vector<GenericUnitId> const sorted = land_view_unit_stack(
+        ss_, *tile,
+        last_unit_input_.member( &LastUnitInput::unit_id ) );
     CHECK( !sorted.empty() );
     return ( sorted[0] == id );
   }
@@ -1044,16 +1045,6 @@ struct LandViewPlane::Impl : public Plane {
       co_await eat_cross_unit_buffered_input_events( id );
     }
 
-    if( !last_unit_input_.has_value() ||
-        last_unit_input_->unit_id != id )
-      last_unit_input_ = LastUnitInput{
-          .unit_id = id, .need_input_buffer_shield = true };
-
-    // Run the blinker while waiting for user input. The question
-    // is, do we want the blinking to start "on" or "off"? The
-    // idea is that we want to start it off in the opposite vi-
-    // sual state that the unit currently is in.
-    //
     // Most of the time we start the blinking with the unit in-
     // visible, that way the start of the animation creates an
     // immediate visual change that draws the player's eye to the
@@ -1066,12 +1057,28 @@ struct LandViewPlane::Impl : public Plane {
     // to draw the player's eye. Note that if we did eat buffered
     // input events above then the unit will have been made vis-
     // ible for a brief time regardless, so in that case we know
-    // we that we should start with the unit invisible.
+    // we that we should start with the unit invisible. Note that
+    // this needs to be computed before we change the last unit
+    // input, because the last unit input is involved in deter-
+    // mining whether or not the unit is currently visible (that
+    // is because the algorithm that orders unit stacks on a tile
+    // will treat the last unit input specially, putting it on
+    // top for various UX reasons).
     bool const visible_initially =
         !is_unit_visible_on_map( id ) && !eat_buffered;
-    lg.trace( "visible={}, eat={}, init={}",
+    lg.debug( "visible={}, eat={}, init={}",
               is_unit_visible_on_map( id ), eat_buffered,
               visible_initially );
+
+    if( !last_unit_input_.has_value() ||
+        last_unit_input_->unit_id != id )
+      last_unit_input_ = LastUnitInput{
+          .unit_id = id, .need_input_buffer_shield = true };
+
+    // Run the blinker while waiting for user input. The question
+    // is, do we want the blinking to start "on" or "off"? The
+    // idea is that we want to start it off in the opposite vi-
+    // sual state that the unit currently is in.
     LandViewPlayerInput_t input = co_await co::background(
         next_player_input_object(),
         lv_animator_.animate_blink( id, visible_initially ) );
