@@ -31,6 +31,11 @@ function( set_warning_options target )
            -Wno-reserved-identifier
            -Wno-ctad-maybe-unsupported
            -Wno-undefined-func-template
+           # TODO: this looks like a new warning that is not
+           # ready for primetime yet, and/or it flags too many
+           # things. Try re-enabling it at some point in the fu-
+           # ture since it may eventually be good.
+           -Wno-unsafe-buffer-usage
            # This one gives a warning about missing case state-
            # ments even when there is a default, which we don't
            # want. We still have -Wswitch which will tell us
