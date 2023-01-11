@@ -652,9 +652,9 @@ struct LandViewPlane::Impl : public Plane {
     switch( event.to_enum() ) {
       case input::e_input_event::unknown_event: //
         break;
-      case input::e_input_event::quit_event: //
+      case input::e_input_event::quit_event:    //
         break;
-      case input::e_input_event::win_event: //
+      case input::e_input_event::win_event:     //
         break;
       case input::e_input_event::key_event: {
         auto& key_event = event.get<input::key_event_t>();
