@@ -307,6 +307,7 @@ struct TravelHandler : public OrdersHandler {
     // !! Note that the unit theoretically may not exist here if
     // they were destroyed as part of this action, e.g. lost in a
     // lost city rumor.
+    if( !ss_.units.exists( unit_id ) ) co_return;
     co_return;
   }
 
@@ -1622,6 +1623,7 @@ struct AttackNativeUnitHandler : public OrdersHandler {
       ts_( ts ),
       player_( player ),
       unit_( ss_.units.unit_for( unit_id ) ),
+      unit_id_( unit_id ),
       tribe_( tribe ),
       direction_( d ),
       move_src_( coord_for_unit_indirect_or_die( ss.units,
@@ -1784,8 +1786,9 @@ struct AttackNativeUnitHandler : public OrdersHandler {
 
   wait<> post() const override {
     // !! Note that the unit being moved theoretically may not
-    // exist here if it was destroyed as part of this action.
-    if( !ss_.units.exists( unit_.id() ) ) co_return;
+    // exist here if it was destroyed as part of this action, so
+    // we should not reference the `unit_` member!
+    if( !ss_.units.exists( unit_id_ ) ) co_return;
     co_return;
   }
 
@@ -1797,6 +1800,7 @@ struct AttackNativeUnitHandler : public OrdersHandler {
   // The unit doing the attacking. We need to record the unit id
   // so that we can test if the unit has been destroyed.
   Unit&  unit_;
+  UnitId unit_id_;
   Tribe& tribe_;
 
   // Source and destination squares of the move.

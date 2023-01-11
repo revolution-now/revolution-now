@@ -604,7 +604,15 @@ LandViewRenderer::LandViewRenderer(
     last_unit_input_( last_unit_input ),
     viewport_rect_pixels_( viewport_rect_pixels ),
     input_overrun_indicator_( input_overrun_indicator ),
-    viewport_( viewport ) {}
+    viewport_( viewport ) {
+  // Some of the actions in this class would crash if the last
+  // unit input corresponds to a unit ID that no longer exists.
+  // Since this class does not care about the last unit id in
+  // that situation anyway, we will nullify it in that case.
+  if( last_unit_input_.has_value() &&
+      !ss_.units.exists( *last_unit_input_ ) )
+    last_unit_input_ = nothing;
+}
 
 void LandViewRenderer::render_entities() const {
   // Move the rendering start slightly off screen (in the
