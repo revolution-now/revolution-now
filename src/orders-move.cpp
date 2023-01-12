@@ -1115,15 +1115,15 @@ struct EuroAttackHandler : public OrdersHandler {
         fight_stats->attacker_wins ) {
       UNWRAP_CHECK( colony_id, ss_.colonies.maybe_from_coord(
                                    attack_dst ) );
-      auto attacker_id = unit_id;
-      auto defender_id = *target_unit;
-      vector<UnitWithDepixelateTarget_t> animations;
+      auto                          attacker_id = unit_id;
+      auto                          defender_id = *target_unit;
+      vector<DepixelateAnimation_t> animations;
       // Only one animation, namely the colonist defending the
       // colony with depixelate to nothing.
       //
       // TODO: check stats.winner_promoted here to see if the at-
       // tacker unit has been promoted.
-      animations.push_back( UnitWithDepixelateTarget::euro{
+      animations.push_back( DepixelateAnimation::euro_unit{
           .id = defender_id, .target = nothing } );
       co_await planes_.land_view().animate_colony_capture(
           attacker_id, defender_id, animations, colony_id );
@@ -1134,14 +1134,14 @@ struct EuroAttackHandler : public OrdersHandler {
     UNWRAP_CHECK( defender, target_unit );
     UNWRAP_CHECK( stats, fight_stats );
 
-    vector<UnitWithDepixelateTarget_t> animations;
+    vector<DepixelateAnimation_t> animations;
 
     // Attacker animation.
     if( stats.attacker_wins ) {
       // TODO: check stats.winner_promoted here to see if the
       // player's unit has been promoted.
     } else {
-      animations.push_back( UnitWithDepixelateTarget::euro{
+      animations.push_back( DepixelateAnimation::euro_unit{
           .id = attacker,
           .target =
               ss_.units.unit_for( attacker ).demoted_type() } );
@@ -1149,7 +1149,7 @@ struct EuroAttackHandler : public OrdersHandler {
 
     // Defender animation.
     if( stats.attacker_wins ) {
-      animations.push_back( UnitWithDepixelateTarget::euro{
+      animations.push_back( DepixelateAnimation::euro_unit{
           .id = defender,
           .target =
               ss_.units.unit_for( defender ).demoted_type() } );
@@ -1685,14 +1685,14 @@ struct AttackNativeUnitHandler : public OrdersHandler {
   wait<> animate() const override {
     UnitId const attacker = unit_.id();
     UNWRAP_CHECK( stats, fight_stats_ );
-    vector<UnitWithDepixelateTarget_t> animations;
+    vector<DepixelateAnimation_t> animations;
 
     // Attacker animation.
     if( stats.attacker_wins ) {
       // TODO: check stats.winner_promoted here to see if the
       // player's unit has been promoted.
     } else {
-      animations.push_back( UnitWithDepixelateTarget::euro{
+      animations.push_back( DepixelateAnimation::euro_unit{
           .id = attacker,
           .target =
               ss_.units.unit_for( attacker ).demoted_type() } );
@@ -1700,7 +1700,7 @@ struct AttackNativeUnitHandler : public OrdersHandler {
 
     // Defender (brave) animation.
     if( stats.attacker_wins ) {
-      animations.push_back( UnitWithDepixelateTarget::native{
+      animations.push_back( DepixelateAnimation::native_unit{
           .id = defender_id_, .target = nothing } );
     } else {
       // TODO: check stats.winner_promoted here to see if the

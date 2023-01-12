@@ -34,6 +34,7 @@
 namespace rn {
 
 struct Colony;
+struct Dwelling;
 class SmoothViewport;
 
 /****************************************************************
@@ -82,25 +83,28 @@ struct LandViewAnimator {
 
   wait<> animate_attack(
       GenericUnitId attacker, GenericUnitId defender,
-      std::vector<UnitWithDepixelateTarget_t> const& animations,
-      bool attacker_wins );
+      std::vector<DepixelateAnimation_t> const& animations,
+      bool                                      attacker_wins );
 
   wait<> animate_unit_depixelation(
-      UnitWithDepixelateTarget_t const& what );
+      DepixelateAnimation_t const& what );
 
   wait<> animate_colony_destruction( Colony const& colony );
 
   wait<> animate_colony_capture(
       UnitId attacker_id, UnitId defender_id,
-      std::vector<UnitWithDepixelateTarget_t> const& animations,
-      ColonyId                                       colony_id );
+      std::vector<DepixelateAnimation_t> const& animations,
+      ColonyId                                  colony_id );
 
   // Animator primitives.
 
-  wait<> animate_depixelation( GenericUnitId id,
-                               maybe<e_tile> target_tile );
+  wait<> animate_unit_depixelation( GenericUnitId id,
+                                    maybe<e_tile> target_tile );
 
   wait<> animate_colony_depixelation( Colony const& colony );
+
+  wait<> animate_dwelling_depixelation(
+      Dwelling const& dwelling );
 
   wait<> animate_blink( UnitId id, bool visible_initially );
 
@@ -167,6 +171,13 @@ struct LandViewAnimator {
   auto add_dwelling_animation( DwellingId id ) {
     return make_popper<Anim>( dwelling_animations_, id );
   }
+
+ private:
+  wait<> start_depixelate_animation(
+      DepixelateAnimation_t anim );
+
+  std::vector<wait<>> start_depixelate_animations(
+      std::vector<DepixelateAnimation_t> const& anims );
 
  private:
   // Note: SSConst should be held by value.

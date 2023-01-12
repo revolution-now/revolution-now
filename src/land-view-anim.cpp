@@ -26,6 +26,8 @@
 // ss
 #include "ss/colonies.hpp"
 #include "ss/colony.rds.hpp"
+#include "ss/dwelling.rds.hpp"
+#include "ss/natives.hpp"
 #include "ss/settings.rds.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
@@ -69,7 +71,7 @@ LandViewAnimator::dwelling_animation( DwellingId id ) const {
   return st.top();
 }
 
-wait<> LandViewAnimator::animate_depixelation(
+wait<> LandViewAnimator::animate_unit_depixelation(
     GenericUnitId id, maybe<e_tile> target_tile ) {
   auto popper =
       add_unit_animation<UnitAnimation::depixelate_unit>( id );
@@ -78,10 +80,12 @@ wait<> LandViewAnimator::animate_depixelation(
   depixelate.target                          = target_tile;
 
   AnimThrottler throttle( kAlmostStandardFrame );
-  while( depixelate.stage <= 1.0 ) {
+  while( depixelate.stage < 1.0 ) {
     co_await throttle();
     depixelate.stage += config_rn.depixelate_per_frame;
   }
+  // Need this so that final frame is visible.
+  co_await throttle();
 }
 
 wait<> LandViewAnimator::animate_colony_depixelation(
@@ -93,10 +97,29 @@ wait<> LandViewAnimator::animate_colony_depixelation(
   depixelate.stage                        = 0.0;
 
   AnimThrottler throttle( kAlmostStandardFrame );
-  while( depixelate.stage <= 1.0 ) {
+  while( depixelate.stage < 1.0 ) {
     co_await throttle();
     depixelate.stage += config_rn.depixelate_per_frame;
   }
+  // Need this so that final frame is visible.
+  co_await throttle();
+}
+
+wait<> LandViewAnimator::animate_dwelling_depixelation(
+    Dwelling const& dwelling ) {
+  auto popper =
+      add_dwelling_animation<DwellingAnimation::depixelate>(
+          dwelling.id );
+  DwellingAnimation::depixelate& depixelate = popper.get();
+  depixelate.stage                          = 0.0;
+
+  AnimThrottler throttle( kAlmostStandardFrame );
+  while( depixelate.stage < 1.0 ) {
+    co_await throttle();
+    depixelate.stage += config_rn.depixelate_per_frame;
+  }
+  // Need this so that final frame is visible.
+  co_await throttle();
 }
 
 // TODO: this animation needs to be sync'd with the one in the
@@ -137,11 +160,13 @@ wait<> LandViewAnimator::animate_slide( GenericUnitId id,
       }                                  //
   };
   AnimThrottler throttle( kAlmostStandardFrame );
-  while( slide.percent <= 1.0 ) {
+  while( slide.percent < 1.0 ) {
     co_await throttle();
     slide.percent_vel.advance( e_push_direction::none );
     slide.percent += slide.percent_vel.to_double();
   }
+  // Need this so that final frame is visible.
+  co_await throttle();
 }
 
 wait<> LandViewAnimator::ensure_visible( Coord const& coord ) {
@@ -173,10 +198,49 @@ wait<> LandViewAnimator::animate_move( UnitId      id,
   co_await animate_slide( id, direction );
 }
 
+// This method is not awaited on immediately when it is called,
+// so should take its parameters by value.
+wait<> LandViewAnimator::start_depixelate_animation(
+    DepixelateAnimation_t anim ) {
+  switch( anim.to_enum() ) {
+    case DepixelateAnimation::e::euro_unit: {
+      auto& o = anim.get<DepixelateAnimation::euro_unit>();
+      co_await animate_unit_depixelation(
+          o.id, o.target.fmap( []( e_unit_type type ) {
+            return unit_attr( type ).tile;
+          } ) );
+      break;
+    }
+    case DepixelateAnimation::e::native_unit: {
+      auto& o = anim.get<DepixelateAnimation::native_unit>();
+      co_await animate_unit_depixelation(
+          o.id, o.target.fmap( []( e_native_unit_type type ) {
+            return unit_attr( type ).tile;
+          } ) );
+      break;
+    }
+    case DepixelateAnimation::e::dwelling: {
+      auto& o = anim.get<DepixelateAnimation::dwelling>();
+      co_await animate_dwelling_depixelation(
+          ss_.natives.dwelling_for( o.id ) );
+      break;
+    }
+  }
+}
+
+vector<wait<>> LandViewAnimator::start_depixelate_animations(
+    vector<DepixelateAnimation_t> const& anims ) {
+  vector<wait<>> waits;
+  for( DepixelateAnimation_t const& anim : anims )
+    // This starts the animation.
+    waits.push_back( start_depixelate_animation( anim ) );
+  return waits;
+}
+
 wait<> LandViewAnimator::animate_attack(
     GenericUnitId attacker, GenericUnitId defender,
-    vector<UnitWithDepixelateTarget_t> const& animations,
-    bool                                      attacker_wins ) {
+    vector<DepixelateAnimation_t> const& animations,
+    bool                                 attacker_wins ) {
   co_await ensure_visible_unit( defender );
   co_await ensure_visible_unit( attacker );
 
@@ -204,20 +268,7 @@ wait<> LandViewAnimator::animate_attack(
 
   play_sound_effect( attacker_wins ? e_sfx::attacker_won
                                    : e_sfx::attacker_lost );
-  vector<wait<>> waits;
-  for( UnitWithDepixelateTarget_t const& anim : animations ) {
-    GenericUnitId const id = rn::visit(
-        anim, []( auto& o ) { return GenericUnitId{ o.id }; } );
-    maybe<e_tile> const target_tile =
-        rn::visit( anim, []( auto& o ) {
-          return o.target.fmap( []( auto type ) {
-            return unit_attr( type ).tile;
-          } );
-        } );
-    // This starts the animation.
-    waits.push_back( animate_depixelation( id, target_tile ) );
-  }
-  co_await co::all( std::move( waits ) );
+  co_await co::all( start_depixelate_animations( animations ) );
 }
 
 wait<> LandViewAnimator::animate_colony_destruction(
@@ -228,24 +279,19 @@ wait<> LandViewAnimator::animate_colony_destruction(
 }
 
 wait<> LandViewAnimator::animate_unit_depixelation(
-    UnitWithDepixelateTarget_t const& what ) {
+    DepixelateAnimation_t const& what ) {
   GenericUnitId const id = rn::visit(
       what, []( auto& o ) { return GenericUnitId{ o.id }; } );
   co_await ensure_visible_unit( id );
-  maybe<e_tile> const target_tile =
-      rn::visit( what, []( auto& o ) {
-        return o.target.fmap(
-            []( auto type ) { return unit_attr( type ).tile; } );
-      } );
-  co_await animate_depixelation( id, target_tile );
+  co_await start_depixelate_animation( what );
 }
 
 // FIXME: Would be nice to make this animation a bit more so-
 // phisticated.
 wait<> LandViewAnimator::animate_colony_capture(
     UnitId attacker_id, UnitId defender_id,
-    vector<UnitWithDepixelateTarget_t> const& animations,
-    ColonyId                                  colony_id ) {
+    vector<DepixelateAnimation_t> const& animations,
+    ColonyId                             colony_id ) {
   co_await animate_attack( attacker_id, defender_id, animations,
                            /*attacker_wins=*/true );
   UNWRAP_CHECK(
@@ -255,4 +301,5 @@ wait<> LandViewAnimator::animate_colony_capture(
               ss_.colonies.colony_for( colony_id ).location ) );
   co_await animate_move( attacker_id, direction );
 }
+
 } // namespace rn

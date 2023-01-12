@@ -16,6 +16,7 @@ include "physics.hpp"
 include "config/tile-enum.rds.hpp"
 
 # ss
+include "ss/dwelling-id.hpp"
 include "ss/native-enums.rds.hpp"
 include "ss/unit-id.hpp"
 include "ss/unit-type.rds.hpp"
@@ -63,13 +64,16 @@ sumtype.DwellingAnimation {
   },
 }
 
-sumtype.UnitWithDepixelateTarget {
-  euro {
+sumtype.DepixelateAnimation {
+  euro_unit {
     id 'UnitId',
     target 'maybe<e_unit_type>',
   },
-  native {
+  native_unit {
     id 'NativeUnitId',
     target 'maybe<e_native_unit_type>',
+  },
+  dwelling {
+    id 'DwellingId',
   },
 }

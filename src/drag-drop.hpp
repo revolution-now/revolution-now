@@ -657,13 +657,15 @@ wait<> drag_drop_routine(
   Coord         end     = origin;
   double        percent = 0.0;
   AnimThrottler throttle( kAlmostStandardFrame );
-  while( percent <= 1.0 ) {
+  while( percent < 1.0 ) {
     co_await throttle();
     drag_state->where =
         start + ( end - start ).multiply_and_round( percent );
     if( percent >= 1.0 ) break;
     percent += 0.15;
   }
+  // Need this so that final frame is visible.
+  co_await throttle();
 
   // The following will happen anyway at scope exit, but we need
   // to do this before showing a message so that the item will go

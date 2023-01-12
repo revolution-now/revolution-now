@@ -45,15 +45,14 @@ struct MockLandViewPlane : ILandViewPlane {
   MOCK_METHOD( wait<>, animate_colony_depixelation,
                (Colony const&), () );
   MOCK_METHOD( wait<>, animate_unit_depixelation,
-               (UnitWithDepixelateTarget_t const&), () );
+               (DepixelateAnimation_t const&), () );
   MOCK_METHOD( wait<>, animate_attack,
                (GenericUnitId, GenericUnitId,
-                std::vector<UnitWithDepixelateTarget_t> const&,
-                bool),
+                std::vector<DepixelateAnimation_t> const&, bool),
                () );
   MOCK_METHOD( wait<>, animate_colony_capture,
                ( UnitId, UnitId,
-                 std::vector<UnitWithDepixelateTarget_t> const&,
+                 std::vector<DepixelateAnimation_t> const&,
                  ColonyId ),
                () );
   MOCK_METHOD( void, reset_input_buffers, (), () );
