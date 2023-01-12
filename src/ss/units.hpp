@@ -125,7 +125,7 @@ struct UnitsState {
 
   // This will return the unit ID of the brave that is on the map
   // that is associated with this dwelling, if any.
-  maybe<NativeUnitId> from_dwelling(
+  std::unordered_set<NativeUnitId> const& from_dwelling(
       DwellingId dwelling_id ) const;
 
   // The id of this unit must be zero (i.e., you can't select the
@@ -242,9 +242,13 @@ struct UnitsState {
   // ping allows us to go the other way efficiently. Note that
   // sometimes a dwelling may not have any braves (e.g. if one is
   // destroyed in battle and not yet regenerated); in that case
-  // the dwelling will not have an entry here.
-  std::unordered_map<DwellingId, NativeUnitId>
-      brave_for_dwelling_;
+  // the dwelling will not have an entry here. Also, it may some-
+  // times have more than one brave e.g. when we create a tempo-
+  // rary brave to act as the target of an attack on a dwelling
+  // for visual effect.
+  std::unordered_map<DwellingId,
+                     std::unordered_set<NativeUnitId>>
+      braves_for_dwelling_;
 
   // All units of a given kind. The pointers will always be
   // non-null if an element exists in the map.

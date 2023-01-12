@@ -142,7 +142,7 @@ UnitsState::UnitsState( wrapped::UnitsState&& o )
     }
   }
 
-  // Populate brave_for_dwelling_.
+  // Populate braves_for_dwelling_.
   for( auto const& [id, unit_state] : o_.units ) {
     switch( unit_state.to_enum() ) {
       case UnitState::e::native: {
@@ -150,13 +150,13 @@ UnitsState::UnitsState( wrapped::UnitsState&& o )
         NativeUnitOwnership_t const& st = o.state.ownership;
         if_get( st, NativeUnitOwnership::world, val ) {
           CHECK(
-              !brave_for_dwelling_.contains( val.dwelling_id ),
+              !braves_for_dwelling_.contains( val.dwelling_id ),
               "multiple native units (id={} and id={}) have the "
               "same dwelling_id={}.",
-              id, brave_for_dwelling_[val.dwelling_id],
+              id, braves_for_dwelling_[val.dwelling_id],
               val.dwelling_id );
-          brave_for_dwelling_[val.dwelling_id] =
-              NativeUnitId{ to_underlying( id ) };
+          braves_for_dwelling_[val.dwelling_id] = {
+              NativeUnitId{ to_underlying( id ) } };
         }
         break;
       }
@@ -501,8 +501,9 @@ void UnitsState::disown_unit( NativeUnitId id ) {
       auto& [coord, dwelling_id] =
           v.get<NativeUnitOwnership::world>();
       // First remove the unit's dwelling association.
-      CHECK( brave_for_dwelling_.contains( dwelling_id ) );
-      brave_for_dwelling_.erase( dwelling_id );
+      CHECK( braves_for_dwelling_.contains( dwelling_id ) );
+      CHECK( braves_for_dwelling_[dwelling_id].contains( id ) );
+      braves_for_dwelling_[dwelling_id].erase( id );
       // Now remove it from the map.
       UNWRAP_CHECK( set_it,
                     base::find( units_from_coords_, coord ) );
@@ -529,12 +530,11 @@ void UnitsState::change_to_map( NativeUnitId id, Coord target,
       GenericUnitId{ to_underlying( id ) } );
   ownership_of( id ) = NativeUnitOwnership::world{
       .coord = target, .dwelling_id = dwelling_id };
-  // We shouldn't be assigning this brave to a dwelling that al-
-  // ready has a unit assigned to it (even if it is the same unit
-  // ID, which it should never be, because we disowned this unit
-  // above).
-  CHECK( !brave_for_dwelling_.contains( dwelling_id ) );
-  brave_for_dwelling_[dwelling_id] = id;
+  // Note: this dwelling may already have a brave associated with
+  // it, even though the game only allows one active brave per
+  // dwelling. This is because sometimes temporary braves are
+  // created to act as visual targets when attacking a dwelling.
+  braves_for_dwelling_[dwelling_id].insert( id );
 }
 
 void UnitsState::change_to_cargo_somewhere( UnitId new_holder,
@@ -741,9 +741,12 @@ unordered_set<UnitId> const& UnitsState::from_colony(
   return units;
 }
 
-maybe<NativeUnitId> UnitsState::from_dwelling(
+unordered_set<NativeUnitId> const& UnitsState::from_dwelling(
     DwellingId dwelling_id ) const {
-  return base::lookup( brave_for_dwelling_, dwelling_id );
+  static unordered_set<NativeUnitId>        empty;
+  maybe<unordered_set<NativeUnitId> const&> units =
+      base::lookup( braves_for_dwelling_, dwelling_id );
+  return units.has_value() ? *units : empty;
 }
 
 /****************************************************************
