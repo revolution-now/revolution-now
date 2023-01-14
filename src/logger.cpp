@@ -177,8 +177,8 @@ void init_logger() {
 #ifdef RN_TRACE
       level = level::trace;
 #else
-      level =
-          DEBUG_RELEASE( e_log_level::debug, e_log_level::info );
+      level = e_log_level::debug;
+  // DEBUG_RELEASE( e_log_level::debug, e_log_level::info );
 #endif
   set_global_log_level( level );
 }
