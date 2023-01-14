@@ -62,6 +62,13 @@ function( set_warning_options target )
            #       https://bugs.llvm.org/show_bug.cgi?id=24883
            #       https://bugs.llvm.org/show_bug.cgi?id=33298
            -Wno-unused-local-typedef
+
+           # This is optional, should probably be removed eventu-
+           # ally. It is convenient when there is a new warning
+           # introduced that we want to disable but we don't want
+           # to update all clang builds to a version that in-
+           # cludes that warning.
+           -Wno-unknown-warning-option
          >
         # gcc
         $<$<CXX_COMPILER_ID:GNU>:
