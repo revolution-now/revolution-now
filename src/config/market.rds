@@ -56,11 +56,18 @@ struct.MarketCommodity {
 }
 
 struct.PriceGroup {
-  bid_price_min 'int',
-  bid_price_max 'int',
-  rise_fall     'int',
-  volatility    'int',
-  target_price  'int',
+  # The price group model itself does not have a notion of bid
+  # vs. ask prices, it only deals with one price, which by con-
+  # vention is the ask price. Then the bid is derived from that.
+  # Therefore, for simplicity, we express prices in this section
+  # as ask prices so that the price group logic does not have to
+  # translate to bid prices which requires knowing the bid/ask
+  # spread.
+  price_min    'int',
+  price_max    'int',
+  rise_fall    'int',
+  volatility   'int',
+  target_price 'int',
 
   # These define the interval overwhich the initial intrinsic
   # volumes are chosen for these commodities at the start of a

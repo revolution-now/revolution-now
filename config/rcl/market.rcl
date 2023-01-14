@@ -404,11 +404,11 @@ difficulty_modifiers {
 # default model. This particular one governs the group consisting
 # of rum, cigars, cloth, and coats.
 processed_goods_model {
-  bid_price_min: 0
-  bid_price_max: 19
-  rise_fall:     4
-  volatility:    1
-  target_price:  12
+  price_min:    1   # ask
+  price_max:    20  # ask
+  rise_fall:    4
+  volatility:   1
+  target_price: 12  # ask
 
   # Since the commodities in a price group don't store their
   # equilibrium prices in the model (instead they have an in-

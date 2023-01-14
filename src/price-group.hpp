@@ -58,6 +58,9 @@ struct ProcessedGoodsPriceGroup {
   // Player sells.
   void sell( e_processed_good good, int quantity );
 
+  // Note that the price group model itself does not have a no-
+  // tion of bid vs. ask price; it just deals with one price
+  // whose interpretation is decided by the caller.
   refl::enum_map<e_processed_good, int> equilibrium_prices();
 
   void evolve();

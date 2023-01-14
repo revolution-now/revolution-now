@@ -44,8 +44,8 @@ base::valid_or<string> config::market::PriceLimits::validate()
 
 base::valid_or<string> config::market::PriceGroup::validate()
     const {
-  REFL_VALIDATE( bid_price_min <= bid_price_max,
-                 "bid_price_min must be <= bid_price_max" );
+  REFL_VALIDATE( price_min <= price_max,
+                 "price_min must be <= price_max" );
   return base::valid;
 }
 

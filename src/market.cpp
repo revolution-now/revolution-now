@@ -550,5 +550,10 @@ LUA_FN( starting_price_limits, lua::table, e_commodity comm ) {
   return tbl;
 }
 
+LUA_FN( bid_ask_spread, int, e_commodity comm ) {
+  return config_market.price_behavior[comm]
+      .price_limits.bid_ask_spread;
+}
+
 } // namespace
 } // namespace rn

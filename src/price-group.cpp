@@ -80,8 +80,8 @@ default_processed_goods_price_group_config() {
   return { .dutch                      = false,
            .starting_intrinsic_volumes = {},
            .starting_traded_volumes    = {},
-           .min          = model_params.bid_price_min + 1,
-           .max          = model_params.bid_price_max + 1,
+           .min                        = model_params.price_min,
+           .max                        = model_params.price_max,
            .target_price = model_params.target_price };
 }
 
