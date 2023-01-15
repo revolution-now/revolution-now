@@ -266,6 +266,8 @@ wait<> LandViewAnimator::animate_attack(
   play_sound_effect( e_sfx::move );
   co_await animate_slide( attacker, d );
 
+  // TODO: we need a bigger sound in the case that we're at-
+  // tacking a native dwelling and it gets destroyed.
   play_sound_effect( attacker_wins ? e_sfx::attacker_won
                                    : e_sfx::attacker_lost );
   co_await co::all( start_depixelate_animations( animations ) );
