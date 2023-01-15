@@ -191,5 +191,14 @@ TEST_CASE( "[missionary] bless_as_missionary" ) {
   }
 }
 
+TEST_CASE( "[missionary] is_missionary" ) {
+  REQUIRE( is_missionary( e_unit_type::missionary ) );
+  REQUIRE( is_missionary( e_unit_type::jesuit_missionary ) );
+
+  REQUIRE_FALSE( is_missionary( e_unit_type::jesuit_colonist ) );
+  REQUIRE_FALSE( is_missionary( e_unit_type::free_colonist ) );
+  REQUIRE_FALSE( is_missionary( e_unit_type::petty_criminal ) );
+}
+
 } // namespace
 } // namespace rn

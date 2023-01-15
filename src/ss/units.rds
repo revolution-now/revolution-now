@@ -10,6 +10,7 @@
 # ===============================================================
 # gs
 include "ss/colony-id.hpp"
+include "ss/dwelling-id.hpp"
 include "ss/unit-id.hpp"
 include "ss/unit.hpp"
 include "ss/native-unit.rds.hpp"
@@ -89,6 +90,9 @@ sumtype.UnitOwnership {
   colony {
     id 'ColonyId',
   },
+  dwelling { # For missionaries.
+    id 'DwellingId',
+  },
 }
 
 sumtype.NativeUnitOwnership {
@@ -96,7 +100,7 @@ sumtype.NativeUnitOwnership {
   world {
     coord 'Coord',
     # As in the OG, all braves are owned by a dwelling.
-    dwelling_id 'int',
+    dwelling_id 'DwellingId',
   },
 }
 

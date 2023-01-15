@@ -123,9 +123,16 @@ struct UnitsState {
   std::unordered_set<UnitId> const& from_colony(
       Colony const& colony ) const;
 
+  // If there is a mission in the dwelling then this will return
+  // the unit id of the missionary that is inside. Note that this
+  // missionary is not considered to be on the map; it is owned
+  // by the dwelling.
+  maybe<UnitId> missionary_from_dwelling(
+      DwellingId dwelling_id ) const;
+
   // This will return the unit ID of the brave that is on the map
   // that is associated with this dwelling, if any.
-  std::unordered_set<NativeUnitId> const& from_dwelling(
+  std::unordered_set<NativeUnitId> const& brave_for_dwelling(
       DwellingId dwelling_id ) const;
 
   // The id of this unit must be zero (i.e., you can't select the
@@ -197,6 +204,9 @@ struct UnitsState {
   void change_to_harbor_view( UnitId              id,
                               UnitHarborViewState info );
 
+  void change_to_dwelling( UnitId     unit_id,
+                           DwellingId dwelling_id );
+
   // ------ Non-invariant Preserving ------
   // This will erase any ownership that is had over the given
   // unit and mark it as free. The unit must soon be assigned a
@@ -235,6 +245,9 @@ struct UnitsState {
   // For units that are held in a colony.
   std::unordered_map<ColonyId, std::unordered_set<UnitId>>
       worker_units_from_colony_;
+
+  // For units that are held in a dwelling as missionaries.
+  std::unordered_map<DwellingId, UnitId> missionary_in_dwelling_;
 
   // For native units (braves) that are on the map but that are
   // also associated with a dwelling. We can map native unit ->

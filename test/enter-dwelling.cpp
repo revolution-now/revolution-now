@@ -94,7 +94,9 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   World     W;
   Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois );
-  Tribe& tribe = W.natives().tribe_for( e_tribe::iroquois );
+  Tribe&      tribe = W.natives().tribe_for( e_tribe::iroquois );
+  Unit const& missionary =
+      W.add_free_unit( e_unit_type::jesuit_missionary );
   maybe<TribeRelationship>& relationship =
       tribe.relationship[W.default_nation()];
   e_unit_type                unit_type = {};
@@ -248,7 +250,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   unit_type            = e_unit_type::missionary;
   // This unit doesn't exist but that should be ok for the pur-
   // poses of this test.
-  dwelling.mission = UnitId{ 111 };
+  W.units().change_to_dwelling( missionary.id(), dwelling.id );
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.category =
@@ -262,7 +264,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   // Missionary, with contact, no war, no mission.
   relationship->at_war = false;
   unit_type            = e_unit_type::missionary;
-  dwelling.mission     = nothing;
+  W.units().disown_unit( missionary.id() );
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.category =
@@ -277,7 +279,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   // Missionary, with contact, with war, no mission.
   relationship->at_war = true;
   unit_type            = e_unit_type::missionary;
-  dwelling.mission     = nothing;
+  W.units().disown_unit( missionary.id() );
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.category =

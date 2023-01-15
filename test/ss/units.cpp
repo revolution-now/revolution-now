@@ -72,7 +72,7 @@ TEST_CASE( "[units] dwelling_for" ) {
            dwelling2.id );
 }
 
-TEST_CASE( "[units] from_dwelling" ) {
+TEST_CASE( "[units] brave_for_dwelling" ) {
   World                       W;
   unordered_set<NativeUnitId> expected;
 
@@ -91,13 +91,56 @@ TEST_CASE( "[units] from_dwelling" ) {
                          { .x = 0, .y = 1 }, dwelling2.id );
 
   expected = { unit_id1.id };
-  REQUIRE( W.units().from_dwelling( dwelling1.id ) == expected );
+  REQUIRE( W.units().brave_for_dwelling( dwelling1.id ) ==
+           expected );
 
   expected = { unit_id2.id, unit_id3.id };
-  REQUIRE( W.units().from_dwelling( dwelling2.id ) == expected );
+  REQUIRE( W.units().brave_for_dwelling( dwelling2.id ) ==
+           expected );
 
   expected = {};
-  REQUIRE( W.units().from_dwelling( DwellingId{ 3 } ) ==
+  REQUIRE( W.units().brave_for_dwelling( DwellingId{ 3 } ) ==
+           expected );
+}
+
+TEST_CASE( "[units] missionary_from_dwelling" ) {
+  World         W;
+  maybe<UnitId> expected;
+
+  Dwelling const& dwelling1 =
+      W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::apache );
+  Dwelling const& dwelling2 =
+      W.add_dwelling( { .x = 1, .y = 2 }, e_tribe::inca );
+
+  expected = nothing;
+  REQUIRE( W.units().missionary_from_dwelling( dwelling1.id ) ==
+           expected );
+  expected = nothing;
+  REQUIRE( W.units().missionary_from_dwelling( dwelling2.id ) ==
+           expected );
+
+  Unit const& unit = W.add_missionary_in_dwelling(
+      e_unit_type::missionary, dwelling1.id );
+  REQUIRE( as_const( W.units() ).ownership_of( unit.id() ) ==
+           UnitOwnership_t{
+               UnitOwnership::dwelling{ .id = dwelling1.id } } );
+
+  expected = unit.id();
+  REQUIRE( W.units().missionary_from_dwelling( dwelling1.id ) ==
+           expected );
+  expected = nothing;
+  REQUIRE( W.units().missionary_from_dwelling( dwelling2.id ) ==
+           expected );
+
+  W.units().disown_unit( unit.id() );
+  REQUIRE( as_const( W.units() ).ownership_of( unit.id() ) ==
+           UnitOwnership_t{ UnitOwnership::free{} } );
+
+  expected = nothing;
+  REQUIRE( W.units().missionary_from_dwelling( dwelling1.id ) ==
+           expected );
+  expected = nothing;
+  REQUIRE( W.units().missionary_from_dwelling( dwelling2.id ) ==
            expected );
 }
 

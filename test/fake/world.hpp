@@ -134,6 +134,10 @@ struct World {
   Unit& add_unit_on_map( UnitType type, Coord where,
                          maybe<e_nation> nation = nothing );
 
+  Unit& add_missionary_in_dwelling(
+      e_unit_type missionary_type, DwellingId dwelling_id,
+      maybe<e_nation> nation = nothing );
+
   Unit& add_unit_in_cargo( e_unit_type type, UnitId holder,
                            maybe<e_nation> nation = nothing );
 

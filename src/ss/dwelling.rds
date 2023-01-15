@@ -13,7 +13,6 @@ include "ss/commodity.rds.hpp"
 include "ss/dwelling-id.hpp"
 include "ss/nation.rds.hpp"
 include "ss/native-enums.rds.hpp"
-include "ss/unit-id.hpp"
 include "ss/unit-type.rds.hpp"
 
 # gfx
@@ -87,8 +86,4 @@ struct.Dwelling {
   # For non-capital dwellings this is relevant since they can
   # only teach once (for all nations, as in OG).
   has_taught 'bool',
-
-  # If there is a mission in this dwelling then the dwelling owns
-  # the unit.
-  mission 'base::maybe<UnitId>',
 }

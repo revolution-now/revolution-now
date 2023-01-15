@@ -21,6 +21,7 @@
 #include "src/map-updater-lua.hpp"
 #include "src/map-updater.hpp"
 #include "src/market.hpp"
+#include "src/missionary.hpp"
 #include "src/plane-stack.hpp"
 #include "src/ts.hpp"
 #include "src/ustate.hpp"
@@ -271,6 +272,18 @@ Unit& World::add_unit_on_map( UnitComposition const& comp,
   if( !nation ) nation = default_nation_;
   UnitId const unit_id = create_unit_on_map_non_interactive(
       ss(), ts(), player( *nation ), comp, where );
+  return units().unit_for( unit_id );
+}
+
+Unit& World::add_missionary_in_dwelling(
+    e_unit_type missionary_type, DwellingId dwelling_id,
+    maybe<e_nation> nation ) {
+  CHECK( is_missionary( missionary_type ) );
+  if( !nation ) nation = default_nation_;
+  UnitId const unit_id = create_free_unit(
+      units(), player( *nation ),
+      UnitComposition::create( missionary_type ) );
+  units().change_to_dwelling( unit_id, dwelling_id );
   return units().unit_for( unit_id );
 }
 

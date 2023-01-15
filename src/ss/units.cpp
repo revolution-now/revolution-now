@@ -142,6 +142,26 @@ UnitsState::UnitsState( wrapped::UnitsState&& o )
     }
   }
 
+  // Populate missionary_in_dwelling_.
+  for( auto const& [id, unit_state] : o_.units ) {
+    switch( unit_state.to_enum() ) {
+      case UnitState::e::euro: {
+        auto& o = unit_state.get<UnitState::euro>();
+        UnitOwnership_t const& st = o.state.ownership;
+        if_get( st, UnitOwnership::dwelling, val ) {
+          CHECK(
+              !missionary_in_dwelling_.contains( val.id ),
+              "multiple missionary units in village with id {}.",
+              val.id );
+          missionary_in_dwelling_[val.id] =
+              UnitId{ to_underlying( id ) };
+        }
+        break;
+      }
+      case UnitState::e::native: break;
+    }
+  }
+
   // Populate braves_for_dwelling_.
   for( auto const& [id, unit_state] : o_.units ) {
     switch( unit_state.to_enum() ) {
@@ -351,7 +371,8 @@ maybe<Coord> UnitsState::maybe_coord_for( UnitId id ) const {
     case UnitOwnership::e::free:
     case UnitOwnership::e::cargo:
     case UnitOwnership::e::harbor:
-    case UnitOwnership::e::colony: //
+    case UnitOwnership::e::colony:
+    case UnitOwnership::e::dwelling: //
       return nothing;
   };
 }
@@ -400,7 +421,8 @@ maybe<UnitId> UnitsState::maybe_holder_of( UnitId id ) const {
     case UnitOwnership::e::world:
     case UnitOwnership::e::free:
     case UnitOwnership::e::harbor:
-    case UnitOwnership::e::colony: //
+    case UnitOwnership::e::colony:
+    case UnitOwnership::e::dwelling: //
       return nothing;
   };
 }
@@ -427,7 +449,8 @@ UnitsState::maybe_harbor_view_state_of( UnitId id ) {
     case UnitOwnership::e::world:
     case UnitOwnership::e::free:
     case UnitOwnership::e::cargo:
-    case UnitOwnership::e::colony: //
+    case UnitOwnership::e::colony:
+    case UnitOwnership::e::dwelling: //
       return nothing;
   };
 }
@@ -440,7 +463,8 @@ UnitsState::maybe_harbor_view_state_of( UnitId id ) const {
     case UnitOwnership::e::world:
     case UnitOwnership::e::free:
     case UnitOwnership::e::cargo:
-    case UnitOwnership::e::colony: //
+    case UnitOwnership::e::colony:
+    case UnitOwnership::e::dwelling: //
       return nothing;
   };
 }
@@ -486,6 +510,13 @@ void UnitsState::disown_unit( UnitId id ) {
       units_set.erase( id );
       if( units_set.empty() )
         worker_units_from_colony_.erase( set_it );
+      break;
+    }
+    case UnitOwnership::e::dwelling: {
+      auto&            val = v.get<UnitOwnership::dwelling>();
+      DwellingId const dwelling_id = val.id;
+      CHECK( missionary_in_dwelling_.contains( dwelling_id ) );
+      missionary_in_dwelling_.erase( dwelling_id );
       break;
     }
   };
@@ -591,6 +622,15 @@ void UnitsState::change_to_harbor_view(
   if( !ownership.holds<UnitOwnership::harbor>() )
     disown_unit( id );
   ownership = UnitOwnership::harbor{ /*st=*/info };
+}
+
+void UnitsState::change_to_dwelling( UnitId     unit_id,
+                                     DwellingId dwelling_id ) {
+  disown_unit( unit_id );
+  CHECK( !missionary_in_dwelling_.contains( dwelling_id ) );
+  missionary_in_dwelling_[dwelling_id] = unit_id;
+  ownership_of( unit_id ) =
+      UnitOwnership::dwelling{ .id = dwelling_id };
 }
 
 valid_or<string> PortStatus::outbound::validate() const {
@@ -741,8 +781,13 @@ unordered_set<UnitId> const& UnitsState::from_colony(
   return units;
 }
 
-unordered_set<NativeUnitId> const& UnitsState::from_dwelling(
+maybe<UnitId> UnitsState::missionary_from_dwelling(
     DwellingId dwelling_id ) const {
+  return base::lookup( missionary_in_dwelling_, dwelling_id );
+}
+
+unordered_set<NativeUnitId> const&
+UnitsState::brave_for_dwelling( DwellingId dwelling_id ) const {
   static unordered_set<NativeUnitId>        empty;
   maybe<unordered_set<NativeUnitId> const&> units =
       base::lookup( braves_for_dwelling_, dwelling_id );

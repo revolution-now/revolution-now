@@ -37,4 +37,8 @@ bool unit_can_be_blessed( UnitType type );
 void bless_as_missionary( Player const& player, Colony& colony,
                           Unit& unit );
 
+// Is the unit either a missionary or jesuit missionary. A jesuit
+// colonist does not count.
+bool is_missionary( e_unit_type type );
+
 } // namespace rn

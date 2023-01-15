@@ -126,7 +126,7 @@ e_dwelling_interaction_category dwelling_interaction_category(
 }
 
 vector<e_enter_dwelling_option> const& options_for_unit(
-    Player const& player, Tribe const& tribe,
+    SSConst const& ss, Player const& player, Tribe const& tribe,
     Dwelling const& dwelling, e_unit_type unit_type ) {
   static vector<e_enter_dwelling_option> const options_cancel{
       e_enter_dwelling_option::cancel,
@@ -195,9 +195,11 @@ vector<e_enter_dwelling_option> const& options_for_unit(
               e_enter_dwelling_option::incite_indians,
               e_enter_dwelling_option::cancel,
           };
-      auto const& options = ( dwelling.mission.has_value() )
-                                ? options_has_mission
-                                : options_no_mission;
+      auto const& options =
+          ( ss.units.missionary_from_dwelling( dwelling.id )
+                .has_value() )
+              ? options_has_mission
+              : options_no_mission;
       return switch_war( options, options_cancel );
     }
     case e_dwelling_interaction_category::trade: {
@@ -265,7 +267,7 @@ EnterNativeDwellingOptions enter_native_dwelling_options(
       .reaction =
           reaction_for_dwelling( ss, player, tribe, dwelling ),
       .category = dwelling_interaction_category( unit_type ),
-      .options  = options_for_unit( player, tribe, dwelling,
+      .options  = options_for_unit( ss, player, tribe, dwelling,
                                     unit_type ) };
 }
 
