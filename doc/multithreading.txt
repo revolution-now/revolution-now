@@ -1,0 +1,45 @@
+Multithreading
+==============
+
+It may eventually be the case that we will need to run tasks in
+background threads for performance reasons and/or to avoid
+blocking the main thread. In theory, in the latter case, we could
+avoid blocking the main thread by having the task cooperatively
+yield periodically to the main thread. However, in cases where
+that is not feasible and/or not desirable (e.g. because we actu-
+ally want it to run in the background while the game play contin-
+ues), we would need to run that task on a background thread.
+
+If it is purely for performance reasons then we should first try
+to optimize the task in question before putting on a background
+thread. But if that fails, then, again, we might need to put it
+on a background thread.
+
+Examples of these might be:
+
+  - Saving a game.
+  - Loading a game.
+  - Re-rendering the landscape.
+  - Expensive AI computations.
+
+If we do this then ideally we would want a thread pool. Unfortu-
+nately, we don't have one of those in C++20. We could implement
+one ourselves, or maybe a simpler approach which will work is
+just to use std::async with std::future to package a task and get
+the result.
+
+Highly recommend rewatching this very good video on C++20 multi-
+threading before starting:
+
+  https://youtu.be/A7sVFJLJM-A
+
+It seems likely at this point that we wouldn't need a thread-safe
+coroutine awaitable because the tasks that are run would not
+themselves need to be implemented with coroutines, since 1) they
+will not need event-loop input and 2) they don't need to avoid
+blocking, since the main thread will always be running.
+
+NOTE: consider enabling TSan before doing this.
+
+NOTE: At the time of writing, libc++ does not have the new C++20
+multithreading stuff, so might want to wait for it.
