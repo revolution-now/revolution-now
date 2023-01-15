@@ -502,8 +502,8 @@ void LandViewRenderer::render_backdrop() const {
       Delta{ .w = W{ shortest_side }, .h = H{ shortest_side } };
   Rect const tiled_rect =
       Rect::from( Coord{},
-                  tile_size * Delta{ .w = num_squares_needed,
-                                     .h = num_squares_needed } )
+                  tile_size* Delta{ .w = num_squares_needed,
+                                    .h = num_squares_needed } )
           .centered_on( Coord{} );
   Delta const shift = viewport_rect_pixels_.center() -
                       viewport_rect_pixels_.upper_left();
@@ -544,10 +544,11 @@ void LandViewRenderer::render_native_dwellings() const {
   }
 }
 
-void LandViewRenderer::render_units_under_colonies() const {
-  // Currently the only use case for rendering a unit under a
-  // colony is when the colony is depixelating and we want to re-
-  // veal any units that are there.
+// Render units under colonies or dwellings (used when abandoning
+// a colony leaving a colonist or destroying a dwelling leaving a
+// treasure unit.
+void LandViewRenderer::render_units_underneath() const {
+  // Under colonies.
   for( auto const& [colony_id, anim_stack] :
        lv_animator_.colony_animations() ) {
     CHECK( !anim_stack.empty() );
@@ -556,6 +557,22 @@ void LandViewRenderer::render_units_under_colonies() const {
       case ColonyAnimation::e::depixelate: {
         Coord const location =
             ss_.colonies.colony_for( colony_id ).location;
+        if( !location.is_inside( covered_ ) ) return;
+        render_units_on_square( location, /*flags=*/false );
+        break;
+      }
+    }
+  }
+
+  // Under dwellings.
+  for( auto const& [dwelling_id, anim_stack] :
+       lv_animator_.dwelling_animations() ) {
+    CHECK( !anim_stack.empty() );
+    DwellingAnimation_t const& anim = anim_stack.top();
+    switch( anim.to_enum() ) {
+      case DwellingAnimation::e::depixelate: {
+        Coord const location =
+            ss_.natives.dwelling_for( dwelling_id ).location;
         if( !location.is_inside( covered_ ) ) return;
         render_units_on_square( location, /*flags=*/false );
         break;
@@ -631,10 +648,7 @@ void LandViewRenderer::render_entities() const {
                            viewport_.get_zoom() );
   SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
                            corner.distance_from_origin() );
-  // Currently the only use case for rendering a unit under a
-  // colony is when the colony is depixelating and we want to re-
-  // veal any units that are there.
-  render_units_under_colonies();
+  render_units_underneath();
   render_native_dwellings();
   render_colonies();
   render_units();

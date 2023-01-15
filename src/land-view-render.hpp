@@ -72,7 +72,7 @@ struct LandViewRenderer {
 
   void render_native_dwellings() const;
 
-  void render_units_under_colonies() const;
+  void render_units_underneath() const;
 
   void render_colonies() const;
 
