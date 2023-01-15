@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "src/rand.hpp"
-#include "src/ustate.hpp"
+#include "src/unit-mgr.hpp"
 
 // ss
 #include "src/ss/cargo.hpp"

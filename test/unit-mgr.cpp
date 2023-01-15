@@ -1,17 +1,17 @@
 /****************************************************************
-**ustate.cpp
+**unit-mgr.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2022-06-17.
 *
-* Description: Unit tests for the src/ustate.* module.
+* Description: Unit tests for the src/unit-mgr.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/ustate.hpp"
+#include "src/unit-mgr.hpp"
 
 // Testing.
 #include "test/fake/world.hpp"
@@ -58,7 +58,7 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[ustate] current_activity_for_unit" ) {
+TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
   World W;
 
   auto f = [&]( UnitId id ) {
@@ -152,7 +152,7 @@ TEST_CASE( "[ustate] current_activity_for_unit" ) {
   }
 }
 
-TEST_CASE( "[ustate] tribe_for_unit" ) {
+TEST_CASE( "[unit-mgr] tribe_for_unit" ) {
   World           W;
   Dwelling const& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::arawak );
@@ -162,7 +162,7 @@ TEST_CASE( "[ustate] tribe_for_unit" ) {
   REQUIRE( tribe_for_unit( W.ss(), unit ) == e_tribe::arawak );
 }
 
-TEST_CASE( "[ustate] coord_for_unit_multi_ownership" ) {
+TEST_CASE( "[unit-mgr] coord_for_unit_multi_ownership" ) {
   World W;
 
   SECTION( "colonist in colony" ) {

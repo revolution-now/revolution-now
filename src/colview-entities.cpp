@@ -35,7 +35,7 @@
 #include "screen.hpp"
 #include "text.hpp"
 #include "ts.hpp"
-#include "ustate.hpp"
+#include "unit-mgr.hpp"
 #include "views.hpp"
 
 // config
@@ -289,7 +289,7 @@ class MarketCommodities
 
   Delta delta() const override {
     return Delta{
-        block_width_ * SX{ refl::enum_count<e_commodity> },
+        block_width_* SX{ refl::enum_count<e_commodity> },
         1 * 32 };
   }
 

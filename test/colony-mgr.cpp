@@ -20,7 +20,7 @@
 #include "imap-updater.hpp"
 #include "map-square.hpp"
 #include "plane-stack.hpp"
-#include "ustate.hpp"
+#include "unit-mgr.hpp"
 
 // ss
 #include "ss/colonies.hpp"

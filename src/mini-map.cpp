@@ -17,7 +17,7 @@
 #include "society.hpp"
 #include "time.hpp"
 #include "ts.hpp"
-#include "ustate.hpp"
+#include "unit-mgr.hpp"
 #include "visibility.hpp"
 
 // ss

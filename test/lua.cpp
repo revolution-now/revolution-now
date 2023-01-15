@@ -172,21 +172,21 @@ TEST_CASE( "[lua] after initialization" ) {
   // Function binding.
   {
     auto script = R"(
-      assert( type( ustate.create_unit_on_map ) == 'function' )
+      assert( type( unit_mgr.create_unit_on_map ) == 'function' )
       local soldier_type =
           unit_type.UnitType.create( "soldier" )
       local soldier_comp = unit_composer
                           .UnitComposition
                           .create_with_type_obj( soldier_type )
-      local unit1 = ustate.create_unit_on_map( "dutch",
-                                               soldier_comp,
-                                               { x=0, y=0 } )
-      local unit2 = ustate.create_unit_on_map( "dutch",
-                                               soldier_comp,
-                                               { x=0, y=0 } )
-      local unit3 = ustate.create_unit_on_map( "dutch",
-                                               soldier_comp,
-                                               { x=0, y=0 } )
+      local unit1 = unit_mgr.create_unit_on_map( "dutch",
+                                                 soldier_comp,
+                                                 { x=0, y=0 } )
+      local unit2 = unit_mgr.create_unit_on_map( "dutch",
+                                                 soldier_comp,
+                                                 { x=0, y=0 } )
+      local unit3 = unit_mgr.create_unit_on_map( "dutch",
+                                                 soldier_comp,
+                                                 { x=0, y=0 } )
       return unit3:id()-unit1:id()
     )";
 
@@ -217,13 +217,13 @@ TEST_CASE( "[lua] after initialization" ) {
         xp.error(),
         Contains( "attempt to modify a read-only table:" ) );
 
-    xp = st.script.run_safe( "ustate = 1" );
+    xp = st.script.run_safe( "unit_mgr = 1" );
     REQUIRE( !xp.valid() );
     REQUIRE_THAT(
         xp.error(),
         Contains( "attempt to modify a read-only global" ) );
 
-    xp = st.script.run_safe( "ustate.x = 1" );
+    xp = st.script.run_safe( "unit_mgr.x = 1" );
     REQUIRE( !xp.valid() );
     REQUIRE_THAT(
         xp.error(),

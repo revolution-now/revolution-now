@@ -765,7 +765,7 @@ local function create_brave_for_dwelling( dwelling )
   end )
   append( squares, dwelling.location )
   local coord = assert( random_list_elem( squares ) )
-  ustate.create_native_unit_on_map( dwelling.id, 'brave', coord )
+  unit_mgr.create_native_unit_on_map( dwelling.id, 'brave', coord )
 end
 
 local function add_dwelling( coord, tribe )

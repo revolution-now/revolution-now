@@ -21,7 +21,7 @@
 
 // Revolution Now
 #include "imap-updater.hpp"
-#include "ustate.hpp"
+#include "unit-mgr.hpp"
 
 // ss
 #include "ss/players.hpp"

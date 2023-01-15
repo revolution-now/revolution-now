@@ -21,7 +21,7 @@
 #include "src/map-square.hpp"
 #include "src/on-map.hpp"
 #include "src/terrain.hpp"
-#include "src/ustate.hpp"
+#include "src/unit-mgr.hpp"
 
 // ss
 #include "src/ss/colonies.hpp"

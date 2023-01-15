@@ -15,7 +15,7 @@
 #include "src/ss/unit.hpp"
 
 // Revolution Now
-#include "src/ustate.hpp"
+#include "src/unit-mgr.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"

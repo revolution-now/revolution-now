@@ -15,7 +15,7 @@
 #include "logger.hpp"
 #include "on-map.hpp"
 #include "society.hpp"
-#include "ustate.hpp"
+#include "unit-mgr.hpp"
 #include "variant.hpp"
 
 // config

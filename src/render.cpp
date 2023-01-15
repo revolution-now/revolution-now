@@ -17,7 +17,7 @@
 #include "plane.hpp"
 #include "screen.hpp"
 #include "text.hpp"
-#include "ustate.hpp"
+#include "unit-mgr.hpp"
 #include "views.hpp"
 
 // config

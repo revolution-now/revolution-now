@@ -15,8 +15,8 @@
 #include "render.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
+#include "unit-mgr.hpp"
 #include "unit-stack.hpp"
-#include "ustate.hpp"
 #include "visibility.hpp"
 
 // config

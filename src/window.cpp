@@ -22,8 +22,8 @@
 #include "screen.hpp"
 #include "tiles.hpp"
 #include "ui.hpp"
+#include "unit-mgr.hpp"
 #include "unit.hpp"
-#include "ustate.hpp"
 #include "util.hpp"
 #include "views.hpp"
 
@@ -627,7 +627,7 @@ namespace {
           on_result( p_le_view->text() );
           return true; // handled.
         }
-        return false; // not handled.
+        return false;  // not handled.
       }
       default: break;
     }
@@ -693,7 +693,7 @@ wait<vector<UnitSelection>> unit_selection_box(
       },
       /*validator=*/L( ( (void)_, true ) ), // always true.
       /*on_result=*/std::move( on_result ),
-      /*get_view_fun=*/get_view_fn //
+      /*get_view_fun=*/get_view_fn          //
   );
 
   co_return co_await s_promise.wait();

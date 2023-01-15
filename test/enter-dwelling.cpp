@@ -22,7 +22,7 @@
 // Revolution Now
 #include "src/mock/matchers.hpp"
 #include "src/plane-stack.hpp"
-#include "src/ustate.hpp"
+#include "src/unit-mgr.hpp"
 #include "src/visibility.hpp"
 
 // ss

@@ -12,9 +12,9 @@
 
 // Revolution Now
 #include "logger.hpp"
+#include "unit-mgr.hpp"
 #include "unit-stack.hpp"
 #include "unit.hpp"
-#include "ustate.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"

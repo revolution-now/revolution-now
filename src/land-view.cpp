@@ -32,7 +32,7 @@
 #include "time.hpp"
 #include "ts.hpp"
 #include "unit-id.hpp"
-#include "ustate.hpp"
+#include "unit-mgr.hpp"
 #include "viewport.hpp"
 #include "visibility.hpp"
 #include "window.hpp"

@@ -39,8 +39,8 @@
 #include "tax.hpp"
 #include "ts.hpp"
 #include "turn-plane.hpp"
+#include "unit-mgr.hpp"
 #include "unit.hpp"
-#include "ustate.hpp"
 #include "visibility.hpp"
 
 // config

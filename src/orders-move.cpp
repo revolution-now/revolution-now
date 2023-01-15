@@ -29,8 +29,8 @@
 #include "plane-stack.hpp"
 #include "society.hpp"
 #include "ts.hpp"
+#include "unit-mgr.hpp"
 #include "unit-stack.hpp"
-#include "ustate.hpp"
 
 // config
 #include "config/nation.hpp"

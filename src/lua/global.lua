@@ -19,7 +19,7 @@ function soldier()
   local blinker = assert( land_view.blinking_unit(),
                           'There is currently no unit asking ' ..
                               'for orders.' )
-  local unit = ustate.unit_from_id( blinker )
+  local unit = unit_mgr.unit_from_id( blinker )
   assert( not unit:desc().ship,
           'Cannot convert a naval unit to a soldier.' )
   unit:change_type( unit_composer.UnitComposition

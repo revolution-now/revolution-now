@@ -69,8 +69,8 @@ local function create_initial_units_for_nation(options, nation,
   else
     ship_type = build_unit_type( 'caravel' )
   end
-  local ship_unit = ustate.create_unit_on_map( nation, ship_type,
-                                               coord )
+  local ship_unit = unit_mgr.create_unit_on_map( nation,
+                                                 ship_type, coord )
 
   -- Soldier.
   local soldier_type
@@ -88,10 +88,10 @@ local function create_initial_units_for_nation(options, nation,
     pioneer_type = build_unit_type( 'pioneer' )
   end
 
-  ustate.create_unit_in_cargo( nation, soldier_type,
-                               ship_unit:id() )
-  ustate.create_unit_in_cargo( nation, pioneer_type,
-                               ship_unit:id() )
+  unit_mgr.create_unit_in_cargo( nation, soldier_type,
+                                 ship_unit:id() )
+  unit_mgr.create_unit_in_cargo( nation, pioneer_type,
+                                 ship_unit:id() )
   player.starting_position = coord
 end
 
@@ -113,14 +113,14 @@ local function create_battlefield_units( options, root )
   assert( nation2 )
   local veteran_dragoon = build_unit_type( 'veteran_dragoon' )
 
-  ustate.create_unit_on_map( nation1, veteran_dragoon,
-                             { x=1, y=1 } ):fortify()
-  ustate.create_unit_on_map( nation1, veteran_dragoon,
-                             { x=1, y=2 } ):fortify()
-  ustate.create_unit_on_map( nation2, veteran_dragoon,
-                             { x=2, y=1 } )
-  ustate.create_unit_on_map( nation2, veteran_dragoon,
-                             { x=2, y=2 } )
+  unit_mgr.create_unit_on_map( nation1, veteran_dragoon,
+                               { x=1, y=1 } ):fortify()
+  unit_mgr.create_unit_on_map( nation1, veteran_dragoon,
+                               { x=1, y=2 } ):fortify()
+  unit_mgr.create_unit_on_map( nation2, veteran_dragoon,
+                               { x=2, y=1 } )
+  unit_mgr.create_unit_on_map( nation2, veteran_dragoon,
+                               { x=2, y=2 } )
 end
 
 -- FIXME: temporary
@@ -154,10 +154,10 @@ local function create_all_units( options, root )
   }
 
   local function create( where, unit_name )
-    local unit = ustate.create_unit_on_map( nation1,
-                                            build_unit_type(
-                                                unit_name ),
-                                            where )
+    local unit = unit_mgr.create_unit_on_map( nation1,
+                                              build_unit_type(
+                                                  unit_name ),
+                                              where )
     unit:fortify()
   end
 

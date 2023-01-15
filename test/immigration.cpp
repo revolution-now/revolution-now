@@ -23,7 +23,7 @@
 #include "src/harbor-units.hpp"
 #include "src/igui.hpp"
 #include "src/map-square.hpp"
-#include "src/ustate.hpp"
+#include "src/unit-mgr.hpp"
 
 // config
 #include "config/unit-type.hpp"

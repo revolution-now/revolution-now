@@ -1,5 +1,5 @@
 /****************************************************************
-**ustate.cpp
+**unit-mgr.cpp
 *
 * Project: Revolution Now
 *
@@ -9,7 +9,7 @@
 *              units.
 *
 *****************************************************************/
-#include "ustate.hpp"
+#include "unit-mgr.hpp"
 
 // Revolution Now
 #include "co-wait.hpp"

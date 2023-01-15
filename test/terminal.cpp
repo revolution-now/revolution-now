@@ -79,37 +79,39 @@ TEST_CASE( "[terminal] autocomplete" ) {
   in = "xgiebg";
   REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
 
-  in  = "usta";
-  out = vector<string>{ "ustate" };
+  in  = "unit_m";
+  out = vector<string>{ "unit_mgr" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "ustate";
-  out = vector<string>{ "ustate." };
+  in  = "unit_mgr";
+  out = vector<string>{ "unit_mgr." };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "ustate.";
-  out = vector<string>{ "ustate.add_unit_to_cargo",
-                        "ustate.create_unit_in_cargo",
-                        "ustate.create_unit_on_map" };
+  in  = "unit_mgr.";
+  out = vector<string>{ "unit_mgr.add_unit_to_cargo",
+                        "unit_mgr.create_unit_in_cargo",
+                        "unit_mgr.create_unit_on_map" };
   REQUIRE_THAT( autocomplete( in ), Contains( out ) );
 
-  in  = "ustate.add_un";
-  out = vector<string>{ "ustate.add_unit_to_cargo" };
+  in  = "unit_mgr.add_un";
+  out = vector<string>{ "unit_mgr.add_unit_to_cargo" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "ustate.create_unit_in_cargo";
-  out = vector<string>{ "ustate.create_unit_in_cargo(" };
+  in  = "unit_mgr.create_unit_in_cargo";
+  out = vector<string>{ "unit_mgr.create_unit_in_cargo(" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in = "ustate.create_unit_on_map(";
+  in = "unit_mgr.create_unit_on_map(";
   REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
 
-  in  = "ustate.create_unit_on_map( usta";
-  out = vector<string>{ "ustate.create_unit_on_map( ustate" };
+  in = "unit_mgr.create_unit_on_map( unit_m";
+  out =
+      vector<string>{ "unit_mgr.create_unit_on_map( unit_mgr" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "ustate.create_unit_on_map( ustate";
-  out = vector<string>{ "ustate.create_unit_on_map( ustate." };
+  in = "unit_mgr.create_unit_on_map( unit_mgr";
+  out =
+      vector<string>{ "unit_mgr.create_unit_on_map( unit_mgr." };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "uni";
@@ -117,15 +119,15 @@ TEST_CASE( "[terminal] autocomplete" ) {
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "unit_";
-  out = { "unit_composer", "unit_type" };
+  out = { "unit_composer", "unit_mgr", "unit_type" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "unit_t";
   out = { "unit_type" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "ustate";
-  out = { "ustate." };
+  in  = "unit_mgr";
+  out = { "unit_mgr." };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "map_";
@@ -221,25 +223,26 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   in = "xgiebg";
   REQUIRE_THAT( ac_i( in ), Equals( empty ) );
 
-  in  = "usta";
-  out = vector<string>{ "ustate." };
+  in  = "unit_m";
+  out = vector<string>{ "unit_mgr." };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in  = "ustate.";
-  out = vector<string>{ "ustate.add_unit_to_cargo",
-                        "ustate.create_unit_in_cargo",
-                        "ustate.create_unit_on_map" };
+  in  = "unit_mgr.";
+  out = vector<string>{ "unit_mgr.add_unit_to_cargo",
+                        "unit_mgr.create_unit_in_cargo",
+                        "unit_mgr.create_unit_on_map" };
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
-  in  = "ustate.add_unit_";
-  out = vector<string>{ "ustate.add_unit_to_cargo(" };
+  in  = "unit_mgr.add_unit_";
+  out = vector<string>{ "unit_mgr.add_unit_to_cargo(" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in = "ustate.add_unit_to_cargo(";
+  in = "unit_mgr.add_unit_to_cargo(";
   REQUIRE_THAT( ac_i( in ), Equals( empty ) );
 
-  in  = "ustate.add_unit_to_cargo( usta";
-  out = vector<string>{ "ustate.add_unit_to_cargo( ustate." };
+  in = "unit_mgr.add_unit_to_cargo( unit_m";
+  out =
+      vector<string>{ "unit_mgr.add_unit_to_cargo( unit_mgr." };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "uni";
@@ -250,22 +253,22 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   out = { "unit_composer.UnitComposition.create_with_type" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in  = "ustate.a";
-  out = { "ustate.add_unit_to_cargo(" };
+  in  = "unit_mgr.a";
+  out = { "unit_mgr.add_unit_to_cargo(" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in  = "ustate.create";
-  out = { "ustate.create_" };
+  in  = "unit_mgr.create";
+  out = { "unit_mgr.create_" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in  = "ustate.create_";
-  out = { "ustate.create_native_unit_on_map",
-          "ustate.create_unit_in_cargo",
-          "ustate.create_unit_on_map" };
+  in  = "unit_mgr.create_";
+  out = { "unit_mgr.create_native_unit_on_map",
+          "unit_mgr.create_unit_in_cargo",
+          "unit_mgr.create_unit_on_map" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in  = "ustate.create_u";
-  out = { "ustate.create_unit_" };
+  in  = "unit_mgr.create_u";
+  out = { "unit_mgr.create_unit_" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "map_g";

@@ -9,7 +9,7 @@
 *
 *****************************************************************/
 #include "society.hpp"
-#include "ustate.hpp"
+#include "unit-mgr.hpp"
 
 // config
 #include "config/nation.rds.hpp"

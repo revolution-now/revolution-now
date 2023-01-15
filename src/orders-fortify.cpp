@@ -13,7 +13,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "ts.hpp"
-#include "ustate.hpp"
+#include "unit-mgr.hpp"
 
 // ss
 #include "ss/ref.hpp"

@@ -15,7 +15,7 @@
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
 #include "sound.hpp"
-#include "ustate.hpp"
+#include "unit-mgr.hpp"
 #include "viewport.hpp"
 
 // config
