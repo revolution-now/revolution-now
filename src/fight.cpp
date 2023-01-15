@@ -13,6 +13,7 @@
 // Revolution Now
 #include "irand.hpp"
 #include "logger.hpp"
+#include "ts.hpp"
 
 // config
 #include "config/natives.hpp"
@@ -39,36 +40,57 @@ namespace {
 //
 // TODO: need to take into account George Washington here who
 // makes winners upgrade with 100% probability.
-FightStatistics fight_statistics_impl( IRand& rand,
-                                       int    attack_points,
-                                       int    defense_points ) {
+//
+// TODO: dwelling type will affect defense points.
+
+} // namespace
+
+FightStatsEuroAttackEuro fight_stats_euro_attack_euro(
+    TS& ts, Unit const& attacker, Unit const& defender ) {
+  int const attack_points  = attacker.desc().attack_points;
+  int const defense_points = defender.desc().defense_points;
+  auto      winning_probability =
+      double( attack_points ) /
+      double( attack_points + defense_points );
+  CHECK( attack_points > 0 );
+  CHECK( winning_probability <= 1.0 );
+  lg.info( "winning probability: {}", winning_probability );
+  return { ts.rand.bernoulli( winning_probability ) };
+}
+
+FightStatsEuroAttackBrave fight_stats_euro_attack_brave(
+    TS& ts, Unit const& attacker, NativeUnit const& defender ) {
+  int const attack_points  = attacker.desc().attack_points;
+  int const defense_points = unit_attr( defender.type ).combat;
+  auto      winning_probability =
+      double( attack_points ) /
+      double( attack_points + defense_points );
+  CHECK( attack_points > 0 );
+  CHECK( winning_probability <= 1.0 );
+  lg.info( "winning probability: {}", winning_probability );
+  return { ts.rand.bernoulli( winning_probability ) };
+}
+
+FightStatsEuroAttackDwelling fight_stats_euro_attack_dwelling(
+    TS& ts, Unit const& attacker, Dwelling const& ) {
+  int const attack_points = attacker.desc().attack_points;
+  int const defense_points =
+      unit_attr( e_native_unit_type::brave ).combat;
+  // TODO: dwelling type will affect defense points.
   auto winning_probability =
       double( attack_points ) /
       double( attack_points + defense_points );
   CHECK( attack_points > 0 );
   CHECK( winning_probability <= 1.0 );
   lg.info( "winning probability: {}", winning_probability );
-  return { rand.bernoulli( winning_probability ) };
+  return { ts.rand.bernoulli( winning_probability ) };
 }
 
-} // namespace
-
-FightStatistics fight_statistics( IRand&      rand,
-                                  Unit const& attacker,
-                                  Unit const& defender ) {
-  int const attack_points  = attacker.desc().attack_points;
-  int const defense_points = defender.desc().defense_points;
-  return fight_statistics_impl( rand, attack_points,
-                                defense_points );
-}
-
-FightStatistics fight_statistics( IRand&            rand,
-                                  Unit const&       attacker,
-                                  NativeUnit const& defender ) {
-  int const attack_points  = attacker.desc().attack_points;
-  int const defense_points = unit_attr( defender.type ).combat;
-  return fight_statistics_impl( rand, attack_points,
-                                defense_points );
+FightStatsEuroAttackEuro
+make_fight_stats_for_attacking_ship_on_land() {
+  return {
+      .attacker_wins = true,
+  };
 }
 
 } // namespace rn

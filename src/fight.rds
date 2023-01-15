@@ -1,0 +1,23 @@
+# ===============================================================
+# fight.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-01-14.
+#
+# Description: Rds definitions for the fight module.
+#
+# ===============================================================
+namespace "rn"
+
+struct.FightStatsEuroAttackEuro {
+  attacker_wins 'bool',
+}
+
+struct.FightStatsEuroAttackBrave {
+  attacker_wins 'bool',
+}
+
+struct.FightStatsEuroAttackDwelling {
+  attacker_wins 'bool',
+}

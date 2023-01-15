@@ -1224,7 +1224,7 @@ struct EuroAttackHandler : public OrdersHandler {
   // If the fight is allowed then this will hold the numerical
   // breakdown of the statistics contributing to the final proba-
   // bilities.
-  maybe<FightStatistics> fight_stats{};
+  maybe<FightStatsEuroAttackEuro> fight_stats{};
 
   Player& player_;
 };
@@ -1309,8 +1309,8 @@ EuroAttackHandler::confirm_attack_impl() {
   // Deferred evaluation until we know that the attack makes
   // sense.
   auto run_stats = [this, id, highest_defense_unit_id] {
-    return fight_statistics(
-        ts_.rand, ss_.units.unit_for( id ),
+    return fight_stats_euro_attack_euro(
+        ts_, ss_.units.unit_for( id ),
         ss_.units.unit_for( highest_defense_unit_id ) );
   };
 
@@ -1351,23 +1351,8 @@ EuroAttackHandler::confirm_attack_impl() {
       case bh_t::attack_land_ship:
         target_unit = highest_defense_unit_id; // ship.
         CHECK( ss_.units.unit_for( *target_unit ).desc().ship );
-        // In the original game a ship can be left on land after
-        // a colony is abandoned, but if a land unit then tries
-        // to attack it the game panics. We will handle it prop-
-        // erly, but we don't want a normal battle to ensue, be-
-        // cause then the player could "cheat" by leaving a bunch
-        // of fortified frigates on land that would be too strong
-        // for normal land units to take down. So what this game
-        // does is, when a ship is left on land, the player is
-        // given a message that they should move it off land as
-        // soon as possible because it is vulnerable to attack.
-        // And by vulnerable, we mean that if it is attacked by a
-        // land unit (no matter how weak) then the land unit will
-        // always win. This will prevent the scenario above where
-        // the player accumultes ships on land as a "wall."
-        fight_stats = FightStatistics{
-            .attacker_wins = true,
-        };
+        fight_stats =
+            make_fight_stats_for_attacking_ship_on_land();
         co_return e_euro_attack_verdict::
             land_unit_attack_ship_on_land;
     }
@@ -1669,8 +1654,8 @@ struct AttackNativeUnitHandler : public OrdersHandler {
     defender_id_ = native_unit_ids[0];
 
     // Compute the outcome of the battle.
-    fight_stats_ = fight_statistics(
-        ts_.rand, ss_.units.unit_for( unit_.id() ),
+    fight_stats_ = fight_stats_euro_attack_brave(
+        ts_, ss_.units.unit_for( unit_.id() ),
         ss_.units.unit_for( defender_id_ ) );
 
     // Sanity checks.
@@ -1813,7 +1798,7 @@ struct AttackNativeUnitHandler : public OrdersHandler {
   NativeUnitId defender_id_ = {};
 
   // If the attack proceeds then this will hold the statistics.
-  maybe<FightStatistics> fight_stats_;
+  maybe<FightStatsEuroAttackBrave> fight_stats_;
 };
 
 /****************************************************************
