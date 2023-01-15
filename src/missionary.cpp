@@ -49,8 +49,10 @@ void bless_as_missionary( Player const& player, Colony& colony,
 }
 
 bool is_missionary( e_unit_type type ) {
-  return type == e_unit_type::missionary ||
-         type == e_unit_type::jesuit_missionary;
+  return config_unit_type.composition.unit_types[type]
+             .type_activity == e_unit_activity::missioning;
+}
+
 }
 
 } // namespace rn
