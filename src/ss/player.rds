@@ -21,6 +21,11 @@ include "gfx/coord.hpp"
 
 namespace "rn"
 
+# Stats collected for the purpose of calculating a final score.
+struct.PlayerScoreStats {
+  dwellings_burned 'int',
+}
+
 # Note: it is important that these go in chronological order so
 # that we can use inequality operators on them, which we do in
 # some places. E.g. if status <= declared then...
@@ -92,4 +97,7 @@ struct.Player {
   # to date. We need to know this because the price goes up by
   # 100 after each purcahse.
   artillery_purchases 'int',
+
+  # Stats collected for the purpose of calculating a final score.
+  score_stats 'PlayerScoreStats',
 }
