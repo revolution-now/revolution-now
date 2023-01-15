@@ -18,3 +18,14 @@ enum.e_enter_dwelling_reaction {
   wary_warriors,
   scalps_and_war_drums,
 }
+
+# These are the levels that the OG's strategy guide says that
+# alarm can be categorized by.
+enum.e_alarm_level {
+  happy,
+  content,
+  restless,
+  uneasy,
+  wary,
+  angry,
+}

@@ -18,6 +18,7 @@
 
 // ss
 #include "ss/nation.rds.hpp"
+#include "ss/native-enums.rds.hpp"
 
 // gfx
 #include "gfx/coord.hpp"
@@ -54,10 +55,25 @@ void increase_tribal_alarm_from_land_grab(
     SSConst const& ss, Player const& player,
     TribeRelationship& relationship, Coord tile );
 
+// This is used when either attacking a brave out in the open or
+// attacking a dwelling that has a brave sitting on top of it.
+// Note that the capital status of the dwelling that the brave
+// belongs to will affect the tribal alarm increase, as usual in
+// the OG where tribal alarm affects are amplified when made by
+// way of the capital.
 void increase_tribal_alarm_from_attacking_brave(
     Dwelling const& dwelling, TribeRelationship& relationship );
 
+// This is used when attacking a dwelling that does not have a
+// brave sitting on top of it.
 void increase_tribal_alarm_from_attacking_dwelling(
     Dwelling const& dwelling, TribeRelationship& relationship );
+
+// Attempts to set the tribal alarm at "content" (note: this is
+// not quite as good as "happy"). However, some tribes may have a
+// non-zero minimum tribal alarm, in which case this will go as
+// close to "content" as the tribe config allows.
+void set_tribal_alarm_to_content_if_possible(
+    e_tribe tribe, int& tribal_alarm );
 
 } // namespace rn

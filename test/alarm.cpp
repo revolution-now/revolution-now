@@ -416,5 +416,43 @@ TEST_CASE(
   }
 }
 
+TEST_CASE( "[alarm] set_tribal_alarm_to_content_if_possible" ) {
+  World W;
+
+  SECTION( "inca" ) {
+    Tribe&             tribe = W.add_tribe( e_tribe::inca );
+    TribeRelationship& relationship =
+        tribe.relationship[W.default_nation()].emplace();
+
+    auto f = [&] {
+      set_tribal_alarm_to_content_if_possible(
+          tribe.type, relationship.tribal_alarm );
+    };
+
+    REQUIRE( relationship.tribal_alarm == 0 );
+    f();
+    REQUIRE( relationship.tribal_alarm == 17 );
+    f();
+    REQUIRE( relationship.tribal_alarm == 17 );
+  }
+
+  SECTION( "arawak" ) {
+    Tribe&             tribe = W.add_tribe( e_tribe::arawak );
+    TribeRelationship& relationship =
+        tribe.relationship[W.default_nation()].emplace();
+
+    auto f = [&] {
+      set_tribal_alarm_to_content_if_possible(
+          tribe.type, relationship.tribal_alarm );
+    };
+
+    REQUIRE( relationship.tribal_alarm == 0 );
+    f();
+    REQUIRE( relationship.tribal_alarm == 30 );
+    f();
+    REQUIRE( relationship.tribal_alarm == 30 );
+  }
+}
+
 } // namespace
 } // namespace rn

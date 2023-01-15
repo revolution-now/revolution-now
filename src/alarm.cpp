@@ -40,21 +40,32 @@ namespace {
   return clamp_alarm( lround( floor( alarm ) ) );
 }
 
+// This will set the tribal alarm but taking into account the min
+// allowed alarm (tribe-dependent) and global max tribal.
+[[nodiscard]] int new_tribal_alarm( e_tribe tribe,
+                                    double  target ) {
+  int res = clamp_round_alarm( target );
+  res     = std::max(
+      res, config_natives.alarm.minimum_tribal_alarm[tribe] );
+  return res;
+}
+
 // This will increase the tribal alarm but taking into account
-// the following factors, which must always be done:
-//
-//   1. Min allowed alarm (tribe-dependent).
-//   2. Global max tribal.
-//   3. Scaling based on capital status of dwelling.
-//
+// scaling based on capital status of dwelling.
 void increase_tribal_alarm_from_dwelling(
     Dwelling const& dwelling, double delta, int& tribal_alarm ) {
   if( dwelling.is_capital )
     delta *= config_natives.alarm.tribal_alarm_scale_for_capital;
-  tribal_alarm = clamp_round_alarm( tribal_alarm + delta );
-  tribal_alarm = std::max(
-      tribal_alarm, config_natives.alarm
-                        .minimum_tribal_alarm[dwelling.tribe] );
+  tribal_alarm =
+      new_tribal_alarm( dwelling.tribe, tribal_alarm + delta );
+}
+
+constexpr int minimum_alarm_for_named_level(
+    e_alarm_level level ) {
+  // If this changes then the kChunk would have to be recomputed.
+  static_assert( refl::enum_count<e_alarm_level> == 6 );
+  int constexpr kChunk = 17;
+  return static_cast<int>( level ) * kChunk;
 }
 
 } // namespace
@@ -161,6 +172,13 @@ void increase_tribal_alarm_from_attacking_dwelling(
           .tribal_alarm_increase_from_attacking_dwelling;
   increase_tribal_alarm_from_dwelling(
       dwelling, delta, relationship.tribal_alarm );
+}
+
+void set_tribal_alarm_to_content_if_possible(
+    e_tribe tribe, int& tribal_alarm ) {
+  int constexpr kContent =
+      minimum_alarm_for_named_level( e_alarm_level::content );
+  tribal_alarm = new_tribal_alarm( tribe, kContent );
 }
 
 } // namespace rn
