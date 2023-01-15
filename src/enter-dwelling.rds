@@ -32,12 +32,14 @@ enum.e_enter_dwelling_option {
   live_among_the_natives,
   speak_with_chief,
   attack_village,
-  demand_tribute,
-  establish_mission,
-  incite_indians,
-  denounce_foreign_mission,
-  trade,
+  # demand_tribute,
+  # establish_mission,
+  # incite_indians,
+  # denounce_foreign_mission,
+  # trade,
   cancel,
+
+  _features { nodiscard }
 }
 
 enum.e_dwelling_interaction_category {

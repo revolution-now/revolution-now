@@ -202,7 +202,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.options  = {
       e_enter_dwelling_option::speak_with_chief,
       e_enter_dwelling_option::attack_village,
-      e_enter_dwelling_option::demand_tribute,
+      // e_enter_dwelling_option::demand_tribute,
       e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
@@ -228,7 +228,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.category = e_dwelling_interaction_category::military;
   expected.options  = {
       e_enter_dwelling_option::attack_village,
-      e_enter_dwelling_option::demand_tribute,
+      // e_enter_dwelling_option::demand_tribute,
       e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
@@ -256,7 +256,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.category =
       e_dwelling_interaction_category::missionary;
   expected.options = {
-      e_enter_dwelling_option::incite_indians,
+      // e_enter_dwelling_option::incite_indians,
       e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
@@ -270,8 +270,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.category =
       e_dwelling_interaction_category::missionary;
   expected.options = {
-      e_enter_dwelling_option::establish_mission,
-      e_enter_dwelling_option::incite_indians,
+      // e_enter_dwelling_option::establish_mission,
+      // e_enter_dwelling_option::incite_indians,
       e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
@@ -296,7 +296,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
       e_enter_dwelling_reaction::frowning_archers;
   expected.category = e_dwelling_interaction_category::trade;
   expected.options  = {
-      e_enter_dwelling_option::trade,
+      // e_enter_dwelling_option::trade,
       e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
@@ -308,7 +308,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.category = e_dwelling_interaction_category::trade;
   expected.options  = {
-      e_enter_dwelling_option::trade,
+      // e_enter_dwelling_option::trade,
       e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );

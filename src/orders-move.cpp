@@ -1936,26 +1936,11 @@ struct NativeDwellingHandler : public OrdersHandler {
         // dwelling then we should attack it first.
         co_await ts_.gui.message_box( "Not Implemented" );
         co_return;
-      case e_enter_dwelling_option::demand_tribute:
-        co_await ts_.gui.message_box( "Not Implemented" );
-        co_return;
-      case e_enter_dwelling_option::establish_mission:
-        co_await ts_.gui.message_box( "Not Implemented" );
-        co_return;
-      case e_enter_dwelling_option::incite_indians:
-        co_await ts_.gui.message_box( "Not Implemented" );
-        co_return;
-      case e_enter_dwelling_option::denounce_foreign_mission:
-        co_await ts_.gui.message_box( "Not Implemented" );
-        co_return;
-      case e_enter_dwelling_option::trade:
-        co_await ts_.gui.message_box( "Not Implemented" );
         co_return;
       case e_enter_dwelling_option::cancel:
         // Do nothing.
         co_return;
     }
-    co_return;
   }
 
   wait<> post() const override {
@@ -1964,7 +1949,6 @@ struct NativeDwellingHandler : public OrdersHandler {
     // e.g. losing losing a battle or being "used for target
     // practice."
     if( !ss_.units.exists( unit_id_ ) ) co_return;
-    co_return;
   }
 
   Planes& planes_;

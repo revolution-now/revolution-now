@@ -19,9 +19,6 @@
 // Revolution Now
 #include "wait.hpp"
 
-// base
-#include "base/vocab.hpp"
-
 namespace rn {
 
 struct Dwelling;
@@ -40,8 +37,7 @@ EnterNativeDwellingOptions enter_native_dwelling_options(
     SSConst const& ss, Player const& player,
     e_unit_type unit_type, Dwelling const& dwelling );
 
-wait<base::NoDiscard<e_enter_dwelling_option>>
-present_dwelling_entry_options(
+wait<e_enter_dwelling_option> present_dwelling_entry_options(
     SSConst const& ss, TS& ts,
     EnterNativeDwellingOptions const& options );
 

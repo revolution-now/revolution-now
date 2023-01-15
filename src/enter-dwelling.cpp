@@ -152,7 +152,7 @@ vector<e_enter_dwelling_option> const& options_for_unit(
       static vector<e_enter_dwelling_option> const options{
           e_enter_dwelling_option::speak_with_chief,
           e_enter_dwelling_option::attack_village,
-          e_enter_dwelling_option::demand_tribute,
+          // e_enter_dwelling_option::demand_tribute,
           e_enter_dwelling_option::cancel,
       };
       static vector<e_enter_dwelling_option> const
@@ -166,7 +166,7 @@ vector<e_enter_dwelling_option> const& options_for_unit(
     case e_dwelling_interaction_category::military: {
       static vector<e_enter_dwelling_option> const options{
           e_enter_dwelling_option::attack_village,
-          e_enter_dwelling_option::demand_tribute,
+          // e_enter_dwelling_option::demand_tribute,
           e_enter_dwelling_option::cancel,
       };
       static vector<e_enter_dwelling_option> const
@@ -186,13 +186,13 @@ vector<e_enter_dwelling_option> const& options_for_unit(
     case e_dwelling_interaction_category::missionary: {
       static vector<e_enter_dwelling_option> const
           options_no_mission{
-              e_enter_dwelling_option::establish_mission,
-              e_enter_dwelling_option::incite_indians,
+              // e_enter_dwelling_option::establish_mission,
+              // e_enter_dwelling_option::incite_indians,
               e_enter_dwelling_option::cancel,
           };
       static vector<e_enter_dwelling_option> const
           options_has_mission{
-              e_enter_dwelling_option::incite_indians,
+              // e_enter_dwelling_option::incite_indians,
               e_enter_dwelling_option::cancel,
           };
       auto const& options =
@@ -204,7 +204,7 @@ vector<e_enter_dwelling_option> const& options_for_unit(
     }
     case e_dwelling_interaction_category::trade: {
       static vector<e_enter_dwelling_option> const options{
-          e_enter_dwelling_option::trade,
+          // e_enter_dwelling_option::trade,
           e_enter_dwelling_option::cancel,
       };
       // In the OG, when attempting to trade with a tribe that is
@@ -271,8 +271,7 @@ EnterNativeDwellingOptions enter_native_dwelling_options(
                                     unit_type ) };
 }
 
-wait<base::NoDiscard<e_enter_dwelling_option>>
-present_dwelling_entry_options(
+wait<e_enter_dwelling_option> present_dwelling_entry_options(
     SSConst const& ss, TS& ts,
     EnterNativeDwellingOptions const& options ) {
   Dwelling const& dwelling =
