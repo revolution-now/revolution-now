@@ -294,8 +294,11 @@ wait<e_enter_dwelling_option> present_dwelling_entry_options(
 ** Live Among the Natives.
 *****************************************************************/
 LiveAmongTheNatives_t compute_live_among_the_natives(
-    SSConst const& ss, TribeRelationship const& relationship,
-    Dwelling const& dwelling, Unit const& unit ) {
+    SSConst const& ss, Dwelling const& dwelling,
+    Unit const& unit ) {
+  UNWRAP_CHECK( relationship,
+                ss.natives.tribe_for( dwelling.tribe )
+                    .relationship[unit.nation()] );
   e_unit_type const base_type = unit.base_type();
   auto const&       attr      = unit_attr( base_type );
   if( !is_unit_human( unit.type_obj() ) )

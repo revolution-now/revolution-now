@@ -48,8 +48,8 @@ wait<e_enter_dwelling_option> present_dwelling_entry_options(
 // that the tribe has made contact; if it hasn't then we
 // shouldn't even be calling this.
 LiveAmongTheNatives_t compute_live_among_the_natives(
-    SSConst const& ss, TribeRelationship const& relationship,
-    Dwelling const& dwelling, Unit const& unit );
+    SSConst const& ss, Dwelling const& dwelling,
+    Unit const& unit );
 
 wait<> do_live_among_the_natives(
     Planes& planes, TS& ts, Dwelling& dwelling,

@@ -340,8 +340,8 @@ TEST_CASE( "[enter-dwelling] compute_live_among_the_natives" ) {
   auto f = [&] {
     Unit const unit =
         create_unregistered_unit( W.default_player(), comp );
-    return compute_live_among_the_natives( W.ss(), relationship,
-                                           dwelling, unit );
+    return compute_live_among_the_natives( W.ss(), dwelling,
+                                           unit );
   };
 
   // generally_ineligible.

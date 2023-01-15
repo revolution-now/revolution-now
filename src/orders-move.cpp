@@ -1908,14 +1908,9 @@ struct NativeDwellingHandler : public OrdersHandler {
 
     switch( chosen_option_ ) {
       case e_enter_dwelling_option::live_among_the_natives: {
-        // This should have a value because we should not have
-        // allowed the player to choose to live among the natives
-        // otherwise.
-        UNWRAP_CHECK( relationship,
-                      tribe_.relationship[unit_.nation()] );
         LiveAmongTheNatives_t const outcome =
-            compute_live_among_the_natives( ss_, relationship,
-                                            dwelling_, unit_ );
+            compute_live_among_the_natives( ss_, dwelling_,
+                                            unit_ );
         co_await do_live_among_the_natives(
             planes_, ts_, dwelling_, player_, unit_, outcome );
         break;
