@@ -327,7 +327,7 @@ void rtmidi_error_callback( RtMidiError::Type,
 *****************************************************************/
 // Will be left as nothing if the midi subsystem fails to ini-
 // tialize. Music errors are generally not fatal for the game.
-maybe<jthread> g_midi_thread;
+maybe<thread> g_midi_thread;
 
 // Class used for communicating with the midi thread in a thread
 // safe way. Note that the methods here return things by copy for
@@ -720,7 +720,7 @@ void midi_thread_impl() {
 }
 
 // This is the function that drives the midi thread (i.e., it is
-// given to the std::jthread object). When this function finishes
+// given to the std::thread object). When this function finishes
 // so does the MIDI thread.
 void midi_thread() {
   midi_thread_impl();
@@ -755,7 +755,7 @@ void init_midiseq() {
     lg.info( "creating midi thread." );
     // Initialization of midi thread. This is only done if we
     // found a midi port.
-    g_midi_thread = jthread( midi_thread );
+    g_midi_thread = thread( midi_thread );
   }
 
   if( !g_midi.has_value() ) {
