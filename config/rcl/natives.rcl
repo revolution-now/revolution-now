@@ -224,7 +224,19 @@ alarm {
     inca:      0
   }
 
+  # When the player does an action against a dwelling it gener-
+  # ally will increase tribal alarm. However, if that dwelling is
+  # a capital then the alarm increase will be scaled up by this
+  # amount.
+  tribal_alarm_scale_for_capital: 1.5
+
+  # When we attack a brave on the map the tribe's alarm will in-
+  # crease by this amount.
   tribal_alarm_increase_from_attacking_brave: 10
+
+  # When we attack a dwelling (that has no brave sitting on top
+  # of it) the tribe's alarm will increase by this amount.
+  tribal_alarm_increase_from_attacking_dwelling: 10
 }
 
 # Configures how each dwelling is assigned an expertise for

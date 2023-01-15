@@ -55,6 +55,9 @@ void increase_tribal_alarm_from_land_grab(
     TribeRelationship& relationship, Coord tile );
 
 void increase_tribal_alarm_from_attacking_brave(
-    TribeRelationship& relationship );
+    Dwelling const& dwelling, TribeRelationship& relationship );
+
+void increase_tribal_alarm_from_attacking_dwelling(
+    Dwelling const& dwelling, TribeRelationship& relationship );
 
 } // namespace rn

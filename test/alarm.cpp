@@ -341,20 +341,79 @@ TEST_CASE(
   Tribe&             tribe = W.add_tribe( e_tribe::inca );
   TribeRelationship& relationship =
       tribe.relationship[W.default_nation()].emplace();
+  Dwelling& dwelling =
+      W.add_dwelling( { .x = 1, .y = 1 }, tribe.type );
 
   auto f = [&] {
-    increase_tribal_alarm_from_attacking_brave( relationship );
+    increase_tribal_alarm_from_attacking_brave( dwelling,
+                                                relationship );
   };
 
-  REQUIRE( relationship.tribal_alarm == 0 );
-  f();
-  REQUIRE( relationship.tribal_alarm == 10 );
-  f();
-  REQUIRE( relationship.tribal_alarm == 20 );
+  SECTION( "non-capital" ) {
+    REQUIRE( relationship.tribal_alarm == 0 );
+    f();
+    REQUIRE( relationship.tribal_alarm == 10 );
+    f();
+    REQUIRE( relationship.tribal_alarm == 20 );
 
-  relationship.tribal_alarm = 95;
-  f();
-  REQUIRE( relationship.tribal_alarm == 99 );
+    relationship.tribal_alarm = 95;
+    f();
+    REQUIRE( relationship.tribal_alarm == 99 );
+  }
+
+  SECTION( "capital" ) {
+    dwelling.is_capital = true;
+    REQUIRE( relationship.tribal_alarm == 0 );
+    f();
+    REQUIRE( relationship.tribal_alarm == 15 );
+    f();
+    REQUIRE( relationship.tribal_alarm == 30 );
+
+    relationship.tribal_alarm = 95;
+    f();
+    REQUIRE( relationship.tribal_alarm == 99 );
+  }
+}
+
+TEST_CASE(
+    "[alarm] increase_tribal_alarm_from_attacking_dwelling" ) {
+  World W;
+
+  Tribe&             tribe = W.add_tribe( e_tribe::inca );
+  TribeRelationship& relationship =
+      tribe.relationship[W.default_nation()].emplace();
+  Dwelling& dwelling =
+      W.add_dwelling( { .x = 1, .y = 1 }, tribe.type );
+
+  auto f = [&] {
+    increase_tribal_alarm_from_attacking_dwelling(
+        dwelling, relationship );
+  };
+
+  SECTION( "non-capital" ) {
+    REQUIRE( relationship.tribal_alarm == 0 );
+    f();
+    REQUIRE( relationship.tribal_alarm == 10 );
+    f();
+    REQUIRE( relationship.tribal_alarm == 20 );
+
+    relationship.tribal_alarm = 95;
+    f();
+    REQUIRE( relationship.tribal_alarm == 99 );
+  }
+
+  SECTION( "capital" ) {
+    dwelling.is_capital = true;
+    REQUIRE( relationship.tribal_alarm == 0 );
+    f();
+    REQUIRE( relationship.tribal_alarm == 15 );
+    f();
+    REQUIRE( relationship.tribal_alarm == 30 );
+
+    relationship.tribal_alarm = 95;
+    f();
+    REQUIRE( relationship.tribal_alarm == 99 );
+  }
 }
 
 } // namespace

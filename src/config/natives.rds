@@ -130,9 +130,19 @@ struct.Alarm {
   # is recomputed it will be clamped to this minimum.
   minimum_tribal_alarm 'refl::enum_map<e_tribe, int>',
 
+  # When the player does an action against a dwelling it gener-
+  # ally will increase tribal alarm. However, if that dwelling is
+  # a capital then the alarm increase will be scaled up by this
+  # amount.
+  tribal_alarm_scale_for_capital 'double',
+
   # When we attack a brave on the map the tribe's alarm will in-
   # crease by this amount.
   tribal_alarm_increase_from_attacking_brave 'int',
+
+  # When we attack a dwelling (that has no brave sitting on top
+  # of it) the tribe's alarm will increase by this amount.
+  tribal_alarm_increase_from_attacking_dwelling 'int',
 }
 
 struct.DwellingExpertise {

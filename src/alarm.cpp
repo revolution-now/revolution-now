@@ -40,6 +40,23 @@ namespace {
   return clamp_alarm( lround( floor( alarm ) ) );
 }
 
+// This will increase the tribal alarm but taking into account
+// the following factors, which must always be done:
+//
+//   1. Min allowed alarm (tribe-dependent).
+//   2. Global max tribal.
+//   3. Scaling based on capital status of dwelling.
+//
+void increase_tribal_alarm_from_dwelling(
+    Dwelling const& dwelling, double delta, int& tribal_alarm ) {
+  if( dwelling.is_capital )
+    delta *= config_natives.alarm.tribal_alarm_scale_for_capital;
+  tribal_alarm = clamp_round_alarm( tribal_alarm + delta );
+  tribal_alarm = std::max(
+      tribal_alarm, config_natives.alarm
+                        .minimum_tribal_alarm[dwelling.tribe] );
+}
+
 } // namespace
 
 /****************************************************************
@@ -124,21 +141,26 @@ void increase_tribal_alarm_from_land_grab(
   delta *= pow( conf.distance_factor, rect_distance );
 
   CHECK_GE( delta, 0.0 );
-  relationship.tribal_alarm =
-      clamp_round_alarm( relationship.tribal_alarm + delta );
-  relationship.tribal_alarm =
-      std::max( relationship.tribal_alarm,
-                config_natives.alarm
-                    .minimum_tribal_alarm[dwelling.tribe] );
+  increase_tribal_alarm_from_dwelling(
+      dwelling, delta, relationship.tribal_alarm );
 }
 
 void increase_tribal_alarm_from_attacking_brave(
-    TribeRelationship& relationship ) {
-  relationship.tribal_alarm +=
+    Dwelling const& dwelling, TribeRelationship& relationship ) {
+  double const delta =
       config_natives.alarm
           .tribal_alarm_increase_from_attacking_brave;
-  relationship.tribal_alarm =
-      clamp_alarm( relationship.tribal_alarm );
+  increase_tribal_alarm_from_dwelling(
+      dwelling, delta, relationship.tribal_alarm );
+}
+
+void increase_tribal_alarm_from_attacking_dwelling(
+    Dwelling const& dwelling, TribeRelationship& relationship ) {
+  double const delta =
+      config_natives.alarm
+          .tribal_alarm_increase_from_attacking_dwelling;
+  increase_tribal_alarm_from_dwelling(
+      dwelling, delta, relationship.tribal_alarm );
 }
 
 } // namespace rn

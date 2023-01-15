@@ -1728,7 +1728,10 @@ struct AttackNativeUnitHandler : public OrdersHandler {
     // The tribal alarm goes up regardless of the battle outcome.
     UNWRAP_CHECK( relationship,
                   tribe_.relationship[unit_.nation()] );
-    increase_tribal_alarm_from_attacking_brave( relationship );
+    increase_tribal_alarm_from_attacking_brave(
+        ss_.natives.dwelling_for(
+            ss_.units.dwelling_for( defender_id_ ) ),
+        relationship );
 
     if( fight_stats_->attacker_wins ) {
       // The player's (european) unit has won:
