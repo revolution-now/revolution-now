@@ -108,6 +108,11 @@ maybe<e_unit_activity> current_activity_for_unit(
       }
       return nothing;
     }
+    case UnitOwnership::e::dwelling:
+      // For this one the unit is in a dwelling, meaning that it
+      // is a missionary. Since only a missionary unit can be put
+      // in a dwelling, the type_activity will suffice.
+      break;
     case UnitOwnership::e::cargo:
     case UnitOwnership::e::free:
     case UnitOwnership::e::harbor:
@@ -240,7 +245,8 @@ maybe<Coord> coord_for_unit_indirect( UnitsState const& units,
         }
         case UnitOwnership::e::free:
         case UnitOwnership::e::harbor:
-        case UnitOwnership::e::colony: //
+        case UnitOwnership::e::colony:
+        case UnitOwnership::e::dwelling: //
           return nothing;
       };
       SHOULD_NOT_BE_HERE;
@@ -293,9 +299,14 @@ maybe<Coord> coord_for_unit_multi_ownership( SSConst const& ss,
       maybe_map )
     return maybe_map;
   if( ss.units.unit_kind( id ) == e_unit_kind::euro ) {
-    if( auto maybe_colony = colony_for_unit_who_is_worker(
-            ss.units, ss.units.check_euro_unit( id ) ) )
+    UnitId const unit_id = ss.units.check_euro_unit( id );
+    if( auto maybe_colony =
+            colony_for_unit_who_is_worker( ss.units, unit_id ) )
       return ss.colonies.colony_for( *maybe_colony ).location;
+    if( maybe<DwellingId> dwelling_id =
+            ss.units.maybe_dwelling_for_missionary( unit_id );
+        dwelling_id.has_value() )
+      return ss.natives.dwelling_for( *dwelling_id ).location;
   }
   return nothing;
 }

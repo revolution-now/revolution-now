@@ -124,6 +124,8 @@ TEST_CASE( "[units] missionary_from_dwelling" ) {
   REQUIRE( as_const( W.units() ).ownership_of( unit.id() ) ==
            UnitOwnership_t{
                UnitOwnership::dwelling{ .id = dwelling1.id } } );
+  REQUIRE( W.units().maybe_dwelling_for_missionary(
+               unit.id() ) == dwelling1.id );
 
   expected = unit.id();
   REQUIRE( W.units().missionary_from_dwelling( dwelling1.id ) ==
@@ -135,6 +137,8 @@ TEST_CASE( "[units] missionary_from_dwelling" ) {
   W.units().disown_unit( unit.id() );
   REQUIRE( as_const( W.units() ).ownership_of( unit.id() ) ==
            UnitOwnership_t{ UnitOwnership::free{} } );
+  REQUIRE( W.units().maybe_dwelling_for_missionary(
+               unit.id() ) == nothing );
 
   expected = nothing;
   REQUIRE( W.units().missionary_from_dwelling( dwelling1.id ) ==

@@ -106,6 +106,11 @@ struct UnitsState {
   // Check-fail if the unit is a free unit.
   DwellingId dwelling_for( NativeUnitId id ) const;
 
+  // If the unit is a missionary and it is inside a dwelling then
+  // this will return the dwelling id.
+  maybe<DwellingId> maybe_dwelling_for_missionary(
+      UnitId id ) const;
+
   // We allow non-const access to the harbor view state because
   // changing it will not affect the invariants of this class.
   maybe<UnitHarborViewState&> maybe_harbor_view_state_of(

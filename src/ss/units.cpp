@@ -441,6 +441,20 @@ DwellingId UnitsState::dwelling_for( NativeUnitId id ) const {
   return world.dwelling_id;
 }
 
+maybe<DwellingId> UnitsState::maybe_dwelling_for_missionary(
+    UnitId id ) const {
+  switch( auto& o = ownership_of( id ); o.to_enum() ) {
+    case UnitOwnership::e::cargo:
+    case UnitOwnership::e::world:
+    case UnitOwnership::e::free:
+    case UnitOwnership::e::harbor:
+    case UnitOwnership::e::colony:   //
+      return nothing;
+    case UnitOwnership::e::dwelling: //
+      return o.get<UnitOwnership::dwelling>().id;
+  };
+}
+
 maybe<UnitHarborViewState&>
 UnitsState::maybe_harbor_view_state_of( UnitId id ) {
   switch( auto& o = ownership_of( id ); o.to_enum() ) {

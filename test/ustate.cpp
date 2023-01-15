@@ -34,7 +34,10 @@ using namespace std;
 *****************************************************************/
 struct World : testing::World {
   using Base = testing::World;
-  World() : Base() { add_player( e_nation::dutch ); }
+  World() : Base() {
+    add_player( e_nation::dutch );
+    create_default_map();
+  }
 
   void create_default_map() {
     MapSquare const _ = make_ocean();
@@ -57,7 +60,6 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[ustate] current_activity_for_unit" ) {
   World W;
-  W.create_default_map();
 
   auto f = [&]( UnitId id ) {
     return current_activity_for_unit( W.units(), W.colonies(),
@@ -138,6 +140,16 @@ TEST_CASE( "[ustate] current_activity_for_unit" ) {
     UnitId id = W.add_unit_on_map( initial_ut, W.kLand ).id();
     REQUIRE( f( id ) == e_unit_activity::pioneering );
   }
+
+  SECTION( "missionary" ) {
+    UnitComposition expected;
+    Dwelling const& dwelling =
+        W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::sioux );
+    UnitId const id = W.add_missionary_in_dwelling(
+                           e_unit_type::missionary, dwelling.id )
+                          .id();
+    REQUIRE( f( id ) == e_unit_activity::missioning );
+  }
 }
 
 TEST_CASE( "[ustate] tribe_for_unit" ) {
@@ -148,6 +160,31 @@ TEST_CASE( "[ustate] tribe_for_unit" ) {
       W.add_unit_on_map( e_native_unit_type::mounted_brave,
                          { .x = 0, .y = 0 }, dwelling.id );
   REQUIRE( tribe_for_unit( W.ss(), unit ) == e_tribe::arawak );
+}
+
+TEST_CASE( "[ustate] coord_for_unit_multi_ownership" ) {
+  World W;
+
+  SECTION( "colonist in colony" ) {
+    W.add_colony_with_new_unit( { .x = 1, .y = 1 } );
+    UnitId const id{ 1 };
+    REQUIRE(
+        !coord_for_unit_indirect( W.units(), id ).has_value() );
+    REQUIRE( coord_for_unit_multi_ownership( W.ss(), id ) ==
+             Coord{ .x = 1, .y = 1 } );
+  }
+
+  SECTION( "missionary in dwelling" ) {
+    Dwelling const& dwelling =
+        W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::sioux );
+    UnitId const id = W.add_missionary_in_dwelling(
+                           e_unit_type::missionary, dwelling.id )
+                          .id();
+    REQUIRE(
+        !coord_for_unit_indirect( W.units(), id ).has_value() );
+    REQUIRE( coord_for_unit_multi_ownership( W.ss(), id ) ==
+             Coord{ .x = 1, .y = 1 } );
+  }
 }
 
 } // namespace
