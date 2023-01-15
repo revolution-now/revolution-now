@@ -53,6 +53,4 @@ bool is_missionary( e_unit_type type ) {
              .type_activity == e_unit_activity::missioning;
 }
 
-}
-
 } // namespace rn
