@@ -12,14 +12,8 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "hello.hpp"
-
-// base
-#include "base/hello.hpp"
-
 namespace rn {
 
-
+// TODO
 
 } // namespace rn
