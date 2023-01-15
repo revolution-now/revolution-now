@@ -136,8 +136,12 @@ struct UnitsState {
       DwellingId dwelling_id ) const;
 
   // This will return the unit ID of the brave that is on the map
-  // that is associated with this dwelling, if any.
-  std::unordered_set<NativeUnitId> const& brave_for_dwelling(
+  // that is associated with this dwelling, if any. In the OG
+  // there is at most one brave on the map per dwelling, but here
+  // we return a set because 1) sometimes we create a second
+  // (temporary) brave associated with the dwelling to act as the
+  // visual target to an attack, and also for future flexibility.
+  std::unordered_set<NativeUnitId> const& braves_for_dwelling(
       DwellingId dwelling_id ) const;
 
   // The id of this unit must be zero (i.e., you can't select the

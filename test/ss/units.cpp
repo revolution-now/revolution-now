@@ -72,7 +72,7 @@ TEST_CASE( "[units] dwelling_for" ) {
            dwelling2.id );
 }
 
-TEST_CASE( "[units] brave_for_dwelling" ) {
+TEST_CASE( "[units] braves_for_dwelling" ) {
   World                       W;
   unordered_set<NativeUnitId> expected;
 
@@ -91,15 +91,15 @@ TEST_CASE( "[units] brave_for_dwelling" ) {
                          { .x = 0, .y = 1 }, dwelling2.id );
 
   expected = { unit_id1.id };
-  REQUIRE( W.units().brave_for_dwelling( dwelling1.id ) ==
+  REQUIRE( W.units().braves_for_dwelling( dwelling1.id ) ==
            expected );
 
   expected = { unit_id2.id, unit_id3.id };
-  REQUIRE( W.units().brave_for_dwelling( dwelling2.id ) ==
+  REQUIRE( W.units().braves_for_dwelling( dwelling2.id ) ==
            expected );
 
   expected = {};
-  REQUIRE( W.units().brave_for_dwelling( DwellingId{ 3 } ) ==
+  REQUIRE( W.units().braves_for_dwelling( DwellingId{ 3 } ) ==
            expected );
 }
 

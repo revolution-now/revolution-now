@@ -801,7 +801,7 @@ maybe<UnitId> UnitsState::missionary_from_dwelling(
 }
 
 unordered_set<NativeUnitId> const&
-UnitsState::brave_for_dwelling( DwellingId dwelling_id ) const {
+UnitsState::braves_for_dwelling( DwellingId dwelling_id ) const {
   static unordered_set<NativeUnitId>        empty;
   maybe<unordered_set<NativeUnitId> const&> units =
       base::lookup( braves_for_dwelling_, dwelling_id );
