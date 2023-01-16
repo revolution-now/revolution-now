@@ -15,7 +15,7 @@
 
 using namespace std;
 
-namespace rn {
+namespace base {
 
 int round_up_to_nearest_int_multiple( double d, int m ) {
   if( d < 0.0 )
@@ -35,4 +35,4 @@ int round_down_to_nearest_int_multiple( double d, int m ) {
   return fl - ( fl % m );
 }
 
-} // namespace rn
+} // namespace base

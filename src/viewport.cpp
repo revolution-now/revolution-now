@@ -14,7 +14,6 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "error.hpp"
-#include "math.hpp"
 #include "tiles.hpp"
 
 // luapp
@@ -26,6 +25,9 @@
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/math.hpp"
 
 using namespace std;
 
@@ -498,14 +500,15 @@ Rect SmoothViewport::fully_covered_tiles() const {
   // First round to the nearest pixel, then move the rectangle
   // inward to the nearest tile boundary (if we are not already
   // on one.
-  Coord upper_left{ .x = round_up_to_nearest_int_multiple(
+  Coord upper_left{ .x = base::round_up_to_nearest_int_multiple(
                         long( start_x() ), g_tile_width ),
-                    .y = round_up_to_nearest_int_multiple(
+                    .y = base::round_up_to_nearest_int_multiple(
                         long( start_y() ), g_tile_height ) };
-  Coord lower_right{ .x = round_down_to_nearest_int_multiple(
-                         long( end_x() ), g_tile_width ),
-                     .y = round_down_to_nearest_int_multiple(
-                         long( end_y() ), g_tile_height ) };
+  Coord lower_right{
+      .x = base::round_down_to_nearest_int_multiple(
+          long( end_x() ), g_tile_width ),
+      .y = base::round_down_to_nearest_int_multiple(
+          long( end_y() ), g_tile_height ) };
   return Rect::from( upper_left, lower_right ) / g_tile_delta;
 }
 

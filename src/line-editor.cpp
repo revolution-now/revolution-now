@@ -12,8 +12,10 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "math.hpp"
 #include "sdl.hpp"
+
+// base
+#include "base/math.hpp"
 
 // C++ standard library
 #include <algorithm>
@@ -120,8 +122,8 @@ void LineEditor::set( std::string_view new_buffer,
                                  new_cursor_closed_lower_bound,
                                  new_cursor_closed_upper_bound );
 
-  pos_    = cyclic_modulus( clamped_pos,
-                            new_cursor_closed_upper_bound + 1 );
+  pos_ = base::cyclic_modulus(
+      clamped_pos, new_cursor_closed_upper_bound + 1 );
   buffer_ = string( new_buffer );
   LE_ASSERT_INVARIANTS;
 }

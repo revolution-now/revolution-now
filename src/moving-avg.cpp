@@ -13,7 +13,9 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "math.hpp"
+
+// base
+#include "base/math.hpp"
 
 namespace rn {
 
@@ -63,7 +65,7 @@ void MovingAverage::bump_slide() {
   // This  is the first bucket of the new window, a.k.a. the one
   // we need to initialize to zero since it (conceptually) does
   // not yet have any ticks.
-  auto& last = buckets_[cyclic_modulus(
+  auto& last = buckets_[base::cyclic_modulus(
       curr_window_ - 1, int( buckets_.size() ) )];
   last       = 0;
 }
