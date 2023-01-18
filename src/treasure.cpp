@@ -13,18 +13,24 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "igui.hpp"
+#include "irand.hpp"
 #include "ts.hpp"
 
 // config
 #include "config/nation.rds.hpp"
+#include "config/natives.rds.hpp"
 #include "config/old-world.rds.hpp"
 
 // ss
+#include "ss/dwelling.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
+
+// base
+#include "base/math.hpp"
 
 using namespace std;
 
@@ -180,6 +186,34 @@ wait<> show_treasure_receipt( TS& ts, Player const& player,
       break;
   }
   co_await ts.gui.message_box( msg );
+}
+
+maybe<int> treasure_from_dwelling( TS& ts, Player const& player,
+                                   Dwelling const& dwelling ) {
+  e_native_level const level =
+      config_natives.tribes[dwelling.tribe].level;
+  auto&      conf = config_natives.treasure.yield[level];
+  bool const has_cortes =
+      player.fathers.has[e_founding_father::hernan_cortes];
+  bool const capital = dwelling.is_capital;
+
+  bool const should_get_treasure =
+      capital || has_cortes ||
+      ts.rand.bernoulli( conf.probability );
+  if( !should_get_treasure ) return nothing;
+
+  double amount =
+      ts.rand.between_ints( conf.range.min, conf.range.max,
+                            IRand::e_interval::closed );
+
+  if( capital )
+    amount *= config_natives.treasure.capital_amount_scale;
+
+  if( has_cortes )
+    amount *= config_natives.treasure.cortes_amount_scale;
+
+  return base::round_down_to_nearest_int_multiple(
+      amount, conf.multiple );
 }
 
 } // namespace rn

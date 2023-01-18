@@ -21,6 +21,7 @@
 
 namespace rn {
 
+struct Dwelling;
 struct Player;
 struct SS;
 struct SSConst;
@@ -53,5 +54,12 @@ void apply_treasure_reimbursement(
 // call this to show the user how much they've received.
 wait<> show_treasure_receipt( TS& ts, Player const& player,
                               TreasureReceipt const& receipt );
+
+// Randomly determines whether a destroyed dwelling should yield
+// a treasure and, if so, how much. Note that if the player has
+// Cortes then this will always yield a treasure, and in a larger
+// amount on average.
+maybe<int> treasure_from_dwelling( TS& ts, Player const& player,
+                                   Dwelling const& dwelling );
 
 } // namespace rn

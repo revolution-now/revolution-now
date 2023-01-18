@@ -293,6 +293,34 @@ struct.NativeSkill {
   display_name 'std::string',
 }
 
+struct.TreasureYield {
+  # Prior to obtaining Hernan Cortes, a treasure is not guaran-
+  # teed when destroying a native dwelling. In that case, this
+  # gives the probability (which, again, effectively becomes 1.0
+  # after obtaining Cortes).
+  probability 'double',
+
+  # If receiving a treasure, the amount will be chosen uniformly
+  # over this range.
+  range 'config::IntRange',
+
+  # The treasure amount will be rounded to the nearest multiple
+  # of this.
+  multiple 'int',
+}
+
+struct.Treasure {
+  yield 'refl::enum_map<e_native_level, config::natives::TreasureYield>',
+
+  # When receiving a treasure, the amount is scaled up by this
+  # factor after Cortes is obtained.
+  cortes_amount_scale 'double',
+
+  # When receiving a treasure, the amount is scaled up by this
+  # amount if the dwelling is the capital.
+  capital_amount_scale 'double',
+}
+
 namespace "rn"
 
 struct.config_natives_t {
@@ -327,6 +355,10 @@ struct.config_natives_t {
   speak_with_chief 'refl::enum_map<e_scout_type, config::natives::SpeakWithChief>',
 
   native_skills 'refl::enum_map<e_native_skill, config::natives::NativeSkill>',
+
+  # Configures the nature of the treasure that yields from de-
+  # stroying a native dwelling.
+  treasure 'config::natives::Treasure',
 
   _features { equality, validation }
 }

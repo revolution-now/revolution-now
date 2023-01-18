@@ -547,3 +547,52 @@ native_skills {
     display_name: "scouting"
   }
 }
+
+# Configures the nature of the treasure that yields from de-
+# stroying a native dwelling.
+treasure {
+  yield {
+    semi_nomadic {
+      # Prior to obtaining Hernan Cortes, a treasure is not guar-
+      # anteed when destroying a native dwelling. In that case,
+      # this gives the probability (which, again, effectively be-
+      # comes 1.0 after obtaining Cortes). Note that this proba-
+      # biliy was calculated from experiments in the OG but only
+      # on non-capital dwellings, because it seems that capitals
+      # always yield treasure.
+      probability:  .25
+      # If receiving a treasure, the amount will be chosen uni-
+      # formly over this range.
+      range:       { min=200, max=400 }
+      # The treasure amount will be rounded to the nearest multiple
+      # of this.
+      multiple:      100
+    }
+
+    agrarian {
+      probability:  .33
+      range:       { min=300, max=800 }
+      multiple:      100
+    }
+
+    advanced {
+      probability:   1.0
+      range:       { min=2000, max=6000 }
+      multiple:      100
+    }
+
+    civilized {
+      probability:   1.0
+      range:       { min=3000, max=10000 }
+      multiple:      100
+    }
+  }
+
+  # When receiving a treasure, the amount is scaled up by this
+  # factor after Cortes is obtained.
+  cortes_amount_scale: 1.5
+
+  # When receiving a treasure, the amount is scaled up by this
+  # amount if the dwelling is the capital.
+  capital_amount_scale: 2.0
+}

@@ -16,11 +16,13 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/mocks/irand.hpp"
 
 // Revolution Now
 #include "src/mock/matchers.hpp"
 
 // ss
+#include "ss/dwelling.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.hpp"
@@ -319,6 +321,127 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
   REQUIRE( f() == expected );
 }
 #endif
+
+TEST_CASE( "[treasure] treasure_from_dwelling" ) {
+  World     W;
+  e_tribe   tribe = {};
+  Dwelling& dwelling =
+      W.add_dwelling( { .x = 1, .y = 1 }, tribe );
+  Player&    player     = W.default_player();
+  bool       has_cortes = false;
+  bool       capital    = false;
+  maybe<int> expected;
+
+  auto f = [&] {
+    dwelling.is_capital = capital;
+    dwelling.tribe      = tribe;
+    player.fathers.has[e_founding_father::hernan_cortes] =
+        has_cortes;
+    return treasure_from_dwelling( W.ts(), player, dwelling );
+  };
+
+  // Semi-nomadic, no capital, no cortes, no treasure.
+  tribe      = e_tribe::tupi;
+  has_cortes = false;
+  capital    = false;
+  EXPECT_CALL( W.rand(), bernoulli( .25 ) ).returns( false );
+  expected = nothing;
+  REQUIRE( f() == expected );
+
+  // Semi-nomadic, no capital, no cortes, yes treasure.
+  tribe      = e_tribe::tupi;
+  has_cortes = false;
+  capital    = false;
+  EXPECT_CALL( W.rand(), bernoulli( .25 ) ).returns( true );
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 200, 400, IRand::e_interval::closed ) )
+      .returns( 315 );
+  expected = 300;
+  REQUIRE( f() == expected );
+
+  // Semi-nomadic, no capital, yes cortes.
+  tribe      = e_tribe::tupi;
+  has_cortes = true;
+  capital    = false;
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 200, 400, IRand::e_interval::closed ) )
+      .returns( 395 );
+  expected = 500;
+  REQUIRE( f() == expected );
+
+  // Semi-nomadic, yes capital, no cortes.
+  tribe      = e_tribe::tupi;
+  has_cortes = false;
+  capital    = true;
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 200, 400, IRand::e_interval::closed ) )
+      .returns( 395 );
+  expected = 700;
+  REQUIRE( f() == expected );
+
+  // Agrarian, no capital, no cortes, yes treasure.
+  tribe      = e_tribe::cherokee;
+  has_cortes = false;
+  capital    = false;
+  EXPECT_CALL( W.rand(), bernoulli( .33 ) ).returns( true );
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 300, 800, IRand::e_interval::closed ) )
+      .returns( 675 );
+  expected = 600;
+  REQUIRE( f() == expected );
+
+  // Advanced, no capital, no cortes, yes treasure.
+  tribe      = e_tribe::aztec;
+  has_cortes = false;
+  capital    = false;
+  EXPECT_CALL( W.rand(), bernoulli( 1.0 ) ).returns( true );
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 2000, 6000, IRand::e_interval::closed ) )
+      .returns( 5123 );
+  expected = 5100;
+  REQUIRE( f() == expected );
+
+  // Civilized, no capital, no cortes, yes treasure.
+  tribe      = e_tribe::inca;
+  has_cortes = false;
+  capital    = false;
+  EXPECT_CALL( W.rand(), bernoulli( 1.0 ) ).returns( true );
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 3000, 10000, IRand::e_interval::closed ) )
+      .returns( 8123 );
+  expected = 8100;
+  REQUIRE( f() == expected );
+
+  // Civilized, no capital, with cortes. (viceroy).
+  tribe                   = e_tribe::inca;
+  has_cortes              = true;
+  capital                 = false;
+  W.settings().difficulty = e_difficulty::viceroy;
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 3000, 10000, IRand::e_interval::closed ) )
+      .returns( 8123 );
+  expected = 12100;
+  REQUIRE( f() == expected );
+
+  // Civilized, capital, with cortes. (governor).
+  tribe                   = e_tribe::inca;
+  has_cortes              = true;
+  capital                 = true;
+  W.settings().difficulty = e_difficulty::governor;
+  EXPECT_CALL(
+      W.rand(),
+      between_ints( 3000, 10000, IRand::e_interval::closed ) )
+      .returns( 8123 );
+  expected = 24300;
+  REQUIRE( f() == expected );
+}
 
 } // namespace
 } // namespace rn

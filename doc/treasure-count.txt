@@ -1,0 +1,85 @@
+Data collected on the treasure yields when burning native
+dwellings.
+
+Conquistador
+
+  No Cortes                      Cortes
+
+  Semi-nomadic:                  Semi-nomadic:
+    N: 20                          N: 0
+    Y: 6   (non-capitals)          Y: 0   (non-capita
+       200                            ?
+       300                            ?
+       400                            300
+       400                            400
+       400                            ?
+       400                            600
+       400: capital                   ?
+       600: capital                   900
+       800: capital                   ?
+       800: capital                   1200
+
+  Agrarian:                      Agrarian:
+    N: 17                          N: 0
+    Y: 7   (non-capitals)          Y: 0   (non-capita
+       300                            400
+       400                            600
+       400                            700
+       500                            ?
+       500                            900
+       700                            1000
+       700                            1200
+       1200: capital                  ?
+       1200: capital                  1800: capital
+       1400: capital                  2100: capital
+       1600: capital                  2400: capital
+
+  Advanced:                      Advanced:
+    N: 0                           N: 0
+    Y: 0   (non-capitals)          Y: 0   (non-capita
+       2000                           ?
+       2000                           ?
+       3000                           ?
+       3000                           ?
+       4000                           ?
+       4000                           ?
+       4000                           ?
+       4000                           ?
+       5000                           ?
+       5000                           ?
+       5000                           ?
+       5000                           ?
+       5000                           ?
+       5000                           ?
+       6000                           ?
+       6000                           ?
+       6000                           ?
+       4000: capital                  ?
+       8000: capital                  ?
+       8000: capital                  ?
+       10000: capital                 ?
+       10000: capital                 12000: capital
+
+  Civilized:                     Civilized:
+    N: 0                           N: 0
+    Y: 15  (non-capitals)          Y: 0   (non-capita
+       3200                           5200
+       3200                           ?
+       3200                           ?
+       4800                           ?
+       4800                           ?
+       4800                           7800
+       6400                           ?
+       6400                           10400
+       6400                           ?
+       6400                           ?
+       8000                           13000
+       9600                           ?
+       9600                           ?
+       9600                           15600
+       5000:  capital                 ?
+       10000: capital                 ?
+       12500: capital                 14000
+       15000: capital                 ?
+       15000: capital                 ?
+       15000: capital                 21000: capital
