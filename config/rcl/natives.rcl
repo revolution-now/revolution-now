@@ -187,9 +187,7 @@ flag_rects {
 # that there is dwelling-level alarm and tribal alarm, and the
 # names will specify which one is being referred to.
 alarm {
-  # TODO: This needs to somehow be calibrated against the orig-
-  # inal game.
-  max_dwelling_alarm_for_teaching: 50
+  max_dwelling_alarm_for_teaching: 50 # TODO: measure this
 
   land_grab {
     tribal_increase {
@@ -213,7 +211,7 @@ alarm {
 
   # Each tribe's alarm does not go below this. When tribal alarm
   # is recomputed it will be clamped to this minimum.
-  minimum_tribal_alarm {
+  minimum_tribal_alarm { # TODO: measure this
     apache:    0
     sioux:     0
     tupi:      0
@@ -227,15 +225,16 @@ alarm {
   # When the player does an action against a dwelling it gener-
   # ally will increase tribal alarm. However, if that dwelling is
   # a capital then the alarm increase will be scaled up by this
-  # amount.
+  # amount. TODO: measure this.
   tribal_alarm_scale_for_capital: 1.5
 
   # When we attack a brave on the map the tribe's alarm will in-
-  # crease by this amount.
+  # crease by this amount. TODO: measure this.
   tribal_alarm_increase_from_attacking_brave: 10
 
   # When we attack a dwelling (that has no brave sitting on top
-  # of it) the tribe's alarm will increase by this amount.
+  # of it) the tribe's alarm will increase by this amount. TODO:
+  # measure this.
   tribal_alarm_increase_from_attacking_dwelling: 10
 }
 
