@@ -23,3 +23,9 @@ struct.DoubleRange {
 
   _features { equality, validation }
 }
+
+struct.Probability {
+  probability 'double',
+
+  _features { equality, validation }
+}

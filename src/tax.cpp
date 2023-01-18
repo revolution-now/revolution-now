@@ -185,7 +185,7 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
   // Next determine whether it's an increase or decrease, since
   // if it's the latter then our job is easy.
   bool const increase =
-      ts.rand.bernoulli( tax_config.tax_increase_probability );
+      ts.rand.bernoulli( tax_config.tax_increase.probability );
   int const curr_tax = player.old_world.taxes.tax_rate;
   if( !increase ) {
     if( curr_tax == 0 ) return update;

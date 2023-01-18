@@ -13,7 +13,7 @@ taxes {
 
     # Probability that a tax change event will be an increase (as
     # opposed to a decrease).
-    tax_increase_probability: .98
+    tax_increase.probability: .98
 
     # When a tax change happens, this is the range of values.
     # These should always be positive; if the tax event is a low-
@@ -24,7 +24,7 @@ taxes {
     # Just after accepting help from the king there is a proba-
     # bility that a tax increase will happen immediately. These
     # give the probability of an increase along with range.
-    intervention_increase_probability: 0.1
+    intervention_increase.probability: 0.1
     intervention_increase_range: { min=8, max=12 }
   }
 
@@ -32,9 +32,9 @@ taxes {
     maximum_tax_rate: 75
     min_turn_for_tax_change_events: 38 # year 1530
     turns_between_tax_change_events: { min=16, max=20 }
-    tax_increase_probability: .98
+    tax_increase.probability: .98
     tax_rate_change: { min=1, max=8 }
-    intervention_increase_probability: 0.3
+    intervention_increase.probability: 0.3
     intervention_increase_range: { min=8, max=12 }
   }
 
@@ -42,9 +42,9 @@ taxes {
     maximum_tax_rate: 75
     min_turn_for_tax_change_events: 38 # year 1530
     turns_between_tax_change_events: { min=14, max=18 }
-    tax_increase_probability: .98
+    tax_increase.probability: .98
     tax_rate_change: { min=1, max=8 }
-    intervention_increase_probability: 0.5
+    intervention_increase.probability: 0.5
     intervention_increase_range: { min=8, max=12 }
   }
 
@@ -52,9 +52,9 @@ taxes {
     maximum_tax_rate: 75
     min_turn_for_tax_change_events: 38 # year 1530
     turns_between_tax_change_events: { min=12, max=16 }
-    tax_increase_probability: .98
+    tax_increase.probability: .98
     tax_rate_change: { min=1, max=8 }
-    intervention_increase_probability: 0.7
+    intervention_increase.probability: 0.7
     intervention_increase_range: { min=8, max=12 }
   }
 
@@ -62,9 +62,9 @@ taxes {
     maximum_tax_rate: 75
     min_turn_for_tax_change_events: 38 # year 1530
     turns_between_tax_change_events: { min=10, max=14 }
-    tax_increase_probability: .98
+    tax_increase.probability: .98
     tax_rate_change: { min=1, max=8 }
-    intervention_increase_probability: 0.9
+    intervention_increase.probability: 0.9
     intervention_increase_range: { min=8, max=12 }
   }
 }

@@ -373,7 +373,8 @@ bool pick_burial_grounds_result(
   // We are clear for allowing burial grounds. But whether we
   // trigger it is still a matter of probability.
   return rand.bernoulli(
-      config_lcr.burial_grounds_probability[explorer] );
+      config_lcr.burial_grounds_probability[explorer]
+          .probability );
 }
 
 wait<LostCityRumorResult_t> run_lost_city_rumor_result(

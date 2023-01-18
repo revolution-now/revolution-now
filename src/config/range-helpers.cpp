@@ -27,4 +27,12 @@ base::valid_or<string> DoubleRange::validate() const {
   return base::valid;
 }
 
+base::valid_or<string> Probability::validate() const {
+  REFL_VALIDATE( probability >= 0.0,
+                 "probability must be >= 0.0." );
+  REFL_VALIDATE( probability <= 1.0,
+                 "probability must be <= 1.0." );
+  return base::valid;
+}
+
 } // namespace rn::config

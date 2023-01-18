@@ -155,7 +155,7 @@ cibola_treasure_max {
 }
 
 burial_grounds_probability {
-  seasoned_scout: .01
-  scout:          .05
-  other:          .25
+  seasoned_scout.probability: .01
+  scout.probability:          .05
+  other.probability:          .25
 }

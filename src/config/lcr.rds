@@ -11,6 +11,9 @@
 # Rds
 include "../lcr.rds.hpp" # FIXME
 
+# config
+include "range-helpers.hpp"
+
 # refl
 include "refl/cdr.hpp"
 include "refl/enum-map.hpp"
@@ -82,7 +85,7 @@ struct.config_lcr_t {
   # could potentially contain native burial grounds (which cause
   # them to declare war) then this will be the probability that
   # it will actually happen.
-  burial_grounds_probability 'refl::enum_map<e_lcr_explorer_category, double>',
+  burial_grounds_probability 'refl::enum_map<e_lcr_explorer_category, config::Probability>',
 
   _features { validation, equality },
 }
