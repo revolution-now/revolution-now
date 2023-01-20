@@ -142,7 +142,7 @@ enum.e_scout_type {
 # serialization.
 enum.e_missionary_type {
   # When a petty_criminal becomes a missionary.
-  petty,
+  criminal,
 
   # When an indentured_servant becomes a missionary.
   indentured,

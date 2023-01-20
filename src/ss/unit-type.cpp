@@ -298,7 +298,7 @@ maybe<e_missionary_type> missionary_type( UnitType type ) {
     return nothing;
   switch( type.base_type() ) {
     case e_unit_type::petty_criminal:
-      return e_missionary_type::petty;
+      return e_missionary_type::criminal;
     case e_unit_type::indentured_servant:
       return e_missionary_type::indentured;
     case e_unit_type::jesuit_colonist:

@@ -842,7 +842,7 @@ TEST_CASE( "[unit-type] missionary_type" ) {
   in = UnitType::create( e_unit_type::missionary,
                          e_unit_type::petty_criminal )
            .value();
-  expected = e_missionary_type::petty;
+  expected = e_missionary_type::criminal;
   REQUIRE( f() == expected );
 
   // indentured servant.
