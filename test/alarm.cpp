@@ -365,9 +365,9 @@ TEST_CASE(
     dwelling.is_capital = true;
     REQUIRE( relationship.tribal_alarm == 0 );
     f();
-    REQUIRE( relationship.tribal_alarm == 15 );
+    REQUIRE( relationship.tribal_alarm == 20 );
     f();
-    REQUIRE( relationship.tribal_alarm == 30 );
+    REQUIRE( relationship.tribal_alarm == 40 );
 
     relationship.tribal_alarm = 95;
     f();
@@ -406,9 +406,9 @@ TEST_CASE(
     dwelling.is_capital = true;
     REQUIRE( relationship.tribal_alarm == 0 );
     f();
-    REQUIRE( relationship.tribal_alarm == 15 );
+    REQUIRE( relationship.tribal_alarm == 20 );
     f();
-    REQUIRE( relationship.tribal_alarm == 30 );
+    REQUIRE( relationship.tribal_alarm == 40 );
 
     relationship.tribal_alarm = 95;
     f();

@@ -225,8 +225,14 @@ alarm {
   # When the player does an action against a dwelling it gener-
   # ally will increase tribal alarm. However, if that dwelling is
   # a capital then the alarm increase will be scaled up by this
-  # amount. TODO: measure this.
-  tribal_alarm_scale_for_capital: 1.5
+  # amount.
+  #
+  # TODO: this was measured by putting a mission in dwellings and
+  # repeatedly attacking it and seeing how long it took for the
+  # tribe to burn the mission on average between a capital and
+  # non-capital. But we should probably confirm this through
+  # other means.
+  tribal_alarm_scale_for_capital: 2.0
 
   # When we attack a brave on the map the tribe's alarm will in-
   # crease by this amount. TODO: measure this.
