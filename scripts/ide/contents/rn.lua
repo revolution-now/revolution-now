@@ -15,6 +15,7 @@ return {
   'enter-dwelling',
   'treasure',
   'fight',
+  'config/missionary',
   'missionary',
   'land-view',
   'land-view-render',

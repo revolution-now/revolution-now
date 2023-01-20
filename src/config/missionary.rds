@@ -1,0 +1,48 @@
+# ===============================================================
+# missionary.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-01-19.
+#
+# Description: Rds definitions for the missionary module.
+#
+# ===============================================================
+# config
+include "range-helpers.rds.hpp"
+
+# ss
+include "ss/unit-type.rds.hpp"
+
+# cdr
+include "cdr/ext-builtin.hpp"
+
+# refl
+include "refl/enum-map.hpp"
+
+namespace "rn"
+
+struct.MissionaryType {
+  # General strength of the missionary relative to one created by
+  # a free colonist.
+  strength 'double',
+
+  # When a dwelling contains a mission, each turn there is a
+  # probability that a convert will be produced.
+  per_turn_convert 'config::Probability',
+
+  # When attacking a dwelling containing a mission, this is the
+  # probability (on each attack) that an additional native con-
+  # vert will be produced.
+  convert_on_attack 'config::Probability',
+}
+
+namespace "rn"
+
+struct.config_missionary_t {
+  type 'refl::enum_map<e_missionary_type, MissionaryType>',
+
+  _features { equality, validation }
+}
+
+config.missionary {}

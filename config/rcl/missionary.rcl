@@ -1,0 +1,60 @@
+type {
+  # strength:
+  #
+  #   General strength of the missionary relative to one created
+  #   by a free colonist.
+  #
+  # per_turn_convert.probability:
+  #
+  #   When a dwelling contains a mission, each turn there is a
+  #   probability that a convert will be produced. However, these
+  #   are tricky to measure, since the frequency of actually re-
+  #   ceiving a produced convert may depend on the "random walk"
+  #   behavior of the braves and other factors, since 1) it seems
+  #   that a convert is only delivered when the brave becomes ad-
+  #   jacent to the colony, 2) it is not clear that a ready con-
+  #   vert will always be delivered even by a brave that is adja-
+  #   cent to a colony since e.g. it may decide to deliver a
+  #   gift, and 3) is not delivered directly from the dwelling
+  #   square to an adjacent colony; i.e., the brave has to leave
+  #   the colony, do a random walk, end up near a colony, then
+  #   provide the convert. TODO: the values of this parameter
+  #   have been roughly estimated below, but once the brave
+  #   random walking is in place then these need to be recali-
+  #   brated. Initial measurements revealed that the value for
+  #   the petty criminal missionary was higher than that of the
+  #   servant or free colonist missionary, which is incorrect;
+  #   the reason for that could potentially be that the random
+  #   walking behavior of the braves needed to be taking into ac-
+  #   count, though not sure about that.
+  #
+  # convert_on_attack.probability:
+  #
+  #   When attacking a dwelling containing a mission, this is the
+  #   probability (on each attack) that an additional native con-
+  #   vert will be produced.
+
+  jesuit {
+    strength: 2.0
+    per_turn_convert.probability:  .06  # TODO: recalibrate.
+    convert_on_attack.probability: 1.0  # TODO: measure this
+  }
+
+  normal {
+    strength: 1.0
+    per_turn_convert.probability:  .03  # TODO: recalibrate.
+    convert_on_attack.probability: 1.0  # TODO: measure this
+  }
+
+  indentured {
+    strength: .66
+    per_turn_convert.probability:  .02  # TODO: recalibrate.
+    convert_on_attack.probability: 1.0  # TODO: measure this
+  }
+
+  criminal {
+    strength: .33
+    per_turn_convert.probability:  .01  # TODO: recalibrate.
+    convert_on_attack.probability: 1.0  # TODO: measure this
+  }
+}
