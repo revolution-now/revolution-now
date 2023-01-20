@@ -276,9 +276,9 @@ Unit& World::add_unit_on_map( UnitComposition const& comp,
 }
 
 Unit& World::add_missionary_in_dwelling(
-    e_unit_type missionary_type, DwellingId dwelling_id,
+    UnitType missionary_type, DwellingId dwelling_id,
     maybe<e_nation> nation ) {
-  CHECK( is_missionary( missionary_type ) );
+  CHECK( is_missionary( missionary_type.type() ) );
   if( !nation ) nation = default_nation_;
   UnitId const unit_id = create_free_unit(
       units(), player( *nation ),

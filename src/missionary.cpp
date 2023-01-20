@@ -16,7 +16,7 @@
 #include "unit.hpp"
 
 // config
-#include "config/unit-type.hpp"
+#include "config/missionary.rds.hpp"
 
 // ss
 #include "ss/colony.rds.hpp"
@@ -49,8 +49,9 @@ void bless_as_missionary( Player const& player, Colony& colony,
 }
 
 bool is_missionary( e_unit_type type ) {
-  return config_unit_type.composition.unit_types[type]
-             .type_activity == e_unit_activity::missioning;
+  return missionary_type( UnitType::create( type ) ).has_value();
+}
+
 }
 
 } // namespace rn
