@@ -17,6 +17,8 @@
 #include "test/fake/world.hpp"
 
 // ss
+#include "src/ss/dwelling.rds.hpp"
+#include "src/ss/ref.hpp"
 #include "src/ss/units.hpp"
 
 // refl
@@ -37,6 +39,8 @@ struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
     add_player( e_nation::dutch );
+    add_player( e_nation::french );
+    set_default_player( e_nation::dutch );
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{ L };
     build_map( std::move( tiles ), 1 );
@@ -198,6 +202,88 @@ TEST_CASE( "[missionary] is_missionary" ) {
   REQUIRE_FALSE( is_missionary( e_unit_type::jesuit_colonist ) );
   REQUIRE_FALSE( is_missionary( e_unit_type::free_colonist ) );
   REQUIRE_FALSE( is_missionary( e_unit_type::petty_criminal ) );
+}
+
+TEST_CASE(
+    "[missionary] "
+    "probability_dwelling_produces_convert_on_attack" ) {
+  World           W;
+  Dwelling const& dwelling =
+      W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::cherokee );
+  maybe<double> expected;
+
+  auto f = [&] {
+    // The dutch is attacking.
+    return probability_dwelling_produces_convert_on_attack(
+        W.ss(), W.dutch(), dwelling.id );
+  };
+
+  SECTION( "no missionary" ) {
+    expected = nothing;
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "foreign missionary" ) {
+    UnitType const type =
+        UnitType::create( e_unit_type::jesuit_missionary );
+    W.add_missionary_in_dwelling( type, dwelling.id,
+                                  e_nation::french );
+    expected = nothing;
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "friendly missionary (criminal)" ) {
+    UnitType const type =
+        UnitType::create( e_unit_type::missionary,
+                          e_unit_type::petty_criminal )
+            .value();
+    W.add_missionary_in_dwelling( type, dwelling.id,
+                                  e_nation::dutch );
+    expected = .11;
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "friendly missionary (servant)" ) {
+    UnitType const type =
+        UnitType::create( e_unit_type::missionary,
+                          e_unit_type::indentured_servant )
+            .value();
+    W.add_missionary_in_dwelling( type, dwelling.id,
+                                  e_nation::dutch );
+    expected = .22;
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "friendly missionary (free_colonist)" ) {
+    UnitType const type =
+        UnitType::create( e_unit_type::missionary,
+                          e_unit_type::free_colonist )
+            .value();
+    W.add_missionary_in_dwelling( type, dwelling.id,
+                                  e_nation::dutch );
+    expected = .33;
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "friendly missionary (expert_farmer)" ) {
+    UnitType const type =
+        UnitType::create( e_unit_type::missionary,
+                          e_unit_type::expert_farmer )
+            .value();
+    W.add_missionary_in_dwelling( type, dwelling.id,
+                                  e_nation::dutch );
+    expected = .33;
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "friendly missionary (jesuit_missionary)" ) {
+    UnitType const type =
+        UnitType::create( e_unit_type::jesuit_missionary );
+    W.add_missionary_in_dwelling( type, dwelling.id,
+                                  e_nation::dutch );
+    expected = .66;
+    REQUIRE( f() == expected );
+  }
 }
 
 } // namespace
