@@ -244,7 +244,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      base_movement_points:  1
+      base_movement_points:  2
       attack_points:         0
       defense_points:        1
       on_death               capture{}
@@ -1312,7 +1312,7 @@ composition {
       nat_icon_front:        false
       nat_icon_position:     sw
       visibility:            1
-      base_movement_points:  1
+      base_movement_points:  2
       attack_points:         0
       defense_points:        1
       on_death               capture{}
