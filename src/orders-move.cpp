@@ -1821,6 +1821,28 @@ struct NativeDwellingHandler : public OrdersHandler {
                                                  unit_.id() ) ),
       move_dst_( move_src_.moved( d ) ) {}
 
+  EnterDwellingOutcome_t compute_enter_dwelling_outcome(
+      e_enter_dwelling_option option ) const {
+    switch( option ) {
+      case e_enter_dwelling_option::live_among_the_natives:
+        return EnterDwellingOutcome::live_among_the_natives{
+            .outcome = compute_live_among_the_natives(
+                ss_, dwelling_, unit_ ) };
+      case e_enter_dwelling_option::speak_with_chief:
+        return EnterDwellingOutcome::speak_with_chief{
+            .outcome = compute_speak_with_chief(
+                ss_, ts_, dwelling_, unit_ ) };
+      case e_enter_dwelling_option::attack_village:
+        return EnterDwellingOutcome::attack_village{
+            .outcome = compute_attack_village(
+                ss_, ts_, player_, dwelling_, unit_ ) };
+      case e_enter_dwelling_option::attack_brave_on_dwelling:
+        return EnterDwellingOutcome::attack_brave_on_dwelling{};
+      case e_enter_dwelling_option::cancel:
+        return EnterDwellingOutcome::cancel{};
+    }
+  }
+
   // Returns true if the move is allowed.
   wait<bool> confirm() override {
     if( !unit_.desc().ship &&
@@ -1837,8 +1859,10 @@ struct NativeDwellingHandler : public OrdersHandler {
     EnterNativeDwellingOptions const options =
         enter_native_dwelling_options( ss_, player_,
                                        unit_.type(), dwelling_ );
-    chosen_option_ = co_await present_dwelling_entry_options(
-        ss_, ts_, options );
+    outcome_ = compute_enter_dwelling_outcome(
+        co_await present_dwelling_entry_options( ss_, ts_,
+                                                 options ) );
+
     // The move is always allowed for any unit; if the unit can't
     // do anything or if the unit cancels then the unit's move-
     // ment points will still be consumed.
@@ -1851,26 +1875,8 @@ struct NativeDwellingHandler : public OrdersHandler {
     // delegate to the handler that handles attacking
     // free-standing braves so that we don't have to duplicate
     // that logic here.
-    if( chosen_option_ ==
-        e_enter_dwelling_option::attack_village ) {
-      unordered_set<GenericUnitId> const& braves_on_dwelling =
-          ss_.units.from_coord( dwelling_.location );
-      // There should only be one brave on the dwelling tile, but
-      // let's just be defensive.
-      vector<NativeUnitId> units;
-      for( GenericUnitId id : braves_on_dwelling )
-        units.push_back( ss_.units.check_native_unit( id ) );
-      sort_native_unit_stack( ss_, units );
-      if( units.empty() ) return nullptr;
-      NativeUnitId const highest_defense_id = units[0];
-      NativeUnit const&  highest_defense =
-          ss_.units.unit_for( highest_defense_id );
-      e_tribe const tribe =
-          tribe_for_unit( ss_, highest_defense );
-      CHECK( tribe == tribe_.type,
-             "there is a brave from tribe {} sitting on a "
-             "dwelling of tribe {}.",
-             tribe, tribe_.type );
+    if( outcome_.holds<
+            EnterDwellingOutcome::attack_brave_on_dwelling>() ) {
       UNWRAP_CHECK( relationship,
                     tribe_.relationship[unit_.nation()] );
       // The player has already confirmed that they want to at-
@@ -1886,7 +1892,11 @@ struct NativeDwellingHandler : public OrdersHandler {
     return nullptr; // Continue with this handler.
   }
 
-  wait<> animate() const override { co_return; }
+  wait<> animate() const override {
+    // Note that animations for some of the outcomes are handled
+    // by the methods called in the perform() function.
+    co_return;
+  }
 
   wait<> perform() override {
     // The OG will always drain the movement points of the unit
@@ -1894,36 +1904,42 @@ struct NativeDwellingHandler : public OrdersHandler {
     // will do so even when the user then cancels the action.
     unit_.forfeight_mv_points();
 
-    switch( chosen_option_ ) {
-      case e_enter_dwelling_option::live_among_the_natives: {
-        LiveAmongTheNatives_t const outcome =
-            compute_live_among_the_natives( ss_, dwelling_,
-                                            unit_ );
+    switch( outcome_.to_enum() ) {
+      case EnterDwellingOutcome::e::live_among_the_natives: {
+        auto& o = outcome_.get<
+            EnterDwellingOutcome::live_among_the_natives>();
         co_await do_live_among_the_natives(
-            planes_, ts_, dwelling_, player_, unit_, outcome );
+            planes_, ts_, dwelling_, player_, unit_, o.outcome );
         break;
       }
-      case e_enter_dwelling_option::speak_with_chief: {
-        SpeakWithChiefResult const outcome =
-            compute_speak_with_chief( ss_, ts_, dwelling_,
-                                      unit_ );
+      case EnterDwellingOutcome::e::speak_with_chief: {
+        auto& o =
+            outcome_
+                .get<EnterDwellingOutcome::speak_with_chief>();
         co_await do_speak_with_chief( planes_, ss_, ts_,
                                       dwelling_, player_, unit_,
-                                      outcome );
+                                      o.outcome );
         // !! Note that the unit may no longer exist here if the
         // scout was used a target practice.
-        co_return;
+        break;
       }
-      case e_enter_dwelling_option::attack_village:
-        // TODO: if there is a brave sitting on top of the
-        // dwelling then we should attack it first.
-        co_await ts_.gui.message_box( "Not Implemented" );
-        co_return;
-        co_return;
-      case e_enter_dwelling_option::cancel:
+      case EnterDwellingOutcome::e::attack_village: {
+        auto& o =
+            outcome_.get<EnterDwellingOutcome::attack_village>();
+        co_await do_attack_village( planes_, ss_, ts_, dwelling_,
+                                    player_, unit_, o.outcome );
+        break;
+      }
+      case EnterDwellingOutcome::e::attack_brave_on_dwelling: {
+        // This should have been diverted to another handler.
+        SHOULD_NOT_BE_HERE;
+      }
+      case EnterDwellingOutcome::e::cancel:
         // Do nothing.
-        co_return;
+        break;
     }
+    // !! Note that the unit may no longer exist here e.g. if a
+    // scout was used a target practice or scout lost an attack.
   }
 
   wait<> post() const override {
@@ -1951,9 +1967,8 @@ struct NativeDwellingHandler : public OrdersHandler {
   Coord       move_src_;
   Coord       move_dst_;
 
-  // These get filled out after construction.
-  e_enter_dwelling_option chosen_option_ =
-      e_enter_dwelling_option::cancel;
+  // In case we are attacking the village.
+  EnterDwellingOutcome_t outcome_;
 };
 
 /****************************************************************

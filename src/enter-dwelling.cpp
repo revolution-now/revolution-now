@@ -253,6 +253,22 @@ string const& reaction_str(
   }
 }
 
+maybe<e_enter_dwelling_option>
+adjust_village_attack_for_free_braves(
+    SSConst const& ss, Dwelling const& dwelling,
+    maybe<e_enter_dwelling_option> option ) {
+  if( !option.has_value() ) return nothing;
+  if( *option != e_enter_dwelling_option::attack_village )
+    return option;
+  CHECK( *option !=
+         e_enter_dwelling_option::attack_brave_on_dwelling );
+  unordered_set<GenericUnitId> const& braves_on_dwelling =
+      ss.units.from_coord( dwelling.location );
+  if( !braves_on_dwelling.empty() )
+    return e_enter_dwelling_option::attack_brave_on_dwelling;
+  return option;
+}
+
 } // namespace
 
 /****************************************************************
@@ -284,9 +300,11 @@ wait<e_enter_dwelling_option> present_dwelling_entry_options(
           .name_singular,
       base::capitalize_initials( base::to_str( tribe ) ),
       reaction_str( options.reaction ) );
-  maybe<e_enter_dwelling_option> const res =
+  maybe<e_enter_dwelling_option> res =
       co_await ts.gui.partial_optional_enum_choice(
           msg, options.options );
+  res =
+      adjust_village_attack_for_free_braves( ss, dwelling, res );
   co_return res.value_or( e_enter_dwelling_option::cancel );
 }
 
@@ -644,6 +662,23 @@ wait<> do_speak_with_chief(
       co_return;
     }
   }
+}
+
+AttackVillageResult compute_attack_village(
+    SSConst const& ss, TS& ts, Player const& player,
+    Dwelling const& dwelling, Unit const& attacker ) {
+  CHECK_EQ( attacker.nation(), player.nation );
+  AttackVillageResult res;
+
+  return res;
+}
+
+wait<> do_attack_village( Planes& planes, SS& ss, TS& ts,
+                          Dwelling& dwelling, Player& player,
+                          Unit&                      unit,
+                          AttackVillageResult const& outcome ) {
+
+  co_return;
 }
 
 } // namespace rn

@@ -68,4 +68,16 @@ wait<> do_speak_with_chief(
     Player& player, Unit& unit,
     SpeakWithChiefResult const& outcome );
 
+/****************************************************************
+** Attack Village
+*****************************************************************/
+AttackVillageResult compute_attack_village(
+    SSConst const& ss, TS& ts, Player const& player,
+    Dwelling const& dwelling, Unit const& attacker );
+
+wait<> do_attack_village( Planes& planes, SS& ss, TS& ts,
+                          Dwelling& dwelling, Player& player,
+                          Unit&                      attacker,
+                          AttackVillageResult const& outcome );
+
 } // namespace rn
