@@ -454,5 +454,32 @@ TEST_CASE( "[alarm] set_tribal_alarm_to_content_if_possible" ) {
   }
 }
 
+TEST_CASE( "[alarm] tribe_alarm_category" ) {
+  REQUIRE( tribe_alarm_category( 99 ) ==
+           e_alarm_category::angry );
+  REQUIRE( tribe_alarm_category( 85 ) ==
+           e_alarm_category::angry );
+  REQUIRE( tribe_alarm_category( 84 ) ==
+           e_alarm_category::wary );
+  REQUIRE( tribe_alarm_category( 68 ) ==
+           e_alarm_category::wary );
+  REQUIRE( tribe_alarm_category( 67 ) ==
+           e_alarm_category::uneasy );
+  REQUIRE( tribe_alarm_category( 51 ) ==
+           e_alarm_category::uneasy );
+  REQUIRE( tribe_alarm_category( 50 ) ==
+           e_alarm_category::restless );
+  REQUIRE( tribe_alarm_category( 34 ) ==
+           e_alarm_category::restless );
+  REQUIRE( tribe_alarm_category( 33 ) ==
+           e_alarm_category::content );
+  REQUIRE( tribe_alarm_category( 17 ) ==
+           e_alarm_category::content );
+  REQUIRE( tribe_alarm_category( 16 ) ==
+           e_alarm_category::happy );
+  REQUIRE( tribe_alarm_category( 0 ) ==
+           e_alarm_category::happy );
+}
+
 } // namespace
 } // namespace rn

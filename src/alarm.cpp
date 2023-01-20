@@ -61,11 +61,11 @@ void increase_tribal_alarm_from_dwelling(
 }
 
 constexpr int minimum_alarm_for_named_level(
-    e_alarm_level level ) {
+    e_alarm_category category ) {
   // If this changes then the kChunk would have to be recomputed.
-  static_assert( refl::enum_count<e_alarm_level> == 6 );
+  static_assert( refl::enum_count<e_alarm_category> == 6 );
   int constexpr kChunk = 17;
-  return static_cast<int>( level ) * kChunk;
+  return static_cast<int>( category ) * kChunk;
 }
 
 } // namespace
@@ -177,8 +177,19 @@ void increase_tribal_alarm_from_attacking_dwelling(
 void set_tribal_alarm_to_content_if_possible(
     e_tribe tribe, int& tribal_alarm ) {
   int constexpr kContent =
-      minimum_alarm_for_named_level( e_alarm_level::content );
+      minimum_alarm_for_named_level( e_alarm_category::content );
   tribal_alarm = new_tribal_alarm( tribe, kContent );
+}
+
+e_alarm_category tribe_alarm_category( int tribal_alarm ) {
+  auto begin_it =
+      std::begin( refl::enum_values<e_alarm_category> );
+  auto end_it = std::end( refl::enum_values<e_alarm_category> );
+  while( end_it-- != begin_it )
+    if( tribal_alarm >=
+        minimum_alarm_for_named_level( *end_it ) )
+      return *end_it;
+  SHOULD_NOT_BE_HERE;
 }
 
 } // namespace rn

@@ -19,9 +19,9 @@ enum.e_enter_dwelling_reaction {
   scalps_and_war_drums,
 }
 
-# These are the levels that the OG's strategy guide says that
+# These are the categories that the OG's strategy guide says that
 # alarm can be categorized by.
-enum.e_alarm_level {
+enum.e_alarm_category {
   happy,
   content,
   restless,

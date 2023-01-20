@@ -76,4 +76,8 @@ void increase_tribal_alarm_from_attacking_dwelling(
 void set_tribal_alarm_to_content_if_possible(
     e_tribe tribe, int& tribal_alarm );
 
+// Puts the tribal alarm into a bucket; this is useful for se-
+// lecting a tribe's behavior in a simple way based on alarm.
+e_alarm_category tribe_alarm_category( int tribal_alarm );
+
 } // namespace rn
