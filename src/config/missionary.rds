@@ -33,7 +33,9 @@ struct.MissionaryType {
 
   # When attacking a dwelling containing a mission, this is the
   # probability (on each attack) that an additional native con-
-  # vert will be produced.
+  # vert will be produced, though it is only applied given that
+  # the player's mission has not been burned after the attack,
+  # which is also a possibility.
   convert_on_attack 'config::Probability',
 }
 
@@ -41,6 +43,12 @@ namespace "rn"
 
 struct.config_missionary_t {
   type 'refl::enum_map<e_missionary_type, MissionaryType>',
+
+  # When the tribal alarm reaches the "angry" level then this is
+  # the probability that the tribe will burn the player's mis-
+  # sions. It is applied each time a dwelling of the tribe is at-
+  # tacked, and on each turn (TODO: same probability for both?).
+  burn_mission 'config::Probability',
 
   _features { equality, validation }
 }

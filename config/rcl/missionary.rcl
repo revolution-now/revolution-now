@@ -36,25 +36,31 @@ type {
 
   jesuit {
     strength: 2.0
-    per_turn_convert.probability:  .06  # TODO: recalibrate.
-    convert_on_attack.probability: 1.0  # TODO: measure this
+    per_turn_convert.probability:  .10   # TODO: recalibrate.
+    convert_on_attack.probability: .66
   }
 
   normal {
     strength: 1.0
-    per_turn_convert.probability:  .03  # TODO: recalibrate.
-    convert_on_attack.probability: 1.0  # TODO: measure this
+    per_turn_convert.probability:  .05   # TODO: recalibrate.
+    convert_on_attack.probability: .33
   }
 
   indentured {
     strength: .66
-    per_turn_convert.probability:  .02  # TODO: recalibrate.
-    convert_on_attack.probability: 1.0  # TODO: measure this
+    per_turn_convert.probability:  .033  # TODO: recalibrate.
+    convert_on_attack.probability: .22
   }
 
   criminal {
     strength: .33
-    per_turn_convert.probability:  .01  # TODO: recalibrate.
-    convert_on_attack.probability: 1.0  # TODO: measure this
+    per_turn_convert.probability:  .0165 # TODO: recalibrate.
+    convert_on_attack.probability: .11
   }
 }
+
+# When the tribal alarm reaches the "angry" level then this is
+# the probability that the tribe will burn the player's missions.
+# It is applied each time a dwelling of the tribe is attacked,
+# and on each turn (TODO: same probability for both?).
+burn_mission.probability: .50
