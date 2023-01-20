@@ -60,6 +60,30 @@ struct.DwellingRelationship {
   # the same chief.
   has_spoken_with_chief 'bool',
 
+  # When there is a mission in a dwelling then that dwelling may
+  # send native converts to the player. There are a couple of
+  # ways that native converts can be produced (over time as the
+  # missionary works, or when attacking a dwelling with a mis-
+  # sion). Either way, when a convert gets "produced," it doesn't
+  # actually create the unit immediately; instead it just sets
+  # this value. Then, once each turn, this number will be checked
+  # and, if the brave from this dwelling is adjacent to a play-
+  # er's colony then a convert will be produced. The OG does not
+  # seem to accumulate these, hence it is a bool instead of an
+  # int. This also automatically enforces the OG's rule that only
+  # one convert per turn is produced per dwelling (we can have
+  # multiple per turn from different dwellings).
+  #
+  # We need to store this at the dwelling level (as opposed to
+  # the tribe level) for two reasons. First, we need to know
+  # which dwelling the convert is coming from so that it can be
+  # delivered to a nearby colony. And second, if the dwelling
+  # gets burned in a series of attacks that e.g. happen all in
+  # one turn, then the ready convert inside should disappear (un-
+  # less they emerge as a result of the attack, which can some-
+  # times happen).
+  convert_ready 'bool',
+
   _features { equality, validation }
 }
 
