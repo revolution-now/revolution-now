@@ -10,9 +10,6 @@
 *****************************************************************/
 #include "natives.hpp"
 
-// config
-#include "natives.hpp"
-
 // refl
 #include "refl/ext.hpp"
 
