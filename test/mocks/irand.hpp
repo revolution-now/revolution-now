@@ -16,6 +16,12 @@
 // mock
 #include "src/mock/mock.hpp"
 
+// base
+#include "refl/to-str.hpp" // Needed otherwise the mock methods
+                           // won't see the reflected enums as
+                           // being formattable and will format
+                           // them as "?".
+
 namespace rn {
 
 /****************************************************************
