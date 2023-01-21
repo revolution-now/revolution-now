@@ -88,9 +88,9 @@ TEST_CASE( "[lcr] de soto means no unit lost" ) {
   int const kUpperLimit = 97;
   for( int i = 0; i < kUpperLimit; i += 1 ) {
     INFO( fmt::format( "i: {}", i ) );
-    EXPECT_CALL( W.rand(),
-                 between_ints( 0, kUpperLimit,
-                               IRand::e_interval::half_open ) )
+    EXPECT_CALL(
+        W.rand(),
+        between_ints( 0, kUpperLimit, e_interval::half_open ) )
         .returns( i );
     e_rumor_type type = pick_rumor_type_result(
         W.rand(), e_lcr_explorer_category::other, player );
@@ -171,9 +171,8 @@ TEST_CASE( "[lcr] small village, chief gift" ) {
                    "You happen upon a small village" ) ) )
       .returns( make_wait() );
   // Get quantity of chief gift.
-  EXPECT_CALL(
-      W.rand(),
-      between_ints( 15, 70, IRand::e_interval::closed ) )
+  EXPECT_CALL( W.rand(),
+               between_ints( 15, 70, e_interval::closed ) )
       .returns( 32 );
 
   // Go
@@ -219,9 +218,8 @@ TEST_CASE( "[lcr] small village, ruins of lost colony" ) {
       message_box( StrContains( "ruins of a lost colony" ) ) )
       .returns( make_wait() );
   // Get quantity of gift.
-  EXPECT_CALL(
-      W.rand(),
-      between_ints( 80, 220, IRand::e_interval::closed ) )
+  EXPECT_CALL( W.rand(),
+               between_ints( 80, 220, e_interval::closed ) )
       .returns( 95 );
 
   // Go
@@ -446,9 +444,8 @@ TEST_CASE( "[lcr] cibola / treasure" ) {
       message_box( StrContains( "Seven Cities of Cibola" ) ) )
       .returns( make_wait() );
   // Get quantity of treasure.
-  EXPECT_CALL(
-      W.rand(),
-      between_ints( 2000, 10500, IRand::e_interval::closed ) )
+  EXPECT_CALL( W.rand(),
+               between_ints( 2000, 10500, e_interval::closed ) )
       .returns( 5555 );
 
   // Go
@@ -512,9 +509,8 @@ TEST_CASE( "[lcr] burial mounds / treasure" ) {
                             "recovered a treasure worth" ) ) )
       .returns( make_wait() );
   // Get quantity of treasure.
-  EXPECT_CALL(
-      W.rand(),
-      between_ints( 2000, 3500, IRand::e_interval::closed ) )
+  EXPECT_CALL( W.rand(),
+               between_ints( 2000, 3500, e_interval::closed ) )
       .returns( 2222 );
 
   // Go
@@ -627,9 +623,8 @@ TEST_CASE( "[lcr] burial mounds / trinkets" ) {
       message_box( StrContains( "found some trinkets" ) ) )
       .returns( make_wait() );
   // Get quantity of the gift.
-  EXPECT_CALL(
-      W.rand(),
-      between_ints( 70, 200, IRand::e_interval::closed ) )
+  EXPECT_CALL( W.rand(),
+               between_ints( 70, 200, e_interval::closed ) )
       .returns( 155 );
 
   // Go
@@ -734,9 +729,8 @@ TEST_CASE(
       message_box( StrContains( "native burial grounds" ) ) )
       .returns( make_wait() );
   // Get quantity of the gift.
-  EXPECT_CALL(
-      W.rand(),
-      between_ints( 70, 200, IRand::e_interval::closed ) )
+  EXPECT_CALL( W.rand(),
+               between_ints( 70, 200, e_interval::closed ) )
       .returns( 155 );
 
   // Go

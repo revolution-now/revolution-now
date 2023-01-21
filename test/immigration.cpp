@@ -454,9 +454,8 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
         .returns( make_wait<>() );
     // This one is to choose which immigrant we get, which is
     // done randomly because we don't have brewster.
-    EXPECT_CALL(
-        W.rand(),
-        between_ints( 0, 2, IRand::e_interval::closed ) )
+    EXPECT_CALL( W.rand(),
+                 between_ints( 0, 2, e_interval::closed ) )
         .returns( 1 );
     // This one is to choose that unit's replacement in the pool,
     // which is always done randomly. 9960.0 was found by summing

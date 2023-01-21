@@ -306,9 +306,8 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
         "decided to raise your tax rate by @[H]13%@[].  The tax "
         "rate is now @[H]63%@[]. We will graciously allow you "
         "to kiss our royal pinky ring.";
-    EXPECT_CALL(
-        W.rand(),
-        between_ints( 1, 3, IRand::e_interval::closed ) )
+    EXPECT_CALL( W.rand(),
+                 between_ints( 1, 3, e_interval::closed ) )
         .returns( 2 );
     EXPECT_CALL( W.gui(), message_box( expected_msg ) )
         .returns( make_wait<>() );
@@ -334,9 +333,8 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
         "rate is now @[H]63%@[]. We will graciously allow you "
         "to kiss our royal pinky ring.";
     // Re-marriage number.
-    EXPECT_CALL(
-        W.rand(),
-        between_ints( 1, 3, IRand::e_interval::closed ) )
+    EXPECT_CALL( W.rand(),
+                 between_ints( 1, 3, e_interval::closed ) )
         .returns( 2 );
     ChoiceConfig const config{
         .msg     = expected_msg,
@@ -375,9 +373,8 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
         "rate is now @[H]63%@[]. We will graciously allow you "
         "to kiss our royal pinky ring.";
     // Re-marriage number.
-    EXPECT_CALL(
-        W.rand(),
-        between_ints( 1, 3, IRand::e_interval::closed ) )
+    EXPECT_CALL( W.rand(),
+                 between_ints( 1, 3, e_interval::closed ) )
         .returns( 2 );
     ChoiceConfig const config{
         .msg     = expected_msg,
@@ -424,9 +421,8 @@ TEST_CASE( "[tax] compute_tax_change" ) {
   }
 
   SECTION( "it is here" ) {
-    EXPECT_CALL(
-        W.rand(),
-        between_ints( 14, 18, IRand::e_interval::closed ) )
+    EXPECT_CALL( W.rand(),
+                 between_ints( 14, 18, e_interval::closed ) )
         .returns( 13 );
 
     SECTION( "next_tax_event_turn=0" ) {
@@ -467,9 +463,8 @@ TEST_CASE( "[tax] compute_tax_change" ) {
               W.add_colony_with_new_unit( Coord{ .x = 2 } );
 
           // Tax change amount.
-          EXPECT_CALL(
-              W.rand(),
-              between_ints( 1, 8, IRand::e_interval::closed ) )
+          EXPECT_CALL( W.rand(),
+                       between_ints( 1, 8, e_interval::closed ) )
               .returns( 4 );
 
           SECTION( "decrease" ) {
@@ -591,9 +586,8 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
 
   W.settings().difficulty = e_difficulty::conquistador;
 
-  EXPECT_CALL(
-      W.rand(),
-      between_ints( 14, 18, IRand::e_interval::closed ) )
+  EXPECT_CALL( W.rand(),
+               between_ints( 14, 18, e_interval::closed ) )
       .returns( 13 );
 
   W.turn().time_point.turns                  = 38;
@@ -610,7 +604,7 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
 
   // Tax change amount.
   EXPECT_CALL( W.rand(),
-               between_ints( 1, 8, IRand::e_interval::closed ) )
+               between_ints( 1, 8, e_interval::closed ) )
       .returns( 4 );
 
   // Tax increase probability.
@@ -647,7 +641,7 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
       "to kiss our royal pinky ring.";
   // Re-marriage number.
   EXPECT_CALL( W.rand(),
-               between_ints( 1, 3, IRand::e_interval::closed ) )
+               between_ints( 1, 3, e_interval::closed ) )
       .returns( 2 );
   ChoiceConfig const config{
       .msg     = expected_msg,
@@ -700,9 +694,8 @@ TEST_CASE( "[tax] compute_tax_change when over max" ) {
 
   W.settings().difficulty = e_difficulty::conquistador;
 
-  EXPECT_CALL(
-      W.rand(),
-      between_ints( 14, 18, IRand::e_interval::closed ) )
+  EXPECT_CALL( W.rand(),
+               between_ints( 14, 18, e_interval::closed ) )
       .returns( 13 );
 
   W.turn().time_point.turns                  = 37;
@@ -716,7 +709,7 @@ TEST_CASE( "[tax] compute_tax_change when over max" ) {
 
   // Tax change amount.
   EXPECT_CALL( W.rand(),
-               between_ints( 1, 8, IRand::e_interval::closed ) )
+               between_ints( 1, 8, e_interval::closed ) )
       .returns( 4 );
 
   // Tax increase probability.

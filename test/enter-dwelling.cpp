@@ -626,9 +626,8 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   // outcome: none.
   p_unit = &scout_petty;
   EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
-  EXPECT_CALL(
-      W.rand(),
-      between_ints( 0, 100, IRand::e_interval::half_open ) )
+  EXPECT_CALL( W.rand(),
+               between_ints( 0, 100, e_interval::half_open ) )
       .returns( 0 );
   expected.action = ChiefAction::none{};
   REQUIRE( f() == expected );
@@ -636,13 +635,11 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   // outcome: gift.
   p_unit = &scout_petty;
   EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
-  EXPECT_CALL(
-      W.rand(),
-      between_ints( 0, 100, IRand::e_interval::half_open ) )
+  EXPECT_CALL( W.rand(),
+               between_ints( 0, 100, e_interval::half_open ) )
       .returns( 33 );
-  EXPECT_CALL(
-      W.rand(),
-      between_ints( 50, 300, IRand::e_interval::closed ) )
+  EXPECT_CALL( W.rand(),
+               between_ints( 50, 300, e_interval::closed ) )
       .returns( 111 );
   expected.action = ChiefAction::gift_money{ .quantity = 111 };
   REQUIRE( f() == expected );
@@ -654,13 +651,11 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   dwelling.tribe = e_tribe::inca;
   p_unit         = &scout_seasoned;
   EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
-  EXPECT_CALL(
-      W.rand(),
-      between_ints( 0, 100, IRand::e_interval::half_open ) )
+  EXPECT_CALL( W.rand(),
+               between_ints( 0, 100, e_interval::half_open ) )
       .returns( 20 );
-  EXPECT_CALL(
-      W.rand(),
-      between_ints( 166, 2000, IRand::e_interval::closed ) )
+  EXPECT_CALL( W.rand(),
+               between_ints( 166, 2000, e_interval::closed ) )
       .returns( 1111 );
   expected.action = ChiefAction::gift_money{ .quantity = 1111 };
   REQUIRE( f() == expected );
@@ -669,9 +664,8 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   // outcome: promotion.
   p_unit = &scout_petty;
   EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
-  EXPECT_CALL(
-      W.rand(),
-      between_ints( 0, 100, IRand::e_interval::half_open ) )
+  EXPECT_CALL( W.rand(),
+               between_ints( 0, 100, e_interval::half_open ) )
       .returns( 80 );
   expected.action = ChiefAction::promotion{};
   REQUIRE( f() == expected );
@@ -679,9 +673,8 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   // outcome: failed promotion.
   p_unit = &scout_other_expert;
   EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
-  EXPECT_CALL(
-      W.rand(),
-      between_ints( 0, 100, IRand::e_interval::half_open ) )
+  EXPECT_CALL( W.rand(),
+               between_ints( 0, 100, e_interval::half_open ) )
       .returns( 80 );
   expected.action = ChiefAction::none{};
   REQUIRE( f() == expected );
@@ -689,9 +682,8 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   // outcome: tales of nearby land non-seasoned.
   p_unit = &scout_petty;
   EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
-  EXPECT_CALL(
-      W.rand(),
-      between_ints( 0, 100, IRand::e_interval::half_open ) )
+  EXPECT_CALL( W.rand(),
+               between_ints( 0, 100, e_interval::half_open ) )
       .returns( 73 );
   expected_tiles.clear();
   for( int y = 4 - 9 / 2; y < 4 + 1 + 9 / 2; ++y ) {
@@ -714,9 +706,8 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   // outcome: tales of nearby land seasoned.
   p_unit = &scout_seasoned;
   EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
-  EXPECT_CALL(
-      W.rand(),
-      between_ints( 0, 100, IRand::e_interval::half_open ) )
+  EXPECT_CALL( W.rand(),
+               between_ints( 0, 100, e_interval::half_open ) )
       .returns( 70 );
   expected_tiles.clear();
   for( int y = 4 - 13 / 2; y < 4 + 1 + 13 / 2; ++y ) {

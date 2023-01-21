@@ -202,9 +202,8 @@ maybe<int> treasure_from_dwelling( TS& ts, Player const& player,
       ts.rand.bernoulli( conf.probability );
   if( !should_get_treasure ) return nothing;
 
-  double amount =
-      ts.rand.between_ints( conf.range.min, conf.range.max,
-                            IRand::e_interval::closed );
+  double amount = ts.rand.between_ints(
+      conf.range.min, conf.range.max, e_interval::closed );
 
   if( capital )
     amount *= config_natives.treasure.capital_amount_scale;

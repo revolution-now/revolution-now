@@ -260,7 +260,7 @@ wait<maybe<UnitId>> check_for_new_immigrant(
     CHECK_LE( immigrant_idx, 2 );
   } else {
     immigrant_idx =
-        ts.rand.between_ints( 0, 2, IRand::e_interval::closed );
+        ts.rand.between_ints( 0, 2, e_interval::closed );
     string msg = fmt::format(
         "Word of religious freedom has spread! A new immigrant "
         "(@[H]{}@[]) has arrived on the docks.",

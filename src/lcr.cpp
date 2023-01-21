@@ -56,7 +56,7 @@ int random_gift( IRand& rand, GiftOptions options ) {
     options.min = options.multiple;
   if( options.max < options.min ) options.max = options.min;
   int amount = rand.between_ints( options.min, options.max,
-                                  IRand::e_interval::closed );
+                                  e_interval::closed );
   return ( amount / options.multiple ) * options.multiple;
 }
 

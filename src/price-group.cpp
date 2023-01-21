@@ -273,8 +273,7 @@ int generate_random_intrinsic_volume( TS& ts, int center,
                                       int window ) {
   int const bottom = center - window / 2;
   int const top    = center + window / 2;
-  return ts.rand.between_ints( bottom, top,
-                               IRand::e_interval::closed );
+  return ts.rand.between_ints( bottom, top, e_interval::closed );
 }
 
 /****************************************************************

@@ -230,7 +230,7 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
   auto expect_rand = [&]( int low, int high, int res ) {
     EXPECT_CALL(
         W.rand(),
-        between_ints( low, high, IRand::e_interval::half_open ) )
+        between_ints( low, high, e_interval::half_open ) )
         .returns( res );
   };
 

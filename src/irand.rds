@@ -1,0 +1,16 @@
+# ===============================================================
+# irand.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-01-21.
+#
+# Description: Rds definitions for the irand module.
+#
+# ===============================================================
+namespace "rn"
+
+enum.e_interval {
+  half_open, # [x, y)
+  closed,    # [x, y]
+}

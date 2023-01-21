@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// rds
+#include "irand.rds.hpp"
+
 // luapp
 #include "luapp/ext-userdata.hpp"
 
@@ -35,8 +38,6 @@ struct IRand {
 
   // Biased coin flip.  Returns true with probability p.
   virtual bool bernoulli( double p ) = 0;
-
-  enum class e_interval { half_open, closed };
 
   // Random integer between tbe bounds, where the meaning of "be-
   // tween" depends on the interval type. If interval is half

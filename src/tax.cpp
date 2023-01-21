@@ -40,8 +40,7 @@ namespace {
 int rand_int_range( TS& ts, auto const& int_range ) {
   int const min = int_range.min;
   int const max = int_range.max;
-  return ts.rand.between_ints( min, max,
-                               IRand::e_interval::closed );
+  return ts.rand.between_ints( min, max, e_interval::closed );
 }
 
 double rand_dbl_range( TS& ts, auto const& dbl_range ) {
@@ -134,7 +133,7 @@ int remarry( TS& ts, Player& player ) {
       player.old_world.taxes.king_remarriage_count +
       config_old_world.min_king_wife_number;
   int const remarriages_since_last_tax_event =
-      ts.rand.between_ints( 1, 3, IRand::e_interval::closed );
+      ts.rand.between_ints( 1, 3, e_interval::closed );
   int const new_wife =
       curr_wife + remarriages_since_last_tax_event;
   player.old_world.taxes.king_remarriage_count +=

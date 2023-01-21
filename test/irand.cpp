@@ -28,8 +28,8 @@ TEST_CASE( "[irand] shuffle" ) {
   MockIRand impl;
   IRand&    irand = impl;
 
-  vector<string>          v, expected;
-  IRand::e_interval const interval = IRand::e_interval::closed;
+  vector<string>   v, expected;
+  e_interval const interval = e_interval::closed;
 
   SECTION( "empty" ) {
     v = {};

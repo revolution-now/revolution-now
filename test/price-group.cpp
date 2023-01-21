@@ -610,9 +610,8 @@ TEST_CASE( "[price-group] generate_random_intrinsic_volume" ) {
     int const top    = 15;
     CHECK( ret >= bottom );
     CHECK( ret <= top );
-    EXPECT_CALL(
-        W.rand(),
-        between_ints( bottom, top, IRand::e_interval::closed ) )
+    EXPECT_CALL( W.rand(), between_ints( bottom, top,
+                                         e_interval::closed ) )
         .returns( ret );
   };
 
