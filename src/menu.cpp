@@ -406,7 +406,7 @@ struct MenuPlane::Impl : public Plane {
     H h{ 0 };
     for( auto const& item : g_menu_def[menu] ) {
       overload_visit(
-          item,
+          item.as_base(),
           [&]( MenuItem::menu_divider const& ) {
             h += divider_height();
           },
@@ -471,7 +471,7 @@ struct MenuPlane::Impl : public Plane {
     H pos{ 0 };
     for( auto const& item : g_menu_def[menu] ) {
       overload_visit(
-          item,
+          item.as_base(),
           [&]( MenuItem::menu_divider const& ) {
             pos += divider_height();
           },
@@ -583,7 +583,7 @@ struct MenuPlane::Impl : public Plane {
     H const item_height = menu_item_height();
     for( auto const& item : g_menu_def[menu] ) {
       overload_visit(
-          item,
+          item.as_base(),
           [&]( MenuItem::menu_divider ) {
             render_divider( renderer, pos, menu );
             pos.y += divider_height();
@@ -678,7 +678,7 @@ struct MenuPlane::Impl : public Plane {
       MenuRendererVisitor matcher{
           this, menu, background_upper_left,
           foreground_upper_left, renderer };
-      base::visit( matcher, menu_state_ );
+      base::visit( matcher, menu_state_.as_base() );
     }
   }
 
@@ -735,7 +735,7 @@ struct MenuPlane::Impl : public Plane {
 
   maybe<MouseOver_t> click_target( Coord screen_coord ) {
     ClickTargetVisitor matcher{ *this, screen_coord };
-    return base::visit( matcher, menu_state_ );
+    return base::visit( matcher, menu_state_.as_base() );
   }
 
   /****************************************************************
@@ -745,7 +745,7 @@ struct MenuPlane::Impl : public Plane {
     render_menu_bar( renderer );
     // maybe render open menu.
     overload_visit(
-        menu_state_, []( MenuState::menus_hidden ) {},
+        menu_state_.as_base(), []( MenuState::menus_hidden ) {},
         [&]( MenuState::menus_closed ) {},
         [&]( MenuState::item_click const& ic ) {
           auto  menu = item_to_menu_[ic.item];
@@ -999,7 +999,7 @@ struct MenuPlane::Impl : public Plane {
           if( !over_what.has_value() )
             return e_input_handled::no;
           MouseMoveVisitor matcher{ *this };
-          return base::visit( matcher, *over_what );
+          return base::visit( matcher, over_what->as_base() );
         },
         [&, this]( input::mouse_button_event_t b_event ) {
           auto over_what = click_target( b_event.pos );

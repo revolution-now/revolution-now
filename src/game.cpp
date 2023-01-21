@@ -203,7 +203,7 @@ wait<> run_game_with_mode( Planes&            planes,
     try {
       co_await base::visit(
           [&]( auto& m ) { return handle_mode( planes, m ); },
-          next_mode );
+          next_mode.as_base() );
       break;
     } catch( game_load_interrupt const& load ) {
       next_mode = StartMode::load{ .slot = load.slot };

@@ -19,6 +19,9 @@
 // ss
 #include "src/ss/dwelling.rds.hpp"
 
+// refl
+#include "src/refl/to-str.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 

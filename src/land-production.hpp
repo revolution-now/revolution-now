@@ -16,15 +16,18 @@
 #include "maybe.hpp"
 
 // ss
-#include "ss/colony.rds.hpp"
+#include "ss/colony-enums.rds.hpp"
 #include "ss/commodity.rds.hpp"
 #include "ss/difficulty.rds.hpp"
 #include "ss/fathers.rds.hpp"
-#include "ss/map-square.rds.hpp"
 #include "ss/unit-type.rds.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 namespace rn {
 
+struct MapSquare;
 struct Player;
 struct TerrainState;
 

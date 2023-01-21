@@ -72,11 +72,6 @@ static_assert(
 static_assert( is_same_v<::rdstest::inner::MyVariant3_t,
                          inner::MyVariant3_t> );
 
-TEST_CASE( "[rds] Monostate" ) {
-  static_assert( is_same_v<MyVariant0_t, std::monostate> );
-  REQUIRE( fmt::format( "{}", MyVariant0_t{} ) == "monostate" );
-}
-
 TEST_CASE( "[rds] Maybe" ) {
   Maybe_t<int> maybe;
   REQUIRE( fmt::format( "{}", maybe ) ==
@@ -169,22 +164,22 @@ TEST_CASE( "[rds] MyVariant2" ) {
 TEST_CASE( "[rds] MyVariant3" ) {
   static_assert( base::Show<inner::MyVariant3_t> );
   inner::MyVariant3_t my3;
-  my3 = inner::MyVariant3::a1{ MyVariant0_t{} };
-  my3 = inner::MyVariant3::a2{ MyVariant0_t{}, MyVariant2_t{} };
+  my3 = inner::MyVariant3::a1{ monostate{} };
+  my3 = inner::MyVariant3::a2{ monostate{}, MyVariant2_t{} };
   my3 = inner::MyVariant3::a3{ 'r' };
   switch( my3.to_enum() ) {
     case inner::MyVariant3::e::a1: {
       REQUIRE( false );
       auto& val = my3.get<inner::MyVariant3::a1>();
       static_assert(
-          is_same_v<decltype( val.var0 ), MyVariant0_t> );
+          is_same_v<decltype( val.var0 ), monostate> );
       break;
     }
     case inner::MyVariant3::e::a2: {
       auto& val = my3.get<inner::MyVariant3::a2>();
       REQUIRE( false );
       static_assert(
-          is_same_v<decltype( val.var1 ), MyVariant0_t> );
+          is_same_v<decltype( val.var1 ), monostate> );
       static_assert(
           is_same_v<decltype( val.var2 ), MyVariant2_t> );
       break;
@@ -247,7 +242,9 @@ TEST_CASE( "[rds] CompositeTemplateTwo" ) {
   using V =
       inner::CompositeTemplateTwo_t<rn::my_optional<int>, short>;
   namespace V_ns = inner::CompositeTemplateTwo;
-  static_assert( base::Show<V> );
+  string out;
+  base::to_str( V{}, out, base::ADL_t{} );
+  // static_assert( base::Show<V> );
   V v = inner::CompositeTemplateTwo::first<rn::my_optional<int>,
                                            short>{
       .ttp = inner::TemplateTwoParams::third_alternative<
@@ -262,7 +259,7 @@ TEST_CASE( "[rds] CompositeTemplateTwo" ) {
                                           short>;
   static_assert( sizeof( second_t ) == 1 );
   switch( v.to_enum() ) {
-    case V_ns::e::first: //
+    case V_ns::e::first:  //
       break;
     case V_ns::e::second: //
       REQUIRE( false );

@@ -21,6 +21,7 @@
 #include "visibility.hpp"
 
 // ss
+#include "ss/land-view.rds.hpp"
 #include "ss/nation.rds.hpp"
 #include "ss/native-enums.rds.hpp"
 #include "ss/natives.hpp"

@@ -24,6 +24,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/land-view.rds.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"

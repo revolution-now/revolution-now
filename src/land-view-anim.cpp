@@ -283,7 +283,8 @@ wait<> LandViewAnimator::animate_colony_destruction(
 wait<> LandViewAnimator::animate_unit_depixelation(
     DepixelateAnimation_t const& what ) {
   GenericUnitId const id = rn::visit(
-      what, []( auto& o ) { return GenericUnitId{ o.id }; } );
+      what.as_base(),
+      []( auto& o ) { return GenericUnitId{ o.id }; } );
   co_await ensure_visible_unit( id );
   co_await start_depixelate_animation( what );
 }

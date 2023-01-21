@@ -50,8 +50,10 @@ class variant : public std::variant<Args...> {
   constexpr Base const& as_std() const& { return *this; }
   constexpr Base&       as_std() & { return *this; }
 
-  constexpr Base const&& as_std() const&& { return *this; }
-  constexpr Base&&       as_std() && { return *this; }
+  constexpr Base const&& as_std() const&& {
+    return std::move( *this );
+  }
+  constexpr Base&& as_std() && { return std::move( *this ); }
 
   /**************************************************************
   ** Take everything from std::variant.
@@ -193,6 +195,12 @@ void to_str( V<Ts...> const& o, std::string& out, ADL_t ) {
       static_cast<std::variant<Ts...> const&>( o ) );
 };
 
+template<typename T>
+requires requires { typename T::i_am_rds_variant; }
+void to_str( T const& o, std::string& out, ADL_t ) {
+  to_str( o.as_base(), out, ADL_t{} );
+}
+
 } // namespace base
 
 namespace std {
@@ -244,4 +252,4 @@ T visit( Visitor&& visitor, Variants&&... variants ) {
           variants.as_std() )... );
 }
 
-}
+} // namespace base

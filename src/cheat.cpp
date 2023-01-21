@@ -37,6 +37,7 @@
 
 // ss
 #include "ss/colony.hpp"
+#include "ss/land-view.rds.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/turn.hpp"
 

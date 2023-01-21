@@ -25,6 +25,7 @@
 // ss
 #include "ss/colonies.hpp"
 #include "ss/dwelling.rds.hpp"
+#include "ss/land-view.rds.hpp"
 #include "ss/natives.hpp"
 #include "ss/ref.hpp"
 #include "ss/unit-id.hpp"

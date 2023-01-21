@@ -16,7 +16,6 @@
 #include "maybe.hpp"
 
 // ss
-#include "ss/land-view.rds.hpp"
 #include "ss/nation.rds.hpp"
 #include "ss/unit-type.rds.hpp"
 
@@ -28,6 +27,7 @@
 
 namespace rn {
 
+struct MapRevealed_t;
 struct MapSquare;
 struct Planes;
 struct PlayerTerrain;

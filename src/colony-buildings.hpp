@@ -17,7 +17,6 @@
 
 // gs
 #include "ss/colony-enums.rds.hpp"
-#include "ss/colony.rds.hpp"
 #include "ss/unit-type.rds.hpp"
 
 namespace rn {

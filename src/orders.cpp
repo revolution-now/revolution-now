@@ -77,8 +77,9 @@ unique_ptr<OrdersHandler> orders_handler(
     Planes& planes, SS& ss, TS& ts, Player& player, UnitId id,
     orders_t const& orders ) {
   CHECK( !ss.units.unit_for( id ).mv_pts_exhausted() );
-  return visit( orders, LC( handle_orders( planes, ss, ts,
-                                           player, id, _ ) ) );
+  return visit(
+      orders.as_base(),
+      LC( handle_orders( planes, ss, ts, player, id, _ ) ) );
 }
 
 wait<OrdersHandler::RunResult> OrdersHandler::run() {

@@ -60,18 +60,32 @@ namespace rdstest {
 
   } // namespace Maybe
 
+  namespace detail {
+
+    template<typename T>
+    using MaybeBase = base::variant<
+      Maybe::nothing<T>,
+      Maybe::just<T>
+    >;
+
+  } // namespace detail
+
   template<typename T>
-  using Maybe_t = base::variant<
-    Maybe::nothing<T>,
-    Maybe::just<T>
-  >;
+  struct Maybe_t : public detail::MaybeBase<T> {
+    using i_am_rds_variant = void;
+    using Base = detail::MaybeBase<T>;
+    using Base::Base;
+    Maybe_t( Base&& b ) : Base( std::move( b ) ) {}
+    Base const& as_base() const& { return *this; }
+    Base&       as_base()      & { return *this; }
+  };
   NOTHROW_MOVE( Maybe_t<int> );
 
 } // namespace rdstest
 
 // This gives us the enum to use in a switch statement.
 template<typename T>
-struct base::variant_to_enum<rdstest::Maybe_t<T>> {
+struct base::variant_to_enum<rdstest::detail::MaybeBase<T>> {
   using type = rdstest::Maybe::e;
 };
 
@@ -109,15 +123,6 @@ namespace refl {
   };
 
 } // namespace refl
-
-/****************************************************************
-*                     Sum Type: MyVariant0
-*****************************************************************/
-namespace rdstest {
-
-  using MyVariant0_t = std::monostate;
-
-} // namespace rdstest
 
 /****************************************************************
 *                     Sum Type: MyVariant1
@@ -158,18 +163,31 @@ namespace rdstest {
 
   } // namespace MyVariant1
 
-  using MyVariant1_t = base::variant<
-    MyVariant1::happy,
-    MyVariant1::sad,
-    MyVariant1::excited
-  >;
+  namespace detail {
+
+    using MyVariant1Base = base::variant<
+      MyVariant1::happy,
+      MyVariant1::sad,
+      MyVariant1::excited
+    >;
+
+  } // namespace detail
+
+  struct MyVariant1_t : public detail::MyVariant1Base {
+    using i_am_rds_variant = void;
+    using Base = detail::MyVariant1Base;
+    using Base::Base;
+    MyVariant1_t( Base&& b ) : Base( std::move( b ) ) {}
+    Base const& as_base() const& { return *this; }
+    Base&       as_base()      & { return *this; }
+  };
   NOTHROW_MOVE( MyVariant1_t );
 
 } // namespace rdstest
 
 // This gives us the enum to use in a switch statement.
 template<>
-struct base::variant_to_enum<rdstest::MyVariant1_t> {
+struct base::variant_to_enum<rdstest::detail::MyVariant1Base> {
   using type = rdstest::MyVariant1::e;
 };
 
@@ -254,18 +272,31 @@ namespace rdstest {
 
   } // namespace MyVariant2
 
-  using MyVariant2_t = base::variant<
-    MyVariant2::first,
-    MyVariant2::second,
-    MyVariant2::third
-  >;
+  namespace detail {
+
+    using MyVariant2Base = base::variant<
+      MyVariant2::first,
+      MyVariant2::second,
+      MyVariant2::third
+    >;
+
+  } // namespace detail
+
+  struct MyVariant2_t : public detail::MyVariant2Base {
+    using i_am_rds_variant = void;
+    using Base = detail::MyVariant2Base;
+    using Base::Base;
+    MyVariant2_t( Base&& b ) : Base( std::move( b ) ) {}
+    Base const& as_base() const& { return *this; }
+    Base&       as_base()      & { return *this; }
+  };
   NOTHROW_MOVE( MyVariant2_t );
 
 } // namespace rdstest
 
 // This gives us the enum to use in a switch statement.
 template<>
-struct base::variant_to_enum<rdstest::MyVariant2_t> {
+struct base::variant_to_enum<rdstest::detail::MyVariant2Base> {
   using type = rdstest::MyVariant2::e;
 };
 
@@ -332,7 +363,7 @@ namespace rdstest::inner {
   namespace MyVariant3 {
 
     struct a1 {
-      MyVariant0_t var0 = {};
+      std::monostate var0 = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct a1 const& ) const = default;
@@ -340,8 +371,8 @@ namespace rdstest::inner {
     };
 
     struct a2 {
-      MyVariant0_t var1 = {};
-      MyVariant2_t var2 = {};
+      std::monostate var1 = {};
+      MyVariant2_t   var2 = {};
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct a2 const& ) const = default;
@@ -364,18 +395,31 @@ namespace rdstest::inner {
 
   } // namespace MyVariant3
 
-  using MyVariant3_t = base::variant<
-    MyVariant3::a1,
-    MyVariant3::a2,
-    MyVariant3::a3
-  >;
+  namespace detail {
+
+    using MyVariant3Base = base::variant<
+      MyVariant3::a1,
+      MyVariant3::a2,
+      MyVariant3::a3
+    >;
+
+  } // namespace detail
+
+  struct MyVariant3_t : public detail::MyVariant3Base {
+    using i_am_rds_variant = void;
+    using Base = detail::MyVariant3Base;
+    using Base::Base;
+    MyVariant3_t( Base&& b ) : Base( std::move( b ) ) {}
+    Base const& as_base() const& { return *this; }
+    Base&       as_base()      & { return *this; }
+  };
   NOTHROW_MOVE( MyVariant3_t );
 
 } // namespace rdstest::inner
 
 // This gives us the enum to use in a switch statement.
 template<>
-struct base::variant_to_enum<rdstest::inner::MyVariant3_t> {
+struct base::variant_to_enum<rdstest::inner::detail::MyVariant3Base> {
   using type = rdstest::inner::MyVariant3::e;
 };
 
@@ -475,18 +519,31 @@ namespace rdstest::inner {
 
   } // namespace MyVariant4
 
-  using MyVariant4_t = base::variant<
-    MyVariant4::first,
-    MyVariant4::_2nd,
-    MyVariant4::third
-  >;
+  namespace detail {
+
+    using MyVariant4Base = base::variant<
+      MyVariant4::first,
+      MyVariant4::_2nd,
+      MyVariant4::third
+    >;
+
+  } // namespace detail
+
+  struct MyVariant4_t : public detail::MyVariant4Base {
+    using i_am_rds_variant = void;
+    using Base = detail::MyVariant4Base;
+    using Base::Base;
+    MyVariant4_t( Base&& b ) : Base( std::move( b ) ) {}
+    Base const& as_base() const& { return *this; }
+    Base&       as_base()      & { return *this; }
+  };
   NOTHROW_MOVE( MyVariant4_t );
 
 } // namespace rdstest::inner
 
 // This gives us the enum to use in a switch statement.
 template<>
-struct base::variant_to_enum<rdstest::inner::MyVariant4_t> {
+struct base::variant_to_enum<rdstest::inner::detail::MyVariant4Base> {
   using type = rdstest::inner::MyVariant4::e;
 };
 
@@ -588,19 +645,33 @@ namespace rdstest::inner {
 
   } // namespace TemplateTwoParams
 
+  namespace detail {
+
+    template<typename T, typename U>
+    using TemplateTwoParamsBase = base::variant<
+      TemplateTwoParams::first_alternative<T, U>,
+      TemplateTwoParams::second_alternative<T, U>,
+      TemplateTwoParams::third_alternative<T, U>
+    >;
+
+  } // namespace detail
+
   template<typename T, typename U>
-  using TemplateTwoParams_t = base::variant<
-    TemplateTwoParams::first_alternative<T, U>,
-    TemplateTwoParams::second_alternative<T, U>,
-    TemplateTwoParams::third_alternative<T, U>
-  >;
+  struct TemplateTwoParams_t : public detail::TemplateTwoParamsBase<T, U> {
+    using i_am_rds_variant = void;
+    using Base = detail::TemplateTwoParamsBase<T, U>;
+    using Base::Base;
+    TemplateTwoParams_t( Base&& b ) : Base( std::move( b ) ) {}
+    Base const& as_base() const& { return *this; }
+    Base&       as_base()      & { return *this; }
+  };
   NOTHROW_MOVE( TemplateTwoParams_t<int, int> );
 
 } // namespace rdstest::inner
 
 // This gives us the enum to use in a switch statement.
 template<typename T, typename U>
-struct base::variant_to_enum<rdstest::inner::TemplateTwoParams_t<T, U>> {
+struct base::variant_to_enum<rdstest::inner::detail::TemplateTwoParamsBase<T, U>> {
   using type = rdstest::inner::TemplateTwoParams::e;
 };
 
@@ -688,18 +759,32 @@ namespace rdstest::inner {
 
   } // namespace CompositeTemplateTwo
 
+  namespace detail {
+
+    template<typename T, typename U>
+    using CompositeTemplateTwoBase = base::variant<
+      CompositeTemplateTwo::first<T, U>,
+      CompositeTemplateTwo::second<T, U>
+    >;
+
+  } // namespace detail
+
   template<typename T, typename U>
-  using CompositeTemplateTwo_t = base::variant<
-    CompositeTemplateTwo::first<T, U>,
-    CompositeTemplateTwo::second<T, U>
-  >;
+  struct CompositeTemplateTwo_t : public detail::CompositeTemplateTwoBase<T, U> {
+    using i_am_rds_variant = void;
+    using Base = detail::CompositeTemplateTwoBase<T, U>;
+    using Base::Base;
+    CompositeTemplateTwo_t( Base&& b ) : Base( std::move( b ) ) {}
+    Base const& as_base() const& { return *this; }
+    Base&       as_base()      & { return *this; }
+  };
   NOTHROW_MOVE( CompositeTemplateTwo_t<int, int> );
 
 } // namespace rdstest::inner
 
 // This gives us the enum to use in a switch statement.
 template<typename T, typename U>
-struct base::variant_to_enum<rdstest::inner::CompositeTemplateTwo_t<T, U>> {
+struct base::variant_to_enum<rdstest::inner::detail::CompositeTemplateTwoBase<T, U>> {
   using type = rdstest::inner::CompositeTemplateTwo::e;
 };
 
@@ -777,18 +862,31 @@ namespace rn {
 
   } // namespace MySumtype
 
-  using MySumtype_t = base::variant<
-    MySumtype::none,
-    MySumtype::some,
-    MySumtype::more
-  >;
+  namespace detail {
+
+    using MySumtypeBase = base::variant<
+      MySumtype::none,
+      MySumtype::some,
+      MySumtype::more
+    >;
+
+  } // namespace detail
+
+  struct MySumtype_t : public detail::MySumtypeBase {
+    using i_am_rds_variant = void;
+    using Base = detail::MySumtypeBase;
+    using Base::Base;
+    MySumtype_t( Base&& b ) : Base( std::move( b ) ) {}
+    Base const& as_base() const& { return *this; }
+    Base&       as_base()      & { return *this; }
+  };
   NOTHROW_MOVE( MySumtype_t );
 
 } // namespace rn
 
 // This gives us the enum to use in a switch statement.
 template<>
-struct base::variant_to_enum<rn::MySumtype_t> {
+struct base::variant_to_enum<rn::detail::MySumtypeBase> {
   using type = rn::MySumtype::e;
 };
 
@@ -891,19 +989,32 @@ namespace rn {
 
   } // namespace OnOffState
 
-  using OnOffState_t = base::variant<
-    OnOffState::off,
-    OnOffState::on,
-    OnOffState::switching_on,
-    OnOffState::switching_off
-  >;
+  namespace detail {
+
+    using OnOffStateBase = base::variant<
+      OnOffState::off,
+      OnOffState::on,
+      OnOffState::switching_on,
+      OnOffState::switching_off
+    >;
+
+  } // namespace detail
+
+  struct OnOffState_t : public detail::OnOffStateBase {
+    using i_am_rds_variant = void;
+    using Base = detail::OnOffStateBase;
+    using Base::Base;
+    OnOffState_t( Base&& b ) : Base( std::move( b ) ) {}
+    Base const& as_base() const& { return *this; }
+    Base&       as_base()      & { return *this; }
+  };
   NOTHROW_MOVE( OnOffState_t );
 
 } // namespace rn
 
 // This gives us the enum to use in a switch statement.
 template<>
-struct base::variant_to_enum<rn::OnOffState_t> {
+struct base::variant_to_enum<rn::detail::OnOffStateBase> {
   using type = rn::OnOffState::e;
 };
 
@@ -1002,17 +1113,30 @@ namespace rn {
 
   } // namespace OnOffEvent
 
-  using OnOffEvent_t = base::variant<
-    OnOffEvent::turn_off,
-    OnOffEvent::turn_on
-  >;
+  namespace detail {
+
+    using OnOffEventBase = base::variant<
+      OnOffEvent::turn_off,
+      OnOffEvent::turn_on
+    >;
+
+  } // namespace detail
+
+  struct OnOffEvent_t : public detail::OnOffEventBase {
+    using i_am_rds_variant = void;
+    using Base = detail::OnOffEventBase;
+    using Base::Base;
+    OnOffEvent_t( Base&& b ) : Base( std::move( b ) ) {}
+    Base const& as_base() const& { return *this; }
+    Base&       as_base()      & { return *this; }
+  };
   NOTHROW_MOVE( OnOffEvent_t );
 
 } // namespace rn
 
 // This gives us the enum to use in a switch statement.
 template<>
-struct base::variant_to_enum<rn::OnOffEvent_t> {
+struct base::variant_to_enum<rn::detail::OnOffEventBase> {
   using type = rn::OnOffEvent::e;
 };
 

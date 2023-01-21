@@ -17,11 +17,11 @@
 
 // ss
 #include "ss/colony-enums.rds.hpp"
-#include "ss/colony.rds.hpp"
 #include "ss/dwelling-id.hpp"
 
 namespace rn {
 
+struct ColonyJob_t;
 struct SS;
 struct TS;
 struct Player;

@@ -41,7 +41,7 @@ valid_or<generic_err> check_harbor_state_invariants(
     UnitHarborViewState const& info ) {
   valid_or<string> res =
       base::visit( []( auto const& o ) { return o.validate(); },
-                   info.port_status );
+                   info.port_status.as_base() );
   if( !res ) return GENERIC_ERROR( "{}", res.error() );
   return base::valid;
 }

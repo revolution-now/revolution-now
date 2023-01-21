@@ -29,8 +29,6 @@ sumtype.Maybe {
   just { val 'T' },
 }
 
-sumtype.MyVariant0 {}
-
 # Descriptive comment.
 sumtype.MyVariant1 {
   # hello
@@ -69,10 +67,10 @@ namespace "rdstest.inner"
 
 sumtype.MyVariant3 {
   a1 {
-    var0 'MyVariant0_t',
+    var0 'std::monostate',
   },
   a2 {
-    var1 'MyVariant0_t',
+    var1 'std::monostate',
     var2 'MyVariant2_t',
   },
   a3 {

@@ -20,6 +20,9 @@
 #include "ss/dwelling.rds.hpp"
 #include "ss/ref.hpp"
 
+// refl
+#include "src/refl/to-str.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 

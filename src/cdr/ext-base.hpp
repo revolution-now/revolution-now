@@ -80,4 +80,21 @@ result<base::variant<Ts...>> from_canonical(
     converter& conv, value const& v,
     tag_t<base::variant<Ts...>> ) = delete;
 
+/****************************************************************
+** Structs derived from base::variant.
+*****************************************************************/
+template<typename T>
+requires requires { typename T::i_am_rds_variant; }
+value to_canonical( converter& conv, T const& o, tag_t<T> ) {
+  return conv.to( o.as_base() );
+}
+
+template<typename T>
+requires requires { typename T::i_am_rds_variant; }
+result<T> from_canonical( converter& conv, value const& v,
+                          tag_t<T> ) {
+  UNWRAP_RETURN( res, conv.from<typename T::Base>( v ) );
+  return T( std::move( res ) );
+}
+
 } // namespace cdr

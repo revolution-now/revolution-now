@@ -22,6 +22,7 @@
 #include "src/plane-stack.hpp"
 
 // ss
+#include "ss/land-view.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"

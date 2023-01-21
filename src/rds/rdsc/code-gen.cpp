@@ -298,8 +298,8 @@ struct CodeGenerator {
   void emit_variant_to_enum_specialization(
       string_view ns, expr::Sumtype const& sumtype ) {
     if( sumtype.alternatives.empty() ) return;
-    string full_sumtype_name =
-        fmt::format( "{}::{}_t{}", ns, sumtype.name,
+    string const qualified_base_name =
+        fmt::format( "{}::detail::{}Base{}", ns, sumtype.name,
                      template_params( sumtype.tmpl_params,
                                       /*put_typename=*/false ) );
     newline();
@@ -311,7 +311,7 @@ struct CodeGenerator {
     else
       emit_template_decl( sumtype.tmpl_params );
     line( "struct base::variant_to_enum<{}> {{",
-          full_sumtype_name );
+          qualified_base_name );
     {
       auto _ = indent();
       line( "using type = {}::{}::e;", ns, sumtype.name );
@@ -509,24 +509,42 @@ struct CodeGenerator {
       close_ns( sumtype.name );
       newline();
     }
+    open_ns( "detail" );
     emit_template_decl( sumtype.tmpl_params );
-    if( sumtype.alternatives.empty() ) {
-      line( "using {}_t = std::monostate;", sumtype.name );
-    } else {
-      line( "using {}_t = base::variant<", sumtype.name );
-      vector<string> variants;
-      for( expr::Alternative const& alt : sumtype.alternatives )
-        variants.push_back(
-            "  "s + sumtype.name + "::" + alt.name +
-            template_params( sumtype.tmpl_params,
-                             /*put_typename=*/false ) );
-      emit_vert_list( variants, "," );
-      line( ">;" );
-      // Ensure that the variant is nothrow move'able since this
-      // makes code more efficient that uses it.
-      line( "NOTHROW_MOVE( {}_t{} );", sumtype.name,
-            all_int_tmpl_params( sumtype.tmpl_params.size() ) );
+    line( "using {}Base = base::variant<", sumtype.name );
+    vector<string> variants;
+    for( expr::Alternative const& alt : sumtype.alternatives )
+      variants.push_back(
+          "  "s + sumtype.name + "::" + alt.name +
+          template_params( sumtype.tmpl_params,
+                           /*put_typename=*/false ) );
+    emit_vert_list( variants, "," );
+    line( ">;" );
+    newline();
+    close_ns( "detail" );
+    newline();
+    emit_template_decl( sumtype.tmpl_params );
+    string const base_name =
+        fmt::format( "detail::{}Base{}", sumtype.name,
+                     template_params( sumtype.tmpl_params,
+                                      /*put_typename=*/false ) );
+    line( "struct {}_t : public {} {{", sumtype.name,
+          base_name );
+    {
+      auto _ = indent();
+      line( "using i_am_rds_variant = void;" );
+      line( "using Base = {};", base_name );
+      line( "using Base::Base;" );
+      line( "{}_t( Base&& b ) : Base( std::move( b ) ) {{}}",
+            sumtype.name );
+      line( "Base const& as_base() const& { return *this; }" );
+      line( "Base&       as_base()      & { return *this; }" );
     }
+    line( "};" );
+    // Ensure that the variant is nothrow move'able since this
+    // makes code more efficient that uses it.
+    line( "NOTHROW_MOVE( {}_t{} );", sumtype.name,
+          all_int_tmpl_params( sumtype.tmpl_params.size() ) );
     newline();
     close_ns( ns );
     // Global namespace.

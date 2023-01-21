@@ -19,10 +19,10 @@
 #include "test/rds/testing.rds.hpp"
 
 // refl
-#include "refl/to-str.hpp"
+#include "src/refl/to-str.hpp"
 
 // base
-#include "base/to-str-ext-std.hpp"
+#include "src/base/to-str-ext-std.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
