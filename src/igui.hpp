@@ -37,6 +37,8 @@
 
 namespace rn {
 
+enum class e_woodcut;
+
 /****************************************************************
 ** IGui
 *****************************************************************/
@@ -200,6 +202,17 @@ struct IGui {
   virtual wait<maybe<int>> int_input(
       IntInputConfig const& config,
       e_input_required      required ) = 0;
+
+  /* ============================================================
+  ** Woodcuts
+  ** ===========================================================*/
+
+ public:
+  // Note that this one should not be called directly by normal
+  // game code. Instead call the one in the woodcut module that
+  // will check to make sure that each woodcut is only displayed
+  // once per game.
+  virtual wait<> display_woodcut( e_woodcut cut ) = 0;
 
   /* ============================================================
   ** Utilities

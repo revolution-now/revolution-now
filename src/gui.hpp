@@ -35,6 +35,9 @@ struct RealGui : IGui {
   wait<std::chrono::microseconds> wait_for(
       std::chrono::microseconds time ) override;
 
+  // Implement IGui.
+  wait<> display_woodcut( e_woodcut cut ) override;
+
  private:
   // The ones in this section should not be invoked directly, but
   // instead through the IGui wrappers that are public. That way

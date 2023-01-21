@@ -14,6 +14,7 @@
 #include "co-time.hpp"
 #include "co-wait.hpp"
 #include "window.hpp"
+#include "woodcut.hpp"
 
 // C++ standard library
 #include <algorithm>
@@ -122,6 +123,10 @@ wait<maybe<int>> RealGui::int_input(
     co_return nothing;
   }
   co_return *res;
+}
+
+wait<> RealGui::display_woodcut( e_woodcut cut ) {
+  co_await detail::display_woodcut( *this, cut );
 }
 
 } // namespace rn
