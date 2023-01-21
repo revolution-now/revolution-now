@@ -38,6 +38,9 @@
 // refl
 #include "refl/to-str.hpp"
 
+// base
+#include "base/vocab.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -77,21 +80,25 @@ wait<> try_discover_new_world( SSConst const& ss, TS& ts,
 }
 
 // Returns true if the unit was deleted.
-wait<bool> try_lost_city_rumor( SS& ss, TS& ts, Player& player,
-                                UnitId id, Coord world_square ) {
+wait<base::NoDiscard<bool>> try_lost_city_rumor(
+    SS& ss, TS& ts, Player& player, UnitId id,
+    Coord world_square ) {
   // Check if the unit actually moved and it landed on a Lost
   // City Rumor.
   if( !has_lost_city_rumor( ss.terrain, world_square ) )
     co_return false;
   e_lcr_explorer_category const explorer =
       lcr_explorer_category( ss.units, id );
-  e_rumor_type rumor_type =
+  e_rumor_type const rumor_type =
       pick_rumor_type_result( ts.rand, explorer, player );
-  e_burial_mounds_type burial_type =
+  e_burial_mounds_type const burial_type =
       pick_burial_mounds_result( ts.rand, explorer );
-  bool has_burial_grounds = pick_burial_grounds_result(
+  bool const has_burial_grounds = pick_burial_grounds_result(
       ts.rand, player, explorer, burial_type );
-  LostCityRumorResult_t lcr_res =
+  if( rumor_type == e_rumor_type::fountain_of_youth )
+    co_await display_woodcut_if_needed(
+        ts, player, e_woodcut::discovered_fountain_of_youth );
+  LostCityRumorResult_t const lcr_res =
       co_await run_lost_city_rumor_result(
           ss, ts, player, id, world_square, rumor_type,
           burial_type, has_burial_grounds );

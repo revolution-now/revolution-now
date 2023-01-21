@@ -16,14 +16,18 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/mocks/irand.hpp"
 
 // mock
 #include "src/mock/matchers.hpp"
 
 // ss
-#include "ss/dwelling.rds.hpp"
-#include "ss/player.rds.hpp"
-#include "ss/units.hpp"
+#include "src/ss/dwelling.rds.hpp"
+#include "src/ss/player.rds.hpp"
+#include "src/ss/units.hpp"
+
+// refl
+#include "src/refl/to-str.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -34,6 +38,7 @@ namespace {
 using namespace std;
 
 using ::mock::matchers::_;
+using ::mock::matchers::StrContains;
 
 /****************************************************************
 ** Fake World Setup
@@ -193,12 +198,58 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
 }
 #endif
 
-TEST_CASE( "[on-map] non-interactive: updates visibility" ) {
-  World W;
-  // TODO
+TEST_CASE(
+    "[on-map] interactive: [LCR] shows fountain of youth "
+    "woodcut" ) {
+  World       W;
+  Coord       to   = { .x = 1, .y = 1 };
+  Unit const& unit = W.add_unit_on_map(
+      e_unit_type::free_colonist, { .x = 1, .y = 0 } );
+  MapSquare& square      = W.square( { .x = 1, .y = 1 } );
+  square.lost_city_rumor = true;
+  Player& player         = W.default_player();
+  player.new_world_name  = "my world";
+  player.woodcuts[e_woodcut::discovered_new_world] = true;
+
+  auto f = [&] {
+    wait<maybe<UnitDeleted>> const w =
+        unit_to_map_square( W.ss(), W.ts(), unit.id(), to );
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+    REQUIRE( *w == nothing );
+  };
+
+  // Selects rumor result = fountain of youth.
+  EXPECT_CALL( W.rand(),
+               between_ints( 0, 100, e_interval::half_open ) )
+      .returns( 58 );
+  // Selects burial mounds type (not relevant).
+  EXPECT_CALL( W.rand(),
+               between_ints( 0, 100, e_interval::half_open ) )
+      .returns( 0 );
+  EXPECT_CALL( W.gui(),
+               display_woodcut(
+                   e_woodcut::discovered_fountain_of_youth ) )
+      .returns<monostate>();
+  EXPECT_CALL( W.gui(), message_box( StrContains( "Youth" ) ) )
+      .returns<monostate>();
+
+  for( int i = 0; i < 8; ++i ) {
+    // Pick immigrant.
+    EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+        .returns<maybe<string>>( "0" );
+    // Replace with next immigrant.
+    EXPECT_CALL( W.rand(), between_doubles( _, _ ) )
+        .returns( 0 );
+    // Wait a bit.
+    EXPECT_CALL( W.gui(), wait_for( _ ) )
+        .returns<chrono::microseconds>();
+  }
+
+  f();
 }
 
-TEST_CASE( "[on-map] interactive: discovers rumor" ) {
+TEST_CASE( "[on-map] non-interactive: updates visibility" ) {
   World W;
   // TODO
 }
