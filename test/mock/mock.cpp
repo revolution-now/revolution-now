@@ -8,8 +8,11 @@
 * Description: Unit tests for the src/mock/mock.* module.
 *
 *****************************************************************/
-#include "test/mocking.hpp"
 #include "test/testing.hpp"
+
+// Testing
+#include "test/mocking.hpp"
+#include "test/monitoring-types.hpp"
 
 // Under test.
 #include "src/mock/mock.hpp"
@@ -23,6 +26,7 @@ namespace {
 using namespace std;
 using ::Catch::Matches;
 using ::mock::matchers::_;
+using ::testing::monitoring_types::MovedFromCounter;
 
 /****************************************************************
 ** Static Checks
@@ -64,6 +68,8 @@ struct IPoint {
                                int*    arr ) const = 0;
 
   virtual int& returns_lvalue_ref() const = 0;
+
+  virtual MovedFromCounter moves_result() const = 0;
 };
 
 /****************************************************************
@@ -83,6 +89,7 @@ struct MockPoint : IPoint {
   MOCK_METHOD( void, output_c_array, (size_t*, int*),
                ( const ) );
   MOCK_METHOD( int&, returns_lvalue_ref, (), ( const ) );
+  MOCK_METHOD( MovedFromCounter, moves_result, (), ( const ) );
 };
 
 /****************************************************************
@@ -123,6 +130,10 @@ struct PointUser {
   }
 
   int get_lvalue_ref() const { return p_->returns_lvalue_ref(); }
+
+  MovedFromCounter moves_result() const {
+    return p_->moves_result();
+  }
 
   IPoint* p_;
 };
@@ -236,7 +247,8 @@ TEST_CASE( "[mock] throws on unexpected mock call" ) {
       Matches( "unexpected mock function call.*get_y.*" ) );
 }
 
-TEST_CASE( "[mock] prints args on unexpected mock function call" ) {
+TEST_CASE(
+    "[mock] prints args on unexpected mock function call" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -257,6 +269,50 @@ TEST_CASE( "[mock] some_method_1" ) {
   EXPECT_CALL( mp, set_y( 3 ) );
   EXPECT_CALL( mp, length() ).returns( 2.3 );
   REQUIRE( user.some_method_1( 4 ) == 2 );
+}
+
+TEST_CASE(
+    "[mock] movable return type will move out of the stored "
+    "value instead of copying" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, moves_result() ).returns<MovedFromCounter>();
+  MovedFromCounter const c = user.moves_result();
+  // Move move into storage, then another into c1.
+  REQUIRE( c.last_move_source_val == 1 );
+  REQUIRE( c.moved_from == 0 );
+}
+
+TEST_CASE(
+    "[mock] return type with multiple responses copies stored "
+    "value instead of moving" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  EXPECT_CALL( mp, moves_result() )
+      .returns<MovedFromCounter>()
+      .times( 3 );
+
+  // In the below, the last_move_source_val would increase each
+  // time if the stored return value were being moved from each
+  // time.
+
+  { // 1
+    MovedFromCounter const c = user.moves_result();
+    REQUIRE( c.last_move_source_val == 1 );
+    REQUIRE( c.moved_from == 0 );
+  }
+  { // 2
+    MovedFromCounter const c = user.moves_result();
+    REQUIRE( c.last_move_source_val == 1 );
+    REQUIRE( c.moved_from == 0 );
+  }
+  { // 3
+    MovedFromCounter const c = user.moves_result();
+    REQUIRE( c.last_move_source_val == 1 );
+    REQUIRE( c.moved_from == 0 );
+  }
 }
 
 } // namespace

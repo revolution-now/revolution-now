@@ -306,7 +306,26 @@ struct Responder<RetT, std::tuple<Args...>,
     if constexpr( !std::is_same_v<RetT, void> ) {
       BASE_CHECK( ret_.has_value(),
                   "return value not set for {}.", fn_name_ );
-      return ret_->get();
+      if constexpr( !std::is_copy_constructible_v<RetT> ||
+                    std::is_reference_v<RetT> )
+        // For move-only return types we can only use this re-
+        // sponder once and so just use the RetHolder's return
+        // type which will typically be an rvalue ref, meaning
+        // that we will produce our return value by moving out of
+        // the stored one.
+        return ret_->get();
+      else {
+        // The return type is copy constructible, so we can move
+        // it or copy it. Prefer to move it unless we are using
+        // this responder multiple times, in which case we have
+        // to copy.
+        if( times_expected_ == 0 )
+          return ret_->get();
+        else {
+          auto const& res = ret_->get();
+          return res;
+        }
+      }
     }
   }
 
@@ -316,6 +335,14 @@ struct Responder<RetT, std::tuple<Args...>,
   void clear_expectations() { times_expected_ = 0; }
 
   Responder& times( int n ) {
+    static_assert(
+        std::is_same_v<RetT, void> ||
+            std::is_copy_constructible_v<RetT>,
+        "When returning a non-copyable type we cannot use the "
+        ".times() method because that would require repeatedly "
+        "moving out of the (single) stored return value. In "
+        "these cases, one instead needs to issue multiple "
+        "EXPECT_CALL statements in the unit test." );
     BASE_CHECK( n > 0 );
     times_expected_ = n;
     return *this;

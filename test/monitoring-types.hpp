@@ -32,8 +32,8 @@ struct Tracker {
   static inline int move_constructed = 0;
   static inline int move_assigned    = 0;
   static void       reset() {
-          constructed = destructed = copied = move_constructed =
-              move_assigned                 = 0;
+    constructed = destructed = copied = move_constructed =
+        move_assigned                 = 0;
   }
 
   Tracker() noexcept { ++constructed; }
@@ -42,15 +42,41 @@ struct Tracker {
   ~Tracker() noexcept { ++destructed; }
 
   Tracker& operator=( Tracker const& ) = delete;
-  Tracker& operator                    =( Tracker&& ) noexcept {
-                        ++move_assigned;
-                        return *this;
+  Tracker& operator=( Tracker&& ) noexcept {
+    ++move_assigned;
+    return *this;
   }
 
   friend void to_str( Tracker const&, std::string& out,
                       base::ADL_t ) {
     out += "Tracker";
   }
+};
+
+/****************************************************************
+** MovedFromCounter
+*****************************************************************/
+// A type that counts how many times its been moved from.
+struct MovedFromCounter {
+  MovedFromCounter() = default;
+
+  MovedFromCounter( MovedFromCounter const& ) = default;
+  MovedFromCounter& operator=( MovedFromCounter const& ) =
+      default;
+
+  MovedFromCounter( MovedFromCounter&& rhs ) {
+    ++rhs.moved_from;
+    last_move_source_val = rhs.moved_from;
+  }
+
+  MovedFromCounter& operator=( MovedFromCounter&& rhs ) {
+    ++rhs.moved_from;
+    last_move_source_val = rhs.moved_from;
+    return *this;
+  }
+
+  int moved_from           = 0;
+  int last_move_source_val = 0;
 };
 
 /****************************************************************
@@ -74,9 +100,9 @@ struct Formattable {
 struct Constexpr {
   constexpr Constexpr() = default;
   constexpr Constexpr( int n_ ) noexcept : n( n_ ) {}
-  constexpr Constexpr( Constexpr const& ) = default;
-  constexpr Constexpr( Constexpr&& )      = default;
-  constexpr Constexpr& operator=( Constexpr const& ) = default;
+  constexpr Constexpr( Constexpr const& )             = default;
+  constexpr Constexpr( Constexpr&& )                  = default;
+  constexpr Constexpr& operator=( Constexpr const& )  = default;
   constexpr Constexpr& operator=( Constexpr&& )       = default;
   constexpr bool operator==( Constexpr const& ) const = default;
 
@@ -98,9 +124,9 @@ inline void to_str( Empty const&, std::string& out,
 *****************************************************************/
 struct NoCopy {
   explicit NoCopy( char c_ ) : c( c_ ) {}
-  NoCopy( NoCopy const& ) = delete;
-  NoCopy( NoCopy&& )      = default;
-  NoCopy&     operator=( NoCopy const& ) = delete;
+  NoCopy( NoCopy const& )                        = delete;
+  NoCopy( NoCopy&& )                             = default;
+  NoCopy&     operator=( NoCopy const& )         = delete;
   NoCopy&     operator=( NoCopy&& )              = default;
   bool        operator==( NoCopy const& ) const& = default;
   char        c;
@@ -119,10 +145,10 @@ static_assert( std::is_move_assignable_v<NoCopy> );
 *****************************************************************/
 struct NoCopyNoMove {
   NoCopyNoMove( char c_ ) : c( c_ ) {}
-  NoCopyNoMove( NoCopyNoMove const& ) = delete;
-  NoCopyNoMove( NoCopyNoMove&& )      = delete;
+  NoCopyNoMove( NoCopyNoMove const& )            = delete;
+  NoCopyNoMove( NoCopyNoMove&& )                 = delete;
   NoCopyNoMove& operator=( NoCopyNoMove const& ) = delete;
-  NoCopyNoMove& operator=( NoCopyNoMove&& ) = delete;
+  NoCopyNoMove& operator=( NoCopyNoMove&& )      = delete;
   NoCopyNoMove& operator=( char c_ ) noexcept {
     c = c_;
     return *this;
@@ -161,12 +187,12 @@ struct Throws {
 ** Trivial Everything
 *****************************************************************/
 struct Trivial {
-  Trivial()                 = default;
-  ~Trivial()                = default;
-  Trivial( Trivial const& ) = default;
-  Trivial( Trivial&& )      = default;
+  Trivial()                            = default;
+  ~Trivial()                           = default;
+  Trivial( Trivial const& )            = default;
+  Trivial( Trivial&& )                 = default;
   Trivial& operator=( Trivial const& ) = default;
-  Trivial& operator=( Trivial&& ) = default;
+  Trivial& operator=( Trivial&& )      = default;
 
   double d;
   int    n;
