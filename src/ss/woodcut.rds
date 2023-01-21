@@ -1,0 +1,79 @@
+# ===============================================================
+# woodcut.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-01-21.
+#
+# Description: Rds definitions for the woodcut module.
+#
+# ===============================================================
+namespace "rn"
+
+# Records when a one-time event happens, e.g. "discovery of the
+# pacific ocean." so that the associated actions are only per-
+# formed once in the game. In the OG these events are accompanied
+# be a screen-filling image of the event that gets enpixelated.
+# These are inspired from the list of events in the OG's WOOD-
+# CUT.TXT.
+enum.e_woodcut {
+  # First time a unit is placed on or adjacent to land. In prac-
+  # tice, this is the first time that the player's initial ship
+  # moves onto a square adjacent to land.
+  discovered_new_world,
+
+  # First time a colony is built by the player.
+  building_first_colony,
+
+  # First time a native tribe is encountered on land. This hap-
+  # pens the first time one of the player's land units or
+  # colonies becomes adjacent to a native dwelling or brave.
+  #
+  # We can't record this by way of the player's relationship
+  # status with the tribe since then if that particular tribe is
+  # wiped out then it will be erased.
+  meeting_the_natives,
+
+  # First time one of the player's land units or colonies becomes
+  # adjacent to a square that containing to an Aztec dwelling or
+  # brave.
+  meeting_the_aztec_empire,
+
+  # First time one of the player's land units or colonies becomes
+  # adjacent to a square that containing to an Inca dwelling or
+  # brave.
+  meeting_the_inca_nation,
+
+  # First time one of the player's units moves to a square (could
+  # be land or ocean) that is on or adjacent to a Pacific Ocean
+  # square.
+  discovered_pacific_ocean,
+
+  # First time any unit attempts to enter a native village after
+  # having met them.
+  entering_native_village,
+
+  # First fountain of youth encountered by this player.
+  discovered_fountain_of_youth,
+
+  # The first time that some cargo is brought to the new world.
+  cargo_from_the_new_world,
+
+  # The first time one of the player's units or colonies becomes
+  # adjacent to a square containing a foreign unit or colony
+  # where both must be on land.
+  meeting_fellow_europeans,
+
+  # This can only happen when attacked by the natives, since a
+  # foreign european unit will always take ownership of the
+  # colony instead of burning it.
+  colony_burning,
+
+  # This one appears in the list of the OG but not sure when it
+  # is used.
+  colony_destroyed,
+
+  # First time a native unit attacks either one of the player's
+  # units or colonies.
+  indian_raid,
+}

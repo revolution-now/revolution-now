@@ -39,20 +39,41 @@ void linker_dont_discard_module_player() {}
 namespace {
 
 LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::Player;
-  auto u  = st.usertype.create<U>();
+  {
+    using U = ::rn::WoodcutMap;
+    auto u  = st.usertype.create<U>();
 
-  u["nation"]              = &U::nation;
-  u["human"]               = &U::human;
-  u["money"]               = &U::money;
-  u["crosses"]             = &U::crosses;
-  u["old_world"]           = &U::old_world;
-  u["new_world_name"]      = &U::new_world_name;
-  u["revolution_status"]   = &U::revolution_status;
-  u["fathers"]             = &U::fathers;
-  u["starting_position"]   = &U::starting_position;
-  u["last_high_seas"]      = &U::last_high_seas;
-  u["artillery_purchases"] = &U::artillery_purchases;
+    // TODO: make this generic for enum maps.
+    u[lua::metatable_key]["__index"] =
+        []( U& o, e_woodcut type ) { return o[type]; };
+
+    // TODO: make this generic for enum maps.
+    u[lua::metatable_key]["__newindex"] =
+        []( U& o, e_woodcut type, bool b ) { o[type] = b; };
+
+    // !! NOTE: because we overwrote the __*index metamethods on
+    // this userdata we cannot add any further (non-metatable)
+    // members on this object, since there will be no way to look
+    // them up by name.
+  };
+
+  {
+    using U = ::rn::Player;
+    auto u  = st.usertype.create<U>();
+
+    u["nation"]              = &U::nation;
+    u["human"]               = &U::human;
+    u["money"]               = &U::money;
+    u["crosses"]             = &U::crosses;
+    u["old_world"]           = &U::old_world;
+    u["new_world_name"]      = &U::new_world_name;
+    u["woodcuts"]            = &U::woodcuts;
+    u["revolution_status"]   = &U::revolution_status;
+    u["fathers"]             = &U::fathers;
+    u["starting_position"]   = &U::starting_position;
+    u["last_high_seas"]      = &U::last_high_seas;
+    u["artillery_purchases"] = &U::artillery_purchases;
+  };
 };
 
 } // namespace
