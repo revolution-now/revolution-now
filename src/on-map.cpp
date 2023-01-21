@@ -22,6 +22,7 @@
 #include "treasure.hpp"
 #include "ts.hpp"
 #include "visibility.hpp"
+#include "woodcut.hpp"
 
 // ss
 #include "ss/colonies.hpp"
@@ -61,6 +62,8 @@ wait<> try_discover_new_world( SSConst const& ss, TS& ts,
     if( !square.has_value() ) continue;
     if( square->surface != e_surface::land ) continue;
     // We've discovered the new world!
+    co_await display_woodcut_if_needed(
+        ts, player, e_woodcut::discovered_new_world );
     string const name = co_await ts.gui.required_string_input(
         { .msg = "You've discovered the new world!  What shall "
                  "we call this land, Your Excellency?",

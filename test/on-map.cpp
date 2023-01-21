@@ -109,6 +109,7 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
 
   SECTION( "already discovered" ) {
     player.new_world_name = "my world";
+    player.woodcuts[e_woodcut::discovered_new_world] = true;
     w = unit_to_map_square( W.ss(), W.ts(), unit_id,
                             { .x = 0, .y = 1 } );
     REQUIRE( !w.exception() );
@@ -120,6 +121,9 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
   }
 
   SECTION( "not yet discovered" ) {
+    EXPECT_CALL( W.gui(), display_woodcut(
+                              e_woodcut::discovered_new_world ) )
+        .returns<monostate>();
     EXPECT_CALL( W.gui(),
                  string_input( _, e_input_required::yes ) )
         .returns<maybe<string>>( "my world 2" );
