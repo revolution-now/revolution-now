@@ -38,7 +38,7 @@ EnterNativeDwellingOptions enter_native_dwelling_options(
     e_unit_type unit_type, Dwelling const& dwelling );
 
 wait<e_enter_dwelling_option> present_dwelling_entry_options(
-    SSConst const& ss, TS& ts,
+    SSConst const& ss, TS& ts, Player& player,
     EnterNativeDwellingOptions const& options );
 
 /****************************************************************

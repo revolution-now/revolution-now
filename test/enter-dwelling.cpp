@@ -115,7 +115,6 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   relationship      = nothing;
   unit_type         = e_unit_type::free_colonist;
   expected.reaction = e_enter_dwelling_reaction::wave_happily;
-  expected.category = e_dwelling_interaction_category::colonist;
   expected.options  = {
       e_enter_dwelling_option::cancel,
   };
@@ -127,8 +126,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   unit_type            = e_unit_type::free_colonist;
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
-  expected.category = e_dwelling_interaction_category::colonist;
-  expected.options  = {
+  expected.options = {
       e_enter_dwelling_option::live_among_the_natives,
       e_enter_dwelling_option::cancel,
   };
@@ -139,8 +137,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   relationship->at_war = true;
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
-  expected.category = e_dwelling_interaction_category::colonist;
-  expected.options  = {
+  expected.options = {
       e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
@@ -151,8 +148,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   unit_type            = e_unit_type::petty_criminal;
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
-  expected.category = e_dwelling_interaction_category::colonist;
-  expected.options  = {
+  expected.options = {
       e_enter_dwelling_option::live_among_the_natives,
       e_enter_dwelling_option::cancel,
   };
@@ -163,8 +159,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   relationship->at_war = true;
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
-  expected.category = e_dwelling_interaction_category::colonist;
-  expected.options  = {
+  expected.options = {
       e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
@@ -175,8 +170,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   unit_type            = e_unit_type::expert_farmer;
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
-  expected.category = e_dwelling_interaction_category::colonist;
-  expected.options  = {
+  expected.options = {
       e_enter_dwelling_option::live_among_the_natives,
       e_enter_dwelling_option::cancel,
   };
@@ -187,8 +181,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   relationship->at_war = true;
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
-  expected.category = e_dwelling_interaction_category::colonist;
-  expected.options  = {
+  expected.options = {
       e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
@@ -198,8 +191,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   unit_type            = e_unit_type::scout;
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
-  expected.category = e_dwelling_interaction_category::scout;
-  expected.options  = {
+  expected.options = {
       e_enter_dwelling_option::speak_with_chief,
       e_enter_dwelling_option::attack_village,
       // e_enter_dwelling_option::demand_tribute,
@@ -212,8 +204,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   unit_type            = e_unit_type::seasoned_scout;
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
-  expected.category = e_dwelling_interaction_category::scout;
-  expected.options  = {
+  expected.options = {
       e_enter_dwelling_option::speak_with_chief,
       e_enter_dwelling_option::attack_village,
       e_enter_dwelling_option::cancel,
@@ -225,8 +216,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   unit_type            = e_unit_type::dragoon;
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
-  expected.category = e_dwelling_interaction_category::military;
-  expected.options  = {
+  expected.options = {
       e_enter_dwelling_option::attack_village,
       // e_enter_dwelling_option::demand_tribute,
       e_enter_dwelling_option::cancel,
@@ -238,8 +228,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   unit_type            = e_unit_type::artillery;
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
-  expected.category = e_dwelling_interaction_category::military;
-  expected.options  = {
+  expected.options = {
       e_enter_dwelling_option::attack_village,
       e_enter_dwelling_option::cancel,
   };
@@ -253,8 +242,6 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   W.units().change_to_dwelling( missionary.id(), dwelling.id );
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
-  expected.category =
-      e_dwelling_interaction_category::missionary;
   expected.options = {
       // e_enter_dwelling_option::incite_indians,
       e_enter_dwelling_option::cancel,
@@ -267,8 +254,6 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   W.units().disown_unit( missionary.id() );
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
-  expected.category =
-      e_dwelling_interaction_category::missionary;
   expected.options = {
       // e_enter_dwelling_option::establish_mission,
       // e_enter_dwelling_option::incite_indians,
@@ -282,8 +267,6 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   W.units().disown_unit( missionary.id() );
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
-  expected.category =
-      e_dwelling_interaction_category::missionary;
   expected.options = {
       e_enter_dwelling_option::cancel,
   };
@@ -294,8 +277,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   unit_type            = e_unit_type::wagon_train;
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
-  expected.category = e_dwelling_interaction_category::trade;
-  expected.options  = {
+  expected.options = {
       // e_enter_dwelling_option::trade,
       e_enter_dwelling_option::cancel,
   };
@@ -306,8 +288,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   unit_type            = e_unit_type::merchantman;
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
-  expected.category = e_dwelling_interaction_category::trade;
-  expected.options  = {
+  expected.options = {
       // e_enter_dwelling_option::trade,
       e_enter_dwelling_option::cancel,
   };
@@ -318,10 +299,56 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   unit_type            = e_unit_type::treasure;
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
-  expected.category = e_dwelling_interaction_category::none;
-  expected.options  = {
+  expected.options = {
       e_enter_dwelling_option::cancel,
   };
+  REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[enter-dwelling] present_dwelling_entry_options" ) {
+  World           W;
+  Dwelling const& dwelling =
+      W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois );
+  EnterNativeDwellingOptions options;
+  e_enter_dwelling_option    expected = {};
+
+  auto f = [&] {
+    wait<e_enter_dwelling_option> w =
+        present_dwelling_entry_options(
+            W.ss(), W.ts(), W.default_player(), options );
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+    return *w;
+  };
+
+  options = {
+      .dwelling_id = dwelling.id,
+      .reaction    = e_enter_dwelling_reaction::wave_happily,
+      .options     = {
+          e_enter_dwelling_option::attack_village,
+          e_enter_dwelling_option::live_among_the_natives } };
+
+  EXPECT_CALL(
+      W.gui(),
+      display_woodcut( e_woodcut::entering_native_village ) )
+      .returns<monostate>();
+  EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+      .returns<maybe<string>>( "attack_village" );
+  expected = e_enter_dwelling_option::attack_village;
+  REQUIRE( f() == expected );
+
+  // Again, no woodcut.
+  EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+      .returns<maybe<string>>( "attack_village" );
+  expected = e_enter_dwelling_option::attack_village;
+  REQUIRE( f() == expected );
+
+  // Once more, with brave on top.
+  W.add_unit_on_map( e_native_unit_type::brave,
+                     { .x = 1, .y = 1 }, dwelling.id );
+  EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+      .returns<maybe<string>>( "attack_village" );
+  expected = e_enter_dwelling_option::attack_brave_on_dwelling;
   REQUIRE( f() == expected );
 }
 

@@ -1860,8 +1860,8 @@ struct NativeDwellingHandler : public OrdersHandler {
         enter_native_dwelling_options( ss_, player_,
                                        unit_.type(), dwelling_ );
     outcome_ = compute_enter_dwelling_outcome(
-        co_await present_dwelling_entry_options( ss_, ts_,
-                                                 options ) );
+        co_await present_dwelling_entry_options(
+            ss_, ts_, player_, options ) );
 
     // The move is always allowed for any unit; if the unit can't
     // do anything or if the unit cancels then the unit's move-

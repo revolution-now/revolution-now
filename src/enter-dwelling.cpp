@@ -25,6 +25,7 @@
 #include "rand-enum.hpp"
 #include "ts.hpp"
 #include "visibility.hpp"
+#include "woodcut.hpp"
 
 // config
 #include "config/nation.rds.hpp"
@@ -282,14 +283,15 @@ EnterNativeDwellingOptions enter_native_dwelling_options(
       .dwelling_id = dwelling.id,
       .reaction =
           reaction_for_dwelling( ss, player, tribe, dwelling ),
-      .category = dwelling_interaction_category( unit_type ),
-      .options  = options_for_unit( ss, player, tribe, dwelling,
-                                    unit_type ) };
+      .options = options_for_unit( ss, player, tribe, dwelling,
+                                   unit_type ) };
 }
 
 wait<e_enter_dwelling_option> present_dwelling_entry_options(
-    SSConst const& ss, TS& ts,
+    SSConst const& ss, TS& ts, Player& player,
     EnterNativeDwellingOptions const& options ) {
+  co_await display_woodcut_if_needed(
+      ts, player, e_woodcut::entering_native_village );
   Dwelling const& dwelling =
       ss.natives.dwelling_for( options.dwelling_id );
   e_tribe const tribe = dwelling.tribe;

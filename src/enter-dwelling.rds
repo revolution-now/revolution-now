@@ -62,7 +62,6 @@ enum.e_dwelling_interaction_category {
 struct.EnterNativeDwellingOptions {
   dwelling_id 'DwellingId',
   reaction 'e_enter_dwelling_reaction',
-  category 'e_dwelling_interaction_category',
   # These will be in the order that they should be presented to
   # the player.
   options 'std::vector<e_enter_dwelling_option>',
