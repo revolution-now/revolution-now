@@ -105,10 +105,10 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
           .id();
   wait<maybe<UnitDeleted>> w = make_wait<maybe<UnitDeleted>>();
 
-  REQUIRE( player.discovered_new_world == nothing );
+  REQUIRE( player.new_world_name == nothing );
 
   SECTION( "already discovered" ) {
-    player.discovered_new_world = "my world";
+    player.new_world_name = "my world";
     w = unit_to_map_square( W.ss(), W.ts(), unit_id,
                             { .x = 0, .y = 1 } );
     REQUIRE( !w.exception() );
@@ -116,7 +116,7 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
     REQUIRE( *w == nothing );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 0, .y = 1 } );
-    REQUIRE( player.discovered_new_world == "my world" );
+    REQUIRE( player.new_world_name == "my world" );
   }
 
   SECTION( "not yet discovered" ) {
@@ -130,7 +130,7 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
     REQUIRE( *w == nothing );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 0, .y = 1 } );
-    REQUIRE( player.discovered_new_world == "my world 2" );
+    REQUIRE( player.new_world_name == "my world 2" );
   }
 }
 
@@ -146,7 +146,7 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
 
   // This is so that the user doesn't get prompted to name the
   // new world.
-  player.discovered_new_world = "";
+  player.new_world_name = "";
 
   SECTION( "not entering colony" ) {
     w = unit_to_map_square( W.ss(), W.ts(), unit_id,

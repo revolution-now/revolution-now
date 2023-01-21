@@ -40,20 +40,19 @@ namespace {
 
 LUA_STARTUP( lua::state& st ) {
   using U = ::rn::Player;
+  auto u  = st.usertype.create<U>();
 
-  auto u = st.usertype.create<U>();
-
-  u["nation"]               = &U::nation;
-  u["human"]                = &U::human;
-  u["money"]                = &U::money;
-  u["crosses"]              = &U::crosses;
-  u["old_world"]            = &U::old_world;
-  u["discovered_new_world"] = &U::discovered_new_world;
-  u["revolution_status"]    = &U::revolution_status;
-  u["fathers"]              = &U::fathers;
-  u["starting_position"]    = &U::starting_position;
-  u["last_high_seas"]       = &U::last_high_seas;
-  u["artillery_purchases"]  = &U::artillery_purchases;
+  u["nation"]              = &U::nation;
+  u["human"]               = &U::human;
+  u["money"]               = &U::money;
+  u["crosses"]             = &U::crosses;
+  u["old_world"]           = &U::old_world;
+  u["new_world_name"]      = &U::new_world_name;
+  u["revolution_status"]   = &U::revolution_status;
+  u["fathers"]             = &U::fathers;
+  u["starting_position"]   = &U::starting_position;
+  u["last_high_seas"]      = &U::last_high_seas;
+  u["artillery_purchases"] = &U::artillery_purchases;
 };
 
 } // namespace

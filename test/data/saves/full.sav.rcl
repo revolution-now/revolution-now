@@ -19,7 +19,7 @@ players.players {
   dutch: null
   english {
     crosses: 0
-    discovered_new_world: New Netherlands
+    new_world_name: New Netherlands
     fathers {
       bells: 0
       has {

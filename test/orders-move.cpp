@@ -79,7 +79,7 @@ TEST_CASE( "[orders-move] ship can move from land to ocean" ) {
   Player& player = W.default_player();
   // This is so that we don't try to pop up a box telling the
   // player that they've discovered the new world.
-  player.discovered_new_world = "";
+  player.new_world_name = "";
   UnitId id = W.add_unit_on_map( e_unit_type::galleon,
                                  Coord{ .x = 1, .y = 1 } )
                   .id();
@@ -133,8 +133,8 @@ TEST_CASE( "[orders-move] land unit can attack ship on land" ) {
   World W;
   // This is so that we don't try to pop up a box telling the
   // player that they've discovered the new world.
-  W.dutch().discovered_new_world  = "";
-  W.french().discovered_new_world = "";
+  W.dutch().new_world_name  = "";
+  W.french().new_world_name = "";
   UnitId ship = W.add_unit_on_map( e_unit_type::galleon,
                                    Coord{ .x = 1, .y = 1 },
                                    e_nation::dutch )

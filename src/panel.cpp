@@ -151,8 +151,8 @@ struct PanelPlane::Impl : public Plane {
     PlayersState const& players_state = ss_.players;
     UNWRAP_CHECK( player, players_state.players[nation] );
 
-    if( player.discovered_new_world )
-      typer.write( "{}\n", *player.discovered_new_world );
+    if( player.new_world_name )
+      typer.write( "{}\n", *player.new_world_name );
     typer.write( "Nation:  {}\n", nation );
     typer.write( "Gold:    ${}\n", player.money );
     typer.write( "Tax:     {}%\n",

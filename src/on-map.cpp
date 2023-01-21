@@ -47,29 +47,28 @@ string new_world_name_for( Player const& player ) {
   return config_nation.nations[player.nation].new_world_name;
 }
 
-wait<> try_discover_new_world( TerrainState const& terrain_state,
-                               Player& player, IGui& gui,
-                               Coord world_square ) {
+wait<> try_discover_new_world( SSConst const& ss, TS& ts,
+                               Player& player,
+                               Coord   world_square ) {
   // This field holds the name of the new world given by the
   // player if it has a value (meaning, if the new world has been
   // discovered).
-  maybe<string> const& new_world_name =
-      player.discovered_new_world;
+  maybe<string> const& new_world_name = player.new_world_name;
   if( new_world_name.has_value() ) co_return;
   for( e_direction d : refl::enum_values<e_direction> ) {
     maybe<MapSquare const&> square =
-        terrain_state.maybe_square_at( world_square.moved( d ) );
+        ss.terrain.maybe_square_at( world_square.moved( d ) );
     if( !square.has_value() ) continue;
     if( square->surface != e_surface::land ) continue;
     // We've discovered the new world!
-    string const name = co_await gui.required_string_input(
+    string const name = co_await ts.gui.required_string_input(
         { .msg = "You've discovered the new world!  What shall "
                  "we call this land, Your Excellency?",
           .initial_text = new_world_name_for( player ) } );
-    player.discovered_new_world = name;
+    player.new_world_name = name;
     lg.info( "the new world has been discovered: \"{}\".",
              name );
-    CHECK( player.discovered_new_world.has_value() );
+    CHECK( player.new_world_name.has_value() );
     co_return;
   }
 }
@@ -118,7 +117,7 @@ wait<bool> try_king_transport_treasure( SS& ss, TS& ts,
   co_return true; // treasure unit deleted.
 }
 
-wait<> try_meet_natives( SS& ss, TS& ts, Player const& player,
+wait<> try_meet_natives( SS& ss, TS& ts, Player& player,
                          Coord square ) {
   vector<MeetTribe> const meet_tribes =
       check_meet_tribes( as_const( ss ), player, square );
@@ -188,8 +187,8 @@ wait<maybe<UnitDeleted>> unit_to_map_square(
   Unit& unit = ss.units.unit_for( id );
   UNWRAP_CHECK( player, ss.players.players[unit.nation()] );
 
-  if( !player.discovered_new_world.has_value() )
-    co_await try_discover_new_world( ss.terrain, player, ts.gui,
+  if( !player.new_world_name.has_value() )
+    co_await try_discover_new_world( ss, ts, player,
                                      world_square );
 
   if( has_lost_city_rumor( ss.terrain, world_square ) )

@@ -11,7 +11,7 @@
 # Revolution Now
 include "maybe.hpp"
 
-# gs
+# ss
 include "ss/fathers.rds.hpp"
 include "ss/nation.rds.hpp"
 include "ss/old-world-state.rds.hpp"
@@ -56,7 +56,7 @@ struct.Player {
 
   # When the new world is first discovered this will have a value
   # and will be the name given to the new world by the player.
-  discovered_new_world 'maybe<std::string>',
+  new_world_name 'maybe<std::string>',
 
   revolution_status 'e_revolution_status',
 
