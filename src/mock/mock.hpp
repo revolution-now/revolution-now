@@ -170,13 +170,37 @@ struct exhaust_checker {
   }
 };
 
-template<typename T>
-concept SettablePointer = std::is_pointer_v<T> && !
-std::is_const_v<std::remove_pointer_t<T>>;
+// We don't constrain the template parameters with base::Show be-
+// cause not all of them need to be formattable.
+template<typename... Args>
+std::string format_args_where_possible( Args&&... args ) {
+  static auto format_if_possible
+      [[maybe_unused]] = []<typename T>( T&& o ) {
+        std::string res = "?";
+        if constexpr( base::Show<std::remove_cvref_t<T>> )
+          res = fmt::to_string( o );
+        return res;
+      };
+
+  std::string formatted_args;
+  ( ( formatted_args +=
+      format_if_possible( std::forward<Args>( args ) ) + ", " ),
+    ... );
+  if( !formatted_args.empty() )
+    // Remove ", " from the end.
+    formatted_args.resize( formatted_args.size() - 2 );
+  return formatted_args;
+}
 
 template<typename T>
-concept SettableReference = std::is_reference_v<T> && !
-std::is_const_v<std::remove_reference_t<T>>;
+concept SettablePointer =
+    std::is_pointer_v<T> &&
+    !std::is_const_v<std::remove_pointer_t<T>>;
+
+template<typename T>
+concept SettableReference =
+    std::is_reference_v<T> &&
+    !std::is_const_v<std::remove_reference_t<T>>;
 
 template<typename T>
 concept Settable = SettablePointer<T> || SettableReference<T>;
@@ -213,20 +237,8 @@ struct Responder<RetT, std::tuple<Args...>,
       times_expected_{ 1 } {}
 
   RetT operator()( args_refs_t const& args ) {
-    auto format_if_possible
-        [[maybe_unused]] = []<typename T>( T&& o ) {
-          std::string res = "<non-formattable>";
-          if constexpr( base::Show<std::remove_cvref_t<T>> )
-            res = fmt::to_string( o );
-          return res;
-        };
-
-    std::string formatted_args;
-    ( ( formatted_args +=
-        format_if_possible( std::get<Idx>( args ) ) + ", " ),
-      ... );
-    if( !formatted_args.empty() )
-      formatted_args.resize( formatted_args.size() - 2 );
+    std::string const formatted_args =
+        format_args_where_possible( std::get<Idx>( args )... );
 
     // 1. Check if the arguments match.
     auto check_argument [[maybe_unused]] =
@@ -397,9 +409,14 @@ struct ResponderQueue {
     // their expectations.
     while( !answers_.empty() && answers_.front().finished() )
       answers_.pop();
-    if( answers_.empty() )
-      throw_unexpected_error( fmt::format(
-          "unexpected mock function call: {}", fn_name_ ) );
+    if( answers_.empty() ) {
+      std::string const formatted_args =
+          format_args_where_possible(
+              std::forward<T>( args )... );
+      throw_unexpected_error(
+          fmt::format( "unexpected mock function call: {}( {} )",
+                       fn_name_, formatted_args ) );
+    }
     R& responder = answers_.front();
     SCOPE_EXIT( if( responder.finished() ) answers_.pop(); );
     return responder( { std::forward<T>( args )... } );

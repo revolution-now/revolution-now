@@ -236,6 +236,18 @@ TEST_CASE( "[mock] throws on unexpected mock call" ) {
       Matches( "unexpected mock function call.*get_y.*" ) );
 }
 
+TEST_CASE( "[mock] prints args on unexpected mock function call" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  int n = 7;
+  int m = 8;
+  // The first arg, being a pointer, is not formattable.
+  REQUIRE_THROWS_WITH(
+      user.get_xy( &m, n ),
+      "unexpected mock function call: get_xy( ?, 7 )" );
+}
+
 TEST_CASE( "[mock] some_method_1" ) {
   MockPoint mp;
   PointUser user( &mp );
