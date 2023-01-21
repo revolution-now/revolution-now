@@ -47,7 +47,7 @@ std::vector<MeetTribe> check_meet_tribes( SSConst const& ss,
                                           Coord square );
 
 wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
-    TS& ts, Player const& player, MeetTribe const& meet_tribe );
+    TS& ts, Player& player, MeetTribe const& meet_tribe );
 
 // This will actually perform the actions (non-UI actions) that
 // happen when the player meets a tribe for the first time.

@@ -18,6 +18,7 @@
 #include "native-owned.hpp"
 #include "society.hpp"
 #include "ts.hpp"
+#include "woodcut.hpp"
 
 // config
 #include "config/nation.rds.hpp"
@@ -159,14 +160,15 @@ vector<MeetTribe> check_meet_tribes( SSConst const& ss,
 }
 
 wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
-    TS& ts, Player const& player, MeetTribe const& meet_tribe ) {
+    TS& ts, Player& player, MeetTribe const& meet_tribe ) {
+  co_await display_woodcut_if_needed(
+      ts, player, e_woodcut::meeting_the_natives );
   if( meet_tribe.tribe == e_tribe::inca )
-    co_await ts.gui.message_box( "(Woodcut: The Inca Nation)" );
+    co_await display_woodcut_if_needed(
+        ts, player, e_woodcut::meeting_the_inca_nation );
   else if( meet_tribe.tribe == e_tribe::aztec )
-    co_await ts.gui.message_box( "(Woodcut: The Aztec Nation)" );
-  else if( meet_tribe.is_first )
-    co_await ts.gui.message_box(
-        "(Woodcut: Meeting the Natives)" );
+    co_await display_woodcut_if_needed(
+        ts, player, e_woodcut::meeting_the_aztec_empire );
 
   auto const& tribe_conf =
       config_natives.tribes[meet_tribe.tribe];
