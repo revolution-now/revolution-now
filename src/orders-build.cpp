@@ -16,6 +16,7 @@
 #include "colony-view.hpp"
 #include "maybe.hpp"
 #include "ts.hpp"
+#include "woodcut.hpp"
 
 // ss
 #include "ss/colonies.hpp"
@@ -48,8 +49,8 @@ valid_or<string> is_valid_colony_name_msg(
 }
 
 struct BuildHandler : public OrdersHandler {
-  BuildHandler( Planes& planes, SS& ss, TS& ts,
-                Player const& player, UnitId unit_id_ )
+  BuildHandler( Planes& planes, SS& ss, TS& ts, Player& player,
+                UnitId unit_id_ )
     : planes_( planes ),
       ss_( ss ),
       ts_( ts ),
@@ -102,12 +103,6 @@ struct BuildHandler : public OrdersHandler {
       }
     }
 
-    maybe<ui::e_confirm> const proceed =
-        co_await ts_.gui.optional_yes_no(
-            { .msg       = "Build colony here?",
-              .yes_label = "Yes",
-              .no_label  = "No" } );
-    if( proceed != ui::e_confirm::yes ) co_return false;
     while( true ) {
       colony_name = co_await ts_.gui.optional_string_input(
           { .msg =
@@ -122,6 +117,8 @@ struct BuildHandler : public OrdersHandler {
   }
 
   wait<> perform() override {
+    co_await display_woodcut_if_needed(
+        ts_, player_, e_woodcut::building_first_colony );
     colony_id =
         found_colony( ss_, ts_, player_, unit_id, *colony_name );
     co_return;
@@ -137,10 +134,10 @@ struct BuildHandler : public OrdersHandler {
       co_return;
   }
 
-  Planes&       planes_;
-  SS&           ss_;
-  TS&           ts_;
-  Player const& player_;
+  Planes& planes_;
+  SS&     ss_;
+  TS&     ts_;
+  Player& player_;
 
   UnitId unit_id;
 

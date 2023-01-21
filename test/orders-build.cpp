@@ -23,6 +23,7 @@
 #include "src/ss/ref.hpp"
 #include "src/ss/terrain.hpp"
 #include "src/ss/units.hpp"
+#include "src/ss/woodcut.rds.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -90,12 +91,9 @@ TEST_CASE( "[orders-build] build colony" ) {
 
   REQUIRE( W.colonies().last_colony_id() == 0 );
 
-  EXPECT_CALL(
-      W.gui(),
-      choice( Field( &ChoiceConfig::msg,
-                     StrContains( "Build colony here" ) ),
-              e_input_required::no ) )
-      .returns<maybe<string>>( "yes" );
+  EXPECT_CALL( W.gui(), display_woodcut(
+                            e_woodcut::building_first_colony ) )
+      .returns<monostate>();
   EXPECT_CALL( W.gui(), string_input( _, e_input_required::no ) )
       .returns<maybe<string>>( "my colony" );
   REQUIRE( confirm() == true );
