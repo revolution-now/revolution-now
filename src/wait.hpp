@@ -254,6 +254,7 @@ class [[nodiscard]] wait {
   }
 
   bool has_exception() const {
+    CHECK( shared_state_ != nullptr );
     return shared_state_->has_exception();
   }
 
