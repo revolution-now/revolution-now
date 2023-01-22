@@ -66,11 +66,11 @@ enum.e_woodcut {
 
   # This can only happen when attacked by the natives, since a
   # foreign european unit will always take ownership of the
-  # colony instead of burning it.
+  # colony instead of burning it (TODO: verify this).
   colony_burning,
 
   # This one appears in the list of the OG but not sure when it
-  # is used.
+  # is used (TODO: figure this out).
   colony_destroyed,
 
   # First time a native unit attacks either one of the player's
