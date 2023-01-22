@@ -42,6 +42,7 @@
 #include "unit-mgr.hpp"
 #include "unit.hpp"
 #include "visibility.hpp"
+#include "woodcut.hpp"
 
 // config
 #include "config/turn.rds.hpp"
@@ -717,6 +718,10 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
       case e_high_seas_result::arrived_in_harbor: {
         lg.debug( "unit has arrived in old world." );
         finish_turn( unit );
+        if( unit.cargo()
+                .count_items_of_type<Cargo::commodity>() > 0 )
+          co_await display_woodcut_if_needed(
+              ts, player, e_woodcut::cargo_from_the_new_world );
         co_await show_harbor_view( planes, ss, ts, player, id );
         co_return false; // do not ask for orders.
       }
