@@ -1123,8 +1123,9 @@ struct EuroAttackHandler : public OrdersHandler {
       //
       // TODO: check stats.winner_promoted here to see if the at-
       // tacker unit has been promoted.
-      animations.push_back( DepixelateAnimation::euro_unit{
-          .id = defender_id, .target = nothing } );
+      animations.push_back(
+          DepixelateAnimation::euro_unit_depixelate{
+              .id = defender_id, .target = nothing } );
       co_await planes_.land_view().animate_colony_capture(
           attacker_id, defender_id, animations, colony_id );
       co_return;
@@ -1141,18 +1142,20 @@ struct EuroAttackHandler : public OrdersHandler {
       // TODO: check stats.winner_promoted here to see if the
       // player's unit has been promoted.
     } else {
-      animations.push_back( DepixelateAnimation::euro_unit{
-          .id = attacker,
-          .target =
-              ss_.units.unit_for( attacker ).demoted_type() } );
+      animations.push_back(
+          DepixelateAnimation::euro_unit_depixelate{
+              .id     = attacker,
+              .target = ss_.units.unit_for( attacker )
+                            .demoted_type() } );
     }
 
     // Defender animation.
     if( stats.attacker_wins ) {
-      animations.push_back( DepixelateAnimation::euro_unit{
-          .id = defender,
-          .target =
-              ss_.units.unit_for( defender ).demoted_type() } );
+      animations.push_back(
+          DepixelateAnimation::euro_unit_depixelate{
+              .id     = defender,
+              .target = ss_.units.unit_for( defender )
+                            .demoted_type() } );
     } else {
       // TODO: check stats.winner_promoted here to see if the de-
       // fender unit has been promoted.
@@ -1677,16 +1680,18 @@ struct AttackNativeUnitHandler : public OrdersHandler {
       // TODO: check stats.winner_promoted here to see if the
       // player's unit has been promoted.
     } else {
-      animations.push_back( DepixelateAnimation::euro_unit{
-          .id = attacker,
-          .target =
-              ss_.units.unit_for( attacker ).demoted_type() } );
+      animations.push_back(
+          DepixelateAnimation::euro_unit_depixelate{
+              .id     = attacker,
+              .target = ss_.units.unit_for( attacker )
+                            .demoted_type() } );
     }
 
     // Defender (brave) animation.
     if( stats.attacker_wins ) {
-      animations.push_back( DepixelateAnimation::native_unit{
-          .id = defender_id_, .target = nothing } );
+      animations.push_back(
+          DepixelateAnimation::native_unit_depixelate{
+              .id = defender_id_, .target = nothing } );
     } else {
       // TODO: check stats.winner_promoted here to see if the
       // brave has acquired any horses or muskets.
