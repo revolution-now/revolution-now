@@ -65,11 +65,11 @@ sumtype.DwellingAnimation {
 }
 
 sumtype.DepixelateAnimation {
-  euro_unit {
+  euro_unit_depixelate {
     id 'UnitId',
     target 'maybe<e_unit_type>',
   },
-  native_unit {
+  native_unit_depixelate {
     id 'NativeUnitId',
     target 'maybe<e_native_unit_type>',
   },

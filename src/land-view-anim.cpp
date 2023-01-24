@@ -203,16 +203,18 @@ wait<> LandViewAnimator::animate_move( UnitId      id,
 wait<> LandViewAnimator::start_depixelate_animation(
     DepixelateAnimation_t anim ) {
   switch( anim.to_enum() ) {
-    case DepixelateAnimation::e::euro_unit: {
-      auto& o = anim.get<DepixelateAnimation::euro_unit>();
+    case DepixelateAnimation::e::euro_unit_depixelate: {
+      auto& o =
+          anim.get<DepixelateAnimation::euro_unit_depixelate>();
       co_await animate_unit_depixelation(
           o.id, o.target.fmap( []( e_unit_type type ) {
             return unit_attr( type ).tile;
           } ) );
       break;
     }
-    case DepixelateAnimation::e::native_unit: {
-      auto& o = anim.get<DepixelateAnimation::native_unit>();
+    case DepixelateAnimation::e::native_unit_depixelate: {
+      auto& o = anim.get<
+          DepixelateAnimation::native_unit_depixelate>();
       co_await animate_unit_depixelation(
           o.id, o.target.fmap( []( e_native_unit_type type ) {
             return unit_attr( type ).tile;
