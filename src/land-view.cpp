@@ -1156,13 +1156,13 @@ wait<> LandViewPlane::animate_colony_depixelation(
 }
 
 wait<> LandViewPlane::animate_unit_depixelation(
-    DepixelateAnimation_t const& what ) {
-  return impl_->lv_animator_.animate_unit_depixelation( what );
+    PixelationAnimation_t const& what ) {
+  return impl_->lv_animator_.animate_unit_pixelation( what );
 }
 
 wait<> LandViewPlane::animate_attack(
     GenericUnitId attacker, GenericUnitId defender,
-    vector<DepixelateAnimation_t> const& animations,
+    vector<PixelationAnimation_t> const& animations,
     bool                                 attacker_wins ) {
   return impl_->lv_animator_.animate_attack(
       attacker, defender, animations, attacker_wins );
@@ -1170,7 +1170,7 @@ wait<> LandViewPlane::animate_attack(
 
 wait<> LandViewPlane::animate_colony_capture(
     UnitId attacker_id, UnitId defender_id,
-    vector<DepixelateAnimation_t> const& animations,
+    vector<PixelationAnimation_t> const& animations,
     ColonyId                             colony_id ) {
   return impl_->lv_animator_.animate_colony_capture(
       attacker_id, defender_id, animations, colony_id );

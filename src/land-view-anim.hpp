@@ -83,23 +83,26 @@ struct LandViewAnimator {
 
   wait<> animate_attack(
       GenericUnitId attacker, GenericUnitId defender,
-      std::vector<DepixelateAnimation_t> const& animations,
+      std::vector<PixelationAnimation_t> const& animations,
       bool                                      attacker_wins );
 
-  wait<> animate_unit_depixelation(
-      DepixelateAnimation_t const& what );
+  wait<> animate_unit_pixelation(
+      PixelationAnimation_t const& what );
 
   wait<> animate_colony_destruction( Colony const& colony );
 
   wait<> animate_colony_capture(
       UnitId attacker_id, UnitId defender_id,
-      std::vector<DepixelateAnimation_t> const& animations,
+      std::vector<PixelationAnimation_t> const& animations,
       ColonyId                                  colony_id );
 
   // Animator primitives.
 
   wait<> animate_unit_depixelation( GenericUnitId id,
                                     maybe<e_tile> target_tile );
+
+  wait<> animate_unit_enpixelation( GenericUnitId id,
+                                    e_tile        target_tile );
 
   wait<> animate_colony_depixelation( Colony const& colony );
 
@@ -173,11 +176,11 @@ struct LandViewAnimator {
   }
 
  private:
-  wait<> start_depixelate_animation(
-      DepixelateAnimation_t anim );
+  wait<> start_pixelation_animation(
+      PixelationAnimation_t anim );
 
-  std::vector<wait<>> start_depixelate_animations(
-      std::vector<DepixelateAnimation_t> const& anims );
+  std::vector<wait<>> start_pixelation_animations(
+      std::vector<PixelationAnimation_t> const& anims );
 
  private:
   // Note: SSConst should be held by value.

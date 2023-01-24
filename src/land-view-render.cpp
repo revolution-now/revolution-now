@@ -235,6 +235,9 @@ void LandViewRenderer::render_units_impl() const {
   unordered_map<GenericUnitId,
                 UnitAnimation::depixelate_unit const*>
       depixelate_unit;
+  unordered_map<GenericUnitId,
+                UnitAnimation::enpixelate_unit const*>
+      enpixelate_unit;
   // These are the tiles to skip when rendering units that are
   // not animated. An example would be that if a unit is blinking
   // then we don't want to render any other units on that tile.
@@ -266,6 +269,11 @@ void LandViewRenderer::render_units_impl() const {
       case UnitAnimation::e::depixelate_unit:
         depixelate_unit[id] =
             &anim.get<UnitAnimation::depixelate_unit>();
+        tiles_to_skip.insert( tile );
+        break;
+      case UnitAnimation::e::enpixelate_unit:
+        enpixelate_unit[id] =
+            &anim.get<UnitAnimation::enpixelate_unit>();
         tiles_to_skip.insert( tile );
         break;
     }
@@ -362,6 +370,17 @@ void LandViewRenderer::render_units_impl() const {
             *anim->target );
       } );
     }
+  }
+
+  // 5. Render units that are enpixelating.
+  for( auto const& [id, anim] : enpixelate_unit ) {
+    render_impl( id, [&]( Coord where, e_flag_count ) {
+      SCOPED_RENDERER_MOD_SET(
+          painter_mods.depixelate.hash_anchor, where );
+      SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                               anim->stage );
+      render_single_unit( where, id, e_flag_count::none );
+    } );
   }
 }
 

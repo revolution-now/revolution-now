@@ -88,6 +88,23 @@ wait<> LandViewAnimator::animate_unit_depixelation(
   co_await throttle();
 }
 
+wait<> LandViewAnimator::animate_unit_enpixelation(
+    GenericUnitId id, e_tile target_tile ) {
+  auto popper =
+      add_unit_animation<UnitAnimation::enpixelate_unit>( id );
+  UnitAnimation::enpixelate_unit& enpixelate = popper.get();
+  enpixelate.stage                           = 1.0;
+  enpixelate.target                          = target_tile;
+
+  AnimThrottler throttle( kAlmostStandardFrame );
+  while( enpixelate.stage > 0.0 ) {
+    co_await throttle();
+    enpixelate.stage -= config_rn.depixelate_per_frame;
+  }
+  // Need this so that final frame is visible.
+  co_await throttle();
+}
+
 wait<> LandViewAnimator::animate_colony_depixelation(
     Colony const& colony ) {
   auto popper =
@@ -200,29 +217,29 @@ wait<> LandViewAnimator::animate_move( UnitId      id,
 
 // This method is not awaited on immediately when it is called,
 // so should take its parameters by value.
-wait<> LandViewAnimator::start_depixelate_animation(
-    DepixelateAnimation_t anim ) {
+wait<> LandViewAnimator::start_pixelation_animation(
+    PixelationAnimation_t anim ) {
   switch( anim.to_enum() ) {
-    case DepixelateAnimation::e::euro_unit_depixelate: {
+    case PixelationAnimation::e::euro_unit_depixelate: {
       auto& o =
-          anim.get<DepixelateAnimation::euro_unit_depixelate>();
+          anim.get<PixelationAnimation::euro_unit_depixelate>();
       co_await animate_unit_depixelation(
           o.id, o.target.fmap( []( e_unit_type type ) {
             return unit_attr( type ).tile;
           } ) );
       break;
     }
-    case DepixelateAnimation::e::native_unit_depixelate: {
+    case PixelationAnimation::e::native_unit_depixelate: {
       auto& o = anim.get<
-          DepixelateAnimation::native_unit_depixelate>();
+          PixelationAnimation::native_unit_depixelate>();
       co_await animate_unit_depixelation(
           o.id, o.target.fmap( []( e_native_unit_type type ) {
             return unit_attr( type ).tile;
           } ) );
       break;
     }
-    case DepixelateAnimation::e::dwelling: {
-      auto& o = anim.get<DepixelateAnimation::dwelling>();
+    case PixelationAnimation::e::dwelling: {
+      auto& o = anim.get<PixelationAnimation::dwelling>();
       co_await animate_dwelling_depixelation(
           ss_.natives.dwelling_for( o.id ) );
       break;
@@ -230,18 +247,18 @@ wait<> LandViewAnimator::start_depixelate_animation(
   }
 }
 
-vector<wait<>> LandViewAnimator::start_depixelate_animations(
-    vector<DepixelateAnimation_t> const& anims ) {
+vector<wait<>> LandViewAnimator::start_pixelation_animations(
+    vector<PixelationAnimation_t> const& anims ) {
   vector<wait<>> waits;
-  for( DepixelateAnimation_t const& anim : anims )
+  for( PixelationAnimation_t const& anim : anims )
     // This starts the animation.
-    waits.push_back( start_depixelate_animation( anim ) );
+    waits.push_back( start_pixelation_animation( anim ) );
   return waits;
 }
 
 wait<> LandViewAnimator::animate_attack(
     GenericUnitId attacker, GenericUnitId defender,
-    vector<DepixelateAnimation_t> const& animations,
+    vector<PixelationAnimation_t> const& animations,
     bool                                 attacker_wins ) {
   co_await ensure_visible_unit( defender );
   co_await ensure_visible_unit( attacker );
@@ -272,7 +289,7 @@ wait<> LandViewAnimator::animate_attack(
   // tacking a native dwelling and it gets destroyed.
   play_sound_effect( attacker_wins ? e_sfx::attacker_won
                                    : e_sfx::attacker_lost );
-  co_await co::all( start_depixelate_animations( animations ) );
+  co_await co::all( start_pixelation_animations( animations ) );
 }
 
 wait<> LandViewAnimator::animate_colony_destruction(
@@ -282,20 +299,20 @@ wait<> LandViewAnimator::animate_colony_destruction(
   co_await animate_colony_depixelation( colony );
 }
 
-wait<> LandViewAnimator::animate_unit_depixelation(
-    DepixelateAnimation_t const& what ) {
+wait<> LandViewAnimator::animate_unit_pixelation(
+    PixelationAnimation_t const& what ) {
   GenericUnitId const id = rn::visit(
       what.as_base(),
       []( auto& o ) { return GenericUnitId{ o.id }; } );
   co_await ensure_visible_unit( id );
-  co_await start_depixelate_animation( what );
+  co_await start_pixelation_animation( what );
 }
 
 // FIXME: Would be nice to make this animation a bit more so-
 // phisticated.
 wait<> LandViewAnimator::animate_colony_capture(
     UnitId attacker_id, UnitId defender_id,
-    vector<DepixelateAnimation_t> const& animations,
+    vector<PixelationAnimation_t> const& animations,
     ColonyId                             colony_id ) {
   co_await animate_attack( attacker_id, defender_id, animations,
                            /*attacker_wins=*/true );

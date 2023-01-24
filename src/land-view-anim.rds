@@ -50,6 +50,11 @@ sumtype.UnitAnimation {
     # and acquires muskets or horses.
     target 'maybe<e_tile>',
   },
+  # Start from nothing and gradually reveal the tile.
+  enpixelate_unit {
+    stage 'double',
+    target 'e_tile',
+  },
 }
 
 sumtype.ColonyAnimation {
@@ -64,7 +69,7 @@ sumtype.DwellingAnimation {
   },
 }
 
-sumtype.DepixelateAnimation {
+sumtype.PixelationAnimation {
   euro_unit_depixelate {
     id 'UnitId',
     target 'maybe<e_unit_type>',
