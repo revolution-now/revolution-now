@@ -1,5 +1,5 @@
 /****************************************************************
-**fight.hpp
+**fight-stats.hpp
 *
 * Project: Revolution Now
 *
@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Rds
-#include "fight.rds.hpp"
+#include "fight-stats.rds.hpp"
 
 namespace rn {
 

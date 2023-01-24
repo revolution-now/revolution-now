@@ -18,7 +18,7 @@
 #include "colony-view.hpp"
 #include "conductor.hpp"
 #include "enter-dwelling.hpp"
-#include "fight.hpp"
+#include "fight-stats.hpp"
 #include "harbor-units.hpp"
 #include "igui.hpp"
 #include "land-view.hpp"

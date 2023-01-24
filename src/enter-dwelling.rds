@@ -10,7 +10,7 @@
 # ===============================================================
 # Revolution Now
 include "alarm.rds.hpp"
-include "fight.rds.hpp"
+include "fight-stats.rds.hpp"
 include "maybe.hpp"
 
 # ss

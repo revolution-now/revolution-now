@@ -1,5 +1,5 @@
 /****************************************************************
-**fight.cpp
+**fight-stats.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: Handles statistics for individual combats.
 *
 *****************************************************************/
-#include "fight.hpp"
+#include "fight-stats.hpp"
 
 // Revolution Now
 #include "irand.hpp"
