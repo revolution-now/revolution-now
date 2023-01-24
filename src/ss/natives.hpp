@@ -60,8 +60,9 @@ struct NativesState {
   std::unordered_map<DwellingId, DwellingState> const&
   dwellings_all() const;
 
-  std::vector<DwellingId> dwellings_for_tribe(
-      e_tribe tribe ) const;
+  // If the tribe exists then this will yield the dwelling ids.
+  base::maybe<std::unordered_set<DwellingId> const&>
+  dwellings_for_tribe( e_tribe tribe ) const;
 
   Dwelling const& dwelling_for( DwellingId id ) const;
   Dwelling&       dwelling_for( DwellingId id );
@@ -128,6 +129,9 @@ struct NativesState {
 
   // ----- Non-serializable (transient) state.
   std::unordered_map<Coord, DwellingId> dwelling_from_coord_;
+
+  std::unordered_map<e_tribe, std::unordered_set<DwellingId>>
+      dwellings_from_tribe_;
 };
 
 } // namespace rn

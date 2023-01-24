@@ -47,6 +47,15 @@ using ::base::nothing;
 base::valid_or<string> wrapped::NativesState::validate() const {
   unordered_set<Coord> used_coords;
 
+  for( e_tribe tribe : refl::enum_values<e_tribe> ) {
+    // Tribe type is consistent.
+    if( !tribes[tribe].has_value() ) continue;
+    REFL_VALIDATE( tribes[tribe]->type == tribe,
+                   "tribe object for tribe {} has an "
+                   "inconsistent tribe type ({}).",
+                   tribe, tribes[tribe]->type );
+  }
+
   DwellingId max_id{ -1 };
 
   for( auto const& [id, state] : dwellings ) {
@@ -57,6 +66,12 @@ base::valid_or<string> wrapped::NativesState::validate() const {
     REFL_VALIDATE( !used_coords.contains( where ),
                    "multiples dwellings on tile {}.", where );
     used_coords.insert( where );
+
+    // Dwelling's tribe exists.
+    REFL_VALIDATE( tribes[state.ownership.tribe].has_value(),
+                   "dwelling {} is part of tribe {} but that "
+                   "tribe does not exist.",
+                   id, state.ownership.tribe );
   }
 
   // next dwelling ID is larger than any used dwelling ID.
@@ -85,6 +100,13 @@ base::valid_or<std::string> NativesState::validate() const {
                    coord, dwelling_id );
   }
 
+  // Validate dwellings_from_tribe_.
+  for( auto const& [tribe, dwellings] : dwellings_from_tribe_ ) {
+    // tribe exists.
+    REFL_VALIDATE( o_.tribes[tribe].has_value(),
+                   "tribe {}  does not exist.", tribe );
+  }
+
   return base::valid;
 }
 
@@ -97,6 +119,15 @@ NativesState::NativesState( wrapped::NativesState&& o )
   // Populate dwelling_from_coord_.
   for( auto const& [id, state] : o_.dwellings )
     dwelling_from_coord_[state.ownership.location] = id;
+
+  // Populate dwellings_from_tribe_;
+  for( auto const& [id, state] : o_.dwellings ) {
+    Dwelling const& dwelling = state.dwelling;
+    e_tribe const   tribe    = state.ownership.tribe;
+    CHECK(
+        !dwellings_from_tribe_[tribe].contains( dwelling.id ) );
+    dwellings_from_tribe_[tribe].insert( dwelling.id );
+  }
 }
 
 NativesState::NativesState()
@@ -125,9 +156,12 @@ Tribe const& NativesState::tribe_for( e_tribe tribe ) const {
 }
 
 Tribe& NativesState::create_or_add_tribe( e_tribe tribe ) {
+  CHECK( dwellings_from_tribe_.contains( tribe ) ==
+         o_.tribes[tribe].has_value() );
   if( o_.tribes[tribe].has_value() ) return *o_.tribes[tribe];
-  Tribe& obj = o_.tribes[tribe].emplace();
-  obj.type   = tribe;
+  Tribe& obj                   = o_.tribes[tribe].emplace();
+  obj.type                     = tribe;
+  dwellings_from_tribe_[tribe] = {};
   return obj;
 }
 
@@ -179,14 +213,9 @@ Tribe& NativesState::tribe_for( DwellingId id ) {
   return tribe_for( ownership_for( id ).tribe );
 }
 
-vector<DwellingId> NativesState::dwellings_for_tribe(
-    e_tribe tribe ) const {
-  vector<DwellingId> res;
-  res.reserve( o_.dwellings.size() );
-  for( auto const& [id, state] : o_.dwellings )
-    if( state.ownership.tribe == tribe ) //
-      res.push_back( id );
-  return res;
+base::maybe<std::unordered_set<DwellingId> const&>
+NativesState::dwellings_for_tribe( e_tribe tribe ) const {
+  return base::lookup( dwellings_from_tribe_, tribe );
 }
 
 DwellingId NativesState::add_dwelling( e_tribe    tribe,
@@ -200,6 +229,9 @@ DwellingId NativesState::add_dwelling( e_tribe    tribe,
   dwelling.id         = id;
   CHECK( !dwelling_from_coord_.contains( location ) );
   dwelling_from_coord_[location] = id;
+  CHECK( dwellings_from_tribe_.contains( tribe ) );
+  CHECK( !dwellings_from_tribe_[tribe].contains( id ) );
+  dwellings_from_tribe_[tribe].insert( id );
   // Must be last to avoid use-after-move.
   CHECK( !o_.dwellings.contains( id ) );
   o_.dwellings[id] = {
@@ -214,7 +246,16 @@ void NativesState::destroy_dwelling( DwellingId id ) {
   DwellingOwnership& ownership = state.ownership;
   CHECK( dwelling_from_coord_.contains( ownership.location ) );
   dwelling_from_coord_.erase( ownership.location );
-  // Should be last so above references don't dangle.
+  Dwelling&     dwelling = dwelling_for( id );
+  e_tribe const tribe    = tribe_for( dwelling.id ).type;
+  CHECK( tribe_exists( tribe ), "the {} tribe does not exist.",
+         tribe );
+  CHECK( dwellings_from_tribe_.contains( tribe ) );
+  CHECK( dwellings_from_tribe_[tribe].contains( dwelling.id ) );
+  // Note that even if this is the last dwelling in the tribe we
+  // don't erase the tribe from the map, we just let it be empty.
+  dwellings_from_tribe_[tribe].erase( dwelling.id );
+  // Should be last so above reference doesn't dangle.
   o_.dwellings.erase( id );
 }
 
@@ -299,7 +340,8 @@ LUA_STARTUP( lua::state& st ) {
   // ized to the correct values.
   u["new_dwelling"] = [&]( U& o, e_tribe tribe,
                            Coord where ) -> Dwelling& {
-    Dwelling         dwelling;
+    Dwelling dwelling;
+    o.create_or_add_tribe( tribe );
     DwellingId const id =
         o.add_dwelling( tribe, where, std::move( dwelling ) );
     return o.dwelling_for( id );

@@ -44,14 +44,6 @@ namespace rn {
 
 namespace {
 
-unordered_set<DwellingId> dwellings_for_tribe( SSConst const& ss,
-                                               e_tribe tribe ) {
-  vector<DwellingId> list =
-      ss.natives.dwellings_for_tribe( tribe );
-  unordered_set<DwellingId> set( list.begin(), list.end() );
-  return set;
-}
-
 MeetTribe check_meet_tribe_single( SSConst const& ss,
                                    Player const&  player,
                                    e_tribe        tribe ) {
@@ -78,8 +70,8 @@ MeetTribe check_meet_tribe_single( SSConst const& ss,
   }
 
   // 2. Get all dwellings for this tribe.
-  unordered_set<DwellingId> const dwellings =
-      dwellings_for_tribe( ss, tribe );
+  UNWRAP_CHECK( dwellings,
+                ss.natives.dwellings_for_tribe( tribe ) );
 
   // 3. For each occupied square, see if it is owned by one of
   // the above dwellings.
