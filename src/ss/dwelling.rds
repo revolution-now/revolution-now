@@ -15,9 +15,6 @@ include "ss/nation.rds.hpp"
 include "ss/native-enums.rds.hpp"
 include "ss/unit-type.rds.hpp"
 
-# gfx
-include "gfx/coord.hpp"
-
 # refl
 include "refl/enum-map.hpp"
 
@@ -87,18 +84,22 @@ struct.DwellingRelationship {
   _features { equality, validation }
 }
 
+# The fields in the dwelling object are those that aren't involve
+# in any form of ownership over the dwelling (e.g., no map loca-
+# tion and no tribe ownership). With the exception of `id`, they
+# are the quantities that can be safely changed after the
+# dwelling has been created (though not all of them will be in
+# practice due to game rules).
 struct.Dwelling {
   id 'DwellingId',
 
-  tribe 'e_tribe',
-
   is_capital 'bool',
 
-  location 'Coord',
-
   # The number of times the dwelling needs to be attacked (suc-
-  # cessfully) for it to be burned. This number will recover over
-  # time if it is partially lowered.
+  # cessfully) for it to be burned. It is lowered on each suc-
+  # cessful attack, and the village is "burned" when it hits
+  # zero. This number will recover over time if it is partially
+  # lowered.
   population 'int',
 
   trading 'DwellingTradingState',

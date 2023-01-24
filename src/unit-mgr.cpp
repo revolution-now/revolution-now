@@ -287,7 +287,10 @@ e_tribe tribe_for_unit( SSConst const&    ss,
       ss.units.ownership_of( native_unit.id );
   UNWRAP_CHECK( world,
                 ownership.get_if<NativeUnitOwnership::world>() );
-  return ss.natives.dwelling_for( world.dwelling_id ).tribe;
+  return ss.natives
+      .tribe_for(
+          ss.natives.dwelling_for( world.dwelling_id ).id )
+      .type;
 }
 
 /****************************************************************
@@ -306,7 +309,7 @@ maybe<Coord> coord_for_unit_multi_ownership( SSConst const& ss,
     if( maybe<DwellingId> dwelling_id =
             ss.units.maybe_dwelling_for_missionary( unit_id );
         dwelling_id.has_value() )
-      return ss.natives.dwelling_for( *dwelling_id ).location;
+      return ss.natives.coord_for( *dwelling_id );
   }
   return nothing;
 }

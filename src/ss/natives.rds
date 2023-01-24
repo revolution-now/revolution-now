@@ -26,6 +26,25 @@ include "base/maybe.hpp"
 # C++ standard library
 include "<unordered_map>"
 
+namespace "rn"
+
+# These are aspects of a dwelling that "own it" in a sense. The
+# reverse of these owning relationships will be represented by
+# transient caches in the NativesState object and so they cannot
+# be safely represented as fields in the Dwelling object since we
+# 1) need them to be specified when the dwelling is created, and
+# 2) can't allow them to be changed thereafter, at least not di-
+# rectly without carefully updating caches.
+struct.DwellingOwnership {
+  location 'Coord',
+  tribe 'e_tribe',
+}
+
+struct.DwellingState {
+  dwelling 'Dwelling',
+  ownership 'DwellingOwnership',
+}
+
 namespace "rn.wrapped"
 
 struct.NativesState {
@@ -33,7 +52,7 @@ struct.NativesState {
 
   tribes 'refl::enum_map<e_tribe, base::maybe<Tribe>>',
 
-  dwellings 'std::unordered_map<DwellingId, Dwelling>',
+  dwellings 'std::unordered_map<DwellingId, DwellingState>',
 
   # All players see the same native land ownership in the sense
   # that if one player takes a square from the natives it will

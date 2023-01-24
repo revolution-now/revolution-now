@@ -471,8 +471,8 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
 
   auto f = [&] {
     wait<> w = do_live_among_the_natives(
-        W.planes(), W.ts(), dwelling, W.default_player(), unit,
-        outcome );
+        W.planes(), W.ss(), W.ts(), dwelling, W.default_player(),
+        unit, outcome );
     CHECK( !w.exception() );
     CHECK( w.ready() );
   };
@@ -523,13 +523,13 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   Unit const*   p_unit = nullptr;
   vector<Coord> expected_tiles;
   expected_tiles.reserve( 15 * 15 ); // should be enough.
-  Dwelling& dwelling =
+  Dwelling& dwelling_tupi =
       W.add_dwelling( { .x = 4, .y = 4 }, e_tribe::tupi );
   W.add_tribe( e_tribe::tupi )
       .relationship[W.default_nation()]
       .emplace();
   DwellingRelationship& relationship =
-      dwelling.relationship[W.default_nation()];
+      dwelling_tupi.relationship[W.default_nation()];
   Unit& scout_petty = W.add_unit_on_map(
       UnitType::create( e_unit_type::scout,
                         e_unit_type::petty_criminal )
@@ -545,10 +545,19 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
       { .x = 3, .y = 3 } );
 
   // Prepare dwelling.
-  dwelling.teaches = e_native_skill::cotton_planting;
-  dwelling.trading.seeking_primary = e_commodity::trade_goods;
-  dwelling.trading.seeking_secondary_1 = e_commodity::ore;
-  dwelling.trading.seeking_secondary_2 = e_commodity::horses;
+  dwelling_tupi.teaches = e_native_skill::cotton_planting;
+  dwelling_tupi.trading.seeking_primary =
+      e_commodity::trade_goods;
+  dwelling_tupi.trading.seeking_secondary_1 = e_commodity::ore;
+  dwelling_tupi.trading.seeking_secondary_2 =
+      e_commodity::horses;
+
+  Dwelling& dwelling_inca =
+      W.add_dwelling( { .x = 5, .y = 4 }, e_tribe::inca );
+  DwellingId const dwelling_inca_id = dwelling_inca.id;
+  dwelling_inca                     = dwelling_tupi;
+  dwelling_inca.id                  = dwelling_inca_id;
+  Dwelling* dwelling                = &dwelling_tupi;
 
   SpeakWithChiefResult expected{
       .expertise         = e_native_skill::cotton_planting,
@@ -558,7 +567,7 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
 
   auto f = [&] {
     CHECK( p_unit != nullptr );
-    return compute_speak_with_chief( W.ss(), W.ts(), dwelling,
+    return compute_speak_with_chief( W.ss(), W.ts(), *dwelling,
                                      *p_unit );
   };
 
@@ -648,8 +657,8 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   W.add_tribe( e_tribe::inca )
       .relationship[W.default_nation()]
       .emplace();
-  dwelling.tribe = e_tribe::inca;
-  p_unit         = &scout_seasoned;
+  dwelling = &dwelling_inca;
+  p_unit   = &scout_seasoned;
   EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
   EXPECT_CALL( W.rand(),
                between_ints( 0, 100, e_interval::half_open ) )
@@ -659,7 +668,7 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
       .returns( 1111 );
   expected.action = ChiefAction::gift_money{ .quantity = 1111 };
   REQUIRE( f() == expected );
-  dwelling.tribe = e_tribe::tupi;
+  dwelling = &dwelling_tupi;
 
   // outcome: promotion.
   p_unit = &scout_petty;

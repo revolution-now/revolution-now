@@ -1714,6 +1714,7 @@ struct AttackNativeUnitHandler : public OrdersHandler {
     UNWRAP_CHECK( relationship,
                   tribe_.relationship[unit_.nation()] );
     increase_tribal_alarm_from_attacking_brave(
+        ss_,
         ss_.natives.dwelling_for(
             ss_.units.dwelling_for( defender_id_ ) ),
         relationship );
@@ -1814,7 +1815,7 @@ struct NativeDwellingHandler : public OrdersHandler {
       player_( player ),
       unit_id_( unit_id ),
       unit_( ss_.units.unit_for( unit_id ) ),
-      tribe_( ss.natives.tribe_for( dwelling.tribe ) ),
+      tribe_( ss.natives.tribe_for( dwelling.id ) ),
       dwelling_( dwelling ),
       direction_( d ),
       move_src_( coord_for_unit_indirect_or_die( ss.units,
@@ -1908,8 +1909,9 @@ struct NativeDwellingHandler : public OrdersHandler {
       case EnterDwellingOutcome::e::live_among_the_natives: {
         auto& o = outcome_.get<
             EnterDwellingOutcome::live_among_the_natives>();
-        co_await do_live_among_the_natives(
-            planes_, ts_, dwelling_, player_, unit_, o.outcome );
+        co_await do_live_among_the_natives( planes_, ss_, ts_,
+                                            dwelling_, player_,
+                                            unit_, o.outcome );
         break;
       }
       case EnterDwellingOutcome::e::speak_with_chief: {

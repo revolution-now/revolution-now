@@ -403,11 +403,12 @@ Colony& World::add_colony_with_new_unit(
 // --------------------------------------------------------------
 Dwelling& World::add_dwelling( Coord where, e_tribe tribe ) {
   natives().create_or_add_tribe( tribe );
-  DwellingId const id = natives().add_dwelling( Dwelling{
-      .tribe      = tribe,
-      .location   = where,
-      .population = config_natives.tribes[tribe].max_population,
-  } );
+  DwellingId const id = natives().add_dwelling(
+      tribe, where,
+      Dwelling{
+          .population =
+              config_natives.tribes[tribe].max_population,
+      } );
   return natives().dwelling_for( id );
 }
 

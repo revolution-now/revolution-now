@@ -96,13 +96,13 @@ valid_or<string> validate_interaction(
 valid_or<string> validate_interaction(
     NativesState const& natives_state,
     TerrainState const& terrain ) {
-  for( auto const& [dwelling_id, dwelling] :
+  for( auto const& [dwelling_id, state] :
        natives_state.dwellings_all() ) {
-    // Colony is on land.
+    // Dwelling is on land.
     REFL_VALIDATE(
-        terrain.world_map()[dwelling.location].surface ==
+        terrain.world_map()[state.ownership.location].surface ==
             e_surface::land,
-        "Dwelling {} is not on land.", dwelling.id );
+        "Dwelling {} is not on land.", dwelling_id );
   }
   return base::valid;
 }

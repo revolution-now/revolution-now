@@ -49,11 +49,11 @@ base::valid_or<string> wrapped::NativesState::validate() const {
 
   DwellingId max_id{ -1 };
 
-  for( auto const& [id, dwelling] : dwellings ) {
+  for( auto const& [id, state] : dwellings ) {
     max_id = std::max( max_id, id );
 
     // Each dwelling has a unique location.
-    Coord where = dwelling.location;
+    Coord where = state.ownership.location;
     REFL_VALIDATE( !used_coords.contains( where ),
                    "multiples dwellings on tile {}.", where );
     used_coords.insert( where );
@@ -75,8 +75,8 @@ base::valid_or<std::string> NativesState::validate() const {
   HAS_VALUE_OR_RET( o_.validate() );
 
   // Dwelling location matches coord.
-  for( auto const& [dwelling_id, dwelling] : o_.dwellings ) {
-    Coord const&            coord = dwelling.location;
+  for( auto const& [dwelling_id, state] : o_.dwellings ) {
+    Coord const&            coord = state.ownership.location;
     base::maybe<DwellingId> actual_dwelling_id =
         base::lookup( dwelling_from_coord_, coord );
     REFL_VALIDATE( actual_dwelling_id == dwelling_id,
@@ -95,8 +95,8 @@ void NativesState::validate_or_die() const {
 NativesState::NativesState( wrapped::NativesState&& o )
   : o_( std::move( o ) ) {
   // Populate dwelling_from_coord_.
-  for( auto const& [id, dwelling] : o_.dwellings )
-    dwelling_from_coord_[dwelling.location] = id;
+  for( auto const& [id, state] : o_.dwellings )
+    dwelling_from_coord_[state.ownership.location] = id;
 }
 
 NativesState::NativesState()
@@ -131,55 +131,90 @@ Tribe& NativesState::create_or_add_tribe( e_tribe tribe ) {
   return obj;
 }
 
-unordered_map<DwellingId, Dwelling> const&
+unordered_map<DwellingId, DwellingState> const&
 NativesState::dwellings_all() const {
   return o_.dwellings;
 }
 
 Dwelling const& NativesState::dwelling_for(
     DwellingId id ) const {
-  UNWRAP_CHECK_MSG( col, base::lookup( o_.dwellings, id ),
-                    "dwelling {} does not exist.", id );
-  return col;
+  return state_for( id ).dwelling;
 }
 
 Dwelling& NativesState::dwelling_for( DwellingId id ) {
-  UNWRAP_CHECK_MSG( col, base::lookup( o_.dwellings, id ),
+  return state_for( id ).dwelling;
+}
+
+DwellingState const& NativesState::state_for(
+    DwellingId id ) const {
+  UNWRAP_CHECK_MSG( res, base::lookup( o_.dwellings, id ),
                     "dwelling {} does not exist.", id );
-  return col;
+  return res;
+}
+
+DwellingState& NativesState::state_for( DwellingId id ) {
+  UNWRAP_CHECK_MSG( res, base::lookup( o_.dwellings, id ),
+                    "dwelling {} does not exist.", id );
+  return res;
+}
+
+DwellingOwnership const& NativesState::ownership_for(
+    DwellingId id ) const {
+  return state_for( id ).ownership;
+}
+
+DwellingOwnership& NativesState::ownership_for( DwellingId id ) {
+  return state_for( id ).ownership;
 }
 
 Coord NativesState::coord_for( DwellingId id ) const {
-  return dwelling_for( id ).location;
+  return ownership_for( id ).location;
+}
+
+Tribe const& NativesState::tribe_for( DwellingId id ) const {
+  return tribe_for( ownership_for( id ).tribe );
+}
+
+Tribe& NativesState::tribe_for( DwellingId id ) {
+  return tribe_for( ownership_for( id ).tribe );
 }
 
 vector<DwellingId> NativesState::dwellings_for_tribe(
     e_tribe tribe ) const {
   vector<DwellingId> res;
   res.reserve( o_.dwellings.size() );
-  for( auto const& [id, dwelling] : o_.dwellings )
-    if( dwelling.tribe == tribe ) res.push_back( id );
+  for( auto const& [id, state] : o_.dwellings )
+    if( state.ownership.tribe == tribe ) //
+      res.push_back( id );
   return res;
 }
 
-DwellingId NativesState::add_dwelling( Dwelling&& dwelling ) {
+DwellingId NativesState::add_dwelling( e_tribe    tribe,
+                                       Coord      location,
+                                       Dwelling&& dwelling ) {
+  CHECK( tribe_exists( tribe ), "tribe {} does not exist.",
+         tribe );
   CHECK( dwelling.id == DwellingId{ 0 },
          "dwelling ID must be zero when creating dwelling." );
-  DwellingId id = next_dwelling_id();
-  dwelling.id   = id;
-  CHECK( !dwelling_from_coord_.contains( dwelling.location ) );
-  dwelling_from_coord_[dwelling.location] = id;
+  DwellingId const id = next_dwelling_id();
+  dwelling.id         = id;
+  CHECK( !dwelling_from_coord_.contains( location ) );
+  dwelling_from_coord_[location] = id;
   // Must be last to avoid use-after-move.
   CHECK( !o_.dwellings.contains( id ) );
-  o_.dwellings[id] = std::move( dwelling );
+  o_.dwellings[id] = {
+      .dwelling  = std::move( dwelling ),
+      .ownership = DwellingOwnership{ .location = location,
+                                      .tribe    = tribe } };
   return id;
 }
 
 void NativesState::destroy_dwelling( DwellingId id ) {
-  Dwelling& dwelling = dwelling_for( id );
-  CHECK( dwelling_from_coord_.contains( dwelling.location ) );
-  dwelling_from_coord_.erase( dwelling.location );
-  // Should be last so above reference doesn't dangle.
+  DwellingState&     state     = state_for( id );
+  DwellingOwnership& ownership = state.ownership;
+  CHECK( dwelling_from_coord_.contains( ownership.location ) );
+  dwelling_from_coord_.erase( ownership.location );
+  // Should be last so above references don't dangle.
   o_.dwellings.erase( id );
 }
 
@@ -246,6 +281,12 @@ LUA_STARTUP( lua::state& st ) {
                 "dwelling {} does not exist.", id );
     return o.dwelling_for( id );
   };
+  u["tribe_for_dwelling"] = []( U& o, DwellingId id ) {
+    return o.ownership_for( id ).tribe;
+  };
+  u["coord_for_dwelling"] = []( U& o, DwellingId id ) {
+    return o.ownership_for( id ).location;
+  };
   u["has_dwelling_on_square"] =
       []( U& o, Coord where ) -> maybe<Dwelling&> {
     maybe<DwellingId> const dwelling_id =
@@ -256,11 +297,11 @@ LUA_STARTUP( lua::state& st ) {
   // FIXME: temporary; need to move this somewhere else which can
   // create the dwelling properly with all of the fields initial-
   // ized to the correct values.
-  u["new_dwelling"] = [&]( U& o, Coord where ) -> Dwelling& {
-    Dwelling dwelling;
-    dwelling.location = where;
+  u["new_dwelling"] = [&]( U& o, e_tribe tribe,
+                           Coord where ) -> Dwelling& {
+    Dwelling         dwelling;
     DwellingId const id =
-        o.add_dwelling( std::move( dwelling ) );
+        o.add_dwelling( tribe, where, std::move( dwelling ) );
     return o.dwelling_for( id );
   };
   u["create_or_add_tribe"] = &U::create_or_add_tribe;

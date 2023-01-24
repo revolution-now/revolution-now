@@ -743,9 +743,10 @@ end
 local function has_dwelling_in_surroundings( coord )
   local squares =
       filter_on_map( surrounding_squares_3x3( coord ) )
+  local natives = ROOT.natives
   for _, coord in ipairs( squares ) do
     local square = square_at( coord )
-    if ROOT.natives:has_dwelling_on_square( coord ) then
+    if natives:has_dwelling_on_square( coord ) then
       return true
     end
   end
@@ -753,17 +754,21 @@ local function has_dwelling_in_surroundings( coord )
 end
 
 local function create_brave_for_dwelling( dwelling )
+  local natives = ROOT.natives
+  local location = natives:coord_for_dwelling( dwelling.id )
   local squares = filter_on_map(
-                      surrounding_squares_3x3( dwelling.location ) )
+                      surrounding_squares_3x3( location ) )
   squares = filter( squares, function( coord )
     if square_at( coord ).surface ~= 'land' then return false end
     local tribe = society.tribe_on_square( coord )
-    if tribe ~= nil and tribe ~= dwelling.tribe then
+    local dwelling_tribe = natives:tribe_for_dwelling(
+                               dwelling.id )
+    if tribe ~= nil and tribe ~= dwelling_tribe then
       return false
     end
     return true
   end )
-  append( squares, dwelling.location )
+  append( squares, location )
   local coord = assert( random_list_elem( squares ) )
   unit_mgr.create_native_unit_on_map( dwelling.id, 'brave', coord )
 end
@@ -771,10 +776,9 @@ end
 local function add_dwelling( coord, tribe )
   assert( coord )
   local square = square_at( coord )
-  local dwelling = ROOT.natives:new_dwelling( coord )
-  assert( dwelling.location.x == coord.x )
-  assert( dwelling.location.y == coord.y )
-  dwelling.tribe = tribe
+  local natives = ROOT.natives
+  natives:create_or_add_tribe( tribe )
+  local dwelling = natives:new_dwelling( tribe, coord )
   -- FIXME
   dwelling.population = 3
   dwelling.teaches =
@@ -800,9 +804,9 @@ local function add_dwelling( coord, tribe )
   owned_squares = filter_on_map(
                       surrounding_squares_tribe_owned( tribe,
                                                        coord ) )
-  ROOT.natives:mark_land_owned( dwelling.id, coord )
+  natives:mark_land_owned( dwelling.id, coord )
   for _, coord in ipairs( owned_squares ) do
-    ROOT.natives:mark_land_owned( dwelling.id, coord )
+    natives:mark_land_owned( dwelling.id, coord )
   end
   -- Create the brave associated with this dwelling.
   create_brave_for_dwelling( dwelling )
@@ -873,15 +877,12 @@ local function create_indian_villages_using_partition(options,
       placed_at_least_one[tribe] = true
     end
   end
-  -- Create each tribe (that has at least one dwelling) and pick
-  -- a capital for each tribe.
+  -- Pick a capital for each tribe.
   for _, tribe in ipairs( tribes ) do
     local tribe_dwellings = dwellings[tribe]
     shuffle( tribe_dwellings )
     if #tribe_dwellings > 0 then
       tribe_dwellings[1].is_capital = true
-      local tribe_obj = ROOT.natives:create_or_add_tribe( tribe )
-      tribe_obj.type = tribe
     end
   end
 end
@@ -904,8 +905,8 @@ local function log_dwelling_expertises( level )
   local total_dwellings = 0
   while natives:dwelling_exists( dwelling_id ) do
     local dwelling = natives:dwelling_for_id( dwelling_id )
-    if level == nil or assert( tribe_level[dwelling.tribe] ) ==
-        level then
+    local tribe = natives:tribe_for_dwelling( dwelling_id )
+    if level == nil or assert( tribe_level[tribe] ) == level then
       local teaches = assert( dwelling.teaches )
       if histogram[teaches] == nil then
         histogram[teaches] = 0

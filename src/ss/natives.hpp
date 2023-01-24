@@ -57,8 +57,8 @@ struct NativesState {
   // ------------------------------------------------------------
   DwellingId last_dwelling_id() const;
 
-  std::unordered_map<DwellingId, Dwelling> const& dwellings_all()
-      const;
+  std::unordered_map<DwellingId, DwellingState> const&
+  dwellings_all() const;
 
   std::vector<DwellingId> dwellings_for_tribe(
       e_tribe tribe ) const;
@@ -66,7 +66,15 @@ struct NativesState {
   Dwelling const& dwelling_for( DwellingId id ) const;
   Dwelling&       dwelling_for( DwellingId id );
 
-  Coord coord_for( DwellingId id ) const;
+  DwellingState const& state_for( DwellingId id ) const;
+  DwellingState&       state_for( DwellingId id );
+
+  DwellingOwnership const& ownership_for( DwellingId id ) const;
+  DwellingOwnership&       ownership_for( DwellingId id );
+
+  Coord        coord_for( DwellingId id ) const;
+  Tribe const& tribe_for( DwellingId id ) const;
+  Tribe&       tribe_for( DwellingId id );
 
   base::maybe<DwellingId> maybe_dwelling_from_coord(
       Coord const& c ) const;
@@ -77,7 +85,8 @@ struct NativesState {
   // The id of this dwelling must be zero (i.e., you can't select
   // the ID); a new ID will be generated for this unit and re-
   // turned.
-  DwellingId add_dwelling( Dwelling&& Dwelling );
+  DwellingId add_dwelling( e_tribe tribe, Coord location,
+                           Dwelling&& Dwelling );
 
   // NOTE: this should not be called directly since it will not
   // do associated cleanup such as deleting (or at least disown-

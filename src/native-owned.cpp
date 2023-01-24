@@ -74,7 +74,7 @@ maybe<DwellingId> is_land_native_owned( SSConst const& ss,
   if( !dwelling_id.has_value() ) return nothing;
   Dwelling const& dwelling =
       ss.natives.dwelling_for( *dwelling_id );
-  Tribe const& tribe = ss.natives.tribe_for( dwelling.tribe );
+  Tribe const& tribe = ss.natives.tribe_for( dwelling.id );
   if( !tribe.relationship[player.nation].has_value() )
     return nothing;
   // Note that we don't check the "at war" status here, because
@@ -101,15 +101,15 @@ maybe<LandPrice> price_for_native_owned_land(
                  is_land_native_owned( ss, player, coord ) );
   Dwelling const& dwelling_obj =
       ss.natives.dwelling_for( dwelling_id );
-  if( dwelling_obj.location == coord )
+  Coord const location = ss.natives.coord_for( dwelling_id );
+  if( location == coord )
     // It is not specified whether the map generator will mark
     // the tile under a dwelling as owned, but in any case the
     // game should not be asking for the price of that tile while
     // there is still a dwelling there.
     return nothing;
-  e_tribe const tribe =
-      ss.natives.dwelling_for( dwelling_id ).tribe;
-  LandPrice            res{ .owner = tribe };
+  e_tribe const tribe = ss.natives.tribe_for( dwelling_id ).type;
+  LandPrice     res{ .owner = tribe };
   e_native_level const level =
       config_natives.tribes[tribe].level;
   Tribe const& tribe_obj = ss.natives.tribe_for( tribe );
@@ -153,7 +153,7 @@ maybe<LandPrice> price_for_native_owned_land(
   price *= ( 1 + anger_bucket );
 
   // Apply distance modifier to dwelling.
-  Coord const dwelling_square = dwelling_obj.location;
+  Coord const dwelling_square = location;
   // This is a distance indicator that is used to compute the
   // price decrease with distance. It is not an exact measure of
   // distance, but instead is calculated in a way so as to match

@@ -345,7 +345,7 @@ TEST_CASE(
       W.add_dwelling( { .x = 1, .y = 1 }, tribe.type );
 
   auto f = [&] {
-    increase_tribal_alarm_from_attacking_brave( dwelling,
+    increase_tribal_alarm_from_attacking_brave( W.ss(), dwelling,
                                                 relationship );
   };
 
@@ -387,7 +387,7 @@ TEST_CASE(
 
   auto f = [&] {
     increase_tribal_alarm_from_attacking_dwelling(
-        dwelling, relationship );
+        W.ss(), dwelling, relationship );
   };
 
   SECTION( "non-capital" ) {

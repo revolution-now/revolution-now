@@ -367,23 +367,25 @@ void LandViewRenderer::render_units_impl() const {
 
 void LandViewRenderer::render_native_dwelling(
     Dwelling const& dwelling ) const {
-  if( !viz_.visible( dwelling.location ) ) return;
+  Coord const location = ss_.natives.coord_for( dwelling.id );
+  if( !viz_.visible( location ) ) return;
   Coord const tile_coord =
-      render_rect_for_tile( dwelling.location ).upper_left() -
+      render_rect_for_tile( location ).upper_left() -
       Delta{ .w = 6, .h = 6 };
   rr::Painter painter = renderer.painter();
-  render_dwelling( painter, tile_coord, dwelling );
+  render_dwelling( painter, tile_coord, ss_, dwelling );
 }
 
 void LandViewRenderer::render_native_dwelling_depixelate(
     Dwelling const& dwelling ) const {
+  Coord const location = ss_.natives.coord_for( dwelling.id );
   UNWRAP_CHECK( animation,
                 lv_animator_.dwelling_animation( dwelling.id )
                     .get_if<DwellingAnimation::depixelate>() );
   // As usual, the hash anchor coord is arbitrary so long as
   // its position is fixed relative to the sprite.
   Coord const hash_anchor =
-      render_rect_for_tile( dwelling.location ).upper_left();
+      render_rect_for_tile( location ).upper_left();
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                            animation.stage );
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
@@ -532,16 +534,17 @@ void LandViewRenderer::render_units() const {
 }
 
 void LandViewRenderer::render_native_dwellings() const {
-  unordered_map<DwellingId, Dwelling> const& all =
+  unordered_map<DwellingId, DwellingState> const& all =
       ss_.natives.dwellings_all();
-  for( auto const& [id, dwelling] : all ) {
-    if( !dwelling.location.is_inside( covered_ ) ) continue;
+  for( auto const& [id, state] : all ) {
+    if( !state.ownership.location.is_inside( covered_ ) )
+      continue;
     maybe<DwellingAnimation_t const&> anim =
         lv_animator_.dwelling_animation( id );
     if( !anim.has_value() )
-      render_native_dwelling( dwelling );
+      render_native_dwelling( state.dwelling );
     else
-      render_native_dwelling_depixelate( dwelling );
+      render_native_dwelling_depixelate( state.dwelling );
   }
 }
 
@@ -573,7 +576,7 @@ void LandViewRenderer::render_units_underneath() const {
     switch( anim.to_enum() ) {
       case DwellingAnimation::e::depixelate: {
         Coord const location =
-            ss_.natives.dwelling_for( dwelling_id ).location;
+            ss_.natives.coord_for( dwelling_id );
         if( !location.is_inside( covered_ ) ) return;
         render_units_on_square( location, /*flags=*/false );
         break;

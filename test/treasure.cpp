@@ -23,6 +23,7 @@
 
 // ss
 #include "ss/dwelling.rds.hpp"
+#include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.hpp"
@@ -323,21 +324,23 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
 #endif
 
 TEST_CASE( "[treasure] treasure_from_dwelling" ) {
-  World     W;
-  e_tribe   tribe = {};
-  Dwelling& dwelling =
-      W.add_dwelling( { .x = 1, .y = 1 }, tribe );
+  World      W;
+  e_tribe    tribe      = {};
   Player&    player     = W.default_player();
   bool       has_cortes = false;
   bool       capital    = false;
   maybe<int> expected;
 
   auto f = [&] {
+    Dwelling& dwelling =
+        W.add_dwelling( { .x = 1, .y = 1 }, tribe );
     dwelling.is_capital = capital;
-    dwelling.tribe      = tribe;
     player.fathers.has[e_founding_father::hernan_cortes] =
         has_cortes;
-    return treasure_from_dwelling( W.ts(), player, dwelling );
+    maybe<int> const res = treasure_from_dwelling(
+        W.ss(), W.ts(), player, dwelling );
+    W.natives().destroy_dwelling( dwelling.id );
+    return res;
   };
 
   // Semi-nomadic, no capital, no cortes, no treasure.

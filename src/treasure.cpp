@@ -23,6 +23,7 @@
 
 // ss
 #include "ss/dwelling.rds.hpp"
+#include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
@@ -188,10 +189,13 @@ wait<> show_treasure_receipt( TS& ts, Player const& player,
   co_await ts.gui.message_box( msg );
 }
 
-maybe<int> treasure_from_dwelling( TS& ts, Player const& player,
+maybe<int> treasure_from_dwelling( SSConst const& ss, TS& ts,
+                                   Player const&   player,
                                    Dwelling const& dwelling ) {
+  e_tribe const tribe_type =
+      ss.natives.tribe_for( dwelling.id ).type;
   e_native_level const level =
-      config_natives.tribes[dwelling.tribe].level;
+      config_natives.tribes[tribe_type].level;
   auto&      conf = config_natives.treasure.yield[level];
   bool const has_cortes =
       player.fathers.has[e_founding_father::hernan_cortes];

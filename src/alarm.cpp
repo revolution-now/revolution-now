@@ -53,11 +53,13 @@ namespace {
 // This will increase the tribal alarm but taking into account
 // scaling based on capital status of dwelling.
 void increase_tribal_alarm_from_dwelling(
-    Dwelling const& dwelling, double delta, int& tribal_alarm ) {
+    SSConst const& ss, Dwelling const& dwelling, double delta,
+    int& tribal_alarm ) {
   if( dwelling.is_capital )
     delta *= config_natives.alarm.tribal_alarm_scale_for_capital;
   tribal_alarm =
-      new_tribal_alarm( dwelling.tribe, tribal_alarm + delta );
+      new_tribal_alarm( ss.natives.tribe_for( dwelling.id ).type,
+                        tribal_alarm + delta );
 }
 
 constexpr int minimum_alarm_for_named_level(
@@ -77,7 +79,7 @@ constexpr int minimum_alarm_for_named_level(
 int effective_dwelling_alarm( SSConst const&  ss,
                               Dwelling const& dwelling,
                               e_nation        nation ) {
-  Tribe const& tribe = ss.natives.tribe_for( dwelling.tribe );
+  Tribe const& tribe = ss.natives.tribe_for( dwelling.id );
   if( !tribe.relationship[nation].has_value() ) return 0;
   int const tribal_alarm =
       tribe.relationship[nation]->tribal_alarm;
@@ -146,32 +148,36 @@ void increase_tribal_alarm_from_land_grab(
                 is_land_native_owned( ss, player, tile ) );
   Dwelling const& dwelling =
       ss.natives.dwelling_for( dwelling_id );
-  int const rect_distance = std::max(
-      dwelling.location.concentric_square_distance( tile ) - 1,
-      0 );
+  int const rect_distance =
+      std::max( ss.natives.coord_for( dwelling.id )
+                        .concentric_square_distance( tile ) -
+                    1,
+                0 );
   delta *= pow( conf.distance_factor, rect_distance );
 
   CHECK_GE( delta, 0.0 );
   increase_tribal_alarm_from_dwelling(
-      dwelling, delta, relationship.tribal_alarm );
+      ss, dwelling, delta, relationship.tribal_alarm );
 }
 
 void increase_tribal_alarm_from_attacking_brave(
-    Dwelling const& dwelling, TribeRelationship& relationship ) {
+    SSConst const& ss, Dwelling const& dwelling,
+    TribeRelationship& relationship ) {
   double const delta =
       config_natives.alarm
           .tribal_alarm_increase_from_attacking_brave;
   increase_tribal_alarm_from_dwelling(
-      dwelling, delta, relationship.tribal_alarm );
+      ss, dwelling, delta, relationship.tribal_alarm );
 }
 
 void increase_tribal_alarm_from_attacking_dwelling(
-    Dwelling const& dwelling, TribeRelationship& relationship ) {
+    SSConst const& ss, Dwelling const& dwelling,
+    TribeRelationship& relationship ) {
   double const delta =
       config_natives.alarm
           .tribal_alarm_increase_from_attacking_dwelling;
   increase_tribal_alarm_from_dwelling(
-      dwelling, delta, relationship.tribal_alarm );
+      ss, dwelling, delta, relationship.tribal_alarm );
 }
 
 void set_tribal_alarm_to_content_if_possible(

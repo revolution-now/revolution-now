@@ -62,12 +62,14 @@ void increase_tribal_alarm_from_land_grab(
 // the OG where tribal alarm affects are amplified when made by
 // way of the capital.
 void increase_tribal_alarm_from_attacking_brave(
-    Dwelling const& dwelling, TribeRelationship& relationship );
+    SSConst const& ss, Dwelling const& dwelling,
+    TribeRelationship& relationship );
 
 // This is used when attacking a dwelling that does not have a
 // brave sitting on top of it.
 void increase_tribal_alarm_from_attacking_dwelling(
-    Dwelling const& dwelling, TribeRelationship& relationship );
+    SSConst const& ss, Dwelling const& dwelling,
+    TribeRelationship& relationship );
 
 // Attempts to set the tribal alarm at "content" (note: this is
 // not quite as good as "happy"). However, some tribes may have a

@@ -30,6 +30,7 @@
 // ss
 #include "ss/colony.hpp"
 #include "ss/dwelling.rds.hpp"
+#include "ss/natives.hpp"
 
 // base
 #include "base/keyval.hpp"
@@ -326,8 +327,11 @@ void render_colony( rr::Painter& painter, Coord where,
 }
 
 void render_dwelling( rr::Painter& painter, Coord where,
+                      SSConst const&  ss,
                       Dwelling const& dwelling ) {
-  auto& tribe_conf = config_natives.tribes[dwelling.tribe];
+  e_tribe const tribe_type =
+      ss.natives.tribe_for( dwelling.id ).type;
+  auto&        tribe_conf    = config_natives.tribes[tribe_type];
   e_tile const dwelling_tile = tribe_conf.dwelling_tile;
   render_sprite( painter, where, dwelling_tile );
   // Flags.

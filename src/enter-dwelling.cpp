@@ -264,7 +264,7 @@ adjust_village_attack_for_free_braves(
   CHECK( *option !=
          e_enter_dwelling_option::attack_brave_on_dwelling );
   unordered_set<GenericUnitId> const& braves_on_dwelling =
-      ss.units.from_coord( dwelling.location );
+      ss.units.from_coord( ss.natives.coord_for( dwelling.id ) );
   if( !braves_on_dwelling.empty() )
     return e_enter_dwelling_option::attack_brave_on_dwelling;
   return option;
@@ -278,7 +278,7 @@ adjust_village_attack_for_free_braves(
 EnterNativeDwellingOptions enter_native_dwelling_options(
     SSConst const& ss, Player const& player,
     e_unit_type unit_type, Dwelling const& dwelling ) {
-  Tribe const& tribe = ss.natives.tribe_for( dwelling.tribe );
+  Tribe const& tribe = ss.natives.tribe_for( dwelling.id );
   return EnterNativeDwellingOptions{
       .dwelling_id = dwelling.id,
       .reaction =
@@ -294,7 +294,7 @@ wait<e_enter_dwelling_option> present_dwelling_entry_options(
       ts, player, e_woodcut::entering_native_village );
   Dwelling const& dwelling =
       ss.natives.dwelling_for( options.dwelling_id );
-  e_tribe const tribe = dwelling.tribe;
+  e_tribe const tribe = ss.natives.tribe_for( dwelling.id ).type;
   string        msg   = fmt::format(
       "You have arrived at a {} of the @[H]{}@[].  {}",
       config_natives
@@ -316,9 +316,8 @@ wait<e_enter_dwelling_option> present_dwelling_entry_options(
 LiveAmongTheNatives_t compute_live_among_the_natives(
     SSConst const& ss, Dwelling const& dwelling,
     Unit const& unit ) {
-  UNWRAP_CHECK( relationship,
-                ss.natives.tribe_for( dwelling.tribe )
-                    .relationship[unit.nation()] );
+  UNWRAP_CHECK( relationship, ss.natives.tribe_for( dwelling.id )
+                                  .relationship[unit.nation()] );
   e_unit_type const base_type = unit.base_type();
   auto const&       attr      = unit_attr( base_type );
   if( !is_unit_human( unit.type_obj() ) )
@@ -350,8 +349,8 @@ LiveAmongTheNatives_t compute_live_among_the_natives(
 }
 
 wait<> do_live_among_the_natives(
-    Planes& planes, TS& ts, Dwelling& dwelling,
-    Player const& player, Unit& unit,
+    Planes& planes, SSConst const& ss, TS& ts,
+    Dwelling& dwelling, Player const& player, Unit& unit,
     LiveAmongTheNatives_t const& outcome ) {
   switch( outcome.to_enum() ) {
     using namespace LiveAmongTheNatives;
@@ -398,9 +397,11 @@ wait<> do_live_among_the_natives(
       co_return;
     }
     case e::promoted: {
-      auto&        o = outcome.get<promoted>();
+      auto&         o = outcome.get<promoted>();
+      e_tribe const tribe =
+          ss.natives.tribe_for( dwelling.id ).type;
       string const tribe_name =
-          config_natives.tribes[dwelling.tribe].name_singular;
+          config_natives.tribes[tribe].name_singular;
       // This will allow us to show e.g. "Seasoned Scout" instead
       // of "Seasoned Colonist".
       string const new_name =
@@ -454,8 +455,9 @@ static vector<Coord> compute_tales_of_nearby_lands_tiles(
   // The standard values of the radius in the config are odd, so
   // the following should lead to a square centered on the
   // dwelling radius.
-  Rect const rect =
-      Rect::from( dwelling.location, Delta{ .w = 1, .h = 1 } )
+  Coord const location = ss.natives.coord_for( dwelling.id );
+  Rect const  rect =
+      Rect::from( location, Delta{ .w = 1, .h = 1 } )
           .with_border_added( radius / 2 );
   Visibility const viz = Visibility::create( ss, unit.nation() );
   for( auto r : gfx::subrects( rect ) ) {
@@ -522,9 +524,10 @@ static ChiefAction_t compute_speak_with_chief_action(
     case e_speak_with_chief_result::none:
       return ChiefAction::none{};
     case e_speak_with_chief_result::gift_money: {
+      e_tribe const tribe =
+          ss.natives.tribe_for( dwelling.id ).type;
       config::IntRange const& gift_range =
-          conf.gift_range[config_natives.tribes[dwelling.tribe]
-                              .level];
+          conf.gift_range[config_natives.tribes[tribe].level];
       int const quantity = ts.rand.between_ints(
           gift_range.min, gift_range.max, e_interval::closed );
       return ChiefAction::gift_money{ .quantity = quantity };
@@ -575,6 +578,7 @@ wait<> do_speak_with_chief(
     SpeakWithChiefResult const& outcome ) {
   dwelling.relationship[unit.nation()].has_spoken_with_chief =
       true;
+  e_tribe const tribe = ss.natives.tribe_for( dwelling.id ).type;
   if( !outcome.action.holds<ChiefAction::target_practice>() )
     co_await ts.gui.message_box(
         "Greetings traveler, we are a peaceful @[H]{}@[] known "
@@ -583,8 +587,7 @@ wait<> do_speak_with_chief(
         "in need.  We would also accept @[H]{}@[] and "
         "@[H]{}@[].",
         config_natives
-            .dwelling_types[config_natives.tribes[dwelling.tribe]
-                                .level]
+            .dwelling_types[config_natives.tribes[tribe].level]
             .name_singular,
         config_natives.native_skills[outcome.expertise]
             .display_name,
@@ -622,7 +625,7 @@ wait<> do_speak_with_chief(
           "We invite you to sit around the campfire with us as "
           "we tell you the tales of nearby lands." );
       co_await planes.land_view().center_on_tile(
-          dwelling.location );
+          ss.natives.coord_for( dwelling.id ) );
       for( Coord tile : tiles ) {
         ts.map_updater.make_square_visible( tile,
                                             unit.nation() );
@@ -655,7 +658,7 @@ wait<> do_speak_with_chief(
           "You have violated sacred taboos of the @[H]{}@[] "
           "tribe and thus we have decided to use your scout as "
           "target practice.",
-          config_natives.tribes[dwelling.tribe].name_singular );
+          config_natives.tribes[tribe].name_singular );
       co_await planes.land_view().animate_unit_depixelation(
           DepixelateAnimation::euro_unit{ .id     = unit.id(),
                                           .target = nothing } );
@@ -678,7 +681,6 @@ wait<> do_attack_village( Planes& planes, SS& ss, TS& ts,
                           Dwelling& dwelling, Player& player,
                           Unit&                      unit,
                           AttackVillageResult const& outcome ) {
-
   co_return;
 }
 

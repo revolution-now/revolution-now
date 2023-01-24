@@ -222,7 +222,7 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     };
 
     W.settings().difficulty = e_difficulty::discoverer;
-    Tribe& tribe = W.natives().tribe_for( dwelling.tribe );
+    Tribe& tribe = W.natives().tribe_for( dwelling.id );
     maybe<TribeRelationship>& relationship =
         tribe.relationship[player.nation];
 
@@ -397,7 +397,7 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     };
 
     W.settings().difficulty = e_difficulty::discoverer;
-    Tribe& tribe = W.natives().tribe_for( dwelling.tribe );
+    Tribe& tribe = W.natives().tribe_for( dwelling.id );
     maybe<TribeRelationship>& relationship =
         tribe.relationship[player.nation];
 
@@ -572,7 +572,7 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     };
 
     W.settings().difficulty = e_difficulty::discoverer;
-    Tribe& tribe = W.natives().tribe_for( dwelling.tribe );
+    Tribe& tribe = W.natives().tribe_for( dwelling.id );
     maybe<TribeRelationship>& relationship =
         tribe.relationship[player.nation];
 
@@ -749,7 +749,7 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     };
 
     W.settings().difficulty = e_difficulty::discoverer;
-    Tribe& tribe = W.natives().tribe_for( dwelling.tribe );
+    Tribe& tribe = W.natives().tribe_for( dwelling.id );
     maybe<TribeRelationship>& relationship =
         tribe.relationship[player.nation];
 
@@ -921,7 +921,7 @@ TEST_CASE(
   Dwelling&               dwelling =
       W.add_dwelling( kDwellingLoc, e_tribe::cherokee );
   W.settings().difficulty = e_difficulty::conquistador;
-  Tribe& tribe = W.natives().tribe_for( dwelling.tribe );
+  Tribe& tribe            = W.natives().tribe_for( dwelling.id );
   maybe<TribeRelationship>& relationship =
       tribe.relationship[player.nation];
   relationship.emplace();

@@ -110,55 +110,57 @@ TEST_CASE( "[native-expertise] select_expertise_for_dwelling" ) {
 TEST_CASE( "[native-expertise] dwelling_expertise_weights" ) {
   World                               W;
   refl::enum_map<e_native_skill, int> expected;
-  Dwelling&                           dwelling =
-      W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::tupi );
+  Dwelling*                           dwelling = nullptr;
 
   auto f = [&] {
-    return dwelling_expertise_weights( W.ss(), dwelling );
+    return dwelling_expertise_weights( W.ss(), *dwelling );
   };
 
   SECTION( "semi-nomadic" ) {
-    dwelling.tribe = e_tribe::tupi;
-    expected       = { { { e_native_skill::farming, 47 },
-                         { e_native_skill::fishing, 8 },
-                         { e_native_skill::sugar_planting, 420 },
-                         { e_native_skill::tobacco_planting, 165 },
-                         { e_native_skill::cotton_planting, 80 },
-                         { e_native_skill::fur_trapping, 170 },
-                         { e_native_skill::ore_mining, 0 },
-                         { e_native_skill::silver_mining, 0 },
-                         { e_native_skill::fur_trading, 0 },
-                         { e_native_skill::scouting, 120 } } };
+    dwelling =
+        &W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::tupi );
+    expected = { { { e_native_skill::farming, 47 },
+                   { e_native_skill::fishing, 8 },
+                   { e_native_skill::sugar_planting, 420 },
+                   { e_native_skill::tobacco_planting, 165 },
+                   { e_native_skill::cotton_planting, 80 },
+                   { e_native_skill::fur_trapping, 170 },
+                   { e_native_skill::ore_mining, 0 },
+                   { e_native_skill::silver_mining, 0 },
+                   { e_native_skill::fur_trading, 0 },
+                   { e_native_skill::scouting, 120 } } };
     REQUIRE( f() == expected );
   }
 
   SECTION( "agrarian" ) {
-    dwelling.tribe = e_tribe::cherokee;
-    expected       = { { { e_native_skill::farming, 141 },
-                         { e_native_skill::fishing, 48 },
-                         { e_native_skill::sugar_planting, 140 },
-                         { e_native_skill::tobacco_planting, 66 },
-                         { e_native_skill::cotton_planting, 32 },
-                         { e_native_skill::fur_trapping, 119 },
-                         { e_native_skill::ore_mining, 136 },
-                         { e_native_skill::silver_mining, 0 },
-                         { e_native_skill::fur_trading, 14 },
-                         { e_native_skill::scouting, 52 } } };
+    dwelling =
+        &W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::cherokee );
+    expected = { { { e_native_skill::farming, 141 },
+                   { e_native_skill::fishing, 48 },
+                   { e_native_skill::sugar_planting, 140 },
+                   { e_native_skill::tobacco_planting, 66 },
+                   { e_native_skill::cotton_planting, 32 },
+                   { e_native_skill::fur_trapping, 119 },
+                   { e_native_skill::ore_mining, 136 },
+                   { e_native_skill::silver_mining, 0 },
+                   { e_native_skill::fur_trading, 14 },
+                   { e_native_skill::scouting, 52 } } };
     REQUIRE( f() == expected );
   }
 
   SECTION( "civilized" ) {
-    dwelling.tribe = e_tribe::inca;
-    expected       = { { { e_native_skill::farming, 2350 },
-                         { e_native_skill::fishing, 520 },
-                         { e_native_skill::sugar_planting, 21 },
-                         { e_native_skill::tobacco_planting, 0 },
-                         { e_native_skill::cotton_planting, 0 },
-                         { e_native_skill::fur_trapping, 17 },
-                         { e_native_skill::ore_mining, 136 },
-                         { e_native_skill::silver_mining, 0 },
-                         { e_native_skill::fur_trading, 20 },
-                         { e_native_skill::scouting, 4 } } };
+    dwelling =
+        &W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::inca );
+    expected = { { { e_native_skill::farming, 2350 },
+                   { e_native_skill::fishing, 520 },
+                   { e_native_skill::sugar_planting, 21 },
+                   { e_native_skill::tobacco_planting, 0 },
+                   { e_native_skill::cotton_planting, 0 },
+                   { e_native_skill::fur_trapping, 17 },
+                   { e_native_skill::ore_mining, 136 },
+                   { e_native_skill::silver_mining, 0 },
+                   { e_native_skill::fur_trading, 20 },
+                   { e_native_skill::scouting, 4 } } };
     REQUIRE( f() == expected );
   }
 }

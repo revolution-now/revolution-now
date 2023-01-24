@@ -128,6 +128,7 @@ void render_colony( rr::Painter& painter, Coord where,
                     Colony const& colony );
 
 void render_dwelling( rr::Painter& painter, Coord where,
+                      SSConst const&  ss,
                       Dwelling const& dwelling );
 
 // Note that the coordinate provided here is the coordinate of

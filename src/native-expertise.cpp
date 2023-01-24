@@ -24,6 +24,7 @@
 #include "ss/colony-enums.rds.hpp"
 #include "ss/dwelling.hpp"
 #include "ss/native-enums.hpp"
+#include "ss/natives.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 
@@ -104,13 +105,13 @@ refl::enum_map<e_native_skill, int> dwelling_expertise_weights(
   refl::enum_map<e_native_skill, int> weights;
   int                                 num_forest_squares = 0;
   int                                 total_squares      = 0;
-  add_outdoor_weights_around_square( ss, dwelling.location,
-                                     weights, total_squares,
-                                     num_forest_squares );
+  Coord const location = ss.natives.coord_for( dwelling.id );
+  add_outdoor_weights_around_square(
+      ss, location, weights, total_squares, num_forest_squares );
   CHECK_GT( total_squares, 0 );
   double const forest_fraction =
       double( num_forest_squares ) / total_squares;
-  e_tribe const        tribe = dwelling.tribe;
+  e_tribe const tribe = ss.natives.tribe_for( dwelling.id ).type;
   e_native_level const level =
       config_natives.tribes[tribe].level;
 
