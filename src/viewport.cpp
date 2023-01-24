@@ -764,7 +764,7 @@ bool are_tile_surroundings_as_fully_visible_as_can_be(
   // ible region and the world rect in order for the below to
   // work properly at the world's edge.
   auto remove_edges = []( Rect r ) {
-    return r.edges_removed().edges_removed();
+    return r.edges_removed(); //.edges_removed();
   };
 
   bool visible_in_inner_viewport =
