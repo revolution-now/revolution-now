@@ -55,7 +55,7 @@ function M.default_options()
     -- the average slightly lower because it tends to end up
     -- slightly higher than the target.
     land_density=.17 + math.random() * .1,
-    remove_Xs=true,
+    remove_Xs=false,
     brush='rand',
     -- This is the probability that, given a land square, we will
     -- start creating a river from it.
