@@ -429,7 +429,7 @@ wait<> do_live_among_the_natives(
           // when a pioneer's base type gets promoted but the
           // unit type (and hence unit sprite) remains as a pio-
           // neer.
-          co_await planes.land_view().animate_unit_depixelation(
+          co_await planes.land_view().animate_unit_pixelation(
               PixelationAnimation::euro_unit_depixelate{
                   .id = unit.id(), .target = o.to.type() } );
         unit.change_type( player, o.to );
@@ -638,7 +638,7 @@ wait<> do_speak_with_chief(
       co_await ts.gui.message_box(
           "To help our traveler friends we will send guides "
           "along with your scout." );
-      co_await planes.land_view().animate_unit_depixelation(
+      co_await planes.land_view().animate_unit_pixelation(
           PixelationAnimation::euro_unit_depixelate{
               .id     = unit.id(),
               .target = e_unit_type::seasoned_scout } );
@@ -659,7 +659,7 @@ wait<> do_speak_with_chief(
           "tribe and thus we have decided to use your scout as "
           "target practice.",
           config_natives.tribes[tribe].name_singular );
-      co_await planes.land_view().animate_unit_depixelation(
+      co_await planes.land_view().animate_unit_pixelation(
           PixelationAnimation::euro_unit_depixelate{
               .id = unit.id(), .target = nothing } );
       ss.units.destroy_unit( unit.id() );

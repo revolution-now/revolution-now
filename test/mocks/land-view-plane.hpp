@@ -44,7 +44,7 @@ struct MockLandViewPlane : ILandViewPlane {
                () );
   MOCK_METHOD( wait<>, animate_colony_depixelation,
                (Colony const&), () );
-  MOCK_METHOD( wait<>, animate_unit_depixelation,
+  MOCK_METHOD( wait<>, animate_unit_pixelation,
                (PixelationAnimation_t const&), () );
   MOCK_METHOD( wait<>, animate_attack,
                (GenericUnitId, GenericUnitId,

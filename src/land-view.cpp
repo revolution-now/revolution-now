@@ -1155,7 +1155,7 @@ wait<> LandViewPlane::animate_colony_depixelation(
       colony );
 }
 
-wait<> LandViewPlane::animate_unit_depixelation(
+wait<> LandViewPlane::animate_unit_pixelation(
     PixelationAnimation_t const& what ) {
   return impl_->lv_animator_.animate_unit_pixelation( what );
 }

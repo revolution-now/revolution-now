@@ -66,10 +66,8 @@ struct ILandViewPlane {
   virtual wait<> animate_colony_depixelation(
       Colony const& colony ) = 0;
 
-  // Just depixelates a unit that is on the map. If target_type
-  // has a value then we will depixelate to that type instead of
-  // to nothing.
-  virtual wait<> animate_unit_depixelation(
+  // Just pixelates a unit that is on the map.
+  virtual wait<> animate_unit_pixelation(
       PixelationAnimation_t const& what ) = 0;
 
   virtual wait<> animate_attack(
@@ -127,7 +125,7 @@ struct LandViewPlane : ILandViewPlane {
   wait<> animate_colony_depixelation(
       Colony const& colony ) override;
 
-  wait<> animate_unit_depixelation(
+  wait<> animate_unit_pixelation(
       PixelationAnimation_t const& what ) override;
 
   wait<> animate_attack(

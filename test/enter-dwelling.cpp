@@ -508,7 +508,7 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
       .returns<wait<>>( make_wait<>() );
   EXPECT_CALL(
       mock_land_view,
-      animate_unit_depixelation(
+      animate_unit_pixelation(
           PixelationAnimation::euro_unit_depixelate{
               .id     = unit.id(),
               .target = e_unit_type::expert_cotton_planter } ) )
@@ -852,7 +852,7 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
         .returns<monostate>();
     EXPECT_CALL(
         mock_land_view,
-        animate_unit_depixelation(
+        animate_unit_pixelation(
             PixelationAnimation::euro_unit_depixelate{
                 .id     = UnitId{ 1 },
                 .target = e_unit_type::seasoned_scout } ) )
@@ -874,7 +874,7 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
         message_box( StrContains( "violated sacred taboos" ) ) )
         .returns<monostate>();
     EXPECT_CALL( mock_land_view,
-                 animate_unit_depixelation(
+                 animate_unit_pixelation(
                      PixelationAnimation::euro_unit_depixelate{
                          .id     = UnitId{ 1 },
                          .target = maybe<e_unit_type>{} } ) )
