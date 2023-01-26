@@ -48,3 +48,25 @@ of possible strategies.
       more valuable. Second, it allows giving the French an ad-
       vantage in that the cost of blessing missionaries for them
       does not increase.
+
+    * Shipyards. The strategy guide says: "A Shipyard is useful
+      if you require many ships or engage in much sea combat, but
+      many experienced players will find that it can be ignored
+      in favor of other construction projects."  :-(
+
+      We need to make a change to make ship-building more attrac-
+      tive. Some ideas:
+
+        * Lower the building cost of ships.
+        * Create a new attractive ship unit that can only be
+          built in the new world. A ship that can be used to bom-
+          bard land units could be one such unit.
+        * Allow building Man-o-Wars with the ship yard.
+
+      The strategy guide goes on to say: "Colonies' Ships are of
+      maximum usefulness before the start qf the war of indepen-
+      dence. Afler the war begins they can no longer travel to
+      Europe and back, and most are easily sunk or damaged by the
+      King's Man-o-War ships. The resources invested in Shipyards
+      may be better utilized in other areas in preparation for
+      declaring independence." -- Decide if this needs fixing.
