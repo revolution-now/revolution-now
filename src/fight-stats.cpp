@@ -47,8 +47,8 @@ namespace {
 
 FightStatsEuroAttackEuro fight_stats_euro_attack_euro(
     TS& ts, Unit const& attacker, Unit const& defender ) {
-  int const attack_points  = attacker.desc().attack_points;
-  int const defense_points = defender.desc().defense_points;
+  int const attack_points  = attacker.desc().combat;
+  int const defense_points = defender.desc().combat;
   auto      winning_probability =
       double( attack_points ) /
       double( attack_points + defense_points );
@@ -60,7 +60,7 @@ FightStatsEuroAttackEuro fight_stats_euro_attack_euro(
 
 FightStatsEuroAttackBrave fight_stats_euro_attack_brave(
     TS& ts, Unit const& attacker, NativeUnit const& defender ) {
-  int const attack_points  = attacker.desc().attack_points;
+  int const attack_points  = attacker.desc().combat;
   int const defense_points = unit_attr( defender.type ).combat;
   auto      winning_probability =
       double( attack_points ) /
@@ -73,7 +73,7 @@ FightStatsEuroAttackBrave fight_stats_euro_attack_brave(
 
 FightStatsEuroAttackDwelling fight_stats_euro_attack_dwelling(
     TS& ts, Unit const& attacker, Dwelling const& ) {
-  int const attack_points = attacker.desc().attack_points;
+  int const attack_points = attacker.desc().combat;
   int const defense_points =
       unit_attr( e_native_unit_type::brave ).combat;
   // TODO: dwelling type will affect defense points.

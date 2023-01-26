@@ -161,8 +161,8 @@ struct.UnitTypeAttributes {
   base_movement_points 'MvPoints',
 
   # Combat
-  attack_points 'int',
-  defense_points 'int',
+  can_attack 'bool',
+  combat 'int',
 
   # Cargo
   cargo_slots 'int',

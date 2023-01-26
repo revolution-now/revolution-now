@@ -31,7 +31,7 @@ namespace {
 int unit_defense_value( SSConst const& ss, GenericUnitId id ) {
   switch( ss.units.unit_kind( id ) ) {
     case e_unit_kind::euro:
-      return ss.units.euro_unit_for( id ).desc().defense_points;
+      return ss.units.euro_unit_for( id ).desc().combat;
     case e_unit_kind::native:
       return unit_attr( ss.units.native_unit_for( id ).type )
           .combat;

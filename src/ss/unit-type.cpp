@@ -89,7 +89,7 @@ valid_or<string> UnitInventoryTraits::validate() const {
 ** UnitTypeAttributes
 *****************************************************************/
 bool can_attack( e_unit_type type ) {
-  return unit_attr( type ).attack_points > 0;
+  return unit_attr( type ).can_attack;
 }
 
 bool is_military_unit( e_unit_type type ) {
@@ -127,8 +127,8 @@ LUA_STARTUP( lua::state& st ) {
   // indicate a bug. Intead Lua should call the movement_points
   // function defined below since it accounts for bonuses.
   // LUA_ADD_MEMBER( base_movement_points );
-  LUA_ADD_MEMBER( attack_points );
-  LUA_ADD_MEMBER( defense_points );
+  LUA_ADD_MEMBER( can_attack );
+  LUA_ADD_MEMBER( combat );
   LUA_ADD_MEMBER( cargo_slots );
   LUA_ADD_MEMBER( cargo_slots_occupies );
   LUA_ADD_MEMBER( canonical_base );

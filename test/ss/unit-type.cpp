@@ -117,8 +117,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 1 );
-    REQUIRE( desc.attack_points == 0 );
-    REQUIRE( desc.defense_points == 1 );
+    REQUIRE( desc.can_attack == false );
+    REQUIRE( desc.combat == 1 );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death.holds<UnitDeathAction::capture>() );
@@ -163,8 +163,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 1 );
-    REQUIRE( desc.attack_points == 0 );
-    REQUIRE( desc.defense_points == 1 );
+    REQUIRE( desc.can_attack == false );
+    REQUIRE( desc.combat == 1 );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death.holds<UnitDeathAction::capture>() );
@@ -210,8 +210,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 1 );
-    REQUIRE( desc.attack_points == 0 );
-    REQUIRE( desc.defense_points == 1 );
+    REQUIRE( desc.can_attack == false );
+    REQUIRE( desc.combat == 1 );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death.holds<UnitDeathAction::capture>() );
@@ -257,8 +257,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
              e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 4 );
-    REQUIRE( desc.attack_points == 4 );
-    REQUIRE( desc.defense_points == 4 );
+    REQUIRE( desc.can_attack == true );
+    REQUIRE( desc.combat == 4 );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death ==
@@ -297,8 +297,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
              e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 2 );
     REQUIRE( desc.base_movement_points == 4 );
-    REQUIRE( desc.attack_points == 1 );
-    REQUIRE( desc.defense_points == 1 );
+    REQUIRE( desc.can_attack == true );
+    REQUIRE( desc.combat == 1 );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death ==
@@ -334,8 +334,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
              e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 1 );
-    REQUIRE( desc.attack_points == 0 );
-    REQUIRE( desc.defense_points == 1 );
+    REQUIRE( desc.can_attack == false );
+    REQUIRE( desc.combat == 1 );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death ==
@@ -371,8 +371,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.can_found == e_unit_can_found_colony::no );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 1 );
-    REQUIRE( desc.attack_points == 0 );
-    REQUIRE( desc.defense_points == 1 );
+    REQUIRE( desc.can_attack == false );
+    REQUIRE( desc.combat == 0 );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 6 );
     REQUIRE( desc.on_death ==
