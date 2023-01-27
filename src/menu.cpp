@@ -11,7 +11,6 @@
 #include "menu.hpp"
 
 // Revolution Now
-#include "anim.hpp"
 #include "compositor.hpp"
 #include "error.hpp"
 #include "frame.hpp"
@@ -20,6 +19,7 @@
 #include "plane.hpp"
 #include "screen.hpp"
 #include "text.hpp"
+#include "throttler.hpp"
 #include "tiles.hpp"
 #include "variant.hpp"
 

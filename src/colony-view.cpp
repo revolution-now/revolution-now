@@ -11,7 +11,6 @@
 #include "colony-view.hpp"
 
 // Revolution Now
-#include "anim.hpp"
 #include "cheat.hpp"
 #include "co-combinator.hpp"
 #include "colony-mgr.hpp"
@@ -25,6 +24,7 @@
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "text.hpp"
+#include "throttler.hpp"
 #include "ts.hpp"
 #include "window.hpp"
 
@@ -246,7 +246,7 @@ struct ColonyPlane::Impl : public Plane {
     switch( event.keycode ) {
       case ::SDLK_ESCAPE: //
         co_return true;
-      default: //
+      default:            //
         break;
     }
     co_return false;

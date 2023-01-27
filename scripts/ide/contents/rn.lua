@@ -11,6 +11,7 @@ return {
   'orders-move',
   'enter-dwelling',
   'combat',
+  'animation',
   'land-view',
   'land-view-render',
   'land-view-anim',

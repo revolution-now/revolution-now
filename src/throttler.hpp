@@ -1,11 +1,11 @@
 /****************************************************************
-**anim.hpp
+**throttler.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-04-13.
 *
-* Description: Animation-related helpers.
+* Description: Throttler for animation timing.
 *
 *****************************************************************/
 #pragma once

@@ -13,12 +13,12 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "anim.hpp"
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
 #include "igui.hpp"
 #include "input.hpp"
 #include "logger.hpp"
+#include "throttler.hpp"
 #include "variant.hpp"
 #include "wait.hpp"
 

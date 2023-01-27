@@ -11,10 +11,10 @@
 #include "land-view-anim.hpp"
 
 // Revolution Now
-#include "anim.hpp"
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
 #include "sound.hpp"
+#include "throttler.hpp"
 #include "unit-mgr.hpp"
 #include "viewport.hpp"
 
