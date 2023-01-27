@@ -1,0 +1,198 @@
+# ===============================================================
+# combat.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-01-14.
+#
+# Description: Rds definitions for the combat module.
+#
+# ===============================================================
+# ss
+include "ss/native-enums.rds.hpp"
+include "ss/unit-composer.hpp"
+
+# refl
+include "refl/enum-map.hpp"
+
+namespace "rn"
+
+enum.e_combat_winner {
+  defender,
+  attacker,
+}
+
+# ===============================================================
+# Combat Modifiers.
+# ===============================================================
+# TODO: these might need to be moved to a config file.
+
+# Note that there is no "veteran" bonus here, unlike in the OG.
+# That is because in this game we bake that (+50%) bonus into the
+# unit's baseline combat value instead of treating it like a
+# bonus. This is to make the combat calculation info more intu-
+# itive throughout the game.
+enum.e_euro_unit_combat_modifiers {
+  movement,
+  attack,
+  attack_bonus_artillery,
+  spanish_attack_village,
+  colony_no_fortification,
+  colony_stockade,
+  colony_fort,
+  colony_fortress,
+  # From the SG: "The Jact that units receive a 50 percent
+  # bonusJor beingJortjfied within a Stockade may be an error.
+  # When questioned about this before publication, the designers
+  # said that thefartjfied bonus would not app{y to units inside-
+  # Jortjfications, but it clear{y does in the first released
+  # version qf ColonizationJor a unitJortj/led inside a Stockade.
+  # In this case, the unit receives the same 150 percent bonus
+  # that any unit receives inside a Fort. However, a unit inside
+  # aJort does not have to beJortjfied and the Fort has other
+  # benefits as well. Infature versions qf Colonization, the
+  # Jortjfied bonus may not app{y to units inside a Stockade."
+  fortified, # unless in a colony with fortification.
+  terrain,
+  ambush,
+  artillery_in_colony, # defending against braves.
+  bombardment,
+  artillery_out_in_the_open,
+  cargo,
+  tory_sentiment,
+  difficulty, # based on difficulty level of game.
+  francis_drake_privateer,
+  ship_on_land, # Not in OG.
+}
+
+# This is for when a colony that contains a fort/fortress fires
+# on an adjacent ship.
+enum.e_colony_artillery_combat_modifiers {
+  fort,
+  fortress,
+  has_artillery,
+}
+
+enum.e_brave_combat_modifiers {
+  terrain, # outside only?
+  ambush, # attacking non-fortified unit outside.
+  colony_with_fortified_artillery,
+}
+
+enum.e_dwelling_combat_modifiers {
+  # Bonuses.
+  capital,
+  camp,
+  village,
+  city,
+}
+
+# ===============================================================
+# Combat Outcomes.
+# ===============================================================
+sumtype.EuroUnitCombatOutcome {
+  no_change {},
+  # This could happen to a ship, a scout, or a non-military unit
+  # attacked by natives.
+  destroyed {},
+  # This will happen to a non-military unit (excluding ships)
+  # that are attacked by other europeans.
+  captured {},
+  # This is only for ships.
+  damaged {},
+  # Promotion/demotion.
+  transmuted {
+    to 'UnitComposition',
+  },
+}
+
+# This is for when a colony that contains a fort/fortress fires
+# on an adjacent ship.
+sumtype.ColonyArtilleryCombatOutcome {
+  lose {},
+  win {},
+}
+
+sumtype.NativeUnitCombatOutcome {
+  no_change {},
+  destroyed {
+    # According to the strategy guide, there is a chance that a
+    # tribe will retain the horses/muskets of a brave even when
+    # it is eliminated.
+    tribe_retains_horses 'bool',
+    tribe_retains_muskets 'bool',
+  },
+  transmuted {
+    to 'e_native_unit_type',
+  },
+}
+
+sumtype.DwellingCombatOutcome {
+  no_change {},
+  population_decrease {},
+  burned {},
+}
+
+# ===============================================================
+# Combat Stats.
+# ===============================================================
+sumtype.CombatModifierEffect {
+  add_absolute {
+    what 'double',
+  },
+  add_percent {
+    what 'double',
+  },
+  mul {
+    what 'double',
+  }
+}
+
+struct.CombatStats {
+  _template { Modifiers, Outcome },
+
+  modifiers 'refl::enum_map<Modifiers, maybe<CombatModifierEffect_t>>',
+  weight 'double',
+  outcome 'Outcome',
+}
+
+struct.CombatEuroAttackEuro {
+  winner 'e_combat_winner',
+
+  attacker 'CombatStats<e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
+  defender 'CombatStats<e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
+}
+
+struct.CombatColonyArtilleryAttackShip {
+  winner 'e_combat_winner',
+
+  attacker 'CombatStats<e_colony_artillery_combat_modifiers, ColonyArtilleryCombatOutcome_t>',
+  defender 'CombatStats<e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
+}
+
+struct.CombatEuroAttackBrave {
+  winner 'e_combat_winner',
+
+  attacker 'CombatStats<e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
+  defender 'CombatStats<e_brave_combat_modifiers, NativeUnitCombatOutcome_t>',
+}
+
+struct.CombatBraveAttackEuro {
+  winner 'e_combat_winner',
+
+  # According to the SG, when a brave attacks a square containing
+  # multiple (non-military) colonies, and it wins, then all
+  # colonists on the square are destroyed. But this doesn't apply
+  # if the square contains a colony. TODO: Should verify this.
+  all_colonists_destroyed 'bool',
+
+  attacker 'CombatStats<e_brave_combat_modifiers, NativeUnitCombatOutcome_t>',
+  defender 'CombatStats<e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
+}
+
+struct.CombatEuroAttackDwelling {
+  winner 'e_combat_winner',
+
+  attacker 'CombatStats<e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
+  defender 'CombatStats<e_dwelling_combat_modifiers, DwellingCombatOutcome_t>',
+}

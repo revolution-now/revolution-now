@@ -16,9 +16,9 @@
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
+#include "combat.hpp"
 #include "conductor.hpp"
 #include "enter-dwelling.hpp"
-#include "fight-stats.hpp"
 #include "harbor-units.hpp"
 #include "igui.hpp"
 #include "land-view.hpp"
@@ -1103,7 +1103,7 @@ struct EuroAttackHandler : public OrdersHandler {
     CHECK( attack_src.is_adjacent_to( attack_dst ) );
     CHECK( target_unit != unit_id );
     CHECK( target_unit.has_value() );
-    CHECK( fight_stats.has_value() );
+    CHECK( combat.has_value() );
 
     co_return true;
   }
@@ -1112,7 +1112,7 @@ struct EuroAttackHandler : public OrdersHandler {
     if( verdict ==
             EuroAttackVerdict{
                 e_euro_attack_verdict::colony_undefended } &&
-        fight_stats->attacker_wins ) {
+        combat->winner == e_combat_winner::attacker ) {
       UNWRAP_CHECK( colony_id, ss_.colonies.maybe_from_coord(
                                    attack_dst ) );
       auto                          attacker_id = unit_id;
@@ -1133,12 +1133,12 @@ struct EuroAttackHandler : public OrdersHandler {
 
     auto attacker = unit_id;
     UNWRAP_CHECK( defender, target_unit );
-    UNWRAP_CHECK( stats, fight_stats );
+    UNWRAP_CHECK( stats, combat );
 
     vector<PixelationAnimation_t> animations;
 
     // Attacker animation.
-    if( stats.attacker_wins ) {
+    if( stats.winner == e_combat_winner::attacker ) {
       // TODO: check stats.winner_promoted here to see if the
       // player's unit has been promoted.
     } else {
@@ -1150,7 +1150,7 @@ struct EuroAttackHandler : public OrdersHandler {
     }
 
     // Defender animation.
-    if( stats.attacker_wins ) {
+    if( stats.winner == e_combat_winner::attacker ) {
       animations.push_back(
           PixelationAnimation::euro_unit_depixelate{
               .id     = defender,
@@ -1162,7 +1162,8 @@ struct EuroAttackHandler : public OrdersHandler {
     }
 
     co_await planes_.land_view().animate_attack(
-        attacker, defender, animations, stats.attacker_wins );
+        attacker, defender, animations,
+        stats.winner == e_combat_winner::attacker );
   }
 
   wait<> perform() override;
@@ -1175,7 +1176,7 @@ struct EuroAttackHandler : public OrdersHandler {
     if( verdict ==
             EuroAttackVerdict{
                 e_euro_attack_verdict::colony_undefended } &&
-        fight_stats->attacker_wins ) {
+        combat->winner == e_combat_winner::attacker ) {
       conductor::play_request(
           ts_.rand, conductor::e_request::fife_drum_happy,
           conductor::e_request_probability::always );
@@ -1227,7 +1228,7 @@ struct EuroAttackHandler : public OrdersHandler {
   // If the fight is allowed then this will hold the numerical
   // breakdown of the statistics contributing to the final proba-
   // bilities.
-  maybe<FightStatsEuroAttackEuro> fight_stats{};
+  maybe<CombatEuroAttackEuro> combat{};
 
   Player& player_;
 };
@@ -1312,7 +1313,7 @@ EuroAttackHandler::confirm_attack_impl() {
   // Deferred evaluation until we know that the attack makes
   // sense.
   auto run_stats = [this, id, highest_defense_unit_id] {
-    return fight_stats_euro_attack_euro(
+    return combat_euro_attack_euro(
         ts_, ss_.units.unit_for( id ),
         ss_.units.unit_for( highest_defense_unit_id ) );
   };
@@ -1343,19 +1344,18 @@ EuroAttackHandler::confirm_attack_impl() {
         co_return e_attack_verdict_base::unit_cannot_attack;
       case bh_t::attack:
         target_unit = highest_defense_unit_id;
-        fight_stats = run_stats();
+        combat      = run_stats();
         co_return e_euro_attack_verdict::attacking_euro_unit;
       case bh_t::no_bombard:
         co_return e_attack_verdict_base::ship_attack_land_unit;
       case bh_t::bombard:
         target_unit = highest_defense_unit_id;
-        fight_stats = run_stats();
+        combat      = run_stats();
         co_return e_euro_attack_verdict::attacking_euro_unit;
       case bh_t::attack_land_ship:
         target_unit = highest_defense_unit_id; // ship.
         CHECK( ss_.units.unit_for( *target_unit ).desc().ship );
-        fight_stats =
-            make_fight_stats_for_attacking_ship_on_land();
+        combat = make_combat_for_attacking_ship_on_land();
         co_return e_euro_attack_verdict::
             land_unit_attack_ship_on_land;
     }
@@ -1416,7 +1416,7 @@ EuroAttackHandler::confirm_attack_impl() {
                 ? e_euro_attack_verdict::colony_defended
                 : e_euro_attack_verdict::colony_undefended;
         target_unit = highest_defense_unit_id;
-        fight_stats = run_stats();
+        combat      = run_stats();
         co_return which;
       }
       case bh_t::trade:
@@ -1439,7 +1439,7 @@ EuroAttackHandler::confirm_attack_impl() {
         co_return e_attack_verdict_base::unit_cannot_attack;
       case bh_t::attack:
         target_unit = highest_defense_unit_id;
-        fight_stats = run_stats();
+        combat      = run_stats();
         co_return e_euro_attack_verdict::ship_on_ship;
       case bh_t::no_bombard:;
         co_await ts_.gui.message_box(
@@ -1447,7 +1447,7 @@ EuroAttackHandler::confirm_attack_impl() {
         co_return e_euro_attack_verdict::land_unit_attack_ship;
       case bh_t::bombard:;
         target_unit = highest_defense_unit_id;
-        fight_stats = run_stats();
+        combat      = run_stats();
         co_return e_euro_attack_verdict::ship_on_ship;
     }
   }
@@ -1462,13 +1462,16 @@ wait<> EuroAttackHandler::perform() {
   CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders() == e_unit_orders::none );
   CHECK( target_unit.has_value() );
-  CHECK( fight_stats.has_value() );
+  CHECK( combat.has_value() );
 
   auto& attacker = unit;
   auto& defender = ss_.units.unit_for( *target_unit );
-  auto& winner =
-      fight_stats->attacker_wins ? attacker : defender;
-  auto& loser = fight_stats->attacker_wins ? defender : attacker;
+  auto& winner   = combat->winner == e_combat_winner::attacker
+                       ? attacker
+                       : defender;
+  auto& loser    = combat->winner == e_combat_winner::attacker
+                       ? defender
+                       : attacker;
 
   // The original game seems to consume all movement points of a
   // unit when attacking.
@@ -1479,7 +1482,7 @@ wait<> EuroAttackHandler::perform() {
     case e_euro_attack_verdict::land_unit_attack_ship:
       SHOULD_NOT_BE_HERE;
     case e_euro_attack_verdict::colony_undefended: {
-      if( !fight_stats->attacker_wins )
+      if( combat->winner != e_combat_winner::attacker )
         // break since in this case the attacker lost, so nothing
         // special happens; we just do what we normally do when
         // an attacker loses a battle.
@@ -1657,7 +1660,7 @@ struct AttackNativeUnitHandler : public OrdersHandler {
     defender_id_ = native_unit_ids[0];
 
     // Compute the outcome of the battle.
-    fight_stats_ = fight_stats_euro_attack_brave(
+    combat_ = combat_euro_attack_brave(
         ts_, ss_.units.unit_for( unit_.id() ),
         ss_.units.unit_for( defender_id_ ) );
 
@@ -1665,18 +1668,18 @@ struct AttackNativeUnitHandler : public OrdersHandler {
     CHECK( move_src_ == ss_.units.coord_for( unit_.id() ) );
     CHECK( move_dst_ == ss_.units.coord_for( defender_id_ ) );
     CHECK( move_src_.is_adjacent_to( move_dst_ ) );
-    CHECK( fight_stats_.has_value() );
+    CHECK( combat_.has_value() );
 
     co_return true;
   }
 
   wait<> animate() const override {
     UnitId const attacker = unit_.id();
-    UNWRAP_CHECK( stats, fight_stats_ );
+    UNWRAP_CHECK( stats, combat_ );
     vector<PixelationAnimation_t> animations;
 
     // Attacker animation.
-    if( stats.attacker_wins ) {
+    if( stats.winner == e_combat_winner::attacker ) {
       // TODO: check stats.winner_promoted here to see if the
       // player's unit has been promoted.
     } else {
@@ -1688,7 +1691,7 @@ struct AttackNativeUnitHandler : public OrdersHandler {
     }
 
     // Defender (brave) animation.
-    if( stats.attacker_wins ) {
+    if( stats.winner == e_combat_winner::attacker ) {
       animations.push_back(
           PixelationAnimation::native_unit_depixelate{
               .id = defender_id_, .target = nothing } );
@@ -1699,14 +1702,14 @@ struct AttackNativeUnitHandler : public OrdersHandler {
 
     co_await planes_.land_view().animate_attack(
         attacker, defender_id_, animations,
-        stats.attacker_wins );
+        stats.winner == e_combat_winner::attacker );
   }
 
   wait<> perform() override {
     CHECK( !unit_.mv_pts_exhausted() );
     CHECK( unit_.orders() == e_unit_orders::none );
     CHECK( to_underlying( defender_id_ ) > 0 );
-    CHECK( fight_stats_.has_value() );
+    CHECK( combat_.has_value() );
 
     Unit&       attacker = unit_;
     NativeUnit& defender = ss_.units.unit_for( defender_id_ );
@@ -1724,7 +1727,7 @@ struct AttackNativeUnitHandler : public OrdersHandler {
             ss_.units.dwelling_for( defender_id_ ) ),
         relationship );
 
-    if( fight_stats_->attacker_wins ) {
+    if( combat_->winner == e_combat_winner::attacker ) {
       // The player's (european) unit has won:
       //
       //   1. The brave disappears.
@@ -1804,7 +1807,7 @@ struct AttackNativeUnitHandler : public OrdersHandler {
   NativeUnitId defender_id_ = {};
 
   // If the attack proceeds then this will hold the statistics.
-  maybe<FightStatsEuroAttackBrave> fight_stats_;
+  maybe<CombatEuroAttackBrave> combat_;
 };
 
 /****************************************************************
