@@ -1,14 +1,14 @@
 /****************************************************************
-**anim.cpp
+**throttler.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-04-13.
 *
-* Description: Animation-related helpers.
+* Description: Throttler for animation timing.
 *
 *****************************************************************/
-#include "anim.hpp"
+#include "throttler.hpp"
 
 // Revolution Now
 #include "co-time.hpp"
@@ -27,7 +27,7 @@ wait<> AnimThrottler::operator()() {
     accum -= gap;
     co_return;
   }
-  accum += co_await( gap - accum );
+  accum += co_await ( gap - accum );
   accum -= gap;
 }
 

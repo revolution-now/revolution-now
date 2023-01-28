@@ -10,7 +10,7 @@
 # ===============================================================
 # Revolution Now
 include "alarm.rds.hpp"
-include "fight-stats.rds.hpp"
+include "combat.rds.hpp"
 include "maybe.hpp"
 
 # ss
@@ -193,7 +193,7 @@ enum.e_attack_effect_with_missionary {
 }
 
 struct.AttackVillageResult {
-  fight_stats 'FightStatsEuroAttackDwelling',
+  combat 'CombatEuroAttackDwelling',
 
   new_tribal_alarm 'int',
 

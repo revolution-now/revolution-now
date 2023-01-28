@@ -1,5 +1,5 @@
 /****************************************************************
-**fight-stats.hpp
+**combat.hpp
 *
 * Project: Revolution Now
 *
@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Rds
-#include "fight-stats.rds.hpp"
+#include "combat.rds.hpp"
 
 namespace rn {
 
@@ -22,13 +22,13 @@ struct NativeUnit;
 struct TS;
 struct Unit;
 
-FightStatsEuroAttackEuro fight_stats_euro_attack_euro(
+CombatEuroAttackEuro combat_euro_attack_euro(
     TS& ts, Unit const& attacker, Unit const& defender );
 
-FightStatsEuroAttackBrave fight_stats_euro_attack_brave(
+CombatEuroAttackBrave combat_euro_attack_brave(
     TS& ts, Unit const& attacker, NativeUnit const& defender );
 
-FightStatsEuroAttackDwelling fight_stats_euro_attack_dwelling(
+CombatEuroAttackDwelling combat_euro_attack_dwelling(
     TS& ts, Unit const& attacker, Dwelling const& dwelling );
 
 // In the original game a ship can be left on land after a colony
@@ -43,9 +43,11 @@ FightStatsEuroAttackDwelling fight_stats_euro_attack_dwelling(
 // that if it is attacked by a land unit (no matter how weak)
 // then the land unit will always win. This will prevent the sce-
 // nario above where the player accumultes ships on land as a
-// "wall." This function thus returns a fight stats object where
+// "wall." This function thus returns a combat stats object where
 // the attacker always wins.
-FightStatsEuroAttackEuro
-make_fight_stats_for_attacking_ship_on_land();
+//
+// FIXME: we can get rid of this since we now have a modifier
+// that does this (the `ship_on_land` penalty).
+CombatEuroAttackEuro make_combat_for_attacking_ship_on_land();
 
 } // namespace rn
