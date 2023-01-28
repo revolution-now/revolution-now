@@ -41,28 +41,28 @@ class SmoothViewport;
 ** LandViewAnimator
 *****************************************************************/
 struct LandViewAnimator {
-  using UnitAnimationsMap =
+  using UnitAnimStatesMap =
       std::unordered_map<GenericUnitId,
-                         std::stack<UnitAnimation_t>>;
-  using DwellingAnimationsMap =
+                         std::stack<UnitAnimationState_t>>;
+  using DwellingAnimStatesMap =
       std::unordered_map<DwellingId,
-                         std::stack<DwellingAnimation_t>>;
-  using ColonyAnimationsMap =
+                         std::stack<DwellingAnimationState_t>>;
+  using ColonyAnimStatesMap =
       std::unordered_map<ColonyId,
-                         std::stack<ColonyAnimation_t>>;
+                         std::stack<ColonyAnimationState_t>>;
 
   LandViewAnimator( SSConst const& ss, SmoothViewport& viewport )
     : ss_( ss ), viewport_( viewport ) {}
 
   // Getters.
 
-  maybe<UnitAnimation_t const&> unit_animation(
+  maybe<UnitAnimationState_t const&> unit_animation(
       UnitId id ) const;
 
-  maybe<ColonyAnimation_t const&> colony_animation(
+  maybe<ColonyAnimationState_t const&> colony_animation(
       ColonyId id ) const;
 
-  maybe<DwellingAnimation_t const&> dwelling_animation(
+  maybe<DwellingAnimationState_t const&> dwelling_animation(
       DwellingId id ) const;
 
   auto const& unit_animations() const {
@@ -186,9 +186,9 @@ struct LandViewAnimator {
   // Note: SSConst should be held by value.
   SSConst const         ss_;
   SmoothViewport&       viewport_;
-  UnitAnimationsMap     unit_animations_;
-  ColonyAnimationsMap   colony_animations_;
-  DwellingAnimationsMap dwelling_animations_;
+  UnitAnimStatesMap     unit_animations_;
+  ColonyAnimStatesMap   colony_animations_;
+  DwellingAnimStatesMap dwelling_animations_;
 };
 
 } // namespace rn

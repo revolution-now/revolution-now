@@ -44,29 +44,29 @@ namespace {} // namespace
 /****************************************************************
 ** Public API
 *****************************************************************/
-maybe<UnitAnimation_t const&> LandViewAnimator::unit_animation(
-    UnitId id ) const {
+maybe<UnitAnimationState_t const&>
+LandViewAnimator::unit_animation( UnitId id ) const {
   auto it = unit_animations_.find( id );
   if( it == unit_animations_.end() ) return nothing;
-  stack<UnitAnimation_t> const& st = it->second;
+  stack<UnitAnimationState_t> const& st = it->second;
   CHECK( !st.empty() );
   return st.top();
 }
 
-maybe<ColonyAnimation_t const&>
+maybe<ColonyAnimationState_t const&>
 LandViewAnimator::colony_animation( ColonyId id ) const {
   auto it = colony_animations_.find( id );
   if( it == colony_animations_.end() ) return nothing;
-  stack<ColonyAnimation_t> const& st = it->second;
+  stack<ColonyAnimationState_t> const& st = it->second;
   CHECK( !st.empty() );
   return st.top();
 }
 
-maybe<DwellingAnimation_t const&>
+maybe<DwellingAnimationState_t const&>
 LandViewAnimator::dwelling_animation( DwellingId id ) const {
   auto it = dwelling_animations_.find( id );
   if( it == dwelling_animations_.end() ) return nothing;
-  stack<DwellingAnimation_t> const& st = it->second;
+  stack<DwellingAnimationState_t> const& st = it->second;
   CHECK( !st.empty() );
   return st.top();
 }
@@ -74,10 +74,11 @@ LandViewAnimator::dwelling_animation( DwellingId id ) const {
 wait<> LandViewAnimator::animate_unit_depixelation(
     GenericUnitId id, maybe<e_tile> target_tile ) {
   auto popper =
-      add_unit_animation<UnitAnimation::depixelate_unit>( id );
-  UnitAnimation::depixelate_unit& depixelate = popper.get();
-  depixelate.stage                           = 0.0;
-  depixelate.target                          = target_tile;
+      add_unit_animation<UnitAnimationState::depixelate_unit>(
+          id );
+  UnitAnimationState::depixelate_unit& depixelate = popper.get();
+  depixelate.stage                                = 0.0;
+  depixelate.target                               = target_tile;
 
   AnimThrottler throttle( kAlmostStandardFrame );
   while( depixelate.stage < 1.0 ) {
@@ -91,10 +92,11 @@ wait<> LandViewAnimator::animate_unit_depixelation(
 wait<> LandViewAnimator::animate_unit_enpixelation(
     GenericUnitId id, e_tile target_tile ) {
   auto popper =
-      add_unit_animation<UnitAnimation::enpixelate_unit>( id );
-  UnitAnimation::enpixelate_unit& enpixelate = popper.get();
-  enpixelate.stage                           = 1.0;
-  enpixelate.target                          = target_tile;
+      add_unit_animation<UnitAnimationState::enpixelate_unit>(
+          id );
+  UnitAnimationState::enpixelate_unit& enpixelate = popper.get();
+  enpixelate.stage                                = 1.0;
+  enpixelate.target                               = target_tile;
 
   AnimThrottler throttle( kAlmostStandardFrame );
   while( enpixelate.stage > 0.0 ) {
@@ -108,10 +110,10 @@ wait<> LandViewAnimator::animate_unit_enpixelation(
 wait<> LandViewAnimator::animate_colony_depixelation(
     Colony const& colony ) {
   auto popper =
-      add_colony_animation<ColonyAnimation::depixelate>(
+      add_colony_animation<ColonyAnimationState::depixelate>(
           colony.id );
-  ColonyAnimation::depixelate& depixelate = popper.get();
-  depixelate.stage                        = 0.0;
+  ColonyAnimationState::depixelate& depixelate = popper.get();
+  depixelate.stage                             = 0.0;
 
   AnimThrottler throttle( kAlmostStandardFrame );
   while( depixelate.stage < 1.0 ) {
@@ -125,10 +127,10 @@ wait<> LandViewAnimator::animate_colony_depixelation(
 wait<> LandViewAnimator::animate_dwelling_depixelation(
     Dwelling const& dwelling ) {
   auto popper =
-      add_dwelling_animation<DwellingAnimation::depixelate>(
+      add_dwelling_animation<DwellingAnimationState::depixelate>(
           dwelling.id );
-  DwellingAnimation::depixelate& depixelate = popper.get();
-  depixelate.stage                          = 0.0;
+  DwellingAnimationState::depixelate& depixelate = popper.get();
+  depixelate.stage                               = 0.0;
 
   AnimThrottler throttle( kAlmostStandardFrame );
   while( depixelate.stage < 1.0 ) {
@@ -144,9 +146,10 @@ wait<> LandViewAnimator::animate_dwelling_depixelation(
 wait<> LandViewAnimator::animate_blink(
     UnitId id, bool visible_initially ) {
   using namespace std::literals::chrono_literals;
-  auto popper = add_unit_animation<UnitAnimation::blink>( id );
-  UnitAnimation::blink& blink = popper.get();
-  blink.visible               = visible_initially;
+  auto popper =
+      add_unit_animation<UnitAnimationState::blink>( id );
+  UnitAnimationState::blink& blink = popper.get();
+  blink.visible                    = visible_initially;
   // We use an initial delay so that our initial value of `vis-
   // ible` will be the first to linger.
   AnimThrottler throttle( 500ms, /*initial_delay=*/true );
@@ -162,10 +165,11 @@ wait<> LandViewAnimator::animate_slide( GenericUnitId id,
   double const kMaxVelocity =
       ss_.settings.fast_piece_slide ? .1 : .07;
 
-  auto popper = add_unit_animation<UnitAnimation::slide>( id );
-  UnitAnimation::slide& slide = popper.get();
+  auto popper =
+      add_unit_animation<UnitAnimationState::slide>( id );
+  UnitAnimationState::slide& slide = popper.get();
 
-  slide = UnitAnimation::slide{
+  slide = UnitAnimationState::slide{
       .direction   = d,
       .percent     = 0.0,
       .percent_vel = DissipativeVelocity{
@@ -275,9 +279,9 @@ wait<> LandViewAnimator::animate_attack(
   // then at least it will have this `front` animation which
   // guarantees that it will be visible.
   auto attacker_front_popper =
-      add_unit_animation<UnitAnimation::front>( attacker );
+      add_unit_animation<UnitAnimationState::front>( attacker );
   auto defender_front_popper =
-      add_unit_animation<UnitAnimation::front>( defender );
+      add_unit_animation<UnitAnimationState::front>( defender );
 
   // While the attacker is sliding we want to make sure the de-
   // fender comes to the front in case there are multiple units

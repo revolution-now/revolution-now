@@ -1040,8 +1040,9 @@ struct LandViewPlane::Impl : public Plane {
       // during that time, make sure that the unit who is about
       // to ask for orders is rendered on the front.
       auto anim =
-          lv_animator_.add_unit_animation<UnitAnimation::front>(
-              id );
+          lv_animator_
+              .add_unit_animation<UnitAnimationState::front>(
+                  id );
       co_await eat_cross_unit_buffered_input_events( id );
     }
 
