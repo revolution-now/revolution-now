@@ -17,6 +17,20 @@ include "refl/enum-map.hpp"
 
 namespace "rn"
 
+# This specifies whether or not we want to allow an immediate
+# price change as a result of a transaction. In most cases in the
+# game we do, but for the custom house transactions we don't (be-
+# cause we want all colonies' transactions to finish first before
+# price bumps are computed because the game rules dictate that we
+# can only have a price movement of +/-1 per turn). This needs to
+# be specified when computing the transaction because in some
+# cases (i.e., for default model goods) the intrinsic volume com-
+# putation is adjusted if there is an immediate price bump.
+enum.e_immediate_price_change_allowed {
+  allowed,
+  suppressed,
+}
+
 # This is from the point of view of the player.
 enum.e_transaction {
   buy,

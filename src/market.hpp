@@ -52,7 +52,9 @@ int ask_from_bid( e_commodity type, int bid );
 // The sign of the quantity in the commodity must be >= 0.
 [[nodiscard]] Invoice transaction_invoice(
     SSConst const& ss, Player const& player, Commodity comm,
-    e_transaction transaction_type );
+    e_transaction transaction_type,
+    e_immediate_price_change_allowed
+        immediate_price_change_allowed );
 
 void apply_invoice( SS& ss, Player& player,
                     Invoice const& invoice );
