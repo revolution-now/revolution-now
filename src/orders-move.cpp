@@ -1722,7 +1722,7 @@ struct AttackNativeUnitHandler : public OrdersHandler {
     UNWRAP_CHECK( relationship,
                   tribe_.relationship[unit_.nation()] );
     increase_tribal_alarm_from_attacking_brave(
-        ss_,
+        player_,
         ss_.natives.dwelling_for(
             ss_.units.dwelling_for( defender_id_ ) ),
         relationship );

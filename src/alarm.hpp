@@ -62,21 +62,20 @@ void increase_tribal_alarm_from_land_grab(
 // the OG where tribal alarm affects are amplified when made by
 // way of the capital.
 void increase_tribal_alarm_from_attacking_brave(
-    SSConst const& ss, Dwelling const& dwelling,
+    Player const& player, Dwelling const& dwelling,
     TribeRelationship& relationship );
 
 // This is used when attacking a dwelling that does not have a
 // brave sitting on top of it.
 void increase_tribal_alarm_from_attacking_dwelling(
-    SSConst const& ss, Dwelling const& dwelling,
+    Player const& player, Dwelling const& dwelling,
     TribeRelationship& relationship );
 
-// Attempts to set the tribal alarm at "content" (note: this is
-// not quite as good as "happy"). However, some tribes may have a
-// non-zero minimum tribal alarm, in which case this will go as
-// close to "content" as the tribe config allows.
-void set_tribal_alarm_to_content_if_possible(
-    e_tribe tribe, int& tribal_alarm );
+// The tribal alarm that all tribes' alarm will be lowered to (if
+// they are higher) after having acquired the founding father
+// (mother?) Pocahontas. It is within the "content" range (note
+// this is not quite as good as "happy").
+int max_tribal_alarm_after_pocahontas();
 
 // Puts the tribal alarm into a bucket; this is useful for se-
 // lecting a tribe's behavior in a simple way based on alarm.

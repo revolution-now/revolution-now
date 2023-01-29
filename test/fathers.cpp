@@ -23,6 +23,7 @@
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
 #include "ss/terrain.hpp"
+#include "ss/tribe.rds.hpp"
 #include "ss/turn.hpp"
 #include "ss/units.hpp"
 
@@ -684,7 +685,40 @@ TEST_CASE( "[fathers] on_father_received: sieur_de_la_salle" ) {
 }
 
 TEST_CASE( "[fathers] on_father_received: pocahontas" ) {
-  // TODO
+  World              W;
+  Player&            player = W.default_player();
+  Tribe&             inca   = W.add_tribe( e_tribe::inca );
+  Tribe&             arawak = W.add_tribe( e_tribe::arawak );
+  Tribe&             tupi   = W.add_tribe( e_tribe::tupi );
+  Tribe&             aztec  = W.add_tribe( e_tribe::aztec );
+  TribeRelationship& inca_relationship =
+      inca.relationship[player.nation].emplace();
+  TribeRelationship& arawak_relationship =
+      arawak.relationship[player.nation].emplace();
+  TribeRelationship& tupi_relationship =
+      tupi.relationship[player.nation].emplace();
+  auto& aztec_relationship = aztec.relationship[player.nation];
+
+  auto f = [&] {
+    on_father_received( W.ss(), W.ts(), player,
+                        e_founding_father::pocahontas );
+  };
+
+  inca_relationship.tribal_alarm   = 1;
+  arawak_relationship.tribal_alarm = 60;
+  tupi_relationship.tribal_alarm   = 30;
+
+  f();
+  REQUIRE( inca_relationship.tribal_alarm == 1 );
+  REQUIRE( arawak_relationship.tribal_alarm == 17 );
+  REQUIRE( tupi_relationship.tribal_alarm == 17 );
+  REQUIRE( !aztec_relationship.has_value() );
+
+  f();
+  REQUIRE( inca_relationship.tribal_alarm == 1 );
+  REQUIRE( arawak_relationship.tribal_alarm == 17 );
+  REQUIRE( tupi_relationship.tribal_alarm == 17 );
+  REQUIRE( !aztec_relationship.has_value() );
 }
 
 } // namespace

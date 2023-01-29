@@ -19,9 +19,13 @@
 // ss
 #include "ss/dwelling.rds.hpp"
 #include "ss/natives.hpp"
+#include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
 #include "ss/terrain.hpp"
+
+// refl
+#include "refl/to-str.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -332,6 +336,33 @@ TEST_CASE( "[alarm] increase_tribal_alarm_from_land_grab" ) {
     REQUIRE( relationship.tribal_alarm == 99 );
     so_far += expected;
   }
+
+  SECTION( "discoverer w/ pocahontas" ) {
+    W.settings().difficulty = e_difficulty::discoverer;
+    W.default_player()
+        .fathers.has[e_founding_father::pocahontas] = true;
+
+    tile = { .x = 2, .y = 2 };
+    W.natives().mark_land_owned( dwelling.id, tile );
+    f();
+    expected = 3;
+    REQUIRE( relationship.tribal_alarm == so_far + expected );
+    so_far += expected;
+
+    tile = { .x = 1, .y = 2 };
+    W.natives().mark_land_owned( dwelling.id, tile );
+    f();
+    expected = 3;
+    REQUIRE( relationship.tribal_alarm == so_far + expected );
+    so_far += expected;
+
+    W.terrain().mutable_square_at( tile ).ground_resource =
+        e_natural_resource::tobacco;
+    f();
+    expected = 7;
+    REQUIRE( relationship.tribal_alarm == so_far + expected );
+    so_far += expected;
+  }
 }
 
 TEST_CASE(
@@ -345,8 +376,8 @@ TEST_CASE(
       W.add_dwelling( { .x = 1, .y = 1 }, tribe.type );
 
   auto f = [&] {
-    increase_tribal_alarm_from_attacking_brave( W.ss(), dwelling,
-                                                relationship );
+    increase_tribal_alarm_from_attacking_brave(
+        W.default_player(), dwelling, relationship );
   };
 
   SECTION( "non-capital" ) {
@@ -368,6 +399,20 @@ TEST_CASE(
     REQUIRE( relationship.tribal_alarm == 20 );
     f();
     REQUIRE( relationship.tribal_alarm == 40 );
+
+    relationship.tribal_alarm = 95;
+    f();
+    REQUIRE( relationship.tribal_alarm == 99 );
+  }
+
+  SECTION( "pocahontas" ) {
+    W.default_player()
+        .fathers.has[e_founding_father::pocahontas] = true;
+    REQUIRE( relationship.tribal_alarm == 0 );
+    f();
+    REQUIRE( relationship.tribal_alarm == 5 );
+    f();
+    REQUIRE( relationship.tribal_alarm == 10 );
 
     relationship.tribal_alarm = 95;
     f();
@@ -387,7 +432,7 @@ TEST_CASE(
 
   auto f = [&] {
     increase_tribal_alarm_from_attacking_dwelling(
-        W.ss(), dwelling, relationship );
+        W.default_player(), dwelling, relationship );
   };
 
   SECTION( "non-capital" ) {
@@ -414,44 +459,30 @@ TEST_CASE(
     f();
     REQUIRE( relationship.tribal_alarm == 99 );
   }
+
+  SECTION( "pocahontas" ) {
+    W.default_player()
+        .fathers.has[e_founding_father::pocahontas] = true;
+    REQUIRE( relationship.tribal_alarm == 0 );
+    f();
+    REQUIRE( relationship.tribal_alarm == 5 );
+    f();
+    REQUIRE( relationship.tribal_alarm == 10 );
+
+    relationship.tribal_alarm = 95;
+    f();
+    REQUIRE( relationship.tribal_alarm == 99 );
+  }
 }
 
-TEST_CASE( "[alarm] set_tribal_alarm_to_content_if_possible" ) {
-  World W;
-
-  SECTION( "inca" ) {
-    Tribe&             tribe = W.add_tribe( e_tribe::inca );
-    TribeRelationship& relationship =
-        tribe.relationship[W.default_nation()].emplace();
-
-    auto f = [&] {
-      set_tribal_alarm_to_content_if_possible(
-          tribe.type, relationship.tribal_alarm );
-    };
-
-    REQUIRE( relationship.tribal_alarm == 0 );
-    f();
-    REQUIRE( relationship.tribal_alarm == 17 );
-    f();
-    REQUIRE( relationship.tribal_alarm == 17 );
-  }
-
-  SECTION( "arawak" ) {
-    Tribe&             tribe = W.add_tribe( e_tribe::arawak );
-    TribeRelationship& relationship =
-        tribe.relationship[W.default_nation()].emplace();
-
-    auto f = [&] {
-      set_tribal_alarm_to_content_if_possible(
-          tribe.type, relationship.tribal_alarm );
-    };
-
-    REQUIRE( relationship.tribal_alarm == 0 );
-    f();
-    REQUIRE( relationship.tribal_alarm == 30 );
-    f();
-    REQUIRE( relationship.tribal_alarm == 30 );
-  }
+TEST_CASE( "[alarm] max_tribal_alarm_after_pocahontas" ) {
+  REQUIRE( max_tribal_alarm_after_pocahontas() == 17 );
+  // Whatever value we choose to set the tribal alarm to, it
+  // should fall in the "content" category, since that is what
+  // the OG documentation says.
+  REQUIRE( tribe_alarm_category(
+               max_tribal_alarm_after_pocahontas() ) ==
+           e_alarm_category::content );
 }
 
 TEST_CASE( "[alarm] tribe_alarm_category" ) {

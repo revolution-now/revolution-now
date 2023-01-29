@@ -11,6 +11,7 @@
 #include "fathers.hpp"
 
 // Revolution Now
+#include "alarm.hpp"
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "harbor-units.hpp"
@@ -26,6 +27,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
@@ -181,8 +183,18 @@ void sieur_de_la_salle( SS& ss, Player& player ) {
 
 // All tension levels between you and the natives are reduced to
 // "content," and alarm is generated only half as fast afterward.
-void pocahontas( SS&, Player const& ) {
-  lg.warn( "pocahontas' effects not implemented." );
+void pocahontas( SS& ss, Player const& player ) {
+  int const max_new_alarm = max_tribal_alarm_after_pocahontas();
+  for( e_tribe tribe : refl::enum_values<e_tribe> ) {
+    if( !ss.natives.tribe_exists( tribe ) ) continue;
+    Tribe& tribe_obj    = ss.natives.tribe_for( tribe );
+    auto&  relationship = tribe_obj.relationship[player.nation];
+    if( !relationship.has_value() ) continue;
+    // If the tribe already has an alarm lower than this then we
+    // don't want to raise it.
+    relationship->tribal_alarm =
+        std::min( relationship->tribal_alarm, max_new_alarm );
+  }
 }
 
 } // namespace

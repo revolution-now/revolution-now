@@ -40,26 +40,26 @@ namespace {
   return clamp_alarm( lround( floor( alarm ) ) );
 }
 
-// This will set the tribal alarm but taking into account the min
-// allowed alarm (tribe-dependent) and global max tribal.
-[[nodiscard]] int new_tribal_alarm( e_tribe tribe,
-                                    double  target ) {
-  int res = clamp_round_alarm( target );
-  res     = std::max(
-      res, config_natives.alarm.minimum_tribal_alarm[tribe] );
-  return res;
+[[nodiscard]] double scale_alarm_delta_for_pocahontas(
+    double delta ) {
+  // Pocahontas never slows an alarm change when it is in the
+  // player's favor; only when anger is increasing.
+  if( delta < 0 ) return delta;
+  return delta *
+         config_natives.alarm
+             .tribal_alarm_increase_scale_after_pocahontas;
 }
 
 // This will increase the tribal alarm but taking into account
 // scaling based on capital status of dwelling.
 void increase_tribal_alarm_from_dwelling(
-    SSConst const& ss, Dwelling const& dwelling, double delta,
+    Player const& player, Dwelling const& dwelling, double delta,
     int& tribal_alarm ) {
   if( dwelling.is_capital )
     delta *= config_natives.alarm.tribal_alarm_scale_for_capital;
-  tribal_alarm =
-      new_tribal_alarm( ss.natives.tribe_for( dwelling.id ).type,
-                        tribal_alarm + delta );
+  if( player.fathers.has[e_founding_father::pocahontas] )
+    delta = scale_alarm_delta_for_pocahontas( delta );
+  tribal_alarm = clamp_round_alarm( tribal_alarm + delta );
 }
 
 constexpr int minimum_alarm_for_named_level(
@@ -157,34 +157,31 @@ void increase_tribal_alarm_from_land_grab(
 
   CHECK_GE( delta, 0.0 );
   increase_tribal_alarm_from_dwelling(
-      ss, dwelling, delta, relationship.tribal_alarm );
+      player, dwelling, delta, relationship.tribal_alarm );
 }
 
 void increase_tribal_alarm_from_attacking_brave(
-    SSConst const& ss, Dwelling const& dwelling,
+    Player const& player, Dwelling const& dwelling,
     TribeRelationship& relationship ) {
   double const delta =
       config_natives.alarm
           .tribal_alarm_increase_from_attacking_brave;
   increase_tribal_alarm_from_dwelling(
-      ss, dwelling, delta, relationship.tribal_alarm );
+      player, dwelling, delta, relationship.tribal_alarm );
 }
 
 void increase_tribal_alarm_from_attacking_dwelling(
-    SSConst const& ss, Dwelling const& dwelling,
+    Player const& player, Dwelling const& dwelling,
     TribeRelationship& relationship ) {
   double const delta =
       config_natives.alarm
           .tribal_alarm_increase_from_attacking_dwelling;
   increase_tribal_alarm_from_dwelling(
-      ss, dwelling, delta, relationship.tribal_alarm );
+      player, dwelling, delta, relationship.tribal_alarm );
 }
 
-void set_tribal_alarm_to_content_if_possible(
-    e_tribe tribe, int& tribal_alarm ) {
-  int constexpr kContent =
-      minimum_alarm_for_named_level( e_alarm_category::content );
-  tribal_alarm = new_tribal_alarm( tribe, kContent );
+int max_tribal_alarm_after_pocahontas() {
+  return config_natives.alarm.tribal_alarm_after_pocahontas;
 }
 
 e_alarm_category tribe_alarm_category( int tribal_alarm ) {

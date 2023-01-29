@@ -126,9 +126,9 @@ struct.Alarm {
   # only applies after having met the tribe.
   land_grab 'config::natives::AlarmLandGrab',
 
-  # Each tribe's alarm does not go below this. When tribal alarm
-  # is recomputed it will be clamped to this minimum.
-  minimum_tribal_alarm 'refl::enum_map<e_tribe, int>',
+  # Each tribe's initial alarm when meeting a new European na-
+  # tion.
+  starting_tribal_alarm 'refl::enum_map<e_tribe, int>',
 
   # When the player does an action against a dwelling it gener-
   # ally will increase tribal alarm. However, if that dwelling is
@@ -143,6 +143,15 @@ struct.Alarm {
   # When we attack a dwelling (that has no brave sitting on top
   # of it) the tribe's alarm will increase by this amount.
   tribal_alarm_increase_from_attacking_dwelling 'int',
+
+  # The alarm level of all tribes (that the player has met) is
+  # reduced to this level after acquiring the founding father
+  # (mother?) Pocahontas, though this is a one-time effect.
+  tribal_alarm_after_pocahontas 'int',
+
+  # After the player has Pocahontas then an increase in tribal or
+  # dwelling alarm will be scaled by this value (.50 in the OG).
+  tribal_alarm_increase_scale_after_pocahontas 'double',
 }
 
 struct.DwellingExpertise {
