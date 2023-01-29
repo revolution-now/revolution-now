@@ -38,6 +38,7 @@ types {
 # the per-century weights.
 fathers {
   # trade
+  # -------------------------------------------------------------
   adam_smith {
     id: adam_smith
     name: Adam Smith
@@ -46,6 +47,7 @@ fathers {
     weight_1600_1700: 8
     weight_1700_plus: 6
   }
+
   jakob_fugger {
     id: jakob_fugger
     name: Jakob Fugger
@@ -54,6 +56,7 @@ fathers {
     weight_1600_1700: 5
     weight_1700_plus: 8
   }
+
   peter_minuit {
     id: peter_minuit
     name: Peter Minuit
@@ -62,6 +65,7 @@ fathers {
     weight_1600_1700: 1
     weight_1700_plus: 0
   }
+
   peter_stuyvesant {
     id: peter_stuyvesant
     name: Peter Stuyvesant
@@ -70,6 +74,7 @@ fathers {
     weight_1600_1700: 4
     weight_1700_plus: 8
   }
+
   jan_de_witt {
     id: jan_de_witt
     name: Jan de Witt
@@ -80,6 +85,7 @@ fathers {
   }
 
   # exploration
+  # -------------------------------------------------------------
   ferdinand_magellan {
     id: ferdinand_magellan
     name: Ferdinand Magellan
@@ -88,6 +94,7 @@ fathers {
     weight_1600_1700: 10
     weight_1700_plus: 10
   }
+
   francisco_de_coronado {
     id: francisco_de_coronado
     name: Francisco de Coronado
@@ -96,6 +103,7 @@ fathers {
     weight_1600_1700: 5
     weight_1700_plus: 7
   }
+
   hernando_de_soto {
     id: hernando_de_soto
     name: Hernando de Soto
@@ -104,6 +112,7 @@ fathers {
     weight_1600_1700: 10
     weight_1700_plus: 5
   }
+
   henry_hudson {
     id: henry_hudson
     name: Henry Hudson
@@ -112,6 +121,7 @@ fathers {
     weight_1600_1700: 1
     weight_1700_plus: 0
   }
+
   sieur_de_la_salle {
     id: sieur_de_la_salle
     name: Sieur de La Salle
@@ -122,6 +132,7 @@ fathers {
   }
 
   # military
+  # -------------------------------------------------------------
   hernan_cortes {
     id: hernan_cortes
     name: Hernan Cortes
@@ -130,6 +141,7 @@ fathers {
     weight_1600_1700: 5
     weight_1700_plus: 1
   }
+
   george_washington {
     id: george_washington
     name: George Washington
@@ -138,6 +150,7 @@ fathers {
     weight_1600_1700: 4
     weight_1700_plus: 10
   }
+
   paul_revere {
     id: paul_revere
     name: Paul Revere
@@ -146,6 +159,7 @@ fathers {
     weight_1600_1700: 2
     weight_1700_plus: 1
   }
+
   francis_drake {
     id: francis_drake
     name: Francis Drake
@@ -154,6 +168,7 @@ fathers {
     weight_1600_1700: 8
     weight_1700_plus: 6
   }
+
   john_paul_jones {
     id: john_paul_jones
     name: John Paul Jones
@@ -164,6 +179,7 @@ fathers {
   }
 
   # political
+  # -------------------------------------------------------------
   thomas_jefferson {
     id: thomas_jefferson
     name: Thomas Jefferson
@@ -172,6 +188,7 @@ fathers {
     weight_1600_1700: 5
     weight_1700_plus: 6
   }
+
   pocahontas {
     id: pocahontas
     name: Pocahontas
@@ -180,6 +197,7 @@ fathers {
     weight_1600_1700: 5
     weight_1700_plus: 3
   }
+
   thomas_paine {
     id: thomas_paine
     name: Thomas Paine
@@ -188,6 +206,7 @@ fathers {
     weight_1600_1700: 2
     weight_1700_plus: 8
   }
+
   simon_bolivar {
     id: simon_bolivar
     name: Simon Bolivar
@@ -196,6 +215,7 @@ fathers {
     weight_1600_1700: 4
     weight_1700_plus: 6
   }
+
   benjamin_franklin {
     id: benjamin_franklin
     name: Benjamin Franklin
@@ -206,6 +226,7 @@ fathers {
   }
 
   # religious
+  # -------------------------------------------------------------
   william_brewster {
     id: william_brewster
     name: William Brewster
@@ -214,6 +235,7 @@ fathers {
     weight_1600_1700: 4
     weight_1700_plus: 1
   }
+
   william_penn {
     id: william_penn
     name: William Penn
@@ -222,6 +244,7 @@ fathers {
     weight_1600_1700: 5
     weight_1700_plus: 2
   }
+
   father_jean_de_brebeuf {
     id: father_jean_de_brebeuf
     name: Father Jean de Brebeuf
@@ -230,6 +253,7 @@ fathers {
     weight_1600_1700: 6
     weight_1700_plus: 1
   }
+
   juan_de_sepulveda {
     id: juan_de_sepulveda
     name: Juan de Sepulveda
@@ -238,6 +262,7 @@ fathers {
     weight_1600_1700: 8
     weight_1700_plus: 3
   }
+
   bartolome_de_las_casas {
     id: bartolome_de_las_casas
     name: Bartolome de las Casas
