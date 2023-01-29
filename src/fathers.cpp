@@ -17,6 +17,7 @@
 #include "harbor-units.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
+#include "immigration.hpp"
 #include "irand.hpp"
 #include "logger.hpp"
 #include "ts.hpp"
@@ -197,6 +198,33 @@ void pocahontas( SS& ss, Player const& player ) {
   }
 }
 
+// No more criminals or servants appear on the docks, and you se-
+// lect which immigrant in the recruitment pool will move to the
+// docks.
+//
+// The one-time effect here, as in the OG, is that any criminals
+// or servants that are currently in the recruitment pool will be
+// removed and re-selected.
+void william_brewster( SSConst const& ss, TS& ts,
+                       Player& player ) {
+  ImmigrationState& immigration_state =
+      player.old_world.immigration;
+  auto& pool            = immigration_state.immigrants_pool;
+  auto  needs_replacing = []( e_unit_type type ) {
+    return ( type == e_unit_type::petty_criminal ) ||
+           ( type == e_unit_type::indentured_servant );
+  };
+  for( int i = 0; i < int( pool.size() ); ++i ) {
+    if( !needs_replacing( pool[i] ) ) continue;
+    e_unit_type const replacement =
+        pick_next_unit_for_pool( ts.rand, player, ss.settings );
+    CHECK_NEQ( replacement, e_unit_type::petty_criminal );
+    CHECK_NEQ( replacement, e_unit_type::indentured_servant );
+    take_immigrant_from_pool( immigration_state, i,
+                              replacement );
+  }
+}
+
 } // namespace
 
 /****************************************************************
@@ -369,12 +397,13 @@ void on_father_received( SS& ss, TS& ts, Player& player,
     case e_founding_father::thomas_paine:
     case e_founding_father::simon_bolivar:
     case e_founding_father::benjamin_franklin:
-    case e_founding_father::william_brewster:
     case e_founding_father::william_penn:
     case e_founding_father::father_jean_de_brebeuf:
     case e_founding_father::juan_de_sepulveda:
       // The above fathers don't have any one-time effects.
       return;
+    case e_founding_father::william_brewster:
+      return william_brewster( ss, ts, player );
     case e_founding_father::bartolome_de_las_casas:
       return bartolome_de_las_casas( ss, player );
     case e_founding_father::francisco_de_coronado:
