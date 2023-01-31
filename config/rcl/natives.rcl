@@ -209,17 +209,17 @@ alarm {
     distance_factor: .6
   }
 
-  # Each tribe's alarm does not go below this. When tribal alarm
-  # is recomputed it will be clamped to this minimum.
-  minimum_tribal_alarm { # TODO: measure this
-    apache:    0
-    sioux:     0
-    tupi:      0
-    arawak:   30
-    cherokee:  0
-    iroquois:  0
-    aztec:     0
-    inca:      0
+  # Each tribe's initial alarm when meeting a new European na-
+  # tion.
+  starting_tribal_alarm { # TODO: measure this
+    apache:   10
+    sioux:    10
+    tupi:     10
+    arawak:   30 # !!
+    cherokee: 10
+    iroquois: 10
+    aztec:    10
+    inca:     10
   }
 
   # When the player does an action against a dwelling it gener-
@@ -242,6 +242,17 @@ alarm {
   # of it) the tribe's alarm will increase by this amount. TODO:
   # measure this.
   tribal_alarm_increase_from_attacking_dwelling: 10
+
+  # The alarm level of all tribes (that the player has met) is
+  # reduced to this level after acquiring the founding father
+  # (mother?) Pocahontas, though this is a one-time effect. In
+  # the OG the alarm level is reduced to "content," and so this
+  # value is chosen to be in that range.
+  tribal_alarm_after_pocahontas: 17
+
+  # After the player has Pocahontas then an increase in tribal or
+  # dwelling alarm will be scaled by this value (.5 in the OG).
+  tribal_alarm_increase_scale_after_pocahontas: .5
 }
 
 # Configures how each dwelling is assigned an expertise for

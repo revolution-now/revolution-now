@@ -155,7 +155,9 @@ PriceChange try_price_change_group_model(
 Invoice transaction_invoice_default_model(
     SSConst const& ss, Player const& player,
     Commodity const orig_transacted,
-    e_transaction   transaction_type ) {
+    e_transaction   transaction_type,
+    e_immediate_price_change_allowed
+        immediate_price_change_allowed ) {
   // Make the quantity so that its sign reflects the sign of the
   // change in volume from the perspective of europe, since that
   // makes the below calculations easier.
@@ -231,10 +233,15 @@ Invoice transaction_invoice_default_model(
   // consider both rises and falls here, since the current in-
   // trinsic volume could have started off at any value.
   int price_change = 0;
-  try_price_change_default_model(
-      player, comm_type,
-      invoice.intrinsic_volume_delta[player.nation],
-      price_change );
+  // The caller can suppress the immediate price change (and as-
+  // sociated adjustment of intrinsic volume), which it will do
+  // in the case of the custom house.
+  if( immediate_price_change_allowed ==
+      e_immediate_price_change_allowed::allowed )
+    try_price_change_default_model(
+        player, comm_type,
+        invoice.intrinsic_volume_delta[player.nation],
+        price_change );
   invoice.price_change =
       create_price_change( player, comm_type, price_change );
 
@@ -249,7 +256,9 @@ Invoice transaction_invoice_default_model(
 
 Invoice transaction_invoice_processed_group_model(
     SSConst const& ss, Player const& player,
-    Commodity transacted, e_transaction transaction_type ) {
+    Commodity transacted, e_transaction transaction_type,
+    e_immediate_price_change_allowed
+        immediate_price_change_allowed ) {
   CHECK( is_in_processed_goods_price_group( transacted.type ) );
   CommodityPrice const prices =
       market_price( player, transacted.type );
@@ -318,9 +327,16 @@ Invoice transaction_invoice_processed_group_model(
     volatility_push = -volatility_push;
   ProcessedGoodsPriceGroup::Map const equilibrium_prices =
       group.equilibrium_prices();
-  invoice.price_change = try_price_change_group_model(
-      player, equilibrium_prices[processed_type],
-      transacted.type, volatility_push );
+  if( immediate_price_change_allowed ==
+      e_immediate_price_change_allowed::allowed )
+    invoice.price_change = try_price_change_group_model(
+        player, equilibrium_prices[processed_type],
+        transacted.type, volatility_push );
+  else
+    // The custom house needs to suppress immediate price
+    // changes.
+    invoice.price_change = create_price_change(
+        player, transacted.type, /*price_change=*/0 );
 
   return invoice;
 }
@@ -427,17 +443,20 @@ int ask_from_bid( e_commodity type, int bid ) {
                    .price_limits.bid_ask_spread;
 }
 
-Invoice transaction_invoice( SSConst const& ss,
-                             Player const&  player,
-                             Commodity      transacted,
-                             e_transaction  transaction_type ) {
+Invoice transaction_invoice(
+    SSConst const& ss, Player const& player,
+    Commodity transacted, e_transaction transaction_type,
+    e_immediate_price_change_allowed
+        immediate_price_change_allowed ) {
   Invoice invoice;
   if( is_in_processed_goods_price_group( transacted.type ) )
     invoice = transaction_invoice_processed_group_model(
-        ss, player, transacted, transaction_type );
+        ss, player, transacted, transaction_type,
+        immediate_price_change_allowed );
   else
     invoice = transaction_invoice_default_model(
-        ss, player, transacted, transaction_type );
+        ss, player, transacted, transaction_type,
+        immediate_price_change_allowed );
   CHECK_GE( invoice.price_change.to.bid,
             config_market.price_behavior[transacted.type]
                 .price_limits.bid_price_min );

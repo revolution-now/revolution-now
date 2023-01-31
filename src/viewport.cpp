@@ -807,6 +807,12 @@ bool SmoothViewport::need_to_scroll_to_reveal_tile(
 void SmoothViewport::ensure_tile_visible( Coord const& coord ) {
   stop_auto_panning();
   if( !need_to_scroll_to_reveal_tile( coord ) ) return;
+  // FIXME: we should not be centering here, we should only be
+  // scrolling enough to make the unit visible, otherwise two
+  // units that are currently moving that could fit within one
+  // screen (but are far enough apart) can cause a thrashing be-
+  // havior as the viewport alternately centers on each one as
+  // each takes its turn. See similar comment below.
   center_on_tile_x( coord );
   center_on_tile_y( coord );
 }
@@ -835,6 +841,12 @@ bool SmoothViewport::is_tile_too_far( Coord tile ) const {
 wait<> SmoothViewport::ensure_tile_visible_smooth(
     Coord const& coord ) {
   if( !need_to_scroll_to_reveal_tile( coord ) ) co_return;
+  // FIXME: we should not be centering here, we should only be
+  // scrolling enough to make the unit visible, otherwise two
+  // units that are currently moving that could fit within one
+  // screen (but are far enough apart) can cause a thrashing be-
+  // havior as the viewport alternately centers on each one as
+  // each takes its turn. See similar comment above.
   co_await center_on_tile_smooth( coord );
 }
 

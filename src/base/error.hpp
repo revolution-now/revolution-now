@@ -71,8 +71,9 @@
 // Non-testing code should use this. Code written in unit test
 // cpp files should use BASE_CHECK to avoid a collision with a
 // similar Catch2 symbol.
-#define CHECK( ... )    BASE_CHECK( __VA_ARGS__ )
-#define CHECK_EQ( ... ) BASE_CHECK_EQ( __VA_ARGS__ )
+#define CHECK( ... )     BASE_CHECK( __VA_ARGS__ )
+#define CHECK_EQ( ... )  BASE_CHECK_EQ( __VA_ARGS__ )
+#define CHECK_NEQ( ... ) BASE_CHECK_NEQ( __VA_ARGS__ )
 
 #define BASE_CHECK( a, ... )                             \
   {                                                      \
@@ -82,7 +83,7 @@
     }                                                    \
   }
 
-// We use a lambda for this so that we can reference the input
+// We use a lambda for these so that we can reference the input
 // expressions twice (once to evaluate them and once to print
 // them) without having to store them in a local variable or ref-
 // erence, because doing so is tricky since if we stored them by
@@ -98,6 +99,13 @@
     if( l != r )                                             \
       ::base::abort_with_msg( ::base::detail::check_msg(     \
           #x " == " #y, fmt::format( "{} != {}", l, r ) ) ); \
+  }( x, y )
+
+#define BASE_CHECK_NEQ( x, y )                               \
+  []( auto&& l, auto&& r ) {                                 \
+    if( l == r )                                             \
+      ::base::abort_with_msg( ::base::detail::check_msg(     \
+          #x " != " #y, fmt::format( "{} == {}", l, r ) ) ); \
   }( x, y )
 
 // DCHECK is CHECK in debug builds, but compiles to nothing in

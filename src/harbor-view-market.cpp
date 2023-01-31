@@ -177,7 +177,8 @@ HarborMarketCommodities::source_check(
     co_return DragRejection{};
 
   Invoice const invoice = transaction_invoice(
-      ss_, player_, comm, e_transaction::buy );
+      ss_, player_, comm, e_transaction::buy,
+      e_immediate_price_change_allowed::allowed );
   CHECK_LE( invoice.money_delta_final, 0 );
   if( -invoice.money_delta_final > player_.money )
     co_return DragRejection{
@@ -195,7 +196,8 @@ wait<> HarborMarketCommodities::disown_dragged_object() {
   // The player is buying. Here we are officially releasing the
   // goods from the market, and so we must charge the player now.
   Invoice const invoice = transaction_invoice(
-      ss_, player_, comm, e_transaction::buy );
+      ss_, player_, comm, e_transaction::buy,
+      e_immediate_price_change_allowed::allowed );
   dragging_->price_change = invoice.price_change;
   apply_invoice( ss_, player_, invoice );
   co_return;
@@ -241,7 +243,8 @@ wait<> HarborMarketCommodities::drop(
   // cepting the goods from the player, and so we must pay the
   // player now.
   Invoice const invoice = transaction_invoice(
-      ss_, player_, comm, e_transaction::sell );
+      ss_, player_, comm, e_transaction::sell,
+      e_immediate_price_change_allowed::allowed );
   apply_invoice( ss_, player_, invoice );
   if( invoice.price_change.delta != 0 )
     co_await display_price_change_notification(

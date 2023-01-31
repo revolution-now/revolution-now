@@ -11,11 +11,13 @@
 #include "fathers.hpp"
 
 // Revolution Now
+#include "alarm.hpp"
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "harbor-units.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
+#include "immigration.hpp"
 #include "irand.hpp"
 #include "logger.hpp"
 #include "ts.hpp"
@@ -26,6 +28,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
@@ -181,8 +184,45 @@ void sieur_de_la_salle( SS& ss, Player& player ) {
 
 // All tension levels between you and the natives are reduced to
 // "content," and alarm is generated only half as fast afterward.
-void pocahontas( SS&, Player const& ) {
-  lg.warn( "pocahontas' effects not implemented." );
+void pocahontas( SS& ss, Player const& player ) {
+  int const max_new_alarm = max_tribal_alarm_after_pocahontas();
+  for( e_tribe tribe : refl::enum_values<e_tribe> ) {
+    if( !ss.natives.tribe_exists( tribe ) ) continue;
+    Tribe& tribe_obj    = ss.natives.tribe_for( tribe );
+    auto&  relationship = tribe_obj.relationship[player.nation];
+    if( !relationship.has_value() ) continue;
+    // If the tribe already has an alarm lower than this then we
+    // don't want to raise it.
+    relationship->tribal_alarm =
+        std::min( relationship->tribal_alarm, max_new_alarm );
+  }
+}
+
+// No more criminals or servants appear on the docks, and you se-
+// lect which immigrant in the recruitment pool will move to the
+// docks.
+//
+// The one-time effect here, as in the OG, is that any criminals
+// or servants that are currently in the recruitment pool will be
+// removed and re-selected.
+void william_brewster( SSConst const& ss, TS& ts,
+                       Player& player ) {
+  ImmigrationState& immigration_state =
+      player.old_world.immigration;
+  auto& pool            = immigration_state.immigrants_pool;
+  auto  needs_replacing = []( e_unit_type type ) {
+    return ( type == e_unit_type::petty_criminal ) ||
+           ( type == e_unit_type::indentured_servant );
+  };
+  for( int i = 0; i < int( pool.size() ); ++i ) {
+    if( !needs_replacing( pool[i] ) ) continue;
+    e_unit_type const replacement =
+        pick_next_unit_for_pool( ts.rand, player, ss.settings );
+    CHECK_NEQ( replacement, e_unit_type::petty_criminal );
+    CHECK_NEQ( replacement, e_unit_type::indentured_servant );
+    take_immigrant_from_pool( immigration_state, i,
+                              replacement );
+  }
 }
 
 } // namespace
@@ -357,12 +397,13 @@ void on_father_received( SS& ss, TS& ts, Player& player,
     case e_founding_father::thomas_paine:
     case e_founding_father::simon_bolivar:
     case e_founding_father::benjamin_franklin:
-    case e_founding_father::william_brewster:
     case e_founding_father::william_penn:
     case e_founding_father::father_jean_de_brebeuf:
     case e_founding_father::juan_de_sepulveda:
       // The above fathers don't have any one-time effects.
       return;
+    case e_founding_father::william_brewster:
+      return william_brewster( ss, ts, player );
     case e_founding_father::bartolome_de_las_casas:
       return bartolome_de_las_casas( ss, player );
     case e_founding_father::francisco_de_coronado:

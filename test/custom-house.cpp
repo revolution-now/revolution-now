@@ -331,5 +331,168 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
   }
 }
 
+// This tests that a custom house selling silver will cause the
+// price to drop at the proper rate for a non-dutch nation.
+TEST_CASE(
+    "[custom-house] custom house affects french market "
+    "properly" ) {
+  World W;
+  // Expected values.
+  vector<CustomHouseSale> expected;
+  PriceChange             expected_silver_change;
+  // Init settings.
+  W.settings().difficulty = e_difficulty::conquistador;
+  // Init player.
+  Player& french           = W.french();
+  french.human             = true;
+  french.revolution_status = e_revolution_status::not_declared;
+  // Init colony.
+  Colony& colony = W.add_colony_with_new_unit( Coord{} );
+  colony.buildings[e_colony_building::custom_house] = true;
+  colony.commodities[e_commodity::silver]           = 150;
+  colony.custom_house[e_commodity::silver]          = true;
+  // Init market prices.
+  for( e_commodity comm : refl::enum_values<e_commodity> )
+    french.old_world.market.commodities[comm].bid_price =
+        config_market.price_behavior[comm]
+            .price_limits.bid_price_max;
+  int& silver_bid =
+      french.old_world.market.commodities[e_commodity::silver]
+          .bid_price;
+
+  vector<CustomHouseSale> res =
+      compute_custom_house_sales( W.ss(), french, colony );
+  expected = { CustomHouseSale{
+      .invoice =
+          Invoice{
+              .what = Commodity{ .type     = e_commodity::silver,
+                                 .quantity = 100 },
+              .money_delta_before_taxes = 100 * 19,
+              .tax_rate                 = 0,
+              .tax_amount               = 0,
+              .money_delta_final        = 1900,
+              .player_volume_delta      = 100,
+              .intrinsic_volume_delta =
+                  { { e_nation::dutch, 266 },
+                    { e_nation::french, 400 } },
+              .global_intrinsic_volume_deltas = {
+                  /*only processed goods*/ },
+              .price_change = create_price_change(
+                  french, e_commodity::silver,
+                  /*price_change=*/0 ) },
+  } };
+  REQUIRE( res == expected );
+
+  // Now apply the changes so that the price will start falling.
+  apply_custom_house_sales( W.ss(), french, colony, res );
+
+  auto evolve = [&] {
+    auto changes = evolve_player_prices( W.ss(), french );
+    return changes[e_commodity::silver];
+  };
+
+  REQUIRE( silver_bid == 19 );
+
+  expected_silver_change =
+      create_price_change( french, e_commodity::silver, -1 );
+  REQUIRE( evolve() == expected_silver_change );
+  REQUIRE( silver_bid == 18 );
+
+  expected_silver_change =
+      create_price_change( french, e_commodity::silver, -1 );
+  REQUIRE( evolve() == expected_silver_change );
+  REQUIRE( silver_bid == 17 );
+
+  expected_silver_change =
+      create_price_change( french, e_commodity::silver, -1 );
+  REQUIRE( evolve() == expected_silver_change );
+  REQUIRE( silver_bid == 16 );
+
+  // Stops evolving.
+  expected_silver_change =
+      create_price_change( french, e_commodity::silver, 0 );
+  REQUIRE( evolve() == expected_silver_change );
+  REQUIRE( silver_bid == 16 );
+}
+
+// This tests that a custom house selling silver will cause the
+// price to drop at the proper rate for the dutch.
+TEST_CASE(
+    "[custom-house] custom house affects dutch market "
+    "properly" ) {
+  World W;
+  // Expected values.
+  vector<CustomHouseSale> expected;
+  PriceChange             expected_silver_change;
+  // Init settings.
+  W.settings().difficulty = e_difficulty::conquistador;
+  // Init player.
+  Player& dutch           = W.dutch();
+  dutch.human             = true;
+  dutch.revolution_status = e_revolution_status::not_declared;
+  // Init colony.
+  Colony& colony = W.add_colony_with_new_unit( Coord{} );
+  colony.buildings[e_colony_building::custom_house] = true;
+  colony.commodities[e_commodity::silver]           = 150;
+  colony.custom_house[e_commodity::silver]          = true;
+  // Init market prices.
+  for( e_commodity comm : refl::enum_values<e_commodity> )
+    dutch.old_world.market.commodities[comm].bid_price =
+        config_market.price_behavior[comm]
+            .price_limits.bid_price_max;
+  int& silver_bid =
+      dutch.old_world.market.commodities[e_commodity::silver]
+          .bid_price;
+
+  vector<CustomHouseSale> res =
+      compute_custom_house_sales( W.ss(), dutch, colony );
+  expected = { CustomHouseSale{
+      .invoice =
+          Invoice{
+              .what = Commodity{ .type     = e_commodity::silver,
+                                 .quantity = 100 },
+              .money_delta_before_taxes = 100 * 19,
+              .tax_rate                 = 0,
+              .tax_amount               = 0,
+              .money_delta_final        = 1900,
+              .player_volume_delta      = 100,
+              .intrinsic_volume_delta =
+                  { { e_nation::dutch, 266 },
+                    { e_nation::french, 400 } },
+              .global_intrinsic_volume_deltas = {
+                  /*only processed goods*/ },
+              .price_change = create_price_change(
+                  dutch, e_commodity::silver,
+                  /*price_change=*/0 ) },
+  } };
+  REQUIRE( res == expected );
+
+  // Now apply the changes so that the price will start falling.
+  apply_custom_house_sales( W.ss(), dutch, colony, res );
+
+  auto evolve = [&] {
+    auto changes = evolve_player_prices( W.ss(), dutch );
+    return changes[e_commodity::silver];
+  };
+
+  REQUIRE( silver_bid == 19 );
+
+  expected_silver_change =
+      create_price_change( dutch, e_commodity::silver, -1 );
+  REQUIRE( evolve() == expected_silver_change );
+  REQUIRE( silver_bid == 18 );
+
+  expected_silver_change =
+      create_price_change( dutch, e_commodity::silver, -1 );
+  REQUIRE( evolve() == expected_silver_change );
+  REQUIRE( silver_bid == 17 );
+
+  // Stops evolving.
+  expected_silver_change =
+      create_price_change( dutch, e_commodity::silver, 0 );
+  REQUIRE( evolve() == expected_silver_change );
+  REQUIRE( silver_bid == 17 );
+}
+
 } // namespace
 } // namespace rn

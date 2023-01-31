@@ -72,6 +72,4 @@ struct.Tribe {
   # value is nothing that means that the initial encounter has
   # not yet happened.
   relationship 'refl::enum_map<e_nation, base::maybe<TribeRelationship>>',
-
-  _features { equality, validation }
 }

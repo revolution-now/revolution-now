@@ -218,7 +218,7 @@ void perform_meet_tribe( SS& ss, Player const& player,
       .at_war = ( declare_war == e_declare_war_on_natives::yes ),
       .tribal_alarm =
           config_natives.alarm
-              .minimum_tribal_alarm[meet_tribe.tribe] };
+              .starting_tribal_alarm[meet_tribe.tribe] };
 
   // Award player any land they "occupy" that is owned by this
   // tribe. Note that if the player has Peter Minuit then this

@@ -991,6 +991,9 @@ TEST_CASE(
     "[market] processed good buy remains within limits" ) {
   World W;
   W.set_default_player( e_nation::french );
+  e_immediate_price_change_allowed const
+      immediate_price_change_allowed =
+          e_immediate_price_change_allowed::allowed;
   GlobalMarketItem& global_rum =
       W.ss()
           .players.global_market_state
@@ -1018,7 +1021,7 @@ TEST_CASE(
   Invoice const invoice = transaction_invoice(
       W.ss(), W.player(),
       Commodity{ .type = e_commodity::cloth, .quantity = 100 },
-      e_transaction::buy );
+      e_transaction::buy, immediate_price_change_allowed );
 
   REQUIRE( invoice.price_change.delta == 0 );
 }
@@ -1027,6 +1030,9 @@ TEST_CASE(
     "[market] default model good buy remains within limits" ) {
   World W;
   W.set_default_player( e_nation::french );
+  e_immediate_price_change_allowed const
+      immediate_price_change_allowed =
+          e_immediate_price_change_allowed::allowed;
 
   W.set_current_bid_price( e_commodity::muskets, 19 );
 
@@ -1037,7 +1043,7 @@ TEST_CASE(
       W.ss(), W.player(),
       Commodity{ .type     = e_commodity::muskets,
                  .quantity = 1000 },
-      e_transaction::buy );
+      e_transaction::buy, immediate_price_change_allowed );
 
   REQUIRE( invoice.price_change.delta == 0 );
 }
@@ -1046,10 +1052,14 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
   World     W;
   Commodity to_buy;
   Invoice   expected;
+  e_immediate_price_change_allowed
+      immediate_price_change_allowed =
+          e_immediate_price_change_allowed::allowed;
 
   auto f = [&] {
     return transaction_invoice( W.ss(), W.default_player(),
-                                to_buy, e_transaction::buy );
+                                to_buy, e_transaction::buy,
+                                immediate_price_change_allowed );
   };
 
   W.ss()
@@ -1500,16 +1510,87 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
     };
     REQUIRE( f() == expected );
   }
+
+  SECTION( "price change suppression" ) {
+    W.set_default_player( e_nation::french );
+    Player& player          = W.default_player();
+    player.human            = true;
+    W.settings().difficulty = e_difficulty::conquistador;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::silver]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cloth]
+        .bid_price = 10;
+
+    to_buy   = { e_commodity::silver, 50 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -11 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -11 * 50,
+        .player_volume_delta      = -50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, -200 }, // volatility...
+                { e_nation::french, -200 },
+                { e_nation::spanish, -200 },
+                { e_nation::dutch, -200 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change                   = create_price_change(
+            player, e_commodity::silver, 0 ),
+    };
+    REQUIRE( f() == expected );
+    immediate_price_change_allowed =
+        e_immediate_price_change_allowed::suppressed;
+    REQUIRE( f() == expected );
+    immediate_price_change_allowed =
+        e_immediate_price_change_allowed::allowed;
+
+    to_buy   = { e_commodity::cloth, 100 };
+    expected = {
+        .what                     = to_buy,
+        .money_delta_before_taxes = -11 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 0,
+        .money_delta_final        = -11 * 100,
+        .player_volume_delta      = -100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, 0 },
+                { e_commodity::cigars, 0 },
+                { e_commodity::cloth, 0 },
+                { e_commodity::coats, 0 },
+            },
+        .price_change =
+            create_price_change( player, e_commodity::cloth, 1 ),
+    };
+    REQUIRE( f() == expected );
+    immediate_price_change_allowed =
+        e_immediate_price_change_allowed::suppressed;
+    expected.price_change =
+        create_price_change( player, e_commodity::cloth, 0 );
+    REQUIRE( f() == expected );
+    immediate_price_change_allowed =
+        e_immediate_price_change_allowed::allowed;
+  }
 }
 
 TEST_CASE( "[market] transaction_invoice sell" ) {
   World     W;
   Commodity to_sell;
   Invoice   expected;
+  e_immediate_price_change_allowed
+      immediate_price_change_allowed =
+          e_immediate_price_change_allowed::allowed;
 
   auto f = [&] {
     return transaction_invoice( W.ss(), W.default_player(),
-                                to_sell, e_transaction::sell );
+                                to_sell, e_transaction::sell,
+                                immediate_price_change_allowed );
   };
 
   W.ss()
@@ -1959,6 +2040,78 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
+  }
+
+  SECTION( "price change suppression" ) {
+    W.set_default_player( e_nation::french );
+    Player& player          = W.default_player();
+    player.human            = true;
+    W.settings().difficulty = e_difficulty::conquistador;
+    W.set_tax_rate( 50 );
+
+    player.old_world.market.commodities[e_commodity::silver]
+        .bid_price = 10;
+    player.old_world.market.commodities[e_commodity::cloth]
+        .bid_price = 10;
+
+    to_sell  = { e_commodity::silver, 50 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 50,
+        .tax_rate                 = 50,
+        .tax_amount               = 250,
+        .money_delta_final        = 250,
+        .player_volume_delta      = 50,
+        .intrinsic_volume_delta =
+            {
+                { e_nation::english, 200 }, // volatility...
+                { e_nation::french, 100 },  // price fell...
+                { e_nation::spanish, 200 },
+                { e_nation::dutch, 133 },
+            },
+        .global_intrinsic_volume_deltas = {},
+        .price_change                   = create_price_change(
+            player, e_commodity::silver, -1 ),
+    };
+    REQUIRE( f() == expected );
+    immediate_price_change_allowed =
+        e_immediate_price_change_allowed::suppressed;
+    expected.price_change =
+        create_price_change( player, e_commodity::silver, 0 );
+    // Since the price was not adjusted, the intrinsic volume of
+    // the french won't have been adjusted either.
+    expected.intrinsic_volume_delta[e_nation::french] = 200;
+    REQUIRE( f() == expected );
+    immediate_price_change_allowed =
+        e_immediate_price_change_allowed::allowed;
+
+    to_sell  = { e_commodity::cloth, 100 };
+    expected = {
+        .what                     = to_sell,
+        .money_delta_before_taxes = 10 * 100,
+        .tax_rate                 = 50,
+        .tax_amount               = 500,
+        .money_delta_final        = 500,
+        .player_volume_delta      = 100,
+        .intrinsic_volume_delta   = {},
+        .global_intrinsic_volume_deltas =
+            {
+                { e_commodity::rum, -7 },
+                { e_commodity::cigars, -7 },
+                { e_commodity::cloth, -8 },
+                { e_commodity::coats, -7 },
+            },
+        .price_change = create_price_change(
+            player, e_commodity::cloth, -1 ),
+    };
+    REQUIRE( f() == expected );
+    immediate_price_change_allowed =
+        e_immediate_price_change_allowed::suppressed;
+    expected.price_change =
+        create_price_change( player, e_commodity::cloth, 0 );
+    REQUIRE( f() == expected );
+    immediate_price_change_allowed =
+        e_immediate_price_change_allowed::allowed;
   }
 }
 

@@ -18,11 +18,15 @@
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
 
+// Revolution Now
+#include "src/mock/matchers.hpp"
+
 // ss
 #include "ss/player.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
 #include "ss/terrain.hpp"
+#include "ss/tribe.rds.hpp"
 #include "ss/turn.hpp"
 #include "ss/units.hpp"
 
@@ -42,6 +46,8 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::mock::matchers::_;
 
 /****************************************************************
 ** Fake World Setup
@@ -684,7 +690,83 @@ TEST_CASE( "[fathers] on_father_received: sieur_de_la_salle" ) {
 }
 
 TEST_CASE( "[fathers] on_father_received: pocahontas" ) {
-  // TODO
+  World              W;
+  Player&            player = W.default_player();
+  Tribe&             inca   = W.add_tribe( e_tribe::inca );
+  Tribe&             arawak = W.add_tribe( e_tribe::arawak );
+  Tribe&             tupi   = W.add_tribe( e_tribe::tupi );
+  Tribe&             aztec  = W.add_tribe( e_tribe::aztec );
+  TribeRelationship& inca_relationship =
+      inca.relationship[player.nation].emplace();
+  TribeRelationship& arawak_relationship =
+      arawak.relationship[player.nation].emplace();
+  TribeRelationship& tupi_relationship =
+      tupi.relationship[player.nation].emplace();
+  auto& aztec_relationship = aztec.relationship[player.nation];
+
+  auto f = [&] {
+    on_father_received( W.ss(), W.ts(), player,
+                        e_founding_father::pocahontas );
+  };
+
+  inca_relationship.tribal_alarm   = 1;
+  arawak_relationship.tribal_alarm = 60;
+  tupi_relationship.tribal_alarm   = 30;
+
+  f();
+  REQUIRE( inca_relationship.tribal_alarm == 1 );
+  REQUIRE( arawak_relationship.tribal_alarm == 17 );
+  REQUIRE( tupi_relationship.tribal_alarm == 17 );
+  REQUIRE( !aztec_relationship.has_value() );
+
+  f();
+  REQUIRE( inca_relationship.tribal_alarm == 1 );
+  REQUIRE( arawak_relationship.tribal_alarm == 17 );
+  REQUIRE( tupi_relationship.tribal_alarm == 17 );
+  REQUIRE( !aztec_relationship.has_value() );
+}
+
+TEST_CASE( "[fathers] on_father_received: william_brewster" ) {
+  World W;
+  W.settings().difficulty  = e_difficulty::conquistador;
+  Player&           player = W.default_player();
+  ImmigrationState& state  = player.old_world.immigration;
+  player.fathers.has[e_founding_father::william_brewster] = true;
+
+  auto f = [&] {
+    on_father_received( W.ss(), W.ts(), player,
+                        e_founding_father::william_brewster );
+  };
+
+  SECTION( "no change" ) {
+    state.immigrants_pool[0] = e_unit_type::free_colonist;
+    state.immigrants_pool[1] = e_unit_type::expert_fisherman;
+    state.immigrants_pool[2] = e_unit_type::soldier;
+    f();
+    REQUIRE( state.immigrants_pool[0] ==
+             e_unit_type::free_colonist );
+    REQUIRE( state.immigrants_pool[1] ==
+             e_unit_type::expert_fisherman );
+    REQUIRE( state.immigrants_pool[2] == e_unit_type::soldier );
+  }
+
+  SECTION( "changes" ) {
+    state.immigrants_pool[0] = e_unit_type::expert_farmer;
+    state.immigrants_pool[1] = e_unit_type::petty_criminal;
+    state.immigrants_pool[2] = e_unit_type::indentured_servant;
+    // Note that the upper limit of the random double is tested
+    // elsewhere.
+    EXPECT_CALL( W.rand(), between_doubles( 0, _ ) )
+        .returns( 0.0 );
+    EXPECT_CALL( W.rand(), between_doubles( 0, _ ) )
+        .returns( 2500.0 );
+    f();
+    REQUIRE( state.immigrants_pool[0] ==
+             e_unit_type::expert_farmer );
+    REQUIRE( state.immigrants_pool[1] ==
+             e_unit_type::free_colonist );
+    REQUIRE( state.immigrants_pool[2] == e_unit_type::pioneer );
+  }
 }
 
 } // namespace

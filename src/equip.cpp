@@ -103,12 +103,15 @@ vector<HarborEquipOption> harbor_equip_options(
         continue;
       // The invoice function expects this.
       option.commodity_delta = comm;
-      Invoice const invoice  = transaction_invoice(
+      // Note: immediate price change allowance flag should be
+      // irrelevant here.
+      Invoice const invoice = transaction_invoice(
           ss, player, *comm,
           ( option.modifier_delta ==
             e_unit_type_modifier_delta::add )
-               ? e_transaction::buy
-               : e_transaction::sell );
+              ? e_transaction::buy
+              : e_transaction::sell,
+          e_immediate_price_change_allowed::allowed );
       option.money_delta = invoice.money_delta_final;
       option.can_afford =
           ( player.money + option.money_delta >= 0 );
@@ -199,12 +202,13 @@ PriceChange perform_harbor_equip_option(
   Unit&       unit         = ss.units.unit_for( unit_id );
   unit.change_type( player, option.new_comp );
   if( option.commodity_delta.has_value() ) {
-    Invoice const invoice =
-        transaction_invoice( ss, player, *option.commodity_delta,
-                             ( option.modifier_delta ==
-                               e_unit_type_modifier_delta::add )
-                                 ? e_transaction::buy
-                                 : e_transaction::sell );
+    Invoice const invoice = transaction_invoice(
+        ss, player, *option.commodity_delta,
+        ( option.modifier_delta ==
+          e_unit_type_modifier_delta::add )
+            ? e_transaction::buy
+            : e_transaction::sell,
+        e_immediate_price_change_allowed::allowed );
     CHECK( option.money_delta == invoice.money_delta_final );
     apply_invoice( ss, player, invoice );
     price_change = invoice.price_change;

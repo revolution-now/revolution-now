@@ -226,17 +226,17 @@ void LandViewRenderer::render_units_impl() const {
   // is usually at least one unit blinking. The exception would
   // be the end-of-turn when there should be no animations.
 
-  unordered_map<GenericUnitId, UnitAnimation::front const*>
+  unordered_map<GenericUnitId, UnitAnimationState::front const*>
       front;
-  unordered_map<GenericUnitId, UnitAnimation::blink const*>
+  unordered_map<GenericUnitId, UnitAnimationState::blink const*>
       blink;
-  unordered_map<GenericUnitId, UnitAnimation::slide const*>
+  unordered_map<GenericUnitId, UnitAnimationState::slide const*>
       slide;
   unordered_map<GenericUnitId,
-                UnitAnimation::depixelate_unit const*>
+                UnitAnimationState::depixelate_unit const*>
       depixelate_unit;
   unordered_map<GenericUnitId,
-                UnitAnimation::enpixelate_unit const*>
+                UnitAnimationState::enpixelate_unit const*>
       enpixelate_unit;
   // These are the tiles to skip when rendering units that are
   // not animated. An example would be that if a unit is blinking
@@ -250,30 +250,30 @@ void LandViewRenderer::render_units_impl() const {
   for( auto const& [id, anim_stack] :
        lv_animator_.unit_animations() ) {
     CHECK( !anim_stack.empty() );
-    UnitAnimation_t const& anim = anim_stack.top();
-    Coord const            tile =
+    UnitAnimationState_t const& anim = anim_stack.top();
+    Coord const                 tile =
         coord_for_unit_multi_ownership_or_die( ss_, id );
     switch( anim.to_enum() ) {
-      case UnitAnimation::e::front:
-        front[id] = &anim.get<UnitAnimation::front>();
+      case UnitAnimationState::e::front:
+        front[id] = &anim.get<UnitAnimationState::front>();
         tiles_to_skip.insert( tile );
         break;
-      case UnitAnimation::e::blink:
-        blink[id] = &anim.get<UnitAnimation::blink>();
+      case UnitAnimationState::e::blink:
+        blink[id] = &anim.get<UnitAnimationState::blink>();
         tiles_to_skip.insert( tile );
         break;
-      case UnitAnimation::e::slide:
-        slide[id] = &anim.get<UnitAnimation::slide>();
+      case UnitAnimationState::e::slide:
+        slide[id] = &anim.get<UnitAnimationState::slide>();
         tiles_to_fade.insert( tile );
         break;
-      case UnitAnimation::e::depixelate_unit:
+      case UnitAnimationState::e::depixelate_unit:
         depixelate_unit[id] =
-            &anim.get<UnitAnimation::depixelate_unit>();
+            &anim.get<UnitAnimationState::depixelate_unit>();
         tiles_to_skip.insert( tile );
         break;
-      case UnitAnimation::e::enpixelate_unit:
+      case UnitAnimationState::e::enpixelate_unit:
         enpixelate_unit[id] =
-            &anim.get<UnitAnimation::enpixelate_unit>();
+            &anim.get<UnitAnimationState::enpixelate_unit>();
         tiles_to_skip.insert( tile );
         break;
     }
@@ -398,9 +398,10 @@ void LandViewRenderer::render_native_dwelling(
 void LandViewRenderer::render_native_dwelling_depixelate(
     Dwelling const& dwelling ) const {
   Coord const location = ss_.natives.coord_for( dwelling.id );
-  UNWRAP_CHECK( animation,
-                lv_animator_.dwelling_animation( dwelling.id )
-                    .get_if<DwellingAnimation::depixelate>() );
+  UNWRAP_CHECK(
+      animation,
+      lv_animator_.dwelling_animation( dwelling.id )
+          .get_if<DwellingAnimationState::depixelate>() );
   // As usual, the hash anchor coord is arbitrary so long as
   // its position is fixed relative to the sprite.
   Coord const hash_anchor =
@@ -477,9 +478,10 @@ void LandViewRenderer::render_colony(
 
 void LandViewRenderer::render_colony_depixelate(
     Colony const& colony ) const {
-  UNWRAP_CHECK( animation,
-                lv_animator_.colony_animation( colony.id )
-                    .get_if<ColonyAnimation::depixelate>() );
+  UNWRAP_CHECK(
+      animation,
+      lv_animator_.colony_animation( colony.id )
+          .get_if<ColonyAnimationState::depixelate>() );
   // As usual, the hash anchor coord is arbitrary so long as
   // its position is fixed relative to the sprite.
   Coord const hash_anchor =
@@ -558,7 +560,7 @@ void LandViewRenderer::render_native_dwellings() const {
   for( auto const& [id, state] : all ) {
     if( !state.ownership.location.is_inside( covered_ ) )
       continue;
-    maybe<DwellingAnimation_t const&> anim =
+    maybe<DwellingAnimationState_t const&> anim =
         lv_animator_.dwelling_animation( id );
     if( !anim.has_value() )
       render_native_dwelling( state.dwelling );
@@ -575,9 +577,9 @@ void LandViewRenderer::render_units_underneath() const {
   for( auto const& [colony_id, anim_stack] :
        lv_animator_.colony_animations() ) {
     CHECK( !anim_stack.empty() );
-    ColonyAnimation_t const& anim = anim_stack.top();
+    ColonyAnimationState_t const& anim = anim_stack.top();
     switch( anim.to_enum() ) {
-      case ColonyAnimation::e::depixelate: {
+      case ColonyAnimationState::e::depixelate: {
         Coord const location =
             ss_.colonies.colony_for( colony_id ).location;
         if( !location.is_inside( covered_ ) ) return;
@@ -591,9 +593,9 @@ void LandViewRenderer::render_units_underneath() const {
   for( auto const& [dwelling_id, anim_stack] :
        lv_animator_.dwelling_animations() ) {
     CHECK( !anim_stack.empty() );
-    DwellingAnimation_t const& anim = anim_stack.top();
+    DwellingAnimationState_t const& anim = anim_stack.top();
     switch( anim.to_enum() ) {
-      case DwellingAnimation::e::depixelate: {
+      case DwellingAnimationState::e::depixelate: {
         Coord const location =
             ss_.natives.coord_for( dwelling_id );
         if( !location.is_inside( covered_ ) ) return;
@@ -612,13 +614,13 @@ void LandViewRenderer::render_colonies() const {
       ss_.colonies.all();
   for( auto const& [id, colony] : all ) {
     if( !colony.location.is_inside( covered_ ) ) continue;
-    maybe<ColonyAnimation_t const&> anim =
+    maybe<ColonyAnimationState_t const&> anim =
         lv_animator_.colony_animation( id );
     if( !anim.has_value() )
       this->render_colony( colony );
     else {
       switch( anim->to_enum() ) {
-        case ColonyAnimation::e::depixelate:
+        case ColonyAnimationState::e::depixelate:
           render_colony_depixelate( colony );
           break;
       }

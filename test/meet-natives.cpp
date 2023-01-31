@@ -307,7 +307,7 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
     REQUIRE(
         W.natives().tribe_for( tribe ).relationship[nation] ==
         TribeRelationship{ .at_war       = false,
-                           .tribal_alarm = 0 } );
+                           .tribal_alarm = 10 } );
     REQUIRE( !is_land_native_owned( W.ss(), player,
                                     { .x = 1, .y = 0 } ) );
     REQUIRE( !is_land_native_owned( W.ss(), player,
@@ -323,7 +323,8 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
     f();
     REQUIRE(
         W.natives().tribe_for( tribe ).relationship[nation] ==
-        TribeRelationship{ .at_war = true, .tribal_alarm = 0 } );
+        TribeRelationship{ .at_war       = true,
+                           .tribal_alarm = 10 } );
   }
 
   // The perform_meet_tribe function may receive some owned land
@@ -337,7 +338,7 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
     REQUIRE(
         W.natives().tribe_for( tribe ).relationship[nation] ==
         TribeRelationship{ .at_war       = false,
-                           .tribal_alarm = 0 } );
+                           .tribal_alarm = 10 } );
     REQUIRE( !is_land_native_owned( W.ss(), player,
                                     { .x = 1, .y = 0 } ) );
     REQUIRE( !is_land_native_owned( W.ss(), player,

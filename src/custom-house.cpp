@@ -123,18 +123,21 @@ vector<CustomHouseSale> compute_custom_house_sales(
                              .quantity = amount_to_sell };
     // Now we need to get the player some money and let the sales
     // affect market prices.
-    Invoice invoice = transaction_invoice( ss, player, to_sell,
-                                           e_transaction::sell );
-    // This is important because, although we want the custom
-    // house sales to affect the market, we don't want the cur-
-    // rent price to be updated; we will suppress that and just
-    // let the changed market state cause any price changes at
-    // the start of the next turn when price changes are as-
-    // sessed. That way we can apply the market changes here (for
-    // each colony) and not worry about breaking the rule that
-    // the price can only move by at most one unit per turn.
-    invoice.price_change =
-        create_price_change( player, comm, /*price_change=*/0 );
+    //
+    // Note that we suppress immediate price changes here, which
+    // is not typical when calling this function. This is impor-
+    // tant because, although we want the custom house sales to
+    // affect the market, we don't want the current price to be
+    // updated immediately upon making the transaction; we will
+    // suppress that and just let the changed market state cause
+    // any price changes at the start of the next turn when price
+    // changes are assessed. That way we can apply the market
+    // changes here (for each colony) and not worry about
+    // breaking the rule that the price can only move by at most
+    // one unit per turn.
+    Invoice invoice = transaction_invoice(
+        ss, player, to_sell, e_transaction::sell,
+        e_immediate_price_change_allowed::suppressed );
     // In the OG, after independence is declared, there is a 50%
     // charge on all goods sold via custom house ("smuggling
     // fee") instead of the tax rate. Or at least there is sup-

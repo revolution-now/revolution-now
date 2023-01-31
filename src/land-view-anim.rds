@@ -29,7 +29,7 @@ namespace "rn"
 # These are animation primitives. A unit "move" is a slide, and a
 # unit attack sequence is constructed from a slide + depixela-
 # tion.
-sumtype.UnitAnimation {
+sumtype.UnitAnimationState {
   # This will draw the unit in front all other units and
   # colonies, with the exception of units that are being animated
   # in some other way, which will always go on top.
@@ -57,13 +57,13 @@ sumtype.UnitAnimation {
   },
 }
 
-sumtype.ColonyAnimation {
+sumtype.ColonyAnimationState {
   depixelate {
     stage 'double',
   },
 }
 
-sumtype.DwellingAnimation {
+sumtype.DwellingAnimationState {
   depixelate {
     stage 'double',
   },
