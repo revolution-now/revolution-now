@@ -113,14 +113,19 @@ local function create_battlefield_units( options, root )
   assert( nation2 )
   local veteran_dragoon = build_unit_type( 'veteran_dragoon' )
 
-  unit_mgr.create_unit_on_map( nation1, veteran_dragoon,
-                               { x=1, y=1 } ):fortify()
-  unit_mgr.create_unit_on_map( nation1, veteran_dragoon,
-                               { x=1, y=2 } ):fortify()
-  unit_mgr.create_unit_on_map( nation2, veteran_dragoon,
-                               { x=2, y=1 } )
-  unit_mgr.create_unit_on_map( nation2, veteran_dragoon,
-                               { x=2, y=2 } )
+  local size = root.terrain:size()
+
+  local coord = { x=size.w//2-1, y=size.h//2-1 }
+  unit_mgr.create_unit_on_map( nation1, veteran_dragoon, coord )
+  coord.y = coord.y + 1
+  unit_mgr.create_unit_on_map( nation1, veteran_dragoon, coord )
+  coord.y = coord.y + 1
+
+  coord = { x=size.w//2, y=size.h//2-1 }
+  unit_mgr.create_unit_on_map( nation2, veteran_dragoon, coord )
+  coord.y = coord.y + 1
+  unit_mgr.create_unit_on_map( nation2, veteran_dragoon, coord )
+  coord.y = coord.y + 1
 end
 
 -- FIXME: temporary
