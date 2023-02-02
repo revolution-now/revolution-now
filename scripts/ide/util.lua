@@ -58,11 +58,11 @@ end )
 -- string-formatted argument, which will be formatted into a
 -- single string and given as the first argument to the command.
 function M.fmt_func_with_arg( vim_name )
-  return M.formattable( function( file )
-    if file == nil then
+  return M.formattable( function( formatted )
+    if formatted == nil then
       vim.cmd( 'silent ' .. vim_name )
     else
-      vim.cmd( 'silent ' .. vim_name .. ' ' .. file )
+      vim.cmd( 'silent ' .. vim_name .. ' ' .. formatted )
     end
   end )
 end
