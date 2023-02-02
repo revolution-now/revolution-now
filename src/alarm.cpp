@@ -184,6 +184,10 @@ int max_tribal_alarm_after_pocahontas() {
   return config_natives.alarm.tribal_alarm_after_pocahontas;
 }
 
+int max_tribal_alarm_after_burning_capital() {
+  return config_natives.alarm.tribal_alarm_after_burning_capital;
+}
+
 e_alarm_category tribe_alarm_category( int tribal_alarm ) {
   auto begin_it =
       std::begin( refl::enum_values<e_alarm_category> );

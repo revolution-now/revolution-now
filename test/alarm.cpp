@@ -485,6 +485,16 @@ TEST_CASE( "[alarm] max_tribal_alarm_after_pocahontas" ) {
            e_alarm_category::content );
 }
 
+TEST_CASE( "[alarm] max_tribal_alarm_after_burning_capital" ) {
+  REQUIRE( max_tribal_alarm_after_burning_capital() == 17 );
+  // Whatever value we choose to set the tribal alarm to, it
+  // should fall in the "content" category, since that is what
+  // the OG documentation says.
+  REQUIRE( tribe_alarm_category(
+               max_tribal_alarm_after_burning_capital() ) ==
+           e_alarm_category::content );
+}
+
 TEST_CASE( "[alarm] tribe_alarm_category" ) {
   REQUIRE( tribe_alarm_category( 99 ) ==
            e_alarm_category::angry );

@@ -77,6 +77,12 @@ void increase_tribal_alarm_from_attacking_dwelling(
 // this is not quite as good as "happy").
 int max_tribal_alarm_after_pocahontas();
 
+// The tribal alarm that all tribes' alarm will be lowered to (if
+// they are higher) after having burned the capital. Most of the
+// time tribal anger will in fact be higher since the repeated
+// attacks that caused the burning will have raised it.
+int max_tribal_alarm_after_burning_capital();
+
 // Puts the tribal alarm into a bucket; this is useful for se-
 // lecting a tribe's behavior in a simple way based on alarm.
 e_alarm_category tribe_alarm_category( int tribal_alarm );
