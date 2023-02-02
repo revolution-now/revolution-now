@@ -81,6 +81,10 @@ struct type_traits<::rn::wait<T>>
   //   static constexpr auto const force_register =
   //           &registration;
   //
+  // As well as (https://youtu.be/0a3wjaeP6eQ):
+  //
+  //   type_traits() { (void)registration; }
+  //
   static_assert( &registration == &registration );
 };
 
