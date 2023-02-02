@@ -253,6 +253,11 @@ alarm {
   # After the player has Pocahontas then an increase in tribal or
   # dwelling alarm will be scaled by this value (.5 in the OG).
   tribal_alarm_increase_scale_after_pocahontas: .5
+
+  # The alarm level of a tribe is reduced to this level after
+  # burning the capital. In the event that the alarm is already
+  # lower than this (very unlikely) it won't be raised.
+  tribal_alarm_after_burning_capital: 17
 }
 
 # Configures how each dwelling is assigned an expertise for
