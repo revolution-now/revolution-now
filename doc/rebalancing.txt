@@ -40,33 +40,78 @@ of possible strategies.
       William Brewster at the start of the game, but that might
       be a bit too much.
 
-  General changes to the game:
+Founding Father Enhancements:
 
-    * The player has to pay to bless missionaries in Europe, with
-      an increasing cost as with artillery. This does two things:
-      First, it incentivizes building a church and makes churches
-      more valuable. Second, it allows giving the French an ad-
-      vantage in that the cost of blessing missionaries for them
-      does not increase.
+  * Paul Revere:
 
-    * Shipyards. The strategy guide says: "A Shipyard is useful
-      if you require many ships or engage in much sea combat, but
-      many experienced players will find that it can be ignored
-      in favor of other construction projects."  :-(
+    Paul Revere will allow a colonist to pick up stockpiled mus-
+    kets. In the original game it appears that this will only
+    happen once no matter how many muskets are in the colony. For
+    this reason Paul Revere is considered not to be worth much.
+    However, in order to make him worth more, we can expand his
+    effects to have the colonist (a veteran if available) keep
+    taking up as many muskets and horses as are available repeat-
+    edly until they are gone, fighting as if he was a dragoon or
+    soldier each time (possibly with a fortification bonus). Only
+    when they are all depeleted does he fight like a normal
+    colonist, and that will be the last battle as usual if he
+    loses. This would allow e.g. a colony with a warehouse expan-
+    sion to have 300 horses, and 300 muskets, and a veteran
+    colonist working somewhere in the colony, but no military de-
+    fending its gates, and this would be equivalent to having six
+    fortified veteran dragoons defending the colony! This might
+    actually make Revere too powerful, maybe the colonists should
+    only pick up muskets and not also horses.
 
-      We need to make a change to make ship-building more attrac-
-      tive. Some ideas:
+    On a related note, figure out how to deal with military units
+    that are in the cargo of ships in the port of the colony
+    being attacked. This issue doesn't come up in the original
+    game. Maybe Paul Revere could enable them to fight?
 
-        * Lower the building cost of ships.
-        * Create a new attractive ship unit that can only be
-          built in the new world. A ship that can be used to bom-
-          bard land units could be one such unit.
-        * Allow building Man-o-Wars with the ship yard.
+General changes to the game:
 
-      The strategy guide goes on to say: "Colonies' Ships are of
-      maximum usefulness before the start qf the war of indepen-
-      dence. Afler the war begins they can no longer travel to
-      Europe and back, and most are easily sunk or damaged by the
-      King's Man-o-War ships. The resources invested in Shipyards
-      may be better utilized in other areas in preparation for
-      declaring independence." -- Decide if this needs fixing.
+  * The player has to pay to bless missionaries in Europe, with
+    an increasing cost as with artillery. This does two things:
+    First, it incentivizes building a church and makes churches
+    more valuable. Second, it allows giving the French an advan-
+    tage in that the cost of blessing missionaries for them does
+    not increase.
+
+  * Shipyards. The strategy guide says: "A Shipyard is useful if
+    you require many ships or engage in much sea combat, but many
+    experienced players will find that it can be ignored in favor
+    of other construction projects." :-(
+
+    We need to make a change to make ship-building more attrac-
+    tive. Some ideas:
+
+      * Lower the building cost of ships.
+      * Create a new attractive ship unit that can only be built
+        in the new world. A ship that can be used to bombard land
+        units could be one such unit.
+      * Allow building Man-o-Wars with the ship yard.
+
+    The strategy guide goes on to say: "Colonies' Ships are of
+    maximum usefulness before the start qf the war of indepen-
+    dence. Afler the war begins they can no longer travel to Eu-
+    rope and back, and most are easily sunk or damaged by the
+    King's Man-o-War ships. The resources invested in Shipyards
+    may be better utilized in other areas in preparation for de-
+    claring independence." -- Decide if this needs fixing.
+
+  * The rule where one cannot abandon a colony with a stockade
+    seems to be unpopular, frustrating, and nonsensical. We
+    should probably figure out why that was done and try to get
+    the same effect in another way. Clearly there was a desire to
+    prevent the player from abandoning large colonies (either
+    after capturing them, or maybe just before the war of inde-
+    pendence). Maybe we can introduce another way of preventing
+    that. Ideas could be:
+
+      * Once a colony goes above 50% SoL it cannot be abandoned.
+      * If a colony exists at population >= 3 for longer than N
+        turns then it cannot be abandoned.
+      * more?
+
+    Also we should come up with a name for the propery that the
+    colony receives which prevents it from being abandoned.
