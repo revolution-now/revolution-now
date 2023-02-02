@@ -26,16 +26,22 @@ struct.config_sound_general {
   chunk_size 'int',
 }
 
+# FIXME: migrate these to enum_maps.
 struct.config_sound_sfx_volume {
-    move 'int',
-    attacker_lost 'int',
-    attacker_won 'int',
+  move 'int',
+  attacker_lost 'int',
+  attacker_won 'int',
+  sunk_ship 'int',
+  city_destroyed 'int',
 }
 
+# FIXME: migrate these to enum_maps.
 struct.config_sound_sfx {
   move 'std::string',
   attacker_lost 'std::string',
   attacker_won 'std::string',
+  sunk_ship 'std::string',
+  city_destroyed 'std::string',
   volume 'config_sound_sfx_volume',
 }
 

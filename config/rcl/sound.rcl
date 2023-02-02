@@ -17,10 +17,15 @@ sfx {
   move:            "assets/sfx/whoosh-1.wav"
   attacker_lost:   "assets/sfx/explosion-1.wav"
   attacker_won:    "assets/sfx/explosion-2.wav"
+  # FIXME: need dedicated sounds for these.
+  sunk_ship:       "assets/sfx/explosion-2.wav"
+  city_destroyed:  "assets/sfx/explosion-2.wav"
 
   volume {
     move:           100
     attacker_lost:  100
     attacker_won:   64
+    sunk_ship:      64
+    city_destroyed: 64
   }
 }

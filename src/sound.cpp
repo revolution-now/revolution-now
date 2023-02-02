@@ -52,6 +52,8 @@ SfxDesc sfx_file_for( e_sfx sound ) {
     SFX_FILE( move );
     SFX_FILE( attacker_lost );
     SFX_FILE( attacker_won );
+    SFX_FILE( sunk_ship );
+    SFX_FILE( city_destroyed );
   }
   SHOULD_NOT_BE_HERE;
 }
