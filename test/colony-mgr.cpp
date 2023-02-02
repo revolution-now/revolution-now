@@ -124,9 +124,15 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
     for( auto [type, q] : col.commodities ) {
       INFO( fmt::format( "type: {}, q: {}", type, q ) );
       switch( type ) {
-        case e_commodity::horses: REQUIRE( q == 50 ); break;
-        case e_commodity::muskets: REQUIRE( q == 50 ); break;
-        default: REQUIRE( q == 0 ); break;
+        case e_commodity::horses:
+          REQUIRE( q == 50 );
+          break;
+        case e_commodity::muskets:
+          REQUIRE( q == 50 );
+          break;
+        default:
+          REQUIRE( q == 0 );
+          break;
       }
     }
   }
@@ -148,8 +154,12 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
     for( auto [type, q] : col.commodities ) {
       INFO( fmt::format( "type: {}, q: {}", type, q ) );
       switch( type ) {
-        case e_commodity::tools: REQUIRE( q == 100 ); break;
-        default: REQUIRE( q == 0 ); break;
+        case e_commodity::tools:
+          REQUIRE( q == 100 );
+          break;
+        default:
+          REQUIRE( q == 0 );
+          break;
       }
     }
   }

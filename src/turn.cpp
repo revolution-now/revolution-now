@@ -212,12 +212,18 @@ void finish_turn( Unit& unit ) { unit.forfeight_mv_points(); }
 bool should_remove_unit_from_queue( Unit const& unit ) {
   if( finished_turn( unit ) ) return true;
   switch( unit.orders() ) {
-    case e_unit_orders::fortified: return true;
-    case e_unit_orders::fortifying: return true;
-    case e_unit_orders::sentry: return true;
-    case e_unit_orders::road: return false;
-    case e_unit_orders::plow: return false;
-    case e_unit_orders::none: return false;
+    case e_unit_orders::fortified:
+      return true;
+    case e_unit_orders::fortifying:
+      return true;
+    case e_unit_orders::sentry:
+      return true;
+    case e_unit_orders::road:
+      return false;
+    case e_unit_orders::plow:
+      return false;
+    case e_unit_orders::none:
+      return false;
   }
 }
 
@@ -400,7 +406,9 @@ wait<> process_player_input( LandViewPlayerInput_t const& input,
       // This one is relevant but handled in the calling func-
       // tion.
       break;
-    case e::exit: co_await proceed_to_exit( ss, ts ); break;
+    case e::exit:
+      co_await proceed_to_exit( ss, ts );
+      break;
     case e::give_orders:
     case e::prioritize: //
       break;
@@ -478,7 +486,9 @@ wait<> process_player_input( UnitId                       id,
       // when we are not at the end of a turn.
       SHOULD_NOT_BE_HERE;
     }
-    case e::exit: co_await proceed_to_exit( ss, ts ); break;
+    case e::exit:
+      co_await proceed_to_exit( ss, ts );
+      break;
     case e::colony: {
       e_colony_abandoned const abandoned =
           co_await show_colony_view(

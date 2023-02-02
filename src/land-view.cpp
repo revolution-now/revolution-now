@@ -633,7 +633,8 @@ struct LandViewPlane::Impl : public Plane {
         };
         return handler;
       }
-      default: break;
+      default:
+        break;
     }
     return nothing;
   }
