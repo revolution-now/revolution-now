@@ -1,0 +1,115 @@
+# ===============================================================
+# anim-builder.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-01-28.
+#
+# Description: Rds definitions for the anim-builder module.
+#
+# ===============================================================
+# Revolution Now
+include "sound.rds.hpp" # FIXME: forward declare e_sfx.
+
+# ss
+include "ss/colony-id.hpp"
+include "ss/dwelling-id.hpp"
+include "ss/native-enums.rds.hpp"
+include "ss/unit-id.hpp"
+include "ss/unit-type.rds.hpp"
+
+# gfx
+include "gfx/coord.rds.hpp"
+
+# C++ standard library
+include "<vector>"
+
+namespace "rn"
+
+# Represents the possible animation primitives used to construct
+# larger animation sequences in the land view.
+sumtype.AnimationPrimitive {
+  # -------------------------------------------------------------
+  # Sound effects.
+  # -------------------------------------------------------------
+  play_sound {
+    what 'e_sfx',
+  },
+
+  # -------------------------------------------------------------
+  # Generic unit animations.
+  # -------------------------------------------------------------
+  # Prevents the unit from being rendered. This is a
+  # non-terminating action.
+  hide_unit {
+    unit_id 'GenericUnitId',
+  },
+
+  # Any unit that is animated in any way will automatically be
+  # rendered in front of other entities on its tile (though in an
+  # unspecified position relative to other entities on the same
+  # tile also being animated). The `front_unit` animation is for
+  # the cases where we want a unit to be at the front of its en-
+  # tity stack on the tile but without any other animation. This
+  # is a non-terminating action.
+  front_unit {
+    unit_id 'GenericUnitId',
+  },
+
+  slide_unit {
+    unit_id 'GenericUnitId',
+    direction 'e_direction',
+  },
+
+  depixelate_unit {
+    unit_id 'GenericUnitId',
+  },
+
+  enpixelate_unit {
+    unit_id 'GenericUnitId',
+  },
+
+  # -------------------------------------------------------------
+  # Euro units.
+  # -------------------------------------------------------------
+  depixelate_euro_unit_to_target {
+    unit_id 'UnitId',
+    target 'e_unit_type',
+  },
+
+  # -------------------------------------------------------------
+  # Native units.
+  # -------------------------------------------------------------
+  depixelate_native_unit_to_target {
+    unit_id 'NativeUnitId',
+    target 'e_native_unit_type',
+  },
+
+  # -------------------------------------------------------------
+  # Colonies.
+  # -------------------------------------------------------------
+  depixelate_colony {
+    colony_id 'ColonyId',
+  },
+
+  # -------------------------------------------------------------
+  # Dwellings.
+  # -------------------------------------------------------------
+  depixelate_dwelling {
+    dwelling_id 'DwellingId',
+  },
+}
+
+struct.AnimationAction {
+  primitive 'AnimationPrimitive_t',
+
+  # If this is true then this is an animation that will be can-
+  # celled when the ones with background=false all complete. As
+  # such, this primitive may be non-terminating without causing
+  # the overall animation to be non-terminating.
+  background 'bool',
+}
+
+struct.AnimationSequence {
+  sequence 'std::vector<std::vector<AnimationAction>>',
+}
