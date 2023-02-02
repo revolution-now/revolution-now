@@ -15,7 +15,7 @@ AllowShortBlocksOnASingleLine:                                true
 AllowShortCaseLabelsOnASingleLine:                            false
 # (FIXME) AllowShortEnumsOnASingleLine:                                 false
 AllowShortFunctionsOnASingleLine:                             All
-AllowShortIfStatementsOnASingleLine:                          false
+AllowShortIfStatementsOnASingleLine:                          true
 AllowShortLambdasOnASingleLine:                               All
 AllowShortLoopsOnASingleLine:                                 true
 AlwaysBreakAfterDefinitionReturnType:                         None
