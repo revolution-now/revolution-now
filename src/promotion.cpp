@@ -134,6 +134,9 @@ maybe<UnitType> promoted_unit_type( UnitType        ut,
         // to a continental cavalry.
         auto const&          o = eff_type_promo->get<modifier>();
         e_unit_type_modifier modifier = o.kind;
+        // Note that we don't check the independence status in
+        // this function when we get the "independence" modifier
+        // because that will be handled elsewhere.
         return add_unit_type_modifiers( ut, { modifier } );
       }
     }
