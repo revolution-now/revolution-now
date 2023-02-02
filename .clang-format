@@ -12,10 +12,10 @@ AllowAllArgumentsOnNextLine:                                  true
 AllowAllConstructorInitializersOnNextLine:                    true
 AllowAllParametersOfDeclarationOnNextLine:                    true
 AllowShortBlocksOnASingleLine:                                true
-AllowShortCaseLabelsOnASingleLine:                            true
+AllowShortCaseLabelsOnASingleLine:                            false
 # (FIXME) AllowShortEnumsOnASingleLine:                                 false
 AllowShortFunctionsOnASingleLine:                             All
-AllowShortIfStatementsOnASingleLine:                          true
+AllowShortIfStatementsOnASingleLine:                          false
 AllowShortLambdasOnASingleLine:                               All
 AllowShortLoopsOnASingleLine:                                 true
 AlwaysBreakAfterDefinitionReturnType:                         None
