@@ -575,6 +575,48 @@ TEST_CASE( "[colony-mgr] give_stockade_if_needed" ) {
   REQUIRE( english1.buildings[e_colony_building::stockade] );
 }
 
+TEST_CASE( "[colony-mgr] colony_workers" ) {
+  World   W;
+  Colony& colony =
+      W.add_colony( { .x = 1, .y = 1 }, e_nation::dutch );
+  vector<UnitId> expected;
+
+  auto f = [&] { return colony_workers( colony ); };
+
+  // Empty.
+  REQUIRE( f() == expected );
+
+  UnitId const id1 =
+      W.add_unit_outdoors( colony.id, e_direction::ne,
+                           e_outdoor_job::cotton,
+                           e_unit_type::expert_cotton_planter )
+          .id();
+  expected = { id1 };
+  REQUIRE( f() == expected );
+
+  UnitId const id2 =
+      W.add_unit_indoors( colony.id, e_indoor_job::hammers,
+                          e_unit_type::free_colonist )
+          .id();
+  expected = { id2, id1 };
+  REQUIRE( f() == expected );
+
+  UnitId const id3 =
+      W.add_unit_outdoors( colony.id, e_direction::n,
+                           e_outdoor_job::cotton,
+                           e_unit_type::expert_cotton_planter )
+          .id();
+  expected = { id2, id3, id1 };
+  REQUIRE( f() == expected );
+
+  UnitId const id4 =
+      W.add_unit_indoors( colony.id, e_indoor_job::bells,
+                          e_unit_type::free_colonist )
+          .id();
+  expected = { id4, id2, id3, id1 };
+  REQUIRE( f() == expected );
+}
+
 TEST_CASE( "[colony-mgr] found_colony finds job for unit." ) {
   // TODO
   //

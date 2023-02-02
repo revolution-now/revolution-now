@@ -96,6 +96,10 @@ void change_unit_outdoor_job( Colony& colony, UnitId id,
 
 int colony_population( Colony const& colony );
 
+// All indoor+outdoor units. Does not include units at the colony
+// gate.
+std::vector<UnitId> colony_workers( Colony const& colony );
+
 bool colony_has_unit( Colony const& colony, UnitId id );
 
 // This is the method that normal game code should use to destroy

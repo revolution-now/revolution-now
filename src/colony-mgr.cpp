@@ -468,6 +468,21 @@ int colony_population( Colony const& colony ) {
   return size;
 }
 
+// Note: this function should produce the workers in a determin-
+// istic order, i.e. no relying on hash map iteration.
+vector<UnitId> colony_workers( Colony const& colony ) {
+  vector<UnitId> res;
+  res.reserve( refl::enum_count<e_indoor_job> * 3 +
+               refl::enum_count<e_direction> );
+  for( e_indoor_job job : refl::enum_values<e_indoor_job> )
+    res.insert( res.end(), colony.indoor_jobs[job].begin(),
+                colony.indoor_jobs[job].end() );
+  for( e_direction d : refl::enum_values<e_direction> )
+    if( colony.outdoor_jobs[d].has_value() )
+      res.push_back( colony.outdoor_jobs[d]->unit_id );
+  return res;
+}
+
 bool colony_has_unit( Colony const& colony, UnitId id ) {
   vector<UnitId> units = colony_units_all( colony );
   return find( units.begin(), units.end(), id ) != units.end();
