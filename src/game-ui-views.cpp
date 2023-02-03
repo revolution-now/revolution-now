@@ -101,6 +101,7 @@ unique_ptr<UnitActivationView> UnitActivationView::Create(
   auto* p_unit_activation_view = unit_activation_view.get();
 
   auto ids = ids_;
+  CHECK( !ids.empty() );
   sort_euro_unit_stack( ss, ids );
 
   vector<unique_ptr<View>> units_vec;
