@@ -87,7 +87,8 @@ int& final_production_delta_for_commodity( ColonyProduction& pr,
       return pr.food_horses.food_delta_final;
     case e_commodity::horses:
       return pr.food_horses.horses_delta_final;
-    case e_commodity::sugar: return pr.sugar_rum.raw_delta_final;
+    case e_commodity::sugar:
+      return pr.sugar_rum.raw_delta_final;
     case e_commodity::rum:
       return pr.sugar_rum.product_delta_final;
     case e_commodity::tobacco:
@@ -98,33 +99,46 @@ int& final_production_delta_for_commodity( ColonyProduction& pr,
       return pr.cotton_cloth.raw_delta_final;
     case e_commodity::cloth:
       return pr.cotton_cloth.product_delta_final;
-    case e_commodity::fur: return pr.fur_coats.raw_delta_final;
+    case e_commodity::fur:
+      return pr.fur_coats.raw_delta_final;
     case e_commodity::coats:
       return pr.fur_coats.product_delta_final;
     case e_commodity::lumber:
       return pr.lumber_hammers.raw_delta_final;
-    case e_commodity::silver: return pr.silver.raw_delta_final;
-    case e_commodity::ore: return pr.ore_tools.raw_delta_final;
+    case e_commodity::silver:
+      return pr.silver.raw_delta_final;
+    case e_commodity::ore:
+      return pr.ore_tools.raw_delta_final;
     case e_commodity::tools:
       return pr.tools_muskets.raw_delta_final;
     case e_commodity::muskets:
       return pr.tools_muskets.product_delta_final;
-    case e_commodity::trade_goods: return pr.trade_goods;
+    case e_commodity::trade_goods:
+      return pr.trade_goods;
   }
 }
 
 maybe<e_indoor_job> indoor_job_from_outdoor_job(
     e_outdoor_job job ) {
   switch( job ) {
-    case e_outdoor_job::food: return nothing;
-    case e_outdoor_job::fish: return nothing;
-    case e_outdoor_job::sugar: return e_indoor_job::rum;
-    case e_outdoor_job::tobacco: return e_indoor_job::cigars;
-    case e_outdoor_job::cotton: return e_indoor_job::cloth;
-    case e_outdoor_job::fur: return e_indoor_job::coats;
-    case e_outdoor_job::lumber: return e_indoor_job::hammers;
-    case e_outdoor_job::ore: return e_indoor_job::tools;
-    case e_outdoor_job::silver: return nothing;
+    case e_outdoor_job::food:
+      return nothing;
+    case e_outdoor_job::fish:
+      return nothing;
+    case e_outdoor_job::sugar:
+      return e_indoor_job::rum;
+    case e_outdoor_job::tobacco:
+      return e_indoor_job::cigars;
+    case e_outdoor_job::cotton:
+      return e_indoor_job::cloth;
+    case e_outdoor_job::fur:
+      return e_indoor_job::coats;
+    case e_outdoor_job::lumber:
+      return e_indoor_job::hammers;
+    case e_outdoor_job::ore:
+      return e_indoor_job::tools;
+    case e_outdoor_job::silver:
+      return nothing;
   }
 }
 
@@ -157,7 +171,8 @@ int base_indoor_production_for_colonist_indoor_job(
     case e_unit_type::indentured_servant:
       return config_production.indoor_production
           .indentured_servant_base_production;
-    default: break;
+    default:
+      break;
   }
   return config_production.indoor_production
       .non_expert_base_production;
@@ -882,22 +897,38 @@ BellsModifiers compute_bells_modifiers(
 *****************************************************************/
 maybe<e_commodity> product_from_raw( e_commodity raw ) {
   switch( raw ) {
-    case e_commodity::food: return nothing;
-    case e_commodity::sugar: return e_commodity::rum;
-    case e_commodity::tobacco: return e_commodity::cigars;
-    case e_commodity::cotton: return e_commodity::cloth;
-    case e_commodity::fur: return e_commodity::coats;
-    case e_commodity::lumber: return nothing;
-    case e_commodity::ore: return e_commodity::tools;
-    case e_commodity::silver: return nothing;
-    case e_commodity::horses: return nothing;
-    case e_commodity::rum: return nothing;
-    case e_commodity::cigars: return nothing;
-    case e_commodity::cloth: return nothing;
-    case e_commodity::coats: return nothing;
-    case e_commodity::trade_goods: return nothing;
-    case e_commodity::tools: return e_commodity::muskets;
-    case e_commodity::muskets: return nothing;
+    case e_commodity::food:
+      return nothing;
+    case e_commodity::sugar:
+      return e_commodity::rum;
+    case e_commodity::tobacco:
+      return e_commodity::cigars;
+    case e_commodity::cotton:
+      return e_commodity::cloth;
+    case e_commodity::fur:
+      return e_commodity::coats;
+    case e_commodity::lumber:
+      return nothing;
+    case e_commodity::ore:
+      return e_commodity::tools;
+    case e_commodity::silver:
+      return nothing;
+    case e_commodity::horses:
+      return nothing;
+    case e_commodity::rum:
+      return nothing;
+    case e_commodity::cigars:
+      return nothing;
+    case e_commodity::cloth:
+      return nothing;
+    case e_commodity::coats:
+      return nothing;
+    case e_commodity::trade_goods:
+      return nothing;
+    case e_commodity::tools:
+      return e_commodity::muskets;
+    case e_commodity::muskets:
+      return nothing;
   }
 }
 
@@ -908,7 +939,8 @@ int const& final_production_delta_for_commodity(
       return pr.food_horses.food_delta_final;
     case e_commodity::horses:
       return pr.food_horses.horses_delta_final;
-    case e_commodity::sugar: return pr.sugar_rum.raw_delta_final;
+    case e_commodity::sugar:
+      return pr.sugar_rum.raw_delta_final;
     case e_commodity::rum:
       return pr.sugar_rum.product_delta_final;
     case e_commodity::tobacco:
@@ -919,20 +951,24 @@ int const& final_production_delta_for_commodity(
       return pr.cotton_cloth.raw_delta_final;
     case e_commodity::cloth:
       return pr.cotton_cloth.product_delta_final;
-    case e_commodity::fur: return pr.fur_coats.raw_delta_final;
+    case e_commodity::fur:
+      return pr.fur_coats.raw_delta_final;
     case e_commodity::coats:
       return pr.fur_coats.product_delta_final;
     case e_commodity::lumber:
       return pr.lumber_hammers.raw_delta_final;
-    case e_commodity::silver: return pr.silver.raw_delta_final;
-    case e_commodity::ore: return pr.ore_tools.raw_delta_final;
+    case e_commodity::silver:
+      return pr.silver.raw_delta_final;
+    case e_commodity::ore:
+      return pr.ore_tools.raw_delta_final;
     case e_commodity::tools:
       // For tools, its the one in tools/muskets that has the
       // final value.
       return pr.tools_muskets.raw_delta_final;
     case e_commodity::muskets:
       return pr.tools_muskets.product_delta_final;
-    case e_commodity::trade_goods: return pr.trade_goods;
+    case e_commodity::trade_goods:
+      return pr.trade_goods;
   }
 }
 
@@ -955,16 +991,24 @@ maybe<int> production_for_slot( ColonyProduction const& pr,
       return pr.tobacco_cigars.product_produced_theoretical;
     case e_colony_building_slot::hammers:
       return pr.lumber_hammers.product_produced_theoretical;
-    case e_colony_building_slot::town_hall: return pr.bells;
-    case e_colony_building_slot::newspapers: return nothing;
-    case e_colony_building_slot::schools: return nothing;
-    case e_colony_building_slot::offshore: return nothing;
+    case e_colony_building_slot::town_hall:
+      return pr.bells;
+    case e_colony_building_slot::newspapers:
+      return nothing;
+    case e_colony_building_slot::schools:
+      return nothing;
+    case e_colony_building_slot::offshore:
+      return nothing;
     case e_colony_building_slot::horses:
       return pr.food_horses.horses_produced_theoretical;
-    case e_colony_building_slot::wall: return nothing;
-    case e_colony_building_slot::warehouses: return nothing;
-    case e_colony_building_slot::crosses: return pr.crosses;
-    case e_colony_building_slot::custom_house: return nothing;
+    case e_colony_building_slot::wall:
+      return nothing;
+    case e_colony_building_slot::warehouses:
+      return nothing;
+    case e_colony_building_slot::crosses:
+      return pr.crosses;
+    case e_colony_building_slot::custom_house:
+      return nothing;
   }
 }
 
