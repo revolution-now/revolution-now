@@ -219,7 +219,10 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
-      on_death               capture{}
+      # Don't recall reading about this, but experiements in the
+      # OG seem to indicate that pioneers are destroyed when they
+      # lose a battle (along with scouts and missionaries).
+      on_death               destroy{}
       canonical_base:        free_colonist
       canonical_modified:    null
       cargo_slots:           0
@@ -247,7 +250,10 @@ composition {
       base_movement_points:  2
       can_attack:            false
       combat:                1
-      on_death               capture{}
+      # Don't recall reading about this, but experiements in the
+      # OG seem to indicate that pioneers are destroyed when they
+      # lose a battle (along with scouts and pioneers).
+      on_death               destroy{}
       canonical_base:        free_colonist
       canonical_modified:    null
       cargo_slots:           0
@@ -1287,7 +1293,10 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
-      on_death               capture{}
+      # Don't recall reading about this, but experiements in the
+      # OG seem to indicate that pioneers are destroyed when they
+      # lose a battle (along with scouts).
+      on_death               destroy{}
       canonical_base:        hardy_colonist
       canonical_modified:    null
       cargo_slots:           0
@@ -1315,7 +1324,10 @@ composition {
       base_movement_points:  2
       can_attack:            false
       combat:                1
-      on_death               capture{}
+      # Don't recall reading about this, but experiements in the
+      # OG seem to indicate that pioneers are destroyed when they
+      # lose a battle (along with scouts and pioneers).
+      on_death               destroy{}
       canonical_base:        jesuit_colonist
       canonical_modified:    null
       cargo_slots:           0

@@ -339,7 +339,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death ==
-             UnitDeathAction_t{ UnitDeathAction::capture{} } );
+             UnitDeathAction_t{ UnitDeathAction::destroy{} } );
     REQUIRE( desc.canonical_base == e_unit_type::free_colonist );
     REQUIRE( desc.expertise == nothing );
     REQUIRE( desc.promotion ==
@@ -354,6 +354,43 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
                  e_unit_inventory::tools } );
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::pioneer );
+    REQUIRE( desc.is_derived == true );
+    REQUIRE( can_attack( desc.type ) == false );
+    REQUIRE( is_military_unit( desc.type ) == false );
+  }
+  SECTION( "missionary" ) {
+    UnitTypeAttributes const& desc =
+        unit_attr( e_unit_type::missionary );
+    REQUIRE( desc.name == "Missionary" );
+    REQUIRE( desc.name_plural == "Missionaries" );
+    REQUIRE( desc.tile == e_tile::missionary );
+    REQUIRE( desc.nat_icon_front == false );
+    REQUIRE( desc.nat_icon_position == e_direction::sw );
+    REQUIRE( desc.ship == false );
+    REQUIRE( desc.human == e_unit_human::from_base );
+    REQUIRE( desc.can_found ==
+             e_unit_can_found_colony::from_base );
+    REQUIRE( desc.visibility == 1 );
+    REQUIRE( desc.base_movement_points == 2 );
+    REQUIRE( desc.can_attack == false );
+    REQUIRE( desc.combat == 1 );
+    REQUIRE( desc.cargo_slots == 0 );
+    REQUIRE( desc.cargo_slots_occupies == 1 );
+    REQUIRE( desc.on_death ==
+             UnitDeathAction_t{ UnitDeathAction::destroy{} } );
+    REQUIRE( desc.canonical_base == e_unit_type::free_colonist );
+    REQUIRE( desc.expertise == nothing );
+    REQUIRE( desc.promotion ==
+             UnitPromotion_t{ UnitPromotion::expertise{
+                 .kind = e_unit_activity::missioning } } );
+    unordered_map<e_unit_type,
+                  unordered_set<e_unit_type_modifier>>
+        expected_modifiers{};
+    REQUIRE( desc.modifiers == expected_modifiers );
+    REQUIRE( desc.inventory_types ==
+             unordered_set<e_unit_inventory>{} );
+    // Derived fields.
+    REQUIRE( desc.type == e_unit_type::missionary );
     REQUIRE( desc.is_derived == true );
     REQUIRE( can_attack( desc.type ) == false );
     REQUIRE( is_military_unit( desc.type ) == false );
