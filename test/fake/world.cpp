@@ -251,9 +251,9 @@ Unit& World::add_unit_on_map( e_unit_type type, Coord where,
                           nation );
 }
 
-NativeUnit& World::add_unit_on_map( e_native_unit_type type,
-                                    Coord              where,
-                                    DwellingId dwelling_id ) {
+NativeUnit& World::add_native_unit_on_map(
+    e_native_unit_type type, Coord where,
+    DwellingId dwelling_id ) {
   return units().unit_for( create_unit_on_map_non_interactive(
       ss(), type, where, dwelling_id ) );
 }
@@ -521,19 +521,27 @@ Player const& World::default_player() const {
 
 Player& World::player( maybe<e_nation> nation ) {
   switch( nation.value_or( default_nation_ ) ) {
-    case e_nation::dutch: return dutch();
-    case e_nation::english: return english();
-    case e_nation::french: return french();
-    case e_nation::spanish: return spanish();
+    case e_nation::dutch:
+      return dutch();
+    case e_nation::english:
+      return english();
+    case e_nation::french:
+      return french();
+    case e_nation::spanish:
+      return spanish();
   }
 }
 
 Player const& World::player( maybe<e_nation> nation ) const {
   switch( nation.value_or( default_nation_ ) ) {
-    case e_nation::dutch: return dutch();
-    case e_nation::english: return english();
-    case e_nation::french: return french();
-    case e_nation::spanish: return spanish();
+    case e_nation::dutch:
+      return dutch();
+    case e_nation::english:
+      return english();
+    case e_nation::french:
+      return french();
+    case e_nation::spanish:
+      return spanish();
   }
 }
 

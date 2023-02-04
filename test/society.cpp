@@ -102,8 +102,8 @@ TEST_CASE( "[society] society_on_square" ) {
     where = { .x = 1, .y = 1 };
     Dwelling const& dwelling =
         W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::inca );
-    W.add_unit_on_map( e_native_unit_type::brave, where,
-                       dwelling.id );
+    W.add_native_unit_on_map( e_native_unit_type::brave, where,
+                              dwelling.id );
     expected = Society::native{ .tribe = e_tribe::inca };
     REQUIRE( f() == expected );
   }

@@ -184,8 +184,8 @@ TEST_CASE(
       e_unit_type::free_colonist, caravel.id() );
   Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 0 }, e_tribe::cherokee );
-  W.add_unit_on_map( e_native_unit_type::brave,
-                     { .x = 1, .y = 1 }, dwelling.id );
+  W.add_native_unit_on_map( e_native_unit_type::brave,
+                            { .x = 1, .y = 1 }, dwelling.id );
 
   unique_ptr<OrdersHandler> handler = handle_orders(
       W.planes(), W.ss(), W.ts(), W.french(), colonist.id(),

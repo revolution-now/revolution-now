@@ -62,12 +62,12 @@ TEST_CASE( "[units] dwelling_for" ) {
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::apache );
   Dwelling const& dwelling2 =
       W.add_dwelling( { .x = 1, .y = 2 }, e_tribe::inca );
-  NativeUnit const& unit_id1 =
-      W.add_unit_on_map( e_native_unit_type::armed_brave,
-                         { .x = 0, .y = 0 }, dwelling1.id );
-  NativeUnit const& unit_id2 =
-      W.add_unit_on_map( e_native_unit_type::brave,
-                         { .x = 0, .y = 1 }, dwelling2.id );
+  NativeUnit const& unit_id1 = W.add_native_unit_on_map(
+      e_native_unit_type::armed_brave, { .x = 0, .y = 0 },
+      dwelling1.id );
+  NativeUnit const& unit_id2 = W.add_native_unit_on_map(
+      e_native_unit_type::brave, { .x = 0, .y = 1 },
+      dwelling2.id );
 
   REQUIRE( W.units().dwelling_for( unit_id1.id ) ==
            dwelling1.id );
@@ -83,15 +83,15 @@ TEST_CASE( "[units] braves_for_dwelling" ) {
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::apache );
   Dwelling const& dwelling2 =
       W.add_dwelling( { .x = 1, .y = 2 }, e_tribe::inca );
-  NativeUnit const& unit_id1 =
-      W.add_unit_on_map( e_native_unit_type::armed_brave,
-                         { .x = 0, .y = 0 }, dwelling1.id );
-  NativeUnit const& unit_id2 =
-      W.add_unit_on_map( e_native_unit_type::brave,
-                         { .x = 0, .y = 1 }, dwelling2.id );
-  NativeUnit const& unit_id3 =
-      W.add_unit_on_map( e_native_unit_type::brave,
-                         { .x = 0, .y = 1 }, dwelling2.id );
+  NativeUnit const& unit_id1 = W.add_native_unit_on_map(
+      e_native_unit_type::armed_brave, { .x = 0, .y = 0 },
+      dwelling1.id );
+  NativeUnit const& unit_id2 = W.add_native_unit_on_map(
+      e_native_unit_type::brave, { .x = 0, .y = 1 },
+      dwelling2.id );
+  NativeUnit const& unit_id3 = W.add_native_unit_on_map(
+      e_native_unit_type::brave, { .x = 0, .y = 1 },
+      dwelling2.id );
 
   expected = { unit_id1.id };
   REQUIRE( W.units().braves_for_dwelling( dwelling1.id ) ==

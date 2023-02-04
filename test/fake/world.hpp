@@ -123,9 +123,9 @@ struct World {
   Unit& add_unit_on_map( e_unit_type type, Coord where,
                          maybe<e_nation> nation = nothing );
 
-  NativeUnit& add_unit_on_map( e_native_unit_type type,
-                               Coord              where,
-                               DwellingId         dwelling_id );
+  NativeUnit& add_native_unit_on_map( e_native_unit_type type,
+                                      Coord              where,
+                                      DwellingId dwelling_id );
 
   Unit& add_unit_on_map( UnitComposition const& comp,
                          Coord                  where,

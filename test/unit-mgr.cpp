@@ -158,9 +158,9 @@ TEST_CASE( "[unit-mgr] tribe_for_unit" ) {
   World           W;
   Dwelling const& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::arawak );
-  NativeUnit const& unit =
-      W.add_unit_on_map( e_native_unit_type::mounted_brave,
-                         { .x = 0, .y = 0 }, dwelling.id );
+  NativeUnit const& unit = W.add_native_unit_on_map(
+      e_native_unit_type::mounted_brave, { .x = 0, .y = 0 },
+      dwelling.id );
   REQUIRE( tribe_for_unit( W.ss(), unit ) == e_tribe::arawak );
 }
 

@@ -344,8 +344,8 @@ TEST_CASE( "[enter-dwelling] present_dwelling_entry_options" ) {
   REQUIRE( f() == expected );
 
   // Once more, with brave on top.
-  W.add_unit_on_map( e_native_unit_type::brave,
-                     { .x = 1, .y = 1 }, dwelling.id );
+  W.add_native_unit_on_map( e_native_unit_type::brave,
+                            { .x = 1, .y = 1 }, dwelling.id );
   EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
       .returns<maybe<string>>( "attack_village" );
   expected = e_enter_dwelling_option::attack_brave_on_dwelling;

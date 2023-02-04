@@ -90,8 +90,9 @@ TEST_CASE( "[on-map] non-interactive: moves the unit" ) {
     Dwelling const& dwelling =
         W.add_dwelling( { .x = 0, .y = 0 }, e_tribe::apache );
     NativeUnitId const unit_id =
-        W.add_unit_on_map( e_native_unit_type::armed_brave,
-                           { .x = 1, .y = 0 }, dwelling.id )
+        W.add_native_unit_on_map(
+             e_native_unit_type::armed_brave, { .x = 1, .y = 0 },
+             dwelling.id )
             .id;
     unit_to_map_square_non_interactive(
         W.ss(), unit_id, { .x = 1, .y = 1 }, dwelling.id );
