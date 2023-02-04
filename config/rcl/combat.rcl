@@ -1,0 +1,38 @@
+# From NAMES.TXT:
+#
+#  name         movement  attack  combat  guns  hull
+#  =================================================
+#  Artillery    1         7       5       0     0
+#  Caravel      4         0       2       0     4
+#  Merchantman  5         0       6       1     8
+#  Galleon      6         0       10      4     20
+#  Privateer    8         8       8       4     12
+#  Frigate      6         16      16      12    32
+#  Man-O-War    5         24      24      32    64
+#
+# TODO: figure out what "guns" and "hull" mean. They could be
+# used to determine whether a ship gets sunk or damaged when
+# losing combat.
+#
+# TODO: see doc/col1-fighting.txt for links that explain how the
+# original game computes the bonuses.
+
+# Given that a unit wins in combat and that they can be promoted,
+# this is the probability that will happen. Seems to be about .45
+# in the OG on all difficulty levels.
+promotion_in_combat.probability: .45
+
+# Parameters involved in deciding whether one ship evades another
+# during combat.
+evasion {
+  # The probability of an "evade" outcome in a naval battle is
+  # given by:
+  #
+  #   P = m*(MD-MA) + b   (clamped to [0,1])
+  #
+  # where MD are the total movement points of the defender and MA
+  # the attacker. m and b are parameters that are .05 and .5, re-
+  # spectively, in the OG.
+  m: 0.05
+  b: 0.5
+}

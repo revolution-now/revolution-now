@@ -1,0 +1,42 @@
+# ===============================================================
+# combat.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-01-30.
+#
+# Description: Rds definitions for the combat module.
+#
+# ===============================================================
+# config
+include "range-helpers.rds.hpp"
+
+namespace "rn.config.combat"
+
+struct.Evasion {
+  # The probability of an "evade" outcome in a naval battle is
+  # given by:
+  #
+  #   P = m*(MD-MA) + b   (clamped to [0,1])
+  #
+  # where MD are the total movement points of the defender and MA
+  # the attacker. m and b are parameters that are .05 and .5, re-
+  # spectively, in the OG.
+  m 'double',
+  b 'double',
+}
+
+namespace "rn"
+
+struct.config_combat_t {
+  # Given that a unit wins in combat and that they can be pro-
+  # moted, this is the probability that will happen. Seems to be
+  # about .45 in the OG on all difficulty levels.
+  promotion_in_combat 'config::Probability',
+
+  # Parameters involved in deciding whether one ship evades an-
+  # other during combat.
+  evasion 'config::combat::Evasion',
+}
+
+config.combat {}
