@@ -516,7 +516,20 @@ requirements_for_unit  {
     requires_water:      false
   }
 
-  # Not buildable in the original game.
+  # Not buildable in the original game. But note that OG did
+  # specify the hammers and tools required for this unit in
+  # NAMES.TXT in the @Units section (hammers=cost*32, tools=tool-
+  # s*10). So it would be:
+  #
+  #   artillery: {
+  #     hammers:             1024
+  #     tools:               900
+  #     required_building:   shipyard
+  #     minimum_population:  1
+  #     required_father:     null
+  #     requires_water:      true
+  #   }
+  #
   man_o_war:              null
 
   petty_criminal:         null
