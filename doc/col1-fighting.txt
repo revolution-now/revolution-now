@@ -14,3 +14,136 @@ Observations
     fender gets no terrain (defense) bonus.
   * It appears that the ambush bonus does not take effect if the
     defender is fortified.
+
+Naval Combat
+============
+
+Military -> Non-military:
+
+  Privateer vs. Caravel
+     (8)          (4)
+       evade: 19
+        sunk: 3
+     damaged: 44
+
+  Frigate vs. Galleon(m)
+     (6)         (3)
+       evade: 30
+        sunk: 13
+     damaged: 38
+
+  Frigate vs. Caravel
+     (6)        (4)
+       evade: 12
+        sunk: 0
+     damaged: 22
+
+  Man-o-war vs. Caravel
+     (5)         (4)
+       evade: 17
+        sunk: 0   !!
+     damaged: 21
+
+  Man-o-war vs. Merchantman
+     (5)           (5)
+       evade: 23
+        sunk: 1   # Man-o-war sunk.
+     damaged: 14
+
+  Frigate vs. Galleon
+     (6)        (6)
+       evade: 48
+        sunk: 11
+     damaged: 17
+
+  Man-o-war vs. Galleon
+     (5)         (6)
+       evade: 41
+        sunk: 5
+     damaged: 26
+
+  Frigate vs. Galleon(m)
+     (6)         (8)
+       evade: 38
+        sunk: 7
+     damaged: 19
+
+  Frigate(m) vs. Galleon(m)
+     (4)         (8)
+       evade: 46
+        sunk: 4
+     damaged: 15
+
+Military -> Military:
+
+  Privateer vs. Privateer
+     (8)           (8)
+       evade: 0   !!
+        sunk: 25
+     damaged: 28
+
+  Frigate vs. Frigate
+     (6)        (6)
+       evade: 0   !!
+        sunk: 12
+     damaged: 17
+
+  Man-o-war vs. Man-o-war
+     (5)        (5)
+       evade: 0
+        sunk: 25
+     damaged: 1
+
+  Frigate vs. Privateer
+     (6)         (8)
+       evade: 55
+        sunk: 16
+     damaged: 5
+
+  Man-o-war vs. Privateer
+     (5)           (8)
+       evade: 28
+        sunk: 14
+     damaged: 1   !! privateer was never damaged.
+
+  Privateer vs. Frigate
+     (8)          (6)
+       evade: 0
+        sunk: 22
+     damaged: 24
+
+Possibilities (TODO):
+
+  * In NAMES.TXT there are two extra fields in the list of unit
+    properties: "guns" and "hull". It is possible these are used
+    to compute whether a ship is sunk or damaged.
+
+Observations (make sense):
+
+  * The evasion probability seems to be a linear function of the
+    difference in total movement points between attacker and de-
+    fender.
+
+Observations (not make sense):
+
+  * Non-war ships can never be sunk.
+  * When attacker and defender are the same type, the evade prob-
+    ability seems to be zero.
+  * On privateer-vs-frigate, there is never an "evade" outcome.
+    (more data needed).
+  * On man-o-war-vs-privateer, the privateer (when lost) is al-
+    ways sunk, never damaged. (more data needed).
+  * When there are multiple ships on the defending square and the
+    defender loses, all of the ships on the square will be either
+    sunk or damaged. The non-war ships will be damaged, and the
+    non-war ships will be sunk. This could potentially have been
+    done because of the way that col1 represents units on ships,
+    i.e. if only one ship were to be sunk and it contained a unit
+    then the unit would have to be eliminated, but it wouldn't be
+    clear in general which ship the unit was on. We may want to
+    get rid of this rule... However, when the attacker loses (and
+    there are units in the cargo of one of the ships on the at-
+    tacker's square) the attacker and units go away, but the
+    other ships on the attacker's square remain.
+  * When an attacking ship loses, the other ships on its square
+    are unaffected, but units on the square go away.
