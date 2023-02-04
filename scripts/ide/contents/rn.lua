@@ -13,6 +13,7 @@ return {
   'enter-dwelling',
   'anim-builders',
   'combat',
+  'combat-modifiers',
   'config/combat',
   'land-view',
   'land-view-render',
