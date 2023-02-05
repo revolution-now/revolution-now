@@ -343,20 +343,26 @@ void evolve_sons_of_liberty(
               sol.num_rebels_from_bells_only, population,
               player.fathers
                   .has[e_founding_father::simon_bolivar] ) );
-  int const new_bucket =
-      new_sons_of_liberty_integral_percent / 10;
-  int const old_bucket =
-      sol.last_sons_of_liberty_integral_percent / 10;
-  if( new_bucket > old_bucket )
-    notifications.push_back(
-        ColonyNotification::sons_of_liberty_increased{
-            .from = sol.last_sons_of_liberty_integral_percent,
-            .to   = new_sons_of_liberty_integral_percent } );
-  if( new_bucket < old_bucket )
-    notifications.push_back(
-        ColonyNotification::sons_of_liberty_decreased{
-            .from = sol.last_sons_of_liberty_integral_percent,
-            .to   = new_sons_of_liberty_integral_percent } );
+  for( int const threshold :
+       config_colony.notifications
+           .sons_of_liberty_notification_thresholds ) {
+    if( sol.last_sons_of_liberty_integral_percent < threshold &&
+        new_sons_of_liberty_integral_percent >= threshold ) {
+      notifications.push_back(
+          ColonyNotification::sons_of_liberty_increased{
+              .from = sol.last_sons_of_liberty_integral_percent,
+              .to   = new_sons_of_liberty_integral_percent } );
+      break;
+    }
+    if( sol.last_sons_of_liberty_integral_percent >= threshold &&
+        new_sons_of_liberty_integral_percent < threshold ) {
+      notifications.push_back(
+          ColonyNotification::sons_of_liberty_decreased{
+              .from = sol.last_sons_of_liberty_integral_percent,
+              .to   = new_sons_of_liberty_integral_percent } );
+      break;
+    }
+  }
   sol.last_sons_of_liberty_integral_percent =
       new_sons_of_liberty_integral_percent;
 }
@@ -448,7 +454,8 @@ void check_colonists_teaching(
   // First check if we have teachers but no one teachable.
   for( TeacherEvolution const& tev : ev.teachers ) {
     switch( tev.action.to_enum() ) {
-      case TeacherAction::e::in_progress: break;
+      case TeacherAction::e::in_progress:
+        break;
       case TeacherAction::e::taught_unit: {
         auto& o = tev.action.get<TeacherAction::taught_unit>();
         notifications.push_back( ColonyNotification::unit_taught{

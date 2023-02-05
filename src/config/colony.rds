@@ -174,6 +174,17 @@ struct.CustomHouse {
   _features { equality, validation }
 }
 
+struct.Notifications {
+  # Each time the SoL percent increases or decreases beyond a
+  # value in this list, a notification will be presented. This
+  # must include 50 and 100, because we want the player to be no-
+  # tified about those because they have implications for produc-
+  # tion.
+  sons_of_liberty_notification_thresholds 'std::vector<int>',
+
+  _features { equality, validation }
+}
+
 namespace "rn"
 
 # Note that this config is for non-production related things. For
@@ -282,6 +293,9 @@ struct.config_colony_t {
 
   # Things related to the operation of the custom house building.
   custom_house 'config::colony::CustomHouse',
+
+  # Things related to notifications on colony updates.
+  notifications 'config::colony::Notifications',
 
   _features { validation, equality }
 }

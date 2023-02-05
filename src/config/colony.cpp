@@ -14,6 +14,26 @@ using namespace std;
 
 namespace rn {
 
+namespace {
+
+bool contains( vector<int> const& v, int n ) {
+  return find( v.begin(), v.end(), n ) != v.end();
+}
+}
+
+base::valid_or<string> config::colony::Notifications::validate()
+    const {
+  REFL_VALIDATE(
+      contains( sons_of_liberty_notification_thresholds, 100 ),
+      "sons_of_liberty_notification_thresholds must contain "
+      "100." );
+  REFL_VALIDATE(
+      contains( sons_of_liberty_notification_thresholds, 50 ),
+      "sons_of_liberty_notification_thresholds must contain "
+      "50." );
+  return base::valid;
+}
+
 base::valid_or<string> config::colony::CustomHouse::validate()
     const {
   REFL_VALIDATE(

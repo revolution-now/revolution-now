@@ -894,3 +894,13 @@ custom_house {
   # sions of the game.
   charge_during_revolution: 50
 }
+
+# Things related to notifications on colony updates.
+notifications {
+  # Each time the SoL percent increases or decreases beyond a
+  # value in this list, a notification will be presented. This
+  # must include 50 and 100, because we want the player to be no-
+  # tified about those because they have implications for produc-
+  # tion.
+  sons_of_liberty_notification_thresholds: [25, 50, 75, 90, 100]
+}
