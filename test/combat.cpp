@@ -516,6 +516,27 @@ TEST_CASE( "[combat] combat_euro_attack_brave" ) {
             .outcome = NativeUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
+
+  SECTION( "scout->brave, attacker loses" ) {
+    attacker = &W.add_unit_on_map( e_unit_type::scout,
+                                   { .x = 1, .y = 0 },
+                                   e_nation::english );
+    defender = &W.add_native_unit_on_map(
+        e_native_unit_type::brave, { .x = 1, .y = 1 },
+        dwelling.id );
+    W.expect_defender_wins( .5 );
+    expected = {
+        .winner   = e_combat_winner::defender,
+        .attacker = { .id     = attacker->id(),
+                      .weight = 1.0,
+                      .outcome =
+                          EuroUnitCombatOutcome::destroyed{} },
+        .defender = {
+            .id      = defender->id,
+            .weight  = 1.0,
+            .outcome = NativeUnitCombatOutcome::no_change{} } };
+    REQUIRE( f() == expected );
+  }
 }
 
 TEST_CASE( "[combat] combat_euro_attack_dwelling" ) {

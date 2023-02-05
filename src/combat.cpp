@@ -95,36 +95,31 @@ EuroUnitCombatOutcome_t euro_unit_combat_outcome(
           .to = *promoted_type };
     return EuroUnitCombatOutcome::no_change{};
   }
-  // Unit lost.  Check for demotions.
-  if( maybe<UnitType> const demoted =
-          on_death_demoted_type( unit.type_obj() );
-      demoted.has_value() )
-    return EuroUnitCombatOutcome::demoted{ .to = *demoted };
 
-  // Check for capture.
-  auto&      on_death = unit.desc().on_death;
-  bool const is_capturable =
-      on_death.holds<UnitDeathAction::capture>() ||
-      on_death.holds<UnitDeathAction::capture_and_demote>();
-
-  // Unit is capturable.
-  if( is_capturable &&
-      society_of_opponent.holds<Society::native>() )
-    // When the natives defeat a unit that is otherwise cap-
-    // turable then it just gets destroyed. E.g. a colonist,
-    // treasure, wagon train, etc.
-    // TODO: this is not yet unit tested because we don't have a
-    // function braves attacking european units.
-    return EuroUnitCombatOutcome::destroyed{};
-  UNWRAP_CHECK(
-      euro_society,
-      society_of_opponent.get_if<Society::european>() );
-  switch( on_death.to_enum() ) {
-    case UnitDeathAction::e::capture:
+  switch( unit.desc().on_death.to_enum() ) {
+    using namespace UnitDeathAction;
+    case e::capture: {
+      if( society_of_opponent.holds<Society::native>() )
+        // When the natives defeat a unit that is otherwise cap-
+        // turable then it just gets destroyed. E.g. a colonist,
+        // treasure, wagon train, etc. FIXME: this is not yet
+        // unit tested because we don't have a function braves
+        // attacking european units.
+        return EuroUnitCombatOutcome::destroyed{};
+      UNWRAP_CHECK(
+          euro_society,
+          society_of_opponent.get_if<Society::european>() );
       return EuroUnitCombatOutcome::captured{
           .new_nation = euro_society.nation,
           .new_coord  = opponent_coord };
-    case UnitDeathAction::e::capture_and_demote: {
+    }
+    case e::capture_and_demote: {
+      if( society_of_opponent.holds<Society::native>() )
+        // See analogous comment above.
+        return EuroUnitCombatOutcome::destroyed{};
+      UNWRAP_CHECK(
+          euro_society,
+          society_of_opponent.get_if<Society::european>() );
       UNWRAP_CHECK( capture_demoted,
                     on_capture_demoted_type( unit.type_obj() ) );
       return EuroUnitCombatOutcome::captured_and_demoted{
@@ -132,8 +127,16 @@ EuroUnitCombatOutcome_t euro_unit_combat_outcome(
           .new_nation = euro_society.nation,
           .new_coord  = opponent_coord };
     }
-    default:
+    case e::destroy:
       return EuroUnitCombatOutcome::destroyed{};
+    case e::demote: {
+      UNWRAP_CHECK( to,
+                    on_death_demoted_type( unit.type_obj() ) );
+      return EuroUnitCombatOutcome::demoted{ .to = to };
+    }
+    case e::naval: {
+      SHOULD_NOT_BE_HERE;
+    }
   }
 }
 
