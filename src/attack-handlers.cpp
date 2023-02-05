@@ -44,6 +44,7 @@
 
 // base
 #include "base/to-str-ext-std.hpp"
+#include "base/vocab.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -53,6 +54,8 @@ using namespace std;
 namespace rn {
 
 namespace {
+
+using ::base::NoDiscard;
 
 // These are possible results of an attack that are common to the
 // two cases of attacking a euro unit and a native unit. Because
@@ -131,7 +134,7 @@ wait<maybe<e_attack_verdict_base>> check_attack_verdict_base(
   co_return nothing;
 }
 
-wait<> perform_euro_unit_combat_outcome(
+wait<NoDiscard<maybe<string>>> perform_euro_unit_combat_outcome(
     SS& ss, TS& ts, Player const& active_player,
     Player const& player, Unit& unit,
     EuroUnitCombatOutcome_t const& outcome ) {
@@ -204,20 +207,21 @@ wait<> perform_euro_unit_combat_outcome(
   }
 
   if( player.nation == active_player.nation &&
-      active_player.human ) {
+      active_player.human )
     // TODO: not sure yet how we're going to do this GUI handling
     // with AI players. For now we just say that we will only pop
     // up a message box notifying the player of battle outcomes
     // for their unit if the active player owns the unit and that
     // active player is a human.
-    if( msg.has_value() ) co_await ts.gui.message_box( *msg );
-  }
+    co_return msg;
+  co_return nothing;
 }
 
-wait<> perform_native_unit_combat_outcome(
-    SS& ss, TS& ts, NativeUnit& unit,
-    NativeUnitCombatOutcome_t const& outcome,
-    bool                             should_message ) {
+wait<NoDiscard<maybe<string>>>
+perform_native_unit_combat_outcome(
+    SS& ss, TS& ts, Player const& active_player,
+    NativeUnit&                      unit,
+    NativeUnitCombatOutcome_t const& outcome ) {
   maybe<string> msg;
 
   switch( outcome.to_enum() ) {
@@ -257,14 +261,17 @@ wait<> perform_native_unit_combat_outcome(
     }
   }
 
-  if( should_message && msg.has_value() )
-    co_await ts.gui.message_box( *msg );
+  if( active_player.human ) co_return msg;
+  co_return nothing;
 }
 
-wait<> perform_naval_unit_combat_outcome(
-    SS& ss, TS& ts, Player const& player, Unit& unit,
+wait<NoDiscard<maybe<string>>> perform_naval_unit_combat_outcome(
+    SS& ss, TS& ts, Player const& active_player,
+    Player const& player, Unit& unit,
     EuroNavalUnitCombatOutcome_t const& outcome,
     UnitId                              opponent_id ) {
+  maybe<string> msg;
+
   switch( outcome.to_enum() ) {
     using namespace EuroNavalUnitCombatOutcome;
     case e::no_change:
@@ -288,28 +295,32 @@ wait<> perform_naval_unit_combat_outcome(
           unit.cargo().items_of_type<Cargo::unit>().size();
       lg.info( "ship sunk: {} units onboard lost.",
                num_units_lost );
-      string msg =
+      msg =
           fmt::format( "{} @[H]{}@[] sunk by @[H]{}@[] {}",
                        nation_obj( unit.nation() ).adjective,
                        unit.desc().name,
                        nation_obj( opponent.nation() ).adjective,
                        opponent.desc().name );
       if( num_units_lost == 1 )
-        msg += fmt::format(
+        *msg += fmt::format(
             ", @[H]1@[] unit onboard has been lost" );
       else if( num_units_lost > 1 )
-        msg += fmt::format(
+        *msg += fmt::format(
             ", @[H]{}@[] units onboard have been lost",
             num_units_lost );
-      msg += '.';
+      *msg += '.';
       // Need to destroy unit first before displaying message
       // otherwise the unit will reappear on the map while the
       // message is open.
       ss.units.destroy_unit( unit.id() );
-      co_await ts.gui.message_box( msg );
       break;
     }
   }
+
+  if( player.nation == active_player.nation &&
+      active_player.human )
+    co_return msg;
+  co_return nothing;
 }
 
 e_direction direction_of_attack( SSConst const& ss,
@@ -322,6 +333,15 @@ e_direction direction_of_attack( SSConst const& ss,
   UNWRAP_CHECK( d,
                 attacker_coord.direction_to( defender_coord ) );
   return d;
+}
+
+wait<> show_outcome_messages( TS&                  ts,
+                              maybe<string> const& attacker,
+                              maybe<string> const& defender ) {
+  if( attacker.has_value() )
+    co_await ts.gui.message_box( *attacker );
+  if( defender.has_value() )
+    co_await ts.gui.message_box( *defender );
 }
 
 } // namespace
@@ -524,9 +544,11 @@ wait<> AttackColonyUndefendedHandler::perform() {
   co_await planes_.land_view().animate(
       anim_seq_for_undefended_colony( ss_, combat_ ) );
 
-  co_await perform_euro_unit_combat_outcome(
-      ss_, ts_, active_player_, attacking_player_, attacker_,
-      combat_.attacker.outcome );
+  maybe<string> const attacker_msg =
+      co_await perform_euro_unit_combat_outcome(
+          ss_, ts_, active_player_, attacking_player_, attacker_,
+          combat_.attacker.outcome );
+  co_await show_outcome_messages( ts_, attacker_msg, nothing );
 
   if( combat_.winner == e_combat_winner::defender )
     // return since in this case the attacker lost, so nothing
@@ -645,12 +667,19 @@ wait<> NavalBattleHandler::animate() const {
 
 wait<> NavalBattleHandler::perform() {
   co_await Base::perform();
-  co_await perform_naval_unit_combat_outcome(
-      ss_, ts_, attacking_player_, attacker_,
-      combat_.attacker.outcome, defender_id_ );
-  co_await perform_naval_unit_combat_outcome(
-      ss_, ts_, defending_player_, defender_,
-      combat_.defender.outcome, attacker_id_ );
+  maybe<string> const attacker_msg =
+      co_await perform_naval_unit_combat_outcome(
+          ss_, ts_, active_player_, attacking_player_, attacker_,
+          combat_.attacker.outcome, defender_id_ );
+  maybe<string> const defender_msg =
+      co_await perform_naval_unit_combat_outcome(
+          ss_, ts_, active_player_, defending_player_, defender_,
+          combat_.defender.outcome, attacker_id_ );
+  // Messages must be shown after effects are made for both par-
+  // ties, otherwise they will temporarily appear to visually re-
+  // vert while the message box is up.
+  co_await show_outcome_messages( ts_, attacker_msg,
+                                  defender_msg );
 }
 
 /****************************************************************
@@ -696,12 +725,19 @@ wait<> EuroAttackHandler::animate() const {
 
 wait<> EuroAttackHandler::perform() {
   co_await Base::perform();
-  co_await perform_euro_unit_combat_outcome(
-      ss_, ts_, active_player_, attacking_player_, attacker_,
-      combat_.attacker.outcome );
-  co_await perform_euro_unit_combat_outcome(
-      ss_, ts_, active_player_, defending_player_, defender_,
-      combat_.defender.outcome );
+  maybe<string> const attacker_msg =
+      co_await perform_euro_unit_combat_outcome(
+          ss_, ts_, active_player_, attacking_player_, attacker_,
+          combat_.attacker.outcome );
+  maybe<string> const defender_msg =
+      co_await perform_euro_unit_combat_outcome(
+          ss_, ts_, active_player_, defending_player_, defender_,
+          combat_.defender.outcome );
+  // Messages must be shown after effects are made for both par-
+  // ties, otherwise they will temporarily appear to visually re-
+  // vert while the message box is up.
+  co_await show_outcome_messages( ts_, attacker_msg,
+                                  defender_msg );
 }
 
 /****************************************************************
@@ -783,15 +819,18 @@ wait<> AttackNativeUnitHandler::perform() {
           ss_.units.dwelling_for( defender_id_ ) ),
       relationship );
 
-  co_await perform_euro_unit_combat_outcome(
-      ss_, ts_, active_player_, attacking_player_, attacker_,
-      combat_.attacker.outcome );
-  bool const should_message =
-      ( attacking_player_.nation == active_player_.nation &&
-        active_player_.human );
-  co_await perform_native_unit_combat_outcome(
-      ss_, ts_, defender_, combat_.defender.outcome,
-      should_message );
+  maybe<string> const attacker_msg =
+      co_await perform_euro_unit_combat_outcome(
+          ss_, ts_, active_player_, attacking_player_, attacker_,
+          combat_.attacker.outcome );
+  maybe<string> const brave_msg =
+      co_await perform_native_unit_combat_outcome(
+          ss_, ts_, active_player_, defender_,
+          combat_.defender.outcome );
+  // Messages must be shown after effects are made for both par-
+  // ties, otherwise they will temporarily appear to visually re-
+  // vert while the message box is up.
+  co_await show_outcome_messages( ts_, attacker_msg, brave_msg );
 }
 
 } // namespace rn
