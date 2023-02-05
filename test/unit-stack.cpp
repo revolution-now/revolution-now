@@ -17,6 +17,7 @@
 #include "test/fake/world.hpp"
 
 // ss
+#include "ss/dwelling.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
 
@@ -62,7 +63,7 @@ TEST_CASE( "[unit-stack] sort_euro_unit_stack" ) {
   };
 
   SECTION( "single" ) {
-    add( e_unit_type::soldier ); // 1
+    add( e_unit_type::privateer ); // 1
     sort_euro_unit_stack( W.ss(), units );
     expected = {
         UnitId{ 1 },
@@ -81,10 +82,10 @@ TEST_CASE( "[unit-stack] sort_euro_unit_stack" ) {
     add( e_unit_type::caravel );           // 8
     add( e_unit_type::privateer );         // 9
     add( e_unit_type::artillery );         // 10
-    expected = { UnitId{ 9 }, UnitId{ 8 }, UnitId{ 10 },
-                 UnitId{ 7 }, UnitId{ 4 }, UnitId{ 6 },
-                 UnitId{ 5 }, UnitId{ 3 }, UnitId{ 2 },
-                 UnitId{ 1 } };
+    expected = { UnitId{ 9 }, UnitId{ 10 }, UnitId{ 4 },
+                 UnitId{ 7 }, UnitId{ 5 },  UnitId{ 6 },
+                 UnitId{ 3 }, UnitId{ 8 },  UnitId{ 1 },
+                 UnitId{ 2 } };
     sort_euro_unit_stack( W.ss(), units );
     REQUIRE( units == expected );
   }
@@ -113,9 +114,9 @@ TEST_CASE( "[unit-stack] sort_native_unit_stack" ) {
     add( e_native_unit_type::brave );           // 3
     add( e_native_unit_type::armed_brave );     // 4
     add( e_native_unit_type::brave );           // 5
-    expected = { NativeUnitId{ 2 }, NativeUnitId{ 4 },
-                 NativeUnitId{ 1 }, NativeUnitId{ 5 },
-                 NativeUnitId{ 3 } };
+    expected = { NativeUnitId{ 2 }, NativeUnitId{ 1 },
+                 NativeUnitId{ 4 }, NativeUnitId{ 3 },
+                 NativeUnitId{ 5 } };
     sort_native_unit_stack( W.ss(), units );
     REQUIRE( units == expected );
   }
@@ -149,13 +150,124 @@ TEST_CASE( "[unit-stack] sort_unit_stack" ) {
     add( e_unit_type::caravel );                // 5
     add( e_native_unit_type::armed_brave );     // 6
     add( e_native_unit_type::brave );           // 7
-    expected = { GenericUnitId{ 5 }, GenericUnitId{ 4 },
-                 GenericUnitId{ 2 }, GenericUnitId{ 6 },
-                 GenericUnitId{ 1 }, GenericUnitId{ 7 },
-                 GenericUnitId{ 3 } };
+    expected = { GenericUnitId{ 2 }, GenericUnitId{ 4 },
+                 GenericUnitId{ 1 }, GenericUnitId{ 5 },
+                 GenericUnitId{ 6 }, GenericUnitId{ 3 },
+                 GenericUnitId{ 7 } };
     sort_unit_stack( W.ss(), units );
     REQUIRE( units == expected );
   }
+}
+
+TEST_CASE( "[unit-stack] select_euro_unit_defender" ) {
+  World       W;
+  Coord const coord{ .x = 1, .y = 1 };
+
+  auto f = [&] {
+    return select_euro_unit_defender( W.ss(), coord );
+  };
+
+  auto add = [&]( e_unit_type type ) {
+    return W.add_unit_on_map( type, coord ).id();
+  };
+
+  UnitId const petty_criminal_id1 =
+      add( e_unit_type::petty_criminal );
+  REQUIRE( f() == petty_criminal_id1 );
+
+  add( e_unit_type::petty_criminal );
+  REQUIRE( f() == petty_criminal_id1 );
+
+  UnitId const soldier_id = add( e_unit_type::soldier );
+  REQUIRE( f() == soldier_id );
+
+  UnitId const veteran_dragoon_id =
+      add( e_unit_type::veteran_dragoon );
+  REQUIRE( f() == veteran_dragoon_id );
+
+  add( e_unit_type::dragoon );
+  REQUIRE( f() == veteran_dragoon_id );
+
+  add( e_unit_type::caravel );
+  REQUIRE( f() == veteran_dragoon_id );
+
+  UnitId const cavalry_id = add( e_unit_type::cavalry );
+  REQUIRE( f() == cavalry_id );
+
+  UnitId const frigate_id = add( e_unit_type::frigate );
+  REQUIRE( f() == frigate_id );
+}
+
+TEST_CASE( "[unit-stack] select_native_unit_defender" ) {
+  World            W;
+  Coord const      coord{ .x = 1, .y = 1 };
+  DwellingId const dwelling_id =
+      W.add_dwelling( coord, e_tribe::inca ).id;
+
+  auto f = [&] {
+    return select_native_unit_defender( W.ss(), coord );
+  };
+
+  auto add = [&]( e_native_unit_type type ) {
+    return W.add_native_unit_on_map( type, coord, dwelling_id )
+        .id;
+  };
+
+  NativeUnitId const mounted_brave_id =
+      add( e_native_unit_type::mounted_brave );
+  REQUIRE( f() == mounted_brave_id );
+
+  add( e_native_unit_type::armed_brave );
+  REQUIRE( f() == mounted_brave_id );
+
+  add( e_native_unit_type::brave );
+  REQUIRE( f() == mounted_brave_id );
+
+  NativeUnitId const mounted_warrior_id =
+      add( e_native_unit_type::mounted_warrior );
+  REQUIRE( f() == mounted_warrior_id );
+}
+
+TEST_CASE( "[unit-stack] select_colony_defender" ) {
+  World       W;
+  Coord const coord{ .x = 1, .y = 1 };
+  Colony&     colony = W.add_colony( coord );
+
+  auto f = [&] {
+    return select_colony_defender( W.ss(), colony );
+  };
+
+  UnitId const fisherman_id =
+      W.add_unit_outdoors( colony.id, e_direction::s,
+                           e_outdoor_job::fish )
+          .id();
+  REQUIRE( f() == fisherman_id );
+
+  UnitId const cotton_planter_id =
+      W.add_unit_outdoors( colony.id, e_direction::sw,
+                           e_outdoor_job::cotton )
+          .id();
+  REQUIRE( f() == cotton_planter_id );
+
+  W.add_unit_outdoors( colony.id, e_direction::se,
+                       e_outdoor_job::tobacco );
+  REQUIRE( f() == cotton_planter_id );
+
+  UnitId const free_colonist_id =
+      W.add_unit_on_map( e_unit_type::free_colonist, coord )
+          .id();
+  REQUIRE( f() == free_colonist_id );
+
+  W.add_unit_on_map( e_unit_type::frigate, coord );
+  REQUIRE( f() == free_colonist_id );
+
+  UnitId const veteran_dragoon_id =
+      W.add_unit_on_map( e_unit_type::veteran_dragoon, coord )
+          .id();
+  REQUIRE( f() == veteran_dragoon_id );
+
+  W.add_unit_on_map( e_unit_type::dragoon, coord );
+  REQUIRE( f() == veteran_dragoon_id );
 }
 
 } // namespace

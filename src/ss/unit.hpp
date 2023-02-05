@@ -148,12 +148,6 @@ struct ND Unit {
   void change_type( Player const&   player,
                     UnitComposition new_comp );
 
-  // Will check-fail if the unit cannot be demoted.
-  void demote_from_lost_battle( Player const& player );
-  // This is for e.g. a veteran colonist that (in the original
-  // game) loses veteran status upon capture.
-  void demote_from_capture( Player const& player );
-
   // This is used to transform the unit when e.g. founding a
   // colony. In that situation, the unit needs to be stripped to
   // its base type and all of the commodities that it has should

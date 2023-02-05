@@ -30,6 +30,7 @@
 
 namespace rn {
 
+struct AnimationSequence;
 struct Colony;
 struct Plane;
 struct Planes;
@@ -58,27 +59,7 @@ struct ILandViewPlane {
 
   virtual wait<LandViewPlayerInput_t> eot_get_next_input() = 0;
 
-  virtual wait<> animate_move( UnitId      id,
-                               e_direction direction ) = 0;
-
-  // This happens not when a colony is attacked or captured, but
-  // when it is either abandoned or starved.
-  virtual wait<> animate_colony_depixelation(
-      Colony const& colony ) = 0;
-
-  // Just pixelates a unit that is on the map.
-  virtual wait<> animate_unit_pixelation(
-      PixelationAnimation_t const& what ) = 0;
-
-  virtual wait<> animate_attack(
-      GenericUnitId attacker, GenericUnitId defender,
-      std::vector<PixelationAnimation_t> const& animations,
-      bool attacker_wins ) = 0;
-
-  virtual wait<> animate_colony_capture(
-      UnitId attacker_id, UnitId defender_id,
-      std::vector<PixelationAnimation_t> const& animations,
-      ColonyId                                  colony_id ) = 0;
+  virtual wait<> animate( AnimationSequence const& seq ) = 0;
 
   // Clear any buffer input.
   virtual void reset_input_buffers() = 0;
@@ -119,24 +100,7 @@ struct LandViewPlane : ILandViewPlane {
 
   wait<LandViewPlayerInput_t> eot_get_next_input() override;
 
-  wait<> animate_move( UnitId      id,
-                       e_direction direction ) override;
-
-  wait<> animate_colony_depixelation(
-      Colony const& colony ) override;
-
-  wait<> animate_unit_pixelation(
-      PixelationAnimation_t const& what ) override;
-
-  wait<> animate_attack(
-      GenericUnitId attacker, GenericUnitId defender,
-      std::vector<PixelationAnimation_t> const& depixelations,
-      bool attacker_wins ) override;
-
-  wait<> animate_colony_capture(
-      UnitId attacker_id, UnitId defender_id,
-      std::vector<PixelationAnimation_t> const& animations,
-      ColonyId colony_id ) override;
+  wait<> animate( AnimationSequence const& seq ) override;
 
   void reset_input_buffers() override;
 

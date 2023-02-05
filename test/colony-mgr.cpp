@@ -415,8 +415,7 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
     MockLandViewPlane mock_land_view;
     W.planes().back().land_view = &mock_land_view;
 
-    EXPECT_CALL( mock_land_view,
-                 animate_colony_depixelation( _ ) )
+    EXPECT_CALL( mock_land_view, animate( _ ) )
         .returns( make_wait<>() );
     EXPECT_CALL( W.gui(), message_box( "some msg" ) )
         .returns( make_wait<>() );
@@ -434,8 +433,7 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
     MockLandViewPlane mock_land_view;
     W.planes().back().land_view = &mock_land_view;
 
-    EXPECT_CALL( mock_land_view,
-                 animate_colony_depixelation( _ ) )
+    EXPECT_CALL( mock_land_view, animate( _ ) )
         .returns( make_wait<>() );
     EXPECT_CALL( W.gui(), message_box( "some msg" ) )
         .returns( make_wait<>() );

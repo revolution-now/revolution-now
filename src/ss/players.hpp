@@ -28,6 +28,12 @@ static_assert( std::is_same_v<
 void reset_players( PlayersState&                players_state,
                     std::vector<e_nation> const& nations );
 
+Player& player_for_nation_or_die( PlayersState& players,
+                                  e_nation      nation );
+
+Player const& player_for_nation_or_die(
+    PlayersState const& players, e_nation nation );
+
 } // namespace rn
 
 /****************************************************************

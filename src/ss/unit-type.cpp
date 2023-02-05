@@ -245,15 +245,19 @@ bool is_unit_human( UnitType ut ) {
   e_unit_human res =
       config_unit_type.composition.unit_types[ut.type()].human;
   switch( res ) {
-    case e_unit_human::no: return false;
-    case e_unit_human::yes: return true;
+    case e_unit_human::no:
+      return false;
+    case e_unit_human::yes:
+      return true;
     case e_unit_human::from_base: {
       res =
           config_unit_type.composition.unit_types[ut.base_type()]
               .human;
       switch( res ) {
-        case e_unit_human::no: return false;
-        case e_unit_human::yes: return true;
+        case e_unit_human::no:
+          return false;
+        case e_unit_human::yes:
+          return true;
         case e_unit_human::from_base: {
           SHOULD_NOT_BE_HERE;
         }
@@ -267,15 +271,19 @@ bool can_unit_found( UnitType ut ) {
       config_unit_type.composition.unit_types[ut.type()]
           .can_found;
   switch( res ) {
-    case e_unit_can_found_colony::no: return false;
-    case e_unit_can_found_colony::yes: return true;
+    case e_unit_can_found_colony::no:
+      return false;
+    case e_unit_can_found_colony::yes:
+      return true;
     case e_unit_can_found_colony::from_base: {
       res =
           config_unit_type.composition.unit_types[ut.base_type()]
               .can_found;
       switch( res ) {
-        case e_unit_can_found_colony::no: return false;
-        case e_unit_can_found_colony::yes: return true;
+        case e_unit_can_found_colony::no:
+          return false;
+        case e_unit_can_found_colony::yes:
+          return true;
         case e_unit_can_found_colony::from_base: {
           SHOULD_NOT_BE_HERE;
         }
@@ -303,12 +311,13 @@ maybe<e_missionary_type> missionary_type( UnitType type ) {
       return e_missionary_type::indentured;
     case e_unit_type::jesuit_colonist:
       return e_missionary_type::jesuit;
-    default: return e_missionary_type::normal;
+    default:
+      return e_missionary_type::normal;
   }
 }
 
 std::unordered_set<e_unit_type_modifier> const&
-UnitType::unit_type_modifiers() {
+UnitType::unit_type_modifiers() const {
   UNWRAP_CHECK( res, unit_type_modifiers_for_path( o_.base_type,
                                                    o_.type ) );
   return res;

@@ -24,10 +24,11 @@ struct state;
 
 namespace rn {
 
-struct Planes;
-struct IMapUpdater;
+struct ICombat;
 struct IGui;
+struct IMapUpdater;
 struct IRand;
+struct Planes;
 struct RootState;
 
 /****************************************************************
@@ -35,7 +36,7 @@ struct RootState;
 *****************************************************************/
 struct TS {
   TS( IMapUpdater& map_updater_, lua::state& lua_, IGui& gui_,
-      IRand& rand_, RootState& saved );
+      IRand& rand_, ICombat& combat, RootState& saved );
 
   ~TS();
 
@@ -45,6 +46,7 @@ struct TS {
   lua::state&  lua;
   IGui&        gui;
   IRand&       rand;
+  ICombat&     combat;
   // This refers to a serialized state data structure that holds
   // the game state as it was when the game was most recently
   // saved or loaded. It is used to determine if the game needs

@@ -33,6 +33,8 @@
 
 namespace rn {
 
+struct AnimationPrimitive_t;
+struct AnimationSequence;
 struct Colony;
 struct Dwelling;
 class SmoothViewport;
@@ -79,45 +81,33 @@ struct LandViewAnimator {
 
   // Animation sequences.
 
-  wait<> animate_move( UnitId id, e_direction direction );
-
-  wait<> animate_attack(
-      GenericUnitId attacker, GenericUnitId defender,
-      std::vector<PixelationAnimation_t> const& animations,
-      bool                                      attacker_wins );
-
-  wait<> animate_unit_pixelation(
-      PixelationAnimation_t const& what );
-
-  wait<> animate_colony_destruction( Colony const& colony );
-
-  wait<> animate_colony_capture(
-      UnitId attacker_id, UnitId defender_id,
-      std::vector<PixelationAnimation_t> const& animations,
-      ColonyId                                  colony_id );
-
-  // Animator primitives.
-
-  wait<> animate_unit_depixelation( GenericUnitId id,
-                                    maybe<e_tile> target_tile );
-
-  wait<> animate_unit_enpixelation( GenericUnitId id,
-                                    e_tile        target_tile );
-
-  wait<> animate_colony_depixelation( Colony const& colony );
-
-  wait<> animate_dwelling_depixelation(
-      Dwelling const& dwelling );
+  wait<> animate_sequence( AnimationSequence const& seq );
 
   wait<> animate_blink( UnitId id, bool visible_initially );
-
-  wait<> animate_slide( GenericUnitId id, e_direction d );
 
   // Smooth map scrolling.
 
   wait<> ensure_visible( Coord const& coord );
 
   wait<> ensure_visible_unit( GenericUnitId id );
+
+ private:
+  // Animation primitives.
+
+  wait<> animate_primitive(
+      AnimationPrimitive_t const& primitive );
+
+  wait<> unit_depixelation_throttler(
+      GenericUnitId id, maybe<e_tile> target_tile );
+
+  wait<> unit_enpixelation_throttler( GenericUnitId id );
+
+  wait<> colony_depixelation_throttler( Colony const& colony );
+
+  wait<> dwelling_depixelation_throttler(
+      Dwelling const& dwelling );
+
+  wait<> slide_throttler( GenericUnitId id, e_direction d );
 
  private:
   template<typename Anim, typename Map>
@@ -157,9 +147,6 @@ struct LandViewAnimator {
     return Popper<Anim, Map>( m, id );
   }
 
- public:
-  // Animation adders.
-
   template<typename Anim>
   auto add_unit_animation( GenericUnitId id ) {
     return make_popper<Anim>( unit_animations_, id );
@@ -174,13 +161,6 @@ struct LandViewAnimator {
   auto add_dwelling_animation( DwellingId id ) {
     return make_popper<Anim>( dwelling_animations_, id );
   }
-
- private:
-  wait<> start_pixelation_animation(
-      PixelationAnimation_t anim );
-
-  std::vector<wait<>> start_pixelation_animations(
-      std::vector<PixelationAnimation_t> const& anims );
 
  private:
   // Note: SSConst should be held by value.

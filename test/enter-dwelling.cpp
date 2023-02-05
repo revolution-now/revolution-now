@@ -506,12 +506,7 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
       W.gui(),
       message_box( Matches( "Congratulations.*Cotton.*"s ) ) )
       .returns<wait<>>( make_wait<>() );
-  EXPECT_CALL(
-      mock_land_view,
-      animate_unit_pixelation(
-          PixelationAnimation::euro_unit_depixelate{
-              .id     = unit.id(),
-              .target = e_unit_type::expert_cotton_planter } ) )
+  EXPECT_CALL( mock_land_view, animate( _ ) )
       .returns<monostate>();
   f();
   REQUIRE( unit.type() == e_unit_type::expert_cotton_planter );
@@ -850,12 +845,7 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
     EXPECT_CALL( W.gui(),
                  message_box( StrContains( "send guides" ) ) )
         .returns<monostate>();
-    EXPECT_CALL(
-        mock_land_view,
-        animate_unit_pixelation(
-            PixelationAnimation::euro_unit_depixelate{
-                .id     = UnitId{ 1 },
-                .target = e_unit_type::seasoned_scout } ) )
+    EXPECT_CALL( mock_land_view, animate( _ ) )
         .returns<monostate>();
     EXPECT_CALL( W.gui(),
                  message_box( StrContains(
@@ -873,11 +863,7 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
         W.gui(),
         message_box( StrContains( "violated sacred taboos" ) ) )
         .returns<monostate>();
-    EXPECT_CALL( mock_land_view,
-                 animate_unit_pixelation(
-                     PixelationAnimation::euro_unit_depixelate{
-                         .id     = UnitId{ 1 },
-                         .target = maybe<e_unit_type>{} } ) )
+    EXPECT_CALL( mock_land_view, animate( _ ) )
         .returns<monostate>();
     REQUIRE( W.units().exists( UnitId{ 1 } ) );
     f();

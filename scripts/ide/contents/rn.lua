@@ -12,6 +12,8 @@ return {
   'attack-handlers',
   'enter-dwelling',
   'anim-builders',
+  'anim-builder',
+  'icombat',
   'combat',
   'combat-modifiers',
   'config/combat',

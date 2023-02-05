@@ -178,21 +178,6 @@ string debug_string( Unit const& unit ) {
       unit.nation(), unit.desc().name, unit.movement_points() );
 }
 
-void Unit::demote_from_lost_battle( Player const& player ) {
-  UNWRAP_CHECK( new_type, on_death_demoted_type( type_obj() ) );
-  UNWRAP_CHECK( new_comp,
-                o_.composition.with_new_type( new_type ) );
-  change_type( player, std::move( new_comp ) );
-}
-
-void Unit::demote_from_capture( Player const& player ) {
-  UNWRAP_CHECK( new_type,
-                on_capture_demoted_type( type_obj() ) );
-  UNWRAP_CHECK( new_comp, o_.composition.with_new_type(
-                              UnitType::create( new_type ) ) );
-  change_type( player, std::move( new_comp ) );
-}
-
 UnitTransformationResult Unit::strip_to_base_type(
     Player const& player ) {
   UnitTransformationResult res =

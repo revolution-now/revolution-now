@@ -14,6 +14,7 @@
 #include "co-combinator.hpp"
 #include "compositor.hpp"
 #include "gui.hpp" // FIXME
+#include "icombat.hpp"
 #include "input.hpp"
 #include "logger.hpp"
 #include "lua.hpp" // FIXME
@@ -248,7 +249,8 @@ struct MapEditPlane::Impl : public Plane {
         };
         return handler;
       }
-      default: break;
+      default:
+        break;
     }
     return nothing;
   }
@@ -274,7 +276,8 @@ struct MapEditPlane::Impl : public Plane {
         case input::e_input_event::win_event:
           saved.push_back( std::move( e ) );
           break;
-        default: break;
+        default:
+          break;
       }
     }
     CHECK( !input_.ready() );
@@ -517,7 +520,7 @@ wait<bool> MapEditPlane::Impl::handle_event(
       break;
     case ::SDLK_ESCAPE: //
       co_return true;
-    default: //
+    default:            //
       break;
   }
   co_return false;
@@ -638,10 +641,11 @@ wait<> run_map_editor_standalone( Planes& planes ) {
   SCOPE_EXIT( set_console_terminal( nullptr ) );
   lua::table::create_or_get( st["log"] )["console"] =
       [&]( string const& msg ) { terminal.log( msg ); };
-  WindowPlane window_plane;
-  RealGui     gui( window_plane );
-  Rand        rand;
-  TS          ts( map_updater, st, gui, rand, ss.root );
+  WindowPlane    window_plane;
+  RealGui        gui( window_plane );
+  Rand           rand;
+  TrappingCombat combat;
+  TS ts( map_updater, st, gui, rand, combat, ss.root );
   co_await run_map_editor( planes, ss, ts );
 }
 

@@ -258,6 +258,13 @@ void LandViewRenderer::render_units_impl() const {
         front[id] = &anim.get<UnitAnimationState::front>();
         tiles_to_skip.insert( tile );
         break;
+      case UnitAnimationState::e::hide:
+        // Nothing to do here. These units with the "hide" anima-
+        // tion will never be rendered because 1) they are con-
+        // sidered to be "animated" and so will not be rendered
+        // in the unit stack, and 2) we are not explicitly
+        // drawing them in this function.
+        break;
       case UnitAnimationState::e::blink:
         blink[id] = &anim.get<UnitAnimationState::blink>();
         tiles_to_skip.insert( tile );
@@ -269,18 +276,19 @@ void LandViewRenderer::render_units_impl() const {
       case UnitAnimationState::e::depixelate_unit:
         depixelate_unit[id] =
             &anim.get<UnitAnimationState::depixelate_unit>();
-        tiles_to_skip.insert( tile );
+        tiles_to_fade.insert( tile );
         break;
       case UnitAnimationState::e::enpixelate_unit:
         enpixelate_unit[id] =
             &anim.get<UnitAnimationState::enpixelate_unit>();
-        tiles_to_skip.insert( tile );
+        tiles_to_fade.insert( tile );
         break;
     }
   }
 
   // Render all non-animated units except for those on tiles that
-  // we want to skip.
+  // we want to skip and those explicitly hidden (actually "hid-
+  // den" is a form of animation anyway).
   unordered_set<Coord> hit;
   for( auto [tile, id] : units_to_render() ) {
     if( tiles_to_skip.contains( tile ) ) continue;

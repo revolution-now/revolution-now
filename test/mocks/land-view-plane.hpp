@@ -14,6 +14,7 @@
 #include "test/mocking.hpp"
 
 // Revolution Now
+#include "src/anim-builder.rds.hpp"
 #include "src/land-view.hpp"
 
 // mock
@@ -40,21 +41,7 @@ struct MockLandViewPlane : ILandViewPlane {
                ( UnitId ), () );
   MOCK_METHOD( wait<LandViewPlayerInput_t>, eot_get_next_input,
                (), () );
-  MOCK_METHOD( wait<>, animate_move, ( UnitId, e_direction ),
-               () );
-  MOCK_METHOD( wait<>, animate_colony_depixelation,
-               (Colony const&), () );
-  MOCK_METHOD( wait<>, animate_unit_pixelation,
-               (PixelationAnimation_t const&), () );
-  MOCK_METHOD( wait<>, animate_attack,
-               (GenericUnitId, GenericUnitId,
-                std::vector<PixelationAnimation_t> const&, bool),
-               () );
-  MOCK_METHOD( wait<>, animate_colony_capture,
-               ( UnitId, UnitId,
-                 std::vector<PixelationAnimation_t> const&,
-                 ColonyId ),
-               () );
+  MOCK_METHOD( wait<>, animate, (AnimationSequence const&), () );
   MOCK_METHOD( void, reset_input_buffers, (), () );
   MOCK_METHOD( void, start_new_turn, (), () );
   MOCK_METHOD( void, zoom_out_full, (), () );

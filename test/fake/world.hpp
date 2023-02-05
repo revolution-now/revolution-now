@@ -54,6 +54,7 @@ struct IMapUpdater;
 struct LandViewState;
 struct MockIGui;
 struct MockIRand;
+struct MockICombat;
 struct NativeUnit;
 struct NativesState;
 struct Planes;
@@ -204,6 +205,17 @@ struct World {
 
   Tribe& add_tribe( e_tribe tribe );
 
+  Tribe& tribe( e_tribe tribe );
+
+  Tribe& apache();
+  Tribe& sioux();
+  Tribe& tupi();
+  Tribe& arawak();
+  Tribe& cherokee();
+  Tribe& iroquois();
+  Tribe& aztec();
+  Tribe& inca();
+
   // ------------------------------------------------------------
   // Colony setup.
   // ------------------------------------------------------------
@@ -240,9 +252,12 @@ struct World {
   void add_default_player();
 
   e_nation default_nation() const { return default_nation_; }
-  void     set_default_player( e_nation nation ) {
+
+  void set_default_player( e_nation nation ) {
     default_nation_ = nation;
   }
+
+  void set_human_player( e_nation nation );
 
   // This will call the validate method on each colony in the
   // state and return an error if any of them fail.
@@ -294,11 +309,12 @@ struct World {
 
   // These will initialize their respective objects the first
   // time they are called, so they should always be used.
-  Planes&     planes();
-  lua::state& lua();
-  MockIGui&   gui();
-  MockIRand&  rand();
-  TS&         ts();
+  Planes&      planes();
+  lua::state&  lua();
+  MockIGui&    gui();
+  MockIRand&   rand();
+  MockICombat& combat();
+  TS&          ts();
 
   IMapUpdater& map_updater() { return *map_updater_; }
 
@@ -323,11 +339,12 @@ struct World {
   std::unique_ptr<IMapUpdater>   map_updater_;
   // These should not be accessed directly since they are ini-
   // tially nullptr.
-  std::unique_ptr<Planes>     uninitialized_planes_;
-  std::unique_ptr<lua::state> uninitialized_lua_;
-  std::unique_ptr<MockIGui>   uninitialized_gui_;
-  std::unique_ptr<MockIRand>  uninitialized_rand_;
-  std::unique_ptr<TS>         uninitialized_ts_;
+  std::unique_ptr<Planes>      uninitialized_planes_;
+  std::unique_ptr<lua::state>  uninitialized_lua_;
+  std::unique_ptr<MockIGui>    uninitialized_gui_;
+  std::unique_ptr<MockIRand>   uninitialized_rand_;
+  std::unique_ptr<MockICombat> uninitialized_combat_;
+  std::unique_ptr<TS>          uninitialized_ts_;
 };
 
 } // namespace rn::testing

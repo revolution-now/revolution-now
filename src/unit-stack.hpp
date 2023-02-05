@@ -13,17 +13,18 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "maybe.hpp"
-
 // ss
 #include "ss/unit-id.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
 
 // C++ standard library
 #include <vector>
 
 namespace rn {
 
+struct Colony;
 struct SSConst;
 
 // These are the functions that contains the logic that deter-
@@ -45,5 +46,14 @@ void sort_native_unit_stack( SSConst const&             ss,
 // Top unit will be first in the vector.
 void sort_euro_unit_stack( SSConst const&       ss,
                            std::vector<UnitId>& units );
+
+UnitId select_euro_unit_defender( SSConst const& ss,
+                                  Coord          tile );
+
+NativeUnitId select_native_unit_defender( SSConst const& ss,
+                                          Coord          tile );
+
+UnitId select_colony_defender( SSConst const& ss,
+                               Colony const&  colony );
 
 } // namespace rn

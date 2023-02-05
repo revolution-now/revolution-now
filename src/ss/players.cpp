@@ -54,6 +54,22 @@ void reset_players( PlayersState&           players_state,
     };
 }
 
+Player& player_for_nation_or_die( PlayersState& players,
+                                  e_nation      nation ) {
+  UNWRAP_CHECK_MSG( player, players.players[nation],
+                    "player for nation {} does not exist.",
+                    nation );
+  return player;
+}
+
+Player const& player_for_nation_or_die(
+    PlayersState const& players, e_nation nation ) {
+  UNWRAP_CHECK_MSG( player, players.players[nation],
+                    "player for nation {} does not exist.",
+                    nation );
+  return player;
+}
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/

@@ -14,6 +14,7 @@
 #include "land-view-impl.rds.hpp"
 
 // Revolution Now
+#include "anim-builders.hpp"
 #include "cheat.hpp"
 #include "co-combinator.hpp"
 #include "co-time.hpp"
@@ -1040,10 +1041,8 @@ struct LandViewPlane::Impl : public Plane {
       // We typically wait for a bit while eating input events;
       // during that time, make sure that the unit who is about
       // to ask for orders is rendered on the front.
-      auto anim =
-          lv_animator_
-              .add_unit_animation<UnitAnimationState::front>(
-                  id );
+      AnimationSequence const seq = anim_seq_unit_to_front( id );
+      wait<> anim = lv_animator_.animate_sequence( seq );
       co_await eat_cross_unit_buffered_input_events( id );
     }
 
@@ -1146,38 +1145,6 @@ wait<LandViewPlayerInput_t> LandViewPlane::eot_get_next_input() {
   return impl_->eot_get_next_input();
 }
 
-wait<> LandViewPlane::animate_move( UnitId      id,
-                                    e_direction direction ) {
-  return impl_->lv_animator_.animate_move( id, direction );
-}
-
-wait<> LandViewPlane::animate_colony_depixelation(
-    Colony const& colony ) {
-  return impl_->lv_animator_.animate_colony_destruction(
-      colony );
-}
-
-wait<> LandViewPlane::animate_unit_pixelation(
-    PixelationAnimation_t const& what ) {
-  return impl_->lv_animator_.animate_unit_pixelation( what );
-}
-
-wait<> LandViewPlane::animate_attack(
-    GenericUnitId attacker, GenericUnitId defender,
-    vector<PixelationAnimation_t> const& animations,
-    bool                                 attacker_wins ) {
-  return impl_->lv_animator_.animate_attack(
-      attacker, defender, animations, attacker_wins );
-}
-
-wait<> LandViewPlane::animate_colony_capture(
-    UnitId attacker_id, UnitId defender_id,
-    vector<PixelationAnimation_t> const& animations,
-    ColonyId                             colony_id ) {
-  return impl_->lv_animator_.animate_colony_capture(
-      attacker_id, defender_id, animations, colony_id );
-}
-
 void LandViewPlane::reset_input_buffers() {
   return impl_->reset_input_buffers();
 }
@@ -1192,6 +1159,10 @@ void LandViewPlane::zoom_out_full() {
 
 maybe<UnitId> LandViewPlane::unit_blinking() {
   return impl_->unit_blinking();
+}
+
+wait<> LandViewPlane::animate( AnimationSequence const& seq ) {
+  return impl_->lv_animator_.animate_sequence( seq );
 }
 
 } // namespace rn

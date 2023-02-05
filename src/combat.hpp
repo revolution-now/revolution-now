@@ -12,42 +12,53 @@
 
 #include "core-config.hpp"
 
-// Rds
-#include "combat.rds.hpp"
+// Revolution Now
+#include "icombat.hpp"
+
+// ss
+#include "ss/ref.hpp"
 
 namespace rn {
 
+struct Colony;
 struct Dwelling;
+struct IRand;
 struct NativeUnit;
-struct TS;
+struct SSConst;
 struct Unit;
 
-CombatEuroAttackEuro combat_euro_attack_euro(
-    TS& ts, Unit const& attacker, Unit const& defender );
+/****************************************************************
+** RealCombat
+*****************************************************************/
+struct RealCombat : public ICombat {
+  RealCombat( SSConst const& ss, IRand& rand )
+    : ss_( ss ), rand_( rand ) {}
 
-CombatEuroAttackBrave combat_euro_attack_brave(
-    TS& ts, Unit const& attacker, NativeUnit const& defender );
+  // Implement ICombat.
+  CombatEuroAttackEuro euro_attack_euro(
+      Unit const& attacker, Unit const& defender ) override;
 
-CombatEuroAttackDwelling combat_euro_attack_dwelling(
-    TS& ts, Unit const& attacker, Dwelling const& dwelling );
+  // Implement ICombat.
+  CombatShipAttackShip ship_attack_ship(
+      Unit const& attacker, Unit const& defender ) override;
 
-// In the original game a ship can be left on land after a colony
-// is abandoned, but if a land unit then tries to attack it the
-// game panics. We will handle it properly, but we don't want a
-// normal battle to ensue, because then the player could "cheat"
-// by leaving a bunch of fortified frigates on land that would be
-// too strong for normal land units to take down. So in this
-// game, when a ship is left on land, the player is given a mes-
-// sage that they should move it off land as soon as possible be-
-// cause it is vulnerable to attack. And by vulnerable, we mean
-// that if it is attacked by a land unit (no matter how weak)
-// then the land unit will always win. This will prevent the sce-
-// nario above where the player accumultes ships on land as a
-// "wall." This function thus returns a combat stats object where
-// the attacker always wins.
-//
-// FIXME: we can get rid of this since we now have a modifier
-// that does this (the `ship_on_land` penalty).
-CombatEuroAttackEuro make_combat_for_attacking_ship_on_land();
+  // Implement ICombat.
+  CombatEuroAttackUndefendedColony euro_attack_undefended_colony(
+      Unit const& attacker, Unit const& defender,
+      Colony const& colony ) override;
+
+  // Implement ICombat.
+  CombatEuroAttackBrave euro_attack_brave(
+      Unit const&       attacker,
+      NativeUnit const& defender ) override;
+
+  // Implement ICombat.
+  CombatEuroAttackDwelling euro_attack_dwelling(
+      Unit const& attacker, Dwelling const& dwelling ) override;
+
+ private:
+  SSConst ss_; // should be held by value for safety.
+  IRand&  rand_;
+};
 
 } // namespace rn

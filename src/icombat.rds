@@ -1,0 +1,204 @@
+# ===============================================================
+# icombat.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-02-04.
+#
+# Description: Rds definitions for the icombat module.
+#
+# ===============================================================
+# Revolution Now
+include "combat-modifiers.rds.hpp"
+
+# ss
+include "ss/colony-id.hpp"
+include "ss/dwelling-id.hpp"
+include "ss/nation.rds.hpp"
+include "ss/native-enums.rds.hpp"
+include "ss/unit-id.hpp"
+include "ss/unit-type.hpp"
+
+# gfx
+include "gfx/coord.hpp"
+
+# refl
+include "refl/enum-map.hpp"
+
+# base
+include "base/maybe.hpp"
+
+namespace "rn"
+
+enum.e_combat_winner {
+  defender,
+  attacker,
+}
+
+enum.e_naval_combat_outcome {
+  evade,
+  damaged,
+  sunk,
+}
+
+# ===============================================================
+# Combat Outcomes.
+# ===============================================================
+sumtype.EuroUnitCombatOutcome {
+  # This could happen if a ship evades an attack.
+  no_change {},
+  # This could happen to a ship, a scout, or a non-military unit
+  # attacked by natives.
+  destroyed {},
+  # This will happen to a non-military unit (excluding ships)
+  # that are attacked by other europeans.
+  captured {
+    new_nation 'e_nation',
+    new_coord 'Coord',
+  },
+  # This is for veteran colonists that lose their veteran status
+  # upon capture.
+  captured_and_demoted {
+    to 'e_unit_type',
+    new_nation 'e_nation',
+    new_coord 'Coord',
+  },
+  # Promotion/demotion.
+  promoted {
+    to 'UnitType',
+  },
+  demoted {
+    to 'UnitType',
+  },
+}
+
+sumtype.EuroNavalUnitCombatOutcome {
+  # This could happen if a ship evades an attack.
+  no_change {},
+
+  # This could happen if the attacking ship wins (and so the de-
+  # fending ship is sunk or damaged) in which case the attacking
+  # ship moves onto the square that was occupied by the defender.
+  moved {
+    to 'Coord',
+  },
+
+  sunk {},
+
+  damaged {},
+}
+
+# This is for a unit working in a colony that defends the colony
+# when it is attacked in an undefended state.
+sumtype.EuroColonyWorkerCombatOutcome {
+  no_change {},
+  defeated {}, # colony is captured.
+}
+
+# This is for when a colony that contains a fort/fortress fires
+# on an adjacent ship.
+sumtype.ColonyArtilleryCombatOutcome {
+  lose {},
+  win {},
+}
+
+sumtype.NativeUnitCombatOutcome {
+  no_change {},
+  destroyed {
+    # According to the strategy guide, there is a chance that a
+    # tribe will retain the horses/muskets of a brave even when
+    # it is eliminated.
+    tribe_retains_horses 'bool',
+    tribe_retains_muskets 'bool',
+  },
+  promoted {
+    to 'e_native_unit_type',
+  },
+}
+
+sumtype.DwellingCombatOutcome {
+  no_change {},
+  defeated {},
+}
+
+# ===============================================================
+# Combat Stats.
+# ===============================================================
+sumtype.CombatModifierEffect {
+  add_absolute {
+    what 'double',
+  },
+  add_percent {
+    what 'double',
+  },
+  mul {
+    what 'double',
+  }
+}
+
+struct.CombatStats {
+  _template { IdT, ModifiersT, OutcomeT },
+
+  id 'IdT',
+  modifiers 'refl::enum_map<ModifiersT, base::maybe<CombatModifierEffect_t>>',
+  weight 'double',
+  outcome 'OutcomeT',
+}
+
+struct.CombatEuroAttackEuro {
+  winner 'e_combat_winner',
+
+  attacker 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
+  defender 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
+}
+
+struct.CombatShipAttackShip {
+  outcome 'e_naval_combat_outcome',
+  winner 'base::maybe<e_combat_winner>',
+
+  attacker 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroNavalUnitCombatOutcome_t>',
+  defender 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroNavalUnitCombatOutcome_t>',
+}
+
+struct.CombatEuroAttackUndefendedColony {
+  winner 'e_combat_winner',
+
+  colony_id 'ColonyId',
+
+  attacker 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
+  defender 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroColonyWorkerCombatOutcome_t>',
+}
+
+struct.CombatColonyArtilleryAttackShip {
+  winner 'e_combat_winner',
+
+  attacker 'CombatStats<ColonyId, e_colony_artillery_combat_modifiers, ColonyArtilleryCombatOutcome_t>',
+  defender 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
+}
+
+struct.CombatEuroAttackBrave {
+  winner 'e_combat_winner',
+
+  attacker 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
+  defender 'CombatStats<NativeUnitId, e_brave_combat_modifiers, NativeUnitCombatOutcome_t>',
+}
+
+struct.CombatBraveAttackEuro {
+  winner 'e_combat_winner',
+
+  # According to the SG, when a brave attacks a square containing
+  # multiple (non-military) colonies, and it wins, then all
+  # colonists on the square are destroyed. But this doesn't apply
+  # if the square contains a colony. TODO: Should verify this.
+  all_colonists_destroyed 'bool',
+
+  attacker 'CombatStats<NativeUnitId, e_brave_combat_modifiers, NativeUnitCombatOutcome_t>',
+  defender 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
+}
+
+struct.CombatEuroAttackDwelling {
+  winner 'e_combat_winner',
+
+  attacker 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
+  defender 'CombatStats<DwellingId, e_dwelling_combat_modifiers, DwellingCombatOutcome_t>',
+}

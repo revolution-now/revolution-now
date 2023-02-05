@@ -34,6 +34,7 @@ sumtype.UnitAnimationState {
   # colonies, with the exception of units that are being animated
   # in some other way, which will always go on top.
   front {},
+  hide {},
   blink {
     visible 'bool',
   },
@@ -53,7 +54,6 @@ sumtype.UnitAnimationState {
   # Start from nothing and gradually reveal the tile.
   enpixelate_unit {
     stage 'double',
-    target 'e_tile',
   },
 }
 
@@ -66,19 +66,5 @@ sumtype.ColonyAnimationState {
 sumtype.DwellingAnimationState {
   depixelate {
     stage 'double',
-  },
-}
-
-sumtype.PixelationAnimation {
-  euro_unit_depixelate {
-    id 'UnitId',
-    target 'maybe<e_unit_type>',
-  },
-  native_unit_depixelate {
-    id 'NativeUnitId',
-    target 'maybe<e_native_unit_type>',
-  },
-  dwelling {
-    id 'DwellingId',
   },
 }

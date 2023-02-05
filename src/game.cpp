@@ -13,6 +13,7 @@
 // Revolution Now
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
+#include "combat.hpp"
 #include "conductor.hpp"
 #include "console.hpp"
 #include "gui.hpp"
@@ -96,14 +97,15 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
 
   RealGui gui( window_plane );
 
-  Rand rand; // random seed.
+  Rand       rand; // random seed.
+  RealCombat combat( ss, rand );
 
   {
     // The real map updater needs to know the map size during
     // construction, so use the non-rendering one, which is fine
     // because we don't need to render yet anyway.
     NonRenderingMapUpdater map_updater( ss );
-    TS ts( map_updater, st, gui, rand, saved );
+    TS ts( map_updater, st, gui, rand, combat, saved );
     if( !co_await loader( ss, ts ) )
       // Didn't load a game for some reason. Could have failed or
       // maybe there are no games to load.
@@ -112,7 +114,7 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
 
   RenderingMapUpdater map_updater(
       ss, global_renderer_use_only_when_needed() );
-  TS ts( map_updater, st, gui, rand, saved );
+  TS ts( map_updater, st, gui, rand, combat, saved );
 
   ensure_human_player( ss.players );
 

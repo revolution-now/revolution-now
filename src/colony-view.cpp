@@ -275,7 +275,8 @@ struct ColonyPlane::Impl : public Plane {
                                    /*demote=*/true );
           try_decrease_commodity( ss_, colony_, event.pos );
           break;
-        default: break;
+        default:
+          break;
       }
       co_return false;
     }
@@ -312,7 +313,8 @@ struct ColonyPlane::Impl : public Plane {
         case input::e_input_event::win_event:
           saved.push_back( std::move( e ) );
           break;
-        default: break;
+        default:
+          break;
       }
     }
     CHECK( !input_.ready() );
@@ -341,7 +343,7 @@ wait<> show_colony_view_impl( Planes& planes, SS& ss, TS& ts_old,
   RealGui gui( window_plane );
 
   TS ts( ts_old.map_updater, ts_old.lua, gui, ts_old.rand,
-         ts_old.saved );
+         ts_old.combat, ts_old.saved );
 
   ColonyPlane colony_plane( planes, ss, ts, colony );
   new_group.colony = &colony_plane;

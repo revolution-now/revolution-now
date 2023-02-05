@@ -94,7 +94,7 @@ struct UnitType {
   // this class. The returned set is empty if and only if the
   // base type and derived type are the same.
   std::unordered_set<e_unit_type_modifier> const&
-  unit_type_modifiers();
+  unit_type_modifiers() const;
 
   // Implement refl::WrapsReflected.
   UnitType( wrapped::UnitType&& o ) : o_( std::move( o ) ) {}

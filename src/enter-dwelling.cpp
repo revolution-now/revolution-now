@@ -13,6 +13,7 @@
 
 // Revolution Now
 #include "alarm.hpp"
+#include "anim-builders.hpp"
 #include "co-wait.hpp"
 #include "commodity.hpp"
 #include "igui.hpp"
@@ -422,16 +423,17 @@ wait<> do_live_among_the_natives(
                            .no_label       = "No",
                            .no_comes_first = false } );
       if( yes_no == ui::e_confirm::yes ) {
-        if( o.to.type() != unit.type() )
-          // We only animate the transition if there is one visi-
-          // ble. Usually there is (e.g. free colonist changing
-          // to expert farmer), but sometimes there is not, e.g.
-          // when a pioneer's base type gets promoted but the
-          // unit type (and hence unit sprite) remains as a pio-
-          // neer.
-          co_await planes.land_view().animate_unit_pixelation(
-              PixelationAnimation::euro_unit_depixelate{
-                  .id = unit.id(), .target = o.to.type() } );
+        // We only animate the transition if there is one visi-
+        // ble. Usually there is (e.g. free colonist changing to
+        // expert farmer), but sometimes there is not, e.g. when
+        // a pioneer's base type gets promoted but the unit type
+        // (and hence unit sprite) remains as a pioneer.
+        if( o.to.type() != unit.type() ) {
+          AnimationSequence const seq =
+              anim_seq_for_unit_depixelation( unit.id(),
+                                              o.to.type() );
+          co_await planes.land_view().animate( seq );
+        }
         unit.change_type( player, o.to );
         dwelling.has_taught = true;
         co_await ts.gui.message_box(
@@ -638,10 +640,10 @@ wait<> do_speak_with_chief(
       co_await ts.gui.message_box(
           "To help our traveler friends we will send guides "
           "along with your scout." );
-      co_await planes.land_view().animate_unit_pixelation(
-          PixelationAnimation::euro_unit_depixelate{
-              .id     = unit.id(),
-              .target = e_unit_type::seasoned_scout } );
+      AnimationSequence const seq =
+          anim_seq_for_unit_depixelation(
+              unit.id(), e_unit_type::seasoned_scout );
+      co_await planes.land_view().animate( seq );
       // Need to change type before awaiting on the promotion
       // message otherwise the unit will change back temporarily
       // after depixelating.
@@ -659,9 +661,9 @@ wait<> do_speak_with_chief(
           "tribe and thus we have decided to use your scout as "
           "target practice.",
           config_natives.tribes[tribe].name_singular );
-      co_await planes.land_view().animate_unit_pixelation(
-          PixelationAnimation::euro_unit_depixelate{
-              .id = unit.id(), .target = nothing } );
+      AnimationSequence const seq =
+          anim_seq_for_unit_depixelation( unit.id() );
+      co_await planes.land_view().animate( seq );
       ss.units.destroy_unit( unit.id() );
       co_return;
     }

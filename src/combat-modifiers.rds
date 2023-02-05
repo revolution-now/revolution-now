@@ -1,0 +1,71 @@
+# ===============================================================
+# combat-modifiers.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-02-04.
+#
+# Description: Rds definitions for the combat-modifiers module.
+#
+# ===============================================================
+namespace "rn"
+
+# Note that there is no "veteran" bonus here, unlike in the OG.
+# That is because in this game we bake that (+50%) bonus into the
+# unit's baseline combat value instead of treating it like a
+# bonus. This is to make the combat calculation info more intu-
+# itive throughout the game.
+enum.e_euro_unit_combat_modifiers {
+  movement,
+  attack,
+  attack_bonus_artillery,
+  spanish_attack_village,
+  colony_no_fortification,
+  colony_stockade,
+  colony_fort,
+  colony_fortress,
+  # From the SG: "The Jact that units receive a 50 percent
+  # bonusJor beingJortjfied within a Stockade may be an error.
+  # When questioned about this before publication, the designers
+  # said that thefartjfied bonus would not app{y to units inside-
+  # Jortjfications, but it clear{y does in the first released
+  # version qf ColonizationJor a unitJortj/led inside a Stockade.
+  # In this case, the unit receives the same 150 percent bonus
+  # that any unit receives inside a Fort. However, a unit inside
+  # aJort does not have to beJortjfied and the Fort has other
+  # benefits as well. Infature versions qf Colonization, the
+  # Jortjfied bonus may not app{y to units inside a Stockade."
+  fortified, # unless in a colony with fortification.
+  terrain,
+  ambush,
+  artillery_in_colony, # defending against braves.
+  bombardment,
+  artillery_out_in_the_open,
+  cargo,
+  tory_sentiment,
+  difficulty, # based on difficulty level of game.
+  francis_drake_privateer,
+  ship_on_land, # Not in OG.
+}
+
+# This is for when a colony that contains a fort/fortress fires
+# on an adjacent ship.
+enum.e_colony_artillery_combat_modifiers {
+  fort,
+  fortress,
+  has_artillery,
+}
+
+enum.e_brave_combat_modifiers {
+  terrain, # outside only?
+  ambush, # attacking non-fortified unit outside.
+  colony_with_fortified_artillery,
+}
+
+enum.e_dwelling_combat_modifiers {
+  # Bonuses.
+  capital,
+  camp,
+  village,
+  city,
+}

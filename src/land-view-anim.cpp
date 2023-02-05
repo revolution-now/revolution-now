@@ -11,6 +11,7 @@
 #include "land-view-anim.hpp"
 
 // Revolution Now
+#include "anim-builder.rds.hpp"
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
 #include "sound.hpp"
@@ -71,7 +72,7 @@ LandViewAnimator::dwelling_animation( DwellingId id ) const {
   return st.top();
 }
 
-wait<> LandViewAnimator::animate_unit_depixelation(
+wait<> LandViewAnimator::unit_depixelation_throttler(
     GenericUnitId id, maybe<e_tile> target_tile ) {
   auto popper =
       add_unit_animation<UnitAnimationState::depixelate_unit>(
@@ -89,14 +90,13 @@ wait<> LandViewAnimator::animate_unit_depixelation(
   co_await throttle();
 }
 
-wait<> LandViewAnimator::animate_unit_enpixelation(
-    GenericUnitId id, e_tile target_tile ) {
+wait<> LandViewAnimator::unit_enpixelation_throttler(
+    GenericUnitId id ) {
   auto popper =
       add_unit_animation<UnitAnimationState::enpixelate_unit>(
           id );
   UnitAnimationState::enpixelate_unit& enpixelate = popper.get();
   enpixelate.stage                                = 1.0;
-  enpixelate.target                               = target_tile;
 
   AnimThrottler throttle( kAlmostStandardFrame );
   while( enpixelate.stage > 0.0 ) {
@@ -107,7 +107,7 @@ wait<> LandViewAnimator::animate_unit_enpixelation(
   co_await throttle();
 }
 
-wait<> LandViewAnimator::animate_colony_depixelation(
+wait<> LandViewAnimator::colony_depixelation_throttler(
     Colony const& colony ) {
   auto popper =
       add_colony_animation<ColonyAnimationState::depixelate>(
@@ -124,7 +124,7 @@ wait<> LandViewAnimator::animate_colony_depixelation(
   co_await throttle();
 }
 
-wait<> LandViewAnimator::animate_dwelling_depixelation(
+wait<> LandViewAnimator::dwelling_depixelation_throttler(
     Dwelling const& dwelling ) {
   auto popper =
       add_dwelling_animation<DwellingAnimationState::depixelate>(
@@ -159,8 +159,8 @@ wait<> LandViewAnimator::animate_blink(
   }
 }
 
-wait<> LandViewAnimator::animate_slide( GenericUnitId id,
-                                        e_direction   d ) {
+wait<> LandViewAnimator::slide_throttler( GenericUnitId id,
+                                          e_direction   d ) {
   // TODO: make this a game option.
   double const kMaxVelocity =
       ss_.settings.fast_piece_slide ? .1 : .07;
@@ -204,128 +204,119 @@ wait<> LandViewAnimator::ensure_visible_unit(
   co_await ensure_visible( coord );
 }
 
-wait<> LandViewAnimator::animate_move( UnitId      id,
-                                       e_direction direction ) {
-  // Ensure that both src and dst squares are visible.
-  Coord src = coord_for_unit_indirect_or_die( ss_.units, id );
-  Coord dst = src.moved( direction );
-  co_await ensure_visible( src );
-  // The destination square may not exist if it is a ship sailing
-  // the high seas by moving off of the map edge (which the orig-
-  // inal game allows).
-  if( ss_.terrain.square_exists( dst ) )
-    co_await ensure_visible( dst );
-  play_sound_effect( e_sfx::move );
-  co_await animate_slide( id, direction );
-}
-
-// This method is not awaited on immediately when it is called,
-// so should take its parameters by value.
-wait<> LandViewAnimator::start_pixelation_animation(
-    PixelationAnimation_t anim ) {
-  switch( anim.to_enum() ) {
-    case PixelationAnimation::e::euro_unit_depixelate: {
-      auto& o =
-          anim.get<PixelationAnimation::euro_unit_depixelate>();
-      co_await animate_unit_depixelation(
-          o.id, o.target.fmap( []( e_unit_type type ) {
-            return unit_attr( type ).tile;
-          } ) );
+// In this function we can assume that the `primitive` argument
+// will outlive this coroutine.
+wait<> LandViewAnimator::animate_primitive(
+    AnimationPrimitive_t const& primitive ) {
+  switch( primitive.to_enum() ) {
+    using namespace AnimationPrimitive;
+    case e::play_sound: {
+      auto& [what] = primitive.get<play_sound>();
+      // TODO: should we co_await on the length of the sound ef-
+      // fect? Maybe that would be a separate animation such as
+      // `play_sound_wait`.
+      play_sound_effect( what );
       break;
     }
-    case PixelationAnimation::e::native_unit_depixelate: {
-      auto& o = anim.get<
-          PixelationAnimation::native_unit_depixelate>();
-      co_await animate_unit_depixelation(
-          o.id, o.target.fmap( []( e_native_unit_type type ) {
-            return unit_attr( type ).tile;
-          } ) );
+    case e::hide_unit: {
+      auto& [unit_id] = primitive.get<hide_unit>();
+      auto popper = add_unit_animation<UnitAnimationState::hide>(
+          unit_id );
+      // Never resumes.
+      co_await wait_promise<>().wait();
+      SHOULD_NOT_BE_HERE;
+    }
+    case e::front_unit: {
+      auto& [unit_id] = primitive.get<front_unit>();
+      auto popper =
+          add_unit_animation<UnitAnimationState::front>(
+              unit_id );
+      // Never resumes.
+      co_await wait_promise<>().wait();
+      SHOULD_NOT_BE_HERE;
+    }
+    case e::slide_unit: {
+      auto& [unit_id, direction] = primitive.get<slide_unit>();
+      // Ensure that both src and dst squares are visible.
+      Coord const src =
+          coord_for_unit_indirect_or_die( ss_.units, unit_id );
+      Coord const dst = src.moved( direction );
+      co_await ensure_visible( src );
+      // The destination square may not exist if it is a ship
+      // sailing the high seas by moving off of the map edge
+      // (which the original game allows).
+      if( ss_.terrain.square_exists( dst ) )
+        co_await ensure_visible( dst );
+      co_await slide_throttler( unit_id, direction );
       break;
     }
-    case PixelationAnimation::e::dwelling: {
-      auto& o = anim.get<PixelationAnimation::dwelling>();
-      co_await animate_dwelling_depixelation(
-          ss_.natives.dwelling_for( o.id ) );
+    case e::depixelate_unit: {
+      auto& [unit_id] = primitive.get<depixelate_unit>();
+      co_await ensure_visible_unit( unit_id );
+      co_await unit_depixelation_throttler( unit_id,
+                                            /*target=*/nothing );
+      break;
+    }
+    case e::enpixelate_unit: {
+      auto& [unit_id] = primitive.get<enpixelate_unit>();
+      co_await ensure_visible_unit( unit_id );
+      co_await unit_enpixelation_throttler( unit_id );
+      break;
+    }
+    case e::depixelate_euro_unit_to_target: {
+      auto& [unit_id, target] =
+          primitive.get<depixelate_euro_unit_to_target>();
+      co_await ensure_visible_unit( unit_id );
+      co_await unit_depixelation_throttler(
+          unit_id, unit_attr( target ).tile );
+      break;
+    }
+    case e::depixelate_native_unit_to_target: {
+      auto& [unit_id, target] =
+          primitive.get<depixelate_native_unit_to_target>();
+      co_await ensure_visible_unit( unit_id );
+      co_await unit_depixelation_throttler(
+          unit_id, unit_attr( target ).tile );
+      break;
+    }
+    case e::depixelate_colony: {
+      auto& [colony_id] = primitive.get<depixelate_colony>();
+      Colony const& colony =
+          ss_.colonies.colony_for( colony_id );
+      co_await ensure_visible( colony.location );
+      co_await colony_depixelation_throttler( colony );
+      break;
+    }
+    case e::depixelate_dwelling: {
+      auto& [dwelling_id] = primitive.get<depixelate_dwelling>();
+      Dwelling const& dwelling =
+          ss_.natives.dwelling_for( dwelling_id );
+      Coord const location =
+          ss_.natives.coord_for( dwelling_id );
+      co_await ensure_visible( location );
+      co_await dwelling_depixelation_throttler( dwelling );
       break;
     }
   }
 }
 
-vector<wait<>> LandViewAnimator::start_pixelation_animations(
-    vector<PixelationAnimation_t> const& anims ) {
-  vector<wait<>> waits;
-  for( PixelationAnimation_t const& anim : anims )
-    // This starts the animation.
-    waits.push_back( start_pixelation_animation( anim ) );
-  return waits;
-}
-
-wait<> LandViewAnimator::animate_attack(
-    GenericUnitId attacker, GenericUnitId defender,
-    vector<PixelationAnimation_t> const& animations,
-    bool                                 attacker_wins ) {
-  co_await ensure_visible_unit( defender );
-  co_await ensure_visible_unit( attacker );
-
-  UNWRAP_CHECK( attacker_coord,
-                ss_.units.maybe_coord_for( attacker ) );
-  UNWRAP_CHECK( defender_coord, coord_for_unit_multi_ownership(
-                                    ss_, defender ) );
-  UNWRAP_CHECK( d,
-                attacker_coord.direction_to( defender_coord ) );
-
-  // Give each unit a baseline animation of "front," that way if
-  // the below doesn't end up giving one of them an animation
-  // then at least it will have this `front` animation which
-  // guarantees that it will be visible.
-  auto attacker_front_popper =
-      add_unit_animation<UnitAnimationState::front>( attacker );
-  auto defender_front_popper =
-      add_unit_animation<UnitAnimationState::front>( defender );
-
-  // While the attacker is sliding we want to make sure the de-
-  // fender comes to the front in case there are multiple units
-  // and/or a colony on the tile.
-  play_sound_effect( e_sfx::move );
-  co_await animate_slide( attacker, d );
-
-  // TODO: we need a bigger sound in the case that we're at-
-  // tacking a native dwelling and it gets destroyed.
-  play_sound_effect( attacker_wins ? e_sfx::attacker_won
-                                   : e_sfx::attacker_lost );
-  co_await co::all( start_pixelation_animations( animations ) );
-}
-
-wait<> LandViewAnimator::animate_colony_destruction(
-    Colony const& colony ) {
-  co_await ensure_visible( colony.location );
-  // TODO: Sound effect?
-  co_await animate_colony_depixelation( colony );
-}
-
-wait<> LandViewAnimator::animate_unit_pixelation(
-    PixelationAnimation_t const& what ) {
-  GenericUnitId const id = rn::visit(
-      what.as_base(),
-      []( auto& o ) { return GenericUnitId{ o.id }; } );
-  co_await ensure_visible_unit( id );
-  co_await start_pixelation_animation( what );
-}
-
-// FIXME: Would be nice to make this animation a bit more so-
-// phisticated.
-wait<> LandViewAnimator::animate_colony_capture(
-    UnitId attacker_id, UnitId defender_id,
-    vector<PixelationAnimation_t> const& animations,
-    ColonyId                             colony_id ) {
-  co_await animate_attack( attacker_id, defender_id, animations,
-                           /*attacker_wins=*/true );
-  UNWRAP_CHECK(
-      direction,
-      ss_.units.coord_for( attacker_id )
-          .direction_to(
-              ss_.colonies.colony_for( colony_id ).location ) );
-  co_await animate_move( attacker_id, direction );
+wait<> LandViewAnimator::animate_sequence(
+    AnimationSequence const& seq ) {
+  for( vector<AnimationAction> const& sub_seq : seq.sequence ) {
+    vector<wait<>> must_complete;
+    vector<wait<>> background;
+    must_complete.reserve( sub_seq.size() );
+    background.reserve( sub_seq.size() );
+    for( AnimationAction const& action : sub_seq ) {
+      if( action.background )
+        background.push_back(
+            animate_primitive( action.primitive ) );
+      else
+        must_complete.push_back(
+            animate_primitive( action.primitive ) );
+    }
+    co_await co::all( std::move( must_complete ) );
+  }
 }
 
 } // namespace rn

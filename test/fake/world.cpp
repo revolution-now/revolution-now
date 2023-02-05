@@ -11,6 +11,7 @@
 #include "world.hpp"
 
 // Testing
+#include "test/mocks/icombat.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
 
@@ -123,6 +124,12 @@ MockIRand& World::rand() {
   return *uninitialized_rand_;
 }
 
+MockICombat& World::combat() {
+  if( uninitialized_combat_ == nullptr )
+    uninitialized_combat_ = make_unique<MockICombat>();
+  return *uninitialized_combat_;
+}
+
 namespace {
 
 // We need this because we can't (yet?) do aggregate initializa-
@@ -132,7 +139,8 @@ namespace {
 // state (please FIXME).
 TS* make_ts( World& world ) {
   return new TS( world.map_updater(), world.lua(), world.gui(),
-                 world.rand(), world.ss_saved().root );
+                 world.rand(), world.combat(),
+                 world.ss_saved().root );
 }
 
 }
@@ -369,6 +377,12 @@ void World::add_default_player() {
   add_player( default_nation() );
 }
 
+void World::set_human_player( e_nation nation ) {
+  for( auto& [e_nation, player] : players().players )
+    if( player.has_value() ) player->human = false;
+  player( nation ).human = true;
+}
+
 Colony& World::add_colony( UnitId founder ) {
   string name =
       fmt::to_string( colonies().last_colony_id() + 1 );
@@ -415,6 +429,26 @@ Dwelling& World::add_dwelling( Coord where, e_tribe tribe ) {
 Tribe& World::add_tribe( e_tribe tribe ) {
   return natives().create_or_add_tribe( tribe );
 }
+
+Tribe& World::tribe( e_tribe tribe ) {
+  return natives().tribe_for( tribe );
+}
+
+Tribe& World::apache() { return tribe( e_tribe::apache ); }
+
+Tribe& World::sioux() { return tribe( e_tribe::sioux ); }
+
+Tribe& World::tupi() { return tribe( e_tribe::tupi ); }
+
+Tribe& World::arawak() { return tribe( e_tribe::arawak ); }
+
+Tribe& World::cherokee() { return tribe( e_tribe::cherokee ); }
+
+Tribe& World::iroquois() { return tribe( e_tribe::iroquois ); }
+
+Tribe& World::aztec() { return tribe( e_tribe::aztec ); }
+
+Tribe& World::inca() { return tribe( e_tribe::inca ); }
 
 // --------------------------------------------------------------
 // Colony setup.
