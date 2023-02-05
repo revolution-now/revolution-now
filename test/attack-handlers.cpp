@@ -297,6 +297,9 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         W.add_pair( e_unit_type::soldier, e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
+    REQUIRE( W.units()
+                 .unit_for( combat.attacker.id )
+                 .movement_points() == 1 );
     f();
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
@@ -310,6 +313,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
              W.kLandDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
     REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.movement_points() == 0 );
   }
 
   SECTION(
@@ -342,6 +346,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
              W.kLandDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
     REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.movement_points() == 0 );
   }
 
   SECTION(
@@ -370,6 +375,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
              W.kLandDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
     REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.movement_points() == 0 );
   }
 
   SECTION( "soldier->soldier, attacker wins with promotion" ) {
@@ -403,6 +409,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
              W.kLandDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
     REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.movement_points() == 0 );
   }
 
   SECTION(
@@ -431,6 +438,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
              W.kLandAttack );
     REQUIRE( attacker.nation() == W.kAttackingNation );
     REQUIRE( defender.nation() == W.kAttackingNation );
+    REQUIRE( attacker.movement_points() == 0 );
   }
 
   SECTION(
@@ -465,6 +473,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
              W.kLandAttack );
     REQUIRE( attacker.nation() == W.kAttackingNation );
     REQUIRE( defender.nation() == W.kAttackingNation );
+    REQUIRE( attacker.movement_points() == 0 );
   }
 
   SECTION( "soldier->missionary, attacker wins with destroy" ) {
@@ -489,6 +498,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
     REQUIRE( W.units().coord_for( attacker.id() ) ==
              W.kLandAttack );
     REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.movement_points() == 0 );
   }
 }
 #endif
@@ -541,6 +551,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
              W.kLandAttack );
     REQUIRE( attacker.nation() == W.kAttackingNation );
     REQUIRE( relationship.tribal_alarm == 0 );
+    REQUIRE( attacker.movement_points() == 1 );
   }
 
   SECTION( "ask attack, proceed" ) {
@@ -567,6 +578,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
              W.kLandAttack );
     REQUIRE( attacker.nation() == W.kAttackingNation );
     REQUIRE( relationship.tribal_alarm == 10 );
+    REQUIRE( attacker.movement_points() == 0 );
   }
 
   SECTION( "soldier->brave, attacker wins" ) {
@@ -596,6 +608,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
              W.kLandAttack );
     REQUIRE( attacker.nation() == W.kAttackingNation );
     REQUIRE( relationship.tribal_alarm == 10 );
+    REQUIRE( attacker.movement_points() == 0 );
   }
 
   SECTION( "soldier->brave, attacker loses, no brave change" ) {
@@ -625,6 +638,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
              W.kLandDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
     REQUIRE( relationship.tribal_alarm == 10 );
+    REQUIRE( attacker.movement_points() == 0 );
   }
 
   SECTION( "soldier->brave, attacker loses" ) {
@@ -656,6 +670,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
              W.kLandDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
     REQUIRE( relationship.tribal_alarm == 10 );
+    REQUIRE( attacker.movement_points() == 0 );
   }
 }
 #endif
