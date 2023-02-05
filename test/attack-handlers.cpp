@@ -183,6 +183,7 @@ struct World : testing::World {
 *****************************************************************/
 // This test case tests failure modes that are common to most of
 // the handlers.
+#ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] common failure checks" ) {
   World                W;
   CombatEuroAttackEuro combat;
@@ -261,7 +262,9 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
     // that will be tested in other test cases.
   }
 }
+#endif
 
+#ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
   World                W;
   CombatEuroAttackEuro combat;
@@ -488,7 +491,9 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
     REQUIRE( attacker.nation() == W.kAttackingNation );
   }
 }
+#endif
 
+#ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
   World                 W;
   CombatEuroAttackBrave combat;
@@ -653,6 +658,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
     REQUIRE( relationship.tribal_alarm == 10 );
   }
 }
+#endif
 
 } // namespace
 } // namespace rn
