@@ -203,7 +203,7 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
       config.msg = fmt::format(
           "You are trespassing on @[H]{}@[] land.  Please leave "
           "promptly.",
-          config_natives.tribes[tribe.type].name_posessive );
+          config_natives.tribes[tribe.type].name_adjective );
       names[e_native_land_grab_result::take] =
           "You are mistaken... this is OUR land now!";
       break;
@@ -211,7 +211,7 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
       config.msg = fmt::format(
           "You are trespassing on @[H]{}@[] land.  Please leave "
           "promptly.",
-          config_natives.tribes[tribe.type].name_posessive );
+          config_natives.tribes[tribe.type].name_adjective );
       names[e_native_land_grab_result::take] =
           "You are mistaken... this is OUR land now!";
       break;
@@ -256,7 +256,8 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
   if( !response.has_value() ) co_return false;
 
   switch( *response ) {
-    case e_native_land_grab_result::cancel: co_return false;
+    case e_native_land_grab_result::cancel:
+      co_return false;
     case e_native_land_grab_result::pay:
       player.money -= price.price;
       CHECK_GE( player.money, 0 );
