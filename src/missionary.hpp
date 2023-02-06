@@ -12,15 +12,22 @@
 
 #include "core-config.hpp"
 
-// gs
+// rds
+#include "missionary.rds.hpp"
+
+// ss
 #include "ss/dwelling-id.hpp"
+#include "ss/native-enums.rds.hpp"
+#include "ss/unit-id.hpp"
 #include "ss/unit-type.hpp"
 
 namespace rn {
 
 struct Colony;
+struct IRand;
 struct Player;
 struct SSConst;
+struct Tribe;
 struct Unit;
 
 /****************************************************************
@@ -79,5 +86,23 @@ bool is_missionary( e_unit_type type );
 maybe<double> probability_dwelling_produces_convert_on_attack(
     SSConst const& ss, Player const& player_attacking,
     DwellingId dwelling_id );
+
+// After an attack is made (or just attempted) on a dwelling,
+// should the corresponding tribe burn all of the player's mis-
+// sionaries? This is only relevant when the player does have
+// some missions in the tribe.
+bool should_burn_mission_on_attack(
+    IRand& rand, int tribal_alarm_after_attack );
+
+// Gets all of the player's missionaries that they have in all of
+// the given tribe's dwellings.
+std::vector<UnitId> player_missionaries_in_tribe(
+    SSConst const& ss, Player const& player,
+    e_tribe tribe_type );
+
+// When a missionary establishes a mission this should be called
+// to determine how they are shown to react.
+e_missionary_reaction tribe_reaction_to_missionary(
+    Player const& player, Tribe const& tribe );
 
 } // namespace rn

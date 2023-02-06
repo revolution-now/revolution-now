@@ -15,10 +15,12 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/irand.hpp"
 
 // ss
 #include "src/ss/dwelling.rds.hpp"
 #include "src/ss/ref.hpp"
+#include "src/ss/tribe.rds.hpp"
 #include "src/ss/units.hpp"
 
 // refl
@@ -42,8 +44,13 @@ struct World : testing::World {
     add_player( e_nation::french );
     set_default_player( e_nation::dutch );
     MapSquare const   L = make_grassland();
-    vector<MapSquare> tiles{ L };
-    build_map( std::move( tiles ), 1 );
+    vector<MapSquare> tiles{
+        L, L, L, L, //
+        L, L, L, L, //
+        L, L, L, L, //
+        L, L, L, L, //
+    };
+    build_map( std::move( tiles ), 5 );
   }
 };
 
@@ -284,6 +291,185 @@ TEST_CASE(
     expected = .66;
     REQUIRE( f() == expected );
   }
+}
+
+TEST_CASE( "[missionary] should_burn_mission_on_attack" ) {
+  World W;
+  auto  f = [&]( int alarm ) {
+    return should_burn_mission_on_attack( W.rand(), alarm );
+  };
+
+  REQUIRE_FALSE( f( 0 ) );
+  REQUIRE_FALSE( f( 20 ) );
+  REQUIRE_FALSE( f( 40 ) );
+  REQUIRE_FALSE( f( 60 ) );
+  REQUIRE_FALSE( f( 84 ) );
+
+  EXPECT_CALL( W.rand(), bernoulli( .5 ) ).returns( false );
+  REQUIRE_FALSE( f( 85 ) );
+  EXPECT_CALL( W.rand(), bernoulli( .5 ) ).returns( true );
+  REQUIRE( f( 85 ) );
+
+  EXPECT_CALL( W.rand(), bernoulli( .5 ) ).returns( false );
+  REQUIRE_FALSE( f( 90 ) );
+  EXPECT_CALL( W.rand(), bernoulli( .5 ) ).returns( true );
+  REQUIRE( f( 90 ) );
+
+  EXPECT_CALL( W.rand(), bernoulli( .5 ) ).returns( false );
+  REQUIRE_FALSE( f( 99 ) );
+  EXPECT_CALL( W.rand(), bernoulli( .5 ) ).returns( true );
+  REQUIRE( f( 99 ) );
+}
+
+TEST_CASE( "[missionary] player_missionaries_in_tribe" ) {
+  World W;
+  using V = vector<UnitId>;
+
+  W.add_tribe( e_tribe::apache );
+  W.add_tribe( e_tribe::cherokee );
+
+  auto f = [&]( e_nation nation, e_tribe tribe ) {
+    return player_missionaries_in_tribe(
+        W.ss(), W.player( nation ), tribe );
+  };
+
+  REQUIRE( f( e_nation::dutch, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+
+  DwellingId dwelling1_id =
+      W.add_dwelling( { .x = 0, .y = 0 }, e_tribe::apache ).id;
+
+  REQUIRE( f( e_nation::dutch, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+
+  UnitId missionary1_id =
+      W.add_missionary_in_dwelling(
+           UnitType::create( e_unit_type::missionary ),
+           dwelling1_id, e_nation::dutch )
+          .id();
+
+  REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
+           V{ missionary1_id } );
+  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+
+  DwellingId dwelling2_id =
+      W.add_dwelling( { .x = 1, .y = 0 }, e_tribe::apache ).id;
+
+  REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
+           V{ missionary1_id } );
+  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+
+  UnitId missionary2_id =
+      W.add_missionary_in_dwelling(
+           UnitType::create( e_unit_type::missionary ),
+           dwelling2_id, e_nation::dutch )
+          .id();
+
+  REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
+           V{ missionary1_id, missionary2_id } );
+  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+
+  DwellingId dwelling3_id =
+      W.add_dwelling( { .x = 2, .y = 0 }, e_tribe::cherokee ).id;
+
+  REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
+           V{ missionary1_id, missionary2_id } );
+  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+
+  UnitId missionary3_id =
+      W.add_missionary_in_dwelling(
+           UnitType::create( e_unit_type::jesuit_missionary ),
+           dwelling3_id, e_nation::dutch )
+          .id();
+
+  REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
+           V{ missionary1_id, missionary2_id } );
+  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) ==
+           V{ missionary3_id } );
+  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+
+  DwellingId dwelling4_id =
+      W.add_dwelling( { .x = 3, .y = 0 }, e_tribe::cherokee ).id;
+
+  REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
+           V{ missionary1_id, missionary2_id } );
+  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) ==
+           V{ missionary3_id } );
+  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+
+  UnitId missionary4_id =
+      W.add_missionary_in_dwelling(
+           UnitType::create( e_unit_type::jesuit_missionary ),
+           dwelling4_id, e_nation::french )
+          .id();
+
+  REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
+           V{ missionary1_id, missionary2_id } );
+  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) ==
+           V{ missionary3_id } );
+  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_nation::french, e_tribe::cherokee ) ==
+           V{ missionary4_id } );
+
+  W.units().destroy_unit( missionary1_id );
+  W.units().destroy_unit( missionary3_id );
+
+  REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
+           V{ missionary2_id } );
+  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_nation::french, e_tribe::cherokee ) ==
+           V{ missionary4_id } );
+
+  W.units().destroy_unit( missionary2_id );
+  W.units().destroy_unit( missionary4_id );
+
+  REQUIRE( f( e_nation::dutch, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+}
+
+TEST_CASE( "[missionary] tribe_reaction_to_missionary" ) {
+  World              W;
+  Tribe&             tribe = W.add_tribe( e_tribe::inca );
+  TribeRelationship& relationship =
+      tribe.relationship[W.default_nation()].emplace();
+
+  auto f = [&] {
+    return tribe_reaction_to_missionary( W.default_player(),
+                                         tribe );
+  };
+
+  relationship.tribal_alarm = 0;
+  REQUIRE( f() == e_missionary_reaction::curiosity );
+  relationship.tribal_alarm = 24;
+  REQUIRE( f() == e_missionary_reaction::curiosity );
+
+  relationship.tribal_alarm = 25;
+  REQUIRE( f() == e_missionary_reaction::cautious );
+  relationship.tribal_alarm = 49;
+  REQUIRE( f() == e_missionary_reaction::cautious );
+
+  relationship.tribal_alarm = 50;
+  REQUIRE( f() == e_missionary_reaction::offended );
+  relationship.tribal_alarm = 74;
+  REQUIRE( f() == e_missionary_reaction::offended );
+
+  relationship.tribal_alarm = 75;
+  REQUIRE( f() == e_missionary_reaction::hostility );
+  relationship.tribal_alarm = 99;
+  REQUIRE( f() == e_missionary_reaction::hostility );
 }
 
 } // namespace
