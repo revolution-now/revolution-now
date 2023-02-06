@@ -632,6 +632,9 @@ enum.e_tile {
   # Other
   totem_pole,
   capital_star,
+  missionary_cross_inner,
+  missionary_cross_outter,
+  missionary_cross_accent,
 
   # =============================================================
   # Menu
