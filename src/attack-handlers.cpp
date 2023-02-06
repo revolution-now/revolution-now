@@ -115,7 +115,8 @@ wait<maybe<e_attack_verdict_base>> check_attack_verdict_base(
   }
 
   if( surface_type( ss.terrain.square_at( target ) ) ==
-      e_surface::water )
+          e_surface::water &&
+      !attacker.desc().ship )
     co_return e_attack_verdict_base::land_unit_attack_ship;
 
   if( attacker.movement_points() < 1 ) {
