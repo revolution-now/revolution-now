@@ -64,3 +64,10 @@ type {
 # It is applied each time a dwelling of the tribe is attacked,
 # and on each turn (TODO: same probability for both?).
 burn_mission.probability: .50
+
+# When a jesuit missionary occupies a mission in a dwelling, a
+# cross will be rendered with the nation's flag color. But when
+# the missionary is a non-jesuit, the saturation of that color
+# will be reduced by this multiplicative factor (should be <
+# 1.0).
+saturation_reduction_for_non_jesuit_cross: .65

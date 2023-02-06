@@ -22,6 +22,10 @@ base::valid_or<string> config_missionary_t::validate() const {
   REFL_VALIDATE( type[e_missionary_type::normal].strength == 1.0,
                  "strength of '{}' missionary type must be 1.0.",
                  e_missionary_type::normal );
+
+  REFL_VALIDATE( saturation_reduction_for_non_jesuit_cross < 1.0,
+                 "saturation_reduction_for_non_jesuit_cross "
+                 "must be less than 1." );
   return base::valid;
 }
 

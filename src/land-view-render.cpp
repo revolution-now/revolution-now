@@ -399,8 +399,7 @@ void LandViewRenderer::render_native_dwelling(
   Coord const tile_coord =
       render_rect_for_tile( location ).upper_left() -
       Delta{ .w = 6, .h = 6 };
-  rr::Painter painter = renderer.painter();
-  render_dwelling( painter, tile_coord, ss_, dwelling );
+  render_dwelling( renderer, tile_coord, ss_, dwelling );
 }
 
 void LandViewRenderer::render_native_dwelling_depixelate(
@@ -579,7 +578,7 @@ void LandViewRenderer::render_native_dwellings() const {
 
 // Render units under colonies or dwellings (used when abandoning
 // a colony leaving a colonist or destroying a dwelling leaving a
-// treasure unit.
+// missionary.
 void LandViewRenderer::render_units_underneath() const {
   // Under colonies.
   for( auto const& [colony_id, anim_stack] :

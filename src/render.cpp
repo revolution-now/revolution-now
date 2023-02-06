@@ -22,6 +22,7 @@
 
 // config
 #include "config/gfx.rds.hpp"
+#include "config/missionary.rds.hpp"
 #include "config/nation.hpp"
 #include "config/natives.hpp"
 #include "config/tile-enum.rds.hpp"
@@ -31,6 +32,7 @@
 #include "ss/colony.hpp"
 #include "ss/dwelling.rds.hpp"
 #include "ss/natives.hpp"
+#include "ss/units.hpp"
 
 // base
 #include "base/keyval.hpp"
@@ -151,20 +153,34 @@ void render_unit_flag( rr::Renderer& renderer, Coord where,
 
   char c{ '-' }; // gcc seems to want us to initialize this
   switch( orders ) {
-    case e_unit_orders::none: c = '-'; break;
-    case e_unit_orders::sentry: c = 'S'; break;
-    case e_unit_orders::fortified: c = 'F'; break;
-    case e_unit_orders::fortifying: c = 'F'; break;
-    case e_unit_orders::road: c = 'R'; break;
-    case e_unit_orders::plow: c = 'P'; break;
+    case e_unit_orders::none:
+      c = '-';
+      break;
+    case e_unit_orders::sentry:
+      c = 'S';
+      break;
+    case e_unit_orders::fortified:
+      c = 'F';
+      break;
+    case e_unit_orders::fortifying:
+      c = 'F';
+      break;
+    case e_unit_orders::road:
+      c = 'R';
+      break;
+    case e_unit_orders::plow:
+      c = 'P';
+      break;
   };
   // We don't grey out the "fortifying" state to signal to the
   // player that the unit is not yet fully fortified.
   bool is_greyed = ( orders == e_unit_orders::fortified ||
                      orders == e_unit_orders::sentry );
   switch( flag ) {
-    case e_flag_count::none: break;
-    case e_flag_count::single: break;
+    case e_flag_count::none:
+      break;
+    case e_flag_count::single:
+      break;
     case e_flag_count::multiple:
       render_unit_flag_impl( renderer, where + delta_stacked,
                              color, c, is_greyed );
@@ -191,6 +207,27 @@ void depixelate_from_to(
   }
   rr::Painter painter = renderer.painter();
   from( painter );
+}
+
+// We really don't want to compute the dulled colors everytime we
+// render a dwelling, so we will cache it.
+gfx::pixel missionary_cross_color( e_nation nation,
+                                   bool     is_jesuit ) {
+  static auto dulled = [] {
+    refl::enum_map<e_nation, gfx::pixel> m;
+    for( e_nation nation : refl::enum_values<e_nation> ) {
+      gfx::pixel const bright_color =
+          config_nation.nations[nation].flag_color;
+      gfx::pixel_hsl hsl = to_HSL( bright_color );
+      hsl.s *= config_missionary
+                   .saturation_reduction_for_non_jesuit_cross;
+      m[nation] = to_RGB( hsl );
+    }
+    return m;
+  }();
+  if( is_jesuit )
+    return config_nation.nations[nation].flag_color;
+  return dulled[nation];
 }
 
 } // namespace
@@ -326,9 +363,10 @@ void render_colony( rr::Painter& painter, Coord where,
                       nation.flag_color );
 }
 
-void render_dwelling( rr::Painter& painter, Coord where,
+void render_dwelling( rr::Renderer& renderer, Coord where,
                       SSConst const&  ss,
                       Dwelling const& dwelling ) {
+  rr::Painter   painter = renderer.painter();
   e_tribe const tribe_type =
       ss.natives.tribe_for( dwelling.id ).type;
   auto&        tribe_conf    = config_natives.tribes[tribe_type];
@@ -340,10 +378,44 @@ void render_dwelling( rr::Painter& painter, Coord where,
   for( gfx::rect flag : config_natives.flag_rects[native_level] )
     painter.draw_solid_rect( flag.origin_becomes_point( where ),
                              flag_color );
+  // The offset that we need to go to get to the upper left
+  // corner of a 32x32 sprite centered on the (48x48) dwelling
+  // tile.
+  Delta const offset_32x32{ .w = 6, .h = 6 };
   // Yellow star to mark the capital.
   if( dwelling.is_capital )
-    render_sprite( painter, where + Delta{ .w = 6, .h = 6 },
+    render_sprite( painter, where + offset_32x32,
                    e_tile::capital_star );
+
+  // If there is a missionary in this dwelling then render a
+  // cross on top of it with the color of the nation's flag. It
+  // will be dulled if the missionary is a non-jesuit.
+  maybe<UnitId> const missionary_id =
+      ss.units.missionary_from_dwelling( dwelling.id );
+  if( missionary_id.has_value() ) {
+    Unit const& missionary = ss.units.unit_for( *missionary_id );
+    bool const  is_jesuit =
+        ( missionary_type( missionary.type_obj() ) ==
+          e_missionary_type::jesuit );
+    gfx::pixel const cross_color =
+        missionary_cross_color( missionary.nation(), is_jesuit );
+    // This is the inner part that is colored according to the
+    // nation's flag color.
+    render_sprite_silhouette( painter, where + offset_32x32,
+                              e_tile::missionary_cross_inner,
+                              cross_color );
+    render_sprite( painter, where + offset_32x32,
+                   e_tile::missionary_cross_outter );
+    // This part adds some shadows/highlights to the colored part
+    // of the cross.
+    {
+      double const alpha = is_jesuit ? .10 : .07;
+      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
+      rr::Painter painter = renderer.painter();
+      render_sprite( painter, where + offset_32x32,
+                     e_tile::missionary_cross_accent );
+    }
+  }
 }
 
 void render_unit_depixelate( rr::Renderer& renderer, Coord where,

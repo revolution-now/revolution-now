@@ -127,7 +127,7 @@ void render_native_unit_depixelate_to(
 void render_colony( rr::Painter& painter, Coord where,
                     Colony const& colony );
 
-void render_dwelling( rr::Painter& painter, Coord where,
+void render_dwelling( rr::Renderer& renderer, Coord where,
                       SSConst const&  ss,
                       Dwelling const& dwelling );
 
