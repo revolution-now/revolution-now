@@ -433,4 +433,11 @@ AnimationSequence anim_seq_unit_to_front(
   return builder.result();
 }
 
+AnimationSequence anim_seq_unit_to_front_non_background(
+    GenericUnitId unit_id ) {
+  AnimationBuilder builder;
+  builder.front_unit_non_background( unit_id );
+  return builder.result();
+}
+
 } // namespace rn

@@ -37,6 +37,8 @@ struct AnimationBuilder {
 
   void front_unit( GenericUnitId unit_id );
 
+  void front_unit_non_background( GenericUnitId unit_id );
+
   void slide_unit( GenericUnitId unit_id,
                    e_direction   direction );
 

@@ -49,9 +49,14 @@ void AnimationBuilder::hide_unit( GenericUnitId unit_id ) {
 void AnimationBuilder::front_unit( GenericUnitId unit_id ) {
   AnimationAction& action =
       push( P::front_unit{ .unit_id = unit_id } );
-  // The "front" animation must always be a background animation
-  // because it never ends.
   action.background = true;
+}
+
+void AnimationBuilder::front_unit_non_background(
+    GenericUnitId unit_id ) {
+  AnimationAction& action =
+      push( P::front_unit{ .unit_id = unit_id } );
+  action.background = false;
 }
 
 void AnimationBuilder::slide_unit( GenericUnitId unit_id,

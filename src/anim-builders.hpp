@@ -87,4 +87,10 @@ AnimationSequence anim_seq_for_colony_depixelation(
 AnimationSequence anim_seq_unit_to_front(
     GenericUnitId unit_id );
 
+// Version of the above but non-terminating. This is needed when
+// you want to run this on its own (not with any other finite an-
+// imations runnings in parallel) until some other event occurs.
+AnimationSequence anim_seq_unit_to_front_non_background(
+    GenericUnitId unit_id );
+
 } // namespace rn

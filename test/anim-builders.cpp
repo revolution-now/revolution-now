@@ -201,6 +201,23 @@ TEST_CASE( "[anim-builders] anim_seq_unit_to_front" ) {
   REQUIRE( f() == expected );
 }
 
+TEST_CASE(
+    "[anim-builders] anim_seq_unit_to_front_non_background" ) {
+  AnimationSequence expected;
+  UnitId            unit_id = {};
+
+  auto f = [&] {
+    return anim_seq_unit_to_front_non_background( unit_id );
+  };
+
+  unit_id  = UnitId{ 3 };
+  expected = {
+      .sequence = {
+          { { .primitive  = P::front_unit{ .unit_id = unit_id },
+              .background = false } } } };
+  REQUIRE( f() == expected );
+}
+
 TEST_CASE( "[anim-builders] anim_seq_for_attack_euro" ) {
   World             W;
   AnimationSequence expected;

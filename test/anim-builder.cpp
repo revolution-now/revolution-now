@@ -47,6 +47,7 @@ TEST_CASE( "[anim-builder] builders" ) {
       NativeUnitId{ 7 }, e_native_unit_type::mounted_brave );
   builder.depixelate_colony( ColonyId{ 8 } );
   builder.depixelate_dwelling( DwellingId{ 9 } );
+  builder.front_unit_non_background( GenericUnitId{ 10 } );
 
   AnimationSequence const& res = builder.result();
 
@@ -83,8 +84,11 @@ TEST_CASE( "[anim-builder] builders" ) {
             { .primitive =
                   P::depixelate_colony{ .colony_id =
                                             ColonyId{ 8 } } },
-            { .primitive = P::depixelate_dwelling{
-                  .dwelling_id = DwellingId{ 9 } } } } } };
+            { .primitive =
+                  P::depixelate_dwelling{
+                      .dwelling_id = DwellingId{ 9 } } },
+            { .primitive = P::front_unit{
+                  .unit_id = GenericUnitId{ 10 } } } } } };
 
   REQUIRE( res == expected );
 }
