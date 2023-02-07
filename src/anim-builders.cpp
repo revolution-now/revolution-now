@@ -376,6 +376,48 @@ AnimationSequence anim_seq_for_undefended_colony(
   return builder.result();
 }
 
+AnimationSequence anim_seq_for_dwelling_burn(
+    SSConst const& ss, UnitId attacker_id,
+    EuroUnitCombatOutcome_t const& attacker_outcome,
+    NativeUnitId defender_id, DwellingId dwelling_id,
+    DwellingCombatOutcome::destruction const&
+        dwelling_destruction ) {
+  CHECK( attacker_outcome
+             .holds<EuroUnitCombatOutcome::no_change>() ||
+         attacker_outcome
+             .holds<EuroUnitCombatOutcome::promoted>() );
+  Coord const attacker_coord =
+      coord_for_unit_indirect_or_die( ss.units, attacker_id );
+  Coord const defender_coord =
+      coord_for_unit_multi_ownership_or_die( ss, defender_id );
+  UNWRAP_CHECK( direction,
+                attacker_coord.direction_to( defender_coord ) );
+  AnimationBuilder builder;
+
+  // Phase 1: defender unit appears above colony and the attacker
+  // slides toward it.
+  builder.front_unit( defender_id );
+  builder.slide_unit( attacker_id, direction );
+  builder.play_sound( e_sfx::move );
+
+  // Phase 2: attacker unit, phantom defender unit, dwelling, and
+  // any owned braves depixelate. If the attacker unit is pro-
+  // moted then it will pixelate.
+  builder.new_phase();
+  add_attack_outcome_for_euro_unit( ss, builder, attacker_id,
+                                    attacker_outcome );
+  add_attack_outcome_for_native_unit(
+      builder, defender_id,
+      NativeUnitCombatOutcome::destroyed{} );
+  builder.depixelate_dwelling( dwelling_id );
+  for( NativeUnitId brave_id :
+       dwelling_destruction.braves_to_kill )
+    builder.depixelate_unit( brave_id );
+  builder.play_sound( e_sfx::city_destroyed );
+
+  return builder.result();
+}
+
 AnimationSequence anim_seq_for_unit_move(
     GenericUnitId unit_id, e_direction direction ) {
   AnimationBuilder builder;

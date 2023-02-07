@@ -30,6 +30,11 @@ struct CombatEuroAttackEuro;
 struct CombatShipAttackShip;
 struct CombatEuroAttackUndefendedColony;
 struct SSConst;
+struct EuroUnitCombatOutcome_t;
+
+namespace DwellingCombatOutcome {
+struct destruction;
+}
 
 // General euro-on-euro attack sequence.
 AnimationSequence anim_seq_for_attack_euro(
@@ -49,6 +54,14 @@ AnimationSequence anim_seq_for_naval_battle(
 AnimationSequence anim_seq_for_undefended_colony(
     SSConst const&                          ss,
     CombatEuroAttackUndefendedColony const& combat );
+
+// For when a dwelling gets burned.
+AnimationSequence anim_seq_for_dwelling_burn(
+    SSConst const& ss, UnitId attacker_id,
+    EuroUnitCombatOutcome_t const& attacker_outcome,
+    NativeUnitId defender_id, DwellingId dwelling_id,
+    DwellingCombatOutcome::destruction const&
+        dwelling_destruction );
 
 // Just slides a unit to an adjacent square without regard to
 // what is on that square or if the square even exists (as it

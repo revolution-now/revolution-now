@@ -628,5 +628,64 @@ TEST_CASE( "[anim-builders] anim_seq_for_undefended_colony" ) {
   }
 }
 
+TEST_CASE( "[anim-builders] anim_seq_for_dwelling_burn" ) {
+  World             W;
+  AnimationSequence expected;
+  Unit const& attacker = W.add_unit_on_map( e_unit_type::soldier,
+                                            { .x = 1, .y = 0 } );
+  Dwelling const& dwelling =
+      W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::apache );
+  // Create phantom brave that defends the dwelling.
+  NativeUnitId const defender_id =
+      W.add_native_unit_on_map( e_native_unit_type::brave,
+                                { .x = 1, .y = 1 }, dwelling.id )
+          .id;
+  NativeUnitId const other_brave_id =
+      W.add_native_unit_on_map( e_native_unit_type::brave,
+                                { .x = 0, .y = 1 }, dwelling.id )
+          .id;
+  EuroUnitCombatOutcome::promoted const attacker_outcome{
+      .to = UnitType::create( e_unit_type::veteran_soldier ) };
+  DwellingCombatOutcome::destruction const dwelling_destruction{
+      .braves_to_kill = { other_brave_id } };
+
+  auto f = [&] {
+    return anim_seq_for_dwelling_burn(
+        W.ss(), attacker.id(), attacker_outcome, defender_id,
+        dwelling.id, dwelling_destruction );
+  };
+
+  expected = {
+      .sequence = {
+          /*phase 1=*/{
+              { .primitive =
+                    P::front_unit{ .unit_id = defender_id },
+                .background = true },
+              { .primitive =
+                    P::slide_unit{
+                        .unit_id   = attacker.id(),
+                        .direction = e_direction::s } },
+              { .primitive =
+                    P::play_sound{ .what = e_sfx::move } } },
+          /*phase 2=*/{
+              { .primitive =
+                    P::depixelate_euro_unit_to_target{
+                        .unit_id = attacker.id(),
+                        .target =
+                            e_unit_type::veteran_soldier } },
+              { .primitive =
+                    P::depixelate_unit{ .unit_id =
+                                            defender_id } },
+              { .primitive =
+                    P::depixelate_dwelling{ .dwelling_id =
+                                                dwelling.id } },
+              { .primitive =
+                    P::depixelate_unit{ .unit_id =
+                                            other_brave_id } },
+              { .primitive = P::play_sound{
+                    .what = e_sfx::city_destroyed } } } } };
+  REQUIRE( f() == expected );
+}
+
 } // namespace
 } // namespace rn
