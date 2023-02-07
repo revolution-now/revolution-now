@@ -14,7 +14,6 @@
 // ss
 #include "ss/dwelling.hpp"
 #include "ss/tribe.hpp"
-#include "ss/units.hpp"
 
 // luapp
 #include "luapp/enum.hpp"
@@ -259,6 +258,10 @@ void NativesState::destroy_dwelling( DwellingId id ) {
   o_.dwellings.erase( id );
 }
 
+void NativesState::destroy_tribe_last_step( e_tribe tribe ) {
+  o_.tribes[tribe].reset();
+}
+
 DwellingId NativesState::next_dwelling_id() {
   return DwellingId{ o_.next_dwelling_id++ };
 }
@@ -293,6 +296,11 @@ NativesState::owned_land_without_minuit() const {
   return o_.owned_land_without_minuit;
 }
 
+std::unordered_map<Coord, DwellingId> const&
+NativesState::testing_only_owned_land_without_minuit() const {
+  return o_.owned_land_without_minuit;
+}
+
 void NativesState::mark_land_owned( DwellingId dwelling_id,
                                     Coord      where ) {
   o_.owned_land_without_minuit[where] = dwelling_id;
@@ -302,6 +310,22 @@ void NativesState::mark_land_unowned( Coord where ) {
   auto it = o_.owned_land_without_minuit.find( where );
   if( it == o_.owned_land_without_minuit.end() ) return;
   o_.owned_land_without_minuit.erase( it );
+}
+
+void NativesState::mark_land_unowned_for_dwellings(
+    unordered_set<DwellingId> const& dwelling_ids ) {
+  erase_if( o_.owned_land_without_minuit,
+            [&]( auto const& item ) {
+              auto const& [coord, dwelling_id] = item;
+              return dwelling_ids.contains( dwelling_id );
+            } );
+}
+
+void NativesState::mark_land_unowned_for_tribe( e_tribe tribe ) {
+  maybe<std::unordered_set<DwellingId> const&> dwelling_ids =
+      dwellings_for_tribe( tribe );
+  CHECK( dwelling_ids.has_value() );
+  mark_land_unowned_for_dwellings( *dwelling_ids );
 }
 
 /****************************************************************

@@ -90,13 +90,30 @@ struct NativesState {
                            Dwelling&& Dwelling );
 
   // NOTE: this should not be called directly since it will not
-  // do associated cleanup such as deleting (or at least disown-
-  // ing) native units that are owned by this dwelling.
+  // do associated cleanup such as deleting native units that are
+  // owned by this dwelling, land owned by the dwelling, or mis-
+  // sionaries owned by the dwelling.
   void destroy_dwelling( DwellingId id );
+
+  // NOTE: this should not be called by normal game code, since
+  // it literally does none of the things required to delete the
+  // tribe except delete the tribe object. Other things that must
+  // be done first are: all free braves must be deleted, all land
+  // owned by the dwellings of the tribe must be deleted, all
+  // missionaries in all dwellings of the tribe must be deleted,
+  // and all dwellings must be deleted, in that order. Then fi-
+  // nally this can be called.
+  void destroy_tribe_last_step( e_tribe tribe );
 
   // ------------------------------------------------------------
   // Owned Land
   // ------------------------------------------------------------
+  // Use this for testing only; normal game code should be
+  // reading this by way of the API in the native-owned module,
+  // since there is subtelty involved in interpreting the re-
+  // sults.
+  std::unordered_map<Coord, DwellingId> const&
+  testing_only_owned_land_without_minuit() const;
 
  private:
   // NOTE: Normal game logic should not be calling these methods
@@ -106,6 +123,7 @@ struct NativesState {
   // the perspective of that player.
   std::unordered_map<Coord, DwellingId>&
   owned_land_without_minuit();
+
   std::unordered_map<Coord, DwellingId> const&
   owned_land_without_minuit() const;
 
@@ -117,6 +135,16 @@ struct NativesState {
   void mark_land_owned( DwellingId dwelling_id, Coord where );
 
   void mark_land_unowned( Coord where );
+
+  // NOTE: that these are expensive calls because they have to
+  // iterate over all map squares to find the ones owned by the
+  // dwellings/tribe in question. For that reason, if you need to
+  // do this for multiple dwellings, it is good to batch them to-
+  // gether into one call rather than calling this multiple
+  // times.
+  void mark_land_unowned_for_dwellings(
+      std::unordered_set<DwellingId> const& dwelling_ids );
+  void mark_land_unowned_for_tribe( e_tribe tribe );
 
  private:
   [[nodiscard]] DwellingId next_dwelling_id();
