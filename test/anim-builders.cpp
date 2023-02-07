@@ -168,6 +168,21 @@ TEST_CASE(
   REQUIRE( f() == expected );
 }
 
+TEST_CASE( "[anim-builders] anim_seq_for_unit_enpixelation" ) {
+  AnimationSequence expected;
+  UnitId            unit_id = {};
+
+  auto f = [&] {
+    return anim_seq_for_unit_enpixelation( unit_id );
+  };
+
+  unit_id  = UnitId{ 3 };
+  expected = {
+      .sequence = { { { .primitive = P::enpixelate_unit{
+                            .unit_id = unit_id } } } } };
+  REQUIRE( f() == expected );
+}
+
 TEST_CASE( "[anim-builders] anim_seq_for_colony_depixelation" ) {
   AnimationSequence expected;
   ColonyId          colony_id = {};

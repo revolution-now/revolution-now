@@ -418,6 +418,14 @@ AnimationSequence anim_seq_for_unit_depixelation(
   return builder.result();
 }
 
+// General enpixelation animation for unit.
+AnimationSequence anim_seq_for_unit_enpixelation(
+    GenericUnitId unit_id ) {
+  AnimationBuilder builder;
+  builder.enpixelate_unit( unit_id );
+  return builder.result();
+}
+
 AnimationSequence anim_seq_for_colony_depixelation(
     ColonyId colony_id ) {
   AnimationBuilder builder;

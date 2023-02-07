@@ -76,6 +76,10 @@ AnimationSequence anim_seq_for_unit_depixelation(
 AnimationSequence anim_seq_for_unit_depixelation(
     NativeUnitId unit_id, e_native_unit_type target_type );
 
+// General enpixelation animation for unit.
+AnimationSequence anim_seq_for_unit_enpixelation(
+    GenericUnitId unit_id );
+
 // Colony just disappears.
 AnimationSequence anim_seq_for_colony_depixelation(
     ColonyId colony_id );
