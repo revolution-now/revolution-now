@@ -1105,6 +1105,10 @@ struct NativeDwellingHandler : public OrdersHandler {
             ss_, ts_, player_, dwelling_, unit_, o.outcome );
         break;
       }
+      case EnterDwellingOutcome::e::attack_village: {
+        // This should have been diverted to another handler.
+        SHOULD_NOT_BE_HERE;
+      }
       case EnterDwellingOutcome::e::attack_brave_on_dwelling: {
         // This should have been diverted to another handler.
         SHOULD_NOT_BE_HERE;
