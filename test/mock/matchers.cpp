@@ -95,9 +95,7 @@ struct IPoint {
 
   virtual string say_hello( string const& to ) const     = 0;
   virtual string say_hello_ptr( string const* to ) const = 0;
-  virtual string say_hello_sv( string_view to ) const    = 0;
-  virtual string_view say_hello_sv_sv(
-      string_view to ) const = 0;
+  virtual string say_hello_s( string to ) const          = 0;
 
   virtual void set_foo( Foo const& foo ) = 0;
 
@@ -155,10 +153,7 @@ struct MockPoint : IPoint {
   MOCK_METHOD( string, say_hello, (string const&), ( const ) );
   MOCK_METHOD( string, say_hello_ptr, (string const*),
                ( const ) );
-  MOCK_METHOD( string, say_hello_sv, ( string_view ),
-               ( const ) );
-  MOCK_METHOD( string_view, say_hello_sv_sv, ( string_view ),
-               ( const ) );
+  MOCK_METHOD( string, say_hello_s, ( string ), ( const ) );
 
   MOCK_METHOD( void, set_foo, (Foo const&), () );
 
@@ -234,11 +229,8 @@ struct PointUser {
   string say_hello_ptr( string const* to ) const {
     return p_->say_hello_ptr( to );
   }
-  string say_hello_sv( string_view to ) const {
-    return p_->say_hello_sv( to );
-  }
-  string_view say_hello_sv_sv( string_view to ) const {
-    return p_->say_hello_sv_sv( to );
+  string say_hello_s( string to ) const {
+    return p_->say_hello_s( to );
   }
 
   void set_foo( Foo const& foo ) { p_->set_foo( foo ); }
@@ -468,27 +460,20 @@ TEST_CASE( "[mock] string_view" ) {
   SECTION( "takes string_view" ) {
     // Note that if "bob" were a temporary std::string then this
     // would crash due to stored dangling string_view.
-    EXPECT_CALL( mp, say_hello_sv( "bob" ) )
+    EXPECT_CALL( mp, say_hello_s( "bob" ) )
         .returns( "hello bob" );
-    REQUIRE( user.say_hello_sv( "bob" ) == "hello bob" );
+    REQUIRE( user.say_hello_s( "bob" ) == "hello bob" );
   }
 
   SECTION( "takes string_view (use string for return)" ) {
     // Note that if "bob" were a temporary std::string then this
     // would crash due to stored dangling string_view.
-    EXPECT_CALL( mp, say_hello_sv( "bob" ) )
+    EXPECT_CALL( mp, say_hello_s( "bob" ) )
         // Passing a temporary string here should be OK because
-        // say_hello_sv returns a std::string, so nothing will
+        // say_hello_s returns a std::string, so nothing will
         // dangle.
         .returns( string( "hello bob" ) );
-    REQUIRE( user.say_hello_sv( "bob" ) == "hello bob" );
-  }
-
-  SECTION( "takes and returns string_view" ) {
-    // Both of these must be non-dangling.
-    EXPECT_CALL( mp, say_hello_sv_sv( "bob" ) )
-        .returns( "hello bob" );
-    REQUIRE( user.say_hello_sv_sv( "bob" ) == "hello bob" );
+    REQUIRE( user.say_hello_s( "bob" ) == "hello bob" );
   }
 }
 
@@ -587,13 +572,13 @@ TEST_CASE( "[mock] HasSize" ) {
   EXPECT_CALL( mp, sum_ints( HasSize( Ge( 2 ) ) ) )
       .times( 3 )
       .returns( 42 );
-  REQUIRE( user.sum_ints( v ) == 42 ); // 3, 4, 5
+  REQUIRE( user.sum_ints( v ) == 42 );           // 3, 4, 5
   v.pop_back();
-  REQUIRE( user.sum_ints( v ) == 42 ); // 3, 4
+  REQUIRE( user.sum_ints( v ) == 42 );           // 3, 4
   v.pop_back();
   REQUIRE_UNEXPECTED_ARGS( user.sum_ints( v ) ); // 3
   v.push_back( 1 );
-  REQUIRE( user.sum_ints( v ) == 42 ); // 3, 1
+  REQUIRE( user.sum_ints( v ) == 42 );           // 3, 1
 
   v = { 3, 4, 5 };
   EXPECT_CALL( mp, sum_ints( Not( HasSize( Ge( 2 ) ) ) ) )
@@ -602,7 +587,7 @@ TEST_CASE( "[mock] HasSize" ) {
   v.pop_back();
   REQUIRE_UNEXPECTED_ARGS( user.sum_ints( v ) ); // 3, 4
   v.pop_back();
-  REQUIRE( user.sum_ints( v ) == 42 ); // 3
+  REQUIRE( user.sum_ints( v ) == 42 );           // 3
 }
 
 TEST_CASE( "[mock] Each" ) {

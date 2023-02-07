@@ -58,7 +58,7 @@ struct IGui {
   ** ===========================================================*/
   // Displays a message box. Hitting basically any key or
   // clicking the mouse (anywhere) should close it.
-  virtual wait<> message_box( std::string_view msg ) = 0;
+  virtual wait<> message_box( std::string const& msg ) = 0;
 
   // For convenience.  Should not be overridden.
   template<typename Arg, typename... Rest>

@@ -29,7 +29,7 @@ struct RealGui : IGui {
     : window_plane_( window_plane ) {}
 
   // Implement IGui.
-  wait<> message_box( std::string_view msg ) override;
+  wait<> message_box( std::string const& msg ) override;
 
   // Implement IGui.
   wait<std::chrono::microseconds> wait_for(

@@ -28,7 +28,7 @@ namespace rn {
 /****************************************************************
 ** RealGui
 *****************************************************************/
-wait<> RealGui::message_box( string_view msg ) {
+wait<> RealGui::message_box( string const& msg ) {
   return window_plane_.message_box( msg );
 }
 

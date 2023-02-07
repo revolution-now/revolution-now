@@ -86,6 +86,13 @@ struct Value : IMatcher<T> {
   }
 
  private:
+  // It is not safe to mock a method that takes a string_view as
+  // an argument, since otherwise this framework will store the
+  // string_view as the matcher, and that can cause lifetime is-
+  // sues if the string_view was constructed from a temporary
+  // during the EXPECT_CALL.
+  static_assert( !std::is_same_v<std::string_view,
+                                 std::remove_cvref_t<T>> );
   std::remove_cvref_t<T> val_;
 };
 
