@@ -54,6 +54,8 @@ struct Rect;
 *****************************************************************/
 e_direction_type direction_type( e_direction d );
 
+e_direction reverse_direction( e_direction d );
+
 /****************************************************************
 ** e_cardinal_direction
 *****************************************************************/

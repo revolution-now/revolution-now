@@ -46,6 +46,25 @@ TEST_CASE( "[e_direction] direction type*" ) {
            e_direction_type::cardinal );
 }
 
+TEST_CASE( "[e_direction] reverse_direction*" ) {
+  REQUIRE( reverse_direction( e_direction::nw ) ==
+           e_direction::se );
+  REQUIRE( reverse_direction( e_direction::ne ) ==
+           e_direction::sw );
+  REQUIRE( reverse_direction( e_direction::sw ) ==
+           e_direction::ne );
+  REQUIRE( reverse_direction( e_direction::se ) ==
+           e_direction::nw );
+  REQUIRE( reverse_direction( e_direction::n ) ==
+           e_direction::s );
+  REQUIRE( reverse_direction( e_direction::w ) ==
+           e_direction::e );
+  REQUIRE( reverse_direction( e_direction::e ) ==
+           e_direction::w );
+  REQUIRE( reverse_direction( e_direction::s ) ==
+           e_direction::n );
+}
+
 TEST_CASE( "[e_direction] to_diagonal*" ) {
   REQUIRE( to_diagonal( e_direction::nw ) ==
            e_diagonal_direction::nw );
