@@ -697,9 +697,10 @@ EstablishMissionResult compute_establish_mission(
           player, ss.natives.tribe_for( dwelling.id ) ) };
 }
 
-wait<> do_establish_mission(
-    SS& ss, TS& ts, Player const& player, Dwelling& dwelling,
-    Unit& unit, EstablishMissionResult const& outcome ) {
+wait<> do_establish_mission( SS& ss, TS& ts,
+                             Player const& player,
+                             Dwelling& dwelling, Unit& unit,
+                             EstablishMissionResult const& ) {
   ss.units.change_to_dwelling( unit.id(), dwelling.id );
 
   // TODO: need to create a mockable interface for playing sound
