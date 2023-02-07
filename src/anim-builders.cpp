@@ -426,6 +426,21 @@ AnimationSequence anim_seq_for_unit_enpixelation(
   return builder.result();
 }
 
+AnimationSequence anim_seq_for_convert_produced(
+    UnitId unit_id, e_direction direction ) {
+  AnimationBuilder builder;
+
+  // Phase 1: enpixelate convert.
+  builder.enpixelate_unit( unit_id );
+
+  // Phase 2: slide to attacker.
+  builder.new_phase();
+  builder.slide_unit( unit_id, direction );
+  builder.play_sound( e_sfx::move );
+
+  return builder.result();
+}
+
 AnimationSequence anim_seq_for_colony_depixelation(
     ColonyId colony_id ) {
   AnimationBuilder builder;

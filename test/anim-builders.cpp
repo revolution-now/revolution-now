@@ -183,6 +183,31 @@ TEST_CASE( "[anim-builders] anim_seq_for_unit_enpixelation" ) {
   REQUIRE( f() == expected );
 }
 
+TEST_CASE( "[anim-builders] anim_seq_for_convert_produced" ) {
+  AnimationSequence expected;
+  UnitId            unit_id   = {};
+  e_direction       direction = {};
+
+  auto f = [&] {
+    return anim_seq_for_convert_produced( unit_id, direction );
+  };
+
+  unit_id   = UnitId{ 3 };
+  direction = e_direction::w;
+  expected  = {
+       .sequence = {
+          /*phase1=*/{
+              { .primitive =
+                     P::enpixelate_unit{ .unit_id = unit_id } } },
+          /*phase2=*/{
+              { .primitive =
+                     P::slide_unit{ .unit_id   = unit_id,
+                                    .direction = direction } },
+              { .primitive =
+                     P::play_sound{ e_sfx::move } } } } };
+  REQUIRE( f() == expected );
+}
+
 TEST_CASE( "[anim-builders] anim_seq_for_colony_depixelation" ) {
   AnimationSequence expected;
   ColonyId          colony_id = {};

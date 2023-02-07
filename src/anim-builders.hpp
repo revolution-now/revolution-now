@@ -84,6 +84,11 @@ AnimationSequence anim_seq_for_unit_enpixelation(
 AnimationSequence anim_seq_for_colony_depixelation(
     ColonyId colony_id );
 
+// Native convert appears on the dwelling tile then slides to the
+// attacker.
+AnimationSequence anim_seq_for_convert_produced(
+    UnitId unit_id, e_direction direction );
+
 // Generally units that are animated will be rendered on top of
 // other (non-animated) units. But there are cases when a unit is
 // not being animated but you still want it to appear at the top
