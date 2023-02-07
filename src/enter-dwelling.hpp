@@ -69,15 +69,14 @@ wait<> do_speak_with_chief(
     SpeakWithChiefResult const& outcome );
 
 /****************************************************************
-** Attack Village
+** Establish Mission
 *****************************************************************/
-AttackVillageResult compute_attack_village(
-    SSConst const& ss, TS& ts, Player const& player,
-    Dwelling const& dwelling, Unit const& attacker );
+EstablishMissionResult compute_establish_mission(
+    SSConst const& ss, Player const& player,
+    Dwelling const& dwelling );
 
-wait<> do_attack_village( Planes& planes, SS& ss, TS& ts,
-                          Dwelling& dwelling, Player& player,
-                          Unit&                      attacker,
-                          AttackVillageResult const& outcome );
+wait<> do_establish_mission(
+    SS& ss, TS& ts, Player const& player, Dwelling& dwelling,
+    Unit& unit, EstablishMissionResult const& outcome );
 
 } // namespace rn

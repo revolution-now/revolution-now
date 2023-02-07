@@ -31,6 +31,7 @@
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/tribe.rds.hpp"
+#include "ss/turn.rds.hpp"
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
 
@@ -56,6 +57,7 @@ struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
     add_player( e_nation::english );
+    add_player( e_nation::french );
     set_default_player( e_nation::english );
     create_default_map();
   }
@@ -95,8 +97,10 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois );
   Tribe&      tribe = W.natives().tribe_for( e_tribe::iroquois );
-  Unit const& missionary =
-      W.add_free_unit( e_unit_type::jesuit_missionary );
+  Unit const& missionary = W.add_free_unit(
+      e_unit_type::jesuit_missionary, e_nation::english );
+  Unit const& foreign_missionary = W.add_free_unit(
+      e_unit_type::jesuit_missionary, e_nation::french );
   maybe<TribeRelationship>& relationship =
       tribe.relationship[W.default_nation()];
   e_unit_type                unit_type = {};
@@ -234,7 +238,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   };
   REQUIRE( f() == expected );
 
-  // Missionary, with contact, no war, with mission.
+  // Missionary, with contact, no war, with friendly mission.
   relationship->at_war = false;
   unit_type            = e_unit_type::missionary;
   // This unit doesn't exist but that should be ok for the pur-
@@ -255,11 +259,27 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
-      // e_enter_dwelling_option::establish_mission,
+      e_enter_dwelling_option::establish_mission,
       // e_enter_dwelling_option::incite_indians,
       e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
+
+  // Missionary, with contact, no war, foreign mission.
+  relationship->at_war = false;
+  unit_type            = e_unit_type::missionary;
+  W.units().disown_unit( missionary.id() );
+  W.units().change_to_dwelling( foreign_missionary.id(),
+                                dwelling.id );
+  expected.reaction =
+      e_enter_dwelling_reaction::frowning_archers;
+  expected.options = {
+      // e_enter_dwelling_option::denounce_foreign_mission,
+      // e_enter_dwelling_option::incite_indians,
+      e_enter_dwelling_option::cancel,
+  };
+  REQUIRE( f() == expected );
+  W.units().disown_unit( foreign_missionary.id() );
 
   // Missionary, with contact, with war, no mission.
   relationship->at_war = true;
@@ -872,6 +892,68 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
   }
 
   REQUIRE( relationship.has_spoken_with_chief );
+}
+
+TEST_CASE( "[enter-dwelling] compute_establish_mission" ) {
+  World                  W;
+  EstablishMissionResult expected;
+  Tribe&                 tribe = W.add_tribe( e_tribe::sioux );
+  TribeRelationship&     relationship =
+      tribe.relationship[W.default_nation()].emplace();
+  Dwelling& dwelling =
+      W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::sioux );
+
+  auto f = [&] {
+    return compute_establish_mission( W.ss(), W.default_player(),
+                                      dwelling );
+  };
+
+  relationship.tribal_alarm = 0;
+  expected = { .reaction = e_missionary_reaction::curiosity };
+  REQUIRE( f() == expected );
+
+  relationship.tribal_alarm = 25;
+  expected = { .reaction = e_missionary_reaction::cautious };
+  REQUIRE( f() == expected );
+
+  relationship.tribal_alarm = 50;
+  expected = { .reaction = e_missionary_reaction::offended };
+  REQUIRE( f() == expected );
+
+  relationship.tribal_alarm = 75;
+  expected = { .reaction = e_missionary_reaction::hostility };
+  REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[enter-dwelling] do_establish_mission" ) {
+  World                  W;
+  EstablishMissionResult outcome;
+  Dwelling&              dwelling =
+      W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::inca );
+  Unit& missionary = W.add_unit_on_map( e_unit_type::missionary,
+                                        { .x = 1, .y = 0 } );
+  W.turn().time_point.year = 1501;
+
+  auto f = [&] {
+    wait<> const w =
+        do_establish_mission( W.ss(), W.ts(), W.default_player(),
+                              dwelling, missionary, outcome );
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+  };
+
+  outcome = {};
+  string const msg =
+      "@[H]English@[] mission established in @[H]Inca@[] city "
+      "in the year 1501.";
+  EXPECT_CALL( W.gui(), message_box( msg ) )
+      .returns<monostate>();
+  f();
+
+  REQUIRE(
+      as_const( W.units() ).ownership_of( missionary.id() ) ==
+      UnitOwnership_t{
+          UnitOwnership::dwelling{ .id = dwelling.id } } );
 }
 
 } // namespace

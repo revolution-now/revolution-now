@@ -1002,11 +1002,14 @@ struct NativeDwellingHandler : public OrdersHandler {
             .outcome = compute_speak_with_chief(
                 ss_, ts_, dwelling_, unit_ ) };
       case e_enter_dwelling_option::attack_village:
-        return EnterDwellingOutcome::attack_village{
-            .outcome = compute_attack_village(
-                ss_, ts_, player_, dwelling_, unit_ ) };
+        // Outcome handled by the delegated handler.
+        return EnterDwellingOutcome::attack_village{};
       case e_enter_dwelling_option::attack_brave_on_dwelling:
         return EnterDwellingOutcome::attack_brave_on_dwelling{};
+      case e_enter_dwelling_option::establish_mission:
+        return EnterDwellingOutcome::establish_mission{
+            .outcome = compute_establish_mission( ss_, player_,
+                                                  dwelling_ ) };
       case e_enter_dwelling_option::cancel:
         return EnterDwellingOutcome::cancel{};
     }
@@ -1094,11 +1097,12 @@ struct NativeDwellingHandler : public OrdersHandler {
         // scout was used a target practice.
         break;
       }
-      case EnterDwellingOutcome::e::attack_village: {
+      case EnterDwellingOutcome::e::establish_mission: {
         auto& o =
-            outcome_.get<EnterDwellingOutcome::attack_village>();
-        co_await do_attack_village( planes_, ss_, ts_, dwelling_,
-                                    player_, unit_, o.outcome );
+            outcome_
+                .get<EnterDwellingOutcome::establish_mission>();
+        co_await do_establish_mission(
+            ss_, ts_, player_, dwelling_, unit_, o.outcome );
         break;
       }
       case EnterDwellingOutcome::e::attack_brave_on_dwelling: {

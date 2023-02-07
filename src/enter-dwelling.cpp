@@ -21,6 +21,7 @@
 #include "irand.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
+#include "missionary.hpp"
 #include "plane-stack.hpp"
 #include "promotion.hpp"
 #include "rand-enum.hpp"
@@ -29,7 +30,7 @@
 #include "woodcut.hpp"
 
 // config
-#include "config/nation.rds.hpp"
+#include "config/nation.hpp"
 #include "config/natives.rds.hpp"
 #include "config/unit-type.hpp"
 
@@ -40,6 +41,7 @@
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/tribe.rds.hpp"
+#include "ss/turn.hpp"
 #include "ss/unit-type.hpp"
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
@@ -188,20 +190,29 @@ vector<e_enter_dwelling_option> const& options_for_unit(
     case e_dwelling_interaction_category::missionary: {
       static vector<e_enter_dwelling_option> const
           options_no_mission{
-              // e_enter_dwelling_option::establish_mission,
+              e_enter_dwelling_option::establish_mission,
               // e_enter_dwelling_option::incite_indians,
               e_enter_dwelling_option::cancel,
           };
       static vector<e_enter_dwelling_option> const
-          options_has_mission{
+          options_has_friendly_mission{
               // e_enter_dwelling_option::incite_indians,
               e_enter_dwelling_option::cancel,
           };
+      static vector<e_enter_dwelling_option> const
+          options_has_foreign_mission{
+              // e_enter_dwelling_option::denounce_foreign_mission,
+              // e_enter_dwelling_option::incite_indians,
+              e_enter_dwelling_option::cancel,
+          };
+      maybe<UnitId> const missionary =
+          ss.units.missionary_from_dwelling( dwelling.id );
       auto const& options =
-          ( ss.units.missionary_from_dwelling( dwelling.id )
-                .has_value() )
-              ? options_has_mission
-              : options_no_mission;
+          !missionary.has_value() ? options_no_mission
+          : ( ss.units.unit_for( *missionary ).nation() ==
+              player.nation )
+              ? options_has_friendly_mission
+              : options_has_foreign_mission;
       return switch_war( options, options_cancel );
     }
     case e_dwelling_interaction_category::trade: {
@@ -670,20 +681,47 @@ wait<> do_speak_with_chief(
   }
 }
 
-AttackVillageResult compute_attack_village(
-    SSConst const& ss, TS& ts, Player const& player,
-    Dwelling const& dwelling, Unit const& attacker ) {
-  CHECK_EQ( attacker.nation(), player.nation );
-  AttackVillageResult res;
-
-  return res;
+/****************************************************************
+** Establish Mission
+*****************************************************************/
+EstablishMissionResult compute_establish_mission(
+    SSConst const& ss, Player const& player,
+    Dwelling const& dwelling ) {
+  // TODO: when we implement "denounce foreign mission" this
+  // check should be relaxed to only make sure that there is no
+  // friendly mission already in the dwelling.
+  CHECK( !ss.units.missionary_from_dwelling( dwelling.id )
+              .has_value() );
+  return EstablishMissionResult{
+      .reaction = tribe_reaction_to_missionary(
+          player, ss.natives.tribe_for( dwelling.id ) ) };
 }
 
-wait<> do_attack_village( Planes& planes, SS& ss, TS& ts,
-                          Dwelling& dwelling, Player& player,
-                          Unit&                      unit,
-                          AttackVillageResult const& outcome ) {
-  co_return;
+wait<> do_establish_mission(
+    SS& ss, TS& ts, Player const& player, Dwelling& dwelling,
+    Unit& unit, EstablishMissionResult const& outcome ) {
+  ss.units.change_to_dwelling( unit.id(), dwelling.id );
+
+  // TODO: need to create a mockable interface for playing sound
+  // effects and changing music. Once that happens, we can play
+  // the missionary sound effect here.
+
+  auto& tribe_conf =
+      config_natives
+          .tribes[ss.natives.tribe_for( dwelling.id ).type];
+  string msg = fmt::format(
+      "@[H]{}@[] mission established in @[H]{}@[] {} in the "
+      "year {}.",
+      nation_obj( player.nation ).adjective,
+      tribe_conf.name_adjective,
+      config_natives.dwelling_types[tribe_conf.level]
+          .name_singular,
+      ss.turn.time_point.year );
+
+  // In the OG the tribe's reaction to the missionary does not
+  // seem to have any effect on the process other than to deter-
+  // mine the message displayed to the user.
+  co_await ts.gui.message_box( msg );
 }
 
 } // namespace rn
