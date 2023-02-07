@@ -116,7 +116,8 @@ wait<> cheat_reveal_map( Planes& planes, SS& ss, TS& ts ) {
     case e_cheat_reveal_map::entire_map:
       revealed = MapRevealed::entire{};
       break;
-    case e_cheat_reveal_map::no_special_view: break;
+    case e_cheat_reveal_map::no_special_view:
+      break;
   }
 
   maybe<e_nation> const active = active_player( ss.turn );
@@ -347,13 +348,12 @@ void cheat_upgrade_unit_expertise( SSConst const& ss,
     if( unit.desc().is_derived )
       // Take the canonical version of the thing try to promote
       // it (this is needed if it's a derived type).
-      to_promote = UnitType::create( unit.type() );
+      to_promote = unit.type();
     else
       // Not derived, so just try promoting a free colonist.
-      to_promote =
-          UnitType::create( e_unit_type::free_colonist );
-    expect<UnitComposition> promoted = promoted_from_activity(
-        UnitComposition::create( to_promote ), *activity );
+      to_promote = e_unit_type::free_colonist;
+    expect<UnitComposition> promoted =
+        promoted_from_activity( to_promote, *activity );
     if( !promoted.has_value() ) return;
     CHECK( promoted.has_value() );
     unit.change_type( player, *promoted );
@@ -365,15 +365,13 @@ void cheat_upgrade_unit_expertise( SSConst const& ss,
   switch( unit.type() ) {
     case e_unit_type::petty_criminal:
       unit.change_type( player,
-                        UnitComposition::create(
-                            e_unit_type::indentured_servant ) );
+                        e_unit_type::indentured_servant );
       return;
     case e_unit_type::indentured_servant:
-      unit.change_type( player,
-                        UnitComposition::create(
-                            e_unit_type::free_colonist ) );
+      unit.change_type( player, e_unit_type::free_colonist );
       break;
-    default: return;
+    default:
+      return;
   }
 }
 
@@ -388,23 +386,26 @@ void cheat_downgrade_unit_expertise( Player const& player,
   if( !unit.desc().is_derived ) {
     e_unit_type new_type = {};
     switch( unit.type() ) {
-      case e_unit_type::petty_criminal: return;
+      case e_unit_type::petty_criminal:
+        return;
       case e_unit_type::indentured_servant:
         new_type = e_unit_type::petty_criminal;
         break;
       case e_unit_type::free_colonist:
         new_type = e_unit_type::indentured_servant;
         break;
-      default: new_type = e_unit_type::free_colonist; break;
+      default:
+        new_type = e_unit_type::free_colonist;
+        break;
     }
-    unit.change_type( player,
-                      UnitComposition::create( new_type ) );
+    unit.change_type( player, new_type );
     return;
   }
 
   // Derived type.
   switch( unit.base_type() ) {
-    case e_unit_type::petty_criminal: return;
+    case e_unit_type::petty_criminal:
+      return;
     case e_unit_type::indentured_servant: {
       UNWRAP_CHECK(
           ut, UnitType::create( unit.type(),
@@ -443,10 +444,9 @@ void cheat_create_new_colonist( SS& ss, TS& ts,
                                 Player const& player,
                                 Colony const& colony ) {
   RETURN_IF_NO_CHEAT;
-  create_unit_on_map_non_interactive(
-      ss, ts, player,
-      UnitComposition::create( e_unit_type::free_colonist ),
-      colony.location );
+  create_unit_on_map_non_interactive( ss, ts, player,
+                                      e_unit_type::free_colonist,
+                                      colony.location );
 }
 
 void cheat_increase_commodity( Colony&     colony,
@@ -567,8 +567,8 @@ wait<> cheat_create_unit_on_map( SS& ss, TS& ts, e_nation nation,
           categories[*category] );
   if( !type.has_value() ) co_return;
   UNWRAP_CHECK( player, ss.players.players[nation] );
-  maybe<UnitId> unit_id = co_await create_unit_on_map(
-      ss, ts, player, UnitComposition::create( *type ), tile );
+  maybe<UnitId> unit_id =
+      co_await create_unit_on_map( ss, ts, player, *type, tile );
 }
 
 } // namespace rn

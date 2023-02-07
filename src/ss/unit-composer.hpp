@@ -40,8 +40,8 @@ struct UnitComposition {
 
   UnitComposition() = default;
 
-  static UnitComposition create( UnitType type );
-  static UnitComposition create( e_unit_type type );
+  UnitComposition( UnitType type );
+  UnitComposition( e_unit_type type );
 
   static expect<UnitComposition> create(
       UnitType type, UnitInventoryMap inventory );

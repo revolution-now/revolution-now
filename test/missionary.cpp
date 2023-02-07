@@ -89,7 +89,7 @@ TEST_CASE( "[missionary] can_bless_missionaries" ) {
 
 TEST_CASE( "[missionary] unit_can_be_blessed" ) {
   auto f = []( e_unit_type type ) {
-    return unit_can_be_blessed( UnitType::create( type ) );
+    return unit_can_be_blessed( type );
   };
 
   REQUIRE( f( e_unit_type::jesuit_colonist ) == true );
@@ -231,8 +231,7 @@ TEST_CASE(
   }
 
   SECTION( "foreign missionary" ) {
-    UnitType const type =
-        UnitType::create( e_unit_type::jesuit_missionary );
+    UnitType const type = e_unit_type::jesuit_missionary;
     W.add_missionary_in_dwelling( type, dwelling.id,
                                   e_nation::french );
     expected = nothing;
@@ -284,8 +283,7 @@ TEST_CASE(
   }
 
   SECTION( "friendly missionary (jesuit_missionary)" ) {
-    UnitType const type =
-        UnitType::create( e_unit_type::jesuit_missionary );
+    UnitType const type = e_unit_type::jesuit_missionary;
     W.add_missionary_in_dwelling( type, dwelling.id,
                                   e_nation::dutch );
     expected = .66;
@@ -342,11 +340,10 @@ TEST_CASE( "[missionary] player_missionaries_in_tribe" ) {
   REQUIRE( f( e_nation::dutch, e_tribe::apache ) == V{} );
   REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
 
-  UnitId missionary1_id =
-      W.add_missionary_in_dwelling(
-           UnitType::create( e_unit_type::missionary ),
-           dwelling1_id, e_nation::dutch )
-          .id();
+  UnitId missionary1_id = W.add_missionary_in_dwelling(
+                               e_unit_type::missionary,
+                               dwelling1_id, e_nation::dutch )
+                              .id();
 
   REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
            V{ missionary1_id } );
@@ -363,11 +360,10 @@ TEST_CASE( "[missionary] player_missionaries_in_tribe" ) {
   REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
   REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
 
-  UnitId missionary2_id =
-      W.add_missionary_in_dwelling(
-           UnitType::create( e_unit_type::missionary ),
-           dwelling2_id, e_nation::dutch )
-          .id();
+  UnitId missionary2_id = W.add_missionary_in_dwelling(
+                               e_unit_type::missionary,
+                               dwelling2_id, e_nation::dutch )
+                              .id();
 
   REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
            V{ missionary1_id, missionary2_id } );
@@ -384,11 +380,10 @@ TEST_CASE( "[missionary] player_missionaries_in_tribe" ) {
   REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
   REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
 
-  UnitId missionary3_id =
-      W.add_missionary_in_dwelling(
-           UnitType::create( e_unit_type::jesuit_missionary ),
-           dwelling3_id, e_nation::dutch )
-          .id();
+  UnitId missionary3_id = W.add_missionary_in_dwelling(
+                               e_unit_type::jesuit_missionary,
+                               dwelling3_id, e_nation::dutch )
+                              .id();
 
   REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
            V{ missionary1_id, missionary2_id } );
@@ -407,11 +402,10 @@ TEST_CASE( "[missionary] player_missionaries_in_tribe" ) {
   REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
   REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
 
-  UnitId missionary4_id =
-      W.add_missionary_in_dwelling(
-           UnitType::create( e_unit_type::jesuit_missionary ),
-           dwelling4_id, e_nation::french )
-          .id();
+  UnitId missionary4_id = W.add_missionary_in_dwelling(
+                               e_unit_type::jesuit_missionary,
+                               dwelling4_id, e_nation::french )
+                              .id();
 
   REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
            V{ missionary1_id, missionary2_id } );

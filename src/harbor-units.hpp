@@ -106,9 +106,6 @@ maybe<Coord> find_new_world_arrival_square(
 void update_harbor_selected_unit( UnitsState const& units_state,
                                   Player&           player );
 
-UnitId create_unit_in_harbor( UnitsState& units_state,
-                              Player& player, e_unit_type type );
-
 UnitId create_unit_in_harbor( UnitsState&     units_state,
                               Player&         player,
                               UnitComposition comp );

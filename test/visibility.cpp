@@ -26,6 +26,7 @@
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
+#include "ss/unit-composer.hpp"
 
 // refl
 #include "refl/to-str.hpp"

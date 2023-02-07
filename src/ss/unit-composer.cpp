@@ -125,7 +125,7 @@ valid_or<string> wrapped::UnitComposition::validate() const {
   return base::valid;
 }
 
-UnitComposition UnitComposition::create( UnitType type ) {
+UnitComposition::UnitComposition( UnitType type ) {
   UnitComposition::UnitInventoryMap inventory;
   for( e_unit_inventory inv :
        config_unit_type.composition.unit_types[type.type()]
@@ -135,12 +135,11 @@ UnitComposition UnitComposition::create( UnitType type ) {
             .default_quantity;
   UNWRAP_CHECK( res, UnitComposition::create(
                          type, std::move( inventory ) ) );
-  return res;
+  *this = res;
 }
 
-UnitComposition UnitComposition::create( e_unit_type type ) {
-  return UnitComposition::create( UnitType::create( type ) );
-}
+UnitComposition::UnitComposition( e_unit_type type )
+  : UnitComposition( UnitType( type ) ) {}
 
 expect<UnitComposition> UnitComposition::create(
     UnitType type, UnitInventoryMap inventory ) {
@@ -170,7 +169,8 @@ maybe<Commodity> commodity_from_modifier(
       config_unit_type.composition.modifier_traits[mod];
   switch( traits.association.to_enum() ) {
     using namespace ModifierAssociation;
-    case e::none: return nothing;
+    case e::none:
+      return nothing;
     case e::commodity: {
       auto const& o = traits.association.get<commodity>();
       return o.commodity;
@@ -493,13 +493,11 @@ LUA_STARTUP( lua::state& st ) {
 
   tbl_UnitComposition["create_with_type"] =
       [&]( e_unit_type type ) -> UnitComposition {
-    return UnitComposition::create( type );
+    return type;
   };
 
   tbl_UnitComposition["create_with_type_obj"] =
-      [&]( UnitType type ) -> UnitComposition {
-    return UnitComposition::create( type );
-  };
+      [&]( UnitType type ) -> UnitComposition { return type; };
 };
 
 } // namespace

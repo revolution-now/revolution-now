@@ -116,7 +116,8 @@ maybe<e_unit_activity> current_activity_for_unit(
     case UnitOwnership::e::cargo:
     case UnitOwnership::e::free:
     case UnitOwnership::e::harbor:
-    case UnitOwnership::e::world: break;
+    case UnitOwnership::e::world:
+      break;
   }
 
   return units_state.unit_for( id ).desc().type_activity;
@@ -155,19 +156,6 @@ NativeUnit create_unregistered_unit( e_native_unit_type type ) {
   return NativeUnit{
       .id   = NativeUnitId{ 0 }, // will be set later.
       .type = type };
-}
-
-UnitId create_free_unit( UnitsState&   units_state,
-                         Player const& player, UnitType type ) {
-  return create_free_unit( units_state, player,
-                           UnitComposition::create( type ) );
-}
-
-UnitId create_free_unit( UnitsState&   units_state,
-                         Player const& player,
-                         e_unit_type   type ) {
-  return create_free_unit( units_state, player,
-                           UnitType::create( type ) );
 }
 
 UnitId create_unit_on_map_non_interactive( SS& ss, TS& ts,

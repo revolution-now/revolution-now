@@ -393,17 +393,17 @@ TEST_CASE( "[enter-dwelling] compute_live_among_the_natives" ) {
 
   // generally_ineligible.
   expected = LiveAmongTheNatives::generally_ineligible{};
-  comp     = UnitComposition::create( e_unit_type::artillery );
+  comp     = e_unit_type::artillery;
   REQUIRE( f() == expected );
 
   // petty_criminal.
   expected = LiveAmongTheNatives::petty_criminal{};
-  comp = UnitComposition::create( e_unit_type::petty_criminal );
+  comp     = e_unit_type::petty_criminal;
   REQUIRE( f() == expected );
 
   // native_convert.
   expected = LiveAmongTheNatives::native_convert{};
-  comp = UnitComposition::create( e_unit_type::native_convert );
+  comp     = e_unit_type::native_convert;
   REQUIRE( f() == expected );
 
   // unhappy (tribal).
@@ -411,7 +411,7 @@ TEST_CASE( "[enter-dwelling] compute_live_among_the_natives" ) {
   relationship.tribal_alarm = 99;
   dwelling.relationship[W.default_nation()].dwelling_only_alarm =
       0;
-  comp = UnitComposition::create( e_unit_type::free_colonist );
+  comp = e_unit_type::free_colonist;
   REQUIRE( f() == expected );
 
   // unhappy (dwelling).
@@ -419,7 +419,7 @@ TEST_CASE( "[enter-dwelling] compute_live_among_the_natives" ) {
   relationship.tribal_alarm = 0;
   dwelling.relationship[W.default_nation()].dwelling_only_alarm =
       99;
-  comp = UnitComposition::create( e_unit_type::free_colonist );
+  comp = e_unit_type::free_colonist;
   REQUIRE( f() == expected );
 
   relationship.tribal_alarm = 0;
@@ -429,36 +429,32 @@ TEST_CASE( "[enter-dwelling] compute_live_among_the_natives" ) {
   // already_taught.
   dwelling.has_taught = true;
   expected            = LiveAmongTheNatives::already_taught{};
-  comp = UnitComposition::create( e_unit_type::free_colonist );
+  comp                = e_unit_type::free_colonist;
   REQUIRE( f() == expected );
   dwelling.has_taught = false;
 
   // has_expertise.
   expected = LiveAmongTheNatives::has_expertise{
       .in_what = e_unit_activity::fishing };
-  comp =
-      UnitComposition::create( e_unit_type::expert_fisherman );
+  comp = e_unit_type::expert_fisherman;
   REQUIRE( f() == expected );
 
   // has_expertise.
   expected = LiveAmongTheNatives::has_expertise{
       .in_what = e_unit_activity::pioneering };
-  comp = UnitComposition::create( e_unit_type::hardy_pioneer );
+  comp = e_unit_type::hardy_pioneer;
   REQUIRE( f() == expected );
 
   // promoted (servant).
   expected = LiveAmongTheNatives::promoted{
-      .to = UnitComposition::create(
-          e_unit_type::expert_ore_miner ) };
-  comp =
-      UnitComposition::create( e_unit_type::indentured_servant );
+      .to = e_unit_type::expert_ore_miner };
+  comp = e_unit_type::indentured_servant;
   REQUIRE( f() == expected );
 
   // promoted (free colonist).
   expected = LiveAmongTheNatives::promoted{
-      .to = UnitComposition::create(
-          e_unit_type::expert_ore_miner ) };
-  comp = UnitComposition::create( e_unit_type::free_colonist );
+      .to = e_unit_type::expert_ore_miner };
+  comp = e_unit_type::free_colonist;
   REQUIRE( f() == expected );
 
   // promoted (pioneer 80 tools).
@@ -508,8 +504,7 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
 
   // Eligible buy decline.
   outcome = LiveAmongTheNatives::promoted{
-      .to = UnitComposition::create(
-          e_unit_type::expert_cotton_planter ) };
+      .to = e_unit_type::expert_cotton_planter };
   EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
       .returns<maybe<string>>( "no" );
   f();
@@ -518,8 +513,7 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
 
   // Eligible and accept.
   outcome = LiveAmongTheNatives::promoted{
-      .to = UnitComposition::create(
-          e_unit_type::expert_cotton_planter ) };
+      .to = e_unit_type::expert_cotton_planter };
   EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
       .returns<maybe<string>>( "yes" );
   EXPECT_CALL(
@@ -557,8 +551,7 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
           .value(),
       { .x = 3, .y = 3 } );
   Unit& scout_seasoned = W.add_unit_on_map(
-      UnitType::create( e_unit_type::seasoned_scout ),
-      { .x = 3, .y = 3 } );
+      e_unit_type::seasoned_scout, { .x = 3, .y = 3 } );
 
   // Prepare dwelling.
   dwelling_tupi.teaches = e_native_skill::cotton_planting;

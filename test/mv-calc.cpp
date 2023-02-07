@@ -55,8 +55,7 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
   };
 
   auto create = [&]( e_unit_type type ) {
-    return create_unregistered_unit(
-        W.default_player(), UnitComposition::create( type ) );
+    return create_unregistered_unit( W.default_player(), type );
   };
 
   SECTION( "has=0, needed=0" ) {

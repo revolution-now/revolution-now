@@ -50,9 +50,7 @@ TEST_CASE(
     "ship" ) {
   World  W;
   UnitId ship =
-      W.add_unit_on_map(
-           UnitType::create( e_unit_type::merchantman ),
-           Coord{} )
+      W.add_unit_on_map( e_unit_type::merchantman, Coord{} )
           .id();
   auto food_full  = Commodity{ /*type=*/e_commodity::food,
                               /*quantity=*/100 };
@@ -365,14 +363,10 @@ TEST_CASE(
     "ships" ) {
   World  W;
   UnitId ship1 =
-      W.add_unit_on_map(
-           UnitType::create( e_unit_type::merchantman ),
-           Coord{} )
+      W.add_unit_on_map( e_unit_type::merchantman, Coord{} )
           .id();
   UnitId ship2 =
-      W.add_unit_on_map(
-           UnitType::create( e_unit_type::merchantman ),
-           Coord{} )
+      W.add_unit_on_map( e_unit_type::merchantman, Coord{} )
           .id();
   auto sugar_full = Commodity{ /*type=*/e_commodity::sugar,
                                /*quantity=*/100 };

@@ -26,9 +26,8 @@ namespace {
 using namespace std;
 
 TEST_CASE( "[test/unit] consume_20_tools pioneer" ) {
-  UnitComposition comp =
-      UnitComposition::create( e_unit_type::pioneer );
-  Player player;
+  UnitComposition comp = e_unit_type::pioneer;
+  Player          player;
   player.nation = e_nation::english;
   Unit unit     = create_unregistered_unit( player, comp );
 
@@ -58,9 +57,8 @@ TEST_CASE( "[test/unit] consume_20_tools pioneer" ) {
 }
 
 TEST_CASE( "[test/unit] consume_20_tools hardy_pioneer" ) {
-  UnitComposition comp =
-      UnitComposition::create( e_unit_type::hardy_pioneer );
-  Player player;
+  UnitComposition comp = e_unit_type::hardy_pioneer;
+  Player          player;
   player.nation = e_nation::english;
   Unit unit     = create_unregistered_unit( player, comp );
 

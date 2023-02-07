@@ -310,12 +310,11 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
 
   SECTION( "soldier->soldier, attacker loses" ) {
     combat = {
-        .winner = e_combat_winner::defender,
-        .attacker =
-            { .outcome =
-                  EuroUnitCombatOutcome::demoted{
-                      .to = UnitType::create(
-                          e_unit_type::free_colonist ) } },
+        .winner   = e_combat_winner::defender,
+        .attacker = { .outcome =
+                          EuroUnitCombatOutcome::demoted{
+                              .to =
+                                  e_unit_type::free_colonist } },
         .defender = { .outcome =
                           EuroUnitCombatOutcome::no_change{} } };
     tie( combat.attacker.id, combat.defender.id ) =
@@ -344,16 +343,14 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
   SECTION(
       "soldier->soldier, attacker loses, defender promoted" ) {
     combat = {
-        .winner = e_combat_winner::defender,
-        .attacker =
-            { .outcome =
-                  EuroUnitCombatOutcome::demoted{
-                      .to = UnitType::create(
-                          e_unit_type::free_colonist ) } },
+        .winner   = e_combat_winner::defender,
+        .attacker = { .outcome =
+                          EuroUnitCombatOutcome::demoted{
+                              .to =
+                                  e_unit_type::free_colonist } },
         .defender = {
             .outcome = EuroUnitCombatOutcome::promoted{
-                .to = UnitType::create(
-                    e_unit_type::veteran_soldier ) } } };
+                .to = e_unit_type::veteran_soldier } } };
     tie( combat.attacker.id, combat.defender.id ) =
         W.add_pair( e_unit_type::soldier, e_unit_type::soldier );
     expect_combat();
@@ -381,8 +378,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         .attacker = { .outcome =
                           EuroUnitCombatOutcome::no_change{} },
         .defender = { .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = UnitType::create(
-                              e_unit_type::free_colonist ) } } };
+                          .to = e_unit_type::free_colonist } } };
     tie( combat.attacker.id, combat.defender.id ) =
         W.add_pair( e_unit_type::soldier, e_unit_type::soldier );
     expect_combat();
@@ -409,11 +405,9 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         .attacker =
             { .outcome =
                   EuroUnitCombatOutcome::promoted{
-                      .to = UnitType::create(
-                          e_unit_type::veteran_soldier ) } },
+                      .to = e_unit_type::veteran_soldier } },
         .defender = { .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = UnitType::create(
-                              e_unit_type::free_colonist ) } } };
+                          .to = e_unit_type::free_colonist } } };
     tie( combat.attacker.id, combat.defender.id ) =
         W.add_pair( e_unit_type::soldier, e_unit_type::soldier );
     expect_combat();
@@ -640,12 +634,11 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
 
   SECTION( "soldier->brave, attacker loses, no brave change" ) {
     combat = {
-        .winner = e_combat_winner::defender,
-        .attacker =
-            { .outcome =
-                  EuroUnitCombatOutcome::demoted{
-                      .to = UnitType::create(
-                          e_unit_type::free_colonist ) } },
+        .winner   = e_combat_winner::defender,
+        .attacker = { .outcome =
+                          EuroUnitCombatOutcome::demoted{
+                              .to =
+                                  e_unit_type::free_colonist } },
         .defender = {
             .outcome = NativeUnitCombatOutcome::no_change{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
@@ -670,12 +663,11 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
 
   SECTION( "soldier->brave, attacker loses" ) {
     combat = {
-        .winner = e_combat_winner::defender,
-        .attacker =
-            { .outcome =
-                  EuroUnitCombatOutcome::demoted{
-                      .to = UnitType::create(
-                          e_unit_type::free_colonist ) } },
+        .winner   = e_combat_winner::defender,
+        .attacker = { .outcome =
+                          EuroUnitCombatOutcome::demoted{
+                              .to =
+                                  e_unit_type::free_colonist } },
         .defender = {
             .outcome = NativeUnitCombatOutcome::promoted{
                 .to = e_native_unit_type::armed_brave } } };
@@ -741,19 +733,19 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
 
   SECTION( "attacker loses" ) {
     UnitId const missionary_id =
-        W.add_missionary_in_dwelling(
-             UnitType::create( e_unit_type::missionary ),
-             dwelling_id )
+        W.add_missionary_in_dwelling( e_unit_type::missionary,
+                                      dwelling_id )
             .id();
     combat = {
         .winner           = e_combat_winner::defender,
         .new_tribal_alarm = 13,
         .missions_burned  = false,
-        .attacker =
-            { .outcome =
-                  EuroUnitCombatOutcome::demoted{
-                      .to = UnitType::create(
-                          e_unit_type::free_colonist ) } },
+
+        .attacker = { .outcome =
+                          EuroUnitCombatOutcome::demoted{
+                              .to =
+                                  e_unit_type::free_colonist } },
+
         .defender = {
             .id      = dwelling.id,
             .outcome = DwellingCombatOutcome::no_change{} } };
@@ -790,19 +782,19 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
       "attacker loses, missions burned, missionary "
       "eliminated" ) {
     UnitId const missionary_id =
-        W.add_missionary_in_dwelling(
-             UnitType::create( e_unit_type::missionary ),
-             dwelling_id )
+        W.add_missionary_in_dwelling( e_unit_type::missionary,
+                                      dwelling_id )
             .id();
     combat = {
         .winner           = e_combat_winner::defender,
         .new_tribal_alarm = 13,
         .missions_burned  = true,
-        .attacker =
-            { .outcome =
-                  EuroUnitCombatOutcome::demoted{
-                      .to = UnitType::create(
-                          e_unit_type::free_colonist ) } },
+
+        .attacker = { .outcome =
+                          EuroUnitCombatOutcome::demoted{
+                              .to =
+                                  e_unit_type::free_colonist } },
+
         .defender = {
             .id      = dwelling.id,
             .outcome = DwellingCombatOutcome::no_change{} } };
@@ -839,9 +831,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
 
   SECTION( "attacker wins, population decrease, no convert" ) {
     UnitId const missionary_id =
-        W.add_missionary_in_dwelling(
-             UnitType::create( e_unit_type::missionary ),
-             dwelling_id )
+        W.add_missionary_in_dwelling( e_unit_type::missionary,
+                                      dwelling_id )
             .id();
     combat = {
         .winner           = e_combat_winner::attacker,
@@ -885,9 +876,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
 
   SECTION( "attacker wins, population decrease, with convert" ) {
     UnitId const missionary_id =
-        W.add_missionary_in_dwelling(
-             UnitType::create( e_unit_type::missionary ),
-             dwelling_id )
+        W.add_missionary_in_dwelling( e_unit_type::missionary,
+                                      dwelling_id )
             .id();
     combat = {
         .winner           = e_combat_winner::attacker,
@@ -950,8 +940,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
         .attacker =
             { .outcome =
                   EuroUnitCombatOutcome::promoted{
-                      .to = UnitType::create(
-                          e_unit_type::veteran_soldier ) } },
+                      .to = e_unit_type::veteran_soldier } },
         .defender = {
             .id      = dwelling.id,
             .outcome = DwellingCombatOutcome::destruction{
@@ -992,9 +981,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
       "attacker wins, dwelling burned, convert produced, "
       "missionary released, treasure produced" ) {
     UnitId const missionary_id =
-        W.add_missionary_in_dwelling(
-             UnitType::create( e_unit_type::missionary ),
-             dwelling_id )
+        W.add_missionary_in_dwelling( e_unit_type::missionary,
+                                      dwelling_id )
             .id();
     dwelling.population = 1;
 
@@ -1005,8 +993,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
         .attacker =
             { .outcome =
                   EuroUnitCombatOutcome::promoted{
-                      .to = UnitType::create(
-                          e_unit_type::veteran_soldier ) } },
+                      .to = e_unit_type::veteran_soldier } },
         .defender = {
             .id      = dwelling.id,
             .outcome = DwellingCombatOutcome::destruction{

@@ -253,25 +253,11 @@ Unit& World::add_unit_in_port( e_unit_type     type,
       type ) );
 }
 
-Unit& World::add_unit_on_map( e_unit_type type, Coord where,
-                              maybe<e_nation> nation ) {
-  return add_unit_on_map( UnitType::create( type ), where,
-                          nation );
-}
-
 NativeUnit& World::add_native_unit_on_map(
     e_native_unit_type type, Coord where,
     DwellingId dwelling_id ) {
   return units().unit_for( create_unit_on_map_non_interactive(
       ss(), type, where, dwelling_id ) );
-}
-
-Unit& World::add_unit_on_map( UnitType type, Coord where,
-                              maybe<e_nation> nation ) {
-  if( !nation ) nation = default_nation_;
-  return units().unit_for( create_unit_on_map_non_interactive(
-      ss(), ts(), player( *nation ),
-      UnitComposition::create( type ), where ) );
 }
 
 Unit& World::add_unit_on_map( UnitComposition const& comp,
@@ -289,8 +275,7 @@ Unit& World::add_missionary_in_dwelling(
   CHECK( is_missionary( missionary_type.type() ) );
   if( !nation ) nation = default_nation_;
   UnitId const unit_id = create_free_unit(
-      units(), player( *nation ),
-      UnitComposition::create( missionary_type ) );
+      units(), player( *nation ), missionary_type );
   units().change_to_dwelling( unit_id, dwelling_id );
   return units().unit_for( unit_id );
 }
@@ -299,8 +284,7 @@ Unit& World::add_unit_in_cargo( e_unit_type type, UnitId holder,
                                 maybe<e_nation> nation ) {
   if( !nation ) nation = default_nation_;
   UnitId held =
-      create_free_unit( units(), player( *nation ),
-                        UnitComposition::create( type ) );
+      create_free_unit( units(), player( *nation ), type );
   units().change_to_cargo_somewhere( holder, held );
   return units().unit_for( held );
 }
@@ -309,8 +293,7 @@ Unit& World::add_free_unit( e_unit_type     type,
                             maybe<e_nation> nation ) {
   if( !nation ) nation = default_nation_;
   UnitId const id =
-      create_free_unit( units(), player( *nation ),
-                        UnitComposition::create( type ) );
+      create_free_unit( units(), player( *nation ), type );
   return units().unit_for( id );
 }
 

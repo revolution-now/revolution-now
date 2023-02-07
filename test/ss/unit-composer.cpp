@@ -52,7 +52,7 @@ void sort_by_new_type(
 }
 
 TEST_CASE( "[unit-composer] operator[]" ) {
-  auto ut       = UnitType::create( e_unit_type::pioneer );
+  auto ut       = UnitType( e_unit_type::pioneer );
   auto maybe_uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 80 } } );
   REQUIRE( maybe_uc.has_value() );
@@ -62,7 +62,7 @@ TEST_CASE( "[unit-composer] operator[]" ) {
 }
 
 TEST_CASE( "[unit-composer] pioneer tool count" ) {
-  auto ut = UnitType::create( e_unit_type::pioneer );
+  auto ut = UnitType( e_unit_type::pioneer );
   auto uc = UnitComposition::create( ut, /*inventory=*/{} );
   REQUIRE( !uc.has_value() );
   uc = UnitComposition::create(
@@ -75,79 +75,79 @@ TEST_CASE( "[unit-composer] pioneer tool count" ) {
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 120 } } );
   REQUIRE( !uc.has_value() );
-  ut = UnitType::create( e_unit_type::hardy_pioneer );
+  ut = UnitType( e_unit_type::hardy_pioneer );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 120 } } );
   REQUIRE( !uc.has_value() );
 
-  ut = UnitType::create( e_unit_type::pioneer );
+  ut = UnitType( e_unit_type::pioneer );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 105 } } );
   REQUIRE( !uc.has_value() );
-  ut = UnitType::create( e_unit_type::hardy_pioneer );
+  ut = UnitType( e_unit_type::hardy_pioneer );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 105 } } );
   REQUIRE( !uc.has_value() );
 
-  ut = UnitType::create( e_unit_type::pioneer );
+  ut = UnitType( e_unit_type::pioneer );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 100 } } );
   REQUIRE( uc.has_value() );
-  ut = UnitType::create( e_unit_type::hardy_pioneer );
+  ut = UnitType( e_unit_type::hardy_pioneer );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 100 } } );
   REQUIRE( uc.has_value() );
 
-  ut = UnitType::create( e_unit_type::pioneer );
+  ut = UnitType( e_unit_type::pioneer );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 90 } } );
   REQUIRE( !uc.has_value() );
-  ut = UnitType::create( e_unit_type::hardy_pioneer );
+  ut = UnitType( e_unit_type::hardy_pioneer );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 90 } } );
   REQUIRE( !uc.has_value() );
 
-  ut = UnitType::create( e_unit_type::pioneer );
+  ut = UnitType( e_unit_type::pioneer );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 80 } } );
   REQUIRE( uc.has_value() );
-  ut = UnitType::create( e_unit_type::hardy_pioneer );
+  ut = UnitType( e_unit_type::hardy_pioneer );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 80 } } );
   REQUIRE( uc.has_value() );
 
-  ut = UnitType::create( e_unit_type::pioneer );
+  ut = UnitType( e_unit_type::pioneer );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 20 } } );
   REQUIRE( uc.has_value() );
-  ut = UnitType::create( e_unit_type::hardy_pioneer );
+  ut = UnitType( e_unit_type::hardy_pioneer );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 20 } } );
   REQUIRE( uc.has_value() );
 
-  ut = UnitType::create( e_unit_type::pioneer );
+  ut = UnitType( e_unit_type::pioneer );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 15 } } );
   REQUIRE( !uc.has_value() );
-  ut = UnitType::create( e_unit_type::hardy_pioneer );
+  ut = UnitType( e_unit_type::hardy_pioneer );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 15 } } );
   REQUIRE( !uc.has_value() );
 
-  ut = UnitType::create( e_unit_type::pioneer );
+  ut = UnitType( e_unit_type::pioneer );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 0 } } );
   REQUIRE( !uc.has_value() );
-  ut = UnitType::create( e_unit_type::hardy_pioneer );
+  ut = UnitType( e_unit_type::hardy_pioneer );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 0 } } );
   REQUIRE( !uc.has_value() );
 
-  ut = UnitType::create( e_unit_type::pioneer );
+  ut = UnitType( e_unit_type::pioneer );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, -20 } } );
   REQUIRE( !uc.has_value() );
-  ut = UnitType::create( e_unit_type::hardy_pioneer );
+  ut = UnitType( e_unit_type::hardy_pioneer );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, -20 } } );
   REQUIRE( !uc.has_value() );
@@ -164,13 +164,12 @@ TEST_CASE(
   vector<UnitTransformationResult> expected;
 
   // free_colonist.
-  comp = UnitComposition::create( e_unit_type::free_colonist );
-  res  = possible_unit_transformations( comp, comms );
+  comp     = UnitComposition( e_unit_type::free_colonist );
+  res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::free_colonist ),
+                          /*type=*/e_unit_type::free_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas  = {},
@@ -195,13 +194,12 @@ TEST_CASE(
            FmtVerticalJsonList{ expected } );
 
   // missionary.
-  comp     = UnitComposition::create( e_unit_type::missionary );
+  comp     = UnitComposition( e_unit_type::missionary );
   res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::free_colonist ),
+                          /*type=*/e_unit_type::free_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -226,14 +224,12 @@ TEST_CASE(
            FmtVerticalJsonList{ expected } );
 
   // jesuit_missionary.
-  comp =
-      UnitComposition::create( e_unit_type::jesuit_missionary );
+  comp     = UnitComposition( e_unit_type::jesuit_missionary );
   res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::jesuit_colonist ),
+                          /*type=*/e_unit_type::jesuit_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -242,11 +238,11 @@ TEST_CASE(
           .commodity_deltas = {},
       },
       UnitTransformationResult{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::jesuit_missionary ),
-                          /*inventory=*/{} )
-                          .value(),
+          .new_comp =
+              UnitComposition::create(
+                  /*type=*/e_unit_type::jesuit_missionary,
+                  /*inventory=*/{} )
+                  .value(),
           .modifier_deltas  = {},
           .commodity_deltas = {},
       } };
@@ -265,11 +261,11 @@ TEST_CASE(
   res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::indentured_servant ),
-                          /*inventory=*/{} )
-                          .value(),
+          .new_comp =
+              UnitComposition::create(
+                  /*type=*/e_unit_type::indentured_servant,
+                  /*inventory=*/{} )
+                  .value(),
           .modifier_deltas =
               { { e_unit_type_modifier::tools,
                   e_unit_type_modifier_delta::del } },
@@ -319,8 +315,7 @@ TEST_CASE(
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::hardy_colonist ),
+                          /*type=*/e_unit_type::hardy_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -361,13 +356,12 @@ TEST_CASE(
   REQUIRE( FmtVerticalJsonList{ res } ==
            FmtVerticalJsonList{ expected } );
 
-  comp     = UnitComposition::create( e_unit_type::soldier );
+  comp     = UnitComposition( e_unit_type::soldier );
   res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::free_colonist ),
+                          /*type=*/e_unit_type::free_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -407,7 +401,7 @@ TEST_CASE(
            FmtVerticalJsonList{ expected } );
 
   // Soldier with petty criminal.
-  comp = UnitComposition::create(
+  comp = UnitComposition(
       UnitType::create( e_unit_type::soldier,
                         e_unit_type::petty_criminal )
           .value() );
@@ -415,8 +409,7 @@ TEST_CASE(
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::petty_criminal ),
+                          /*type=*/e_unit_type::petty_criminal,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -456,8 +449,8 @@ TEST_CASE(
            FmtVerticalJsonList{ expected } );
 
   // Veteran Dragoon.
-  comp = UnitComposition::create( e_unit_type::veteran_dragoon );
-  res  = possible_unit_transformations( comp, comms );
+  comp     = UnitComposition( e_unit_type::veteran_dragoon );
+  res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
@@ -492,8 +485,7 @@ TEST_CASE(
       },
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::veteran_colonist ),
+                          /*type=*/e_unit_type::veteran_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -576,13 +568,12 @@ TEST_CASE(
   vector<UnitTransformationResult> expected;
 
   // free_colonist.
-  comp = UnitComposition::create( e_unit_type::free_colonist );
-  res  = possible_unit_transformations( comp, comms );
+  comp     = UnitComposition( e_unit_type::free_colonist );
+  res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::free_colonist ),
+                          /*type=*/e_unit_type::free_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas  = {},
@@ -665,13 +656,12 @@ TEST_CASE(
            FmtVerticalJsonList{ expected } );
 
   // missionary.
-  comp     = UnitComposition::create( e_unit_type::missionary );
+  comp     = UnitComposition( e_unit_type::missionary );
   res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::free_colonist ),
+                          /*type=*/e_unit_type::free_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -762,14 +752,12 @@ TEST_CASE(
            FmtVerticalJsonList{ expected } );
 
   // jesuit_missionary.
-  comp =
-      UnitComposition::create( e_unit_type::jesuit_missionary );
+  comp     = UnitComposition( e_unit_type::jesuit_missionary );
   res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::jesuit_colonist ),
+                          /*type=*/e_unit_type::jesuit_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -869,11 +857,11 @@ TEST_CASE(
   res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::indentured_servant ),
-                          /*inventory=*/{} )
-                          .value(),
+          .new_comp =
+              UnitComposition::create(
+                  /*type=*/e_unit_type::indentured_servant,
+                  /*inventory=*/{} )
+                  .value(),
           .modifier_deltas =
               { { e_unit_type_modifier::tools,
                   e_unit_type_modifier_delta::del } },
@@ -1049,8 +1037,7 @@ TEST_CASE(
       },
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::hardy_colonist ),
+                          /*type=*/e_unit_type::hardy_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -1077,13 +1064,12 @@ TEST_CASE(
   REQUIRE( FmtVerticalJsonList{ res } ==
            FmtVerticalJsonList{ expected } );
 
-  comp     = UnitComposition::create( e_unit_type::soldier );
+  comp     = UnitComposition( e_unit_type::soldier );
   res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::free_colonist ),
+                          /*type=*/e_unit_type::free_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -1170,7 +1156,7 @@ TEST_CASE(
            FmtVerticalJsonList{ expected } );
 
   // Soldier with petty criminal.
-  comp = UnitComposition::create(
+  comp = UnitComposition(
       UnitType::create( e_unit_type::soldier,
                         e_unit_type::petty_criminal )
           .value() );
@@ -1178,8 +1164,7 @@ TEST_CASE(
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::petty_criminal ),
+                          /*type=*/e_unit_type::petty_criminal,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -1262,8 +1247,8 @@ TEST_CASE(
       } };
 
   // Veteran Dragoon.
-  comp = UnitComposition::create( e_unit_type::veteran_dragoon );
-  res  = possible_unit_transformations( comp, comms );
+  comp     = UnitComposition( e_unit_type::veteran_dragoon );
+  res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
           .new_comp =
@@ -1319,8 +1304,7 @@ TEST_CASE(
       },
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::veteran_colonist ),
+                          /*type=*/e_unit_type::veteran_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -1403,13 +1387,12 @@ TEST_CASE(
   vector<UnitTransformationResult> expected;
 
   // free_colonist.
-  comp = UnitComposition::create( e_unit_type::free_colonist );
-  res  = possible_unit_transformations( comp, comms );
+  comp     = UnitComposition( e_unit_type::free_colonist );
+  res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::free_colonist ),
+                          /*type=*/e_unit_type::free_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas  = {},
@@ -1450,13 +1433,12 @@ TEST_CASE(
            FmtVerticalJsonList{ expected } );
 
   // missionary.
-  comp     = UnitComposition::create( e_unit_type::missionary );
+  comp     = UnitComposition( e_unit_type::missionary );
   res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::free_colonist ),
+                          /*type=*/e_unit_type::free_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -1499,14 +1481,12 @@ TEST_CASE(
            FmtVerticalJsonList{ expected } );
 
   // jesuit_missionary.
-  comp =
-      UnitComposition::create( e_unit_type::jesuit_missionary );
+  comp     = UnitComposition( e_unit_type::jesuit_missionary );
   res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::jesuit_colonist ),
+                          /*type=*/e_unit_type::jesuit_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -1558,11 +1538,11 @@ TEST_CASE(
   res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::indentured_servant ),
-                          /*inventory=*/{} )
-                          .value(),
+          .new_comp =
+              UnitComposition::create(
+                  /*type=*/e_unit_type::indentured_servant,
+                  /*inventory=*/{} )
+                  .value(),
           .modifier_deltas =
               { { e_unit_type_modifier::tools,
                   e_unit_type_modifier_delta::del } },
@@ -1628,8 +1608,7 @@ TEST_CASE(
       },
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::hardy_colonist ),
+                          /*type=*/e_unit_type::hardy_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -1657,13 +1636,12 @@ TEST_CASE(
            FmtVerticalJsonList{ expected } );
 
   // soldier/free_colonist.
-  comp     = UnitComposition::create( e_unit_type::soldier );
+  comp     = UnitComposition( e_unit_type::soldier );
   res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::free_colonist ),
+                          /*type=*/e_unit_type::free_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -1721,7 +1699,7 @@ TEST_CASE(
            FmtVerticalJsonList{ expected } );
 
   // Soldier with petty criminal.
-  comp = UnitComposition::create(
+  comp = UnitComposition(
       UnitType::create( e_unit_type::soldier,
                         e_unit_type::petty_criminal )
           .value() );
@@ -1729,8 +1707,7 @@ TEST_CASE(
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::petty_criminal ),
+                          /*type=*/e_unit_type::petty_criminal,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -1784,8 +1761,8 @@ TEST_CASE(
       } };
 
   // Veteran Dragoon.
-  comp = UnitComposition::create( e_unit_type::veteran_dragoon );
-  res  = possible_unit_transformations( comp, comms );
+  comp     = UnitComposition( e_unit_type::veteran_dragoon );
+  res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
           .new_comp =
@@ -1841,8 +1818,7 @@ TEST_CASE(
       },
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::veteran_colonist ),
+                          /*type=*/e_unit_type::veteran_colonist,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -1925,13 +1901,12 @@ TEST_CASE(
   vector<UnitTransformationResult> expected;
 
   // regular.
-  comp     = UnitComposition::create( e_unit_type::regular );
+  comp     = UnitComposition( e_unit_type::regular );
   res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::regular ),
+                          /*type=*/e_unit_type::regular,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas  = {},
@@ -1957,13 +1932,12 @@ TEST_CASE(
            FmtVerticalJsonList{ expected } );
 
   // cavalry.
-  comp     = UnitComposition::create( e_unit_type::cavalry );
+  comp     = UnitComposition( e_unit_type::cavalry );
   res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
           .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::regular ),
+                          /*type=*/e_unit_type::regular,
                           /*inventory=*/{} )
                           .value(),
           .modifier_deltas =
@@ -1989,7 +1963,7 @@ TEST_CASE(
            FmtVerticalJsonList{ expected } );
 
   // artillery.
-  comp     = UnitComposition::create( e_unit_type::artillery );
+  comp     = UnitComposition( e_unit_type::artillery );
   res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
@@ -2004,11 +1978,11 @@ TEST_CASE(
           .commodity_deltas = {},
       },
       UnitTransformationResult{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::damaged_artillery ),
-                          /*inventory=*/{} )
-                          .value(),
+          .new_comp =
+              UnitComposition::create(
+                  /*type=*/e_unit_type::damaged_artillery,
+                  /*inventory=*/{} )
+                  .value(),
           .modifier_deltas =
               { { e_unit_type_modifier::strength,
                   e_unit_type_modifier_delta::del } },
@@ -2021,8 +1995,7 @@ TEST_CASE(
            FmtVerticalJsonList{ expected } );
 
   // damaged_artillery.
-  comp =
-      UnitComposition::create( e_unit_type::damaged_artillery );
+  comp     = UnitComposition( e_unit_type::damaged_artillery );
   res      = possible_unit_transformations( comp, comms );
   expected = {
       UnitTransformationResult{
@@ -2039,11 +2012,11 @@ TEST_CASE(
           .commodity_deltas = {},
       },
       UnitTransformationResult{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::damaged_artillery ),
-                          /*inventory=*/{} )
-                          .value(),
+          .new_comp =
+              UnitComposition::create(
+                  /*type=*/e_unit_type::damaged_artillery,
+                  /*inventory=*/{} )
+                  .value(),
           .modifier_deltas  = {},
           .commodity_deltas = {},
       },
@@ -2061,9 +2034,9 @@ TEST_CASE( "[unit-composer] unit_receive_commodity" ) {
   vector<UnitTransformationFromCommodityResult> expected;
 
   // free_colonist + 40 muskets.
-  comp = UnitComposition::create( e_unit_type::free_colonist );
-  comm = { .type = e_commodity::muskets, .quantity = 40 };
-  res  = unit_receive_commodity( comp, comm );
+  comp     = UnitComposition( e_unit_type::free_colonist );
+  comm     = { .type = e_commodity::muskets, .quantity = 40 };
+  res      = unit_receive_commodity( comp, comm );
   expected = {};
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -2071,9 +2044,9 @@ TEST_CASE( "[unit-composer] unit_receive_commodity" ) {
            FmtVerticalJsonList{ expected } );
 
   // free_colonist + 50 muskets.
-  comp = UnitComposition::create( e_unit_type::free_colonist );
-  comm = { .type = e_commodity::muskets, .quantity = 50 };
-  res  = unit_receive_commodity( comp, comm );
+  comp     = UnitComposition( e_unit_type::free_colonist );
+  comm     = { .type = e_commodity::muskets, .quantity = 50 };
+  res      = unit_receive_commodity( comp, comm );
   expected = {
       UnitTransformationFromCommodityResult{
           .new_comp = UnitComposition::create(
@@ -2095,7 +2068,7 @@ TEST_CASE( "[unit-composer] unit_receive_commodity" ) {
            FmtVerticalJsonList{ expected } );
 
   // soldier + 50 muskets.
-  comp     = UnitComposition::create( e_unit_type::soldier );
+  comp     = UnitComposition( e_unit_type::soldier );
   comm     = { .type = e_commodity::muskets, .quantity = 50 };
   res      = unit_receive_commodity( comp, comm );
   expected = {};
@@ -2105,8 +2078,7 @@ TEST_CASE( "[unit-composer] unit_receive_commodity" ) {
            FmtVerticalJsonList{ expected } );
 
   // indentured_servant + 100 horses.
-  comp =
-      UnitComposition::create( e_unit_type::indentured_servant );
+  comp     = UnitComposition( e_unit_type::indentured_servant );
   comm     = { .type = e_commodity::horses, .quantity = 100 };
   res      = unit_receive_commodity( comp, comm );
   expected = {
@@ -2130,9 +2102,9 @@ TEST_CASE( "[unit-composer] unit_receive_commodity" ) {
            FmtVerticalJsonList{ expected } );
 
   // hardy_colonist + 50 tools.
-  comp = UnitComposition::create( e_unit_type::hardy_colonist );
-  comm = { .type = e_commodity::tools, .quantity = 50 };
-  res  = unit_receive_commodity( comp, comm );
+  comp     = UnitComposition( e_unit_type::hardy_colonist );
+  comm     = { .type = e_commodity::tools, .quantity = 50 };
+  res      = unit_receive_commodity( comp, comm );
   expected = {
       UnitTransformationFromCommodityResult{
           .new_comp =
@@ -2156,9 +2128,9 @@ TEST_CASE( "[unit-composer] unit_receive_commodity" ) {
            FmtVerticalJsonList{ expected } );
 
   // hardy_colonist + 120 tools.
-  comp = UnitComposition::create( e_unit_type::hardy_colonist );
-  comm = { .type = e_commodity::tools, .quantity = 120 };
-  res  = unit_receive_commodity( comp, comm );
+  comp     = UnitComposition( e_unit_type::hardy_colonist );
+  comm     = { .type = e_commodity::tools, .quantity = 120 };
+  res      = unit_receive_commodity( comp, comm );
   expected = {
       UnitTransformationFromCommodityResult{
           .new_comp =
@@ -2183,7 +2155,7 @@ TEST_CASE( "[unit-composer] unit_receive_commodity" ) {
 
   // hardy_pioneer with 20 tools + 20 tools.
   comp = UnitComposition::create(
-             UnitType::create( e_unit_type::hardy_pioneer ),
+             e_unit_type::hardy_pioneer,
              /*inventory=*/{ { e_unit_inventory::tools, 20 } } )
              .value();
   comm     = { .type = e_commodity::tools, .quantity = 20 };
@@ -2210,7 +2182,7 @@ TEST_CASE( "[unit-composer] unit_receive_commodity" ) {
 
   // hardy_pioneer with 80 tools + 45 tools.
   comp = UnitComposition::create(
-             UnitType::create( e_unit_type::hardy_pioneer ),
+             e_unit_type::hardy_pioneer,
              /*inventory=*/{ { e_unit_inventory::tools, 80 } } )
              .value();
   comm     = { .type = e_commodity::tools, .quantity = 45 };
@@ -2237,7 +2209,7 @@ TEST_CASE( "[unit-composer] unit_receive_commodity" ) {
 
   // hardy_pioneer with 100 tools + 20 tools.
   comp = UnitComposition::create(
-             UnitType::create( e_unit_type::hardy_pioneer ),
+             e_unit_type::hardy_pioneer,
              /*inventory=*/{ { e_unit_inventory::tools, 100 } } )
              .value();
   comm     = { .type = e_commodity::tools, .quantity = 20 };
@@ -2551,12 +2523,11 @@ TEST_CASE( "[unit-composer] strip_to_base_type " ) {
   UnitTransformationResult res;
   UnitTransformationResult expected;
 
-  comp = UnitComposition::create( e_unit_type::free_colonist );
-  res  = strip_to_base_type( comp );
+  comp     = UnitComposition( e_unit_type::free_colonist );
+  res      = strip_to_base_type( comp );
   expected = UnitTransformationResult{
       .new_comp = UnitComposition::create(
-                      /*type=*/UnitType::create(
-                          e_unit_type::free_colonist ),
+                      /*type=*/e_unit_type::free_colonist,
                       /*inventory=*/{} )
                       .value(),
       .modifier_deltas  = {},
@@ -2564,12 +2535,11 @@ TEST_CASE( "[unit-composer] strip_to_base_type " ) {
   };
   REQUIRE( res == expected );
 
-  comp = UnitComposition::create( e_unit_type::expert_farmer );
-  res  = strip_to_base_type( comp );
+  comp     = UnitComposition( e_unit_type::expert_farmer );
+  res      = strip_to_base_type( comp );
   expected = UnitTransformationResult{
       .new_comp = UnitComposition::create(
-                      /*type=*/UnitType::create(
-                          e_unit_type::expert_farmer ),
+                      /*type=*/e_unit_type::expert_farmer,
                       /*inventory=*/{} )
                       .value(),
       .modifier_deltas  = {},
@@ -2577,38 +2547,36 @@ TEST_CASE( "[unit-composer] strip_to_base_type " ) {
   };
   REQUIRE( res == expected );
 
-  comp = UnitComposition::create(
+  comp = UnitComposition(
       UnitType::create( e_unit_type::dragoon,
                         e_unit_type::indentured_servant )
           .value() );
   res      = strip_to_base_type( comp );
   expected = UnitTransformationResult{
       .new_comp = UnitComposition::create(
-                      /*type=*/UnitType::create(
-                          e_unit_type::indentured_servant ),
+                      /*type=*/e_unit_type::indentured_servant,
                       /*inventory=*/{} )
                       .value(),
       .modifier_deltas  = { { e_unit_type_modifier::horses,
-                             e_unit_type_modifier_delta::del },
-                           { e_unit_type_modifier::muskets,
-                             e_unit_type_modifier_delta::del } },
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
       .commodity_deltas = { { e_commodity::horses, 50 },
                             { e_commodity::muskets, 50 } },
   };
   REQUIRE( res == expected );
 
-  comp = UnitComposition::create( e_unit_type::veteran_dragoon );
-  res  = strip_to_base_type( comp );
+  comp     = UnitComposition( e_unit_type::veteran_dragoon );
+  res      = strip_to_base_type( comp );
   expected = UnitTransformationResult{
       .new_comp = UnitComposition::create(
-                      /*type=*/UnitType::create(
-                          e_unit_type::veteran_colonist ),
+                      /*type=*/e_unit_type::veteran_colonist,
                       /*inventory=*/{} )
                       .value(),
       .modifier_deltas  = { { e_unit_type_modifier::horses,
-                             e_unit_type_modifier_delta::del },
-                           { e_unit_type_modifier::muskets,
-                             e_unit_type_modifier_delta::del } },
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
       .commodity_deltas = { { e_commodity::horses, 50 },
                             { e_commodity::muskets, 50 } },
   };
@@ -2623,29 +2591,27 @@ TEST_CASE( "[unit-composer] strip_to_base_type " ) {
   res      = strip_to_base_type( comp );
   expected = UnitTransformationResult{
       .new_comp = UnitComposition::create(
-                      /*type=*/UnitType::create(
-                          e_unit_type::free_colonist ),
+                      /*type=*/e_unit_type::free_colonist,
                       /*inventory=*/{} )
                       .value(),
       .modifier_deltas  = { { e_unit_type_modifier::tools,
-                             e_unit_type_modifier_delta::del } },
+                              e_unit_type_modifier_delta::del } },
       .commodity_deltas = { { e_commodity::tools, 80 } },
   };
   REQUIRE( res == expected );
 
   comp = UnitComposition::create(
-             UnitType::create( e_unit_type::hardy_pioneer ),
+             e_unit_type::hardy_pioneer,
              /*inventory=*/{ { e_unit_inventory::tools, 100 } } )
              .value();
   res      = strip_to_base_type( comp );
   expected = UnitTransformationResult{
       .new_comp = UnitComposition::create(
-                      /*type=*/UnitType::create(
-                          e_unit_type::hardy_colonist ),
+                      /*type=*/e_unit_type::hardy_colonist,
                       /*inventory=*/{} )
                       .value(),
       .modifier_deltas  = { { e_unit_type_modifier::tools,
-                             e_unit_type_modifier_delta::del } },
+                              e_unit_type_modifier_delta::del } },
       .commodity_deltas = { { e_commodity::tools, 100 } },
   };
   REQUIRE( res == expected );
@@ -2659,7 +2625,7 @@ TEST_CASE( "[unit-composer] unit_lose_commodity" ) {
 
   // hardy_pioneer with 20 tools - 20 tools.
   comp = UnitComposition::create(
-             UnitType::create( e_unit_type::hardy_pioneer ),
+             e_unit_type::hardy_pioneer,
              /*inventory=*/{ { e_unit_inventory::tools, 20 } } )
              .value();
   comm = { .type = e_commodity::tools, .quantity = 20 };
@@ -2702,7 +2668,7 @@ TEST_CASE( "[unit-composer] unit_lose_commodity" ) {
 
   // hardy_pioneer with 80 tools - 20 tools.
   comp = UnitComposition::create(
-             UnitType::create( e_unit_type::hardy_pioneer ),
+             e_unit_type::hardy_pioneer,
              /*inventory=*/{ { e_unit_inventory::tools, 80 } } )
              .value();
   comm     = { .type = e_commodity::tools, .quantity = 20 };

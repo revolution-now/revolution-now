@@ -121,8 +121,7 @@ void john_paul_jones( SS& ss, TS& ts, Player const& player ) {
     return;
   }
   create_unit_on_map_non_interactive(
-      ss, ts, player,
-      UnitComposition::create( e_unit_type::frigate ), *loc );
+      ss, ts, player, e_unit_type::frigate, *loc );
 }
 
 // All currently existing indian converts are changed to free
@@ -130,8 +129,7 @@ void john_paul_jones( SS& ss, TS& ts, Player const& player ) {
 void bartolome_de_las_casas( SS& ss, Player const& player ) {
   unordered_map<UnitId, EuroUnitState const*> const& units_all =
       ss.units.euro_all();
-  auto free_colonist_type =
-      UnitComposition::create( e_unit_type::free_colonist );
+  auto free_colonist_type = e_unit_type::free_colonist;
   for( auto& [unit_id, state] : units_all ) {
     Unit& unit = ss.units.unit_for( unit_id );
     if( unit.nation() != player.nation ) continue;

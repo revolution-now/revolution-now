@@ -658,9 +658,7 @@ wait<> do_speak_with_chief(
       // Need to change type before awaiting on the promotion
       // message otherwise the unit will change back temporarily
       // after depixelating.
-      unit.change_type( player,
-                        UnitComposition::create(
-                            e_unit_type::seasoned_scout ) );
+      unit.change_type( player, e_unit_type::seasoned_scout );
       co_await ts.gui.message_box(
           "Our scout has been promoted to @[H]Seasoned "
           "Scout@[]!" );

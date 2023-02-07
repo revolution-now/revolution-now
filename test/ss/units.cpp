@@ -123,8 +123,7 @@ TEST_CASE( "[units] missionary_from_dwelling" ) {
            expected );
 
   Unit const& unit = W.add_missionary_in_dwelling(
-      UnitType::create( e_unit_type::missionary ),
-      dwelling1.id );
+      e_unit_type::missionary, dwelling1.id );
   REQUIRE( as_const( W.units() ).ownership_of( unit.id() ) ==
            UnitOwnership_t{
                UnitOwnership::dwelling{ .id = dwelling1.id } } );

@@ -148,8 +148,7 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
         .defender = { .id      = defender->id(),
                       .weight  = 2.0,
                       .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = UnitType::create(
-                              e_unit_type::free_colonist ) } } };
+                          .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
   }
 
@@ -169,13 +168,11 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
               .weight = 2.0,
               .outcome =
                   EuroUnitCombatOutcome::promoted{
-                      .to = UnitType::create(
-                          e_unit_type::veteran_soldier ) } },
+                      .to = e_unit_type::veteran_soldier } },
         .defender = { .id      = defender->id(),
                       .weight  = 2.0,
                       .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = UnitType::create(
-                              e_unit_type::free_colonist ) } } };
+                          .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
   }
 
@@ -199,13 +196,11 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
                       .weight = 2.0,
                       .outcome =
                           EuroUnitCombatOutcome::promoted{
-                              .to = UnitType::create(
-                                  e_unit_type::soldier ) } },
+                              .to = e_unit_type::soldier } },
         .defender = { .id      = defender->id(),
                       .weight  = 2.0,
                       .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = UnitType::create(
-                              e_unit_type::free_colonist ) } } };
+                          .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
   }
 
@@ -236,8 +231,7 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
         .defender = { .id      = defender->id(),
                       .weight  = 2.0,
                       .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = UnitType::create(
-                              e_unit_type::free_colonist ) } } };
+                          .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
   }
 
@@ -262,8 +256,7 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
         .defender = { .id      = defender->id(),
                       .weight  = 2.0,
                       .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = UnitType::create(
-                              e_unit_type::free_colonist ) } } };
+                          .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
   }
 
@@ -286,8 +279,7 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
         .defender = { .id      = defender->id(),
                       .weight  = 2.0,
                       .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = UnitType::create(
-                              e_unit_type::free_colonist ) } } };
+                          .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
   }
 
@@ -311,8 +303,7 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
               .weight = 4.0,
               .outcome =
                   EuroUnitCombatOutcome::promoted{
-                      .to = UnitType::create(
-                          e_unit_type::continental_cavalry ) } },
+                      .to = e_unit_type::continental_cavalry } },
         .defender = { .id      = defender->id(),
                       .weight  = 1.0,
                       .outcome = EuroUnitCombatOutcome::captured{
@@ -364,8 +355,7 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
               .weight = 4.0,
               .outcome =
                   EuroUnitCombatOutcome::demoted{
-                      .to = UnitType::create(
-                          e_unit_type::veteran_soldier ) } },
+                      .to = e_unit_type::veteran_soldier } },
         .defender = {
             .id      = defender->id(),
             .weight  = 1.0,
@@ -390,14 +380,12 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
               .weight = 5.0,
               .outcome =
                   EuroUnitCombatOutcome::demoted{
-                      .to = UnitType::create(
-                          e_unit_type::damaged_artillery ) } },
+                      .to = e_unit_type::damaged_artillery } },
         .defender = {
             .id      = defender->id(),
             .weight  = 3.0,
             .outcome = EuroUnitCombatOutcome::promoted{
-                .to = UnitType::create(
-                    e_unit_type::veteran_dragoon ) } } };
+                .to = e_unit_type::veteran_dragoon } } };
     REQUIRE( f() == expected );
   }
 }
@@ -445,17 +433,16 @@ TEST_CASE( "[combat] combat_euro_attack_undefended_colony" ) {
     expected = {
         .winner    = e_combat_winner::defender,
         .colony_id = colony.id,
-        .attacker =
-            { .id     = attacker->id(),
-              .weight = 2.0,
-              .outcome =
-                  EuroUnitCombatOutcome::demoted{
-                      .to = UnitType::create(
-                          e_unit_type::free_colonist ) } },
-        .defender = {
-            .id     = defender.id(),
-            .weight = 1.0,
-            .outcome =
+        .attacker  = { .id     = attacker->id(),
+                       .weight = 2.0,
+                       .outcome =
+                           EuroUnitCombatOutcome::demoted{
+                               .to =
+                                  e_unit_type::free_colonist } },
+        .defender  = {
+             .id     = defender.id(),
+             .weight = 1.0,
+             .outcome =
                 EuroColonyWorkerCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
@@ -516,8 +503,7 @@ TEST_CASE( "[combat] combat_euro_attack_brave" ) {
               .weight = 2.0,
               .outcome =
                   EuroUnitCombatOutcome::promoted{
-                      .to = UnitType::create(
-                          e_unit_type::veteran_soldier ) } },
+                      .to = e_unit_type::veteran_soldier } },
         .defender = {
             .id      = defender->id,
             .weight  = 1.0,
@@ -536,14 +522,13 @@ TEST_CASE( "[combat] combat_euro_attack_brave" ) {
         dwelling.id );
     W.expect_defender_wins( .666666 );
     expected = {
-        .winner = e_combat_winner::defender,
-        .attacker =
-            { .id     = attacker->id(),
-              .weight = 2.0,
-              .outcome =
-                  EuroUnitCombatOutcome::demoted{
-                      .to = UnitType::create(
-                          e_unit_type::free_colonist ) } },
+        .winner   = e_combat_winner::defender,
+        .attacker = { .id     = attacker->id(),
+                      .weight = 2.0,
+                      .outcome =
+                          EuroUnitCombatOutcome::demoted{
+                              .to =
+                                  e_unit_type::free_colonist } },
         .defender = {
             .id      = defender->id,
             .weight  = 1.0,
@@ -628,17 +613,16 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
         .winner           = e_combat_winner::defender,
         .new_tribal_alarm = 95,
         .missions_burned  = false,
-        .attacker =
-            { .id     = attacker->id(),
-              .weight = 2.0,
-              .outcome =
-                  EuroUnitCombatOutcome::demoted{
-                      .to = UnitType::create(
-                          e_unit_type::free_colonist ) } },
-        .defender = {
-            .id      = dwelling.id,
-            .weight  = 1.0,
-            .outcome = DwellingCombatOutcome::no_change{} } };
+        .attacker         = { .id     = attacker->id(),
+                              .weight = 2.0,
+                              .outcome =
+                                  EuroUnitCombatOutcome::demoted{
+                                      .to =
+                                  e_unit_type::free_colonist } },
+        .defender         = {
+                    .id      = dwelling.id,
+                    .weight  = 1.0,
+                    .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -652,24 +636,22 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
         .winner           = e_combat_winner::defender,
         .new_tribal_alarm = 10,
         .missions_burned  = false,
-        .attacker =
-            { .id     = attacker->id(),
-              .weight = 2.0,
-              .outcome =
-                  EuroUnitCombatOutcome::demoted{
-                      .to = UnitType::create(
-                          e_unit_type::free_colonist ) } },
-        .defender = {
-            .id      = dwelling.id,
-            .weight  = 1.0,
-            .outcome = DwellingCombatOutcome::no_change{} } };
+        .attacker         = { .id     = attacker->id(),
+                              .weight = 2.0,
+                              .outcome =
+                                  EuroUnitCombatOutcome::demoted{
+                                      .to =
+                                  e_unit_type::free_colonist } },
+        .defender         = {
+                    .id      = dwelling.id,
+                    .weight  = 1.0,
+                    .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
   SECTION( "soldier, attacker loses, with missionary" ) {
-    W.add_missionary_in_dwelling(
-         UnitType::create( e_unit_type::jesuit_missionary ),
-         dwelling.id )
+    W.add_missionary_in_dwelling( e_unit_type::jesuit_missionary,
+                                  dwelling.id )
         .id();
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
@@ -679,26 +661,24 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
         .winner           = e_combat_winner::defender,
         .new_tribal_alarm = 10,
         .missions_burned  = false,
-        .attacker =
-            { .id     = attacker->id(),
-              .weight = 2.0,
-              .outcome =
-                  EuroUnitCombatOutcome::demoted{
-                      .to = UnitType::create(
-                          e_unit_type::free_colonist ) } },
-        .defender = {
-            .id      = dwelling.id,
-            .weight  = 1.0,
-            .outcome = DwellingCombatOutcome::no_change{} } };
+        .attacker         = { .id     = attacker->id(),
+                              .weight = 2.0,
+                              .outcome =
+                                  EuroUnitCombatOutcome::demoted{
+                                      .to =
+                                  e_unit_type::free_colonist } },
+        .defender         = {
+                    .id      = dwelling.id,
+                    .weight  = 1.0,
+                    .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
   SECTION(
       "soldier, attacker wins+promotion, with missionary, no "
       "convert" ) {
-    W.add_missionary_in_dwelling(
-         UnitType::create( e_unit_type::jesuit_missionary ),
-         dwelling.id )
+    W.add_missionary_in_dwelling( e_unit_type::jesuit_missionary,
+                                  dwelling.id )
         .id();
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
@@ -716,8 +696,7 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
               .weight = 2.0,
               .outcome =
                   EuroUnitCombatOutcome::promoted{
-                      .to = UnitType::create(
-                          e_unit_type::veteran_soldier ) } },
+                      .to = e_unit_type::veteran_soldier } },
 
         .defender = {
             .id     = dwelling.id,
@@ -730,9 +709,8 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
 
   SECTION(
       "soldier, attacker wins, with missionary, with convert" ) {
-    W.add_missionary_in_dwelling(
-         UnitType::create( e_unit_type::jesuit_missionary ),
-         dwelling.id )
+    W.add_missionary_in_dwelling( e_unit_type::jesuit_missionary,
+                                  dwelling.id )
         .id();
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
@@ -762,9 +740,8 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
   SECTION(
       "soldier, attacker loses, with missionary, no burn "
       "missions" ) {
-    W.add_missionary_in_dwelling(
-         UnitType::create( e_unit_type::jesuit_missionary ),
-         dwelling.id )
+    W.add_missionary_in_dwelling( e_unit_type::jesuit_missionary,
+                                  dwelling.id )
         .id();
     relationship.tribal_alarm = 85;
     attacker =
@@ -776,26 +753,24 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
         .winner           = e_combat_winner::defender,
         .new_tribal_alarm = 95,
         .missions_burned  = false,
-        .attacker =
-            { .id     = attacker->id(),
-              .weight = 2.0,
-              .outcome =
-                  EuroUnitCombatOutcome::demoted{
-                      .to = UnitType::create(
-                          e_unit_type::free_colonist ) } },
-        .defender = {
-            .id      = dwelling.id,
-            .weight  = 1.0,
-            .outcome = DwellingCombatOutcome::no_change{} } };
+        .attacker         = { .id     = attacker->id(),
+                              .weight = 2.0,
+                              .outcome =
+                                  EuroUnitCombatOutcome::demoted{
+                                      .to =
+                                  e_unit_type::free_colonist } },
+        .defender         = {
+                    .id      = dwelling.id,
+                    .weight  = 1.0,
+                    .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
   SECTION(
       "soldier, attacker loses, with missionary, burn "
       "missions" ) {
-    W.add_missionary_in_dwelling(
-         UnitType::create( e_unit_type::jesuit_missionary ),
-         dwelling.id )
+    W.add_missionary_in_dwelling( e_unit_type::jesuit_missionary,
+                                  dwelling.id )
         .id();
     relationship.tribal_alarm = 85;
     attacker =
@@ -807,26 +782,24 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
         .winner           = e_combat_winner::defender,
         .new_tribal_alarm = 95,
         .missions_burned  = true,
-        .attacker =
-            { .id     = attacker->id(),
-              .weight = 2.0,
-              .outcome =
-                  EuroUnitCombatOutcome::demoted{
-                      .to = UnitType::create(
-                          e_unit_type::free_colonist ) } },
-        .defender = {
-            .id      = dwelling.id,
-            .weight  = 1.0,
-            .outcome = DwellingCombatOutcome::no_change{} } };
+        .attacker         = { .id     = attacker->id(),
+                              .weight = 2.0,
+                              .outcome =
+                                  EuroUnitCombatOutcome::demoted{
+                                      .to =
+                                  e_unit_type::free_colonist } },
+        .defender         = {
+                    .id      = dwelling.id,
+                    .weight  = 1.0,
+                    .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
   SECTION(
       "soldier, attacker wins, with missionary, burn missions, "
       "no convert" ) {
-    W.add_missionary_in_dwelling(
-         UnitType::create( e_unit_type::jesuit_missionary ),
-         dwelling.id )
+    W.add_missionary_in_dwelling( e_unit_type::jesuit_missionary,
+                                  dwelling.id )
         .id();
     relationship.tribal_alarm = 85;
     attacker =
@@ -1143,8 +1116,7 @@ TEST_CASE(
               .weight = 3.0,
               .outcome =
                   EuroUnitCombatOutcome::promoted{
-                      .to = UnitType::create(
-                          e_unit_type::veteran_dragoon ) } },
+                      .to = e_unit_type::veteran_dragoon } },
 
         .defender = {
             .id      = dwelling.id,

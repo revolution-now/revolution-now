@@ -52,8 +52,8 @@ maybe<UnitType> change_base_with_constant_modifiers(
   // We always allow the independence modifier because this func-
   // tion is just keeping the modifiers constant, so if that mod-
   // ifier was already there then it is allowed.
-  return add_unit_type_modifiers(
-      UnitType::create( new_base_type ), existing_modifiers );
+  return add_unit_type_modifiers( new_base_type,
+                                  existing_modifiers );
 }
 
 maybe<e_unit_type> cleared_expertise( e_unit_type type ) {
@@ -75,13 +75,12 @@ maybe<UnitType> promoted_unit_type( UnitType        ut,
     switch( promo.to_enum() ) {
       using namespace UnitPromotion;
       case e::fixed:
-        return UnitType::create( promo.get<fixed>().type );
+        return promo.get<fixed>().type;
       case e::occupation:
         // In this case we need to mind the occupation of the
         // unit, but there is no derived type to provide one for
         // us, so we fall back to the `activity` parameter.
-        return UnitType::create(
-            expert_for_activity( activity ) );
+        return expert_for_activity( activity );
       case e::expertise: {
         // Should have been validated during config reading. This
         // setting is not for base types.
@@ -280,8 +279,7 @@ maybe<UnitComposition> promoted_by_natives(
         comp.type_obj().unit_type_modifiers();
     UNWRAP_RETURN(
         with_modifiers,
-        add_unit_type_modifiers(
-            UnitType::create( new_base_type ), modifiers ) );
+        add_unit_type_modifiers( new_base_type, modifiers ) );
     expect<UnitComposition> const res = UnitComposition::create(
         with_modifiers, comp.inventory() );
     if( res.has_value() ) return *res;
@@ -290,7 +288,7 @@ maybe<UnitComposition> promoted_by_natives(
     e_unit_type const new_unit_type =
         expert_for_activity( activity );
     expect<UnitComposition> const res = UnitComposition::create(
-        UnitType::create( new_unit_type ), comp.inventory() );
+        new_unit_type, comp.inventory() );
     if( res.has_value() ) return *res;
     return nothing;
   }
@@ -300,7 +298,7 @@ maybe<UnitType> cleared_expertise( UnitType ut ) {
   // First see if the effective type has a cleared_expertise
   // specification. If so, then give priority to that.
   if( auto type = cleared_expertise( ut.type() ); type )
-    return UnitType::create( *type );
+    return *type;
   // If not, then try base type.
   UNWRAP_RETURN( new_base_type,
                  cleared_expertise( ut.base_type() ) );

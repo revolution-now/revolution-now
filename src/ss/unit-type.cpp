@@ -188,15 +188,15 @@ maybe<UnitType> UnitType::create( e_unit_type type,
   return res;
 }
 
-UnitType UnitType::create( e_unit_type type ) {
+UnitType::UnitType( e_unit_type type ) {
   UnitTypeAttributes const& desc = unit_attr( type );
   if( desc.is_derived ) {
     UNWRAP_CHECK( base_type, desc.canonical_base );
     UNWRAP_CHECK( res, create( type, base_type ) );
-    return res;
+    *this = res;
   } else {
     UNWRAP_CHECK( res, create( type, type ) );
-    return res;
+    *this = res;
   }
 }
 
@@ -230,7 +230,7 @@ UnitTypeAttributes const& unit_attr( UnitType type ) {
 maybe<UnitType> find_unit_type_modifiers(
     e_unit_type                                base_type,
     unordered_set<e_unit_type_modifier> const& modifiers ) {
-  if( modifiers.empty() ) return UnitType::create( base_type );
+  if( modifiers.empty() ) return UnitType( base_type );
   auto& base_modifiers = unit_attr( base_type ).modifiers;
   for( auto& [mtype, base_mod_set] : base_modifiers )
     if( base_mod_set == modifiers )
@@ -384,7 +384,7 @@ LUA_STARTUP( lua::state& st ) {
   };
 
   tbl_UnitType["create"] = [&]( e_unit_type type ) -> UnitType {
-    return UnitType::create( type );
+    return type;
   };
 };
 

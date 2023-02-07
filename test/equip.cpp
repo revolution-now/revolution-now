@@ -54,11 +54,6 @@ struct World : testing::World {
     return harbor_equip_options( ss(), default_player(), comp );
   }
 
-  vector<HarborEquipOption> call_equip_options(
-      e_unit_type type ) const {
-    return call_equip_options( UnitComposition::create( type ) );
-  }
-
   void create_1x1_map() {
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{ L };
@@ -90,7 +85,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .money_delta     = 0,
           .can_afford      = true,
           .commodity_delta = nothing,
-          .new_comp = UC::create( e_unit_type::missionary ) },
+          .new_comp        = e_unit_type::missionary },
         { .modifier       = e_unit_type_modifier::tools,
           .modifier_delta = e_unit_type_modifier_delta::add,
           .money_delta    = -500,
@@ -98,7 +93,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::tools,
                          .quantity = 100 },
-          .new_comp = UC::create( e_unit_type::pioneer ) },
+          .new_comp = e_unit_type::pioneer },
         { .modifier       = e_unit_type_modifier::horses,
           .modifier_delta = e_unit_type_modifier_delta::add,
           .money_delta    = -300,
@@ -106,7 +101,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::horses,
                          .quantity = 50 },
-          .new_comp = UC::create( e_unit_type::scout ) },
+          .new_comp = e_unit_type::scout },
         { .modifier       = e_unit_type_modifier::muskets,
           .modifier_delta = e_unit_type_modifier_delta::add,
           .money_delta    = -550,
@@ -114,7 +109,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::muskets,
                          .quantity = 50 },
-          .new_comp = UC::create( e_unit_type::soldier ) } };
+          .new_comp = e_unit_type::soldier } };
     REQUIRE( f( e_unit_type::free_colonist ) == expected );
 
     // veteran_soldier
@@ -126,8 +121,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::muskets,
                          .quantity = 50 },
-          .new_comp =
-              UC::create( e_unit_type::veteran_colonist ) },
+          .new_comp = e_unit_type::veteran_colonist },
         { .modifier       = e_unit_type_modifier::horses,
           .modifier_delta = e_unit_type_modifier_delta::add,
           .money_delta    = -300,
@@ -135,8 +129,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::horses,
                          .quantity = 50 },
-          .new_comp =
-              UC::create( e_unit_type::veteran_dragoon ) } };
+          .new_comp = e_unit_type::veteran_dragoon } };
     REQUIRE( f( e_unit_type::veteran_soldier ) == expected );
 
     // veteran_dragoon
@@ -148,10 +141,10 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::muskets,
                          .quantity = 50 },
-          .new_comp = UC::create(
-              UT::create( e_unit_type::scout,
-                          e_unit_type::veteran_colonist )
-                  .value() ) },
+          .new_comp =
+              UC( UT::create( e_unit_type::scout,
+                              e_unit_type::veteran_colonist )
+                      .value() ) },
         { .modifier       = e_unit_type_modifier::horses,
           .modifier_delta = e_unit_type_modifier_delta::del,
           .money_delta    = 125,
@@ -159,8 +152,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::horses,
                          .quantity = 50 },
-          .new_comp =
-              UC::create( e_unit_type::veteran_soldier ) } };
+          .new_comp = e_unit_type::veteran_soldier } };
     REQUIRE( f( e_unit_type::veteran_dragoon ) == expected );
 
     // scout
@@ -172,7 +164,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::horses,
                          .quantity = 50 },
-          .new_comp = UC::create( e_unit_type::free_colonist ) },
+          .new_comp = e_unit_type::free_colonist },
         { .modifier       = e_unit_type_modifier::muskets,
           .modifier_delta = e_unit_type_modifier_delta::add,
           .money_delta    = -550,
@@ -180,7 +172,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::muskets,
                          .quantity = 50 },
-          .new_comp = UC::create( e_unit_type::dragoon ) } };
+          .new_comp = e_unit_type::dragoon } };
     REQUIRE( f( e_unit_type::scout ) == expected );
 
     // pioneer/indentured_servant
@@ -192,8 +184,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::tools,
                          .quantity = 80 },
-          .new_comp =
-              UC::create( e_unit_type::indentured_servant ) } };
+          .new_comp = e_unit_type::indentured_servant } };
     UnitComposition const pioneer =
         UnitComposition::create(
             UnitType::create( e_unit_type::pioneer,
@@ -211,8 +202,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .money_delta     = 0,
           .can_afford      = true,
           .commodity_delta = nothing,
-          .new_comp =
-              UC::create( e_unit_type::free_colonist ) } };
+          .new_comp        = e_unit_type::free_colonist } };
     REQUIRE( f( e_unit_type::missionary ) == expected );
   }
   SECTION( "money=1000" ) {
@@ -225,7 +215,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .money_delta     = 0,
           .can_afford      = true,
           .commodity_delta = nothing,
-          .new_comp = UC::create( e_unit_type::missionary ) },
+          .new_comp        = e_unit_type::missionary },
         { .modifier       = e_unit_type_modifier::tools,
           .modifier_delta = e_unit_type_modifier_delta::add,
           .money_delta    = -500,
@@ -233,7 +223,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::tools,
                          .quantity = 100 },
-          .new_comp = UC::create( e_unit_type::pioneer ) },
+          .new_comp = e_unit_type::pioneer },
         { .modifier       = e_unit_type_modifier::horses,
           .modifier_delta = e_unit_type_modifier_delta::add,
           .money_delta    = -300,
@@ -241,7 +231,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::horses,
                          .quantity = 50 },
-          .new_comp = UC::create( e_unit_type::scout ) },
+          .new_comp = e_unit_type::scout },
         { .modifier       = e_unit_type_modifier::muskets,
           .modifier_delta = e_unit_type_modifier_delta::add,
           .money_delta    = -550,
@@ -249,7 +239,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::muskets,
                          .quantity = 50 },
-          .new_comp = UC::create( e_unit_type::soldier ) } };
+          .new_comp = e_unit_type::soldier } };
     REQUIRE( f( e_unit_type::free_colonist ) == expected );
 
     // veteran_soldier
@@ -261,8 +251,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::muskets,
                          .quantity = 50 },
-          .new_comp =
-              UC::create( e_unit_type::veteran_colonist ) },
+          .new_comp = e_unit_type::veteran_colonist },
         { .modifier       = e_unit_type_modifier::horses,
           .modifier_delta = e_unit_type_modifier_delta::add,
           .money_delta    = -300,
@@ -270,8 +259,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::horses,
                          .quantity = 50 },
-          .new_comp =
-              UC::create( e_unit_type::veteran_dragoon ) } };
+          .new_comp = e_unit_type::veteran_dragoon } };
     REQUIRE( f( e_unit_type::veteran_soldier ) == expected );
 
     // veteran_dragoon
@@ -283,10 +271,10 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::muskets,
                          .quantity = 50 },
-          .new_comp = UC::create(
-              UT::create( e_unit_type::scout,
-                          e_unit_type::veteran_colonist )
-                  .value() ) },
+          .new_comp =
+              UC( UT::create( e_unit_type::scout,
+                              e_unit_type::veteran_colonist )
+                      .value() ) },
         { .modifier       = e_unit_type_modifier::horses,
           .modifier_delta = e_unit_type_modifier_delta::del,
           .money_delta    = 125,
@@ -294,8 +282,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::horses,
                          .quantity = 50 },
-          .new_comp =
-              UC::create( e_unit_type::veteran_soldier ) } };
+          .new_comp = e_unit_type::veteran_soldier } };
     REQUIRE( f( e_unit_type::veteran_dragoon ) == expected );
 
     // scout
@@ -307,7 +294,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::horses,
                          .quantity = 50 },
-          .new_comp = UC::create( e_unit_type::free_colonist ) },
+          .new_comp = e_unit_type::free_colonist },
         { .modifier       = e_unit_type_modifier::muskets,
           .modifier_delta = e_unit_type_modifier_delta::add,
           .money_delta    = -550,
@@ -315,7 +302,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::muskets,
                          .quantity = 50 },
-          .new_comp = UC::create( e_unit_type::dragoon ) } };
+          .new_comp = e_unit_type::dragoon } };
     REQUIRE( f( e_unit_type::scout ) == expected );
 
     // pioneer/indentured_servant
@@ -327,8 +314,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::tools,
                          .quantity = 80 },
-          .new_comp =
-              UC::create( e_unit_type::indentured_servant ) } };
+          .new_comp = e_unit_type::indentured_servant } };
     UnitComposition const pioneer =
         UnitComposition::create(
             UnitType::create( e_unit_type::pioneer,
@@ -346,8 +332,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .money_delta     = 0,
           .can_afford      = true,
           .commodity_delta = nothing,
-          .new_comp =
-              UC::create( e_unit_type::free_colonist ) } };
+          .new_comp        = e_unit_type::free_colonist } };
     REQUIRE( f( e_unit_type::missionary ) == expected );
 
     // artillery
@@ -373,7 +358,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .money_delta     = 0,
           .can_afford      = true,
           .commodity_delta = nothing,
-          .new_comp = UC::create( e_unit_type::missionary ) },
+          .new_comp        = e_unit_type::missionary },
         { .modifier       = e_unit_type_modifier::tools,
           .modifier_delta = e_unit_type_modifier_delta::add,
           .money_delta    = -500,
@@ -381,7 +366,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::tools,
                          .quantity = 100 },
-          .new_comp = UC::create( e_unit_type::pioneer ) },
+          .new_comp = e_unit_type::pioneer },
         { .modifier       = e_unit_type_modifier::horses,
           .modifier_delta = e_unit_type_modifier_delta::add,
           .money_delta    = -300,
@@ -389,7 +374,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::horses,
                          .quantity = 50 },
-          .new_comp = UC::create( e_unit_type::scout ) },
+          .new_comp = e_unit_type::scout },
         { .modifier       = e_unit_type_modifier::muskets,
           .modifier_delta = e_unit_type_modifier_delta::add,
           .money_delta    = -550,
@@ -397,7 +382,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::muskets,
                          .quantity = 50 },
-          .new_comp = UC::create( e_unit_type::soldier ) } };
+          .new_comp = e_unit_type::soldier } };
     REQUIRE( f( e_unit_type::free_colonist ) == expected );
   }
   SECTION( "money=1000, muskets/horses boycotted" ) {
@@ -415,7 +400,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .money_delta     = 0,
           .can_afford      = true,
           .commodity_delta = nothing,
-          .new_comp = UC::create( e_unit_type::missionary ) },
+          .new_comp        = e_unit_type::missionary },
         { .modifier       = e_unit_type_modifier::tools,
           .modifier_delta = e_unit_type_modifier_delta::add,
           .money_delta    = -500,
@@ -423,7 +408,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
           .commodity_delta =
               Commodity{ .type     = e_commodity::tools,
                          .quantity = 100 },
-          .new_comp = UC::create( e_unit_type::pioneer ) } };
+          .new_comp = e_unit_type::pioneer } };
     REQUIRE( f( e_unit_type::free_colonist ) == expected );
   }
 }
@@ -545,7 +530,7 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
                .money_delta     = 0,
                .can_afford      = true,
                .commodity_delta = nothing,
-               .new_comp = UC::create( e_unit_type::missionary ) };
+               .new_comp        = e_unit_type::missionary };
   expected = {};
   REQUIRE( f() == expected );
   REQUIRE( W.ss().units.unit_for( unit_id ).type() ==
@@ -559,7 +544,7 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
       .can_afford      = true,
       .commodity_delta = Commodity{ .type = e_commodity::tools,
                                     .quantity = 100 },
-      .new_comp        = UC::create( e_unit_type::pioneer ) };
+      .new_comp        = e_unit_type::pioneer };
   expected =
       create_price_change( player, e_commodity::tools, 0 );
   REQUIRE( f() == expected );
@@ -574,7 +559,7 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
       .can_afford      = true,
       .commodity_delta = Commodity{ .type = e_commodity::horses,
                                     .quantity = 50 },
-      .new_comp        = UC::create( e_unit_type::scout ) };
+      .new_comp        = e_unit_type::scout };
   expected =
       create_price_change( player, e_commodity::horses, 0 );
   REQUIRE( f() == expected );
@@ -589,7 +574,7 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
       .can_afford      = true,
       .commodity_delta = Commodity{ .type = e_commodity::muskets,
                                     .quantity = 50 },
-      .new_comp        = UC::create( e_unit_type::soldier ) };
+      .new_comp        = e_unit_type::soldier };
   expected =
       create_price_change( player, e_commodity::muskets, 0 );
   REQUIRE( f() == expected );
@@ -605,7 +590,7 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
       .can_afford      = true,
       .commodity_delta = Commodity{ .type = e_commodity::muskets,
                                     .quantity = 500 },
-      .new_comp        = UC::create( e_unit_type::soldier ) };
+      .new_comp        = e_unit_type::soldier };
   expected =
       create_price_change( player, e_commodity::muskets, 1 );
   REQUIRE( f() == expected );
@@ -619,8 +604,7 @@ TEST_CASE( "[equip] colony_equip_description" ) {
   string      expected;
 
   auto f = [&] {
-    ColonyEquipOption const option = {
-        .new_comp = UnitComposition::create( input ) };
+    ColonyEquipOption const option = { .new_comp = input };
     return colony_equip_description( option );
   };
 
@@ -648,8 +632,7 @@ TEST_CASE( "[equip] perform_colony_equip_option" ) {
   ColonyEquipOption const option{
       .commodity_deltas = { { e_commodity::muskets, -50 },
                             { e_commodity::horses, -50 } },
-      .new_comp =
-          UnitComposition::create( e_unit_type::dragoon ) };
+      .new_comp         = e_unit_type::dragoon };
 
   refl::enum_map<e_commodity, int> expected;
 
@@ -696,34 +679,30 @@ TEST_CASE( "[equip] colony_equip_options" ) {
         ColonyEquipOption{
             .commodity_deltas = { { e_commodity::muskets, -50 },
                                   { e_commodity::horses, -50 } },
-            .new_comp         = UnitComposition::create(
+            .new_comp         = UnitComposition(
                 UnitType::create(
                     e_unit_type::dragoon,
                     e_unit_type::seasoned_colonist )
                     .value() ) },
         ColonyEquipOption{
             .commodity_deltas = {},
-            .new_comp         = UnitComposition::create(
-                e_unit_type::seasoned_colonist ) },
+            .new_comp         = e_unit_type::seasoned_colonist },
         ColonyEquipOption{
             .commodity_deltas = {},
-            .new_comp         = UnitComposition::create(
-                UnitType::create(
-                    e_unit_type::missionary,
-                    e_unit_type::seasoned_colonist )
-                    .value() ) },
+            .new_comp         = UnitType::create(
+                            e_unit_type::missionary,
+                            e_unit_type::seasoned_colonist )
+                            .value() },
         ColonyEquipOption{
             .commodity_deltas = { { e_commodity::horses, -50 } },
-            .new_comp         = UnitComposition::create(
-                e_unit_type::seasoned_scout ) },
+            .new_comp         = e_unit_type::seasoned_scout },
         ColonyEquipOption{
             .commodity_deltas = { { e_commodity::muskets,
                                     -50 } },
-            .new_comp         = UnitComposition::create(
-                UnitType::create(
-                    e_unit_type::soldier,
-                    e_unit_type::seasoned_colonist )
-                    .value() ) },
+            .new_comp         = UnitType::create(
+                            e_unit_type::soldier,
+                            e_unit_type::seasoned_colonist )
+                            .value() },
     };
     REQUIRE( f() == expected );
   }
@@ -739,31 +718,29 @@ TEST_CASE( "[equip] colony_equip_options" ) {
     };
 
     vector<ColonyEquipOption> expected{
-        ColonyEquipOption{ .commodity_deltas = {},
-                           .new_comp = UnitComposition::create(
-                               e_unit_type::veteran_colonist ) },
         ColonyEquipOption{
             .commodity_deltas = {},
-            .new_comp         = UnitComposition::create(
+            .new_comp         = e_unit_type::veteran_colonist },
+        ColonyEquipOption{
+            .commodity_deltas = {},
+            .new_comp =
                 UnitType::create( e_unit_type::missionary,
-                                          e_unit_type::veteran_colonist )
-                    .value() ) },
+                                  e_unit_type::veteran_colonist )
+                    .value() },
         ColonyEquipOption{
             .commodity_deltas = { { e_commodity::horses, -50 } },
-            .new_comp         = UnitComposition::create(
+            .new_comp =
                 UnitType::create( e_unit_type::scout,
-                                          e_unit_type::veteran_colonist )
-                    .value() ) },
+                                  e_unit_type::veteran_colonist )
+                    .value() },
         ColonyEquipOption{
             .commodity_deltas = { { e_commodity::muskets, -50 },
                                   { e_commodity::horses, -50 } },
-            .new_comp         = UnitComposition::create(
-                e_unit_type::veteran_dragoon ) },
+            .new_comp         = e_unit_type::veteran_dragoon },
         ColonyEquipOption{
             .commodity_deltas = { { e_commodity::muskets,
                                     -50 } },
-            .new_comp         = UnitComposition::create(
-                e_unit_type::veteran_soldier ) },
+            .new_comp         = e_unit_type::veteran_soldier },
     };
     REQUIRE( f() == expected );
   }
@@ -780,23 +757,20 @@ TEST_CASE( "[equip] colony_equip_options" ) {
     };
 
     vector<ColonyEquipOption> expected{
-        ColonyEquipOption{ .commodity_deltas = {},
-                           .new_comp = UnitComposition::create(
-                               e_unit_type::free_colonist ) },
+        ColonyEquipOption{
+            .commodity_deltas = {},
+            .new_comp         = e_unit_type::free_colonist },
         ColonyEquipOption{
             .commodity_deltas = { { e_commodity::muskets, -50 },
                                   { e_commodity::horses, -50 } },
-            .new_comp         = UnitComposition::create(
-                e_unit_type::dragoon ) },
+            .new_comp         = e_unit_type::dragoon },
         ColonyEquipOption{
             .commodity_deltas = { { e_commodity::horses, -50 } },
-            .new_comp =
-                UnitComposition::create( e_unit_type::scout ) },
+            .new_comp         = e_unit_type::scout },
         ColonyEquipOption{
             .commodity_deltas = { { e_commodity::muskets,
                                     -50 } },
-            .new_comp         = UnitComposition::create(
-                e_unit_type::soldier ) },
+            .new_comp         = e_unit_type::soldier },
     };
     REQUIRE( f() == expected );
   }

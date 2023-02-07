@@ -73,12 +73,10 @@ MvPoints movement_points( Player const& player,
 // and so therefore when we store the type of a unit we must in-
 // clude this base type.
 struct UnitType {
+  UnitType( e_unit_type type );
+
   static maybe<UnitType> create( e_unit_type type,
                                  e_unit_type base_type );
-
-  // If type is a derived type then it will use its canonical
-  // base for the base type.
-  static UnitType create( e_unit_type type );
 
   e_unit_type base_type() const { return o_.base_type; }
 
@@ -103,6 +101,8 @@ struct UnitType {
   static constexpr std::string_view refl_name = "UnitType";
 
  private:
+  // This one is private because it can fail; the user should
+  // used the factory function instead.
   UnitType( e_unit_type base_type, e_unit_type type );
 
   // Check-fails when invariants are broken.

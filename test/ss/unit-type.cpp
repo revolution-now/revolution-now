@@ -632,42 +632,37 @@ TEST_CASE( "[unit-type] add_unit_type_modifiers" ) {
   using Mod = e_unit_type_modifier;
 
   // Empty modifiers.
-  REQUIRE( f( UnitType::create( UT::petty_criminal ), {} ) ==
-           UnitType::create( UT::petty_criminal ) );
-  REQUIRE( f( UnitType::create( UT::native_convert ), {} ) ==
-           UnitType::create( UT::native_convert ) );
-  REQUIRE( f( UnitType::create( UT::dragoon ), {} ) ==
-           UnitType::create( UT::dragoon ) );
+  REQUIRE( f( UT::petty_criminal, {} ) == UT::petty_criminal );
+  REQUIRE( f( UT::native_convert, {} ) == UT::native_convert );
+  REQUIRE( f( UT::dragoon, {} ) == UT::dragoon );
   // Invalid.
-  REQUIRE( f( UnitType::create( UT::veteran_soldier ),
-              { Mod::muskets } ) == nothing );
-  REQUIRE( f( UnitType::create( UT::native_convert ),
-              { Mod::muskets } ) == nothing );
+  REQUIRE( f( UT::veteran_soldier, { Mod::muskets } ) ==
+           nothing );
+  REQUIRE( f( UT::native_convert, { Mod::muskets } ) ==
+           nothing );
   REQUIRE( f( UnitType::create( UT::veteran_soldier,
                                 UT::veteran_colonist )
                   .value(),
               { Mod::tools } ) == nothing );
-  REQUIRE( f( UnitType::create( UT::veteran_soldier ),
-              { Mod::strength } ) == nothing );
-  REQUIRE( f( UnitType::create( UT::veteran_dragoon ),
-              { Mod::horses } ) == nothing );
-  REQUIRE( f( UnitType::create( UT::veteran_soldier ),
+  REQUIRE( f( UT::veteran_soldier, { Mod::strength } ) ==
+           nothing );
+  REQUIRE( f( UT::veteran_dragoon, { Mod::horses } ) ==
+           nothing );
+  REQUIRE( f( UT::veteran_soldier,
               { Mod::horses, Mod::independence, Mod::tools } ) ==
            nothing );
-  REQUIRE( f( UnitType::create( UT::artillery ),
-              { Mod::strength } ) == nothing );
+  REQUIRE( f( UT::artillery, { Mod::strength } ) == nothing );
   // Valid.
   REQUIRE(
       f( UnitType::create( UT::soldier, UT::indentured_servant )
              .value(),
          { Mod::horses } ) ==
       UnitType::create( UT::dragoon, UT::indentured_servant ) );
-  REQUIRE( f( UnitType::create( UT::veteran_soldier ),
+  REQUIRE( f( UT::veteran_soldier,
               { Mod::horses, Mod::independence } ) ==
-           UnitType::create( UT::continental_cavalry ) );
-  REQUIRE( f( UnitType::create( UT::damaged_artillery ),
-              { Mod::strength } ) ==
-           UnitType::create( UT::artillery ) );
+           UT::continental_cavalry );
+  REQUIRE( f( UT::damaged_artillery, { Mod::strength } ) ==
+           UT::artillery );
 }
 
 TEST_CASE( "[unit-type] rm_unit_type_modifiers" ) {
@@ -680,29 +675,25 @@ TEST_CASE( "[unit-type] rm_unit_type_modifiers" ) {
   using Mod = e_unit_type_modifier;
 
   // Empty modifiers.
-  REQUIRE( f( UnitType::create( UT::petty_criminal ), {} ) ==
-           UnitType::create( UT::petty_criminal ) );
-  REQUIRE( f( UnitType::create( UT::dragoon ), {} ) ==
-           UnitType::create( UT::dragoon ) );
+  REQUIRE( f( UT::petty_criminal, {} ) == UT::petty_criminal );
+  REQUIRE( f( UT::dragoon, {} ) == UT::dragoon );
   // Invalid.
-  REQUIRE( f( UnitType::create( UT::scout ),
-              { Mod::muskets } ) == nothing );
-  REQUIRE( f( UnitType::create( UT::native_convert ),
-              { Mod::horses } ) == nothing );
+  REQUIRE( f( UT::scout, { Mod::muskets } ) == nothing );
+  REQUIRE( f( UT::native_convert, { Mod::horses } ) == nothing );
   REQUIRE( f( UnitType::create( UT::veteran_soldier,
                                 UT::veteran_colonist )
                   .value(),
               { Mod::tools } ) == nothing );
-  REQUIRE( f( UnitType::create( UT::veteran_soldier ),
-              { Mod::strength } ) == nothing );
-  REQUIRE( f( UnitType::create( UT::veteran_colonist ),
-              { Mod::horses } ) == nothing );
-  REQUIRE( f( UnitType::create( UT::veteran_soldier ),
+  REQUIRE( f( UT::veteran_soldier, { Mod::strength } ) ==
+           nothing );
+  REQUIRE( f( UT::veteran_colonist, { Mod::horses } ) ==
+           nothing );
+  REQUIRE( f( UT::veteran_soldier,
               { Mod::muskets, Mod::tools } ) == nothing );
-  REQUIRE( f( UnitType::create( UT::damaged_artillery ),
-              { Mod::strength } ) == nothing );
-  REQUIRE( f( UnitType::create( UT::continental_cavalry ),
-              { Mod::muskets } ) == nothing );
+  REQUIRE( f( UT::damaged_artillery, { Mod::strength } ) ==
+           nothing );
+  REQUIRE( f( UT::continental_cavalry, { Mod::muskets } ) ==
+           nothing );
   // Valid.
   REQUIRE(
       f( UnitType::create( UT::dragoon, UT::indentured_servant )
@@ -710,15 +701,12 @@ TEST_CASE( "[unit-type] rm_unit_type_modifiers" ) {
          { Mod::horses } ) ==
       UnitType::create( UT::soldier, UT::indentured_servant )
           .value() );
-  REQUIRE( f( UnitType::create( UT::continental_cavalry ),
+  REQUIRE( f( UT::continental_cavalry,
               { Mod::horses, Mod::independence } ) ==
-           UnitType::create( UT::veteran_soldier ) );
-  REQUIRE( f( UnitType::create( UT::artillery ),
-              { Mod::strength } ) ==
-           UnitType::create( UT::damaged_artillery ) );
-  REQUIRE(
-      f( UnitType::create( UT::dragoon ), { Mod::muskets } ) ==
-      UnitType::create( UT::scout ) );
+           UT::veteran_soldier );
+  REQUIRE( f( UT::artillery, { Mod::strength } ) ==
+           UT::damaged_artillery );
+  REQUIRE( f( UT::dragoon, { Mod::muskets } ) == UT::scout );
 }
 
 TEST_CASE( "[unit-type] lua bindings" ) {
@@ -770,31 +758,31 @@ TEST_CASE( "[unit-type] unit human status" ) {
   bool     expected;
   UnitType ut;
 
-  ut       = UnitType::create( e_unit_type::free_colonist );
+  ut       = e_unit_type::free_colonist;
   expected = true;
   REQUIRE( is_unit_human( ut ) == expected );
 
-  ut       = UnitType::create( e_unit_type::native_convert );
+  ut       = e_unit_type::native_convert;
   expected = true;
   REQUIRE( is_unit_human( ut ) == expected );
 
-  ut       = UnitType::create( e_unit_type::dragoon );
+  ut       = e_unit_type::dragoon;
   expected = true;
   REQUIRE( is_unit_human( ut ) == expected );
 
-  ut       = UnitType::create( e_unit_type::veteran_colonist );
+  ut       = e_unit_type::veteran_colonist;
   expected = true;
   REQUIRE( is_unit_human( ut ) == expected );
 
-  ut       = UnitType::create( e_unit_type::hardy_pioneer );
+  ut       = e_unit_type::hardy_pioneer;
   expected = true;
   REQUIRE( is_unit_human( ut ) == expected );
 
-  ut       = UnitType::create( e_unit_type::wagon_train );
+  ut       = e_unit_type::wagon_train;
   expected = false;
   REQUIRE( is_unit_human( ut ) == expected );
 
-  ut       = UnitType::create( e_unit_type::treasure );
+  ut       = e_unit_type::treasure;
   expected = false;
   REQUIRE( is_unit_human( ut ) == expected );
 }
@@ -803,31 +791,31 @@ TEST_CASE( "[unit-type] unit can_found status" ) {
   bool     expected;
   UnitType ut;
 
-  ut       = UnitType::create( e_unit_type::free_colonist );
+  ut       = e_unit_type::free_colonist;
   expected = true;
   REQUIRE( can_unit_found( ut ) == expected );
 
-  ut       = UnitType::create( e_unit_type::native_convert );
+  ut       = e_unit_type::native_convert;
   expected = false;
   REQUIRE( can_unit_found( ut ) == expected );
 
-  ut       = UnitType::create( e_unit_type::dragoon );
+  ut       = e_unit_type::dragoon;
   expected = true;
   REQUIRE( can_unit_found( ut ) == expected );
 
-  ut       = UnitType::create( e_unit_type::veteran_colonist );
+  ut       = e_unit_type::veteran_colonist;
   expected = true;
   REQUIRE( can_unit_found( ut ) == expected );
 
-  ut       = UnitType::create( e_unit_type::hardy_pioneer );
+  ut       = e_unit_type::hardy_pioneer;
   expected = true;
   REQUIRE( can_unit_found( ut ) == expected );
 
-  ut       = UnitType::create( e_unit_type::wagon_train );
+  ut       = e_unit_type::wagon_train;
   expected = false;
   REQUIRE( can_unit_found( ut ) == expected );
 
-  ut       = UnitType::create( e_unit_type::treasure );
+  ut       = e_unit_type::treasure;
   expected = false;
   REQUIRE( can_unit_found( ut ) == expected );
 }
@@ -904,27 +892,27 @@ TEST_CASE( "[unit-type] missionary_type" ) {
   REQUIRE( f() == expected );
 
   // jesuit_missionary.
-  in       = UnitType::create( e_unit_type::jesuit_missionary );
+  in       = e_unit_type::jesuit_missionary;
   expected = e_missionary_type::jesuit;
   REQUIRE( f() == expected );
 
   // free_colonist non-missionary.
-  in       = UnitType::create( e_unit_type::free_colonist );
+  in       = e_unit_type::free_colonist;
   expected = nothing;
   REQUIRE( f() == expected );
 
   // petty_criminal non-missionary.
-  in       = UnitType::create( e_unit_type::petty_criminal );
+  in       = e_unit_type::petty_criminal;
   expected = nothing;
   REQUIRE( f() == expected );
 
   // jesuit_colonist non-missionary.
-  in       = UnitType::create( e_unit_type::jesuit_colonist );
+  in       = e_unit_type::jesuit_colonist;
   expected = nothing;
   REQUIRE( f() == expected );
 
   // artillery.
-  in       = UnitType::create( e_unit_type::artillery );
+  in       = e_unit_type::artillery;
   expected = nothing;
   REQUIRE( f() == expected );
 }

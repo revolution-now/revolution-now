@@ -307,7 +307,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_attack_euro" ) {
     combat.winner = e_combat_winner::defender;
 
     combat.attacker.outcome = EuroUnitCombatOutcome::demoted{
-        .to = UnitType::create( e_unit_type::free_colonist ) };
+        .to = e_unit_type::free_colonist };
     combat.defender.outcome = EuroUnitCombatOutcome::no_change{};
 
     expected.sequence.push_back(
@@ -416,7 +416,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_attack_brave" ) {
     combat.winner = e_combat_winner::defender;
 
     combat.attacker.outcome = EuroUnitCombatOutcome::demoted{
-        .to = UnitType::create( e_unit_type::free_colonist ) };
+        .to = e_unit_type::free_colonist };
     combat.defender.outcome =
         NativeUnitCombatOutcome::no_change{};
 
@@ -438,7 +438,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_attack_brave" ) {
     combat.winner = e_combat_winner::defender;
 
     combat.attacker.outcome = EuroUnitCombatOutcome::demoted{
-        .to = UnitType::create( e_unit_type::free_colonist ) };
+        .to = e_unit_type::free_colonist };
     combat.defender.outcome = NativeUnitCombatOutcome::promoted{
         .to = e_native_unit_type::mounted_warrior };
 
@@ -609,7 +609,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_undefended_colony" ) {
     combat.winner = e_combat_winner::defender;
 
     combat.attacker.outcome = EuroUnitCombatOutcome::demoted{
-        .to = UnitType::create( e_unit_type::free_colonist ) };
+        .to = e_unit_type::free_colonist };
     combat.defender.outcome =
         EuroColonyWorkerCombatOutcome::no_change{};
 
@@ -645,7 +645,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_dwelling_burn" ) {
                                 { .x = 0, .y = 1 }, dwelling.id )
           .id;
   EuroUnitCombatOutcome::promoted const attacker_outcome{
-      .to = UnitType::create( e_unit_type::veteran_soldier ) };
+      .to = e_unit_type::veteran_soldier };
   DwellingCombatOutcome::destruction const dwelling_destruction{
       .braves_to_kill = { other_brave_id } };
 

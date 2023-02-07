@@ -74,7 +74,7 @@ TEST_CASE( "[treasure] treasure_in_harbor_receipt" ) {
   Player& player = W.default_player();
   Unit&   unit   = W.add_unit_on_map(
       UnitComposition::create(
-          UnitType::create( e_unit_type::treasure ),
+          e_unit_type::treasure,
           { { e_unit_inventory::gold, 100 } } )
           .value(),
       { .x = 1, .y = 1 } );
@@ -135,12 +135,11 @@ TEST_CASE( "[treasure] treasure_in_harbor_receipt" ) {
 TEST_CASE( "[treasure] apply_treasure_reimbursement" ) {
   World   W;
   Player& player = W.default_player();
-  W.add_unit_on_map(
-      UnitComposition::create(
-          UnitType::create( e_unit_type::treasure ),
-          { { e_unit_inventory::gold, 100 } } )
-          .value(),
-      { .x = 1, .y = 1 } );
+  W.add_unit_on_map( UnitComposition::create(
+                         e_unit_type::treasure,
+                         { { e_unit_inventory::gold, 100 } } )
+                         .value(),
+                     { .x = 1, .y = 1 } );
 
   REQUIRE( W.units().all().size() == 1 );
   REQUIRE( player.money == 0 );
@@ -218,7 +217,7 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
   Player& player = W.default_player();
   Unit&   unit   = W.add_unit_on_map(
       UnitComposition::create(
-          UnitType::create( e_unit_type::treasure ),
+          e_unit_type::treasure,
           { { e_unit_inventory::gold, 100 } } )
           .value(),
       { .x = 1, .y = 1 } );

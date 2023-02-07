@@ -18,6 +18,7 @@
 
 // ss
 #include "ss/ref.hpp"
+#include "ss/unit-composer.hpp"
 
 // refl
 #include "refl/to-str.hpp"

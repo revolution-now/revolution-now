@@ -51,11 +51,11 @@ void bless_as_missionary( Player const& player, Colony& colony,
   UNWRAP_CHECK( ut, add_unit_type_modifiers(
                         unit.type_obj(),
                         { e_unit_type_modifier::blessing } ) );
-  unit.change_type( player, UnitComposition::create( ut ) );
+  unit.change_type( player, ut );
 }
 
 bool is_missionary( e_unit_type type ) {
-  return missionary_type( UnitType::create( type ) ).has_value();
+  return missionary_type( type ).has_value();
 }
 
 maybe<double> probability_dwelling_produces_convert_on_attack(

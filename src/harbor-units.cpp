@@ -318,7 +318,8 @@ void unit_sail_to_harbor( TerrainState const& terrain_state,
         terrain_state, player, *previous_harbor_state );
     switch( auto& v = previous_harbor_state->port_status;
             v.to_enum() ) {
-      case PortStatus::e::in_port: return;
+      case PortStatus::e::in_port:
+        return;
       case PortStatus::e::inbound: {
         auto const& [turns] = v.get<PortStatus::inbound>();
         if( turns >= turns_needed )
@@ -439,13 +440,6 @@ UnitId create_unit_in_harbor( UnitsState&     units_state,
       create_free_unit( units_state, player, std::move( comp ) );
   unit_move_to_port( units_state, player, id );
   return id;
-}
-
-UnitId create_unit_in_harbor( UnitsState& units_state,
-                              Player&     player,
-                              e_unit_type type ) {
-  return create_unit_in_harbor(
-      units_state, player, UnitComposition::create( type ) );
 }
 
 } // namespace rn

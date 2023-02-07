@@ -40,10 +40,14 @@ vector<UnitId> teachable_colonists( SSConst const& ss,
     e_unit_type const unit_type =
         ss.units.unit_for( unit_id ).type();
     switch( unit_type ) {
-      case e_unit_type::petty_criminal: return false;
-      case e_unit_type::indentured_servant: return false;
-      case e_unit_type::free_colonist: return false;
-      default: return true;
+      case e_unit_type::petty_criminal:
+        return false;
+      case e_unit_type::indentured_servant:
+        return false;
+      case e_unit_type::free_colonist:
+        return false;
+      default:
+        return true;
     }
   } );
   return units;
@@ -148,7 +152,7 @@ ColonyTeachingEvolution evolve_teachers( SS& ss, TS& ts,
 base::valid_or<std::string> can_unit_teach_in_building(
     e_unit_type type, e_school_type school_type ) {
   UnitTypeAttributes const attr =
-      unit_attr( UnitType::create( type ).base_type() );
+      unit_attr( UnitType( type ).base_type() );
 
   // We need to get the base type so that e.g. if `type` is a
   // veteran soldier then we will evaluate the veteran_colonist

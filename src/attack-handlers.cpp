@@ -185,8 +185,7 @@ maybe<string> perform_euro_unit_combat_outcome(
       msg = "Unit demoted upon capture!";
       if( unit.type() == e_unit_type::veteran_colonist )
         msg = "Veteran status lost upon capture!";
-      unit.change_type( player,
-                        UnitComposition::create( o.to ) );
+      unit.change_type( player, o.to );
       capture_unit( o.new_nation, o.new_coord );
       break;
     }
@@ -194,14 +193,12 @@ maybe<string> perform_euro_unit_combat_outcome(
       auto& o = outcome.get<promoted>();
       // TODO: make this message more specific like in the OG.
       msg = "Unit promoted for valor in combat!";
-      unit.change_type( player,
-                        UnitComposition::create( o.to ) );
+      unit.change_type( player, o.to );
       break;
     }
     case e::demoted: {
       auto& o = outcome.get<demoted>();
-      unit.change_type( player,
-                        UnitComposition::create( o.to ) );
+      unit.change_type( player, o.to );
       break;
     }
   }
@@ -947,8 +944,7 @@ wait<> AttackDwellingHandler::produce_convert() {
   // we know there is already a friendly unit, so no interactive
   // stuff need be done.
   UnitId const convert_id = create_unit_on_map_non_interactive(
-      ss_, ts_, attacking_player_,
-      UnitComposition::create( e_unit_type::native_convert ),
+      ss_, ts_, attacking_player_, e_unit_type::native_convert,
       dwelling_coord );
   native_convert_ = convert_id;
   string_view const tribe_name_adjective =
@@ -1166,7 +1162,7 @@ wait<> AttackDwellingHandler::perform() {
   if( destruction.treasure_amount.has_value() ) {
     UNWRAP_CHECK( treasure_comp,
                   UnitComposition::create(
-                      UnitType::create( e_unit_type::treasure ),
+                      e_unit_type::treasure,
                       UnitComposition::UnitInventoryMap{
                           { e_unit_inventory::gold,
                             *destruction.treasure_amount } } ) );

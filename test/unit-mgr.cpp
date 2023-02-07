@@ -145,11 +145,9 @@ TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
     UnitComposition expected;
     Dwelling const& dwelling =
         W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::sioux );
-    UnitId const id =
-        W.add_missionary_in_dwelling(
-             UnitType::create( e_unit_type::missionary ),
-             dwelling.id )
-            .id();
+    UnitId const id = W.add_missionary_in_dwelling(
+                           e_unit_type::missionary, dwelling.id )
+                          .id();
     REQUIRE( f( id ) == e_unit_activity::missioning );
   }
 }
@@ -179,11 +177,9 @@ TEST_CASE( "[unit-mgr] coord_for_unit_multi_ownership" ) {
   SECTION( "missionary in dwelling" ) {
     Dwelling const& dwelling =
         W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::sioux );
-    UnitId const id =
-        W.add_missionary_in_dwelling(
-             UnitType::create( e_unit_type::missionary ),
-             dwelling.id )
-            .id();
+    UnitId const id = W.add_missionary_in_dwelling(
+                           e_unit_type::missionary, dwelling.id )
+                          .id();
     REQUIRE(
         !coord_for_unit_indirect( W.units(), id ).has_value() );
     REQUIRE( coord_for_unit_multi_ownership( W.ss(), id ) ==

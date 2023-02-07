@@ -107,11 +107,6 @@ maybe<UnitId> is_unit_onboard( UnitsState const& units_state,
 UnitId       create_free_unit( UnitsState&     units_state,
                                Player const&   player,
                                UnitComposition comp );
-UnitId       create_free_unit( UnitsState&   units_state,
-                               Player const& player, UnitType type );
-UnitId       create_free_unit( UnitsState&   units_state,
-                               Player const& player,
-                               e_unit_type   type );
 NativeUnitId create_free_unit( SS& ss, e_native_unit_type type );
 
 // Create unit that is not registered in the unit database, and

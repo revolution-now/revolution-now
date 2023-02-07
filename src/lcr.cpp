@@ -83,7 +83,7 @@ UnitId create_treasure_train( SS& ss, TS& ts,
                               Coord world_square, int amount ) {
   UNWRAP_CHECK( uc_treasure,
                 UnitComposition::create(
-                    UnitType::create( e_unit_type::treasure ),
+                    e_unit_type::treasure,
                     { { e_unit_inventory::gold, amount } } ) );
   // Use the non-coroutine version of this because it avoids an
   // inifinite-regress issue where the new unit created redis-
@@ -269,9 +269,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
       // further UI actions needed in response to creating this
       // unit, apart from what we will do here.
       UnitId id = create_unit_on_map_non_interactive(
-          ss, ts, player,
-          UnitComposition::create(
-              UnitType::create( e_unit_type::free_colonist ) ),
+          ss, ts, player, e_unit_type::free_colonist,
           world_square );
       co_return LostCityRumorResult::unit_created{ .id = id };
     }
@@ -318,7 +316,8 @@ e_lcr_explorer_category lcr_explorer_category(
       return e_lcr_explorer_category::seasoned_scout;
     case e_unit_type::scout:
       return e_lcr_explorer_category::scout;
-    default: return e_lcr_explorer_category::other;
+    default:
+      return e_lcr_explorer_category::other;
   }
 }
 

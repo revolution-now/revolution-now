@@ -19,6 +19,7 @@
 // ss
 #include "ss/dwelling.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/unit-composer.hpp"
 
 // refl
 #include "src/refl/to-str.hpp"

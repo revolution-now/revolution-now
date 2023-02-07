@@ -165,8 +165,7 @@ void check_create_or_starve_colonist(
 
   current_food -= food_needed_for_creation;
   UnitId unit_id = create_free_unit(
-      ss.units, player,
-      UnitType::create( e_unit_type::free_colonist ) );
+      ss.units, player, e_unit_type::free_colonist );
   unit_to_map_square_non_interactive( ss, ts, unit_id,
                                       colony.location );
   notifications.emplace_back(
@@ -270,9 +269,8 @@ void check_construction( SS& ss, TS& ts, Player const& player,
       // said, in the original game, no unit that can be con-
       // structed in this manner has a sighting radius of more
       // than one.
-      create_unit_on_map_non_interactive(
-          ss, ts, player, UnitComposition::create( o.type ),
-          colony.location );
+      create_unit_on_map_non_interactive( ss, ts, player, o.type,
+                                          colony.location );
       break;
     }
   }
@@ -436,8 +434,7 @@ void check_colonist_on_the_job_training(
     }
     if( should_promote ) {
       Unit& unit = ss.units.unit_for( unit_id );
-      unit.change_type( player,
-                        UnitComposition::create( promoted_to ) );
+      unit.change_type( player, promoted_to );
       notifications.push_back( ColonyNotification::unit_promoted{
           .promoted_to = promoted_to } );
     }
