@@ -107,10 +107,16 @@ TEST_CASE(
 TEST_CASE( "[ss/natives] destroy_tribe_last_step" ) {
   World W;
   REQUIRE_FALSE( W.natives().tribe_exists( e_tribe::arawak ) );
+  REQUIRE( W.natives().dwellings_for_tribe( e_tribe::arawak ) ==
+           nothing );
   W.add_tribe( e_tribe::arawak );
   REQUIRE( W.natives().tribe_exists( e_tribe::arawak ) );
+  REQUIRE( W.natives().dwellings_for_tribe( e_tribe::arawak ) !=
+           nothing );
   W.natives().destroy_tribe_last_step( e_tribe::arawak );
   REQUIRE_FALSE( W.natives().tribe_exists( e_tribe::arawak ) );
+  REQUIRE( W.natives().dwellings_for_tribe( e_tribe::arawak ) ==
+           nothing );
 }
 
 TEST_CASE( "[ss/natives] mark_land_unowned_for_dwellings" ) {

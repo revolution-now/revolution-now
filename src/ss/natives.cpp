@@ -259,6 +259,7 @@ void NativesState::destroy_dwelling( DwellingId id ) {
 }
 
 void NativesState::destroy_tribe_last_step( e_tribe tribe ) {
+  dwellings_from_tribe_.erase( tribe );
   o_.tribes[tribe].reset();
 }
 
