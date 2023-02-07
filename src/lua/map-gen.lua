@@ -773,14 +773,43 @@ local function create_brave_for_dwelling( dwelling )
   unit_mgr.create_native_unit_on_map( dwelling.id, 'brave', coord )
 end
 
+-- FIXME: need to get this from config files after they are ex-
+-- posed to lua.
+local function set_dwelling_population( tribe, dwelling )
+  if tribe == 'apache' or tribe == 'sioux' or tribe == 'tupi' then
+    dwelling.population = 3
+    return
+  end
+  if tribe == 'arawak' or tribe == 'cherokee' or tribe == 'iroquois' then
+    dwelling.population = 5
+    if dwelling.is_capital then
+      dwelling.population = 6
+    end
+    return
+  end
+  if tribe == 'aztec' then
+    dwelling.population = 7
+    if dwelling.is_capital then
+      dwelling.population = 8
+    end
+    return
+  end
+  if tribe == 'inca' then
+    dwelling.population = 9
+    if dwelling.is_capital then
+      dwelling.population = 11
+    end
+    return
+  end
+  error( 'tribe ' .. tribe .. ' not handled.' )
+end
+
 local function add_dwelling( coord, tribe )
   assert( coord )
   local square = square_at( coord )
   local natives = ROOT.natives
   natives:create_or_add_tribe( tribe )
   local dwelling = natives:new_dwelling( tribe, coord )
-  -- FIXME
-  dwelling.population = 3
   dwelling.teaches =
       native_expertise.select_expertise_for_dwelling( dwelling )
   -- Get rid of any forest if we're placing one of the city
@@ -883,6 +912,13 @@ local function create_indian_villages_using_partition(options,
     shuffle( tribe_dwellings )
     if #tribe_dwellings > 0 then
       tribe_dwellings[1].is_capital = true
+    end
+  end
+  -- Assign dwelling populations now that we've populated the
+  -- "capital" field.
+  for tribe, dwellings in pairs( dwellings ) do
+    for _, dwelling in ipairs( dwellings ) do
+      set_dwelling_population( tribe, dwelling )
     end
   end
 end
