@@ -51,16 +51,24 @@ namespace {
 
 e_tile tile_for_outdoor_job( e_outdoor_job job ) {
   switch( job ) {
-    case e_outdoor_job::food: return e_tile::commodity_food;
-    case e_outdoor_job::fish: return e_tile::product_fish;
-    case e_outdoor_job::sugar: return e_tile::commodity_sugar;
+    case e_outdoor_job::food:
+      return e_tile::commodity_food;
+    case e_outdoor_job::fish:
+      return e_tile::product_fish;
+    case e_outdoor_job::sugar:
+      return e_tile::commodity_sugar;
     case e_outdoor_job::tobacco:
       return e_tile::commodity_tobacco;
-    case e_outdoor_job::cotton: return e_tile::commodity_cotton;
-    case e_outdoor_job::fur: return e_tile::commodity_fur;
-    case e_outdoor_job::lumber: return e_tile::commodity_lumber;
-    case e_outdoor_job::ore: return e_tile::commodity_ore;
-    case e_outdoor_job::silver: return e_tile::commodity_silver;
+    case e_outdoor_job::cotton:
+      return e_tile::commodity_cotton;
+    case e_outdoor_job::fur:
+      return e_tile::commodity_fur;
+    case e_outdoor_job::lumber:
+      return e_tile::commodity_lumber;
+    case e_outdoor_job::ore:
+      return e_tile::commodity_ore;
+    case e_outdoor_job::silver:
+      return e_tile::commodity_silver;
   }
 }
 
@@ -82,9 +90,15 @@ void render_glow( rr::Renderer& renderer, Coord unit_coord,
 Delta ColonyLandView::size_needed( e_render_mode mode ) {
   int side_length_in_squares = 3;
   switch( mode ) {
-    case e_render_mode::_3x3: side_length_in_squares = 3; break;
-    case e_render_mode::_5x5: side_length_in_squares = 5; break;
-    case e_render_mode::_6x6: side_length_in_squares = 6; break;
+    case e_render_mode::_3x3:
+      side_length_in_squares = 3;
+      break;
+    case e_render_mode::_5x5:
+      side_length_in_squares = 5;
+      break;
+    case e_render_mode::_6x6:
+      side_length_in_squares = 6;
+      break;
   }
   return Delta{ .w = 32, .h = 32 } *
          Delta{ .w = side_length_in_squares,
@@ -370,7 +384,7 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
         ss_.natives.maybe_dwelling_from_coord( world_square );
     if( !maybe_dwelling_id ) continue;
     render_dwelling(
-        painter,
+        renderer,
         local_coord * g_tile_delta - Delta{ .w = 6, .h = 6 },
         ss_, ss_.natives.dwelling_for( *maybe_dwelling_id ) );
   }
