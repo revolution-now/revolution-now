@@ -59,7 +59,13 @@ struct ILandViewPlane {
 
   virtual wait<LandViewPlayerInput_t> eot_get_next_input() = 0;
 
-  virtual wait<> animate( AnimationSequence const& seq ) = 0;
+  // We use the lifetime-bound attribute here because it is not
+  // uncommon for this coroutine to be run in the background
+  // (i.e., not immediately awaited upon), and so this will help
+  // catch lifetime issues. Technically we should do this to all
+  // coroutines, but most aren't used in this way.
+  virtual wait<> animate(
+      AnimationSequence const& seq ATTR_LIFETIMEBOUND ) = 0;
 
   // Clear any buffer input.
   virtual void reset_input_buffers() = 0;
