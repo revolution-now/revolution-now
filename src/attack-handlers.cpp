@@ -1103,7 +1103,13 @@ wait<> AttackDwellingHandler::perform() {
   // dwelling. It should continue to be hidden until the dwelling
   // starts depixelating, then it should gradually become visi-
   // ble.
+  maybe<UnitId> const missionary_in_dwelling =
+      ss_.units.missionary_from_dwelling( dwelling_id_ );
   if( destruction.missionary_to_release.has_value() ) {
+    CHECK( missionary_in_dwelling.has_value() );
+    CHECK_EQ(
+        ss_.units.unit_for( *missionary_in_dwelling ).nation(),
+        attacking_player_.nation );
     maybe<UnitDeleted> deleted = co_await unit_to_map_square(
         ss_, ts_, *destruction.missionary_to_release,
         dwelling_location );
@@ -1123,6 +1129,7 @@ wait<> AttackDwellingHandler::perform() {
   // Kill dwelling, free braves owned by the dwelling, and any
   // owned land of the dwelling. This will also remove the road
   // under the dwelling.
+  bool const was_capital = dwelling_.is_capital;
   destroy_dwelling( ss_, ts_, dwelling_id_ );
   maybe<string> const attacker_msg =
       perform_euro_unit_combat_outcome(
@@ -1141,6 +1148,9 @@ wait<> AttackDwellingHandler::perform() {
                    tribe_name, dwelling_type_name, nation_name );
   if( destruction.missionary_to_release.has_value() )
     msg += " @[H]Missionary@[] flees in panic!";
+  else if( missionary_in_dwelling.has_value() )
+    // Must have be a foreign missionary.
+    msg += fmt::format( " @[H]Foreign missionary@[] hanged!" );
   if( destruction.treasure_amount.has_value() )
     msg += fmt::format(
         " Treasure worth @[H]{}@[] recovered from {}! It will "
@@ -1173,6 +1183,11 @@ wait<> AttackDwellingHandler::perform() {
       co_await planes_.land_view().animate( seq );
     }
   }
+
+  if( was_capital && !destruction.tribe_destroyed.has_value() )
+    co_await ts_.gui.message_box(
+        "The @[H]{}@[] bow before the might of the @[H]{}@[]!",
+        tribe_name, nation_name );
 
   // Check if the tribe is now destroyed.
   if( destruction.tribe_destroyed.has_value() )

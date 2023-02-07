@@ -1093,6 +1093,43 @@ TEST_CASE(
   }
 
   SECTION(
+      "dragoon, attacker wins, foreign missionary not released, "
+      "no missions burned, with no convert" ) {
+    W.add_missionary_in_dwelling(
+         UnitType::create( e_unit_type::missionary,
+                           e_unit_type::indentured_servant )
+             .value(),
+         dwelling.id, e_nation::french )
+        .id();
+    attacker =
+        &W.add_unit_on_map( e_unit_type::dragoon, kAttackerCoord,
+                            e_nation::english );
+    W.expect_attacker_wins( .75 );
+    W.expect_promotion( false );
+    W.expect_treasure_amount( .33, 300, 800, nothing );
+    expected = {
+        .winner           = e_combat_winner::attacker,
+        .new_tribal_alarm = 10,
+        .missions_burned  = false,
+
+        .attacker = { .id     = attacker->id(),
+                      .weight = 3.0,
+                      .outcome =
+                          EuroUnitCombatOutcome::no_change{} },
+
+        .defender = {
+            .id      = dwelling.id,
+            .weight  = 1.0,
+            .outcome = DwellingCombatOutcome::destruction{
+                .braves_to_kill = { brave1_id, brave2_id },
+                .missionary_to_release = nothing,
+                .treasure_amount       = nothing,
+                .tribe_destroyed       = e_tribe::arawak,
+                .convert_produced      = false } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION(
       "dragoon, attacker wins, missionary, missions burned" ) {
     relationship.tribal_alarm = 90;
     W.add_missionary_in_dwelling(

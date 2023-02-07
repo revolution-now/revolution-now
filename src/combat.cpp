@@ -170,9 +170,22 @@ DwellingCombatOutcome::destruction compute_dwelling_destruction(
   // So that unit tests are deterministic...
   sort( res.braves_to_kill.begin(), res.braves_to_kill.end() );
 
-  if( !missions_burned )
-    res.missionary_to_release =
+  // If we're not burning missions then we'll check to see if
+  // there is a missionary to release. However, we will only re-
+  // lease it if it is our missionary. If it is a foreign mis-
+  // sionary then it will be left in the dwelling and it will be
+  // destroyed along with the dwelling.
+  if( !missions_burned ) {
+    maybe<UnitId> const missionary_id =
         ss.units.missionary_from_dwelling( dwelling.id );
+    if( missionary_id.has_value() ) {
+      Unit const& missionary =
+          ss.units.unit_for( *missionary_id );
+      if( missionary.nation() == player.nation )
+        res.missionary_to_release =
+            ss.units.missionary_from_dwelling( dwelling.id );
+    }
+  }
 
   e_tribe const tribe = ss.natives.tribe_for( dwelling.id ).type;
   UNWRAP_CHECK( dwellings,

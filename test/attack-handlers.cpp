@@ -829,6 +829,62 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( W.natives().tribe_exists( W.kNativeTribe ) );
   }
 
+  SECTION(
+      "attacker loses, missions burned, foreign missionary not "
+      "eliminated" ) {
+    UnitId const missionary_id =
+        W.add_missionary_in_dwelling( e_unit_type::missionary,
+                                      dwelling_id,
+                                      W.kDefendingNation )
+            .id();
+    combat = {
+        .winner           = e_combat_winner::defender,
+        .new_tribal_alarm = 13,
+        .missions_burned  = true,
+
+        .attacker = { .outcome =
+                          EuroUnitCombatOutcome::demoted{
+                              .to =
+                                  e_unit_type::free_colonist } },
+
+        .defender = {
+            .id      = dwelling.id,
+            .outcome = DwellingCombatOutcome::no_change{} } };
+    combat.attacker.id = W.add_attacker( e_unit_type::soldier );
+    expect_combat();
+    W.expect_some_animation();
+    string const missions_burned_msg =
+        "The @[H]Apache@[] revolt against @[H]English@[] "
+        "missions! All English missionaries eliminated!";
+    EXPECT_CALL( W.gui(), message_box( missions_burned_msg ) )
+        .returns<monostate>();
+    expected = { .order_was_run = true };
+    REQUIRE( f() == expected );
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
+    REQUIRE( attacker.type() == e_unit_type::free_colonist );
+    REQUIRE( dwelling.population == 5 );
+    REQUIRE( W.units().coord_for( attacker.id() ) ==
+             W.kLandAttack );
+    REQUIRE( W.natives().coord_for( dwelling.id ) ==
+             W.kLandDefend );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( relationship.tribal_alarm == 13 );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE( W.units().exists( missionary_id ) );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( missionary_id ) ==
+        UnitOwnership_t{
+            UnitOwnership::dwelling{ .id = dwelling_id } } );
+    REQUIRE( player.score_stats.dwellings_burned == 0 );
+    REQUIRE( W.square( W.kLandDefend ).road == true );
+    REQUIRE( W.units().exists( brave_id ) );
+    REQUIRE( W.units().coord_for( brave_id ) ==
+             Coord{ .x = 2, .y = 2 } );
+    REQUIRE( W.natives().tribe_exists( W.kNativeTribe ) );
+  }
+
   SECTION( "attacker wins, population decrease, no convert" ) {
     UnitId const missionary_id =
         W.add_missionary_in_dwelling( e_unit_type::missionary,
@@ -978,6 +1034,59 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
   }
 
   SECTION(
+      "attacker wins, dwelling burned, tribe not wiped out, "
+      "capital burned" ) {
+    dwelling.population = 1;
+    dwelling.is_capital = true;
+
+    combat = {
+        .winner           = e_combat_winner::attacker,
+        .new_tribal_alarm = 13,
+        .missions_burned  = false,
+        .attacker =
+            { .outcome =
+                  EuroUnitCombatOutcome::promoted{
+                      .to = e_unit_type::veteran_soldier } },
+        .defender = {
+            .id      = dwelling.id,
+            .outcome = DwellingCombatOutcome::destruction{
+                .braves_to_kill        = {},
+                .missionary_to_release = {},
+                .treasure_amount       = {},
+                .tribe_destroyed       = {},
+                .convert_produced      = false } } };
+    combat.attacker.id = W.add_attacker( e_unit_type::soldier );
+    expect_combat();
+    W.expect_some_animation();
+    W.expect_promotion();
+    EXPECT_CALL( W.gui(),
+                 message_box( "@[H]Apache@[] camp burned by the "
+                              "@[H]English@[]!" ) )
+        .returns<monostate>();
+    EXPECT_CALL( W.gui(),
+                 message_box( "The @[H]Apache@[] bow before the "
+                              "might of the @[H]English@[]!" ) )
+        .returns<monostate>();
+
+    expected = { .order_was_run       = true,
+                 .units_to_prioritize = {} };
+    REQUIRE( f() == expected );
+
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    REQUIRE_FALSE( W.natives().dwelling_exists( dwelling_id ) );
+    REQUIRE( attacker.type() == e_unit_type::veteran_soldier );
+    REQUIRE( W.units().coord_for( attacker.id() ) ==
+             W.kLandAttack );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE( player.score_stats.dwellings_burned == 1 );
+    REQUIRE( W.square( W.kLandDefend ).road == false );
+    REQUIRE( !W.units().exists( brave_id ) );
+    REQUIRE( W.natives().tribe_exists( W.kNativeTribe ) );
+  }
+
+  SECTION(
       "attacker wins, dwelling burned, convert produced, "
       "missionary released, treasure produced" ) {
     UnitId const missionary_id =
@@ -1053,6 +1162,64 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
                  .inventory()[e_unit_inventory::gold] == 123 );
     REQUIRE( W.units().coord_for( expected_treasure_id ) ==
              W.kLandDefend );
+    REQUIRE( player.score_stats.dwellings_burned == 1 );
+    REQUIRE( W.square( W.kLandDefend ).road == false );
+    REQUIRE( !W.units().exists( brave_id ) );
+    REQUIRE_FALSE( W.natives().tribe_exists( W.kNativeTribe ) );
+  }
+
+  SECTION(
+      "attacker wins, dwelling burned, foreign missionary: no "
+      "convert produced, missionary destroyed, capital" ) {
+    UnitId const missionary_id =
+        W.add_missionary_in_dwelling( e_unit_type::missionary,
+                                      dwelling_id,
+                                      W.kDefendingNation )
+            .id();
+    dwelling.population = 1;
+    dwelling.is_capital = true;
+
+    combat = {
+        .winner           = e_combat_winner::attacker,
+        .new_tribal_alarm = 13,
+        .missions_burned  = false,
+        .attacker =
+            { .outcome =
+                  EuroUnitCombatOutcome::promoted{
+                      .to = e_unit_type::veteran_soldier } },
+        .defender = {
+            .id      = dwelling.id,
+            .outcome = DwellingCombatOutcome::destruction{
+                .braves_to_kill        = {},
+                .missionary_to_release = nothing,
+                .treasure_amount       = nothing,
+                .tribe_destroyed       = e_tribe::apache,
+                .convert_produced      = false } } };
+    combat.attacker.id = W.add_attacker( e_unit_type::soldier );
+    expect_combat();
+    W.expect_some_animation();
+    W.expect_promotion();
+    EXPECT_CALL(
+        W.gui(),
+        message_box( fmt::format(
+            "@[H]Apache@[] camp burned by the @[H]English@[]! "
+            "@[H]Foreign missionary@[] hanged!" ) ) )
+        .returns<monostate>();
+    W.expect_tribe_wiped_out( "Apache" );
+
+    expected = { .order_was_run       = true,
+                 .units_to_prioritize = {} };
+    REQUIRE( f() == expected );
+
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    REQUIRE_FALSE( W.natives().dwelling_exists( dwelling_id ) );
+    REQUIRE( attacker.type() == e_unit_type::veteran_soldier );
+    REQUIRE( W.units().coord_for( attacker.id() ) ==
+             W.kLandAttack );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE( !W.units().exists( missionary_id ) );
     REQUIRE( player.score_stats.dwellings_burned == 1 );
     REQUIRE( W.square( W.kLandDefend ).road == false );
     REQUIRE( !W.units().exists( brave_id ) );
