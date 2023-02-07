@@ -82,10 +82,10 @@ unique_ptr<OrdersHandler> orders_handler(
       LC( handle_orders( planes, ss, ts, player, id, _ ) ) );
 }
 
-wait<OrdersHandler::RunResult> OrdersHandler::run() {
-  RunResult res{ .order_was_run       = false,
-                 .suspended           = false,
-                 .units_to_prioritize = {} };
+wait<OrdersHandlerRunResult> OrdersHandler::run() {
+  OrdersHandlerRunResult res{ .order_was_run       = false,
+                              .suspended           = false,
+                              .units_to_prioritize = {} };
 
   // Run the given coroutine, await its result, and return it,
   // but run it under a detect that can detect if it suspended in

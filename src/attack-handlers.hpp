@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // ss
+#include "ss/dwelling-id.hpp"
 #include "ss/unit-id.hpp"
 
 namespace rn {
@@ -49,5 +50,10 @@ std::unique_ptr<OrdersHandler> attack_colony_undefended_handler(
 std::unique_ptr<OrdersHandler> attack_native_unit_handler(
     Planes& planes, SS& ss, TS& ts, Player& player,
     UnitId attacker_id, NativeUnitId defender_id );
+
+// When a european unit attacks a dwelling (on land).
+std::unique_ptr<OrdersHandler> attack_dwelling_handler(
+    Planes& planes, SS& ss, TS& ts, Player& player,
+    UnitId attacker_id, DwellingId dwelling_id );
 
 } // namespace rn

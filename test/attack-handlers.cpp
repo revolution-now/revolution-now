@@ -30,6 +30,7 @@
 // ss
 #include "src/ss/dwelling.rds.hpp"
 #include "src/ss/native-unit.rds.hpp"
+#include "src/ss/natives.hpp"
 #include "src/ss/player.rds.hpp"
 #include "src/ss/tribe.rds.hpp"
 #include "src/ss/unit.hpp"
@@ -141,13 +142,13 @@ struct World : testing::World {
     build_map( std::move( tiles ), 3 );
   }
 
-  OrdersHandler::RunResult run_handler(
+  OrdersHandlerRunResult run_handler(
       unique_ptr<OrdersHandler> handler ) {
-    wait<OrdersHandler::RunResult> const w = handler->run();
+    wait<OrdersHandlerRunResult> const w = handler->run();
     // Use check-fails so that we can get stack traces and know
     // which test case called us.
-    CHECK( !w.exception() );
-    CHECK( w.ready() );
+    BASE_CHECK( !w.exception() );
+    BASE_CHECK( w.ready() );
     return *w;
   }
 
@@ -159,6 +160,27 @@ struct World : testing::World {
 
   void expect_some_animation() {
     EXPECT_CALL( mock_land_view_plane_, animate( _ ) )
+        .returns<monostate>();
+  }
+
+  void expect_convert() {
+    expect_some_animation();
+    EXPECT_CALL( gui(),
+                 message_box( StrContains( "converts" ) ) )
+        .returns<monostate>();
+    expect_some_animation();
+  }
+
+  void expect_promotion() {
+    EXPECT_CALL( gui(), message_box( StrContains( "valor" ) ) )
+        .returns<monostate>();
+  }
+
+  void expect_tribe_wiped_out( string_view tribe_name ) {
+    EXPECT_CALL( gui(),
+                 message_box( fmt::format(
+                     "The @[H]{}@[] tribe has been wiped out.",
+                     tribe_name ) ) )
         .returns<monostate>();
   }
 
@@ -185,8 +207,9 @@ struct World : testing::World {
 // the handlers.
 #ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] common failure checks" ) {
-  World                W;
-  CombatEuroAttackEuro combat;
+  World                  W;
+  OrdersHandlerRunResult expected = { .order_was_run = false };
+  CombatEuroAttackEuro   combat;
 
   auto expect_combat = [&] {
     EXPECT_CALL( W.combat(),
@@ -206,14 +229,14 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::frigate, e_unit_type::free_colonist );
     W.expect_msg_contains( "Ships cannot attack land units" );
-    f();
+    REQUIRE( f() == expected );
   }
 
   SECTION( "non-military units cannot attack" ) {
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::free_colonist, e_unit_type::free_colonist );
     W.expect_msg_contains( "unit cannot attack" );
-    f();
+    REQUIRE( f() == expected );
   }
 
   SECTION( "cannot attack a land unit from a ship" ) {
@@ -226,14 +249,14 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
     combat.defender.id = defender_id;
     W.expect_msg_contains(
         "cannot attack a land unit from a ship" );
-    f();
+    REQUIRE( f() == expected );
   }
 
   SECTION( "land unit cannot attack ship" ) {
     tie( combat.attacker.id, combat.defender.id ) =
         W.add_pair( e_unit_type::soldier, e_unit_type::caravel );
     W.expect_msg_contains( "Land units cannot attack ship" );
-    f();
+    REQUIRE( f() == expected );
   }
 
   SECTION( "partial movement cancelled" ) {
@@ -244,7 +267,7 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
         .consume_mv_points( MovementPoints::_1_3() );
     EXPECT_CALL( W.gui(), choice( _, _ ) )
         .returns<maybe<string>>( "no" );
-    f();
+    REQUIRE( f() == expected );
   }
 
   SECTION( "partial movement proceed" ) {
@@ -257,7 +280,8 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
         .returns<maybe<string>>( "yes" );
     expect_combat();
     W.expect_some_animation();
-    f();
+    expected = { .order_was_run = true };
+    REQUIRE( f() == expected );
     // We're not concerned with the effects of the combat here,
     // that will be tested in other test cases.
   }
@@ -266,8 +290,9 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
 
 #ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
-  World                W;
-  CombatEuroAttackEuro combat;
+  World                  W;
+  OrdersHandlerRunResult expected = { .order_was_run = true };
+  CombatEuroAttackEuro   combat;
 
   auto expect_combat = [&] {
     EXPECT_CALL( W.combat(),
@@ -300,7 +325,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
     REQUIRE( W.units()
                  .unit_for( combat.attacker.id )
                  .movement_points() == 1 );
-    f();
+    REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
     Unit const& defender =
@@ -333,7 +358,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         W.add_pair( e_unit_type::soldier, e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
-    f();
+    REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
     Unit const& defender =
@@ -362,7 +387,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         W.add_pair( e_unit_type::soldier, e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
-    f();
+    REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
     Unit const& defender =
@@ -396,7 +421,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
     // Which player's unit should get messaged.
     W.set_active_player( W.kAttackingNation );
     W.expect_msg_contains( "promoted" );
-    f();
+    REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
     Unit const& defender =
@@ -425,7 +450,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         e_unit_type::soldier, e_unit_type::free_colonist );
     expect_combat();
     W.expect_some_animation();
-    f();
+    REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
     Unit const& defender =
@@ -460,7 +485,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
     W.expect_some_animation();
     W.expect_msg_contains( "Veteran status lost upon capture" );
     W.set_active_player( W.kDefendingNation );
-    f();
+    REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
     Unit const& defender =
@@ -490,7 +515,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
     // This will ensure the "lost in battle" message box pops up.
     W.set_active_player( W.kDefendingNation );
     W.expect_msg_contains( "lost in battle" );
-    f();
+    REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
     REQUIRE_FALSE( W.units().exists( combat.defender.id ) );
@@ -505,9 +530,10 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
 
 #ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
-  World                 W;
-  CombatEuroAttackBrave combat;
-  Tribe&                tribe = W.tribe( W.kNativeTribe );
+  World                  W;
+  OrdersHandlerRunResult expected = { .order_was_run = true };
+  CombatEuroAttackBrave  combat;
+  Tribe&                 tribe = W.tribe( W.kNativeTribe );
   UNWRAP_CHECK( relationship,
                 tribe.relationship[W.kAttackingNation] );
   relationship.nation_has_attacked_tribe = true;
@@ -540,7 +566,8 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
         e_unit_type::soldier, e_native_unit_type::brave );
     EXPECT_CALL( W.gui(), choice( _, _ ) )
         .returns<maybe<string>>( "no" );
-    f();
+    expected = { .order_was_run = false };
+    REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
     NativeUnit const& defender =
@@ -569,7 +596,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
         .returns<maybe<string>>( "yes" );
     expect_combat();
     W.expect_some_animation();
-    f();
+    REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
     REQUIRE_FALSE( W.units().exists( combat.defender.id ) );
@@ -597,7 +624,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
     W.expect_some_animation();
     REQUIRE( tribe.muskets == 0 );
     REQUIRE( tribe.muskets == 0 );
-    f();
+    REQUIRE( f() == expected );
     REQUIRE( tribe.muskets == 50 );
     REQUIRE( tribe.muskets == 50 );
     Unit const& attacker =
@@ -625,7 +652,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
         e_unit_type::soldier, e_native_unit_type::brave );
     expect_combat();
     W.expect_some_animation();
-    f();
+    REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
     NativeUnit const& defender =
@@ -657,7 +684,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
     expect_combat();
     W.expect_some_animation();
     W.expect_msg_contains( "@[H]Muskets@[] acquired by brave" );
-    f();
+    REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
     NativeUnit const& defender =
@@ -674,6 +701,389 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
   }
 }
 #endif
+
+TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
+  World                    W;
+  OrdersHandlerRunResult   expected = { .order_was_run = true };
+  CombatEuroAttackDwelling combat;
+  Player&                  player = W.player( W.active_nation_ );
+
+  Tribe& tribe = W.tribe( W.kNativeTribe );
+  UNWRAP_CHECK( relationship,
+                tribe.relationship[W.kAttackingNation] );
+  relationship.nation_has_attacked_tribe = true;
+  REQUIRE( relationship.tribal_alarm == 0 );
+  Dwelling& dwelling =
+      W.add_dwelling( W.kLandDefend, W.kNativeTribe );
+  NativeUnitId const brave_id =
+      W.add_native_unit_on_map( e_native_unit_type::brave,
+                                { .x = 2, .y = 2 }, dwelling.id )
+          .id;
+  W.square( W.kLandDefend ).road = true;
+  dwelling.population            = 5;
+  // Use only the id after the dwelling is destroyed.
+  DwellingId const dwelling_id = dwelling.id;
+
+  auto expect_combat = [&] {
+    EXPECT_CALL( W.combat(),
+                 euro_attack_dwelling(
+                     W.units().unit_for( combat.attacker.id ),
+                     dwelling ) )
+        .returns( combat );
+  };
+
+  auto f = [&] {
+    return W.run_handler( attack_dwelling_handler(
+        W.planes(), W.ss(), W.ts(), W.player( W.active_nation_ ),
+        combat.attacker.id, combat.defender.id ) );
+  };
+
+  SECTION( "attacker loses" ) {
+    UnitId const missionary_id =
+        W.add_missionary_in_dwelling(
+             UnitType::create( e_unit_type::missionary ),
+             dwelling_id )
+            .id();
+    combat = {
+        .winner           = e_combat_winner::defender,
+        .new_tribal_alarm = 13,
+        .missions_burned  = false,
+        .attacker =
+            { .outcome =
+                  EuroUnitCombatOutcome::demoted{
+                      .to = UnitType::create(
+                          e_unit_type::free_colonist ) } },
+        .defender = {
+            .id      = dwelling.id,
+            .outcome = DwellingCombatOutcome::no_change{} } };
+    combat.attacker.id = W.add_attacker( e_unit_type::soldier );
+    expect_combat();
+    W.expect_some_animation();
+    expected = { .order_was_run = true };
+    REQUIRE( f() == expected );
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
+    REQUIRE( attacker.type() == e_unit_type::free_colonist );
+    REQUIRE( dwelling.population == 5 );
+    REQUIRE( W.units().coord_for( attacker.id() ) ==
+             W.kLandAttack );
+    REQUIRE( W.natives().coord_for( dwelling.id ) ==
+             W.kLandDefend );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( relationship.tribal_alarm == 13 );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( missionary_id ) ==
+        UnitOwnership_t{
+            UnitOwnership::dwelling{ .id = dwelling_id } } );
+    REQUIRE( player.score_stats.dwellings_burned == 0 );
+    REQUIRE( W.square( W.kLandDefend ).road == true );
+    REQUIRE( W.units().exists( brave_id ) );
+    REQUIRE( W.units().coord_for( brave_id ) ==
+             Coord{ .x = 2, .y = 2 } );
+    REQUIRE( W.natives().tribe_exists( W.kNativeTribe ) );
+  }
+
+  SECTION(
+      "attacker loses, missions burned, missionary "
+      "eliminated" ) {
+    UnitId const missionary_id =
+        W.add_missionary_in_dwelling(
+             UnitType::create( e_unit_type::missionary ),
+             dwelling_id )
+            .id();
+    combat = {
+        .winner           = e_combat_winner::defender,
+        .new_tribal_alarm = 13,
+        .missions_burned  = true,
+        .attacker =
+            { .outcome =
+                  EuroUnitCombatOutcome::demoted{
+                      .to = UnitType::create(
+                          e_unit_type::free_colonist ) } },
+        .defender = {
+            .id      = dwelling.id,
+            .outcome = DwellingCombatOutcome::no_change{} } };
+    combat.attacker.id = W.add_attacker( e_unit_type::soldier );
+    expect_combat();
+    W.expect_some_animation();
+    string const missions_burned_msg =
+        "The @[H]Apache@[] revolt against @[H]English@[] "
+        "missions! All English missionaries eliminated!";
+    EXPECT_CALL( W.gui(), message_box( missions_burned_msg ) )
+        .returns<monostate>();
+    expected = { .order_was_run = true };
+    REQUIRE( f() == expected );
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
+    REQUIRE( attacker.type() == e_unit_type::free_colonist );
+    REQUIRE( dwelling.population == 5 );
+    REQUIRE( W.units().coord_for( attacker.id() ) ==
+             W.kLandAttack );
+    REQUIRE( W.natives().coord_for( dwelling.id ) ==
+             W.kLandDefend );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( relationship.tribal_alarm == 13 );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE( !W.units().exists( missionary_id ) );
+    REQUIRE( player.score_stats.dwellings_burned == 0 );
+    REQUIRE( W.square( W.kLandDefend ).road == true );
+    REQUIRE( W.units().exists( brave_id ) );
+    REQUIRE( W.units().coord_for( brave_id ) ==
+             Coord{ .x = 2, .y = 2 } );
+    REQUIRE( W.natives().tribe_exists( W.kNativeTribe ) );
+  }
+
+  SECTION( "attacker wins, population decrease, no convert" ) {
+    UnitId const missionary_id =
+        W.add_missionary_in_dwelling(
+             UnitType::create( e_unit_type::missionary ),
+             dwelling_id )
+            .id();
+    combat = {
+        .winner           = e_combat_winner::attacker,
+        .new_tribal_alarm = 13,
+        .missions_burned  = false,
+        .attacker         = { .outcome =
+                                  EuroUnitCombatOutcome::no_change{} },
+        .defender         = {
+                    .id = dwelling.id,
+                    .outcome =
+                DwellingCombatOutcome::population_decrease{
+                            .convert_produced = false } } };
+    combat.attacker.id = W.add_attacker( e_unit_type::soldier );
+    expect_combat();
+    W.expect_some_animation();
+    expected = { .order_was_run = true };
+    REQUIRE( f() == expected );
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
+    REQUIRE( attacker.type() == e_unit_type::soldier );
+    REQUIRE( dwelling.population == 4 );
+    REQUIRE( W.units().coord_for( attacker.id() ) ==
+             W.kLandAttack );
+    REQUIRE( W.natives().coord_for( dwelling.id ) ==
+             W.kLandDefend );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( relationship.tribal_alarm == 13 );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( missionary_id ) ==
+        UnitOwnership_t{
+            UnitOwnership::dwelling{ .id = dwelling_id } } );
+    REQUIRE( player.score_stats.dwellings_burned == 0 );
+    REQUIRE( W.square( W.kLandDefend ).road == true );
+    REQUIRE( W.units().exists( brave_id ) );
+    REQUIRE( W.units().coord_for( brave_id ) ==
+             Coord{ .x = 2, .y = 2 } );
+    REQUIRE( W.natives().tribe_exists( W.kNativeTribe ) );
+  }
+
+  SECTION( "attacker wins, population decrease, with convert" ) {
+    UnitId const missionary_id =
+        W.add_missionary_in_dwelling(
+             UnitType::create( e_unit_type::missionary ),
+             dwelling_id )
+            .id();
+    combat = {
+        .winner           = e_combat_winner::attacker,
+        .new_tribal_alarm = 13,
+        .missions_burned  = false,
+        .attacker         = { .outcome =
+                                  EuroUnitCombatOutcome::no_change{} },
+        .defender         = {
+                    .id = dwelling.id,
+                    .outcome =
+                DwellingCombatOutcome::population_decrease{
+                            .convert_produced = true } } };
+    combat.attacker.id = W.add_attacker( e_unit_type::soldier );
+    expect_combat();
+    W.expect_some_animation();
+    W.expect_convert();
+    UnitId const expected_convert_id = UnitId{ 5 };
+
+    expected = {
+        .order_was_run       = true,
+        .units_to_prioritize = { expected_convert_id } };
+    REQUIRE( f() == expected );
+
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
+    REQUIRE( attacker.type() == e_unit_type::soldier );
+    REQUIRE( dwelling.population == 4 );
+    REQUIRE( W.units().coord_for( attacker.id() ) ==
+             W.kLandAttack );
+    REQUIRE( W.natives().coord_for( dwelling.id ) ==
+             W.kLandDefend );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( relationship.tribal_alarm == 13 );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( missionary_id ) ==
+        UnitOwnership_t{
+            UnitOwnership::dwelling{ .id = dwelling_id } } );
+    REQUIRE( W.units().exists( expected_convert_id ) );
+    REQUIRE( W.units().unit_for( expected_convert_id ).type() ==
+             e_unit_type::native_convert );
+    REQUIRE( W.units().coord_for( expected_convert_id ) ==
+             W.kLandAttack );
+    REQUIRE( player.score_stats.dwellings_burned == 0 );
+    REQUIRE( W.square( W.kLandDefend ).road == true );
+    REQUIRE( W.units().exists( brave_id ) );
+    REQUIRE( W.units().coord_for( brave_id ) ==
+             Coord{ .x = 2, .y = 2 } );
+    REQUIRE( W.natives().tribe_exists( W.kNativeTribe ) );
+  }
+
+  SECTION( "attacker wins, dwelling burned" ) {
+    dwelling.population = 1;
+
+    combat = {
+        .winner           = e_combat_winner::attacker,
+        .new_tribal_alarm = 13,
+        .missions_burned  = false,
+        .attacker =
+            { .outcome =
+                  EuroUnitCombatOutcome::promoted{
+                      .to = UnitType::create(
+                          e_unit_type::veteran_soldier ) } },
+        .defender = {
+            .id      = dwelling.id,
+            .outcome = DwellingCombatOutcome::destruction{
+                .braves_to_kill        = {},
+                .missionary_to_release = {},
+                .treasure_amount       = {},
+                .tribe_destroyed       = e_tribe::apache,
+                .convert_produced      = false } } };
+    combat.attacker.id = W.add_attacker( e_unit_type::soldier );
+    expect_combat();
+    W.expect_some_animation();
+    W.expect_promotion();
+    EXPECT_CALL( W.gui(),
+                 message_box( "@[H]Apache@[] camp burned by the "
+                              "@[H]English@[]!" ) )
+        .returns<monostate>();
+    W.expect_tribe_wiped_out( "Apache" );
+
+    expected = { .order_was_run       = true,
+                 .units_to_prioritize = {} };
+    REQUIRE( f() == expected );
+
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    REQUIRE_FALSE( W.natives().dwelling_exists( dwelling_id ) );
+    REQUIRE( attacker.type() == e_unit_type::veteran_soldier );
+    REQUIRE( W.units().coord_for( attacker.id() ) ==
+             W.kLandAttack );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE( player.score_stats.dwellings_burned == 1 );
+    REQUIRE( W.square( W.kLandDefend ).road == false );
+    REQUIRE( !W.units().exists( brave_id ) );
+    REQUIRE_FALSE( W.natives().tribe_exists( W.kNativeTribe ) );
+  }
+
+  SECTION(
+      "attacker wins, dwelling burned, convert produced, "
+      "missionary released, treasure produced" ) {
+    UnitId const missionary_id =
+        W.add_missionary_in_dwelling(
+             UnitType::create( e_unit_type::missionary ),
+             dwelling_id )
+            .id();
+    dwelling.population = 1;
+
+    combat = {
+        .winner           = e_combat_winner::attacker,
+        .new_tribal_alarm = 13,
+        .missions_burned  = false,
+        .attacker =
+            { .outcome =
+                  EuroUnitCombatOutcome::promoted{
+                      .to = UnitType::create(
+                          e_unit_type::veteran_soldier ) } },
+        .defender = {
+            .id      = dwelling.id,
+            .outcome = DwellingCombatOutcome::destruction{
+                .braves_to_kill        = {},
+                .missionary_to_release = missionary_id,
+                .treasure_amount       = 123,
+                .tribe_destroyed       = e_tribe::apache,
+                .convert_produced      = true } } };
+    combat.attacker.id = W.add_attacker( e_unit_type::soldier );
+    expect_combat();
+    W.expect_some_animation();
+    W.expect_promotion();
+    W.expect_convert();
+    EXPECT_CALL(
+        W.gui(),
+        message_box( fmt::format(
+            "@[H]Apache@[] camp burned by the @[H]English@[]! "
+            "@[H]Missionary@[] flees in panic! Treasure worth "
+            "@[H]123@[] recovered from camp! It will take a "
+            "@[H]Galleon@[] to transport this treasure back to "
+            "@[H]London@[]." ) ) )
+        .returns<monostate>();
+    W.expect_some_animation(); // treasure enpixelation.
+    W.expect_tribe_wiped_out( "Apache" );
+    UnitId const expected_convert_id  = UnitId{ 5 };
+    UnitId const expected_treasure_id = UnitId{ 6 };
+
+    expected = {
+        .order_was_run       = true,
+        .units_to_prioritize = { expected_convert_id,
+                                 expected_treasure_id } };
+    REQUIRE( f() == expected );
+
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    REQUIRE_FALSE( W.natives().dwelling_exists( dwelling_id ) );
+    REQUIRE( attacker.type() == e_unit_type::veteran_soldier );
+    REQUIRE( W.units().coord_for( attacker.id() ) ==
+             W.kLandAttack );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( missionary_id ) ==
+        UnitOwnership_t{
+            UnitOwnership::world{ .coord = W.kLandDefend } } );
+    REQUIRE( W.units().exists( expected_convert_id ) );
+    REQUIRE( W.units().unit_for( expected_convert_id ).type() ==
+             e_unit_type::native_convert );
+    REQUIRE( W.units().coord_for( expected_convert_id ) ==
+             W.kLandAttack );
+    REQUIRE( W.units().exists( expected_treasure_id ) );
+    REQUIRE( W.units().unit_for( expected_treasure_id ).type() ==
+             e_unit_type::treasure );
+    REQUIRE( W.units()
+                 .unit_for( expected_treasure_id )
+                 .composition()
+                 .inventory()[e_unit_inventory::gold] == 123 );
+    REQUIRE( W.units().coord_for( expected_treasure_id ) ==
+             W.kLandDefend );
+    REQUIRE( player.score_stats.dwellings_burned == 1 );
+    REQUIRE( W.square( W.kLandDefend ).road == false );
+    REQUIRE( !W.units().exists( brave_id ) );
+    REQUIRE_FALSE( W.natives().tribe_exists( W.kNativeTribe ) );
+  }
+}
+
+TEST_CASE(
+    "[attack-handlers] attack_colony_undefended_handler" ) {
+  World                            W;
+  CombatEuroAttackUndefendedColony combat;
+  // TODO
+}
+
+TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
+  World                W;
+  CombatShipAttackShip combat;
+  // TODO
+}
 
 } // namespace
 } // namespace rn

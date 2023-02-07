@@ -22,15 +22,19 @@
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "map-square.hpp"
+#include "missionary.hpp"
 #include "on-map.hpp"
 #include "orders.hpp"
 #include "plane-stack.hpp"
+#include "road.hpp"
+#include "tribe-mgr.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "unit-stack.hpp"
 
 // config
 #include "config/nation.hpp"
+#include "config/natives.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
@@ -44,7 +48,6 @@
 
 // base
 #include "base/to-str-ext-std.hpp"
-#include "base/vocab.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -54,8 +57,6 @@ using namespace std;
 namespace rn {
 
 namespace {
-
-using ::base::NoDiscard;
 
 // These are possible results of an attack that are common to the
 // two cases of attacking a euro unit and a native unit. Because
@@ -135,17 +136,15 @@ wait<maybe<e_attack_verdict_base>> check_attack_verdict_base(
   co_return nothing;
 }
 
-wait<NoDiscard<maybe<string>>> perform_euro_unit_combat_outcome(
+maybe<string> perform_euro_unit_combat_outcome(
     SS& ss, TS& ts, Player const& active_player,
     Player const& player, Unit& unit,
     EuroUnitCombatOutcome_t const& outcome ) {
   auto capture_unit = [&]( e_nation new_nation,
-                           Coord    new_coord ) -> wait<> {
+                           Coord    new_coord ) {
     unit.change_nation( ss.units, new_nation );
-    maybe<UnitDeleted> const unit_deleted =
-        co_await unit_to_map_square( ss, ts, unit.id(),
-                                     new_coord );
-    CHECK( !unit_deleted.has_value() );
+    unit_to_map_square_non_interactive( ss, ts, unit.id(),
+                                        new_coord );
     // This is so that the captured unit won't ask for orders
     // in the same turn that it is captured.
     unit.forfeight_mv_points();
@@ -177,7 +176,7 @@ wait<NoDiscard<maybe<string>>> perform_euro_unit_combat_outcome(
     }
     case e::captured: {
       auto& o = outcome.get<captured>();
-      co_await capture_unit( o.new_nation, o.new_coord );
+      capture_unit( o.new_nation, o.new_coord );
       break;
     }
     case e::captured_and_demoted: {
@@ -188,7 +187,7 @@ wait<NoDiscard<maybe<string>>> perform_euro_unit_combat_outcome(
         msg = "Veteran status lost upon capture!";
       unit.change_type( player,
                         UnitComposition::create( o.to ) );
-      co_await capture_unit( o.new_nation, o.new_coord );
+      capture_unit( o.new_nation, o.new_coord );
       break;
     }
     case e::promoted: {
@@ -214,14 +213,12 @@ wait<NoDiscard<maybe<string>>> perform_euro_unit_combat_outcome(
     // up a message box notifying the player of battle outcomes
     // for their unit if the active player owns the unit and that
     // active player is a human.
-    co_return msg;
-  co_return nothing;
+    return msg;
+  return nothing;
 }
 
-wait<NoDiscard<maybe<string>>>
-perform_native_unit_combat_outcome(
-    SS& ss, TS& ts, Player const& active_player,
-    NativeUnit&                      unit,
+maybe<string> perform_native_unit_combat_outcome(
+    SS& ss, Player const& active_player, NativeUnit& unit,
     NativeUnitCombatOutcome_t const& outcome ) {
   maybe<string> msg;
 
@@ -262,11 +259,11 @@ perform_native_unit_combat_outcome(
     }
   }
 
-  if( active_player.human ) co_return msg;
-  co_return nothing;
+  if( active_player.human ) return msg;
+  return nothing;
 }
 
-wait<NoDiscard<maybe<string>>> perform_naval_unit_combat_outcome(
+maybe<string> perform_naval_unit_combat_outcome(
     SS& ss, TS& ts, Player const& active_player,
     Player const& player, Unit& unit,
     EuroNavalUnitCombatOutcome_t const& outcome,
@@ -279,9 +276,8 @@ wait<NoDiscard<maybe<string>>> perform_naval_unit_combat_outcome(
       break;
     case e::moved: {
       auto& o = outcome.get<moved>();
-      auto  unit_deleted =
-          co_await unit_to_map_square( ss, ts, unit.id(), o.to );
-      CHECK( !unit_deleted.has_value() );
+      unit_to_map_square_non_interactive( ss, ts, unit.id(),
+                                          o.to );
       break;
     }
     case e::damaged:
@@ -320,8 +316,8 @@ wait<NoDiscard<maybe<string>>> perform_naval_unit_combat_outcome(
 
   if( player.nation == active_player.nation &&
       active_player.human )
-    co_return msg;
-  co_return nothing;
+    return msg;
+  return nothing;
 }
 
 e_direction direction_of_attack( SSConst const& ss,
@@ -331,6 +327,18 @@ e_direction direction_of_attack( SSConst const& ss,
       coord_for_unit_multi_ownership_or_die( ss, attacker_id );
   Coord const defender_coord =
       coord_for_unit_multi_ownership_or_die( ss, defender_id );
+  UNWRAP_CHECK( d,
+                attacker_coord.direction_to( defender_coord ) );
+  return d;
+}
+
+e_direction direction_of_attack( SSConst const& ss,
+                                 UnitId         attacker_id,
+                                 DwellingId     dwelling_id ) {
+  Coord const attacker_coord =
+      coord_for_unit_multi_ownership_or_die( ss, attacker_id );
+  Coord const defender_coord =
+      ss.natives.coord_for( dwelling_id );
   UNWRAP_CHECK( d,
                 attacker_coord.direction_to( defender_coord ) );
   return d;
@@ -546,7 +554,7 @@ wait<> AttackColonyUndefendedHandler::perform() {
       anim_seq_for_undefended_colony( ss_, combat_ ) );
 
   maybe<string> const attacker_msg =
-      co_await perform_euro_unit_combat_outcome(
+      perform_euro_unit_combat_outcome(
           ss_, ts_, active_player_, attacking_player_, attacker_,
           combat_.attacker.outcome );
   co_await show_outcome_messages( ts_, attacker_msg, nothing );
@@ -669,11 +677,11 @@ wait<> NavalBattleHandler::animate() const {
 wait<> NavalBattleHandler::perform() {
   co_await Base::perform();
   maybe<string> const attacker_msg =
-      co_await perform_naval_unit_combat_outcome(
+      perform_naval_unit_combat_outcome(
           ss_, ts_, active_player_, attacking_player_, attacker_,
           combat_.attacker.outcome, defender_id_ );
   maybe<string> const defender_msg =
-      co_await perform_naval_unit_combat_outcome(
+      perform_naval_unit_combat_outcome(
           ss_, ts_, active_player_, defending_player_, defender_,
           combat_.defender.outcome, attacker_id_ );
   // Messages must be shown after effects are made for both par-
@@ -727,11 +735,11 @@ wait<> EuroAttackHandler::animate() const {
 wait<> EuroAttackHandler::perform() {
   co_await Base::perform();
   maybe<string> const attacker_msg =
-      co_await perform_euro_unit_combat_outcome(
+      perform_euro_unit_combat_outcome(
           ss_, ts_, active_player_, attacking_player_, attacker_,
           combat_.attacker.outcome );
   maybe<string> const defender_msg =
-      co_await perform_euro_unit_combat_outcome(
+      perform_euro_unit_combat_outcome(
           ss_, ts_, active_player_, defending_player_, defender_,
           combat_.defender.outcome );
   // Messages must be shown after effects are made for both par-
@@ -821,17 +829,377 @@ wait<> AttackNativeUnitHandler::perform() {
       relationship );
 
   maybe<string> const attacker_msg =
-      co_await perform_euro_unit_combat_outcome(
+      perform_euro_unit_combat_outcome(
           ss_, ts_, active_player_, attacking_player_, attacker_,
           combat_.attacker.outcome );
   maybe<string> const brave_msg =
-      co_await perform_native_unit_combat_outcome(
-          ss_, ts_, active_player_, defender_,
+      perform_native_unit_combat_outcome(
+          ss_, active_player_, defender_,
           combat_.defender.outcome );
   // Messages must be shown after effects are made for both par-
   // ties, otherwise they will temporarily appear to visually re-
   // vert while the message box is up.
   co_await show_outcome_messages( ts_, attacker_msg, brave_msg );
+}
+
+/****************************************************************
+** AttackDwellingHandler
+*****************************************************************/
+struct AttackDwellingHandler : public AttackHandlerBase {
+  using Base = AttackHandlerBase;
+
+  AttackDwellingHandler( Planes& planes, SS& ss, TS& ts,
+                         Player& player, UnitId attacker_id,
+                         DwellingId defender_id );
+
+  // Implement OrdersHandler.
+  wait<bool> confirm() override;
+
+  // Implement OrdersHandler.
+  wait<> perform() override;
+
+  // Implement OrdersHandler.
+  vector<UnitId> units_to_prioritize() const override;
+
+ private:
+  NativeUnitId create_phantom_brave();
+
+  wait<> produce_convert();
+
+  using PhantomCombatAnimatorFunc =
+      wait<>( CombatEuroAttackBrave const& combat );
+
+  wait<> with_phantom_brave_combat(
+      base::function_ref<PhantomCombatAnimatorFunc> func );
+
+  DwellingId         dwelling_id_;
+  Dwelling&          dwelling_;
+  Tribe&             tribe_;
+  TribeRelationship& relationship_;
+
+  CombatEuroAttackDwelling combat_;
+
+  maybe<UnitId> treasure_;
+  maybe<UnitId> native_convert_;
+};
+
+unique_ptr<OrdersHandler> attack_dwelling_handler(
+    Planes& planes, SS& ss, TS& ts, Player& player,
+    UnitId attacker_id, DwellingId dwelling_id ) {
+  return make_unique<AttackDwellingHandler>(
+      planes, ss, ts, player, attacker_id, dwelling_id );
+}
+
+static TribeRelationship& relationship_or_die(
+    Tribe& tribe, e_nation nation ) {
+  UNWRAP_CHECK( relationship, tribe.relationship[nation] );
+  return relationship;
+}
+
+AttackDwellingHandler::AttackDwellingHandler(
+    Planes& planes, SS& ss, TS& ts, Player& player,
+    UnitId attacker_id, DwellingId dwelling_id )
+  : AttackHandlerBase(
+        planes, ss, ts, player, attacker_id,
+        direction_of_attack( ss, attacker_id, dwelling_id ) ),
+    dwelling_id_( dwelling_id ),
+    dwelling_( ss.natives.dwelling_for( dwelling_id ) ),
+    tribe_( ss.natives.tribe_for( dwelling_.id ) ),
+    relationship_(
+        relationship_or_die( tribe_, player.nation ) ) {}
+
+// Returns true if the move is allowed.
+wait<bool> AttackDwellingHandler::confirm() {
+  if( !co_await Base::confirm() ) co_return false;
+  combat_ =
+      ts_.combat.euro_attack_dwelling( attacker_, dwelling_ );
+  co_return true;
+}
+
+// Note that the returned unit should be destroyed when it is no
+// longer needed.
+NativeUnitId AttackDwellingHandler::create_phantom_brave() {
+  // The strategy here is that we're going to create a "phantom"
+  // (temporary) brave unit over top of the dwelling to act as
+  // the target of the attack visually. We know that there won't
+  // already be a brave there because otherwise the handling of
+  // this battle would have been delegated to another handler.
+  Coord const dwelling_location =
+      ss_.natives.coord_for( dwelling_id_ );
+  NativeUnitId const phantom_brave =
+      create_unit_on_map_non_interactive(
+          ss_, e_native_unit_type::brave, dwelling_location,
+          dwelling_id_ );
+  return phantom_brave;
+}
+
+// Note that the dwelling may no longer exist when this function
+// is called.
+wait<> AttackDwellingHandler::produce_convert() {
+  Coord const attacker_coord =
+      ss_.units.coord_for( attacker_id_ );
+  Coord const dwelling_coord = attack_dst_;
+  // Produce the convert on the dwelling tile, then we will ani-
+  // mate it enpixelating and then sliding over to the attacker's
+  // square. We can use the non-interactive version because the
+  // convert is not actually going to be created on the dwelling
+  // square; it will be created on the attacker's square, where
+  // we know there is already a friendly unit, so no interactive
+  // stuff need be done.
+  UnitId const convert_id = create_unit_on_map_non_interactive(
+      ss_, ts_, attacking_player_,
+      UnitComposition::create( e_unit_type::native_convert ),
+      dwelling_coord );
+  native_convert_ = convert_id;
+  string_view const tribe_name_adjective =
+      config_natives.tribes[tribe_.type].name_adjective;
+  string_view const nation_name_adjective =
+      nation_obj( attacking_player_.nation ).adjective;
+  // Pop up a message box and simultaneously make the convert ap-
+  // pear and slide over to the attacker's square.
+  //
+  // The ordering of following is a bit subtle: Overall, we want
+  // to wait for both the animations and the message box to fin-
+  // ish, but as soon as the slide animation finishes we need to
+  // move the convert to the attacker's square so that it doesn't
+  // revert back while the user finishes reading the contents of
+  // the message box.
+  //
+  // Then, as soon as the unit is moved, we initiate another ani-
+  // mation to keep the unit on the front of the stack while the
+  // message box is open. That will 1) allow the player to see
+  // the unit that they're reading about in the message box, and
+  // 2) will provide continuity because we are going to arrange
+  // for the convert to ask for orders immediately after this.
+  // Note that we use a non-background "front" animation which is
+  // non-terminating, so we don't await on it, we just let it get
+  // cancelled when the box closes.
+  AnimationSequence const appear_and_slide_seq =
+      anim_seq_for_convert_produced(
+          convert_id, reverse_direction( direction_ ) );
+  wait<> appear_and_slide_animation =
+      planes_.land_view().animate( appear_and_slide_seq );
+  wait<> box = ts_.gui.message_box(
+      "@[H]{}@[] citizens frightened in combat rush to the "
+      "@[H]{} mission@[] as @[H]converts@[]!",
+      tribe_name_adjective, nation_name_adjective );
+  co_await std::move( appear_and_slide_animation );
+  // Non-interactive is OK here because the attacker is already
+  // on this square.
+  unit_to_map_square_non_interactive( ss_, ts_, convert_id,
+                                      attacker_coord );
+  AnimationSequence const front_seq =
+      anim_seq_unit_to_front_non_background( convert_id );
+  wait<> front_animation =
+      planes_.land_view().animate( front_seq );
+  co_await std::move( box );
+}
+
+wait<> AttackDwellingHandler::with_phantom_brave_combat(
+    base::function_ref<PhantomCombatAnimatorFunc> func ) {
+  NativeUnitId const phantom_brave = create_phantom_brave();
+  SCOPE_EXIT( ss_.units.destroy_unit( phantom_brave ) );
+  CombatEuroAttackBrave phantom_combat{
+      .winner   = combat_.winner,
+      .attacker = combat_.attacker,
+      .defender = { .id = phantom_brave } };
+  if( combat_.winner == e_combat_winner::attacker )
+    phantom_combat.defender.outcome =
+        NativeUnitCombatOutcome::destroyed{};
+  else
+    phantom_combat.defender.outcome =
+        NativeUnitCombatOutcome::no_change{};
+  co_await func( phantom_combat );
+}
+
+wait<> AttackDwellingHandler::perform() {
+  co_await Base::perform();
+
+  auto const& tribe_conf = config_natives.tribes[tribe_.type];
+  string_view const dwelling_type_name =
+      config_natives.dwelling_types[tribe_conf.level]
+          .name_singular;
+  string_view const tribe_name = tribe_conf.name_singular;
+  string_view const nation_name =
+      nation_obj( attacking_player_.nation ).display_name;
+  string_view const nation_name_adjective =
+      nation_obj( attacking_player_.nation ).adjective;
+  string_view const nation_harbor_name =
+      nation_obj( attacking_player_.nation ).harbor_city_name;
+
+  // Set new tribal alarm.
+  relationship_.tribal_alarm = combat_.new_tribal_alarm;
+
+  // Consume attacker movement points.
+  // Done in base handler.
+
+  // Check if the tribe has burned our missions.
+  if( combat_.missions_burned ) {
+    // TODO: depixelation animation/sound?
+    vector<UnitId> const missionaries =
+        player_missionaries_in_tribe( ss_, attacking_player_,
+                                      tribe_.type );
+    for( UnitId const missionary : missionaries ) {
+      CHECK( ss_.units.unit_for( missionary ).nation() ==
+             attacking_player_.nation );
+      ss_.units.destroy_unit( missionary );
+    }
+    co_await ts_.gui.message_box(
+        "The @[H]{}@[] revolt against @[H]{}@[] missions! "
+        "All {} missionaries eliminated!",
+        tribe_name, nation_name_adjective,
+        nation_name_adjective );
+  }
+
+  // Attacker lost:
+  if( combat_.winner == e_combat_winner::defender ) {
+    CHECK( combat_.defender.outcome
+               .holds<DwellingCombatOutcome::no_change>() );
+    co_await with_phantom_brave_combat(
+        [&]( CombatEuroAttackBrave const& combat ) -> wait<> {
+          AnimationSequence const seq =
+              anim_seq_for_attack_brave( ss_, combat );
+          co_await planes_.land_view().animate( seq );
+        } );
+    maybe<string> const attacker_msg =
+        perform_euro_unit_combat_outcome(
+            ss_, ts_, active_player_, attacking_player_,
+            attacker_, combat_.attacker.outcome );
+    co_await show_outcome_messages( ts_, attacker_msg, nothing );
+    co_return;
+  }
+
+  // Attacker won.
+
+  // Population decrease.
+  if( auto population_decrease =
+          combat_.defender.outcome.get_if<
+              DwellingCombatOutcome::population_decrease>();
+      population_decrease.has_value() ) {
+    co_await with_phantom_brave_combat(
+        [&]( CombatEuroAttackBrave const& combat ) -> wait<> {
+          AnimationSequence const seq =
+              anim_seq_for_attack_brave( ss_, combat );
+          co_await planes_.land_view().animate( seq );
+        } );
+    maybe<string> const attacker_msg =
+        perform_euro_unit_combat_outcome(
+            ss_, ts_, active_player_, attacking_player_,
+            attacker_, combat_.attacker.outcome );
+    co_await show_outcome_messages( ts_, attacker_msg, nothing );
+    --dwelling_.population;
+    CHECK_GT( dwelling_.population, 0 );
+    if( population_decrease->convert_produced )
+      co_await produce_convert();
+    co_return;
+  }
+
+  // Dwelling burned.
+  UNWRAP_CHECK(
+      destruction,
+      combat_.defender.outcome
+          .get_if<DwellingCombatOutcome::destruction>() );
+  Coord const dwelling_location =
+      ss_.natives.coord_for( dwelling_id_ );
+
+  // Inc villages burned.
+  ++attacking_player_.score_stats.dwellings_burned;
+
+  // Clear road. When we eventually delete the dwelling this will
+  // be done, but here we want to do it earlier, before the ani-
+  // mations, otherwise the dwelling will depixelate showing the
+  // road, then the road will suddenly disappear, which doesn't
+  // look good.
+  clear_road( ts_.map_updater, dwelling_location );
+
+  // If missionary needs releasing, release it under the
+  // dwelling. It should continue to be hidden until the dwelling
+  // starts depixelating, then it should gradually become visi-
+  // ble.
+  if( destruction.missionary_to_release.has_value() ) {
+    maybe<UnitDeleted> deleted = co_await unit_to_map_square(
+        ss_, ts_, *destruction.missionary_to_release,
+        dwelling_location );
+    CHECK( !deleted.has_value() );
+  }
+
+  // Animate attacker winning w/ burning village and depixelating
+  // all braves.
+  co_await with_phantom_brave_combat(
+      [&]( CombatEuroAttackBrave const& combat ) -> wait<> {
+        AnimationSequence const seq = anim_seq_for_dwelling_burn(
+            ss_, attacker_id_, combat_.attacker.outcome,
+            combat.defender.id, dwelling_id_, destruction );
+        co_await planes_.land_view().animate( seq );
+      } );
+
+  // Kill dwelling, free braves owned by the dwelling, and any
+  // owned land of the dwelling. This will also remove the road
+  // under the dwelling.
+  destroy_dwelling( ss_, ts_, dwelling_id_ );
+  maybe<string> const attacker_msg =
+      perform_euro_unit_combat_outcome(
+          ss_, ts_, active_player_, attacking_player_, attacker_,
+          combat_.attacker.outcome );
+  co_await show_outcome_messages( ts_, attacker_msg, nothing );
+
+  // Check if convert produced.
+  if( destruction.convert_produced ) co_await produce_convert();
+
+  // Show message saying that dwelling was destroyed, and that
+  // missionary fled if applicable. Also, if there is a treasure,
+  // include the amount.
+  string msg =
+      fmt::format( "@[H]{}@[] {} burned by the @[H]{}@[]!",
+                   tribe_name, dwelling_type_name, nation_name );
+  if( destruction.missionary_to_release.has_value() )
+    msg += " @[H]Missionary@[] flees in panic!";
+  if( destruction.treasure_amount.has_value() )
+    msg += fmt::format(
+        " Treasure worth @[H]{}@[] recovered from {}! It will "
+        "take a @[H]Galleon@[] to transport this treasure back "
+        "to @[H]{}@[].",
+        *destruction.treasure_amount, dwelling_type_name,
+        nation_harbor_name );
+  co_await ts_.gui.message_box( msg );
+
+  if( destruction.treasure_amount.has_value() ) {
+    UNWRAP_CHECK( treasure_comp,
+                  UnitComposition::create(
+                      UnitType::create( e_unit_type::treasure ),
+                      UnitComposition::UnitInventoryMap{
+                          { e_unit_inventory::gold,
+                            *destruction.treasure_amount } } ) );
+    maybe<UnitId> const treasure_id =
+        co_await create_unit_on_map( ss_, ts_, attacking_player_,
+                                     treasure_comp,
+                                     dwelling_location );
+    treasure_ = treasure_id;
+    // We'll be defensive here and not check-fail if the treasure
+    // doesn't exist, even though that should never really happen
+    // in a normal game... it is possible somehow that there
+    // could be an LCR under the dwelling tile that could have
+    // swallowed up the treasure unit.
+    if( treasure_id.has_value() ) {
+      AnimationSequence const seq =
+          anim_seq_for_unit_enpixelation( *treasure_id );
+      co_await planes_.land_view().animate( seq );
+    }
+  }
+
+  // Check if the tribe is now destroyed.
+  if( destruction.tribe_destroyed.has_value() )
+    // At this point there should be nothing left
+    co_await destroy_tribe_interactive( ss_, ts_, tribe_.type );
+}
+
+vector<UnitId> AttackDwellingHandler::units_to_prioritize()
+    const {
+  vector<UnitId> res;
+  if( native_convert_.has_value() )
+    res.push_back( *native_convert_ );
+  if( treasure_.has_value() ) res.push_back( *treasure_ );
+  return res;
 }
 
 } // namespace rn

@@ -43,27 +43,8 @@ struct OrdersHandler {
   OrdersHandler( OrdersHandler&& )                 = delete;
   OrdersHandler& operator=( OrdersHandler&& )      = delete;
 
-  struct RunResult {
-    // Was the order carried out or not.
-    bool order_was_run = false;
-    // Regardless of the value of `order_run`, was there a corou-
-    // tine suspension during the process (other than during an
-    // animation)? This is basically used to infer whether the
-    // user was prompted for anything during the process, which
-    // is useful to know in order for the caller to have a pol-
-    // ished user interface.
-    bool suspended = false;
-
-    // Any units that need to be prioritized (in the sense of
-    // asking for orders) after this order has been carried out.
-    // An example of this would be after units make landfall from
-    // a ship, it is natural for them to ask for orders right
-    // away.
-    std::vector<UnitId> units_to_prioritize;
-  };
-
   // Run though the entire sequence of
-  wait<RunResult> run();
+  wait<OrdersHandlerRunResult> run();
 
   // This will do a few things:
   //

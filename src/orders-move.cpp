@@ -1062,6 +1062,19 @@ struct NativeDwellingHandler : public OrdersHandler {
           planes_, ss_, ts_, player_, unit_id_, defender_id );
     }
 
+    if( outcome_
+            .holds<EnterDwellingOutcome::attack_village>() ) {
+      UNWRAP_CHECK( relationship,
+                    tribe_.relationship[unit_.nation()] );
+      // The player has already confirmed that they want to at-
+      // tack.
+      relationship.nation_has_attacked_tribe = true;
+      // Delegate: the order handling process will be restarted
+      // with this new handler.
+      return attack_dwelling_handler( planes_, ss_, ts_, player_,
+                                      unit_id_, dwelling_.id );
+    }
+
     return nullptr; // Continue with this handler.
   }
 
