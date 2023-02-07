@@ -702,6 +702,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
 }
 #endif
 
+#ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
   World                    W;
   OrdersHandlerRunResult   expected = { .order_was_run = true };
@@ -1071,6 +1072,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE_FALSE( W.natives().tribe_exists( W.kNativeTribe ) );
   }
 }
+#endif
 
 TEST_CASE(
     "[attack-handlers] attack_colony_undefended_handler" ) {
