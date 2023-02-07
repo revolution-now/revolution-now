@@ -11,10 +11,13 @@
 #include "combat.hpp"
 
 // Revolution Now
+#include "alarm.hpp"
 #include "irand.hpp"
 #include "logger.hpp"
+#include "missionary.hpp"
 #include "promotion.hpp"
 #include "society.rds.hpp"
+#include "treasure.hpp"
 #include "unit-mgr.hpp"
 
 // config
@@ -24,6 +27,7 @@
 // ss
 #include "ss/colony.rds.hpp"
 #include "ss/natives.hpp"
+#include "ss/players.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/unit.hpp"
@@ -152,11 +156,66 @@ NativeUnitCombatOutcome_t native_unit_combat_outcome(
         .tribe_retains_muskets = false };
 }
 
-DwellingCombatOutcome_t dwelling_combat_outcome( bool won ) {
-  if( won )
-    return DwellingCombatOutcome::no_change{};
-  else
-    return DwellingCombatOutcome::defeated{};
+DwellingCombatOutcome::destruction compute_dwelling_destruction(
+    SSConst const& ss, IRand& rand, Player const& player,
+    Dwelling const& dwelling, bool missions_burned ) {
+  DwellingCombatOutcome::destruction res;
+
+  unordered_set<NativeUnitId> const& braves =
+      ss.units.braves_for_dwelling( dwelling.id );
+  // Note that this will not include the temporary brave created
+  // as a target in the attack.
+  res.braves_to_kill =
+      vector<NativeUnitId>( braves.begin(), braves.end() );
+  // So that unit tests are deterministic...
+  sort( res.braves_to_kill.begin(), res.braves_to_kill.end() );
+
+  if( !missions_burned )
+    res.missionary_to_release =
+        ss.units.missionary_from_dwelling( dwelling.id );
+
+  e_tribe const tribe = ss.natives.tribe_for( dwelling.id ).type;
+  UNWRAP_CHECK( dwellings,
+                ss.natives.dwellings_for_tribe( tribe ) );
+  if( dwellings.size() == 1 ) {
+    CHECK_EQ( *dwellings.begin(), dwelling.id );
+    // Last dwelling of tribe; tribe is being wiped out.
+    res.tribe_destroyed = tribe;
+  }
+
+  // Is there a treasure and, if so, how much.
+  res.treasure_amount =
+      treasure_from_dwelling( ss, rand, player, dwelling );
+
+  return res;
+}
+
+DwellingCombatOutcome_t dwelling_combat_outcome(
+    SSConst const& ss, IRand& rand, Player const& player,
+    Dwelling const& dwelling, bool won, bool missions_burned ) {
+  if( won ) return DwellingCombatOutcome::no_change{};
+
+  // The dwelling has lost.
+  bool const convert_produced = [&] {
+    if( missions_burned ) return false;
+    maybe<double> const convert_probability =
+        probability_dwelling_produces_convert_on_attack(
+            ss, player, dwelling.id );
+    return convert_probability.has_value() &&
+           rand.bernoulli( *convert_probability );
+  }();
+
+  // Check for simple population decrease.
+  if( dwelling.population > 1 )
+    return DwellingCombatOutcome::population_decrease{
+        .convert_produced = convert_produced };
+
+  // The dwelling has been destroyed.
+  DwellingCombatOutcome::destruction destruction =
+      compute_dwelling_destruction( ss, rand, player, dwelling,
+                                    missions_burned );
+  destruction.convert_produced = convert_produced;
+  return destruction;
 }
 
 } // namespace
@@ -271,7 +330,15 @@ CombatEuroAttackBrave RealCombat::euro_attack_brave(
 
 CombatEuroAttackDwelling RealCombat::euro_attack_dwelling(
     Unit const& attacker, Dwelling const& dwelling ) {
+  Tribe const& tribe = ss_.natives.tribe_for( dwelling.id );
+  UNWRAP_CHECK( relationship,
+                tribe.relationship[attacker.nation()] );
+  Player const& player =
+      player_for_nation_or_die( ss_.players, attacker.nation() );
   double const attack_points = attacker.desc().combat;
+  // When attacking a dwelling we always run the numbers as if we
+  // are attacking a brave. Stength among tribes is varied both
+  // by bonuses on dwelling type and also on population size.
   double const defense_points =
       unit_attr( e_native_unit_type::brave ).combat;
   Coord const defender_coord =
@@ -285,19 +352,49 @@ CombatEuroAttackDwelling RealCombat::euro_attack_dwelling(
               .tribe =
                   ss_.natives.tribe_for( dwelling.id ).type },
           defender_coord, winner == e_combat_winner::attacker );
+
+  // Tribal alarm. If this is a capital then tribal alarm will be
+  // increased more.
+  int new_tribal_alarm = [&] {
+    auto new_relationship = relationship;
+    increase_tribal_alarm_from_attacking_dwelling(
+        player, dwelling, new_relationship );
+    return new_relationship.tribal_alarm;
+  }();
+
+  // The tribe can decide to burn the mission whether or not the
+  // player wins.
+  bool const missions_burned = [&] {
+    if( player_missionaries_in_tribe( ss_, player, tribe.type )
+            .empty() )
+      return false;
+    return should_burn_mission_on_attack( rand_,
+                                          new_tribal_alarm );
+  }();
+
   DwellingCombatOutcome_t const defender_outcome =
-      dwelling_combat_outcome( winner ==
-                               e_combat_winner::defender );
+      dwelling_combat_outcome(
+          ss_, rand_, player, dwelling,
+          winner == e_combat_winner::defender, missions_burned );
+
+  // If we're burning the capital then reduce alarm to content.
+  if( dwelling.is_capital &&
+      defender_outcome
+          .holds<DwellingCombatOutcome::destruction>() )
+    new_tribal_alarm = max_tribal_alarm_after_burning_capital();
+
   return CombatEuroAttackDwelling{
-      .winner   = winner,
-      .attacker = { .id        = attacker.id(),
-                    .modifiers = {},
-                    .weight    = attack_points,
-                    .outcome   = attacker_outcome },
-      .defender = { .id        = dwelling.id,
-                    .modifiers = {},
-                    .weight    = defense_points,
-                    .outcome   = defender_outcome } };
+      .winner           = winner,
+      .new_tribal_alarm = new_tribal_alarm,
+      .missions_burned  = missions_burned,
+      .attacker         = { .id        = attacker.id(),
+                            .modifiers = {},
+                            .weight    = attack_points,
+                            .outcome   = attacker_outcome },
+      .defender         = { .id        = dwelling.id,
+                            .modifiers = {},
+                            .weight    = defense_points,
+                            .outcome   = defender_outcome } };
 }
 
 } // namespace rn

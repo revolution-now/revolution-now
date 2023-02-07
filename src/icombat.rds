@@ -28,6 +28,9 @@ include "refl/enum-map.hpp"
 # base
 include "base/maybe.hpp"
 
+# C++ standard library
+include "<vector>"
+
 namespace "rn"
 
 enum.e_combat_winner {
@@ -118,7 +121,37 @@ sumtype.NativeUnitCombatOutcome {
 
 sumtype.DwellingCombatOutcome {
   no_change {},
-  defeated {},
+
+  population_decrease {
+    # In the OG, if the dwelling has a mission and you attack it
+    # then you can increase the chances that a new convert will
+    # join your colonies (strange, but that's how it works). The
+    # convert will be produced immediately on the same square as
+    # the attacker.
+    convert_produced 'bool',
+  },
+
+  destruction {
+    # When a dwelling gets destroyed any braves that it owns that
+    # are on the map will be destroyed. In the OG this is either
+    # zero or one, but here we support multiple for future flexi-
+    # bility.
+    braves_to_kill 'std::vector<NativeUnitId>',
+
+    # If there is a missionary in this dwelling then he will be
+    # released upon the destruction.
+    missionary_to_release 'maybe<UnitId>',
+
+    # The destruction of a dwelling may or may not result in a
+    # treasure (depends on Cortes).
+    treasure_amount 'maybe<int>',
+
+    # If this was the last dwelling of a tribe.
+    tribe_destroyed 'maybe<e_tribe>',
+
+    # See corresponding comment above.
+    convert_produced 'bool',
+  },
 }
 
 # ===============================================================
@@ -198,6 +231,21 @@ struct.CombatBraveAttackEuro {
 
 struct.CombatEuroAttackDwelling {
   winner 'e_combat_winner',
+
+  new_tribal_alarm 'int',
+
+  # If this happens then the tribe has decided to burn all of the
+  # player's missions. This typically happens while attacking a
+  # tribe and having their tribal anger increase. Note that this
+  # can happen within the player's turn, potentially in response
+  # to any attack (win or lose), at which point the missions
+  # should all be immediately removed even if we are still in the
+  # middle of the player's turn. This is so that we can't stack
+  # up a lot of armies outside all of a tribe's dwellings (all
+  # with missions) and then repeatedly attack them within one
+  # turn to extract many converts; the missions will be burned
+  # part of the way through, thwarting this.
+  missions_burned 'bool',
 
   attacker 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
   defender 'CombatStats<DwellingId, e_dwelling_combat_modifiers, DwellingCombatOutcome_t>',
