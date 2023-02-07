@@ -125,7 +125,8 @@ wait<maybe<TreasureReceipt>> treasure_enter_colony(
       "transport it for you, ",
       config_nation.nations[player.nation].harbor_city_name );
   switch( receipt.transport_mode ) {
-    case e_treasure_transport_mode::player: SHOULD_NOT_BE_HERE;
+    case e_treasure_transport_mode::player:
+      SHOULD_NOT_BE_HERE;
     case e_treasure_transport_mode::king_with_charge:
       msg +=
           "after which we will make an assessment of the "
@@ -189,7 +190,8 @@ wait<> show_treasure_receipt( TS& ts, Player const& player,
   co_await ts.gui.message_box( msg );
 }
 
-maybe<int> treasure_from_dwelling( SSConst const& ss, TS& ts,
+maybe<int> treasure_from_dwelling( SSConst const&  ss,
+                                   IRand&          rand,
                                    Player const&   player,
                                    Dwelling const& dwelling ) {
   e_tribe const tribe_type =
@@ -203,10 +205,10 @@ maybe<int> treasure_from_dwelling( SSConst const& ss, TS& ts,
 
   bool const should_get_treasure =
       capital || has_cortes ||
-      ts.rand.bernoulli( conf.probability );
+      rand.bernoulli( conf.probability );
   if( !should_get_treasure ) return nothing;
 
-  double amount = ts.rand.between_ints(
+  double amount = rand.between_ints(
       conf.range.min, conf.range.max, e_interval::closed );
 
   if( capital )

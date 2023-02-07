@@ -338,7 +338,7 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
     player.fathers.has[e_founding_father::hernan_cortes] =
         has_cortes;
     maybe<int> const res = treasure_from_dwelling(
-        W.ss(), W.ts(), player, dwelling );
+        W.ss(), W.rand(), player, dwelling );
     W.natives().destroy_dwelling( dwelling.id );
     return res;
   };
