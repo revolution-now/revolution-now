@@ -1,0 +1,31 @@
+# ===============================================================
+# missionary.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-02-06.
+#
+# Description: Rds definitions for the missionary module.
+#
+# ===============================================================
+namespace "rn"
+
+# These are the possible reactions that a tribe can have when es-
+# tablishing a mission. In the OG this doesn't seem to affect
+# anything (e.g., does not prevent the missionary from estab-
+# lishing the mission); it just seems to be for the purpose of
+# conveying the tribe's current alarm level to the player.
+enum.e_missionary_reaction {
+  # "The ... approach the new religion with curiosity." Note that
+  # this was famously mispelled as "curiousity" in the OG.
+  curiosity,
+
+  # "The ... are cautious."
+  cautious,
+
+  # "The ... are offended."
+  offended,
+
+  # "The ... approach the new religion with hostility."
+  hostility,
+}
