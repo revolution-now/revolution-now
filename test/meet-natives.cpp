@@ -115,8 +115,8 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
     W.add_dwelling( { .x = 4, .y = 4 }, e_tribe::inca );
     square      = { .x = 0, .y = 1 };
     Tribe& inca = W.natives().tribe_for( e_tribe::inca );
-    inca.relationship[W.default_nation()].emplace();
-    expected = {};
+    inca.relationship[W.default_nation()].encountered = true;
+    expected                                          = {};
     REQUIRE( f() == expected );
   }
 
@@ -290,7 +290,7 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
   REQUIRE( !W.natives()
                 .tribe_for( tribe )
                 .relationship[nation]
-                .has_value() );
+                .encountered );
 
   meet_tribe = { .is_first      = false,
                  .tribe         = tribe,
@@ -306,7 +306,8 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
     f();
     REQUIRE(
         W.natives().tribe_for( tribe ).relationship[nation] ==
-        TribeRelationship{ .at_war       = false,
+        TribeRelationship{ .encountered  = true,
+                           .at_war       = false,
                            .tribal_alarm = 10 } );
     REQUIRE( !is_land_native_owned( W.ss(), player,
                                     { .x = 1, .y = 0 } ) );
@@ -323,7 +324,8 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
     f();
     REQUIRE(
         W.natives().tribe_for( tribe ).relationship[nation] ==
-        TribeRelationship{ .at_war       = true,
+        TribeRelationship{ .encountered  = true,
+                           .at_war       = true,
                            .tribal_alarm = 10 } );
   }
 
@@ -337,7 +339,8 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
     f();
     REQUIRE(
         W.natives().tribe_for( tribe ).relationship[nation] ==
-        TribeRelationship{ .at_war       = false,
+        TribeRelationship{ .encountered  = true,
+                           .at_war       = false,
                            .tribal_alarm = 10 } );
     REQUIRE( !is_land_native_owned( W.ss(), player,
                                     { .x = 1, .y = 0 } ) );
@@ -368,9 +371,10 @@ TEST_CASE( "[meet-natives] perform_meet_tribe arawak" ) {
   meet_tribe = {
       .is_first = false, .tribe = tribe, .num_dwellings = 3 };
   f();
-  REQUIRE(
-      tribe_obj.relationship[nation] ==
-      TribeRelationship{ .at_war = false, .tribal_alarm = 30 } );
+  REQUIRE( tribe_obj.relationship[nation] ==
+           TribeRelationship{ .encountered  = true,
+                              .at_war       = false,
+                              .tribal_alarm = 30 } );
 }
 
 } // namespace

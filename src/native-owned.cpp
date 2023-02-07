@@ -75,7 +75,7 @@ maybe<DwellingId> is_land_native_owned( SSConst const& ss,
   Dwelling const& dwelling =
       ss.natives.dwelling_for( *dwelling_id );
   Tribe const& tribe = ss.natives.tribe_for( dwelling.id );
-  if( !tribe.relationship[player.nation].has_value() )
+  if( !tribe.relationship[player.nation].encountered )
     return nothing;
   // Note that we don't check the "at war" status here, because
   // the OG keeps the ownership of the land even when at war with
@@ -113,8 +113,8 @@ maybe<LandPrice> price_for_native_owned_land(
   e_native_level const level =
       config_natives.tribes[tribe].level;
   Tribe const& tribe_obj = ss.natives.tribe_for( tribe );
-  UNWRAP_RETURN( relationship,
-                 tribe_obj.relationship[player.nation] );
+  TribeRelationship const& relationship =
+      tribe_obj.relationship[player.nation];
   int const num_colonies =
       ss.colonies.for_nation( player.nation ).size();
   auto&        conf = config_natives.land_prices;
@@ -173,9 +173,9 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
     e_native_land_grab_type context ) {
   UNWRAP_CHECK(
       price, price_for_native_owned_land( ss, player, tile ) );
-  Tribe& tribe = ss.natives.tribe_for( price.owner );
-  UNWRAP_CHECK( relationship,
-                tribe.relationship[player.nation] );
+  Tribe&             tribe = ss.natives.tribe_for( price.owner );
+  TribeRelationship& relationship =
+      tribe.relationship[player.nation];
   if( relationship.at_war ) {
     // In the case of being at war with the tribe, the OG still
     // shows the totem poles, but just allows the player to place

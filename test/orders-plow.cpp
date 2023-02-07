@@ -73,8 +73,9 @@ TEST_CASE( "[orders-plow] native-owned land" ) {
   Coord const tile{ .x = 2, .y = 2 };
   Unit const& pioneer =
       W.add_unit_on_map( e_unit_type::pioneer, tile );
-  TribeRelationship const& relationship =
-      tribe.relationship[W.default_nation()].emplace();
+  TribeRelationship& relationship =
+      tribe.relationship[W.default_nation()];
+  relationship.encountered = true;
   for( int y = 0; y < 3; ++y )
     for( int x = 0; x < 3; ++x )
       W.natives().mark_land_owned( dwelling.id,

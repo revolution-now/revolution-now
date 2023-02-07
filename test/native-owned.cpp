@@ -90,7 +90,7 @@ TEST_CASE(
   REQUIRE( f() == nothing );
   W.natives().mark_land_owned( dwelling.id, loc );
   REQUIRE( f() == dwelling.id );
-  tribe.relationship[player.nation].emplace();
+  tribe.relationship[player.nation].encountered = true;
   REQUIRE( f() == dwelling.id );
   player.fathers.has[e_founding_father::peter_minuit] = true;
   REQUIRE( f() == nothing );
@@ -119,7 +119,7 @@ TEST_CASE(
   REQUIRE( f() == nothing );
   W.natives().mark_land_owned( dwelling.id, loc );
   REQUIRE( f() == dwelling.id );
-  tribe.relationship[player.nation].emplace();
+  tribe.relationship[player.nation].encountered = true;
   REQUIRE( f() == dwelling.id );
   player.fathers.has[e_founding_father::peter_minuit] = true;
   REQUIRE( f() == nothing );
@@ -146,7 +146,7 @@ TEST_CASE( "[native-owned] is_land_native_owned" ) {
   REQUIRE( f() == nothing );
   W.natives().mark_land_owned( dwelling.id, loc );
   REQUIRE( f() == nothing );
-  tribe.relationship[player.nation].emplace();
+  tribe.relationship[player.nation].encountered = true;
   REQUIRE( f() == dwelling.id );
   player.fathers.has[e_founding_father::peter_minuit] = true;
   REQUIRE( f() == nothing );
@@ -184,8 +184,8 @@ TEST_CASE( "[native-owned] native_owned_land_around_square" ) {
   expected = {};
   REQUIRE( f() == expected );
 
-  tribe.relationship[player.nation].emplace();
-  expected = {
+  tribe.relationship[player.nation].encountered = true;
+  expected                                      = {
       { e_direction::nw, dwelling.id },
       { e_direction::n, dwelling.id },
       { e_direction::w, dwelling.id },
@@ -223,7 +223,7 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
 
     W.settings().difficulty = e_difficulty::discoverer;
     Tribe& tribe = W.natives().tribe_for( dwelling.id );
-    maybe<TribeRelationship>& relationship =
+    TribeRelationship& relationship =
         tribe.relationship[player.nation];
 
     // No relationship.
@@ -232,13 +232,13 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     REQUIRE( f() == expected );
 
     // With relationship.
-    relationship.emplace();
+    relationship.encountered = true;
     expected =
         LandPrice{ .owner = e_tribe::tupi, .price = int( 65 ) };
     REQUIRE( f() == expected );
 
     // With relationship at war.
-    relationship->at_war = true;
+    relationship.at_war = true;
     expected =
         LandPrice{ .owner = e_tribe::tupi, .price = int( 65 ) };
     REQUIRE( f() == expected );
@@ -307,12 +307,12 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     so_far += 32.5 * 3;
 
     // Paid already = 1.
-    ++relationship->land_squares_paid_for;
+    ++relationship.land_squares_paid_for;
     expected = LandPrice{ .owner = e_tribe::tupi,
                           .price = int( so_far + 32.5 * 1 ) };
     REQUIRE( f() == expected );
     // Paid already = 3.
-    relationship->land_squares_paid_for += 2;
+    relationship.land_squares_paid_for += 2;
     expected = LandPrice{ .owner = e_tribe::tupi,
                           .price = int( so_far + 32.5 * 3 ) };
     REQUIRE( f() == expected );
@@ -335,27 +335,27 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     REQUIRE( f() == expected );
 
     // Tribal anger = 20.
-    relationship->tribal_alarm = 20;
+    relationship.tribal_alarm = 20;
     expected = LandPrice{ .owner = e_tribe::tupi,
                           .price = int( so_far * 1 ) };
     REQUIRE( f() == expected );
     // Tribal anger = 40.
-    relationship->tribal_alarm = 40;
+    relationship.tribal_alarm = 40;
     expected = LandPrice{ .owner = e_tribe::tupi,
                           .price = int( so_far * 2 ) };
     REQUIRE( f() == expected );
     // Tribal anger = 60.
-    relationship->tribal_alarm = 60;
+    relationship.tribal_alarm = 60;
     expected = LandPrice{ .owner = e_tribe::tupi,
                           .price = int( so_far * 3 ) };
     REQUIRE( f() == expected );
     // Tribal anger = 80.
-    relationship->tribal_alarm = 80;
+    relationship.tribal_alarm = 80;
     expected = LandPrice{ .owner = e_tribe::tupi,
                           .price = int( so_far * 4 ) };
     REQUIRE( f() == expected );
     // Tribal anger = 99.
-    relationship->tribal_alarm = 99;
+    relationship.tribal_alarm = 99;
     expected = LandPrice{ .owner = e_tribe::tupi,
                           .price = int( so_far * 4 ) };
     REQUIRE( f() == expected );
@@ -398,7 +398,7 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
 
     W.settings().difficulty = e_difficulty::discoverer;
     Tribe& tribe = W.natives().tribe_for( dwelling.id );
-    maybe<TribeRelationship>& relationship =
+    TribeRelationship& relationship =
         tribe.relationship[player.nation];
 
     // No relationship.
@@ -407,15 +407,15 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     REQUIRE( f() == expected );
 
     // With relationship.
-    relationship.emplace();
+    relationship.encountered = true;
     expected = LandPrice{ .owner = e_tribe::iroquois,
                           .price = int( 65 + 32.5 ) };
     REQUIRE( f() == expected );
 
     // With relationship at war.
-    relationship->at_war = true;
-    expected             = LandPrice{ .owner = e_tribe::iroquois,
-                                      .price = int( 65 + 32.5 ) };
+    relationship.at_war = true;
+    expected            = LandPrice{ .owner = e_tribe::iroquois,
+                                     .price = int( 65 + 32.5 ) };
     REQUIRE( f() == expected );
 
     tile     = { .x = 4, .y = 2 };
@@ -482,12 +482,12 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     so_far += 32.5 * 3;
 
     // Paid already = 1.
-    ++relationship->land_squares_paid_for;
+    ++relationship.land_squares_paid_for;
     expected = LandPrice{ .owner = e_tribe::iroquois,
                           .price = int( so_far + 32.5 * 1 ) };
     REQUIRE( f() == expected );
     // Paid already = 3.
-    relationship->land_squares_paid_for += 2;
+    relationship.land_squares_paid_for += 2;
     expected = LandPrice{ .owner = e_tribe::iroquois,
                           .price = int( so_far + 32.5 * 3 ) };
     REQUIRE( f() == expected );
@@ -510,27 +510,27 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     REQUIRE( f() == expected );
 
     // Tribal anger = 20.
-    relationship->tribal_alarm = 20;
+    relationship.tribal_alarm = 20;
     expected = LandPrice{ .owner = e_tribe::iroquois,
                           .price = int( so_far * 1 ) };
     REQUIRE( f() == expected );
     // Tribal anger = 40.
-    relationship->tribal_alarm = 40;
+    relationship.tribal_alarm = 40;
     expected = LandPrice{ .owner = e_tribe::iroquois,
                           .price = int( so_far * 2 ) };
     REQUIRE( f() == expected );
     // Tribal anger = 60.
-    relationship->tribal_alarm = 60;
+    relationship.tribal_alarm = 60;
     expected = LandPrice{ .owner = e_tribe::iroquois,
                           .price = int( so_far * 3 ) };
     REQUIRE( f() == expected );
     // Tribal anger = 80.
-    relationship->tribal_alarm = 80;
+    relationship.tribal_alarm = 80;
     expected = LandPrice{ .owner = e_tribe::iroquois,
                           .price = int( so_far * 4 ) };
     REQUIRE( f() == expected );
     // Tribal anger = 99.
-    relationship->tribal_alarm = 99;
+    relationship.tribal_alarm = 99;
     expected = LandPrice{ .owner = e_tribe::iroquois,
                           .price = int( so_far * 4 ) };
     REQUIRE( f() == expected );
@@ -573,24 +573,25 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
 
     W.settings().difficulty = e_difficulty::discoverer;
     Tribe& tribe = W.natives().tribe_for( dwelling.id );
-    maybe<TribeRelationship>& relationship =
+    TribeRelationship& relationship =
         tribe.relationship[player.nation];
 
     // No relationship.
-    tile     = { .x = 2, .y = 2 };
-    expected = nothing;
+    tile                     = { .x = 2, .y = 2 };
+    relationship.encountered = false;
+    expected                 = nothing;
     REQUIRE( f() == expected );
 
     // With relationship.
-    relationship.emplace();
+    relationship.encountered = true;
     expected = LandPrice{ .owner = e_tribe::aztec,
                           .price = int( 65 + 32.5 * 2 ) };
     REQUIRE( f() == expected );
 
     // With relationship at war.
-    relationship->at_war = true;
-    expected             = LandPrice{ .owner = e_tribe::aztec,
-                                      .price = int( 65 + 32.5 * 2 ) };
+    relationship.at_war = true;
+    expected            = LandPrice{ .owner = e_tribe::aztec,
+                                     .price = int( 65 + 32.5 * 2 ) };
     REQUIRE( f() == expected );
 
     tile     = { .x = 4, .y = 2 };
@@ -659,12 +660,12 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     so_far += 32.5 * 3;
 
     // Paid already = 1.
-    ++relationship->land_squares_paid_for;
+    ++relationship.land_squares_paid_for;
     expected = LandPrice{ .owner = e_tribe::aztec,
                           .price = int( so_far + 32.5 * 1 ) };
     REQUIRE( f() == expected );
     // Paid already = 3.
-    relationship->land_squares_paid_for += 2;
+    relationship.land_squares_paid_for += 2;
     expected = LandPrice{ .owner = e_tribe::aztec,
                           .price = int( so_far + 32.5 * 3 ) };
     REQUIRE( f() == expected );
@@ -687,27 +688,27 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     REQUIRE( f() == expected );
 
     // Tribal anger = 20.
-    relationship->tribal_alarm = 20;
+    relationship.tribal_alarm = 20;
     expected = LandPrice{ .owner = e_tribe::aztec,
                           .price = int( so_far * 1 ) };
     REQUIRE( f() == expected );
     // Tribal anger = 40.
-    relationship->tribal_alarm = 40;
+    relationship.tribal_alarm = 40;
     expected = LandPrice{ .owner = e_tribe::aztec,
                           .price = int( so_far * 2 ) };
     REQUIRE( f() == expected );
     // Tribal anger = 60.
-    relationship->tribal_alarm = 60;
+    relationship.tribal_alarm = 60;
     expected = LandPrice{ .owner = e_tribe::aztec,
                           .price = int( so_far * 3 ) };
     REQUIRE( f() == expected );
     // Tribal anger = 80.
-    relationship->tribal_alarm = 80;
+    relationship.tribal_alarm = 80;
     expected = LandPrice{ .owner = e_tribe::aztec,
                           .price = int( so_far * 4 ) };
     REQUIRE( f() == expected );
     // Tribal anger = 99.
-    relationship->tribal_alarm = 99;
+    relationship.tribal_alarm = 99;
     expected = LandPrice{ .owner = e_tribe::aztec,
                           .price = int( so_far * 4 ) };
     REQUIRE( f() == expected );
@@ -750,7 +751,7 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
 
     W.settings().difficulty = e_difficulty::discoverer;
     Tribe& tribe = W.natives().tribe_for( dwelling.id );
-    maybe<TribeRelationship>& relationship =
+    TribeRelationship& relationship =
         tribe.relationship[player.nation];
 
     // No relationship.
@@ -759,15 +760,15 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     REQUIRE( f() == expected );
 
     // With relationship.
-    relationship.emplace();
-    expected = LandPrice{ .owner = e_tribe::inca,
-                          .price = int( 65 + 32.5 * 3 ) };
+    relationship.encountered = true;
+    expected                 = LandPrice{ .owner = e_tribe::inca,
+                                          .price = int( 65 + 32.5 * 3 ) };
     REQUIRE( f() == expected );
 
     // With relationship at war.
-    relationship->at_war = true;
-    expected             = LandPrice{ .owner = e_tribe::inca,
-                                      .price = int( 65 + 32.5 * 3 ) };
+    relationship.at_war = true;
+    expected            = LandPrice{ .owner = e_tribe::inca,
+                                     .price = int( 65 + 32.5 * 3 ) };
     REQUIRE( f() == expected );
 
     tile     = { .x = 4, .y = 2 };
@@ -836,12 +837,12 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     so_far += 32.5 * 3;
 
     // Paid already = 1.
-    ++relationship->land_squares_paid_for;
+    ++relationship.land_squares_paid_for;
     expected = LandPrice{ .owner = e_tribe::inca,
                           .price = int( so_far + 32.5 * 1 ) };
     REQUIRE( f() == expected );
     // Paid already = 3.
-    relationship->land_squares_paid_for += 2;
+    relationship.land_squares_paid_for += 2;
     expected = LandPrice{ .owner = e_tribe::inca,
                           .price = int( so_far + 32.5 * 3 ) };
     REQUIRE( f() == expected );
@@ -864,27 +865,27 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     REQUIRE( f() == expected );
 
     // Tribal anger = 20.
-    relationship->tribal_alarm = 20;
+    relationship.tribal_alarm = 20;
     expected = LandPrice{ .owner = e_tribe::inca,
                           .price = int( so_far * 1 ) };
     REQUIRE( f() == expected );
     // Tribal anger = 40.
-    relationship->tribal_alarm = 40;
+    relationship.tribal_alarm = 40;
     expected = LandPrice{ .owner = e_tribe::inca,
                           .price = int( so_far * 2 ) };
     REQUIRE( f() == expected );
     // Tribal anger = 60.
-    relationship->tribal_alarm = 60;
+    relationship.tribal_alarm = 60;
     expected = LandPrice{ .owner = e_tribe::inca,
                           .price = int( so_far * 3 ) };
     REQUIRE( f() == expected );
     // Tribal anger = 80.
-    relationship->tribal_alarm = 80;
+    relationship.tribal_alarm = 80;
     expected = LandPrice{ .owner = e_tribe::inca,
                           .price = int( so_far * 4 ) };
     REQUIRE( f() == expected );
     // Tribal anger = 99.
-    relationship->tribal_alarm = 99;
+    relationship.tribal_alarm = 99;
     expected = LandPrice{ .owner = e_tribe::inca,
                           .price = int( so_far * 4 ) };
     REQUIRE( f() == expected );
@@ -922,10 +923,10 @@ TEST_CASE(
       W.add_dwelling( kDwellingLoc, e_tribe::cherokee );
   W.settings().difficulty = e_difficulty::conquistador;
   Tribe& tribe            = W.natives().tribe_for( dwelling.id );
-  maybe<TribeRelationship>& relationship =
+  TribeRelationship& relationship =
       tribe.relationship[player.nation];
-  relationship.emplace();
-  player.money = 1000;
+  relationship.encountered = true;
+  player.money             = 1000;
 
   // Mark some tiles as owned.
   for( int y = 0; y < 7; ++y )
@@ -943,16 +944,16 @@ TEST_CASE(
   };
 
   SECTION( "at war" ) {
-    type                 = e_native_land_grab_type::in_colony;
-    tile                 = { .x = 2, .y = 2 };
-    relationship->at_war = true;
+    type                = e_native_land_grab_type::in_colony;
+    tile                = { .x = 2, .y = 2 };
+    relationship.at_war = true;
     REQUIRE( f() == true );
     REQUIRE( player.money == 1000 );
-    REQUIRE( relationship->land_squares_paid_for == 0 );
+    REQUIRE( relationship.land_squares_paid_for == 0 );
     REQUIRE_FALSE(
         is_land_native_owned( W.ss(), W.default_player(), tile )
             .has_value() );
-    REQUIRE( relationship->tribal_alarm == 10 );
+    REQUIRE( relationship.tribal_alarm == 10 );
   }
 
   SECTION( "in colony / escape" ) {
@@ -962,10 +963,10 @@ TEST_CASE(
         .returns<maybe<string>>( nothing );
     REQUIRE( f() == false );
     REQUIRE( player.money == 1000 );
-    REQUIRE( relationship->land_squares_paid_for == 0 );
+    REQUIRE( relationship.land_squares_paid_for == 0 );
     REQUIRE( is_land_native_owned( W.ss(), W.default_player(),
                                    tile ) );
-    REQUIRE( relationship->tribal_alarm == 0 );
+    REQUIRE( relationship.tribal_alarm == 0 );
   }
 
   SECTION( "in colony / cancel" ) {
@@ -993,10 +994,10 @@ TEST_CASE(
         .returns<maybe<string>>( "cancel" );
     REQUIRE( f() == false );
     REQUIRE( player.money == 1000 );
-    REQUIRE( relationship->land_squares_paid_for == 0 );
+    REQUIRE( relationship.land_squares_paid_for == 0 );
     REQUIRE( is_land_native_owned( W.ss(), W.default_player(),
                                    tile ) );
-    REQUIRE( relationship->tribal_alarm == 0 );
+    REQUIRE( relationship.tribal_alarm == 0 );
   }
 
   SECTION( "in colony / take / not enough money" ) {
@@ -1025,21 +1026,21 @@ TEST_CASE(
         .returns<maybe<string>>( "take" );
     REQUIRE( f() == true );
     REQUIRE( player.money == 0 );
-    REQUIRE( relationship->land_squares_paid_for == 0 );
+    REQUIRE( relationship.land_squares_paid_for == 0 );
     REQUIRE_FALSE( is_land_native_owned(
         W.ss(), W.default_player(), tile ) );
-    REQUIRE( relationship->tribal_alarm == 10 );
+    REQUIRE( relationship.tribal_alarm == 10 );
 
     tile = { .x = 1, .y = 2 };
     EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
         .returns<maybe<string>>( "take" );
     REQUIRE( f() == true );
     REQUIRE( player.money == 0 );
-    REQUIRE( relationship->land_squares_paid_for == 0 );
+    REQUIRE( relationship.land_squares_paid_for == 0 );
     REQUIRE_FALSE(
         is_land_native_owned( W.ss(), W.default_player(), tile )
             .has_value() );
-    REQUIRE( relationship->tribal_alarm == 10 + 6 );
+    REQUIRE( relationship.tribal_alarm == 10 + 6 );
   }
 
   SECTION( "in colony / pay" ) {
@@ -1069,10 +1070,10 @@ TEST_CASE(
         .returns<maybe<string>>( "pay" );
     REQUIRE( f() == true );
     REQUIRE( player.money == 1 );
-    REQUIRE( relationship->land_squares_paid_for == 1 );
+    REQUIRE( relationship.land_squares_paid_for == 1 );
     REQUIRE_FALSE( is_land_native_owned(
         W.ss(), W.default_player(), tile ) );
-    REQUIRE( relationship->tribal_alarm == 0 );
+    REQUIRE( relationship.tribal_alarm == 0 );
 
     tile = { .x = 1, .y = 2 };
     // Tile will cost 234.
@@ -1081,10 +1082,10 @@ TEST_CASE(
         .returns<maybe<string>>( "pay" );
     REQUIRE( f() == true );
     REQUIRE( player.money == 1 );
-    REQUIRE( relationship->land_squares_paid_for == 2 );
+    REQUIRE( relationship.land_squares_paid_for == 2 );
     REQUIRE_FALSE( is_land_native_owned(
         W.ss(), W.default_player(), tile ) );
-    REQUIRE( relationship->tribal_alarm == 0 );
+    REQUIRE( relationship.tribal_alarm == 0 );
   }
 
   SECTION( "build road / cancel" ) {
@@ -1094,10 +1095,10 @@ TEST_CASE(
         .returns<maybe<string>>( "cancel" );
     REQUIRE( f() == false );
     REQUIRE( player.money == 1000 );
-    REQUIRE( relationship->land_squares_paid_for == 0 );
+    REQUIRE( relationship.land_squares_paid_for == 0 );
     REQUIRE( is_land_native_owned( W.ss(), W.default_player(),
                                    tile ) );
-    REQUIRE( relationship->tribal_alarm == 0 );
+    REQUIRE( relationship.tribal_alarm == 0 );
   }
 
   SECTION( "irrigate / cancel" ) {
@@ -1107,10 +1108,10 @@ TEST_CASE(
         .returns<maybe<string>>( "cancel" );
     REQUIRE( f() == false );
     REQUIRE( player.money == 1000 );
-    REQUIRE( relationship->land_squares_paid_for == 0 );
+    REQUIRE( relationship.land_squares_paid_for == 0 );
     REQUIRE( is_land_native_owned( W.ss(), W.default_player(),
                                    tile ) );
-    REQUIRE( relationship->tribal_alarm == 0 );
+    REQUIRE( relationship.tribal_alarm == 0 );
   }
 
   SECTION( "clear_forest / cancel" ) {
@@ -1120,10 +1121,10 @@ TEST_CASE(
         .returns<maybe<string>>( "cancel" );
     REQUIRE( f() == false );
     REQUIRE( player.money == 1000 );
-    REQUIRE( relationship->land_squares_paid_for == 0 );
+    REQUIRE( relationship.land_squares_paid_for == 0 );
     REQUIRE( is_land_native_owned( W.ss(), W.default_player(),
                                    tile ) );
-    REQUIRE( relationship->tribal_alarm == 0 );
+    REQUIRE( relationship.tribal_alarm == 0 );
   }
 }
 

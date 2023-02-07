@@ -783,9 +783,8 @@ unique_ptr<OrdersHandler> attack_native_unit_handler(
 wait<bool> AttackNativeUnitHandler::confirm() {
   if( !co_await Base::confirm() ) co_return false;
 
-  UNWRAP_CHECK(
-      relationship,
-      defender_tribe_.relationship[attacker_.nation()] );
+  TribeRelationship& relationship =
+      defender_tribe_.relationship[attacker_.nation()];
   if( !relationship.nation_has_attacked_tribe ) {
     YesNoConfig const config{
         .msg = fmt::format(
@@ -816,9 +815,8 @@ wait<> AttackNativeUnitHandler::perform() {
   co_await Base::perform();
 
   // The tribal alarm goes up regardless of the battle outcome.
-  UNWRAP_CHECK(
-      relationship,
-      defender_tribe_.relationship[attacker_.nation()] );
+  TribeRelationship& relationship =
+      defender_tribe_.relationship[attacker_.nation()];
   increase_tribal_alarm_from_attacking_brave(
       attacking_player_,
       ss_.natives.dwelling_for(
@@ -887,12 +885,6 @@ unique_ptr<OrdersHandler> attack_dwelling_handler(
       planes, ss, ts, player, attacker_id, dwelling_id );
 }
 
-static TribeRelationship& relationship_or_die(
-    Tribe& tribe, e_nation nation ) {
-  UNWRAP_CHECK( relationship, tribe.relationship[nation] );
-  return relationship;
-}
-
 AttackDwellingHandler::AttackDwellingHandler(
     Planes& planes, SS& ss, TS& ts, Player& player,
     UnitId attacker_id, DwellingId dwelling_id )
@@ -902,8 +894,7 @@ AttackDwellingHandler::AttackDwellingHandler(
     dwelling_id_( dwelling_id ),
     dwelling_( ss.natives.dwelling_for( dwelling_id ) ),
     tribe_( ss.natives.tribe_for( dwelling_.id ) ),
-    relationship_(
-        relationship_or_die( tribe_, player.nation ) ) {}
+    relationship_( tribe_.relationship[player.nation] ) {}
 
 // Returns true if the move is allowed.
 wait<bool> AttackDwellingHandler::confirm() {

@@ -1049,8 +1049,8 @@ struct NativeDwellingHandler : public OrdersHandler {
     // that logic here.
     if( outcome_.holds<
             EnterDwellingOutcome::attack_brave_on_dwelling>() ) {
-      UNWRAP_CHECK( relationship,
-                    tribe_.relationship[unit_.nation()] );
+      TribeRelationship& relationship =
+          tribe_.relationship[unit_.nation()];
       // The player has already confirmed that they want to at-
       // tack, so no need to re-ask them.
       relationship.nation_has_attacked_tribe = true;
@@ -1064,8 +1064,8 @@ struct NativeDwellingHandler : public OrdersHandler {
 
     if( outcome_
             .holds<EnterDwellingOutcome::attack_village>() ) {
-      UNWRAP_CHECK( relationship,
-                    tribe_.relationship[unit_.nation()] );
+      TribeRelationship& relationship =
+          tribe_.relationship[unit_.nation()];
       // The player has already confirmed that they want to at-
       // tack.
       relationship.nation_has_attacked_tribe = true;

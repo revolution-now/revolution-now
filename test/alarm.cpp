@@ -82,35 +82,35 @@ TEST_CASE( "[alarm] effective_dwelling_alarm" ) {
   REQUIRE( f() == 0 );
 
   // Has contact with no tribal alarm.
-  tribe.relationship[nation].emplace();
+  tribe.relationship[nation].encountered = true;
   REQUIRE( f() == 30 );
 
   // Has contact with tribal alarm.
-  tribe.relationship[nation]->tribal_alarm = 40;
+  tribe.relationship[nation].tribal_alarm = 40;
   REQUIRE( f() == 58 );
 
   // Has contact with tribal alarm but no dwelling alarm.
-  tribe.relationship[nation]->tribal_alarm          = 40;
+  tribe.relationship[nation].tribal_alarm           = 40;
   dwelling.relationship[nation].dwelling_only_alarm = 0;
   REQUIRE( f() == 40 );
 
   // Rounding.
-  tribe.relationship[nation]->tribal_alarm          = 33;
+  tribe.relationship[nation].tribal_alarm           = 33;
   dwelling.relationship[nation].dwelling_only_alarm = 34;
   REQUIRE( f() == 56 );
 
   // Both zero.
-  tribe.relationship[nation]->tribal_alarm          = 0;
+  tribe.relationship[nation].tribal_alarm           = 0;
   dwelling.relationship[nation].dwelling_only_alarm = 0;
   REQUIRE( f() == 0 );
 
   // One max.
-  tribe.relationship[nation]->tribal_alarm          = 99;
+  tribe.relationship[nation].tribal_alarm           = 99;
   dwelling.relationship[nation].dwelling_only_alarm = 0;
   REQUIRE( f() == 99 );
 
   // Both max.
-  tribe.relationship[nation]->tribal_alarm          = 99;
+  tribe.relationship[nation].tribal_alarm           = 99;
   dwelling.relationship[nation].dwelling_only_alarm = 99;
   REQUIRE( f() == 99 );
 }
@@ -135,49 +135,49 @@ TEST_CASE( "[alarm] reaction_for_dwelling" ) {
   REQUIRE( f() == e_enter_dwelling_reaction::wave_happily );
 
   // Has contact with no tribal alarm.
-  tribe.relationship[nation].emplace();
+  tribe.relationship[nation].encountered = true;
   REQUIRE( f() ==
            e_enter_dwelling_reaction::wave_happily_with_scalps );
 
   // At war.
-  tribe.relationship[nation]->at_war = true;
+  tribe.relationship[nation].at_war = true;
   REQUIRE( f() ==
            e_enter_dwelling_reaction::scalps_and_war_drums );
-  tribe.relationship[nation]->at_war = false;
+  tribe.relationship[nation].at_war = false;
 
   // Has contact with tribal alarm.
-  tribe.relationship[nation]->tribal_alarm = 40;
+  tribe.relationship[nation].tribal_alarm = 40;
   REQUIRE( f() == e_enter_dwelling_reaction::frowning_archers );
 
   // Has contact with tribal alarm but no dwelling alarm.
-  tribe.relationship[nation]->tribal_alarm          = 40;
+  tribe.relationship[nation].tribal_alarm           = 40;
   dwelling.relationship[nation].dwelling_only_alarm = 0;
   REQUIRE( f() == e_enter_dwelling_reaction::frowning_archers );
 
   // Rounding.
-  tribe.relationship[nation]->tribal_alarm          = 33;
+  tribe.relationship[nation].tribal_alarm           = 33;
   dwelling.relationship[nation].dwelling_only_alarm = 34;
   REQUIRE( f() == e_enter_dwelling_reaction::frowning_archers );
 
   // Both zero.
-  tribe.relationship[nation]->tribal_alarm          = 0;
+  tribe.relationship[nation].tribal_alarm           = 0;
   dwelling.relationship[nation].dwelling_only_alarm = 0;
   REQUIRE( f() == e_enter_dwelling_reaction::wave_happily );
 
   // One max.
-  tribe.relationship[nation]->tribal_alarm          = 99;
+  tribe.relationship[nation].tribal_alarm           = 99;
   dwelling.relationship[nation].dwelling_only_alarm = 0;
   REQUIRE( f() ==
            e_enter_dwelling_reaction::scalps_and_war_drums );
 
   // Both max.
-  tribe.relationship[nation]->tribal_alarm          = 99;
+  tribe.relationship[nation].tribal_alarm           = 99;
   dwelling.relationship[nation].dwelling_only_alarm = 99;
   REQUIRE( f() ==
            e_enter_dwelling_reaction::scalps_and_war_drums );
 
   // Both max.
-  tribe.relationship[nation]->tribal_alarm          = 50;
+  tribe.relationship[nation].tribal_alarm           = 50;
   dwelling.relationship[nation].dwelling_only_alarm = 50;
   REQUIRE( f() == e_enter_dwelling_reaction::wary_warriors );
 }
@@ -188,7 +188,8 @@ TEST_CASE( "[alarm] increase_tribal_alarm_from_land_grab" ) {
       W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::inca );
   Tribe& tribe = W.natives().tribe_for( e_tribe::inca );
   TribeRelationship& relationship =
-      tribe.relationship[W.default_nation()].emplace();
+      tribe.relationship[W.default_nation()];
+  relationship.encountered = true;
   Coord tile;
 
   auto f = [&] {
@@ -371,7 +372,8 @@ TEST_CASE(
 
   Tribe&             tribe = W.add_tribe( e_tribe::inca );
   TribeRelationship& relationship =
-      tribe.relationship[W.default_nation()].emplace();
+      tribe.relationship[W.default_nation()];
+  relationship.encountered = true;
   Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, tribe.type );
 
@@ -426,7 +428,8 @@ TEST_CASE(
 
   Tribe&             tribe = W.add_tribe( e_tribe::inca );
   TribeRelationship& relationship =
-      tribe.relationship[W.default_nation()].emplace();
+      tribe.relationship[W.default_nation()];
+  relationship.encountered = true;
   Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, tribe.type );
 

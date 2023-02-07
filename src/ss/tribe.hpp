@@ -19,7 +19,7 @@
 namespace rn {
 
 using TribeRelationshipMap =
-    refl::enum_map<e_nation, base::maybe<TribeRelationship>>;
+    refl::enum_map<e_nation, TribeRelationship>;
 
 } // namespace rn
 

@@ -125,7 +125,7 @@ vector<MeetTribe> check_meet_tribes( SSConst const& ss,
     if( met.contains( native->tribe ) ) continue;
     if( ss.natives.tribe_for( native->tribe )
             .relationship[player.nation]
-            .has_value() )
+            .encountered )
       continue;
     // We're meeting a new tribe.
     met.insert( native->tribe );
@@ -142,7 +142,7 @@ vector<MeetTribe> check_meet_tribes( SSConst const& ss,
   for( e_tribe tribe : refl::enum_values<e_tribe> ) {
     if( !ss.natives.tribe_exists( tribe ) ) continue;
     Tribe const& tribe_obj = ss.natives.tribe_for( tribe );
-    if( tribe_obj.relationship[player.nation].has_value() )
+    if( tribe_obj.relationship[player.nation].encountered )
       // We've already met at least one tribe, so we're done.
       return res;
   }
@@ -192,7 +192,8 @@ wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
           tribe_conf.name_singular );
       co_return e_declare_war_on_natives::yes;
     }
-    case ui::e_confirm::yes: break;
+    case ui::e_confirm::yes:
+      break;
   }
 
   co_await ts.gui.message_box(
@@ -213,8 +214,9 @@ void perform_meet_tribe( SS& ss, Player const& player,
   Tribe& tribe = ss.natives.tribe_for( meet_tribe.tribe );
 
   // Create the relationship object.
-  CHECK( !tribe.relationship[player.nation].has_value() );
+  CHECK( !tribe.relationship[player.nation].encountered );
   tribe.relationship[player.nation] = TribeRelationship{
+      .encountered = true,
       .at_war = ( declare_war == e_declare_war_on_natives::yes ),
       .tribal_alarm =
           config_natives.alarm

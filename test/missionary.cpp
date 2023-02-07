@@ -438,7 +438,8 @@ TEST_CASE( "[missionary] tribe_reaction_to_missionary" ) {
   World              W;
   Tribe&             tribe = W.add_tribe( e_tribe::inca );
   TribeRelationship& relationship =
-      tribe.relationship[W.default_nation()].emplace();
+      tribe.relationship[W.default_nation()];
+  relationship.encountered = true;
 
   auto f = [&] {
     return tribe_reaction_to_missionary( W.default_player(),

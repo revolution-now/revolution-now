@@ -15,7 +15,6 @@
 
 // luapp
 #include "luapp/enum.hpp"
-#include "luapp/ext-base.hpp"
 #include "luapp/register.hpp"
 
 // refl
@@ -53,10 +52,7 @@ LUA_STARTUP( lua::state& st ) {
 
     u[lua::metatable_key]["__index"] =
         [&]( U& obj, e_nation nation ) -> TribeRelationship& {
-      LUA_CHECK( st, obj[nation].has_value(),
-                 "this tribe has not yet encountered the {}.",
-                 nation );
-      return *obj[nation];
+      return obj[nation];
     };
   }();
 

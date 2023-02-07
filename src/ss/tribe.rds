@@ -15,13 +15,14 @@ include "ss/native-enums.rds.hpp"
 # refl
 include "refl/enum-map.hpp"
 
-# base
-include "base/maybe.hpp"
-
 namespace "rn"
 
 # Describes a tribe's relationship with a European nation.
 struct.TribeRelationship {
+  # Have we yet made our initial encounter with this tribe. The
+  # following fields are irrelevant if so.
+  encountered 'bool',
+
   at_war 'bool',
 
   # According to the manual there is both tribe-level anger and
@@ -69,7 +70,7 @@ struct.Tribe {
   horses 'int',
 
   # Describes a tribe's relationship with a European nation. If a
-  # value is nothing that means that the initial encounter has
-  # not yet happened.
-  relationship 'refl::enum_map<e_nation, base::maybe<TribeRelationship>>',
+  # the initial encounter has not yet happened then it will as-
+  # sume its default value.
+  relationship 'refl::enum_map<e_nation, TribeRelationship>',
 }

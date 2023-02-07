@@ -101,7 +101,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
       e_unit_type::jesuit_missionary, e_nation::english );
   Unit const& foreign_missionary = W.add_free_unit(
       e_unit_type::jesuit_missionary, e_nation::french );
-  maybe<TribeRelationship>& relationship =
+  TribeRelationship& relationship =
       tribe.relationship[W.default_nation()];
   e_unit_type                unit_type = {};
   EnterNativeDwellingOptions expected;
@@ -116,8 +116,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.dwelling_id = dwelling.id;
 
   // Free colonist, no contact.
-  relationship      = nothing;
-  unit_type         = e_unit_type::free_colonist;
+  relationship.encountered = false;
+  unit_type                = e_unit_type::free_colonist;
   expected.reaction = e_enter_dwelling_reaction::wave_happily;
   expected.options  = {
       e_enter_dwelling_option::cancel,
@@ -125,9 +125,9 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   REQUIRE( f() == expected );
 
   // Free colonist, with contact, no war.
-  relationship.emplace();
-  relationship->at_war = false;
-  unit_type            = e_unit_type::free_colonist;
+  relationship.encountered = true;
+  relationship.at_war      = false;
+  unit_type                = e_unit_type::free_colonist;
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
@@ -137,8 +137,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   REQUIRE( f() == expected );
 
   // Free colonist, with contact, with war.
-  unit_type            = e_unit_type::free_colonist;
-  relationship->at_war = true;
+  unit_type           = e_unit_type::free_colonist;
+  relationship.at_war = true;
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.options = {
@@ -147,9 +147,9 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   REQUIRE( f() == expected );
 
   // Petty Criminal, with contact, no war.
-  relationship.emplace();
-  relationship->at_war = false;
-  unit_type            = e_unit_type::petty_criminal;
+  relationship.encountered = true;
+  relationship.at_war      = false;
+  unit_type                = e_unit_type::petty_criminal;
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
@@ -159,8 +159,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   REQUIRE( f() == expected );
 
   // Petty Criminal, with contact, with war.
-  unit_type            = e_unit_type::petty_criminal;
-  relationship->at_war = true;
+  unit_type           = e_unit_type::petty_criminal;
+  relationship.at_war = true;
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.options = {
@@ -169,9 +169,9 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   REQUIRE( f() == expected );
 
   // Expert Farmer, with contact, no war.
-  relationship.emplace();
-  relationship->at_war = false;
-  unit_type            = e_unit_type::expert_farmer;
+  relationship.encountered = true;
+  relationship.at_war      = false;
+  unit_type                = e_unit_type::expert_farmer;
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
@@ -181,8 +181,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   REQUIRE( f() == expected );
 
   // Expert Farmer, with contact, with war.
-  unit_type            = e_unit_type::expert_farmer;
-  relationship->at_war = true;
+  unit_type           = e_unit_type::expert_farmer;
+  relationship.at_war = true;
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.options = {
@@ -191,8 +191,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   REQUIRE( f() == expected );
 
   // Scout, with contact, no war.
-  relationship->at_war = false;
-  unit_type            = e_unit_type::scout;
+  relationship.at_war = false;
+  unit_type           = e_unit_type::scout;
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
@@ -204,8 +204,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   REQUIRE( f() == expected );
 
   // Seasoned scout, with contact, with war.
-  relationship->at_war = true;
-  unit_type            = e_unit_type::seasoned_scout;
+  relationship.at_war = true;
+  unit_type           = e_unit_type::seasoned_scout;
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.options = {
@@ -216,8 +216,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   REQUIRE( f() == expected );
 
   // Military, with contact, no war.
-  relationship->at_war = false;
-  unit_type            = e_unit_type::dragoon;
+  relationship.at_war = false;
+  unit_type           = e_unit_type::dragoon;
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
@@ -228,8 +228,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   REQUIRE( f() == expected );
 
   // Military, with contact, with war.
-  relationship->at_war = true;
-  unit_type            = e_unit_type::artillery;
+  relationship.at_war = true;
+  unit_type           = e_unit_type::artillery;
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.options = {
@@ -239,8 +239,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   REQUIRE( f() == expected );
 
   // Missionary, with contact, no war, with friendly mission.
-  relationship->at_war = false;
-  unit_type            = e_unit_type::missionary;
+  relationship.at_war = false;
+  unit_type           = e_unit_type::missionary;
   // This unit doesn't exist but that should be ok for the pur-
   // poses of this test.
   W.units().change_to_dwelling( missionary.id(), dwelling.id );
@@ -253,8 +253,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   REQUIRE( f() == expected );
 
   // Missionary, with contact, no war, no mission.
-  relationship->at_war = false;
-  unit_type            = e_unit_type::missionary;
+  relationship.at_war = false;
+  unit_type           = e_unit_type::missionary;
   W.units().disown_unit( missionary.id() );
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
@@ -266,8 +266,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   REQUIRE( f() == expected );
 
   // Missionary, with contact, no war, foreign mission.
-  relationship->at_war = false;
-  unit_type            = e_unit_type::missionary;
+  relationship.at_war = false;
+  unit_type           = e_unit_type::missionary;
   W.units().disown_unit( missionary.id() );
   W.units().change_to_dwelling( foreign_missionary.id(),
                                 dwelling.id );
@@ -282,8 +282,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   W.units().disown_unit( foreign_missionary.id() );
 
   // Missionary, with contact, with war, no mission.
-  relationship->at_war = true;
-  unit_type            = e_unit_type::missionary;
+  relationship.at_war = true;
+  unit_type           = e_unit_type::missionary;
   W.units().disown_unit( missionary.id() );
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
@@ -293,8 +293,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   REQUIRE( f() == expected );
 
   // Trade, with contact, no war.
-  relationship->at_war = false;
-  unit_type            = e_unit_type::wagon_train;
+  relationship.at_war = false;
+  unit_type           = e_unit_type::wagon_train;
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
@@ -304,8 +304,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   REQUIRE( f() == expected );
 
   // Trade, with contact, with war.
-  relationship->at_war = true;
-  unit_type            = e_unit_type::merchantman;
+  relationship.at_war = true;
+  unit_type           = e_unit_type::merchantman;
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.options = {
@@ -315,8 +315,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   REQUIRE( f() == expected );
 
   // No category, with contact, no war.
-  relationship->at_war = false;
-  unit_type            = e_unit_type::treasure;
+  relationship.at_war = false;
+  unit_type           = e_unit_type::treasure;
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
@@ -378,9 +378,9 @@ TEST_CASE( "[enter-dwelling] compute_live_among_the_natives" ) {
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::tupi );
   dwelling.teaches = e_native_skill::ore_mining;
   Tribe& tribe     = W.natives().tribe_for( e_tribe::tupi );
-  tribe.relationship[W.default_nation()].emplace();
+  tribe.relationship[W.default_nation()].encountered = true;
   TribeRelationship& relationship =
-      *tribe.relationship[W.default_nation()];
+      tribe.relationship[W.default_nation()];
   LiveAmongTheNatives_t expected;
   UnitComposition       comp;
 
@@ -537,7 +537,7 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
       W.add_dwelling( { .x = 4, .y = 4 }, e_tribe::tupi );
   W.add_tribe( e_tribe::tupi )
       .relationship[W.default_nation()]
-      .emplace();
+      .encountered = true;
   DwellingRelationship& relationship =
       dwelling_tupi.relationship[W.default_nation()];
   Unit& scout_petty = W.add_unit_on_map(
@@ -665,9 +665,9 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   // outcome: gift + seasoned + civilized.
   W.add_tribe( e_tribe::inca )
       .relationship[W.default_nation()]
-      .emplace();
-  dwelling = &dwelling_inca;
-  p_unit   = &scout_seasoned;
+      .encountered = true;
+  dwelling         = &dwelling_inca;
+  p_unit           = &scout_seasoned;
   EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
   EXPECT_CALL( W.rand(),
                between_ints( 0, 100, e_interval::half_open ) )
@@ -758,7 +758,7 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
       W.add_dwelling( { .x = 4, .y = 4 }, e_tribe::tupi );
   W.add_tribe( e_tribe::tupi )
       .relationship[W.default_nation()]
-      .emplace();
+      .encountered = true;
   DwellingRelationship& relationship =
       dwelling.relationship[W.default_nation()];
   Unit& scout_petty = W.add_unit_on_map(
@@ -892,7 +892,8 @@ TEST_CASE( "[enter-dwelling] compute_establish_mission" ) {
   EstablishMissionResult expected;
   Tribe&                 tribe = W.add_tribe( e_tribe::sioux );
   TribeRelationship&     relationship =
-      tribe.relationship[W.default_nation()].emplace();
+      tribe.relationship[W.default_nation()];
+  relationship.encountered = true;
   Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::sioux );
 

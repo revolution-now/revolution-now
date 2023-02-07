@@ -697,11 +697,14 @@ TEST_CASE( "[fathers] on_father_received: pocahontas" ) {
   Tribe&             tupi   = W.add_tribe( e_tribe::tupi );
   Tribe&             aztec  = W.add_tribe( e_tribe::aztec );
   TribeRelationship& inca_relationship =
-      inca.relationship[player.nation].emplace();
+      inca.relationship[player.nation];
+  inca_relationship.encountered = true;
   TribeRelationship& arawak_relationship =
-      arawak.relationship[player.nation].emplace();
+      arawak.relationship[player.nation];
+  arawak_relationship.encountered = true;
   TribeRelationship& tupi_relationship =
-      tupi.relationship[player.nation].emplace();
+      tupi.relationship[player.nation];
+  tupi_relationship.encountered = true;
   auto& aztec_relationship = aztec.relationship[player.nation];
 
   auto f = [&] {
@@ -717,13 +720,13 @@ TEST_CASE( "[fathers] on_father_received: pocahontas" ) {
   REQUIRE( inca_relationship.tribal_alarm == 1 );
   REQUIRE( arawak_relationship.tribal_alarm == 17 );
   REQUIRE( tupi_relationship.tribal_alarm == 17 );
-  REQUIRE( !aztec_relationship.has_value() );
+  REQUIRE( !aztec_relationship.encountered );
 
   f();
   REQUIRE( inca_relationship.tribal_alarm == 1 );
   REQUIRE( arawak_relationship.tribal_alarm == 17 );
   REQUIRE( tupi_relationship.tribal_alarm == 17 );
-  REQUIRE( !aztec_relationship.has_value() );
+  REQUIRE( !aztec_relationship.encountered );
 }
 
 TEST_CASE( "[fathers] on_father_received: william_brewster" ) {

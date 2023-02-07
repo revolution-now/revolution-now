@@ -331,8 +331,8 @@ CombatEuroAttackBrave RealCombat::euro_attack_brave(
 CombatEuroAttackDwelling RealCombat::euro_attack_dwelling(
     Unit const& attacker, Dwelling const& dwelling ) {
   Tribe const& tribe = ss_.natives.tribe_for( dwelling.id );
-  UNWRAP_CHECK( relationship,
-                tribe.relationship[attacker.nation()] );
+  TribeRelationship const& relationship =
+      tribe.relationship[attacker.nation()];
   Player const& player =
       player_for_nation_or_die( ss_.players, attacker.nation() );
   double const attack_points = attacker.desc().combat;

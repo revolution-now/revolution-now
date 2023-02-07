@@ -109,8 +109,8 @@ vector<UnitId> player_missionaries_in_tribe(
 
 e_missionary_reaction tribe_reaction_to_missionary(
     Player const& player, Tribe const& tribe ) {
-  UNWRAP_CHECK( relationship,
-                tribe.relationship[player.nation] );
+  TribeRelationship const& relationship =
+      tribe.relationship[player.nation];
   int const alarm = relationship.tribal_alarm;
   if( alarm < 25 ) return e_missionary_reaction::curiosity;
   if( alarm < 50 ) return e_missionary_reaction::cautious;

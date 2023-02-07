@@ -135,7 +135,7 @@ vector<e_enter_dwelling_option> const& options_for_unit(
   static vector<e_enter_dwelling_option> const options_cancel{
       e_enter_dwelling_option::cancel,
   };
-  if( !tribe.relationship[player.nation].has_value() ) {
+  if( !tribe.relationship[player.nation].encountered ) {
     // The tribe has not yet made contact with us. This should
     // really only happen if we place a unit next to the dwelling
     // artificially.
@@ -143,8 +143,8 @@ vector<e_enter_dwelling_option> const& options_for_unit(
   }
   e_dwelling_interaction_category const category =
       dwelling_interaction_category( unit_type );
-  UNWRAP_CHECK( relationship,
-                tribe.relationship[player.nation] );
+  TribeRelationship const& relationship =
+      tribe.relationship[player.nation];
   bool const at_war = relationship.at_war;
   auto       switch_war =
       [&]( auto const& options,
@@ -328,8 +328,9 @@ wait<e_enter_dwelling_option> present_dwelling_entry_options(
 LiveAmongTheNatives_t compute_live_among_the_natives(
     SSConst const& ss, Dwelling const& dwelling,
     Unit const& unit ) {
-  UNWRAP_CHECK( relationship, ss.natives.tribe_for( dwelling.id )
-                                  .relationship[unit.nation()] );
+  TribeRelationship const& relationship =
+      ss.natives.tribe_for( dwelling.id )
+          .relationship[unit.nation()];
   e_unit_type const base_type = unit.base_type();
   auto const&       attr      = unit_attr( base_type );
   if( !is_unit_human( unit.type_obj() ) )

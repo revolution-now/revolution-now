@@ -80,9 +80,9 @@ int effective_dwelling_alarm( SSConst const&  ss,
                               Dwelling const& dwelling,
                               e_nation        nation ) {
   Tribe const& tribe = ss.natives.tribe_for( dwelling.id );
-  if( !tribe.relationship[nation].has_value() ) return 0;
+  if( !tribe.relationship[nation].encountered ) return 0;
   int const tribal_alarm =
-      tribe.relationship[nation]->tribal_alarm;
+      tribe.relationship[nation].tribal_alarm;
   CHECK_GE( tribal_alarm, 0 );
   CHECK_LT( tribal_alarm, 100 );
   int const dwelling_only_alarm =
@@ -110,11 +110,11 @@ int effective_dwelling_alarm( SSConst const&  ss,
 e_enter_dwelling_reaction reaction_for_dwelling(
     SSConst const& ss, Player const& player, Tribe const& tribe,
     Dwelling const& dwelling ) {
-  if( !tribe.relationship[player.nation].has_value() )
+  if( !tribe.relationship[player.nation].encountered )
     // Not yet made contact.
     return e_enter_dwelling_reaction::wave_happily;
-  UNWRAP_CHECK( relationship,
-                tribe.relationship[player.nation] );
+  TribeRelationship const& relationship =
+      tribe.relationship[player.nation];
   if( relationship.at_war )
     return e_enter_dwelling_reaction::scalps_and_war_drums;
   int const effective_alarm =

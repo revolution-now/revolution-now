@@ -70,7 +70,7 @@ struct World : testing::World {
     create_default_map();
     planes().back().land_view = &mock_land_view_plane_;
     Tribe& tribe              = add_tribe( kNativeTribe );
-    tribe.relationship[kAttackingNation].emplace();
+    tribe.relationship[kAttackingNation].encountered = true;
   }
 
   void common_player_init( Player& player ) const {
@@ -528,8 +528,8 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
   OrdersHandlerRunResult expected = { .order_was_run = true };
   CombatEuroAttackBrave  combat;
   Tribe&                 tribe = W.tribe( W.kNativeTribe );
-  UNWRAP_CHECK( relationship,
-                tribe.relationship[W.kAttackingNation] );
+  TribeRelationship&     relationship =
+      tribe.relationship[W.kAttackingNation];
   relationship.nation_has_attacked_tribe = true;
   REQUIRE( relationship.tribal_alarm == 0 );
 
@@ -701,9 +701,9 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
   CombatEuroAttackDwelling combat;
   Player&                  player = W.player( W.active_nation_ );
 
-  Tribe& tribe = W.tribe( W.kNativeTribe );
-  UNWRAP_CHECK( relationship,
-                tribe.relationship[W.kAttackingNation] );
+  Tribe&             tribe = W.tribe( W.kNativeTribe );
+  TribeRelationship& relationship =
+      tribe.relationship[W.kAttackingNation];
   relationship.nation_has_attacked_tribe = true;
   REQUIRE( relationship.tribal_alarm == 0 );
   Dwelling& dwelling =

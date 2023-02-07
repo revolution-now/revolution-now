@@ -564,7 +564,8 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
   e_tribe const            tribe_type = e_tribe::arawak;
   Tribe&                   tribe = W.add_tribe( tribe_type );
   TribeRelationship&       relationship =
-      tribe.relationship[W.default_nation()].emplace();
+      tribe.relationship[W.default_nation()];
+  relationship.encountered   = true;
   Coord const kAttackerCoord = { .x = 1, .y = 0 };
   Dwelling&   dwelling =
       W.add_dwelling( { .x = 2, .y = 1 }, tribe_type );
@@ -835,7 +836,8 @@ TEST_CASE(
   e_tribe const            tribe_type = e_tribe::arawak;
   Tribe&                   tribe = W.add_tribe( tribe_type );
   TribeRelationship&       relationship =
-      tribe.relationship[W.default_nation()].emplace();
+      tribe.relationship[W.default_nation()];
+  relationship.encountered   = true;
   Coord const kAttackerCoord = { .x = 1, .y = 0 };
   Dwelling&   dwelling =
       W.add_dwelling( { .x = 2, .y = 1 }, tribe_type );

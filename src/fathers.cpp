@@ -188,11 +188,11 @@ void pocahontas( SS& ss, Player const& player ) {
     if( !ss.natives.tribe_exists( tribe ) ) continue;
     Tribe& tribe_obj    = ss.natives.tribe_for( tribe );
     auto&  relationship = tribe_obj.relationship[player.nation];
-    if( !relationship.has_value() ) continue;
+    if( !relationship.encountered ) continue;
     // If the tribe already has an alarm lower than this then we
     // don't want to raise it.
-    relationship->tribal_alarm =
-        std::min( relationship->tribal_alarm, max_new_alarm );
+    relationship.tribal_alarm =
+        std::min( relationship.tribal_alarm, max_new_alarm );
   }
 }
 
