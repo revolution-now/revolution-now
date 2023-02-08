@@ -401,9 +401,24 @@ bool should_autosave( int turns ) {
 }
 
 wait<bool> save_game_menu( SSConst const& ss, TS& ts ) {
-  maybe<int> const slot = co_await select_slot(
-      ts, /*include_autosaves=*/false, /*allow_empty=*/true );
-  if( !slot.has_value() ) co_return false;
+  maybe<int> slot;
+  while( true ) {
+    slot = co_await select_slot( ts, /*include_autosaves=*/false,
+                                 /*allow_empty=*/true );
+    if( !slot.has_value() ) co_return false;
+    if( !rcl_file_exists( path_for_slot( *slot ) ) ) break;
+    YesNoConfig const config{ .msg =
+                                  "A saved game already exists "
+                                  "in this slot.  Overwite?",
+                              .yes_label      = "Overwrite",
+                              .no_label       = "Cancel",
+                              .no_comes_first = true };
+
+    maybe<ui::e_confirm> const answer =
+        co_await ts.gui.optional_yes_no( config );
+    if( answer == ui::e_confirm::yes ) break;
+  }
+  CHECK( slot.has_value() );
   expect<fs::path> result = save_game( ss, ts, *slot );
   if( !result.has_value() ) {
     co_await ts.gui.message_box( "Error: failed to save game." );
