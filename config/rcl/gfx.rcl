@@ -5,3 +5,12 @@ wait_for_vsync: true
 unit_flag_text_color: "#222222"
 
 unit_flag_text_color_greyed: "#777777"
+
+# During a pixelation animation (such as e.g. when a unit gets
+# defeated in battle) this curve controls the rate at which
+# pixels are removed (or added) with time. The "linear" method
+# removes them at a constant rate, and the "log" method removes
+# them more slowly as the animation progresses, which can make it
+# look more "natural," though that is subjective. The choices are
+# "log" and "linear".
+depixelation_curve: log

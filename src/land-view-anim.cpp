@@ -20,6 +20,7 @@
 #include "viewport.hpp"
 
 // config
+#include "config/gfx.rds.hpp"
 #include "config/natives.hpp"
 #include "config/rn.rds.hpp"
 #include "config/unit-type.hpp"
@@ -40,7 +41,71 @@ using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+// During a pixelation animation (such as e.g. when a unit gets
+// defeated in battle) this curve controls the rate at which
+// pixels are removed (or added) with time. The "linear" method
+// removes them at a constant rate, and the "log" method removes
+// them more slowly as the animation progresses, which can make
+// it look more "natural.".
+//
+// The linear method is simplest, in that it would lead to a con-
+// stant number of pixels being depixelated per frame. That may
+// sound like what we want, but visually it appears to the eye to
+// speed up towards the end some how. In order to counter that, a
+// logarithmically decreasing rate seems to look right.
+//
+// Linear: just increase stage linearly with time.
+//
+// Log: As as time increases, the delta by which we increase the
+// stage with each frame diminishes; it follows the below loga-
+// rithmic curve. In particular, each time the stage's distance
+// to 1.0 halves, we decrease the delta by a fixed amount. That
+// looks like the following for an initial_delta of .01:
+//
+//   .010 |--------
+//   .009 |                     -
+// d .008 |                               -
+// e .007 |                                      -
+// l .006 |                                           -
+// t .005 |                                              -
+// a .004 |                                                -
+//   .003 |                                                 --
+//   .002 |
+//   .001 |
+//      0 +---------------------------------------------------
+//        0                .5            .75    .87  .93.97.99
+//                               stage
+//
+// where we've also set a minimum so that it finishes. Note that
+// this curve can be approximated as a piece-wise step curve as
+// follows (this always works well):
+//
+//   if( stage > .99 ) return initial_delta * .3;
+//   if( stage > .98 ) return initial_delta * .4;
+//   if( stage > .96 ) return initial_delta * .5;
+//   if( stage > .93 ) return initial_delta * .6;
+//   if( stage > .87 ) return initial_delta * .7;
+//   if( stage > .75 ) return initial_delta * .8;
+//   if( stage > .5 )  return initial_delta * .9;
+//   return initial_delta;
+//
+double depixelation_delta_from_stage( double initial_delta,
+                                      double stage ) {
+  switch( config_gfx.depixelation_curve ) {
+    case e_depixelation_curve::log: {
+      double const min   = initial_delta * .3;
+      double const max   = initial_delta;
+      double const magic = initial_delta * .106;
+      return std::max( magic * log2( 1 - stage ) + max, min );
+    }
+    case e_depixelation_curve::linear:
+      return initial_delta;
+  }
+}
+
+} // namespace
 
 /****************************************************************
 ** Public API
@@ -84,7 +149,8 @@ wait<> LandViewAnimator::unit_depixelation_throttler(
   AnimThrottler throttle( kAlmostStandardFrame );
   while( depixelate.stage < 1.0 ) {
     co_await throttle();
-    depixelate.stage += config_rn.depixelate_per_frame;
+    depixelate.stage += depixelation_delta_from_stage(
+        config_rn.depixelate_per_frame, depixelate.stage );
   }
   // Need this so that final frame is visible.
   co_await throttle();
@@ -101,7 +167,8 @@ wait<> LandViewAnimator::unit_enpixelation_throttler(
   AnimThrottler throttle( kAlmostStandardFrame );
   while( enpixelate.stage > 0.0 ) {
     co_await throttle();
-    enpixelate.stage -= config_rn.depixelate_per_frame;
+    enpixelate.stage -= depixelation_delta_from_stage(
+        config_rn.depixelate_per_frame, enpixelate.stage );
   }
   // Need this so that final frame is visible.
   co_await throttle();
@@ -118,7 +185,8 @@ wait<> LandViewAnimator::colony_depixelation_throttler(
   AnimThrottler throttle( kAlmostStandardFrame );
   while( depixelate.stage < 1.0 ) {
     co_await throttle();
-    depixelate.stage += config_rn.depixelate_per_frame;
+    depixelate.stage += depixelation_delta_from_stage(
+        config_rn.depixelate_per_frame, depixelate.stage );
   }
   // Need this so that final frame is visible.
   co_await throttle();
@@ -135,7 +203,8 @@ wait<> LandViewAnimator::dwelling_depixelation_throttler(
   AnimThrottler throttle( kAlmostStandardFrame );
   while( depixelate.stage < 1.0 ) {
     co_await throttle();
-    depixelate.stage += config_rn.depixelate_per_frame;
+    depixelate.stage += depixelation_delta_from_stage(
+        config_rn.depixelate_per_frame, depixelate.stage );
   }
   // Need this so that final frame is visible.
   co_await throttle();

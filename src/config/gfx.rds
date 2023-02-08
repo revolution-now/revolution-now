@@ -16,6 +16,17 @@ include "cdr/ext-builtin.hpp"
 
 namespace "rn"
 
+# During a pixelation animation (such as e.g. when a unit gets
+# defeated in battle) this curve controls the rate at which
+# pixels are removed (or added) with time. The "linear" method
+# removes them at a constant rate, and the "log" method removes
+# them more slowly as the animation progresses, which can make it
+# look more "natural," though that is subjective.
+enum.e_depixelation_curve {
+  log,
+  linear,
+}
+
 struct.config_gfx_t {
   # The game will attempt to maintain a frame rate no higher than
   # this value, though it could be lower if the engine or machine
@@ -32,6 +43,9 @@ struct.config_gfx_t {
   # This is the color used to render the letter on a unit's flag
   # that is either fortified or sentried.
   unit_flag_text_color_greyed 'gfx::pixel',
+
+  # Controls the rate of the depixelation animations.
+  depixelation_curve 'e_depixelation_curve',
 }
 
 config.gfx {}
