@@ -6,11 +6,24 @@ unit_flag_text_color: "#222222"
 
 unit_flag_text_color_greyed: "#777777"
 
-# During a pixelation animation (such as e.g. when a unit gets
-# defeated in battle) this curve controls the rate at which
-# pixels are removed (or added) with time. The "linear" method
-# removes them at a constant rate, and the "log" method removes
-# them more slowly as the animation progresses, which can make it
-# look more "natural," though that is subjective. The choices are
-# "log" and "linear".
-depixelation_curve: log
+pixelation_curve {
+  # During a pixelation animation (such as e.g. when a unit gets
+  # defeated in battle) this curve controls the rate at which
+  # pixels are removed (or added) with time. The "linear" method
+  # removes them at a constant rate, and the "log" method removes
+  # them more slowly as the animation progresses, which can make
+  # it look more "natural," though that is subjective. The
+  # choices are "log" and "linear".
+  curve_type: log
+
+  # Controls the overall rate of the pixelation animations.
+  pixelation_per_frame: {
+    # This rate is chosen so as to make the pixelation animation
+    # have about the same duration as in the OG.
+    linear: .01
+
+    # This will be slightly longer than the linear version since
+    # the tail is drawn out a bit.
+    log: .01
+  }
+}

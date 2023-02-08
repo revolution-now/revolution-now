@@ -14,6 +14,9 @@ include "gfx/pixel.hpp"
 # Cdr.
 include "cdr/ext-builtin.hpp"
 
+# refl
+include "refl/enum-map.hpp"
+
 namespace "rn"
 
 # During a pixelation animation (such as e.g. when a unit gets
@@ -22,10 +25,25 @@ namespace "rn"
 # removes them at a constant rate, and the "log" method removes
 # them more slowly as the animation progresses, which can make it
 # look more "natural," though that is subjective.
-enum.e_depixelation_curve {
+enum.e_pixelation_curve {
   log,
   linear,
 }
+
+# Use "graphics" instead of "gfx" in order to avoid namespace
+# clashing with the gfx namespace, which is used in the gfx li-
+# brary in this code base.
+namespace "rn.config.graphics"
+
+struct.PixelationCurve {
+  # Controls the rate of the pixelation animations.
+  curve_type 'e_pixelation_curve',
+
+  # Each depixelation curve type can have its own rate.
+  pixelation_per_frame 'refl::enum_map<e_pixelation_curve, double>',
+}
+
+namespace "rn"
 
 struct.config_gfx_t {
   # The game will attempt to maintain a frame rate no higher than
@@ -44,8 +62,7 @@ struct.config_gfx_t {
   # that is either fortified or sentried.
   unit_flag_text_color_greyed 'gfx::pixel',
 
-  # Controls the rate of the depixelation animations.
-  depixelation_curve 'e_depixelation_curve',
+  pixelation_curve 'config::graphics::PixelationCurve',
 }
 
 config.gfx {}

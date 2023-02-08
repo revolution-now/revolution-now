@@ -68,7 +68,6 @@ struct.config_rn_power {
 }
 
 struct.config_rn_t {
-  depixelate_per_frame 'double',
   ideal_tile_angular_size 'double',
 
   main_window 'config_rn_main_window',

@@ -22,7 +22,6 @@
 // config
 #include "config/gfx.rds.hpp"
 #include "config/natives.hpp"
-#include "config/rn.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss
@@ -91,18 +90,42 @@ namespace {
 //   if( stage > .5 )  return initial_delta * .9;
 //   return initial_delta;
 //
+// TODO: move this into a dedicated pixelation module and unit
+// test it.
 double depixelation_delta_from_stage( double initial_delta,
                                       double stage ) {
-  switch( config_gfx.depixelation_curve ) {
-    case e_depixelation_curve::log: {
+  switch( config_gfx.pixelation_curve.curve_type ) {
+    case e_pixelation_curve::log: {
       double const min   = initial_delta * .3;
       double const max   = initial_delta;
       double const magic = initial_delta * .106;
       return std::max( magic * log2( 1 - stage ) + max, min );
     }
-    case e_depixelation_curve::linear:
+    case e_pixelation_curve::linear:
       return initial_delta;
   }
+}
+
+// TODO: move this into a dedicated pixelation module and unit
+// test it.
+wait<> pixelation_stage_throttler( double& stage,
+                                   bool    negative = false ) {
+  double const        sign = negative ? -1.0 : 1.0;
+  static double const pixelation_per_frame =
+      config_gfx.pixelation_curve.pixelation_per_frame
+          [config_gfx.pixelation_curve.curve_type];
+  auto not_finished = [&] {
+    return negative ? ( stage > 0.0 ) : ( stage < 1.0 );
+  };
+
+  AnimThrottler throttle( kAlmostStandardFrame );
+  while( not_finished() ) {
+    co_await throttle();
+    stage += sign * depixelation_delta_from_stage(
+                        pixelation_per_frame, stage );
+  }
+  // Need this so that final frame is visible.
+  co_await throttle();
 }
 
 } // namespace
@@ -143,17 +166,10 @@ wait<> LandViewAnimator::unit_depixelation_throttler(
       add_unit_animation<UnitAnimationState::depixelate_unit>(
           id );
   UnitAnimationState::depixelate_unit& depixelate = popper.get();
-  depixelate.stage                                = 0.0;
-  depixelate.target                               = target_tile;
 
-  AnimThrottler throttle( kAlmostStandardFrame );
-  while( depixelate.stage < 1.0 ) {
-    co_await throttle();
-    depixelate.stage += depixelation_delta_from_stage(
-        config_rn.depixelate_per_frame, depixelate.stage );
-  }
-  // Need this so that final frame is visible.
-  co_await throttle();
+  depixelate.stage  = 0.0;
+  depixelate.target = target_tile;
+  co_await pixelation_stage_throttler( depixelate.stage );
 }
 
 wait<> LandViewAnimator::unit_enpixelation_throttler(
@@ -162,16 +178,10 @@ wait<> LandViewAnimator::unit_enpixelation_throttler(
       add_unit_animation<UnitAnimationState::enpixelate_unit>(
           id );
   UnitAnimationState::enpixelate_unit& enpixelate = popper.get();
-  enpixelate.stage                                = 1.0;
 
-  AnimThrottler throttle( kAlmostStandardFrame );
-  while( enpixelate.stage > 0.0 ) {
-    co_await throttle();
-    enpixelate.stage -= depixelation_delta_from_stage(
-        config_rn.depixelate_per_frame, enpixelate.stage );
-  }
-  // Need this so that final frame is visible.
-  co_await throttle();
+  enpixelate.stage = 1.0;
+  co_await pixelation_stage_throttler( enpixelate.stage,
+                                       /*negative=*/true );
 }
 
 wait<> LandViewAnimator::colony_depixelation_throttler(
@@ -180,16 +190,9 @@ wait<> LandViewAnimator::colony_depixelation_throttler(
       add_colony_animation<ColonyAnimationState::depixelate>(
           colony.id );
   ColonyAnimationState::depixelate& depixelate = popper.get();
-  depixelate.stage                             = 0.0;
 
-  AnimThrottler throttle( kAlmostStandardFrame );
-  while( depixelate.stage < 1.0 ) {
-    co_await throttle();
-    depixelate.stage += depixelation_delta_from_stage(
-        config_rn.depixelate_per_frame, depixelate.stage );
-  }
-  // Need this so that final frame is visible.
-  co_await throttle();
+  depixelate.stage = 0.0;
+  co_await pixelation_stage_throttler( depixelate.stage );
 }
 
 wait<> LandViewAnimator::dwelling_depixelation_throttler(
@@ -198,16 +201,9 @@ wait<> LandViewAnimator::dwelling_depixelation_throttler(
       add_dwelling_animation<DwellingAnimationState::depixelate>(
           dwelling.id );
   DwellingAnimationState::depixelate& depixelate = popper.get();
-  depixelate.stage                               = 0.0;
 
-  AnimThrottler throttle( kAlmostStandardFrame );
-  while( depixelate.stage < 1.0 ) {
-    co_await throttle();
-    depixelate.stage += depixelation_delta_from_stage(
-        config_rn.depixelate_per_frame, depixelate.stage );
-  }
-  // Need this so that final frame is visible.
-  co_await throttle();
+  depixelate.stage = 0.0;
+  co_await pixelation_stage_throttler( depixelate.stage );
 }
 
 // TODO: this animation needs to be sync'd with the one in the
