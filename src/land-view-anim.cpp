@@ -13,6 +13,7 @@
 // Revolution Now
 #include "anim-builder.rds.hpp"
 #include "co-combinator.hpp"
+#include "co-time.hpp"
 #include "co-wait.hpp"
 #include "sound.hpp"
 #include "throttler.hpp"
@@ -275,6 +276,11 @@ wait<> LandViewAnimator::animate_primitive(
     AnimationPrimitive_t const& primitive ) {
   switch( primitive.to_enum() ) {
     using namespace AnimationPrimitive;
+    case e::delay: {
+      auto& [duration] = primitive.get<delay>();
+      co_await duration;
+      break;
+    }
     case e::play_sound: {
       auto& [what] = primitive.get<play_sound>();
       // TODO: should we co_await on the length of the sound ef-

@@ -33,6 +33,7 @@ using namespace std;
 TEST_CASE( "[anim-builder] builders" ) {
   AnimationBuilder builder;
 
+  builder.delay( chrono::seconds{ 1 } );
   builder.play_sound( e_sfx::attacker_won );
   builder.hide_unit( GenericUnitId{ 1 } );
   builder.front_unit( GenericUnitId{ 2 } );
@@ -55,6 +56,8 @@ TEST_CASE( "[anim-builder] builders" ) {
   AnimationSequence const expected{
       .sequence = {
           { { .primitive =
+                  P::delay{ .duration = chrono::seconds{ 1 } } },
+            { .primitive =
                   P::play_sound{ .what = e_sfx::attacker_won } },
             { .primitive =
                   P::hide_unit{ .unit_id = GenericUnitId{ 1 } },

@@ -22,6 +22,7 @@ include "ss/unit-type.rds.hpp"
 include "gfx/coord.rds.hpp"
 
 # C++ standard library
+include "<chrono>"
 include "<vector>"
 
 namespace "rn"
@@ -29,6 +30,13 @@ namespace "rn"
 # Represents the possible animation primitives used to construct
 # larger animation sequences in the land view.
 sumtype.AnimationPrimitive {
+  # -------------------------------------------------------------
+  # Timing.
+  # -------------------------------------------------------------
+  delay {
+    duration 'std::chrono::microseconds',
+  },
+
   # -------------------------------------------------------------
   # Sound effects.
   # -------------------------------------------------------------

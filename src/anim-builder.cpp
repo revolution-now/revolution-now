@@ -34,6 +34,10 @@ void AnimationBuilder::new_phase() {
   seq_.sequence.emplace_back();
 }
 
+void AnimationBuilder::delay( chrono::microseconds duration ) {
+  push( P::delay{ .duration = duration } );
+}
+
 void AnimationBuilder::play_sound( e_sfx what ) {
   push( P::play_sound{ .what = what } );
 }

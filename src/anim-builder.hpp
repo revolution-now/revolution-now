@@ -31,6 +31,8 @@ struct AnimationBuilder {
 
   void new_phase();
 
+  void delay( std::chrono::microseconds duration );
+
   void play_sound( e_sfx what );
 
   void hide_unit( GenericUnitId unit_id );
