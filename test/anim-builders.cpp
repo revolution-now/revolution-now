@@ -682,6 +682,12 @@ TEST_CASE( "[anim-builders] anim_seq_for_dwelling_burn" ) {
               { .primitive =
                     P::depixelate_unit{ .unit_id =
                                             other_brave_id } },
+              { .primitive =
+                    P::play_sound{ .what =
+                                       e_sfx::city_destroyed } },
+              { .primitive =
+                    P::play_sound{ .what =
+                                       e_sfx::city_destroyed } },
               { .primitive = P::play_sound{
                     .what = e_sfx::city_destroyed } } } } };
   REQUIRE( f() == expected );
