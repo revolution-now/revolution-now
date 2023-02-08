@@ -927,6 +927,7 @@ TEST_CASE( "[enter-dwelling] do_establish_mission" ) {
   Unit& missionary = W.add_unit_on_map( e_unit_type::missionary,
                                         { .x = 1, .y = 0 } );
   W.turn().time_point.year = 1501;
+  string msg;
 
   auto f = [&] {
     wait<> const w =
@@ -936,10 +937,18 @@ TEST_CASE( "[enter-dwelling] do_establish_mission" ) {
     REQUIRE( w.ready() );
   };
 
-  outcome = {};
-  string const msg =
+  outcome = { .reaction = e_missionary_reaction::curiosity };
+  msg =
       "@[H]English@[] mission established in @[H]Inca@[] city "
-      "in the year 1501.";
+      "in the year 1501. The Inca react with @[H]curiosity@[].";
+  EXPECT_CALL( W.gui(), message_box( msg ) )
+      .returns<monostate>();
+  f();
+
+  outcome = { .reaction = e_missionary_reaction::hostility };
+  msg =
+      "@[H]English@[] mission established in @[H]Inca@[] city "
+      "in the year 1501. The Inca react with @[H]hostility@[].";
   EXPECT_CALL( W.gui(), message_box( msg ) )
       .returns<monostate>();
   f();

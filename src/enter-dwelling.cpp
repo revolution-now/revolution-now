@@ -282,6 +282,20 @@ adjust_village_attack_for_free_braves(
   return option;
 }
 
+string_view reaction_to_mission(
+    e_missionary_reaction reaction ) {
+  switch( reaction ) {
+    case e_missionary_reaction::curiosity:
+      return "react with @[H]curiosity@[]";
+    case e_missionary_reaction::cautious:
+      return "react with @[H]caution@[]";
+    case e_missionary_reaction::offended:
+      return "are @[H]offended@[]";
+    case e_missionary_reaction::hostility:
+      return "react with @[H]hostility@[]";
+  }
+}
+
 } // namespace
 
 /****************************************************************
@@ -696,10 +710,9 @@ EstablishMissionResult compute_establish_mission(
           player, ss.natives.tribe_for( dwelling.id ) ) };
 }
 
-wait<> do_establish_mission( SS& ss, TS& ts,
-                             Player const& player,
-                             Dwelling& dwelling, Unit& unit,
-                             EstablishMissionResult const& ) {
+wait<> do_establish_mission(
+    SS& ss, TS& ts, Player const& player, Dwelling& dwelling,
+    Unit& unit, EstablishMissionResult const& outcome ) {
   ss.units.change_to_dwelling( unit.id(), dwelling.id );
 
   // TODO: need to create a mockable interface for playing sound
@@ -711,12 +724,13 @@ wait<> do_establish_mission( SS& ss, TS& ts,
           .tribes[ss.natives.tribe_for( dwelling.id ).type];
   string msg = fmt::format(
       "@[H]{}@[] mission established in @[H]{}@[] {} in the "
-      "year {}.",
+      "year {}. The {} {}.",
       nation_obj( player.nation ).adjective,
       tribe_conf.name_adjective,
       config_natives.dwelling_types[tribe_conf.level]
           .name_singular,
-      ss.turn.time_point.year );
+      ss.turn.time_point.year, tribe_conf.name_adjective,
+      reaction_to_mission( outcome.reaction ) );
 
   // In the OG the tribe's reaction to the missionary does not
   // seem to have any effect on the process other than to deter-
