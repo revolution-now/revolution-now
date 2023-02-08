@@ -119,5 +119,21 @@ struct.AnimationAction {
 }
 
 struct.AnimationSequence {
+  # Idea: since it seems tricky to get AnimationPrimitive to sup-
+  # port recursive primitives, one thing we could do if we really
+  # need a more flexible animation graph is that we could add
+  # multiple "channels" per animation action, then multiple se-
+  # quential primitives per channel. Each channel would be the
+  # equivalent of "sequence" That would allow some addition flex-
+  # ibility to define animations that consist of e.g. two par-
+  # allel streams of sequential animations. Probably the right
+  # approach would be:
+  #
+  #   Sequence -> Channels -> Sequences
+  #
+  # that is, at the top level we have chunks that run in se-
+  # quence, then each chunk has multiple channels that run in
+  # parallel, and each channel has a series of primitives that
+  # run in sequence.
   sequence 'std::vector<std::vector<AnimationAction>>',
 }
