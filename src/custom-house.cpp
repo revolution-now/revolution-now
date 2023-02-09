@@ -41,7 +41,7 @@ wait<> open_custom_house_menu( Planes& planes, Colony& colony ) {
 
   // Add text.
   auto text_view = make_unique<TextView>(
-      "What cargos shall our @[H]Custom House@[] export?" );
+      "What cargos shall our [Custom House] export?" );
   top_array->add_view( std::move( text_view ) );
 
   // Add vertical split, since there are too many fathers to put

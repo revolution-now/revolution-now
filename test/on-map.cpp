@@ -185,8 +185,8 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
         .returns<maybe<string>>( "yes" );
     string const msg =
         "Treasure worth 1000 arrives in Amsterdam!  The crown "
-        "has provided a reimbursement of @[H]500@[] after a "
-        "@[H]50%@[] witholding.";
+        "has provided a reimbursement of [500] after a "
+        "[50%] witholding.";
     EXPECT_CALL( W.gui(), message_box( msg ) )
         .returns( monostate{} );
     w = unit_to_map_square( W.ss(), W.ts(), unit_id,

@@ -123,7 +123,7 @@ wait<maybe<e_attack_verdict_base>> check_attack_verdict_base(
   if( attacker.movement_points() < 1 ) {
     if( co_await ts.gui.optional_yes_no(
             { .msg = fmt::format(
-                  "This unit only has @[H]{}@[] movement points "
+                  "This unit only has [{}] movement points "
                   "and so will not be fighting at full "
                   "strength.  Continue?",
                   attacker.movement_points() ),
@@ -167,7 +167,7 @@ maybe<string> perform_euro_unit_combat_outcome(
         // This will be scouts, pioneers, missionaries, and ar-
         // tillery.
         msg =
-            fmt::format( "{} @[H]{}@[] has been lost in battle!",
+            fmt::format( "{} [{}] has been lost in battle!",
                          nation_obj( unit.nation() ).adjective,
                          unit.desc().name );
       // Need to destroy the unit after accessing its info.
@@ -239,14 +239,14 @@ maybe<string> perform_native_unit_combat_outcome(
         using E = e_native_unit_type;
         refl::enum_map<E, refl::enum_map<E, maybe<string>>> res;
         res[E::brave][E::armed_brave] =
-            "@[H]Muskets@[] acquired by brave!";
+            "[Muskets] acquired by brave!";
         res[E::brave][E::mounted_brave] =
-            "@[H]Horses@[] acquired by @[H]{}@[] brave!";
+            "[Horses] acquired by [{}] brave!";
         res[E::armed_brave][E::mounted_warrior] =
-            "@[H]Muskets@[] acquired by @[H]{}@[] mounted "
+            "[Muskets] acquired by [{}] mounted "
             "brave!";
         res[E::mounted_brave][E::armed_brave] =
-            "@[H]Horses@[] acquired by @[H]{}@[] armed brave!";
+            "[Horses] acquired by [{}] armed brave!";
         return res;
       }();
 
@@ -290,17 +290,17 @@ maybe<string> perform_naval_unit_combat_outcome(
       lg.info( "ship sunk: {} units onboard lost.",
                num_units_lost );
       msg =
-          fmt::format( "{} @[H]{}@[] sunk by @[H]{}@[] {}",
+          fmt::format( "{} [{}] sunk by [{}] {}",
                        nation_obj( unit.nation() ).adjective,
                        unit.desc().name,
                        nation_obj( opponent.nation() ).adjective,
                        opponent.desc().name );
       if( num_units_lost == 1 )
         *msg += fmt::format(
-            ", @[H]1@[] unit onboard has been lost" );
+            ", [1] unit onboard has been lost" );
       else if( num_units_lost > 1 )
         *msg += fmt::format(
-            ", @[H]{}@[] units onboard have been lost",
+            ", [{}] units onboard have been lost",
             num_units_lost );
       *msg += '.';
       // Need to destroy unit first before displaying message
@@ -610,7 +610,7 @@ wait<> AttackColonyUndefendedHandler::perform() {
   //     ts_.rand, conductor::e_request::fife_drum_happy,
   //     conductor::e_request_probability::always );
   co_await ts_.gui.message_box(
-      "The @[H]{}@[] have captured the colony of @[H]{}@[]!",
+      "The [{}] have captured the colony of [{}]!",
       nation_obj( attacker_.nation() ).display_name,
       colony_.name );
 
@@ -788,7 +788,7 @@ wait<bool> AttackNativeUnitHandler::confirm() {
   if( !relationship.nation_has_attacked_tribe ) {
     YesNoConfig const config{
         .msg = fmt::format(
-            "Shall we attack the @[H]{}@[]?",
+            "Shall we attack the [{}]?",
             ts_.gui.identifier_to_display_name(
                 fmt::to_string( defender_tribe_.type ) ) ),
         .yes_label      = "Attack",
@@ -967,8 +967,8 @@ wait<> AttackDwellingHandler::produce_convert() {
   wait<> appear_and_slide_animation =
       planes_.land_view().animate( appear_and_slide_seq );
   wait<> box = ts_.gui.message_box(
-      "@[H]{}@[] citizens frightened in combat rush to the "
-      "@[H]{} mission@[] as @[H]converts@[]!",
+      "[{}] citizens frightened in combat rush to the "
+      "[{} mission] as [converts]!",
       tribe_name_adjective, nation_name_adjective );
   co_await std::move( appear_and_slide_animation );
   // Non-interactive is OK here because the attacker is already
@@ -1032,7 +1032,7 @@ wait<> AttackDwellingHandler::perform() {
       ss_.units.destroy_unit( missionary );
     }
     co_await ts_.gui.message_box(
-        "The @[H]{}@[] revolt against @[H]{}@[] missions! "
+        "The [{}] revolt against [{}] missions! "
         "All {} missionaries eliminated!",
         tribe_name, nation_name_adjective,
         nation_name_adjective );
@@ -1144,18 +1144,18 @@ wait<> AttackDwellingHandler::perform() {
   // missionary fled if applicable. Also, if there is a treasure,
   // include the amount.
   string msg =
-      fmt::format( "@[H]{}@[] {} burned by the @[H]{}@[]!",
+      fmt::format( "[{}] {} burned by the [{}]!",
                    tribe_name, dwelling_type_name, nation_name );
   if( destruction.missionary_to_release.has_value() )
-    msg += " @[H]Missionary@[] flees in panic!";
+    msg += " [Missionary] flees in panic!";
   else if( missionary_in_dwelling.has_value() )
     // Must have be a foreign missionary.
-    msg += fmt::format( " @[H]Foreign missionary@[] hanged!" );
+    msg += fmt::format( " [Foreign missionary] hanged!" );
   if( destruction.treasure_amount.has_value() )
     msg += fmt::format(
-        " Treasure worth @[H]{}@[] recovered from {}! It will "
-        "take a @[H]Galleon@[] to transport this treasure back "
-        "to @[H]{}@[].",
+        " Treasure worth [{}] recovered from {}! It will "
+        "take a [Galleon] to transport this treasure back "
+        "to [{}].",
         *destruction.treasure_amount, dwelling_type_name,
         nation_harbor_name );
   co_await ts_.gui.message_box( msg );
@@ -1186,7 +1186,7 @@ wait<> AttackDwellingHandler::perform() {
 
   if( was_capital && !destruction.tribe_destroyed.has_value() )
     co_await ts_.gui.message_box(
-        "The @[H]{}@[] bow before the might of the @[H]{}@[]!",
+        "The [{}] bow before the might of the [{}]!",
         tribe_name, nation_name );
 
   // Check if the tribe is now destroyed.

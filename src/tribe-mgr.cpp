@@ -94,7 +94,7 @@ wait<> destroy_tribe_interactive( SS& ss, TS& ts,
                                   e_tribe tribe ) {
   destroy_tribe( ss, ts, tribe );
   co_await ts.gui.message_box(
-      "The @[H]{}@[] tribe has been wiped out.",
+      "The [{}] tribe has been wiped out.",
       config_natives.tribes[tribe].name_singular );
 }
 

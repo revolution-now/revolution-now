@@ -109,7 +109,7 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
             .max      = config_lcr.trinkets_gift_max[explorer],
             .multiple = config_lcr.trinkets_gift_multiple } );
       co_await ts.gui.message_box(
-          "You've found some trinkets worth @[H]{}@[] gold.",
+          "You've found some trinkets worth [{}] gold.",
           amount );
       int total = player.money += amount;
       lg.info(
@@ -128,8 +128,7 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
             .multiple =
                 config_lcr.burial_mounds_treasure_multiple } );
       co_await ts.gui.message_box(
-          "You've recovered a treasure worth @[H]{}@[]!",
-          amount );
+          "You've recovered a treasure worth [{}]!", amount );
       UnitId unit_id = create_treasure_train(
           ss, ts, player, world_square, amount );
       result =
@@ -217,7 +216,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
             .multiple = config_lcr.ruins_gift_multiple } );
       co_await ts.gui.message_box(
           "You've discovered the ruins of a lost colony, among "
-          "which there are items worth @[H]{}@[] in gold.",
+          "which there are items worth [{}] in gold.",
           amount );
       player.money += amount;
       int total = player.money;
@@ -249,7 +248,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
             .multiple = config_lcr.chief_gift_multiple } );
       co_await ts.gui.message_box(
           "You happen upon a small village.  The chief offers "
-          "you a gift worth @[H]{}@[] gold.",
+          "you a gift worth [{}] gold.",
           amount );
       player.money += amount;
       int total = player.money;
@@ -288,9 +287,8 @@ wait<LostCityRumorResult_t> run_rumor_result(
             .max      = config_lcr.cibola_treasure_max[explorer],
             .multiple = config_lcr.cibola_treasure_multiple } );
       co_await ts.gui.message_box(
-          "You've discovered one of the @[H]Seven Cities of "
-          "Cibola@[] and have recovered a treasure worth "
-          "@[H]{}@[]!",
+          "You've discovered one of the [Seven Cities of "
+          "Cibola] and have recovered a treasure worth [{}]!",
           amount );
       UnitId unit_id = create_treasure_train(
           ss, ts, player, world_square, amount );

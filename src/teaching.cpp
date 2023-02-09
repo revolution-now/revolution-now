@@ -169,7 +169,7 @@ base::valid_or<std::string> can_unit_teach_in_building(
 
   if( school_type < required_building )
     return fmt::format(
-        "This @[H]{}@[] requires at least a @[H]{}@[] in order "
+        "This [{}] requires at least a [{}] in order "
         "to teach.",
         attr.name,
         config_colony

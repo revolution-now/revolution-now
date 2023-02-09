@@ -39,14 +39,14 @@ struct RoadHandler : public OrdersHandler {
     Unit const& unit = ss_.units.unit_for( unit_id_ );
     if( unit.type() == e_unit_type::hardy_colonist ) {
       co_await ts_.gui.message_box(
-          "This @[H]Hardy Pioneer@[] requires at least 20 tools "
+          "This [Hardy Pioneer] requires at least 20 tools "
           "to build a road." );
       co_return false;
     }
     if( unit.type() != e_unit_type::pioneer &&
         unit.type() != e_unit_type::hardy_pioneer ) {
       co_await ts_.gui.message_box(
-          "Only @[H]Pioneers@[] and @[H]Hardy Pioneers@[] can "
+          "Only [Pioneers] and [Hardy Pioneers] can "
           "build roads." );
       co_return false;
     }

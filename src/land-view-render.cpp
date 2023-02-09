@@ -480,7 +480,7 @@ void LandViewRenderer::render_colony(
       TextMarkupInfo{
           .shadowed_text_color   = gfx::pixel::white(),
           .shadowed_shadow_color = gfx::pixel::black() },
-      fmt::format( "@[S]{}@[]", colony.name ) );
+      fmt::format( "@[S]{}]", colony.name ) );
 }
 
 void LandViewRenderer::render_colony_depixelate(

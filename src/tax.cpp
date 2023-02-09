@@ -116,8 +116,8 @@ wait<> boycott_msg( SSConst const& ss, TS& ts,
       party.how.commodity.type_and_quantity.quantity;
 
   string const msg = fmt::format(
-      "Colonists in {} hold @[H]{} Party@[]!  Amid colonists' "
-      "refusal to pay new tax, Sons of Liberty throw @[H]{}@[] "
+      "Colonists in {} hold [{} Party]!  Amid colonists' "
+      "refusal to pay new tax, Sons of Liberty throw [{}] "
       "tons of {} into the sea!  The {} Parliament announces "
       "boycott of {}.  {} cannot be traded in {} until boycott "
       "is lifted.",
@@ -231,8 +231,8 @@ wait<TaxChangeResult_t> prompt_for_tax_change_result(
   Player const& player = player_non_const;
   string_view constexpr increase_msg =
       "In honor of our marriage to our {}{} wife, we have "
-      "decided to raise your tax rate by @[H]{}%@[].  The tax "
-      "rate is now @[H]{}%@[]. We will graciously allow you to "
+      "decided to raise your tax rate by [{}%].  The tax "
+      "rate is now [{}%]. We will graciously allow you to "
       "kiss our royal pinky ring.";
   switch( proposal.to_enum() ) {
     case TaxChangeProposal::e::none:
@@ -254,7 +254,7 @@ wait<TaxChangeResult_t> prompt_for_tax_change_result(
           increase_msg, new_wife, ordinal_for( new_wife ),
           o.amount, player.old_world.taxes.tax_rate + o.amount );
       string const party = fmt::format(
-          "Hold '@[H]{} {} party@[]'!",
+          "Hold '[{} {} party]'!",
           ss.colonies.colony_for( o.party.commodity.colony_id )
               .name,
           uppercase_commodity_display_name(
@@ -281,7 +281,7 @@ wait<TaxChangeResult_t> prompt_for_tax_change_result(
       auto& o = proposal.get<TaxChangeProposal::decrease>();
       string const decrease_msg =
           "The crown has graciously decided to LOWER your tax "
-          "rate by @[H]{}%@[].  The tax rate is now @[H]{}%@[].";
+          "rate by [{}%].  The tax rate is now [{}%].";
       co_await ts.gui.message_box(
           decrease_msg, o.amount,
           player.old_world.taxes.tax_rate - o.amount );
@@ -362,9 +362,9 @@ wait<> try_trade_boycotted_commodity( TS& ts, Player& player,
   string_view const to_be =
       config_commodity.types[type].plural ? "are" : "is";
   string const msg = fmt::format(
-      "@[H]{}@[] {} currently under Parliamentary boycott. We "
+      "[{}] {} currently under Parliamentary boycott. We "
       "cannot trade {} until Parliament lifts the boycott, "
-      "which it will not do unless we agree to pay @[H]{}@[] in "
+      "which it will not do unless we agree to pay [{}] in "
       "back taxes.",
       uppercase_commodity_display_name( type ), to_be,
       lowercase_commodity_display_name( type ), back_taxes );
@@ -376,7 +376,7 @@ wait<> try_trade_boycotted_commodity( TS& ts, Player& player,
   }
   YesNoConfig const config{
       .msg       = msg,
-      .yes_label = fmt::format( "Pay @[H]{}@[].", back_taxes ),
+      .yes_label = fmt::format( "Pay [{}].", back_taxes ),
       .no_label  = "This is taxation without representation!",
       .no_comes_first = true,
   };

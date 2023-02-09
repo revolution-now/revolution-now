@@ -167,8 +167,8 @@ wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
   ui::e_confirm accept_peace =
       co_await ts.gui.required_yes_no( YesNoConfig{
           .msg = fmt::format(
-              "The @[H]{}@[] tribe is a celebrated nation of "
-              "@[H]{} {}@[].  In honor of our glorious future "
+              "The [{}] tribe is a celebrated nation of "
+              "[{} {}].  In honor of our glorious future "
               "together we will generously give you all of the "
               "land that your colonies now occupy. Will you "
               "accept our peace treaty and agree to live in "
@@ -187,7 +187,7 @@ wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
   switch( accept_peace ) {
     case ui::e_confirm::no: {
       co_await ts.gui.message_box(
-          "In that case the mighty @[H]{}@[] will drive you "
+          "In that case the mighty [{}] will drive you "
           "into oblivion. Prepare for WAR!",
           tribe_conf.name_singular );
       co_return e_declare_war_on_natives::yes;
@@ -198,12 +198,12 @@ wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
 
   co_await ts.gui.message_box(
       "Let us smoke a peace pipe to celebrate our purpetual "
-      "friendship with the @[H]{}@[].",
+      "friendship with the [{}].",
       config_nation.nations[player.nation].display_name );
 
   co_await ts.gui.message_box(
       "We hope that you will send us your colonists and "
-      "@[H]Wagon Trains@[] to share knowledge and to trade." );
+      "[Wagon Trains] to share knowledge and to trade." );
 
   co_return e_declare_war_on_natives::no;
 }

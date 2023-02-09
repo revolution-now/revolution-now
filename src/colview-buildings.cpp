@@ -245,7 +245,7 @@ wait<base::valid_or<DragRejection>> ColViewBuildings::sink_check(
             : config_colony.worker_names_singular[indoor_job];
     co_return DragRejection{
         .reason = fmt::format(
-            "There can be at most @[H]{}@[] {} in a @[H]{}@[].",
+            "There can be at most [{}] {} in a [{}].",
             allowed_units, worker_name,
             config_colony.building_display_names[building] ) };
   }

@@ -193,7 +193,7 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
   names[e_native_land_grab_result::cancel] =
       "Very well, we will respect your wishes.";
   names[e_native_land_grab_result::pay] = fmt::format(
-      "We offer you @[H]{}@[] in compensation for this land.",
+      "We offer you [{}] in compensation for this land.",
       price.price );
   if( price.price > player.money )
     disabled[e_native_land_grab_result::pay] = true;
@@ -201,7 +201,7 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
   switch( context ) {
     case e_native_land_grab_type::in_colony:
       config.msg = fmt::format(
-          "You are trespassing on @[H]{}@[] land.  Please leave "
+          "You are trespassing on [{}] land.  Please leave "
           "promptly.",
           config_natives.tribes[tribe.type].name_adjective );
       names[e_native_land_grab_result::take] =
@@ -209,7 +209,7 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
       break;
     case e_native_land_grab_type::found_colony:
       config.msg = fmt::format(
-          "You are trespassing on @[H]{}@[] land.  Please leave "
+          "You are trespassing on [{}] land.  Please leave "
           "promptly.",
           config_natives.tribes[tribe.type].name_adjective );
       names[e_native_land_grab_result::take] =
@@ -217,8 +217,8 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
       break;
     case e_native_land_grab_type::clear_forest:
       config.msg = fmt::format(
-          "These @[H]forests@[] are a vital part of the "
-          "@[H]{}@[] way of life.  Please do not disturb them.",
+          "These [forests] are a vital part of the "
+          "[{}] way of life.  Please do not disturb them.",
           config_natives.tribes[tribe.type].name_singular );
       names[e_native_land_grab_result::cancel] =
           "We will respect your wishes and not disturb these "
@@ -230,7 +230,7 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
     case e_native_land_grab_type::irrigate:
       config.msg = fmt::format(
           "These grounds help to sustain the life and spirit of "
-          "the @[H]{}@[] people. Please do not disturb them.",
+          "the [{}] people. Please do not disturb them.",
           config_natives.tribes[tribe.type].name_singular );
       names[e_native_land_grab_result::cancel] =
           "We will respect your wishes and not irrigate this "
@@ -240,8 +240,8 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
       break;
     case e_native_land_grab_type::build_road:
       config.msg = fmt::format(
-          "Carving a @[H]road@[] through this land will do "
-          "likewise through the hearts of the @[H]{}@[] people "
+          "Carving a [road] through this land will do "
+          "likewise through the hearts of the [{}] people "
           "who occupy them. Please do not disturb them.",
           config_natives.tribes[tribe.type].name_singular );
       names[e_native_land_grab_result::take] =

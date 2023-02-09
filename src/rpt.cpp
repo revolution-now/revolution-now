@@ -58,7 +58,7 @@ wait<> click_recruit( SS& ss, TS& ts, Player& player ) {
   ChoiceConfig config{
       .msg = fmt::format(
           "The following individuals will accompany us to the "
-          "new world if we pay their passage (@[H]{} gold@[]).  "
+          "new world if we pay their passage ([{} gold]).  "
           "Whom shall we recruit?",
           price ),
       .initial_selection = 0 };
@@ -145,7 +145,7 @@ wait<> click_purchase( SS& ss, TS& ts, Player& player ) {
 wait<> click_train( SS& ss, TS& ts, Player& player ) {
   ChoiceConfig config{
       .msg =
-          "The @[H]Royal University@[] can provide us with "
+          "The [Royal University] can provide us with "
           "specialists if we grease the right palms.  Which "
           "skill shall we request?",
       .initial_selection = 0 };

@@ -372,7 +372,7 @@ wait<> play_new_father_cut_scene( TS& ts, Player const&,
                                   e_founding_father father ) {
   // TODO: temporary.
   co_await ts.gui.message_box(
-      "@[H]{}@[] has joined the Continental Congress!",
+      "[{}] has joined the Continental Congress!",
       config_fathers.fathers[father].name );
 }
 

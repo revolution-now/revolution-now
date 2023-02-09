@@ -263,8 +263,8 @@ wait<> rush_construction_prompt(
     RushConstruction const& invoice ) {
   if( invoice.blocked_by_tools_boycott ) {
     co_await gui.message_box(
-        "Rushing the construction of the @[H]{}@[] requires "
-        "acquiring @[H]{} tools@[], but this is not allowed "
+        "Rushing the construction of the [{}] requires "
+        "acquiring [{} tools], but this is not allowed "
         "because tools are currently boycotted in {}.",
         construction_name( invoice.project ),
         invoice.needed_tools,
@@ -273,7 +273,7 @@ wait<> rush_construction_prompt(
   }
 
   string const msg = fmt::format(
-      "Cost to complete @[H]{}@[]: {}.  Treasury: {}.",
+      "Cost to complete [{}]: {}.  Treasury: {}.",
       construction_name( invoice.project ), invoice.cost,
       player.money );
   if( invoice.cost > player.money ) {

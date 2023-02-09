@@ -133,13 +133,13 @@ string harbor_equip_description(
     case e_unit_type_modifier_delta::add:
       switch( option.modifier ) {
         case e_unit_type_modifier::blessing:
-          res = "Bless as @[H]Missionary@[]";
+          res = "Bless as [Missionary]";
           break;
         case e_unit_type_modifier::horses:
-          res = "Equip with @[H]Horses@[]";
+          res = "Equip with [Horses]";
           break;
         case e_unit_type_modifier::muskets:
-          res = "Arm with @[H]Muskets@[]";
+          res = "Arm with [Muskets]";
           break;
         case e_unit_type_modifier::tools: {
           // Unlike when unequipping tools (which could be an ar-
@@ -150,7 +150,7 @@ string harbor_equip_description(
           UNWRAP_CHECK( comm, option.commodity_delta );
           CHECK( comm.type == e_commodity::tools );
           CHECK( comm.quantity == 100 );
-          res = "Equip with @[H]Tools@[]";
+          res = "Equip with [Tools]";
           break;
         }
         case e_unit_type_modifier::independence:
@@ -162,19 +162,19 @@ string harbor_equip_description(
     case e_unit_type_modifier_delta::del:
       switch( option.modifier ) {
         case e_unit_type_modifier::blessing:
-          res = "Cancel @[H]Missionary@[] status";
+          res = "Cancel [Missionary] status";
           break;
         case e_unit_type_modifier::horses:
-          res = "Sell @[H]Horses@[]";
+          res = "Sell [Horses]";
           break;
         case e_unit_type_modifier::muskets:
-          res = "Sell @[H]Muskets@[]";
+          res = "Sell [Muskets]";
           break;
         case e_unit_type_modifier::tools: {
           UNWRAP_CHECK( comm, option.commodity_delta );
           CHECK( comm.type == e_commodity::tools );
           CHECK( comm.quantity > 0 );
-          res = fmt::format( "Sell @[H]{} Tools@[]",
+          res = fmt::format( "Sell [{} Tools]",
                              comm.quantity );
           break;
         }
@@ -187,10 +187,10 @@ string harbor_equip_description(
   }
   if( option.money_delta < 0 )
     res +=
-        fmt::format( " (costs @[H]{}@[])", -option.money_delta );
+        fmt::format( " (costs [{}])", -option.money_delta );
   else if( option.money_delta > 0 )
     res +=
-        fmt::format( " (save @[H]{}@[])", option.money_delta );
+        fmt::format( " (save [{}])", option.money_delta );
   res += '.';
   return res;
 }

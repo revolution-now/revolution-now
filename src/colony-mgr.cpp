@@ -98,7 +98,7 @@ wait<bool> present_colony_update(
   switch( notification.to_enum() ) {
     case ColonyNotification::e::new_colonist: {
       msg = fmt::format(
-          "The @[H]{}@[] colony has produced a new colonist.",
+          "The [{}] colony has produced a new colonist.",
           colony.name );
       break;
     }
@@ -106,8 +106,8 @@ wait<bool> present_colony_update(
       auto& o = notification
                     .get<ColonyNotification::colonist_starved>();
       msg = fmt::format(
-          "The @[H]{}@[] colony has run out of food.  As a "
-          "result, a colonist (@[H]{}@[]) has starved.",
+          "The [{}] colony has run out of food.  As a "
+          "result, a colonist ([{}]) has starved.",
           colony.name, unit_attr( o.type ).name );
       break;
     }
@@ -118,13 +118,13 @@ wait<bool> present_colony_update(
         Commodity const& spoiled = o.spoiled[0];
 
         msg = fmt::format(
-            "The store of @[H]{}@[] in @[H]{}@[] has exceeded "
-            "its warehouse capacity.  @[H]{}@[] tons have been "
+            "The store of [{}] in [{}] has exceeded "
+            "its warehouse capacity.  [{}] tons have been "
             "thrown out.",
             spoiled.type, colony.name, spoiled.quantity );
       } else { // multiple
         msg = fmt::format(
-            "Some goods in @[H]{}@[] have exceeded their "
+            "Some goods in [{}] have exceeded their "
             "warehouse capacities and have been thrown out.",
             colony.name );
       }
@@ -134,7 +134,7 @@ wait<bool> present_colony_update(
       auto& o =
           notification.get<ColonyNotification::full_cargo>();
       msg = fmt::format(
-          "A new cargo of @[H]{}@[] is available in @[H]{}@[]!",
+          "A new cargo of [{}] is available in [{}]!",
           lowercase_commodity_display_name( o.what ),
           colony.name );
       break;
@@ -143,8 +143,8 @@ wait<bool> present_colony_update(
       auto& o = notification.get<
           ColonyNotification::construction_missing_tools>();
       msg = fmt::format(
-          "@[H]{}@[] is in need of @[H]{}@[] more @[H]tools@[] "
-          "to complete its construction work on the @[H]{}@[].",
+          "[{}] is in need of [{}] more [tools] "
+          "to complete its construction work on the [{}].",
           colony.name, o.need_tools - o.have_tools,
           construction_name( o.what ) );
       break;
@@ -154,8 +154,8 @@ wait<bool> present_colony_update(
           notification
               .get<ColonyNotification::construction_complete>();
       msg = fmt::format(
-          "@[H]{}@[] has completed its construction of the "
-          "@[H]{}@[]!",
+          "[{}] has completed its construction of the "
+          "[{}]!",
           colony.name, construction_name( o.what ) );
       break;
     }
@@ -163,7 +163,7 @@ wait<bool> present_colony_update(
       auto& o = notification.get<
           ColonyNotification::construction_already_finished>();
       msg = fmt::format(
-          "@[H]{}@[]'s construction of the @[H]{}@[] has "
+          "[{}]'s construction of the [{}] has "
           "already completed, we should change its production "
           "to something else.",
           colony.name, construction_name( o.what ) );
@@ -173,8 +173,8 @@ wait<bool> present_colony_update(
       auto& o = notification.get<
           ColonyNotification::construction_lacking_building>();
       msg = fmt::format(
-          "@[H]{}@[]'s construction of the @[H]{}@[] requires "
-          "the presence of the @[H]{}@[] as a prerequisite, and "
+          "[{}]'s construction of the [{}] requires "
+          "the presence of the [{}] as a prerequisite, and "
           "thus cannot be completed.",
           colony.name, construction_name( o.what ),
           construction_name( Construction::building{
@@ -187,7 +187,7 @@ wait<bool> present_colony_update(
       auto& o = notification.get<
           ColonyNotification::construction_lacking_population>();
       msg = fmt::format(
-          "@[H]{}@[]'s construction of the @[H]{}@[] requires a "
+          "[{}]'s construction of the [{}] requires a "
           "minimum population of {}, but only has a population "
           "of {}.",
           colony.name, construction_name( o.what ),
@@ -198,7 +198,7 @@ wait<bool> present_colony_update(
       auto& o = notification.get<
           ColonyNotification::run_out_of_raw_material>();
       msg = fmt::format(
-          "@[H]{}@[] has run out of @[H]{}@[], Your Excellency. "
+          "[{}] has run out of [{}], Your Excellency. "
           " Our {} cannot continue production until the supply "
           "is increased.",
           colony.name, o.what,
@@ -210,20 +210,20 @@ wait<bool> present_colony_update(
           ColonyNotification::sons_of_liberty_increased>();
       msg = fmt::format(
           "Sons of Liberty membership has increased to "
-          "@[H]{}%@[] in @[H]{}@[]!",
+          "[{}%] in [{}]!",
           o.to, colony.name );
       if( o.from < 50 && o.to >= 50 )
         msg += fmt::format(
             "  All colonists will now receive a production "
-            "bonus: @[H]+{}@[] for non-expert workers and "
-            "@[H]+{}@[] for expert workers.",
+            "bonus: [+{}] for non-expert workers and "
+            "[+{}] for expert workers.",
             config_colony.sons_of_liberty_50_bonus_non_expert,
             config_colony.sons_of_liberty_50_bonus_expert );
       if( o.from < 100 && o.to == 100 )
         msg += fmt::format(
             "  All colonists will now receive a production "
-            "bonus: @[H]+{}@[] for non-expert workers and "
-            "@[H]+{}@[] for expert workers.",
+            "bonus: [+{}] for non-expert workers and "
+            "[+{}] for expert workers.",
             config_colony.sons_of_liberty_100_bonus_non_expert,
             config_colony.sons_of_liberty_100_bonus_expert );
       break;
@@ -233,7 +233,7 @@ wait<bool> present_colony_update(
           ColonyNotification::sons_of_liberty_decreased>();
       msg = fmt::format(
           "Sons of Liberty membership has decreased to "
-          "@[H]{}%@[] in @[H]{}@[]!",
+          "[{}%] in [{}]!",
           o.to, colony.name );
       if( o.from == 100 && o.to < 100 )
         msg += fmt::format(
@@ -249,8 +249,8 @@ wait<bool> present_colony_update(
       auto& o =
           notification.get<ColonyNotification::unit_promoted>();
       msg = fmt::format(
-          "A colonist in @[H]{}@[] has learned the specialty "
-          "profession @[H]{}@[]!",
+          "A colonist in [{}] has learned the specialty "
+          "profession [{}]!",
           colony.name, unit_attr( o.promoted_to ).name );
       break;
     }
@@ -261,23 +261,23 @@ wait<bool> present_colony_update(
         case e_unit_type::petty_criminal:
           CHECK( o.to == e_unit_type::indentured_servant );
           msg = fmt::format(
-              "A @[H]Petty Criminal@[] in @[H]{}@[] has been "
-              "promoted to @[H]Indentured Servant@[] through "
+              "A [Petty Criminal] in [{}] has been "
+              "promoted to [Indentured Servant] through "
               "education.",
               colony.name );
           break;
         case e_unit_type::indentured_servant:
           CHECK( o.to == e_unit_type::free_colonist );
           msg = fmt::format(
-              "An @[H]Indentured Servant@[] in @[H]{}@[] has "
-              "been promoted to @[H]Free Colonist@[] through "
+              "An [Indentured Servant] in [{}] has "
+              "been promoted to [Free Colonist] through "
               "education.",
               colony.name );
           break;
         default:
           msg = fmt::format(
-              "A @[H]Free Colonist@[] in @[H]{}@[] has learned "
-              "the specialty profession @[H]{}@[] through "
+              "A [Free Colonist] in [{}] has learned "
+              "the specialty profession [{}] through "
               "education.",
               colony.name, unit_attr( o.to ).name );
           break;
@@ -288,9 +288,9 @@ wait<bool> present_colony_update(
       auto& o = notification.get<
           ColonyNotification::teacher_but_no_students>();
       msg = fmt::format(
-          "We have a teacher in @[H]{}@[] that is teaching the "
+          "We have a teacher in [{}] that is teaching the "
           "specialty "
-          "profession @[H]{}@[], but there are no colonists "
+          "profession [{}], but there are no colonists "
           "available to teach.",
           colony.name, unit_attr( o.teacher_type ).name );
       break;
@@ -303,7 +303,7 @@ wait<bool> present_colony_update(
       string goods;
       for( CustomHouseSale const& sale : o.what )
         goods += fmt::format(
-            "{} {} for {} at a {}% charge yielding @[H]{}@[], ",
+            "{} {} for {} at a {}% charge yielding [{}], ",
             sale.invoice.what.quantity, sale.invoice.what.type,
             sale.invoice.money_delta_before_taxes,
             sale.invoice.tax_rate,
@@ -312,7 +312,7 @@ wait<bool> present_colony_update(
       goods.resize( goods.size() - 2 );
       goods += '.';
       msg = fmt::format(
-          "The @[H]Custom House@[] in @[H]{}@[] has sold the "
+          "The [Custom House] in [{}] has sold the "
           "following goods: {}",
           colony.name, goods );
       break;
@@ -416,7 +416,7 @@ wait<> run_colony_starvation( Planes& planes, SS& ss, TS& ts,
                               Colony& colony ) {
   // Must extract this info before destroying the colony.
   string const msg = fmt::format(
-      "@[H]{}@[] ran out of food and was not able to support "
+      "[{}] ran out of food and was not able to support "
       "its last remaining colonists.  As a result, the colony "
       "has disappeared.",
       colony.name );
@@ -729,7 +729,7 @@ wait<> run_colony_destruction( Planes& planes, SS& ss, TS& ts,
         ss.units.check_euro_unit( generic_id );
     if( !ss.units.unit_for( unit_id ).desc().ship ) continue;
     string const msg = fmt::format(
-        "@[H]{}@[] had ships in its port that are now exposed "
+        "[{}] had ships in its port that are now exposed "
         "on land.  We should move them into the ocean soon "
         "since they are vulnerable and weak while in the "
         "abandoned colony port.",

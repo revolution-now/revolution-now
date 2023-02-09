@@ -103,7 +103,7 @@ TEST_CASE( "[orders-road] native-owned land" ) {
   SECTION( "cancel" ) {
     auto config_matcher =
         Field( &ChoiceConfig::msg,
-               StrContains( "Carving a @[H]road@[]" ) );
+               StrContains( "Carving a [road]" ) );
     EXPECT_CALL( W.gui(), choice( std::move( config_matcher ),
                                   e_input_required::no ) )
         .returns<maybe<string>>( "cancel" );
@@ -120,7 +120,7 @@ TEST_CASE( "[orders-road] native-owned land" ) {
   SECTION( "take" ) {
     auto config_matcher =
         Field( &ChoiceConfig::msg,
-               StrContains( "Carving a @[H]road@[]" ) );
+               StrContains( "Carving a [road]" ) );
     EXPECT_CALL( W.gui(), choice( std::move( config_matcher ),
                                   e_input_required::no ) )
         .returns<maybe<string>>( "take" );

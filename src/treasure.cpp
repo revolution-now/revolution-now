@@ -134,7 +134,7 @@ wait<maybe<TreasureReceipt>> treasure_enter_colony(
       break;
     case e_treasure_transport_mode::king_no_extra_charge:
       msg +=
-          "and we will do so for @[H]no extra charge@[], only "
+          "and we will do so for [no extra charge], only "
           "withholding an amount determined by the current tax "
           "rate.";
       break;
@@ -166,23 +166,23 @@ wait<> show_treasure_receipt( TS& ts, Player const& player,
     case e_treasure_transport_mode::player:
       msg = fmt::format(
           "Treasure worth {} reimbursed in {} yielding "
-          "@[H]{}@[] after {}% taxes witheld.",
+          "[{}] after {}% taxes witheld.",
           receipt.original_worth, harbor_name,
           receipt.net_received, receipt.kings_cut_percent );
       break;
     case e_treasure_transport_mode::king_with_charge:
       msg = fmt::format(
           "Treasure worth {} arrives in {}!  The crown has "
-          "provided a reimbursement of @[H]{}@[] after a "
-          "@[H]{}%@[] witholding.",
+          "provided a reimbursement of [{}] after a "
+          "[{}%] witholding.",
           receipt.original_worth, harbor_name,
           receipt.net_received, receipt.kings_cut_percent );
       break;
     case e_treasure_transport_mode::king_no_extra_charge:
       msg = fmt::format(
           "Treasure worth {} arrives in {}!  The crown has "
-          "provided a reimbursement of @[H]{}@[] after a "
-          "@[H]{}%@[] tax witholding.",
+          "provided a reimbursement of [{}] after a "
+          "[{}%] tax witholding.",
           receipt.original_worth, harbor_name,
           receipt.net_received, receipt.kings_cut_percent );
       break;

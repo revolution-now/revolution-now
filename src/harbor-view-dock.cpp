@@ -104,7 +104,7 @@ vector<HarborDockUnits::UnitWithPosition> HarborDockUnits::units(
 wait<> HarborDockUnits::click_on_unit( UnitId unit_id ) {
   Unit const&  unit = ss_.units.unit_for( unit_id );
   ChoiceConfig config{
-      .msg = fmt::format( "European dock options for @[H]{}@[]:",
+      .msg = fmt::format( "European dock options for [{}]:",
                           unit.desc().name ),
       .options = {},
       .sort    = false,

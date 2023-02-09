@@ -263,7 +263,7 @@ wait<maybe<UnitId>> check_for_new_immigrant(
         ts.rand.between_ints( 0, 2, e_interval::closed );
     string msg = fmt::format(
         "Word of religious freedom has spread! A new immigrant "
-        "(@[H]{}@[]) has arrived on the docks.",
+        "([{}]) has arrived on the docks.",
         unit_attr( player.old_world.immigration
                        .immigrants_pool[immigrant_idx] )
             .name );

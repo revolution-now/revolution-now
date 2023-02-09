@@ -43,14 +43,14 @@ struct PlowHandler : public OrdersHandler {
     Unit const& unit = ss_.units.unit_for( unit_id_ );
     if( unit.type() == e_unit_type::hardy_colonist ) {
       co_await ts_.gui.message_box(
-          "This @[H]Hardy Pioneer@[] requires at least 20 tools "
+          "This [Hardy Pioneer] requires at least 20 tools "
           "to plow." );
       co_return false;
     }
     if( unit.type() != e_unit_type::pioneer &&
         unit.type() != e_unit_type::hardy_pioneer ) {
       co_await ts_.gui.message_box(
-          "Only @[H]Pioneers@[] and @[H]Hardy Pioneers@[] can "
+          "Only [Pioneers] and [Hardy Pioneers] can "
           "plow." );
       co_return false;
     }
@@ -74,7 +74,7 @@ struct PlowHandler : public OrdersHandler {
     }
     if( !can_plow( ss_.terrain, tile ) ) {
       co_await ts_.gui.message_box(
-          "@[H]{}@[] tiles cannot be plowed or cleared.",
+          "[{}] tiles cannot be plowed or cleared.",
           effective_terrain( ss_.terrain.square_at( tile ) ) );
       co_return false;
     }

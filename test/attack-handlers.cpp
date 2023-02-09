@@ -179,7 +179,7 @@ struct World : testing::World {
   void expect_tribe_wiped_out( string_view tribe_name ) {
     EXPECT_CALL( gui(),
                  message_box( fmt::format(
-                     "The @[H]{}@[] tribe has been wiped out.",
+                     "The [{}] tribe has been wiped out.",
                      tribe_name ) ) )
         .returns<monostate>();
   }
@@ -675,7 +675,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
         e_unit_type::soldier, e_native_unit_type::brave );
     expect_combat();
     W.expect_some_animation();
-    W.expect_msg_contains( "@[H]Muskets@[] acquired by brave" );
+    W.expect_msg_contains( "[Muskets] acquired by brave" );
     REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
@@ -802,7 +802,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     expect_combat();
     W.expect_some_animation();
     string const missions_burned_msg =
-        "The @[H]Apache@[] revolt against @[H]English@[] "
+        "The [Apache] revolt against [English] "
         "missions! All English missionaries eliminated!";
     EXPECT_CALL( W.gui(), message_box( missions_burned_msg ) )
         .returns<monostate>();
@@ -854,7 +854,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     expect_combat();
     W.expect_some_animation();
     string const missions_burned_msg =
-        "The @[H]Apache@[] revolt against @[H]English@[] "
+        "The [Apache] revolt against [English] "
         "missions! All English missionaries eliminated!";
     EXPECT_CALL( W.gui(), message_box( missions_burned_msg ) )
         .returns<monostate>();
@@ -1010,8 +1010,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     W.expect_some_animation();
     W.expect_promotion();
     EXPECT_CALL( W.gui(),
-                 message_box( "@[H]Apache@[] camp burned by the "
-                              "@[H]English@[]!" ) )
+                 message_box( "[Apache] camp burned by the "
+                              "[English]!" ) )
         .returns<monostate>();
     W.expect_tribe_wiped_out( "Apache" );
 
@@ -1060,12 +1060,12 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     W.expect_some_animation();
     W.expect_promotion();
     EXPECT_CALL( W.gui(),
-                 message_box( "@[H]Apache@[] camp burned by the "
-                              "@[H]English@[]!" ) )
+                 message_box( "[Apache] camp burned by the "
+                              "[English]!" ) )
         .returns<monostate>();
     EXPECT_CALL( W.gui(),
-                 message_box( "The @[H]Apache@[] bow before the "
-                              "might of the @[H]English@[]!" ) )
+                 message_box( "The [Apache] bow before the "
+                              "might of the [English]!" ) )
         .returns<monostate>();
 
     expected = { .order_was_run       = true,
@@ -1119,11 +1119,11 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     EXPECT_CALL(
         W.gui(),
         message_box( fmt::format(
-            "@[H]Apache@[] camp burned by the @[H]English@[]! "
-            "@[H]Missionary@[] flees in panic! Treasure worth "
-            "@[H]123@[] recovered from camp! It will take a "
-            "@[H]Galleon@[] to transport this treasure back to "
-            "@[H]London@[]." ) ) )
+            "[Apache] camp burned by the [English]! "
+            "[Missionary] flees in panic! Treasure worth "
+            "[123] recovered from camp! It will take a "
+            "[Galleon] to transport this treasure back to "
+            "[London]." ) ) )
         .returns<monostate>();
     W.expect_some_animation(); // treasure enpixelation.
     W.expect_tribe_wiped_out( "Apache" );
@@ -1202,8 +1202,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     EXPECT_CALL(
         W.gui(),
         message_box( fmt::format(
-            "@[H]Apache@[] camp burned by the @[H]English@[]! "
-            "@[H]Foreign missionary@[] hanged!" ) ) )
+            "[Apache] camp burned by the [English]! "
+            "[Foreign missionary] hanged!" ) ) )
         .returns<monostate>();
     W.expect_tribe_wiped_out( "Apache" );
 

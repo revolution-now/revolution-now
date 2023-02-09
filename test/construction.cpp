@@ -666,8 +666,8 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
                               .blocked_by_tools_boycott = true };
   player.money = 99;
   msg =
-      "Rushing the construction of the @[H]Frigate@[] requires "
-      "acquiring @[H]5 tools@[], but this is not allowed "
+      "Rushing the construction of the [Frigate] requires "
+      "acquiring [5 tools], but this is not allowed "
       "because tools are currently boycotted in Amsterdam.";
   EXPECT_CALL( W.gui(), message_box( msg ) )
       .returns( make_wait<>() );
@@ -691,7 +691,7 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
                         .needed_tools             = 5,
                         .blocked_by_tools_boycott = false };
   player.money = 99;
-  msg = "Cost to complete @[H]Frigate@[]: 100.  Treasury: 99.";
+  msg = "Cost to complete [Frigate]: 100.  Treasury: 99.";
   EXPECT_CALL( W.gui(), message_box( msg ) )
       .returns( make_wait<>() );
   {
@@ -714,7 +714,7 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
                         .needed_tools             = 5,
                         .blocked_by_tools_boycott = false };
   player.money = 110;
-  msg = "Cost to complete @[H]Frigate@[]: 100.  Treasury: 110.";
+  msg = "Cost to complete [Frigate]: 100.  Treasury: 110.";
   config = ChoiceConfig{
       .msg     = msg,
       .options = {
@@ -744,7 +744,7 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
                         .needed_tools             = 5,
                         .blocked_by_tools_boycott = false };
   player.money = 110;
-  msg = "Cost to complete @[H]Frigate@[]: 100.  Treasury: 110.";
+  msg = "Cost to complete [Frigate]: 100.  Treasury: 110.";
   config = ChoiceConfig{
       .msg     = msg,
       .options = {
@@ -776,7 +776,7 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
   colony.hammers                         = 10;
   colony.commodities[e_commodity::tools] = 5;
   player.money                           = 110;
-  msg = "Cost to complete @[H]Frigate@[]: 100.  Treasury: 110.";
+  msg = "Cost to complete [Frigate]: 100.  Treasury: 110.";
   config = ChoiceConfig{
       .msg     = msg,
       .options = {

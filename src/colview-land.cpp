@@ -246,7 +246,7 @@ wait<base::valid_or<DragRejection>> ColonyLandView::sink_check(
                                   e_colony_building::docks ) ) {
     co_return DragRejection{
         .reason =
-            "We must build @[H]docks@[] in this colony in "
+            "We must build [docks] in this colony in "
             "order to work on sea squares." };
   }
 
@@ -465,7 +465,7 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
         TextMarkupInfo{
             .shadowed_text_color   = gfx::pixel::white(),
             .shadowed_shadow_color = gfx::pixel::black() },
-        fmt::format( "@[S]{}@[]", q_str ) );
+        fmt::format( "@[S]{}]", q_str ) );
   }
 
   // Center square.
@@ -491,7 +491,7 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
         TextMarkupInfo{
             .shadowed_text_color   = gfx::pixel::white(),
             .shadowed_shadow_color = gfx::pixel::black() },
-        fmt::format( "@[S]{}@[]", q_str ) );
+        fmt::format( "@[S]{}]", q_str ) );
   }
 
   // secondary.
@@ -513,7 +513,7 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
         TextMarkupInfo{
             .shadowed_text_color   = gfx::pixel::white(),
             .shadowed_shadow_color = gfx::pixel::black() },
-        fmt::format( "@[S]{}@[]", q_str ) );
+        fmt::format( "@[S]{}]", q_str ) );
   }
 }
 

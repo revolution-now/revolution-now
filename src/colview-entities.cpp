@@ -169,7 +169,7 @@ wait<maybe<ColonyEquipOption>> ask_transorm_unit_on_leave(
   ChoiceConfig config{
       .msg = fmt::format(
           "As this action would abandon the colony and discard "
-          "all of its contents, shall we equip this @[H]{}@[] "
+          "all of its contents, shall we equip this [{}] "
           "before proceeding?",
           unit.desc().name ),
       .options = {},
@@ -457,7 +457,7 @@ class MarketCommodities
     int    min  = 1;
     int    max  = dragging_->quantity;
     string text = fmt::format(
-        "What quantity of @[H]{}@[] would you like to move? "
+        "What quantity of [{}] would you like to move? "
         "({}-{}):",
         lowercase_commodity_display_name( dragging_->type ), min,
         max );
@@ -877,7 +877,7 @@ class CargoView : public ui::View,
     int                     min  = 1;
     int                     max  = comm.obj.quantity;
     string                  text = fmt::format(
-        "What quantity of @[H]{}@[] would you like to move? "
+        "What quantity of [{}] would you like to move? "
                          "({}-{}):",
         lowercase_commodity_display_name( comm.obj.type ), min,
         max );

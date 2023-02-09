@@ -428,7 +428,7 @@ TEST_CASE( "[equip] harbor_equip_description" ) {
       .new_comp        = {},
   };
   REQUIRE( f() ==
-           "Equip with @[H]Horses@[] (costs @[H]300@[])." );
+           "Equip with [Horses] (costs [300])." );
 
   option = {
       .modifier        = e_unit_type_modifier::horses,
@@ -439,7 +439,7 @@ TEST_CASE( "[equip] harbor_equip_description" ) {
                                     .quantity = 50 },
       .new_comp        = {},
   };
-  REQUIRE( f() == "Sell @[H]Horses@[] (save @[H]300@[])." );
+  REQUIRE( f() == "Sell [Horses] (save [300])." );
 
   option = {
       .modifier        = e_unit_type_modifier::muskets,
@@ -451,7 +451,7 @@ TEST_CASE( "[equip] harbor_equip_description" ) {
       .new_comp        = {},
   };
   REQUIRE( f() ==
-           "Arm with @[H]Muskets@[] (costs @[H]300@[])." );
+           "Arm with [Muskets] (costs [300])." );
 
   option = {
       .modifier        = e_unit_type_modifier::muskets,
@@ -462,7 +462,7 @@ TEST_CASE( "[equip] harbor_equip_description" ) {
                                     .quantity = 50 },
       .new_comp        = {},
   };
-  REQUIRE( f() == "Sell @[H]Muskets@[] (save @[H]300@[])." );
+  REQUIRE( f() == "Sell [Muskets] (save [300])." );
 
   option = {
       .modifier        = e_unit_type_modifier::tools,
@@ -474,7 +474,7 @@ TEST_CASE( "[equip] harbor_equip_description" ) {
       .new_comp        = {},
   };
   REQUIRE( f() ==
-           "Equip with @[H]Tools@[] (costs @[H]300@[])." );
+           "Equip with [Tools] (costs [300])." );
 
   option = {
       .modifier        = e_unit_type_modifier::tools,
@@ -485,7 +485,7 @@ TEST_CASE( "[equip] harbor_equip_description" ) {
                                     .quantity = 80 },
       .new_comp        = {},
   };
-  REQUIRE( f() == "Sell @[H]80 Tools@[] (save @[H]300@[])." );
+  REQUIRE( f() == "Sell [80 Tools] (save [300])." );
 
   option = {
       .modifier        = e_unit_type_modifier::blessing,
@@ -495,7 +495,7 @@ TEST_CASE( "[equip] harbor_equip_description" ) {
       .commodity_delta = {},
       .new_comp        = {},
   };
-  REQUIRE( f() == "Bless as @[H]Missionary@[]." );
+  REQUIRE( f() == "Bless as [Missionary]." );
 
   option = {
       .modifier        = e_unit_type_modifier::blessing,
@@ -505,7 +505,7 @@ TEST_CASE( "[equip] harbor_equip_description" ) {
       .commodity_delta = {},
       .new_comp        = {},
   };
-  REQUIRE( f() == "Cancel @[H]Missionary@[] status." );
+  REQUIRE( f() == "Cancel [Missionary] status." );
 }
 
 TEST_CASE( "[equip] perform_harbor_equip_option" ) {

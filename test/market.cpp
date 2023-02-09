@@ -119,7 +119,7 @@ TEST_CASE( "[market] display_price_change_notification" ) {
   change = create_price_change( W.default_player(),
                                 e_commodity::ore, 3 );
   EXPECT_CALL( W.gui(),
-               message_box( "The price of @[H]ore@[] in La "
+               message_box( "The price of [ore] in La "
                             "Rochelle has risen to 13." )
                    .returns( make_wait<>() ) );
   w = f();
@@ -129,7 +129,7 @@ TEST_CASE( "[market] display_price_change_notification" ) {
   change = create_price_change( W.default_player(),
                                 e_commodity::ore, -1 );
   EXPECT_CALL( W.gui(),
-               message_box( "The price of @[H]ore@[] in La "
+               message_box( "The price of [ore] in La "
                             "Rochelle has fallen to 9." )
                    .returns( make_wait<>() ) );
   w = f();

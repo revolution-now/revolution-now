@@ -68,9 +68,9 @@ maybe<e_rpt_button> HarborRptButtons::button_for_coord(
 string HarborRptButtons::button_text_markup(
     e_rpt_button button ) {
   switch( button ) {
-    case e_rpt_button::recruit: return "@[H]R@[]ecruit";
-    case e_rpt_button::purchase: return "@[H]P@[]urchase";
-    case e_rpt_button::train: return "@[H]T@[]rain";
+    case e_rpt_button::recruit: return "[R]ecruit";
+    case e_rpt_button::purchase: return "[P]urchase";
+    case e_rpt_button::train: return "[T]rain";
   }
 }
 

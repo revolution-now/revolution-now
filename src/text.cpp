@@ -13,8 +13,7 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "logger.hpp"
-#include "maybe.hpp"
+#include "markup.hpp"
 
 // base
 #include "base/range-lite.hpp"
@@ -32,112 +31,6 @@ namespace {
 namespace rl = ::base::rl;
 
 /****************************************************************
-** Markup Parsing
-*****************************************************************/
-/*
- * // The below is a parsco parser for this markup DSL if it will
- * // ever be of interest.
- *
- * struct markup_lang {};
- *
- * struct text {
- *   text( string s_ ) : s( std::move( s_ ) ) {}
- *   string s;
- * };
- *
- * struct markup {
- *   markup( string s ) : contents( std::move( s ) ) {}
- *   string contents;
- * };
- *
- * using item = base::variant<text, markup>;
- *
- * struct doc {
- *   doc( vector<item> v ) : items( std::move( v ) ) {}
- *   vector<item> items;
- * };
- *
- * parser<text> parser_for( lang<markup_lang>, tag<text> ) {
- *   auto at = [] { return str( "@@" ) >> ret( '@' ); };
- *   return emplace<text>( many1_L( not_of( "@" ) | at() ) );
- * }
- *
- * parser<markup> parser_for( lang<markup_lang>, tag<markup> ) {
- *   return construct<markup>(
- *       chr( '@' ) >>
- *       bracketed( '[', many( one_of, "HS" ), ']' ) );
- * }
- *
- * parser<doc> parser_for( lang<markup_lang>, tag<doc> ) {
- *   return construct<doc>(
- *       exhaust( many_type<markup_lang, item>() ) );
- * }
- */
-
-struct MarkupStyle {
-  bool highlight{ false };
-  bool shadow{ false };
-};
-NOTHROW_MOVE( MarkupStyle );
-
-struct MarkedUpText {
-  string      text{};
-  MarkupStyle style{};
-};
-NOTHROW_MOVE( MarkedUpText );
-
-auto parse_markup( string_view sv ) -> maybe<MarkupStyle> {
-  if( sv.size() == 0 ) return MarkupStyle{};
-  if( sv.size() != 1 ) return nothing; // parsing failed
-  switch( sv[0] ) {
-    case '@': return MarkupStyle{};
-    case 'H': return MarkupStyle{ .highlight = true };
-    case 'S': return MarkupStyle{ .shadow = true };
-  }
-  return nothing; // parsing failed.
-}
-
-vector<vector<MarkedUpText>> parse_text( string_view text ) {
-  vector<string> lines = base::str_split( text, '\n' );
-  vector<vector<MarkedUpText>> line_frags;
-  line_frags.reserve( lines.size() );
-  MarkupStyle curr_style{};
-  for( auto sline : lines ) {
-    string_view          line = sline;
-    vector<MarkedUpText> line_mkup;
-    auto                 start = line.begin();
-    auto                 end   = line.end();
-    while( true ) {
-      auto at_sign = find( start, end, '@' );
-      if( at_sign - start > 0 )
-        line_mkup.push_back(
-            { string( start, at_sign - start ), curr_style } );
-      if( at_sign == end ) break;
-      CHECK( end - at_sign > 1, "internal parser error" );
-      CHECK( *at_sign == '@', "internal parser error" );
-      CHECK( end - at_sign >= 3,
-             "markup syntax error: `@` must be followed by "
-             "`[...]`" );
-      CHECK( *( at_sign + 1 ) == '[',
-             "markup syntax error: missing `[` after `@`" );
-      auto markup_start = at_sign + 2;
-      auto markup_end   = find( markup_start, end, ']' );
-      CHECK( markup_end != end,
-             "markup syntax error: missing closing `]`" );
-      auto markup =
-          string_view( markup_start, markup_end - markup_start );
-      auto maybe_markup = parse_markup( markup );
-      CHECK( maybe_markup, "failed to parse markup: `{}`",
-             markup );
-      curr_style = *maybe_markup;
-      start      = markup_end + 1;
-    }
-    line_frags.emplace_back( std::move( line_mkup ) );
-  }
-  return line_frags;
-}
-
-/****************************************************************
 ** Rendering
 *****************************************************************/
 void render_impl( rr::Typer& typer, gfx::pixel color,
@@ -146,7 +39,7 @@ void render_impl( rr::Typer& typer, gfx::pixel color,
   typer.write( text );
 }
 
-void render_markup( rr::Typer& typer, MarkedUpText const& mk,
+void render_markup( rr::Typer& typer, MarkedUpChunk const& mk,
                     TextMarkupInfo const& info ) {
   if( mk.style.highlight ) {
     render_impl( typer, info.highlight, mk.text );
@@ -186,10 +79,10 @@ void render_line( rr::Typer& typer, gfx::pixel fg,
   return render_impl( typer, fg, text );
 }
 
-void render_line_markup( rr::Typer&                  typer,
-                         vector<MarkedUpText> const& mks,
-                         TextMarkupInfo const&       info ) {
-  for( MarkedUpText const& mut : mks )
+void render_line_markup( rr::Typer&                   typer,
+                         vector<MarkedUpChunk> const& mks,
+                         TextMarkupInfo const&        info ) {
+  for( MarkedUpChunk const& mut : mks )
     if( !mut.text.empty() ) //
       render_markup( typer, mut, info );
 }
@@ -203,19 +96,20 @@ void render_lines( rr::Typer& typer, gfx::pixel fg,
 }
 
 void render_lines_markup(
-    rr::Typer&                          typer,
-    vector<vector<MarkedUpText>> const& mk_text,
-    TextMarkupInfo const&               info ) {
-  for( vector<MarkedUpText> const& muts : mk_text ) {
+    rr::Typer&                           typer,
+    vector<vector<MarkedUpChunk>> const& mk_text,
+    TextMarkupInfo const&                info ) {
+  for( vector<MarkedUpChunk> const& muts : mk_text ) {
     render_line_markup( typer, muts, info );
     render_impl( typer, gfx::pixel{}, "\n" );
     // If there was any shadowed text on this line then we need
     // to add one additional pixel (vertically) of space when
     // moving to the next line.
-    bool has_shadow = std::any_of(
-        muts.begin(), muts.end(), []( MarkedUpText const& mut ) {
-          return mut.style.shadow;
-        } );
+    bool has_shadow =
+        std::any_of( muts.begin(), muts.end(),
+                     []( MarkedUpChunk const& mut ) {
+                       return mut.style.shadow;
+                     } );
     if( has_shadow )
       typer.move_frame_by( gfx::size{ .w = 0, .h = 1 } );
   }
@@ -235,15 +129,15 @@ void render_lines_markup(
 //   Steps:
 //     1) Split text into words and strip each one of all spaces
 //     2) Join words into one long line separated by spaces
-//     3) Parse long line for markup, yielding Vec<MarkedUpText>
+//     3) Parse long line for markup, yielding Vec<MarkedUpChunk>
 //     4) Extract text from markup results.  This should be the
 //        line from #2 but without any markup.
 //     5) Wrap the line from #4
 //     6) Re-flow the marked up line from #3 into lines of length
 //        corresponding to the wrapped lines from #5, resulting
-//        in a vector<vector<MarkedUpText>>.
+//        in a vector<vector<MarkedUpChunk>>.
 
-vector<vector<MarkedUpText>> text_markup_reflow_impl(
+vector<vector<MarkedUpChunk>> text_markup_reflow_impl(
     TextReflowInfo const& reflow_info, string_view text ) {
   // (1)
   auto words = util::split_strip_any( text, " \t\r\n" );
@@ -252,9 +146,9 @@ vector<vector<MarkedUpText>> text_markup_reflow_impl(
   auto text_one_line = util::join( words, " " );
 
   // (3)
-  auto mk_texts = parse_text( text_one_line );
-  CHECK( mk_texts.size() == 1 );
-  auto mk_text = std::move( mk_texts[0] );
+  UNWRAP_CHECK( mk_texts, parse_markup( text_one_line ) );
+  CHECK( mk_texts.chunks.size() == 1 );
+  auto mk_text = std::move( mk_texts.chunks[0] );
 
   // (4)
   auto non_mk_text =
@@ -265,7 +159,7 @@ vector<vector<MarkedUpText>> text_markup_reflow_impl(
       util::wrap_text( non_mk_text, reflow_info.max_cols );
 
   // (6)
-  vector<vector<MarkedUpText>> reflowed;
+  vector<vector<MarkedUpChunk>> reflowed;
   reflowed.resize( wrapped.size() );
   // mk_pos tracks the current item in mk_text and mk_char_pos
   // tracks the current character in the current mk_text element.
@@ -275,10 +169,10 @@ vector<vector<MarkedUpText>> text_markup_reflow_impl(
   for( auto p : rl::zip( wrapped, reflowed ) ) {
     auto& [line, reflowed_line] = p;
     int target_size             = int( line.size() );
-    // Keep using up MarkedUpText elements (or parts of them)
+    // Keep using up MarkedUpChunk elements (or parts of them)
     // until we have exausted this line of text. This loop body
     // is messy because in general we must consume partial
-    // MarkedUpText elements in each iteration.
+    // MarkedUpChunk elements in each iteration.
     while( target_size > 0 ) {
       CHECK( mk_pos < int( mk_text.size() ) );
       auto chunk_size = int( mk_text[mk_pos].text.size() );
@@ -291,8 +185,8 @@ vector<vector<MarkedUpText>> text_markup_reflow_impl(
           chunk_size - mk_char_pos - to_consume;
       CHECK( remaining_after_consume >= 0 );
       CHECK( remaining_after_consume <= chunk_size );
-      MarkedUpText new_mk_text = mk_text[mk_pos];
-      string_view  sv          = new_mk_text.text;
+      MarkedUpChunk new_mk_text = mk_text[mk_pos];
+      string_view   sv          = new_mk_text.text;
       sv.remove_prefix( mk_char_pos );
       sv.remove_suffix( remaining_after_consume );
       new_mk_text.text = string( sv );
@@ -343,7 +237,8 @@ void render_text_markup( rr::Renderer& renderer,
   (void)font; // TODO
   // The color will be set later.
   rr::Typer typer = renderer.typer( where, gfx::pixel{} );
-  render_lines_markup( typer, parse_text( text ), info );
+  UNWRAP_CHECK( mk_texts, parse_markup( text ) );
+  render_lines_markup( typer, mk_texts.chunks, info );
 }
 
 void render_text( rr::Renderer& renderer, gfx::point where,
@@ -365,7 +260,7 @@ void render_text_markup_reflow(
     TextMarkupInfo const& markup_info,
     TextReflowInfo const& reflow_info, string_view text ) {
   (void)font; // TODO
-  vector<vector<MarkedUpText>> markedup_reflowed =
+  vector<vector<MarkedUpChunk>> markedup_reflowed =
       text_markup_reflow_impl( reflow_info, text );
   // The color will be set later.
   rr::Typer typer = renderer.typer( where, gfx::pixel{} );
@@ -390,15 +285,15 @@ string remove_markup( string_view text ) {
 
 Delta rendered_text_size( TextReflowInfo const& reflow_info,
                           string_view           text ) {
-  vector<vector<MarkedUpText>> lines =
+  vector<vector<MarkedUpChunk>> lines =
       text_markup_reflow_impl( reflow_info, text );
   gfx::size const kCharSize =
       rr::rendered_text_line_size_pixels( "X" );
   Delta res;
   res.h = H{ kCharSize.h * int( lines.size() ) };
-  for( vector<MarkedUpText> const& line : lines ) {
+  for( vector<MarkedUpChunk> const& line : lines ) {
     W line_width{};
-    for( MarkedUpText const& segment : line )
+    for( MarkedUpChunk const& segment : line )
       line_width +=
           W{ int( segment.text.size() ) * kCharSize.w };
     res.w = std::max( res.w, line_width );

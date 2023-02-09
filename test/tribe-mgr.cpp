@@ -346,7 +346,7 @@ TEST_CASE( "[tribe-mgr] destroy_tribe_interactive" ) {
   EXPECT_CALL(
       W.gui(),
       message_box(
-          "The @[H]Aztec@[] tribe has been wiped out." ) )
+          "The [Aztec] tribe has been wiped out." ) )
       .returns<monostate>();
   wait<> const w = destroy_tribe_interactive( W.ss(), W.ts(),
                                               e_tribe::aztec );

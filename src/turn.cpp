@@ -121,9 +121,9 @@ wait<> advance_time( IGui& gui, TurnTimePoint& time_point ) {
   if( time_point.year == 1600 &&
       time_point.season == e_season::spring )
     co_await gui.message_box(
-        "Starting in the year @[H]1600@[] the time scale "
+        "Starting in the year [1600] the time scale "
         "changes.  Henceforth there will be both a "
-        "@[H]Spring@[] and a @[H]Fall@[] turn each year." );
+        "[Spring] and a [Fall] turn each year." );
   bool const two_turns = ( time_point.year >= 1600 );
   switch( time_point.season ) {
     case e_season::winter:
@@ -662,7 +662,7 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
         o.has_value() && o->yield.has_value() ) {
       LumberYield const& yield = *o->yield;
       string const       msg   = fmt::format(
-          "Forest cleared near @[H]{}@[].  @[H]{}@[] lumber "
+          "Forest cleared near [{}].  [{}] lumber "
                   "added to colony's stockpile.",
           ss.colonies.colony_for( yield.colony_id ).name,
           yield.yield_to_add_to_colony );
@@ -701,7 +701,7 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
                     .sailed_from );
         if( !dst_coord.has_value() ) {
           co_await ts.gui.message_box(
-              "Unfortunately, while our @[H]{}@[] has arrived "
+              "Unfortunately, while our [{}] has arrived "
               "in the new world, there are no appropriate water "
               "squares on which to place it.  We will try again "
               "next turn.",

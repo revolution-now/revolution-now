@@ -119,7 +119,7 @@ wait<> HarborOutboundShips::click_on_unit( UnitId unit_id ) {
     Unit const&  unit = ss_.units.unit_for( unit_id );
     ChoiceConfig config{
         .msg = fmt::format(
-            "European harbor options for @[H]{}@[]:",
+            "European harbor options for [{}]:",
             unit.desc().name ),
         .options = {},
         .sort    = false,

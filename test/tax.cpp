@@ -81,10 +81,10 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
     player.money = 32;
 
     string const expected_msg =
-        "@[H]Food@[] is currently under Parliamentary boycott. "
+        "[Food] is currently under Parliamentary boycott. "
         "We cannot trade food until Parliament lifts the "
         "boycott, which it will not do unless we agree to pay "
-        "@[H]33@[] in back taxes. Treasury: 32.";
+        "[33] in back taxes. Treasury: 32.";
     EXPECT_CALL( W.gui(), message_box( expected_msg ) )
         .returns( make_wait<>() );
 
@@ -99,10 +99,10 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
     player.money = 33;
 
     string const expected_msg =
-        "@[H]Muskets@[] are currently under Parliamentary "
+        "[Muskets] are currently under Parliamentary "
         "boycott. We cannot trade muskets until Parliament "
         "lifts the boycott, which it will not do unless we "
-        "agree to pay @[H]33@[] in back taxes.";
+        "agree to pay [33] in back taxes.";
     ChoiceConfig const config{
         .msg     = expected_msg,
         .options = {
@@ -113,7 +113,7 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
             },
             ChoiceConfigOption{
                 .key          = "yes",
-                .display_name = "Pay @[H]33@[].",
+                .display_name = "Pay [33].",
             } } };
     EXPECT_CALL( W.gui(),
                  choice( config, e_input_required::yes ) )
@@ -130,10 +130,10 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
     player.money = 34;
 
     string const expected_msg =
-        "@[H]Tools@[] are currently under Parliamentary "
+        "[Tools] are currently under Parliamentary "
         "boycott. We cannot trade tools until Parliament "
         "lifts the boycott, which it will not do unless we "
-        "agree to pay @[H]33@[] in back taxes.";
+        "agree to pay [33] in back taxes.";
     ChoiceConfig const config{
         .msg     = expected_msg,
         .options = {
@@ -144,7 +144,7 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
             },
             ChoiceConfigOption{
                 .key          = "yes",
-                .display_name = "Pay @[H]33@[].",
+                .display_name = "Pay [33].",
             } } };
     EXPECT_CALL( W.gui(),
                  choice( config, e_input_required::yes ) )
@@ -291,7 +291,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
     expected = TaxChangeResult::tax_change{ .amount = -13 };
     string const expected_msg =
         "The crown has graciously decided to LOWER your tax "
-        "rate by @[H]13%@[].  The tax rate is now @[H]37%@[].";
+        "rate by [13%].  The tax rate is now [37%].";
     EXPECT_CALL( W.gui(), message_box( expected_msg ) )
         .returns( make_wait<>() );
     REQUIRE( f() == expected );
@@ -303,8 +303,8 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
     expected = TaxChangeResult::tax_change{ .amount = 13 };
     string const expected_msg =
         "In honor of our marriage to our 8th wife, we have "
-        "decided to raise your tax rate by @[H]13%@[].  The tax "
-        "rate is now @[H]63%@[]. We will graciously allow you "
+        "decided to raise your tax rate by [13%].  The tax "
+        "rate is now [63%]. We will graciously allow you "
         "to kiss our royal pinky ring.";
     EXPECT_CALL( W.rand(),
                  between_ints( 1, 3, e_interval::closed ) )
@@ -329,8 +329,8 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
     expected = TaxChangeResult::tax_change{ .amount = 13 };
     string const expected_msg =
         "In honor of our marriage to our 8th wife, we have "
-        "decided to raise your tax rate by @[H]13%@[].  The tax "
-        "rate is now @[H]63%@[]. We will graciously allow you "
+        "decided to raise your tax rate by [13%].  The tax "
+        "rate is now [63%]. We will graciously allow you "
         "to kiss our royal pinky ring.";
     // Re-marriage number.
     EXPECT_CALL( W.rand(),
@@ -346,7 +346,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
             ChoiceConfigOption{
                 .key = "no",
                 .display_name =
-                    "Hold '@[H]my colony Cigars party@[]'!",
+                    "Hold '[my colony Cigars party]'!",
             } } };
     EXPECT_CALL( W.gui(),
                  choice( config, e_input_required::yes ) )
@@ -369,8 +369,8 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
     expected = TaxChangeResult::party{ .how = party };
     string const expected_msg =
         "In honor of our marriage to our 8th wife, we have "
-        "decided to raise your tax rate by @[H]13%@[].  The tax "
-        "rate is now @[H]63%@[]. We will graciously allow you "
+        "decided to raise your tax rate by [13%].  The tax "
+        "rate is now [63%]. We will graciously allow you "
         "to kiss our royal pinky ring.";
     // Re-marriage number.
     EXPECT_CALL( W.rand(),
@@ -386,7 +386,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
             ChoiceConfigOption{
                 .key = "no",
                 .display_name =
-                    "Hold '@[H]my colony Cigars party@[]'!",
+                    "Hold '[my colony Cigars party]'!",
             } } };
     EXPECT_CALL( W.gui(),
                  choice( config, e_input_required::yes ) )
@@ -636,8 +636,8 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
 
   string const expected_msg =
       "In honor of our marriage to our 8th wife, we have "
-      "decided to raise your tax rate by @[H]3%@[].  The tax "
-      "rate is now @[H]75%@[]. We will graciously allow you "
+      "decided to raise your tax rate by [3%].  The tax "
+      "rate is now [75%]. We will graciously allow you "
       "to kiss our royal pinky ring.";
   // Re-marriage number.
   EXPECT_CALL( W.rand(),
@@ -653,16 +653,16 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
           ChoiceConfigOption{
               .key = "no",
               .display_name =
-                  "Hold '@[H]my colony 2 Trade Goods party@[]'!",
+                  "Hold '[my colony 2 Trade Goods party]'!",
           } } };
   EXPECT_CALL( W.gui(), choice( config, e_input_required::yes ) )
       .returns( make_wait<maybe<string>>( "no" ) );
   REQUIRE( player.old_world.taxes.tax_rate == 72 );
 
   string const boycott_msg =
-      "Colonists in my colony 2 hold @[H]Trade Goods Party@[]!  "
+      "Colonists in my colony 2 hold [Trade Goods Party]!  "
       "Amid colonists' refusal to pay new tax, Sons of Liberty "
-      "throw @[H]80@[] tons of trade goods into the sea!  The "
+      "throw [80] tons of trade goods into the sea!  The "
       "Dutch Parliament announces boycott of trade goods.  "
       "Trade Goods cannot be traded in Amsterdam until boycott "
       "is lifted.";

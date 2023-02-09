@@ -176,7 +176,7 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
       .net_received      = 90 };
   msg =
       "Treasure worth 100 reimbursed in Amsterdam yielding "
-      "@[H]90@[] after 10% taxes witheld.";
+      "[90] after 10% taxes witheld.";
   EXPECT_CALL( W.gui(), message_box( msg ) )
       .returns( monostate{} );
   f();
@@ -189,7 +189,7 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
               .net_received      = 90 };
   msg =
       "Treasure worth 100 arrives in Amsterdam!  The crown has "
-      "provided a reimbursement of @[H]90@[] after a @[H]10%@[] "
+      "provided a reimbursement of [90] after a [10%] "
       "witholding.";
   EXPECT_CALL( W.gui(), message_box( msg ) )
       .returns( monostate{} );
@@ -204,7 +204,7 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
       .net_received      = 90 };
   msg =
       "Treasure worth 100 arrives in Amsterdam!  The crown has "
-      "provided a reimbursement of @[H]90@[] after a @[H]10%@[] "
+      "provided a reimbursement of [90] after a [10%] "
       "tax witholding.";
   EXPECT_CALL( W.gui(), message_box( msg ) )
       .returns( monostate{} );
@@ -274,7 +274,7 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
       "acquired. Seeing that you don't have a fleet of Galleons "
       "with which to transport this treasure to Amsterdam we "
       "will happily transport it for you, and we will do so for "
-      "@[H]no extra charge@[], only withholding an amount "
+      "[no extra charge], only withholding an amount "
       "determined by the current tax rate.";
   config = ChoiceConfig{
       .msg     = msg,

@@ -862,7 +862,7 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
         .returns<monostate>();
     EXPECT_CALL( W.gui(),
                  message_box( StrContains(
-                     "promoted to @[H]Seasoned Scout@[]" ) ) )
+                     "promoted to [Seasoned Scout]" ) ) )
         .returns<monostate>();
     f();
     REQUIRE( player.money == 0 );
@@ -939,16 +939,16 @@ TEST_CASE( "[enter-dwelling] do_establish_mission" ) {
 
   outcome = { .reaction = e_missionary_reaction::curiosity };
   msg =
-      "@[H]English@[] mission established in @[H]Inca@[] city "
-      "in the year 1501. The Inca react with @[H]curiosity@[].";
+      "[English] mission established in [Inca] city "
+      "in the year 1501. The Inca react with [curiosity].";
   EXPECT_CALL( W.gui(), message_box( msg ) )
       .returns<monostate>();
   f();
 
   outcome = { .reaction = e_missionary_reaction::hostility };
   msg =
-      "@[H]English@[] mission established in @[H]Inca@[] city "
-      "in the year 1501. The Inca react with @[H]hostility@[].";
+      "[English] mission established in [Inca] city "
+      "in the year 1501. The Inca react with [hostility].";
   EXPECT_CALL( W.gui(), message_box( msg ) )
       .returns<monostate>();
   f();

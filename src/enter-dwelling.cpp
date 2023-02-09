@@ -235,13 +235,12 @@ string const& reaction_str(
     e_enter_dwelling_reaction reaction ) {
   switch( reaction ) {
     case e_enter_dwelling_reaction::wave_happily: {
-      static string const msg =
-          "They wave to you @[H]happily@[].";
+      static string const msg = "They wave to you [happily].";
       return msg;
     }
     case e_enter_dwelling_reaction::wave_happily_with_scalps: {
       static string const msg =
-          "They wave to you @[H]happily@[], though you notice "
+          "They wave to you [happily], though you notice "
           "some scalps hanging from trees in the distance.";
       return msg;
     }
@@ -286,13 +285,13 @@ string_view reaction_to_mission(
     e_missionary_reaction reaction ) {
   switch( reaction ) {
     case e_missionary_reaction::curiosity:
-      return "react with @[H]curiosity@[]";
+      return "react with [curiosity]";
     case e_missionary_reaction::cautious:
-      return "react with @[H]caution@[]";
+      return "react with [caution]";
     case e_missionary_reaction::offended:
-      return "are @[H]offended@[]";
+      return "are [offended]";
     case e_missionary_reaction::hostility:
-      return "react with @[H]hostility@[]";
+      return "react with [hostility]";
   }
 }
 
@@ -322,7 +321,7 @@ wait<e_enter_dwelling_option> present_dwelling_entry_options(
       ss.natives.dwelling_for( options.dwelling_id );
   e_tribe const tribe = ss.natives.tribe_for( dwelling.id ).type;
   string        msg   = fmt::format(
-      "You have arrived at a {} of the @[H]{}@[].  {}",
+      "You have arrived at a {} of the [{}].  {}",
       config_natives
           .dwelling_types[config_natives.tribes[tribe].level]
           .name_singular,
@@ -389,9 +388,9 @@ wait<> do_live_among_the_natives(
     }
     case e::petty_criminal: {
       co_await ts.gui.message_box(
-          "The unrefined ways of this @[H]Petty Criminal@[] "
+          "The unrefined ways of this [Petty Criminal] "
           "resist any efforts of education.  Please bring us a "
-          "@[H]Free Colonist@[] or an @[H]Indentured Servant@[] "
+          "[Free Colonist] or an [Indentured Servant] "
           "and we will teach them." );
       co_return;
     }
@@ -416,9 +415,9 @@ wait<> do_live_among_the_natives(
     }
     case e::has_expertise: {
       co_await ts.gui.message_box(
-          "Friend, you are a great @[H]{}@[].  We can only "
+          "Friend, you are a great [{}].  We can only "
           "teach new skills to unskilled colonists.  Bring us a "
-          "@[H]Free Colonist@[] or @[H]Indentured Servant@[] "
+          "[Free Colonist] or [Indentured Servant] "
           "and we will train them.",
           unit_attr( unit.base_type() ).name );
       co_return;
@@ -439,7 +438,7 @@ wait<> do_live_among_the_natives(
       string const msg = fmt::format(
           "Young colonist, we see that you have much to learn.  "
           "You may live among us and learn the ways of the "
-          "@[H]{}@[] from the wise {} people.  Would you like "
+          "[{}] from the wise {} people.  Would you like "
           "to learn this skill?",
           new_name, tribe_name );
       maybe<ui::e_confirm> const yes_no =
@@ -464,7 +463,7 @@ wait<> do_live_among_the_natives(
         dwelling.has_taught = true;
         co_await ts.gui.message_box(
             "Congratulations young one, you have learned the "
-            "ways of the @[H]{}@[].",
+            "ways of the [{}].",
             new_name );
         co_return;
       }
@@ -609,11 +608,11 @@ wait<> do_speak_with_chief(
   e_tribe const tribe = ss.natives.tribe_for( dwelling.id ).type;
   if( !outcome.action.holds<ChiefAction::target_practice>() )
     co_await ts.gui.message_box(
-        "Greetings traveler, we are a peaceful @[H]{}@[] known "
-        "for our expertise in @[H]{}@[]. We will trade with you "
-        "if you bring us some @[H]{}@[], of which we are badly "
-        "in need.  We would also accept @[H]{}@[] and "
-        "@[H]{}@[].",
+        "Greetings traveler, we are a peaceful [{}] known "
+        "for our expertise in [{}]. We will trade with you "
+        "if you bring us some [{}], of which we are badly "
+        "in need.  We would also accept [{}] and "
+        "[{}].",
         config_natives
             .dwelling_types[config_natives.tribes[tribe].level]
             .name_singular,
@@ -628,7 +627,7 @@ wait<> do_speak_with_chief(
   switch( outcome.action.to_enum() ) {
     case ChiefAction::e::none: {
       co_await ts.gui.message_box(
-          "We always welcome @[H]{}@[] travelors.",
+          "We always welcome [{}] travelors.",
           config_nation.nations[unit.nation()].display_name );
       co_return;
     }
@@ -636,7 +635,7 @@ wait<> do_speak_with_chief(
       auto const& o =
           outcome.action.get<ChiefAction::gift_money>();
       co_await ts.gui.message_box(
-          "Please take these valuable beads (worth @[H]{}@[]) "
+          "Please take these valuable beads (worth [{}]) "
           "back to your chieftan.",
           o.quantity );
       player.money += o.quantity;
@@ -675,13 +674,12 @@ wait<> do_speak_with_chief(
       // after depixelating.
       unit.change_type( player, e_unit_type::seasoned_scout );
       co_await ts.gui.message_box(
-          "Our scout has been promoted to @[H]Seasoned "
-          "Scout@[]!" );
+          "Our scout has been promoted to [Seasoned Scout]!" );
       co_return;
     }
     case ChiefAction::e::target_practice: {
       co_await ts.gui.message_box(
-          "You have violated sacred taboos of the @[H]{}@[] "
+          "You have violated sacred taboos of the [{}] "
           "tribe and thus we have decided to use your scout as "
           "target practice.",
           config_natives.tribes[tribe].name_singular );
@@ -723,8 +721,8 @@ wait<> do_establish_mission(
       config_natives
           .tribes[ss.natives.tribe_for( dwelling.id ).type];
   string msg = fmt::format(
-      "@[H]{}@[] mission established in @[H]{}@[] {} in the "
-      "year {}. The {} {}.",
+      "[{}] mission established in [{}] {} in the year {}. The "
+      "{} {}.",
       nation_obj( player.nation ).adjective,
       tribe_conf.name_adjective,
       config_natives.dwelling_types[tribe_conf.level]

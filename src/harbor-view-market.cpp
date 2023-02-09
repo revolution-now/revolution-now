@@ -132,7 +132,7 @@ wait<maybe<HarborDraggableObject_t>>
 HarborMarketCommodities::user_edit_object() const {
   UNWRAP_CHECK( comm, dragging_.member( &Draggable::comm ) );
   string const text = fmt::format(
-      "What quantity of @[H]{}@[] would you like to buy? "
+      "What quantity of [{}] would you like to buy? "
       "(0-100):",
       lowercase_commodity_display_name( comm.type ) );
 
@@ -183,9 +183,9 @@ HarborMarketCommodities::source_check(
   if( -invoice.money_delta_final > player_.money )
     co_return DragRejection{
         .reason = fmt::format(
-            "You do not have enough gold to purchase @[H]{} "
-            "{}@[].  Try holding down the @[H]shift@[] key to "
-            "reduce the quantity of your purchase.",
+            "You do not have enough gold to purchase [{} {}].  "
+            "Try holding down the [shift] key to reduce the "
+            "quantity of your purchase.",
             comm.quantity,
             lowercase_commodity_display_name( comm.type ) ) };
   co_return base::valid;

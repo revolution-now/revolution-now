@@ -142,7 +142,7 @@ TEST_CASE( "[orders-plow] native-owned land" ) {
         e_land_overlay::forest;
     auto config_matcher =
         Field( &ChoiceConfig::msg,
-               StrContains( "These @[H]forests@[]" ) );
+               StrContains( "These [forests]" ) );
     EXPECT_CALL( W.gui(), choice( std::move( config_matcher ),
                                   e_input_required::no ) )
         .returns<maybe<string>>( "take" );

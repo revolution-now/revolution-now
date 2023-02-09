@@ -174,7 +174,7 @@ HarborCargo::user_edit_object() const {
   // we're moving to another ship, or could be "sell" if we are
   // selling.
   string const text = fmt::format(
-      "What quantity of @[H]{}@[] would you like to move? "
+      "What quantity of [{}] would you like to move? "
       "(0-{}):",
       lowercase_commodity_display_name( comm.type ),
       max_allowed );
