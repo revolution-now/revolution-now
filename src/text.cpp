@@ -20,7 +20,6 @@
 #include "base/string.hpp"
 
 // base-util
-#include "base-util/algo.hpp"
 #include "base-util/string.hpp"
 
 using namespace std;
@@ -43,29 +42,6 @@ void render_markup( rr::Typer& typer, MarkedUpChunk const& mk,
                     TextMarkupInfo const& info ) {
   if( mk.style.highlight ) {
     render_impl( typer, info.highlight, mk.text );
-    return;
-  }
-
-  if( mk.style.shadow ) {
-    {
-      rr::Typer typer_shadow =
-          typer.with_frame_offset( gfx::size{ .w = 1, .h = 0 } );
-      render_impl( typer_shadow, info.shadowed_shadow_color,
-                   mk.text );
-    }
-    {
-      rr::Typer typer_shadow =
-          typer.with_frame_offset( gfx::size{ .w = 0, .h = 1 } );
-      render_impl( typer_shadow, info.shadowed_shadow_color,
-                   mk.text );
-    }
-    {
-      rr::Typer typer_shadow =
-          typer.with_frame_offset( gfx::size{ .w = 1, .h = 1 } );
-      render_impl( typer_shadow, info.shadowed_shadow_color,
-                   mk.text );
-    }
-    render_impl( typer, info.shadowed_text_color, mk.text );
     return;
   }
 
@@ -102,16 +78,6 @@ void render_lines_markup(
   for( vector<MarkedUpChunk> const& muts : mk_text ) {
     render_line_markup( typer, muts, info );
     render_impl( typer, gfx::pixel{}, "\n" );
-    // If there was any shadowed text on this line then we need
-    // to add one additional pixel (vertically) of space when
-    // moving to the next line.
-    bool has_shadow =
-        std::any_of( muts.begin(), muts.end(),
-                     []( MarkedUpChunk const& mut ) {
-                       return mut.style.shadow;
-                     } );
-    if( has_shadow )
-      typer.move_frame_by( gfx::size{ .w = 0, .h = 1 } );
   }
 }
 

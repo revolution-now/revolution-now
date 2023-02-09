@@ -15,7 +15,6 @@ namespace "rn"
 
 struct.MarkupStyle {
   highlight 'bool',
-  shadow 'bool',
 }
 
 struct.MarkedUpChunk {
