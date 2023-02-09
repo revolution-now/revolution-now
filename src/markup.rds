@@ -1,0 +1,28 @@
+# ===============================================================
+# markup.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-02-09.
+#
+# Description: Rds definitions for the markup module.
+#
+# ===============================================================
+# C++ standard library
+include "<string>"
+
+namespace "rn"
+
+struct.MarkupStyle {
+  highlight 'bool',
+  shadow 'bool',
+}
+
+struct.MarkedUpChunk {
+  text 'std::string',
+  style 'MarkupStyle',
+}
+
+struct.MarkedUpText {
+  chunks 'std::vector<std::vector<MarkedUpChunk>>',
+}
