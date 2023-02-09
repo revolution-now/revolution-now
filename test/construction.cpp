@@ -80,8 +80,8 @@ TEST_CASE( "[construction] select building, borders water" ) {
         .sort              = false,
         .initial_selection = nothing };
 
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::no )
         .returns( make_wait<maybe<string>>( "none" ) );
     w = f();
     REQUIRE( !w.exception() );
@@ -124,8 +124,8 @@ TEST_CASE( "[construction] select building, borders water" ) {
         .sort              = false,
         .initial_selection = nothing };
 
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::no )
         .returns(
             make_wait<maybe<string>>( "tobacconists_shop" ) );
     w = f();
@@ -176,8 +176,8 @@ TEST_CASE( "[construction] select building, borders water" ) {
         .sort              = false,
         .initial_selection = 3 };
 
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::no )
         .returns(
             make_wait<maybe<string>>( "tobacconists_shop" ) );
     w = f();
@@ -249,8 +249,8 @@ TEST_CASE( "[construction] select building, borders water" ) {
         .sort              = false,
         .initial_selection = nothing };
 
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::no )
         .returns(
             make_wait<maybe<string>>( "fur_trading_post" ) );
     w = f();
@@ -331,8 +331,8 @@ TEST_CASE( "[construction] select building, borders water" ) {
         .sort              = false,
         .initial_selection = nothing };
 
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::no )
         .returns( make_wait<maybe<string>>( "none" ) );
     w = f();
     REQUIRE( !w.exception() );
@@ -392,8 +392,8 @@ TEST_CASE(
         .sort              = false,
         .initial_selection = nothing };
 
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::no )
         .returns(
             make_wait<maybe<string>>( "tobacconists_shop" ) );
     w = f();
@@ -669,8 +669,7 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
       "Rushing the construction of the [Frigate] requires "
       "acquiring [5 tools], but this is not allowed "
       "because tools are currently boycotted in Amsterdam.";
-  EXPECT_CALL( W.gui(), message_box( msg ) )
-      .returns( make_wait<>() );
+  W.gui().EXPECT__message_box( msg ).returns( make_wait<>() );
   {
     wait<> w = f();
     REQUIRE( !w.exception() );
@@ -692,8 +691,7 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
                         .blocked_by_tools_boycott = false };
   player.money = 99;
   msg = "Cost to complete [Frigate]: 100.  Treasury: 99.";
-  EXPECT_CALL( W.gui(), message_box( msg ) )
-      .returns( make_wait<>() );
+  W.gui().EXPECT__message_box( msg ).returns( make_wait<>() );
   {
     wait<> w = f();
     REQUIRE( !w.exception() );
@@ -714,7 +712,7 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
                         .needed_tools             = 5,
                         .blocked_by_tools_boycott = false };
   player.money = 110;
-  msg = "Cost to complete [Frigate]: 100.  Treasury: 110.";
+  msg    = "Cost to complete [Frigate]: 100.  Treasury: 110.";
   config = ChoiceConfig{
       .msg     = msg,
       .options = {
@@ -722,7 +720,8 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
                               .display_name = "Never mind." },
           ChoiceConfigOption{
               .key = "yes", .display_name = "Complete it." } } };
-  EXPECT_CALL( W.gui(), choice( config, e_input_required::no ) )
+  W.gui()
+      .EXPECT__choice( config, e_input_required::no )
       .returns( make_wait<maybe<string>>( nothing ) );
   {
     wait<> w = f();
@@ -744,7 +743,7 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
                         .needed_tools             = 5,
                         .blocked_by_tools_boycott = false };
   player.money = 110;
-  msg = "Cost to complete [Frigate]: 100.  Treasury: 110.";
+  msg    = "Cost to complete [Frigate]: 100.  Treasury: 110.";
   config = ChoiceConfig{
       .msg     = msg,
       .options = {
@@ -752,7 +751,8 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
                               .display_name = "Never mind." },
           ChoiceConfigOption{
               .key = "yes", .display_name = "Complete it." } } };
-  EXPECT_CALL( W.gui(), choice( config, e_input_required::no ) )
+  W.gui()
+      .EXPECT__choice( config, e_input_required::no )
       .returns( make_wait<maybe<string>>( "no" ) );
   {
     wait<> w = f();
@@ -776,7 +776,7 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
   colony.hammers                         = 10;
   colony.commodities[e_commodity::tools] = 5;
   player.money                           = 110;
-  msg = "Cost to complete [Frigate]: 100.  Treasury: 110.";
+  msg    = "Cost to complete [Frigate]: 100.  Treasury: 110.";
   config = ChoiceConfig{
       .msg     = msg,
       .options = {
@@ -784,7 +784,8 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
                               .display_name = "Never mind." },
           ChoiceConfigOption{
               .key = "yes", .display_name = "Complete it." } } };
-  EXPECT_CALL( W.gui(), choice( config, e_input_required::no ) )
+  W.gui()
+      .EXPECT__choice( config, e_input_required::no )
       .returns( make_wait<maybe<string>>( "yes" ) );
   {
     wait<> w = f();

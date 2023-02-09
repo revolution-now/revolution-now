@@ -959,7 +959,8 @@ TEST_CASE(
   SECTION( "in colony / escape" ) {
     type = e_native_land_grab_type::in_colony;
     tile = { .x = 2, .y = 2 };
-    EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( _, e_input_required::no )
         .returns<maybe<string>>( nothing );
     REQUIRE( f() == false );
     REQUIRE( player.money == 1000 );
@@ -989,8 +990,9 @@ TEST_CASE(
                     Field( &ChoiceConfigOption::key, "take"s ),
                     Field( &ChoiceConfigOption::disabled,
                            false ) ) ) ) );
-    EXPECT_CALL( W.gui(), choice( std::move( config_matcher ),
-                                  e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( std::move( config_matcher ),
+                         e_input_required::no )
         .returns<maybe<string>>( "cancel" );
     REQUIRE( f() == false );
     REQUIRE( player.money == 1000 );
@@ -1021,8 +1023,9 @@ TEST_CASE(
                     Field( &ChoiceConfigOption::key, "take"s ),
                     Field( &ChoiceConfigOption::disabled,
                            false ) ) ) ) );
-    EXPECT_CALL( W.gui(), choice( std::move( config_matcher ),
-                                  e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( std::move( config_matcher ),
+                         e_input_required::no )
         .returns<maybe<string>>( "take" );
     REQUIRE( f() == true );
     REQUIRE( player.money == 0 );
@@ -1032,7 +1035,8 @@ TEST_CASE(
     REQUIRE( relationship.tribal_alarm == 10 );
 
     tile = { .x = 1, .y = 2 };
-    EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( _, e_input_required::no )
         .returns<maybe<string>>( "take" );
     REQUIRE( f() == true );
     REQUIRE( player.money == 0 );
@@ -1065,8 +1069,9 @@ TEST_CASE(
                     Field( &ChoiceConfigOption::key, "take"s ),
                     Field( &ChoiceConfigOption::disabled,
                            false ) ) ) ) );
-    EXPECT_CALL( W.gui(), choice( std::move( config_matcher ),
-                                  e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( std::move( config_matcher ),
+                         e_input_required::no )
         .returns<maybe<string>>( "pay" );
     REQUIRE( f() == true );
     REQUIRE( player.money == 1 );
@@ -1078,7 +1083,8 @@ TEST_CASE(
     tile = { .x = 1, .y = 2 };
     // Tile will cost 234.
     player.money = 235;
-    EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( _, e_input_required::no )
         .returns<maybe<string>>( "pay" );
     REQUIRE( f() == true );
     REQUIRE( player.money == 1 );
@@ -1091,7 +1097,8 @@ TEST_CASE(
   SECTION( "build road / cancel" ) {
     type = e_native_land_grab_type::build_road;
     tile = { .x = 2, .y = 2 };
-    EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( _, e_input_required::no )
         .returns<maybe<string>>( "cancel" );
     REQUIRE( f() == false );
     REQUIRE( player.money == 1000 );
@@ -1104,7 +1111,8 @@ TEST_CASE(
   SECTION( "irrigate / cancel" ) {
     type = e_native_land_grab_type::irrigate;
     tile = { .x = 2, .y = 2 };
-    EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( _, e_input_required::no )
         .returns<maybe<string>>( "cancel" );
     REQUIRE( f() == false );
     REQUIRE( player.money == 1000 );
@@ -1117,7 +1125,8 @@ TEST_CASE(
   SECTION( "clear_forest / cancel" ) {
     type = e_native_land_grab_type::clear_forest;
     tile = { .x = 2, .y = 2 };
-    EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( _, e_input_required::no )
         .returns<maybe<string>>( "cancel" );
     REQUIRE( f() == false );
     REQUIRE( player.money == 1000 );

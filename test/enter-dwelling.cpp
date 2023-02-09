@@ -348,17 +348,19 @@ TEST_CASE( "[enter-dwelling] present_dwelling_entry_options" ) {
           e_enter_dwelling_option::attack_village,
           e_enter_dwelling_option::live_among_the_natives } };
 
-  EXPECT_CALL(
-      W.gui(),
-      display_woodcut( e_woodcut::entering_native_village ) )
+  W.gui()
+      .EXPECT__display_woodcut(
+          e_woodcut::entering_native_village )
       .returns<monostate>();
-  EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+  W.gui()
+      .EXPECT__choice( _, e_input_required::no )
       .returns<maybe<string>>( "attack_village" );
   expected = e_enter_dwelling_option::attack_village;
   REQUIRE( f() == expected );
 
   // Again, no woodcut.
-  EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+  W.gui()
+      .EXPECT__choice( _, e_input_required::no )
       .returns<maybe<string>>( "attack_village" );
   expected = e_enter_dwelling_option::attack_village;
   REQUIRE( f() == expected );
@@ -366,7 +368,8 @@ TEST_CASE( "[enter-dwelling] present_dwelling_entry_options" ) {
   // Once more, with brave on top.
   W.add_native_unit_on_map( e_native_unit_type::brave,
                             { .x = 1, .y = 1 }, dwelling.id );
-  EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+  W.gui()
+      .EXPECT__choice( _, e_input_required::no )
       .returns<maybe<string>>( "attack_village" );
   expected = e_enter_dwelling_option::attack_brave_on_dwelling;
   REQUIRE( f() == expected );
@@ -495,8 +498,8 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
 
   // Not eligible.
   outcome = LiveAmongTheNatives::generally_ineligible{};
-  EXPECT_CALL( W.gui(),
-               message_box( StrContains( "not eligible" ) ) )
+  W.gui()
+      .EXPECT__message_box( StrContains( "not eligible" ) )
       .returns<wait<>>( make_wait<>() );
   f();
   REQUIRE( unit.type() == e_unit_type::free_colonist );
@@ -505,7 +508,8 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
   // Eligible buy decline.
   outcome = LiveAmongTheNatives::promoted{
       .to = e_unit_type::expert_cotton_planter };
-  EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+  W.gui()
+      .EXPECT__choice( _, e_input_required::no )
       .returns<maybe<string>>( "no" );
   f();
   REQUIRE( unit.type() == e_unit_type::free_colonist );
@@ -514,14 +518,15 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
   // Eligible and accept.
   outcome = LiveAmongTheNatives::promoted{
       .to = e_unit_type::expert_cotton_planter };
-  EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+  W.gui()
+      .EXPECT__choice( _, e_input_required::no )
       .returns<maybe<string>>( "yes" );
-  EXPECT_CALL(
-      W.gui(),
-      message_box( Matches( "Congratulations.*Cotton.*"s ) ) )
+
+  W.gui()
+      .EXPECT__message_box(
+          Matches( "Congratulations.*Cotton.*"s ) )
       .returns<wait<>>( make_wait<>() );
-  EXPECT_CALL( mock_land_view, animate( _ ) )
-      .returns<monostate>();
+  mock_land_view.EXPECT__animate( _ ).returns<monostate>();
   f();
   REQUIRE( unit.type() == e_unit_type::expert_cotton_planter );
   REQUIRE( dwelling.has_taught == true );
@@ -583,42 +588,42 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   // Target practice certain.
   p_unit                           = &scout_petty;
   relationship.dwelling_only_alarm = 99;
-  EXPECT_CALL( W.rand(), bernoulli( 1.0 ) ).returns( true );
+  W.rand().EXPECT__bernoulli( 1.0 ).returns( true );
   expected.action = ChiefAction::target_practice{};
   REQUIRE( f() == expected );
 
   // Target practice certain.
   p_unit                           = &scout_petty;
   relationship.dwelling_only_alarm = 80;
-  EXPECT_CALL( W.rand(), bernoulli( 1.0 ) ).returns( true );
+  W.rand().EXPECT__bernoulli( 1.0 ).returns( true );
   expected.action = ChiefAction::target_practice{};
   REQUIRE( f() == expected );
 
   // Target practice almost certain.
   p_unit                           = &scout_petty;
   relationship.dwelling_only_alarm = 77;
-  EXPECT_CALL( W.rand(), bernoulli( .95 ) ).returns( true );
+  W.rand().EXPECT__bernoulli( .95 ).returns( true );
   expected.action = ChiefAction::target_practice{};
   REQUIRE( f() == expected );
 
   // Target practice sometimes
   p_unit                           = &scout_petty;
   relationship.dwelling_only_alarm = 50;
-  EXPECT_CALL( W.rand(), bernoulli( .50 ) ).returns( true );
+  W.rand().EXPECT__bernoulli( .50 ).returns( true );
   expected.action = ChiefAction::target_practice{};
   REQUIRE( f() == expected );
 
   // Target practice sometimes
   p_unit                           = &scout_seasoned;
   relationship.dwelling_only_alarm = 55;
-  EXPECT_CALL( W.rand(), bernoulli( .50 ) ).returns( true );
+  W.rand().EXPECT__bernoulli( .50 ).returns( true );
   expected.action = ChiefAction::target_practice{};
   REQUIRE( f() == expected );
 
   // Target practice almost never.
   p_unit                           = &scout_petty;
   relationship.dwelling_only_alarm = 23;
-  EXPECT_CALL( W.rand(), bernoulli( .05 ) ).returns( true );
+  W.rand().EXPECT__bernoulli( .05 ).returns( true );
   expected.action = ChiefAction::target_practice{};
   REQUIRE( f() == expected );
 
@@ -627,14 +632,14 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   // Target practice never.
   p_unit                           = &scout_petty;
   relationship.dwelling_only_alarm = 20;
-  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
+  W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
   expected.action = ChiefAction::none{};
   REQUIRE( f() == expected );
 
   // Target practice never.
   p_unit                           = &scout_petty;
   relationship.dwelling_only_alarm = 0;
-  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
+  W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
   expected.action = ChiefAction::none{};
   REQUIRE( f() == expected );
 
@@ -643,21 +648,21 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
 
   // outcome: none.
   p_unit = &scout_petty;
-  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
-  EXPECT_CALL( W.rand(),
-               between_ints( 0, 100, e_interval::half_open ) )
+  W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
+  W.rand()
+      .EXPECT__between_ints( 0, 100, e_interval::half_open )
       .returns( 0 );
   expected.action = ChiefAction::none{};
   REQUIRE( f() == expected );
 
   // outcome: gift.
   p_unit = &scout_petty;
-  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
-  EXPECT_CALL( W.rand(),
-               between_ints( 0, 100, e_interval::half_open ) )
+  W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
+  W.rand()
+      .EXPECT__between_ints( 0, 100, e_interval::half_open )
       .returns( 33 );
-  EXPECT_CALL( W.rand(),
-               between_ints( 50, 300, e_interval::closed ) )
+  W.rand()
+      .EXPECT__between_ints( 50, 300, e_interval::closed )
       .returns( 111 );
   expected.action = ChiefAction::gift_money{ .quantity = 111 };
   REQUIRE( f() == expected );
@@ -668,12 +673,12 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
       .encountered = true;
   dwelling         = &dwelling_inca;
   p_unit           = &scout_seasoned;
-  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
-  EXPECT_CALL( W.rand(),
-               between_ints( 0, 100, e_interval::half_open ) )
+  W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
+  W.rand()
+      .EXPECT__between_ints( 0, 100, e_interval::half_open )
       .returns( 20 );
-  EXPECT_CALL( W.rand(),
-               between_ints( 166, 2000, e_interval::closed ) )
+  W.rand()
+      .EXPECT__between_ints( 166, 2000, e_interval::closed )
       .returns( 1111 );
   expected.action = ChiefAction::gift_money{ .quantity = 1111 };
   REQUIRE( f() == expected );
@@ -681,27 +686,27 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
 
   // outcome: promotion.
   p_unit = &scout_petty;
-  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
-  EXPECT_CALL( W.rand(),
-               between_ints( 0, 100, e_interval::half_open ) )
+  W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
+  W.rand()
+      .EXPECT__between_ints( 0, 100, e_interval::half_open )
       .returns( 80 );
   expected.action = ChiefAction::promotion{};
   REQUIRE( f() == expected );
 
   // outcome: failed promotion.
   p_unit = &scout_other_expert;
-  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
-  EXPECT_CALL( W.rand(),
-               between_ints( 0, 100, e_interval::half_open ) )
+  W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
+  W.rand()
+      .EXPECT__between_ints( 0, 100, e_interval::half_open )
       .returns( 80 );
   expected.action = ChiefAction::none{};
   REQUIRE( f() == expected );
 
   // outcome: tales of nearby land non-seasoned.
   p_unit = &scout_petty;
-  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
-  EXPECT_CALL( W.rand(),
-               between_ints( 0, 100, e_interval::half_open ) )
+  W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
+  W.rand()
+      .EXPECT__between_ints( 0, 100, e_interval::half_open )
       .returns( 73 );
   expected_tiles.clear();
   for( int y = 4 - 9 / 2; y < 4 + 1 + 9 / 2; ++y ) {
@@ -723,9 +728,9 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
 
   // outcome: tales of nearby land seasoned.
   p_unit = &scout_seasoned;
-  EXPECT_CALL( W.rand(), bernoulli( 0.0 ) ).returns( false );
-  EXPECT_CALL( W.rand(),
-               between_ints( 0, 100, e_interval::half_open ) )
+  W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
+  W.rand()
+      .EXPECT__between_ints( 0, 100, e_interval::half_open )
       .returns( 70 );
   expected_tiles.clear();
   for( int y = 4 - 13 / 2; y < 4 + 1 + 13 / 2; ++y ) {
@@ -784,13 +789,15 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
   SECTION( "none" ) {
     p_unit         = &scout_petty;
     outcome.action = ChiefAction::none{};
-    EXPECT_CALL(
-        W.gui(),
-        message_box( StrContains( "Greetings traveler" ) ) )
+
+    W.gui()
+        .EXPECT__message_box(
+            StrContains( "Greetings traveler" ) )
         .returns<monostate>();
-    EXPECT_CALL(
-        W.gui(),
-        message_box( StrContains( "We always welcome" ) ) )
+
+    W.gui()
+        .EXPECT__message_box(
+            StrContains( "We always welcome" ) )
         .returns<monostate>();
     f();
     REQUIRE( player.money == 0 );
@@ -800,13 +807,15 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
   SECTION( "gift_money" ) {
     p_unit         = &scout_petty;
     outcome.action = ChiefAction::gift_money{ .quantity = 111 };
-    EXPECT_CALL(
-        W.gui(),
-        message_box( StrContains( "Greetings traveler" ) ) )
+
+    W.gui()
+        .EXPECT__message_box(
+            StrContains( "Greetings traveler" ) )
         .returns<monostate>();
-    EXPECT_CALL(
-        W.gui(),
-        message_box( StrContains( "Please take these" ) ) )
+
+    W.gui()
+        .EXPECT__message_box(
+            StrContains( "Please take these" ) )
         .returns<monostate>();
     f();
     REQUIRE( player.money == 111 );
@@ -818,23 +827,24 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
     p_unit         = &scout_petty;
     outcome.action = ChiefAction::tales_of_nearby_lands{
         .tiles = { { .x = 0, .y = 6 }, { .x = 1, .y = 6 } } };
-    EXPECT_CALL(
-        W.gui(),
-        message_box( StrContains( "Greetings traveler" ) ) )
+
+    W.gui()
+        .EXPECT__message_box(
+            StrContains( "Greetings traveler" ) )
         .returns<monostate>();
     vector<int> const shuffled_indices{ 1, 0 };
     expect_shuffle( W.rand(), shuffled_indices );
-    EXPECT_CALL(
-        W.gui(),
-        message_box( StrContains( "sit around the campfire" ) ) )
+
+    W.gui()
+        .EXPECT__message_box(
+            StrContains( "sit around the campfire" ) )
         .returns<monostate>();
-    EXPECT_CALL( mock_land_view,
-                 center_on_tile( Coord{ .x = 4, .y = 4 } ) )
+    mock_land_view
+        .EXPECT__center_on_tile( Coord{ .x = 4, .y = 4 } )
         .returns<monostate>();
-    EXPECT_CALL( W.gui(), wait_for( 20ms ) ).returns( 20000us );
-    EXPECT_CALL( W.gui(), wait_for( 20ms ) ).returns( 20000us );
-    EXPECT_CALL( W.gui(), wait_for( 600ms ) )
-        .returns( 600000us );
+    W.gui().EXPECT__wait_for( 20ms ).returns( 20000us );
+    W.gui().EXPECT__wait_for( 20ms ).returns( 20000us );
+    W.gui().EXPECT__wait_for( 600ms ).returns( 600000us );
     Visibility const viz =
         Visibility::create( W.ss(), W.default_nation() );
     REQUIRE_FALSE( viz.visible( { .x = 0, .y = 6 } ) );
@@ -851,18 +861,18 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
   SECTION( "promotion" ) {
     p_unit         = &scout_petty;
     outcome.action = ChiefAction::promotion{};
-    EXPECT_CALL(
-        W.gui(),
-        message_box( StrContains( "Greetings traveler" ) ) )
+
+    W.gui()
+        .EXPECT__message_box(
+            StrContains( "Greetings traveler" ) )
         .returns<monostate>();
-    EXPECT_CALL( W.gui(),
-                 message_box( StrContains( "send guides" ) ) )
+    W.gui()
+        .EXPECT__message_box( StrContains( "send guides" ) )
         .returns<monostate>();
-    EXPECT_CALL( mock_land_view, animate( _ ) )
-        .returns<monostate>();
-    EXPECT_CALL( W.gui(),
-                 message_box( StrContains(
-                     "promoted to [Seasoned Scout]" ) ) )
+    mock_land_view.EXPECT__animate( _ ).returns<monostate>();
+    W.gui()
+        .EXPECT__message_box(
+            StrContains( "promoted to [Seasoned Scout]" ) )
         .returns<monostate>();
     f();
     REQUIRE( player.money == 0 );
@@ -872,12 +882,12 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
   SECTION( "target_practice" ) {
     p_unit         = &scout_petty;
     outcome.action = ChiefAction::target_practice{};
-    EXPECT_CALL(
-        W.gui(),
-        message_box( StrContains( "violated sacred taboos" ) ) )
+
+    W.gui()
+        .EXPECT__message_box(
+            StrContains( "violated sacred taboos" ) )
         .returns<monostate>();
-    EXPECT_CALL( mock_land_view, animate( _ ) )
-        .returns<monostate>();
+    mock_land_view.EXPECT__animate( _ ).returns<monostate>();
     REQUIRE( W.units().exists( UnitId{ 1 } ) );
     f();
     REQUIRE_FALSE( W.units().exists( UnitId{ 1 } ) );
@@ -941,16 +951,14 @@ TEST_CASE( "[enter-dwelling] do_establish_mission" ) {
   msg =
       "[English] mission established in [Inca] city "
       "in the year 1501. The Inca react with [curiosity].";
-  EXPECT_CALL( W.gui(), message_box( msg ) )
-      .returns<monostate>();
+  W.gui().EXPECT__message_box( msg ).returns<monostate>();
   f();
 
   outcome = { .reaction = e_missionary_reaction::hostility };
   msg =
       "[English] mission established in [Inca] city "
       "in the year 1501. The Inca react with [hostility].";
-  EXPECT_CALL( W.gui(), message_box( msg ) )
-      .returns<monostate>();
+  W.gui().EXPECT__message_box( msg ).returns<monostate>();
   f();
 
   REQUIRE(

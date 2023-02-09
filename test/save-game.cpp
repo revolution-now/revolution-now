@@ -68,20 +68,17 @@ void reset_seeds( lua::state& st ) {
 
 void expect_rands( World& W ) {
   // These are for choosing the immigrant pool.
-  EXPECT_CALL( W.rand(), between_doubles( _, _ ) )
-      .times( 3 )
-      .returns( 0.0 );
+  W.rand().EXPECT__between_doubles( _, _ ).times( 3 ).returns(
+      0.0 );
 
   // These are for choosing the initial processed goods volumes.
-  EXPECT_CALL( W.rand(), between_ints( _, _, _ ) )
-      .times( 4 )
-      .returns( 0x200 );
+  W.rand().EXPECT__between_ints( _, _, _ ).times( 4 ).returns(
+      0x200 );
 
   // These are for choosing the expertise of each native
   // dwelling.
-  EXPECT_CALL( W.rand(), between_ints( _, _, _ ) )
-      .times( 7 )
-      .returns( 0 );
+  W.rand().EXPECT__between_ints( _, _, _ ).times( 7 ).returns(
+      0 );
 }
 
 void create_new_game_from_lua( World& world ) {

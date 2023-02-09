@@ -81,20 +81,18 @@ TEST_CASE( "[immigration] ask_player_to_choose_immigrant" ) {
                            e_unit_type::seasoned_scout } };
   MockIGui gui;
 
-  EXPECT_CALL(
-      gui,
-      choice(
-          ChoiceConfig{
-              .msg = "please select one",
-              .options =
-                  vector<ChoiceConfigOption>{
-                      { .key          = "0",
-                        .display_name = "Expert Farmer" },
-                      { .key          = "1",
-                        .display_name = "Veteran Soldier" },
-                      { .key          = "2",
-                        .display_name = "Seasoned Scout" } } },
-          e_input_required::no ) )
+  gui.EXPECT__choice(
+         ChoiceConfig{
+             .msg = "please select one",
+             .options =
+                 vector<ChoiceConfigOption>{
+                     { .key          = "0",
+                       .display_name = "Expert Farmer" },
+                     { .key          = "1",
+                       .display_name = "Veteran Soldier" },
+                     { .key          = "2",
+                       .display_name = "Seasoned Scout" } } },
+         e_input_required::no )
       .returns( make_wait<maybe<string>>( "1" ) );
 
   wait<maybe<int>> w = ask_player_to_choose_immigrant(
@@ -112,20 +110,18 @@ TEST_CASE(
                            e_unit_type::seasoned_scout } };
   MockIGui gui;
 
-  EXPECT_CALL(
-      gui,
-      choice(
-          ChoiceConfig{
-              .msg = "please select one",
-              .options =
-                  vector<ChoiceConfigOption>{
-                      { .key          = "0",
-                        .display_name = "Expert Farmer" },
-                      { .key          = "1",
-                        .display_name = "Veteran Soldier" },
-                      { .key          = "2",
-                        .display_name = "Seasoned Scout" } } },
-          e_input_required::no ) )
+  gui.EXPECT__choice(
+         ChoiceConfig{
+             .msg = "please select one",
+             .options =
+                 vector<ChoiceConfigOption>{
+                     { .key          = "0",
+                       .display_name = "Expert Farmer" },
+                     { .key          = "1",
+                       .display_name = "Veteran Soldier" },
+                     { .key          = "2",
+                       .display_name = "Seasoned Scout" } } },
+         e_input_required::no )
       .returns( make_wait<maybe<string>>( nothing ) );
 
   wait<maybe<int>> w = ask_player_to_choose_immigrant(
@@ -363,8 +359,8 @@ TEST_CASE( "[immigration] pick_next_unit_for_pool" ) {
   // not exceed it.
   double const kUpperLimit = 6808.69;
   for( double d = 0.0; d < kUpperLimit; d += 100.0 ) {
-    EXPECT_CALL( W.rand(), between_doubles(
-                               0, Approx( kUpperLimit, .1 ) ) )
+    W.rand()
+        .EXPECT__between_doubles( 0, Approx( kUpperLimit, .1 ) )
         .returns( d );
     e_unit_type type = pick_next_unit_for_pool( W.rand(), player,
                                                 W.settings() );
@@ -402,8 +398,8 @@ TEST_CASE(
   // sult if it is not equal so that d does not exceed it.
   double const kUpperLimit = 4580.4;
   for( double d = 0.0; d < kUpperLimit; d += 100.0 ) {
-    EXPECT_CALL( W.rand(), between_doubles(
-                               0, Approx( kUpperLimit, .1 ) ) )
+    W.rand()
+        .EXPECT__between_doubles( 0, Approx( kUpperLimit, .1 ) )
         .returns( d );
     e_unit_type type = pick_next_unit_for_pool( W.rand(), player,
                                                 W.settings() );
@@ -448,21 +444,22 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     player.crosses           = 11;
     int const crosses_needed = 11;
 
-    EXPECT_CALL( W.gui(), message_box( StartsWith(
-                              "Word of religious freedom has "
-                              "spread! A new immigrant" ) ) )
+    W.gui()
+        .EXPECT__message_box(
+            StartsWith( "Word of religious freedom has "
+                        "spread! A new immigrant" ) )
         .returns( make_wait<>() );
     // This one is to choose which immigrant we get, which is
     // done randomly because we don't have brewster.
-    EXPECT_CALL( W.rand(),
-                 between_ints( 0, 2, e_interval::closed ) )
+    W.rand()
+        .EXPECT__between_ints( 0, 2, e_interval::closed )
         .returns( 1 );
     // This one is to choose that unit's replacement in the pool,
     // which is always done randomly. 9960.0 was found by summing
     // all of the unit type weights for all units on the discov-
     // erer level.
-    EXPECT_CALL( W.rand(),
-                 between_doubles( 0, Approx( 9960.0, .00001 ) ) )
+    W.rand()
+        .EXPECT__between_doubles( 0, Approx( 9960.0, .00001 ) )
         .returns( 5000.0 ); // chosen to give scout.
     wait<maybe<UnitId>> w = check_for_new_immigrant(
         W.ss(), W.ts(), player, crosses_needed );
@@ -491,9 +488,8 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
         true;
     int const crosses_needed = 11;
 
-    EXPECT_CALL(
-        W.gui(),
-        choice(
+    W.gui()
+        .EXPECT__choice(
             AllOf(
                 Field(
                     &ChoiceConfig::msg,
@@ -503,15 +499,15 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
                         "the New World.  Which of the following "
                         "shall we choose?" ) ),
                 Field( &ChoiceConfig::options, HasSize( 3 ) ) ),
-            e_input_required::no ) )
+            e_input_required::no )
         .returns( make_wait<maybe<string>>( "1" ) );
     // This one is to choose that unit's replacement in the pool,
     // which is always done randomly. 8960.0 was found by summing
     // all of the weights for the unit types on the discoverer
     // level except assuming that the petty criminal and inden-
     // tured servant weights are zero.
-    EXPECT_CALL( W.rand(),
-                 between_doubles( 0, Approx( 8960.0, .00001 ) ) )
+    W.rand()
+        .EXPECT__between_doubles( 0, Approx( 8960.0, .00001 ) )
         .returns( 5000.0 ); // chosen to give expert lumberjack.
     wait<maybe<UnitId>> w = check_for_new_immigrant(
         W.ss(), W.ts(), player, crosses_needed );
@@ -634,8 +630,8 @@ TEST_CASE( "[immigration] rush_recruit_next_immigrant" ) {
   double const kUpperLimit = 6808.69;
   // The 2229.0 should just barely put us in the range of the
   // free colonist.
-  EXPECT_CALL( W.rand(),
-               between_doubles( 0, Approx( kUpperLimit, .1 ) ) )
+  W.rand()
+      .EXPECT__between_doubles( 0, Approx( kUpperLimit, .1 ) )
       .returns( 2229.0 );
 
   auto& pool   = player.old_world.immigration.immigrants_pool;

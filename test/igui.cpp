@@ -35,19 +35,16 @@ using namespace std;
 TEST_CASE( "[igui] optional_enum_choice selects value" ) {
   MockIGui gui;
 
-  EXPECT_CALL(
-      gui,
-      choice(
-          ChoiceConfig{
-              .msg = "my msg",
-              .options =
-                  vector<ChoiceConfigOption>{
-                      { .key = "red", .display_name = "Red" },
-                      { .key          = "green",
-                        .display_name = "Green" },
-                      { .key          = "blue",
-                        .display_name = "BlueBlue" } } },
-          e_input_required::no ) )
+  gui.EXPECT__choice(
+         ChoiceConfig{
+             .msg = "my msg",
+             .options =
+                 vector<ChoiceConfigOption>{
+                     { .key = "red", .display_name = "Red" },
+                     { .key = "green", .display_name = "Green" },
+                     { .key          = "blue",
+                       .display_name = "BlueBlue" } } },
+         e_input_required::no )
       .returns( make_wait<maybe<string>>( "green" ) );
 
   EnumChoiceConfig config{ .msg = "my msg" };
@@ -67,19 +64,16 @@ TEST_CASE( "[igui] optional_enum_choice selects value" ) {
 TEST_CASE( "[igui] optional_enum_choice selects nothing" ) {
   MockIGui gui;
 
-  EXPECT_CALL(
-      gui,
-      choice(
-          ChoiceConfig{
-              .msg = "my msg",
-              .options =
-                  vector<ChoiceConfigOption>{
-                      { .key = "red", .display_name = "Red" },
-                      { .key          = "green",
-                        .display_name = "Green" },
-                      { .key          = "blue",
-                        .display_name = "BlueBlue" } } },
-          e_input_required::no ) )
+  gui.EXPECT__choice(
+         ChoiceConfig{
+             .msg = "my msg",
+             .options =
+                 vector<ChoiceConfigOption>{
+                     { .key = "red", .display_name = "Red" },
+                     { .key = "green", .display_name = "Green" },
+                     { .key          = "blue",
+                       .display_name = "BlueBlue" } } },
+         e_input_required::no )
       .returns( make_wait<maybe<string>>( nothing ) );
 
   EnumChoiceConfig config{ .msg = "my msg" };
@@ -98,19 +92,16 @@ TEST_CASE( "[igui] optional_enum_choice selects nothing" ) {
 TEST_CASE( "[igui] optional_enum_choice automatic" ) {
   MockIGui gui;
 
-  EXPECT_CALL(
-      gui,
-      choice(
-          ChoiceConfig{
-              .msg = "Select One",
-              .options =
-                  vector<ChoiceConfigOption>{
-                      { .key = "red", .display_name = "Red" },
-                      { .key          = "green",
-                        .display_name = "Green" },
-                      { .key          = "blue",
-                        .display_name = "Blue" } } },
-          e_input_required::no ) )
+  gui.EXPECT__choice(
+         ChoiceConfig{
+             .msg = "Select One",
+             .options =
+                 vector<ChoiceConfigOption>{
+                     { .key = "red", .display_name = "Red" },
+                     { .key = "green", .display_name = "Green" },
+                     { .key          = "blue",
+                       .display_name = "Blue" } } },
+         e_input_required::no )
       .returns( make_wait<maybe<string>>( "green" ) );
 
   EnumChoiceConfig config{ .msg = "Select One" };
@@ -126,19 +117,17 @@ TEST_CASE( "[igui] required_enum_choice sorted" ) {
 
   // Note the elements in the config passed to `choice` will not
   // be sorted; the choice function does the sorting.
-  EXPECT_CALL(
-      gui,
-      choice( ChoiceConfig{ .msg = "Select One",
-                            .options =
-                                vector<ChoiceConfigOption>{
-                                    { .key          = "red",
-                                      .display_name = "Red" },
-                                    { .key          = "green",
-                                      .display_name = "Green" },
-                                    { .key          = "blue",
-                                      .display_name = "Blue" } },
-                            .sort = true },
-              e_input_required::yes ) )
+
+  gui.EXPECT__choice(
+         ChoiceConfig{
+             .msg = "Select One",
+             .options =
+                 vector<ChoiceConfigOption>{
+                     { .key = "red", .display_name = "Red" },
+                     { .key = "green", .display_name = "Green" },
+                     { .key = "blue", .display_name = "Blue" } },
+             .sort = true },
+         e_input_required::yes )
       .returns( make_wait<maybe<string>>( "green" ) );
 
   wait<e_color> w =
@@ -150,17 +139,15 @@ TEST_CASE( "[igui] required_enum_choice sorted" ) {
 TEST_CASE( "[igui] partial_optional_enum_choice" ) {
   MockIGui gui;
 
-  EXPECT_CALL(
-      gui,
-      choice(
-          ChoiceConfig{
-              .msg = "Select One",
-              .options =
-                  vector<ChoiceConfigOption>{
-                      { .key = "red", .display_name = "Red" },
-                      { .key          = "blue",
-                        .display_name = "Blue" } } },
-          e_input_required::no ) )
+  gui.EXPECT__choice(
+         ChoiceConfig{
+             .msg = "Select One",
+             .options =
+                 vector<ChoiceConfigOption>{
+                     { .key = "red", .display_name = "Red" },
+                     { .key          = "blue",
+                       .display_name = "Blue" } } },
+         e_input_required::no )
       .returns( make_wait<maybe<string>>( "blue" ) );
 
   wait<maybe<e_color>> w =

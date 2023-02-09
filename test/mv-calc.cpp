@@ -155,8 +155,8 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
         .needed                        = needed,
         .using_start_of_turn_exemption = false,
         .using_overdraw_allowance      = false };
-    EXPECT_CALL( W.rand(),
-                 bernoulli( Approx( .666666, .00001 ) ) )
+    W.rand()
+        .EXPECT__bernoulli( Approx( .666666, .00001 ) )
         .returns( false );
     res = f();
     REQUIRE( res == expected );
@@ -174,8 +174,8 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
         .needed                        = needed,
         .using_start_of_turn_exemption = false,
         .using_overdraw_allowance      = true };
-    EXPECT_CALL( W.rand(),
-                 bernoulli( Approx( .666666, .00001 ) ) )
+    W.rand()
+        .EXPECT__bernoulli( Approx( .666666, .00001 ) )
         .returns( true );
     res = f();
     REQUIRE( res == expected );
@@ -221,7 +221,8 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
         .needed                        = needed,
         .using_start_of_turn_exemption = false,
         .using_overdraw_allowance      = false };
-    EXPECT_CALL( W.rand(), bernoulli( Approx( .4, .00001 ) ) )
+    W.rand()
+        .EXPECT__bernoulli( Approx( .4, .00001 ) )
         .returns( false );
     res = f();
     REQUIRE( res == expected );
@@ -238,7 +239,8 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
         .needed                        = needed,
         .using_start_of_turn_exemption = false,
         .using_overdraw_allowance      = true };
-    EXPECT_CALL( W.rand(), bernoulli( Approx( .4, .00001 ) ) )
+    W.rand()
+        .EXPECT__bernoulli( Approx( .4, .00001 ) )
         .returns( true );
     res = f();
     REQUIRE( res == expected );

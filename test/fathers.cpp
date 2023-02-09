@@ -234,9 +234,8 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
   player.fathers.bells       = 1;
 
   auto expect_rand = [&]( int low, int high, int res ) {
-    EXPECT_CALL(
-        W.rand(),
-        between_ints( low, high, e_interval::half_open ) )
+    W.rand()
+        .EXPECT__between_ints( low, high, e_interval::half_open )
         .returns( res );
   };
 
@@ -274,8 +273,8 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
                 .display_name =
                     "William Brewster (Religious Advisor)" },
         } };
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::yes ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::yes )
         .returns( make_wait<maybe<string>>( "francis_drake" ) );
 
     fathers_copy = player.fathers;
@@ -333,8 +332,8 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
                 .display_name =
                     "William Brewster (Religious Advisor)" },
         } };
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::yes ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::yes )
         .returns( make_wait<maybe<string>>( "henry_hudson" ) );
 
     fathers_copy = player.fathers;
@@ -388,8 +387,8 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
                 .display_name =
                     "Juan de Sepulveda (Religious Advisor)" },
         } };
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::yes ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::yes )
         .returns( make_wait<maybe<string>>( "thomas_paine" ) );
 
     fathers_copy = player.fathers;
@@ -425,8 +424,8 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
                 .key          = "adam_smith",
                 .display_name = "Adam Smith (Trade Advisor)" },
         } };
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::yes ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::yes )
         .returns( make_wait<maybe<string>>( "adam_smith" ) );
     fathers_copy = player.fathers;
     f();
@@ -759,10 +758,8 @@ TEST_CASE( "[fathers] on_father_received: william_brewster" ) {
     state.immigrants_pool[2] = e_unit_type::indentured_servant;
     // Note that the upper limit of the random double is tested
     // elsewhere.
-    EXPECT_CALL( W.rand(), between_doubles( 0, _ ) )
-        .returns( 0.0 );
-    EXPECT_CALL( W.rand(), between_doubles( 0, _ ) )
-        .returns( 2500.0 );
+    W.rand().EXPECT__between_doubles( 0, _ ).returns( 0.0 );
+    W.rand().EXPECT__between_doubles( 0, _ ).returns( 2500.0 );
     f();
     REQUIRE( state.immigrants_pool[0] ==
              e_unit_type::expert_farmer );

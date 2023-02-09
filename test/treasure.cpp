@@ -177,8 +177,7 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
   msg =
       "Treasure worth 100 reimbursed in Amsterdam yielding "
       "[90] after 10% taxes witheld.";
-  EXPECT_CALL( W.gui(), message_box( msg ) )
-      .returns( monostate{} );
+  W.gui().EXPECT__message_box( msg ).returns( monostate{} );
   f();
 
   receipt = { .treasure_id = UnitId{ 1 },
@@ -191,8 +190,7 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
       "Treasure worth 100 arrives in Amsterdam!  The crown has "
       "provided a reimbursement of [90] after a [10%] "
       "witholding.";
-  EXPECT_CALL( W.gui(), message_box( msg ) )
-      .returns( monostate{} );
+  W.gui().EXPECT__message_box( msg ).returns( monostate{} );
   f();
 
   receipt = {
@@ -206,8 +204,7 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
       "Treasure worth 100 arrives in Amsterdam!  The crown has "
       "provided a reimbursement of [90] after a [10%] "
       "tax witholding.";
-  EXPECT_CALL( W.gui(), message_box( msg ) )
-      .returns( monostate{} );
+  W.gui().EXPECT__message_box( msg ).returns( monostate{} );
   f();
 }
 
@@ -256,7 +253,8 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
                               .display_name = "Accept." },
           ChoiceConfigOption{ .key          = "no",
                               .display_name = "Decline." } } };
-  EXPECT_CALL( W.gui(), choice( config, e_input_required::no ) )
+  W.gui()
+      .EXPECT__choice( config, e_input_required::no )
       .returns<maybe<string>>( "yes" );
   REQUIRE( f() == expected );
 
@@ -283,12 +281,14 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
                               .display_name = "Accept." },
           ChoiceConfigOption{ .key          = "no",
                               .display_name = "Decline." } } };
-  EXPECT_CALL( W.gui(), choice( config, e_input_required::no ) )
+  W.gui()
+      .EXPECT__choice( config, e_input_required::no )
       .returns<maybe<string>>( "yes" );
   REQUIRE( f() == expected );
 
   // Chooses no.
-  EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+  W.gui()
+      .EXPECT__choice( _, e_input_required::no )
       .returns<maybe<string>>( "no" );
   REQUIRE( f() == nothing );
 
@@ -316,7 +316,8 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
                               .display_name = "Accept." },
           ChoiceConfigOption{ .key          = "no",
                               .display_name = "Decline." } } };
-  EXPECT_CALL( W.gui(), choice( config, e_input_required::no ) )
+  W.gui()
+      .EXPECT__choice( config, e_input_required::no )
       .returns<maybe<string>>( "yes" );
   REQUIRE( f() == expected );
 }
@@ -346,7 +347,7 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   tribe      = e_tribe::tupi;
   has_cortes = false;
   capital    = false;
-  EXPECT_CALL( W.rand(), bernoulli( .25 ) ).returns( false );
+  W.rand().EXPECT__bernoulli( .25 ).returns( false );
   expected = nothing;
   REQUIRE( f() == expected );
 
@@ -354,9 +355,9 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   tribe      = e_tribe::tupi;
   has_cortes = false;
   capital    = false;
-  EXPECT_CALL( W.rand(), bernoulli( .25 ) ).returns( true );
-  EXPECT_CALL( W.rand(),
-               between_ints( 200, 400, e_interval::closed ) )
+  W.rand().EXPECT__bernoulli( .25 ).returns( true );
+  W.rand()
+      .EXPECT__between_ints( 200, 400, e_interval::closed )
       .returns( 315 );
   expected = 300;
   REQUIRE( f() == expected );
@@ -365,8 +366,8 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   tribe      = e_tribe::tupi;
   has_cortes = true;
   capital    = false;
-  EXPECT_CALL( W.rand(),
-               between_ints( 200, 400, e_interval::closed ) )
+  W.rand()
+      .EXPECT__between_ints( 200, 400, e_interval::closed )
       .returns( 395 );
   expected = 500;
   REQUIRE( f() == expected );
@@ -375,8 +376,8 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   tribe      = e_tribe::tupi;
   has_cortes = false;
   capital    = true;
-  EXPECT_CALL( W.rand(),
-               between_ints( 200, 400, e_interval::closed ) )
+  W.rand()
+      .EXPECT__between_ints( 200, 400, e_interval::closed )
       .returns( 395 );
   expected = 700;
   REQUIRE( f() == expected );
@@ -385,9 +386,9 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   tribe      = e_tribe::cherokee;
   has_cortes = false;
   capital    = false;
-  EXPECT_CALL( W.rand(), bernoulli( .33 ) ).returns( true );
-  EXPECT_CALL( W.rand(),
-               between_ints( 300, 800, e_interval::closed ) )
+  W.rand().EXPECT__bernoulli( .33 ).returns( true );
+  W.rand()
+      .EXPECT__between_ints( 300, 800, e_interval::closed )
       .returns( 675 );
   expected = 600;
   REQUIRE( f() == expected );
@@ -396,9 +397,9 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   tribe      = e_tribe::aztec;
   has_cortes = false;
   capital    = false;
-  EXPECT_CALL( W.rand(), bernoulli( 1.0 ) ).returns( true );
-  EXPECT_CALL( W.rand(),
-               between_ints( 2000, 6000, e_interval::closed ) )
+  W.rand().EXPECT__bernoulli( 1.0 ).returns( true );
+  W.rand()
+      .EXPECT__between_ints( 2000, 6000, e_interval::closed )
       .returns( 5123 );
   expected = 5100;
   REQUIRE( f() == expected );
@@ -407,9 +408,9 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   tribe      = e_tribe::inca;
   has_cortes = false;
   capital    = false;
-  EXPECT_CALL( W.rand(), bernoulli( 1.0 ) ).returns( true );
-  EXPECT_CALL( W.rand(),
-               between_ints( 3000, 10000, e_interval::closed ) )
+  W.rand().EXPECT__bernoulli( 1.0 ).returns( true );
+  W.rand()
+      .EXPECT__between_ints( 3000, 10000, e_interval::closed )
       .returns( 8123 );
   expected = 8100;
   REQUIRE( f() == expected );
@@ -419,8 +420,8 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   has_cortes              = true;
   capital                 = false;
   W.settings().difficulty = e_difficulty::viceroy;
-  EXPECT_CALL( W.rand(),
-               between_ints( 3000, 10000, e_interval::closed ) )
+  W.rand()
+      .EXPECT__between_ints( 3000, 10000, e_interval::closed )
       .returns( 8123 );
   expected = 12100;
   REQUIRE( f() == expected );
@@ -430,8 +431,8 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   has_cortes              = true;
   capital                 = true;
   W.settings().difficulty = e_difficulty::governor;
-  EXPECT_CALL( W.rand(),
-               between_ints( 3000, 10000, e_interval::closed ) )
+  W.rand()
+      .EXPECT__between_ints( 3000, 10000, e_interval::closed )
       .returns( 8123 );
   expected = 24300;
   REQUIRE( f() == expected );

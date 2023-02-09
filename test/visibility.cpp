@@ -1008,8 +1008,7 @@ TEST_CASE( "[visibility] set_map_visibility" ) {
   REQUIRE( W.land_view().map_revealed == expected );
   REQUIRE( W.map_updater().options().nation == nothing );
 
-  EXPECT_CALL( mock_land_view,
-               set_visibility( maybe<e_nation>{} ) );
+  mock_land_view.EXPECT__set_visibility( maybe<e_nation>{} );
   revealed       = MapRevealed::entire{};
   default_nation = e_nation::french; // should be irrelevant.
   expected       = revealed;
@@ -1017,8 +1016,7 @@ TEST_CASE( "[visibility] set_map_visibility" ) {
   REQUIRE( W.land_view().map_revealed == expected );
   REQUIRE( W.map_updater().options().nation == nothing );
 
-  EXPECT_CALL( mock_land_view,
-               set_visibility( e_nation::spanish ) );
+  mock_land_view.EXPECT__set_visibility( e_nation::spanish );
   revealed = MapRevealed::nation{ .nation = e_nation::spanish };
   default_nation = e_nation::french; // should be irrelevant.
   expected       = revealed;
@@ -1027,8 +1025,7 @@ TEST_CASE( "[visibility] set_map_visibility" ) {
   REQUIRE( W.map_updater().options().nation ==
            e_nation::spanish );
 
-  EXPECT_CALL( mock_land_view,
-               set_visibility( e_nation::french ) );
+  mock_land_view.EXPECT__set_visibility( e_nation::french );
   revealed       = nothing;
   default_nation = e_nation::french;
   expected       = revealed;

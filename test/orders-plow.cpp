@@ -104,8 +104,9 @@ TEST_CASE( "[orders-plow] native-owned land" ) {
     auto config_matcher =
         Field( &ChoiceConfig::msg,
                StrContains( "These grounds help" ) );
-    EXPECT_CALL( W.gui(), choice( std::move( config_matcher ),
-                                  e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( std::move( config_matcher ),
+                         e_input_required::no )
         .returns<maybe<string>>( "cancel" );
     REQUIRE( confirm() == false );
     REQUIRE( relationship.tribal_alarm == 0 );
@@ -121,8 +122,9 @@ TEST_CASE( "[orders-plow] native-owned land" ) {
     auto config_matcher =
         Field( &ChoiceConfig::msg,
                StrContains( "These grounds help" ) );
-    EXPECT_CALL( W.gui(), choice( std::move( config_matcher ),
-                                  e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( std::move( config_matcher ),
+                         e_input_required::no )
         .returns<maybe<string>>( "take" );
     REQUIRE( confirm() == true );
     REQUIRE( relationship.tribal_alarm == 10 );
@@ -140,11 +142,11 @@ TEST_CASE( "[orders-plow] native-owned land" ) {
   SECTION( "clear_forest / take" ) {
     W.terrain().mutable_square_at( tile ).overlay =
         e_land_overlay::forest;
-    auto config_matcher =
-        Field( &ChoiceConfig::msg,
-               StrContains( "These [forests]" ) );
-    EXPECT_CALL( W.gui(), choice( std::move( config_matcher ),
-                                  e_input_required::no ) )
+    auto config_matcher = Field(
+        &ChoiceConfig::msg, StrContains( "These [forests]" ) );
+    W.gui()
+        .EXPECT__choice( std::move( config_matcher ),
+                         e_input_required::no )
         .returns<maybe<string>>( "take" );
     REQUIRE( confirm() == true );
     REQUIRE( relationship.tribal_alarm == 10 );

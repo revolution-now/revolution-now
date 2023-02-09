@@ -62,10 +62,14 @@ struct PGStruct {
 
   int get( e_processed_good good ) const {
     switch( good ) {
-      case e_processed_good::rum: return rum;
-      case e_processed_good::cigars: return cigars;
-      case e_processed_good::cloth: return cloth;
-      case e_processed_good::coats: return coats;
+      case e_processed_good::rum:
+        return rum;
+      case e_processed_good::cigars:
+        return cigars;
+      case e_processed_good::cloth:
+        return cloth;
+      case e_processed_good::coats:
+        return coats;
     }
   }
 };
@@ -610,8 +614,8 @@ TEST_CASE( "[price-group] generate_random_intrinsic_volume" ) {
     int const top    = 15;
     CHECK( ret >= bottom );
     CHECK( ret <= top );
-    EXPECT_CALL( W.rand(), between_ints( bottom, top,
-                                         e_interval::closed ) )
+    W.rand()
+        .EXPECT__between_ints( bottom, top, e_interval::closed )
         .returns( ret );
   };
 

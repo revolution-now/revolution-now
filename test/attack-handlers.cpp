@@ -153,34 +153,34 @@ struct World : testing::World {
   }
 
   void expect_msg_contains( string_view msg ) {
-    EXPECT_CALL( gui(),
-                 message_box( StrContains( string( msg ) ) ) )
+    gui()
+        .EXPECT__message_box( StrContains( string( msg ) ) )
         .returns<monostate>();
   }
 
   void expect_some_animation() {
-    EXPECT_CALL( mock_land_view_plane_, animate( _ ) )
+    mock_land_view_plane_.EXPECT__animate( _ )
         .returns<monostate>();
   }
 
   void expect_convert() {
     expect_some_animation();
-    EXPECT_CALL( gui(),
-                 message_box( StrContains( "converts" ) ) )
+    gui()
+        .EXPECT__message_box( StrContains( "converts" ) )
         .returns<monostate>();
     expect_some_animation();
   }
 
   void expect_promotion() {
-    EXPECT_CALL( gui(), message_box( StrContains( "valor" ) ) )
+    gui()
+        .EXPECT__message_box( StrContains( "valor" ) )
         .returns<monostate>();
   }
 
   void expect_tribe_wiped_out( string_view tribe_name ) {
-    EXPECT_CALL( gui(),
-                 message_box( fmt::format(
-                     "The [{}] tribe has been wiped out.",
-                     tribe_name ) ) )
+    gui()
+        .EXPECT__message_box( fmt::format(
+            "The [{}] tribe has been wiped out.", tribe_name ) )
         .returns<monostate>();
   }
 
@@ -212,10 +212,10 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
   CombatEuroAttackEuro   combat;
 
   auto expect_combat = [&] {
-    EXPECT_CALL( W.combat(),
-                 euro_attack_euro(
-                     W.units().unit_for( combat.attacker.id ),
-                     W.units().unit_for( combat.defender.id ) ) )
+    W.combat()
+        .EXPECT__euro_attack_euro(
+            W.units().unit_for( combat.attacker.id ),
+            W.units().unit_for( combat.defender.id ) )
         .returns( combat );
   };
 
@@ -265,8 +265,8 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
     W.units()
         .unit_for( combat.attacker.id )
         .consume_mv_points( MovementPoints::_1_3() );
-    EXPECT_CALL( W.gui(), choice( _, _ ) )
-        .returns<maybe<string>>( "no" );
+    W.gui().EXPECT__choice( _, _ ).returns<maybe<string>>(
+        "no" );
     REQUIRE( f() == expected );
   }
 
@@ -276,8 +276,8 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
     W.units()
         .unit_for( combat.attacker.id )
         .consume_mv_points( MovementPoints::_1_3() );
-    EXPECT_CALL( W.gui(), choice( _, _ ) )
-        .returns<maybe<string>>( "yes" );
+    W.gui().EXPECT__choice( _, _ ).returns<maybe<string>>(
+        "yes" );
     expect_combat();
     W.expect_some_animation();
     expected = { .order_was_run = true };
@@ -295,10 +295,10 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
   CombatEuroAttackEuro   combat;
 
   auto expect_combat = [&] {
-    EXPECT_CALL( W.combat(),
-                 euro_attack_euro(
-                     W.units().unit_for( combat.attacker.id ),
-                     W.units().unit_for( combat.defender.id ) ) )
+    W.combat()
+        .EXPECT__euro_attack_euro(
+            W.units().unit_for( combat.attacker.id ),
+            W.units().unit_for( combat.defender.id ) )
         .returns( combat );
   };
 
@@ -534,10 +534,10 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
   REQUIRE( relationship.tribal_alarm == 0 );
 
   auto expect_combat = [&] {
-    EXPECT_CALL( W.combat(),
-                 euro_attack_brave(
-                     W.units().unit_for( combat.attacker.id ),
-                     W.units().unit_for( combat.defender.id ) ) )
+    W.combat()
+        .EXPECT__euro_attack_brave(
+            W.units().unit_for( combat.attacker.id ),
+            W.units().unit_for( combat.defender.id ) )
         .returns( combat );
   };
 
@@ -558,8 +558,8 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
             .outcome = NativeUnitCombatOutcome::destroyed{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::soldier, e_native_unit_type::brave );
-    EXPECT_CALL( W.gui(), choice( _, _ ) )
-        .returns<maybe<string>>( "no" );
+    W.gui().EXPECT__choice( _, _ ).returns<maybe<string>>(
+        "no" );
     expected = { .order_was_run = false };
     REQUIRE( f() == expected );
     Unit const& attacker =
@@ -586,8 +586,8 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
             .outcome = NativeUnitCombatOutcome::destroyed{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::soldier, e_native_unit_type::brave );
-    EXPECT_CALL( W.gui(), choice( _, _ ) )
-        .returns<maybe<string>>( "yes" );
+    W.gui().EXPECT__choice( _, _ ).returns<maybe<string>>(
+        "yes" );
     expect_combat();
     W.expect_some_animation();
     REQUIRE( f() == expected );
@@ -718,10 +718,9 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
   DwellingId const dwelling_id = dwelling.id;
 
   auto expect_combat = [&] {
-    EXPECT_CALL( W.combat(),
-                 euro_attack_dwelling(
-                     W.units().unit_for( combat.attacker.id ),
-                     dwelling ) )
+    W.combat()
+        .EXPECT__euro_attack_dwelling(
+            W.units().unit_for( combat.attacker.id ), dwelling )
         .returns( combat );
   };
 
@@ -804,7 +803,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     string const missions_burned_msg =
         "The [Apache] revolt against [English] "
         "missions! All English missionaries eliminated!";
-    EXPECT_CALL( W.gui(), message_box( missions_burned_msg ) )
+    W.gui()
+        .EXPECT__message_box( missions_burned_msg )
         .returns<monostate>();
     expected = { .order_was_run = true };
     REQUIRE( f() == expected );
@@ -856,7 +856,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     string const missions_burned_msg =
         "The [Apache] revolt against [English] "
         "missions! All English missionaries eliminated!";
-    EXPECT_CALL( W.gui(), message_box( missions_burned_msg ) )
+    W.gui()
+        .EXPECT__message_box( missions_burned_msg )
         .returns<monostate>();
     expected = { .order_was_run = true };
     REQUIRE( f() == expected );
@@ -1009,9 +1010,10 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     expect_combat();
     W.expect_some_animation();
     W.expect_promotion();
-    EXPECT_CALL( W.gui(),
-                 message_box( "[Apache] camp burned by the "
-                              "[English]!" ) )
+    W.gui()
+        .EXPECT__message_box(
+            "[Apache] camp burned by the "
+            "[English]!" )
         .returns<monostate>();
     W.expect_tribe_wiped_out( "Apache" );
 
@@ -1059,13 +1061,15 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     expect_combat();
     W.expect_some_animation();
     W.expect_promotion();
-    EXPECT_CALL( W.gui(),
-                 message_box( "[Apache] camp burned by the "
-                              "[English]!" ) )
+    W.gui()
+        .EXPECT__message_box(
+            "[Apache] camp burned by the "
+            "[English]!" )
         .returns<monostate>();
-    EXPECT_CALL( W.gui(),
-                 message_box( "The [Apache] bow before the "
-                              "might of the [English]!" ) )
+    W.gui()
+        .EXPECT__message_box(
+            "The [Apache] bow before the "
+            "might of the [English]!" )
         .returns<monostate>();
 
     expected = { .order_was_run       = true,
@@ -1116,14 +1120,13 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     W.expect_some_animation();
     W.expect_promotion();
     W.expect_convert();
-    EXPECT_CALL(
-        W.gui(),
-        message_box( fmt::format(
+    W.gui()
+        .EXPECT__message_box( fmt::format(
             "[Apache] camp burned by the [English]! "
             "[Missionary] flees in panic! Treasure worth "
             "[123] recovered from camp! It will take a "
             "[Galleon] to transport this treasure back to "
-            "[London]." ) ) )
+            "[London]." ) )
         .returns<monostate>();
     W.expect_some_animation(); // treasure enpixelation.
     W.expect_tribe_wiped_out( "Apache" );
@@ -1199,11 +1202,10 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     expect_combat();
     W.expect_some_animation();
     W.expect_promotion();
-    EXPECT_CALL(
-        W.gui(),
-        message_box( fmt::format(
+    W.gui()
+        .EXPECT__message_box( fmt::format(
             "[Apache] camp burned by the [English]! "
-            "[Foreign missionary] hanged!" ) ) )
+            "[Foreign missionary] hanged!" ) )
         .returns<monostate>();
     W.expect_tribe_wiped_out( "Apache" );
 

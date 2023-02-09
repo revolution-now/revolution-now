@@ -134,8 +134,8 @@ TEST_CASE( "[orders-dump] galleon" ) {
                 },
             },
     };
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::no )
         .returns( make_wait<maybe<string>>( "2" ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
@@ -187,8 +187,8 @@ TEST_CASE( "[orders-dump] galleon" ) {
                 },
             },
     };
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::no )
         .returns( make_wait<maybe<string>>( "5" ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
@@ -233,8 +233,8 @@ TEST_CASE( "[orders-dump] galleon" ) {
                 },
             },
     };
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::no )
         .returns( make_wait<maybe<string>>( nothing ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
@@ -272,8 +272,8 @@ TEST_CASE( "[orders-dump] galleon" ) {
                 },
             },
     };
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::no )
         .returns( make_wait<maybe<string>>( "0" ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
@@ -311,8 +311,8 @@ TEST_CASE( "[orders-dump] galleon" ) {
                 },
             },
     };
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::no )
         .returns( make_wait<maybe<string>>( "4" ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
@@ -337,10 +337,10 @@ TEST_CASE( "[orders-dump] galleon" ) {
 
   // Dump #5, no more cargo.
   {
-    EXPECT_CALL(
-        W.gui(),
-        message_box( "This unit is not carrying any cargo that "
-                     "can be dumped overboard." ) )
+    W.gui()
+        .EXPECT__message_box(
+            "This unit is not carrying any cargo that "
+            "can be dumped overboard." )
         .returns( make_wait<>() );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
@@ -393,8 +393,8 @@ TEST_CASE( "[orders-dump] wagon train" ) {
                 },
             },
     };
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::no )
         .returns( make_wait<maybe<string>>( "0" ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
@@ -415,10 +415,10 @@ TEST_CASE( "[orders-dump] wagon train" ) {
 
   // Dump #2, no more cargo.
   {
-    EXPECT_CALL(
-        W.gui(),
-        message_box( "This unit is not carrying any cargo that "
-                     "can be dumped overboard." ) )
+    W.gui()
+        .EXPECT__message_box(
+            "This unit is not carrying any cargo that "
+            "can be dumped overboard." )
         .returns( make_wait<>() );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
@@ -438,9 +438,10 @@ TEST_CASE( "[orders-dump] non-cargo unit" ) {
       handle_orders( W.planes(), W.ss(), W.ts(),
                      W.default_player(), id, orders::dump{} );
 
-  EXPECT_CALL( W.gui(),
-               message_box( "Only units with cargo holds can "
-                            "dump cargo overboard." ) )
+  W.gui()
+      .EXPECT__message_box(
+          "Only units with cargo holds can "
+          "dump cargo overboard." )
       .returns( make_wait<>() );
   wait<bool> w_confirm = handler->confirm();
   REQUIRE( !w_confirm.exception() );

@@ -415,9 +415,9 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
     MockLandViewPlane mock_land_view;
     W.planes().back().land_view = &mock_land_view;
 
-    EXPECT_CALL( mock_land_view, animate( _ ) )
-        .returns( make_wait<>() );
-    EXPECT_CALL( W.gui(), message_box( "some msg" ) )
+    mock_land_view.EXPECT__animate( _ ).returns( make_wait<>() );
+    W.gui()
+        .EXPECT__message_box( "some msg" )
         .returns( make_wait<>() );
 
     wait<> w = run_colony_destruction(
@@ -433,13 +433,14 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
     MockLandViewPlane mock_land_view;
     W.planes().back().land_view = &mock_land_view;
 
-    EXPECT_CALL( mock_land_view, animate( _ ) )
+    mock_land_view.EXPECT__animate( _ ).returns( make_wait<>() );
+    W.gui()
+        .EXPECT__message_box( "some msg" )
         .returns( make_wait<>() );
-    EXPECT_CALL( W.gui(), message_box( "some msg" ) )
-        .returns( make_wait<>() );
-    EXPECT_CALL(
-        W.gui(),
-        message_box( StrContains( "had ships in its port" ) ) )
+
+    W.gui()
+        .EXPECT__message_box(
+            StrContains( "had ships in its port" ) )
         .returns( make_wait<>() );
 
     wait<> w = run_colony_destruction(

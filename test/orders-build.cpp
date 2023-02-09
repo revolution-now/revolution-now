@@ -91,10 +91,12 @@ TEST_CASE( "[orders-build] build colony" ) {
 
   REQUIRE( W.colonies().last_colony_id() == 0 );
 
-  EXPECT_CALL( W.gui(), display_woodcut(
-                            e_woodcut::building_first_colony ) )
+  W.gui()
+      .EXPECT__display_woodcut(
+          e_woodcut::building_first_colony )
       .returns<monostate>();
-  EXPECT_CALL( W.gui(), string_input( _, e_input_required::no ) )
+  W.gui()
+      .EXPECT__string_input( _, e_input_required::no )
       .returns<maybe<string>>( "my colony" );
   REQUIRE( confirm() == true );
   REQUIRE_FALSE( unit.mv_pts_exhausted() );

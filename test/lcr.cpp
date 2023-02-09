@@ -88,9 +88,10 @@ TEST_CASE( "[lcr] de soto means no unit lost" ) {
   int const kUpperLimit = 97;
   for( int i = 0; i < kUpperLimit; i += 1 ) {
     INFO( fmt::format( "i: {}", i ) );
-    EXPECT_CALL(
-        W.rand(),
-        between_ints( 0, kUpperLimit, e_interval::half_open ) )
+
+    W.rand()
+        .EXPECT__between_ints( 0, kUpperLimit,
+                               e_interval::half_open )
         .returns( i );
     e_rumor_type type = pick_rumor_type_result(
         W.rand(), e_lcr_explorer_category::other, player );
@@ -121,9 +122,9 @@ TEST_CASE( "[lcr] nothing but rumors" ) {
   bool has_burial_grounds = false;
 
   // Mock function calls.
-  EXPECT_CALL(
-      W.gui(),
-      message_box( StrContains( "nothing but rumors" ) ) )
+
+  W.gui()
+      .EXPECT__message_box( StrContains( "nothing but rumors" ) )
       .returns( make_wait() );
 
   // Go
@@ -166,13 +167,13 @@ TEST_CASE( "[lcr] small village, chief gift" ) {
   bool has_burial_grounds = false;
 
   // Mock function calls.
-  EXPECT_CALL( W.gui(),
-               message_box( StrContains(
-                   "You happen upon a small village" ) ) )
+  W.gui()
+      .EXPECT__message_box(
+          StrContains( "You happen upon a small village" ) )
       .returns( make_wait() );
   // Get quantity of chief gift.
-  EXPECT_CALL( W.rand(),
-               between_ints( 15, 70, e_interval::closed ) )
+  W.rand()
+      .EXPECT__between_ints( 15, 70, e_interval::closed )
       .returns( 32 );
 
   // Go
@@ -213,13 +214,14 @@ TEST_CASE( "[lcr] small village, ruins of lost colony" ) {
   bool has_burial_grounds = false;
 
   // Mock function calls.
-  EXPECT_CALL(
-      W.gui(),
-      message_box( StrContains( "ruins of a lost colony" ) ) )
+
+  W.gui()
+      .EXPECT__message_box(
+          StrContains( "ruins of a lost colony" ) )
       .returns( make_wait() );
   // Get quantity of gift.
-  EXPECT_CALL( W.rand(),
-               between_ints( 80, 220, e_interval::closed ) )
+  W.rand()
+      .EXPECT__between_ints( 80, 220, e_interval::closed )
       .returns( 95 );
 
   // Go
@@ -260,30 +262,29 @@ TEST_CASE( "[lcr] fountain of youth" ) {
   bool has_burial_grounds = false;
 
   // Mock function calls.
-  EXPECT_CALL( W.gui(),
-               message_box( StrContains(
-                   "You've discovered a Fountain of Youth!" ) ) )
+  W.gui()
+      .EXPECT__message_box( StrContains(
+          "You've discovered a Fountain of Youth!" ) )
       .returns( make_wait() );
   // Need to do this in a loop because we need a separate return
   // object for each one (since they are moved).
   for( int i = 0; i < 8; ++i ) {
-    EXPECT_CALL(
-        W.gui(),
-        choice(
+    W.gui()
+        .EXPECT__choice(
             Field( &ChoiceConfig::msg,
                    StrContains( "Who shall we next choose" ) ),
-            e_input_required::no ) )
+            e_input_required::no )
         .returns( make_wait<maybe<string>>( "1" ) );
-    EXPECT_CALL( W.gui(),
-                 wait_for( chrono::milliseconds( 300 ) ) )
+    W.gui()
+        .EXPECT__wait_for( chrono::milliseconds( 300 ) )
         .returns( chrono::microseconds{} );
     // This one is to choose that unit's replacement in the pool,
     // which is always done randomly. 9960.0 was found by summing
     // all of the unit type weights for all units on the discov-
     // erer level.
-    EXPECT_CALL( W.rand(),
-                 between_doubles( 0, mock::matchers::Approx(
-                                         9960.0, .00001 ) ) )
+    W.rand()
+        .EXPECT__between_doubles(
+            0, mock::matchers::Approx( 9960.0, .00001 ) )
         .returns( 5000.0 ); // chosen to give scout.
   }
 
@@ -338,9 +339,10 @@ TEST_CASE( "[lcr] free colonist" ) {
   bool has_burial_grounds = false;
 
   // Mock function calls.
-  EXPECT_CALL(
-      W.gui(),
-      message_box( StrContains( "happen upon the survivors" ) ) )
+
+  W.gui()
+      .EXPECT__message_box(
+          StrContains( "happen upon the survivors" ) )
       .returns( make_wait() );
 
   // Go
@@ -389,9 +391,10 @@ TEST_CASE( "[lcr] unit lost" ) {
   bool has_burial_grounds = false;
 
   // Mock function calls.
-  EXPECT_CALL(
-      W.gui(),
-      message_box( StrContains( "vanished without a trace" ) ) )
+
+  W.gui()
+      .EXPECT__message_box(
+          StrContains( "vanished without a trace" ) )
       .returns( make_wait() );
 
   // Go
@@ -439,13 +442,14 @@ TEST_CASE( "[lcr] cibola / treasure" ) {
   e_rumor_type rumor_type = e_rumor_type::cibola;
 
   // Mock function calls.
-  EXPECT_CALL(
-      W.gui(),
-      message_box( StrContains( "Seven Cities of Cibola" ) ) )
+
+  W.gui()
+      .EXPECT__message_box(
+          StrContains( "Seven Cities of Cibola" ) )
       .returns( make_wait() );
   // Get quantity of treasure.
-  EXPECT_CALL( W.rand(),
-               between_ints( 2000, 10500, e_interval::closed ) )
+  W.rand()
+      .EXPECT__between_ints( 2000, 10500, e_interval::closed )
       .returns( 5555 );
 
   // Go
@@ -503,14 +507,16 @@ TEST_CASE( "[lcr] burial mounds / treasure" ) {
   bool has_burial_grounds = false;
 
   // Mock function calls.
-  EXPECT_CALL( W.gui(), choice( _, e_input_required::yes ) )
+  W.gui()
+      .EXPECT__choice( _, e_input_required::yes )
       .returns( make_wait<maybe<string>>( "yes" ) );
-  EXPECT_CALL( W.gui(), message_box( StrContains(
-                            "recovered a treasure worth" ) ) )
+  W.gui()
+      .EXPECT__message_box(
+          StrContains( "recovered a treasure worth" ) )
       .returns( make_wait() );
   // Get quantity of treasure.
-  EXPECT_CALL( W.rand(),
-               between_ints( 2000, 3500, e_interval::closed ) )
+  W.rand()
+      .EXPECT__between_ints( 2000, 3500, e_interval::closed )
       .returns( 2222 );
 
   // Go
@@ -568,10 +574,11 @@ TEST_CASE( "[lcr] burial mounds / cold and empty" ) {
   bool has_burial_grounds = false;
 
   // Mock function calls.
-  EXPECT_CALL( W.gui(), choice( _, e_input_required::yes ) )
+  W.gui()
+      .EXPECT__choice( _, e_input_required::yes )
       .returns( make_wait<maybe<string>>( "yes" ) );
-  EXPECT_CALL( W.gui(),
-               message_box( StrContains( "cold and empty" ) ) )
+  W.gui()
+      .EXPECT__message_box( StrContains( "cold and empty" ) )
       .returns( make_wait() );
 
   // Go
@@ -616,15 +623,17 @@ TEST_CASE( "[lcr] burial mounds / trinkets" ) {
   bool has_burial_grounds = false;
 
   // Mock function calls.
-  EXPECT_CALL( W.gui(), choice( _, e_input_required::yes ) )
+  W.gui()
+      .EXPECT__choice( _, e_input_required::yes )
       .returns( make_wait<maybe<string>>( "yes" ) );
-  EXPECT_CALL(
-      W.gui(),
-      message_box( StrContains( "found some trinkets" ) ) )
+
+  W.gui()
+      .EXPECT__message_box(
+          StrContains( "found some trinkets" ) )
       .returns( make_wait() );
   // Get quantity of the gift.
-  EXPECT_CALL( W.rand(),
-               between_ints( 70, 200, e_interval::closed ) )
+  W.rand()
+      .EXPECT__between_ints( 70, 200, e_interval::closed )
       .returns( 155 );
 
   // Go
@@ -672,7 +681,8 @@ TEST_CASE( "[lcr] burial mounds / no explore" ) {
   bool has_burial_grounds = false;
 
   // Mock function calls.
-  EXPECT_CALL( W.gui(), choice( _, e_input_required::yes ) )
+  W.gui()
+      .EXPECT__choice( _, e_input_required::yes )
       .returns( make_wait<maybe<string>>( "no" ) );
 
   // Go
@@ -718,19 +728,22 @@ TEST_CASE(
   bool has_burial_grounds = true;
 
   // Mock function calls.
-  EXPECT_CALL( W.gui(), choice( _, e_input_required::yes ) )
+  W.gui()
+      .EXPECT__choice( _, e_input_required::yes )
       .returns( make_wait<maybe<string>>( "yes" ) );
-  EXPECT_CALL(
-      W.gui(),
-      message_box( StrContains( "found some trinkets" ) ) )
+
+  W.gui()
+      .EXPECT__message_box(
+          StrContains( "found some trinkets" ) )
       .returns( make_wait() );
-  EXPECT_CALL(
-      W.gui(),
-      message_box( StrContains( "native burial grounds" ) ) )
+
+  W.gui()
+      .EXPECT__message_box(
+          StrContains( "native burial grounds" ) )
       .returns( make_wait() );
   // Get quantity of the gift.
-  EXPECT_CALL( W.rand(),
-               between_ints( 70, 200, e_interval::closed ) )
+  W.rand()
+      .EXPECT__between_ints( 70, 200, e_interval::closed )
       .returns( 155 );
 
   // Go

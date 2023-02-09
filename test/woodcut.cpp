@@ -42,10 +42,9 @@ struct World : testing::World {
 TEST_CASE( "[woodcut] display_woodcut" ) {
   World W;
 
-  EXPECT_CALL(
-      W.gui(),
-      message_box(
-          "(woodcut): Discovery of the Fountain of Youth!" ) )
+  W.gui()
+      .EXPECT__message_box(
+          "(woodcut): Discovery of the Fountain of Youth!" )
       .returns<monostate>();
   wait<> w = detail::display_woodcut(
       W.gui(), e_woodcut::discovered_fountain_of_youth );
@@ -65,8 +64,7 @@ TEST_CASE( "[woodcut] display_woodcut_if_needed" ) {
   };
 
   cut = e_woodcut::colony_destroyed;
-  EXPECT_CALL( W.gui(), display_woodcut( cut ) )
-      .returns<monostate>();
+  W.gui().EXPECT__display_woodcut( cut ).returns<monostate>();
   REQUIRE_FALSE( player.woodcuts[cut] );
   f();
   REQUIRE( player.woodcuts[cut] );
@@ -74,8 +72,7 @@ TEST_CASE( "[woodcut] display_woodcut_if_needed" ) {
   REQUIRE( player.woodcuts[cut] );
 
   cut = e_woodcut::meeting_fellow_europeans;
-  EXPECT_CALL( W.gui(), display_woodcut( cut ) )
-      .returns<monostate>();
+  W.gui().EXPECT__display_woodcut( cut ).returns<monostate>();
   REQUIRE_FALSE( player.woodcuts[cut] );
   f();
   REQUIRE( player.woodcuts[cut] );

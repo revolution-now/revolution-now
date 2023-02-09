@@ -262,48 +262,47 @@ TEST_CASE( "[mock] Pointee" ) {
   PointUser user( &mp );
 
   // int*
-  EXPECT_CALL( mp, set_x_from_ptr( Pointee( 8 ) ) );
+  mp.EXPECT__set_x_from_ptr( Pointee( 8 ) );
   int n = 8;
   user.set_x_from_ptr( &n );
 
   // int const*
-  EXPECT_CALL( mp, set_x_from_const_ptr( Pointee( 8 ) ) );
+  mp.EXPECT__set_x_from_const_ptr( Pointee( 8 ) );
   user.set_x_from_const_ptr( 8 );
 
   // int**
-  EXPECT_CALL( mp,
-               set_x_from_ptr_ptr( Pointee( Pointee( 8 ) ) ) );
+  mp.EXPECT__set_x_from_ptr_ptr( Pointee( Pointee( 8 ) ) );
   user.set_x_from_ptr_ptr( 8 );
 
   // int const**
-  EXPECT_CALL(
-      mp, set_x_from_const_ptr_ptr( Pointee( Pointee( 8 ) ) ) );
+
+  mp.EXPECT__set_x_from_const_ptr_ptr( Pointee( Pointee( 8 ) ) );
   user.set_x_from_const_ptr_ptr( 8 );
 
   // int* const*
-  EXPECT_CALL(
-      mp, set_x_from_ptr_const_ptr( Pointee( Pointee( 8 ) ) ) );
+
+  mp.EXPECT__set_x_from_ptr_const_ptr( Pointee( Pointee( 8 ) ) );
   user.set_x_from_ptr_const_ptr( 8 );
 
   // int const* const*
-  EXPECT_CALL( mp, set_x_from_const_ptr_const_ptr(
-                       Pointee( Pointee( 8 ) ) ) );
+  mp.EXPECT__set_x_from_const_ptr_const_ptr(
+      Pointee( Pointee( 8 ) ) );
   user.set_x_from_const_ptr_const_ptr( 8 );
 
   // unique_ptr<int>
-  EXPECT_CALL( mp, set_x_from_uptr( Pointee( 8 ) ) );
+  mp.EXPECT__set_x_from_uptr( Pointee( 8 ) );
   user.set_x_from_uptr( 8 );
 
   // unique_ptr<int> const&
-  EXPECT_CALL( mp, set_x_from_uptr_ref( Pointee( 8 ) ) );
+  mp.EXPECT__set_x_from_uptr_ref( Pointee( 8 ) );
   user.set_x_from_uptr_ref( 8 );
 
   // unique_ptr<int const>
-  EXPECT_CALL( mp, set_x_from_const_uptr( Pointee( 8 ) ) );
+  mp.EXPECT__set_x_from_const_uptr( Pointee( 8 ) );
   user.set_x_from_const_uptr( 8 );
 
   // unique_ptr<int const> const&
-  EXPECT_CALL( mp, set_x_from_const_uptr_ref( Pointee( 8 ) ) );
+  mp.EXPECT__set_x_from_const_uptr_ref( Pointee( 8 ) );
   user.set_x_from_const_uptr_ref( 8 );
 }
 
@@ -311,7 +310,7 @@ TEST_CASE( "[mock] Pointee arg match failure" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, set_x_from_const_ptr( Pointee( 9 ) ) );
+  mp.EXPECT__set_x_from_const_ptr( Pointee( 9 ) );
   // Wrong one.
   REQUIRE_UNEXPECTED_ARGS( user.set_x_from_const_ptr( 8 ) );
   // Right one.
@@ -322,30 +321,30 @@ TEST_CASE( "[mock] IterableElementsAre" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, sum_ints( IterableElementsAre( 3, 4, 5 ) ) )
+  mp.EXPECT__sum_ints( IterableElementsAre( 3, 4, 5 ) )
       .returns( 12 );
   vector<int> v1{ 3, 4, 5 };
   REQUIRE( user.sum_ints( v1 ) == 12 );
 
   int n1 = 3, n2 = 4, n3 = 5;
 
-  EXPECT_CALL( mp,
-               sum_ints_ptr( IterableElementsAre(
-                   Pointee( 3 ), Pointee( 4 ), Pointee( 5 ) ) ) )
+  mp
+      .EXPECT__sum_ints_ptr( IterableElementsAre(
+          Pointee( 3 ), Pointee( 4 ), Pointee( 5 ) ) )
       .returns( 12 );
   vector<int const*> v2{ &n1, &n2, &n3 };
   REQUIRE( user.sum_ints_ptr( v2 ) == 12 );
 
-  EXPECT_CALL(
-      mp, sum_ptr_ints_ptr( Pointee( IterableElementsAre(
-              Pointee( 3 ), Pointee( 4 ), Pointee( 5 ) ) ) ) )
+  mp
+      .EXPECT__sum_ptr_ints_ptr( Pointee( IterableElementsAre(
+          Pointee( 3 ), Pointee( 4 ), Pointee( 5 ) ) ) )
       .returns( 12 );
   REQUIRE( user.sum_ptr_ints_ptr( &v2 ) == 12 );
 
-  EXPECT_CALL( mp, sum_ints_nested( IterableElementsAre(
-                       IterableElementsAre( 1, 2 ),
-                       IterableElementsAre( 2, 2 ),
-                       IterableElementsAre( 2, 3 ) ) ) )
+  mp.EXPECT__sum_ints_nested(
+        IterableElementsAre( IterableElementsAre( 1, 2 ),
+                             IterableElementsAre( 2, 2 ),
+                             IterableElementsAre( 2, 3 ) ) )
       .returns( 12 );
   vector<vector<unsigned int>> v3{
       { 1, 2 }, { 2, 2 }, { 2, 3 } };
@@ -356,7 +355,7 @@ TEST_CASE( "[mock] IterableElementsAre arg match failure" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, sum_ints( IterableElementsAre( 3, 5, 5 ) ) )
+  mp.EXPECT__sum_ints( IterableElementsAre( 3, 5, 5 ) )
       .returns( 12 );
   vector<int> v1{ 3, 4, 5 };
   // Wrong one.
@@ -369,7 +368,7 @@ TEST_CASE( "[mock] Ge" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, set_x( Ge( 8 ) ) ).times( 4 );
+  mp.EXPECT__set_x( Ge( 8 ) ).times( 4 );
   user.set_x( 10 );
   user.set_x( 9 );
   user.set_x( 8 );
@@ -381,7 +380,7 @@ TEST_CASE( "[mock] Le" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, set_x( Le( 8 ) ) ).times( 4 );
+  mp.EXPECT__set_x( Le( 8 ) ).times( 4 );
   user.set_x( 6 );
   user.set_x( 7 );
   user.set_x( 8 );
@@ -393,7 +392,7 @@ TEST_CASE( "[mock] Gt" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, set_x( Gt( 8 ) ) ).times( 3 );
+  mp.EXPECT__set_x( Gt( 8 ) ).times( 3 );
   user.set_x( 10 );
   user.set_x( 9 );
   REQUIRE_UNEXPECTED_ARGS( user.set_x( 8 ) );
@@ -404,7 +403,7 @@ TEST_CASE( "[mock] Lt" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, set_x( Lt( 8 ) ) ).times( 3 );
+  mp.EXPECT__set_x( Lt( 8 ) ).times( 3 );
   user.set_x( 6 );
   user.set_x( 7 );
   REQUIRE_UNEXPECTED_ARGS( user.set_x( 8 ) );
@@ -415,7 +414,7 @@ TEST_CASE( "[mock] Ne" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, set_x( Ne( 8 ) ) ).times( 3 );
+  mp.EXPECT__set_x( Ne( 8 ) ).times( 3 );
   user.set_x( 7 );
   user.set_x( 9 );
   REQUIRE_UNEXPECTED_ARGS( user.set_x( 8 ) );
@@ -426,7 +425,7 @@ TEST_CASE( "[mock] Eq" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, set_x( Eq( 8 ) ) );
+  mp.EXPECT__set_x( Eq( 8 ) );
   REQUIRE_UNEXPECTED_ARGS( user.set_x( 7 ) );
   REQUIRE_UNEXPECTED_ARGS( user.set_x( 9 ) );
   REQUIRE_UNEXPECTED_ARGS( user.set_x( 10 ) );
@@ -437,7 +436,7 @@ TEST_CASE( "[mock] Not" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, set_x( Not( Ge( 8 ) ) ) ).times( 4 );
+  mp.EXPECT__set_x( Not( Ge( 8 ) ) ).times( 4 );
   user.set_x( 5 );
   user.set_x( 6 );
   user.set_x( 7 );
@@ -449,7 +448,7 @@ TEST_CASE( "[mock] string" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, say_hello( "bob" ) ).returns( "hello bob" );
+  mp.EXPECT__say_hello( "bob" ).returns( "hello bob" );
   REQUIRE( user.say_hello( "bob" ) == "hello bob" );
 }
 
@@ -460,15 +459,14 @@ TEST_CASE( "[mock] string_view" ) {
   SECTION( "takes string_view" ) {
     // Note that if "bob" were a temporary std::string then this
     // would crash due to stored dangling string_view.
-    EXPECT_CALL( mp, say_hello_s( "bob" ) )
-        .returns( "hello bob" );
+    mp.EXPECT__say_hello_s( "bob" ).returns( "hello bob" );
     REQUIRE( user.say_hello_s( "bob" ) == "hello bob" );
   }
 
   SECTION( "takes string_view (use string for return)" ) {
     // Note that if "bob" were a temporary std::string then this
     // would crash due to stored dangling string_view.
-    EXPECT_CALL( mp, say_hello_s( "bob" ) )
+    mp.EXPECT__say_hello_s( "bob" )
         // Passing a temporary string here should be OK because
         // say_hello_s returns a std::string, so nothing will
         // dangle.
@@ -481,12 +479,11 @@ TEST_CASE( "[mock] StartsWith" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, say_hello( StartsWith( "bob" ) ) )
+  mp.EXPECT__say_hello( StartsWith( "bob" ) )
       .returns( "hello bob" );
   REQUIRE( user.say_hello( "bob bob" ) == "hello bob" );
 
-  EXPECT_CALL( mp,
-               say_hello_ptr( Pointee( StartsWith( "bob" ) ) ) )
+  mp.EXPECT__say_hello_ptr( Pointee( StartsWith( "bob" ) ) )
       .returns( "hello bob" );
   string bobbob = "bob bob";
   REQUIRE( user.say_hello_ptr( &bobbob ) == "hello bob" );
@@ -496,11 +493,11 @@ TEST_CASE( "[mock] StrContains" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, say_hello( StrContains( "b b" ) ) )
+  mp.EXPECT__say_hello( StrContains( "b b" ) )
       .returns( "hello bob" );
   REQUIRE( user.say_hello( "bob bob" ) == "hello bob" );
 
-  EXPECT_CALL( mp, say_hello( StrContains( "ccc" ) ) )
+  mp.EXPECT__say_hello( StrContains( "ccc" ) )
       .returns( "hello bob" );
   REQUIRE_UNEXPECTED_ARGS( user.say_hello( "bob bob" ) );
   REQUIRE( user.say_hello( "bob ccc bob" ) == "hello bob" );
@@ -510,11 +507,11 @@ TEST_CASE( "[mock] Matches" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, say_hello( Matches( "bob b.b"s ) ) )
+  mp.EXPECT__say_hello( Matches( "bob b.b"s ) )
       .returns( "hello bob" );
   REQUIRE( user.say_hello( "bob bob" ) == "hello bob" );
 
-  EXPECT_CALL( mp, say_hello( Matches( "h.*c" ) ) )
+  mp.EXPECT__say_hello( Matches( "h.*c" ) )
       .returns( "hello bob" );
   REQUIRE_UNEXPECTED_ARGS( user.say_hello( "bob bob" ) );
   REQUIRE( user.say_hello( "hob ccc" ) == "hello bob" );
@@ -524,11 +521,11 @@ TEST_CASE( "[mock] Empty" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, sum_ints( Not( Empty() ) ) ).returns( 12 );
+  mp.EXPECT__sum_ints( Not( Empty() ) ).returns( 12 );
   vector<int> v{ 3, 4, 5 };
   REQUIRE( user.sum_ints( v ) == 12 );
 
-  EXPECT_CALL( mp, sum_ints( Empty() ) ).returns( 0 );
+  mp.EXPECT__sum_ints( Empty() ).returns( 0 );
   v.clear();
   REQUIRE( user.sum_ints( v ) == 0 );
 }
@@ -537,7 +534,7 @@ TEST_CASE( "[mock] True" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, take_bool( True() ) );
+  mp.EXPECT__take_bool( True() );
   REQUIRE_UNEXPECTED_ARGS( user.take_bool( false ) );
   user.take_bool( true );
 }
@@ -546,7 +543,7 @@ TEST_CASE( "[mock] False" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, take_bool( False() ) );
+  mp.EXPECT__take_bool( False() );
   REQUIRE_UNEXPECTED_ARGS( user.take_bool( true ) );
   user.take_bool( false );
 }
@@ -556,7 +553,7 @@ TEST_CASE( "[mock] Null" ) {
   PointUser user( &mp );
 
   int n = 0;
-  EXPECT_CALL( mp, set_x_from_ptr( Null() ) );
+  mp.EXPECT__set_x_from_ptr( Null() );
   REQUIRE_UNEXPECTED_ARGS( user.set_x_from_ptr( &n ) );
   user.set_x_from_ptr( nullptr );
 }
@@ -565,11 +562,11 @@ TEST_CASE( "[mock] HasSize" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, sum_ints( HasSize( 3 ) ) ).returns( 12 );
+  mp.EXPECT__sum_ints( HasSize( 3 ) ).returns( 12 );
   vector<int> v{ 3, 4, 5 };
   REQUIRE( user.sum_ints( v ) == 12 );
 
-  EXPECT_CALL( mp, sum_ints( HasSize( Ge( 2 ) ) ) )
+  mp.EXPECT__sum_ints( HasSize( Ge( 2 ) ) )
       .times( 3 )
       .returns( 42 );
   REQUIRE( user.sum_ints( v ) == 42 );           // 3, 4, 5
@@ -581,8 +578,7 @@ TEST_CASE( "[mock] HasSize" ) {
   REQUIRE( user.sum_ints( v ) == 42 );           // 3, 1
 
   v = { 3, 4, 5 };
-  EXPECT_CALL( mp, sum_ints( Not( HasSize( Ge( 2 ) ) ) ) )
-      .returns( 42 );
+  mp.EXPECT__sum_ints( Not( HasSize( Ge( 2 ) ) ) ).returns( 42 );
   REQUIRE_UNEXPECTED_ARGS( user.sum_ints( v ) ); // 3, 4, 5
   v.pop_back();
   REQUIRE_UNEXPECTED_ARGS( user.sum_ints( v ) ); // 3, 4
@@ -594,11 +590,11 @@ TEST_CASE( "[mock] Each" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, sum_ints( Each( 5 ) ) ).returns( 12 );
+  mp.EXPECT__sum_ints( Each( 5 ) ).returns( 12 );
   vector<int> v{ 5, 5, 5 };
   REQUIRE( user.sum_ints( v ) == 12 );
 
-  EXPECT_CALL( mp, sum_ints( Each( Ge( 6 ) ) ) ).returns( 12 );
+  mp.EXPECT__sum_ints( Each( Ge( 6 ) ) ).returns( 12 );
   v = { 5, 6, 7 };
   REQUIRE_UNEXPECTED_ARGS( user.sum_ints( v ) );
 
@@ -610,16 +606,16 @@ TEST_CASE( "[mock] AllOf" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, set_x( AllOf( Ge( 5 ), Not( Ge( 6 ) ) ) ) );
+  mp.EXPECT__set_x( AllOf( Ge( 5 ), Not( Ge( 6 ) ) ) );
   int n = 5;
   user.set_x( n );
 
   // Explicit value as matcher.
-  EXPECT_CALL( mp, set_x( AllOf( 5 ) ) );
+  mp.EXPECT__set_x( AllOf( 5 ) );
   n = 5;
   user.set_x( n );
 
-  EXPECT_CALL( mp, set_x( AllOf( Ge( 5 ), Not( Ge( 6 ) ) ) ) );
+  mp.EXPECT__set_x( AllOf( Ge( 5 ), Not( Ge( 6 ) ) ) );
   n = 6;
   REQUIRE_UNEXPECTED_ARGS( user.set_x( n ) );
   n = 4;
@@ -628,7 +624,7 @@ TEST_CASE( "[mock] AllOf" ) {
   user.set_x( n );
 
   // Empty list of matchers should always succeed.
-  EXPECT_CALL( mp, set_x( AllOf() ) );
+  mp.EXPECT__set_x( AllOf() );
   user.set_x( n );
 }
 
@@ -636,7 +632,7 @@ TEST_CASE( "[mock] AnyOf" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, set_x( AnyOf( Ge( 5 ), Not( Ge( 3 ) ) ) ) )
+  mp.EXPECT__set_x( AnyOf( Ge( 5 ), Not( Ge( 3 ) ) ) )
       .times( 5 );
   user.set_x( 6 );
   user.set_x( 5 );
@@ -647,7 +643,7 @@ TEST_CASE( "[mock] AnyOf" ) {
   user.set_x( 0 );
 
   // Empty list of matchers should fail.
-  auto& responder = EXPECT_CALL( mp, set_x( AnyOf() ) );
+  auto& responder = mp.EXPECT__set_x( AnyOf() );
   REQUIRE_UNEXPECTED_ARGS( user.set_x( 1 ) );
   // Since nothing can satisfy the above matcher, we must clear
   // the expectations.
@@ -658,9 +654,8 @@ TEST_CASE( "[mock] TupleElement" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL(
-      mp, set_xy_pair( AllOf( TupleElement<0>( Ge( 5 ) ),
-                              TupleElement<1>( Ge( 3 ) ) ) ) );
+  mp.EXPECT__set_xy_pair( AllOf( TupleElement<0>( Ge( 5 ) ),
+                                 TupleElement<1>( Ge( 3 ) ) ) );
   REQUIRE_UNEXPECTED_ARGS( user.set_xy_pair( { 5, 2 } ) );
   REQUIRE_UNEXPECTED_ARGS( user.set_xy_pair( { 4, 3 } ) );
   user.set_xy_pair( { 5, 3 } );
@@ -670,9 +665,8 @@ TEST_CASE( "[mock] Key" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL(
-      mp, set_xy_pair( AllOf( Key( Ge( 5 ) ),
-                              TupleElement<1>( Ge( 3 ) ) ) ) );
+  mp.EXPECT__set_xy_pair(
+      AllOf( Key( Ge( 5 ) ), TupleElement<1>( Ge( 3 ) ) ) );
   REQUIRE_UNEXPECTED_ARGS( user.set_xy_pair( { 5, 2 } ) );
   REQUIRE_UNEXPECTED_ARGS( user.set_xy_pair( { 4, 3 } ) );
   user.set_xy_pair( { 5, 3 } );
@@ -686,14 +680,14 @@ TEST_CASE( "[mock] Field" ) {
       Field( &Foo::bar, 5 ), //
       Field( &Foo::baz, 6 )  //
   );
-  EXPECT_CALL( mp, set_foo( matcher ) );
+  mp.EXPECT__set_foo( matcher );
   user.set_foo( Foo{ 5, 6 } );
 
   auto matcher2 = AllOf(           //
       Field( &Foo::bar, Ge( 7 ) ), //
       Field( &Foo::baz, 6 )        //
   );
-  EXPECT_CALL( mp, set_foo( matcher2 ) );
+  mp.EXPECT__set_foo( matcher2 );
   REQUIRE_UNEXPECTED_ARGS( user.set_foo( Foo{ 5, 6 } ) );
   REQUIRE_UNEXPECTED_ARGS( user.set_foo( Foo{ 6, 6 } ) );
   user.set_foo( Foo{ 7, 6 } );
@@ -707,14 +701,14 @@ TEST_CASE( "[mock] Property" ) {
       Property( &Foo::get_bar, 5 ), //
       Property( &Foo::get_baz, 6 )  //
   );
-  EXPECT_CALL( mp, set_foo( matcher ) );
+  mp.EXPECT__set_foo( matcher );
   user.set_foo( Foo{ 5, 6 } );
 
   auto matcher2 = AllOf(                  //
       Property( &Foo::get_bar, Ge( 7 ) ), //
       Property( &Foo::get_baz, 6 )        //
   );
-  EXPECT_CALL( mp, set_foo( matcher2 ) );
+  mp.EXPECT__set_foo( matcher2 );
   REQUIRE_UNEXPECTED_ARGS( user.set_foo( Foo{ 5, 6 } ) );
   REQUIRE_UNEXPECTED_ARGS( user.set_foo( Foo{ 6, 6 } ) );
   user.set_foo( Foo{ 7, 6 } );
@@ -723,8 +717,7 @@ TEST_CASE( "[mock] Property" ) {
 TEST_CASE( "[mock] Approx" ) {
   MockPoint mp;
   PointUser user( &mp );
-  EXPECT_CALL( mp, double_add( Approx( .6, .01 ) ) )
-      .returns( .7 );
+  mp.EXPECT__double_add( Approx( .6, .01 ) ).returns( .7 );
   REQUIRE( user.add_two( .499 ) == 1.199_a );
 }
 

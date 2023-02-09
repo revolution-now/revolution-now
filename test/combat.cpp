@@ -67,20 +67,18 @@ struct World : testing::World {
   }
 
   void expect_promotion( bool promoted ) {
-    EXPECT_CALL( rand(), bernoulli( .45 ) ).returns( promoted );
+    rand().EXPECT__bernoulli( .45 ).returns( promoted );
   }
 
   void expect_treasure_amount( double probability, int min,
                                int max, maybe<int> amount ) {
     if( !amount.has_value() ) {
-      EXPECT_CALL( rand(), bernoulli( probability ) )
-          .returns( false );
+      rand().EXPECT__bernoulli( probability ).returns( false );
       return;
     } else {
-      EXPECT_CALL( rand(), bernoulli( probability ) )
-          .returns( true );
-      EXPECT_CALL( rand(),
-                   between_ints( min, max, e_interval::closed ) )
+      rand().EXPECT__bernoulli( probability ).returns( true );
+      rand()
+          .EXPECT__between_ints( min, max, e_interval::closed )
           .returns( *amount );
       return;
     }
@@ -88,30 +86,29 @@ struct World : testing::World {
 
   void expect_guaranteed_treasure_amount( int min, int max,
                                           int amount ) {
-    EXPECT_CALL( rand(),
-                 between_ints( min, max, e_interval::closed ) )
+    rand()
+        .EXPECT__between_ints( min, max, e_interval::closed )
         .returns( amount );
   }
 
   void expect_convert( bool converted, double probability ) {
-    EXPECT_CALL( rand(), bernoulli( probability ) )
-        .returns( converted );
+    rand().EXPECT__bernoulli( probability ).returns( converted );
   }
 
   void expect_attacker_wins( double probability ) {
-    EXPECT_CALL( rand(),
-                 bernoulli( Approx( probability, .000001 ) ) )
+    rand()
+        .EXPECT__bernoulli( Approx( probability, .000001 ) )
         .returns( true );
   }
 
   void expect_defender_wins( double probability ) {
-    EXPECT_CALL( rand(),
-                 bernoulli( Approx( probability, .000001 ) ) )
+    rand()
+        .EXPECT__bernoulli( Approx( probability, .000001 ) )
         .returns( false );
   }
 
   void expect_burn_mission( bool burn ) {
-    EXPECT_CALL( rand(), bernoulli( .5 ) ).returns( burn );
+    rand().EXPECT__bernoulli( .5 ).returns( burn );
   }
 };
 

@@ -106,8 +106,8 @@ TEST_CASE( "[rpt] click_purchase" ) {
                      Field( &CO::disabled, true ) ) ) ),
       Field( &C::initial_selection, 0 ) );
 
-  EXPECT_CALL( W.gui(),
-               choice( config_matcher, e_input_required::no ) )
+  W.gui()
+      .EXPECT__choice( config_matcher, e_input_required::no )
       .returns( make_wait<maybe<string>>( "artillery" ) );
 
   UnitsState const& units = W.ss().units;
@@ -198,8 +198,8 @@ TEST_CASE( "[rpt] click_train" ) {
                   Field( &CO::disabled, true ) ) ) ),
       Field( &C::initial_selection, 0 ) );
 
-  EXPECT_CALL( W.gui(),
-               choice( config_matcher, e_input_required::no ) )
+  W.gui()
+      .EXPECT__choice( config_matcher, e_input_required::no )
       .returns( make_wait<maybe<string>>( "expert_fisherman" ) );
 
   UnitsState const& units = W.ss().units;
@@ -233,8 +233,8 @@ TEST_CASE( "[rpt] click_recruit" ) {
   double const kUpperLimit = 6808.69;
   // The 2229.0 should just barely put us in the range of the
   // free colonist.
-  EXPECT_CALL( W.rand(),
-               between_doubles( 0, Approx( kUpperLimit, .1 ) ) )
+  W.rand()
+      .EXPECT__between_doubles( 0, Approx( kUpperLimit, .1 ) )
       .returns( 2229.0 );
 
   auto& pool     = player.old_world.immigration.immigrants_pool;
@@ -271,8 +271,8 @@ TEST_CASE( "[rpt] click_recruit" ) {
                         Field( &CO::disabled, false ) ) ) ),
       Field( &C::initial_selection, 0 ) );
 
-  EXPECT_CALL( W.gui(),
-               choice( config_matcher, e_input_required::no ) )
+  W.gui()
+      .EXPECT__choice( config_matcher, e_input_required::no )
       .returns( make_wait<maybe<string>>( "1" ) );
 
   UnitsState const& units = W.ss().units;

@@ -931,8 +931,8 @@ TEST_CASE( "[unit-type] on the job promotion" ) {
   W.add_unit_outdoors( colony.id, e_direction::nw,
                        e_outdoor_job::sugar,
                        e_unit_type::petty_criminal );
-  EXPECT_CALL( W.rand(),
-               bernoulli( Approx( 0.00333, 0.00001 ) ) )
+  W.rand()
+      .EXPECT__bernoulli( Approx( 0.00333, 0.00001 ) )
       .returns( true );
 
   // tries=no.
@@ -944,7 +944,8 @@ TEST_CASE( "[unit-type] on the job promotion" ) {
   W.add_unit_outdoors( colony.id, e_direction::ne,
                        e_outdoor_job::tobacco,
                        e_unit_type::indentured_servant );
-  EXPECT_CALL( W.rand(), bernoulli( Approx( 0.005, 0.00001 ) ) )
+  W.rand()
+      .EXPECT__bernoulli( Approx( 0.005, 0.00001 ) )
       .returns( false );
 
   // tries=no.
@@ -956,7 +957,8 @@ TEST_CASE( "[unit-type] on the job promotion" ) {
   W.add_unit_outdoors( colony.id, e_direction::e,
                        e_outdoor_job::cotton,
                        e_unit_type::free_colonist );
-  EXPECT_CALL( W.rand(), bernoulli( Approx( 0.01, 0.00001 ) ) )
+  W.rand()
+      .EXPECT__bernoulli( Approx( 0.01, 0.00001 ) )
       .returns( true );
 
   // tries=no.

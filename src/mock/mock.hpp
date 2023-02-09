@@ -30,8 +30,10 @@
 *****************************************************************/
 // This one sets a method that will (and must) be called exactly
 // once, at which point it will be removed.
-#define EXPECT_CALL( obj, method_with_args ) \
-  ( obj ).add__##method_with_args
+#define EXPECT_CALL( obj, method_with_args )       \
+  static_assert( false,                            \
+                 "EXPECT_CALL is deprecated. Use " \
+                 "Interface.EXPECT__method_name( ... )." );
 
 /****************************************************************
 ** MOCK_METHOD Macros
@@ -71,7 +73,7 @@
       std::tuple<PP_MAP_COMMAS( ADD_MATCHER_WRAPPER,           \
                                 PP_REMOVE_PARENS fn_args )>,   \
       Args...>                                                 \
-  [[maybe_unused]] responder__##fn_name& add__##fn_name(       \
+  [[maybe_unused]] responder__##fn_name& EXPECT__##fn_name(    \
       Args&&... args ) {                                       \
     auto matchers = responder__##fn_name::matchers_t{          \
         std::forward<Args>( args )... };                       \

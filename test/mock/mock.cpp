@@ -145,17 +145,17 @@ TEST_CASE( "[mock] one off calls" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, set_xy( 3, 4 ) );
+  mp.EXPECT__set_xy( 3, 4 );
   user.set_xy( 3, 4 );
 
-  EXPECT_CALL( mp, get_x() ).returns( 7 );
+  mp.EXPECT__get_x().returns( 7 );
   REQUIRE( user.get_x() == 7 );
 
-  EXPECT_CALL( mp, get_y() ).returns( 10 );
+  mp.EXPECT__get_y().returns( 10 );
   REQUIRE( user.get_y() == 10 );
 
-  EXPECT_CALL( mp, get_y() ).returns( 10 );
-  EXPECT_CALL( mp, set_y( 11 ) );
+  mp.EXPECT__get_y().returns( 10 );
+  mp.EXPECT__set_y( 11 );
   REQUIRE( user.increment_y() == 11 );
 }
 
@@ -163,7 +163,7 @@ TEST_CASE( "[mock] repeated calls" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, get_x() ).times( 3 ).returns( 7 );
+  mp.EXPECT__get_x().times( 3 ).returns( 7 );
   REQUIRE( user.get_x() == 7 );
   REQUIRE( user.get_x() == 7 );
   REQUIRE( user.get_x() == 7 );
@@ -171,8 +171,8 @@ TEST_CASE( "[mock] repeated calls" ) {
       user.get_x(),
       Matches( "unexpected mock function call.*" ) );
 
-  EXPECT_CALL( mp, get_x() ).times( 1 ).returns( 8 );
-  EXPECT_CALL( mp, get_x() ).times( 2 ).returns( 9 );
+  mp.EXPECT__get_x().times( 1 ).returns( 8 );
+  mp.EXPECT__get_x().times( 2 ).returns( 9 );
   REQUIRE( user.get_x() == 8 );
   REQUIRE( user.get_x() == 9 );
   REQUIRE( user.get_x() == 9 );
@@ -186,7 +186,7 @@ TEST_CASE( "[mock] sets_arg" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, get_xy( _, _ ) )
+  mp.EXPECT__get_xy( _, _ )
       .sets_arg<0>( 5 )
       .sets_arg<1>( 6 )
       .returns( true );
@@ -200,7 +200,7 @@ TEST_CASE( "[mock] sets_arg_array" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, output_c_array( _, _ ) )
+  mp.EXPECT__output_c_array( _, _ )
       .sets_arg<0>( 3 )
       .sets_arg_array<1>( vector{ 1, 2, 3 } );
   REQUIRE( user.output_c_array() == 1 + 2 + 3 );
@@ -210,8 +210,8 @@ TEST_CASE( "[mock] any" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, get_y() ).returns( 10 );
-  EXPECT_CALL( mp, set_y( _ ) );
+  mp.EXPECT__get_y().returns( 10 );
+  mp.EXPECT__set_y( _ );
   REQUIRE( user.increment_y() == 11 );
 }
 
@@ -220,7 +220,7 @@ TEST_CASE( "[mock] lvalue ref return type" ) {
   PointUser user( &mp );
 
   int n = 4;
-  EXPECT_CALL( mp, returns_lvalue_ref() ).returns( n );
+  mp.EXPECT__returns_lvalue_ref().returns( n );
   // Make sure that we're really storing a ref.
   n = 5;
   REQUIRE( user.get_lvalue_ref() == 5 );
@@ -231,7 +231,7 @@ TEST_CASE(
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, set_xy( _, 5 ) );
+  mp.EXPECT__set_xy( _, 5 );
   REQUIRE_THROWS_WITH( user.set_xy( 0, 4 ),
                        Matches( ".*unexpected arguments.*" ) );
   // Make the expected call to an error isn't thrown.
@@ -264,10 +264,10 @@ TEST_CASE( "[mock] some_method_1" ) {
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, set_x( 4 ) );
-  EXPECT_CALL( mp, get_y() ).returns( 2 );
-  EXPECT_CALL( mp, set_y( 3 ) );
-  EXPECT_CALL( mp, length() ).returns( 2.3 );
+  mp.EXPECT__set_x( 4 );
+  mp.EXPECT__get_y().returns( 2 );
+  mp.EXPECT__set_y( 3 );
+  mp.EXPECT__length().returns( 2.3 );
   REQUIRE( user.some_method_1( 4 ) == 2 );
 }
 
@@ -277,7 +277,7 @@ TEST_CASE(
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, moves_result() ).returns<MovedFromCounter>();
+  mp.EXPECT__moves_result().returns<MovedFromCounter>();
   MovedFromCounter const c = user.moves_result();
   // Move move into storage, then another into c1.
   REQUIRE( c.last_move_source_val == 1 );
@@ -290,9 +290,8 @@ TEST_CASE(
   MockPoint mp;
   PointUser user( &mp );
 
-  EXPECT_CALL( mp, moves_result() )
-      .returns<MovedFromCounter>()
-      .times( 3 );
+  mp.EXPECT__moves_result().returns<MovedFromCounter>().times(
+      3 );
 
   // In the below, the last_move_source_val would increase each
   // time if the stored return value were being moved from each

@@ -47,13 +47,11 @@ TEST_CASE( "[irand] shuffle" ) {
 
   SECTION( "two" ) {
     v = { "hello", "world" };
-    EXPECT_CALL( impl, between_ints( 0, 1, interval ) )
-        .returns( 0 );
+    impl.EXPECT__between_ints( 0, 1, interval ).returns( 0 );
     irand.shuffle( v );
     expected = { "hello", "world" };
     REQUIRE( v == expected );
-    EXPECT_CALL( impl, between_ints( 0, 1, interval ) )
-        .returns( 1 );
+    impl.EXPECT__between_ints( 0, 1, interval ).returns( 1 );
     irand.shuffle( v );
     expected = { "world", "hello" };
     REQUIRE( v == expected );
@@ -61,10 +59,8 @@ TEST_CASE( "[irand] shuffle" ) {
 
   SECTION( "three" ) {
     v = { "hello", "world", "again" };
-    EXPECT_CALL( impl, between_ints( 0, 2, interval ) )
-        .returns( 1 );
-    EXPECT_CALL( impl, between_ints( 1, 2, interval ) )
-        .returns( 1 );
+    impl.EXPECT__between_ints( 0, 2, interval ).returns( 1 );
+    impl.EXPECT__between_ints( 1, 2, interval ).returns( 1 );
     irand.shuffle( v );
     expected = { "world", "hello", "again" };
     REQUIRE( v == expected );
@@ -72,12 +68,9 @@ TEST_CASE( "[irand] shuffle" ) {
 
   SECTION( "four" ) {
     v = { "hello", "world", "again", "!!" };
-    EXPECT_CALL( impl, between_ints( 0, 3, interval ) )
-        .returns( 0 );
-    EXPECT_CALL( impl, between_ints( 1, 3, interval ) )
-        .returns( 2 );
-    EXPECT_CALL( impl, between_ints( 2, 3, interval ) )
-        .returns( 3 );
+    impl.EXPECT__between_ints( 0, 3, interval ).returns( 0 );
+    impl.EXPECT__between_ints( 1, 3, interval ).returns( 2 );
+    impl.EXPECT__between_ints( 2, 3, interval ).returns( 3 );
     irand.shuffle( v );
     expected = { "hello", "again", "!!", "world" };
     REQUIRE( v == expected );
@@ -85,12 +78,9 @@ TEST_CASE( "[irand] shuffle" ) {
 
   SECTION( "four unchanged" ) {
     v = { "hello", "world", "again", "!!" };
-    EXPECT_CALL( impl, between_ints( 0, 3, interval ) )
-        .returns( 0 );
-    EXPECT_CALL( impl, between_ints( 1, 3, interval ) )
-        .returns( 1 );
-    EXPECT_CALL( impl, between_ints( 2, 3, interval ) )
-        .returns( 2 );
+    impl.EXPECT__between_ints( 0, 3, interval ).returns( 0 );
+    impl.EXPECT__between_ints( 1, 3, interval ).returns( 1 );
+    impl.EXPECT__between_ints( 2, 3, interval ).returns( 2 );
     irand.shuffle( v );
     expected = { "hello", "world", "again", "!!" };
     REQUIRE( v == expected );
@@ -98,12 +88,9 @@ TEST_CASE( "[irand] shuffle" ) {
 
   SECTION( "four reversed" ) {
     v = { "hello", "world", "again", "!!" };
-    EXPECT_CALL( impl, between_ints( 0, 3, interval ) )
-        .returns( 3 );
-    EXPECT_CALL( impl, between_ints( 1, 3, interval ) )
-        .returns( 2 );
-    EXPECT_CALL( impl, between_ints( 2, 3, interval ) )
-        .returns( 2 );
+    impl.EXPECT__between_ints( 0, 3, interval ).returns( 3 );
+    impl.EXPECT__between_ints( 1, 3, interval ).returns( 2 );
+    impl.EXPECT__between_ints( 2, 3, interval ).returns( 2 );
     irand.shuffle( v );
     expected = { "!!", "again", "world", "hello" };
     REQUIRE( v == expected );

@@ -127,11 +127,12 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
   }
 
   SECTION( "not yet discovered" ) {
-    EXPECT_CALL( W.gui(), display_woodcut(
-                              e_woodcut::discovered_new_world ) )
+    W.gui()
+        .EXPECT__display_woodcut(
+            e_woodcut::discovered_new_world )
         .returns<monostate>();
-    EXPECT_CALL( W.gui(),
-                 string_input( _, e_input_required::yes ) )
+    W.gui()
+        .EXPECT__string_input( _, e_input_required::yes )
         .returns<maybe<string>>( "my world 2" );
     w = unit_to_map_square( W.ss(), W.ts(), unit_id,
                             { .x = 0, .y = 1 } );
@@ -169,7 +170,8 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
   }
 
   SECTION( "entering colony answer no" ) {
-    EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( _, e_input_required::no )
         .returns<maybe<string>>( "no" );
     w = unit_to_map_square( W.ss(), W.ts(), unit_id,
                             { .x = 1, .y = 1 } );
@@ -181,14 +183,14 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
   }
 
   SECTION( "entering colony answer yes" ) {
-    EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( _, e_input_required::no )
         .returns<maybe<string>>( "yes" );
     string const msg =
         "Treasure worth 1000 arrives in Amsterdam!  The crown "
         "has provided a reimbursement of [500] after a "
         "[50%] witholding.";
-    EXPECT_CALL( W.gui(), message_box( msg ) )
-        .returns( monostate{} );
+    W.gui().EXPECT__message_box( msg ).returns( monostate{} );
     w = unit_to_map_square( W.ss(), W.ts(), unit_id,
                             { .x = 1, .y = 1 } );
     REQUIRE( !w.exception() );
@@ -221,29 +223,31 @@ TEST_CASE(
   };
 
   // Selects rumor result = fountain of youth.
-  EXPECT_CALL( W.rand(),
-               between_ints( 0, 100, e_interval::half_open ) )
+  W.rand()
+      .EXPECT__between_ints( 0, 100, e_interval::half_open )
       .returns( 58 );
   // Selects burial mounds type (not relevant).
-  EXPECT_CALL( W.rand(),
-               between_ints( 0, 100, e_interval::half_open ) )
+  W.rand()
+      .EXPECT__between_ints( 0, 100, e_interval::half_open )
       .returns( 0 );
-  EXPECT_CALL( W.gui(),
-               display_woodcut(
-                   e_woodcut::discovered_fountain_of_youth ) )
+  W.gui()
+      .EXPECT__display_woodcut(
+          e_woodcut::discovered_fountain_of_youth )
       .returns<monostate>();
-  EXPECT_CALL( W.gui(), message_box( StrContains( "Youth" ) ) )
+  W.gui()
+      .EXPECT__message_box( StrContains( "Youth" ) )
       .returns<monostate>();
 
   for( int i = 0; i < 8; ++i ) {
     // Pick immigrant.
-    EXPECT_CALL( W.gui(), choice( _, e_input_required::no ) )
+    W.gui()
+        .EXPECT__choice( _, e_input_required::no )
         .returns<maybe<string>>( "0" );
     // Replace with next immigrant.
-    EXPECT_CALL( W.rand(), between_doubles( _, _ ) )
-        .returns( 0 );
+    W.rand().EXPECT__between_doubles( _, _ ).returns( 0 );
     // Wait a bit.
-    EXPECT_CALL( W.gui(), wait_for( _ ) )
+    W.gui()
+        .EXPECT__wait_for( _ )
         .returns<chrono::microseconds>();
   }
 

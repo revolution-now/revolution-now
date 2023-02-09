@@ -90,7 +90,7 @@ struct Value : IMatcher<T> {
   // an argument, since otherwise this framework will store the
   // string_view as the matcher, and that can cause lifetime is-
   // sues if the string_view was constructed from a temporary
-  // during the EXPECT_CALL.
+  // during the expect-call statement.
   static_assert( !std::is_same_v<std::string_view,
                                  std::remove_cvref_t<T>> );
   std::remove_cvref_t<T> val_;
@@ -102,18 +102,18 @@ struct Value : IMatcher<T> {
 ** MatcherWrapper
 *****************************************************************/
 // When matchers need to be stored in mock objects (as a result
-// of EXPECT_CALL) they are stored in these wrappers. The purpose
-// of this is to provide a concrete non-pointer type to act as a
-// target for implicit conversion/construction by whatever
-// (value, matcher, or other) object the user writes in the
-// EXPECT_CALL as the arguments to expect. An explicit value, an
-// AnyTag, or an IMatcher derivative will be handled by the con-
-// structors below, while an arbitrary object will provide an im-
-// plicit conversion operator to convert to a MatcherWrapper of a
-// requested T. The latter is required to handle subtle type type
-// conversions between desired matchers and actual matchers,
-// e.g., when we need a matcher for `unsigned const int*` but
-// we're provided one for `int const*`.
+// of expect-call statement) they are stored in these wrappers.
+// The purpose of this is to provide a concrete non-pointer type
+// to act as a target for implicit conversion/construction by
+// whatever (value, matcher, or other) object the user writes in
+// the expect-call statement as the arguments to expect. An ex-
+// plicit value, an AnyTag, or an IMatcher derivative will be
+// handled by the constructors below, while an arbitrary object
+// will provide an implicit conversion operator to convert to a
+// MatcherWrapper of a requested T. The latter is required to
+// handle subtle type type conversions between desired matchers
+// and actual matchers, e.g., when we need a matcher for `un-
+// signed const int*` but we're provided one for `int const*`.
 template<MatchableValue T>
 struct MatcherWrapper {
   // This is for values that are not IMatcher derived.

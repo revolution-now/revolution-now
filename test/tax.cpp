@@ -85,7 +85,8 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
         "We cannot trade food until Parliament lifts the "
         "boycott, which it will not do unless we agree to pay "
         "[33] in back taxes. Treasury: 32.";
-    EXPECT_CALL( W.gui(), message_box( expected_msg ) )
+    W.gui()
+        .EXPECT__message_box( expected_msg )
         .returns( make_wait<>() );
 
     f();
@@ -115,8 +116,8 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
                 .key          = "yes",
                 .display_name = "Pay [33].",
             } } };
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::yes ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::yes )
         .returns( make_wait<maybe<string>>( "no" ) );
 
     f();
@@ -146,8 +147,8 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
                 .key          = "yes",
                 .display_name = "Pay [33].",
             } } };
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::yes ) )
+    W.gui()
+        .EXPECT__choice( config, e_input_required::yes )
         .returns( make_wait<maybe<string>>( "yes" ) );
 
     f();
@@ -292,7 +293,8 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
     string const expected_msg =
         "The crown has graciously decided to LOWER your tax "
         "rate by [13%].  The tax rate is now [37%].";
-    EXPECT_CALL( W.gui(), message_box( expected_msg ) )
+    W.gui()
+        .EXPECT__message_box( expected_msg )
         .returns( make_wait<>() );
     REQUIRE( f() == expected );
     REQUIRE( player.old_world.taxes.tax_rate == 50 );
@@ -306,10 +308,11 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
         "decided to raise your tax rate by [13%].  The tax "
         "rate is now [63%]. We will graciously allow you "
         "to kiss our royal pinky ring.";
-    EXPECT_CALL( W.rand(),
-                 between_ints( 1, 3, e_interval::closed ) )
+    W.rand()
+        .EXPECT__between_ints( 1, 3, e_interval::closed )
         .returns( 2 );
-    EXPECT_CALL( W.gui(), message_box( expected_msg ) )
+    W.gui()
+        .EXPECT__message_box( expected_msg )
         .returns( make_wait<>() );
     REQUIRE( f() == expected );
     REQUIRE( player.old_world.taxes.tax_rate == 50 );
@@ -333,23 +336,22 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
         "rate is now [63%]. We will graciously allow you "
         "to kiss our royal pinky ring.";
     // Re-marriage number.
-    EXPECT_CALL( W.rand(),
-                 between_ints( 1, 3, e_interval::closed ) )
+    W.rand()
+        .EXPECT__between_ints( 1, 3, e_interval::closed )
         .returns( 2 );
     ChoiceConfig const config{
         .msg     = expected_msg,
-        .options = {
-            ChoiceConfigOption{
-                .key          = "yes",
-                .display_name = "Kiss pinky ring.",
-            },
-            ChoiceConfigOption{
-                .key = "no",
-                .display_name =
-                    "Hold '[my colony Cigars party]'!",
-            } } };
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::yes ) )
+        .options = { ChoiceConfigOption{
+                         .key          = "yes",
+                         .display_name = "Kiss pinky ring.",
+                     },
+                     ChoiceConfigOption{
+                         .key = "no",
+                         .display_name =
+                             "Hold '[my colony Cigars party]'!",
+                     } } };
+    W.gui()
+        .EXPECT__choice( config, e_input_required::yes )
         .returns( make_wait<maybe<string>>( "yes" ) );
     REQUIRE( f() == expected );
     REQUIRE( player.old_world.taxes.tax_rate == 50 );
@@ -373,23 +375,22 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
         "rate is now [63%]. We will graciously allow you "
         "to kiss our royal pinky ring.";
     // Re-marriage number.
-    EXPECT_CALL( W.rand(),
-                 between_ints( 1, 3, e_interval::closed ) )
+    W.rand()
+        .EXPECT__between_ints( 1, 3, e_interval::closed )
         .returns( 2 );
     ChoiceConfig const config{
         .msg     = expected_msg,
-        .options = {
-            ChoiceConfigOption{
-                .key          = "yes",
-                .display_name = "Kiss pinky ring.",
-            },
-            ChoiceConfigOption{
-                .key = "no",
-                .display_name =
-                    "Hold '[my colony Cigars party]'!",
-            } } };
-    EXPECT_CALL( W.gui(),
-                 choice( config, e_input_required::yes ) )
+        .options = { ChoiceConfigOption{
+                         .key          = "yes",
+                         .display_name = "Kiss pinky ring.",
+                     },
+                     ChoiceConfigOption{
+                         .key = "no",
+                         .display_name =
+                             "Hold '[my colony Cigars party]'!",
+                     } } };
+    W.gui()
+        .EXPECT__choice( config, e_input_required::yes )
         .returns( make_wait<maybe<string>>( "no" ) );
     REQUIRE( f() == expected );
     REQUIRE( player.old_world.taxes.tax_rate == 50 );
@@ -421,8 +422,8 @@ TEST_CASE( "[tax] compute_tax_change" ) {
   }
 
   SECTION( "it is here" ) {
-    EXPECT_CALL( W.rand(),
-                 between_ints( 14, 18, e_interval::closed ) )
+    W.rand()
+        .EXPECT__between_ints( 14, 18, e_interval::closed )
         .returns( 13 );
 
     SECTION( "next_tax_event_turn=0" ) {
@@ -463,14 +464,13 @@ TEST_CASE( "[tax] compute_tax_change" ) {
               W.add_colony_with_new_unit( Coord{ .x = 2 } );
 
           // Tax change amount.
-          EXPECT_CALL( W.rand(),
-                       between_ints( 1, 8, e_interval::closed ) )
+          W.rand()
+              .EXPECT__between_ints( 1, 8, e_interval::closed )
               .returns( 4 );
 
           SECTION( "decrease" ) {
             // Tax increase probability.
-            EXPECT_CALL( W.rand(), bernoulli( .98 ) )
-                .returns( false );
+            W.rand().EXPECT__bernoulli( .98 ).returns( false );
             SECTION( "already zero" ) {
               player.old_world.taxes.tax_rate = 0;
               expected = { .next_tax_event_turn = 51,
@@ -500,8 +500,7 @@ TEST_CASE( "[tax] compute_tax_change" ) {
 
           SECTION( "increase" ) {
             // Tax increase probability.
-            EXPECT_CALL( W.rand(), bernoulli( .98 ) )
-                .returns( true );
+            W.rand().EXPECT__bernoulli( .98 ).returns( true );
 
             SECTION( "already max" ) {
               player.old_world.taxes.tax_rate = 75;
@@ -543,8 +542,8 @@ TEST_CASE( "[tax] compute_tax_change" ) {
                 colony2.commodities[e_commodity::muskets] = 1;
 
                 // Rebels bump.
-                EXPECT_CALL( W.rand(),
-                             between_doubles( 0.0, 1.0 ) )
+                W.rand()
+                    .EXPECT__between_doubles( 0.0, 1.0 )
                     .returns( .7 );
 
                 TeaParty const party{
@@ -586,8 +585,8 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
 
   W.settings().difficulty = e_difficulty::conquistador;
 
-  EXPECT_CALL( W.rand(),
-               between_ints( 14, 18, e_interval::closed ) )
+  W.rand()
+      .EXPECT__between_ints( 14, 18, e_interval::closed )
       .returns( 13 );
 
   W.turn().time_point.turns                  = 38;
@@ -603,12 +602,12 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
   colony2.sons_of_liberty.num_rebels_from_bells_only = .4;
 
   // Tax change amount.
-  EXPECT_CALL( W.rand(),
-               between_ints( 1, 8, e_interval::closed ) )
+  W.rand()
+      .EXPECT__between_ints( 1, 8, e_interval::closed )
       .returns( 4 );
 
   // Tax increase probability.
-  EXPECT_CALL( W.rand(), bernoulli( .98 ) ).returns( true );
+  W.rand().EXPECT__bernoulli( .98 ).returns( true );
 
   int bid = 1;
   for( e_commodity type : refl::enum_values<e_commodity> )
@@ -631,8 +630,7 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
   PlayerMarketState market_saved  = player.old_world.market;
 
   // Rebels bump.
-  EXPECT_CALL( W.rand(), between_doubles( 0.0, 1.0 ) )
-      .returns( .7 );
+  W.rand().EXPECT__between_doubles( 0.0, 1.0 ).returns( .7 );
 
   string const expected_msg =
       "In honor of our marriage to our 8th wife, we have "
@@ -640,8 +638,8 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
       "rate is now [75%]. We will graciously allow you "
       "to kiss our royal pinky ring.";
   // Re-marriage number.
-  EXPECT_CALL( W.rand(),
-               between_ints( 1, 3, e_interval::closed ) )
+  W.rand()
+      .EXPECT__between_ints( 1, 3, e_interval::closed )
       .returns( 2 );
   ChoiceConfig const config{
       .msg     = expected_msg,
@@ -655,7 +653,8 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
               .display_name =
                   "Hold '[my colony 2 Trade Goods party]'!",
           } } };
-  EXPECT_CALL( W.gui(), choice( config, e_input_required::yes ) )
+  W.gui()
+      .EXPECT__choice( config, e_input_required::yes )
       .returns( make_wait<maybe<string>>( "no" ) );
   REQUIRE( player.old_world.taxes.tax_rate == 72 );
 
@@ -666,7 +665,8 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
       "Dutch Parliament announces boycott of trade goods.  "
       "Trade Goods cannot be traded in Amsterdam until boycott "
       "is lifted.";
-  EXPECT_CALL( W.gui(), message_box( boycott_msg ) )
+  W.gui()
+      .EXPECT__message_box( boycott_msg )
       .returns( make_wait<>() );
 
   wait<> w = f();
@@ -694,8 +694,8 @@ TEST_CASE( "[tax] compute_tax_change when over max" ) {
 
   W.settings().difficulty = e_difficulty::conquistador;
 
-  EXPECT_CALL( W.rand(),
-               between_ints( 14, 18, e_interval::closed ) )
+  W.rand()
+      .EXPECT__between_ints( 14, 18, e_interval::closed )
       .returns( 13 );
 
   W.turn().time_point.turns                  = 37;
@@ -708,12 +708,12 @@ TEST_CASE( "[tax] compute_tax_change when over max" ) {
   W.add_colony_with_new_unit( Coord{ .x = 2 } );
 
   // Tax change amount.
-  EXPECT_CALL( W.rand(),
-               between_ints( 1, 8, e_interval::closed ) )
+  W.rand()
+      .EXPECT__between_ints( 1, 8, e_interval::closed )
       .returns( 4 );
 
   // Tax increase probability.
-  EXPECT_CALL( W.rand(), bernoulli( .98 ) ).returns( true );
+  W.rand().EXPECT__bernoulli( .98 ).returns( true );
 
   player.old_world.taxes.tax_rate = 76;
   BASE_CHECK( player.old_world.taxes.tax_rate >

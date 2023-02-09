@@ -138,10 +138,9 @@ TEST_CASE(
   unique_ptr<OrdersHandler> handler = handle_orders(
       W.planes(), W.ss(), W.ts(), W.french(), colonist.id(),
       orders::move{ .d = e_direction::se } );
-  EXPECT_CALL(
-      W.gui(),
-      message_box(
-          "We cannot attack a land unit from a ship." ) )
+  W.gui()
+      .EXPECT__message_box(
+          "We cannot attack a land unit from a ship." )
       .returns<monostate>();
   wait<bool> w_confirm = handler->confirm();
   REQUIRE( !w_confirm.exception() );

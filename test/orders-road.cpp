@@ -101,11 +101,11 @@ TEST_CASE( "[orders-road] native-owned land" ) {
   };
 
   SECTION( "cancel" ) {
-    auto config_matcher =
-        Field( &ChoiceConfig::msg,
-               StrContains( "Carving a [road]" ) );
-    EXPECT_CALL( W.gui(), choice( std::move( config_matcher ),
-                                  e_input_required::no ) )
+    auto config_matcher = Field(
+        &ChoiceConfig::msg, StrContains( "Carving a [road]" ) );
+    W.gui()
+        .EXPECT__choice( std::move( config_matcher ),
+                         e_input_required::no )
         .returns<maybe<string>>( "cancel" );
     REQUIRE( confirm() == false );
     REQUIRE( relationship.tribal_alarm == 0 );
@@ -118,11 +118,11 @@ TEST_CASE( "[orders-road] native-owned land" ) {
   }
 
   SECTION( "take" ) {
-    auto config_matcher =
-        Field( &ChoiceConfig::msg,
-               StrContains( "Carving a [road]" ) );
-    EXPECT_CALL( W.gui(), choice( std::move( config_matcher ),
-                                  e_input_required::no ) )
+    auto config_matcher = Field(
+        &ChoiceConfig::msg, StrContains( "Carving a [road]" ) );
+    W.gui()
+        .EXPECT__choice( std::move( config_matcher ),
+                         e_input_required::no )
         .returns<maybe<string>>( "take" );
     REQUIRE( confirm() == true );
     REQUIRE( relationship.tribal_alarm == 10 );

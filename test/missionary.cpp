@@ -303,19 +303,19 @@ TEST_CASE( "[missionary] should_burn_mission_on_attack" ) {
   REQUIRE_FALSE( f( 60 ) );
   REQUIRE_FALSE( f( 84 ) );
 
-  EXPECT_CALL( W.rand(), bernoulli( .5 ) ).returns( false );
+  W.rand().EXPECT__bernoulli( .5 ).returns( false );
   REQUIRE_FALSE( f( 85 ) );
-  EXPECT_CALL( W.rand(), bernoulli( .5 ) ).returns( true );
+  W.rand().EXPECT__bernoulli( .5 ).returns( true );
   REQUIRE( f( 85 ) );
 
-  EXPECT_CALL( W.rand(), bernoulli( .5 ) ).returns( false );
+  W.rand().EXPECT__bernoulli( .5 ).returns( false );
   REQUIRE_FALSE( f( 90 ) );
-  EXPECT_CALL( W.rand(), bernoulli( .5 ) ).returns( true );
+  W.rand().EXPECT__bernoulli( .5 ).returns( true );
   REQUIRE( f( 90 ) );
 
-  EXPECT_CALL( W.rand(), bernoulli( .5 ) ).returns( false );
+  W.rand().EXPECT__bernoulli( .5 ).returns( false );
   REQUIRE_FALSE( f( 99 ) );
-  EXPECT_CALL( W.rand(), bernoulli( .5 ) ).returns( true );
+  W.rand().EXPECT__bernoulli( .5 ).returns( true );
   REQUIRE( f( 99 ) );
 }
 
