@@ -146,11 +146,22 @@ EuroUnitCombatOutcome_t euro_unit_combat_outcome(
 
 NativeUnitCombatOutcome_t native_unit_combat_outcome(
     NativeUnit const&, bool won ) {
+  // Note: in the OG, experiments seem to indicate that the
+  // braves will take muskets/horses only when they are the at-
+  // tackers in the battle. Moreover, in that situation, they
+  // will take the horses/muskets 100% of the time, assuming they
+  // are available and the brave unit can accept them.
+  //
+  // TODO: when braves start to attack, they should take muskets
+  // and horses whenever possible.
+  //
   if( won )
-    // TODO: allow for the brave to obtain horses/muskets.
     return NativeUnitCombatOutcome::no_change{};
   else
-    // TODO: determine if the tribe retains the horses/muskets.
+    // TODO: not really clear on the dynamics of the horses and
+    // muskets held internally by a native tribe. There are some
+    // preliminary investigation notes in
+    // doc/native-muskets-horses.txt.
     return NativeUnitCombatOutcome::destroyed{
         .tribe_retains_horses  = false,
         .tribe_retains_muskets = false };

@@ -1,0 +1,38 @@
+Native Muskets/Horses Retention
+===============================
+
+Stealing from battle: the natives will steal muskets and/or
+horses if and only if they are the attackers and they win.
+
+Regarding the muskets and horses that each tribe has stored, here
+are some observations:
+
+  * Each brave with muskets accounts for 50 out of the total
+    amount of the tribe.  The converse may not be true.
+
+  * The number of muskets in the tribe can grow even long after
+    having sold them.
+
+  * Selling muskets: when selling muskets to a tribe, the amount
+    sold gets multiplied, but only sometimes. E.g., upon selling
+    100 muskets to a tribe, in one case the tribe was then listed
+    as having only 50 muskets, and it remained that way. Another
+    time it was listed as having 100 initially, and it grew to
+    250 on its own. Another time it was 150 and remained con-
+    stant.
+
+  * When disbanding a brave, the tribe will lose 50 muskets. So
+    the game's reading on number of muskets per tribe must be in-
+    cluding free braves.
+
+  * When defeating an armed brave in combat, the tribe's musket
+    count goes down sometimes, but not others. Even in the cases
+    where we defeat all armed braves but one, the total musket
+    count quickly goes back up to e.g. 300. The tribe seems to
+    produce muskets provided that it has at least 50.
+
+  * Once a tribe's musket count goes to zero it stays there.
+
+Still not sure how it really works; there must be some internal
+stash together with some kind of growth factor and randomness.
+Might need to look in the sav files to understand it.
