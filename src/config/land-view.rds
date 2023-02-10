@@ -14,12 +14,8 @@ include "font.hpp"
 # gfx
 include "gfx/coord.hpp"
 
-# refl
-include "refl/cdr.hpp"
-
-# Cdr.
-include "cdr/ext-builtin.hpp"
-include "cdr/ext-std.hpp"
+# C++ standard library
+include "<chrono>"
 
 namespace "rn.config.land_view"
 

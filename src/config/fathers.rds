@@ -13,12 +13,7 @@ include "ss/difficulty.rds.hpp"
 include "ss/fathers.rds.hpp"
 
 # refl
-include "refl/cdr.hpp"
 include "refl/enum-map.hpp"
-
-# Cdr.
-include "cdr/ext-builtin.hpp"
-include "cdr/ext-std.hpp"
 
 namespace "rn.config.fathers"
 

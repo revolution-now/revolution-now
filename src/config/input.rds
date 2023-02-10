@@ -8,9 +8,6 @@
 # Description: Config info for player input (keyboard, mouse).
 #
 # ===============================================================
-# Cdr.
-include "cdr/ext-builtin.hpp"
-
 namespace "rn"
 
 struct.config_mouse {

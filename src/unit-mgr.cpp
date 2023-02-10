@@ -45,7 +45,6 @@
 #include "luapp/state.hpp"
 
 // refl
-#include "refl/cdr.hpp"
 #include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"
 

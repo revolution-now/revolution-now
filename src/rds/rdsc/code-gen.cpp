@@ -585,13 +585,28 @@ struct CodeGenerator {
     newline();
     close_ns( ns );
     newline();
-    open_ns( "rds::detail" );
+    open_ns( "rds" );
+    line(
+        "detail::empty_registrar register_config( "
+        "{}::config_{}_t* global );",
+        ns, name );
+    newline();
+    open_ns( "detail" );
+    comment(
+        " This ensures that if anyone includes the header for "
+        "this" );
+    comment(
+        " config file then it is guaranteed to be registered "
+        "and" );
+    comment( " populated." );
     line(
         "inline auto __config_{}_registration = "
-        "register_config( \"{}\", &{}::detail::__config_{} );",
-        name, name, ns, name );
+        "register_config( &{}::detail::__config_{} );",
+        name, ns, name );
     newline();
-    close_ns( "rds::detail" );
+    close_ns( "detail" );
+    newline();
+    close_ns( "rds" );
   }
 
   void emit_item( expr::Item const& item ) {

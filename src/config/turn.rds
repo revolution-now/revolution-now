@@ -8,12 +8,6 @@
 # Description: Rds definitions for the turn module.
 #
 # ===============================================================
-# refl
-include "refl/cdr.hpp"
-
-# Cdr.
-include "cdr/ext-builtin.hpp"
-
 namespace "rn.config.turn"
 
 # How many turns to wait from the start of the game until certain

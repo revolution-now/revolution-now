@@ -18,11 +18,6 @@ include "ss/native-enums.rds.hpp"
 include "ss/settings.rds.hpp"
 include "ss/unit-type.rds.hpp"
 
-# cdr.
-include "cdr/ext-base.hpp"
-include "cdr/ext-builtin.hpp"
-include "cdr/ext-std.hpp"
-
 # gfx
 include "gfx/cartesian.hpp"
 include "gfx/coord.hpp"

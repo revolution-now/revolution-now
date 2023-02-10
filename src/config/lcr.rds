@@ -15,11 +15,7 @@ include "../lcr.rds.hpp" # FIXME
 include "range-helpers.hpp"
 
 # refl
-include "refl/cdr.hpp"
 include "refl/enum-map.hpp"
-
-# cdr
-include "cdr/ext-builtin.hpp"
 
 namespace "rn"
 

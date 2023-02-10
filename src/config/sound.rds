@@ -8,13 +8,6 @@
 # Description: Config info for sound.
 #
 # ===============================================================
-# refl
-include "refl/cdr.hpp"
-
-# Cdr.
-include "cdr/ext-builtin.hpp"
-include "cdr/ext-std.hpp"
-
 # C++ standard library
 include "<string>"
 

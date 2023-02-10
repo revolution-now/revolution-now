@@ -11,10 +11,6 @@
 # render
 include "render/sprite-sheet.hpp"
 
-# cdr.
-include "cdr/ext-builtin.hpp"
-include "cdr/ext-std.hpp"
-
 # C++ standard library.
 include "<vector>"
 

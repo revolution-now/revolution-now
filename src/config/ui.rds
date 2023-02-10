@@ -17,12 +17,6 @@ include "../compositor.rds.hpp"
 # gfx
 include "gfx/pixel.hpp"
 
-# refl
-include "refl/cdr.hpp"
-
-# Cdr.
-include "cdr/ext-builtin.hpp"
-
 namespace "rn.config.ui"
 
 struct.window {

@@ -15,11 +15,7 @@ include "range-helpers.rds.hpp"
 include "ss/difficulty.rds.hpp"
 
 # refl
-include "refl/cdr.hpp"
 include "refl/enum-map.hpp"
-
-# cdr
-include "cdr/ext-builtin.hpp"
 
 namespace "rn.config.old_world"
 

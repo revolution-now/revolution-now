@@ -13,12 +13,7 @@ include "ss/unit-type.rds.hpp"
 include "ss/difficulty.rds.hpp"
 
 # refl
-include "refl/cdr.hpp"
 include "refl/enum-map.hpp"
-
-# Cdr.
-include "cdr/ext-builtin.hpp"
-include "cdr/ext-std.hpp"
 
 namespace "rn"
 

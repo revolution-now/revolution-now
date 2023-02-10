@@ -8,10 +8,6 @@
 # Description: Config info for game saving.
 #
 # ===============================================================
-# Cdr.
-include "cdr/ext-base.hpp"
-include "cdr/ext-std.hpp"
-
 # base
 include "base/fs.hpp"
 include "base/maybe.hpp"

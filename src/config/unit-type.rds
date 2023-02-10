@@ -16,11 +16,6 @@ include "ss/commodity.rds.hpp"
 include "ss/mv-points.hpp"
 include "ss/unit-type.rds.hpp"
 
-# Cdr.
-include "cdr/ext-builtin.hpp"
-include "cdr/ext-std.hpp"
-include "cdr/ext-base.hpp"
-
 # gfx
 include "gfx/coord.rds.hpp"
 

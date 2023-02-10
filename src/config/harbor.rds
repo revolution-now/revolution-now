@@ -15,10 +15,6 @@ include "ss/unit-type.rds.hpp"
 # refl
 include "refl/enum-map.hpp"
 
-# Cdr.
-include "cdr/ext-base.hpp"
-include "cdr/ext-builtin.hpp"
-
 # base
 include "base/maybe.hpp"
 

@@ -11,9 +11,6 @@
 # gfx
 include "gfx/pixel.hpp"
 
-# Cdr.
-include "cdr/ext-builtin.hpp"
-
 # refl
 include "refl/enum-map.hpp"
 

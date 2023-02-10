@@ -1631,8 +1631,17 @@ namespace rn::test {
 
 } // namespace rn::test
 
-namespace rds::detail {
+namespace rds {
 
-  inline auto __config_testing_registration = register_config( "testing", &rn::test::detail::__config_testing );
+  detail::empty_registrar register_config( rn::test::config_testing_t* global );
 
-} // namespace rds::detail
+  namespace detail {
+
+    //  This ensures that if anyone includes the header for this
+    //  config file then it is guaranteed to be registered and
+    //  populated.
+    inline auto __config_testing_registration = register_config( &rn::test::detail::__config_testing );
+
+  } // namespace detail
+
+} // namespace rds

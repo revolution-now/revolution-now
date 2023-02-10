@@ -46,14 +46,6 @@ void register_config_erased( string const& name,
   g_config_populators()[name] = std::move( populator );
 }
 
-cdr::converter::options const& converter_options() {
-  static cdr::converter::options opts{
-      .allow_unrecognized_fields        = false,
-      .default_construct_missing_fields = false,
-  };
-  return opts;
-}
-
 } // namespace detail
 
 /****************************************************************

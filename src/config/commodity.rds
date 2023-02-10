@@ -12,12 +12,7 @@
 include "ss/commodity.rds.hpp"
 
 # refl
-include "refl/cdr.hpp"
 include "refl/enum-map.hpp"
-
-# cdr
-include "cdr/ext-builtin.hpp"
-include "cdr/ext-std.hpp"
 
 # C++ standard library
 include "<string>"

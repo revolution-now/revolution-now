@@ -12,12 +12,7 @@
 include "ss/terrain-enums.rds.hpp"
 
 # refl
-include "refl/cdr.hpp"
 include "refl/enum-map.hpp"
-
-# Cdr.
-include "cdr/ext-builtin.hpp"
-include "cdr/ext-std.hpp"
 
 # base
 include "base/maybe.hpp"
