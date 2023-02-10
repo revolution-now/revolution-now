@@ -44,7 +44,7 @@ void render_markup( rr::Typer& typer, MarkedUpChunk const& mk,
     rr::Typer typer_right =
         typer.with_frame_offset( gfx::size{ .w = 1 } );
     rr::Typer typer_down =
-        typer.with_frame_offset( gfx::size{ .w = 1 } );
+        typer.with_frame_offset( gfx::size{ .h = 1 } );
     render_impl( typer_right, *info.shadow, mk.text );
     render_impl( typer_down, *info.shadow, mk.text );
   }
