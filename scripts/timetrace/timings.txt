@@ -1,0 +1,21 @@
+Times:                       Times:                       % change
+
+  attack-handlers (x10):       attack-handlers (x10):
+
+     * 190.5s                     * 116s                  -40%
+
+  render (x10):                render (x10):
+
+     * 109s                       * 55s                   -50%
+
+  colony-mgr (x10):            colony-mgr (x10):
+
+     * 179s                       * 115s                  -35%
+
+  all rn:                      all rn:
+
+     * 774s                       * 549s                  -30%
+
+  all code:                    all code:
+
+     * 693s                       * 608s                  -12%

@@ -1,0 +1,105 @@
+build_cpp() {
+  local module="$1"
+  echo "building $module..."
+  /home/dsicilia/dev/tools/llvm-current/bin/clang++ \
+    -DBACKWARD_HAS_BACKTRACE=0 \
+    -DBACKWARD_HAS_BACKTRACE_SYMBOL=0 \
+    -DBACKWARD_HAS_BFD=0 \
+    -DBACKWARD_HAS_DW=1 \
+    -DBACKWARD_HAS_DWARF=0 \
+    -DBACKWARD_HAS_LIBUNWIND=0 \
+    -DBACKWARD_HAS_UNWIND=1 \
+    -DFMT_LOCALE \
+    -DLUA_USE_LINUX \
+    -DRN_BUILD_OUTPUT_ROOT_DIR=/home/dsicilia/dev/revolution-now/.builds/clang-16.0.0-lld-libstdc++-debug-asan-ninja \
+    -DRN_SOURCE_TREE_ROOT=/home/dsicilia/dev/revolution-now \
+    -Dlua_assert=assert \
+    -I/home/dsicilia/dev/revolution-now/src \
+    -I/home/dsicilia/dev/revolution-now/.builds/clang-16.0.0-lld-libstdc++-debug-asan-ninja/src \
+    -I/usr/include/SDL2 \
+    -I/home/dsicilia/dev/revolution-now/extern/base-util/src/include \
+    -I/home/dsicilia/dev/revolution-now/extern/glad/include \
+    -I/home/dsicilia/dev/revolution-now/extern/lua-5.4.3/lib \
+    -I/home/dsicilia/dev/revolution-now/src/base \
+    -I/home/dsicilia/dev/revolution-now/extern/fmt/include \
+    -I/home/dsicilia/dev/revolution-now/src/cdr \
+    -I/home/dsicilia/dev/revolution-now/src/config \
+    -I/home/dsicilia/dev/revolution-now/.builds/clang-16.0.0-lld-libstdc++-debug-asan-ninja/src/config \
+    -I/home/dsicilia/dev/revolution-now/src/ss \
+    -I/home/dsicilia/dev/revolution-now/.builds/clang-16.0.0-lld-libstdc++-debug-asan-ninja/src/ss \
+    -I/home/dsicilia/dev/revolution-now/src/gfx \
+    -I/home/dsicilia/dev/revolution-now/.builds/clang-16.0.0-lld-libstdc++-debug-asan-ninja/src/gfx \
+    -I/home/dsicilia/dev/revolution-now/src/luapp \
+    -I/home/dsicilia/dev/revolution-now/src/refl \
+    -I/home/dsicilia/dev/revolution-now/src/rcl \
+    -I/home/dsicilia/dev/revolution-now/src/render \
+    -I/home/dsicilia/dev/revolution-now/.builds/clang-16.0.0-lld-libstdc++-debug-asan-ninja/src/render \
+    -I/home/dsicilia/dev/revolution-now/src/gl \
+    -I/home/dsicilia/dev/revolution-now/src/stb \
+    -I/home/dsicilia/dev/revolution-now/extern/stb \
+    -I/home/dsicilia/dev/revolution-now/src/rds \
+    -I/home/dsicilia/dev/revolution-now/extern/rtmidi \
+    -I/home/dsicilia/dev/revolution-now/extern/backward-cpp \
+    -Wno-unused-command-line-argument \
+    -Wno-unused-command-line-argument \
+    -nostdinc++ \
+    -I/home/dsicilia/dev/tools/gcc-current/include/c++/12.2.0 \
+    -I/home/dsicilia/dev/tools/gcc-current/include/c++/12.2.0/x86_64-pc-linux-gnu \
+    -fno-sanitize-recover=all \
+    -fsanitize=address \
+    -fsanitize=undefined \
+    -rtlib=compiler-rt \
+    -lgcc_s \
+    -Wno-unused-command-line-argument \
+    -fcolor-diagnostics \
+    -march=native \
+    -mtune=native \
+    -g \
+    -Weverything \
+    -Wno-pre-c++20-compat \
+    -Wno-c++20-compat \
+    -Wno-pre-c++17-compat \
+    -Wno-pre-c++14-compat \
+    -Wno-c99-extensions \
+    -Wno-c++98-compat \
+    -Wno-c++98-compat-pedantic \
+    -Wno-reserved-macro-identifier \
+    -Wno-newline-eof \
+    -Wno-padded \
+    -Wno-extra-semi-stmt \
+    -Wno-extra-semi \
+    -Wno-reserved-identifier \
+    -Wno-ctad-maybe-unsupported \
+    -Wno-undefined-func-template \
+    -Wno-unsafe-buffer-usage \
+    -Wno-switch-enum \
+    -Wno-shadow \
+    -Wno-shadow-uncaptured-local \
+    -Wno-shadow-field \
+    -Wno-exit-time-destructors \
+    -Wno-implicit-int-conversion \
+    -Wno-implicit-float-conversion \
+    -Wno-sign-conversion \
+    -Wno-old-style-cast \
+    -Wno-shorten-64-to-32 \
+    -Wno-global-constructors \
+    -Wno-weak-vtables \
+    -Wno-double-promotion \
+    -Wno-float-equal \
+    -Wno-unused-local-typedef \
+    -Wno-unknown-warning-option \
+    -std=c++20 \
+    -MD \
+    -MT \
+    .builds/current/src/CMakeFiles/rn.dir/$module.cpp.o \
+    -MF \
+    .builds/current/src/CMakeFiles/rn.dir/$module.cpp.o.d \
+    -o .builds/current/src/CMakeFiles/rn.dir/$module.cpp.o \
+    -c /home/dsicilia/dev/revolution-now/src/$module.cpp
+}
+
+build_cpp_10() {
+  for (( i=0; i<10; i++ )); do
+    build_cpp "$1"
+  done
+}
