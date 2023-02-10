@@ -462,10 +462,9 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
         product_coord + Delta{ .w = product_tile_size.w };
     render_text_markup(
         renderer, text_coord, {},
-        TextMarkupInfo{
-            .shadowed_text_color   = gfx::pixel::white(),
-            .shadowed_shadow_color = gfx::pixel::black() },
-        fmt::format( "@[S]{}]", q_str ) );
+        TextMarkupInfo{ .highlight = gfx::pixel::white(),
+                        .shadow    = gfx::pixel::black() },
+        fmt::format( "[{}]", q_str ) );
   }
 
   // Center square.
@@ -488,10 +487,9 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
         product_coord + Delta{ .w = product_tile_size.w };
     render_text_markup(
         renderer, text_coord, {},
-        TextMarkupInfo{
-            .shadowed_text_color   = gfx::pixel::white(),
-            .shadowed_shadow_color = gfx::pixel::black() },
-        fmt::format( "@[S]{}]", q_str ) );
+        TextMarkupInfo{ .highlight = gfx::pixel::white(),
+                        .shadow    = gfx::pixel::black() },
+        fmt::format( "[{}]", q_str ) );
   }
 
   // secondary.
@@ -510,10 +508,9 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
         product_coord + Delta{ .w = product_tile_size.w };
     render_text_markup(
         renderer, text_coord, {},
-        TextMarkupInfo{
-            .shadowed_text_color   = gfx::pixel::white(),
-            .shadowed_shadow_color = gfx::pixel::black() },
-        fmt::format( "@[S]{}]", q_str ) );
+        TextMarkupInfo{ .highlight = gfx::pixel::white(),
+                        .shadow    = gfx::pixel::black() },
+        fmt::format( "[{}]", q_str ) );
   }
 }
 

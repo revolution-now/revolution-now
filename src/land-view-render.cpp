@@ -477,10 +477,9 @@ void LandViewRenderer::render_colony(
       tile_coord + config_land_view.colony_name_offset;
   render_text_markup(
       renderer, name_coord, config_land_view.colony_name_font,
-      TextMarkupInfo{
-          .shadowed_text_color   = gfx::pixel::white(),
-          .shadowed_shadow_color = gfx::pixel::black() },
-      fmt::format( "@[S]{}]", colony.name ) );
+      TextMarkupInfo{ .highlight = gfx::pixel::white(),
+                      .shadow    = gfx::pixel::black() },
+      fmt::format( "[{}]", colony.name ) );
 }
 
 void LandViewRenderer::render_colony_depixelate(

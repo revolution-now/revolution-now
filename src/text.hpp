@@ -47,8 +47,7 @@ struct TextMarkupInfo {
   // Shadowing means that for each pixel in the text, we will
   // render a "shadow" pixel to the right of it and also below
   // it, creating a partial outline or shadow.
-  gfx::pixel shadowed_text_color   = gfx::pixel::white();
-  gfx::pixel shadowed_shadow_color = gfx::pixel::black();
+  base::maybe<gfx::pixel> shadow = base::nothing;
 };
 
 // Will not in any way reformat or re-flow or wrap the text; will

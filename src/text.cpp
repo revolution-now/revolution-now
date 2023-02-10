@@ -40,14 +40,21 @@ void render_impl( rr::Typer& typer, gfx::pixel color,
 
 void render_markup( rr::Typer& typer, MarkedUpChunk const& mk,
                     TextMarkupInfo const& info ) {
-  if( mk.style.highlight ) {
-    render_impl( typer, info.highlight, mk.text );
-    return;
+  if( info.shadow.has_value() ) {
+    rr::Typer typer_right =
+        typer.with_frame_offset( gfx::size{ .w = 1 } );
+    rr::Typer typer_down =
+        typer.with_frame_offset( gfx::size{ .w = 1 } );
+    render_impl( typer_right, *info.shadow, mk.text );
+    render_impl( typer_down, *info.shadow, mk.text );
   }
 
-  // Here we assume now special style info, just do default ren-
-  // dering.
-  return render_impl( typer, info.normal, mk.text );
+  if( mk.style.highlight )
+    render_impl( typer, info.highlight, mk.text );
+  else
+    // Here we assume now special style info, just do default
+    // rendering.
+    render_impl( typer, info.normal, mk.text );
 }
 
 void render_line( rr::Typer& typer, gfx::pixel fg,
