@@ -516,8 +516,6 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
       W.add_unit_in_port( e_unit_type::free_colonist ).id();
   PriceChange expected;
 
-  using UC = UnitComposition;
-
   auto f = [&] {
     return perform_harbor_equip_option( W.ss(), player, unit_id,
                                         option );
