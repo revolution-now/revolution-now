@@ -33,7 +33,7 @@ using ::base::unexpected;
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[markup] parser works" ) {
+TEST_CASE( "[markup] parse_markup" ) {
   string_view          input;
   expect<MarkedUpText> expected = unexpected<MarkedUpText>( "" );
 
@@ -148,6 +148,16 @@ TEST_CASE( "[markup] parser works" ) {
             { .text = "ef", .style = { .highlight = true } },
             { .text = "gh" } } } };
   REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[markup] remove_markup" ) {
+  auto f = remove_markup;
+
+  REQUIRE( f( "" ) == "" );
+  REQUIRE( f( "[]" ) == "" );
+  REQUIRE( f( "[abc]" ) == "abc" );
+  REQUIRE( f( "[a]bc[d e]fg[h]" ) == "abcd efgh" );
+  REQUIRE( f( "abc[d e]fgh" ) == "abcd efgh" );
 }
 
 } // namespace

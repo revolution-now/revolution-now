@@ -29,4 +29,6 @@ namespace rn {
 *****************************************************************/
 base::expect<MarkedUpText> parse_markup( std::string_view text );
 
+std::string remove_markup( std::string_view text );
+
 } // namespace rn

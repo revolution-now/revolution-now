@@ -69,4 +69,21 @@ expect<MarkedUpText> parse_markup( string_view text ) {
   return res;
 }
 
+string remove_markup( string_view text ) {
+  string res;
+  // The result will always be the same or smaller.
+  res.reserve( text.size() );
+  int pos = 0;
+  while( pos < int( text.size() ) ) {
+    if( char c = text[pos++]; c != '[' ) {
+      res.push_back( c );
+      continue;
+    }
+    while( pos < int( text.size() ) && text[pos] != ']' )
+      res.push_back( text[pos++] );
+    if( pos < int( text.size() ) && text[pos] == ']' ) ++pos;
+  }
+  return res;
+}
+
 } // namespace rn

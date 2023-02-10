@@ -14,6 +14,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "harbor-view-backdrop.hpp"
+#include "markup.hpp"
 #include "rpt.hpp"
 #include "text.hpp"
 
@@ -43,7 +44,8 @@ Rect HarborRptButtons::button_rect( e_rpt_button button ) {
   Coord   upper_left;
   H const button_height = button_size().h;
   switch( button ) {
-    case e_rpt_button::recruit: break;
+    case e_rpt_button::recruit:
+      break;
     case e_rpt_button::purchase:
       upper_left.y += button_height;
       upper_left.y += kVerticalSpacing;
@@ -68,9 +70,12 @@ maybe<e_rpt_button> HarborRptButtons::button_for_coord(
 string HarborRptButtons::button_text_markup(
     e_rpt_button button ) {
   switch( button ) {
-    case e_rpt_button::recruit: return "[R]ecruit";
-    case e_rpt_button::purchase: return "[P]urchase";
-    case e_rpt_button::train: return "[T]rain";
+    case e_rpt_button::recruit:
+      return "[R]ecruit";
+    case e_rpt_button::purchase:
+      return "[P]urchase";
+    case e_rpt_button::train:
+      return "[T]rain";
   }
 }
 

@@ -70,8 +70,6 @@ void render_text_markup_reflow( rr::Renderer& renderer,
                                 TextReflowInfo const& r_info,
                                 std::string_view      text );
 
-std::string remove_markup( std::string_view text );
-
 // This is not cheap, so ideally it should be called once and the
 // result stored, as opposed to calling it every frame.
 Delta rendered_text_size( TextReflowInfo const& reflow_info,

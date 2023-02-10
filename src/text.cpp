@@ -240,22 +240,6 @@ void render_text_markup_reflow(
   render_lines_markup( typer, markedup_reflowed, markup_info );
 }
 
-string remove_markup( string_view text ) {
-  string res;
-  // The result will always be the same or smaller.
-  res.reserve( text.size() );
-  int pos = 0;
-  while( pos < int( text.size() ) ) {
-    char c = text[pos++];
-    if( c != '@' ) {
-      res.push_back( c );
-      continue;
-    }
-    while( pos < int( text.size() ) && text[pos++] != ']' ) {}
-  }
-  return res;
-}
-
 Delta rendered_text_size( TextReflowInfo const& reflow_info,
                           string_view           text ) {
   vector<vector<MarkedUpChunk>> lines =
