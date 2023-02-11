@@ -115,6 +115,10 @@ sumtype.NativeUnitCombatOutcome {
     tribe_retains_muskets 'bool',
   },
   promoted {
+    # Note that in the OG, this only seems to happen when the
+    # brave is the attacker (and wins); moreover, in that case,
+    # it happens 100% of the time (assuming that any horses/mus-
+    # kets lost by the european unit can be taken by the brave).
     to 'e_native_unit_type',
   },
 }
