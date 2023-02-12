@@ -1012,6 +1012,11 @@ struct LandViewPlane::Impl : public Plane {
         last_unit_input_->unit_id != id )
       g_needs_scroll_to_unit_on_input = true;
 
+    // Input buffers. If there was no previous unit asking for
+    // orders (or if that unit no longer exists) then definitely
+    // clear the buffers.
+    if( !last_unit_input_.has_value() ) reset_input_buffers();
+
     // The idea of this is that if we're starting on a new unit
     // or if we're still on the same unit but a window popped up
     // since it last asked for orders (which could have happened
@@ -1020,11 +1025,20 @@ struct LandViewPlane::Impl : public Plane {
     // it could create a strange situation where the player ob-
     // serves buffered input events processed after a window
     // closes.
-    if( !last_unit_input_.has_value() ||
-        last_unit_input_->unit_id != id ||
+    if( last_unit_input_.has_value() &&
         ts_.gui.total_windows_created() >
-            last_unit_input_->window_count )
+            last_unit_input_->window_count ) {
+      // This means that a window popped up since the last time
+      // that a unit was asking for orders. In that case we prob-
+      // ably don't need the input buffer shield because the pre-
+      // vious unit's movement has been interrupted by a window.
+      // And for the same reason we should clear buffered input
+      // events.
+      last_unit_input_->window_count =
+          ts_.gui.total_windows_created();
+      last_unit_input_->need_input_buffer_shield = false;
       reset_input_buffers();
+    }
 
     // This might be true either because we started a new turn,
     // or because of the above assignment.
