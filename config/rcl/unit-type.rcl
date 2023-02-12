@@ -1575,7 +1575,7 @@ composition {
     man_o_war {
       type:                  man_o_war
       name:                  Man-O-War
-      name_plural:           Man-O-Wars
+      name_plural:           Men-O-War
       tile:                  man_o_war
       expertise:             null
       type_activity:         null
