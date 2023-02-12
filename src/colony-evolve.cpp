@@ -157,22 +157,38 @@ void check_create_or_starve_colonist(
   // Check for a colonist created. After all is said and done, if
   // the colony will have enough food, then we can potentially
   // produce a new colonist.
-  int&      current_food = colony.commodities[e_commodity::food];
+  int const current_food = colony.commodities[e_commodity::food];
   int const food_needed_for_creation =
       config_colony.food_for_creating_new_colonist;
 
-  if( current_food < food_needed_for_creation ) return;
+  if( current_food >= food_needed_for_creation ) {
+    int& current_food = colony.commodities[e_commodity::food];
+    current_food -= food_needed_for_creation;
+    UnitId unit_id = create_free_unit(
+        ss.units, player, e_unit_type::free_colonist );
+    unit_to_map_square_non_interactive( ss, ts, unit_id,
+                                        colony.location );
+    notifications.emplace_back(
+        ColonyNotification::new_colonist{ .id = unit_id } );
 
-  current_food -= food_needed_for_creation;
-  UnitId unit_id = create_free_unit(
-      ss.units, player, e_unit_type::free_colonist );
-  unit_to_map_square_non_interactive( ss, ts, unit_id,
-                                      colony.location );
-  notifications.emplace_back(
-      ColonyNotification::new_colonist{ .id = unit_id } );
+    // One final sanity check.
+    CHECK_GE( colony.commodities[e_commodity::food], 0 );
+    return;
+  }
 
-  // One final sanity check.
-  CHECK_GE( colony.commodities[e_commodity::food], 0 );
+  // Check if the colony is heading toward starvation and warn
+  // the player. The following is a heuristic that seems sensi-
+  // ble.
+  if( pr.food_horses.food_delta_final < 0 ) {
+    int const food_loss = -pr.food_horses.food_delta_final;
+    int const food_before_loss = current_food + food_loss;
+    CHECK_GT( food_before_loss, current_food );
+    double const percent_loss =
+        double( food_loss ) / food_before_loss;
+    if( percent_loss >= .25 )
+      notifications.push_back(
+          ColonyNotification::colony_starving{} );
+  }
 }
 
 void check_construction( SS& ss, TS& ts, Player const& player,

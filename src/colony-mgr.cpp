@@ -102,6 +102,14 @@ wait<bool> present_colony_update(
           colony.name );
       break;
     }
+    case ColonyNotification::e::colony_starving: {
+      msg = fmt::format(
+          "The [{}] colony is rapidly running out of food.  If "
+          "we don't address this soon, some colonists will "
+          "starve.",
+          colony.name );
+      break;
+    }
     case ColonyNotification::e::colonist_starved: {
       auto& o = notification
                     .get<ColonyNotification::colonist_starved>();

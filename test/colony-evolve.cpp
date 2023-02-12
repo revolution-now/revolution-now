@@ -204,7 +204,7 @@ TEST_CASE( "[colony-evolve] ran out of raw materials" ) {
   World   W;
   Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
   // Add this so no one starves.
-  colony.commodities[e_commodity::food] = 2;
+  colony.commodities[e_commodity::food] = 20;
 
   W.add_unit_indoors( colony.id, e_indoor_job::hammers,
                       e_unit_type::free_colonist );
@@ -230,6 +230,288 @@ TEST_CASE( "[colony-evolve] ran out of raw materials" ) {
 
   REQUIRE( ev.notifications == expected );
   REQUIRE_FALSE( ev.colony_disappeared );
+}
+
+TEST_CASE( "[colony-evolve] warns when colony starving" ) {
+  World                        W;
+  vector<ColonyNotification_t> expected_notifications;
+  ColonyEvolution              ev;
+  Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
+  int&    food   = colony.commodities[e_commodity::food];
+  int     expected_food = 0;
+  // The center square (grassland) should produce three food per
+  // turn on conquistador.
+  W.settings().difficulty = e_difficulty::conquistador;
+
+  // Consume six food per turn.
+  W.add_unit_outdoors( colony.id, e_direction::n,
+                       e_outdoor_job::ore,
+                       e_unit_type::free_colonist );
+  W.add_unit_outdoors( colony.id, e_direction::e,
+                       e_outdoor_job::ore,
+                       e_unit_type::free_colonist );
+  W.add_unit_outdoors( colony.id, e_direction::s,
+                       e_outdoor_job::ore,
+                       e_unit_type::free_colonist );
+
+  // 40 food.
+  food                   = 40;
+  expected_food          = 37;
+  expected_notifications = {};
+
+  ev = evolve_colony_one_turn( W.ss(), W.ts(),
+                               W.default_player(), colony );
+  REQUIRE( ev.production.food_horses.food_produced == 3 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_theoretical == 6 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_actual == 6 );
+  REQUIRE( ev.notifications == expected_notifications );
+  REQUIRE_FALSE( ev.colony_disappeared );
+  REQUIRE( food == expected_food );
+
+  // 30 food.
+  food                   = 30;
+  expected_food          = 27;
+  expected_notifications = {};
+
+  ev = evolve_colony_one_turn( W.ss(), W.ts(),
+                               W.default_player(), colony );
+  REQUIRE( ev.production.food_horses.food_produced == 3 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_theoretical == 6 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_actual == 6 );
+  REQUIRE( ev.notifications == expected_notifications );
+  REQUIRE_FALSE( ev.colony_disappeared );
+  REQUIRE( food == expected_food );
+
+  // 20 food.
+  food                   = 20;
+  expected_food          = 17;
+  expected_notifications = {};
+
+  ev = evolve_colony_one_turn( W.ss(), W.ts(),
+                               W.default_player(), colony );
+  REQUIRE( ev.production.food_horses.food_produced == 3 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_theoretical == 6 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_actual == 6 );
+  REQUIRE( ev.notifications == expected_notifications );
+  REQUIRE_FALSE( ev.colony_disappeared );
+  REQUIRE( food == expected_food );
+
+  // 13 food.
+  food                   = 13;
+  expected_food          = 10;
+  expected_notifications = {};
+
+  ev = evolve_colony_one_turn( W.ss(), W.ts(),
+                               W.default_player(), colony );
+  REQUIRE( ev.production.food_horses.food_produced == 3 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_theoretical == 6 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_actual == 6 );
+  REQUIRE( ev.notifications == expected_notifications );
+  REQUIRE_FALSE( ev.colony_disappeared );
+  REQUIRE( food == expected_food );
+
+  // 12 food.
+  food                   = 12;
+  expected_food          = 9;
+  expected_notifications = {
+      ColonyNotification::colony_starving{} };
+
+  ev = evolve_colony_one_turn( W.ss(), W.ts(),
+                               W.default_player(), colony );
+  REQUIRE( ev.production.food_horses.food_produced == 3 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_theoretical == 6 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_actual == 6 );
+  REQUIRE( ev.notifications == expected_notifications );
+  REQUIRE_FALSE( ev.colony_disappeared );
+  REQUIRE( food == expected_food );
+
+  // 11 food.
+  food                   = 11;
+  expected_food          = 8;
+  expected_notifications = {
+      ColonyNotification::colony_starving{} };
+
+  ev = evolve_colony_one_turn( W.ss(), W.ts(),
+                               W.default_player(), colony );
+  REQUIRE( ev.production.food_horses.food_produced == 3 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_theoretical == 6 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_actual == 6 );
+  REQUIRE( ev.notifications == expected_notifications );
+  REQUIRE_FALSE( ev.colony_disappeared );
+  REQUIRE( food == expected_food );
+
+  // 10 food.
+  food                   = 10;
+  expected_food          = 7;
+  expected_notifications = {
+      ColonyNotification::colony_starving{} };
+
+  ev = evolve_colony_one_turn( W.ss(), W.ts(),
+                               W.default_player(), colony );
+  REQUIRE( ev.production.food_horses.food_produced == 3 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_theoretical == 6 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_actual == 6 );
+  REQUIRE( ev.notifications == expected_notifications );
+  REQUIRE_FALSE( ev.colony_disappeared );
+  REQUIRE( food == expected_food );
+
+  // 9 food.
+  food                   = 9;
+  expected_food          = 6;
+  expected_notifications = {
+      ColonyNotification::colony_starving{} };
+
+  ev = evolve_colony_one_turn( W.ss(), W.ts(),
+                               W.default_player(), colony );
+  REQUIRE( ev.production.food_horses.food_produced == 3 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_theoretical == 6 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_actual == 6 );
+  REQUIRE( ev.notifications == expected_notifications );
+  REQUIRE_FALSE( ev.colony_disappeared );
+  REQUIRE( food == expected_food );
+
+  // 8 food.
+  food                   = 8;
+  expected_food          = 5;
+  expected_notifications = {
+      ColonyNotification::colony_starving{} };
+
+  ev = evolve_colony_one_turn( W.ss(), W.ts(),
+                               W.default_player(), colony );
+  REQUIRE( ev.production.food_horses.food_produced == 3 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_theoretical == 6 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_actual == 6 );
+  REQUIRE( ev.notifications == expected_notifications );
+  REQUIRE_FALSE( ev.colony_disappeared );
+  REQUIRE( food == expected_food );
+
+  // 5 food.
+  food                   = 5;
+  expected_food          = 2;
+  expected_notifications = {
+      ColonyNotification::colony_starving{} };
+
+  ev = evolve_colony_one_turn( W.ss(), W.ts(),
+                               W.default_player(), colony );
+  REQUIRE( ev.production.food_horses.food_produced == 3 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_theoretical == 6 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_actual == 6 );
+  REQUIRE( ev.notifications == expected_notifications );
+  REQUIRE_FALSE( ev.colony_disappeared );
+  REQUIRE( food == expected_food );
+
+  // 3 food.
+  food                   = 3;
+  expected_food          = 0;
+  expected_notifications = {
+      ColonyNotification::colony_starving{} };
+
+  ev = evolve_colony_one_turn( W.ss(), W.ts(),
+                               W.default_player(), colony );
+  REQUIRE( ev.production.food_horses.food_produced == 3 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_theoretical == 6 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_actual == 6 );
+  REQUIRE( ev.notifications == expected_notifications );
+  REQUIRE_FALSE( ev.colony_disappeared );
+  REQUIRE( food == expected_food );
+
+  // 2 food.
+  food                   = 2;
+  expected_food          = 0;
+  expected_notifications = {
+      ColonyNotification::colonist_starved{
+          .type = e_unit_type::free_colonist } };
+  W.rand()
+      .EXPECT__between_ints( 0, 3, e_interval::half_open )
+      .returns( 0 );
+
+  ev = evolve_colony_one_turn( W.ss(), W.ts(),
+                               W.default_player(), colony );
+  REQUIRE( ev.production.food_horses.food_produced == 3 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_theoretical == 6 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_actual == 5 );
+  REQUIRE( ev.notifications == expected_notifications );
+  REQUIRE_FALSE( ev.colony_disappeared );
+  REQUIRE( food == expected_food );
+
+  // 1 food.
+  food                   = 1;
+  expected_food          = 0;
+  expected_notifications = {
+      ColonyNotification::colony_starving{} };
+
+  ev = evolve_colony_one_turn( W.ss(), W.ts(),
+                               W.default_player(), colony );
+  REQUIRE( ev.production.food_horses.food_produced == 3 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_theoretical == 4 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_actual == 4 );
+  REQUIRE( ev.notifications == expected_notifications );
+  REQUIRE_FALSE( ev.colony_disappeared );
+  REQUIRE( food == expected_food );
+
+  // 0 food.
+  food                   = 0;
+  expected_food          = 0;
+  expected_notifications = {
+      ColonyNotification::colonist_starved{
+          .type = e_unit_type::free_colonist } };
+  W.rand()
+      .EXPECT__between_ints( 0, 2, e_interval::half_open )
+      .returns( 0 );
+
+  ev = evolve_colony_one_turn( W.ss(), W.ts(),
+                               W.default_player(), colony );
+  REQUIRE( ev.production.food_horses.food_produced == 3 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_theoretical == 4 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_actual == 3 );
+  REQUIRE( ev.notifications == expected_notifications );
+  REQUIRE_FALSE( ev.colony_disappeared );
+  REQUIRE( food == expected_food );
+
+  // 0 food, but now the center square is enough to sustain the
+  // one remaining colonist.
+  food                   = 0;
+  expected_food          = 1;
+  expected_notifications = {};
+
+  ev = evolve_colony_one_turn( W.ss(), W.ts(),
+                               W.default_player(), colony );
+  REQUIRE( ev.production.food_horses.food_produced == 3 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_theoretical == 2 );
+  REQUIRE( ev.production.food_horses
+               .food_consumed_by_colonists_actual == 2 );
+  REQUIRE( ev.notifications == expected_notifications );
+  REQUIRE_FALSE( ev.colony_disappeared );
+  REQUIRE( food == expected_food );
 }
 
 TEST_CASE( "[colony-evolve] colony starves" ) {

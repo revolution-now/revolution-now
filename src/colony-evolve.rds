@@ -28,6 +28,7 @@ sumtype.ColonyNotification {
   new_colonist {
     id 'UnitId',
   },
+  colony_starving {},
   colonist_starved {
     # Here we only give the unit type since by the time someone
     # reads this message, the unit will already have been
