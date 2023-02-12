@@ -60,4 +60,11 @@ maybe<T> from_chars( std::string_view sv ) {
   return base::stod( std::string( sv ) );
 }
 
+// Guidelines say that, when writing a number in the middle of a
+// sentence, that it should be written out when it is 0-9, and
+// otherwise the numeral can be used. However, note that if the
+// number is at the beginning of the sentence then it always
+// should be written out, which this function does not support.
+std::string int_to_string_literary( int n );
+
 } // namespace base
