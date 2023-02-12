@@ -223,6 +223,13 @@ struct IGui {
   // to provide proper names for things for the player.
   static std::string identifier_to_display_name(
       std::string_view ident );
+
+  // Returns the total number of windows that have been created
+  // and displayed since the creation of the underlying window
+  // manager on the backend of this interface. This can be used
+  // to determine if a window was shown to the user in between
+  // two points in time.
+  virtual int total_windows_created() const = 0;
 };
 
 template<refl::ReflectedEnum E>

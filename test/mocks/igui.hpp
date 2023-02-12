@@ -44,6 +44,8 @@ struct MockIGui : IGui {
                    ( IntInputConfig const&, e_input_required ) );
 
   MOCK_GUI_METHOD( wait<>, display_woodcut, ( e_woodcut ) );
+
+  MOCK_METHOD( int, total_windows_created, (), ( const ) );
 };
 
 static_assert( !std::is_abstract_v<MockIGui> );

@@ -119,6 +119,17 @@ struct WindowPlane {
 
   WindowManager& manager();
 
+  // This will give the number of windows created (and registered
+  // into the window manager) by this window plane since it was
+  // instantiated. It is guaranteed to be non-decreasing with
+  // time. It can be used e.g. to track the number of windows
+  // that were shown to the player between two points in time.
+  int num_windows_created() const;
+
+  // The number of windows currently open and registered with the
+  // window manager.
+  int num_windows_currently_open() const;
+
   wait<> message_box( std::string_view msg );
 
   template<typename First, typename... Rest>

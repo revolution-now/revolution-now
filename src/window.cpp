@@ -108,8 +108,6 @@ struct WindowManager {
                                 input::e_mouse_button button, Coord origin,
                                 Coord prev, Coord current );
 
-  vector<PositionedWindow>& active_windows() { return windows_; }
-
   vector<PositionedWindow> const& active_windows() const {
     return windows_;
   }
@@ -123,6 +121,7 @@ struct WindowManager {
   }
 
   void add_window( Window& window ) {
+    ++num_windows_created_;
     windows_.push_back( { .win = &window, .pos = Coord{} } );
   }
 
@@ -156,6 +155,14 @@ struct WindowManager {
     if( dragging_win_ == &win ) dragging_win_ = nullptr;
   }
 
+  int num_windows_created() const {
+    return num_windows_created_;
+  }
+
+  int num_windows_currently_open() const {
+    return windows_.size();
+  }
+
  private:
   // Gets the window with focus, throws if no windows.
   Window& focused();
@@ -169,6 +176,10 @@ struct WindowManager {
   vector<PositionedWindow> windows_;
   // The value of this is only relevant during a drag.
   Window* dragging_win_ = nullptr;
+
+  // Each time a new window is created this is incremented, and
+  // it is never decremented.
+  int num_windows_created_ = 0;
 };
 NOTHROW_MOVE( WindowManager );
 
@@ -177,24 +188,39 @@ NOTHROW_MOVE( WindowManager );
 *****************************************************************/
 struct WindowPlane::Impl : public Plane {
   Impl() = default;
+
   bool covers_screen() const override { return false; }
+
   void advance_state() override { wm.advance_state(); }
+
   void draw( rr::Renderer& renderer ) const override {
     wm.draw_layout( renderer );
   }
+
   e_input_handled input( input::event_t const& event ) override {
     return wm.input( event );
   }
+
   Plane::e_accept_drag can_drag( input::e_mouse_button button,
                                  Coord origin ) override {
     return wm.can_drag( button, origin );
   }
+
   void on_drag( input::mod_keys const& mod,
                 input::e_mouse_button button, Coord origin,
                 Coord prev, Coord current ) override {
     CHECK( wm.num_windows() != 0 );
     wm.on_drag( mod, button, origin, prev, current );
   }
+
+  int num_windows_created() const {
+    return wm.num_windows_created();
+  }
+
+  int num_windows_currently_open() const {
+    return wm.num_windows_currently_open();
+  }
+
   WindowManager wm;
 };
 
@@ -629,7 +655,8 @@ namespace {
         }
         return false;  // not handled.
       }
-      default: break;
+      default:
+        break;
     }
     return false; // not handled.
   };
@@ -775,7 +802,8 @@ wait<maybe<int>> WindowPlane::select_box(
           selected = true;
         break;
       }
-      default: break;
+      default:
+        break;
     }
     if( selected ) {
       UNWRAP_CHECK( result, p_selector_view->get_selected() );
@@ -839,6 +867,14 @@ wait<maybe<int>> WindowPlane::int_input_box(
         p.set_value( result.bind( L( base::stoi( _ ) ) ) );
       } );
   co_return co_await p.wait();
+}
+
+int WindowPlane::num_windows_created() const {
+  return impl_->num_windows_created();
+}
+
+int WindowPlane::num_windows_currently_open() const {
+  return impl_->num_windows_currently_open();
 }
 
 } // namespace rn

@@ -38,6 +38,9 @@ struct RealGui : IGui {
   // Implement IGui.
   wait<> display_woodcut( e_woodcut cut ) override;
 
+  // Implement IGui.
+  int total_windows_created() const override;
+
  private:
   // The ones in this section should not be invoked directly, but
   // instead through the IGui wrappers that are public. That way
