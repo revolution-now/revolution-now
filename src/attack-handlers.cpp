@@ -166,10 +166,9 @@ maybe<string> perform_euro_unit_combat_outcome(
       else
         // This will be scouts, pioneers, missionaries, and ar-
         // tillery.
-        msg =
-            fmt::format( "{} [{}] has been lost in battle!",
-                         nation_obj( unit.nation() ).adjective,
-                         unit.desc().name );
+        msg = fmt::format( "{} [{}] has been lost in battle!",
+                           nation_obj( unit.nation() ).adjective,
+                           unit.desc().name );
       // Need to destroy the unit after accessing its info.
       ss.units.destroy_unit( unit.id() );
       break;
@@ -296,12 +295,12 @@ maybe<string> perform_naval_unit_combat_outcome(
                        nation_obj( opponent.nation() ).adjective,
                        opponent.desc().name );
       if( num_units_lost == 1 )
-        *msg += fmt::format(
-            ", [1] unit onboard has been lost" );
+        *msg +=
+            fmt::format( ", [1] unit onboard has been lost" );
       else if( num_units_lost > 1 )
-        *msg += fmt::format(
-            ", [{}] units onboard have been lost",
-            num_units_lost );
+        *msg +=
+            fmt::format( ", [{}] units onboard have been lost",
+                         num_units_lost );
       *msg += '.';
       // Need to destroy unit first before displaying message
       // otherwise the unit will reappear on the map while the
@@ -1144,8 +1143,8 @@ wait<> AttackDwellingHandler::perform() {
   // missionary fled if applicable. Also, if there is a treasure,
   // include the amount.
   string msg =
-      fmt::format( "[{}] {} burned by the [{}]!",
-                   tribe_name, dwelling_type_name, nation_name );
+      fmt::format( "[{}] {} burned by the [{}]!", tribe_name,
+                   dwelling_type_name, nation_name );
   if( destruction.missionary_to_release.has_value() )
     msg += " [Missionary] flees in panic!";
   else if( missionary_in_dwelling.has_value() )
@@ -1186,8 +1185,8 @@ wait<> AttackDwellingHandler::perform() {
 
   if( was_capital && !destruction.tribe_destroyed.has_value() )
     co_await ts_.gui.message_box(
-        "The [{}] bow before the might of the [{}]!",
-        tribe_name, nation_name );
+        "The [{}] bow before the might of the [{}]!", tribe_name,
+        nation_name );
 
   // Check if the tribe is now destroyed.
   if( destruction.tribe_destroyed.has_value() )
