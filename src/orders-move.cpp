@@ -900,7 +900,7 @@ wait<> TravelHandler::perform() {
       // the ship.
       e_colony_abandoned const abandoned =
           co_await show_colony_view(
-              planes_, ss_, ts_,
+              planes_, ss_, ts_, player_,
               ss_.colonies.colony_for( colony_id ) );
       if( abandoned == e_colony_abandoned::yes )
         // Nothing really special to do here.

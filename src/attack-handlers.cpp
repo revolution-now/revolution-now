@@ -614,8 +614,8 @@ wait<> AttackColonyUndefendedHandler::perform() {
       colony_.name );
 
   // 4. Open colony view.
-  e_colony_abandoned const abandoned =
-      co_await show_colony_view( planes_, ss_, ts_, colony_ );
+  e_colony_abandoned const abandoned = co_await show_colony_view(
+      planes_, ss_, ts_, attacking_player_, colony_ );
   if( abandoned == e_colony_abandoned::yes )
     // Nothing really special to do here.
     co_return;

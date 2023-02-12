@@ -20,6 +20,7 @@
 #include "commodity.hpp"
 #include "construction.hpp"
 #include "enum.hpp"
+#include "harbor-units.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
 #include "immigration.hpp"
@@ -56,9 +57,9 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/conv.hpp"
 #include "base/keyval.hpp"
 #include "base/scope-exit.hpp"
-#include "base/string.hpp"
 #include "base/to-str-ext-std.hpp"
 
 // base-util
@@ -421,14 +422,15 @@ void create_initial_buildings( Colony& colony ) {
 }
 
 wait<> run_colony_starvation( Planes& planes, SS& ss, TS& ts,
-                              Colony& colony ) {
+                              Player& player, Colony& colony ) {
   // Must extract this info before destroying the colony.
   string const msg = fmt::format(
       "[{}] ran out of food and was not able to support "
       "its last remaining colonists.  As a result, the colony "
       "has disappeared.",
       colony.name );
-  co_await run_colony_destruction( planes, ss, ts, colony, msg );
+  co_await run_colony_destruction( planes, ss, ts, player,
+                                   colony, msg );
   // !! Do not reference `colony` beyond this point.
 }
 
@@ -700,8 +702,10 @@ void change_unit_outdoor_job( Colony& colony, UnitId id,
         outdoor_jobs[d]->job = new_job;
 }
 
-void destroy_colony( SS& ss, IMapUpdater& map_updater,
-                     Colony& colony ) {
+ColonyDestructionOutcome destroy_colony(
+    SS& ss, IMapUpdater& map_updater, Player& player,
+    Colony& colony ) {
+  ColonyDestructionOutcome outcome;
   // These are the units working in the colony, not those at the
   // gate or in port (which won't be affected).
   vector<UnitId> units = colony_units_all( colony );
@@ -712,38 +716,71 @@ void destroy_colony( SS& ss, IMapUpdater& map_updater,
   CHECK( colony_population( colony ) == 0 );
   clear_abandoned_colony_road( ss, map_updater,
                                colony.location );
+
+  // Send any ships in port back to the harbor. The OG does not
+  // do this; it just leaves them on land. However, when that
+  // happens, it then has to deal with the situation where a for-
+  // eign unit attempts to attack the ship. The OG actually
+  // doesn't handle that -- it just panics. So we have a choice
+  // in that we could leave the ship on land and then deal with
+  // the case where a foreign European unit tries to attack it,
+  // or we can just do the simpler thing and return it to the
+  // harbor. Dealing with a potential attack from a foreign unit
+  // not only makes things messy, but requires creating new rules
+  // for the combat mechanics; we can't prevent it from being at-
+  // tacked otherwise they could be used as a blockade, but we
+  // also can't use their real defense value (which tends to be
+  // high for ships) for the same reason. So to avoid this we
+  // just return them to the harbor (undamaged).
+  //
+  // Note: need to make s copy of this set because we cannot it-
+  // erate over it while mutating it, which will happen as we
+  // move units off of the map and into the harbor.
+  unordered_set<GenericUnitId> const at_gate =
+      ss.units.from_coord( colony.location );
+  for( GenericUnitId generic_id : at_gate ) {
+    UnitId const unit_id =
+        ss.units.check_euro_unit( generic_id );
+    Unit const& unit = ss.units.unit_for( unit_id );
+    if( !unit.desc().ship ) continue;
+    ++outcome.ships_returned_to_harbor[unit.type()];
+    unit_move_to_port( ss.units, player, unit_id );
+  }
+
   // Should be last.
   ss.colonies.destroy_colony( colony.id );
+  return outcome;
 }
 
 wait<> run_colony_destruction( Planes& planes, SS& ss, TS& ts,
-                               Colony&       colony,
+                               Player& player, Colony& colony,
                                maybe<string> msg ) {
   // Must extract this info before destroying the colony.
-  string const name     = colony.name;
-  Coord const  location = colony.location;
+  string const name = colony.name;
   clear_abandoned_colony_road( ss, ts.map_updater,
                                colony.location );
   AnimationSequence const seq =
       anim_seq_for_colony_depixelation( colony.id );
   co_await planes.land_view().animate( seq );
-  destroy_colony( ss, ts.map_updater, colony );
+  ColonyDestructionOutcome const outcome =
+      destroy_colony( ss, ts.map_updater, player, colony );
   if( msg.has_value() ) co_await ts.gui.message_box( *msg );
   // Check if there are any ships in port.
-  unordered_set<GenericUnitId> const& at_gate =
-      ss.units.from_coord( location );
-  for( GenericUnitId generic_id : at_gate ) {
-    UnitId const unit_id =
-        ss.units.check_euro_unit( generic_id );
-    if( !ss.units.unit_for( unit_id ).desc().ship ) continue;
-    string const msg = fmt::format(
-        "[{}] had ships in its port that are now exposed "
-        "on land.  We should move them into the ocean soon "
-        "since they are vulnerable and weak while in the "
-        "abandoned colony port.",
-        name );
+  for( auto [unit_type, count] :
+       outcome.ships_returned_to_harbor ) {
+    if( count == 0 ) continue;
+    string const unit_type_name =
+        ( count > 1 ) ? unit_attr( unit_type ).name_plural
+                      : unit_attr( unit_type ).name;
+    string const count_str =
+        base::int_to_string_literary( count );
+    string const verb = ( count > 1 ) ? "were" : "was";
+    string const msg  = fmt::format(
+        "Port in [{}] contained {} [{}] that {} sent back to "
+         "[{}] for protection.",
+        name, count_str, unit_type_name, verb,
+        nation_obj( player.nation ).harbor_city_name );
     co_await ts.gui.message_box( msg );
-    break;
   }
 }
 
@@ -764,7 +801,8 @@ wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
         evolve_colony_one_turn( ss, ts, player, colony ) );
     ColonyEvolution const& ev = evolutions.back();
     if( ev.colony_disappeared ) {
-      co_await run_colony_starvation( planes, ss, ts, colony );
+      co_await run_colony_starvation( planes, ss, ts, player,
+                                      colony );
       // !! at this point the colony will have been deleted, so
       // we should not access it anymore.
       continue;
@@ -776,8 +814,8 @@ wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
     bool zoom_to_colony = co_await present_colony_updates(
         ts.gui, colony, ev.notifications );
     if( zoom_to_colony ) {
-      e_colony_abandoned abandoned =
-          co_await show_colony_view( planes, ss, ts, colony );
+      e_colony_abandoned abandoned = co_await show_colony_view(
+          planes, ss, ts, player, colony );
       if( abandoned == e_colony_abandoned::yes ) continue;
     }
   }

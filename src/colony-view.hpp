@@ -56,6 +56,7 @@ enum class e_colony_abandoned { no, yes };
 // the appropriate measures to not access it after that, since it
 // will no longer exist.
 wait<base::NoDiscard<e_colony_abandoned>> show_colony_view(
-    Planes& planes, SS& ss, TS& ts, Colony& colony );
+    Planes& planes, SS& ss, TS& ts, Player& player,
+    Colony& colony );
 
 } // namespace rn

@@ -8,6 +8,12 @@
 # Description: RDS definitions for the colony-mgr module.
 #
 # ===============================================================
+# ss
+include "ss/unit-type.rds.hpp"
+
+# refl
+include "refl/enum-map.hpp"
+
 namespace "rn"
 
 enum.e_found_colony_err {
@@ -24,4 +30,10 @@ enum.e_found_colony_err {
 
 enum.e_new_colony_name_err {
   already_exists,
+}
+
+struct.ColonyDestructionOutcome {
+  # Count of each ship type that was in port and sent back to the
+  # harbor.
+  ships_returned_to_harbor 'refl::enum_map<e_unit_type, int>',
 }

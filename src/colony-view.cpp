@@ -374,14 +374,16 @@ wait<> ColonyPlane::show_colony_view() const {
 ** API
 *****************************************************************/
 wait<base::NoDiscard<e_colony_abandoned>> show_colony_view(
-    Planes& planes, SS& ss, TS& ts, Colony& colony ) {
+    Planes& planes, SS& ss, TS& ts, Player& player,
+    Colony& colony ) {
   try {
     co_await show_colony_view_impl( planes, ss, ts, colony );
     co_return e_colony_abandoned::no;
   } catch( colony_abandon_interrupt const& ) {}
 
   // We are abandoned.
-  co_await run_colony_destruction( planes, ss, ts, colony,
+  co_await run_colony_destruction( planes, ss, ts, player,
+                                   colony,
                                    /*msg=*/nothing );
   co_return e_colony_abandoned::yes;
 }

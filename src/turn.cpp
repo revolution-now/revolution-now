@@ -390,7 +390,7 @@ wait<> process_player_input( LandViewPlayerInput_t const& input,
     case e::colony: {
       e_colony_abandoned const abandoned =
           co_await show_colony_view(
-              planes, ss, ts,
+              planes, ss, ts, player,
               ss.colonies.colony_for( input.get<colony>().id ) );
       if( abandoned == e_colony_abandoned::yes )
         // Nothing really special to do here.
@@ -491,7 +491,7 @@ wait<> process_player_input( UnitId                       id,
     case e::colony: {
       e_colony_abandoned const abandoned =
           co_await show_colony_view(
-              planes, ss, ts,
+              planes, ss, ts, player,
               ss.colonies.colony_for( input.get<colony>().id ) );
       if( abandoned == e_colony_abandoned::yes )
         // Nothing really special to do here.

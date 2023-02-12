@@ -401,14 +401,34 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
   REQUIRE( W.terrain().square_at( loc ).road );
 
   SECTION( "non interactive" ) {
-    destroy_colony( W.ss(), W.map_updater(), colony );
+    destroy_colony( W.ss(), W.map_updater(), W.default_player(),
+                    colony );
   }
 
-  SECTION( "non interactive with ship" ) {
-    Unit& ship = W.add_unit_on_map( e_unit_type::caravel, loc );
-    UnitId const ship_id = ship.id();
-    destroy_colony( W.ss(), W.map_updater(), colony );
-    REQUIRE( W.units().exists( ship_id ) );
+  SECTION( "non interactive with ships" ) {
+    Unit const& ship1 =
+        W.add_unit_on_map( e_unit_type::caravel, loc );
+    Unit const& ship2 =
+        W.add_unit_on_map( e_unit_type::merchantman, loc );
+    Unit const& ship3 =
+        W.add_unit_on_map( e_unit_type::caravel, loc );
+    destroy_colony( W.ss(), W.map_updater(), W.default_player(),
+                    colony );
+    REQUIRE( W.units().exists( ship1.id() ) );
+    REQUIRE( W.units().exists( ship2.id() ) );
+    REQUIRE( W.units().exists( ship3.id() ) );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( ship1.id() ) ==
+        UnitOwnership_t{ UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{} } } } );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( ship2.id() ) ==
+        UnitOwnership_t{ UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{} } } } );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( ship3.id() ) ==
+        UnitOwnership_t{ UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{} } } } );
   }
 
   SECTION( "interactive" ) {
@@ -421,14 +441,19 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
         .returns( make_wait<>() );
 
     wait<> w = run_colony_destruction(
-        W.planes(), W.ss(), W.ts(), colony, /*msg=*/"some msg" );
+        W.planes(), W.ss(), W.ts(), W.default_player(), colony,
+        /*msg=*/"some msg" );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
   }
 
   SECTION( "interactive with ship" ) {
-    Unit& ship = W.add_unit_on_map( e_unit_type::caravel, loc );
-    UnitId const ship_id = ship.id();
+    Unit const& ship1 =
+        W.add_unit_on_map( e_unit_type::caravel, loc );
+    Unit const& ship2 =
+        W.add_unit_on_map( e_unit_type::merchantman, loc );
+    Unit const& ship3 =
+        W.add_unit_on_map( e_unit_type::caravel, loc );
 
     MockLandViewPlane mock_land_view;
     W.planes().back().land_view = &mock_land_view;
@@ -437,18 +462,38 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
     W.gui()
         .EXPECT__message_box( "some msg" )
         .returns( make_wait<>() );
-
     W.gui()
         .EXPECT__message_box(
-            StrContains( "had ships in its port" ) )
+            "Port in [1] contained two [Caravels] that were "
+            "sent back to [Amsterdam] for protection." )
+        .returns( make_wait<>() );
+    W.gui()
+        .EXPECT__message_box(
+            "Port in [1] contained one [Merchantman] that was "
+            "sent back to [Amsterdam] for protection." )
         .returns( make_wait<>() );
 
     wait<> w = run_colony_destruction(
-        W.planes(), W.ss(), W.ts(), colony, /*msg=*/"some msg" );
+        W.planes(), W.ss(), W.ts(), W.default_player(), colony,
+        /*msg=*/"some msg" );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
 
-    REQUIRE( W.units().exists( ship_id ) );
+    REQUIRE( W.units().exists( ship1.id() ) );
+    REQUIRE( W.units().exists( ship2.id() ) );
+    REQUIRE( W.units().exists( ship3.id() ) );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( ship1.id() ) ==
+        UnitOwnership_t{ UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{} } } } );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( ship2.id() ) ==
+        UnitOwnership_t{ UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{} } } } );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( ship3.id() ) ==
+        UnitOwnership_t{ UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{} } } } );
   }
 
   // !! Do not access colony after this point.

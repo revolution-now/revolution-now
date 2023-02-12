@@ -102,26 +102,18 @@ std::vector<UnitId> colony_workers( Colony const& colony );
 
 bool colony_has_unit( Colony const& colony, UnitId id );
 
-// This is the method that normal game code should use to destroy
-// a colony. References to the colony will be invalid after this.
-// Any units at the gate (or ships in port) will be left un-
-// touched, but all units working in the colony will be de-
-// stroyed. Therefore note that this can leave a ship (previously
-// in port) on land. That should be ok, since the game (just like
-// the original game) should allow the ship to move off land and
-// into the water. If it doesn't do so in time it could theoreti-
-// cally be attacked by a foreign unit. When that happens, the
-// original game panics, but this game will handle it in a spe-
-// cial way (see the orders-move module).
-void destroy_colony( SS& ss, IMapUpdater& map_updater,
-                     Colony& colony );
+// Destroy's a colony without any interactivity. Normal game code
+// should use the interactive version below.
+ColonyDestructionOutcome destroy_colony(
+    SS& ss, IMapUpdater& map_updater, Player& player,
+    Colony& colony );
 
 // This will do the colony destruction depixelation animation and
 // then will actually destroy the colony using the destroy_colony
 // method documented above. An optional message will be shown to
 // the user first, before any others.
 wait<> run_colony_destruction( Planes& planes, SS& ss, TS& ts,
-                               Colony&            colony,
+                               Player& player, Colony& colony,
                                maybe<std::string> msg );
 
 // Given a colony, find the squares in its surroundings that are
