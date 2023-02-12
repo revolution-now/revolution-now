@@ -84,35 +84,20 @@ unique_ptr<OrdersHandler> orders_handler(
 
 wait<OrdersHandlerRunResult> OrdersHandler::run() {
   OrdersHandlerRunResult res{ .order_was_run       = false,
-                              .suspended           = false,
                               .units_to_prioritize = {} };
+  if( bool confirmed = co_await confirm(); !confirmed )
+    co_return res;
 
-  // Run the given coroutine, await its result, and return it,
-  // but run it under a detect that can detect if it suspended in
-  // the process, and record that before returning the result.
-  auto record_suspend = [&]<typename T>( wait<T> w ) -> wait<T> {
-    auto info = co_await co::detect_suspend( std::move( w ) );
-    res.suspended |= info.suspended;
-    if constexpr( !is_same_v<T, monostate> )
-      co_return std::move( info.result );
-  };
-
-  bool confirmed = co_await record_suspend( confirm() );
-  if( !confirmed ) co_return res;
-
-  unique_ptr<OrdersHandler> delegate = switch_handler();
-  if( delegate != nullptr ) co_return co_await delegate->run();
+  if( unique_ptr<OrdersHandler> delegate = switch_handler();
+      delegate != nullptr )
+    co_return co_await delegate->run();
 
   res.order_was_run = true;
 
-  // Orders can be carried out. We don't care about the sus-
-  // pending here, because what we're really interested in is
-  // whether the user was prompted for something; animation al-
-  // ways suspends.
+  // Orders can be carried out.
   co_await animate();
-
-  co_await record_suspend( perform() );
-  co_await record_suspend( post() );
+  co_await perform();
+  co_await post();
 
   res.units_to_prioritize = units_to_prioritize();
   co_return res;

@@ -543,14 +543,31 @@ wait<> process_player_input( UnitId                       id,
       CHECK( handler );
       Coord old_loc =
           coord_for_unit_indirect_or_die( ss.units, id );
-      auto run_result = co_await handler->run();
 
-      // If we suspended at some point during the above process
-      // (apart from animations), then that probably means that
-      // the user was presented with a prompt, in which case it
-      // seems like a good idea to clear the input buffers for an
-      // intuitive user experience.
-      if( run_result.suspended ) {
+      // If any GUI windows were displayed during the entire
+      // process of running this order, this will give the count.
+      // It can be used to determine e.g. if any buffered user
+      // inputs should be cleared, which one would probably want
+      // to do after a window pops up, otherwise it might look
+      // strange to the user that a window opens, then close it,
+      // and buffered moves continue to be executed.
+      int const window_count_before =
+          ts.gui.total_windows_created();
+      auto      run_result = co_await handler->run();
+      int const window_count_after =
+          ts.gui.total_windows_created();
+      bool const windows_shown_during_order_execution =
+          ( window_count_after - window_count_before );
+      CHECK_GE( windows_shown_during_order_execution, 0 );
+
+      // If we showed a window at some point during the above
+      // process then it seems like a good idea to clear the
+      // input buffers for an intuitive user experience. This
+      // currently doesn't cover anything outside of what the
+      // IGui interface can do, so e.g. it won't cover if we open
+      // the colony screen... maybe that can be rectified at some
+      // point.
+      if( windows_shown_during_order_execution > 0 ) {
         lg.debug( "clearing land-view input buffers." );
         planes.land_view().reset_input_buffers();
       }

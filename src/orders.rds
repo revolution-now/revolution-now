@@ -23,14 +23,6 @@ struct.OrdersHandlerRunResult {
   # Was the order carried out or not.
   order_was_run 'bool',
 
-  # Regardless of the value of `order_run`, was there a coroutine
-  # suspension during the process (other than during an anima-
-  # tion)? This is basically used to infer whether the user was
-  # prompted for anything during the process, which is useful to
-  # know in order for the caller to have a polished user inter-
-  # face.
-  suspended 'bool',
-
   # Any units that need to be prioritized (in the sense of asking
   # for orders) after this order has been carried out. An example
   # of this would be after units make landfall from a ship, it is
