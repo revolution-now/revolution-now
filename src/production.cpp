@@ -248,6 +248,18 @@ int bells_production( UnitsState const& units_state,
   int buildings_quantity =
       config_production.free_building_production[building];
   if( player.fathers.has[e_founding_father::thomas_paine] )
+    // NOTE: One source states that this bonus does not rise as
+    // the tax rate thereafter rises; it is fixed at the tax rate
+    // in force on the turn Thomas Paine joined Congress. How-
+    // ever, experiments with the OG seem to say otherwise,
+    // namely, that bell production continues to rise as the tax
+    // rate rises. One advantage of the former behavior is that
+    // it would potentially make the decision as to when to re-
+    // cruit Thomas Paine more interesting, whereas the latter
+    // seems to make more sense in that the colonists would want
+    // to seek liberty in proportion to the tax rate. In this
+    // game, as usual, we mirror the behavior of the OG and let
+    // the bonus increase as the tax rate increases.
     apply_int_percent_bonus_rnd_down(
         buildings_quantity, player.old_world.taxes.tax_rate );
 
