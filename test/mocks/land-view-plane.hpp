@@ -42,7 +42,6 @@ struct MockLandViewPlane : ILandViewPlane {
   MOCK_METHOD( wait<LandViewPlayerInput_t>, eot_get_next_input,
                (), () );
   MOCK_METHOD( wait<>, animate, (AnimationSequence const&), () );
-  MOCK_METHOD( void, reset_input_buffers, (), () );
   MOCK_METHOD( void, start_new_turn, (), () );
   MOCK_METHOD( void, zoom_out_full, (), () );
   MOCK_METHOD( maybe<UnitId>, unit_blinking, (), () );

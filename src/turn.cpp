@@ -423,7 +423,6 @@ wait<> process_player_input( next_turn_t, Planes&, SS&, TS&,
 
 wait<> process_inputs( Planes& planes, SS& ss, TS& ts,
                        Player& player ) {
-  planes.land_view().reset_input_buffers();
   while( true ) {
     auto wait_for_button =
         co::fmap( [] λ( next_turn_t{} ),
@@ -544,34 +543,9 @@ wait<> process_player_input( UnitId                       id,
       Coord old_loc =
           coord_for_unit_indirect_or_die( ss.units, id );
 
-      // If any GUI windows were displayed during the entire
-      // process of running this order, this will give the count.
-      // It can be used to determine e.g. if any buffered user
-      // inputs should be cleared, which one would probably want
-      // to do after a window pops up, otherwise it might look
-      // strange to the user that a window opens, then close it,
-      // and buffered moves continue to be executed.
-      int const window_count_before =
-          ts.gui.total_windows_created();
-      auto      run_result = co_await handler->run();
-      int const window_count_after =
-          ts.gui.total_windows_created();
-      bool const windows_shown_during_order_execution =
-          ( window_count_after - window_count_before );
-      CHECK_GE( windows_shown_during_order_execution, 0 );
-
-      // If we showed a window at some point during the above
-      // process then it seems like a good idea to clear the
-      // input buffers for an intuitive user experience. This
-      // currently doesn't cover anything outside of what the
-      // IGui interface can do, so e.g. it won't cover if we open
-      // the colony screen... maybe that can be rectified at some
-      // point.
-      if( windows_shown_during_order_execution > 0 ) {
-        lg.debug( "clearing land-view input buffers." );
-        planes.land_view().reset_input_buffers();
-      }
+      auto run_result = co_await handler->run();
       if( !run_result.order_was_run ) break;
+
       // !! The unit may no longer exist at this point, e.g. if
       // they were disbanded or if they lost a battle to the na-
       // tives.

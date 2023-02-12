@@ -67,9 +67,6 @@ struct ILandViewPlane {
   virtual wait<> animate(
       AnimationSequence const& seq ATTR_LIFETIMEBOUND ) = 0;
 
-  // Clear any buffer input.
-  virtual void reset_input_buffers() = 0;
-
   // We don't have to do much specifically in the land view when
   // we start a new turn, but there are a couple of small things
   // to do for a polished user experience.
@@ -107,8 +104,6 @@ struct LandViewPlane : ILandViewPlane {
   wait<LandViewPlayerInput_t> eot_get_next_input() override;
 
   wait<> animate( AnimationSequence const& seq ) override;
-
-  void reset_input_buffers() override;
 
   void start_new_turn() override;
 

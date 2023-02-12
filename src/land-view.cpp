@@ -108,6 +108,12 @@ struct LandViewPlane::Impl : public Plane {
   struct LastUnitInput {
     UnitId unit_id                  = {};
     bool   need_input_buffer_shield = false;
+    // Records the total number of windows that have been opened
+    // thus far when the unit last asked for orders. That way, if
+    // the same unit asks for orders again, we can check this to
+    // see if any windows were opened during the course of the
+    // last move and, if so, clear the input buffers.
+    int window_count = 0;
   };
   maybe<LastUnitInput> last_unit_input_;
 
@@ -900,6 +906,7 @@ struct LandViewPlane::Impl : public Plane {
   }
 
   void reset_input_buffers() {
+    lg.debug( "clearing land-view input buffers." );
     raw_input_stream_.reset();
     translated_input_stream_.reset();
   }
@@ -934,7 +941,6 @@ struct LandViewPlane::Impl : public Plane {
   wait<> eat_cross_unit_buffered_input_events( UnitId id ) {
     if( !config_land_view.input_overrun_detection.enabled )
       co_return;
-    reset_input_buffers();
     auto const kWait =
         config_land_view.input_overrun_detection.wait_time;
     SCOPE_EXIT( input_overrun_indicator_ = nothing );
@@ -1005,6 +1011,20 @@ struct LandViewPlane::Impl : public Plane {
     if( !last_unit_input_.has_value() ||
         last_unit_input_->unit_id != id )
       g_needs_scroll_to_unit_on_input = true;
+
+    // The idea of this is that if we're starting on a new unit
+    // or if we're still on the same unit but a window popped up
+    // since it last asked for orders (which could have happened
+    // as a result of its move or other processing during the
+    // turn) then we want to clear the input buffers. Otherwise,
+    // it could create a strange situation where the player ob-
+    // serves buffered input events processed after a window
+    // closes.
+    if( !last_unit_input_.has_value() ||
+        last_unit_input_->unit_id != id ||
+        ts_.gui.total_windows_created() >
+            last_unit_input_->window_count )
+      reset_input_buffers();
 
     // This might be true either because we started a new turn,
     // or because of the above assignment.
@@ -1079,7 +1099,9 @@ struct LandViewPlane::Impl : public Plane {
     if( !last_unit_input_.has_value() ||
         last_unit_input_->unit_id != id )
       last_unit_input_ = LastUnitInput{
-          .unit_id = id, .need_input_buffer_shield = true };
+          .unit_id                  = id,
+          .need_input_buffer_shield = true,
+          .window_count = ts_.gui.total_windows_created() };
 
     // Run the blinker while waiting for user input. The question
     // is, do we want the blinking to start "on" or "off"? The
@@ -1148,10 +1170,6 @@ wait<LandViewPlayerInput_t> LandViewPlane::get_next_input(
 
 wait<LandViewPlayerInput_t> LandViewPlane::eot_get_next_input() {
   return impl_->eot_get_next_input();
-}
-
-void LandViewPlane::reset_input_buffers() {
-  return impl_->reset_input_buffers();
 }
 
 void LandViewPlane::start_new_turn() {
