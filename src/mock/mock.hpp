@@ -197,12 +197,14 @@ std::string format_args_where_possible( Args&&... args ) {
 template<typename T>
 concept SettablePointer =
     std::is_pointer_v<T> &&
-    !std::is_const_v<std::remove_pointer_t<T>>;
+    !std::is_const_v<std::remove_pointer_t<T>> &&
+    std::is_copy_assignable_v<std::remove_pointer_t<T>>;
 
 template<typename T>
 concept SettableReference =
     std::is_reference_v<T> &&
-    !std::is_const_v<std::remove_reference_t<T>>;
+    !std::is_const_v<std::remove_reference_t<T>> &&
+    std::is_copy_assignable_v<std::remove_reference_t<T>>;
 
 template<typename T>
 concept Settable = SettablePointer<T> || SettableReference<T>;
