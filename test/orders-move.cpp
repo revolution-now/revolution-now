@@ -16,10 +16,13 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/icolony-viewer.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/mocks/land-view-plane.hpp"
 
 // Revolution Now
 #include "src/map-square.hpp"
+#include "src/plane-stack.hpp"
 
 // config
 #include "src/config/unit-type.rds.hpp"
@@ -37,6 +40,7 @@ namespace {
 
 using namespace std;
 
+using ::mock::matchers::_;
 using ::mock::matchers::StrContains;
 
 /****************************************************************
@@ -57,6 +61,11 @@ struct World : testing::World {
     build_map( std::move( tiles ), 3 );
     add_player( e_nation::dutch );
     add_player( e_nation::french );
+
+    // This is so that we don't try to pop up a box telling the
+    // player that they've discovered the new world.
+    player( e_nation::dutch ).new_world_name  = "";
+    player( e_nation::french ).new_world_name = "";
   }
 };
 
@@ -77,11 +86,8 @@ TEST_CASE( "[orders-move] ship can move from land to ocean" ) {
 #endif
   World   W;
   Player& player = W.default_player();
-  // This is so that we don't try to pop up a box telling the
-  // player that they've discovered the new world.
-  player.new_world_name = "";
-  UnitId id = W.add_unit_on_map( e_unit_type::galleon,
-                                 Coord{ .x = 1, .y = 1 } )
+  UnitId  id     = W.add_unit_on_map( e_unit_type::galleon,
+                                      Coord{ .x = 1, .y = 1 } )
                   .id();
   // Sanity check to make sure we are testing what we think we're
   // testing.
@@ -121,6 +127,90 @@ TEST_CASE( "[orders-move] ship can move from land to ocean" ) {
     REQUIRE( W.units().coord_for( id ) ==
              Coord{ .x = 2, .y = 0 } );
   }
+}
+
+TEST_CASE(
+    "[orders-move] consumption of movement points when moving "
+    "into a colony" ) {
+  World             W;
+  MockLandViewPlane land_view_plane;
+  W.planes().back().land_view = &land_view_plane;
+  Player&       player        = W.default_player();
+  Colony const& colony     = W.add_colony( { .x = 1, .y = 1 } );
+  Unit const&   missionary = W.add_unit_on_map(
+      e_unit_type::missionary, { .x = 0, .y = 1 } );
+  Unit const& free_colonist = W.add_unit_on_map(
+      e_unit_type::free_colonist, { .x = 2, .y = 1 } );
+  Unit const& wagon_train = W.add_unit_on_map(
+      e_unit_type::wagon_train, { .x = 1, .y = 0 } );
+  Unit const& privateer = W.add_unit_on_map(
+      e_unit_type::privateer, { .x = 0, .y = 0 } );
+
+  auto move_unit = [&]( UnitId unit_id, e_direction d ) {
+    land_view_plane.EXPECT__animate( _ ).returns<monostate>();
+    unique_ptr<OrdersHandler> handler =
+        handle_orders( W.planes(), W.ss(), W.ts(), player,
+                       unit_id, orders::move{ .d = d } );
+    wait<OrdersHandlerRunResult> const w = handler->run();
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+    OrdersHandlerRunResult const expected_result{
+        .order_was_run = true, .units_to_prioritize = {} };
+    REQUIRE( *w == expected_result );
+  };
+
+  // Allow the free colonist to move along a road. This tests
+  // that a unit is allowed to expend less than one movement
+  // point to enter a colony in the relevant situation.
+  W.square( { .x = 1, .y = 1 } ).road = true;
+  W.square( { .x = 2, .y = 1 } ).road = true;
+  // This will make sure that the movement points required to
+  // enter a colony square are capped at 1.
+  W.square( { .x = 1, .y = 1 } ).overlay = e_land_overlay::hills;
+
+  // Sanity check.
+  REQUIRE( missionary.movement_points() == 2 );
+  REQUIRE( free_colonist.movement_points() == 1 );
+  REQUIRE( wagon_train.movement_points() == 2 );
+  REQUIRE( privateer.movement_points() == 8 );
+  REQUIRE( W.units().coord_for( missionary.id() ) ==
+           Coord{ .x = 0, .y = 1 } );
+  REQUIRE( W.units().coord_for( free_colonist.id() ) ==
+           Coord{ .x = 2, .y = 1 } );
+  REQUIRE( W.units().coord_for( wagon_train.id() ) ==
+           Coord{ .x = 1, .y = 0 } );
+  REQUIRE( W.units().coord_for( privateer.id() ) ==
+           Coord{ .x = 0, .y = 0 } );
+
+  move_unit( missionary.id(), e_direction::e );
+  move_unit( free_colonist.id(), e_direction::w );
+  move_unit( wagon_train.id(), e_direction::s );
+
+  W.colony_viewer()
+      .EXPECT__show( _, colony.id )
+      .returns( e_colony_abandoned::no );
+  move_unit( privateer.id(), e_direction::se );
+
+  // No road; consumes one movement point.
+  REQUIRE( missionary.movement_points() == 1 );
+
+  // Road; consumes 1/3 point.
+  REQUIRE( free_colonist.movement_points() ==
+           MovementPoints::_2_3() );
+
+  // Normal movement point consumption for wagon train, unlike OG
+  // it doesn't forfeight all points when moving into a colony
+  // square.
+  REQUIRE( wagon_train.movement_points() == 1 );
+  REQUIRE( privateer.movement_points() == 0 );
+  REQUIRE( W.units().coord_for( missionary.id() ) ==
+           Coord{ .x = 1, .y = 1 } );
+  REQUIRE( W.units().coord_for( free_colonist.id() ) ==
+           Coord{ .x = 1, .y = 1 } );
+  REQUIRE( W.units().coord_for( wagon_train.id() ) ==
+           Coord{ .x = 1, .y = 1 } );
+  REQUIRE( W.units().coord_for( privateer.id() ) ==
+           Coord{ .x = 1, .y = 1 } );
 }
 
 TEST_CASE(

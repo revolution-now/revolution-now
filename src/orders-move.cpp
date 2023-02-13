@@ -655,6 +655,8 @@ TravelHandler::confirm_travel_impl() {
     bh_t bh = bh_t::always;
     switch( bh ) {
       case bh_t::always:
+        // Friendly colony square, whether from land or a ship.
+        //
         // If we are moving into the colony along a road or
         // river, then it will cost the usual 1/3 movement point.
         // But in the original game, the cost otherwise seems to
@@ -662,8 +664,7 @@ TravelHandler::confirm_travel_impl() {
         // we are moving into a colony square that is located on
         // hills (normally costs 2 points) but is not connected
         // with a road or river, it will only cost 1 movement
-        // point. friendly colony square, whether from land or a
-        // ship.
+        // point.
         //
         // First get the movement points as if the colony were
         // not present (but the road under it still is).
@@ -879,7 +880,7 @@ wait<> TravelHandler::perform() {
           co_await unit_to_map_square( ss_, ts_, id, move_dst );
       CHECK( !unit_deleted.has_value() );
       // When a ship moves into port it forfeights its movement
-      // points.
+      // points as in the OG.
       unit.forfeight_mv_points();
       CHECK( unit.orders() == e_unit_orders::none );
       UNWRAP_CHECK( colony_id,
