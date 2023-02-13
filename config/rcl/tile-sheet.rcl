@@ -698,15 +698,16 @@ sheets {
       img_path: assets/art/tiles/road.png
       sprite_size: { w: 32, h: 32 }
       sprites {
-        road_island:         { y: 0, x: 0 }
-        road_nw:             { y: 0, x: 1 }
-        road_n:              { y: 0, x: 2 }
-        road_ne:             { y: 0, x: 3 }
-        road_e:              { y: 0, x: 4 }
-        road_se:             { y: 0, x: 5 }
-        road_s:              { y: 0, x: 6 }
-        road_sw:             { y: 0, x: 7 }
-        road_w:              { y: 0, x: 8 }
+        road_island_small:   { y: 0, x: 0 }
+        road_island:         { y: 0, x: 1 }
+        road_nw:             { y: 0, x: 2 }
+        road_n:              { y: 0, x: 3 }
+        road_ne:             { y: 0, x: 4 }
+        road_e:              { y: 0, x: 5 }
+        road_se:             { y: 0, x: 6 }
+        road_s:              { y: 0, x: 7 }
+        road_sw:             { y: 0, x: 8 }
+        road_w:              { y: 0, x: 9 }
       }
     }
     {

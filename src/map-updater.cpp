@@ -133,8 +133,8 @@ void RenderingMapUpdater::redraw_square(
 
   rr::VertexRange const old_bounds = tile_bounds_[tile];
   tile_bounds_[tile]               = renderer_.range_for( [&] {
-    render_terrain_square( renderer_, tile * g_tile_delta, tile,
-                                         viz, terrain_options );
+    render_terrain_square( renderer_, tile * g_tile_delta, ss_,
+                                         tile, viz, terrain_options );
   } );
 
   // Now we zero out the vertices from the old tile. If we don't
@@ -245,7 +245,7 @@ void RenderingMapUpdater::redraw() {
       make_terrain_options( options() );
   Visibility const viz =
       Visibility::create( ss_, options().nation );
-  render_terrain( renderer_, viz, terrain_options,
+  render_terrain( renderer_, ss_, viz, terrain_options,
                   tile_bounds_ );
   // Reset this since we just redrew the map.
   tiles_redrawn_ = 0;

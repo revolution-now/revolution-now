@@ -21,6 +21,8 @@
 #include "config/unit-type.rds.hpp"
 
 // ss
+#include "ss/natives.hpp"
+#include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
@@ -134,6 +136,7 @@ bool can_build_road( Unit const& unit ) {
 ** Rendering
 *****************************************************************/
 void render_road_if_present( rr::Painter& painter, Coord where,
+                             SSConst const&    ss,
                              Visibility const& viz,
                              Coord             world_tile ) {
   auto has_road = [&]( Coord tile ) {
@@ -165,8 +168,21 @@ void render_road_if_present( rr::Painter& painter, Coord where,
     road_in_surroundings = true;
     render_sprite( painter, where, tile );
   }
-  if( !road_in_surroundings )
-    render_sprite( painter, where, e_tile::road_island );
+  if( !road_in_surroundings ) {
+    // Native dwellings have roads under them, but they don't re-
+    // ally look good with a large "road island" under them,
+    // which happens when there are no adjacent roads. So we will
+    // render the smaller road island so that it will be com-
+    // pletely hidden behind the dwelling, but still be visible
+    // e.g. in "hidden terrain" view or while in the map editor.
+    bool const has_dwelling =
+        ss.natives.maybe_dwelling_from_coord( world_tile )
+            .has_value();
+    if( !has_dwelling )
+      render_sprite( painter, where, e_tile::road_island );
+    else
+      render_sprite( painter, where, e_tile::road_island_small );
+  }
 }
 
 } // namespace rn

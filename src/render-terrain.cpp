@@ -41,18 +41,24 @@ constexpr double g_tile_overlap_width_percent = .2;
 
 e_tile tile_for_ground_terrain( e_ground_terrain terrain ) {
   switch( terrain ) {
-    case e_ground_terrain::arctic: return e_tile::terrain_arctic;
-    case e_ground_terrain::desert: return e_tile::terrain_desert;
+    case e_ground_terrain::arctic:
+      return e_tile::terrain_arctic;
+    case e_ground_terrain::desert:
+      return e_tile::terrain_desert;
     case e_ground_terrain::grassland:
       return e_tile::terrain_grassland;
-    case e_ground_terrain::marsh: return e_tile::terrain_marsh;
-    case e_ground_terrain::plains: return e_tile::terrain_plains;
+    case e_ground_terrain::marsh:
+      return e_tile::terrain_marsh;
+    case e_ground_terrain::plains:
+      return e_tile::terrain_plains;
     case e_ground_terrain::prairie:
       return e_tile::terrain_prairie;
     case e_ground_terrain::savannah:
       return e_tile::terrain_savannah;
-    case e_ground_terrain::swamp: return e_tile::terrain_swamp;
-    case e_ground_terrain::tundra: return e_tile::terrain_tundra;
+    case e_ground_terrain::swamp:
+      return e_tile::terrain_swamp;
+    case e_ground_terrain::tundra:
+      return e_tile::terrain_tundra;
   }
 }
 
@@ -1015,7 +1021,8 @@ void render_river_on_land( Visibility const& viz,
       major_cycle_tile =
           e_tile::terrain_river_cycle_major_island;
       break;
-    default: FATAL( "invalid river mask: {}", mask );
+    default:
+      FATAL( "invalid river mask: {}", mask );
   }
 
   e_tile water = ( square.river == e_river::major )
@@ -1244,7 +1251,8 @@ void render_terrain_ocean_square( rr::Renderer&     renderer,
           beach_tile  = e_tile::terrain_beach_up_right_down_o_o;
           border_tile = e_tile::terrain_border_up_right_down_o_o;
           break;
-        default: SHOULD_NOT_BE_HERE;
+        default:
+          SHOULD_NOT_BE_HERE;
       }
       break;
     }
@@ -1281,7 +1289,8 @@ void render_terrain_ocean_square( rr::Renderer&     renderer,
           border_tile =
               e_tile::terrain_border_right_down_left_o_o;
           break;
-        default: SHOULD_NOT_BE_HERE;
+        default:
+          SHOULD_NOT_BE_HERE;
       }
       break;
     }
@@ -1314,7 +1323,8 @@ void render_terrain_ocean_square( rr::Renderer&     renderer,
           beach_tile  = e_tile::terrain_beach_down_left_up_o_o;
           border_tile = e_tile::terrain_border_down_left_up_o_o;
           break;
-        default: SHOULD_NOT_BE_HERE;
+        default:
+          SHOULD_NOT_BE_HERE;
       }
       break;
     }
@@ -1347,7 +1357,8 @@ void render_terrain_ocean_square( rr::Renderer&     renderer,
           beach_tile  = e_tile::terrain_beach_left_up_right_o_o;
           border_tile = e_tile::terrain_border_left_up_right_o_o;
           break;
-        default: SHOULD_NOT_BE_HERE;
+        default:
+          SHOULD_NOT_BE_HERE;
       }
       break;
     }
@@ -1391,7 +1402,8 @@ void render_terrain_ocean_square( rr::Renderer&     renderer,
           surf_tile   = e_tile::terrain_surf_right_down_o_o;
           sand_tile   = e_tile::terrain_sand_right_down_o_o;
           break;
-        default: SHOULD_NOT_BE_HERE;
+        default:
+          SHOULD_NOT_BE_HERE;
       }
       if( !apply_sand ) sand_tile.reset();
       if( !open_water ) surf_tile.reset();
@@ -1437,7 +1449,8 @@ void render_terrain_ocean_square( rr::Renderer&     renderer,
           surf_tile   = e_tile::terrain_surf_down_left_o_o;
           sand_tile   = e_tile::terrain_sand_down_left_o_o;
           break;
-        default: SHOULD_NOT_BE_HERE;
+        default:
+          SHOULD_NOT_BE_HERE;
       }
       if( !apply_sand ) sand_tile.reset();
       if( !open_water ) surf_tile.reset();
@@ -1483,7 +1496,8 @@ void render_terrain_ocean_square( rr::Renderer&     renderer,
           surf_tile   = e_tile::terrain_surf_left_up_o_o;
           sand_tile   = e_tile::terrain_sand_left_up_o_o;
           break;
-        default: SHOULD_NOT_BE_HERE;
+        default:
+          SHOULD_NOT_BE_HERE;
       }
       if( !apply_sand ) sand_tile.reset();
       if( !open_water ) surf_tile.reset();
@@ -1529,7 +1543,8 @@ void render_terrain_ocean_square( rr::Renderer&     renderer,
           surf_tile   = e_tile::terrain_surf_up_right_o_o;
           sand_tile   = e_tile::terrain_sand_up_right_o_o;
           break;
-        default: SHOULD_NOT_BE_HERE;
+        default:
+          SHOULD_NOT_BE_HERE;
       }
       if( !apply_sand ) sand_tile.reset();
       if( !open_water ) surf_tile.reset();
@@ -1564,7 +1579,8 @@ void render_terrain_ocean_square( rr::Renderer&     renderer,
           beach_tile  = e_tile::terrain_beach_up_down_up_o_o;
           border_tile = e_tile::terrain_border_up_down_up_o_o;
           break;
-        default: SHOULD_NOT_BE_HERE;
+        default:
+          SHOULD_NOT_BE_HERE;
       }
       bool down_left_open = is_land_if_exists( e_direction::sw );
       bool down_right_open =
@@ -1606,7 +1622,8 @@ void render_terrain_ocean_square( rr::Renderer&     renderer,
           second_border_tile =
               e_tile::terrain_border_up_down_down_o_o;
           break;
-        default: SHOULD_NOT_BE_HERE;
+        default:
+          SHOULD_NOT_BE_HERE;
       }
       break;
     }
@@ -1643,7 +1660,8 @@ void render_terrain_ocean_square( rr::Renderer&     renderer,
           border_tile =
               e_tile::terrain_border_left_right_left_o_o;
           break;
-        default: SHOULD_NOT_BE_HERE;
+        default:
+          SHOULD_NOT_BE_HERE;
       }
       bool up_right_open = is_land_if_exists( e_direction::ne );
       bool down_right_open =
@@ -1685,7 +1703,8 @@ void render_terrain_ocean_square( rr::Renderer&     renderer,
           second_border_tile =
               e_tile::terrain_border_left_right_right_o_o;
           break;
-        default: SHOULD_NOT_BE_HERE;
+        default:
+          SHOULD_NOT_BE_HERE;
       }
       break;
     }
@@ -1718,7 +1737,8 @@ void render_terrain_ocean_square( rr::Renderer&     renderer,
           beach_tile  = e_tile::terrain_beach_up_o_o;
           border_tile = e_tile::terrain_border_up_o_o;
           break;
-        default: SHOULD_NOT_BE_HERE;
+        default:
+          SHOULD_NOT_BE_HERE;
       }
       break;
     }
@@ -1751,7 +1771,8 @@ void render_terrain_ocean_square( rr::Renderer&     renderer,
           beach_tile  = e_tile::terrain_beach_right_o_o;
           border_tile = e_tile::terrain_border_right_o_o;
           break;
-        default: SHOULD_NOT_BE_HERE;
+        default:
+          SHOULD_NOT_BE_HERE;
       }
       break;
     }
@@ -1784,7 +1805,8 @@ void render_terrain_ocean_square( rr::Renderer&     renderer,
           beach_tile  = e_tile::terrain_beach_down_o_o;
           border_tile = e_tile::terrain_border_down_o_o;
           break;
-        default: SHOULD_NOT_BE_HERE;
+        default:
+          SHOULD_NOT_BE_HERE;
       }
       break;
     }
@@ -1817,7 +1839,8 @@ void render_terrain_ocean_square( rr::Renderer&     renderer,
           beach_tile  = e_tile::terrain_beach_left_o_o;
           border_tile = e_tile::terrain_border_left_o_o;
           break;
-        default: SHOULD_NOT_BE_HERE;
+        default:
+          SHOULD_NOT_BE_HERE;
       }
       break;
     }
@@ -1972,31 +1995,31 @@ void render_fish( Visibility const& viz, rr::Renderer& renderer,
 
 e_tile resource_tile( e_natural_resource resource ) {
   switch( resource ) {
-    case e_natural_resource::beaver: //
+    case e_natural_resource::beaver:          //
       return e_tile::resource_beaver;
-    case e_natural_resource::deer: //
+    case e_natural_resource::deer:            //
       return e_tile::resource_deer;
-    case e_natural_resource::tree: //
+    case e_natural_resource::tree:            //
       return e_tile::resource_tree;
-    case e_natural_resource::minerals: //
+    case e_natural_resource::minerals:        //
       return e_tile::resource_minerals;
-    case e_natural_resource::oasis: //
+    case e_natural_resource::oasis:           //
       return e_tile::resource_oasis;
-    case e_natural_resource::cotton: //
+    case e_natural_resource::cotton:          //
       return e_tile::resource_cotton;
-    case e_natural_resource::fish: //
+    case e_natural_resource::fish:            //
       SHOULD_NOT_BE_HERE;
-    case e_natural_resource::ore: //
+    case e_natural_resource::ore:             //
       return e_tile::resource_ore;
-    case e_natural_resource::silver: //
+    case e_natural_resource::silver:          //
       return e_tile::resource_silver;
     case e_natural_resource::silver_depleted: //
       return e_tile::resource_silver_depleted;
-    case e_natural_resource::sugar: //
+    case e_natural_resource::sugar:           //
       return e_tile::resource_sugar;
-    case e_natural_resource::tobacco: //
+    case e_natural_resource::tobacco:         //
       return e_tile::resource_tobacco;
-    case e_natural_resource::wheat: //
+    case e_natural_resource::wheat:           //
       return e_tile::resource_wheat;
   }
 }
@@ -2304,7 +2327,7 @@ void render_hidden_overlay(
 }
 
 void render_visible_terrain_square(
-    rr::Renderer& renderer, Coord where,
+    rr::Renderer& renderer, Coord where, SSConst const& ss,
     Coord const world_square, Visibility const& viz,
     TerrainRenderOptions const& options ) {
   rr::Painter      painter = renderer.painter();
@@ -2330,7 +2353,8 @@ void render_visible_terrain_square(
   if( !square.lost_city_rumor && options.render_resources )
     render_resources( renderer, painter, viz, where, square,
                       world_square );
-  render_road_if_present( painter, where, viz, world_square );
+  render_road_if_present( painter, where, ss, viz,
+                          world_square );
   if( options.render_lcrs )
     render_lost_city_rumor( painter, where, square );
 }
@@ -2338,7 +2362,7 @@ void render_visible_terrain_square(
 } // namespace
 
 void render_terrain_square(
-    rr::Renderer& renderer, Coord where,
+    rr::Renderer& renderer, Coord where, SSConst const& ss,
     Coord const world_square, Visibility const& viz,
     TerrainRenderOptions const& options ) {
   // Get visibility info about surroundings.
@@ -2358,8 +2382,8 @@ void render_terrain_square(
   } else {
     // Either this tile or one of the surroundings is visible,
     // which means we need to render the underlying tile first.
-    render_visible_terrain_square( renderer, where, world_square,
-                                   viz, options );
+    render_visible_terrain_square( renderer, where, ss,
+                                   world_square, viz, options );
     render_hidden_overlay( renderer, where, world_square, viz,
                            visibility );
   }
@@ -2372,7 +2396,7 @@ void render_terrain_square(
                              gfx::pixel{ 0, 0, 0, 30 } );
 }
 
-void render_terrain( rr::Renderer&               renderer,
+void render_terrain( rr::Renderer& renderer, SSConst const& ss,
                      Visibility const&           viz,
                      TerrainRenderOptions const& options,
                      Matrix<rr::VertexRange>&    tile_bounds ) {
@@ -2389,9 +2413,9 @@ void render_terrain( rr::Renderer&               renderer,
   auto start_time = chrono::system_clock::now();
   for( Rect const square : gfx::subrects( viz.rect_tiles() ) ) {
     tile_bounds[square.upper_left()] = renderer.range_for( [&] {
-      render_terrain_square( renderer,
-                             square.upper_left() * g_tile_delta,
-                             square.upper_left(), viz, options );
+      render_terrain_square(
+          renderer, square.upper_left() * g_tile_delta, ss,
+          square.upper_left(), viz, options );
     } );
   }
   auto end_time = chrono::system_clock::now();

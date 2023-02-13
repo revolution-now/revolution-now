@@ -27,6 +27,7 @@ struct Renderer;
 
 namespace rn {
 
+struct SSConst;
 struct Visibility;
 
 /****************************************************************
@@ -45,12 +46,13 @@ struct TerrainRenderOptions {
 // Render the terrain square as seen by a player (meaning that it
 // might not be visible).
 void render_terrain_square(
-    rr::Renderer& renderer, Coord where, Coord world_square,
-    Visibility const& viz, TerrainRenderOptions const& options );
+    rr::Renderer& renderer, Coord where, SSConst const& ss,
+    Coord world_square, Visibility const& viz,
+    TerrainRenderOptions const& options );
 
 // Render the entire map to the landscape buffer. Should only be
 // called once after the map is generated.
-void render_terrain( rr::Renderer&               renderer,
+void render_terrain( rr::Renderer& renderer, SSConst const& ss,
                      Visibility const&           viz,
                      TerrainRenderOptions const& options,
                      Matrix<rr::VertexRange>&    tile_bounds );
