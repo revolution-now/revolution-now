@@ -42,10 +42,12 @@ namespace {
 int turns_required( e_unit_type unit_type, e_terrain terrain ) {
   int for_terrain = config_orders.road_turns[terrain];
   switch( unit_type ) {
-    case e_unit_type::pioneer: return for_terrain;
+    case e_unit_type::pioneer:
+      return for_terrain;
     case e_unit_type::hardy_pioneer:
       return std::max( for_terrain / 2, 1 );
-    default: break;
+    default:
+      break;
   }
   FATAL( "unit type {} cannot build a road.", unit_type );
 }
