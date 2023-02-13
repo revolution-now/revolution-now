@@ -267,16 +267,15 @@ struct Responder<RetT, std::tuple<Args...>,
                                          T&& src, U& dst ) {
         if constexpr( !std::is_same_v<std::remove_reference_t<T>,
                                       None> ) {
+          if( !src.has_value() ) return;
           // If we're here then the user has requested to set at
           // least one argument on this function call, but poten-
           // tially not all of the ones that are possible (purely
           // based on type) to set.
-          if( src.has_value() ) {
-            if constexpr( std::is_pointer_v<U> )
-              *dst = *src;
-            else // reference
-              dst = *src;
-          }
+          if constexpr( std::is_pointer_v<U> )
+            *dst = *src;
+          else // reference.
+            dst = *src;
         }
       };
       ( setter( std::get<Idx>( *setters_ ),
