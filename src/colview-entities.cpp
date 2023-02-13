@@ -212,6 +212,74 @@ wait<maybe<ColonyEquipOption>> ask_transorm_unit_on_leave(
   co_return equip_opts[chosen_idx];
 }
 
+// This is called whenever a unit is changed in any way (either
+// its type/composition or cargo is changed). In the OG, various
+// unit types react differently to that.
+void adjust_mv_points_from_drag( Unit& unit ) {
+  if( unit.desc().ship )
+    // For a ship we will not clear movement points under any
+    // circumstances when loading unloading. This is because the
+    // game will already forfeight the ship's movement points
+    // when it moves into a colony port, so there is no need for
+    // an additional penalty.
+    return;
+
+  if( unit.type() == e_unit_type::wagon_train ) {
+    // In the OG, a wagon train ends its turn when it moves into
+    // a colony square, just like a ship. If we were replicating
+    // that here then we would do as we did for the ship above
+    // and just do nothing. However, in this game we don't have
+    // the wagon train forfeight its movement points upon en-
+    // tering a colony because 1) it has proven to be an annoying
+    // feature, 2) no other land unit has this behavior, and 3)
+    // there doesn't seem to be any logical reason for it.
+    //
+    // That said, it is possible that the original game imposed
+    // this behavior (for both wagon trains and ships) in order
+    // to prevent such a unit from moving into a colony and load-
+    // ing/unloading, then continuing to move, all in one turn.
+    // So, in order to uphold the spirit of that rule, we will
+    // forfeight the wagon train's movement points not when it
+    // pass through a colony per se, but when it loads or unloads
+    // any goods within it. Actually, not quite... if we did that
+    // then it might lead to some player confusion since if, on a
+    // given turn, the player activates a wagon train (that has
+    // not yet moved this turn) then loads something into it
+    // planning to move it, then they will not be able to move it
+    // that turn. So what we will do is to only forfeight the
+    // movement points when the wagon train has already partially
+    // moved this turn. That will allow the player to load a
+    // wagon train at the top of its turn and still move it, but
+    // won't allow the player to move the wagon train into a
+    // colony, load/unload, and keep moving in the same turn
+    // (something the OG probably wanted to prevent).
+    //
+    // This seems to make more sense and gives a good balance be-
+    // tween a sensible player experience and upholding the goals
+    // of the OG.
+    //
+    // Note that we don't replicate this new behavior for the
+    // ship; as stated above, we just keep the OG's behavior
+    // there. In the case of a ship it makes more intuitive sense
+    // that the ship would have to lose all of its movement
+    // points when moving into a port since it has to e.g. slow
+    // down and maneuver. And since we're consuming its movement
+    // points when it goes into port, we don't impose a further
+    // penalty of consuming its movement points when loading or
+    // unloading, since again we have already upheld the likely
+    // desire of the OG in preventing a ship from moving into a
+    // colony, loading/unloading, and continuing to move all in
+    // the same turn.
+    if( !unit.has_full_mv_points() ) unit.forfeight_mv_points();
+    return;
+  }
+
+  // In the OG, when a non-cargo-holding unit changes type by ei-
+  // ther gaining or losing some commodities or modifiers then it
+  // will lose its movement points that turn.
+  unit.forfeight_mv_points();
+}
+
 /****************************************************************
 ** Entities
 *****************************************************************/
@@ -724,9 +792,13 @@ class CargoView : public ui::View,
   wait<> drop( ColViewObject_t const& o,
                Coord const&           where ) override {
     CHECK( holder_ );
-    Unit&   holder_unit = ss_.units.unit_for( *holder_ );
-    auto&   cargo_hold  = holder_unit.cargo();
-    Cargo_t cargo       = to_cargo( o );
+    Unit& holder_unit = ss_.units.unit_for( *holder_ );
+    // We've added something to the cargo; the OG will clear the
+    // orders of the cargo holder for a good player experience.
+    holder_unit.clear_orders();
+    adjust_mv_points_from_drag( holder_unit );
+    auto&   cargo_hold = holder_unit.cargo();
+    Cargo_t cargo      = to_cargo( o );
     CHECK( cargo_hold.fits_somewhere( ss_.units, cargo ) );
     UNWRAP_CHECK( slot_info, slot_idx_from_coord( where ) );
     auto [is_open, slot_idx] = slot_info;
@@ -758,9 +830,6 @@ class CargoView : public ui::View,
                                   slot_idx,
                                   /*try_other_slots=*/true );
         } );
-    // We've added something to the cargo; the OG will clear the
-    // orders of the cargo holder for a good player experience.
-    holder_unit.clear_orders();
     co_return;
   }
 
@@ -830,6 +899,8 @@ class CargoView : public ui::View,
   wait<> disown_dragged_object() override {
     CHECK( holder_ );
     CHECK( dragging_ );
+    Unit& holder_unit = ss_.units.unit_for( *holder_ );
+    adjust_mv_points_from_drag( holder_unit );
     // We need to take the stored object instead of just re-
     // trieving it from the slot, because the stored object might
     // have been edited, e.g. the commodity quantity might have
@@ -1211,7 +1282,15 @@ class UnitsAtGateColonyView
 
   wait<> drop( ColViewObject_t const& o,
                Coord const&           where ) override {
-    maybe<UnitId> target_unit = contains_unit( where );
+    maybe<UnitId> target_unit_id = contains_unit( where );
+    if( target_unit_id.has_value() ) {
+      Unit& target_unit = ss_.units.unit_for( *target_unit_id );
+      // We're dragging something onto/into a unit, so clear or-
+      // ders and subtract some movement points depending on the
+      // unit type.
+      target_unit.clear_orders();
+      adjust_mv_points_from_drag( target_unit );
+    }
     overload_visit(
         o, //
         [&]( ColViewObject::unit const& draggable_unit ) {
@@ -1224,9 +1303,9 @@ class UnitsAtGateColonyView
                 colony_, player_, to_transform,
                 *draggable_unit.transformed );
           }
-          if( target_unit ) {
+          if( target_unit_id ) {
             ss_.units.change_to_cargo_somewhere(
-                /*new_holder=*/*target_unit,
+                /*new_holder=*/*target_unit_id,
                 /*held=*/draggable_unit.id );
             // !! Need to fall through here since we may have
             // abandoned the colony.
@@ -1245,11 +1324,12 @@ class UnitsAtGateColonyView
             throw colony_abandon_interrupt{};
         },
         [&]( ColViewObject::commodity const& comm ) {
-          CHECK( target_unit );
-          Unit& unit = ss_.units.unit_for( *target_unit );
-          if( unit.desc().cargo_slots > 0 ) {
+          CHECK( target_unit_id );
+          Unit& target_unit =
+              ss_.units.unit_for( *target_unit_id );
+          if( target_unit.desc().cargo_slots > 0 ) {
             add_commodity_to_cargo( ss_.units, comm.comm,
-                                    *target_unit,
+                                    *target_unit_id,
                                     /*slot=*/0,
                                     /*try_other_slots=*/true );
           } else {
@@ -1260,18 +1340,11 @@ class UnitsAtGateColonyView
             UNWRAP_CHECK(
                 xform_res,
                 transformed_unit_composition_from_commodity(
-                    unit, dropping_comm ) );
+                    target_unit, dropping_comm ) );
             CHECK( xform_res.quantity_used ==
                    dropping_comm.quantity );
-            unit.change_type( as_const( player_ ),
-                              xform_res.new_comp );
-            // For the convenience of the player, since this is
-            // likely what they would do next.
-            unit.clear_orders();
-            // The OG ends a units turn when they change type in
-            // this way, even if a pioneer simply gets equipped
-            // with more tools.
-            unit.forfeight_mv_points();
+            target_unit.change_type( as_const( player_ ),
+                                     xform_res.new_comp );
             // The unit, being at the colony gate, is actually on
             // the map at the site of this colony. In the event
             // that we are e.g. changing a colonist to a scout
@@ -1279,7 +1352,10 @@ class UnitsAtGateColonyView
             // call this function to update the rendered map
             // along with anything else that needs to be done.
             unit_to_map_square_non_interactive(
-                ss_, ts_, unit.id(), colony_.location );
+                ss_, ts_, target_unit.id(), colony_.location );
+            // Note that we clear orders and deal with movement
+            // points for the target unit at the top of this
+            // function.
           }
         } );
     co_return;
@@ -1362,19 +1438,18 @@ class UnitsAtGateColonyView
           unit.start_fortify();
       }
     } else if( mode == "strip" ) {
-      // Clear orders just in case it is a pioneer building a
-      // road or plowing; that would put the pioneer into an in-
-      // consistent state.
-      if( unit.orders() == e_unit_orders::road ||
-          unit.orders() == e_unit_orders::plow )
-        unit.clear_orders();
       UnitComposition const old_comp = unit.composition();
       strip_unit_to_base_type( as_const( player_ ), unit,
                                colony_ );
-      if( unit.composition() != old_comp )
-        // The OG ends a units turn when they change type by any
-        // means in the colony view.
-        unit.forfeight_mv_points();
+      if( unit.composition() != old_comp ) {
+        // If the unit has changed in any way then 1) clear or-
+        // ders (this is especially important for a pioneer that
+        // is in e.g. a "plow" state when its tools are stripped
+        // so that it doesn't end up in an inconsistent state),
+        // and 2) adjust its movement points.
+        unit.clear_orders();
+        adjust_mv_points_from_drag( unit );
+      }
     } else if( mode == "missionary" ) {
       // TODO: play blessing tune.
       bless_as_missionary( as_const( player_ ), colony_, unit );

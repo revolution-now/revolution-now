@@ -675,25 +675,39 @@ TravelHandler::confirm_travel_impl() {
             std::min( land_only_pts, MovementPoints( 1 ) );
         if( !check_points( needed_pts ) )
           co_return e_travel_verdict::consume_remaining_points;
-        // NOTE: In the original game, when a wagon train enters
-        // a colony it ends its turn. But that is not likely
-        // something that we want to replicate in this game be-
-        // cause it can be annoying and there doesn't appear to
-        // be a good reason for it.
         if( unit.desc().ship )
           co_return e_travel_verdict::ship_into_port;
+        if( unit.type() == e_unit_type::wagon_train )
+          // Note: In the original game, when a wagon train en-
+          // ters a colony it ends its turn. But that is not
+          // something that we replicate in this game because it
+          // can be annoying and there doesn't appear to be a
+          // good reason for it. It seems likely that the spirit
+          // of that behavior was to prevent a unit moving into a
+          // colony, loading or unloading goods, and then contin-
+          // uing to move. So what we do is, we avoid consuming
+          // the unit's movement points here (apart from what is
+          // needed to move into the colony) and then later in
+          // the colony view we will consume the unit's movement
+          // points if it loads or unloads any goods under some
+          // specific conditions; see that code for more info.
+          // But note that a ship's movement points *will* be
+          // consumed when it moves into a colony (as in the OG),
+          // since that seems more reasonable, i.e. a ship needs
+          // to slow down and maneuver into port, causing it to
+          // lose its points.
+          co_return e_travel_verdict::map_to_map;
+
         // `holder` will be a valid value if the unit is cargo of
         // another unit; the holder's id in that case will be
         // *holder.
         if( auto holder =
                 is_unit_onboard( ss_.units, unit.id() );
-            holder ) {
-          // We have a unit onboard a ship moving onto
-          // a land square with a friendly colony.
+            holder )
+          // We have a unit onboard a ship moving onto a land
+          // square with a friendly colony.
           co_return e_travel_verdict::offboard_ship;
-        } else {
-          co_return e_travel_verdict::map_to_map;
-        }
+        co_return e_travel_verdict::map_to_map;
     }
   }
   // We are entering an empty water square.
