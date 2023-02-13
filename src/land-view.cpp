@@ -298,6 +298,14 @@ struct LandViewPlane::Impl : public Plane {
         break;
       }
       case e::next_turn: {
+        if( !landview_mode_.holds<LandViewMode::end_of_turn>() )
+          // We're not supposed to send these events when we're
+          // not in EOT mode. However, because of the fact that
+          // input events can be buffered, we will be defensive
+          // here and check if one of these snuck into the input
+          // stream while we were in EOT mode but we now no
+          // longer are.
+          break;
         translated_input_stream_.send( PlayerInput(
             LandViewPlayerInput::next_turn{}, raw_input.when ) );
         break;
@@ -669,6 +677,7 @@ struct LandViewPlane::Impl : public Plane {
         if( key_event.change != input::e_key_change::down )
           break;
         handled = e_input_handled::yes;
+        if( landview_mode_.holds<LandViewMode::none>() ) break;
         if( !input::is_mod_key( key_event ) &&
             landview_mode_
                 .holds<LandViewMode::hidden_terrain>() ) {
@@ -789,8 +798,8 @@ struct LandViewPlane::Impl : public Plane {
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::orders{
                       .orders = orders::forfeight{} } ) );
-            } else if( landview_mode_
-                           .holds<LandViewMode::none>() ) {
+            } else if( landview_mode_.holds<
+                           LandViewMode::end_of_turn>() ) {
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::next_turn{} ) );
             }
@@ -1145,8 +1154,9 @@ struct LandViewPlane::Impl : public Plane {
 
   wait<LandViewPlayerInput_t> eot_get_next_input() {
     last_unit_input_ = nothing;
-    landview_mode_   = LandViewMode::none{};
-    return next_player_input_object();
+    SCOPED_SET_AND_RESTORE( landview_mode_,
+                            LandViewMode::end_of_turn{} );
+    co_return co_await next_player_input_object();
   }
 };
 

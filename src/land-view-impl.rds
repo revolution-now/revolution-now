@@ -26,7 +26,8 @@ include "gfx/coord.hpp"
 namespace "rn"
 
 sumtype.LandViewMode {
-  none {},
+  none {}, # held only transiently while switching modes.
+  end_of_turn {},
   unit_input {
     unit_id 'UnitId',
   },
