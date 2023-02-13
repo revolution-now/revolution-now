@@ -11,6 +11,7 @@
 #include "unit-type.hpp"
 
 // config
+#include "config/tile-enum.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss

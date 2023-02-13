@@ -19,6 +19,7 @@
 
 // config
 #include "config/commodity.rds.hpp"
+#include "config/tile-enum.rds.hpp"
 
 // ss
 #include "ss/units.hpp"
@@ -130,10 +131,8 @@ string commodity_number_to_markup( int value ) {
   if( value < 100 ) //
     return fmt::format( "{}", value );
   if( value < 200 )
-    return fmt::format( "[{}]{:0>2}", value / 100,
-                        value % 100 );
-  return fmt::format( "[{}]{:0>2}", value / 100,
-                      value % 100 );
+    return fmt::format( "[{}]{:0>2}", value / 100, value % 100 );
+  return fmt::format( "[{}]{:0>2}", value / 100, value % 100 );
 }
 
 } // namespace

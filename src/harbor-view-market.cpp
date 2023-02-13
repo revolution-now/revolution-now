@@ -20,6 +20,9 @@
 #include "tiles.hpp"
 #include "ts.hpp"
 
+// config
+#include "config/tile-enum.rds.hpp"
+
 // ss
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"

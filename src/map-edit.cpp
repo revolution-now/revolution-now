@@ -34,6 +34,9 @@
 #include "viewport.hpp"
 #include "window.hpp"
 
+// config
+#include "config/tile-enum.rds.hpp"
+
 // ss
 #include "ss/land-view.hpp"
 #include "ss/ref.hpp"

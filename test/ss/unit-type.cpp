@@ -20,19 +20,20 @@
 #include "src/lua.hpp"
 
 // config
-#include "config/unit-type.hpp"
+#include "src/config/tile-enum.rds.hpp"
+#include "src/config/unit-type.hpp"
 
 // ss
-#include "ss/player.rds.hpp"
+#include "src/ss/player.rds.hpp"
 
 // luapp
 #include "src/luapp/state.hpp"
 
 // refl
-#include "refl/to-str.hpp"
+#include "src/refl/to-str.hpp"
 
 // base
-#include "base/to-str-ext-std.hpp"
+#include "src/base/to-str-ext-std.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"

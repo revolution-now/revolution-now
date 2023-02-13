@@ -16,6 +16,9 @@
 #include "screen.hpp"
 #include "tiles.hpp"
 
+// config
+#include "config/tile-enum.rds.hpp"
+
 // render
 #include "render/renderer.hpp"
 

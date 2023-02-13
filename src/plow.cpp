@@ -20,6 +20,7 @@
 
 // config
 #include "config/orders.rds.hpp"
+#include "config/tile-enum.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
@@ -57,10 +58,12 @@ void clear_forest( IMapUpdater& map_updater, Coord tile ) {
 int turns_required( e_unit_type unit_type, e_terrain terrain ) {
   UNWRAP_CHECK( for_terrain, config_orders.plow_turns[terrain] );
   switch( unit_type ) {
-    case e_unit_type::pioneer: return for_terrain;
+    case e_unit_type::pioneer:
+      return for_terrain;
     case e_unit_type::hardy_pioneer:
       return std::max( for_terrain / 2, 1 );
-    default: break;
+    default:
+      break;
   }
   FATAL( "unit type {} cannot plow/clear.", unit_type );
 }

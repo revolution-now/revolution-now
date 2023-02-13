@@ -23,6 +23,9 @@
 #include "view.hpp"
 #include "wait.hpp"
 
+// config
+#include "config/tile-enum-fwd.hpp"
+
 // ss
 #include "ss/nation.rds.hpp"
 #include "ss/unit-type.hpp"

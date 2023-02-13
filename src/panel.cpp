@@ -24,6 +24,9 @@
 #include "ts.hpp" // FIXME
 #include "views.hpp"
 
+// config
+#include "config/tile-enum.rds.hpp"
+
 // ss
 #include "ss/land-view.rds.hpp"
 #include "ss/players.hpp"

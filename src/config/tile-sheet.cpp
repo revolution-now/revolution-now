@@ -11,7 +11,7 @@
 #include "config/tile-sheet.rds.hpp"
 
 // config
-#include "tile-enum.rds.hpp"
+#include "config/tile-enum.rds.hpp"
 
 // refl
 #include "refl/query-enum.hpp"

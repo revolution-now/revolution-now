@@ -9,8 +9,8 @@
 #
 # ===============================================================
 # config
-include "range-helpers.rds.hpp"
-include "tile-enum.rds.hpp"
+include "config/range-helpers.rds.hpp"
+include "config/tile-enum-fwd.hpp"
 
 # ss
 include "ss/colony-enums.rds.hpp"

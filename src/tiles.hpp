@@ -16,7 +16,7 @@
 #include "util.hpp"
 
 // config
-#include "config/tile-enum.rds.hpp"
+#include "config/tile-enum-fwd.hpp"
 
 // render
 #include "render/painter.hpp"

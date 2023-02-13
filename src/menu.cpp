@@ -27,6 +27,7 @@
 #include "menu-impl.rds.hpp"
 
 // config
+#include "config/tile-enum.rds.hpp"
 #include "config/ui.rds.hpp"
 
 // render
@@ -981,7 +982,8 @@ struct MenuPlane::Impl : public Plane {
                 log_menu_state();
                 return e_input_handled::yes;
               }
-              default: break;
+              default:
+                break;
             }
           }
           return e_input_handled::yes;

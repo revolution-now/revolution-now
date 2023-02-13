@@ -17,6 +17,7 @@
 #include "renderer.hpp"
 
 // config
+#include "config/tile-enum.rds.hpp"
 #include "config/tile-sheet.rds.hpp"
 
 // render
@@ -153,14 +154,14 @@ void tile_sprite( rr::Painter& painter, e_tile tile,
             r.upper_left().distance_from_origin() * info );
   for( H h = 0; h < smaller_rect.h / info.h; ++h ) {
     auto where = rect.upper_right() - Delta{ .w = mod.w } +
-                 Delta{ .h = h }* info.h;
+                 Delta{ .h = h } * info.h;
     render_sprite_section(
         painter, tile, where,
         Rect::from( Coord{}, mod.with_height( 1 * info.h ) ) );
   }
   for( W w = 0; w < smaller_rect.w / info.w; ++w ) {
     auto where = rect.lower_left() - Delta{ .h = mod.h } +
-                 Delta{ .w = w }* info.w;
+                 Delta{ .w = w } * info.w;
     render_sprite_section(
         painter, tile, where,
         Rect::from( Coord{}, mod.with_width( 1 * info.w ) ) );

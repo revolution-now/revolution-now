@@ -13,13 +13,13 @@
 
 #include "core-config.hpp"
 
+// rds
+#include "viewport.rds.hpp"
+
 // Revolution Now
 #include "error.hpp"
 #include "physics.hpp"
 #include "wait.hpp"
-
-// Rds
-#include "viewport.rds.hpp"
 
 // gfx
 #include "gfx/cartesian.hpp"

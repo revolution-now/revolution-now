@@ -18,6 +18,7 @@
 
 // config
 #include "config/orders.rds.hpp"
+#include "config/tile-enum.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss

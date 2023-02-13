@@ -16,6 +16,9 @@
 #include "orders.hpp"
 #include "unit-id.hpp"
 
+// config
+#include "config/tile-enum-fwd.hpp"
+
 // ss
 #include "ss/nation.rds.hpp"
 #include "ss/native-enums.rds.hpp"
@@ -37,15 +40,6 @@ struct Dwelling;
 struct NativeUnit;
 struct SSConst;
 struct Unit;
-
-// So that we don't have to include the tile enum in this header.
-// Forward declaring enums is apparently allowed so long as we
-// forward declare with the correct underlying type. The default
-// should be fine since that's how we declare the generated Rds
-// enums; but if it is wrong then we will get an error in the as-
-// sociated translation unit where the real enum is included. So
-// there should be no risk for ODR violations.
-enum class e_tile;
 
 /****************************************************************
 ** UnitShadow

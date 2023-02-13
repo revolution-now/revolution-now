@@ -14,9 +14,6 @@ include "physics.hpp"
 include "unit-id.hpp"
 include "orders.rds.hpp"
 
-# config
-include "config/tile-enum.rds.hpp"
-
 # ss
 include "ss/dwelling-id.hpp"
 

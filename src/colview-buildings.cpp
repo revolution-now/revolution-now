@@ -19,6 +19,9 @@
 #include "teaching.hpp"
 #include "tiles.hpp"
 
+// config
+#include "config/tile-enum.rds.hpp"
+
 // ss
 #include "ss/colony.hpp"
 #include "ss/ref.hpp"

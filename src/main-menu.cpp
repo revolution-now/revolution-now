@@ -23,6 +23,9 @@
 #include "turn.hpp"
 #include "window.hpp"
 
+// config
+#include "config/tile-enum.rds.hpp"
+
 // render
 #include "render/renderer.hpp"
 

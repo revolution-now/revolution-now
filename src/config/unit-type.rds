@@ -9,9 +9,9 @@
 #
 # ===============================================================
 # config
-include "config/tile-enum.rds.hpp"
+include "config/tile-enum-fwd.hpp"
 
-# gs
+# ss
 include "ss/commodity.rds.hpp"
 include "ss/mv-points.hpp"
 include "ss/unit-type.rds.hpp"

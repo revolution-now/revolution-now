@@ -21,6 +21,7 @@
 
 // config
 #include "config/land-view.rds.hpp"
+#include "config/tile-enum.rds.hpp"
 
 // ss
 #include "ss/colonies.hpp"

@@ -13,6 +13,9 @@
 // Revolution Now
 #include "tiles.hpp"
 
+// config
+#include "config/tile-enum.rds.hpp"
+
 using namespace std;
 
 namespace rn {

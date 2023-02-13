@@ -20,13 +20,13 @@
 #include "render-terrain.hpp"
 #include "render.hpp"
 #include "text.hpp"
-#include "tile-enum.rds.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
 #include "visibility.hpp"
 
 // config
 #include "config/colony.rds.hpp"
+#include "config/tile-enum.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss

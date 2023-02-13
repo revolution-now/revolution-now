@@ -13,7 +13,7 @@ include "maybe.hpp"
 include "physics.hpp"
 
 # config
-include "config/tile-enum.rds.hpp"
+include "config/tile-enum-fwd.hpp"
 
 # ss
 include "ss/dwelling-id.hpp"

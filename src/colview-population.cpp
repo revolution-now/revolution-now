@@ -16,6 +16,9 @@
 #include "sons-of-liberty.hpp"
 #include "tiles.hpp"
 
+// config
+#include "config/tile-enum.rds.hpp"
+
 // ss
 #include "ss/ref.hpp"
 #include "ss/settings.hpp"

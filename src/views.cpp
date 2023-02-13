@@ -16,6 +16,7 @@
 #include "util.hpp"
 
 // config
+#include "config/tile-enum.rds.hpp"
 #include "config/ui.rds.hpp"
 #include "config/unit-type.hpp"
 
@@ -679,13 +680,16 @@ bool ButtonView::on_mouse_move(
     input::mouse_move_event_t const& event ) {
   if( state() != button_state::disabled ) {
     switch( state() ) {
-      case button_state::down: break;
+      case button_state::down:
+        break;
       case button_state::up:
         set_state( event.l_mouse_down ? button_state::down
                                       : button_state::hover );
         break;
-      case button_state::disabled: break;
-      case button_state::hover: break;
+      case button_state::disabled:
+        break;
+      case button_state::hover:
+        break;
     }
   }
   return true;
@@ -707,7 +711,8 @@ bool ButtonView::on_mouse_button(
         // word in this function.
         on_click_();
         break;
-      default: break;
+      default:
+        break;
     }
   }
   return false;
@@ -779,8 +784,11 @@ bool OkCancelView2::on_key( input::key_event_t const& event ) {
   if( event.change != input::e_key_change::down ) return false;
   // It's a key down.
   switch( event.keycode ) {
-    case ::SDLK_ESCAPE: cancel_ref_->click(); return true;
-    default: break;
+    case ::SDLK_ESCAPE:
+      cancel_ref_->click();
+      return true;
+    default:
+      break;
   }
   return false;
 }
@@ -862,8 +870,12 @@ void VerticalArrayView::recompute_child_positions() {
     auto  size = view->delta();
     X     x{ 0 };
     switch( alignment_ ) {
-      case align::left: x = 0; break;
-      case align::right: x = 0 + ( max_width - size.w ); break;
+      case align::left:
+        x = 0;
+        break;
+      case align::right:
+        x = 0 + ( max_width - size.w );
+        break;
       case align::center:
         x = 0 + ( max_width / 2 - size.w / 2 );
         break;
@@ -915,8 +927,12 @@ void HorizontalArrayView::recompute_child_positions() {
     auto  size = view->delta();
     Y     y{ 0 };
     switch( alignment_ ) {
-      case align::up: y = 0; break;
-      case align::down: y = 0 + ( max_height - size.h ); break;
+      case align::up:
+        y = 0;
+        break;
+      case align::down:
+        y = 0 + ( max_height - size.h );
+        break;
       case align::middle:
         y = 0 + ( max_height / 2 - size.h / 2 );
         break;
@@ -1078,14 +1094,16 @@ unique_ptr<View>& OptionSelectItemView::mutable_at( int idx ) {
   switch( idx ) {
     case 0:
       switch( active_ ) {
-        case e_option_active::active: return background_active_;
+        case e_option_active::active:
+          return background_active_;
         case e_option_active::inactive:
           return background_inactive_;
       }
       break;
     case 1:
       switch( active_ ) {
-        case e_option_active::active: return foreground_active_;
+        case e_option_active::active:
+          return foreground_active_;
         case e_option_active::inactive:
           return foreground_inactive_;
       }
@@ -1214,7 +1232,8 @@ bool OptionSelectView::on_key(
         update_selected();
       }
       return true;
-    default: break;
+    default:
+      break;
   }
   return false;
 }

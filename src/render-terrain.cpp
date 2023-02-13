@@ -19,6 +19,9 @@
 #include "tiles.hpp"
 #include "visibility.hpp"
 
+// config
+#include "config/tile-enum.rds.hpp"
+
 // ss
 #include "ss/terrain.hpp"
 

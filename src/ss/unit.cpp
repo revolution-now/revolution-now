@@ -19,6 +19,7 @@
 
 // config
 #include "config/nation.hpp"
+#include "config/tile-enum.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss

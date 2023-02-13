@@ -18,6 +18,9 @@
 // Revolution Now
 #include "wait.hpp"
 
+// config
+#include "config/tile-enum-fwd.hpp"
+
 // ss
 #include "ss/colony-id.hpp"
 #include "ss/dwelling-id.hpp"

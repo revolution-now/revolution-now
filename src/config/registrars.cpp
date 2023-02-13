@@ -38,11 +38,13 @@
 #include "config/savegame.rds.hpp"
 #include "config/sound.rds.hpp"
 #include "config/terrain.rds.hpp"
-#include "config/tile-enum.rds.hpp"
 #include "config/tile-sheet.rds.hpp"
 #include "config/turn.rds.hpp"
 #include "config/ui.rds.hpp"
 #include "config/unit-type.rds.hpp"
+
+// Other config files.
+#include "config/tile-enum.rds.hpp"
 
 #include "../test/rds/testing.rds.hpp"
 
