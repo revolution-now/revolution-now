@@ -29,8 +29,9 @@ namespace mock {
 namespace {
 
 using namespace std;
+
 using namespace ::mock::matchers;
-using namespace Catch::literals;
+using namespace ::Catch::literals;
 
 struct Foo {
   bool operator==( Foo const& ) const = default;
@@ -40,6 +41,10 @@ struct Foo {
 
   int        get_bar() const { return bar; }
   int const& get_baz() const { return baz; }
+};
+
+struct NonEqualityComparable {
+  bool operator==( NonEqualityComparable const& ) const = delete;
 };
 
 /****************************************************************
@@ -100,6 +105,9 @@ struct IPoint {
   virtual void set_foo( Foo const& foo ) = 0;
 
   virtual void take_bool( bool b ) const = 0;
+
+  virtual void takes_non_eq_comparable(
+      NonEqualityComparable const& nc ) const = 0;
 };
 
 /****************************************************************
@@ -158,6 +166,9 @@ struct MockPoint : IPoint {
   MOCK_METHOD( void, set_foo, (Foo const&), () );
 
   MOCK_METHOD( void, take_bool, (bool), ( const ) );
+
+  MOCK_METHOD( void, takes_non_eq_comparable,
+               (NonEqualityComparable const&), ( const ) );
 };
 
 /****************************************************************
@@ -236,6 +247,11 @@ struct PointUser {
   void set_foo( Foo const& foo ) { p_->set_foo( foo ); }
 
   void take_bool( bool b ) const { p_->take_bool( b ); }
+
+  void takes_non_eq_comparable(
+      NonEqualityComparable const& nc ) const {
+    p_->takes_non_eq_comparable( nc );
+  }
 
   double add_two( double d ) const {
     return d + p_->double_add( d + .1 );
@@ -546,6 +562,20 @@ TEST_CASE( "[mock] False" ) {
   mp.EXPECT__take_bool( False() );
   REQUIRE_UNEXPECTED_ARGS( user.take_bool( true ) );
   user.take_bool( false );
+}
+
+// This tests that we can match an argument that is not
+// equality-comparable so long as we use the Any matcher.
+TEST_CASE( "[mock] non-eq-comparable" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  // The commented line below would fail compilation.
+  // EXPECT__takes_non_eq_comparable( NonEqualityComparable{} );
+  mp.EXPECT__takes_non_eq_comparable( _ );
+  user.takes_non_eq_comparable( NonEqualityComparable{} );
+  mp.EXPECT__takes_non_eq_comparable( Any() );
+  user.takes_non_eq_comparable( NonEqualityComparable{} );
 }
 
 TEST_CASE( "[mock] Null" ) {
