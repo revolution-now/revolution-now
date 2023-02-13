@@ -677,7 +677,9 @@ struct LandViewPlane::Impl : public Plane {
         if( key_event.change != input::e_key_change::down )
           break;
         handled = e_input_handled::yes;
-        if( landview_mode_.holds<LandViewMode::none>() ) break;
+        // NOTE: we need to keep collecting inputs even when the
+        // land view state is "none" so that e.g. the user can
+        // buffer motion commands for a unit while it is sliding.
         if( !input::is_mod_key( key_event ) &&
             landview_mode_
                 .holds<LandViewMode::hidden_terrain>() ) {
