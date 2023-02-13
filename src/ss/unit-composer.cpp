@@ -52,6 +52,7 @@ unit_delta_commodity( UnitComposition const& comp,
   res.reserve( general_results.size() );
   for( UnitTransformationResult const& utr : general_results ) {
     if( utr.commodity_deltas.size() != 1 ) continue;
+    if( utr.modifier_deltas.size() > 1 ) continue;
     DCHECK( utr.commodity_deltas.size() == 1 );
     // quantity_delta is positive if the unit takes some.
     auto [comm, quantity_delta] = *utr.commodity_deltas.begin();
@@ -66,6 +67,14 @@ unit_delta_commodity( UnitComposition const& comp,
     // the one in question here. Now make sure that the quantity
     // change is in the direction that we're asking.
     if( ( quantity_delta > 0 ) == ( commodity.quantity > 0 ) )
+      continue;
+    // Make sure that the abs quantity added/removed is less than
+    // the abs quantity requested. In other words, if we ask to
+    // take 10, we could take 5, but not 20. If we give ten, then
+    // the unit could accept 5, but not 20. This is mainly for
+    // pioneers that can accept (or yield) a variable amount of
+    // tools but whose absolute value is limited.
+    if( abs( quantity_delta ) > abs( commodity.quantity ) )
       continue;
     res.push_back( UnitTransformationFromCommodityResult{
         .new_comp        = utr.new_comp,

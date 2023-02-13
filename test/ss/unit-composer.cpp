@@ -2077,6 +2077,16 @@ TEST_CASE( "[unit-composer] unit_receive_commodity" ) {
   REQUIRE( FmtVerticalJsonList{ res } ==
            FmtVerticalJsonList{ expected } );
 
+  // missionary + 50 horses.
+  comp     = UnitComposition( e_unit_type::missionary );
+  comm     = { .type = e_commodity::horses, .quantity = 50 };
+  res      = unit_receive_commodity( comp, comm );
+  expected = {};
+  sort_by_new_type( res );
+  sort_by_new_type( expected );
+  REQUIRE( FmtVerticalJsonList{ res } ==
+           FmtVerticalJsonList{ expected } );
+
   // indentured_servant + 100 horses.
   comp     = UnitComposition( e_unit_type::indentured_servant );
   comm     = { .type = e_commodity::horses, .quantity = 100 };
@@ -2635,21 +2645,6 @@ TEST_CASE( "[unit-composer] unit_lose_commodity" ) {
       UnitTransformationFromCommodityResult{
           .new_comp = UnitComposition::create(
                           /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::hardy_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add } },
-          .quantity_used = -20,
-      },
-      UnitTransformationFromCommodityResult{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
                               e_unit_type::hardy_colonist,
                               e_unit_type::hardy_colonist )
                               .value(),
@@ -2674,34 +2669,6 @@ TEST_CASE( "[unit-composer] unit_lose_commodity" ) {
   comm     = { .type = e_commodity::tools, .quantity = 20 };
   res      = unit_lose_commodity( comp, comm );
   expected = {
-      UnitTransformationFromCommodityResult{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::hardy_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add } },
-          .quantity_used = -80,
-      },
-      UnitTransformationFromCommodityResult{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::hardy_colonist,
-                              e_unit_type::hardy_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del } },
-          .quantity_used = -80,
-      },
       UnitTransformationFromCommodityResult{
           .new_comp =
               UnitComposition::create(
