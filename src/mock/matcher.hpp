@@ -68,7 +68,7 @@ namespace matchers::detail {
 template<typename T>
 struct Value : IMatcher<T> {
   template<typename U>
-  requires std::is_constructible_v<T, U> //
+  requires std::is_constructible_v<std::remove_cvref_t<T>, U>
   Value( U&& val ) : val_( std::forward<U>( val ) ) {}
 
   bool matches( T const& val ) const override {
@@ -121,7 +121,7 @@ struct MatcherWrapper {
   // This is for values that are not IMatcher derived.
   template<typename U>
   requires( !Matcher<std::remove_cvref_t<U>> &&
-            std::is_constructible_v<T, U> )
+            std::is_constructible_v<std::remove_cvref_t<T>, U> )
   MatcherWrapper( U&& val )
     : matcher_( std::make_unique<matchers::detail::Value<T>>(
           std::forward<U>( val ) ) ) {}
