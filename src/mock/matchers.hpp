@@ -25,7 +25,7 @@
 #include <regex>
 
 #define GENERIC_SINGLE_ARG_MATCHER( name )             \
-  template<MatchableValue T>                           \
+  template<typename T>                                 \
   auto name( T&& arg ) {                               \
     return detail::name##Impl<std::remove_cvref_t<T>>( \
         std::forward<T>( arg ) );                      \
@@ -40,7 +40,7 @@
   }
 
 #define GENERIC_TUPLE_ARG_MATCHER( name )                      \
-  template<MatchableValue... M>                                \
+  template<typename... M>                                      \
   auto name( M&&... to_match ) {                               \
     using child_t = std::tuple<std::remove_reference_t<M>...>; \
     return detail::name##Impl<child_t>(                        \
@@ -279,7 +279,7 @@ MATCHER_DEFINE_NODE( TupleElement, held, actual ) {
                                     std::get<N>( actual ) );
 };
 
-template<size_t N, MatchableValue M>
+template<size_t N, typename M>
 auto TupleElement( M&& to_match ) {
   using child_t = std::pair<std::integral_constant<size_t, N>,
                             std::remove_reference_t<M>>;
@@ -290,7 +290,7 @@ auto TupleElement( M&& to_match ) {
 /****************************************************************
 ** Key
 *****************************************************************/
-template<MatchableValue M>
+template<typename M>
 auto Key( M&& to_match ) {
   using child_t = std::pair<std::integral_constant<size_t, 0>,
                             std::remove_reference_t<M>>;
@@ -308,7 +308,7 @@ MATCHER_DEFINE_NODE( Field, held, actual ) {
                                     actual.*( held.first ) );
 };
 
-template<typename MemberVarT, MatchableValue M>
+template<typename MemberVarT, typename M>
 requires std::is_member_object_pointer_v<MemberVarT>
 auto Field( MemberVarT&& member_ptr, M&& to_match ) {
   using child_t = std::pair<std::remove_reference_t<MemberVarT>,
@@ -327,7 +327,7 @@ MATCHER_DEFINE_NODE( Property, held, actual ) {
       held.second, ( actual.*( held.first ) )() );
 };
 
-template<typename MemberFnT, MatchableValue M>
+template<typename MemberFnT, typename M>
 requires std::is_member_function_pointer_v<MemberFnT>
 auto Property( MemberFnT&& member_ptr, M&& to_match ) {
   using child_t = std::pair<std::remove_reference_t<MemberFnT>,

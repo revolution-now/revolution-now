@@ -23,7 +23,7 @@
   using Base::converting_operator_greater
 
 #define MATCHER_NODE_STRUCT( name ) \
-  template<MatchableValue T>        \
+  template<typename T>              \
   struct name##Impl final : detail::Node<name##Impl<T>, T>
 
 #define MATCHER_EQUAL_HOOK( lhs, rhs ) \
@@ -39,7 +39,7 @@
     static bool equal( held_type const& lhs, U const& rhs ); \
   };                                                         \
   }                                                          \
-  template<MatchableValue T>                                 \
+  template<typename T>                                       \
   template<typename U>                                       \
   bool detail::name##Impl<T>::equal( held_type const& lhs,   \
                                      U const&         rhs )
@@ -97,7 +97,7 @@ struct NodeBase {
 
 // This is the common behavior/interface for a node in the struc-
 // ture that describes a matching operation.
-template<typename Derived, MatchableValue T>
+template<typename Derived, typename T>
 struct Node : public NodeBase {
   using held_type = T;
 

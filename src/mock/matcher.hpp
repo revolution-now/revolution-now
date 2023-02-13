@@ -25,9 +25,6 @@ namespace mock {
 ** Matcher Concepts
 *****************************************************************/
 template<typename T>
-concept MatchableValue = std::equality_comparable<T>;
-
-template<MatchableValue T>
 struct IMatcher;
 
 template<typename T>
@@ -38,7 +35,7 @@ concept Matcher =
 ** IMatcher
 *****************************************************************/
 // This is the interface for matchers.
-template<MatchableValue T>
+template<typename T>
 struct IMatcher {
   using matched_type = T;
 
@@ -68,13 +65,18 @@ namespace matchers::detail {
 // MatcherWrapper already defined, as normal matchers do. This
 // will allow passing e.g. integer literals into the expected
 // mock call.
-template<MatchableValue T>
+template<typename T>
 struct Value : IMatcher<T> {
   template<typename U>
   requires std::is_constructible_v<T, U> //
   Value( U&& val ) : val_( std::forward<U>( val ) ) {}
 
   bool matches( T const& val ) const override {
+    static_assert(
+        std::equality_comparable<std::remove_cvref_t<T>>,
+        "One of the argument types of this mocked function is "
+        "not equality comparable; either make it so, or use the "
+        "Any (_) matcher for that argument." );
     return val == val_;
   }
 
@@ -114,12 +116,11 @@ struct Value : IMatcher<T> {
 // handle subtle type type conversions between desired matchers
 // and actual matchers, e.g., when we need a matcher for `un-
 // signed const int*` but we're provided one for `int const*`.
-template<MatchableValue T>
+template<typename T>
 struct MatcherWrapper {
   // This is for values that are not IMatcher derived.
   template<typename U>
-  requires( MatchableValue<std::remove_cvref_t<U>> &&
-            !Matcher<std::remove_cvref_t<U>> &&
+  requires( !Matcher<std::remove_cvref_t<U>> &&
             std::is_constructible_v<T, U> )
   MatcherWrapper( U&& val )
     : matcher_( std::make_unique<matchers::detail::Value<T>>(
