@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "co-combinator.hpp"
+#include "colony-view.hpp"
 #include "compositor.hpp"
 #include "gui.hpp" // FIXME
 #include "icombat.hpp"
@@ -648,7 +649,9 @@ wait<> run_map_editor_standalone( Planes& planes ) {
   RealGui        gui( window_plane );
   Rand           rand;
   TrappingCombat combat;
-  TS ts( map_updater, st, gui, rand, combat, ss.root );
+  ColonyViewer   colony_viewer( planes, ss );
+  TS ts( map_updater, st, gui, rand, combat, colony_viewer,
+         ss.root );
   co_await run_map_editor( planes, ss, ts );
 }
 

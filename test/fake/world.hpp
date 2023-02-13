@@ -55,6 +55,7 @@ struct LandViewState;
 struct MockIGui;
 struct MockIRand;
 struct MockICombat;
+struct MockIColonyViewer;
 struct NativeUnit;
 struct NativesState;
 struct Planes;
@@ -303,12 +304,13 @@ struct World {
 
   // These will initialize their respective objects the first
   // time they are called, so they should always be used.
-  Planes&      planes();
-  lua::state&  lua();
-  MockIGui&    gui();
-  MockIRand&   rand();
-  MockICombat& combat();
-  TS&          ts();
+  Planes&            planes();
+  lua::state&        lua();
+  MockIGui&          gui();
+  MockIRand&         rand();
+  MockICombat&       combat();
+  MockIColonyViewer& colony_viewer();
+  TS&                ts();
 
   IMapUpdater& map_updater() { return *map_updater_; }
 
@@ -338,7 +340,9 @@ struct World {
   std::unique_ptr<MockIGui>    uninitialized_gui_;
   std::unique_ptr<MockIRand>   uninitialized_rand_;
   std::unique_ptr<MockICombat> uninitialized_combat_;
-  std::unique_ptr<TS>          uninitialized_ts_;
+  std::unique_ptr<MockIColonyViewer>
+                      uninitialized_colony_viewer_;
+  std::unique_ptr<TS> uninitialized_ts_;
 };
 
 } // namespace rn::testing

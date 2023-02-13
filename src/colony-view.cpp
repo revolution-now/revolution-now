@@ -29,6 +29,7 @@
 #include "window.hpp"
 
 // ss
+#include "ss/colonies.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
@@ -130,7 +131,7 @@ void try_decrease_commodity( SS& ss, Colony& colony,
 /****************************************************************
 ** Colony Plane
 *****************************************************************/
-struct ColonyPlane::Impl : public Plane {
+struct ColonyPlane : public Plane {
   Planes& planes_;
   SS&     ss_;
   TS&     ts_;
@@ -141,7 +142,7 @@ struct ColonyPlane::Impl : public Plane {
   co::stream<input::event_t>        input_      = {};
   maybe<DragState<ColViewObject_t>> drag_state_ = {};
 
-  Impl( Planes& planes, SS& ss, TS& ts, Colony& colony )
+  ColonyPlane( Planes& planes, SS& ss, TS& ts, Colony& colony )
     : planes_( planes ),
       ss_( ss ),
       ts_( ts ),
@@ -326,13 +327,16 @@ struct ColonyPlane::Impl : public Plane {
   Rect canvas_;
 };
 
-namespace {
+/****************************************************************
+** ColonyViewer
+*****************************************************************/
+ColonyViewer::ColonyViewer( Planes& planes, SS& ss )
+  : planes_( planes ), ss_( ss ) {}
 
-wait<> show_colony_view_impl( Planes& planes, SS& ss, TS& ts_old,
-                              Colony& colony ) {
-  PlaneGroup const& old_group = planes.back();
-  auto              popper    = planes.new_group();
-  PlaneGroup&       new_group = planes.back();
+wait<> ColonyViewer::show_impl( TS& ts_old, Colony& colony ) {
+  PlaneGroup const& old_group = planes_.back();
+  auto              popper    = planes_.new_group();
+  PlaneGroup&       new_group = planes_.back();
 
   new_group.omni    = old_group.omni;
   new_group.console = old_group.console;
@@ -341,48 +345,28 @@ wait<> show_colony_view_impl( Planes& planes, SS& ss, TS& ts_old,
   new_group.window = &window_plane;
 
   RealGui gui( window_plane );
+  TS      ts = ts_old.with_gui( gui );
 
-  TS ts( ts_old.map_updater, ts_old.lua, gui, ts_old.rand,
-         ts_old.combat, ts_old.saved );
-
-  ColonyPlane colony_plane( planes, ss, ts, colony );
+  ColonyPlane colony_plane( planes_, ss_, ts, colony );
   new_group.colony = &colony_plane;
 
   lg.info( "viewing colony '{}'.", colony.name );
-  co_await colony_plane.show_colony_view();
+  co_await colony_plane.run_colview();
   lg.info( "leaving colony view." );
 }
 
-} // namespace
-
-/****************************************************************
-** ColonyPlane
-*****************************************************************/
-Plane& ColonyPlane::impl() { return *impl_; }
-
-ColonyPlane::~ColonyPlane() = default;
-
-ColonyPlane::ColonyPlane( Planes& planes, SS& ss, TS& ts,
-                          Colony& colony )
-  : impl_( new Impl( planes, ss, ts, colony ) ) {}
-
-wait<> ColonyPlane::show_colony_view() const {
-  co_await impl_->run_colview();
-}
-
-/****************************************************************
-** API
-*****************************************************************/
-wait<base::NoDiscard<e_colony_abandoned>> show_colony_view(
-    Planes& planes, SS& ss, TS& ts, Player& player,
-    Colony& colony ) {
+wait<e_colony_abandoned> ColonyViewer::show(
+    TS& ts, ColonyId colony_id ) {
+  Colony& colony = ss_.colonies.colony_for( colony_id );
+  Player& player =
+      player_for_nation_or_die( ss_.players, colony.nation );
   try {
-    co_await show_colony_view_impl( planes, ss, ts, colony );
+    co_await show_impl( ts, colony );
     co_return e_colony_abandoned::no;
   } catch( colony_abandon_interrupt const& ) {}
 
   // We are abandoned.
-  co_await run_colony_destruction( planes, ss, ts, player,
+  co_await run_colony_destruction( planes_, ss_, ts, player,
                                    colony,
                                    /*msg=*/nothing );
   co_return e_colony_abandoned::yes;

@@ -58,12 +58,14 @@ struct TS::LuaRefSetAndRestore {
 ** TS
 *****************************************************************/
 TS::TS( IMapUpdater& map_updater_, lua::state& lua_, IGui& gui_,
-        IRand& rand_, ICombat& combat_, RootState& saved )
+        IRand& rand_, ICombat& combat_,
+        IColonyViewer& colony_viewer_, RootState& saved )
   : map_updater( map_updater_ ),
     lua( lua_ ),
     gui( gui_ ),
     rand( rand_ ),
     combat( combat_ ),
+    colony_viewer( colony_viewer_ ),
     saved( saved ),
     pimpl_( new LuaRefSetAndRestore( lua, *this ) ) {}
 
@@ -74,6 +76,11 @@ TS::TS( TS&& ) = default;
 void to_str( TS const& o, string& out, base::ADL_t ) {
   out += "TS@";
   out += fmt::format( "{}", static_cast<void const*>( &o ) );
+}
+
+TS TS::with_gui( IGui& new_gui ) {
+  return TS( map_updater, lua, new_gui, rand, combat,
+             colony_viewer, saved );
 }
 
 /****************************************************************

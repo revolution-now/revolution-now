@@ -1,0 +1,18 @@
+# ===============================================================
+# colony-view.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-02-13.
+#
+# Description: Rds definitions for the colony-view module.
+#
+# ===============================================================
+namespace "rn"
+
+enum.e_colony_abandoned {
+  no,
+  yes,
+
+  _features { nodiscard }
+}

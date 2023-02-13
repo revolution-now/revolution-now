@@ -97,7 +97,6 @@ wait<OrdersHandlerRunResult> OrdersHandler::run() {
   // Orders can be carried out.
   co_await animate();
   co_await perform();
-  co_await post();
 
   res.units_to_prioritize = units_to_prioritize();
   co_return res;

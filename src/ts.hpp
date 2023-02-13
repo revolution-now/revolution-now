@@ -24,6 +24,7 @@ struct state;
 
 namespace rn {
 
+struct IColonyViewer;
 struct ICombat;
 struct IGui;
 struct IMapUpdater;
@@ -36,22 +37,27 @@ struct RootState;
 *****************************************************************/
 struct TS {
   TS( IMapUpdater& map_updater_, lua::state& lua_, IGui& gui_,
-      IRand& rand_, ICombat& combat, RootState& saved );
+      IRand& rand_, ICombat& combat,
+      IColonyViewer& colony_viewer, RootState& saved );
 
   ~TS();
 
   TS( TS&& );
 
-  IMapUpdater& map_updater;
-  lua::state&  lua;
-  IGui&        gui;
-  IRand&       rand;
-  ICombat&     combat;
+  IMapUpdater&   map_updater;
+  lua::state&    lua;
+  IGui&          gui;
+  IRand&         rand;
+  ICombat&       combat;
+  IColonyViewer& colony_viewer;
   // This refers to a serialized state data structure that holds
   // the game state as it was when the game was most recently
   // saved or loaded. It is used to determine if the game needs
   // to be saved when the player tries to exit.
   RootState& saved;
+
+  // Builder style.
+  TS with_gui( IGui& new_gui );
 
  private:
   struct LuaRefSetAndRestore;

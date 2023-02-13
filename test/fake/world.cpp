@@ -11,6 +11,7 @@
 #include "world.hpp"
 
 // Testing
+#include "test/mocks/icolony-viewer.hpp"
 #include "test/mocks/icombat.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
@@ -130,6 +131,13 @@ MockICombat& World::combat() {
   return *uninitialized_combat_;
 }
 
+MockIColonyViewer& World::colony_viewer() {
+  if( uninitialized_colony_viewer_ == nullptr )
+    uninitialized_colony_viewer_ =
+        make_unique<MockIColonyViewer>();
+  return *uninitialized_colony_viewer_;
+}
+
 namespace {
 
 // We need this because we can't (yet?) do aggregate initializa-
@@ -140,7 +148,7 @@ namespace {
 TS* make_ts( World& world ) {
   return new TS( world.map_updater(), world.lua(), world.gui(),
                  world.rand(), world.combat(),
-                 world.ss_saved().root );
+                 world.colony_viewer(), world.ss_saved().root );
 }
 
 }

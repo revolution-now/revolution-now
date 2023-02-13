@@ -121,17 +121,12 @@ struct BuildHandler : public OrdersHandler {
         ts_, player_, e_woodcut::building_first_colony );
     colony_id =
         found_colony( ss_, ts_, player_, unit_id, *colony_name );
-    co_return;
-  }
-
-  wait<> post() const override {
     e_colony_abandoned const abandoned =
-        co_await show_colony_view(
-            planes_, ss_, ts_, player_,
-            ss_.colonies.colony_for( colony_id ) );
+        co_await ts_.colony_viewer.show( ts_, colony_id );
     if( abandoned == e_colony_abandoned::yes )
       // Nothing special to do here.
       co_return;
+    co_return;
   }
 
   Planes& planes_;

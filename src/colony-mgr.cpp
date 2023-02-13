@@ -814,8 +814,8 @@ wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
     bool zoom_to_colony = co_await present_colony_updates(
         ts.gui, colony, ev.notifications );
     if( zoom_to_colony ) {
-      e_colony_abandoned abandoned = co_await show_colony_view(
-          planes, ss, ts, player, colony );
+      e_colony_abandoned abandoned =
+          co_await ts.colony_viewer.show( ts, colony.id );
       if( abandoned == e_colony_abandoned::yes ) continue;
     }
   }

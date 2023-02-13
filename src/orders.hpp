@@ -73,11 +73,6 @@ struct OrdersHandler {
   // Perform the orders (i.e., make changes to game state).
   virtual wait<> perform() = 0;
 
-  // Perform any actions that should be done after affecting the
-  // orders. For example, after founding a colony, this will open
-  // the colony view.
-  virtual wait<> post() const { return make_wait<>(); }
-
  protected:
   virtual std::vector<UnitId> units_to_prioritize() const {
     return {};

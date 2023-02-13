@@ -55,7 +55,6 @@ struct MenuPlane;
 struct PanelPlane;
 struct ILandViewPlane;
 struct MapEditPlane;
-struct ColonyPlane;
 struct HarborPlane;
 
 /****************************************************************
@@ -72,8 +71,11 @@ struct PlaneGroup {
   PanelPlane*     panel;
   ILandViewPlane* land_view;
   MapEditPlane*   map_edit;
-  ColonyPlane*    colony;
-  HarborPlane*    harbor;
+  // The colony plane is a real plane but we don't interact with
+  // it directly, hence it is just a Plane* here. We show the
+  // colony plane by way of the IColonyViewer interface.
+  Plane*       colony;
+  HarborPlane* harbor;
 };
 
 maybe<Plane&> plane_pointer( PlaneGroup const& group,
@@ -117,7 +119,7 @@ struct Planes {
   PLANE_ACCESSOR_DECL( PanelPlane, panel );
   PLANE_ACCESSOR_DECL( ILandViewPlane, land_view );
   PLANE_ACCESSOR_DECL( MapEditPlane, map_edit );
-  PLANE_ACCESSOR_DECL( ColonyPlane, colony );
+  PLANE_ACCESSOR_DECL( Plane, colony );
   PLANE_ACCESSOR_DECL( HarborPlane, harbor );
 
   // This will call the advance_state method on each plane to up-

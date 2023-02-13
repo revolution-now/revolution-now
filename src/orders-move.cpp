@@ -46,6 +46,7 @@
 
 // base
 #include "base/to-str-ext-std.hpp"
+#include "base/vocab.hpp"
 
 using namespace std;
 
@@ -312,14 +313,6 @@ struct TravelHandler : public OrdersHandler {
   }
 
   wait<> perform() override;
-
-  wait<> post() const override {
-    // !! Note that the unit theoretically may not exist here if
-    // they were destroyed as part of this action, e.g. lost in a
-    // lost city rumor.
-    if( !ss_.units.exists( unit_id ) ) co_return;
-    co_return;
-  }
 
   vector<UnitId> units_to_prioritize() const override {
     return prioritize;
@@ -899,9 +892,7 @@ wait<> TravelHandler::perform() {
       // TODO: consider prioritizing units that are brought in by
       // the ship.
       e_colony_abandoned const abandoned =
-          co_await show_colony_view(
-              planes_, ss_, ts_, player_,
-              ss_.colonies.colony_for( colony_id ) );
+          co_await ts_.colony_viewer.show( ts_, colony_id );
       if( abandoned == e_colony_abandoned::yes )
         // Nothing really special to do here.
         break;
@@ -1132,14 +1123,6 @@ struct NativeDwellingHandler : public OrdersHandler {
     }
     // !! Note that the unit may no longer exist here e.g. if a
     // scout was used a target practice or scout lost an attack.
-  }
-
-  wait<> post() const override {
-    // !! Note that the unit being moved theoretically may not
-    // exist here if it was destroyed as part of this action,
-    // e.g. losing losing a battle or being "used for target
-    // practice."
-    if( !ss_.units.exists( unit_id_ ) ) co_return;
   }
 
   Planes& planes_;

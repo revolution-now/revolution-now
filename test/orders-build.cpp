@@ -8,6 +8,7 @@
 * Description: Unit tests for the src/orders-build.* module.
 *
 *****************************************************************/
+#include "test/mocking.hpp"
 #include "test/testing.hpp"
 
 // Under test.
@@ -15,7 +16,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
-#include "test/mocking.hpp"
+#include "test/mocks/icolony-viewer.hpp"
 #include "test/mocks/igui.hpp"
 
 // ss
@@ -101,6 +102,9 @@ TEST_CASE( "[orders-build] build colony" ) {
   REQUIRE( confirm() == true );
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 
+  W.colony_viewer()
+      .EXPECT__show( _, ColonyId{ 1 } )
+      .returns( e_colony_abandoned::no );
   perform();
   REQUIRE( unit.orders() == e_unit_orders::none );
   REQUIRE_FALSE( unit.mv_pts_exhausted() );

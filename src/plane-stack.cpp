@@ -97,7 +97,7 @@ maybe<Plane&> plane_pointer( PlaneGroup const& group,
     case e_plane::colony: {
       auto* p = group.colony;
       if( p == nullptr ) return nothing;
-      return p->impl();
+      return *p;
     }
     case e_plane::harbor: {
       auto* p = group.harbor;
@@ -130,7 +130,7 @@ PLANE_ACCESSOR_IMPL( MenuPlane, menu );
 PLANE_ACCESSOR_IMPL( PanelPlane, panel );
 PLANE_ACCESSOR_IMPL( ILandViewPlane, land_view );
 PLANE_ACCESSOR_IMPL( MapEditPlane, map_edit );
-PLANE_ACCESSOR_IMPL( ColonyPlane, colony );
+PLANE_ACCESSOR_IMPL( Plane, colony );
 PLANE_ACCESSOR_IMPL( HarborPlane, harbor );
 
 Planes::popper Planes::new_group() {
@@ -192,8 +192,10 @@ e_input_handled Planes::send_input(
     // Normal event, so send it out using the usual protocol.
     for( Plane* plane : reversed ) {
       switch( plane->input( event ) ) {
-        case e_input_handled::yes: return e_input_handled::yes;
-        case e_input_handled::no: break;
+        case e_input_handled::yes:
+          return e_input_handled::yes;
+        case e_input_handled::no:
+          break;
       }
     }
     return e_input_handled::no;
@@ -277,7 +279,8 @@ e_input_handled Planes::send_input(
       switch( accept ) {
         // If the plane doesn't want to handle it then move on
         // to ask the next one.
-        case Plane::e_accept_drag::no: continue;
+        case Plane::e_accept_drag::no:
+          continue;
         case Plane::e_accept_drag::motion: {
           // In this case the plane says that it wants to
           // receive the events, but just as normal mouse

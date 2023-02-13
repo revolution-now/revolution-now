@@ -12,51 +12,55 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "colony-id.hpp"
-#include "wait.hpp"
+// rds
+#include "colony-view.rds.hpp"
 
-// base
-#include "base/vocab.hpp"
+// ss
+#include "ss/colony-id.hpp"
+
+// Revolution Now
+#include "wait.hpp"
 
 namespace rn {
 
 struct Colony;
-struct Plane;
 struct Planes;
-struct Player;
 struct SS;
 struct TS;
 
 /****************************************************************
-** ColonyPlane
+** IColonyViewer
 *****************************************************************/
-struct ColonyPlane {
-  ColonyPlane( Planes& planes, SS& ss, TS& ts, Colony& colony );
+struct IColonyViewer {
+  virtual ~IColonyViewer() = default;
 
-  ~ColonyPlane();
-
-  wait<> show_colony_view() const;
-
- private:
-  struct Impl;
-  std::unique_ptr<Impl> impl_;
-
- public:
-  Plane& impl();
+  // Returns whether the colony was abandoned by the player while
+  // open. The caller needs to know about that so that it can
+  // take the appropriate measures to not access it after that,
+  // since it will no longer exist.
+  virtual wait<e_colony_abandoned> show(
+      TS& ts, ColonyId colony_id ) = 0;
 };
 
 /****************************************************************
-** API
+** ColonyViewer
 *****************************************************************/
-enum class e_colony_abandoned { no, yes };
+struct ColonyViewer : IColonyViewer {
+  // We don't take TS here because that would be a circular de-
+  // pendency, since the IColonyViewer is part of TS. Instead, we
+  // take it explicitly in each method invidually where it is
+  // needed.
+  ColonyViewer( Planes& planes, SS& ss );
 
-// Returns whether the colony was abandoned by the player while
-// open. The caller needs to know about that so that it can take
-// the appropriate measures to not access it after that, since it
-// will no longer exist.
-wait<base::NoDiscard<e_colony_abandoned>> show_colony_view(
-    Planes& planes, SS& ss, TS& ts, Player& player,
-    Colony& colony );
+  // Implement IColonyViewer.
+  wait<e_colony_abandoned> show( TS&      ts,
+                                 ColonyId colony_id ) override;
+
+ private:
+  wait<> show_impl( TS& ts, Colony& colony );
+
+  Planes& planes_;
+  SS&     ss_;
+};
 
 } // namespace rn
