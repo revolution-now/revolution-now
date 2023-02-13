@@ -107,6 +107,9 @@ struct ND Unit {
   // forfeight_mv_points) to mark the unit as having finished
   // their turn.
   void consume_mv_points( MovementPoints points );
+  // Will be true at the start of a turn or when a unit has not
+  // yet moved.
+  bool has_full_mv_points() const;
 
   /******************** Roads / Plowing ************************/
 

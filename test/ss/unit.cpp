@@ -25,7 +25,7 @@ namespace {
 
 using namespace std;
 
-TEST_CASE( "[test/unit] consume_20_tools pioneer" ) {
+TEST_CASE( "[unit] consume_20_tools pioneer" ) {
   UnitComposition comp = e_unit_type::pioneer;
   Player          player;
   player.nation = e_nation::english;
@@ -56,7 +56,7 @@ TEST_CASE( "[test/unit] consume_20_tools pioneer" ) {
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 0 );
 }
 
-TEST_CASE( "[test/unit] consume_20_tools hardy_pioneer" ) {
+TEST_CASE( "[unit] consume_20_tools hardy_pioneer" ) {
   UnitComposition comp = e_unit_type::hardy_pioneer;
   Player          player;
   player.nation = e_nation::english;
@@ -85,6 +85,21 @@ TEST_CASE( "[test/unit] consume_20_tools hardy_pioneer" ) {
   unit.consume_20_tools( player );
   REQUIRE( unit.type() == e_unit_type::hardy_colonist );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 0 );
+}
+
+TEST_CASE( "[unit] has_full_mv_points" ) {
+  Player player;
+  player.nation = e_nation::english;
+  Unit unit     = create_unregistered_unit(
+      player, e_unit_type::missionary );
+
+  REQUIRE( unit.has_full_mv_points() );
+
+  unit.consume_mv_points( MovementPoints::_1_3() );
+  REQUIRE_FALSE( unit.has_full_mv_points() );
+
+  unit.forfeight_mv_points();
+  REQUIRE_FALSE( unit.has_full_mv_points() );
 }
 
 } // namespace

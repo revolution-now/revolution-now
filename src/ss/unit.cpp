@@ -99,6 +99,10 @@ void Unit::consume_mv_points( MovementPoints points ) {
   CHECK_HAS_VALUE( o_.validate() );
 }
 
+bool Unit::has_full_mv_points() const {
+  return o_.mv_pts == desc().base_movement_points;
+}
+
 void Unit::set_turns_worked( int turns ) {
   CHECK( type() == e_unit_type::pioneer ||
          type() == e_unit_type::hardy_pioneer );
