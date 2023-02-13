@@ -642,8 +642,10 @@ class CargoView : public ui::View,
         continue;
       CargoHold const& hold = unit->cargo();
       switch( auto& v = hold[idx]; v.to_enum() ) {
-        case CargoSlot::e::empty: break;
-        case CargoSlot::e::overflow: break;
+        case CargoSlot::e::empty:
+          break;
+        case CargoSlot::e::overflow:
+          break;
         case CargoSlot::e::cargo: {
           auto& cargo = v.get<CargoSlot::cargo>();
           overload_visit(
@@ -1841,7 +1843,8 @@ void colview_drag_n_drop_draw(
   // Render any indicators on top of it.
   switch( state.indicator ) {
     using e = e_drag_status_indicator;
-    case e::none: break;
+    case e::none:
+      break;
     case e::bad: {
       rr::Typer typer =
           renderer.typer( sprite_upper_left, gfx::pixel::red() );
