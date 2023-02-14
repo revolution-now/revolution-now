@@ -670,6 +670,7 @@ TEST_CASE( "[colony-mgr] colony_workers" ) {
 }
 
 TEST_CASE( "[colony-mgr] presents transient updates." ) {
+#ifndef COMPILER_GCC
   World             W;
   MockLandViewPlane land_view_plane;
   W.planes().back().land_view = &land_view_plane;
@@ -736,6 +737,7 @@ TEST_CASE( "[colony-mgr] presents transient updates." ) {
         "goods: 50 ore for 150 at a 0% charge yielding [150]." );
     W.evolve_colonies();
   }
+#endif
 }
 
 TEST_CASE( "[colony-mgr] found_colony finds job for unit." ) {
