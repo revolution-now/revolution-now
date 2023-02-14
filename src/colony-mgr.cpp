@@ -325,13 +325,9 @@ NotificationMessage generate_colony_notification_message(
 }
 
 // Returns true if the user wants to open the colony view.
-//
-// TODO: this should probably be moved into a separate module
-// when it starts to get large. Also, it will likely need access
-// to config files to store the messages.
 wait<bool> present_blocking_colony_update(
-    IGui& gui, Colony const& colony,
-    NotificationMessage const& msg, bool ask_to_zoom ) {
+    IGui& gui, NotificationMessage const& msg,
+    bool ask_to_zoom ) {
   CHECK( !msg.transient );
   if( ask_to_zoom ) {
     vector<ChoiceConfigOption> choices{
@@ -358,7 +354,7 @@ wait<bool> present_blocking_colony_updates(
   bool should_zoom = false;
   for( NotificationMessage const& message : messages )
     should_zoom |= co_await present_blocking_colony_update(
-        gui, colony, message, !should_zoom );
+        gui, message, !should_zoom );
   co_return should_zoom;
 }
 
