@@ -13,4 +13,5 @@ return {
   'combat',
   'combat-modifiers',
   'config/combat',
+  'connectivity',
 }
