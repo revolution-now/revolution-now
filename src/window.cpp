@@ -12,6 +12,8 @@
 
 // Revolution Now
 #include "auto-pad.hpp"
+#include "co-combinator.hpp"
+#include "co-time.hpp"
 #include "co-wait.hpp"
 #include "compositor.hpp"
 #include "error.hpp"
@@ -20,6 +22,7 @@
 #include "logger.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
+#include "text.hpp"
 #include "tiles.hpp"
 #include "ui.hpp"
 #include "unit-mgr.hpp"
@@ -41,6 +44,7 @@
 #include "base/function-ref.hpp"
 #include "base/lambda.hpp"
 #include "base/range-lite.hpp"
+#include "base/scope-exit.hpp"
 
 // c++ standard library
 #include <algorithm>
@@ -163,7 +167,11 @@ struct WindowManager {
     return windows_.size();
   }
 
+  auto& transient_messages() { return transient_messages_; }
+
  private:
+  wait<> process_transient_messages();
+
   // Gets the window with focus, throws if no windows.
   Window& focused();
 
@@ -180,8 +188,24 @@ struct WindowManager {
   // Each time a new window is created this is incremented, and
   // it is never decremented.
   int num_windows_created_ = 0;
+
+  struct TransientMessage {
+    string         msg;
+    double         alpha       = 1.0;
+    TextReflowInfo reflow_info = {};
+    // This is stored here because it is expensive to compute; we
+    // don't want to do it every frame.
+    Delta rendered_size = {};
+  };
+
+  co::stream<string>      transient_messages_ = {};
+  maybe<TransientMessage> active_transient_message_;
+
+  // This is a background coroutine that runs as long as this ob-
+  // ject is alive and displays the transient windows.
+  wait<> transient_message_processor_ =
+      process_transient_messages();
 };
-NOTHROW_MOVE( WindowManager );
 
 /****************************************************************
 ** WindowPlane::Impl
@@ -341,6 +365,35 @@ Coord Window::view_pos( Coord origin ) const {
 void WindowManager::draw_layout( rr::Renderer& renderer ) const {
   for( PositionedWindow const& pw : active_windows() )
     pw.win->draw( renderer, pw.pos );
+
+  if( active_transient_message_.has_value() ) {
+    string_view const msg = active_transient_message_->msg;
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
+                             active_transient_message_->alpha );
+    UNWRAP_CHECK( area, compositor::section(
+                            compositor::e_section::viewport ) );
+    Delta const rendered_size =
+        active_transient_message_->rendered_size;
+    Coord const start = centered( rendered_size, area )
+                            .with_y( area.top_edge() ) +
+                        Delta{ .h = 5 };
+    Rect const background = Rect::from( start, rendered_size )
+                                .with_border_added( 2 );
+    rr::Painter painter = renderer.painter();
+    painter.draw_solid_rect( background, gfx::pixel::wood() );
+    painter.draw_empty_rect( background,
+                             rr::Painter::e_border_mode::outside,
+                             gfx::pixel::black() );
+    TextMarkupInfo const markup_info{
+        .normal    = gfx::pixel::banana(),
+        .highlight = gfx::pixel::white(),
+        .shadow    = gfx::pixel::black(),
+    };
+    TextReflowInfo const& reflow_info =
+        active_transient_message_->reflow_info;
+    render_text_markup_reflow( renderer, start, e_font::habbo_15,
+                               markup_info, reflow_info, msg );
+  }
 }
 
 maybe<Window&> WindowManager::window_for_cursor_pos(
@@ -477,6 +530,24 @@ void WindowManager::on_drag( input::mod_keys const& /*unused*/,
 Window& WindowManager::focused() {
   CHECK( num_windows() > 0 );
   return *active_windows().back().win;
+}
+
+wait<> WindowManager::process_transient_messages() {
+  while( true ) {
+    string msg = co_await transient_messages_.next();
+    TextReflowInfo const reflow_info{ .max_cols = 50 };
+    active_transient_message_ = {
+        .msg         = msg,
+        .alpha       = 1.0,
+        .reflow_info = reflow_info,
+        .rendered_size =
+            rendered_text_size( reflow_info, msg ) };
+    SCOPE_EXIT( active_transient_message_.reset() );
+    while( active_transient_message_->alpha > 0 ) {
+      co_await 100ms;
+      active_transient_message_->alpha -= .05;
+    }
+  }
 }
 
 /****************************************************************
@@ -744,6 +815,10 @@ wait<> WindowPlane::message_box( string_view msg ) {
       ui::PlainMessageBoxView::create( string( msg ), p ),
       /*auto_pad=*/true );
   co_await p.wait();
+}
+
+void WindowPlane::transient_message_box( string_view msg ) {
+  impl_->wm.transient_messages().send( string( msg ) );
 }
 
 wait<maybe<int>> WindowPlane::select_box(

@@ -132,13 +132,7 @@ struct WindowPlane {
 
   wait<> message_box( std::string_view msg );
 
-  template<typename First, typename... Rest>
-  wait<> message_box( std::string_view msg, First&& first,
-                      Rest&&... rest ) {
-    return message_box( fmt::format(
-        fmt::runtime( msg ), std::forward<First>( first ),
-        std::forward<Rest>( rest )... ) );
-  }
+  void transient_message_box( std::string_view msg );
 
   // The result will be nothing iff required==no and the user
   // cancels (e.g. but hitting escape or clicking outside the
