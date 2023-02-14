@@ -409,6 +409,13 @@ evolve_group_model_prices( SSConst const& ss, Player& player ) {
   return res;
 }
 
+CommodityPrice make_commodity_price( e_commodity commodity,
+                                     int         bid ) {
+  int const ask = bid + config_market.price_behavior[commodity]
+                            .price_limits.bid_ask_spread;
+  return CommodityPrice{ .bid = bid, .ask = ask };
+}
+
 } // namespace
 
 /****************************************************************
@@ -433,9 +440,7 @@ CommodityPrice market_price( Player const& player,
                              e_commodity   commodity ) {
   int const bid =
       player.old_world.market.commodities[commodity].bid_price;
-  int const ask = bid + config_market.price_behavior[commodity]
-                            .price_limits.bid_ask_spread;
-  return CommodityPrice{ .bid = bid, .ask = ask };
+  return make_commodity_price( commodity, bid );
 }
 
 int ask_from_bid( e_commodity type, int bid ) {
@@ -510,7 +515,7 @@ bool is_in_processed_goods_price_group( e_commodity type ) {
     case e_commodity::cloth:
     case e_commodity::coats: //
       return true;
-    default: //
+    default:                 //
       return false;
   }
 }
@@ -550,6 +555,15 @@ refl::enum_map<e_commodity, PriceChange> evolve_player_prices(
                                  .price_limits.bid_price_max );
   }
   return res;
+}
+
+PriceLimits price_limits_for_commodity( e_commodity comm ) {
+  return { .low = make_commodity_price(
+               comm, config_market.price_behavior[comm]
+                         .price_limits.bid_price_start_min ),
+           .high = make_commodity_price(
+               comm, config_market.price_behavior[comm]
+                         .price_limits.bid_price_start_max ) };
 }
 
 /****************************************************************

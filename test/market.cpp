@@ -2117,5 +2117,22 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
   }
 }
 
+TEST_CASE( "[market] price_limits_for_commodity" ) {
+  e_commodity in       = {};
+  PriceLimits expected = {};
+
+  auto f = [&] { return price_limits_for_commodity( in ); };
+
+  in       = e_commodity::silver;
+  expected = { .low  = { .bid = 1, .ask = 2 },
+               .high = { .bid = 19, .ask = 20 } };
+  REQUIRE( f() == expected );
+
+  in       = e_commodity::ore;
+  expected = { .low  = { .bid = 1, .ask = 4 },
+               .high = { .bid = 5, .ask = 8 } };
+  REQUIRE( f() == expected );
+}
+
 } // namespace
 } // namespace rn

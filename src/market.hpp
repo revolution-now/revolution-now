@@ -80,4 +80,7 @@ void evolve_group_model_volumes( SS& ss );
 [[nodiscard]] refl::enum_map<e_commodity, PriceChange>
 evolve_player_prices( SSConst const& ss, Player& player );
 
+// These are determined by static config data.
+PriceLimits price_limits_for_commodity( e_commodity comm );
+
 } // namespace rn

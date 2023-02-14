@@ -43,6 +43,11 @@ struct.CommodityPrice {
   ask 'int',
 }
 
+struct.PriceLimits {
+  low 'CommodityPrice',
+  high 'CommodityPrice',
+}
+
 struct.PriceChange {
   type  'e_commodity',
   from  'CommodityPrice',
