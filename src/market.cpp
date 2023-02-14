@@ -558,12 +558,11 @@ refl::enum_map<e_commodity, PriceChange> evolve_player_prices(
 }
 
 PriceLimits price_limits_for_commodity( e_commodity comm ) {
+  auto& conf = config_market.price_behavior[comm];
   return { .low = make_commodity_price(
-               comm, config_market.price_behavior[comm]
-                         .price_limits.bid_price_start_min ),
+               comm, conf.price_limits.bid_price_min ),
            .high = make_commodity_price(
-               comm, config_market.price_behavior[comm]
-                         .price_limits.bid_price_start_max ) };
+               comm, conf.price_limits.bid_price_max ) };
 }
 
 /****************************************************************
