@@ -832,9 +832,6 @@ wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
       continue;
     }
     if( ev.notifications.empty() ) continue;
-    // We have some notifications to present.
-    co_await planes.land_view().ensure_visible(
-        colony.location );
     // Separate the transient messages from the blocking mes-
     // sages.
     vector<NotificationMessage> blocking_messages;
@@ -849,6 +846,10 @@ wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
       else
         blocking_messages.push_back( std::move( msg ) );
     }
+    if( !blocking_messages.empty() )
+      // We have some blocking notifications to present.
+      co_await planes.land_view().ensure_visible(
+          colony.location );
     bool const zoom_to_colony =
         co_await present_blocking_colony_updates(
             ts.gui, colony, blocking_messages );
