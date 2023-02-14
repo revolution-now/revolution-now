@@ -349,8 +349,7 @@ wait<bool> present_blocking_colony_update(
 // lect yes (if they ever do) then subsequent messages will still
 // be displayed but will not ask them.
 wait<bool> present_blocking_colony_updates(
-    IGui& gui, Colony const& colony,
-    vector<NotificationMessage> const& messages ) {
+    IGui& gui, vector<NotificationMessage> const& messages ) {
   bool should_zoom = false;
   for( NotificationMessage const& message : messages )
     should_zoom |= co_await present_blocking_colony_update(
@@ -848,7 +847,7 @@ wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
           colony.location );
     bool const zoom_to_colony =
         co_await present_blocking_colony_updates(
-            ts.gui, colony, blocking_messages );
+            ts.gui, blocking_messages );
     if( zoom_to_colony ) {
       e_colony_abandoned abandoned =
           co_await ts.colony_viewer.show( ts, colony.id );
