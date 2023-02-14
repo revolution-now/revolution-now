@@ -83,28 +83,29 @@ unordered_set<UnitId> units_at_or_in_colony(
   return all;
 }
 
-// Returns true if the user wants to open the colony view.
-//
-// TODO: this should probably be moved into a separate module
-// when it starts to get large. Also, it will likely need access
-// to config files to store the messages.
-wait<bool> present_colony_update(
-    IGui& gui, Colony const& colony,
-    ColonyNotification_t const& notification,
-    bool                        ask_to_zoom ) {
-  // We shouldn't ever use this, but give a fallback to help de-
-  // bugging if we miss something.
-  string msg = base::to_str( notification );
+struct NotificationMessage {
+  string msg;
+  bool   transient = false;
+};
+
+NotificationMessage generate_colony_notification_message(
+    Colony const&               colony,
+    ColonyNotification_t const& notification ) {
+  NotificationMessage res{
+      // We shouldn't ever use this, but give a fallback to help
+      // debugging if we miss something.
+      .msg       = base::to_str( notification ),
+      .transient = false };
 
   switch( notification.to_enum() ) {
     case ColonyNotification::e::new_colonist: {
-      msg = fmt::format(
+      res.msg = fmt::format(
           "The [{}] colony has produced a new colonist.",
           colony.name );
       break;
     }
     case ColonyNotification::e::colony_starving: {
-      msg = fmt::format(
+      res.msg = fmt::format(
           "The [{}] colony is rapidly running out of food.  If "
           "we don't address this soon, some colonists will "
           "starve.",
@@ -114,9 +115,9 @@ wait<bool> present_colony_update(
     case ColonyNotification::e::colonist_starved: {
       auto& o = notification
                     .get<ColonyNotification::colonist_starved>();
-      msg = fmt::format(
-          "The [{}] colony has run out of food.  As a "
-          "result, a colonist ([{}]) has starved.",
+      res.msg = fmt::format(
+          "The [{}] colony has run out of food.  As a result, a "
+          "colonist ([{}]) has starved.",
           colony.name, unit_attr( o.type ).name );
       break;
     }
@@ -126,15 +127,15 @@ wait<bool> present_colony_update(
       if( o.spoiled.size() == 1 ) {
         Commodity const& spoiled = o.spoiled[0];
 
-        msg = fmt::format(
-            "The store of [{}] in [{}] has exceeded "
-            "its warehouse capacity.  [{}] tons have been "
-            "thrown out.",
+        res.msg = fmt::format(
+            "The store of [{}] in [{}] has exceeded its "
+            "warehouse capacity.  [{}] tons have been thrown "
+            "out.",
             spoiled.type, colony.name, spoiled.quantity );
       } else { // multiple
-        msg = fmt::format(
-            "Some goods in [{}] have exceeded their "
-            "warehouse capacities and have been thrown out.",
+        res.msg = fmt::format(
+            "Some goods in [{}] have exceeded their warehouse "
+            "capacities and have been thrown out.",
             colony.name );
       }
       break;
@@ -142,7 +143,7 @@ wait<bool> present_colony_update(
     case ColonyNotification::e::full_cargo: {
       auto& o =
           notification.get<ColonyNotification::full_cargo>();
-      msg = fmt::format(
+      res.msg = fmt::format(
           "A new cargo of [{}] is available in [{}]!",
           lowercase_commodity_display_name( o.what ),
           colony.name );
@@ -151,9 +152,9 @@ wait<bool> present_colony_update(
     case ColonyNotification::e::construction_missing_tools: {
       auto& o = notification.get<
           ColonyNotification::construction_missing_tools>();
-      msg = fmt::format(
-          "[{}] is in need of [{}] more [tools] "
-          "to complete its construction work on the [{}].",
+      res.msg = fmt::format(
+          "[{}] is in need of [{}] more [tools] to complete its "
+          "construction work on the [{}].",
           colony.name, o.need_tools - o.have_tools,
           construction_name( o.what ) );
       break;
@@ -162,29 +163,28 @@ wait<bool> present_colony_update(
       auto& o =
           notification
               .get<ColonyNotification::construction_complete>();
-      msg = fmt::format(
-          "[{}] has completed its construction of the "
-          "[{}]!",
+      res.msg = fmt::format(
+          "[{}] has completed its construction of the [{}]!",
           colony.name, construction_name( o.what ) );
       break;
     }
     case ColonyNotification::e::construction_already_finished: {
       auto& o = notification.get<
           ColonyNotification::construction_already_finished>();
-      msg = fmt::format(
-          "[{}]'s construction of the [{}] has "
-          "already completed, we should change its production "
-          "to something else.",
+      res.msg = fmt::format(
+          "[{}]'s construction of the [{}] has already "
+          "completed, we should change its production to "
+          "something else.",
           colony.name, construction_name( o.what ) );
       break;
     }
     case ColonyNotification::e::construction_lacking_building: {
       auto& o = notification.get<
           ColonyNotification::construction_lacking_building>();
-      msg = fmt::format(
-          "[{}]'s construction of the [{}] requires "
-          "the presence of the [{}] as a prerequisite, and "
-          "thus cannot be completed.",
+      res.msg = fmt::format(
+          "[{}]'s construction of the [{}] requires the "
+          "presence of the [{}] as a prerequisite, and thus "
+          "cannot be completed.",
           colony.name, construction_name( o.what ),
           construction_name( Construction::building{
               .what = o.required_building } ) );
@@ -195,10 +195,9 @@ wait<bool> present_colony_update(
       // clang-format on
       auto& o = notification.get<
           ColonyNotification::construction_lacking_population>();
-      msg = fmt::format(
-          "[{}]'s construction of the [{}] requires a "
-          "minimum population of {}, but only has a population "
-          "of {}.",
+      res.msg = fmt::format(
+          "[{}]'s construction of the [{}] requires a minimum "
+          "population of {}, but only has a population of {}.",
           colony.name, construction_name( o.what ),
           o.required_population, colony_population( colony ) );
       break;
@@ -206,10 +205,10 @@ wait<bool> present_colony_update(
     case ColonyNotification::e::run_out_of_raw_material: {
       auto& o = notification.get<
           ColonyNotification::run_out_of_raw_material>();
-      msg = fmt::format(
-          "[{}] has run out of [{}], Your Excellency. "
-          " Our {} cannot continue production until the supply "
-          "is increased.",
+      res.msg = fmt::format(
+          "[{}] has run out of [{}], Your Excellency.  Our {} "
+          "cannot continue production until the supply is "
+          "increased.",
           colony.name, o.what,
           config_colony.worker_names_plural[o.job] );
       break;
@@ -217,22 +216,22 @@ wait<bool> present_colony_update(
     case ColonyNotification::e::sons_of_liberty_increased: {
       auto& o = notification.get<
           ColonyNotification::sons_of_liberty_increased>();
-      msg = fmt::format(
-          "Sons of Liberty membership has increased to "
-          "[{}%] in [{}]!",
+      res.msg = fmt::format(
+          "Sons of Liberty membership has increased to [{}%] in "
+          "[{}]!",
           o.to, colony.name );
       if( o.from < 50 && o.to >= 50 )
-        msg += fmt::format(
+        res.msg += fmt::format(
             "  All colonists will now receive a production "
-            "bonus: [+{}] for non-expert workers and "
-            "[+{}] for expert workers.",
+            "bonus: [+{}] for non-expert workers and [+{}] for "
+            "expert workers.",
             config_colony.sons_of_liberty_50_bonus_non_expert,
             config_colony.sons_of_liberty_50_bonus_expert );
       if( o.from < 100 && o.to == 100 )
-        msg += fmt::format(
+        res.msg += fmt::format(
             "  All colonists will now receive a production "
-            "bonus: [+{}] for non-expert workers and "
-            "[+{}] for expert workers.",
+            "bonus: [+{}] for non-expert workers and [+{}] for "
+            "expert workers.",
             config_colony.sons_of_liberty_100_bonus_non_expert,
             config_colony.sons_of_liberty_100_bonus_expert );
       break;
@@ -240,16 +239,16 @@ wait<bool> present_colony_update(
     case ColonyNotification::e::sons_of_liberty_decreased: {
       auto& o = notification.get<
           ColonyNotification::sons_of_liberty_decreased>();
-      msg = fmt::format(
-          "Sons of Liberty membership has decreased to "
-          "[{}%] in [{}]!",
+      res.msg = fmt::format(
+          "Sons of Liberty membership has decreased to [{}%] in "
+          "[{}]!",
           o.to, colony.name );
       if( o.from == 100 && o.to < 100 )
-        msg += fmt::format(
+        res.msg += fmt::format(
             "  The production bonus afforded to each colonist "
             "is now reduced." );
       if( o.from >= 50 && o.to < 50 )
-        msg +=
+        res.msg +=
             "  Colonists will no longer receive any production "
             "bonuses.";
       break;
@@ -257,7 +256,7 @@ wait<bool> present_colony_update(
     case ColonyNotification::e::unit_promoted: {
       auto& o =
           notification.get<ColonyNotification::unit_promoted>();
-      msg = fmt::format(
+      res.msg = fmt::format(
           "A colonist in [{}] has learned the specialty "
           "profession [{}]!",
           colony.name, unit_attr( o.promoted_to ).name );
@@ -269,25 +268,22 @@ wait<bool> present_colony_update(
       switch( o.from ) {
         case e_unit_type::petty_criminal:
           CHECK( o.to == e_unit_type::indentured_servant );
-          msg = fmt::format(
-              "A [Petty Criminal] in [{}] has been "
-              "promoted to [Indentured Servant] through "
-              "education.",
+          res.msg = fmt::format(
+              "A [Petty Criminal] in [{}] has been promoted to "
+              "[Indentured Servant] through education.",
               colony.name );
           break;
         case e_unit_type::indentured_servant:
           CHECK( o.to == e_unit_type::free_colonist );
-          msg = fmt::format(
-              "An [Indentured Servant] in [{}] has "
-              "been promoted to [Free Colonist] through "
-              "education.",
+          res.msg = fmt::format(
+              "An [Indentured Servant] in [{}] has been "
+              "promoted to [Free Colonist] through education.",
               colony.name );
           break;
         default:
-          msg = fmt::format(
-              "A [Free Colonist] in [{}] has learned "
-              "the specialty profession [{}] through "
-              "education.",
+          res.msg = fmt::format(
+              "A [Free Colonist] in [{}] has learned the "
+              "specialty profession [{}] through education.",
               colony.name, unit_attr( o.to ).name );
           break;
       }
@@ -296,11 +292,10 @@ wait<bool> present_colony_update(
     case ColonyNotification::e::teacher_but_no_students: {
       auto& o = notification.get<
           ColonyNotification::teacher_but_no_students>();
-      msg = fmt::format(
+      res.msg = fmt::format(
           "We have a teacher in [{}] that is teaching the "
-          "specialty "
-          "profession [{}], but there are no colonists "
-          "available to teach.",
+          "specialty profession [{}], but there are no "
+          "colonists available to teach.",
           colony.name, unit_attr( o.teacher_type ).name );
       break;
     }
@@ -308,7 +303,6 @@ wait<bool> present_colony_update(
       auto& o =
           notification
               .get<ColonyNotification::custom_house_sales>();
-      // FIXME: temporary; need to display this in a better way.
       string goods;
       for( CustomHouseSale const& sale : o.what )
         goods += fmt::format(
@@ -320,24 +314,35 @@ wait<bool> present_colony_update(
       // Remove trailing comma.
       goods.resize( goods.size() - 2 );
       goods += '.';
-      msg = fmt::format(
-          "The [Custom House] in [{}] has sold the "
-          "following goods: {}",
+      res.msg = fmt::format(
+          "The [Custom House] in [{}] has sold the following "
+          "goods: {}",
           colony.name, goods );
-      break;
+      res.transient = true;
     }
   }
+  return res;
+}
 
+// Returns true if the user wants to open the colony view.
+//
+// TODO: this should probably be moved into a separate module
+// when it starts to get large. Also, it will likely need access
+// to config files to store the messages.
+wait<bool> present_blocking_colony_update(
+    IGui& gui, Colony const& colony,
+    NotificationMessage const& msg, bool ask_to_zoom ) {
+  CHECK( !msg.transient );
   if( ask_to_zoom ) {
     vector<ChoiceConfigOption> choices{
         { .key = "no_zoom", .display_name = "Continue turn" },
         { .key = "zoom", .display_name = "Zoom to colony" } };
     maybe<string> res = co_await gui.optional_choice(
-        { .msg = msg, .options = std::move( choices ) } );
+        { .msg = msg.msg, .options = std::move( choices ) } );
     // If the user hits escape then we don't zoom.
     co_return ( res == "zoom" );
   }
-  co_await gui.message_box( msg );
+  co_await gui.message_box( msg.msg );
   co_return false;
 }
 
@@ -347,14 +352,25 @@ wait<bool> present_colony_update(
 // will continue to ask them until they select yes. Once they se-
 // lect yes (if they ever do) then subsequent messages will still
 // be displayed but will not ask them.
-wait<bool> present_colony_updates(
+wait<bool> present_blocking_colony_updates(
     IGui& gui, Colony const& colony,
-    vector<ColonyNotification_t> const& notifications ) {
+    vector<NotificationMessage> const& messages ) {
   bool should_zoom = false;
-  for( ColonyNotification_t const& notification : notifications )
-    should_zoom |= co_await present_colony_update(
-        gui, colony, notification, !should_zoom );
+  for( NotificationMessage const& message : messages )
+    should_zoom |= co_await present_blocking_colony_update(
+        gui, colony, message, !should_zoom );
   co_return should_zoom;
+}
+
+// These are messages from all colonies that are to appear in the
+// transient pop-up (i.e., the window that is non-blocking, takes
+// no input, and fades away on its own).
+void present_transient_updates(
+    TS& ts, vector<NotificationMessage> const& messages ) {
+  for( NotificationMessage const& msg : messages ) {
+    CHECK( msg.transient );
+    ts.gui.transient_message_box( msg.msg );
+  }
 }
 
 void give_new_crosses_to_player(
@@ -799,6 +815,9 @@ wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
   // that doesn't depend on hash map iteration order.
   sort( colonies.begin(), colonies.end() );
   vector<ColonyEvolution> evolutions;
+  // These will be accumulated for all colonies and then dis-
+  // played at the end.
+  vector<NotificationMessage> transient_messages;
   for( ColonyId const colony_id : colonies ) {
     Colony& colony = ss.colonies.colony_for( colony_id );
     lg.debug( "evolving colony \"{}\".", colony.name );
@@ -816,14 +835,33 @@ wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
     // We have some notifications to present.
     co_await planes.land_view().ensure_visible(
         colony.location );
-    bool zoom_to_colony = co_await present_colony_updates(
-        ts.gui, colony, ev.notifications );
+    // Separate the transient messages from the blocking mes-
+    // sages.
+    vector<NotificationMessage> blocking_messages;
+    blocking_messages.reserve( ev.notifications.size() );
+    for( ColonyNotification_t const& notification :
+         ev.notifications ) {
+      NotificationMessage msg =
+          generate_colony_notification_message( colony,
+                                                notification );
+      if( msg.transient )
+        transient_messages.push_back( std::move( msg ) );
+      else
+        blocking_messages.push_back( std::move( msg ) );
+    }
+    bool const zoom_to_colony =
+        co_await present_blocking_colony_updates(
+            ts.gui, colony, blocking_messages );
     if( zoom_to_colony ) {
       e_colony_abandoned abandoned =
           co_await ts.colony_viewer.show( ts, colony.id );
       if( abandoned == e_colony_abandoned::yes ) continue;
     }
   }
+
+  // Now that all colonies are done, present all of the transient
+  // messages.
+  present_transient_updates( ts, transient_messages );
 
   // Crosses/immigration.
   CrossesCalculation const crosses_calc =
