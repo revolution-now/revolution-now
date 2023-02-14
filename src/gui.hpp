@@ -32,6 +32,9 @@ struct RealGui : IGui {
   wait<> message_box( std::string const& msg ) override;
 
   // Implement IGui.
+  void transient_message_box( std::string const& msg ) override;
+
+  // Implement IGui.
   wait<std::chrono::microseconds> wait_for(
       std::chrono::microseconds time ) override;
 

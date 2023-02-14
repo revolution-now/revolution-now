@@ -30,6 +30,9 @@ namespace rn {
 struct MockIGui : IGui {
   MOCK_GUI_METHOD( wait<>, message_box, (std::string const&));
 
+  MOCK_GUI_METHOD( void, transient_message_box,
+                   (std::string const&));
+
   MOCK_GUI_METHOD( wait<std::chrono::microseconds>, wait_for,
                    ( std::chrono::microseconds ) );
 

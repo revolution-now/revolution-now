@@ -32,6 +32,10 @@ wait<> RealGui::message_box( string const& msg ) {
   return window_plane_.message_box( msg );
 }
 
+void RealGui::transient_message_box( std::string const& msg ) {
+  window_plane_.transient_message_box( msg );
+}
+
 wait<chrono::microseconds> RealGui::wait_for(
     chrono::microseconds time ) {
   chrono::microseconds actual = co_await time;

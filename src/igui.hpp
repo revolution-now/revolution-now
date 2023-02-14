@@ -69,6 +69,22 @@ struct IGui {
         std::forward<Rest>( rest )... ) );
   }
 
+  // Adds a transient message to the queue. These messages will
+  // appear in the background, linger for a bit, then go away,
+  // and this will happen in the background, thus there is no
+  // need to await on this call.
+  virtual void transient_message_box(
+      std::string const& msg ) = 0;
+
+  // For convenience.  Should not be overridden.
+  template<typename Arg, typename... Rest>
+  void transient_message_box( std::string_view msg, Arg&& arg,
+                              Rest&&... rest ) {
+    transient_message_box( fmt::format(
+        fmt::runtime( msg ), std::forward<Arg>( arg ),
+        std::forward<Rest>( rest )... ) );
+  }
+
   // Waits for the given amount of time and then returns the
   // amount of time actually waited.
   virtual wait<std::chrono::microseconds> wait_for(
