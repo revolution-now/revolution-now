@@ -788,13 +788,18 @@ wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
                                    TS& ts, Player& player ) {
   e_nation nation = player.nation;
   lg.info( "processing colonies for the {}.", nation );
-  queue<ColonyId> colonies;
-  for( auto const& [colony_id, colony] : ss.colonies.all() )
-    if( colony.nation == nation ) colonies.push( colony_id );
+  unordered_map<ColonyId, Colony> const& colonies_all =
+      ss.colonies.all();
+  vector<ColonyId> colonies;
+  colonies.reserve( colonies_all.size() );
+  for( auto const& [colony_id, colony] : colonies_all )
+    if( colony.nation == nation )
+      colonies.push_back( colony_id );
+  // This is so that we process them in a deterministic order
+  // that doesn't depend on hash map iteration order.
+  sort( colonies.begin(), colonies.end() );
   vector<ColonyEvolution> evolutions;
-  while( !colonies.empty() ) {
-    ColonyId colony_id = colonies.front();
-    colonies.pop();
+  for( ColonyId const colony_id : colonies ) {
     Colony& colony = ss.colonies.colony_for( colony_id );
     lg.debug( "evolving colony \"{}\".", colony.name );
     evolutions.push_back(
