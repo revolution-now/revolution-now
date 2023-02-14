@@ -189,6 +189,14 @@ struct Coord {
     return Coord{ .x = p.x, .y = p.y };
   }
 
+  Coord with_x( X new_x ) const {
+    return { .x = new_x, .y = y };
+  }
+
+  Coord with_y( Y new_y ) const {
+    return { .x = x, .y = new_y };
+  }
+
   // Useful for generic code; allows referencing a coordinate
   // from the type.
   template<typename Dimension>

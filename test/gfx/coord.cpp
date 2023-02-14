@@ -99,6 +99,12 @@ TEST_CASE( "[e_direction] to_direction*" ) {
            e_direction::s );
 }
 
+TEST_CASE( "[coord] with coord*" ) {
+  Coord c{ .x = 3, .y = 5 };
+  REQUIRE( c.with_x( 6 ) == Coord{ .x = 6, .y = 5 } );
+  REQUIRE( c.with_y( 6 ) == Coord{ .x = 3, .y = 6 } );
+}
+
 TEST_CASE( "[coord] lexical ordering*" ) {
   REQUIRE( Coord{ .x = 10, .y = 1 } < Coord{ .x = 20, .y = 2 } );
   REQUIRE( Coord{ .x = 10, .y = 2 } < Coord{ .x = 20, .y = 2 } );
