@@ -233,6 +233,10 @@ struct World {
   void set_stable_bid_price( e_commodity type,
                              int         price_in_hundreds );
 
+  // This will set the price of the commodity to the middle of
+  // its range, rounded down.
+  void init_price_to_average( e_commodity type );
+
   // This will set the price of each commodity to the middle of
   // its range, rounded down.
   void init_prices_to_average();

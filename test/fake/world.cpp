@@ -471,14 +471,17 @@ void World::set_stable_bid_price( e_commodity type,
   comm_config.intrinsic_volume = 0;
 }
 
+void World::init_price_to_average( e_commodity type ) {
+  auto const& limits =
+      config_market.price_behavior[type].price_limits;
+  int const price =
+      ( limits.bid_price_min + limits.bid_price_max ) / 2;
+  set_current_bid_price( type, price );
+}
+
 void World::init_prices_to_average() {
-  for( e_commodity type : refl::enum_values<e_commodity> ) {
-    auto const& limits =
-        config_market.price_behavior[type].price_limits;
-    int const price =
-        ( limits.bid_price_min + limits.bid_price_max ) / 2;
-    set_current_bid_price( type, price );
-  }
+  for( e_commodity type : refl::enum_values<e_commodity> )
+    init_price_to_average( type );
 }
 
 void World::set_tax_rate( int rate ) {
