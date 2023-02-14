@@ -133,6 +133,13 @@ maybe<Rect> section( e_section sec ) {
       res->w = g_panel_width;
       break;
     }
+    case e_section::viewport_and_panel: {
+      UNWRAP_CHECK( normal, section( e_section::normal ) );
+      res = normal;
+      res->y += menu_height;
+      res->h -= menu_height;
+      break;
+    }
     case e_section::console: {
       if( g_console_size == 0.0 ) break;
       UNWRAP_CHECK( total, section( e_section::total ) );

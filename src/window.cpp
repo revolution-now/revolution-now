@@ -370,8 +370,9 @@ void WindowManager::draw_layout( rr::Renderer& renderer ) const {
     string_view const msg = active_transient_message_->msg;
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
                              active_transient_message_->alpha );
-    UNWRAP_CHECK( area, compositor::section(
-                            compositor::e_section::viewport ) );
+    UNWRAP_CHECK(
+        area, compositor::section(
+                  compositor::e_section::viewport_and_panel ) );
     Delta const rendered_size =
         active_transient_message_->rendered_size;
     Coord const start = centered( rendered_size, area )

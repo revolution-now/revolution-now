@@ -15,6 +15,7 @@ enum.e_section {
   menu_bar,
   viewport,
   panel,
+  viewport_and_panel,
   console,
   normal,  # non console area.
   total, # The entire renderable window.
