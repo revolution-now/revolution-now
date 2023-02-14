@@ -899,13 +899,19 @@ wait<> TravelHandler::perform() {
       CHECK( unit.orders() == e_unit_orders::none );
       UNWRAP_CHECK( colony_id,
                     ss_.colonies.maybe_from_coord( move_dst ) );
+      // Unload units and prioritize them.
+      vector<UnitId> const held = unit.cargo().units();
+      for( UnitId const held_id : held ) {
+        unit_deleted = co_await unit_to_map_square(
+            ss_, ts_, held_id, move_dst );
+        CHECK( !unit_deleted.has_value() );
+        ss_.units.unit_for( held_id ).clear_orders();
+        prioritize.push_back( held_id );
+      }
       // TODO: by default we should not open the colony view when
       // a ship moves into port. But it would be convenient to
       // allow the user to specify that they want to open it by
       // holding SHIFT while moving the unit.
-      //
-      // TODO: consider prioritizing units that are brought in by
-      // the ship.
       e_colony_abandoned const abandoned =
           co_await ts_.colony_viewer.show( ts_, colony_id );
       if( abandoned == e_colony_abandoned::yes )

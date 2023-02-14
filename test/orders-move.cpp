@@ -214,6 +214,56 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "[orders-move] ship unloads units when moving into "
+    "colony" ) {
+  World             W;
+  MockLandViewPlane land_view_plane;
+  W.planes().back().land_view = &land_view_plane;
+  Player&       player        = W.default_player();
+  Colony const& colony = W.add_colony( { .x = 1, .y = 1 } );
+  Unit const& galleon  = W.add_unit_on_map( e_unit_type::galleon,
+                                            { .x = 0, .y = 0 } );
+  Unit const& missionary = W.add_unit_in_cargo(
+      e_unit_type::missionary, galleon.id() );
+  Unit const& free_colonist = W.add_unit_in_cargo(
+      e_unit_type::free_colonist, galleon.id() );
+
+  auto move_unit = [&]( UnitId unit_id, e_direction d ) {
+    land_view_plane.EXPECT__animate( _ ).returns<monostate>();
+    unique_ptr<OrdersHandler> handler =
+        handle_orders( W.planes(), W.ss(), W.ts(), player,
+                       unit_id, orders::move{ .d = d } );
+    wait<OrdersHandlerRunResult> const w = handler->run();
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+    return *w;
+  };
+
+  // Sanity check.
+  W.colony_viewer()
+      .EXPECT__show( _, colony.id )
+      .returns( e_colony_abandoned::no );
+  OrdersHandlerRunResult const expected_res{
+      .order_was_run       = true,
+      .units_to_prioritize = { missionary.id(),
+                               free_colonist.id() } };
+  OrdersHandlerRunResult const res =
+      move_unit( galleon.id(), e_direction::se );
+  REQUIRE( res == expected_res );
+
+  REQUIRE( missionary.movement_points() == 2 );
+  REQUIRE( free_colonist.movement_points() == 1 );
+  REQUIRE( galleon.movement_points() == 0 );
+
+  REQUIRE( W.units().coord_for( missionary.id() ) ==
+           Coord{ .x = 1, .y = 1 } );
+  REQUIRE( W.units().coord_for( free_colonist.id() ) ==
+           Coord{ .x = 1, .y = 1 } );
+  REQUIRE( W.units().coord_for( galleon.id() ) ==
+           Coord{ .x = 1, .y = 1 } );
+}
+
+TEST_CASE(
     "[orders-move] unit on ship attempting to attack brave" ) {
   World W;
   Unit& caravel  = W.add_unit_on_map( e_unit_type::caravel,
