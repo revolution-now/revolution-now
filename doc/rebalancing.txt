@@ -70,6 +70,23 @@ Founding Father Enhancements:
 
 General changes to the game:
 
+  * As noted by the FreeCol developers, there is a kind of ex-
+    ploit where the player can surround the outer tiles of an is-
+    land with units, thereby preventing any foreign nations from
+    landing there, making the colonies therein invinsible once
+    natives are gone. In order to avoid this, we probably need to
+    allow amphibious assalt. Consider allowing it in general, or
+    maybe only allowing it after the acquisition of a founding
+    father (this would be a good way to strengthen John Paul
+    Jone's value).
+
+    One potential downside to allowing it in general would be
+    that a unit could attack from a ship, but then opposing units
+    on land would not be able to attack it in return. So maybe
+    what would happen is that it attacks and, if it wins, then it
+    moves onto thd land tile and ends its turn, allowing it to be
+    attacked.
+
   * The player has to pay to bless missionaries in Europe, with
     an increasing cost as with artillery. This does two things:
     First, it incentivizes building a church and makes churches
@@ -88,7 +105,11 @@ General changes to the game:
       * Lower the building cost of ships.
       * Create a new attractive ship unit that can only be built
         in the new world. A ship that can be used to bombard land
-        units could be one such unit.
+        units could be one such unit. This would also be useful
+        to avoid the exploit where one can outline and island
+        with fortified land units so that the colonies therein
+        will be invinsible (this is discussed in another section
+        in this doc).
       * Allow building Man-o-Wars with the ship yard.
 
     The strategy guide goes on to say: "Colonies' Ships are of
