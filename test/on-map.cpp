@@ -24,6 +24,7 @@
 // ss
 #include "src/ss/dwelling.rds.hpp"
 #include "src/ss/player.rds.hpp"
+#include "src/ss/terrain.hpp"
 #include "src/ss/units.hpp"
 
 // refl
@@ -143,6 +144,52 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
              Coord{ .x = 0, .y = 1 } );
     REQUIRE( player.new_world_name == "my world 2" );
   }
+}
+
+TEST_CASE( "[on-map] interactive: discovers pacific ocean" ) {
+  World   W;
+  Player& player                           = W.default_player();
+  player.new_world_name                    = "";
+  W.terrain().pacific_ocean_endpoints()[0] = 1;
+  W.terrain().pacific_ocean_endpoints()[1] = 2;
+  W.terrain().pacific_ocean_endpoints()[2] = 1;
+  UnitId const unit_id =
+      W.add_unit_on_map( e_unit_type::treasure,
+                         { .x = 2, .y = 4 } )
+          .id();
+  wait<maybe<UnitDeleted>> w = make_wait<maybe<UnitDeleted>>();
+
+  REQUIRE(
+      player.woodcuts[e_woodcut::discovered_pacific_ocean] ==
+      false );
+
+  W.gui()
+      .EXPECT__display_woodcut(
+          e_woodcut::discovered_pacific_ocean )
+      .returns<monostate>();
+  w = unit_to_map_square( W.ss(), W.ts(), unit_id,
+                          { .x = 1, .y = 3 } );
+  REQUIRE( !w.exception() );
+  REQUIRE( w.ready() );
+  REQUIRE( *w == nothing );
+  REQUIRE( W.units().coord_for( unit_id ) ==
+           Coord{ .x = 1, .y = 3 } );
+  REQUIRE(
+      player.woodcuts[e_woodcut::discovered_pacific_ocean] ==
+      true );
+
+  // Make sure it doesn't happen again.
+  REQUIRE( W.terrain().is_pacific_ocean( { .x = 0, .y = 2 } ) );
+  w = unit_to_map_square( W.ss(), W.ts(), unit_id,
+                          { .x = 0, .y = 3 } );
+  REQUIRE( !w.exception() );
+  REQUIRE( w.ready() );
+  REQUIRE( *w == nothing );
+  REQUIRE( W.units().coord_for( unit_id ) ==
+           Coord{ .x = 0, .y = 3 } );
+  REQUIRE(
+      player.woodcuts[e_woodcut::discovered_pacific_ocean] ==
+      true );
 }
 
 TEST_CASE( "[on-map] interactive: treasure in colony" ) {

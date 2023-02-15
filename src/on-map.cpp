@@ -79,6 +79,21 @@ wait<> try_discover_new_world( SSConst const& ss, TS& ts,
   }
 }
 
+wait<> try_discover_pacific_ocean( SSConst const& ss, TS& ts,
+                                   Player& player,
+                                   Coord   world_square ) {
+  for( e_direction d : refl::enum_values<e_direction> ) {
+    Coord const coord = world_square.moved( d );
+    if( !ss.terrain.square_exists( coord ) ) continue;
+    if( !ss.terrain.is_pacific_ocean( coord ) ) continue;
+    // We've discovered the Pacific Ocean!
+    co_await display_woodcut_if_needed(
+        ts, player, e_woodcut::discovered_pacific_ocean );
+    lg.info( "the pacific ocean been discovered." );
+    break;
+  }
+}
+
 // Returns true if the unit was deleted.
 wait<base::NoDiscard<bool>> try_lost_city_rumor(
     SS& ss, TS& ts, Player& player, UnitId id,
@@ -200,6 +215,10 @@ wait<maybe<UnitDeleted>> unit_to_map_square(
   if( !player.new_world_name.has_value() )
     co_await try_discover_new_world( ss, ts, player,
                                      world_square );
+
+  if( !player.woodcuts[e_woodcut::discovered_pacific_ocean] )
+    co_await try_discover_pacific_ocean( ss, ts, player,
+                                         world_square );
 
   if( has_lost_city_rumor( ss.terrain, world_square ) )
     if( co_await try_lost_city_rumor( ss, ts, player, id,
