@@ -712,6 +712,10 @@ end
 -----------------------------------------------------------------
 -- Pacific Ocean Generation.
 -----------------------------------------------------------------
+-- This mirrors the behavior of the OG, which is that it makes
+-- all water tiles on the left half of the map "pacific ocean"
+-- tiles unless there is one or more land tiles to the west of
+-- the tile.
 local function create_pacific_ocean()
   local size = world_size()
 
