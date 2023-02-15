@@ -1770,7 +1770,6 @@ local function generate( options )
     return
   elseif options.type == 'land-partition' then
     generate_land( options )
-    create_sea_lanes()
     M.regenerate_native_land_partitions( true )
     return
   elseif options.type == 'half_and_half' then
