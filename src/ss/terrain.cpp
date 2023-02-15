@@ -188,7 +188,8 @@ void TerrainState::initialize_player_terrain( e_nation nation,
 bool TerrainState::is_pacific_ocean( Coord coord ) const {
   CHECK_GE( coord.y, 0 );
   CHECK_LT( coord.y, o_.world_map.size().h );
-  return ( coord.x <= o_.pacific_ocean_endpoints[coord.y] );
+  // Recall that the endpoint is one-past-the-end.
+  return ( coord.x < o_.pacific_ocean_endpoints[coord.y] );
 }
 
 /****************************************************************

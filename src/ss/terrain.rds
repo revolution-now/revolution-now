@@ -47,7 +47,8 @@ struct.TerrainState {
   proto_squares 'refl::enum_map<e_cardinal_direction, MapSquare>',
 
   # For each row of the map, this gives the x coordinate of the
-  # last pacific ocean tile. Will always be >= 0.
+  # one-past-the-last pacific ocean tile. So if it is zero for a
+  # row then that row has no pacific ocean tiles.
   pacific_ocean_endpoints 'std::vector<int>',
 
   _features { equality, validation }

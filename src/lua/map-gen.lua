@@ -264,9 +264,8 @@ end
 -- This will create a new empty map set all squares to water.
 local function reset_terrain( options )
   -- This should also initialize the pacific ocean array with all
-  -- zeros. If we don't change that thereafter, then it will mean
-  -- that the pacific ocean consists only of the first column of
-  -- tiles (x=0).
+  -- zeros, meaning that none of the rows have any pacific ocean
+  -- tiles.
   ROOT.terrain:reset( options.world_size )
   -- FIXME: needed?
   on_all( set_water )
@@ -720,15 +719,14 @@ local function create_pacific_ocean()
   local size = world_size()
 
   for y = 0, size.h - 1 do
-    for x = 0, size.w // 2 do
-      local coord = { x=x, y=y }
-      local square = square_at( coord )
-      if is_land( square ) then
-        local endpoint = math.max( coord.x - 1, 0 )
-        ROOT.terrain:set_pacific_ocean_endpoint( y, endpoint )
-        break
-      end
-    end
+    local endpoint = 0
+    repeat
+      if is_land( square_at{ x=endpoint, y=y } ) then break end
+      endpoint = endpoint + 1
+    until endpoint == size.w // 2
+    -- All tiles to the left of this endpoint (but not including
+    -- it) will be considered as pacific ocean.
+    ROOT.terrain:set_pacific_ocean_endpoint( y, endpoint )
   end
 end
 
