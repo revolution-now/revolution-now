@@ -90,8 +90,7 @@ bool NonRenderingMapUpdater::make_square_visible(
 
 void NonRenderingMapUpdater::modify_entire_map(
     base::function_ref<void( Matrix<MapSquare>& )> mutator ) {
-  mutator(
-      ss_.mutable_terrain_use_with_care.mutable_world_map() );
+  ss_.mutable_terrain_use_with_care.modify_entire_map( mutator );
 }
 
 void NonRenderingMapUpdater::redraw() {}
