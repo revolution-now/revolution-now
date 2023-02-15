@@ -780,25 +780,20 @@ local function set_dwelling_population( tribe, dwelling )
     dwelling.population = 3
     return
   end
-  if tribe == 'arawak' or tribe == 'cherokee' or tribe == 'iroquois' then
+  if tribe == 'arawak' or tribe == 'cherokee' or tribe ==
+      'iroquois' then
     dwelling.population = 5
-    if dwelling.is_capital then
-      dwelling.population = 6
-    end
+    if dwelling.is_capital then dwelling.population = 6 end
     return
   end
   if tribe == 'aztec' then
     dwelling.population = 7
-    if dwelling.is_capital then
-      dwelling.population = 8
-    end
+    if dwelling.is_capital then dwelling.population = 8 end
     return
   end
   if tribe == 'inca' then
     dwelling.population = 9
-    if dwelling.is_capital then
-      dwelling.population = 11
-    end
+    if dwelling.is_capital then dwelling.population = 11 end
     return
   end
   error( 'tribe ' .. tribe .. ' not handled.' )
