@@ -261,6 +261,7 @@ cdr::value cdr_game_state_default =
                                 "lost_city_rumor"_key = false,
                             },
                     },
+                "pacific_ocean_endpoints"_key = cdr::list{},
             },
     };
 

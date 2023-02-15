@@ -84,16 +84,37 @@ struct TerrainState {
   // Throws if coord is not on map.
   bool is_land( Coord coord ) const;
 
-  // These should not be called directly; they should only be
-  // called by the MapUpdater classes, which is what you should
-  // be using whenever you modify terrain in order to ensure that
-  // the map gets redrawn accordingly. If you don't want to
-  // redraw a map (e.g. you are in unit tests) then just use the
-  // non-rendering map updater.
-  Matrix<MapSquare>&      mutable_world_map();
+  std::vector<int> const& pacific_ocean_endpoints() const {
+    return o_.pacific_ocean_endpoints;
+  }
+
+  // This one is OK to call from normal game code since it
+  // doesn't require any redrawing of the map, since pacific
+  // ocean tiles aren't rendered specially. That said, normal
+  // game code should never really need to change pacific ocean
+  // states of the map.
+  std::vector<int>& pacific_ocean_endpoints() {
+    return o_.pacific_ocean_endpoints;
+  }
+
+  bool is_pacific_ocean( Coord coord ) const;
+
+  // These below should not be called directly; they should only
+  // be called by the MapUpdater classes, which is what you
+  // should be using whenever you modify terrain in order to en-
+  // sure that the map gets redrawn accordingly. If you don't
+  // want to redraw a map (e.g. you are in unit tests) then just
+  // use the non-rendering map updater.
+
   MapSquare&              mutable_square_at( Coord coord );
   base::maybe<MapSquare&> mutable_maybe_square_at( Coord coord );
   PlayerTerrain& mutable_player_terrain( e_nation nation );
+
+  // Whenever the map matrix is modified as a whole (which could
+  // involve changing its dimensions) it must always be done via
+  // this method so that invariants of this class will be upheld.
+  void modify_entire_map(
+      base::function_ref<void( Matrix<MapSquare>& )> mutator );
 
   // This should only be called by code doing map generation.
   // Once a map is generated, the proto squares should not be

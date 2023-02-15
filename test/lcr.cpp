@@ -68,11 +68,12 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[lcr] has_lost_city_rumor" ) {
   TerrainState terrain_state;
-  terrain_state.mutable_world_map() =
-      Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
+  terrain_state.modify_entire_map( []( Matrix<MapSquare>& m ) {
+    m = Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
+  } );
 
   REQUIRE_FALSE( has_lost_city_rumor( terrain_state, Coord{} ) );
-  MapSquare& square = terrain_state.mutable_world_map()[Coord{}];
+  MapSquare& square = terrain_state.mutable_square_at( Coord{} );
   square.surface    = e_surface::land;
   square.lost_city_rumor = true;
   REQUIRE( has_lost_city_rumor( terrain_state, Coord{} ) );

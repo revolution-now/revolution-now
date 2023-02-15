@@ -37,6 +37,15 @@ namespace rn {
 /****************************************************************
 ** TerrainState
 *****************************************************************/
+base::valid_or<std::string> wrapped::TerrainState::validate()
+    const {
+  REFL_VALIDATE( int( pacific_ocean_endpoints.size() ) ==
+                     world_map.size().h,
+                 "the pacific_ocean_endpoints array must have "
+                 "one element for each row in the map." );
+  return base::valid;
+}
+
 base::valid_or<std::string> TerrainState::validate() const {
   return base::valid;
 }
@@ -52,7 +61,7 @@ TerrainState::TerrainState( wrapped::TerrainState&& o )
 }
 
 TerrainState::TerrainState()
-  : TerrainState( wrapped::TerrainState{ .world_map = {} } ) {
+  : TerrainState( wrapped::TerrainState{} ) {
   validate_or_die();
 }
 
@@ -60,8 +69,12 @@ Matrix<MapSquare> const& TerrainState::world_map() const {
   return o_.world_map;
 }
 
-Matrix<MapSquare>& TerrainState::mutable_world_map() {
-  return o_.world_map;
+void TerrainState::modify_entire_map(
+    base::function_ref<void( Matrix<MapSquare>& )> mutator ) {
+  mutator( o_.world_map );
+  // Maintain the invariant that pacific_ocean_tiles should
+  // have one element for each map row.
+  o_.pacific_ocean_endpoints.resize( o_.world_map.size().h );
 }
 
 Delta TerrainState::world_size_tiles() const {
@@ -84,7 +97,7 @@ bool TerrainState::square_exists( Coord coord ) const {
 base::maybe<MapSquare&> TerrainState::mutable_maybe_square_at(
     Coord coord ) {
   if( !square_exists( coord ) ) return base::nothing;
-  return mutable_world_map()[coord.y][coord.x];
+  return o_.world_map[coord.y][coord.x];
 }
 
 base::maybe<PlayerTerrain const&> TerrainState::player_terrain(
@@ -101,7 +114,7 @@ PlayerTerrain& TerrainState::mutable_player_terrain(
 base::maybe<MapSquare const&> TerrainState::maybe_square_at(
     Coord coord ) const {
   if( !square_exists( coord ) ) return base::nothing;
-  return world_map()[coord.y][coord.x];
+  return o_.world_map[coord.y][coord.x];
 }
 
 MapSquare const& TerrainState::total_square_at(
@@ -170,6 +183,12 @@ void TerrainState::initialize_player_terrain( e_nation nation,
           world_map[tile.upper_left()];
     }
   }
+}
+
+bool TerrainState::is_pacific_ocean( Coord coord ) const {
+  CHECK_GE( coord.y, 0 );
+  CHECK_LT( coord.y, o_.world_map.size().h );
+  return ( coord.x <= o_.pacific_ocean_endpoints[coord.y] );
 }
 
 /****************************************************************
@@ -246,7 +265,23 @@ LUA_STARTUP( lua::state& st ) {
         &U::initialize_player_terrain;
 
     u["reset"] = []( U& o, Delta size ) {
-      o.mutable_world_map() = Matrix<MapSquare>( size );
+      o.modify_entire_map( [&]( Matrix<MapSquare>& m ) {
+        m = Matrix<MapSquare>( size );
+      } );
+    };
+
+    u["pacific_ocean_endpoint"] = [&]( U& o, int row ) {
+      LUA_CHECK( st,
+                 row < int( o.pacific_ocean_endpoints().size() ),
+                 "row {} is out of bounds.", row );
+      return o.pacific_ocean_endpoints()[row];
+    };
+    u["set_pacific_ocean_endpoint"] = [&]( U& o, int row,
+                                           int endpoint ) {
+      LUA_CHECK( st,
+                 row < int( o.pacific_ocean_endpoints().size() ),
+                 "row {} is out of bounds.", row );
+      o.pacific_ocean_endpoints()[row] = endpoint;
     };
   }();
 };
