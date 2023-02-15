@@ -57,6 +57,12 @@ local function build_unit_type( type, base_type )
   end
 end
 
+-- TODO: in the OG, the ships are not actually created on the
+-- map; they are created on the high seas setting sail for the
+-- new world, such that on their first turn they will be on the
+-- map. So the initial ship position should simply be used to
+-- initialize the player.last_high_seas field so that the ships
+-- will be placed where we want them.
 local function create_initial_units_for_nation(options, nation,
                                                root )
   local player = root.players.players:get( nation )
