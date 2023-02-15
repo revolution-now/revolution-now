@@ -263,6 +263,10 @@ end
 
 -- This will create a new empty map set all squares to water.
 local function reset_terrain( options )
+  -- This should also initialize the pacific ocean array with all
+  -- zeros. If we don't change that thereafter, then it will mean
+  -- that the pacific ocean consists only of the first column of
+  -- tiles (x=0).
   ROOT.terrain:reset( options.world_size )
   -- FIXME: needed?
   on_all( set_water )
@@ -703,6 +707,25 @@ local function create_sea_lanes()
   -- be missing on the right edge at this point).
   for y = 0, size.h - 1 do set_sea_lane{ x=0, y=y } end
   for y = 0, size.h - 1 do set_sea_lane{ x=size.w - 1, y=y } end
+end
+
+-----------------------------------------------------------------
+-- Pacific Ocean Generation.
+-----------------------------------------------------------------
+local function create_pacific_ocean()
+  local size = world_size()
+
+  for y = 0, size.h - 1 do
+    for x = 0, size.w // 2 do
+      local coord = { x=x, y=y }
+      local square = square_at( coord )
+      if is_land( square ) then
+        local endpoint = math.max( coord.x - 1, 0 )
+        ROOT.terrain:set_pacific_ocean_endpoint( y, endpoint )
+        break
+      end
+    end
+  end
 end
 
 -----------------------------------------------------------------
@@ -1781,6 +1804,7 @@ local function generate( options )
   end
 
   create_sea_lanes()
+  create_pacific_ocean()
 
   create_indian_villages( options )
 end
