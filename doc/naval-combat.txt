@@ -1,0 +1,333 @@
+Naval Combat
+============
+
+Algo:
+
+  1. Let attack=can_attack?combat:0; if attack for defender is >=
+     attack for attacker then there is no evade. Otherwise, the
+     evade probability will be computed according to this for-
+     mula:
+
+        P(evade) = m_defender/(m_attacker+m_defender)
+
+     Where m_defender is the number of start-of-turn movement
+     points of the attacker and m_defender is the number of the
+     defender. In other words, we're not using the number of
+     movement points that the unit actually has at the time of
+     the battle, but rather the initial movement point value that
+     it would have at the start of a turn. And remember to apply
+     the Ferdinand Magellan movement point bonus where applica-
+     ble.
+  2. If either there is no evade possible or if the evade dice
+     roll yielded no evade, then we proceed to the combat analy-
+     sis.
+  3. Weigh each of the combat factors, giving the 50% bonus to
+     the attacker and 50% Francis Drake bonus (where applicable),
+     as usual. Whichever ship wins will be unchanged, and the
+     losing ship will be either damaged or sunk.
+  4. If the losing ship is a non-war ship (i.e. has attack=0)
+     then it's sinking probability will be 0, since non-war ships
+     can never be sunk. Otherwise, proceed to compute the sinking
+     probability.
+  5. The probability of sinking is equal to
+     "guns"_attacker/("guns"_attacker+"hull"_defender). I.e., the
+     probability that the "guns of the winner can penetrate the
+     hull of the loser."
+  6. Note: the OG makes a significant adjustment to the sinking
+     probability (if not a complete override) having to do with
+     the size of each player's naval fleet, in that a ship is
+     much more likely to sink if the player's navy is large
+     and/or they already have many damaged ships. This is likely
+     done to discourage or put a check on large navies. But, we
+     will not replicate that in this game. See below for more
+     info on this, though the exact mechanism used by the OG is
+     not fully understood.
+
+Evasion:
+
+  * Let attack=can_attack?combat:0; if attack for defender is >=
+    attack for attacker then there is no evade, in which case we
+    move on to the combat calculation. If there is an evade, we
+    compute the probability of it first and roll the dice.
+  * The evade probability is computed from the weighted movement
+    points between the two units, similarly to how combat
+    strengths are weighted.
+  * The evasion probability seems to be a linear function of the
+    difference in total movement points between attacker and de-
+    fender, when it is non-zero.
+
+Sinking vs. damaged:
+
+  * The determination as to whether or not a ship sinks is nomi-
+    nally determined by the relative values of the "guns" and
+    "hull" parameters of the two ships (guns for the winner, hull
+    for the loser, weighed relatively just like combat
+    strengths). The intention was probably to say that "a ship
+    will sink if the winner's guns can penetrate the loser's
+    hull." This probably seems to be computed and applied as
+    stated when the two naval armies are small. However:
+  * The determination as to whether or not a ship sinks seems to
+    also be strongly affected by the total strength of that play-
+    er's navy, possibly in relation to that of the attacker, and
+    also possibly related to how many damaged ships the player
+    already has (not sure). This has been mentioned on the wiki
+    here:
+
+      https://civilization.fandom.com/wiki/FAQ_on_naval_combat_(Col)
+
+    and says the following:
+
+      "Long experience playing Colonization indicates that there
+      is a weighing factor in naval combat which is based on how
+      heavily your navy outnumbers your opponents navy. The
+      bigger your navy is, the greater the chance your ships will
+      lose in combat. What's more, ships don't just lose more,
+      they lose harder - your ships are much more likely to be
+      sunk.
+
+      Interestingly, though, this weighing factor only seems to
+      be applied when your ships attack other ships. If other
+      ships attack you, combat proceeds as normal.
+
+      The only real solution to this is to keep your navy reason-
+      ably small; two or three privateers and one or two
+      frigates."
+
+    As usual, this may not be entirely correct, but the gist of
+    it definitely seems to be born out.
+
+    This is not mentioned in the strategy guide, and also the me-
+    chanics of it seem a bit convoluted, so it is unclear how ex-
+    actly it works. Essentially though, if one nations armies are
+    much stronger, then, when it loses, its ships will tend to
+    sink instead of get damaged with 100% probability.
+  * Non-war ships (i.e., with zero attack) can never be sunk.
+    When we change NAMES.TXT to give e.g. a Galleon a non-zero
+    combat factor, the the game will allow it to sink.
+
+Multiple units per square:
+
+  Note that we won't be replicating these rules, since they seem
+  to be a consequence of the way that the OG represents units on
+  ships.
+
+  * When there are multiple ships on the defending square and the
+    defender loses, all of the ships on the square will be either
+    sunk or damaged. The non-war ships will be damaged, and the
+    non-war ships will be sunk. This could potentially have been
+    done because of the way that col1 represents units on ships,
+    i.e. if only one ship were to be sunk and it contained a unit
+    then the unit would have to be eliminated, but it wouldn't be
+    clear in general which ship the unit was on. We may want to
+    get rid of this rule... However, when the attacker loses (and
+    there are units in the cargo of one of the ships on the at-
+    tacker's square) the attacker and units go away, but the
+    other ships on the attacker's square remain.
+  * When an attacking ship loses, the other ships on its square
+    are unaffected, but units on the square go away.
+
+Data Collected on OG
+====================
+
+Note that some of the below is reliable but some of it may not
+be, either due to sample size or incorrect experiment setup. But,
+enough was done to be confident in the model described above.
+
+Military -> Non-military:
+
+  Privateer vs. Galleon
+     (8)           (6)
+       evade: 18
+       sunk1: 0
+       sunk2: 0
+    damaged1: 24
+    damaged2: 18
+
+  Privateer vs. Caravel
+     (8)          (4)
+       evade: 19
+        sunk: 3
+     damaged: 44
+
+  Frigate vs. Galleon(m)
+     (6)         (3)
+       evade: 30
+        sunk: 13
+     damaged: 38
+
+  Frigate vs. Caravel
+     (6)        (4)
+       evade: 12
+        sunk: 0
+     damaged: 22
+
+  Man-o-war vs. Caravel
+     (5)         (4)
+       evade: 17
+        sunk: 0   !!
+     damaged: 21
+
+  Man-o-war vs. Merchantman
+     (5)           (5)
+       evade: 23
+        sunk: 1   # Man-o-war sunk.
+     damaged: 14
+
+  Frigate vs. Galleon
+     (6)        (6)
+       evade: 48
+        sunk: 11
+     damaged: 17
+
+  Man-o-war vs. Galleon
+     (5)         (6)
+       evade: 41
+        sunk: 5
+     damaged: 26
+
+  Frigate vs. Galleon(m)
+     (6)         (8)
+       evade: 38
+        sunk: 7
+     damaged: 19
+
+  Frigate(m) vs. Galleon(m)
+     (4)         (8)
+       evade: 46
+        sunk: 4
+     damaged: 15
+
+Military -> Military:
+
+  Privateer vs. Privateer
+     (8)           (8)
+       evade: 0   !!
+        sunk: 25
+     damaged: 28
+
+  Privateer vs. Man-o-war
+     (8)           (5)
+       evade: 0
+       sunk1: 0
+       sunk2: 0
+    damaged1: 23
+    damaged2: 7
+
+  Man-o-war vs. Man-o-war
+     (5)        (5)
+       evade: 0
+       sunk1: 24
+       sunk2: 28
+    damaged1: 0
+    damaged2: 8
+
+  Man-o-war vs. Frigate
+     (5)         (6)
+       evade: 30
+       sunk1: 1
+       sunk2: 0
+    damaged1: 9
+    damaged2: 20
+
+  Frigate vs. Man-o-war
+     (6)         (5)
+       evade: 0
+       sunk1: 0
+       sunk2: 22
+    damaged1: 33
+    damaged2: 3
+
+  Man-o-war vs. Privateer
+     (5)           (8)
+       evade: 42
+       sunk1: 0
+       sunk2: 0
+    damaged1: 1     # need more data here.
+    damaged2: 17
+
+  Privateer vs. Frigate
+     (8)          (6)
+       evade: 0
+    damaged1: 0
+    damaged2: 14
+       sunk1: 41
+       sunk2: 5
+
+  Frigate vs. Privateer
+     (6)         (8)
+       evade: 89   (zero evade)
+    damaged1: 5    damaged1: 18
+    damaged2: 0    damaged2: 0
+       sunk1: 5       sunk1: 7
+       sunk2: 23      sunk2: 95
+
+  Frigate vs. Frigate
+     (6)        (6)
+       (guns=12, hull=32)
+    damaged1: 21  (french)
+    damaged2: 20  (english)
+       sunk1: 9   (french)
+       sunk2: 7   (english)
+
+       (guns=12, hull=32)      (good)
+    damaged1: 9  (french)
+    damaged2: 9  (english)
+       sunk1: 7  (french)
+       sunk2: 7  (english)
+
+       (guns=99, hull=1)      (good)
+    damaged1: 0  (french)
+    damaged2: 2  (english)
+       sunk1: 11  (french)
+       sunk2: 18  (english)
+
+       (guns=1, hull=99)
+    damaged1: 5  (french)
+    damaged2: 8  (english)
+       sunk1: 0  (french)
+       sunk2: 0  (english)
+
+    Privateer vs. Frigate      (good)
+    -----------------------
+     guns=10      guns=10
+     hull=10      hull=10
+    damaged1: 9  (french)
+    damaged2: 12  (english)
+       sunk1: 12  (french)
+       sunk2: 9  (english)
+
+    Privateer vs. Frigate
+    -----------------------
+     guns=10      guns=10
+     hull=20      hull=10
+    damaged1: 26  (french)
+    damaged2: 20  (english)
+       sunk1: 9  (french)
+       sunk2: 10  (english)
+
+    Privateer vs. Frigate      (good)
+    -----------------------
+     guns=10      guns=10
+     hull=99      hull=10
+    damaged1: 13  (french)
+    damaged2: 12  (english)
+       sunk1: 1  (french)
+       sunk2: 3  (english)
+
+    Privateer vs. Frigate      (good)
+    -----------------------
+     guns=99      guns=1
+     hull=99      hull=1
+    damaged1: 11  (french)
+    damaged2: 1  (english)
+       sunk1: 1  (french)
+       sunk2: 12  (english)
+
+    Privateer vs. Frigate      (good)
+    -----------------------
+     guns=99      guns=1
+     hull=1       hull=1
+    damaged1: 12  (french)
+    damaged2: 1  (english)
+       sunk1: 14  (french)
+       sunk2: 21  (english)
