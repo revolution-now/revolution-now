@@ -135,6 +135,14 @@ sumtype.UnitPromotion {
   },
 }
 
+# This is only for ships, and provides the parameters involved in
+# determining whether or not a ship sinks when it loses in combat
+# (as opposed to simply being damaged).
+struct.ShipSinking {
+  guns 'int',
+  hull 'int',
+}
+
 # Describes a literal unit type without regard to the concept of
 # base or derived type.
 struct.UnitTypeAttributes {
@@ -158,13 +166,13 @@ struct.UnitTypeAttributes {
   # Combat
   can_attack 'bool',
   combat 'int',
+  ship_combat_extra 'base::maybe<ShipSinking>',
+  on_death 'UnitDeathAction_t',
 
   # Cargo
   cargo_slots 'int',
   # Slots occupied by this unit.
   cargo_slots_occupies 'base::maybe<int>',
-
-  on_death 'UnitDeathAction_t',
 
   # Describes if/how this unit is a human. This is important to
   # know so that we can e.g. ensure that only human units can
@@ -244,6 +252,8 @@ struct.UnitTypeAttributes {
   # Can this unit type be obtained from a base type plus some
   # modifiers?
   is_derived 'bool',
+
+  _features { equality, validation }
 }
 
 # The constituents of this struct.need to be validated together.

@@ -86,6 +86,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -120,6 +121,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -154,6 +156,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -188,6 +191,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -219,6 +223,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       # Don't recall reading about this, but experiements in the
       # OG seem to indicate that pioneers are destroyed when they
       # lose a battle (along with scouts and missionaries).
@@ -250,6 +255,7 @@ composition {
       base_movement_points:  2
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       # Don't recall reading about this, but experiements in the
       # OG seem to indicate that pioneers are destroyed when they
       # lose a battle (along with scouts and pioneers).
@@ -281,6 +287,7 @@ composition {
       base_movement_points:  4
       can_attack:            true
       combat:                1
+      ship_combat_extra:     null
       # Does not simply lose horses; the game rules say that scout
       # units are completely destroyed upon defeat.
       on_death               destroy{}
@@ -311,6 +318,7 @@ composition {
       base_movement_points:  1
       can_attack:            true
       combat:                2
+      ship_combat_extra:     null
       on_death               demote{ lose=[muskets] }
       canonical_base:        free_colonist
       canonical_modified:    null
@@ -339,6 +347,7 @@ composition {
       base_movement_points:  4
       can_attack:            true
       combat:                3
+      ship_combat_extra:     null
       on_death               demote{ lose=[horses] }
       canonical_base:        free_colonist
       canonical_modified:    null
@@ -370,6 +379,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -404,6 +414,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -438,6 +449,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -472,6 +484,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -506,6 +519,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -540,6 +554,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -574,6 +589,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -608,6 +624,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -642,6 +659,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -676,6 +694,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -710,6 +729,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -744,6 +764,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -778,6 +799,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -812,6 +834,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -846,6 +869,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -880,6 +904,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -914,6 +939,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -948,6 +974,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null
@@ -982,6 +1009,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    hardy_pioneer
@@ -1016,6 +1044,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    jesuit_missionary
@@ -1050,6 +1079,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    seasoned_scout
@@ -1084,6 +1114,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture_and_demote{type=free_colonist}
       canonical_base:        null
       canonical_modified:    veteran_soldier
@@ -1123,6 +1154,7 @@ composition {
       base_movement_points:  1
       can_attack:            true
       combat:                3
+      ship_combat_extra:     null
       on_death               demote{ lose=[muskets] }
       canonical_base:        veteran_colonist
       canonical_modified:    null
@@ -1151,6 +1183,7 @@ composition {
       base_movement_points:  4
       can_attack:            true
       combat:                4
+      ship_combat_extra:     null
       on_death               demote{ lose=[horses] }
       canonical_base:        veteran_colonist
       canonical_modified:    null
@@ -1179,6 +1212,7 @@ composition {
       base_movement_points:  1
       can_attack:            true
       combat:                4
+      ship_combat_extra:     null
       on_death               demote{ lose=[muskets, independence] }
       canonical_base:        veteran_colonist
       canonical_modified:    null
@@ -1207,6 +1241,7 @@ composition {
       base_movement_points:  4
       can_attack:            true
       combat:                5
+      ship_combat_extra:     null
       on_death               demote{ lose=[horses] }
       canonical_base:        veteran_colonist
       canonical_modified:    null
@@ -1235,6 +1270,7 @@ composition {
       base_movement_points:  1
       can_attack:            true
       combat:                5
+      ship_combat_extra:     null
       on_death               destroy{}
       canonical_base:        null
       canonical_modified:    null
@@ -1265,6 +1301,7 @@ composition {
       base_movement_points:  4
       can_attack:            true
       combat:                6
+      ship_combat_extra:     null
       on_death               demote{ lose=[horses] }
       canonical_base:        regular
       canonical_modified:    null
@@ -1293,6 +1330,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       # Don't recall reading about this, but experiements in the
       # OG seem to indicate that pioneers are destroyed when they
       # lose a battle (along with scouts).
@@ -1324,6 +1362,7 @@ composition {
       base_movement_points:  2
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       # Don't recall reading about this, but experiements in the
       # OG seem to indicate that pioneers are destroyed when they
       # lose a battle (along with scouts and pioneers).
@@ -1355,6 +1394,7 @@ composition {
       base_movement_points:  4
       can_attack:            true
       combat:                1
+      ship_combat_extra:     null
       # Does not simply lose horses; the game rules say that scout
       # units are completely destroyed upon defeat.
       on_death               destroy{}
@@ -1388,6 +1428,7 @@ composition {
       base_movement_points:  1
       can_attack:            true
       combat:                3
+      ship_combat_extra:     null
       on_death               destroy{}
       canonical_base:        null
       canonical_modified:    null
@@ -1418,6 +1459,7 @@ composition {
       base_movement_points:  1
       can_attack:            true
       combat:                5
+      ship_combat_extra:     null
       on_death               demote{ lose=[strength] }
       canonical_base:        damaged_artillery
       canonical_modified:    null
@@ -1449,6 +1491,7 @@ composition {
       base_movement_points:  4
       can_attack:            false
       combat:                2
+      ship_combat_extra:     { guns=0, hull=4 }
       on_death               naval{}
       canonical_base:        null
       canonical_modified:    null
@@ -1477,6 +1520,7 @@ composition {
       base_movement_points:  5
       can_attack:            false
       combat:                5
+      ship_combat_extra:     { guns=1, hull=8 }
       on_death               naval{}
       canonical_base:        null
       canonical_modified:    null
@@ -1505,6 +1549,7 @@ composition {
       base_movement_points:  6
       can_attack:            false
       combat:                10
+      ship_combat_extra:     { guns=4, hull=20 }
       on_death               naval{}
       canonical_base:        null
       canonical_modified:    null
@@ -1533,6 +1578,7 @@ composition {
       base_movement_points:  8
       can_attack:            true
       combat:                8
+      ship_combat_extra:     { guns=4, hull=12 }
       on_death               naval{}
       canonical_base:        null
       canonical_modified:    null
@@ -1561,6 +1607,7 @@ composition {
       base_movement_points:  6
       can_attack:            true
       combat:                16
+      ship_combat_extra:     { guns=12, hull=32 }
       on_death               naval{}
       canonical_base:        null
       canonical_modified:    null
@@ -1589,6 +1636,7 @@ composition {
       base_movement_points:  5
       can_attack:            true
       combat:                24
+      ship_combat_extra:     { guns=32, hull=64 }
       on_death               naval{}
       canonical_base:        null
       canonical_modified:    null
@@ -1620,6 +1668,7 @@ composition {
       base_movement_points:  2
       can_attack:            false
       combat:                1
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       cargo_slots:           2
@@ -1651,6 +1700,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                0  # always loses.
+      ship_combat_extra:     null
       on_death               capture{}
       canonical_base:        null
       canonical_modified:    null

@@ -64,45 +64,97 @@ maybe<e_unit_type_modifier> inventory_to_modifier(
 }
 
 /****************************************************************
+** UnitTypeAttributes
+*****************************************************************/
+valid_or<string> UnitTypeAttributes::validate() const {
+  // Any unit type that is derived must not itself have modi-
+  // fiers.
+  if( is_derived )
+    REFL_VALIDATE( modifiers.empty(),
+                   "derived type {} cannot have modifiers.",
+                   type );
+
+  // For each unit type, make sure that each modifier has a
+  // non-empty set of modifiers.
+  for( auto& [mtype, mod_set] : modifiers )
+    REFL_VALIDATE( !mod_set.empty(),
+                   "type `{}' has an empty list of modifiers "
+                   "for the modified type `{}'.",
+                   type, mtype );
+
+  // For each unit type, make sure that each modifier has a
+  // unique set of modifiers. Unfortunately it seems that
+  // unordered_set does not support nesting like this.
+  set<set<e_unit_type_modifier>> seen;
+  for( auto& [mtype, mod_set] : modifiers ) {
+    set<e_unit_type_modifier> used( mod_set.begin(),
+                                    mod_set.end() );
+    REFL_VALIDATE(
+        !seen.contains( used ),
+        "unit type {} contains a duplicate set of modifiers.",
+        type );
+    seen.insert( used );
+  }
+
+  // The ship_combat_extra field must be set if an only if the
+  // unit type is a ship.
+  REFL_VALIDATE( ship == ship_combat_extra.has_value(),
+                 "the ship_combat_extra field must be non-null "
+                 "if an only if the unit type is a ship." );
+
+  // Validate that only base types have can_found == yes/no and
+  // derived types have can_found == from_base.
+  if( is_derived )
+    REFL_VALIDATE(
+        can_found == e_unit_can_found_colony::from_base,
+        "derived type {} must have `from_base` for its "
+        "`can_found` field.",
+        type )
+  else
+    // Not derived type.
+    REFL_VALIDATE(
+        can_found != e_unit_can_found_colony::from_base,
+        "base type {} must not have `from_base` for its "
+        "`can_found` field.",
+        type );
+
+  // Validate that if can_found is yes, then is_human is true.
+  if( can_found == e_unit_can_found_colony::yes )
+    REFL_VALIDATE(
+        human != e_unit_human::no,
+        "type {} has can_found=yes but it is a non-human unit.",
+        type );
+
+  // Validate that only base types have human == yes/no and de-
+  // rived types have human == from_base.
+  if( is_derived )
+    REFL_VALIDATE( human == e_unit_human::from_base,
+                   "derived type {} must have `from_base` for "
+                   "its `human` field.",
+                   type )
+  else
+    // Not derived type.
+    REFL_VALIDATE( human != e_unit_human::from_base,
+                   "base type {} must not have `from_base` for "
+                   "its `human` field.",
+                   type );
+
+  // Validate that the `expertise` field is only set for base
+  // types.
+  if( is_derived )
+    REFL_VALIDATE( !expertise.has_value(),
+                   "derived type {} has the`expertise` field "
+                   "set, but that is only for base types.",
+                   type );
+
+  return base::valid;
+}
+
+/****************************************************************
 ** UnitCompositionConfig
 *****************************************************************/
 valid_or<string> UnitCompositionConfig::validate() const {
   auto& m = unit_types;
-  // Validation: any unit type that is derived must not itself
-  // have modifiers.
-  for( auto& [type, type_struct] : m )
-    if( type_struct.is_derived &&
-        !type_struct.modifiers.empty() )
-      return fmt::format(
-          "derived type {} cannot have modifiers.", type );
-
-  // Validation: For each unit type, make sure that each modifier
-  // has a non-empty set of modifiers.
-  for( auto& [type, type_struct] : m )
-    for( auto& [mtype, mod_set] : type_struct.modifiers )
-      REFL_VALIDATE( !mod_set.empty(),
-                     "type `{}' has an empty list of modifiers "
-                     "for the modified type `{}'.",
-                     type, mtype );
-
-  // Validation: For each unit type, make sure that each modifier
-  // has a unique set of modifiers.
-  for( auto& [type, type_struct] : m ) {
-    // Unfortunately it seems that unordered_set does not support
-    // nesting like this.
-    set<set<e_unit_type_modifier>> seen;
-    for( auto& [mtype, mod_set] : type_struct.modifiers ) {
-      set<e_unit_type_modifier> uset( mod_set.begin(),
-                                      mod_set.end() );
-      if( seen.contains( uset ) )
-        return fmt::format(
-            "unit type {} contains a duplicate set of "
-            "modifiers.",
-            type );
-      seen.insert( uset );
-    }
-  }
-
   // NOTE: do not use unit_attr() here to access unit properties
   // since it queries a structure that will not yet exist at this
   // point. Instead, us `m` as is done below.
@@ -213,66 +265,6 @@ valid_or<string> UnitCompositionConfig::validate() const {
             type );
     }
   }
-
-  // Validate that only base types have can_found == yes/no and
-  // derived types have can_found == from_base.
-  for( auto& [type, type_struct] : m ) {
-    if( type_struct.is_derived ) {
-      REFL_VALIDATE(
-          type_struct.can_found ==
-              e_unit_can_found_colony::from_base,
-          "derived type {} must have `from_base` for its "
-          "`can_found` field.",
-          type );
-    } else {
-      // Not derived type.
-      REFL_VALIDATE(
-          type_struct.can_found !=
-              e_unit_can_found_colony::from_base,
-          "base type {} must not have `from_base` for its "
-          "`can_found` field.",
-          type );
-    }
-  }
-
-  // Validate that if can_found is yes, then is_human is true.
-  for( auto& [type, type_struct] : m ) {
-    if( type_struct.can_found == e_unit_can_found_colony::yes ) {
-      REFL_VALIDATE( type_struct.human != e_unit_human::no,
-                     "type {} has can_found=yes but it is a "
-                     "non-human unit.",
-                     type );
-    }
-  }
-
-  // Validate that only base types have human == yes/no and
-  // derived types have human == from_base.
-  for( auto& [type, type_struct] : m ) {
-    if( type_struct.is_derived ) {
-      REFL_VALIDATE(
-          type_struct.human == e_unit_human::from_base,
-          "derived type {} must have `from_base` for its "
-          "`human` field.",
-          type );
-    } else {
-      // Not derived type.
-      REFL_VALIDATE(
-          type_struct.human != e_unit_human::from_base,
-          "base type {} must not have `from_base` for its "
-          "`human` field.",
-          type );
-    }
-  }
-
-  // Validate that the `expertise` field is only set for base
-  // types.
-  for( auto& [type, type_struct] : m )
-    if( type_struct.is_derived )
-      if( type_struct.expertise.has_value() )
-        return fmt::format(
-            "derived type {} has the`expertise` field set, but "
-            "that is only for base types.",
-            type );
 
   // Validation that there is precisely one unit that has
   // expertise in each activity.
