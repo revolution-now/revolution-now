@@ -952,6 +952,12 @@ struct LandViewPlane::Impl : public Plane {
   wait<> eat_cross_unit_buffered_input_events( UnitId id ) {
     if( !config_land_view.input_overrun_detection.enabled )
       co_return;
+    // It is necessary to clear the input buffers here because
+    // otherwise we could potentially read an old buffered even
+    // that was entered longer than kWait ago, which will cause
+    // the below to exit the loop prematurely and not eat any-
+    // thing.
+    reset_input_buffers();
     auto const kWait =
         config_land_view.input_overrun_detection.wait_time;
     SCOPE_EXIT( input_overrun_indicator_ = nothing );
