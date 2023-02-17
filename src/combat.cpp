@@ -267,14 +267,16 @@ CombatEuroAttackEuro RealCombat::euro_attack_euro(
           attacker_coord, winner == e_combat_winner::defender );
   return CombatEuroAttackEuro{
       .winner   = winner,
-      .attacker = { .id          = attacker.id(),
-                    .modifiers   = {},
-                    .base_weight = attack_points,
-                    .outcome     = attacker_outcome },
-      .defender = { .id          = defender.id(),
-                    .modifiers   = {},
-                    .base_weight = defense_points,
-                    .outcome     = defender_outcome } };
+      .attacker = { .id              = attacker.id(),
+                    .modifiers       = {},
+                    .base_weight     = attack_points,
+                    .modified_weight = attack_points,
+                    .outcome         = attacker_outcome },
+      .defender = { .id              = defender.id(),
+                    .modifiers       = {},
+                    .base_weight     = defense_points,
+                    .modified_weight = defense_points,
+                    .outcome         = defender_outcome } };
 }
 
 /*
@@ -364,16 +366,18 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
       .outcome      = {},
       .winner       = nothing,
       .sink_weights = nothing,
-      .attacker     = { .id            = attacker.id(),
-                        .modifiers     = {},
-                        .evade_weight  = attacker_evade,
-                        .combat_weight = attacker_combat,
-                        .outcome       = {} },
-      .defender     = { .id            = defender.id(),
-                        .modifiers     = {},
-                        .evade_weight  = defender_evade,
-                        .combat_weight = defender_combat,
-                        .outcome       = {} } };
+      .attacker     = { .id                     = attacker.id(),
+                        .modifiers              = {},
+                        .evade_weight           = attacker_evade,
+                        .base_combat_weight     = attacker_combat,
+                        .modified_combat_weight = attacker_combat,
+                        .outcome                = {} },
+      .defender     = { .id                     = defender.id(),
+                        .modifiers              = {},
+                        .evade_weight           = defender_evade,
+                        .base_combat_weight     = defender_combat,
+                        .modified_combat_weight = defender_combat,
+                        .outcome                = {} } };
 
   if( evaded ) {
     res.outcome = e_naval_combat_outcome::evade;
@@ -463,14 +467,16 @@ RealCombat::euro_attack_undefended_colony(
   return CombatEuroAttackUndefendedColony{
       .winner    = winner,
       .colony_id = colony.id,
-      .attacker  = { .id          = attacker.id(),
-                     .modifiers   = {},
-                     .base_weight = attack_points,
-                     .outcome     = attacker_outcome },
-      .defender  = { .id          = defender.id(),
-                     .modifiers   = {},
-                     .base_weight = defense_points,
-                     .outcome     = defender_outcome } };
+      .attacker  = { .id              = attacker.id(),
+                     .modifiers       = {},
+                     .base_weight     = attack_points,
+                     .modified_weight = attack_points,
+                     .outcome         = attacker_outcome },
+      .defender  = { .id              = defender.id(),
+                     .modifiers       = {},
+                     .base_weight     = defense_points,
+                     .modified_weight = defense_points,
+                     .outcome         = defender_outcome } };
 }
 
 CombatEuroAttackBrave RealCombat::euro_attack_brave(
@@ -493,14 +499,16 @@ CombatEuroAttackBrave RealCombat::euro_attack_brave(
           defender, winner == e_combat_winner::defender );
   return CombatEuroAttackBrave{
       .winner   = winner,
-      .attacker = { .id          = attacker.id(),
-                    .modifiers   = {},
-                    .base_weight = attack_points,
-                    .outcome     = attacker_outcome },
-      .defender = { .id          = defender.id,
-                    .modifiers   = {},
-                    .base_weight = defense_points,
-                    .outcome     = defender_outcome } };
+      .attacker = { .id              = attacker.id(),
+                    .modifiers       = {},
+                    .base_weight     = attack_points,
+                    .modified_weight = attack_points,
+                    .outcome         = attacker_outcome },
+      .defender = { .id              = defender.id,
+                    .modifiers       = {},
+                    .base_weight     = defense_points,
+                    .modified_weight = defense_points,
+                    .outcome         = defender_outcome } };
 }
 
 CombatEuroAttackDwelling RealCombat::euro_attack_dwelling(
@@ -562,14 +570,16 @@ CombatEuroAttackDwelling RealCombat::euro_attack_dwelling(
       .winner           = winner,
       .new_tribal_alarm = new_tribal_alarm,
       .missions_burned  = missions_burned,
-      .attacker         = { .id          = attacker.id(),
-                            .modifiers   = {},
-                            .base_weight = attack_points,
-                            .outcome     = attacker_outcome },
-      .defender         = { .id          = dwelling.id,
-                            .modifiers   = {},
-                            .base_weight = defense_points,
-                            .outcome     = defender_outcome } };
+      .attacker         = { .id              = attacker.id(),
+                            .modifiers       = {},
+                            .base_weight     = attack_points,
+                            .modified_weight = attack_points,
+                            .outcome         = attacker_outcome },
+      .defender         = { .id              = dwelling.id,
+                            .modifiers       = {},
+                            .base_weight     = defense_points,
+                            .modified_weight = defense_points,
+                            .outcome         = defender_outcome } };
 }
 
 } // namespace rn

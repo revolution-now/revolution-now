@@ -180,6 +180,7 @@ struct.CombatStats {
   id 'IdT',
   modifiers 'refl::enum_map<ModifiersT, base::maybe<CombatModifierEffect_t>>',
   base_weight 'double', # without modifiers.
+  modified_weight 'double', # with modifiers.
   outcome 'OutcomeT',
 }
 
@@ -192,9 +193,10 @@ struct.NavalCombatStats {
   id 'UnitId',
   modifiers 'refl::enum_map<e_euro_unit_combat_modifiers, base::maybe<CombatModifierEffect_t>>',
   evade_weight 'int',
-  # This can always be populated, even if it is not used (which
-  # it won't be in the case of an evade).
-  combat_weight 'double',
+  # The combat weights can always be populated, even if they are
+  # not used (which they won't be in the case of an evade).
+  base_combat_weight 'double',     # without modifiers.
+  modified_combat_weight 'double', # with modifiers.
   outcome 'EuroNavalUnitCombatOutcome_t',
 }
 

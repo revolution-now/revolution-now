@@ -333,10 +333,11 @@ static AnimationSequence anim_seq_for_lost_colony_capture(
       .winner   = combat.winner,
       .attacker = combat.attacker,
       .defender = {
-          .id          = combat.defender.id,
-          .modifiers   = combat.defender.modifiers,
-          .base_weight = combat.defender.base_weight,
-          .outcome     = EuroUnitCombatOutcome::no_change{} } };
+          .id              = combat.defender.id,
+          .modifiers       = combat.defender.modifiers,
+          .base_weight     = combat.defender.base_weight,
+          .modified_weight = combat.defender.modified_weight,
+          .outcome = EuroUnitCombatOutcome::no_change{} } };
   return anim_seq_for_attack_euro( ss, new_combat );
 }
 
