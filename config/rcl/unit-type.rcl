@@ -1519,7 +1519,7 @@ composition {
       visibility:            1
       base_movement_points:  5
       can_attack:            false
-      combat:                5
+      combat:                6
       ship_combat_extra:     { guns=1, hull=8 }
       on_death               naval{}
       canonical_base:        null
