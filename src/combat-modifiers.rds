@@ -24,17 +24,17 @@ enum.e_euro_unit_combat_modifiers {
   colony_stockade,
   colony_fort,
   colony_fortress,
-  # From the SG: "The Jact that units receive a 50 percent
-  # bonusJor beingJortjfied within a Stockade may be an error.
-  # When questioned about this before publication, the designers
-  # said that thefartjfied bonus would not app{y to units inside-
-  # Jortjfications, but it clear{y does in the first released
-  # version qf ColonizationJor a unitJortj/led inside a Stockade.
+  # From the SG: "The fact that units receive a 50 percent bonus
+  # for being fortified within a Stockade may be an error. When
+  # questioned about this before publication, the designers said
+  # that the fortified bonus would not apply to units inside for-
+  # tifications, but it clearly does in the first released ver-
+  # sion of Colonization for a unit fortified inside a Stockade.
   # In this case, the unit receives the same 150 percent bonus
   # that any unit receives inside a Fort. However, a unit inside
-  # aJort does not have to beJortjfied and the Fort has other
-  # benefits as well. Infature versions qf Colonization, the
-  # Jortjfied bonus may not app{y to units inside a Stockade."
+  # a Fort does not have to be fortified and the Fort has other
+  # benefits as well. In future versions of Colonization, the
+  # fortified bonus may not apply to units inside a Stockade."
   fortified, # unless in a colony with fortification.
   terrain,
   ambush,
