@@ -319,11 +319,121 @@ Naval Combat Mechanics from the OG:
      not fully understood.
 */
 CombatShipAttackShip RealCombat::ship_attack_ship(
-    Unit const&, Unit const& ) {
-  // We need to work out the precise details of naval combat.
-  // This has been started; see doc/col1-fighting.txt for data
-  // collected thus far.
-  NOT_IMPLEMENTED;
+    Unit const& attacker, Unit const& defender ) {
+  CHECK( attacker.desc().ship );
+  CHECK( defender.desc().ship );
+  Player const& attacking_player =
+      player_for_nation_or_die( ss_.players, attacker.nation() );
+  Player const& defending_player =
+      player_for_nation_or_die( ss_.players, attacker.nation() );
+  Coord const defender_coord =
+      ss_.units.coord_for( defender.id() );
+  UNWRAP_CHECK( attacker_ship_combat,
+                attacker.desc().ship_combat_extra );
+  UNWRAP_CHECK( defender_ship_combat,
+                defender.desc().ship_combat_extra );
+  int const attacker_attack_strength =
+      attacker.desc().can_attack ? attacker.desc().combat : 0;
+  int const defender_attack_strength =
+      defender.desc().can_attack ? defender.desc().combat : 0;
+  CHECK_GT( attacker_attack_strength, 0 );
+  // The attacker obviously doesn't evade; this is just the name
+  // used for the attacker's weight in the evade calculation.
+  int const attacker_evade =
+      movement_points( attacking_player, attacker.type() )
+          .atoms() /
+      3;
+  int const defender_evade =
+      movement_points( defending_player, defender.type() )
+          .atoms() /
+      3;
+  double const attacker_combat = attacker.desc().combat;
+  double const defender_combat = defender.desc().combat;
+  // Try evade.
+  bool const evaded = [&] {
+    bool const try_evade =
+        defender_attack_strength < attacker_attack_strength;
+    if( !try_evade ) return false;
+    return rand_.bernoulli(
+        double( defender_evade ) /
+        ( defender_evade + attacker_evade ) );
+  }();
+
+  // Fill out what we can so far.
+  CombatShipAttackShip res{
+      .outcome      = {},
+      .winner       = nothing,
+      .sink_weights = nothing,
+      .attacker     = { .id            = attacker.id(),
+                        .modifiers     = {},
+                        .evade_weight  = attacker_evade,
+                        .combat_weight = attacker_combat,
+                        .outcome       = {} },
+      .defender     = { .id            = defender.id(),
+                        .modifiers     = {},
+                        .evade_weight  = defender_evade,
+                        .combat_weight = defender_combat,
+                        .outcome       = {} } };
+
+  if( evaded ) {
+    res.outcome = e_naval_combat_outcome::evade;
+    res.winner  = nothing;
+    res.attacker.outcome =
+        EuroNavalUnitCombatOutcome::no_change{};
+    res.defender.outcome =
+        EuroNavalUnitCombatOutcome::no_change{};
+    return res;
+  }
+
+  // Not evaded, so someone wins.
+  bool const attacker_wins =
+      rand_.bernoulli( double( attacker_combat ) /
+                       ( attacker_combat + defender_combat ) );
+  bool const defender_wins = !attacker_wins;
+  res.winner = attacker_wins ? e_combat_winner::attacker
+                             : e_combat_winner::defender;
+  NavalCombatStats* loser =
+      attacker_wins ? &res.defender : &res.attacker;
+  NavalCombatStats* winner =
+      attacker_wins ? &res.attacker : &res.defender;
+  CHECK( winner != loser );
+
+  // Set the outcome of the winner.
+  if( winner == &res.attacker )
+    winner->outcome = EuroNavalUnitCombatOutcome::moved{
+        .to = defender_coord };
+  else
+    winner->outcome = EuroNavalUnitCombatOutcome::no_change{};
+
+  // Now we can compute the sink weights since we know whose guns
+  // and whose hull strength we need.
+  int const guns = attacker_wins ? attacker_ship_combat.guns
+                                 : defender_ship_combat.guns;
+  int const hull = attacker_wins ? defender_ship_combat.hull
+                                 : attacker_ship_combat.hull;
+
+  // This is what prevents non-war ships from ever sinking, which
+  // they never appear to do in the OG.
+  bool const is_attacking_warship =
+      ( defender_attack_strength > 0 );
+  bool const can_sink =
+      defender_wins /*and attacker must be a warship*/
+      || ( attacker_wins && is_attacking_warship );
+  if( can_sink )
+    res.sink_weights.emplace() = { .guns = guns, .hull = hull };
+  bool const loser_sinks =
+      can_sink &&
+      rand_.bernoulli( double( guns ) / ( guns + hull ) );
+  res.outcome = loser_sinks ? e_naval_combat_outcome::sunk
+                            : e_naval_combat_outcome::damaged;
+
+  // Set the outcome of the loser.
+  if( loser_sinks )
+    loser->outcome = EuroNavalUnitCombatOutcome::sunk{};
+  else
+    loser->outcome = EuroNavalUnitCombatOutcome::damaged{};
+
+  return res;
 }
 
 CombatEuroAttackUndefendedColony

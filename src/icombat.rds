@@ -10,6 +10,7 @@
 # ===============================================================
 # Revolution Now
 include "combat-modifiers.rds.hpp"
+include "maybe.hpp"
 
 # ss
 include "ss/colony-id.hpp"
@@ -182,6 +183,21 @@ struct.CombatStats {
   outcome 'OutcomeT',
 }
 
+struct.Sinking {
+  guns 'int', # from the winner.
+  hull 'int', # from the loser.
+}
+
+struct.NavalCombatStats {
+  id 'UnitId',
+  modifiers 'refl::enum_map<e_euro_unit_combat_modifiers, base::maybe<CombatModifierEffect_t>>',
+  evade_weight 'int',
+  # This can always be populated, even if it is not used (which
+  # it won't be in the case of an evade).
+  combat_weight 'double',
+  outcome 'EuroNavalUnitCombatOutcome_t',
+}
+
 struct.CombatEuroAttackEuro {
   winner 'e_combat_winner',
 
@@ -192,9 +208,13 @@ struct.CombatEuroAttackEuro {
 struct.CombatShipAttackShip {
   outcome 'e_naval_combat_outcome',
   winner 'base::maybe<e_combat_winner>',
+  # The sink vs. damaged weights can't be computed in all cases
+  # because they require knowing which unit one the battle; but
+  # there won't always be a winner, i.e. if the defender evades.
+  sink_weights 'maybe<Sinking>',
 
-  attacker 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroNavalUnitCombatOutcome_t>',
-  defender 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroNavalUnitCombatOutcome_t>',
+  attacker 'NavalCombatStats',
+  defender 'NavalCombatStats',
 }
 
 struct.CombatEuroAttackUndefendedColony {
@@ -210,7 +230,7 @@ struct.CombatColonyArtilleryAttackShip {
   winner 'e_combat_winner',
 
   attacker 'CombatStats<ColonyId, e_colony_artillery_combat_modifiers, ColonyArtilleryCombatOutcome_t>',
-  defender 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
+  defender 'NavalCombatStats',
 }
 
 struct.CombatEuroAttackBrave {
