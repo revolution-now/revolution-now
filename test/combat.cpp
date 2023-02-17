@@ -157,12 +157,12 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
     W.expect_promotion( false );
     expected = {
         .winner   = e_combat_winner::attacker,
-        .attacker = { .id     = attacker->id(),
-                      .weight = 2.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 2.0,
                       .outcome =
                           EuroUnitCombatOutcome::no_change{} },
-        .defender = { .id      = defender->id(),
-                      .weight  = 2.0,
+        .defender = { .id          = defender->id(),
+                      .base_weight = 2.0,
                       .outcome = EuroUnitCombatOutcome::demoted{
                           .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
@@ -180,13 +180,13 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
     expected = {
         .winner = e_combat_winner::attacker,
         .attacker =
-            { .id     = attacker->id(),
-              .weight = 2.0,
+            { .id          = attacker->id(),
+              .base_weight = 2.0,
               .outcome =
                   EuroUnitCombatOutcome::promoted{
                       .to = e_unit_type::veteran_soldier } },
-        .defender = { .id      = defender->id(),
-                      .weight  = 2.0,
+        .defender = { .id          = defender->id(),
+                      .base_weight = 2.0,
                       .outcome = EuroUnitCombatOutcome::demoted{
                           .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
@@ -208,13 +208,13 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
         true;
     expected = {
         .winner   = e_combat_winner::attacker,
-        .attacker = { .id     = attacker->id(),
-                      .weight = 2.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 2.0,
                       .outcome =
                           EuroUnitCombatOutcome::promoted{
                               .to = e_unit_type::soldier } },
-        .defender = { .id      = defender->id(),
-                      .weight  = 2.0,
+        .defender = { .id          = defender->id(),
+                      .base_weight = 2.0,
                       .outcome = EuroUnitCombatOutcome::demoted{
                           .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
@@ -236,16 +236,16 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
     expected = {
         .winner = e_combat_winner::attacker,
         .attacker =
-            { .id     = attacker->id(),
-              .weight = 2.0,
+            { .id          = attacker->id(),
+              .base_weight = 2.0,
               .outcome =
                   EuroUnitCombatOutcome::promoted{
                       .to = UnitType::create(
                                 e_unit_type::soldier,
                                 e_unit_type::indentured_servant )
                                 .value() } },
-        .defender = { .id      = defender->id(),
-                      .weight  = 2.0,
+        .defender = { .id          = defender->id(),
+                      .base_weight = 2.0,
                       .outcome = EuroUnitCombatOutcome::demoted{
                           .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
@@ -265,12 +265,12 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
     W.expect_attacker_wins( .5 );
     expected = {
         .winner   = e_combat_winner::attacker,
-        .attacker = { .id     = attacker->id(),
-                      .weight = 2.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 2.0,
                       .outcome =
                           EuroUnitCombatOutcome::no_change{} },
-        .defender = { .id      = defender->id(),
-                      .weight  = 2.0,
+        .defender = { .id          = defender->id(),
+                      .base_weight = 2.0,
                       .outcome = EuroUnitCombatOutcome::demoted{
                           .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
@@ -288,12 +288,12 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
     W.expect_attacker_wins( .666666 );
     expected = {
         .winner   = e_combat_winner::attacker,
-        .attacker = { .id     = attacker->id(),
-                      .weight = 4.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 4.0,
                       .outcome =
                           EuroUnitCombatOutcome::no_change{} },
-        .defender = { .id      = defender->id(),
-                      .weight  = 2.0,
+        .defender = { .id          = defender->id(),
+                      .base_weight = 2.0,
                       .outcome = EuroUnitCombatOutcome::demoted{
                           .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
@@ -315,13 +315,13 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
     expected = {
         .winner = e_combat_winner::attacker,
         .attacker =
-            { .id     = attacker->id(),
-              .weight = 4.0,
+            { .id          = attacker->id(),
+              .base_weight = 4.0,
               .outcome =
                   EuroUnitCombatOutcome::promoted{
                       .to = e_unit_type::continental_cavalry } },
-        .defender = { .id      = defender->id(),
-                      .weight  = 1.0,
+        .defender = { .id          = defender->id(),
+                      .base_weight = 1.0,
                       .outcome = EuroUnitCombatOutcome::captured{
                           .new_nation = e_nation::english,
                           .new_coord  = { .x = 1, .y = 0 } } } };
@@ -341,13 +341,13 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
     W.expect_promotion( false );
     expected = {
         .winner   = e_combat_winner::attacker,
-        .attacker = { .id     = attacker->id(),
-                      .weight = 2.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 2.0,
                       .outcome =
                           EuroUnitCombatOutcome::no_change{} },
         .defender = {
-            .id     = defender->id(),
-            .weight = 1.0,
+            .id          = defender->id(),
+            .base_weight = 1.0,
             .outcome =
                 EuroUnitCombatOutcome::captured_and_demoted{
                     .to         = e_unit_type::free_colonist,
@@ -367,14 +367,14 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
     expected = {
         .winner = e_combat_winner::defender,
         .attacker =
-            { .id     = attacker->id(),
-              .weight = 4.0,
+            { .id          = attacker->id(),
+              .base_weight = 4.0,
               .outcome =
                   EuroUnitCombatOutcome::demoted{
                       .to = e_unit_type::veteran_soldier } },
         .defender = {
-            .id      = defender->id(),
-            .weight  = 1.0,
+            .id          = defender->id(),
+            .base_weight = 1.0,
             .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
@@ -392,16 +392,16 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
     expected = {
         .winner = e_combat_winner::defender,
         .attacker =
-            { .id     = attacker->id(),
-              .weight = 5.0,
+            { .id          = attacker->id(),
+              .base_weight = 5.0,
               .outcome =
                   EuroUnitCombatOutcome::demoted{
                       .to = e_unit_type::damaged_artillery } },
         .defender = {
-            .id      = defender->id(),
-            .weight  = 3.0,
-            .outcome = EuroUnitCombatOutcome::promoted{
-                .to = e_unit_type::veteran_dragoon } } };
+            .id          = defender->id(),
+            .base_weight = 3.0,
+            .outcome     = EuroUnitCombatOutcome::promoted{
+                    .to = e_unit_type::veteran_dragoon } } };
     REQUIRE( f() == expected );
   }
 }
@@ -429,13 +429,13 @@ TEST_CASE( "[combat] combat_euro_attack_undefended_colony" ) {
     expected = {
         .winner    = e_combat_winner::attacker,
         .colony_id = colony.id,
-        .attacker  = { .id     = attacker->id(),
-                       .weight = 2.0,
+        .attacker  = { .id          = attacker->id(),
+                       .base_weight = 2.0,
                        .outcome =
                            EuroUnitCombatOutcome::no_change{} },
         .defender  = {
-             .id     = defender.id(),
-             .weight = 1.0,
+             .id          = defender.id(),
+             .base_weight = 1.0,
              .outcome =
                 EuroColonyWorkerCombatOutcome::defeated{} } };
     REQUIRE( f() == expected );
@@ -449,15 +449,15 @@ TEST_CASE( "[combat] combat_euro_attack_undefended_colony" ) {
     expected = {
         .winner    = e_combat_winner::defender,
         .colony_id = colony.id,
-        .attacker  = { .id     = attacker->id(),
-                       .weight = 2.0,
+        .attacker  = { .id          = attacker->id(),
+                       .base_weight = 2.0,
                        .outcome =
                            EuroUnitCombatOutcome::demoted{
                                .to =
                                   e_unit_type::free_colonist } },
         .defender  = {
-             .id     = defender.id(),
-             .weight = 1.0,
+             .id          = defender.id(),
+             .base_weight = 1.0,
              .outcome =
                 EuroColonyWorkerCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
@@ -488,16 +488,16 @@ TEST_CASE( "[combat] combat_euro_attack_brave" ) {
     W.expect_promotion( false );
     expected = {
         .winner   = e_combat_winner::attacker,
-        .attacker = { .id     = attacker->id(),
-                      .weight = 2.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 2.0,
                       .outcome =
                           EuroUnitCombatOutcome::no_change{} },
         .defender = {
-            .id      = defender->id,
-            .weight  = 1.0,
-            .outcome = NativeUnitCombatOutcome::destroyed{
-                .tribe_retains_horses  = false,
-                .tribe_retains_muskets = false } } };
+            .id          = defender->id,
+            .base_weight = 1.0,
+            .outcome     = NativeUnitCombatOutcome::destroyed{
+                    .tribe_retains_horses  = false,
+                    .tribe_retains_muskets = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -515,17 +515,17 @@ TEST_CASE( "[combat] combat_euro_attack_brave" ) {
     expected = {
         .winner = e_combat_winner::attacker,
         .attacker =
-            { .id     = attacker->id(),
-              .weight = 2.0,
+            { .id          = attacker->id(),
+              .base_weight = 2.0,
               .outcome =
                   EuroUnitCombatOutcome::promoted{
                       .to = e_unit_type::veteran_soldier } },
         .defender = {
-            .id      = defender->id,
-            .weight  = 1.0,
-            .outcome = NativeUnitCombatOutcome::destroyed{
-                .tribe_retains_horses  = false,
-                .tribe_retains_muskets = false } } };
+            .id          = defender->id,
+            .base_weight = 1.0,
+            .outcome     = NativeUnitCombatOutcome::destroyed{
+                    .tribe_retains_horses  = false,
+                    .tribe_retains_muskets = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -539,15 +539,15 @@ TEST_CASE( "[combat] combat_euro_attack_brave" ) {
     W.expect_defender_wins( .333333 );
     expected = {
         .winner   = e_combat_winner::defender,
-        .attacker = { .id     = attacker->id(),
-                      .weight = 2.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 2.0,
                       .outcome =
                           EuroUnitCombatOutcome::demoted{
                               .to =
                                   e_unit_type::free_colonist } },
         .defender = {
-            .id      = defender->id,
-            .weight  = 1.0,
+            .id          = defender->id,
+            .base_weight = 1.0,
             .outcome = NativeUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
@@ -562,13 +562,13 @@ TEST_CASE( "[combat] combat_euro_attack_brave" ) {
     W.expect_defender_wins( .5 );
     expected = {
         .winner   = e_combat_winner::defender,
-        .attacker = { .id     = attacker->id(),
-                      .weight = 1.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 1.0,
                       .outcome =
                           EuroUnitCombatOutcome::destroyed{} },
         .defender = {
-            .id      = defender->id,
-            .weight  = 1.0,
+            .id          = defender->id,
+            .base_weight = 1.0,
             .outcome = NativeUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
@@ -606,14 +606,14 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
         .new_tribal_alarm = 10,
         .missions_burned  = false,
 
-        .attacker = { .id     = attacker->id(),
-                      .weight = 2.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 2.0,
                       .outcome =
                           EuroUnitCombatOutcome::no_change{} },
 
         .defender = {
-            .id     = dwelling.id,
-            .weight = 1.0,
+            .id          = dwelling.id,
+            .base_weight = 1.0,
             .outcome =
                 DwellingCombatOutcome::population_decrease{
                     .convert_produced = false } } };
@@ -630,15 +630,15 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
         .winner           = e_combat_winner::defender,
         .new_tribal_alarm = 95,
         .missions_burned  = false,
-        .attacker         = { .id     = attacker->id(),
-                              .weight = 2.0,
+        .attacker         = { .id          = attacker->id(),
+                              .base_weight = 2.0,
                               .outcome =
                                   EuroUnitCombatOutcome::demoted{
                                       .to =
                                   e_unit_type::free_colonist } },
         .defender         = {
-                    .id      = dwelling.id,
-                    .weight  = 1.0,
+                    .id          = dwelling.id,
+                    .base_weight = 1.0,
                     .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
@@ -653,15 +653,15 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
         .winner           = e_combat_winner::defender,
         .new_tribal_alarm = 10,
         .missions_burned  = false,
-        .attacker         = { .id     = attacker->id(),
-                              .weight = 2.0,
+        .attacker         = { .id          = attacker->id(),
+                              .base_weight = 2.0,
                               .outcome =
                                   EuroUnitCombatOutcome::demoted{
                                       .to =
                                   e_unit_type::free_colonist } },
         .defender         = {
-                    .id      = dwelling.id,
-                    .weight  = 1.0,
+                    .id          = dwelling.id,
+                    .base_weight = 1.0,
                     .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
@@ -678,15 +678,15 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
         .winner           = e_combat_winner::defender,
         .new_tribal_alarm = 10,
         .missions_burned  = false,
-        .attacker         = { .id     = attacker->id(),
-                              .weight = 2.0,
+        .attacker         = { .id          = attacker->id(),
+                              .base_weight = 2.0,
                               .outcome =
                                   EuroUnitCombatOutcome::demoted{
                                       .to =
                                   e_unit_type::free_colonist } },
         .defender         = {
-                    .id      = dwelling.id,
-                    .weight  = 1.0,
+                    .id          = dwelling.id,
+                    .base_weight = 1.0,
                     .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
@@ -709,15 +709,15 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
         .missions_burned  = false,
 
         .attacker =
-            { .id     = attacker->id(),
-              .weight = 2.0,
+            { .id          = attacker->id(),
+              .base_weight = 2.0,
               .outcome =
                   EuroUnitCombatOutcome::promoted{
                       .to = e_unit_type::veteran_soldier } },
 
         .defender = {
-            .id     = dwelling.id,
-            .weight = 1.0,
+            .id          = dwelling.id,
+            .base_weight = 1.0,
             .outcome =
                 DwellingCombatOutcome::population_decrease{
                     .convert_produced = false } } };
@@ -740,14 +740,14 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
         .new_tribal_alarm = 10,
         .missions_burned  = false,
 
-        .attacker = { .id     = attacker->id(),
-                      .weight = 2.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 2.0,
                       .outcome =
                           EuroUnitCombatOutcome::no_change{} },
 
         .defender = {
-            .id     = dwelling.id,
-            .weight = 1.0,
+            .id          = dwelling.id,
+            .base_weight = 1.0,
             .outcome =
                 DwellingCombatOutcome::population_decrease{
                     .convert_produced = true } } };
@@ -770,15 +770,15 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
         .winner           = e_combat_winner::defender,
         .new_tribal_alarm = 95,
         .missions_burned  = false,
-        .attacker         = { .id     = attacker->id(),
-                              .weight = 2.0,
+        .attacker         = { .id          = attacker->id(),
+                              .base_weight = 2.0,
                               .outcome =
                                   EuroUnitCombatOutcome::demoted{
                                       .to =
                                   e_unit_type::free_colonist } },
         .defender         = {
-                    .id      = dwelling.id,
-                    .weight  = 1.0,
+                    .id          = dwelling.id,
+                    .base_weight = 1.0,
                     .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
@@ -799,15 +799,15 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
         .winner           = e_combat_winner::defender,
         .new_tribal_alarm = 95,
         .missions_burned  = true,
-        .attacker         = { .id     = attacker->id(),
-                              .weight = 2.0,
+        .attacker         = { .id          = attacker->id(),
+                              .base_weight = 2.0,
                               .outcome =
                                   EuroUnitCombatOutcome::demoted{
                                       .to =
                                   e_unit_type::free_colonist } },
         .defender         = {
-                    .id      = dwelling.id,
-                    .weight  = 1.0,
+                    .id          = dwelling.id,
+                    .base_weight = 1.0,
                     .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
@@ -830,14 +830,14 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
         .new_tribal_alarm = 95,
         .missions_burned  = true,
 
-        .attacker = { .id     = attacker->id(),
-                      .weight = 2.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 2.0,
                       .outcome =
                           EuroUnitCombatOutcome::no_change{} },
 
         .defender = {
-            .id     = dwelling.id,
-            .weight = 1.0,
+            .id          = dwelling.id,
+            .base_weight = 1.0,
             .outcome =
                 DwellingCombatOutcome::population_decrease{
                     .convert_produced = false } } };
@@ -889,20 +889,20 @@ TEST_CASE(
         .new_tribal_alarm = 10,
         .missions_burned  = false,
 
-        .attacker = { .id     = attacker->id(),
-                      .weight = 3.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 3.0,
                       .outcome =
                           EuroUnitCombatOutcome::no_change{} },
 
         .defender = {
-            .id      = dwelling.id,
-            .weight  = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill = { brave1_id, brave2_id },
-                .missionary_to_release = nothing,
-                .treasure_amount       = nothing,
-                .tribe_destroyed       = e_tribe::arawak,
-                .convert_produced      = false } } };
+            .id          = dwelling.id,
+            .base_weight = 1.0,
+            .outcome     = DwellingCombatOutcome::destruction{
+                    .braves_to_kill = { brave1_id, brave2_id },
+                    .missionary_to_release = nothing,
+                    .treasure_amount       = nothing,
+                    .tribe_destroyed       = e_tribe::arawak,
+                    .convert_produced      = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -919,20 +919,20 @@ TEST_CASE(
         .new_tribal_alarm = 99,
         .missions_burned  = false,
 
-        .attacker = { .id     = attacker->id(),
-                      .weight = 3.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 3.0,
                       .outcome =
                           EuroUnitCombatOutcome::no_change{} },
 
         .defender = {
-            .id      = dwelling.id,
-            .weight  = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill = { brave1_id, brave2_id },
-                .missionary_to_release = nothing,
-                .treasure_amount       = nothing,
-                .tribe_destroyed       = e_tribe::arawak,
-                .convert_produced      = false } } };
+            .id          = dwelling.id,
+            .base_weight = 1.0,
+            .outcome     = DwellingCombatOutcome::destruction{
+                    .braves_to_kill = { brave1_id, brave2_id },
+                    .missionary_to_release = nothing,
+                    .treasure_amount       = nothing,
+                    .tribe_destroyed       = e_tribe::arawak,
+                    .convert_produced      = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -953,20 +953,20 @@ TEST_CASE(
         .new_tribal_alarm = 17,
         .missions_burned  = false,
 
-        .attacker = { .id     = attacker->id(),
-                      .weight = 3.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 3.0,
                       .outcome =
                           EuroUnitCombatOutcome::no_change{} },
 
         .defender = {
-            .id      = dwelling.id,
-            .weight  = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill = { brave1_id, brave2_id },
-                .missionary_to_release = nothing,
-                .treasure_amount       = 600,
-                .tribe_destroyed       = e_tribe::arawak,
-                .convert_produced      = false } } };
+            .id          = dwelling.id,
+            .base_weight = 1.0,
+            .outcome     = DwellingCombatOutcome::destruction{
+                    .braves_to_kill = { brave1_id, brave2_id },
+                    .missionary_to_release = nothing,
+                    .treasure_amount       = 600,
+                    .tribe_destroyed       = e_tribe::arawak,
+                    .convert_produced      = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -987,20 +987,20 @@ TEST_CASE(
         .new_tribal_alarm = 10,
         .missions_burned  = false,
 
-        .attacker = { .id     = attacker->id(),
-                      .weight = 3.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 3.0,
                       .outcome =
                           EuroUnitCombatOutcome::no_change{} },
 
         .defender = {
-            .id      = dwelling.id,
-            .weight  = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill = { brave1_id, brave2_id },
-                .missionary_to_release = nothing,
-                .treasure_amount       = 500,
-                .tribe_destroyed       = e_tribe::arawak,
-                .convert_produced      = false } } };
+            .id          = dwelling.id,
+            .base_weight = 1.0,
+            .outcome     = DwellingCombatOutcome::destruction{
+                    .braves_to_kill = { brave1_id, brave2_id },
+                    .missionary_to_release = nothing,
+                    .treasure_amount       = 500,
+                    .tribe_destroyed       = e_tribe::arawak,
+                    .convert_produced      = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -1018,20 +1018,20 @@ TEST_CASE(
         .new_tribal_alarm = 10,
         .missions_burned  = false,
 
-        .attacker = { .id     = attacker->id(),
-                      .weight = 3.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 3.0,
                       .outcome =
                           EuroUnitCombatOutcome::no_change{} },
 
         .defender = {
-            .id      = dwelling.id,
-            .weight  = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill = { brave1_id, brave2_id },
-                .missionary_to_release = nothing,
-                .treasure_amount       = 300,
-                .tribe_destroyed       = e_tribe::arawak,
-                .convert_produced      = false } } };
+            .id          = dwelling.id,
+            .base_weight = 1.0,
+            .outcome     = DwellingCombatOutcome::destruction{
+                    .braves_to_kill = { brave1_id, brave2_id },
+                    .missionary_to_release = nothing,
+                    .treasure_amount       = 300,
+                    .tribe_destroyed       = e_tribe::arawak,
+                    .convert_produced      = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -1052,20 +1052,20 @@ TEST_CASE(
         .new_tribal_alarm = 10,
         .missions_burned  = false,
 
-        .attacker = { .id     = attacker->id(),
-                      .weight = 3.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 3.0,
                       .outcome =
                           EuroUnitCombatOutcome::no_change{} },
 
         .defender = {
-            .id      = dwelling.id,
-            .weight  = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill        = {},
-                .missionary_to_release = nothing,
-                .treasure_amount       = nothing,
-                .tribe_destroyed       = nothing,
-                .convert_produced      = false } } };
+            .id          = dwelling.id,
+            .base_weight = 1.0,
+            .outcome     = DwellingCombatOutcome::destruction{
+                    .braves_to_kill        = {},
+                    .missionary_to_release = nothing,
+                    .treasure_amount       = nothing,
+                    .tribe_destroyed       = nothing,
+                    .convert_produced      = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -1091,20 +1091,20 @@ TEST_CASE(
         .new_tribal_alarm = 10,
         .missions_burned  = false,
 
-        .attacker = { .id     = attacker->id(),
-                      .weight = 3.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 3.0,
                       .outcome =
                           EuroUnitCombatOutcome::no_change{} },
 
         .defender = {
-            .id      = dwelling.id,
-            .weight  = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill = { brave1_id, brave2_id },
-                .missionary_to_release = missionary_id,
-                .treasure_amount       = nothing,
-                .tribe_destroyed       = e_tribe::arawak,
-                .convert_produced      = true } } };
+            .id          = dwelling.id,
+            .base_weight = 1.0,
+            .outcome     = DwellingCombatOutcome::destruction{
+                    .braves_to_kill = { brave1_id, brave2_id },
+                    .missionary_to_release = missionary_id,
+                    .treasure_amount       = nothing,
+                    .tribe_destroyed       = e_tribe::arawak,
+                    .convert_produced      = true } } };
     REQUIRE( f() == expected );
   }
 
@@ -1128,20 +1128,20 @@ TEST_CASE(
         .new_tribal_alarm = 10,
         .missions_burned  = false,
 
-        .attacker = { .id     = attacker->id(),
-                      .weight = 3.0,
+        .attacker = { .id          = attacker->id(),
+                      .base_weight = 3.0,
                       .outcome =
                           EuroUnitCombatOutcome::no_change{} },
 
         .defender = {
-            .id      = dwelling.id,
-            .weight  = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill = { brave1_id, brave2_id },
-                .missionary_to_release = nothing,
-                .treasure_amount       = nothing,
-                .tribe_destroyed       = e_tribe::arawak,
-                .convert_produced      = false } } };
+            .id          = dwelling.id,
+            .base_weight = 1.0,
+            .outcome     = DwellingCombatOutcome::destruction{
+                    .braves_to_kill = { brave1_id, brave2_id },
+                    .missionary_to_release = nothing,
+                    .treasure_amount       = nothing,
+                    .tribe_destroyed       = e_tribe::arawak,
+                    .convert_produced      = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -1167,21 +1167,21 @@ TEST_CASE(
         .missions_burned  = true,
 
         .attacker =
-            { .id     = attacker->id(),
-              .weight = 3.0,
+            { .id          = attacker->id(),
+              .base_weight = 3.0,
               .outcome =
                   EuroUnitCombatOutcome::promoted{
                       .to = e_unit_type::veteran_dragoon } },
 
         .defender = {
-            .id      = dwelling.id,
-            .weight  = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill = { brave1_id, brave2_id },
-                .missionary_to_release = nothing,
-                .treasure_amount       = nothing,
-                .tribe_destroyed       = e_tribe::arawak,
-                .convert_produced      = false } } };
+            .id          = dwelling.id,
+            .base_weight = 1.0,
+            .outcome     = DwellingCombatOutcome::destruction{
+                    .braves_to_kill = { brave1_id, brave2_id },
+                    .missionary_to_release = nothing,
+                    .treasure_amount       = nothing,
+                    .tribe_destroyed       = e_tribe::arawak,
+                    .convert_produced      = false } } };
     REQUIRE( f() == expected );
   }
 }

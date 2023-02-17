@@ -179,7 +179,7 @@ struct.CombatStats {
 
   id 'IdT',
   modifiers 'refl::enum_map<ModifiersT, base::maybe<CombatModifierEffect_t>>',
-  weight 'double',
+  base_weight 'double', # without modifiers.
   outcome 'OutcomeT',
 }
 
