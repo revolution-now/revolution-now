@@ -5,42 +5,40 @@ Algo:
 
   1. Let attack=can_attack?combat:0; if attack for defender is >=
      attack for attacker then there is no evade. Otherwise, the
-     evade probability will be computed according to this for-
-     mula:
-
-        P(evade) = m_defender/(m_attacker+m_defender)
-
-     Where m_defender is the number of start-of-turn movement
-     points of the attacker and m_defender is the number of the
-     defender. In other words, we're not using the number of
-     movement points that the unit actually has at the time of
-     the battle, but rather the initial movement point value that
-     it would have at the start of a turn. And remember to apply
-     the Ferdinand Magellan movement point bonus where applica-
-     ble.
+     evade probability will be computed according to the formula
+     m_defender/(m_attacker+m_defender), where m_defender is the
+     number of start-of-turn movement points of the attacker and
+     m_defender is the number of the defender. In other words,
+     we're not using the number of movement points that the unit
+     actually has at the time of the battle, but rather the ini-
+     tial movement point value that it would have at the start of
+     a turn. And remember to apply the Ferdinand Magellan move-
+     ment point bonus where applicable.
   2. If either there is no evade possible or if the evade dice
      roll yielded no evade, then we proceed to the combat analy-
      sis.
   3. Weigh each of the combat factors, giving the 50% bonus to
      the attacker and 50% Francis Drake bonus (where applicable),
-     as usual. Whichever ship wins will be unchanged, and the
-     losing ship will be either damaged or sunk.
+     as usual. Whichever ship wins will be unchanged (or moved,
+     in the case of a winning attacker), and the losing ship will
+     be either damaged or sunk.
   4. If the losing ship is a non-war ship (i.e. has attack=0)
      then it's sinking probability will be 0, since non-war ships
      can never be sunk. Otherwise, proceed to compute the sinking
      probability.
   5. The probability of sinking is equal to
-     "guns"_attacker/("guns"_attacker+"hull"_defender). I.e., the
-     probability that the "guns of the winner can penetrate the
-     hull of the loser."
+     "guns"_winner/("guns"_winner+"hull"_loser). I.e., the proba-
+     bility that the "guns of the winner can penetrate the hull
+     of the loser."
   6. Note: the OG makes a significant adjustment to the sinking
      probability (if not a complete override) having to do with
      the size of each player's naval fleet, in that a ship is
      much more likely to sink if the player's navy is large
      and/or they already have many damaged ships. This is likely
      done to discourage or put a check on large navies. But, we
-     will not replicate that in this game. See below for more
-     info on this, though the exact mechanism used by the OG is
+     will not replicate that in this game. See the
+     naval-mechanics.txt doc file for more info on this, though
+     the exact mechanism used by the OG seems convoluted and is
      not fully understood.
 
 Evasion:
