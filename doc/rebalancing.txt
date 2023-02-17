@@ -136,3 +136,28 @@ General changes to the game:
 
     Also we should come up with a name for the propery that the
     colony receives which prevents it from being abandoned.
+
+  * Enhance Francisco de Coronado. It might be nice to be able to
+    get info about a native dwelling (i.e., has it been visited,
+    alarm level, skill, trading demands, etc.) after having vis-
+    ited it with a scout, but maybe this should be put behind
+    some achievment, like a founding father. There are a few fa-
+    thers that could be enhanced to add this feature, but prob-
+    ably a good one is Francisco de Coronado. Normally he is kind
+    of weak, because 1) he is a one-time effect, and 2) knowing
+    the land around other colonies may not be the most useful
+    thing. So, in the spirit of exploration and, in particular,
+    increased visibility, he could be expanded to allow visi-
+    bility into the following properties of each native dwelling:
+
+      After any non-military human colonist visits the dwelling:
+
+        * Teaching skill (since this is visible to all units).
+
+      After a scout or trading vessel visits the dwelling:
+
+        * Trading demands.
+        * Tribal alarm level.
+
+    The idea is that, once a piece of info becomes first visible,
+    then it will remain visible thereafter, even as it changes.
