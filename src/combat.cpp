@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "alarm.hpp"
+#include "damaged.hpp"
 #include "irand.hpp"
 #include "logger.hpp"
 #include "missionary.hpp"
@@ -396,6 +397,7 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
   bool const defender_wins = !attacker_wins;
   res.winner = attacker_wins ? e_combat_winner::attacker
                              : e_combat_winner::defender;
+  Unit const* loser_unit = attacker_wins ? &defender : &attacker;
   NavalCombatStats* loser =
       attacker_wins ? &res.defender : &res.attacker;
   NavalCombatStats* winner =
@@ -435,7 +437,9 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
   if( loser_sinks )
     loser->outcome = EuroNavalUnitCombatOutcome::sunk{};
   else
-    loser->outcome = EuroNavalUnitCombatOutcome::damaged{};
+    loser->outcome = EuroNavalUnitCombatOutcome::damaged{
+        .port = find_repair_port_for_ship(
+            ss_, loser_unit->nation(), defender_coord ) };
 
   return res;
 }

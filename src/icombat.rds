@@ -10,6 +10,7 @@
 # ===============================================================
 # Revolution Now
 include "combat-modifiers.rds.hpp"
+include "damaged.rds.hpp"
 include "maybe.hpp"
 
 # ss
@@ -89,7 +90,9 @@ sumtype.EuroNavalUnitCombatOutcome {
 
   sunk {},
 
-  damaged {},
+  damaged {
+    port 'ShipRepairPort_t',
+  },
 }
 
 # This is for a unit working in a colony that defends the colony
