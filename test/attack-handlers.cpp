@@ -1431,10 +1431,14 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
         e_unit_type::privateer, e_unit_type::merchantman );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
-    Unit const& free_colonist = W.add_unit_in_cargo(
-        e_unit_type::free_colonist, attacker.id() );
-    Unit const& soldier = W.add_unit_in_cargo(
-        e_unit_type::soldier, attacker.id() );
+    UnitId const free_colonist_id =
+        W.add_unit_in_cargo( e_unit_type::free_colonist,
+                             attacker.id() )
+            .id();
+    UnitId const soldier_id =
+        W.add_unit_in_cargo( e_unit_type::soldier,
+                             attacker.id() )
+            .id();
     REQUIRE( attacker.cargo().count_items() == 2 );
     expect_combat();
     W.expect_some_animation();
@@ -1443,12 +1447,12 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
                  .unit_for( combat.attacker.id )
                  .movement_points() == 8 );
     REQUIRE( W.units().exists( combat.attacker.id ) );
-    REQUIRE( W.units().exists( free_colonist.id() ) );
-    REQUIRE( W.units().exists( soldier.id() ) );
+    REQUIRE( W.units().exists( free_colonist_id ) );
+    REQUIRE( W.units().exists( soldier_id ) );
     REQUIRE( f() == expected );
     REQUIRE_FALSE( W.units().exists( combat.attacker.id ) );
-    REQUIRE_FALSE( W.units().exists( free_colonist.id() ) );
-    REQUIRE_FALSE( W.units().exists( soldier.id() ) );
+    REQUIRE_FALSE( W.units().exists( free_colonist_id ) );
+    REQUIRE_FALSE( W.units().exists( soldier_id ) );
     // !! attacker unit and its cargo units do not exist here.
     Unit const& defender =
         W.units().unit_for( combat.defender.id );
@@ -1543,10 +1547,14 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
         e_unit_type::privateer, e_unit_type::merchantman );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
-    Unit const& free_colonist = W.add_unit_in_cargo(
-        e_unit_type::free_colonist, attacker.id() );
-    Unit const& soldier = W.add_unit_in_cargo(
-        e_unit_type::soldier, attacker.id() );
+    UnitId const free_colonist_id =
+        W.add_unit_in_cargo( e_unit_type::free_colonist,
+                             attacker.id() )
+            .id();
+    UnitId const soldier_id =
+        W.add_unit_in_cargo( e_unit_type::soldier,
+                             attacker.id() )
+            .id();
     REQUIRE( attacker.cargo().count_items() == 2 );
     expect_combat();
     W.expect_some_animation();
@@ -1559,14 +1567,14 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( W.units()
                  .unit_for( combat.attacker.id )
                  .movement_points() == 8 );
-    REQUIRE( W.units().exists( free_colonist.id() ) );
-    REQUIRE( W.units().exists( soldier.id() ) );
+    REQUIRE( W.units().exists( free_colonist_id ) );
+    REQUIRE( W.units().exists( soldier_id ) );
     REQUIRE( f() == expected );
     REQUIRE( W.units().exists( combat.attacker.id ) );
     Unit const& defender =
         W.units().unit_for( combat.defender.id );
-    REQUIRE_FALSE( W.units().exists( free_colonist.id() ) );
-    REQUIRE_FALSE( W.units().exists( soldier.id() ) );
+    REQUIRE_FALSE( W.units().exists( free_colonist_id ) );
+    REQUIRE_FALSE( W.units().exists( soldier_id ) );
     REQUIRE(
         as_const( W.units() ).ownership_of( attacker.id() ) ==
         UnitOwnership_t{ UnitOwnership::harbor{
