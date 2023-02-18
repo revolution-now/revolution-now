@@ -14,9 +14,12 @@
 #include "alarm.hpp"
 #include "anim-builders.hpp"
 #include "co-wait.hpp"
+#include "colonies.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
+#include "commodity.hpp"
 #include "conductor.hpp"
+#include "harbor-units.hpp"
 #include "icombat.hpp"
 #include "igui.hpp"
 #include "land-view.hpp"
@@ -47,6 +50,8 @@
 #include "ss/units.hpp"
 
 // base
+#include "base/conv.hpp"
+#include "base/string.hpp"
 #include "base/to-str-ext-std.hpp"
 
 // refl
@@ -158,17 +163,11 @@ maybe<string> perform_euro_unit_combat_outcome(
     case e::no_change:
       break;
     case e::destroyed: {
-      if( unit.desc().ship &&
-          ss.terrain.is_land( ss.units.coord_for( unit.id() ) ) )
-        msg =
-            "Our ship, which was vulnerable in the abandoned "
-            "colony port, has been lost due to an attack.";
-      else
-        // This will be scouts, pioneers, missionaries, and ar-
-        // tillery.
-        msg = fmt::format( "{} [{}] has been lost in battle!",
-                           nation_obj( unit.nation() ).adjective,
-                           unit.desc().name );
+      // This will be scouts, pioneers, missionaries, and ar-
+      // tillery.
+      msg = fmt::format( "{} [{}] has been lost in battle!",
+                         nation_obj( unit.nation() ).adjective,
+                         unit.desc().name );
       // Need to destroy the unit after accessing its info.
       ss.units.destroy_unit( unit.id() );
       break;
@@ -204,11 +203,11 @@ maybe<string> perform_euro_unit_combat_outcome(
 
   if( player.nation == active_player.nation &&
       active_player.human )
-    // TODO: not sure yet how we're going to do this GUI handling
-    // with AI players. For now we just say that we will only pop
-    // up a message box notifying the player of battle outcomes
-    // for their unit if the active player owns the unit and that
-    // active player is a human.
+    // FIXME: not sure yet how we're going to do this GUI han-
+    // dling with AI players. For now we just say that we will
+    // only pop up a message box notifying the player of battle
+    // outcomes for their unit if the active player owns the unit
+    // and that active player is a human.
     return msg;
   return nothing;
 }
@@ -255,16 +254,28 @@ maybe<string> perform_native_unit_combat_outcome(
     }
   }
 
+  // FIXME
   if( active_player.human ) return msg;
   return nothing;
 }
 
 maybe<string> perform_naval_unit_combat_outcome(
-    SS& ss, TS& ts, Player const& active_player,
-    Player const& player, Unit& unit,
-    EuroNavalUnitCombatOutcome_t const& outcome,
-    UnitId                              opponent_id ) {
+    SS& ss, TS& ts, Player const& active_player, Player& player,
+    Unit& unit, EuroNavalUnitCombatOutcome_t const& outcome,
+    UnitId opponent_id ) {
   maybe<string> msg;
+
+  auto add_units_lost = [&]( int count ) {
+    CHECK( msg.has_value() );
+    if( count == 1 )
+      *msg +=
+          fmt::format( " [One] unit onboard has been lost." );
+    else if( count > 1 )
+      *msg += fmt::format(
+          " [{}] units onboard have been lost.",
+          base::capitalize_initials(
+              base::int_to_string_literary( count ) ) );
+  };
 
   switch( outcome.to_enum() ) {
     using namespace EuroNavalUnitCombatOutcome;
@@ -272,12 +283,56 @@ maybe<string> perform_naval_unit_combat_outcome(
       break;
     case e::moved: {
       auto& o = outcome.get<moved>();
+      // FIXME: This reallyl should be run interactively because
+      // e.g. the ship might discover the pacific ocean or an-
+      // other nation upon moving. Once we figure out how to deal
+      // with multiple european players then this needs to be im-
+      // proved.
       unit_to_map_square_non_interactive( ss, ts, unit.id(),
                                           o.to );
       break;
     }
-    case e::damaged:
+    case e::damaged: {
+      auto& o = outcome.get<damaged>();
+      // This means that the unit is being marked as damaged and
+      // has been damaged for zero turns as of now.
+      unit.damaged() = 0;
+      // All units in cargo are destroyed.
+      vector<UnitId> const units_in_cargo = unit.cargo().units();
+      int const num_units_lost = units_in_cargo.size();
+      for( UnitId const held_id : units_in_cargo )
+        ss.units.destroy_unit( held_id );
+      // Now send the ship for repair.
+      msg = fmt::format( "{} [{}] damaged in battle!",
+                         nation_obj( unit.nation() ).adjective,
+                         unit.desc().name );
+      switch( o.port.to_enum() ) {
+        case ShipRepairPort::e::colony: {
+          ColonyId const colony_id =
+              o.port.get<ShipRepairPort::colony>().id;
+          Colony const& colony =
+              ss.colonies.colony_for( colony_id );
+          // This can be non-interactive because there is already
+          // a colony on the square, and the ship is damaged, so
+          // it shouldn't really trigger anything interactive
+          // when we move it into the colony.
+          unit_to_map_square_non_interactive( ss, ts, unit.id(),
+                                              colony.location );
+          *msg += fmt::format( " Ship sent to [{}] for repair.",
+                               colony.name );
+          break;
+        }
+        case ShipRepairPort::e::european_harbor: {
+          unit_move_to_port( ss.units, player, unit.id() );
+          *msg += fmt::format(
+              " Ship sent to [{}] for repair.",
+              nation_obj( unit.nation() ).harbor_city_name );
+          break;
+        }
+      }
+      add_units_lost( num_units_lost );
       break;
+    }
     case e::sunk: {
       // This should always exist because, if we are here, then
       // this ship has been sunk, which means that the opponent
@@ -289,19 +344,12 @@ maybe<string> perform_naval_unit_combat_outcome(
       lg.info( "ship sunk: {} units onboard lost.",
                num_units_lost );
       msg =
-          fmt::format( "{} [{}] sunk by [{}] {}",
+          fmt::format( "{} [{}] sunk by [{}] {}.",
                        nation_obj( unit.nation() ).adjective,
                        unit.desc().name,
                        nation_obj( opponent.nation() ).adjective,
                        opponent.desc().name );
-      if( num_units_lost == 1 )
-        *msg +=
-            fmt::format( ", [1] unit onboard has been lost" );
-      else if( num_units_lost > 1 )
-        *msg +=
-            fmt::format( ", [{}] units onboard have been lost",
-                         num_units_lost );
-      *msg += '.';
+      add_units_lost( num_units_lost );
       // Need to destroy unit first before displaying message
       // otherwise the unit will reappear on the map while the
       // message is open.
@@ -310,6 +358,7 @@ maybe<string> perform_naval_unit_combat_outcome(
     }
   }
 
+  // FIXME
   if( player.nation == active_player.nation &&
       active_player.human )
     return msg;
@@ -655,13 +704,8 @@ unique_ptr<OrdersHandler> naval_battle_handler(
 
 wait<bool> NavalBattleHandler::confirm() {
   if( !co_await Base::confirm() ) co_return false;
-  TODO(
-      "implement naval battle combat mechanics them implement "
-      "unit test case." );
-  // combat_ = ts_.combat.ship_attack_ship( attacker_, defender_
-  // );
-
-  // co_return true;
+  combat_ = ts_.combat.ship_attack_ship( attacker_, defender_ );
+  co_return true;
 }
 
 wait<> NavalBattleHandler::animate() const {
@@ -672,6 +716,43 @@ wait<> NavalBattleHandler::animate() const {
 
 wait<> NavalBattleHandler::perform() {
   co_await Base::perform();
+
+  if( combat_.winner.has_value() ) {
+    // One of the ships was either damaged or sunk.
+    Unit const& loser =
+        ( combat_.winner == e_combat_winner::attacker )
+            ? defender_
+            : attacker_;
+    bool const has_commodity_cargo =
+        ( loser.cargo().count_items_of_type<Cargo::commodity>() >
+          0 );
+    if( has_commodity_cargo ) {
+      // At this point the losing ship has commodity cargo on it
+      // that the attacker can potentially capture. Note that if
+      // the ship has units in cargo then they will be destroyed,
+      // but that is handled further below. This section is just
+      // for commodity capture.
+
+      // TODO: implementing this probably has to wait until we
+      // have some kind of AI interface where we can ask the
+      // player for which commodities they'd like to capture in a
+      // way that will work for both human and AI players, since
+      // the unit in question here (that is having its commodi-
+      // ties stolen) could be an AI player. It could also be
+      // that both players are human players, which would also
+      // pose a challenge, but we probably will end up supporting
+      // only one human player at a time, like the OG.
+      //
+      // So for now we will just clear the cargo out of the ship
+      // if it has been damaged.
+      for( auto [comm, slot] : loser.cargo().commodities() ) {
+        Commodity const removed = rm_commodity_from_cargo(
+            ss_.units, loser.id(), slot );
+        CHECK_EQ( removed, comm );
+      }
+    }
+  }
+
   maybe<string> const attacker_msg =
       perform_naval_unit_combat_outcome(
           ss_, ts_, active_player_, attacking_player_, attacker_,
@@ -685,6 +766,21 @@ wait<> NavalBattleHandler::perform() {
   // vert while the message box is up.
   co_await show_outcome_messages( ts_, attacker_msg,
                                   defender_msg );
+
+  // FIXME: hack. This is because the attacker may have moved to
+  // the defender's square, but the above functions that perform
+  // that movement don't do it interactively, so here we will
+  // rerun it interactively just in case e.g. the ship discovers
+  // the pacific ocean or another nation upon moving. Once we
+  // figure out how to deal with multiple european players then
+  // this needs to be improved.
+  if( auto o = combat_.attacker.outcome
+                   .get_if<EuroNavalUnitCombatOutcome::moved>();
+      o.has_value() ) {
+    maybe<UnitDeleted> const x = co_await unit_to_map_square(
+        ss_, ts_, attacker_id_, o->to );
+    CHECK( !x.has_value() );
+  }
 }
 
 /****************************************************************

@@ -21,6 +21,7 @@
 #include "test/mocks/land-view-plane.hpp"
 
 // Revolution Now
+#include "src/commodity.hpp"
 #include "src/orders.hpp"
 #include "src/plane-stack.hpp"
 
@@ -45,6 +46,7 @@ namespace {
 using namespace std;
 
 using ::mock::matchers::_;
+using ::mock::matchers::Matches;
 using ::mock::matchers::StrContains;
 
 /****************************************************************
@@ -174,6 +176,19 @@ struct World : testing::World {
   void expect_promotion() {
     gui()
         .EXPECT__message_box( StrContains( "valor" ) )
+        .returns<monostate>();
+  }
+
+  void expect_ship_sunk() {
+    gui()
+        .EXPECT__message_box( StrContains( "sunk by" ) )
+        .returns<monostate>();
+  }
+
+  void expect_ship_sunk_and_units_lost() {
+    gui()
+        .EXPECT__message_box(
+            Matches( ".*sunk by.*been lost.*" ) )
         .returns<monostate>();
   }
 
@@ -1229,16 +1244,344 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
 }
 #endif
 
+TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
+  World                  W;
+  CombatShipAttackShip   combat;
+  OrdersHandlerRunResult expected = { .order_was_run = true };
+
+  auto expect_combat = [&] {
+    W.combat()
+        .EXPECT__ship_attack_ship(
+            W.units().unit_for( combat.attacker.id ),
+            W.units().unit_for( combat.defender.id ) )
+        .returns( combat );
+  };
+
+  auto f = [&] {
+    return W.run_handler( naval_battle_handler(
+        W.planes(), W.ss(), W.ts(), W.player( W.active_nation_ ),
+        combat.attacker.id, combat.defender.id ) );
+  };
+
+  SECTION( "evade" ) {
+    combat = {
+        .outcome = e_naval_combat_outcome::evade,
+        .winner  = nothing,
+        .attacker =
+            { .outcome =
+                  EuroNavalUnitCombatOutcome::no_change{} },
+        .defender = {
+            .outcome =
+                EuroNavalUnitCombatOutcome::no_change{} } };
+    tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
+        e_unit_type::privateer, e_unit_type::merchantman );
+    expect_combat();
+    W.expect_some_animation();
+    REQUIRE( W.units()
+                 .unit_for( combat.attacker.id )
+                 .movement_points() == 8 );
+    REQUIRE( f() == expected );
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    Unit const& defender =
+        W.units().unit_for( combat.defender.id );
+    REQUIRE( W.units().coord_for( attacker.id() ) ==
+             W.kWaterAttack );
+    REQUIRE( W.units().coord_for( defender.id() ) ==
+             W.kWaterDefend );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE( defender.movement_points() == 5 );
+    REQUIRE( attacker.damaged() == nothing );
+    REQUIRE( defender.damaged() == nothing );
+    REQUIRE( attacker.cargo().count_items() == 0 );
+    REQUIRE( defender.cargo().count_items() == 0 );
+  }
+
+  SECTION( "defender damaged, sent to harbor" ) {
+    combat = {
+        .outcome = e_naval_combat_outcome::damaged,
+        .winner  = e_combat_winner::attacker,
+        .attacker =
+            { .outcome =
+                  EuroNavalUnitCombatOutcome::no_change{} },
+        .defender = {
+            .outcome = EuroNavalUnitCombatOutcome::damaged{
+                .port = ShipRepairPort::european_harbor{} } } };
+    tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
+        e_unit_type::privateer, e_unit_type::merchantman );
+    expect_combat();
+    W.expect_some_animation();
+    REQUIRE( W.units()
+                 .unit_for( combat.attacker.id )
+                 .movement_points() == 8 );
+    REQUIRE( f() == expected );
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    Unit const& defender =
+        W.units().unit_for( combat.defender.id );
+    REQUIRE( W.units().coord_for( attacker.id() ) ==
+             W.kWaterAttack );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( defender.id() ) ==
+        UnitOwnership_t{ UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{},
+                    .sailed_from = nothing } } } );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE( defender.movement_points() == 5 );
+    REQUIRE( attacker.damaged() == nothing );
+    REQUIRE( defender.damaged() == 0 );
+    REQUIRE( attacker.cargo().count_items() == 0 );
+    REQUIRE( defender.cargo().count_items() == 0 );
+  }
+
+  SECTION( "defender damaged, sent to colony" ) {
+    // The colony does not need to have a drydock for this unit
+    // test since we're injecting the colony to which to send the
+    // damaged ship.
+    Colony& colony =
+        W.add_colony( { .x = 2, .y = 2 }, W.kDefendingNation );
+    combat = {
+        .outcome  = e_naval_combat_outcome::damaged,
+        .winner   = e_combat_winner::attacker,
+        .attacker = { .outcome =
+                          EuroNavalUnitCombatOutcome::moved{
+                              .to = W.kWaterDefend } },
+        .defender = { .outcome =
+                          EuroNavalUnitCombatOutcome::damaged{
+                              .port = ShipRepairPort::colony{
+                                  .id = colony.id } } } };
+    tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
+        e_unit_type::privateer, e_unit_type::merchantman );
+    expect_combat();
+    W.expect_some_animation();
+    REQUIRE( W.units()
+                 .unit_for( combat.attacker.id )
+                 .movement_points() == 8 );
+    REQUIRE( f() == expected );
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    Unit const& defender =
+        W.units().unit_for( combat.defender.id );
+    REQUIRE( W.units().coord_for( attacker.id() ) ==
+             W.kWaterDefend );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( defender.id() ) ==
+        UnitOwnership_t{ UnitOwnership::world{
+            .coord = { .x = 2, .y = 2 } } } );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE( defender.movement_points() == 5 );
+    REQUIRE( attacker.damaged() == nothing );
+    REQUIRE( defender.damaged() == 0 );
+    REQUIRE( attacker.cargo().count_items() == 0 );
+    REQUIRE( defender.cargo().count_items() == 0 );
+  }
+
+  SECTION( "attacker sunk" ) {
+    combat = {
+        .outcome  = e_naval_combat_outcome::sunk,
+        .winner   = e_combat_winner::defender,
+        .attacker = { .outcome =
+                          EuroNavalUnitCombatOutcome::sunk{} },
+        .defender = {
+            .outcome =
+                EuroNavalUnitCombatOutcome::no_change{} } };
+    tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
+        e_unit_type::privateer, e_unit_type::merchantman );
+    expect_combat();
+    W.expect_some_animation();
+    W.expect_ship_sunk();
+    REQUIRE( W.units()
+                 .unit_for( combat.attacker.id )
+                 .movement_points() == 8 );
+    REQUIRE( f() == expected );
+    REQUIRE_FALSE( W.units().exists( combat.attacker.id ) );
+    // !! attacker unit does not exist here.
+    Unit const& defender =
+        W.units().unit_for( combat.defender.id );
+    REQUIRE( W.units().coord_for( defender.id() ) ==
+             W.kWaterDefend );
+    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( defender.movement_points() == 5 );
+    REQUIRE( defender.damaged() == nothing );
+  }
+
+  SECTION( "attacker sunk containing units" ) {
+    combat = {
+        .outcome  = e_naval_combat_outcome::sunk,
+        .winner   = e_combat_winner::defender,
+        .attacker = { .outcome =
+                          EuroNavalUnitCombatOutcome::sunk{} },
+        .defender = {
+            .outcome =
+                EuroNavalUnitCombatOutcome::no_change{} } };
+    tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
+        e_unit_type::privateer, e_unit_type::merchantman );
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    Unit const& free_colonist = W.add_unit_in_cargo(
+        e_unit_type::free_colonist, attacker.id() );
+    Unit const& soldier = W.add_unit_in_cargo(
+        e_unit_type::soldier, attacker.id() );
+    REQUIRE( attacker.cargo().count_items() == 2 );
+    expect_combat();
+    W.expect_some_animation();
+    W.expect_ship_sunk_and_units_lost();
+    REQUIRE( W.units()
+                 .unit_for( combat.attacker.id )
+                 .movement_points() == 8 );
+    REQUIRE( W.units().exists( combat.attacker.id ) );
+    REQUIRE( W.units().exists( free_colonist.id() ) );
+    REQUIRE( W.units().exists( soldier.id() ) );
+    REQUIRE( f() == expected );
+    REQUIRE_FALSE( W.units().exists( combat.attacker.id ) );
+    REQUIRE_FALSE( W.units().exists( free_colonist.id() ) );
+    REQUIRE_FALSE( W.units().exists( soldier.id() ) );
+    // !! attacker unit and its cargo units do not exist here.
+    Unit const& defender =
+        W.units().unit_for( combat.defender.id );
+    REQUIRE( W.units().coord_for( defender.id() ) ==
+             W.kWaterDefend );
+    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( defender.movement_points() == 5 );
+    REQUIRE( defender.damaged() == nothing );
+    REQUIRE( defender.cargo().count_items() == 0 );
+  }
+
+  // NOTE: this is temporary until we implement the UI routine
+  // which allows the winner to capture the loser's commodities.
+  SECTION( "attacker damaged with commodity cargo" ) {
+    combat = {
+        .outcome = e_naval_combat_outcome::damaged,
+        .winner  = e_combat_winner::defender,
+        .attacker =
+            { .outcome =
+                  EuroNavalUnitCombatOutcome::damaged{
+                      .port =
+                          ShipRepairPort::european_harbor{} } },
+        .defender = {
+            .outcome =
+                EuroNavalUnitCombatOutcome::no_change{} } };
+    tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
+        e_unit_type::privateer, e_unit_type::merchantman );
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    Unit const& defender =
+        W.units().unit_for( combat.defender.id );
+    add_commodity_to_cargo(
+        W.units(),
+        Commodity{ .type = e_commodity::ore, .quantity = 10 },
+        attacker.id(), /*slot=*/0,
+        /*try_other_slots=*/false );
+    add_commodity_to_cargo(
+        W.units(),
+        Commodity{ .type = e_commodity::lumber, .quantity = 20 },
+        attacker.id(), /*slot=*/1,
+        /*try_other_slots=*/false );
+    add_commodity_to_cargo(
+        W.units(),
+        Commodity{ .type = e_commodity::ore, .quantity = 10 },
+        defender.id(), /*slot=*/0,
+        /*try_other_slots=*/false );
+    REQUIRE( attacker.cargo().count_items() == 2 );
+    REQUIRE( defender.cargo().count_items() == 1 );
+    expect_combat();
+    W.expect_some_animation();
+    W.gui()
+        .EXPECT__message_box(
+            "English [Privateer] damaged in battle! Ship sent "
+            "to [London] for repair." )
+        .returns<monostate>();
+    REQUIRE( W.units()
+                 .unit_for( combat.attacker.id )
+                 .movement_points() == 8 );
+    REQUIRE( f() == expected );
+    REQUIRE( W.units().exists( combat.attacker.id ) );
+    REQUIRE( W.units().exists( combat.defender.id ) );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( attacker.id() ) ==
+        UnitOwnership_t{ UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{},
+                    .sailed_from = nothing } } } );
+    REQUIRE( W.units().coord_for( defender.id() ) ==
+             W.kWaterDefend );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE( defender.movement_points() == 5 );
+    REQUIRE( attacker.damaged() == 0 );
+    REQUIRE( defender.damaged() == nothing );
+    REQUIRE( attacker.cargo().count_items() == 0 );
+    REQUIRE( defender.cargo().count_items() == 1 );
+  }
+
+  SECTION( "attacker damaged with unit cargo" ) {
+    combat = {
+        .outcome = e_naval_combat_outcome::damaged,
+        .winner  = e_combat_winner::defender,
+        .attacker =
+            { .outcome =
+                  EuroNavalUnitCombatOutcome::damaged{
+                      .port =
+                          ShipRepairPort::european_harbor{} } },
+        .defender = {
+            .outcome =
+                EuroNavalUnitCombatOutcome::no_change{} } };
+    tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
+        e_unit_type::privateer, e_unit_type::merchantman );
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    Unit const& free_colonist = W.add_unit_in_cargo(
+        e_unit_type::free_colonist, attacker.id() );
+    Unit const& soldier = W.add_unit_in_cargo(
+        e_unit_type::soldier, attacker.id() );
+    REQUIRE( attacker.cargo().count_items() == 2 );
+    expect_combat();
+    W.expect_some_animation();
+    W.gui()
+        .EXPECT__message_box(
+            "English [Privateer] damaged in battle! Ship sent "
+            "to [London] for repair. [Two] units onboard have "
+            "been lost." )
+        .returns<monostate>();
+    REQUIRE( W.units()
+                 .unit_for( combat.attacker.id )
+                 .movement_points() == 8 );
+    REQUIRE( W.units().exists( free_colonist.id() ) );
+    REQUIRE( W.units().exists( soldier.id() ) );
+    REQUIRE( f() == expected );
+    REQUIRE( W.units().exists( combat.attacker.id ) );
+    Unit const& defender =
+        W.units().unit_for( combat.defender.id );
+    REQUIRE_FALSE( W.units().exists( free_colonist.id() ) );
+    REQUIRE_FALSE( W.units().exists( soldier.id() ) );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( attacker.id() ) ==
+        UnitOwnership_t{ UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{},
+                    .sailed_from = nothing } } } );
+    REQUIRE( W.units().coord_for( defender.id() ) ==
+             W.kWaterDefend );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE( defender.movement_points() == 5 );
+    REQUIRE( attacker.damaged() == 0 );
+    REQUIRE( defender.damaged() == nothing );
+    REQUIRE( attacker.cargo().count_items() == 0 );
+    REQUIRE( defender.cargo().count_items() == 0 );
+  }
+}
+
 TEST_CASE(
     "[attack-handlers] attack_colony_undefended_handler" ) {
   World                            W;
   CombatEuroAttackUndefendedColony combat;
-  // TODO
-}
-
-TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
-  World                W;
-  CombatShipAttackShip combat;
   // TODO
 }
 
