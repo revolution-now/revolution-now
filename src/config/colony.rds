@@ -29,6 +29,16 @@ include "base/maybe.hpp"
 include "<string>"
 include "<unordered_map>"
 
+namespace "rn"
+
+# The ordering of these matters; they must go in increasing order
+# of stringency so that we can compare them using inequality ops.
+enum.e_water_access {
+  none,    # No water access needed.
+  yes,     # Water access needed.
+  coastal, # Water access needed and it must connect to ocean.
+}
+
 namespace "rn.config.colony"
 
 struct.warehouses {
@@ -78,7 +88,7 @@ struct.construction_requirements {
   # Does this item require an adjacent water tile. Note that the
   # water tile does not have to have ocean access, but must be
   # immediately adjacent in any direction.
-  requires_water 'bool',
+  requires_water 'e_water_access',
 
   _features { validation, equality }
 }

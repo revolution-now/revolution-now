@@ -98,15 +98,20 @@ string fmt_unit( Colony const& colony, e_unit_type type ) {
       *requirements );
 }
 
-// Note that the bordering water tile does not need to have ocean
-// access (that's the behavior from the original game).
-bool colony_borders_water( SSConst const& ss,
-                           Colony const&  colony ) {
-  for( e_direction d : refl::enum_values<e_direction> )
-    if( ss.terrain.total_square_at( colony.location.moved( d ) )
-            .surface == e_surface::water )
-      return true;
-  return false;
+e_water_access colony_water_access( SSConst const& ss,
+                                    Colony const&  colony ) {
+  e_water_access res = e_water_access::none;
+  for( e_direction d : refl::enum_values<e_direction> ) {
+    Coord const moved = colony.location.moved( d );
+    if( ss.terrain.total_square_at( moved ).surface !=
+        e_surface::water )
+      continue;
+    res = std::max( res, e_water_access::yes );
+    // if( has_ocean_access( ss, moved ) )
+    //   res = e_water_access::coastal;
+    res = e_water_access::coastal; // FIXME
+  }
+  return res;
 }
 
 } // namespace
@@ -138,7 +143,8 @@ wait<> select_colony_construction( SSConst const& ss,
   maybe<int> initial_selection;
   int const  population = colony_population( colony );
   UNWRAP_CHECK( player, ss.players.players[colony.nation] );
-  bool const has_water = colony_borders_water( ss, colony );
+  e_water_access const water_access =
+      colony_water_access( ss, colony );
   for( e_colony_building building :
        refl::enum_values<e_colony_building> ) {
     if( colony.buildings[building] ) continue;
@@ -152,7 +158,7 @@ wait<> select_colony_construction( SSConst const& ss,
     if( requirements.required_father.has_value() &&
         !player.fathers.has[*requirements.required_father] )
       continue;
-    if( requirements.requires_water && !has_water ) continue;
+    if( requirements.requires_water > water_access ) continue;
     config.options.push_back( ChoiceConfigOption{
         .key          = fmt::to_string( building ),
         .display_name = fmt_building( colony, building ) } );
@@ -175,7 +181,7 @@ wait<> select_colony_construction( SSConst const& ss,
     if( requirements.required_father.has_value() &&
         !player.fathers.has[*requirements.required_father] )
       continue;
-    if( requirements.requires_water && !has_water ) continue;
+    if( requirements.requires_water > water_access ) continue;
     config.options.push_back( ChoiceConfigOption{
         .key          = fmt::to_string( type ),
         .display_name = fmt_unit( colony, type ) } );
@@ -272,10 +278,10 @@ wait<> rush_construction_prompt(
     co_return;
   }
 
-  string const msg = fmt::format(
-      "Cost to complete [{}]: {}.  Treasury: {}.",
-      construction_name( invoice.project ), invoice.cost,
-      player.money );
+  string const msg =
+      fmt::format( "Cost to complete [{}]: {}.  Treasury: {}.",
+                   construction_name( invoice.project ),
+                   invoice.cost, player.money );
   if( invoice.cost > player.money ) {
     // The player cannot afford it.
     co_await gui.message_box( msg );

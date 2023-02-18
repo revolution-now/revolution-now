@@ -115,7 +115,7 @@ requirements_for_building {
     required_building:   null
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   lumber_mill: {
@@ -124,7 +124,7 @@ requirements_for_building {
     required_building:   carpenters_shop
     minimum_population:  3
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   blacksmiths_house: {
@@ -133,7 +133,7 @@ requirements_for_building {
     required_building:   null
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   blacksmiths_shop: {
@@ -142,7 +142,7 @@ requirements_for_building {
     required_building:   blacksmiths_house
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   iron_works: {
@@ -151,7 +151,7 @@ requirements_for_building {
     required_building:   blacksmiths_shop
     minimum_population:  8
     required_father:     adam_smith
-    requires_water:      false
+    requires_water:      none
   }
 
   stockade: {
@@ -160,7 +160,7 @@ requirements_for_building {
     required_building:   null
     minimum_population:  3
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   fort: {
@@ -169,7 +169,7 @@ requirements_for_building {
     required_building:   stockade
     minimum_population:  3
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   fortress: {
@@ -178,7 +178,7 @@ requirements_for_building {
     required_building:   fort
     minimum_population:  8
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   tobacconists_house: {
@@ -187,7 +187,7 @@ requirements_for_building {
     required_building:   null
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   tobacconists_shop: {
@@ -196,7 +196,7 @@ requirements_for_building {
     required_building:   tobacconists_house
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   cigar_factory: {
@@ -205,7 +205,7 @@ requirements_for_building {
     required_building:   tobacconists_shop
     minimum_population:  8
     required_father:     adam_smith
-    requires_water:      false
+    requires_water:      none
   }
 
   weavers_house: {
@@ -214,7 +214,7 @@ requirements_for_building {
     required_building:   null
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   weavers_shop: {
@@ -223,7 +223,7 @@ requirements_for_building {
     required_building:   weavers_house
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   textile_mill: {
@@ -232,7 +232,7 @@ requirements_for_building {
     required_building:   weavers_shop
     minimum_population:  8
     required_father:     adam_smith
-    requires_water:      false
+    requires_water:      none
   }
 
   rum_distillers_house: {
@@ -241,7 +241,7 @@ requirements_for_building {
     required_building:   null
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   rum_distillery: {
@@ -250,7 +250,7 @@ requirements_for_building {
     required_building:   rum_distillers_house
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   rum_factory: {
@@ -259,7 +259,7 @@ requirements_for_building {
     required_building:   rum_distillery
     minimum_population:  8
     required_father:     adam_smith
-    requires_water:      false
+    requires_water:      none
   }
 
   fur_traders_house: {
@@ -268,7 +268,7 @@ requirements_for_building {
     required_building:   null
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   fur_trading_post: {
@@ -277,7 +277,7 @@ requirements_for_building {
     required_building:   fur_traders_house
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   fur_factory: {
@@ -286,7 +286,7 @@ requirements_for_building {
     required_building:   fur_trading_post
     minimum_population:  8
     required_father:     adam_smith
-    requires_water:      false
+    requires_water:      none
   }
 
   armory: {
@@ -295,7 +295,7 @@ requirements_for_building {
     required_building:   null
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   magazine: {
@@ -304,7 +304,7 @@ requirements_for_building {
     required_building:   armory
     minimum_population:  8  # confirmed.
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   arsenal: {
@@ -313,7 +313,7 @@ requirements_for_building {
     required_building:   magazine
     minimum_population:  8  # same as magazine.
     required_father:     adam_smith
-    requires_water:      false
+    requires_water:      none
   }
 
   docks: {
@@ -322,7 +322,7 @@ requirements_for_building {
     required_building:   null
     minimum_population:  1
     required_father:     null
-    requires_water:      true
+    requires_water:      yes
   }
 
   drydock: {
@@ -331,7 +331,7 @@ requirements_for_building {
     required_building:   docks
     minimum_population:  4
     required_father:     null
-    requires_water:      true
+    requires_water:      coastal
   }
 
   shipyard: {
@@ -340,7 +340,7 @@ requirements_for_building {
     required_building:   drydock
     minimum_population:  8
     required_father:     null
-    requires_water:      true
+    requires_water:      coastal
   }
 
   schoolhouse: {
@@ -349,7 +349,7 @@ requirements_for_building {
     required_building:   null
     minimum_population:  4
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   college: {
@@ -358,7 +358,7 @@ requirements_for_building {
     required_building:   schoolhouse
     minimum_population:  8
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   university: {
@@ -367,7 +367,7 @@ requirements_for_building {
     required_building:   college
     minimum_population:  10
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   warehouse: {
@@ -376,7 +376,7 @@ requirements_for_building {
     required_building:   null
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   warehouse_expansion: {
@@ -385,7 +385,7 @@ requirements_for_building {
     required_building:   warehouse
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   stable: {
@@ -394,7 +394,7 @@ requirements_for_building {
     required_building:   null
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   church: {
@@ -403,7 +403,7 @@ requirements_for_building {
     required_building:   null
     minimum_population:  3
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   cathedral: {
@@ -412,7 +412,7 @@ requirements_for_building {
     required_building:   church
     minimum_population:  8
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   printing_press: {
@@ -421,7 +421,7 @@ requirements_for_building {
     required_building:   null
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   newspaper: {
@@ -430,7 +430,7 @@ requirements_for_building {
     required_building:   printing_press
     minimum_population:  4
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   town_hall: {
@@ -439,7 +439,7 @@ requirements_for_building {
     required_building:   null
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   custom_house: {
@@ -448,7 +448,7 @@ requirements_for_building {
     required_building:   null
     minimum_population:  1
     required_father:     peter_stuyvesant
-    requires_water:      false
+    requires_water:      none
   }
 }
 
@@ -459,7 +459,7 @@ requirements_for_unit  {
     required_building:   null
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   caravel: {
@@ -468,7 +468,7 @@ requirements_for_unit  {
     required_building:   shipyard
     minimum_population:  1
     required_father:     null
-    requires_water:      true
+    requires_water:      coastal
   }
 
   merchantman: {
@@ -477,7 +477,7 @@ requirements_for_unit  {
     required_building:   shipyard
     minimum_population:  1
     required_father:     null
-    requires_water:      true
+    requires_water:      coastal
   }
 
   galleon: {
@@ -486,7 +486,7 @@ requirements_for_unit  {
     required_building:   shipyard
     minimum_population:  1
     required_father:     null
-    requires_water:      true
+    requires_water:      coastal
   }
 
   privateer: {
@@ -495,7 +495,7 @@ requirements_for_unit  {
     required_building:   shipyard
     minimum_population:  1
     required_father:     null
-    requires_water:      true
+    requires_water:      coastal
   }
 
   frigate: {
@@ -504,7 +504,7 @@ requirements_for_unit  {
     required_building:   shipyard
     minimum_population:  1
     required_father:     null
-    requires_water:      true
+    requires_water:      coastal
   }
 
   artillery: {
@@ -513,7 +513,7 @@ requirements_for_unit  {
     required_building:   armory
     minimum_population:  1
     required_father:     null
-    requires_water:      false
+    requires_water:      none
   }
 
   # Not buildable in the original game. But note that OG did
@@ -527,7 +527,7 @@ requirements_for_unit  {
   #     required_building:   shipyard
   #     minimum_population:  1
   #     required_father:     null
-  #     requires_water:      true
+  #     requires_water:      coastal
   #   }
   #
   man_o_war:              null
