@@ -121,13 +121,13 @@ local function create_battlefield_units( options, root )
 
   local size = root.terrain:size()
 
-  local coord = { x=size.w//2-1, y=size.h//2-1 }
+  local coord = { x=size.w // 2 - 1, y=size.h // 2 - 1 }
   unit_mgr.create_unit_on_map( nation1, veteran_dragoon, coord )
   coord.y = coord.y + 1
   unit_mgr.create_unit_on_map( nation1, veteran_dragoon, coord )
   coord.y = coord.y + 1
 
-  coord = { x=size.w//2, y=size.h//2-1 }
+  coord = { x=size.w // 2, y=size.h // 2 - 1 }
   unit_mgr.create_unit_on_map( nation2, veteran_dragoon, coord )
   coord.y = coord.y + 1
   unit_mgr.create_unit_on_map( nation2, veteran_dragoon, coord )
@@ -328,9 +328,9 @@ end
 local function add_testing_options( options )
   options.nations = {
     -- english={ human=true, ship_pos=nil },
-    -- french={ human=true, ship_pos=nil },
+    french={ human=true, ship_pos=nil }
     -- spanish={ human=true, ship_pos=nil },
-    dutch={ human=true, ship_pos=nil }
+    -- dutch={ human=true, ship_pos=nil },
   }
   options.difficulty = 'conquistador'
   -- options.map.type = 'land-partition'
