@@ -288,11 +288,11 @@ Unit& World::add_missionary_in_dwelling(
   return units().unit_for( unit_id );
 }
 
-Unit& World::add_unit_in_cargo( e_unit_type type, UnitId holder,
-                                maybe<e_nation> nation ) {
-  if( !nation ) nation = default_nation_;
-  UnitId held =
-      create_free_unit( units(), player( *nation ), type );
+Unit& World::add_unit_in_cargo( e_unit_type type,
+                                UnitId      holder ) {
+  e_nation const nation = units().unit_for( holder ).nation();
+  UnitId         held =
+      create_free_unit( units(), player( nation ), type );
   units().change_to_cargo_somewhere( holder, held );
   return units().unit_for( held );
 }

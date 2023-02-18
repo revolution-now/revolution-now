@@ -243,8 +243,7 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
     auto [ship_id, defender_id] = W.add_pair(
         e_unit_type::caravel, e_unit_type::free_colonist );
     combat.attacker.id =
-        W.add_unit_in_cargo( e_unit_type::soldier, ship_id,
-                             W.kAttackingNation )
+        W.add_unit_in_cargo( e_unit_type::soldier, ship_id )
             .id();
     combat.defender.id = defender_id;
     W.expect_msg_contains(

@@ -134,8 +134,8 @@ struct World {
       UnitType missionary_type, DwellingId dwelling_id,
       maybe<e_nation> nation = nothing );
 
-  Unit& add_unit_in_cargo( e_unit_type type, UnitId holder,
-                           maybe<e_nation> nation = nothing );
+  // Unit created will be the same nation as the holder.
+  Unit& add_unit_in_cargo( e_unit_type type, UnitId holder );
 
   // This will create a unit that is registered in the game but
   // without any ownership.
