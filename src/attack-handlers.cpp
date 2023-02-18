@@ -182,6 +182,14 @@ maybe<string> perform_euro_unit_combat_outcome(
       // Need to do this first before demoting the unit.
       msg = "Unit demoted upon capture!";
       if( unit.type() == e_unit_type::veteran_colonist )
+        // FIXME: this message needs to be displayed to the
+        // player that is capturing the unit. Perhaps below when
+        // we test the player's nation, instead of testing the
+        // `player` that is passed in, we re-measure the unit's
+        // nation and use that, that way in the case of a capture
+        // it will use the new nation, which should probably do
+        // the right thing (but only do that if the unit hasn't
+        // been destroyed).
         msg = "Veteran status lost upon capture!";
       unit.change_type( player, o.to );
       capture_unit( o.new_nation, o.new_coord );
