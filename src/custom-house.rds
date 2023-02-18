@@ -11,8 +11,15 @@
 # Revolution Now
 include "market.rds.hpp"
 
+# C++ standard library
+include "<vector>"
+
 namespace "rn"
 
-struct.CustomHouseSale {
-  invoice 'Invoice',
+struct.CustomHouseSales {
+  invoices 'std::vector<Invoice>',
+
+  # These are the ones that it would have sold (since there is
+  # enough quantity) but that it couldn't due to boycotts.
+  boycotted 'std::vector<e_commodity>',
 }

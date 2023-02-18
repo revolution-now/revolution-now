@@ -102,10 +102,10 @@ void set_default_custom_house_state( Colony& colony ) {
       config_colony.custom_house.initial_commodities;
 }
 
-vector<CustomHouseSale> compute_custom_house_sales(
+CustomHouseSales compute_custom_house_sales(
     SSConst const& ss, Player const& player,
     Colony const& colony ) {
-  vector<CustomHouseSale> sales;
+  CustomHouseSales sales;
   if( !colony.buildings[e_colony_building::custom_house] )
     return sales;
   for( e_commodity comm : refl::enum_values<e_commodity> ) {
@@ -152,17 +152,35 @@ vector<CustomHouseSale> compute_custom_house_sales(
       invoice.money_delta_final =
           invoice.money_delta_before_taxes - invoice.tax_amount;
     }
-    sales.push_back( CustomHouseSale{ .invoice = invoice } );
+    if( config_colony.custom_house.respect_boycotts &&
+        player.old_world.market.commodities[comm].boycott ) {
+      // In this game the custom house cannot by default sell
+      // goods that are boycotted. The OG seems to ignore boy-
+      // cotts when selling via custom house, but this is prob-
+      // ably a bug, since the strategy guide does not mention
+      // boycott-resistance as being among the abilities of the
+      // custom house (FreeCol suggests its a bug as well). So in
+      // this game we have this config flag that controls it, and
+      // it defaults to making the custom house respect boycotts.
+      // That means that the custom house will simply not sell
+      // goods that are boycotted.
+      //
+      // Here we only push boycotted items that we were otherwise
+      // going to sell.
+      sales.boycotted.push_back( comm );
+      continue;
+    }
+    sales.invoices.push_back( invoice );
   }
   return sales;
 }
 
-void apply_custom_house_sales(
-    SS& ss, Player& player, Colony& colony,
-    vector<CustomHouseSale> const& sales ) {
-  for( CustomHouseSale const& sale : sales ) {
+void apply_custom_house_sales( SS& ss, Player& player,
+                               Colony&                 colony,
+                               CustomHouseSales const& sales ) {
+  for( Invoice const& invoice : sales.invoices ) {
     // The custom house is selling this commodity.
-    int& quantity = colony.commodities[sale.invoice.what.type];
+    int& quantity = colony.commodities[invoice.what.type];
     // The custom house will only sell when the quantity becomes
     // larger than a threshold, which in turn is larger than the
     // amount that the colony retains, and it will sell as much
@@ -170,7 +188,7 @@ void apply_custom_house_sales(
     // Therefore, we can just set the quantity to the minimum re-
     // taining amount.
     quantity = config_colony.custom_house.amount_to_retain;
-    apply_invoice( ss, player, sale.invoice );
+    apply_invoice( ss, player, invoice );
   }
 }
 

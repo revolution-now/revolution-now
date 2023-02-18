@@ -103,7 +103,14 @@ sumtype.ColonyNotification {
   },
   custom_house_sales {
     # What did the custom house sell this turn.
-    what 'std::vector<CustomHouseSale>',
+    what 'std::vector<Invoice>',
+  },
+  custom_house_selling_boycotted_good {
+    # When the "respect_boycotts" config flag is enabled, which
+    # it is by default, the player will be notified when the
+    # custom house in a colony is attempting to sell boycotted
+    # goods (which it cannot do).
+    what 'std::vector<e_commodity>',
   },
 }
 

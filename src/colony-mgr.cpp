@@ -304,13 +304,12 @@ NotificationMessage generate_colony_notification_message(
           notification
               .get<ColonyNotification::custom_house_sales>();
       string goods;
-      for( CustomHouseSale const& sale : o.what )
+      for( Invoice const& invoice : o.what )
         goods += fmt::format(
             "{} {} for {} at a {}% charge yielding [{}], ",
-            sale.invoice.what.quantity, sale.invoice.what.type,
-            sale.invoice.money_delta_before_taxes,
-            sale.invoice.tax_rate,
-            sale.invoice.money_delta_final );
+            invoice.what.quantity, invoice.what.type,
+            invoice.money_delta_before_taxes, invoice.tax_rate,
+            invoice.money_delta_final );
       // Remove trailing comma.
       goods.resize( goods.size() - 2 );
       goods += '.';
@@ -319,6 +318,27 @@ NotificationMessage generate_colony_notification_message(
           "goods: {}",
           colony.name, goods );
       res.transient = true;
+      break;
+    }
+    case ColonyNotification::e::
+        custom_house_selling_boycotted_good: {
+      auto& o =
+          notification
+              .get<ColonyNotification::
+                       custom_house_selling_boycotted_good>();
+      string goods;
+      for( e_commodity const comm : o.what )
+        goods += fmt::format(
+            "[{}], ", lowercase_commodity_display_name( comm ) );
+      // Remove trailing comma.
+      goods.resize( goods.size() - 2 );
+      res.msg = fmt::format(
+          "The [Custom House] in [{}] is unable to sell the "
+          "following boycotted goods: {}.  We should stop the "
+          "Custom House from attempting to sell them until the "
+          "boycott is lifted.",
+          colony.name, goods );
+      break;
     }
   }
   return res;

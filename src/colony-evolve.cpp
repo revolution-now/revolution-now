@@ -495,13 +495,21 @@ void process_custom_house( SS& ss, Player& player,
                            ColonyEvolution& ev ) {
   if( !colony.buildings[e_colony_building::custom_house] )
     return;
-  vector<CustomHouseSale> sales =
+  CustomHouseSales sales =
       compute_custom_house_sales( ss, player, colony );
-  if( sales.empty() ) return;
-  apply_custom_house_sales( ss, player, colony, sales );
-  ev.notifications.push_back(
-      ColonyNotification::custom_house_sales{
-          .what = std::move( sales ) } );
+
+  if( !sales.invoices.empty() ) {
+    apply_custom_house_sales( ss, player, colony, sales );
+    ev.notifications.push_back(
+        ColonyNotification::custom_house_sales{
+            .what = std::move( sales.invoices ) } );
+  }
+
+  if( !sales.boycotted.empty() ) {
+    ev.notifications.push_back(
+        ColonyNotification::custom_house_selling_boycotted_good{
+            .what = std::move( sales.boycotted ) } );
+  }
 }
 
 } // namespace

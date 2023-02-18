@@ -35,7 +35,13 @@ struct SSConst;
 //  +3.  When a good reaches a quantity > 100 in a colony then
 //       all but 50 of it is sold.
 //  +4.  It sells goods before spoilage is assessed.
-//  +5.  It can sell goods even if they are boycotted.
+//  +5.  It cannot sell goods that are boycotted.  The custom
+//       house in the OG seems to ignore boycotts, but this is
+//       probably a bug, since the strategy guide does not men-
+//       tion boycott-resistance as being among the abilities of
+//       the custom house (FreeCol suggests its a bug). So in
+//       this game this is a config flag that controls it, that
+//       defaults to making the custom house respect boycotts.
 //  +6.  Prior to the war of independence, custom house sales are
 //       taxed according to the current tax rate, and there is no
 //       further charge.
@@ -65,14 +71,14 @@ void set_default_custom_house_state( Colony& colony );
 
 // Should be called when evolving the colony, will determine what
 // the custom house should do but won't make any changes.
-std::vector<CustomHouseSale> compute_custom_house_sales(
+CustomHouseSales compute_custom_house_sales(
     SSConst const& ss, Player const& player,
     Colony const& colony );
 
 // Removes sold commodities from colony, gives player money, and
 // affects market state.
-void apply_custom_house_sales(
-    SS& ss, Player& player, Colony& colony,
-    std::vector<CustomHouseSale> const& sales );
+void apply_custom_house_sales( SS& ss, Player& player,
+                               Colony&                 colony,
+                               CustomHouseSales const& sales );
 
 } // namespace rn

@@ -893,6 +893,17 @@ custom_house {
   # post-declaration, though it may not be working in all ver-
   # sions of the game.
   charge_during_revolution: 50
+
+  # In this game the custom house cannot by default sell goods
+  # that are boycotted. The OG seems to ignore boycotts when
+  # selling via custom house, but this is probably a bug, since
+  # the strategy guide does not mention boycott-resistance as
+  # being among the abilities of the custom house (FreeCol sug-
+  # gests its a bug as well). So in this game we have this config
+  # flag that controls it, and it defaults to making the custom
+  # house respect boycotts. That means that the custom house will
+  # simply not sell goods that are boycotted.
+  respect_boycotts: true
 }
 
 # Things related to notifications on colony updates.

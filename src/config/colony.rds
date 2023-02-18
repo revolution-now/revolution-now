@@ -166,6 +166,8 @@ struct.CustomHouse {
   # clared?
   charge_during_revolution 'int',
 
+  respect_boycotts 'bool',
+
   _features { equality, validation }
 }
 
