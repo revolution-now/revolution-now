@@ -397,19 +397,22 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
   bool const defender_wins = !attacker_wins;
   res.winner = attacker_wins ? e_combat_winner::attacker
                              : e_combat_winner::defender;
-  Unit const* loser_unit = attacker_wins ? &defender : &attacker;
-  NavalCombatStats* loser =
-      attacker_wins ? &res.defender : &res.attacker;
-  NavalCombatStats* winner =
-      attacker_wins ? &res.attacker : &res.defender;
-  CHECK( winner != loser );
+  Unit const& winner_unit = attacker_wins ? attacker : defender;
+  Unit const& loser_unit  = attacker_wins ? defender : attacker;
+  NavalCombatStats& loser_stats =
+      attacker_wins ? res.defender : res.attacker;
+  NavalCombatStats& winner_stats =
+      attacker_wins ? res.attacker : res.defender;
+  CHECK( &winner_stats != &loser_stats );
+  CHECK( &winner_unit != &loser_unit );
 
   // Set the outcome of the winner.
-  if( winner == &res.attacker )
-    winner->outcome = EuroNavalUnitCombatOutcome::moved{
+  if( winner_unit.id() == attacker.id() )
+    winner_stats.outcome = EuroNavalUnitCombatOutcome::moved{
         .to = defender_coord };
   else
-    winner->outcome = EuroNavalUnitCombatOutcome::no_change{};
+    winner_stats.outcome =
+        EuroNavalUnitCombatOutcome::no_change{};
 
   // Now we can compute the sink weights since we know whose guns
   // and whose hull strength we need.
@@ -435,11 +438,11 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
 
   // Set the outcome of the loser.
   if( loser_sinks )
-    loser->outcome = EuroNavalUnitCombatOutcome::sunk{};
+    loser_stats.outcome = EuroNavalUnitCombatOutcome::sunk{};
   else
-    loser->outcome = EuroNavalUnitCombatOutcome::damaged{
+    loser_stats.outcome = EuroNavalUnitCombatOutcome::damaged{
         .port = find_repair_port_for_ship(
-            ss_, loser_unit->nation(), defender_coord ) };
+            ss_, loser_unit.nation(), defender_coord ) };
 
   return res;
 }
