@@ -122,6 +122,11 @@ struct ND Unit {
   // will be demoted.
   void consume_20_tools( Player const& player );
 
+  /*********************** Damaged *****************************/
+
+  base::maybe<int> const& damaged() const { return o_.damaged; }
+  base::maybe<int>&       damaged() { return o_.damaged; }
+
   /************************* Orders ****************************/
 
   // Returns true if the unit's orders are other than `none`.

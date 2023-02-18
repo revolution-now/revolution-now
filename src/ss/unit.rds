@@ -49,5 +49,11 @@ struct.Unit {
   # when the unit has orders to build a road or plow.
   turns_worked 'int',
 
+  # For ships damaged in combat. A damaged ship can be either in
+  # a colony (with a Drydock) or in the european harbor. When
+  # this has a value, it means that the ship is damaged and has
+  # been so for the given number of turns.
+  damaged 'base::maybe<int>',
+
   _features { equality, validation }
 }

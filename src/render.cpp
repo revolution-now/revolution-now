@@ -275,17 +275,16 @@ static void render_unit_flag( rr::Renderer& renderer,
 static void render_unit_impl(
     rr::Renderer& renderer, Coord where, e_tile tile,
     auto const& desc, gfx::pixel flag_color,
-    e_unit_orders orders, UnitRenderOptions const& options ) {
+    e_unit_orders orders, bool damaged,
+    UnitRenderOptions const& options ) {
   rr::Painter painter = renderer.painter();
   if( options.flag == e_flag_count::none ) {
+    // No flag.
     render_unit_no_icon( painter, where, tile, options );
-    return;
-  }
-
-  // Should the icon be in front of the unit or in back.
-  if( !desc.nat_icon_front ) {
-    // This is a bit tricky if there's a shadow because we
-    // don't want the shadow to be over the flag.
+  } else if( !desc.nat_icon_front ) {
+    // Show the flag but in the back. This is a bit tricky if
+    // there's a shadow because we don't want the shadow to be
+    // over the flag.
     if( options.shadow.has_value() )
       render_sprite_silhouette(
           painter, where + Delta{ .w = options.shadow->offset },
@@ -304,19 +303,26 @@ static void render_unit_impl(
     }
     render_sprite( painter, where, desc.tile );
   } else {
+    // Show the flag in the front.
     render_unit_no_icon( painter, where, tile, options );
     render_unit_flag( renderer, where, desc, flag_color, orders,
                       options.flag );
   }
+
+  if( damaged )
+    // Reuse the red X from boycotted commodities for the damaged
+    // icon (the OG seems to do this).
+    render_sprite( painter, where + Delta{ .w = 8, .h = 8 },
+                   e_tile::boycott );
 }
 
 void render_unit( rr::Renderer& renderer, Coord where,
                   Unit const&              unit,
                   UnitRenderOptions const& options ) {
-  render_unit_impl( renderer, where, unit.desc().tile,
-                    unit.desc(),
-                    nation_obj( unit.nation() ).flag_color,
-                    unit.orders(), options );
+  render_unit_impl(
+      renderer, where, unit.desc().tile, unit.desc(),
+      nation_obj( unit.nation() ).flag_color, unit.orders(),
+      unit.damaged().has_value(), options );
 }
 
 void render_native_unit( rr::Renderer& renderer, Coord where,
@@ -328,7 +334,8 @@ void render_native_unit( rr::Renderer& renderer, Coord where,
   gfx::pixel const flag_color =
       config_natives.tribes[tribe].flag_color;
   render_unit_impl( renderer, where, desc.tile, desc, flag_color,
-                    e_unit_orders::none, options );
+                    e_unit_orders::none, /*damaged=*/false,
+                    options );
 }
 
 static void render_unit_type(
