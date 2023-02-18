@@ -55,7 +55,8 @@ function M.default_options()
     -- the average slightly lower because it tends to end up
     -- slightly higher than the target.
     land_density=.17 + math.random() * .1,
-    remove_Xs=false,
+    remove_Xs=true,
+    remove_X_probability=0.8,
     brush='rand',
     -- This is the probability that, given a land square, we will
     -- start creating a river from it.
@@ -1243,8 +1244,9 @@ end
 -- But, we will do so here for two reasons: 1) because the orig-
 -- inal game did, and 2) we otherwise seem to end up with too
 -- many of them and they don't really look good.
-local function remove_Xs()
+local function remove_Xs( options )
   local size = world_size()
+  local p = assert( options.remove_X_probability )
   on_all( function( coord, square )
     if coord.y < size.h - 1 and coord.x < size.w - 1 then
       local square_right = square_at{ x=coord.x + 1, y=coord.y }
@@ -1253,11 +1255,15 @@ local function remove_Xs()
           square_at{ x=coord.x + 1, y=coord.y + 1 }
       if is_land( square ) and is_water( square_right ) and
           is_water( square_down ) and is_land( square_diag ) then
-        square_diag.surface = 'water'
+        if random_bool( p ) then
+          square_diag.surface = 'water'
+        end
       end
       if is_water( square ) and is_land( square_right ) and
           is_land( square_down ) and is_water( square_diag ) then
-        square_diag.surface = 'land'
+        if random_bool( p ) then
+          square_diag.surface = 'land'
+        end
       end
     end
   end )
@@ -1612,7 +1618,7 @@ local function generate_land( options )
     end
   end
   clear_buffer_area( buffer )
-  if options.remove_Xs then remove_Xs() end
+  if options.remove_Xs then remove_Xs( options ) end
   remove_islands()
   create_arctic( options )
   assign_dry_ground_types()
