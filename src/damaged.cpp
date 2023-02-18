@@ -47,6 +47,12 @@ ShipRepairPort_t find_repair_port_for_ship(
     if( !colony_has_building_level(
             colony, e_colony_building::drydock ) )
       continue;
+    // Note: we don't need to check if the colony has ocean ac-
+    // cess here because the game (like OG) will not allow the
+    // construction ofa Drydock or Shipyard in a colony without
+    // ocean access. Though also, like the OG, if we inject a
+    // Drydock into the colony via cheat mode, then we may end up
+    // sending the ship there, but so be it.
     double const distance =
         ( colony.location - ship_location ).diagonal();
     if( !found_colony.has_value() ||
