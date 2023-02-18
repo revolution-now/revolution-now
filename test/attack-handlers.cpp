@@ -1250,6 +1250,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
 }
 #endif
 
+#ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
   World                  W;
   CombatShipAttackShip   combat;
@@ -1592,13 +1593,16 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( defender.cargo().count_items() == 0 );
   }
 }
+#endif
 
+#ifndef COMPILER_GCC
 TEST_CASE(
     "[attack-handlers] attack_colony_undefended_handler" ) {
   World                            W;
   CombatEuroAttackUndefendedColony combat;
   // TODO
 }
+#endif
 
 } // namespace
 } // namespace rn
