@@ -1,0 +1,24 @@
+# ===============================================================
+# damaged.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-02-17.
+#
+# Description: Rds definitions for the damaged module.
+#
+# ===============================================================
+# ss
+include "colony-id.hpp"
+
+namespace "rn"
+
+sumtype.ShipRepairPort {
+  # When a colony posesses a Drydock then it can host damaged
+  # ships.
+  colony {
+    id 'ColonyId',
+  },
+
+  european_harbor {},
+}
