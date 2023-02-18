@@ -179,6 +179,12 @@ struct World : testing::World {
         .returns<monostate>();
   }
 
+  void expect_evaded() {
+    gui()
+        .EXPECT__message_box( StrContains( "evades" ) )
+        .returns<monostate>();
+  }
+
   void expect_ship_sunk() {
     gui()
         .EXPECT__message_box( StrContains( "sunk by" ) )
@@ -1277,6 +1283,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
         e_unit_type::privateer, e_unit_type::merchantman );
     expect_combat();
     W.expect_some_animation();
+    W.expect_evaded();
     REQUIRE( W.units()
                  .unit_for( combat.attacker.id )
                  .movement_points() == 8 );

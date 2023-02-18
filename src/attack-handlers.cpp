@@ -358,7 +358,14 @@ maybe<string> perform_naval_unit_combat_outcome(
     }
   }
 
-  // FIXME
+  // FIXME: this is a mess: some parts of the messages above
+  // should be shown to the human player regardless of whether it
+  // concerns their ship or not (e.g., information as to whether
+  // a ship sunk or not), but other info (such as how many units
+  // lost) should only be conveyed for the player's units. We
+  // need to figure out a better way to handle UI interactions
+  // throughout this module in situations with units from mul-
+  // tiple players and messages/prompts concerning them.
   if( player.nation == active_player.nation &&
       active_player.human )
     return msg;
@@ -716,6 +723,19 @@ wait<> NavalBattleHandler::animate() const {
 
 wait<> NavalBattleHandler::perform() {
   co_await Base::perform();
+
+  if( !combat_.winner.has_value() ) {
+    // Defender evaded.
+    co_await ts_.gui.message_box(
+        "{} [{}] evades {} [{}].",
+        nation_obj( defender_.nation() ).adjective,
+        defender_.desc().name,
+        nation_obj( attacker_.nation() ).adjective,
+        attacker_.desc().name );
+    // There shouldn't be anything else to do here; none of the
+    // below should be relevant.
+    co_return;
+  }
 
   if( combat_.winner.has_value() ) {
     // One of the ships was either damaged or sunk.
