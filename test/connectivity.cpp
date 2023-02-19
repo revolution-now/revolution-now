@@ -305,7 +305,7 @@ TEST_CASE( "[connectivity] update_terrain_connectivity" ) {
   }
 }
 
-TEST_CASE( "[connectivity] has_ocean_access" ) {
+TEST_CASE( "[connectivity] water_square_has_ocean_access" ) {
   TerrainConnectivity const connectivity{
       .x_size = 5,
       // NOTE: this map of indices is not internally consistent,
@@ -323,7 +323,8 @@ TEST_CASE( "[connectivity] has_ocean_access" ) {
 
   SECTION( "left or right" ) {
     auto f = [&]( Coord coord ) {
-      return has_ocean_access( connectivity, coord );
+      return water_square_has_ocean_access( connectivity,
+                                            coord );
     };
 
     REQUIRE( f( { .x = 0, .y = 0 } ) );
@@ -355,7 +356,8 @@ TEST_CASE( "[connectivity] has_ocean_access" ) {
 
   SECTION( "left" ) {
     auto f = [&]( Coord coord ) {
-      return has_left_ocean_access( connectivity, coord );
+      return water_square_has_left_ocean_access( connectivity,
+                                                 coord );
     };
 
     REQUIRE( f( { .x = 0, .y = 0 } ) );
@@ -387,7 +389,8 @@ TEST_CASE( "[connectivity] has_ocean_access" ) {
 
   SECTION( "right" ) {
     auto f = [&]( Coord coord ) {
-      return has_right_ocean_access( connectivity, coord );
+      return water_square_has_right_ocean_access( connectivity,
+                                                  coord );
     };
 
     REQUIRE_FALSE( f( { .x = 0, .y = 0 } ) );

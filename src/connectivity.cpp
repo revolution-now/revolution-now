@@ -162,7 +162,7 @@ void update_terrain_connectivity( SSConst const&       ss,
             watch.human( kTimerName ) );
 }
 
-bool has_left_ocean_access(
+bool water_square_has_left_ocean_access(
     TerrainConnectivity const& connectivity, Coord coord ) {
   return contains_segment_index(
       connectivity.indices,
@@ -170,7 +170,7 @@ bool has_left_ocean_access(
       connectivity.x_size, coord );
 }
 
-bool has_right_ocean_access(
+bool water_square_has_right_ocean_access(
     TerrainConnectivity const& connectivity, Coord coord ) {
   return contains_segment_index(
       connectivity.indices,
@@ -178,10 +178,12 @@ bool has_right_ocean_access(
       connectivity.x_size, coord );
 }
 
-bool has_ocean_access( TerrainConnectivity const& connectivity,
-                       Coord                      coord ) {
-  return has_left_ocean_access( connectivity, coord ) ||
-         has_right_ocean_access( connectivity, coord );
+bool water_square_has_ocean_access(
+    TerrainConnectivity const& connectivity, Coord coord ) {
+  return water_square_has_left_ocean_access( connectivity,
+                                             coord ) ||
+         water_square_has_right_ocean_access( connectivity,
+                                              coord );
 }
 
 bool colony_has_ocean_access(
@@ -195,7 +197,8 @@ bool colony_has_ocean_access(
     if( ss.terrain.square_at( moved ).surface !=
         e_surface::water )
       continue;
-    if( has_ocean_access( connectivity, moved ) ) return true;
+    if( water_square_has_ocean_access( connectivity, moved ) )
+      return true;
   }
   return false;
 }

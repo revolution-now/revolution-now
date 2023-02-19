@@ -35,16 +35,16 @@ void update_terrain_connectivity( SSConst const&       ss,
 // tile is connected to the left or right edge of the map then it
 // is deemed to have "ocean" access, since it will have access to
 // at least one sea lane.
-bool has_ocean_access( TerrainConnectivity const& conn,
-                       Coord                      tile );
+bool water_square_has_ocean_access(
+    TerrainConnectivity const& conn, Coord tile );
 
 // Ditto but only for the left edge of the map (left sea lane).
-bool has_left_ocean_access( TerrainConnectivity const& conn,
-                            Coord                      tile );
+bool water_square_has_left_ocean_access(
+    TerrainConnectivity const& conn, Coord tile );
 
 // Ditto but only for the right edge of the map (left sea lane).
-bool has_right_ocean_access( TerrainConnectivity const& conn,
-                             Coord                      tile );
+bool water_square_has_right_ocean_access(
+    TerrainConnectivity const& conn, Coord tile );
 
 // Is one of the tiles adjacent to `tile` connected to a segment
 // that touches one of the edges of the map? This is used e.g. to

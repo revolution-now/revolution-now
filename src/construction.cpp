@@ -110,7 +110,7 @@ e_water_access colony_water_access( SSConst const& ss, TS& ts,
         e_surface::water )
       continue;
     res = std::max( res, e_water_access::yes );
-    if( has_ocean_access( ts.connectivity, moved ) )
+    if( water_square_has_ocean_access( ts.connectivity, moved ) )
       res = e_water_access::coastal;
   }
   return res;

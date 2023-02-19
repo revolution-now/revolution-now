@@ -17,6 +17,7 @@
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
+#include "connectivity.hpp"
 #include "enter-dwelling.hpp"
 #include "harbor-units.hpp"
 #include "igui.hpp"
@@ -201,6 +202,7 @@ struct TravelHandler : public OrdersHandler {
     land_forbidden,
     water_forbidden,
     board_ship_full,
+    no_ship_into_inland_lake,
 
     // Allowed moves.
     map_edge_high_seas,
@@ -238,6 +240,13 @@ struct TravelHandler : public OrdersHandler {
         co_await ts_.gui.message_box(
             "None of the ships on this square have enough free "
             "space to hold this unit!" );
+        // We should not have checked movement points in this
+        // case since it was an impossible move.
+        CHECK( !checked_mv_points_ );
+        co_return false;
+      case e_travel_verdict::no_ship_into_inland_lake:
+        co_await ts_.gui.message_box(
+            "Ships cannot move into inland lake tile." );
         // We should not have checked movement points in this
         // case since it was an impossible move.
         CHECK( !checked_mv_points_ );
@@ -280,6 +289,7 @@ struct TravelHandler : public OrdersHandler {
       case e_travel_verdict::land_forbidden:
       case e_travel_verdict::water_forbidden:
       case e_travel_verdict::board_ship_full:
+      case e_travel_verdict::no_ship_into_inland_lake:
         SHOULD_NOT_BE_HERE;
       case e_travel_verdict::consume_remaining_points:
         break;
@@ -553,7 +563,12 @@ TravelHandler::confirm_travel_impl() {
 
   CHECK( !unit.mv_pts_exhausted() );
 
-  auto surface = surface_type( dst_square );
+  e_surface const surface = surface_type( dst_square );
+
+  if( surface == e_surface::water and unit.desc().ship &&
+      !water_square_has_ocean_access( ts_.connectivity,
+                                      move_dst ) )
+    co_return e_travel_verdict::no_ship_into_inland_lake;
 
   e_unit_relationship relationship =
       e_unit_relationship::neutral;
@@ -846,6 +861,7 @@ wait<> TravelHandler::perform() {
     case e_travel_verdict::map_edge:
     case e_travel_verdict::land_forbidden:
     case e_travel_verdict::water_forbidden:
+    case e_travel_verdict::no_ship_into_inland_lake:
     case e_travel_verdict::board_ship_full: //
       SHOULD_NOT_BE_HERE;
     case e_travel_verdict::consume_remaining_points: {
