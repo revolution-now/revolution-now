@@ -46,17 +46,20 @@ struct World : testing::World {
   World() : Base() {
     add_default_player();
     create_default_map();
+    update_terrain_connectivity();
   }
 
   void create_default_map() {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, //
-        L, L, L, //
-        _, L, L, //
+        _, L, _, L, L, //
+        L, L, L, L, L, //
+        _, _, L, L, L, //
+        _, L, L, L, L, //
+        _, L, L, _, L, //
     };
-    build_map( std::move( tiles ), 3 );
+    build_map( std::move( tiles ), 5 );
   }
 };
 
@@ -112,6 +115,40 @@ TEST_CASE( "[orders-build] build colony" ) {
   Colony const& colony = W.colonies().colony_for( 1 );
   REQUIRE( colony.name == "my colony" );
   REQUIRE( colony.location == tile );
+}
+
+TEST_CASE( "[orders-build] build colony no ocean access" ) {
+#ifdef COMPILER_GCC
+  return;
+#endif
+  World       W;
+  Coord const tile{ .x = 3, .y = 3 };
+  Unit const& unit =
+      W.add_unit_on_map( e_unit_type::free_colonist, tile );
+  unique_ptr<OrdersHandler> handler = handle_orders(
+      W.planes(), W.ss(), W.ts(), W.default_player(), unit.id(),
+      orders::build{} );
+
+  REQUIRE_FALSE( unit.mv_pts_exhausted() );
+
+  auto confirm = [&] {
+    wait<bool> w_confirm = handler->confirm();
+    REQUIRE( !w_confirm.exception() );
+    REQUIRE( w_confirm.ready() );
+    return *w_confirm;
+  };
+
+  REQUIRE( W.colonies().last_colony_id() == 0 );
+
+  auto config_matcher =
+      Field( &ChoiceConfig::msg, StrContains( "ocean access" ) );
+  W.gui()
+      .EXPECT__choice( config_matcher, e_input_required::no )
+      .returns<maybe<string>>( "no" );
+  REQUIRE( confirm() == false );
+  REQUIRE_FALSE( unit.mv_pts_exhausted() );
+  REQUIRE( unit.orders() == e_unit_orders::none );
+  REQUIRE( W.colonies().last_colony_id() == 0 );
 }
 
 } // namespace

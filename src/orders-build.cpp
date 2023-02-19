@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
+#include "connectivity.hpp"
 #include "maybe.hpp"
 #include "ts.hpp"
 #include "woodcut.hpp"
@@ -21,6 +22,7 @@
 // ss
 #include "ss/colonies.hpp"
 #include "ss/ref.hpp"
+#include "ss/units.hpp"
 
 // Rds
 #include "ui-enums.rds.hpp"
@@ -101,6 +103,25 @@ struct BuildHandler : public OrdersHandler {
         case e_found_colony_err::colonist_not_on_map:
           SHOULD_NOT_BE_HERE;
       }
+    }
+
+    Coord const location = ss_.units.coord_for( unit_id );
+    if( !colony_has_ocean_access( ss_, ts_.connectivity,
+                                  location ) ) {
+      YesNoConfig const config{
+          .msg =
+              "Your Excellency, this square does not have "
+              "[ocean access].  This means that we will not be "
+              "able to access it by ship and thus we will have "
+              "to build a wagon train to transport goods to and "
+              "from it.",
+          .yes_label =
+              "Yes, that is exactly what I had in mind.",
+          .no_label       = "Nevermind, I forgot about that.",
+          .no_comes_first = true };
+      maybe<ui::e_confirm> const answer =
+          co_await ts_.gui.optional_yes_no( config );
+      if( answer != ui::e_confirm::yes ) co_return false;
     }
 
     while( true ) {
