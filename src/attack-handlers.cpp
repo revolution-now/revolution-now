@@ -303,7 +303,9 @@ maybe<string> perform_naval_unit_combat_outcome(
     case e::damaged: {
       auto& o = outcome.get<damaged>();
       // This means that the unit is being marked as damaged and
-      // has been damaged for zero turns as of now.
+      // has been damaged for zero turns as of now. Note that
+      // this automatically removes the unit from any sentry/for-
+      // tified status that it had, which is what we want.
       unit.orders() =
           unit_orders::damaged{ .turns_until_repair = 5 };
       // All units in cargo are destroyed.
