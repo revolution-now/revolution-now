@@ -1,0 +1,51 @@
+# ===============================================================
+# connectivity.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-02-18.
+#
+# Description: Rds definitions for the connectivity module.
+#
+# ===============================================================
+# C++ standard library
+include "<vector>"
+include "<unordered_set>"
+
+namespace "rn"
+
+# This data structure describes the connected regions of a map in
+# the sense of which land tiles are accessible by other land
+# tiles and which water tiles are accessible from other water
+# tiles (this includes diagonals). Each connected region has an
+# index > 0. Water tiles will never share an index with land
+# tiles. This needs to be recomputed each time the map is regen-
+# erated or its land/water layout is changed.
+struct.TerrainConnectivity {
+  # This is for convenience, so that we know how to convert the
+  # rastorized indices to coordinates.
+  x_size 'int',
+
+  # This will have one element for each map tile; first by row,
+  # then by column. Indices are unique between land and water;
+  # i.e., a land tile will never have the same index as a water
+  # tile.
+  indices 'std::vector<int>',
+
+  # These are the connected-segment indices of those segments
+  # that are touching the left/right edge of the map. These can
+  # be either land or water tiles, but normal game logic will
+  # probably only be interested in the water tiles. These are
+  # used to determine if a water tile has "ocean access" and, if
+  # so, whether it is Pacific, Atlantic, or both.
+  #
+  # NOTE: these are NOT rastorized coordinates like the ints in
+  # the `indices` array; these are connected segment indices. So
+  # if you have a map coordinate you first rastorize it, then
+  # look it up in the `indices` vector to get the segment index,
+  # then look up that segment index in these sets. That said,
+  # normal game code should not be doing that manually; it should
+  # be using the API methods in this module.
+  indices_with_right_edge_access 'std::unordered_set<int>',
+  indices_with_left_edge_access 'std::unordered_set<int>',
+}
