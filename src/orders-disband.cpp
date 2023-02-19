@@ -65,7 +65,7 @@ struct DisbandHandler : public OrdersHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
-    Planes&, SS& ss, TS& ts, Player&, UnitId id,
+    SS& ss, TS& ts, Player&, UnitId id,
     orders::disband const& ) {
   return make_unique<DisbandHandler>( id, ts.gui, ss.units );
 }

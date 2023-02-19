@@ -101,7 +101,7 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
 
   Rand         rand; // random seed.
   RealCombat   combat( ss, rand );
-  ColonyViewer colony_viewer( planes, ss );
+  ColonyViewer colony_viewer( ss );
 
   TerrainConnectivity connectivity;
 
@@ -110,8 +110,8 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
     // construction, so use the non-rendering one, which is fine
     // because we don't need to render yet anyway.
     NonRenderingMapUpdater map_updater( ss );
-    TS ts( map_updater, st, gui, rand, combat, colony_viewer,
-           saved, connectivity );
+    TS ts( planes, map_updater, st, gui, rand, combat,
+           colony_viewer, saved, connectivity );
     if( !co_await loader( ss, ts ) )
       // Didn't load a game for some reason. Could have failed or
       // maybe there are no games to load.
@@ -127,18 +127,18 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
 
   RenderingMapUpdater map_updater(
       ss, global_renderer_use_only_when_needed() );
-  TS ts( map_updater, st, gui, rand, combat, colony_viewer,
-         saved, connectivity );
+  TS ts( planes, map_updater, st, gui, rand, combat,
+         colony_viewer, saved, connectivity );
 
   ensure_human_player( ss.players );
 
   MenuPlane menu_plane;
   group.menu = &menu_plane;
 
-  PanelPlane panel_plane( planes, ss, ts );
+  PanelPlane panel_plane( ss, ts );
   group.panel = &panel_plane;
 
-  LandViewPlane land_view_plane( planes, ss, ts,
+  LandViewPlane land_view_plane( ss, ts,
                                  /*visibility=*/nothing );
   group.land_view = &land_view_plane;
 
@@ -175,7 +175,7 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   //
   // But this should not be done when loading an existing game.
   co_await co::erase( co::try_<game_quit_interrupt>(
-      [&] { return turn_loop( planes, ss, ts ); } ) );
+      [&] { return turn_loop( ss, ts ); } ) );
 }
 
 wait<> handle_mode( Planes& planes, StartMode::new_ const& ) {

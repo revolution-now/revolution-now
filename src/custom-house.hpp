@@ -21,10 +21,10 @@
 namespace rn {
 
 struct Colony;
-struct Planes;
 struct Player;
 struct SS;
 struct SSConst;
+struct TS;
 
 // TODO: for custom house:
 //
@@ -63,7 +63,7 @@ struct SSConst;
 
 // Allows the user to adjust which commodities are being sold by
 // the custom house.
-wait<> open_custom_house_menu( Planes& planes, Colony& colony );
+wait<> open_custom_house_menu( TS& ts, Colony& colony );
 
 // When the custom house is first built in a colony this should
 // be called to set the default sellable commodities.

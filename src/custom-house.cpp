@@ -17,6 +17,7 @@ using namespace std;
 #include "igui.hpp"
 #include "market.hpp"
 #include "plane-stack.hpp"
+#include "ts.hpp"
 #include "views.hpp"
 #include "window.hpp"
 
@@ -34,7 +35,7 @@ namespace {} // namespace
 /****************************************************************
 ** Public API
 *****************************************************************/
-wait<> open_custom_house_menu( Planes& planes, Colony& colony ) {
+wait<> open_custom_house_menu( TS& ts, Colony& colony ) {
   using namespace ::rn::ui;
   auto top_array = make_unique<VerticalArrayView>(
       VerticalArrayView::align::center );
@@ -83,7 +84,7 @@ wait<> open_custom_house_menu( Planes& planes, Colony& colony ) {
   top_array->recompute_child_positions();
 
   // Create window.
-  WindowManager& wm = planes.window().manager();
+  WindowManager& wm = ts.planes.window().manager();
   Window         window( wm );
   window.set_view( std::move( top_array ) );
   window.autopad_me();

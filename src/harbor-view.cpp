@@ -177,7 +177,8 @@ struct HarborPlane::Impl : public Plane {
     // Render any indicators on top of it.
     switch( state.indicator ) {
       using e = e_drag_status_indicator;
-      case e::none: break;
+      case e::none:
+        break;
       case e::bad: {
         rr::Typer typer = renderer.typer( sprite_upper_left,
                                           gfx::pixel::red() );
@@ -266,7 +267,7 @@ struct HarborPlane::Impl : public Plane {
       case ::SDLK_ESCAPE: //
       case ::SDLK_e:      //
         throw harbor_view_exit_interrupt{};
-      default: //
+      default:            //
         break;
     }
 
@@ -322,7 +323,8 @@ struct HarborPlane::Impl : public Plane {
         case input::e_input_event::win_event:
           saved.push_back( std::move( e ) );
           break;
-        default: break;
+        default:
+          break;
       }
     }
     CHECK( !input_.ready() );
@@ -369,9 +371,9 @@ wait<> HarborPlane::show_harbor_view() {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> show_harbor_view( Planes& planes, SS& ss, TS& ts,
-                         Player&       player,
+wait<> show_harbor_view( SS& ss, TS& ts, Player& player,
                          maybe<UnitId> selected_unit ) {
+  Planes&     planes    = ts.planes;
   auto        popper    = planes.new_copied_group();
   PlaneGroup& new_group = planes.back();
 

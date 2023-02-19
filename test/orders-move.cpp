@@ -98,7 +98,7 @@ TEST_CASE( "[orders-move] ship can move from land to ocean" ) {
   {
     // First make sure that it can't move from land to land.
     unique_ptr<OrdersHandler> handler =
-        handle_orders( W.planes(), W.ss(), W.ts(), player, id,
+        handle_orders( W.ss(), W.ts(), player, id,
                        orders::move{ .d = e_direction::n } );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
@@ -111,7 +111,7 @@ TEST_CASE( "[orders-move] ship can move from land to ocean" ) {
   {
     // Now make sure that it can move from land to water.
     unique_ptr<OrdersHandler> handler =
-        handle_orders( W.planes(), W.ss(), W.ts(), player, id,
+        handle_orders( W.ss(), W.ts(), player, id,
                        orders::move{ .d = e_direction::nw } );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
@@ -146,7 +146,7 @@ TEST_CASE( "[orders-move] ship can't move into inland lake" ) {
   REQUIRE( W.units().unit_for( id ).desc().ship );
 
   unique_ptr<OrdersHandler> handler =
-      handle_orders( W.planes(), W.ss(), W.ts(), player, id,
+      handle_orders( W.ss(), W.ts(), player, id,
                      orders::move{ .d = e_direction::s } );
   W.gui()
       .EXPECT__message_box( StrContains( "inland lake" ) )
@@ -179,8 +179,8 @@ TEST_CASE(
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
     land_view_plane.EXPECT__animate( _ ).returns<monostate>();
     unique_ptr<OrdersHandler> handler =
-        handle_orders( W.planes(), W.ss(), W.ts(), player,
-                       unit_id, orders::move{ .d = d } );
+        handle_orders( W.ss(), W.ts(), player, unit_id,
+                       orders::move{ .d = d } );
     wait<OrdersHandlerRunResult> const w = handler->run();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -261,8 +261,8 @@ TEST_CASE(
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
     land_view_plane.EXPECT__animate( _ ).returns<monostate>();
     unique_ptr<OrdersHandler> handler =
-        handle_orders( W.planes(), W.ss(), W.ts(), player,
-                       unit_id, orders::move{ .d = d } );
+        handle_orders( W.ss(), W.ts(), player, unit_id,
+                       orders::move{ .d = d } );
     wait<OrdersHandlerRunResult> const w = handler->run();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -305,9 +305,9 @@ TEST_CASE(
   W.add_native_unit_on_map( e_native_unit_type::brave,
                             { .x = 1, .y = 1 }, dwelling.id );
 
-  unique_ptr<OrdersHandler> handler = handle_orders(
-      W.planes(), W.ss(), W.ts(), W.french(), colonist.id(),
-      orders::move{ .d = e_direction::se } );
+  unique_ptr<OrdersHandler> handler =
+      handle_orders( W.ss(), W.ts(), W.french(), colonist.id(),
+                     orders::move{ .d = e_direction::se } );
   W.gui()
       .EXPECT__message_box(
           "We cannot attack a land unit from a ship." )

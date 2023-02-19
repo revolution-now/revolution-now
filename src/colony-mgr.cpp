@@ -452,16 +452,15 @@ void create_initial_buildings( Colony& colony ) {
   colony.buildings = config_colony.initial_colony_buildings;
 }
 
-wait<> run_colony_starvation( Planes& planes, SS& ss, TS& ts,
-                              Player& player, Colony& colony ) {
+wait<> run_colony_starvation( SS& ss, TS& ts, Player& player,
+                              Colony& colony ) {
   // Must extract this info before destroying the colony.
   string const msg = fmt::format(
       "[{}] ran out of food and was not able to support "
       "its last remaining colonists.  As a result, the colony "
       "has disappeared.",
       colony.name );
-  co_await run_colony_destruction( planes, ss, ts, player,
-                                   colony, msg );
+  co_await run_colony_destruction( ss, ts, player, colony, msg );
   // !! Do not reference `colony` beyond this point.
 }
 
@@ -783,8 +782,8 @@ ColonyDestructionOutcome destroy_colony(
   return outcome;
 }
 
-wait<> run_colony_destruction( Planes& planes, SS& ss, TS& ts,
-                               Player& player, Colony& colony,
+wait<> run_colony_destruction( SS& ss, TS& ts, Player& player,
+                               Colony&       colony,
                                maybe<string> msg ) {
   // Must extract this info before destroying the colony.
   string const name = colony.name;
@@ -792,7 +791,7 @@ wait<> run_colony_destruction( Planes& planes, SS& ss, TS& ts,
                                colony.location );
   AnimationSequence const seq =
       anim_seq_for_colony_depixelation( colony.id );
-  co_await planes.land_view().animate( seq );
+  co_await ts.planes.land_view().animate( seq );
   ColonyDestructionOutcome const outcome =
       destroy_colony( ss, ts.map_updater, player, colony );
   if( msg.has_value() ) co_await ts.gui.message_box( *msg );
@@ -815,8 +814,8 @@ wait<> run_colony_destruction( Planes& planes, SS& ss, TS& ts,
   }
 }
 
-wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
-                                   TS& ts, Player& player ) {
+wait<> evolve_colonies_for_player( SS& ss, TS& ts,
+                                   Player& player ) {
   e_nation nation = player.nation;
   lg.info( "processing colonies for the {}.", nation );
   unordered_map<ColonyId, Colony> const& colonies_all =
@@ -840,8 +839,7 @@ wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
         evolve_colony_one_turn( ss, ts, player, colony ) );
     ColonyEvolution const& ev = evolutions.back();
     if( ev.colony_disappeared ) {
-      co_await run_colony_starvation( planes, ss, ts, player,
-                                      colony );
+      co_await run_colony_starvation( ss, ts, player, colony );
       // !! at this point the colony will have been deleted, so
       // we should not access it anymore.
       continue;
@@ -863,7 +861,7 @@ wait<> evolve_colonies_for_player( Planes& planes, SS& ss,
     }
     if( !blocking_messages.empty() )
       // We have some blocking notifications to present.
-      co_await planes.land_view().ensure_visible(
+      co_await ts.planes.land_view().ensure_visible(
           colony.location );
     bool const zoom_to_colony =
         co_await present_blocking_colony_updates(

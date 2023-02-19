@@ -74,9 +74,9 @@ TEST_CASE( "[orders-build] build colony" ) {
   Coord const tile{ .x = 2, .y = 2 };
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
-  unique_ptr<OrdersHandler> handler = handle_orders(
-      W.planes(), W.ss(), W.ts(), W.default_player(), unit.id(),
-      orders::build{} );
+  unique_ptr<OrdersHandler> handler =
+      handle_orders( W.ss(), W.ts(), W.default_player(),
+                     unit.id(), orders::build{} );
 
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 
@@ -125,9 +125,9 @@ TEST_CASE( "[orders-build] build colony no ocean access" ) {
   Coord const tile{ .x = 3, .y = 3 };
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
-  unique_ptr<OrdersHandler> handler = handle_orders(
-      W.planes(), W.ss(), W.ts(), W.default_player(), unit.id(),
-      orders::build{} );
+  unique_ptr<OrdersHandler> handler =
+      handle_orders( W.ss(), W.ts(), W.default_player(),
+                     unit.id(), orders::build{} );
 
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 

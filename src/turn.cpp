@@ -308,8 +308,8 @@ void map_active_euro_units(
 /****************************************************************
 ** Menu Handlers
 *****************************************************************/
-wait<> menu_handler( Planes& planes, SS& ss, TS& ts,
-                     Player& player, e_menu_item item ) {
+wait<> menu_handler( SS& ss, TS& ts, Player& player,
+                     e_menu_item item ) {
   switch( item ) {
     case e_menu_item::exit: {
       co_await proceed_to_exit( ss, ts );
@@ -344,17 +344,17 @@ wait<> menu_handler( Planes& planes, SS& ss, TS& ts,
       break;
     }
     case e_menu_item::harbor_view: {
-      co_await show_harbor_view( planes, ss, ts, player,
+      co_await show_harbor_view( ss, ts, player,
                                  /*selected_unit=*/nothing );
       break;
     }
     case e_menu_item::cheat_map_editor: {
       // Need to co_await so that the map_updater stays alive.
-      co_await run_map_editor( planes, ss, ts );
+      co_await run_map_editor( ss, ts );
       break;
     }
     case e_menu_item::cheat_edit_fathers: {
-      co_await cheat_edit_fathers( planes, ss, ts, player );
+      co_await cheat_edit_fathers( ss, ts, player );
       break;
     }
     default: {
@@ -375,16 +375,15 @@ wait<e_menu_item> wait_for_menu_selection(
 *****************************************************************/
 namespace eot {
 
-wait<> process_player_input( e_menu_item item, Planes& planes,
-                             SS& ss, TS& ts, Player& player ) {
+wait<> process_player_input( e_menu_item item, SS& ss, TS& ts,
+                             Player& player ) {
   // In the future we might need to put logic here that is spe-
   // cific to the end-of-turn, but for now this is sufficient.
-  return menu_handler( planes, ss, ts, player, item );
+  return menu_handler( ss, ts, player, item );
 }
 
 wait<> process_player_input( LandViewPlayerInput_t const& input,
-                             Planes& planes, SS& ss, TS& ts,
-                             Player& player ) {
+                             SS& ss, TS& ts, Player& player ) {
   switch( input.to_enum() ) {
     using namespace LandViewPlayerInput;
     case e::colony: {
@@ -397,7 +396,7 @@ wait<> process_player_input( LandViewPlayerInput_t const& input,
       break;
     }
     case e::european_status: {
-      co_await show_harbor_view( planes, ss, ts, player,
+      co_await show_harbor_view( ss, ts, player,
                                  /*selected_unit=*/nothing );
       break;
     }
@@ -414,18 +413,16 @@ wait<> process_player_input( LandViewPlayerInput_t const& input,
   }
 }
 
-wait<> process_player_input( next_turn_t, Planes&, SS&, TS&,
-                             Player& ) {
+wait<> process_player_input( next_turn_t, SS&, TS&, Player& ) {
   lg.debug( "end of turn button clicked." );
   co_return;
 }
 
-wait<> process_inputs( Planes& planes, SS& ss, TS& ts,
-                       Player& player ) {
+wait<> process_inputs( SS& ss, TS& ts, Player& player ) {
   while( true ) {
-    auto wait_for_button =
-        co::fmap( [] λ( next_turn_t{} ),
-                  planes.panel().wait_for_eot_button_click() );
+    auto wait_for_button = co::fmap(
+        [] λ( next_turn_t{} ),
+        ts.planes.panel().wait_for_eot_button_click() );
     // The reason that we want to use co::first here instead of
     // interleaving the three streams is because as soon as one
     // becomes ready (and we start processing it) we want all the
@@ -433,14 +430,13 @@ wait<> process_inputs( Planes& planes, SS& ss, TS& ts,
     // the effect of disabling further input on them (e.g., dis-
     // abling menu items), which is what we want for a good user
     // experience.
-    UserInput command = co_await co::first(       //
-        wait_for_menu_selection( planes.menu() ), //
-        planes.land_view().eot_get_next_input(),  //
-        std::move( wait_for_button )              //
+    UserInput command = co_await co::first(          //
+        wait_for_menu_selection( ts.planes.menu() ), //
+        ts.planes.land_view().eot_get_next_input(),  //
+        std::move( wait_for_button )                 //
     );
-    co_await rn::visit(
-        command, LC( process_player_input( _, planes, ss, ts,
-                                           player ) ) );
+    co_await rn::visit( command, LC( process_player_input(
+                                     _, ss, ts, player ) ) );
     if( command.holds<next_turn_t>() ||
         command.get_if<LandViewPlayerInput_t>()
             .fmap( L( _.template holds<
@@ -452,28 +448,26 @@ wait<> process_inputs( Planes& planes, SS& ss, TS& ts,
 
 } // namespace eot
 
-wait<> end_of_turn( Planes& planes, SS& ss, TS& ts,
-                    Player& player ) {
+wait<> end_of_turn( SS& ss, TS& ts, Player& player ) {
   SCOPED_SET_AND_CHANGE( g_doing_eot, true, false );
-  return eot::process_inputs( planes, ss, ts, player );
+  return eot::process_inputs( ss, ts, player );
 }
 
 /****************************************************************
 ** Processing Player Input (During Turn).
 *****************************************************************/
-wait<> process_player_input( UnitId, e_menu_item item,
-                             Planes& planes, SS& ss, TS& ts,
-                             Player& player, NationTurnState& ) {
+wait<> process_player_input( UnitId, e_menu_item item, SS& ss,
+                             TS& ts, Player& player,
+                             NationTurnState& ) {
   // In the future we might need to put logic here that is spe-
   // cific to the mid-turn scenario, but for now this is suffi-
   // cient.
-  return menu_handler( planes, ss, ts, player, item );
+  return menu_handler( ss, ts, player, item );
 }
 
 wait<> process_player_input( UnitId                       id,
                              LandViewPlayerInput_t const& input,
-                             Planes& planes, SS& ss, TS& ts,
-                             Player&          player,
+                             SS& ss, TS& ts, Player& player,
                              NationTurnState& nat_turn_st ) {
   auto& st = nat_turn_st;
   auto& q  = st.units;
@@ -497,7 +491,7 @@ wait<> process_player_input( UnitId                       id,
       break;
     }
     case e::european_status: {
-      co_await show_harbor_view( planes, ss, ts, player,
+      co_await show_harbor_view( ss, ts, player,
                                  /*selected_unit=*/nothing );
       break;
     }
@@ -534,9 +528,9 @@ wait<> process_player_input( UnitId                       id,
         break;
       }
 
-      co_await planes.land_view().ensure_visible_unit( id );
+      co_await ts.planes.land_view().ensure_visible_unit( id );
       unique_ptr<OrdersHandler> handler =
-          orders_handler( planes, ss, ts, player, id, orders );
+          orders_handler( ss, ts, player, id, orders );
       CHECK( handler );
       Coord old_loc =
           coord_for_unit_indirect_or_die( ss.units, id );
@@ -605,16 +599,16 @@ wait<LandViewPlayerInput_t> landview_player_input(
   co_return response;
 }
 
-wait<> query_unit_input( UnitId id, Planes& planes, SS& ss,
-                         TS& ts, Player& player,
+wait<> query_unit_input( UnitId id, SS& ss, TS& ts,
+                         Player&          player,
                          NationTurnState& nat_turn_st ) {
   auto command = co_await co::first(
-      wait_for_menu_selection( planes.menu() ),
-      landview_player_input( planes.land_view(), nat_turn_st,
+      wait_for_menu_selection( ts.planes.menu() ),
+      landview_player_input( ts.planes.land_view(), nat_turn_st,
                              ss.units, id ) );
   co_await overload_visit( command, [&]( auto const& action ) {
-    return process_player_input( id, action, planes, ss, ts,
-                                 player, nat_turn_st );
+    return process_player_input( id, action, ss, ts, player,
+                                 nat_turn_st );
   } );
   // A this point we should return because we want to in general
   // allow for the possibility and any action executed above
@@ -626,8 +620,8 @@ wait<> query_unit_input( UnitId id, Planes& planes, SS& ss,
 ** Advancing Units.
 *****************************************************************/
 // Returns true if the unit needs to ask the user for input.
-wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
-                         Player& player, UnitId id ) {
+wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
+                         UnitId id ) {
   Unit& unit = ss.units.unit_for( id );
   CHECK( !should_remove_unit_from_queue( unit ) );
 
@@ -636,7 +630,7 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
                        ts.map_updater, unit );
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders() == e_unit_orders::none );
-      co_await planes.land_view().ensure_visible_unit( id );
+      co_await ts.planes.land_view().ensure_visible_unit( id );
       co_await ts.gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
@@ -659,7 +653,7 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
     }
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders() == e_unit_orders::none );
-      co_await planes.land_view().ensure_visible_unit( id );
+      co_await ts.planes.land_view().ensure_visible_unit( id );
       co_await ts.gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
@@ -721,7 +715,7 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
                 .count_items_of_type<Cargo::commodity>() > 0 )
           co_await display_woodcut_if_needed(
               ts, player, e_woodcut::cargo_from_the_new_world );
-        co_await show_harbor_view( planes, ss, ts, player, id );
+        co_await show_harbor_view( ss, ts, player, id );
         co_return false; // do not ask for orders.
       }
     }
@@ -736,8 +730,7 @@ wait<bool> advance_unit( Planes& planes, SS& ss, TS& ts,
   co_return true;
 }
 
-wait<> units_turn_one_pass( Planes& planes, SS& ss, TS& ts,
-                            Player&          player,
+wait<> units_turn_one_pass( SS& ss, TS& ts, Player& player,
                             NationTurnState& nat_turn_st,
                             deque<UnitId>&   q ) {
   while( !q.empty() ) {
@@ -755,7 +748,7 @@ wait<> units_turn_one_pass( Planes& planes, SS& ss, TS& ts,
     }
 
     bool should_ask =
-        co_await advance_unit( planes, ss, ts, player, id );
+        co_await advance_unit( ss, ts, player, id );
     if( !should_ask ) {
       q.pop_front();
       continue;
@@ -770,16 +763,14 @@ wait<> units_turn_one_pass( Planes& planes, SS& ss, TS& ts,
     // back to this line a few times in this while loop until we
     // get the order for the unit in question (unless the player
     // activates another unit).
-    co_await query_unit_input( id, planes, ss, ts, player,
-                               nat_turn_st );
+    co_await query_unit_input( id, ss, ts, player, nat_turn_st );
     // !! The unit may no longer exist at this point, e.g. if
     // they were disbanded or if they lost a battle to the na-
     // tives.
   }
 }
 
-wait<> units_turn( Planes& planes, SS& ss, TS& ts,
-                   Player&          player,
+wait<> units_turn( SS& ss, TS& ts, Player& player,
                    NationTurnState& nat_turn_st ) {
   auto& st = nat_turn_st;
   auto& q  = st.units;
@@ -831,8 +822,8 @@ wait<> units_turn( Planes& planes, SS& ss, TS& ts,
   // already some units in the queue on the first iteration, as
   // would be the case just after deserialization.
   while( true ) {
-    co_await units_turn_one_pass( planes, ss, ts, player,
-                                  nat_turn_st, q );
+    co_await units_turn_one_pass( ss, ts, player, nat_turn_st,
+                                  q );
     CHECK( q.empty() );
     // Refill the queue.
     vector<UnitId> units = euro_units_all( ss.units, st.nation );
@@ -849,9 +840,8 @@ wait<> units_turn( Planes& planes, SS& ss, TS& ts,
 /****************************************************************
 ** Per-Colony Turn Processor
 *****************************************************************/
-wait<> colonies_turn( Planes& planes, SS& ss, TS& ts,
-                      Player& player ) {
-  co_await evolve_colonies_for_player( planes, ss, ts, player );
+wait<> colonies_turn( SS& ss, TS& ts, Player& player ) {
+  co_await evolve_colonies_for_player( ss, ts, player );
 }
 
 // Here we do things that must be done once per turn but where we
@@ -904,7 +894,7 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
   //
 }
 
-void set_nation_map_visibility( Planes& planes, SS& ss, TS& ts,
+void set_nation_map_visibility( SS& ss, TS& ts,
                                 e_nation nation ) {
   if( maybe<MapRevealed_t const&> revealed =
           ss.land_view.map_revealed;
@@ -913,7 +903,7 @@ void set_nation_map_visibility( Planes& planes, SS& ss, TS& ts,
     // We have "entire" map visibility, and we're going to keep
     // it that way, but we should call this anyway just to make
     // sure this is what is currently in effect.
-    set_map_visibility( planes, ss, ts,
+    set_map_visibility( ss, ts,
                         MapRevealed_t{ MapRevealed::entire{} },
                         /*default_nation=*/nothing );
     return;
@@ -924,12 +914,12 @@ void set_nation_map_visibility( Planes& planes, SS& ss, TS& ts,
   // cause it wouldn't really make sense to e.g. start blinking
   // units of another nation when they are not visible.
   set_map_visibility(
-      planes, ss, ts,
+      ss, ts,
       MapRevealed_t{ MapRevealed::nation{ .nation = nation } },
       /*default_nation=*/nothing );
 }
 
-wait<> nation_turn( Planes& planes, SS& ss, TS& ts,
+wait<> nation_turn( SS& ss, TS& ts,
                     NationTurnState& nat_turn_st ) {
   auto& st = nat_turn_st;
 
@@ -939,7 +929,7 @@ wait<> nation_turn( Planes& planes, SS& ss, TS& ts,
 
   // `visibility` determines from whose point of view the map is
   // drawn with respect to which tiles are hidden.
-  set_nation_map_visibility( planes, ss, ts, st.nation );
+  set_nation_map_visibility( ss, ts, st.nation );
 
   // Starting.
   if( !st.started ) {
@@ -950,13 +940,13 @@ wait<> nation_turn( Planes& planes, SS& ss, TS& ts,
 
   // Colonies.
   if( !st.did_colonies ) {
-    co_await colonies_turn( planes, ss, ts, player );
+    co_await colonies_turn( ss, ts, player );
     co_await post_colonies( ss, ts, player );
     st.did_colonies = true;
   }
 
   if( !st.did_units ) {
-    co_await units_turn( planes, ss, ts, player, nat_turn_st );
+    co_await units_turn( ss, ts, player, nat_turn_st );
     st.did_units = true;
   }
   CHECK( st.units.empty() );
@@ -978,7 +968,7 @@ wait<> nation_turn( Planes& planes, SS& ss, TS& ts,
     // know that after that process is over a) the turn will end,
     // and b) we won't need an end-of-turn state, because the
     // user has already had one.
-    co_await end_of_turn( planes, ss, ts, player );
+    co_await end_of_turn( ss, ts, player );
 }
 
 /****************************************************************
@@ -1009,8 +999,8 @@ void reset_units( SS& ss ) {
   // TODO: handle native units.
 }
 
-wait<> next_turn( Planes& planes, SS& ss, TS& ts ) {
-  planes.land_view().start_new_turn();
+wait<> next_turn( SS& ss, TS& ts ) {
+  ts.planes.land_view().start_new_turn();
   auto& st = ss.turn;
 
   // Starting.
@@ -1024,14 +1014,14 @@ wait<> next_turn( Planes& planes, SS& ss, TS& ts ) {
 
   // Body.
   if( st.nation.has_value() ) {
-    co_await nation_turn( planes, ss, ts, *st.nation );
+    co_await nation_turn( ss, ts, *st.nation );
     st.nation.reset();
   }
 
   while( !st.remainder.empty() ) {
     st.nation = new_nation_turn_obj( st.remainder.front() );
     st.remainder.pop();
-    co_await nation_turn( planes, ss, ts, *st.nation );
+    co_await nation_turn( ss, ts, *st.nation );
     st.nation.reset();
   }
 
@@ -1048,8 +1038,8 @@ wait<> next_turn( Planes& planes, SS& ss, TS& ts ) {
 /****************************************************************
 ** Turn State Advancement
 *****************************************************************/
-wait<> turn_loop( Planes& planes, SS& ss, TS& ts ) {
-  while( true ) co_await next_turn( planes, ss, ts );
+wait<> turn_loop( SS& ss, TS& ts ) {
+  while( true ) co_await next_turn( ss, ts );
 }
 
 } // namespace rn

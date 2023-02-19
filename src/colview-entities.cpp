@@ -285,18 +285,16 @@ void adjust_mv_points_from_drag( Unit& unit ) {
 *****************************************************************/
 class TitleBar : public ui::View, public ColonySubView {
  public:
-  static unique_ptr<TitleBar> create( Planes& planes, SS& ss,
-                                      TS& ts, Player& player,
+  static unique_ptr<TitleBar> create( SS& ss, TS& ts,
+                                      Player& player,
                                       Colony& colony,
                                       Delta   size ) {
-    return make_unique<TitleBar>( planes, ss, ts, player, colony,
-                                  size );
+    return make_unique<TitleBar>( ss, ts, player, colony, size );
   }
 
-  TitleBar( Planes& planes, SS& ss, TS& ts, Player& player,
-            Colony& colony, Delta size )
-    : ColonySubView( planes, ss, ts, player, colony ),
-      size_( size ) {}
+  TitleBar( SS& ss, TS& ts, Player& player, Colony& colony,
+            Delta size )
+    : ColonySubView( ss, ts, player, colony ), size_( size ) {}
 
   Delta delta() const override { return size_; }
 
@@ -340,19 +338,17 @@ class MarketCommodities
     public IDragSourceUserEdit<ColViewObject_t>,
     public IDragSink<ColViewObject_t> {
  public:
-  static unique_ptr<MarketCommodities> create( Planes& planes,
-                                               SS& ss, TS& ts,
+  static unique_ptr<MarketCommodities> create( SS& ss, TS& ts,
                                                Player& player,
                                                Colony& colony,
                                                W block_width ) {
-    return make_unique<MarketCommodities>(
-        planes, ss, ts, player, colony, block_width );
+    return make_unique<MarketCommodities>( ss, ts, player,
+                                           colony, block_width );
   }
 
-  MarketCommodities( Planes& planes, SS& ss, TS& ts,
-                     Player& player, Colony& colony,
-                     W block_width )
-    : ColonySubView( planes, ss, ts, player, colony ),
+  MarketCommodities( SS& ss, TS& ts, Player& player,
+                     Colony& colony, W block_width )
+    : ColonySubView( ss, ts, player, colony ),
       block_width_( block_width ) {}
 
   Delta delta() const override {
@@ -554,18 +550,17 @@ class CargoView : public ui::View,
                   public IDragSinkUserEdit<ColViewObject_t>,
                   public IDragSinkCheck<ColViewObject_t> {
  public:
-  static unique_ptr<CargoView> create( Planes& planes, SS& ss,
-                                       TS& ts, Player& player,
+  static unique_ptr<CargoView> create( SS& ss, TS& ts,
+                                       Player& player,
                                        Colony& colony,
                                        Delta   size ) {
-    return make_unique<CargoView>( planes, ss, ts, player,
-                                   colony, size );
+    return make_unique<CargoView>( ss, ts, player, colony,
+                                   size );
   }
 
-  CargoView( Planes& planes, SS& ss, TS& ts, Player& player,
-             Colony& colony, Delta size )
-    : ColonySubView( planes, ss, ts, player, colony ),
-      size_( size ) {}
+  CargoView( SS& ss, TS& ts, Player& player, Colony& colony,
+             Delta size )
+    : ColonySubView( ss, ts, player, colony ), size_( size ) {}
 
   Delta delta() const override { return size_; }
 
@@ -990,16 +985,16 @@ class UnitsAtGateColonyView
     public IDragSinkCheck<ColViewObject_t> {
  public:
   static unique_ptr<UnitsAtGateColonyView> create(
-      Planes& planes, SS& ss, TS& ts, Player& player,
-      Colony& colony, CargoView* cargo_view, Delta size ) {
+      SS& ss, TS& ts, Player& player, Colony& colony,
+      CargoView* cargo_view, Delta size ) {
     return make_unique<UnitsAtGateColonyView>(
-        planes, ss, ts, player, colony, cargo_view, size );
+        ss, ts, player, colony, cargo_view, size );
   }
 
-  UnitsAtGateColonyView( Planes& planes, SS& ss, TS& ts,
-                         Player& player, Colony& colony,
-                         CargoView* cargo_view, Delta size )
-    : ColonySubView( planes, ss, ts, player, colony ),
+  UnitsAtGateColonyView( SS& ss, TS& ts, Player& player,
+                         Colony& colony, CargoView* cargo_view,
+                         Delta size )
+    : ColonySubView( ss, ts, player, colony ),
       cargo_view_( cargo_view ),
       size_( size ) {
     update_this_and_children();
@@ -1501,19 +1496,17 @@ class UnitsAtGateColonyView
 
 class ProductionView : public ui::View, public ColonySubView {
  public:
-  static unique_ptr<ProductionView> create( Planes& planes,
-                                            SS& ss, TS& ts,
+  static unique_ptr<ProductionView> create( SS& ss, TS& ts,
                                             Player& player,
                                             Colony& colony,
                                             Delta   size ) {
-    return make_unique<ProductionView>( planes, ss, ts, player,
-                                        colony, size );
+    return make_unique<ProductionView>( ss, ts, player, colony,
+                                        size );
   }
 
-  ProductionView( Planes& planes, SS& ss, TS& ts, Player& player,
-                  Colony& colony, Delta size )
-    : ColonySubView( planes, ss, ts, player, colony ),
-      size_( size ) {}
+  ProductionView( SS& ss, TS& ts, Player& player, Colony& colony,
+                  Delta size )
+    : ColonySubView( ss, ts, player, colony ), size_( size ) {}
 
   Delta delta() const override { return size_; }
 
@@ -1579,11 +1572,10 @@ class ProductionView : public ui::View, public ColonySubView {
 struct CompositeColSubView : public ui::InvisibleView,
                              public ColonySubView {
   CompositeColSubView(
-      Planes& planes, SS& ss, TS& ts, Player& player,
-      Colony& colony, Delta size,
+      SS& ss, TS& ts, Player& player, Colony& colony, Delta size,
       std::vector<ui::OwningPositionedView> views )
     : ui::InvisibleView( size, std::move( views ) ),
-      ColonySubView( planes, ss, ts, player, colony ) {
+      ColonySubView( ss, ts, player, colony ) {
     for( ui::PositionedView v : *this ) {
       auto* col_view = dynamic_cast<ColonySubView*>( v.view );
       CHECK( col_view );
@@ -1664,8 +1656,8 @@ struct CompositeColSubView : public ui::InvisibleView,
   vector<ColonySubView*> ptrs_;
 };
 
-void recomposite( Planes& planes, SS& ss, TS& ts, Player& player,
-                  Colony& colony, Delta const& canvas_size ) {
+void recomposite( SS& ss, TS& ts, Player& player, Colony& colony,
+                  Delta const& canvas_size ) {
   lg.trace( "recompositing colony view." );
   g_composition.id          = colony.id;
   g_composition.canvas_size = canvas_size;
@@ -1679,7 +1671,7 @@ void recomposite( Planes& planes, SS& ss, TS& ts, Player& player,
 
   // [Title Bar] ------------------------------------------------
   auto title_bar =
-      TitleBar::create( planes, ss, ts, player, colony,
+      TitleBar::create( ss, ts, player, colony,
                         Delta{ .w = canvas_size.w, .h = 10 } );
   g_composition.entities[e_colview_entity::title_bar] =
       title_bar.get();
@@ -1695,7 +1687,7 @@ void recomposite( Planes& planes, SS& ss, TS& ts, Player& player,
   comm_block_width =
       std::clamp( comm_block_width, kCommodityTileSize.w, 32 );
   auto market_commodities = MarketCommodities::create(
-      planes, ss, ts, player, colony, comm_block_width );
+      ss, ts, player, colony, comm_block_width );
   g_composition.entities[e_colview_entity::commodities] =
       market_commodities.get();
   pos = centered_bottom( market_commodities->delta(),
@@ -1711,7 +1703,7 @@ void recomposite( Planes& planes, SS& ss, TS& ts, Player& player,
 
   // [Population] -----------------------------------------------
   auto population_view = PopulationView::create(
-      planes, ss, ts, player, colony,
+      ss, ts, player, colony,
       middle_strip_size.with_width( middle_strip_size.w / 3 ) );
   g_composition.entities[e_colview_entity::population] =
       population_view.get();
@@ -1723,7 +1715,7 @@ void recomposite( Planes& planes, SS& ss, TS& ts, Player& player,
 
   // [Cargo] ----------------------------------------------------
   auto cargo_view = CargoView::create(
-      planes, ss, ts, player, colony,
+      ss, ts, player, colony,
       middle_strip_size.with_width( middle_strip_size.w / 3 )
           .with_height( 32 ) );
   g_composition.entities[e_colview_entity::cargo] =
@@ -1738,7 +1730,7 @@ void recomposite( Planes& planes, SS& ss, TS& ts, Player& player,
 
   // [Units at Gate outside colony] -----------------------------
   auto units_at_gate_view = UnitsAtGateColonyView::create(
-      planes, ss, ts, player, colony, p_cargo_view,
+      ss, ts, player, colony, p_cargo_view,
       middle_strip_size.with_width( middle_strip_size.w / 3 )
           .with_height( middle_strip_size.h - 32 ) );
   g_composition.entities[e_colview_entity::units_at_gate] =
@@ -1750,7 +1742,7 @@ void recomposite( Planes& planes, SS& ss, TS& ts, Player& player,
 
   // [Production] -----------------------------------------------
   auto production_view = ProductionView::create(
-      planes, ss, ts, player, colony,
+      ss, ts, player, colony,
       middle_strip_size.with_width( middle_strip_size.w / 3 ) );
   g_composition.entities[e_colview_entity::production] =
       production_view.get();
@@ -1773,7 +1765,7 @@ void recomposite( Planes& planes, SS& ss, TS& ts, Player& player,
       max_landview_height )
     land_view_mode = ColonyLandView::e_render_mode::_3x3;
   auto land_view = ColonyLandView::create(
-      planes, ss, ts, player, colony, land_view_mode );
+      ss, ts, player, colony, land_view_mode );
   g_composition.entities[e_colview_entity::land] =
       land_view.get();
   pos = g_composition.entities[e_colview_entity::title_bar]
@@ -1790,7 +1782,7 @@ void recomposite( Planes& planes, SS& ss, TS& ts, Player& player,
       .w = land_view_left_edge - 0,
       .h = middle_strip_top - title_bar_bottom };
   auto buildings = ColViewBuildings::create(
-      planes, ss, ts, player, colony, buildings_size );
+      ss, ts, player, colony, buildings_size );
   g_composition.entities[e_colview_entity::buildings] =
       buildings.get();
   pos = Coord{ .x = 0, .y = title_bar_bottom };
@@ -1799,8 +1791,7 @@ void recomposite( Planes& planes, SS& ss, TS& ts, Player& player,
 
   // [Finish] ---------------------------------------------------
   auto invisible_view = std::make_unique<CompositeColSubView>(
-      planes, ss, ts, player, colony, canvas_size,
-      std::move( views ) );
+      ss, ts, player, colony, canvas_size, std::move( views ) );
   invisible_view->set_delta( canvas_size );
   g_composition.top_level = std::move( invisible_view );
 
@@ -1885,14 +1876,14 @@ void update_production( SSConst const& ss,
   g_production = production_for_colony( ss, colony );
 }
 
-void set_colview_colony( Planes& planes, SS& ss, TS& ts,
-                         Player& player, Colony& colony ) {
+void set_colview_colony( SS& ss, TS& ts, Player& player,
+                         Colony& colony ) {
   update_production( ss, colony );
   // TODO: compute squares around this colony that are being
   // worked by other colonies.
   UNWRAP_CHECK( normal, compositor::section(
                             compositor::e_section::normal ) );
-  recomposite( planes, ss, ts, player, colony, normal.delta() );
+  recomposite( ss, ts, player, colony, normal.delta() );
 }
 
 } // namespace rn

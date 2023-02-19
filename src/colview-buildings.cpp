@@ -61,16 +61,22 @@ maybe<e_tile> tile_for_slot( e_colony_building_slot slot ) {
       return e_tile::product_hammers;
     case e_colony_building_slot::town_hall:
       return e_tile::product_bells;
-    case e_colony_building_slot::newspapers: return nothing;
-    case e_colony_building_slot::schools: return nothing;
-    case e_colony_building_slot::offshore: return nothing;
+    case e_colony_building_slot::newspapers:
+      return nothing;
+    case e_colony_building_slot::schools:
+      return nothing;
+    case e_colony_building_slot::offshore:
+      return nothing;
     case e_colony_building_slot::horses:
       return e_tile::commodity_horses;
-    case e_colony_building_slot::wall: return nothing;
-    case e_colony_building_slot::warehouses: return nothing;
+    case e_colony_building_slot::wall:
+      return nothing;
+    case e_colony_building_slot::warehouses:
+      return nothing;
     case e_colony_building_slot::crosses:
       return e_tile::product_crosses;
-    case e_colony_building_slot::custom_house: return nothing;
+    case e_colony_building_slot::custom_house:
+      return nothing;
   }
 }
 
@@ -340,9 +346,10 @@ wait<> ColViewBuildings::perform_click(
   if( !building.has_value() ) co_return;
   switch( *building ) {
     case e_colony_building::custom_house:
-      co_await open_custom_house_menu( planes_, colony_ );
+      co_await open_custom_house_menu( ts_, colony_ );
       break;
-    default: break;
+    default:
+      break;
   }
   co_return;
 }

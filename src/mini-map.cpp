@@ -77,8 +77,10 @@ gfx::pixel color_for_square( MapSquare const& square ) {
     return square.sea_lane ? kSeaLaneColor : kOceanColor;
   if( square.overlay.has_value() ) {
     switch( *square.overlay ) {
-      case e_land_overlay::mountains: return kMountainsColor;
-      case e_land_overlay::hills: return kHillsColor;
+      case e_land_overlay::mountains:
+        return kMountainsColor;
+      case e_land_overlay::hills:
+        return kHillsColor;
       case e_land_overlay::forest:
         // For forested tiles just render the underyling tile.
         // That is what the OG does and it looks better, other-
@@ -92,15 +94,24 @@ gfx::pixel color_for_square( MapSquare const& square ) {
     }
   }
   switch( square.ground ) {
-    case e_ground_terrain::arctic: return kArcticColor;
-    case e_ground_terrain::desert: return kDesertColor;
-    case e_ground_terrain::grassland: return kGrasslandColor;
-    case e_ground_terrain::marsh: return kMarshColor;
-    case e_ground_terrain::plains: return kPlainsColor;
-    case e_ground_terrain::prairie: return kPrairieColor;
-    case e_ground_terrain::savannah: return kSavannahColor;
-    case e_ground_terrain::swamp: return kSwampColor;
-    case e_ground_terrain::tundra: return kTundraColor;
+    case e_ground_terrain::arctic:
+      return kArcticColor;
+    case e_ground_terrain::desert:
+      return kDesertColor;
+    case e_ground_terrain::grassland:
+      return kGrasslandColor;
+    case e_ground_terrain::marsh:
+      return kMarshColor;
+    case e_ground_terrain::plains:
+      return kPlainsColor;
+    case e_ground_terrain::prairie:
+      return kPrairieColor;
+    case e_ground_terrain::savannah:
+      return kSavannahColor;
+    case e_ground_terrain::swamp:
+      return kSwampColor;
+    case e_ground_terrain::tundra:
+      return kTundraColor;
   }
 }
 
@@ -399,7 +410,7 @@ void MiniMapView::draw_impl( rr::Renderer&     renderer,
   // the dot blinking on the mini-map as well so that the player
   // can easily find the blinking unit.
   maybe<UnitId> const blinker =
-      planes_.land_view().unit_blinking();
+      ts_.planes.land_view().unit_blinking();
   maybe<Coord> const blinker_coord =
       blinker.has_value()
           ? maybe<Coord>{ coord_for_unit_multi_ownership_or_die(

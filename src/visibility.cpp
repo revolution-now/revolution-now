@@ -238,7 +238,7 @@ refl::enum_map<e_nation, bool> nations_with_visibility_of_square(
   return res;
 }
 
-void set_map_visibility( Planes& planes, SS& ss, TS& ts,
+void set_map_visibility( SS& ss, TS& ts,
                          maybe<MapRevealed_t const&> revealed,
                          maybe<e_nation> default_nation ) {
   ss.land_view.map_revealed = revealed;
@@ -250,7 +250,7 @@ void set_map_visibility( Planes& planes, SS& ss, TS& ts,
           // changing the nation.
           options.nation = nation;
         } );
-    planes.land_view().set_visibility( nation );
+    ts.planes.land_view().set_visibility( nation );
   };
 
   if( !revealed.has_value() ) {

@@ -39,7 +39,6 @@ struct TS;
 struct Colony;
 struct ColonyProduction;
 struct IGui;
-struct Planes;
 struct Player;
 struct TerrainState;
 struct UnitsState;
@@ -71,10 +70,8 @@ class ColonySubView
   : public IDraggableObjectsView<ColViewObject_t>,
     public AwaitView {
  public:
-  ColonySubView( Planes& planes, SS& ss, TS& ts, Player& player,
-                 Colony& colony )
-    : planes_( planes ),
-      ss_( ss ),
+  ColonySubView( SS& ss, TS& ts, Player& player, Colony& colony )
+    : ss_( ss ),
       ts_( ts ),
       player_( player ),
       colony_( colony ) {}
@@ -107,7 +104,6 @@ class ColonySubView
   virtual void update_this_and_children();
 
  protected:
-  Planes& planes_;
   SS&     ss_;
   TS&     ts_;
   Player& player_;
@@ -128,8 +124,8 @@ void update_production( SSConst const& ss,
                         Colony const&  colony );
 
 // Must be called before any other method in this module.
-void set_colview_colony( Planes& planes, SS& ss, TS& ts,
-                         Player& player, Colony& colony );
+void set_colview_colony( SS& ss, TS& ts, Player& player,
+                         Colony& colony );
 
 void colview_drag_n_drop_draw(
     SS& ss, rr::Renderer& renderer,

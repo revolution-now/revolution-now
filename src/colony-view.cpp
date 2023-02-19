@@ -132,7 +132,6 @@ void try_decrease_commodity( SS& ss, Colony& colony,
 ** Colony Plane
 *****************************************************************/
 struct ColonyPlane : public Plane {
-  Planes& planes_;
   SS&     ss_;
   TS&     ts_;
   Player& player_;
@@ -142,13 +141,12 @@ struct ColonyPlane : public Plane {
   co::stream<input::event_t>        input_      = {};
   maybe<DragState<ColViewObject_t>> drag_state_ = {};
 
-  ColonyPlane( Planes& planes, SS& ss, TS& ts, Colony& colony )
-    : planes_( planes ),
-      ss_( ss ),
+  ColonyPlane( SS& ss, TS& ts, Colony& colony )
+    : ss_( ss ),
       ts_( ts ),
       player_( ss.players.players[colony.nation].value() ),
       colony_( colony ) {
-    set_colview_colony( planes_, ss_, ts_, player_, colony_ );
+    set_colview_colony( ss_, ts_, player_, colony_ );
   }
 
   bool covers_screen() const override { return true; }
@@ -288,7 +286,7 @@ struct ColonyPlane : public Plane {
   wait<bool> handle_event( input::win_event_t const& event ) {
     if( event.type == input::e_win_event_type::resized )
       // Force a re-composite.
-      set_colview_colony( planes_, ss_, ts_, player_, colony_ );
+      set_colview_colony( ss_, ts_, player_, colony_ );
     co_return false;
   }
 
@@ -330,13 +328,13 @@ struct ColonyPlane : public Plane {
 /****************************************************************
 ** ColonyViewer
 *****************************************************************/
-ColonyViewer::ColonyViewer( Planes& planes, SS& ss )
-  : planes_( planes ), ss_( ss ) {}
+ColonyViewer::ColonyViewer( SS& ss ) : ss_( ss ) {}
 
 wait<> ColonyViewer::show_impl( TS& ts_old, Colony& colony ) {
-  PlaneGroup const& old_group = planes_.back();
-  auto              popper    = planes_.new_group();
-  PlaneGroup&       new_group = planes_.back();
+  Planes&           planes    = ts_old.planes;
+  PlaneGroup const& old_group = planes.back();
+  auto              popper    = planes.new_group();
+  PlaneGroup&       new_group = planes.back();
 
   new_group.omni    = old_group.omni;
   new_group.console = old_group.console;
@@ -347,7 +345,7 @@ wait<> ColonyViewer::show_impl( TS& ts_old, Colony& colony ) {
   RealGui gui( window_plane );
   TS      ts = ts_old.with_gui( gui );
 
-  ColonyPlane colony_plane( planes_, ss_, ts, colony );
+  ColonyPlane colony_plane( ss_, ts, colony );
   new_group.colony = &colony_plane;
 
   lg.info( "viewing colony '{}'.", colony.name );
@@ -366,8 +364,7 @@ wait<e_colony_abandoned> ColonyViewer::show(
   } catch( colony_abandon_interrupt const& ) {}
 
   // We are abandoned.
-  co_await run_colony_destruction( planes_, ss_, ts, player,
-                                   colony,
+  co_await run_colony_destruction( ss_, ts, player, colony,
                                    /*msg=*/nothing );
   co_return e_colony_abandoned::yes;
 }

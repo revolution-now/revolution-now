@@ -127,8 +127,8 @@ struct DumpHandler : public OrdersHandler {
 /****************************************************************
 ** Public API
 *****************************************************************/
-unique_ptr<OrdersHandler> handle_orders( Planes&, SS& ss, TS& ts,
-                                         Player&, UnitId id,
+unique_ptr<OrdersHandler> handle_orders( SS& ss, TS& ts, Player&,
+                                         UnitId id,
                                          orders::dump const& ) {
   return make_unique<DumpHandler>( ss, ts, id );
 }

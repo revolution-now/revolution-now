@@ -490,8 +490,8 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
 
   auto f = [&] {
     wait<> w = do_live_among_the_natives(
-        W.planes(), W.ss(), W.ts(), dwelling, W.default_player(),
-        unit, outcome );
+        W.ss(), W.ts(), dwelling, W.default_player(), unit,
+        outcome );
     CHECK( !w.exception() );
     CHECK( w.ready() );
   };
@@ -779,9 +779,9 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
               .secondary_trade_2 = e_commodity::cloth };
 
   auto f = [&] {
-    wait<> w = do_speak_with_chief( W.planes(), W.ss(), W.ts(),
-                                    dwelling, W.default_player(),
-                                    *p_unit, outcome );
+    wait<> w = do_speak_with_chief( W.ss(), W.ts(), dwelling,
+                                    W.default_player(), *p_unit,
+                                    outcome );
     REQUIRE( !w.has_exception() );
     REQUIRE( w.ready() );
   };

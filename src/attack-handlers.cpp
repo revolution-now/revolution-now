@@ -419,9 +419,8 @@ wait<> show_outcome_messages( TS&                  ts,
 ** AttackHandlerBase
 *****************************************************************/
 struct AttackHandlerBase : public OrdersHandler {
-  AttackHandlerBase( Planes& planes, SS& ss, TS& ts,
-                     Player& player, UnitId attacker_id,
-                     e_direction direction );
+  AttackHandlerBase( SS& ss, TS& ts, Player& player,
+                     UnitId attacker_id, e_direction direction );
 
   // Implement OrdersHandler.
   wait<bool> confirm() override;
@@ -433,7 +432,6 @@ struct AttackHandlerBase : public OrdersHandler {
   wait<> perform() override;
 
  protected:
-  Planes& planes_;
   SS&     ss_;
   TS&     ts_;
   Player& active_player_;
@@ -453,12 +451,11 @@ struct AttackHandlerBase : public OrdersHandler {
   Coord attack_dst_{};
 };
 
-AttackHandlerBase::AttackHandlerBase( Planes& planes, SS& ss,
-                                      TS& ts, Player& player,
+AttackHandlerBase::AttackHandlerBase( SS& ss, TS& ts,
+                                      Player&     player,
                                       UnitId      attacker_id,
                                       e_direction direction )
-  : planes_( planes ),
-    ss_( ss ),
+  : ss_( ss ),
     ts_( ts ),
     active_player_( player ),
     attacker_id_( attacker_id ),
@@ -504,8 +501,8 @@ wait<> AttackHandlerBase::perform() {
 struct EuroAttackHandlerBase : public AttackHandlerBase {
   using Base = AttackHandlerBase;
 
-  EuroAttackHandlerBase( Planes& planes, SS& ss, TS& ts,
-                         Player& player, UnitId attacker_id,
+  EuroAttackHandlerBase( SS& ss, TS& ts, Player& player,
+                         UnitId attacker_id,
                          UnitId defender_id );
 
  protected:
@@ -515,10 +512,10 @@ struct EuroAttackHandlerBase : public AttackHandlerBase {
 };
 
 EuroAttackHandlerBase::EuroAttackHandlerBase(
-    Planes& planes, SS& ss, TS& ts, Player& player,
-    UnitId attacker_id, UnitId defender_id )
+    SS& ss, TS& ts, Player& player, UnitId attacker_id,
+    UnitId defender_id )
   : AttackHandlerBase(
-        planes, ss, ts, player, attacker_id,
+        ss, ts, player, attacker_id,
         direction_of_attack( ss, attacker_id, defender_id ) ),
     defender_id_( defender_id ),
     defender_( ss.units.unit_for( defender_id ) ),
@@ -534,8 +531,8 @@ EuroAttackHandlerBase::EuroAttackHandlerBase(
 struct NativeAttackHandlerBase : public AttackHandlerBase {
   using Base = AttackHandlerBase;
 
-  NativeAttackHandlerBase( Planes& planes, SS& ss, TS& ts,
-                           Player& player, UnitId attacker_id,
+  NativeAttackHandlerBase( SS& ss, TS& ts, Player& player,
+                           UnitId       attacker_id,
                            NativeUnitId defender_id );
 
  protected:
@@ -545,10 +542,10 @@ struct NativeAttackHandlerBase : public AttackHandlerBase {
 };
 
 NativeAttackHandlerBase::NativeAttackHandlerBase(
-    Planes& planes, SS& ss, TS& ts, Player& player,
-    UnitId attacker_id, NativeUnitId defender_id )
+    SS& ss, TS& ts, Player& player, UnitId attacker_id,
+    NativeUnitId defender_id )
   : AttackHandlerBase(
-        planes, ss, ts, player, attacker_id,
+        ss, ts, player, attacker_id,
         direction_of_attack( ss, attacker_id, defender_id ) ),
     defender_id_( defender_id ),
     defender_( ss.units.unit_for( defender_id ) ),
@@ -562,8 +559,7 @@ struct AttackColonyUndefendedHandler
   : public EuroAttackHandlerBase {
   using Base = EuroAttackHandlerBase;
 
-  AttackColonyUndefendedHandler( Planes& planes, SS& ss, TS& ts,
-                                 Player& player,
+  AttackColonyUndefendedHandler( SS& ss, TS& ts, Player& player,
                                  UnitId  attacker_id,
                                  UnitId  defender_id,
                                  Colony& colony );
@@ -580,16 +576,16 @@ struct AttackColonyUndefendedHandler
 };
 
 unique_ptr<OrdersHandler> attack_colony_undefended_handler(
-    Planes& planes, SS& ss, TS& ts, Player& player,
-    UnitId attacker_id, UnitId defender_id, Colony& colony ) {
+    SS& ss, TS& ts, Player& player, UnitId attacker_id,
+    UnitId defender_id, Colony& colony ) {
   return make_unique<AttackColonyUndefendedHandler>(
-      planes, ss, ts, player, attacker_id, defender_id, colony );
+      ss, ts, player, attacker_id, defender_id, colony );
 }
 
 AttackColonyUndefendedHandler::AttackColonyUndefendedHandler(
-    Planes& planes, SS& ss, TS& ts, Player& player,
-    UnitId attacker_id, UnitId defender_id, Colony& colony )
-  : EuroAttackHandlerBase( planes, ss, ts, player, attacker_id,
+    SS& ss, TS& ts, Player& player, UnitId attacker_id,
+    UnitId defender_id, Colony& colony )
+  : EuroAttackHandlerBase( ss, ts, player, attacker_id,
                            defender_id ),
     colony_( colony ) {}
 
@@ -610,7 +606,7 @@ wait<> AttackColonyUndefendedHandler::perform() {
 
   // Animate the attack part of it. If the colony is captured
   // then the remainder will be done further below.
-  co_await planes_.land_view().animate(
+  co_await ts_.planes.land_view().animate(
       anim_seq_for_undefended_colony( ss_, combat_ ) );
 
   maybe<string> const attacker_msg =
@@ -628,7 +624,7 @@ wait<> AttackColonyUndefendedHandler::perform() {
   // The colony has been captured.
 
   // 1. The attacker moves into the colony square.
-  co_await planes_.land_view().animate(
+  co_await ts_.planes.land_view().animate(
       anim_seq_for_unit_move( attacker_.id(), direction_ ) );
   maybe<UnitDeleted> unit_deleted = co_await unit_to_map_square(
       ss_, ts_, attacker_.id(), attack_dst_ );
@@ -711,10 +707,10 @@ struct NavalBattleHandler : public EuroAttackHandlerBase {
 };
 
 unique_ptr<OrdersHandler> naval_battle_handler(
-    Planes& planes, SS& ss, TS& ts, Player& player,
-    UnitId attacker_id, UnitId defender_id ) {
+    SS& ss, TS& ts, Player& player, UnitId attacker_id,
+    UnitId defender_id ) {
   return make_unique<NavalBattleHandler>(
-      planes, ss, ts, player, attacker_id, defender_id );
+      ss, ts, player, attacker_id, defender_id );
 }
 
 wait<bool> NavalBattleHandler::confirm() {
@@ -725,7 +721,7 @@ wait<bool> NavalBattleHandler::confirm() {
 
 wait<> NavalBattleHandler::animate() const {
   co_await Base::animate();
-  co_await planes_.land_view().animate(
+  co_await ts_.planes.land_view().animate(
       anim_seq_for_naval_battle( ss_, combat_ ) );
 }
 
@@ -833,10 +829,10 @@ struct EuroAttackHandler : public EuroAttackHandlerBase {
 };
 
 unique_ptr<OrdersHandler> attack_euro_land_handler(
-    Planes& planes, SS& ss, TS& ts, Player& player,
-    UnitId attacker_id, UnitId defender_id ) {
+    SS& ss, TS& ts, Player& player, UnitId attacker_id,
+    UnitId defender_id ) {
   return make_unique<EuroAttackHandler>(
-      planes, ss, ts, player, attacker_id, defender_id );
+      ss, ts, player, attacker_id, defender_id );
 }
 
 wait<bool> EuroAttackHandler::confirm() {
@@ -849,7 +845,7 @@ wait<> EuroAttackHandler::animate() const {
   co_await Base::animate();
   AnimationSequence const seq =
       anim_seq_for_attack_euro( ss_, combat_ );
-  co_await planes_.land_view().animate( seq );
+  co_await ts_.planes.land_view().animate( seq );
 }
 
 wait<> EuroAttackHandler::perform() {
@@ -877,8 +873,8 @@ struct AttackNativeUnitHandler : public NativeAttackHandlerBase {
 
   using Base::Base;
 
-  AttackNativeUnitHandler( Planes& planes, SS& ss, TS& ts,
-                           Player& player, UnitId attacker_id,
+  AttackNativeUnitHandler( SS& ss, TS& ts, Player& player,
+                           UnitId       attacker_id,
                            NativeUnitId defender_id,
                            e_direction  direction );
 
@@ -896,10 +892,10 @@ struct AttackNativeUnitHandler : public NativeAttackHandlerBase {
 };
 
 unique_ptr<OrdersHandler> attack_native_unit_handler(
-    Planes& planes, SS& ss, TS& ts, Player& player,
-    UnitId attacker_id, NativeUnitId defender_id ) {
+    SS& ss, TS& ts, Player& player, UnitId attacker_id,
+    NativeUnitId defender_id ) {
   return make_unique<AttackNativeUnitHandler>(
-      planes, ss, ts, player, attacker_id, defender_id );
+      ss, ts, player, attacker_id, defender_id );
 }
 
 // Returns true if the move is allowed.
@@ -931,7 +927,7 @@ wait<> AttackNativeUnitHandler::animate() const {
   co_await Base::animate();
   AnimationSequence const seq =
       anim_seq_for_attack_brave( ss_, combat_ );
-  co_await planes_.land_view().animate( seq );
+  co_await ts_.planes.land_view().animate( seq );
 }
 
 wait<> AttackNativeUnitHandler::perform() {
@@ -966,8 +962,8 @@ wait<> AttackNativeUnitHandler::perform() {
 struct AttackDwellingHandler : public AttackHandlerBase {
   using Base = AttackHandlerBase;
 
-  AttackDwellingHandler( Planes& planes, SS& ss, TS& ts,
-                         Player& player, UnitId attacker_id,
+  AttackDwellingHandler( SS& ss, TS& ts, Player& player,
+                         UnitId     attacker_id,
                          DwellingId defender_id );
 
   // Implement OrdersHandler.
@@ -1002,17 +998,17 @@ struct AttackDwellingHandler : public AttackHandlerBase {
 };
 
 unique_ptr<OrdersHandler> attack_dwelling_handler(
-    Planes& planes, SS& ss, TS& ts, Player& player,
-    UnitId attacker_id, DwellingId dwelling_id ) {
+    SS& ss, TS& ts, Player& player, UnitId attacker_id,
+    DwellingId dwelling_id ) {
   return make_unique<AttackDwellingHandler>(
-      planes, ss, ts, player, attacker_id, dwelling_id );
+      ss, ts, player, attacker_id, dwelling_id );
 }
 
 AttackDwellingHandler::AttackDwellingHandler(
-    Planes& planes, SS& ss, TS& ts, Player& player,
-    UnitId attacker_id, DwellingId dwelling_id )
+    SS& ss, TS& ts, Player& player, UnitId attacker_id,
+    DwellingId dwelling_id )
   : AttackHandlerBase(
-        planes, ss, ts, player, attacker_id,
+        ss, ts, player, attacker_id,
         direction_of_attack( ss, attacker_id, dwelling_id ) ),
     dwelling_id_( dwelling_id ),
     dwelling_( ss.natives.dwelling_for( dwelling_id ) ),
@@ -1088,7 +1084,7 @@ wait<> AttackDwellingHandler::produce_convert() {
       anim_seq_for_convert_produced(
           convert_id, reverse_direction( direction_ ) );
   wait<> appear_and_slide_animation =
-      planes_.land_view().animate( appear_and_slide_seq );
+      ts_.planes.land_view().animate( appear_and_slide_seq );
   wait<> box = ts_.gui.message_box(
       "[{}] citizens frightened in combat rush to the "
       "[{} mission] as [converts]!",
@@ -1101,7 +1097,7 @@ wait<> AttackDwellingHandler::produce_convert() {
   AnimationSequence const front_seq =
       anim_seq_unit_to_front_non_background( convert_id );
   wait<> front_animation =
-      planes_.land_view().animate( front_seq );
+      ts_.planes.land_view().animate( front_seq );
   co_await std::move( box );
 }
 
@@ -1169,7 +1165,7 @@ wait<> AttackDwellingHandler::perform() {
         [&]( CombatEuroAttackBrave const& combat ) -> wait<> {
           AnimationSequence const seq =
               anim_seq_for_attack_brave( ss_, combat );
-          co_await planes_.land_view().animate( seq );
+          co_await ts_.planes.land_view().animate( seq );
         } );
     maybe<string> const attacker_msg =
         perform_euro_unit_combat_outcome(
@@ -1190,7 +1186,7 @@ wait<> AttackDwellingHandler::perform() {
         [&]( CombatEuroAttackBrave const& combat ) -> wait<> {
           AnimationSequence const seq =
               anim_seq_for_attack_brave( ss_, combat );
-          co_await planes_.land_view().animate( seq );
+          co_await ts_.planes.land_view().animate( seq );
         } );
     maybe<string> const attacker_msg =
         perform_euro_unit_combat_outcome(
@@ -1246,7 +1242,7 @@ wait<> AttackDwellingHandler::perform() {
         AnimationSequence const seq = anim_seq_for_dwelling_burn(
             ss_, attacker_id_, combat_.attacker.outcome,
             combat.defender.id, dwelling_id_, destruction );
-        co_await planes_.land_view().animate( seq );
+        co_await ts_.planes.land_view().animate( seq );
       } );
 
   // Kill dwelling, free braves owned by the dwelling, and any
@@ -1303,7 +1299,7 @@ wait<> AttackDwellingHandler::perform() {
     if( treasure_id.has_value() ) {
       AnimationSequence const seq =
           anim_seq_for_unit_enpixelation( *treasure_id );
-      co_await planes_.land_view().animate( seq );
+      co_await ts_.planes.land_view().animate( seq );
     }
   }
 

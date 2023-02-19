@@ -88,7 +88,6 @@ struct PlayerInput {
 } // namespace
 
 struct LandViewPlane::Impl : public Plane {
-  Planes&          planes_;
   SS&              ss_;
   TS&              ts_;
   Visibility       viz_;
@@ -153,13 +152,12 @@ struct LandViewPlane::Impl : public Plane {
         e_menu_item::hidden_terrain, *this ) );
   }
 
-  Impl( Planes& planes, SS& ss, TS& ts, maybe<e_nation> nation )
-    : planes_( planes ),
-      ss_( ss ),
+  Impl( SS& ss, TS& ts, maybe<e_nation> nation )
+    : ss_( ss ),
       ts_( ts ),
       viz_( Visibility::create( ss, nation ) ),
       lv_animator_( ss, ss.land_view.viewport ) {
-    register_menu_items( planes.menu() );
+    register_menu_items( ts.planes.menu() );
     // Initialize general global data.
     landview_mode_   = LandViewMode::none{};
     last_unit_input_ = nothing;
@@ -231,7 +229,7 @@ struct LandViewPlane::Impl : public Plane {
         selections = vector{ selection };
       } else {
         selections = co_await unit_selection_box(
-            ss_, planes_.window(), units, allow_activate );
+            ss_, ts_.planes.window(), units, allow_activate );
       }
 
       vector<UnitId> prioritize;
@@ -285,11 +283,11 @@ struct LandViewPlane::Impl : public Plane {
     switch( raw_input.input.to_enum() ) {
       using namespace LandViewRawInput;
       case e::reveal_map: {
-        co_await cheat_reveal_map( planes_, ss_, ts_ );
+        co_await cheat_reveal_map( ss_, ts_ );
         break;
       }
       case e::toggle_map_reveal: {
-        cheat_toggle_reveal_full_map( planes_, ss_, ts_ );
+        cheat_toggle_reveal_full_map( ss_, ts_ );
         break;
       }
       case e::escape: {
@@ -1175,9 +1173,9 @@ Plane& LandViewPlane::impl() { return *impl_; }
 
 LandViewPlane::~LandViewPlane() = default;
 
-LandViewPlane::LandViewPlane( Planes& planes, SS& ss, TS& ts,
+LandViewPlane::LandViewPlane( SS& ss, TS& ts,
                               maybe<e_nation> visibility )
-  : impl_( new Impl( planes, ss, ts, visibility ) ) {}
+  : impl_( new Impl( ss, ts, visibility ) ) {}
 
 wait<> LandViewPlane::ensure_visible( Coord const& coord ) {
   return impl_->lv_animator_.ensure_visible( coord );

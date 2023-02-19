@@ -43,15 +43,14 @@ namespace {
 
 unordered_map<UnitId, queue<orders_t>> g_orders_queue;
 
-unique_ptr<OrdersHandler> handle_orders( Planes&, SS&, TS&,
-                                         Player&, UnitId,
+unique_ptr<OrdersHandler> handle_orders( SS&, TS&, Player&,
+                                         UnitId,
                                          orders::wait const& ) {
   SHOULD_NOT_BE_HERE;
 }
 
 unique_ptr<OrdersHandler> handle_orders(
-    Planes&, SS&, TS&, Player&, UnitId,
-    orders::forfeight const& ) {
+    SS&, TS&, Player&, UnitId, orders::forfeight const& ) {
   SHOULD_NOT_BE_HERE;
 }
 
@@ -74,12 +73,11 @@ maybe<orders_t> pop_unit_orders( UnitId id ) {
 }
 
 unique_ptr<OrdersHandler> orders_handler(
-    Planes& planes, SS& ss, TS& ts, Player& player, UnitId id,
+    SS& ss, TS& ts, Player& player, UnitId id,
     orders_t const& orders ) {
   CHECK( !ss.units.unit_for( id ).mv_pts_exhausted() );
-  return visit(
-      orders.as_base(),
-      LC( handle_orders( planes, ss, ts, player, id, _ ) ) );
+  return visit( orders.as_base(),
+                LC( handle_orders( ss, ts, player, id, _ ) ) );
 }
 
 wait<OrdersHandlerRunResult> OrdersHandler::run() {

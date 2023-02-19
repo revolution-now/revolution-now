@@ -26,7 +26,6 @@
 
 namespace rn {
 
-struct Planes;
 struct Player;
 struct SS;
 struct TS;
@@ -80,7 +79,7 @@ struct OrdersHandler {
 };
 
 std::unique_ptr<OrdersHandler> orders_handler(
-    Planes& planes, SS& ss, TS& ts, Player& player, UnitId id,
+    SS& ss, TS& ts, Player& player, UnitId id,
     orders_t const& orders );
 
 } // namespace rn

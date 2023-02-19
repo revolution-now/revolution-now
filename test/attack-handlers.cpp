@@ -242,7 +242,7 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
 
   auto f = [&] {
     return W.run_handler( attack_euro_land_handler(
-        W.planes(), W.ss(), W.ts(), W.player( W.active_nation_ ),
+        W.ss(), W.ts(), W.player( W.active_nation_ ),
         combat.attacker.id, combat.defender.id ) );
   };
 
@@ -324,7 +324,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
 
   auto f = [&] {
     return W.run_handler( attack_euro_land_handler(
-        W.planes(), W.ss(), W.ts(), W.player( W.active_nation_ ),
+        W.ss(), W.ts(), W.player( W.active_nation_ ),
         combat.attacker.id, combat.defender.id ) );
   };
 
@@ -563,7 +563,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
 
   auto f = [&] {
     return W.run_handler( attack_native_unit_handler(
-        W.planes(), W.ss(), W.ts(), W.player( W.active_nation_ ),
+        W.ss(), W.ts(), W.player( W.active_nation_ ),
         combat.attacker.id, combat.defender.id ) );
   };
 
@@ -746,7 +746,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
 
   auto f = [&] {
     return W.run_handler( attack_dwelling_handler(
-        W.planes(), W.ss(), W.ts(), W.player( W.active_nation_ ),
+        W.ss(), W.ts(), W.player( W.active_nation_ ),
         combat.attacker.id, combat.defender.id ) );
   };
 
@@ -1266,7 +1266,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
 
   auto f = [&] {
     return W.run_handler( naval_battle_handler(
-        W.planes(), W.ss(), W.ts(), W.player( W.active_nation_ ),
+        W.ss(), W.ts(), W.player( W.active_nation_ ),
         combat.attacker.id, combat.defender.id ) );
   };
 

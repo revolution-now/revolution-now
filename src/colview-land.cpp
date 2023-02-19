@@ -533,16 +533,16 @@ void ColonyLandView::draw( rr::Renderer& renderer,
 }
 
 unique_ptr<ColonyLandView> ColonyLandView::create(
-    Planes& planes, SS& ss, TS& ts, Player& player,
-    Colony& colony, e_render_mode mode ) {
-  return make_unique<ColonyLandView>( planes, ss, ts, player,
-                                      colony, mode );
+    SS& ss, TS& ts, Player& player, Colony& colony,
+    e_render_mode mode ) {
+  return make_unique<ColonyLandView>( ss, ts, player, colony,
+                                      mode );
 }
 
-ColonyLandView::ColonyLandView( Planes& planes, SS& ss, TS& ts,
-                                Player& player, Colony& colony,
+ColonyLandView::ColonyLandView( SS& ss, TS& ts, Player& player,
+                                Colony&       colony,
                                 e_render_mode mode )
-  : ColonySubView( planes, ss, ts, player, colony ),
+  : ColonySubView( ss, ts, player, colony ),
     mode_( mode ),
     occupied_red_box_(
         find_occupied_surrounding_colony_squares( ss, colony ) ),

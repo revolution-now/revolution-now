@@ -75,7 +75,7 @@ struct World : testing::World {
   }
 
   void evolve_colonies() {
-    wait<> w = evolve_colonies_for_player( planes(), ss(), ts(),
+    wait<> w = evolve_colonies_for_player( ss(), ts(),
                                            default_player() );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -449,7 +449,7 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
         .returns( make_wait<>() );
 
     wait<> w = run_colony_destruction(
-        W.planes(), W.ss(), W.ts(), W.default_player(), colony,
+        W.ss(), W.ts(), W.default_player(), colony,
         /*msg=*/"some msg" );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -482,7 +482,7 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
         .returns( make_wait<>() );
 
     wait<> w = run_colony_destruction(
-        W.planes(), W.ss(), W.ts(), W.default_player(), colony,
+        W.ss(), W.ts(), W.default_player(), colony,
         /*msg=*/"some msg" );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );

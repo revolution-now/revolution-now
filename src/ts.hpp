@@ -37,15 +37,16 @@ struct TerrainConnectivity;
 ** TS
 *****************************************************************/
 struct TS {
-  TS( IMapUpdater& map_updater_, lua::state& lua_, IGui& gui_,
-      IRand& rand_, ICombat& combat,
-      IColonyViewer& colony_viewer, RootState& saved,
-      TerrainConnectivity& connectivity );
+  TS( Planes& planes, IMapUpdater& map_updater_,
+      lua::state& lua_, IGui& gui_, IRand& rand_,
+      ICombat& combat, IColonyViewer& colony_viewer,
+      RootState& saved, TerrainConnectivity& connectivity );
 
   ~TS();
 
   TS( TS&& );
 
+  Planes&        planes;
   IMapUpdater&   map_updater;
   lua::state&    lua;
   IGui&          gui;

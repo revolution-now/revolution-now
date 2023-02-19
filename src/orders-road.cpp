@@ -116,7 +116,7 @@ struct RoadHandler : public OrdersHandler {
 /****************************************************************
 ** Public API
 *****************************************************************/
-unique_ptr<OrdersHandler> handle_orders( Planes&, SS& ss, TS& ts,
+unique_ptr<OrdersHandler> handle_orders( SS& ss, TS& ts,
                                          Player& player,
                                          UnitId  id,
                                          orders::road const& ) {

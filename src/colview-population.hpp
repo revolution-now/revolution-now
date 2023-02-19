@@ -24,19 +24,17 @@ struct Player;
 *****************************************************************/
 class PopulationView : public ui::View, public ColonySubView {
  public:
-  static std::unique_ptr<PopulationView> create( Planes& planes,
-                                                 SS& ss, TS& ts,
+  static std::unique_ptr<PopulationView> create( SS& ss, TS& ts,
                                                  Player& player,
                                                  Colony& colony,
                                                  Delta   size ) {
-    return std::make_unique<PopulationView>(
-        planes, ss, ts, player, colony, size );
+    return std::make_unique<PopulationView>( ss, ts, player,
+                                             colony, size );
   }
 
-  PopulationView( Planes& planes, SS& ss, TS& ts, Player& player,
-                  Colony& colony, Delta size )
-    : ColonySubView( planes, ss, ts, player, colony ),
-      size_( size ) {}
+  PopulationView( SS& ss, TS& ts, Player& player, Colony& colony,
+                  Delta size )
+    : ColonySubView( ss, ts, player, colony ), size_( size ) {}
 
   Delta delta() const override { return size_; }
 

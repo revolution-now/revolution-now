@@ -26,7 +26,7 @@ struct TS;
 ** MapEditPlane
 *****************************************************************/
 struct MapEditPlane {
-  MapEditPlane( Planes& planes, SS& ss, TS& ts );
+  MapEditPlane( SS& ss, TS& ts );
   ~MapEditPlane();
 
   wait<> run_map_editor();
@@ -42,7 +42,7 @@ struct MapEditPlane {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> run_map_editor( Planes& planes, SS& ss, TS& ts );
+wait<> run_map_editor( SS& ss, TS& ts );
 
 wait<> run_map_editor_standalone( Planes& planes );
 

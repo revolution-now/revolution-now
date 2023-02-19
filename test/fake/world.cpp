@@ -154,10 +154,10 @@ namespace {
 // they currently store a reference to themselves in the lua
 // state (please FIXME).
 TS* make_ts( World& world ) {
-  return new TS( world.map_updater(), world.lua(), world.gui(),
-                 world.rand(), world.combat(),
-                 world.colony_viewer(), world.ss_saved().root,
-                 world.connectivity() );
+  return new TS( world.planes(), world.map_updater(),
+                 world.lua(), world.gui(), world.rand(),
+                 world.combat(), world.colony_viewer(),
+                 world.ss_saved().root, world.connectivity() );
 }
 
 }

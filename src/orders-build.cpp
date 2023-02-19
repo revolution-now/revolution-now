@@ -51,10 +51,8 @@ valid_or<string> is_valid_colony_name_msg(
 }
 
 struct BuildHandler : public OrdersHandler {
-  BuildHandler( Planes& planes, SS& ss, TS& ts, Player& player,
-                UnitId unit_id_ )
-    : planes_( planes ),
-      ss_( ss ),
+  BuildHandler( SS& ss, TS& ts, Player& player, UnitId unit_id_ )
+    : ss_( ss ),
       ts_( ts ),
       player_( player ),
       unit_id( unit_id_ ) {}
@@ -150,7 +148,6 @@ struct BuildHandler : public OrdersHandler {
     co_return;
   }
 
-  Planes& planes_;
   SS&     ss_;
   TS&     ts_;
   Player& player_;
@@ -166,11 +163,11 @@ struct BuildHandler : public OrdersHandler {
 /****************************************************************
 ** Public API
 *****************************************************************/
-unique_ptr<OrdersHandler> handle_orders( Planes& planes, SS& ss,
-                                         TS& ts, Player& player,
-                                         UnitId id,
+unique_ptr<OrdersHandler> handle_orders( SS& ss, TS& ts,
+                                         Player& player,
+                                         UnitId  id,
                                          orders::build const& ) {
-  return make_unique<BuildHandler>( planes, ss, ts, player, id );
+  return make_unique<BuildHandler>( ss, ts, player, id );
 }
 
 } // namespace rn

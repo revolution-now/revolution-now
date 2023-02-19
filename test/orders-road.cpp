@@ -80,9 +80,9 @@ TEST_CASE( "[orders-road] native-owned land" ) {
     for( int x = 0; x < 3; ++x )
       W.natives().mark_land_owned( dwelling.id,
                                    { .x = x, .y = y } );
-  unique_ptr<OrdersHandler> handler = handle_orders(
-      W.planes(), W.ss(), W.ts(), W.default_player(),
-      pioneer.id(), orders::road{} );
+  unique_ptr<OrdersHandler> handler =
+      handle_orders( W.ss(), W.ts(), W.default_player(),
+                     pioneer.id(), orders::road{} );
 
   REQUIRE( relationship.tribal_alarm == 0 );
   REQUIRE_FALSE( pioneer.mv_pts_exhausted() );

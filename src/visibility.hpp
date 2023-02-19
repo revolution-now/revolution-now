@@ -29,7 +29,6 @@ namespace rn {
 
 struct MapRevealed_t;
 struct MapSquare;
-struct Planes;
 struct PlayerTerrain;
 struct SS;
 struct SSConst;
@@ -126,7 +125,7 @@ std::vector<Coord> unit_visible_squares( SSConst const& ss,
 // map." The default_nation is the nation that we will use if
 // `revealed` is nothing; if default_nation in turn is nothing
 // then it means "entire map."
-void set_map_visibility( Planes& planes, SS& ss, TS& ts,
+void set_map_visibility( SS& ss, TS& ts,
                          maybe<MapRevealed_t const&> revealed,
                          maybe<e_nation> default_nation );
 

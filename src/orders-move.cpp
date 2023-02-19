@@ -178,10 +178,9 @@ maybe<MovementPoints> check_movement_points(
 ** TravelHandler
 *****************************************************************/
 struct TravelHandler : public OrdersHandler {
-  TravelHandler( Planes& planes, SS& ss, TS& ts, UnitId unit_id_,
-                 e_direction d, Player& player )
-    : planes_( planes ),
-      ss_( ss ),
+  TravelHandler( SS& ss, TS& ts, UnitId unit_id_, e_direction d,
+                 Player& player )
+    : ss_( ss ),
       ts_( ts ),
       unit_id( unit_id_ ),
       direction( d ),
@@ -301,7 +300,7 @@ struct TravelHandler : public OrdersHandler {
         CHECK( target_unit.has_value() );
         AnimationSequence const seq = anim_seq_for_boarding_ship(
             unit_id, *target_unit, direction );
-        co_await planes_.land_view().animate( seq );
+        co_await ts_.planes.land_view().animate( seq );
         break;
       }
       case e_travel_verdict::land_fall:
@@ -316,7 +315,7 @@ struct TravelHandler : public OrdersHandler {
       case e_travel_verdict::sail_high_seas: {
         AnimationSequence const seq =
             anim_seq_for_unit_move( unit_id, direction );
-        co_await planes_.land_view().animate( seq );
+        co_await ts_.planes.land_view().animate( seq );
         break;
       }
     }
@@ -335,9 +334,8 @@ struct TravelHandler : public OrdersHandler {
   wait<e_travel_verdict>     confirm_sail_high_seas() const;
   wait<e_travel_verdict> confirm_sail_high_seas_map_edge() const;
 
-  Planes& planes_;
-  SS&     ss_;
-  TS&     ts_;
+  SS& ss_;
+  TS& ts_;
 
   // The unit that is moving.
   UnitId      unit_id;
@@ -1002,11 +1000,10 @@ wait<> TravelHandler::perform() {
 ** NativeDwellingHandler
 *****************************************************************/
 struct NativeDwellingHandler : public OrdersHandler {
-  NativeDwellingHandler( Planes& planes, SS& ss, TS& ts,
-                         Player& player, UnitId unit_id,
-                         e_direction d, Dwelling& dwelling )
-    : planes_( planes ),
-      ss_( ss ),
+  NativeDwellingHandler( SS& ss, TS& ts, Player& player,
+                         UnitId unit_id, e_direction d,
+                         Dwelling& dwelling )
+    : ss_( ss ),
       ts_( ts ),
       player_( player ),
       unit_id_( unit_id ),
@@ -1086,8 +1083,8 @@ struct NativeDwellingHandler : public OrdersHandler {
       // with this new handler.
       NativeUnitId const defender_id =
           select_native_unit_defender( ss_, move_dst_ );
-      return attack_native_unit_handler(
-          planes_, ss_, ts_, player_, unit_id_, defender_id );
+      return attack_native_unit_handler( ss_, ts_, player_,
+                                         unit_id_, defender_id );
     }
 
     if( outcome_
@@ -1099,7 +1096,7 @@ struct NativeDwellingHandler : public OrdersHandler {
       relationship.nation_has_attacked_tribe = true;
       // Delegate: the order handling process will be restarted
       // with this new handler.
-      return attack_dwelling_handler( planes_, ss_, ts_, player_,
+      return attack_dwelling_handler( ss_, ts_, player_,
                                       unit_id_, dwelling_.id );
     }
 
@@ -1122,18 +1119,16 @@ struct NativeDwellingHandler : public OrdersHandler {
       case EnterDwellingOutcome::e::live_among_the_natives: {
         auto& o = outcome_.get<
             EnterDwellingOutcome::live_among_the_natives>();
-        co_await do_live_among_the_natives( planes_, ss_, ts_,
-                                            dwelling_, player_,
-                                            unit_, o.outcome );
+        co_await do_live_among_the_natives(
+            ss_, ts_, dwelling_, player_, unit_, o.outcome );
         break;
       }
       case EnterDwellingOutcome::e::speak_with_chief: {
         auto& o =
             outcome_
                 .get<EnterDwellingOutcome::speak_with_chief>();
-        co_await do_speak_with_chief( planes_, ss_, ts_,
-                                      dwelling_, player_, unit_,
-                                      o.outcome );
+        co_await do_speak_with_chief(
+            ss_, ts_, dwelling_, player_, unit_, o.outcome );
         // !! Note that the unit may no longer exist here if the
         // scout was used a target practice.
         break;
@@ -1162,7 +1157,6 @@ struct NativeDwellingHandler : public OrdersHandler {
     // scout was used a target practice or scout lost an attack.
   }
 
-  Planes& planes_;
   SS&     ss_;
   TS&     ts_;
   Player& player_;
@@ -1186,8 +1180,8 @@ struct NativeDwellingHandler : public OrdersHandler {
 /****************************************************************
 ** Dispatch
 *****************************************************************/
-unique_ptr<OrdersHandler> dispatch( Planes& planes, SS& ss,
-                                    TS& ts, Player& player,
+unique_ptr<OrdersHandler> dispatch( SS& ss, TS& ts,
+                                    Player&     player,
                                     UnitId      attacker_id,
                                     e_direction d ) {
   Coord const src =
@@ -1198,22 +1192,22 @@ unique_ptr<OrdersHandler> dispatch( Planes& planes, SS& ss,
   if( !dst.is_inside( ss.terrain.world_rect_tiles() ) )
     // This is an invalid move, but the TravelHandler is the one
     // that knows how to handle it.
-    return make_unique<TravelHandler>( planes, ss, ts,
-                                       attacker_id, d, player );
+    return make_unique<TravelHandler>( ss, ts, attacker_id, d,
+                                       player );
 
   maybe<Society_t> const society = society_on_square( ss, dst );
 
   if( !society.has_value() )
     // No entities on target sqaure, so it is just a travel.
-    return make_unique<TravelHandler>( planes, ss, ts,
-                                       attacker_id, d, player );
+    return make_unique<TravelHandler>( ss, ts, attacker_id, d,
+                                       player );
   CHECK( society.has_value() );
 
   if( *society == Society_t{ Society::european{
                       .nation = attacker.nation() } } )
     // Friendly unit on target square, so not an attack.
-    return make_unique<TravelHandler>( planes, ss, ts,
-                                       attacker_id, d, player );
+    return make_unique<TravelHandler>( ss, ts, attacker_id, d,
+                                       player );
 
   if( society->holds<Society::native>() ) {
     maybe<DwellingId> const dwelling_id =
@@ -1224,14 +1218,14 @@ unique_ptr<OrdersHandler> dispatch( Planes& planes, SS& ss,
     // a brave on the tile or not.
     if( dwelling_id.has_value() )
       return make_unique<NativeDwellingHandler>(
-          planes, ss, ts, player, attacker_id, d,
+          ss, ts, player, attacker_id, d,
           ss.natives.dwelling_for( *dwelling_id ) );
 
     // Must be attacking a brave.
     NativeUnitId const defender_id =
         select_native_unit_defender( ss, dst );
     return attack_native_unit_handler(
-        planes, ss, ts, player, attacker_id, defender_id );
+        ss, ts, player, attacker_id, defender_id );
   }
 
   // Must be an attack (or an attempted attack) on a foreign eu-
@@ -1245,11 +1239,10 @@ unique_ptr<OrdersHandler> dispatch( Planes& planes, SS& ss,
     Unit const& defender = ss.units.unit_for( defender_id );
     if( is_military_unit( defender.desc().type ) )
       return attack_euro_land_handler(
-          planes, ss, ts, player, attacker_id, defender_id );
+          ss, ts, player, attacker_id, defender_id );
     else
       return attack_colony_undefended_handler(
-          planes, ss, ts, player, attacker_id, defender_id,
-          colony );
+          ss, ts, player, attacker_id, defender_id, colony );
   }
 
   UnitId const defender_id =
@@ -1262,14 +1255,14 @@ unique_ptr<OrdersHandler> dispatch( Planes& planes, SS& ss,
   // really the attacker's ship status that determines whether
   // this is a naval battle.
   if( attacker.desc().ship )
-    return naval_battle_handler( planes, ss, ts, player,
-                                 attacker_id, defender_id );
+    return naval_battle_handler( ss, ts, player, attacker_id,
+                                 defender_id );
 
   // We are attacking a non-ship foreign european unit either
   // outside of a colony or at a colony's gate.
   CHECK( !ss.units.unit_for( defender_id ).desc().ship );
-  return attack_euro_land_handler( planes, ss, ts, player,
-                                   attacker_id, defender_id );
+  return attack_euro_land_handler( ss, ts, player, attacker_id,
+                                   defender_id );
 }
 
 } // namespace
@@ -1278,9 +1271,9 @@ unique_ptr<OrdersHandler> dispatch( Planes& planes, SS& ss,
 ** Public API
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
-    Planes& planes, SS& ss, TS& ts, Player& player, UnitId id,
+    SS& ss, TS& ts, Player& player, UnitId id,
     orders::move const& mv ) {
-  return dispatch( planes, ss, ts, player, id, mv.d );
+  return dispatch( ss, ts, player, id, mv.d );
 }
 
 } // namespace rn

@@ -49,7 +49,6 @@ namespace {} // namespace
 ** PanelPlane::Impl
 *****************************************************************/
 struct PanelPlane::Impl : public Plane {
-  Planes&                       planes_;
   SS&                           ss_;
   TS&                           ts_;
   unique_ptr<ui::InvisibleView> view;
@@ -72,17 +71,16 @@ struct PanelPlane::Impl : public Plane {
     return mini_map_available_rect;
   }
 
-  Impl( Planes& planes, SS& ss, TS& ts )
-    : planes_( planes ), ss_( ss ), ts_( ts ) {
+  Impl( SS& ss, TS& ts ) : ss_( ss ), ts_( ts ) {
     // Register menu handlers.
-    eot_click_dereg_ = planes_.menu().register_handler(
+    eot_click_dereg_ = ts.planes.menu().register_handler(
         e_menu_item::next_turn, *this );
 
     vector<ui::OwningPositionedView> view_vec;
 
     Rect const mini_map_available = mini_map_available_rect();
     auto       mini_map           = make_unique<MiniMapView>(
-        ss, ts, planes, mini_map_available.delta() );
+        ss, ts, mini_map_available.delta() );
     Coord const mini_map_upper_left =
         centered( mini_map->delta(), mini_map_available );
     view_vec.emplace_back( ui::OwningPositionedView{
@@ -266,8 +264,8 @@ Plane& PanelPlane::impl() { return *impl_; }
 
 PanelPlane::~PanelPlane() = default;
 
-PanelPlane::PanelPlane( Planes& planes, SS& ss, TS& ts )
-  : impl_( new Impl( planes, ss, ts ) ) {}
+PanelPlane::PanelPlane( SS& ss, TS& ts )
+  : impl_( new Impl( ss, ts ) ) {}
 
 wait<> PanelPlane::wait_for_eot_button_click() {
   return impl_->wait_for_eot_button_click();

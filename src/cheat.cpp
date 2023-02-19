@@ -76,7 +76,7 @@ bool can_remove_building( Colony const&     colony,
 /****************************************************************
 ** In Land View
 *****************************************************************/
-wait<> cheat_reveal_map( Planes& planes, SS& ss, TS& ts ) {
+wait<> cheat_reveal_map( SS& ss, TS& ts ) {
   CO_RETURN_IF_NO_CHEAT;
   // All enabled by default.
   refl::enum_map<e_cheat_reveal_map, bool> disabled;
@@ -121,28 +121,26 @@ wait<> cheat_reveal_map( Planes& planes, SS& ss, TS& ts ) {
   }
 
   maybe<e_nation> const active = active_player( ss.turn );
-  set_map_visibility( planes, ss, ts, revealed, active );
+  set_map_visibility( ss, ts, revealed, active );
 }
 
-void cheat_toggle_reveal_full_map( Planes& planes, SS& ss,
-                                   TS& ts ) {
+void cheat_toggle_reveal_full_map( SS& ss, TS& ts ) {
   RETURN_IF_NO_CHEAT;
   maybe<MapRevealed_t&> revealed = ss.land_view.map_revealed;
   if( !revealed.has_value() ||
       !revealed->holds<MapRevealed::entire>() ) {
     // Reveal the entire map.
-    set_map_visibility( planes, ss, ts,
+    set_map_visibility( ss, ts,
                         MapRevealed_t{ MapRevealed::entire{} },
                         /*default_nation=*/nothing );
     return;
   }
   // Reveal for active player.
   maybe<e_nation> const active = active_player( ss.turn );
-  set_map_visibility( planes, ss, ts, nothing, active );
+  set_map_visibility( ss, ts, nothing, active );
 }
 
-wait<> cheat_edit_fathers( Planes& planes, SS& ss, TS& ts,
-                           Player& player ) {
+wait<> cheat_edit_fathers( SS& ss, TS& ts, Player& player ) {
   using namespace ui;
 
   auto top_array = make_unique<VerticalArrayView>(
@@ -194,7 +192,7 @@ wait<> cheat_edit_fathers( Planes& planes, SS& ss, TS& ts,
   top_array->recompute_child_positions();
 
   // Create window.
-  WindowManager& wm = planes.window().manager();
+  WindowManager& wm = ts.planes.window().manager();
   Window         window( wm );
   window.set_view( std::move( top_array ) );
   window.autopad_me();

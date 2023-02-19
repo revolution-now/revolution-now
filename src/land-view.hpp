@@ -33,7 +33,6 @@ namespace rn {
 struct AnimationSequence;
 struct Colony;
 struct Plane;
-struct Planes;
 struct SS;
 struct TS;
 
@@ -87,8 +86,7 @@ struct ILandViewPlane {
 ** LandViewPlane
 *****************************************************************/
 struct LandViewPlane : ILandViewPlane {
-  LandViewPlane( Planes& planes, SS& ss, TS& ts,
-                 maybe<e_nation> visibility );
+  LandViewPlane( SS& ss, TS& ts, maybe<e_nation> visibility );
 
   ~LandViewPlane() override;
 

@@ -58,9 +58,8 @@ TEST_CASE( "[orders-dump] galleon" ) {
   UnitId id = W.add_unit_on_map( e_unit_type::galleon,
                                  Coord{ .x = 0, .y = 0 } )
                   .id();
-  unique_ptr<OrdersHandler> handler =
-      handle_orders( W.planes(), W.ss(), W.ts(),
-                     W.default_player(), id, orders::dump{} );
+  unique_ptr<OrdersHandler> handler = handle_orders(
+      W.ss(), W.ts(), W.default_player(), id, orders::dump{} );
   Unit&      unit  = W.units().unit_for( id );
   CargoHold& cargo = unit.cargo();
   Commodity  comm;
@@ -360,9 +359,8 @@ TEST_CASE( "[orders-dump] wagon train" ) {
   UnitId id = W.add_unit_on_map( e_unit_type::wagon_train,
                                  Coord{ .x = 1, .y = 1 } )
                   .id();
-  unique_ptr<OrdersHandler> handler =
-      handle_orders( W.planes(), W.ss(), W.ts(),
-                     W.default_player(), id, orders::dump{} );
+  unique_ptr<OrdersHandler> handler = handle_orders(
+      W.ss(), W.ts(), W.default_player(), id, orders::dump{} );
   Unit&      unit  = W.units().unit_for( id );
   CargoHold& cargo = unit.cargo();
   Commodity  comm;
@@ -434,9 +432,8 @@ TEST_CASE( "[orders-dump] non-cargo unit" ) {
   UnitId id = W.add_unit_on_map( e_unit_type::free_colonist,
                                  Coord{ .x = 1, .y = 1 } )
                   .id();
-  unique_ptr<OrdersHandler> handler =
-      handle_orders( W.planes(), W.ss(), W.ts(),
-                     W.default_player(), id, orders::dump{} );
+  unique_ptr<OrdersHandler> handler = handle_orders(
+      W.ss(), W.ts(), W.default_player(), id, orders::dump{} );
 
   W.gui()
       .EXPECT__message_box(

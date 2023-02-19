@@ -17,10 +17,9 @@
 
 namespace rn {
 
-struct Planes;
 struct SS;
 struct TS;
 
-wait<> turn_loop( Planes& planes, SS& ss, TS& ts );
+wait<> turn_loop( SS& ss, TS& ts );
 
 } // namespace rn

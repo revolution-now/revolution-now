@@ -375,8 +375,8 @@ LiveAmongTheNatives_t compute_live_among_the_natives(
 }
 
 wait<> do_live_among_the_natives(
-    Planes& planes, SSConst const& ss, TS& ts,
-    Dwelling& dwelling, Player const& player, Unit& unit,
+    SSConst const& ss, TS& ts, Dwelling& dwelling,
+    Player const& player, Unit& unit,
     LiveAmongTheNatives_t const& outcome ) {
   switch( outcome.to_enum() ) {
     using namespace LiveAmongTheNatives;
@@ -457,7 +457,7 @@ wait<> do_live_among_the_natives(
           AnimationSequence const seq =
               anim_seq_for_unit_depixelation( unit.id(),
                                               o.to.type() );
-          co_await planes.land_view().animate( seq );
+          co_await ts.planes.land_view().animate( seq );
         }
         unit.change_type( player, o.to );
         dwelling.has_taught = true;
@@ -600,9 +600,8 @@ SpeakWithChiefResult compute_speak_with_chief(
 }
 
 wait<> do_speak_with_chief(
-    Planes& planes, SS& ss, TS& ts, Dwelling& dwelling,
-    Player& player, Unit& unit,
-    SpeakWithChiefResult const& outcome ) {
+    SS& ss, TS& ts, Dwelling& dwelling, Player& player,
+    Unit& unit, SpeakWithChiefResult const& outcome ) {
   dwelling.relationship[unit.nation()].has_spoken_with_chief =
       true;
   e_tribe const tribe = ss.natives.tribe_for( dwelling.id ).type;
@@ -651,7 +650,7 @@ wait<> do_speak_with_chief(
       co_await ts.gui.message_box(
           "We invite you to sit around the campfire with us as "
           "we tell you the tales of nearby lands." );
-      co_await planes.land_view().center_on_tile(
+      co_await ts.planes.land_view().center_on_tile(
           ss.natives.coord_for( dwelling.id ) );
       for( Coord tile : tiles ) {
         ts.map_updater.make_square_visible( tile,
@@ -668,7 +667,7 @@ wait<> do_speak_with_chief(
       AnimationSequence const seq =
           anim_seq_for_unit_depixelation(
               unit.id(), e_unit_type::seasoned_scout );
-      co_await planes.land_view().animate( seq );
+      co_await ts.planes.land_view().animate( seq );
       // Need to change type before awaiting on the promotion
       // message otherwise the unit will change back temporarily
       // after depixelating.
@@ -685,7 +684,7 @@ wait<> do_speak_with_chief(
           config_natives.tribes[tribe].name_singular );
       AnimationSequence const seq =
           anim_seq_for_unit_depixelation( unit.id() );
-      co_await planes.land_view().animate( seq );
+      co_await ts.planes.land_view().animate( seq );
       ss.units.destroy_unit( unit.id() );
       co_return;
     }

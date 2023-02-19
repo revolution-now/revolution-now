@@ -1000,7 +1000,7 @@ TEST_CASE( "[visibility] set_map_visibility" ) {
   maybe<MapRevealed_t> expected;
 
   auto f = [&] {
-    set_map_visibility( W.planes(), W.ss(), W.ts(), revealed,
+    set_map_visibility( W.ss(), W.ts(), revealed,
                         default_nation );
   };
 

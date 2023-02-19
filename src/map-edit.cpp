@@ -125,9 +125,8 @@ refl::enum_map<editor::e_toolbar_item, ToolbarItem>
 ** Map Editor Plane
 *****************************************************************/
 struct MapEditPlane::Impl : public Plane {
-  Planes& planes_;
-  SS&     ss_;
-  TS&     ts_;
+  SS& ss_;
+  TS& ts_;
 
   co::stream<input::event_t>    input_;
   maybe<editor::e_toolbar_item> selected_tool_;
@@ -146,13 +145,9 @@ struct MapEditPlane::Impl : public Plane {
         e_menu_item::restore_zoom, *this );
   }
 
-  Impl( Planes& planes, SS& ss, TS& ts )
-    : planes_( planes ),
-      ss_( ss ),
-      ts_( ts ),
-      input_{},
-      selected_tool_{} {
-    register_menu_items( planes_.menu() );
+  Impl( SS& ss, TS& ts )
+    : ss_( ss ), ts_( ts ), input_{}, selected_tool_{} {
+    register_menu_items( ts_.planes.menu() );
     // This is done to initialize the viewport with info about
     // the viewport size that cannot be known while it is being
     // constructed.
@@ -619,8 +614,8 @@ Plane& MapEditPlane::impl() { return *impl_; }
 
 MapEditPlane::~MapEditPlane() = default;
 
-MapEditPlane::MapEditPlane( Planes& planes, SS& ss, TS& ts )
-  : impl_( new Impl( planes, ss, ts ) ) {}
+MapEditPlane::MapEditPlane( SS& ss, TS& ts )
+  : impl_( new Impl( ss, ts ) ) {}
 
 wait<> MapEditPlane::run_map_editor() {
   lg.info( "entering map editor." );
@@ -650,18 +645,19 @@ wait<> run_map_editor_standalone( Planes& planes ) {
   RealGui             gui( window_plane );
   Rand                rand;
   TrappingCombat      combat;
-  ColonyViewer        colony_viewer( planes, ss );
+  ColonyViewer        colony_viewer( ss );
   TerrainConnectivity connectivity;
-  TS ts( map_updater, st, gui, rand, combat, colony_viewer,
-         ss.root, connectivity );
-  co_await run_map_editor( planes, ss, ts );
+  TS ts( planes, map_updater, st, gui, rand, combat,
+         colony_viewer, ss.root, connectivity );
+  co_await run_map_editor( ss, ts );
 }
 
-wait<> run_map_editor( Planes& planes, SS& ss, TS& ts ) {
+wait<> run_map_editor( SS& ss, TS& ts ) {
   MenuPlane    menu_plane;
-  MapEditPlane map_edit_plane( planes, ss, ts );
+  MapEditPlane map_edit_plane( ss, ts );
   WindowPlane  window_plane;
 
+  Planes&     planes    = ts.planes;
   PlaneGroup& old_group = planes.back();
   auto        popper    = planes.new_group();
   PlaneGroup& new_group = planes.back();
