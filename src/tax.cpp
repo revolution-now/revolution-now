@@ -14,6 +14,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "commodity.hpp"
+#include "connectivity.hpp"
 #include "igui.hpp"
 #include "irand.hpp"
 #include "market.hpp"
@@ -53,18 +54,23 @@ string ordinal_for( int n ) {
   n = n % 100;
   if( n >= 20 ) n = n % 10;
   switch( n ) {
-    case 1: return "st";
-    case 2: return "nd";
-    case 3: return "rd";
-    default: return "th";
+    case 1:
+      return "st";
+    case 2:
+      return "nd";
+    case 3:
+      return "rd";
+    default:
+      return "th";
   }
 }
 
 // This will find the commodity cargo that has the highest value
 // (in the sense of bid price) out of all the player's colonies
-// that isn't already boycotted.
+// that isn't already boycotted, but only from colonies that have
+// ocean access.
 maybe<CommodityInColony> find_what_to_boycott(
-    SSConst const& ss, Player const& player ) {
+    SSConst const& ss, TS& ts, Player const& player ) {
   refl::enum_map<e_commodity, /*bid=*/int> prices;
   for( auto& [comm, bid] : prices )
     bid = market_price( player, comm ).bid;
@@ -74,6 +80,12 @@ maybe<CommodityInColony> find_what_to_boycott(
   int                      largest_value = 0;
   for( ColonyId const colony_id : player_colonies ) {
     Colony const& colony = ss.colonies.colony_for( colony_id );
+    if( !colony_has_ocean_access( ss, ts.connectivity,
+                                  colony.location ) )
+      // In the OG, only colonies that have ocean (sea lane) ac-
+      // cess can boycott, because boycotting entails "throwing
+      // goods into the sea."
+      continue;
     for( auto& [comm, uncapped_quantity] : colony.commodities ) {
       if( player.old_world.market.commodities[comm].boycott )
         continue;
@@ -203,13 +215,13 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
   int const clamped_amount = new_tax_rate - curr_tax;
   CHECK_GE( clamped_amount, 0 );
   maybe<CommodityInColony> const boycott =
-      find_what_to_boycott( ss, player );
+      find_what_to_boycott( ss, ts, player );
   if( !boycott.has_value() ) {
     // It's pretty rare that this happens: a tax increase is hap-
-    // pening but there are either no colonies or there are zero
-    // commodities in all colonies, so there is nothing to boy-
-    // cott, therefore the tax increase must be accepted by the
-    // player.
+    // pening but there are either no colonies or there are no
+    // colonies with commodities in them that also have ocean ac-
+    // cess. So there is nothing to boycott, therefore the tax
+    // increase must be accepted by the player.
     update.proposed_tax_change =
         TaxChangeProposal::increase{ .amount = clamped_amount };
     return update;
@@ -298,7 +310,8 @@ void apply_tax_result( SS& ss, Player& player,
   player.old_world.taxes.next_tax_event_turn =
       next_tax_event_turn;
   switch( change.to_enum() ) {
-    case TaxChangeResult::e::none: return;
+    case TaxChangeResult::e::none:
+      return;
     case TaxChangeResult::e::tax_change: {
       auto& o = change.get<TaxChangeResult::tax_change>();
       player.old_world.taxes.tax_rate += o.amount;
@@ -389,7 +402,8 @@ wait<> try_trade_boycotted_commodity( TS& ts, Player& player,
       player.money -= back_taxes;
       CHECK_GE( player.money, 0 );
       co_return;
-    case ui::e_confirm::no: co_return;
+    case ui::e_confirm::no:
+      co_return;
   }
 }
 

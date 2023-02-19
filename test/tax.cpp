@@ -18,6 +18,9 @@
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
 
+// Revolution Now
+#include "src/connectivity.hpp"
+
 // config
 #include "config/old-world.rds.hpp"
 
@@ -41,13 +44,21 @@ using namespace std;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    create_default_map();
     add_default_player();
+    create_default_map();
   }
 
   void create_default_map() {
+    MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
-    vector<MapSquare> tiles{ L, L, L };
+    vector<MapSquare> tiles{
+        L, L, L, //
+        _, _, _, //
+        _, L, L, //
+        L, L, L, //
+        L, _, L, //
+        L, L, L, //
+    };
     build_map( std::move( tiles ), 3 );
   }
 };
@@ -398,7 +409,8 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
 }
 
 TEST_CASE( "[tax] compute_tax_change" ) {
-  World                W;
+  World W;
+  W.update_terrain_connectivity();
   Player&              player = W.default_player();
   TaxUpdateComputation expected;
 
@@ -571,12 +583,89 @@ TEST_CASE( "[tax] compute_tax_change" ) {
   }
 }
 
+TEST_CASE(
+    "[tax] compute_tax_change skips colonies without ocean "
+    "access" ) {
+  World W;
+  W.update_terrain_connectivity();
+  Player&              player = W.default_player();
+  TaxUpdateComputation expected;
+
+  auto f = [&] {
+    return compute_tax_change( W.ss(), W.ts(), player );
+  };
+
+  W.settings().difficulty = e_difficulty::conquistador;
+
+  W.rand()
+      .EXPECT__between_ints( 14, 18, e_interval::closed )
+      .returns( 13 );
+
+  W.turn().time_point.turns                  = 38;
+  player.old_world.taxes.next_tax_event_turn = 37;
+
+  Colony& colony1 =
+      W.add_colony_with_new_unit( { .x = 2, .y = 3 } );
+  Colony& colony2 =
+      W.add_colony_with_new_unit( { .x = 0, .y = 3 } );
+
+  // Sanity check that we're testing what we think we're testing.
+  REQUIRE_FALSE( colony_has_ocean_access(
+      W.ss(), W.connectivity(), colony1.location ) );
+  REQUIRE( colony_has_ocean_access( W.ss(), W.connectivity(),
+                                    colony2.location ) );
+
+  // Tax change amount.
+  W.rand()
+      .EXPECT__between_ints( 1, 8, e_interval::closed )
+      .returns( 4 );
+
+  // Tax increase probability.
+  W.rand().EXPECT__bernoulli( .98 ).returns( true );
+
+  player.old_world.taxes.tax_rate = 72;
+
+  int bid = 1;
+  for( e_commodity type : refl::enum_values<e_commodity> )
+    player.old_world.market.commodities[type].bid_price = bid++;
+
+  // Would pick colony 1 (silver, 800) but since it has no
+  // ocean access it should pick colony 2.
+
+  // Worth: 100*8 = 800.
+  colony1.commodities[e_commodity::silver] = 100;
+  // Worth: 60*1 = 60.
+  colony1.commodities[e_commodity::food] = 60;
+  // Worth: 20*12 = 240.
+  colony1.commodities[e_commodity::cloth] = 20;
+  // Worth: 1*16 = 16.
+  colony2.commodities[e_commodity::muskets] = 1;
+
+  // Rebels bump.
+  W.rand().EXPECT__between_doubles( 0.0, 1.0 ).returns( .7 );
+
+  TeaParty const party{
+      .commodity =
+          CommodityInColony{
+              .colony_id = 2,
+              .type_and_quantity =
+                  Commodity{ .type     = e_commodity::muskets,
+                             .quantity = 1 } },
+      .rebels_bump = .7 };
+  expected = { .next_tax_event_turn = 51,
+               .proposed_tax_change =
+                   TaxChangeProposal::increase_or_party{
+                       .amount = 3, .party = party } };
+  REQUIRE( f() == expected );
+}
+
 TEST_CASE( "[tax] start_of_turn_tax_check" ) {
   // FIXME
 #ifdef COMPILER_GCC
   return;
 #endif
-  World   W;
+  World W;
+  W.update_terrain_connectivity();
   Player& player = W.default_player();
 
   auto f = [&] {

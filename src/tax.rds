@@ -34,9 +34,10 @@ sumtype.TaxChangeProposal {
   # This should be first so that it is the default.
   none {},
 
-  # This one is rare -- it only happens when a tax increase hap-
-  # pens but there are no commodities in any colonies. In that
-  # case it doesn't make sense to boycott anything.
+  # This one is somewhat rare -- it only happens when a tax in-
+  # crease happens but there are no commodities in any colonies
+  # ocean access. In that case it doesn't make sense to "hold a
+  # tea party."
   increase {
     amount 'int',
   },
