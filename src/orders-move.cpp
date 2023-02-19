@@ -246,7 +246,7 @@ struct TravelHandler : public OrdersHandler {
         co_return false;
       case e_travel_verdict::no_ship_into_inland_lake:
         co_await ts_.gui.message_box(
-            "Ships cannot move into inland lake tile." );
+            "Ships cannot move onto inland lake tiles." );
         // We should not have checked movement points in this
         // case since it was an impossible move.
         CHECK( !checked_mv_points_ );
