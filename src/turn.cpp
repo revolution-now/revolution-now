@@ -216,7 +216,7 @@ bool should_remove_unit_from_queue( Unit const& unit ) {
     case e::fortified:
       return true;
     case e::fortifying:
-      return true;
+      return false;
     case e::sentry:
       return true;
     case e::road:
@@ -256,11 +256,6 @@ void try_unsentry_unit( SS& ss, Unit& unit ) {
       return;
     }
   }
-}
-
-void fortify_units( Unit& unit ) {
-  if( !unit.orders().holds<unit_orders::fortifying>() ) return;
-  unit.fortify();
 }
 
 // See if any foreign units in the vicinity of src_id need to be
@@ -628,6 +623,27 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
   Unit& unit = ss.units.unit_for( id );
   CHECK( !should_remove_unit_from_queue( unit ) );
 
+  if( unit.orders().holds<unit_orders::fortifying>() ) {
+    // Any units that are in the "fortifying" state at the start
+    // of their turn get "promoted" for the "fortified" status,
+    // which means they are actually fortified and get those ben-
+    // efits. The OG consumes movement points both at the moment
+    // that the player initially fortifies the unit, then once on
+    // the following turn (where we are now) where the unit is
+    // transitioned from "fortifying" to "fortified." But note
+    // that thereafter, the fortified unit will not have its
+    // movement points consumed at the start of their turn; this
+    // allows the player to wake a fortified unit and move it
+    // that turn. It's just that the player can't do that for the
+    // first two turns, unless they happen to activate the unit
+    // while it is in the "fortifying" state but before we do
+    // this next step of transitioning it to "fortified" (this is
+    // also the behavior of the OG).
+    unit.orders() = unit_orders::fortified{};
+    unit.forfeight_mv_points();
+    co_return false;
+  }
+
   if( unit.orders().holds<unit_orders::road>() ) {
     perform_road_work( ss.units, ss.terrain, as_const( player ),
                        ts.map_updater, unit );
@@ -784,30 +800,6 @@ wait<> units_turn( SS& ss, TS& ts, Player& player,
   map_active_euro_units( ss.units, st.nation, [&]( Unit& unit ) {
     return try_unsentry_unit( ss, unit );
   } );
-
-  // Any units that are in the "fortifying" state at the start of
-  // their turn get "promoted" for the "fortified" status, which
-  // means they are actually fortified and get those benefits. We
-  // only do this to the active units, i.e. the ones that still
-  // have movement points. The reason for this is so that if we
-  // save the game just after hitting 'F' on a unit, then reload
-  // it, we won't (incorrectly) try to transition the unit to the
-  // "fortified" state. Instead we will (correctly) do so on the
-  // following turn.
-  //
-  // FIXME: it is probably better put this into a dedicated func-
-  // tion that will run only once at the start of each turn, re-
-  // gardless of save/load patterns. Then we could just map over
-  // all of this nation's units without worrying about whether
-  // they are active or not (and also by the way it is not good
-  // to begin with that we have to rely on the movement points
-  // indicator for this because it ideally should be an arbitrary
-  // game logic decision as to whether a unit's movement points
-  // get consumed when they initiate a fortify). Maybe we could
-  // go even further an implement a general mechanism for holding
-  // the state of the turn in serialized form so that we don't
-  // rely on a bunch of ad hoc bool flags.
-  map_active_euro_units( ss.units, st.nation, fortify_units );
 
   // Here we will keep reloading all of the units (that still
   // need to move) and making passes over them in order make sure
