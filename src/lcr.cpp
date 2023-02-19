@@ -11,12 +11,15 @@
 #include "lcr.hpp"
 
 // Revolution Now
+#include "anim-builders.hpp"
 #include "co-wait.hpp"
 #include "harbor-units.hpp"
 #include "imap-updater.hpp"
 #include "immigration.hpp"
 #include "irand.hpp"
+#include "land-view.hpp"
 #include "logger.hpp"
+#include "plane-stack.hpp"
 #include "rand-enum.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
@@ -129,8 +132,10 @@ wait<LostCityRumorResult_t> run_burial_mounds_result(
                 config_lcr.burial_mounds_treasure_multiple } );
       co_await ts.gui.message_box(
           "You've recovered a treasure worth [{}]!", amount );
-      UnitId unit_id = create_treasure_train(
+      UnitId const unit_id = create_treasure_train(
           ss, ts, player, world_square, amount );
+      co_await ts.planes.land_view().animate(
+          anim_seq_for_treasure_enpixelation( unit_id ) );
       result =
           LostCityRumorResult::unit_created{ .id = unit_id };
       break;
@@ -292,6 +297,8 @@ wait<LostCityRumorResult_t> run_rumor_result(
           amount );
       UnitId unit_id = create_treasure_train(
           ss, ts, player, world_square, amount );
+      co_await ts.planes.land_view().animate(
+          anim_seq_for_treasure_enpixelation( unit_id ) );
       co_return LostCityRumorResult::unit_created{ .id =
                                                        unit_id };
     }

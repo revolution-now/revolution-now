@@ -18,9 +18,11 @@
 #include "test/fake/world.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
+#include "test/mocks/land-view-plane.hpp"
 
 // Revolution Now
 #include "imap-updater.hpp"
+#include "plane-stack.hpp"
 #include "unit-mgr.hpp"
 
 // ss
@@ -44,7 +46,10 @@ namespace rn {
 namespace {
 
 using namespace ::std;
-using namespace ::mock::matchers;
+
+using ::mock::matchers::_;
+using ::mock::matchers::Field;
+using ::mock::matchers::StrContains;
 
 /****************************************************************
 ** Fake World Setup
@@ -426,8 +431,10 @@ TEST_CASE( "[lcr] cibola / treasure" ) {
 #ifdef COMPILER_GCC
   return;
 #endif
-  World   W;
-  Player& player = W.default_player();
+  World             W;
+  MockLandViewPlane land_view_plane;
+  W.planes().back().land_view = &land_view_plane;
+  Player& player              = W.default_player();
   REQUIRE( player.money == 0 );
 
   MapSquare& square      = W.square( Coord{} );
@@ -452,6 +459,8 @@ TEST_CASE( "[lcr] cibola / treasure" ) {
   W.rand()
       .EXPECT__between_ints( 2000, 10500, e_interval::closed )
       .returns( 5555 );
+  // Enpixelate the treasure.
+  land_view_plane.EXPECT__animate( _ ).returns<monostate>();
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
@@ -488,8 +497,10 @@ TEST_CASE( "[lcr] burial mounds / treasure" ) {
 #ifdef COMPILER_GCC
   return;
 #endif
-  World   W;
-  Player& player = W.default_player();
+  World             W;
+  MockLandViewPlane land_view_plane;
+  W.planes().back().land_view = &land_view_plane;
+  Player& player              = W.default_player();
   REQUIRE( player.money == 0 );
 
   MapSquare& square      = W.square( Coord{} );
@@ -519,6 +530,8 @@ TEST_CASE( "[lcr] burial mounds / treasure" ) {
   W.rand()
       .EXPECT__between_ints( 2000, 3500, e_interval::closed )
       .returns( 2222 );
+  // Enpixelate the treasure.
+  land_view_plane.EXPECT__animate( _ ).returns<monostate>();
 
   // Go
   wait<LostCityRumorResult_t> lcr_res =
