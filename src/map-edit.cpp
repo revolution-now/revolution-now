@@ -14,6 +14,7 @@
 #include "co-combinator.hpp"
 #include "colony-view.hpp"
 #include "compositor.hpp"
+#include "connectivity.hpp"
 #include "gui.hpp" // FIXME
 #include "icombat.hpp"
 #include "input.hpp"
@@ -645,13 +646,14 @@ wait<> run_map_editor_standalone( Planes& planes ) {
   SCOPE_EXIT( set_console_terminal( nullptr ) );
   lua::table::create_or_get( st["log"] )["console"] =
       [&]( string const& msg ) { terminal.log( msg ); };
-  WindowPlane    window_plane;
-  RealGui        gui( window_plane );
-  Rand           rand;
-  TrappingCombat combat;
-  ColonyViewer   colony_viewer( planes, ss );
+  WindowPlane         window_plane;
+  RealGui             gui( window_plane );
+  Rand                rand;
+  TrappingCombat      combat;
+  ColonyViewer        colony_viewer( planes, ss );
+  TerrainConnectivity connectivity;
   TS ts( map_updater, st, gui, rand, combat, colony_viewer,
-         ss.root );
+         ss.root, connectivity );
   co_await run_map_editor( planes, ss, ts );
 }
 
@@ -679,6 +681,7 @@ wait<> run_map_editor( Planes& planes, SS& ss, TS& ts ) {
           } );
 
   co_await map_edit_plane.run_map_editor();
+  update_terrain_connectivity( ss, &ts.connectivity );
 }
 
 } // namespace rn

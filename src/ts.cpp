@@ -59,7 +59,8 @@ struct TS::LuaRefSetAndRestore {
 *****************************************************************/
 TS::TS( IMapUpdater& map_updater_, lua::state& lua_, IGui& gui_,
         IRand& rand_, ICombat& combat_,
-        IColonyViewer& colony_viewer_, RootState& saved )
+        IColonyViewer& colony_viewer_, RootState& saved,
+        TerrainConnectivity& connectivity_ )
   : map_updater( map_updater_ ),
     lua( lua_ ),
     gui( gui_ ),
@@ -67,6 +68,7 @@ TS::TS( IMapUpdater& map_updater_, lua::state& lua_, IGui& gui_,
     combat( combat_ ),
     colony_viewer( colony_viewer_ ),
     saved( saved ),
+    connectivity( connectivity_ ),
     pimpl_( new LuaRefSetAndRestore( lua, *this ) ) {}
 
 // These are here because we are using the pimpl idiom.
@@ -80,7 +82,7 @@ void to_str( TS const& o, string& out, base::ADL_t ) {
 
 TS TS::with_gui( IGui& new_gui ) {
   return TS( map_updater, lua, new_gui, rand, combat,
-             colony_viewer, saved );
+             colony_viewer, saved, connectivity );
 }
 
 /****************************************************************

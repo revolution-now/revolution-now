@@ -16,6 +16,7 @@
 #include "colony-view.hpp"
 #include "combat.hpp"
 #include "conductor.hpp"
+#include "connectivity.hpp"
 #include "console.hpp"
 #include "gui.hpp"
 #include "interrupts.hpp"
@@ -102,23 +103,32 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   RealCombat   combat( ss, rand );
   ColonyViewer colony_viewer( planes, ss );
 
+  TerrainConnectivity connectivity;
+
   {
     // The real map updater needs to know the map size during
     // construction, so use the non-rendering one, which is fine
     // because we don't need to render yet anyway.
     NonRenderingMapUpdater map_updater( ss );
     TS ts( map_updater, st, gui, rand, combat, colony_viewer,
-           saved );
+           saved, connectivity );
     if( !co_await loader( ss, ts ) )
       // Didn't load a game for some reason. Could have failed or
       // maybe there are no games to load.
       co_return;
   }
 
+  // After this, any changes to the map that change land to water
+  // or vice versa (or change map size) need to be followed up by
+  // a call to re-compute the terrain connectivity. In practice,
+  // this could only be done by opening the map editor mid-game.
+  update_terrain_connectivity( ss, &connectivity );
+  CHECK( !connectivity.indices.empty() );
+
   RenderingMapUpdater map_updater(
       ss, global_renderer_use_only_when_needed() );
   TS ts( map_updater, st, gui, rand, combat, colony_viewer,
-         saved );
+         saved, connectivity );
 
   ensure_human_player( ss.players );
 

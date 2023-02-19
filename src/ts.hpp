@@ -31,6 +31,7 @@ struct IMapUpdater;
 struct IRand;
 struct Planes;
 struct RootState;
+struct TerrainConnectivity;
 
 /****************************************************************
 ** TS
@@ -38,7 +39,8 @@ struct RootState;
 struct TS {
   TS( IMapUpdater& map_updater_, lua::state& lua_, IGui& gui_,
       IRand& rand_, ICombat& combat,
-      IColonyViewer& colony_viewer, RootState& saved );
+      IColonyViewer& colony_viewer, RootState& saved,
+      TerrainConnectivity& connectivity );
 
   ~TS();
 
@@ -55,6 +57,8 @@ struct TS {
   // saved or loaded. It is used to determine if the game needs
   // to be saved when the player tries to exit.
   RootState& saved;
+
+  TerrainConnectivity& connectivity;
 
   // Builder style.
   TS with_gui( IGui& new_gui );

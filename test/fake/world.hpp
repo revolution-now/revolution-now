@@ -52,26 +52,27 @@ struct EventsState;
 struct FormatVersion;
 struct IMapUpdater;
 struct LandViewState;
+struct MockIColonyViewer;
+struct MockICombat;
 struct MockIGui;
 struct MockIRand;
-struct MockICombat;
-struct MockIColonyViewer;
 struct NativeUnit;
 struct NativesState;
 struct Planes;
 struct Player;
 struct PlayersState;
-struct SettingsState;
 struct SS;
 struct SSConst;
+struct SettingsState;
+struct TS;
+struct TerrainConnectivity;
 struct TerrainState;
 struct Tribe;
-struct TS;
 struct TurnState;
 struct Unit;
 struct UnitComposition;
-struct UnitsState;
 struct UnitType;
+struct UnitsState;
 
 } // namespace rn
 
@@ -87,6 +88,10 @@ struct World {
   // Terrain.
   // ------------------------------------------------------------
   void build_map( std::vector<MapSquare> tiles, W width );
+
+  // This is not done automatically for efficiency and because
+  // very few tests will need it.
+  void update_terrain_connectivity();
 
   // For each player that exists, this will re-initialize its
   // player map to be the size of the real map with all tiles
@@ -306,6 +311,9 @@ struct World {
   SSConst const& ss() const;
   SS&            ss_saved();
 
+  TerrainConnectivity const& connectivity() const;
+  TerrainConnectivity&       connectivity();
+
   // These will initialize their respective objects the first
   // time they are called, so they should always be used.
   Planes&            planes();
@@ -333,10 +341,11 @@ struct World {
   // These are unique_ptrs so that we can forward declare them.
   // Otherwise every unit test would have to pull in all of these
   // headers.
-  std::unique_ptr<SS>            ss_;
-  std::unique_ptr<SSConst const> ss_const_;
-  std::unique_ptr<SS>            ss_saved_;
-  std::unique_ptr<IMapUpdater>   map_updater_;
+  std::unique_ptr<SS>                  ss_;
+  std::unique_ptr<SSConst const>       ss_const_;
+  std::unique_ptr<SS>                  ss_saved_;
+  std::unique_ptr<TerrainConnectivity> connectivity_;
+  std::unique_ptr<IMapUpdater>         map_updater_;
   // These should not be accessed directly since they are ini-
   // tially nullptr.
   std::unique_ptr<Planes>      uninitialized_planes_;

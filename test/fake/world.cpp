@@ -18,6 +18,7 @@
 
 // Revolution Now
 #include "src/colony-mgr.hpp"
+#include "src/connectivity.hpp"
 #include "src/harbor-units.hpp"
 #include "src/lua.hpp"
 #include "src/map-updater-lua.hpp"
@@ -96,6 +97,13 @@ SS&            World::ss() { return *ss_; }
 SSConst const& World::ss() const { return *ss_const_; }
 SS&            World::ss_saved() { return *ss_saved_; }
 
+TerrainConnectivity const& World::connectivity() const {
+  return *connectivity_;
+}
+TerrainConnectivity& World::connectivity() {
+  return *connectivity_;
+}
+
 Planes& World::planes() {
   if( uninitialized_planes_ == nullptr )
     uninitialized_planes_ = make_unique<Planes>();
@@ -148,7 +156,8 @@ namespace {
 TS* make_ts( World& world ) {
   return new TS( world.map_updater(), world.lua(), world.gui(),
                  world.rand(), world.combat(),
-                 world.colony_viewer(), world.ss_saved().root );
+                 world.colony_viewer(), world.ss_saved().root,
+                 world.connectivity() );
 }
 
 }
@@ -184,6 +193,11 @@ void World::build_map( vector<MapSquare> tiles, W width ) {
   init_player_maps();
   ss().land_view.viewport.set_world_size_tiles(
       ss().terrain.world_size_tiles() );
+}
+
+void World::update_terrain_connectivity() {
+  CHECK( connectivity_ != nullptr );
+  rn::update_terrain_connectivity( ss(), connectivity_.get() );
 }
 
 void World::init_player_maps() {
@@ -594,6 +608,7 @@ World::World()
   : ss_( new SS ),
     ss_const_( new SSConst( *ss_ ) ),
     ss_saved_( new SS ),
+    connectivity_( new TerrainConnectivity ),
     map_updater_( new NonRenderingMapUpdater( *ss_ ) ),
     // These are left uninitialized until they are needed.
     uninitialized_planes_(),
