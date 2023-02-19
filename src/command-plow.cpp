@@ -114,8 +114,7 @@ struct PlowHandler : public CommandHandler {
     // plowing and move the unit. They are only charged movement
     // points at the start of the next turn when they contribute
     // some progress to plowing.
-    unit.plow();
-    unit.set_turns_worked( 0 );
+    unit.orders() = unit_orders::plow{ .turns_worked = 0 };
     co_return;
   }
 

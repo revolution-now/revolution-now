@@ -143,7 +143,7 @@ Unit create_unregistered_unit( Player const&   player,
   wrapped::Unit refl_unit{
       .id          = UnitId{ 0 }, // will be set later.
       .composition = std::move( comp ),
-      .orders      = e_unit_orders::none,
+      .orders      = unit_orders::none{},
       .cargo = CargoHold( unit_attr( comp.type() ).cargo_slots ),
       .nation = player.nation,
       .mv_pts = movement_points( player, comp.type() ),

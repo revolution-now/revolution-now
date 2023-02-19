@@ -114,8 +114,8 @@ TEST_CASE( "[command-plow] native-owned land" ) {
     REQUIRE( relationship.land_squares_paid_for == 0 );
     REQUIRE( is_land_native_owned( W.ss(), W.default_player(),
                                    tile ) );
-    REQUIRE( pioneer.orders() == e_unit_orders::none );
-    REQUIRE( pioneer.turns_worked() == 0 );
+    REQUIRE( pioneer.orders() ==
+             unit_orders_t{ unit_orders::none{} } );
   }
 
   SECTION( "irrigate / take" ) {
@@ -134,8 +134,9 @@ TEST_CASE( "[command-plow] native-owned land" ) {
         is_land_native_owned( W.ss(), W.default_player(), tile )
             .has_value() );
     perform();
-    REQUIRE( pioneer.orders() == e_unit_orders::plow );
-    REQUIRE( pioneer.turns_worked() == 0 );
+    REQUIRE( pioneer.orders() ==
+             unit_orders_t{
+                 unit_orders::plow{ .turns_worked = 0 } } );
     REQUIRE_FALSE( pioneer.mv_pts_exhausted() );
   }
 
@@ -156,8 +157,9 @@ TEST_CASE( "[command-plow] native-owned land" ) {
         is_land_native_owned( W.ss(), W.default_player(), tile )
             .has_value() );
     perform();
-    REQUIRE( pioneer.orders() == e_unit_orders::plow );
-    REQUIRE( pioneer.turns_worked() == 0 );
+    REQUIRE( pioneer.orders() ==
+             unit_orders_t{
+                 unit_orders::plow{ .turns_worked = 0 } } );
     REQUIRE_FALSE( pioneer.mv_pts_exhausted() );
   }
 }

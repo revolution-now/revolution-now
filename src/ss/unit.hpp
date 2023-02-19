@@ -39,10 +39,11 @@ struct ND Unit {
   UnitId                    id() const { return o_.id; }
   UnitTypeAttributes const& desc() const;
   // FIXME: luapp can only take this as non-const....
-  UnitTypeAttributes& desc_non_const() const;
-  bool                is_human() const;
-  e_unit_orders       orders() const { return o_.orders; }
-  CargoHold const&    cargo() const { return o_.cargo; }
+  UnitTypeAttributes&  desc_non_const() const;
+  bool                 is_human() const;
+  unit_orders_t const& orders() const { return o_.orders; }
+  unit_orders_t&       orders() { return o_.orders; }
+  CargoHold const&     cargo() const { return o_.cargo; }
   // Allow non-const access to cargo since the CargoHold class
   // itself should enforce all invariants and interacting with it
   // doesn't really depend on any private Unit data.
@@ -113,19 +114,10 @@ struct ND Unit {
 
   /******************** Roads / Plowing ************************/
 
-  int turns_worked() const { return o_.turns_worked; }
-
-  void set_turns_worked( int turns );
-
   // The unit must have at least 20 tools, which will be sub-
   // tracted. If the unit ends up with zero tools then the type
   // will be demoted.
   void consume_20_tools( Player const& player );
-
-  /*********************** Damaged *****************************/
-
-  base::maybe<int> const& damaged() const { return o_.damaged; }
-  base::maybe<int>&       damaged() { return o_.damaged; }
 
   /************************* Orders ****************************/
 
@@ -134,21 +126,14 @@ struct ND Unit {
   // Marks unit as not having moved this turn.
   void new_turn( Player const& player );
   // Mark a unit as sentry.
-  void sentry() { o_.orders = e_unit_orders::sentry; }
-  // Unit is building a road. Note: after calling this don't
-  // forget to call set_turns_worked with zero.
-  void build_road();
-  // Unit is plowing, which means either clearing a forest or ir-
-  // rigating. Note: after calling this don't forget to call
-  // set_turns_worked with zero.
-  void plow();
+  void sentry() { o_.orders = unit_orders::sentry{}; }
   // Mark a unit as fortifying.
   void start_fortify();
   // Mark a unit as fully fortified. This happens after one turn
   // of beying in the "fortifying" state.
   void fortify();
   // Clear a unit's orders (they will then wait for orders).
-  void clear_orders() { o_.orders = e_unit_orders::none; }
+  void clear_orders() { o_.orders = unit_orders::none{}; }
 
   /********************** Type Changing ************************/
 

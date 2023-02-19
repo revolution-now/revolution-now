@@ -84,7 +84,8 @@ void perform_road_work( UnitsState const&   units_state,
                         Player const&       player,
                         IMapUpdater& map_updater, Unit& unit ) {
   Coord location = units_state.coord_for( unit.id() );
-  CHECK( unit.orders() == e_unit_orders::road );
+  UNWRAP_CHECK( road_orders,
+                unit.orders().get_if<unit_orders::road>() );
   CHECK( unit.type() == e_unit_type::pioneer ||
              unit.type() == e_unit_type::hardy_pioneer,
          "unit type {} should not be building a road.",
@@ -104,11 +105,10 @@ void perform_road_work( UnitsState const&   units_state,
   if( has_road( terrain_state, location ) ) {
     log( "cancelled" );
     unit.clear_orders();
-    unit.set_turns_worked( 0 );
     return;
   }
   // The unit is still building the road.
-  int       turns_worked = unit.turns_worked();
+  int const turns_worked = road_orders.turns_worked;
   int const road_turns   = turns_required(
       unit.type(),
       effective_terrain( terrain_state.square_at( location ) ) );
@@ -117,7 +117,6 @@ void perform_road_work( UnitsState const&   units_state,
     // We're finished building the road.
     set_road( map_updater, location );
     unit.clear_orders();
-    unit.set_turns_worked( 0 );
     unit.consume_20_tools( player );
     log( "finished" );
     return;
@@ -125,7 +124,7 @@ void perform_road_work( UnitsState const&   units_state,
   // We need more work.
   log( "ongoing" );
   unit.forfeight_mv_points();
-  unit.set_turns_worked( turns_worked + 1 );
+  ++road_orders.turns_worked;
 }
 
 bool can_build_road( Unit const& unit ) {

@@ -109,7 +109,7 @@ TEST_CASE( "[command-build] build colony" ) {
       .EXPECT__show( _, ColonyId{ 1 } )
       .returns( e_colony_abandoned::no );
   perform();
-  REQUIRE( unit.orders() == e_unit_orders::none );
+  REQUIRE( unit.orders().to_enum() == unit_orders::e::none );
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
   REQUIRE( W.colonies().last_colony_id() == 1 );
   Colony const& colony = W.colonies().colony_for( 1 );
@@ -147,7 +147,7 @@ TEST_CASE( "[command-build] build colony no ocean access" ) {
       .returns<maybe<string>>( "no" );
   REQUIRE( confirm() == false );
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
-  REQUIRE( unit.orders() == e_unit_orders::none );
+  REQUIRE( unit.orders().to_enum() == unit_orders::e::none );
   REQUIRE( W.colonies().last_colony_id() == 0 );
 }
 

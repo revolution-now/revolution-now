@@ -100,8 +100,7 @@ struct RoadHandler : public CommandHandler {
     // building a road and move the unit. They are only charged
     // movement points at the start of the next turn when they
     // contribute some progress to building the road.
-    unit.build_road();
-    unit.set_turns_worked( 0 );
+    unit.orders() = unit_orders::road{ .turns_worked = 0 };
     co_return;
   }
 

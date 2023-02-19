@@ -40,14 +40,16 @@ void UnitActivationView::on_click_unit( UnitId id ) {
   auto& infos = info_map();
   CHECK( infos.contains( id ) );
   UnitActivationInfo& info = infos[id];
-  if( info.original_orders != e_unit_orders::none ) {
+  if( info.original_orders.to_enum() != unit_orders::e::none ) {
     if( allow_activation_ ) {
       // Orders --> No Orders --> No Orders+Prio --> ...
-      if( info.current_orders != e_unit_orders::none ) {
+      if( info.current_orders.to_enum() !=
+          unit_orders::e::none ) {
         CHECK( !info.is_activated );
-        info.current_orders = e_unit_orders::none;
+        info.current_orders = unit_orders::none{};
       } else if( info.is_activated ) {
-        CHECK( info.current_orders == e_unit_orders::none );
+        CHECK( info.current_orders.to_enum() ==
+               unit_orders::e::none );
         info.current_orders = info.original_orders;
         info.is_activated   = false;
       } else {
@@ -57,8 +59,9 @@ void UnitActivationView::on_click_unit( UnitId id ) {
     } else {
       // Orders --> No Orders --> ...
       CHECK( !info.is_activated );
-      if( info.current_orders != e_unit_orders::none ) {
-        info.current_orders = e_unit_orders::none;
+      if( info.current_orders.to_enum() !=
+          unit_orders::e::none ) {
+        info.current_orders = unit_orders::none{};
       } else {
         info.current_orders = info.original_orders;
       }
@@ -66,13 +69,17 @@ void UnitActivationView::on_click_unit( UnitId id ) {
   } else {
     if( allow_activation_ ) {
       // No Orders --> No Orders+Prioritized --> ...
-      CHECK( info.original_orders == e_unit_orders::none );
-      CHECK( info.current_orders == e_unit_orders::none );
+      CHECK( info.original_orders.to_enum() ==
+             unit_orders::e::none );
+      CHECK( info.current_orders.to_enum() ==
+             unit_orders::e::none );
       info.is_activated = !info.is_activated;
     } else {
       // No Orders --> ...
-      CHECK( info.original_orders == e_unit_orders::none );
-      CHECK( info.current_orders == e_unit_orders::none );
+      CHECK( info.original_orders.to_enum() ==
+             unit_orders::e::none );
+      CHECK( info.current_orders.to_enum() ==
+             unit_orders::e::none );
       CHECK( !info.is_activated );
     }
   }

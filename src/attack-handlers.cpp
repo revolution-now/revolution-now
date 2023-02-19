@@ -304,7 +304,8 @@ maybe<string> perform_naval_unit_combat_outcome(
       auto& o = outcome.get<damaged>();
       // This means that the unit is being marked as damaged and
       // has been damaged for zero turns as of now.
-      unit.damaged() = 0;
+      unit.orders() =
+          unit_orders::damaged{ .turns_until_repair = 5 };
       // All units in cargo are destroyed.
       vector<UnitId> const units_in_cargo = unit.cargo().units();
       int const num_units_lost = units_in_cargo.size();
@@ -487,7 +488,7 @@ wait<> AttackHandlerBase::animate() const { co_return; }
 
 wait<> AttackHandlerBase::perform() {
   CHECK( !attacker_.mv_pts_exhausted() );
-  CHECK( attacker_.orders() == e_unit_orders::none );
+  CHECK( attacker_.orders().holds<unit_orders::none>() );
   // The original game seems to consume all movement points of a
   // unit when attacking.
   attacker_.forfeight_mv_points();

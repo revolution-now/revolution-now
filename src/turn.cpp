@@ -211,19 +211,22 @@ void finish_turn( Unit& unit ) { unit.forfeight_mv_points(); }
 
 bool should_remove_unit_from_queue( Unit const& unit ) {
   if( finished_turn( unit ) ) return true;
-  switch( unit.orders() ) {
-    case e_unit_orders::fortified:
+  switch( unit.orders().to_enum() ) {
+    using namespace unit_orders;
+    case e::fortified:
       return true;
-    case e_unit_orders::fortifying:
+    case e::fortifying:
       return true;
-    case e_unit_orders::sentry:
+    case e::sentry:
       return true;
-    case e_unit_orders::road:
+    case e::road:
       return false;
-    case e_unit_orders::plow:
+    case e::plow:
       return false;
-    case e_unit_orders::none:
+    case e::none:
       return false;
+    case e::damaged:
+      return true;
   }
 }
 
@@ -242,7 +245,7 @@ vector<UnitId> surrounding_euro_units(
 // See if `unit` needs to be unsentry'd due to surrounding for-
 // eign units.
 void try_unsentry_unit( SS& ss, Unit& unit ) {
-  if( unit.orders() != e_unit_orders::sentry ) return;
+  if( !unit.orders().holds<unit_orders::sentry>() ) return;
   // Don't use the "indirect" version here because we don't want
   // to e.g. wake up units that are sentry'd on ships.
   maybe<Coord> loc = ss.units.maybe_coord_for( unit.id() );
@@ -256,7 +259,7 @@ void try_unsentry_unit( SS& ss, Unit& unit ) {
 }
 
 void fortify_units( Unit& unit ) {
-  if( unit.orders() != e_unit_orders::fortifying ) return;
+  if( !unit.orders().holds<unit_orders::fortifying>() ) return;
   unit.fortify();
 }
 
@@ -269,7 +272,7 @@ void unsentry_surroundings( UnitsState& units_state,
   for( UnitId id :
        surrounding_euro_units( units_state, src_loc ) ) {
     Unit& unit = units_state.unit_for( id );
-    if( unit.orders() != e_unit_orders::sentry ) continue;
+    if( !unit.orders().holds<unit_orders::sentry>() ) continue;
     if( unit.nation() == src_unit.nation() ) continue;
     unit.clear_orders();
   }
@@ -625,19 +628,19 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
   Unit& unit = ss.units.unit_for( id );
   CHECK( !should_remove_unit_from_queue( unit ) );
 
-  if( unit.orders() == e_unit_orders::road ) {
+  if( unit.orders().holds<unit_orders::road>() ) {
     perform_road_work( ss.units, ss.terrain, as_const( player ),
                        ts.map_updater, unit );
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
-      CHECK( unit.orders() == e_unit_orders::none );
+      CHECK( unit.orders().holds<unit_orders::none>() );
       co_await ts.planes.land_view().ensure_visible_unit( id );
       co_await ts.gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return ( unit.orders() != e_unit_orders::road );
+    co_return ( !unit.orders().holds<unit_orders::road>() );
   }
 
-  if( unit.orders() == e_unit_orders::plow ) {
+  if( unit.orders().holds<unit_orders::plow>() ) {
     PlowResult_t const plow_result = perform_plow_work(
         ss, as_const( player ), ts.map_updater, unit );
     if( auto o =
@@ -652,12 +655,12 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
       co_await ts.gui.message_box( msg );
     }
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
-      CHECK( unit.orders() == e_unit_orders::none );
+      CHECK( unit.orders().holds<unit_orders::none>() );
       co_await ts.planes.land_view().ensure_visible_unit( id );
       co_await ts.gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return ( unit.orders() != e_unit_orders::plow );
+    co_return ( !unit.orders().holds<unit_orders::plow>() );
   }
 
   if( is_unit_in_port( ss.units, id ) ) {

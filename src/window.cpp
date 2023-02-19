@@ -756,14 +756,14 @@ wait<vector<UnitSelection>> unit_selection_box(
         if( result.has_value() ) {
           for( auto const& [id, info] : *result ) {
             if( info.is_activated ) {
-              CHECK( info.current_orders ==
-                     e_unit_orders::none );
+              CHECK( info.current_orders.to_enum() ==
+                     unit_orders::e::none );
               selections.push_back(
                   { id, e_unit_selection::activate } );
             } else if( info.current_orders !=
                        info.original_orders ) {
-              CHECK( info.current_orders ==
-                     e_unit_orders::none );
+              CHECK( info.current_orders.to_enum() ==
+                     unit_orders::e::none );
               selections.push_back(
                   { id, e_unit_selection::clear_orders } );
             }

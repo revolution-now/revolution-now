@@ -1426,7 +1426,7 @@ class UnitsAtGateColonyView
       else if( new_orders == "sentry" )
         unit.sentry();
       else if( new_orders == "fortify" ) {
-        if( unit.orders() != e_unit_orders::fortified )
+        if( !unit.orders().holds<unit_orders::fortified>() )
           // This will place them in the "fortifying" state and
           // will consume all movement points. The only time we
           // don't want to do this is if the unit's state is

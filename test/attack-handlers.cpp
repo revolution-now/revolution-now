@@ -1301,8 +1301,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( defender.nation() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( defender.movement_points() == 5 );
-    REQUIRE( attacker.damaged() == nothing );
-    REQUIRE( defender.damaged() == nothing );
+    REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
+    REQUIRE( !defender.orders().holds<unit_orders::damaged>() );
     REQUIRE( attacker.cargo().count_items() == 0 );
     REQUIRE( defender.cargo().count_items() == 0 );
   }
@@ -1340,8 +1340,10 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( defender.nation() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( defender.movement_points() == 5 );
-    REQUIRE( attacker.damaged() == nothing );
-    REQUIRE( defender.damaged() == 0 );
+    REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
+    REQUIRE( defender.orders() ==
+             unit_orders_t{ unit_orders::damaged{
+                 .turns_until_repair = 5 } } );
     REQUIRE( attacker.cargo().count_items() == 0 );
     REQUIRE( defender.cargo().count_items() == 0 );
   }
@@ -1384,8 +1386,10 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( defender.nation() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( defender.movement_points() == 5 );
-    REQUIRE( attacker.damaged() == nothing );
-    REQUIRE( defender.damaged() == 0 );
+    REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
+    REQUIRE( defender.orders() ==
+             unit_orders_t{ unit_orders::damaged{
+                 .turns_until_repair = 5 } } );
     REQUIRE( attacker.cargo().count_items() == 0 );
     REQUIRE( defender.cargo().count_items() == 0 );
   }
@@ -1416,7 +1420,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
              W.kWaterDefend );
     REQUIRE( defender.nation() == W.kDefendingNation );
     REQUIRE( defender.movement_points() == 5 );
-    REQUIRE( defender.damaged() == nothing );
+    REQUIRE( !defender.orders().holds<unit_orders::damaged>() );
   }
 
   SECTION( "attacker sunk containing units" ) {
@@ -1461,7 +1465,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
              W.kWaterDefend );
     REQUIRE( defender.nation() == W.kDefendingNation );
     REQUIRE( defender.movement_points() == 5 );
-    REQUIRE( defender.damaged() == nothing );
+    REQUIRE( !defender.orders().holds<unit_orders::damaged>() );
     REQUIRE( defender.cargo().count_items() == 0 );
   }
 
@@ -1526,8 +1530,10 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( defender.nation() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( defender.movement_points() == 5 );
-    REQUIRE( attacker.damaged() == 0 );
-    REQUIRE( defender.damaged() == nothing );
+    REQUIRE( attacker.orders() ==
+             unit_orders_t{ unit_orders::damaged{
+                 .turns_until_repair = 5 } } );
+    REQUIRE( !defender.orders().holds<unit_orders::damaged>() );
     REQUIRE( attacker.cargo().count_items() == 0 );
     REQUIRE( defender.cargo().count_items() == 1 );
   }
@@ -1587,8 +1593,10 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( defender.nation() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( defender.movement_points() == 5 );
-    REQUIRE( attacker.damaged() == 0 );
-    REQUIRE( defender.damaged() == nothing );
+    REQUIRE( attacker.orders() ==
+             unit_orders_t{ unit_orders::damaged{
+                 .turns_until_repair = 5 } } );
+    REQUIRE( !defender.orders().holds<unit_orders::damaged>() );
     REQUIRE( attacker.cargo().count_items() == 0 );
     REQUIRE( defender.cargo().count_items() == 0 );
   }

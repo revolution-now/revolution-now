@@ -89,7 +89,7 @@ maybe<vector<UnitId>> Unit::units_in_cargo() const {
 }
 
 bool Unit::has_orders() const {
-  return o_.orders != e_unit_orders::none;
+  return !o_.orders.holds<unit_orders::none>();
 }
 
 // Called to consume movement points as a result of a move.
@@ -103,18 +103,11 @@ bool Unit::has_full_mv_points() const {
   return o_.mv_pts == desc().base_movement_points;
 }
 
-void Unit::set_turns_worked( int turns ) {
-  CHECK( type() == e_unit_type::pioneer ||
-         type() == e_unit_type::hardy_pioneer );
-  CHECK( turns >= 0 );
-  o_.turns_worked = turns;
-}
-
 void Unit::start_fortify() {
   // See comment in the `fortify` method below for an explanation
   // of movement point forfeighture vs. fortification.
   forfeight_mv_points();
-  o_.orders = e_unit_orders::fortifying;
+  o_.orders = unit_orders::fortifying{};
 }
 
 void Unit::fortify() {
@@ -128,7 +121,7 @@ void Unit::fortify() {
   // `fortified` stages (which span two turns) that the movement
   // points get consumed.
   forfeight_mv_points();
-  o_.orders = e_unit_orders::fortified;
+  o_.orders = unit_orders::fortified{};
 }
 
 void Unit::change_nation( UnitsState& units_state,
@@ -207,16 +200,6 @@ Unit::with_commodity_removed(
   return unit_lose_commodity( o_.composition, commodity );
 }
 
-void Unit::build_road() {
-  CHECK( can_build_road( *this ) );
-  o_.orders = e_unit_orders::road;
-}
-
-void Unit::plow() {
-  CHECK( can_plow( *this ) );
-  o_.orders = e_unit_orders::plow;
-}
-
 void Unit::consume_20_tools( Player const& player ) {
   vector<UnitTransformationFromCommodityResult> results =
       with_commodity_removed( Commodity{
@@ -265,7 +248,6 @@ LUA_STARTUP( lua::state& st ) {
   u["composition"] = []( Unit& unit ) {
     return unit.composition();
   };
-  u["orders"]          = &U::orders;
   u["nation"]          = &U::nation;
   u["movement_points"] = &U::movement_points;
 
@@ -273,8 +255,6 @@ LUA_STARTUP( lua::state& st ) {
   u["change_nation"] = &U::change_nation;
   u["change_type"]   = &U::change_type;
   u["sentry"]        = &U::sentry;
-  u["build_road"]    = &U::build_road;
-  u["plow"]          = &U::plow;
   u["fortify"]       = &U::fortify;
   u["start_fortify"] = &U::start_fortify;
   u["clear_orders"]  = &U::clear_orders;

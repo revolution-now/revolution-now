@@ -1277,7 +1277,7 @@ maybe<int> OptionSelectView::get_selected() const {
 ** FakeUnitView
 *****************************************************************/
 FakeUnitView::FakeUnitView( e_unit_type type, e_nation nation,
-                            e_unit_orders orders )
+                            unit_orders_t const& orders )
   : CompositeSingleView(
         make_unique<SpriteView>( unit_attr( type ).tile ),
         Coord{} ),

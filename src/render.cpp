@@ -98,8 +98,8 @@ void render_unit_flag_impl( rr::Renderer& renderer, Coord where,
 
 void render_unit_flag( rr::Renderer& renderer, Coord where,
                        auto const& desc, gfx::pixel color,
-                       e_unit_orders orders,
-                       e_flag_count  flag ) {
+                       unit_orders_t const& orders,
+                       e_flag_count         flag ) {
   // Now we will advance the pixel_coord to put the icon at the
   // location specified in the unit descriptor.
   auto  position = desc.nat_icon_position;
@@ -152,30 +152,40 @@ void render_unit_flag( rr::Renderer& renderer, Coord where,
   where += delta;
 
   char c{ '-' }; // gcc seems to want us to initialize this
-  switch( orders ) {
-    case e_unit_orders::none:
+  switch( orders.to_enum() ) {
+    using namespace unit_orders;
+    case e::none:
       c = '-';
       break;
-    case e_unit_orders::sentry:
+    case e::sentry:
       c = 'S';
       break;
-    case e_unit_orders::fortified:
+    case e::fortified:
       c = 'F';
       break;
-    case e_unit_orders::fortifying:
+    case e::fortifying:
       c = 'F';
       break;
-    case e_unit_orders::road:
+    case e::road:
       c = 'R';
       break;
-    case e_unit_orders::plow:
+    case e::plow:
       c = 'P';
       break;
+    case e::damaged: {
+      auto& o = orders.get<damaged>();
+      // Let's be defensive here in case the number happens to be
+      // larger than 9.
+      int const turns_left = clamp( o.turns_until_repair, 0, 9 );
+
+      c = '0' + turns_left;
+      break;
+    }
   };
   // We don't grey out the "fortifying" state to signal to the
   // player that the unit is not yet fully fortified.
-  bool is_greyed = ( orders == e_unit_orders::fortified ||
-                     orders == e_unit_orders::sentry );
+  bool is_greyed = ( orders.holds<unit_orders::fortified>() ||
+                     orders.holds<unit_orders::sentry>() );
   switch( flag ) {
     case e_flag_count::none:
       break;
@@ -246,7 +256,7 @@ W UnitShadow::default_offset() { return W{ -3 }; }
 *****************************************************************/
 void render_unit_flag( rr::Renderer& renderer, Coord where,
                        e_unit_type type, e_nation nation,
-                       e_unit_orders orders ) {
+                       unit_orders_t const& orders ) {
   render_unit_flag( renderer, where, unit_attr( type ),
                     nation_obj( nation ).flag_color, orders,
                     e_flag_count::single );
@@ -269,13 +279,13 @@ static void render_unit_flag( rr::Renderer& renderer,
   gfx::pixel const flag_color =
       config_natives.tribes[tribe].flag_color;
   render_unit_flag( renderer, where, unit_attr( unit.type ),
-                    flag_color, e_unit_orders::none, flag );
+                    flag_color, unit_orders::none{}, flag );
 }
 
 static void render_unit_impl(
     rr::Renderer& renderer, Coord where, e_tile tile,
     auto const& desc, gfx::pixel flag_color,
-    e_unit_orders orders, bool damaged,
+    unit_orders_t const& orders, bool damaged,
     UnitRenderOptions const& options ) {
   rr::Painter painter = renderer.painter();
   if( options.flag == e_flag_count::none ) {
@@ -322,7 +332,7 @@ void render_unit( rr::Renderer& renderer, Coord where,
   render_unit_impl(
       renderer, where, unit.desc().tile, unit.desc(),
       nation_obj( unit.nation() ).flag_color, unit.orders(),
-      unit.damaged().has_value(), options );
+      unit.orders().holds<unit_orders::damaged>(), options );
 }
 
 void render_native_unit( rr::Renderer& renderer, Coord where,
@@ -334,7 +344,7 @@ void render_native_unit( rr::Renderer& renderer, Coord where,
   gfx::pixel const flag_color =
       config_natives.tribes[tribe].flag_color;
   render_unit_impl( renderer, where, desc.tile, desc, flag_color,
-                    e_unit_orders::none, /*damaged=*/false,
+                    unit_orders::none{}, /*damaged=*/false,
                     options );
 }
 

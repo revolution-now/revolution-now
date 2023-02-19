@@ -17,9 +17,9 @@ include "ss/unit-id.hpp"
 
 namespace "rn"
 
-enum.e_unit_orders {
-  none,
-  sentry,
+sumtype.unit_orders {
+  none {},
+  sentry {},
   # In the original game, when a unit fortifies, it does not gain
   # the benefits of fortification until the next turn. That way
   # you can't just immediately fortify when an enemy approaches
@@ -27,33 +27,33 @@ enum.e_unit_orders {
   # by rendering a dimmer 'F' after the fortification has gone
   # into effect. A unit will remain in the `fortifying` stage
   # until the next turn.
-  fortifying,
-  fortified,
-  road,
-  plow,
+  fortifying {},
+  fortified {},
+  road {
+    turns_worked 'int',
+  },
+  plow {
+    turns_worked 'int',
+  },
+  damaged {
+    turns_until_repair 'int',
+  },
 }
 
 namespace "rn.wrapped"
 
 struct.Unit {
   id 'UnitId',
+
   composition 'rn::UnitComposition',
-  orders 'e_unit_orders',
+
+  orders 'unit_orders_t',
+
   cargo 'rn::CargoHold',
+
   nation 'e_nation',
+
   mv_pts 'MovementPoints',
-
-  # If the unit is building a road or plowing, this is the number
-  # of turns it has work (does not include the turn where they
-  # are first assigned the job). This number is only relevant
-  # when the unit has orders to build a road or plow.
-  turns_worked 'int',
-
-  # For ships damaged in combat. A damaged ship can be either in
-  # a colony (with a Drydock) or in the european harbor. When
-  # this has a value, it means that the ship is damaged and has
-  # been so for the given number of turns.
-  damaged 'base::maybe<int>',
 
   _features { equality, validation }
 }

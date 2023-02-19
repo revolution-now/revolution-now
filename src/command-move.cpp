@@ -845,7 +845,7 @@ wait<> TravelHandler::perform() {
   auto& unit = ss_.units.unit_for( id );
 
   CHECK( !unit.mv_pts_exhausted() );
-  CHECK( unit.orders() == e_unit_orders::none );
+  CHECK( unit.orders().holds<unit_orders::none>() );
 
   // This will throw if the unit has no coords, but I think it
   // should always be ok at this point if we're moving it.
@@ -901,7 +901,7 @@ wait<> TravelHandler::perform() {
           co_await unit_to_map_square( ss_, ts_, id, move_dst );
       if( unit_deleted.has_value() ) break;
       unit.forfeight_mv_points();
-      CHECK( unit.orders() == e_unit_orders::none );
+      CHECK( unit.orders().holds<unit_orders::none>() );
       break;
     case e_travel_verdict::ship_into_port: {
       unit_deleted =
@@ -910,7 +910,7 @@ wait<> TravelHandler::perform() {
       // When a ship moves into port it forfeights its movement
       // points as in the OG.
       unit.forfeight_mv_points();
-      CHECK( unit.orders() == e_unit_orders::none );
+      CHECK( unit.orders().holds<unit_orders::none>() );
       UNWRAP_CHECK( colony_id,
                     ss_.colonies.maybe_from_coord( move_dst ) );
       // Unload units and prioritize them.
