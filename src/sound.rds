@@ -16,4 +16,5 @@ enum.e_sfx {
   attacker_won,
   sunk_ship,
   city_destroyed,
+  treasure,
 }

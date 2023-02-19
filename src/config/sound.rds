@@ -26,6 +26,7 @@ struct.config_sound_sfx_volume {
   attacker_won 'int',
   sunk_ship 'int',
   city_destroyed 'int',
+  treasure 'int',
 }
 
 # FIXME: migrate these to enum_maps.
@@ -35,6 +36,7 @@ struct.config_sound_sfx {
   attacker_won 'std::string',
   sunk_ship 'std::string',
   city_destroyed 'std::string',
+  treasure 'std::string',
   volume 'config_sound_sfx_volume',
 }
 
