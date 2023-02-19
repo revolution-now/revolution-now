@@ -1566,7 +1566,7 @@ class ProductionView : public ui::View, public ColonySubView {
                                          ts_.gui, *invoice );
       co_return;
     }
-    co_await select_colony_construction( ss_, colony_, ts_.gui );
+    co_await select_colony_construction( ss_, ts_, colony_ );
   }
 
  private:

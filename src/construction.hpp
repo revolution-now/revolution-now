@@ -28,14 +28,15 @@ struct IGui;
 struct Colony;
 struct Player;
 struct SSConst;
+struct TS;
 
 std::string construction_name(
     Construction_t const& construction );
 
 // The outter maybe is when the user just escapes, the inner one
 // is for when they select no production.
-wait<> select_colony_construction( SSConst const& ss,
-                                   Colony& colony, IGui& gui );
+wait<> select_colony_construction( SSConst const& ss, TS& ts,
+                                   Colony& colony );
 
 // Computes the cost of rushing the construction project given
 // the hammers and tools already in the colony. If there is

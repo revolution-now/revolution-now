@@ -15,8 +15,10 @@
 #include "colony-buildings.hpp"
 #include "colony-mgr.hpp"
 #include "colony.hpp"
+#include "connectivity.hpp"
 #include "igui.hpp"
 #include "market.hpp"
+#include "ts.hpp"
 
 // config
 #include "config/colony.hpp"
@@ -98,18 +100,18 @@ string fmt_unit( Colony const& colony, e_unit_type type ) {
       *requirements );
 }
 
-e_water_access colony_water_access( SSConst const& ss,
-                                    Colony const&  colony ) {
+e_water_access colony_water_access( SSConst const& ss, TS& ts,
+                                    Colony const& colony ) {
   e_water_access res = e_water_access::none;
   for( e_direction d : refl::enum_values<e_direction> ) {
     Coord const moved = colony.location.moved( d );
-    if( ss.terrain.total_square_at( moved ).surface !=
+    if( !ss.terrain.square_exists( moved ) ) continue;
+    if( ss.terrain.square_at( moved ).surface !=
         e_surface::water )
       continue;
     res = std::max( res, e_water_access::yes );
-    // if( has_ocean_access( ss, moved ) )
-    //   res = e_water_access::coastal;
-    res = e_water_access::coastal; // FIXME
+    if( has_ocean_access( ts.connectivity, moved ) )
+      res = e_water_access::coastal;
   }
   return res;
 }
@@ -133,8 +135,8 @@ string construction_name( Construction_t const& construction ) {
   }
 }
 
-wait<> select_colony_construction( SSConst const& ss,
-                                   Colony& colony, IGui& gui ) {
+wait<> select_colony_construction( SSConst const& ss, TS& ts,
+                                   Colony& colony ) {
   static string const kNoProductionKey = "none";
   ChoiceConfig config{ .msg = "Select One", .options = {} };
   config.options.push_back(
@@ -144,7 +146,7 @@ wait<> select_colony_construction( SSConst const& ss,
   int const  population = colony_population( colony );
   UNWRAP_CHECK( player, ss.players.players[colony.nation] );
   e_water_access const water_access =
-      colony_water_access( ss, colony );
+      colony_water_access( ss, ts, colony );
   for( e_colony_building building :
        refl::enum_values<e_colony_building> ) {
     if( colony.buildings[building] ) continue;
@@ -195,7 +197,7 @@ wait<> select_colony_construction( SSConst const& ss,
          *initial_selection >= 0 );
   config.initial_selection = initial_selection;
   maybe<string> const what =
-      co_await gui.optional_choice( config );
+      co_await ts.gui.optional_choice( config );
 
   if( what == nothing )
     // User cancelled; no change.
