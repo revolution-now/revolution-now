@@ -10,9 +10,7 @@ fountain_of_youth_num_immigrants: 8
 
 # Weights for the various possible (top-level) outcomes of en-
 # tering a lost city rumor tile. Some of these outcomes then have
-# multiple possible sub-outcomes. Note: these are just weights
-# and don't have to sum to 100, but it is best to make them do so
-# (within each leaf section) for readability.
+# multiple possible sub-outcomes.
 rumor_type_weights {
   seasoned_scout {
     none:              47
@@ -49,9 +47,7 @@ rumor_type_weights {
 # Weights for the various possible suboutcomes of finding burial
 # mounds in a lost city rumor (note that "burial mounds" are to
 # be distinguished from "burial grounds"; the former is neutral
-# while the latter is negative). Note: these are just weights and
-# don't have to sum to 100, but it is best to make them do so
-# (within each leaf section) for readability.
+# while the latter is negative).
 burial_mounds_type_weights {
   seasoned_scout {
     treasure_train: 68
