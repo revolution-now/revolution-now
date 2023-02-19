@@ -1298,7 +1298,7 @@ wait<> AttackDwellingHandler::perform() {
     // swallowed up the treasure unit.
     if( treasure_id.has_value() ) {
       AnimationSequence const seq =
-          anim_seq_for_unit_enpixelation( *treasure_id );
+          anim_seq_for_treasure_enpixelation( *treasure_id );
       co_await ts_.planes.land_view().animate( seq );
     }
   }

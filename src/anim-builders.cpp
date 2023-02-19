@@ -472,6 +472,14 @@ AnimationSequence anim_seq_for_unit_enpixelation(
   return builder.result();
 }
 
+AnimationSequence anim_seq_for_treasure_enpixelation(
+    UnitId unit_id ) {
+  AnimationBuilder builder;
+  builder.enpixelate_unit( unit_id );
+  builder.play_sound( e_sfx::treasure );
+  return builder.result();
+}
+
 AnimationSequence anim_seq_for_convert_produced(
     UnitId unit_id, e_direction direction ) {
   AnimationBuilder builder;

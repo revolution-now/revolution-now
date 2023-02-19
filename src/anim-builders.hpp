@@ -93,6 +93,10 @@ AnimationSequence anim_seq_for_unit_depixelation(
 AnimationSequence anim_seq_for_unit_enpixelation(
     GenericUnitId unit_id );
 
+// This one comes with a nice sound effect.
+AnimationSequence anim_seq_for_treasure_enpixelation(
+    UnitId unit_id );
+
 // Colony just disappears.
 AnimationSequence anim_seq_for_colony_depixelation(
     ColonyId colony_id );

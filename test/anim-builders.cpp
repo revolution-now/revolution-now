@@ -183,6 +183,25 @@ TEST_CASE( "[anim-builders] anim_seq_for_unit_enpixelation" ) {
   REQUIRE( f() == expected );
 }
 
+TEST_CASE(
+    "[anim-builders] anim_seq_for_treasure_enpixelation" ) {
+  AnimationSequence expected;
+  UnitId            unit_id = {};
+
+  auto f = [&] {
+    return anim_seq_for_treasure_enpixelation( unit_id );
+  };
+
+  unit_id  = UnitId{ 3 };
+  expected = {
+      .sequence = { /*phase1=*/{
+          { .primitive =
+                P::enpixelate_unit{ .unit_id = unit_id } },
+          { .primitive =
+                P::play_sound{ .what = e_sfx::treasure } } } } };
+  REQUIRE( f() == expected );
+}
+
 TEST_CASE( "[anim-builders] anim_seq_for_convert_produced" ) {
   AnimationSequence expected;
   UnitId            unit_id   = {};
