@@ -308,6 +308,8 @@ TEST_CASE( "[connectivity] update_terrain_connectivity" ) {
 TEST_CASE( "[connectivity] has_ocean_access" ) {
   TerrainConnectivity const connectivity{
       .x_size = 5,
+      // NOTE: this map of indices is not internally consistent,
+      // but that's ok for this test.
       .indices =
           {
               1, 2, 5, 2, 2, //
@@ -414,6 +416,52 @@ TEST_CASE( "[connectivity] has_ocean_access" ) {
     REQUIRE( f( { .x = 3, .y = 4 } ) );
     REQUIRE( f( { .x = 4, .y = 4 } ) );
   }
+}
+
+TEST_CASE( "[connectivity] colony_has_ocean_access" ) {
+  World           W;
+  MapSquare const _ = W.make_ocean();
+  MapSquare const L = W.make_grassland();
+  W.set_width( 5 );
+  W.create_map( {
+      _, L, _, L, L, //
+      L, L, L, L, L, //
+      L, _, _, L, _, //
+      L, _, L, L, _, //
+      L, _, L, _, _, //
+  } );
+  W.update_terrain_connectivity();
+
+  auto f = [&]( Coord coord ) {
+    return colony_has_ocean_access( W.ss(), W.connectivity(),
+                                    coord );
+  };
+
+  // water: { .x = 0, .y = 0 }
+  REQUIRE( f( { .x = 1, .y = 0 } ) );
+  // water: { .x = 2, .y = 0 }
+  REQUIRE_FALSE( f( { .x = 3, .y = 0 } ) );
+  REQUIRE_FALSE( f( { .x = 4, .y = 0 } ) );
+  REQUIRE( f( { .x = 0, .y = 1 } ) );
+  REQUIRE( f( { .x = 1, .y = 1 } ) );
+  REQUIRE_FALSE( f( { .x = 2, .y = 1 } ) );
+  REQUIRE( f( { .x = 3, .y = 1 } ) );
+  REQUIRE( f( { .x = 4, .y = 1 } ) );
+  REQUIRE_FALSE( f( { .x = 0, .y = 2 } ) );
+  // water: { .x = 1, .y = 2 }
+  // water: { .x = 2, .y = 2 }
+  REQUIRE( f( { .x = 3, .y = 2 } ) );
+  // water: { .x = 4, .y = 2 }
+  REQUIRE_FALSE( f( { .x = 0, .y = 3 } ) );
+  // water: { .x = 1, .y = 3 }
+  REQUIRE( f( { .x = 2, .y = 3 } ) );
+  REQUIRE( f( { .x = 3, .y = 3 } ) );
+  // water: { .x = 4, .y = 3 }
+  REQUIRE_FALSE( f( { .x = 0, .y = 4 } ) );
+  // water: { .x = 1, .y = 4 }
+  REQUIRE( f( { .x = 2, .y = 4 } ) );
+  // water: { .x = 3, .y = 4 }
+  // water: { .x = 4, .y = 4 }
 }
 
 } // namespace

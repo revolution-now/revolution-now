@@ -46,4 +46,11 @@ bool has_left_ocean_access( TerrainConnectivity const& conn,
 bool has_right_ocean_access( TerrainConnectivity const& conn,
                              Coord                      tile );
 
+// Is one of the tiles adjacent to `tile` connected to a segment
+// that touches one of the edges of the map? This is used e.g. to
+// tell if a colony square has access to the ocean.
+bool colony_has_ocean_access(
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    Coord tile );
+
 } // namespace rn

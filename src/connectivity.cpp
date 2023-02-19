@@ -184,4 +184,20 @@ bool has_ocean_access( TerrainConnectivity const& connectivity,
          has_right_ocean_access( connectivity, coord );
 }
 
+bool colony_has_ocean_access(
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    Coord tile ) {
+  CHECK( ss.terrain.square_at( tile ).surface ==
+         e_surface::land );
+  for( e_direction const d : refl::enum_values<e_direction> ) {
+    Coord const moved = tile.moved( d );
+    if( !ss.terrain.square_exists( moved ) ) continue;
+    if( ss.terrain.square_at( moved ).surface !=
+        e_surface::water )
+      continue;
+    if( has_ocean_access( connectivity, moved ) ) return true;
+  }
+  return false;
+}
+
 } // namespace rn
