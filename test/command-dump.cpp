@@ -1,18 +1,18 @@
 /****************************************************************
-**orders-dump.cpp
+**command-dump.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2022-07-09.
 *
-* Description: Unit tests for the src/orders-dump.* module.
+* Description: Unit tests for the src/command-dump.* module.
 *
 *****************************************************************/
 #include "test/mocking.hpp"
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/orders-dump.hpp"
+#include "src/command-dump.hpp"
 
 // Testing
 #include "test/fake/world.hpp"
@@ -53,13 +53,13 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[orders-dump] galleon" ) {
+TEST_CASE( "[command-dump] galleon" ) {
   World  W;
   UnitId id = W.add_unit_on_map( e_unit_type::galleon,
                                  Coord{ .x = 0, .y = 0 } )
                   .id();
-  unique_ptr<OrdersHandler> handler = handle_orders(
-      W.ss(), W.ts(), W.default_player(), id, orders::dump{} );
+  unique_ptr<CommandHandler> handler = handle_command(
+      W.ss(), W.ts(), W.default_player(), id, command::dump{} );
   Unit&      unit  = W.units().unit_for( id );
   CargoHold& cargo = unit.cargo();
   Commodity  comm;
@@ -354,13 +354,13 @@ TEST_CASE( "[orders-dump] galleon" ) {
   }
 }
 
-TEST_CASE( "[orders-dump] wagon train" ) {
+TEST_CASE( "[command-dump] wagon train" ) {
   World  W;
   UnitId id = W.add_unit_on_map( e_unit_type::wagon_train,
                                  Coord{ .x = 1, .y = 1 } )
                   .id();
-  unique_ptr<OrdersHandler> handler = handle_orders(
-      W.ss(), W.ts(), W.default_player(), id, orders::dump{} );
+  unique_ptr<CommandHandler> handler = handle_command(
+      W.ss(), W.ts(), W.default_player(), id, command::dump{} );
   Unit&      unit  = W.units().unit_for( id );
   CargoHold& cargo = unit.cargo();
   Commodity  comm;
@@ -427,13 +427,13 @@ TEST_CASE( "[orders-dump] wagon train" ) {
   }
 }
 
-TEST_CASE( "[orders-dump] non-cargo unit" ) {
+TEST_CASE( "[command-dump] non-cargo unit" ) {
   World  W;
   UnitId id = W.add_unit_on_map( e_unit_type::free_colonist,
                                  Coord{ .x = 1, .y = 1 } )
                   .id();
-  unique_ptr<OrdersHandler> handler = handle_orders(
-      W.ss(), W.ts(), W.default_player(), id, orders::dump{} );
+  unique_ptr<CommandHandler> handler = handle_command(
+      W.ss(), W.ts(), W.default_player(), id, command::dump{} );
 
   W.gui()
       .EXPECT__message_box(

@@ -1,15 +1,15 @@
 /****************************************************************
-**orders-dump.cpp
+**command-dump.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2022-07-09.
 *
-* Description: Carries out orders to dump cargo overboard from
+* Description: Carries out commands to dump cargo overboard from
 *              a ship or wagon train.
 *
 *****************************************************************/
-#include "orders-dump.hpp"
+#include "command-dump.hpp"
 
 // Revolution Now
 #include "co-wait.hpp"
@@ -37,7 +37,7 @@ namespace rn {
 
 namespace {
 
-struct DumpHandler : public OrdersHandler {
+struct DumpHandler : public CommandHandler {
   DumpHandler( SS& ss, TS& ts, UnitId unit_id )
     : ss_( ss ), ts_( ts ), unit_id_( unit_id ) {}
 
@@ -127,9 +127,8 @@ struct DumpHandler : public OrdersHandler {
 /****************************************************************
 ** Public API
 *****************************************************************/
-unique_ptr<OrdersHandler> handle_orders( SS& ss, TS& ts, Player&,
-                                         UnitId id,
-                                         orders::dump const& ) {
+unique_ptr<CommandHandler> handle_command(
+    SS& ss, TS& ts, Player&, UnitId id, command::dump const& ) {
   return make_unique<DumpHandler>( ss, ts, id );
 }
 

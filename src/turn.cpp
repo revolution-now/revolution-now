@@ -16,6 +16,7 @@
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
+#include "command.hpp"
 #include "fathers.hpp"
 #include "gui.hpp"
 #include "harbor-units.hpp"
@@ -28,7 +29,6 @@
 #include "market.hpp"
 #include "menu.hpp"
 #include "on-map.hpp"
-#include "orders.hpp"
 #include "panel.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
@@ -407,7 +407,7 @@ wait<> process_player_input( LandViewPlayerInput_t const& input,
     case e::exit:
       co_await proceed_to_exit( ss, ts );
       break;
-    case e::give_orders:
+    case e::give_command:
     case e::prioritize: //
       break;
   }
@@ -496,9 +496,9 @@ wait<> process_player_input( UnitId                       id,
       break;
     }
     // We have some orders for the current unit.
-    case e::give_orders: {
-      auto& orders = input.get<give_orders>().orders;
-      if( orders.holds<orders::wait>() ) {
+    case e::give_command: {
+      auto& command = input.get<give_command>().command;
+      if( command.holds<command::wait>() ) {
         // Just remove it form the queue, and it'll get picked up
         // in the next iteration. We don't want to push this unit
         // onto the back of the queue since that will cause it to
@@ -523,14 +523,14 @@ wait<> process_player_input( UnitId                       id,
         q.pop_front();
         break;
       }
-      if( orders.holds<orders::forfeight>() ) {
+      if( command.holds<command::forfeight>() ) {
         ss.units.unit_for( id ).forfeight_mv_points();
         break;
       }
 
       co_await ts.planes.land_view().ensure_visible_unit( id );
-      unique_ptr<OrdersHandler> handler =
-          orders_handler( ss, ts, player, id, orders );
+      unique_ptr<CommandHandler> handler =
+          command_handler( ss, ts, player, id, command );
       CHECK( handler );
       Coord old_loc =
           coord_for_unit_indirect_or_die( ss.units, id );
@@ -587,9 +587,9 @@ wait<LandViewPlayerInput_t> landview_player_input(
     NationTurnState& nat_turn_st, UnitsState const& units_state,
     UnitId id ) {
   LandViewPlayerInput_t response;
-  if( auto maybe_orders = pop_unit_orders( id ) ) {
-    response = LandViewPlayerInput::give_orders{
-        .orders = *maybe_orders };
+  if( auto maybe_command = pop_unit_command( id ) ) {
+    response = LandViewPlayerInput::give_command{
+        .command = *maybe_command };
   } else {
     lg.debug( "asking orders for: {}",
               debug_string( units_state, id ) );

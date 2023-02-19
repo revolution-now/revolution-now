@@ -20,13 +20,13 @@
 #include "co-time.hpp"
 #include "co-wait.hpp"
 #include "colony-id.hpp"
+#include "command.hpp"
 #include "compositor.hpp"
 #include "imap-updater.hpp"
 #include "land-view-anim.hpp"
 #include "land-view-render.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
-#include "orders.hpp"
 #include "physics.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
@@ -308,12 +308,12 @@ struct LandViewPlane::Impl : public Plane {
             LandViewPlayerInput::next_turn{}, raw_input.when ) );
         break;
       }
-      case e::orders: {
+      case e::command: {
         translated_input_stream_.send( PlayerInput(
-            LandViewPlayerInput::give_orders{
-                .orders = raw_input.input
-                              .get<LandViewRawInput::orders>()
-                              .orders },
+            LandViewPlayerInput::give_command{
+                .command = raw_input.input
+                               .get<LandViewRawInput::command>()
+                               .command },
             raw_input.when ) );
         break;
       }
@@ -453,9 +453,9 @@ struct LandViewPlane::Impl : public Plane {
     }
   }
 
-  maybe<orders_t> try_orders_from_lua( int  keycode,
-                                       bool ctrl_down,
-                                       bool shf_down ) {
+  maybe<command_t> try_orders_from_lua( int  keycode,
+                                        bool ctrl_down,
+                                        bool shf_down ) {
     lua::state& st = ts_.lua;
 
     lua::any lua_orders = st["land_view"]["key_to_orders"](
@@ -467,39 +467,39 @@ struct LandViewPlane::Impl : public Plane {
     // When this is done then ideally we will just be able to do
     // this:
     //
-    //   orders_t orders = lua_orders.as<orders_t>();
+    //   command_t command = lua_orders.as<command_t>();
     //
     // And it should do the correct conversion and error
     // checking.
     lua::table tbl = lua_orders.as<lua::table>();
-    orders_t   orders;
+    command_t  command;
     if( false )
       ;
     else if( tbl["wait"] )
-      orders = orders::wait{};
+      command = command::wait{};
     else if( tbl["forfeight"] )
-      orders = orders::forfeight{};
+      command = command::forfeight{};
     else if( tbl["build"] )
-      orders = orders::build{};
+      command = command::build{};
     else if( tbl["fortify"] )
-      orders = orders::fortify{};
+      command = command::fortify{};
     else if( tbl["sentry"] )
-      orders = orders::sentry{};
+      command = command::sentry{};
     else if( tbl["disband"] )
-      orders = orders::disband{};
+      command = command::disband{};
     else if( tbl["road"] )
-      orders = orders::road{};
+      command = command::road{};
     else if( tbl["plow"] )
-      orders = orders::plow{};
+      command = command::plow{};
     else if( tbl["move"] ) {
       e_direction d = tbl["move"]["d"].as<e_direction>();
-      orders        = orders::move{ .d = d };
+      command       = command::move{ .d = d };
     } else {
       FATAL(
-          "invalid orders::move object received from "
+          "invalid command::move object received from "
           "lua." );
     }
-    return orders;
+    return command;
   }
 
   bool covers_screen() const override { return true; }
@@ -582,8 +582,8 @@ struct LandViewPlane::Impl : public Plane {
           break;
         auto handler = [this] {
           raw_input_stream_.send(
-              RawInput( LandViewRawInput::orders{
-                  .orders = orders::sentry{} } ) );
+              RawInput( LandViewRawInput::command{
+                  .command = command::sentry{} } ) );
         };
         return handler;
       }
@@ -592,8 +592,8 @@ struct LandViewPlane::Impl : public Plane {
           break;
         auto handler = [this] {
           raw_input_stream_.send(
-              RawInput( LandViewRawInput::orders{
-                  .orders = orders::fortify{} } ) );
+              RawInput( LandViewRawInput::command{
+                  .command = command::fortify{} } ) );
         };
         return handler;
       }
@@ -611,8 +611,8 @@ struct LandViewPlane::Impl : public Plane {
           break;
         auto handler = [this] {
           raw_input_stream_.send(
-              RawInput( LandViewRawInput::orders{
-                  .orders = orders::dump{} } ) );
+              RawInput( LandViewRawInput::command{
+                  .command = command::dump{} } ) );
         };
         return handler;
       }
@@ -621,8 +621,8 @@ struct LandViewPlane::Impl : public Plane {
           break;
         auto handler = [this] {
           raw_input_stream_.send(
-              RawInput( LandViewRawInput::orders{
-                  .orders = orders::plow{} } ) );
+              RawInput( LandViewRawInput::command{
+                  .command = command::plow{} } ) );
         };
         return handler;
       }
@@ -631,8 +631,8 @@ struct LandViewPlane::Impl : public Plane {
           break;
         auto handler = [this] {
           raw_input_stream_.send(
-              RawInput( LandViewRawInput::orders{
-                  .orders = orders::road{} } ) );
+              RawInput( LandViewRawInput::command{
+                  .command = command::road{} } ) );
         };
         return handler;
       }
@@ -687,14 +687,14 @@ struct LandViewPlane::Impl : public Plane {
         }
         // First allow the Lua hook to handle the key press if it
         // wants.
-        maybe<orders_t> lua_orders = try_orders_from_lua(
+        maybe<command_t> lua_orders = try_orders_from_lua(
             key_event.keycode, key_event.mod.ctrl_down,
             key_event.mod.shf_down );
         if( lua_orders ) {
           // lg.debug( "received key from lua: {}", lua_orders );
           raw_input_stream_.send(
-              RawInput( LandViewRawInput::orders{
-                  .orders = *lua_orders } ) );
+              RawInput( LandViewRawInput::command{
+                  .command = *lua_orders } ) );
           break;
         }
         switch( key_event.keycode ) {
@@ -729,33 +729,33 @@ struct LandViewPlane::Impl : public Plane {
           case ::SDLK_w:
             if( key_event.mod.shf_down ) break;
             raw_input_stream_.send(
-                RawInput( LandViewRawInput::orders{
-                    .orders = orders::wait{} } ) );
+                RawInput( LandViewRawInput::command{
+                    .command = command::wait{} } ) );
             break;
           case ::SDLK_s:
             if( key_event.mod.shf_down ) break;
             raw_input_stream_.send(
-                RawInput( LandViewRawInput::orders{
-                    .orders = orders::sentry{} } ) );
+                RawInput( LandViewRawInput::command{
+                    .command = command::sentry{} } ) );
             break;
           case ::SDLK_f:
             if( key_event.mod.shf_down ) break;
             raw_input_stream_.send(
-                RawInput( LandViewRawInput::orders{
-                    .orders = orders::fortify{} } ) );
+                RawInput( LandViewRawInput::command{
+                    .command = command::fortify{} } ) );
             break;
           case ::SDLK_o:
             // Capital O.
             if( !key_event.mod.shf_down ) break;
             raw_input_stream_.send(
-                RawInput( LandViewRawInput::orders{
-                    .orders = orders::dump{} } ) );
+                RawInput( LandViewRawInput::command{
+                    .command = command::dump{} } ) );
             break;
           case ::SDLK_b:
             if( key_event.mod.shf_down ) break;
             raw_input_stream_.send(
-                RawInput( LandViewRawInput::orders{
-                    .orders = orders::build{} } ) );
+                RawInput( LandViewRawInput::command{
+                    .command = command::build{} } ) );
             break;
           case ::SDLK_c:
             if( key_event.mod.shf_down ) break;
@@ -765,8 +765,8 @@ struct LandViewPlane::Impl : public Plane {
           case ::SDLK_d:
             if( key_event.mod.shf_down ) break;
             raw_input_stream_.send(
-                RawInput( LandViewRawInput::orders{
-                    .orders = orders::disband{} } ) );
+                RawInput( LandViewRawInput::command{
+                    .command = command::disband{} } ) );
             break;
           case ::SDLK_h:
             if( !key_event.mod.shf_down ) break;
@@ -796,8 +796,8 @@ struct LandViewPlane::Impl : public Plane {
                     .holds<LandViewMode::unit_input>() ) {
               if( key_event.mod.shf_down ) break;
               raw_input_stream_.send(
-                  RawInput( LandViewRawInput::orders{
-                      .orders = orders::forfeight{} } ) );
+                  RawInput( LandViewRawInput::command{
+                      .command = command::forfeight{} } ) );
             } else if( landview_mode_.holds<
                            LandViewMode::end_of_turn>() ) {
               raw_input_stream_.send(
@@ -809,8 +809,8 @@ struct LandViewPlane::Impl : public Plane {
             handled = e_input_handled::no;
             if( key_event.direction ) {
               raw_input_stream_.send(
-                  RawInput( LandViewRawInput::orders{
-                      .orders = orders::move{
+                  RawInput( LandViewRawInput::command{
+                      .command = command::move{
                           *key_event.direction } } ) );
               handled = e_input_handled::yes;
             }
@@ -968,9 +968,9 @@ struct LandViewPlane::Impl : public Plane {
       if( res.index() == 1 ) // timeout
         break;
       UNWRAP_CHECK( raw_input, res.get_if<RawInput>() );
-      auto orders =
-          raw_input.input.get_if<LandViewRawInput::orders>();
-      if( !orders.has_value() ) {
+      auto command =
+          raw_input.input.get_if<LandViewRawInput::command>();
+      if( !command.has_value() ) {
         raw_input_stream_.reset();
         raw_input_stream_.send( raw_input );
         co_return;
@@ -1148,9 +1148,9 @@ struct LandViewPlane::Impl : public Plane {
     // next command they issue would go to the new unit, so we
     // don't need to shield it.
     if( auto give_orders =
-            input.get_if<LandViewPlayerInput::give_orders>();
+            input.get_if<LandViewPlayerInput::give_command>();
         give_orders.has_value() &&
-        !give_orders->orders.holds<orders::move>() ) {
+        !give_orders->command.holds<command::move>() ) {
       if( last_unit_input_.has_value() )
         last_unit_input_->need_input_buffer_shield = false;
     }

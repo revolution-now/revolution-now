@@ -1,14 +1,14 @@
 /****************************************************************
-**orders-fortify.cpp
+**command-fortify.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-04-16.
 *
-* Description: Carries out orders to fortify or sentry a unit.
+* Description: Carries out command to fortify or sentry a unit.
 *
 *****************************************************************/
-#include "orders-fortify.hpp"
+#include "command-fortify.hpp"
 
 // Revolution Now
 #include "co-wait.hpp"
@@ -25,7 +25,7 @@ namespace rn {
 
 namespace {
 
-struct FortifyHandler : public OrdersHandler {
+struct FortifyHandler : public CommandHandler {
   FortifyHandler( SS& ss, TS& ts, UnitId unit_id )
     : ss_( ss ), ts_( ts ), unit_id_( unit_id ) {}
 
@@ -53,7 +53,7 @@ struct FortifyHandler : public OrdersHandler {
   UnitId unit_id_;
 };
 
-struct SentryHandler : public OrdersHandler {
+struct SentryHandler : public CommandHandler {
   SentryHandler( SS& ss, UnitId unit_id )
     : ss_( ss ), unit_id_( unit_id ) {}
 
@@ -73,14 +73,14 @@ struct SentryHandler : public OrdersHandler {
 /****************************************************************
 ** Public API
 *****************************************************************/
-unique_ptr<OrdersHandler> handle_orders(
+unique_ptr<CommandHandler> handle_command(
     SS& ss, TS& ts, Player&, UnitId id,
-    orders::fortify const& ) {
+    command::fortify const& ) {
   return make_unique<FortifyHandler>( ss, ts, id );
 }
 
-unique_ptr<OrdersHandler> handle_orders(
-    SS& ss, TS&, Player&, UnitId id, orders::sentry const& ) {
+unique_ptr<CommandHandler> handle_command(
+    SS& ss, TS&, Player&, UnitId id, command::sentry const& ) {
   return make_unique<SentryHandler>( ss, id );
 }
 

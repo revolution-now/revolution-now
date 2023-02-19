@@ -1,11 +1,11 @@
 # ===============================================================
-# orders.rds
+# command.rds
 #
 # Project: Revolution Now
 #
 # Created by dsicilia on 2022-08-05.
 #
-# Description: Config info for unit orders behavior.
+# Description: Config info for unit command behavior.
 #
 # ===============================================================
 # ss
@@ -17,7 +17,7 @@ include "refl/enum-map.hpp"
 # base
 include "base/maybe.hpp"
 
-namespace "rn.config.orders"
+namespace "rn.config.command"
 
 struct.LumberYield {
   # When there is no lumber mill in the colony the base yield is
@@ -44,7 +44,7 @@ struct.LumberYield {
 
 namespace "rn"
 
-struct.config_orders_t {
+struct.config_command_t {
   # Number of turns taken for road orders by a non-expert pioneer
   # for each given terrain type. The hardy pioneer will complete
   # it in half that many turns (rounded down), with one turn min-
@@ -59,7 +59,7 @@ struct.config_orders_t {
   # which is how the original game appears to do it.
   plow_turns 'refl::enum_map<e_terrain, base::maybe<int>>',
 
-  lumber_yield 'config::orders::LumberYield',
+  lumber_yield 'config::command::LumberYield',
 }
 
-config.orders {}
+config.command {}

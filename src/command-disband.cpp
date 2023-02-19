@@ -1,14 +1,14 @@
 /****************************************************************
-**orders-disband.cpp
+**command-disband.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-04-16.
 *
-* Description: Carries out orders to disband a unit.
+* Description: Carries out commands to disband a unit.
 *
 *****************************************************************/
-#include "orders-disband.hpp"
+#include "command-disband.hpp"
 
 // Revolution Now
 #include "co-wait.hpp"
@@ -31,7 +31,7 @@ namespace rn {
 
 namespace {
 
-struct DisbandHandler : public OrdersHandler {
+struct DisbandHandler : public CommandHandler {
   DisbandHandler( UnitId unit_id_, IGui& gui_arg,
                   UnitsState& units_state_arg )
     : unit_id( unit_id_ ),
@@ -64,9 +64,9 @@ struct DisbandHandler : public OrdersHandler {
 /****************************************************************
 ** Public API
 *****************************************************************/
-unique_ptr<OrdersHandler> handle_orders(
+unique_ptr<CommandHandler> handle_command(
     SS& ss, TS& ts, Player&, UnitId id,
-    orders::disband const& ) {
+    command::disband const& ) {
   return make_unique<DisbandHandler>( id, ts.gui, ss.units );
 }
 

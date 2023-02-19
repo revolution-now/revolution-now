@@ -17,6 +17,7 @@
 // config modules.
 #include "config/colony.rds.hpp"
 #include "config/combat.rds.hpp"
+#include "config/command.rds.hpp"
 #include "config/commodity.rds.hpp"
 #include "config/fathers.rds.hpp"
 #include "config/gfx.rds.hpp"
@@ -31,7 +32,6 @@
 #include "config/nation.rds.hpp"
 #include "config/natives.rds.hpp"
 #include "config/old-world.rds.hpp"
-#include "config/orders.rds.hpp"
 #include "config/production.rds.hpp"
 #include "config/range-helpers.rds.hpp"
 #include "config/rn.rds.hpp"
@@ -108,7 +108,7 @@ INSTANTIATE_RN_CONFIG( music );
 INSTANTIATE_RN_CONFIG( nation );
 INSTANTIATE_RN_CONFIG( natives );
 INSTANTIATE_RN_CONFIG( old_world );
-INSTANTIATE_RN_CONFIG( orders );
+INSTANTIATE_RN_CONFIG( command );
 INSTANTIATE_RN_CONFIG( production );
 INSTANTIATE_RN_CONFIG( rn );
 INSTANTIATE_RN_CONFIG( savegame );

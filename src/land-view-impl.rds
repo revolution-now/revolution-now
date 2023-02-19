@@ -12,7 +12,7 @@
 include "input.hpp"
 include "physics.hpp"
 include "unit-id.hpp"
-include "orders.rds.hpp"
+include "command.rds.hpp"
 
 # ss
 include "ss/dwelling-id.hpp"
@@ -32,8 +32,8 @@ sumtype.LandViewMode {
 }
 
 sumtype.LandViewRawInput {
-  orders {
-    orders 'orders_t',
+  command {
+    command 'command_t',
   },
   tile_click {
     coord 'Coord',

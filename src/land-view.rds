@@ -10,7 +10,7 @@
 # ===============================================================
 # Revolution Now
 include "colony-id.hpp"
-include "orders.rds.hpp"
+include "command.rds.hpp"
 include "unit-id.hpp"
 
 # C++ standard library
@@ -25,10 +25,10 @@ sumtype.LandViewPlayerInput {
   # showing the colony window itself) because it is possible that
   # a user might change the orders of a unit in the colony view,
   # e.g. they could fortify the unit that is currently asking for
-  # orders, then upon closing the colony view we'd be a bad state
-  # (a fortified unit asking for orders). But by sending this
-  # back to the turn processor, it can handle that issue and we
-  # don't have that problem.
+  # commands, then upon closing the colony view we'd be a bad
+  # state (a fortified unit asking for commands). But by sending
+  # this back to the turn processor, it can handle that issue and
+  # we don't have that problem.
   colony {
     id 'ColonyId',
   },
@@ -39,14 +39,14 @@ sumtype.LandViewPlayerInput {
   # mand above) that we just let the turn module handle it.
   european_status {},
 
-  # Player has given orders to a unit.
-  give_orders {
-    orders 'orders_t',
+  # Player has given a command to a unit.
+  give_command {
+    command 'command_t',
   },
 
-  # Prioritize these units and make them ask for orders now, as-
-  # suming that they have not used their turn. This needs to be a
-  # vector so that if there are multiple, then they can all be
+  # Prioritize these units and make them ask for commands now,
+  # assuming that they have not used their turn. This needs to be
+  # a vector so that if there are multiple, then they can all be
   # prioritized before the first of them starts asking for or-
   # ders.
   prioritize {

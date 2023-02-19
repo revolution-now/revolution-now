@@ -17,7 +17,7 @@
 #include "visibility.hpp"
 
 // config
-#include "config/orders.rds.hpp"
+#include "config/command.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
@@ -43,7 +43,7 @@ namespace rn {
 namespace {
 
 int turns_required( e_unit_type unit_type, e_terrain terrain ) {
-  int for_terrain = config_orders.road_turns[terrain];
+  int for_terrain = config_command.road_turns[terrain];
   switch( unit_type ) {
     case e_unit_type::pioneer:
       return for_terrain;

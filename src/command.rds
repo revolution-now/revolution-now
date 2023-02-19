@@ -1,0 +1,55 @@
+# ===============================================================
+# command.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-13.
+#
+# Description: RDS definitions for the command module.
+#
+# ===============================================================
+# ss
+include "ss/unit-id.hpp"
+
+# gfx
+include "gfx/coord.hpp"
+
+# C++ standard library
+include "<vector>"
+
+namespace "rn"
+
+struct.CommandHandlerRunResult {
+  # Was the order carried out or not.
+  order_was_run 'bool',
+
+  # Any units that need to be prioritized (in the sense of asking
+  # for commands) after this order has been carried out. An ex-
+  # ample of this would be after units make landfall from a ship,
+  # it is natural for them to ask for commands right away.
+  units_to_prioritize 'std::vector<UnitId>',
+}
+
+# An `command_t` is a general term describing what the player
+# proposes that a unit do when the unit asks the player. Roughly
+# speaking, it captures the input that the player gives when the
+# unit is waiting for commands. This could include "wait", "goto
+# tile X", "move to tile X", "forfeight movement points", "plow
+# square", "build colony". command_t only represent what the
+# player has proposed, and so it makes sense to talk about com-
+# mands that are not permitted. For example, the player might
+# give commands to a unit to "move left", but doing so might
+# cause a land unit to go into a sea square without a ship, which
+# would not be allowed. In that case, the command is not allowed.
+sumtype.command {
+  wait      {},
+  forfeight {},
+  build     {},
+  road      {},
+  plow      {},
+  fortify   {},
+  sentry    {},
+  disband   {},
+  dump      {},
+  move      { d 'e_direction' },
+}

@@ -1,18 +1,18 @@
 /****************************************************************
-**orders-build.cpp
+**command-build.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2022-12-06.
 *
-* Description: Unit tests for the src/orders-build.* module.
+* Description: Unit tests for the src/command-build.* module.
 *
 *****************************************************************/
 #include "test/mocking.hpp"
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/orders-build.hpp"
+#include "src/command-build.hpp"
 
 // Testing
 #include "test/fake/world.hpp"
@@ -66,7 +66,7 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[orders-build] build colony" ) {
+TEST_CASE( "[command-build] build colony" ) {
 #ifdef COMPILER_GCC
   return;
 #endif
@@ -74,9 +74,9 @@ TEST_CASE( "[orders-build] build colony" ) {
   Coord const tile{ .x = 2, .y = 2 };
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
-  unique_ptr<OrdersHandler> handler =
-      handle_orders( W.ss(), W.ts(), W.default_player(),
-                     unit.id(), orders::build{} );
+  unique_ptr<CommandHandler> handler =
+      handle_command( W.ss(), W.ts(), W.default_player(),
+                      unit.id(), command::build{} );
 
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 
@@ -117,7 +117,7 @@ TEST_CASE( "[orders-build] build colony" ) {
   REQUIRE( colony.location == tile );
 }
 
-TEST_CASE( "[orders-build] build colony no ocean access" ) {
+TEST_CASE( "[command-build] build colony no ocean access" ) {
 #ifdef COMPILER_GCC
   return;
 #endif
@@ -125,9 +125,9 @@ TEST_CASE( "[orders-build] build colony no ocean access" ) {
   Coord const tile{ .x = 3, .y = 3 };
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
-  unique_ptr<OrdersHandler> handler =
-      handle_orders( W.ss(), W.ts(), W.default_player(),
-                     unit.id(), orders::build{} );
+  unique_ptr<CommandHandler> handler =
+      handle_command( W.ss(), W.ts(), W.default_player(),
+                      unit.id(), command::build{} );
 
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 

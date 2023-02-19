@@ -1,14 +1,14 @@
 /****************************************************************
-**orders-build.cpp
+**command-build.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-04-16.
 *
-* Description: Carries out orders to build a colony
+* Description: Carries out commands to build a colony
 *
 *****************************************************************/
-#include "orders-build.hpp"
+#include "command-build.hpp"
 
 // Revolution Now
 #include "co-wait.hpp"
@@ -50,7 +50,7 @@ valid_or<string> is_valid_colony_name_msg(
   }
 }
 
-struct BuildHandler : public OrdersHandler {
+struct BuildHandler : public CommandHandler {
   BuildHandler( SS& ss, TS& ts, Player& player, UnitId unit_id_ )
     : ss_( ss ),
       ts_( ts ),
@@ -163,10 +163,9 @@ struct BuildHandler : public OrdersHandler {
 /****************************************************************
 ** Public API
 *****************************************************************/
-unique_ptr<OrdersHandler> handle_orders( SS& ss, TS& ts,
-                                         Player& player,
-                                         UnitId  id,
-                                         orders::build const& ) {
+unique_ptr<CommandHandler> handle_command(
+    SS& ss, TS& ts, Player& player, UnitId id,
+    command::build const& ) {
   return make_unique<BuildHandler>( ss, ts, player, id );
 }
 

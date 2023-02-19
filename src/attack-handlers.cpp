@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2023-02-01.
 *
-* Description: Orders handlers for attacking.
+* Description: Command handlers for attacking.
 *
 *****************************************************************/
 #include "attack-handlers.hpp"
@@ -17,6 +17,7 @@
 #include "colonies.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
+#include "command.hpp"
 #include "commodity.hpp"
 #include "conductor.hpp"
 #include "harbor-units.hpp"
@@ -27,7 +28,6 @@
 #include "map-square.hpp"
 #include "missionary.hpp"
 #include "on-map.hpp"
-#include "orders.hpp"
 #include "plane-stack.hpp"
 #include "road.hpp"
 #include "tribe-mgr.hpp"
@@ -418,17 +418,17 @@ wait<> show_outcome_messages( TS&                  ts,
 /****************************************************************
 ** AttackHandlerBase
 *****************************************************************/
-struct AttackHandlerBase : public OrdersHandler {
+struct AttackHandlerBase : public CommandHandler {
   AttackHandlerBase( SS& ss, TS& ts, Player& player,
                      UnitId attacker_id, e_direction direction );
 
-  // Implement OrdersHandler.
+  // Implement CommandHandler.
   wait<bool> confirm() override;
 
-  // Implement OrdersHandler.
+  // Implement CommandHandler.
   wait<> animate() const override;
 
-  // Implement OrdersHandler.
+  // Implement CommandHandler.
   wait<> perform() override;
 
  protected:
@@ -564,10 +564,10 @@ struct AttackColonyUndefendedHandler
                                  UnitId  defender_id,
                                  Colony& colony );
 
-  // Implement OrdersHandler.
+  // Implement CommandHandler.
   wait<bool> confirm() override;
 
-  // Implement OrdersHandler.
+  // Implement CommandHandler.
   wait<> perform() override;
 
  private:
@@ -575,7 +575,7 @@ struct AttackColonyUndefendedHandler
   CombatEuroAttackUndefendedColony combat_;
 };
 
-unique_ptr<OrdersHandler> attack_colony_undefended_handler(
+unique_ptr<CommandHandler> attack_colony_undefended_handler(
     SS& ss, TS& ts, Player& player, UnitId attacker_id,
     UnitId defender_id, Colony& colony ) {
   return make_unique<AttackColonyUndefendedHandler>(
@@ -693,20 +693,20 @@ struct NavalBattleHandler : public EuroAttackHandlerBase {
 
   using Base::Base;
 
-  // Implement OrdersHandler.
+  // Implement CommandHandler.
   wait<bool> confirm() override;
 
-  // Implement OrdersHandler.
+  // Implement CommandHandler.
   wait<> animate() const override;
 
-  // Implement OrdersHandler.
+  // Implement CommandHandler.
   wait<> perform() override;
 
  private:
   CombatShipAttackShip combat_;
 };
 
-unique_ptr<OrdersHandler> naval_battle_handler(
+unique_ptr<CommandHandler> naval_battle_handler(
     SS& ss, TS& ts, Player& player, UnitId attacker_id,
     UnitId defender_id ) {
   return make_unique<NavalBattleHandler>(
@@ -815,20 +815,20 @@ struct EuroAttackHandler : public EuroAttackHandlerBase {
 
   using Base::Base;
 
-  // Implement OrdersHandler.
+  // Implement CommandHandler.
   wait<bool> confirm() override;
 
-  // Implement OrdersHandler.
+  // Implement CommandHandler.
   wait<> animate() const override;
 
-  // Implement OrdersHandler.
+  // Implement CommandHandler.
   wait<> perform() override;
 
  private:
   CombatEuroAttackEuro combat_ = {};
 };
 
-unique_ptr<OrdersHandler> attack_euro_land_handler(
+unique_ptr<CommandHandler> attack_euro_land_handler(
     SS& ss, TS& ts, Player& player, UnitId attacker_id,
     UnitId defender_id ) {
   return make_unique<EuroAttackHandler>(
@@ -878,20 +878,20 @@ struct AttackNativeUnitHandler : public NativeAttackHandlerBase {
                            NativeUnitId defender_id,
                            e_direction  direction );
 
-  // Implement OrdersHandler.
+  // Implement CommandHandler.
   wait<bool> confirm() override;
 
-  // Implement OrdersHandler.
+  // Implement CommandHandler.
   wait<> animate() const override;
 
-  // Implement OrdersHandler.
+  // Implement CommandHandler.
   wait<> perform() override;
 
  private:
   CombatEuroAttackBrave combat_;
 };
 
-unique_ptr<OrdersHandler> attack_native_unit_handler(
+unique_ptr<CommandHandler> attack_native_unit_handler(
     SS& ss, TS& ts, Player& player, UnitId attacker_id,
     NativeUnitId defender_id ) {
   return make_unique<AttackNativeUnitHandler>(
@@ -966,13 +966,13 @@ struct AttackDwellingHandler : public AttackHandlerBase {
                          UnitId     attacker_id,
                          DwellingId defender_id );
 
-  // Implement OrdersHandler.
+  // Implement CommandHandler.
   wait<bool> confirm() override;
 
-  // Implement OrdersHandler.
+  // Implement CommandHandler.
   wait<> perform() override;
 
-  // Implement OrdersHandler.
+  // Implement CommandHandler.
   vector<UnitId> units_to_prioritize() const override;
 
  private:
@@ -997,7 +997,7 @@ struct AttackDwellingHandler : public AttackHandlerBase {
   maybe<UnitId> native_convert_;
 };
 
-unique_ptr<OrdersHandler> attack_dwelling_handler(
+unique_ptr<CommandHandler> attack_dwelling_handler(
     SS& ss, TS& ts, Player& player, UnitId attacker_id,
     DwellingId dwelling_id ) {
   return make_unique<AttackDwellingHandler>(

@@ -19,7 +19,7 @@
 #include "tiles.hpp"
 
 // config
-#include "config/orders.rds.hpp"
+#include "config/command.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
@@ -56,7 +56,8 @@ void clear_forest( IMapUpdater& map_updater, Coord tile ) {
 }
 
 int turns_required( e_unit_type unit_type, e_terrain terrain ) {
-  UNWRAP_CHECK( for_terrain, config_orders.plow_turns[terrain] );
+  UNWRAP_CHECK( for_terrain,
+                config_command.plow_turns[terrain] );
   switch( unit_type ) {
     case e_unit_type::pioneer:
       return for_terrain;
@@ -106,14 +107,14 @@ void plow_square( TerrainState const& terrain_state,
 bool can_plow( TerrainState const& terrain_state, Coord tile ) {
   MapSquare const& square = terrain_state.square_at( tile );
   if( square.irrigation ) return false;
-  return config_orders.plow_turns[effective_terrain( square )]
+  return config_command.plow_turns[effective_terrain( square )]
       .has_value();
 }
 
 bool can_irrigate( MapSquare const& square ) {
   return !square.irrigation &&
          square.overlay != e_land_overlay::forest &&
-         config_orders.plow_turns[effective_terrain( square )]
+         config_command.plow_turns[effective_terrain( square )]
              .has_value();
 }
 

@@ -1,17 +1,17 @@
 /****************************************************************
-**orders-plow.cpp
+**command-road.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2022-12-06.
 *
-* Description: Unit tests for the src/orders-plow.* module.
+* Description: Unit tests for the src/command-road.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/orders-plow.hpp"
+#include "src/command-road.hpp"
 
 // Testing
 #include "test/fake/world.hpp"
@@ -64,7 +64,7 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[orders-plow] native-owned land" ) {
+TEST_CASE( "[command-road] native-owned land" ) {
   World W;
   W.settings().difficulty = e_difficulty::conquistador;
   Dwelling const& dwelling =
@@ -80,9 +80,9 @@ TEST_CASE( "[orders-plow] native-owned land" ) {
     for( int x = 0; x < 3; ++x )
       W.natives().mark_land_owned( dwelling.id,
                                    { .x = x, .y = y } );
-  unique_ptr<OrdersHandler> handler =
-      handle_orders( W.ss(), W.ts(), W.default_player(),
-                     pioneer.id(), orders::plow{} );
+  unique_ptr<CommandHandler> handler =
+      handle_command( W.ss(), W.ts(), W.default_player(),
+                      pioneer.id(), command::road{} );
 
   REQUIRE( relationship.tribal_alarm == 0 );
   REQUIRE_FALSE( pioneer.mv_pts_exhausted() );
@@ -100,10 +100,9 @@ TEST_CASE( "[orders-plow] native-owned land" ) {
     REQUIRE( w_confirm.ready() );
   };
 
-  SECTION( "irrigate / cancel" ) {
-    auto config_matcher =
-        Field( &ChoiceConfig::msg,
-               StrContains( "These grounds help" ) );
+  SECTION( "cancel" ) {
+    auto config_matcher = Field(
+        &ChoiceConfig::msg, StrContains( "Carving a [road]" ) );
     W.gui()
         .EXPECT__choice( std::move( config_matcher ),
                          e_input_required::no )
@@ -118,32 +117,9 @@ TEST_CASE( "[orders-plow] native-owned land" ) {
     REQUIRE( pioneer.turns_worked() == 0 );
   }
 
-  SECTION( "irrigate / take" ) {
-    auto config_matcher =
-        Field( &ChoiceConfig::msg,
-               StrContains( "These grounds help" ) );
-    W.gui()
-        .EXPECT__choice( std::move( config_matcher ),
-                         e_input_required::no )
-        .returns<maybe<string>>( "take" );
-    REQUIRE( confirm() == true );
-    REQUIRE( relationship.tribal_alarm == 10 );
-    REQUIRE_FALSE( pioneer.mv_pts_exhausted() );
-    REQUIRE( relationship.land_squares_paid_for == 0 );
-    REQUIRE_FALSE(
-        is_land_native_owned( W.ss(), W.default_player(), tile )
-            .has_value() );
-    perform();
-    REQUIRE( pioneer.orders() == e_unit_orders::plow );
-    REQUIRE( pioneer.turns_worked() == 0 );
-    REQUIRE_FALSE( pioneer.mv_pts_exhausted() );
-  }
-
-  SECTION( "clear_forest / take" ) {
-    W.terrain().mutable_square_at( tile ).overlay =
-        e_land_overlay::forest;
+  SECTION( "take" ) {
     auto config_matcher = Field(
-        &ChoiceConfig::msg, StrContains( "These [forests]" ) );
+        &ChoiceConfig::msg, StrContains( "Carving a [road]" ) );
     W.gui()
         .EXPECT__choice( std::move( config_matcher ),
                          e_input_required::no )
@@ -156,7 +132,7 @@ TEST_CASE( "[orders-plow] native-owned land" ) {
         is_land_native_owned( W.ss(), W.default_player(), tile )
             .has_value() );
     perform();
-    REQUIRE( pioneer.orders() == e_unit_orders::plow );
+    REQUIRE( pioneer.orders() == e_unit_orders::road );
     REQUIRE( pioneer.turns_worked() == 0 );
     REQUIRE_FALSE( pioneer.mv_pts_exhausted() );
   }

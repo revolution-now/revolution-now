@@ -1,12 +1,12 @@
 /****************************************************************
-**orders.hpp
+**command.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2018-12-27.
 *
 * Description: Handles the representation and application of
-*              the orders that players can give to units.
+*              the commands that players can give to units.
 *
 *****************************************************************/
 #pragma once
@@ -19,7 +19,7 @@
 #include "wait.hpp"
 
 // Rds
-#include "orders.rds.hpp"
+#include "command.rds.hpp"
 
 // C++ standard library
 #include <memory>
@@ -30,20 +30,20 @@ struct Player;
 struct SS;
 struct TS;
 
-void push_unit_orders( UnitId id, orders_t const& orders );
-maybe<orders_t> pop_unit_orders( UnitId id );
+void push_unit_command( UnitId id, command_t const& command );
+maybe<command_t> pop_unit_command( UnitId id );
 
-struct OrdersHandler {
-  OrdersHandler()          = default;
-  virtual ~OrdersHandler() = default;
+struct CommandHandler {
+  CommandHandler()          = default;
+  virtual ~CommandHandler() = default;
 
-  OrdersHandler( OrdersHandler const& )            = delete;
-  OrdersHandler& operator=( OrdersHandler const& ) = delete;
-  OrdersHandler( OrdersHandler&& )                 = delete;
-  OrdersHandler& operator=( OrdersHandler&& )      = delete;
+  CommandHandler( CommandHandler const& )            = delete;
+  CommandHandler& operator=( CommandHandler const& ) = delete;
+  CommandHandler( CommandHandler&& )                 = delete;
+  CommandHandler& operator=( CommandHandler&& )      = delete;
 
   // Run though the entire sequence of
-  wait<OrdersHandlerRunResult> run();
+  wait<CommandHandlerRunResult> run();
 
   // This will do a few things:
   //
@@ -61,15 +61,15 @@ struct OrdersHandler {
   // if the handler wants to delegate to another handler for the
   // remainder. If so, this function will return non-null, then
   // the process will start over again with the new handler.
-  virtual std::unique_ptr<OrdersHandler> switch_handler() {
+  virtual std::unique_ptr<CommandHandler> switch_handler() {
     return nullptr;
   }
 
-  // Animate the orders being carried out, if any. This should be
-  // run before `perform`.
+  // Animate the commands being carried out, if any. This should
+  // be run before `perform`.
   virtual wait<> animate() const { return make_wait<>(); }
 
-  // Perform the orders (i.e., make changes to game state).
+  // Perform the commands (i.e., make changes to game state).
   virtual wait<> perform() = 0;
 
  protected:
@@ -78,8 +78,8 @@ struct OrdersHandler {
   }
 };
 
-std::unique_ptr<OrdersHandler> orders_handler(
+std::unique_ptr<CommandHandler> command_handler(
     SS& ss, TS& ts, Player& player, UnitId id,
-    orders_t const& orders );
+    command_t const& command );
 
 } // namespace rn

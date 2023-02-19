@@ -1,15 +1,15 @@
 /****************************************************************
-**orders-move.cpp
+**command-move.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-04-16.
 *
-* Description: Carries out orders wherein a unit is asked to move
-*              onto an adjacent square.
+* Description: Carries out commands wherein a unit is asked to
+*              move onto an adjacent square.
 *
 *****************************************************************/
-#include "orders-move.hpp"
+#include "command-move.hpp"
 
 // Revolution Now
 #include "anim-builders.hpp"
@@ -177,7 +177,7 @@ maybe<MovementPoints> check_movement_points(
 /****************************************************************
 ** TravelHandler
 *****************************************************************/
-struct TravelHandler : public OrdersHandler {
+struct TravelHandler : public CommandHandler {
   TravelHandler( SS& ss, TS& ts, UnitId unit_id_, e_direction d,
                  Player& player )
     : ss_( ss ),
@@ -962,10 +962,10 @@ wait<> TravelHandler::perform() {
         if( !cargo_unit.mv_pts_exhausted() ) {
           UNWRAP_CHECK( direction,
                         old_coord.direction_to( move_dst ) );
-          orders_t orders = orders::move{ direction };
-          push_unit_orders( unit_item.id, orders );
+          command_t command = command::move{ direction };
+          push_unit_command( unit_item.id, command );
           // Stop after first eligible unit. The rest of the
-          // units will just ask for orders on the ship.
+          // units will just ask for commands on the ship.
           break;
         }
       }
@@ -999,7 +999,7 @@ wait<> TravelHandler::perform() {
 /****************************************************************
 ** NativeDwellingHandler
 *****************************************************************/
-struct NativeDwellingHandler : public OrdersHandler {
+struct NativeDwellingHandler : public CommandHandler {
   NativeDwellingHandler( SS& ss, TS& ts, Player& player,
                          UnitId unit_id, e_direction d,
                          Dwelling& dwelling )
@@ -1066,7 +1066,7 @@ struct NativeDwellingHandler : public OrdersHandler {
     co_return true;
   }
 
-  unique_ptr<OrdersHandler> switch_handler() override {
+  unique_ptr<CommandHandler> switch_handler() override {
     // If we're attacking the dwelling then first check if there
     // is a brave sitting on top of the dwelling. If so, then we
     // delegate to the handler that handles attacking
@@ -1180,10 +1180,10 @@ struct NativeDwellingHandler : public OrdersHandler {
 /****************************************************************
 ** Dispatch
 *****************************************************************/
-unique_ptr<OrdersHandler> dispatch( SS& ss, TS& ts,
-                                    Player&     player,
-                                    UnitId      attacker_id,
-                                    e_direction d ) {
+unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
+                                     Player&     player,
+                                     UnitId      attacker_id,
+                                     e_direction d ) {
   Coord const src =
       coord_for_unit_indirect_or_die( ss.units, attacker_id );
   Coord const dst      = src.moved( d );
@@ -1270,9 +1270,9 @@ unique_ptr<OrdersHandler> dispatch( SS& ss, TS& ts,
 /****************************************************************
 ** Public API
 *****************************************************************/
-unique_ptr<OrdersHandler> handle_orders(
+unique_ptr<CommandHandler> handle_command(
     SS& ss, TS& ts, Player& player, UnitId id,
-    orders::move const& mv ) {
+    command::move const& mv ) {
   return dispatch( ss, ts, player, id, mv.d );
 }
 

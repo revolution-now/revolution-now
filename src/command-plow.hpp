@@ -1,12 +1,11 @@
 /****************************************************************
-**orders-dump.hpp
+**command-plow.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2022-07-09.
+* Created by dsicilia on 2022-03-27.
 *
-* Description: Carries out orders to dump cargo overboard from
-*              a ship or wagon train.
+* Description: Carries out command to plow.
 *
 *****************************************************************/
 #pragma once
@@ -14,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "orders.hpp"
+#include "command.hpp"
 
 namespace rn {
 
@@ -22,8 +21,8 @@ struct Player;
 struct SS;
 struct TS;
 
-std::unique_ptr<OrdersHandler> handle_orders(
+std::unique_ptr<CommandHandler> handle_command(
     SS& ss, TS& ts, Player& player, UnitId id,
-    orders::dump const& dump );
+    command::plow const& plow );
 
 } // namespace rn

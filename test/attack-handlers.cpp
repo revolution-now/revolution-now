@@ -21,8 +21,8 @@
 #include "test/mocks/land-view-plane.hpp"
 
 // Revolution Now
+#include "src/command.hpp"
 #include "src/commodity.hpp"
-#include "src/orders.hpp"
 #include "src/plane-stack.hpp"
 
 // config
@@ -144,9 +144,9 @@ struct World : testing::World {
     build_map( std::move( tiles ), 3 );
   }
 
-  OrdersHandlerRunResult run_handler(
-      unique_ptr<OrdersHandler> handler ) {
-    wait<OrdersHandlerRunResult> const w = handler->run();
+  CommandHandlerRunResult run_handler(
+      unique_ptr<CommandHandler> handler ) {
+    wait<CommandHandlerRunResult> const w = handler->run();
     // Use check-fails so that we can get stack traces and know
     // which test case called us.
     BASE_CHECK( !w.exception() );
@@ -228,9 +228,9 @@ struct World : testing::World {
 // the handlers.
 #ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] common failure checks" ) {
-  World                  W;
-  OrdersHandlerRunResult expected = { .order_was_run = false };
-  CombatEuroAttackEuro   combat;
+  World                   W;
+  CommandHandlerRunResult expected = { .order_was_run = false };
+  CombatEuroAttackEuro    combat;
 
   auto expect_combat = [&] {
     W.combat()
@@ -310,9 +310,9 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
 
 #ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
-  World                  W;
-  OrdersHandlerRunResult expected = { .order_was_run = true };
-  CombatEuroAttackEuro   combat;
+  World                   W;
+  CommandHandlerRunResult expected = { .order_was_run = true };
+  CombatEuroAttackEuro    combat;
 
   auto expect_combat = [&] {
     W.combat()
@@ -544,11 +544,11 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
 
 #ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
-  World                  W;
-  OrdersHandlerRunResult expected = { .order_was_run = true };
-  CombatEuroAttackBrave  combat;
-  Tribe&                 tribe = W.tribe( W.kNativeTribe );
-  TribeRelationship&     relationship =
+  World                   W;
+  CommandHandlerRunResult expected = { .order_was_run = true };
+  CombatEuroAttackBrave   combat;
+  Tribe&                  tribe = W.tribe( W.kNativeTribe );
+  TribeRelationship&      relationship =
       tribe.relationship[W.kAttackingNation];
   relationship.nation_has_attacked_tribe = true;
   REQUIRE( relationship.tribal_alarm == 0 );
@@ -717,7 +717,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
 #ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
   World                    W;
-  OrdersHandlerRunResult   expected = { .order_was_run = true };
+  CommandHandlerRunResult  expected = { .order_was_run = true };
   CombatEuroAttackDwelling combat;
   Player&                  player = W.player( W.active_nation_ );
 
@@ -1252,9 +1252,9 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
 
 #ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
-  World                  W;
-  CombatShipAttackShip   combat;
-  OrdersHandlerRunResult expected = { .order_was_run = true };
+  World                   W;
+  CombatShipAttackShip    combat;
+  CommandHandlerRunResult expected = { .order_was_run = true };
 
   auto expect_combat = [&] {
     W.combat()

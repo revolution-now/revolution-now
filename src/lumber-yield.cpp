@@ -16,7 +16,7 @@
 #include "map-square.hpp"
 
 // config
-#include "config/orders.rds.hpp"
+#include "config/command.rds.hpp"
 #include "config/production.rds.hpp"
 
 // ss
@@ -83,12 +83,12 @@ LumberYield yield_for_colony( SSConst const& ss,
     int const tile_yield = config_production.outdoor_production
                                .jobs[e_outdoor_job::lumber]
                                .base_productions[terrain_type];
-    base_yield = ( config_orders.lumber_yield.tile_yield_extra +
+    base_yield = ( config_command.lumber_yield.tile_yield_extra +
                    tile_yield ) *
-                 config_orders.lumber_yield.multiplier;
+                 config_command.lumber_yield.multiplier;
   } else {
     base_yield =
-        config_orders.lumber_yield.base_yield_no_lumber_mill;
+        config_command.lumber_yield.base_yield_no_lumber_mill;
   }
 
   // Now total yield.

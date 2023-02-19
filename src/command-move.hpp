@@ -1,11 +1,12 @@
 /****************************************************************
-**orders-fortify.hpp
+**command-move.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-04-16.
 *
-* Description: Carries out orders to fortify or sentry a unit.
+* Description: Carries out commands wherein a unit is asked to
+*              move onto an adjacent square.
 *
 *****************************************************************/
 #pragma once
@@ -13,7 +14,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "orders.hpp"
+#include "command.hpp"
 
 namespace rn {
 
@@ -21,12 +22,8 @@ struct Player;
 struct SS;
 struct TS;
 
-std::unique_ptr<OrdersHandler> handle_orders(
+std::unique_ptr<CommandHandler> handle_command(
     SS& ss, TS& ts, Player& player, UnitId id,
-    orders::fortify const& fortify );
-
-std::unique_ptr<OrdersHandler> handle_orders(
-    SS& ss, TS& ts, Player& player, UnitId id,
-    orders::sentry const& sentry );
+    command::move const& mv );
 
 } // namespace rn

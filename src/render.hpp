@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "orders.hpp"
+#include "command.hpp"
 #include "unit-id.hpp"
 
 // config
