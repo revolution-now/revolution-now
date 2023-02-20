@@ -1139,9 +1139,11 @@ wait<> AttackDwellingHandler::perform() {
   co_await Base::perform();
 
   auto const& tribe_conf = config_natives.tribes[tribe_.type];
-  string_view const dwelling_type_name =
-      config_natives.dwelling_types[tribe_conf.level]
-          .name_singular;
+  string_view const dwelling_label =
+      dwelling_.is_capital
+          ? "capital"sv
+          : config_natives.dwelling_types[tribe_conf.level]
+                .name_singular;
   string_view const tribe_name = tribe_conf.name_singular;
   string_view const nation_name =
       nation_obj( attacking_player_.nation ).display_name;
@@ -1281,7 +1283,7 @@ wait<> AttackDwellingHandler::perform() {
   // include the amount.
   string msg =
       fmt::format( "[{}] {} burned by the [{}]!", tribe_name,
-                   dwelling_type_name, nation_name );
+                   dwelling_label, nation_name );
   if( destruction.missionary_to_release.has_value() )
     msg += " [Missionary] flees in panic!";
   else if( missionary_in_dwelling.has_value() )
@@ -1289,11 +1291,9 @@ wait<> AttackDwellingHandler::perform() {
     msg += fmt::format( " [Foreign missionary] hanged!" );
   if( destruction.treasure_amount.has_value() )
     msg += fmt::format(
-        " Treasure worth [{}] recovered from {}! It will "
-        "take a [Galleon] to transport this treasure back "
-        "to [{}].",
-        *destruction.treasure_amount, dwelling_type_name,
-        nation_harbor_name );
+        " Treasure worth [{}] has been recovered! It will take "
+        "a [Galleon] to transport this treasure back to [{}].",
+        *destruction.treasure_amount, nation_harbor_name );
   co_await ts_.gui.message_box( msg );
 
   if( destruction.treasure_amount.has_value() ) {

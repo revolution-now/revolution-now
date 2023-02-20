@@ -1083,13 +1083,12 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     W.expect_promotion();
     W.gui()
         .EXPECT__message_box(
-            "[Apache] camp burned by the "
-            "[English]!" )
+            "[Apache] capital burned by the [English]!" )
         .returns<monostate>();
     W.gui()
         .EXPECT__message_box(
-            "The [Apache] bow before the "
-            "might of the [English]!" )
+            "The [Apache] bow before the might of the "
+            "[English]!" )
         .returns<monostate>();
 
     expected = { .order_was_run       = true,
@@ -1143,10 +1142,9 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     W.gui()
         .EXPECT__message_box( fmt::format(
             "[Apache] camp burned by the [English]! "
-            "[Missionary] flees in panic! Treasure worth "
-            "[123] recovered from camp! It will take a "
-            "[Galleon] to transport this treasure back to "
-            "[London]." ) )
+            "[Missionary] flees in panic! Treasure worth [123] "
+            "has been recovered! It will take a [Galleon] to "
+            "transport this treasure back to [London]." ) )
         .returns<monostate>();
     W.expect_some_animation(); // treasure enpixelation.
     W.expect_tribe_wiped_out( "Apache" );
@@ -1224,8 +1222,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     W.expect_promotion();
     W.gui()
         .EXPECT__message_box( fmt::format(
-            "[Apache] camp burned by the [English]! "
-            "[Foreign missionary] hanged!" ) )
+            "[Apache] capital burned by the [English]! [Foreign "
+            "missionary] hanged!" ) )
         .returns<monostate>();
     W.expect_tribe_wiped_out( "Apache" );
 
