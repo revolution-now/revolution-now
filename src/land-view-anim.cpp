@@ -34,8 +34,12 @@
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // base
 #include "base/keyval.hpp"
+#include "base/to-str-ext-std.hpp"
 
 using namespace std;
 
@@ -265,8 +269,10 @@ wait<> LandViewAnimator::ensure_visible_unit(
   // Need multi-ownership variant because sometimes the unit in
   // question is a worker in a colony, as can happen if we are
   // attacking an undefended colony.
-  UNWRAP_CHECK( coord,
-                coord_for_unit_multi_ownership( ss_, id ) );
+  UNWRAP_CHECK_MSG(
+      coord, coord_for_unit_multi_ownership( ss_, id ),
+      "cannot obtain map coordinate for unit ID {}: {}", id,
+      ss_.units.euro_unit_for( id ).refl() );
   co_await ensure_visible( coord );
 }
 
