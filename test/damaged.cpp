@@ -191,5 +191,29 @@ TEST_CASE( "[damaged] show_damaged_ship_message" ) {
   f();
 }
 
+TEST_CASE( "[damaged] repair_turn_count_for_unit" ) {
+  ShipRepairPort_t port;
+
+  auto f = [&]( e_unit_type type ) {
+    return repair_turn_count_for_unit( port, type );
+  };
+
+  port = ShipRepairPort::european_harbor{};
+  REQUIRE( f( e_unit_type::caravel ) == 2 );
+  REQUIRE( f( e_unit_type::merchantman ) == 6 );
+  REQUIRE( f( e_unit_type::galleon ) == 10 );
+  REQUIRE( f( e_unit_type::privateer ) == 8 );
+  REQUIRE( f( e_unit_type::frigate ) == 12 );
+  REQUIRE( f( e_unit_type::man_o_war ) == 14 );
+
+  port = ShipRepairPort::colony{};
+  REQUIRE( f( e_unit_type::caravel ) == 0 );
+  REQUIRE( f( e_unit_type::merchantman ) == 2 );
+  REQUIRE( f( e_unit_type::galleon ) == 4 );
+  REQUIRE( f( e_unit_type::privateer ) == 3 );
+  REQUIRE( f( e_unit_type::frigate ) == 5 );
+  REQUIRE( f( e_unit_type::man_o_war ) == 7 );
+}
+
 } // namespace
 } // namespace rn

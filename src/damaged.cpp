@@ -16,9 +16,15 @@
 #include "igui.hpp"
 #include "ts.hpp"
 
+// config
+#include "config/unit-type.rds.hpp"
+
 // ss
 #include "ss/colonies.hpp"
 #include "ss/ref.hpp"
+
+// refl
+#include "refl/to-str.hpp"
 
 // base
 #include "base/conv.hpp"
@@ -81,6 +87,22 @@ wait<> show_damaged_ship_message( TS& ts,
       "until it is repaired.",
       base::int_to_string_literary( turns_until_repaired ), s );
   co_await ts.gui.message_box( msg );
+}
+
+int repair_turn_count_for_unit( ShipRepairPort_t const& port,
+                                e_unit_type             type ) {
+  UNWRAP_CHECK_MSG( turns_to_repair,
+                    config_unit_type.composition.unit_types[type]
+                        .turns_to_repair,
+                    "the unit type '{}' does not specify a "
+                    "repair time (is it perhaps not a ship?).",
+                    type );
+  switch( port.to_enum() ) {
+    case ShipRepairPort::e::colony:
+      return turns_to_repair.colony;
+    case ShipRepairPort::e::european_harbor:
+      return turns_to_repair.harbor;
+  }
 }
 
 } // namespace rn
