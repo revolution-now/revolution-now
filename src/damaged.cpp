@@ -11,10 +11,7 @@
 #include "damaged.hpp"
 
 // Revolution Now
-#include "co-wait.hpp"
 #include "colony-buildings.hpp"
-#include "igui.hpp"
-#include "ts.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"
@@ -77,16 +74,13 @@ ShipRepairPort_t find_repair_port_for_ship(
   return ShipRepairPort::colony{ .id = found_colony->colony_id };
 }
 
-wait<> show_damaged_ship_message( TS& ts,
-                                  int turns_until_repaired ) {
+string damaged_ship_message( int turns_until_repaired ) {
   CHECK_GT( turns_until_repaired, 0 );
   string_view const s = ( turns_until_repaired > 1 ) ? "s" : "";
-
-  string const msg = fmt::format(
+  return fmt::format(
       "This ship is [damaged] and has [{}] turn{} remaining "
       "until it is repaired.",
       base::int_to_string_literary( turns_until_repaired ), s );
-  co_await ts.gui.message_box( msg );
 }
 
 int repair_turn_count_for_unit( ShipRepairPort_t const& port,

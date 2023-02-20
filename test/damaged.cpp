@@ -15,7 +15,6 @@
 
 // Testing
 #include "test/fake/world.hpp"
-#include "test/mocks/igui.hpp"
 
 // ss
 #include "ss/ref.hpp"
@@ -152,43 +151,36 @@ TEST_CASE( "[damaged] find_repair_port_for_ship" ) {
   REQUIRE( f() == expected );
 }
 
-TEST_CASE( "[damaged] show_damaged_ship_message" ) {
-  World W;
-  int   turns = 0;
+TEST_CASE( "[damaged] damaged_ship_message" ) {
+  World  W;
+  string expected;
+  int    turns = 0;
 
-  auto f = [&] {
-    wait<> const w = show_damaged_ship_message( W.ts(), turns );
-    REQUIRE( !w.exception() );
-    REQUIRE( w.ready() );
-  };
+  auto f = [&] { return damaged_ship_message( turns ); };
 
   turns = 1;
-  string msg =
+  expected =
       "This ship is [damaged] and has [one] turn remaining "
       "until it is repaired.";
-  W.gui().EXPECT__message_box( msg ).returns<monostate>();
-  f();
+  REQUIRE( f() == expected );
 
   turns = 2;
-  msg =
+  expected =
       "This ship is [damaged] and has [two] turns remaining "
       "until it is repaired.";
-  W.gui().EXPECT__message_box( msg ).returns<monostate>();
-  f();
+  REQUIRE( f() == expected );
 
   turns = 5;
-  msg =
+  expected =
       "This ship is [damaged] and has [five] turns remaining "
       "until it is repaired.";
-  W.gui().EXPECT__message_box( msg ).returns<monostate>();
-  f();
+  REQUIRE( f() == expected );
 
   turns = 10;
-  msg =
+  expected =
       "This ship is [damaged] and has [10] turns remaining "
       "until it is repaired.";
-  W.gui().EXPECT__message_box( msg ).returns<monostate>();
-  f();
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[damaged] repair_turn_count_for_unit" ) {

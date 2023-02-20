@@ -15,9 +15,6 @@
 // rds
 #include "damaged.rds.hpp"
 
-// Revolution Now
-#include "wait.hpp"
-
 // ss
 #include "ss/nation.rds.hpp"
 
@@ -39,11 +36,10 @@ enum class e_unit_type;
 ShipRepairPort_t find_repair_port_for_ship(
     SSConst const& ss, e_nation nation, Coord ship_location );
 
-// When the player attempts to interact with a damaged ship
-// (being repaired) in a way that is not allowed, this is the
-// message that is shown to them.
-wait<> show_damaged_ship_message( TS& ts,
-                                  int turns_until_repaired );
+// Produce the standard message that should be displayed to the
+// user when they try to interact with a damaged ship in a way
+// that is not allowed.
+std::string damaged_ship_message( int turns_until_repaired );
 
 // When a ship is damaged this will return the number of turns
 // that it will need until repaired. Note that this could be zero
