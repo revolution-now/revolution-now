@@ -164,5 +164,48 @@ TEST_CASE( "[command-plow] native-owned land" ) {
   }
 }
 
+TEST_CASE( "[command-plow] no double pioneers" ) {
+  World                   W;
+  CommandHandlerRunResult expected;
+
+  auto f = [&]( UnitId unit_id ) {
+    unique_ptr<CommandHandler> handler =
+        handle_command( W.ss(), W.ts(), W.default_player(),
+                        unit_id, command::plow{} );
+    wait<CommandHandlerRunResult> const w = handler->run();
+    BASE_CHECK( !w.exception() );
+    BASE_CHECK( w.ready() );
+    return *w;
+  };
+
+  Unit& pioneer1 = W.add_unit_on_map( e_unit_type::pioneer,
+                                      { .x = 1, .y = 0 } );
+  Unit& pioneer2 = W.add_unit_on_map( e_unit_type::pioneer,
+                                      { .x = 1, .y = 0 } );
+
+  expected = { .order_was_run       = true,
+               .units_to_prioritize = {} };
+  REQUIRE( f( pioneer1.id() ) == expected );
+  REQUIRE( pioneer1.orders().holds<unit_orders::plow>() );
+  REQUIRE( pioneer1.has_full_mv_points() );
+
+  W.gui()
+      .EXPECT__message_box(
+          "There is already a pioneer working on this tile." )
+      .returns<monostate>();
+  expected = { .order_was_run       = false,
+               .units_to_prioritize = {} };
+  REQUIRE( f( pioneer2.id() ) == expected );
+  REQUIRE( pioneer2.orders().holds<unit_orders::none>() );
+  REQUIRE( pioneer2.has_full_mv_points() );
+
+  pioneer1.clear_orders();
+  expected = { .order_was_run       = true,
+               .units_to_prioritize = {} };
+  REQUIRE( f( pioneer2.id() ) == expected );
+  REQUIRE( pioneer2.orders().holds<unit_orders::plow>() );
+  REQUIRE( pioneer2.has_full_mv_points() );
+}
+
 } // namespace
 } // namespace rn

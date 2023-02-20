@@ -78,6 +78,19 @@ struct PlowHandler : public CommandHandler {
           effective_terrain( ss_.terrain.square_at( tile ) ) );
       co_return false;
     }
+    // Don't allow a pioneer to start plowing or clearing on a
+    // tile where there is already a pioneer working, otherwise
+    // this permits the "pre-charged pioneer" exploit whereby two
+    // pioneers can be told to clear a forest in parallel, then
+    // they finish at the same time, and the first one to be
+    // processed clears the forest and the second one plows the
+    // terrain. This would effectively allows transitioning a
+    // forest to irrigation in twice the time.
+    if( has_pioneer_working( ss_, tile ) ) {
+      co_await ts_.gui.message_box(
+          "There is already a pioneer working on this tile." );
+      co_return false;
+    }
     if( is_land_native_owned( ss_, player_, tile ) ) {
       MapSquare const& square = ss_.terrain.square_at( tile );
       e_native_land_grab_type const type =
