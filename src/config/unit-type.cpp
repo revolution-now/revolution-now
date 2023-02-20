@@ -102,6 +102,12 @@ valid_or<string> UnitTypeAttributes::validate() const {
                  "the ship_combat_extra field must be non-null "
                  "if an only if the unit type is a ship." );
 
+  // The turns_to_repair field must be set if and only if the
+  // unit type is a ship.
+  REFL_VALIDATE( ship == turns_to_repair.has_value(),
+                 "the turns_to_repair field must be non-null if "
+                 "an only if the unit type is a ship." );
+
   // Validate that only base types have can_found == yes/no and
   // derived types have can_found == from_base.
   if( is_derived )

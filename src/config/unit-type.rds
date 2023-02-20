@@ -143,6 +143,21 @@ struct.ShipSinking {
   hull 'int',
 }
 
+# In the OG there is a difference in repair time for a ship de-
+# pending on whether it is in the European harbor or in a colony
+# with a drydock (or shipyard). The colony is significantly
+# faster than the harbor. This is likely done to incentivise
+# building a drydock.
+struct.ShipRepair {
+  # How many turns to repair when the ship is in the european
+  # harbor.
+  harbor 'int',
+
+  # How many turns to repair when the ship is in a colony with a
+  # drydock or shipyard.
+  colony 'int',
+}
+
 # Describes a literal unit type without regard to the concept of
 # base or derived type.
 struct.UnitTypeAttributes {
@@ -168,6 +183,10 @@ struct.UnitTypeAttributes {
   combat 'int',
   ship_combat_extra 'base::maybe<ShipSinking>',
   on_death 'UnitDeathAction_t',
+
+  # If the unit is damaged, how many turns does it take to re-
+  # pair.
+  turns_to_repair 'base::maybe<ShipRepair>',
 
   # Cargo
   cargo_slots 'int',

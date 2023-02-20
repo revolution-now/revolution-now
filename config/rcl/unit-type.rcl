@@ -88,6 +88,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -123,6 +124,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -158,6 +160,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -193,6 +196,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -228,6 +232,7 @@ composition {
       # OG seem to indicate that pioneers are destroyed when they
       # lose a battle (along with scouts and missionaries).
       on_death               destroy{}
+      turns_to_repair:       null
       canonical_base:        free_colonist
       canonical_modified:    null
       cargo_slots:           0
@@ -260,6 +265,7 @@ composition {
       # OG seem to indicate that pioneers are destroyed when they
       # lose a battle (along with scouts and pioneers).
       on_death               destroy{}
+      turns_to_repair:       null
       canonical_base:        free_colonist
       canonical_modified:    null
       cargo_slots:           0
@@ -291,6 +297,7 @@ composition {
       # Does not simply lose horses; the game rules say that scout
       # units are completely destroyed upon defeat.
       on_death               destroy{}
+      turns_to_repair:       null
       canonical_base:        free_colonist
       canonical_modified:    null
       cargo_slots:           0
@@ -320,6 +327,7 @@ composition {
       combat:                2
       ship_combat_extra:     null
       on_death               demote{ lose=[muskets] }
+      turns_to_repair:       null
       canonical_base:        free_colonist
       canonical_modified:    null
       cargo_slots:           0
@@ -349,6 +357,7 @@ composition {
       combat:                3
       ship_combat_extra:     null
       on_death               demote{ lose=[horses] }
+      turns_to_repair:       null
       canonical_base:        free_colonist
       canonical_modified:    null
       cargo_slots:           0
@@ -381,6 +390,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -416,6 +426,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -451,6 +462,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -486,6 +498,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -521,6 +534,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -556,6 +570,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -591,6 +606,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -626,6 +642,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -661,6 +678,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -696,6 +714,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -731,6 +750,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -766,6 +786,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -801,6 +822,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -836,6 +858,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -871,6 +894,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -906,6 +930,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -941,6 +966,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -976,6 +1002,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -1011,6 +1038,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    hardy_pioneer
       cargo_slots:           0
@@ -1046,6 +1074,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    jesuit_missionary
       cargo_slots:           0
@@ -1081,6 +1110,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    seasoned_scout
       cargo_slots:           0
@@ -1116,6 +1146,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture_and_demote{type=free_colonist}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    veteran_soldier
       cargo_slots:           0
@@ -1156,6 +1187,7 @@ composition {
       combat:                3
       ship_combat_extra:     null
       on_death               demote{ lose=[muskets] }
+      turns_to_repair:       null
       canonical_base:        veteran_colonist
       canonical_modified:    null
       cargo_slots:           0
@@ -1185,6 +1217,7 @@ composition {
       combat:                4
       ship_combat_extra:     null
       on_death               demote{ lose=[horses] }
+      turns_to_repair:       null
       canonical_base:        veteran_colonist
       canonical_modified:    null
       cargo_slots:           0
@@ -1214,6 +1247,7 @@ composition {
       combat:                4
       ship_combat_extra:     null
       on_death               demote{ lose=[muskets, independence] }
+      turns_to_repair:       null
       canonical_base:        veteran_colonist
       canonical_modified:    null
       cargo_slots:           0
@@ -1243,6 +1277,7 @@ composition {
       combat:                5
       ship_combat_extra:     null
       on_death               demote{ lose=[horses] }
+      turns_to_repair:       null
       canonical_base:        veteran_colonist
       canonical_modified:    null
       cargo_slots:           0
@@ -1272,6 +1307,7 @@ composition {
       combat:                5
       ship_combat_extra:     null
       on_death               destroy{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -1303,6 +1339,7 @@ composition {
       combat:                6
       ship_combat_extra:     null
       on_death               demote{ lose=[horses] }
+      turns_to_repair:       null
       canonical_base:        regular
       canonical_modified:    null
       cargo_slots:           0
@@ -1335,6 +1372,7 @@ composition {
       # OG seem to indicate that pioneers are destroyed when they
       # lose a battle (along with scouts).
       on_death               destroy{}
+      turns_to_repair:       null
       canonical_base:        hardy_colonist
       canonical_modified:    null
       cargo_slots:           0
@@ -1367,6 +1405,7 @@ composition {
       # OG seem to indicate that pioneers are destroyed when they
       # lose a battle (along with scouts and pioneers).
       on_death               destroy{}
+      turns_to_repair:       null
       canonical_base:        jesuit_colonist
       canonical_modified:    null
       cargo_slots:           0
@@ -1398,6 +1437,7 @@ composition {
       # Does not simply lose horses; the game rules say that scout
       # units are completely destroyed upon defeat.
       on_death               destroy{}
+      turns_to_repair:       null
       canonical_base:        seasoned_colonist
       canonical_modified:    null
       cargo_slots:           0
@@ -1430,6 +1470,7 @@ composition {
       combat:                3
       ship_combat_extra:     null
       on_death               destroy{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
@@ -1461,6 +1502,7 @@ composition {
       combat:                5
       ship_combat_extra:     null
       on_death               demote{ lose=[strength] }
+      turns_to_repair:       null
       canonical_base:        damaged_artillery
       canonical_modified:    null
       cargo_slots:           0
@@ -1493,6 +1535,7 @@ composition {
       combat:                2
       ship_combat_extra:     { guns=0, hull=4 }
       on_death               naval{}
+      turns_to_repair:       { harbor=2, colony=0 }
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           2
@@ -1522,6 +1565,7 @@ composition {
       combat:                6
       ship_combat_extra:     { guns=1, hull=8 }
       on_death               naval{}
+      turns_to_repair:       { harbor=6, colony=2 }
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           4
@@ -1551,6 +1595,7 @@ composition {
       combat:                10
       ship_combat_extra:     { guns=4, hull=20 }
       on_death               naval{}
+      turns_to_repair:       { harbor=10, colony=4 }
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           6
@@ -1580,6 +1625,7 @@ composition {
       combat:                8
       ship_combat_extra:     { guns=4, hull=12 }
       on_death               naval{}
+      turns_to_repair:       { harbor=8, colony=3 }
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           2
@@ -1609,6 +1655,7 @@ composition {
       combat:                16
       ship_combat_extra:     { guns=12, hull=32 }
       on_death               naval{}
+      turns_to_repair:       { harbor=12, colony=5 }
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           4
@@ -1638,6 +1685,7 @@ composition {
       combat:                24
       ship_combat_extra:     { guns=32, hull=64 }
       on_death               naval{}
+      turns_to_repair:       { harbor=14, colony=7 }
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           6
@@ -1670,6 +1718,7 @@ composition {
       combat:                1
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       cargo_slots:           2
       canonical_modified:    null
@@ -1702,6 +1751,7 @@ composition {
       combat:                0  # always loses.
       ship_combat_extra:     null
       on_death               capture{}
+      turns_to_repair:       null
       canonical_base:        null
       canonical_modified:    null
       cargo_slots:           0
