@@ -124,8 +124,8 @@ bool is_unit_human( UnitType ut );
 bool can_unit_found( UnitType ut );
 
 // For scout or seasoned_scout.
-maybe<e_scout_type> scout_type( e_unit_type type );
-
+maybe<e_scout_type>      scout_type( e_unit_type type );
+maybe<e_pioneer_type>    pioneer_type( e_unit_type type );
 maybe<e_missionary_type> missionary_type( UnitType type );
 
 // Try to add the modifiers to the type and return the resulting

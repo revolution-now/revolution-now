@@ -301,6 +301,14 @@ maybe<e_scout_type> scout_type( e_unit_type type ) {
   return nothing;
 }
 
+maybe<e_pioneer_type> pioneer_type( e_unit_type type ) {
+  if( type == e_unit_type::pioneer )
+    return e_pioneer_type::non_hardy;
+  if( type == e_unit_type::hardy_pioneer )
+    return e_pioneer_type::hardy;
+  return nothing;
+}
+
 maybe<e_missionary_type> missionary_type( UnitType type ) {
   if( type.type() != e_unit_type::missionary &&
       type.type() != e_unit_type::jesuit_missionary )

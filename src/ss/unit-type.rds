@@ -133,6 +133,13 @@ enum.e_unit_inventory {
 
 # FIXME: find a better place for this since it is not used for
 # serialization.
+enum.e_pioneer_type {
+  non_hardy,
+  hardy,
+}
+
+# FIXME: find a better place for this since it is not used for
+# serialization.
 enum.e_scout_type {
   non_seasoned,
   seasoned,

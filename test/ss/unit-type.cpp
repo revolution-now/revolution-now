@@ -858,6 +858,16 @@ TEST_CASE( "[unit-type] scout_type" ) {
   REQUIRE( scout_type( e_unit_type::dragoon ) == nothing );
 }
 
+TEST_CASE( "[unit-type] pioneer_type" ) {
+  REQUIRE( pioneer_type( e_unit_type::free_colonist ) ==
+           nothing );
+  REQUIRE( pioneer_type( e_unit_type::pioneer ) ==
+           e_pioneer_type::non_hardy );
+  REQUIRE( pioneer_type( e_unit_type::hardy_pioneer ) ==
+           e_pioneer_type::hardy );
+  REQUIRE( pioneer_type( e_unit_type::dragoon ) == nothing );
+}
+
 TEST_CASE( "[unit-type] missionary_type" ) {
   UnitType                 in;
   maybe<e_missionary_type> expected = {};
