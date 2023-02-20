@@ -1255,6 +1255,11 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
   // really the attacker's ship status that determines whether
   // this is a naval battle.
   if( attacker.desc().ship )
+    // In the OG, if a warship is on a sealane square and it is
+    // attacking a ship on a sea lane square to its right, then
+    // before the attack, it will ask to sail the high seas. How-
+    // ever, this is likely a bug, since it does not allow this
+    // for non-war ships, so we don't replicate it here.
     return naval_battle_handler( ss, ts, player, attacker_id,
                                  defender_id );
 
