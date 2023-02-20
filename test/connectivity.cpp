@@ -307,6 +307,10 @@ TEST_CASE( "[connectivity] water_square_has_ocean_access" ) {
                                             coord );
     };
 
+    auto g = [&]( Coord coord ) {
+      return is_inland_lake( connectivity, coord );
+    };
+
     REQUIRE( f( { .x = 0, .y = 0 } ) );
     REQUIRE( f( { .x = 1, .y = 0 } ) );
     REQUIRE_FALSE( f( { .x = 2, .y = 0 } ) );
@@ -332,6 +336,32 @@ TEST_CASE( "[connectivity] water_square_has_ocean_access" ) {
     REQUIRE( f( { .x = 2, .y = 4 } ) );
     REQUIRE( f( { .x = 3, .y = 4 } ) );
     REQUIRE( f( { .x = 4, .y = 4 } ) );
+
+    REQUIRE_FALSE( g( { .x = 0, .y = 0 } ) );
+    REQUIRE_FALSE( g( { .x = 1, .y = 0 } ) );
+    REQUIRE( g( { .x = 2, .y = 0 } ) );
+    REQUIRE_FALSE( g( { .x = 3, .y = 0 } ) );
+    REQUIRE_FALSE( g( { .x = 4, .y = 0 } ) );
+    REQUIRE_FALSE( g( { .x = 0, .y = 1 } ) );
+    REQUIRE_FALSE( g( { .x = 1, .y = 1 } ) );
+    REQUIRE_FALSE( g( { .x = 2, .y = 1 } ) );
+    REQUIRE_FALSE( g( { .x = 3, .y = 1 } ) );
+    REQUIRE_FALSE( g( { .x = 4, .y = 1 } ) );
+    REQUIRE_FALSE( g( { .x = 0, .y = 2 } ) );
+    REQUIRE( g( { .x = 1, .y = 2 } ) );
+    REQUIRE( g( { .x = 2, .y = 2 } ) );
+    REQUIRE_FALSE( g( { .x = 3, .y = 2 } ) );
+    REQUIRE_FALSE( g( { .x = 4, .y = 2 } ) );
+    REQUIRE_FALSE( g( { .x = 0, .y = 3 } ) );
+    REQUIRE( g( { .x = 1, .y = 3 } ) );
+    REQUIRE( g( { .x = 2, .y = 3 } ) );
+    REQUIRE_FALSE( g( { .x = 3, .y = 3 } ) );
+    REQUIRE_FALSE( g( { .x = 4, .y = 3 } ) );
+    REQUIRE_FALSE( g( { .x = 0, .y = 4 } ) );
+    REQUIRE_FALSE( g( { .x = 1, .y = 4 } ) );
+    REQUIRE_FALSE( g( { .x = 2, .y = 4 } ) );
+    REQUIRE_FALSE( g( { .x = 3, .y = 4 } ) );
+    REQUIRE_FALSE( g( { .x = 4, .y = 4 } ) );
   }
 
   SECTION( "left" ) {

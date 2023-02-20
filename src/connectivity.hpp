@@ -29,6 +29,10 @@ struct SSConst;
 TerrainConnectivity compute_terrain_connectivity(
     SSConst const& ss );
 
+// Returns true if the water tile does not have ocean access.
+bool is_inland_lake( TerrainConnectivity const& conn,
+                     Coord                      tile );
+
 // Should be called with the location of a water tile and this
 // will determine if it has access to one of the edges of the map
 // (either left or right). The assumption here is that if the

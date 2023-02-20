@@ -194,6 +194,11 @@ bool water_square_has_ocean_access(
                                               coord );
 }
 
+bool is_inland_lake( TerrainConnectivity const& conn,
+                     Coord                      tile ) {
+  return !water_square_has_ocean_access( conn, tile );
+}
+
 bool colony_has_ocean_access(
     SSConst const& ss, TerrainConnectivity const& connectivity,
     Coord tile ) {
