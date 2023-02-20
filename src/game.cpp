@@ -122,7 +122,7 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   // or vice versa (or change map size) need to be followed up by
   // a call to re-compute the terrain connectivity. In practice,
   // this could only be done by opening the map editor mid-game.
-  update_terrain_connectivity( ss, &connectivity );
+  connectivity = compute_terrain_connectivity( ss );
   CHECK( !connectivity.indices.empty() );
 
   RenderingMapUpdater map_updater(

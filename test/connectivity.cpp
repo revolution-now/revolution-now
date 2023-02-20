@@ -49,60 +49,55 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[connectivity] update_terrain_connectivity" ) {
+TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   World               W;
-  TerrainConnectivity out, expected;
+  TerrainConnectivity expected;
   MapSquare const     _ = W.make_ocean();
   MapSquare const     L = W.make_grassland();
 
-  auto f = [&] { update_terrain_connectivity( W.ss(), &out ); };
+  auto f = [&] {
+    return compute_terrain_connectivity( W.ss() );
+  };
 
   SECTION( "0x0" ) {
-    out = {};
     W.set_width( 0 );
     W.create_map( {} );
-    f();
     expected.x_size                         = 0;
     expected.indices                        = {};
     expected.indices_with_right_edge_access = {};
     expected.indices_with_left_edge_access  = {};
-    REQUIRE( out == expected );
+    REQUIRE( f() == expected );
   }
 
   SECTION( "1x1" ) {
-    out = {};
     W.set_width( 1 );
     W.create_map( {
         _, //
     } );
-    f();
     expected.x_size  = 1;
     expected.indices = {
         1, //
     };
     expected.indices_with_right_edge_access = { 1 };
     expected.indices_with_left_edge_access  = { 1 };
-    REQUIRE( out == expected );
+    REQUIRE( f() == expected );
   }
 
   SECTION( "5x1 all connected" ) {
-    out = {};
     W.set_width( 5 );
     W.create_map( {
         L, L, L, L, L, //
     } );
-    f();
     expected.x_size  = 5;
     expected.indices = {
         1, 1, 1, 1, 1, //
     };
     expected.indices_with_right_edge_access = { 1 };
     expected.indices_with_left_edge_access  = { 1 };
-    REQUIRE( out == expected );
+    REQUIRE( f() == expected );
   }
 
   SECTION( "1x5 all connected" ) {
-    out = {};
     W.set_width( 1 );
     W.create_map( {
         _, //
@@ -111,7 +106,6 @@ TEST_CASE( "[connectivity] update_terrain_connectivity" ) {
         _, //
         _, //
     } );
-    f();
     expected.x_size  = 1;
     expected.indices = {
         1, //
@@ -122,33 +116,29 @@ TEST_CASE( "[connectivity] update_terrain_connectivity" ) {
     };
     expected.indices_with_right_edge_access = { 1 };
     expected.indices_with_left_edge_access  = { 1 };
-    REQUIRE( out == expected );
+    REQUIRE( f() == expected );
   }
 
   SECTION( "5x1 alternating" ) {
-    out = {};
     W.set_width( 5 );
     W.create_map( {
         L, _, L, _, L, //
     } );
-    f();
     expected.x_size  = 5;
     expected.indices = {
         1, 2, 3, 4, 5, //
     };
     expected.indices_with_right_edge_access = { 5 };
     expected.indices_with_left_edge_access  = { 1 };
-    REQUIRE( out == expected );
+    REQUIRE( f() == expected );
   }
 
   SECTION( "5x2 checkers" ) {
-    out = {};
     W.set_width( 5 );
     W.create_map( {
         L, _, L, _, L, //
         _, L, _, L, _, //
     } );
-    f();
     expected.x_size  = 5;
     expected.indices = {
         1, 2, 1, 2, 1, //
@@ -156,18 +146,16 @@ TEST_CASE( "[connectivity] update_terrain_connectivity" ) {
     };
     expected.indices_with_right_edge_access = { 1, 2 };
     expected.indices_with_left_edge_access  = { 1, 2 };
-    REQUIRE( out == expected );
+    REQUIRE( f() == expected );
   }
 
   SECTION( "3x3" ) {
-    out = {};
     W.set_width( 3 );
     W.create_map( {
         _, L, _, //
         L, L, L, //
         _, L, L, //
     } );
-    f();
     expected.x_size  = 3;
     expected.indices = {
         1, 2, 3, //
@@ -176,18 +164,16 @@ TEST_CASE( "[connectivity] update_terrain_connectivity" ) {
     };
     expected.indices_with_right_edge_access = { 2, 3 };
     expected.indices_with_left_edge_access  = { 1, 2, 4 };
-    REQUIRE( out == expected );
+    REQUIRE( f() == expected );
   }
 
   SECTION( "6x3" ) {
-    out = {};
     W.set_width( 6 );
     W.create_map( {
         _, L, _, L, L, L, //
         L, L, L, L, L, L, //
         _, L, L, L, L, L, //
     } );
-    f();
     expected.x_size  = 6;
     expected.indices = {
         1, 2, 3, 2, 2, 2, //
@@ -196,11 +182,10 @@ TEST_CASE( "[connectivity] update_terrain_connectivity" ) {
     };
     expected.indices_with_right_edge_access = { 2 };
     expected.indices_with_left_edge_access  = { 1, 2, 4 };
-    REQUIRE( out == expected );
+    REQUIRE( f() == expected );
   }
 
   SECTION( "5x5 all connected" ) {
-    out = {};
     W.set_width( 5 );
     W.create_map( {
         _, _, _, _, _, //
@@ -209,7 +194,6 @@ TEST_CASE( "[connectivity] update_terrain_connectivity" ) {
         _, _, _, _, _, //
         _, _, _, _, _, //
     } );
-    f();
     expected.x_size  = 5;
     expected.indices = {
         1, 1, 1, 1, 1, //
@@ -220,11 +204,10 @@ TEST_CASE( "[connectivity] update_terrain_connectivity" ) {
     };
     expected.indices_with_right_edge_access = { 1 };
     expected.indices_with_left_edge_access  = { 1 };
-    REQUIRE( out == expected );
+    REQUIRE( f() == expected );
   }
 
   SECTION( "5x5 split" ) {
-    out = {};
     W.set_width( 5 );
     W.create_map( {
         _, _, _, _, _, //
@@ -233,7 +216,6 @@ TEST_CASE( "[connectivity] update_terrain_connectivity" ) {
         _, L, L, _, _, //
         L, L, _, _, L, //
     } );
-    f();
     expected.x_size  = 5;
     expected.indices = {
         1, 1, 1, 1, 1, //
@@ -244,11 +226,10 @@ TEST_CASE( "[connectivity] update_terrain_connectivity" ) {
     };
     expected.indices_with_right_edge_access = { 1, 2, 3, 4 };
     expected.indices_with_left_edge_access  = { 1, 2 };
-    REQUIRE( out == expected );
+    REQUIRE( f() == expected );
   }
 
   SECTION( "large" ) {
-    out = {};
     W.set_width( 18 );
     W.create_map( {
         L, _, _, _, _, L, _, _, _, _, _, L, _, _, _, _, L, _, //
@@ -272,7 +253,6 @@ TEST_CASE( "[connectivity] update_terrain_connectivity" ) {
         _, L, _, L, _, _, _, _, _, _, _, _, _, _, L, _, _, _, //
         _, L, L, L, _, _, _, _, _, _, _, _, _, _, L, _, _, _, //
     } );
-    f();
     expected.x_size = 18;
     // clang-format off
     expected.indices = {
@@ -301,7 +281,7 @@ TEST_CASE( "[connectivity] update_terrain_connectivity" ) {
     expected.indices_with_right_edge_access = { 7,  6, 4, 10,
                                                 11, 3, 16 };
     expected.indices_with_left_edge_access  = { 1, 2, 12 };
-    REQUIRE( out == expected );
+    REQUIRE( f() == expected );
   }
 }
 

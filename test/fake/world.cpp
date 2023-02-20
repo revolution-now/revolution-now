@@ -197,7 +197,7 @@ void World::build_map( vector<MapSquare> tiles, W width ) {
 
 void World::update_terrain_connectivity() {
   CHECK( connectivity_ != nullptr );
-  rn::update_terrain_connectivity( ss(), connectivity_.get() );
+  *connectivity_ = compute_terrain_connectivity( ss() );
 }
 
 void World::init_player_maps() {

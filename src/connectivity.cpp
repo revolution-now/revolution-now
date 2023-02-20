@@ -17,6 +17,9 @@
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 
+// base
+#include "base/scope-exit.hpp"
+
 // base-util
 #include "base-util/stopwatch.hpp"
 
@@ -26,13 +29,14 @@ namespace rn {
 
 namespace {
 
-void update_terrain_connectivity_impl(
-    SSConst const& ss, TerrainConnectivity* out ) {
-  int const y_size      = ss.terrain.world_size_tiles().h;
-  int const x_size      = ss.terrain.world_size_tiles().w;
-  int const total_tiles = y_size * x_size;
+TerrainConnectivity compute_terrain_connectivity_impl(
+    SSConst const& ss ) {
+  TerrainConnectivity res;
+  int const           y_size = ss.terrain.world_size_tiles().h;
+  int const           x_size = ss.terrain.world_size_tiles().w;
+  int const           total_tiles = y_size * x_size;
 
-  out->x_size = x_size;
+  res.x_size = x_size;
 
   using RastorCoord = int;
 
@@ -46,23 +50,23 @@ void update_terrain_connectivity_impl(
 
   auto set_index = [&]( Coord coord, int idx ) {
     int const rastor_coord = rastor( coord );
-    CHECK_LT( rastor_coord, int( out->indices.size() ) );
-    out->indices[rastor_coord] = idx;
+    CHECK_LT( rastor_coord, int( res.indices.size() ) );
+    res.indices[rastor_coord] = idx;
   };
 
   auto get_index = [&]( Coord coord ) {
     int const rastor_coord = rastor( coord );
-    CHECK_LT( rastor_coord, int( out->indices.size() ) );
-    return out->indices[rastor_coord];
+    CHECK_LT( rastor_coord, int( res.indices.size() ) );
+    return res.indices[rastor_coord];
   };
 
   // Pre-sizing/reserving. Clear and then reset to fill with ze-
   // roes.
-  out->indices.clear();
-  out->indices.resize( total_tiles );
-  if( total_tiles == 0 ) return;
-  out->indices_with_left_edge_access.reserve( total_tiles );
-  out->indices_with_right_edge_access.reserve( total_tiles );
+  res.indices.clear();
+  res.indices.resize( total_tiles );
+  if( total_tiles == 0 ) return res;
+  res.indices_with_left_edge_access.reserve( total_tiles );
+  res.indices_with_right_edge_access.reserve( total_tiles );
 
   // Use a set to function approximately as a q, since 1) we
   // don't really care the order that things are popped off rela-
@@ -129,11 +133,13 @@ void update_terrain_connectivity_impl(
   for( int y = 0; y < y_size; ++y ) {
     Coord const left_edge{ .x = 0, .y = y };
     Coord const right_edge{ .x = x_size - 1, .y = y };
-    out->indices_with_left_edge_access.insert(
+    res.indices_with_left_edge_access.insert(
         get_index( left_edge ) );
-    out->indices_with_right_edge_access.insert(
+    res.indices_with_right_edge_access.insert(
         get_index( right_edge ) );
   }
+
+  return res;
 }
 
 bool contains_segment_index( vector<int> const&        indices,
@@ -151,15 +157,17 @@ bool contains_segment_index( vector<int> const&        indices,
 /****************************************************************
 ** Public API
 *****************************************************************/
-void update_terrain_connectivity( SSConst const&       ss,
-                                  TerrainConnectivity* out ) {
+TerrainConnectivity compute_terrain_connectivity(
+    SSConst const& ss ) {
   util::StopWatch     watch;
   static string const kTimerName = "terrain connectivity update";
   watch.start( kTimerName );
-  update_terrain_connectivity_impl( ss, out );
-  watch.stop( kTimerName );
-  lg.debug( "{} took {}.", kTimerName,
-            watch.human( kTimerName ) );
+  SCOPE_EXIT( {
+    watch.stop( kTimerName );
+    lg.debug( "{} took {}.", kTimerName,
+              watch.human( kTimerName ) );
+  } );
+  return compute_terrain_connectivity_impl( ss );
 }
 
 bool water_square_has_left_ocean_access(

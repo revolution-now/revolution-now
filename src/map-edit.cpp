@@ -677,7 +677,7 @@ wait<> run_map_editor( SS& ss, TS& ts ) {
           } );
 
   co_await map_edit_plane.run_map_editor();
-  update_terrain_connectivity( ss, &ts.connectivity );
+  ts.connectivity = compute_terrain_connectivity( ss );
 }
 
 } // namespace rn

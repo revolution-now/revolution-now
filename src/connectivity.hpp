@@ -26,8 +26,8 @@ struct SSConst;
 // ments of land and water, where "connected" means as a unit
 // would move (i.e., it includes diagonals). This is not cheap to
 // compute, so should only be computed when necessary.
-void update_terrain_connectivity( SSConst const&       ss,
-                                  TerrainConnectivity* out );
+TerrainConnectivity compute_terrain_connectivity(
+    SSConst const& ss );
 
 // Should be called with the location of a water tile and this
 // will determine if it has access to one of the edges of the map
