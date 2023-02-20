@@ -15,6 +15,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/igui.hpp"
 
 // ss
 #include "ss/ref.hpp"
@@ -149,6 +150,45 @@ TEST_CASE( "[damaged] find_repair_port_for_ship" ) {
   colony_2.buildings[e_colony_building::shipyard] = false;
   expected = ShipRepairPort::european_harbor{};
   REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[damaged] show_damaged_ship_message" ) {
+  World W;
+  int   turns = 0;
+
+  auto f = [&] {
+    wait<> const w = show_damaged_ship_message( W.ts(), turns );
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+  };
+
+  turns = 1;
+  string msg =
+      "This ship is [damaged] and has [one] turn remaining "
+      "until it is repaired.";
+  W.gui().EXPECT__message_box( msg ).returns<monostate>();
+  f();
+
+  turns = 2;
+  msg =
+      "This ship is [damaged] and has [two] turns remaining "
+      "until it is repaired.";
+  W.gui().EXPECT__message_box( msg ).returns<monostate>();
+  f();
+
+  turns = 5;
+  msg =
+      "This ship is [damaged] and has [five] turns remaining "
+      "until it is repaired.";
+  W.gui().EXPECT__message_box( msg ).returns<monostate>();
+  f();
+
+  turns = 10;
+  msg =
+      "This ship is [damaged] and has [10] turns remaining "
+      "until it is repaired.";
+  W.gui().EXPECT__message_box( msg ).returns<monostate>();
+  f();
 }
 
 } // namespace

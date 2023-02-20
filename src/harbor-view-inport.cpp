@@ -13,6 +13,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "commodity.hpp"
+#include "damaged.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view-market.hpp"
 #include "igui.hpp"
@@ -117,11 +118,17 @@ HarborInPortShips::units( Coord origin ) const {
 
 wait<> HarborInPortShips::click_on_unit( UnitId unit_id ) {
   if( get_active_unit() == unit_id ) {
-    Unit const&  unit = ss_.units.unit_for( unit_id );
+    Unit const& unit = ss_.units.unit_for( unit_id );
+    if( auto damaged =
+            unit.orders().get_if<unit_orders::damaged>();
+        damaged.has_value() ) {
+      co_await show_damaged_ship_message(
+          ts_, damaged->turns_until_repair );
+      co_return;
+    }
     ChoiceConfig config{
-        .msg = fmt::format(
-            "European harbor options for [{}]:",
-            unit.desc().name ),
+        .msg = fmt::format( "European harbor options for [{}]:",
+                            unit.desc().name ),
         .options = {},
         .sort    = false,
     };
@@ -160,6 +167,22 @@ bool HarborInPortShips::try_drag(
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
   dragging_ = Draggable{ .unit_id = unit.id };
   return true;
+}
+
+wait<base::valid_or<DragRejection>>
+HarborInPortShips::source_check( HarborDraggableObject_t const&,
+                                 Coord const ) {
+  UNWRAP_CHECK( unit_id,
+                dragging_.member( &Draggable::unit_id ) );
+  Unit const& unit = ss_.units.unit_for( unit_id );
+  if( auto damaged =
+          unit.orders().get_if<unit_orders::damaged>();
+      damaged.has_value() ) {
+    co_await show_damaged_ship_message(
+        ts_, damaged->turns_until_repair );
+    co_return DragRejection{};
+  }
+  co_return base::valid;
 }
 
 void HarborInPortShips::cancel_drag() { dragging_ = nothing; }

@@ -31,6 +31,7 @@ struct HarborInPortShips
   : public ui::View,
     public HarborSubView,
     public IDragSource<HarborDraggableObject_t>,
+    public IDragSourceCheck<HarborDraggableObject_t>,
     public IDragSink<HarborDraggableObject_t> {
   static PositionedHarborSubView<HarborInPortShips> create(
       SS& ss, TS& ts, Player& player, Rect canvas,
@@ -63,6 +64,10 @@ struct HarborInPortShips
   // Implement IDragSource.
   bool try_drag( HarborDraggableObject_t const& a,
                  Coord const&                   where ) override;
+
+  // Implement IDragSourceCheck.
+  wait<base::valid_or<DragRejection>> source_check(
+      HarborDraggableObject_t const& a, Coord const ) override;
 
   // Implement IDragSource.
   void cancel_drag() override;

@@ -21,6 +21,7 @@
 #include "commodity.hpp"
 #include "compositor.hpp"
 #include "construction.hpp"
+#include "damaged.hpp"
 #include "equip.hpp"
 #include "gui.hpp"
 #include "interrupts.hpp"
@@ -1400,12 +1401,8 @@ class UnitsAtGateColonyView
     if( auto damaged =
             unit.orders().get_if<unit_orders::damaged>();
         damaged.has_value() ) {
-      string const msg = fmt::format(
-          "This ship is damaged and has [{}] turn(s) remaining "
-          "until it is repaired.",
-          base::int_to_string_literary(
-              damaged->turns_until_repair ) );
-      co_await ts_.gui.message_box( msg );
+      co_await show_damaged_ship_message(
+          ts_, damaged->turns_until_repair );
       co_return;
     }
     // FIXME: need to replace the two below calls with a more
