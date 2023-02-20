@@ -20,6 +20,7 @@
 #include "command.hpp"
 #include "commodity.hpp"
 #include "conductor.hpp"
+#include "damaged.hpp"
 #include "harbor-units.hpp"
 #include "icombat.hpp"
 #include "igui.hpp"
@@ -306,8 +307,21 @@ maybe<string> perform_naval_unit_combat_outcome(
       // has been damaged for zero turns as of now. Note that
       // this automatically removes the unit from any sentry/for-
       // tified status that it had, which is what we want.
-      unit.orders() =
-          unit_orders::damaged{ .turns_until_repair = 5 };
+      int const turns_until_repair =
+          repair_turn_count_for_unit( o.port, unit.type() );
+      if( turns_until_repair > 0 )
+        unit.orders() = unit_orders::damaged{
+            .turns_until_repair = turns_until_repair };
+      else
+        // In the OG a Caravel that is sent to the drydock will
+        // have a repair turn requirement of 0, and so it is im-
+        // mediately activated and can still move in the same
+        // turn if it has movement points left. That said, it
+        // still needs to be transported to the colony and any
+        // units on it need to be destroyed as usual, so even in
+        // this case we need to carry out the rest of the actions
+        // in this function.
+        unit.clear_orders();
       // All units in cargo are destroyed.
       vector<UnitId> const units_in_cargo = unit.cargo().units();
       int const num_units_lost = units_in_cargo.size();

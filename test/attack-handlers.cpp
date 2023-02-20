@@ -1343,7 +1343,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
     REQUIRE( defender.orders() ==
              unit_orders_t{ unit_orders::damaged{
-                 .turns_until_repair = 5 } } );
+                 .turns_until_repair = 6 } } );
     REQUIRE( attacker.cargo().count_items() == 0 );
     REQUIRE( defender.cargo().count_items() == 0 );
   }
@@ -1389,7 +1389,51 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
     REQUIRE( defender.orders() ==
              unit_orders_t{ unit_orders::damaged{
-                 .turns_until_repair = 5 } } );
+                 .turns_until_repair = 2 } } );
+    REQUIRE( attacker.cargo().count_items() == 0 );
+    REQUIRE( defender.cargo().count_items() == 0 );
+  }
+
+  SECTION( "defender damaged, sent to colony (caravel)" ) {
+    // The caravel, when sent to a drydock for repair, requires
+    // no turns for repair.
+    Colony& colony =
+        W.add_colony( { .x = 2, .y = 2 }, W.kDefendingNation );
+    combat = {
+        .outcome  = e_naval_combat_outcome::damaged,
+        .winner   = e_combat_winner::attacker,
+        .attacker = { .outcome =
+                          EuroNavalUnitCombatOutcome::moved{
+                              .to = W.kWaterDefend } },
+        .defender = { .outcome =
+                          EuroNavalUnitCombatOutcome::damaged{
+                              .port = ShipRepairPort::colony{
+                                  .id = colony.id } } } };
+    tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
+        e_unit_type::privateer, e_unit_type::caravel );
+    expect_combat();
+    W.expect_some_animation();
+    REQUIRE( W.units()
+                 .unit_for( combat.attacker.id )
+                 .movement_points() == 8 );
+    REQUIRE( f() == expected );
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    Unit const& defender =
+        W.units().unit_for( combat.defender.id );
+    REQUIRE( W.units().coord_for( attacker.id() ) ==
+             W.kWaterDefend );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( defender.id() ) ==
+        UnitOwnership_t{ UnitOwnership::world{
+            .coord = { .x = 2, .y = 2 } } } );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE( defender.movement_points() == 4 );
+    REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
+    REQUIRE( defender.orders() ==
+             unit_orders_t{ unit_orders::none{} } );
     REQUIRE( attacker.cargo().count_items() == 0 );
     REQUIRE( defender.cargo().count_items() == 0 );
   }
@@ -1532,7 +1576,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( defender.movement_points() == 5 );
     REQUIRE( attacker.orders() ==
              unit_orders_t{ unit_orders::damaged{
-                 .turns_until_repair = 5 } } );
+                 .turns_until_repair = 8 } } );
     REQUIRE( !defender.orders().holds<unit_orders::damaged>() );
     REQUIRE( attacker.cargo().count_items() == 0 );
     REQUIRE( defender.cargo().count_items() == 1 );
@@ -1595,7 +1639,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( defender.movement_points() == 5 );
     REQUIRE( attacker.orders() ==
              unit_orders_t{ unit_orders::damaged{
-                 .turns_until_repair = 5 } } );
+                 .turns_until_repair = 8 } } );
     REQUIRE( !defender.orders().holds<unit_orders::damaged>() );
     REQUIRE( attacker.cargo().count_items() == 0 );
     REQUIRE( defender.cargo().count_items() == 0 );
