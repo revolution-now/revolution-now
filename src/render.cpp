@@ -173,12 +173,17 @@ void render_unit_flag( rr::Renderer& renderer, Coord where,
       c = 'P';
       break;
     case e::damaged: {
-      auto& o = orders.get<damaged>();
-      // Let's be defensive here in case the number happens to be
-      // larger than 9.
-      int const turns_left = clamp( o.turns_until_repair, 0, 9 );
-
-      c = '0' + turns_left;
+      auto&     o          = orders.get<damaged>();
+      int const turns_left = o.turns_until_repair;
+      // The number can be larger than 9, i.e. it can have more
+      // than one digit which we cannot display on the flag. So
+      // we will do what the OG does and display a + sign in that
+      // case. TODO: Maybe we should find a better way to commu-
+      // nicate that number (tool tips?).
+      if( turns_left > 9 )
+        c = '+';
+      else
+        c = '0' + turns_left;
       break;
     }
   };
