@@ -36,7 +36,6 @@ struct.PlayerScoreStats {
 enum.e_revolution_status {
   not_declared,
   declared,
-  won,
 }
 
 struct.Player {
