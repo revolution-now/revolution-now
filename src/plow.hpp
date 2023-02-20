@@ -30,6 +30,7 @@ struct IMapUpdater;
 struct MapSquare;
 struct Player;
 struct SS;
+struct SSConst;
 struct TerrainState;
 
 /****************************************************************
@@ -57,6 +58,9 @@ bool has_irrigation( TerrainState const& terrain_state,
                      Coord               tile );
 
 bool has_irrigation( MapSquare const& square );
+
+// Is there already a pioneer working on this tile?
+bool has_pioneer_working( SSConst const& ss, Coord tile );
 
 /****************************************************************
 ** Unit State

@@ -29,7 +29,7 @@
 #include "src/ss/units.hpp"
 
 // refl
-#include "refl/to-str.hpp"
+#include "src/refl/to-str.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -46,11 +46,9 @@ Coord const kSquare{};
 *****************************************************************/
 struct World : testing::World {
   using Base = testing::World;
-  World() : Base() {}
+  World() : Base() { add_default_player(); }
 
-  void initialize( e_unit_type unit_type, e_terrain terrain ) {
-    add_default_player();
-    MapSquare const   L = make_terrain( terrain );
+  void initialize_map( MapSquare const& L ) {
     vector<MapSquare> tiles{
         // clang-format off
         L,L,L,L,L,L,L,
@@ -63,7 +61,15 @@ struct World : testing::World {
         // clang-format on
     };
     build_map( std::move( tiles ), 7 );
+  }
 
+  void initialize_default() {
+    initialize_map( make_grassland() );
+  }
+
+  void initialize( e_unit_type unit_type, e_terrain terrain ) {
+    MapSquare const L = make_terrain( terrain );
+    initialize_map( L );
     add_unit_on_map( unit_type, Coord{} );
   }
 };
@@ -123,7 +129,7 @@ TEST_CASE( "[plow] can_irrigate" ) {
   REQUIRE( can_irrigate( square ) == expected );
 }
 
-TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
+TEST_CASE( "[plow] plow_square with 40 tools" ) {
   World W;
   W.initialize( e_unit_type::pioneer, e_terrain::conifer );
 
@@ -262,7 +268,7 @@ TEST_CASE( "[src/plow] plow_square with 40 tools" ) {
   REQUIRE( unit.movement_points() == 1 );
 }
 
-TEST_CASE( "[src/plow] plow_square hardy_pioneer" ) {
+TEST_CASE( "[plow] plow_square hardy_pioneer" ) {
   World W;
   W.initialize( e_unit_type::hardy_pioneer, e_terrain::desert );
 
@@ -341,7 +347,7 @@ TEST_CASE( "[src/plow] plow_square hardy_pioneer" ) {
   REQUIRE( unit.movement_points() == 1 );
 }
 
-TEST_CASE( "[src/plow] plow_square with cancellation" ) {
+TEST_CASE( "[plow] plow_square with cancellation" ) {
   World W;
   W.initialize( e_unit_type::pioneer, e_terrain::grassland );
 
@@ -429,7 +435,7 @@ TEST_CASE( "[src/plow] plow_square with cancellation" ) {
   REQUIRE( unit.movement_points() == 1 );
 }
 
-TEST_CASE( "[src/plow] lumber yield / pioneer" ) {
+TEST_CASE( "[plow] lumber yield / pioneer" ) {
   // Here we're not going to test in detail the algorithm for de-
   // termining the location/quantity of the yield since that is
   // done separately in the lumber-yield module. We're just going
@@ -616,6 +622,59 @@ TEST_CASE( "[src/plow] lumber yield / pioneer" ) {
     REQUIRE( plow_result ==
              PlowResult_t{ PlowResult::irrigated{} } );
   }
+}
+
+TEST_CASE( "[plow] has_pioneer_working" ) {
+  World W;
+  W.initialize_default();
+  Coord coord;
+
+  auto f = [&] { return has_pioneer_working( W.ss(), coord ); };
+
+  W.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 1, .y = 0 } );
+  Unit& pioneer1 = W.add_unit_on_map( e_unit_type::pioneer,
+                                      { .x = 2, .y = 0 } );
+  Unit& pioneer2 = W.add_unit_on_map(
+      UnitType::create( e_unit_type::pioneer,
+                        e_unit_type::petty_criminal )
+          .value(),
+      { .x = 3, .y = 0 } );
+  W.add_unit_on_map( e_unit_type::hardy_pioneer,
+                     { .x = 4, .y = 0 } );
+  Unit& pioneer3 = W.add_unit_on_map( e_unit_type::hardy_pioneer,
+                                      { .x = 5, .y = 0 } );
+  W.add_unit_on_map( e_unit_type::pioneer, { .x = 5, .y = 0 } );
+
+  coord = { .x = 0, .y = 0 };
+  REQUIRE_FALSE( f() );
+  coord = { .x = 1, .y = 0 };
+  REQUIRE_FALSE( f() );
+  coord = { .x = 2, .y = 0 };
+  REQUIRE_FALSE( f() );
+  coord = { .x = 3, .y = 0 };
+  REQUIRE_FALSE( f() );
+  coord = { .x = 4, .y = 0 };
+  REQUIRE_FALSE( f() );
+  coord = { .x = 5, .y = 0 };
+  REQUIRE_FALSE( f() );
+
+  pioneer1.orders() = unit_orders::plow{};
+  pioneer2.orders() = unit_orders::road{};
+  pioneer3.orders() = unit_orders::plow{};
+
+  coord = { .x = 0, .y = 0 };
+  REQUIRE_FALSE( f() );
+  coord = { .x = 1, .y = 0 };
+  REQUIRE_FALSE( f() );
+  coord = { .x = 2, .y = 0 };
+  REQUIRE( f() );
+  coord = { .x = 3, .y = 0 };
+  REQUIRE_FALSE( f() );
+  coord = { .x = 4, .y = 0 };
+  REQUIRE_FALSE( f() );
+  coord = { .x = 5, .y = 0 };
+  REQUIRE( f() );
 }
 
 } // namespace

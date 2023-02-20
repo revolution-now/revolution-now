@@ -134,6 +134,18 @@ bool has_irrigation( MapSquare const& square ) {
   return square.irrigation;
 }
 
+bool has_pioneer_working( SSConst const& ss, Coord tile ) {
+  unordered_set<GenericUnitId> const& units =
+      ss.units.from_coord( tile );
+  for( GenericUnitId const generic_id : units ) {
+    if( ss.units.unit_kind( generic_id ) == e_unit_kind::native )
+      return false;
+    Unit const& unit = ss.units.euro_unit_for( generic_id );
+    if( unit.orders().holds<unit_orders::plow>() ) return true;
+  }
+  return false;
+}
+
 /****************************************************************
 ** Unit State
 *****************************************************************/
