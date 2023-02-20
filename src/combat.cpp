@@ -329,6 +329,8 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
       player_for_nation_or_die( ss_.players, attacker.nation() );
   Player const& defending_player =
       player_for_nation_or_die( ss_.players, attacker.nation() );
+  Coord const attacker_coord =
+      ss_.units.coord_for( attacker.id() );
   Coord const defender_coord =
       ss_.units.coord_for( defender.id() );
   UNWRAP_CHECK( attacker_ship_combat,
@@ -399,6 +401,8 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
                              : e_combat_winner::defender;
   Unit const& winner_unit = attacker_wins ? attacker : defender;
   Unit const& loser_unit  = attacker_wins ? defender : attacker;
+  Coord const loser_coord =
+      attacker_wins ? defender_coord : attacker_coord;
   NavalCombatStats& loser_stats =
       attacker_wins ? res.defender : res.attacker;
   NavalCombatStats& winner_stats =
@@ -433,16 +437,35 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
   bool const loser_sinks =
       can_sink &&
       rand_.bernoulli( double( guns ) / ( guns + hull ) );
-  res.outcome = loser_sinks ? e_naval_combat_outcome::sunk
-                            : e_naval_combat_outcome::damaged;
+
+  auto set_sunk = [&] {
+    loser_stats.outcome = EuroNavalUnitCombatOutcome::sunk{};
+    res.outcome         = e_naval_combat_outcome::sunk;
+  };
+
+  auto set_damaged = [&]( ShipRepairPort_t const& port ) {
+    loser_stats.outcome =
+        EuroNavalUnitCombatOutcome::damaged{ .port = port };
+    res.outcome = e_naval_combat_outcome::damaged;
+  };
 
   // Set the outcome of the loser.
   if( loser_sinks )
-    loser_stats.outcome = EuroNavalUnitCombatOutcome::sunk{};
-  else
-    loser_stats.outcome = EuroNavalUnitCombatOutcome::damaged{
-        .port = find_repair_port_for_ship(
-            ss_, loser_unit.nation(), defender_coord ) };
+    set_sunk();
+  else {
+    // Damaged.  Try to find a port to repair the ship.
+    if( maybe<ShipRepairPort_t> const port =
+            find_repair_port_for_ship( ss_, loser_unit.nation(),
+                                       loser_coord );
+        port.has_value() )
+      set_damaged( *port );
+    else
+      // This will happen after independence is declared and the
+      // player has no colonies with a Drydock, in which case
+      // there is no place to send the ship for repair, so it
+      // just sinks.
+      set_sunk();
+  }
 
   return res;
 }

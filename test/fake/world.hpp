@@ -282,6 +282,14 @@ struct World {
   Player&       player( maybe<e_nation> nation = nothing );
   Player const& player( maybe<e_nation> nation = nothing ) const;
 
+  // ------------------------------------------------------------
+  // Revolution Status.
+  // ------------------------------------------------------------
+  void declare_independence( maybe<e_nation> nation = nothing );
+
+  // ------------------------------------------------------------
+  // Serialized State / Transient State / Planes.
+  // ------------------------------------------------------------
   FormatVersion& version();
   SettingsState& settings();
   EventsState&   events();

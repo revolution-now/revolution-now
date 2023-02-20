@@ -1928,6 +1928,39 @@ TEST_CASE(
     REQUIRE( f() == expected );
   }
 
+  SECTION( "no colonies after decl. independence" ) {
+    W.declare_independence( e_nation::english );
+    attacker = &W.add_unit_on_map( e_unit_type::privateer,
+                                   { .x = 0, .y = 3 },
+                                   e_nation::english );
+    defender = &W.add_unit_on_map( e_unit_type::caravel,
+                                   { .x = 1, .y = 3 },
+                                   e_nation::french );
+    W.expect_no_evade( .666666 );
+    W.expect_defender_wins( .2 );
+    W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
+    expected = {
+        .outcome      = e_naval_combat_outcome::sunk,
+        .winner       = e_combat_winner::defender,
+        .sink_weights = Sinking{ .guns = 0, .hull = 12 },
+        .attacker     = { .id                     = attacker->id(),
+                          .modifiers              = {},
+                          .evade_weight           = 8,
+                          .base_combat_weight     = 8,
+                          .modified_combat_weight = 8,
+                          .outcome =
+                              EuroNavalUnitCombatOutcome::sunk{} },
+        .defender     = {
+                .id                     = defender->id(),
+                .modifiers              = {},
+                .evade_weight           = 4,
+                .base_combat_weight     = 2,
+                .modified_combat_weight = 2,
+                .outcome =
+                EuroNavalUnitCombatOutcome::no_change{} } };
+    REQUIRE( f() == expected );
+  }
+
   SECTION( "foreign colony with drydock" ) {
     Colony& colony =
         W.add_colony( { .x = 2, .y = 2 }, e_nation::french );
@@ -1967,6 +2000,47 @@ TEST_CASE(
   }
 
   SECTION( "friendly colony with drydock" ) {
+    Colony& colony =
+        W.add_colony( { .x = 2, .y = 2 }, e_nation::english );
+    colony.buildings[e_colony_building::drydock] = true;
+    attacker = &W.add_unit_on_map( e_unit_type::privateer,
+                                   { .x = 0, .y = 3 },
+                                   e_nation::english );
+    defender = &W.add_unit_on_map( e_unit_type::caravel,
+                                   { .x = 1, .y = 3 },
+                                   e_nation::french );
+    W.expect_no_evade( .666666 );
+    W.expect_defender_wins( .2 );
+    W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
+    expected = {
+        .outcome      = e_naval_combat_outcome::damaged,
+        .winner       = e_combat_winner::defender,
+        .sink_weights = Sinking{ .guns = 0, .hull = 12 },
+        .attacker     = { .id                     = attacker->id(),
+                          .modifiers              = {},
+                          .evade_weight           = 8,
+                          .base_combat_weight     = 8,
+                          .modified_combat_weight = 8,
+                          .outcome =
+                              EuroNavalUnitCombatOutcome::damaged{
+                                  .port =
+                                  ShipRepairPort::colony{
+                                      colony.id } } },
+        .defender     = {
+                .id                     = defender->id(),
+                .modifiers              = {},
+                .evade_weight           = 4,
+                .base_combat_weight     = 2,
+                .modified_combat_weight = 2,
+                .outcome =
+                EuroNavalUnitCombatOutcome::no_change{} } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION(
+      "friendly colony with drydock w/ decl. independence." ) {
+    W.declare_independence( e_nation::english );
+    W.declare_independence( e_nation::french );
     Colony& colony =
         W.add_colony( { .x = 2, .y = 2 }, e_nation::english );
     colony.buildings[e_colony_building::drydock] = true;

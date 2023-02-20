@@ -587,6 +587,14 @@ Player const& World::player( maybe<e_nation> nation ) const {
   }
 }
 
+// --------------------------------------------------------------
+// Revolution Status.
+// --------------------------------------------------------------
+void World::declare_independence( maybe<e_nation> nation ) {
+  player( nation ).revolution_status =
+      e_revolution_status::declared;
+}
+
 base::valid_or<string> World::validate_colonies() const {
   for( auto const& [colony_id, colony] : colonies().all() ) {
     valid_or<string> res = colony.validate();

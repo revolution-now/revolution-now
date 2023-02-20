@@ -18,6 +18,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/players.hpp"
 #include "ss/ref.hpp"
 
 // refl
@@ -38,12 +39,7 @@ struct ColonyWithDrydock {
   double distance = {};
 };
 
-} // namespace
-
-/****************************************************************
-** Public API
-*****************************************************************/
-ShipRepairPort_t find_repair_port_for_ship(
+ShipRepairPort_t find_repair_port_for_ship_pre_independence(
     SSConst const& ss, e_nation nation, Coord ship_location ) {
   vector<ColonyId> colonies = ss.colonies.for_nation( nation );
   // So that we don't rely on hash map iteration order.
@@ -72,6 +68,28 @@ ShipRepairPort_t find_repair_port_for_ship(
   if( !found_colony.has_value() )
     return ShipRepairPort::european_harbor{};
   return ShipRepairPort::colony{ .id = found_colony->colony_id };
+}
+
+} // namespace
+
+/****************************************************************
+** Public API
+*****************************************************************/
+maybe<ShipRepairPort_t> find_repair_port_for_ship(
+    SSConst const& ss, e_nation nation, Coord ship_location ) {
+  ShipRepairPort_t const res =
+      find_repair_port_for_ship_pre_independence(
+          ss, nation, ship_location );
+  Player const& player =
+      player_for_nation_or_die( ss.players, nation );
+  if( player.revolution_status >=
+      e_revolution_status::declared ) {
+    // After independence is declared we cannot go back to the
+    // european harbor for any reason, including to repair ships.
+    if( res.holds<ShipRepairPort::european_harbor>() )
+      return nothing;
+  }
+  return res;
 }
 
 string damaged_ship_message( int turns_until_repaired ) {

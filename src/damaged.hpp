@@ -33,7 +33,12 @@ enum class e_unit_type;
 // will look for any friendly colonies with either Drydocks or
 // Shipyards and it will choose the closest one. Otherwise it
 // will select the european harbor.
-ShipRepairPort_t find_repair_port_for_ship(
+//
+// However, if independence has been declared then the european
+// harbor cannot be selected; hence, if it would have otherwise
+// chosen that, then instead it will return nothing. This is be-
+// cause ships cannot go to europe to be repaired in that case.
+base::maybe<ShipRepairPort_t> find_repair_port_for_ship(
     SSConst const& ss, e_nation nation, Coord ship_location );
 
 // Produce the standard message that should be displayed to the

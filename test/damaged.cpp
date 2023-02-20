@@ -65,8 +65,8 @@ struct World : testing::World {
 TEST_CASE( "[damaged] find_repair_port_for_ship" ) {
   World W;
 
-  ShipRepairPort_t expected      = {};
-  Coord const      ship_location = { .x = 4, .y = 4 };
+  maybe<ShipRepairPort_t> expected      = {};
+  Coord const             ship_location = { .x = 4, .y = 4 };
 
   auto f = [&] {
     return find_repair_port_for_ship( W.ss(), W.default_nation(),
@@ -148,6 +148,16 @@ TEST_CASE( "[damaged] find_repair_port_for_ship" ) {
   // Remove second colony's shipyard.
   colony_2.buildings[e_colony_building::shipyard] = false;
   expected = ShipRepairPort::european_harbor{};
+  REQUIRE( f() == expected );
+
+  // Declare independence.
+  W.declare_independence();
+  expected = nothing;
+  REQUIRE( f() == expected );
+
+  // Re-add first colony's shipyard.
+  colony_1.buildings[e_colony_building::shipyard] = true;
+  expected = ShipRepairPort::colony{ .id = colony_1.id };
   REQUIRE( f() == expected );
 }
 
