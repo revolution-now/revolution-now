@@ -45,6 +45,7 @@
 #include "woodcut.hpp"
 
 // config
+#include "config/nation.hpp"
 #include "config/turn.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
@@ -649,7 +650,21 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
       damaged.has_value() ) {
     if( --damaged->turns_until_repair == 0 ) {
       unit.clear_orders();
-      co_return true;
+      if( ss.units.maybe_coord_for( unit.id() ) )
+        // Unit is in a colony being repaired, so we can just let
+        // it ask for orders.
+        co_return true;
+      else {
+        // Unit is in the harbor. We could make it sail back to
+        // the new world, but probably best to just let the
+        // player decide.
+        co_await ts.gui.message_box(
+            "Our [{}] has finished its repairs in [{}].",
+            unit.desc().name,
+            nation_obj( player.nation ).harbor_city_name );
+        co_await show_harbor_view( ss, ts, player, unit.id() );
+        co_return false;
+      }
     }
     // Need to forfeign movement points here to mark that we've
     // evolved this unit this turn (decreased its remaining
