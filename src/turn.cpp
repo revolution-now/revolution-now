@@ -226,7 +226,7 @@ bool should_remove_unit_from_queue( Unit const& unit ) {
     case e::none:
       return false;
     case e::damaged:
-      return true;
+      return false;
   }
 }
 
@@ -640,6 +640,23 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
     // this next step of transitioning it to "fortified" (this is
     // also the behavior of the OG).
     unit.orders() = unit_orders::fortified{};
+    unit.forfeight_mv_points();
+    co_return false;
+  }
+
+  if( auto damaged =
+          unit.orders().get_if<unit_orders::damaged>();
+      damaged.has_value() ) {
+    if( --damaged->turns_until_repair == 0 ) {
+      unit.clear_orders();
+      co_return true;
+    }
+    // Need to forfeign movement points here to mark that we've
+    // evolved this unit this turn (decreased its remaining
+    // turns). If we didn't do this then this unit could keep
+    // getting cycled through (e.g. `wait` cycles or after a
+    // save-game reload) and would have its count decreased mul-
+    // tiple times per turn.
     unit.forfeight_mv_points();
     co_return false;
   }
