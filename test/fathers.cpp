@@ -496,7 +496,8 @@ TEST_CASE( "[fathers] check_founding_fathers" ) {
 }
 
 TEST_CASE( "[fathers] on_father_received: john_paul_jones" ) {
-  World                   W;
+  World W;
+  W.update_terrain_connectivity();
   Player&                 player = W.default_player();
   e_founding_father const father =
       e_founding_father::john_paul_jones;

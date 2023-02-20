@@ -11,10 +11,12 @@
 #include "harbor-units.hpp"
 
 // Revolution Now
+#include "connectivity.hpp"
 #include "error.hpp"
 #include "logger.hpp"
 #include "on-map.hpp"
 #include "society.hpp"
+#include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "variant.hpp"
 
@@ -181,7 +183,7 @@ void update_harbor_selected_unit( UnitsState const& units,
 // Find the right place to put a ship which has just arrived from
 // europe.
 maybe<Coord> find_new_world_arrival_square(
-    SSConst const& ss, Player const& player,
+    SSConst const& ss, TS& ts, Player const& player,
     maybe<Coord> sailed_from ) {
   Coord const candidate = sailed_from.has_value() ? *sailed_from
                           : player.last_high_seas.has_value()
@@ -199,19 +201,16 @@ maybe<Coord> find_new_world_arrival_square(
         ss.terrain.maybe_square_at( c );
     if( !square.has_value() ) continue;
     if( square->surface != e_surface::water ) continue;
+    // We've found a square that is water Now just make sure that
+    // it is not part of an inland lake. Ships are not alowed in
+    // there to begin with, and even if they were, it would prob-
+    // ably be frustrating to the player because they may not
+    // then be able to get the ship out.
+    if( is_inland_lake( ts.connectivity, c ) ) continue;
     maybe<Society_t> society = society_on_square( ss, c );
     if( !society.has_value() ||
         society == Society_t{ Society::european{
                        .nation = player.nation } } )
-      // We've found a square that is water and does not con-
-      // tain a foreign nation.
-      //
-      // Theoretically at this point we should also make sure
-      // that we haven't placed the ship into a lake in which
-      // it will be trapped... but that seems like a rare oc-
-      // currence. TODO: this should be easy to implement once
-      // we have precomputed data about oceans and continents
-      // which will be needed anyway for the AI and goto algos.
       return c;
   }
 
@@ -323,8 +322,8 @@ void unit_sail_to_harbor( TerrainState const& terrain_state,
       case PortStatus::e::inbound: {
         auto const& [turns] = v.get<PortStatus::inbound>();
         if( turns >= turns_needed )
-          // Unit has not yet made any progress, so we can imme-
-          // diately move it to in_port.
+          // Unit has not yet made any progress, so we can
+          // imme- diately move it to in_port.
           unit_move_to_port( units_state, player, id );
         return;
       }
@@ -335,8 +334,8 @@ void unit_sail_to_harbor( TerrainState const& terrain_state,
         new_state.port_status =
             PortStatus::inbound{ .turns = turns_needed - turns };
         units_state.change_to_harbor_view( id, new_state );
-        // Recurse to deal with the inbound state, which might in
-        // turn need to be translated to in_port.
+        // Recurse to deal with the inbound state, which might
+        // in turn need to be translated to in_port.
         unit_sail_to_harbor( terrain_state, units_state, player,
                              id );
         return;
@@ -375,9 +374,9 @@ void unit_sail_to_new_world( TerrainState const& terrain_state,
   switch( auto& v = previous_harbor_state.port_status;
           v.to_enum() ) {
     case PortStatus::e::outbound: //
-      // Even if the progress is complete, we don't move the unit
-      // onto the map, since that is not the job of this func-
-      // tion.
+      // Even if the progress is complete, we don't move the
+      // unit onto the map, since that is not the job of this
+      // func- tion.
       return;
     case PortStatus::e::inbound: {
       auto& [turns]          = v.get<PortStatus::inbound>();

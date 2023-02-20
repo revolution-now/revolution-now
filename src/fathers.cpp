@@ -112,7 +112,7 @@ int father_count( Player const& player ) {
 // A frigate is added to the player's navy.
 void john_paul_jones( SS& ss, TS& ts, Player const& player ) {
   maybe<Coord> const loc =
-      find_new_world_arrival_square( ss, player,
+      find_new_world_arrival_square( ss, ts, player,
                                      /*sailed_from=*/nothing );
   if( !loc.has_value() ) {
     lg.error(

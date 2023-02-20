@@ -730,13 +730,13 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
         lg.debug( "unit has arrived in new world." );
         maybe<Coord> const dst_coord =
             find_new_world_arrival_square(
-                ss, player,
+                ss, ts, player,
                 ss.units.harbor_view_state_of( id )
                     .sailed_from );
         if( !dst_coord.has_value() ) {
           co_await ts.gui.message_box(
-              "Unfortunately, while our [{}] has arrived "
-              "in the new world, there are no appropriate water "
+              "Unfortunately, while our [{}] has arrived in the "
+              "new world, there are no appropriate water "
               "squares on which to place it.  We will try again "
               "next turn.",
               ss.units.unit_for( id ).desc().name );

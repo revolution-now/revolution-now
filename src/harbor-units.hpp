@@ -29,6 +29,7 @@ namespace rn {
 struct Player;
 struct SSConst;
 struct TerrainState;
+struct TS;
 struct UnitsState;
 
 bool is_unit_inbound( UnitsState const& units_state, UnitId id );
@@ -96,7 +97,7 @@ void unit_move_to_port( UnitsState& units_state, Player& player,
 // pass the square that it sailed from as a preference for where
 // the ship should be placed.
 maybe<Coord> find_new_world_arrival_square(
-    SSConst const& ss, Player const& player,
+    SSConst const& ss, TS& ts, Player const& player,
     maybe<Coord> sailed_from );
 
 // This will check if there are ships in port and, if so, it will
