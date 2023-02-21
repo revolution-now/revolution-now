@@ -22,15 +22,11 @@ Algo:
      as usual. Whichever ship wins will be unchanged (or moved,
      in the case of a winning attacker), and the losing ship will
      be either damaged or sunk.
-  4. If the losing ship is a non-war ship (i.e. has attack=0)
-     then it's sinking probability will be 0, since non-war ships
-     can never be sunk. Otherwise, proceed to compute the sinking
-     probability.
-  5. The probability of sinking is equal to
+  4. The probability of sinking is equal to
      "guns"_winner/("guns"_winner+"hull"_loser). I.e., the proba-
      bility that the "guns of the winner can penetrate the hull
      of the loser."
-  6. Note: the OG makes a significant adjustment to the sinking
+  5. Note: the OG makes a significant adjustment to the sinking
      probability (if not a complete override) having to do with
      the size of each player's naval fleet, in that a ship is
      much more likely to sink if the player's navy is large
@@ -329,3 +325,56 @@ Military -> Military:
     damaged2: 1  (english)
        sunk1: 14  (french)
        sunk2: 21  (english)
+
+    Frigate vs. Caravel
+    -------------------------------
+    Caravel has zero movement.
+    Human player controls Frigate.
+    Long line of units.
+    -------------------------------
+     guns=12      guns=0
+     hull=32      hull=4
+       evade: 1
+    damaged1: 3  (french)
+    damaged2: 11  (dutch)
+       sunk1: 0  (french)
+       sunk2: 0  (dutch)
+    -------------------------------
+    Caravel has zero movement.
+    Human player controls Frigate.
+    Single pair of units at a time.
+    -------------------------------
+     guns=12      guns=0
+     hull=32      hull=4
+       evade: 15
+    damaged1: 6  (french)
+    damaged2: 16  (dutch)
+       sunk1: 0  (french)
+       sunk2: 63  (dutch)
+       total: 100
+    -------------------------------
+    Caravel has zero movement.
+    Frigate has one movement.
+    Human player controls Frigate.
+    Single pair of units at a time.
+    -------------------------------
+     guns=12      guns=0
+     hull=32      hull=4
+       evade: 21
+    damaged1: 0  (french)
+    damaged2: 5  (dutch)
+       sunk1: 0  (french)
+       sunk2: 15  (dutch)
+    -------------------------------
+    Caravel has zero movement.
+    Frigate has nine movement.
+    Human player controls Frigate.
+    Single pair of units at a time.
+    -------------------------------
+     guns=12      guns=0
+     hull=32      hull=4
+       evade: 0
+    damaged1: 0  (french)
+    damaged2: 2  (dutch)
+       sunk1: 0  (french)
+       sunk2: 10  (dutch)

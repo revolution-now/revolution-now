@@ -1415,7 +1415,8 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     REQUIRE( f() == expected );
   }
 
-  SECTION( "frigate->galleon, no evade, frigate wins" ) {
+  SECTION(
+      "frigate->galleon, no evade, frigate wins, damaged" ) {
     attacker = &W.add_unit_on_map( e_unit_type::frigate,
                                    { .x = 0, .y = 3 },
                                    e_nation::english );
@@ -1424,10 +1425,11 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
                                    e_nation::french );
     W.expect_no_evade( .5 );
     W.expect_attacker_wins( .615385 );
+    W.expect_no_sinks( .625 );
     expected = {
         .outcome      = e_naval_combat_outcome::damaged,
         .winner       = e_combat_winner::attacker,
-        .sink_weights = nothing,
+        .sink_weights = Sinking{ .guns = 12, .hull = 20 },
         .attacker     = { .id                     = attacker->id(),
                           .modifiers              = {},
                           .evade_weight           = 6,
@@ -1444,6 +1446,38 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
                 .modified_combat_weight = 10,
                 .outcome = EuroNavalUnitCombatOutcome::damaged{
                     .port = ShipRepairPort::european_harbor{} } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "frigate->galleon, no evade, frigate wins, sunk" ) {
+    attacker = &W.add_unit_on_map( e_unit_type::frigate,
+                                   { .x = 0, .y = 3 },
+                                   e_nation::english );
+    defender = &W.add_unit_on_map( e_unit_type::galleon,
+                                   { .x = 1, .y = 3 },
+                                   e_nation::french );
+    W.expect_no_evade( .5 );
+    W.expect_attacker_wins( .615385 );
+    W.expect_sinks( .375 );
+    expected = {
+        .outcome      = e_naval_combat_outcome::sunk,
+        .winner       = e_combat_winner::attacker,
+        .sink_weights = Sinking{ .guns = 12, .hull = 20 },
+        .attacker     = { .id                     = attacker->id(),
+                          .modifiers              = {},
+                          .evade_weight           = 6,
+                          .base_combat_weight     = 16,
+                          .modified_combat_weight = 16,
+                          .outcome =
+                              EuroNavalUnitCombatOutcome::moved{
+                                  .to = { .x = 1, .y = 3 } } },
+        .defender     = {
+                .id                     = defender->id(),
+                .modifiers              = {},
+                .evade_weight           = 6,
+                .base_combat_weight     = 10,
+                .modified_combat_weight = 10,
+                .outcome = EuroNavalUnitCombatOutcome::sunk{} } };
     REQUIRE( f() == expected );
   }
 

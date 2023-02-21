@@ -302,21 +302,18 @@ Naval Combat Mechanics from the OG:
      as usual. Whichever ship wins will be unchanged (or moved,
      in the case of a winning attacker), and the losing ship will
      be either damaged or sunk.
-  4. If the losing ship is a non-war ship (i.e. has attack=0)
-     then it's sinking probability will be 0, since non-war ships
-     can never be sunk. Otherwise, proceed to compute the sinking
-     probability.
-  5. The probability of sinking is equal to
+  4. The probability of sinking is equal to
      "guns"_winner/("guns"_winner+"hull"_loser). I.e., the proba-
      bility that the "guns of the winner can penetrate the hull
      of the loser."
-  6. Note: the OG makes a significant adjustment to the sinking
+  5. Note: the OG makes a significant adjustment to the sinking
      probability (if not a complete override) having to do with
-     the size of each player's naval fleet, in that a ship is
-     much more likely to sink if the player's navy is large
-     and/or they already have many damaged ships. This is likely
-     done to discourage or put a check on large navies. But, we
-     will not replicate that in this game. See the
+     the size of each player's naval fleet, possibly in relation
+     to the strength of the other player's naval fleet, in that a
+     ship is much more likely to sink if the player's navy is
+     large and/or they already have many damaged ships. This is
+     likely done to discourage or put a check on large navies.
+     But, we will not replicate that in this game. See the
      naval-mechanics.txt doc file for more info on this, though
      the exact mechanism used by the OG seems convoluted and is
      not fully understood.
@@ -396,7 +393,6 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
   bool const attacker_wins =
       rand_.bernoulli( double( attacker_combat ) /
                        ( attacker_combat + defender_combat ) );
-  bool const defender_wins = !attacker_wins;
   res.winner = attacker_wins ? e_combat_winner::attacker
                              : e_combat_winner::defender;
   Unit const& winner_unit = attacker_wins ? attacker : defender;
@@ -425,17 +421,8 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
   int const hull = attacker_wins ? defender_ship_combat.hull
                                  : attacker_ship_combat.hull;
 
-  // This is what prevents non-war ships from ever sinking, which
-  // they never appear to do in the OG.
-  bool const is_attacking_warship =
-      ( defender_attack_strength > 0 );
-  bool const can_sink =
-      defender_wins /*and attacker must be a warship*/
-      || ( attacker_wins && is_attacking_warship );
-  if( can_sink )
-    res.sink_weights.emplace() = { .guns = guns, .hull = hull };
+  res.sink_weights.emplace() = { .guns = guns, .hull = hull };
   bool const loser_sinks =
-      can_sink &&
       rand_.bernoulli( double( guns ) / ( guns + hull ) );
 
   auto set_sunk = [&] {
