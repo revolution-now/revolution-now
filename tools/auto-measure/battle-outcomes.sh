@@ -24,7 +24,9 @@ source ~/dev/utilities/bashlib/util.sh
 log_file="$experiment_name.txt"
 
 win=$(xdotool search --name DOSBox)
-# echo "found DOSBox window: $win"
+echo 'Click on the DOSBox window.'
+win=$(xdotool selectwindow)
+[[ -z "$win" ]] && die "failed to find DOSBox window."
 
 if (( training )); then
   echo 'Click on the window running this script.'
@@ -32,7 +34,7 @@ if (( training )); then
   [[ -z "$script_win" ]] && die "failed to find script window."
 fi
 
-if (( training == 0 )); then
+if (( !training )); then
   touch "$log_file"
   echo "Run './watch-log.sh $log_file' and press enter."
   read
