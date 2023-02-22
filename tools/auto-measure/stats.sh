@@ -8,3 +8,5 @@ echo
 echo "Total trials: $total_count"
 evade_percent="$(lua -e "print( string.format( '%.2f%%', $evade_count*100/$total_count ) )")"
 echo "Evade %:      $evade_percent"
+error="$(lua -e "print( string.format( '%.2f%%', (1/($total_count)^.5)*$evade_count*100/$total_count ) )")"
+echo "  error:   +/-$error"
