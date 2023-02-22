@@ -11,6 +11,7 @@ source ~/dev/utilities/bashlib/util.sh
 : training        = 1
 : experiment_name = frigate-attacks-merchantman
 : key_delay       = 50
+: num_trials      = 2000
 
 : evade_md5            = 3b95c1c8e2d88ffdf4eb7725bf372121
 : attacker_damaged_md5 = 58554aa46de7fd4f2241ada82f87fedf
@@ -78,6 +79,15 @@ attack() {
   sleep 1.5
 }
 
+exit_game() {
+  # Open Game menu.
+  keys alt+g
+  # Select "Exit to DOS".
+  keys Up Return
+  # Select Yes.
+  keys Down Return
+}
+
 # ---------------------------------------------------------------
 # Result detection.
 # ---------------------------------------------------------------
@@ -108,7 +118,7 @@ record_outcome() {
 # ---------------------------------------------------------------
 # Main loop.
 # ---------------------------------------------------------------
-while true; do
+for (( i=0; i<$num_trials; i++ )); do
   load_game
   attack
   save_game
@@ -121,3 +131,5 @@ while true; do
     sleep 1
   fi
 done
+
+exit_game
