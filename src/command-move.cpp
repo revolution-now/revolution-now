@@ -918,7 +918,10 @@ wait<> TravelHandler::perform() {
       for( UnitId const held_id : held ) {
         unit_deleted = co_await unit_to_map_square(
             ss_, ts_, held_id, move_dst );
-        CHECK( !unit_deleted.has_value() );
+        // !! Note that the unit could have been deleted here in
+        // the case that the unit is a treasure and the player
+        // accepts the King's offer to transport it.
+        if( unit_deleted.has_value() ) continue;
         ss_.units.unit_for( held_id ).clear_orders();
         prioritize.push_back( held_id );
       }

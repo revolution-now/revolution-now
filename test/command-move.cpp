@@ -30,6 +30,7 @@
 // ss
 #include "ss/dwelling.rds.hpp"
 #include "ss/player.hpp"
+#include "ss/settings.hpp"
 #include "ss/units.hpp"
 
 // Must be last.
@@ -41,6 +42,7 @@ namespace {
 using namespace std;
 
 using ::mock::matchers::_;
+using ::mock::matchers::Field;
 using ::mock::matchers::StrContains;
 
 /****************************************************************
@@ -289,6 +291,60 @@ TEST_CASE(
            Coord{ .x = 1, .y = 1 } );
   REQUIRE( W.units().coord_for( free_colonist.id() ) ==
            Coord{ .x = 1, .y = 1 } );
+  REQUIRE( W.units().coord_for( galleon.id() ) ==
+           Coord{ .x = 1, .y = 1 } );
+}
+
+TEST_CASE(
+    "[command-move] ship unloads treasure, treasure is "
+    "transported, treasure is deleeted" ) {
+  World W;
+  W.settings().difficulty = e_difficulty::conquistador;
+  MockLandViewPlane land_view_plane;
+  W.planes().back().land_view = &land_view_plane;
+  Player&       player        = W.default_player();
+  Colony const& colony = W.add_colony( { .x = 1, .y = 1 } );
+  Unit const& galleon  = W.add_unit_on_map( e_unit_type::galleon,
+                                            { .x = 0, .y = 0 } );
+  // This unit will be deleted.
+  UnitId const treasure_id =
+      W.add_unit_in_cargo( e_unit_type::treasure, galleon.id() )
+          .id();
+
+  auto move_unit = [&]( UnitId unit_id, e_direction d ) {
+    land_view_plane.EXPECT__animate( _ ).returns<monostate>();
+    unique_ptr<CommandHandler> handler =
+        handle_command( W.ss(), W.ts(), player, unit_id,
+                        command::move{ .d = d } );
+    wait<CommandHandlerRunResult> const w = handler->run();
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+    return *w;
+  };
+
+  // Sanity check.
+  auto choice_matcher =
+      Field( &ChoiceConfig::msg, StrContains( "bounty" ) );
+  W.gui()
+      .EXPECT__choice( choice_matcher, _ )
+      .returns<maybe<string>>( "yes" );
+  W.gui()
+      .EXPECT__message_box(
+          StrContains( "Treasure worth 1000" ) )
+      .returns<monostate>();
+  W.colony_viewer()
+      .EXPECT__show( _, colony.id )
+      .returns( e_colony_abandoned::no );
+  CommandHandlerRunResult const expected_res{
+      .order_was_run = true, .units_to_prioritize = {} };
+  CommandHandlerRunResult const res =
+      move_unit( galleon.id(), e_direction::se );
+  REQUIRE( res == expected_res );
+
+  // The king takes 60% of the 1000 treasure.
+  REQUIRE( player.money == 400 );
+  REQUIRE( !W.units().exists( treasure_id ) );
+  REQUIRE( galleon.movement_points() == 0 );
   REQUIRE( W.units().coord_for( galleon.id() ) ==
            Coord{ .x = 1, .y = 1 } );
 }
