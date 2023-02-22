@@ -34,12 +34,6 @@ if (( training )); then
   [[ -z "$script_win" ]] && die "failed to find script window."
 fi
 
-if (( !training )); then
-  touch "$log_file"
-  echo "Run './watch-log.sh $log_file' and press enter."
-  read
-fi
-
 # ---------------------------------------------------------------
 # General X commands.
 # ---------------------------------------------------------------
