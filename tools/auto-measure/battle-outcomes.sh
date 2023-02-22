@@ -41,8 +41,6 @@ fi
 # ---------------------------------------------------------------
 # General X commands.
 # ---------------------------------------------------------------
-activate_window() { xdotool windowfocus $win; }
-
 keys() { xdotool key --delay=$key_delay --window $win "$@"; }
 
 # ---------------------------------------------------------------
@@ -115,7 +113,6 @@ record_outcome() {
 # Main loop.
 # ---------------------------------------------------------------
 while true; do
-  activate_window
   load_game
   attack
   save_game
