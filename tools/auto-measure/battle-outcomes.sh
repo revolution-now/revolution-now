@@ -19,8 +19,10 @@ source ~/dev/utilities/bashlib/util.sh
 : defender_sunk_md5    = 4deb093647141161aced9b0fd437dc55
 
 # ---------------------------------------------------------------
-# Find windows.
+# Initialization.
 # ---------------------------------------------------------------
+touch "$training"
+
 win=$(xdotool search --name DOSBox)
 # echo "found DOSBox window: $win"
 
@@ -91,13 +93,13 @@ record_outcome() {
     $evade_md5)
       echo 'evade' ;;
     $attacker_damaged_md5)
-      echo 'attacker damaged' ;;
+      echo 'attacker_damaged' ;;
     $defender_damaged_md5)
-      echo 'defender damaged' ;;
+      echo 'defender_damaged' ;;
     $attacker_sunk_md5)
-      echo 'attacker sunk' ;;
+      echo 'attacker_sunk' ;;
     $defender_sunk_md5)
-      echo 'defender sunk' ;;
+      echo 'defender_sunk' ;;
     *)
       echo "unknown: $md5" ;;
   esac
