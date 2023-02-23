@@ -11,7 +11,7 @@ source ~/dev/utilities/bashlib/util.sh
 : training        = 1
 : experiment_name = frigate-attacks-merchantman
 : key_delay       = 50
-: num_trials      = 2000
+: target_trials   = 2000
 
 : evade_md5            = -
 : attacker_damaged_md5 = -
@@ -36,6 +36,14 @@ find_window() {
 find_window DOSBox dosbox
 
 (( training )) && find_window script script_win
+
+num_trials=target_trials
+if [[ -e "$log_file" ]]; then
+  existing=$(cat "$log_file" | wc -l)
+  (( existing >= target_trials )) && exit 0
+  num_trials=$(( target_trials-existing ))
+  echo "Partial results found. Running $num_trials more times."
+fi
 
 # ---------------------------------------------------------------
 # General X commands.
