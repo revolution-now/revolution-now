@@ -13,79 +13,68 @@ source ~/dev/utilities/bashlib/util.sh
 : key_delay       = 50
 : num_trials      = 2000
 
-: evade_md5            = 3b95c1c8e2d88ffdf4eb7725bf372121
-: attacker_damaged_md5 = 58554aa46de7fd4f2241ada82f87fedf
-: defender_damaged_md5 = db98f3a5fb82e386d23815625559659a
-: attacker_sunk_md5    = 05a088b7ad8fe82965a7c7eea9c660ab
-: defender_sunk_md5    = 4deb093647141161aced9b0fd437dc55
+: evade_md5            = -
+: attacker_damaged_md5 = -
+: defender_damaged_md5 = -
+: attacker_sunk_md5    = -
+: defender_sunk_md5    = -
 
 # ---------------------------------------------------------------
 # Initialization.
 # ---------------------------------------------------------------
 log_file="$experiment_name.txt"
 
-win=$(xdotool search --name DOSBox)
-echo 'Click on the DOSBox window.'
-win=$(xdotool selectwindow)
-[[ -z "$win" ]] && die "failed to find DOSBox window."
+find_window() {
+  local window_name="$1"
+  local var="$2"
+  echo "Click on the $window_name window."
+  local id=$(xdotool selectwindow)
+  [[ -z "$id" ]] && die "failed to find $window_name window."
+  eval "$var=\"$id\""
+}
 
-if (( training )); then
-  echo 'Click on the window running this script.'
-  script_win=$(xdotool selectwindow)
-  [[ -z "$script_win" ]] && die "failed to find script window."
-fi
+find_window DOSBox dosbox
+
+(( training )) && find_window script script_win
 
 # ---------------------------------------------------------------
 # General X commands.
 # ---------------------------------------------------------------
-keys() { xdotool key --delay=$key_delay --window $win "$@"; }
+keys() { xdotool key --delay=$key_delay --window $dosbox "$@"; }
 
 # ---------------------------------------------------------------
 # Game specific composite commands.
 # ---------------------------------------------------------------
 # Loads the game from COLONY07.SAV.
 load_game() {
-  # Open Game menu.
   keys alt+g
-  # Select "Load Game".
   keys Down Down Down Down Down Return
-  # Select last real save slot.
-  keys Up Up Up Return
-  # Wait for game to load.
-  sleep .1
-  # Close the "Loaded COLONY07.SAV successfully" window.
-  keys Return
+  keys Up Up Up Return # Select COLONY07.SAV.
+  sleep .1 # Wait for game to load.
+  keys Return # Close popup.
 }
 
 # Saves the game to COLONY06.SAV.
 save_game() {
-  # Open Game menu.
   keys alt+g
-  # Select "Load Game".
   keys Down Down Down Down Return
-  # Select second-to-last save slot.
-  keys Up Up Return
-  # Wait for game to save.
-  sleep 1
-  # Close the "Saved COLONY06.SAV" window.
-  keys Return
+  keys Up Up Return # Select COLONY06.SAV.
+  sleep 1 # Wait for game to save.
+  keys Return # Close popup.
 }
 
-attack() {
-  # Attack the ship to the right of the blinking unit.
+# Attack the ship to the right of the blinking unit.
+attack_right() {
   keys Right
   sleep 1.5
-  keys Return
+  keys Return # Close popup.
   sleep 1.5
 }
 
 exit_game() {
-  # Open Game menu.
   keys alt+g
-  # Select "Exit to DOS".
-  keys Up Return
-  # Select Yes.
-  keys Down Return
+  keys Up Return # Select "Exit to DOS".
+  keys Down Return # Select Yes.
 }
 
 # ---------------------------------------------------------------
@@ -120,7 +109,7 @@ record_outcome() {
 # ---------------------------------------------------------------
 for (( i=0; i<$num_trials; i++ )); do
   load_game
-  attack
+  attack_right
   save_game
   if (( training )); then
     record_outcome
