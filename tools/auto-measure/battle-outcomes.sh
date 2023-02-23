@@ -11,7 +11,7 @@ source ~/dev/utilities/bashlib/util.sh
 : training        = 1
 : experiment_name = frigate-attacks-merchantman
 : key_delay       = 50
-: target_trials   = 2000
+: target_trials   = 1000
 
 : evade_md5            = -
 : attacker_damaged_md5 = -
