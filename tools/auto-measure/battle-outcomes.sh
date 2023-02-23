@@ -50,7 +50,7 @@ load_game() {
   keys alt+g
   keys Down Down Down Down Down Return
   keys Up Up Up Return # Select COLONY07.SAV.
-  sleep .1 # Wait for game to load.
+  sleep .5 # Wait for game to load.
   keys Return # Close popup.
 }
 
