@@ -11,7 +11,7 @@ source ~/dev/utilities/bashlib/util.sh
 : training        = 1
 : experiment_name = frigate-attacks-merchantman
 : key_delay       = 50
-: target_trials   = 1000
+: target_trials   = 500
 
 : evade_md5            = -
 : attacker_damaged_md5 = -
@@ -120,9 +120,12 @@ for (( i=0; i<$num_trials; i++ )); do
   attack_right
   save_game
   if (( training )); then
-    record_outcome
-    xdotool windowfocus $script_win
-    read
+    outcome="$(record_outcome)"
+    echo "$outcome"
+    if [[ "$outcome" =~ ^unknown ]]; then
+      xdotool windowfocus $script_win
+      read
+    fi
   else
     record_outcome >> "$log_file"
     sleep 1
