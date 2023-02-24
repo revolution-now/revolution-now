@@ -1,2 +1,2 @@
 #!/bin/bash
-watch ./stats.sh $1
+watch -n8 ./stats.sh $1

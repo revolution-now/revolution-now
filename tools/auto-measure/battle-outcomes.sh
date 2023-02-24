@@ -43,7 +43,10 @@ find_window_named 'DOSBox.*OPENING' dosbox
 num_trials=target_trials
 if [[ -e "$log_file" ]]; then
   existing=$(cat "$log_file" | wc -l)
-  (( existing >= target_trials )) && exit 0
+  (( existing >= target_trials )) && {
+    echo 'Target trials already achieved. exiting.'
+    exit 0
+  }
   num_trials=$(( target_trials-existing ))
   echo "Partial results found. Running $num_trials more times."
 fi
@@ -88,6 +91,12 @@ exit_game() {
   keys Down Return # Select Yes.
 }
 
+# Just press enter a few times to close any popups that might be
+# lingering.
+close_popups() {
+  keys Return Return Return
+}
+
 # ---------------------------------------------------------------
 # Result detection.
 # ---------------------------------------------------------------
@@ -118,6 +127,7 @@ record_outcome() {
 # ---------------------------------------------------------------
 # Main loop.
 # ---------------------------------------------------------------
+close_popups
 for (( i=0; i<$num_trials; i++ )); do
   load_game
   attack_right
