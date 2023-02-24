@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# ---------------------------------------------------------------
+# Imports.
+# ---------------------------------------------------------------
 source ~/dev/utilities/bashlib/util.sh
 
 :() { eval "$1=\"$3\""; }
@@ -24,18 +27,18 @@ source ~/dev/utilities/bashlib/util.sh
 # ---------------------------------------------------------------
 log_file="$experiment_name.txt"
 
-find_window() {
-  local window_name="$1"
+this="$(readlink -f $0)"
+
+find_window_named() {
+  local regex="$1"
   local var="$2"
-  echo "Click on the $window_name window."
-  local id=$(xdotool selectwindow)
-  [[ -z "$id" ]] && die "failed to find $window_name window."
+  local id=$(xdotool search --name "$regex")
+  [[ -z "$id" ]] && die "failed to find window matching '$regex'."
   eval "$var=\"$id\""
 }
 
-find_window DOSBox dosbox
-
-(( training )) && find_window script script_win
+script_win="$(xdotool getactivewindow)"
+find_window_named 'DOSBox.*OPENING' dosbox
 
 num_trials=target_trials
 if [[ -e "$log_file" ]]; then
@@ -125,6 +128,10 @@ for (( i=0; i<$num_trials; i++ )); do
     if [[ "$outcome" =~ ^unknown ]]; then
       xdotool windowfocus $script_win
       read
+      # The user is assumed to have edited this script to add the
+      # hash for the appropriate outcome. Now restart this script
+      # to pick it up.
+      exec "$this"
     fi
   else
     record_outcome >> "$log_file"
