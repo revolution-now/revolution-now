@@ -91,12 +91,6 @@ exit_game() {
   keys Down Return # Select Yes.
 }
 
-# Just press enter a few times to close any popups that might be
-# lingering.
-close_popups() {
-  keys Return Return Return
-}
-
 # ---------------------------------------------------------------
 # Result detection.
 # ---------------------------------------------------------------
@@ -127,7 +121,6 @@ record_outcome() {
 # ---------------------------------------------------------------
 # Main loop.
 # ---------------------------------------------------------------
-close_popups
 for (( i=0; i<$num_trials; i++ )); do
   load_game
   attack_right
