@@ -12,9 +12,9 @@ source ~/dev/utilities/bashlib/util.sh
 # Parameters.
 # ---------------------------------------------------------------
 : training        = 1
-: experiment_name = frigate-attacks-merchantman
+: experiment_name = evade/frigate-attacks-merchantman-0-0
 : key_delay       = 50
-: target_trials   = 500
+: target_trials   = 1000
 
 : evade_md5            = -
 : attacker_damaged_md5 = -
@@ -130,7 +130,8 @@ for (( i=0; i<$num_trials; i++ )); do
     echo "$outcome"
     if [[ "$outcome" =~ ^unknown ]]; then
       xdotool windowfocus $script_win
-      read
+      # Wait for this script to change then continue.
+      echo "$0" | entr -pz true
       # The user is assumed to have edited this script to add the
       # hash for the appropriate outcome. Now restart this script
       # to pick it up.

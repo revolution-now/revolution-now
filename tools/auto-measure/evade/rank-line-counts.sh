@@ -1,6 +1,8 @@
 #!/bin/bash
+this="$(dirname "$0")"
+
 line_counts() {
-  for f in *.txt; do
+  for f in $this/*.txt; do
     echo "$f: $(cat "$f" | wc -l)"
   done
 }
