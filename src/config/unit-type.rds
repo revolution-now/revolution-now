@@ -138,9 +138,15 @@ sumtype.UnitPromotion {
 # This is only for ships, and provides the parameters involved in
 # determining whether or not a ship sinks when it loses in combat
 # (as opposed to simply being damaged).
-struct.ShipSinking {
+struct.ShipCombat {
   guns 'int',
   hull 'int',
+
+  # If this is true then the unit gets their effective movement
+  # points double before they are applied in the evasion proba-
+  # bility calculation. In the OG this seems to only apply to
+  # privateers, which get a +100% bonus.
+  evasion_bonus 'bool',
 }
 
 # In the OG there is a difference in repair time for a ship de-
@@ -181,7 +187,7 @@ struct.UnitTypeAttributes {
   # Combat
   can_attack 'bool',
   combat 'int',
-  ship_combat_extra 'base::maybe<ShipSinking>',
+  ship_combat_extra 'base::maybe<ShipCombat>',
   on_death 'UnitDeathAction_t',
 
   # If the unit is damaged, how many turns does it take to re-

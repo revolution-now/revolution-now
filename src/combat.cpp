@@ -293,7 +293,12 @@ Naval Combat Mechanics from the OG:
      actually has at the time of the battle, but rather the ini-
      tial movement point value that it would have at the start of
      a turn. And remember to apply the Ferdinand Magellan move-
-     ment point bonus where applicable.
+     ment point bonus where applicable. Also, there is a bonus
+     that is applied for the privateer (whether attacker or de-
+     fender) whereby it gets is effective movement points doubled
+     for the purposes of the calculation. That makes it much more
+     difficult to evade a privateer and makes the privateer
+     better at evading when attacked.
   2. If either there is no evade possible or if the evade dice
      roll yielded no evade, then we proceed to the combat analy-
      sis.
@@ -341,11 +346,17 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
   CHECK_GT( attacker_attack_strength, 0 );
   // The attacker obviously doesn't evade; this is just the name
   // used for the attacker's weight in the evade calculation.
+  int const attacker_evade_bonus =
+      attacker_ship_combat.evasion_bonus ? 2 : 1;
+  int const defender_evade_bonus =
+      defender_ship_combat.evasion_bonus ? 2 : 1;
   int const attacker_evade =
+      attacker_evade_bonus *
       movement_points( attacking_player, attacker.type() )
           .atoms() /
       3;
   int const defender_evade =
+      defender_evade_bonus *
       movement_points( defending_player, defender.type() )
           .atoms() /
       3;

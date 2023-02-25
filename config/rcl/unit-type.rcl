@@ -1533,7 +1533,7 @@ composition {
       base_movement_points:  4
       can_attack:            false
       combat:                2
-      ship_combat_extra:     { guns=0, hull=4 }
+      ship_combat_extra:     { guns=0, hull=4, evasion_bonus=false }
       on_death               naval{}
       turns_to_repair:       { harbor=2, colony=0 }
       canonical_base:        null
@@ -1563,7 +1563,7 @@ composition {
       base_movement_points:  5
       can_attack:            false
       combat:                6
-      ship_combat_extra:     { guns=1, hull=8 }
+      ship_combat_extra:     { guns=1, hull=8, evasion_bonus=false }
       on_death               naval{}
       turns_to_repair:       { harbor=6, colony=2 }
       canonical_base:        null
@@ -1593,7 +1593,7 @@ composition {
       base_movement_points:  6
       can_attack:            false
       combat:                10
-      ship_combat_extra:     { guns=4, hull=20 }
+      ship_combat_extra:     { guns=4, hull=20, evasion_bonus=false }
       on_death               naval{}
       turns_to_repair:       { harbor=10, colony=4 }
       canonical_base:        null
@@ -1623,7 +1623,7 @@ composition {
       base_movement_points:  8
       can_attack:            true
       combat:                8
-      ship_combat_extra:     { guns=4, hull=12 }
+      ship_combat_extra:     { guns=4, hull=12, evasion_bonus=true }
       on_death               naval{}
       turns_to_repair:       { harbor=8, colony=3 }
       canonical_base:        null
@@ -1653,7 +1653,7 @@ composition {
       base_movement_points:  6
       can_attack:            true
       combat:                16
-      ship_combat_extra:     { guns=12, hull=32 }
+      ship_combat_extra:     { guns=12, hull=32, evasion_bonus=false }
       on_death               naval{}
       turns_to_repair:       { harbor=12, colony=5 }
       canonical_base:        null
@@ -1683,7 +1683,7 @@ composition {
       base_movement_points:  5
       can_attack:            true
       combat:                24
-      ship_combat_extra:     { guns=32, hull=64 }
+      ship_combat_extra:     { guns=32, hull=64, evasion_bonus=false }
       on_death               naval{}
       turns_to_repair:       { harbor=14, colony=7 }
       canonical_base:        null

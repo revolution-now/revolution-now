@@ -13,7 +13,12 @@ Algo:
      actually has at the time of the battle, but rather the ini-
      tial movement point value that it would have at the start of
      a turn. And remember to apply the Ferdinand Magellan move-
-     ment point bonus where applicable.
+     ment point bonus where applicable. Also, there is a bonus
+     that is applied for the privateer (whether attacker or de-
+     fender) whereby it gets is effective movement points doubled
+     for the purposes of the calculation. That makes it much more
+     difficult to evade a privateer and makes the privateer
+     better at evading when attacked.
   2. If either there is no evade possible or if the evade dice
      roll yielded no evade, then we proceed to the combat analy-
      sis.
