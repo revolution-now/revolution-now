@@ -12,9 +12,9 @@ source ~/dev/utilities/bashlib/util.sh
 # Parameters.
 # ---------------------------------------------------------------
 : training        = 1
-: experiment_name = frigate-attacks-merchantman
+: experiment_name = evade/frigate-attacks-merchantman-0-0
 : key_delay       = 50
-: target_trials   = 500
+: target_trials   = 1000
 
 : evade_md5            = -
 : attacker_damaged_md5 = -
