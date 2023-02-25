@@ -498,3 +498,503 @@ defender_damaged
 defender_sunk
 defender_damaged
 defender_damaged
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+evade
+evade
+evade
+defender_damaged
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+evade
+defender_sunk
+defender_damaged
+defender_damaged
+unknown: cea9aa3864777301888832e7a2e0f557
+defender_damaged
+defender_damaged
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+defender_sunk
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_sunk
+defender_sunk
+defender_sunk
+defender_sunk
+defender_sunk
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+defender_sunk
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_sunk
+defender_damaged
+evade
+defender_damaged
+defender_sunk
+unknown: cea9aa3864777301888832e7a2e0f557
+defender_damaged
+unknown: cea9aa3864777301888832e7a2e0f557
+defender_damaged
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+defender_damaged
+defender_sunk
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+defender_damaged
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+evade
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_sunk
+evade
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+evade
+defender_damaged
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+evade
+evade
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_sunk
+evade
+defender_damaged
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+defender_damaged
+evade
+evade
+defender_damaged
+evade
+evade
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_damaged
+defender_sunk
+evade
+defender_damaged
+evade
+defender_damaged
+defender_sunk
+defender_sunk
+defender_sunk
+defender_sunk
+defender_sunk
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+defender_damaged
+evade
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+defender_sunk
+defender_damaged
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+evade
+defender_sunk
+defender_damaged
+evade
+defender_sunk
+defender_sunk
+defender_sunk
+defender_sunk
+defender_sunk
+defender_damaged
+defender_damaged
+evade
+defender_sunk
+defender_damaged
+defender_damaged
+defender_sunk
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_sunk
+defender_damaged
+defender_damaged
+defender_damaged
+defender_sunk
+evade
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_damaged
+evade
+evade
+defender_damaged
+evade
+evade
+defender_sunk
+evade
+evade
+unknown: cea9aa3864777301888832e7a2e0f557
+defender_sunk
+defender_damaged
+evade
+defender_damaged
+defender_damaged
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+defender_damaged
+defender_damaged
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+defender_damaged
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+evade
+defender_sunk
+evade
+unknown: cea9aa3864777301888832e7a2e0f557
+evade
+defender_damaged
+defender_damaged
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_damaged
+defender_damaged
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+evade
+defender_damaged
+defender_sunk
+defender_sunk
+defender_damaged
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+defender_damaged
+evade
+defender_damaged
+evade
+evade
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_damaged
+evade
+defender_sunk
+evade
+defender_damaged
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_sunk
+defender_sunk
+defender_sunk
+evade
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+defender_damaged
+defender_sunk
+defender_damaged
+defender_damaged
+defender_damaged
+evade
+defender_sunk
+defender_damaged
+evade
+defender_sunk
+evade
+defender_damaged
+unknown: cea9aa3864777301888832e7a2e0f557
+defender_sunk
+defender_sunk
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+defender_sunk
+evade
+evade
+evade
+defender_sunk
+defender_sunk
+evade
+evade
+evade
+evade
+defender_damaged
+evade
+defender_sunk
+defender_sunk
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+defender_damaged
+defender_damaged
+defender_sunk
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+defender_sunk
+defender_sunk
+defender_sunk
+evade
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+evade
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+defender_damaged
+defender_sunk
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+defender_damaged
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_sunk
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+defender_damaged
+defender_damaged
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+defender_damaged
+evade
+defender_sunk
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+evade
+defender_damaged
+defender_damaged
+defender_sunk
+defender_sunk
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+defender_damaged
+evade
+unknown: cea9aa3864777301888832e7a2e0f557
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+defender_damaged
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+defender_damaged
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_sunk
+evade
+defender_damaged
+defender_damaged
+evade
+defender_damaged
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: cea9aa3864777301888832e7a2e0f557
+defender_sunk
+defender_damaged
+evade
+defender_sunk
+evade
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+defender_sunk
+evade
+evade
+evade
+defender_damaged
+evade
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+unknown: cea9aa3864777301888832e7a2e0f557
+evade
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_sunk
+defender_damaged
+evade
+defender_damaged
+defender_sunk
+unknown: cea9aa3864777301888832e7a2e0f557
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+evade
+evade
+defender_sunk
+defender_sunk
+evade
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+defender_sunk
+evade
+defender_damaged
+defender_damaged
+defender_sunk
+evade
+defender_sunk
+defender_damaged
+defender_damaged
+evade
+evade
+evade
+defender_damaged
+evade
+defender_damaged
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+defender_damaged
+defender_damaged
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+defender_damaged
+defender_damaged
+unknown: cea9aa3864777301888832e7a2e0f557
+evade
+defender_sunk
+evade
+evade
+defender_sunk
+evade
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_damaged
+evade
+evade
+defender_damaged
+evade
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_sunk
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+evade
+defender_sunk
+evade
+defender_sunk
+defender_damaged
+defender_sunk
+evade
+defender_sunk
+defender_damaged
+defender_sunk
+defender_sunk
+defender_damaged
+evade
+defender_damaged
+defender_damaged
+evade
+defender_damaged
+evade
+defender_damaged
+defender_sunk
+defender_damaged
+unknown: 8064e48e3f6ac4835e86701a38b7c3fa
+defender_damaged
+defender_sunk
