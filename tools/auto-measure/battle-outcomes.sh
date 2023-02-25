@@ -130,7 +130,8 @@ for (( i=0; i<$num_trials; i++ )); do
     echo "$outcome"
     if [[ "$outcome" =~ ^unknown ]]; then
       xdotool windowfocus $script_win
-      read
+      # Wait for this script to change then continue.
+      echo "$0" | entr -pz true
       # The user is assumed to have edited this script to add the
       # hash for the appropriate outcome. Now restart this script
       # to pick it up.

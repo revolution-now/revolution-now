@@ -90,5 +90,12 @@ TEST_CASE( "[mv-points] lua conversion" ) {
                MovementPoints( 4 ) ) == MovementPoints( 3 ) );
 }
 
+TEST_CASE( "[mv-points] operator*" ) {
+  MovementPoints mp1( 2 );
+  MovementPoints mp2 = MovementPoints::_2_3();
+  REQUIRE( mp1 * 3 == MovementPoints( 6 ) );
+  REQUIRE( mp2 * 3 == MovementPoints( 2 ) );
+}
+
 } // namespace
 } // namespace rn

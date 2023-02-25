@@ -286,19 +286,20 @@ Naval Combat Mechanics from the OG:
   1. Let attack=can_attack?combat:0; if attack for defender is >=
      attack for attacker then there is no evade. Otherwise, the
      evade probability will be computed according to the formula
-     m_defender/(m_attacker+m_defender), where m_defender is the
-     number of start-of-turn movement points of the attacker and
-     m_defender is the number of the defender. In other words,
-     we're not using the number of movement points that the unit
-     actually has at the time of the battle, but rather the ini-
-     tial movement point value that it would have at the start of
-     a turn. And remember to apply the Ferdinand Magellan move-
-     ment point bonus where applicable. Also, there is a bonus
-     that is applied for the privateer (whether attacker or de-
-     fender) whereby it gets is effective movement points doubled
-     for the purposes of the calculation. That makes it much more
-     difficult to evade a privateer and makes the privateer
-     better at evading when attacked.
+     m_def/(m_att+m_def), where m_def is the number of
+     start-of-turn movement points of the attacker plus one and
+     m_def is the equivalent for the defender. In other words, we
+     take the max movement points for the units and add one (note
+     that we don't use the current number of movement points).
+     Note that the Ferdinand Magellan movement point bonus is
+     also applied. Also, there is a bonus that is applied for the
+     privateer (whether attacker or defender) whereby it gets is
+     effective movement points doubled for the purposes of the
+     calculation. That makes it much more difficult to evade a
+     privateer and makes the privateer better at evading when at-
+     tacked. This doesn't appear to be documented anywhere; it,
+     just as with the above formula in general, was determined
+     through empirical observation over many thousands of trials.
   2. If either there is no evade possible or if the evade dice
      roll yielded no evade, then we proceed to the combat analy-
      sis.
@@ -350,16 +351,14 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
       attacker_ship_combat.evasion_bonus ? 2 : 1;
   int const defender_evade_bonus =
       defender_ship_combat.evasion_bonus ? 2 : 1;
-  int const attacker_evade =
-      attacker_evade_bonus *
-      movement_points( attacking_player, attacker.type() )
-          .atoms() /
-      3;
-  int const defender_evade =
-      defender_evade_bonus *
-      movement_points( defending_player, defender.type() )
-          .atoms() /
-      3;
+  MvPoints const attacker_evade =
+      ( movement_points( attacking_player, attacker.type() ) +
+        MovementPoints( 1 ) ) *
+      attacker_evade_bonus;
+  MvPoints const defender_evade =
+      ( movement_points( defending_player, defender.type() ) +
+        MovementPoints( 1 ) ) *
+      defender_evade_bonus;
   double const attacker_combat = attacker.desc().combat;
   double const defender_combat = defender.desc().combat;
   // Try evade.
@@ -368,24 +367,26 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
         defender_attack_strength < attacker_attack_strength;
     if( !try_evade ) return false;
     return rand_.bernoulli(
-        double( defender_evade ) /
-        ( defender_evade + attacker_evade ) );
+        double( defender_evade.atoms() ) /
+        ( defender_evade.atoms() + attacker_evade.atoms() ) );
   }();
 
+  CHECK( attacker_evade.atoms() % 3 == 0 );
+  CHECK( defender_evade.atoms() % 3 == 0 );
   // Fill out what we can so far.
   CombatShipAttackShip res{
       .outcome      = {},
       .winner       = nothing,
       .sink_weights = nothing,
-      .attacker     = { .id                     = attacker.id(),
-                        .modifiers              = {},
-                        .evade_weight           = attacker_evade,
+      .attacker     = { .id           = attacker.id(),
+                        .modifiers    = {},
+                        .evade_weight = attacker_evade.atoms() / 3,
                         .base_combat_weight     = attacker_combat,
                         .modified_combat_weight = attacker_combat,
                         .outcome                = {} },
-      .defender     = { .id                     = defender.id(),
-                        .modifiers              = {},
-                        .evade_weight           = defender_evade,
+      .defender     = { .id           = defender.id(),
+                        .modifiers    = {},
+                        .evade_weight = defender_evade.atoms() / 3,
                         .base_combat_weight     = defender_combat,
                         .modified_combat_weight = defender_combat,
                         .outcome                = {} } };

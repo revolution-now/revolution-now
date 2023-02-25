@@ -1283,7 +1283,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     defender = &W.add_unit_on_map( e_unit_type::caravel,
                                    { .x = 1, .y = 3 },
                                    e_nation::french );
-    W.expect_evade( .2 );
+    W.expect_evade( .217391 );
     expected = {
         .outcome      = e_naval_combat_outcome::evade,
         .winner       = nothing,
@@ -1291,7 +1291,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .attacker =
             { .id                     = attacker->id(),
               .modifiers              = {},
-              .evade_weight           = 8 + 8,
+              .evade_weight           = 8 + 1 + 8 + 1,
               .base_combat_weight     = 8,
               .modified_combat_weight = 8,
               .outcome =
@@ -1299,7 +1299,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender = {
             .id                     = defender->id(),
             .modifiers              = {},
-            .evade_weight           = 4,
+            .evade_weight           = 4 + 1,
             .base_combat_weight     = 2,
             .modified_combat_weight = 2,
             .outcome =
@@ -1316,7 +1316,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     defender = &W.add_unit_on_map( e_unit_type::caravel,
                                    { .x = 1, .y = 3 },
                                    e_nation::french );
-    W.expect_no_evade( .8 );
+    W.expect_no_evade( .782609 );
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
@@ -1326,7 +1326,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .attacker =
             { .id                     = attacker->id(),
               .modifiers              = {},
-              .evade_weight           = 8 + 8,
+              .evade_weight           = 8 + 1 + 8 + 1,
               .base_combat_weight     = 8,
               .modified_combat_weight = 8,
               .outcome =
@@ -1336,7 +1336,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender = {
             .id                     = defender->id(),
             .modifiers              = {},
-            .evade_weight           = 4,
+            .evade_weight           = 4 + 1,
             .base_combat_weight     = 2,
             .modified_combat_weight = 2,
             .outcome =
@@ -1353,7 +1353,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     defender = &W.add_unit_on_map( e_unit_type::merchantman,
                                    { .x = 1, .y = 3 },
                                    e_nation::french );
-    W.expect_no_evade( .761905 );
+    W.expect_no_evade( .75 );
     W.expect_defender_wins( .428571 );
     W.expect_no_sinks( 0.923077 );
     expected = {
@@ -1363,7 +1363,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .attacker =
             { .id                     = attacker->id(),
               .modifiers              = {},
-              .evade_weight           = 8 + 8,
+              .evade_weight           = 8 + 1 + 8 + 1,
               .base_combat_weight     = 8,
               .modified_combat_weight = 8,
               .outcome =
@@ -1373,7 +1373,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender = {
             .id                     = defender->id(),
             .modifiers              = {},
-            .evade_weight           = 5,
+            .evade_weight           = 5 + 1,
             .base_combat_weight     = 6,
             .modified_combat_weight = 6,
             .outcome =
@@ -1390,7 +1390,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     defender = &W.add_unit_on_map( e_unit_type::merchantman,
                                    { .x = 1, .y = 3 },
                                    e_nation::french );
-    W.expect_no_evade( .761905 );
+    W.expect_no_evade( .75 );
     W.expect_defender_wins( .428571 );
     W.expect_sinks( 0.076923 );
     expected = {
@@ -1399,7 +1399,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .sink_weights = Sinking{ .guns = 1, .hull = 12 },
         .attacker     = { .id                     = attacker->id(),
                           .modifiers              = {},
-                          .evade_weight           = 8 + 8,
+                          .evade_weight           = 8 + 1 + 8 + 1,
                           .base_combat_weight     = 8,
                           .modified_combat_weight = 8,
                           .outcome =
@@ -1407,7 +1407,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender     = {
                 .id                     = defender->id(),
                 .modifiers              = {},
-                .evade_weight           = 5,
+                .evade_weight           = 5 + 1,
                 .base_combat_weight     = 6,
                 .modified_combat_weight = 6,
                 .outcome =
@@ -1432,7 +1432,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .sink_weights = Sinking{ .guns = 12, .hull = 20 },
         .attacker     = { .id                     = attacker->id(),
                           .modifiers              = {},
-                          .evade_weight           = 6,
+                          .evade_weight           = 6 + 1,
                           .base_combat_weight     = 16,
                           .modified_combat_weight = 16,
                           .outcome =
@@ -1441,7 +1441,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender     = {
                 .id                     = defender->id(),
                 .modifiers              = {},
-                .evade_weight           = 6,
+                .evade_weight           = 6 + 1,
                 .base_combat_weight     = 10,
                 .modified_combat_weight = 10,
                 .outcome = EuroNavalUnitCombatOutcome::damaged{
@@ -1465,7 +1465,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .sink_weights = Sinking{ .guns = 12, .hull = 20 },
         .attacker     = { .id                     = attacker->id(),
                           .modifiers              = {},
-                          .evade_weight           = 6,
+                          .evade_weight           = 6 + 1,
                           .base_combat_weight     = 16,
                           .modified_combat_weight = 16,
                           .outcome =
@@ -1474,7 +1474,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender     = {
                 .id                     = defender->id(),
                 .modifiers              = {},
-                .evade_weight           = 6,
+                .evade_weight           = 6 + 1,
                 .base_combat_weight     = 10,
                 .modified_combat_weight = 10,
                 .outcome = EuroNavalUnitCombatOutcome::sunk{} } };
@@ -1488,7 +1488,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     defender = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 1, .y = 3 },
                                    e_nation::french );
-    W.expect_evade( .727273 );
+    W.expect_evade( .72 );
     expected = {
         .outcome      = e_naval_combat_outcome::evade,
         .winner       = nothing,
@@ -1496,7 +1496,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .attacker =
             { .id                     = attacker->id(),
               .modifiers              = {},
-              .evade_weight           = 6,
+              .evade_weight           = 6 + 1,
               .base_combat_weight     = 16,
               .modified_combat_weight = 16,
               .outcome =
@@ -1504,7 +1504,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender = {
             .id                     = defender->id(),
             .modifiers              = {},
-            .evade_weight           = 8 + 8,
+            .evade_weight           = 8 + 1 + 8 + 1,
             .base_combat_weight     = 8,
             .modified_combat_weight = 8,
             .outcome =
@@ -1520,7 +1520,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     defender = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 1, .y = 3 },
                                    e_nation::french );
-    W.expect_no_evade( .272727 );
+    W.expect_no_evade( .28 );
     W.expect_defender_wins( .333333 );
     W.expect_no_sinks( .888888 );
     expected = {
@@ -1530,7 +1530,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .attacker =
             { .id                     = attacker->id(),
               .modifiers              = {},
-              .evade_weight           = 6,
+              .evade_weight           = 6 + 1,
               .base_combat_weight     = 16,
               .modified_combat_weight = 16,
               .outcome =
@@ -1540,7 +1540,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender = {
             .id                     = defender->id(),
             .modifiers              = {},
-            .evade_weight           = 8 + 8,
+            .evade_weight           = 8 + 1 + 8 + 1,
             .base_combat_weight     = 8,
             .modified_combat_weight = 8,
             .outcome =
@@ -1556,7 +1556,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     defender = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 1, .y = 3 },
                                    e_nation::french );
-    W.expect_no_evade( .272727 );
+    W.expect_no_evade( .28 );
     W.expect_defender_wins( .333333 );
     W.expect_sinks( .111111 );
     expected = {
@@ -1565,7 +1565,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .sink_weights = Sinking{ .guns = 4, .hull = 32 },
         .attacker     = { .id                     = attacker->id(),
                           .modifiers              = {},
-                          .evade_weight           = 6,
+                          .evade_weight           = 6 + 1,
                           .base_combat_weight     = 16,
                           .modified_combat_weight = 16,
                           .outcome =
@@ -1573,7 +1573,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender     = {
                 .id                     = defender->id(),
                 .modifiers              = {},
-                .evade_weight           = 8 + 8,
+                .evade_weight           = 8 + 1 + 8 + 1,
                 .base_combat_weight     = 8,
                 .modified_combat_weight = 8,
                 .outcome =
@@ -1589,7 +1589,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     defender = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 1, .y = 3 },
                                    e_nation::french );
-    W.expect_no_evade( .272727 );
+    W.expect_no_evade( .28 );
     W.expect_attacker_wins( .666666 );
     W.expect_no_sinks( .5 );
     expected = {
@@ -1598,7 +1598,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .sink_weights = Sinking{ .guns = 12, .hull = 12 },
         .attacker     = { .id                     = attacker->id(),
                           .modifiers              = {},
-                          .evade_weight           = 6,
+                          .evade_weight           = 6 + 1,
                           .base_combat_weight     = 16,
                           .modified_combat_weight = 16,
                           .outcome =
@@ -1607,7 +1607,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender     = {
                 .id                     = defender->id(),
                 .modifiers              = {},
-                .evade_weight           = 8 + 8,
+                .evade_weight           = 8 + 1 + 8 + 1,
                 .base_combat_weight     = 8,
                 .modified_combat_weight = 8,
                 .outcome = EuroNavalUnitCombatOutcome::damaged{
@@ -1622,7 +1622,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     defender = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 1, .y = 3 },
                                    e_nation::french );
-    W.expect_no_evade( .272727 );
+    W.expect_no_evade( .28 );
     W.expect_attacker_wins( .666666 );
     W.expect_sinks( .5 );
     expected = {
@@ -1631,7 +1631,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .sink_weights = Sinking{ .guns = 12, .hull = 12 },
         .attacker     = { .id                     = attacker->id(),
                           .modifiers              = {},
-                          .evade_weight           = 6,
+                          .evade_weight           = 6 + 1,
                           .base_combat_weight     = 16,
                           .modified_combat_weight = 16,
                           .outcome =
@@ -1640,7 +1640,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender     = {
                 .id                     = defender->id(),
                 .modifiers              = {},
-                .evade_weight           = 8 + 8,
+                .evade_weight           = 8 + 1 + 8 + 1,
                 .base_combat_weight     = 8,
                 .modified_combat_weight = 8,
                 .outcome = EuroNavalUnitCombatOutcome::sunk{} } };
@@ -1665,7 +1665,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .attacker =
             { .id                     = attacker->id(),
               .modifiers              = {},
-              .evade_weight           = 5,
+              .evade_weight           = 5 + 1,
               .base_combat_weight     = 24,
               .modified_combat_weight = 24,
               .outcome =
@@ -1675,7 +1675,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender = {
             .id                     = defender->id(),
             .modifiers              = {},
-            .evade_weight           = 5,
+            .evade_weight           = 5 + 1,
             .base_combat_weight     = 24,
             .modified_combat_weight = 24,
             .outcome =
@@ -1700,7 +1700,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .sink_weights = Sinking{ .guns = 32, .hull = 64 },
         .attacker     = { .id                     = attacker->id(),
                           .modifiers              = {},
-                          .evade_weight           = 5,
+                          .evade_weight           = 5 + 1,
                           .base_combat_weight     = 24,
                           .modified_combat_weight = 24,
                           .outcome =
@@ -1708,7 +1708,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender     = {
                 .id                     = defender->id(),
                 .modifiers              = {},
-                .evade_weight           = 5,
+                .evade_weight           = 5 + 1,
                 .base_combat_weight     = 24,
                 .modified_combat_weight = 24,
                 .outcome =
@@ -1733,7 +1733,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .sink_weights = Sinking{ .guns = 32, .hull = 64 },
         .attacker     = { .id                     = attacker->id(),
                           .modifiers              = {},
-                          .evade_weight           = 5,
+                          .evade_weight           = 5 + 1,
                           .base_combat_weight     = 24,
                           .modified_combat_weight = 24,
                           .outcome =
@@ -1742,7 +1742,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender     = {
                 .id                     = defender->id(),
                 .modifiers              = {},
-                .evade_weight           = 5,
+                .evade_weight           = 5 + 1,
                 .base_combat_weight     = 24,
                 .modified_combat_weight = 24,
                 .outcome = EuroNavalUnitCombatOutcome::damaged{
@@ -1767,7 +1767,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .sink_weights = Sinking{ .guns = 32, .hull = 64 },
         .attacker     = { .id                     = attacker->id(),
                           .modifiers              = {},
-                          .evade_weight           = 5,
+                          .evade_weight           = 5 + 1,
                           .base_combat_weight     = 24,
                           .modified_combat_weight = 24,
                           .outcome =
@@ -1776,7 +1776,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender     = {
                 .id                     = defender->id(),
                 .modifiers              = {},
-                .evade_weight           = 5,
+                .evade_weight           = 5 + 1,
                 .base_combat_weight     = 24,
                 .modified_combat_weight = 24,
                 .outcome = EuroNavalUnitCombatOutcome::sunk{} } };
@@ -1801,7 +1801,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .attacker =
             { .id                     = attacker->id(),
               .modifiers              = {},
-              .evade_weight           = 8 + 8,
+              .evade_weight           = 8 + 1 + 8 + 1,
               .base_combat_weight     = 8,
               .modified_combat_weight = 8,
               .outcome =
@@ -1811,7 +1811,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender = {
             .id                     = defender->id(),
             .modifiers              = {},
-            .evade_weight           = 6,
+            .evade_weight           = 6 + 1,
             .base_combat_weight     = 16,
             .modified_combat_weight = 16,
             .outcome =
@@ -1836,7 +1836,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .sink_weights = Sinking{ .guns = 12, .hull = 12 },
         .attacker     = { .id                     = attacker->id(),
                           .modifiers              = {},
-                          .evade_weight           = 8 + 8,
+                          .evade_weight           = 8 + 1 + 8 + 1,
                           .base_combat_weight     = 8,
                           .modified_combat_weight = 8,
                           .outcome =
@@ -1844,7 +1844,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender     = {
                 .id                     = defender->id(),
                 .modifiers              = {},
-                .evade_weight           = 6,
+                .evade_weight           = 6 + 1,
                 .base_combat_weight     = 16,
                 .modified_combat_weight = 16,
                 .outcome =
@@ -1869,7 +1869,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .sink_weights = Sinking{ .guns = 4, .hull = 32 },
         .attacker     = { .id                     = attacker->id(),
                           .modifiers              = {},
-                          .evade_weight           = 8 + 8,
+                          .evade_weight           = 8 + 1 + 8 + 1,
                           .base_combat_weight     = 8,
                           .modified_combat_weight = 8,
                           .outcome =
@@ -1878,7 +1878,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender     = {
                 .id                     = defender->id(),
                 .modifiers              = {},
-                .evade_weight           = 6,
+                .evade_weight           = 6 + 1,
                 .base_combat_weight     = 16,
                 .modified_combat_weight = 16,
                 .outcome = EuroNavalUnitCombatOutcome::damaged{
@@ -1903,7 +1903,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .sink_weights = Sinking{ .guns = 4, .hull = 32 },
         .attacker     = { .id                     = attacker->id(),
                           .modifiers              = {},
-                          .evade_weight           = 8 + 8,
+                          .evade_weight           = 8 + 1 + 8 + 1,
                           .base_combat_weight     = 8,
                           .modified_combat_weight = 8,
                           .outcome =
@@ -1912,7 +1912,7 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
         .defender     = {
                 .id                     = defender->id(),
                 .modifiers              = {},
-                .evade_weight           = 6,
+                .evade_weight           = 6 + 1,
                 .base_combat_weight     = 16,
                 .modified_combat_weight = 16,
                 .outcome = EuroNavalUnitCombatOutcome::sunk{} } };
@@ -1939,7 +1939,7 @@ TEST_CASE(
     defender = &W.add_unit_on_map( e_unit_type::caravel,
                                    { .x = 1, .y = 3 },
                                    e_nation::french );
-    W.expect_no_evade( .8 );
+    W.expect_no_evade( .782609 );
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
@@ -1949,7 +1949,7 @@ TEST_CASE(
         .attacker =
             { .id                     = attacker->id(),
               .modifiers              = {},
-              .evade_weight           = 8 + 8,
+              .evade_weight           = 8 + 1 + 8 + 1,
               .base_combat_weight     = 8,
               .modified_combat_weight = 8,
               .outcome =
@@ -1959,7 +1959,7 @@ TEST_CASE(
         .defender = {
             .id                     = defender->id(),
             .modifiers              = {},
-            .evade_weight           = 4,
+            .evade_weight           = 4 + 1,
             .base_combat_weight     = 2,
             .modified_combat_weight = 2,
             .outcome =
@@ -1975,7 +1975,7 @@ TEST_CASE(
     defender = &W.add_unit_on_map( e_unit_type::caravel,
                                    { .x = 1, .y = 3 },
                                    e_nation::french );
-    W.expect_no_evade( .8 );
+    W.expect_no_evade( .782609 );
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
@@ -1984,7 +1984,7 @@ TEST_CASE(
         .sink_weights = Sinking{ .guns = 0, .hull = 12 },
         .attacker     = { .id                     = attacker->id(),
                           .modifiers              = {},
-                          .evade_weight           = 8 + 8,
+                          .evade_weight           = 8 + 1 + 8 + 1,
                           .base_combat_weight     = 8,
                           .modified_combat_weight = 8,
                           .outcome =
@@ -1992,7 +1992,7 @@ TEST_CASE(
         .defender     = {
                 .id                     = defender->id(),
                 .modifiers              = {},
-                .evade_weight           = 4,
+                .evade_weight           = 4 + 1,
                 .base_combat_weight     = 2,
                 .modified_combat_weight = 2,
                 .outcome =
@@ -2010,7 +2010,7 @@ TEST_CASE(
     defender = &W.add_unit_on_map( e_unit_type::caravel,
                                    { .x = 1, .y = 3 },
                                    e_nation::french );
-    W.expect_no_evade( .8 );
+    W.expect_no_evade( .782609 );
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
@@ -2020,7 +2020,7 @@ TEST_CASE(
         .attacker =
             { .id                     = attacker->id(),
               .modifiers              = {},
-              .evade_weight           = 8 + 8,
+              .evade_weight           = 8 + 1 + 8 + 1,
               .base_combat_weight     = 8,
               .modified_combat_weight = 8,
               .outcome =
@@ -2030,7 +2030,7 @@ TEST_CASE(
         .defender = {
             .id                     = defender->id(),
             .modifiers              = {},
-            .evade_weight           = 4,
+            .evade_weight           = 4 + 1,
             .base_combat_weight     = 2,
             .modified_combat_weight = 2,
             .outcome =
@@ -2048,7 +2048,7 @@ TEST_CASE(
     defender = &W.add_unit_on_map( e_unit_type::caravel,
                                    { .x = 1, .y = 3 },
                                    e_nation::french );
-    W.expect_no_evade( .8 );
+    W.expect_no_evade( .782609 );
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
@@ -2057,7 +2057,7 @@ TEST_CASE(
         .sink_weights = Sinking{ .guns = 0, .hull = 12 },
         .attacker     = { .id                     = attacker->id(),
                           .modifiers              = {},
-                          .evade_weight           = 8 + 8,
+                          .evade_weight           = 8 + 1 + 8 + 1,
                           .base_combat_weight     = 8,
                           .modified_combat_weight = 8,
                           .outcome =
@@ -2068,7 +2068,7 @@ TEST_CASE(
         .defender     = {
                 .id                     = defender->id(),
                 .modifiers              = {},
-                .evade_weight           = 4,
+                .evade_weight           = 4 + 1,
                 .base_combat_weight     = 2,
                 .modified_combat_weight = 2,
                 .outcome =
@@ -2089,7 +2089,7 @@ TEST_CASE(
     defender = &W.add_unit_on_map( e_unit_type::caravel,
                                    { .x = 1, .y = 3 },
                                    e_nation::french );
-    W.expect_no_evade( .8 );
+    W.expect_no_evade( .782609 );
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
@@ -2098,7 +2098,7 @@ TEST_CASE(
         .sink_weights = Sinking{ .guns = 0, .hull = 12 },
         .attacker     = { .id                     = attacker->id(),
                           .modifiers              = {},
-                          .evade_weight           = 8 + 8,
+                          .evade_weight           = 8 + 1 + 8 + 1,
                           .base_combat_weight     = 8,
                           .modified_combat_weight = 8,
                           .outcome =
@@ -2109,7 +2109,7 @@ TEST_CASE(
         .defender     = {
                 .id                     = defender->id(),
                 .modifiers              = {},
-                .evade_weight           = 4,
+                .evade_weight           = 4 + 1,
                 .base_combat_weight     = 2,
                 .modified_combat_weight = 2,
                 .outcome =
@@ -2125,7 +2125,7 @@ TEST_CASE(
     defender = &W.add_unit_on_map( e_unit_type::caravel,
                                    { .x = 1, .y = 3 },
                                    e_nation::french );
-    W.expect_no_evade( .6 );
+    W.expect_no_evade( .583333 );
     W.expect_defender_wins( .111111 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
@@ -2135,7 +2135,7 @@ TEST_CASE(
         .attacker =
             { .id                     = attacker->id(),
               .modifiers              = {},
-              .evade_weight           = 6,
+              .evade_weight           = 6 + 1,
               .base_combat_weight     = 16,
               .modified_combat_weight = 16,
               .outcome =
@@ -2145,7 +2145,7 @@ TEST_CASE(
         .defender = {
             .id                     = defender->id(),
             .modifiers              = {},
-            .evade_weight           = 4,
+            .evade_weight           = 4 + 1,
             .base_combat_weight     = 2,
             .modified_combat_weight = 2,
             .outcome =

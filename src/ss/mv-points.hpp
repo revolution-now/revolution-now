@@ -135,6 +135,10 @@ class ND MovementPoints {
     return MovementPoints( 0, -atoms_ );
   }
 
+  constexpr MovementPoints operator*( int factor ) const {
+    return MovementPoints( 0, atoms_ * factor );
+  }
+
   friend void to_str( MovementPoints const& o, std::string& out,
                       base::ADL_t );
 
