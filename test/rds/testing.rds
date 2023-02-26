@@ -59,7 +59,7 @@ sumtype.MyVariant2 {
     cost 'int',
   },
 
-  _features {}
+  _features { equality }
 }
 
 

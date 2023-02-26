@@ -497,14 +497,14 @@ struct CodeGenerator {
     section( "Sum Type: "s + sumtype.name );
     open_ns( ns );
     open_ns( "detail" );
+    bool const emit_equality =
+        item_has_feature( sumtype, expr::e_feature::equality );
+    bool const emit_validation =
+        item_has_feature( sumtype, expr::e_feature::validation );
     if( !sumtype.alternatives.empty() ) {
       open_ns( sumtype.name );
       for( expr::Alternative const& alt :
            sumtype.alternatives ) {
-        bool emit_equality = item_has_feature(
-            sumtype, expr::e_feature::equality );
-        bool emit_validation = item_has_feature(
-            sumtype, expr::e_feature::validation );
         emit_sumtype_alternative( sumtype.tmpl_params, alt,
                                   emit_equality,
                                   emit_validation );
@@ -554,6 +554,27 @@ struct CodeGenerator {
             sumtype.name );
       line( "Base const& as_base() const& { return *this; }" );
       line( "Base&       as_base()      & { return *this; }" );
+
+      // Emit operator==.
+      if( emit_equality ) {
+        newline();
+        // These allow us to compare with an alternative object
+        // directly, which std::variant does not allow natively
+        // to avoid the ambiguity when two alternative types are
+        // same, a problem that we don't have here.
+        comment( "Comparison with alternatives." );
+        for( expr::Alternative const& alt :
+             sumtype.alternatives ) {
+          line( "bool operator==( {} const& rhs ) const {{",
+                alt.name );
+          {
+            auto _ = indent();
+            line( "return holds<{}>() && (get<{}>() == rhs);",
+                  alt.name, alt.name );
+          }
+          line( "}" );
+        }
+      }
     }
     line( "};" );
     newline();

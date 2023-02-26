@@ -81,6 +81,14 @@ namespace rdstest {
     Maybe( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
+
+    // Comparison with alternatives.
+    bool operator==( nothing const& rhs ) const {
+      return holds<nothing>() && (get<nothing>() == rhs);
+    }
+    bool operator==( just const& rhs ) const {
+      return holds<just>() && (get<just>() == rhs);
+    }
   };
 
   // TODO: temporary.
@@ -194,6 +202,17 @@ namespace rdstest {
     MyVariant1( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
+
+    // Comparison with alternatives.
+    bool operator==( happy const& rhs ) const {
+      return holds<happy>() && (get<happy>() == rhs);
+    }
+    bool operator==( sad const& rhs ) const {
+      return holds<sad>() && (get<sad>() == rhs);
+    }
+    bool operator==( excited const& rhs ) const {
+      return holds<excited>() && (get<excited>() == rhs);
+    }
   };
 
   // TODO: temporary.
@@ -276,15 +295,27 @@ namespace rdstest {
       struct first {
         std::string name = {};
         bool        b = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct first const& ) const = default;
+        bool operator!=( struct first const& ) const = default;
       };
 
       struct second {
         bool flag1 = {};
         bool flag2 = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct second const& ) const = default;
+        bool operator!=( struct second const& ) const = default;
       };
 
       struct third {
         int cost = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct third const& ) const = default;
+        bool operator!=( struct third const& ) const = default;
       };
 
     } // namespace MyVariant2
@@ -314,6 +345,17 @@ namespace rdstest {
     MyVariant2( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
+
+    // Comparison with alternatives.
+    bool operator==( first const& rhs ) const {
+      return holds<first>() && (get<first>() == rhs);
+    }
+    bool operator==( second const& rhs ) const {
+      return holds<second>() && (get<second>() == rhs);
+    }
+    bool operator==( third const& rhs ) const {
+      return holds<third>() && (get<third>() == rhs);
+    }
   };
 
   // TODO: temporary.
@@ -448,6 +490,17 @@ namespace rdstest::inner {
     MyVariant3( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
+
+    // Comparison with alternatives.
+    bool operator==( a1 const& rhs ) const {
+      return holds<a1>() && (get<a1>() == rhs);
+    }
+    bool operator==( a2 const& rhs ) const {
+      return holds<a2>() && (get<a2>() == rhs);
+    }
+    bool operator==( a3 const& rhs ) const {
+      return holds<a3>() && (get<a3>() == rhs);
+    }
   };
 
   // TODO: temporary.
@@ -583,6 +636,17 @@ namespace rdstest::inner {
     MyVariant4( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
+
+    // Comparison with alternatives.
+    bool operator==( first const& rhs ) const {
+      return holds<first>() && (get<first>() == rhs);
+    }
+    bool operator==( _2nd const& rhs ) const {
+      return holds<_2nd>() && (get<_2nd>() == rhs);
+    }
+    bool operator==( third const& rhs ) const {
+      return holds<third>() && (get<third>() == rhs);
+    }
   };
 
   // TODO: temporary.
@@ -722,6 +786,17 @@ namespace rdstest::inner {
     TemplateTwoParams( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
+
+    // Comparison with alternatives.
+    bool operator==( first_alternative const& rhs ) const {
+      return holds<first_alternative>() && (get<first_alternative>() == rhs);
+    }
+    bool operator==( second_alternative const& rhs ) const {
+      return holds<second_alternative>() && (get<second_alternative>() == rhs);
+    }
+    bool operator==( third_alternative const& rhs ) const {
+      return holds<third_alternative>() && (get<third_alternative>() == rhs);
+    }
   };
 
   // TODO: temporary.
@@ -846,6 +921,14 @@ namespace rdstest::inner {
     CompositeTemplateTwo( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
+
+    // Comparison with alternatives.
+    bool operator==( first const& rhs ) const {
+      return holds<first>() && (get<first>() == rhs);
+    }
+    bool operator==( second const& rhs ) const {
+      return holds<second>() && (get<second>() == rhs);
+    }
   };
 
   // TODO: temporary.
@@ -959,6 +1042,17 @@ namespace rn {
     MySumtype( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
+
+    // Comparison with alternatives.
+    bool operator==( none const& rhs ) const {
+      return holds<none>() && (get<none>() == rhs);
+    }
+    bool operator==( some const& rhs ) const {
+      return holds<some>() && (get<some>() == rhs);
+    }
+    bool operator==( more const& rhs ) const {
+      return holds<more>() && (get<more>() == rhs);
+    }
   };
 
   // TODO: temporary.
@@ -1099,6 +1193,20 @@ namespace rn {
     OnOffState( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
+
+    // Comparison with alternatives.
+    bool operator==( off const& rhs ) const {
+      return holds<off>() && (get<off>() == rhs);
+    }
+    bool operator==( on const& rhs ) const {
+      return holds<on>() && (get<on>() == rhs);
+    }
+    bool operator==( switching_on const& rhs ) const {
+      return holds<switching_on>() && (get<switching_on>() == rhs);
+    }
+    bool operator==( switching_off const& rhs ) const {
+      return holds<switching_off>() && (get<switching_off>() == rhs);
+    }
   };
 
   // TODO: temporary.
@@ -1232,6 +1340,14 @@ namespace rn {
     OnOffEvent( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
+
+    // Comparison with alternatives.
+    bool operator==( turn_off const& rhs ) const {
+      return holds<turn_off>() && (get<turn_off>() == rhs);
+    }
+    bool operator==( turn_on const& rhs ) const {
+      return holds<turn_on>() && (get<turn_on>() == rhs);
+    }
   };
 
   // TODO: temporary.
