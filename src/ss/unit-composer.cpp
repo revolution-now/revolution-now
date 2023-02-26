@@ -177,16 +177,18 @@ maybe<Commodity> commodity_from_modifier(
   UnitTypeModifierTraits const& traits =
       config_unit_type.composition.modifier_traits[mod];
   switch( traits.association.to_enum() ) {
-    using namespace ModifierAssociation;
+    using e = ModifierAssociation::e;
     case e::none:
       return nothing;
     case e::commodity: {
-      auto const& o = traits.association.get<commodity>();
+      auto const& o = traits.association
+                          .get<ModifierAssociation::commodity>();
       return o.commodity;
     }
     case e::inventory: {
-      auto const& o        = traits.association.get<inventory>();
-      int const   quantity = comp.inventory()[o.type];
+      auto const& o = traits.association
+                          .get<ModifierAssociation::inventory>();
+      int const quantity = comp.inventory()[o.type];
       UnitInventoryTraits const& inv_traits =
           config_unit_type.composition.inventory_traits[o.type];
       UNWRAP_RETURN( comm_type, inv_traits.commodity );

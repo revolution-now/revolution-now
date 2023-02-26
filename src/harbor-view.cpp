@@ -157,20 +157,19 @@ struct HarborPlane::Impl : public Plane {
     Coord const sprite_upper_left =
         state.where - state.click_offset +
         canvas_origin.distance_from_origin();
-    using namespace HarborDraggableObject;
     // Render the dragged item.
     overload_visit(
         state.object,
-        [&]( unit const& o ) {
+        [&]( HarborDraggableObject::unit const& o ) {
           render_unit( renderer, sprite_upper_left,
                        ss_.units.unit_for( o.id ),
                        UnitRenderOptions{} );
         },
-        [&]( market_commodity const& o ) {
+        [&]( HarborDraggableObject::market_commodity const& o ) {
           render_commodity( renderer, sprite_upper_left,
                             o.comm.type );
         },
-        [&]( cargo_commodity const& o ) {
+        [&]( HarborDraggableObject::cargo_commodity const& o ) {
           render_commodity( renderer, sprite_upper_left,
                             o.comm.type );
         } );

@@ -73,9 +73,9 @@ maybe<UnitType> promoted_unit_type( UnitType        ut,
     UNWRAP_RETURN( promo,
                    unit_attr( ut.base_type() ).promotion );
     switch( promo.to_enum() ) {
-      using namespace UnitPromotion;
+      using e = UnitPromotion::e;
       case e::fixed:
-        return promo.get<fixed>().type;
+        return promo.get<UnitPromotion::fixed>().type;
       case e::occupation:
         // In this case we need to mind the occupation of the
         // unit, but there is no derived type to provide one for
@@ -108,7 +108,7 @@ maybe<UnitType> promoted_unit_type( UnitType        ut,
     // comes down to the effective type.
     DCHECK( eff_type_promo.has_value() );
     switch( eff_type_promo->to_enum() ) {
-      using namespace UnitPromotion;
+      using e = UnitPromotion::e;
       case e::fixed:
       case e::occupation:
         // This should not happen because if it happens then that
@@ -131,7 +131,8 @@ maybe<UnitType> promoted_unit_type( UnitType        ut,
         // add a modifier to my UnitType." An example of this
         // would be a veteran dragoon getting promoted in battle
         // to a continental cavalry.
-        auto const&          o = eff_type_promo->get<modifier>();
+        auto const& o =
+            eff_type_promo->get<UnitPromotion::modifier>();
         e_unit_type_modifier modifier = o.kind;
         // Note that we don't check the independence status in
         // this function when we get the "independence" modifier
@@ -146,7 +147,7 @@ maybe<UnitType> promoted_unit_type( UnitType        ut,
   // At this point, both base type and derived types specify pro-
   // motion modes and they have different types.
   switch( eff_type_promo->to_enum() ) {
-    using namespace UnitPromotion;
+    using e = UnitPromotion::e;
     case e::fixed:
     case e::occupation:
       // This should not happen because if it happens then that
@@ -157,9 +158,10 @@ maybe<UnitType> promoted_unit_type( UnitType        ut,
       // should have already handled above.
       SHOULD_NOT_BE_HERE;
     case e::expertise: {
-      auto const& o_derived = eff_type_promo->get<expertise>();
+      auto const& o_derived =
+          eff_type_promo->get<UnitPromotion::expertise>();
       switch( base_promo->to_enum() ) {
-        using namespace UnitPromotion;
+        using e = UnitPromotion::e;
         case e::fixed: {
           // derived type: expertise
           // base type:    fixed
@@ -167,7 +169,8 @@ maybe<UnitType> promoted_unit_type( UnitType        ut,
           // In this case the derived type is granting expertise,
           // but the base type wants to be promoted always to a
           // fixed type, so we will respect that.
-          auto const& o = base_promo->get<fixed>();
+          auto const& o =
+              base_promo->get<UnitPromotion::fixed>();
           return change_base_with_constant_modifiers( ut,
                                                       o.type );
         }
@@ -207,7 +210,8 @@ maybe<UnitType> promoted_unit_type( UnitType        ut,
       SHOULD_NOT_BE_HERE;
     }
     case e::modifier: {
-      auto const& o_derived = eff_type_promo->get<modifier>();
+      auto const& o_derived =
+          eff_type_promo->get<UnitPromotion::modifier>();
       // If the derived type is asking to add a modifier, then
       // just attempt it and if it fails, do nothing. In this
       // scenario we just ignore what the base type wants.

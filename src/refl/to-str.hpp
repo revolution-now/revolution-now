@@ -30,7 +30,10 @@ std::string type_list_tuple_to_names( std::tuple<Types...>* ) {
   return base::type_list_to_names<Types...>();
 }
 
-std::string build_ns_prefix_from_refl_ns( std::string_view ns );
+// tmpl_params is only non-empty for templated sumtype alterna-
+// tives where the "namespace" is actually a templated class.
+std::string build_ns_prefix_from_refl_ns(
+    std::string_view ns, std::string_view tmpl_params );
 
 }
 } // namespace refl
@@ -70,10 +73,6 @@ void to_str( S const& o, std::string& out, ADL_t tag ) {
   using Tr = refl::traits<S>;
   static constexpr size_t kNumFields =
       std::tuple_size_v<decltype( Tr::fields )>;
-  static std::string const ns =
-      refl::detail::build_ns_prefix_from_refl_ns( Tr::ns );
-  out += ns;
-  out += Tr::name;
   static std::string const tmpl_params = [] {
     std::string res;
     using tuple_ptr = typename Tr::template_types*;
@@ -86,7 +85,13 @@ void to_str( S const& o, std::string& out, ADL_t tag ) {
     res += '>';
     return res;
   }();
-  out += tmpl_params;
+  static std::string const ns =
+      refl::detail::build_ns_prefix_from_refl_ns(
+          Tr::ns,
+          Tr::is_sumtype_alternative ? tmpl_params : "" );
+  out += ns;
+  out += Tr::name;
+  if constexpr( !Tr::is_sumtype_alternative ) out += tmpl_params;
   if( kNumFields == 0 ) return;
   out += "{";
   FOR_CONSTEXPR_IDX( Idx, kNumFields ) {
@@ -108,7 +113,8 @@ void to_str( S const& o, std::string& out, ADL_t tag ) {
 template<refl::WrapsReflected T>
 void to_str( T const& o, std::string& out, ADL_t tag ) {
   static std::string const ns =
-      refl::detail::build_ns_prefix_from_refl_ns( T::refl_ns );
+      refl::detail::build_ns_prefix_from_refl_ns(
+          T::refl_ns, /*tmpl_params=*/"" );
   out += ns;
   out += T::refl_name;
 

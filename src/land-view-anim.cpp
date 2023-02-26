@@ -281,14 +281,16 @@ wait<> LandViewAnimator::ensure_visible_unit(
 wait<> LandViewAnimator::animate_primitive(
     AnimationPrimitive_t const& primitive ) {
   switch( primitive.to_enum() ) {
-    using namespace AnimationPrimitive;
+    using e = AnimationPrimitive::e;
     case e::delay: {
-      auto& [duration] = primitive.get<delay>();
+      auto& [duration] =
+          primitive.get<AnimationPrimitive::delay>();
       co_await duration;
       break;
     }
     case e::play_sound: {
-      auto& [what] = primitive.get<play_sound>();
+      auto& [what] =
+          primitive.get<AnimationPrimitive::play_sound>();
       // TODO: should we co_await on the length of the sound ef-
       // fect? Maybe that would be a separate animation such as
       // `play_sound_wait`.
@@ -296,7 +298,8 @@ wait<> LandViewAnimator::animate_primitive(
       break;
     }
     case e::hide_unit: {
-      auto& [unit_id] = primitive.get<hide_unit>();
+      auto& [unit_id] =
+          primitive.get<AnimationPrimitive::hide_unit>();
       auto popper = add_unit_animation<UnitAnimationState::hide>(
           unit_id );
       // Never resumes.
@@ -304,7 +307,8 @@ wait<> LandViewAnimator::animate_primitive(
       SHOULD_NOT_BE_HERE;
     }
     case e::front_unit: {
-      auto& [unit_id] = primitive.get<front_unit>();
+      auto& [unit_id] =
+          primitive.get<AnimationPrimitive::front_unit>();
       auto popper =
           add_unit_animation<UnitAnimationState::front>(
               unit_id );
@@ -313,7 +317,8 @@ wait<> LandViewAnimator::animate_primitive(
       SHOULD_NOT_BE_HERE;
     }
     case e::slide_unit: {
-      auto& [unit_id, direction] = primitive.get<slide_unit>();
+      auto& [unit_id, direction] =
+          primitive.get<AnimationPrimitive::slide_unit>();
       // Ensure that both src and dst squares are visible.
       Coord const src =
           coord_for_unit_indirect_or_die( ss_.units, unit_id );
@@ -328,21 +333,23 @@ wait<> LandViewAnimator::animate_primitive(
       break;
     }
     case e::depixelate_unit: {
-      auto& [unit_id] = primitive.get<depixelate_unit>();
+      auto& [unit_id] =
+          primitive.get<AnimationPrimitive::depixelate_unit>();
       co_await ensure_visible_unit( unit_id );
       co_await unit_depixelation_throttler( unit_id,
                                             /*target=*/nothing );
       break;
     }
     case e::enpixelate_unit: {
-      auto& [unit_id] = primitive.get<enpixelate_unit>();
+      auto& [unit_id] =
+          primitive.get<AnimationPrimitive::enpixelate_unit>();
       co_await ensure_visible_unit( unit_id );
       co_await unit_enpixelation_throttler( unit_id );
       break;
     }
     case e::depixelate_euro_unit_to_target: {
-      auto& [unit_id, target] =
-          primitive.get<depixelate_euro_unit_to_target>();
+      auto& [unit_id, target] = primitive.get<
+          AnimationPrimitive::depixelate_euro_unit_to_target>();
       co_await ensure_visible_unit( unit_id );
       co_await unit_depixelation_throttler(
           unit_id, unit_attr( target ).tile );
@@ -350,14 +357,16 @@ wait<> LandViewAnimator::animate_primitive(
     }
     case e::depixelate_native_unit_to_target: {
       auto& [unit_id, target] =
-          primitive.get<depixelate_native_unit_to_target>();
+          primitive.get<AnimationPrimitive::
+                            depixelate_native_unit_to_target>();
       co_await ensure_visible_unit( unit_id );
       co_await unit_depixelation_throttler(
           unit_id, unit_attr( target ).tile );
       break;
     }
     case e::depixelate_colony: {
-      auto& [colony_id] = primitive.get<depixelate_colony>();
+      auto& [colony_id] =
+          primitive.get<AnimationPrimitive::depixelate_colony>();
       Colony const& colony =
           ss_.colonies.colony_for( colony_id );
       co_await ensure_visible( colony.location );
@@ -365,7 +374,9 @@ wait<> LandViewAnimator::animate_primitive(
       break;
     }
     case e::depixelate_dwelling: {
-      auto& [dwelling_id] = primitive.get<depixelate_dwelling>();
+      auto& [dwelling_id] =
+          primitive
+              .get<AnimationPrimitive::depixelate_dwelling>();
       Dwelling const& dwelling =
           ss_.natives.dwelling_for( dwelling_id );
       Coord const location =

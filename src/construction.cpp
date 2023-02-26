@@ -123,13 +123,13 @@ e_water_access colony_water_access( SSConst const& ss, TS& ts,
 *****************************************************************/
 string construction_name( Construction_t const& construction ) {
   switch( construction.to_enum() ) {
-    using namespace Construction;
+    using e = Construction::e;
     case e::building: {
-      auto& o = construction.get<building>();
+      auto& o = construction.get<Construction::building>();
       return config_colony.building_display_names[o.what];
     }
     case e::unit: {
-      auto& o = construction.get<unit>();
+      auto& o = construction.get<Construction::unit>();
       return unit_attr( o.type ).name;
     }
   }

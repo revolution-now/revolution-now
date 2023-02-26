@@ -99,11 +99,12 @@ string_view constexpr kReduceStockadeThreeMsg =
 *****************************************************************/
 Cargo_t to_cargo( ColViewObject_t const& o ) {
   switch( o.to_enum() ) {
-    using namespace ColViewObject;
+    using e = ColViewObject::e;
     case e::unit:
       return Cargo::unit{ o.get<ColViewObject::unit>().id };
     case e::commodity:
-      return Cargo::commodity{ o.get<commodity>().comm };
+      return Cargo::commodity{
+          o.get<ColViewObject::commodity>().comm };
   }
 }
 
@@ -692,7 +693,7 @@ class CargoView : public ui::View,
     // see if we have room for what is being dragged.
     auto& unit = ss_.units.unit_for( *holder_ );
     switch( o.to_enum() ) {
-      using namespace ColViewObject;
+      using e = ColViewObject::e;
       case e::unit: {
         UnitId id = o.get<ColViewObject::unit>().id;
         // Note that we allow wagon trains to recieve units at
@@ -705,13 +706,13 @@ class CargoView : public ui::View,
         return o;
       }
       case e::commodity:
-        Commodity c = o.get<commodity>().comm;
+        Commodity c = o.get<ColViewObject::commodity>().comm;
         int       max_quantity =
             unit.cargo().max_commodity_quantity_that_fits(
                 c.type );
         c.quantity = clamp( c.quantity, 0, max_quantity );
         if( c.quantity == 0 ) return nothing;
-        return commodity{ .comm = c };
+        return ColViewObject::commodity{ .comm = c };
     }
   }
 
@@ -1826,16 +1827,15 @@ void colview_drag_n_drop_draw(
     Coord const&                      canvas_origin ) {
   Coord sprite_upper_left = state.where - state.click_offset +
                             canvas_origin.distance_from_origin();
-  using namespace ColViewObject;
   // Render the dragged item.
   overload_visit(
       state.object,
-      [&]( unit const& o ) {
+      [&]( ColViewObject::unit const& o ) {
         render_unit( renderer, sprite_upper_left,
                      ss.units.unit_for( o.id ),
                      UnitRenderOptions{} );
       },
-      [&]( commodity const& o ) {
+      [&]( ColViewObject::commodity const& o ) {
         render_commodity( renderer, sprite_upper_left,
                           o.comm.type );
       } );

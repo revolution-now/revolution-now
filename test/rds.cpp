@@ -75,24 +75,24 @@ static_assert( is_same_v<::rdstest::inner::MyVariant3_t,
 TEST_CASE( "[rds] Maybe" ) {
   Maybe_t<int> maybe;
   REQUIRE( fmt::format( "{}", maybe ) ==
-           "rdstest::Maybe::nothing<int>" );
+           "rdstest::Maybe<int>::nothing" );
 
-  maybe = Maybe::nothing<int>{};
+  maybe = Maybe<int>::nothing{};
   REQUIRE( fmt::format( "{}", maybe ) ==
-           "rdstest::Maybe::nothing<int>" );
+           "rdstest::Maybe<int>::nothing" );
 
-  auto just = Maybe::just<int>{ 5 };
+  auto just = Maybe<int>::just{ 5 };
   static_assert( is_same_v<decltype( just.val ), int> );
   maybe = just;
   REQUIRE( fmt::format( "{}", maybe ) ==
-           "rdstest::Maybe::just<int>{val=5}" );
+           "rdstest::Maybe<int>::just{val=5}" );
 
   switch( maybe.to_enum() ) {
-    case Maybe::e::nothing: //
+    case Maybe<int>::e::nothing: //
       REQUIRE( false );
       break;
-    case Maybe::e::just: {
-      auto& val = maybe.get<Maybe::just<int>>();
+    case Maybe<int>::e::just: {
+      auto& val = maybe.get<Maybe<int>::just>();
       REQUIRE( val.val == 5 );
       break;
     }
@@ -100,11 +100,11 @@ TEST_CASE( "[rds] Maybe" ) {
 
   Maybe_t<rn::my_optional<char>> maybe_op_str;
   REQUIRE( fmt::format( "{}", maybe_op_str ) ==
-           "rdstest::Maybe::nothing<rn::my_optional<char>>" );
-  maybe_op_str = Maybe::just<rn::my_optional<char>>{ { 'c' } };
+           "rdstest::Maybe<rn::my_optional<char>>::nothing" );
+  maybe_op_str = Maybe<rn::my_optional<char>>::just{ { 'c' } };
   REQUIRE(
       fmt::format( "{}", maybe_op_str ) ==
-      "rdstest::Maybe::just<rn::my_optional<char>>{val=c}" );
+      "rdstest::Maybe<rn::my_optional<char>>::just{val=c}" );
 }
 
 TEST_CASE( "[rds] MyVariant1" ) {
@@ -241,47 +241,46 @@ TEST_CASE( "[rds] MyVariant4" ) {
 TEST_CASE( "[rds] CompositeTemplateTwo" ) {
   using V =
       inner::CompositeTemplateTwo_t<rn::my_optional<int>, short>;
-  namespace V_ns = inner::CompositeTemplateTwo;
   string out;
   base::to_str( V{}, out, base::ADL_t{} );
   // static_assert( base::Show<V> );
-  V v = inner::CompositeTemplateTwo::first<rn::my_optional<int>,
-                                           short>{
-      .ttp = inner::TemplateTwoParams::third_alternative<
-          rn::my_optional<int>, short>{
+  V v = inner::CompositeTemplateTwo<rn::my_optional<int>,
+                                    short>::first{
+      .ttp = inner::TemplateTwoParams<rn::my_optional<int>,
+                                      short>::third_alternative{
           .hello =
-              Maybe::just<rn::my_optional<int>>{
+              Maybe<rn::my_optional<int>>::just{
                   rn::my_optional<int>{ 3 } }, //
           .u = 9                               //
       } };
   using second_t =
-      inner::CompositeTemplateTwo::second<rn::my_optional<int>,
-                                          short>;
+      inner::CompositeTemplateTwo<rn::my_optional<int>,
+                                  short>::second;
   static_assert( sizeof( second_t ) == 1 );
   switch( v.to_enum() ) {
-    case V_ns::e::first:  //
+    case V::e::first:  //
       break;
-    case V_ns::e::second: //
+    case V::e::second: //
       REQUIRE( false );
       break;
   }
-  REQUIRE( fmt::format( "{}", v ) ==
-           "rdstest::inner::CompositeTemplateTwo::first<rn::my_"
-           "optional<int>,short>{ttp=rdstest::inner::"
-           "TemplateTwoParams::third_alternative<rn::my_"
-           "optional<int>,short>{hello=rdstest::Maybe::just<rn::"
-           "my_optional<int>>{val=3},u=9}}" );
+  REQUIRE(
+      fmt::format( "{}", v ) ==
+      "rdstest::inner::CompositeTemplateTwo<rn::my_optional<int>"
+      ",short>::first{ttp=rdstest::inner::TemplateTwoParams<rn::"
+      "my_optional<int>,short>::third_alternative{hello=rdstest:"
+      ":Maybe<rn::my_optional<int>>::just{val=3},u=9}}" );
 }
 
 TEST_CASE( "[rds] Equality" ) {
   // Maybe_t
-  REQUIRE( Maybe::nothing<int>{} == Maybe::nothing<int>{} );
-  REQUIRE( Maybe::just<int>{ 5 } == Maybe::just<int>{ 5 } );
-  REQUIRE( Maybe::just<int>{ 5 } != Maybe::just<int>{ 6 } );
+  REQUIRE( Maybe<int>::nothing{} == Maybe<int>::nothing{} );
+  REQUIRE( Maybe<int>::just{ 5 } == Maybe<int>::just{ 5 } );
+  REQUIRE( Maybe<int>::just{ 5 } != Maybe<int>::just{ 6 } );
 
   // TemplateTwoParams_t
   using T =
-      inner::TemplateTwoParams::first_alternative<string, int>;
+      inner::TemplateTwoParams<string, int>::first_alternative;
   REQUIRE( T{ "a", 'c' } == T{ "a", 'c' } );
   REQUIRE( T{ "a", 'b' } != T{ "a", 'c' } );
   REQUIRE( T{ "b", 'a' } != T{ "c", 'a' } );
@@ -323,15 +322,15 @@ TEST_CASE( "[rds] Associated Enums" ) {
       break;
   }
 
-  Maybe_t<String> maybe = Maybe::just<String>{ .val = "hello" };
+  Maybe_t<String> maybe = Maybe<String>::just{ .val = "hello" };
   switch( maybe.to_enum() ) {
-    case Maybe::e::nothing: //
+    case Maybe<String>::e::nothing: //
       REQUIRE( false );
       break;
-    case Maybe::e::just: {
-      auto& just = maybe.get<Maybe::just<String>>();
+    case Maybe<String>::e::just: {
+      auto& just = maybe.get<Maybe<String>::just>();
       REQUIRE( fmt::format( "{}", just ) ==
-               "rdstest::Maybe::just<rn::String>{val=hello}" );
+               "rdstest::Maybe<rn::String>::just{val=hello}" );
       break;
     }
   }
@@ -596,9 +595,9 @@ TEST_CASE( "[rds] sumtype reflection" ) {
 
 TEST_CASE( "[rds] sumtype reflection w/ templates" ) {
   SECTION( "nothing" ) {
-    using Tr = refl::traits<rdstest::Maybe::nothing<int>>;
+    using Tr = refl::traits<rdstest::Maybe<int>::nothing>;
     static_assert(
-        is_same_v<Tr::type, rdstest::Maybe::nothing<int>> );
+        is_same_v<Tr::type, rdstest::Maybe<int>::nothing> );
     static_assert( Tr::kind == refl::type_kind::struct_kind );
     static_assert( Tr::ns == "rdstest::Maybe" );
     static_assert( Tr::name == "nothing" );
@@ -607,16 +606,16 @@ TEST_CASE( "[rds] sumtype reflection w/ templates" ) {
     static_assert( tuple_size_v<decltype( Tr::fields )> == 0 );
   }
   SECTION( "just" ) {
-    using Tr = refl::traits<rdstest::Maybe::just<int>>;
+    using Tr = refl::traits<rdstest::Maybe<int>::just>;
     static_assert(
-        is_same_v<Tr::type, rdstest::Maybe::just<int>> );
+        is_same_v<Tr::type, rdstest::Maybe<int>::just> );
     static_assert( Tr::kind == refl::type_kind::struct_kind );
     static_assert( Tr::ns == "rdstest::Maybe" );
     static_assert( Tr::name == "just" );
     static_assert( is_same_v<Tr::template_types, tuple<int>> );
 
     static_assert( tuple_size_v<decltype( Tr::fields )> == 1 );
-    rdstest::Maybe::just<int> ms{
+    rdstest::Maybe<int>::just ms{
         .val = 2,
     };
     { // field 0

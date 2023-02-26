@@ -379,7 +379,7 @@ wait<> do_live_among_the_natives(
     Player const& player, Unit& unit,
     LiveAmongTheNatives_t const& outcome ) {
   switch( outcome.to_enum() ) {
-    using namespace LiveAmongTheNatives;
+    using e = LiveAmongTheNatives::e;
     case e::generally_ineligible: {
       co_await ts.gui.message_box(
           "This unit is not eligible for education by the "
@@ -423,7 +423,7 @@ wait<> do_live_among_the_natives(
       co_return;
     }
     case e::promoted: {
-      auto&         o = outcome.get<promoted>();
+      auto& o = outcome.get<LiveAmongTheNatives::promoted>();
       e_tribe const tribe =
           ss.natives.tribe_for( dwelling.id ).type;
       string const tribe_name =

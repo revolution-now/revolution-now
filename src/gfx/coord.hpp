@@ -538,7 +538,8 @@ struct traits<rn::Delta> {
 
   static constexpr type_kind kind      = type_kind::struct_kind;
   static constexpr std::string_view ns = "rn";
-  static constexpr std::string_view name = "Delta";
+  static constexpr std::string_view name       = "Delta";
+  static constexpr bool is_sumtype_alternative = false;
 
   using template_types = std::tuple<>;
 
@@ -557,7 +558,8 @@ struct traits<rn::Coord> {
 
   static constexpr type_kind kind      = type_kind::struct_kind;
   static constexpr std::string_view ns = "rn";
-  static constexpr std::string_view name = "Coord";
+  static constexpr std::string_view name       = "Coord";
+  static constexpr bool is_sumtype_alternative = false;
 
   using template_types = std::tuple<>;
 
@@ -576,7 +578,8 @@ struct traits<rn::Rect> {
 
   static constexpr type_kind kind      = type_kind::struct_kind;
   static constexpr std::string_view ns = "rn";
-  static constexpr std::string_view name = "Rect";
+  static constexpr std::string_view name       = "Rect";
+  static constexpr bool is_sumtype_alternative = false;
 
   using template_types = std::tuple<>;
 

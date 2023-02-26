@@ -213,7 +213,7 @@ void finish_turn( Unit& unit ) { unit.forfeight_mv_points(); }
 bool should_remove_unit_from_queue( Unit const& unit ) {
   if( finished_turn( unit ) ) return true;
   switch( unit.orders().to_enum() ) {
-    using namespace unit_orders;
+    using e = unit_orders::e;
     case e::fortified:
       return true;
     case e::fortifying:
@@ -384,11 +384,11 @@ wait<> process_player_input( e_menu_item item, SS& ss, TS& ts,
 wait<> process_player_input( LandViewPlayerInput_t const& input,
                              SS& ss, TS& ts, Player& player ) {
   switch( input.to_enum() ) {
-    using namespace LandViewPlayerInput;
+    using e = LandViewPlayerInput::e;
     case e::colony: {
       e_colony_abandoned const abandoned =
           co_await ts.colony_viewer.show(
-              ts, input.get<colony>().id );
+              ts, input.get<LandViewPlayerInput::colony>().id );
       if( abandoned == e_colony_abandoned::yes )
         // Nothing really special to do here.
         co_return;
@@ -471,7 +471,7 @@ wait<> process_player_input( UnitId                       id,
   auto& st = nat_turn_st;
   auto& q  = st.units;
   switch( input.to_enum() ) {
-    using namespace LandViewPlayerInput;
+    using e = LandViewPlayerInput::e;
     case e::next_turn: {
       // The land view should never send us a 'next turn' command
       // when we are not at the end of a turn.
@@ -483,7 +483,7 @@ wait<> process_player_input( UnitId                       id,
     case e::colony: {
       e_colony_abandoned const abandoned =
           co_await ts.colony_viewer.show(
-              ts, input.get<colony>().id );
+              ts, input.get<LandViewPlayerInput::colony>().id );
       if( abandoned == e_colony_abandoned::yes )
         // Nothing really special to do here.
         co_return;
@@ -496,7 +496,8 @@ wait<> process_player_input( UnitId                       id,
     }
     // We have some orders for the current unit.
     case e::give_command: {
-      auto& command = input.get<give_command>().command;
+      auto& command =
+          input.get<LandViewPlayerInput::give_command>().command;
       if( command.holds<command::wait>() ) {
         // Just remove it form the queue, and it'll get picked up
         // in the next iteration. We don't want to push this unit
@@ -557,7 +558,7 @@ wait<> process_player_input( UnitId                       id,
       break;
     }
     case e::prioritize: {
-      auto& val = input.get<prioritize>();
+      auto& val = input.get<LandViewPlayerInput::prioritize>();
       // Move some units to the front of the queue.
       auto prioritize = val.units;
       erase_if( prioritize, [&]( UnitId id ) {

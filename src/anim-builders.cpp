@@ -33,9 +33,9 @@ namespace {
 
 void add_attack_outcome_for_euro_unit(
     SSConst const& ss, AnimationBuilder& builder, UnitId unit_id,
-    EuroUnitCombatOutcome_t const& outcome ) {
+    EuroUnitCombatOutcome const& outcome ) {
   switch( outcome.to_enum() ) {
-    using namespace EuroUnitCombatOutcome;
+    using e = EuroUnitCombatOutcome::e;
     case e::no_change:
       // Add this so that if the other unit in the battle needs
       // to animate then this unit will remain visible during
@@ -57,7 +57,7 @@ void add_attack_outcome_for_euro_unit(
       builder.depixelate_unit( unit_id );
       break;
     case e::promoted: {
-      auto&       o    = outcome.get<promoted>();
+      auto& o = outcome.get<EuroUnitCombatOutcome::promoted>();
       Unit const& unit = ss.units.unit_for( unit_id );
       CHECK_NEQ( unit.type_obj(), o.to );
       if( unit.type() == o.to.type() )
@@ -71,7 +71,7 @@ void add_attack_outcome_for_euro_unit(
       break;
     }
     case e::demoted: {
-      auto&       o    = outcome.get<demoted>();
+      auto& o = outcome.get<EuroUnitCombatOutcome::demoted>();
       Unit const& unit = ss.units.unit_for( unit_id );
       CHECK_NEQ( unit.type(), o.to.type() );
       builder.depixelate_euro_unit_to_target( unit_id,
@@ -85,7 +85,7 @@ void add_naval_attack_outcome_for_unit(
     AnimationBuilder& builder, UnitId unit_id,
     EuroNavalUnitCombatOutcome_t const& outcome ) {
   switch( outcome.to_enum() ) {
-    using namespace EuroNavalUnitCombatOutcome;
+    using e = EuroNavalUnitCombatOutcome::e;
     case e::no_change:
       // Add this so that if the other unit in the battle needs
       // to animate then this unit will remain visible during
@@ -114,7 +114,7 @@ void add_colony_worker_attack_outcome_for_unit(
     AnimationBuilder& builder, UnitId unit_id,
     EuroColonyWorkerCombatOutcome_t const& outcome ) {
   switch( outcome.to_enum() ) {
-    using namespace EuroColonyWorkerCombatOutcome;
+    using e = EuroColonyWorkerCombatOutcome::e;
     case e::no_change:
       builder.front_unit( unit_id );
       break;
@@ -128,7 +128,7 @@ void add_attack_outcome_for_native_unit(
     AnimationBuilder& builder, NativeUnitId unit_id,
     NativeUnitCombatOutcome_t const& outcome ) {
   switch( outcome.to_enum() ) {
-    using namespace NativeUnitCombatOutcome;
+    using e = NativeUnitCombatOutcome::e;
     case e::no_change:
       builder.front_unit( unit_id );
       break;
@@ -136,7 +136,7 @@ void add_attack_outcome_for_native_unit(
       builder.depixelate_unit( unit_id );
       break;
     case e::promoted: {
-      auto& o = outcome.get<promoted>();
+      auto& o = outcome.get<NativeUnitCombatOutcome::promoted>();
       builder.depixelate_native_unit_to_target( unit_id, o.to );
       break;
     }
@@ -152,7 +152,7 @@ void play_combat_outcome_sound(
   }
   // Defender lost.
   switch( combat.defender.outcome.to_enum() ) {
-    using namespace EuroUnitCombatOutcome;
+    using e = EuroUnitCombatOutcome::e;
     case e::no_change:
       break;
     case e::destroyed: {
@@ -381,8 +381,11 @@ AnimationSequence anim_seq_for_dwelling_burn(
     SSConst const& ss, UnitId attacker_id,
     EuroUnitCombatOutcome_t const& attacker_outcome,
     NativeUnitId defender_id, DwellingId dwelling_id,
-    DwellingCombatOutcome::destruction const&
-        dwelling_destruction ) {
+    DwellingCombatOutcome const& dwelling_outcome ) {
+  UNWRAP_CHECK(
+      dwelling_destruction,
+      dwelling_outcome
+          .get_if<DwellingCombatOutcome::destruction>() );
   CHECK( attacker_outcome
              .holds<EuroUnitCombatOutcome::no_change>() ||
          attacker_outcome

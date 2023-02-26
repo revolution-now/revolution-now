@@ -16,10 +16,11 @@ namespace refl {
 
 namespace detail {
 
-string build_ns_prefix_from_refl_ns( string_view ns ) {
+string build_ns_prefix_from_refl_ns( string_view ns,
+                                     string_view tmpl_params ) {
   string res;
   if( ns.empty() ) return res;
-  res = string( ns ) + "::";
+  res = string( ns ) + string( tmpl_params ) + "::";
   if( res.starts_with( "rn::" ) )
     res = string( res.begin() + 4, res.end() );
   return res;

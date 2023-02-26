@@ -27,7 +27,7 @@
 
 namespace rn {
 
-struct MapRevealed_t;
+struct MapRevealed;
 struct MapSquare;
 struct PlayerTerrain;
 struct SS;
@@ -126,7 +126,7 @@ std::vector<Coord> unit_visible_squares( SSConst const& ss,
 // `revealed` is nothing; if default_nation in turn is nothing
 // then it means "entire map."
 void set_map_visibility( SS& ss, TS& ts,
-                         maybe<MapRevealed_t const&> revealed,
+                         maybe<MapRevealed const&> revealed,
                          maybe<e_nation> default_nation );
 
 } // namespace rn

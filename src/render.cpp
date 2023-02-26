@@ -153,7 +153,7 @@ void render_unit_flag( rr::Renderer& renderer, Coord where,
 
   char c{ '-' }; // gcc seems to want us to initialize this
   switch( orders.to_enum() ) {
-    using namespace unit_orders;
+    using e = unit_orders::e;
     case e::none:
       c = '-';
       break;
@@ -173,7 +173,7 @@ void render_unit_flag( rr::Renderer& renderer, Coord where,
       c = 'P';
       break;
     case e::damaged: {
-      auto&     o          = orders.get<damaged>();
+      auto&     o          = orders.get<unit_orders::damaged>();
       int const turns_left = o.turns_until_repair;
       // The number can be larger than 9, i.e. it can have more
       // than one digit which we cannot display on the flag. So

@@ -17,7 +17,7 @@ namespace rn {
 
 namespace {
 
-namespace P = ::rn::AnimationPrimitive;
+using P = ::rn::AnimationPrimitive;
 
 } // namespace
 

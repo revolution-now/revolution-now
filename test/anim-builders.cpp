@@ -33,7 +33,7 @@ namespace {
 
 using namespace std;
 
-namespace P = AnimationPrimitive;
+using P = AnimationPrimitive;
 
 /****************************************************************
 ** Fake World Setup

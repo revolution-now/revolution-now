@@ -120,6 +120,9 @@ concept ReflectedStruct = Reflected<T> && requires {
   requires HasTupleSize<typename traits<T>::template_types>;
   requires HasTupleSize<
       std::remove_cvref_t<decltype( traits<T>::fields )>>;
+  {
+    traits<T>::is_sumtype_alternative
+  } -> std::same_as<bool const&>;
 };
 
 #define REFL_VALIDATE( a, ... )                     \
@@ -170,7 +173,7 @@ concept WrapsReflected = requires( T o ) {
   // exxist by the below.
   { o.refl() } -> std::same_as<wrapped_refltype_t<T> const&>;
   requires Reflected<wrapped_refltype_t<T>>;
-  requires std::is_constructible_v<T, wrapped_refltype_t<T> &&>;
+  requires std::is_constructible_v<T, wrapped_refltype_t<T>&&>;
   { T::refl_ns } -> std::same_as<std::string_view const&>;
   { T::refl_name } -> std::same_as<std::string_view const&>;
 };

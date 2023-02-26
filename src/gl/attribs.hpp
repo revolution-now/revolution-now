@@ -181,7 +181,8 @@ struct traits<gl::color> {
 
   static constexpr type_kind kind      = type_kind::struct_kind;
   static constexpr std::string_view ns = "gl";
-  static constexpr std::string_view name = "color";
+  static constexpr std::string_view name       = "color";
+  static constexpr bool is_sumtype_alternative = false;
 
   using template_types = std::tuple<>;
 
@@ -204,7 +205,8 @@ struct traits<gl::vec2> {
 
   static constexpr type_kind kind      = type_kind::struct_kind;
   static constexpr std::string_view ns = "gl";
-  static constexpr std::string_view name = "vec2";
+  static constexpr std::string_view name       = "vec2";
+  static constexpr bool is_sumtype_alternative = false;
 
   using template_types = std::tuple<>;
 
@@ -223,7 +225,8 @@ struct traits<gl::vec3> {
 
   static constexpr type_kind kind      = type_kind::struct_kind;
   static constexpr std::string_view ns = "gl";
-  static constexpr std::string_view name = "vec3";
+  static constexpr std::string_view name       = "vec3";
+  static constexpr bool is_sumtype_alternative = false;
 
   using template_types = std::tuple<>;
 
@@ -244,7 +247,8 @@ struct traits<gl::vec4> {
 
   static constexpr type_kind kind      = type_kind::struct_kind;
   static constexpr std::string_view ns = "gl";
-  static constexpr std::string_view name = "vec4";
+  static constexpr std::string_view name       = "vec4";
+  static constexpr bool is_sumtype_alternative = false;
 
   using template_types = std::tuple<>;
 

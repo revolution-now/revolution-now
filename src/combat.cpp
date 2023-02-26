@@ -102,7 +102,7 @@ EuroUnitCombatOutcome_t euro_unit_combat_outcome(
   }
 
   switch( unit.desc().on_death.to_enum() ) {
-    using namespace UnitDeathAction;
+    using e = UnitDeathAction::e;
     case e::capture: {
       if( society_of_opponent.holds<Society::native>() )
         // When the natives defeat a unit that is otherwise cap-

@@ -88,6 +88,7 @@ struct traits<my_ns::Address> {
   static constexpr type_kind   kind = type_kind::struct_kind;
   static constexpr string_view ns   = "my_ns";
   static constexpr string_view name = "Address";
+  static constexpr bool        is_sumtype_alternative = false;
 
   // Struct specific.
   using template_types = tuple<>;
@@ -115,9 +116,15 @@ enum class e_pet { cat, dog, frog };
 
 void to_str( e_pet const& o, string& out, base::ADL_t ) {
   switch( o ) {
-    case e_pet::cat: out += "cat"; break;
-    case e_pet::dog: out += "dog"; break;
-    case e_pet::frog: out += "frog"; break;
+    case e_pet::cat:
+      out += "cat";
+      break;
+    case e_pet::dog:
+      out += "dog";
+      break;
+    case e_pet::frog:
+      out += "frog";
+      break;
   }
 }
 
@@ -175,6 +182,7 @@ struct traits<my_ns::Person> {
   static constexpr type_kind   kind = type_kind::struct_kind;
   static constexpr string_view ns   = "my_ns";
   static constexpr string_view name = "Person";
+  static constexpr bool        is_sumtype_alternative = false;
 
   // Struct specific.
   using template_types = tuple<>;
@@ -262,6 +270,7 @@ struct traits<my_ns::Rolodex> {
   static constexpr type_kind   kind = type_kind::struct_kind;
   static constexpr string_view ns   = "my_ns";
   static constexpr string_view name = "Rolodex";
+  static constexpr bool        is_sumtype_alternative = false;
 
   // Struct specific.
   using template_types = tuple<>;

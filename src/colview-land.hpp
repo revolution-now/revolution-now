@@ -17,11 +17,11 @@
 
 // ss
 #include "ss/colony-enums.rds.hpp"
+#include "ss/colony.rds.hpp"
 #include "ss/dwelling-id.hpp"
 
 namespace rn {
 
-struct ColonyJob_t;
 struct SS;
 struct TS;
 struct Player;
@@ -93,7 +93,7 @@ struct ColonyLandView : public ui::View,
   wait<> drop( ColViewObject_t const& o,
                Coord const&           where ) override;
 
-  ColonyJob_t make_job_for_square( e_direction d ) const;
+  ColonyJob make_job_for_square( e_direction d ) const;
 
   // Implement IDraggableObjectsView.
   maybe<DraggableObjectWithBounds<ColViewObject_t>> object_here(

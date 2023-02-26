@@ -303,12 +303,12 @@ valid_or<string> UnitCompositionConfig::validate() const {
   for( auto& [type, type_struct] : m ) {
     if( !type_struct.promotion.has_value() ) continue;
     switch( type_struct.promotion->to_enum() ) {
-      using namespace UnitPromotion;
+      using e = UnitPromotion::e;
       case e::fixed: {
         // Validation: this must be a base type and the target
         // type of the promotion must be a base type.
         auto const& o_fixed =
-            type_struct.promotion->get<fixed>();
+            type_struct.promotion->get<UnitPromotion::fixed>();
         if( type_struct.is_derived )
           return fmt::format(
               "derived type {} cannot have value `fixed` for "

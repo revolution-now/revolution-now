@@ -317,7 +317,8 @@ struct traits<gfx::size> {
 
   static constexpr type_kind kind      = type_kind::struct_kind;
   static constexpr std::string_view ns = "gfx";
-  static constexpr std::string_view name = "size";
+  static constexpr std::string_view name       = "size";
+  static constexpr bool is_sumtype_alternative = false;
 
   using template_types = std::tuple<>;
 
@@ -336,7 +337,8 @@ struct traits<gfx::dsize> {
 
   static constexpr type_kind kind      = type_kind::struct_kind;
   static constexpr std::string_view ns = "gfx";
-  static constexpr std::string_view name = "dsize";
+  static constexpr std::string_view name       = "dsize";
+  static constexpr bool is_sumtype_alternative = false;
 
   using template_types = std::tuple<>;
 
@@ -355,7 +357,8 @@ struct traits<gfx::point> {
 
   static constexpr type_kind kind      = type_kind::struct_kind;
   static constexpr std::string_view ns = "gfx";
-  static constexpr std::string_view name = "point";
+  static constexpr std::string_view name       = "point";
+  static constexpr bool is_sumtype_alternative = false;
 
   using template_types = std::tuple<>;
 
@@ -374,7 +377,8 @@ struct traits<gfx::dpoint> {
 
   static constexpr type_kind kind      = type_kind::struct_kind;
   static constexpr std::string_view ns = "gfx";
-  static constexpr std::string_view name = "dpoint";
+  static constexpr std::string_view name       = "dpoint";
+  static constexpr bool is_sumtype_alternative = false;
 
   using template_types = std::tuple<>;
 
@@ -393,7 +397,8 @@ struct traits<gfx::rect> {
 
   static constexpr type_kind kind      = type_kind::struct_kind;
   static constexpr std::string_view ns = "gfx";
-  static constexpr std::string_view name = "rect";
+  static constexpr std::string_view name       = "rect";
+  static constexpr bool is_sumtype_alternative = false;
 
   using template_types = std::tuple<>;
 
@@ -411,7 +416,8 @@ struct traits<gfx::drect> {
 
   static constexpr type_kind kind      = type_kind::struct_kind;
   static constexpr std::string_view ns = "gfx";
-  static constexpr std::string_view name = "drect";
+  static constexpr std::string_view name       = "drect";
+  static constexpr bool is_sumtype_alternative = false;
 
   using template_types = std::tuple<>;
 

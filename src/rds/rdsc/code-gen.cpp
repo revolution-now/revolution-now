@@ -314,7 +314,9 @@ struct CodeGenerator {
           qualified_base_name );
     {
       auto _ = indent();
-      line( "using type = {}::{}::e;", ns, sumtype.name );
+      line( "using type = {}::{}{}::e;", ns, sumtype.name,
+            template_params( sumtype.tmpl_params,
+                             /*put_typename=*/false ) );
     }
     line( "};" );
   }
@@ -374,11 +376,11 @@ struct CodeGenerator {
   }
 
   void emit_reflection_for_struct(
-      string_view                        ns,
+      string_view ns, string_view ns_display,
       vector<expr::TemplateParam> const& tmpl_params,
       string const&                      name,
       vector<expr::StructMember> const&  members,
-      bool                               wants_offsets ) {
+      bool wants_offsets, bool is_sumtype_alternative ) {
     comment( "Reflection info for struct {}.", name );
     string tmpl_brackets =
         tmpl_params.empty()
@@ -406,9 +408,11 @@ struct CodeGenerator {
           "static constexpr type_kind kind        = "
           "type_kind::struct_kind;" );
       line( "static constexpr std::string_view ns   = \"{}\";",
-            ns );
+            ns_display );
       line( "static constexpr std::string_view name = \"{}\";",
             name );
+      line( "static constexpr bool is_sumtype_alternative = {};",
+            is_sumtype_alternative );
       newline();
       line( "using template_types = std::tuple{};",
             tmpl_brackets );
@@ -482,8 +486,9 @@ struct CodeGenerator {
     newline();
     open_ns( "refl" );
     emit_reflection_for_struct(
-        ns, strukt.tmpl_params, strukt.name, strukt.members,
-        item_has_feature( strukt, expr::e_feature::offsets ) );
+        ns, ns, strukt.tmpl_params, strukt.name, strukt.members,
+        item_has_feature( strukt, expr::e_feature::offsets ),
+        /*is_sumtype_alternative=*/false );
     newline();
     close_ns( "refl" );
   }
@@ -491,6 +496,7 @@ struct CodeGenerator {
   void emit( string_view ns, expr::Sumtype const& sumtype ) {
     section( "Sum Type: "s + sumtype.name );
     open_ns( ns );
+    open_ns( "detail" );
     if( !sumtype.alternatives.empty() ) {
       open_ns( sumtype.name );
       for( expr::Alternative const& alt :
@@ -504,18 +510,15 @@ struct CodeGenerator {
                                   emit_validation );
         newline();
       }
-      emit_enum_for_sumtype( sumtype.alternatives );
-      newline();
       close_ns( sumtype.name );
       newline();
     }
-    open_ns( "detail" );
     emit_template_decl( sumtype.tmpl_params );
     line( "using {}Base = base::variant<", sumtype.name );
     vector<string> variants;
     for( expr::Alternative const& alt : sumtype.alternatives )
       variants.push_back(
-          "  "s + sumtype.name + "::" + alt.name +
+          "  detail::"s + sumtype.name + "::" + alt.name +
           template_params( sumtype.tmpl_params,
                            /*put_typename=*/false ) );
     emit_vert_list( variants, "," );
@@ -528,22 +531,41 @@ struct CodeGenerator {
         fmt::format( "detail::{}Base{}", sumtype.name,
                      template_params( sumtype.tmpl_params,
                                       /*put_typename=*/false ) );
-    line( "struct {}_t : public {} {{", sumtype.name,
-          base_name );
+    line( "struct {} : public {} {{", sumtype.name, base_name );
     {
       auto _ = indent();
+
+      int const max_type_len =
+          max_of( sumtype.alternatives, L( _.name.size() ), 0 );
+      for( expr::Alternative const& alt : sumtype.alternatives )
+        line( "using {: <{}} = detail::{}::{}{};", alt.name,
+              max_type_len, sumtype.name, alt.name,
+              template_params( sumtype.tmpl_params,
+                               /*put_typename=*/false ) );
+      if( !sumtype.alternatives.empty() ) newline();
+
+      emit_enum_for_sumtype( sumtype.alternatives );
+      newline();
+
       line( "using i_am_rds_variant = void;" );
       line( "using Base = {};", base_name );
       line( "using Base::Base;" );
-      line( "{}_t( Base&& b ) : Base( std::move( b ) ) {{}}",
+      line( "{}( Base&& b ) : Base( std::move( b ) ) {{}}",
             sumtype.name );
       line( "Base const& as_base() const& { return *this; }" );
       line( "Base&       as_base()      & { return *this; }" );
     }
     line( "};" );
+    newline();
+    comment( "TODO: temporary." );
+    emit_template_decl( sumtype.tmpl_params );
+    line( "using {0}_t = {0}{1};", sumtype.name,
+          template_params( sumtype.tmpl_params,
+                           /*put_typename=*/false ) );
+    newline();
     // Ensure that the variant is nothrow move'able since this
     // makes code more efficient that uses it.
-    line( "NOTHROW_MOVE( {}_t{} );", sumtype.name,
+    line( "NOTHROW_MOVE( {}{} );", sumtype.name,
           all_int_tmpl_params( sumtype.tmpl_params.size() ) );
     newline();
     close_ns( ns );
@@ -556,13 +578,16 @@ struct CodeGenerator {
       open_ns( "refl" );
       for( expr::Alternative const& alt :
            sumtype.alternatives ) {
-        string sumtype_ns =
+        string const sumtype_ns =
+            fmt::format( "{}::detail::{}", ns, sumtype.name );
+        string const sumtype_ns_display =
             fmt::format( "{}::{}", ns, sumtype.name );
         emit_reflection_for_struct(
-            sumtype_ns, sumtype.tmpl_params, alt.name,
-            alt.members,
+            sumtype_ns, sumtype_ns_display, sumtype.tmpl_params,
+            alt.name, alt.members,
             item_has_feature( sumtype,
-                              expr::e_feature::offsets ) );
+                              expr::e_feature::offsets ),
+            /*is_sumtype_alternative=*/true );
         newline();
       }
       close_ns( "refl" );

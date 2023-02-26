@@ -34,59 +34,67 @@
 *****************************************************************/
 namespace rdstest {
 
-  namespace Maybe {
+  namespace detail {
+
+    namespace Maybe {
+
+      template<typename T>
+      struct nothing {
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct nothing const& ) const = default;
+        bool operator!=( struct nothing const& ) const = default;
+      };
+
+      template<typename T>
+      struct just {
+        T val = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct just const& ) const = default;
+        bool operator!=( struct just const& ) const = default;
+      };
+
+    } // namespace Maybe
 
     template<typename T>
-    struct nothing {
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct nothing const& ) const = default;
-      bool operator!=( struct nothing const& ) const = default;
-    };
+    using MaybeBase = base::variant<
+      detail::Maybe::nothing<T>,
+      detail::Maybe::just<T>
+    >;
 
-    template<typename T>
-    struct just {
-      T val = {};
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct just const& ) const = default;
-      bool operator!=( struct just const& ) const = default;
-    };
+  } // namespace detail
+
+  template<typename T>
+  struct Maybe : public detail::MaybeBase<T> {
+    using nothing = detail::Maybe::nothing<T>;
+    using just    = detail::Maybe::just<T>;
 
     enum class e {
       nothing,
       just,
     };
 
-  } // namespace Maybe
-
-  namespace detail {
-
-    template<typename T>
-    using MaybeBase = base::variant<
-      Maybe::nothing<T>,
-      Maybe::just<T>
-    >;
-
-  } // namespace detail
-
-  template<typename T>
-  struct Maybe_t : public detail::MaybeBase<T> {
     using i_am_rds_variant = void;
     using Base = detail::MaybeBase<T>;
     using Base::Base;
-    Maybe_t( Base&& b ) : Base( std::move( b ) ) {}
+    Maybe( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
   };
-  NOTHROW_MOVE( Maybe_t<int> );
+
+  // TODO: temporary.
+  template<typename T>
+  using Maybe_t = Maybe<T>;
+
+  NOTHROW_MOVE( Maybe<int> );
 
 } // namespace rdstest
 
 // This gives us the enum to use in a switch statement.
 template<typename T>
 struct base::variant_to_enum<rdstest::detail::MaybeBase<T>> {
-  using type = rdstest::Maybe::e;
+  using type = rdstest::Maybe<T>::e;
 };
 
 // Reflection traits for alternatives.
@@ -94,12 +102,13 @@ namespace refl {
 
   // Reflection info for struct nothing.
   template<typename T>
-  struct traits<rdstest::Maybe::nothing<T>> {
-    using type = rdstest::Maybe::nothing<T>;
+  struct traits<rdstest::detail::Maybe::nothing<T>> {
+    using type = rdstest::detail::Maybe::nothing<T>;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::Maybe";
     static constexpr std::string_view name = "nothing";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<T>;
 
@@ -108,17 +117,18 @@ namespace refl {
 
   // Reflection info for struct just.
   template<typename T>
-  struct traits<rdstest::Maybe::just<T>> {
-    using type = rdstest::Maybe::just<T>;
+  struct traits<rdstest::detail::Maybe::just<T>> {
+    using type = rdstest::detail::Maybe::just<T>;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::Maybe";
     static constexpr std::string_view name = "just";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<T>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "val", &rdstest::Maybe::just<T>::val, /*offset=*/base::nothing },
+      refl::StructField{ "val", &rdstest::detail::Maybe::just<T>::val, /*offset=*/base::nothing },
     };
   };
 
@@ -129,31 +139,48 @@ namespace refl {
 *****************************************************************/
 namespace rdstest {
 
-  namespace MyVariant1 {
+  namespace detail {
 
-    struct happy {
-      std::pair<char, int> p = {};
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct happy const& ) const = default;
-      bool operator!=( struct happy const& ) const = default;
-    };
+    namespace MyVariant1 {
 
-    struct sad {
-      bool  hello = {};
-      bool* ptr = {};
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct sad const& ) const = default;
-      bool operator!=( struct sad const& ) const = default;
-    };
+      struct happy {
+        std::pair<char, int> p = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct happy const& ) const = default;
+        bool operator!=( struct happy const& ) const = default;
+      };
 
-    struct excited {
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct excited const& ) const = default;
-      bool operator!=( struct excited const& ) const = default;
-    };
+      struct sad {
+        bool  hello = {};
+        bool* ptr = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct sad const& ) const = default;
+        bool operator!=( struct sad const& ) const = default;
+      };
+
+      struct excited {
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct excited const& ) const = default;
+        bool operator!=( struct excited const& ) const = default;
+      };
+
+    } // namespace MyVariant1
+
+    using MyVariant1Base = base::variant<
+      detail::MyVariant1::happy,
+      detail::MyVariant1::sad,
+      detail::MyVariant1::excited
+    >;
+
+  } // namespace detail
+
+  struct MyVariant1 : public detail::MyVariant1Base {
+    using happy   = detail::MyVariant1::happy;
+    using sad     = detail::MyVariant1::sad;
+    using excited = detail::MyVariant1::excited;
 
     enum class e {
       happy,
@@ -161,27 +188,18 @@ namespace rdstest {
       excited,
     };
 
-  } // namespace MyVariant1
-
-  namespace detail {
-
-    using MyVariant1Base = base::variant<
-      MyVariant1::happy,
-      MyVariant1::sad,
-      MyVariant1::excited
-    >;
-
-  } // namespace detail
-
-  struct MyVariant1_t : public detail::MyVariant1Base {
     using i_am_rds_variant = void;
     using Base = detail::MyVariant1Base;
     using Base::Base;
-    MyVariant1_t( Base&& b ) : Base( std::move( b ) ) {}
+    MyVariant1( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
   };
-  NOTHROW_MOVE( MyVariant1_t );
+
+  // TODO: temporary.
+  using MyVariant1_t = MyVariant1;
+
+  NOTHROW_MOVE( MyVariant1 );
 
 } // namespace rdstest
 
@@ -196,45 +214,48 @@ namespace refl {
 
   // Reflection info for struct happy.
   template<>
-  struct traits<rdstest::MyVariant1::happy> {
-    using type = rdstest::MyVariant1::happy;
+  struct traits<rdstest::detail::MyVariant1::happy> {
+    using type = rdstest::detail::MyVariant1::happy;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::MyVariant1";
     static constexpr std::string_view name = "happy";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "p", &rdstest::MyVariant1::happy::p, /*offset=*/base::nothing },
+      refl::StructField{ "p", &rdstest::detail::MyVariant1::happy::p, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct sad.
   template<>
-  struct traits<rdstest::MyVariant1::sad> {
-    using type = rdstest::MyVariant1::sad;
+  struct traits<rdstest::detail::MyVariant1::sad> {
+    using type = rdstest::detail::MyVariant1::sad;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::MyVariant1";
     static constexpr std::string_view name = "sad";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "hello", &rdstest::MyVariant1::sad::hello, /*offset=*/base::nothing },
-      refl::StructField{ "ptr", &rdstest::MyVariant1::sad::ptr, /*offset=*/base::nothing },
+      refl::StructField{ "hello", &rdstest::detail::MyVariant1::sad::hello, /*offset=*/base::nothing },
+      refl::StructField{ "ptr", &rdstest::detail::MyVariant1::sad::ptr, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct excited.
   template<>
-  struct traits<rdstest::MyVariant1::excited> {
-    using type = rdstest::MyVariant1::excited;
+  struct traits<rdstest::detail::MyVariant1::excited> {
+    using type = rdstest::detail::MyVariant1::excited;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::MyVariant1";
     static constexpr std::string_view name = "excited";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
@@ -248,21 +269,38 @@ namespace refl {
 *****************************************************************/
 namespace rdstest {
 
-  namespace MyVariant2 {
+  namespace detail {
 
-    struct first {
-      std::string name = {};
-      bool        b = {};
-    };
+    namespace MyVariant2 {
 
-    struct second {
-      bool flag1 = {};
-      bool flag2 = {};
-    };
+      struct first {
+        std::string name = {};
+        bool        b = {};
+      };
 
-    struct third {
-      int cost = {};
-    };
+      struct second {
+        bool flag1 = {};
+        bool flag2 = {};
+      };
+
+      struct third {
+        int cost = {};
+      };
+
+    } // namespace MyVariant2
+
+    using MyVariant2Base = base::variant<
+      detail::MyVariant2::first,
+      detail::MyVariant2::second,
+      detail::MyVariant2::third
+    >;
+
+  } // namespace detail
+
+  struct MyVariant2 : public detail::MyVariant2Base {
+    using first  = detail::MyVariant2::first;
+    using second = detail::MyVariant2::second;
+    using third  = detail::MyVariant2::third;
 
     enum class e {
       first,
@@ -270,27 +308,18 @@ namespace rdstest {
       third,
     };
 
-  } // namespace MyVariant2
-
-  namespace detail {
-
-    using MyVariant2Base = base::variant<
-      MyVariant2::first,
-      MyVariant2::second,
-      MyVariant2::third
-    >;
-
-  } // namespace detail
-
-  struct MyVariant2_t : public detail::MyVariant2Base {
     using i_am_rds_variant = void;
     using Base = detail::MyVariant2Base;
     using Base::Base;
-    MyVariant2_t( Base&& b ) : Base( std::move( b ) ) {}
+    MyVariant2( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
   };
-  NOTHROW_MOVE( MyVariant2_t );
+
+  // TODO: temporary.
+  using MyVariant2_t = MyVariant2;
+
+  NOTHROW_MOVE( MyVariant2 );
 
 } // namespace rdstest
 
@@ -305,51 +334,54 @@ namespace refl {
 
   // Reflection info for struct first.
   template<>
-  struct traits<rdstest::MyVariant2::first> {
-    using type = rdstest::MyVariant2::first;
+  struct traits<rdstest::detail::MyVariant2::first> {
+    using type = rdstest::detail::MyVariant2::first;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::MyVariant2";
     static constexpr std::string_view name = "first";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "name", &rdstest::MyVariant2::first::name, /*offset=*/base::nothing },
-      refl::StructField{ "b", &rdstest::MyVariant2::first::b, /*offset=*/base::nothing },
+      refl::StructField{ "name", &rdstest::detail::MyVariant2::first::name, /*offset=*/base::nothing },
+      refl::StructField{ "b", &rdstest::detail::MyVariant2::first::b, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct second.
   template<>
-  struct traits<rdstest::MyVariant2::second> {
-    using type = rdstest::MyVariant2::second;
+  struct traits<rdstest::detail::MyVariant2::second> {
+    using type = rdstest::detail::MyVariant2::second;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::MyVariant2";
     static constexpr std::string_view name = "second";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "flag1", &rdstest::MyVariant2::second::flag1, /*offset=*/base::nothing },
-      refl::StructField{ "flag2", &rdstest::MyVariant2::second::flag2, /*offset=*/base::nothing },
+      refl::StructField{ "flag1", &rdstest::detail::MyVariant2::second::flag1, /*offset=*/base::nothing },
+      refl::StructField{ "flag2", &rdstest::detail::MyVariant2::second::flag2, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct third.
   template<>
-  struct traits<rdstest::MyVariant2::third> {
-    using type = rdstest::MyVariant2::third;
+  struct traits<rdstest::detail::MyVariant2::third> {
+    using type = rdstest::detail::MyVariant2::third;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::MyVariant2";
     static constexpr std::string_view name = "third";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "cost", &rdstest::MyVariant2::third::cost, /*offset=*/base::nothing },
+      refl::StructField{ "cost", &rdstest::detail::MyVariant2::third::cost, /*offset=*/base::nothing },
     };
   };
 
@@ -360,32 +392,49 @@ namespace refl {
 *****************************************************************/
 namespace rdstest::inner {
 
-  namespace MyVariant3 {
+  namespace detail {
 
-    struct a1 {
-      std::monostate var0 = {};
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct a1 const& ) const = default;
-      bool operator!=( struct a1 const& ) const = default;
-    };
+    namespace MyVariant3 {
 
-    struct a2 {
-      std::monostate var1 = {};
-      MyVariant2_t   var2 = {};
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct a2 const& ) const = default;
-      bool operator!=( struct a2 const& ) const = default;
-    };
+      struct a1 {
+        std::monostate var0 = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct a1 const& ) const = default;
+        bool operator!=( struct a1 const& ) const = default;
+      };
 
-    struct a3 {
-      char c = {};
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct a3 const& ) const = default;
-      bool operator!=( struct a3 const& ) const = default;
-    };
+      struct a2 {
+        std::monostate var1 = {};
+        MyVariant2_t   var2 = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct a2 const& ) const = default;
+        bool operator!=( struct a2 const& ) const = default;
+      };
+
+      struct a3 {
+        char c = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct a3 const& ) const = default;
+        bool operator!=( struct a3 const& ) const = default;
+      };
+
+    } // namespace MyVariant3
+
+    using MyVariant3Base = base::variant<
+      detail::MyVariant3::a1,
+      detail::MyVariant3::a2,
+      detail::MyVariant3::a3
+    >;
+
+  } // namespace detail
+
+  struct MyVariant3 : public detail::MyVariant3Base {
+    using a1 = detail::MyVariant3::a1;
+    using a2 = detail::MyVariant3::a2;
+    using a3 = detail::MyVariant3::a3;
 
     enum class e {
       a1,
@@ -393,27 +442,18 @@ namespace rdstest::inner {
       a3,
     };
 
-  } // namespace MyVariant3
-
-  namespace detail {
-
-    using MyVariant3Base = base::variant<
-      MyVariant3::a1,
-      MyVariant3::a2,
-      MyVariant3::a3
-    >;
-
-  } // namespace detail
-
-  struct MyVariant3_t : public detail::MyVariant3Base {
     using i_am_rds_variant = void;
     using Base = detail::MyVariant3Base;
     using Base::Base;
-    MyVariant3_t( Base&& b ) : Base( std::move( b ) ) {}
+    MyVariant3( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
   };
-  NOTHROW_MOVE( MyVariant3_t );
+
+  // TODO: temporary.
+  using MyVariant3_t = MyVariant3;
+
+  NOTHROW_MOVE( MyVariant3 );
 
 } // namespace rdstest::inner
 
@@ -428,50 +468,53 @@ namespace refl {
 
   // Reflection info for struct a1.
   template<>
-  struct traits<rdstest::inner::MyVariant3::a1> {
-    using type = rdstest::inner::MyVariant3::a1;
+  struct traits<rdstest::inner::detail::MyVariant3::a1> {
+    using type = rdstest::inner::detail::MyVariant3::a1;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::MyVariant3";
     static constexpr std::string_view name = "a1";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "var0", &rdstest::inner::MyVariant3::a1::var0, /*offset=*/base::nothing },
+      refl::StructField{ "var0", &rdstest::inner::detail::MyVariant3::a1::var0, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct a2.
   template<>
-  struct traits<rdstest::inner::MyVariant3::a2> {
-    using type = rdstest::inner::MyVariant3::a2;
+  struct traits<rdstest::inner::detail::MyVariant3::a2> {
+    using type = rdstest::inner::detail::MyVariant3::a2;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::MyVariant3";
     static constexpr std::string_view name = "a2";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "var1", &rdstest::inner::MyVariant3::a2::var1, /*offset=*/base::nothing },
-      refl::StructField{ "var2", &rdstest::inner::MyVariant3::a2::var2, /*offset=*/base::nothing },
+      refl::StructField{ "var1", &rdstest::inner::detail::MyVariant3::a2::var1, /*offset=*/base::nothing },
+      refl::StructField{ "var2", &rdstest::inner::detail::MyVariant3::a2::var2, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct a3.
   template<>
-  struct traits<rdstest::inner::MyVariant3::a3> {
-    using type = rdstest::inner::MyVariant3::a3;
+  struct traits<rdstest::inner::detail::MyVariant3::a3> {
+    using type = rdstest::inner::detail::MyVariant3::a3;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::MyVariant3";
     static constexpr std::string_view name = "a3";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "c", &rdstest::inner::MyVariant3::a3::c, /*offset=*/base::nothing },
+      refl::StructField{ "c", &rdstest::inner::detail::MyVariant3::a3::c, /*offset=*/base::nothing },
     };
   };
 
@@ -482,34 +525,51 @@ namespace refl {
 *****************************************************************/
 namespace rdstest::inner {
 
-  namespace MyVariant4 {
+  namespace detail {
 
-    struct first {
-      int                 i = {};
-      char                c = {};
-      bool                b = {};
-      rn::maybe<uint32_t> op = {};
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct first const& ) const = default;
-      bool operator!=( struct first const& ) const = default;
-    };
+    namespace MyVariant4 {
 
-    struct _2nd {
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct _2nd const& ) const = default;
-      bool operator!=( struct _2nd const& ) const = default;
-    };
+      struct first {
+        int                 i = {};
+        char                c = {};
+        bool                b = {};
+        rn::maybe<uint32_t> op = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct first const& ) const = default;
+        bool operator!=( struct first const& ) const = default;
+      };
 
-    struct third {
-      std::string  s = {};
-      MyVariant3_t var3 = {};
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct third const& ) const = default;
-      bool operator!=( struct third const& ) const = default;
-    };
+      struct _2nd {
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct _2nd const& ) const = default;
+        bool operator!=( struct _2nd const& ) const = default;
+      };
+
+      struct third {
+        std::string  s = {};
+        MyVariant3_t var3 = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct third const& ) const = default;
+        bool operator!=( struct third const& ) const = default;
+      };
+
+    } // namespace MyVariant4
+
+    using MyVariant4Base = base::variant<
+      detail::MyVariant4::first,
+      detail::MyVariant4::_2nd,
+      detail::MyVariant4::third
+    >;
+
+  } // namespace detail
+
+  struct MyVariant4 : public detail::MyVariant4Base {
+    using first = detail::MyVariant4::first;
+    using _2nd  = detail::MyVariant4::_2nd;
+    using third = detail::MyVariant4::third;
 
     enum class e {
       first,
@@ -517,27 +577,18 @@ namespace rdstest::inner {
       third,
     };
 
-  } // namespace MyVariant4
-
-  namespace detail {
-
-    using MyVariant4Base = base::variant<
-      MyVariant4::first,
-      MyVariant4::_2nd,
-      MyVariant4::third
-    >;
-
-  } // namespace detail
-
-  struct MyVariant4_t : public detail::MyVariant4Base {
     using i_am_rds_variant = void;
     using Base = detail::MyVariant4Base;
     using Base::Base;
-    MyVariant4_t( Base&& b ) : Base( std::move( b ) ) {}
+    MyVariant4( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
   };
-  NOTHROW_MOVE( MyVariant4_t );
+
+  // TODO: temporary.
+  using MyVariant4_t = MyVariant4;
+
+  NOTHROW_MOVE( MyVariant4 );
 
 } // namespace rdstest::inner
 
@@ -552,31 +603,33 @@ namespace refl {
 
   // Reflection info for struct first.
   template<>
-  struct traits<rdstest::inner::MyVariant4::first> {
-    using type = rdstest::inner::MyVariant4::first;
+  struct traits<rdstest::inner::detail::MyVariant4::first> {
+    using type = rdstest::inner::detail::MyVariant4::first;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::MyVariant4";
     static constexpr std::string_view name = "first";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "i", &rdstest::inner::MyVariant4::first::i, /*offset=*/base::nothing },
-      refl::StructField{ "c", &rdstest::inner::MyVariant4::first::c, /*offset=*/base::nothing },
-      refl::StructField{ "b", &rdstest::inner::MyVariant4::first::b, /*offset=*/base::nothing },
-      refl::StructField{ "op", &rdstest::inner::MyVariant4::first::op, /*offset=*/base::nothing },
+      refl::StructField{ "i", &rdstest::inner::detail::MyVariant4::first::i, /*offset=*/base::nothing },
+      refl::StructField{ "c", &rdstest::inner::detail::MyVariant4::first::c, /*offset=*/base::nothing },
+      refl::StructField{ "b", &rdstest::inner::detail::MyVariant4::first::b, /*offset=*/base::nothing },
+      refl::StructField{ "op", &rdstest::inner::detail::MyVariant4::first::op, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct _2nd.
   template<>
-  struct traits<rdstest::inner::MyVariant4::_2nd> {
-    using type = rdstest::inner::MyVariant4::_2nd;
+  struct traits<rdstest::inner::detail::MyVariant4::_2nd> {
+    using type = rdstest::inner::detail::MyVariant4::_2nd;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::MyVariant4";
     static constexpr std::string_view name = "_2nd";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
@@ -585,18 +638,19 @@ namespace refl {
 
   // Reflection info for struct third.
   template<>
-  struct traits<rdstest::inner::MyVariant4::third> {
-    using type = rdstest::inner::MyVariant4::third;
+  struct traits<rdstest::inner::detail::MyVariant4::third> {
+    using type = rdstest::inner::detail::MyVariant4::third;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::MyVariant4";
     static constexpr std::string_view name = "third";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "s", &rdstest::inner::MyVariant4::third::s, /*offset=*/base::nothing },
-      refl::StructField{ "var3", &rdstest::inner::MyVariant4::third::var3, /*offset=*/base::nothing },
+      refl::StructField{ "s", &rdstest::inner::detail::MyVariant4::third::s, /*offset=*/base::nothing },
+      refl::StructField{ "var3", &rdstest::inner::detail::MyVariant4::third::var3, /*offset=*/base::nothing },
     };
   };
 
@@ -607,35 +661,54 @@ namespace refl {
 *****************************************************************/
 namespace rdstest::inner {
 
-  namespace TemplateTwoParams {
+  namespace detail {
+
+    namespace TemplateTwoParams {
+
+      template<typename T, typename U>
+      struct first_alternative {
+        T    t = {};
+        char c = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct first_alternative const& ) const = default;
+        bool operator!=( struct first_alternative const& ) const = default;
+      };
+
+      template<typename T, typename U>
+      struct second_alternative {
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct second_alternative const& ) const = default;
+        bool operator!=( struct second_alternative const& ) const = default;
+      };
+
+      template<typename T, typename U>
+      struct third_alternative {
+        Maybe_t<T> hello = {};
+        U          u = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct third_alternative const& ) const = default;
+        bool operator!=( struct third_alternative const& ) const = default;
+      };
+
+    } // namespace TemplateTwoParams
 
     template<typename T, typename U>
-    struct first_alternative {
-      T    t = {};
-      char c = {};
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct first_alternative const& ) const = default;
-      bool operator!=( struct first_alternative const& ) const = default;
-    };
+    using TemplateTwoParamsBase = base::variant<
+      detail::TemplateTwoParams::first_alternative<T, U>,
+      detail::TemplateTwoParams::second_alternative<T, U>,
+      detail::TemplateTwoParams::third_alternative<T, U>
+    >;
 
-    template<typename T, typename U>
-    struct second_alternative {
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct second_alternative const& ) const = default;
-      bool operator!=( struct second_alternative const& ) const = default;
-    };
+  } // namespace detail
 
-    template<typename T, typename U>
-    struct third_alternative {
-      Maybe_t<T> hello = {};
-      U          u = {};
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct third_alternative const& ) const = default;
-      bool operator!=( struct third_alternative const& ) const = default;
-    };
+  template<typename T, typename U>
+  struct TemplateTwoParams : public detail::TemplateTwoParamsBase<T, U> {
+    using first_alternative  = detail::TemplateTwoParams::first_alternative<T, U>;
+    using second_alternative = detail::TemplateTwoParams::second_alternative<T, U>;
+    using third_alternative  = detail::TemplateTwoParams::third_alternative<T, U>;
 
     enum class e {
       first_alternative,
@@ -643,36 +716,26 @@ namespace rdstest::inner {
       third_alternative,
     };
 
-  } // namespace TemplateTwoParams
-
-  namespace detail {
-
-    template<typename T, typename U>
-    using TemplateTwoParamsBase = base::variant<
-      TemplateTwoParams::first_alternative<T, U>,
-      TemplateTwoParams::second_alternative<T, U>,
-      TemplateTwoParams::third_alternative<T, U>
-    >;
-
-  } // namespace detail
-
-  template<typename T, typename U>
-  struct TemplateTwoParams_t : public detail::TemplateTwoParamsBase<T, U> {
     using i_am_rds_variant = void;
     using Base = detail::TemplateTwoParamsBase<T, U>;
     using Base::Base;
-    TemplateTwoParams_t( Base&& b ) : Base( std::move( b ) ) {}
+    TemplateTwoParams( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
   };
-  NOTHROW_MOVE( TemplateTwoParams_t<int, int> );
+
+  // TODO: temporary.
+  template<typename T, typename U>
+  using TemplateTwoParams_t = TemplateTwoParams<T, U>;
+
+  NOTHROW_MOVE( TemplateTwoParams<int, int> );
 
 } // namespace rdstest::inner
 
 // This gives us the enum to use in a switch statement.
 template<typename T, typename U>
 struct base::variant_to_enum<rdstest::inner::detail::TemplateTwoParamsBase<T, U>> {
-  using type = rdstest::inner::TemplateTwoParams::e;
+  using type = rdstest::inner::TemplateTwoParams<T, U>::e;
 };
 
 // Reflection traits for alternatives.
@@ -680,29 +743,31 @@ namespace refl {
 
   // Reflection info for struct first_alternative.
   template<typename T, typename U>
-  struct traits<rdstest::inner::TemplateTwoParams::first_alternative<T, U>> {
-    using type = rdstest::inner::TemplateTwoParams::first_alternative<T, U>;
+  struct traits<rdstest::inner::detail::TemplateTwoParams::first_alternative<T, U>> {
+    using type = rdstest::inner::detail::TemplateTwoParams::first_alternative<T, U>;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::TemplateTwoParams";
     static constexpr std::string_view name = "first_alternative";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<T, U>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "t", &rdstest::inner::TemplateTwoParams::first_alternative<T, U>::t, /*offset=*/base::nothing },
-      refl::StructField{ "c", &rdstest::inner::TemplateTwoParams::first_alternative<T, U>::c, /*offset=*/base::nothing },
+      refl::StructField{ "t", &rdstest::inner::detail::TemplateTwoParams::first_alternative<T, U>::t, /*offset=*/base::nothing },
+      refl::StructField{ "c", &rdstest::inner::detail::TemplateTwoParams::first_alternative<T, U>::c, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct second_alternative.
   template<typename T, typename U>
-  struct traits<rdstest::inner::TemplateTwoParams::second_alternative<T, U>> {
-    using type = rdstest::inner::TemplateTwoParams::second_alternative<T, U>;
+  struct traits<rdstest::inner::detail::TemplateTwoParams::second_alternative<T, U>> {
+    using type = rdstest::inner::detail::TemplateTwoParams::second_alternative<T, U>;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::TemplateTwoParams";
     static constexpr std::string_view name = "second_alternative";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<T, U>;
 
@@ -711,18 +776,19 @@ namespace refl {
 
   // Reflection info for struct third_alternative.
   template<typename T, typename U>
-  struct traits<rdstest::inner::TemplateTwoParams::third_alternative<T, U>> {
-    using type = rdstest::inner::TemplateTwoParams::third_alternative<T, U>;
+  struct traits<rdstest::inner::detail::TemplateTwoParams::third_alternative<T, U>> {
+    using type = rdstest::inner::detail::TemplateTwoParams::third_alternative<T, U>;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::TemplateTwoParams";
     static constexpr std::string_view name = "third_alternative";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<T, U>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "hello", &rdstest::inner::TemplateTwoParams::third_alternative<T, U>::hello, /*offset=*/base::nothing },
-      refl::StructField{ "u", &rdstest::inner::TemplateTwoParams::third_alternative<T, U>::u, /*offset=*/base::nothing },
+      refl::StructField{ "hello", &rdstest::inner::detail::TemplateTwoParams::third_alternative<T, U>::hello, /*offset=*/base::nothing },
+      refl::StructField{ "u", &rdstest::inner::detail::TemplateTwoParams::third_alternative<T, U>::u, /*offset=*/base::nothing },
     };
   };
 
@@ -733,59 +799,67 @@ namespace refl {
 *****************************************************************/
 namespace rdstest::inner {
 
-  namespace CompositeTemplateTwo {
+  namespace detail {
+
+    namespace CompositeTemplateTwo {
+
+      template<typename T, typename U>
+      struct first {
+        rdstest::inner::TemplateTwoParams_t<T,U> ttp = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct first const& ) const = default;
+        bool operator!=( struct first const& ) const = default;
+      };
+
+      template<typename T, typename U>
+      struct second {
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct second const& ) const = default;
+        bool operator!=( struct second const& ) const = default;
+      };
+
+    } // namespace CompositeTemplateTwo
 
     template<typename T, typename U>
-    struct first {
-      rdstest::inner::TemplateTwoParams_t<T,U> ttp = {};
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct first const& ) const = default;
-      bool operator!=( struct first const& ) const = default;
-    };
+    using CompositeTemplateTwoBase = base::variant<
+      detail::CompositeTemplateTwo::first<T, U>,
+      detail::CompositeTemplateTwo::second<T, U>
+    >;
 
-    template<typename T, typename U>
-    struct second {
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct second const& ) const = default;
-      bool operator!=( struct second const& ) const = default;
-    };
+  } // namespace detail
+
+  template<typename T, typename U>
+  struct CompositeTemplateTwo : public detail::CompositeTemplateTwoBase<T, U> {
+    using first  = detail::CompositeTemplateTwo::first<T, U>;
+    using second = detail::CompositeTemplateTwo::second<T, U>;
 
     enum class e {
       first,
       second,
     };
 
-  } // namespace CompositeTemplateTwo
-
-  namespace detail {
-
-    template<typename T, typename U>
-    using CompositeTemplateTwoBase = base::variant<
-      CompositeTemplateTwo::first<T, U>,
-      CompositeTemplateTwo::second<T, U>
-    >;
-
-  } // namespace detail
-
-  template<typename T, typename U>
-  struct CompositeTemplateTwo_t : public detail::CompositeTemplateTwoBase<T, U> {
     using i_am_rds_variant = void;
     using Base = detail::CompositeTemplateTwoBase<T, U>;
     using Base::Base;
-    CompositeTemplateTwo_t( Base&& b ) : Base( std::move( b ) ) {}
+    CompositeTemplateTwo( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
   };
-  NOTHROW_MOVE( CompositeTemplateTwo_t<int, int> );
+
+  // TODO: temporary.
+  template<typename T, typename U>
+  using CompositeTemplateTwo_t = CompositeTemplateTwo<T, U>;
+
+  NOTHROW_MOVE( CompositeTemplateTwo<int, int> );
 
 } // namespace rdstest::inner
 
 // This gives us the enum to use in a switch statement.
 template<typename T, typename U>
 struct base::variant_to_enum<rdstest::inner::detail::CompositeTemplateTwoBase<T, U>> {
-  using type = rdstest::inner::CompositeTemplateTwo::e;
+  using type = rdstest::inner::CompositeTemplateTwo<T, U>::e;
 };
 
 // Reflection traits for alternatives.
@@ -793,28 +867,30 @@ namespace refl {
 
   // Reflection info for struct first.
   template<typename T, typename U>
-  struct traits<rdstest::inner::CompositeTemplateTwo::first<T, U>> {
-    using type = rdstest::inner::CompositeTemplateTwo::first<T, U>;
+  struct traits<rdstest::inner::detail::CompositeTemplateTwo::first<T, U>> {
+    using type = rdstest::inner::detail::CompositeTemplateTwo::first<T, U>;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::CompositeTemplateTwo";
     static constexpr std::string_view name = "first";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<T, U>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "ttp", &rdstest::inner::CompositeTemplateTwo::first<T, U>::ttp, /*offset=*/base::nothing },
+      refl::StructField{ "ttp", &rdstest::inner::detail::CompositeTemplateTwo::first<T, U>::ttp, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct second.
   template<typename T, typename U>
-  struct traits<rdstest::inner::CompositeTemplateTwo::second<T, U>> {
-    using type = rdstest::inner::CompositeTemplateTwo::second<T, U>;
+  struct traits<rdstest::inner::detail::CompositeTemplateTwo::second<T, U>> {
+    using type = rdstest::inner::detail::CompositeTemplateTwo::second<T, U>;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::CompositeTemplateTwo";
     static constexpr std::string_view name = "second";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<T, U>;
 
@@ -828,31 +904,48 @@ namespace refl {
 *****************************************************************/
 namespace rn {
 
-  namespace MySumtype {
+  namespace detail {
 
-    struct none {
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct none const& ) const = default;
-      bool operator!=( struct none const& ) const = default;
-    };
+    namespace MySumtype {
 
-    struct some {
-      std::string s = {};
-      int         y = {};
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct some const& ) const = default;
-      bool operator!=( struct some const& ) const = default;
-    };
+      struct none {
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct none const& ) const = default;
+        bool operator!=( struct none const& ) const = default;
+      };
 
-    struct more {
-      double d = {};
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct more const& ) const = default;
-      bool operator!=( struct more const& ) const = default;
-    };
+      struct some {
+        std::string s = {};
+        int         y = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct some const& ) const = default;
+        bool operator!=( struct some const& ) const = default;
+      };
+
+      struct more {
+        double d = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct more const& ) const = default;
+        bool operator!=( struct more const& ) const = default;
+      };
+
+    } // namespace MySumtype
+
+    using MySumtypeBase = base::variant<
+      detail::MySumtype::none,
+      detail::MySumtype::some,
+      detail::MySumtype::more
+    >;
+
+  } // namespace detail
+
+  struct MySumtype : public detail::MySumtypeBase {
+    using none = detail::MySumtype::none;
+    using some = detail::MySumtype::some;
+    using more = detail::MySumtype::more;
 
     enum class e {
       none,
@@ -860,27 +953,18 @@ namespace rn {
       more,
     };
 
-  } // namespace MySumtype
-
-  namespace detail {
-
-    using MySumtypeBase = base::variant<
-      MySumtype::none,
-      MySumtype::some,
-      MySumtype::more
-    >;
-
-  } // namespace detail
-
-  struct MySumtype_t : public detail::MySumtypeBase {
     using i_am_rds_variant = void;
     using Base = detail::MySumtypeBase;
     using Base::Base;
-    MySumtype_t( Base&& b ) : Base( std::move( b ) ) {}
+    MySumtype( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
   };
-  NOTHROW_MOVE( MySumtype_t );
+
+  // TODO: temporary.
+  using MySumtype_t = MySumtype;
+
+  NOTHROW_MOVE( MySumtype );
 
 } // namespace rn
 
@@ -895,12 +979,13 @@ namespace refl {
 
   // Reflection info for struct none.
   template<>
-  struct traits<rn::MySumtype::none> {
-    using type = rn::MySumtype::none;
+  struct traits<rn::detail::MySumtype::none> {
+    using type = rn::detail::MySumtype::none;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::MySumtype";
     static constexpr std::string_view name = "none";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
@@ -909,34 +994,36 @@ namespace refl {
 
   // Reflection info for struct some.
   template<>
-  struct traits<rn::MySumtype::some> {
-    using type = rn::MySumtype::some;
+  struct traits<rn::detail::MySumtype::some> {
+    using type = rn::detail::MySumtype::some;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::MySumtype";
     static constexpr std::string_view name = "some";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "s", &rn::MySumtype::some::s, /*offset=*/base::nothing },
-      refl::StructField{ "y", &rn::MySumtype::some::y, /*offset=*/base::nothing },
+      refl::StructField{ "s", &rn::detail::MySumtype::some::s, /*offset=*/base::nothing },
+      refl::StructField{ "y", &rn::detail::MySumtype::some::y, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct more.
   template<>
-  struct traits<rn::MySumtype::more> {
-    using type = rn::MySumtype::more;
+  struct traits<rn::detail::MySumtype::more> {
+    using type = rn::detail::MySumtype::more;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::MySumtype";
     static constexpr std::string_view name = "more";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "d", &rn::MySumtype::more::d, /*offset=*/base::nothing },
+      refl::StructField{ "d", &rn::detail::MySumtype::more::d, /*offset=*/base::nothing },
     };
   };
 
@@ -947,38 +1034,57 @@ namespace refl {
 *****************************************************************/
 namespace rn {
 
-  namespace OnOffState {
+  namespace detail {
 
-    struct off {
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct off const& ) const = default;
-      bool operator!=( struct off const& ) const = default;
-    };
+    namespace OnOffState {
 
-    struct on {
-      std::string user = {};
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct on const& ) const = default;
-      bool operator!=( struct on const& ) const = default;
-    };
+      struct off {
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct off const& ) const = default;
+        bool operator!=( struct off const& ) const = default;
+      };
 
-    struct switching_on {
-      double percent = {};
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct switching_on const& ) const = default;
-      bool operator!=( struct switching_on const& ) const = default;
-    };
+      struct on {
+        std::string user = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct on const& ) const = default;
+        bool operator!=( struct on const& ) const = default;
+      };
 
-    struct switching_off {
-      double percent = {};
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct switching_off const& ) const = default;
-      bool operator!=( struct switching_off const& ) const = default;
-    };
+      struct switching_on {
+        double percent = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct switching_on const& ) const = default;
+        bool operator!=( struct switching_on const& ) const = default;
+      };
+
+      struct switching_off {
+        double percent = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct switching_off const& ) const = default;
+        bool operator!=( struct switching_off const& ) const = default;
+      };
+
+    } // namespace OnOffState
+
+    using OnOffStateBase = base::variant<
+      detail::OnOffState::off,
+      detail::OnOffState::on,
+      detail::OnOffState::switching_on,
+      detail::OnOffState::switching_off
+    >;
+
+  } // namespace detail
+
+  struct OnOffState : public detail::OnOffStateBase {
+    using off           = detail::OnOffState::off;
+    using on            = detail::OnOffState::on;
+    using switching_on  = detail::OnOffState::switching_on;
+    using switching_off = detail::OnOffState::switching_off;
 
     enum class e {
       off,
@@ -987,28 +1093,18 @@ namespace rn {
       switching_off,
     };
 
-  } // namespace OnOffState
-
-  namespace detail {
-
-    using OnOffStateBase = base::variant<
-      OnOffState::off,
-      OnOffState::on,
-      OnOffState::switching_on,
-      OnOffState::switching_off
-    >;
-
-  } // namespace detail
-
-  struct OnOffState_t : public detail::OnOffStateBase {
     using i_am_rds_variant = void;
     using Base = detail::OnOffStateBase;
     using Base::Base;
-    OnOffState_t( Base&& b ) : Base( std::move( b ) ) {}
+    OnOffState( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
   };
-  NOTHROW_MOVE( OnOffState_t );
+
+  // TODO: temporary.
+  using OnOffState_t = OnOffState;
+
+  NOTHROW_MOVE( OnOffState );
 
 } // namespace rn
 
@@ -1023,12 +1119,13 @@ namespace refl {
 
   // Reflection info for struct off.
   template<>
-  struct traits<rn::OnOffState::off> {
-    using type = rn::OnOffState::off;
+  struct traits<rn::detail::OnOffState::off> {
+    using type = rn::detail::OnOffState::off;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::OnOffState";
     static constexpr std::string_view name = "off";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
@@ -1037,49 +1134,52 @@ namespace refl {
 
   // Reflection info for struct on.
   template<>
-  struct traits<rn::OnOffState::on> {
-    using type = rn::OnOffState::on;
+  struct traits<rn::detail::OnOffState::on> {
+    using type = rn::detail::OnOffState::on;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::OnOffState";
     static constexpr std::string_view name = "on";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "user", &rn::OnOffState::on::user, /*offset=*/base::nothing },
+      refl::StructField{ "user", &rn::detail::OnOffState::on::user, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct switching_on.
   template<>
-  struct traits<rn::OnOffState::switching_on> {
-    using type = rn::OnOffState::switching_on;
+  struct traits<rn::detail::OnOffState::switching_on> {
+    using type = rn::detail::OnOffState::switching_on;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::OnOffState";
     static constexpr std::string_view name = "switching_on";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "percent", &rn::OnOffState::switching_on::percent, /*offset=*/base::nothing },
+      refl::StructField{ "percent", &rn::detail::OnOffState::switching_on::percent, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct switching_off.
   template<>
-  struct traits<rn::OnOffState::switching_off> {
-    using type = rn::OnOffState::switching_off;
+  struct traits<rn::detail::OnOffState::switching_off> {
+    using type = rn::detail::OnOffState::switching_off;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::OnOffState";
     static constexpr std::string_view name = "switching_off";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "percent", &rn::OnOffState::switching_off::percent, /*offset=*/base::nothing },
+      refl::StructField{ "percent", &rn::detail::OnOffState::switching_off::percent, /*offset=*/base::nothing },
     };
   };
 
@@ -1090,47 +1190,54 @@ namespace refl {
 *****************************************************************/
 namespace rn {
 
-  namespace OnOffEvent {
+  namespace detail {
 
-    struct turn_off {
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct turn_off const& ) const = default;
-      bool operator!=( struct turn_off const& ) const = default;
-    };
+    namespace OnOffEvent {
 
-    struct turn_on {
-      // This requires that the types of the member variables
-      // also support equality.
-      bool operator==( struct turn_on const& ) const = default;
-      bool operator!=( struct turn_on const& ) const = default;
-    };
+      struct turn_off {
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct turn_off const& ) const = default;
+        bool operator!=( struct turn_off const& ) const = default;
+      };
+
+      struct turn_on {
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct turn_on const& ) const = default;
+        bool operator!=( struct turn_on const& ) const = default;
+      };
+
+    } // namespace OnOffEvent
+
+    using OnOffEventBase = base::variant<
+      detail::OnOffEvent::turn_off,
+      detail::OnOffEvent::turn_on
+    >;
+
+  } // namespace detail
+
+  struct OnOffEvent : public detail::OnOffEventBase {
+    using turn_off = detail::OnOffEvent::turn_off;
+    using turn_on  = detail::OnOffEvent::turn_on;
 
     enum class e {
       turn_off,
       turn_on,
     };
 
-  } // namespace OnOffEvent
-
-  namespace detail {
-
-    using OnOffEventBase = base::variant<
-      OnOffEvent::turn_off,
-      OnOffEvent::turn_on
-    >;
-
-  } // namespace detail
-
-  struct OnOffEvent_t : public detail::OnOffEventBase {
     using i_am_rds_variant = void;
     using Base = detail::OnOffEventBase;
     using Base::Base;
-    OnOffEvent_t( Base&& b ) : Base( std::move( b ) ) {}
+    OnOffEvent( Base&& b ) : Base( std::move( b ) ) {}
     Base const& as_base() const& { return *this; }
     Base&       as_base()      & { return *this; }
   };
-  NOTHROW_MOVE( OnOffEvent_t );
+
+  // TODO: temporary.
+  using OnOffEvent_t = OnOffEvent;
+
+  NOTHROW_MOVE( OnOffEvent );
 
 } // namespace rn
 
@@ -1145,12 +1252,13 @@ namespace refl {
 
   // Reflection info for struct turn_off.
   template<>
-  struct traits<rn::OnOffEvent::turn_off> {
-    using type = rn::OnOffEvent::turn_off;
+  struct traits<rn::detail::OnOffEvent::turn_off> {
+    using type = rn::detail::OnOffEvent::turn_off;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::OnOffEvent";
     static constexpr std::string_view name = "turn_off";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
@@ -1159,12 +1267,13 @@ namespace refl {
 
   // Reflection info for struct turn_on.
   template<>
-  struct traits<rn::OnOffEvent::turn_on> {
-    using type = rn::OnOffEvent::turn_on;
+  struct traits<rn::detail::OnOffEvent::turn_on> {
+    using type = rn::detail::OnOffEvent::turn_on;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::OnOffEvent";
     static constexpr std::string_view name = "turn_on";
+    static constexpr bool is_sumtype_alternative = true;
 
     using template_types = std::tuple<>;
 
@@ -1434,6 +1543,7 @@ namespace refl {
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn";
     static constexpr std::string_view name = "EmptyStruct";
+    static constexpr bool is_sumtype_alternative = false;
 
     using template_types = std::tuple<>;
 
@@ -1461,6 +1571,7 @@ namespace refl {
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn";
     static constexpr std::string_view name = "EmptyStruct2";
+    static constexpr bool is_sumtype_alternative = false;
 
     using template_types = std::tuple<>;
 
@@ -1494,6 +1605,7 @@ namespace refl {
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn";
     static constexpr std::string_view name = "MyStruct";
+    static constexpr bool is_sumtype_alternative = false;
 
     using template_types = std::tuple<>;
 
@@ -1534,6 +1646,7 @@ namespace refl {
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn";
     static constexpr std::string_view name = "StructWithValidation";
+    static constexpr bool is_sumtype_alternative = false;
 
     using template_types = std::tuple<>;
 
@@ -1571,6 +1684,7 @@ namespace refl {
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::test";
     static constexpr std::string_view name = "MyTemplateStruct";
+    static constexpr bool is_sumtype_alternative = false;
 
     using template_types = std::tuple<T, U>;
 
@@ -1606,6 +1720,7 @@ namespace refl {
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::test";
     static constexpr std::string_view name = "config_testing_t";
+    static constexpr bool is_sumtype_alternative = false;
 
     using template_types = std::tuple<>;
 

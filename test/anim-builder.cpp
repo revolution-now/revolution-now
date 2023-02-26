@@ -52,7 +52,7 @@ TEST_CASE( "[anim-builder] builders" ) {
 
   AnimationSequence const& res = builder.result();
 
-  namespace P = AnimationPrimitive;
+  using P = AnimationPrimitive;
   AnimationSequence const expected{
       .sequence = {
           { { .primitive =

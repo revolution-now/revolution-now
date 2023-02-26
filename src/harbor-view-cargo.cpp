@@ -70,8 +70,10 @@ HarborCargo::draggable_in_cargo_slot( int slot ) const {
   if( slot >= unit.cargo().slots_total() ) return nothing;
   CargoSlot_t const& cargo = unit.cargo()[slot];
   switch( cargo.to_enum() ) {
-    case CargoSlot::e::empty: return nothing;
-    case CargoSlot::e::overflow: return nothing;
+    case CargoSlot::e::empty:
+      return nothing;
+    case CargoSlot::e::overflow:
+      return nothing;
     case CargoSlot::e::cargo: {
       Cargo_t const& draggable =
           cargo.get<CargoSlot::cargo>().contents;
@@ -110,8 +112,8 @@ HarborCargo::object_here( Coord const& where ) const {
   Coord box_origin =
       where.rounded_to_multiple_to_minus_inf( g_tile_delta );
   Delta scale = g_tile_delta;
-  using HarborDraggableObject::cargo_commodity;
-  if( draggable->holds<cargo_commodity>() ) {
+  if( draggable
+          ->holds<HarborDraggableObject::cargo_commodity>() ) {
     box_origin += kCommodityInCargoHoldRenderingOffset;
     scale = kCommodityTileSize;
   }

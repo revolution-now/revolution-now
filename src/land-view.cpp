@@ -281,7 +281,7 @@ struct LandViewPlane::Impl : public Plane {
     RawInput raw_input = co_await raw_input_stream_.next();
 
     switch( raw_input.input.to_enum() ) {
-      using namespace LandViewRawInput;
+      using e = LandViewRawInput::e;
       case e::reveal_map: {
         co_await cheat_reveal_map( ss_, ts_ );
         break;
@@ -362,7 +362,8 @@ struct LandViewPlane::Impl : public Plane {
         break;
       }
       case e::tile_click: {
-        auto& o = raw_input.input.get<tile_click>();
+        auto& o =
+            raw_input.input.get<LandViewRawInput::tile_click>();
         if( o.mods.shf_down ) {
           // cheat mode.
           maybe<e_nation> nation = active_player( ss_.turn );

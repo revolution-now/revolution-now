@@ -67,6 +67,7 @@ struct traits<my_ns::MyEmptyStruct> {
   static constexpr type_kind   kind = type_kind::struct_kind;
   static constexpr string_view ns   = "my_ns";
   static constexpr string_view name = "MyEmptyStruct";
+  static constexpr bool        is_sumtype_alternative = false;
 
   // Struct specific.
   using template_types = tuple<>;
@@ -80,6 +81,7 @@ struct traits<my_ns::MyStruct> {
   static constexpr type_kind   kind = type_kind::struct_kind;
   static constexpr string_view ns   = "my_ns";
   static constexpr string_view name = "MyStruct";
+  static constexpr bool        is_sumtype_alternative = false;
 
   // Struct specific.
   using template_types = tuple<>;
@@ -97,6 +99,7 @@ struct traits<my_ns::MyTmpStruct<U, V>> {
   static constexpr type_kind   kind = type_kind::struct_kind;
   static constexpr string_view ns   = "my_ns";
   static constexpr string_view name = "MyStruct";
+  static constexpr bool        is_sumtype_alternative = false;
 
   // Struct specific.
   using template_types = tuple<U, V>;

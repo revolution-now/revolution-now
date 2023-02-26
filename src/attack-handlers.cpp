@@ -160,7 +160,7 @@ maybe<string> perform_euro_unit_combat_outcome(
   maybe<string> msg;
 
   switch( outcome.to_enum() ) {
-    using namespace EuroUnitCombatOutcome;
+    using e = EuroUnitCombatOutcome::e;
     case e::no_change:
       break;
     case e::destroyed: {
@@ -174,12 +174,13 @@ maybe<string> perform_euro_unit_combat_outcome(
       break;
     }
     case e::captured: {
-      auto& o = outcome.get<captured>();
+      auto& o = outcome.get<EuroUnitCombatOutcome::captured>();
       capture_unit( o.new_nation, o.new_coord );
       break;
     }
     case e::captured_and_demoted: {
-      auto& o = outcome.get<captured_and_demoted>();
+      auto& o = outcome.get<
+          EuroUnitCombatOutcome::captured_and_demoted>();
       // Need to do this first before demoting the unit.
       msg = "Unit demoted upon capture!";
       if( unit.type() == e_unit_type::veteran_colonist )
@@ -197,14 +198,14 @@ maybe<string> perform_euro_unit_combat_outcome(
       break;
     }
     case e::promoted: {
-      auto& o = outcome.get<promoted>();
+      auto& o = outcome.get<EuroUnitCombatOutcome::promoted>();
       // TODO: make this message more specific like in the OG.
       msg = "Unit promoted for valor in combat!";
       unit.change_type( player, o.to );
       break;
     }
     case e::demoted: {
-      auto& o = outcome.get<demoted>();
+      auto& o = outcome.get<EuroUnitCombatOutcome::demoted>();
       unit.change_type( player, o.to );
       break;
     }
@@ -227,11 +228,12 @@ maybe<string> perform_native_unit_combat_outcome(
   maybe<string> msg;
 
   switch( outcome.to_enum() ) {
-    using namespace NativeUnitCombatOutcome;
+    using e = NativeUnitCombatOutcome::e;
     case e::no_change:
       break;
     case e::destroyed: {
-      auto&  o = outcome.get<destroyed>();
+      auto& o =
+          outcome.get<NativeUnitCombatOutcome::destroyed>();
       Tribe& tribe =
           ss.natives.tribe_for( tribe_for_unit( ss, unit ) );
       if( o.tribe_retains_horses && o.tribe_retains_muskets )
@@ -241,7 +243,7 @@ maybe<string> perform_native_unit_combat_outcome(
       break;
     }
     case e::promoted: {
-      auto&       o                  = outcome.get<promoted>();
+      auto& o = outcome.get<NativeUnitCombatOutcome::promoted>();
       static auto promotion_messages = [] {
         using E = e_native_unit_type;
         refl::enum_map<E, refl::enum_map<E, maybe<string>>> res;
@@ -287,11 +289,11 @@ maybe<string> perform_naval_unit_combat_outcome(
   };
 
   switch( outcome.to_enum() ) {
-    using namespace EuroNavalUnitCombatOutcome;
+    using e = EuroNavalUnitCombatOutcome::e;
     case e::no_change:
       break;
     case e::moved: {
-      auto& o = outcome.get<moved>();
+      auto& o = outcome.get<EuroNavalUnitCombatOutcome::moved>();
       // FIXME: This reallyl should be run interactively because
       // e.g. the ship might discover the pacific ocean or an-
       // other nation upon moving. Once we figure out how to deal
@@ -302,7 +304,8 @@ maybe<string> perform_naval_unit_combat_outcome(
       break;
     }
     case e::damaged: {
-      auto& o = outcome.get<damaged>();
+      auto& o =
+          outcome.get<EuroNavalUnitCombatOutcome::damaged>();
       // This means that the unit is being marked as damaged and
       // has been damaged for zero turns as of now. Note that
       // this automatically removes the unit from any sentry/for-
@@ -1260,7 +1263,8 @@ wait<> AttackDwellingHandler::perform() {
       [&]( CombatEuroAttackBrave const& combat ) -> wait<> {
         AnimationSequence const seq = anim_seq_for_dwelling_burn(
             ss_, attacker_id_, combat_.attacker.outcome,
-            combat.defender.id, dwelling_id_, destruction );
+            combat.defender.id, dwelling_id_,
+            combat_.defender.outcome );
         co_await ts_.planes.land_view().animate( seq );
       } );
 

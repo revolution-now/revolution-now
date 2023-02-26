@@ -105,13 +105,13 @@ maybe<ColonyNotification::spoilage> check_spoilage(
 config::colony::construction_requirements materials_needed(
     Construction_t const& construction ) {
   switch( construction.to_enum() ) {
-    using namespace Construction;
+    using e = Construction::e;
     case e::building: {
-      auto& o = construction.get<building>();
+      auto& o = construction.get<Construction::building>();
       return config_colony.requirements_for_building[o.what];
     }
     case e::unit: {
-      auto& o = construction.get<unit>();
+      auto& o = construction.get<Construction::unit>();
       maybe<config::colony::construction_requirements> const&
           materials =
               config_colony.requirements_for_unit[o.type];
@@ -268,16 +268,16 @@ void check_construction( SS& ss, TS& ts, Player const& player,
           .what = construction } );
 
   switch( construction.to_enum() ) {
-    using namespace Construction;
+    using e = Construction::e;
     case e::building: {
-      auto& o = construction.get<building>();
+      auto& o = construction.get<Construction::building>();
       add_colony_building( colony, o.what );
       DCHECK( !ev.built.has_value() );
       ev.built = o.what;
       return;
     }
     case e::unit: {
-      auto& o = construction.get<unit>();
+      auto& o = construction.get<Construction::unit>();
       // We need a real map updater here because e.g. theoreti-
       // cally we could construct a unit that has a two-square
       // sighting radius and that might cause new squares to be-
