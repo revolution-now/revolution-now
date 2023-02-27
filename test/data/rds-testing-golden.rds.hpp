@@ -84,10 +84,10 @@ namespace rdstest {
 
     // Comparison with alternatives.
     bool operator==( nothing const& rhs ) const {
-      return holds<nothing>() && (get<nothing>() == rhs);
+      return this->template holds<nothing>() && (this->template get<nothing>() == rhs);
     }
     bool operator==( just const& rhs ) const {
-      return holds<just>() && (get<just>() == rhs);
+      return this->template holds<just>() && (this->template get<just>() == rhs);
     }
   };
 
@@ -201,13 +201,13 @@ namespace rdstest {
 
     // Comparison with alternatives.
     bool operator==( happy const& rhs ) const {
-      return holds<happy>() && (get<happy>() == rhs);
+      return this->template holds<happy>() && (this->template get<happy>() == rhs);
     }
     bool operator==( sad const& rhs ) const {
-      return holds<sad>() && (get<sad>() == rhs);
+      return this->template holds<sad>() && (this->template get<sad>() == rhs);
     }
     bool operator==( excited const& rhs ) const {
-      return holds<excited>() && (get<excited>() == rhs);
+      return this->template holds<excited>() && (this->template get<excited>() == rhs);
     }
   };
 
@@ -341,13 +341,13 @@ namespace rdstest {
 
     // Comparison with alternatives.
     bool operator==( first const& rhs ) const {
-      return holds<first>() && (get<first>() == rhs);
+      return this->template holds<first>() && (this->template get<first>() == rhs);
     }
     bool operator==( second const& rhs ) const {
-      return holds<second>() && (get<second>() == rhs);
+      return this->template holds<second>() && (this->template get<second>() == rhs);
     }
     bool operator==( third const& rhs ) const {
-      return holds<third>() && (get<third>() == rhs);
+      return this->template holds<third>() && (this->template get<third>() == rhs);
     }
   };
 
@@ -483,13 +483,13 @@ namespace rdstest::inner {
 
     // Comparison with alternatives.
     bool operator==( a1 const& rhs ) const {
-      return holds<a1>() && (get<a1>() == rhs);
+      return this->template holds<a1>() && (this->template get<a1>() == rhs);
     }
     bool operator==( a2 const& rhs ) const {
-      return holds<a2>() && (get<a2>() == rhs);
+      return this->template holds<a2>() && (this->template get<a2>() == rhs);
     }
     bool operator==( a3 const& rhs ) const {
-      return holds<a3>() && (get<a3>() == rhs);
+      return this->template holds<a3>() && (this->template get<a3>() == rhs);
     }
   };
 
@@ -626,13 +626,13 @@ namespace rdstest::inner {
 
     // Comparison with alternatives.
     bool operator==( first const& rhs ) const {
-      return holds<first>() && (get<first>() == rhs);
+      return this->template holds<first>() && (this->template get<first>() == rhs);
     }
     bool operator==( _2nd const& rhs ) const {
-      return holds<_2nd>() && (get<_2nd>() == rhs);
+      return this->template holds<_2nd>() && (this->template get<_2nd>() == rhs);
     }
     bool operator==( third const& rhs ) const {
-      return holds<third>() && (get<third>() == rhs);
+      return this->template holds<third>() && (this->template get<third>() == rhs);
     }
   };
 
@@ -773,13 +773,13 @@ namespace rdstest::inner {
 
     // Comparison with alternatives.
     bool operator==( first_alternative const& rhs ) const {
-      return holds<first_alternative>() && (get<first_alternative>() == rhs);
+      return this->template holds<first_alternative>() && (this->template get<first_alternative>() == rhs);
     }
     bool operator==( second_alternative const& rhs ) const {
-      return holds<second_alternative>() && (get<second_alternative>() == rhs);
+      return this->template holds<second_alternative>() && (this->template get<second_alternative>() == rhs);
     }
     bool operator==( third_alternative const& rhs ) const {
-      return holds<third_alternative>() && (get<third_alternative>() == rhs);
+      return this->template holds<third_alternative>() && (this->template get<third_alternative>() == rhs);
     }
   };
 
@@ -904,10 +904,10 @@ namespace rdstest::inner {
 
     // Comparison with alternatives.
     bool operator==( first const& rhs ) const {
-      return holds<first>() && (get<first>() == rhs);
+      return this->template holds<first>() && (this->template get<first>() == rhs);
     }
     bool operator==( second const& rhs ) const {
-      return holds<second>() && (get<second>() == rhs);
+      return this->template holds<second>() && (this->template get<second>() == rhs);
     }
   };
 
@@ -1021,13 +1021,13 @@ namespace rn {
 
     // Comparison with alternatives.
     bool operator==( none const& rhs ) const {
-      return holds<none>() && (get<none>() == rhs);
+      return this->template holds<none>() && (this->template get<none>() == rhs);
     }
     bool operator==( some const& rhs ) const {
-      return holds<some>() && (get<some>() == rhs);
+      return this->template holds<some>() && (this->template get<some>() == rhs);
     }
     bool operator==( more const& rhs ) const {
-      return holds<more>() && (get<more>() == rhs);
+      return this->template holds<more>() && (this->template get<more>() == rhs);
     }
   };
 
@@ -1169,16 +1169,16 @@ namespace rn {
 
     // Comparison with alternatives.
     bool operator==( off const& rhs ) const {
-      return holds<off>() && (get<off>() == rhs);
+      return this->template holds<off>() && (this->template get<off>() == rhs);
     }
     bool operator==( on const& rhs ) const {
-      return holds<on>() && (get<on>() == rhs);
+      return this->template holds<on>() && (this->template get<on>() == rhs);
     }
     bool operator==( switching_on const& rhs ) const {
-      return holds<switching_on>() && (get<switching_on>() == rhs);
+      return this->template holds<switching_on>() && (this->template get<switching_on>() == rhs);
     }
     bool operator==( switching_off const& rhs ) const {
-      return holds<switching_off>() && (get<switching_off>() == rhs);
+      return this->template holds<switching_off>() && (this->template get<switching_off>() == rhs);
     }
   };
 
@@ -1313,10 +1313,10 @@ namespace rn {
 
     // Comparison with alternatives.
     bool operator==( turn_off const& rhs ) const {
-      return holds<turn_off>() && (get<turn_off>() == rhs);
+      return this->template holds<turn_off>() && (this->template get<turn_off>() == rhs);
     }
     bool operator==( turn_on const& rhs ) const {
-      return holds<turn_on>() && (get<turn_on>() == rhs);
+      return this->template holds<turn_on>() && (this->template get<turn_on>() == rhs);
     }
   };
 

@@ -570,7 +570,7 @@ struct CodeGenerator {
                 alt.name );
           {
             auto _ = indent();
-            line( "return holds<{}>() && (get<{}>() == rhs);",
+            line( "return this->template holds<{}>() && (this->template get<{}>() == rhs);",
                   alt.name, alt.name );
           }
           line( "}" );
