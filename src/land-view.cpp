@@ -311,9 +311,9 @@ struct LandViewPlane::Impl : public Plane {
       case e::cmd: {
         translated_input_stream_.send( PlayerInput(
             LandViewPlayerInput::give_command{
-                .command =
+                .cmd =
                     raw_input.input.get<LandViewRawInput::cmd>()
-                        .command },
+                        .what },
             raw_input.when ) );
         break;
       }
@@ -584,7 +584,7 @@ struct LandViewPlane::Impl : public Plane {
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
-                  .command = command::sentry{} } ) );
+                  .what = command::sentry{} } ) );
         };
         return handler;
       }
@@ -594,7 +594,7 @@ struct LandViewPlane::Impl : public Plane {
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
-                  .command = command::fortify{} } ) );
+                  .what = command::fortify{} } ) );
         };
         return handler;
       }
@@ -613,7 +613,7 @@ struct LandViewPlane::Impl : public Plane {
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
-                  .command = command::dump{} } ) );
+                  .what = command::dump{} } ) );
         };
         return handler;
       }
@@ -623,7 +623,7 @@ struct LandViewPlane::Impl : public Plane {
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
-                  .command = command::plow{} } ) );
+                  .what = command::plow{} } ) );
         };
         return handler;
       }
@@ -633,7 +633,7 @@ struct LandViewPlane::Impl : public Plane {
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
-                  .command = command::road{} } ) );
+                  .what = command::road{} } ) );
         };
         return handler;
       }
@@ -693,9 +693,8 @@ struct LandViewPlane::Impl : public Plane {
             key_event.mod.shf_down );
         if( lua_orders ) {
           // lg.debug( "received key from lua: {}", lua_orders );
-          raw_input_stream_.send(
-              RawInput( LandViewRawInput::cmd{
-                  .command = *lua_orders } ) );
+          raw_input_stream_.send( RawInput(
+              LandViewRawInput::cmd{ .what = *lua_orders } ) );
           break;
         }
         switch( key_event.keycode ) {
@@ -731,32 +730,32 @@ struct LandViewPlane::Impl : public Plane {
             if( key_event.mod.shf_down ) break;
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::cmd{
-                    .command = command::wait{} } ) );
+                    .what = command::wait{} } ) );
             break;
           case ::SDLK_s:
             if( key_event.mod.shf_down ) break;
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::cmd{
-                    .command = command::sentry{} } ) );
+                    .what = command::sentry{} } ) );
             break;
           case ::SDLK_f:
             if( key_event.mod.shf_down ) break;
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::cmd{
-                    .command = command::fortify{} } ) );
+                    .what = command::fortify{} } ) );
             break;
           case ::SDLK_o:
             // Capital O.
             if( !key_event.mod.shf_down ) break;
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::cmd{
-                    .command = command::dump{} } ) );
+                    .what = command::dump{} } ) );
             break;
           case ::SDLK_b:
             if( key_event.mod.shf_down ) break;
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::cmd{
-                    .command = command::build{} } ) );
+                    .what = command::build{} } ) );
             break;
           case ::SDLK_c:
             if( key_event.mod.shf_down ) break;
@@ -767,7 +766,7 @@ struct LandViewPlane::Impl : public Plane {
             if( key_event.mod.shf_down ) break;
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::cmd{
-                    .command = command::disband{} } ) );
+                    .what = command::disband{} } ) );
             break;
           case ::SDLK_h:
             if( !key_event.mod.shf_down ) break;
@@ -798,7 +797,7 @@ struct LandViewPlane::Impl : public Plane {
               if( key_event.mod.shf_down ) break;
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::cmd{
-                      .command = command::forfeight{} } ) );
+                      .what = command::forfeight{} } ) );
             } else if( landview_mode_.holds<
                            LandViewMode::end_of_turn>() ) {
               raw_input_stream_.send(
@@ -811,7 +810,7 @@ struct LandViewPlane::Impl : public Plane {
             if( key_event.direction ) {
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::cmd{
-                      .command = command::move{
+                      .what = command::move{
                           *key_event.direction } } ) );
               handled = e_input_handled::yes;
             }
@@ -1151,7 +1150,7 @@ struct LandViewPlane::Impl : public Plane {
     if( auto give_orders =
             input.get_if<LandViewPlayerInput::give_command>();
         give_orders.has_value() &&
-        !give_orders->command.holds<command::move>() ) {
+        !give_orders->cmd.holds<command::move>() ) {
       if( last_unit_input_.has_value() )
         last_unit_input_->need_input_buffer_shield = false;
     }

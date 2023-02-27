@@ -497,7 +497,7 @@ wait<> process_player_input( UnitId                     id,
     // We have some orders for the current unit.
     case e::give_command: {
       auto& command =
-          input.get<LandViewPlayerInput::give_command>().command;
+          input.get<LandViewPlayerInput::give_command>().cmd;
       if( command.holds<command::wait>() ) {
         // Just remove it form the queue, and it'll get picked up
         // in the next iteration. We don't want to push this unit
@@ -589,7 +589,7 @@ wait<LandViewPlayerInput> landview_player_input(
   LandViewPlayerInput response;
   if( auto maybe_command = pop_unit_command( id ) ) {
     response = LandViewPlayerInput::give_command{
-        .command = *maybe_command };
+        .cmd = *maybe_command };
   } else {
     lg.debug( "asking orders for: {}",
               debug_string( units_state, id ) );

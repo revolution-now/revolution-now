@@ -33,7 +33,7 @@ sumtype.LandViewMode {
 
 sumtype.LandViewRawInput {
   cmd {
-    command 'command',
+    what 'command',
   },
   tile_click {
     coord 'Coord',
