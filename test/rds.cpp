@@ -67,13 +67,12 @@ using namespace rdstest;
 
 using Catch::Contains;
 
+static_assert( is_same_v<::rdstest::Maybe<int>, Maybe<int>> );
 static_assert(
-    is_same_v<::rdstest::Maybe_t<int>, Maybe_t<int>> );
-static_assert( is_same_v<::rdstest::inner::MyVariant3_t,
-                         inner::MyVariant3_t> );
+    is_same_v<::rdstest::inner::MyVariant3, inner::MyVariant3> );
 
 TEST_CASE( "[rds] Maybe" ) {
-  Maybe_t<int> maybe;
+  Maybe<int> maybe;
   REQUIRE( fmt::format( "{}", maybe ) ==
            "rdstest::Maybe<int>::nothing" );
 
@@ -98,7 +97,7 @@ TEST_CASE( "[rds] Maybe" ) {
     }
   }
 
-  Maybe_t<rn::my_optional<char>> maybe_op_str;
+  Maybe<rn::my_optional<char>> maybe_op_str;
   REQUIRE( fmt::format( "{}", maybe_op_str ) ==
            "rdstest::Maybe<rn::my_optional<char>>::nothing" );
   maybe_op_str = Maybe<rn::my_optional<char>>::just{ { 'c' } };
@@ -108,8 +107,8 @@ TEST_CASE( "[rds] Maybe" ) {
 }
 
 TEST_CASE( "[rds] MyVariant1" ) {
-  static_assert( base::Show<MyVariant1_t> );
-  MyVariant1_t my1;
+  static_assert( base::Show<MyVariant1> );
+  MyVariant1 my1;
   my1    = MyVariant1::happy{ { 'c', 4 } };
   my1    = MyVariant1::excited{};
   bool b = true;
@@ -133,8 +132,8 @@ TEST_CASE( "[rds] MyVariant1" ) {
 }
 
 TEST_CASE( "[rds] MyVariant2" ) {
-  static_assert( base::Show<MyVariant2_t> );
-  MyVariant2_t my2;
+  static_assert( base::Show<MyVariant2> );
+  MyVariant2 my2;
   my2 = MyVariant2::first{ "hello", true };
   my2 = MyVariant2::second{ true, false };
   my2 = MyVariant2::third{ 7 };
@@ -162,10 +161,10 @@ TEST_CASE( "[rds] MyVariant2" ) {
 }
 
 TEST_CASE( "[rds] MyVariant3" ) {
-  static_assert( base::Show<inner::MyVariant3_t> );
-  inner::MyVariant3_t my3;
+  static_assert( base::Show<inner::MyVariant3> );
+  inner::MyVariant3 my3;
   my3 = inner::MyVariant3::a1{ monostate{} };
-  my3 = inner::MyVariant3::a2{ monostate{}, MyVariant2_t{} };
+  my3 = inner::MyVariant3::a2{ monostate{}, MyVariant2{} };
   my3 = inner::MyVariant3::a3{ 'r' };
   switch( my3.to_enum() ) {
     case inner::MyVariant3::e::a1: {
@@ -181,7 +180,7 @@ TEST_CASE( "[rds] MyVariant3" ) {
       static_assert(
           is_same_v<decltype( val.var1 ), monostate> );
       static_assert(
-          is_same_v<decltype( val.var2 ), MyVariant2_t> );
+          is_same_v<decltype( val.var2 ), MyVariant2> );
       break;
     }
     case inner::MyVariant3::e::a3: {
@@ -193,8 +192,8 @@ TEST_CASE( "[rds] MyVariant3" ) {
 }
 
 TEST_CASE( "[rds] MyVariant4" ) {
-  static_assert( base::Show<inner::MyVariant4_t> );
-  inner::MyVariant4_t my4;
+  static_assert( base::Show<inner::MyVariant4> );
+  inner::MyVariant4 my4;
   my4 = inner::MyVariant4::first{ 1, 'r', true, { 3 } };
   my4 = inner::MyVariant4::_2nd{};
   my4 = inner::MyVariant4::third{ "hello",
@@ -240,7 +239,7 @@ TEST_CASE( "[rds] MyVariant4" ) {
 
 TEST_CASE( "[rds] CompositeTemplateTwo" ) {
   using V =
-      inner::CompositeTemplateTwo_t<rn::my_optional<int>, short>;
+      inner::CompositeTemplateTwo<rn::my_optional<int>, short>;
   string out;
   base::to_str( V{}, out, base::ADL_t{} );
   // static_assert( base::Show<V> );
@@ -273,7 +272,7 @@ TEST_CASE( "[rds] CompositeTemplateTwo" ) {
 }
 
 TEST_CASE( "[rds] Equality" ) {
-  // Maybe_t
+  // Maybe
   REQUIRE( Maybe<int>::nothing{} == Maybe<int>::nothing{} );
   REQUIRE( Maybe<int>::just{ 5 } == Maybe<int>::just{ 5 } );
   REQUIRE( Maybe<int>::just{ 5 } != Maybe<int>::just{ 6 } );
@@ -303,7 +302,7 @@ TEST_CASE( "[rds] Rds File Golden Comparison" ) {
 
 TEST_CASE( "[rds] Associated Enums" ) {
   using namespace rdstest;
-  MyVariant2_t v =
+  MyVariant2 v =
       MyVariant2::second{ .flag1 = false, .flag2 = true };
   switch( v.to_enum() ) {
     case MyVariant2::e::first: //
@@ -322,7 +321,7 @@ TEST_CASE( "[rds] Associated Enums" ) {
       break;
   }
 
-  Maybe_t<String> maybe = Maybe<String>::just{ .val = "hello" };
+  Maybe<String> maybe = Maybe<String>::just{ .val = "hello" };
   switch( maybe.to_enum() ) {
     case Maybe<String>::e::nothing: //
       REQUIRE( false );

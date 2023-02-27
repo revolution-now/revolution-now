@@ -384,8 +384,8 @@ TEST_CASE( "[enter-dwelling] compute_live_among_the_natives" ) {
   tribe.relationship[W.default_nation()].encountered = true;
   TribeRelationship& relationship =
       tribe.relationship[W.default_nation()];
-  LiveAmongTheNatives_t expected;
-  UnitComposition       comp;
+  LiveAmongTheNatives expected;
+  UnitComposition     comp;
 
   auto f = [&] {
     Unit const unit =
@@ -486,7 +486,7 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::inca );
   Unit& unit = W.add_unit_on_map( e_unit_type::free_colonist,
                                   { .x = 1, .y = 1 } );
-  LiveAmongTheNatives_t outcome;
+  LiveAmongTheNatives outcome;
 
   auto f = [&] {
     wait<> w = do_live_among_the_natives(
@@ -963,7 +963,7 @@ TEST_CASE( "[enter-dwelling] do_establish_mission" ) {
 
   REQUIRE(
       as_const( W.units() ).ownership_of( missionary.id() ) ==
-      UnitOwnership_t{
+      UnitOwnership{
           UnitOwnership::dwelling{ .id = dwelling.id } } );
 }
 

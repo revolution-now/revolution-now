@@ -145,7 +145,7 @@ wait<maybe<e_attack_verdict_base>> check_attack_verdict_base(
 maybe<string> perform_euro_unit_combat_outcome(
     SS& ss, TS& ts, Player const& active_player,
     Player const& player, Unit& unit,
-    EuroUnitCombatOutcome_t const& outcome ) {
+    EuroUnitCombatOutcome const& outcome ) {
   auto capture_unit = [&]( e_nation new_nation,
                            Coord    new_coord ) {
     unit.change_nation( ss.units, new_nation );
@@ -224,7 +224,7 @@ maybe<string> perform_euro_unit_combat_outcome(
 
 maybe<string> perform_native_unit_combat_outcome(
     SS& ss, Player const& active_player, NativeUnit& unit,
-    NativeUnitCombatOutcome_t const& outcome ) {
+    NativeUnitCombatOutcome const& outcome ) {
   maybe<string> msg;
 
   switch( outcome.to_enum() ) {
@@ -272,7 +272,7 @@ maybe<string> perform_native_unit_combat_outcome(
 
 maybe<string> perform_naval_unit_combat_outcome(
     SS& ss, TS& ts, Player const& active_player, Player& player,
-    Unit& unit, EuroNavalUnitCombatOutcome_t const& outcome,
+    Unit& unit, EuroNavalUnitCombatOutcome const& outcome,
     UnitId opponent_id ) {
   maybe<string> msg;
 

@@ -46,14 +46,14 @@ wait<e_enter_dwelling_option> present_dwelling_entry_options(
 // Passing in the tribe relationship object helps to guarantee
 // that the tribe has made contact; if it hasn't then we
 // shouldn't even be calling this.
-LiveAmongTheNatives_t compute_live_among_the_natives(
+LiveAmongTheNatives compute_live_among_the_natives(
     SSConst const& ss, Dwelling const& dwelling,
     Unit const& unit );
 
 wait<> do_live_among_the_natives(
     SSConst const& ss, TS& ts, Dwelling& dwelling,
     Player const& player, Unit& unit,
-    LiveAmongTheNatives_t const& outcome );
+    LiveAmongTheNatives const& outcome );
 
 /****************************************************************
 ** Speak with Chief

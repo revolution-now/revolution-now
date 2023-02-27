@@ -94,7 +94,7 @@ struct.NonResourceOverride {
 
 struct.FoundingFatherProductionBonus {
   father 'e_founding_father',
-  bonus 'OutdoorJobBonus_t',
+  bonus 'OutdoorJobBonus',
 }
 
 struct.OutdoorJobProduction {
@@ -125,11 +125,11 @@ struct.OutdoorJobProduction {
   # either doesn't get the road bonus or gets a reduced road
   # bonus. To avoid that extra complexity, we just make them all
   # independent.
-  minor_river_bonus 'OutdoorJobBonus_t',
-  major_river_bonus 'OutdoorJobBonus_t',
-  road_bonus        'OutdoorJobBonus_t',
-  plow_bonus        'OutdoorJobBonus_t',
-  expert_bonus      'OutdoorJobBonus_t',
+  minor_river_bonus 'OutdoorJobBonus',
+  major_river_bonus 'OutdoorJobBonus',
+  road_bonus        'OutdoorJobBonus',
+  plow_bonus        'OutdoorJobBonus',
+  expert_bonus      'OutdoorJobBonus',
 
   father_bonus      'base::maybe<FoundingFatherProductionBonus>',
 
@@ -140,12 +140,12 @@ struct.OutdoorJobProduction {
   # and is +0 for everything else. Note that this bonus is ap-
   # plied after all other bonuses, and is only applied if the
   # production value at that point is non-zero.
-  native_bonus 'OutdoorJobBonus_t',
+  native_bonus 'OutdoorJobBonus',
 
   # For ocean tiles.
-  coast_bonus    'OutdoorJobBonus_t',
+  coast_bonus    'OutdoorJobBonus',
 
-  resource_bonus 'refl::enum_map<e_natural_resource, OutdoorJobBonus_t>',
+  resource_bonus 'refl::enum_map<e_natural_resource, OutdoorJobBonus>',
 
   # These are for a free colonist.
   base_productions 'refl::enum_map<e_terrain, int>',
@@ -222,8 +222,8 @@ struct.CenterSquareProduction {
   # duction would receive a river bonus of +4, putting it at
   # 3+4=7, whereas for ore it would be 1+3+2=6. By nurfing the
   # river bonus for fur we can prevent this.
-  override_secondary_minor_river_bonus 'refl::enum_map<e_outdoor_commons_secondary_job, base::maybe<OutdoorJobBonus_t>>',
-  override_secondary_major_river_bonus 'refl::enum_map<e_outdoor_commons_secondary_job, base::maybe<OutdoorJobBonus_t>>',
+  override_secondary_minor_river_bonus 'refl::enum_map<e_outdoor_commons_secondary_job, base::maybe<OutdoorJobBonus>>',
+  override_secondary_major_river_bonus 'refl::enum_map<e_outdoor_commons_secondary_job, base::maybe<OutdoorJobBonus>>',
 
   # It appears that the original game that all difficulty levels
   # yield the same except for "discoverer", which gets +1.

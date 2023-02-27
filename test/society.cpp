@@ -64,7 +64,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[society] flag_color_for_society" ) {
-  Society_t society;
+  Society society;
 
   // European.
   society = Society::european{ .nation = e_nation::spanish };
@@ -80,9 +80,9 @@ TEST_CASE( "[society] flag_color_for_society" ) {
 }
 
 TEST_CASE( "[society] society_on_square" ) {
-  World            W;
-  Coord            where;
-  maybe<Society_t> expected;
+  World          W;
+  Coord          where;
+  maybe<Society> expected;
 
   auto f = [&] { return society_on_square( W.ss(), where ); };
 

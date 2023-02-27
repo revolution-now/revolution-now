@@ -31,7 +31,7 @@ struct SSConst;
 struct TS;
 
 std::string construction_name(
-    Construction_t const& construction );
+    Construction const& construction );
 
 // The outter maybe is when the user just escapes, the inner one
 // is for when they select no production.

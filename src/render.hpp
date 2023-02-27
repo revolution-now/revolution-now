@@ -130,6 +130,6 @@ void render_dwelling( rr::Renderer& renderer, Coord where,
 // self (which could be shifted to another corner).
 void render_unit_flag( rr::Renderer& renderer, Coord where,
                        e_unit_type type, e_nation nation,
-                       unit_orders_t const& orders );
+                       unit_orders const& orders );
 
 } // namespace rn

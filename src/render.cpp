@@ -98,8 +98,8 @@ void render_unit_flag_impl( rr::Renderer& renderer, Coord where,
 
 void render_unit_flag( rr::Renderer& renderer, Coord where,
                        auto const& desc, gfx::pixel color,
-                       unit_orders_t const& orders,
-                       e_flag_count         flag ) {
+                       unit_orders const& orders,
+                       e_flag_count       flag ) {
   // Now we will advance the pixel_coord to put the icon at the
   // location specified in the unit descriptor.
   auto  position = desc.nat_icon_position;
@@ -261,7 +261,7 @@ W UnitShadow::default_offset() { return W{ -3 }; }
 *****************************************************************/
 void render_unit_flag( rr::Renderer& renderer, Coord where,
                        e_unit_type type, e_nation nation,
-                       unit_orders_t const& orders ) {
+                       unit_orders const& orders ) {
   render_unit_flag( renderer, where, unit_attr( type ),
                     nation_obj( nation ).flag_color, orders,
                     e_flag_count::single );
@@ -290,7 +290,7 @@ static void render_unit_flag( rr::Renderer& renderer,
 static void render_unit_impl(
     rr::Renderer& renderer, Coord where, e_tile tile,
     auto const& desc, gfx::pixel flag_color,
-    unit_orders_t const& orders, bool damaged,
+    unit_orders const& orders, bool damaged,
     UnitRenderOptions const& options ) {
   rr::Painter painter = renderer.painter();
   if( options.flag == e_flag_count::none ) {

@@ -113,8 +113,7 @@ TEST_CASE( "[command-road] native-owned land" ) {
     REQUIRE( relationship.land_squares_paid_for == 0 );
     REQUIRE( is_land_native_owned( W.ss(), W.default_player(),
                                    tile ) );
-    REQUIRE( pioneer.orders() ==
-             unit_orders_t{ unit_orders::none{} } );
+    REQUIRE( pioneer.orders() == unit_orders::none{} );
   }
 
   SECTION( "take" ) {
@@ -133,8 +132,7 @@ TEST_CASE( "[command-road] native-owned land" ) {
             .has_value() );
     perform();
     REQUIRE( pioneer.orders() ==
-             unit_orders_t{
-                 unit_orders::road{ .turns_worked = 0 } } );
+             unit_orders::road{ .turns_worked = 0 } );
     REQUIRE_FALSE( pioneer.mv_pts_exhausted() );
   }
 }

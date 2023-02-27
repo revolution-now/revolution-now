@@ -16,7 +16,7 @@ namespace "rn"
 # Holds the state of each unit in the window as the player is se-
 # lecting them and cycling them through the states.
 struct.UnitActivationInfo {
-  original_orders 'unit_orders_t',
-  current_orders 'unit_orders_t',
+  original_orders 'unit_orders',
+  current_orders 'unit_orders',
   is_activated 'bool',
 }

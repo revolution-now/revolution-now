@@ -28,9 +28,9 @@ struct Player;
 struct HarborCargo
   : public ui::View,
     public HarborSubView,
-    public IDragSource<HarborDraggableObject_t>,
-    public IDragSourceUserEdit<HarborDraggableObject_t>,
-    public IDragSink<HarborDraggableObject_t> {
+    public IDragSource<HarborDraggableObject>,
+    public IDragSourceUserEdit<HarborDraggableObject>,
+    public IDragSink<HarborDraggableObject> {
   static PositionedHarborSubView<HarborCargo> create(
       SS& ss, TS& ts, Player& player, Rect canvas );
 
@@ -45,7 +45,7 @@ struct HarborCargo
   ui::View&       view() noexcept override;
   ui::View const& view() const noexcept override;
 
-  maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>
+  maybe<DraggableObjectWithBounds<HarborDraggableObject>>
   object_here( Coord const& where ) const override;
 
   // Implement ui::Object.
@@ -53,32 +53,32 @@ struct HarborCargo
              Coord         coord ) const override;
 
   // Implement IDragSource.
-  bool try_drag( HarborDraggableObject_t const& a,
-                 Coord const&                   where ) override;
+  bool try_drag( HarborDraggableObject const& a,
+                 Coord const&                 where ) override;
 
   // Implement IDragSource.
   void cancel_drag() override;
 
   // Implement IDragSourceUserEdit.
-  wait<maybe<HarborDraggableObject_t>> user_edit_object()
+  wait<maybe<HarborDraggableObject>> user_edit_object()
       const override;
 
   // Implement IDragSource.
   wait<> disown_dragged_object() override;
 
   // Impelement IDragSink.
-  maybe<HarborDraggableObject_t> can_receive(
-      HarborDraggableObject_t const& a, int from_entity,
+  maybe<HarborDraggableObject> can_receive(
+      HarborDraggableObject const& a, int from_entity,
       Coord const& where ) const override;
 
   // Impelement IDragSink.
-  wait<> drop( HarborDraggableObject_t const& a,
-               Coord const&                   where ) override;
+  wait<> drop( HarborDraggableObject const& a,
+               Coord const&                 where ) override;
 
  private:
   maybe<UnitId> get_active_unit() const;
 
-  maybe<HarborDraggableObject_t> draggable_in_cargo_slot(
+  maybe<HarborDraggableObject> draggable_in_cargo_slot(
       int slot ) const;
 
   maybe<int> slot_under_cursor( Coord where ) const;

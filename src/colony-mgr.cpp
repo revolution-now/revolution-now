@@ -89,8 +89,8 @@ struct NotificationMessage {
 };
 
 NotificationMessage generate_colony_notification_message(
-    Colony const&               colony,
-    ColonyNotification_t const& notification ) {
+    Colony const&             colony,
+    ColonyNotification const& notification ) {
   NotificationMessage res{
       // We shouldn't ever use this, but give a fallback to help
       // debugging if we miss something.
@@ -400,9 +400,9 @@ void give_new_crosses_to_player(
                       crosses_calc.dock_crosses_bonus );
 }
 
-ColonyJob_t find_job_for_initial_colonist(
-    SSConst const& ss, Player const& player,
-    Colony const& colony ) {
+ColonyJob find_job_for_initial_colonist( SSConst const& ss,
+                                         Player const&  player,
+                                         Colony const& colony ) {
   refl::enum_map<e_direction, bool> const occupied_squares =
       find_occupied_surrounding_colony_squares( ss, colony );
   // In an unmodded game the colony will not start off with
@@ -612,7 +612,7 @@ ColonyId found_colony( SS& ss, TS& ts, Player const& player,
   strip_unit_to_base_type( player, unit, col );
 
   // Find initial job for founder.
-  ColonyJob_t job =
+  ColonyJob job =
       find_job_for_initial_colonist( ss, player, col );
 
   // Move unit into it.
@@ -665,8 +665,8 @@ void strip_unit_to_base_type( Player const& player, Unit& unit,
 
 void move_unit_to_colony( UnitsState&   units_state,
                           Player const& player, Colony& colony,
-                          UnitId             unit_id,
-                          ColonyJob_t const& job ) {
+                          UnitId           unit_id,
+                          ColonyJob const& job ) {
   Unit& unit = units_state.unit_for( unit_id );
   CHECK( unit.nation() == colony.nation );
   strip_unit_to_base_type( player, unit, colony );
@@ -849,7 +849,7 @@ wait<> evolve_colonies_for_player( SS& ss, TS& ts,
     // sages.
     vector<NotificationMessage> blocking_messages;
     blocking_messages.reserve( ev.notifications.size() );
-    for( ColonyNotification_t const& notification :
+    for( ColonyNotification const& notification :
          ev.notifications ) {
       NotificationMessage msg =
           generate_colony_notification_message( colony,

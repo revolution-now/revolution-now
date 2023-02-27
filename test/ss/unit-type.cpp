@@ -172,8 +172,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.canonical_base == nothing );
     REQUIRE( desc.expertise == nothing );
     REQUIRE( desc.promotion ==
-             UnitPromotion_t{ UnitPromotion::fixed{
-                 .type = e_unit_type::indentured_servant } } );
+             UnitPromotion::fixed{
+                 .type = e_unit_type::indentured_servant } );
     unordered_map<e_unit_type,
                   unordered_set<e_unit_type_modifier>>
         expected_modifiers{
@@ -218,8 +218,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.on_death.holds<UnitDeathAction::capture>() );
     REQUIRE( desc.canonical_base == nothing );
     REQUIRE( desc.expertise == nothing );
-    REQUIRE( desc.promotion ==
-             UnitPromotion_t{ UnitPromotion::occupation{} } );
+    REQUIRE( desc.promotion == UnitPromotion::occupation{} );
     unordered_map<e_unit_type,
                   unordered_set<e_unit_type_modifier>>
         expected_modifiers{
@@ -263,15 +262,14 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death ==
-             UnitDeathAction_t{ UnitDeathAction::demote{
-                 .lose = { e_unit_type_modifier::horses } } } );
+             UnitDeathAction::demote{
+                 .lose = { e_unit_type_modifier::horses } } );
     REQUIRE( desc.canonical_base ==
              e_unit_type::veteran_colonist );
     REQUIRE( desc.expertise == nothing );
-    REQUIRE(
-        desc.promotion ==
-        UnitPromotion_t{ UnitPromotion::modifier{
-            .kind = e_unit_type_modifier::independence } } );
+    REQUIRE( desc.promotion ==
+             UnitPromotion::modifier{
+                 .kind = e_unit_type_modifier::independence } );
     unordered_map<e_unit_type,
                   unordered_set<e_unit_type_modifier>>
         expected_modifiers{};
@@ -302,13 +300,12 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.combat == 1 );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
-    REQUIRE( desc.on_death ==
-             UnitDeathAction_t{ UnitDeathAction::destroy{} } );
+    REQUIRE( desc.on_death == UnitDeathAction::destroy{} );
     REQUIRE( desc.canonical_base == e_unit_type::free_colonist );
     REQUIRE( desc.expertise == nothing );
     REQUIRE( desc.promotion ==
-             UnitPromotion_t{ UnitPromotion::expertise{
-                 .kind = e_unit_activity::scouting } } );
+             UnitPromotion::expertise{
+                 .kind = e_unit_activity::scouting } );
     unordered_map<e_unit_type,
                   unordered_set<e_unit_type_modifier>>
         expected_modifiers{};
@@ -339,13 +336,12 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.combat == 1 );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
-    REQUIRE( desc.on_death ==
-             UnitDeathAction_t{ UnitDeathAction::destroy{} } );
+    REQUIRE( desc.on_death == UnitDeathAction::destroy{} );
     REQUIRE( desc.canonical_base == e_unit_type::free_colonist );
     REQUIRE( desc.expertise == nothing );
     REQUIRE( desc.promotion ==
-             UnitPromotion_t{ UnitPromotion::expertise{
-                 .kind = e_unit_activity::pioneering } } );
+             UnitPromotion::expertise{
+                 .kind = e_unit_activity::pioneering } );
     unordered_map<e_unit_type,
                   unordered_set<e_unit_type_modifier>>
         expected_modifiers{};
@@ -377,13 +373,12 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.combat == 1 );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
-    REQUIRE( desc.on_death ==
-             UnitDeathAction_t{ UnitDeathAction::destroy{} } );
+    REQUIRE( desc.on_death == UnitDeathAction::destroy{} );
     REQUIRE( desc.canonical_base == e_unit_type::free_colonist );
     REQUIRE( desc.expertise == nothing );
     REQUIRE( desc.promotion ==
-             UnitPromotion_t{ UnitPromotion::expertise{
-                 .kind = e_unit_activity::missioning } } );
+             UnitPromotion::expertise{
+                 .kind = e_unit_activity::missioning } );
     unordered_map<e_unit_type,
                   unordered_set<e_unit_type_modifier>>
         expected_modifiers{};
@@ -413,8 +408,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.combat == 0 );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 6 );
-    REQUIRE( desc.on_death ==
-             UnitDeathAction_t{ UnitDeathAction::capture{} } );
+    REQUIRE( desc.on_death == UnitDeathAction::capture{} );
     REQUIRE( desc.canonical_base == nothing );
     REQUIRE( desc.expertise == nothing );
     REQUIRE( desc.promotion == nothing );

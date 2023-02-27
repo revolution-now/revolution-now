@@ -71,7 +71,7 @@ sumtype.MyVariant3 {
   },
   a2 {
     var1 'std::monostate',
-    var2 'MyVariant2_t',
+    var2 'MyVariant2',
   },
   a3 {
     c 'char',
@@ -90,7 +90,7 @@ sumtype.MyVariant4 {
   _2nd {},
   third {
     s 'std::string',
-    var3 'MyVariant3_t',
+    var3 'MyVariant3',
   },
 }
 
@@ -105,7 +105,7 @@ sumtype.TemplateTwoParams {
   },
   second_alternative {},
   third_alternative {
-    hello 'Maybe_t<T>',
+    hello 'Maybe<T>',
     u 'U',
   },
 }
@@ -116,7 +116,7 @@ sumtype.CompositeTemplateTwo {
   _template{ T, U },
 
   first {
-    ttp 'rdstest::inner::TemplateTwoParams_t<T,U>',
+    ttp 'rdstest::inner::TemplateTwoParams<T,U>',
   },
   second {},
 }

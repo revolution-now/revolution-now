@@ -149,9 +149,9 @@ bool has_pioneer_working( SSConst const& ss, Coord tile ) {
 /****************************************************************
 ** Unit State
 *****************************************************************/
-PlowResult_t perform_plow_work( SS& ss, Player const& player,
-                                IMapUpdater& map_updater,
-                                Unit&        unit ) {
+PlowResult perform_plow_work( SS& ss, Player const& player,
+                              IMapUpdater& map_updater,
+                              Unit&        unit ) {
   Coord location = ss.units.coord_for( unit.id() );
   UNWRAP_CHECK( plow_orders,
                 unit.orders().get_if<unit_orders::plow>() );
@@ -182,7 +182,7 @@ PlowResult_t perform_plow_work( SS& ss, Player const& player,
       effective_terrain( ss.terrain.square_at( location ) ) );
   CHECK_LE( turns_worked, plow_turns );
   if( turns_worked == plow_turns ) {
-    PlowResult_t res = PlowResult::irrigated{};
+    PlowResult res = PlowResult::irrigated{};
     if( has_forest( ss.terrain.square_at( location ) ) ) {
       maybe<LumberYield> const yield = best_lumber_yield(
           lumber_yields( ss, player, location, unit.type() ) );

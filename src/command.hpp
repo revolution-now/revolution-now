@@ -30,8 +30,8 @@ struct Player;
 struct SS;
 struct TS;
 
-void push_unit_command( UnitId id, command_t const& command );
-maybe<command_t> pop_unit_command( UnitId id );
+void push_unit_command( UnitId id, command const& command );
+maybe<command> pop_unit_command( UnitId id );
 
 struct CommandHandler {
   CommandHandler()          = default;
@@ -80,6 +80,6 @@ struct CommandHandler {
 
 std::unique_ptr<CommandHandler> command_handler(
     SS& ss, TS& ts, Player& player, UnitId id,
-    command_t const& command );
+    command const& command );
 
 } // namespace rn

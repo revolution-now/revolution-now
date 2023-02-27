@@ -203,10 +203,10 @@ TEST_CASE( "[tax] back_tax_for_boycotted_commodity" ) {
 }
 
 TEST_CASE( "[tax] apply_tax_result" ) {
-  World             W;
-  Player&           player              = W.default_player();
-  int               next_tax_event_turn = 0;
-  TaxChangeResult_t change;
+  World           W;
+  Player&         player              = W.default_player();
+  int             next_tax_event_turn = 0;
+  TaxChangeResult change;
 
   W.turn().time_point.turns       = 5;
   player.old_world.taxes.tax_rate = 50;
@@ -280,16 +280,16 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
 #ifdef COMPILER_GCC
   return;
 #endif
-  World               W;
-  Player&             player = W.default_player();
-  TaxChangeProposal_t proposal;
-  TaxChangeResult_t   expected;
+  World             W;
+  Player&           player = W.default_player();
+  TaxChangeProposal proposal;
+  TaxChangeResult   expected;
 
   Colony& colony = W.add_colony_with_new_unit( Coord{} );
   colony.name    = "my colony";
 
   auto f = [&] {
-    wait<TaxChangeResult_t> w = prompt_for_tax_change_result(
+    wait<TaxChangeResult> w = prompt_for_tax_change_result(
         W.ss(), W.ts(), player, proposal );
     CHECK( !w.exception() );
     CHECK( w.ready() );

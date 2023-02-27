@@ -30,9 +30,9 @@ struct Player;
 struct HarborInPortShips
   : public ui::View,
     public HarborSubView,
-    public IDragSource<HarborDraggableObject_t>,
-    public IDragSourceCheck<HarborDraggableObject_t>,
-    public IDragSink<HarborDraggableObject_t> {
+    public IDragSource<HarborDraggableObject>,
+    public IDragSourceCheck<HarborDraggableObject>,
+    public IDragSink<HarborDraggableObject> {
   static PositionedHarborSubView<HarborInPortShips> create(
       SS& ss, TS& ts, Player& player, Rect canvas,
       HarborMarketCommodities const& market_commodities,
@@ -50,7 +50,7 @@ struct HarborInPortShips
   ui::View&       view() noexcept override;
   ui::View const& view() const noexcept override;
 
-  maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>
+  maybe<DraggableObjectWithBounds<HarborDraggableObject>>
   object_here( Coord const& where ) const override;
 
   // Implement ui::Object.
@@ -62,12 +62,12 @@ struct HarborInPortShips
       input::mouse_button_event_t const& ) override;
 
   // Implement IDragSource.
-  bool try_drag( HarborDraggableObject_t const& a,
-                 Coord const&                   where ) override;
+  bool try_drag( HarborDraggableObject const& a,
+                 Coord const&                 where ) override;
 
   // Implement IDragSourceCheck.
   wait<base::valid_or<DragRejection>> source_check(
-      HarborDraggableObject_t const& a, Coord const ) override;
+      HarborDraggableObject const& a, Coord const ) override;
 
   // Implement IDragSource.
   void cancel_drag() override;
@@ -76,13 +76,13 @@ struct HarborInPortShips
   wait<> disown_dragged_object() override;
 
   // Impelement IDragSink.
-  maybe<HarborDraggableObject_t> can_receive(
-      HarborDraggableObject_t const& a, int from_entity,
+  maybe<HarborDraggableObject> can_receive(
+      HarborDraggableObject const& a, int from_entity,
       Coord const& where ) const override;
 
   // Impelement IDragSink.
-  wait<> drop( HarborDraggableObject_t const& a,
-               Coord const&                   where ) override;
+  wait<> drop( HarborDraggableObject const& a,
+               Coord const&                 where ) override;
 
  private:
   struct UnitWithPosition {

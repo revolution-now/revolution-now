@@ -88,7 +88,7 @@ refl::enum_map<e_menu, Menu> const g_menus{
 #define DIVIDER \
   MenuItem::menu_divider {}
 
-refl::enum_map<e_menu, vector<MenuItem_t>> const g_menu_def{
+refl::enum_map<e_menu, vector<MenuItem>> const g_menu_def{
     { e_menu::game,
       {
           ITEM( about, "About this Game" ),    //
@@ -182,7 +182,7 @@ struct MenuPlane::Impl : public Plane {
   refl::enum_map<e_menu_item, e_menu>         item_to_menu_;
   refl::enum_map<e_menu, vector<e_menu_item>> items_from_menu_;
 
-  MenuState_t menu_state_{ MenuState::menus_closed{} };
+  MenuState menu_state_{ MenuState::menus_closed{} };
 
   refl::enum_map<e_menu_item, stack<Plane*>> handlers_;
 
@@ -693,7 +693,7 @@ struct MenuPlane::Impl : public Plane {
     Impl&        impl;
     Coord const& screen_coord;
 
-    using res_t = maybe<MouseOver_t>;
+    using res_t = maybe<MouseOver>;
 
     res_t operator()( MenuState::menus_hidden ) const {
       return res_t{};
@@ -734,7 +734,7 @@ struct MenuPlane::Impl : public Plane {
     }
   };
 
-  maybe<MouseOver_t> click_target( Coord screen_coord ) {
+  maybe<MouseOver> click_target( Coord screen_coord ) {
     ClickTargetVisitor matcher{ *this, screen_coord };
     return base::visit( matcher, menu_state_.as_base() );
   }

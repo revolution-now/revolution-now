@@ -53,10 +53,10 @@ struct ILandViewPlane {
 
   virtual wait<> ensure_visible_unit( GenericUnitId id ) = 0;
 
-  virtual wait<LandViewPlayerInput_t> get_next_input(
+  virtual wait<LandViewPlayerInput> get_next_input(
       UnitId id ) = 0;
 
-  virtual wait<LandViewPlayerInput_t> eot_get_next_input() = 0;
+  virtual wait<LandViewPlayerInput> eot_get_next_input() = 0;
 
   // We use the lifetime-bound attribute here because it is not
   // uncommon for this coroutine to be run in the background
@@ -96,10 +96,9 @@ struct LandViewPlane : ILandViewPlane {
   wait<> center_on_tile( Coord coord ) override;
   wait<> ensure_visible_unit( GenericUnitId id ) override;
 
-  wait<LandViewPlayerInput_t> get_next_input(
-      UnitId id ) override;
+  wait<LandViewPlayerInput> get_next_input( UnitId id ) override;
 
-  wait<LandViewPlayerInput_t> eot_get_next_input() override;
+  wait<LandViewPlayerInput> eot_get_next_input() override;
 
   wait<> animate( AnimationSequence const& seq ) override;
 

@@ -91,23 +91,23 @@ TEST_CASE( "[command-dump] galleon" ) {
 
   // Sanity check.
   REQUIRE( cargo.cargo_starting_at_slot( 0 ) ==
-           Cargo_t{ Cargo::commodity{
+           Cargo::commodity{
                .obj = Commodity{ .type     = e_commodity::cotton,
-                                 .quantity = 23 } } } );
+                                 .quantity = 23 } } );
   REQUIRE( cargo.cargo_starting_at_slot( 1 ) == nothing );
   REQUIRE( cargo.cargo_starting_at_slot( 2 ) ==
-           Cargo_t{ Cargo::commodity{
+           Cargo::commodity{
                .obj = Commodity{ .type     = e_commodity::tools,
-                                 .quantity = 100 } } } );
+                                 .quantity = 100 } } );
   REQUIRE( cargo.cargo_starting_at_slot( 3 ) == nothing );
   REQUIRE( cargo.cargo_starting_at_slot( 4 ) ==
-           Cargo_t{ Cargo::commodity{
+           Cargo::commodity{
                .obj = Commodity{ .type     = e_commodity::horses,
-                                 .quantity = 50 } } } );
+                                 .quantity = 50 } } );
   REQUIRE( cargo.cargo_starting_at_slot( 5 ) ==
-           Cargo_t{ Cargo::commodity{
+           Cargo::commodity{
                .obj = Commodity{ .type = e_commodity::muskets,
-                                 .quantity = 1 } } } );
+                                 .quantity = 1 } } );
 
   // Dump #1, slot 4.
   {
@@ -142,28 +142,28 @@ TEST_CASE( "[command-dump] galleon" ) {
     REQUIRE( *w_confirm == true );
     // Not yet removed.
     REQUIRE( cargo.cargo_starting_at_slot( 2 ) ==
-             Cargo_t{ Cargo::commodity{
+             Cargo::commodity{
                  .obj = Commodity{ .type = e_commodity::tools,
-                                   .quantity = 100 } } } );
+                                   .quantity = 100 } } );
 
     wait<> w_perform = handler->perform();
     REQUIRE( !w_perform.exception() );
     REQUIRE( w_perform.ready() );
     REQUIRE( cargo.cargo_starting_at_slot( 0 ) ==
-             Cargo_t{ Cargo::commodity{
+             Cargo::commodity{
                  .obj = Commodity{ .type = e_commodity::cotton,
-                                   .quantity = 23 } } } );
+                                   .quantity = 23 } } );
     REQUIRE( cargo.cargo_starting_at_slot( 1 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 2 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 3 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 4 ) ==
-             Cargo_t{ Cargo::commodity{
+             Cargo::commodity{
                  .obj = Commodity{ .type = e_commodity::horses,
-                                   .quantity = 50 } } } );
+                                   .quantity = 50 } } );
     REQUIRE( cargo.cargo_starting_at_slot( 5 ) ==
-             Cargo_t{ Cargo::commodity{
+             Cargo::commodity{
                  .obj = Commodity{ .type = e_commodity::muskets,
-                                   .quantity = 1 } } } );
+                                   .quantity = 1 } } );
   }
 
   // Dump #2, slot 5.
@@ -195,24 +195,24 @@ TEST_CASE( "[command-dump] galleon" ) {
     REQUIRE( *w_confirm == true );
     // Not yet removed.
     REQUIRE( cargo.cargo_starting_at_slot( 5 ) ==
-             Cargo_t{ Cargo::commodity{
+             Cargo::commodity{
                  .obj = Commodity{ .type = e_commodity::muskets,
-                                   .quantity = 1 } } } );
+                                   .quantity = 1 } } );
 
     wait<> w_perform = handler->perform();
     REQUIRE( !w_perform.exception() );
     REQUIRE( w_perform.ready() );
     REQUIRE( cargo.cargo_starting_at_slot( 0 ) ==
-             Cargo_t{ Cargo::commodity{
+             Cargo::commodity{
                  .obj = Commodity{ .type = e_commodity::cotton,
-                                   .quantity = 23 } } } );
+                                   .quantity = 23 } } );
     REQUIRE( cargo.cargo_starting_at_slot( 1 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 2 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 3 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 4 ) ==
-             Cargo_t{ Cargo::commodity{
+             Cargo::commodity{
                  .obj = Commodity{ .type = e_commodity::horses,
-                                   .quantity = 50 } } } );
+                                   .quantity = 50 } } );
     REQUIRE( cargo.cargo_starting_at_slot( 5 ) == nothing );
   }
 
@@ -242,16 +242,16 @@ TEST_CASE( "[command-dump] galleon" ) {
     // Nothing changed. And note that we don't call `perform`
     // here.
     REQUIRE( cargo.cargo_starting_at_slot( 0 ) ==
-             Cargo_t{ Cargo::commodity{
+             Cargo::commodity{
                  .obj = Commodity{ .type = e_commodity::cotton,
-                                   .quantity = 23 } } } );
+                                   .quantity = 23 } } );
     REQUIRE( cargo.cargo_starting_at_slot( 1 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 2 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 3 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 4 ) ==
-             Cargo_t{ Cargo::commodity{
+             Cargo::commodity{
                  .obj = Commodity{ .type = e_commodity::horses,
-                                   .quantity = 50 } } } );
+                                   .quantity = 50 } } );
     REQUIRE( cargo.cargo_starting_at_slot( 5 ) == nothing );
   }
 
@@ -280,9 +280,9 @@ TEST_CASE( "[command-dump] galleon" ) {
     REQUIRE( *w_confirm == true );
     // Not yet removed.
     REQUIRE( cargo.cargo_starting_at_slot( 0 ) ==
-             Cargo_t{ Cargo::commodity{
+             Cargo::commodity{
                  .obj = Commodity{ .type = e_commodity::cotton,
-                                   .quantity = 23 } } } );
+                                   .quantity = 23 } } );
 
     wait<> w_perform = handler->perform();
     REQUIRE( !w_perform.exception() );
@@ -292,9 +292,9 @@ TEST_CASE( "[command-dump] galleon" ) {
     REQUIRE( cargo.cargo_starting_at_slot( 2 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 3 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 4 ) ==
-             Cargo_t{ Cargo::commodity{
+             Cargo::commodity{
                  .obj = Commodity{ .type = e_commodity::horses,
-                                   .quantity = 50 } } } );
+                                   .quantity = 50 } } );
     REQUIRE( cargo.cargo_starting_at_slot( 5 ) == nothing );
   }
 
@@ -319,9 +319,9 @@ TEST_CASE( "[command-dump] galleon" ) {
     REQUIRE( *w_confirm == true );
     // Not yet removed.
     REQUIRE( cargo.cargo_starting_at_slot( 4 ) ==
-             Cargo_t{ Cargo::commodity{
+             Cargo::commodity{
                  .obj = Commodity{ .type = e_commodity::horses,
-                                   .quantity = 50 } } } );
+                                   .quantity = 50 } } );
 
     wait<> w_perform = handler->perform();
     REQUIRE( !w_perform.exception() );
@@ -374,9 +374,9 @@ TEST_CASE( "[command-dump] wagon train" ) {
 
   // Sanity check.
   REQUIRE( cargo.cargo_starting_at_slot( 0 ) ==
-           Cargo_t{ Cargo::commodity{
+           Cargo::commodity{
                .obj = Commodity{ .type     = e_commodity::cotton,
-                                 .quantity = 23 } } } );
+                                 .quantity = 23 } } );
   REQUIRE( cargo.cargo_starting_at_slot( 1 ) == nothing );
 
   // Dump #1, slot 0.
@@ -400,9 +400,9 @@ TEST_CASE( "[command-dump] wagon train" ) {
     REQUIRE( *w_confirm == true );
     // Not yet removed.
     REQUIRE( cargo.cargo_starting_at_slot( 0 ) ==
-             Cargo_t{ Cargo::commodity{
+             Cargo::commodity{
                  .obj = Commodity{ .type = e_commodity::cotton,
-                                   .quantity = 23 } } } );
+                                   .quantity = 23 } } );
 
     wait<> w_perform = handler->perform();
     REQUIRE( !w_perform.exception() );

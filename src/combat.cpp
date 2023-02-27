@@ -88,9 +88,9 @@ maybe<UnitType> should_promote_euro_unit( SSConst const& ss,
   return promoted->type_obj();
 }
 
-EuroUnitCombatOutcome_t euro_unit_combat_outcome(
+EuroUnitCombatOutcome euro_unit_combat_outcome(
     SSConst const& ss, IRand& rand, Unit const& unit,
-    Society_t const& society_of_opponent, Coord opponent_coord,
+    Society const& society_of_opponent, Coord opponent_coord,
     bool won ) {
   if( won ) {
     if( maybe<UnitType> promoted_type =
@@ -145,7 +145,7 @@ EuroUnitCombatOutcome_t euro_unit_combat_outcome(
   }
 }
 
-NativeUnitCombatOutcome_t native_unit_combat_outcome(
+NativeUnitCombatOutcome native_unit_combat_outcome(
     NativeUnit const&, bool won ) {
   // Note: in the OG, experiments seem to indicate that the
   // braves will take muskets/horses only when they are the at-
@@ -215,7 +215,7 @@ DwellingCombatOutcome::destruction compute_dwelling_destruction(
   return res;
 }
 
-DwellingCombatOutcome_t dwelling_combat_outcome(
+DwellingCombatOutcome dwelling_combat_outcome(
     SSConst const& ss, IRand& rand, Player const& player,
     Dwelling const& dwelling, bool won, bool missions_burned ) {
   if( won ) return DwellingCombatOutcome::no_change{};
@@ -256,12 +256,12 @@ CombatEuroAttackEuro RealCombat::euro_attack_euro(
       ss_.units.coord_for( defender.id() );
   e_combat_winner const winner =
       choose_winner( rand_, attack_points, defense_points );
-  EuroUnitCombatOutcome_t const attacker_outcome =
+  EuroUnitCombatOutcome const attacker_outcome =
       euro_unit_combat_outcome(
           ss_, rand_, attacker,
           Society::european{ .nation = defender.nation() },
           defender_coord, winner == e_combat_winner::attacker );
-  EuroUnitCombatOutcome_t const defender_outcome =
+  EuroUnitCombatOutcome const defender_outcome =
       euro_unit_combat_outcome(
           ss_, rand_, defender,
           Society::european{ .nation = attacker.nation() },
@@ -442,7 +442,7 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
     res.outcome         = e_naval_combat_outcome::sunk;
   };
 
-  auto set_damaged = [&]( ShipRepairPort_t const& port ) {
+  auto set_damaged = [&]( ShipRepairPort const& port ) {
     loser_stats.outcome =
         EuroNavalUnitCombatOutcome::damaged{ .port = port };
     res.outcome = e_naval_combat_outcome::damaged;
@@ -453,7 +453,7 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
     set_sunk();
   else {
     // Damaged.  Try to find a port to repair the ship.
-    if( maybe<ShipRepairPort_t> const port =
+    if( maybe<ShipRepairPort> const port =
             find_repair_port_for_ship( ss_, loser_unit.nation(),
                                        loser_coord );
         port.has_value() )
@@ -481,13 +481,13 @@ RealCombat::euro_attack_undefended_colony(
   Coord const           defender_coord = colony.location;
   e_combat_winner const winner =
       choose_winner( rand_, attack_points, defense_points );
-  EuroUnitCombatOutcome_t const attacker_outcome =
+  EuroUnitCombatOutcome const attacker_outcome =
       euro_unit_combat_outcome(
           ss_, rand_, attacker,
           Society::european{ .nation = defender.nation() },
           defender_coord, winner == e_combat_winner::attacker );
   auto const defender_outcome =
-      [&]() -> EuroColonyWorkerCombatOutcome_t {
+      [&]() -> EuroColonyWorkerCombatOutcome {
     if( winner == e_combat_winner::attacker )
       return EuroColonyWorkerCombatOutcome::defeated{};
     else
@@ -517,13 +517,13 @@ CombatEuroAttackBrave RealCombat::euro_attack_brave(
       ss_.units.coord_for( defender.id );
   e_combat_winner const winner =
       choose_winner( rand_, attack_points, defense_points );
-  EuroUnitCombatOutcome_t const attacker_outcome =
+  EuroUnitCombatOutcome const attacker_outcome =
       euro_unit_combat_outcome(
           ss_, rand_, attacker,
           Society::native{ .tribe =
                                tribe_for_unit( ss_, defender ) },
           defender_coord, winner == e_combat_winner::attacker );
-  NativeUnitCombatOutcome_t const defender_outcome =
+  NativeUnitCombatOutcome const defender_outcome =
       native_unit_combat_outcome(
           defender, winner == e_combat_winner::defender );
   return CombatEuroAttackBrave{
@@ -557,7 +557,7 @@ CombatEuroAttackDwelling RealCombat::euro_attack_dwelling(
       ss_.natives.coord_for( dwelling.id );
   e_combat_winner const winner =
       choose_winner( rand_, attack_points, defense_points );
-  EuroUnitCombatOutcome_t const attacker_outcome =
+  EuroUnitCombatOutcome const attacker_outcome =
       euro_unit_combat_outcome(
           ss_, rand_, attacker,
           Society::native{
@@ -584,7 +584,7 @@ CombatEuroAttackDwelling RealCombat::euro_attack_dwelling(
                                           new_tribal_alarm );
   }();
 
-  DwellingCombatOutcome_t const defender_outcome =
+  DwellingCombatOutcome const defender_outcome =
       dwelling_combat_outcome(
           ss_, rand_, player, dwelling,
           winner == e_combat_winner::defender, missions_burned );

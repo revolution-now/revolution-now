@@ -38,7 +38,7 @@ enum class e_unit_type;
 // harbor cannot be selected; hence, if it would have otherwise
 // chosen that, then instead it will return nothing. This is be-
 // cause ships cannot go to europe to be repaired in that case.
-base::maybe<ShipRepairPort_t> find_repair_port_for_ship(
+base::maybe<ShipRepairPort> find_repair_port_for_ship(
     SSConst const& ss, e_nation nation, Coord ship_location );
 
 // Produce the standard message that should be displayed to the
@@ -51,7 +51,7 @@ std::string damaged_ship_message( int turns_until_repaired );
 // (in the OG that would be a Caravel in a drydock), in which
 // case the unit is not damaged but instead is immediately ready
 // that same turn, and can move if it hasn't yet.
-int repair_turn_count_for_unit( ShipRepairPort_t const& port,
-                                e_unit_type             type );
+int repair_turn_count_for_unit( ShipRepairPort const& port,
+                                e_unit_type           type );
 
 } // namespace rn

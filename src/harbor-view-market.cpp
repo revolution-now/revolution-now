@@ -72,7 +72,7 @@ wait<> HarborMarketCommodities::perform_click(
   CHECK( event.pos.is_inside( rect( {} ) ) );
   auto obj = object_here( event.pos );
   if( !obj.has_value() ) co_return;
-  HarborDraggableObject_t const& harbor_obj = obj->obj;
+  HarborDraggableObject const& harbor_obj = obj->obj;
   UNWRAP_CHECK(
       comm,
       harbor_obj
@@ -90,7 +90,7 @@ wait<> HarborMarketCommodities::perform_click(
   (void)co_await check_boycott( type );
 }
 
-maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>
+maybe<DraggableObjectWithBounds<HarborDraggableObject>>
 HarborMarketCommodities::object_here(
     Coord const& where ) const {
   maybe<pair<e_commodity, Rect>> res;
@@ -106,7 +106,7 @@ HarborMarketCommodities::object_here(
   Rect const box =
       Rect::from( box_origin, Delta{ .w = 1, .h = 1 } *
                                   Delta{ .w = 16, .h = 16 } );
-  return DraggableObjectWithBounds<HarborDraggableObject_t>{
+  return DraggableObjectWithBounds<HarborDraggableObject>{
       .obj =
           HarborDraggableObject::market_commodity{
               .comm = Commodity{ .type     = comm_type,
@@ -115,7 +115,7 @@ HarborMarketCommodities::object_here(
 }
 
 bool HarborMarketCommodities::try_drag(
-    HarborDraggableObject_t const& o, Coord const& ) {
+    HarborDraggableObject const& o, Coord const& ) {
   UNWRAP_CHECK(
       comm,
       o.get_if<HarborDraggableObject::market_commodity>() );
@@ -131,7 +131,7 @@ void HarborMarketCommodities::cancel_drag() {
   dragging_ = nothing;
 }
 
-wait<maybe<HarborDraggableObject_t>>
+wait<maybe<HarborDraggableObject>>
 HarborMarketCommodities::user_edit_object() const {
   UNWRAP_CHECK( comm, dragging_.member( &Draggable::comm ) );
   string const text = fmt::format(
@@ -171,7 +171,7 @@ HarborMarketCommodities::check_boycott( e_commodity type ) {
 
 wait<base::valid_or<DragRejection>>
 HarborMarketCommodities::source_check(
-    HarborDraggableObject_t const&, Coord const ) {
+    HarborDraggableObject const&, Coord const ) {
   UNWRAP_CHECK( comm, dragging_.member( &Draggable::comm ) );
 
   // Need to check for boycotts before checking the player money
@@ -207,16 +207,16 @@ wait<> HarborMarketCommodities::disown_dragged_object() {
 }
 
 wait<> HarborMarketCommodities::post_successful_source(
-    HarborDraggableObject_t const&, Coord const& ) {
+    HarborDraggableObject const&, Coord const& ) {
   CHECK( dragging_.has_value() );
   if( dragging_->price_change.delta != 0 )
     co_await display_price_change_notification(
         ts_, player_, dragging_->price_change );
 }
 
-maybe<HarborDraggableObject_t>
+maybe<HarborDraggableObject>
 HarborMarketCommodities::can_receive(
-    HarborDraggableObject_t const& o, int /*from_entity*/,
+    HarborDraggableObject const& o, int /*from_entity*/,
     Coord const& /*where*/ ) const {
   if( o.holds<HarborDraggableObject::cargo_commodity>() )
     return o;
@@ -225,7 +225,7 @@ HarborMarketCommodities::can_receive(
 
 wait<base::valid_or<DragRejection>>
 HarborMarketCommodities::sink_check(
-    HarborDraggableObject_t const& o, int /*from_entity*/,
+    HarborDraggableObject const& o, int /*from_entity*/,
     Coord const ) {
   CHECK( o.holds<HarborDraggableObject::cargo_commodity>() );
   e_commodity const type =
@@ -237,7 +237,7 @@ HarborMarketCommodities::sink_check(
 }
 
 wait<> HarborMarketCommodities::drop(
-    HarborDraggableObject_t const& o, Coord const& ) {
+    HarborDraggableObject const& o, Coord const& ) {
   UNWRAP_CHECK(
       cargo_comm,
       o.get_if<HarborDraggableObject::cargo_commodity>() );

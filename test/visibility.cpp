@@ -995,9 +995,9 @@ TEST_CASE( "[visibility] set_map_visibility" ) {
   MockLandViewPlane mock_land_view;
   W.planes().back().land_view = &mock_land_view;
 
-  maybe<e_nation>      default_nation;
-  maybe<MapRevealed_t> revealed;
-  maybe<MapRevealed_t> expected;
+  maybe<e_nation>    default_nation;
+  maybe<MapRevealed> revealed;
+  maybe<MapRevealed> expected;
 
   auto f = [&] {
     set_map_visibility( W.ss(), W.ts(), revealed,

@@ -63,7 +63,7 @@ struct AnimationBuilder {
   AnimationAction& push( auto&& o ) {
     CHECK( !seq_.sequence.empty() );
     seq_.sequence.back().push_back( AnimationAction{
-        .primitive = AnimationPrimitive_t{ std::move( o ) } } );
+        .primitive = AnimationPrimitive{ std::move( o ) } } );
     return seq_.sequence.back().back();
   }
 

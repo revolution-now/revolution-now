@@ -143,7 +143,7 @@ struct.SpeakWithChiefResult {
   # Finally, this is what the chief does to the scout. Can be a
   # gift (positive), nothing (neutral) or eliminating the scout
   # (negative).
-  action 'ChiefAction_t',
+  action 'ChiefAction',
 }
 
 # ===============================================================
@@ -160,7 +160,7 @@ struct.EstablishMissionResult {
 sumtype.EnterDwellingOutcome {
   cancel {}, # should be first.
   live_among_the_natives {
-    outcome 'LiveAmongTheNatives_t',
+    outcome 'LiveAmongTheNatives',
   },
   speak_with_chief {
     outcome 'SpeakWithChiefResult',

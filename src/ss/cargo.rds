@@ -47,7 +47,7 @@ sumtype.CargoSlot {
   empty {},
   overflow {},
   cargo {
-    contents 'Cargo_t',
+    contents 'Cargo',
   },
 }
 
@@ -55,7 +55,7 @@ namespace "rn.wrapped"
 
 struct.CargoHold {
   # This will be of fixed length (number of total slots).
-  slots 'std::vector<CargoSlot_t>',
+  slots 'std::vector<CargoSlot>',
 
   _features { equality, validation }
 }

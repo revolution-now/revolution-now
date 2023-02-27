@@ -136,8 +136,8 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
     REQUIRE( w.ready() );
     REQUIRE(
         colony.construction ==
-        Construction_t{ Construction::building{
-            .what = e_colony_building::tobacconists_shop } } );
+        Construction::building{
+            .what = e_colony_building::tobacconists_shop } );
   }
 
   SECTION(
@@ -188,8 +188,8 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
     REQUIRE( w.ready() );
     REQUIRE(
         colony.construction ==
-        Construction_t{ Construction::building{
-            .what = e_colony_building::tobacconists_shop } } );
+        Construction::building{
+            .what = e_colony_building::tobacconists_shop } );
   }
 
   SECTION( "population=8, fathers=0, some buildings" ) {
@@ -259,10 +259,9 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
-    REQUIRE(
-        colony.construction ==
-        Construction_t{ Construction::building{
-            .what = e_colony_building::fur_trading_post } } );
+    REQUIRE( colony.construction ==
+             Construction::building{
+                 .what = e_colony_building::fur_trading_post } );
   }
 
   SECTION( "population=8, fathers=all, some buildings" ) {
@@ -424,8 +423,8 @@ TEST_CASE(
     REQUIRE( w.ready() );
     REQUIRE(
         colony.construction ==
-        Construction_t{ Construction::building{
-            .what = e_colony_building::tobacconists_shop } } );
+        Construction::building{
+            .what = e_colony_building::tobacconists_shop } );
   }
 
   SECTION(
@@ -476,8 +475,8 @@ TEST_CASE(
     REQUIRE( w.ready() );
     REQUIRE(
         colony.construction ==
-        Construction_t{ Construction::building{
-            .what = e_colony_building::tobacconists_shop } } );
+        Construction::building{
+            .what = e_colony_building::tobacconists_shop } );
   }
 
   SECTION( "population=8, fathers=0, some buildings" ) {
@@ -544,10 +543,9 @@ TEST_CASE(
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
-    REQUIRE(
-        colony.construction ==
-        Construction_t{ Construction::building{
-            .what = e_colony_building::fur_trading_post } } );
+    REQUIRE( colony.construction ==
+             Construction::building{
+                 .what = e_colony_building::fur_trading_post } );
   }
 
   SECTION( "population=8, fathers=all, some buildings" ) {
@@ -691,8 +689,8 @@ TEST_CASE(
     REQUIRE( w.ready() );
     REQUIRE(
         colony.construction ==
-        Construction_t{ Construction::building{
-            .what = e_colony_building::tobacconists_shop } } );
+        Construction::building{
+            .what = e_colony_building::tobacconists_shop } );
   }
 }
 
@@ -935,7 +933,7 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
       W.add_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
   Player& player = W.default_player();
 
-  Construction_t   project;
+  Construction     project;
   RushConstruction invoice;
   string           msg;
   ChoiceConfig     config;

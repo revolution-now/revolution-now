@@ -66,9 +66,9 @@ struct HarborPlane::Impl : public Plane {
   TS&     ts_;
   Player& player_;
 
-  Rect                                      canvas_;
-  co::stream<input::event_t>                input_      = {};
-  maybe<DragState<HarborDraggableObject_t>> drag_state_ = {};
+  Rect                                    canvas_;
+  co::stream<input::event_t>              input_      = {};
+  maybe<DragState<HarborDraggableObject>> drag_state_ = {};
 
   HarborViewComposited composition_;
 
@@ -151,8 +151,7 @@ struct HarborPlane::Impl : public Plane {
   void harbor_view_drag_n_drop_draw(
       rr::Renderer& renderer ) const {
     if( !drag_state_.has_value() ) return;
-    DragState<HarborDraggableObject_t> const& state =
-        *drag_state_;
+    DragState<HarborDraggableObject> const& state = *drag_state_;
     Coord const canvas_origin = canvas_.upper_left();
     Coord const sprite_upper_left =
         state.where - state.click_offset +

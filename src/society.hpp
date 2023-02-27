@@ -35,12 +35,12 @@ struct SSConst;
 // in a native dwelling the missionary is technically not owned
 // by the map, so in that case this will always return the tribe
 // of the native dwelling.
-maybe<Society_t> society_on_square( SSConst const& ss,
-                                    Coord          coord );
+maybe<Society> society_on_square( SSConst const& ss,
+                                  Coord          coord );
 
 // Gets the color associated with the society. E.g. this is the
 // one that will be used to paint the flag color of a unit and
 // the banner of a colony or native dwelling.
-gfx::pixel flag_color_for_society( Society_t const& society );
+gfx::pixel flag_color_for_society( Society const& society );
 
 } // namespace rn

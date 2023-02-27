@@ -73,5 +73,5 @@ sumtype.TaxChangeResult {
 struct.TaxUpdateComputation {
   next_tax_event_turn 'int',
 
-  proposed_tax_change 'TaxChangeProposal_t',
+  proposed_tax_change 'TaxChangeProposal',
 }

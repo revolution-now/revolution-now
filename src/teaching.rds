@@ -33,7 +33,7 @@ sumtype.TeacherAction {
 
 struct.TeacherEvolution {
   teacher_unit_id 'UnitId',
-  action          'TeacherAction_t',
+  action          'TeacherAction',
 }
 
 struct.ColonyTeachingEvolution {

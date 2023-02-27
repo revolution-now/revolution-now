@@ -501,8 +501,9 @@ struct CodeGenerator {
         item_has_feature( sumtype, expr::e_feature::equality );
     bool const emit_validation =
         item_has_feature( sumtype, expr::e_feature::validation );
+    string const alt_ns = fmt::format("{}_alternatives", sumtype.name);
     if( !sumtype.alternatives.empty() ) {
-      open_ns( sumtype.name );
+      open_ns( alt_ns );
       for( expr::Alternative const& alt :
            sumtype.alternatives ) {
         emit_sumtype_alternative( sumtype.tmpl_params, alt,
@@ -510,7 +511,7 @@ struct CodeGenerator {
                                   emit_validation );
         newline();
       }
-      close_ns( sumtype.name );
+      close_ns( alt_ns );
       newline();
     }
     emit_template_decl( sumtype.tmpl_params );
@@ -518,7 +519,7 @@ struct CodeGenerator {
     vector<string> variants;
     for( expr::Alternative const& alt : sumtype.alternatives )
       variants.push_back(
-          "  detail::"s + sumtype.name + "::" + alt.name +
+          "  detail::"s + alt_ns + "::" + alt.name +
           template_params( sumtype.tmpl_params,
                            /*put_typename=*/false ) );
     emit_vert_list( variants, "," );
@@ -539,7 +540,7 @@ struct CodeGenerator {
           max_of( sumtype.alternatives, L( _.name.size() ), 0 );
       for( expr::Alternative const& alt : sumtype.alternatives )
         line( "using {: <{}} = detail::{}::{}{};", alt.name,
-              max_type_len, sumtype.name, alt.name,
+              max_type_len, alt_ns, alt.name,
               template_params( sumtype.tmpl_params,
                                /*put_typename=*/false ) );
       if( !sumtype.alternatives.empty() ) newline();
@@ -578,12 +579,6 @@ struct CodeGenerator {
     }
     line( "};" );
     newline();
-    comment( "TODO: temporary." );
-    emit_template_decl( sumtype.tmpl_params );
-    line( "using {0}_t = {0}{1};", sumtype.name,
-          template_params( sumtype.tmpl_params,
-                           /*put_typename=*/false ) );
-    newline();
     // Ensure that the variant is nothrow move'able since this
     // makes code more efficient that uses it.
     line( "NOTHROW_MOVE( {}{} );", sumtype.name,
@@ -600,7 +595,7 @@ struct CodeGenerator {
       for( expr::Alternative const& alt :
            sumtype.alternatives ) {
         string const sumtype_ns =
-            fmt::format( "{}::detail::{}", ns, sumtype.name );
+            fmt::format( "{}::detail::{}", ns, alt_ns );
         string const sumtype_ns_display =
             fmt::format( "{}::{}", ns, sumtype.name );
         emit_reflection_for_struct(

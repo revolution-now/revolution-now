@@ -51,8 +51,8 @@ using mouse_button_state_t =
 mouse_button_state_t g_mouse_buttons{};
 
 // These maintain the dragging state.
-drag_phase_t l_drag{ drag_phase::none{} };
-drag_phase_t r_drag{ drag_phase::none{} };
+drag_phase l_drag{ drag_phase::none{} };
+drag_phase r_drag{ drag_phase::none{} };
 
 unordered_map<::SDL_Keycode, e_direction> nav_keys{
     { ::SDLK_LEFT, e_direction::w },
@@ -142,7 +142,9 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   }
 
   switch( sdl_event.type ) {
-    case ::SDL_QUIT: event = quit_event_t{}; break;
+    case ::SDL_QUIT:
+      event = quit_event_t{};
+      break;
     // FIXME: need to handle these to get unicode input.
     // case ::SDL_TEXTINPUT: {
     //  break;
@@ -363,7 +365,8 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
       event = wheel_event;
       break;
     }
-    default: event = unknown_event_t{};
+    default:
+      event = unknown_event_t{};
   }
 
   auto const* keyboard_state = ::SDL_GetKeyboardState( nullptr );
@@ -495,8 +498,10 @@ bool is_mod_key( key_event_t const& event ) {
     case ::SDLK_LCTRL:
     case ::SDLK_RCTRL:
     case ::SDLK_LALT:
-    case ::SDLK_RALT: return true;
-    default: return false;
+    case ::SDLK_RALT:
+      return true;
+    default:
+      return false;
   }
 }
 

@@ -47,7 +47,7 @@ struct.Unit {
 
   composition 'rn::UnitComposition',
 
-  orders 'unit_orders_t',
+  orders 'unit_orders',
 
   cargo 'rn::CargoHold',
 

@@ -36,8 +36,8 @@ namespace {} // namespace
 /****************************************************************
 ** Public API
 *****************************************************************/
-maybe<Society_t> society_on_square( SSConst const& ss,
-                                    Coord          coord ) {
+maybe<Society> society_on_square( SSConst const& ss,
+                                  Coord          coord ) {
   // Check for European colony.
   if( auto id = ss.colonies.maybe_from_coord( coord ); id ) {
     e_nation const nation = ss.colonies.colony_for( *id ).nation;
@@ -74,7 +74,7 @@ maybe<Society_t> society_on_square( SSConst const& ss,
   }
 }
 
-gfx::pixel flag_color_for_society( Society_t const& society ) {
+gfx::pixel flag_color_for_society( Society const& society ) {
   switch( society.to_enum() ) {
     case Society::e::european: {
       auto const& o = society.get<Society::european>();
@@ -95,7 +95,7 @@ namespace {
 LUA_FN( tribe_on_square, maybe<e_tribe>, Coord square ) {
   SSConst const& ss = st["SS"].as<SS&>();
   return society_on_square( ss, square )
-      .bind( []( Society_t const& society ) {
+      .bind( []( Society const& society ) {
         return society.get_if<Society::native>().member(
             &Society::native::tribe );
       } );

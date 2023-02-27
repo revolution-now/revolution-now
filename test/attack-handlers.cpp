@@ -787,8 +787,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE(
         as_const( W.units() ).ownership_of( missionary_id ) ==
-        UnitOwnership_t{
-            UnitOwnership::dwelling{ .id = dwelling_id } } );
+
+        UnitOwnership::dwelling{ .id = dwelling_id } );
     REQUIRE( player.score_stats.dwellings_burned == 0 );
     REQUIRE( W.square( W.kLandDefend ).road == true );
     REQUIRE( W.units().exists( brave_id ) );
@@ -896,8 +896,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( W.units().exists( missionary_id ) );
     REQUIRE(
         as_const( W.units() ).ownership_of( missionary_id ) ==
-        UnitOwnership_t{
-            UnitOwnership::dwelling{ .id = dwelling_id } } );
+
+        UnitOwnership::dwelling{ .id = dwelling_id } );
     REQUIRE( player.score_stats.dwellings_burned == 0 );
     REQUIRE( W.square( W.kLandDefend ).road == true );
     REQUIRE( W.units().exists( brave_id ) );
@@ -941,8 +941,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE(
         as_const( W.units() ).ownership_of( missionary_id ) ==
-        UnitOwnership_t{
-            UnitOwnership::dwelling{ .id = dwelling_id } } );
+
+        UnitOwnership::dwelling{ .id = dwelling_id } );
     REQUIRE( player.score_stats.dwellings_burned == 0 );
     REQUIRE( W.square( W.kLandDefend ).road == true );
     REQUIRE( W.units().exists( brave_id ) );
@@ -992,8 +992,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE(
         as_const( W.units() ).ownership_of( missionary_id ) ==
-        UnitOwnership_t{
-            UnitOwnership::dwelling{ .id = dwelling_id } } );
+
+        UnitOwnership::dwelling{ .id = dwelling_id } );
     REQUIRE( W.units().exists( expected_convert_id ) );
     REQUIRE( W.units().unit_for( expected_convert_id ).type() ==
              e_unit_type::native_convert );
@@ -1167,8 +1167,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE(
         as_const( W.units() ).ownership_of( missionary_id ) ==
-        UnitOwnership_t{
-            UnitOwnership::world{ .coord = W.kLandDefend } } );
+
+        UnitOwnership::world{ .coord = W.kLandDefend } );
     REQUIRE( W.units().exists( expected_convert_id ) );
     REQUIRE( W.units().unit_for( expected_convert_id ).type() ==
              e_unit_type::native_convert );
@@ -1331,16 +1331,16 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
              W.kWaterAttack );
     REQUIRE(
         as_const( W.units() ).ownership_of( defender.id() ) ==
-        UnitOwnership_t{ UnitOwnership::harbor{
+        UnitOwnership::harbor{
             .st = { .port_status = PortStatus::in_port{},
-                    .sailed_from = nothing } } } );
+                    .sailed_from = nothing } } );
     REQUIRE( attacker.nation() == W.kAttackingNation );
     REQUIRE( defender.nation() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( defender.movement_points() == 5 );
     REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
     REQUIRE( defender.orders() ==
-             unit_orders_t{ unit_orders::damaged{
+             unit_orders{ unit_orders::damaged{
                  .turns_until_repair = 6 } } );
     REQUIRE( attacker.cargo().count_items() == 0 );
     REQUIRE( defender.cargo().count_items() == 0 );
@@ -1378,15 +1378,14 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
              W.kWaterDefend );
     REQUIRE(
         as_const( W.units() ).ownership_of( defender.id() ) ==
-        UnitOwnership_t{ UnitOwnership::world{
-            .coord = { .x = 2, .y = 2 } } } );
+        UnitOwnership::world{ .coord = { .x = 2, .y = 2 } } );
     REQUIRE( attacker.nation() == W.kAttackingNation );
     REQUIRE( defender.nation() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( defender.movement_points() == 5 );
     REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
     REQUIRE( defender.orders() ==
-             unit_orders_t{ unit_orders::damaged{
+             unit_orders{ unit_orders::damaged{
                  .turns_until_repair = 2 } } );
     REQUIRE( attacker.cargo().count_items() == 0 );
     REQUIRE( defender.cargo().count_items() == 0 );
@@ -1423,15 +1422,14 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
              W.kWaterDefend );
     REQUIRE(
         as_const( W.units() ).ownership_of( defender.id() ) ==
-        UnitOwnership_t{ UnitOwnership::world{
-            .coord = { .x = 2, .y = 2 } } } );
+        UnitOwnership::world{ .coord = { .x = 2, .y = 2 } } );
     REQUIRE( attacker.nation() == W.kAttackingNation );
     REQUIRE( defender.nation() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( defender.movement_points() == 4 );
     REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
     REQUIRE( defender.orders() ==
-             unit_orders_t{ unit_orders::none{} } );
+             unit_orders{ unit_orders::none{} } );
     REQUIRE( attacker.cargo().count_items() == 0 );
     REQUIRE( defender.cargo().count_items() == 0 );
   }
@@ -1563,9 +1561,9 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( W.units().exists( combat.defender.id ) );
     REQUIRE(
         as_const( W.units() ).ownership_of( attacker.id() ) ==
-        UnitOwnership_t{ UnitOwnership::harbor{
+        UnitOwnership::harbor{
             .st = { .port_status = PortStatus::in_port{},
-                    .sailed_from = nothing } } } );
+                    .sailed_from = nothing } } );
     REQUIRE( W.units().coord_for( defender.id() ) ==
              W.kWaterDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
@@ -1573,7 +1571,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( defender.movement_points() == 5 );
     REQUIRE( attacker.orders() ==
-             unit_orders_t{ unit_orders::damaged{
+             unit_orders{ unit_orders::damaged{
                  .turns_until_repair = 8 } } );
     REQUIRE( !defender.orders().holds<unit_orders::damaged>() );
     REQUIRE( attacker.cargo().count_items() == 0 );
@@ -1626,9 +1624,9 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE_FALSE( W.units().exists( soldier_id ) );
     REQUIRE(
         as_const( W.units() ).ownership_of( attacker.id() ) ==
-        UnitOwnership_t{ UnitOwnership::harbor{
+        UnitOwnership::harbor{
             .st = { .port_status = PortStatus::in_port{},
-                    .sailed_from = nothing } } } );
+                    .sailed_from = nothing } } );
     REQUIRE( W.units().coord_for( defender.id() ) ==
              W.kWaterDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
@@ -1636,7 +1634,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( defender.movement_points() == 5 );
     REQUIRE( attacker.orders() ==
-             unit_orders_t{ unit_orders::damaged{
+             unit_orders{ unit_orders::damaged{
                  .turns_until_repair = 8 } } );
     REQUIRE( !defender.orders().holds<unit_orders::damaged>() );
     REQUIRE( attacker.cargo().count_items() == 0 );

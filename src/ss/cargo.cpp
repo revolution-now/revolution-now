@@ -48,7 +48,7 @@ constexpr int const k_max_commodity_cargo_per_slot = 100;
 
 CargoHold::CargoHold( int num_slots )
   : o_( wrapped::CargoHold{
-        .slots = vector<CargoSlot_t>( num_slots ) } ) {}
+        .slots = vector<CargoSlot>( num_slots ) } ) {}
 
 base::valid_or<string> wrapped::CargoHold::validate() const {
   int slots_total = slots.size();
@@ -126,7 +126,7 @@ valid_or<generic_err> CargoHold::validate(
   for( int i = 0; i < slots_total(); ++i ) {
     auto const& slot = o_.slots[i];
     switch( slot.to_enum() ) {
-      case CargoSlot::e::empty: //
+      case CargoSlot::e::empty:    //
         break;
       case CargoSlot::e::overflow: //
         break;
@@ -169,17 +169,17 @@ int CargoHold::count_items() const {
                          L( holds<CargoSlot::cargo>( _ ) ) );
 }
 
-maybe<CargoSlot_t const&> CargoHold::at( int slot ) const {
+maybe<CargoSlot const&> CargoHold::at( int slot ) const {
   if( slot < 0 || slot >= slots_total() ) return nothing;
   return ( *this )[slot];
 }
 
-CargoSlot_t const& CargoHold::operator[]( int idx ) const {
+CargoSlot const& CargoHold::operator[]( int idx ) const {
   CHECK( idx >= 0 && idx < int( o_.slots.size() ) );
   return o_.slots[idx];
 }
 
-CargoSlot_t& CargoHold::operator[]( int idx ) {
+CargoSlot& CargoHold::operator[]( int idx ) {
   CHECK( idx >= 0 && idx < int( o_.slots.size() ) );
   return o_.slots[idx];
 }
@@ -262,7 +262,7 @@ void CargoHold::compactify( UnitsState const& units_state ) {
 
 int CargoHold::max_commodity_quantity_that_fits(
     e_commodity type ) const {
-  auto one_slot = [&]( CargoSlot_t const& slot ) {
+  auto one_slot = [&]( CargoSlot const& slot ) {
     switch( slot.to_enum() ) {
       case CargoSlot::e::empty:
         return k_max_commodity_cargo_per_slot;
@@ -286,7 +286,7 @@ int CargoHold::max_commodity_quantity_that_fits(
 }
 
 bool CargoHold::fits( UnitsState const& units_state,
-                      Cargo_t const& cargo, int slot ) const {
+                      Cargo const& cargo, int slot ) const {
   CHECK( slot >= 0 && slot < int( o_.slots.size() ) );
   return overload_visit(
       cargo,
@@ -339,7 +339,7 @@ bool CargoHold::fits( UnitsState const& units_state,
 }
 
 ND bool CargoHold::fits_with_item_removed(
-    UnitsState const& units_state, Cargo_t const& cargo,
+    UnitsState const& units_state, Cargo const& cargo,
     CargoSlotIndex remove_slot,
     CargoSlotIndex insert_slot ) const {
   CargoHold new_hold = *this;
@@ -348,7 +348,7 @@ ND bool CargoHold::fits_with_item_removed(
 }
 
 ND bool CargoHold::fits_somewhere_with_item_removed(
-    UnitsState const& units_state, Cargo_t const& cargo,
+    UnitsState const& units_state, Cargo const& cargo,
     int remove_slot, int starting_slot ) const {
   CargoHold new_hold = *this;
   new_hold.remove( remove_slot );
@@ -357,7 +357,7 @@ ND bool CargoHold::fits_somewhere_with_item_removed(
 }
 
 bool CargoHold::fits_somewhere( UnitsState const& units_state,
-                                Cargo_t const&    cargo,
+                                Cargo const&      cargo,
                                 int starting_slot ) const {
   CargoHold new_hold = *this;
   // Do this so that this tmp cargo hold does not get destroyed
@@ -369,7 +369,7 @@ bool CargoHold::fits_somewhere( UnitsState const& units_state,
 }
 
 bool CargoHold::try_add_somewhere( UnitsState const& units_state,
-                                   Cargo_t const&    cargo,
+                                   Cargo const&      cargo,
                                    int starting_from ) {
   if( slots_total() == 0 ) return false;
   CHECK( starting_from >= 0 && starting_from < slots_total() );
@@ -409,7 +409,8 @@ bool CargoHold::try_add_somewhere( UnitsState const& units_state,
                   commodity.type, quantity_to_add, idx )
               break;
             }
-            case CargoSlot::e::overflow: break;
+            case CargoSlot::e::overflow:
+              break;
             case CargoSlot::e::cargo: {
               auto& cargo = v.get<CargoSlot::cargo>();
               if( auto* comm_in_slot = get_if<Cargo::commodity>(
@@ -449,7 +450,7 @@ bool CargoHold::try_add_somewhere( UnitsState const& units_state,
 }
 
 bool CargoHold::try_add( UnitsState const& units_state,
-                         Cargo_t const& cargo, int slot ) {
+                         Cargo const& cargo, int slot ) {
   if( auto* unit = get_if<Cargo::unit>( &cargo ) ) {
     UnitId id = unit->id;
     // Make sure that the unit is not already in this cargo.
@@ -511,7 +512,7 @@ void CargoHold::clear() {
     slot = CargoSlot::empty{};
 }
 
-maybe<Cargo_t const&> CargoHold::cargo_starting_at_slot(
+maybe<Cargo const&> CargoHold::cargo_starting_at_slot(
     int idx ) const {
   CHECK( idx >= 0 && idx < slots_total() );
   return o_
@@ -520,12 +521,12 @@ maybe<Cargo_t const&> CargoHold::cargo_starting_at_slot(
       .member( &CargoSlot::cargo::contents );
 }
 
-maybe<pair<Cargo_t const&, int>> CargoHold::cargo_covering_slot(
+maybe<pair<Cargo const&, int>> CargoHold::cargo_covering_slot(
     int idx ) const {
   CHECK( idx >= 0 && idx < slots_total() );
   if( o_.slots[idx].holds<CargoSlot::empty>() ) return nothing;
   do {
-    maybe<Cargo_t const&> ref =
+    maybe<Cargo const&> ref =
         o_.slots[idx]
             .get_if<CargoSlot::cargo>() //
             .member( &CargoSlot::cargo::contents );
@@ -533,7 +534,7 @@ maybe<pair<Cargo_t const&, int>> CargoHold::cargo_covering_slot(
     // wise it will infer a Cargo by value, then implicitely con-
     // vert to a reference (for our return type) and thus will
     // end up returning reference to a temporary.
-    if( ref ) return pair<Cargo_t const&, int>{ *ref, idx };
+    if( ref ) return pair<Cargo const&, int>{ *ref, idx };
   } while( --idx >= 0 );
   return nothing;
 }

@@ -570,10 +570,10 @@ TravelHandler::confirm_travel_impl() {
 
   e_unit_relationship relationship =
       e_unit_relationship::neutral;
-  if( maybe<Society_t> const society =
+  if( maybe<Society> const society =
           society_on_square( ss_, move_dst );
       society.has_value() ) {
-    CHECK( *society == Society_t{ Society::european{
+    CHECK( *society == Society{ Society::european{
                            .nation = unit.nation() } } );
     relationship = e_unit_relationship::friendly;
   }
@@ -965,7 +965,7 @@ wait<> TravelHandler::perform() {
         if( !cargo_unit.mv_pts_exhausted() ) {
           UNWRAP_CHECK( direction,
                         old_coord.direction_to( move_dst ) );
-          command_t command = command::move{ direction };
+          command command = command::move{ direction };
           push_unit_command( unit_item.id, command );
           // Stop after first eligible unit. The rest of the
           // units will just ask for commands on the ship.
@@ -1018,7 +1018,7 @@ struct NativeDwellingHandler : public CommandHandler {
                                                  unit_.id() ) ),
       move_dst_( move_src_.moved( d ) ) {}
 
-  EnterDwellingOutcome_t compute_enter_dwelling_outcome(
+  EnterDwellingOutcome compute_enter_dwelling_outcome(
       e_enter_dwelling_option option ) const {
     switch( option ) {
       case e_enter_dwelling_option::live_among_the_natives:
@@ -1177,7 +1177,7 @@ struct NativeDwellingHandler : public CommandHandler {
   Coord       move_dst_;
 
   // In case we are attacking the village.
-  EnterDwellingOutcome_t outcome_;
+  EnterDwellingOutcome outcome_;
 };
 
 /****************************************************************
@@ -1198,7 +1198,7 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
     return make_unique<TravelHandler>( ss, ts, attacker_id, d,
                                        player );
 
-  maybe<Society_t> const society = society_on_square( ss, dst );
+  maybe<Society> const society = society_on_square( ss, dst );
 
   if( !society.has_value() )
     // No entities on target sqaure, so it is just a travel.
@@ -1206,7 +1206,7 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
                                        player );
   CHECK( society.has_value() );
 
-  if( *society == Society_t{ Society::european{
+  if( *society == Society{ Society::european{
                       .nation = attacker.nation() } } )
     // Friendly unit on target square, so not an attack.
     return make_unique<TravelHandler>( ss, ts, attacker_id, d,

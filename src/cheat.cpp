@@ -94,7 +94,7 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
           disabled );
   if( !selected.has_value() ) co_return;
 
-  maybe<MapRevealed_t> revealed;
+  maybe<MapRevealed> revealed;
 
   switch( *selected ) {
     case e_cheat_reveal_map::english:
@@ -126,12 +126,12 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
 
 void cheat_toggle_reveal_full_map( SS& ss, TS& ts ) {
   RETURN_IF_NO_CHEAT;
-  maybe<MapRevealed_t&> revealed = ss.land_view.map_revealed;
+  maybe<MapRevealed&> revealed = ss.land_view.map_revealed;
   if( !revealed.has_value() ||
       !revealed->holds<MapRevealed::entire>() ) {
     // Reveal the entire map.
     set_map_visibility( ss, ts,
-                        MapRevealed_t{ MapRevealed::entire{} },
+                        MapRevealed{ MapRevealed::entire{} },
                         /*default_nation=*/nothing );
     return;
   }
@@ -473,7 +473,7 @@ void cheat_advance_colony_one_turn( SS& ss, TS& ts,
   lg.debug( "advancing colony {}. notifications:", colony.name );
   ColonyEvolution ev =
       evolve_colony_one_turn( ss, ts, player, colony );
-  for( ColonyNotification_t const& notification :
+  for( ColonyNotification const& notification :
        ev.notifications )
     lg.debug( "{}", notification );
   // NOTE: we will not starve the colony here since this is just

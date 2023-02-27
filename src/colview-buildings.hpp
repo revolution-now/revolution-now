@@ -29,9 +29,9 @@ struct Player;
 *****************************************************************/
 class ColViewBuildings : public ui::View,
                          public ColonySubView,
-                         public IDragSink<ColViewObject_t>,
-                         public IDragSinkCheck<ColViewObject_t>,
-                         public IDragSource<ColViewObject_t> {
+                         public IDragSink<ColViewObject>,
+                         public IDragSinkCheck<ColViewObject>,
+                         public IDragSource<ColViewObject> {
  public:
   static std::unique_ptr<ColViewBuildings> create(
       SS& ss, TS& ts, Player& player, Colony& colony,
@@ -66,22 +66,22 @@ class ColViewBuildings : public ui::View,
   }
 
   // Implement IDragSink.
-  maybe<ColViewObject_t> can_receive(
-      ColViewObject_t const& o, int from_entity,
+  maybe<ColViewObject> can_receive(
+      ColViewObject const& o, int from_entity,
       Coord const& where ) const override;
 
   // Implement IDragSink.
-  wait<> drop( ColViewObject_t const& o,
-               Coord const&           where ) override;
+  wait<> drop( ColViewObject const& o,
+               Coord const&         where ) override;
 
   // Implement IDragSinkCheck.
   wait<base::valid_or<DragRejection>> sink_check(
-      ColViewObject_t const&, int from_entity,
+      ColViewObject const&, int from_entity,
       Coord const ) override;
 
   // Implement IDragSource.
-  bool try_drag( ColViewObject_t const& o,
-                 Coord const&           where ) override;
+  bool try_drag( ColViewObject const& o,
+                 Coord const&         where ) override;
 
   // Implement IDragSource.
   void cancel_drag() override;
@@ -90,7 +90,7 @@ class ColViewBuildings : public ui::View,
   wait<> disown_dragged_object() override;
 
   // Implement ColonySubView.
-  maybe<DraggableObjectWithBounds<ColViewObject_t>> object_here(
+  maybe<DraggableObjectWithBounds<ColViewObject>> object_here(
       Coord const& /*where*/ ) const override;
 
   // Implement AwaitView.

@@ -23,7 +23,7 @@ namespace rn {
 struct IGui;
 struct Planes;
 
-wait<> run_game_with_mode( Planes&            planes,
-                           StartMode_t const& mode );
+wait<> run_game_with_mode( Planes&          planes,
+                           StartMode const& mode );
 
 } // namespace rn

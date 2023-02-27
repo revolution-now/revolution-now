@@ -48,26 +48,26 @@ class SmoothViewport;
 struct LandViewAnimator {
   using UnitAnimStatesMap =
       std::unordered_map<GenericUnitId,
-                         std::stack<UnitAnimationState_t>>;
+                         std::stack<UnitAnimationState>>;
   using DwellingAnimStatesMap =
       std::unordered_map<DwellingId,
-                         std::stack<DwellingAnimationState_t>>;
+                         std::stack<DwellingAnimationState>>;
   using ColonyAnimStatesMap =
       std::unordered_map<ColonyId,
-                         std::stack<ColonyAnimationState_t>>;
+                         std::stack<ColonyAnimationState>>;
 
   LandViewAnimator( SSConst const& ss, SmoothViewport& viewport )
     : ss_( ss ), viewport_( viewport ) {}
 
   // Getters.
 
-  maybe<UnitAnimationState_t const&> unit_animation(
+  maybe<UnitAnimationState const&> unit_animation(
       UnitId id ) const;
 
-  maybe<ColonyAnimationState_t const&> colony_animation(
+  maybe<ColonyAnimationState const&> colony_animation(
       ColonyId id ) const;
 
-  maybe<DwellingAnimationState_t const&> dwelling_animation(
+  maybe<DwellingAnimationState const&> dwelling_animation(
       DwellingId id ) const;
 
   auto const& unit_animations() const {

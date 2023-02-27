@@ -89,11 +89,11 @@ HarborOutboundShips::unit_at_location( Coord where ) const {
   return nothing;
 }
 
-maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>
+maybe<DraggableObjectWithBounds<HarborDraggableObject>>
 HarborOutboundShips::object_here( Coord const& where ) const {
   maybe<UnitWithPosition> const unit = unit_at_location( where );
   if( !unit.has_value() ) return nothing;
-  return DraggableObjectWithBounds<HarborDraggableObject_t>{
+  return DraggableObjectWithBounds<HarborDraggableObject>{
       .obj    = HarborDraggableObject::unit{ .id = unit->id },
       .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
 }
@@ -118,9 +118,8 @@ wait<> HarborOutboundShips::click_on_unit( UnitId unit_id ) {
   if( get_active_unit() == unit_id ) {
     Unit const&  unit = ss_.units.unit_for( unit_id );
     ChoiceConfig config{
-        .msg = fmt::format(
-            "European harbor options for [{}]:",
-            unit.desc().name ),
+        .msg = fmt::format( "European harbor options for [{}]:",
+                            unit.desc().name ),
         .options = {},
         .sort    = false,
     };
@@ -155,7 +154,7 @@ wait<> HarborOutboundShips::perform_click(
 }
 
 bool HarborOutboundShips::try_drag(
-    HarborDraggableObject_t const& o, Coord const& ) {
+    HarborDraggableObject const& o, Coord const& ) {
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
   dragging_ = Draggable{ .unit_id = unit.id };
   return true;
@@ -174,8 +173,8 @@ wait<> HarborOutboundShips::disown_dragged_object() {
   co_return;
 }
 
-maybe<HarborDraggableObject_t> HarborOutboundShips::can_receive(
-    HarborDraggableObject_t const& a, int from_entity,
+maybe<HarborDraggableObject> HarborOutboundShips::can_receive(
+    HarborDraggableObject const& a, int from_entity,
     Coord const& ) const {
   CONVERT_ENTITY( entity_enum, from_entity );
   if( entity_enum == e_harbor_view_entity::inbound ||
@@ -184,8 +183,8 @@ maybe<HarborDraggableObject_t> HarborOutboundShips::can_receive(
   return nothing;
 }
 
-wait<> HarborOutboundShips::drop(
-    HarborDraggableObject_t const& o, Coord const& ) {
+wait<> HarborOutboundShips::drop( HarborDraggableObject const& o,
+                                  Coord const& ) {
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
   UnitId const dragged_id = unit.id;
   unit_sail_to_new_world( ss_.terrain, ss_.units, player_,

@@ -97,11 +97,11 @@ UnitId create_treasure_train( SS& ss, TS& ts,
       ss, ts, player, uc_treasure, world_square );
 }
 
-wait<LostCityRumorResult_t> run_burial_mounds_result(
+wait<LostCityRumorResult> run_burial_mounds_result(
     e_burial_mounds_type type, bool has_burial_grounds, SS& ss,
     TS& ts, Player& player, UnitId unit_id,
     Coord world_square ) {
-  LostCityRumorResult_t         result = {};
+  LostCityRumorResult           result = {};
   e_lcr_explorer_category const explorer =
       lcr_explorer_category( ss.units, unit_id );
   switch( type ) {
@@ -196,7 +196,7 @@ wait<> run_fountain_of_youth( UnitsState& units_state, IGui& gui,
   }
 }
 
-wait<LostCityRumorResult_t> run_rumor_result(
+wait<LostCityRumorResult> run_rumor_result(
     e_rumor_type type, e_burial_mounds_type burial_type,
     bool has_burial_grounds, SS& ss, TS& ts, Player& player,
     UnitId unit_id, Coord world_square ) {
@@ -239,7 +239,7 @@ wait<LostCityRumorResult_t> run_rumor_result(
             .no_comes_first = false } );
       if( res == ui::e_confirm::no )
         co_return LostCityRumorResult::other{};
-      LostCityRumorResult_t result =
+      LostCityRumorResult result =
           co_await run_burial_mounds_result(
               burial_type, has_burial_grounds, ss, ts, player,
               unit_id, world_square );
@@ -381,11 +381,11 @@ bool pick_burial_grounds_result(
           .probability );
 }
 
-wait<LostCityRumorResult_t> run_lost_city_rumor_result(
+wait<LostCityRumorResult> run_lost_city_rumor_result(
     SS& ss, TS& ts, Player& player, UnitId unit_id,
     Coord world_square, e_rumor_type type,
     e_burial_mounds_type burial_type, bool has_burial_grounds ) {
-  LostCityRumorResult_t result = co_await run_rumor_result(
+  LostCityRumorResult result = co_await run_rumor_result(
       type, burial_type, has_burial_grounds, ss, ts, player,
       unit_id, world_square );
 

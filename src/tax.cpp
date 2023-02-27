@@ -237,9 +237,9 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
   return update;
 }
 
-wait<TaxChangeResult_t> prompt_for_tax_change_result(
+wait<TaxChangeResult> prompt_for_tax_change_result(
     SSConst const& ss, TS& ts, Player& player_non_const,
-    TaxChangeProposal_t const& proposal ) {
+    TaxChangeProposal const& proposal ) {
   Player const& player = player_non_const;
   string_view constexpr increase_msg =
       "In honor of our marriage to our {}{} wife, we have "
@@ -305,7 +305,7 @@ wait<TaxChangeResult_t> prompt_for_tax_change_result(
 
 void apply_tax_result( SS& ss, Player& player,
                        int next_tax_event_turn,
-                       TaxChangeResult_t const& change ) {
+                       TaxChangeResult const& change ) {
   CHECK_GT( next_tax_event_turn, ss.turn.time_point.turns );
   player.old_world.taxes.next_tax_event_turn =
       next_tax_event_turn;
@@ -350,7 +350,7 @@ wait<> start_of_turn_tax_check( SS& ss, TS& ts,
   CHECK_GT( update.next_tax_event_turn,
             ss.turn.time_point.turns );
   // We have a tax increase or decrease.
-  TaxChangeResult_t const result =
+  TaxChangeResult const result =
       co_await prompt_for_tax_change_result(
           ss, ts, player, update.proposed_tax_change );
   apply_tax_result( ss, player, update.next_tax_event_turn,

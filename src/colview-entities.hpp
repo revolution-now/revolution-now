@@ -67,7 +67,7 @@ struct AwaitView {
 };
 
 class ColonySubView
-  : public IDraggableObjectsView<ColViewObject_t>,
+  : public IDraggableObjectsView<ColViewObject>,
     public AwaitView {
  public:
   ColonySubView( SS& ss, TS& ts, Player& player, Colony& colony )
@@ -82,14 +82,14 @@ class ColonySubView
   virtual ui::View const& view() const noexcept = 0;
 
   // Implement IDraggableObjectsView.
-  virtual maybe<PositionedDraggableSubView<ColViewObject_t>>
+  virtual maybe<PositionedDraggableSubView<ColViewObject>>
   view_here( Coord ) override {
-    return PositionedDraggableSubView<ColViewObject_t>{
-        this, Coord{} };
+    return PositionedDraggableSubView<ColViewObject>{ this,
+                                                      Coord{} };
   }
 
   // Implement IDraggableObjectsView.
-  virtual maybe<DraggableObjectWithBounds<ColViewObject_t>>
+  virtual maybe<DraggableObjectWithBounds<ColViewObject>>
   object_here( Coord const& /*where*/ ) const override {
     return nothing;
   }
@@ -129,7 +129,7 @@ void set_colview_colony( SS& ss, TS& ts, Player& player,
 
 void colview_drag_n_drop_draw(
     SS& ss, rr::Renderer& renderer,
-    DragState<ColViewObject_t> const& state,
-    Coord const&                      canvas_origin );
+    DragState<ColViewObject> const& state,
+    Coord const&                    canvas_origin );
 
 } // namespace rn

@@ -113,7 +113,7 @@ wait<base::NoDiscard<bool>> try_lost_city_rumor(
   if( rumor_type == e_rumor_type::fountain_of_youth )
     co_await display_woodcut_if_needed(
         ts, player, e_woodcut::discovered_fountain_of_youth );
-  LostCityRumorResult_t const lcr_res =
+  LostCityRumorResult const lcr_res =
       co_await run_lost_city_rumor_result(
           ss, ts, player, id, world_square, rumor_type,
           burial_type, has_burial_grounds );

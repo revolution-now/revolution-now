@@ -74,11 +74,11 @@ HarborDockUnits::unit_at_location( Coord where ) const {
   return nothing;
 }
 
-maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>
+maybe<DraggableObjectWithBounds<HarborDraggableObject>>
 HarborDockUnits::object_here( Coord const& where ) const {
   maybe<UnitWithPosition> const unit = unit_at_location( where );
   if( !unit.has_value() ) return nothing;
-  return DraggableObjectWithBounds<HarborDraggableObject_t>{
+  return DraggableObjectWithBounds<HarborDraggableObject>{
       .obj    = HarborDraggableObject::unit{ .id = unit->id },
       .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
 }
@@ -104,8 +104,8 @@ vector<HarborDockUnits::UnitWithPosition> HarborDockUnits::units(
 wait<> HarborDockUnits::click_on_unit( UnitId unit_id ) {
   Unit const&  unit = ss_.units.unit_for( unit_id );
   ChoiceConfig config{
-      .msg = fmt::format( "European dock options for [{}]:",
-                          unit.desc().name ),
+      .msg     = fmt::format( "European dock options for [{}]:",
+                              unit.desc().name ),
       .options = {},
       .sort    = false,
   };
@@ -150,7 +150,7 @@ wait<> HarborDockUnits::perform_click(
   co_await click_on_unit( unit->id );
 }
 
-bool HarborDockUnits::try_drag( HarborDraggableObject_t const& o,
+bool HarborDockUnits::try_drag( HarborDraggableObject const& o,
                                 Coord const& ) {
   // This method will only be called if there was already an ob-
   // ject under the cursor, which for us means a unit, and units
@@ -169,8 +169,8 @@ wait<> HarborDockUnits::disown_dragged_object() {
   co_return;
 }
 
-maybe<HarborDraggableObject_t> HarborDockUnits::can_receive(
-    HarborDraggableObject_t const& o, int /*from_entity*/,
+maybe<HarborDraggableObject> HarborDockUnits::can_receive(
+    HarborDraggableObject const& o, int /*from_entity*/,
     Coord const& ) const {
   auto const& unit = o.get_if<HarborDraggableObject::unit>();
   if( !unit.has_value() ) return nothing;
@@ -179,7 +179,7 @@ maybe<HarborDraggableObject_t> HarborDockUnits::can_receive(
   return o;
 }
 
-wait<> HarborDockUnits::drop( HarborDraggableObject_t const& o,
+wait<> HarborDockUnits::drop( HarborDraggableObject const& o,
                               Coord const& ) {
   UNWRAP_CHECK( draggable_unit,
                 o.get_if<HarborDraggableObject::unit>() );

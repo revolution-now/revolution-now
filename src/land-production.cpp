@@ -31,9 +31,10 @@ namespace {
 
 [[nodiscard]] int apply_outdoor_bonus(
     int const in, bool const is_expert,
-    OutdoorJobBonus_t const& bonus ) {
+    OutdoorJobBonus const& bonus ) {
   switch( bonus.to_enum() ) {
-    case OutdoorJobBonus::e::none: return in;
+    case OutdoorJobBonus::e::none:
+      return in;
     case OutdoorJobBonus::e::add: {
       auto& o = bonus.get<OutdoorJobBonus::add>();
       return is_expert ? ( in + o.expert )
@@ -78,23 +79,34 @@ bool has_required_resources(
 *****************************************************************/
 e_commodity commodity_for_outdoor_job( e_outdoor_job job ) {
   switch( job ) {
-    case e_outdoor_job::food: return e_commodity::food;
-    case e_outdoor_job::fish: return e_commodity::food;
-    case e_outdoor_job::sugar: return e_commodity::sugar;
-    case e_outdoor_job::tobacco: return e_commodity::tobacco;
-    case e_outdoor_job::cotton: return e_commodity::cotton;
-    case e_outdoor_job::fur: return e_commodity::fur;
-    case e_outdoor_job::lumber: return e_commodity::lumber;
-    case e_outdoor_job::ore: return e_commodity::ore;
-    case e_outdoor_job::silver: return e_commodity::silver;
+    case e_outdoor_job::food:
+      return e_commodity::food;
+    case e_outdoor_job::fish:
+      return e_commodity::food;
+    case e_outdoor_job::sugar:
+      return e_commodity::sugar;
+    case e_outdoor_job::tobacco:
+      return e_commodity::tobacco;
+    case e_outdoor_job::cotton:
+      return e_commodity::cotton;
+    case e_outdoor_job::fur:
+      return e_commodity::fur;
+    case e_outdoor_job::lumber:
+      return e_commodity::lumber;
+    case e_outdoor_job::ore:
+      return e_commodity::ore;
+    case e_outdoor_job::silver:
+      return e_commodity::silver;
   }
 }
 
 maybe<e_outdoor_job> outdoor_job_for_expertise(
     e_unit_activity activity ) {
   switch( activity ) {
-    case e_unit_activity::farming: return e_outdoor_job::food;
-    case e_unit_activity::fishing: return e_outdoor_job::fish;
+    case e_unit_activity::farming:
+      return e_outdoor_job::food;
+    case e_unit_activity::fishing:
+      return e_outdoor_job::fish;
     case e_unit_activity::sugar_planting:
       return e_outdoor_job::sugar;
     case e_unit_activity::tobacco_planting:
@@ -105,7 +117,8 @@ maybe<e_outdoor_job> outdoor_job_for_expertise(
       return e_outdoor_job::fur;
     case e_unit_activity::lumberjacking:
       return e_outdoor_job::lumber;
-    case e_unit_activity::ore_mining: return e_outdoor_job::ore;
+    case e_unit_activity::ore_mining:
+      return e_outdoor_job::ore;
     case e_unit_activity::silver_mining:
       return e_outdoor_job::silver;
     case e_unit_activity::carpentry:
@@ -120,15 +133,19 @@ maybe<e_outdoor_job> outdoor_job_for_expertise(
     case e_unit_activity::scouting:
     case e_unit_activity::missioning:
     case e_unit_activity::bell_ringing:
-    case e_unit_activity::preaching: return nothing;
-    case e_unit_activity::teaching: return nothing;
+    case e_unit_activity::preaching:
+      return nothing;
+    case e_unit_activity::teaching:
+      return nothing;
   }
 }
 
 e_unit_activity activity_for_outdoor_job( e_outdoor_job job ) {
   switch( job ) {
-    case e_outdoor_job::food: return e_unit_activity::farming;
-    case e_outdoor_job::fish: return e_unit_activity::fishing;
+    case e_outdoor_job::food:
+      return e_unit_activity::farming;
+    case e_outdoor_job::fish:
+      return e_unit_activity::fishing;
     case e_outdoor_job::sugar:
       return e_unit_activity::sugar_planting;
     case e_outdoor_job::tobacco:
@@ -139,7 +156,8 @@ e_unit_activity activity_for_outdoor_job( e_outdoor_job job ) {
       return e_unit_activity::fur_trapping;
     case e_outdoor_job::lumber:
       return e_unit_activity::lumberjacking;
-    case e_outdoor_job::ore: return e_unit_activity::ore_mining;
+    case e_outdoor_job::ore:
+      return e_unit_activity::ore_mining;
     case e_outdoor_job::silver:
       return e_unit_activity::silver_mining;
   }
@@ -298,7 +316,7 @@ int commodity_production_on_center_square(
       square.river.has_value() ) {
     switch( *square.river ) {
       case e_river::minor: {
-        OutdoorJobBonus_t const bonus =
+        OutdoorJobBonus const bonus =
             center_conf.override_secondary_minor_river_bonus[job]
                     .has_value()
                 ? *center_conf
@@ -308,7 +326,7 @@ int commodity_production_on_center_square(
         break;
       }
       case e_river::major:
-        OutdoorJobBonus_t const bonus =
+        OutdoorJobBonus const bonus =
             center_conf.override_secondary_major_river_bonus[job]
                     .has_value()
                 ? *center_conf

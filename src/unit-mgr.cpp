@@ -82,7 +82,7 @@ maybe<ColonyId> colony_for_unit_who_is_worker(
 maybe<e_unit_activity> current_activity_for_unit(
     UnitsState const&    units_state,
     ColoniesState const& colonies_state, UnitId id ) {
-  UnitOwnership_t const& ownership =
+  UnitOwnership const& ownership =
       units_state.ownership_of( id );
   switch( ownership.to_enum() ) {
     case UnitOwnership::e::colony: {
@@ -219,7 +219,7 @@ maybe<Coord> coord_for_unit_indirect( UnitsState const& units,
   switch( units.unit_kind( id ) ) {
     case e_unit_kind::euro: {
       CHECK( units.exists( id ) );
-      UnitOwnership_t const& ownership =
+      UnitOwnership const& ownership =
           units.ownership_of( units.check_euro_unit( id ) );
       switch( ownership.to_enum() ) {
         case UnitOwnership::e::world: {
@@ -270,7 +270,7 @@ maybe<UnitId> is_unit_onboard( UnitsState const& units_state,
 *****************************************************************/
 e_tribe tribe_for_unit( SSConst const&    ss,
                         NativeUnit const& native_unit ) {
-  NativeUnitOwnership_t const& ownership =
+  NativeUnitOwnership const& ownership =
       ss.units.ownership_of( native_unit.id );
   UNWRAP_CHECK( world,
                 ownership.get_if<NativeUnitOwnership::world>() );

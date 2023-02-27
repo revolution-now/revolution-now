@@ -71,7 +71,7 @@ struct harbor_view_exit_interrupt : std::exception {};
 *****************************************************************/
 // FIXME: try to dedupe this with the one in the colony view.
 class HarborSubView
-  : public IDraggableObjectsView<HarborDraggableObject_t>,
+  : public IDraggableObjectsView<HarborDraggableObject>,
     public ui::AwaitView {
  public:
   HarborSubView( SS& ss, TS& ts, Player& player )
@@ -84,15 +84,14 @@ class HarborSubView
 
   // Implement IDraggableObjectsView.
   virtual maybe<
-      PositionedDraggableSubView<HarborDraggableObject_t>>
+      PositionedDraggableSubView<HarborDraggableObject>>
   view_here( Coord ) override {
-    return PositionedDraggableSubView<HarborDraggableObject_t>{
+    return PositionedDraggableSubView<HarborDraggableObject>{
         this, Coord{} };
   }
 
   // Implement IDraggableObjectsView.
-  virtual maybe<
-      DraggableObjectWithBounds<HarborDraggableObject_t>>
+  virtual maybe<DraggableObjectWithBounds<HarborDraggableObject>>
   object_here( Coord const& /*where*/ ) const override {
     return nothing;
   }

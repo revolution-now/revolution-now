@@ -195,7 +195,7 @@ Commodity rm_commodity_from_cargo( UnitsState& units_state,
   ASSIGN_CHECK_V( comm, cargo_item.contents, Cargo::commodity );
 
   Commodity res = std::move( comm.obj );
-  cargo[slot]   = CargoSlot_t{ CargoSlot::empty{} };
+  cargo[slot]   = CargoSlot{ CargoSlot::empty{} };
   cargo.validate_or_die( units_state );
   return res;
 }
@@ -275,7 +275,7 @@ int move_commodity_as_much_as_possible(
 }
 
 maybe<string> commodity_label_to_markup(
-    CommodityLabel_t const& label ) {
+    CommodityLabel const& label ) {
   switch( label.to_enum() ) {
     case CommodityLabel::e::none: {
       return nothing;
@@ -299,9 +299,9 @@ void render_commodity( rr::Renderer& renderer, Coord where,
                          /*label=*/nothing, /*colors=*/{} );
 }
 
-void render_commodity_annotated(
-    rr::Renderer& renderer, Coord where, e_commodity type,
-    CommodityLabel_t const& label ) {
+void render_commodity_annotated( rr::Renderer& renderer,
+                                 Coord where, e_commodity type,
+                                 CommodityLabel const& label ) {
   e_commodity_label_render_colors const colors =
       label.get_if<CommodityLabel::quantity>()
           .member( &CommodityLabel::quantity::colors )

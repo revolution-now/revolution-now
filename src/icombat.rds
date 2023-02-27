@@ -91,7 +91,7 @@ sumtype.EuroNavalUnitCombatOutcome {
   sunk {},
 
   damaged {
-    port 'ShipRepairPort_t',
+    port 'ShipRepairPort',
   },
 }
 
@@ -181,7 +181,7 @@ struct.CombatStats {
   _template { IdT, ModifiersT, OutcomeT },
 
   id 'IdT',
-  modifiers 'refl::enum_map<ModifiersT, base::maybe<CombatModifierEffect_t>>',
+  modifiers 'refl::enum_map<ModifiersT, base::maybe<CombatModifierEffect>>',
   base_weight 'double', # without modifiers.
   modified_weight 'double', # with modifiers.
   outcome 'OutcomeT',
@@ -194,20 +194,20 @@ struct.Sinking {
 
 struct.NavalCombatStats {
   id 'UnitId',
-  modifiers 'refl::enum_map<e_euro_unit_combat_modifiers, base::maybe<CombatModifierEffect_t>>',
+  modifiers 'refl::enum_map<e_euro_unit_combat_modifiers, base::maybe<CombatModifierEffect>>',
   evade_weight 'int',
   # The combat weights can always be populated, even if they are
   # not used (which they won't be in the case of an evade).
   base_combat_weight 'double',     # without modifiers.
   modified_combat_weight 'double', # with modifiers.
-  outcome 'EuroNavalUnitCombatOutcome_t',
+  outcome 'EuroNavalUnitCombatOutcome',
 }
 
 struct.CombatEuroAttackEuro {
   winner 'e_combat_winner',
 
-  attacker 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
-  defender 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
+  attacker 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome>',
+  defender 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome>',
 }
 
 struct.CombatShipAttackShip {
@@ -227,22 +227,22 @@ struct.CombatEuroAttackUndefendedColony {
 
   colony_id 'ColonyId',
 
-  attacker 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
-  defender 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroColonyWorkerCombatOutcome_t>',
+  attacker 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome>',
+  defender 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroColonyWorkerCombatOutcome>',
 }
 
 struct.CombatColonyArtilleryAttackShip {
   winner 'e_combat_winner',
 
-  attacker 'CombatStats<ColonyId, e_colony_artillery_combat_modifiers, ColonyArtilleryCombatOutcome_t>',
+  attacker 'CombatStats<ColonyId, e_colony_artillery_combat_modifiers, ColonyArtilleryCombatOutcome>',
   defender 'NavalCombatStats',
 }
 
 struct.CombatEuroAttackBrave {
   winner 'e_combat_winner',
 
-  attacker 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
-  defender 'CombatStats<NativeUnitId, e_brave_combat_modifiers, NativeUnitCombatOutcome_t>',
+  attacker 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome>',
+  defender 'CombatStats<NativeUnitId, e_brave_combat_modifiers, NativeUnitCombatOutcome>',
 }
 
 struct.CombatBraveAttackEuro {
@@ -254,8 +254,8 @@ struct.CombatBraveAttackEuro {
   # if the square contains a colony. TODO: Should verify this.
   all_colonists_destroyed 'bool',
 
-  attacker 'CombatStats<NativeUnitId, e_brave_combat_modifiers, NativeUnitCombatOutcome_t>',
-  defender 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
+  attacker 'CombatStats<NativeUnitId, e_brave_combat_modifiers, NativeUnitCombatOutcome>',
+  defender 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome>',
 }
 
 struct.CombatEuroAttackDwelling {
@@ -276,6 +276,6 @@ struct.CombatEuroAttackDwelling {
   # part of the way through, thwarting this.
   missions_burned 'bool',
 
-  attacker 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome_t>',
-  defender 'CombatStats<DwellingId, e_dwelling_combat_modifiers, DwellingCombatOutcome_t>',
+  attacker 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome>',
+  defender 'CombatStats<DwellingId, e_dwelling_combat_modifiers, DwellingCombatOutcome>',
 }

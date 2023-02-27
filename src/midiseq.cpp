@@ -349,7 +349,7 @@ class MidiCommunication {
   // ************************************************************
   // Interface for Main Thread
   // ************************************************************
-  void send_cmd( command_t cmd ) {
+  void send_cmd( command cmd ) {
     lock_guard<mutex> lock( mutex_ );
     commands_.push( cmd );
   }
@@ -401,7 +401,7 @@ class MidiCommunication {
     progress_ = progress;
   }
 
-  maybe<command_t> pop_cmd() {
+  maybe<command> pop_cmd() {
     lock_guard<mutex> lock( mutex_ );
     if( !commands_.empty() ) {
       auto ret = commands_.front();
@@ -415,11 +415,11 @@ class MidiCommunication {
   mutable mutex mutex_;
   // The midi thread holds its state here and updates this when-
   // ever it changes.
-  e_midiseq_state  state_{ e_midiseq_state::stopped };
-  string           last_error_{};
-  queue<command_t> commands_{};
-  maybe<double>    progress_{};
-  bool             running_commands_{ false };
+  e_midiseq_state state_{ e_midiseq_state::stopped };
+  string          last_error_{};
+  queue<command>  commands_{};
+  maybe<double>   progress_{};
+  bool            running_commands_{ false };
 };
 
 // Shared state between main thread and midi thread.
@@ -571,7 +571,7 @@ void midi_thread_record_failure( FmtStr const& fmt_str,
 // lifetime until it is terminated.
 void midi_thread_impl() {
   maybe<MidiPlayInfo> maybe_info;
-  maybe<command_t>    cmd;
+  maybe<command>      cmd;
   maybe<fs::path>     stem;
   bool                time_to_go = false;
   while( true ) {
@@ -668,7 +668,8 @@ void midi_thread_impl() {
     }
     if( time_to_go ) return;
     switch( g_midi_comm.state() ) {
-      case e_midiseq_state::failed: return;
+      case e_midiseq_state::failed:
+        return;
       case e_midiseq_state::off:
         lg.critical(
             "programmer error: should not be here ({}:{})",
@@ -804,7 +805,7 @@ bool is_processing_commands() {
   return g_midi_comm.processing_commands();
 }
 
-void send_command( command_t cmd ) {
+void send_command( command cmd ) {
   if( midiseq_enabled() )
     g_midi_comm.send_cmd( cmd );
   else

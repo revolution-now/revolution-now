@@ -41,7 +41,7 @@ sumtype.LandViewPlayerInput {
 
   # Player has given a command to a unit.
   give_command {
-    command 'command_t',
+    command 'command',
   },
 
   # Prioritize these units and make them ask for commands now,

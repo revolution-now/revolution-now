@@ -65,8 +65,8 @@ struct World : testing::World {
 TEST_CASE( "[damaged] find_repair_port_for_ship" ) {
   World W;
 
-  maybe<ShipRepairPort_t> expected      = {};
-  Coord const             ship_location = { .x = 4, .y = 4 };
+  maybe<ShipRepairPort> expected      = {};
+  Coord const           ship_location = { .x = 4, .y = 4 };
 
   auto f = [&] {
     return find_repair_port_for_ship( W.ss(), W.default_nation(),
@@ -194,7 +194,7 @@ TEST_CASE( "[damaged] damaged_ship_message" ) {
 }
 
 TEST_CASE( "[damaged] repair_turn_count_for_unit" ) {
-  ShipRepairPort_t port;
+  ShipRepairPort port;
 
   auto f = [&]( e_unit_type type ) {
     return repair_turn_count_for_unit( port, type );

@@ -69,7 +69,7 @@ sumtype.ModifierAssociation {
 
 struct.UnitTypeModifierTraits {
   player_can_grant 'bool',
-  association 'ModifierAssociation_t',
+  association 'ModifierAssociation',
 }
 
 sumtype.UnitDeathAction {
@@ -188,7 +188,7 @@ struct.UnitTypeAttributes {
   can_attack 'bool',
   combat 'int',
   ship_combat_extra 'base::maybe<ShipCombat>',
-  on_death 'UnitDeathAction_t',
+  on_death 'UnitDeathAction',
 
   # If the unit is damaged, how many turns does it take to re-
   # pair.
@@ -249,7 +249,7 @@ struct.UnitTypeAttributes {
   # Determines how the unit gets promoted or how the unit influ-
   # ences promotion of a base type. See sumtype.comments to ex-
   # planation of the meaning of the variant alternatives.
-  promotion 'base::maybe<UnitPromotion_t>',
+  promotion 'base::maybe<UnitPromotion>',
 
   # Tells us how to convert a base unit type into another in re-
   # sponse to the gain of some modifiers, e.g. when a

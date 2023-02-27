@@ -91,11 +91,11 @@ HarborInPortShips::unit_at_location( Coord where ) const {
   return nothing;
 }
 
-maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>
+maybe<DraggableObjectWithBounds<HarborDraggableObject>>
 HarborInPortShips::object_here( Coord const& where ) const {
   maybe<UnitWithPosition> const unit = unit_at_location( where );
   if( !unit.has_value() ) return nothing;
-  return DraggableObjectWithBounds<HarborDraggableObject_t>{
+  return DraggableObjectWithBounds<HarborDraggableObject>{
       .obj    = HarborDraggableObject::unit{ .id = unit->id },
       .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
 }
@@ -162,15 +162,15 @@ wait<> HarborInPortShips::perform_click(
   co_await click_on_unit( unit->id );
 }
 
-bool HarborInPortShips::try_drag(
-    HarborDraggableObject_t const& o, Coord const& ) {
+bool HarborInPortShips::try_drag( HarborDraggableObject const& o,
+                                  Coord const& ) {
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
   dragging_ = Draggable{ .unit_id = unit.id };
   return true;
 }
 
 wait<base::valid_or<DragRejection>>
-HarborInPortShips::source_check( HarborDraggableObject_t const&,
+HarborInPortShips::source_check( HarborDraggableObject const&,
                                  Coord const ) {
   UNWRAP_CHECK( unit_id,
                 dragging_.member( &Draggable::unit_id ) );
@@ -199,8 +199,8 @@ wait<> HarborInPortShips::disown_dragged_object() {
   co_return;
 }
 
-maybe<HarborDraggableObject_t> HarborInPortShips::can_receive(
-    HarborDraggableObject_t const& o, int from_entity,
+maybe<HarborDraggableObject> HarborInPortShips::can_receive(
+    HarborDraggableObject const& o, int from_entity,
     Coord const& where ) const {
   CONVERT_ENTITY( entity_enum, from_entity );
   auto draggable_unit = o.get_if<HarborDraggableObject::unit>();
@@ -289,7 +289,7 @@ maybe<HarborDraggableObject_t> HarborInPortShips::can_receive(
   }
 }
 
-wait<> HarborInPortShips::drop( HarborDraggableObject_t const& o,
+wait<> HarborInPortShips::drop( HarborDraggableObject const& o,
                                 Coord const& where ) {
   switch( o.to_enum() ) {
     case HarborDraggableObject::e::unit: {

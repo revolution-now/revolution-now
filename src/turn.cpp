@@ -96,7 +96,7 @@ struct next_turn_t {};
 
 using UserInput = base::variant< //
     e_menu_item,                 //
-    LandViewPlayerInput_t,       //
+    LandViewPlayerInput,         //
     next_turn_t                  //
     >;
 
@@ -381,7 +381,7 @@ wait<> process_player_input( e_menu_item item, SS& ss, TS& ts,
   return menu_handler( ss, ts, player, item );
 }
 
-wait<> process_player_input( LandViewPlayerInput_t const& input,
+wait<> process_player_input( LandViewPlayerInput const& input,
                              SS& ss, TS& ts, Player& player ) {
   switch( input.to_enum() ) {
     using e = LandViewPlayerInput::e;
@@ -437,7 +437,7 @@ wait<> process_inputs( SS& ss, TS& ts, Player& player ) {
     co_await rn::visit( command, LC( process_player_input(
                                      _, ss, ts, player ) ) );
     if( command.holds<next_turn_t>() ||
-        command.get_if<LandViewPlayerInput_t>()
+        command.get_if<LandViewPlayerInput>()
             .fmap( L( _.template holds<
                       LandViewPlayerInput::next_turn>() ) )
             .is_value_truish() )
@@ -464,8 +464,8 @@ wait<> process_player_input( UnitId, e_menu_item item, SS& ss,
   return menu_handler( ss, ts, player, item );
 }
 
-wait<> process_player_input( UnitId                       id,
-                             LandViewPlayerInput_t const& input,
+wait<> process_player_input( UnitId                     id,
+                             LandViewPlayerInput const& input,
                              SS& ss, TS& ts, Player& player,
                              NationTurnState& nat_turn_st ) {
   auto& st = nat_turn_st;
@@ -582,11 +582,11 @@ wait<> process_player_input( UnitId                       id,
   }
 }
 
-wait<LandViewPlayerInput_t> landview_player_input(
+wait<LandViewPlayerInput> landview_player_input(
     ILandViewPlane&  land_view_plane,
     NationTurnState& nat_turn_st, UnitsState const& units_state,
     UnitId id ) {
-  LandViewPlayerInput_t response;
+  LandViewPlayerInput response;
   if( auto maybe_command = pop_unit_command( id ) ) {
     response = LandViewPlayerInput::give_command{
         .command = *maybe_command };
@@ -690,7 +690,7 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
   }
 
   if( unit.orders().holds<unit_orders::plow>() ) {
-    PlowResult_t const plow_result = perform_plow_work(
+    PlowResult const plow_result = perform_plow_work(
         ss, as_const( player ), ts.map_updater, unit );
     if( auto o =
             plow_result.get_if<PlowResult::cleared_forest>();
@@ -924,7 +924,7 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
 
 void set_nation_map_visibility( SS& ss, TS& ts,
                                 e_nation nation ) {
-  if( maybe<MapRevealed_t const&> revealed =
+  if( maybe<MapRevealed const&> revealed =
           ss.land_view.map_revealed;
       revealed.has_value() &&
       revealed->holds<MapRevealed::entire>() ) {
@@ -932,7 +932,7 @@ void set_nation_map_visibility( SS& ss, TS& ts,
     // it that way, but we should call this anyway just to make
     // sure this is what is currently in effect.
     set_map_visibility( ss, ts,
-                        MapRevealed_t{ MapRevealed::entire{} },
+                        MapRevealed{ MapRevealed::entire{} },
                         /*default_nation=*/nothing );
     return;
   }
@@ -943,7 +943,7 @@ void set_nation_map_visibility( SS& ss, TS& ts,
   // units of another nation when they are not visible.
   set_map_visibility(
       ss, ts,
-      MapRevealed_t{ MapRevealed::nation{ .nation = nation } },
+      MapRevealed{ MapRevealed::nation{ .nation = nation } },
       /*default_nation=*/nothing );
 }
 

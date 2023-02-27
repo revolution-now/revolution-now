@@ -79,7 +79,7 @@ struct.Colony {
   buildings 'refl::enum_map<e_colony_building, bool>',
 
   # What building is the colony currently constructing.
-  construction 'base::maybe<Construction_t>',
+  construction 'base::maybe<Construction>',
 
   hammers 'int',
 

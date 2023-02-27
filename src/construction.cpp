@@ -68,7 +68,7 @@ void adjust_materials( Colony const&              colony,
 }
 
 maybe<construction_requirements> requirements_for_construction(
-    Construction_t const& project ) {
+    Construction const& project ) {
   switch( project.to_enum() ) {
     case Construction::e::building:
       return config_colony.requirements_for_building
@@ -121,7 +121,7 @@ e_water_access colony_water_access( SSConst const& ss, TS& ts,
 /****************************************************************
 ** Public API
 *****************************************************************/
-string construction_name( Construction_t const& construction ) {
+string construction_name( Construction const& construction ) {
   switch( construction.to_enum() ) {
     using e = Construction::e;
     case e::building: {
@@ -166,7 +166,7 @@ wait<> select_colony_construction( SSConst const& ss, TS& ts,
         .display_name = fmt_building( colony, building ) } );
     if( colony.construction.has_value() &&
         colony.construction ==
-            Construction_t{
+            Construction{
                 Construction::building{ .what = building } } )
       initial_selection = config.options.size() - 1;
   }
@@ -189,8 +189,7 @@ wait<> select_colony_construction( SSConst const& ss, TS& ts,
         .display_name = fmt_unit( colony, type ) } );
     if( colony.construction.has_value() &&
         colony.construction ==
-            Construction_t{
-                Construction::unit{ .type = type } } )
+            Construction{ Construction::unit{ .type = type } } )
       initial_selection = config.options.size() - 1;
   }
   CHECK( !initial_selection.has_value() ||

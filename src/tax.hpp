@@ -39,15 +39,15 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
 // possible outcomes) and translate it to a final result that in-
 // dicates the changes that actually need to be made, and in gen-
 // eral this requires UI routines and player input.
-wait<TaxChangeResult_t> prompt_for_tax_change_result(
+wait<TaxChangeResult> prompt_for_tax_change_result(
     SSConst const& ss, TS& ts, Player& player,
-    TaxChangeProposal_t const& proposal );
+    TaxChangeProposal const& proposal );
 
-// Takes the TaxChangeResult_t object and applies any changes
+// Takes the TaxChangeResult object and applies any changes
 // that it requires.
 void apply_tax_result( SS& ss, Player& player,
                        int next_tax_event_turn,
-                       TaxChangeResult_t const& change );
+                       TaxChangeResult const& change );
 
 // This runs through the entire routine for a human player:
 // checks for tax events, possibly prompts the player, and then

@@ -52,7 +52,7 @@ sumtype.PortStatus {
 }
 
 struct.UnitHarborViewState {
-  port_status 'PortStatus_t',
+  port_status 'PortStatus',
 
   # This field only has a value if the unit is a ship and the
   # ship arrived in europe by sailing the high seas in the new
@@ -106,12 +106,12 @@ sumtype.NativeUnitOwnership {
 
 struct.EuroUnitState {
   unit 'Unit',
-  ownership 'UnitOwnership_t',
+  ownership 'UnitOwnership',
 }
 
 struct.NativeUnitState {
   unit 'NativeUnit',
-  ownership 'NativeUnitOwnership_t',
+  ownership 'NativeUnitOwnership',
 }
 
 sumtype.UnitState {
@@ -127,7 +127,7 @@ namespace "rn.wrapped"
 
 struct.UnitsState {
   next_unit_id 'GenericUnitId',
-  units 'std::unordered_map<GenericUnitId, UnitState_t>',
+  units 'std::unordered_map<GenericUnitId, UnitState>',
 
   _features { equality, validation }
 }

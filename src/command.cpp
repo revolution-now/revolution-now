@@ -41,7 +41,7 @@ namespace rn {
 
 namespace {
 
-unordered_map<UnitId, queue<command_t>> g_command_queue;
+unordered_map<UnitId, queue<command>> g_command_queue;
 
 unique_ptr<CommandHandler> handle_command(
     SS&, TS&, Player&, UnitId, command::wait const& ) {
@@ -55,12 +55,12 @@ unique_ptr<CommandHandler> handle_command(
 
 } // namespace
 
-void push_unit_command( UnitId id, command_t const& command ) {
+void push_unit_command( UnitId id, command const& command ) {
   g_command_queue[id].push( command );
 }
 
-maybe<command_t> pop_unit_command( UnitId id ) {
-  maybe<command_t> res{};
+maybe<command> pop_unit_command( UnitId id ) {
+  maybe<command> res{};
   if( g_command_queue.contains( id ) ) {
     auto& q = g_command_queue[id];
     if( !q.empty() ) {
@@ -73,7 +73,7 @@ maybe<command_t> pop_unit_command( UnitId id ) {
 
 unique_ptr<CommandHandler> command_handler(
     SS& ss, TS& ts, Player& player, UnitId id,
-    command_t const& command ) {
+    command const& command ) {
   CHECK( !ss.units.unit_for( id ).mv_pts_exhausted() );
   return visit( command.as_base(),
                 LC( handle_command( ss, ts, player, id, _ ) ) );

@@ -63,19 +63,19 @@ maybe<UnitId> HarborCargo::get_active_unit() const {
   return player_.old_world.harbor_state.selected_unit;
 }
 
-maybe<HarborDraggableObject_t>
+maybe<HarborDraggableObject>
 HarborCargo::draggable_in_cargo_slot( int slot ) const {
   maybe<UnitId> const active_unit = get_active_unit();
   Unit const&         unit = ss_.units.unit_for( *active_unit );
   if( slot >= unit.cargo().slots_total() ) return nothing;
-  CargoSlot_t const& cargo = unit.cargo()[slot];
+  CargoSlot const& cargo = unit.cargo()[slot];
   switch( cargo.to_enum() ) {
     case CargoSlot::e::empty:
       return nothing;
     case CargoSlot::e::overflow:
       return nothing;
     case CargoSlot::e::cargo: {
-      Cargo_t const& draggable =
+      Cargo const& draggable =
           cargo.get<CargoSlot::cargo>().contents;
       switch( draggable.to_enum() ) {
         case Cargo::e::commodity: {
@@ -103,10 +103,10 @@ maybe<int> HarborCargo::slot_under_cursor( Coord where ) const {
   return slot;
 }
 
-maybe<DraggableObjectWithBounds<HarborDraggableObject_t>>
+maybe<DraggableObjectWithBounds<HarborDraggableObject>>
 HarborCargo::object_here( Coord const& where ) const {
   UNWRAP_RETURN( slot, slot_under_cursor( where ) );
-  maybe<HarborDraggableObject_t> const draggable =
+  maybe<HarborDraggableObject> const draggable =
       draggable_in_cargo_slot( slot );
   if( !draggable.has_value() ) return nothing;
   Coord box_origin =
@@ -118,11 +118,11 @@ HarborCargo::object_here( Coord const& where ) const {
     scale = kCommodityTileSize;
   }
   Rect const box = Rect::from( box_origin, scale );
-  return DraggableObjectWithBounds<HarborDraggableObject_t>{
+  return DraggableObjectWithBounds<HarborDraggableObject>{
       .obj = *draggable, .bounds = box };
 }
 
-bool HarborCargo::try_drag( HarborDraggableObject_t const& o,
+bool HarborCargo::try_drag( HarborDraggableObject const& o,
                             Coord const& ) {
   dragging_ = nothing;
   // This method will only be called if there was already an ob-
@@ -162,7 +162,7 @@ bool HarborCargo::try_drag( HarborDraggableObject_t const& o,
 
 void HarborCargo::cancel_drag() { dragging_ = nothing; }
 
-wait<maybe<HarborDraggableObject_t>>
+wait<maybe<HarborDraggableObject>>
 HarborCargo::user_edit_object() const {
   UNWRAP_CHECK( slot, dragging_.member( &Draggable::slot ) );
   UNWRAP_CHECK( draggable, draggable_in_cargo_slot( slot ) );
@@ -203,14 +203,13 @@ wait<> HarborCargo::disown_dragged_object() {
   UNWRAP_CHECK( slot, dragging_.member( &Draggable::slot ) );
   UNWRAP_CHECK( active_unit_id, get_active_unit() );
   Unit const& active_unit = ss_.units.unit_for( active_unit_id );
-  CargoSlot_t const& held = active_unit.cargo()[slot];
+  CargoSlot const& held   = active_unit.cargo()[slot];
   switch( held.to_enum() ) {
     case CargoSlot::e::empty:
     case CargoSlot::e::overflow: //
       SHOULD_NOT_BE_HERE;
     case CargoSlot::e::cargo: {
-      Cargo_t const& cargo =
-          held.get<CargoSlot::cargo>().contents;
+      Cargo const& cargo = held.get<CargoSlot::cargo>().contents;
       switch( cargo.to_enum() ) {
         case Cargo::e::unit: {
           UnitId const held_id = cargo.get<Cargo::unit>().id;
@@ -240,8 +239,8 @@ wait<> HarborCargo::disown_dragged_object() {
   co_return;
 }
 
-maybe<HarborDraggableObject_t> HarborCargo::can_receive(
-    HarborDraggableObject_t const& o, int from_entity,
+maybe<HarborDraggableObject> HarborCargo::can_receive(
+    HarborDraggableObject const& o, int from_entity,
     Coord const& where ) const {
   if( !get_active_unit().has_value() ) return nothing;
   UNWRAP_CHECK( active_unit_id, get_active_unit() );
@@ -299,8 +298,8 @@ maybe<HarborDraggableObject_t> HarborCargo::can_receive(
   }
 }
 
-wait<> HarborCargo::drop( HarborDraggableObject_t const& o,
-                          Coord const& where ) {
+wait<> HarborCargo::drop( HarborDraggableObject const& o,
+                          Coord const&                 where ) {
   UNWRAP_CHECK( slot, slot_under_cursor( where ) );
   UNWRAP_CHECK( active_unit_id, get_active_unit() );
   switch( o.to_enum() ) {

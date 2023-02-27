@@ -80,10 +80,10 @@ class CargoHold {
   auto begin() const { return o_.slots.begin(); }
   auto end() const { return o_.slots.end(); }
 
-  maybe<CargoSlot_t const&> at( int slot ) const;
+  maybe<CargoSlot const&> at( int slot ) const;
 
-  CargoSlot_t const&              operator[]( int idx ) const;
-  std::vector<CargoSlot_t> const& slots() const {
+  CargoSlot const&              operator[]( int idx ) const;
+  std::vector<CargoSlot> const& slots() const {
     return o_.slots;
   }
 
@@ -92,11 +92,11 @@ class CargoHold {
 
   // If there is a cargo item whose first (and possibly only)
   // slot is `idx`, it will be returned.
-  maybe<Cargo_t const&> cargo_starting_at_slot( int idx ) const;
+  maybe<Cargo const&> cargo_starting_at_slot( int idx ) const;
   // If there is a cargo item that occupies the given slot either
   // as its first slot or subsequent slot, it will be returned,
   // alon with its first slot.
-  maybe<std::pair<Cargo_t const&, int>> cargo_covering_slot(
+  maybe<std::pair<Cargo const&, int>> cargo_covering_slot(
       int idx ) const;
 
   // If unit is in cargo, returns its slot index.
@@ -121,7 +121,7 @@ class CargoHold {
   // index. If UnitId, will not check for unit id already in
   // cargo.
   ND bool fits( UnitsState const& units_state,
-                Cargo_t const& cargo, int slot ) const;
+                Cargo const& cargo, int slot ) const;
 
   // Precondition: there must be a cargo item whose first slot is
   // the given slot; if not, then an error will be thrown. This
@@ -130,13 +130,13 @@ class CargoHold {
   // removed. Will not throw an error if the cargo represents a
   // unit that is already in the cargo.
   ND bool fits_with_item_removed(
-      UnitsState const& units_state, Cargo_t const& cargo,
+      UnitsState const& units_state, Cargo const& cargo,
       CargoSlotIndex remove_slot,
       CargoSlotIndex insert_slot ) const;
 
   // Same as above except it will try the entire cargo.
   ND bool fits_somewhere_with_item_removed(
-      UnitsState const& units_state, Cargo_t const& cargo,
+      UnitsState const& units_state, Cargo const& cargo,
       int remove_slot, int starting_slot = 0 ) const;
 
   // Will search through the cargo slots, starting at the speci-
@@ -148,7 +148,7 @@ class CargoHold {
   // exception will be thrown, since this likely reflects a logic
   // error on the part of the caller.
   ND bool fits_somewhere( UnitsState const& units_state,
-                          Cargo_t const&    cargo,
+                          Cargo const&      cargo,
                           int starting_slot = 0 ) const;
 
   // Optimizes the arrangement of cargo items. Places units occu-
@@ -198,7 +198,7 @@ class CargoHold {
   // cargo then an exception will be thrown, since this likely
   // reflects a logic error on the part of the caller.
   ND bool try_add_somewhere( UnitsState const& units_state,
-                             Cargo_t const&    cargo,
+                             Cargo const&      cargo,
                              int starting_slot = 0 );
 
   // Add the cargo item into the given slot index. Returns true
@@ -209,7 +209,7 @@ class CargoHold {
   // exception will be thrown, since this likely reflects a logic
   // error on the part of the caller.
   ND bool try_add( UnitsState const& units_state,
-                   Cargo_t const& cargo, int slot );
+                   Cargo const& cargo, int slot );
 
   // There must be a cargo item in that slot, i.e., it cannot be
   // `overflow` or `empty`. Otherwise an error will be thrown.
@@ -219,7 +219,7 @@ class CargoHold {
   // filled with "empty"s.
   void clear();
 
-  CargoSlot_t& operator[]( int idx );
+  CargoSlot& operator[]( int idx );
 
   wrapped::CargoHold o_;
 };

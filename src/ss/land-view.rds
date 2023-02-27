@@ -44,5 +44,5 @@ struct.LandViewState {
   # from a point of view other than the player. If it is nothing
   # then that is equivalent to "no special view," meaning that
   # each player sees their own view.
-  map_revealed 'base::maybe<MapRevealed_t>',
+  map_revealed 'base::maybe<MapRevealed>',
 }

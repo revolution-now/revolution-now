@@ -125,8 +125,7 @@ TEST_CASE( "[units] missionary_from_dwelling" ) {
   Unit const& unit = W.add_missionary_in_dwelling(
       e_unit_type::missionary, dwelling1.id );
   REQUIRE( as_const( W.units() ).ownership_of( unit.id() ) ==
-           UnitOwnership_t{
-               UnitOwnership::dwelling{ .id = dwelling1.id } } );
+           UnitOwnership::dwelling{ .id = dwelling1.id } );
   REQUIRE( W.units().maybe_dwelling_for_missionary(
                unit.id() ) == dwelling1.id );
 
@@ -139,7 +138,7 @@ TEST_CASE( "[units] missionary_from_dwelling" ) {
 
   W.units().disown_unit( unit.id() );
   REQUIRE( as_const( W.units() ).ownership_of( unit.id() ) ==
-           UnitOwnership_t{ UnitOwnership::free{} } );
+           UnitOwnership::free{} );
   REQUIRE( W.units().maybe_dwelling_for_missionary(
                unit.id() ) == nothing );
 

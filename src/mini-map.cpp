@@ -432,7 +432,7 @@ void MiniMapView::draw_impl( rr::Renderer&     renderer,
         ( land_coord == blinker_coord && !blink_on );
     gfx::pixel color =
         color_for_square( viz.square_at( land_coord ) );
-    if( maybe<Society_t> const society =
+    if( maybe<Society> const society =
             society_on_square( ss_, land_coord );
         society.has_value() ) {
       if( !blinking_but_off )

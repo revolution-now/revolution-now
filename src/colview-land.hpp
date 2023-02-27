@@ -28,9 +28,9 @@ struct Player;
 
 struct ColonyLandView : public ui::View,
                         public ColonySubView,
-                        public IDragSource<ColViewObject_t>,
-                        public IDragSink<ColViewObject_t>,
-                        public IDragSinkCheck<ColViewObject_t> {
+                        public IDragSource<ColViewObject>,
+                        public IDragSink<ColViewObject>,
+                        public IDragSinkCheck<ColViewObject> {
   enum class e_render_mode {
     // Three tiles by three tiles, with unscaled tiles and
     // colonists on the land files.
@@ -81,22 +81,22 @@ struct ColonyLandView : public ui::View,
       input::mouse_button_event_t const& event ) override;
 
   // Implement IDragSink.
-  maybe<ColViewObject_t> can_receive(
-      ColViewObject_t const& o, int,
-      Coord const&           where ) const override;
+  maybe<ColViewObject> can_receive(
+      ColViewObject const& o, int,
+      Coord const&         where ) const override;
 
   // Implement IDragSinkCheck.
   wait<base::valid_or<DragRejection>> sink_check(
-      ColViewObject_t const&, int, Coord const where ) override;
+      ColViewObject const&, int, Coord const where ) override;
 
   // Implement IDragSink.
-  wait<> drop( ColViewObject_t const& o,
-               Coord const&           where ) override;
+  wait<> drop( ColViewObject const& o,
+               Coord const&         where ) override;
 
   ColonyJob make_job_for_square( e_direction d ) const;
 
   // Implement IDraggableObjectsView.
-  maybe<DraggableObjectWithBounds<ColViewObject_t>> object_here(
+  maybe<DraggableObjectWithBounds<ColViewObject>> object_here(
       Coord const& where ) const override;
 
   struct Draggable {
@@ -105,7 +105,7 @@ struct ColonyLandView : public ui::View,
   };
 
   // Implement IDragSource.
-  bool try_drag( ColViewObject_t const&,
+  bool try_drag( ColViewObject const&,
                  Coord const& where ) override;
 
   // Implement IDragSource.

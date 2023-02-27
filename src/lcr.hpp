@@ -60,7 +60,7 @@ bool pick_burial_grounds_result(
 // This function is the one that should be used for testing be-
 // cause it will not manually generate a rumor type result. How-
 // ever, it will manually generate gift amounts.
-wait<LostCityRumorResult_t> run_lost_city_rumor_result(
+wait<LostCityRumorResult> run_lost_city_rumor_result(
     SS& ss, TS& ts, Player& player, UnitId unit_id,
     Coord world_square, e_rumor_type type,
     e_burial_mounds_type burial_type, bool has_burial_grounds );

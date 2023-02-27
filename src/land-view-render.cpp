@@ -159,7 +159,7 @@ LandViewRenderer::units_to_render() const {
   // This is for efficiency. When we are sufficiently zoomed out
   // then it is more efficient to iterate over units then covered
   // tiles, whereas the reverse is true when zoomed in.
-  unordered_map<GenericUnitId, UnitState_t> const& all =
+  unordered_map<GenericUnitId, UnitState> const& all =
       ss_.units.all();
   int const                          num_units = all.size();
   int const                          num_tiles = covered_.area();
@@ -251,8 +251,8 @@ void LandViewRenderer::render_units_impl() const {
   for( auto const& [id, anim_stack] :
        lv_animator_.unit_animations() ) {
     CHECK( !anim_stack.empty() );
-    UnitAnimationState_t const& anim = anim_stack.top();
-    Coord const                 tile =
+    UnitAnimationState const& anim = anim_stack.top();
+    Coord const               tile =
         coord_for_unit_multi_ownership_or_die( ss_, id );
     switch( anim.to_enum() ) {
       case UnitAnimationState::e::front:
@@ -567,7 +567,7 @@ void LandViewRenderer::render_native_dwellings() const {
   for( auto const& [id, state] : all ) {
     if( !state.ownership.location.is_inside( covered_ ) )
       continue;
-    maybe<DwellingAnimationState_t const&> anim =
+    maybe<DwellingAnimationState const&> anim =
         lv_animator_.dwelling_animation( id );
     if( !anim.has_value() )
       render_native_dwelling( state.dwelling );
@@ -584,7 +584,7 @@ void LandViewRenderer::render_units_underneath() const {
   for( auto const& [colony_id, anim_stack] :
        lv_animator_.colony_animations() ) {
     CHECK( !anim_stack.empty() );
-    ColonyAnimationState_t const& anim = anim_stack.top();
+    ColonyAnimationState const& anim = anim_stack.top();
     switch( anim.to_enum() ) {
       case ColonyAnimationState::e::depixelate: {
         Coord const location =
@@ -600,7 +600,7 @@ void LandViewRenderer::render_units_underneath() const {
   for( auto const& [dwelling_id, anim_stack] :
        lv_animator_.dwelling_animations() ) {
     CHECK( !anim_stack.empty() );
-    DwellingAnimationState_t const& anim = anim_stack.top();
+    DwellingAnimationState const& anim = anim_stack.top();
     switch( anim.to_enum() ) {
       case DwellingAnimationState::e::depixelate: {
         Coord const location =
@@ -621,7 +621,7 @@ void LandViewRenderer::render_colonies() const {
       ss_.colonies.all();
   for( auto const& [id, colony] : all ) {
     if( !colony.location.is_inside( covered_ ) ) continue;
-    maybe<ColonyAnimationState_t const&> anim =
+    maybe<ColonyAnimationState const&> anim =
         lv_animator_.colony_animation( id );
     if( !anim.has_value() )
       this->render_colony( colony );

@@ -109,7 +109,7 @@ sumtype.AnimationPrimitive {
 }
 
 struct.AnimationAction {
-  primitive 'AnimationPrimitive_t',
+  primitive 'AnimationPrimitive',
 
   # If this is true then this is an animation that will be can-
   # celled when the ones with background=false all complete. As

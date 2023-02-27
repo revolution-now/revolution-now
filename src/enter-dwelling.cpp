@@ -338,7 +338,7 @@ wait<e_enter_dwelling_option> present_dwelling_entry_options(
 /****************************************************************
 ** Live Among the Natives.
 *****************************************************************/
-LiveAmongTheNatives_t compute_live_among_the_natives(
+LiveAmongTheNatives compute_live_among_the_natives(
     SSConst const& ss, Dwelling const& dwelling,
     Unit const& unit ) {
   TribeRelationship const& relationship =
@@ -377,7 +377,7 @@ LiveAmongTheNatives_t compute_live_among_the_natives(
 wait<> do_live_among_the_natives(
     SSConst const& ss, TS& ts, Dwelling& dwelling,
     Player const& player, Unit& unit,
-    LiveAmongTheNatives_t const& outcome ) {
+    LiveAmongTheNatives const& outcome ) {
   switch( outcome.to_enum() ) {
     using e = LiveAmongTheNatives::e;
     case e::generally_ineligible: {
@@ -502,7 +502,7 @@ static vector<Coord> compute_tales_of_nearby_lands_tiles(
   return tiles;
 }
 
-static ChiefAction_t compute_speak_with_chief_action(
+static ChiefAction compute_speak_with_chief_action(
     SSConst const& ss, TS& ts, Dwelling const& dwelling,
     Unit const& unit ) {
   UNWRAP_CHECK_MSG(

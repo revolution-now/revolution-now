@@ -39,7 +39,7 @@ struct ColonyWithDrydock {
   double distance = {};
 };
 
-ShipRepairPort_t find_repair_port_for_ship_pre_independence(
+ShipRepairPort find_repair_port_for_ship_pre_independence(
     SSConst const& ss, e_nation nation, Coord ship_location ) {
   vector<ColonyId> colonies = ss.colonies.for_nation( nation );
   // So that we don't rely on hash map iteration order.
@@ -75,9 +75,9 @@ ShipRepairPort_t find_repair_port_for_ship_pre_independence(
 /****************************************************************
 ** Public API
 *****************************************************************/
-maybe<ShipRepairPort_t> find_repair_port_for_ship(
+maybe<ShipRepairPort> find_repair_port_for_ship(
     SSConst const& ss, e_nation nation, Coord ship_location ) {
-  ShipRepairPort_t const res =
+  ShipRepairPort const res =
       find_repair_port_for_ship_pre_independence(
           ss, nation, ship_location );
   Player const& player =
@@ -101,8 +101,8 @@ string damaged_ship_message( int turns_until_repaired ) {
       base::int_to_string_literary( turns_until_repaired ), s );
 }
 
-int repair_turn_count_for_unit( ShipRepairPort_t const& port,
-                                e_unit_type             type ) {
+int repair_turn_count_for_unit( ShipRepairPort const& port,
+                                e_unit_type           type ) {
   UNWRAP_CHECK_MSG( turns_to_repair,
                     config_unit_type.composition.unit_types[type]
                         .turns_to_repair,

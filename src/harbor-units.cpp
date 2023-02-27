@@ -207,9 +207,9 @@ maybe<Coord> find_new_world_arrival_square(
     // ably be frustrating to the player because they may not
     // then be able to get the ship out.
     if( is_inland_lake( ts.connectivity, c ) ) continue;
-    maybe<Society_t> society = society_on_square( ss, c );
+    maybe<Society> society = society_on_square( ss, c );
     if( !society.has_value() ||
-        society == Society_t{ Society::european{
+        society == Society{ Society::european{
                        .nation = player.nation } } )
       return c;
   }

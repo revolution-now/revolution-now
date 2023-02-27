@@ -74,8 +74,7 @@ TEST_CASE( "[road] perform_road_work 100 tools" ) {
   // Before starting road work.
   REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
-  REQUIRE( unit.orders() ==
-           unit_orders_t{ unit_orders::none{} } );
+  REQUIRE( unit.orders() == unit_orders::none{} );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 100 );
   REQUIRE( unit.movement_points() == 1 );
 
@@ -83,8 +82,8 @@ TEST_CASE( "[road] perform_road_work 100 tools" ) {
   unit.orders() = unit_orders::road{ .turns_worked = 0 };
   REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
-  REQUIRE( unit.orders() == unit_orders_t{ unit_orders::road{
-                                .turns_worked = 0 } } );
+  REQUIRE( unit.orders() ==
+           unit_orders::road{ .turns_worked = 0 } );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 100 );
   REQUIRE( unit.movement_points() == 1 );
 
@@ -99,8 +98,8 @@ TEST_CASE( "[road] perform_road_work 100 tools" ) {
                        unit );
     REQUIRE( has_road( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
-    REQUIRE( unit.orders() == unit_orders_t{ unit_orders::road{
-                                  .turns_worked = i + 1 } } );
+    REQUIRE( unit.orders() ==
+             unit_orders::road{ .turns_worked = i + 1 } );
     REQUIRE( unit.composition()[e_unit_inventory::tools] ==
              100 );
     REQUIRE( unit.movement_points() == 0 );
@@ -112,8 +111,7 @@ TEST_CASE( "[road] perform_road_work 100 tools" ) {
                      W.map_updater(), unit );
   REQUIRE( has_road( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::pioneer );
-  REQUIRE( unit.orders() ==
-           unit_orders_t{ unit_orders::none{} } );
+  REQUIRE( unit.orders() == unit_orders::none{} );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 80 );
   REQUIRE( unit.movement_points() == 1 );
 }
@@ -131,8 +129,7 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer" ) {
   // Before starting road work.
   REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
-  REQUIRE( unit.orders() ==
-           unit_orders_t{ unit_orders::none{} } );
+  REQUIRE( unit.orders() == unit_orders::none{} );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 100 );
   REQUIRE( unit.movement_points() == 1 );
 
@@ -140,8 +137,8 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer" ) {
   unit.orders() = unit_orders::road{ .turns_worked = 0 };
   REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
-  REQUIRE( unit.orders() == unit_orders_t{ unit_orders::road{
-                                .turns_worked = 0 } } );
+  REQUIRE( unit.orders() ==
+           unit_orders::road{ .turns_worked = 0 } );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 100 );
   REQUIRE( unit.movement_points() == 1 );
 
@@ -156,8 +153,8 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer" ) {
                        unit );
     REQUIRE( has_road( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
-    REQUIRE( unit.orders() == unit_orders_t{ unit_orders::road{
-                                  .turns_worked = i + 1 } } );
+    REQUIRE( unit.orders() ==
+             unit_orders::road{ .turns_worked = i + 1 } );
     REQUIRE( unit.composition()[e_unit_inventory::tools] ==
              100 );
     REQUIRE( unit.movement_points() == 0 );
@@ -169,8 +166,7 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer" ) {
                      W.map_updater(), unit );
   REQUIRE( has_road( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
-  REQUIRE( unit.orders() ==
-           unit_orders_t{ unit_orders::none{} } );
+  REQUIRE( unit.orders() == unit_orders::none{} );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 80 );
   REQUIRE( unit.movement_points() == 1 );
 }
@@ -194,8 +190,7 @@ TEST_CASE( "[road] perform_road_work 20 tools" ) {
   // Before starting road work.
   REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
-  REQUIRE( unit.orders() ==
-           unit_orders_t{ unit_orders::none{} } );
+  REQUIRE( unit.orders() == unit_orders::none{} );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 20 );
   REQUIRE( unit.movement_points() == 1 );
 
@@ -203,8 +198,8 @@ TEST_CASE( "[road] perform_road_work 20 tools" ) {
   unit.orders() = unit_orders::road{ .turns_worked = 0 };
   REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
-  REQUIRE( unit.orders() == unit_orders_t{ unit_orders::road{
-                                .turns_worked = 0 } } );
+  REQUIRE( unit.orders() ==
+           unit_orders::road{ .turns_worked = 0 } );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 20 );
   REQUIRE( unit.movement_points() == 1 );
 
@@ -219,8 +214,8 @@ TEST_CASE( "[road] perform_road_work 20 tools" ) {
                        unit );
     REQUIRE( has_road( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
-    REQUIRE( unit.orders() == unit_orders_t{ unit_orders::road{
-                                  .turns_worked = i + 1 } } );
+    REQUIRE( unit.orders() ==
+             unit_orders::road{ .turns_worked = i + 1 } );
     REQUIRE( unit.composition()[e_unit_inventory::tools] == 20 );
     REQUIRE( unit.movement_points() == 0 );
   }
@@ -231,8 +226,7 @@ TEST_CASE( "[road] perform_road_work 20 tools" ) {
                      W.map_updater(), unit );
   REQUIRE( has_road( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::free_colonist );
-  REQUIRE( unit.orders() ==
-           unit_orders_t{ unit_orders::none{} } );
+  REQUIRE( unit.orders() == unit_orders::none{} );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 0 );
   REQUIRE( unit.movement_points() == 1 );
 }
@@ -256,8 +250,7 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer 20 tools" ) {
   // Before starting road work.
   REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
-  REQUIRE( unit.orders() ==
-           unit_orders_t{ unit_orders::none{} } );
+  REQUIRE( unit.orders() == unit_orders::none{} );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 20 );
   REQUIRE( unit.movement_points() == 1 );
 
@@ -265,8 +258,8 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer 20 tools" ) {
   unit.orders() = unit_orders::road{ .turns_worked = 0 };
   REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
-  REQUIRE( unit.orders() == unit_orders_t{ unit_orders::road{
-                                .turns_worked = 0 } } );
+  REQUIRE( unit.orders() ==
+           unit_orders::road{ .turns_worked = 0 } );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 20 );
   REQUIRE( unit.movement_points() == 1 );
 
@@ -281,8 +274,8 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer 20 tools" ) {
                        unit );
     REQUIRE( has_road( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
-    REQUIRE( unit.orders() == unit_orders_t{ unit_orders::road{
-                                  .turns_worked = i + 1 } } );
+    REQUIRE( unit.orders() ==
+             unit_orders::road{ .turns_worked = i + 1 } );
     REQUIRE( unit.composition()[e_unit_inventory::tools] == 20 );
     REQUIRE( unit.movement_points() == 0 );
   }
@@ -293,8 +286,7 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer 20 tools" ) {
                      W.map_updater(), unit );
   REQUIRE( has_road( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::hardy_colonist );
-  REQUIRE( unit.orders() ==
-           unit_orders_t{ unit_orders::none{} } );
+  REQUIRE( unit.orders() == unit_orders::none{} );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 0 );
   REQUIRE( unit.movement_points() == 1 );
 }
@@ -319,8 +311,8 @@ TEST_CASE( "[road] perform_road_work with cancel" ) {
   unit.orders() = unit_orders::road{ .turns_worked = 0 };
   REQUIRE( has_road( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
-  REQUIRE( unit.orders() == unit_orders_t{ unit_orders::road{
-                                .turns_worked = 0 } } );
+  REQUIRE( unit.orders() ==
+           unit_orders::road{ .turns_worked = 0 } );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 100 );
   REQUIRE( unit.movement_points() == 1 );
 
@@ -335,8 +327,8 @@ TEST_CASE( "[road] perform_road_work with cancel" ) {
                        unit );
     REQUIRE( has_road( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
-    REQUIRE( unit.orders() == unit_orders_t{ unit_orders::road{
-                                  .turns_worked = i + 1 } } );
+    REQUIRE( unit.orders() ==
+             unit_orders::road{ .turns_worked = i + 1 } );
     REQUIRE( unit.composition()[e_unit_inventory::tools] ==
              100 );
     REQUIRE( unit.movement_points() == 0 );
@@ -351,8 +343,7 @@ TEST_CASE( "[road] perform_road_work with cancel" ) {
                      W.map_updater(), unit );
   REQUIRE( has_road( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::pioneer );
-  REQUIRE( unit.orders() ==
-           unit_orders_t{ unit_orders::none{} } );
+  REQUIRE( unit.orders() == unit_orders::none{} );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 100 );
   REQUIRE( unit.movement_points() == 1 );
 }

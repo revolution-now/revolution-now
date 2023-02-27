@@ -83,7 +83,7 @@ void add_attack_outcome_for_euro_unit(
 
 void add_naval_attack_outcome_for_unit(
     AnimationBuilder& builder, UnitId unit_id,
-    EuroNavalUnitCombatOutcome_t const& outcome ) {
+    EuroNavalUnitCombatOutcome const& outcome ) {
   switch( outcome.to_enum() ) {
     using e = EuroNavalUnitCombatOutcome::e;
     case e::no_change:
@@ -112,7 +112,7 @@ void add_naval_attack_outcome_for_unit(
 // This is for a colony worker unit in an undefended colony.
 void add_colony_worker_attack_outcome_for_unit(
     AnimationBuilder& builder, UnitId unit_id,
-    EuroColonyWorkerCombatOutcome_t const& outcome ) {
+    EuroColonyWorkerCombatOutcome const& outcome ) {
   switch( outcome.to_enum() ) {
     using e = EuroColonyWorkerCombatOutcome::e;
     case e::no_change:
@@ -126,7 +126,7 @@ void add_colony_worker_attack_outcome_for_unit(
 
 void add_attack_outcome_for_native_unit(
     AnimationBuilder& builder, NativeUnitId unit_id,
-    NativeUnitCombatOutcome_t const& outcome ) {
+    NativeUnitCombatOutcome const& outcome ) {
   switch( outcome.to_enum() ) {
     using e = NativeUnitCombatOutcome::e;
     case e::no_change:
@@ -379,7 +379,7 @@ AnimationSequence anim_seq_for_undefended_colony(
 
 AnimationSequence anim_seq_for_dwelling_burn(
     SSConst const& ss, UnitId attacker_id,
-    EuroUnitCombatOutcome_t const& attacker_outcome,
+    EuroUnitCombatOutcome const& attacker_outcome,
     NativeUnitId defender_id, DwellingId dwelling_id,
     DwellingCombatOutcome const& dwelling_outcome ) {
   UNWRAP_CHECK(

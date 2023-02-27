@@ -97,7 +97,7 @@ string_view constexpr kReduceStockadeThreeMsg =
 /****************************************************************
 ** Helpers
 *****************************************************************/
-Cargo_t to_cargo( ColViewObject_t const& o ) {
+Cargo to_cargo( ColViewObject const& o ) {
   switch( o.to_enum() ) {
     using e = ColViewObject::e;
     case e::unit:
@@ -108,8 +108,8 @@ Cargo_t to_cargo( ColViewObject_t const& o ) {
   }
 }
 
-ColViewObject_t from_cargo( Cargo_t const& o ) {
-  return overload_visit<ColViewObject_t>(
+ColViewObject from_cargo( Cargo const& o ) {
+  return overload_visit<ColViewObject>(
       o, //
       []( Cargo::unit u ) {
         return ColViewObject::unit{ .id = u.id };
@@ -336,9 +336,9 @@ class TitleBar : public ui::View, public ColonySubView {
 class MarketCommodities
   : public ui::View,
     public ColonySubView,
-    public IDragSource<ColViewObject_t>,
-    public IDragSourceUserEdit<ColViewObject_t>,
-    public IDragSink<ColViewObject_t> {
+    public IDragSource<ColViewObject>,
+    public IDragSourceUserEdit<ColViewObject>,
+    public IDragSink<ColViewObject> {
  public:
   static unique_ptr<MarketCommodities> create( SS& ss, TS& ts,
                                                Player& player,
@@ -449,7 +449,7 @@ class MarketCommodities
     return colony_.commodities[type];
   }
 
-  maybe<DraggableObjectWithBounds<ColViewObject_t>> object_here(
+  maybe<DraggableObjectWithBounds<ColViewObject>> object_here(
       Coord const& coord ) const override {
     if( !coord.is_inside( rect( {} ) ) ) return nothing;
     auto sprite_scale =
@@ -463,7 +463,7 @@ class MarketCommodities
     // zero here, instead we do that in try_drag. That way we can
     // still recognize what is under the cursor even if there is
     // zero quantity of it.
-    return DraggableObjectWithBounds<ColViewObject_t>{
+    return DraggableObjectWithBounds<ColViewObject>{
         .obj    = ColViewObject::commodity{ Commodity{
                .type = type, .quantity = quantity } },
         .bounds = Rect::from(
@@ -471,8 +471,8 @@ class MarketCommodities
             Delta{ .w = 1, .h = 1 } * kCommodityTileSize ) };
   }
 
-  bool try_drag( ColViewObject_t const& o,
-                 Coord const&           where ) override {
+  bool try_drag( ColViewObject const& o,
+                 Coord const&         where ) override {
     UNWRAP_CHECK( [c], o.get_if<ColViewObject::commodity>() );
     if( c.quantity == 0 ) return false;
     // Sanity checks.
@@ -500,15 +500,15 @@ class MarketCommodities
     co_return;
   }
 
-  maybe<ColViewObject_t> can_receive(
-      ColViewObject_t const& o, int /*from_entity*/,
-      Coord const&           where ) const override {
+  maybe<ColViewObject> can_receive(
+      ColViewObject const& o, int /*from_entity*/,
+      Coord const&         where ) const override {
     CHECK( where.is_inside( rect( {} ) ) );
     if( o.holds<ColViewObject::commodity>() ) return o;
     return nothing;
   }
 
-  wait<> drop( ColViewObject_t const& o,
+  wait<> drop( ColViewObject const& o,
                Coord const& /*where*/ ) override {
     UNWRAP_CHECK( [c], o.get_if<ColViewObject::commodity>() );
     int q = colony_.commodities[c.type];
@@ -517,8 +517,7 @@ class MarketCommodities
     co_return;
   }
 
-  wait<maybe<ColViewObject_t>> user_edit_object()
-      const override {
+  wait<maybe<ColViewObject>> user_edit_object() const override {
     CHECK( dragging_ );
     int    min  = 1;
     int    max  = dragging_->quantity;
@@ -546,11 +545,11 @@ class MarketCommodities
 
 class CargoView : public ui::View,
                   public ColonySubView,
-                  public IDragSource<ColViewObject_t>,
-                  public IDragSourceUserEdit<ColViewObject_t>,
-                  public IDragSink<ColViewObject_t>,
-                  public IDragSinkUserEdit<ColViewObject_t>,
-                  public IDragSinkCheck<ColViewObject_t> {
+                  public IDragSource<ColViewObject>,
+                  public IDragSourceUserEdit<ColViewObject>,
+                  public IDragSink<ColViewObject>,
+                  public IDragSinkUserEdit<ColViewObject>,
+                  public IDragSinkCheck<ColViewObject> {
  public:
   static unique_ptr<CargoView> create( SS& ss, TS& ts,
                                        Player& player,
@@ -667,8 +666,8 @@ class CargoView : public ui::View,
 
   void set_unit( maybe<UnitId> unit ) { holder_ = unit; }
 
-  maybe<ColViewObject_t> can_receive(
-      ColViewObject_t const& o, int from_entity,
+  maybe<ColViewObject> can_receive(
+      ColViewObject const& o, int from_entity,
       Coord const& where ) const override {
     CHECK( where.is_inside( rect( {} ) ) );
     if( !holder_ ) return nothing;
@@ -717,8 +716,8 @@ class CargoView : public ui::View,
   }
 
   // Implement IDragSinkUserEdit.
-  wait<maybe<ColViewObject_t>> user_edit_object(
-      ColViewObject_t const& o, int from_entity,
+  wait<maybe<ColViewObject>> user_edit_object(
+      ColViewObject const& o, int from_entity,
       Coord const ) const override {
     CONVERT_ENTITY( from_enum, from_entity );
     switch( from_enum ) {
@@ -753,7 +752,7 @@ class CargoView : public ui::View,
   }
 
   wait<base::valid_or<DragRejection>> sink_check(
-      ColViewObject_t const& o, int from_entity,
+      ColViewObject const& o, int from_entity,
       Coord const ) override {
     CHECK( holder_.has_value() );
     if( ss_.units.unit_for( *holder_ ).type() ==
@@ -788,16 +787,16 @@ class CargoView : public ui::View,
     }
   }
 
-  wait<> drop( ColViewObject_t const& o,
-               Coord const&           where ) override {
+  wait<> drop( ColViewObject const& o,
+               Coord const&         where ) override {
     CHECK( holder_ );
     Unit& holder_unit = ss_.units.unit_for( *holder_ );
     // We've added something to the cargo; the OG will clear the
     // orders of the cargo holder for a good player experience.
     holder_unit.clear_orders();
     adjust_mv_points_from_drag( holder_unit );
-    auto&   cargo_hold = holder_unit.cargo();
-    Cargo_t cargo      = to_cargo( o );
+    auto& cargo_hold = holder_unit.cargo();
+    Cargo cargo      = to_cargo( o );
     CHECK( cargo_hold.fits_somewhere( ss_.units, cargo ) );
     UNWRAP_CHECK( slot_info, slot_idx_from_coord( where ) );
     auto [is_open, slot_idx] = slot_info;
@@ -834,14 +833,14 @@ class CargoView : public ui::View,
 
   // Returns the rect that bounds the sprite corresponding to the
   // cargo item covered by the given slot.
-  maybe<pair<Cargo_t, Rect>> cargo_item_with_rect(
+  maybe<pair<Cargo, Rect>> cargo_item_with_rect(
       int slot ) const {
     maybe<pair<bool, Rect>> slot_rect =
         slot_rect_from_idx( slot );
     if( !slot_rect.has_value() ) return nothing;
     auto [is_open, rect] = *slot_rect;
     if( !is_open ) return nothing;
-    maybe<pair<Cargo_t const&, int>> maybe_cargo =
+    maybe<pair<Cargo const&, int>> maybe_cargo =
         ss_.units.unit_for( *holder_ )
             .cargo()
             .cargo_covering_slot( slot );
@@ -861,7 +860,7 @@ class CargoView : public ui::View,
             } ) };
   }
 
-  maybe<DraggableObjectWithBounds<ColViewObject_t>> object_here(
+  maybe<DraggableObjectWithBounds<ColViewObject>> object_here(
       Coord const& where ) const override {
     if( !holder_ ) return nothing;
     maybe<pair<bool, int>> slot_info =
@@ -869,10 +868,10 @@ class CargoView : public ui::View,
     if( !slot_info ) return nothing;
     auto [is_open, slot_idx] = *slot_info;
     if( !is_open ) return nothing;
-    maybe<pair<Cargo_t, Rect>> cargo_with_rect =
+    maybe<pair<Cargo, Rect>> cargo_with_rect =
         cargo_item_with_rect( slot_idx );
     if( !cargo_with_rect ) return nothing;
-    return DraggableObjectWithBounds<ColViewObject_t>{
+    return DraggableObjectWithBounds<ColViewObject>{
         .obj    = from_cargo( cargo_with_rect->first ),
         .bounds = cargo_with_rect->second };
   }
@@ -881,8 +880,8 @@ class CargoView : public ui::View,
   // of the object, since if the object is a commodity we may not
   // be able to find a unique cargo slot that holds that com-
   // modity if there are more than one.
-  bool try_drag( ColViewObject_t const& o,
-                 Coord const&           where ) override {
+  bool try_drag( ColViewObject const& o,
+                 Coord const&         where ) override {
     if( !holder_ ) return false;
     maybe<pair<bool, int>> slot_info =
         slot_idx_from_coord( where );
@@ -904,7 +903,7 @@ class CargoView : public ui::View,
     // trieving it from the slot, because the stored object might
     // have been edited, e.g. the commodity quantity might have
     // been lowered.
-    Cargo_t cargo_to_remove = to_cargo( dragging_->object );
+    Cargo cargo_to_remove = to_cargo( dragging_->object );
     overload_visit(
         cargo_to_remove,
         [this]( Cargo::unit held ) {
@@ -934,12 +933,11 @@ class CargoView : public ui::View,
     co_return;
   }
 
-  wait<maybe<ColViewObject_t>> user_edit_object()
-      const override {
+  wait<maybe<ColViewObject>> user_edit_object() const override {
     CHECK( dragging_ );
     UNWRAP_CHECK( cargo_and_rect,
                   cargo_item_with_rect( dragging_->slot ) );
-    Cargo_t const& cargo = cargo_and_rect.first;
+    Cargo const& cargo = cargo_and_rect.first;
     if( !cargo.holds<Cargo::commodity>() )
       co_return from_cargo( cargo );
     // We have a commodity.
@@ -965,8 +963,8 @@ class CargoView : public ui::View,
 
  private:
   struct Draggable {
-    int             slot;
-    ColViewObject_t object;
+    int           slot;
+    ColViewObject object;
   };
 
   // FIXME: this gets reset whenever we recomposite. We need to
@@ -981,10 +979,10 @@ class CargoView : public ui::View,
 class UnitsAtGateColonyView
   : public ui::View,
     public ColonySubView,
-    public IDragSource<ColViewObject_t>,
-    public IDragSink<ColViewObject_t>,
-    public IDragSinkUserEdit<ColViewObject_t>,
-    public IDragSinkCheck<ColViewObject_t> {
+    public IDragSource<ColViewObject>,
+    public IDragSink<ColViewObject>,
+    public IDragSinkUserEdit<ColViewObject>,
+    public IDragSinkCheck<ColViewObject> {
  public:
   static unique_ptr<UnitsAtGateColonyView> create(
       SS& ss, TS& ts, Player& player, Colony& colony,
@@ -1060,19 +1058,19 @@ class UnitsAtGateColonyView
     return nothing;
   }
 
-  maybe<DraggableObjectWithBounds<ColViewObject_t>> object_here(
+  maybe<DraggableObjectWithBounds<ColViewObject>> object_here(
       Coord const& where ) const override {
     for( PositionedUnit const& pu : positioned_units_ ) {
       auto rect = Rect::from( pu.pos, g_tile_delta );
       if( where.is_inside( rect ) )
-        return DraggableObjectWithBounds<ColViewObject_t>{
+        return DraggableObjectWithBounds<ColViewObject>{
             .obj    = ColViewObject::unit{ .id = pu.id },
             .bounds = rect };
     }
     return nothing;
   }
 
-  maybe<ColViewObject_t> can_receive_unit(
+  maybe<ColViewObject> can_receive_unit(
       UnitId       dragged, e_colview_entity /*from*/,
       Coord const& where ) const {
     auto& unit = ss_.units.unit_for( dragged );
@@ -1115,8 +1113,8 @@ class UnitsAtGateColonyView
   }
 
   // Implement IDragSinkUserEdit.
-  wait<maybe<ColViewObject_t>> user_edit_object(
-      ColViewObject_t const& o, int from_entity,
+  wait<maybe<ColViewObject>> user_edit_object(
+      ColViewObject const& o, int from_entity,
       Coord const ) const override {
     CONVERT_ENTITY( from_enum, from_entity );
     switch( from_enum ) {
@@ -1151,7 +1149,7 @@ class UnitsAtGateColonyView
   }
 
   wait<base::valid_or<DragRejection>> sink_check(
-      ColViewObject_t const&, int from_entity,
+      ColViewObject const&, int from_entity,
       Coord const ) override {
     CONVERT_ENTITY( from_enum, from_entity );
     switch( from_enum ) {
@@ -1179,7 +1177,7 @@ class UnitsAtGateColonyView
     }
   }
 
-  maybe<ColViewObject_t> can_cargo_unit_receive_commodity(
+  maybe<ColViewObject> can_cargo_unit_receive_commodity(
       Commodity const& comm, e_colview_entity from,
       UnitId cargo_unit_id ) const {
     Unit const& target_unit =
@@ -1234,7 +1232,7 @@ class UnitsAtGateColonyView
     return res;
   }
 
-  maybe<ColViewObject_t> can_unit_receive_commodity(
+  maybe<ColViewObject> can_unit_receive_commodity(
       Commodity const& comm, e_colview_entity /*from*/,
       UnitId           id ) const {
     // We are dragging a commodity over a unit that does not have
@@ -1247,7 +1245,7 @@ class UnitsAtGateColonyView
         .comm = with_quantity( comm, xform_res.quantity_used ) };
   }
 
-  maybe<ColViewObject_t> can_receive_commodity(
+  maybe<ColViewObject> can_receive_commodity(
       Commodity const& comm, e_colview_entity from,
       Coord const& where ) const {
     maybe<UnitId> over_unit_id = contains_unit( where );
@@ -1262,8 +1260,8 @@ class UnitsAtGateColonyView
                                          *over_unit_id );
   }
 
-  maybe<ColViewObject_t> can_receive(
-      ColViewObject_t const& o, int from_entity,
+  maybe<ColViewObject> can_receive(
+      ColViewObject const& o, int from_entity,
       Coord const& where ) const override {
     CONVERT_ENTITY( from_enum, from_entity );
     CHECK( where.is_inside( rect( {} ) ) );
@@ -1279,8 +1277,8 @@ class UnitsAtGateColonyView
         } );
   }
 
-  wait<> drop( ColViewObject_t const& o,
-               Coord const&           where ) override {
+  wait<> drop( ColViewObject const& o,
+               Coord const&         where ) override {
     maybe<UnitId> target_unit_id = contains_unit( where );
     if( target_unit_id.has_value() ) {
       Unit& target_unit = ss_.units.unit_for( *target_unit_id );
@@ -1360,7 +1358,7 @@ class UnitsAtGateColonyView
     co_return;
   }
 
-  bool try_drag( ColViewObject_t const& o,
+  bool try_drag( ColViewObject const& o,
                  Coord const& /*where*/ ) override {
     UNWRAP_CHECK( draggable_unit,
                   o.get_if<ColViewObject::unit>() );
@@ -1617,12 +1615,12 @@ struct CompositeColSubView : public ui::InvisibleView,
     }
   }
 
-  maybe<PositionedDraggableSubView<ColViewObject_t>> view_here(
+  maybe<PositionedDraggableSubView<ColViewObject>> view_here(
       Coord coord ) override {
     for( int i = 0; i < count(); ++i ) {
       ui::PositionedView pos_view = at( i );
       if( !coord.is_inside( pos_view.rect() ) ) continue;
-      maybe<PositionedDraggableSubView<ColViewObject_t>> p_view =
+      maybe<PositionedDraggableSubView<ColViewObject>> p_view =
           ptrs_[i]->view_here(
               coord.with_new_origin( pos_view.coord ) );
       if( !p_view ) continue;
@@ -1631,18 +1629,18 @@ struct CompositeColSubView : public ui::InvisibleView,
       return p_view;
     }
     if( coord.is_inside( rect( {} ) ) )
-      return PositionedDraggableSubView<ColViewObject_t>{
+      return PositionedDraggableSubView<ColViewObject>{
           this, Coord{} };
     return nothing;
   }
 
   // Implement ColonySubView.
-  maybe<DraggableObjectWithBounds<ColViewObject_t>> object_here(
+  maybe<DraggableObjectWithBounds<ColViewObject>> object_here(
       Coord const& coord ) const override {
     for( int i = 0; i < count(); ++i ) {
       ui::PositionedViewConst pos_view = at( i );
       if( !coord.is_inside( pos_view.rect() ) ) continue;
-      maybe<DraggableObjectWithBounds<ColViewObject_t>> obj =
+      maybe<DraggableObjectWithBounds<ColViewObject>> obj =
           ptrs_[i]->object_here(
               coord.with_new_origin( pos_view.coord ) );
       if( !obj ) continue;
@@ -1823,8 +1821,8 @@ ColonySubView& colview_top_level() {
 // sponding code in old-world-view.
 void colview_drag_n_drop_draw(
     SS& ss, rr::Renderer& renderer,
-    DragState<ColViewObject_t> const& state,
-    Coord const&                      canvas_origin ) {
+    DragState<ColViewObject> const& state,
+    Coord const&                    canvas_origin ) {
   Coord sprite_upper_left = state.where - state.click_offset +
                             canvas_origin.distance_from_origin();
   // Render the dragged item.

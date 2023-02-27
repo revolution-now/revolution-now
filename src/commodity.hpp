@@ -61,7 +61,7 @@ std::string uppercase_commodity_display_name( e_commodity type );
 *****************************************************************/
 // Returns markup text representing the label.
 maybe<std::string> commodity_label_to_markup(
-    CommodityLabel_t const& label );
+    CommodityLabel const& label );
 
 /****************************************************************
 ** Commodity
@@ -112,7 +112,7 @@ void render_commodity( rr::Renderer& renderer, Coord where,
 
 void render_commodity_annotated( rr::Renderer& renderer,
                                  Coord where, e_commodity type,
-                                 CommodityLabel_t const& label );
+                                 CommodityLabel const& label );
 
 // Will use quantity as label.
 void render_commodity_annotated( rr::Renderer&    renderer,

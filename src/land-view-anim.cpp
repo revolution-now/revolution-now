@@ -138,29 +138,29 @@ wait<> pixelation_stage_throttler( double& stage,
 /****************************************************************
 ** Public API
 *****************************************************************/
-maybe<UnitAnimationState_t const&>
+maybe<UnitAnimationState const&>
 LandViewAnimator::unit_animation( UnitId id ) const {
   auto it = unit_animations_.find( id );
   if( it == unit_animations_.end() ) return nothing;
-  stack<UnitAnimationState_t> const& st = it->second;
+  stack<UnitAnimationState> const& st = it->second;
   CHECK( !st.empty() );
   return st.top();
 }
 
-maybe<ColonyAnimationState_t const&>
+maybe<ColonyAnimationState const&>
 LandViewAnimator::colony_animation( ColonyId id ) const {
   auto it = colony_animations_.find( id );
   if( it == colony_animations_.end() ) return nothing;
-  stack<ColonyAnimationState_t> const& st = it->second;
+  stack<ColonyAnimationState> const& st = it->second;
   CHECK( !st.empty() );
   return st.top();
 }
 
-maybe<DwellingAnimationState_t const&>
+maybe<DwellingAnimationState const&>
 LandViewAnimator::dwelling_animation( DwellingId id ) const {
   auto it = dwelling_animations_.find( id );
   if( it == dwelling_animations_.end() ) return nothing;
-  stack<DwellingAnimationState_t> const& st = it->second;
+  stack<DwellingAnimationState> const& st = it->second;
   CHECK( !st.empty() );
   return st.top();
 }
@@ -279,7 +279,7 @@ wait<> LandViewAnimator::ensure_visible_unit(
 // In this function we can assume that the `primitive` argument
 // will outlive this coroutine.
 wait<> LandViewAnimator::animate_primitive(
-    AnimationPrimitive_t const& primitive ) {
+    AnimationPrimitive const& primitive ) {
   switch( primitive.to_enum() ) {
     using e = AnimationPrimitive::e;
     case e::delay: {

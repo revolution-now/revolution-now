@@ -103,7 +103,7 @@ maybe<ColonyNotification::spoilage> check_spoilage(
 }
 
 config::colony::construction_requirements materials_needed(
-    Construction_t const& construction ) {
+    Construction const& construction ) {
   switch( construction.to_enum() ) {
     using e = Construction::e;
     case e::building: {
@@ -127,7 +127,7 @@ config::colony::construction_requirements materials_needed(
 void check_create_or_starve_colonist(
     SS& ss, TS& ts, Player const& player, Colony& colony,
     ColonyProduction const& pr, bool& colony_disappeared,
-    vector<ColonyNotification_t>& notifications ) {
+    vector<ColonyNotification>& notifications ) {
   if( pr.food_horses.colonist_starved ) {
     vector<UnitId> const units_in_colony =
         colony_units_all( colony );
@@ -194,7 +194,7 @@ void check_create_or_starve_colonist(
 void check_construction( SS& ss, TS& ts, Player const& player,
                          Colony& colony, ColonyEvolution& ev ) {
   if( !colony.construction.has_value() ) return;
-  Construction_t const& construction = *colony.construction;
+  Construction const& construction = *colony.construction;
 
   // First check if it's a building that the colony already has.
   if( auto building =
@@ -294,7 +294,7 @@ void check_construction( SS& ss, TS& ts, Player const& player,
 
 void apply_commodity_increase(
     Colony& colony, e_commodity what, int delta,
-    vector<ColonyNotification_t>& notifications ) {
+    vector<ColonyNotification>& notifications ) {
   int const old_value      = colony.commodities[what];
   int const new_value      = old_value + delta;
   colony.commodities[what] = new_value;
@@ -332,7 +332,7 @@ void apply_bells_for_founding_fathers( Player& player,
 
 void evolve_sons_of_liberty(
     Player const& player, int bells_produced, Colony& colony,
-    vector<ColonyNotification_t>& notifications ) {
+    vector<ColonyNotification>& notifications ) {
   SonsOfLiberty& sol        = colony.sons_of_liberty;
   int const      population = colony_population( colony );
   // This won't happen in practice because the game does not
@@ -383,7 +383,7 @@ void evolve_sons_of_liberty(
 
 void apply_production_to_colony(
     Colony& colony, ColonyProduction const& production,
-    vector<ColonyNotification_t>& notifications ) {
+    vector<ColonyNotification>& notifications ) {
   for( e_commodity c : refl::enum_values<e_commodity> ) {
     int delta =
         final_production_delta_for_commodity( production, c );
@@ -402,8 +402,8 @@ void apply_production_to_colony(
 
 void check_colonist_on_the_job_training(
     SS& ss, TS& ts, Player const& player, Colony& colony,
-    ColonyProduction const&       pr,
-    vector<ColonyNotification_t>& notifications ) {
+    ColonyProduction const&     pr,
+    vector<ColonyNotification>& notifications ) {
   vector<OnTheJobPromotionResult> const res =
       workers_to_promote_for_on_the_job_training( ss, ts,
                                                   colony );
@@ -459,7 +459,7 @@ void check_colonist_on_the_job_training(
 
 void check_colonists_teaching(
     SS& ss, TS& ts, Player const& player, Colony& colony,
-    vector<ColonyNotification_t>& notifications ) {
+    vector<ColonyNotification>& notifications ) {
   ColonyTeachingEvolution const ev =
       evolve_teachers( ss, ts, player, colony );
   CHECK_LE( int( ev.teachers.size() ), 3 );

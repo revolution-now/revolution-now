@@ -474,7 +474,7 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     REQUIRE( W.units().all().size() == 1 );
     REQUIRE( W.units().all().begin()->first ==
              GenericUnitId{ 1 } );
-    UnitOwnership_t const expected_ownership{
+    UnitOwnership const expected_ownership{
         UnitOwnership::harbor{
             .st = UnitHarborViewState{
                 .port_status = PortStatus::in_port{} } } };
@@ -523,7 +523,7 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     REQUIRE( W.units().all().size() == 1 );
     REQUIRE( W.units().all().begin()->first ==
              GenericUnitId{ 1 } );
-    UnitOwnership_t const expected_ownership{
+    UnitOwnership const expected_ownership{
         UnitOwnership::harbor{
             .st = UnitHarborViewState{
                 .port_status = PortStatus::in_port{} } } };
@@ -664,10 +664,9 @@ TEST_CASE( "[immigration] rush_recruit_next_immigrant" ) {
            GenericUnitId{ 1 } );
   REQUIRE( W.units().unit_for( UnitId{ 1 } ).type() ==
            e_unit_type::pioneer );
-  UnitOwnership_t const expected_ownership{
-      UnitOwnership::harbor{
-          .st = UnitHarborViewState{
-              .port_status = PortStatus::in_port{} } } };
+  UnitOwnership const expected_ownership{ UnitOwnership::harbor{
+      .st = UnitHarborViewState{ .port_status =
+                                     PortStatus::in_port{} } } };
   REQUIRE( as_const( W.units() ).ownership_of( UnitId{ 1 } ) ==
            expected_ownership );
 }

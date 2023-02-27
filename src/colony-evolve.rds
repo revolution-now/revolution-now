@@ -46,22 +46,22 @@ sumtype.ColonyNotification {
     job 'e_indoor_job',
   },
   construction_missing_tools {
-    what 'Construction_t',
+    what 'Construction',
     have_tools 'int',
     need_tools 'int',
   },
   construction_complete {
-    what 'Construction_t',
+    what 'Construction',
   },
   construction_already_finished {
-    what 'Construction_t',
+    what 'Construction',
   },
   construction_lacking_population {
     # The UI should not allow initiating construction of some-
     # thing when the population is lacking, so this message would
     # only get displayed if the colony population dropped below
     # the minimum required after construction was initiated.
-    what 'Construction_t',
+    what 'Construction',
     required_population 'int',
   },
   construction_lacking_building {
@@ -70,7 +70,7 @@ sumtype.ColonyNotification {
     # only get displayed if a required building in the colony
     # were destroyed (e.g., but an attack from natives) after
     # construction was initiated.
-    what 'Construction_t',
+    what 'Construction',
     required_building 'e_colony_building',
   },
   sons_of_liberty_increased {
@@ -119,7 +119,7 @@ struct.ColonyEvolution {
   # in sequence for this colony. The messages presented to the
   # user are specified elsewhere. Each one will give the user the
   # ability to zoom into the colony screen if desired.
-  notifications 'std::vector<ColonyNotification_t>',
+  notifications 'std::vector<ColonyNotification>',
 
   production 'ColonyProduction',
 

@@ -45,7 +45,7 @@ bool is_processing_commands();
 
 maybe<Duration_t> can_play_tune( fs::path const& path );
 
-void send_command( command_t cmd );
+void send_command( command cmd );
 
 // Testing.
 void test();

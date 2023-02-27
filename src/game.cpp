@@ -212,9 +212,9 @@ wait<> handle_mode( Planes&                planes,
 /****************************************************************
 ** Public API
 *****************************************************************/
-wait<> run_game_with_mode( Planes&            planes,
-                           StartMode_t const& mode ) {
-  StartMode_t next_mode = mode;
+wait<> run_game_with_mode( Planes&          planes,
+                           StartMode const& mode ) {
+  StartMode next_mode = mode;
   while( true ) {
     try {
       co_await base::visit(

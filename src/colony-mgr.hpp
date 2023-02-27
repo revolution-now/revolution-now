@@ -83,7 +83,7 @@ void strip_unit_to_base_type( Player const& player, Unit& unit,
 
 void move_unit_to_colony( UnitsState& units_state,
                           Colony& colony, UnitId unit_id,
-                          ColonyJob_t const& job );
+                          ColonyJob const& job );
 
 // This will put the unit on the map at the location of the
 // colony.

@@ -427,16 +427,16 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
     REQUIRE( W.units().exists( ship3.id() ) );
     REQUIRE(
         as_const( W.units() ).ownership_of( ship1.id() ) ==
-        UnitOwnership_t{ UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{} } } } );
+        UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{} } } );
     REQUIRE(
         as_const( W.units() ).ownership_of( ship2.id() ) ==
-        UnitOwnership_t{ UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{} } } } );
+        UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{} } } );
     REQUIRE(
         as_const( W.units() ).ownership_of( ship3.id() ) ==
-        UnitOwnership_t{ UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{} } } } );
+        UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{} } } );
   }
 
   SECTION( "interactive" ) {
@@ -492,16 +492,16 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
     REQUIRE( W.units().exists( ship3.id() ) );
     REQUIRE(
         as_const( W.units() ).ownership_of( ship1.id() ) ==
-        UnitOwnership_t{ UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{} } } } );
+        UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{} } } );
     REQUIRE(
         as_const( W.units() ).ownership_of( ship2.id() ) ==
-        UnitOwnership_t{ UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{} } } } );
+        UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{} } } );
     REQUIRE(
         as_const( W.units() ).ownership_of( ship3.id() ) ==
-        UnitOwnership_t{ UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{} } } } );
+        UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{} } } );
   }
 
   // !! Do not access colony after this point.

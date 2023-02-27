@@ -119,7 +119,7 @@ TEST_CASE( "[colony-evolve] spoilage" ) {
 
   // In practice, for a new empty colony, there should not be any
   // other notifications.
-  vector<ColonyNotification_t> expected{
+  vector<ColonyNotification> expected{
       ColonyNotification::spoilage{
           .spoiled = {
               { .type = e_commodity::sugar, .quantity = 1 },
@@ -217,7 +217,7 @@ TEST_CASE( "[colony-evolve] ran out of raw materials" ) {
   ColonyEvolution ev = evolve_colony_one_turn(
       W.ss(), W.ts(), W.default_player(), colony );
 
-  vector<ColonyNotification_t> const expected = {
+  vector<ColonyNotification> const expected = {
       ColonyNotification::run_out_of_raw_material{
           .what = e_commodity::lumber,
           .job  = e_indoor_job::hammers },
@@ -233,9 +233,9 @@ TEST_CASE( "[colony-evolve] ran out of raw materials" ) {
 }
 
 TEST_CASE( "[colony-evolve] warns when colony starving" ) {
-  World                        W;
-  vector<ColonyNotification_t> expected_notifications;
-  ColonyEvolution              ev;
+  World                      W;
+  vector<ColonyNotification> expected_notifications;
+  ColonyEvolution            ev;
   Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
   int&    food   = colony.commodities[e_commodity::food];
   int     expected_food = 0;
@@ -579,7 +579,7 @@ TEST_CASE(
   ColonyEvolution const ev = evolve_colony_one_turn(
       W.ss(), W.ts(), W.default_player(), colony );
 
-  vector<ColonyNotification_t> const expected;
+  vector<ColonyNotification> const expected;
   REQUIRE( ev.notifications == expected );
 
   // Check that the unit has not been changed.
@@ -690,7 +690,7 @@ TEST_CASE( "[colony-evolve] promotes units" ) {
           { e_direction::e, SP{ .what = e_outdoor_job::cotton,
                                 .quantity = 3 } } } );
 
-  vector<ColonyNotification_t> const expected = {
+  vector<ColonyNotification> const expected = {
       ColonyNotification::unit_promoted{
           .promoted_to = e_unit_type::expert_sugar_planter },
       ColonyNotification::unit_promoted{

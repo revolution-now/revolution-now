@@ -79,7 +79,7 @@ void draw_colony_view( Colony const&, rr::Renderer& renderer ) {
 void try_promote_demote_unit( SS& ss, Player const& player,
                               Colony& colony, Coord where,
                               bool demote ) {
-  maybe<DraggableObjectWithBounds<ColViewObject_t>> o =
+  maybe<DraggableObjectWithBounds<ColViewObject>> o =
       colview_top_level().object_here( where );
   if( !o.has_value() ) return;
   // Could be a commodity.
@@ -98,7 +98,7 @@ void try_promote_demote_unit( SS& ss, Player const& player,
 
 void try_increase_commodity( SS& ss, Colony& colony,
                              Coord where ) {
-  maybe<DraggableObjectWithBounds<ColViewObject_t>> o =
+  maybe<DraggableObjectWithBounds<ColViewObject>> o =
       colview_top_level().object_here( where );
   if( !o.has_value() ) return;
   // Could be a unit.
@@ -113,7 +113,7 @@ void try_increase_commodity( SS& ss, Colony& colony,
 
 void try_decrease_commodity( SS& ss, Colony& colony,
                              Coord where ) {
-  maybe<DraggableObjectWithBounds<ColViewObject_t>> o =
+  maybe<DraggableObjectWithBounds<ColViewObject>> o =
       colview_top_level().object_here( where );
   if( !o.has_value() ) return;
   // Could be a unit.
@@ -137,9 +137,9 @@ struct ColonyPlane : public Plane {
   Player& player_;
   Colony& colony_;
 
-  ColonyId                          colony_id_  = {};
-  co::stream<input::event_t>        input_      = {};
-  maybe<DragState<ColViewObject_t>> drag_state_ = {};
+  ColonyId                        colony_id_  = {};
+  co::stream<input::event_t>      input_      = {};
+  maybe<DragState<ColViewObject>> drag_state_ = {};
 
   ColonyPlane( SS& ss, TS& ts, Colony& colony )
     : ss_( ss ),

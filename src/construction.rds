@@ -13,7 +13,7 @@ include "ss/colony.rds.hpp"
 namespace "rn"
 
 struct.RushConstruction {
-  project 'Construction_t',
+  project 'Construction',
   cost 'int',
   # The total number of hammers and tools needed for the project,
   # independent of how many the colony has.

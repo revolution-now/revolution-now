@@ -154,8 +154,7 @@ TEST_CASE( "[plow] plow_square with 40 tools" ) {
   REQUIRE( can_irrigate( W.terrain(), kSquare ) == false );
   REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
-  REQUIRE( unit.orders() ==
-           unit_orders_t{ unit_orders::none{} } );
+  REQUIRE( unit.orders() == unit_orders::none{} );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 40 );
   REQUIRE( unit.movement_points() == 1 );
 
@@ -168,8 +167,8 @@ TEST_CASE( "[plow] plow_square with 40 tools" ) {
   REQUIRE( can_irrigate( W.terrain(), kSquare ) == false );
   REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
-  REQUIRE( unit.orders() == unit_orders_t{ unit_orders::plow{
-                                .turns_worked = 0 } } );
+  REQUIRE( unit.orders() ==
+           unit_orders::plow{ .turns_worked = 0 } );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 40 );
   REQUIRE( unit.movement_points() == 1 );
 
@@ -179,7 +178,7 @@ TEST_CASE( "[plow] plow_square with 40 tools" ) {
   for( int i = 0; i < kClearTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn( W.default_player() );
-    PlowResult_t const plow_result = perform_plow_work(
+    PlowResult const plow_result = perform_plow_work(
         W.ss(), W.default_player(), W.map_updater(), unit );
     REQUIRE( plow_result.holds<PlowResult::ongoing>() );
     REQUIRE( can_plow( unit ) == true );
@@ -189,19 +188,18 @@ TEST_CASE( "[plow] plow_square with 40 tools" ) {
     REQUIRE( can_irrigate( W.terrain(), kSquare ) == false );
     REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
-    REQUIRE( unit.orders() == unit_orders_t{ unit_orders::plow{
-                                  .turns_worked = i + 1 } } );
+    REQUIRE( unit.orders() ==
+             unit_orders::plow{ .turns_worked = i + 1 } );
     REQUIRE( unit.composition()[e_unit_inventory::tools] == 40 );
     REQUIRE( unit.movement_points() == 0 );
   }
 
   // Finished clearing.
   unit.new_turn( W.default_player() );
-  PlowResult_t plow_result = perform_plow_work(
+  PlowResult plow_result = perform_plow_work(
       W.ss(), W.default_player(), W.map_updater(), unit );
   REQUIRE( plow_result ==
-           PlowResult_t{ PlowResult::cleared_forest{
-               .yield = nothing } } );
+           PlowResult::cleared_forest{ .yield = nothing } );
   REQUIRE( can_plow( unit ) == true );
   REQUIRE( can_plow( W.terrain(), kSquare ) == true );
   REQUIRE( !has_forest( square ) );
@@ -209,8 +207,7 @@ TEST_CASE( "[plow] plow_square with 40 tools" ) {
   REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
   REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
-  REQUIRE( unit.orders() ==
-           unit_orders_t{ unit_orders::none{} } );
+  REQUIRE( unit.orders() == unit_orders::none{} );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 20 );
   REQUIRE( unit.movement_points() == 1 );
 
@@ -223,8 +220,8 @@ TEST_CASE( "[plow] plow_square with 40 tools" ) {
   REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
   REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
-  REQUIRE( unit.orders() == unit_orders_t{ unit_orders::plow{
-                                .turns_worked = 0 } } );
+  REQUIRE( unit.orders() ==
+           unit_orders::plow{ .turns_worked = 0 } );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 20 );
   REQUIRE( unit.movement_points() == 1 );
 
@@ -234,7 +231,7 @@ TEST_CASE( "[plow] plow_square with 40 tools" ) {
   for( int i = 0; i < kPlowTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn( W.default_player() );
-    PlowResult_t const plow_result = perform_plow_work(
+    PlowResult const plow_result = perform_plow_work(
         W.ss(), W.default_player(), W.map_updater(), unit );
     REQUIRE( plow_result.holds<PlowResult::ongoing>() );
     REQUIRE( can_plow( unit ) == true );
@@ -244,8 +241,8 @@ TEST_CASE( "[plow] plow_square with 40 tools" ) {
     REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
     REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
-    REQUIRE( unit.orders() == unit_orders_t{ unit_orders::plow{
-                                  .turns_worked = i + 1 } } );
+    REQUIRE( unit.orders() ==
+             unit_orders::plow{ .turns_worked = i + 1 } );
     REQUIRE( unit.composition()[e_unit_inventory::tools] == 20 );
     REQUIRE( unit.movement_points() == 0 );
   }
@@ -262,8 +259,7 @@ TEST_CASE( "[plow] plow_square with 40 tools" ) {
   REQUIRE( can_irrigate( W.terrain(), kSquare ) == false );
   REQUIRE( has_irrigation( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::free_colonist );
-  REQUIRE( unit.orders() ==
-           unit_orders_t{ unit_orders::none{} } );
+  REQUIRE( unit.orders() == unit_orders::none{} );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 0 );
   REQUIRE( unit.movement_points() == 1 );
 }
@@ -287,8 +283,7 @@ TEST_CASE( "[plow] plow_square hardy_pioneer" ) {
   REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
   REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
-  REQUIRE( unit.orders() ==
-           unit_orders_t{ unit_orders::none{} } );
+  REQUIRE( unit.orders() == unit_orders::none{} );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 100 );
   REQUIRE( unit.movement_points() == 1 );
 
@@ -301,8 +296,8 @@ TEST_CASE( "[plow] plow_square hardy_pioneer" ) {
   REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
   REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
-  REQUIRE( unit.orders() == unit_orders_t{ unit_orders::plow{
-                                .turns_worked = 0 } } );
+  REQUIRE( unit.orders() ==
+           unit_orders::plow{ .turns_worked = 0 } );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 100 );
   REQUIRE( unit.movement_points() == 1 );
 
@@ -312,7 +307,7 @@ TEST_CASE( "[plow] plow_square hardy_pioneer" ) {
   for( int i = 0; i < kPlowTurnsRequired; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn( W.default_player() );
-    PlowResult_t const plow_result = perform_plow_work(
+    PlowResult const plow_result = perform_plow_work(
         W.ss(), W.default_player(), W.map_updater(), unit );
     REQUIRE( plow_result.holds<PlowResult::ongoing>() );
     REQUIRE( can_plow( unit ) == true );
@@ -322,8 +317,8 @@ TEST_CASE( "[plow] plow_square hardy_pioneer" ) {
     REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
     REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
-    REQUIRE( unit.orders() == unit_orders_t{ unit_orders::plow{
-                                  .turns_worked = i + 1 } } );
+    REQUIRE( unit.orders() ==
+             unit_orders::plow{ .turns_worked = i + 1 } );
     REQUIRE( unit.composition()[e_unit_inventory::tools] ==
              100 );
     REQUIRE( unit.movement_points() == 0 );
@@ -331,7 +326,7 @@ TEST_CASE( "[plow] plow_square hardy_pioneer" ) {
 
   // Finished irrigating.
   unit.new_turn( W.default_player() );
-  PlowResult_t const plow_result = perform_plow_work(
+  PlowResult const plow_result = perform_plow_work(
       W.ss(), W.default_player(), W.map_updater(), unit );
   REQUIRE( plow_result.holds<PlowResult::irrigated>() );
   REQUIRE( can_plow( unit ) == true );
@@ -341,8 +336,7 @@ TEST_CASE( "[plow] plow_square hardy_pioneer" ) {
   REQUIRE( can_irrigate( W.terrain(), kSquare ) == false );
   REQUIRE( has_irrigation( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
-  REQUIRE( unit.orders() ==
-           unit_orders_t{ unit_orders::none{} } );
+  REQUIRE( unit.orders() == unit_orders::none{} );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 80 );
   REQUIRE( unit.movement_points() == 1 );
 }
@@ -372,8 +366,7 @@ TEST_CASE( "[plow] plow_square with cancellation" ) {
   REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
   REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
-  REQUIRE( unit.orders() ==
-           unit_orders_t{ unit_orders::none{} } );
+  REQUIRE( unit.orders() == unit_orders::none{} );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 40 );
   REQUIRE( unit.movement_points() == 1 );
 
@@ -386,8 +379,8 @@ TEST_CASE( "[plow] plow_square with cancellation" ) {
   REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
   REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
   REQUIRE( unit.type() == e_unit_type::pioneer );
-  REQUIRE( unit.orders() == unit_orders_t{ unit_orders::plow{
-                                .turns_worked = 0 } } );
+  REQUIRE( unit.orders() ==
+           unit_orders::plow{ .turns_worked = 0 } );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 40 );
   REQUIRE( unit.movement_points() == 1 );
 
@@ -397,7 +390,7 @@ TEST_CASE( "[plow] plow_square with cancellation" ) {
   for( int i = 0; i < kTurnsRequired - 2; ++i ) {
     INFO( fmt::format( "i={}", i ) );
     unit.new_turn( W.default_player() );
-    PlowResult_t const plow_result = perform_plow_work(
+    PlowResult const plow_result = perform_plow_work(
         W.ss(), W.default_player(), W.map_updater(), unit );
     REQUIRE( plow_result.holds<PlowResult::ongoing>() );
     REQUIRE( can_plow( unit ) == true );
@@ -408,8 +401,8 @@ TEST_CASE( "[plow] plow_square with cancellation" ) {
     REQUIRE( can_irrigate( W.terrain(), kSquare ) == true );
     REQUIRE( has_irrigation( W.terrain(), kSquare ) == false );
     REQUIRE( unit.type() == e_unit_type::pioneer );
-    REQUIRE( unit.orders() == unit_orders_t{ unit_orders::plow{
-                                  .turns_worked = i + 1 } } );
+    REQUIRE( unit.orders() ==
+             unit_orders::plow{ .turns_worked = i + 1 } );
     REQUIRE( unit.composition()[e_unit_inventory::tools] == 40 );
     REQUIRE( unit.movement_points() == 0 );
   }
@@ -419,7 +412,7 @@ TEST_CASE( "[plow] plow_square with cancellation" ) {
 
   // Finished irrigating.
   unit.new_turn( W.default_player() );
-  PlowResult_t const plow_result = perform_plow_work(
+  PlowResult const plow_result = perform_plow_work(
       W.ss(), W.default_player(), W.map_updater(), unit );
   REQUIRE( plow_result.holds<PlowResult::cancelled>() );
   REQUIRE( can_plow( unit ) == true );
@@ -429,8 +422,7 @@ TEST_CASE( "[plow] plow_square with cancellation" ) {
   REQUIRE( can_irrigate( W.terrain(), kSquare ) == false );
   REQUIRE( has_irrigation( W.terrain(), kSquare ) == true );
   REQUIRE( unit.type() == e_unit_type::pioneer );
-  REQUIRE( unit.orders() ==
-           unit_orders_t{ unit_orders::none{} } );
+  REQUIRE( unit.orders() == unit_orders::none{} );
   REQUIRE( unit.composition()[e_unit_inventory::tools] == 40 );
   REQUIRE( unit.movement_points() == 1 );
 }
@@ -465,18 +457,17 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
     for( int i = 0; i < kClearTurnsRequired; ++i ) {
       INFO( fmt::format( "i={}", i ) );
       unit.new_turn( W.default_player() );
-      PlowResult_t const plow_result = perform_plow_work(
+      PlowResult const plow_result = perform_plow_work(
           W.ss(), W.default_player(), W.map_updater(), unit );
       REQUIRE( plow_result.holds<PlowResult::ongoing>() );
     }
 
     // Finished clearing.
     unit.new_turn( W.default_player() );
-    PlowResult_t plow_result = perform_plow_work(
+    PlowResult plow_result = perform_plow_work(
         W.ss(), W.default_player(), W.map_updater(), unit );
     REQUIRE( plow_result ==
-             PlowResult_t{ PlowResult::cleared_forest{
-                 .yield = nothing } } );
+             PlowResult::cleared_forest{ .yield = nothing } );
 
     // Tell unit to start plowing work.
     unit.orders() = unit_orders::plow{ .turns_worked = 0 };
@@ -485,7 +476,7 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
     for( int i = 0; i < kPlowTurnsRequired; ++i ) {
       INFO( fmt::format( "i={}", i ) );
       unit.new_turn( W.default_player() );
-      PlowResult_t const plow_result = perform_plow_work(
+      PlowResult const plow_result = perform_plow_work(
           W.ss(), W.default_player(), W.map_updater(), unit );
       REQUIRE( plow_result.holds<PlowResult::ongoing>() );
     }
@@ -494,8 +485,7 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
     unit.new_turn( W.default_player() );
     plow_result = perform_plow_work( W.ss(), W.default_player(),
                                      W.map_updater(), unit );
-    REQUIRE( plow_result ==
-             PlowResult_t{ PlowResult::irrigated{} } );
+    REQUIRE( plow_result == PlowResult::irrigated{} );
   }
 
   SECTION( "one colony" ) {
@@ -516,21 +506,21 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
     for( int i = 0; i < kClearTurnsRequired; ++i ) {
       INFO( fmt::format( "i={}", i ) );
       unit.new_turn( W.default_player() );
-      PlowResult_t const plow_result = perform_plow_work(
+      PlowResult const plow_result = perform_plow_work(
           W.ss(), W.default_player(), W.map_updater(), unit );
       REQUIRE( plow_result.holds<PlowResult::ongoing>() );
     }
 
     // Finished clearing.
     unit.new_turn( W.default_player() );
-    PlowResult_t plow_result = perform_plow_work(
+    PlowResult plow_result = perform_plow_work(
         W.ss(), W.default_player(), W.map_updater(), unit );
     REQUIRE( plow_result ==
-             PlowResult_t{ PlowResult::cleared_forest{
+             PlowResult::cleared_forest{
                  .yield = LumberYield{
                      .colony_id              = 1,
                      .total_yield            = 20,
-                     .yield_to_add_to_colony = 20 } } } );
+                     .yield_to_add_to_colony = 20 } } );
 
     // Tell unit to start plowing work.
     unit.orders() = unit_orders::plow{ .turns_worked = 0 };
@@ -539,7 +529,7 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
     for( int i = 0; i < kPlowTurnsRequired; ++i ) {
       INFO( fmt::format( "i={}", i ) );
       unit.new_turn( W.default_player() );
-      PlowResult_t const plow_result = perform_plow_work(
+      PlowResult const plow_result = perform_plow_work(
           W.ss(), W.default_player(), W.map_updater(), unit );
       REQUIRE( plow_result.holds<PlowResult::ongoing>() );
     }
@@ -548,8 +538,7 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
     unit.new_turn( W.default_player() );
     plow_result = perform_plow_work( W.ss(), W.default_player(),
                                      W.map_updater(), unit );
-    REQUIRE( plow_result ==
-             PlowResult_t{ PlowResult::irrigated{} } );
+    REQUIRE( plow_result == PlowResult::irrigated{} );
   }
 
   SECTION(
@@ -587,21 +576,21 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
     for( int i = 0; i < kClearTurnsRequired; ++i ) {
       INFO( fmt::format( "i={}", i ) );
       unit.new_turn( W.default_player() );
-      PlowResult_t const plow_result = perform_plow_work(
+      PlowResult const plow_result = perform_plow_work(
           W.ss(), W.default_player(), W.map_updater(), unit );
       REQUIRE( plow_result.holds<PlowResult::ongoing>() );
     }
 
     // Finished clearing.
     unit.new_turn( W.default_player() );
-    PlowResult_t plow_result = perform_plow_work(
+    PlowResult plow_result = perform_plow_work(
         W.ss(), W.default_player(), W.map_updater(), unit );
     REQUIRE( plow_result ==
-             PlowResult_t{ PlowResult::cleared_forest{
+             PlowResult::cleared_forest{
                  .yield = LumberYield{
                      .colony_id              = 2,
                      .total_yield            = 160,
-                     .yield_to_add_to_colony = 80 } } } );
+                     .yield_to_add_to_colony = 80 } } );
 
     // Tell unit to start plowing work.
     unit.orders() = unit_orders::plow{ .turns_worked = 0 };
@@ -610,7 +599,7 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
     for( int i = 0; i < kPlowTurnsRequired; ++i ) {
       INFO( fmt::format( "i={}", i ) );
       unit.new_turn( W.default_player() );
-      PlowResult_t const plow_result = perform_plow_work(
+      PlowResult const plow_result = perform_plow_work(
           W.ss(), W.default_player(), W.map_updater(), unit );
       REQUIRE( plow_result.holds<PlowResult::ongoing>() );
     }
@@ -619,8 +608,7 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
     unit.new_turn( W.default_player() );
     plow_result = perform_plow_work( W.ss(), W.default_player(),
                                      W.map_updater(), unit );
-    REQUIRE( plow_result ==
-             PlowResult_t{ PlowResult::irrigated{} } );
+    REQUIRE( plow_result == PlowResult::irrigated{} );
   }
 }
 

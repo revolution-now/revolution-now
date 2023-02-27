@@ -39,11 +39,11 @@ struct ND Unit {
   UnitId                    id() const { return o_.id; }
   UnitTypeAttributes const& desc() const;
   // FIXME: luapp can only take this as non-const....
-  UnitTypeAttributes&  desc_non_const() const;
-  bool                 is_human() const;
-  unit_orders_t const& orders() const { return o_.orders; }
-  unit_orders_t&       orders() { return o_.orders; }
-  CargoHold const&     cargo() const { return o_.cargo; }
+  UnitTypeAttributes& desc_non_const() const;
+  bool                is_human() const;
+  unit_orders const&  orders() const { return o_.orders; }
+  unit_orders&        orders() { return o_.orders; }
+  CargoHold const&    cargo() const { return o_.cargo; }
   // Allow non-const access to cargo since the CargoHold class
   // itself should enforce all invariants and interacting with it
   // doesn't really depend on any private Unit data.

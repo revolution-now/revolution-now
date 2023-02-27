@@ -201,7 +201,7 @@ TEST_CASE( "[harbor-units] create_unit_in_harbor" ) {
       e_unit_type::free_colonist );
   REQUIRE( player.old_world.harbor_state.selected_unit ==
            nothing );
-  unordered_map<UnitId, UnitOwnership_t> expected;
+  unordered_map<UnitId, UnitOwnership> expected;
   expected[id1] = UnitOwnership::harbor{
       .st = UnitHarborViewState{
           .port_status = PortStatus::in_port{},

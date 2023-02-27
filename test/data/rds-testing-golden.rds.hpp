@@ -36,7 +36,7 @@ namespace rdstest {
 
   namespace detail {
 
-    namespace Maybe {
+    namespace Maybe_alternatives {
 
       template<typename T>
       struct nothing {
@@ -55,20 +55,20 @@ namespace rdstest {
         bool operator!=( struct just const& ) const = default;
       };
 
-    } // namespace Maybe
+    } // namespace Maybe_alternatives
 
     template<typename T>
     using MaybeBase = base::variant<
-      detail::Maybe::nothing<T>,
-      detail::Maybe::just<T>
+      detail::Maybe_alternatives::nothing<T>,
+      detail::Maybe_alternatives::just<T>
     >;
 
   } // namespace detail
 
   template<typename T>
   struct Maybe : public detail::MaybeBase<T> {
-    using nothing = detail::Maybe::nothing<T>;
-    using just    = detail::Maybe::just<T>;
+    using nothing = detail::Maybe_alternatives::nothing<T>;
+    using just    = detail::Maybe_alternatives::just<T>;
 
     enum class e {
       nothing,
@@ -91,10 +91,6 @@ namespace rdstest {
     }
   };
 
-  // TODO: temporary.
-  template<typename T>
-  using Maybe_t = Maybe<T>;
-
   NOTHROW_MOVE( Maybe<int> );
 
 } // namespace rdstest
@@ -110,8 +106,8 @@ namespace refl {
 
   // Reflection info for struct nothing.
   template<typename T>
-  struct traits<rdstest::detail::Maybe::nothing<T>> {
-    using type = rdstest::detail::Maybe::nothing<T>;
+  struct traits<rdstest::detail::Maybe_alternatives::nothing<T>> {
+    using type = rdstest::detail::Maybe_alternatives::nothing<T>;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::Maybe";
@@ -125,8 +121,8 @@ namespace refl {
 
   // Reflection info for struct just.
   template<typename T>
-  struct traits<rdstest::detail::Maybe::just<T>> {
-    using type = rdstest::detail::Maybe::just<T>;
+  struct traits<rdstest::detail::Maybe_alternatives::just<T>> {
+    using type = rdstest::detail::Maybe_alternatives::just<T>;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::Maybe";
@@ -136,7 +132,7 @@ namespace refl {
     using template_types = std::tuple<T>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "val", &rdstest::detail::Maybe::just<T>::val, /*offset=*/base::nothing },
+      refl::StructField{ "val", &rdstest::detail::Maybe_alternatives::just<T>::val, /*offset=*/base::nothing },
     };
   };
 
@@ -149,7 +145,7 @@ namespace rdstest {
 
   namespace detail {
 
-    namespace MyVariant1 {
+    namespace MyVariant1_alternatives {
 
       struct happy {
         std::pair<char, int> p = {};
@@ -175,20 +171,20 @@ namespace rdstest {
         bool operator!=( struct excited const& ) const = default;
       };
 
-    } // namespace MyVariant1
+    } // namespace MyVariant1_alternatives
 
     using MyVariant1Base = base::variant<
-      detail::MyVariant1::happy,
-      detail::MyVariant1::sad,
-      detail::MyVariant1::excited
+      detail::MyVariant1_alternatives::happy,
+      detail::MyVariant1_alternatives::sad,
+      detail::MyVariant1_alternatives::excited
     >;
 
   } // namespace detail
 
   struct MyVariant1 : public detail::MyVariant1Base {
-    using happy   = detail::MyVariant1::happy;
-    using sad     = detail::MyVariant1::sad;
-    using excited = detail::MyVariant1::excited;
+    using happy   = detail::MyVariant1_alternatives::happy;
+    using sad     = detail::MyVariant1_alternatives::sad;
+    using excited = detail::MyVariant1_alternatives::excited;
 
     enum class e {
       happy,
@@ -215,9 +211,6 @@ namespace rdstest {
     }
   };
 
-  // TODO: temporary.
-  using MyVariant1_t = MyVariant1;
-
   NOTHROW_MOVE( MyVariant1 );
 
 } // namespace rdstest
@@ -233,8 +226,8 @@ namespace refl {
 
   // Reflection info for struct happy.
   template<>
-  struct traits<rdstest::detail::MyVariant1::happy> {
-    using type = rdstest::detail::MyVariant1::happy;
+  struct traits<rdstest::detail::MyVariant1_alternatives::happy> {
+    using type = rdstest::detail::MyVariant1_alternatives::happy;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::MyVariant1";
@@ -244,14 +237,14 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "p", &rdstest::detail::MyVariant1::happy::p, /*offset=*/base::nothing },
+      refl::StructField{ "p", &rdstest::detail::MyVariant1_alternatives::happy::p, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct sad.
   template<>
-  struct traits<rdstest::detail::MyVariant1::sad> {
-    using type = rdstest::detail::MyVariant1::sad;
+  struct traits<rdstest::detail::MyVariant1_alternatives::sad> {
+    using type = rdstest::detail::MyVariant1_alternatives::sad;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::MyVariant1";
@@ -261,15 +254,15 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "hello", &rdstest::detail::MyVariant1::sad::hello, /*offset=*/base::nothing },
-      refl::StructField{ "ptr", &rdstest::detail::MyVariant1::sad::ptr, /*offset=*/base::nothing },
+      refl::StructField{ "hello", &rdstest::detail::MyVariant1_alternatives::sad::hello, /*offset=*/base::nothing },
+      refl::StructField{ "ptr", &rdstest::detail::MyVariant1_alternatives::sad::ptr, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct excited.
   template<>
-  struct traits<rdstest::detail::MyVariant1::excited> {
-    using type = rdstest::detail::MyVariant1::excited;
+  struct traits<rdstest::detail::MyVariant1_alternatives::excited> {
+    using type = rdstest::detail::MyVariant1_alternatives::excited;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::MyVariant1";
@@ -290,7 +283,7 @@ namespace rdstest {
 
   namespace detail {
 
-    namespace MyVariant2 {
+    namespace MyVariant2_alternatives {
 
       struct first {
         std::string name = {};
@@ -318,20 +311,20 @@ namespace rdstest {
         bool operator!=( struct third const& ) const = default;
       };
 
-    } // namespace MyVariant2
+    } // namespace MyVariant2_alternatives
 
     using MyVariant2Base = base::variant<
-      detail::MyVariant2::first,
-      detail::MyVariant2::second,
-      detail::MyVariant2::third
+      detail::MyVariant2_alternatives::first,
+      detail::MyVariant2_alternatives::second,
+      detail::MyVariant2_alternatives::third
     >;
 
   } // namespace detail
 
   struct MyVariant2 : public detail::MyVariant2Base {
-    using first  = detail::MyVariant2::first;
-    using second = detail::MyVariant2::second;
-    using third  = detail::MyVariant2::third;
+    using first  = detail::MyVariant2_alternatives::first;
+    using second = detail::MyVariant2_alternatives::second;
+    using third  = detail::MyVariant2_alternatives::third;
 
     enum class e {
       first,
@@ -358,9 +351,6 @@ namespace rdstest {
     }
   };
 
-  // TODO: temporary.
-  using MyVariant2_t = MyVariant2;
-
   NOTHROW_MOVE( MyVariant2 );
 
 } // namespace rdstest
@@ -376,8 +366,8 @@ namespace refl {
 
   // Reflection info for struct first.
   template<>
-  struct traits<rdstest::detail::MyVariant2::first> {
-    using type = rdstest::detail::MyVariant2::first;
+  struct traits<rdstest::detail::MyVariant2_alternatives::first> {
+    using type = rdstest::detail::MyVariant2_alternatives::first;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::MyVariant2";
@@ -387,15 +377,15 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "name", &rdstest::detail::MyVariant2::first::name, /*offset=*/base::nothing },
-      refl::StructField{ "b", &rdstest::detail::MyVariant2::first::b, /*offset=*/base::nothing },
+      refl::StructField{ "name", &rdstest::detail::MyVariant2_alternatives::first::name, /*offset=*/base::nothing },
+      refl::StructField{ "b", &rdstest::detail::MyVariant2_alternatives::first::b, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct second.
   template<>
-  struct traits<rdstest::detail::MyVariant2::second> {
-    using type = rdstest::detail::MyVariant2::second;
+  struct traits<rdstest::detail::MyVariant2_alternatives::second> {
+    using type = rdstest::detail::MyVariant2_alternatives::second;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::MyVariant2";
@@ -405,15 +395,15 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "flag1", &rdstest::detail::MyVariant2::second::flag1, /*offset=*/base::nothing },
-      refl::StructField{ "flag2", &rdstest::detail::MyVariant2::second::flag2, /*offset=*/base::nothing },
+      refl::StructField{ "flag1", &rdstest::detail::MyVariant2_alternatives::second::flag1, /*offset=*/base::nothing },
+      refl::StructField{ "flag2", &rdstest::detail::MyVariant2_alternatives::second::flag2, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct third.
   template<>
-  struct traits<rdstest::detail::MyVariant2::third> {
-    using type = rdstest::detail::MyVariant2::third;
+  struct traits<rdstest::detail::MyVariant2_alternatives::third> {
+    using type = rdstest::detail::MyVariant2_alternatives::third;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::MyVariant2";
@@ -423,7 +413,7 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "cost", &rdstest::detail::MyVariant2::third::cost, /*offset=*/base::nothing },
+      refl::StructField{ "cost", &rdstest::detail::MyVariant2_alternatives::third::cost, /*offset=*/base::nothing },
     };
   };
 
@@ -436,7 +426,7 @@ namespace rdstest::inner {
 
   namespace detail {
 
-    namespace MyVariant3 {
+    namespace MyVariant3_alternatives {
 
       struct a1 {
         std::monostate var0 = {};
@@ -448,7 +438,7 @@ namespace rdstest::inner {
 
       struct a2 {
         std::monostate var1 = {};
-        MyVariant2_t   var2 = {};
+        MyVariant2     var2 = {};
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct a2 const& ) const = default;
@@ -463,20 +453,20 @@ namespace rdstest::inner {
         bool operator!=( struct a3 const& ) const = default;
       };
 
-    } // namespace MyVariant3
+    } // namespace MyVariant3_alternatives
 
     using MyVariant3Base = base::variant<
-      detail::MyVariant3::a1,
-      detail::MyVariant3::a2,
-      detail::MyVariant3::a3
+      detail::MyVariant3_alternatives::a1,
+      detail::MyVariant3_alternatives::a2,
+      detail::MyVariant3_alternatives::a3
     >;
 
   } // namespace detail
 
   struct MyVariant3 : public detail::MyVariant3Base {
-    using a1 = detail::MyVariant3::a1;
-    using a2 = detail::MyVariant3::a2;
-    using a3 = detail::MyVariant3::a3;
+    using a1 = detail::MyVariant3_alternatives::a1;
+    using a2 = detail::MyVariant3_alternatives::a2;
+    using a3 = detail::MyVariant3_alternatives::a3;
 
     enum class e {
       a1,
@@ -503,9 +493,6 @@ namespace rdstest::inner {
     }
   };
 
-  // TODO: temporary.
-  using MyVariant3_t = MyVariant3;
-
   NOTHROW_MOVE( MyVariant3 );
 
 } // namespace rdstest::inner
@@ -521,8 +508,8 @@ namespace refl {
 
   // Reflection info for struct a1.
   template<>
-  struct traits<rdstest::inner::detail::MyVariant3::a1> {
-    using type = rdstest::inner::detail::MyVariant3::a1;
+  struct traits<rdstest::inner::detail::MyVariant3_alternatives::a1> {
+    using type = rdstest::inner::detail::MyVariant3_alternatives::a1;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::MyVariant3";
@@ -532,14 +519,14 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "var0", &rdstest::inner::detail::MyVariant3::a1::var0, /*offset=*/base::nothing },
+      refl::StructField{ "var0", &rdstest::inner::detail::MyVariant3_alternatives::a1::var0, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct a2.
   template<>
-  struct traits<rdstest::inner::detail::MyVariant3::a2> {
-    using type = rdstest::inner::detail::MyVariant3::a2;
+  struct traits<rdstest::inner::detail::MyVariant3_alternatives::a2> {
+    using type = rdstest::inner::detail::MyVariant3_alternatives::a2;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::MyVariant3";
@@ -549,15 +536,15 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "var1", &rdstest::inner::detail::MyVariant3::a2::var1, /*offset=*/base::nothing },
-      refl::StructField{ "var2", &rdstest::inner::detail::MyVariant3::a2::var2, /*offset=*/base::nothing },
+      refl::StructField{ "var1", &rdstest::inner::detail::MyVariant3_alternatives::a2::var1, /*offset=*/base::nothing },
+      refl::StructField{ "var2", &rdstest::inner::detail::MyVariant3_alternatives::a2::var2, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct a3.
   template<>
-  struct traits<rdstest::inner::detail::MyVariant3::a3> {
-    using type = rdstest::inner::detail::MyVariant3::a3;
+  struct traits<rdstest::inner::detail::MyVariant3_alternatives::a3> {
+    using type = rdstest::inner::detail::MyVariant3_alternatives::a3;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::MyVariant3";
@@ -567,7 +554,7 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "c", &rdstest::inner::detail::MyVariant3::a3::c, /*offset=*/base::nothing },
+      refl::StructField{ "c", &rdstest::inner::detail::MyVariant3_alternatives::a3::c, /*offset=*/base::nothing },
     };
   };
 
@@ -580,7 +567,7 @@ namespace rdstest::inner {
 
   namespace detail {
 
-    namespace MyVariant4 {
+    namespace MyVariant4_alternatives {
 
       struct first {
         int                 i = {};
@@ -601,28 +588,28 @@ namespace rdstest::inner {
       };
 
       struct third {
-        std::string  s = {};
-        MyVariant3_t var3 = {};
+        std::string s = {};
+        MyVariant3  var3 = {};
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct third const& ) const = default;
         bool operator!=( struct third const& ) const = default;
       };
 
-    } // namespace MyVariant4
+    } // namespace MyVariant4_alternatives
 
     using MyVariant4Base = base::variant<
-      detail::MyVariant4::first,
-      detail::MyVariant4::_2nd,
-      detail::MyVariant4::third
+      detail::MyVariant4_alternatives::first,
+      detail::MyVariant4_alternatives::_2nd,
+      detail::MyVariant4_alternatives::third
     >;
 
   } // namespace detail
 
   struct MyVariant4 : public detail::MyVariant4Base {
-    using first = detail::MyVariant4::first;
-    using _2nd  = detail::MyVariant4::_2nd;
-    using third = detail::MyVariant4::third;
+    using first = detail::MyVariant4_alternatives::first;
+    using _2nd  = detail::MyVariant4_alternatives::_2nd;
+    using third = detail::MyVariant4_alternatives::third;
 
     enum class e {
       first,
@@ -649,9 +636,6 @@ namespace rdstest::inner {
     }
   };
 
-  // TODO: temporary.
-  using MyVariant4_t = MyVariant4;
-
   NOTHROW_MOVE( MyVariant4 );
 
 } // namespace rdstest::inner
@@ -667,8 +651,8 @@ namespace refl {
 
   // Reflection info for struct first.
   template<>
-  struct traits<rdstest::inner::detail::MyVariant4::first> {
-    using type = rdstest::inner::detail::MyVariant4::first;
+  struct traits<rdstest::inner::detail::MyVariant4_alternatives::first> {
+    using type = rdstest::inner::detail::MyVariant4_alternatives::first;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::MyVariant4";
@@ -678,17 +662,17 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "i", &rdstest::inner::detail::MyVariant4::first::i, /*offset=*/base::nothing },
-      refl::StructField{ "c", &rdstest::inner::detail::MyVariant4::first::c, /*offset=*/base::nothing },
-      refl::StructField{ "b", &rdstest::inner::detail::MyVariant4::first::b, /*offset=*/base::nothing },
-      refl::StructField{ "op", &rdstest::inner::detail::MyVariant4::first::op, /*offset=*/base::nothing },
+      refl::StructField{ "i", &rdstest::inner::detail::MyVariant4_alternatives::first::i, /*offset=*/base::nothing },
+      refl::StructField{ "c", &rdstest::inner::detail::MyVariant4_alternatives::first::c, /*offset=*/base::nothing },
+      refl::StructField{ "b", &rdstest::inner::detail::MyVariant4_alternatives::first::b, /*offset=*/base::nothing },
+      refl::StructField{ "op", &rdstest::inner::detail::MyVariant4_alternatives::first::op, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct _2nd.
   template<>
-  struct traits<rdstest::inner::detail::MyVariant4::_2nd> {
-    using type = rdstest::inner::detail::MyVariant4::_2nd;
+  struct traits<rdstest::inner::detail::MyVariant4_alternatives::_2nd> {
+    using type = rdstest::inner::detail::MyVariant4_alternatives::_2nd;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::MyVariant4";
@@ -702,8 +686,8 @@ namespace refl {
 
   // Reflection info for struct third.
   template<>
-  struct traits<rdstest::inner::detail::MyVariant4::third> {
-    using type = rdstest::inner::detail::MyVariant4::third;
+  struct traits<rdstest::inner::detail::MyVariant4_alternatives::third> {
+    using type = rdstest::inner::detail::MyVariant4_alternatives::third;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::MyVariant4";
@@ -713,8 +697,8 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "s", &rdstest::inner::detail::MyVariant4::third::s, /*offset=*/base::nothing },
-      refl::StructField{ "var3", &rdstest::inner::detail::MyVariant4::third::var3, /*offset=*/base::nothing },
+      refl::StructField{ "s", &rdstest::inner::detail::MyVariant4_alternatives::third::s, /*offset=*/base::nothing },
+      refl::StructField{ "var3", &rdstest::inner::detail::MyVariant4_alternatives::third::var3, /*offset=*/base::nothing },
     };
   };
 
@@ -727,7 +711,7 @@ namespace rdstest::inner {
 
   namespace detail {
 
-    namespace TemplateTwoParams {
+    namespace TemplateTwoParams_alternatives {
 
       template<typename T, typename U>
       struct first_alternative {
@@ -749,30 +733,30 @@ namespace rdstest::inner {
 
       template<typename T, typename U>
       struct third_alternative {
-        Maybe_t<T> hello = {};
-        U          u = {};
+        Maybe<T> hello = {};
+        U        u = {};
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct third_alternative const& ) const = default;
         bool operator!=( struct third_alternative const& ) const = default;
       };
 
-    } // namespace TemplateTwoParams
+    } // namespace TemplateTwoParams_alternatives
 
     template<typename T, typename U>
     using TemplateTwoParamsBase = base::variant<
-      detail::TemplateTwoParams::first_alternative<T, U>,
-      detail::TemplateTwoParams::second_alternative<T, U>,
-      detail::TemplateTwoParams::third_alternative<T, U>
+      detail::TemplateTwoParams_alternatives::first_alternative<T, U>,
+      detail::TemplateTwoParams_alternatives::second_alternative<T, U>,
+      detail::TemplateTwoParams_alternatives::third_alternative<T, U>
     >;
 
   } // namespace detail
 
   template<typename T, typename U>
   struct TemplateTwoParams : public detail::TemplateTwoParamsBase<T, U> {
-    using first_alternative  = detail::TemplateTwoParams::first_alternative<T, U>;
-    using second_alternative = detail::TemplateTwoParams::second_alternative<T, U>;
-    using third_alternative  = detail::TemplateTwoParams::third_alternative<T, U>;
+    using first_alternative  = detail::TemplateTwoParams_alternatives::first_alternative<T, U>;
+    using second_alternative = detail::TemplateTwoParams_alternatives::second_alternative<T, U>;
+    using third_alternative  = detail::TemplateTwoParams_alternatives::third_alternative<T, U>;
 
     enum class e {
       first_alternative,
@@ -799,10 +783,6 @@ namespace rdstest::inner {
     }
   };
 
-  // TODO: temporary.
-  template<typename T, typename U>
-  using TemplateTwoParams_t = TemplateTwoParams<T, U>;
-
   NOTHROW_MOVE( TemplateTwoParams<int, int> );
 
 } // namespace rdstest::inner
@@ -818,8 +798,8 @@ namespace refl {
 
   // Reflection info for struct first_alternative.
   template<typename T, typename U>
-  struct traits<rdstest::inner::detail::TemplateTwoParams::first_alternative<T, U>> {
-    using type = rdstest::inner::detail::TemplateTwoParams::first_alternative<T, U>;
+  struct traits<rdstest::inner::detail::TemplateTwoParams_alternatives::first_alternative<T, U>> {
+    using type = rdstest::inner::detail::TemplateTwoParams_alternatives::first_alternative<T, U>;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::TemplateTwoParams";
@@ -829,15 +809,15 @@ namespace refl {
     using template_types = std::tuple<T, U>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "t", &rdstest::inner::detail::TemplateTwoParams::first_alternative<T, U>::t, /*offset=*/base::nothing },
-      refl::StructField{ "c", &rdstest::inner::detail::TemplateTwoParams::first_alternative<T, U>::c, /*offset=*/base::nothing },
+      refl::StructField{ "t", &rdstest::inner::detail::TemplateTwoParams_alternatives::first_alternative<T, U>::t, /*offset=*/base::nothing },
+      refl::StructField{ "c", &rdstest::inner::detail::TemplateTwoParams_alternatives::first_alternative<T, U>::c, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct second_alternative.
   template<typename T, typename U>
-  struct traits<rdstest::inner::detail::TemplateTwoParams::second_alternative<T, U>> {
-    using type = rdstest::inner::detail::TemplateTwoParams::second_alternative<T, U>;
+  struct traits<rdstest::inner::detail::TemplateTwoParams_alternatives::second_alternative<T, U>> {
+    using type = rdstest::inner::detail::TemplateTwoParams_alternatives::second_alternative<T, U>;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::TemplateTwoParams";
@@ -851,8 +831,8 @@ namespace refl {
 
   // Reflection info for struct third_alternative.
   template<typename T, typename U>
-  struct traits<rdstest::inner::detail::TemplateTwoParams::third_alternative<T, U>> {
-    using type = rdstest::inner::detail::TemplateTwoParams::third_alternative<T, U>;
+  struct traits<rdstest::inner::detail::TemplateTwoParams_alternatives::third_alternative<T, U>> {
+    using type = rdstest::inner::detail::TemplateTwoParams_alternatives::third_alternative<T, U>;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::TemplateTwoParams";
@@ -862,8 +842,8 @@ namespace refl {
     using template_types = std::tuple<T, U>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "hello", &rdstest::inner::detail::TemplateTwoParams::third_alternative<T, U>::hello, /*offset=*/base::nothing },
-      refl::StructField{ "u", &rdstest::inner::detail::TemplateTwoParams::third_alternative<T, U>::u, /*offset=*/base::nothing },
+      refl::StructField{ "hello", &rdstest::inner::detail::TemplateTwoParams_alternatives::third_alternative<T, U>::hello, /*offset=*/base::nothing },
+      refl::StructField{ "u", &rdstest::inner::detail::TemplateTwoParams_alternatives::third_alternative<T, U>::u, /*offset=*/base::nothing },
     };
   };
 
@@ -876,11 +856,11 @@ namespace rdstest::inner {
 
   namespace detail {
 
-    namespace CompositeTemplateTwo {
+    namespace CompositeTemplateTwo_alternatives {
 
       template<typename T, typename U>
       struct first {
-        rdstest::inner::TemplateTwoParams_t<T,U> ttp = {};
+        rdstest::inner::TemplateTwoParams<T,U> ttp = {};
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct first const& ) const = default;
@@ -895,20 +875,20 @@ namespace rdstest::inner {
         bool operator!=( struct second const& ) const = default;
       };
 
-    } // namespace CompositeTemplateTwo
+    } // namespace CompositeTemplateTwo_alternatives
 
     template<typename T, typename U>
     using CompositeTemplateTwoBase = base::variant<
-      detail::CompositeTemplateTwo::first<T, U>,
-      detail::CompositeTemplateTwo::second<T, U>
+      detail::CompositeTemplateTwo_alternatives::first<T, U>,
+      detail::CompositeTemplateTwo_alternatives::second<T, U>
     >;
 
   } // namespace detail
 
   template<typename T, typename U>
   struct CompositeTemplateTwo : public detail::CompositeTemplateTwoBase<T, U> {
-    using first  = detail::CompositeTemplateTwo::first<T, U>;
-    using second = detail::CompositeTemplateTwo::second<T, U>;
+    using first  = detail::CompositeTemplateTwo_alternatives::first<T, U>;
+    using second = detail::CompositeTemplateTwo_alternatives::second<T, U>;
 
     enum class e {
       first,
@@ -931,10 +911,6 @@ namespace rdstest::inner {
     }
   };
 
-  // TODO: temporary.
-  template<typename T, typename U>
-  using CompositeTemplateTwo_t = CompositeTemplateTwo<T, U>;
-
   NOTHROW_MOVE( CompositeTemplateTwo<int, int> );
 
 } // namespace rdstest::inner
@@ -950,8 +926,8 @@ namespace refl {
 
   // Reflection info for struct first.
   template<typename T, typename U>
-  struct traits<rdstest::inner::detail::CompositeTemplateTwo::first<T, U>> {
-    using type = rdstest::inner::detail::CompositeTemplateTwo::first<T, U>;
+  struct traits<rdstest::inner::detail::CompositeTemplateTwo_alternatives::first<T, U>> {
+    using type = rdstest::inner::detail::CompositeTemplateTwo_alternatives::first<T, U>;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::CompositeTemplateTwo";
@@ -961,14 +937,14 @@ namespace refl {
     using template_types = std::tuple<T, U>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "ttp", &rdstest::inner::detail::CompositeTemplateTwo::first<T, U>::ttp, /*offset=*/base::nothing },
+      refl::StructField{ "ttp", &rdstest::inner::detail::CompositeTemplateTwo_alternatives::first<T, U>::ttp, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct second.
   template<typename T, typename U>
-  struct traits<rdstest::inner::detail::CompositeTemplateTwo::second<T, U>> {
-    using type = rdstest::inner::detail::CompositeTemplateTwo::second<T, U>;
+  struct traits<rdstest::inner::detail::CompositeTemplateTwo_alternatives::second<T, U>> {
+    using type = rdstest::inner::detail::CompositeTemplateTwo_alternatives::second<T, U>;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rdstest::inner::CompositeTemplateTwo";
@@ -989,7 +965,7 @@ namespace rn {
 
   namespace detail {
 
-    namespace MySumtype {
+    namespace MySumtype_alternatives {
 
       struct none {
         // This requires that the types of the member variables
@@ -1015,20 +991,20 @@ namespace rn {
         bool operator!=( struct more const& ) const = default;
       };
 
-    } // namespace MySumtype
+    } // namespace MySumtype_alternatives
 
     using MySumtypeBase = base::variant<
-      detail::MySumtype::none,
-      detail::MySumtype::some,
-      detail::MySumtype::more
+      detail::MySumtype_alternatives::none,
+      detail::MySumtype_alternatives::some,
+      detail::MySumtype_alternatives::more
     >;
 
   } // namespace detail
 
   struct MySumtype : public detail::MySumtypeBase {
-    using none = detail::MySumtype::none;
-    using some = detail::MySumtype::some;
-    using more = detail::MySumtype::more;
+    using none = detail::MySumtype_alternatives::none;
+    using some = detail::MySumtype_alternatives::some;
+    using more = detail::MySumtype_alternatives::more;
 
     enum class e {
       none,
@@ -1055,9 +1031,6 @@ namespace rn {
     }
   };
 
-  // TODO: temporary.
-  using MySumtype_t = MySumtype;
-
   NOTHROW_MOVE( MySumtype );
 
 } // namespace rn
@@ -1073,8 +1046,8 @@ namespace refl {
 
   // Reflection info for struct none.
   template<>
-  struct traits<rn::detail::MySumtype::none> {
-    using type = rn::detail::MySumtype::none;
+  struct traits<rn::detail::MySumtype_alternatives::none> {
+    using type = rn::detail::MySumtype_alternatives::none;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::MySumtype";
@@ -1088,8 +1061,8 @@ namespace refl {
 
   // Reflection info for struct some.
   template<>
-  struct traits<rn::detail::MySumtype::some> {
-    using type = rn::detail::MySumtype::some;
+  struct traits<rn::detail::MySumtype_alternatives::some> {
+    using type = rn::detail::MySumtype_alternatives::some;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::MySumtype";
@@ -1099,15 +1072,15 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "s", &rn::detail::MySumtype::some::s, /*offset=*/base::nothing },
-      refl::StructField{ "y", &rn::detail::MySumtype::some::y, /*offset=*/base::nothing },
+      refl::StructField{ "s", &rn::detail::MySumtype_alternatives::some::s, /*offset=*/base::nothing },
+      refl::StructField{ "y", &rn::detail::MySumtype_alternatives::some::y, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct more.
   template<>
-  struct traits<rn::detail::MySumtype::more> {
-    using type = rn::detail::MySumtype::more;
+  struct traits<rn::detail::MySumtype_alternatives::more> {
+    using type = rn::detail::MySumtype_alternatives::more;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::MySumtype";
@@ -1117,7 +1090,7 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "d", &rn::detail::MySumtype::more::d, /*offset=*/base::nothing },
+      refl::StructField{ "d", &rn::detail::MySumtype_alternatives::more::d, /*offset=*/base::nothing },
     };
   };
 
@@ -1130,7 +1103,7 @@ namespace rn {
 
   namespace detail {
 
-    namespace OnOffState {
+    namespace OnOffState_alternatives {
 
       struct off {
         // This requires that the types of the member variables
@@ -1163,22 +1136,22 @@ namespace rn {
         bool operator!=( struct switching_off const& ) const = default;
       };
 
-    } // namespace OnOffState
+    } // namespace OnOffState_alternatives
 
     using OnOffStateBase = base::variant<
-      detail::OnOffState::off,
-      detail::OnOffState::on,
-      detail::OnOffState::switching_on,
-      detail::OnOffState::switching_off
+      detail::OnOffState_alternatives::off,
+      detail::OnOffState_alternatives::on,
+      detail::OnOffState_alternatives::switching_on,
+      detail::OnOffState_alternatives::switching_off
     >;
 
   } // namespace detail
 
   struct OnOffState : public detail::OnOffStateBase {
-    using off           = detail::OnOffState::off;
-    using on            = detail::OnOffState::on;
-    using switching_on  = detail::OnOffState::switching_on;
-    using switching_off = detail::OnOffState::switching_off;
+    using off           = detail::OnOffState_alternatives::off;
+    using on            = detail::OnOffState_alternatives::on;
+    using switching_on  = detail::OnOffState_alternatives::switching_on;
+    using switching_off = detail::OnOffState_alternatives::switching_off;
 
     enum class e {
       off,
@@ -1209,9 +1182,6 @@ namespace rn {
     }
   };
 
-  // TODO: temporary.
-  using OnOffState_t = OnOffState;
-
   NOTHROW_MOVE( OnOffState );
 
 } // namespace rn
@@ -1227,8 +1197,8 @@ namespace refl {
 
   // Reflection info for struct off.
   template<>
-  struct traits<rn::detail::OnOffState::off> {
-    using type = rn::detail::OnOffState::off;
+  struct traits<rn::detail::OnOffState_alternatives::off> {
+    using type = rn::detail::OnOffState_alternatives::off;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::OnOffState";
@@ -1242,8 +1212,8 @@ namespace refl {
 
   // Reflection info for struct on.
   template<>
-  struct traits<rn::detail::OnOffState::on> {
-    using type = rn::detail::OnOffState::on;
+  struct traits<rn::detail::OnOffState_alternatives::on> {
+    using type = rn::detail::OnOffState_alternatives::on;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::OnOffState";
@@ -1253,14 +1223,14 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "user", &rn::detail::OnOffState::on::user, /*offset=*/base::nothing },
+      refl::StructField{ "user", &rn::detail::OnOffState_alternatives::on::user, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct switching_on.
   template<>
-  struct traits<rn::detail::OnOffState::switching_on> {
-    using type = rn::detail::OnOffState::switching_on;
+  struct traits<rn::detail::OnOffState_alternatives::switching_on> {
+    using type = rn::detail::OnOffState_alternatives::switching_on;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::OnOffState";
@@ -1270,14 +1240,14 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "percent", &rn::detail::OnOffState::switching_on::percent, /*offset=*/base::nothing },
+      refl::StructField{ "percent", &rn::detail::OnOffState_alternatives::switching_on::percent, /*offset=*/base::nothing },
     };
   };
 
   // Reflection info for struct switching_off.
   template<>
-  struct traits<rn::detail::OnOffState::switching_off> {
-    using type = rn::detail::OnOffState::switching_off;
+  struct traits<rn::detail::OnOffState_alternatives::switching_off> {
+    using type = rn::detail::OnOffState_alternatives::switching_off;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::OnOffState";
@@ -1287,7 +1257,7 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "percent", &rn::detail::OnOffState::switching_off::percent, /*offset=*/base::nothing },
+      refl::StructField{ "percent", &rn::detail::OnOffState_alternatives::switching_off::percent, /*offset=*/base::nothing },
     };
   };
 
@@ -1300,7 +1270,7 @@ namespace rn {
 
   namespace detail {
 
-    namespace OnOffEvent {
+    namespace OnOffEvent_alternatives {
 
       struct turn_off {
         // This requires that the types of the member variables
@@ -1316,18 +1286,18 @@ namespace rn {
         bool operator!=( struct turn_on const& ) const = default;
       };
 
-    } // namespace OnOffEvent
+    } // namespace OnOffEvent_alternatives
 
     using OnOffEventBase = base::variant<
-      detail::OnOffEvent::turn_off,
-      detail::OnOffEvent::turn_on
+      detail::OnOffEvent_alternatives::turn_off,
+      detail::OnOffEvent_alternatives::turn_on
     >;
 
   } // namespace detail
 
   struct OnOffEvent : public detail::OnOffEventBase {
-    using turn_off = detail::OnOffEvent::turn_off;
-    using turn_on  = detail::OnOffEvent::turn_on;
+    using turn_off = detail::OnOffEvent_alternatives::turn_off;
+    using turn_on  = detail::OnOffEvent_alternatives::turn_on;
 
     enum class e {
       turn_off,
@@ -1350,9 +1320,6 @@ namespace rn {
     }
   };
 
-  // TODO: temporary.
-  using OnOffEvent_t = OnOffEvent;
-
   NOTHROW_MOVE( OnOffEvent );
 
 } // namespace rn
@@ -1368,8 +1335,8 @@ namespace refl {
 
   // Reflection info for struct turn_off.
   template<>
-  struct traits<rn::detail::OnOffEvent::turn_off> {
-    using type = rn::detail::OnOffEvent::turn_off;
+  struct traits<rn::detail::OnOffEvent_alternatives::turn_off> {
+    using type = rn::detail::OnOffEvent_alternatives::turn_off;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::OnOffEvent";
@@ -1383,8 +1350,8 @@ namespace refl {
 
   // Reflection info for struct turn_on.
   template<>
-  struct traits<rn::detail::OnOffEvent::turn_on> {
-    using type = rn::detail::OnOffEvent::turn_on;
+  struct traits<rn::detail::OnOffEvent_alternatives::turn_on> {
+    using type = rn::detail::OnOffEvent_alternatives::turn_on;
 
     static constexpr type_kind kind        = type_kind::struct_kind;
     static constexpr std::string_view ns   = "rn::OnOffEvent";

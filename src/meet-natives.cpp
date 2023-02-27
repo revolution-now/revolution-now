@@ -116,7 +116,7 @@ vector<MeetTribe> check_meet_tribes( SSConst const& ss,
   for( e_direction d : refl::enum_values<e_direction> ) {
     Coord const moved = coord.moved( d );
     if( !ss.terrain.square_exists( moved ) ) continue;
-    maybe<Society_t> const society =
+    maybe<Society> const society =
         society_on_square( ss, moved );
     if( !society.has_value() ) continue;
     maybe<Society::native const&> native =

@@ -55,7 +55,7 @@ struct UnitsState {
 
   GenericUnitId last_unit_id() const;
 
-  std::unordered_map<GenericUnitId, UnitState_t> const& all()
+  std::unordered_map<GenericUnitId, UnitState> const& all()
       const;
   std::unordered_map<UnitId, EuroUnitState const*> const&
   euro_all() const;
@@ -86,11 +86,11 @@ struct UnitsState {
   NativeUnit&       native_unit_for( GenericUnitId id );
 
   // Unit must exist.
-  UnitState_t const&     state_of( GenericUnitId id ) const;
-  EuroUnitState const&   state_of( UnitId id ) const;
-  NativeUnitState const& state_of( NativeUnitId id ) const;
-  UnitOwnership_t const& ownership_of( UnitId id ) const;
-  NativeUnitOwnership_t const& ownership_of(
+  UnitState const&           state_of( GenericUnitId id ) const;
+  EuroUnitState const&       state_of( UnitId id ) const;
+  NativeUnitState const&     state_of( NativeUnitId id ) const;
+  UnitOwnership const&       ownership_of( UnitId id ) const;
+  NativeUnitOwnership const& ownership_of(
       NativeUnitId id ) const;
 
   maybe<Coord> maybe_coord_for( UnitId id ) const;
@@ -195,11 +195,11 @@ struct UnitsState {
   // colonies state.
   void change_to_colony( UnitId id, ColonyId col_id );
 
-  friend void move_unit_to_colony( UnitsState&   units_state,
-                                   Player const& player,
-                                   Colony&       colony,
-                                   UnitId        unit_id,
-                                   ColonyJob_t const& job );
+  friend void move_unit_to_colony( UnitsState&      units_state,
+                                   Player const&    player,
+                                   Colony&          colony,
+                                   UnitId           unit_id,
+                                   ColonyJob const& job );
 
  public:
   // Will start at the starting slot and rotate right trying to
@@ -227,11 +227,11 @@ struct UnitsState {
  private:
   [[nodiscard]] GenericUnitId next_unit_id();
 
-  UnitState_t&           state_of( GenericUnitId id );
-  EuroUnitState&         state_of( UnitId id );
-  NativeUnitState&       state_of( NativeUnitId id );
-  UnitOwnership_t&       ownership_of( UnitId id );
-  NativeUnitOwnership_t& ownership_of( NativeUnitId id );
+  UnitState&           state_of( GenericUnitId id );
+  EuroUnitState&       state_of( UnitId id );
+  NativeUnitState&     state_of( NativeUnitId id );
+  UnitOwnership&       ownership_of( UnitId id );
+  NativeUnitOwnership& ownership_of( NativeUnitId id );
 
   valid_or<std::string> validate() const;
   void                  validate_or_die() const;

@@ -54,7 +54,7 @@ struct PlowHandler : public CommandHandler {
           "plow." );
       co_return false;
     }
-    UnitOwnership_t const& ownership =
+    UnitOwnership const& ownership =
         static_cast<UnitsState const&>( ss_.units )
             .ownership_of( unit_id_ );
     if( !ownership.is<UnitOwnership::world>() ) {
