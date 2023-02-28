@@ -1,7 +1,12 @@
 import os, sys, json
 import subprocess as sp
 
-files = json.loads( open( '.builds/current/compile_commands.json', 'r' ).read() )
+root = os.getcwd()
+while not os.path.basename( root ).startswith( 'revolution' ):
+    root = os.path.dirname( root )
+
+compile_commands = '{}/.builds/current/compile_commands.json'.format( root )
+files = json.loads( open( compile_commands, 'r' ).read() )
 
 flags = {}
 directories = {}
