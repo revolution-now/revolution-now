@@ -321,8 +321,8 @@ LUA_FN( create_unit_on_map, Unit&, e_nation nation,
              "player for nation {} does not exist.", nation );
   UnitId id = create_unit_on_map_non_interactive(
       ss, ts, *player, comp, coord );
-  lg.info( "created a {} on square {}.",
-           unit_attr( comp.type() ).name, coord );
+  lg.trace( "created a {} on square {}.",
+            unit_attr( comp.type() ).name, coord );
   return ss.units.unit_for( id );
 }
 
@@ -333,15 +333,15 @@ LUA_FN( create_native_unit_on_map, NativeUnit&,
 
   NativeUnitId const id = create_unit_on_map_non_interactive(
       ss, type, coord, dwelling_id );
-  lg.info( "created a {} on square {}.", type, coord );
+  lg.trace( "created a {} on square {}.", type, coord );
   return ss.units.unit_for( id );
 }
 
 LUA_FN( add_unit_to_cargo, void, UnitId held, UnitId holder ) {
   SS& ss = st["SS"].as<SS&>();
-  lg.info( "adding unit {} to cargo of unit {}.",
-           debug_string( ss.units, held ),
-           debug_string( ss.units, holder ) );
+  lg.trace( "adding unit {} to cargo of unit {}.",
+            debug_string( ss.units, held ),
+            debug_string( ss.units, holder ) );
   ss.units.change_to_cargo_somewhere( holder, held );
 }
 
@@ -352,8 +352,9 @@ LUA_FN( create_unit_in_cargo, Unit&, e_nation nation,
   LUA_CHECK( st, player.has_value(),
              "player for nation {} does not exist.", nation );
   UnitId unit_id = create_free_unit( ss.units, *player, comp );
-  lg.info( "created unit {}.", debug_string( ss.units, unit_id ),
-           debug_string( ss.units, holder ) );
+  lg.trace( "created unit {}.",
+            debug_string( ss.units, unit_id ),
+            debug_string( ss.units, holder ) );
   ss.units.change_to_cargo_somewhere( holder, unit_id );
   return ss.units.unit_for( unit_id );
 }
