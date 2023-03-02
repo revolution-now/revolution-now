@@ -66,6 +66,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/keyval.hpp"
 #include "base/lambda.hpp"
 #include "base/scope-exit.hpp"
 #include "base/to-str-ext-std.hpp"
@@ -572,7 +573,7 @@ wait<LandViewPlayerInput> landview_player_input(
   } else {
     lg.debug( "asking orders for: {}",
               debug_string( units_state, id ) );
-    nat_units.need_eot = false;
+    nat_units.skip_eot = true;
     response = co_await land_view_plane.get_next_input( id );
   }
   co_return response;
@@ -906,20 +907,21 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
 wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
                                         e_nation         nation,
                                         NationTurnState& st ) {
-  UNWRAP_CHECK( player, ss.players.players[nation] );
+  Player& player =
+      player_for_nation_or_die( ss.players, nation );
+  if( ss.players.human != player.nation )
+    // TODO: Until we have AI.
+    co_return NationTurnState::finished{};
+  // `visibility` determines from whose point of view the map is
+  // drawn with respect to which tiles are hidden. This will po-
+  // tentially redraw the map (if necessary) to align with the
+  // nation from whose perspective we are currently viewing the
+  // map (if any) as specified in the land view state.
+  update_map_visibility(
+      ts, player_for_role( ss, e_player_role::viewer ) );
+
   SWITCH( st ) {
     CASE( not_started ) {
-      if( ss.players.human != player.nation )
-        // TODO: Until we have AI.
-        co_return NationTurnState::finished{};
-      // `visibility` determines from whose point of view the map
-      // is drawn with respect to which tiles are hidden. This
-      // will potentially redraw the map (if necessary) to align
-      // with the nation from whose perspective we are currently
-      // viewing the map (if any) as specified in the land view
-      // state.
-      update_map_visibility(
-          ts, player_for_role( ss, e_player_role::viewer ) );
       print_bar( '-', fmt::format( "[ {} ]", nation ) );
       co_await nation_start_of_turn( ss, ts, player );
       co_return NationTurnState::colonies{};
@@ -932,7 +934,7 @@ wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
     CASE( units ) {
       co_await units_turn( ss, ts, player, o );
       CHECK( o.q.empty() );
-      if( o.need_eot ) co_return NationTurnState::eot{};
+      if( !o.skip_eot ) co_return NationTurnState::eot{};
       co_return NationTurnState::finished{};
     }
     CASE( eot ) {
@@ -962,6 +964,7 @@ wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
 
 wait<> nation_turn( SS& ss, TS& ts, e_nation nation,
                     NationTurnState& st ) {
+  if( !ss.players.players[nation].has_value() ) co_return;
   while( !st.holds<NationTurnState::finished>() )
     st = co_await nation_turn_iter( ss, ts, nation, st );
 }
@@ -1000,24 +1003,20 @@ wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
   TurnCycle& cycle = ss.turn.cycle;
   SWITCH( cycle ) {
     CASE( not_started ) {
-      ts.planes.land_view().start_new_turn();
-      print_bar( '=', "[ Starting Turn ]" );
       reset_units( ss );
       start_of_turn_cycle( ss );
       co_return TurnCycle::natives{};
     }
     CASE( natives ) {
       // TODO
-      co_return TurnCycle::nations{};
+      co_return TurnCycle::nation{};
     }
-    CASE( nations ) {
-      for( e_nation const nation :
-           refl::enum_values<e_nation> ) {
-        NationTurnState& nation_st = o.which[nation];
-        if( nation_st.holds<NationTurnState::finished>() )
-          continue;
-        co_await nation_turn( ss, ts, nation, nation_st );
-      }
+    CASE( nation ) {
+      co_await nation_turn( ss, ts, o.nation, o.st );
+      auto& ns   = refl::enum_values<e_nation>;
+      auto  next = base::find( ns, o.nation ) + 1;
+      if( next != ns.end() )
+        co_return TurnCycle::nation{ .nation = *next };
       co_return TurnCycle::end_cycle{};
     }
     CASE( end_cycle ) {
@@ -1034,11 +1033,15 @@ wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
 // Runs through the various phases of a single turn.
 wait<> next_turn( SS& ss, TS& ts ) {
   TurnCycle& cycle = ss.turn.cycle;
-  // The default-constructed cycle represents a new turn where
-  // nothing yet has been done.
-  cycle = {};
+  ts.planes.land_view().start_new_turn();
+  print_bar( '=', "[ Starting Turn ]" );
   while( !cycle.holds<TurnCycle::finished>() )
     cycle = co_await next_turn_iter( ss, ts );
+  // The default-constructed cycle represents a new turn where
+  // nothing yet has been done. Do this at the end of the cycle
+  // so that we don't destroy the turn state after having loaded
+  // a saved game.
+  cycle = {};
 }
 
 } // namespace

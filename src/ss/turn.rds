@@ -14,9 +14,6 @@ include "unit-id.hpp"
 # Rds
 include "nation.rds.hpp"
 
-# refl
-include "refl/enum-map.hpp"
-
 # base
 include "base/maybe.hpp"
 
@@ -47,7 +44,7 @@ sumtype.NationTurnState {
   colonies {},
   units {
     q 'std::deque<UnitId>',
-    need_eot 'bool',
+    skip_eot 'bool',
   },
   eot {},
   finished {},
@@ -56,8 +53,9 @@ sumtype.NationTurnState {
 sumtype.TurnCycle {
   not_started {}, # should be first.
   natives {},
-  nations {
-    which 'refl::enum_map<e_nation, NationTurnState>',
+  nation {
+    nation 'e_nation',
+    st 'NationTurnState',
   },
   end_cycle {},
   finished {},

@@ -50,17 +50,8 @@ maybe<e_nation> player_for_role( SSConst const& ss,
     case e_player_role::human:
       return ss.players.human;
     case e_player_role::active:
-      if( auto nations =
-              ss.turn.cycle.get_if<TurnCycle::nations>();
-          nations.has_value() )
-        for( e_nation const nation :
-             refl::enum_values<e_nation> )
-          if( nations->which[nation].to_enum() >
-                  NationTurnState::e::not_started &&
-              nations->which[nation].to_enum() <
-                  NationTurnState::e::finished )
-            return nation;
-      return nothing;
+      return ss.turn.cycle.get_if<TurnCycle::nation>().member(
+          &TurnCycle::nation::nation );
   }
 }
 
