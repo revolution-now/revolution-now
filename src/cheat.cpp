@@ -23,6 +23,7 @@
 #include "market.hpp"
 #include "plane-stack.hpp"
 #include "promotion.hpp"
+#include "roles.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "unit.hpp"
@@ -94,7 +95,7 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
           disabled );
   if( !selected.has_value() ) co_return;
 
-  maybe<MapRevealed> revealed;
+  MapRevealed revealed;
 
   switch( *selected ) {
     case e_cheat_reveal_map::english:
@@ -117,27 +118,26 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
       revealed = MapRevealed::entire{};
       break;
     case e_cheat_reveal_map::no_special_view:
+      revealed = MapRevealed::no_special_view{};
       break;
   }
 
-  maybe<e_nation> const active = active_player( ss.turn );
-  set_map_visibility( ss, ts, revealed, active );
+  // Need to set this before calling update_map_visibility.
+  ss.land_view.map_revealed = revealed;
+  update_map_visibility(
+      ts, player_for_role( ss, e_player_role::viewer ) );
 }
 
 void cheat_toggle_reveal_full_map( SS& ss, TS& ts ) {
   RETURN_IF_NO_CHEAT;
-  maybe<MapRevealed&> revealed = ss.land_view.map_revealed;
-  if( !revealed.has_value() ||
-      !revealed->holds<MapRevealed::entire>() ) {
-    // Reveal the entire map.
-    set_map_visibility( ss, ts,
-                        MapRevealed{ MapRevealed::entire{} },
-                        /*default_nation=*/nothing );
-    return;
-  }
-  // Reveal for active player.
-  maybe<e_nation> const active = active_player( ss.turn );
-  set_map_visibility( ss, ts, nothing, active );
+  MapRevealed& revealed = ss.land_view.map_revealed;
+  if( revealed.holds<MapRevealed::no_special_view>() ||
+      revealed.holds<MapRevealed::nation>() )
+    revealed = MapRevealed::entire{};
+  else
+    revealed = MapRevealed::no_special_view{};
+  update_map_visibility(
+      ts, player_for_role( ss, e_player_role::viewer ) );
 }
 
 wait<> cheat_edit_fathers( SS& ss, TS& ts, Player& player ) {

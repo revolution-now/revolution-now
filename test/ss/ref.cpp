@@ -174,10 +174,15 @@ cdr::value cdr_game_state_default =
                 "minimap"_key =
                     cdr::table{
                         "origin"_key =
-                            cdr::table{ "x"_key = 0.0,
-                                        "y"_key = 0.0 },
+                            cdr::table{
+                                "x"_key = 0.0,
+                                "y"_key = 0.0,
+                            },
                     },
-                "map_revealed"_key = cdr::null,
+                "map_revealed"_key =
+                    cdr::table{
+                        "no_special_view"_key = cdr::table{},
+                    },
             },
         "zzz_terrain"_key =
             cdr::table{

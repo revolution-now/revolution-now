@@ -27,10 +27,8 @@
 
 namespace rn {
 
-struct MapRevealed;
 struct MapSquare;
 struct PlayerTerrain;
-struct SS;
 struct SSConst;
 struct TerrainState;
 struct TS;
@@ -116,17 +114,10 @@ std::vector<Coord> unit_visible_squares( SSConst const& ss,
                                          e_unit_type    type,
                                          Coord          tile );
 
-// This is the function that should be used to determine the per-
-// spective from which the land map should be rendered. It can be
-// rendered from the perspective of a particular player, no
-// player (entire map), or current player. This is used at the
-// start of each player's turn (if they are human) to set the map
-// to their view, and is also used by the cheat function "reveal
-// map." The default_nation is the nation that we will use if
-// `revealed` is nothing; if default_nation in turn is nothing
-// then it means "entire map."
-void set_map_visibility( SS& ss, TS& ts,
-                         maybe<MapRevealed const&> revealed,
-                         maybe<e_nation> default_nation );
+// This will update map visibility to be front the perspective of
+// the given nation (or the entire map visible if the `nation`
+// parameter is nothing), This process may include redrawing the
+// map if necessary.
+void update_map_visibility( TS& ts, maybe<e_nation> nation );
 
 } // namespace rn

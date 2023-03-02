@@ -22,7 +22,6 @@
 #include "src/plane-stack.hpp"
 
 // ss
-#include "ss/land-view.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
@@ -995,42 +994,31 @@ TEST_CASE( "[visibility] set_map_visibility" ) {
   MockLandViewPlane mock_land_view;
   W.planes().back().land_view = &mock_land_view;
 
-  maybe<e_nation>    default_nation;
-  maybe<MapRevealed> revealed;
-  maybe<MapRevealed> expected;
+  maybe<e_nation> revealed;
 
-  auto f = [&] {
-    set_map_visibility( W.ss(), W.ts(), revealed,
-                        default_nation );
-  };
+  auto f = [&] { update_map_visibility( W.ts(), revealed ); };
 
-  expected = nothing;
-  REQUIRE( W.land_view().map_revealed == expected );
   REQUIRE( W.map_updater().options().nation == nothing );
 
   mock_land_view.EXPECT__set_visibility( maybe<e_nation>{} );
-  revealed       = MapRevealed::entire{};
-  default_nation = e_nation::french; // should be irrelevant.
-  expected       = revealed;
+  revealed = nothing;
   f();
-  REQUIRE( W.land_view().map_revealed == expected );
   REQUIRE( W.map_updater().options().nation == nothing );
 
   mock_land_view.EXPECT__set_visibility( e_nation::spanish );
-  revealed = MapRevealed::nation{ .nation = e_nation::spanish };
-  default_nation = e_nation::french; // should be irrelevant.
-  expected       = revealed;
+  revealed = e_nation::spanish;
   f();
-  REQUIRE( W.land_view().map_revealed == expected );
   REQUIRE( W.map_updater().options().nation ==
            e_nation::spanish );
 
-  mock_land_view.EXPECT__set_visibility( e_nation::french );
-  revealed       = nothing;
-  default_nation = e_nation::french;
-  expected       = revealed;
+  mock_land_view.EXPECT__set_visibility( maybe<e_nation>{} );
+  revealed = nothing;
   f();
-  REQUIRE( W.land_view().map_revealed == expected );
+  REQUIRE( W.map_updater().options().nation == nothing );
+
+  mock_land_view.EXPECT__set_visibility( e_nation::french );
+  revealed = e_nation::french;
+  f();
   REQUIRE( W.map_updater().options().nation ==
            e_nation::french );
 }
