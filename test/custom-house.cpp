@@ -203,7 +203,6 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
   World W;
   W.settings().difficulty = e_difficulty::conquistador;
   Player& dutch           = W.dutch();
-  Player& french          = W.french();
   Colony& colony = W.add_colony_with_new_unit( Coord{} );
   CustomHouseSales expected;
   colony.buildings[e_colony_building::custom_house] = true;
@@ -217,9 +216,6 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
   colony.commodities[e_commodity::muskets] = 99;
   dutch.old_world.taxes.tax_rate           = 10;
 
-  dutch.human  = true;
-  french.human = true;
-
   W.players()
       .global_market_state.commodities[e_commodity::cloth]
       .intrinsic_volume = 1000;
@@ -230,6 +226,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
     colony.custom_house[e_commodity::cloth]   = true;
     colony.custom_house[e_commodity::muskets] = true;
     dutch.revolution_status = e_revolution_status::not_declared;
+    W.set_human_player( e_nation::dutch );
     CustomHouseSales const res =
         compute_custom_house_sales( W.ss(), dutch, colony );
     expected =
@@ -296,6 +293,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
     dutch.revolution_status = e_revolution_status::declared;
     // One should be enough here.
     colony.custom_house[e_commodity::fur] = true;
+    W.set_human_player( e_nation::dutch );
     CustomHouseSales const res =
         compute_custom_house_sales( W.ss(), dutch, colony );
     expected = {
@@ -332,6 +330,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
     colony.custom_house[e_commodity::cloth]   = true;
     colony.custom_house[e_commodity::muskets] = true;
     dutch.revolution_status = e_revolution_status::not_declared;
+    W.set_human_player( e_nation::dutch );
     CustomHouseSales const res =
         compute_custom_house_sales( W.ss(), dutch, colony );
     expected =
@@ -390,8 +389,8 @@ TEST_CASE(
   // Init settings.
   W.settings().difficulty = e_difficulty::conquistador;
   // Init player.
-  Player& french           = W.french();
-  french.human             = true;
+  Player& french = W.french();
+  W.set_human_player( e_nation::french );
   french.revolution_status = e_revolution_status::not_declared;
   // Init colony.
   Colony& colony = W.add_colony_with_new_unit( Coord{} );
@@ -474,8 +473,8 @@ TEST_CASE(
   // Init settings.
   W.settings().difficulty = e_difficulty::conquistador;
   // Init player.
-  Player& dutch           = W.dutch();
-  dutch.human             = true;
+  Player& dutch = W.dutch();
+  W.set_human_player( e_nation::dutch );
   dutch.revolution_status = e_revolution_status::not_declared;
   // Init colony.
   Colony& colony = W.add_colony_with_new_unit( Coord{} );

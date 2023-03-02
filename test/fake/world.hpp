@@ -261,7 +261,13 @@ struct World {
     default_nation_ = nation;
   }
 
-  void set_human_player( e_nation nation );
+  // Note that this function has a different convention than the
+  // usual in this module. When `nation` is nothing it means that
+  // there is no human player, as opposed to the usual meaning
+  // which would be that the "default" player is selected.
+  void set_human_player( maybe<e_nation> nation );
+
+  void set_default_player_as_human();
 
   // This will call the validate method on each colony in the
   // state and return an error if any of them fail.

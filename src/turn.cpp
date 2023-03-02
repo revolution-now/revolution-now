@@ -953,7 +953,9 @@ wait<> nation_turn( SS& ss, TS& ts,
 
   UNWRAP_CHECK( player, ss.players.players[st.nation] );
 
-  if( !player.human ) co_return; // TODO: Until we have AI.
+  if( ss.players.human != player.nation )
+    // TODO: Until we have AI.
+    co_return;
 
   // `visibility` determines from whose point of view the map is
   // drawn with respect to which tiles are hidden.

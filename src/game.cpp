@@ -58,12 +58,10 @@ enum class e_game_module_tune_points {
   start_game //
 };
 
-// TODO: temporary until we have AI.
-e_nation ensure_human_player(
-    PlayersState const& players_state ) {
-  for( auto const& [nation, player] : players_state.players )
-    if( player.has_value() && player->human ) return nation;
-  FATAL( "there must be at least one human player." );
+e_nation ensure_human_player( PlayersState const& players ) {
+  CHECK( players.human.has_value(),
+         "there must be a human player." );
+  return *players.human;
 }
 
 void play( IRand& rand, e_game_module_tune_points tune ) {

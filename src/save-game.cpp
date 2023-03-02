@@ -228,20 +228,11 @@ wait<maybe<int>> select_slot( TS& ts, bool include_autosaves,
 string construct_rcl_title( RootState const& root ) {
   string const difficulty = base::capitalize_initials(
       refl::enum_value_name( root.settings.difficulty ) );
-  string const    name  = "David"; // FIXME: temporary
-  maybe<e_nation> human = active_player( root.turn );
-  if( !human.has_value() ) {
-    for( e_nation nation : refl::enum_values<e_nation> ) {
-      maybe<Player const&> player = root.players.players[nation];
-      if( !player.has_value() ) continue;
-      if( !player->human ) continue;
-      human = nation;
-      break;
-    }
-  }
-  string const nation_name =
+  string const          name  = "David"; // FIXME: temporary
+  maybe<e_nation> const human = root.players.human;
+  string const          nation_name =
       human.has_value() ? config_nation.nations[*human].adjective
-                        : "(AI only)";
+                                 : "(AI only)";
   TurnState const& turn_state = root.turn;
   string const     time_point = fmt::format(
       "{} {}",

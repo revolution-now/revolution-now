@@ -207,7 +207,7 @@ Invoice transaction_invoice_default_model(
   double base_volume_change =
       with_volatility( quantity, volatility );
   base_volume_change *=
-      player.human
+      ( ss.players.human == player.nation )
           ? difficulty_modifiers.human_traffic_volume_scale
           : difficulty_modifiers.non_human_traffic_volume_scale;
 

@@ -64,6 +64,7 @@ cdr::value cdr_game_state_default =
                         "french"_key  = cdr::null,
                         "spanish"_key = cdr::null,
                     },
+                "human"_key = cdr::null,
                 "global_market_state"_key =
                     cdr::table{
                         "commodities"_key =

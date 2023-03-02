@@ -21,6 +21,13 @@ namespace "rn"
 struct.PlayersState {
   players 'refl::enum_map<e_nation, maybe<Player>>',
 
+  # There can be at most one human player. If there is one then
+  # the human will control that player and the entire game will
+  # be viewed from the perspective of that player. If there is
+  # none, then the game will be viewed from the perspective of
+  # the AI player whose turn it currently is.
+  human 'base::maybe<e_nation>',
+
   # Market state that is shared by all nations.
   global_market_state 'GlobalMarketState',
 
