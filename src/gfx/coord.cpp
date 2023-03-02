@@ -523,26 +523,26 @@ Delta operator-( Coord const& lhs, Coord const& rhs ) {
   return { .w = lhs.x - rhs.x, .h = lhs.y - rhs.y };
 }
 
-ND Coord operator*( Coord const& coord, Delta const& delta ) {
+Coord operator*( Coord const& coord, Delta const& delta ) {
   Coord res = coord;
   res *= delta;
   return res;
 }
 
-ND Coord operator*( Coord const& coord, int scale ) {
+Coord operator*( Coord const& coord, int scale ) {
   Coord res = coord;
   res.x *= scale;
   res.y *= scale;
   return res;
 }
 
-ND Coord operator*( Delta const& delta, Coord const& coord ) {
+Coord operator*( Delta const& delta, Coord const& coord ) {
   Coord res = coord;
   res *= delta;
   return res;
 }
 
-ND Delta operator*( Delta const& lhs, Delta const& rhs ) {
+Delta operator*( Delta const& lhs, Delta const& rhs ) {
   Delta res = lhs;
   res.w *= rhs.w;
   res.h *= rhs.h;
