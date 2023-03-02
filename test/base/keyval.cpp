@@ -70,21 +70,13 @@ TEST_CASE( "[keyval] find" ) {
       { "birthday", 10 },
   };
 
-  static_assert(
-      is_same_v<decltype( ::base::find( m1, "" ) ),
-                maybe<unordered_map<string, int>::iterator>> );
-  static_assert(
-      is_same_v<
-          decltype( ::base::find( as_const( m1 ), "" ) ),
-          maybe<unordered_map<string, int>::const_iterator>> );
-
-  REQUIRE( ::base::find( m1, "123" ) == nothing );
-  REQUIRE( ::base::find( m1, "world" ).has_value() );
-  REQUIRE( ( **::base::find( m1, "world" ) ).second == 7 );
-  REQUIRE( ::base::find( m1, "hello" ).has_value() );
-  REQUIRE( ( **::base::find( m1, "hello" ) ).second == 3 );
-  REQUIRE( ::base::find( m1, "birthday" ).has_value() );
-  REQUIRE( ( **::base::find( m1, "birthday" ) ).second == 10 );
+  REQUIRE( base::find( m1, "123" ) == m1.end() );
+  REQUIRE( base::find( m1, "world" ) != m1.end() );
+  REQUIRE( ( *base::find( m1, "world" ) ).second == 7 );
+  REQUIRE( base::find( m1, "hello" ) != m1.end() );
+  REQUIRE( ( *base::find( m1, "hello" ) ).second == 3 );
+  REQUIRE( base::find( m1, "birthday" ) != m1.end() );
+  REQUIRE( ( *::base::find( m1, "birthday" ) ).second == 10 );
 
   unordered_map<string, int> m2{
       { "hello", 3 },
@@ -93,21 +85,33 @@ TEST_CASE( "[keyval] find" ) {
       { "birthday", 10 },
   };
 
-  static_assert(
-      is_same_v<decltype( ::base::find( m2, "" ) ),
-                maybe<unordered_map<string, int>::iterator>> );
-  static_assert(
-      is_same_v<
-          decltype( ::base::find( as_const( m2 ), "" ) ),
-          maybe<unordered_map<string, int>::const_iterator>> );
+  REQUIRE( base::find( m2, "123" ) == m2.end() );
+  REQUIRE( base::find( m2, "world" ) != m2.end() );
+  REQUIRE( ( *::base::find( m2, "world" ) ).second == 7 );
+  REQUIRE( base::find( m2, "hello" ) != m2.end() );
+  REQUIRE( ( *::base::find( m2, "hello" ) ).second == 3 );
+  REQUIRE( base::find( m2, "birthday" ) != m2.end() );
+  REQUIRE( ( *::base::find( m2, "birthday" ) ).second == 10 );
+}
 
-  REQUIRE( ::base::find( m2, "123" ) == nothing );
-  REQUIRE( ::base::find( m2, "world" ).has_value() );
-  REQUIRE( ( **::base::find( m2, "world" ) ).second == 7 );
-  REQUIRE( ::base::find( m2, "hello" ).has_value() );
-  REQUIRE( ( **::base::find( m2, "hello" ) ).second == 3 );
-  REQUIRE( ::base::find( m2, "birthday" ).has_value() );
-  REQUIRE( ( **::base::find( m2, "birthday" ) ).second == 10 );
+struct HasFindMember {
+  using const_iterator = int;
+
+  const_iterator find( int ) {
+    find_member_called = true;
+    return 123;
+  }
+
+  const_iterator end() { return 0; };
+
+  bool find_member_called = false;
+};
+
+TEST_CASE( "[keyval] calls correct find" ) {
+  HasFindMember hfm;
+  REQUIRE( hfm.find_member_called == false );
+  REQUIRE( base::find( hfm, 0 ) == 123 );
+  REQUIRE( hfm.find_member_called == true );
 }
 
 } // namespace

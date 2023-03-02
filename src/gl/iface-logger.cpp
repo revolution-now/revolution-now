@@ -70,7 +70,7 @@ void log_gl_call( string_view name, string_view params ) {
       "gl_GetError",
   };
   DCHECK( name.starts_with( "gl_" ) );
-  if( base::find( no_log, name ) ) return;
+  if( base::find( no_log, name ) == no_log.end() ) return;
   string no_prefix( name.begin() + 3, name.end() );
   fmt::print( "OpenGLWithLogger: gl{}( {} )\n", no_prefix,
               params );

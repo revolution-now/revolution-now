@@ -500,8 +500,8 @@ void UnitsState::disown_unit( UnitId id ) {
       break;
     case UnitOwnership::e::world: {
       auto& [coord] = v.get<UnitOwnership::world>();
-      UNWRAP_CHECK( set_it,
-                    base::find( units_from_coords_, coord ) );
+      auto set_it   = base::find( units_from_coords_, coord );
+      CHECK( set_it != units_from_coords_.end() );
       auto& units_set = set_it->second;
       units_set.erase( GenericUnitId{ to_underlying( id ) } );
       if( units_set.empty() ) units_from_coords_.erase( set_it );
@@ -520,9 +520,9 @@ void UnitsState::disown_unit( UnitId id ) {
     case UnitOwnership::e::colony: {
       auto& val    = v.get<UnitOwnership::colony>();
       auto  col_id = val.id;
-      UNWRAP_CHECK(
-          set_it,
-          base::find( worker_units_from_colony_, col_id ) );
+      auto  set_it =
+          base::find( worker_units_from_colony_, col_id );
+      CHECK( set_it != worker_units_from_colony_.end() );
       auto& units_set = set_it->second;
       units_set.erase( id );
       if( units_set.empty() )
@@ -553,8 +553,8 @@ void UnitsState::disown_unit( NativeUnitId id ) {
       CHECK( braves_for_dwelling_[dwelling_id].contains( id ) );
       braves_for_dwelling_[dwelling_id].erase( id );
       // Now remove it from the map.
-      UNWRAP_CHECK( set_it,
-                    base::find( units_from_coords_, coord ) );
+      auto set_it = base::find( units_from_coords_, coord );
+      CHECK( set_it != units_from_coords_.end() );
       auto& units_set = set_it->second;
       units_set.erase( GenericUnitId{ to_underlying( id ) } );
       if( units_set.empty() ) units_from_coords_.erase( set_it );
