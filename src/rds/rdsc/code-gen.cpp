@@ -62,13 +62,6 @@ string template_params( vector<expr::TemplateParam> const& tmpls,
   return res;
 }
 
-string all_int_tmpl_params( int count ) {
-  vector<expr::TemplateParam> params(
-      count, expr::TemplateParam{ "int" } );
-  return template_params( params, /*put_typename=*/false,
-                          /*space=*/true );
-}
-
 template<typename T>
 bool item_has_feature( T const& item, expr::e_feature feature ) {
   return item.features.has_value() &&
@@ -501,7 +494,8 @@ struct CodeGenerator {
         item_has_feature( sumtype, expr::e_feature::equality );
     bool const emit_validation =
         item_has_feature( sumtype, expr::e_feature::validation );
-    string const alt_ns = fmt::format("{}_alternatives", sumtype.name);
+    string const alt_ns =
+        fmt::format( "{}_alternatives", sumtype.name );
     if( !sumtype.alternatives.empty() ) {
       open_ns( alt_ns );
       for( expr::Alternative const& alt :
@@ -570,8 +564,10 @@ struct CodeGenerator {
                 alt.name );
           {
             auto _ = indent();
-            line( "return this->template holds<{}>() && (this->template get<{}>() == rhs);",
-                  alt.name, alt.name );
+            line(
+                "return this->template holds<{}>() && "
+                "(this->template get<{}>() == rhs);",
+                alt.name, alt.name );
           }
           line( "}" );
         }
@@ -579,10 +575,6 @@ struct CodeGenerator {
     }
     line( "};" );
     newline();
-    // Ensure that the variant is nothrow move'able since this
-    // makes code more efficient that uses it.
-    line( "NOTHROW_MOVE( {}{} );", sumtype.name,
-          all_int_tmpl_params( sumtype.tmpl_params.size() ) );
     newline();
     close_ns( ns );
     // Global namespace.
@@ -655,8 +647,8 @@ struct CodeGenerator {
         base::str_replace_all( item.ns, { { ".", "::" } } );
     auto visitor = [&]( auto const& v ) { emit( cpp_ns, v ); };
     for( expr::Construct const& construct : item.constructs ) {
-      newline();
       base::visit( visitor, construct );
+      newline();
     }
   }
 
@@ -688,27 +680,22 @@ struct CodeGenerator {
       newline();
     }
 
-    comment( "Revolution Now" );
-    line( "#include \"core-config.hpp\"" );
-    line( "" );
     comment( "refl" );
     line( "#include \"refl/ext.hpp\"" );
-    line( "" );
+    newline();
+
     if( rds_has_construct<expr::Sumtype>( rds ) ) {
       comment( "base" );
       line( "#include \"base/variant.hpp\"" );
+      newline();
     }
 
     if( rds_has_construct<expr::Config>( rds ) ) {
       comment( "Rds helpers." );
       line( "#include \"rds/config-helper.hpp\"" );
-      line( "" );
+      newline();
     }
 
-    // line( "" );
-    // comment( "base-util" );
-    // line( "#include \"base-util/mp.hpp\"" );
-    line( "" );
     comment( "C++ standard library" );
     if( rds_has_construct<expr::Enum>( rds ) )
       line( "#include <array>" );
@@ -723,6 +710,8 @@ struct CodeGenerator {
     emit_includes( rds );
 
     for( expr::Item const& item : rds.items ) emit_item( item );
+
+    comment( "The end." );
   }
 };
 
