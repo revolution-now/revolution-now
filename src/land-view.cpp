@@ -174,27 +174,18 @@ struct LandViewPlane::Impl : public Plane {
   /****************************************************************
   ** Tile Clicking
   *****************************************************************/
-  // If there is a single unit on the square with orders and
-  // allow_activate is false then the unit's orders will be
-  // cleared.
+  // If there is a single unit on the square with orders then the
+  // unit's orders will be cleared and the unit will be placed at
+  // the back of the queue to potentially move this turn.
   //
-  // If there is a single unit on the square with orders and
-  // allow_activate is true then the unit's orders will be
-  // cleared and the unit will be placed at the back of the queue
-  // to poten- tially move this turn.
-  //
-  // If there is a single unit on the square with no orders and
-  // allow_activate is false then nothing is done.
-  //
-  // If there is a single unit on the square with no orders and
-  // allow_activate is true then the unit will be prioritized
-  // (moved to the front of the queue).
+  // If there is a single unit on the square with no orders then
+  // the unit will be prioritized (moved to the front of the
+  // queue).
   //
   // If there are multiple units on the square then it will pop
   // open a window to allow the user to select and/or activate
   // them, with the results for each unit behaving in a similar
-  // way to the single-unit case described above with respect to
-  // orders and the allow_activate flag.
+  // way to the single-unit case described above.
   wait<vector<LandViewPlayerInput>> click_on_world_tile(
       Coord coord ) {
     vector<LandViewPlayerInput> res;
@@ -202,9 +193,6 @@ struct LandViewPlane::Impl : public Plane {
       res.push_back( std::move( t ) );
       return res.back().get<T>();
     };
-
-    bool allow_activate =
-        landview_mode_.holds<LandViewMode::unit_input>();
 
     // First check for colonies.
     if( auto maybe_id = ss_.colonies.maybe_from_coord( coord );
@@ -215,22 +203,24 @@ struct LandViewPlane::Impl : public Plane {
     }
 
     // Now check for units.
+    bool const allow_unit_click =
+        landview_mode_.holds<LandViewMode::unit_input>() ||
+        landview_mode_.holds<LandViewMode::end_of_turn>();
     auto const& units =
         euro_units_from_coord_recursive( ss_.units, coord );
-    if( units.size() != 0 ) {
+    if( allow_unit_click && units.size() != 0 ) {
       // Decide which units are selected and for what actions.
       vector<UnitSelection> selections;
       if( units.size() == 1 ) {
         auto          id = *units.begin();
         UnitSelection selection{
             id, e_unit_selection::clear_orders };
-        if( !ss_.units.unit_for( id ).has_orders() &&
-            allow_activate )
+        if( !ss_.units.unit_for( id ).has_orders() )
           selection.what = e_unit_selection::activate;
         selections = vector{ selection };
       } else {
         selections = co_await unit_selection_box(
-            ss_, ts_.planes.window(), units, allow_activate );
+            ss_, ts_.planes.window(), units );
       }
 
       vector<UnitId> prioritize;
@@ -240,14 +230,13 @@ struct LandViewPlane::Impl : public Plane {
             ss_.units.unit_for( selection.id ).clear_orders();
             break;
           case e_unit_selection::activate:
-            CHECK( allow_activate );
             // Activation implies also to clear orders if they're
             // not already cleared. We do this here because, even
             // if the prioritization is later denied (because the
             // unit has already moved this turn) the clearing of
             // the orders should still be upheld, because that
-            // can always be done, hence they are done
-            // separately.
+            // can always be done, hence they are done sepa-
+            // rately.
             ss_.units.unit_for( selection.id ).clear_orders();
             prioritize.push_back( selection.id );
             break;

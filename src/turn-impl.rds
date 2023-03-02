@@ -1,0 +1,31 @@
+# ===============================================================
+# turn-impl.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-03-02.
+#
+# Description: Rds definitions for the turn-impl module.
+#
+# ===============================================================
+# ss
+include "ss/unit-id.hpp"
+
+namespace "rn"
+
+sumtype.EndOfTurnResult {
+  # Stay at the end of turn.
+  not_done_yet {},
+
+  # Proceed to the next turn.
+  proceed {},
+
+  # Return to the units phase. This is for when the player acti-
+  # vates one or more units during the eot. For a smooth UX, we
+  # provide the most recent unit that the player clicked on that
+  # caused this action, that way it will be able to ask for or-
+  # ders first.
+  return_to_units {
+    first_to_ask 'UnitId',
+  },
+}

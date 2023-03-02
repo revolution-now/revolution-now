@@ -33,55 +33,33 @@ namespace rn {
 /****************************************************************
 ** UnitActivationView
 *****************************************************************/
-UnitActivationView::UnitActivationView( bool allow_activation )
-  : allow_activation_( allow_activation ), info_map_{} {}
+UnitActivationView::UnitActivationView() : info_map_{} {}
 
 void UnitActivationView::on_click_unit( UnitId id ) {
   auto& infos = info_map();
   CHECK( infos.contains( id ) );
   UnitActivationInfo& info = infos[id];
   if( info.original_orders.to_enum() != unit_orders::e::none ) {
-    if( allow_activation_ ) {
-      // Orders --> No Orders --> No Orders+Prio --> ...
-      if( info.current_orders.to_enum() !=
-          unit_orders::e::none ) {
-        CHECK( !info.is_activated );
-        info.current_orders = unit_orders::none{};
-      } else if( info.is_activated ) {
-        CHECK( info.current_orders.to_enum() ==
-               unit_orders::e::none );
-        info.current_orders = info.original_orders;
-        info.is_activated   = false;
-      } else {
-        CHECK( !info.is_activated );
-        info.is_activated = true;
-      }
-    } else {
-      // Orders --> No Orders --> ...
+    // Orders --> No Orders --> No Orders+Prio --> ...
+    if( info.current_orders.to_enum() != unit_orders::e::none ) {
       CHECK( !info.is_activated );
-      if( info.current_orders.to_enum() !=
-          unit_orders::e::none ) {
-        info.current_orders = unit_orders::none{};
-      } else {
-        info.current_orders = info.original_orders;
-      }
+      info.current_orders = unit_orders::none{};
+    } else if( info.is_activated ) {
+      CHECK( info.current_orders.to_enum() ==
+             unit_orders::e::none );
+      info.current_orders = info.original_orders;
+      info.is_activated   = false;
+    } else {
+      CHECK( !info.is_activated );
+      info.is_activated = true;
     }
   } else {
-    if( allow_activation_ ) {
-      // No Orders --> No Orders+Prioritized --> ...
-      CHECK( info.original_orders.to_enum() ==
-             unit_orders::e::none );
-      CHECK( info.current_orders.to_enum() ==
-             unit_orders::e::none );
-      info.is_activated = !info.is_activated;
-    } else {
-      // No Orders --> ...
-      CHECK( info.original_orders.to_enum() ==
-             unit_orders::e::none );
-      CHECK( info.current_orders.to_enum() ==
-             unit_orders::e::none );
-      CHECK( !info.is_activated );
-    }
+    // No Orders --> No Orders+Prioritized --> ...
+    CHECK( info.original_orders.to_enum() ==
+           unit_orders::e::none );
+    CHECK( info.current_orders.to_enum() ==
+           unit_orders::e::none );
+    info.is_activated = !info.is_activated;
   }
 }
 
@@ -101,10 +79,9 @@ void UnitActivationView::on_click_unit( UnitId id ) {
  *     +-...
  */
 unique_ptr<UnitActivationView> UnitActivationView::Create(
-    SSConst const& ss, vector<UnitId> const& ids_,
-    bool allow_activation ) {
+    SSConst const& ss, vector<UnitId> const& ids_ ) {
   auto unit_activation_view =
-      std::make_unique<UnitActivationView>( allow_activation );
+      std::make_unique<UnitActivationView>();
   auto* p_unit_activation_view = unit_activation_view.get();
 
   auto ids = ids_;

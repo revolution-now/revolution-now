@@ -39,10 +39,9 @@ class UnitActivationView final : public ui::CompositeSingleView {
 
   // Preferred way to create.
   static std::unique_ptr<UnitActivationView> Create(
-      SSConst const& ss, std::vector<UnitId> const& ids_,
-      bool allow_activation );
+      SSConst const& ss, std::vector<UnitId> const& ids_ );
 
-  UnitActivationView( bool allow_activation );
+  UnitActivationView();
 
   // Implement CompositeView
   void notify_children_updated() override {}
@@ -52,7 +51,6 @@ class UnitActivationView final : public ui::CompositeSingleView {
  private:
   void on_click_unit( UnitId id );
 
-  bool  allow_activation_{};
   map_t info_map_;
 };
 

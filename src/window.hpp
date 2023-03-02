@@ -175,7 +175,7 @@ NOTHROW_MOVE( UnitSelection );
 
 wait<std::vector<UnitSelection>> unit_selection_box(
     SSConst const& ss, WindowPlane& window_plane,
-    std::vector<UnitId> const& ids_, bool allow_activation );
+    std::vector<UnitId> const& ids_ );
 
 } // namespace rn
 

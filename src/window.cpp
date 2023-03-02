@@ -747,7 +747,7 @@ namespace {
 *****************************************************************/
 wait<vector<UnitSelection>> unit_selection_box(
     SSConst const& ss, WindowPlane& window_plane,
-    vector<UnitId> const& ids, bool allow_activation ) {
+    vector<UnitId> const& ids ) {
   wait_promise<vector<UnitSelection>> s_promise;
 
   function<void( maybe<UnitActivationView::map_t> )> on_result =
@@ -773,7 +773,7 @@ wait<vector<UnitSelection>> unit_selection_box(
       };
 
   auto unit_activation_view =
-      UnitActivationView::Create( ss, ids, allow_activation );
+      UnitActivationView::Create( ss, ids );
   auto* p_unit_activation_view = unit_activation_view.get();
 
   // We can capture by reference here because the function will

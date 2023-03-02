@@ -10,6 +10,8 @@
 *****************************************************************/
 #include "turn.hpp"
 
+#include "turn-impl.rds.hpp"
+
 // Revolution Now
 #include "cheat.hpp"
 #include "co-combinator.hpp"
@@ -285,6 +287,29 @@ void map_active_euro_units(
   }
 }
 
+// This won't actually prioritize the units, it will just check
+// the request and return the units that can be prioritized.
+wait<vector<UnitId>> process_unit_prioritization_request(
+    SSConst const& ss, TS& ts,
+    LandViewPlayerInput::prioritize const& request ) {
+  // Move some units to the front of the queue.
+  auto prioritize = request.units;
+  erase_if( prioritize, [&]( UnitId id ) {
+    return finished_turn( ss.units.unit_for( id ) );
+  } );
+  auto orig_size = request.units.size();
+  auto curr_size = prioritize.size();
+  CHECK( curr_size <= orig_size );
+  if( curr_size == 0 )
+    co_await ts.gui.message_box(
+        "The selected unit(s) have already moved this turn." );
+  else if( curr_size < orig_size )
+    co_await ts.gui.message_box(
+        "Some of the selected units have already moved this "
+        "turn." );
+  co_return std::move( prioritize );
+}
+
 /****************************************************************
 ** Menu Handlers
 *****************************************************************/
@@ -355,15 +380,18 @@ wait<e_menu_item> wait_for_menu_selection(
 *****************************************************************/
 namespace eot {
 
-wait<> process_player_input( e_menu_item item, SS& ss, TS& ts,
-                             Player& player ) {
+wait<EndOfTurnResult> process_player_input( e_menu_item item,
+                                            SS& ss, TS& ts,
+                                            Player& player ) {
   // In the future we might need to put logic here that is spe-
   // cific to the end-of-turn, but for now this is sufficient.
-  return menu_handler( ss, ts, player, item );
+  co_await menu_handler( ss, ts, player, item );
+  co_return EndOfTurnResult::not_done_yet{};
 }
 
-wait<> process_player_input( LandViewPlayerInput const& input,
-                             SS& ss, TS& ts, Player& player ) {
+wait<EndOfTurnResult> process_player_input(
+    LandViewPlayerInput const& input, SS& ss, TS& ts,
+    Player& player ) {
   switch( input.to_enum() ) {
     using e = LandViewPlayerInput::e;
     case e::colony: {
@@ -372,7 +400,7 @@ wait<> process_player_input( LandViewPlayerInput const& input,
               ts, input.get<LandViewPlayerInput::colony>().id );
       if( abandoned == e_colony_abandoned::yes )
         // Nothing really special to do here.
-        co_return;
+        break;
       break;
     }
     case e::european_status: {
@@ -381,56 +409,77 @@ wait<> process_player_input( LandViewPlayerInput const& input,
       break;
     }
     case e::next_turn:
-      // This one is relevant but handled in the calling func-
-      // tion.
-      break;
+      co_return EndOfTurnResult::proceed{};
     case e::exit:
       co_await proceed_to_exit( ss, ts );
       break;
     case e::give_command:
-    case e::prioritize: //
       break;
+    case e::prioritize: {
+      auto& val = input.get<LandViewPlayerInput::prioritize>();
+      vector<UnitId> const units =
+          co_await process_unit_prioritization_request( ss, ts,
+                                                        val );
+      if( units.empty() ) break;
+      // Unlike during the turn, we don't actually prioritize the
+      // list of units that are returned by this function here
+      // because there is no active unit queue. So instead we
+      // will just let them be as they are (they will have had
+      // their orders cleared) and we will just signal to the
+      // caller that we want to go back to the units turn, at
+      // which point the units with cleared orders will be found
+      // (assuming they have movement points left) and they will
+      // ask for orders. That said, we do specify the unit that
+      // was most recently activated so that it can be communi-
+      // cated back to the units phase and that unit can ask for
+      // orders first. Otherwise, when the player clears the or-
+      // ders of multiple units and then activates the final one
+      // so that they start asking for orders, a "random" one
+      // would be selected to actually ask for orders first and
+      // not the one that the player last clicked on. This would
+      // seem strange to the player, and this avoids that.
+      co_return EndOfTurnResult::return_to_units{
+          .first_to_ask = units.back() };
+    }
   }
+  co_return EndOfTurnResult::not_done_yet{};
 }
 
-wait<> process_player_input( next_turn_t, SS&, TS&, Player& ) {
+wait<EndOfTurnResult> process_player_input( next_turn_t, SS&,
+                                            TS&, Player& ) {
   lg.debug( "end of turn button clicked." );
-  co_return;
+  co_return EndOfTurnResult::proceed{};
 }
 
-wait<> process_inputs( SS& ss, TS& ts, Player& player ) {
-  while( true ) {
-    auto wait_for_button = co::fmap(
-        [] λ( next_turn_t{} ),
-        ts.planes.panel().wait_for_eot_button_click() );
-    // The reason that we want to use co::first here instead of
-    // interleaving the three streams is because as soon as one
-    // becomes ready (and we start processing it) we want all the
-    // others to be automatically be cancelled, which will have
-    // the effect of disabling further input on them (e.g., dis-
-    // abling menu items), which is what we want for a good user
-    // experience.
-    UserInput command = co_await co::first(          //
-        wait_for_menu_selection( ts.planes.menu() ), //
-        ts.planes.land_view().eot_get_next_input(),  //
-        std::move( wait_for_button )                 //
-    );
-    co_await rn::visit( command, LC( process_player_input(
-                                     _, ss, ts, player ) ) );
-    if( command.holds<next_turn_t>() ||
-        command.get_if<LandViewPlayerInput>()
-            .fmap( L( _.template holds<
-                      LandViewPlayerInput::next_turn>() ) )
-            .is_value_truish() )
-      co_return;
-  }
+wait<EndOfTurnResult> process_input( SS& ss, TS& ts,
+                                     Player& player ) {
+  auto wait_for_button =
+      co::fmap( [] λ( next_turn_t{} ),
+                ts.planes.panel().wait_for_eot_button_click() );
+  // The reason that we want to use co::first here instead of in-
+  // terleaving the three streams is because as soon as one be-
+  // comes ready (and we start processing it) we want all the
+  // others to be automatically be cancelled, which will have the
+  // effect of disabling further input on them (e.g., disabling
+  // menu items), which is what we want for a good user experi-
+  // ence.
+  UserInput command = co_await co::first(          //
+      wait_for_menu_selection( ts.planes.menu() ), //
+      ts.planes.land_view().eot_get_next_input(),  //
+      std::move( wait_for_button )                 //
+  );
+  co_return co_await rn::visit(
+      command, LC( process_player_input( _, ss, ts, player ) ) );
 }
 
 } // namespace eot
 
-wait<> end_of_turn( SS& ss, TS& ts, Player& player ) {
+// Enters the EOT phase and processes a single input then re-
+// turns.
+wait<EndOfTurnResult> end_of_turn( SS& ss, TS& ts,
+                                   Player& player ) {
   SCOPED_SET_AND_CHANGE( g_doing_eot, true, false );
-  return eot::process_inputs( ss, ts, player );
+  co_return co_await eot::process_input( ss, ts, player );
 }
 
 /****************************************************************
@@ -539,22 +588,9 @@ wait<> process_player_input(
     }
     case e::prioritize: {
       auto& val = input.get<LandViewPlayerInput::prioritize>();
-      // Move some units to the front of the queue.
-      auto prioritize = val.units;
-      erase_if( prioritize, [&]( UnitId id ) {
-        return finished_turn( ss.units.unit_for( id ) );
-      } );
-      auto orig_size = val.units.size();
-      auto curr_size = prioritize.size();
-      CHECK( curr_size <= orig_size );
-      if( curr_size == 0 )
-        co_await ts.gui.message_box(
-            "The selected unit(s) have already moved this "
-            "turn." );
-      else if( curr_size < orig_size )
-        co_await ts.gui.message_box(
-            "Some of the selected units have already moved this "
-            "turn." );
+      vector<UnitId> const prioritize =
+          co_await process_unit_prioritization_request( ss, ts,
+                                                        val );
       for( UnitId id_to_add : prioritize )
         prioritize_unit( q, id_to_add );
       break;
@@ -938,24 +974,19 @@ wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
       co_return NationTurnState::finished{};
     }
     CASE( eot ) {
-      // FIXME: in the original game, a unit that hasn't moved
-      // this turn (say, one that has remained fortified) can
-      // be activated and moved during the end of turn. Then
-      // after it moves the turn will end with no end-of-turn
-      // (although other units can be activated while the first
-      // one is blinking, in which case they can move as well).
-      // This should not be to difficult to implement (and
-      // might actually simplify some of the land-view logic in
-      // eliminating the distinction between end of turn and
-      // mid-turn in unit selection); any units that still have
-      // movement points remaining can be selected, then we
-      // just go back into the units_turn to process them. We
-      // can do that here just once, because we know that after
-      // that process is over a) the turn will end, and b) we
-      // won't need an end-of-turn state, because the user has
-      // already had one.
-      co_await end_of_turn( ss, ts, player );
-      co_return NationTurnState::finished{};
+      SWITCH( co_await end_of_turn( ss, ts, player ) ) {
+        CASE( not_done_yet ) {
+          co_return NationTurnState::eot{};
+        }
+        CASE( proceed ) {
+          co_return NationTurnState::finished{};
+        }
+        CASE( return_to_units ) {
+          co_return NationTurnState::units{
+              .q = { o.first_to_ask } };
+        }
+        END_CASES;
+      }
     }
     CASE( finished ) { SHOULD_NOT_BE_HERE; }
     END_CASES;
