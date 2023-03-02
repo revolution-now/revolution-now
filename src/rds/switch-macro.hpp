@@ -17,7 +17,7 @@
 //   1. Are as friendly to control flow as normal switch state-
 //      ments. `break`, `return`, `continue`, etc. have exactly
 //      the expected effect.
-//   2. Compiler will warn about fallthrough.
+//   2. Compiler will warn about missing cases and fallthrough.
 //   3. Are easy to write and look nice.
 //   4. Automatically provide the reference to the alternative
 //      object in each case block.
