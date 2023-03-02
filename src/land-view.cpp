@@ -1135,16 +1135,15 @@ struct LandViewPlane::Impl : public Plane {
     // non-move command, because in that case it is unlikely that
     // the player will assume that the subsequent command they
     // issue would go to the same unit. E.g., if the unit issues
-    // a command to fortify this unit, then they know that the
-    // next command they issue would go to the new unit, so we
-    // don't need to shield it.
-    if( auto give_orders =
-            input.get_if<LandViewPlayerInput::give_command>();
-        give_orders.has_value() &&
-        !give_orders->cmd.holds<command::move>() ) {
-      if( last_unit_input_.has_value() )
-        last_unit_input_->need_input_buffer_shield = false;
-    }
+    // a command to fortify this unit or to open a colony, then
+    // they know that the next command they issue would go to the
+    // new unit, so we don't need to shield it.
+    maybe<command::move const&> move_cmd =
+        input.get_if<LandViewPlayerInput::give_command>()
+            .member( &LandViewPlayerInput::give_command::cmd )
+            .get_if<command::move>();
+    if( last_unit_input_.has_value() && !move_cmd.has_value() )
+      last_unit_input_->need_input_buffer_shield = false;
 
     co_return input;
   }
