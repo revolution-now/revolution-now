@@ -132,9 +132,10 @@ cdr::value cdr_game_state_default =
                         "season"_key = "winter",
                         "turns"_key  = 0,
                     },
-                "started"_key   = false,
-                "nation"_key    = cdr::null,
-                "remainder"_key = cdr::list{},
+                "cycle"_key =
+                    cdr::table{
+                        "not_started"_key = cdr::table{},
+                    },
             },
         "colonies"_key =
             cdr::table{

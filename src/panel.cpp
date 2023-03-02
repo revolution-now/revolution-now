@@ -20,6 +20,7 @@
 #include "mini-map.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
+#include "roles.hpp"
 #include "screen.hpp"
 #include "ts.hpp" // FIXME
 #include "views.hpp"
@@ -144,11 +145,12 @@ struct PanelPlane::Impl : public Plane {
 
     typer.newline();
 
-    maybe<NationTurnState const&> nat_st = turn_state.nation;
-    if( !nat_st ) return;
+    maybe<e_nation> const curr_nation =
+        player_for_role( ss_, e_player_role::active );
+    if( !curr_nation ) return;
 
     // We have an active player, so print some info about it.
-    e_nation            nation        = nat_st->nation;
+    e_nation            nation        = *curr_nation;
     PlayersState const& players_state = ss_.players;
     UNWRAP_CHECK( player, players_state.players[nation] );
 

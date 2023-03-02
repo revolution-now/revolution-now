@@ -84,9 +84,9 @@ TEST_CASE( "[roles] player_for_role" ) {
   REQUIRE( f( e_player_role::active ) == nothing );
 
   // Make spanish active.
-  W.turn().started = true;
-  W.turn().nation =
-      NationTurnState{ .nation = e_nation::spanish };
+  W.turn().cycle = TurnCycle::nations{
+      .which = {
+          { e_nation::spanish, NationTurnState::eot{} } } };
   REQUIRE( f( e_player_role::viewer ) == e_nation::dutch );
   REQUIRE( f( e_player_role::human ) == e_nation::dutch );
   REQUIRE( f( e_player_role::active ) == e_nation::spanish );
