@@ -43,7 +43,7 @@ struct UnitsState;
 wait<> cheat_reveal_map( SS& ss, TS& ts );
 
 // No dialog box, just toggle the map view between the entire map
-// and the view for the active player.
+// and "no special view."
 void cheat_toggle_reveal_full_map( SS& ss, TS& ts );
 
 // Open a dialog box containing one check box for each founding

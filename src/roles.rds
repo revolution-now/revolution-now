@@ -1,0 +1,29 @@
+# ===============================================================
+# roles.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-03-01.
+#
+# Description: Rds definitions for the roles module.
+#
+# ===============================================================
+namespace "rn"
+
+# Note that a player can have more than one of these roles at a
+# time. However, the converse is not true: at most one player can
+# have each role at a time (some roles can have zero).
+enum.e_player_role {
+  # The game map is currently being viewed through the eyes of
+  # this player. If there is no viewing player then the map will
+  # be fully visible.
+  viewer,
+
+  # This player is designated as the human player. This means
+  # that the player's unit will not be AI-controlled and the map
+  # visibility is always seen through the eyes of this player.
+  human,
+
+  # This player is currently taking their turn.
+  active,
+}

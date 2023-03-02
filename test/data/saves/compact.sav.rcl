@@ -476,8 +476,8 @@ players {
     coats.intrinsic_volume: 512
     rum.intrinsic_volume: 512
   }
+  human: french
   players.french {
-    human: true
     nation: french
     old_world {
       expeditionary_force {

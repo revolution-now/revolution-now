@@ -1082,8 +1082,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
 
   SECTION( "human, conquistador, non-dutch" ) {
     W.set_default_player( e_nation::french );
-    Player& player          = W.default_player();
-    player.human            = true;
+    Player& player = W.default_player();
+    W.set_default_player_as_human();
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
@@ -1136,8 +1136,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
   }
   SECTION( "human, conquistador, dutch" ) {
     W.set_default_player( e_nation::dutch );
-    Player& player          = W.default_player();
-    player.human            = true;
+    Player& player = W.default_player();
+    W.set_default_player_as_human();
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
@@ -1190,8 +1190,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
   }
   SECTION( "human, discoverer, non-dutch" ) {
     W.set_default_player( e_nation::french );
-    Player& player          = W.default_player();
-    player.human            = true;
+    Player& player = W.default_player();
+    W.set_default_player_as_human();
     W.settings().difficulty = e_difficulty::discoverer;
     W.set_tax_rate( 50 );
 
@@ -1244,8 +1244,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
   }
   SECTION( "human, discoverer, dutch" ) {
     W.set_default_player( e_nation::dutch );
-    Player& player          = W.default_player();
-    player.human            = true;
+    Player& player = W.default_player();
+    W.set_default_player_as_human();
     W.settings().difficulty = e_difficulty::discoverer;
     W.set_tax_rate( 50 );
 
@@ -1299,7 +1299,6 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
   SECTION( "AI, conquistador, non-dutch" ) {
     W.set_default_player( e_nation::french );
     Player& player          = W.default_player();
-    player.human            = false;
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
@@ -1353,7 +1352,6 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
   SECTION( "AI, conquistador, dutch" ) {
     W.set_default_player( e_nation::dutch );
     Player& player          = W.default_player();
-    player.human            = false;
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
@@ -1407,7 +1405,6 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
   SECTION( "AI, discoverer, non-dutch" ) {
     W.set_default_player( e_nation::french );
     Player& player          = W.default_player();
-    player.human            = false;
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
@@ -1461,7 +1458,6 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
   SECTION( "AI, discoverer, dutch" ) {
     W.set_default_player( e_nation::dutch );
     Player& player          = W.default_player();
-    player.human            = false;
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
@@ -1515,8 +1511,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
 
   SECTION( "price change suppression" ) {
     W.set_default_player( e_nation::french );
-    Player& player          = W.default_player();
-    player.human            = true;
+    Player& player = W.default_player();
+    W.set_default_player_as_human();
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
@@ -1613,8 +1609,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
 
   SECTION( "human, conquistador, non-dutch, tax=50" ) {
     W.set_default_player( e_nation::french );
-    Player& player          = W.default_player();
-    player.human            = true;
+    Player& player = W.default_player();
+    W.set_default_player_as_human();
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
@@ -1667,8 +1663,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
   }
   SECTION( "human, conquistador, dutch, tax=50" ) {
     W.set_default_player( e_nation::dutch );
-    Player& player          = W.default_player();
-    player.human            = true;
+    Player& player = W.default_player();
+    W.set_default_player_as_human();
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
@@ -1721,8 +1717,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
   }
   SECTION( "human, discoverer, non-dutch, tax=50" ) {
     W.set_default_player( e_nation::french );
-    Player& player          = W.default_player();
-    player.human            = true;
+    Player& player = W.default_player();
+    W.set_default_player_as_human();
     W.settings().difficulty = e_difficulty::discoverer;
     W.set_tax_rate( 50 );
 
@@ -1775,8 +1771,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
   }
   SECTION( "human, discoverer, dutch, tax=50" ) {
     W.set_default_player( e_nation::dutch );
-    Player& player          = W.default_player();
-    player.human            = true;
+    Player& player = W.default_player();
+    W.set_default_player_as_human();
     W.settings().difficulty = e_difficulty::discoverer;
     W.set_tax_rate( 50 );
 
@@ -1830,7 +1826,6 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
   SECTION( "AI, conquistador, non-dutch, tax=50" ) {
     W.set_default_player( e_nation::french );
     Player& player          = W.default_player();
-    player.human            = false;
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
@@ -1884,7 +1879,6 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
   SECTION( "AI, conquistador, dutch, tax=50" ) {
     W.set_default_player( e_nation::dutch );
     Player& player          = W.default_player();
-    player.human            = false;
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
@@ -1938,7 +1932,6 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
   SECTION( "AI, discoverer, non-dutch, tax=50" ) {
     W.set_default_player( e_nation::french );
     Player& player          = W.default_player();
-    player.human            = false;
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
@@ -1992,7 +1985,6 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
   SECTION( "AI, discoverer, dutch, tax=50" ) {
     W.set_default_player( e_nation::dutch );
     Player& player          = W.default_player();
-    player.human            = false;
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
@@ -2046,8 +2038,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
 
   SECTION( "price change suppression" ) {
     W.set_default_player( e_nation::french );
-    Player& player          = W.default_player();
-    player.human            = true;
+    Player& player = W.default_player();
+    W.set_default_player_as_human();
     W.settings().difficulty = e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 

@@ -212,7 +212,7 @@ maybe<string> perform_euro_unit_combat_outcome(
   }
 
   if( player.nation == active_player.nation &&
-      active_player.human )
+      ss.players.human == player.nation )
     // FIXME: not sure yet how we're going to do this GUI han-
     // dling with AI players. For now we just say that we will
     // only pop up a message box notifying the player of battle
@@ -266,7 +266,7 @@ maybe<string> perform_native_unit_combat_outcome(
   }
 
   // FIXME
-  if( active_player.human ) return msg;
+  if( ss.players.human == active_player.nation ) return msg;
   return nothing;
 }
 
@@ -395,7 +395,7 @@ maybe<string> perform_naval_unit_combat_outcome(
   // throughout this module in situations with units from mul-
   // tiple players and messages/prompts concerning them.
   if( player.nation == active_player.nation &&
-      active_player.human )
+      ss.players.human == player.nation )
     return msg;
   return nothing;
 }

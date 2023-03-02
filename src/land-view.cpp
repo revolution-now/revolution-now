@@ -30,6 +30,7 @@
 #include "physics.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
+#include "roles.hpp"
 #include "time.hpp"
 #include "ts.hpp"
 #include "unit-id.hpp"
@@ -366,7 +367,8 @@ struct LandViewPlane::Impl : public Plane {
             raw_input.input.get<LandViewRawInput::tile_click>();
         if( o.mods.shf_down ) {
           // cheat mode.
-          maybe<e_nation> nation = active_player( ss_.turn );
+          maybe<e_nation> const nation =
+              player_for_role( ss_, e_player_role::human );
           if( !nation.has_value() ) break;
           co_await cheat_create_unit_on_map( ss_, ts_, *nation,
                                              o.coord );

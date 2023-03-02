@@ -38,20 +38,40 @@ base::valid_or<string> PlayersState::validate() const {
       REFL_VALIDATE( player->nation == nation,
                      "mismatch in player nations for the {}.",
                      nation );
+
+  // Check that, if there is a human player, that that player ex-
+  // ists.
+  if( human.has_value() )
+    REFL_VALIDATE( players[*human].has_value(),
+                   "human player set to {} but that that player "
+                   "does not exist.",
+                   *human );
+
   return base::valid;
 }
 
 void reset_players( PlayersState&           players_state,
-                    vector<e_nation> const& nations ) {
+                    vector<e_nation> const& nations,
+                    base::maybe<e_nation>   human ) {
   auto& players = players_state.players;
   for( e_nation nation : refl::enum_values<e_nation> )
     players[nation].reset();
   for( e_nation nation : nations )
     players[nation] = Player{
         .nation = nation,
-        .human  = true,
         .money  = 0,
     };
+  set_human_player( players_state, human );
+}
+
+void set_human_player( PlayersState&         players,
+                       base::maybe<e_nation> nation ) {
+  players.human = nation;
+  if( nation.has_value() )
+    CHECK( players.players[*nation].has_value(),
+           "human player set to {} but that that player does "
+           "not exist.",
+           *nation );
 }
 
 Player& player_for_nation_or_die( PlayersState& players,
@@ -81,6 +101,7 @@ LUA_STARTUP( lua::state& st ) {
   auto u  = st.usertype.create<U>();
 
   u["players"]             = &U::players;
+  u["human"]               = &U::human;
   u["global_market_state"] = &U::global_market_state;
 };
 

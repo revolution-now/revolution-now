@@ -28,12 +28,14 @@
 #include "map-edit.hpp"
 #include "market.hpp"
 #include "menu.hpp"
+#include "menu.rds.hpp"
 #include "on-map.hpp"
 #include "panel.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "plow.hpp"
 #include "road.hpp"
+#include "roles.hpp"
 #include "save-game.hpp"
 #include "sound.hpp"
 #include "tax.hpp"
@@ -57,8 +59,8 @@
 #include "ss/turn.rds.hpp"
 #include "ss/units.hpp"
 
-// Rds
-#include "menu.rds.hpp"
+// rds
+#include "rds/switch-macro.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -105,17 +107,6 @@ using UserInput = base::variant< //
 /****************************************************************
 ** Save-Game State
 *****************************************************************/
-NationTurnState new_nation_turn_obj( e_nation nat ) {
-  return NationTurnState{
-      .nation       = nat,
-      .started      = false,
-      .did_colonies = false,
-      .did_units    = false, // FIXME: do we need this?
-      .units        = {},
-      .need_eot     = true,
-  };
-}
-
 // To be called once per turn.
 wait<> advance_time( IGui& gui, TurnTimePoint& time_point ) {
   ++time_point.turns;
@@ -152,17 +143,6 @@ wait<> advance_time( IGui& gui, TurnTimePoint& time_point ) {
       ++time_point.year;
       break;
   }
-}
-
-void reset_turn_obj( PlayersState const& players_state,
-                     TurnState&          st ) {
-  queue<e_nation> remainder;
-  for( e_nation nation : refl::enum_values<e_nation> )
-    if( players_state.players[nation].has_value() )
-      remainder.push( nation );
-  st.started   = false;
-  st.nation    = nothing;
-  st.remainder = std::move( remainder );
 }
 
 /****************************************************************
@@ -457,19 +437,18 @@ wait<> end_of_turn( SS& ss, TS& ts, Player& player ) {
 *****************************************************************/
 wait<> process_player_input( UnitId, e_menu_item item, SS& ss,
                              TS& ts, Player& player,
-                             NationTurnState& ) {
+                             NationTurnState::units& ) {
   // In the future we might need to put logic here that is spe-
   // cific to the mid-turn scenario, but for now this is suffi-
   // cient.
   return menu_handler( ss, ts, player, item );
 }
 
-wait<> process_player_input( UnitId                     id,
-                             LandViewPlayerInput const& input,
-                             SS& ss, TS& ts, Player& player,
-                             NationTurnState& nat_turn_st ) {
-  auto& st = nat_turn_st;
-  auto& q  = st.units;
+wait<> process_player_input(
+    UnitId id, LandViewPlayerInput const& input, SS& ss, TS& ts,
+    Player& player, NationTurnState::units& nat_units ) {
+  auto& st = nat_units;
+  auto& q  = st.q;
   switch( input.to_enum() ) {
     using e = LandViewPlayerInput::e;
     case e::next_turn: {
@@ -583,9 +562,9 @@ wait<> process_player_input( UnitId                     id,
 }
 
 wait<LandViewPlayerInput> landview_player_input(
-    ILandViewPlane&  land_view_plane,
-    NationTurnState& nat_turn_st, UnitsState const& units_state,
-    UnitId id ) {
+    ILandViewPlane&         land_view_plane,
+    NationTurnState::units& nat_units,
+    UnitsState const& units_state, UnitId id ) {
   LandViewPlayerInput response;
   if( auto maybe_command = pop_unit_command( id ) ) {
     response = LandViewPlayerInput::give_command{
@@ -593,22 +572,22 @@ wait<LandViewPlayerInput> landview_player_input(
   } else {
     lg.debug( "asking orders for: {}",
               debug_string( units_state, id ) );
-    nat_turn_st.need_eot = false;
+    nat_units.need_eot = false;
     response = co_await land_view_plane.get_next_input( id );
   }
   co_return response;
 }
 
 wait<> query_unit_input( UnitId id, SS& ss, TS& ts,
-                         Player&          player,
-                         NationTurnState& nat_turn_st ) {
+                         Player&                 player,
+                         NationTurnState::units& nat_units ) {
   auto command = co_await co::first(
       wait_for_menu_selection( ts.planes.menu() ),
-      landview_player_input( ts.planes.land_view(), nat_turn_st,
+      landview_player_input( ts.planes.land_view(), nat_units,
                              ss.units, id ) );
   co_await overload_visit( command, [&]( auto const& action ) {
     return process_player_input( id, action, ss, ts, player,
-                                 nat_turn_st );
+                                 nat_units );
   } );
   // A this point we should return because we want to in general
   // allow for the possibility and any action executed above
@@ -783,8 +762,8 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
 }
 
 wait<> units_turn_one_pass( SS& ss, TS& ts, Player& player,
-                            NationTurnState& nat_turn_st,
-                            deque<UnitId>&   q ) {
+                            NationTurnState::units& nat_units,
+                            deque<UnitId>&          q ) {
   while( !q.empty() ) {
     // lg.trace( "q: {}", q );
     UnitId id = q.front();
@@ -815,7 +794,7 @@ wait<> units_turn_one_pass( SS& ss, TS& ts, Player& player,
     // back to this line a few times in this while loop until we
     // get the order for the unit in question (unless the player
     // activates another unit).
-    co_await query_unit_input( id, ss, ts, player, nat_turn_st );
+    co_await query_unit_input( id, ss, ts, player, nat_units );
     // !! The unit may no longer exist at this point, e.g. if
     // they were disbanded or if they lost a battle to the na-
     // tives.
@@ -823,16 +802,17 @@ wait<> units_turn_one_pass( SS& ss, TS& ts, Player& player,
 }
 
 wait<> units_turn( SS& ss, TS& ts, Player& player,
-                   NationTurnState& nat_turn_st ) {
-  auto& st = nat_turn_st;
-  auto& q  = st.units;
+                   NationTurnState::units& nat_units ) {
+  auto& st = nat_units;
+  auto& q  = st.q;
 
   // Unsentry any units that are sentried but have foreign units
   // in an adjacent square. FIXME: move this to the the function
   // that is called to put a unit on a new map square.
-  map_active_euro_units( ss.units, st.nation, [&]( Unit& unit ) {
-    return try_unsentry_unit( ss, unit );
-  } );
+  map_active_euro_units( ss.units, player.nation,
+                         [&]( Unit& unit ) {
+                           return try_unsentry_unit( ss, unit );
+                         } );
 
   // Here we will keep reloading all of the units (that still
   // need to move) and making passes over them in order make sure
@@ -850,11 +830,11 @@ wait<> units_turn( SS& ss, TS& ts, Player& player,
   // already some units in the queue on the first iteration, as
   // would be the case just after deserialization.
   while( true ) {
-    co_await units_turn_one_pass( ss, ts, player, nat_turn_st,
-                                  q );
+    co_await units_turn_one_pass( ss, ts, player, nat_units, q );
     CHECK( q.empty() );
     // Refill the queue.
-    vector<UnitId> units = euro_units_all( ss.units, st.nation );
+    vector<UnitId> units =
+        euro_units_all( ss.units, player.nation );
     util::sort_by_key( units, []( auto id ) { return id; } );
     erase_if( units, [&]( UnitId id ) {
       return should_remove_unit_from_queue(
@@ -922,81 +902,68 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
   //
 }
 
-void set_nation_map_visibility( SS& ss, TS& ts,
-                                e_nation nation ) {
-  if( maybe<MapRevealed const&> revealed =
-          ss.land_view.map_revealed;
-      revealed.has_value() &&
-      revealed->holds<MapRevealed::entire>() ) {
-    // We have "entire" map visibility, and we're going to keep
-    // it that way, but we should call this anyway just to make
-    // sure this is what is currently in effect.
-    set_map_visibility( ss, ts,
-                        MapRevealed{ MapRevealed::entire{} },
-                        /*default_nation=*/nothing );
-    return;
+// Processes the current state and returns the next state.
+wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
+                                        e_nation         nation,
+                                        NationTurnState& st ) {
+  UNWRAP_CHECK( player, ss.players.players[nation] );
+  SWITCH( st ) {
+    CASE( not_started ) {
+      if( ss.players.human != player.nation )
+        // TODO: Until we have AI.
+        co_return NationTurnState::finished{};
+      // `visibility` determines from whose point of view the map
+      // is drawn with respect to which tiles are hidden. This
+      // will potentially redraw the map (if necessary) to align
+      // with the nation from whose perspective we are currently
+      // viewing the map (if any) as specified in the land view
+      // state.
+      update_map_visibility(
+          ts, player_for_role( ss, e_player_role::viewer ) );
+      print_bar( '-', fmt::format( "[ {} ]", nation ) );
+      co_await nation_start_of_turn( ss, ts, player );
+      co_return NationTurnState::colonies{};
+    }
+    CASE( colonies ) {
+      co_await colonies_turn( ss, ts, player );
+      co_await post_colonies( ss, ts, player );
+      co_return NationTurnState::units{};
+    }
+    CASE( units ) {
+      co_await units_turn( ss, ts, player, o );
+      CHECK( o.q.empty() );
+      if( o.need_eot ) co_return NationTurnState::eot{};
+      co_return NationTurnState::finished{};
+    }
+    CASE( eot ) {
+      // FIXME: in the original game, a unit that hasn't moved
+      // this turn (say, one that has remained fortified) can
+      // be activated and moved during the end of turn. Then
+      // after it moves the turn will end with no end-of-turn
+      // (although other units can be activated while the first
+      // one is blinking, in which case they can move as well).
+      // This should not be to difficult to implement (and
+      // might actually simplify some of the land-view logic in
+      // eliminating the distinction between end of turn and
+      // mid-turn in unit selection); any units that still have
+      // movement points remaining can be selected, then we
+      // just go back into the units_turn to process them. We
+      // can do that here just once, because we know that after
+      // that process is over a) the turn will end, and b) we
+      // won't need an end-of-turn state, because the user has
+      // already had one.
+      co_await end_of_turn( ss, ts, player );
+      co_return NationTurnState::finished{};
+    }
+    CASE( finished ) { SHOULD_NOT_BE_HERE; }
+    END_CASES;
   }
-  // At this point the map reveal status is not "entire map," and
-  // so since we're about to do the turn of a player, whatever
-  // player it's currently set to we're going to override, be-
-  // cause it wouldn't really make sense to e.g. start blinking
-  // units of another nation when they are not visible.
-  set_map_visibility(
-      ss, ts,
-      MapRevealed{ MapRevealed::nation{ .nation = nation } },
-      /*default_nation=*/nothing );
 }
 
-wait<> nation_turn( SS& ss, TS& ts,
-                    NationTurnState& nat_turn_st ) {
-  auto& st = nat_turn_st;
-
-  UNWRAP_CHECK( player, ss.players.players[st.nation] );
-
-  if( !player.human ) co_return; // TODO: Until we have AI.
-
-  // `visibility` determines from whose point of view the map is
-  // drawn with respect to which tiles are hidden.
-  set_nation_map_visibility( ss, ts, st.nation );
-
-  // Starting.
-  if( !st.started ) {
-    print_bar( '-', fmt::format( "[ {} ]", st.nation ) );
-    co_await nation_start_of_turn( ss, ts, player );
-    st.started = true;
-  }
-
-  // Colonies.
-  if( !st.did_colonies ) {
-    co_await colonies_turn( ss, ts, player );
-    co_await post_colonies( ss, ts, player );
-    st.did_colonies = true;
-  }
-
-  if( !st.did_units ) {
-    co_await units_turn( ss, ts, player, nat_turn_st );
-    st.did_units = true;
-  }
-  CHECK( st.units.empty() );
-
-  // Ending.
-  if( st.need_eot )
-    // FIXME: in the original game, a unit that hasn't moved this
-    // turn (say, one that has remained fortified) can be acti-
-    // vated and moved during the end of turn. Then after it
-    // moves the turn will end with no end-of-turn (although
-    // other units can be activated while the first one is blink-
-    // ing, in which case they can move as well). This should not
-    // be to difficult to implement (and might actually simplify
-    // some of the land-view logic in eliminating the distinction
-    // between end of turn and mid-turn in unit selection); any
-    // units that still have movement points remaining can be se-
-    // lected, then we just go back into the units_turn to
-    // process them. We can do that here just once, because we
-    // know that after that process is over a) the turn will end,
-    // and b) we won't need an end-of-turn state, because the
-    // user has already had one.
-    co_await end_of_turn( ss, ts, player );
+wait<> nation_turn( SS& ss, TS& ts, e_nation nation,
+                    NationTurnState& st ) {
+  while( !st.holds<NationTurnState::finished>() )
+    st = co_await nation_turn_iter( ss, ts, nation, st );
 }
 
 /****************************************************************
@@ -1027,38 +994,51 @@ void reset_units( SS& ss ) {
   // TODO: handle native units.
 }
 
+// Processes teh current state and returns the next state.
+wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
+  TurnState& turn  = ss.turn;
+  TurnCycle& cycle = ss.turn.cycle;
+  SWITCH( cycle ) {
+    CASE( not_started ) {
+      ts.planes.land_view().start_new_turn();
+      print_bar( '=', "[ Starting Turn ]" );
+      reset_units( ss );
+      start_of_turn_cycle( ss );
+      co_return TurnCycle::natives{};
+    }
+    CASE( natives ) {
+      // TODO
+      co_return TurnCycle::nations{};
+    }
+    CASE( nations ) {
+      for( e_nation const nation :
+           refl::enum_values<e_nation> ) {
+        NationTurnState& nation_st = o.which[nation];
+        if( nation_st.holds<NationTurnState::finished>() )
+          continue;
+        co_await nation_turn( ss, ts, nation, nation_st );
+      }
+      co_return TurnCycle::end_cycle{};
+    }
+    CASE( end_cycle ) {
+      co_await advance_time( ts.gui, turn.time_point );
+      if( should_autosave( turn.time_point.turns ) )
+        autosave( ss, ts );
+      co_return TurnCycle::finished{};
+    }
+    CASE( finished ) { SHOULD_NOT_BE_HERE; }
+    END_CASES;
+  }
+}
+
+// Runs through the various phases of a single turn.
 wait<> next_turn( SS& ss, TS& ts ) {
-  ts.planes.land_view().start_new_turn();
-  auto& st = ss.turn;
-
-  // Starting.
-  if( !st.started ) {
-    print_bar( '=', "[ Starting Turn ]" );
-    reset_units( ss );
-    reset_turn_obj( ss.players, st );
-    start_of_turn_cycle( ss );
-    st.started = true;
-  }
-
-  // Body.
-  if( st.nation.has_value() ) {
-    co_await nation_turn( ss, ts, *st.nation );
-    st.nation.reset();
-  }
-
-  while( !st.remainder.empty() ) {
-    st.nation = new_nation_turn_obj( st.remainder.front() );
-    st.remainder.pop();
-    co_await nation_turn( ss, ts, *st.nation );
-    st.nation.reset();
-  }
-
-  reset_turn_obj( ss.players, st );
-  co_await advance_time( ts.gui, st.time_point );
-
-  // Autosave.
-  if( should_autosave( st.time_point.turns ) )
-    autosave( ss, ts );
+  TurnCycle& cycle = ss.turn.cycle;
+  // The default-constructed cycle represents a new turn where
+  // nothing yet has been done.
+  cycle = {};
+  while( !cycle.holds<TurnCycle::finished>() )
+    cycle = co_await next_turn_iter( ss, ts );
 }
 
 } // namespace
@@ -1066,6 +1046,7 @@ wait<> next_turn( SS& ss, TS& ts ) {
 /****************************************************************
 ** Turn State Advancement
 *****************************************************************/
+// Runs through multiple turns.
 wait<> turn_loop( SS& ss, TS& ts ) {
   while( true ) co_await next_turn( ss, ts );
 }

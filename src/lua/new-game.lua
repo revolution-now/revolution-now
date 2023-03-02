@@ -26,11 +26,12 @@ function M.default_options()
     -- FIXME: this needs to be a list instead of a dict because
     -- iteration order on a table in lua is non-deterministic.
     nations={
-      ['english']={ human=true, ship_pos=nil },
-      ['french']={ human=false, ship_pos=nil },
-      ['spanish']={ human=false, ship_pos=nil },
-      ['dutch']={ human=false, ship_pos=nil }
+      ['english']={ ship_pos=nil },
+      ['french']={ ship_pos=nil },
+      ['spanish']={ ship_pos=nil },
+      ['dutch']={ ship_pos=nil }
     },
+    human_nation=nil, -- no humans.
     map={} -- use default map options.
   }
 end
@@ -288,10 +289,8 @@ local STARTING_GOLD = {
   viceroy=0
 }
 
-local function create_player_state(settings, nation, player,
-                                   is_human )
+local function create_player_state( settings, nation, player )
   player.nation = nation
-  player.human = is_human
   player.money = assert( STARTING_GOLD[settings.difficulty] )
   create_old_world_state( settings, player )
 end
@@ -301,8 +300,9 @@ local function create_nations( options, root )
   local settings = root.settings
   for nation, tbl in pairs( options.nations ) do
     local player = players:reset_player( nation )
-    create_player_state( settings, nation, player, tbl.human )
+    create_player_state( settings, nation, player )
   end
+  root.players.human = options.human_nation
   init_prices( options, root )
 end
 
@@ -327,11 +327,12 @@ end
 -----------------------------------------------------------------
 local function add_testing_options( options )
   options.nations = {
-    -- english={ human=true, ship_pos=nil },
-    french={ human=true, ship_pos=nil }
-    -- spanish={ human=true, ship_pos=nil },
-    -- dutch={ human=true, ship_pos=nil },
+    -- english={ ship_pos=nil },
+    french={ ship_pos=nil }
+    -- spanish={ ship_pos=nil },
+    -- dutch={ ship_pos=nil },
   }
+  options.human_nation = 'french'
   options.difficulty = 'conquistador'
   -- options.map.type = 'land-partition'
   -- options.map.world_size = { w=4, h=4 }

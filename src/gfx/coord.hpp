@@ -445,53 +445,52 @@ Coord centered_right( Delta const& delta, Rect const& rect );
 int inner_product( Delta const& fst, Delta const& snd );
 
 // Same as Delta::uni0n
-ND Delta max( Delta const& lhs, Delta const& rhs );
+Delta max( Delta const& lhs, Delta const& rhs );
 
-ND Delta min( Delta const& lhs, Delta const& rhs );
+Delta min( Delta const& lhs, Delta const& rhs );
 
 /****************************************************************
 ** Algebra
 *****************************************************************/
-ND Delta operator-( Delta const& lhs, Delta const& rhs );
-ND inline constexpr Delta operator+( Delta const& lhs,
-                                     Delta const& rhs ) {
+Delta operator-( Delta const& lhs, Delta const& rhs );
+inline constexpr Delta operator+( Delta const& lhs,
+                                  Delta const& rhs ) {
   return { lhs.w + rhs.w, lhs.h + rhs.h };
 }
 
-ND Coord operator+( Coord const& coord, Delta const& delta );
-ND Coord operator+( Delta const& delta, Coord const& coord );
-ND Coord operator-( Coord const& coord, Delta const& delta );
-ND Delta operator-( Coord const& lhs, Coord const& rhs );
+Coord operator+( Coord const& coord, Delta const& delta );
+Coord operator+( Delta const& delta, Coord const& coord );
+Coord operator-( Coord const& coord, Delta const& delta );
+Delta operator-( Coord const& lhs, Coord const& rhs );
 
 // Adding a Delta to a Rect will shift the position of the Rect.
-ND Rect operator+( Rect const& rect, Delta const& delta );
-ND Rect operator+( Delta const& delta, Rect const& rect );
-ND Rect operator-( Rect const& rect, Delta const& delta );
+Rect operator+( Rect const& rect, Delta const& delta );
+Rect operator+( Delta const& delta, Rect const& rect );
+Rect operator-( Rect const& rect, Delta const& delta );
 
 void operator-=( Coord& coord, Delta delta );
 
-ND Coord operator*( Coord const& coord, Delta const& delta );
-ND Coord operator*( Coord const& coord, int scale );
-ND inline constexpr Delta operator*( Delta const& delta,
-                                     int          scale ) {
+Coord operator*( Coord const& coord, Delta const& delta );
+Coord operator*( Coord const& coord, int scale );
+inline constexpr Delta operator*( Delta const& delta,
+                                  int          scale ) {
   Delta res = delta;
   res.w *= scale;
   res.h *= scale;
   return res;
 }
-ND Coord operator*( Delta const& delta, Coord const& coord );
-ND Delta operator*( Delta const& lhs, Delta const& rhs );
-ND Rect  operator*( Rect const& rect, Delta const& delta );
-ND Rect  operator*( Rect const& rect, int scale );
-ND Rect  operator*( Delta const& delta, Rect const& rect );
+Coord operator*( Delta const& delta, Coord const& coord );
+Delta operator*( Delta const& lhs, Delta const& rhs );
+Rect  operator*( Rect const& rect, Delta const& delta );
+Rect  operator*( Rect const& rect, int scale );
+Rect  operator*( Delta const& delta, Rect const& rect );
 // FIXME: deprecated
-ND Rect  operator/( Rect const& rect, Delta const& delta );
-ND Coord operator/( Coord const& coord, Delta const& delta );
-ND Delta operator/( Delta const& delta, int scale );
-ND Delta operator/( Delta const& lhs, Delta const& rhs );
-ND Delta operator%( Coord const& coord, Delta const& delta );
-ND constexpr Delta operator%( Delta const& lhs,
-                              Delta const& rhs ) {
+Rect  operator/( Rect const& rect, Delta const& delta );
+Coord operator/( Coord const& coord, Delta const& delta );
+Delta operator/( Delta const& delta, int scale );
+Delta operator/( Delta const& lhs, Delta const& rhs );
+Delta operator%( Coord const& coord, Delta const& delta );
+constexpr Delta operator%( Delta const& lhs, Delta const& rhs ) {
   return Delta{ lhs.w % rhs.w, lhs.h % rhs.h };
 }
 

@@ -17,14 +17,14 @@ include "ss/nation.rds.hpp"
 # gfx
 include "gfx/cartesian.hpp"
 
-# base
-include "base/maybe.hpp"
-
 namespace "rn"
 
 sumtype.MapRevealed {
   # This should be first so that it is the default.
+  no_special_view {},
+
   entire {},
+
   nation {
     nation 'e_nation',
   },
@@ -40,9 +40,5 @@ struct.LandViewState {
 
   minimap 'MiniMapState',
 
-  # This is only set by a cheat function which will reveal a map
-  # from a point of view other than the player. If it is nothing
-  # then that is equivalent to "no special view," meaning that
-  # each player sees their own view.
-  map_revealed 'base::maybe<MapRevealed>',
+  map_revealed 'MapRevealed',
 }

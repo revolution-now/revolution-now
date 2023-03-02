@@ -24,7 +24,6 @@
 
 // ss
 #include "ss/colonies.hpp"
-#include "ss/land-view.rds.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
@@ -32,6 +31,9 @@
 
 // gfx
 #include "gfx/iter.hpp"
+
+// rds
+#include "rds/switch-macro.hpp"
 
 using namespace std;
 
@@ -238,37 +240,15 @@ refl::enum_map<e_nation, bool> nations_with_visibility_of_square(
   return res;
 }
 
-void set_map_visibility( SS& ss, TS& ts,
-                         maybe<MapRevealed const&> revealed,
-                         maybe<e_nation> default_nation ) {
-  ss.land_view.map_revealed = revealed;
-
-  auto set_nation = [&]( maybe<e_nation> nation ) {
-    ts.map_updater.mutate_options_and_redraw(
-        [&]( MapUpdaterOptions& options ) {
-          // This should trigger a redraw but only if we're
-          // changing the nation.
-          options.nation = nation;
-        } );
-    ts.planes.land_view().set_visibility( nation );
-  };
-
-  if( !revealed.has_value() ) {
-    set_nation( default_nation );
-    return;
-  }
-
-  CHECK( revealed.has_value() );
-  switch( revealed->to_enum() ) {
-    case MapRevealed::e::nation: {
-      auto& o = revealed->get<MapRevealed::nation>();
-      set_nation( o.nation );
-      break;
-    }
-    case MapRevealed::e::entire: //
-      set_nation( nothing );
-      break;
-  }
+void update_map_visibility( TS&                   ts,
+                            maybe<e_nation> const nation ) {
+  ts.map_updater.mutate_options_and_redraw(
+      [&]( MapUpdaterOptions& options ) {
+        // This should trigger a redraw but only if we're
+        // changing the nation.
+        options.nation = nation;
+      } );
+  ts.planes.land_view().set_visibility( nation );
 }
 
 } // namespace rn

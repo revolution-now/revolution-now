@@ -18,12 +18,7 @@
 // luapp
 #include "luapp/ext-userdata.hpp"
 
-namespace rn {
-
-base::maybe<e_nation> active_player(
-    TurnState const& turn_state );
-
-} // namespace rn
+namespace rn {} // namespace rn
 
 /****************************************************************
 ** Lua

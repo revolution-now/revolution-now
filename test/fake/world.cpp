@@ -37,6 +37,7 @@
 #include "config/unit-type.rds.hpp"
 
 // ss
+#include "src/ss/players.hpp"
 #include "src/ss/root.hpp"
 
 // luapp
@@ -382,10 +383,12 @@ void World::add_default_player() {
   add_player( default_nation() );
 }
 
-void World::set_human_player( e_nation nation ) {
-  for( auto& [e_nation, player] : players().players )
-    if( player.has_value() ) player->human = false;
-  player( nation ).human = true;
+void World::set_human_player( maybe<e_nation> nation ) {
+  rn::set_human_player( players(), nation );
+}
+
+void World::set_default_player_as_human() {
+  set_human_player( default_nation() );
 }
 
 Colony& World::add_colony( UnitId founder ) {

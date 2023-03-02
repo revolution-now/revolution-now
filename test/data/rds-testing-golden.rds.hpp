@@ -11,23 +11,19 @@
 #include <vector>
 #include <unordered_map>
 
-// Revolution Now
-#include "core-config.hpp"
-
 // refl
 #include "refl/ext.hpp"
 
 // base
 #include "base/variant.hpp"
+
 // Rds helpers.
 #include "rds/config-helper.hpp"
-
 
 // C++ standard library
 #include <array>
 #include <string_view>
 #include <tuple>
-
 
 /****************************************************************
 *                        Sum Type: Maybe
@@ -91,7 +87,6 @@ namespace rdstest {
     }
   };
 
-  NOTHROW_MOVE( Maybe<int> );
 
 } // namespace rdstest
 
@@ -211,7 +206,6 @@ namespace rdstest {
     }
   };
 
-  NOTHROW_MOVE( MyVariant1 );
 
 } // namespace rdstest
 
@@ -351,7 +345,6 @@ namespace rdstest {
     }
   };
 
-  NOTHROW_MOVE( MyVariant2 );
 
 } // namespace rdstest
 
@@ -493,7 +486,6 @@ namespace rdstest::inner {
     }
   };
 
-  NOTHROW_MOVE( MyVariant3 );
 
 } // namespace rdstest::inner
 
@@ -636,7 +628,6 @@ namespace rdstest::inner {
     }
   };
 
-  NOTHROW_MOVE( MyVariant4 );
 
 } // namespace rdstest::inner
 
@@ -783,7 +774,6 @@ namespace rdstest::inner {
     }
   };
 
-  NOTHROW_MOVE( TemplateTwoParams<int, int> );
 
 } // namespace rdstest::inner
 
@@ -911,7 +901,6 @@ namespace rdstest::inner {
     }
   };
 
-  NOTHROW_MOVE( CompositeTemplateTwo<int, int> );
 
 } // namespace rdstest::inner
 
@@ -1031,7 +1020,6 @@ namespace rn {
     }
   };
 
-  NOTHROW_MOVE( MySumtype );
 
 } // namespace rn
 
@@ -1182,7 +1170,6 @@ namespace rn {
     }
   };
 
-  NOTHROW_MOVE( OnOffState );
 
 } // namespace rn
 
@@ -1320,7 +1307,6 @@ namespace rn {
     }
   };
 
-  NOTHROW_MOVE( OnOffEvent );
 
 } // namespace rn
 
@@ -1843,3 +1829,5 @@ namespace rds {
   } // namespace detail
 
 } // namespace rds
+
+// The end.

@@ -14,12 +14,14 @@ include "unit-id.hpp"
 # Rds
 include "nation.rds.hpp"
 
+# refl
+include "refl/enum-map.hpp"
+
 # base
 include "base/maybe.hpp"
 
 # C++ standard library
 include "<deque>"
-include "<queue>"
 
 namespace "rn"
 
@@ -40,21 +42,28 @@ struct.TurnTimePoint {
   _features { validation, equality }
 }
 
-struct.NationTurnState {
-  nation 'e_nation',
-  started 'bool',
-  did_colonies 'bool',
-  did_units 'bool', # FIXME: do we need this?
-  units 'std::deque<UnitId>',
-  need_eot 'bool',
+sumtype.NationTurnState {
+  not_started {},
+  colonies {},
+  units {
+    q 'std::deque<UnitId>',
+    need_eot 'bool',
+  },
+  eot {},
+  finished {},
+}
+
+sumtype.TurnCycle {
+  not_started {}, # should be first.
+  natives {},
+  nations {
+    which 'refl::enum_map<e_nation, NationTurnState>',
+  },
+  end_cycle {},
+  finished {},
 }
 
 struct.TurnState {
   time_point 'TurnTimePoint',
-
-  started 'bool',
-
-  nation 'base::maybe<NationTurnState>',
-
-  remainder 'std::queue<e_nation>',
+  cycle 'TurnCycle',
 }

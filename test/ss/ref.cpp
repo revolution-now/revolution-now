@@ -64,6 +64,7 @@ cdr::value cdr_game_state_default =
                         "french"_key  = cdr::null,
                         "spanish"_key = cdr::null,
                     },
+                "human"_key = cdr::null,
                 "global_market_state"_key =
                     cdr::table{
                         "commodities"_key =
@@ -131,9 +132,10 @@ cdr::value cdr_game_state_default =
                         "season"_key = "winter",
                         "turns"_key  = 0,
                     },
-                "started"_key   = false,
-                "nation"_key    = cdr::null,
-                "remainder"_key = cdr::list{},
+                "cycle"_key =
+                    cdr::table{
+                        "not_started"_key = cdr::table{},
+                    },
             },
         "colonies"_key =
             cdr::table{
@@ -173,10 +175,15 @@ cdr::value cdr_game_state_default =
                 "minimap"_key =
                     cdr::table{
                         "origin"_key =
-                            cdr::table{ "x"_key = 0.0,
-                                        "y"_key = 0.0 },
+                            cdr::table{
+                                "x"_key = 0.0,
+                                "y"_key = 0.0,
+                            },
                     },
-                "map_revealed"_key = cdr::null,
+                "map_revealed"_key =
+                    cdr::table{
+                        "no_special_view"_key = cdr::table{},
+                    },
             },
         "zzz_terrain"_key =
             cdr::table{
