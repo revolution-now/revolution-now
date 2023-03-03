@@ -305,9 +305,12 @@ struct CodeGenerator {
       emit_template_decl( sumtype.tmpl_params );
     line( "struct base::variant_to_enum<{}> {{",
           qualified_base_name );
+    string const typen4me =
+        sumtype.tmpl_params.empty() ? "" : "typename ";
     {
       auto _ = indent();
-      line( "using type = {}::{}{}::e;", ns, sumtype.name,
+      line( "using type = {}{}::{}{}::e;", typen4me, ns,
+            sumtype.name,
             template_params( sumtype.tmpl_params,
                              /*put_typename=*/false ) );
     }

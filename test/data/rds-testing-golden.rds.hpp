@@ -93,7 +93,7 @@ namespace rdstest {
 // This gives us the enum to use in a switch statement.
 template<typename T>
 struct base::variant_to_enum<rdstest::detail::MaybeBase<T>> {
-  using type = rdstest::Maybe<T>::e;
+  using type = typename rdstest::Maybe<T>::e;
 };
 
 // Reflection traits for alternatives.
@@ -780,7 +780,7 @@ namespace rdstest::inner {
 // This gives us the enum to use in a switch statement.
 template<typename T, typename U>
 struct base::variant_to_enum<rdstest::inner::detail::TemplateTwoParamsBase<T, U>> {
-  using type = rdstest::inner::TemplateTwoParams<T, U>::e;
+  using type = typename rdstest::inner::TemplateTwoParams<T, U>::e;
 };
 
 // Reflection traits for alternatives.
@@ -907,7 +907,7 @@ namespace rdstest::inner {
 // This gives us the enum to use in a switch statement.
 template<typename T, typename U>
 struct base::variant_to_enum<rdstest::inner::detail::CompositeTemplateTwoBase<T, U>> {
-  using type = rdstest::inner::CompositeTemplateTwo<T, U>::e;
+  using type = typename rdstest::inner::CompositeTemplateTwo<T, U>::e;
 };
 
 // Reflection traits for alternatives.
