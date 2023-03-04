@@ -171,8 +171,8 @@ NativeUnitId create_unit_on_map_non_interactive(
     SS& ss, e_native_unit_type type, Coord coord,
     DwellingId dwelling_id ) {
   NativeUnitId const id = create_free_unit( ss, type );
-  unit_to_map_square_non_interactive( ss, id, coord,
-                                      dwelling_id );
+  native_unit_to_map_square_non_interactive( ss, id, coord,
+                                             dwelling_id );
   return id;
 }
 

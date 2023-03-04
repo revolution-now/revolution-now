@@ -193,7 +193,7 @@ struct UnitsState {
   // These are the function that calls the above.
   friend void unit_to_map_square_non_interactive(
       SS& ss, TS& ts, UnitId id, Coord world_square );
-  friend void unit_to_map_square_non_interactive(
+  friend void native_unit_to_map_square_non_interactive(
       SS& ss, NativeUnitId id, Coord world_square,
       DwellingId dwelling_id );
 

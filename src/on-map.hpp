@@ -52,7 +52,7 @@ wait<maybe<UnitDeleted>> unit_to_map_square(
 void unit_to_map_square_non_interactive( SS& ss, TS& ts,
                                          UnitId id,
                                          Coord  world_square );
-void unit_to_map_square_non_interactive(
+void native_unit_to_map_square_non_interactive(
     SS& ss, NativeUnitId id, Coord world_square,
     DwellingId dwelling_id );
 

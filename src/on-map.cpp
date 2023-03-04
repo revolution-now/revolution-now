@@ -190,7 +190,7 @@ void unit_to_map_square_non_interactive( SS& ss, TS& ts,
   //    TODO
 }
 
-void unit_to_map_square_non_interactive(
+void native_unit_to_map_square_non_interactive(
     SS& ss, NativeUnitId id, Coord world_square,
     DwellingId dwelling_id ) {
   // 1. Move the unit. This is the only place where this function

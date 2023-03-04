@@ -95,7 +95,7 @@ TEST_CASE( "[on-map] non-interactive: moves the unit" ) {
              e_native_unit_type::armed_brave, { .x = 1, .y = 0 },
              dwelling.id )
             .id;
-    unit_to_map_square_non_interactive(
+    native_unit_to_map_square_non_interactive(
         W.ss(), unit_id, { .x = 1, .y = 1 }, dwelling.id );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 1, .y = 1 } );
