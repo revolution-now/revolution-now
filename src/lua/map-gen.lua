@@ -779,23 +779,18 @@ local function has_dwelling_in_surroundings( coord )
   return false
 end
 
+-- Even though the braves are generally supposed to be distrib-
+-- uted randomly around their dwellings as they move, it is by
+-- far simplest to just place them over their respective
+-- dwellings when creating them. This way we don't have to worry
+-- about duplicating all of the various checks here having to do
+-- with valid places where braves can move (i.e. not putting them
+-- over another tribe's unit or dwelling, not putting them on wa-
+-- ter, LCRs, etc.). For that same reason, it is also much
+-- faster. And it works just as well because, within one turn,
+-- they will have moved around randomly anyway.
 local function create_brave_for_dwelling( dwelling )
-  local natives = ROOT.natives
-  local location = natives:coord_for_dwelling( dwelling.id )
-  local squares = filter_on_map(
-                      surrounding_squares_3x3( location ) )
-  squares = filter( squares, function( coord )
-    if square_at( coord ).surface ~= 'land' then return false end
-    local tribe = society.tribe_on_square( coord )
-    local dwelling_tribe = natives:tribe_for_dwelling(
-                               dwelling.id )
-    if tribe ~= nil and tribe ~= dwelling_tribe then
-      return false
-    end
-    return true
-  end )
-  append( squares, location )
-  local coord = assert( random_list_elem( squares ) )
+  local coord = ROOT.natives:coord_for_dwelling( dwelling.id )
   unit_mgr.create_native_unit_on_map( dwelling.id, 'brave', coord )
 end
 
