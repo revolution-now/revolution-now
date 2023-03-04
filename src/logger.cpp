@@ -124,11 +124,10 @@ mutex& terminal_mutex() {
 
 struct TerminalLogger final : public ILogger {
   void log( e_log_level target, std::string_view what,
-            base::SourceLoc const& ) override {
+            base::SourceLoc const& loc ) override {
     if( target < global_log_level() ) return;
-    // Unused for now.
-    // auto module_name =
-    //     fs::path( loc.file_name() ).stem().string();
+    fs::path const module_name =
+        fs::path( loc.file_name() ).filename();
 
     auto now = chrono::system_clock::now();
     auto d   = now.time_since_epoch();
@@ -140,8 +139,9 @@ struct TerminalLogger final : public ILogger {
     auto now_c = std::chrono::system_clock::to_time_t( now );
     ostringstream ss;
     ss << put_time( localtime( &now_c ), "%H:%M:%S" );
-    ss << fmt::format( ".{:03} {} {}", millis.count(),
-                       to_colored_level_name( target ), what );
+    ss << fmt::format( ".{:03} | {} {}:{}: {}", millis.count(),
+                       to_colored_level_name( target ),
+                       module_name.string(), loc.line(), what );
 
     lock_guard<mutex> lock( terminal_mutex() );
     fmt::print( "{}\n", ss.str() );

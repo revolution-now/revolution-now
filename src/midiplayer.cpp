@@ -51,7 +51,7 @@ void init_midiplayer() {
     static const string msg =
         "MIDI Sequencer Disabled: not enabling MIDI Music "
         "Player.";
-    lg.warn( msg );
+    lg.warn( "{}", msg );
     g_midiseq_player = msg;
   }
 }

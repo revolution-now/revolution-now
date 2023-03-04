@@ -135,7 +135,7 @@ void MusicPlayer::pause() {
       "music Player `{}` does not support pausing/resuming.",
       info().name );
   DCHECK( capabilities().can_pause, "{}", msg );
-  lg.error( msg );
+  lg.error( "{}", msg );
 }
 
 void MusicPlayer::resume() {
@@ -143,7 +143,7 @@ void MusicPlayer::resume() {
       "music Player `{}` does not support pausing/resuming.",
       info().name );
   DCHECK( capabilities().can_pause, "{}", msg );
-  lg.error( msg );
+  lg.error( "{}", msg );
 }
 
 void MusicPlayer::set_volume( double /*unused*/ ) {
@@ -151,7 +151,7 @@ void MusicPlayer::set_volume( double /*unused*/ ) {
       "music Player `{}` does not support setting volume.",
       info().name );
   DCHECK( capabilities().has_volume, "{}", msg );
-  lg.error( msg );
+  lg.error( "{}", msg );
 }
 
 void MusicPlayer::seek( double /*unused*/ ) {
@@ -159,7 +159,7 @@ void MusicPlayer::seek( double /*unused*/ ) {
       fmt::format( "music Player `{}` does not support seeking.",
                    info().name );
   DCHECK( capabilities().can_seek, "{}", msg );
-  lg.error( msg );
+  lg.error( "{}", msg );
 }
 
 } // namespace rn

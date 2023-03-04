@@ -100,7 +100,8 @@ class MidiIO {
       res.out_->openPort( *maybe_port );
     } catch( RtMidiError const& error ) {
       RTMIDI_WARN( error );
-      lg.warn( "failed to open MIDI output port {}." );
+      lg.warn( "failed to open MIDI output port {}.",
+               *maybe_port );
       return nothing;
     }
     lg.info( "using MIDI output port #{}", *maybe_port );

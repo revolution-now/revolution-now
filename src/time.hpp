@@ -12,12 +12,6 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "logger.hpp"
-
-// base
-#include "base/scope-exit.hpp"
-
 // C++ standard library
 #include <chrono>
 #include <cmath>
@@ -51,17 +45,6 @@ auto from_seconds( T secs ) {
   auto nanos = std::lround( 1000000000.0 * secs );
   return std::chrono::duration_cast<ChronoDurationT>(
       std::chrono::nanoseconds( nanos ) );
-}
-
-// Run the function, time it, and log the time.
-template<typename Func>
-decltype( auto ) time_it( std::string_view name, Func&& func ) {
-  auto start = Clock_t::now();
-  SCOPE_EXIT( {
-    auto end = Clock_t::now();
-    lg.debug( "{} took {}", name, end - start );
-  } );
-  return std::forward<Func>( func )();
 }
 
 } // namespace rn

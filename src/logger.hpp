@@ -39,35 +39,61 @@ e_log_level global_log_level();
 void        set_global_log_level( e_log_level level );
 
 /****************************************************************
-** StringAndLoc
+** FmtStrAndLoc
 *****************************************************************/
-// This class is a helper that can be implicitely constructed
-// from a string_view, but also captures the source location in
+// This class is a helper that is implicitely constructed from a
+// constsexpr string, but also captures the source location in
 // the process. It is used to automatically collect source loca-
 // tion info when logging. We can't use the usual technique of
 // making a defaulted SourceLoc parameter at the end of the argu-
 // ment list of the logging statements because they already need
 // to have a variable number of arguments to support formatting.
-struct StringAndLoc {
-  template<typename T>
-  constexpr StringAndLoc(
-      T&&             what_,
-      base::SourceLoc loc_ = base::SourceLoc::current() )
-    : what( what_ ), loc( loc_ ) {}
-  std::string_view const what;
-  base::SourceLoc const  loc;
+// Note that we also store the format string in an format_string
+// so that we get fmt's compile time format checking, which we
+// would otherwise lose. We really want the compile-time format
+// string checking afforded to us by fmt::format_string because
+// otherwise format string syntax issues (or argument count dis-
+// crepencies) would not be caught until runtime at which point
+// fmt throws an exception which immediately terminates our pro-
+// gram without much info for debugging where it happened. So
+// even though we could bypass the compile time checking by using
+// fmt::runtime(...) and perhaps save some compile time, we opt
+// to keep the checking.
+template<typename... Args>
+struct FmtStrAndLoc {
+  consteval FmtStrAndLoc(
+      char const*     s,
+      base::SourceLoc loc = base::SourceLoc::current() )
+    : fs( s ), loc( loc ) {}
+  fmt::format_string<Args...> fs;
+  base::SourceLoc             loc;
 };
 
 /****************************************************************
 ** Logger Interface
 *****************************************************************/
-#define ILOGGER_LEVEL( level )                             \
-  template<typename... Args>                               \
-  void level( StringAndLoc str_and_loc, Args&&... args ) { \
-    log( e_log_level::level,                               \
-         fmt::format( fmt::runtime( str_and_loc.what ),    \
-                      std::forward<Args>( args )... ),     \
-         str_and_loc.loc );                                \
+// The use of std::type_identity_t trick was taken from fmt's de-
+// finition of fmt::format_string itself. It is needed otherwise
+// the compiler will fail to match the first parameter... I don't
+// understand it 100%, but I believe what is happening is that
+// wrapping the Args in a std::type_identity_t (which is just a
+// generic type identity function; no magic) in a function argu-
+// ment will leave the types unchanged but will obstruct the com-
+// piler from trying to infer Args from the type of the first ar-
+// gument passed in (format string) argument, which it would fail
+// to do, since that arg is just a string literal; instead it is
+// now forced to infer Args from the subsequent parameters, which
+// then fixes them for the first parameter. See the type_identity
+// cppreference page for more info.
+#define ILOGGER_LEVEL( level )                            \
+  template<typename... Args>                              \
+  void level( FmtStrAndLoc<std::type_identity_t<Args>...> \
+                  fmt_str_and_loc,                        \
+              Args&&... args ) {                          \
+    log( e_log_level::level,                              \
+         fmt::format( fmt_str_and_loc.fs,                 \
+                      std::forward<Args>( args )... ),    \
+         fmt_str_and_loc.loc );                           \
   }
 
 // Subclasses of this must be thread safe with respect to them-

@@ -52,6 +52,7 @@
 
 // base
 #include "base/conv.hpp"
+#include "base/scope-exit.hpp"
 #include "base/string.hpp"
 #include "base/to-str-ext-std.hpp"
 
