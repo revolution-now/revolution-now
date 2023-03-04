@@ -407,6 +407,14 @@ void LandViewRenderer::render_native_dwelling(
   Coord const tile_coord =
       render_rect_for_tile( location ).upper_left() -
       Delta{ .w = 6, .h = 6 };
+  // FIXME: when a dwelling is just next to a hidden square then
+  // it will be rendered over top of the pixelated shadow that
+  // extends into its tile, which looks strange. This is because
+  // it is rendered as part of the landscape. We should find a
+  // way to re-render the shadow on top of this dwelling so that
+  // it looks like the dwelling is under the shadow. Note that
+  // colonies and units don't have this issue because they will
+  // never have hidden tiles next to them.
   render_dwelling( renderer, tile_coord, ss_, dwelling );
 }
 
