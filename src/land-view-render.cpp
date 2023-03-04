@@ -309,6 +309,13 @@ void LandViewRenderer::render_units_impl() const {
   auto render_impl = [&]( GenericUnitId id, auto const& f ) {
     Coord const tile =
         coord_for_unit_multi_ownership_or_die( ss_, id );
+    // I believe this is not really needed, but it prevents some-
+    // thing from happening visually that looks a bit weird: when
+    // a unit on a non-visible square slides onto a visible
+    // square, this will suppress the slide animation, so that
+    // the unit will just appear on the destination square, as
+    // opposed to first appearing on top of a non-visible square
+    // and sliding off of it.
     if( !viz_.visible( tile ) ) return;
     Coord const where =
         render_rect_for_tile( tile ).upper_left();
