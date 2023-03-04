@@ -281,6 +281,13 @@ e_tribe tribe_for_unit( SSConst const&    ss,
 }
 
 /****************************************************************
+** Unit destruction.
+*****************************************************************/
+void destroy_unit( SS& ss, TS&, UnitId id ) {
+  ss.units.destroy_unit( id );
+}
+
+/****************************************************************
 ** Multi
 *****************************************************************/
 maybe<Coord> coord_for_unit_multi_ownership( SSConst const& ss,

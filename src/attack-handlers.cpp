@@ -171,7 +171,7 @@ maybe<string> perform_euro_unit_combat_outcome(
                          nation_obj( unit.nation() ).adjective,
                          unit.desc().name );
       // Need to destroy the unit after accessing its info.
-      ss.units.destroy_unit( unit.id() );
+      destroy_unit( ss, ts, unit.id() );
       break;
     }
     case e::captured: {
@@ -330,7 +330,7 @@ maybe<string> perform_naval_unit_combat_outcome(
       vector<UnitId> const units_in_cargo = unit.cargo().units();
       int const num_units_lost = units_in_cargo.size();
       for( UnitId const held_id : units_in_cargo )
-        ss.units.destroy_unit( held_id );
+        destroy_unit( ss, ts, held_id );
       // Now send the ship for repair.
       msg = fmt::format( "{} [{}] damaged in battle!",
                          nation_obj( unit.nation() ).adjective,
@@ -382,7 +382,7 @@ maybe<string> perform_naval_unit_combat_outcome(
       // Need to destroy unit first before displaying message
       // otherwise the unit will reappear on the map while the
       // message is open.
-      ss.units.destroy_unit( unit.id() );
+      destroy_unit( ss, ts, unit.id() );
       break;
     }
   }
@@ -1171,7 +1171,7 @@ wait<> AttackDwellingHandler::perform() {
     for( UnitId const missionary : missionaries ) {
       CHECK( ss_.units.unit_for( missionary ).nation() ==
              attacking_player_.nation );
-      ss_.units.destroy_unit( missionary );
+      destroy_unit( ss_, ts_, missionary );
     }
     co_await ts_.gui.message_box(
         "The [{}] revolt against [{}] missions! "

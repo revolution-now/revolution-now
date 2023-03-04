@@ -732,19 +732,19 @@ void change_unit_outdoor_job( Colony& colony, UnitId id,
         outdoor_jobs[d]->job = new_job;
 }
 
-ColonyDestructionOutcome destroy_colony(
-    SS& ss, IMapUpdater& map_updater, Player& player,
-    Colony& colony ) {
+ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
+                                         Player& player,
+                                         Colony& colony ) {
   ColonyDestructionOutcome outcome;
   // These are the units working in the colony, not those at the
   // gate or in port (which won't be affected).
   vector<UnitId> units = colony_units_all( colony );
   for( UnitId unit_id : units ) {
     remove_unit_from_colony( ss.units, colony, unit_id );
-    ss.units.destroy_unit( unit_id );
+    destroy_unit( ss, ts, unit_id );
   }
   CHECK( colony_population( colony ) == 0 );
-  clear_abandoned_colony_road( ss, map_updater,
+  clear_abandoned_colony_road( ss, ts.map_updater,
                                colony.location );
 
   // Send any ships in port back to the harbor. The OG does not
@@ -793,7 +793,7 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Player& player,
       anim_seq_for_colony_depixelation( colony.id );
   co_await ts.planes.land_view().animate( seq );
   ColonyDestructionOutcome const outcome =
-      destroy_colony( ss, ts.map_updater, player, colony );
+      destroy_colony( ss, ts, player, colony );
   if( msg.has_value() ) co_await ts.gui.message_box( *msg );
   // Check if there are any ships in port.
   for( auto [unit_type, count] :

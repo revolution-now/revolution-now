@@ -16,6 +16,9 @@
 // Under test.
 #include "src/harbor-units.hpp"
 
+// Revolution Now
+#include "src/unit-mgr.hpp"
+
 // ss
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
@@ -869,11 +872,11 @@ TEST_CASE( "[harbor-units] update_harbor_selected_unit" ) {
   UnitId id2 = create_unit_in_harbor( W.units(), player,
                                       e_unit_type::galleon );
   REQUIRE( player.old_world.harbor_state.selected_unit == id1 );
-  W.units().destroy_unit( id1 );
+  destroy_unit( W.ss(), W.ts(), id1 );
   REQUIRE( player.old_world.harbor_state.selected_unit == id1 );
   update_harbor_selected_unit( W.units(), player );
   REQUIRE( player.old_world.harbor_state.selected_unit == id2 );
-  W.units().destroy_unit( id2 );
+  destroy_unit( W.ss(), W.ts(), id2 );
   REQUIRE( player.old_world.harbor_state.selected_unit == id2 );
   update_harbor_selected_unit( W.units(), player );
   REQUIRE( player.old_world.harbor_state.selected_unit ==

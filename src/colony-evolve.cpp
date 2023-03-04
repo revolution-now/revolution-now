@@ -145,7 +145,7 @@ void check_create_or_starve_colonist(
       // Note that calling `destroy_unit` is not enough, we have
       // to remove it from the colony as well.
       remove_unit_from_colony( ss.units, colony, unit_id );
-      ss.units.destroy_unit( unit_id );
+      destroy_unit( ss, ts, unit_id );
       notifications.emplace_back(
           ColonyNotification::colonist_starved{ .type = type } );
     }

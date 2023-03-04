@@ -280,7 +280,7 @@ wait<LostCityRumorResult> run_rumor_result(
     case e_rumor_type::unit_lost: {
       // Destroy unit before showing message so that the unit ac-
       // tually appears to disappear.
-      ss.units.destroy_unit( unit_id );
+      destroy_unit( ss, ts, unit_id );
       co_await ts.gui.message_box(
           "Our colonist has vanished without a trace." );
       co_return LostCityRumorResult::unit_lost{};

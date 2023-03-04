@@ -409,8 +409,7 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
   REQUIRE( W.terrain().square_at( loc ).road );
 
   SECTION( "non interactive" ) {
-    destroy_colony( W.ss(), W.map_updater(), W.default_player(),
-                    colony );
+    destroy_colony( W.ss(), W.ts(), W.default_player(), colony );
   }
 
   SECTION( "non interactive with ships" ) {
@@ -420,8 +419,7 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
         W.add_unit_on_map( e_unit_type::merchantman, loc );
     Unit const& ship3 =
         W.add_unit_on_map( e_unit_type::caravel, loc );
-    destroy_colony( W.ss(), W.map_updater(), W.default_player(),
-                    colony );
+    destroy_colony( W.ss(), W.ts(), W.default_player(), colony );
     REQUIRE( W.units().exists( ship1.id() ) );
     REQUIRE( W.units().exists( ship2.id() ) );
     REQUIRE( W.units().exists( ship3.id() ) );

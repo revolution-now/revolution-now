@@ -136,7 +136,7 @@ wait<bool> try_king_transport_treasure( SS& ss, TS& ts,
   maybe<TreasureReceipt> const receipt =
       co_await treasure_enter_colony( ss, ts, player, unit );
   if( !receipt.has_value() ) co_return false;
-  apply_treasure_reimbursement( ss, player, *receipt );
+  apply_treasure_reimbursement( ss, ts, player, *receipt );
   // !! Treasure unit has been deleted here.
   co_await show_treasure_receipt( ts, player, *receipt );
   co_return true; // treasure unit deleted.

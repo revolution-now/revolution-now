@@ -150,9 +150,18 @@ struct UnitsState {
   [[nodiscard]] NativeUnitId add_unit( NativeUnit&& unit );
 
   // Should not be holding any references to the unit after this.
-  void destroy_unit( UnitId id );
   void destroy_unit( NativeUnitId id );
 
+ private:
+  // This can't be called directly because sometimes some other
+  // cleanup work must be performed when a unit is destroyed,
+  // e.g. updating fog-of-war if the unit was on the map.
+  void destroy_unit( UnitId id );
+
+  // This is the one to call.
+  friend void destroy_unit( SS& ss, TS& ts, UnitId id );
+
+ public:
   // This should probably only be used in unit tests. Returns
   // false if the unit currently exists; returns true if the unit
   // existed but has since been deleted; check-fails if the id

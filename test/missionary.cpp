@@ -17,6 +17,9 @@
 #include "test/fake/world.hpp"
 #include "test/mocks/irand.hpp"
 
+// Revolution Now
+#include "src/unit-mgr.hpp"
+
 // ss
 #include "src/ss/dwelling.rds.hpp"
 #include "src/ss/ref.hpp"
@@ -415,8 +418,8 @@ TEST_CASE( "[missionary] player_missionaries_in_tribe" ) {
   REQUIRE( f( e_nation::french, e_tribe::cherokee ) ==
            V{ missionary4_id } );
 
-  W.units().destroy_unit( missionary1_id );
-  W.units().destroy_unit( missionary3_id );
+  destroy_unit( W.ss(), W.ts(), missionary1_id );
+  destroy_unit( W.ss(), W.ts(), missionary3_id );
 
   REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
            V{ missionary2_id } );
@@ -425,8 +428,8 @@ TEST_CASE( "[missionary] player_missionaries_in_tribe" ) {
   REQUIRE( f( e_nation::french, e_tribe::cherokee ) ==
            V{ missionary4_id } );
 
-  W.units().destroy_unit( missionary2_id );
-  W.units().destroy_unit( missionary4_id );
+  destroy_unit( W.ss(), W.ts(), missionary2_id );
+  destroy_unit( W.ss(), W.ts(), missionary4_id );
 
   REQUIRE( f( e_nation::dutch, e_tribe::apache ) == V{} );
   REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) == V{} );

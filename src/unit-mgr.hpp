@@ -146,6 +146,11 @@ e_tribe tribe_for_unit( SSConst const&    ss,
                         NativeUnit const& native_unit );
 
 /****************************************************************
+** Unit destruction.
+*****************************************************************/
+void destroy_unit( SS& ss, TS& ts, UnitId id );
+
+/****************************************************************
 ** Multi
 *****************************************************************/
 // These functions apply to multiple types of ownership.

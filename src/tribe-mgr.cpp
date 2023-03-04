@@ -14,6 +14,7 @@
 #include "igui.hpp"
 #include "road.hpp"
 #include "ts.hpp"
+#include "unit-mgr.hpp"
 #include "wait.hpp"
 
 // config
@@ -51,7 +52,7 @@ void delete_dwelling_ignoring_owned_land(
   if( maybe<UnitId> const missionary =
           ss.units.missionary_from_dwelling( dwelling_id );
       missionary.has_value() )
-    ss.units.destroy_unit( *missionary );
+    destroy_unit( ss, ts, *missionary );
 
   // 3. Remove road under dwelling.
   clear_road( ts.map_updater,

@@ -150,7 +150,8 @@ TEST_CASE( "[treasure] apply_treasure_reimbursement" ) {
       .original_worth    = 100,
       .kings_cut_percent = 10,
       .net_received      = 90 };
-  apply_treasure_reimbursement( W.ss(), player, receipt );
+  apply_treasure_reimbursement( W.ss(), W.ts(), player,
+                                receipt );
 
   REQUIRE( W.units().all().size() == 0 );
   REQUIRE( player.money == 90 );

@@ -15,6 +15,7 @@
 #include "igui.hpp"
 #include "irand.hpp"
 #include "ts.hpp"
+#include "unit-mgr.hpp"
 
 // config
 #include "config/nation.rds.hpp"
@@ -152,8 +153,9 @@ wait<maybe<TreasureReceipt>> treasure_enter_colony(
 }
 
 void apply_treasure_reimbursement(
-    SS& ss, Player& player, TreasureReceipt const& receipt ) {
-  ss.units.destroy_unit( receipt.treasure_id );
+    SS& ss, TS& ts, Player& player,
+    TreasureReceipt const& receipt ) {
+  destroy_unit( ss, ts, receipt.treasure_id );
   player.money += receipt.net_received;
 }
 

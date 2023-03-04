@@ -26,6 +26,7 @@
 #include "promotion.hpp"
 #include "rand-enum.hpp"
 #include "ts.hpp"
+#include "unit-mgr.hpp"
 #include "visibility.hpp"
 #include "woodcut.hpp"
 
@@ -685,7 +686,7 @@ wait<> do_speak_with_chief(
       AnimationSequence const seq =
           anim_seq_for_unit_depixelation( unit.id() );
       co_await ts.planes.land_view().animate( seq );
-      ss.units.destroy_unit( unit.id() );
+      destroy_unit( ss, ts, unit.id() );
       co_return;
     }
   }

@@ -40,7 +40,6 @@ struct TS;
 
 struct ColoniesState;
 struct Colony;
-struct IMapUpdater;
 struct Player;
 struct Unit;
 struct UnitsState;
@@ -103,9 +102,9 @@ bool colony_has_unit( Colony const& colony, UnitId id );
 
 // Destroy's a colony without any interactivity. Normal game code
 // should use the interactive version below.
-ColonyDestructionOutcome destroy_colony(
-    SS& ss, IMapUpdater& map_updater, Player& player,
-    Colony& colony );
+ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
+                                         Player& player,
+                                         Colony& colony );
 
 // This will do the colony destruction depixelation animation and
 // then will actually destroy the colony using the destroy_colony
