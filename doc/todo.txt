@@ -2,35 +2,31 @@
 # TODOs
 # ===============================================================
 
-  1.  Render natural resource tiles.
-  2.  Render rivers, with color cycling.
-  3.  Add color cycling to sea lane tile.
-  4.  Fix beach tiles.
-  5.  Consider adding connectors to diagonally adjacent forest
-      island tiles.
-  6.  Need to make sure that units at the colony gate have an
-      order to them for a good UX. Actually we may want to have
-      an ordering of units on all map squares. Need to see what
-      the original game does in this regard. Ditto for units
-      (ships and non-ships) in the harbor.
-  7.  Fix that when clicking outside of an open menu to close it
-      the menu plane does not handle the click and it goes
-      through to what is underneath of it.
-  8.  Fix that when clicking on the exit tile in the harbor view,
-      up click carries through to the land view and scrolls the
-      map. Also, the same things seems to happen when closing an
-      open menu by clicking away from it.
-  9.  In the original game, when a ship defeats (sinks or dam-
-      ages) another ship in battle, it advances to its square
-      after doing so (as opposed to land units where this does
-      not happen).
-  10. When a colony is captured a certain amount of gold is
-      stolen (investigate how this is calculated). In the case
-      where there is only one colony and it is captured, it ap-
-      pears that all of that players gold is taken. It seems rea-
-      sonable to compute the gold stolen as a percentage based on
-      the percentage that the captured colony's population repre-
-      sents of the entire population.
+  1. Render natural resource tiles.
+  2. Render rivers, with color cycling.
+  3. Add color cycling to sea lane tile.
+  4. Fix beach tiles.
+  5. Consider adding connectors to diagonally adjacent forest is-
+     land tiles.
+  6. Need to make sure that units at the colony gate have an
+     order to them for a good UX. Actually we may want to have an
+     ordering of units on all map squares. Need to see what the
+     original game does in this regard. Ditto for units (ships
+     and non-ships) in the harbor.
+  7. Fix that when clicking outside of an open menu to close it
+     the menu plane does not handle the click and it goes through
+     to what is underneath of it.
+  8. Fix that when clicking on the exit tile in the harbor view,
+     up click carries through to the land view and scrolls the
+     map. Also, the same things seems to happen when closing an
+     open menu by clicking away from it.
+  9. When a colony is captured a certain amount of gold is stolen
+     (investigate how this is calculated). In the case where
+     there is only one colony and it is captured, it appears that
+     all of that players gold is taken. It seems reasonable to
+     compute the gold stolen as a percentage based on the per-
+     centage that the captured colony's population represents of
+     the entire population.
 
 # Colony buildings and production:
 
@@ -128,8 +124,6 @@ Low priority:
 # Rendering
 # ===============================================================
 
-  - Fix handling of multiple units on a square with rendering.
-
   - Animate water.
 
 # ===============================================================
@@ -140,9 +134,6 @@ Low priority:
     the game mechanism that may not have been officially stated:
       * https://civilization.fandom.com/wiki/Colonization_tips
       * http://t-a-w.blogspot.com/2007/05/colonization-tips.html
-
-  - Fix handling of multiple units on a square with combat.
-  - Finish ship combat
 
   List of basic game mechanics:
 
@@ -160,12 +151,12 @@ Low priority:
         x fortifying
         x military unit attacking military unit
         x military unit attacking civilian
-        - military unit attacking trade wagon / treasure
+        x military unit attacking trade wagon / treasure
         x unit moving into lost city
 
     * Ships
 
-        - ship attacking ship (evade, damage, sink)
+        x ship attacking ship (evade, damage, sink)
         - privateer stealth
 
     * Land Units + Ships
