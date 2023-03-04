@@ -150,7 +150,6 @@ struct UnitsState {
   [[nodiscard]] NativeUnitId add_unit( NativeUnit&& unit );
 
   // Should not be holding any references to the unit after this.
-  void destroy_unit( GenericUnitId id );
   void destroy_unit( UnitId id );
   void destroy_unit( NativeUnitId id );
 
