@@ -28,6 +28,9 @@
 // gfx
 #include "gfx/iter.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
 // base
 #include "base/range-lite.hpp"
 
@@ -364,31 +367,29 @@ void HarborCargo::draw( rr::Renderer& renderer,
       continue;
     Coord const dst_coord       = rect.upper_left();
     auto const  cargo_slot_copy = cargo_slot;
-    switch( auto& v = cargo_slot_copy; v.to_enum() ) {
-      case CargoSlot::e::empty: {
+    SWITCH( cargo_slot_copy ) {
+      CASE( empty ) { break; }
+      CASE( overflow ) { break; }
+      CASE( cargo ) {
+        SWITCH( o.contents ) {
+          CASE( unit ) {
+            render_unit( renderer, dst_coord,
+                         ss_.units.unit_for( o.id ),
+                         UnitRenderOptions{} );
+            break;
+          }
+          CASE( commodity ) {
+            render_commodity_annotated(
+                renderer,
+                dst_coord + kCommodityInCargoHoldRenderingOffset,
+                o.obj );
+            break;
+          }
+          END_CASES;
+        }
         break;
       }
-      case CargoSlot::e::overflow: {
-        break;
-      }
-      case CargoSlot::e::cargo: {
-        auto& cargo = v.get<CargoSlot::cargo>();
-        overload_visit(
-            cargo.contents,
-            [&]( Cargo::unit u ) {
-              render_unit( renderer, dst_coord,
-                           ss_.units.unit_for( u.id ),
-                           UnitRenderOptions{} );
-            },
-            [&]( Cargo::commodity const& c ) {
-              render_commodity_annotated(
-                  renderer,
-                  dst_coord +
-                      kCommodityInCargoHoldRenderingOffset,
-                  c.obj );
-            } );
-        break;
-      }
+      END_CASES;
     }
   }
 }
