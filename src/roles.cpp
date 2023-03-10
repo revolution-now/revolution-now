@@ -46,6 +46,7 @@ maybe<e_nation> player_for_role( SSConst const& ss,
         CASE( nation ) { return o.nation; }
         END_CASES;
       }
+      SHOULD_NOT_BE_HERE; // for gcc.
     }
     case e_player_role::human:
       return ss.players.human;
