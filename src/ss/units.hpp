@@ -181,7 +181,7 @@ struct UnitsState {
       SS& ss, UnitId id, EuroUnitOwnershipChangeTo const& info );
 
   friend struct UnitOnMapMover;
-  friend struct UnitHarborMover;
+  friend class UnitHarborMover;
 
   friend void move_unit_to_colony( UnitsState&      units_state,
                                    Player const&    player,

@@ -159,14 +159,13 @@ wait<> try_meet_natives( SS& ss, TS& ts, Player& player,
 /****************************************************************
 ** Public API
 *****************************************************************/
-void UnitOnMapMover::to_map_non_interactive( SS& ss, TS& ts,
-                                             UnitId id,
-                                             Coord  dst ) {
+void UnitOnMapMover::to_map_non_interactive(
+    SS& ss, TS& ts, UnitId id, Coord world_square ) {
   Unit& unit = ss.units.unit_for( id );
 
   // 1. Move the unit. This is the only place where this function
   //    should be called by normal game code.
-  ss.units.change_to_map( id, dst );
+  ss.units.change_to_map( id, world_square );
 
   // 2. Unsentry surrounding foreign units.
   //    TODO
