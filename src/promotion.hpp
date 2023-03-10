@@ -29,6 +29,7 @@ namespace rn {
 struct Colony;
 struct SSConst;
 struct TS;
+struct SS;
 struct Unit;
 
 // Gets the one (unique) unit type that is the expert for this
@@ -50,9 +51,8 @@ e_unit_type expert_for_activity( e_unit_activity activity );
 // don't do that. Also, note that if the unit is an expert at
 // something other than the given activity then no promotion will
 // happen.
-bool try_promote_unit_for_current_activity( SSConst const& ss,
-                                            Player const& player,
-                                            Unit&         unit );
+bool try_promote_unit_for_current_activity( SS& ss, TS& ts,
+                                            Unit& unit );
 
 // This function will promote a unit given an activity. It will
 // first promote the unit type given the activity, then preserve

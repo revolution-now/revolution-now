@@ -31,8 +31,11 @@
 
 namespace rn {
 
+struct Colony;
+struct ColonyJob;
+struct EuroUnitOwnershipChangeTo;
+struct Player;
 struct SS;
-struct TS;
 
 struct UnitsState {
   UnitsState();
@@ -152,15 +155,6 @@ struct UnitsState {
   // Should not be holding any references to the unit after this.
   void destroy_unit( NativeUnitId id );
 
- private:
-  // This can't be called directly because sometimes some other
-  // cleanup work must be performed when a unit is destroyed,
-  // e.g. updating fog-of-war if the unit was on the map.
-  void destroy_unit( UnitId id );
-
-  // This is the one to call.
-  friend void destroy_unit( SS& ss, TS& ts, UnitId id );
-
  public:
   // This should probably only be used in unit tests. Returns
   // false if the unit currently exists; returns true if the unit
@@ -174,34 +168,20 @@ struct UnitsState {
   bool exists( NativeUnitId id ) const;
 
  private:
-  // Changes a unit's ownership from whatever it is (map or oth-
-  // erwise) to the map at the given coordinate. It will always
-  // move the unit to the target square without question
-  // (checking only that the unit exists).
-  //
-  // NOTE: This is a low-level function; it does not do any
-  // checking, and should not be called directly. E.g., this
-  // function will happily move a land unit into water.
-  // Furthermore, it will not carry out any of the other actions
-  // that need to be done when a unit moves onto a new square. In
-  // practice, it should only be called by the higher level
-  // function in in the on-map module.
-  void change_to_map( UnitId id, Coord target );
-  void change_to_map( NativeUnitId id, Coord target,
-                      DwellingId dwelling_id );
+  // ------------------------------------------------------------
+  // State Changes.
+  // ------------------------------------------------------------
+  // These are all private and must be called via the friend
+  // functions below in order to ensure that the proper cleanup
+  // is done and invariants are maintained.
 
-  // These are the function that calls the above.
-  friend void unit_to_map_square_non_interactive(
-      SS& ss, TS& ts, UnitId id, Coord world_square );
-  friend void native_unit_to_map_square_non_interactive(
-      SS& ss, NativeUnitId id, Coord world_square,
-      DwellingId dwelling_id );
+  friend void destroy_unit( SS& ss, UnitId id );
 
- private:
-  // This is private because it should only be called via the
-  // higher level method (below) that can also update the
-  // colonies state.
-  void change_to_colony( UnitId id, ColonyId col_id );
+  friend void unit_ownership_change_non_interactive(
+      SS& ss, UnitId id, EuroUnitOwnershipChangeTo const& info );
+
+  friend struct UnitOnMapMover;
+  friend struct UnitHarborMover;
 
   friend void move_unit_to_colony( UnitsState&      units_state,
                                    Player const&    player,
@@ -209,12 +189,20 @@ struct UnitsState {
                                    UnitId           unit_id,
                                    ColonyJob const& job );
 
- public:
+  void destroy_unit( UnitId id );
+
+  void change_to_map( UnitId id, Coord target );
+  void change_to_map( NativeUnitId id, Coord target,
+                      DwellingId dwelling_id );
+
+  void change_to_colony( UnitId id, ColonyId col_id );
+
   // Will start at the starting slot and rotate right trying to
   // find a place where the unit can fit.
   void change_to_cargo_somewhere( UnitId new_holder, UnitId held,
                                   int starting_slot = 0 );
 
+  // Not really used.
   void change_to_cargo( UnitId new_holder, UnitId held,
                         int slot );
 
@@ -224,7 +212,6 @@ struct UnitsState {
   void change_to_dwelling( UnitId     unit_id,
                            DwellingId dwelling_id );
 
-  // ------ Non-invariant Preserving ------
   // This will erase any ownership that is had over the given
   // unit and mark it as free. The unit must soon be assigned a
   // new owernership in order to uphold invariants. This function

@@ -136,7 +136,7 @@ wait<bool> try_king_transport_treasure( SS& ss, TS& ts,
   maybe<TreasureReceipt> const receipt =
       co_await treasure_enter_colony( ss, ts, player, unit );
   if( !receipt.has_value() ) co_return false;
-  apply_treasure_reimbursement( ss, ts, player, *receipt );
+  apply_treasure_reimbursement( ss, player, *receipt );
   // !! Treasure unit has been deleted here.
   co_await show_treasure_receipt( ts, player, *receipt );
   co_return true; // treasure unit deleted.
@@ -159,14 +159,14 @@ wait<> try_meet_natives( SS& ss, TS& ts, Player& player,
 /****************************************************************
 ** Public API
 *****************************************************************/
-void unit_to_map_square_non_interactive( SS& ss, TS& ts,
-                                         UnitId id,
-                                         Coord  world_square ) {
+void UnitOnMapMover::to_map_non_interactive( SS& ss, TS& ts,
+                                             UnitId id,
+                                             Coord  dst ) {
   Unit& unit = ss.units.unit_for( id );
 
   // 1. Move the unit. This is the only place where this function
   //    should be called by normal game code.
-  ss.units.change_to_map( id, world_square );
+  ss.units.change_to_map( id, dst );
 
   // 2. Unsentry surrounding foreign units.
   //    TODO
@@ -190,49 +190,39 @@ void unit_to_map_square_non_interactive( SS& ss, TS& ts,
   //    TODO
 }
 
-void native_unit_to_map_square_non_interactive(
-    SS& ss, NativeUnitId id, Coord world_square,
+void UnitOnMapMover::native_unit_to_map_non_interactive(
+    SS& ss, NativeUnitId id, Coord dst_tile,
     DwellingId dwelling_id ) {
   // 1. Move the unit. This is the only place where this function
   //    should be called by normal game code.
-  ss.units.change_to_map( id, world_square, dwelling_id );
+  ss.units.change_to_map( id, dst_tile, dwelling_id );
 }
 
-wait<maybe<UnitDeleted>> unit_to_map_square(
-    SS& ss, TS& ts, UnitId id, Coord world_square ) {
-  // FIXME: need to be defensive here and check that the unit is
-  // not being created on a square containing foreign entities,
-  // otherwise other things will check-fail. Though there could
-  // be exceptions to this, e.g. when an indian village is de-
-  // stroyed and there emerges either a treasure train or a mis-
-  // sionary unit before the village is deleted.
-
-  unit_to_map_square_non_interactive( ss, ts, id, world_square );
+wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
+    SS& ss, TS& ts, UnitId id, Coord dst ) {
+  to_map_non_interactive( ss, ts, id, dst );
 
   Unit& unit = ss.units.unit_for( id );
   UNWRAP_CHECK( player, ss.players.players[unit.nation()] );
 
   if( !player.new_world_name.has_value() )
-    co_await try_discover_new_world( ss, ts, player,
-                                     world_square );
+    co_await try_discover_new_world( ss, ts, player, dst );
 
   if( !player.woodcuts[e_woodcut::discovered_pacific_ocean] )
-    co_await try_discover_pacific_ocean( ss, ts, player,
-                                         world_square );
+    co_await try_discover_pacific_ocean( ss, ts, player, dst );
 
-  if( has_lost_city_rumor( ss.terrain, world_square ) )
-    if( co_await try_lost_city_rumor( ss, ts, player, id,
-                                      world_square ) )
+  if( has_lost_city_rumor( ss.terrain, dst ) )
+    if( co_await try_lost_city_rumor( ss, ts, player, id, dst ) )
       co_return UnitDeleted{};
 
   if( co_await try_king_transport_treasure( ss, ts, player, unit,
-                                            world_square ) )
+                                            dst ) )
     // The unit was a treasure train, it entered a colony square,
     // the king asked to transport it, the player accepted, and
     // the treasure unit was deleted.
     co_return UnitDeleted{};
 
-  co_await try_meet_natives( ss, ts, player, world_square );
+  co_await try_meet_natives( ss, ts, player, dst );
 
   // Unit is still alive.
   co_return nothing;

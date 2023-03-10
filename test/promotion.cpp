@@ -71,8 +71,8 @@ TEST_CASE(
   W.create_default_map();
 
   auto up = [&]( Unit& unit ) {
-    return try_promote_unit_for_current_activity(
-        W.ss(), W.default_player(), unit );
+    return try_promote_unit_for_current_activity( W.ss(), W.ts(),
+                                                  unit );
   };
 
   SECTION( "expert_farmer carpentry" ) {

@@ -26,7 +26,9 @@ namespace rn {
 struct Colony;
 struct IRand;
 struct Player;
+struct SS;
 struct SSConst;
+struct TS;
 struct Tribe;
 struct Unit;
 
@@ -67,7 +69,7 @@ bool unit_can_be_blessed( UnitType type );
 // The unit does not have to be working in the colony or even in
 // the colony square, though in practice the unit will always be
 // one of those two.
-void bless_as_missionary( Player const& player, Colony& colony,
+void bless_as_missionary( SS& ss, TS& ts, Colony& colony,
                           Unit& unit );
 
 // Is the unit either a missionary or jesuit missionary. A jesuit

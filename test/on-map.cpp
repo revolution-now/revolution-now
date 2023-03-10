@@ -34,6 +34,13 @@
 #include "test/catch-common.hpp"
 
 namespace rn {
+
+struct TestingOnlyUnitOnMapMover : UnitOnMapMover {
+  using Base = UnitOnMapMover;
+  using Base::to_map_interactive;
+  using Base::to_map_non_interactive;
+};
+
 namespace {
 
 using namespace std;
@@ -81,8 +88,8 @@ TEST_CASE( "[on-map] non-interactive: moves the unit" ) {
         W.add_unit_on_map( e_unit_type::treasure,
                            { .x = 1, .y = 0 } )
             .id();
-    unit_to_map_square_non_interactive( W.ss(), W.ts(), unit_id,
-                                        { .x = 0, .y = 1 } );
+    TestingOnlyUnitOnMapMover::to_map_non_interactive(
+        W.ss(), W.ts(), unit_id, { .x = 0, .y = 1 } );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 0, .y = 1 } );
   }
@@ -95,7 +102,7 @@ TEST_CASE( "[on-map] non-interactive: moves the unit" ) {
              e_native_unit_type::armed_brave, { .x = 1, .y = 0 },
              dwelling.id )
             .id;
-    native_unit_to_map_square_non_interactive(
+    UnitOnMapMover::native_unit_to_map_non_interactive(
         W.ss(), unit_id, { .x = 1, .y = 1 }, dwelling.id );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 1, .y = 1 } );
@@ -117,8 +124,8 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
   SECTION( "already discovered" ) {
     player.new_world_name = "my world";
     player.woodcuts[e_woodcut::discovered_new_world] = true;
-    w = unit_to_map_square( W.ss(), W.ts(), unit_id,
-                            { .x = 0, .y = 1 } );
+    w = TestingOnlyUnitOnMapMover::to_map_interactive(
+        W.ss(), W.ts(), unit_id, { .x = 0, .y = 1 } );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
     REQUIRE( *w == nothing );
@@ -135,8 +142,8 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
     W.gui()
         .EXPECT__string_input( _, e_input_required::yes )
         .returns<maybe<string>>( "my world 2" );
-    w = unit_to_map_square( W.ss(), W.ts(), unit_id,
-                            { .x = 0, .y = 1 } );
+    w = TestingOnlyUnitOnMapMover::to_map_interactive(
+        W.ss(), W.ts(), unit_id, { .x = 0, .y = 1 } );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
     REQUIRE( *w == nothing );
@@ -167,8 +174,8 @@ TEST_CASE( "[on-map] interactive: discovers pacific ocean" ) {
       .EXPECT__display_woodcut(
           e_woodcut::discovered_pacific_ocean )
       .returns<monostate>();
-  w = unit_to_map_square( W.ss(), W.ts(), unit_id,
-                          { .x = 1, .y = 3 } );
+  w = TestingOnlyUnitOnMapMover::to_map_interactive(
+      W.ss(), W.ts(), unit_id, { .x = 1, .y = 3 } );
   REQUIRE( !w.exception() );
   REQUIRE( w.ready() );
   REQUIRE( *w == nothing );
@@ -180,8 +187,8 @@ TEST_CASE( "[on-map] interactive: discovers pacific ocean" ) {
 
   // Make sure it doesn't happen again.
   REQUIRE( W.terrain().is_pacific_ocean( { .x = 0, .y = 2 } ) );
-  w = unit_to_map_square( W.ss(), W.ts(), unit_id,
-                          { .x = 0, .y = 3 } );
+  w = TestingOnlyUnitOnMapMover::to_map_interactive(
+      W.ss(), W.ts(), unit_id, { .x = 0, .y = 3 } );
   REQUIRE( !w.exception() );
   REQUIRE( w.ready() );
   REQUIRE( *w == nothing );
@@ -207,8 +214,8 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
   player.new_world_name = "";
 
   SECTION( "not entering colony" ) {
-    w = unit_to_map_square( W.ss(), W.ts(), unit_id,
-                            { .x = 0, .y = 1 } );
+    w = TestingOnlyUnitOnMapMover::to_map_interactive(
+        W.ss(), W.ts(), unit_id, { .x = 0, .y = 1 } );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
     REQUIRE( *w == nothing );
@@ -220,8 +227,8 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
     W.gui()
         .EXPECT__choice( _, e_input_required::no )
         .returns<maybe<string>>( "no" );
-    w = unit_to_map_square( W.ss(), W.ts(), unit_id,
-                            { .x = 1, .y = 1 } );
+    w = TestingOnlyUnitOnMapMover::to_map_interactive(
+        W.ss(), W.ts(), unit_id, { .x = 1, .y = 1 } );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
     REQUIRE( *w == nothing );
@@ -238,8 +245,8 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
         "has provided a reimbursement of [500] after a "
         "[50%] witholding.";
     W.gui().EXPECT__message_box( msg ).returns( monostate{} );
-    w = unit_to_map_square( W.ss(), W.ts(), unit_id,
-                            { .x = 1, .y = 1 } );
+    w = TestingOnlyUnitOnMapMover::to_map_interactive(
+        W.ss(), W.ts(), unit_id, { .x = 1, .y = 1 } );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
     REQUIRE( w->has_value() );
@@ -263,7 +270,8 @@ TEST_CASE(
 
   auto f = [&] {
     wait<maybe<UnitDeleted>> const w =
-        unit_to_map_square( W.ss(), W.ts(), unit.id(), to );
+        TestingOnlyUnitOnMapMover::to_map_interactive(
+            W.ss(), W.ts(), unit.id(), to );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
     REQUIRE( *w == nothing );

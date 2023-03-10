@@ -11,6 +11,7 @@
 # gs
 include "ss/colony-enums.rds.hpp"
 include "ss/colony-id.hpp"
+include "ss/colony-job.rds.hpp"
 include "ss/commodity.rds.hpp"
 include "ss/nation.rds.hpp"
 include "ss/sons-of-liberty.rds.hpp"
@@ -35,16 +36,6 @@ namespace "rn"
 struct.OutdoorUnit {
   unit_id 'UnitId',
   job     'e_outdoor_job',
-}
-
-sumtype.ColonyJob {
-  outdoor {
-    direction 'e_direction',
-    job       'e_outdoor_job',
-  },
-  indoor {
-    job       'e_indoor_job',
-  },
 }
 
 sumtype.Construction {

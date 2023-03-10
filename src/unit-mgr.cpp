@@ -16,6 +16,7 @@
 #include "colony-buildings.hpp"
 #include "colony.hpp"
 #include "error.hpp"
+#include "harbor-units.hpp"
 #include "imap-updater.hpp"
 #include "land-production.hpp"
 #include "logger.hpp"
@@ -33,7 +34,7 @@
 #include "ss/dwelling.rds.hpp"
 #include "ss/native-unit.hpp"
 #include "ss/natives.hpp"
-#include "ss/player.rds.hpp"
+#include "ss/player.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
@@ -43,6 +44,9 @@
 #include "luapp/ext-base.hpp"
 #include "luapp/register.hpp"
 #include "luapp/state.hpp"
+
+// rds
+#include "rds/switch-macro.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -163,7 +167,10 @@ UnitId create_unit_on_map_non_interactive( SS& ss, TS& ts,
                                            Coord coord ) {
   UnitId id =
       create_free_unit( ss.units, player, std::move( comp ) );
-  unit_to_map_square_non_interactive( ss, ts, id, coord );
+  unit_ownership_change_non_interactive(
+      ss, id,
+      EuroUnitOwnershipChangeTo::world{ .ts     = &ts,
+                                        .target = coord } );
   return id;
 }
 
@@ -171,8 +178,8 @@ NativeUnitId create_unit_on_map_non_interactive(
     SS& ss, e_native_unit_type type, Coord coord,
     DwellingId dwelling_id ) {
   NativeUnitId const id = create_free_unit( ss, type );
-  native_unit_to_map_square_non_interactive( ss, id, coord,
-                                             dwelling_id );
+  UnitOnMapMover::native_unit_to_map_non_interactive(
+      ss, id, coord, dwelling_id );
   return id;
 }
 
@@ -182,10 +189,70 @@ wait<maybe<UnitId>> create_unit_on_map( SS& ss, TS& ts,
                                         Coord           coord ) {
   UnitId id =
       create_free_unit( ss.units, player, std::move( comp ) );
-  maybe<UnitDeleted> unit_deleted =
-      co_await unit_to_map_square( ss, ts, id, coord );
-  if( unit_deleted.has_value() ) co_return nothing;
+  maybe<UnitDeleted> const deleted =
+      co_await unit_ownership_change(
+          ss, id,
+          EuroUnitOwnershipChangeTo::world{ .ts     = &ts,
+                                            .target = coord } );
+  if( deleted.has_value() ) co_return nothing;
   co_return id;
+}
+
+/****************************************************************
+** Type Change / Replacement.
+*****************************************************************/
+void change_unit_type( SS& ss, TS& ts, Unit& unit,
+                       UnitComposition new_comp ) {
+  Player const& player =
+      player_for_nation_or_die( ss.players, unit.nation() );
+  unit.change_type( player, new_comp );
+  UnitOwnership const& ownership =
+      as_const( ss.units ).ownership_of( unit.id() );
+  switch( ownership.to_enum() ) {
+    case UnitOwnership::e::world: {
+      auto& o = ownership.get<UnitOwnership::world>();
+      // In order to make sure that fog of war is updated to re-
+      // flect the new type (i.e. maybe its sighting radius is
+      // different), we will replace it on the map.
+      unit_ownership_change_non_interactive(
+          ss, unit.id(),
+          EuroUnitOwnershipChangeTo::world{
+              .ts = &ts, .target = o.coord } );
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+void change_unit_nation( SS& ss, TS& ts, Unit& unit,
+                         e_nation new_nation ) {
+  unit.change_nation( ss.units, new_nation );
+  UnitOwnership const& ownership =
+      as_const( ss.units ).ownership_of( unit.id() );
+  switch( ownership.to_enum() ) {
+    case UnitOwnership::e::world: {
+      auto& o = ownership.get<UnitOwnership::world>();
+      // In order to make sure that fog of war is updated to re-
+      // flect the new type (i.e. maybe its sighting radius is
+      // different), we will replace it on the map.
+      unit_ownership_change_non_interactive(
+          ss, unit.id(),
+          EuroUnitOwnershipChangeTo::world{
+              .ts = &ts, .target = o.coord } );
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+UnitTransformationResult strip_to_base_type( SS& ss, TS& ts,
+                                             Unit& unit ) {
+  UnitTransformationResult const res =
+      rn::strip_to_base_type( unit.composition() );
+  change_unit_type( ss, ts, unit, res.new_comp );
+  return res;
 }
 
 /****************************************************************
@@ -281,13 +348,6 @@ e_tribe tribe_for_unit( SSConst const&    ss,
 }
 
 /****************************************************************
-** Unit destruction.
-*****************************************************************/
-void destroy_unit( SS& ss, TS&, UnitId id ) {
-  ss.units.destroy_unit( id );
-}
-
-/****************************************************************
 ** Multi
 *****************************************************************/
 maybe<Coord> coord_for_unit_multi_ownership( SSConst const& ss,
@@ -312,6 +372,79 @@ Coord coord_for_unit_multi_ownership_or_die( SSConst const& ss,
                                              GenericUnitId id ) {
   UNWRAP_CHECK( res, coord_for_unit_multi_ownership( ss, id ) );
   return res;
+}
+
+/****************************************************************
+** Unit Ownership changes.
+*****************************************************************/
+void unit_ownership_change_non_interactive(
+    SS& ss, UnitId unit_id,
+    EuroUnitOwnershipChangeTo const& info ) {
+  Unit const& unit = ss.units.unit_for( unit_id );
+  Player&     player =
+      player_for_nation_or_die( ss.players, unit.nation() );
+  SWITCH( info ) {
+    CASE( free ) {
+      ss.units.disown_unit( unit_id );
+      return;
+    }
+    CASE( world ) {
+      CHECK( o.ts != nullptr );
+      UnitOnMapMover::to_map_non_interactive( ss, *o.ts, unit_id,
+                                              o.target );
+      return;
+    }
+    CASE( colony ) {
+      ss.units.change_to_colony( unit_id, o.colony_id );
+      return;
+    }
+    CASE( cargo ) {
+      ss.units.change_to_cargo_somewhere(
+          o.new_holder, /*held=*/unit_id, o.starting_slot );
+      return;
+    }
+    CASE( sail_to_new_world ) {
+      UnitHarborMover::unit_sail_to_new_world(
+          ss.terrain, ss.units, player, unit_id );
+      return;
+    }
+    CASE( sail_to_harbor ) {
+      UnitHarborMover::unit_sail_to_harbor( ss.terrain, ss.units,
+                                            player, unit_id );
+      return;
+    }
+    CASE( move_to_port ) {
+      UnitHarborMover::unit_move_to_port( ss.units, player,
+                                          unit_id );
+      return;
+    }
+    CASE( dwelling ) {
+      ss.units.change_to_dwelling( unit_id, o.dwelling_id );
+      return;
+    }
+    END_CASES;
+  }
+}
+
+wait<maybe<UnitDeleted>> unit_ownership_change(
+    SS& ss, UnitId unit_id,
+    EuroUnitOwnershipChangeTo const& info ) {
+  switch( info.to_enum() ) {
+    using e = EuroUnitOwnershipChangeTo::e;
+    case e::world: {
+      auto& o = info.get<EuroUnitOwnershipChangeTo::world>();
+      CHECK( o.ts != nullptr );
+      co_return co_await UnitOnMapMover::to_map_interactive(
+          ss, *o.ts, unit_id, o.target );
+    }
+    default:
+      unit_ownership_change_non_interactive( ss, unit_id, info );
+      co_return nothing;
+  }
+}
+
+void destroy_unit( SS& ss, UnitId id ) {
+  ss.units.destroy_unit( id );
 }
 
 /****************************************************************
@@ -349,7 +482,10 @@ LUA_FN( add_unit_to_cargo, void, UnitId held, UnitId holder ) {
   lg.trace( "adding unit {} to cargo of unit {}.",
             debug_string( ss.units, held ),
             debug_string( ss.units, holder ) );
-  ss.units.change_to_cargo_somewhere( holder, held );
+  unit_ownership_change_non_interactive(
+      ss, held,
+      EuroUnitOwnershipChangeTo::cargo{ .new_holder    = holder,
+                                        .starting_slot = 0 } );
 }
 
 LUA_FN( create_unit_in_cargo, Unit&, e_nation nation,
@@ -362,7 +498,10 @@ LUA_FN( create_unit_in_cargo, Unit&, e_nation nation,
   lg.trace( "created unit {}.",
             debug_string( ss.units, unit_id ),
             debug_string( ss.units, holder ) );
-  ss.units.change_to_cargo_somewhere( holder, unit_id );
+  unit_ownership_change_non_interactive(
+      ss, unit_id,
+      EuroUnitOwnershipChangeTo::cargo{ .new_holder    = holder,
+                                        .starting_slot = 0 } );
   return ss.units.unit_for( unit_id );
 }
 

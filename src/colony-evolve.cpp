@@ -144,8 +144,8 @@ void check_create_or_starve_colonist(
       e_unit_type type    = ss.units.unit_for( unit_id ).type();
       // Note that calling `destroy_unit` is not enough, we have
       // to remove it from the colony as well.
-      remove_unit_from_colony( ss.units, colony, unit_id );
-      destroy_unit( ss, ts, unit_id );
+      remove_unit_from_colony( ss, colony, unit_id );
+      destroy_unit( ss, unit_id );
       notifications.emplace_back(
           ColonyNotification::colonist_starved{ .type = type } );
     }
@@ -166,8 +166,10 @@ void check_create_or_starve_colonist(
     current_food -= food_needed_for_creation;
     UnitId unit_id = create_free_unit(
         ss.units, player, e_unit_type::free_colonist );
-    unit_to_map_square_non_interactive( ss, ts, unit_id,
-                                        colony.location );
+    unit_ownership_change_non_interactive(
+        ss, unit_id,
+        EuroUnitOwnershipChangeTo::world{
+            .ts = &ts, .target = colony.location } );
     notifications.emplace_back(
         ColonyNotification::new_colonist{ .id = unit_id } );
 
@@ -401,8 +403,7 @@ void apply_production_to_colony(
 }
 
 void check_colonist_on_the_job_training(
-    SS& ss, TS& ts, Player const& player, Colony& colony,
-    ColonyProduction const&     pr,
+    SS& ss, TS& ts, Colony& colony, ColonyProduction const& pr,
     vector<ColonyNotification>& notifications ) {
   vector<OnTheJobPromotionResult> const res =
       workers_to_promote_for_on_the_job_training( ss, ts,
@@ -450,7 +451,7 @@ void check_colonist_on_the_job_training(
     }
     if( should_promote ) {
       Unit& unit = ss.units.unit_for( unit_id );
-      unit.change_type( player, promoted_to );
+      change_unit_type( ss, ts, unit, promoted_to );
       notifications.push_back( ColonyNotification::unit_promoted{
           .promoted_to = promoted_to } );
     }
@@ -458,10 +459,10 @@ void check_colonist_on_the_job_training(
 }
 
 void check_colonists_teaching(
-    SS& ss, TS& ts, Player const& player, Colony& colony,
+    SS& ss, TS& ts, Colony& colony,
     vector<ColonyNotification>& notifications ) {
   ColonyTeachingEvolution const ev =
-      evolve_teachers( ss, ts, player, colony );
+      evolve_teachers( ss, ts, colony );
   CHECK_LE( int( ev.teachers.size() ), 3 );
 
   // First check if we have teachers but no one teachable.
@@ -594,11 +595,9 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
   // possible so that production has already been computed and
   // any other changes to colonists (such as starvation) have al-
   // ready been done.
-  check_colonist_on_the_job_training( ss, ts, as_const( player ),
-                                      colony, ev.production,
-                                      ev.notifications );
-  check_colonists_teaching( ss, ts, as_const( player ), colony,
-                            ev.notifications );
+  check_colonist_on_the_job_training(
+      ss, ts, colony, ev.production, ev.notifications );
+  check_colonists_teaching( ss, ts, colony, ev.notifications );
 
   give_stockade_if_needed( player, colony );
 

@@ -217,8 +217,7 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
   using TM = unordered_map<UnitId, int>;
 
   auto f = [&] {
-    return evolve_teachers( W.ss(), W.ts(), W.default_player(),
-                            colony );
+    return evolve_teachers( W.ss(), W.ts(), colony );
   };
 
   SECTION( "teachers=0, teachable=0" ) {

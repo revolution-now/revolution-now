@@ -272,7 +272,7 @@ void World::add_major_river( gfx::point p ) {
 Unit& World::add_unit_in_port( e_unit_type     type,
                                maybe<e_nation> nation ) {
   return units().unit_for( create_unit_in_harbor(
-      units(), player( nation.value_or( default_nation_ ) ),
+      ss(), player( nation.value_or( default_nation_ ) ),
       type ) );
 }
 
@@ -299,7 +299,10 @@ Unit& World::add_missionary_in_dwelling(
   if( !nation ) nation = default_nation_;
   UnitId const unit_id = create_free_unit(
       units(), player( *nation ), missionary_type );
-  units().change_to_dwelling( unit_id, dwelling_id );
+  unit_ownership_change_non_interactive(
+      ss(), unit_id,
+      EuroUnitOwnershipChangeTo::dwelling{ .dwelling_id =
+                                               dwelling_id } );
   return units().unit_for( unit_id );
 }
 
@@ -308,7 +311,10 @@ Unit& World::add_unit_in_cargo( e_unit_type type,
   e_nation const nation = units().unit_for( holder ).nation();
   UnitId         held =
       create_free_unit( units(), player( nation ), type );
-  units().change_to_cargo_somewhere( holder, held );
+  unit_ownership_change_non_interactive(
+      ss(), held,
+      EuroUnitOwnershipChangeTo::cargo{ .new_holder    = holder,
+                                        .starting_slot = 0 } );
   return units().unit_for( held );
 }
 
@@ -331,8 +337,7 @@ Unit& World::add_unit_indoors( ColonyId     colony_id,
   Coord   loc    = colonies().coord_for( colony_id );
   Unit&   unit   = add_unit_on_map( type, loc, colony.nation );
   ColonyJob::indoor job{ .job = indoor_job };
-  move_unit_to_colony( units(), player( colony.nation ), colony,
-                       unit.id(), job );
+  move_unit_to_colony( ss(), ts(), colony, unit.id(), job );
   return unit;
 }
 
@@ -345,9 +350,8 @@ Unit& World::add_expert_unit_indoors( ColonyId     colony_id,
 
 void World::ship_to_outbound( UnitId id ) {
   CHECK( units().unit_for( id ).desc().ship );
-  UnitHarborViewState new_state{
-      .port_status = PortStatus::outbound{ .turns = 0 } };
-  units().change_to_harbor_view( id, new_state );
+  unit_ownership_change_non_interactive(
+      ss(), id, EuroUnitOwnershipChangeTo::sail_to_new_world{} );
 }
 
 Unit& World::add_unit_outdoors( ColonyId      colony_id,
@@ -358,8 +362,7 @@ Unit& World::add_unit_outdoors( ColonyId      colony_id,
   Coord   loc    = colonies().coord_for( colony_id );
   Unit&   unit   = add_unit_on_map( type, loc, colony.nation );
   ColonyJob::outdoor job{ .direction = d, .job = outdoor_job };
-  move_unit_to_colony( units(), player( colony.nation ), colony,
-                       unit.id(), job );
+  move_unit_to_colony( ss(), ts(), colony, unit.id(), job );
   return unit;
 }
 

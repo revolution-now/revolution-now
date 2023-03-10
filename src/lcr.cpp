@@ -154,8 +154,7 @@ wait<LostCityRumorResult> run_burial_mounds_result(
   co_return result;
 }
 
-wait<> take_one_immigrant( UnitsState& units_state, IGui& gui,
-                           IRand& rand, Player& player,
+wait<> take_one_immigrant( SS& ss, TS& ts, Player& player,
                            SettingsState const& settings ) {
   Player const& cplayer = player;
   // NOTE: The original game seems to always allow the player to
@@ -164,35 +163,33 @@ wait<> take_one_immigrant( UnitsState& units_state, IGui& gui,
   // trast to immigration via crosses which only allows the
   // player to choose when William Brewster has been obtained.
   maybe<int> choice = co_await ask_player_to_choose_immigrant(
-      gui, cplayer.old_world.immigration,
+      ts.gui, cplayer.old_world.immigration,
       "Who shall we next choose to join us in the New "
       "World?" );
   // The original game allows escaping from each prompt and that
   // will skip to the next one without adding an immigrant.
   if( !choice.has_value() ) co_return;
   e_unit_type replacement =
-      pick_next_unit_for_pool( rand, cplayer, settings );
+      pick_next_unit_for_pool( ts.rand, cplayer, settings );
   e_unit_type taken = take_immigrant_from_pool(
       player.old_world.immigration, *choice, replacement );
-  create_unit_in_harbor( units_state, player, taken );
+  create_unit_in_harbor( ss, player, taken );
 }
 
-wait<> run_fountain_of_youth( UnitsState& units_state, IGui& gui,
-                              IRand& rand, Player& player,
+wait<> run_fountain_of_youth( SS& ss, TS& ts, Player& player,
                               SettingsState const& settings ) {
-  co_await gui.message_box(
+  co_await ts.gui.message_box(
       "You've discovered a Fountain of Youth!" );
   int const count = config_lcr.fountain_of_youth_num_immigrants;
   for( int i = 0; i < count; ++i ) {
-    co_await take_one_immigrant( units_state, gui, rand, player,
-                                 settings );
+    co_await take_one_immigrant( ss, ts, player, settings );
     // If we don't do this then the next window pops up instanta-
     // neously and its visually confusing since it's not clear
     // that the first window closed and a new one popped up, it
     // gives the impression that the first selection did not
     // work. Do this with IGui so that we don't make life diffi-
     // cult for unit tests.
-    co_await gui.wait_for( chrono::milliseconds( 300 ) );
+    co_await ts.gui.wait_for( chrono::milliseconds( 300 ) );
   }
 }
 
@@ -209,8 +206,8 @@ wait<LostCityRumorResult> run_rumor_result(
       co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::fountain_of_youth: {
-      co_await run_fountain_of_youth( ss.units, ts.gui, ts.rand,
-                                      player, ss.settings );
+      co_await run_fountain_of_youth( ss, ts, player,
+                                      ss.settings );
       co_return LostCityRumorResult::other{};
     }
     case e_rumor_type::ruins: {
@@ -280,7 +277,7 @@ wait<LostCityRumorResult> run_rumor_result(
     case e_rumor_type::unit_lost: {
       // Destroy unit before showing message so that the unit ac-
       // tually appears to disappear.
-      destroy_unit( ss, ts, unit_id );
+      destroy_unit( ss, unit_id );
       co_await ts.gui.message_box(
           "Our colonist has vanished without a trace." );
       co_return LostCityRumorResult::unit_lost{};

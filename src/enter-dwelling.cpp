@@ -376,8 +376,7 @@ LiveAmongTheNatives compute_live_among_the_natives(
 }
 
 wait<> do_live_among_the_natives(
-    SSConst const& ss, TS& ts, Dwelling& dwelling,
-    Player const& player, Unit& unit,
+    SS& ss, TS& ts, Dwelling& dwelling, Unit& unit,
     LiveAmongTheNatives const& outcome ) {
   switch( outcome.to_enum() ) {
     using e = LiveAmongTheNatives::e;
@@ -460,7 +459,7 @@ wait<> do_live_among_the_natives(
                                               o.to.type() );
           co_await ts.planes.land_view().animate( seq );
         }
-        unit.change_type( player, o.to );
+        change_unit_type( ss, ts, unit, o.to );
         dwelling.has_taught = true;
         co_await ts.gui.message_box(
             "Congratulations young one, you have learned the "
@@ -672,7 +671,8 @@ wait<> do_speak_with_chief(
       // Need to change type before awaiting on the promotion
       // message otherwise the unit will change back temporarily
       // after depixelating.
-      unit.change_type( player, e_unit_type::seasoned_scout );
+      change_unit_type( ss, ts, unit,
+                        e_unit_type::seasoned_scout );
       co_await ts.gui.message_box(
           "Our scout has been promoted to [Seasoned Scout]!" );
       co_return;
@@ -686,7 +686,7 @@ wait<> do_speak_with_chief(
       AnimationSequence const seq =
           anim_seq_for_unit_depixelation( unit.id() );
       co_await ts.planes.land_view().animate( seq );
-      destroy_unit( ss, ts, unit.id() );
+      destroy_unit( ss, unit.id() );
       co_return;
     }
   }
@@ -711,7 +711,12 @@ EstablishMissionResult compute_establish_mission(
 wait<> do_establish_mission(
     SS& ss, TS& ts, Player const& player, Dwelling& dwelling,
     Unit& unit, EstablishMissionResult const& outcome ) {
-  ss.units.change_to_dwelling( unit.id(), dwelling.id );
+  maybe<UnitDeleted> const deleted =
+      co_await unit_ownership_change(
+          ss, unit.id(),
+          EuroUnitOwnershipChangeTo::dwelling{
+              .dwelling_id = dwelling.id } );
+  CHECK( !deleted.has_value() );
 
   // TODO: need to create a mockable interface for playing sound
   // effects and changing music. Once that happens, we can play

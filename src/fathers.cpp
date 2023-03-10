@@ -126,7 +126,8 @@ void john_paul_jones( SS& ss, TS& ts, Player const& player ) {
 
 // All currently existing indian converts are changed to free
 // colonists.
-void bartolome_de_las_casas( SS& ss, Player const& player ) {
+void bartolome_de_las_casas( SS& ss, TS& ts,
+                             Player const& player ) {
   unordered_map<UnitId, EuroUnitState const*> const& units_all =
       ss.units.euro_all();
   auto free_colonist_type = e_unit_type::free_colonist;
@@ -135,7 +136,7 @@ void bartolome_de_las_casas( SS& ss, Player const& player ) {
     if( unit.nation() != player.nation ) continue;
     if( unit.type() != e_unit_type::native_convert ) continue;
     // We have a native convert of the appropriate nation.
-    unit.change_type( player, free_colonist_type );
+    change_unit_type( ss, ts, unit, free_colonist_type );
   }
 }
 
@@ -403,7 +404,7 @@ void on_father_received( SS& ss, TS& ts, Player& player,
     case e_founding_father::william_brewster:
       return william_brewster( ss, ts, player );
     case e_founding_father::bartolome_de_las_casas:
-      return bartolome_de_las_casas( ss, player );
+      return bartolome_de_las_casas( ss, ts, player );
     case e_founding_father::francisco_de_coronado:
       return francisco_de_coronado( ss, ts, player );
     case e_founding_father::jakob_fugger:

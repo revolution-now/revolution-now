@@ -280,8 +280,7 @@ wait<> ColonyLandView::drop( ColViewObject const& o,
     job = ColonyJob::outdoor{ .direction = d,
                               .job       = dragging_->job };
   }
-  move_unit_to_colony( ss_.units, player_, colony, unit_id,
-                       job );
+  move_unit_to_colony( ss_, ts_, colony, unit_id, job );
   CHECK_HAS_VALUE( colony.validate() );
   co_return;
 }
@@ -309,7 +308,7 @@ wait<> ColonyLandView::disown_dragged_object() {
   UNWRAP_CHECK( draggable, dragging_ );
   UNWRAP_CHECK( unit_id, unit_for_direction( draggable.d ) );
   Colony& colony = ss_.colonies.colony_for( colony_.id );
-  remove_unit_from_colony( ss_.units, colony, unit_id );
+  remove_unit_from_colony( ss_, colony, unit_id );
   co_return;
 }
 

@@ -176,14 +176,6 @@ string debug_string( Unit const& unit ) {
       unit.nation(), unit.desc().name, unit.movement_points() );
 }
 
-UnitTransformationResult Unit::strip_to_base_type(
-    Player const& player ) {
-  UnitTransformationResult res =
-      rn::strip_to_base_type( o_.composition );
-  change_type( player, res.new_comp );
-  return res;
-}
-
 maybe<e_unit_type> Unit::demoted_type() const {
   UNWRAP_RETURN( demoted, on_death_demoted_type( type_obj() ) );
   return demoted.type();
@@ -252,8 +244,6 @@ LUA_STARTUP( lua::state& st ) {
   u["movement_points"] = &U::movement_points;
 
   // Actions.
-  u["change_nation"] = &U::change_nation;
-  u["change_type"]   = &U::change_type;
   u["sentry"]        = &U::sentry;
   u["fortify"]       = &U::fortify;
   u["start_fortify"] = &U::start_fortify;

@@ -17,6 +17,7 @@
 #include "render.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
+#include "unit-mgr.hpp"
 
 // ss
 #include "ss/cargo.hpp"
@@ -216,7 +217,11 @@ wait<> HarborCargo::disown_dragged_object() {
       switch( cargo.to_enum() ) {
         case Cargo::e::unit: {
           UnitId const held_id = cargo.get<Cargo::unit>().id;
-          ss_.units.disown_unit( held_id );
+          maybe<UnitDeleted> const unit_deleted =
+              co_await unit_ownership_change(
+                  ss_, held_id,
+                  EuroUnitOwnershipChangeTo::free{} );
+          CHECK( !unit_deleted.has_value() );
           break;
         }
         case Cargo::e::commodity: {
@@ -309,8 +314,13 @@ wait<> HarborCargo::drop( HarborDraggableObject const& o,
     case HarborDraggableObject::e::unit: {
       auto const&  alt = o.get<HarborDraggableObject::unit>();
       UnitId const dragged_id = alt.id;
-      ss_.units.change_to_cargo_somewhere( active_unit_id,
-                                           dragged_id, slot );
+      maybe<UnitDeleted> const unit_deleted =
+          co_await unit_ownership_change(
+              ss_, dragged_id,
+              EuroUnitOwnershipChangeTo::cargo{
+                  .new_holder    = active_unit_id,
+                  .starting_slot = slot } );
+      CHECK( !unit_deleted.has_value() );
       break;
     }
     case HarborDraggableObject::e::market_commodity: {

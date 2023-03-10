@@ -149,9 +149,11 @@ maybe<string> perform_euro_unit_combat_outcome(
     EuroUnitCombatOutcome const& outcome ) {
   auto capture_unit = [&]( e_nation new_nation,
                            Coord    new_coord ) {
-    unit.change_nation( ss.units, new_nation );
-    unit_to_map_square_non_interactive( ss, ts, unit.id(),
-                                        new_coord );
+    change_unit_nation( ss, ts, unit, new_nation );
+    unit_ownership_change_non_interactive(
+        ss, unit.id(),
+        EuroUnitOwnershipChangeTo::world{
+            .ts = &ts, .target = new_coord } );
     // This is so that the captured unit won't ask for orders
     // in the same turn that it is captured.
     unit.forfeight_mv_points();
@@ -171,7 +173,7 @@ maybe<string> perform_euro_unit_combat_outcome(
                          nation_obj( unit.nation() ).adjective,
                          unit.desc().name );
       // Need to destroy the unit after accessing its info.
-      destroy_unit( ss, ts, unit.id() );
+      destroy_unit( ss, unit.id() );
       break;
     }
     case e::captured: {
@@ -194,7 +196,7 @@ maybe<string> perform_euro_unit_combat_outcome(
         // the right thing (but only do that if the unit hasn't
         // been destroyed).
         msg = "Veteran status lost upon capture!";
-      unit.change_type( player, o.to );
+      change_unit_type( ss, ts, unit, o.to );
       capture_unit( o.new_nation, o.new_coord );
       break;
     }
@@ -202,12 +204,12 @@ maybe<string> perform_euro_unit_combat_outcome(
       auto& o = outcome.get<EuroUnitCombatOutcome::promoted>();
       // TODO: make this message more specific like in the OG.
       msg = "Unit promoted for valor in combat!";
-      unit.change_type( player, o.to );
+      change_unit_type( ss, ts, unit, o.to );
       break;
     }
     case e::demoted: {
       auto& o = outcome.get<EuroUnitCombatOutcome::demoted>();
-      unit.change_type( player, o.to );
+      change_unit_type( ss, ts, unit, o.to );
       break;
     }
   }
@@ -295,13 +297,15 @@ maybe<string> perform_naval_unit_combat_outcome(
       break;
     case e::moved: {
       auto& o = outcome.get<EuroNavalUnitCombatOutcome::moved>();
-      // FIXME: This reallyl should be run interactively because
+      // FIXME: This really should be run interactively because
       // e.g. the ship might discover the pacific ocean or an-
       // other nation upon moving. Once we figure out how to deal
       // with multiple european players then this needs to be im-
       // proved.
-      unit_to_map_square_non_interactive( ss, ts, unit.id(),
-                                          o.to );
+      unit_ownership_change_non_interactive(
+          ss, unit.id(),
+          EuroUnitOwnershipChangeTo::world{ .ts     = &ts,
+                                            .target = o.to } );
       break;
     }
     case e::damaged: {
@@ -330,7 +334,7 @@ maybe<string> perform_naval_unit_combat_outcome(
       vector<UnitId> const units_in_cargo = unit.cargo().units();
       int const num_units_lost = units_in_cargo.size();
       for( UnitId const held_id : units_in_cargo )
-        destroy_unit( ss, ts, held_id );
+        destroy_unit( ss, held_id );
       // Now send the ship for repair.
       msg = fmt::format( "{} [{}] damaged in battle!",
                          nation_obj( unit.nation() ).adjective,
@@ -345,14 +349,18 @@ maybe<string> perform_naval_unit_combat_outcome(
           // a colony on the square, and the ship is damaged, so
           // it shouldn't really trigger anything interactive
           // when we move it into the colony.
-          unit_to_map_square_non_interactive( ss, ts, unit.id(),
-                                              colony.location );
+          unit_ownership_change_non_interactive(
+              ss, unit.id(),
+              EuroUnitOwnershipChangeTo::world{
+                  .ts = &ts, .target = colony.location } );
           *msg += fmt::format( " Ship sent to [{}] for repair.",
                                colony.name );
           break;
         }
         case ShipRepairPort::e::european_harbor: {
-          unit_move_to_port( ss.units, player, unit.id() );
+          unit_ownership_change_non_interactive(
+              ss, unit.id(),
+              EuroUnitOwnershipChangeTo::move_to_port{} );
           *msg += fmt::format(
               " Ship sent to [{}] for repair.",
               nation_obj( unit.nation() ).harbor_city_name );
@@ -382,7 +390,7 @@ maybe<string> perform_naval_unit_combat_outcome(
       // Need to destroy unit first before displaying message
       // otherwise the unit will reappear on the map while the
       // message is open.
-      destroy_unit( ss, ts, unit.id() );
+      destroy_unit( ss, unit.id() );
       break;
     }
   }
@@ -647,8 +655,11 @@ wait<> AttackColonyUndefendedHandler::perform() {
   // 1. The attacker moves into the colony square.
   co_await ts_.planes.land_view().animate(
       anim_seq_for_unit_move( attacker_.id(), direction_ ) );
-  maybe<UnitDeleted> unit_deleted = co_await unit_to_map_square(
-      ss_, ts_, attacker_.id(), attack_dst_ );
+  maybe<UnitDeleted> const unit_deleted =
+      co_await unit_ownership_change(
+          ss_, attacker_.id(),
+          EuroUnitOwnershipChangeTo::world{
+              .ts = &ts_, .target = attack_dst_ } );
   CHECK( !unit_deleted.has_value() );
 
   // 2. All ships in the colony's port are considered damaged and
@@ -682,7 +693,7 @@ wait<> AttackColonyUndefendedHandler::perform() {
   // 5. The colony changes ownership, as well as all of the units
   // that are working in it and who are on the map at the colony
   // location.
-  change_colony_nation( colony_, ss_.units, attacker_.nation() );
+  change_colony_nation( ss_, ts_, colony_, attacker_.nation() );
 
   // 6. Announce capture.
   // TODO: add an interface method to IGui for playing music.
@@ -822,9 +833,12 @@ wait<> NavalBattleHandler::perform() {
   if( auto o = combat_.attacker.outcome
                    .get_if<EuroNavalUnitCombatOutcome::moved>();
       o.has_value() ) {
-    maybe<UnitDeleted> const x = co_await unit_to_map_square(
-        ss_, ts_, attacker_id_, o->to );
-    CHECK( !x.has_value() );
+    maybe<UnitDeleted> const unit_deleted =
+        co_await unit_ownership_change(
+            ss_, attacker_id_,
+            EuroUnitOwnershipChangeTo::world{
+                .ts = &ts_, .target = o->to } );
+    CHECK( !unit_deleted.has_value() );
   }
 }
 
@@ -1113,8 +1127,10 @@ wait<> AttackDwellingHandler::produce_convert() {
   co_await std::move( appear_and_slide_animation );
   // Non-interactive is OK here because the attacker is already
   // on this square.
-  unit_to_map_square_non_interactive( ss_, ts_, convert_id,
-                                      attacker_coord );
+  unit_ownership_change_non_interactive(
+      ss_, convert_id,
+      EuroUnitOwnershipChangeTo::world{
+          .ts = &ts_, .target = attacker_coord } );
   AnimationSequence const front_seq =
       anim_seq_unit_to_front_non_background( convert_id );
   wait<> front_animation =
@@ -1171,7 +1187,7 @@ wait<> AttackDwellingHandler::perform() {
     for( UnitId const missionary : missionaries ) {
       CHECK( ss_.units.unit_for( missionary ).nation() ==
              attacking_player_.nation );
-      destroy_unit( ss_, ts_, missionary );
+      destroy_unit( ss_, missionary );
     }
     co_await ts_.gui.message_box(
         "The [{}] revolt against [{}] missions! "
@@ -1252,10 +1268,12 @@ wait<> AttackDwellingHandler::perform() {
     CHECK_EQ(
         ss_.units.unit_for( *missionary_in_dwelling ).nation(),
         attacking_player_.nation );
-    maybe<UnitDeleted> deleted = co_await unit_to_map_square(
-        ss_, ts_, *destruction.missionary_to_release,
-        dwelling_location );
-    CHECK( !deleted.has_value() );
+    maybe<UnitDeleted> const unit_deleted =
+        co_await unit_ownership_change(
+            ss_, *destruction.missionary_to_release,
+            EuroUnitOwnershipChangeTo::world{
+                .ts = &ts_, .target = dwelling_location } );
+    CHECK( !unit_deleted.has_value() );
   }
 
   // Animate attacker winning w/ burning village and depixelating

@@ -225,7 +225,10 @@ TEST_CASE( "[colony-mgr] can't build colony in water" ) {
   UnitId unit_id =
       create_free_unit( W.units(), W.default_player(),
                         e_unit_type::free_colonist );
-  W.units().change_to_cargo_somewhere( ship_id, unit_id );
+  unit_ownership_change_non_interactive(
+      W.ss(), unit_id,
+      EuroUnitOwnershipChangeTo::cargo{ .new_holder    = ship_id,
+                                        .starting_slot = 0 } );
   REQUIRE( unit_can_found_colony( W.ss(), unit_id ) ==
            invalid( e_found_colony_err::no_water_colony ) );
 }
@@ -249,10 +252,8 @@ TEST_CASE(
 
   UnitId id = create_free_unit( W.units(), W.default_player(),
                                 e_unit_type::free_colonist );
-  W.units().change_to_harbor_view(
-      id,
-      UnitHarborViewState{ .port_status = PortStatus::in_port{},
-                           .sailed_from = {} } );
+  unit_ownership_change_non_interactive(
+      W.ss(), id, EuroUnitOwnershipChangeTo::move_to_port{} );
   REQUIRE( unit_can_found_colony( W.ss(), id ) ==
            invalid( e_found_colony_err::colonist_not_on_map ) );
 }
@@ -409,7 +410,7 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
   REQUIRE( W.terrain().square_at( loc ).road );
 
   SECTION( "non interactive" ) {
-    destroy_colony( W.ss(), W.ts(), W.default_player(), colony );
+    destroy_colony( W.ss(), W.ts(), colony );
   }
 
   SECTION( "non interactive with ships" ) {
@@ -419,7 +420,7 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
         W.add_unit_on_map( e_unit_type::merchantman, loc );
     Unit const& ship3 =
         W.add_unit_on_map( e_unit_type::caravel, loc );
-    destroy_colony( W.ss(), W.ts(), W.default_player(), colony );
+    destroy_colony( W.ss(), W.ts(), colony );
     REQUIRE( W.units().exists( ship1.id() ) );
     REQUIRE( W.units().exists( ship2.id() ) );
     REQUIRE( W.units().exists( ship3.id() ) );

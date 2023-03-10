@@ -153,9 +153,8 @@ wait<maybe<TreasureReceipt>> treasure_enter_colony(
 }
 
 void apply_treasure_reimbursement(
-    SS& ss, TS& ts, Player& player,
-    TreasureReceipt const& receipt ) {
-  destroy_unit( ss, ts, receipt.treasure_id );
+    SS& ss, Player& player, TreasureReceipt const& receipt ) {
+  destroy_unit( ss, receipt.treasure_id );
   player.money += receipt.net_received;
 }
 

@@ -47,7 +47,7 @@ struct DisbandHandler : public CommandHandler {
   }
 
   wait<> perform() override {
-    destroy_unit( ss_, ts_, unit_id_ );
+    destroy_unit( ss_, unit_id_ );
     co_return;
   }
 

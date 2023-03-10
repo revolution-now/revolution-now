@@ -13,8 +13,12 @@
 
 #include "core-config.hpp"
 
+// rds
+#include "unit-mgr.rds.hpp"
+
 // Revolution Now
 #include "error.hpp"
+#include "unit-deleted.hpp"
 #include "unit.hpp"
 #include "wait.hpp"
 
@@ -38,12 +42,8 @@
 namespace rn {
 
 struct ColoniesState;
-struct IGui;
-struct IMapUpdater;
 struct Player;
-struct SettingsState;
 struct SS;
-struct TerrainState;
 struct TS;
 struct UnitsState;
 
@@ -138,17 +138,32 @@ NativeUnitId create_unit_on_map_non_interactive(
     DwellingId dwelling_id );
 
 /****************************************************************
+** Type/Nation Change.
+*****************************************************************/
+void change_unit_type( SS& ss, TS& ts, Unit& unit,
+                       UnitComposition new_comp );
+
+void change_unit_nation( SS& ss, TS& ts, Unit& unit,
+                         e_nation new_nation );
+
+// This is used to transform the unit when e.g. founding a
+// colony. In that situation, the unit needs to be stripped to
+// its base type and all of the commodities that it has should be
+// added into the colony's commodity store. All modifiers will be
+// stripped from the unit as well. Note that you shouldn't call
+// this method directly. Instead call the free method (defined
+// elsewhere) that takes a colony as input so that it can deposit
+// any commodities there that are stripped from the unit.
+UnitTransformationResult strip_to_base_type( SS& ss, TS& ts,
+                                             Unit& unit );
+
+/****************************************************************
 ** Native-specific
 *****************************************************************/
 // This will check-fail if the unit is free and thus is not asso-
 // ciated with a dwelling or tribe.
 e_tribe tribe_for_unit( SSConst const&    ss,
                         NativeUnit const& native_unit );
-
-/****************************************************************
-** Unit destruction.
-*****************************************************************/
-void destroy_unit( SS& ss, TS& ts, UnitId id );
 
 /****************************************************************
 ** Multi
@@ -163,5 +178,19 @@ maybe<Coord> coord_for_unit_multi_ownership( SSConst const& ss,
                                              GenericUnitId  id );
 Coord coord_for_unit_multi_ownership_or_die( SSConst const& ss,
                                              GenericUnitId  id );
+
+/****************************************************************
+** Unit Ownership changes.
+*****************************************************************/
+// All normal game code should use these methods whenever a
+// unit's ownership is changed. The interactive version should be
+// used where possible.
+wait<maybe<UnitDeleted>> unit_ownership_change(
+    SS& ss, UnitId id, EuroUnitOwnershipChangeTo const& info );
+
+void unit_ownership_change_non_interactive(
+    SS& ss, UnitId id, EuroUnitOwnershipChangeTo const& info );
+
+void destroy_unit( SS& ss, UnitId id );
 
 } // namespace rn

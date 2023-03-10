@@ -49,8 +49,7 @@ wait<maybe<TreasureReceipt>> treasure_enter_colony(
 // This will actually delete the treasure unit and give the
 // player the amount of money specified in the receipt.
 void apply_treasure_reimbursement(
-    SS& ss, TS& ts, Player& player,
-    TreasureReceipt const& receipt );
+    SS& ss, Player& player, TreasureReceipt const& receipt );
 
 // After the treasure has been reimbursed (regardless of method)
 // call this to show the user how much they've received.

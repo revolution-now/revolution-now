@@ -811,11 +811,14 @@ class CargoView : public ui::View,
             // This will change the unit type and modify colony
             // commodity quantities.
             perform_colony_equip_option(
-                colony_, player_, to_transform,
+                ss_, ts_, colony_, to_transform,
                 *draggable_unit.transformed );
           }
-          ss_.units.change_to_cargo_somewhere(
-              *holder_, u.id, /*starting_slot=*/slot_idx );
+          unit_ownership_change_non_interactive(
+              ss_, u.id,
+              EuroUnitOwnershipChangeTo::cargo{
+                  .new_holder    = *holder_,
+                  .starting_slot = slot_idx } );
           // Check if we've abandoned the colony, which could
           // happen if we dragged the last unit working in the
           // colony into the cargo hold.
@@ -907,7 +910,8 @@ class CargoView : public ui::View,
     overload_visit(
         cargo_to_remove,
         [this]( Cargo::unit held ) {
-          ss_.units.disown_unit( held.id );
+          unit_ownership_change_non_interactive(
+              ss_, held.id, EuroUnitOwnershipChangeTo::free{} );
         },
         [this]( Cargo::commodity const& to_remove ) {
           UNWRAP_CHECK(
@@ -1297,18 +1301,22 @@ class UnitsAtGateColonyView
             // This will change the unit type and modify colony
             // commodity quantities.
             perform_colony_equip_option(
-                colony_, player_, to_transform,
+                ss_, ts_, colony_, to_transform,
                 *draggable_unit.transformed );
           }
           if( target_unit_id ) {
-            ss_.units.change_to_cargo_somewhere(
-                /*new_holder=*/*target_unit_id,
-                /*held=*/draggable_unit.id );
+            unit_ownership_change_non_interactive(
+                ss_, draggable_unit.id,
+                EuroUnitOwnershipChangeTo::cargo{
+                    .new_holder    = *target_unit_id,
+                    .starting_slot = 0 } );
             // !! Need to fall through here since we may have
             // abandoned the colony.
           } else {
-            unit_to_map_square_non_interactive(
-                ss_, ts_, draggable_unit.id, colony_.location );
+            unit_ownership_change_non_interactive(
+                ss_, draggable_unit.id,
+                EuroUnitOwnershipChangeTo::world{
+                    .ts = &ts_, .target = colony_.location } );
             // This is not strictly necessary, but as a conve-
             // nience to the user, clear the orders, otherwise it
             // would be sentry'd, which is probably not what the
@@ -1340,16 +1348,18 @@ class UnitsAtGateColonyView
                     target_unit, dropping_comm ) );
             CHECK( xform_res.quantity_used ==
                    dropping_comm.quantity );
-            target_unit.change_type( as_const( player_ ),
-                                     xform_res.new_comp );
+            change_unit_type( ss_, ts_, target_unit,
+                              xform_res.new_comp );
             // The unit, being at the colony gate, is actually on
             // the map at the site of this colony. In the event
             // that we are e.g. changing a colonist to a scout
             // (whsch has a sighting radius of two) we should
             // call this function to update the rendered map
             // along with anything else that needs to be done.
-            unit_to_map_square_non_interactive(
-                ss_, ts_, target_unit.id(), colony_.location );
+            unit_ownership_change_non_interactive(
+                ss_, target_unit.id(),
+                EuroUnitOwnershipChangeTo::world{
+                    .ts = &ts_, .target = colony_.location } );
             // Note that we clear orders and deal with movement
             // points for the target unit at the top of this
             // function.
@@ -1374,7 +1384,8 @@ class UnitsAtGateColonyView
 
   wait<> disown_dragged_object() override {
     UNWRAP_CHECK( unit_id, dragging_ );
-    ss_.units.disown_unit( unit_id );
+    unit_ownership_change_non_interactive(
+        ss_, unit_id, EuroUnitOwnershipChangeTo::free{} );
     co_return;
   }
 
@@ -1443,8 +1454,7 @@ class UnitsAtGateColonyView
       }
     } else if( mode == "strip" ) {
       UnitComposition const old_comp = unit.composition();
-      strip_unit_to_base_type( as_const( player_ ), unit,
-                               colony_ );
+      strip_unit_to_base_type( ss_, ts_, unit, colony_ );
       if( unit.composition() != old_comp ) {
         // If the unit has changed in any way then 1) clear or-
         // ders (this is especially important for a pioneer that
@@ -1456,7 +1466,7 @@ class UnitsAtGateColonyView
       }
     } else if( mode == "missionary" ) {
       // TODO: play blessing tune.
-      bless_as_missionary( as_const( player_ ), colony_, unit );
+      bless_as_missionary( ss_, ts_, colony_, unit );
     }
   }
 

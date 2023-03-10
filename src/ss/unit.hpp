@@ -20,6 +20,8 @@
 
 namespace rn {
 
+struct SS;
+struct TS;
 struct UnitTypeAttributes;
 struct UnitsState;
 
@@ -58,12 +60,6 @@ struct ND Unit {
   UnitComposition const& composition() const {
     return o_.composition;
   }
-
-  /************************* Setters ***************************/
-
-  // This would be used when e.g. a colonist is captured and
-  // changes nations.
-  void change_nation( UnitsState& units_state, e_nation nation );
 
   /************************** Cargo ****************************/
 
@@ -135,24 +131,25 @@ struct ND Unit {
   // Clear a unit's orders (they will then wait for orders).
   void clear_orders() { o_.orders = unit_orders::none{}; }
 
-  /********************** Type Changing ************************/
+  /******************* Type/Nation Changing ********************/
 
-  // Take by value because we will move it out.
+ private:
+  // Should not call this directly, instead should use
+  // change_unit_type.
   void change_type( Player const&   player,
                     UnitComposition new_comp );
 
-  // This is used to transform the unit when e.g. founding a
-  // colony. In that situation, the unit needs to be stripped to
-  // its base type and all of the commodities that it has should
-  // be added into the colony's commodity store. All modifiers
-  // will be stripped from the unit as well. Note that you
-  // shouldn't call this method directly. Instead call the free
-  // method (defined elsewhere) that takes a colony as input so
-  // that it can deposit any commodities there that are stripped
-  // from the unit.
-  UnitTransformationResult strip_to_base_type(
-      Player const& player );
+  friend void change_unit_type( SS& ss, TS& ts, Unit& unit,
+                                UnitComposition new_comp );
 
+  // This would be used when e.g. a colonist is captured and
+  // changes nations.
+  void change_nation( UnitsState& units_state, e_nation nation );
+
+  friend void change_unit_nation( SS& ss, TS& ts, Unit& unit,
+                                  e_nation new_nation );
+
+ public:
   maybe<e_unit_type> demoted_type() const;
 
   // Can unit receive commodity, and if so how many and what unit

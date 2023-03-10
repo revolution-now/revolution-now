@@ -273,7 +273,7 @@ wait<maybe<UnitId>> check_for_new_immigrant(
       pick_next_unit_for_pool( ts.rand, player, ss.settings );
   e_unit_type type = take_immigrant_from_pool(
       player.old_world.immigration, immigrant_idx, replacement );
-  co_return create_unit_in_harbor( ss.units, player, type );
+  co_return create_unit_in_harbor( ss, player, type );
 }
 
 int cost_of_recruit( Player const& player, int crosses_needed,
@@ -326,7 +326,7 @@ void rush_recruit_next_immigrant( SS& ss, TS& ts, Player& player,
   CHECK_GE( player.money, 0 );
   ++player.old_world.immigration.num_recruits_rushed;
   player.crosses = 0;
-  create_unit_in_harbor( ss.units, player, selected_type );
+  create_unit_in_harbor( ss, player, selected_type );
 }
 
 /****************************************************************

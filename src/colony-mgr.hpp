@@ -53,9 +53,8 @@ valid_or<e_found_colony_err> unit_can_found_colony(
 // This will change the nation of the colony and all units that
 // are workers in the colony as well as units that are in the
 // same map square as the colony.
-void change_colony_nation( Colony&     colony,
-                           UnitsState& units_state,
-                           e_nation    new_nation );
+void change_colony_nation( SS& ss, TS& ts, Colony& colony,
+                           e_nation new_nation );
 
 // Before calling this, it should already have been the case that
 // `can_found_colony` was called to validate; so it should work,
@@ -77,17 +76,17 @@ ColonyId create_empty_colony( ColoniesState& colonies_state,
 
 // Will strip the unit of any commodities (including inventory
 // and modifiers) and deposit the commodities into the colony.
-void strip_unit_to_base_type( Player const& player, Unit& unit,
+void strip_unit_to_base_type( SS& ss, TS& ts, Unit& unit,
                               Colony& colony );
 
-void move_unit_to_colony( UnitsState& units_state,
-                          Colony& colony, UnitId unit_id,
-                          ColonyJob const& job );
+void move_unit_to_colony( SS& ss, TS& ts, Colony& colony,
+                          UnitId unit_id, ColonyJob const& job );
 
-// This will put the unit on the map at the location of the
-// colony.
-void remove_unit_from_colony( UnitsState& units_state,
-                              Colony& colony, UnitId unit_id );
+// This will leave the unit in an unowned state (free), and so
+// must be followed by a new ownership assignment and/or destruc-
+// tion.
+void remove_unit_from_colony( SS& ss, Colony& colony,
+                              UnitId unit_id );
 
 void change_unit_outdoor_job( Colony& colony, UnitId id,
                               e_outdoor_job new_job );
@@ -103,7 +102,6 @@ bool colony_has_unit( Colony const& colony, UnitId id );
 // Destroy's a colony without any interactivity. Normal game code
 // should use the interactive version below.
 ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
-                                         Player& player,
                                          Colony& colony );
 
 // This will do the colony destruction depixelation animation and

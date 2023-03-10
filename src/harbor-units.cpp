@@ -287,8 +287,9 @@ vector<UnitId> harbor_units_outbound(
                                    is_unit_outbound );
 }
 
-void unit_move_to_port( UnitsState& units_state, Player& player,
-                        UnitId id ) {
+void UnitHarborMover::unit_move_to_port( UnitsState& units_state,
+                                         Player&     player,
+                                         UnitId      id ) {
   UnitHarborViewState new_state;
   if( maybe<UnitHarborViewState const&> existing_state =
           units_state.maybe_harbor_view_state_of( id );
@@ -303,9 +304,9 @@ void unit_move_to_port( UnitsState& units_state, Player& player,
   update_harbor_selected_unit( units_state, player );
 }
 
-void unit_sail_to_harbor( TerrainState const& terrain_state,
-                          UnitsState&         units_state,
-                          Player& player, UnitId id ) {
+void UnitHarborMover::unit_sail_to_harbor(
+    TerrainState const& terrain_state, UnitsState& units_state,
+    Player& player, UnitId id ) {
   // FIXME: do other checks here, e.g., make sure that the
   //        ship is not damaged.
   CHECK( units_state.unit_for( id ).desc().ship );
@@ -358,9 +359,9 @@ void unit_sail_to_harbor( TerrainState const& terrain_state,
               .sailed_from = sailed_from } );
 }
 
-void unit_sail_to_new_world( TerrainState const& terrain_state,
-                             UnitsState&         units_state,
-                             Player const& player, UnitId id ) {
+void UnitHarborMover::unit_sail_to_new_world(
+    TerrainState const& terrain_state, UnitsState& units_state,
+    Player const& player, UnitId id ) {
   // FIXME: do other checks here, e.g., make sure that the
   //        ship is not damaged.
   CHECK( units_state.unit_for( id ).desc().ship );
@@ -396,20 +397,20 @@ void unit_sail_to_new_world( TerrainState const& terrain_state,
   units_state.change_to_harbor_view( id, new_state );
 }
 
-e_high_seas_result advance_unit_on_high_seas(
-    TerrainState const& terrain_state, UnitsState& units_state,
-    Player& player, UnitId id ) {
+e_high_seas_result advance_unit_on_high_seas( SS&     ss,
+                                              Player& player,
+                                              UnitId  id ) {
   UNWRAP_CHECK( info,
-                units_state.maybe_harbor_view_state_of( id ) );
+                ss.units.maybe_harbor_view_state_of( id ) );
   int const turns_needed =
-      turns_needed_for_high_seas( terrain_state, player, info );
+      turns_needed_for_high_seas( ss.terrain, player, info );
 
   if_get( info.port_status, PortStatus::outbound, outbound ) {
     ++outbound.turns;
     outbound.turns =
         std::clamp( outbound.turns, 0, turns_needed );
     lg.debug( "advancing outbound unit {} to {} turns.",
-              debug_string( units_state, id ), outbound.turns );
+              debug_string( ss.units, id ), outbound.turns );
     if( outbound.turns >= turns_needed )
       return e_high_seas_result::arrived_in_new_world;
     return e_high_seas_result::still_traveling;
@@ -419,25 +420,26 @@ e_high_seas_result advance_unit_on_high_seas(
     ++inbound.turns;
     inbound.turns = std::clamp( inbound.turns, 0, turns_needed );
     lg.debug( "advancing inbound unit {} to {} turns.",
-              debug_string( units_state, id ), inbound.turns );
+              debug_string( ss.units, id ), inbound.turns );
     if( inbound.turns >= turns_needed ) {
       // This should preserve the `sailed_from`.
-      unit_move_to_port( units_state, player, id );
+      unit_ownership_change_non_interactive(
+          ss, id, EuroUnitOwnershipChangeTo::move_to_port{} );
       return e_high_seas_result::arrived_in_harbor;
     }
     return e_high_seas_result::still_traveling;
   }
 
   FATAL( "{} is not on the high seas.",
-         debug_string( units_state, id ) );
+         debug_string( ss.units, id ) );
 }
 
-UnitId create_unit_in_harbor( UnitsState&     units_state,
-                              Player&         player,
+UnitId create_unit_in_harbor( SS& ss, Player& player,
                               UnitComposition comp ) {
   UnitId id =
-      create_free_unit( units_state, player, std::move( comp ) );
-  unit_move_to_port( units_state, player, id );
+      create_free_unit( ss.units, player, std::move( comp ) );
+  unit_ownership_change_non_interactive(
+      ss, id, EuroUnitOwnershipChangeTo::move_to_port{} );
   return id;
 }
 

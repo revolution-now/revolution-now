@@ -737,8 +737,8 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
   // arrived in the old world then jump to the old world screen.
   if( is_unit_inbound( ss.units, id ) ||
       is_unit_outbound( ss.units, id ) ) {
-    e_high_seas_result res = advance_unit_on_high_seas(
-        ss.terrain, ss.units, player, id );
+    e_high_seas_result res =
+        advance_unit_on_high_seas( ss, player, id );
     switch( res ) {
       case e_high_seas_result::still_traveling:
         finish_turn( unit );
@@ -761,17 +761,19 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
           break;
         }
         ss.units.unit_for( id ).clear_orders();
-        maybe<UnitDeleted> unit_deleted =
-            co_await unit_to_map_square( ss, ts, id,
-                                         *dst_coord );
+        maybe<UnitDeleted> const unit_deleted =
+            co_await unit_ownership_change(
+                ss, id,
+                EuroUnitOwnershipChangeTo::world{
+                    .ts = &ts, .target = *dst_coord } );
+        // There are no LCR tiles on water squares.
+        CHECK( !unit_deleted.has_value() );
         // This is not required, but it is for a good player ex-
         // perience. If there are more ships still in port then
         // select one of them, because ideally if there are ships
         // in port then when the player goes to the harbor view,
         // one of them should always be selected.
         update_harbor_selected_unit( ss.units, player );
-        // There are no LCR tiles on water squares.
-        CHECK( !unit_deleted.has_value() );
         unsentry_surroundings( ss.units,
                                ss.units.unit_for( id ) );
         co_return true; // needs to ask for orders.

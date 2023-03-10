@@ -122,7 +122,7 @@ TEST_CASE( "[missionary] bless_as_missionary" ) {
 
   auto f = [&]( UnitType type ) {
     UnitId unit_id = W.add_unit_on_map( type, Coord{} ).id();
-    bless_as_missionary( W.default_player(), colony,
+    bless_as_missionary( W.ss(), W.ts(), colony,
                          W.units().unit_for( unit_id ) );
     return W.units().unit_for( unit_id ).type_obj();
   };
@@ -418,8 +418,8 @@ TEST_CASE( "[missionary] player_missionaries_in_tribe" ) {
   REQUIRE( f( e_nation::french, e_tribe::cherokee ) ==
            V{ missionary4_id } );
 
-  destroy_unit( W.ss(), W.ts(), missionary1_id );
-  destroy_unit( W.ss(), W.ts(), missionary3_id );
+  destroy_unit( W.ss(), missionary1_id );
+  destroy_unit( W.ss(), missionary3_id );
 
   REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
            V{ missionary2_id } );
@@ -428,8 +428,8 @@ TEST_CASE( "[missionary] player_missionaries_in_tribe" ) {
   REQUIRE( f( e_nation::french, e_tribe::cherokee ) ==
            V{ missionary4_id } );
 
-  destroy_unit( W.ss(), W.ts(), missionary2_id );
-  destroy_unit( W.ss(), W.ts(), missionary4_id );
+  destroy_unit( W.ss(), missionary2_id );
+  destroy_unit( W.ss(), missionary4_id );
 
   REQUIRE( f( e_nation::dutch, e_tribe::apache ) == V{} );
   REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) == V{} );

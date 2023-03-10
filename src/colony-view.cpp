@@ -76,9 +76,8 @@ void draw_colony_view( Colony const&, rr::Renderer& renderer ) {
 /****************************************************************
 ** Cheat Stuff
 *****************************************************************/
-void try_promote_demote_unit( SS& ss, Player const& player,
-                              Colony& colony, Coord where,
-                              bool demote ) {
+void try_promote_demote_unit( SS& ss, TS& ts, Colony& colony,
+                              Coord where, bool demote ) {
   maybe<DraggableObjectWithBounds<ColViewObject>> o =
       colview_top_level().object_here( where );
   if( !o.has_value() ) return;
@@ -90,9 +89,9 @@ void try_promote_demote_unit( SS& ss, Player const& player,
 
   Unit& unit = ss.units.unit_for( *unit_id );
   if( demote )
-    cheat_downgrade_unit_expertise( player, unit );
+    cheat_downgrade_unit_expertise( ss, ts, unit );
   else
-    cheat_upgrade_unit_expertise( ss, player, unit );
+    cheat_upgrade_unit_expertise( ss, ts, unit );
   update_colony_view( ss, colony );
 }
 
@@ -263,14 +262,12 @@ struct ColonyPlane : public Plane {
       // Cheat commands.
       switch( event.buttons ) {
         case input::e_mouse_button_event::left_up:
-          try_promote_demote_unit( ss_, player_, colony_,
-                                   event.pos,
+          try_promote_demote_unit( ss_, ts_, colony_, event.pos,
                                    /*demote=*/false );
           try_increase_commodity( ss_, colony_, event.pos );
           break;
         case input::e_mouse_button_event::right_up:
-          try_promote_demote_unit( ss_, player_, colony_,
-                                   event.pos,
+          try_promote_demote_unit( ss_, ts_, colony_, event.pos,
                                    /*demote=*/true );
           try_decrease_commodity( ss_, colony_, event.pos );
           break;

@@ -877,8 +877,11 @@ wait<> TravelHandler::perform() {
           cargo_unit.sentry();
         }
       }
-      unit_deleted =
-          co_await unit_to_map_square( ss_, ts_, id, move_dst );
+      maybe<UnitDeleted> const unit_deleted =
+          co_await unit_ownership_change(
+              ss_, id,
+              EuroUnitOwnershipChangeTo::world{
+                  .ts = &ts_, .target = move_dst } );
       CHECK_GT( mv_points_to_subtract_, 0 );
       if( unit_deleted.has_value() ) break;
       unit.consume_mv_points( mv_points_to_subtract_ );
@@ -886,7 +889,13 @@ wait<> TravelHandler::perform() {
     }
     case e_travel_verdict::board_ship: {
       CHECK( target_unit.has_value() );
-      ss_.units.change_to_cargo_somewhere( *target_unit, id );
+      maybe<UnitDeleted> const deleted =
+          co_await unit_ownership_change(
+              ss_, id,
+              EuroUnitOwnershipChangeTo::cargo{
+                  .new_holder    = *target_unit,
+                  .starting_slot = 0 } );
+      CHECK( !deleted.has_value() );
       unit.forfeight_mv_points();
       unit.sentry();
       // If the ship is sentried then clear it's orders because
@@ -896,16 +905,23 @@ wait<> TravelHandler::perform() {
       ship_unit.clear_orders();
       break;
     }
-    case e_travel_verdict::offboard_ship:
-      unit_deleted =
-          co_await unit_to_map_square( ss_, ts_, id, move_dst );
+    case e_travel_verdict::offboard_ship: {
+      maybe<UnitDeleted> const unit_deleted =
+          co_await unit_ownership_change(
+              ss_, id,
+              EuroUnitOwnershipChangeTo::world{
+                  .ts = &ts_, .target = move_dst } );
       if( unit_deleted.has_value() ) break;
       unit.forfeight_mv_points();
       CHECK( unit.orders().holds<unit_orders::none>() );
       break;
+    }
     case e_travel_verdict::ship_into_port: {
-      unit_deleted =
-          co_await unit_to_map_square( ss_, ts_, id, move_dst );
+      maybe<UnitDeleted> const unit_deleted =
+          co_await unit_ownership_change(
+              ss_, id,
+              EuroUnitOwnershipChangeTo::world{
+                  .ts = &ts_, .target = move_dst } );
       CHECK( !unit_deleted.has_value() );
       // When a ship moves into port it forfeights its movement
       // points as in the OG.
@@ -916,8 +932,11 @@ wait<> TravelHandler::perform() {
       // Unload units and prioritize them.
       vector<UnitId> const held = unit.cargo().units();
       for( UnitId const held_id : held ) {
-        unit_deleted = co_await unit_to_map_square(
-            ss_, ts_, held_id, move_dst );
+        maybe<UnitDeleted> const unit_deleted =
+            co_await unit_ownership_change(
+                ss_, held_id,
+                EuroUnitOwnershipChangeTo::world{
+                    .ts = &ts_, .target = move_dst } );
         // !! Note that the unit could have been deleted here in
         // the case that the unit is a treasure and the player
         // accepts the King's offer to transport it.
@@ -975,7 +994,11 @@ wait<> TravelHandler::perform() {
       break;
     case e_travel_verdict::sail_high_seas:
     case e_travel_verdict::map_edge_high_seas: {
-      unit_sail_to_harbor( ss_.terrain, ss_.units, player_, id );
+      maybe<UnitDeleted> const unit_deleted =
+          co_await unit_ownership_change(
+              ss_, id,
+              EuroUnitOwnershipChangeTo::sail_to_harbor{} );
+      CHECK( !unit_deleted.has_value() );
       // Don't process it again this turn.
       unit.forfeight_mv_points();
       break;
@@ -1122,8 +1145,8 @@ struct NativeDwellingHandler : public CommandHandler {
       case EnterDwellingOutcome::e::live_among_the_natives: {
         auto& o = outcome_.get<
             EnterDwellingOutcome::live_among_the_natives>();
-        co_await do_live_among_the_natives(
-            ss_, ts_, dwelling_, player_, unit_, o.outcome );
+        co_await do_live_among_the_natives( ss_, ts_, dwelling_,
+                                            unit_, o.outcome );
         break;
       }
       case EnterDwellingOutcome::e::speak_with_chief: {

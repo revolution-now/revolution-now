@@ -18,6 +18,7 @@
 #include "render.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
+#include "unit-mgr.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"
@@ -133,8 +134,9 @@ wait<> HarborOutboundShips::click_on_unit( UnitId unit_id ) {
         co_await ts_.gui.optional_choice( config );
     if( !choice.has_value() ) co_return;
     if( choice == "sail to port" ) {
-      unit_sail_to_harbor( ss_.terrain, ss_.units, player_,
-                           unit_id );
+      unit_ownership_change_non_interactive(
+          ss_, unit_id,
+          EuroUnitOwnershipChangeTo::sail_to_harbor{} );
       co_return;
     }
   }
@@ -187,8 +189,9 @@ wait<> HarborOutboundShips::drop( HarborDraggableObject const& o,
                                   Coord const& ) {
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
   UnitId const dragged_id = unit.id;
-  unit_sail_to_new_world( ss_.terrain, ss_.units, player_,
-                          dragged_id );
+  unit_ownership_change_non_interactive(
+      ss_, dragged_id,
+      EuroUnitOwnershipChangeTo::sail_to_new_world{} );
   co_return;
 }
 

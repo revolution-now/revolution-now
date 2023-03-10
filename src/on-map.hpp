@@ -15,6 +15,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "unit-deleted.hpp"
 #include "wait.hpp"
 
 // ss
@@ -26,34 +27,39 @@
 
 namespace rn {
 
+struct EuroUnitOwnershipChangeTo;
 struct SS;
 struct TS;
 
-// A dummy type to help remind the caller that the unit may have
-// disappeared as a result of the call. This works because maybe
-// types are [[nodiscard]].
-struct UnitDeleted {};
+// Some of the methods in this struct are private because they
+// are not supposed to be called by normal game code. Instead,
+// the top-level unit_ownership_change* family of methods should
+// be used.
+struct UnitOnMapMover {
+  static void native_unit_to_map_non_interactive(
+      SS& ss, NativeUnitId id, Coord dst_tile,
+      DwellingId dwelling_id );
 
-// Whenever a unit is placed on a map square for any reason
-// (whether they moved there, were created there, appeared there,
-// etc.) this must be called to perform the correct game updates
-// (and that includes moving the unit to the target square, which
-// this function will do).
-//
-// WARNING: After this function completes, the unit may no longer
-// exist since they might stepped into a lost city rumor and dis-
-// appeared! Or new units could have been created, etc.
-wait<maybe<UnitDeleted>> unit_to_map_square(
-    SS& ss, TS& ts, UnitId id, Coord world_square );
+  static wait<> native_unit_to_map_interactive(
+      SS& ss, TS& ts, NativeUnitId id, Coord dst_tile,
+      DwellingId dwelling_id );
 
-// This is the non-coroutine version of the above, only to be
-// called from non-coroutines where you know that this action
-// won't need to trigger any UI actions.
-void unit_to_map_square_non_interactive( SS& ss, TS& ts,
-                                         UnitId id,
-                                         Coord  world_square );
-void native_unit_to_map_square_non_interactive(
-    SS& ss, NativeUnitId id, Coord world_square,
-    DwellingId dwelling_id );
+ private:
+  static void to_map_non_interactive( SS& ss, TS& ts,
+                                      UnitId unit_id,
+                                      Coord  tile );
+
+  static wait<maybe<UnitDeleted>> to_map_interactive(
+      SS& ss, TS& ts, UnitId unit_id, Coord tile );
+
+  // Friends.
+  friend wait<maybe<UnitDeleted>> unit_ownership_change(
+      SS& ss, UnitId id, EuroUnitOwnershipChangeTo const& info );
+
+  friend void unit_ownership_change_non_interactive(
+      SS& ss, UnitId id, EuroUnitOwnershipChangeTo const& info );
+
+  friend struct TestingOnlyUnitOnMapMover;
+};
 
 } // namespace rn

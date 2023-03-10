@@ -68,12 +68,10 @@ wait<> cheat_colony_buildings( Colony& colony, IGui& gui );
 // game's cheat feature where you can select a unit (at least in
 // the colony view) and it will be upgraded based on what it is
 // currently doing or being.
-void cheat_upgrade_unit_expertise( SSConst const& ss,
-                                   Player const&  player,
-                                   Unit&          unit );
+void cheat_upgrade_unit_expertise( SS& ss, TS& ts, Unit& unit );
 
-void cheat_downgrade_unit_expertise( Player const& player,
-                                     Unit&         unit );
+void cheat_downgrade_unit_expertise( SS& ss, TS& ts,
+                                     Unit& unit );
 
 void cheat_create_new_colonist( SS& ss, TS& ts,
                                 Player const& player,

@@ -30,6 +30,7 @@ struct Colony;
 struct Player;
 struct SS;
 struct SSConst;
+struct TS;
 struct Unit;
 struct UnitComposition;
 
@@ -59,7 +60,7 @@ std::string harbor_equip_description(
     HarborEquipOption const& option );
 
 [[nodiscard]] PriceChange perform_harbor_equip_option(
-    SS& ss, Player& player, UnitId unit_id,
+    SS& ss, TS& ts, Player& player, UnitId unit_id,
     HarborEquipOption const& option );
 
 /****************************************************************
@@ -77,7 +78,7 @@ std::string colony_equip_description(
     ColonyEquipOption const& option );
 
 void perform_colony_equip_option(
-    Colony& colony, Player const& player, Unit& unit,
+    SS& ss, TS& ts, Colony& colony, Unit& unit,
     ColonyEquipOption const& option );
 
 } // namespace rn

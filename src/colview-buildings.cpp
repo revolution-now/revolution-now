@@ -18,6 +18,7 @@
 #include "render.hpp"
 #include "teaching.hpp"
 #include "tiles.hpp"
+#include "unit-mgr.hpp"
 
 // config
 #include "config/tile-enum.rds.hpp"
@@ -284,9 +285,11 @@ wait<> ColViewBuildings::drop( ColViewObject const& o,
                              &ColViewObject::unit::id ) );
   UNWRAP_CHECK( slot, slot_for_coord( where ) );
   UNWRAP_CHECK( indoor_job, indoor_job_for_slot( slot ) );
-  ColonyJob job = ColonyJob::indoor{ .job = indoor_job };
-  move_unit_to_colony( ss_.units, player_, colony_, unit_id,
-                       job );
+  ColonyJob const job = ColonyJob::indoor{ .job = indoor_job };
+  unit_ownership_change_non_interactive(
+      ss_, unit_id,
+      EuroUnitOwnershipChangeTo::colony{ .colony_id = colony_.id,
+                                         .job       = job } );
   CHECK_HAS_VALUE( colony_.validate() );
   co_return;
 }
@@ -329,7 +332,7 @@ void ColViewBuildings::cancel_drag() { dragging_ = nothing; }
 // Implement IDragSource.
 wait<> ColViewBuildings::disown_dragged_object() {
   CHECK( dragging_.has_value() );
-  remove_unit_from_colony( ss_.units, colony_, dragging_->id );
+  remove_unit_from_colony( ss_, colony_, dragging_->id );
   co_return;
 }
 

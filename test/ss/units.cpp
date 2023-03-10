@@ -16,6 +16,9 @@
 // Testing
 #include "test/fake/world.hpp"
 
+// Revolution Now
+#include "src/unit-mgr.hpp"
+
 // ss
 #include "src/ss/dwelling.rds.hpp"
 
@@ -136,7 +139,8 @@ TEST_CASE( "[units] missionary_from_dwelling" ) {
   REQUIRE( W.units().missionary_from_dwelling( dwelling2.id ) ==
            expected );
 
-  W.units().disown_unit( unit.id() );
+  unit_ownership_change_non_interactive(
+      W.ss(), unit.id(), EuroUnitOwnershipChangeTo::free{} );
   REQUIRE( as_const( W.units() ).ownership_of( unit.id() ) ==
            UnitOwnership::free{} );
   REQUIRE( W.units().maybe_dwelling_for_missionary(

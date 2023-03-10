@@ -316,9 +316,7 @@ wait<> cheat_colony_buildings( Colony& colony, IGui& gui ) {
   }
 }
 
-void cheat_upgrade_unit_expertise( SSConst const& ss,
-                                   Player const&  player,
-                                   Unit&          unit ) {
+void cheat_upgrade_unit_expertise( SS& ss, TS& ts, Unit& unit ) {
   RETURN_IF_NO_CHEAT;
   UnitType const original_type = unit.type_obj();
   SCOPE_EXIT(
@@ -330,7 +328,7 @@ void cheat_upgrade_unit_expertise( SSConst const& ss,
   // motion when the unit has no activity and it won't change an
   // expert's type to be a new expert, both things that we will
   // want to do with this cheat feature.
-  if( try_promote_unit_for_current_activity( ss, player, unit ) )
+  if( try_promote_unit_for_current_activity( ss, ts, unit ) )
     return;
 
   maybe<e_unit_activity> activity = current_activity_for_unit(
@@ -354,7 +352,7 @@ void cheat_upgrade_unit_expertise( SSConst const& ss,
         promoted_from_activity( to_promote, *activity );
     if( !promoted.has_value() ) return;
     CHECK( promoted.has_value() );
-    unit.change_type( player, *promoted );
+    change_unit_type( ss, ts, unit, *promoted );
     return;
   }
 
@@ -362,19 +360,20 @@ void cheat_upgrade_unit_expertise( SSConst const& ss,
   // how to upgrade are petty criminals and indentured servants.
   switch( unit.type() ) {
     case e_unit_type::petty_criminal:
-      unit.change_type( player,
+      change_unit_type( ss, ts, unit,
                         e_unit_type::indentured_servant );
       return;
     case e_unit_type::indentured_servant:
-      unit.change_type( player, e_unit_type::free_colonist );
+      change_unit_type( ss, ts, unit,
+                        e_unit_type::free_colonist );
       break;
     default:
       return;
   }
 }
 
-void cheat_downgrade_unit_expertise( Player const& player,
-                                     Unit&         unit ) {
+void cheat_downgrade_unit_expertise( SS& ss, TS& ts,
+                                     Unit& unit ) {
   RETURN_IF_NO_CHEAT;
   UnitType const original_type = unit.type_obj();
   SCOPE_EXIT(
@@ -396,7 +395,7 @@ void cheat_downgrade_unit_expertise( Player const& player,
         new_type = e_unit_type::free_colonist;
         break;
     }
-    unit.change_type( player, new_type );
+    change_unit_type( ss, ts, unit, new_type );
     return;
   }
 
@@ -411,7 +410,7 @@ void cheat_downgrade_unit_expertise( Player const& player,
       UNWRAP_CHECK( comp,
                     UnitComposition::create(
                         ut, unit.composition().inventory() ) );
-      unit.change_type( player, comp );
+      change_unit_type( ss, ts, unit, comp );
       return;
     }
     case e_unit_type::free_colonist: {
@@ -421,7 +420,7 @@ void cheat_downgrade_unit_expertise( Player const& player,
       UNWRAP_CHECK( comp,
                     UnitComposition::create(
                         ut, unit.composition().inventory() ) );
-      unit.change_type( player, comp );
+      change_unit_type( ss, ts, unit, comp );
       return;
     }
     default:
@@ -433,7 +432,7 @@ void cheat_downgrade_unit_expertise( Player const& player,
       UNWRAP_CHECK(
           comp, UnitComposition::create(
                     *cleared, unit.composition().inventory() ) );
-      unit.change_type( player, comp );
+      change_unit_type( ss, ts, unit, comp );
       return;
   }
 }

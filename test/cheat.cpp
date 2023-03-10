@@ -66,12 +66,11 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
   W.create_default_map();
 
   auto up = [&]( Unit& unit ) {
-    cheat_upgrade_unit_expertise( W.ss(), W.default_player(),
-                                  unit );
+    cheat_upgrade_unit_expertise( W.ss(), W.ts(), unit );
   };
 
   auto down = [&]( Unit& unit ) {
-    cheat_downgrade_unit_expertise( W.default_player(), unit );
+    cheat_downgrade_unit_expertise( W.ss(), W.ts(), unit );
   };
 
   SECTION( "expert_farmer carpentry" ) {

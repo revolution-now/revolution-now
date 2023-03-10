@@ -39,6 +39,7 @@ namespace {
 void delete_dwelling_ignoring_owned_land(
     SS& ss, TS& ts, DwellingId dwelling_id ) {
   // 1. Destroy free braves owned by this dwelling.
+  //
   // We make a copy of this because it is probably not safe to
   // assume that we can iterate over the map reference (that this
   // function normally returns) while simultaneously deleting the
@@ -52,7 +53,7 @@ void delete_dwelling_ignoring_owned_land(
   if( maybe<UnitId> const missionary =
           ss.units.missionary_from_dwelling( dwelling_id );
       missionary.has_value() )
-    destroy_unit( ss, ts, *missionary );
+    destroy_unit( ss, *missionary );
 
   // 3. Remove road under dwelling.
   clear_road( ts.map_updater,

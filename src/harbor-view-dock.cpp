@@ -21,6 +21,7 @@
 #include "tiles.hpp"
 #include "treasure.hpp"
 #include "ts.hpp"
+#include "unit-mgr.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"
@@ -133,7 +134,7 @@ wait<> HarborDockUnits::click_on_unit( UnitId unit_id ) {
   CHECK_LT( chosen_idx, int( equip_opts.size() ) );
   // This will change the unit type.
   PriceChange const price_change = perform_harbor_equip_option(
-      ss_, player_, unit.id(), equip_opts[chosen_idx] );
+      ss_, ts_, player_, unit.id(), equip_opts[chosen_idx] );
   // Will only display something if there is a price change.
   co_await display_price_change_notification( ts_, player_,
                                               price_change );
@@ -165,7 +166,8 @@ void HarborDockUnits::cancel_drag() { dragging_ = nothing; }
 wait<> HarborDockUnits::disown_dragged_object() {
   UNWRAP_CHECK( unit_id,
                 dragging_.member( &Draggable::unit_id ) );
-  ss_.units.disown_unit( unit_id );
+  unit_ownership_change_non_interactive(
+      ss_, unit_id, EuroUnitOwnershipChangeTo::free{} );
   co_return;
 }
 
@@ -188,13 +190,15 @@ wait<> HarborDockUnits::drop( HarborDraggableObject const& o,
   if( type == e_unit_type::treasure ) {
     TreasureReceipt const receipt = treasure_in_harbor_receipt(
         player_, ss_.units.unit_for( draggable_unit.id ) );
-    apply_treasure_reimbursement( ss_, ts_, player_, receipt );
+    apply_treasure_reimbursement( ss_, player_, receipt );
     co_await show_treasure_receipt( ts_, player_, receipt );
     // !! Note: the treasure unit is now destroyed!
     CHECK( !ss_.units.exists( draggable_unit.id ) );
     co_return;
   }
-  unit_move_to_port( ss_.units, player_, draggable_unit.id );
+  unit_ownership_change_non_interactive(
+      ss_, draggable_unit.id,
+      EuroUnitOwnershipChangeTo::move_to_port{} );
   co_return;
 }
 

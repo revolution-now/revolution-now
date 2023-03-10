@@ -517,8 +517,8 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
   PriceChange expected;
 
   auto f = [&] {
-    return perform_harbor_equip_option( W.ss(), player, unit_id,
-                                        option );
+    return perform_harbor_equip_option( W.ss(), W.ts(), player,
+                                        unit_id, option );
   };
 
   player.money = 10000;
@@ -641,7 +641,7 @@ TEST_CASE( "[equip] perform_colony_equip_option" ) {
   REQUIRE( colony.commodities == expected );
   REQUIRE( unit.type() == e_unit_type::free_colonist );
 
-  perform_colony_equip_option( colony, W.default_player(), unit,
+  perform_colony_equip_option( W.ss(), W.ts(), colony, unit,
                                option );
 
   expected = { { e_commodity::sugar, 50 },

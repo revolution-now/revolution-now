@@ -137,7 +137,7 @@ wait<> click_purchase( SS& ss, TS& ts, Player& player ) {
   UNWRAP_CHECK( price, base::lookup( prices, selected_type ) );
   player.money -= price;
   CHECK_GE( player.money, 0 );
-  create_unit_in_harbor( ss.units, player, selected_type );
+  create_unit_in_harbor( ss, player, selected_type );
   if( selected_type == e_unit_type::artillery )
     ++player.artillery_purchases;
 }
@@ -186,7 +186,7 @@ wait<> click_train( SS& ss, TS& ts, Player& player ) {
   UNWRAP_CHECK( price, costs[selected_type] );
   player.money -= price;
   CHECK_GE( player.money, 0 );
-  create_unit_in_harbor( ss.units, player, selected_type );
+  create_unit_in_harbor( ss, player, selected_type );
 }
 
 } // namespace rn

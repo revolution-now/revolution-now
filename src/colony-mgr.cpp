@@ -609,14 +609,14 @@ ColonyId found_colony( SS& ss, TS& ts, Player const& player,
 
   // Strip unit of commodities and modifiers and put the commodi-
   // ties into the colony.
-  strip_unit_to_base_type( player, unit, col );
+  strip_unit_to_base_type( ss, ts, unit, col );
 
   // Find initial job for founder.
   ColonyJob job =
       find_job_for_initial_colonist( ss, player, col );
 
   // Move unit into it.
-  move_unit_to_colony( ss.units, player, col, founder, job );
+  move_unit_to_colony( ss, ts, col, founder, job );
 
   // Add road onto colony square.
   set_road( ts.map_updater, where );
@@ -639,22 +639,21 @@ ColonyId found_colony( SS& ss, TS& ts, Player const& player,
   return col_id;
 }
 
-void change_colony_nation( Colony&     colony,
-                           UnitsState& units_state,
-                           e_nation    new_nation ) {
+void change_colony_nation( SS& ss, TS& ts, Colony& colony,
+                           e_nation new_nation ) {
   unordered_set<UnitId> units =
-      units_at_or_in_colony( colony, units_state );
+      units_at_or_in_colony( colony, ss.units );
   for( UnitId unit_id : units )
-    units_state.unit_for( unit_id ).change_nation( units_state,
-                                                   new_nation );
+    change_unit_nation( ss, ts, ss.units.unit_for( unit_id ),
+                        new_nation );
   CHECK( colony.nation != new_nation );
   colony.nation = new_nation;
 }
 
-void strip_unit_to_base_type( Player const& player, Unit& unit,
+void strip_unit_to_base_type( SS& ss, TS& ts, Unit& unit,
                               Colony& colony ) {
   UnitTransformationResult tranform_res =
-      unit.strip_to_base_type( player );
+      strip_to_base_type( ss, ts, unit );
   for( auto [type, q] : tranform_res.commodity_deltas ) {
     CHECK_GT( q, 0 );
     lg.debug( "adding {} {} to colony {}.", q, type,
@@ -663,14 +662,16 @@ void strip_unit_to_base_type( Player const& player, Unit& unit,
   }
 }
 
-void move_unit_to_colony( UnitsState&   units_state,
-                          Player const& player, Colony& colony,
+void move_unit_to_colony( SS& ss, TS& ts, Colony& colony,
                           UnitId           unit_id,
                           ColonyJob const& job ) {
-  Unit& unit = units_state.unit_for( unit_id );
+  Unit& unit = ss.units.unit_for( unit_id );
   CHECK( unit.nation() == colony.nation );
-  strip_unit_to_base_type( player, unit, colony );
-  units_state.change_to_colony( unit_id, colony.id );
+  strip_unit_to_base_type( ss, ts, unit, colony );
+  unit_ownership_change_non_interactive(
+      ss, unit_id,
+      EuroUnitOwnershipChangeTo::colony{ .colony_id =
+                                             colony.id } );
   // Now add the unit to the colony.
   SCOPE_EXIT( CHECK( colony.validate() ) );
   CHECK( !colony_has_unit( colony, unit_id ),
@@ -694,11 +695,12 @@ void move_unit_to_colony( UnitsState&   units_state,
   }
 }
 
-void remove_unit_from_colony( UnitsState& units_state,
-                              Colony& colony, UnitId unit_id ) {
-  CHECK( units_state.unit_for( unit_id ).nation() ==
+void remove_unit_from_colony( SS& ss, Colony& colony,
+                              UnitId unit_id ) {
+  CHECK( ss.units.unit_for( unit_id ).nation() ==
          colony.nation );
-  units_state.disown_unit( unit_id );
+  unit_ownership_change_non_interactive(
+      ss, unit_id, EuroUnitOwnershipChangeTo::free{} );
   // Now remove the unit from the colony.
   SCOPE_EXIT( CHECK( colony.validate() ) );
 
@@ -733,15 +735,14 @@ void change_unit_outdoor_job( Colony& colony, UnitId id,
 }
 
 ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
-                                         Player& player,
                                          Colony& colony ) {
   ColonyDestructionOutcome outcome;
   // These are the units working in the colony, not those at the
   // gate or in port (which won't be affected).
   vector<UnitId> units = colony_units_all( colony );
   for( UnitId unit_id : units ) {
-    remove_unit_from_colony( ss.units, colony, unit_id );
-    destroy_unit( ss, ts, unit_id );
+    remove_unit_from_colony( ss, colony, unit_id );
+    destroy_unit( ss, unit_id );
   }
   CHECK( colony_population( colony ) == 0 );
   clear_abandoned_colony_road( ss, ts.map_updater,
@@ -774,7 +775,8 @@ ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
     Unit const& unit = ss.units.unit_for( unit_id );
     if( !unit.desc().ship ) continue;
     ++outcome.ships_returned_to_harbor[unit.type()];
-    unit_move_to_port( ss.units, player, unit_id );
+    unit_ownership_change_non_interactive(
+        ss, unit_id, EuroUnitOwnershipChangeTo::move_to_port{} );
   }
 
   // Should be last.
@@ -793,7 +795,7 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Player& player,
       anim_seq_for_colony_depixelation( colony.id );
   co_await ts.planes.land_view().animate( seq );
   ColonyDestructionOutcome const outcome =
-      destroy_colony( ss, ts, player, colony );
+      destroy_colony( ss, ts, colony );
   if( msg.has_value() ) co_await ts.gui.message_box( *msg );
   // Check if there are any ships in port.
   for( auto [unit_type, count] :

@@ -243,7 +243,10 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   unit_type           = e_unit_type::missionary;
   // This unit doesn't exist but that should be ok for the pur-
   // poses of this test.
-  W.units().change_to_dwelling( missionary.id(), dwelling.id );
+  unit_ownership_change_non_interactive(
+      W.ss(), missionary.id(),
+      EuroUnitOwnershipChangeTo::dwelling{ .dwelling_id =
+                                               dwelling.id } );
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
@@ -255,7 +258,9 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   // Missionary, with contact, no war, no mission.
   relationship.at_war = false;
   unit_type           = e_unit_type::missionary;
-  W.units().disown_unit( missionary.id() );
+  unit_ownership_change_non_interactive(
+      W.ss(), missionary.id(),
+      EuroUnitOwnershipChangeTo::free{} );
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
@@ -268,9 +273,13 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   // Missionary, with contact, no war, foreign mission.
   relationship.at_war = false;
   unit_type           = e_unit_type::missionary;
-  W.units().disown_unit( missionary.id() );
-  W.units().change_to_dwelling( foreign_missionary.id(),
-                                dwelling.id );
+  unit_ownership_change_non_interactive(
+      W.ss(), missionary.id(),
+      EuroUnitOwnershipChangeTo::free{} );
+  unit_ownership_change_non_interactive(
+      W.ss(), foreign_missionary.id(),
+      EuroUnitOwnershipChangeTo::dwelling{ .dwelling_id =
+                                               dwelling.id } );
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
@@ -279,12 +288,16 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
       e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
-  W.units().disown_unit( foreign_missionary.id() );
+  unit_ownership_change_non_interactive(
+      W.ss(), foreign_missionary.id(),
+      EuroUnitOwnershipChangeTo::free{} );
 
   // Missionary, with contact, with war, no mission.
   relationship.at_war = true;
   unit_type           = e_unit_type::missionary;
-  W.units().disown_unit( missionary.id() );
+  unit_ownership_change_non_interactive(
+      W.ss(), missionary.id(),
+      EuroUnitOwnershipChangeTo::free{} );
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.options = {
@@ -490,8 +503,7 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
 
   auto f = [&] {
     wait<> w = do_live_among_the_natives(
-        W.ss(), W.ts(), dwelling, W.default_player(), unit,
-        outcome );
+        W.ss(), W.ts(), dwelling, unit, outcome );
     CHECK( !w.exception() );
     CHECK( w.ready() );
   };
