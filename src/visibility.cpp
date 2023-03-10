@@ -46,7 +46,7 @@ int largest_possible_sighting_radius() {
     int res = 0;
     for( e_unit_type type : refl::enum_values<e_unit_type> )
       res = std::max( res, unit_attr( type ).visibility );
-    // +1 in case a player has.
+    // +1 in case a player has de soto.
     return res + 1;
   }();
   return largest;
