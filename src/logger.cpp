@@ -139,7 +139,7 @@ struct TerminalLogger final : public ILogger {
     auto now_c = std::chrono::system_clock::to_time_t( now );
     ostringstream ss;
     ss << put_time( localtime( &now_c ), "%H:%M:%S" );
-    ss << fmt::format( ".{:03} | {} {}:{}: {}", millis.count(),
+    ss << fmt::format( ".{:03} {} {}:{}: {}", millis.count(),
                        to_colored_level_name( target ),
                        module_name.string(), loc.line(), what );
 
