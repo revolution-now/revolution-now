@@ -21,10 +21,12 @@ namespace {
 
 using namespace std;
 
-// Currently broken with latest clang; see:
+// This is now fixed on clang trunk, see:
 //
 //   https://github.com/llvm/llvm-project/issues/56532
 //
+// but we will wait to enable it until the change rolls out to
+// all of our machines.
 #if 0
 maybe<int> get_num() { return 110; }
 maybe<int> get_den() { return 10; }
