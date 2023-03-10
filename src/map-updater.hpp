@@ -43,6 +43,10 @@ struct NonRenderingMapUpdater : IMapUpdater {
                             e_nation nation ) override;
 
   // Implement IMapUpdater.
+  bool make_square_fogged( Coord    tile,
+                           e_nation nation ) override;
+
+  // Implement IMapUpdater.
   void modify_entire_map( MapUpdateFunc mutator ) override;
 
   // Implement IMapUpdater.
@@ -70,6 +74,10 @@ struct RenderingMapUpdater : NonRenderingMapUpdater {
   // Implement IMapUpdater.
   bool make_square_visible( Coord    tile,
                             e_nation nation ) override;
+
+  // Implement IMapUpdater.
+  bool make_square_fogged( Coord    tile,
+                           e_nation nation ) override;
 
   // Implement IMapUpdater.
   void modify_entire_map( MapUpdateFunc mutator ) override;
@@ -103,6 +111,10 @@ struct TrappingMapUpdater : IMapUpdater {
   // Implement IMapUpdater.
   bool make_square_visible( Coord    tile,
                             e_nation nation ) override;
+
+  // Implement IMapUpdater.
+  bool make_square_fogged( Coord    tile,
+                           e_nation nation ) override;
 
   // Implement IMapUpdater.
   void modify_entire_map( MapUpdateFunc mutator ) override;

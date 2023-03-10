@@ -493,8 +493,11 @@ static vector<Coord> compute_tales_of_nearby_lands_tiles(
         ss.terrain.maybe_square_at( coord );
     // Square must exist on the map.
     if( !square.has_value() ) continue;
-    // Square must not be visible to player.
-    if( viz.visible( coord ) ) continue;
+    // Square must not be visible at all to player (fogged
+    // squares count as visible).
+    if( viz.visible( coord ) ==
+        e_tile_visibility::visible_and_clear )
+      continue;
     // Square must be land.  This seems to be what the OG does.
     if( square->surface == e_surface::water ) continue;
     tiles.push_back( coord );

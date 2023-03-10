@@ -39,11 +39,12 @@ struct IMapUpdater;
 ** MapUpdaterOptions
 *****************************************************************/
 struct MapUpdaterOptions {
-  maybe<e_nation> nation           = nothing;
-  bool            render_forests   = true;
-  bool            render_resources = true;
-  bool            render_lcrs      = true;
-  bool            grid             = false;
+  maybe<e_nation> nation            = nothing;
+  bool            render_forests    = true;
+  bool            render_resources  = true;
+  bool            render_lcrs       = true;
+  bool            grid              = false;
+  bool            render_fog_of_war = true;
 
   bool operator==( MapUpdaterOptions const& ) const = default;
 };
@@ -99,11 +100,22 @@ struct IMapUpdater {
 
   // If the given nation cannot see the square it will be made
   // visible, and if it was already visible then it will be up-
-  // dated in case it was stale. In the case that it was updated
-  // (and changed) it will be redrawn. Returns true if the play-
-  // er's map square was changed as a result.
+  // dated in case it was stale. In either case, it will also
+  // remove the fog from the square if there is any.
+  //
+  // In the case that it was updated (and changed) it will return
+  // true and will have been redrawn. If the tile was not already
+  // visible then it will be initialized to a state containing
+  // fog. given delta.
   virtual bool make_square_visible( Coord    tile,
                                     e_nation nation ) = 0;
+
+  // If the square is not fogged fromt the perspective of the
+  // player then it is made so and any redrawing is done if nec-
+  // essary. If the square is not visible then no changes are
+  // made.
+  virtual bool make_square_fogged( Coord    tile,
+                                   e_nation nation ) = 0;
 
   // Will redraw the entire map.
   virtual void redraw() = 0;

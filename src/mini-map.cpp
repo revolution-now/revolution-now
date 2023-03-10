@@ -427,16 +427,23 @@ void MiniMapView::draw_impl( rr::Renderer&     renderer,
   for( gfx::rect r : gfx::subrects( squares.truncated() ) ) {
     Coord const land_coord = Coord::from_gfx( r.nw() );
     CHECK( viz.on_map( land_coord ) );
-    if( !viz.visible( land_coord ) ) continue;
-    bool const blinking_but_off =
-        ( land_coord == blinker_coord && !blink_on );
+    if( viz.visible( land_coord ) == e_tile_visibility::hidden )
+      continue;
     gfx::pixel color =
         color_for_square( viz.square_at( land_coord ) );
-    if( maybe<Society> const society =
-            society_on_square( ss_, land_coord );
-        society.has_value() ) {
-      if( !blinking_but_off )
-        color = flag_color_for_society( *society );
+    if( viz.visible( land_coord ) ==
+        e_tile_visibility::visible_and_clear ) {
+      // We have full visibility, so consider overriding the
+      // normal land pixel with the colors of any units or
+      // colonies that are on the square.
+      if( maybe<Society> const society =
+              society_on_square( ss_, land_coord );
+          society.has_value() ) {
+        bool const blinking_but_off =
+            ( land_coord == blinker_coord && !blink_on );
+        if( !blinking_but_off )
+          color = flag_color_for_society( *society );
+      }
     }
     gfx::rect const pixel{
         .origin = actual.nw() + ( land_coord.to_gfx() -

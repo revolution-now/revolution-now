@@ -163,19 +163,20 @@ void UnitOnMapMover::to_map_non_interactive(
     SS& ss, TS& ts, UnitId id, Coord world_square ) {
   Unit& unit = ss.units.unit_for( id );
 
-  // 1. Move the unit. This is the only place where this function
+  // 1. Adjust the visibility/fog in response to the unit moving
+  // to the destination square and (potentially) leaving a source
+  // square. Should be done before unit is moved.
+  vector<Coord> const visible = unit_visible_squares(
+      ss, unit.nation(), unit.type(), world_square );
+  for( Coord const coord : visible )
+    ts.map_updater.make_square_visible( coord, unit.nation() );
+
+  // 2. Move the unit. This is the only place where this function
   //    should be called by normal game code.
   ss.units.change_to_map( id, world_square );
 
-  // 2. Unsentry surrounding foreign units.
+  // 3. Unsentry surrounding foreign units.
   //    TODO
-
-  // 3. Update terrain visibility.
-  e_nation const      nation  = unit.nation();
-  vector<Coord> const visible = unit_visible_squares(
-      ss, nation, unit.type(), world_square );
-  for( Coord coord : visible )
-    ts.map_updater.make_square_visible( coord, nation );
 
   // 4. If the unit is at a colony site then append the unit ID
   //    to the colony's list of unit's at the gate (said list

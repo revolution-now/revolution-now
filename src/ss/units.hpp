@@ -88,6 +88,10 @@ struct UnitsState {
   NativeUnit const& native_unit_for( GenericUnitId id ) const;
   NativeUnit&       native_unit_for( GenericUnitId id );
 
+  base::maybe<Unit const&> maybe_euro_unit_for(
+      GenericUnitId id ) const;
+  base::maybe<Unit&> maybe_euro_unit_for( GenericUnitId id );
+
   // Unit must exist.
   UnitState const&           state_of( GenericUnitId id ) const;
   EuroUnitState const&       state_of( UnitId id ) const;
@@ -125,6 +129,10 @@ struct UnitsState {
 
   std::unordered_set<GenericUnitId> const& from_coord(
       Coord const& c ) const;
+
+  std::unordered_map<Coord,
+                     std::unordered_set<GenericUnitId>> const&
+  from_coords() const;
 
   // Note this returns only units that are working in the colony,
   // not units that are on the map at the location of the colony.

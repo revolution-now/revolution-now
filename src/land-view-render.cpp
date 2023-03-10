@@ -129,7 +129,9 @@ void LandViewRenderer::render_single_unit(
 
 void LandViewRenderer::render_units_on_square(
     Coord tile, bool flags ) const {
-  if( !viz_.visible( tile ) ) return;
+  if( viz_.visible( tile ) !=
+      e_tile_visibility::visible_and_clear )
+    return;
   // This will be sorted in decreasing order of defense, then by
   // decreasing id.
   vector<GenericUnitId> sorted =
@@ -316,7 +318,9 @@ void LandViewRenderer::render_units_impl() const {
     // the unit will just appear on the destination square, as
     // opposed to first appearing on top of a non-visible square
     // and sliding off of it.
-    if( !viz_.visible( tile ) ) return;
+    if( viz_.visible( tile ) !=
+        e_tile_visibility::visible_and_clear )
+      return;
     Coord const where =
         render_rect_for_tile( tile ).upper_left();
     bool const multiple_units =
@@ -403,7 +407,9 @@ void LandViewRenderer::render_units_impl() const {
 void LandViewRenderer::render_native_dwelling(
     Dwelling const& dwelling ) const {
   Coord const location = ss_.natives.coord_for( dwelling.id );
-  if( !viz_.visible( location ) ) return;
+  if( viz_.visible( location ) !=
+      e_tile_visibility::visible_and_clear )
+    return;
   Coord const tile_coord =
       render_rect_for_tile( location ).upper_left() -
       Delta{ .w = 6, .h = 6 };
@@ -482,7 +488,9 @@ void LandViewRenderer::render_input_overrun_indicator() const {
 
 void LandViewRenderer::render_colony(
     Colony const& colony ) const {
-  if( !viz_.visible( colony.location ) ) return;
+  if( viz_.visible( colony.location ) !=
+      e_tile_visibility::visible_and_clear )
+    return;
   Coord const tile_coord =
       render_rect_for_tile( colony.location ).upper_left();
   Coord const colony_sprite_upper_left =

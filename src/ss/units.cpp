@@ -329,17 +329,34 @@ Unit& UnitsState::unit_for( UnitId id ) {
   return state_of( id ).unit;
 }
 
-Unit const& UnitsState::euro_unit_for( GenericUnitId id ) const {
+base::maybe<Unit const&> UnitsState::maybe_euro_unit_for(
+    GenericUnitId id ) const {
   UnitId const unit_id{ to_underlying( id ) };
-  UNWRAP_CHECK( state, base::lookup( euro_units_, unit_id ) );
-  CHECK( state != nullptr );
-  return state->unit;
+  maybe<EuroUnitState const*> const state =
+      base::lookup( euro_units_, unit_id );
+  if( !state.has_value() ) return nothing;
+  CHECK( *state != nullptr );
+  return ( *state )->unit;
+}
+
+base::maybe<Unit&> UnitsState::maybe_euro_unit_for(
+    GenericUnitId id ) {
+  UNWRAP_CHECK( state, base::lookup( o_.units, id ) );
+  maybe<EuroUnitState&> euro =
+      state.get_if<UnitState::euro>().member(
+          &UnitState::euro::state );
+  if( !euro.has_value() ) return nothing;
+  return euro->unit;
+}
+
+Unit const& UnitsState::euro_unit_for( GenericUnitId id ) const {
+  UNWRAP_CHECK( res, maybe_euro_unit_for( id ) );
+  return res;
 }
 
 Unit& UnitsState::euro_unit_for( GenericUnitId id ) {
-  UNWRAP_CHECK( state, base::lookup( o_.units, id ) );
-  UNWRAP_CHECK( euro_state, state.get_if<UnitState::euro>() );
-  return euro_state.state.unit;
+  UNWRAP_CHECK( res, maybe_euro_unit_for( id ) );
+  return res;
 }
 
 NativeUnit const& UnitsState::native_unit_for(
@@ -789,6 +806,11 @@ unordered_set<GenericUnitId> const& UnitsState::from_coord(
   // CHECK( square_exists( c ) );
   return base::lookup( units_from_coords_, coord )
       .value_or( empty );
+}
+
+unordered_map<Coord, unordered_set<GenericUnitId>> const&
+UnitsState::from_coords() const {
+  return units_from_coords_;
 }
 
 unordered_set<UnitId> const& UnitsState::from_colony(

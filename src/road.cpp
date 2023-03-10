@@ -140,7 +140,7 @@ void render_road_if_present( rr::Painter& painter, Coord where,
                              Visibility const& viz,
                              Coord             world_tile ) {
   auto has_road = [&]( Coord tile ) {
-    return viz.visible( tile ) &&
+    return viz.visible( tile ) != e_tile_visibility::hidden &&
            rn::has_road( viz.square_at( tile ) );
   };
 

@@ -885,15 +885,23 @@ TEST_CASE( "[visibility] Visibility" ) {
     auto viz = Visibility::create( W.ss(), /*nation=*/nothing );
 
     // visible.
-    REQUIRE( viz.visible( { .x = 0, .y = 0 } ) == true );
-    REQUIRE( viz.visible( { .x = 1, .y = 0 } ) == true );
-    REQUIRE( viz.visible( { .x = 0, .y = 1 } ) == true );
-    REQUIRE( viz.visible( { .x = 1, .y = 1 } ) == true );
+    REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
+             e_tile_visibility::visible_and_clear );
+    REQUIRE( viz.visible( { .x = 1, .y = 0 } ) ==
+             e_tile_visibility::visible_and_clear );
+    REQUIRE( viz.visible( { .x = 0, .y = 1 } ) ==
+             e_tile_visibility::visible_and_clear );
+    REQUIRE( viz.visible( { .x = 1, .y = 1 } ) ==
+             e_tile_visibility::visible_and_clear );
     // proto visible.
-    REQUIRE( viz.visible( { .x = -1, .y = 0 } ) == true );
-    REQUIRE( viz.visible( { .x = 2, .y = 0 } ) == true );
-    REQUIRE( viz.visible( { .x = 0, .y = -1 } ) == true );
-    REQUIRE( viz.visible( { .x = 1, .y = 2 } ) == true );
+    REQUIRE( viz.visible( { .x = -1, .y = 0 } ) ==
+             e_tile_visibility::visible_and_clear );
+    REQUIRE( viz.visible( { .x = 2, .y = 0 } ) ==
+             e_tile_visibility::visible_and_clear );
+    REQUIRE( viz.visible( { .x = 0, .y = -1 } ) ==
+             e_tile_visibility::visible_and_clear );
+    REQUIRE( viz.visible( { .x = 1, .y = 2 } ) ==
+             e_tile_visibility::visible_and_clear );
     // square_at.
     REQUIRE( viz.square_at( { .x = 0, .y = 0 } ).surface ==
              e_surface::water );
@@ -918,15 +926,23 @@ TEST_CASE( "[visibility] Visibility" ) {
     auto viz = Visibility::create( W.ss(), e_nation::english );
 
     // visible.
-    REQUIRE( viz.visible( { .x = 0, .y = 0 } ) == false );
-    REQUIRE( viz.visible( { .x = 1, .y = 0 } ) == false );
-    REQUIRE( viz.visible( { .x = 0, .y = 1 } ) == false );
-    REQUIRE( viz.visible( { .x = 1, .y = 1 } ) == false );
+    REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 1, .y = 0 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 0, .y = 1 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 1, .y = 1 } ) ==
+             e_tile_visibility::hidden );
     // proto visible.
-    REQUIRE( viz.visible( { .x = -1, .y = 0 } ) == false );
-    REQUIRE( viz.visible( { .x = 2, .y = 0 } ) == false );
-    REQUIRE( viz.visible( { .x = 0, .y = -1 } ) == false );
-    REQUIRE( viz.visible( { .x = 1, .y = 2 } ) == false );
+    REQUIRE( viz.visible( { .x = -1, .y = 0 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 2, .y = 0 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 0, .y = -1 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 1, .y = 2 } ) ==
+             e_tile_visibility::hidden );
     // square_at.
     REQUIRE( viz.square_at( { .x = 0, .y = 0 } ).surface ==
              e_surface::water );
@@ -947,31 +963,94 @@ TEST_CASE( "[visibility] Visibility" ) {
              e_surface::land );
   }
 
-  SECTION( "with player, some visibility" ) {
+  SECTION( "with player, some visibility, no fog" ) {
     auto viz = Visibility::create( W.ss(), e_nation::english );
 
     Matrix<maybe<FogSquare>>& player_map =
         W.terrain()
             .mutable_player_terrain( e_nation::english )
             .map;
-    player_map[{ .x = 1, .y = 0 }].emplace();
-    player_map[{ .x = 0, .y = 0 }].emplace();
+    player_map[{ .x = 1, .y = 0 }].emplace().fog_of_war_removed =
+        true;
+    player_map[{ .x = 0, .y = 0 }].emplace().fog_of_war_removed =
+        true;
 
     // visible.
-    REQUIRE( viz.visible( { .x = 0, .y = 0 } ) == true );
-    REQUIRE( viz.visible( { .x = 1, .y = 0 } ) == true );
-    REQUIRE( viz.visible( { .x = 0, .y = 1 } ) == false );
-    REQUIRE( viz.visible( { .x = 1, .y = 1 } ) == false );
+    REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
+             e_tile_visibility::visible_and_clear );
+    REQUIRE( viz.visible( { .x = 1, .y = 0 } ) ==
+             e_tile_visibility::visible_and_clear );
+    REQUIRE( viz.visible( { .x = 0, .y = 1 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 1, .y = 1 } ) ==
+             e_tile_visibility::hidden );
     // proto visible.
-    REQUIRE( viz.visible( { .x = -1, .y = 0 } ) == false );
-    REQUIRE( viz.visible( { .x = 2, .y = 0 } ) == false );
-    REQUIRE( viz.visible( { .x = 0, .y = -1 } ) == false );
-    REQUIRE( viz.visible( { .x = 1, .y = 2 } ) == false );
+    REQUIRE( viz.visible( { .x = -1, .y = 0 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 2, .y = 0 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 0, .y = -1 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 1, .y = 2 } ) ==
+             e_tile_visibility::hidden );
     // square_at.
     REQUIRE( viz.square_at( { .x = 0, .y = 0 } ).surface ==
              e_surface::water );
     REQUIRE( viz.square_at( { .x = 1, .y = 0 } ).surface ==
              e_surface::water );
+    REQUIRE( viz.square_at( { .x = 0, .y = 1 } ).surface ==
+             e_surface::land );
+    REQUIRE( viz.square_at( { .x = 1, .y = 1 } ).surface ==
+             e_surface::water );
+    // proto square at.
+    REQUIRE( viz.square_at( { .x = -1, .y = 0 } ).surface ==
+             e_surface::water );
+    REQUIRE( viz.square_at( { .x = 2, .y = 0 } ).surface ==
+             e_surface::water );
+    REQUIRE( viz.square_at( { .x = 0, .y = -1 } ).surface ==
+             e_surface::land );
+    REQUIRE( viz.square_at( { .x = 1, .y = 2 } ).surface ==
+             e_surface::land );
+  }
+
+  SECTION( "with player, some visibility, some fog" ) {
+    auto viz = Visibility::create( W.ss(), e_nation::english );
+
+    Matrix<maybe<FogSquare>>& player_map =
+        W.terrain()
+            .mutable_player_terrain( e_nation::english )
+            .map;
+    player_map[{ .x = 1, .y = 0 }] =
+        FogSquare{ .square = W.square( { .x = 1, .y = 0 } ),
+                   .fog_of_war_removed = true };
+    player_map[{ .x = 0, .y = 0 }].emplace();
+    player_map[{ .x = 0, .y = 1 }] =
+        FogSquare{ .square = W.square( { .x = 0, .y = 1 } ),
+                   .fog_of_war_removed = true };
+
+    // visible.
+    REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
+             e_tile_visibility::visible_with_fog );
+    REQUIRE( viz.visible( { .x = 1, .y = 0 } ) ==
+             e_tile_visibility::visible_and_clear );
+    REQUIRE( viz.visible( { .x = 0, .y = 1 } ) ==
+             e_tile_visibility::visible_and_clear );
+    REQUIRE( viz.visible( { .x = 1, .y = 1 } ) ==
+             e_tile_visibility::hidden );
+    // proto visible.
+    REQUIRE( viz.visible( { .x = -1, .y = 0 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 2, .y = 0 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 0, .y = -1 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 1, .y = 2 } ) ==
+             e_tile_visibility::hidden );
+    // square_at.
+    REQUIRE( viz.square_at( { .x = 0, .y = 0 } ).surface ==
+             e_surface::water );
+    REQUIRE( viz.square_at( { .x = 1, .y = 0 } ).surface ==
+             e_surface::land );
     REQUIRE( viz.square_at( { .x = 0, .y = 1 } ).surface ==
              e_surface::land );
     REQUIRE( viz.square_at( { .x = 1, .y = 1 } ).surface ==

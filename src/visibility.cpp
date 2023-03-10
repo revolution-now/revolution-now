@@ -95,26 +95,28 @@ Visibility Visibility::create( SSConst const&  ss,
   return Visibility( ss.terrain, player_terrain );
 }
 
-bool Visibility::visible( Coord tile ) const {
+e_tile_visibility Visibility::visible( Coord tile ) const {
   DCHECK( terrain_ != nullptr );
   if( !player_terrain_.has_value() )
     // No player, so always visible.
-    return true;
+    return e_tile_visibility::visible_and_clear;
   DCHECK( *player_terrain_ != nullptr );
   // We're rendering from the player's point of view.
   if( !tile.is_inside( terrain_->world_rect_tiles() ) )
     // Proto squares are never considered visible.
-    return false;
+    return e_tile_visibility::hidden;
   DCHECK( player_terrain_.has_value() );
-  maybe<MapSquare const&> square =
-      ( *player_terrain_ )
-          ->map[tile]
-          .member( &FogSquare::square );
-  if( !square.has_value() )
+  maybe<FogSquare> const& fog_square =
+      ( *player_terrain_ )->map[tile];
+  if( !fog_square.has_value() )
     // There is a player and they can't see this tile.
-    return false;
-  // There is a player and they can see this tile.
-  return true;
+    return e_tile_visibility::hidden;
+  if( !fog_square->fog_of_war_removed )
+    // There is a player, they've seen this tile, but no units
+    // can currently see it, so it is fogged.
+    return e_tile_visibility::visible_with_fog;
+  // There is a player and they can currently see this tile.
+  return e_tile_visibility::visible_and_clear;
 }
 
 MapSquare const& Visibility::square_at( Coord tile ) const {
@@ -238,6 +240,14 @@ refl::enum_map<e_nation, bool> nations_with_visibility_of_square(
     res[colony.nation]   = true;
   }
   return res;
+}
+
+void recompute_fog_for_nation( SS& ss, TS& ts,
+                               e_nation nation ) {
+  // TODO
+  (void)ss;
+  (void)ts;
+  (void)nation;
 }
 
 void update_map_visibility( TS&                   ts,

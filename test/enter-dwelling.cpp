@@ -20,6 +20,7 @@
 #include "test/mocks/land-view-plane.hpp"
 
 // Revolution Now
+#include "src/imap-updater.hpp"
 #include "src/mock/matchers.hpp"
 #include "src/plane-stack.hpp"
 #include "src/unit-mgr.hpp"
@@ -859,13 +860,31 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
     W.gui().EXPECT__wait_for( 600ms ).returns( 600000us );
     Visibility const viz =
         Visibility::create( W.ss(), W.default_nation() );
-    REQUIRE_FALSE( viz.visible( { .x = 0, .y = 6 } ) );
-    REQUIRE_FALSE( viz.visible( { .x = 1, .y = 6 } ) );
-    REQUIRE_FALSE( viz.visible( { .x = 2, .y = 6 } ) );
+    W.map_updater().make_square_visible( { .x = 3, .y = 6 },
+                                         W.default_nation() );
+    W.map_updater().make_square_visible( { .x = 1, .y = 6 },
+                                         W.default_nation() );
+    W.map_updater().make_square_fogged( { .x = 3, .y = 6 },
+                                        W.default_nation() );
+    W.map_updater().make_square_fogged( { .x = 1, .y = 6 },
+                                        W.default_nation() );
+    REQUIRE( viz.visible( { .x = 0, .y = 6 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 1, .y = 6 } ) ==
+             e_tile_visibility::visible_with_fog );
+    REQUIRE( viz.visible( { .x = 2, .y = 6 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 3, .y = 6 } ) ==
+             e_tile_visibility::visible_with_fog );
     f();
-    REQUIRE( viz.visible( { .x = 0, .y = 6 } ) );
-    REQUIRE( viz.visible( { .x = 1, .y = 6 } ) );
-    REQUIRE_FALSE( viz.visible( { .x = 2, .y = 6 } ) );
+    REQUIRE( viz.visible( { .x = 0, .y = 6 } ) ==
+             e_tile_visibility::visible_and_clear );
+    REQUIRE( viz.visible( { .x = 1, .y = 6 } ) ==
+             e_tile_visibility::visible_and_clear );
+    REQUIRE( viz.visible( { .x = 2, .y = 6 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 3, .y = 6 } ) ==
+             e_tile_visibility::visible_with_fog );
     REQUIRE( player.money == 0 );
     REQUIRE( p_unit->type() == scout_petty.type() );
   }

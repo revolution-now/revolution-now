@@ -942,9 +942,8 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
 }
 
 // Processes the current state and returns the next state.
-wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
-                                        e_nation         nation,
-                                        NationTurnState& st ) {
+wait<maybe<NationTurnState>> nation_turn_iter(
+    SS& ss, TS& ts, e_nation nation, NationTurnState& st ) {
   Player& player =
       player_for_nation_or_die( ss.players, nation );
   if( ss.players.human != player.nation )
@@ -990,7 +989,10 @@ wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
         END_CASES;
       }
     }
-    CASE( finished ) { SHOULD_NOT_BE_HERE; }
+    CASE( finished ) {
+      recompute_fog_for_nation( ss, ts, nation );
+      co_return nothing;
+    }
     END_CASES;
   }
 }
@@ -998,8 +1000,12 @@ wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
 wait<> nation_turn( SS& ss, TS& ts, e_nation nation,
                     NationTurnState& st ) {
   if( !ss.players.players[nation].has_value() ) co_return;
-  while( !st.holds<NationTurnState::finished>() )
-    st = co_await nation_turn_iter( ss, ts, nation, st );
+  while( true ) {
+    maybe<NationTurnState> const next =
+        co_await nation_turn_iter( ss, ts, nation, st );
+    if( !next.has_value() ) break;
+    st = *next;
+  }
 }
 
 /****************************************************************

@@ -2068,7 +2068,8 @@ void render_hidden_overlay(
   // |--+------+--|
   // |  |      |  |
   // +------------+
-  bool const self_visible = viz.visible( world_square );
+  bool const self_visible = ( viz.visible( world_square ) !=
+                              e_tile_visibility::hidden );
 
   Rect const tile_rect = Rect::from( Coord{}, g_tile_delta );
 
@@ -2370,13 +2371,16 @@ void render_terrain_square(
     TerrainRenderOptions const& options ) {
   // Get visibility info about surroundings.
   refl::enum_map<e_direction, bool> visibility;
-  bool const self_visible = viz.visible( world_square );
+  bool const self_visible = ( viz.visible( world_square ) !=
+                              e_tile_visibility::hidden );
   // A square is fully invisible if it and all surrounding
   // squares are invisible.
   bool fully_invisible = !self_visible;
   for( e_direction d : refl::enum_values<e_direction> ) {
-    bool const visible = viz.visible( world_square.moved( d ) );
-    visibility[d]      = visible;
+    bool const visible =
+        ( viz.visible( world_square.moved( d ) ) !=
+          e_tile_visibility::hidden );
+    visibility[d] = visible;
     fully_invisible &= !visible;
   }
   if( fully_invisible ) {
@@ -2387,6 +2391,16 @@ void render_terrain_square(
     // which means we need to render the underlying tile first.
     render_visible_terrain_square( renderer, where, ss,
                                    world_square, viz, options );
+
+    if( options.render_fog_of_war ) {
+      bool const self_fogged =
+          ( viz.visible( world_square ) ==
+            e_tile_visibility::visible_with_fog );
+      if( self_fogged ) {
+        // TODO
+      }
+    }
+
     render_hidden_overlay( renderer, where, world_square, viz,
                            visibility );
   }

@@ -31,7 +31,14 @@ struct MapSquare;
 struct PlayerTerrain;
 struct SSConst;
 struct TerrainState;
+struct SS;
 struct TS;
+
+enum class e_tile_visibility {
+  hidden,
+  visible_with_fog,
+  visible_and_clear,
+};
 
 /****************************************************************
 ** Visibility
@@ -52,7 +59,7 @@ struct Visibility {
 
   // Returns if the tile is visible in this rendering. If the
   // tile if off-map then false is returned (proto square).
-  bool visible( Coord tile ) const;
+  e_tile_visibility visible( Coord tile ) const;
 
   // In general we're rendering the terrain from the point of
   // view of a player and so it may have only partial visibility.
@@ -113,6 +120,11 @@ std::vector<Coord> unit_visible_squares( SSConst const& ss,
                                          e_nation       nation,
                                          e_unit_type    type,
                                          Coord          tile );
+
+// Will restore all visible tiles' fog state to "fog enabled" un-
+// less the square is within the sighting radius of a friendly
+// unit or colony on the map.
+void recompute_fog_for_nation( SS& ss, TS& ts, e_nation nation );
 
 // This will update map visibility to be front the perspective of
 // the given nation (or the entire map visible if the `nation`

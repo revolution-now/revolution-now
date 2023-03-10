@@ -34,10 +34,11 @@ namespace {
 TerrainRenderOptions make_terrain_options(
     MapUpdaterOptions const& our_options ) {
   return TerrainRenderOptions{
-      .render_forests   = our_options.render_forests,
-      .render_resources = our_options.render_resources,
-      .render_lcrs      = our_options.render_lcrs,
-      .grid             = our_options.grid };
+      .render_forests    = our_options.render_forests,
+      .render_resources  = our_options.render_resources,
+      .render_lcrs       = our_options.render_lcrs,
+      .grid              = our_options.grid,
+      .render_fog_of_war = our_options.render_fog_of_war };
 }
 
 }
@@ -58,8 +59,7 @@ bool NonRenderingMapUpdater::modify_map_square(
   refl::enum_map<e_nation, bool> const visible_to_nations =
       nations_with_visibility_of_square( ss_, tile );
   for( auto [nation, visible] : visible_to_nations )
-    if( visible ) //
-      make_square_visible( tile, nation );
+    if( visible ) make_square_visible( tile, nation );
   return true;
 }
 
@@ -68,24 +68,49 @@ bool NonRenderingMapUpdater::make_square_visible(
   PlayerTerrain& player_terrain =
       ss_.mutable_terrain_use_with_care.mutable_player_terrain(
           nation );
-  Matrix<maybe<FogSquare>>& map     = player_terrain.map;
-  bool                      changed = false;
+  Matrix<maybe<FogSquare>>& map = player_terrain.map;
+
+  bool changed = false;
   if( !map[tile].has_value() ) {
     // We need this because the default-constructed map square
     // we're about to make is identical to an ocean square, so we
     // won't know that we weren't visible before.
     changed = true;
+    // Note this initializes the tile in such a way that there
+    // will be fog on the tile by default.
     map[tile].emplace();
   }
-  FogSquare&       fog_square    = *map[tile];
-  MapSquare&       player_square = fog_square.square;
-  MapSquare const& real_square   = ss_.terrain.square_at( tile );
+  FogSquare& fog_square = *map[tile];
+
+  bool const fog_removed_before = fog_square.fog_of_war_removed;
+  int const  fog_removed_after  = true;
+  fog_square.fog_of_war_removed = fog_removed_after;
+  if( fog_removed_before != fog_removed_after ) changed = true;
 
   // TODO: check and update other members of FogSquare here.
 
-  changed |= ( player_square != real_square );
+  MapSquare&       player_square = fog_square.square;
+  MapSquare const& real_square   = ss_.terrain.square_at( tile );
+
+  if( player_square != real_square ) changed = true;
   player_square = real_square;
   return changed;
+}
+
+// Implement IMapUpdater.
+bool NonRenderingMapUpdater::make_square_fogged(
+    Coord tile, e_nation nation ) {
+  PlayerTerrain& player_terrain =
+      ss_.mutable_terrain_use_with_care.mutable_player_terrain(
+          nation );
+  Matrix<maybe<FogSquare>>& map = player_terrain.map;
+
+  if( !map[tile].has_value() ) return false;
+  FogSquare& fog_square = *map[tile];
+  if( !fog_square.fog_of_war_removed ) return false;
+
+  fog_square.fog_of_war_removed = false;
+  return true;
 }
 
 void NonRenderingMapUpdater::modify_entire_map(
@@ -231,6 +256,32 @@ bool RenderingMapUpdater::make_square_visible(
   return changed;
 }
 
+bool RenderingMapUpdater::make_square_fogged( Coord    tile,
+                                              e_nation nation ) {
+  bool const changed =
+      this->Base::make_square_fogged( tile, nation );
+  if( !changed ) return changed;
+
+  // If the entire map is visible then there is also no fog ren-
+  // dered anywhere, so no need to rerender.
+  if( !options().nation.has_value() ) return changed;
+  e_nation const curr_nation = *options().nation;
+
+  // If it's another nation then not relevant for rendering.
+  if( curr_nation != nation ) return changed;
+
+  TerrainRenderOptions const terrain_options =
+      make_terrain_options( options() );
+  Visibility const viz =
+      Visibility::create( ss_, options().nation );
+  redraw_square( viz, terrain_options, tile );
+
+  // !! NOTE: not redrawing surrounding squares here, unlike in
+  // make_square_visible.  This may be changed in the future.
+
+  return changed;
+}
+
 void RenderingMapUpdater::modify_entire_map(
     base::function_ref<void( Matrix<MapSquare>& )> mutator ) {
   this->Base::modify_entire_map( mutator );
@@ -259,6 +310,10 @@ bool TrappingMapUpdater::modify_map_square(
 }
 
 bool TrappingMapUpdater::make_square_visible( Coord, e_nation ) {
+  SHOULD_NOT_BE_HERE;
+}
+
+bool TrappingMapUpdater::make_square_fogged( Coord, e_nation ) {
   SHOULD_NOT_BE_HERE;
 }
 
