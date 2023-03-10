@@ -427,8 +427,7 @@ TEST_CASE( "[equip] harbor_equip_description" ) {
                                     .quantity = 50 },
       .new_comp        = {},
   };
-  REQUIRE( f() ==
-           "Equip with [Horses] (costs [300])." );
+  REQUIRE( f() == "Equip with [Horses] (costs [300])." );
 
   option = {
       .modifier        = e_unit_type_modifier::horses,
@@ -450,8 +449,7 @@ TEST_CASE( "[equip] harbor_equip_description" ) {
                                     .quantity = 50 },
       .new_comp        = {},
   };
-  REQUIRE( f() ==
-           "Arm with [Muskets] (costs [300])." );
+  REQUIRE( f() == "Arm with [Muskets] (costs [300])." );
 
   option = {
       .modifier        = e_unit_type_modifier::muskets,
@@ -473,8 +471,7 @@ TEST_CASE( "[equip] harbor_equip_description" ) {
                                     .quantity = 100 },
       .new_comp        = {},
   };
-  REQUIRE( f() ==
-           "Equip with [Tools] (costs [300])." );
+  REQUIRE( f() == "Equip with [Tools] (costs [300])." );
 
   option = {
       .modifier        = e_unit_type_modifier::tools,
