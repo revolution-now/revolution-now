@@ -174,8 +174,7 @@ string harbor_equip_description(
           UNWRAP_CHECK( comm, option.commodity_delta );
           CHECK( comm.type == e_commodity::tools );
           CHECK( comm.quantity > 0 );
-          res = fmt::format( "Sell [{} Tools]",
-                             comm.quantity );
+          res = fmt::format( "Sell [{} Tools]", comm.quantity );
           break;
         }
         case e_unit_type_modifier::independence:
@@ -186,11 +185,9 @@ string harbor_equip_description(
       break;
   }
   if( option.money_delta < 0 )
-    res +=
-        fmt::format( " (costs [{}])", -option.money_delta );
+    res += fmt::format( " (costs [{}])", -option.money_delta );
   else if( option.money_delta > 0 )
-    res +=
-        fmt::format( " (save [{}])", option.money_delta );
+    res += fmt::format( " (save [{}])", option.money_delta );
   res += '.';
   return res;
 }
