@@ -988,6 +988,7 @@ wait<maybe<NationTurnState>> nation_turn_iter(
         }
         END_CASES;
       }
+      SHOULD_NOT_BE_HERE; // for gcc.
     }
     CASE( finished ) {
       recompute_fog_for_nation( ss, ts, nation );
