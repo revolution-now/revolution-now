@@ -117,6 +117,10 @@ Low priority:
 # Infrastructure
 # ===============================================================
 
+  - Try replacing use of std::variant (base of base::variant)
+    with mpark::variant, which some benchmarks say can be much
+    faster. But note; it might only be vaster when using `visit`,
+    which this code base does not really use.
   - Consider replacing any string-joining stuff with fmt::join,
     but first see if it will be included in C++20.
 
