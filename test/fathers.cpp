@@ -66,12 +66,16 @@ struct World : testing::World {
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
         // clang-format off
-        L, L, L,
-        L, L, L,
-        L, _, _,
+        L, L, L, L, L, L,
+        L, L, L, L, L, L,
+        L, _, _, L, _, _,
+        L, L, L, L, L, L,
+        L, L, L, L, L, L,
+        L, L, L, L, L, L,
+        L, L, L, L, L, L,
         // clang-format on
     };
-    build_map( std::move( tiles ), 3 );
+    build_map( std::move( tiles ), 6 );
   }
 
   void create_large_map() {
@@ -514,7 +518,7 @@ TEST_CASE( "[fathers] on_father_received: john_paul_jones" ) {
   maybe<UnitOwnership::world const&> world =
       state.ownership.get_if<UnitOwnership::world>();
   REQUIRE( world.has_value() );
-  REQUIRE( world->coord == Coord{ .x = 1, .y = 2 } );
+  REQUIRE( world->coord == Coord{ .x = 4, .y = 2 } );
 }
 
 TEST_CASE(
@@ -768,6 +772,162 @@ TEST_CASE( "[fathers] on_father_received: william_brewster" ) {
              e_unit_type::free_colonist );
     REQUIRE( state.immigrants_pool[2] == e_unit_type::pioneer );
   }
+}
+
+TEST_CASE( "[fathers] on_father_received: hernando_de_soto" ) {
+  World   W;
+  Player& player = W.default_player();
+
+  auto f = [&] {
+    CHECK( !player.fathers
+                .has[e_founding_father::hernando_de_soto] );
+    player.fathers.has[e_founding_father::hernando_de_soto] =
+        true;
+    on_father_received( W.ss(), W.ts(), player,
+                        e_founding_father::hernando_de_soto );
+  };
+
+  auto visible = [&]( Coord coord ) {
+    maybe<FogSquare> const& square =
+        W.ss()
+            .terrain.player_terrain( W.default_nation() )
+            ->map[coord];
+    return square.has_value() && square->fog_of_war_removed;
+  };
+
+  auto hidden = [&]( Coord coord ) {
+    maybe<FogSquare> const& square =
+        W.ss()
+            .terrain.player_terrain( W.default_nation() )
+            ->map[coord];
+    return !square.has_value();
+  };
+
+  // . . . . . .
+  // . . . . . .
+  // . . . . . .
+  // . . . 1 . .
+  // . . . . . .
+  // . . . . . 2
+  // . . . . . .
+
+  REQUIRE( hidden( { .x = 0, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 2, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 4, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 5, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 0, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 2, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 4, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 5, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 0 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 3 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 4 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 5 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 6 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 0 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 3 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 4 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 5 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 6 } ) );
+
+  // Add unit 1 (see above).
+  W.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 3, .y = 3 } );
+  W.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 3, .y = 3 } );
+  REQUIRE( hidden( { .x = 0, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 2, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 4, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 5, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 0, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 2 } ) );
+  REQUIRE( visible( { .x = 2, .y = 2 } ) );
+  REQUIRE( visible( { .x = 3, .y = 2 } ) );
+  REQUIRE( visible( { .x = 4, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 5, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 0 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 1 } ) );
+  REQUIRE( visible( { .x = 3, .y = 2 } ) );
+  REQUIRE( visible( { .x = 3, .y = 3 } ) );
+  REQUIRE( visible( { .x = 3, .y = 4 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 5 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 6 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 0 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 3 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 4 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 5 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 6 } ) );
+
+  // Add unit 2 (see above).
+  W.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 5, .y = 5 } );
+  REQUIRE( hidden( { .x = 0, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 2, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 4, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 5, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 0, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 2 } ) );
+  REQUIRE( visible( { .x = 2, .y = 2 } ) );
+  REQUIRE( visible( { .x = 3, .y = 2 } ) );
+  REQUIRE( visible( { .x = 4, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 5, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 0 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 1 } ) );
+  REQUIRE( visible( { .x = 3, .y = 2 } ) );
+  REQUIRE( visible( { .x = 3, .y = 3 } ) );
+  REQUIRE( visible( { .x = 3, .y = 4 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 5 } ) );
+  REQUIRE( hidden( { .x = 3, .y = 6 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 0 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 3 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 4 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 5 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 6 } ) );
+
+  // Expand sighting radii.
+  f();
+  REQUIRE( hidden( { .x = 0, .y = 1 } ) );
+  REQUIRE( visible( { .x = 1, .y = 1 } ) );
+  REQUIRE( visible( { .x = 2, .y = 1 } ) );
+  REQUIRE( visible( { .x = 3, .y = 1 } ) );
+  REQUIRE( visible( { .x = 4, .y = 1 } ) );
+  REQUIRE( visible( { .x = 5, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 0, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 2 } ) ); // water.
+  REQUIRE( visible( { .x = 2, .y = 2 } ) );
+  REQUIRE( visible( { .x = 3, .y = 2 } ) );
+  REQUIRE( visible( { .x = 4, .y = 2 } ) );
+  REQUIRE( hidden( { .x = 5, .y = 2 } ) ); // water.
+  REQUIRE( hidden( { .x = 3, .y = 0 } ) );
+  REQUIRE( visible( { .x = 3, .y = 1 } ) );
+  REQUIRE( visible( { .x = 3, .y = 2 } ) );
+  REQUIRE( visible( { .x = 3, .y = 3 } ) );
+  REQUIRE( visible( { .x = 3, .y = 4 } ) );
+  REQUIRE( visible( { .x = 3, .y = 5 } ) );
+  REQUIRE( visible( { .x = 3, .y = 6 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 0 } ) );
+  REQUIRE( visible( { .x = 1, .y = 1 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 2 } ) ); // water.
+  REQUIRE( visible( { .x = 1, .y = 3 } ) );
+  REQUIRE( visible( { .x = 1, .y = 4 } ) );
+  REQUIRE( visible( { .x = 1, .y = 5 } ) );
+  REQUIRE( hidden( { .x = 1, .y = 6 } ) );
 }
 
 } // namespace

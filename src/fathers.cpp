@@ -224,6 +224,37 @@ void william_brewster( SSConst const& ss, TS& ts,
   }
 }
 
+// All units (or at least non-ships, depending on configuration)
+// get an extended sighting radius. This means that we need to
+// recompute visibility for all units on the map so that the
+// player observes the sighting radii to have expanded immedi-
+// ately for all units instead of waiting until the unit starts
+// moving around again.
+void hernando_de_soto( SS& ss, TS& ts, Player& player ) {
+  // Need to copy this since it will be changed as we are iter-
+  // ating over it (taking a unit an putting on a tile where it
+  // already is will cause it to temporarily be state-changed to
+  // the `free` state, which will remove it from this map; then
+  // it will be reinserted). This is enough to invalidate itera-
+  // tors apparently.
+  unordered_map<Coord, unordered_set<GenericUnitId>> const m =
+      ss.units.from_coords();
+  for( auto const& [coord, generic_ids] : m ) {
+    for( GenericUnitId const generic_id : generic_ids ) {
+      // Note that in this loop we break, because if one unit on
+      // a given tile is not of interest then none of them will.
+      maybe<Unit const&> unit =
+          ss.units.maybe_euro_unit_for( generic_id );
+      if( !unit.has_value() ) break;
+      if( unit->nation() != player.nation ) break;
+      unit_ownership_change_non_interactive(
+          ss, unit->id(),
+          EuroUnitOwnershipChangeTo::world{ .ts     = &ts,
+                                            .target = coord } );
+    }
+  }
+}
+
 } // namespace
 
 /****************************************************************
@@ -379,14 +410,14 @@ wait<> play_new_father_cut_scene( TS& ts, Player const&,
 
 void on_father_received( SS& ss, TS& ts, Player& player,
                          e_founding_father father ) {
-  lg.info( "performing one-time effects for {}.", father );
+  lg.info( "performing one-time effects (if any) for {}.",
+           father );
   switch( father ) {
     case e_founding_father::adam_smith:
     case e_founding_father::peter_minuit:
     case e_founding_father::peter_stuyvesant:
     case e_founding_father::jan_de_witt:
     case e_founding_father::ferdinand_magellan:
-    case e_founding_father::hernando_de_soto:
     case e_founding_father::henry_hudson:
     case e_founding_father::hernan_cortes:
     case e_founding_father::george_washington:
@@ -401,6 +432,8 @@ void on_father_received( SS& ss, TS& ts, Player& player,
     case e_founding_father::juan_de_sepulveda:
       // The above fathers don't have any one-time effects.
       return;
+    case e_founding_father::hernando_de_soto:
+      return hernando_de_soto( ss, ts, player );
     case e_founding_father::william_brewster:
       return william_brewster( ss, ts, player );
     case e_founding_father::bartolome_de_las_casas:
