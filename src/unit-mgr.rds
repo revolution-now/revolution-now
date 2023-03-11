@@ -20,6 +20,9 @@ include "ss/unit-id.hpp"
 # gfx
 include "gfx/coord.hpp"
 
+# base
+include "base/no-default.hpp"
+
 namespace "rn"
 
 # When a european unit needs to change ownership, this is used to
@@ -33,8 +36,9 @@ sumtype.EuroUnitOwnershipChangeTo {
     # quires TS. But, we don't want to have to provide TS in the
     # function signature of the function that changes the unit
     # state in general, because most target states do not require
-    # TS to move to them.
-    ts 'TS*',
+    # TS to move to them. We use the wrapper to force the field
+    # to be initialized.
+    ts 'base::no_default_linker_wrapper<TS*>',
     target 'Coord',
   },
   colony {

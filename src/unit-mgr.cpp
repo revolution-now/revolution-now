@@ -389,8 +389,8 @@ void unit_ownership_change_non_interactive(
       return;
     }
     CASE( world ) {
-      CHECK( o.ts != nullptr );
-      UnitOnMapMover::to_map_non_interactive( ss, *o.ts, unit_id,
+      TS& ts = *o.ts.get();
+      UnitOnMapMover::to_map_non_interactive( ss, ts, unit_id,
                                               o.target );
       return;
     }
@@ -432,10 +432,10 @@ wait<maybe<UnitDeleted>> unit_ownership_change(
   switch( info.to_enum() ) {
     using e = EuroUnitOwnershipChangeTo::e;
     case e::world: {
-      auto& o = info.get<EuroUnitOwnershipChangeTo::world>();
-      CHECK( o.ts != nullptr );
+      auto& o  = info.get<EuroUnitOwnershipChangeTo::world>();
+      TS&   ts = *o.ts.get();
       co_return co_await UnitOnMapMover::to_map_interactive(
-          ss, *o.ts, unit_id, o.target );
+          ss, ts, unit_id, o.target );
     }
     default:
       unit_ownership_change_non_interactive( ss, unit_id, info );
