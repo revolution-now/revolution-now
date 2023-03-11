@@ -244,10 +244,79 @@ refl::enum_map<e_nation, bool> nations_with_visibility_of_square(
 
 void recompute_fog_for_nation( SS& ss, TS& ts,
                                e_nation nation ) {
-  // TODO
-  (void)ss;
-  (void)ts;
-  (void)nation;
+  PlayerTerrain& player_terrain =
+      ss.mutable_terrain_use_with_care.mutable_player_terrain(
+          nation );
+  Matrix<maybe<FogSquare>> m = player_terrain.map;
+
+  unordered_set<Coord> fogged;
+  for( int y = 0; y < m.size().h; ++y ) {
+    for( int x = 0; x < m.size().w; ++x ) {
+      Coord const       coord{ .x = x, .y = y };
+      maybe<FogSquare>& fog_square = m[coord];
+      if( !fog_square.has_value() ) continue;
+      if( !fog_square->fog_of_war_removed )
+        // There is already fog.
+        continue;
+      fogged.insert( coord );
+    }
+  }
+
+  unordered_map<Coord, unordered_set<GenericUnitId>> const&
+                       units_and_coords = ss.units.from_coords();
+  unordered_set<Coord> unfogged;
+
+  // Unfog the surroundings of units.
+  for( auto& [coord, unit_ids] : units_and_coords ) {
+    for( GenericUnitId const generic_id : unit_ids ) {
+      // Note that in this loop iteration we always break instead
+      // of continue as an optimization, since if one unit on a
+      // tile does not satisfy the predicates then none of the
+      // others will.
+      maybe<Unit const&> unit =
+          ss.units.maybe_euro_unit_for( generic_id );
+      if( !unit.has_value() ) break;
+      if( unit->nation() != nation ) break;
+      vector<Coord> const visible = unit_visible_squares(
+          ss, nation, unit->type(), coord );
+      for( Coord const coord : visible ) {
+        bool const has_fog = !m[coord]->fog_of_war_removed;
+        if( has_fog )
+          unfogged.insert( coord );
+        else if( fogged.contains( coord ) )
+          fogged.erase( coord );
+      }
+    }
+  }
+
+  // Unfog the surroundings of colonies.
+  vector<ColonyId> const colonies =
+      ss.colonies.for_nation( nation );
+  for( ColonyId const colony_id : colonies ) {
+    Colony const& colony = ss.colonies.colony_for( colony_id );
+    Coord const   coord  = colony.location;
+    auto          reveal = [&]( Coord const coord ) {
+      if( !ss.terrain.square_exists( coord ) ) return;
+      bool const has_fog = !m[coord]->fog_of_war_removed;
+      if( has_fog )
+        unfogged.insert( coord );
+      else if( fogged.contains( coord ) )
+        fogged.erase( coord );
+    };
+    reveal( coord );
+    for( e_direction const d : refl::enum_values<e_direction> )
+      reveal( coord.moved( d ) );
+  }
+
+  // Now affect the changes.
+  for( Coord const coord : fogged ) {
+    CHECK( !unfogged.contains( coord ) );
+    ts.map_updater.make_square_fogged( coord, nation );
+  }
+  for( Coord const coord : unfogged ) {
+    CHECK( !fogged.contains( coord ) );
+    ts.map_updater.make_square_visible( coord, nation );
+  }
 }
 
 void update_map_visibility( TS&                   ts,

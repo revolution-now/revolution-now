@@ -991,6 +991,27 @@ wait<maybe<NationTurnState>> nation_turn_iter(
       SHOULD_NOT_BE_HERE; // for gcc.
     }
     CASE( finished ) {
+      // We've allowed the fog removal to accumulate during this
+      // player's turn, i.e., as a unit moves, the fog the does
+      // regenerate in its wake. This is ok because, even if we
+      // were to regenerate the fog in its wake (which is tricky
+      // to get right) that fog wouldn't be hiding anything from
+      // the player because nothing on those tiles would change
+      // until the player finishes its turn and other players
+      // move. And if something on those tiles does change, it
+      // will be caused by the player (because it is their turn)
+      // and so the player will be able to see it anyway. The
+      // point here is that there is nothing to gain by regener-
+      // ating fog behind a unit as it moves on the map during
+      // the course of a turn, and so we avoid doing it because a
+      // first attempt revealed that it is very tricky to get
+      // right. So what we do is we just let the units move and
+      // remove fog, then at the end of the player's turn we re-
+      // generate all of the fog on all squares except those
+      // within the sighting radius of units and colonies, so by
+      // the time the next player (or natives) move, the fog will
+      // be as it would have been had to regenerated it in the
+      // wake of the units as they moved.
       recompute_fog_for_nation( ss, ts, nation );
       co_return nothing;
     }
