@@ -120,6 +120,9 @@ struct point {
   point operator/( int scale ) const;
 
   point moved_left( int by = 1 ) const;
+  point moved_right( int by = 1 ) const;
+  point moved_up( int by = 1 ) const;
+  point moved_down( int by = 1 ) const;
 };
 
 /****************************************************************
@@ -194,10 +197,10 @@ struct rect {
 
   // Returns a new rect with the same size but with origin given
   // by `p`.
-  rect with_origin( point const p ) const;
+  [[nodiscard]] rect with_origin( point const p ) const;
 
   // Returns the center rounded toward 0.
-  point center() const;
+  [[nodiscard]] point center() const;
 
   // Will clip off any parts of this rect that fall outside of
   // `other`. If the entire rect falls outside of `other` then it
@@ -208,9 +211,9 @@ struct rect {
   [[nodiscard]] base::maybe<rect> clipped_by(
       rect const other ) const;
 
-  rect normalized() const;
+  [[nodiscard]] rect normalized() const;
 
-  rect clamped( rect bounds ) const;
+  [[nodiscard]] rect clamped( rect bounds ) const;
 
   // Returns a drect; auto is used to avoid circular dependency.
   auto to_double() const;
@@ -225,8 +228,10 @@ struct rect {
   int right() const;
   int left() const;
 
-  rect point_becomes_origin( point p ) const;
-  rect origin_becomes_point( point p ) const;
+  [[nodiscard]] rect point_becomes_origin( point p ) const;
+  [[nodiscard]] rect origin_becomes_point( point p ) const;
+
+  [[nodiscard]] rect with_border_added( int n = 1 ) const;
 
   rect operator*( int scale ) const;
 

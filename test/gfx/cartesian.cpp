@@ -100,10 +100,19 @@ TEST_CASE( "[gfx/cartesian] point::distance_from_origin" ) {
   REQUIRE( p.distance_from_origin() == size{ .w = 4, .h = 2 } );
 }
 
-TEST_CASE( "[gfx/cartesian] point::moved_left" ) {
+TEST_CASE( "[gfx/cartesian] point::moved_*" ) {
   point p{ .x = 4, .y = 2 };
   REQUIRE( p.moved_left() == point{ .x = 3, .y = 2 } );
   REQUIRE( p.moved_left( 2 ) == point{ .x = 2, .y = 2 } );
+
+  REQUIRE( p.moved_right() == point{ .x = 5, .y = 2 } );
+  REQUIRE( p.moved_right( 2 ) == point{ .x = 6, .y = 2 } );
+
+  REQUIRE( p.moved_up() == point{ .x = 4, .y = 1 } );
+  REQUIRE( p.moved_up( 2 ) == point{ .x = 4, .y = 0 } );
+
+  REQUIRE( p.moved_down() == point{ .x = 4, .y = 3 } );
+  REQUIRE( p.moved_down( 2 ) == point{ .x = 4, .y = 4 } );
 }
 
 TEST_CASE( "[gfx/cartesian] point::clamped" ) {
@@ -399,6 +408,19 @@ TEST_CASE( "[gfx/cartesian] rect::from" ) {
   REQUIRE( rect::from( p1, p2 ).normalized() ==
            rect{ .origin = { .x = 2, .y = 2 },
                  .size   = { .w = 2, .h = 2 } } );
+}
+
+TEST_CASE( "[gfx/cartesian] with_border_added" ) {
+  rect const r{ .origin = { .x = 3, .y = 4 },
+                .size   = { .w = 1, .h = 3 } };
+
+  REQUIRE( r.with_border_added() ==
+           rect{ .origin = { .x = 2, .y = 3 },
+                 .size   = { .w = 3, .h = 5 } } );
+
+  REQUIRE( r.with_border_added( 2 ) ==
+           rect{ .origin = { .x = 1, .y = 2 },
+                 .size   = { .w = 5, .h = 7 } } );
 }
 
 TEST_CASE( "[gfx/cartesian] rect::nw, rect::se, etc." ) {

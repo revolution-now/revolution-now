@@ -127,6 +127,18 @@ point point::moved_left( int by ) const {
   return point{ .x = x - by, .y = y };
 }
 
+point point::moved_right( int by ) const {
+  return point{ .x = x + by, .y = y };
+}
+
+point point::moved_up( int by ) const {
+  return point{ .x = x, .y = y - by };
+}
+
+point point::moved_down( int by ) const {
+  return point{ .x = x, .y = y + by };
+}
+
 point point::point_becomes_origin( point p ) const {
   return point{ .x = x - p.x, .y = y - p.y };
 }
@@ -354,6 +366,15 @@ rect rect::point_becomes_origin( point p ) const {
 rect rect::origin_becomes_point( point p ) const {
   return rect{ .origin = origin.origin_becomes_point( p ),
                .size   = size };
+}
+
+rect rect::with_border_added( int n ) const {
+  // This requires a normalized rect in order to work properly.
+  CHECK_GE( size.w, 0 );
+  CHECK_GE( size.h, 0 );
+  return rect{
+      .origin = origin.moved_up( n ).moved_left( n ),
+      .size   = { .w = size.w + 2 * n, .h = size.h + 2 * n } };
 }
 
 rect rect::operator*( int scale ) const {
