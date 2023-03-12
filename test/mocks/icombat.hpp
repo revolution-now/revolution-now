@@ -28,7 +28,7 @@
 namespace rn {
 
 /****************************************************************
-** MockIRand
+** MockICombat
 *****************************************************************/
 struct MockICombat : ICombat {
   MOCK_METHOD( CombatEuroAttackEuro, euro_attack_euro,
