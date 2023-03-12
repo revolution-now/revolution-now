@@ -117,6 +117,7 @@ sheets {
         terrain_forest_scrub_island: { y: 7, x: 5 }
 
         terrain_hidden:              { y: 8, x: 4 }
+        terrain_fogged:              { y: 8, x: 5 }
       }
     }
     {
