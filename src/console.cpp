@@ -19,11 +19,13 @@
 #include "screen.hpp"
 #include "terminal.hpp"
 #include "text.hpp"
+#include "tiles.hpp"
 #include "variant.hpp"
 #include "views.hpp"
 
 // config
 #include "config/rn.rds.hpp"
+#include "config/tile-enum.rds.hpp"
 #include "config/ui.rds.hpp"
 
 // gfx
@@ -136,8 +138,7 @@ struct ConsolePlane::Impl : public Plane {
     Rect text_rect = console_rect;
     if( render_edit_box ) text_rect.h -= edit_box_delta.h;
 
-    painter.draw_solid_rect( console_rect,
-                             gfx::pixel::wood().shaded( 2 ) );
+    tile_sprite( painter, e_tile::wood_middle, console_rect );
     painter.draw_solid_rect( divider_rect,
                              gfx::pixel::wood().shaded( 4 ) );
 

@@ -31,6 +31,7 @@
 #include "views.hpp"
 
 // config
+#include "config/tile-enum.rds.hpp"
 #include "config/ui.rds.hpp"
 
 // ss
@@ -294,10 +295,7 @@ void Window::draw( rr::Renderer& renderer, Coord where ) const {
     // Render shadow behind window.
     painter.draw_solid_rect( r + Delta{ .w = 4, .h = 4 },
                              gfx::pixel{ 0, 0, 0, 64 } );
-    painter.draw_solid_rect(
-        rect( Coord{} ),
-        gfx::pixel{
-            .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
+    tile_sprite( painter, e_tile::wood_middle, rect( Coord{} ) );
     // Render window border, highlights on top and right.
     painter.draw_horizontal_line(
         r.lower_left() - Delta{ .h = 1 }, r.w,
