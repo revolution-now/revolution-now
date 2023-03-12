@@ -123,7 +123,20 @@ std::vector<Coord> unit_visible_squares( SSConst const& ss,
 
 // Will restore all visible tiles' fog state to "fog enabled" un-
 // less the square is within the sighting radius of a friendly
-// unit or colony on the map.
+// unit or colony on the map. This is done once at the end of
+// each player's turn as part of the fog-of-war mechanism in the
+// game, which consists of allowing the player to remove fog as
+// they move around the map during a single turn (without ever
+// regenerating it) and then it gets regenerated at the end of
+// their turn. This is done because a) it is much simpler and
+// less tricky to implement correctly than a scheme that involves
+// regeneration of fog as units move, and b) theoretically it is
+// unnecessary anyway to regenerate fog during the turn since,
+// even if we did, it would not hide anything that player hasn't
+// already seen that turn; hiding something requires something to
+// change on a tile that is not adjacent to a unit, but that can
+// only happen after the player's turn ends and other players
+// start moving.
 void recompute_fog_for_nation( SS& ss, TS& ts, e_nation nation );
 
 // This will update map visibility to be front the perspective of

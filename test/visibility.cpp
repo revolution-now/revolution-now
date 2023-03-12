@@ -106,6 +106,16 @@ struct World : testing::World {
           .fathers.has[e_founding_father::hernando_de_soto] =
           true;
   }
+
+  void clear_all_fog( Matrix<maybe<FogSquare>>& m ) {
+    for( int y = 0; y < m.size().h; ++y ) {
+      for( int x = 0; x < m.size().w; ++x ) {
+        Coord const coord{ .x = x, .y = y };
+        if( !m[coord].has_value() ) continue;
+        m[coord]->fog_of_war_removed = true;
+      }
+    }
+  }
 };
 
 /****************************************************************
@@ -1100,6 +1110,273 @@ TEST_CASE( "[visibility] set_map_visibility" ) {
   f();
   REQUIRE( W.map_updater().options().nation ==
            e_nation::french );
+}
+
+TEST_CASE( "[visibility] recompute_fog_for_nation" ) {
+  World W;
+  W.create_default_map();
+
+  auto f = [&] {
+    recompute_fog_for_nation( W.ss(), W.ts(),
+                              e_nation::english );
+  };
+
+  Matrix<maybe<FogSquare>>& eng_map =
+      W.ss()
+          .mutable_terrain_use_with_care
+          .mutable_player_terrain( e_nation::english )
+          .map;
+  Matrix<maybe<FogSquare>>& fr_map =
+      W.ss()
+          .mutable_terrain_use_with_care
+          .mutable_player_terrain( e_nation::french )
+          .map;
+
+  // Make a checkerboard pattern of visibility.
+  for( int y = 0; y < eng_map.size().h; ++y )
+    for( int x = 0; x < eng_map.size().w; ++x )
+      if( ( x + y ) % 2 == 0 )
+        eng_map[{ .x = x, .y = y }].emplace();
+  for( int y = 0; y < fr_map.size().h; ++y )
+    for( int x = 0; x < fr_map.size().w; ++x )
+      if( ( x + y ) % 2 == 0 )
+        fr_map[{ .x = x, .y = y }].emplace();
+
+  // Sanity check our checkerboard.
+  REQUIRE( eng_map[{ .x = 0, .y = 0 }].has_value() );
+  REQUIRE( fr_map[{ .x = 0, .y = 0 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 1, .y = 0 }].has_value() );
+  REQUIRE( !fr_map[{ .x = 1, .y = 0 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 0, .y = 1 }].has_value() );
+  REQUIRE( !fr_map[{ .x = 0, .y = 1 }].has_value() );
+  REQUIRE( eng_map[{ .x = 1, .y = 1 }].has_value() );
+  REQUIRE( fr_map[{ .x = 1, .y = 1 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 0, .y = 0 }]->fog_of_war_removed );
+  REQUIRE( !fr_map[{ .x = 0, .y = 0 }]->fog_of_war_removed );
+  REQUIRE( !eng_map[{ .x = 1, .y = 1 }]->fog_of_war_removed );
+  REQUIRE( !fr_map[{ .x = 1, .y = 1 }]->fog_of_war_removed );
+
+  W.clear_all_fog( eng_map );
+  W.clear_all_fog( fr_map );
+
+  // Sanity check checkerboard with fog removed.
+  REQUIRE( eng_map[{ .x = 0, .y = 0 }].has_value() );
+  REQUIRE( fr_map[{ .x = 0, .y = 0 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 1, .y = 0 }].has_value() );
+  REQUIRE( !fr_map[{ .x = 1, .y = 0 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 0, .y = 1 }].has_value() );
+  REQUIRE( !fr_map[{ .x = 0, .y = 1 }].has_value() );
+  REQUIRE( eng_map[{ .x = 1, .y = 1 }].has_value() );
+  REQUIRE( fr_map[{ .x = 1, .y = 1 }].has_value() );
+  REQUIRE( eng_map[{ .x = 0, .y = 0 }]->fog_of_war_removed );
+  REQUIRE( fr_map[{ .x = 0, .y = 0 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 1, .y = 1 }]->fog_of_war_removed );
+  REQUIRE( fr_map[{ .x = 1, .y = 1 }]->fog_of_war_removed );
+
+  f();
+
+  // Back to all fog.
+  REQUIRE( eng_map[{ .x = 0, .y = 0 }].has_value() );
+  REQUIRE( fr_map[{ .x = 0, .y = 0 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 1, .y = 0 }].has_value() );
+  REQUIRE( !fr_map[{ .x = 1, .y = 0 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 0, .y = 1 }].has_value() );
+  REQUIRE( !fr_map[{ .x = 0, .y = 1 }].has_value() );
+  REQUIRE( eng_map[{ .x = 1, .y = 1 }].has_value() );
+  REQUIRE( fr_map[{ .x = 1, .y = 1 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 0, .y = 0 }]->fog_of_war_removed );
+  REQUIRE( fr_map[{ .x = 0, .y = 0 }]->fog_of_war_removed );
+  REQUIRE( !eng_map[{ .x = 1, .y = 1 }]->fog_of_war_removed );
+  REQUIRE( fr_map[{ .x = 1, .y = 1 }]->fog_of_war_removed );
+
+  W.clear_all_fog( eng_map );
+
+  // . . . . . . . . . .
+  // . . . . . . . . . .
+  // . . f . . . . c . .
+  // . . . . . . . . . .
+  // . . . . . . . . . .
+  // . . . . . s . . . .
+  // . . . . . . . . . .
+  // f . . . . . . . . .
+  // . . . . . . . . . .
+  // . . . x . . . . . .
+  // . . . . . . . . . .
+
+  REQUIRE( eng_map[{ .x = 0, .y = 0 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 0, .y = 1 }].has_value() );
+  REQUIRE( eng_map[{ .x = 0, .y = 2 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 0, .y = 3 }].has_value() );
+  REQUIRE( eng_map[{ .x = 0, .y = 4 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 0, .y = 5 }].has_value() );
+  REQUIRE( eng_map[{ .x = 0, .y = 6 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 0, .y = 7 }].has_value() );
+  REQUIRE( eng_map[{ .x = 0, .y = 8 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 0, .y = 9 }].has_value() );
+  REQUIRE( eng_map[{ .x = 0, .y = 10 }].has_value() );
+  REQUIRE( eng_map[{ .x = 0, .y = 0 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 0, .y = 2 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 0, .y = 4 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 0, .y = 6 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 0, .y = 8 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 0, .y = 10 }]->fog_of_war_removed );
+
+  REQUIRE( !eng_map[{ .x = 0, .y = 9 }].has_value() );
+  REQUIRE( eng_map[{ .x = 1, .y = 9 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 2, .y = 9 }].has_value() );
+  REQUIRE( eng_map[{ .x = 3, .y = 9 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 4, .y = 9 }].has_value() );
+  REQUIRE( eng_map[{ .x = 5, .y = 9 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 6, .y = 9 }].has_value() );
+  REQUIRE( eng_map[{ .x = 7, .y = 9 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 8, .y = 9 }].has_value() );
+  REQUIRE( eng_map[{ .x = 9, .y = 9 }].has_value() );
+  REQUIRE( eng_map[{ .x = 1, .y = 9 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 3, .y = 9 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 5, .y = 9 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 7, .y = 9 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 9, .y = 9 }]->fog_of_war_removed );
+
+  REQUIRE( !eng_map[{ .x = 3, .y = 0 }].has_value() );
+  REQUIRE( eng_map[{ .x = 3, .y = 1 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 3, .y = 2 }].has_value() );
+  REQUIRE( eng_map[{ .x = 3, .y = 3 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 3, .y = 4 }].has_value() );
+  REQUIRE( eng_map[{ .x = 3, .y = 5 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 3, .y = 6 }].has_value() );
+  REQUIRE( eng_map[{ .x = 3, .y = 7 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 3, .y = 8 }].has_value() );
+  REQUIRE( eng_map[{ .x = 3, .y = 9 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 3, .y = 10 }].has_value() );
+  REQUIRE( eng_map[{ .x = 3, .y = 1 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 3, .y = 3 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 3, .y = 5 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 3, .y = 7 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 3, .y = 9 }]->fog_of_war_removed );
+
+  REQUIRE( eng_map[{ .x = 8, .y = 0 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 8, .y = 1 }].has_value() );
+  REQUIRE( eng_map[{ .x = 8, .y = 2 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 8, .y = 3 }].has_value() );
+  REQUIRE( eng_map[{ .x = 8, .y = 4 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 8, .y = 5 }].has_value() );
+  REQUIRE( eng_map[{ .x = 8, .y = 6 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 8, .y = 7 }].has_value() );
+  REQUIRE( eng_map[{ .x = 8, .y = 8 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 8, .y = 9 }].has_value() );
+  REQUIRE( eng_map[{ .x = 8, .y = 10 }].has_value() );
+  REQUIRE( eng_map[{ .x = 8, .y = 0 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 8, .y = 2 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 8, .y = 4 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 8, .y = 6 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 8, .y = 8 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 8, .y = 10 }]->fog_of_war_removed );
+
+  W.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 0, .y = 7 }, e_nation::english );
+  W.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 2, .y = 2 }, e_nation::english );
+  W.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 3, .y = 9 }, e_nation::french );
+  W.add_unit_on_map( e_unit_type::scout, { .x = 5, .y = 5 },
+                     e_nation::english );
+  W.add_colony( { .x = 7, .y = 2 }, e_nation::english );
+  W.map_updater().make_square_visible( { .x = 7, .y = 2 },
+                                       e_nation::english );
+  W.map_updater().make_square_visible( { .x = 6, .y = 1 },
+                                       e_nation::english );
+  W.map_updater().make_square_visible( { .x = 7, .y = 1 },
+                                       e_nation::english );
+  W.map_updater().make_square_visible( { .x = 8, .y = 1 },
+                                       e_nation::english );
+  W.map_updater().make_square_visible( { .x = 6, .y = 2 },
+                                       e_nation::english );
+  W.map_updater().make_square_visible( { .x = 7, .y = 2 },
+                                       e_nation::english );
+  W.map_updater().make_square_visible( { .x = 8, .y = 2 },
+                                       e_nation::english );
+  W.map_updater().make_square_visible( { .x = 6, .y = 3 },
+                                       e_nation::english );
+  W.map_updater().make_square_visible( { .x = 7, .y = 3 },
+                                       e_nation::english );
+  W.map_updater().make_square_visible( { .x = 8, .y = 3 },
+                                       e_nation::english );
+
+  f();
+
+  REQUIRE( eng_map[{ .x = 0, .y = 0 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 0, .y = 1 }].has_value() );
+  REQUIRE( eng_map[{ .x = 0, .y = 2 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 0, .y = 3 }].has_value() );
+  REQUIRE( eng_map[{ .x = 0, .y = 4 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 0, .y = 5 }].has_value() );
+  REQUIRE( eng_map[{ .x = 0, .y = 6 }].has_value() );
+  REQUIRE( eng_map[{ .x = 0, .y = 7 }].has_value() );
+  REQUIRE( eng_map[{ .x = 0, .y = 8 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 0, .y = 9 }].has_value() );
+  REQUIRE( eng_map[{ .x = 0, .y = 10 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 0, .y = 0 }]->fog_of_war_removed );
+  REQUIRE( !eng_map[{ .x = 0, .y = 2 }]->fog_of_war_removed );
+  REQUIRE( !eng_map[{ .x = 0, .y = 4 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 0, .y = 6 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 0, .y = 7 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 0, .y = 8 }]->fog_of_war_removed );
+  REQUIRE( !eng_map[{ .x = 0, .y = 10 }]->fog_of_war_removed );
+
+  REQUIRE( !eng_map[{ .x = 0, .y = 9 }].has_value() );
+  REQUIRE( eng_map[{ .x = 1, .y = 9 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 2, .y = 9 }].has_value() );
+  REQUIRE( eng_map[{ .x = 3, .y = 9 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 4, .y = 9 }].has_value() );
+  REQUIRE( eng_map[{ .x = 5, .y = 9 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 6, .y = 9 }].has_value() );
+  REQUIRE( eng_map[{ .x = 7, .y = 9 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 8, .y = 9 }].has_value() );
+  REQUIRE( eng_map[{ .x = 9, .y = 9 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 1, .y = 9 }]->fog_of_war_removed );
+  REQUIRE( !eng_map[{ .x = 3, .y = 9 }]->fog_of_war_removed );
+  REQUIRE( !eng_map[{ .x = 5, .y = 9 }]->fog_of_war_removed );
+  REQUIRE( !eng_map[{ .x = 7, .y = 9 }]->fog_of_war_removed );
+  REQUIRE( !eng_map[{ .x = 9, .y = 9 }]->fog_of_war_removed );
+
+  REQUIRE( !eng_map[{ .x = 3, .y = 0 }].has_value() );
+  REQUIRE( eng_map[{ .x = 3, .y = 1 }].has_value() );
+  REQUIRE( eng_map[{ .x = 3, .y = 2 }].has_value() );
+  REQUIRE( eng_map[{ .x = 3, .y = 3 }].has_value() );
+  REQUIRE( eng_map[{ .x = 3, .y = 4 }].has_value() );
+  REQUIRE( eng_map[{ .x = 3, .y = 5 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 3, .y = 6 }].has_value() ); // water.
+  REQUIRE( eng_map[{ .x = 3, .y = 7 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 3, .y = 8 }].has_value() );
+  REQUIRE( eng_map[{ .x = 3, .y = 9 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 3, .y = 10 }].has_value() );
+  REQUIRE( eng_map[{ .x = 3, .y = 1 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 3, .y = 2 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 3, .y = 3 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 3, .y = 4 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 3, .y = 5 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 3, .y = 7 }]->fog_of_war_removed );
+  REQUIRE( !eng_map[{ .x = 3, .y = 9 }]->fog_of_war_removed );
+
+  REQUIRE( eng_map[{ .x = 8, .y = 0 }].has_value() );
+  REQUIRE( eng_map[{ .x = 8, .y = 1 }].has_value() );
+  REQUIRE( eng_map[{ .x = 8, .y = 2 }].has_value() );
+  REQUIRE( eng_map[{ .x = 8, .y = 3 }].has_value() );
+  REQUIRE( eng_map[{ .x = 8, .y = 4 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 8, .y = 5 }].has_value() );
+  REQUIRE( eng_map[{ .x = 8, .y = 6 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 8, .y = 7 }].has_value() );
+  REQUIRE( eng_map[{ .x = 8, .y = 8 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 8, .y = 9 }].has_value() );
+  REQUIRE( eng_map[{ .x = 8, .y = 10 }].has_value() );
+  REQUIRE( !eng_map[{ .x = 8, .y = 0 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 8, .y = 1 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 8, .y = 2 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 8, .y = 3 }]->fog_of_war_removed );
+  REQUIRE( !eng_map[{ .x = 8, .y = 4 }]->fog_of_war_removed );
+  REQUIRE( !eng_map[{ .x = 8, .y = 6 }]->fog_of_war_removed );
+  REQUIRE( !eng_map[{ .x = 8, .y = 8 }]->fog_of_war_removed );
+  REQUIRE( !eng_map[{ .x = 8, .y = 10 }]->fog_of_war_removed );
 }
 
 } // namespace
