@@ -311,7 +311,33 @@ TEST_CASE(
 
 TEST_CASE( "[on-map] non-interactive: updates visibility" ) {
   World W;
-  // TODO
+  UNWRAP_CHECK( player_terrain, W.terrain().player_terrain(
+                                    W.default_nation() ) );
+  Matrix<maybe<FogSquare>> const& map = player_terrain.map;
+
+  REQUIRE( !map[{ .x = 0, .y = 1 }].has_value() );
+  REQUIRE( !map[{ .x = 1, .y = 1 }].has_value() );
+  REQUIRE( !map[{ .x = 2, .y = 1 }].has_value() );
+  REQUIRE( !map[{ .x = 3, .y = 1 }].has_value() );
+  REQUIRE( !map[{ .x = 4, .y = 1 }].has_value() );
+
+  Unit const& unit =
+      W.add_free_unit( e_unit_type::free_colonist );
+  REQUIRE( !map[{ .x = 0, .y = 1 }].has_value() );
+  REQUIRE( !map[{ .x = 1, .y = 1 }].has_value() );
+  REQUIRE( !map[{ .x = 2, .y = 1 }].has_value() );
+  REQUIRE( !map[{ .x = 3, .y = 1 }].has_value() );
+  REQUIRE( !map[{ .x = 4, .y = 1 }].has_value() );
+
+  TestingOnlyUnitOnMapMover::to_map_non_interactive(
+      W.ss(), W.ts(), unit.id(), { .x = 0, .y = 1 } );
+  REQUIRE( map[{ .x = 0, .y = 1 }].has_value() );
+  REQUIRE( map[{ .x = 1, .y = 1 }].has_value() );
+  REQUIRE( !map[{ .x = 2, .y = 1 }].has_value() );
+  REQUIRE( !map[{ .x = 3, .y = 1 }].has_value() );
+  REQUIRE( !map[{ .x = 4, .y = 1 }].has_value() );
+  REQUIRE( map[{ .x = 0, .y = 1 }]->fog_of_war_removed );
+  REQUIRE( map[{ .x = 1, .y = 1 }]->fog_of_war_removed );
 }
 
 } // namespace
