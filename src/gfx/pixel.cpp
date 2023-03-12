@@ -227,6 +227,14 @@ cdr::result<pixel> from_canonical( cdr::converter&   conv,
   return *parsed;
 }
 
+pixel mix( pixel first, pixel second ) {
+  return pixel{
+      .r = static_cast<uint8_t>( ( first.r + second.r ) / 2 ),
+      .g = static_cast<uint8_t>( ( first.g + second.g ) / 2 ),
+      .b = static_cast<uint8_t>( ( first.b + second.b ) / 2 ),
+      .a = static_cast<uint8_t>( ( first.a + second.a ) / 2 ) };
+}
+
 /****************************************************************
 ** utils
 *****************************************************************/
