@@ -27,6 +27,7 @@
 
 // config
 #include "config/tile-enum.rds.hpp"
+#include "config/ui.rds.hpp"
 
 // ss
 #include "ss/land-view.rds.hpp"
@@ -132,7 +133,7 @@ struct PanelPlane::Impl : public Plane {
   void draw_some_stats( rr::Renderer& renderer,
                         Coord const   where ) const {
     rr::Typer typer =
-        renderer.typer( where, gfx::pixel::banana() );
+        renderer.typer( where, config_ui.dialog_text.normal );
 
     // First some general stats that are not player specific.
     TurnState const& turn_state = ss_.turn;

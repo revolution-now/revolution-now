@@ -386,9 +386,7 @@ void WindowManager::draw_layout( rr::Renderer& renderer ) const {
                              rr::Painter::e_border_mode::outside,
                              gfx::pixel::black() );
     TextMarkupInfo const markup_info{
-        .normal    = gfx::pixel::banana(),
-        .highlight = gfx::pixel::white(),
-        .shadow    = gfx::pixel::black(),
+        .shadow = gfx::pixel::black(),
     };
     TextReflowInfo const& reflow_info =
         active_transient_message_->reflow_info;

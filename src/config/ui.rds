@@ -29,6 +29,8 @@ struct.window {
 struct.dialog_text {
   normal 'gfx::pixel',
   highlighted 'gfx::pixel',
+  disabled 'gfx::pixel',
+  selected_background 'gfx::pixel',
   columns 'int',
 }
 

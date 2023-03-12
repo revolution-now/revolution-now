@@ -15,6 +15,9 @@
 #include "error.hpp"
 #include "markup.hpp"
 
+// config
+#include "config/ui.rds.hpp"
+
 // base
 #include "base/range-lite.hpp"
 #include "base/string.hpp"
@@ -199,6 +202,17 @@ vector<vector<MarkedUpChunk>> text_markup_reflow_impl(
 }
 
 } // namespace
+
+/****************************************************************
+** TextMarkupInfo
+*****************************************************************/
+gfx::pixel TextMarkupInfo::default_normal_color() {
+  return config_ui.dialog_text.normal;
+}
+
+gfx::pixel TextMarkupInfo::default_highlight_color() {
+  return config_ui.dialog_text.highlighted;
+}
 
 /****************************************************************
 ** Public API

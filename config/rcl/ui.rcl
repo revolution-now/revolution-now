@@ -6,9 +6,11 @@ window {
 }
 
 dialog_text {
-  normal:      "#E4C890"
-  highlighted: "#FFFFFF"
-  columns:     45
+  normal:              "#509B2B"
+  highlighted:         "#D4AA14"
+  disabled:            "#707070"
+  selected_background: "#2C160E"
+  columns:             45
 }
 
 menus {

@@ -42,12 +42,15 @@ void render_text( rr::Renderer& renderer, gfx::point where,
 // The struct gives the engine information on how to interpret
 // the markup language.
 struct TextMarkupInfo {
-  gfx::pixel normal    = gfx::pixel::black();
-  gfx::pixel highlight = gfx::pixel::white();
+  gfx::pixel normal    = default_normal_color();
+  gfx::pixel highlight = default_highlight_color();
   // Shadowing means that for each pixel in the text, we will
   // render a "shadow" pixel to the right of it and also below
   // it, creating a partial outline or shadow.
   base::maybe<gfx::pixel> shadow = base::nothing;
+
+  static gfx::pixel default_normal_color();
+  static gfx::pixel default_highlight_color();
 };
 
 // Will not in any way reformat or re-flow or wrap the text; will

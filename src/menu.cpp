@@ -280,16 +280,15 @@ struct MenuPlane::Impl : public Plane {
   /****************************************************************
   ** Colors
   *****************************************************************/
-  inline static gfx::pixel const menu_theme_color1 =
-      gfx::pixel::banana();
-  inline static gfx::pixel const menu_theme_color2 =
-      gfx::pixel::wood();
+  static gfx::pixel const menu_theme_color1() {
+    return config_ui.dialog_text.normal;
+  }
+  static gfx::pixel const menu_theme_color2() {
+    return gfx::pixel::wood();
+  }
 
   auto foreground_disabled_color() const {
-    static auto color =
-        gfx::pixel{ .r = 0x88, .g = 0x88, .b = 0x88, .a = 255 };
-    color.a = 200;
-    return color;
+    return config_ui.dialog_text.disabled;
   }
 
   H max_text_height() const { return H{ 8 }; }
@@ -525,7 +524,7 @@ struct MenuPlane::Impl : public Plane {
   void render_divider( rr::Renderer& renderer, Coord pos,
                        e_menu menu ) const {
     Delta      delta      = divider_delta( menu );
-    gfx::pixel color_fore = menu_theme_color2.shaded( 3 );
+    gfx::pixel color_fore = menu_theme_color2().shaded( 3 );
     pos.y += delta.h / 2;
     pos.x += 2;
     renderer.painter().draw_horizontal_line( pos, delta.w - 5,
@@ -537,8 +536,8 @@ struct MenuPlane::Impl : public Plane {
                                         e_menu menu ) const {
     gfx::rect background = gfx::rect{
         .origin = pos, .size = menu_item_delta( menu ) };
-    renderer.painter().draw_solid_rect( background,
-                                        menu_theme_color1 );
+    renderer.painter().draw_solid_rect(
+        background, config_ui.dialog_text.selected_background );
   }
 
   void render_menu_header_background( rr::Painter& painter,
@@ -597,8 +596,7 @@ struct MenuPlane::Impl : public Plane {
             gfx::pixel foreground_color =
                 !is_menu_item_enabled( clickable.item )
                     ? foreground_disabled_color()
-                : on ? menu_theme_color2
-                     : menu_theme_color1;
+                    : menu_theme_color1();
             render_menu_element(
                 renderer,
                 pos + Delta{ .w = config_ui.menus.padding_x,
@@ -630,7 +628,7 @@ struct MenuPlane::Impl : public Plane {
         impl->render_menu_header_background( painter, menu,
                                              /*active=*/false );
       impl->render_menu_element( renderer, foreground_upper_left,
-                                 menu, menu_theme_color1 );
+                                 menu, menu_theme_color1() );
     }
     void operator()( MenuState::item_click const& ic ) const {
       // Just forward this to the MenuState::menu_open.
@@ -645,7 +643,7 @@ struct MenuPlane::Impl : public Plane {
       impl->render_menu_header_background( painter, menu,
                                            /*active=*/true );
       impl->render_menu_element( renderer, foreground_upper_left,
-                                 menu, menu_theme_color2 );
+                                 menu, menu_theme_color2() );
     }
   };
 

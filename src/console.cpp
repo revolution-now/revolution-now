@@ -66,7 +66,7 @@ struct ConsolePlane::Impl : public Plane {
         compositor::section( compositor::e_section::total ) );
     le_view_.emplace(
         config_rn.console.font, total_area.w,
-        []( string const& ) {}, gfx::pixel::banana(),
+        []( string const& ) {}, config_ui.dialog_text.normal,
         gfx::pixel::wood(), prompt, /*initial_text=*/"" );
   }
 
@@ -142,9 +142,9 @@ struct ConsolePlane::Impl : public Plane {
                              gfx::pixel::wood().shaded( 4 ) );
 
     auto text_color =
-        gfx::pixel::banana().with_alpha( text_alpha );
+        config_ui.dialog_text.normal.with_alpha( text_alpha );
     auto stats_color =
-        gfx::pixel::banana().highlighted( 5 ).with_alpha(
+        config_ui.dialog_text.normal.highlighted( 5 ).with_alpha(
             stats_alpha );
 
     // FIXME: better way to get this?

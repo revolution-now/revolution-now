@@ -17,6 +17,7 @@
 #include "unit.hpp"
 
 // config
+#include "config/ui.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
@@ -142,7 +143,7 @@ unique_ptr<UnitActivationView> UnitActivationView::Create(
         } );
 
     auto unit_label = make_unique<ui::OneLineStringView>(
-        unit.desc().name, gfx::pixel::banana() );
+        unit.desc().name, config_ui.dialog_text.normal );
 
     vector<unique_ptr<View>> horizontal_vec;
     horizontal_vec.emplace_back( std::move( clickable ) );

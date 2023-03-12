@@ -1055,25 +1055,19 @@ OptionSelectItemView::OptionSelectItemView( Option option )
     enabled_( option.enabled ) {
   Delta const text_size =
       rendered_text_size_no_reflow( option.name ) +
-      Delta{ .h = 2 };
+      Delta{ .h = 4 };
   background_active_ = make_unique<SolidRectView>(
-      gfx::pixel{ .r = 0xDB, .g = 0xC9, .b = 0x5A, .a = 255 } );
-  background_inactive_ = make_unique<SolidRectView>(
-      gfx::pixel{ .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
+      config_ui.dialog_text.selected_background );
+  background_inactive_ =
+      make_unique<SolidRectView>( gfx::pixel{ .a = 0 } );
   foreground_active_ = make_unique<OneLineStringView>(
-      option.name,
-      gfx::pixel{ .r = 0x42, .g = 0x2D, .b = 0x22, .a = 255 },
-      text_size );
+      option.name, config_ui.dialog_text.normal, text_size );
   if( enabled_ ) {
     foreground_inactive_ = make_unique<OneLineStringView>(
-        option.name,
-        gfx::pixel{ .r = 0xE4, .g = 0xC8, .b = 0x90, .a = 255 },
-        text_size );
+        option.name, config_ui.dialog_text.normal, text_size );
   } else {
     foreground_inactive_ = make_unique<OneLineStringView>(
-        option.name,
-        gfx::pixel{ .r = 0x80, .g = 0x80, .b = 0x80, .a = 255 },
-        text_size );
+        option.name, config_ui.dialog_text.disabled, text_size );
   }
 
   Delta delta_active   = foreground_active_->delta();
