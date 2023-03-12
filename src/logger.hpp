@@ -41,14 +41,14 @@ void        set_global_log_level( e_log_level level );
 /****************************************************************
 ** FmtStrAndLoc
 *****************************************************************/
-// This class is a helper that is implicitely constructed from a
-// constsexpr string, but also captures the source location in
-// the process. It is used to automatically collect source loca-
-// tion info when logging. We can't use the usual technique of
-// making a defaulted SourceLoc parameter at the end of the argu-
-// ment list of the logging statements because they already need
-// to have a variable number of arguments to support formatting.
-// Note that we also store the format string in an format_string
+// This class is a helper that is implicitly constructed from a
+// constexpr string, but also captures the source location in the
+// process. It is used to automatically collect source location
+// info when logging. We can't use the usual technique of making
+// a defaulted SourceLoc parameter at the end of the argument
+// list of the logging statements because they already need to
+// have a variable number of arguments to support formatting.
+// Note that we also store the format string in a format_string
 // so that we get fmt's compile time format checking, which we
 // would otherwise lose. We really want the compile-time format
 // string checking afforded to us by fmt::format_string because
@@ -81,7 +81,7 @@ struct FmtStrAndLoc {
 // ment will leave the types unchanged but will obstruct the com-
 // piler from trying to infer Args from the type of the first ar-
 // gument passed in (format string) argument, which it would fail
-// to do, since that arg is just a string literal; instead it is
+// to do, since that arg is just a string literal. Instead, it is
 // now forced to infer Args from the subsequent parameters, which
 // then fixes them for the first parameter. See the type_identity
 // cppreference page for more info.
