@@ -653,21 +653,32 @@ struct MenuPlane::Impl : public Plane {
     // two. Also, put the y position such that the menu bar gets
     // the bottom portion of the texture, again so that it will
     // be continuous with that panel.
-    auto panel_upper_left =
+    Rect const panel_rect =
         compositor::section( compositor::e_section::panel )
-            .value_or( Rect{} )
-            .upper_left();
-    auto  bar_rect  = menu_bar_rect();
-    Delta wood_size = sprite_size( e_tile::wood_middle );
-    Coord start = panel_upper_left - Delta{ .h = wood_size.h };
-    auto  wood_width    = wood_size.w;
-    rr::Painter painter = renderer.painter();
+            .value_or( Rect{} );
+    Coord const panel_upper_left = panel_rect.upper_left();
+    Rect const  bar_rect         = menu_bar_rect();
+    Delta const wood_size = sprite_size( e_tile::wood_middle );
+    Coord const start =
+        panel_upper_left - Delta{ .h = wood_size.h };
+    W const     wood_width = wood_size.w;
+    rr::Painter painter    = renderer.painter();
     for( Coord c = start; c.x >= 0 - wood_width;
          c -= Delta{ .w = wood_width } )
       render_sprite( painter, e_tile::wood_middle, c );
     for( Coord c = start; c.x < bar_rect.right_edge();
          c += Delta{ .w = wood_width } )
       render_sprite( painter, e_tile::wood_middle, c );
+
+    // Render some border lines.
+    painter.draw_horizontal_line(
+        bar_rect.lower_left() + Delta{ .h = -1 },
+        bar_rect.delta().w - panel_rect.delta().w + 1,
+        config_ui.window.border_dark );
+    painter.draw_horizontal_line(
+        bar_rect.lower_left() + Delta{ .h = 0 },
+        bar_rect.delta().w - panel_rect.delta().w,
+        config_ui.window.border_darker );
 
     for( auto menu : refl::enum_values<e_menu> ) {
       auto  rect                  = menu_header_rect( menu );

@@ -181,6 +181,18 @@ struct PanelPlane::Impl : public Plane {
   void draw( rr::Renderer& renderer ) const override {
     rr::Painter painter = renderer.painter();
     tile_sprite( painter, e_tile::wood_middle, rect() );
+    // Render border on left and bottom.
+    Rect const r = rect();
+    {
+      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .75 );
+      rr::Painter painter = renderer.painter();
+      painter.draw_vertical_line(
+          r.upper_left(), r.h, config_ui.window.border_darker );
+      painter.draw_vertical_line(
+          r.upper_left() + Delta{ .w = 1 }, r.h,
+          config_ui.window.border_dark );
+    }
+
     view->draw( renderer, origin() );
 
     Rect const mini_map_rect = mini_map_available_rect();

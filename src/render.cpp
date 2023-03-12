@@ -526,4 +526,21 @@ void render_native_unit_depixelate_to(
                                   target, stage, options );
 }
 
+void render_shadow_hightlight_border(
+    rr::Renderer& renderer, gfx::rect rect,
+    gfx::pixel left_and_bottom, gfx::pixel top_and_right ) {
+  rr::Painter painter = renderer.painter();
+  painter.draw_horizontal_line( rect.nw().moved_up(),
+                                rect.size.w + 1, top_and_right );
+  painter.draw_horizontal_line( rect.sw(), rect.size.w,
+                                left_and_bottom );
+  painter.draw_vertical_line( rect.nw().moved_left(),
+                              rect.size.h + 1, left_and_bottom );
+  painter.draw_vertical_line( rect.ne(), rect.size.h,
+                              top_and_right );
+  gfx::pixel const mixed = mix( left_and_bottom, top_and_right );
+  painter.draw_point( rect.nw().moved_up().moved_left(), mixed );
+  painter.draw_point( rect.se(), mixed );
+}
+
 } // namespace rn

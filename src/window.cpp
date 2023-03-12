@@ -21,6 +21,7 @@
 #include "input.hpp"
 #include "logger.hpp"
 #include "plane.hpp"
+#include "render.hpp"
 #include "screen.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -297,30 +298,17 @@ void Window::draw( rr::Renderer& renderer, Coord where ) const {
                              gfx::pixel{ 0, 0, 0, 64 } );
     tile_sprite( painter, e_tile::wood_middle, rect( Coord{} ) );
     // Render window border, highlights on top and right.
-    painter.draw_horizontal_line(
-        r.lower_left() - Delta{ .h = 1 }, r.w,
-        gfx::pixel{
-            .r = 0x42, .g = 0x2D, .b = 0x22, .a = 255 } );
-    painter.draw_vertical_line(
-        r.upper_left(), r.h,
-        gfx::pixel{
-            .r = 0x42, .g = 0x2D, .b = 0x22, .a = 255 } );
-    painter.draw_horizontal_line(
-        r.upper_left(), r.w,
-        gfx::pixel{
-            .r = 0x6D, .g = 0x49, .b = 0x3C, .a = 255 } );
-    painter.draw_vertical_line(
-        r.upper_right() - Delta{ .w = 1 }, r.h,
-        gfx::pixel{
-            .r = 0x6D, .g = 0x49, .b = 0x3C, .a = 255 } );
-    painter.draw_point(
-        r.upper_left(),
-        gfx::pixel{
-            .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
-    painter.draw_point(
-        r.lower_right() - Delta{ .w = 1, .h = 1 },
-        gfx::pixel{
-            .r = 0x58, .g = 0x3C, .b = 0x30, .a = 255 } );
+    {
+      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .75 );
+      render_shadow_hightlight_border(
+          renderer, r.with_border_added( -2 ),
+          config_ui.window.border_dark,
+          config_ui.window.border_light );
+      render_shadow_hightlight_border(
+          renderer, r.with_border_added( -1 ),
+          config_ui.window.border_darker,
+          config_ui.window.border_lighter );
+    }
   }
 
   view_->draw( renderer, view_pos( where ) );

@@ -24,6 +24,10 @@ struct.window {
   window_padding 'int',
   border_color 'gfx::pixel',
   ui_padding 'int',
+  border_darker 'gfx::pixel',
+  border_dark 'gfx::pixel',
+  border_light 'gfx::pixel',
+  border_lighter 'gfx::pixel',
 }
 
 struct.dialog_text {

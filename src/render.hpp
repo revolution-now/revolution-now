@@ -132,4 +132,9 @@ void render_unit_flag( rr::Renderer& renderer, Coord where,
                        e_unit_type type, e_nation nation,
                        unit_orders const& orders );
 
+void render_shadow_hightlight_border( rr::Renderer& renderer,
+                                      gfx::rect     rect,
+                                      gfx::pixel left_and_bottom,
+                                      gfx::pixel top_and_right );
+
 } // namespace rn

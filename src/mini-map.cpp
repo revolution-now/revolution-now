@@ -14,11 +14,15 @@
 #include "imap-updater.hpp"
 #include "land-view.hpp"
 #include "plane-stack.hpp"
+#include "render.hpp"
 #include "society.hpp"
 #include "time.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "visibility.hpp"
+
+// config
+#include "config/ui.rds.hpp"
 
 // ss
 #include "ss/land-view.rds.hpp"
@@ -402,6 +406,18 @@ void MiniMapView::draw_impl( rr::Renderer&     renderer,
   rr::Painter painter = renderer.painter();
 
   painter.draw_solid_rect( actual, kHiddenColor );
+
+  // Draw border.
+  {
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .75 );
+    render_shadow_hightlight_border(
+        renderer, actual.with_border_added( 1 ),
+        config_ui.window.border_light,
+        config_ui.window.border_dark );
+    render_shadow_hightlight_border(
+        renderer, actual, config_ui.window.border_dark,
+        config_ui.window.border_darker );
+  }
 
   static Delta const pixel_size =
       Delta{ .w = kPixelsPerPoint, .h = kPixelsPerPoint };
