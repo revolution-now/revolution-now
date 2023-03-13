@@ -275,6 +275,55 @@ vec4 color_cycle( in vec4 color ) {
 }
 
 /****************************************************************
+** RGB <--> HSL conversions.
+*****************************************************************/
+// See http://www.chilliant.com/rgb2hsv.html.
+const float EPSILON = 1e-7;
+
+// Hue [0..1] to RGB [0..1].
+vec3 hue_to_rgb( in float hue ) {
+  vec3 rgb = abs( hue*6 - vec3( 3, 2, 4 ) )*vec3( 1, -1, -1 )
+           + vec3( -1, 2, 2 );
+  return clamp( rgb, 0, 1 );
+}
+
+// RGB [0..1] to Hue-Chroma-Value [0..1].
+vec3 rgb_to_hcv( in vec3 rgb ) {
+  vec4 p = (rgb.g < rgb.b) ? vec4( rgb.bg, -1,  2./3. )
+                           : vec4( rgb.gb,  0, -1./3. );
+  vec4 q = (rgb.r < p.x) ? vec4( p.xyw, rgb.r )
+                         : vec4( rgb.r, p.yzx );
+  float c = q.x - min( q.w, q.y );
+  float h = abs( (q.w - q.y)/(6*c + EPSILON) + q.z );
+  return vec3( h, c, q.x );
+}
+
+// Hue-Saturation-Lightness [0..1] to RGB [0..1].
+vec3 hsl_to_rgb( in vec3 hsl ) {
+  vec3 rgb = hue_to_rgb( hsl.x );
+  float c = (1 - abs( 2*hsl.z - 1 ))*hsl.y;
+  return (rgb - .5)*c + hsl.z;
+}
+
+// RGB [0..1] to Hue-Saturation-Lightness [0..1].
+vec3 rgb_to_hsl( in vec3 rgb ) {
+  vec3 hcv = rgb_to_hcv( rgb );
+  float z = hcv.z - hcv.y*.5;
+  float s = hcv.y/(1 - abs( z*2 - 1 ) + EPSILON);
+  return vec3( hcv.x, s, z );
+}
+
+/****************************************************************
+** De-saturation.
+*****************************************************************/
+vec3 desaturate( in vec3 color ) {
+  color = rgb_to_hsl( color.rgb );
+  color.y = 0; // zero saturation.
+  color = hsl_to_rgb( color.xyz );
+  return color;
+}
+
+/****************************************************************
 ** main
 *****************************************************************/
 void main() {
