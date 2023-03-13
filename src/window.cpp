@@ -301,13 +301,13 @@ void Window::draw( rr::Renderer& renderer, Coord where ) const {
     {
       SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .75 );
       render_shadow_hightlight_border(
-          renderer, r.with_border_added( -2 ),
+          renderer, r.edges_removed( 2 ),
           config_ui.window.border_dark,
-          config_ui.window.border_light );
-      render_shadow_hightlight_border(
-          renderer, r.with_border_added( -1 ),
-          config_ui.window.border_darker,
           config_ui.window.border_lighter );
+      render_shadow_hightlight_border(
+          renderer, r.edges_removed( 1 ),
+          config_ui.window.border_darker,
+          config_ui.window.border_light );
     }
   }
 
