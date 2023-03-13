@@ -540,18 +540,20 @@ struct MenuPlane::Impl : public Plane {
         background, config_ui.dialog_text.selected_background );
   }
 
-  void render_menu_header_background( rr::Painter& painter,
-                                      e_menu       menu,
+  void render_menu_header_background( rr::Renderer& renderer,
+                                      e_menu        menu,
                                       bool active ) const {
-    Rect  header  = menu_header_rect( menu );
-    Coord where   = header.upper_left();
-    Rect  section = Rect::from( Coord{}, header.delta() );
-    if( active )
-      render_sprite_section( painter, e_tile::menu_item_sel_back,
-                             where, section );
-    else
-      render_sprite_section( painter, e_tile::menu_hdr_sel_back,
-                             where, section );
+    Rect const header = menu_header_rect( menu );
+    if( active ) {
+      rr::Painter painter = renderer.painter();
+      painter.draw_solid_rect(
+          header, config_ui.dialog_text.selected_background );
+    } else {
+      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
+      rr::Painter painter = renderer.painter();
+      painter.draw_solid_rect(
+          header, config_ui.dialog_text.selected_background );
+    }
   }
 
   void render_open_menu( rr::Renderer& renderer, Coord pos,
@@ -625,7 +627,7 @@ struct MenuPlane::Impl : public Plane {
     void operator()( MenuState::menus_closed closed ) const {
       rr::Painter painter = renderer.painter();
       if( menu == closed.hover )
-        impl->render_menu_header_background( painter, menu,
+        impl->render_menu_header_background( renderer, menu,
                                              /*active=*/false );
       impl->render_menu_element( renderer, foreground_upper_left,
                                  menu, menu_theme_color1() );
@@ -640,10 +642,10 @@ struct MenuPlane::Impl : public Plane {
       if( o.menu != menu )
         return this->operator()( MenuState::menus_closed{} );
       rr::Painter painter = renderer.painter();
-      impl->render_menu_header_background( painter, menu,
+      impl->render_menu_header_background( renderer, menu,
                                            /*active=*/true );
       impl->render_menu_element( renderer, foreground_upper_left,
-                                 menu, menu_theme_color2() );
+                                 menu, menu_theme_color1() );
     }
   };
 
