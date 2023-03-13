@@ -670,8 +670,8 @@ void move_unit_to_colony( SS& ss, TS& ts, Colony& colony,
   strip_unit_to_base_type( ss, ts, unit, colony );
   unit_ownership_change_non_interactive(
       ss, unit_id,
-      EuroUnitOwnershipChangeTo::colony{ .colony_id =
-                                             colony.id } );
+      EuroUnitOwnershipChangeTo::colony_low_level{
+          .colony_id = colony.id } );
   // Now add the unit to the colony.
   SCOPE_EXIT( CHECK( colony.validate() ) );
   CHECK( !colony_has_unit( colony, unit_id ),

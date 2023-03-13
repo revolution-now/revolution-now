@@ -41,9 +41,10 @@ sumtype.EuroUnitOwnershipChangeTo {
     ts 'base::no_default_linker_wrapper<TS*>',
     target 'Coord',
   },
-  colony {
+  # NOTE: do not use this one directly since it does not preserve
+  # invariants; instead use the move_unit_to_colony method.
+  colony_low_level {
     colony_id 'ColonyId',
-    job 'ColonyJob',
   },
   cargo {
     new_holder 'UnitId',

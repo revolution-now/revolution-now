@@ -396,7 +396,10 @@ void unit_ownership_change_non_interactive(
                                               o.target );
       return;
     }
-    CASE( colony ) {
+    CASE( colony_low_level ) {
+      // NOTE: do not use this one directly since it does not
+      // preserve invariants; instead use the move_unit_to_colony
+      // method.
       ss.units.change_to_colony( unit_id, o.colony_id );
       return;
     }

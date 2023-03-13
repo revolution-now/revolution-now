@@ -18,7 +18,6 @@
 #include "render.hpp"
 #include "teaching.hpp"
 #include "tiles.hpp"
-#include "unit-mgr.hpp"
 
 // config
 #include "config/tile-enum.rds.hpp"
@@ -286,10 +285,7 @@ wait<> ColViewBuildings::drop( ColViewObject const& o,
   UNWRAP_CHECK( slot, slot_for_coord( where ) );
   UNWRAP_CHECK( indoor_job, indoor_job_for_slot( slot ) );
   ColonyJob const job = ColonyJob::indoor{ .job = indoor_job };
-  unit_ownership_change_non_interactive(
-      ss_, unit_id,
-      EuroUnitOwnershipChangeTo::colony{ .colony_id = colony_.id,
-                                         .job       = job } );
+  move_unit_to_colony( ss_, ts_, colony_, unit_id, job );
   CHECK_HAS_VALUE( colony_.validate() );
   co_return;
 }
