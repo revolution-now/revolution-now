@@ -110,11 +110,12 @@ void render_commodity( rr::Renderer& renderer, Coord where,
 // izontally. Note that the coordinate is the upper left corner
 // of the commodity sprite.
 
-void render_commodity_annotated( rr::Renderer& renderer,
-                                 Coord where, e_commodity type,
-                                 CommodityLabel const& label );
+void render_commodity_annotated(
+    rr::Renderer& renderer, Coord where, e_commodity type,
+    CommodityRenderStyle const& style );
 
-// Will use quantity as label.
+// Will use quantity as label and will render the icon greyed if
+// the quantity is less than 100.
 void render_commodity_annotated( rr::Renderer&    renderer,
                                  Coord            where,
                                  Commodity const& comm );

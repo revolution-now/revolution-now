@@ -282,7 +282,9 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
     render_commodity_annotated(
         renderer,
         rect.upper_left() + kCommodityInCargoHoldRenderingOffset,
-        *comm_it, label );
+        *comm_it,
+        CommodityRenderStyle{ .label  = label,
+                              .dulled = false } );
     if( player_.old_world.market.commodities[*comm_it].boycott )
       render_sprite( painter,
                      rect.upper_left() +

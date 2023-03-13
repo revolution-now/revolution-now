@@ -439,7 +439,9 @@ class MarketCommodities
       render_commodity_annotated(
           renderer,
           rect.upper_left() + rendered_commodity_offset(),
-          *comm_it, label );
+          *comm_it,
+          CommodityRenderStyle{ .label  = label,
+                                .dulled = false } );
       pos.x += block_width_;
       comm_it++;
     }

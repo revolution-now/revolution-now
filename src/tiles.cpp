@@ -129,6 +129,28 @@ void render_sprite_silhouette_scale( rr::Painter& painter,
                                  color );
 }
 
+void render_sprite_dulled( rr::Renderer& renderer, e_tile tile,
+                           Coord where, bool dulled ) {
+  if( !dulled ) {
+    rr::Painter painter = renderer.painter();
+    render_sprite( painter, tile, where );
+    return;
+  }
+  // First draw the sprite desaturated, then draw it again but
+  // with a transparent black silhouette.
+  {
+    SCOPED_RENDERER_MOD_OR( painter_mods.desaturate, true );
+    rr::Painter painter = renderer.painter();
+    render_sprite( painter, tile, where );
+  }
+  {
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .3 );
+    rr::Painter painter = renderer.painter();
+    render_sprite_silhouette( painter, where, tile,
+                              gfx::pixel::black() );
+  }
+}
+
 void render_sprite_stencil( rr::Painter& painter, Coord where,
                             e_tile tile, e_tile replacement_tile,
                             gfx::pixel key_color ) {

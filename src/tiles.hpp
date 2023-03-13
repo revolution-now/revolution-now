@@ -27,6 +27,10 @@
 // C++ standard library
 #include <string_view>
 
+namespace rr {
+struct Renderer;
+}
+
 namespace rn {
 
 /****************************************************************
@@ -67,6 +71,11 @@ void render_sprite_silhouette( rr::Painter& painter, Coord where,
 void render_sprite_silhouette_scale( rr::Painter& painter,
                                      Rect where, e_tile tile,
                                      gfx::pixel color );
+
+// This is used e.g. to dull a commodity in the cargo of a ship
+// when the quantity is less than 100, as does the OG.
+void render_sprite_dulled( rr::Renderer& renderer, e_tile tile,
+                           Coord where, bool dulled );
 
 // This will render a rectangular subsection of the sprite. The
 // `source` rect has its origin relative to the upper left corner

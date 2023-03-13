@@ -79,6 +79,21 @@ namespace rr {
         *mods.leaf_path *= __VA_ARGS__;                       \
       } );
 
+// This one is only for bools.
+#define SCOPED_RENDERER_MOD_OR( leaf_path, ... )            \
+  static_assert(                                            \
+      std::is_same_v<                                       \
+          bool,                                             \
+          std::remove_cvref_t<                              \
+              decltype( *std::declval<::rr::RendererMods>() \
+                             .leaf_path )>> );              \
+  auto STRING_JOIN( __scoped_renderer_popper_, __LINE__ ) = \
+      renderer.push_mods( [&]( rr::RendererMods& mods ) {   \
+        if( !mods.leaf_path.has_value() )                   \
+          mods.leaf_path = false;                           \
+        *mods.leaf_path = *mods.leaf_path || __VA_ARGS__;   \
+      } );
+
 /****************************************************************
 ** RendererConfig
 *****************************************************************/

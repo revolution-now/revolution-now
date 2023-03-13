@@ -35,3 +35,17 @@ sumtype.CommodityLabel {
     ask 'int',
   },
 }
+
+struct.CommodityRenderStyle {
+  label 'CommodityLabel',
+  # This is used e.g. to dull a commodity in the cargo of a ship
+  # when the quantity is less than 100, as does the OG. In our
+  # game technically we don't have to do this because we have
+  # enough visual space in a cargo slot to display the numerical
+  # quantity, unlike the OG which did not and hence needed a
+  # non-textual visual signal as to when a commodity was not at
+  # full quantity in a cargo slot. But, it is nice to have the
+  # additional visual indicator anyway, and it will be familiar
+  # to players of the OG.
+  dulled 'bool',
+}

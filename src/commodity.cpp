@@ -111,11 +111,11 @@ void render_commodity_label(
 
 void render_commodity_impl(
     rr::Renderer& renderer, Coord where, e_commodity type,
-    maybe<string>                   label,
-    e_commodity_label_render_colors colors ) {
+    maybe<string> label, e_commodity_label_render_colors colors,
+    bool dulled ) {
   auto        tile    = tile_for_commodity( type );
   rr::Painter painter = renderer.painter();
-  render_sprite( painter, tile, where );
+  render_sprite_dulled( renderer, tile, where, dulled );
   if( !label ) return;
   // Place text below commodity, but centered horizontally.
   Delta comm_size = sprite_size( tile );
@@ -296,29 +296,35 @@ maybe<string> commodity_label_to_markup(
 void render_commodity( rr::Renderer& renderer, Coord where,
                        e_commodity type ) {
   render_commodity_impl( renderer, where, type,
-                         /*label=*/nothing, /*colors=*/{} );
+                         /*label=*/nothing, /*colors=*/{},
+                         /*dulled=*/false );
 }
 
-void render_commodity_annotated( rr::Renderer& renderer,
-                                 Coord where, e_commodity type,
-                                 CommodityLabel const& label ) {
+void render_commodity_annotated(
+    rr::Renderer& renderer, Coord where, e_commodity type,
+    CommodityRenderStyle const& style ) {
   e_commodity_label_render_colors const colors =
-      label.get_if<CommodityLabel::quantity>()
+      style.label.get_if<CommodityLabel::quantity>()
           .member( &CommodityLabel::quantity::colors )
           .value_or( e_commodity_label_render_colors::standard );
-  render_commodity_impl( renderer, where, type,
-                         commodity_label_to_markup( label ),
-                         colors );
+  render_commodity_impl(
+      renderer, where, type,
+      commodity_label_to_markup( style.label ), colors,
+      style.dulled );
 }
 
 // Will use quantity as label.
 void render_commodity_annotated( rr::Renderer&    renderer,
                                  Coord            where,
                                  Commodity const& comm ) {
+  bool const dulled = ( comm.quantity < 100 );
   render_commodity_annotated(
       renderer, where, comm.type,
-      CommodityLabel::quantity{ .value  = comm.quantity,
-                                .colors = {} } );
+      CommodityRenderStyle{
+          .label =
+              CommodityLabel::quantity{ .value  = comm.quantity,
+                                        .colors = {} },
+          .dulled = dulled } );
 }
 
 } // namespace rn
