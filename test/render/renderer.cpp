@@ -43,7 +43,7 @@ using namespace ::mock::matchers;
 // (type, name, is_integral).  The precise names don't matter.
 vector<tuple<int, string, bool>> const kExpectedAttributes{
     { GL_INT, "in_type", true },                        //
-    { GL_INT, "in_visible", true },                     //
+    { GL_UNSIGNED_INT, "in_flags", true },              //
     { GL_FLOAT_VEC4, "in_depixelate", false },          //
     { GL_FLOAT_VEC4, "in_depixelate_stages", false },   //
     { GL_FLOAT_VEC2, "in_position", false },            //
@@ -54,8 +54,6 @@ vector<tuple<int, string, bool>> const kExpectedAttributes{
     { GL_FLOAT, "in_alpha_multiplier", false },         //
     { GL_FLOAT, "in_scaling", false },                  //
     { GL_FLOAT_VEC2, "in_translation", false },         //
-    { GL_INT, "in_color_cycle", true },                 //
-    { GL_INT, "in_use_camera", true },                  //
 };
 
 void expect_bind_vertex_array( gl::MockOpenGL& mock ) {

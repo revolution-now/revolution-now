@@ -831,8 +831,9 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
                 .stage       = .7,
                 .inverted    = {},
                 .hash_anchor = point{ .x = 1, .y = 2 } },
-        .alpha = nothing,
-        .repos = {} } );
+        .alpha      = nothing,
+        .repos      = {},
+        .desaturate = nothing } );
 
   point p;
 
@@ -873,8 +874,9 @@ TEST_CASE( "[render/painter] mod depixelate with inversion" ) {
                 .stage       = .7,
                 .inverted    = true,
                 .hash_anchor = point{ .x = 1, .y = 2 } },
-        .alpha = nothing,
-        .repos = {} } );
+        .alpha      = nothing,
+        .repos      = {},
+        .desaturate = nothing } );
 
   point p;
 
@@ -909,14 +911,50 @@ TEST_CASE( "[render/painter] mod alpha" ) {
 
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
-  Painter painter = unmodded_painter.with_mods(
-      { .depixelate = {}, .alpha = .7, .repos = {} } );
+  Painter painter =
+      unmodded_painter.with_mods( { .depixelate = {},
+                                    .alpha      = .7,
+                                    .repos      = {},
+                                    .desaturate = nothing } );
 
   rect r;
 
   auto Vert = [&]( point p ) {
     auto vert = SolidVertex( p, G );
     vert.set_alpha( .7 );
+    return vert.generic();
+  };
+
+  r = rect{ .origin = { .x = 20, .y = 30 },
+            .size   = { .w = 100, .h = 200 } };
+  painter.draw_solid_rect( r, G );
+  expected = {
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 230 } ),
+      Vert( { .x = 120, .y = 230 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 120, .y = 30 } ),
+      Vert( { .x = 120, .y = 230 } ),
+  };
+  REQUIRE( v == expected );
+}
+
+TEST_CASE( "[render/painter] mod desaturate" ) {
+  vector<GenericVertex> v, expected;
+
+  Emitter emitter( v );
+  Painter unmodded_painter( atlas_map(), emitter );
+  Painter painter =
+      unmodded_painter.with_mods( { .depixelate = {},
+                                    .alpha      = {},
+                                    .repos      = {},
+                                    .desaturate = true } );
+
+  rect r;
+
+  auto Vert = [&]( point p ) {
+    auto vert = SolidVertex( p, G );
+    vert.set_desaturate( true );
     return vert.generic();
   };
 
@@ -943,7 +981,8 @@ TEST_CASE( "[render/painter] mod cycling" ) {
       { .depixelate = {},
         .alpha      = {},
         .repos      = {},
-        .cycling    = { .enabled = true } } );
+        .cycling    = { .enabled = true },
+        .desaturate = nothing } );
 
   rect r;
 
@@ -1010,11 +1049,13 @@ TEST_CASE( "[render/painter] mod use_camera" ) {
   Painter painter = unmodded_painter.with_mods(
       { .depixelate = {},
         .alpha      = {},
-        .repos      = RepositionInfo{
-                 .scale       = 2.0,
-                 .translation = dsize{ .w = 5.3, .h = 3 },
-                 .use_camera  = true,
-        } } );
+        .repos =
+            RepositionInfo{
+                .scale       = 2.0,
+                .translation = dsize{ .w = 5.3, .h = 3 },
+                .use_camera  = true,
+            },
+        .desaturate = nothing } );
 
   auto Vert = [&]( point p ) {
     auto vert = SolidVertex( p, G );

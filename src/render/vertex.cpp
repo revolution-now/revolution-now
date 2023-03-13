@@ -30,7 +30,7 @@ GenericVertex proto_vertex( vertex_type type,
                             gfx::point  position ) {
   return GenericVertex{
       .type                = static_cast<int32_t>( type ),
-      .visible             = 1,
+      .flags               = 0,
       .depixelate          = gl::vec4{},
       .depixelate_stages   = gl::vec4{},
       .position            = gl::vec2::from_point( position ),
@@ -41,8 +41,6 @@ GenericVertex proto_vertex( vertex_type type,
       .alpha_multiplier    = 1.0f,
       .scaling             = 1.0,
       .translation         = {},
-      .color_cycle         = 0, // "false"
-      .use_camera          = 0, // "false"
   };
 }
 
@@ -96,15 +94,6 @@ void VertexBase::set_depixelation_inversion( bool inverted ) {
   depixelate.w = inverted ? 1 : 0;
 }
 
-bool VertexBase::is_visible() const {
-  DCHECK( visible == 0 || visible == 1 );
-  return visible == 1;
-}
-
-void VertexBase::set_visible( bool in_visible ) {
-  visible = in_visible ? 1 : 0;
-}
-
 double VertexBase::alpha() const { return alpha_multiplier; }
 
 void VertexBase::reset_alpha() { alpha_multiplier = 1.0f; }
@@ -122,11 +111,42 @@ void VertexBase::set_translation( gfx::dsize trans ) {
 }
 
 void VertexBase::set_color_cycle( bool enabled ) {
-  color_cycle = enabled ? 1 : 0;
+  auto constexpr mask = VERTEX_FLAG_COLOR_CYCLE;
+  if( enabled )
+    flags |= mask;
+  else
+    flags &= ~mask;
+}
+
+bool VertexBase::get_color_cycle() const {
+  auto constexpr mask = VERTEX_FLAG_COLOR_CYCLE;
+  return ( ( flags & mask ) != 0 ) ? true : false;
 }
 
 void VertexBase::set_use_camera( bool enabled ) {
-  use_camera = enabled ? 1 : 0;
+  auto constexpr mask = VERTEX_FLAG_USE_CAMERA;
+  if( enabled )
+    flags |= mask;
+  else
+    flags &= ~mask;
+}
+
+bool VertexBase::get_use_camera() const {
+  auto constexpr mask = VERTEX_FLAG_USE_CAMERA;
+  return ( ( flags & mask ) != 0 ) ? true : false;
+}
+
+void VertexBase::set_desaturate( bool enabled ) {
+  auto constexpr mask = VERTEX_FLAG_DESATURATE;
+  if( enabled )
+    flags |= mask;
+  else
+    flags &= ~mask;
+}
+
+bool VertexBase::get_desaturate() const {
+  auto constexpr mask = VERTEX_FLAG_DESATURATE;
+  return ( ( flags & mask ) != 0 ) ? true : false;
 }
 
 /****************************************************************

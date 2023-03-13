@@ -11,6 +11,8 @@
 #version 330 core
 
 flat in int   frag_type;
+flat in int   frag_color_cycle;
+flat in int   frag_desaturate;
 flat in vec4  frag_depixelate;
 flat in vec4  frag_depixelate_stages;
 flat in vec4  frag_depixelate_stages_unscaled;
@@ -21,7 +23,6 @@ flat in vec2  frag_atlas_target_offset;
      in vec4  frag_fixed_color;
      in float frag_alpha_multiplier;
 flat in float frag_scaling;
-flat in int   frag_color_cycle;
 
 uniform sampler2D u_atlas;
 uniform vec2 u_atlas_size;
@@ -349,6 +350,9 @@ void main() {
 
   // Alpha.
   if( frag_alpha_multiplier < 1.0 ) color = alpha( color );
+
+  // Desaturation.
+  if( frag_desaturate != 0 ) color.rgb = desaturate( color.rgb );
 
   final_color = color;
 }

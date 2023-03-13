@@ -84,6 +84,7 @@ struct PainterMods {
   base::maybe<double> alpha      = {};
   RepositionInfo      repos      = {};
   ColorCyclingInfo    cycling    = {};
+  base::maybe<bool>   desaturate = {};
 };
 
 /****************************************************************

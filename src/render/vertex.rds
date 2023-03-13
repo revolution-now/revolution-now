@@ -41,9 +41,28 @@ struct.GenericVertex {
   #  and won't spend time testing for unlikely branches.
   type 'int32_t',
 
-  # bool. If this is zero then the vertex will be discarded. This
-  # can be used e.g. for unit blinking animations.
-  visible 'int32_t',
+  # Boolean flags. 0 is least significant bit.
+  #
+  #   Bit  Meaning
+  #   ==========================================================
+  #   0    Color cycling. When this is zero color cycling is
+  #        off. When it is non-zero then color cycling is on,
+  #        and the cycling animation stage will be taken from
+  #        the corresponding uniform.
+  #
+  #   1    Use camera. When true, will subject the vertices to
+  #        the "camera" uniform, which means translation of
+  #        position and zoom, in the vertex shader. This is
+  #        different from the `translation` and `scale`
+  #        attributes above in that those allow different values
+  #        per vertex. If both the camera is enabled and the
+  #        per-vertex scale/translation are specified, then the
+  #        latter is applied first, then the former.
+  #
+  #   2    Desaturate.  When true, the fragment shader will, as
+  #        a final step, fully desaturate the color.
+  #
+  flags 'uint32_t',
 
   # Depixelation. This triangle will have individual pixels ran-
   # domly removed depending on the stage of the animation, which
@@ -140,20 +159,6 @@ struct.GenericVertex {
   # This is a translation; the `position` attribute will be added
   # to this value after scaling. A value of 0.0 is a no-op.
   translation 'gl::vec2',
-
-  # When this is zero color cycling is off. When it is non-zero
-  # then color cycling is on, and the cycling animation stage
-  # will be taken from the corresponding uniform.
-  color_cycle 'int32_t',
-
-  # This is a boolean which, when true, will subject the vertices
-  # to the "camera" uniform, which means translation of position
-  # and zoom, in the vertex shader. This is different from the
-  # `translation` and `scale` attributes above in that those
-  # allow different values per vertex. If both the camera is en-
-  # abled and the per-vertex scale/translation are specified,
-  # then the latter is applied first, then the former.
-  use_camera 'int32_t',
 
   # Need this in all vertex structs since OpenGL needs to have
   # the offsets of each member of the struct.

@@ -30,6 +30,15 @@ namespace rr {
                  std::alignment_of_v<GenericVertex> );
 
 /****************************************************************
+** Flag bit masks.
+*****************************************************************/
+// These need to be kept in sync with the corresponding ones in
+// the shader.
+#define VERTEX_FLAG_COLOR_CYCLE ( uint32_t{ 1 } << 0 )
+#define VERTEX_FLAG_USE_CAMERA  ( uint32_t{ 1 } << 1 )
+#define VERTEX_FLAG_DESATURATE  ( uint32_t{ 1 } << 2 )
+
+/****************************************************************
 ** Concept
 *****************************************************************/
 template<typename T>
@@ -68,10 +77,6 @@ struct VertexBase : protected GenericVertex {
   void set_depixelation_inversion( bool inverted );
   bool depixelation_inversion() const;
 
-  // *** Visibility.
-  bool is_visible() const;
-  void set_visible( bool visible );
-
   // *** Alpha in [0, 1].
   double alpha() const;
   void   reset_alpha();
@@ -82,10 +87,16 @@ struct VertexBase : protected GenericVertex {
   void set_translation( gfx::dsize translation );
 
   // *** Color Cycling.
+  bool get_color_cycle() const;
   void set_color_cycle( bool enabled );
 
   // *** Camera.
+  bool get_use_camera() const;
   void set_use_camera( bool enabled );
+
+  // *** Desaturation.
+  bool get_desaturate() const;
+  void set_desaturate( bool enabled );
 
   bool operator==( VertexBase const& ) const = default;
 };

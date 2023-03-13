@@ -128,6 +128,8 @@ void Painter::add_mods( VertexBase&        vert,
     vert.set_translation( *mods.repos.translation );
   vert.set_use_camera( mods.repos.use_camera );
   if( mods.alpha.has_value() ) vert.set_alpha( *mods.alpha );
+  if( mods.desaturate.has_value() )
+    vert.set_desaturate( *mods.desaturate );
   vert.set_color_cycle( mods.cycling.enabled );
 }
 

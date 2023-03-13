@@ -37,7 +37,6 @@ TEST_CASE( "[render/vertex] SpriteVertex" ) {
                                    .size = { .w = 1, .h = 2 } } );
   GenericVertex const& gv = vert.generic();
   REQUIRE( gv.type == 0 );
-  REQUIRE( gv.visible == 1 );
   REQUIRE( gv.depixelate == gl::vec4{} );
   REQUIRE( gv.depixelate_stages == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
@@ -55,7 +54,6 @@ TEST_CASE( "[render/vertex] SolidVertex" ) {
       pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
   GenericVertex const& gv = vert.generic();
   REQUIRE( gv.type == 1 );
-  REQUIRE( gv.visible == 1 );
   REQUIRE( gv.depixelate == gl::vec4{} );
   REQUIRE( gv.depixelate_stages == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
@@ -77,7 +75,6 @@ TEST_CASE( "[render/vertex] SilhouetteVertex" ) {
       pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
   GenericVertex const& gv = vert.generic();
   REQUIRE( gv.type == 2 );
-  REQUIRE( gv.visible == 1 );
   REQUIRE( gv.depixelate == gl::vec4{} );
   REQUIRE( gv.depixelate_stages == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
@@ -101,7 +98,6 @@ TEST_CASE( "[render/vertex] StencilVertex" ) {
       pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
   GenericVertex const& gv = vert.generic();
   REQUIRE( gv.type == 3 );
-  REQUIRE( gv.visible == 1 );
   REQUIRE( gv.depixelate == gl::vec4{} );
   REQUIRE( gv.depixelate_stages == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
@@ -161,20 +157,6 @@ TEST_CASE( "[render/vertex] depixelation" ) {
   REQUIRE( vert.generic().depixelate_stages == gl::vec4{} );
 }
 
-TEST_CASE( "[render/vertex] visibility" ) {
-  SpriteVertex vert( point{ .x = 1, .y = 2 },
-                     point{ .x = 3, .y = 4 },
-                     rect{ .origin = point{ .x = 5, .y = 6 },
-                           .size   = { .w = 1, .h = 2 } } );
-  REQUIRE( vert.is_visible() );
-  vert.set_visible( true );
-  REQUIRE( vert.is_visible() );
-  vert.set_visible( false );
-  REQUIRE_FALSE( vert.is_visible() );
-  vert.set_visible( true );
-  REQUIRE( vert.is_visible() );
-}
-
 TEST_CASE( "[render/vertex] alpha" ) {
   SpriteVertex vert( point{ .x = 1, .y = 2 },
                      point{ .x = 3, .y = 4 },
@@ -215,27 +197,60 @@ TEST_CASE( "[render/vertex] translation" ) {
 }
 
 TEST_CASE( "[render/vertex] color_cycle" ) {
+  static_assert( VERTEX_FLAG_COLOR_CYCLE == 1 );
   SpriteVertex vert( point{ .x = 6, .y = 12 },
                      point{ .x = 3, .y = 4 },
                      rect{ .origin = point{ .x = 5, .y = 6 },
                            .size   = { .w = 1, .h = 2 } } );
-  REQUIRE( vert.generic().color_cycle == 0 );
+  REQUIRE( ( vert.generic().flags & VERTEX_FLAG_COLOR_CYCLE ) ==
+           0 );
+  REQUIRE_FALSE( vert.get_color_cycle() );
   vert.set_color_cycle( true );
-  REQUIRE( vert.generic().color_cycle == 1 );
+  REQUIRE( ( vert.generic().flags & VERTEX_FLAG_COLOR_CYCLE ) ==
+           VERTEX_FLAG_COLOR_CYCLE );
+  REQUIRE( vert.get_color_cycle() );
   vert.set_color_cycle( false );
-  REQUIRE( vert.generic().color_cycle == 0 );
+  REQUIRE( ( vert.generic().flags & VERTEX_FLAG_COLOR_CYCLE ) ==
+           0 );
+  REQUIRE_FALSE( vert.get_color_cycle() );
 }
 
 TEST_CASE( "[render/vertex] use_camera" ) {
+  static_assert( VERTEX_FLAG_USE_CAMERA == 2 );
   SpriteVertex vert( point{ .x = 6, .y = 12 },
                      point{ .x = 3, .y = 4 },
                      rect{ .origin = point{ .x = 5, .y = 6 },
                            .size   = { .w = 1, .h = 2 } } );
-  REQUIRE( vert.generic().use_camera == 0 );
+  REQUIRE( ( vert.generic().flags & VERTEX_FLAG_USE_CAMERA ) ==
+           0 );
+  REQUIRE_FALSE( vert.get_use_camera() );
   vert.set_use_camera( true );
-  REQUIRE( vert.generic().use_camera == 1 );
+  REQUIRE( ( vert.generic().flags & VERTEX_FLAG_USE_CAMERA ) ==
+           VERTEX_FLAG_USE_CAMERA );
+  REQUIRE( vert.get_use_camera() );
   vert.set_use_camera( false );
-  REQUIRE( vert.generic().use_camera == 0 );
+  REQUIRE( ( vert.generic().flags & VERTEX_FLAG_USE_CAMERA ) ==
+           0 );
+  REQUIRE_FALSE( vert.get_use_camera() );
+}
+
+TEST_CASE( "[render/vertex] desaturate" ) {
+  static_assert( VERTEX_FLAG_DESATURATE == 4 );
+  SpriteVertex vert( point{ .x = 6, .y = 12 },
+                     point{ .x = 3, .y = 4 },
+                     rect{ .origin = point{ .x = 5, .y = 6 },
+                           .size   = { .w = 1, .h = 2 } } );
+  REQUIRE( ( vert.generic().flags & VERTEX_FLAG_DESATURATE ) ==
+           0 );
+  REQUIRE_FALSE( vert.get_desaturate() );
+  vert.set_desaturate( true );
+  REQUIRE( ( vert.generic().flags & VERTEX_FLAG_DESATURATE ) ==
+           VERTEX_FLAG_DESATURATE );
+  REQUIRE( vert.get_desaturate() );
+  vert.set_desaturate( false );
+  REQUIRE( ( vert.generic().flags & VERTEX_FLAG_DESATURATE ) ==
+           0 );
+  REQUIRE_FALSE( vert.get_desaturate() );
 }
 
 } // namespace
