@@ -252,10 +252,7 @@ Delta OneLineStringView::delta() const { return view_size_; }
 void OneLineStringView::draw( rr::Renderer& renderer,
                               Coord         coord ) const {
   int const start_offset = ( view_size_.h - text_size_.h ) / 2;
-  TextMarkupInfo const markup_info{
-      .normal = color_,
-      // FIXME
-      .highlight = gfx::pixel::white() };
+  TextMarkupInfo const markup_info{ .normal = color_ };
   render_text_markup( renderer,
                       coord + Delta{ .h = start_offset },
                       e_font{}, markup_info, msg_ );
