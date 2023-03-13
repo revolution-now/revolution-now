@@ -278,6 +278,11 @@ bool RenderingMapUpdater::make_square_fogged( Coord    tile,
 
   // !! NOTE: not redrawing surrounding squares here, unlike in
   // make_square_visible.  This may be changed in the future.
+  for( e_direction d : refl::enum_values<e_direction> ) {
+    Coord const moved = tile.moved( d );
+    if( !ss_.terrain.square_exists( moved ) ) continue;
+    redraw_square( viz, terrain_options, moved );
+  }
 
   return changed;
 }

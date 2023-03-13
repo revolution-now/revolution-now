@@ -27,3 +27,8 @@ pixelation_curve {
     log: .01
   }
 }
+
+# The fog of war is a sprite (which may already have some degree
+# of transparency); this will be an additional alpha scaling of
+# it.
+fog_of_war_alpha: .75

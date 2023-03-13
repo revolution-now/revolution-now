@@ -20,6 +20,7 @@
 #include "visibility.hpp"
 
 // config
+#include "config/gfx.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 
 // ss
@@ -2040,26 +2041,21 @@ void render_resources( rr::Renderer&     renderer,
   render_sprite( painter, where, resource_tile( *resource ) );
 }
 
-void render_fully_invisible_terrain_square(
-    rr::Renderer& renderer, Coord where, Coord const,
-    Visibility const&, TerrainRenderOptions const& ) {
-  rr::Painter painter = renderer.painter();
-  render_sprite( painter, where, e_tile::terrain_hidden );
-}
-
-// This function is for squares that have some hidden overlay but
-// also reveal some part of the underlying tile.
-void render_hidden_overlay(
+// This function is for squares that have some overlay but also
+// reveal some part of the underlying tile in a pixelated way so
+// blend with surrounding squares that might lack the overlay.
+void render_pixelated_overlay_transitions(
     rr::Renderer& renderer, Coord where,
     Coord const world_square, Visibility const& viz,
-    refl::enum_map<e_direction, bool> const& visibility ) {
+    refl::enum_map<e_cdirection, bool> const& has_overlay,
+    e_tile                                    overlay_tile ) {
   SCOPED_RENDERER_MOD_SET(
       painter_mods.depixelate.hash_anchor,
       ( where / Delta{ .w = 32, .h = 32 } ) );
   rr::Painter painter = renderer.painter();
   // The below will render 9 pieces, and will do so with dif-
-  // ferent depixelation stages and alphas depending on the visi-
-  // bility of the surrounding squares.
+  // ferent depixelation stages and alphas depending on the
+  // overlay status of the surrounding squares.
   // +------------+
   // |  |      |  |
   // |--+------+--|
@@ -2068,9 +2064,6 @@ void render_hidden_overlay(
   // |--+------+--|
   // |  |      |  |
   // +------------+
-  bool const self_visible = ( viz.visible( world_square ) !=
-                              e_tile_visibility::hidden );
-
   Rect const tile_rect = Rect::from( Coord{}, g_tile_delta );
 
   int const kTotalEdgeThickness = 8;
@@ -2081,41 +2074,42 @@ void render_hidden_overlay(
 
   // --------------- Center ----------------
 
-  if( !self_visible )
+  bool const self_overlay = has_overlay[e_cdirection::c];
+  if( self_overlay )
     render_sprite_section(
-        painter, e_tile::terrain_hidden,
+        painter, overlay_tile,
         where +
             Delta{ .w = kEdgeThickness, .h = kEdgeThickness },
         tile_rect.edges_removed( kEdgeThickness ) );
 
   // --------------- Sides ----------------
 
-  // Draw a transition on tile with visibility X to an adjacent
-  // tile that is invisible.
-  auto x_to_inviz = [&]( Delta delta, Rect part,
-                         e_cardinal_direction d ) {
+  // Draw a transition on tile with overlay status X to an adja-
+  // cent tile that has the overlay.
+  auto x_to_overlay = [&]( Delta delta, Rect part,
+                           e_cardinal_direction d ) {
     if( part.area() == 0 ) return;
-    double const stage_from = self_visible ? 1.0 : 0.0;
-    double const stage_to   = self_visible ? 0.5 : 0.0;
+    double const stage_from = !self_overlay ? 1.0 : 0.0;
+    double const stage_to   = !self_overlay ? 0.5 : 0.0;
     double const stage_slope =
         abs( stage_to - stage_from ) / kEdgeThickness;
     double     stage_nw = 0;
     gfx::dsize gradient = {};
     switch( d ) {
       case e_cardinal_direction::n:
-        stage_nw = self_visible ? 0.5 : 0.0;
+        stage_nw = !self_overlay ? 0.5 : 0.0;
         gradient = { .h = stage_slope };
         break;
       case e_cardinal_direction::s:
-        stage_nw = self_visible ? 1.0 : 0.0;
+        stage_nw = !self_overlay ? 1.0 : 0.0;
         gradient = { .h = -stage_slope };
         break;
       case e_cardinal_direction::e:
-        stage_nw = self_visible ? 1.0 : 0.0;
+        stage_nw = !self_overlay ? 1.0 : 0.0;
         gradient = { .w = -stage_slope };
         break;
       case e_cardinal_direction::w:
-        stage_nw = self_visible ? 0.5 : 0.0;
+        stage_nw = !self_overlay ? 0.5 : 0.0;
         gradient = { .w = stage_slope };
         break;
     }
@@ -2127,15 +2121,15 @@ void render_hidden_overlay(
         painter_mods.depixelate.stage_anchor,
         ( where + delta ).to_gfx().to_double() );
     rr::Painter painter = renderer.painter();
-    render_sprite_section( painter, e_tile::terrain_hidden,
-                           where + delta, part );
+    render_sprite_section( painter, overlay_tile, where + delta,
+                           part );
   };
 
-  // Draw a transition on an invisible tile to an adjacent tile
-  // that is visible.
-  auto inviz_to_viz = [&]( Delta delta, Rect part,
-                           e_cardinal_direction d ) {
-    if( self_visible ) return;
+  // Draw a transition on a tile with overlay to an adjacent tile
+  // that has no overlay.
+  auto overlay_to_non_overlay = [&]( Delta delta, Rect part,
+                                     e_cardinal_direction d ) {
+    if( !self_overlay ) return;
     double const stage_from = 0.0;
     double const stage_to   = 0.5;
     double const stage_slope =
@@ -2168,22 +2162,22 @@ void render_hidden_overlay(
         painter_mods.depixelate.stage_anchor,
         ( where + delta ).to_gfx().to_double() );
     rr::Painter painter = renderer.painter();
-    render_sprite_section( painter, e_tile::terrain_hidden,
-                           where + delta, part );
+    render_sprite_section( painter, overlay_tile, where + delta,
+                           part );
   };
 
   auto transition = [&]( Delta delta, Rect rect,
                          e_cardinal_direction d ) {
-    if( visibility[to_direction( d )] )
-      inviz_to_viz( delta, rect, d );
+    if( !has_overlay[to_cdirection( d )] )
+      overlay_to_non_overlay( delta, rect, d );
     else {
       Coord const moved =
           world_square.moved( to_direction( d ) );
-      if( self_visible && !viz.on_map( moved ) )
-        // This prevents drawing shadow transitions at the edge
-        // of the map when those tiles are visible.
+      if( !self_overlay && !viz.on_map( moved ) )
+        // This prevents drawing overlay transitions at the edge
+        // of the map when those tiles have no overlay.
         return;
-      x_to_inviz( delta, rect, d );
+      x_to_overlay( delta, rect, d );
     }
   };
 
@@ -2248,36 +2242,38 @@ void render_hidden_overlay(
     if( part.area() == 0 ) return;
     Coord const moved = world_square.moved( to_direction( d1 ) )
                             .moved( to_direction( d2 ) );
-    if( self_visible && !viz.on_map( moved ) )
+    if( !self_overlay && !viz.on_map( moved ) )
       // This prevents drawing shadow transitions at the edge
       // of the map when those tiles are visible.
       return;
-    bool const viz1      = visibility[to_direction( d1 )];
-    bool const viz2      = visibility[to_direction( d2 )];
-    int const  viz_count = ( viz1 ? 1 : 0 ) + ( viz2 ? 1 : 0 );
-    double     stage = 0.0, alpha = 0.0;
-    if( self_visible ) {
-      stage = ( viz_count == 0 )   ? kDepixelateStage
-              : ( viz_count == 1 ) ? kDepixelateStageLight
-                                   : 1.0;
-      alpha = ( viz_count == 0 )   ? kDpAlpha
-              : ( viz_count == 1 ) ? kDpAlphaLight
-                                   : 1.0;
+    bool const no_overlay1 = !has_overlay[to_cdirection( d1 )];
+    bool const no_overlay2 = !has_overlay[to_cdirection( d2 )];
+    int const  no_overlay_count =
+        ( no_overlay1 ? 1 : 0 ) + ( no_overlay2 ? 1 : 0 );
+    double stage = 0.0, alpha = 0.0;
+    if( !self_overlay ) {
+      stage = ( no_overlay_count == 0 )   ? kDepixelateStage
+              : ( no_overlay_count == 1 ) ? kDepixelateStageLight
+                                          : 1.0;
+      alpha = ( no_overlay_count == 0 )   ? kDpAlpha
+              : ( no_overlay_count == 1 ) ? kDpAlphaLight
+                                          : 1.0;
     } else {
-      stage = ( viz_count == 0 )   ? 0.0
-              : ( viz_count == 1 ) ? kDepixelateStage
-                                   : kDepixelateStageLight;
-      alpha = ( viz_count == 0 )   ? 1.0
-              : ( viz_count == 1 ) ? kDpAlpha
-                                   : kDpAlphaLight;
+      stage = ( no_overlay_count == 0 ) ? 0.0
+              : ( no_overlay_count == 1 )
+                  ? kDepixelateStage
+                  : kDepixelateStageLight;
+      alpha = ( no_overlay_count == 0 )   ? 1.0
+              : ( no_overlay_count == 1 ) ? kDpAlpha
+                                          : kDpAlphaLight;
     }
     if( stage == 1.0 || alpha == 0.0 ) return;
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                              stage );
     rr::Painter painter = renderer.painter();
-    render_sprite_section( painter, e_tile::terrain_hidden,
-                           where + delta, part );
+    render_sprite_section( painter, overlay_tile, where + delta,
+                           part );
   };
 
   // Upper left.
@@ -2363,6 +2359,60 @@ void render_visible_terrain_square(
     render_lost_city_rumor( painter, where, square );
 }
 
+// An "overlay" can represent some kind of sprite that is over-
+// layed on top of land. This could be the sprite that hides un-
+// explored tiles or could be the sprite that partially covers
+// fogged tiles. These sprites need to be rendered on top of land
+// tiles and pixelated at the boundaries (with tiles that do not
+// have the overlay) for smooth transitions.
+struct OverlayInfo {
+  refl::enum_map<e_cdirection, bool> surroundings;
+  bool                               fully_surrounded = false;
+};
+
+OverlayInfo surrounding_overlays(
+    Visibility const& viz, Coord tile,
+    refl::enum_map<e_tile_visibility, bool> targets ) {
+  OverlayInfo info;
+  info.fully_surrounded = true;
+  for( e_cdirection d : refl::enum_values<e_cdirection> ) {
+    bool const overlay = targets[viz.visible( tile.moved( d ) )];
+    info.surroundings[d]  = overlay;
+    info.fully_surrounded = info.fully_surrounded && overlay;
+  }
+  return info;
+}
+
+void render_partially_hidden_terrain_square(
+    rr::Renderer& renderer, Coord where, SSConst const& ss,
+    Coord const world_square, Visibility const& viz,
+    refl::enum_map<e_cdirection, bool> const& hidden,
+    TerrainRenderOptions const&               options ) {
+  // Either this tile or one of the surroundings is visible,
+  // which means we need to render the underlying tile first.
+  render_visible_terrain_square( renderer, where, ss,
+                                 world_square, viz, options );
+  render_pixelated_overlay_transitions(
+      renderer, where, world_square, viz, hidden,
+      e_tile::terrain_hidden );
+
+  if( options.render_fog_of_war ) {
+    OverlayInfo const fogged = surrounding_overlays(
+        viz, world_square,
+        { { e_tile_visibility::visible_with_fog, true },
+          { e_tile_visibility::hidden, true } } );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
+                             config_gfx.fog_of_war_alpha );
+    rr::Painter painter = renderer.painter();
+    if( fogged.fully_surrounded )
+      render_sprite( painter, where, e_tile::terrain_fogged );
+    else
+      render_pixelated_overlay_transitions(
+          renderer, where, world_square, viz,
+          fogged.surroundings, e_tile::terrain_fogged );
+  }
+}
+
 } // namespace
 
 void render_terrain_square(
@@ -2370,39 +2420,16 @@ void render_terrain_square(
     Coord const world_square, Visibility const& viz,
     TerrainRenderOptions const& options ) {
   // Get visibility info about surroundings.
-  refl::enum_map<e_direction, bool> visibility;
-  bool const self_visible = ( viz.visible( world_square ) !=
-                              e_tile_visibility::hidden );
-  // A square is fully invisible if it and all surrounding
-  // squares are invisible.
-  bool fully_invisible = !self_visible;
-  for( e_direction d : refl::enum_values<e_direction> ) {
-    bool const visible =
-        ( viz.visible( world_square.moved( d ) ) !=
-          e_tile_visibility::hidden );
-    visibility[d] = visible;
-    fully_invisible &= !visible;
-  }
-  if( fully_invisible ) {
-    render_fully_invisible_terrain_square(
-        renderer, where, world_square, viz, options );
+  OverlayInfo const hidden = surrounding_overlays(
+      viz, world_square,
+      { { e_tile_visibility::hidden, true } } );
+  if( hidden.fully_surrounded ) {
+    rr::Painter painter = renderer.painter();
+    render_sprite( painter, where, e_tile::terrain_hidden );
   } else {
-    // Either this tile or one of the surroundings is visible,
-    // which means we need to render the underlying tile first.
-    render_visible_terrain_square( renderer, where, ss,
-                                   world_square, viz, options );
-
-    if( options.render_fog_of_war ) {
-      bool const self_fogged =
-          ( viz.visible( world_square ) ==
-            e_tile_visibility::visible_with_fog );
-      if( self_fogged ) {
-        // TODO
-      }
-    }
-
-    render_hidden_overlay( renderer, where, world_square, viz,
-                           visibility );
+    render_partially_hidden_terrain_square(
+        renderer, where, ss, world_square, viz,
+        hidden.surroundings, options );
   }
 
   // Always last.

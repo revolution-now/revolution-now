@@ -60,6 +60,11 @@ struct.config_gfx_t {
   unit_flag_text_color_greyed 'gfx::pixel',
 
   pixelation_curve 'config::graphics::PixelationCurve',
+
+  # The fog of war is a sprite (which may already have some de-
+  # gree of transparency); this will be an additional alpha
+  # scaling of it.
+  fog_of_war_alpha 'double',
 }
 
 config.gfx {}
