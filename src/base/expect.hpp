@@ -1008,6 +1008,10 @@ class [[nodiscard]] expect { /* clang-format on */
     return std::invoke( std::forward<Func>( func ), **this );
   }
 
+  // To prevent dangling-reference bugs.
+  template<typename Func>
+  auto member( Func&& func ) && = delete;
+
   template<typename Func>
   auto member( Func&& func ) & /* clang-format off */
     -> expect<std::invoke_result_t<Func, T&>, E>
@@ -1046,6 +1050,10 @@ class [[nodiscard]] expect { /* clang-format on */
       return typename res_t::value_type( nothing );
     return typename res_t::value_type( *maybe_field );
   }
+
+  // To prevent dangling-reference bugs.
+  template<typename Func>
+  auto maybe_member( Func&& func ) && = delete;
 
   template<typename Func>
   auto maybe_member( Func&& func ) & /* clang-format off */

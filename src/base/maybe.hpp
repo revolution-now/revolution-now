@@ -853,6 +853,10 @@ class [[nodiscard]] maybe { /* clang-format on */
     return res;
   }
 
+  // To prevent dangling reference bugs.
+  template<typename Func>
+  auto member( Func&& func ) && = delete;
+
   template<typename Func>
   auto member( Func&& func ) & /* clang-format off */
     -> maybe<std::invoke_result_t<Func, T&>>
@@ -892,6 +896,10 @@ class [[nodiscard]] maybe { /* clang-format on */
     }
     return res;
   }
+
+  // To prevent dangling reference bugs.
+  template<typename Func>
+  auto maybe_member( Func&& func ) && = delete;
 
   template<typename Func>
   auto maybe_member( Func&& func ) & /* clang-format off */

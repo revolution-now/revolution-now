@@ -2439,11 +2439,12 @@ TEST_CASE( "[maybe] ref to member" ) {
 
     // We can't have a maybe<T&&>, so that means that when we
     // reference a temporary we use T const&.
-    auto m4 = std::move( m ).maybe_member( &A::n );
-    ASSERT_VAR_TYPE( m4, maybe<int const&> );
-    REQUIRE( m4.has_value() );
-    REQUIRE( m4 == 4 );
-    REQUIRE( *m4 == 4 );
+    // Edit 2023-03-13: this overload is now deleted.
+    // auto m4 = std::move( m ).maybe_member( &A::n );
+    // ASSERT_VAR_TYPE( m4, maybe<int const&> );
+    // REQUIRE( m4.has_value() );
+    // REQUIRE( m4 == 4 );
+    // REQUIRE( *m4 == 4 );
   }
   SECTION( "ref to ref, maybe_member" ) {
     struct A {

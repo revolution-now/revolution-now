@@ -307,9 +307,8 @@ wait<> HarborInPortShips::drop( HarborDraggableObject const& o,
                 EuroUnitOwnershipChangeTo::sail_to_harbor{} );
         CHECK( !deleted.has_value() );
       } else {
-        UNWRAP_CHECK( holder_id,
-                      unit_at_location( where ).member(
-                          &UnitWithPosition::id ) );
+        UNWRAP_CHECK( unit_with_pos, unit_at_location( where ) );
+        UnitId const             holder_id = unit_with_pos.id;
         maybe<UnitDeleted> const deleted =
             co_await unit_ownership_change(
                 ss_, dragged_id,
