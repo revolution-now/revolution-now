@@ -410,8 +410,9 @@ class [[nodiscard]] expect { /* clang-format on */
   // to expect<T::value_type&>.
   template<typename U>
   constexpr operator expect<U&, E>() const noexcept
-      requires( mp::is_reference_wrapper_v<T>&&
-                    std::is_copy_constructible_v<E> ) {
+  requires( mp::is_reference_wrapper_v<T> &&
+            std::is_copy_constructible_v<E> )
+  {
     if( !good_ ) return err_;
     return val_.get();
   }
@@ -419,18 +420,20 @@ class [[nodiscard]] expect { /* clang-format on */
   // Always allow implici conversions to expect<T&, E>.
   template<typename U>
   constexpr operator expect<U const&, E>() const noexcept
-      requires( !mp::is_reference_wrapper_v<T> &&
-                std::is_convertible_v<T const&, U const&> &&
-                std::is_copy_constructible_v<E> ) {
+  requires( !mp::is_reference_wrapper_v<T> &&
+            std::is_convertible_v<T const&, U const&> &&
+            std::is_copy_constructible_v<E> )
+  {
     if( !good_ ) return err_;
     return val_;
   }
 
   template<typename U>
   constexpr operator expect<U&, E>() noexcept
-      requires( !mp::is_reference_wrapper_v<T> &&
-                std::is_convertible_v<T&, U&> &&
-                std::is_copy_constructible_v<E> ) {
+  requires( !mp::is_reference_wrapper_v<T> &&
+            std::is_convertible_v<T&, U&> &&
+            std::is_copy_constructible_v<E> )
+  {
     if( !good_ ) return err_;
     return val_;
   }
@@ -900,8 +903,9 @@ class [[nodiscard]] expect { /* clang-format on */
       // has_value() member for just checking whether there is a
       // value, or call the is_value_truish() method to return
       // true iff there is a value and it's true.
-      requires( !std::is_same_v<std::remove_cvref_t<T>, bool> &&
-                !std::is_same_v<std::remove_cvref_t<E>, bool> ) {
+  requires( !std::is_same_v<std::remove_cvref_t<T>, bool> &&
+            !std::is_same_v<std::remove_cvref_t<E>, bool> )
+  {
     return good_;
   }
 
@@ -1380,7 +1384,7 @@ class [[nodiscard]] expect<T&, E> { /* clang-format on */
   ** Assignment Operators.
   ***************************************************************/
   expect<T&, E> operator=( expect<T&, E> const& ) = delete;
-  expect<T&, E> operator=( expect<T&, E>&& ) = delete;
+  expect<T&, E> operator=( expect<T&, E>&& )      = delete;
 
   /**************************************************************
   ** value
@@ -1434,8 +1438,9 @@ class [[nodiscard]] expect<T&, E> { /* clang-format on */
       // has_value() member for just checking whether there is a
       // value, or call the is_value_truish() method to return
       // true iff there is a value and it's true.
-      requires( !std::is_same_v<std::remove_cvref_t<T>, bool> &&
-                !std::is_same_v<std::remove_cvref_t<E>, bool> ) {
+  requires( !std::is_same_v<std::remove_cvref_t<T>, bool> &&
+            !std::is_same_v<std::remove_cvref_t<E>, bool> )
+  {
     return p_ != nullptr;
   }
 
@@ -1602,8 +1607,9 @@ class [[nodiscard]] expect<T&, E> { /* clang-format on */
 *****************************************************************/
 // Will infer T, requires specifying E explicitly.
 template<typename E, typename T>
-expect<std::decay_t<T>, E> expected( T&& arg ) requires(
-    !is_expect_v<std::remove_cvref_t<T>> ) {
+expect<std::decay_t<T>, E> expected( T&& arg )
+requires( !is_expect_v<std::remove_cvref_t<T>> )
+{
   return expect<std::decay_t<T>, E>( std::forward<T>( arg ) );
 }
 
@@ -1616,15 +1622,17 @@ expect<T, E> expected( std::in_place_t, Args&&... args ) {
 
 // Will infer T, requires specifying E explicitly.
 template<typename E, typename T>
-expect<T&, E> expected_ref( T& arg ) requires(
-    !is_expect_v<std::remove_cvref_t<T>> ) {
+expect<T&, E> expected_ref( T& arg )
+requires( !is_expect_v<std::remove_cvref_t<T>> )
+{
   return expect<T&, E>( arg );
 }
 
 // Will infer E, requires specifying T explicitly.
 template<typename T, typename E>
-expect<T, std::decay_t<E>> unexpected( E&& arg ) requires(
-    !is_expect_v<std::remove_cvref_t<E>> ) {
+expect<T, std::decay_t<E>> unexpected( E&& arg )
+requires( !is_expect_v<std::remove_cvref_t<E>> )
+{
   return expect<T, std::decay_t<E>>( std::forward<E>( arg ) );
 }
 

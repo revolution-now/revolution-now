@@ -1012,7 +1012,7 @@ TEST_CASE( "[expected] dereference" ) {
   ASSERT_VAR_TYPE( *m2, NoCopy& );
   ASSERT_VAR_TYPE( as_const( *m2 ), NoCopy const& );
 
-  ASSERT_VAR_TYPE( ( *E<NoCopy, string>{ "" } ), NoCopy && );
+  ASSERT_VAR_TYPE( ( *E<NoCopy, string>{ "" } ), NoCopy&& );
 
   ASSERT_VAR_TYPE( m2->c, char );
   ASSERT_VAR_TYPE( as_const( m2 )->c, char );

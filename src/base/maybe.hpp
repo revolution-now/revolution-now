@@ -61,13 +61,11 @@ inline constexpr nothing_t nothing( 0 );
 // class declaration, the deduction guide, and the friend decla-
 // ration.
 template<typename T>
-concept MaybeTypeRequirements =
-    requires {
-      requires(
-          !std::is_same_v<std::remove_cvref_t<T>,
-                          std::in_place_t> &&
-          !std::is_same_v<std::remove_cvref_t<T>, nothing_t> );
-    };
+concept MaybeTypeRequirements = requires {
+  requires(
+      !std::is_same_v<std::remove_cvref_t<T>, std::in_place_t> &&
+      !std::is_same_v<std::remove_cvref_t<T>, nothing_t> );
+};
 
 /****************************************************************
 ** Forward Declaration
