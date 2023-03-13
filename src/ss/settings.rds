@@ -8,17 +8,38 @@
 # Description: Rds definitions for save-game settings data.
 #
 # ===============================================================
+# ss
 include "ss/difficulty.rds.hpp"
 
+# refl
+include "refl/enum-map.hpp"
+
 namespace "rn"
+
+# These are the on/off ones that the player can change once the
+# game starts and which get saved with the save file.
+enum.e_game_flag_option {
+  show_indian_moves,
+  show_foreign_moves,
+  fast_piece_slide,
+  end_of_turn,
+  autosave,
+  combat_analysis,
+  water_color_cycling,
+  tutorial_hints,
+  show_fog_of_war,
+}
+
+struct.GameOptions {
+  flags 'refl::enum_map<e_game_flag_option, bool>',
+  # Put any non-flag options here...
+}
 
 struct.SettingsState {
   # discoverer, explorer, etc.
   difficulty 'e_difficulty',
 
-  # Units slide more quickly when moving and attacking. For the
-  # impatient.
-  fast_piece_slide 'bool',
+  game_options 'GameOptions',
 
   _features { equality, validation }
 }

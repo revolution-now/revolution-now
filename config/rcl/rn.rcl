@@ -42,3 +42,15 @@ power {
 
 # Are the various cheat/debug hot keys and menus available.
 cheat_functions_enabled: true
+
+game_flag_options_defaults {
+  show_indian_moves:   true
+  show_foreign_moves:  true
+  fast_piece_slide:    false
+  end_of_turn:         false
+  autosave:            true
+  combat_analysis:     true
+  water_color_cycling: true
+  tutorial_hints:      false
+  show_fog_of_war:     true
+}

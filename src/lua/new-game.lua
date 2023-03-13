@@ -41,7 +41,20 @@ end
 -----------------------------------------------------------------
 local function set_default_settings( options, settings )
   settings.difficulty = options.difficulty
-  settings.fast_piece_slide = false
+  -- FIXME: these are in config/rn... get them from there.
+  settings.game_options.flags.show_indian_moves = true
+  settings.game_options.flags.show_foreign_moves = true
+  settings.game_options.flags.fast_piece_slide = false
+  settings.game_options.flags.end_of_turn = false
+  settings.game_options.flags.autosave = true
+  settings.game_options.flags.combat_analysis = true
+  settings.game_options.flags.water_color_cycling = true
+  settings.game_options.flags.tutorial_hints = false
+  settings.game_options.flags.show_fog_of_war = true
+
+  if options.difficulty == 'discoverer' then
+    settings.game_options.flags.tutorial_hints = true
+  end
 end
 
 -----------------------------------------------------------------

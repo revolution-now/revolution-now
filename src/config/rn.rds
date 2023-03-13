@@ -9,10 +9,14 @@
 #
 # ===============================================================
 # Revolution Now
-include "font.hpp"
+include "font.hpp" # FIXME
 
-# Rds
-include "nation.rds.hpp"
+# ss
+include "ss/nation.rds.hpp"
+include "ss/settings.rds.hpp"
+
+# refl
+include "refl/enum-map.hpp"
 
 # C++ standard library
 include "<string>"
@@ -67,6 +71,8 @@ struct.config_rn_t {
   viewport    'config_rn_viewport',
   console     'config_rn_console',
   power       'config_rn_power',
+
+  game_flag_options_defaults 'refl::enum_map<e_game_flag_option, bool>',
 
   # Are the various cheat/debug hot keys and menus available.
   cheat_functions_enabled 'bool',

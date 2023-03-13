@@ -20,6 +20,9 @@
 #include "refl/ext.hpp"
 #include "refl/to-str.hpp"
 
+// base
+#include "base/to-str-ext-std.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -33,13 +36,38 @@ base::valid_or<string> SettingsState::validate() const {
 *****************************************************************/
 namespace {
 
-// MarketItem
 LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::SettingsState;
-  auto u  = st.usertype.create<U>();
+  // GameOptionsMap.
+  [&] {
+    // TODO: make this generic.
+    using U = ::rn::GameOptionsMap;
+    auto u  = st.usertype.create<U>();
 
-  u["difficulty"]       = &U::difficulty;
-  u["fast_piece_slide"] = &U::fast_piece_slide;
+    u[lua::metatable_key]["__index"] =
+        [&]( U& obj, e_game_flag_option c ) { return obj[c]; };
+
+    u[lua::metatable_key]["__newindex"] =
+        [&]( U& obj, e_game_flag_option c, bool on_off ) {
+          obj[c] = on_off;
+        };
+  }();
+
+  // GameOptions.
+  [&] {
+    using U = ::rn::GameOptions;
+    auto u  = st.usertype.create<U>();
+
+    u["flags"] = &U::flags;
+  }();
+
+  // SettingsState.
+  [&] {
+    using U = ::rn::SettingsState;
+    auto u  = st.usertype.create<U>();
+
+    u["difficulty"]   = &U::difficulty;
+    u["game_options"] = &U::game_options;
+  }();
 };
 
 } // namespace

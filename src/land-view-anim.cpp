@@ -231,9 +231,11 @@ wait<> LandViewAnimator::animate_blink(
 
 wait<> LandViewAnimator::slide_throttler( GenericUnitId id,
                                           e_direction   d ) {
-  // TODO: make this a game option.
   double const kMaxVelocity =
-      ss_.settings.fast_piece_slide ? .1 : .07;
+      ss_.settings.game_options
+              .flags[e_game_flag_option::fast_piece_slide]
+          ? .1
+          : .07;
 
   auto popper =
       add_unit_animation<UnitAnimationState::slide>( id );
