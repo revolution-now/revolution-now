@@ -91,17 +91,21 @@ refl::enum_map<e_menu, Menu> const g_menus{
 refl::enum_map<e_menu, vector<MenuItem>> const g_menu_def{
     { e_menu::game,
       {
-          ITEM( about, "About this Game" ),    //
-          /***********/ DIVIDER, /***********/ //
-          ITEM( save, "Save Game" ),           //
-          ITEM( load, "Load Game" ),           //
-          /***********/ DIVIDER, /***********/ //
-          ITEM( next_turn, "Next Turn" ),      //
-          /***********/ DIVIDER, /***********/ //
-          ITEM( revolution, "REVOLUTION!" ),   //
-          /***********/ DIVIDER, /***********/ //
-          ITEM( retire, "Retire" ),            //
-          ITEM( exit, "Exit to \"DOS\"" )      //
+          ITEM( game_options, "Game Options" ), //
+          ITEM( colony_report_options,
+                "Colony Report Options" ),      //
+          /***********/ DIVIDER, /***********/  //
+          ITEM( about, "About this Game" ),     //
+          /***********/ DIVIDER, /***********/  //
+          ITEM( save, "Save Game" ),            //
+          ITEM( load, "Load Game" ),            //
+          /***********/ DIVIDER, /***********/  //
+          ITEM( next_turn, "Next Turn" ),       //
+          /***********/ DIVIDER, /***********/  //
+          ITEM( revolution, "REVOLUTION!" ),    //
+          /***********/ DIVIDER, /***********/  //
+          ITEM( retire, "Retire" ),             //
+          ITEM( exit, "Exit to \"DOS\"" )       //
       } },
     { e_menu::view,
       {

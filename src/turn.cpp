@@ -20,6 +20,7 @@
 #include "colony-view.hpp"
 #include "command.hpp"
 #include "fathers.hpp"
+#include "game-options.hpp"
 #include "gui.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view.hpp"
@@ -360,6 +361,10 @@ wait<> menu_handler( SS& ss, TS& ts, Player& player,
     }
     case e_menu_item::cheat_edit_fathers: {
       co_await cheat_edit_fathers( ss, ts, player );
+      break;
+    }
+    case e_menu_item::game_options: {
+      co_await open_game_options_box( ss, ts );
       break;
     }
     default: {

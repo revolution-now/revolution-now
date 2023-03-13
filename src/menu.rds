@@ -49,6 +49,8 @@ enum.e_menu_item {
   harbor_view,
   find_blinking_unit,
   next_turn,
+  game_options,
+  colony_report_options,
 
   # Cheat menu.
   cheat_reveal_map,
