@@ -80,11 +80,12 @@ struct ColorCyclingInfo {
 };
 
 struct PainterMods {
-  DepixelateInfo      depixelate = {};
-  base::maybe<double> alpha      = {};
-  RepositionInfo      repos      = {};
-  ColorCyclingInfo    cycling    = {};
-  base::maybe<bool>   desaturate = {};
+  DepixelateInfo          depixelate  = {};
+  base::maybe<double>     alpha       = {};
+  RepositionInfo          repos       = {};
+  ColorCyclingInfo        cycling     = {};
+  base::maybe<bool>       desaturate  = {};
+  base::maybe<gfx::pixel> fixed_color = {};
 };
 
 /****************************************************************
@@ -149,9 +150,10 @@ struct Painter {
   Painter& draw_sprite_section( int atlas_id, gfx::point where,
                                 gfx::rect section );
 
+  // FIXME: Ideally we should get rid of silhouettes, but that
+  // will require a bit of refactoring of rr::Typer.
   Painter& draw_silhouette( int atlas_id, gfx::point where,
                             gfx::pixel color );
-
   Painter& draw_silhouette_scale( int atlas_id, gfx::rect dst,
                                   gfx::pixel color );
 
@@ -174,6 +176,8 @@ struct Painter {
 
   void draw_sprite_impl( gfx::rect src, gfx::rect dst );
 
+  // FIXME: Ideally we should get rid of silhouettes, but that
+  // will require a bit of refactoring of rr::Typer.
   void draw_silhouette_impl( gfx::rect src, gfx::rect dst,
                              gfx::pixel color );
 
@@ -181,8 +185,13 @@ struct Painter {
                           gfx::size  replacement_atlas_offset,
                           gfx::pixel key_color );
 
-  AtlasMap const&          atlas_;
-  Emitter&                 emitter_;
+  AtlasMap const& atlas_;
+  Emitter&        emitter_;
+  // FIXME: it seems inefficient to copy the mods into the struct
+  // each time a painter is created. Try to find a way to hold a
+  // reference here. If we can get the rr::Renderer to maintain
+  // pointer stability on its mod stack objects then that might
+  // be possible.
   base::maybe<PainterMods> mods_;
 };
 

@@ -49,16 +49,17 @@ namespace {
 constexpr Delta nationality_icon_size{ .w = 14, .h = 14 };
 
 // Unit only, no flag.
-void render_unit_no_icon( rr::Painter& painter, Coord where,
+void render_unit_no_icon( rr::Renderer& renderer, Coord where,
                           e_tile                   tile,
                           UnitRenderOptions const& options ) {
   if( options.shadow.has_value() )
     render_sprite_silhouette(
-        painter, where + Delta{ .w = options.shadow->offset },
+        renderer, where + Delta{ .w = options.shadow->offset },
         tile, options.shadow->color );
   if( options.outline_right )
-    render_sprite_silhouette( painter, where + Delta{ .w = 1 },
+    render_sprite_silhouette( renderer, where + Delta{ .w = 1 },
                               tile, options.outline_color );
+  rr::Painter painter = renderer.painter();
   render_sprite( painter, Rect::from( where, g_tile_delta ),
                  tile );
 }
@@ -204,10 +205,10 @@ void render_unit_flag( rr::Renderer& renderer, Coord where,
   render_unit_flag_impl( renderer, where, color, c, is_greyed );
 }
 
-void depixelate_from_to(
-    rr::Renderer& renderer, double stage, gfx::point hash_anchor,
-    base::function_ref<void( rr::Painter& painter )> from,
-    base::function_ref<void( rr::Painter& painter )> to ) {
+void depixelate_from_to( rr::Renderer& renderer, double stage,
+                         gfx::point                 hash_anchor,
+                         base::function_ref<void()> from,
+                         base::function_ref<void()> to ) {
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
                            hash_anchor );
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
@@ -217,11 +218,9 @@ void depixelate_from_to(
   {
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.inverted,
                              true );
-    rr::Painter painter = renderer.painter();
-    to( painter );
+    to();
   }
-  rr::Painter painter = renderer.painter();
-  from( painter );
+  from();
 }
 
 // We really don't want to compute the dulled colors everytime we
@@ -295,14 +294,14 @@ static void render_unit_impl(
   rr::Painter painter = renderer.painter();
   if( options.flag == e_flag_count::none ) {
     // No flag.
-    render_unit_no_icon( painter, where, tile, options );
+    render_unit_no_icon( renderer, where, tile, options );
   } else if( !desc.nat_icon_front ) {
     // Show the flag but in the back. This is a bit tricky if
     // there's a shadow because we don't want the shadow to be
     // over the flag.
     if( options.shadow.has_value() )
       render_sprite_silhouette(
-          painter, where + Delta{ .w = options.shadow->offset },
+          renderer, where + Delta{ .w = options.shadow->offset },
           desc.tile, options.shadow->color );
     render_unit_flag( renderer, where, desc, flag_color, orders,
                       options.flag );
@@ -313,13 +312,13 @@ static void render_unit_impl(
       SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .35 );
       rr::Painter painter = renderer.painter();
       render_sprite_silhouette(
-          painter, where + Delta{ .w = options.shadow->offset },
+          renderer, where + Delta{ .w = options.shadow->offset },
           desc.tile, options.shadow->color );
     }
     render_sprite( painter, where, desc.tile );
   } else {
     // Show the flag in the front.
-    render_unit_no_icon( painter, where, tile, options );
+    render_unit_no_icon( renderer, where, tile, options );
     render_unit_flag( renderer, where, desc, flag_color, orders,
                       options.flag );
   }
@@ -354,23 +353,23 @@ void render_native_unit( rr::Renderer& renderer, Coord where,
 }
 
 static void render_unit_type(
-    rr::Painter& painter, Coord where, e_tile tile,
+    rr::Renderer& renderer, Coord where, e_tile tile,
     UnitRenderOptions const& options ) {
-  render_unit_no_icon( painter, where, tile, options );
+  render_unit_no_icon( renderer, where, tile, options );
 }
 
-void render_unit_type( rr::Painter& painter, Coord where,
+void render_unit_type( rr::Renderer& renderer, Coord where,
                        e_unit_type              unit_type,
                        UnitRenderOptions const& options ) {
-  render_unit_no_icon( painter, where,
+  render_unit_no_icon( renderer, where,
                        unit_attr( unit_type ).tile, options );
 }
 
 void render_native_unit_type(
-    rr::Painter& painter, Coord where,
+    rr::Renderer& renderer, Coord where,
     e_native_unit_type       unit_type,
     UnitRenderOptions const& options ) {
-  render_unit_no_icon( painter, where,
+  render_unit_no_icon( renderer, where,
                        unit_attr( unit_type ).tile, options );
 }
 
@@ -423,7 +422,7 @@ void render_dwelling( rr::Renderer& renderer, Coord where,
         missionary_cross_color( missionary.nation(), is_jesuit );
     // This is the inner part that is colored according to the
     // nation's flag color.
-    render_sprite_silhouette( painter, where + offset_32x32,
+    render_sprite_silhouette( renderer, where + offset_32x32,
                               e_tile::missionary_cross_inner,
                               cross_color );
     render_sprite( painter, where + offset_32x32,
@@ -462,16 +461,16 @@ static void render_unit_depixelate_to_impl(
   if( options.shadow.has_value() )
     depixelate_from_to(
         renderer, stage, /*anchor=*/where, /*from=*/
-        [&]( rr::Painter& painter ) {
+        [&] {
           render_sprite_silhouette(
-              painter,
+              renderer,
               where + Delta{ .w = options.shadow->offset },
               desc.tile, options.shadow->color );
         },
         /*to=*/
-        [&]( rr::Painter& painter ) {
+        [&] {
           render_sprite_silhouette(
-              painter,
+              renderer,
               where + Delta{ .w = options.shadow->offset },
               target_tile, options.shadow->color );
         } );
@@ -486,12 +485,13 @@ static void render_unit_depixelate_to_impl(
   // Now the unit.
   depixelate_from_to(
       renderer, stage, /*anchor=*/where, /*from=*/
-      [&]( rr::Painter& painter ) {
-        render_unit_type( painter, where, desc.tile, options );
+      [&] {
+        render_unit_type( renderer, where, desc.tile, options );
       },
       /*to=*/
-      [&]( rr::Painter& painter ) {
-        render_unit_type( painter, where, target_tile, options );
+      [&] {
+        render_unit_type( renderer, where, target_tile,
+                          options );
       } );
 
   if( options.flag != e_flag_count::none && desc.nat_icon_front )

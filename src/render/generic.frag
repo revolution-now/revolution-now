@@ -20,6 +20,7 @@ flat in vec4  frag_depixelate_stages_unscaled;
      in vec2  frag_atlas_position;
 flat in vec4  frag_atlas_rect;
 flat in vec2  frag_atlas_target_offset;
+     in vec4  frag_stencil_key_color;
      in vec4  frag_fixed_color;
      in float frag_alpha_multiplier;
 flat in float frag_scaling;
@@ -87,19 +88,12 @@ vec4 type_solid() {
 }
 
 /****************************************************************
-** Silhouettes.
-*****************************************************************/
-vec4 type_silhouette() {
-  return frag_fixed_color*vec4( 1, 1, 1, type_sprite().a );
-}
-
-/****************************************************************
 ** Stencils.
 *****************************************************************/
 vec4 type_stencil() {
   vec4 candidate = atlas_lookup( frag_atlas_position,
                                  frag_atlas_rect );
-  if( candidate.rgb != frag_fixed_color.rgb )
+  if( candidate.rgb != frag_stencil_key_color.rgb )
     return candidate;
   // We have the key color, so replace it with a pixel from the
   // alternate sprite.
@@ -335,8 +329,7 @@ void main() {
   switch( frag_type ) {
     case 0: color = type_sprite();     break;
     case 1: color = type_solid();      break;
-    case 2: color = type_silhouette(); break;
-    case 3: color = type_stencil();    break;
+    case 2: color = type_stencil();    break;
   }
 
   // Depixelation.
@@ -350,6 +343,9 @@ void main() {
 
   // Alpha.
   if( frag_alpha_multiplier < 1.0 ) color = alpha( color );
+
+  // Color fixing.
+  if( frag_fixed_color.a > 0 ) color.rgb = frag_fixed_color.rgb;
 
   // Desaturation.
   if( frag_desaturate != 0 ) color.rgb = desaturate( color.rgb );

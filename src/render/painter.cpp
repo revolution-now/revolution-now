@@ -130,6 +130,8 @@ void Painter::add_mods( VertexBase&        vert,
   if( mods.alpha.has_value() ) vert.set_alpha( *mods.alpha );
   if( mods.desaturate.has_value() )
     vert.set_desaturate( *mods.desaturate );
+  if( mods.fixed_color.has_value() )
+    vert.set_fixed_color( *mods.fixed_color );
   vert.set_color_cycle( mods.cycling.enabled );
 }
 
@@ -221,7 +223,12 @@ void Painter::draw_silhouette_impl( rect src, rect dst,
                                     gfx::pixel color ) {
   emit_texture_quad(
       src, dst, [&, this]( point pos, point atlas_pos ) {
-        emit( SilhouetteVertex( pos, atlas_pos, src, color ) );
+        // FIXME: this is a bit hacky. Ideally we should get rid
+        // of silhouettes, but that will require a bit of refac-
+        // toring of rr::Typer.
+        auto vert = SpriteVertex( pos, atlas_pos, src );
+        vert.set_fixed_color( color );
+        emit( std::move( vert ) );
       } );
 }
 

@@ -63,14 +63,9 @@ void render_sprite( rr::Painter& painter, e_tile tile,
 void render_sprite( rr::Painter& painter, Rect where,
                     e_tile tile );
 
-// TODO: change this to a mod.
-void render_sprite_silhouette( rr::Painter& painter, Coord where,
-                               e_tile tile, gfx::pixel color );
-
-// TODO: change this to a mod.
-void render_sprite_silhouette_scale( rr::Painter& painter,
-                                     Rect where, e_tile tile,
-                                     gfx::pixel color );
+void render_sprite_silhouette( rr::Renderer& renderer,
+                               Coord where, e_tile tile,
+                               gfx::pixel color );
 
 // This is used e.g. to dull a commodity in the cargo of a ship
 // when the quantity is less than 100, as does the OG.

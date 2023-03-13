@@ -74,11 +74,10 @@ e_tile tile_for_outdoor_job( e_outdoor_job job ) {
 
 void render_glow( rr::Renderer& renderer, Coord unit_coord,
                   e_unit_type type ) {
-  UnitTypeAttributes const& desc    = unit_attr( type );
-  e_tile const              tile    = desc.tile;
-  rr::Painter               painter = renderer.painter();
+  UnitTypeAttributes const& desc = unit_attr( type );
+  e_tile const              tile = desc.tile;
   render_sprite_silhouette(
-      painter, unit_coord + Delta{ .w = 1 }, tile,
+      renderer, unit_coord + Delta{ .w = 1 }, tile,
       config_colony.colors.outdoor_unit_glow_color );
 }
 
@@ -445,7 +444,7 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
     UnitTypeAttributes const& desc = unit_attr( unit.type() );
     render_glow( renderer, unit_coord, unit.type() );
     render_unit_type(
-        painter, unit_coord, desc.type,
+        renderer, unit_coord, desc.type,
         UnitRenderOptions{ .shadow = UnitShadow{} } );
     e_outdoor_job const job   = outdoor_unit->job;
     e_tile const product_tile = tile_for_outdoor_job( job );

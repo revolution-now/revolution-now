@@ -20,10 +20,9 @@ using ::base::maybe;
 using ::base::nothing;
 
 enum class vertex_type {
-  sprite     = 0,
-  solid      = 1,
-  silhouette = 2,
-  stencil    = 3,
+  sprite  = 0,
+  solid   = 1,
+  stencil = 2,
 };
 
 GenericVertex proto_vertex( vertex_type type,
@@ -149,6 +148,33 @@ bool VertexBase::get_desaturate() const {
   return ( ( flags & mask ) != 0 ) ? true : false;
 }
 
+void VertexBase::set_fixed_color(
+    base::maybe<gfx::pixel> color ) {
+  auto constexpr mask = VERTEX_FLAG_FIXED_COLOR;
+  if( !color.has_value() ) {
+    flags &= ~mask;
+    fixed_color = {};
+    return;
+  }
+  flags |= mask;
+  fixed_color.r = color->r / 255.0;
+  fixed_color.g = color->g / 255.0;
+  fixed_color.b = color->b / 255.0;
+  fixed_color.a = color->a / 255.0;
+}
+
+base::maybe<gfx::pixel> VertexBase::get_fixed_color() const {
+  if( !( flags & VERTEX_FLAG_FIXED_COLOR ) ) return nothing;
+  auto to_8_bit = []( float f ) {
+    return static_cast<uint8_t>(
+        clamp( static_cast<int>( floor( f * 255 ) ), 0, 255 ) );
+  };
+  return gfx::pixel{ .r = to_8_bit( fixed_color.r ),
+                     .g = to_8_bit( fixed_color.g ),
+                     .b = to_8_bit( fixed_color.b ),
+                     .a = to_8_bit( fixed_color.a ) };
+}
+
 /****************************************************************
 ** SpriteVertex
 *****************************************************************/
@@ -169,20 +195,6 @@ SolidVertex::SolidVertex( gfx::point position, gfx::pixel color )
 }
 
 /****************************************************************
-** SilhouetteVertex
-*****************************************************************/
-SilhouetteVertex::SilhouetteVertex( gfx::point position,
-                                    gfx::point atlas_position,
-                                    gfx::rect  atlas_rect,
-                                    gfx::pixel color )
-  : VertexBase(
-        proto_vertex( vertex_type::silhouette, position ) ) {
-  this->atlas_position = gl::vec2::from_point( atlas_position );
-  this->atlas_rect     = gl::vec4::from_rect( atlas_rect );
-  this->fixed_color    = gl::color::from_pixel( color );
-}
-
-/****************************************************************
 ** StencilVertex
 *****************************************************************/
 StencilVertex::StencilVertex( gfx::point position,
@@ -196,7 +208,7 @@ StencilVertex::StencilVertex( gfx::point position,
   this->atlas_rect     = gl::vec4::from_rect( atlas_rect );
   this->atlas_target_offset =
       gl::vec2::from_size( atlas_target_offset );
-  this->fixed_color = gl::color::from_pixel( key_color );
+  this->stencil_key_color = gl::color::from_pixel( key_color );
 }
 
 } // namespace rr

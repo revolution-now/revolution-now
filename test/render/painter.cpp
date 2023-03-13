@@ -655,37 +655,6 @@ TEST_CASE( "[render/painter] draw_sprite" ) {
   REQUIRE( v == expected );
 }
 
-TEST_CASE( "[render/painter] draw_silhouette" ) {
-  vector<GenericVertex> v, expected;
-
-  Emitter emitter( v );
-  Painter painter( atlas_map(), emitter );
-
-  point p;
-
-  rect const atlas_rect = get_atlas_rect( 2 );
-
-  auto Vert = [&]( point p, point atlas_p ) {
-    return SilhouetteVertex( p, atlas_p, atlas_rect, R )
-        .generic();
-  };
-
-  p            = { .x = 20, .y = 30 };
-  int atlas_id = 2;
-  painter.draw_silhouette( atlas_id, p, R );
-  // atlas: { .origin = { .x = 3, .y = 4 },
-  //          .size   = { .w = 5, .h = 6 } },
-  expected = {
-      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
-      Vert( { .x = 20, .y = 36 }, { .x = 3, .y = 10 } ),
-      Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
-      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
-      Vert( { .x = 25, .y = 30 }, { .x = 8, .y = 4 } ),
-      Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
-  };
-  REQUIRE( v == expected );
-}
-
 TEST_CASE( "[render/painter] draw_stencil" ) {
   vector<GenericVertex> v, expected;
 
@@ -787,38 +756,6 @@ TEST_CASE( "[render/painter] draw_sprite_section" ) {
   REQUIRE( v == expected );
 }
 
-TEST_CASE( "[render/painter] draw_silhouette_scale" ) {
-  vector<GenericVertex> v, expected;
-
-  Emitter emitter( v );
-  Painter painter( atlas_map(), emitter );
-
-  rect r;
-
-  rect const atlas_rect = get_atlas_rect( 1 );
-
-  auto Vert = [&]( point p, point atlas_p ) {
-    return SilhouetteVertex( p, atlas_p, atlas_rect, G )
-        .generic();
-  };
-
-  r            = rect{ .origin = { .x = 20, .y = 30 },
-                       .size   = { .w = 8, .h = 10 } };
-  int atlas_id = 1;
-  painter.draw_silhouette_scale( atlas_id, r, G );
-  // atlas: { .origin = { .x = 2, .y = 3 },
-  //          .size   = { .w = 4, .h = 5 } },
-  expected = {
-      Vert( { .x = 20, .y = 30 }, { .x = 2, .y = 3 } ),
-      Vert( { .x = 20, .y = 40 }, { .x = 2, .y = 8 } ),
-      Vert( { .x = 28, .y = 40 }, { .x = 6, .y = 8 } ),
-      Vert( { .x = 20, .y = 30 }, { .x = 2, .y = 3 } ),
-      Vert( { .x = 28, .y = 30 }, { .x = 6, .y = 3 } ),
-      Vert( { .x = 28, .y = 40 }, { .x = 6, .y = 8 } ),
-  };
-  REQUIRE( v == expected );
-}
-
 TEST_CASE( "[render/painter] mod depixelate to blank" ) {
   vector<GenericVertex> v, expected;
 
@@ -831,16 +768,17 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
                 .stage       = .7,
                 .inverted    = {},
                 .hash_anchor = point{ .x = 1, .y = 2 } },
-        .alpha      = nothing,
-        .repos      = {},
-        .desaturate = nothing } );
+        .alpha       = nothing,
+        .repos       = {},
+        .desaturate  = nothing,
+        .fixed_color = nothing } );
 
   point p;
 
   rect const atlas_rect = get_atlas_rect( 2 );
 
   auto Vert = [&]( point p, point atlas_p ) {
-    auto vert = SilhouetteVertex( p, atlas_p, atlas_rect, R );
+    auto vert = SpriteVertex( p, atlas_p, atlas_rect );
     vert.set_depixelation_stage( .7 );
     vert.set_depixelation_hash_anchor( { .x = 1, .y = 2 } );
     return vert.generic();
@@ -848,7 +786,7 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
 
   p            = { .x = 20, .y = 30 };
   int atlas_id = 2;
-  painter.draw_silhouette( atlas_id, p, R );
+  painter.draw_sprite( atlas_id, p );
   // atlas: { .origin = { .x = 3, .y = 4 },
   //          .size   = { .w = 5, .h = 6 } },
   expected = {
@@ -874,16 +812,17 @@ TEST_CASE( "[render/painter] mod depixelate with inversion" ) {
                 .stage       = .7,
                 .inverted    = true,
                 .hash_anchor = point{ .x = 1, .y = 2 } },
-        .alpha      = nothing,
-        .repos      = {},
-        .desaturate = nothing } );
+        .alpha       = nothing,
+        .repos       = {},
+        .desaturate  = nothing,
+        .fixed_color = nothing } );
 
   point p;
 
   rect const atlas_rect = get_atlas_rect( 2 );
 
   auto Vert = [&]( point p, point atlas_p ) {
-    auto vert = SilhouetteVertex( p, atlas_p, atlas_rect, R );
+    auto vert = SpriteVertex( p, atlas_p, atlas_rect );
     vert.set_depixelation_stage( .7 );
     vert.set_depixelation_inversion( true );
     vert.set_depixelation_hash_anchor( { .x = 1, .y = 2 } );
@@ -892,7 +831,7 @@ TEST_CASE( "[render/painter] mod depixelate with inversion" ) {
 
   p            = { .x = 20, .y = 30 };
   int atlas_id = 2;
-  painter.draw_silhouette( atlas_id, p, R );
+  painter.draw_sprite( atlas_id, p );
   // atlas: { .origin = { .x = 3, .y = 4 },
   //          .size   = { .w = 5, .h = 6 } },
   expected = {
@@ -912,10 +851,11 @@ TEST_CASE( "[render/painter] mod alpha" ) {
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
   Painter painter =
-      unmodded_painter.with_mods( { .depixelate = {},
-                                    .alpha      = .7,
-                                    .repos      = {},
-                                    .desaturate = nothing } );
+      unmodded_painter.with_mods( { .depixelate  = {},
+                                    .alpha       = .7,
+                                    .repos       = {},
+                                    .desaturate  = nothing,
+                                    .fixed_color = nothing } );
 
   rect r;
 
@@ -945,10 +885,11 @@ TEST_CASE( "[render/painter] mod desaturate" ) {
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
   Painter painter =
-      unmodded_painter.with_mods( { .depixelate = {},
-                                    .alpha      = {},
-                                    .repos      = {},
-                                    .desaturate = true } );
+      unmodded_painter.with_mods( { .depixelate  = {},
+                                    .alpha       = {},
+                                    .repos       = {},
+                                    .desaturate  = true,
+                                    .fixed_color = nothing } );
 
   rect r;
 
@@ -972,17 +913,53 @@ TEST_CASE( "[render/painter] mod desaturate" ) {
   REQUIRE( v == expected );
 }
 
+TEST_CASE( "[render/painter] mod fixed_color" ) {
+  vector<GenericVertex> v, expected;
+
+  Emitter emitter( v );
+  Painter unmodded_painter( atlas_map(), emitter );
+  Painter painter = unmodded_painter.with_mods(
+      { .depixelate  = {},
+        .alpha       = {},
+        .repos       = {},
+        .desaturate  = {},
+        .fixed_color = gfx::pixel::red() } );
+
+  rect r;
+
+  auto Vert = [&]( point p ) {
+    auto vert = SolidVertex( p, G );
+    vert.set_fixed_color(
+        gfx::pixel{ .r = 255, .g = 0, .b = 0, .a = 255 } );
+    return vert.generic();
+  };
+
+  r = rect{ .origin = { .x = 20, .y = 30 },
+            .size   = { .w = 100, .h = 200 } };
+  painter.draw_solid_rect( r, G );
+  expected = {
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 230 } ),
+      Vert( { .x = 120, .y = 230 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 120, .y = 30 } ),
+      Vert( { .x = 120, .y = 230 } ),
+  };
+  REQUIRE( v == expected );
+}
+
 TEST_CASE( "[render/painter] mod cycling" ) {
   vector<GenericVertex> v, expected;
 
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
   Painter painter = unmodded_painter.with_mods(
-      { .depixelate = {},
-        .alpha      = {},
-        .repos      = {},
-        .cycling    = { .enabled = true },
-        .desaturate = nothing } );
+      { .depixelate  = {},
+        .alpha       = {},
+        .repos       = {},
+        .cycling     = { .enabled = true },
+        .desaturate  = nothing,
+        .fixed_color = nothing } );
 
   rect r;
 
@@ -1055,7 +1032,8 @@ TEST_CASE( "[render/painter] mod use_camera" ) {
                 .translation = dsize{ .w = 5.3, .h = 3 },
                 .use_camera  = true,
             },
-        .desaturate = nothing } );
+        .desaturate  = nothing,
+        .fixed_color = nothing } );
 
   auto Vert = [&]( point p ) {
     auto vert = SolidVertex( p, G );

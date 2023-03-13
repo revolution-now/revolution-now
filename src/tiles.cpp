@@ -117,16 +117,12 @@ void render_sprite_section( rr::Painter& painter, e_tile tile,
                                source );
 }
 
-void render_sprite_silhouette( rr::Painter& painter, Coord where,
-                               e_tile tile, gfx::pixel color ) {
-  painter.draw_silhouette( atlas_lookup( tile ), where, color );
-}
-
-void render_sprite_silhouette_scale( rr::Painter& painter,
-                                     Rect where, e_tile tile,
-                                     gfx::pixel color ) {
-  painter.draw_silhouette_scale( atlas_lookup( tile ), where,
-                                 color );
+void render_sprite_silhouette( rr::Renderer& renderer,
+                               Coord where, e_tile tile,
+                               gfx::pixel color ) {
+  SCOPED_RENDERER_MOD_SET( painter_mods.fixed_color, color );
+  rr::Painter painter = renderer.painter();
+  painter.draw_sprite( atlas_lookup( tile ), where );
 }
 
 void render_sprite_dulled( rr::Renderer& renderer, e_tile tile,
@@ -145,8 +141,7 @@ void render_sprite_dulled( rr::Renderer& renderer, e_tile tile,
   }
   {
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .3 );
-    rr::Painter painter = renderer.painter();
-    render_sprite_silhouette( painter, where, tile,
+    render_sprite_silhouette( renderer, where, tile,
                               gfx::pixel::black() );
   }
 }

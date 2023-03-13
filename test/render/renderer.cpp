@@ -50,6 +50,7 @@ vector<tuple<int, string, bool>> const kExpectedAttributes{
     { GL_FLOAT_VEC2, "in_atlas_position", false },      //
     { GL_FLOAT_VEC4, "in_atlas_rect", false },          //
     { GL_FLOAT_VEC2, "in_atlas_target_offset", false }, //
+    { GL_FLOAT_VEC4, "in_stencil_key_color", false },   //
     { GL_FLOAT_VEC4, "in_fixed_color", false },         //
     { GL_FLOAT, "in_alpha_multiplier", false },         //
     { GL_FLOAT, "in_scaling", false },                  //

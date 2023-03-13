@@ -89,12 +89,12 @@ void render_native_unit( rr::Renderer& renderer, Coord where,
                          UnitRenderOptions const& options = {} );
 
 // Render an abstract unit of a given type.
-void render_unit_type( rr::Painter& painter, Coord where,
+void render_unit_type( rr::Renderer& renderer, Coord where,
                        e_unit_type              unit_type,
                        UnitRenderOptions const& options = {} );
 
 void render_native_unit_type(
-    rr::Painter& painter, Coord where,
+    rr::Renderer& renderer, Coord where,
     e_native_unit_type       unit_type,
     UnitRenderOptions const& options = {} );
 

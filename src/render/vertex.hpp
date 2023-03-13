@@ -37,6 +37,7 @@ namespace rr {
 #define VERTEX_FLAG_COLOR_CYCLE ( uint32_t{ 1 } << 0 )
 #define VERTEX_FLAG_USE_CAMERA  ( uint32_t{ 1 } << 1 )
 #define VERTEX_FLAG_DESATURATE  ( uint32_t{ 1 } << 2 )
+#define VERTEX_FLAG_FIXED_COLOR ( uint32_t{ 1 } << 3 )
 
 /****************************************************************
 ** Concept
@@ -98,6 +99,10 @@ struct VertexBase : protected GenericVertex {
   bool get_desaturate() const;
   void set_desaturate( bool enabled );
 
+  // *** Fixed color.
+  base::maybe<gfx::pixel> get_fixed_color() const;
+  void set_fixed_color( base::maybe<gfx::pixel> color );
+
   bool operator==( VertexBase const& ) const = default;
 };
 
@@ -129,23 +134,6 @@ struct SolidVertex : public VertexBase {
 };
 
 STATIC_VERTEX_CHECKS( SolidVertex );
-
-/****************************************************************
-** SilhouetteVertex
-*****************************************************************/
-// This is a vertex used for shapes that are filled with a sprite
-// copied from the texture atlas but where the specified color is
-// used for all pixels with its alpha multiplied by the alpha of
-// the texture atlas pixel.
-struct SilhouetteVertex : public VertexBase {
-  SilhouetteVertex( gfx::point position,
-                    gfx::point atlas_position,
-                    gfx::rect atlas_rect, gfx::pixel color );
-
-  bool operator==( SilhouetteVertex const& ) const = default;
-};
-
-STATIC_VERTEX_CHECKS( SilhouetteVertex );
 
 /****************************************************************
 ** StencilVertex

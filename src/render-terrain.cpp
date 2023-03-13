@@ -1982,13 +1982,13 @@ void render_fish( Visibility const& viz, rr::Renderer& renderer,
       .r = 32, .g = 85, .b = 78, .a = 255 };
 
   if( should_outline_up || should_outline_left ) {
-    // TODO: insert mod here.
-    rr::Painter painter = renderer.painter();
     if( should_outline_up )
-      render_sprite_silhouette( painter, where - Delta{ .h = 1 },
+      render_sprite_silhouette( renderer,
+                                where - Delta{ .h = 1 },
                                 fish_body, outline_color );
     if( should_outline_left )
-      render_sprite_silhouette( painter, where - Delta{ .w = 1 },
+      render_sprite_silhouette( renderer,
+                                where - Delta{ .w = 1 },
                                 fish_body, outline_color );
   }
 

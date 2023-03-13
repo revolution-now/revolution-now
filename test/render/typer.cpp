@@ -67,8 +67,9 @@ TEST_CASE( "[render/typer] write_char" ) {
   Typer typer( painter, ascii_font(), { .x = 20, .y = 30 }, B );
 
   auto Vert = [&]( point p, point atlas_p, rect atlas_rect ) {
-    return SilhouetteVertex( p, atlas_p, atlas_rect, B )
-        .generic();
+    auto vert = SpriteVertex( p, atlas_p, atlas_rect );
+    vert.set_fixed_color( B );
+    return vert.generic();
   };
 
   typer.write( "ha {}\nYes", "bob" );
@@ -159,8 +160,9 @@ TEST_CASE( "[render/typer] write_char scaled" ) {
   typer.set_scale( size{ .w = 4, .h = 8 } );
 
   auto Vert = [&]( point p, point atlas_p, rect atlas_rect ) {
-    return SilhouetteVertex( p, atlas_p, atlas_rect, B )
-        .generic();
+    auto vert = SpriteVertex( p, atlas_p, atlas_rect );
+    vert.set_fixed_color( B );
+    return vert.generic();
   };
 
   typer.write( 'h' );

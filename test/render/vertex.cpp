@@ -44,6 +44,7 @@ TEST_CASE( "[render/vertex] SpriteVertex" ) {
   REQUIRE( gv.atlas_rect ==
            gl::vec4{ .x = 5, .y = 6, .z = 1, .w = 2 } );
   REQUIRE( gv.atlas_target_offset == gl::vec2{} );
+  REQUIRE( gv.stencil_key_color == gl::color{} );
   REQUIRE( gv.fixed_color == gl::color{} );
   REQUIRE( gv.alpha_multiplier == 1.0f );
 }
@@ -60,28 +61,7 @@ TEST_CASE( "[render/vertex] SolidVertex" ) {
   REQUIRE( gv.atlas_position == gl::vec2{} );
   REQUIRE( gv.atlas_rect == gl::vec4{} );
   REQUIRE( gv.atlas_target_offset == gl::vec2{} );
-  REQUIRE( gv.fixed_color == gl::color{ .r = 10.0f / 255.0f,
-                                        .g = 20.0f / 255.0f,
-                                        .b = 30.0f / 255.0f,
-                                        .a = 40.0f / 255.0f } );
-  REQUIRE( gv.alpha_multiplier == 1.0f );
-}
-
-TEST_CASE( "[render/vertex] SilhouetteVertex" ) {
-  SilhouetteVertex vert(
-      point{ .x = 1, .y = 2 }, point{ .x = 3, .y = 4 },
-      rect{ .origin = point{ .x = 5, .y = 6 },
-            .size   = { .w = 1, .h = 2 } },
-      pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
-  GenericVertex const& gv = vert.generic();
-  REQUIRE( gv.type == 2 );
-  REQUIRE( gv.depixelate == gl::vec4{} );
-  REQUIRE( gv.depixelate_stages == gl::vec4{} );
-  REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
-  REQUIRE( gv.atlas_position == gl::vec2{ .x = 3, .y = 4 } );
-  REQUIRE( gv.atlas_rect ==
-           gl::vec4{ .x = 5, .y = 6, .z = 1, .w = 2 } );
-  REQUIRE( gv.atlas_target_offset == gl::vec2{} );
+  REQUIRE( gv.stencil_key_color == gl::color{} );
   REQUIRE( gv.fixed_color == gl::color{ .r = 10.0f / 255.0f,
                                         .g = 20.0f / 255.0f,
                                         .b = 30.0f / 255.0f,
@@ -97,7 +77,7 @@ TEST_CASE( "[render/vertex] StencilVertex" ) {
       size{ .w = 2, .h = 3 },
       pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
   GenericVertex const& gv = vert.generic();
-  REQUIRE( gv.type == 3 );
+  REQUIRE( gv.type == 2 );
   REQUIRE( gv.depixelate == gl::vec4{} );
   REQUIRE( gv.depixelate_stages == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
@@ -106,10 +86,12 @@ TEST_CASE( "[render/vertex] StencilVertex" ) {
            gl::vec4{ .x = 5, .y = 6, .z = 1, .w = 2 } );
   REQUIRE( gv.atlas_target_offset ==
            gl::vec2{ .x = 2, .y = 3 } );
-  REQUIRE( gv.fixed_color == gl::color{ .r = 10.0f / 255.0f,
-                                        .g = 20.0f / 255.0f,
-                                        .b = 30.0f / 255.0f,
-                                        .a = 40.0f / 255.0f } );
+  REQUIRE( gv.stencil_key_color ==
+           gl::color{ .r = 10.0f / 255.0f,
+                      .g = 20.0f / 255.0f,
+                      .b = 30.0f / 255.0f,
+                      .a = 40.0f / 255.0f } );
+  REQUIRE( gv.fixed_color == gl::color{} );
   REQUIRE( gv.alpha_multiplier == 1.0f );
 }
 
@@ -251,6 +233,30 @@ TEST_CASE( "[render/vertex] desaturate" ) {
   REQUIRE( ( vert.generic().flags & VERTEX_FLAG_DESATURATE ) ==
            0 );
   REQUIRE_FALSE( vert.get_desaturate() );
+}
+
+TEST_CASE( "[render/vertex] fixed_color" ) {
+  static_assert( VERTEX_FLAG_FIXED_COLOR == 8 );
+  SpriteVertex     vert( point{ .x = 6, .y = 12 },
+                         point{ .x = 3, .y = 4 },
+                         rect{ .origin = point{ .x = 5, .y = 6 },
+                               .size   = { .w = 1, .h = 2 } } );
+  gfx::pixel const color{ .r = 16, .g = 32, .b = 64, .a = 128 };
+  REQUIRE( ( vert.generic().flags & VERTEX_FLAG_FIXED_COLOR ) ==
+           0 );
+  REQUIRE( vert.get_fixed_color() == nothing );
+  vert.set_fixed_color( color );
+  REQUIRE( vert.get_fixed_color() == color );
+  REQUIRE( ( vert.generic().flags & VERTEX_FLAG_FIXED_COLOR ) ==
+           VERTEX_FLAG_FIXED_COLOR );
+  vert.set_fixed_color( gfx::pixel{} );
+  REQUIRE( vert.get_fixed_color() == gfx::pixel{} );
+  REQUIRE( ( vert.generic().flags & VERTEX_FLAG_FIXED_COLOR ) ==
+           VERTEX_FLAG_FIXED_COLOR );
+  vert.set_fixed_color( nothing );
+  REQUIRE( vert.get_fixed_color() == nothing );
+  REQUIRE( ( vert.generic().flags & VERTEX_FLAG_FIXED_COLOR ) ==
+           0 );
 }
 
 } // namespace

@@ -25,12 +25,7 @@ struct.GenericVertex {
   #  1. Solid rectangle. This triangle will be filled in with a
   #     solid color.
   #
-  #  2. Silhouette. This triangle will be contain a sprite copied
-  #     from the texture atlas, but all of its non-transparent
-  #     pixels will be replaced by a fixed color. Examples of
-  #     uses for this would be fonts and window shadows.
-  #
-  #  3. Stencil. This triangle is a sprite that will be drawn as
+  #  2. Stencil. This triangle is a sprite that will be drawn as
   #     such (respecting transparency), but all pixels in the
   #     sprite that are a key color will be replaced by pixels of
   #     an alternate sprite (specified in the atlas via the
@@ -61,6 +56,11 @@ struct.GenericVertex {
   #
   #   2    Desaturate.  When true, the fragment shader will, as
   #        a final step, fully desaturate the color.
+  #
+  #   3    Fixed color. When this is on, the rgb values in the
+  #        fixed_color field will be used to replace the final
+  #        rgb values of the color, before desaturation is
+  #        applied.
   #
   flags 'uint32_t',
 
@@ -140,12 +140,16 @@ struct.GenericVertex {
   # atlas that will be used for pixels of the key color.
   atlas_target_offset 'gl::vec2',
 
-  # For solid triangles or silhouettes this will be the color
-  # used. Components should be in [0, 1.0]. For silhouettes,
-  # alpha in this color will be multiplied by the alpha of the
-  # texture pixel.
-  #
   # For stencils this will be the key color.
+  stencil_key_color 'gl::color',
+
+  # For a solid-color vertex this will be the color, alpha in-
+  # cluded.
+  #
+  # If the fixed_color flag is on then the rgb components will be
+  # used to replace the final color, retaining the original alpha
+  # (i.e., the alpha in this field is ignored). This is only
+  # meaningful to use for non solid-color vertices.
   fixed_color 'gl::color',
 
   # The final pixel color will have its alpha multiplied by this
