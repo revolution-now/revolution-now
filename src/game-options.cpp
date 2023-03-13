@@ -83,6 +83,30 @@ void on_option_disabled( TS& ts, e_game_flag_option option ) {
   }
 }
 
+// TODO: temporary until we implement all of the options.
+bool is_checkbox_enabled( e_game_flag_option option ) {
+  switch( option ) {
+    case e_game_flag_option::show_indian_moves:
+      return false;
+    case e_game_flag_option::show_foreign_moves:
+      return false;
+    case e_game_flag_option::fast_piece_slide:
+      return true;
+    case e_game_flag_option::end_of_turn:
+      return false;
+    case e_game_flag_option::autosave:
+      return false;
+    case e_game_flag_option::combat_analysis:
+      return false;
+    case e_game_flag_option::water_color_cycling:
+      return false;
+    case e_game_flag_option::tutorial_hints:
+      return false;
+    case e_game_flag_option::show_fog_of_war:
+      return true;
+  }
+}
+
 } // namespace
 
 /****************************************************************
@@ -116,6 +140,8 @@ wait<> open_game_options_box( SS& ss, TS& ts ) {
         IGui::identifier_to_display_name(
             refl::enum_value_name( option ) ),
         flags[option] );
+    if( !is_checkbox_enabled( option ) )
+      labeled_box->set_disabled( true );
     boxes[option] = labeled_box.get();
     boxes_array->add_view( std::move( labeled_box ) );
   }
