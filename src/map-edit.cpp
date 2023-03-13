@@ -631,7 +631,8 @@ wait<> run_map_editor_standalone( Planes& planes ) {
   SS                  ss;
   Delta               size{ .w = 100, .h = 100 };
   RenderingMapUpdater map_updater(
-      ss, global_renderer_use_only_when_needed() );
+      ss, global_renderer_use_only_when_needed(),
+      MapUpdaterOptions{} );
   reset_terrain( map_updater, size );
   ss.land_view.viewport.set_world_size_tiles( size );
   lua::state st;

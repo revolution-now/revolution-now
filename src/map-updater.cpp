@@ -47,6 +47,13 @@ TerrainRenderOptions make_terrain_options(
 /****************************************************************
 ** NonRenderingMapUpdater
 *****************************************************************/
+NonRenderingMapUpdater::NonRenderingMapUpdater(
+    SS& ss, MapUpdaterOptions const& initial_options )
+  : IMapUpdater( initial_options ), ss_( ss ) {}
+
+NonRenderingMapUpdater::NonRenderingMapUpdater( SS& ss )
+  : NonRenderingMapUpdater( ss, MapUpdaterOptions{} ) {}
+
 bool NonRenderingMapUpdater::modify_map_square(
     Coord                                  tile,
     base::function_ref<void( MapSquare& )> mutator ) {
@@ -129,8 +136,9 @@ void NonRenderingMapUpdater::redraw() {}
 ** RenderingMapUpdater
 *****************************************************************/
 RenderingMapUpdater::RenderingMapUpdater(
-    SS& ss, rr::Renderer& renderer )
-  : NonRenderingMapUpdater( ss ),
+    SS& ss, rr::Renderer& renderer,
+    MapUpdaterOptions const& initial_options )
+  : NonRenderingMapUpdater( ss, initial_options ),
     renderer_( renderer ),
     tiles_redrawn_( 0 ),
     tile_bounds_( ss.terrain.world_size_tiles() ) {

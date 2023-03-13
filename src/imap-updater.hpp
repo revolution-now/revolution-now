@@ -82,6 +82,8 @@ struct IMapUpdater {
 
   IMapUpdater();
 
+  IMapUpdater( MapUpdaterOptions const& initial_options );
+
   virtual ~IMapUpdater() = default;
 
   // This function should be used whenever a map square (specifi-

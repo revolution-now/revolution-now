@@ -33,7 +33,10 @@ struct Visibility;
 // It is useful in unit tests where the map updater will be
 // called but we don't want to mock it.
 struct NonRenderingMapUpdater : IMapUpdater {
-  NonRenderingMapUpdater( SS& ss ) : ss_( ss ) {}
+  NonRenderingMapUpdater( SS& ss );
+
+  NonRenderingMapUpdater(
+      SS& ss, MapUpdaterOptions const& initial_options );
 
   // Implement IMapUpdater.
   bool modify_map_square( Coord, SquareUpdateFunc ) override;
@@ -65,7 +68,9 @@ struct NonRenderingMapUpdater : IMapUpdater {
 struct RenderingMapUpdater : NonRenderingMapUpdater {
   using Base = NonRenderingMapUpdater;
 
-  RenderingMapUpdater( SS& ss, rr::Renderer& renderer );
+  RenderingMapUpdater(
+      SS& ss, rr::Renderer& renderer,
+      MapUpdaterOptions const& initial_options );
 
   // Implement IMapUpdater.
   bool modify_map_square( Coord            tile,

@@ -35,9 +35,13 @@ MapUpdaterOptionsPopper::~MapUpdaterOptionsPopper() noexcept {
 /****************************************************************
 ** IMapUpdater
 *****************************************************************/
-IMapUpdater::IMapUpdater() {
-  options_.push( MapUpdaterOptions{} );
+IMapUpdater::IMapUpdater(
+    MapUpdaterOptions const& initial_options ) {
+  options_.push( initial_options );
 }
+
+IMapUpdater::IMapUpdater()
+  : IMapUpdater( MapUpdaterOptions{} ) {}
 
 IMapUpdater::Popper IMapUpdater::push_options_and_redraw(
     OptionsUpdateFunc mutator ) {

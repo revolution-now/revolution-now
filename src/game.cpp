@@ -124,7 +124,11 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   CHECK( !connectivity.indices.empty() );
 
   RenderingMapUpdater map_updater(
-      ss, global_renderer_use_only_when_needed() );
+      ss, global_renderer_use_only_when_needed(),
+      MapUpdaterOptions{
+          .render_fog_of_war =
+              ss.settings.game_options.flags
+                  [e_game_flag_option::show_fog_of_war] } );
   TS ts( planes, map_updater, st, gui, rand, combat,
          colony_viewer, saved, connectivity );
 
