@@ -57,9 +57,18 @@ e_direction_type direction_type( e_direction d );
 e_direction reverse_direction( e_direction d );
 
 /****************************************************************
+** e_cdirection
+*****************************************************************/
+base::maybe<e_direction> to_direction( e_cdirection cd );
+
+e_cdirection to_cdirection( e_direction d );
+
+/****************************************************************
 ** e_cardinal_direction
 *****************************************************************/
 e_direction to_direction( e_cardinal_direction d );
+
+e_cdirection to_cdirection( e_cardinal_direction d );
 
 /****************************************************************
 ** e_diagonal_direction
@@ -240,6 +249,8 @@ struct Coord {
   }
 
   Coord moved( e_direction d ) const;
+  Coord moved( e_cdirection cd ) const;
+
   // Find the direction from this coord to `dest`. If dest is not
   // equal or adjacent to this coord then nothing will be re-
   // turned.

@@ -97,12 +97,86 @@ TEST_CASE( "[e_direction] to_direction*" ) {
            e_direction::e );
   REQUIRE( to_direction( e_cardinal_direction::s ) ==
            e_direction::s );
+  REQUIRE( to_cdirection( e_cardinal_direction::n ) ==
+           e_cdirection::n );
+  REQUIRE( to_cdirection( e_cardinal_direction::w ) ==
+           e_cdirection::w );
+  REQUIRE( to_cdirection( e_cardinal_direction::e ) ==
+           e_cdirection::e );
+  REQUIRE( to_cdirection( e_cardinal_direction::s ) ==
+           e_cdirection::s );
+}
+
+TEST_CASE( "[e_cdirection] to_direction*" ) {
+  REQUIRE( to_direction( e_cdirection::nw ) == e_direction::nw );
+  REQUIRE( to_direction( e_cdirection::n ) == e_direction::n );
+  REQUIRE( to_direction( e_cdirection::ne ) == e_direction::ne );
+  REQUIRE( to_direction( e_cdirection::w ) == e_direction::w );
+  REQUIRE( to_direction( e_cdirection::c ) == base::nothing );
+  REQUIRE( to_direction( e_cdirection::e ) == e_direction::e );
+  REQUIRE( to_direction( e_cdirection::sw ) == e_direction::sw );
+  REQUIRE( to_direction( e_cdirection::s ) == e_direction::s );
+  REQUIRE( to_direction( e_cdirection::se ) == e_direction::se );
+}
+
+TEST_CASE( "[e_cdirection] to_cdirection*" ) {
+  REQUIRE( to_cdirection( e_direction::nw ) ==
+           e_cdirection::nw );
+  REQUIRE( to_cdirection( e_direction::n ) == e_cdirection::n );
+  REQUIRE( to_cdirection( e_direction::ne ) ==
+           e_cdirection::ne );
+  REQUIRE( to_cdirection( e_direction::w ) == e_cdirection::w );
+  REQUIRE( to_cdirection( e_direction::e ) == e_cdirection::e );
+  REQUIRE( to_cdirection( e_direction::sw ) ==
+           e_cdirection::sw );
+  REQUIRE( to_cdirection( e_direction::s ) == e_cdirection::s );
+  REQUIRE( to_cdirection( e_direction::se ) ==
+           e_cdirection::se );
 }
 
 TEST_CASE( "[coord] with coord*" ) {
   Coord c{ .x = 3, .y = 5 };
   REQUIRE( c.with_x( 6 ) == Coord{ .x = 6, .y = 5 } );
   REQUIRE( c.with_y( 6 ) == Coord{ .x = 3, .y = 6 } );
+}
+
+TEST_CASE( "[coord] moved*" ) {
+  Coord const c{ .x = 3, .y = 5 };
+  REQUIRE( c.moved( e_cdirection::nw ) ==
+           Coord{ .x = 2, .y = 4 } );
+  REQUIRE( c.moved( e_cdirection::n ) ==
+           Coord{ .x = 3, .y = 4 } );
+  REQUIRE( c.moved( e_cdirection::ne ) ==
+           Coord{ .x = 4, .y = 4 } );
+  REQUIRE( c.moved( e_cdirection::w ) ==
+           Coord{ .x = 2, .y = 5 } );
+  REQUIRE( c.moved( e_cdirection::e ) ==
+           Coord{ .x = 4, .y = 5 } );
+  REQUIRE( c.moved( e_cdirection::sw ) ==
+           Coord{ .x = 2, .y = 6 } );
+  REQUIRE( c.moved( e_cdirection::s ) ==
+           Coord{ .x = 3, .y = 6 } );
+  REQUIRE( c.moved( e_cdirection::se ) ==
+           Coord{ .x = 4, .y = 6 } );
+  REQUIRE( c.moved( e_cdirection::c ) ==
+           Coord{ .x = 3, .y = 5 } );
+
+  REQUIRE( c.moved( e_direction::nw ) ==
+           Coord{ .x = 2, .y = 4 } );
+  REQUIRE( c.moved( e_direction::n ) ==
+           Coord{ .x = 3, .y = 4 } );
+  REQUIRE( c.moved( e_direction::ne ) ==
+           Coord{ .x = 4, .y = 4 } );
+  REQUIRE( c.moved( e_direction::w ) ==
+           Coord{ .x = 2, .y = 5 } );
+  REQUIRE( c.moved( e_direction::e ) ==
+           Coord{ .x = 4, .y = 5 } );
+  REQUIRE( c.moved( e_direction::sw ) ==
+           Coord{ .x = 2, .y = 6 } );
+  REQUIRE( c.moved( e_direction::s ) ==
+           Coord{ .x = 3, .y = 6 } );
+  REQUIRE( c.moved( e_direction::se ) ==
+           Coord{ .x = 4, .y = 6 } );
 }
 
 TEST_CASE( "[coord] lexical ordering*" ) {

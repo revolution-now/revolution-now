@@ -75,6 +75,63 @@ e_direction reverse_direction( e_direction d ) {
 }
 
 /****************************************************************
+** e_cdirection
+*****************************************************************/
+base::maybe<e_direction> to_direction( e_cdirection cd ) {
+  base::maybe<e_direction> res;
+  switch( cd ) {
+    case e_cdirection::nw:
+      res = e_direction::nw;
+      break;
+    case e_cdirection::ne:
+      res = e_direction::ne;
+      break;
+    case e_cdirection::sw:
+      res = e_direction::sw;
+      break;
+    case e_cdirection::se:
+      res = e_direction::se;
+      break;
+    case e_cdirection::n:
+      res = e_direction::n;
+      break;
+    case e_cdirection::w:
+      res = e_direction::w;
+      break;
+    case e_cdirection::e:
+      res = e_direction::e;
+      break;
+    case e_cdirection::s:
+      res = e_direction::s;
+      break;
+    case e_cdirection::c:
+      break;
+  }
+  return res;
+}
+
+e_cdirection to_cdirection( e_direction d ) {
+  switch( d ) {
+    case e_direction::nw:
+      return e_cdirection::nw;
+    case e_direction::ne:
+      return e_cdirection::ne;
+    case e_direction::sw:
+      return e_cdirection::sw;
+    case e_direction::se:
+      return e_cdirection::se;
+    case e_direction::n:
+      return e_cdirection::n;
+    case e_direction::w:
+      return e_cdirection::w;
+    case e_direction::e:
+      return e_cdirection::e;
+    case e_direction::s:
+      return e_cdirection::s;
+  }
+}
+
+/****************************************************************
 ** e_cardinal_direction
 *****************************************************************/
 e_direction to_direction( e_cardinal_direction d ) {
@@ -87,6 +144,19 @@ e_direction to_direction( e_cardinal_direction d ) {
       return e_direction::e;
     case e_cardinal_direction::s:
       return e_direction::s;
+  }
+}
+
+e_cdirection to_cdirection( e_cardinal_direction d ) {
+  switch( d ) {
+    case e_cardinal_direction::n:
+      return e_cdirection::n;
+    case e_cardinal_direction::w:
+      return e_cdirection::w;
+    case e_cardinal_direction::e:
+      return e_cdirection::e;
+    case e_cardinal_direction::s:
+      return e_cdirection::s;
   }
 }
 
@@ -336,6 +406,22 @@ Coord Coord::moved( e_direction d ) const {
     case e_direction::sw: return {.x=x-1,.y=y+1};
     case e_direction::s:  return {.x=x,  .y=y+1};
     case e_direction::se: return {.x=x+1,.y=y+1};
+  };
+  // clang-format on
+}
+
+Coord Coord::moved( e_cdirection d ) const {
+  // clang-format off
+  switch( d ) {
+    case e_cdirection::nw: return {.x=x-1,.y=y-1};
+    case e_cdirection::n:  return {.x=x,  .y=y-1};
+    case e_cdirection::ne: return {.x=x+1,.y=y-1};
+    case e_cdirection::w:  return {.x=x-1,.y=y  };
+    case e_cdirection::e:  return {.x=x+1,.y=y  };
+    case e_cdirection::sw: return {.x=x-1,.y=y+1};
+    case e_cdirection::s:  return {.x=x,  .y=y+1};
+    case e_cdirection::se: return {.x=x+1,.y=y+1};
+    case e_cdirection::c:  return {.x=x,  .y=y  };
   };
   // clang-format on
 }
