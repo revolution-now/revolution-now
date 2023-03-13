@@ -95,7 +95,7 @@ bool is_checkbox_enabled( e_game_flag_option option ) {
     case e_game_flag_option::end_of_turn:
       return true;
     case e_game_flag_option::autosave:
-      return false;
+      return true;
     case e_game_flag_option::combat_analysis:
       return false;
     case e_game_flag_option::water_color_cycling:

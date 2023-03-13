@@ -32,7 +32,7 @@ void autosave( SSConst const& ss, TS& ts );
 
 // Given the current turn index, this will tell us if it is time
 // to autosave.
-bool should_autosave( int turns );
+bool should_autosave( SSConst const& ss );
 
 // Opens the save-game box. Returns if the game was actually
 // saved.

@@ -385,7 +385,11 @@ void autosave( SSConst const& ss, TS& ts ) {
   if( !res ) lg.warn( "autosave failed: {}", res.error() );
 }
 
-bool should_autosave( int turns ) {
+bool should_autosave( SSConst const& ss ) {
+  if( !ss.settings.game_options
+           .flags[e_game_flag_option::autosave] )
+    return false;
+  int const turns = ss.turn.time_point.turns;
   if( !config_savegame.autosave_frequency.has_value() )
     return false;
   return turns % *config_savegame.autosave_frequency == 0;

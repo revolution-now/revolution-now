@@ -1090,8 +1090,7 @@ wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
     }
     CASE( end_cycle ) {
       co_await advance_time( ts.gui, turn.time_point );
-      if( should_autosave( turn.time_point.turns ) )
-        autosave( ss, ts );
+      if( should_autosave( ss ) ) autosave( ss, ts );
       co_return TurnCycle::finished{};
     }
     CASE( finished ) { SHOULD_NOT_BE_HERE; }
