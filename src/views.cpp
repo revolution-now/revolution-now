@@ -956,15 +956,16 @@ Delta CheckBoxView::delta() const {
 void CheckBoxView::draw( rr::Renderer& renderer,
                          Coord         coord ) const {
   rr::Painter             painter = renderer.painter();
-  static gfx::pixel const color =
-      gfx::pixel{ .r = 0x3b, .g = 0x76, .b = 0x35, .a = 0xff };
-  static gfx::pixel const border = color.shaded( 2 );
+  static gfx::pixel const background_color =
+      config_ui.window.border_dark.with_alpha( 128 );
   static gfx::pixel const x_color =
-      gfx::pixel{ .r = 0x22, .g = 0x22, .b = 0x22, .a = 0xff };
-  painter.draw_solid_rect( rect( coord ), color );
-  painter.draw_empty_rect( rect( coord ),
-                           rr::Painter::e_border_mode::inside,
-                           border );
+      config_ui.dialog_text.highlighted;
+  painter.draw_solid_rect( rect( coord ), background_color );
+  render_shadow_hightlight_border(
+      renderer, rect( coord ).edges_removed(),
+      config_ui.window.border_lighter.highlighted(),
+      config_ui.window.border_darker.shaded() );
+
   if( on_ ) {
     // This creates an anti-aliased x.
     {
@@ -1016,6 +1017,8 @@ LabeledCheckBoxView::LabeledCheckBoxView( string label, bool on )
   auto check_box = make_unique<CheckBoxView>( on );
   check_box_     = check_box.get();
   add_view( std::move( check_box ) );
+  // Add some spacing between the box and text.
+  add_view( make_unique<EmptyView>( Delta{ .w = 2, .h = 1 } ) );
   auto label_view = make_unique<TextView>( std::move( label ) );
   add_view( std::move( label_view ) );
   recompute_child_positions();

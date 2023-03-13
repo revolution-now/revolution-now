@@ -25,6 +25,7 @@
 
 // config
 #include "config/tile-enum.rds.hpp"
+#include "config/ui.rds.hpp"
 
 // render
 #include "render/renderer.hpp"
@@ -43,13 +44,16 @@ namespace {
 
 string item_name( e_main_menu_item item ) {
   switch( item ) {
-    case e_main_menu_item::new_: return "New Game";
-    case e_main_menu_item::load: return "Load Game";
+    case e_main_menu_item::new_:
+      return "New Game";
+    case e_main_menu_item::load:
+      return "Load Game";
     case e_main_menu_item::settings_graphics:
       return "Graphics Settings";
     case e_main_menu_item::settings_sound:
       return "Sound Settings";
-    case e_main_menu_item::quit: return "Quit";
+    case e_main_menu_item::quit:
+      return "Quit";
   }
 }
 
@@ -76,14 +80,20 @@ struct MainMenuPlane::Impl : public Plane {
     UNWRAP_CHECK(
         normal_area,
         compositor::section( compositor::e_section::normal ) );
-    tile_sprite( painter, e_tile::wood_middle, normal_area );
+    {
+      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .7 );
+      rr::Painter painter = renderer.painter();
+      tile_sprite( painter, e_tile::wood_middle, normal_area );
+    }
     H    h         = normal_area.h / 2;
     auto num_items = refl::enum_count<e_main_menu_item>;
     h -= H{ rr::rendered_text_line_size_pixels( "X" ).h } *
          SY{ int( num_items ) } / 2;
     for( auto e : refl::enum_values<e_main_menu_item> ) {
-      gfx::pixel c         = gfx::pixel::banana().shaded( 3 );
-      Delta      text_size = Delta::from_gfx(
+      gfx::pixel const c =
+          ( e == curr_item_ ) ? config_ui.dialog_text.highlighted
+                              : config_ui.dialog_text.normal;
+      Delta text_size = Delta::from_gfx(
           rr::rendered_text_line_size_pixels( item_name( e ) ) );
       auto w   = normal_area.w / 2 - text_size.w / 2;
       auto dst = Rect::from( Coord{}, text_size )
@@ -94,10 +104,6 @@ struct MainMenuPlane::Impl : public Plane {
       dst = dst.with_border_added( 2 );
       dst.x -= 3;
       dst.w += 6;
-      if( e == curr_item_ )
-        painter.draw_empty_rect(
-            dst, rr::Painter::e_border_mode::outside,
-            gfx::pixel::banana() );
       h += dst.delta().h;
     }
   }
@@ -133,7 +139,8 @@ struct MainMenuPlane::Impl : public Plane {
             selection_stream_.send( e_main_menu_item::quit );
             handled = e_input_handled::yes;
             break;
-          default: break;
+          default:
+            break;
         }
         break;
       }

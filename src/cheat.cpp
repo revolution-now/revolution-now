@@ -150,6 +150,9 @@ wait<> cheat_edit_fathers( SS& ss, TS& ts, Player& player ) {
   auto text_view = make_unique<TextView>(
       "Select or unselect founding fathers:" );
   top_array->add_view( std::move( text_view ) );
+  // Add some space between title and check boxes.
+  top_array->add_view(
+      make_unique<EmptyView>( Delta{ .w = 1, .h = 2 } ) );
 
   // Add vertical split, since there are too many fathers to put
   // them all vertically.
@@ -182,6 +185,9 @@ wait<> cheat_edit_fathers( SS& ss, TS& ts, Player& player ) {
   vsplit_array->add_view( std::move( r_boxes_array ) );
   vsplit_array->recompute_child_positions();
   top_array->add_view( std::move( vsplit_array ) );
+  // Add some space between boxes and buttons.
+  top_array->add_view(
+      make_unique<EmptyView>( Delta{ .w = 1, .h = 4 } ) );
 
   // Add buttons.
   auto buttons_view          = make_unique<ui::OkCancelView2>();
