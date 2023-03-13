@@ -81,7 +81,11 @@ function M.default_options()
     native_tribes={
       'inca', 'aztec', 'apache', 'sioux', 'tupi', 'arawak',
       'cherokee', 'iroquois'
-    }
+    },
+    -- This is in [0,1.0] and gives a probability that a dwelling
+    -- will be placed on a tile assuming that all other condi-
+    -- tions are met.
+    dwelling_frequency=.20
   }
 end
 
@@ -901,7 +905,8 @@ local function create_indian_villages_using_partition(options,
                              square.overlay ~= 'hills' and
                              square.ground ~= 'desert' and
                              not has_dwelling_in_surroundings(
-                                 coord ) and math.random() < .15
+                                 coord ) and math.random() <
+                             options.dwelling_frequency
     if not should_place then goto continue end
     -- We're clear to place the dwelling.
     local dwelling = add_dwelling( coord, tribe )
