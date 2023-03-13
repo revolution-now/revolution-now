@@ -59,6 +59,7 @@
 #include "ss/land-view.rds.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
+#include "ss/settings.rds.hpp"
 #include "ss/turn.rds.hpp"
 #include "ss/units.hpp"
 
@@ -93,8 +94,6 @@ namespace {
 /****************************************************************
 ** Global State
 *****************************************************************/
-bool g_doing_eot = false;
-
 // Globals relevant to end of turn.
 namespace eot {
 
@@ -483,7 +482,6 @@ wait<EndOfTurnResult> process_input( SS& ss, TS& ts,
 // turns.
 wait<EndOfTurnResult> end_of_turn( SS& ss, TS& ts,
                                    Player& player ) {
-  SCOPED_SET_AND_CHANGE( g_doing_eot, true, false );
   co_return co_await eot::process_input( ss, ts, player );
 }
 
@@ -977,6 +975,11 @@ wait<maybe<NationTurnState>> nation_turn_iter(
       co_await units_turn( ss, ts, player, o );
       CHECK( o.q.empty() );
       if( !o.skip_eot ) co_return NationTurnState::eot{};
+      if( ss.settings.game_options
+              .flags[e_game_flag_option::end_of_turn] )
+        // As in the OG, this setting means "always stop on end
+        // of turn," even we otherwise wouldn't have.
+        co_return NationTurnState::eot{};
       co_return NationTurnState::finished{};
     }
     CASE( eot ) {
