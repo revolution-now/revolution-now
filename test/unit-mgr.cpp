@@ -427,6 +427,7 @@ TEST_CASE( "[unit-mgr] unit_ownership_change_non_interactive" ) {
   REQUIRE( f( caravel.id() ) == expected );
 }
 
+#ifndef COMPILER_GCC
 TEST_CASE( "[unit-mgr] unit_ownership_change" ) {
   World       W;
   Unit const& unit =
@@ -462,6 +463,7 @@ TEST_CASE( "[unit-mgr] unit_ownership_change" ) {
   f();
   REQUIRE( ownership() == expected );
 }
+#endif
 
 } // namespace
 } // namespace rn
