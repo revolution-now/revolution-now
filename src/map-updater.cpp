@@ -11,6 +11,7 @@
 #include "map-updater.hpp"
 
 // Revolution Now
+#include "logger.hpp"
 #include "render-terrain.hpp"
 #include "tiles.hpp"
 #include "visibility.hpp"
@@ -186,6 +187,7 @@ void RenderingMapUpdater::redraw_square(
   int const redraw_threshold = 20000;
   // The > is defensive.
   if( tiles_redrawn_ >= redraw_threshold ) redraw();
+  lg.trace( "tiles redrawn: {}", tiles_redrawn_ );
 }
 
 bool RenderingMapUpdater::modify_map_square(
