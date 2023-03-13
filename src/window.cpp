@@ -408,6 +408,10 @@ e_input_handled WindowManager::input(
   // handled the event, unless there are no windows open.
   if( this->num_windows() == 0 ) return e_input_handled::no;
 
+  CHECK(
+      !focused().view()->disabled(),
+      "a top-level view should not be in the disabled state." );
+
   maybe<input::mouse_event_base_t const&> mouse_event =
       input::is_mouse_event( event );
   if( !mouse_event ) {

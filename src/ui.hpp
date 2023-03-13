@@ -88,6 +88,9 @@ class Object {
   // method can be deleted.
   virtual bool needs_padding() const { return false; }
 
+  bool disabled() const { return disabled_; }
+  void set_disabled( bool disabled ) { disabled_ = disabled; }
+
   /**************************************************************
   ** Input handlers
   ***************************************************************/
@@ -114,6 +117,9 @@ class Object {
 
   ND virtual bool on_win_event(
       input::win_event_t const& event );
+
+ private:
+  bool disabled_ = false;
 };
 
 } // namespace rn::ui

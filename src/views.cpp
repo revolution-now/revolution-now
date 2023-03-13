@@ -59,8 +59,14 @@ void CompositeView::draw( rr::Renderer& renderer,
   // Draw each of the sub views, by augmenting its origin (which
   // is relative to the origin of the parent by the origin that
   // we have been given.
-  for( auto [view, view_coord] : *this )
-    view->draw( renderer, coord + ( view_coord - Coord() ) );
+  for( auto [view, view_coord] : *this ) {
+    if( disabled() || view->disabled() ) {
+      SCOPED_RENDERER_MOD_OR( painter_mods.desaturate, true );
+      view->draw( renderer, coord + ( view_coord - Coord() ) );
+    } else {
+      view->draw( renderer, coord + ( view_coord - Coord() ) );
+    }
+  }
 }
 
 Delta CompositeView::delta() const {
@@ -85,8 +91,10 @@ CompositeView::first_view_under_cursor( Coord pos ) const {
 
 bool CompositeView::dispatch_mouse_event(
     input::event_t const& event ) {
+  if( disabled() ) return false;
   UNWRAP_CHECK( pos, input::mouse_position( event ) );
   for( auto p_view : *this ) {
+    if( p_view.view->disabled() ) continue;
     if( pos.is_inside( p_view.rect() ) ) {
       auto new_event =
           move_mouse_origin_by( event, p_view.coord - Coord{} );
@@ -98,23 +106,29 @@ bool CompositeView::dispatch_mouse_event(
 }
 
 bool CompositeView::on_key( input::key_event_t const& event ) {
-  for( auto p_view : *this )
+  if( disabled() ) return false;
+  for( auto p_view : *this ) {
+    if( p_view.view->disabled() ) continue;
     if( p_view.view->input( event ) ) return true;
+  }
   return false;
 }
 
 bool CompositeView::on_wheel(
     input::mouse_wheel_event_t const& event ) {
+  if( disabled() ) return false;
   return dispatch_mouse_event( event );
 }
 
 void CompositeView::send_mouse_enter_leave_events(
     input::mouse_move_event_t const& event ) {
+  if( disabled() ) return;
   auto to   = event.pos;
   auto from = event.prev;
   // First check for and send out any on_mouse_leave or
   // on_mouse_enter events that happen among the sub-views.
   for( auto p_view : *this ) {
+    if( p_view.view->disabled() ) continue;
     if( from.is_inside( p_view.rect() ) &&
         !to.is_inside( p_view.rect() ) )
       p_view.view->on_mouse_leave(
@@ -139,6 +153,7 @@ bool CompositeView::on_mouse_button(
 
 bool CompositeView::on_mouse_drag(
     input::mouse_drag_event_t const& event ) {
+  if( disabled() ) return false;
   send_mouse_enter_leave_events( event );
 
   maybe<PositionedView> const origin_pview =
@@ -154,6 +169,7 @@ bool CompositeView::on_mouse_drag(
   // view during the drag.
   input::event_t const new_event = move_mouse_origin_by(
       event, origin_pview->coord - Coord{} );
+  if( origin_pview->view->disabled() ) return false;
   return origin_pview->view->input( new_event );
 }
 
@@ -167,17 +183,23 @@ bool CompositeView::on_win_event(
 }
 
 void CompositeView::on_mouse_leave( Coord from ) {
-  for( auto p_view : *this )
+  if( disabled() ) return;
+  for( auto p_view : *this ) {
+    if( p_view.view->disabled() ) continue;
     if( from.is_inside( p_view.rect() ) )
       p_view.view->on_mouse_leave(
           from.with_new_origin( p_view.rect().upper_left() ) );
+  }
 }
 
 void CompositeView::on_mouse_enter( Coord to ) {
-  for( auto p_view : *this )
+  if( disabled() ) return;
+  for( auto p_view : *this ) {
+    if( p_view.view->disabled() ) continue;
     if( to.is_inside( p_view.rect() ) )
       p_view.view->on_mouse_enter(
           to.with_new_origin( p_view.rect().upper_left() ) );
+  }
 }
 
 PositionedView CompositeView::at( int idx ) {
