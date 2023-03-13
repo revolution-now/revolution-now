@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// rds
+#include "visibility.rds.hpp"
+
 // Revolution Now
 #include "maybe.hpp"
 
@@ -33,12 +36,6 @@ struct SSConst;
 struct TerrainState;
 struct SS;
 struct TS;
-
-enum class e_tile_visibility {
-  hidden,
-  visible_with_fog,
-  visible_and_clear,
-};
 
 /****************************************************************
 ** Visibility

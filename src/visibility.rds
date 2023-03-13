@@ -1,0 +1,17 @@
+# ===============================================================
+# visibility.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-03-12.
+#
+# Description: Rds definitions for the visibility module.
+#
+# ===============================================================
+namespace "rn"
+
+enum.e_tile_visibility {
+  hidden,
+  visible_with_fog,
+  visible_and_clear,
+}
