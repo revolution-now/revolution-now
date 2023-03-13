@@ -71,12 +71,12 @@ bool NonRenderingMapUpdater::make_square_visible(
           nation );
   Matrix<maybe<FogSquare>>& map = player_terrain.map;
 
-  bool changed = false;
+  bool needs_redraw = false;
   if( !map[tile].has_value() ) {
     // We need this because the default-constructed map square
     // we're about to make is identical to an ocean square, so we
     // won't know that we weren't visible before.
-    changed = true;
+    needs_redraw = true;
     // Note this initializes the tile in such a way that there
     // will be fog on the tile by default.
     map[tile].emplace();
@@ -86,16 +86,18 @@ bool NonRenderingMapUpdater::make_square_visible(
   bool const fog_removed_before = fog_square.fog_of_war_removed;
   int const  fog_removed_after  = true;
   fog_square.fog_of_war_removed = fog_removed_after;
-  if( fog_removed_before != fog_removed_after ) changed = true;
+  if( options().render_fog_of_war &&
+      fog_removed_before != fog_removed_after )
+    needs_redraw = true;
 
   // TODO: check and update other members of FogSquare here.
 
   MapSquare&       player_square = fog_square.square;
   MapSquare const& real_square   = ss_.terrain.square_at( tile );
 
-  if( player_square != real_square ) changed = true;
+  if( player_square != real_square ) needs_redraw = true;
   player_square = real_square;
-  return changed;
+  return needs_redraw;
 }
 
 // Implement IMapUpdater.
@@ -111,7 +113,9 @@ bool NonRenderingMapUpdater::make_square_fogged(
   if( !fog_square.fog_of_war_removed ) return false;
 
   fog_square.fog_of_war_removed = false;
-  return true;
+  // The fog of war was added, so we need to do a redraw if and
+  // only if fog rendering is enabled.
+  return options().render_fog_of_war;
 }
 
 void NonRenderingMapUpdater::modify_entire_map(
@@ -223,16 +227,16 @@ bool RenderingMapUpdater::modify_map_square(
 
 bool RenderingMapUpdater::make_square_visible(
     Coord const tile, e_nation nation ) {
-  bool const changed =
+  bool const needs_redraw =
       this->Base::make_square_visible( tile, nation );
-  if( !changed ) return changed;
+  if( !needs_redraw ) return needs_redraw;
 
   // We need to check if it has a value here because if it has no
   // value then that means the entire map is visible and we
   // should proceed to render.
   if( options().nation.has_value() &&
       options().nation != nation )
-    return changed;
+    return needs_redraw;
 
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
@@ -255,22 +259,22 @@ bool RenderingMapUpdater::make_square_visible(
     redraw_square( viz, terrain_options, moved );
   }
 
-  return changed;
+  return needs_redraw;
 }
 
 bool RenderingMapUpdater::make_square_fogged( Coord    tile,
                                               e_nation nation ) {
-  bool const changed =
+  bool const needs_redraw =
       this->Base::make_square_fogged( tile, nation );
-  if( !changed ) return changed;
+  if( !needs_redraw ) return needs_redraw;
 
   // If the entire map is visible then there is also no fog ren-
   // dered anywhere, so no need to rerender.
-  if( !options().nation.has_value() ) return changed;
+  if( !options().nation.has_value() ) return needs_redraw;
   e_nation const curr_nation = *options().nation;
 
   // If it's another nation then not relevant for rendering.
-  if( curr_nation != nation ) return changed;
+  if( curr_nation != nation ) return needs_redraw;
 
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
@@ -278,15 +282,13 @@ bool RenderingMapUpdater::make_square_fogged( Coord    tile,
       Visibility::create( ss_, options().nation );
   redraw_square( viz, terrain_options, tile );
 
-  // !! NOTE: not redrawing surrounding squares here, unlike in
-  // make_square_visible.  This may be changed in the future.
   for( e_direction d : refl::enum_values<e_direction> ) {
     Coord const moved = tile.moved( d );
     if( !ss_.terrain.square_exists( moved ) ) continue;
     redraw_square( viz, terrain_options, moved );
   }
 
-  return changed;
+  return needs_redraw;
 }
 
 void RenderingMapUpdater::modify_entire_map(

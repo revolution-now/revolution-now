@@ -103,17 +103,17 @@ struct IMapUpdater {
   // dated in case it was stale. In either case, it will also
   // remove the fog from the square if there is any.
   //
-  // In the case that it was updated (and changed) it will return
-  // true and will have been redrawn. If the tile was not already
-  // visible then it will be initialized to a state containing
-  // fog. given delta.
+  // In the case that it requires a redraw it will return true
+  // and will have been redrawn. If the tile was not already vis-
+  // ible then it will be initialized to a state containing fog.
   virtual bool make_square_visible( Coord    tile,
                                     e_nation nation ) = 0;
 
   // If the square is not fogged fromt the perspective of the
   // player then it is made so and any redrawing is done if nec-
-  // essary. If the square is not visible then no changes are
-  // made.
+  // essary, if fog rendering is enabled. If the square is not
+  // visible then no changes are made. Returns true if a redraw
+  // was done or is needed.
   virtual bool make_square_fogged( Coord    tile,
                                    e_nation nation ) = 0;
 
