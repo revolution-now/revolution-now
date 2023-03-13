@@ -25,7 +25,7 @@ namespace gl {
 /****************************************************************
 ** Attribute Type
 *****************************************************************/
-enum class e_attrib_type { int_, float_ };
+enum class e_attrib_type { int_, uint, float_ };
 
 int to_GL( e_attrib_type type );
 
@@ -36,6 +36,7 @@ std::string_view to_GL_str( e_attrib_type type );
 *****************************************************************/
 enum class e_attrib_compound_type {
   int_,
+  uint,
   float_,
   vec2,
   vec3,
@@ -63,6 +64,18 @@ struct attrib_traits<int32_t> {
       e_attrib_type::int_;
   inline static e_attrib_compound_type compound_type =
       e_attrib_compound_type::int_;
+  inline static int count = 1;
+};
+
+/****************************************************************
+** uint32_t
+*****************************************************************/
+template<>
+struct attrib_traits<uint32_t> {
+  inline static e_attrib_type component_type =
+      e_attrib_type::uint;
+  inline static e_attrib_compound_type compound_type =
+      e_attrib_compound_type::uint;
   inline static int count = 1;
 };
 

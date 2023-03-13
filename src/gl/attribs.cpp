@@ -26,16 +26,27 @@ namespace gl {
 int to_GL( e_attrib_type type ) {
   decltype( GL_FLOAT ) res = 0;
   switch( type ) {
-    case e_attrib_type::int_: res = GL_INT; break;
-    case e_attrib_type::float_: res = GL_FLOAT; break;
+    case e_attrib_type::int_:
+      res = GL_INT;
+      break;
+    case e_attrib_type::uint:
+      res = GL_UNSIGNED_INT;
+      break;
+    case e_attrib_type::float_:
+      res = GL_FLOAT;
+      break;
   }
   return static_cast<int>( res );
 }
 
 string_view to_GL_str( e_attrib_type type ) {
   switch( type ) {
-    case e_attrib_type::int_: return "GL_INT";
-    case e_attrib_type::float_: return "GL_FLOAT";
+    case e_attrib_type::int_:
+      return "GL_INT";
+    case e_attrib_type::uint:
+      return "GL_UNSIGNED_INT";
+    case e_attrib_type::float_:
+      return "GL_FLOAT";
   }
 }
 
@@ -45,8 +56,15 @@ string_view to_GL_str( e_attrib_type type ) {
 int to_GL( e_attrib_compound_type type ) {
   decltype( GL_FLOAT ) res = 0;
   switch( type ) {
-    case e_attrib_compound_type::int_: res = GL_INT; break;
-    case e_attrib_compound_type::float_: res = GL_FLOAT; break;
+    case e_attrib_compound_type::int_:
+      res = GL_INT;
+      break;
+    case e_attrib_compound_type::uint:
+      res = GL_UNSIGNED_INT;
+      break;
+    case e_attrib_compound_type::float_:
+      res = GL_FLOAT;
+      break;
     case e_attrib_compound_type::vec2:
       res = GL_FLOAT_VEC2;
       break;
@@ -62,21 +80,35 @@ int to_GL( e_attrib_compound_type type ) {
 
 string_view to_GL_str( e_attrib_compound_type type ) {
   switch( type ) {
-    case e_attrib_compound_type::int_: return "GL_INT";
-    case e_attrib_compound_type::float_: return "GL_FLOAT";
-    case e_attrib_compound_type::vec2: return "GL_FLOAT_VEC2";
-    case e_attrib_compound_type::vec3: return "GL_FLOAT_VEC3";
-    case e_attrib_compound_type::vec4: return "GL_FLOAT_VEC4";
+    case e_attrib_compound_type::int_:
+      return "GL_INT";
+    case e_attrib_compound_type::uint:
+      return "GL_UNSIGNED_INT";
+    case e_attrib_compound_type::float_:
+      return "GL_FLOAT";
+    case e_attrib_compound_type::vec2:
+      return "GL_FLOAT_VEC2";
+    case e_attrib_compound_type::vec3:
+      return "GL_FLOAT_VEC3";
+    case e_attrib_compound_type::vec4:
+      return "GL_FLOAT_VEC4";
   }
 }
 
 e_attrib_compound_type from_GL( int type ) {
   switch( type ) {
-    case GL_INT: return e_attrib_compound_type::int_;
-    case GL_FLOAT: return e_attrib_compound_type::float_;
-    case GL_FLOAT_VEC2: return e_attrib_compound_type::vec2;
-    case GL_FLOAT_VEC3: return e_attrib_compound_type::vec3;
-    case GL_FLOAT_VEC4: return e_attrib_compound_type::vec4;
+    case GL_INT:
+      return e_attrib_compound_type::int_;
+    case GL_UNSIGNED_INT:
+      return e_attrib_compound_type::uint;
+    case GL_FLOAT:
+      return e_attrib_compound_type::float_;
+    case GL_FLOAT_VEC2:
+      return e_attrib_compound_type::vec2;
+    case GL_FLOAT_VEC3:
+      return e_attrib_compound_type::vec3;
+    case GL_FLOAT_VEC4:
+      return e_attrib_compound_type::vec4;
     default:
       FATAL( "unrecognized OpenGL compound type {}.", type );
   }

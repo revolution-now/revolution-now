@@ -29,8 +29,11 @@ using namespace std;
 
 TEST_CASE( "[attribs] attribute type" ) {
   REQUIRE( to_GL( e_attrib_type::int_ ) == GL_INT );
+  REQUIRE( to_GL( e_attrib_type::uint ) == GL_UNSIGNED_INT );
   REQUIRE( to_GL( e_attrib_type::float_ ) == GL_FLOAT );
   REQUIRE( to_GL_str( e_attrib_type::int_ ) == "GL_INT" );
+  REQUIRE( to_GL_str( e_attrib_type::uint ) ==
+           "GL_UNSIGNED_INT" );
   REQUIRE( to_GL_str( e_attrib_type::float_ ) == "GL_FLOAT" );
 }
 
@@ -40,6 +43,14 @@ TEST_CASE( "[attribs] attribute compound type" ) {
   REQUIRE( to_GL_str( e_attrib_compound_type::int_ ) ==
            "GL_INT" );
   REQUIRE( from_GL( GL_INT ) == e_attrib_compound_type::int_ );
+
+  // uint
+  REQUIRE( to_GL( e_attrib_compound_type::uint ) ==
+           GL_UNSIGNED_INT );
+  REQUIRE( to_GL_str( e_attrib_compound_type::uint ) ==
+           "GL_UNSIGNED_INT" );
+  REQUIRE( from_GL( GL_UNSIGNED_INT ) ==
+           e_attrib_compound_type::uint );
 
   // float
   REQUIRE( to_GL( e_attrib_compound_type::float_ ) == GL_FLOAT );
@@ -82,6 +93,13 @@ TEST_CASE( "[attribs] type traits" ) {
     REQUIRE( Tr<T>::component_type == e_attrib_type::int_ );
     REQUIRE( Tr<T>::compound_type ==
              e_attrib_compound_type::int_ );
+    REQUIRE( Tr<T>::count == 1 );
+  }
+  SECTION( "uint32_t" ) {
+    using T = uint32_t;
+    REQUIRE( Tr<T>::component_type == e_attrib_type::uint );
+    REQUIRE( Tr<T>::compound_type ==
+             e_attrib_compound_type::uint );
     REQUIRE( Tr<T>::count == 1 );
   }
   SECTION( "float" ) {
