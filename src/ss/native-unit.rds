@@ -26,4 +26,7 @@ struct.NativeUnit {
   id 'NativeUnitId',
 
   type 'e_native_unit_type',
+
+  # How many movement points does the unit have left this turn.
+  movement_points 'int',
 }

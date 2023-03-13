@@ -27,6 +27,7 @@
 #include "variant.hpp"
 
 // config
+#include "config/natives.hpp"
 #include "config/unit-type.hpp"
 
 // ss
@@ -157,8 +158,9 @@ Unit create_unregistered_unit( Player const&   player,
 
 NativeUnit create_unregistered_unit( e_native_unit_type type ) {
   return NativeUnit{
-      .id   = NativeUnitId{ 0 }, // will be set later.
-      .type = type };
+      .id              = NativeUnitId{ 0 }, // will be set later.
+      .type            = type,
+      .movement_points = unit_attr( type ).movement_points };
 }
 
 UnitId create_unit_on_map_non_interactive( SS& ss, TS& ts,
