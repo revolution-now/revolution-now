@@ -234,6 +234,24 @@ class InvisibleView : public VectorView {
 /****************************************************************
 ** Simple Views
 *****************************************************************/
+class EmptyView : public View {
+ public:
+  EmptyView() = default;
+
+  EmptyView( Delta delta ) : delta_( delta ) {}
+
+  // Implement Object
+  void draw( rr::Renderer&, Coord ) const override {}
+
+  // Implement Object
+  Delta delta() const override { return delta_; }
+
+  void set_delta( Delta const& delta ) { delta_ = delta; }
+
+ protected:
+  Delta delta_;
+};
+
 class SolidRectView : public View {
  public:
   SolidRectView( gfx::pixel color )
