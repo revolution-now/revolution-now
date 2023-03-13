@@ -331,8 +331,9 @@ struct LandViewPlane::Impl : public Plane {
               // (the underlying ground terrain) is already
               // given to the player on the side panel (and we
               // don't want to give away anything else).
-              options.render_resources = false;
-              options.render_lcrs      = false;
+              options.render_resources  = false;
+              options.render_lcrs       = false;
+              options.render_fog_of_war = false;
             } );
         // Consume further inputs but eat all of them except
         // for the ones we want.
