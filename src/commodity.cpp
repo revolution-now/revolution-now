@@ -113,8 +113,7 @@ void render_commodity_impl(
     rr::Renderer& renderer, Coord where, e_commodity type,
     maybe<string> label, e_commodity_label_render_colors colors,
     bool dulled ) {
-  auto        tile    = tile_for_commodity( type );
-  rr::Painter painter = renderer.painter();
+  auto tile = tile_for_commodity( type );
   render_sprite_dulled( renderer, tile, where, dulled );
   if( !label ) return;
   // Place text below commodity, but centered horizontally.

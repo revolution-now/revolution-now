@@ -310,7 +310,6 @@ static void render_unit_impl(
       // ferentiate the edge of the unit from the flag, but not
       // so dark that it will cover up the flag.
       SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .35 );
-      rr::Painter painter = renderer.painter();
       render_sprite_silhouette(
           renderer, where + Delta{ .w = options.shadow->offset },
           desc.tile, options.shadow->color );

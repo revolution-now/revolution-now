@@ -629,7 +629,6 @@ struct MenuPlane::Impl : public Plane {
 
     void operator()( MenuState::menus_hidden ) const {}
     void operator()( MenuState::menus_closed closed ) const {
-      rr::Painter painter = renderer.painter();
       if( menu == closed.hover )
         impl->render_menu_header_background( renderer, menu,
                                              /*active=*/false );
@@ -645,7 +644,6 @@ struct MenuPlane::Impl : public Plane {
     void operator()( MenuState::menu_open const& o ) const {
       if( o.menu != menu )
         return this->operator()( MenuState::menus_closed{} );
-      rr::Painter painter = renderer.painter();
       impl->render_menu_header_background( renderer, menu,
                                            /*active=*/true );
       impl->render_menu_element( renderer, foreground_upper_left,

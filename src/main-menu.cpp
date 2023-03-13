@@ -76,7 +76,6 @@ struct MainMenuPlane::Impl : public Plane {
   bool covers_screen() const override { return true; }
 
   void draw( rr::Renderer& renderer ) const override {
-    rr::Painter painter = renderer.painter();
     UNWRAP_CHECK(
         normal_area,
         compositor::section( compositor::e_section::normal ) );
