@@ -373,11 +373,11 @@ Coord coord_for_unit_multi_ownership_or_die( SSConst const& ss,
 *****************************************************************/
 void unit_ownership_change_non_interactive(
     SS& ss, UnitId unit_id,
-    EuroUnitOwnershipChangeTo const& info ) {
+    EuroUnitOwnershipChangeTo const& change_to ) {
   Unit const& unit = ss.units.unit_for( unit_id );
   Player&     player =
       player_for_nation_or_die( ss.players, unit.nation() );
-  SWITCH( info ) {
+  SWITCH( change_to ) {
     CASE( free ) {
       ss.units.disown_unit( unit_id );
       return;
@@ -425,17 +425,19 @@ void unit_ownership_change_non_interactive(
 
 wait<maybe<UnitDeleted>> unit_ownership_change(
     SS& ss, UnitId unit_id,
-    EuroUnitOwnershipChangeTo const& info ) {
-  switch( info.to_enum() ) {
+    EuroUnitOwnershipChangeTo const& change_to ) {
+  switch( change_to.to_enum() ) {
     using e = EuroUnitOwnershipChangeTo::e;
     case e::world: {
-      auto& o  = info.get<EuroUnitOwnershipChangeTo::world>();
-      TS&   ts = *o.ts.get();
+      auto& o =
+          change_to.get<EuroUnitOwnershipChangeTo::world>();
+      TS& ts = *o.ts.get();
       co_return co_await UnitOnMapMover::to_map_interactive(
           ss, ts, unit_id, o.target );
     }
     default:
-      unit_ownership_change_non_interactive( ss, unit_id, info );
+      unit_ownership_change_non_interactive( ss, unit_id,
+                                             change_to );
       co_return nothing;
   }
 }

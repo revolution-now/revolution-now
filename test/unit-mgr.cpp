@@ -8,18 +8,26 @@
 * Description: Unit tests for the src/unit-mgr.* module.
 *
 *****************************************************************/
-#include "test/testing.hpp"
-
 // Under test.
 #include "src/unit-mgr.hpp"
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocking.hpp"
+#include "test/mocks/igui.hpp"
+#include "test/testing.hpp"
+
+// Revolution Now
+#include "src/visibility.hpp"
 
 // ss
 #include "src/ss/dwelling.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/units.hpp"
+#include "src/ss/woodcut.rds.hpp"
+
+// refl
+#include "src/refl/to-str.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -29,6 +37,8 @@ namespace {
 
 using namespace std;
 
+using ::mock::matchers::_;
+
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
@@ -36,6 +46,8 @@ struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
     add_player( e_nation::dutch );
+    add_player( e_nation::spanish );
+    set_default_player( e_nation::dutch );
     create_default_map();
   }
 
@@ -44,12 +56,15 @@ struct World : testing::World {
     MapSquare const L = make_grassland();
     // clang-format off
     vector<MapSquare> tiles{
-      _, L, _,
-      L, L, L,
-      _, L, L,
+      _, L, _, L, L, L,
+      L, L, L, L, L, L,
+      _, L, L, L, L, L,
+      _, L, L, L, L, L,
+      _, L, L, L, L, L,
+      _, L, L, L, L, L,
     };
     // clang-format on
-    build_map( std::move( tiles ), 3 );
+    build_map( std::move( tiles ), 6 );
   }
 
   inline static Coord const kLand = Coord{ .x = 1, .y = 1 };
@@ -185,6 +200,267 @@ TEST_CASE( "[unit-mgr] coord_for_unit_multi_ownership" ) {
     REQUIRE( coord_for_unit_multi_ownership( W.ss(), id ) ==
              Coord{ .x = 1, .y = 1 } );
   }
+}
+
+TEST_CASE( "[unit-mgr] change_unit_type" ) {
+  World            W;
+  Visibility const viz =
+      Visibility::create( W.ss(), W.default_nation() );
+  Unit& unit = W.add_unit_on_map( e_unit_type::free_colonist,
+                                  { .x = 3, .y = 3 } );
+
+  REQUIRE( unit.type() == e_unit_type::free_colonist );
+  REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( viz.visible( { .x = 1, .y = 1 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( viz.visible( { .x = 2, .y = 2 } ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( viz.visible( { .x = 3, .y = 3 } ) ==
+           e_tile_visibility::visible_and_clear );
+
+  change_unit_type( W.ss(), W.ts(), unit,
+                    e_unit_type::expert_farmer );
+
+  REQUIRE( unit.type() == e_unit_type::expert_farmer );
+  REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( viz.visible( { .x = 1, .y = 1 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( viz.visible( { .x = 2, .y = 2 } ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( viz.visible( { .x = 3, .y = 3 } ) ==
+           e_tile_visibility::visible_and_clear );
+
+  change_unit_type( W.ss(), W.ts(), unit, e_unit_type::scout );
+
+  REQUIRE( unit.type() == e_unit_type::scout );
+  REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( viz.visible( { .x = 1, .y = 1 } ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( viz.visible( { .x = 2, .y = 2 } ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( viz.visible( { .x = 3, .y = 3 } ) ==
+           e_tile_visibility::visible_and_clear );
+}
+
+TEST_CASE( "[unit-mgr] change_unit_nation" ) {
+  World            W;
+  Visibility const dutch_viz =
+      Visibility::create( W.ss(), e_nation::dutch );
+  Visibility const spanish_viz =
+      Visibility::create( W.ss(), e_nation::spanish );
+  Unit& unit =
+      W.add_unit_on_map( e_unit_type::free_colonist,
+                         { .x = 3, .y = 3 }, e_nation::dutch );
+
+  REQUIRE( unit.type() == e_unit_type::free_colonist );
+  REQUIRE( dutch_viz.visible( { .x = 0, .y = 0 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( dutch_viz.visible( { .x = 1, .y = 1 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( dutch_viz.visible( { .x = 2, .y = 2 } ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( dutch_viz.visible( { .x = 3, .y = 3 } ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( spanish_viz.visible( { .x = 0, .y = 0 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( spanish_viz.visible( { .x = 1, .y = 1 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( spanish_viz.visible( { .x = 2, .y = 2 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( spanish_viz.visible( { .x = 3, .y = 3 } ) ==
+           e_tile_visibility::hidden );
+
+  change_unit_nation( W.ss(), W.ts(), unit, e_nation::spanish );
+
+  REQUIRE( unit.type() == e_unit_type::free_colonist );
+  REQUIRE( dutch_viz.visible( { .x = 0, .y = 0 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( dutch_viz.visible( { .x = 1, .y = 1 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( dutch_viz.visible( { .x = 2, .y = 2 } ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( dutch_viz.visible( { .x = 3, .y = 3 } ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( spanish_viz.visible( { .x = 0, .y = 0 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( spanish_viz.visible( { .x = 1, .y = 1 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( spanish_viz.visible( { .x = 2, .y = 2 } ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( spanish_viz.visible( { .x = 3, .y = 3 } ) ==
+           e_tile_visibility::visible_and_clear );
+
+  change_unit_type( W.ss(), W.ts(), unit, e_unit_type::scout );
+
+  REQUIRE( unit.type() == e_unit_type::scout );
+  REQUIRE( dutch_viz.visible( { .x = 0, .y = 0 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( dutch_viz.visible( { .x = 1, .y = 1 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( dutch_viz.visible( { .x = 2, .y = 2 } ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( dutch_viz.visible( { .x = 3, .y = 3 } ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( spanish_viz.visible( { .x = 0, .y = 0 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( spanish_viz.visible( { .x = 1, .y = 1 } ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( spanish_viz.visible( { .x = 2, .y = 2 } ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( spanish_viz.visible( { .x = 3, .y = 3 } ) ==
+           e_tile_visibility::visible_and_clear );
+}
+
+TEST_CASE( "[unit-mgr] destroy_unit" ) {
+  World        W;
+  UnitId const caravel_id =
+      W.add_unit_on_map( e_unit_type::caravel,
+                         { .x = 0, .y = 0 } )
+          .id();
+  UnitId const free_colonist_id =
+      W.add_unit_in_cargo( e_unit_type::free_colonist,
+                           caravel_id )
+          .id();
+  UnitId const expert_farmer_id =
+      W.add_unit_in_cargo( e_unit_type::expert_farmer,
+                           caravel_id )
+          .id();
+
+  REQUIRE( W.units().exists( caravel_id ) );
+  REQUIRE( W.units().exists( free_colonist_id ) );
+  REQUIRE( W.units().exists( expert_farmer_id ) );
+
+  destroy_unit( W.ss(), expert_farmer_id );
+
+  REQUIRE( W.units().exists( caravel_id ) );
+  REQUIRE( W.units().exists( free_colonist_id ) );
+  REQUIRE_FALSE( W.units().exists( expert_farmer_id ) );
+
+  destroy_unit( W.ss(), caravel_id );
+
+  REQUIRE_FALSE( W.units().exists( caravel_id ) );
+  REQUIRE_FALSE( W.units().exists( free_colonist_id ) );
+  REQUIRE_FALSE( W.units().exists( expert_farmer_id ) );
+}
+
+TEST_CASE( "[unit-mgr] unit_ownership_change_non_interactive" ) {
+  World       W;
+  Unit const& free_colonist = W.add_unit_on_map(
+      e_unit_type::free_colonist, { .x = 1, .y = 1 } );
+  Unit const& missionary = W.add_unit_on_map(
+      e_unit_type::missionary, { .x = 3, .y = 0 } );
+  Unit const& caravel = W.add_unit_on_map( e_unit_type::caravel,
+                                           { .x = 0, .y = 0 } );
+  EuroUnitOwnershipChangeTo change_to;
+  UnitOwnership             expected;
+
+  auto ownership = [&]( UnitId unit_id ) {
+    return as_const( W.units() ).ownership_of( unit_id );
+  };
+
+  auto f = [&]( UnitId unit_id ) {
+    unit_ownership_change_non_interactive( W.ss(), unit_id,
+                                           change_to );
+    return ownership( unit_id );
+  };
+
+  expected = UnitOwnership::world{ .coord = { .x = 1, .y = 1 } };
+  REQUIRE( ownership( free_colonist.id() ) == expected );
+
+  // Free.
+  change_to = EuroUnitOwnershipChangeTo::free{};
+  expected  = UnitOwnership::free{};
+  REQUIRE( f( free_colonist.id() ) == expected );
+
+  // World.
+  change_to = EuroUnitOwnershipChangeTo::world{
+      .ts = &W.ts(), .target = { .x = 1, .y = 2 } };
+  expected = UnitOwnership::world{ .coord = { .x = 1, .y = 2 } };
+  REQUIRE( f( free_colonist.id() ) == expected );
+
+  // Colony.
+  Colony& colony = W.add_colony( { .x = 1, .y = 0 } );
+  change_to      = EuroUnitOwnershipChangeTo::colony_low_level{
+           .colony_id = colony.id };
+  expected = UnitOwnership::colony{ .id = colony.id };
+  REQUIRE( f( free_colonist.id() ) == expected );
+
+  // Cargo.
+  change_to = EuroUnitOwnershipChangeTo::cargo{
+      .new_holder = caravel.id(), .starting_slot = 0 };
+  expected = UnitOwnership::cargo{ .holder = caravel.id() };
+  REQUIRE( f( free_colonist.id() ) == expected );
+
+  // Dwelling.
+  Dwelling& dwelling =
+      W.add_dwelling( { .x = 3, .y = 1 }, e_tribe::iroquois );
+  change_to = EuroUnitOwnershipChangeTo::dwelling{
+      .dwelling_id = dwelling.id };
+  expected = UnitOwnership::dwelling{ .id = dwelling.id };
+  REQUIRE( f( missionary.id() ) == expected );
+
+  // Sail to harbor.
+  change_to = EuroUnitOwnershipChangeTo::sail_to_harbor{};
+  expected  = UnitOwnership::harbor{
+       .st = UnitHarborViewState{
+           .port_status = PortStatus::inbound{ .turns = 0 },
+           .sailed_from = Coord{ .x = 0, .y = 0 } } };
+  REQUIRE( f( caravel.id() ) == expected );
+
+  // Sail to new_world.
+  change_to = EuroUnitOwnershipChangeTo::sail_to_new_world{};
+  expected  = UnitOwnership::harbor{
+       .st = UnitHarborViewState{
+           .port_status = PortStatus::outbound{ .turns = 4 },
+           .sailed_from = Coord{ .x = 0, .y = 0 } } };
+  REQUIRE( f( caravel.id() ) == expected );
+
+  // Move to port.
+  change_to = EuroUnitOwnershipChangeTo::move_to_port{};
+  expected  = UnitOwnership::harbor{
+       .st = UnitHarborViewState{
+           .port_status = PortStatus::in_port{},
+           .sailed_from = Coord{ .x = 0, .y = 0 } } };
+  REQUIRE( f( caravel.id() ) == expected );
+}
+
+TEST_CASE( "[unit-mgr] unit_ownership_change" ) {
+  World       W;
+  Unit const& unit =
+      W.add_free_unit( e_unit_type::free_colonist );
+  EuroUnitOwnershipChangeTo change_to;
+  UnitOwnership             expected;
+
+  auto ownership = [&] {
+    return as_const( W.units() ).ownership_of( unit.id() );
+  };
+
+  auto f = [&] {
+    wait<maybe<UnitDeleted>> const w =
+        unit_ownership_change( W.ss(), unit.id(), change_to );
+    BASE_CHECK( !w.exception() );
+    BASE_CHECK( w.ready() );
+    BASE_CHECK( !w->has_value() ); // unit not deleted.
+  };
+
+  // World.
+  change_to = EuroUnitOwnershipChangeTo::world{
+      .ts = &W.ts(), .target = { .x = 0, .y = 1 } };
+  expected = UnitOwnership::world{ .coord = { .x = 0, .y = 1 } };
+  // We'll allow these async events to trigger so that we can
+  // verify that we're calling the interactive version of the
+  // function that moves a unit onto a map square.
+  W.gui()
+      .EXPECT__display_woodcut( e_woodcut::discovered_new_world )
+      .returns<monostate>();
+  // Player asked to name the new world.
+  W.gui().EXPECT__string_input( _, _ ).returns<maybe<string>>(
+      "my land" );
+  f();
+  REQUIRE( ownership() == expected );
 }
 
 } // namespace

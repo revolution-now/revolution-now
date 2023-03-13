@@ -175,10 +175,12 @@ Coord coord_for_unit_multi_ownership_or_die( SSConst const& ss,
 // unit's ownership is changed. The interactive version should be
 // used where possible.
 wait<maybe<UnitDeleted>> unit_ownership_change(
-    SS& ss, UnitId id, EuroUnitOwnershipChangeTo const& info );
+    SS& ss, UnitId id,
+    EuroUnitOwnershipChangeTo const& change_to );
 
 void unit_ownership_change_non_interactive(
-    SS& ss, UnitId id, EuroUnitOwnershipChangeTo const& info );
+    SS& ss, UnitId id,
+    EuroUnitOwnershipChangeTo const& change_to );
 
 void destroy_unit( SS& ss, UnitId id );
 
