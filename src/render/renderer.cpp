@@ -386,7 +386,8 @@ struct Renderer::Impl {
   vector<GenericVertex>& get_buffer(
       e_render_target_buffer buffer ) {
     switch( buffer ) {
-      case e_render_target_buffer::normal: return vertices;
+      case e_render_target_buffer::normal:
+        return vertices;
       case e_render_target_buffer::landscape:
         return landscape_vertices;
       case e_render_target_buffer::landscape_annex:
@@ -398,7 +399,8 @@ struct Renderer::Impl {
 
   Emitter& get_emitter( e_render_target_buffer buffer ) {
     switch( buffer ) {
-      case e_render_target_buffer::normal: return emitter;
+      case e_render_target_buffer::normal:
+        return emitter;
       case e_render_target_buffer::landscape:
         return landscape_emitter;
       case e_render_target_buffer::landscape_annex:
@@ -411,7 +413,8 @@ struct Renderer::Impl {
   VertexArray_t const& get_vertex_array(
       e_render_target_buffer buffer ) {
     switch( buffer ) {
-      case e_render_target_buffer::normal: return vertex_array;
+      case e_render_target_buffer::normal:
+        return vertex_array;
       case e_render_target_buffer::landscape:
         return landscape_vertex_array;
       case e_render_target_buffer::landscape_annex:
