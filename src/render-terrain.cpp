@@ -1045,7 +1045,7 @@ void render_river_on_land( Visibility const& viz,
   {
     SCOPED_RENDERER_MOD_SET( painter_mods.cycling.enabled,
                              true );
-    SCOPED_RENDERER_MOD_SET( painter_mods.alpha, .5 );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
     render_river_water_tile( renderer, where, cycle, square );
   }
   if( !no_bank ) render_sprite( painter, where, bank );
@@ -2272,7 +2272,7 @@ void render_hidden_overlay(
                                    : kDpAlphaLight;
     }
     if( stage == 1.0 || alpha == 0.0 ) return;
-    SCOPED_RENDERER_MOD_SET( painter_mods.alpha, alpha );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                              stage );
     rr::Painter painter = renderer.painter();
