@@ -49,8 +49,8 @@ constexpr uint8_t text_alpha  = 225;
 constexpr uint8_t cmds_alpha  = 240;
 constexpr uint8_t stats_alpha = 255;
 
-constexpr H kDividerHeight = 2;
-constexpr W kDividerWidth  = 2;
+constexpr H kDividerHeight = 1;
+constexpr W kDividerWidth  = 1;
 
 struct ConsolePlane::Impl : public Plane {
   // State.
@@ -140,7 +140,7 @@ struct ConsolePlane::Impl : public Plane {
 
     tile_sprite( painter, e_tile::wood_middle, console_rect );
     painter.draw_solid_rect( divider_rect,
-                             gfx::pixel::wood().shaded( 4 ) );
+                             config_ui.window.border_dark );
 
     auto text_color =
         config_ui.dialog_text.normal.with_alpha( text_alpha );
