@@ -652,9 +652,10 @@ void change_colony_nation( SS& ss, TS& ts, Colony& colony,
 
 void strip_unit_to_base_type( SS& ss, TS& ts, Unit& unit,
                               Colony& colony ) {
-  UnitTransformationResult tranform_res =
-      strip_to_base_type( ss, ts, unit );
-  for( auto [type, q] : tranform_res.commodity_deltas ) {
+  UnitTransformationResult const transform_res =
+      strip_to_base_type( unit.composition() );
+  change_unit_type( ss, ts, unit, transform_res.new_comp );
+  for( auto [type, q] : transform_res.commodity_deltas ) {
     CHECK_GT( q, 0 );
     lg.debug( "adding {} {} to colony {}.", q, type,
               colony.name );

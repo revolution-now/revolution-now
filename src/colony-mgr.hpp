@@ -76,6 +76,11 @@ ColonyId create_empty_colony( ColoniesState& colonies_state,
 
 // Will strip the unit of any commodities (including inventory
 // and modifiers) and deposit the commodities into the colony.
+// This is used to transform the unit when founding a colony. In
+// that situation, the unit needs to be stripped to its base type
+// and all of the commodities that it has should be added into
+// the colony's commodity store. All modifiers will be stripped
+// from the unit as well.
 void strip_unit_to_base_type( SS& ss, TS& ts, Unit& unit,
                               Colony& colony );
 

@@ -146,17 +146,6 @@ void change_unit_type( SS& ss, TS& ts, Unit& unit,
 void change_unit_nation( SS& ss, TS& ts, Unit& unit,
                          e_nation new_nation );
 
-// This is used to transform the unit when e.g. founding a
-// colony. In that situation, the unit needs to be stripped to
-// its base type and all of the commodities that it has should be
-// added into the colony's commodity store. All modifiers will be
-// stripped from the unit as well. Note that you shouldn't call
-// this method directly. Instead call the free method (defined
-// elsewhere) that takes a colony as input so that it can deposit
-// any commodities there that are stripped from the unit.
-UnitTransformationResult strip_to_base_type( SS& ss, TS& ts,
-                                             Unit& unit );
-
 /****************************************************************
 ** Native-specific
 *****************************************************************/

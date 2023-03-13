@@ -249,14 +249,6 @@ void change_unit_nation( SS& ss, TS& ts, Unit& unit,
   }
 }
 
-UnitTransformationResult strip_to_base_type( SS& ss, TS& ts,
-                                             Unit& unit ) {
-  UnitTransformationResult const res =
-      rn::strip_to_base_type( unit.composition() );
-  change_unit_type( ss, ts, unit, res.new_comp );
-  return res;
-}
-
 /****************************************************************
 ** Map Ownership
 *****************************************************************/
