@@ -982,44 +982,35 @@ void CheckBoxView::draw( rr::Renderer& renderer,
       config_ui.window.border_dark.with_alpha( 128 );
   static gfx::pixel const x_color =
       config_ui.dialog_text.highlighted;
+  static gfx::pixel const x_color_shaded =
+      config_ui.dialog_text.highlighted.shaded( 1 );
   painter.draw_solid_rect( rect( coord ), background_color );
   render_shadow_hightlight_border(
       renderer, rect( coord ).edges_removed(),
       config_ui.window.border_lighter.highlighted(),
       config_ui.window.border_darker.shaded() );
 
+  coord = coord + Delta{ .w = 2, .h = 1 };
+
   if( on_ ) {
-    // This creates an anti-aliased x.
-    {
-      rr::Typer typer =
-          renderer.typer( coord + Delta{ .w = 1, .h = 1 },
-                          x_color.with_alpha( 64 ) );
-      typer.write( 'x' );
-    }
-    {
-      rr::Typer typer =
-          renderer.typer( coord + Delta{ .w = 3, .h = 1 },
-                          x_color.with_alpha( 64 ) );
-      typer.write( 'x' );
-    }
-    {
-      rr::Typer typer =
-          renderer.typer( coord + Delta{ .w = 2, .h = 0 },
-                          x_color.with_alpha( 64 ) );
-      typer.write( 'x' );
-    }
-    {
-      rr::Typer typer =
-          renderer.typer( coord + Delta{ .w = 2, .h = 2 },
-                          x_color.with_alpha( 64 ) );
-      typer.write( 'x' );
-    }
-    // This is the main foreground x.
-    {
-      rr::Typer typer = renderer.typer(
-          coord + Delta{ .w = 2, .h = 1 }, x_color );
-      typer.write( 'x' );
-    }
+    // This creates a fat x.
+    renderer
+        .typer( coord + Delta{ .w = -1, .h = 0 },
+                x_color_shaded )
+        .write( 'x' );
+    renderer
+        .typer( coord + Delta{ .w = 1, .h = 0 }, x_color_shaded )
+        .write( 'x' );
+    renderer
+        .typer( coord + Delta{ .w = 0, .h = -1 },
+                x_color_shaded )
+        .write( 'x' );
+    renderer
+        .typer( coord + Delta{ .w = 0, .h = 1 }, x_color_shaded )
+        .write( 'x' );
+    // Main x.
+    renderer.typer( coord + Delta{ .w = 0, .h = 0 }, x_color )
+        .write( 'x' );
   }
 }
 
