@@ -17,6 +17,7 @@
 #include "logger.hpp"
 #include "macros.hpp"
 #include "plane.hpp"
+#include "render.hpp"
 #include "screen.hpp"
 #include "text.hpp"
 #include "throttler.hpp"
@@ -418,9 +419,9 @@ struct MenuPlane::Impl : public Plane {
             h += menu_item_height();
           } );
     }
-    // round up to nearest multiple of 8, since that is the menu
-    // tile width.
-    if( h % 8 != 0 ) h += ( 8 - ( h % 8 ) );
+    // round up to nearest multiple of 4, since that is the menu
+    // "tile" width.
+    if( h % 4 != 0 ) h += ( 4 - ( h % 4 ) );
     return h;
   }
 
@@ -430,7 +431,7 @@ struct MenuPlane::Impl : public Plane {
   }
 
   Delta menu_body_delta( e_menu menu ) const {
-    return Delta{ .w = 8, .h = 8 } + Delta{ .w = 8, .h = 8 } +
+    return Delta{ .w = 4, .h = 4 } + Delta{ .w = 4, .h = 4 } +
            menu_body_delta_inner( menu );
   }
 
@@ -452,10 +453,10 @@ struct MenuPlane::Impl : public Plane {
     pos.y = menu_bar_rect().bottom_edge();
     if( g_menus[menu].right_side )
       pos.x = menu_header_x_pos( menu ) +
-              menu_header_delta( menu ).w + 8 -
+              menu_header_delta( menu ).w + 4 -
               menu_body_delta( menu ).w;
     else
-      pos.x = menu_header_x_pos( menu ) - 8;
+      pos.x = menu_header_x_pos( menu ) - 4;
     return Rect::from( pos, menu_body_delta( menu ) );
   }
 
@@ -519,20 +520,49 @@ struct MenuPlane::Impl : public Plane {
 
   // For either a menu header or item.
   template<typename E>
+  void render_menu_element( rr::Renderer& renderer, Coord where,
+                            E element, gfx::pixel color,
+                            maybe<char> shortcut ) const {
+    string name = string( name_for( element ) );
+    if( shortcut ) {
+      // Highlight the letter representing the shortcut key.
+      string const shortcut_str( 1, *shortcut );
+      auto         pos = name.find_first_of( shortcut_str );
+      if( pos != string::npos )
+        name.replace( pos, 1,
+                      fmt::format( "[{}]", shortcut_str ) );
+    }
+    render_text_markup( renderer, where, /*font=*/{},
+                        TextMarkupInfo{ .normal = color },
+                        name );
+  }
+
   void render_menu_element( rr::Renderer& renderer, Coord pos,
-                            E element, gfx::pixel color ) const {
-    renderer.typer( "simple", pos, color )
-        .write( name_for( element ) );
+                            e_menu     item,
+                            gfx::pixel color ) const {
+    render_menu_element( renderer, pos, item, color,
+                         g_menus[item].shortcut );
+  }
+
+  void render_menu_element( rr::Renderer& renderer, Coord pos,
+                            e_menu_item item,
+                            gfx::pixel  color ) const {
+    render_menu_element( renderer, pos, item, color,
+                         /*shortcut=*/nothing );
   }
 
   void render_divider( rr::Renderer& renderer, Coord pos,
                        e_menu menu ) const {
-    Delta      delta      = divider_delta( menu );
-    gfx::pixel color_fore = menu_theme_color2().shaded( 3 );
+    Delta const delta = divider_delta( menu );
     pos.y += delta.h / 2;
-    pos.x += 2;
-    renderer.painter().draw_horizontal_line( pos, delta.w - 5,
-                                             color_fore );
+    renderer.painter().draw_horizontal_line(
+        pos + Delta{ .w = 1, .h = -1 }, delta.w - 3,
+        config_ui.window.border_dark );
+    renderer.painter().draw_horizontal_line(
+        pos, delta.w - 1, config_ui.window.border_darker );
+    renderer.painter().draw_horizontal_line(
+        pos + Delta{ .w = 1, .h = 2 }, delta.w - 3,
+        config_ui.window.border_lighter );
   }
 
   void render_item_background_selected( rr::Renderer& renderer,
@@ -568,23 +598,20 @@ struct MenuPlane::Impl : public Plane {
       CHECK( item_to_menu_[*subject] == menu );
     }
 
-    render_rect_of_sprites_with_border(
-        painter,                                           //
-        pos,                                               //
-        menu_body_delta( menu ) / Delta{ .w = 8, .h = 8 }, //
-        e_tile::menu_body,                                 //
-        e_tile::menu_top,                                  //
-        e_tile::menu_bottom,                               //
-        e_tile::menu_left,                                 //
-        e_tile::menu_right,                                //
-        e_tile::menu_top_left,                             //
-        e_tile::menu_top_right,                            //
-        e_tile::menu_bottom_left,                          //
-        e_tile::menu_bottom_right                          //
-    );
+    Rect const body_rect =
+        Rect::from( pos, menu_body_delta( menu ) );
+    tile_sprite( painter, e_tile::wood_middle, body_rect );
+    render_shadow_hightlight_border(
+        renderer, body_rect.edges_removed( 2 ),
+        config_ui.window.border_dark,
+        config_ui.window.border_lighter );
+    render_shadow_hightlight_border(
+        renderer, body_rect.edges_removed( 1 ),
+        config_ui.window.border_darker,
+        config_ui.window.border_light );
 
-    pos.x += 8;
-    pos.y += 8;
+    pos.x += 4;
+    pos.y += 4;
 
     H const item_height = menu_item_height();
     for( auto const& item : g_menu_def[menu] ) {
@@ -676,11 +703,11 @@ struct MenuPlane::Impl : public Plane {
 
     // Render some border lines.
     painter.draw_horizontal_line(
-        bar_rect.lower_left() + Delta{ .h = -1 },
+        bar_rect.lower_left() + Delta{ .h = -2 },
         bar_rect.delta().w - panel_rect.delta().w + 1,
         config_ui.window.border_dark );
     painter.draw_horizontal_line(
-        bar_rect.lower_left() + Delta{ .h = 0 },
+        bar_rect.lower_left() + Delta{ .h = -1 },
         bar_rect.delta().w - panel_rect.delta().w,
         config_ui.window.border_darker );
 
