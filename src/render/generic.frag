@@ -312,12 +312,10 @@ vec3 rgb_to_hsl( in vec3 rgb ) {
 /****************************************************************
 ** De-saturation.
 *****************************************************************/
-vec3 desaturate( in vec3 color ) {
-  color = rgb_to_hsl( color.rgb );
-  color.y = 0; // zero saturation.
-  color = hsl_to_rgb( color.xyz );
-  return color;
-}
+// To fully desaturate we could first conver to HSL, then zero
+// the saturation, then convert back to RGB, but it seems that
+// the following simpler approach produces the same result.
+vec3 desaturate( in vec3 c ) { return vec3( (c.r+c.g+c.b)/3 ); }
 
 /****************************************************************
 ** main
