@@ -27,6 +27,7 @@ layout (location = 12) in vec2  in_translation;
 flat out int   frag_type;
 flat out int   frag_color_cycle;
 flat out int   frag_desaturate;
+flat out int   frag_use_fixed_color;
 flat out vec4  frag_depixelate;
 flat out vec4  frag_depixelate_stages;
 flat out vec4  frag_depixelate_stages_unscaled;
@@ -52,6 +53,7 @@ uniform float u_camera_zoom;
 #define VERTEX_FLAG_COLOR_CYCLE ( uint(1) << 0 )
 #define VERTEX_FLAG_USE_CAMERA  ( uint(1) << 1 )
 #define VERTEX_FLAG_DESATURATE  ( uint(1) << 2 )
+#define VERTEX_FLAG_FIXED_COLOR ( uint(1) << 3 )
 
 int get_flag( in uint mask ) {
   uint res = in_flags & mask;
@@ -96,6 +98,7 @@ void forwarding() {
   frag_type                 = in_type;
   frag_color_cycle          = get_flag( VERTEX_FLAG_COLOR_CYCLE );
   frag_desaturate           = get_flag( VERTEX_FLAG_DESATURATE );
+  frag_use_fixed_color      = get_flag( VERTEX_FLAG_FIXED_COLOR );
   frag_depixelate.zw        = in_depixelate.zw;
   frag_depixelate.xy        = shift_and_scale( in_depixelate.xy );
   frag_depixelate_stages.zw = inverse_scale( in_depixelate_stages.zw );

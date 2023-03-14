@@ -13,6 +13,7 @@
 flat in int   frag_type;
 flat in int   frag_color_cycle;
 flat in int   frag_desaturate;
+flat in int   frag_use_fixed_color;
 flat in vec4  frag_depixelate;
 flat in vec4  frag_depixelate_stages;
 flat in vec4  frag_depixelate_stages_unscaled;
@@ -345,7 +346,7 @@ void main() {
   if( frag_alpha_multiplier < 1.0 ) color = alpha( color );
 
   // Color fixing.
-  if( frag_fixed_color.a > 0 ) color.rgb = frag_fixed_color.rgb;
+  if( frag_use_fixed_color != 0 ) color.rgb = frag_fixed_color.rgb;
 
   // Desaturation.
   if( frag_desaturate != 0 ) color.rgb = desaturate( color.rgb );
