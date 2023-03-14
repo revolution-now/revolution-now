@@ -555,14 +555,24 @@ struct MenuPlane::Impl : public Plane {
                        e_menu menu ) const {
     Delta const delta = divider_delta( menu );
     pos.y += delta.h / 2;
+    pos.x -= 4;
     renderer.painter().draw_horizontal_line(
-        pos + Delta{ .w = 1, .h = -1 }, delta.w - 3,
+        pos + Delta{ .w = 1, .h = -1 }, delta.w + 2,
         config_ui.window.border_dark );
     renderer.painter().draw_horizontal_line(
-        pos, delta.w - 1, config_ui.window.border_darker );
+        pos + Delta{ .w = ( delta.w * 3 ) / 4 + 7, .h = -1 },
+        delta.w / 3 - 12, config_ui.window.border_light );
     renderer.painter().draw_horizontal_line(
-        pos + Delta{ .w = 1, .h = 2 }, delta.w - 3,
-        config_ui.window.border_lighter );
+        pos, delta.w, config_ui.window.border_darker );
+    renderer.painter().draw_horizontal_line(
+        pos + Delta{ .w = ( delta.w * 3 ) / 4 + 4 },
+        delta.w / 3 - 9, config_ui.window.border_dark );
+    renderer.painter().draw_horizontal_line(
+        pos + Delta{ .w = 1, .h = +1 }, delta.w + 3,
+        config_ui.window.border_light );
+    renderer.painter().draw_horizontal_line(
+        pos + Delta{ .w = ( delta.w * 3 ) / 4, .h = +1 },
+        delta.w / 3 - 5, config_ui.window.border_lighter );
   }
 
   void render_item_background_selected( rr::Renderer& renderer,
