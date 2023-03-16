@@ -90,6 +90,9 @@ class MidiIO {
       RTMIDI_WARN( error );
       return nothing;
     }
+    lg.info( "using midi api: {}.",
+             res.out_->getApiDisplayName(
+                 res.out_->getCurrentApi() ) );
     auto maybe_port = res.find_midi_output_port();
     if( !maybe_port ) return nothing;
     // This may be called from the midi thread.
