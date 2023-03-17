@@ -353,6 +353,55 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "[command-move] treasure moves into colony, treasure is "
+    "transported, treasure is deleted" ) {
+#ifdef COMPILER_GCC
+  return;
+#endif
+  World             W;
+  MockLandViewPlane land_view_plane;
+  W.planes().back().land_view = &land_view_plane;
+  Player& player              = W.default_player();
+  W.add_colony( { .x = 1, .y = 1 } );
+  // This unit will be deleted.
+  UnitId const treasure_id =
+      W.add_unit_on_map( e_unit_type::treasure,
+                         { .x = 0, .y = 1 } )
+          .id();
+
+  auto move_unit = [&]( UnitId unit_id, e_direction d ) {
+    land_view_plane.EXPECT__animate( _ ).returns<monostate>();
+    unique_ptr<CommandHandler> handler =
+        handle_command( W.ss(), W.ts(), player, unit_id,
+                        command::move{ .d = d } );
+    wait<CommandHandlerRunResult> const w = handler->run();
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+    return *w;
+  };
+
+  // Sanity check.
+  auto choice_matcher =
+      Field( &ChoiceConfig::msg, StrContains( "bounty" ) );
+  W.gui()
+      .EXPECT__choice( choice_matcher, _ )
+      .returns<maybe<string>>( "yes" );
+  W.gui()
+      .EXPECT__message_box(
+          StrContains( "Treasure worth 1000" ) )
+      .returns<monostate>();
+  CommandHandlerRunResult const expected_res{
+      .order_was_run = true, .units_to_prioritize = {} };
+  CommandHandlerRunResult const res =
+      move_unit( treasure_id, e_direction::e );
+  REQUIRE( res == expected_res );
+
+  // The king takes 50% of the 1000 treasure.
+  REQUIRE( player.money == 500 );
+  REQUIRE( !W.units().exists( treasure_id ) );
+}
+
+TEST_CASE(
     "[command-move] unit on ship attempting to attack brave" ) {
   World W;
   Unit& caravel  = W.add_unit_on_map( e_unit_type::caravel,

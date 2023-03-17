@@ -852,8 +852,6 @@ wait<> TravelHandler::perform() {
   auto old_coord =
       coord_for_unit_indirect_or_die( ss_.units, id );
 
-  maybe<UnitDeleted> unit_deleted;
-
   switch( verdict ) {
     case e_travel_verdict::cancelled:
     case e_travel_verdict::map_edge:
@@ -883,7 +881,7 @@ wait<> TravelHandler::perform() {
               EuroUnitOwnershipChangeTo::world{
                   .ts = &ts_, .target = move_dst } );
       CHECK_GT( mv_points_to_subtract_, 0 );
-      if( unit_deleted.has_value() ) break;
+      if( unit_deleted.has_value() ) co_return;
       unit.consume_mv_points( mv_points_to_subtract_ );
       break;
     }
@@ -911,7 +909,7 @@ wait<> TravelHandler::perform() {
               ss_, id,
               EuroUnitOwnershipChangeTo::world{
                   .ts = &ts_, .target = move_dst } );
-      if( unit_deleted.has_value() ) break;
+      if( unit_deleted.has_value() ) co_return;
       unit.forfeight_mv_points();
       CHECK( unit.orders().holds<unit_orders::none>() );
       break;
@@ -1005,21 +1003,9 @@ wait<> TravelHandler::perform() {
     }
   }
 
-  // !! NOTE: unit could be gone here.
-
-  if( unit_deleted.has_value() ) co_return;
-
-  // Now do a sanity check for units that are on the map. The
-  // vast majority of the time they are on the map. An example of
-  // a case where the unit is no longer on the map at this point
-  // would be a ship that was sent to sail the high seas.
-  if( is_unit_on_map_indirect( ss_.units, id ) ) {
-    auto new_coord =
-        coord_for_unit_indirect_or_die( ss_.units, id );
-    CHECK( unit_would_move == ( new_coord == move_dst ) );
-  }
-
-  co_return; //
+  // !! Note that the unit could be gone here. Though in that
+  // case the above should probably have returned early.
+  if( !ss_.units.exists( id ) ) co_return;
 }
 
 /****************************************************************
