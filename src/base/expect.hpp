@@ -1648,6 +1648,8 @@ requires( !is_expect_v<std::remove_cvref_t<E>> )
 ** Equality with expect
 *****************************************************************/
 template<typename T, typename E, typename U>
+requires std::equality_comparable_with<T, U> &&
+         std::equality_comparable<E>
 [[nodiscard]] constexpr bool operator==(
     expect<T, E> const& lhs, expect<U, E> const& rhs ) //
     noexcept( noexcept( *lhs == *rhs ) ) {

@@ -1405,6 +1405,7 @@ requires( !is_maybe_v<std::remove_cvref_t<T>> &&
 ** Equality with maybe
 *****************************************************************/
 template<typename T, typename U>
+requires std::equality_comparable_with<T, U>
 [[nodiscard]] constexpr bool operator==( maybe<T> const& lhs,
                                          maybe<U> const& rhs ) //
     noexcept( noexcept( *lhs == *rhs ) ) {
