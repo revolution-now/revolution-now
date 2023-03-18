@@ -348,11 +348,19 @@ void RenderingMapUpdater::unrender() {
   // program on a buffer we specify the number of vertices to run
   // it on, which will be taken from the size of the CPU buffer,
   // which will be zero, so will have the same effect.
+
+  // landscape buffer.
   renderer_.clear_buffer( rr::e_render_buffer::landscape );
   renderer_.clear_buffer( rr::e_render_buffer::landscape_annex );
+  landscape_tracking_ =
+      BufferTracking( ss_.terrain.world_size_tiles() );
+
+  // obfuscation buffer.
   renderer_.clear_buffer( rr::e_render_buffer::obfuscation );
   renderer_.clear_buffer(
       rr::e_render_buffer::obfuscation_annex );
+  obfuscation_tracking_ =
+      BufferTracking( ss_.terrain.world_size_tiles() );
 }
 
 /****************************************************************
