@@ -684,6 +684,8 @@ LandViewRenderer::LandViewRenderer(
 }
 
 void LandViewRenderer::render_entities() const {
+  SCOPED_RENDERER_MOD_SET( buffer_mods.buffer,
+                           rr::e_render_buffer::entities );
   // Move the rendering start slightly off screen (in the
   // upper-left direction) by an amount that is within the span
   // of one tile to partially show that tile row/column.

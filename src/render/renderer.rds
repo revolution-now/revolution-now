@@ -23,6 +23,8 @@ enum.e_render_buffer {
   # overwriting them. This buffer will be drawn overtop of the
   # landscape buffer.
   landscape_annex,
+  # For units, colonies, and dwellings.
+  entities,
   normal,
 }
 
