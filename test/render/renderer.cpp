@@ -24,6 +24,9 @@
 // gl
 #include "src/gl/shader.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -185,12 +188,9 @@ TEST_CASE( "[render/renderer] workflows" ) {
   mock.EXPECT__gl_DeleteShader( 6 );
   mock.EXPECT__gl_DeleteShader( 5 );
 
-  // Create the normal, backdrop landscape, and landscape_annex
-  // vertex arrays.
-  expect_create_vertex_array( mock );
-  expect_create_vertex_array( mock );
-  expect_create_vertex_array( mock );
-  expect_create_vertex_array( mock );
+  // Create vertex arrays for each render buffer.
+  for( int i = 0; i < refl::enum_count<e_render_buffer>; ++i )
+    expect_create_vertex_array( mock );
 
   // Bind dummy vertex array.
   expect_bind_vertex_array( mock );
