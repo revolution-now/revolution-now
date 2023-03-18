@@ -40,5 +40,6 @@ struct.LandViewState {
 
   minimap 'MiniMapState',
 
+  # This is only here to support the "reveal map" cheat feature.
   map_revealed 'MapRevealed',
 }
