@@ -19,6 +19,9 @@
 // ss
 #include "src/ss/terrain.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -55,6 +58,7 @@ struct World : testing::World {
 TEST_CASE( "[map-updater] fog of war" ) {
   World                  W;
   NonRenderingMapUpdater map_updater( W.ss() );
+  BuffersUpdated         expected;
   e_nation const         nation = W.default_nation();
   UNWRAP_CHECK( player_terrain,
                 W.terrain().player_terrain( nation ) );
@@ -67,28 +71,33 @@ TEST_CASE( "[map-updater] fog of war" ) {
   REQUIRE( !player_terrain.map[coord].has_value() );
 
   {
-    REQUIRE( f() == true );
+    expected = { .landscape = true, .obfuscation = true };
+    REQUIRE( f() == expected );
     REQUIRE( player_terrain.map[coord].has_value() );
     FogSquare const& fog_square = *player_terrain.map[coord];
     REQUIRE( fog_square.fog_of_war_removed );
   }
 
   {
-    map_updater.make_square_fogged( coord, nation );
+    expected = { .landscape = false, .obfuscation = true };
+    REQUIRE( map_updater.make_square_fogged( coord, nation ) ==
+             expected );
     REQUIRE( player_terrain.map[coord].has_value() );
     FogSquare const& fog_square = *player_terrain.map[coord];
     REQUIRE( !fog_square.fog_of_war_removed );
   }
 
   {
-    REQUIRE( f() == true );
+    expected = { .landscape = false, .obfuscation = true };
+    REQUIRE( f() == expected );
     REQUIRE( player_terrain.map[coord].has_value() );
     FogSquare const& fog_square = *player_terrain.map[coord];
     REQUIRE( fog_square.fog_of_war_removed );
   }
 
   {
-    REQUIRE( f() == false );
+    expected = { .landscape = false, .obfuscation = false };
+    REQUIRE( f() == expected );
     REQUIRE( player_terrain.map[coord].has_value() );
     FogSquare const& fog_square = *player_terrain.map[coord];
     REQUIRE( fog_square.fog_of_war_removed );

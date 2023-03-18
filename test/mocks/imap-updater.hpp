@@ -25,13 +25,13 @@ namespace rn {
 ** MockIMapUpdater
 *****************************************************************/
 struct MockIMapUpdater : IMapUpdater {
-  MOCK_METHOD( bool, modify_map_square,
+  MOCK_METHOD( BuffersUpdated, modify_map_square,
                ( Coord, SquareUpdateFunc ), () );
   MOCK_METHOD( void, modify_entire_map, ( MapUpdateFunc ), () );
-  MOCK_METHOD( bool, make_square_visible, ( Coord, e_nation ),
-               () );
-  MOCK_METHOD( bool, make_square_fogged, ( Coord, e_nation ),
-               () );
+  MOCK_METHOD( BuffersUpdated, make_square_visible,
+               ( Coord, e_nation ), () );
+  MOCK_METHOD( BuffersUpdated, make_square_fogged,
+               ( Coord, e_nation ), () );
   MOCK_METHOD( void, redraw, (), () );
 };
 

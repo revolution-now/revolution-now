@@ -164,7 +164,9 @@ struct Renderer::Impl {
       auto*      p_vertices = vertices.get();
       bool const track_dirty =
           ( buffer == e_render_buffer::landscape ) ||
-          ( buffer == e_render_buffer::landscape_annex );
+          ( buffer == e_render_buffer::landscape_annex ) ||
+          ( buffer == e_render_buffer::obfuscation ) ||
+          ( buffer == e_render_buffer::obfuscation_annex );
       buffers[buffer] =
           RenderBuffer{ .vertex_array = {},
                         .vertices     = std::move( vertices ),
@@ -253,8 +255,8 @@ struct Renderer::Impl {
   void begin_pass() {
     // This should not affect the capacity.
     for( auto& [buffer, data] : buffers ) {
-      // This will prevent resetting the buffers for e.g. the
-      // landscape buffers which don't get redrawn each frame.
+      // This will prevent resetting the buffers that don't get
+      // redrawn each frame.
       if( data->track_dirty ) continue;
       auto& vertices = *buffers[buffer]->vertices;
       auto& emitter  = buffers[buffer]->emitter;

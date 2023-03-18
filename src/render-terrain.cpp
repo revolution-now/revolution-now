@@ -2362,9 +2362,9 @@ void render_visible_terrain_square(
 // An "overlay" can represent some kind of sprite that is over-
 // layed on top of land. This could be the sprite that hides un-
 // explored tiles or could be the sprite that partially covers
-// fogged tiles. These sprites need to be rendered on top of land
-// tiles and pixelated at the boundaries (with tiles that do not
-// have the overlay) for smooth transitions.
+// fog-of-war tiles. These sprites need to be rendered on top of
+// land tiles and pixelated at the boundaries (with tiles that do
+// not have the overlay) for smooth transitions.
 struct OverlayInfo {
   refl::enum_map<e_cdirection, bool> surroundings;
   bool                               fully_surrounded = false;
@@ -2383,54 +2383,20 @@ OverlayInfo surrounding_overlays(
   return info;
 }
 
-void render_partially_hidden_terrain_square(
-    rr::Renderer& renderer, Coord where, SSConst const& ss,
-    Coord const world_square, Visibility const& viz,
-    refl::enum_map<e_cdirection, bool> const& hidden,
-    TerrainRenderOptions const&               options ) {
-  // Either this tile or one of the surroundings is visible,
-  // which means we need to render the underlying tile first.
-  render_visible_terrain_square( renderer, where, ss,
-                                 world_square, viz, options );
-  render_pixelated_overlay_transitions(
-      renderer, where, world_square, viz, hidden,
-      e_tile::terrain_hidden );
-
-  if( options.render_fog_of_war ) {
-    OverlayInfo const fogged = surrounding_overlays(
-        viz, world_square,
-        { { e_tile_visibility::visible_with_fog, true },
-          { e_tile_visibility::hidden, true } } );
-    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
-                             config_gfx.fog_of_war_alpha );
-    rr::Painter painter = renderer.painter();
-    if( fogged.fully_surrounded )
-      render_sprite( painter, where, e_tile::terrain_fogged );
-    else
-      render_pixelated_overlay_transitions(
-          renderer, where, world_square, viz,
-          fogged.surroundings, e_tile::terrain_fogged );
-  }
-}
-
 } // namespace
 
-void render_terrain_square(
+void render_landscape_square_if_not_fully_hidden(
     rr::Renderer& renderer, Coord where, SSConst const& ss,
     Coord const world_square, Visibility const& viz,
     TerrainRenderOptions const& options ) {
-  // Get visibility info about surroundings.
-  OverlayInfo const hidden = surrounding_overlays(
-      viz, world_square,
-      { { e_tile_visibility::hidden, true } } );
-  if( hidden.fully_surrounded ) {
-    rr::Painter painter = renderer.painter();
-    render_sprite( painter, where, e_tile::terrain_hidden );
-  } else {
-    render_partially_hidden_terrain_square(
-        renderer, where, ss, world_square, viz,
-        hidden.surroundings, options );
-  }
+  bool const fully_hidden =
+      surrounding_overlays(
+          viz, world_square,
+          { { e_tile_visibility::hidden, true } } )
+          .fully_surrounded;
+  if( fully_hidden ) return;
+  render_visible_terrain_square( renderer, where, ss,
+                                 world_square, viz, options );
 
   // Always last.
   rr::Painter painter = renderer.painter();
@@ -2440,35 +2406,116 @@ void render_terrain_square(
                              gfx::pixel{ 0, 0, 0, 30 } );
 }
 
-void render_terrain( rr::Renderer& renderer, SSConst const& ss,
-                     Visibility const&           viz,
-                     TerrainRenderOptions const& options,
-                     Matrix<rr::VertexRange>&    tile_bounds ) {
-  SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
-  // We can throw away all of the tile overwrites that we've
-  // made, since we are now going to redraw everything from
-  // scratch.
-  renderer.clear_buffer( rr::e_render_buffer::landscape_annex );
-  auto const kLandscapeBuf = rr::e_render_buffer::landscape;
-  renderer.clear_buffer( kLandscapeBuf );
-  SCOPED_RENDERER_MOD_SET( buffer_mods.buffer, kLandscapeBuf );
+void render_obfuscation_overlay(
+    rr::Renderer& renderer, Coord where,
+    Coord const world_square, Visibility const& viz,
+    TerrainRenderOptions const& options ) {
+  { // Unexplored.
+    OverlayInfo const hidden = surrounding_overlays(
+        viz, world_square,
+        { { e_tile_visibility::hidden, true } } );
+    if( hidden.fully_surrounded ) {
+      rr::Painter painter = renderer.painter();
+      render_sprite( painter, where, e_tile::terrain_hidden );
+    } else {
+      render_pixelated_overlay_transitions(
+          renderer, where, world_square, viz,
+          hidden.surroundings, e_tile::terrain_hidden );
+    }
+  }
+
+  // Fog of war.
+  if( options.render_fog_of_war ) {
+    OverlayInfo const fogged = surrounding_overlays(
+        viz, world_square,
+        { { e_tile_visibility::visible_with_fog, true },
+          { e_tile_visibility::hidden, true } } );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
+                             config_gfx.fog_of_war_alpha );
+    if( fogged.fully_surrounded ) {
+      rr::Painter painter = renderer.painter();
+      render_sprite( painter, where, e_tile::terrain_fogged );
+    } else {
+      render_pixelated_overlay_transitions(
+          renderer, where, world_square, viz,
+          fogged.surroundings, e_tile::terrain_fogged );
+    }
+  }
+}
+
+void render_terrain_square_merged(
+    rr::Renderer& renderer, Coord where, SSConst const& ss,
+    Coord world_square, Visibility const& viz,
+    TerrainRenderOptions const& options ) {
+  render_landscape_square_if_not_fully_hidden(
+      renderer, where, ss, world_square, viz, options );
+  render_obfuscation_overlay( renderer, where, world_square, viz,
+                              options );
+}
+
+void render_landscape_buffer(
+    rr::Renderer& renderer, SSConst const& ss,
+    Visibility const& viz, TerrainRenderOptions const& options,
+    Matrix<rr::VertexRange>& tile_bounds ) {
   auto start_time = chrono::system_clock::now();
+  SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
+
+  renderer.clear_buffer( rr::e_render_buffer::landscape );
+  renderer.clear_buffer( rr::e_render_buffer::landscape_annex );
+  SCOPED_RENDERER_MOD_SET( buffer_mods.buffer,
+                           rr::e_render_buffer::landscape );
   for( Rect const square : gfx::subrects( viz.rect_tiles() ) ) {
     tile_bounds[square.upper_left()] = renderer.range_for( [&] {
-      render_terrain_square(
+      render_landscape_square_if_not_fully_hidden(
           renderer, square.upper_left() * g_tile_delta, ss,
           square.upper_left(), viz, options );
     } );
   }
+
   auto end_time = chrono::system_clock::now();
   lg.info(
-      "rendered landscape: {}ms with {} vertices, occupying "
-      "{:.2f}MB.",
+      "rendered landscape buffer: {}ms with {} vertices, "
+      "occupying {:.2f}MB.",
       chrono::duration_cast<chrono::milliseconds>( end_time -
                                                    start_time )
           .count(),
-      renderer.buffer_vertex_count( kLandscapeBuf ),
-      renderer.buffer_size_mb( kLandscapeBuf ) );
+      renderer.buffer_vertex_count(
+          rr::e_render_buffer::landscape ),
+      renderer.buffer_size_mb(
+          rr::e_render_buffer::landscape ) );
+}
+
+void render_obfuscation_buffer(
+    rr::Renderer& renderer, Visibility const& viz,
+    TerrainRenderOptions const& options,
+    Matrix<rr::VertexRange>&    tile_bounds ) {
+  auto start_time = chrono::system_clock::now();
+  SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
+
+  renderer.clear_buffer( rr::e_render_buffer::obfuscation );
+  renderer.clear_buffer(
+      rr::e_render_buffer::obfuscation_annex );
+  SCOPED_RENDERER_MOD_SET( buffer_mods.buffer,
+                           rr::e_render_buffer::obfuscation );
+  for( Rect const square : gfx::subrects( viz.rect_tiles() ) ) {
+    tile_bounds[square.upper_left()] = renderer.range_for( [&] {
+      render_obfuscation_overlay(
+          renderer, square.upper_left() * g_tile_delta,
+          square.upper_left(), viz, options );
+    } );
+  }
+
+  auto end_time = chrono::system_clock::now();
+  lg.info(
+      "rendered obfuscation buffer: {}ms with {} vertices, "
+      "occupying {:.2f}MB.",
+      chrono::duration_cast<chrono::milliseconds>( end_time -
+                                                   start_time )
+          .count(),
+      renderer.buffer_vertex_count(
+          rr::e_render_buffer::obfuscation ),
+      renderer.buffer_size_mb(
+          rr::e_render_buffer::obfuscation ) );
 }
 
 } // namespace rn

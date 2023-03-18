@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// rds
+#include "imap-updater.rds.hpp"
+
 // Revolution Now
 #include "map-square.hpp"
 #include "matrix.hpp"
@@ -88,10 +91,11 @@ struct IMapUpdater {
 
   // This function should be used whenever a map square (specifi-
   // cally, a MapSquare object) must be updated as it will han-
-  // dler re-rendering the surrounding squares. Returns true if
-  // the new square is different from the old one.
-  virtual bool modify_map_square( Coord            tile,
-                                  SquareUpdateFunc mutator ) = 0;
+  // dler re-rendering the surrounding squares. Returns which
+  // buffers needed to be redrawn (in practice, just the land-
+  // scape buffer).
+  virtual BuffersUpdated modify_map_square(
+      Coord tile, SquareUpdateFunc mutator ) = 0;
 
   // This function should be used when generating the map. It
   // will not (re)draw the map or update player maps, since it is
@@ -105,19 +109,19 @@ struct IMapUpdater {
   // dated in case it was stale. In either case, it will also
   // remove the fog from the square if there is any.
   //
-  // In the case that it requires a redraw it will return true
-  // and will have been redrawn. If the tile was not already vis-
-  // ible then it will be initialized to a state containing fog.
-  virtual bool make_square_visible( Coord    tile,
-                                    e_nation nation ) = 0;
+  // The return object will specify which buffers needed a re-
+  // draw. and will have been redrawn.
+  virtual BuffersUpdated make_square_visible(
+      Coord tile, e_nation nation ) = 0;
 
-  // If the square is not fogged fromt the perspective of the
+  // If the square is not fogged from the perspective of the
   // player then it is made so and any redrawing is done if nec-
   // essary, if fog rendering is enabled. If the square is not
-  // visible then no changes are made. Returns true if a redraw
-  // was done or is needed.
-  virtual bool make_square_fogged( Coord    tile,
-                                   e_nation nation ) = 0;
+  // visible then no changes are made. Returns which buffers
+  // needed a redraw, if any (in practice, this will just be the
+  // obfuscation buffer).
+  virtual BuffersUpdated make_square_fogged(
+      Coord tile, e_nation nation ) = 0;
 
   // Will redraw the entire map.
   virtual void redraw() = 0;

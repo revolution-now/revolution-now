@@ -25,6 +25,13 @@ enum.e_render_buffer {
   landscape_annex,
   # For units, colonies, and dwellings.
   entities,
+  # For the overlays that signal both unexplored terrain and
+  # fog-of-war (when enabled). The reason that the fog overlays
+  # get put into a different buffer is so that we can draw the
+  # entities (e.g. units) in between the landscape and fog lay-
+  # ers.
+  obfuscation,
+  obfuscation_annex,
   normal,
 }
 

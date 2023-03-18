@@ -338,9 +338,9 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
         Rect::from( local_coord * g_tile_delta, g_tile_delta ),
         gfx::pixel{ .r = 128, .g = 128, .b = 128, .a = 255 } );
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
-    render_terrain_square( renderer, local_coord * g_tile_delta,
-                           ss_, world_square, viz,
-                           TerrainRenderOptions{} );
+    render_terrain_square_merged(
+        renderer, local_coord * g_tile_delta, ss_, world_square,
+        viz, TerrainRenderOptions{} );
     static Coord const local_colony_loc =
         Coord{ .x = 1, .y = 1 };
     if( local_coord == local_colony_loc ) continue;
