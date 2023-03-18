@@ -404,8 +404,7 @@ void LandViewRenderer::render_units_impl() const {
 void LandViewRenderer::render_native_dwelling(
     Dwelling const& dwelling ) const {
   Coord const location = ss_.natives.coord_for( dwelling.id );
-  if( viz_.visible( location ) !=
-      e_tile_visibility::visible_and_clear )
+  if( viz_.visible( location ) == e_tile_visibility::hidden )
     return;
   Coord const tile_coord =
       render_rect_for_tile( location ).upper_left() -
@@ -485,8 +484,8 @@ void LandViewRenderer::render_input_overrun_indicator() const {
 
 void LandViewRenderer::render_colony(
     Colony const& colony ) const {
-  if( viz_.visible( colony.location ) !=
-      e_tile_visibility::visible_and_clear )
+  if( viz_.visible( colony.location ) ==
+      e_tile_visibility::hidden )
     return;
   Coord const tile_coord =
       render_rect_for_tile( colony.location ).upper_left();
