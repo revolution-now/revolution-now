@@ -380,9 +380,9 @@ struct MenuPlane::Impl : public Plane {
     // text texture in this menu.  Now add padding on each side:
     res += config_ui.menus.padding_x * 2;
     res = clamp( res, config_ui.menus.body_min_width, 1000000 );
-    // round up to nearest multiple of 8, since that is the menu
+    // round up to nearest multiple of 4, since that is the menu
     // tile width.
-    if( res % 8 != 0 ) res += ( 8 - ( res % 8 ) );
+    if( res % 4 != 0 ) res += ( 4 - ( res % 4 ) );
     // Sanity check
     CHECK( res > 0 && res < 2000 );
     return res;
@@ -437,7 +437,7 @@ struct MenuPlane::Impl : public Plane {
 
   Rect menu_body_rect_inner( e_menu menu ) const {
     Coord pos;
-    pos.y = menu_bar_rect().bottom_edge() + 8;
+    pos.y = menu_bar_rect().bottom_edge() + 4;
     if( g_menus[menu].right_side ) {
       pos.x = menu_header_x_pos( menu ) +
               menu_header_delta( menu ).w -
@@ -465,9 +465,9 @@ struct MenuPlane::Impl : public Plane {
   // decide if the user has clicked on or off of an open menu.
   Rect menu_body_clickable_area( e_menu menu ) const {
     auto res = menu_body_rect( menu );
-    res.x += 8 / 2;
-    res.w -= 8 / 2 * 2;
-    res.h -= 8 / 2;
+    res.x += 4 / 2;
+    res.w -= 4 / 2 * 2;
+    res.h -= 4 / 2;
     return res;
   }
 
