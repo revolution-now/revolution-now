@@ -42,6 +42,11 @@ struct IMapUpdater;
 ** MapUpdaterOptions
 *****************************************************************/
 struct MapUpdaterOptions {
+  // This desired value of this `nation` field at any given time
+  // can be derived from other state in the game, but it is here
+  // to represent the current state of rendering (with respect to
+  // nation perspective) on the GPU, so that if that desired
+  // value changes, we know when we need to redraw.
   maybe<e_nation> nation            = nothing;
   bool            render_forests    = true;
   bool            render_resources  = true;
