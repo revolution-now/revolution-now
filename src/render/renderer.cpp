@@ -165,6 +165,10 @@ struct Renderer::Impl {
       bool const track_dirty =
           ( buffer == e_render_buffer::landscape ) ||
           ( buffer == e_render_buffer::landscape_annex );
+      fmt::print(
+          "initializing render buffer: {} with "
+          "track_dirty={}.\n",
+          buffer, track_dirty );
       buffers[buffer] =
           RenderBuffer{ .vertex_array = {},
                         .vertices     = std::move( vertices ),
@@ -252,10 +256,12 @@ struct Renderer::Impl {
 
   void begin_pass() {
     // This should not affect the capacity.
-    { // normal buffer.
-      auto& vertices =
-          *buffers[e_render_buffer::normal]->vertices;
-      auto& emitter = buffers[e_render_buffer::normal]->emitter;
+    for( auto& [buffer, data] : buffers ) {
+      // This will prevent resetting the buffers for e.g. the
+      // landscape buffers which don't get redrawn each frame.
+      if( data->track_dirty ) continue;
+      auto& vertices = *buffers[buffer]->vertices;
+      auto& emitter  = buffers[buffer]->emitter;
       [[maybe_unused]] size_t capacity_before_clear =
           vertices.capacity();
       vertices.clear();
@@ -263,19 +269,6 @@ struct Renderer::Impl {
       DCHECK( vertices.empty() );
       emitter.set_position( 0 );
     }
-    { // backdrop buffer.
-      auto& vertices =
-          *buffers[e_render_buffer::backdrop]->vertices;
-      auto& emitter =
-          buffers[e_render_buffer::backdrop]->emitter;
-      [[maybe_unused]] size_t capacity_before_clear =
-          vertices.capacity();
-      vertices.clear();
-      DCHECK( vertices.capacity() == capacity_before_clear );
-      DCHECK( vertices.empty() );
-      emitter.set_position( 0 );
-    }
-    // We don't reset the position of the landscape emitters.
   }
 
   int end_pass() {
@@ -329,11 +322,8 @@ struct Renderer::Impl {
 
   void mods_push_back( RendererMods&& mods ) {
     mod_stack.push( std::move( mods ) );
-    if( mods.buffer_mods.buffer == e_render_buffer::landscape )
-      buffers[e_render_buffer::landscape]->dirty = true;
-    if( mods.buffer_mods.buffer ==
-        e_render_buffer::landscape_annex )
-      buffers[e_render_buffer::landscape_annex]->dirty = true;
+    for( auto& [buffer, data] : buffers )
+      if( data->track_dirty ) data->dirty = true;
   }
 
   void mods_pop() {
