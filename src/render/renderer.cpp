@@ -271,8 +271,7 @@ struct Renderer::Impl {
     int vertex_count = 0;
     for( auto& [buffer, data] : buffers ) {
       render_buffer( buffer );
-      auto& vertices =
-          *buffers[e_render_buffer::normal]->vertices;
+      auto& vertices = *buffers[buffer]->vertices;
       vertex_count += vertices.size();
     }
     return vertex_count;
