@@ -17,6 +17,7 @@
 #include "plane.hpp"
 #include "screen.hpp"
 #include "text.hpp"
+#include "unit-classes.hpp"
 #include "unit-mgr.hpp"
 #include "views.hpp"
 

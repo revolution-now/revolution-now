@@ -26,6 +26,7 @@
 #include "promotion.hpp"
 #include "rand-enum.hpp"
 #include "ts.hpp"
+#include "unit-classes.hpp"
 #include "unit-mgr.hpp"
 #include "visibility.hpp"
 #include "woodcut.hpp"
@@ -43,7 +44,6 @@
 #include "ss/terrain.hpp"
 #include "ss/tribe.rds.hpp"
 #include "ss/turn.hpp"
-#include "ss/unit-type.hpp"
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
 

@@ -123,11 +123,6 @@ bool is_unit_human( UnitType ut );
 // Can this unit type found a colony?
 bool can_unit_found( UnitType ut );
 
-// For scout or seasoned_scout.
-maybe<e_scout_type>      scout_type( e_unit_type type );
-maybe<e_pioneer_type>    pioneer_type( e_unit_type type );
-maybe<e_missionary_type> missionary_type( UnitType type );
-
 // Try to add the modifiers to the type and return the resulting
 // type if it works out.
 maybe<UnitType> add_unit_type_modifiers(

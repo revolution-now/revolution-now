@@ -131,37 +131,6 @@ enum.e_unit_inventory {
   tools,
 }
 
-# FIXME: find a better place for this since it is not used for
-# serialization.
-enum.e_pioneer_type {
-  non_hardy,
-  hardy,
-}
-
-# FIXME: find a better place for this since it is not used for
-# serialization.
-enum.e_scout_type {
-  non_seasoned,
-  seasoned,
-}
-
-# FIXME: find a better place for this since it is not used for
-# serialization.
-enum.e_missionary_type {
-  # When a petty_criminal becomes a missionary.
-  criminal,
-
-  # When an indentured_servant becomes a missionary.
-  indentured,
-
-  # When a free colonist or any expert colonist (other than je-
-  # suit colonist) becomes a missionary.
-  normal,
-
-  # Jesuit missionary.
-  jesuit,
-}
-
 namespace "rn.wrapped"
 
 # Note that this struct needs to maintain an invariant, namely

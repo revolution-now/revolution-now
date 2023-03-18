@@ -11,12 +11,12 @@
 # config
 include "config/range-helpers.rds.hpp"
 include "config/tile-enum-fwd.hpp"
+include "config/unit-classes.rds.hpp"
 
 # ss
 include "ss/colony-enums.rds.hpp"
 include "ss/native-enums.rds.hpp"
 include "ss/settings.rds.hpp"
-include "ss/unit-type.rds.hpp"
 
 # gfx
 include "gfx/cartesian.hpp"
