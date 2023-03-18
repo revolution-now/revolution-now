@@ -734,19 +734,14 @@ void LandViewRenderer::render_non_entities() const {
       painter.draw_solid_rect(
           shadow_rect, gfx::pixel::black().with_alpha( 100 ) );
     }
-
-    renderer.render_buffer( rr::e_render_buffer::backdrop );
   }
 
-  // Now the actual land.
+  // Set camera.
   double const      zoom = viewport_.get_zoom();
   gfx::dpoint const translation =
       viewport_.landscape_buffer_render_upper_left();
   renderer.set_camera( translation.distance_from_origin(),
                        zoom );
-  // Should do this after setting the camera.
-  renderer.render_buffer( rr::e_render_buffer::landscape );
-  renderer.render_buffer( rr::e_render_buffer::landscape_annex );
 }
 
 } // namespace rn

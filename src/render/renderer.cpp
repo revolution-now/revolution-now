@@ -165,10 +165,6 @@ struct Renderer::Impl {
       bool const track_dirty =
           ( buffer == e_render_buffer::landscape ) ||
           ( buffer == e_render_buffer::landscape_annex );
-      fmt::print(
-          "initializing render buffer: {} with "
-          "track_dirty={}.\n",
-          buffer, track_dirty );
       buffers[buffer] =
           RenderBuffer{ .vertex_array = {},
                         .vertices     = std::move( vertices ),
@@ -182,7 +178,7 @@ struct Renderer::Impl {
       // seem to require a vertex array to be bound to include in
       // the validation process.
       auto va_binder =
-          buffers[e_render_buffer::normal]->vertex_array.bind();
+          buffers[e_render_buffer{}]->vertex_array.bind();
       UNWRAP_CHECK( pgrm, ProgramType::create( vert_shader,
                                                frag_shader ) );
       return std::move( pgrm );
@@ -272,9 +268,14 @@ struct Renderer::Impl {
   }
 
   int end_pass() {
-    render_buffer( e_render_buffer::normal );
-    auto& vertices = *buffers[e_render_buffer::normal]->vertices;
-    return vertices.size();
+    int vertex_count = 0;
+    for( auto& [buffer, data] : buffers ) {
+      render_buffer( buffer );
+      auto& vertices =
+          *buffers[e_render_buffer::normal]->vertices;
+      vertex_count += vertices.size();
+    }
+    return vertex_count;
   }
 
   Emitter& curr_emitter() {
@@ -527,7 +528,8 @@ void Renderer::clear_buffer( e_render_buffer buffer ) {
   impl_->clear_buffer( buffer );
 }
 
-void Renderer::render_buffer( e_render_buffer buffer ) {
+void Renderer::testing_only_render_buffer(
+    e_render_buffer buffer ) {
   impl_->render_buffer( buffer );
 }
 

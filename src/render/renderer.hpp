@@ -163,7 +163,6 @@ struct Renderer {
       base::function_ref<void( Renderer& )> drawer );
 
   void clear_buffer( e_render_buffer buffer );
-  void render_buffer( e_render_buffer buffer );
 
   // If the buffer is not specified then use the current one.
   long buffer_vertex_cur_pos(
@@ -210,6 +209,11 @@ struct Renderer {
   void present();
 
   RendererMods const& mods() const;
+
+  // Normally we shouldn't need to request that a specific buffer
+  // get redrawn because that happens automatically at the end of
+  // each render pass.
+  void testing_only_render_buffer( e_render_buffer buffer );
 
  private:
   // Mods.

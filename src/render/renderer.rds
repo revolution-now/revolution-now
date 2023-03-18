@@ -10,6 +10,7 @@
 # ===============================================================
 namespace "rr"
 
+# These should be in order of rendering.
 enum.e_render_buffer {
   # The backdrop buffer can be used if something needs to be ren-
   # dered behind the landscape buffer. We can't put it in the

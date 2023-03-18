@@ -428,7 +428,7 @@ TEST_CASE( "[render/renderer] workflows" ) {
 
       mock.EXPECT__gl_DrawArrays( GL_TRIANGLES, 0, 12 );
 
-      renderer->render_buffer(
+      renderer->testing_only_render_buffer(
           e_render_buffer::landscape_annex );
     }
 
