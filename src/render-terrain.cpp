@@ -2448,10 +2448,8 @@ void render_terrain( rr::Renderer& renderer, SSConst const& ss,
   // We can throw away all of the tile overwrites that we've
   // made, since we are now going to redraw everything from
   // scratch.
-  renderer.clear_buffer(
-      rr::e_render_target_buffer::landscape_annex );
-  auto const kLandscapeBuf =
-      rr::e_render_target_buffer::landscape;
+  renderer.clear_buffer( rr::e_render_buffer::landscape_annex );
+  auto const kLandscapeBuf = rr::e_render_buffer::landscape;
   renderer.clear_buffer( kLandscapeBuf );
   SCOPED_RENDERER_MOD_SET( buffer_mods.buffer, kLandscapeBuf );
   auto start_time = chrono::system_clock::now();

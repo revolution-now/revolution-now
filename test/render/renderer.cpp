@@ -376,12 +376,11 @@ TEST_CASE( "[render/renderer] workflows" ) {
   // Try zapping.
   {
     VertexRange vertex_range{
-        .buffer = e_render_target_buffer::landscape_annex,
+        .buffer = e_render_buffer::landscape_annex,
         .start  = 6, // zap the second rect.
         .finish = 12 };
     auto popper = renderer->push_mods( []( RendererMods& mods ) {
-      mods.buffer_mods.buffer =
-          e_render_target_buffer::landscape_annex;
+      mods.buffer_mods.buffer = e_render_buffer::landscape_annex;
     } );
     rr::Painter painter = renderer->painter();
     painter.draw_solid_rect( gfx::rect{}, gfx::pixel{} );
@@ -430,7 +429,7 @@ TEST_CASE( "[render/renderer] workflows" ) {
       mock.EXPECT__gl_DrawArrays( GL_TRIANGLES, 0, 12 );
 
       renderer->render_buffer(
-          e_render_target_buffer::landscape_annex );
+          e_render_buffer::landscape_annex );
     }
 
     {

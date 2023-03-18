@@ -10,7 +10,7 @@
 # ===============================================================
 namespace "rr"
 
-enum.e_render_target_buffer {
+enum.e_render_buffer {
   # The backdrop buffer can be used if something needs to be ren-
   # dered behind the landscape buffer. We can't put it in the
   # normal buffer since that will be rendered on top of the land-
@@ -29,7 +29,7 @@ enum.e_render_target_buffer {
 # is used to record the location of the vertices corresponding to
 # a map tile in case they need to be overwritten.
 struct.VertexRange {
-  buffer 'rr::e_render_target_buffer',
+  buffer 'rr::e_render_buffer',
   start  'long',
   finish 'long',
 }

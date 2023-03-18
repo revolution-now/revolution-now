@@ -711,9 +711,8 @@ void LandViewRenderer::render_non_entities() const {
   // space is visible, paint a background so that it won't just
   // have empty black surroundings.
   if( viewport_.are_surroundings_visible() ) {
-    SCOPED_RENDERER_MOD_SET(
-        buffer_mods.buffer,
-        rr::e_render_target_buffer::backdrop );
+    SCOPED_RENDERER_MOD_SET( buffer_mods.buffer,
+                             rr::e_render_buffer::backdrop );
     render_backdrop();
 
     {
@@ -736,8 +735,7 @@ void LandViewRenderer::render_non_entities() const {
           shadow_rect, gfx::pixel::black().with_alpha( 100 ) );
     }
 
-    renderer.render_buffer(
-        rr::e_render_target_buffer::backdrop );
+    renderer.render_buffer( rr::e_render_buffer::backdrop );
   }
 
   // Now the actual land.
@@ -747,10 +745,8 @@ void LandViewRenderer::render_non_entities() const {
   renderer.set_camera( translation.distance_from_origin(),
                        zoom );
   // Should do this after setting the camera.
-  renderer.render_buffer(
-      rr::e_render_target_buffer::landscape );
-  renderer.render_buffer(
-      rr::e_render_target_buffer::landscape_annex );
+  renderer.render_buffer( rr::e_render_buffer::landscape );
+  renderer.render_buffer( rr::e_render_buffer::landscape_annex );
 }
 
 } // namespace rn

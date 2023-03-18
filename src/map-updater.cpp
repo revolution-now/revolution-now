@@ -165,8 +165,7 @@ void RenderingMapUpdater::redraw_square(
   auto& renderer = renderer_;
   SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
   SCOPED_RENDERER_MOD_SET(
-      buffer_mods.buffer,
-      rr::e_render_target_buffer::landscape_annex );
+      buffer_mods.buffer, rr::e_render_buffer::landscape_annex );
 
   rr::VertexRange const old_bounds = tile_bounds_[tile];
   tile_bounds_[tile]               = renderer_.range_for( [&] {

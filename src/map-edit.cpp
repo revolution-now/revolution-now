@@ -167,10 +167,9 @@ struct MapEditPlane::Impl : public Plane {
             .distance_from_origin(),
         viewport().get_zoom() );
     // Should do this after setting the camera.
+    renderer.render_buffer( rr::e_render_buffer::landscape );
     renderer.render_buffer(
-        rr::e_render_target_buffer::landscape );
-    renderer.render_buffer(
-        rr::e_render_target_buffer::landscape_annex );
+        rr::e_render_buffer::landscape_annex );
     render_sidebar( renderer );
     render_toolbar( renderer );
   }

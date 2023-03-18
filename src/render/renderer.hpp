@@ -108,7 +108,7 @@ struct RendererConfig {
 ** RendererMods
 *****************************************************************/
 struct BufferInfo {
-  e_render_target_buffer buffer = e_render_target_buffer::normal;
+  e_render_buffer buffer = e_render_buffer::normal;
 };
 
 struct RendererMods {
@@ -162,15 +162,15 @@ struct Renderer {
   void render_pass(
       base::function_ref<void( Renderer& )> drawer );
 
-  void clear_buffer( e_render_target_buffer buffer );
-  void render_buffer( e_render_target_buffer buffer );
+  void clear_buffer( e_render_buffer buffer );
+  void render_buffer( e_render_buffer buffer );
 
   // If the buffer is not specified then use the current one.
-  long buffer_vertex_cur_pos( base::maybe<e_render_target_buffer>
-                                  buffer = base::nothing );
+  long buffer_vertex_cur_pos(
+      base::maybe<e_render_buffer> buffer = base::nothing );
 
-  long   buffer_vertex_count( e_render_target_buffer buffer );
-  double buffer_size_mb( e_render_target_buffer buffer );
+  long   buffer_vertex_count( e_render_buffer buffer );
+  double buffer_size_mb( e_render_buffer buffer );
 
   // Will run the function and return the range corresponding to
   // the vertices that were added in this function. Note that
