@@ -322,8 +322,9 @@ struct Renderer::Impl {
 
   void mods_push_back( RendererMods&& mods ) {
     mod_stack.push( std::move( mods ) );
-    for( auto& [buffer, data] : buffers )
-      if( data->track_dirty ) data->dirty = true;
+    e_render_buffer const buffer = mods.buffer_mods.buffer;
+    if( buffers[buffer]->track_dirty )
+      buffers[buffer]->dirty = true;
   }
 
   void mods_pop() {
