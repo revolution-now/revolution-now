@@ -15,10 +15,8 @@
 // Revolution Now
 #include "maybe.hpp"
 
-// config
-#include "config/unit-classes.rds.hpp" // not a real config.
-
 // ss
+#include "ss/unit-classes.rds.hpp"
 #include "ss/unit-type.hpp"
 
 namespace rn {
