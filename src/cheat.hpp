@@ -42,6 +42,14 @@ struct UnitsState;
 // Ask the user which map they want to reveal.
 wait<> cheat_reveal_map( SS& ss, TS& ts );
 
+// For whomever the player is that has visibility onto the map
+// (if any), all map squares will be made visible one time, but
+// with fog of war. However, unlike the "reveal full map," this
+// does not cause that state to be persisted; instead, it is
+// simply equivalent to having explored every tile of the map
+// with a unit, in that they will be exposed but then fogged.
+void cheat_explore_entire_map( SS& ss, TS& ts );
+
 // No dialog box, just toggle the map view between the entire map
 // and "no special view."
 void cheat_toggle_reveal_full_map( SS& ss, TS& ts );

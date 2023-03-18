@@ -54,6 +54,7 @@ enum.e_menu_item {
 
   # Cheat menu.
   cheat_reveal_map,
+  cheat_explore_entire_map,
   cheat_map_editor,
   cheat_edit_fathers,
 }

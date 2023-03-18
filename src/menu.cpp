@@ -161,6 +161,8 @@ refl::enum_map<e_menu, vector<MenuItem>> const g_menu_def{
     { e_menu::cheat,
       {
           ITEM( cheat_reveal_map, "Reveal Map" ),             //
+          ITEM( cheat_explore_entire_map,
+                "Explore Entire Map" ),                       //
           ITEM( cheat_map_editor, "Enter Map Editor" ),       //
           /***********/ DIVIDER, /***********/                //
           ITEM( cheat_edit_fathers, "Edit Founding Fathers" ) //

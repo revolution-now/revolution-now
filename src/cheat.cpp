@@ -19,6 +19,7 @@
 #include "colony-evolve.hpp"
 #include "fathers.hpp"
 #include "igui.hpp"
+#include "imap-updater.hpp"
 #include "logger.hpp"
 #include "market.hpp"
 #include "plane-stack.hpp"
@@ -40,7 +41,11 @@
 #include "ss/colony.hpp"
 #include "ss/land-view.rds.hpp"
 #include "ss/players.rds.hpp"
+#include "ss/terrain.hpp"
 #include "ss/turn.hpp"
+
+// gfx
+#include "gfx/iter.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -126,6 +131,37 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
   ss.land_view.map_revealed = revealed;
   update_map_visibility(
       ts, player_for_role( ss, e_player_role::viewer ) );
+}
+
+void cheat_explore_entire_map( SS& ss, TS& ts ) {
+  RETURN_IF_NO_CHEAT;
+  Rect const world_rect = ss.terrain.world_rect_tiles();
+  maybe<e_nation> const nation =
+      player_for_role( ss, e_player_role::viewer );
+  if( !nation.has_value() )
+    // Entire map is already visible, no need to do anything.
+    return;
+  // Need to use this mutable terrain for efficiency. Doing it
+  // through the usual map updater APIs is too slow for large
+  // maps.
+  Matrix<maybe<FogSquare>>& m =
+      ss.mutable_terrain_use_with_care
+          .mutable_player_terrain( *nation )
+          .map;
+  for( Rect const r : gfx::subrects( world_rect ) ) {
+    Coord const      coord       = r.upper_left();
+    MapSquare const& real_square = ss.terrain.square_at( coord );
+    FogSquare&       fog_square  = m[coord].emplace();
+    fog_square.square            = real_square;
+    // The reason that we leave it fogged is because if we remove
+    // then fog then, on the next turn, the game will regenerate
+    // the fog on most of the map squares which will cause a huge
+    // delay for larger maps. So we just leave it fogged, but
+    // then remove the fog around units after we redraw below.
+    fog_square.fog_of_war_removed = false;
+  }
+  ts.map_updater.redraw();
+  recompute_fog_for_nation( ss, ts, *nation );
 }
 
 void cheat_toggle_reveal_full_map( SS& ss, TS& ts ) {
