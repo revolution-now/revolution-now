@@ -207,7 +207,7 @@ void RenderingMapUpdater::redraw_square_single_buffer(
   // The > is defensive.
   if( buffer_tracking.tiles_redrawn >= kRedrawThreshold )
     redraw_buffer();
-  lg.debug( "{} tiles redrawn: {}",
+  lg.trace( "{} tiles redrawn: {}",
             refl::enum_value_name( annex_buffer ),
             buffer_tracking.tiles_redrawn );
 }
