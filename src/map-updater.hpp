@@ -56,6 +56,9 @@ struct NonRenderingMapUpdater : IMapUpdater {
   // Implement IMapUpdater.
   void redraw() override;
 
+  // Implement IMapUpdater.
+  void unrender() override;
+
  protected:
   SS& ss_;
 };
@@ -90,6 +93,9 @@ struct RenderingMapUpdater : NonRenderingMapUpdater {
 
   // Implement IMapUpdater.
   void redraw() override;
+
+  // Implement IMapUpdater.
+  void unrender() override;
 
  private:
   BuffersUpdated redraw_buffers_for_tile_where_needed(
@@ -143,6 +149,9 @@ struct TrappingMapUpdater : IMapUpdater {
 
   // Implement IMapUpdater.
   void redraw() override;
+
+  // Implement IMapUpdater.
+  void unrender() override;
 };
 
 } // namespace rn

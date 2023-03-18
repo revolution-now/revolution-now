@@ -46,6 +46,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/scope-exit.hpp"
 #include "base/to-str-ext-std.hpp"
 
 using namespace std;
@@ -158,6 +159,9 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   // cause that is the default setting of the map updater.
   lg.info( "performing initial full map render." );
   ts.map_updater.redraw();
+  // This is so that when the game is exited the terrain buffers
+  // won't continue to render in the background.
+  SCOPE_EXIT( ts.map_updater.unrender() );
 
   play( rand, e_game_module_tune_points::start_game );
   // All of the above needs to stay alive, so we must wait.

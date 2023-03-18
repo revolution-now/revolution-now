@@ -136,6 +136,8 @@ void NonRenderingMapUpdater::modify_entire_map(
 
 void NonRenderingMapUpdater::redraw() {}
 
+void NonRenderingMapUpdater::unrender() {}
+
 /****************************************************************
 ** RenderingMapUpdater
 *****************************************************************/
@@ -339,6 +341,20 @@ void RenderingMapUpdater::redraw() {
   redraw_obfuscation_buffer();
 }
 
+void RenderingMapUpdater::unrender() {
+  this->Base::unrender();
+  // This won't cause the data to be removed from the GPU, but
+  // the effect will be the same, because when we run the shader
+  // program on a buffer we specify the number of vertices to run
+  // it on, which will be taken from the size of the CPU buffer,
+  // which will be zero, so will have the same effect.
+  renderer_.clear_buffer( rr::e_render_buffer::landscape );
+  renderer_.clear_buffer( rr::e_render_buffer::landscape_annex );
+  renderer_.clear_buffer( rr::e_render_buffer::obfuscation );
+  renderer_.clear_buffer(
+      rr::e_render_buffer::obfuscation_annex );
+}
+
 /****************************************************************
 ** TrappingMapUpdater
 *****************************************************************/
@@ -363,5 +379,7 @@ void TrappingMapUpdater::modify_entire_map(
 }
 
 void TrappingMapUpdater::redraw() { SHOULD_NOT_BE_HERE; }
+
+void TrappingMapUpdater::unrender() { SHOULD_NOT_BE_HERE; }
 
 } // namespace rn

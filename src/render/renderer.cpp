@@ -335,6 +335,10 @@ struct Renderer::Impl {
   }
 
   void clear_buffer( e_render_buffer buffer ) {
+    // This won't cause the data to be removed from the GPU, but
+    // the effect will be the same, because when we run the
+    // shader program we specify the number of vertices to run it
+    // on, which will be zero after the following.
     buffers[buffer]->vertices->clear();
     buffers[buffer]->emitter.set_position( 0 );
   }

@@ -33,6 +33,7 @@ struct MockIMapUpdater : IMapUpdater {
   MOCK_METHOD( BuffersUpdated, make_square_fogged,
                ( Coord, e_nation ), () );
   MOCK_METHOD( void, redraw, (), () );
+  MOCK_METHOD( void, unrender, (), () );
 };
 
 static_assert( !std::is_abstract_v<MockIMapUpdater> );
