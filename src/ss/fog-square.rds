@@ -9,9 +9,13 @@
 #
 # ===============================================================
 # ss
+include "ss/colony-enums.rds.hpp"
 include "ss/colony-id.hpp"
+include "ss/dwelling-id.hpp"
 include "ss/map-square.rds.hpp"
 include "ss/nation.rds.hpp"
+include "ss/native-enums.rds.hpp"
+include "ss/unit-classes.rds.hpp"
 
 # base
 include "base/maybe.hpp"
@@ -21,25 +25,37 @@ include "<string>"
 
 namespace "rn"
 
-enum.e_barricade_type {
-  stockade,
-  fort,
-  fortress,
-}
-
 # All of the visual characteristics of a colony that need to be
 # recorded to implement the fog of war.
 struct.FogColony {
   # Note that this ID may no longer exist if the colony has since
-  # been abandoned! That said, the game should never reuse such
+  # been abandoned. That said, the game should never reuse such
   # IDs, so it is safe to check if a colony with the given ID ex-
   # ists or not and, if it does, it is the colony originally re-
   # ferred to.
-  id 'ColonyId',
+  id_may_not_exist 'ColonyId',
   nation 'e_nation',
   name 'std::string',
   population 'int',
-  barricade_type 'base::maybe<e_barricade_type>',
+  barricade_type 'base::maybe<e_colony_barricade_type>',
+}
+
+struct.FogMission {
+  nation 'e_nation',
+  level 'e_missionary_type',
+}
+
+struct.FogDwelling {
+  # Note that this ID may no longer exist if the colony has since
+  # been abandoned. That said, the game should never reuse such
+  # IDs, so it is safe to check if a colony with the given ID ex-
+  # ists or not and, if it does, it is the colony originally re-
+  # ferred to.
+  id_may_not_exist 'DwellingId',
+  tribe 'e_tribe',
+  capital 'bool',
+  mission 'base::maybe<FogMission>',
+  # TODO: maybe add alarm indicator here.
 }
 
 # All of the visual characteristics of a square that need to be
@@ -47,6 +63,7 @@ struct.FogColony {
 struct.FogSquare {
   square 'MapSquare',
   colony 'base::maybe<FogColony>',
+  dwelling 'base::maybe<FogDwelling>',
 
   # By default there is fog-of-war on every (visible) square; but
   # squares immediately adjacent to any square occupied by a unit
