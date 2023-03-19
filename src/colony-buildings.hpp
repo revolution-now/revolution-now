@@ -75,4 +75,10 @@ int max_workers_for_building( e_colony_building building );
 void add_colony_building( Colony&           colony,
                           e_colony_building building );
 
+e_colony_building barricade_type_to_colony_building(
+    e_colony_barricade_type barricade );
+
+maybe<e_colony_barricade_type> barricade_for_colony(
+    Colony const& colony );
+
 } // namespace rn

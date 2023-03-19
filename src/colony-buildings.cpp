@@ -18,6 +18,9 @@
 // config
 #include "config/colony.rds.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -123,11 +126,11 @@ maybe<e_indoor_job> indoor_job_for_slot(
       return nothing;
     case e_colony_building_slot::schools:
       return e_indoor_job::teacher;
-    case e_colony_building_slot::offshore: //
+    case e_colony_building_slot::offshore:   //
       return nothing;
-    case e_colony_building_slot::horses: //
+    case e_colony_building_slot::horses:     //
       return nothing;
-    case e_colony_building_slot::wall: //
+    case e_colony_building_slot::wall:       //
       return nothing;
     case e_colony_building_slot::warehouses: //
       return nothing;
@@ -339,14 +342,16 @@ e_unit_activity activity_for_indoor_job( e_indoor_job job ) {
       return e_unit_activity::rum_distilling;
     case e_indoor_job::cigars:
       return e_unit_activity::tobacconistry;
-    case e_indoor_job::cloth: return e_unit_activity::weaving;
+    case e_indoor_job::cloth:
+      return e_unit_activity::weaving;
     case e_indoor_job::coats:
       return e_unit_activity::fur_trading;
     case e_indoor_job::tools:
       return e_unit_activity::blacksmithing;
     case e_indoor_job::muskets:
       return e_unit_activity::gunsmithing;
-    case e_indoor_job::teacher: return e_unit_activity::teaching;
+    case e_indoor_job::teacher:
+      return e_unit_activity::teaching;
   }
 }
 
@@ -359,7 +364,8 @@ maybe<e_school_type> school_type_from_building(
       return e_school_type::college;
     case e_colony_building::university:
       return e_school_type::university;
-    default: break;
+    default:
+      break;
   }
   return nothing;
 }
@@ -397,7 +403,38 @@ void add_colony_building( Colony&           colony,
     case e_colony_building::custom_house:
       set_default_custom_house_state( colony );
       break;
-    default: break;
+    default:
+      break;
+  }
+}
+
+e_colony_building barricade_type_to_colony_building(
+    e_colony_barricade_type barricade ) {
+  switch( barricade ) {
+    case e_colony_barricade_type::stockade:
+      return e_colony_building::stockade;
+    case e_colony_barricade_type::fort:
+      return e_colony_building::fort;
+    case e_colony_barricade_type::fortress:
+      return e_colony_building::fortress;
+  }
+}
+
+maybe<e_colony_barricade_type> barricade_for_colony(
+    Colony const& colony ) {
+  maybe<e_colony_building> const building =
+      building_for_slot( colony, e_colony_building_slot::wall );
+  if( !building.has_value() ) return nothing;
+  switch( *building ) {
+    case e_colony_building::stockade:
+      return e_colony_barricade_type::stockade;
+    case e_colony_building::fort:
+      return e_colony_barricade_type::fort;
+    case e_colony_building::fortress:
+      return e_colony_barricade_type::fortress;
+    default:
+      FATAL( "unexpected building type for barricade: {}.",
+             *building );
   }
 }
 

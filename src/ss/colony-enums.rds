@@ -150,3 +150,9 @@ enum.e_colony_building_slot {
   crosses,
   custom_house,
 }
+
+enum.e_colony_barricade_type {
+  stockade,
+  fort,
+  fortress,
+}
