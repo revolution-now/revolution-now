@@ -1379,5 +1379,61 @@ TEST_CASE( "[visibility] recompute_fog_for_nation" ) {
   REQUIRE( !eng_map[{ .x = 8, .y = 10 }]->fog_of_war_removed );
 }
 
+TEST_CASE( "[visibility] fog_square_at" ) {
+  World W;
+  W.create_small_map();
+  maybe<FogSquare> expected;
+  Coord            coord;
+  Coord const      kOutsideCoord = { .x = 2, .y = 2 };
+  BASE_CHECK( !W.terrain().square_exists( kOutsideCoord ) );
+  auto viz = Visibility::create( W.ss(), nothing );
+
+  auto f = [&] { return viz.fog_square_at( coord ); };
+
+  Matrix<maybe<FogSquare>>& player_map =
+      W.terrain()
+          .mutable_player_terrain( e_nation::english )
+          .map;
+
+  FogSquare& fog_square1 =
+      player_map[{ .x = 0, .y = 0 }].emplace();
+  fog_square1 = FogSquare{ .square = MapSquare{ .road = true },
+                           .fog_of_war_removed = true };
+  FogSquare& fog_square2 =
+      player_map[{ .x = 1, .y = 0 }].emplace();
+  fog_square2 = FogSquare{
+      .colony   = FogColony{},
+      .dwelling = FogDwelling{ .capital = true },
+  };
+
+  // No nation.
+  viz = Visibility::create( W.ss(), nothing );
+
+  coord = { .x = 0, .y = 0 };
+  REQUIRE( f() == nothing );
+  coord = { .x = 1, .y = 0 };
+  REQUIRE( f() == nothing );
+  coord = { .x = 0, .y = 1 };
+  REQUIRE( f() == nothing );
+  coord = { .x = 1, .y = 1 };
+  REQUIRE( f() == nothing );
+  coord = kOutsideCoord;
+  REQUIRE( f() == nothing );
+
+  // English.
+  viz = Visibility::create( W.ss(), e_nation::english );
+
+  coord = { .x = 0, .y = 0 };
+  REQUIRE( f() == fog_square1 );
+  coord = { .x = 1, .y = 0 };
+  REQUIRE( f() == fog_square2 );
+  coord = { .x = 0, .y = 1 };
+  REQUIRE( f() == nothing );
+  coord = { .x = 1, .y = 1 };
+  REQUIRE( f() == nothing );
+  coord = kOutsideCoord;
+  REQUIRE( f() == nothing );
+}
+
 } // namespace
 } // namespace rn

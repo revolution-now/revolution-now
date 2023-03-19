@@ -30,6 +30,7 @@
 
 namespace rn {
 
+struct FogSquare;
 struct MapSquare;
 struct PlayerTerrain;
 struct SSConst;
@@ -69,6 +70,12 @@ struct Visibility {
   // the proto squares (which are always considered to be "visi-
   // ble" to the player).
   MapSquare const& square_at( Coord tile ) const;
+
+  // If we are rendering the terrain from the point of view of a
+  // player then this will return the FogSquare if the tile is
+  // explored and on the map. In all other cases it will return
+  // nothing.
+  maybe<FogSquare const&> fog_square_at( Coord tile ) const;
 
   // For convenience.
   Rect rect_tiles() const;

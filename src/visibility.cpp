@@ -141,6 +141,27 @@ MapSquare const& Visibility::square_at( Coord tile ) const {
   return *square;
 };
 
+maybe<FogSquare const&> Visibility::fog_square_at(
+    Coord tile ) const {
+  DCHECK( terrain_ != nullptr );
+  if( !player_terrain_.has_value() )
+    // Real map, no fog.
+    return nothing;
+  DCHECK( *player_terrain_ != nullptr );
+  // We're rendering from the player's point of view.
+  if( !tile.is_inside( terrain_->world_rect_tiles() ) )
+    // Would be a proto square; again, not fog square.
+    return nothing;
+  maybe<FogSquare> const& square =
+      ( *player_terrain_ )->map[tile];
+  if( !square.has_value() )
+    // Player can't see this tile.
+    return nothing;
+  // The player can see this tile, so return the player's version
+  // of it.
+  return *square;
+}
+
 Rect Visibility::rect_tiles() const {
   DCHECK( terrain_ != nullptr );
   return terrain_->world_rect_tiles();
