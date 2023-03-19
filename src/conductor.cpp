@@ -207,7 +207,10 @@ void init_conductor() {
 
   register_requests();
 
-  subscribe_to_frame_tick( conductor_tick, 1s );
+  int64_t const subscription_id =
+      subscribe_to_frame_tick( conductor_tick, 1s );
+  // TODO: when to unsubscribe:
+  (void)subscription_id;
 
   // Gather a list of all available music players.
   ADD_MUSIC_PLAYER( silent, Silent );
@@ -352,9 +355,15 @@ void play_request( IRand& rand, e_request request,
   auto const& dims = dimensions_for_request()[request];
   double      prob = 1.0;
   switch( probability ) {
-    case e_request_probability::always: prob = 1.0; break;
-    case e_request_probability::sometimes: prob = .3; break;
-    case e_request_probability::rarely: prob = .1; break;
+    case e_request_probability::always:
+      prob = 1.0;
+      break;
+    case e_request_probability::sometimes:
+      prob = .3;
+      break;
+    case e_request_probability::rarely:
+      prob = .1;
+      break;
   }
   // In the below we use fuzzy_match=true because we always want
   // to guarantee some tunes returned regardless of our search

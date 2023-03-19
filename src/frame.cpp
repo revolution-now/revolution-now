@@ -55,7 +55,6 @@ struct FrameSubscriptionTick {
   uint64_t   last_message{ 0 };
   FrameSubscriptionFunc func;
 };
-NOTHROW_MOVE( FrameSubscriptionTick );
 
 struct FrameSubscriptionTime {
   bool done = false; // for one-time notifications
@@ -63,11 +62,21 @@ struct FrameSubscriptionTime {
   Time_t                last_message{};
   FrameSubscriptionFunc func;
 };
-NOTHROW_MOVE( FrameSubscriptionTime );
 
-using FrameSubscription =
+using FrameSubscriptionData =
     base::variant<FrameSubscriptionTick, FrameSubscriptionTime>;
-NOTHROW_MOVE( FrameSubscription );
+
+struct FrameSubscription {
+  inline static int64_t next_id = 1;
+
+  FrameSubscription( FrameSubscriptionData&& data )
+    : data( std::move( data ) ) {
+    id = next_id++;
+  }
+
+  FrameSubscriptionData data;
+  int64_t               id = 0;
+};
 
 vector<FrameSubscription>& subscriptions() {
   static vector<FrameSubscription> subs;
@@ -82,7 +91,7 @@ vector<FrameSubscription>& subscriptions_oneoff() {
 void notify_subscribers() {
   auto try_notify = []( FrameSubscription& sub ) {
     overload_visit(
-        sub,
+        sub.data,
         []( FrameSubscriptionTick& tick_sub ) {
           auto& [done, interval, last_message, func] = tick_sub;
           auto total = total_frame_count();
@@ -105,7 +114,7 @@ void notify_subscribers() {
   for( auto& sub : subscriptions() ) try_notify( sub );
   for( auto& sub : subscriptions_oneoff() ) try_notify( sub );
   erase_if( subscriptions_oneoff(), []( FrameSubscription& fs ) {
-    return base::visit( L( _.done ), fs );
+    return base::visit( L( _.done ), fs.data );
   } );
 }
 
@@ -216,25 +225,38 @@ void deinit_frame() {
 
 } // namespace
 
-void subscribe_to_frame_tick( FrameSubscriptionFunc func,
-                              FrameCount n, bool repeating ) {
-  ( repeating ? subscriptions : subscriptions_oneoff )()
-      .push_back( FrameSubscriptionTick{
-          .done         = false,
-          .interval     = n,
-          .last_message = total_frame_count(),
-          .func         = func } );
+int64_t subscribe_to_frame_tick( FrameSubscriptionFunc func,
+                                 FrameCount n, bool repeating ) {
+  auto& vec =
+      ( repeating ? subscriptions : subscriptions_oneoff )();
+  vec.push_back( FrameSubscription(
+      FrameSubscriptionTick{ .done         = false,
+                             .interval     = n,
+                             .last_message = total_frame_count(),
+                             .func         = func } ) );
+  return vec.back().id;
 }
 
-void subscribe_to_frame_tick( FrameSubscriptionFunc func,
-                              chrono::microseconds  n,
-                              bool                  repeating ) {
-  ( repeating ? subscriptions : subscriptions_oneoff )()
-      .push_back(
-          FrameSubscriptionTime{ .done         = false,
-                                 .interval     = n,
-                                 .last_message = Clock_t::now(),
-                                 .func         = func } );
+int64_t subscribe_to_frame_tick( FrameSubscriptionFunc func,
+                                 chrono::microseconds  n,
+                                 bool repeating ) {
+  auto& vec =
+      ( repeating ? subscriptions : subscriptions_oneoff )();
+  vec.push_back( FrameSubscription(
+      FrameSubscriptionTime{ .done         = false,
+                             .interval     = n,
+                             .last_message = Clock_t::now(),
+                             .func         = func } ) );
+  return vec.back().id;
+}
+
+void unsubscribe_frame_tick( int64_t id ) {
+  erase_if( subscriptions(), [&]( FrameSubscription& fs ) {
+    return fs.id == id;
+  } );
+  erase_if(
+      subscriptions_oneoff(),
+      [&]( FrameSubscription& fs ) { return fs.id == id; } );
 }
 
 EventCountMap& event_counts() { return g_event_counts; }

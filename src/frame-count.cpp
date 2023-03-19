@@ -11,7 +11,11 @@
 #include "frame-count.hpp"
 
 // Revolution Now
+#include "co-wait.hpp"
 #include "frame.hpp"
+
+// base
+#include "base/scope-exit.hpp"
 
 using namespace std;
 
@@ -22,12 +26,15 @@ wait<> co_await_transform( FrameCount count ) {
 }
 
 wait<> wait_n_frames( FrameCount n ) {
-  if( n.frames == 0 ) return make_wait<>();
+  if( n.frames == 0 ) co_return;
   wait_promise<> p;
-  auto after_ticks = [p]() mutable { p.set_value_emplace(); };
-  subscribe_to_frame_tick( after_ticks, n,
-                           /*repeating=*/false );
-  return p.wait();
+  auto after_ticks = [&p]() mutable { p.set_value_emplace(); };
+  int64_t const subscription_id =
+      subscribe_to_frame_tick( after_ticks, n,
+                               /*repeating=*/false );
+  SCOPE_EXIT( unsubscribe_frame_tick( subscription_id ) );
+  // Need to keep p alive.
+  co_await p.wait();
 }
 
 } // namespace rn

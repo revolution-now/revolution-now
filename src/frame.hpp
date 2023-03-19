@@ -40,14 +40,19 @@ using FrameSubscriptionFunc = std::function<void( void )>;
 
 // Subscribe to receive a notification after n ticks, or every n
 // ticks if repeating == true.
-void subscribe_to_frame_tick( FrameSubscriptionFunc f,
-                              FrameCount            n,
-                              bool repeating = true );
+[[nodiscard]] int64_t subscribe_to_frame_tick(
+    FrameSubscriptionFunc f, FrameCount n,
+    bool repeating = true );
 // Subscribe to receive a notification after n microseconds, or
 // every n microseconds if repeating == true.
-void subscribe_to_frame_tick( FrameSubscriptionFunc,
-                              std::chrono::microseconds n,
-                              bool repeating = true );
+[[nodiscard]] int64_t subscribe_to_frame_tick(
+    FrameSubscriptionFunc, std::chrono::microseconds n,
+    bool repeating = true );
+
+// If a subscription is still active then this will unsubscribe
+// it. Note that the IDs are unique across both types of sub-
+// scriptions.
+void unsubscribe_frame_tick( int64_t id );
 
 using EventCountMap =
     std::unordered_map<std::string_view,
