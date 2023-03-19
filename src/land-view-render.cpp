@@ -610,6 +610,8 @@ void LandViewRenderer::render_units() const {
 void LandViewRenderer::render_native_dwellings() const {
   unordered_map<DwellingId, DwellingState> const& all =
       ss_.natives.dwellings_all();
+  // FIXME: this needs to just iterate over those in the covered
+  // rect for efficiency.
   for( auto const& [id, state] : all ) {
     if( !state.ownership.location.is_inside( covered_ ) )
       continue;

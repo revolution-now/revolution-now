@@ -1189,6 +1189,12 @@ wait<> AttackDwellingHandler::perform() {
              attacking_player_.nation );
       destroy_unit( ss_, missionary );
     }
+    // TODO: decide whether to update player fog squares to re-
+    // move missionary status. We don't have to worry about the
+    // ones that are currently visible, but the fogged ones would
+    // continue to show a cross. It seems reasonable to remove
+    // the crosses from the fogged ones because we are giving the
+    // player that information.
     co_await ts_.gui.message_box(
         "The [{}] revolt against [{}] missions! "
         "All {} missionaries eliminated!",
