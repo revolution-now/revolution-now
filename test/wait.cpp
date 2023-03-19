@@ -82,16 +82,16 @@ TEST_CASE( "[wait] formatting" ) {
 template<typename T>
 using w_coro_promise = wait_promise<T>;
 
-queue<variant<w_coro_promise<int>, w_coro_promise<double>>>
+queue<variant<w_coro_promise<int>*, w_coro_promise<double>*>>
     g_promises;
 
 void deliver_promise() {
   struct Setter {
-    void operator()( w_coro_promise<int>& p ) {
-      p.set_value( 1 );
+    void operator()( w_coro_promise<int>* p ) {
+      p->set_value( 1 );
     }
-    void operator()( w_coro_promise<double>& p ) {
-      p.set_value( 2.2 );
+    void operator()( w_coro_promise<double>* p ) {
+      p->set_value( 2.2 );
     }
   };
   if( !g_promises.empty() ) {
@@ -102,14 +102,14 @@ void deliver_promise() {
 
 wait<int> wait_int() {
   w_coro_promise<int> p;
-  g_promises.emplace( p );
-  return p.wait();
+  g_promises.emplace( &p );
+  co_return co_await p.wait();
 }
 
 wait<double> wait_double() {
   w_coro_promise<double> p;
-  g_promises.emplace( p );
-  return p.wait();
+  g_promises.emplace( &p );
+  co_return co_await p.wait();
 }
 
 wait<int> wait_sum() {
@@ -237,9 +237,9 @@ wait<string> coro3() {
 }
 
 TEST_CASE( "[wait] coro cancel" ) {
-  p  = {};
-  p0 = {};
-  p1 = {};
+  p.reset();
+  p0.reset();
+  p1.reset();
   string_log.clear();
 
   wait<string> ws = coro3();
@@ -478,9 +478,9 @@ TEST_CASE( "[wait] coro cancel" ) {
 }
 
 TEST_CASE( "[wait] coro cancel by wait out-of-scope" ) {
-  p  = {};
-  p0 = {};
-  p1 = {};
+  p.reset();
+  p0.reset();
+  p1.reset();
   string_log.clear();
 
   SECTION( "cancel coro with scheduled" ) {
@@ -673,7 +673,7 @@ wait<> exception_coro_simple() {
 
 TEST_CASE( "[wait] exception coro simple" ) {
   places.clear();
-  exception_p0 = {};
+  exception_p0.reset();
 
   SECTION( "forward cancellation" ) {
     // We don't really need to test this here because it's cov-
@@ -704,7 +704,7 @@ TEST_CASE( "[wait] exception coro simple" ) {
 }
 
 wait<> exception_0() {
-  exception_p0 = {};
+  exception_p0.reset();
   places += 'l';
   SCOPE_EXIT( places += 'L' );
   co_await exception_p0.wait();
@@ -748,9 +748,9 @@ wait<> exception_coro_complex() {
 
 TEST_CASE( "[wait] exception coro complex" ) {
   places.clear();
-  exception_p0 = {};
-  exception_p1 = {};
-  exception_p2 = {};
+  exception_p0.reset();
+  exception_p1.reset();
+  exception_p2.reset();
 
   SECTION( "cancelled, then exception via promise" ) {
     // We don't really need to test this here because it's cov-

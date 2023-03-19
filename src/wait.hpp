@@ -292,9 +292,21 @@ class [[nodiscard]] wait {
 template<typename T>
 class wait_promise {
  public:
-  wait_promise()
-    : shared_state_( new detail::wait_shared_state<T> ) {
-    // shared state ref count should initialize to 1.
+  // This type is immobile in order to enforce that its lifetime
+  // be tied to a lexical scope in order to enforce a structured
+  // concurrency model where all promises are owned by a running
+  // coroutine that is owned by a waitable whose lifetime exceeds
+  // that of the promise. This allows us to avoid using shared
+  // pointers to represent the shared state.
+  wait_promise( wait_promise const& )            = delete;
+  wait_promise& operator=( wait_promise const& ) = delete;
+  wait_promise( wait_promise&& )                 = delete;
+  wait_promise& operator=( wait_promise&& )      = delete;
+
+  wait_promise() { reset(); }
+
+  void reset() {
+    shared_state_.reset( new detail::wait_shared_state<T> );
   }
 
   bool operator==( wait_promise<T> const& rhs ) const {
@@ -409,6 +421,8 @@ template<typename T = std::monostate, typename... Args>
 wait<T> make_wait( Args&&... args ) {
   wait_promise<T> s_promise;
   s_promise.set_value_emplace( std::forward<Args>( args )... );
+  // It's ok not to keep the promise alive here because it is al-
+  // ready fulfilled and won't be referenced again.
   return s_promise.wait();
 }
 

@@ -28,6 +28,7 @@
 
 // base
 #include "base/math.hpp"
+#include "base/scope-exit.hpp"
 
 using namespace std;
 
@@ -79,7 +80,6 @@ SmoothViewport::SmoothViewport( wrapped::SmoothViewport&& o )
         config_rn.viewport.zoom_accel_drag_coeff *
             config_rn.viewport.zoom_speed ),
     smooth_zoom_target_{},
-    coro_smooth_scroll_{},
     zoom_point_seek_{},
     point_seek_{},
     // This one can't be updated until we know the logical screen
@@ -248,7 +248,7 @@ void SmoothViewport::advance_state(
 
   advance( x_push_, y_push_, zoom_push_ );
 
-  if( coro_smooth_scroll_ ) {
+  if( coro_smooth_scroll_.has_value() ) {
     advance_target_seeking( coro_smooth_scroll_->x_target,
                             o_.center_x, x_vel_,
                             translation_seeking_parameters );
@@ -256,9 +256,13 @@ void SmoothViewport::advance_state(
                             o_.center_y, y_vel_,
                             translation_seeking_parameters );
     if( is_tile_fully_visible(
-            coro_smooth_scroll_->tile_target ) )
-      coro_smooth_scroll_->promise
-          .set_value_emplace_if_not_set();
+            coro_smooth_scroll_->tile_target ) ) {
+      // The promise will be nulled out after the associated
+      // coroutine ends, but we may still be scrolling.
+      if( coro_smooth_scroll_->promise != nullptr )
+        coro_smooth_scroll_->promise
+            ->set_value_emplace_if_not_set();
+    }
   }
 
   if( smooth_zoom_target_ ) {
@@ -335,7 +339,9 @@ void SmoothViewport::stop_auto_zoom() {
 
 void SmoothViewport::stop_auto_panning() {
   if( coro_smooth_scroll_ ) {
-    coro_smooth_scroll_->promise.set_value_emplace_if_not_set();
+    if( coro_smooth_scroll_->promise != nullptr )
+      coro_smooth_scroll_->promise
+          ->set_value_emplace_if_not_set();
     coro_smooth_scroll_ = nothing;
   }
   point_seek_ = nothing;
@@ -718,14 +724,30 @@ wait<> SmoothViewport::center_on_tile_smooth( Coord coord ) {
     center_on_tile( coord );
     co_return;
   }
+  wait_promise<> p;
   coro_smooth_scroll_ = SmoothScroll{
       .x_target = double(
           ( coord.x * g_tile_width + g_tile_width / 2 ) ),
       .y_target = double(
           ( coord.y * g_tile_height + g_tile_height / 2 ) ),
       .tile_target = coord,
-      .promise     = {} };
-  co_await coro_smooth_scroll_->promise.wait();
+      .promise     = &p };
+  // When the coroutine ends we will null out the promise so that
+  // no one tries to access it (because it will be gone) but we
+  // don't reset the coro_smooth_scroll_ variable, that way it
+  // can continue to finish scrolling. TODO: think about poten-
+  // tially a better way to do this. It is a bit tricky because
+  // we want the scrolling to slow as it nears its final point
+  // (is that even well defined?), but we don't want to hold up
+  // the coroutine for all that time, hence current behavior.
+  SCOPE_EXIT( {
+    // This check is defensive; it is possible that someone could
+    // call e.g. stop_auto_panning while this coroutine is alive,
+    // which would reset coro_smooth_scroll_.
+    if( coro_smooth_scroll_.has_value() )
+      coro_smooth_scroll_->promise = nullptr;
+  } );
+  co_await p.wait();
 }
 
 bool SmoothViewport::is_tile_fully_visible(

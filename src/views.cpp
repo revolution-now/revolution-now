@@ -611,19 +611,19 @@ TextReflowInfo const& default_text_reflow_info() {
 }
 
 unique_ptr<PlainMessageBoxView> PlainMessageBoxView::create(
-    string_view msg, wait_promise<> on_close ) {
+    string_view msg, wait_promise<>& on_close ) {
   TextMarkupInfo const& m_info = default_text_markup_info();
   TextReflowInfo const& r_info = default_text_reflow_info();
   unique_ptr<TextView>  tview =
       make_unique<TextView>( string( msg ), m_info, r_info );
-  return make_unique<PlainMessageBoxView>(
-      std::move( tview ), std::move( on_close ) );
+  return make_unique<PlainMessageBoxView>( std::move( tview ),
+                                           on_close );
 }
 
 PlainMessageBoxView::PlainMessageBoxView(
-    unique_ptr<TextView> tview, wait_promise<> on_close )
+    unique_ptr<TextView> tview, wait_promise<>& on_close )
   : CompositeSingleView( std::move( tview ), Coord{} ),
-    on_close_( std::move( on_close ) ) {}
+    on_close_( on_close ) {}
 
 bool PlainMessageBoxView::on_key(
     input::key_event_t const& event ) {

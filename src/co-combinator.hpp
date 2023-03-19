@@ -41,17 +41,17 @@ namespace rn::co {
 // nators, you probably should not be using this outside of those
 // implementations.
 template<typename T, typename U>
-void disjunctive_link_to_promise( wait<T>&        w,
-                                  wait_promise<U> wp ) {
+void disjunctive_link_to_promise( wait<T>&         w,
+                                  wait_promise<U>& wp ) {
   w.shared_state()->add_callback(
-      [wp]( typename wait<T>::value_type const& o ) {
+      [&wp]( typename wait<T>::value_type const& o ) {
         // The "if-not-set" reflects the intended disjunctive na-
         // ture of the use of this function: we are only taking
         // the first result available and ignoring the rest.
         wp.set_value_emplace_if_not_set( o );
       } );
   w.shared_state()->set_exception_callback(
-      [wp]( std::exception_ptr eptr ) {
+      [&wp]( std::exception_ptr eptr ) {
         wp.set_exception( eptr );
       } );
 }
@@ -62,11 +62,11 @@ void disjunctive_link_to_promise( wait<T>&        w,
 // variant using a specified index, although it will work for
 // variants with non-duplicate types as well.
 template<int Index, typename T, typename U>
-void disjunctive_link_to_variant_promise( wait<T>&        w,
-                                          wait_promise<U> wp ) {
+void disjunctive_link_to_variant_promise( wait<T>&         w,
+                                          wait_promise<U>& wp ) {
   static_assert( base::is_base_variant_v<U> );
   w.shared_state()->add_callback(
-      [wp]( typename wait<T>::value_type const& o ) {
+      [&wp]( typename wait<T>::value_type const& o ) {
         // The "if-not-set" reflects the intended disjunctive na-
         // ture of the use of this function: we are only taking
         // the first result available and ignoring the rest.
@@ -74,7 +74,7 @@ void disjunctive_link_to_variant_promise( wait<T>&        w,
             std::in_place_index_t<Index>{}, o );
       } );
   w.shared_state()->set_exception_callback(
-      [wp]( std::exception_ptr eptr ) {
+      [&wp]( std::exception_ptr eptr ) {
         wp.set_exception( eptr );
       } );
 }
@@ -285,7 +285,7 @@ repeater( Func&& )
 // awaiters will be resumed, and it will remain set until reset.
 struct latch {
   void set() { p.set_value_emplace_if_not_set(); }
-  void reset() { p = {}; }
+  void reset() { p.reset(); }
 
   auto wait() const { return p.wait(); }
 
@@ -310,7 +310,7 @@ struct latch {
 struct ticker {
   void tick() {
     p.set_value_emplace();
-    p = {};
+    p.reset();
   }
 
   ::rn::wait<> wait() const { return p.wait(); }
@@ -329,7 +329,7 @@ struct stream {
   // Implement the Streamable concept interface.
   wait<T> next() {
     T res = co_await p.wait();
-    p     = {};
+    p.reset();
     update();
     co_return res;
   }
@@ -347,7 +347,8 @@ struct stream {
   bool ready() const { return p.has_value(); }
 
   void reset() {
-    *this = {};
+    p.reset();
+    q = {};
     // Not necessary, but for consistency.
     update();
   }
@@ -357,11 +358,11 @@ struct stream {
     p.set_exception( std::runtime_error( "co::stream" ) );
   }
 
-  stream()                = default;
-  stream( stream const& ) = delete;
+  stream()                           = default;
+  stream( stream const& )            = delete;
   stream& operator=( stream const& ) = delete;
   stream( stream&& )                 = default;
-  stream& operator=( stream&& ) = default;
+  stream& operator=( stream&& )      = default;
 
  private:
   void update() {
@@ -398,7 +399,10 @@ struct finite_stream {
   void send( T&& t ) { s.send( std::move( t ) ); }
   void finish() { s.send( nothing ); }
 
-  void reset() { *this = {}; }
+  void reset() {
+    ended = false;
+    s.reset();
+  }
 
   // For testing; not sure if this would be useful otherwise.
   void set_exception() { s.set_exception(); }
@@ -517,12 +521,12 @@ struct interleave {
         } );
   }
 
-  interleave()                    = default;
-  interleave( interleave const& ) = delete;
+  interleave()                               = default;
+  interleave( interleave const& )            = delete;
   interleave& operator=( interleave const& ) = delete;
   // Cannot be moved because this object contains a self refer-
   // ence, due to the above lambda capture of `this`.
-  interleave( interleave&& ) = delete;
+  interleave( interleave&& )            = delete;
   interleave& operator=( interleave&& ) = delete;
 
  private:

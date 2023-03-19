@@ -449,19 +449,19 @@ class LineEditorView : public View {
 class PlainMessageBoxView : public CompositeSingleView {
  public:
   static std::unique_ptr<PlainMessageBoxView> create(
-      std::string_view msg, wait_promise<> on_close );
+      std::string_view msg, wait_promise<>& on_close );
 
   // Implement CompositeView
   void notify_children_updated() override {}
 
   // Should call the static create method instead.
   PlainMessageBoxView( std::unique_ptr<TextView> tview,
-                       wait_promise<>            on_close );
+                       wait_promise<>&           on_close );
 
   bool on_key( input::key_event_t const& event ) override;
 
  private:
-  wait_promise<> on_close_;
+  wait_promise<>& on_close_;
 };
 
 // Should not be used directly; will generally be inserted

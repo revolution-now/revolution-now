@@ -14,6 +14,9 @@
 #include "co-wait.hpp"
 #include "error.hpp"
 
+// base
+#include "base/scope-exit.hpp"
+
 using namespace std;
 
 namespace rn::co {
@@ -24,6 +27,14 @@ namespace rn::co {
 wait<> any( vector<wait<>> ws ) {
   wait_promise<> wp;
   for( auto& w : ws ) disjunctive_link_to_promise( w, wp );
+  // We need this because if this coroutine gets stopped by an
+  // exception or cancelled while co-awaiting below then we need
+  // to ensure that all of the waits have their callbacks
+  // cleared, because the callbacks will be holding a reference
+  // to the above promise which will be out of scope, which would
+  // cause a crash if someone subsequently fulfilled another
+  // promise in the list.
+  SCOPE_EXIT( for( auto& w : ws ) w.cancel() );
   // !! Need to co_await instead of just returning the wait<>
   // because we need to keep the ws alive (we own them now).
   co_await wp.wait();

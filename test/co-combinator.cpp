@@ -34,8 +34,8 @@ using Catch::Equals;
 
 TEST_CASE( "[co-combinator] any" ) {
   wait_promise<> p1, p2;
-  auto           f1 = [p1]() -> wait<> { co_await p1.wait(); };
-  auto           f2 = [p2]() -> wait<> { co_await p2.wait(); };
+  auto           f1 = [&p1]() -> wait<> { co_await p1.wait(); };
+  auto           f2 = [&p2]() -> wait<> { co_await p2.wait(); };
   wait<>         w1 = f1();
   wait<>         w2 = f2();
   wait<>         w  = any( f1(), f2() );
@@ -64,13 +64,13 @@ TEST_CASE( "[co-combinator] all" ) {
 
   // Add an extra level of coroutine indirection here to make
   // this test more juicy.
-  wait<> w1 = []( wait_promise<> p ) -> wait<> {
+  wait<> w1 = []( wait_promise<>& p ) -> wait<> {
     co_await p.wait();
   }( p1 );
-  wait<> w2 = []( wait_promise<> p ) -> wait<> {
+  wait<> w2 = []( wait_promise<>& p ) -> wait<> {
     co_await p.wait();
   }( p2 );
-  wait<> w3 = []( wait_promise<> p ) -> wait<> {
+  wait<> w3 = []( wait_promise<>& p ) -> wait<> {
     co_await p.wait();
   }( p3 );
   auto ss1 = w1.shared_state();
@@ -219,10 +219,10 @@ TEST_CASE( "[co-combinator] background" ) {
 
   // Add an extra level of coroutine indirection here to make
   // this test more juicy.
-  wait<int> w1 = []( wait_promise<int> p ) -> wait<int> {
+  wait<int> w1 = []( wait_promise<int>& p ) -> wait<int> {
     co_return co_await p.wait();
   }( p1 );
-  wait<> w2 = []( wait_promise<> p ) -> wait<> {
+  wait<> w2 = []( wait_promise<>& p ) -> wait<> {
     co_await p.wait();
   }( p2 );
   auto ss1 = w1.shared_state();
@@ -542,7 +542,7 @@ wait<int> get_int_from_stream() {
 }
 
 wait<int> get_int1() {
-  get_int1_p = {};
+  get_int1_p.reset();
   LOG_PLACES( 'c', 'C' );
   co_await get_int1_p.wait();
   LOG_PLACES( 'd', 'D' );
@@ -554,7 +554,7 @@ wait<int> get_int1() {
 wait<> get_int2() {
   LOG_PLACES( 'f', 'F' );
   co_await co::loop( []() -> wait<> {
-    get_int2_p = {};
+    get_int2_p.reset();
     LOG_PLACES( 'g', 'G' );
     co_await get_int2_p.wait();
     LOG_PLACES( 'x', 'X' );
@@ -577,7 +577,7 @@ wait<int> get_int_from_some_combinators() {
   auto                            w2 = get_int2();
   auto                            w3 = get_int3();
   variant<int, monostate, double> v  = co_await first(
-       std::move( w1 ), std::move( w2 ), std::move( w3 ) );
+      std::move( w1 ), std::move( w2 ), std::move( w3 ) );
   LOG_PLACES( 'l', 'L' );
   REQUIRE( v.index() == 2 );
   REQUIRE( get<2>( v ) == 6.6 );
@@ -587,9 +587,9 @@ wait<int> get_int_from_some_combinators() {
 TEST_CASE(
     "[co-combinator] exception with various combinators" ) {
   places.clear();
-  get_int1_p  = {};
-  get_int2_p  = {};
-  int_stream  = {};
+  get_int1_p.reset();
+  get_int2_p.reset();
+  int_stream.reset();
   wait<int> w = get_int_from_some_combinators();
   REQUIRE( places == "kcfgia" );
 
@@ -719,7 +719,7 @@ wait<int> throwing_coro( bool should_throw, bool throw_eager ) {
 }
 
 TEST_CASE( "[co-combinator] try" ) {
-  wp = {};
+  wp.reset();
   string what;
   auto   catcher = [&]( runtime_error const& e ) {
     what = e.what();
@@ -1143,7 +1143,7 @@ TEST_CASE( "[co-combinator] repeater" ) {
   wait_promise<int> p;
 
   co::repeater r( [&] {
-    p = {};
+    p.reset();
     return p.wait();
   } );
 

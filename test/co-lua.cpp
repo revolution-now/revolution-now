@@ -253,9 +253,9 @@ TEST_CASE( "[co-lua] scenario 1 oneshot" ) {
   lua_init( st ); // NOTE: expensive.
   setup( st );
 
-  p1        = {};
-  p2        = {};
-  p3        = {};
+  p1.reset();
+  p2.reset();
+  p3.reset();
   shown_int = {};
   trace_log = {};
 
@@ -284,9 +284,9 @@ TEST_CASE( "[co-lua] scenario 1 gradual" ) {
   lua_init( st ); // NOTE: expensive.
   setup( st );
 
-  p1        = {};
-  p2        = {};
-  p3        = {};
+  p1.reset();
+  p2.reset();
+  p3.reset();
   shown_int = {};
   trace_log = {};
 
@@ -337,9 +337,9 @@ TEST_CASE( "[co-lua] scenario 1 error from cpp" ) {
   lua_init( st ); // NOTE: expensive.
   setup( st );
 
-  p1        = {};
-  p2        = {};
-  p3        = {};
+  p1.reset();
+  p2.reset();
+  p3.reset();
   shown_int = {};
   trace_log = {};
 
@@ -379,9 +379,9 @@ TEST_CASE( "[co-lua] scenario 1 error from lua" ) {
   lua_init( st ); // NOTE: expensive.
   setup( st );
 
-  p1        = {};
-  p2        = {};
-  p3        = {};
+  p1.reset();
+  p2.reset();
+  p3.reset();
   shown_int = {};
   trace_log = {};
 
@@ -425,9 +425,9 @@ TEST_CASE( "[co-lua] scenario 1 coroutine.create" ) {
   lua::state st;
   lua_init( st ); // NOTE: expensive.
 
-  p1        = {};
-  p2        = {};
-  p3        = {};
+  p1.reset();
+  p2.reset();
+  p3.reset();
   shown_int = {};
   trace_log = {};
 
@@ -561,8 +561,8 @@ TEST_CASE( "[co-lua] scenario 2 oneshot" ) {
   lua::state st;
   lua_init( st ); // NOTE: expensive.
 
-  p1        = {};
-  p2        = {};
+  p1.reset();
+  p2.reset();
   trace_log = {};
 
   setup( st );
@@ -599,8 +599,8 @@ TEST_CASE( "[co-lua] scenario 2 error" ) {
   lua::state st;
   lua_init( st ); // NOTE: expensive.
 
-  p1        = {};
-  p2        = {};
+  p1.reset();
+  p2.reset();
   trace_log = {};
 
   setup( st );
@@ -673,8 +673,8 @@ TEST_CASE( "[co-lua] scenario 2 cancellation" ) {
   lua::state st;
   lua_init( st ); // NOTE: expensive.
 
-  p1        = {};
-  p2        = {};
+  p1.reset();
+  p2.reset();
   trace_log = {};
 
   setup( st );
@@ -813,10 +813,10 @@ TEST_CASE( "[co-lua] scenario 3" ) {
   lua::state st;
   lua_init( st ); // NOTE: expensive.
 
-  p1        = {};
-  p2        = {};
-  p3        = {};
-  p4        = {};
+  p1.reset();
+  p2.reset();
+  p3.reset();
+  p4.reset();
   trace_log = {};
 
   setup( st );

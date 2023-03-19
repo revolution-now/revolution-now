@@ -739,7 +739,7 @@ wait<vector<UnitSelection>> unit_selection_box(
   wait_promise<vector<UnitSelection>> s_promise;
 
   function<void( maybe<UnitActivationView::map_t> )> on_result =
-      [s_promise]( maybe<UnitActivationView::map_t> result ) {
+      [&s_promise]( maybe<UnitActivationView::map_t> result ) {
         vector<UnitSelection> selections;
         if( result.has_value() ) {
           for( auto const& [id, info] : *result ) {
@@ -803,6 +803,8 @@ wait<> WindowPlane::message_box( string_view msg ) {
       impl_->wm,
       ui::PlainMessageBoxView::create( string( msg ), p ),
       /*auto_pad=*/true );
+  // Need to keep p alive since it is held by refererence by the
+  // message box view.
   co_await p.wait();
 }
 
@@ -912,7 +914,7 @@ wait<maybe<string>> WindowPlane::str_input_box(
   wait_promise<maybe<string>> p;
   unique_ptr<Window>          win = text_input_box(
       impl_->wm, msg, initial_text, required, L( _.size() > 0 ),
-      [p]( maybe<string> result ) { p.set_value( result ); } );
+      [&p]( maybe<string> result ) { p.set_value( result ); } );
   co_return co_await p.wait();
 }
 
@@ -927,7 +929,7 @@ wait<maybe<int>> WindowPlane::int_input_box(
   unique_ptr<Window> win = text_input_box(
       impl_->wm, options.msg, initial_text, options.required,
       make_int_validator( options.min, options.max ),
-      [p]( maybe<string> result ) {
+      [&p]( maybe<string> result ) {
         p.set_value( result.bind( L( base::stoi( _ ) ) ) );
       } );
   co_return co_await p.wait();

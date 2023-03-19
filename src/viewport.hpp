@@ -239,7 +239,7 @@ class SmoothViewport {
     // This promise will be fulfilled when the above tile becomes
     // visible, even if there is a bit more scrolling left to do;
     // the scrolling will still continue though.
-    wait_promise<> promise{};
+    wait_promise<>* promise                      = nullptr;
     bool operator==( SmoothScroll const& ) const = default;
   };
   // If this has a value then the viewport will attempt to scroll
