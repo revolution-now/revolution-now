@@ -19,6 +19,7 @@
 
 // base
 #include "base/meta.hpp"
+#include "base/scope-exit.hpp"
 #include "base/unique-func.hpp"
 #include "base/variant.hpp"
 
@@ -43,14 +44,14 @@ namespace rn::co {
 template<typename T, typename U>
 void disjunctive_link_to_promise( wait<T>&         w,
                                   wait_promise<U>& wp ) {
-  w.shared_state()->add_callback(
+  w.state()->add_callback(
       [&wp]( typename wait<T>::value_type const& o ) {
         // The "if-not-set" reflects the intended disjunctive na-
         // ture of the use of this function: we are only taking
         // the first result available and ignoring the rest.
         wp.set_value_emplace_if_not_set( o );
       } );
-  w.shared_state()->set_exception_callback(
+  w.state()->set_exception_callback(
       [&wp]( std::exception_ptr eptr ) {
         wp.set_exception( eptr );
       } );
@@ -65,7 +66,7 @@ template<int Index, typename T, typename U>
 void disjunctive_link_to_variant_promise( wait<T>&         w,
                                           wait_promise<U>& wp ) {
   static_assert( base::is_base_variant_v<U> );
-  w.shared_state()->add_callback(
+  w.state()->add_callback(
       [&wp]( typename wait<T>::value_type const& o ) {
         // The "if-not-set" reflects the intended disjunctive na-
         // ture of the use of this function: we are only taking
@@ -73,7 +74,7 @@ void disjunctive_link_to_variant_promise( wait<T>&         w,
         wp.set_value_emplace_if_not_set(
             std::in_place_index_t<Index>{}, o );
       } );
-  w.shared_state()->set_exception_callback(
+  w.state()->set_exception_callback(
       [&wp]( std::exception_ptr eptr ) {
         wp.set_exception( eptr );
       } );
@@ -287,9 +288,9 @@ struct latch {
   void set() { p.set_value_emplace_if_not_set(); }
   void reset() { p.reset(); }
 
-  auto wait() const { return p.wait(); }
+  auto wait() { return p.wait(); }
 
-  auto operator co_await() const noexcept {
+  auto operator co_await() noexcept {
     return detail::awaitable(
         static_cast<detail::promise_type<std::monostate>*>(
             nullptr ),
@@ -313,7 +314,7 @@ struct ticker {
     p.reset();
   }
 
-  ::rn::wait<> wait() const { return p.wait(); }
+  ::rn::wait<> wait() { return p.wait(); }
 
  private:
   wait_promise<> p;
@@ -328,9 +329,19 @@ struct stream {
 
   // Implement the Streamable concept interface.
   wait<T> next() {
-    T res = co_await p.wait();
-    p.reset();
-    update();
+    // We need to put these in a scope exit as opposed to doing
+    // them after the await because otherwise, if this operation
+    // gets cancelled before the next item is available then we
+    // will not be able to call next on the stream again since we
+    // can only extract one wait<> object per promise (at least
+    // until next reset).
+    SCOPE_EXIT( {
+      p.reset();
+      update();
+    } );
+    co_await p.wait();
+    T res = std::move( q.front() );
+    q.pop();
     co_return res;
   }
 
@@ -366,14 +377,11 @@ struct stream {
 
  private:
   void update() {
-    if( !p.has_value() && !q.empty() ) {
-      p.set_value_emplace( std::move( q.front() ) );
-      q.pop();
-    }
+    if( !p.has_value() && !q.empty() ) p.set_value_emplace();
   }
 
-  wait_promise<T> p;
-  std::queue<T>   q;
+  wait_promise<> p;
+  std::queue<T>  q;
 };
 
 /****************************************************************

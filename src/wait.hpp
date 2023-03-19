@@ -36,18 +36,19 @@ template<typename T>
 struct promise_type;
 
 template<typename T>
-class wait_shared_state {
+class wait_internal_state {
  public:
-  wait_shared_state()  = default;
-  ~wait_shared_state() = default;
+  wait_internal_state()  = default;
+  ~wait_internal_state() = default;
 
-  wait_shared_state( wait_shared_state const& ) = delete;
-  wait_shared_state& operator=( wait_shared_state const& ) =
+  wait_internal_state( wait_internal_state const& ) = delete;
+  wait_internal_state& operator=( wait_internal_state const& ) =
       delete;
   // Note that this object is in general self-referential, there-
   // fore it cannot be moved.
-  wait_shared_state( wait_shared_state&& )            = delete;
-  wait_shared_state& operator=( wait_shared_state&& ) = delete;
+  wait_internal_state( wait_internal_state&& ) = delete;
+  wait_internal_state& operator=( wait_internal_state&& ) =
+      delete;
 
   using NotifyFunc = void( T const& );
   using ExceptFunc = void( std::exception_ptr );
@@ -93,7 +94,7 @@ class wait_shared_state {
   // So that we can access private members of this class when it
   // is templated on types other than our T.
   template<typename U>
-  friend class wait_shared_state;
+  friend class wait_internal_state;
 
   bool has_value() const { return maybe_value_.has_value(); }
   std::exception_ptr exception() const { return eptr_; }
@@ -199,7 +200,7 @@ class wait_shared_state {
   maybe<std::function<ExceptFunc>>     exception_callback_;
   maybe<base::unique_func<ExceptFunc>> exception_ucallback_;
 
-  // Will be populated if this shared state is created by a
+  // Will be populated if this internal state is created by a
   // coroutine.
   maybe<base::unique_coro<promise_type<T>>> coro_;
 };
@@ -212,8 +213,8 @@ class wait_shared_state {
 template<typename T = std::monostate>
 class [[nodiscard]] wait {
   template<typename U>
-  using SharedStatePtr =
-      std::shared_ptr<detail::wait_shared_state<U>>;
+  using UniqueStatePtr =
+      std::unique_ptr<detail::wait_internal_state<U>>;
 
  public:
   using value_type = T;
@@ -221,14 +222,9 @@ class [[nodiscard]] wait {
   wait( T const& ready_val );
 
   // This constructor should not be used by client code.
-  explicit wait( SharedStatePtr<T> shared_state )
-    : shared_state_{ shared_state } {}
+  explicit wait( UniqueStatePtr<T> state )
+    : state_{ std::move( state ) } {}
 
-  // We need to cancel in this destructor if we want the corou-
-  // tine to be freed as a result (if there is a coroutine asso-
-  // ciated with this wait). This is because there would oth-
-  // erwise be a memory cycle: shared_state owns coroutine which
-  // owns promise which owns shared_state.
   ~wait() noexcept { cancel(); }
 
   wait( wait const& )            = delete;
@@ -236,33 +232,31 @@ class [[nodiscard]] wait {
   wait( wait&& )                 = default;
 
   wait& operator=( wait&& rhs ) noexcept {
-    if( shared_state_ == rhs.shared_state_ ) {
-      rhs.shared_state_ = nullptr;
+    if( state_ == rhs.state_ ) {
+      rhs.state_ = nullptr;
       return *this;
     }
     cancel();
-    shared_state_ = std::move( rhs.shared_state_ );
+    state_ = std::move( rhs.state_ );
     return *this;
   }
 
-  bool ready() const {
-    return shared_state_ && shared_state_->has_value();
-  }
+  bool ready() const { return state_ && state_->has_value(); }
 
   std::exception_ptr exception() const {
-    return shared_state_->exception();
+    return state_->exception();
   }
 
   bool has_exception() const {
-    CHECK( shared_state_ != nullptr );
-    return shared_state_->has_exception();
+    CHECK( state_ != nullptr );
+    return state_->has_exception();
   }
 
   operator bool() const { return ready(); }
 
-  T& get() noexcept { return shared_state_->get(); }
+  T& get() noexcept { return state_->get(); }
 
-  T const& get() const noexcept { return shared_state_->get(); }
+  T const& get() const noexcept { return state_->get(); }
 
   T& operator*() noexcept { return get(); }
 
@@ -271,10 +265,13 @@ class [[nodiscard]] wait {
   T*       operator->() noexcept { return &get(); }
   T const* operator->() const noexcept { return &get(); }
 
-  SharedStatePtr<T>& shared_state() { return shared_state_; }
+  UniqueStatePtr<T>& state() {
+    CHECK( state_ != nullptr );
+    return state_;
+  }
 
   void cancel() {
-    if( shared_state_ ) shared_state_->cancel();
+    if( state_ ) state_->cancel();
   }
 
   friend void to_str( wait const& o, std::string& out,
@@ -283,7 +280,7 @@ class [[nodiscard]] wait {
   }
 
  private:
-  SharedStatePtr<T> shared_state_;
+  UniqueStatePtr<T> state_;
 };
 
 /****************************************************************
@@ -306,43 +303,44 @@ class wait_promise {
   wait_promise() { reset(); }
 
   void reset() {
-    shared_state_.reset( new detail::wait_shared_state<T> );
+    state_.reset( new detail::wait_internal_state<T> );
+    p_state_ = state_.get();
   }
 
   bool operator==( wait_promise<T> const& rhs ) const {
-    return shared_state_.get() == rhs.shared_state_.get();
+    return p_state_ == rhs.p_state_;
   }
 
   bool operator!=( wait_promise<T> const& rhs ) const {
     return !( *this == rhs );
   }
 
-  bool has_value() const { return shared_state_->has_value(); }
+  bool has_value() const { return p_state_->has_value(); }
 
-  ::rn::wait<T> wait() const {
-    return ::rn::wait<T>( shared_state_ );
+  ::rn::wait<T> wait() {
+    CHECK( state_ != nullptr,
+           "promise already gave up its wait object." );
+    return ::rn::wait<T>( std::move( state_ ) );
   }
 
-  std::shared_ptr<detail::wait_shared_state<T>>& shared_state() {
-    return shared_state_;
-  }
+  detail::wait_internal_state<T>* state() { return p_state_; }
 
   /**************************************************************
   ** set_exception
   ***************************************************************/
   void set_exception( std::exception_ptr eptr ) const {
-    mutable_state()->set_exception( eptr );
+    p_state_->set_exception( eptr );
   }
 
   template<typename Exception>
   void set_exception( Exception&& e ) const {
-    mutable_state()->set_exception( std::make_exception_ptr(
+    p_state_->set_exception( std::make_exception_ptr(
         std::forward<Exception>( e ) ) );
   }
 
   template<typename Exception, typename... Args>
   void set_exception_emplace( Args&&... args ) const {
-    mutable_state()->set_exception( std::make_exception_ptr(
+    p_state_->set_exception( std::make_exception_ptr(
         Exception( std::forward<Args>( args )... ) ) );
   }
 
@@ -351,22 +349,21 @@ class wait_promise {
   ***************************************************************/
   void set_value( T const& value ) const {
     CHECK( !has_value() );
-    mutable_state()->set( value );
-    mutable_state()->do_callbacks();
+    p_state_->set( value );
+    p_state_->do_callbacks();
   }
 
   void set_value( T&& value ) const {
     CHECK( !has_value() );
-    mutable_state()->set( std::move( value ) );
-    mutable_state()->do_callbacks();
+    p_state_->set( std::move( value ) );
+    p_state_->do_callbacks();
   }
 
   template<typename... Args>
   void set_value_emplace( Args&&... args ) const {
     CHECK( !has_value() );
-    mutable_state()->set_emplace(
-        std::forward<Args>( args )... );
-    mutable_state()->do_callbacks();
+    p_state_->set_emplace( std::forward<Args>( args )... );
+    p_state_->do_callbacks();
   }
 
   // For convenience.
@@ -401,16 +398,11 @@ class wait_promise {
   }
 
  private:
-  // This is because it is often that we have to capture promises
-  // in lambdas, which this allows us to set the value on the
-  // promise without making the lambda mutable, which tends to be
-  // viral and is painful to deal with.
-  detail::wait_shared_state<T>* mutable_state() const {
-    return const_cast<detail::wait_shared_state<T>*>(
-        shared_state_.get() );
-  }
-
-  std::shared_ptr<detail::wait_shared_state<T>> shared_state_;
+  std::unique_ptr<detail::wait_internal_state<T>> state_;
+  // This must always point to the *state_ memory that was allo-
+  // cated when constructing the object, even if that state has
+  // since been moved out into the wait object.
+  detail::wait_internal_state<T>* p_state_ = nullptr;
 };
 
 /****************************************************************

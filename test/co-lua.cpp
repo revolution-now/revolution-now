@@ -698,7 +698,7 @@ TEST_CASE( "[co-lua] scenario 2 cancellation" ) {
            "ahgfbadahgfbadadahgf" );
 
   p1.set_value_emplace( 1 );
-  p2.set_value_emplace( "1" );
+  // !! can't touch p2 now.
   run_all_coroutines();
   REQUIRE_NO_EXCEPTION( w );
   REQUIRE( !w.ready() );
@@ -835,21 +835,16 @@ TEST_CASE( "[co-lua] scenario 3" ) {
   REQUIRE( !w.ready() );
   REQUIRE( trace_log == "ZPAHBLJCIihDNEjlF" );
 
-  p2.set_value_emplace();
-  run_all_coroutines();
-  REQUIRE_NO_EXCEPTION( w );
-  REQUIRE( !w.ready() );
-  REQUIRE( trace_log == "ZPAHBLJCIihDNEjlF" );
+  // !! Can't touch p2 here since it was awaited on then can-
+  // celled. We should currently be awaiting on w3.
 
   p3.set_value( 42 );
   run_all_coroutines();
   REQUIRE_NO_EXCEPTION( w );
   REQUIRE( trace_log == "ZPAHBLJCIihDNEjlFOonGgfedcbapz" );
 
-  p4.set_value_emplace();
-  run_all_coroutines();
-  REQUIRE_NO_EXCEPTION( w );
-  REQUIRE( trace_log == "ZPAHBLJCIihDNEjlFOonGgfedcbapz" );
+  // !! Can't touch p4 here since it was awaited on then can-
+  // celled. We should currently be done.
 
   REQUIRE( w.ready() );
   REQUIRE( *w == 42 );

@@ -36,13 +36,14 @@ using ::Catch::Equals;
 static_assert( is_same_v<wait<>, wait<monostate>> );
 
 TEST_CASE( "[wait] future api basic" ) {
-  auto ss = make_shared<detail::wait_shared_state<int>>();
+  auto  ss   = make_unique<detail::wait_internal_state<int>>();
+  auto* p_ss = ss.get();
 
-  wait<int> s_future( ss );
+  wait<int> s_future( std::move( ss ) );
 
   REQUIRE( !s_future.ready() );
 
-  ss->set( 3 );
+  p_ss->set( 3 );
   REQUIRE( s_future.ready() );
   REQUIRE( s_future.get() == 3 );
 }
@@ -634,7 +635,6 @@ TEST_CASE( "[wait] eager co_await'd exception" ) {
 
 wait_promise<> exception_p0;
 wait_promise<> exception_p1;
-wait_promise<> exception_p2;
 string         places;
 
 wait<> exception_coro_early_level_2() {
@@ -750,7 +750,6 @@ TEST_CASE( "[wait] exception coro complex" ) {
   places.clear();
   exception_p0.reset();
   exception_p1.reset();
-  exception_p2.reset();
 
   SECTION( "cancelled, then exception via promise" ) {
     // We don't really need to test this here because it's cov-
@@ -779,36 +778,8 @@ TEST_CASE( "[wait] exception coro complex" ) {
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
 
-    // Since it is already cancelled, an exception should not re-
-    // ally do anything, but we just want to make sure that it
-    // doesn't crash and doesn't change anything.
-    exception_p0.set_exception( runtime_error( "test-failed" ) );
-    run_all_cpp_coroutines();
-    REQUIRE( places == "almMLbelmMLfhHFEBA" );
-    REQUIRE( !w.ready() );
-    REQUIRE( !w.has_exception() );
-
-    exception_p1.set_exception( runtime_error( "test-failed" ) );
-    run_all_cpp_coroutines();
-    REQUIRE( places == "almMLbelmMLfhHFEBA" );
-    REQUIRE( !w.ready() );
-    REQUIRE( !w.has_exception() );
-
-    exception_p2.set_exception( runtime_error( "test-failed" ) );
-    run_all_cpp_coroutines();
-    REQUIRE( places == "almMLbelmMLfhHFEBA" );
-    REQUIRE( !w.ready() );
-    REQUIRE( !w.has_exception() );
-
-    // Now give them all exceptions again to make sure it is
-    // idempotent.
-    exception_p0.set_exception( runtime_error( "test-failed" ) );
-    exception_p1.set_exception( runtime_error( "test-failed" ) );
-    exception_p2.set_exception( runtime_error( "test-failed" ) );
-    run_all_cpp_coroutines();
-    REQUIRE( places == "almMLbelmMLfhHFEBA" );
-    REQUIRE( !w.ready() );
-    REQUIRE( !w.has_exception() );
+    // !! Can't touch either exception_p0 or p1 here since they
+    // were both awaited on and finished and/or cancelled.
   }
 
   SECTION( "exception, then cancelled" ) {

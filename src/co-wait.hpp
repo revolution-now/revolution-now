@@ -41,9 +41,9 @@ struct awaitable {
     return w_.ready() || w_.has_exception();
   }
   void await_suspend( std::coroutine_handle<> h ) noexcept {
-    w_.shared_state()->add_callback(
+    w_.state()->add_callback(
         [h]( T const& ) { queue_cpp_coroutine_handle( h ); } );
-    w_.shared_state()->set_exception_callback(
+    w_.state()->set_exception_callback(
         [h]( std::exception_ptr ) {
           queue_cpp_coroutine_handle( h );
         } );
@@ -96,7 +96,7 @@ struct promise_type final : public promise_type_base<T> {
   promise_type() {
     auto h = std::coroutine_handle<promise_type>::from_promise(
         *this );
-    wait_promise_.shared_state()->set_coro(
+    wait_promise_.state()->set_coro(
         base::unique_coro<promise_type>( h ) );
   }
 
@@ -134,7 +134,7 @@ struct promise_type<std::monostate> final
   promise_type() {
     auto h = std::coroutine_handle<promise_type>::from_promise(
         *this );
-    wait_promise_.shared_state()->set_coro(
+    wait_promise_.state()->set_coro(
         base::unique_coro<promise_type>( h ) );
   }
 

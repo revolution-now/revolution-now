@@ -38,7 +38,7 @@ TEST_CASE( "[co-combinator] any" ) {
   auto           f2 = [&p2]() -> wait<> { co_await p2.wait(); };
   wait<>         w1 = f1();
   wait<>         w2 = f2();
-  wait<>         w  = any( f1(), f2() );
+  wait<>         w  = any( std::move( w1 ), std::move( w2 ) );
   REQUIRE( !w.ready() );
   SECTION( "first" ) {
     p1.finish();
@@ -73,16 +73,21 @@ TEST_CASE( "[co-combinator] all" ) {
   wait<> w3 = []( wait_promise<>& p ) -> wait<> {
     co_await p.wait();
   }( p3 );
-  auto ss1 = w1.shared_state();
-  auto ss2 = w2.shared_state();
-  auto ss3 = w3.shared_state();
+  auto* ss1 = w1.state().get();
+  auto* ss2 = w2.state().get();
+  auto* ss3 = w3.state().get();
 
   // This is an "all" function.
-  wait<> w = []( wait<> w1, wait<> w2, wait<> w3 ) -> wait<> {
+  auto f = [&]( wait<> w1, wait<> w2, wait<> w3 ) -> wait<> {
     co_await std::move( w1 );
+    ss1 = nullptr;
     co_await std::move( w2 );
+    ss2 = nullptr;
     co_await std::move( w3 );
-  }( std::move( w1 ), std::move( w2 ), std::move( w3 ) );
+    ss3 = nullptr;
+  };
+  wait<> w =
+      f( std::move( w1 ), std::move( w2 ), std::move( w3 ) );
 
   SECTION( "run to completion" ) {
     run_all_cpp_coroutines();
@@ -92,7 +97,7 @@ TEST_CASE( "[co-combinator] all" ) {
     REQUIRE( !w.ready() );
     p1.finish();
     run_all_cpp_coroutines();
-    REQUIRE( ss1->has_value() );
+    REQUIRE( ss1 == nullptr );
     REQUIRE( !w.ready() );
     p3.finish();
     run_all_cpp_coroutines();
@@ -100,11 +105,11 @@ TEST_CASE( "[co-combinator] all" ) {
     REQUIRE( !w.ready() );
     p2.finish();
     run_all_cpp_coroutines();
-    REQUIRE( ss2->has_value() );
+    REQUIRE( ss2 == nullptr );
     REQUIRE( w.ready() );
-    REQUIRE( ss1->has_value() );
-    REQUIRE( ss2->has_value() );
-    REQUIRE( ss3->has_value() );
+    REQUIRE( ss1 == nullptr );
+    REQUIRE( ss2 == nullptr );
+    REQUIRE( ss3 == nullptr );
   }
   SECTION( "cancellation scheduled" ) {
     run_all_cpp_coroutines();
@@ -118,12 +123,12 @@ TEST_CASE( "[co-combinator] all" ) {
     w.cancel();
     run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
-    p3.finish();
+    // Can't touch p3 here, it's state ptr would be dangling.
     run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
-    REQUIRE( ss1->has_value() );
-    REQUIRE( !ss2->has_value() );
-    REQUIRE( !ss3->has_value() );
+    REQUIRE( ss1 == nullptr );
+    REQUIRE( ss2 != nullptr );
+    REQUIRE( ss3 != nullptr );
   }
   SECTION( "cancellation" ) {
     run_all_cpp_coroutines();
@@ -136,12 +141,12 @@ TEST_CASE( "[co-combinator] all" ) {
     w.cancel();
     run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
-    p3.finish();
+    // Can't touch p3 here, it's state ptr would be dangling.
     run_all_cpp_coroutines();
     REQUIRE( !w.ready() );
-    REQUIRE( ss1->has_value() );
-    REQUIRE( ss2->has_value() );
-    REQUIRE( !ss3->has_value() );
+    REQUIRE( ss1 == nullptr );
+    REQUIRE( ss2 == nullptr );
+    REQUIRE( ss3 != nullptr );
   }
 }
 
@@ -219,14 +224,24 @@ TEST_CASE( "[co-combinator] background" ) {
 
   // Add an extra level of coroutine indirection here to make
   // this test more juicy.
-  wait<int> w1 = []( wait_promise<int>& p ) -> wait<int> {
-    co_return co_await p.wait();
-  }( p1 );
-  wait<> w2 = []( wait_promise<>& p ) -> wait<> {
+  bool w1_finished = false;
+  bool w2_finished = false;
+
+  auto f_w1 = [&]( wait_promise<int>& p ) -> wait<int> {
+    int const res = co_await p.wait();
+    w1_finished   = true;
+    co_return res;
+  };
+  auto f_w2 = [&]( wait_promise<>& p ) -> wait<> {
     co_await p.wait();
-  }( p2 );
-  auto ss1 = w1.shared_state();
-  auto ss2 = w2.shared_state();
+    w2_finished = true;
+  };
+
+  wait<int> w1 = f_w1( p1 );
+  wait<>    w2 = f_w2( p2 );
+
+  REQUIRE( !w1_finished );
+  REQUIRE( !w2_finished );
 
   SECTION( "w1 finishes first" ) {
     {
@@ -234,21 +249,25 @@ TEST_CASE( "[co-combinator] background" ) {
           background( std::move( w1 ), std::move( w2 ) );
       run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
+      REQUIRE( !w1_finished );
+      REQUIRE( !w2_finished );
       p1.set_value( 5 );
+      REQUIRE( !w1_finished );
+      REQUIRE( !w2_finished );
       run_all_cpp_coroutines();
+      REQUIRE( w1_finished );
+      REQUIRE( !w2_finished );
       REQUIRE( w.ready() );
       REQUIRE( w.get() == 5 );
       // At this point, `w` should go out of scope which should
-      // free the (lambda) coroutine, which will free w1 and w2,
-      // which will send cancellation signals to their shared
-      // states, which should then prevent a p2.finish() from
-      // propagating to ss2 since we have one layer of (then can-
-      // celled) coroutine between p2 and ss2.
+      // cancel the background coroutine and free w1 and w2.
     }
     // Verify cancellation.
-    p2.finish();
+    REQUIRE( w1_finished );
+    REQUIRE( !w2_finished );
     run_all_cpp_coroutines();
-    REQUIRE( !ss2->has_value() );
+    REQUIRE( w1_finished );
+    REQUIRE( !w2_finished );
   }
   SECTION( "w2 finishes first, w1 does not finish" ) {
     wait<int> w = background( std::move( w1 ), std::move( w2 ) );
@@ -282,48 +301,33 @@ TEST_CASE( "[co-combinator] background" ) {
 
 TEST_CASE( "[co-combinator] latch" ) {
   latch  l;
-  wait<> w1 = l.wait();
-  wait<> w2 = l.wait();
-  REQUIRE( !w1.ready() );
-  REQUIRE( !w2.ready() );
+  wait<> w = l.wait();
+  REQUIRE( !w.ready() );
   l.set();
-  REQUIRE( w1.ready() );
-  REQUIRE( w2.ready() );
+  REQUIRE( w.ready() );
   l.reset();
-  REQUIRE( w1.ready() );
-  REQUIRE( w2.ready() );
-  w1 = l.wait();
-  w2 = l.wait();
-  REQUIRE( !w1.ready() );
-  REQUIRE( !w2.ready() );
+  REQUIRE( w.ready() );
+  w = l.wait();
+  REQUIRE( !w.ready() );
   l.set();
-  REQUIRE( w1.ready() );
-  REQUIRE( w2.ready() );
+  REQUIRE( w.ready() );
   l.set();
-  REQUIRE( w1.ready() );
-  REQUIRE( w2.ready() );
+  REQUIRE( w.ready() );
 }
 
 TEST_CASE( "[co-combinator] ticker" ) {
   ticker t;
   t.tick();
-  wait<> w1 = t.wait();
-  wait<> w2 = t.wait();
-  REQUIRE( !w1.ready() );
-  REQUIRE( !w2.ready() );
+  wait<> w = t.wait();
+  REQUIRE( !w.ready() );
   t.tick();
-  REQUIRE( w1.ready() );
-  REQUIRE( w2.ready() );
+  REQUIRE( w.ready() );
   t.tick();
-  REQUIRE( w1.ready() );
-  REQUIRE( w2.ready() );
-  w1 = t.wait();
-  w2 = t.wait();
-  REQUIRE( !w1.ready() );
-  REQUIRE( !w2.ready() );
+  REQUIRE( w.ready() );
+  w = t.wait();
+  REQUIRE( !w.ready() );
   t.tick();
-  REQUIRE( w1.ready() );
-  REQUIRE( w2.ready() );
+  REQUIRE( w.ready() );
 }
 
 TEST_CASE( "[co-combinator] stream" ) {
@@ -627,23 +631,7 @@ TEST_CASE(
       // Depends on order of parameter destruction.
       REQUIRE_THAT( places, Equals( "kcfgiaAIGFCK" ) ||
                                 Equals( "kcfgiaAICGFK" ) );
-      // Subsequent exceptions should have no effect as those
-      // branches have already been cancelled. Let get_int1
-      // throw.
-      get_int1_p.finish();
-      run_all_cpp_coroutines();
-      REQUIRE( !w.ready() );
-      REQUIRE( w.has_exception() );
-      // Depends on order of parameter destruction.
-      REQUIRE_THAT( places, Equals( "kcfgiaAIGFCK" ) ||
-                                Equals( "kcfgiaAICGFK" ) );
-      get_int2_p.set_exception( runtime_error( "test-failed" ) );
-      run_all_cpp_coroutines();
-      REQUIRE( !w.ready() );
-      REQUIRE( w.has_exception() );
-      // Depends on order of parameter destruction.
-      REQUIRE_THAT( places, Equals( "kcfgiaAIGFCK" ) ||
-                                Equals( "kcfgiaAICGFK" ) );
+      // !! cannot touch the other promises here.
     }
     SECTION( "get_int2 first" ) {
       // Let get_int2 throw manually.
@@ -654,44 +642,10 @@ TEST_CASE(
       // Depends on order of parameter destruction.
       REQUIRE_THAT( places, Equals( "kcfgiaGFAICK" ) ||
                                 Equals( "kcfgiaGFCAIK" ) );
-      // Subsequent exceptions should have no effect as those
-      // branches have already been cancelled.
-      get_int1_p.finish(); // causes exception.
-      run_all_cpp_coroutines();
-      REQUIRE( !w.ready() );
-      REQUIRE( w.has_exception() );
-      // Depends on order of parameter destruction.
-      REQUIRE_THAT( places, Equals( "kcfgiaGFAICK" ) ||
-                                Equals( "kcfgiaGFCAIK" ) );
-      // Let get_int3 throw.
-      int_stream.set_exception();
-      run_all_cpp_coroutines();
-      REQUIRE( !w.ready() );
-      REQUIRE( w.has_exception() );
-      // Depends on order of parameter destruction.
-      REQUIRE_THAT( places, Equals( "kcfgiaGFAICK" ) ||
-                                Equals( "kcfgiaGFCAIK" ) );
+      // !! cannot touch the other promises here.
     }
     SECTION( "get_int1 first" ) {
       get_int1_p.finish(); // causes exception.
-      run_all_cpp_coroutines();
-      REQUIRE( !w.ready() );
-      REQUIRE( w.has_exception() );
-      // Depends on order of parameter destruction.
-      REQUIRE_THAT( places, Equals( "kcfgiadDCAIGFK" ) ||
-                                Equals( "kcfgiadDCGFAIK" ) );
-      // Subsequent exceptions should have no effect as those
-      // branches have already been cancelled.
-      // Let get_int3 throw.
-      int_stream.set_exception();
-      run_all_cpp_coroutines();
-      REQUIRE( !w.ready() );
-      REQUIRE( w.has_exception() );
-      // Depends on order of parameter destruction.
-      REQUIRE_THAT( places, Equals( "kcfgiadDCAIGFK" ) ||
-                                Equals( "kcfgiadDCGFAIK" ) );
-      // Let get_int2 throw manually.
-      get_int2_p.set_exception( runtime_error( "test-failed" ) );
       run_all_cpp_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );

@@ -49,10 +49,10 @@ struct type_traits<::rn::wait<T>>
     };
 
     ut["set_resume"] = []( W& w, lua::rthread coro ) {
-      w.shared_state()->add_callback( [coro]( T const& ) {
+      w.state()->add_callback( [coro]( T const& ) {
         rn::queue_lua_coroutine( coro );
       } );
-      w.shared_state()->set_exception_callback(
+      w.state()->set_exception_callback(
           [coro]( std::exception_ptr ) {
             rn::queue_lua_coroutine( coro );
           } );
