@@ -1117,12 +1117,10 @@ struct LandViewPlane::Impl : public Plane {
               is_unit_visible_on_map( id ), eat_buffered,
               visible_initially );
 
-    if( !last_unit_input_.has_value() ||
-        last_unit_input_->unit_id != id )
-      last_unit_input_ = LastUnitInput{
-          .unit_id                  = id,
-          .need_input_buffer_shield = true,
-          .window_count = ts_.gui.total_windows_created() };
+    last_unit_input_ = LastUnitInput{
+        .unit_id                  = id,
+        .need_input_buffer_shield = true,
+        .window_count = ts_.gui.total_windows_created() };
 
     // Run the blinker while waiting for user input. The question
     // is, do we want the blinking to start "on" or "off"? The
