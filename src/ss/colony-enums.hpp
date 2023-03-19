@@ -18,7 +18,4 @@ namespace rn {
 e_outdoor_job to_outdoor_job(
     e_outdoor_commons_secondary_job job );
 
-e_colony_building to_colony_building(
-    e_colony_barricade_type barricade );
-
 } // namespace rn
