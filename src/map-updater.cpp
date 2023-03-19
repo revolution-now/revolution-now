@@ -11,6 +11,7 @@
 #include "map-updater.hpp"
 
 // Revolution Now
+#include "fog-conv.hpp"
 #include "logger.hpp"
 #include "render-terrain.hpp"
 #include "tiles.hpp"
@@ -102,10 +103,9 @@ BuffersUpdated NonRenderingMapUpdater::make_square_visible(
 
   MapSquare&       player_square = fog_square.square;
   MapSquare const& real_square   = ss_.terrain.square_at( tile );
-  if( player_square != real_square ) {
+  if( player_square != real_square )
     buffers_updated.landscape = true;
-    player_square             = real_square;
-  }
+  copy_real_square_to_fog_square( ss_, tile, fog_square );
 
   return buffers_updated;
 }
@@ -126,6 +126,18 @@ BuffersUpdated NonRenderingMapUpdater::make_square_fogged(
   fog_square.fog_of_war_removed = false;
   if( options().render_fog_of_war )
     buffers_updated.obfuscation = true;
+
+  // This won't affect the fog of war, but because the unit is
+  // losing full visibility of this tile, we need to make sure
+  // that the player's copy of the square reflects everything
+  // that is currently on it. This is needed because e.g. let's
+  // say that the player is sitting next to a dwelling, then a
+  // foreign missionary establishes a mission there (which won't
+  // update the player's FogSquare), then the player moves away;
+  // we want the latest state of that dwelling to be recorded so
+  // that the mission doesn't then appear to disappear when the
+  // fog appears.
+  copy_real_square_to_fog_square( ss_, tile, fog_square );
   return buffers_updated;
 }
 

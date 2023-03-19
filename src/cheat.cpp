@@ -18,6 +18,7 @@
 #include "colony-buildings.hpp"
 #include "colony-evolve.hpp"
 #include "fathers.hpp"
+#include "fog-conv.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
 #include "logger.hpp"
@@ -150,10 +151,9 @@ void cheat_explore_entire_map( SS& ss, TS& ts ) {
           .mutable_player_terrain( *nation )
           .map;
   for( Rect const r : gfx::subrects( world_rect ) ) {
-    Coord const      coord       = r.upper_left();
-    MapSquare const& real_square = ss.terrain.square_at( coord );
-    FogSquare&       fog_square  = m[coord].emplace();
-    fog_square.square            = real_square;
+    Coord const coord      = r.upper_left();
+    FogSquare&  fog_square = m[coord].emplace();
+    copy_real_square_to_fog_square( ss, coord, fog_square );
     // The reason that we leave it fogged is because if we remove
     // then fog then, on the next turn, the game will regenerate
     // the fog on most of the map squares which will cause a huge
