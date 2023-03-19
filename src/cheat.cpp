@@ -141,9 +141,10 @@ void cheat_explore_entire_map( SS& ss, TS& ts ) {
   if( !nation.has_value() )
     // Entire map is already visible, no need to do anything.
     return;
-  // Need to use this mutable terrain for efficiency. Doing it
-  // through the usual map updater APIs is too slow for large
-  // maps.
+  // Ideally what we would be doing here is just looping over all
+  // tiles and calling `make_square_visible` on the map updater,
+  // but that is way too slow, so we will do this more manual
+  // way.
   Matrix<maybe<FogSquare>>& m =
       ss.mutable_terrain_use_with_care
           .mutable_player_terrain( *nation )
