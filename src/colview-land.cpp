@@ -365,10 +365,13 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
     auto maybe_col_id =
         ss_.colonies.maybe_from_coord( world_square );
     if( !maybe_col_id ) continue;
-    render_colony(
-        painter,
+    render_real_colony(
+        renderer,
         local_coord * g_tile_delta - Delta{ .w = 6, .h = 6 },
-        ss_.colonies.colony_for( *maybe_col_id ) );
+        ss_, ss_.colonies.colony_for( *maybe_col_id ),
+        ColonyRenderOptions{ .render_name       = false,
+                             .render_population = false,
+                             .render_flag       = true } );
   }
 
   // Render native dwellings.
@@ -381,7 +384,10 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
     auto maybe_dwelling_id =
         ss_.natives.maybe_dwelling_from_coord( world_square );
     if( !maybe_dwelling_id ) continue;
-    render_dwelling(
+    // We always render the real thing when directly visible by a
+    // unit or colony, which it is in this case since it is next
+    // to one of our colonies.
+    render_real_dwelling(
         renderer,
         local_coord * g_tile_delta - Delta{ .w = 6, .h = 6 },
         ss_, ss_.natives.dwelling_for( *maybe_dwelling_id ) );

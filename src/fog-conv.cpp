@@ -13,12 +13,14 @@
 // Revolution Now
 #include "colony-buildings.hpp"
 #include "colony-mgr.hpp"
+#include "sons-of-liberty.hpp"
 #include "unit-classes.hpp"
 
 // ss
 #include "ss/colonies.hpp"
 #include "ss/colony.rds.hpp"
 #include "ss/natives.hpp"
+#include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
@@ -60,17 +62,34 @@ FogDwelling dwelling_to_fog_dwelling( SSConst const& ss,
       .mission = mission };
 }
 
-FogColony colony_to_fog_colony( Colony const& colony ) {
+FogColony colony_to_fog_colony( SSConst const& ss,
+                                Colony const&  colony ) {
   // This is to catch if we add any fields to ensure that we up-
   // date the below.
   static_assert(
       tuple_size_v<
-          decltype( refl::traits<FogColony>::fields )> == 4 );
+          decltype( refl::traits<FogColony>::fields )> == 5 );
+  int const     population = colony_population( colony );
+  Player const& player =
+      player_for_nation_or_die( ss.players, colony.nation );
+  // In a normal game a colony population should never be zero,
+  // but it is convenient to allow for this case for unit tests.
+  int const sol_int_percent =
+      ( population > 0 )
+          ? compute_sons_of_liberty_integral_percent(
+                compute_sons_of_liberty_percent(
+                    colony.sons_of_liberty
+                        .num_rebels_from_bells_only,
+                    population,
+                    player.fathers.has
+                        [e_founding_father::simon_bolivar] ) )
+          : 0;
   return FogColony{
       .nation         = colony.nation,
       .name           = colony.name,
-      .population     = colony_population( colony ),
-      .barricade_type = barricade_for_colony( colony ) };
+      .population     = population,
+      .barricade_type = barricade_for_colony( colony ),
+      .sons_of_liberty_integral_percent = sol_int_percent };
 }
 
 void copy_real_square_to_fog_square( SSConst const& ss,
@@ -91,7 +110,7 @@ void copy_real_square_to_fog_square( SSConst const& ss,
           ss.colonies.maybe_from_coord( tile );
       colony_id.has_value() )
     fog_square.colony = colony_to_fog_colony(
-        ss.colonies.colony_for( *colony_id ) );
+        ss, ss.colonies.colony_for( *colony_id ) );
 
   // Dwelling.
   fog_square.dwelling = nothing;

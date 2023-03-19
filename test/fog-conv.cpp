@@ -18,6 +18,7 @@
 
 // ss
 #include "ss/dwelling.rds.hpp"
+#include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/unit-type.rds.hpp"
 #include "ss/unit.hpp"
@@ -61,16 +62,15 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[fog-conv] colony_to_fog_colony" ) {
-  Colony    colony;
-  FogColony expected;
+  World     W;
+  Colony    colony{ .nation = e_nation::spanish };
+  FogColony expected = {};
 
-  auto f = [&] { return colony_to_fog_colony( colony ); };
+  auto f = [&] {
+    return colony_to_fog_colony( W.ss(), colony );
+  };
 
-  expected = FogColony{};
-  REQUIRE( f() == expected );
-
-  colony.nation = e_nation::spanish;
-  expected      = FogColony{ .nation = e_nation::spanish };
+  expected = FogColony{ .nation = e_nation::spanish };
   REQUIRE( f() == expected );
 
   colony.name = "hello";
@@ -93,6 +93,25 @@ TEST_CASE( "[fog-conv] colony_to_fog_colony" ) {
       .population     = 3,
       .barricade_type = e_colony_barricade_type::fort };
   colony.buildings[e_colony_building::fort] = true;
+  REQUIRE( f() == expected );
+
+  expected =
+      FogColony{ .nation         = e_nation::spanish,
+                 .name           = "hello",
+                 .population     = 3,
+                 .barricade_type = e_colony_barricade_type::fort,
+                 .sons_of_liberty_integral_percent = 67 };
+  colony.sons_of_liberty.num_rebels_from_bells_only = 2.0;
+  REQUIRE( f() == expected );
+
+  W.spanish().fathers.has[e_founding_father::simon_bolivar] =
+      true;
+  expected =
+      FogColony{ .nation         = e_nation::spanish,
+                 .name           = "hello",
+                 .population     = 3,
+                 .barricade_type = e_colony_barricade_type::fort,
+                 .sons_of_liberty_integral_percent = 87 };
   REQUIRE( f() == expected );
 }
 

@@ -26,6 +26,7 @@
 // ss
 #include "ss/colonies.hpp"
 #include "ss/dwelling.rds.hpp"
+#include "ss/fog-square.rds.hpp"
 #include "ss/land-view.rds.hpp"
 #include "ss/natives.hpp"
 #include "ss/ref.hpp"
@@ -409,7 +410,28 @@ void LandViewRenderer::render_native_dwelling(
   Coord const tile_coord =
       render_rect_for_tile( location ).upper_left() -
       Delta{ .w = 6, .h = 6 };
-  render_dwelling( renderer, tile_coord, ss_, dwelling );
+
+  if( viz_.visible( location ) ==
+      e_tile_visibility::visible_and_clear ) {
+    render_real_dwelling( renderer_, tile_coord, ss_, dwelling );
+    return;
+  }
+
+  // The tile is explored but fogged.
+  UNWRAP_CHECK( fog_square, viz_.fog_square_at( location ) );
+  if( fog_square.dwelling.has_value() ) {
+    render_fog_dwelling( renderer_, tile_coord,
+                         *fog_square.dwelling );
+    return;
+  }
+
+  // The player has apparently visited this tile but is not aware
+  // of the dwelling on it. This should never happen in an (un-
+  // modded) game because dwellings can't spawn or respawn after
+  // map generation under any circumstances. TODO: consider re-
+  // moving this check-fail in the future to allow for mods that
+  // might cause dwellings to spawn.
+  SHOULD_NOT_BE_HERE;
 }
 
 void LandViewRenderer::render_native_dwelling_depixelate(
@@ -483,15 +505,28 @@ void LandViewRenderer::render_colony(
       render_rect_for_tile( colony.location ).upper_left();
   Coord const colony_sprite_upper_left =
       tile_coord - Delta{ .w = 6, .h = 6 };
-  rr::Painter painter = renderer_.painter();
-  rn::render_colony( painter, colony_sprite_upper_left, colony );
-  Coord const name_coord =
-      tile_coord + config_land_view.colony_name_offset;
-  render_text_markup(
-      renderer, name_coord, config_land_view.colony_name_font,
-      TextMarkupInfo{ .highlight = gfx::pixel::white(),
-                      .shadow    = gfx::pixel::black() },
-      fmt::format( "[{}]", colony.name ) );
+  ColonyRenderOptions const options{ .render_name       = true,
+                                     .render_population = true,
+                                     .render_flag       = true };
+  if( viz_.visible( colony.location ) ==
+      e_tile_visibility::visible_and_clear ) {
+    render_real_colony( renderer_, colony_sprite_upper_left, ss_,
+                        colony, options );
+    return;
+  }
+
+  // The tile is explored but fogged.
+  UNWRAP_CHECK( fog_square,
+                viz_.fog_square_at( colony.location ) );
+  if( fog_square.colony.has_value() ) {
+    render_fog_colony( renderer_, colony_sprite_upper_left,
+                       *fog_square.colony, options );
+    return;
+  }
+
+  // Do nothing since the player is not aware of the colony here,
+  // probably because they explored this tile before it was
+  // founded.
 }
 
 void LandViewRenderer::render_colony_depixelate(

@@ -37,6 +37,8 @@ namespace rn {
 
 struct Colony;
 struct Dwelling;
+struct FogColony;
+struct FogDwelling;
 struct NativeUnit;
 struct SSConst;
 struct Unit;
@@ -72,6 +74,15 @@ struct UnitRenderOptions {
 
   // This is only relevant if outlining is enabled.
   gfx::pixel outline_color = gfx::pixel::black();
+};
+
+/****************************************************************
+** ColonyRenderingOptions
+*****************************************************************/
+struct ColonyRenderOptions {
+  bool render_name       = true;
+  bool render_population = true;
+  bool render_flag       = true;
 };
 
 /****************************************************************
@@ -118,12 +129,24 @@ void render_native_unit_depixelate_to(
     NativeUnit const& unit, e_tile target, double stage,
     UnitRenderOptions options = {} );
 
-void render_colony( rr::Painter& painter, Coord where,
-                    Colony const& colony );
+// Use this for tiles that are explored but fogged.
+void render_fog_colony( rr::Renderer& renderer, Coord where,
+                        FogColony const&           fog_colony,
+                        ColonyRenderOptions const& options );
 
-void render_dwelling( rr::Renderer& renderer, Coord where,
-                      SSConst const&  ss,
-                      Dwelling const& dwelling );
+// Use this when a tile is directly visible.
+void render_real_colony( rr::Renderer& renderer, Coord where,
+                         SSConst const& ss, Colony const& colony,
+                         ColonyRenderOptions const& options );
+
+// Use this for tiles that are explored but fogged.
+void render_fog_dwelling( rr::Renderer& renderer, Coord where,
+                          FogDwelling const& fog_dwelling );
+
+// Use this when a tile is directly visible.
+void render_real_dwelling( rr::Renderer& renderer, Coord where,
+                           SSConst const&  ss,
+                           Dwelling const& dwelling );
 
 // Note that the coordinate provided here is the coordinate of
 // the unit whose flag is being drawn, not the flag position it-

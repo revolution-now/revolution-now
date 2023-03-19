@@ -13,6 +13,7 @@
 // Revolution Now
 #include "compositor.hpp"
 #include "error.hpp"
+#include "fog-conv.hpp"
 #include "logger.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
@@ -23,6 +24,7 @@
 
 // config
 #include "config/gfx.rds.hpp"
+#include "config/land-view.rds.hpp"
 #include "config/missionary.rds.hpp"
 #include "config/nation.hpp"
 #include "config/natives.hpp"
@@ -30,6 +32,7 @@
 #include "config/unit-type.hpp"
 
 // ss
+#include "ss/colony-enums.rds.hpp"
 #include "ss/colony.hpp"
 #include "ss/dwelling.rds.hpp"
 #include "ss/natives.hpp"
@@ -373,25 +376,68 @@ void render_native_unit_type(
                        unit_attr( unit_type ).tile, options );
 }
 
-void render_colony( rr::Painter& painter, Coord where,
-                    Colony const& colony ) {
-  auto tile = colony.buildings[e_colony_building::stockade]
-                  ? e_tile::colony_stockade
-                  : e_tile::colony_basic;
+void render_fog_colony( rr::Renderer& renderer, Coord where,
+                        FogColony const&           fog_colony,
+                        ColonyRenderOptions const& options ) {
+  e_tile const tile = [&]() {
+    if( !fog_colony.barricade_type.has_value() )
+      return e_tile::colony_basic;
+    switch( *fog_colony.barricade_type ) {
+      case e_colony_barricade_type::stockade:
+        return e_tile::colony_stockade;
+      case e_colony_barricade_type::fort:
+        // FIXME
+        return e_tile::colony_stockade;
+      case e_colony_barricade_type::fortress:
+        // FIXME
+        return e_tile::colony_stockade;
+    }
+  }();
+  rr::Painter painter = renderer.painter();
   render_sprite( painter, where, tile );
-  auto const& nation = nation_obj( colony.nation );
-  render_colony_flag( painter, where + Delta{ .w = 8, .h = 8 },
-                      nation.flag_color );
+  auto const& nation = nation_obj( fog_colony.nation );
+  if( options.render_flag )
+    render_colony_flag( painter, where + Delta{ .w = 8, .h = 8 },
+                        nation.flag_color );
+  if( options.render_population ) {
+    Coord const population_coord =
+        where + Delta{ .w = 44 / 2 - 3, .h = 44 / 2 - 4 };
+    gfx::pixel const color =
+        ( fog_colony.sons_of_liberty_integral_percent == 100 )
+            ? gfx::pixel{ .r = 0, .g = 255, .b = 255, .a = 255 }
+        : ( fog_colony.sons_of_liberty_integral_percent >= 50 )
+            ? gfx::pixel{ .r = 0, .g = 255, .b = 0, .a = 255 }
+            : gfx::pixel::white();
+    render_text_markup(
+        renderer, population_coord, e_font{},
+        TextMarkupInfo{ .normal = color },
+        fmt::to_string( fog_colony.population ) );
+  }
+  if( options.render_name ) {
+    Coord const name_coord =
+        where + config_land_view.colony_name_offset;
+    render_text_markup(
+        renderer, name_coord, config_land_view.colony_name_font,
+        TextMarkupInfo{ .highlight = gfx::pixel::white(),
+                        .shadow    = gfx::pixel::black() },
+        fmt::format( "[{}]", fog_colony.name ) );
+  }
 }
 
-void render_dwelling( rr::Renderer& renderer, Coord where,
-                      SSConst const&  ss,
-                      Dwelling const& dwelling ) {
-  rr::Painter   painter = renderer.painter();
-  e_tribe const tribe_type =
-      ss.natives.tribe_for( dwelling.id ).type;
-  auto&        tribe_conf    = config_natives.tribes[tribe_type];
-  e_tile const dwelling_tile = tribe_conf.dwelling_tile;
+void render_real_colony( rr::Renderer& renderer, Coord where,
+                         SSConst const& ss, Colony const& colony,
+                         ColonyRenderOptions const& options ) {
+  render_fog_colony( renderer, where,
+                     colony_to_fog_colony( ss, colony ),
+                     options );
+}
+
+void render_fog_dwelling( rr::Renderer& renderer, Coord where,
+                          FogDwelling const& fog_dwelling ) {
+  rr::Painter   painter    = renderer.painter();
+  e_tribe const tribe_type = fog_dwelling.tribe;
+  auto&         tribe_conf = config_natives.tribes[tribe_type];
+  e_tile const  dwelling_tile = tribe_conf.dwelling_tile;
   render_sprite( painter, where, dwelling_tile );
   // Flags.
   e_native_level const native_level = tribe_conf.level;
@@ -404,22 +450,19 @@ void render_dwelling( rr::Renderer& renderer, Coord where,
   // tile.
   Delta const offset_32x32{ .w = 6, .h = 6 };
   // Yellow star to mark the capital.
-  if( dwelling.is_capital )
+  if( fog_dwelling.capital )
     render_sprite( painter, where + offset_32x32,
                    e_tile::capital_star );
 
   // If there is a missionary in this dwelling then render a
   // cross on top of it with the color of the nation's flag. It
   // will be dulled if the missionary is a non-jesuit.
-  maybe<UnitId> const missionary_id =
-      ss.units.missionary_from_dwelling( dwelling.id );
-  if( missionary_id.has_value() ) {
-    Unit const& missionary = ss.units.unit_for( *missionary_id );
-    bool const  is_jesuit =
-        ( missionary_type( missionary.type_obj() ) ==
-          e_missionary_type::jesuit );
+  maybe<FogMission> const mission = fog_dwelling.mission;
+  if( mission.has_value() ) {
+    bool const is_jesuit =
+        ( mission->level == e_missionary_type::jesuit );
     gfx::pixel const cross_color =
-        missionary_cross_color( missionary.nation(), is_jesuit );
+        missionary_cross_color( mission->nation, is_jesuit );
     // This is the inner part that is colored according to the
     // nation's flag color.
     render_sprite_silhouette( renderer, where + offset_32x32,
@@ -437,6 +480,14 @@ void render_dwelling( rr::Renderer& renderer, Coord where,
                      e_tile::missionary_cross_accent );
     }
   }
+}
+
+void render_real_dwelling( rr::Renderer& renderer, Coord where,
+                           SSConst const&  ss,
+                           Dwelling const& dwelling ) {
+  render_fog_dwelling(
+      renderer, where,
+      dwelling_to_fog_dwelling( ss, dwelling.id ) );
 }
 
 void render_unit_depixelate( rr::Renderer& renderer, Coord where,

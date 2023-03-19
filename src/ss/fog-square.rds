@@ -30,6 +30,7 @@ struct.FogColony {
   name 'std::string',
   population 'int',
   barricade_type 'base::maybe<e_colony_barricade_type>',
+  sons_of_liberty_integral_percent 'int',
 }
 
 struct.FogMission {

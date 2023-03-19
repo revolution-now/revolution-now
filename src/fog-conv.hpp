@@ -40,6 +40,7 @@ FogDwelling dwelling_to_fog_dwelling( SSConst const& ss,
 
 // For when you want to just convert a single colony to the fog
 // version.
-FogColony colony_to_fog_colony( Colony const& colony );
+FogColony colony_to_fog_colony( SSConst const& ss,
+                                Colony const&  colony );
 
 } // namespace rn
