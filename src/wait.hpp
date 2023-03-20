@@ -17,7 +17,6 @@
 #include "maybe.hpp"
 
 // base
-#include "base/cc-specific.hpp"
 #include "base/unique-coro.hpp"
 #include "base/unique-func.hpp"
 
@@ -36,45 +35,33 @@ template<typename T>
 struct promise_type;
 
 template<typename T>
-class wait_internal_state {
+class wait_state {
  public:
-  wait_internal_state()  = default;
-  ~wait_internal_state() = default;
+  wait_state()  = default;
+  ~wait_state() = default;
 
-  wait_internal_state( wait_internal_state const& ) = delete;
-  wait_internal_state& operator=( wait_internal_state const& ) =
-      delete;
-  // Note that this object is in general self-referential, there-
-  // fore it cannot be moved.
-  wait_internal_state( wait_internal_state&& ) = delete;
-  wait_internal_state& operator=( wait_internal_state&& ) =
-      delete;
+  wait_state( wait_state const& )            = delete;
+  wait_state& operator=( wait_state const& ) = delete;
+  wait_state( wait_state&& )                 = delete;
+  wait_state& operator=( wait_state&& )      = delete;
 
   using NotifyFunc = void( T const& );
   using ExceptFunc = void( std::exception_ptr );
 
-  // Prefer the move-only unique function to resolve the ambi-
-  // guity when a callable is copyable and movable.
   template<typename Func>
-  void add_callback( Func&& func ) {
-    using func_t = decltype( std::forward<Func>( func ) );
-    if constexpr( std::is_move_constructible_v<func_t> &&
-                  std::is_rvalue_reference_v<func_t> )
-      add_movable_callback( std::forward<Func>( func ) );
+  void add_callback( Func&& callback ) {
+    if( has_value() )
+      callback( *maybe_value_ );
     else
-      add_copyable_callback( std::forward<Func>( func ) );
+      callbacks_.push_back( std::forward<Func>( callback ) );
   }
 
   template<typename Func>
-  void set_exception_callback( Func&& func ) {
-    using func_t = decltype( std::forward<Func>( func ) );
-    if constexpr( std::is_move_constructible_v<func_t> &&
-                  std::is_rvalue_reference_v<func_t> )
-      set_movable_exception_callback(
-          std::forward<Func>( func ) );
+  void set_exception_callback( Func&& callback ) {
+    if( exception() )
+      callback( exception() );
     else
-      set_copyable_exception_callback(
-          std::forward<Func>( func ) );
+      exception_callback_ = std::forward<Func>( callback );
   }
 
   void set_coro( base::unique_coro<promise_type<T>> coro ) {
@@ -85,16 +72,14 @@ class wait_internal_state {
   void cancel() {
     eptr_ = {};
     coro_.reset();
-    ucallbacks_.clear();
     callbacks_.clear();
     exception_callback_.reset();
-    exception_ucallback_.reset();
   }
 
   // So that we can access private members of this class when it
   // is templated on types other than our T.
   template<typename U>
-  friend class wait_internal_state;
+  friend class wait_state;
 
   bool has_value() const { return maybe_value_.has_value(); }
   std::exception_ptr exception() const { return eptr_; }
@@ -137,69 +122,19 @@ class wait_internal_state {
   void do_callbacks() {
     CHECK( has_value() );
     CHECK( !eptr_ );
-    for( auto const& callback : callbacks_ )
-      callback( *maybe_value_ );
-    for( auto& callback : ucallbacks_ )
-      callback( *maybe_value_ );
+    for( auto& callback : callbacks_ ) callback( *maybe_value_ );
   }
 
   void do_exception_callback() {
     CHECK( eptr_ );
     if( exception_callback_ ) ( *exception_callback_ )( eptr_ );
-    if( exception_ucallback_ )
-      ( *exception_ucallback_ )( eptr_ );
   }
 
  private:
-  // Accumulates callbacks in a list, then when the value eventu-
-  // ally becomes ready, it will call them all in order. Any
-  // callbacks added after the value is ready will be called im-
-  // mediately.
-  void add_copyable_callback(
-      std::function<NotifyFunc> callback ) {
-    if( has_value() )
-      callback( *maybe_value_ );
-    else
-      callbacks_.push_back( std::move( callback ) );
-  }
-
-  void add_movable_callback(
-      base::unique_func<NotifyFunc> callback ) {
-    if( has_value() )
-      callback( *maybe_value_ );
-    else
-      ucallbacks_.push_back( std::move( callback ) );
-  }
-
-  void set_copyable_exception_callback(
-      std::function<ExceptFunc> callback ) {
-    if( exception() )
-      callback( exception() );
-    else
-      exception_callback_ = std::move( callback );
-  }
-
-  void set_movable_exception_callback(
-      base::unique_func<ExceptFunc> callback ) {
-    if( exception() )
-      callback( exception() );
-    else
-      exception_ucallback_ = std::move( callback );
-  }
-
   maybe<T>           maybe_value_;
   std::exception_ptr eptr_ = {}; // this is nullable.
-
-  // Currently we have two separate vectors for unique and
-  // non-unique function callbacks. This may cause callbacks to
-  // get invoked in a different order than they were inserted.
-  // Don't think this should a problem...
-  std::vector<std::function<NotifyFunc>>     callbacks_;
-  std::vector<base::unique_func<NotifyFunc>> ucallbacks_;
-
-  maybe<std::function<ExceptFunc>>     exception_callback_;
-  maybe<base::unique_func<ExceptFunc>> exception_ucallback_;
-
+  std::vector<base::unique_func<NotifyFunc>> callbacks_;
+  maybe<base::unique_func<ExceptFunc>>       exception_callback_;
   // Will be populated if this internal state is created by a
   // coroutine.
   maybe<base::unique_coro<promise_type<T>>> coro_;
@@ -213,8 +148,7 @@ class wait_internal_state {
 template<typename T = std::monostate>
 class [[nodiscard]] wait {
   template<typename U>
-  using UniqueStatePtr =
-      std::unique_ptr<detail::wait_internal_state<U>>;
+  using UniqueStatePtr = std::unique_ptr<detail::wait_state<U>>;
 
  public:
   using value_type = T;
@@ -303,7 +237,7 @@ class wait_promise {
   wait_promise() { reset(); }
 
   void reset() {
-    state_.reset( new detail::wait_internal_state<T> );
+    state_.reset( new detail::wait_state<T> );
     p_state_ = state_.get();
   }
 
@@ -323,7 +257,7 @@ class wait_promise {
     return ::rn::wait<T>( std::move( state_ ) );
   }
 
-  detail::wait_internal_state<T>* state() { return p_state_; }
+  detail::wait_state<T>* state() { return p_state_; }
 
   /**************************************************************
   ** set_exception
@@ -398,11 +332,11 @@ class wait_promise {
   }
 
  private:
-  std::unique_ptr<detail::wait_internal_state<T>> state_;
+  std::unique_ptr<detail::wait_state<T>> state_;
   // This must always point to the *state_ memory that was allo-
   // cated when constructing the object, even if that state has
   // since been moved out into the wait object.
-  detail::wait_internal_state<T>* p_state_ = nullptr;
+  detail::wait_state<T>* p_state_ = nullptr;
 };
 
 /****************************************************************
@@ -416,11 +350,6 @@ wait<T> make_wait( Args&&... args ) {
   // It's ok not to keep the promise alive here because it is al-
   // ready fulfilled and won't be referenced again.
   return s_promise.wait();
-}
-
-template<typename T = std::monostate>
-wait<T> empty_wait() {
-  return wait_promise<T>{}.wait();
 }
 
 template<typename T>

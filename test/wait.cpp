@@ -36,7 +36,7 @@ using ::Catch::Equals;
 static_assert( is_same_v<wait<>, wait<monostate>> );
 
 TEST_CASE( "[wait] future api basic" ) {
-  auto  ss   = make_unique<detail::wait_internal_state<int>>();
+  auto  ss   = make_unique<detail::wait_state<int>>();
   auto* p_ss = ss.get();
 
   wait<int> s_future( std::move( ss ) );
