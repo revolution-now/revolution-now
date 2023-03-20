@@ -29,6 +29,9 @@
 #include "gl/vertex-array.hpp"
 #include "gl/vertex-buffer.hpp"
 
+// stb
+#include "stb/image.hpp"
+
 // refl
 #include "refl/enum-map.hpp"
 #include "refl/query-enum.hpp"
@@ -230,6 +233,11 @@ struct Renderer::Impl {
         "failed to build texture atlas of maximum size {}.  You "
         "may need to increase the maximum size.",
         config.max_atlas_size );
+
+    if( config.dump_atlas_png.has_value() ) {
+      CHECK_HAS_VALUE(
+          stb::save_image( *config.dump_atlas_png, atlas.img ) );
+    }
 
     size        atlas_size = atlas.img.size_pixels();
     gl::Texture atlas_tx( std::move( atlas.img ) );

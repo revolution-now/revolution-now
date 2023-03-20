@@ -11,6 +11,9 @@
 # render
 include "render/sprite-sheet.hpp"
 
+# base
+include "base/maybe.hpp"
+
 # C++ standard library.
 include "<vector>"
 
@@ -25,6 +28,12 @@ struct.TileSheetsConfig {
 
 struct.config_tile_sheet_t {
   sheets 'TileSheetsConfig',
+
+  # If this is non-null then it specifies the full path (folder
+  # and file name) to a png file where the texture atlas will be
+  # written during loading. This is just for debugging issues
+  # with the texture atlas and so should normally remain as null.
+  dump_texture_atlas_to 'base::maybe<std::string>',
 }
 
 config.tile_sheet {}
