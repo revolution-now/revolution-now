@@ -16,9 +16,13 @@
 // base
 #include "base/expect.hpp"
 #include "base/fs.hpp"
+#include "base/valid.hpp"
 
 namespace stb {
 
 base::expect<gfx::image> load_image( fs::path const& p );
+
+base::valid_or<std::string> save_image(
+    fs::path const& p, gfx::image const& image );
 
 } // namespace stb

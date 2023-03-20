@@ -14,12 +14,14 @@
 #include "base/error.hpp"
 
 // stb
-#define STB_IMAGE_IMPLEMENTATION
 #ifdef __clang__
 #  pragma clang diagnostic push
 #  pragma clang diagnostic ignored "-Weverything"
 #endif
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 #ifdef __clang__
 #  pragma clang diagnostic pop
 #endif
@@ -60,6 +62,17 @@ base::expect<gfx::image> load_image( fs::path const& p ) {
                         get_stbi_error() );
   return gfx::image(
       gfx::size{ .w = width_pixels, .h = height_pixels }, data );
+}
+
+base::valid_or<std::string> save_image(
+    fs::path const& p, gfx::image const& image ) {
+  int const comp   = 4; // RGBA.
+  int const result = ::stbi_write_png(
+      p.c_str(), image.size_pixels().w, image.size_pixels().h,
+      comp, image.data(), /*stride_bytes=*/0 );
+  if( result == 0 )
+    return fmt::format( "failed to write PNG file to {}.", p );
+  return base::valid;
 }
 
 } // namespace stb
