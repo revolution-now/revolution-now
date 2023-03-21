@@ -666,8 +666,6 @@ struct MenuPlane::Impl : public Plane {
       // since `val` will be invalidated once we do so.
       e_menu_item item = val.item;
       menu_state_      = MenuState::menus_closed{ /*hover=*/{} };
-      DCHECK( menu_items_[item], "menu_items_[{}] is nullptr.",
-              val.item );
       do_click( item );
     }
   }
