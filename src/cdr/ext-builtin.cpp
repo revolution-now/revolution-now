@@ -18,6 +18,27 @@ using namespace std;
 namespace cdr {
 
 /****************************************************************
+** char
+*****************************************************************/
+value to_canonical( converter&, char o, tag_t<char> ) {
+  return value{ string( 1, o ) };
+}
+
+result<char> from_canonical( converter& conv, value const& v,
+                             tag_t<char> ) {
+  auto char_str = conv.ensure_type<string>( v );
+  if( !char_str.has_value() )
+    return conv.err(
+        "cannot convert value of type {} to character.",
+        type_name( v ) );
+  if( char_str->size() != 1 )
+    return conv.err(
+        "expected character but found string of length {}.",
+        char_str->size() );
+  return ( *char_str )[0];
+}
+
+/****************************************************************
 ** int
 *****************************************************************/
 value to_canonical( converter&, int o, tag_t<int> ) {

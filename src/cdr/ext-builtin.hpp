@@ -16,6 +16,13 @@
 namespace cdr {
 
 /****************************************************************
+** char
+*****************************************************************/
+value to_canonical( converter& conv, char o, tag_t<char> );
+result<char> from_canonical( converter& conv, value const& v,
+                             tag_t<char> );
+
+/****************************************************************
 ** int
 *****************************************************************/
 value       to_canonical( converter& conv, int o, tag_t<int> );

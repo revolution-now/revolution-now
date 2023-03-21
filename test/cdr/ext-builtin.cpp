@@ -26,6 +26,7 @@ using namespace std;
 
 using ::cdr::testing::conv_from_bt;
 
+static_assert( Canonical<char> );
 static_assert( Canonical<int> );
 static_assert( Canonical<double> );
 static_assert( Canonical<bool> );
@@ -33,6 +34,21 @@ static_assert( !Canonical<long> );
 static_assert( !Canonical<float> );
 
 converter conv;
+
+TEST_CASE( "[cdr/ext-builtin] char" ) {
+  char c = 'S';
+
+  REQUIRE( conv.to( c ) == "S" );
+  REQUIRE( conv.to( c ).holds<string>() );
+  REQUIRE( conv_from_bt<char>( conv, value{ "S" } ) == c );
+  REQUIRE(
+      conv.from<char>( value{ "SS" } ) ==
+      conv.err(
+          "expected character but found string of length 2." ) );
+  REQUIRE( conv.from<char>( value{ 5 } ) ==
+           conv.err( "cannot convert value of type integer to "
+                     "character." ) );
+}
 
 TEST_CASE( "[cdr/ext-builtin] int" ) {
   int n = 4;
