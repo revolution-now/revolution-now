@@ -37,6 +37,7 @@
 #include "window.hpp"
 
 // config
+#include "config/menu-items.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 
 // ss

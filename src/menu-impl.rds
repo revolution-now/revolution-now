@@ -12,32 +12,13 @@
 include "time.hpp"
 include "maybe.hpp"
 
-# Rds
-include "menu.rds.hpp"
+# config
+include "config/menu-items.rds.hpp"
 
 # C++ standard library
 include "<string>"
 
 namespace "rn"
-
-enum.e_menu {
-  game,
-  view,
-  orders,
-  advisors,
-  music,
-  window,
-  cheat,
-  pedia,
-}
-
-sumtype.MenuItem {
-  menu_divider {},
-  menu_clickable {
-    item 'e_menu_item',
-    name 'std::string',
-  },
-}
 
 sumtype.MenuState {
   menus_hidden {},

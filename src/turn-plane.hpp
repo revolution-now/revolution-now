@@ -15,8 +15,8 @@
 // Revolution Now
 #include "wait.hpp"
 
-// Rds
-#include "menu.rds.hpp"
+// config
+#include "config/menu-items.rds.hpp"
 
 // C++ standard library
 #include <memory>

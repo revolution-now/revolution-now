@@ -28,6 +28,7 @@
 #include "menu-impl.rds.hpp"
 
 // config
+#include "config/menu.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 #include "config/ui.rds.hpp"
 
@@ -61,118 +62,8 @@ namespace rl = ::base::rl;
 
 namespace {
 
-/****************************************************************
-** Top level menu structure.
-*****************************************************************/
-struct Menu {
-  string name;
-  bool   right_side;
-  char   shortcut;
-};
-
-refl::enum_map<e_menu, Menu> const g_menus{
-    { e_menu::game, { "Game", false, 'G' } },
-    { e_menu::view, { "View", false, 'V' } },
-    { e_menu::orders, { "Orders", false, 'O' } },
-    { e_menu::advisors, { "Advisors", false, 'A' } },
-    { e_menu::music, { "Music", false, 'M' } },
-    { e_menu::window, { "Window", false, 'W' } },
-    { e_menu::cheat, { "Cheat", true, 'C' } },
-    { e_menu::pedia, { "Revolopedia", true, 'R' } } };
-
-/****************************************************************
-** Menu contents.
-*****************************************************************/
-#define ITEM( item, name ) \
-  MenuItem::menu_clickable { e_menu_item::item, name }
-
-#define DIVIDER \
-  MenuItem::menu_divider {}
-
-refl::enum_map<e_menu, vector<MenuItem>> const g_menu_def{
-    { e_menu::game,
-      {
-          ITEM( game_options, "Game Options" ), //
-          ITEM( colony_report_options,
-                "Colony Report Options" ),      //
-          /***********/ DIVIDER, /***********/  //
-          ITEM( about, "About this Game" ),     //
-          /***********/ DIVIDER, /***********/  //
-          ITEM( save, "Save Game" ),            //
-          ITEM( load, "Load Game" ),            //
-          /***********/ DIVIDER, /***********/  //
-          ITEM( next_turn, "Next Turn" ),       //
-          /***********/ DIVIDER, /***********/  //
-          ITEM( revolution, "REVOLUTION!" ),    //
-          /***********/ DIVIDER, /***********/  //
-          ITEM( retire, "Retire" ),             //
-          ITEM( exit, "Exit to \"DOS\"" )       //
-      } },
-    { e_menu::view,
-      {
-          ITEM( zoom_in, "Zoom In" ),                       //
-          ITEM( zoom_out, "Zoom Out" ),                     //
-          ITEM( restore_zoom, "Zoom Default" ),             //
-          /***********/ DIVIDER, /***********/              //
-          ITEM( find_blinking_unit, "Find Blinking Unit" ), //
-          /***********/ DIVIDER, /***********/              //
-          ITEM( harbor_view, "European Status" ),           //
-          /***********/ DIVIDER, /***********/              //
-          ITEM( hidden_terrain, "Show Hidden Terrain" )     //
-      } },
-    { e_menu::orders,
-      {
-          ITEM( sentry, "Sentry" ),             //
-          ITEM( fortify, "Fortify" ),           //
-          ITEM( road, "Build Road" ),           //
-          ITEM( plow, "Clear Forest/Plow" ),    //
-          ITEM( dump, "Dump Cargo Overboard" ), //
-      } },
-    { e_menu::advisors,
-      {
-          ITEM( military_advisor, "Military Advisor" ),   //
-          ITEM( economics_advisor, "Economics Advisor" ), //
-          ITEM( european_advisor, "Europian Advisor" )    //
-      } },
-    { e_menu::music,
-      {
-          ITEM( music_play, "Play" ),                     //
-          ITEM( music_stop, "Stop" ),                     //
-          ITEM( music_pause, "Pause" ),                   //
-          ITEM( music_resume, "Resume" ),                 //
-          /***********/ DIVIDER, /***********/            //
-          ITEM( music_next, "Next Tune" ),                //
-          ITEM( music_prev, "Previous Tune" ),            //
-          /***********/ DIVIDER, /***********/            //
-          ITEM( music_vol_up, "Volume Up" ),              //
-          ITEM( music_vol_down, "Volume Down" ),          //
-          /***********/ DIVIDER, /***********/            //
-          ITEM( music_set_player, "Set Music Player..." ) //
-      } },
-    { e_menu::window,
-      {
-          ITEM( toggle_fullscreen, "Toggle Fullscreen" ), //
-          ITEM( restore_window, "Restore" ),              //
-          /***********/ DIVIDER, /***********/            //
-          ITEM( scale_up, "Scale Up" ),                   //
-          ITEM( scale_down, "Scale Down" ),               //
-          ITEM( scale_optimal, "Scale Optimal" )          //
-      } },
-    { e_menu::cheat,
-      {
-          ITEM( cheat_reveal_map, "Reveal Map" ),             //
-          ITEM( cheat_explore_entire_map,
-                "Explore Entire Map" ),                       //
-          ITEM( cheat_map_editor, "Enter Map Editor" ),       //
-          /***********/ DIVIDER, /***********/                //
-          ITEM( cheat_edit_fathers, "Edit Founding Fathers" ) //
-      } },
-    { e_menu::pedia,
-      {
-          ITEM( units_help, "Units" ),                     //
-          ITEM( terrain_help, "Terrain" ),                 //
-          ITEM( founding_father_help, "Founding Fathers" ) //
-      } } };
+using config::menu::e_menu_side;
+using config::menu::MenuItemConfig;
 
 } // namespace
 
@@ -184,8 +75,6 @@ struct MenuPlane::Impl : public Plane {
   refl::enum_map<e_menu, int>      menu_name_width_pixels_;
   refl::enum_map<e_menu_item, int> menu_item_name_width_pixels_;
 
-  refl::enum_map<e_menu_item, MenuItem::menu_clickable const*>
-                                              menu_items_;
   refl::enum_map<e_menu_item, e_menu>         item_to_menu_;
   refl::enum_map<e_menu, vector<e_menu_item>> items_from_menu_;
 
@@ -194,63 +83,31 @@ struct MenuPlane::Impl : public Plane {
   refl::enum_map<e_menu_item, stack<Plane*>> handlers_;
 
   Impl() {
-    // TODO: probably should only do these things once.
+    auto& menus_layout = config_menu.layout.menus;
 
-    // Populate the e_menu_item maps and verify no duplicates.
-    for( auto& [menu, items] : g_menu_def ) {
-      for( auto& item_desc : items ) {
-        if( holds<MenuItem::menu_divider>( item_desc ) )
-          continue;
-        CHECK( holds<MenuItem::menu_clickable>( item_desc ) );
-        auto& clickable =
-            get<MenuItem::menu_clickable>( item_desc );
-        items_from_menu_[menu].push_back( clickable.item );
-        menu_items_[clickable.item]   = &clickable;
-        item_to_menu_[clickable.item] = menu;
+    // Populate the e_menu_item maps.
+    for( auto& [menu, items] : menus_layout ) {
+      for( auto& item_desc : items.contents ) {
+        if( !item_desc.has_value() ) continue;
+        e_menu_item const item = *item_desc;
+        items_from_menu_[menu].push_back( item );
+        item_to_menu_[item] = menu;
       }
-    }
-
-    // Check that all menus have at least one item.
-    for( auto menu : refl::enum_values<e_menu> ) {
-      CHECK( items_from_menu_[menu].size() > 0 );
-    }
-
-    // Check that all menus have unique shortcut keys and that
-    // the menu header name contains the shortcut key (in either
-    // uppercase or lowercase.
-    unordered_set<char> keys;
-    for( auto menu : refl::enum_values<e_menu> ) {
-      char key = tolower( g_menus[menu].shortcut );
-      CHECK( !keys.contains( key ),
-             "multiple menus have `{}` as a shortcut key", key );
-      keys.insert( key );
-      string_view name = g_menus[menu].name;
-      CHECK(
-          name.find( tolower( key ) ) != string_view::npos ||
-              name.find( toupper( key ) ) != string_view::npos,
-          "menu `{}` does not contain shortcut key `{}`", name,
-          key );
-    }
-
-    // Check that all e_menu_items are in a menu.
-    for( auto item : refl::enum_values<e_menu_item> ) {
-      CHECK( menu_items_[item] != nullptr );
     }
 
     // Populate text widths of menu and menu item names.
     int kCharWidth = rr::rendered_text_line_size_pixels( "X" ).w;
     for( auto menu : refl::enum_values<e_menu> )
       menu_name_width_pixels_[menu] =
-          g_menus[menu].name.size() * kCharWidth;
+          menus_layout[menu].name.size() * kCharWidth;
     for( auto item : refl::enum_values<e_menu_item> )
       menu_item_name_width_pixels_[item] =
-          menu_items_[item]->name.size() * kCharWidth;
+          config_menu.items[item].name.size() * kCharWidth;
   }
 
   /****************************************************************
   ** Menu State
   *****************************************************************/
-
   void log_menu_state() const {
     lg.trace( "menu_state_: {}", menu_state_ );
   }
@@ -325,18 +182,21 @@ struct MenuPlane::Impl : public Plane {
 
   X menu_header_x_pos( e_menu target ) const {
     // TODO: simplify this since menus are not invisible anymore.
-    auto const& desc = g_menus[target];
+    auto const& menus = config_menu.layout.menus;
+    auto const& desc  = menus[target];
     W           width_delta{ 0 };
-    if( desc.right_side ) {
+    if( desc.position == e_menu_side::right ) {
       width_delta = rl::rall( refl::enum_values<e_menu> )
-                        .remove_if_L( !g_menus[_].right_side )
+                        .remove_if_L( menus[_].position !=
+                                      e_menu_side::right )
                         .take_while_incl_L( _ != target )
                         .map_L( menu_header_delta( _ ).w )
                         .intersperse( config_ui.menus.spacing_x )
                         .accumulate();
     } else {
       width_delta = rl::all( refl::enum_values<e_menu> )
-                        .remove_if_L( g_menus[_].right_side )
+                        .remove_if_L( menus[_].position ==
+                                      e_menu_side::right )
                         .take_while_L( _ != target )
                         .map_L( menu_header_delta( _ ).w +
                                 config_ui.menus.spacing_x )
@@ -345,8 +205,9 @@ struct MenuPlane::Impl : public Plane {
     width_delta += config_ui.menus.first_menu_start_x_offset;
     CHECK( width_delta >= 0 );
     Rect rect = menu_bar_rect();
-    return rect.x + ( !desc.right_side ? width_delta
-                                       : rect.w - width_delta );
+    return rect.x + ( ( desc.position != e_menu_side::right )
+                          ? width_delta
+                          : rect.w - width_delta );
   }
 
   // Rectangle around a menu header.
@@ -410,16 +271,14 @@ struct MenuPlane::Impl : public Plane {
   // This is the width of the menu body not including the
   // borders, which themselves occupy part of a tile.
   H menu_body_height_inner( e_menu menu ) const {
-    H h{ 0 };
-    for( auto const& item : g_menu_def[menu] ) {
-      overload_visit(
-          item.as_base(),
-          [&]( MenuItem::menu_divider const& ) {
-            h += divider_height();
-          },
-          [&]( MenuItem::menu_clickable const& ) {
-            h += menu_item_height();
-          } );
+    auto const& menus = config_menu.layout.menus;
+    H           h{ 0 };
+    for( maybe<e_menu_item> const& item :
+         menus[menu].contents ) {
+      if( item.has_value() )
+        h += menu_item_height();
+      else // divider.
+        h += divider_height();
     }
     // round up to nearest multiple of 4, since that is the menu
     // "tile" width.
@@ -438,9 +297,10 @@ struct MenuPlane::Impl : public Plane {
   }
 
   Rect menu_body_rect_inner( e_menu menu ) const {
-    Coord pos;
+    auto const& menus = config_menu.layout.menus;
+    Coord       pos;
     pos.y = menu_bar_rect().bottom_edge() + 4;
-    if( g_menus[menu].right_side ) {
+    if( menus[menu].position == e_menu_side::right ) {
       pos.x = menu_header_x_pos( menu ) +
               menu_header_delta( menu ).w -
               menu_body_delta_inner( menu ).w;
@@ -451,9 +311,10 @@ struct MenuPlane::Impl : public Plane {
   }
 
   Rect menu_body_rect( e_menu menu ) const {
-    Coord pos;
+    auto const& menus = config_menu.layout.menus;
+    Coord       pos;
     pos.y = menu_bar_rect().bottom_edge();
-    if( g_menus[menu].right_side )
+    if( menus[menu].position == e_menu_side::right )
       pos.x = menu_header_x_pos( menu ) +
               menu_header_delta( menu ).w + 4 -
               menu_body_delta( menu ).w;
@@ -475,25 +336,19 @@ struct MenuPlane::Impl : public Plane {
 
   // `h` is the vertical position from the top of the menu body.
   maybe<e_menu_item> cursor_to_item( e_menu menu, H h ) const {
-    H pos{ 0 };
-    for( auto const& item : g_menu_def[menu] ) {
-      overload_visit(
-          item.as_base(),
-          [&]( MenuItem::menu_divider const& ) {
-            pos += divider_height();
-          },
-          [&]( MenuItem::menu_clickable const& ) {
-            pos += menu_item_height();
-          } );
+    auto const& menus = config_menu.layout.menus;
+    H           pos{ 0 };
+    for( maybe<e_menu_item> const& item :
+         menus[menu].contents ) {
+      if( item.has_value() )
+        pos += menu_item_height();
+      else // divider.
+        pos += divider_height();
       if( pos > h ) {
-        switch( item.to_enum() ) {
-          case MenuItem::e::menu_divider: //
-            return nothing;
-          case MenuItem::e::menu_clickable: {
-            auto& val = item.get<MenuItem::menu_clickable>();
-            return val.item;
-          }
-        }
+        if( item.has_value() )
+          return item;
+        else // divider.
+          return nothing;
       }
     }
     return {};
@@ -513,11 +368,12 @@ struct MenuPlane::Impl : public Plane {
   ** Rendering Implmementation
   *****************************************************************/
   string_view name_for( e_menu menu ) const {
-    return g_menus[menu].name;
+    auto const& menus = config_menu.layout.menus;
+    return menus[menu].name;
   }
 
   string_view name_for( e_menu_item item ) const {
-    return menu_items_[item]->name;
+    return config_menu.items[item].name;
   }
 
   // For either a menu header or item.
@@ -542,8 +398,9 @@ struct MenuPlane::Impl : public Plane {
   void render_menu_element( rr::Renderer& renderer, Coord pos,
                             e_menu     item,
                             gfx::pixel color ) const {
+    auto const& menus = config_menu.layout.menus;
     render_menu_element( renderer, pos, item, color,
-                         g_menus[item].shortcut );
+                         menus[item].shortcut );
   }
 
   void render_menu_element( rr::Renderer& renderer, Coord pos,
@@ -625,32 +482,30 @@ struct MenuPlane::Impl : public Plane {
     pos.x += 4;
     pos.y += 4;
 
-    H const item_height = menu_item_height();
-    for( auto const& item : g_menu_def[menu] ) {
-      overload_visit(
-          item.as_base(),
-          [&]( MenuItem::menu_divider ) {
-            render_divider( renderer, pos, menu );
-            pos.y += divider_height();
-          },
-          [&]( MenuItem::menu_clickable const& clickable ) {
-            bool on = ( clickable.item == subject );
-            if( on )
-              render_item_background_selected( renderer, pos,
-                                               menu );
-            gfx::pixel foreground_color =
-                !is_menu_item_enabled( clickable.item )
-                    ? foreground_disabled_color()
-                    : menu_theme_color1();
-            render_menu_element(
-                renderer,
-                pos + Delta{ .w = config_ui.menus.padding_x,
-                             .h = ( ( item_height -
-                                      max_text_height() ) /
-                                    2 ) },
-                clickable.item, foreground_color );
-            pos.y += item_height;
-          } );
+    H const     item_height = menu_item_height();
+    auto const& menus       = config_menu.layout.menus;
+    for( maybe<e_menu_item> const& item :
+         menus[menu].contents ) {
+      if( item.has_value() ) {
+        bool on = ( *item == subject );
+        if( on )
+          render_item_background_selected( renderer, pos, menu );
+        gfx::pixel foreground_color =
+            !is_menu_item_enabled( *item )
+                ? foreground_disabled_color()
+                : menu_theme_color1();
+        render_menu_element(
+            renderer,
+            pos + Delta{ .w = config_ui.menus.padding_x,
+                         .h = ( ( item_height -
+                                  max_text_height() ) /
+                                2 ) },
+            *item, foreground_color );
+        pos.y += item_height;
+      } else { // divider.
+        render_divider( renderer, pos, menu );
+        pos.y += divider_height();
+      }
     }
   }
 
@@ -940,7 +795,8 @@ struct MenuPlane::Impl : public Plane {
           if( key_event.change == input::e_key_change::down &&
               key_event.mod.alt_down ) {
             for( auto menu : refl::enum_values<e_menu> ) {
-              auto const& menu_desc = g_menus[menu];
+              auto const& menus     = config_menu.layout.menus;
+              auto const& menu_desc = menus[menu];
               if( key_event.keycode ==
                   tolower( menu_desc.shortcut ) ) {
                 if( !is_menu_open( menu ) )

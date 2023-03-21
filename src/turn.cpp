@@ -31,7 +31,6 @@
 #include "map-edit.hpp"
 #include "market.hpp"
 #include "menu.hpp"
-#include "menu.rds.hpp"
 #include "on-map.hpp"
 #include "panel.hpp"
 #include "plane-stack.hpp"

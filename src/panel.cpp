@@ -26,6 +26,7 @@
 #include "views.hpp"
 
 // config
+#include "config/menu-items.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 #include "config/ui.rds.hpp"
 

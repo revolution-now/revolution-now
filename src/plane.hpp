@@ -15,8 +15,8 @@
 // Revolution Now
 #include "input.hpp"
 
-// Rds
-#include "menu.rds.hpp"
+// config
+#include "config/menu-items.rds.hpp"
 
 namespace rr {
 struct Renderer;

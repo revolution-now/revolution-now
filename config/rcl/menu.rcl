@@ -1,0 +1,300 @@
+items {
+  about {
+    name: "About this Game"
+  }
+
+  cheat_edit_fathers {
+    name: "Edit Founding Fathers"
+  }
+
+  cheat_explore_entire_map {
+    name: "Explore Entire Map"
+  }
+
+  cheat_map_editor {
+    name: "Enter Map Editor"
+  }
+
+  cheat_reveal_map {
+    name: "Reveal Map"
+  }
+
+  colony_report_options {
+    name: "Colony Report Options"
+  }
+
+  dump {
+    name: "Dump Cargo Overboard"
+  }
+
+  economics_advisor {
+    name: "Economics Advisor"
+  }
+
+  european_advisor {
+    name: "Europian Advisor"
+  }
+
+  exit {
+    name: "Exit to DOS"
+  }
+
+  find_blinking_unit {
+    name: "Find Blinking Unit"
+  }
+
+  fortify {
+    name: "Fortify"
+  }
+
+  founding_father_help {
+    name: "Founding Fathers"
+  }
+
+  game_options {
+    name: "Game Options"
+  }
+
+  harbor_view {
+    name: "European Status"
+  }
+
+  hidden_terrain {
+    name: "Show Hidden Terrain"
+  }
+
+  load {
+    name: "Load Game"
+  }
+
+  military_advisor {
+    name: "Military Advisor"
+  }
+
+  music_next {
+    name: "Next Tune"
+  }
+
+  music_pause {
+    name: "Pause"
+  }
+
+  music_play {
+    name: "Play"
+  }
+
+  music_prev {
+    name: "Previous Tune"
+  }
+
+  music_resume {
+    name: "Resume"
+  }
+
+  music_set_player {
+    name: "Set Music Player..."
+  }
+
+  music_stop {
+    name: "Stop"
+  }
+
+  music_vol_down {
+    name: "Volume Down"
+  }
+
+  music_vol_up {
+    name: "Volume Up"
+  }
+
+  next_turn {
+    name: "Next Turn"
+  }
+
+  plow {
+    name: "Clear Forest/Plow"
+  }
+
+  restore_window {
+    name: "Restore"
+  }
+
+  restore_zoom {
+    name: "Zoom Default"
+  }
+
+  retire {
+    name: "Retire"
+  }
+
+  revolution {
+    name: "REVOLUTION!"
+  }
+
+  road {
+    name: "Build Road"
+  }
+
+  save {
+    name: "Save Game"
+  }
+
+  scale_down {
+    name: "Scale Down"
+  }
+
+  scale_optimal {
+    name: "Scale Optimal"
+  }
+
+  scale_up {
+    name: "Scale Up"
+  }
+
+  sentry {
+    name: "Sentry"
+  }
+
+  terrain_help {
+    name: "Terrain"
+  }
+
+  toggle_fullscreen {
+    name: "Toggle Fullscreen"
+  }
+
+  units_help {
+    name: "Units"
+  }
+
+  zoom_in {
+    name: "Zoom In"
+  }
+
+  zoom_out {
+    name: "Zoom Out"
+  }
+}
+
+layout.menus {
+  game {
+    name:     Game
+    shortcut: G
+    position: left
+    contents: [
+      game_options,
+      colony_report_options,
+      null,
+      about,
+      null,
+      save,
+      load,
+      null,
+      next_turn,
+      null,
+      revolution,
+      null,
+      retire,
+      exit,
+    ]
+  }
+
+  view {
+    name:     View
+    shortcut: V
+    position: left
+    contents: [
+      zoom_in,
+      zoom_out,
+      restore_zoom,
+      null,
+      find_blinking_unit,
+      null,
+      harbor_view,
+      null,
+      hidden_terrain,
+    ]
+  }
+
+  orders {
+    name:     Orders
+    shortcut: O
+    position: left
+    contents: [
+      sentry,
+      fortify,
+      road,
+      plow,
+      dump,
+    ]
+  }
+
+  advisors {
+    name:     Advisors
+    shortcut: A
+    position: left
+    contents: [
+      military_advisor,
+      economics_advisor,
+      european_advisor,
+    ]
+  }
+
+  music {
+    name:     Music
+    shortcut: M
+    position: left
+    contents: [
+      music_play,
+      music_stop,
+      music_pause,
+      music_resume,
+      null,
+      music_next,
+      music_prev,
+      null,
+      music_vol_up,
+      music_vol_down,
+      null,
+      music_set_player,
+    ]
+  }
+
+  window {
+    name:     Window
+    shortcut: W
+    position: left
+    contents: [
+      toggle_fullscreen,
+      restore_window,
+      null,
+      scale_up,
+      scale_down,
+      scale_optimal,
+    ]
+  }
+
+  cheat {
+    name:     Cheat
+    shortcut: C
+    position: right
+    contents: [
+      cheat_reveal_map,
+      cheat_explore_entire_map,
+      cheat_map_editor,
+      null,
+      cheat_edit_fathers,
+    ]
+  }
+
+  pedia {
+    name:     Revolopedia
+    shortcut: R
+    position: right
+    contents: [
+      units_help,
+      terrain_help,
+      founding_father_help,
+    ]
+  }
+}

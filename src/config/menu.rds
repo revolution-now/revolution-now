@@ -1,0 +1,57 @@
+# ===============================================================
+# menu.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-03-20.
+#
+# Description: Config data for the menus in the menu bar.
+#
+# ===============================================================
+# config
+include "menu-items.rds.hpp"
+
+# refl
+include "refl/enum-map.hpp"
+
+# C++ standard library
+include "<string>"
+include "<vector>"
+
+namespace "rn.config.menu"
+
+enum.e_menu_side {
+  left,
+  right,
+}
+
+struct.MenuItemConfig {
+  name 'std::string',
+}
+
+struct.MenuConfig {
+  name 'std::string',
+  shortcut 'char',
+  position 'e_menu_side',
+  # A value of nothing means menu divider.
+  contents 'std::vector<base::maybe<e_menu_item>>',
+
+  _features { equality, validation }
+}
+
+struct.MenusLayout {
+  menus 'refl::enum_map<e_menu, MenuConfig>',
+
+  _features { equality, validation }
+}
+
+namespace "rn"
+
+struct.config_menu_t {
+  layout 'config::menu::MenusLayout',
+  items 'refl::enum_map<e_menu_item, config::menu::MenuItemConfig>',
+
+  _features { equality, validation }
+}
+
+config.menu {}

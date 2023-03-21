@@ -41,6 +41,7 @@
 
 // config
 #include "config/land-view.rds.hpp"
+#include "config/menu-items.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss

@@ -1,0 +1,71 @@
+# ===============================================================
+# menu-items.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-03-20.
+#
+# Description: Rds definitions for the menu config.
+#
+# ===============================================================
+namespace "rn"
+
+# The ordering of these determines the order in which they appear
+# in the menu bar.
+enum.e_menu {
+  game,
+  view,
+  orders,
+  advisors,
+  music,
+  window,
+  cheat,
+  pedia,
+}
+
+enum.e_menu_item {
+  about,
+  cheat_edit_fathers,
+  cheat_explore_entire_map,
+  cheat_map_editor,
+  cheat_reveal_map,
+  colony_report_options,
+  dump,
+  economics_advisor,
+  european_advisor,
+  exit,
+  find_blinking_unit,
+  fortify,
+  founding_father_help,
+  game_options,
+  harbor_view,
+  hidden_terrain,
+  load,
+  military_advisor,
+  music_next,
+  music_pause,
+  music_play,
+  music_prev,
+  music_resume,
+  music_set_player,
+  music_stop,
+  music_vol_down,
+  music_vol_up,
+  next_turn,
+  plow,
+  restore_window,
+  restore_zoom,
+  retire,
+  revolution,
+  road,
+  save,
+  scale_down,
+  scale_optimal,
+  scale_up,
+  sentry,
+  terrain_help,
+  toggle_fullscreen,
+  units_help,
+  zoom_in,
+  zoom_out,
+}

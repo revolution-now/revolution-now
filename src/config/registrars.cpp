@@ -27,6 +27,7 @@
 #include "config/land-view.rds.hpp"
 #include "config/lcr.rds.hpp"
 #include "config/market.rds.hpp"
+#include "config/menu.rds.hpp"
 #include "config/missionary.rds.hpp"
 #include "config/music.rds.hpp"
 #include "config/nation.rds.hpp"
@@ -92,6 +93,10 @@ detail::empty_registrar register_config_impl(
 /****************************************************************
 ** For each new config, add an entry here.
 *****************************************************************/
+static_assert(
+    cdr::FromCanonical<::rn::config::menu::MenuConfig> );
+static_assert(
+    cdr::ToCanonical<::rn::config::menu::MenuConfig> );
 INSTANTIATE_RN_CONFIG( colony );
 INSTANTIATE_RN_CONFIG( combat );
 INSTANTIATE_RN_CONFIG( commodity );
@@ -103,6 +108,7 @@ INSTANTIATE_RN_CONFIG( input );
 INSTANTIATE_RN_CONFIG( land_view );
 INSTANTIATE_RN_CONFIG( lcr );
 INSTANTIATE_RN_CONFIG( market );
+INSTANTIATE_RN_CONFIG( menu );
 INSTANTIATE_RN_CONFIG( missionary );
 INSTANTIATE_RN_CONFIG( music );
 INSTANTIATE_RN_CONFIG( nation );

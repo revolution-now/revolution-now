@@ -15,9 +15,6 @@
 // Revolution Now
 #include "co-combinator.hpp"
 
-// Rds
-#include "menu.rds.hpp"
-
 // base
 #include "base/macros.hpp"
 #include "base/zero.hpp"
@@ -28,6 +25,8 @@
 namespace rn {
 
 struct Plane;
+
+enum class e_menu_item;
 
 /****************************************************************
 ** MenuPlane
