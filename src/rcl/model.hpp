@@ -28,10 +28,6 @@
 // Syntax
 // ======
 //
-// Rcl is very similar to UCL (see github.com/vstakhov/libucl)
-// though lacks some of fancier features such as macros, literal
-// suffixes (k, ms, etc.), and merging of like table keys.
-//
 // Sample config:
 //
 //   # Comment.
@@ -65,9 +61,9 @@
 //     ]
 //   }
 //
-//   # Table keys have no concept of ordering, though when # Rcl
-//   is emitted it will emit the keys in alphabetical # order for
-//   consistency/determinism.
+//   # Table keys have no concept of ordering, though when Rcl
+//   # is emitted it will emit the keys in alphabetical order for
+//   # consistency/determinism.
 //   before: 9
 //   after:  8
 //
@@ -104,6 +100,31 @@
 //          ...
 //         }
 //       }
+//     }
+//   }
+//
+// Implicit Tables
+// ===============
+//
+// Each time the parser needs to parse a value and a dot is en-
+// countered with a character following it then will be put into
+// an implicit anonymous table:
+//
+//   .some_table {
+//     some_list [
+//       .first={},
+//       .second={},
+//     ]
+//   }
+//
+// is equivalent to:
+//
+//   {
+//     some_table {
+//       some_list [
+//         { first={} },
+//         { second={} },
+//       ]
 //     }
 //   }
 //

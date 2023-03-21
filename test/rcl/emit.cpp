@@ -302,13 +302,11 @@ TEST_CASE( "[emit] emit flatten keys" ) {
 }
 
 aaa.b.c.a.b.c: [
-  {
-    a.b.c.f.g.h {
-      i: 5
-      j: 6
-      k: 5
-      l: 6
-    }
+  .a.b.c.f.g.h {
+    i: 5
+    j: 6
+    k: 5
+    l: 6
   },
 ]
 
@@ -346,13 +344,11 @@ null_val: null
 one." two\\a\\b\" xxx": [
   1,
   2,
-  {
-    one.two {
-      four: 4
-      hello: 1
-      three: 3
-      world: 2
-    }
+  .one.two {
+    four: 4
+    hello: 1
+    three: 3
+    world: 2
   },
 ]
 
@@ -362,11 +358,9 @@ subtype {
     5,
     -0.03,
     table,
-    {
-      a {
-        b.c: 1
-        d: 2
-      }
+    .a {
+      b.c: 1
+      d: 2
     },
   ]
   x: 9

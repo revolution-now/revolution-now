@@ -70,19 +70,13 @@ struct emitter {
         nested_val.as_base() );
   }
 
-  // We need flatten_immediate so that we can tell this function
-  // to not flatten at this level only, but to revert to the
-  // value set in opts_ when it recurses. This is because, when
-  // flattening is enabled, we need to disable it when a table is
-  // a list element, but then only at the top level.
-  void emit_table( table const& o, string& out, int indent,
-                   bool flatten_immediate ) {
+  void emit_table( table const& o, string& out, int indent ) {
     bool is_top_level = ( indent == 0 );
     if( o.size() == 0 ) {
       if( !is_top_level ) out += "{}";
       return;
     }
-    if( flatten_immediate && o.size() == 1 ) {
+    if( opts_.flatten_keys && o.size() == 1 ) {
       emit_table_flatten( o, out, indent );
       return;
     }
@@ -93,10 +87,6 @@ struct emitter {
       string_view assign = ": ";
       if( v.holds<table>() ) {
         assign = " ";
-        // Here use the one from the opts, as opposed to
-        // flatten_immediate, because we are looking at a key in-
-        // side this table, so it is not really the immediate
-        // context.
         if( opts_.flatten_keys && v.get<table>().size() == 1 )
           assign = "";
       }
@@ -118,13 +108,12 @@ struct emitter {
   }
 
   void emit( table const& o, string& out, int indent ) {
-    emit_table( o, out, indent, opts_.flatten_keys );
+    emit_table( o, out, indent );
   }
 
   struct list_visitor {
     void operator()( table const& o ) const {
-      parent.emit_table( o, out, indent,
-                         /*flatten_immediate=*/false );
+      parent.emit_table( o, out, indent );
     }
     void operator()( auto const& o ) const {
       parent.emit( o, out, indent );
@@ -162,10 +151,8 @@ struct emitter {
 
 string emit( doc const& document, EmitOptions const& options ) {
   string res;
-  emitter{ options }.emit_table(
-      document.top_tbl(), res,
-      /*indent=*/0,
-      /*flatten_immediate=*/options.flatten_keys );
+  emitter{ options }.emit_table( document.top_tbl(), res,
+                                 /*indent=*/0 );
   return res;
 }
 

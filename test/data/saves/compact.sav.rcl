@@ -87,7 +87,7 @@ natives {
         }
         ownership {
           location {
-            x: 3
+            x: 2
             y: 5
           }
           tribe: inca
@@ -192,7 +192,7 @@ natives {
         x: 1
         y: 2
       }
-      val: 3
+      val: 5
     },
     {
       key {
@@ -213,7 +213,7 @@ natives {
         x: 4
         y: 2
       }
-      val: 5
+      val: 4
     },
     {
       key {
@@ -224,7 +224,7 @@ natives {
     },
     {
       key.y: 3
-      val: 3
+      val: 5
     },
     {
       key {
@@ -259,7 +259,7 @@ natives {
         x: 5
         y: 3
       }
-      val: 5
+      val: 4
     },
     {
       key.y: 4
@@ -296,13 +296,6 @@ natives {
     {
       key {
         x: 5
-        y: 4
-      }
-      val: 5
-    },
-    {
-      key {
-        x: 6
         y: 4
       }
       val: 5
@@ -347,13 +340,6 @@ natives {
       val: 5
     },
     {
-      key {
-        x: 6
-        y: 5
-      }
-      val: 5
-    },
-    {
       key.y: 6
       val: 6
     },
@@ -393,13 +379,6 @@ natives {
       val: 5
     },
     {
-      key {
-        x: 6
-        y: 6
-      }
-      val: 5
-    },
-    {
       key.y: 7
       val: 6
     },
@@ -430,13 +409,6 @@ natives {
         y: 7
       }
       val: 7
-    },
-    {
-      key {
-        x: 5
-        y: 7
-      }
-      val: 5
     },
   ]
   tribes {
@@ -488,12 +460,22 @@ players {
     }
     starting_position {
       x: 7
-      y: 4
+      y: 1
     }
   }
 }
 
-settings.difficulty: conquistador
+settings {
+  difficulty: conquistador
+  game_options.flags {
+    autosave: true
+    combat_analysis: true
+    show_fog_of_war: true
+    show_foreign_moves: true
+    show_indian_moves: true
+    water_color_cycling: true
+  }
+}
 
 turn.time_point {
   season: spring
@@ -508,7 +490,7 @@ units {
       val.native.state {
         ownership.world {
           coord {
-            x: 5
+            x: 4
             y: 2
           }
           dwelling_id: 1
@@ -556,8 +538,8 @@ units {
       val.native.state {
         ownership.world {
           coord {
-            x: 3
-            y: 4
+            x: 4
+            y: 3
           }
           dwelling_id: 4
         }
@@ -572,7 +554,7 @@ units {
       val.native.state {
         ownership.world {
           coord {
-            x: 3
+            x: 2
             y: 5
           }
           dwelling_id: 5
@@ -589,7 +571,7 @@ units {
         ownership.world {
           coord {
             x: 1
-            y: 5
+            y: 6
           }
           dwelling_id: 6
         }
@@ -620,16 +602,12 @@ units {
       val.euro.state {
         ownership.world.coord {
           x: 7
-          y: 4
+          y: 1
         }
         unit {
           cargo.slots: [
-            {
-              cargo.contents.unit.id: 9
-            },
-            {
-              cargo.contents.unit.id: 10
-            },
+            .cargo.contents.unit.id: 9,
+            .cargo.contents.unit.id: 10,
           ]
           composition.type {
             base_type: caravel
@@ -694,46 +672,49 @@ zzz_terrain {
   player_terrain.french.map {
     data: [
       {
-        key {
-          x: 6
-          y: 3
-        }
-        val.square.ground_resource: fish
+        key.x: 6
+        val.fog_of_war_removed: true
       },
       {
-        key {
-          x: 7
-          y: 3
+        key.x: 7
+        val {
+          fog_of_war_removed: true
+          square.sea_lane: true
         }
-        val.square.sea_lane: true
-      },
-      {
-        key {
-          x: 6
-          y: 4
-        }
-        val {}
-      },
-      {
-        key {
-          x: 7
-          y: 4
-        }
-        val.square.sea_lane: true
       },
       {
         key {
           x: 6
-          y: 5
+          y: 1
         }
-        val {}
+        val.fog_of_war_removed: true
       },
       {
         key {
           x: 7
-          y: 5
+          y: 1
         }
-        val.square.sea_lane: true
+        val {
+          fog_of_war_removed: true
+          square.sea_lane: true
+        }
+      },
+      {
+        key {
+          x: 6
+          y: 2
+        }
+        val.fog_of_war_removed: true
+      },
+      {
+        key {
+          x: 7
+          y: 2
+        }
+        val {
+          fog_of_war_removed: true
+          square.sea_lane: true
+        }
       },
     ]
     has_coords: true
@@ -750,9 +731,7 @@ zzz_terrain {
   }
   world_map {
     data: [
-      {
-        val.sea_lane: true
-      },
+      .val.sea_lane: true,
       {
         key.x: 5
         val.ground_resource: fish
@@ -771,7 +750,7 @@ zzz_terrain {
           y: 1
         }
         val {
-          ground: prairie
+          ground: tundra
           overlay: forest
           road: true
           surface: land
@@ -808,7 +787,7 @@ zzz_terrain {
           y: 2
         }
         val {
-          ground: prairie
+          ground: plains
           overlay: forest
           surface: land
         }
@@ -819,7 +798,7 @@ zzz_terrain {
           y: 2
         }
         val {
-          ground: plains
+          ground: desert
           overlay: forest
           surface: land
         }
@@ -830,7 +809,7 @@ zzz_terrain {
           y: 2
         }
         val {
-          ground: prairie
+          ground: plains
           overlay: forest
           road: true
           surface: land
@@ -842,8 +821,8 @@ zzz_terrain {
           y: 2
         }
         val {
-          forest_resource: tree
-          ground: grassland
+          forest_resource: deer
+          ground: tundra
           overlay: forest
           surface: land
         }
@@ -865,7 +844,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: savannah
+          ground: desert
           overlay: forest
           surface: land
         }
@@ -876,7 +855,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: savannah
+          ground: prairie
           road: true
           surface: land
         }
@@ -887,7 +866,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: savannah
+          ground: prairie
           overlay: forest
           surface: land
         }
@@ -898,7 +877,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: grassland
+          ground: savannah
           overlay: forest
           road: true
           surface: land
@@ -910,7 +889,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: tundra
+          ground: savannah
           overlay: mountains
           surface: land
         }
@@ -946,7 +925,7 @@ zzz_terrain {
           y: 4
         }
         val {
-          ground: grassland
+          ground: savannah
           overlay: forest
           surface: land
         }
@@ -957,8 +936,8 @@ zzz_terrain {
           y: 4
         }
         val {
-          forest_resource: tree
-          ground: savannah
+          forest_resource: minerals
+          ground: swamp
           overlay: forest
           surface: land
         }
@@ -980,7 +959,7 @@ zzz_terrain {
           y: 5
         }
         val {
-          ground: plains
+          ground: prairie
           overlay: forest
           river: minor
           surface: land
@@ -992,9 +971,9 @@ zzz_terrain {
           y: 5
         }
         val {
-          ground: prairie
-          ground_resource: cotton
-          overlay: forest
+          ground: plains
+          ground_resource: wheat
+          road: true
           surface: land
         }
       },
@@ -1004,8 +983,8 @@ zzz_terrain {
           y: 5
         }
         val {
-          ground: desert
-          road: true
+          ground: grassland
+          overlay: forest
           surface: land
         }
       },
@@ -1026,7 +1005,7 @@ zzz_terrain {
           y: 6
         }
         val {
-          ground: prairie
+          ground: tundra
           overlay: forest
           river: minor
           road: true
@@ -1039,7 +1018,7 @@ zzz_terrain {
           y: 6
         }
         val {
-          ground: prairie
+          ground: tundra
           overlay: forest
           road: true
           surface: land

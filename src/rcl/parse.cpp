@@ -70,6 +70,10 @@ bool is_newline( char c ) {
 
 bool is_digit( char c ) { return ( c >= '0' && c <= '9' ); }
 
+bool is_alpha( char c ) {
+  return ( c >= 'a' && c <= 'z' ) || ( c >= 'A' && c <= 'Z' );
+}
+
 // This will remove trailing spaces from the end and will also
 // move the global cursor back as well.
 void trim_and_back_up( string_view* out ) {
@@ -338,6 +342,16 @@ bool parse_value( value* out ) {
   if( *g_cur == '{' ) {
     table tbl;
     if( !parse_table( &tbl ) ) return false;
+    *out = value( std::move( tbl ) );
+    return true;
+  }
+
+  // implicit table.
+  if( g_cur + 1 < g_end && *g_cur == '.' &&
+      is_alpha( *( g_cur + 1 ) ) ) {
+    table tbl;
+    ++g_cur;
+    if( !parse_key_val( &tbl ) ) return false;
     *out = value( std::move( tbl ) );
     return true;
   }

@@ -65,14 +65,12 @@ TEST_CASE( "[parse] complex doc" ) {
       " two\a\b\" xxx" = [
          1,
          2,
-         {
-           one {
-             two {
-               three = 3
-               four = 4
-               hello=1
-               world=2
-             }
+         .one {
+           two {
+             three = 3
+             four = 4
+             hello=1
+             world=2
            }
          },
       ]
@@ -96,18 +94,14 @@ TEST_CASE( "[parse] complex doc" ) {
 
     aaa.b.c {
       a.b.c [
-        {
-          a {
-            b.c {
-              f {
-                g {
-                  h {
-                    i: 5
-                    j: 6
-                    k: 5
-                    l: 6
-                  }
-                }
+        .a.b.c {
+          f {
+            g {
+              h {
+                i: 5
+                j: 6
+                k: 5
+                l: 6
               }
             }
           }
