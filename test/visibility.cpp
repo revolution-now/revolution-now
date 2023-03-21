@@ -892,7 +892,7 @@ TEST_CASE( "[visibility] Visibility" ) {
   W.create_small_map();
 
   SECTION( "no player" ) {
-    auto viz = Visibility::create( W.ss(), /*nation=*/nothing );
+    Visibility const viz( W.ss(), /*nation=*/nothing );
 
     // visible.
     REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
@@ -933,7 +933,7 @@ TEST_CASE( "[visibility] Visibility" ) {
   }
 
   SECTION( "with player, no visibility" ) {
-    auto viz = Visibility::create( W.ss(), e_nation::english );
+    Visibility const viz( W.ss(), e_nation::english );
 
     // visible.
     REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
@@ -974,7 +974,7 @@ TEST_CASE( "[visibility] Visibility" ) {
   }
 
   SECTION( "with player, some visibility, no fog" ) {
-    auto viz = Visibility::create( W.ss(), e_nation::english );
+    Visibility const viz( W.ss(), e_nation::english );
 
     Matrix<maybe<FogSquare>>& player_map =
         W.terrain()
@@ -1024,7 +1024,7 @@ TEST_CASE( "[visibility] Visibility" ) {
   }
 
   SECTION( "with player, some visibility, some fog" ) {
-    auto viz = Visibility::create( W.ss(), e_nation::english );
+    Visibility const viz( W.ss(), e_nation::english );
 
     Matrix<maybe<FogSquare>>& player_map =
         W.terrain()
@@ -1386,7 +1386,7 @@ TEST_CASE( "[visibility] fog_square_at" ) {
   Coord            coord;
   Coord const      kOutsideCoord = { .x = 2, .y = 2 };
   BASE_CHECK( !W.terrain().square_exists( kOutsideCoord ) );
-  auto viz = Visibility::create( W.ss(), nothing );
+  Visibility viz( W.ss(), nothing );
 
   auto f = [&] { return viz.fog_square_at( coord ); };
 
@@ -1407,7 +1407,7 @@ TEST_CASE( "[visibility] fog_square_at" ) {
   };
 
   // No nation.
-  viz = Visibility::create( W.ss(), nothing );
+  viz = Visibility( W.ss(), nothing );
 
   coord = { .x = 0, .y = 0 };
   REQUIRE( f() == nothing );
@@ -1421,7 +1421,7 @@ TEST_CASE( "[visibility] fog_square_at" ) {
   REQUIRE( f() == nothing );
 
   // English.
-  viz = Visibility::create( W.ss(), e_nation::english );
+  viz = Visibility( W.ss(), e_nation::english );
 
   coord = { .x = 0, .y = 0 };
   REQUIRE( f() == fog_square1 );

@@ -87,13 +87,14 @@ int unit_sight_radius( SSConst const& ss, e_nation nation,
 /****************************************************************
 ** Visibility
 *****************************************************************/
-Visibility Visibility::create( SSConst const&  ss,
-                               maybe<e_nation> nation ) {
-  maybe<PlayerTerrain const&> player_terrain =
-      nation.has_value() ? ss.terrain.player_terrain( *nation )
-                         : base::nothing;
-  return Visibility( ss.terrain, player_terrain );
-}
+Visibility::Visibility( SSConst const&  ss,
+                        maybe<e_nation> nation )
+  : terrain_( &ss.terrain ),
+    player_terrain_(
+        ( nation.has_value()
+              ? ss.terrain.player_terrain( *nation )
+              : base::nothing )
+            .fmap( []( auto& arg ) { return &arg; } ) ) {}
 
 e_tile_visibility Visibility::visible( Coord tile ) const {
   DCHECK( terrain_ != nullptr );

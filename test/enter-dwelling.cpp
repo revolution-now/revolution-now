@@ -858,8 +858,7 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
     W.gui().EXPECT__wait_for( 20ms ).returns( 20000us );
     W.gui().EXPECT__wait_for( 20ms ).returns( 20000us );
     W.gui().EXPECT__wait_for( 600ms ).returns( 600000us );
-    Visibility const viz =
-        Visibility::create( W.ss(), W.default_nation() );
+    Visibility const viz( W.ss(), W.default_nation() );
     W.map_updater().make_square_visible( { .x = 3, .y = 6 },
                                          W.default_nation() );
     W.map_updater().make_square_visible( { .x = 1, .y = 6 },

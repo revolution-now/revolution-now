@@ -204,8 +204,7 @@ TEST_CASE( "[unit-mgr] coord_for_unit_multi_ownership" ) {
 
 TEST_CASE( "[unit-mgr] change_unit_type" ) {
   World            W;
-  Visibility const viz =
-      Visibility::create( W.ss(), W.default_nation() );
+  Visibility const viz( W.ss(), W.default_nation() );
   Unit& unit = W.add_unit_on_map( e_unit_type::free_colonist,
                                   { .x = 3, .y = 3 } );
 
@@ -247,11 +246,9 @@ TEST_CASE( "[unit-mgr] change_unit_type" ) {
 
 TEST_CASE( "[unit-mgr] change_unit_nation" ) {
   World            W;
-  Visibility const dutch_viz =
-      Visibility::create( W.ss(), e_nation::dutch );
-  Visibility const spanish_viz =
-      Visibility::create( W.ss(), e_nation::spanish );
-  Unit& unit =
+  Visibility const dutch_viz( W.ss(), e_nation::dutch );
+  Visibility const spanish_viz( W.ss(), e_nation::spanish );
+  Unit&            unit =
       W.add_unit_on_map( e_unit_type::free_colonist,
                          { .x = 3, .y = 3 }, e_nation::dutch );
 

@@ -231,8 +231,7 @@ RenderingMapUpdater::redraw_buffers_for_tile_where_needed(
     Coord tile, BuffersUpdated const& buffers_updated ) {
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
-  Visibility const viz =
-      Visibility::create( ss_, options().nation );
+  Visibility const viz( ss_, options().nation );
 
   // Note: in the below, we need to draw the surrounding squares
   // because a visibility change in one square can reveal part of
@@ -325,8 +324,7 @@ void RenderingMapUpdater::redraw_landscape_buffer() {
          landscape_tracking_.tile_bounds.size() );
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
-  Visibility const viz =
-      Visibility::create( ss_, options().nation );
+  Visibility const viz( ss_, options().nation );
   render_landscape_buffer( renderer_, ss_, viz, terrain_options,
                            landscape_tracking_.tile_bounds );
   // Reset this since we just redrew the map.
@@ -339,8 +337,7 @@ void RenderingMapUpdater::redraw_obfuscation_buffer() {
          obfuscation_tracking_.tile_bounds.size() );
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
-  Visibility const viz =
-      Visibility::create( ss_, options().nation );
+  Visibility const viz( ss_, options().nation );
   render_obfuscation_buffer( renderer_, viz, terrain_options,
                              obfuscation_tracking_.tile_bounds );
   // Reset this since we just redrew the map.
