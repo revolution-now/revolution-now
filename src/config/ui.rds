@@ -17,6 +17,9 @@ include "../compositor.rds.hpp"
 # gfx
 include "gfx/pixel.hpp"
 
+# C++ standard library
+include "<chrono>"
+
 namespace "rn.config.ui"
 
 struct.window {
@@ -46,6 +49,12 @@ struct.menus {
   body_min_width 'int',
   font 'e_font',
   menu_bar_height 'int',
+
+  # Animations.
+  enable_click_animation 'bool',
+  click_animation_blink_cycles 'int',
+  click_animation_blink_duration_millis 'std::chrono::milliseconds',
+  click_animation_fade_duration_millis 'std::chrono::milliseconds',
 }
 
 struct.console {

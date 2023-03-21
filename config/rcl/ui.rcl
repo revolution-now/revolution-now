@@ -25,6 +25,12 @@ menus {
   body_min_width:            120 # must be a multiple of 8
   font:                      habbo_15
   menu_bar_height:           16
+
+  # Animations.
+  enable_click_animation: true
+  click_animation_blink_cycles: 1
+  click_animation_blink_duration_millis: 100
+  click_animation_fade_duration_millis:  370
 }
 
 console {

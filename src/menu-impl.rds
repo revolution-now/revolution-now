@@ -11,6 +11,7 @@
 # Revolution Now
 include "time.hpp"
 include "maybe.hpp"
+include "wait.hpp"
 
 # config
 include "config/menu-items.rds.hpp"
@@ -20,8 +21,15 @@ include "<string>"
 
 namespace "rn"
 
+sumtype.MenuClickAnimationPhase {
+  off {},
+  on {},
+  fade {
+    alpha 'double',
+  },
+}
+
 sumtype.MenuState {
-  menus_hidden {},
   menus_closed {
     hover 'maybe<e_menu>',
   },
@@ -31,7 +39,8 @@ sumtype.MenuState {
   },
   item_click {
     item 'e_menu_item',
-    start 'Time_t',
+    phase 'MenuClickAnimationPhase',
+    animation 'wait<>',
   },
 }
 

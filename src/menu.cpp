@@ -10,7 +10,12 @@
 *****************************************************************/
 #include "menu.hpp"
 
+// Rds
+#include "menu-impl.rds.hpp"
+
 // Revolution Now
+#include "co-time.hpp"
+#include "co-wait.hpp"
 #include "compositor.hpp"
 #include "error.hpp"
 #include "frame.hpp"
@@ -24,9 +29,6 @@
 #include "tiles.hpp"
 #include "variant.hpp"
 
-// Rds
-#include "menu-impl.rds.hpp"
-
 // config
 #include "config/menu.rds.hpp"
 #include "config/tile-enum.rds.hpp"
@@ -37,6 +39,9 @@
 
 // gfx
 #include "gfx/pixel.hpp"
+
+// rds
+#include "rds/switch-macro.hpp"
 
 // refl
 #include "refl/enum-map.hpp"
@@ -115,9 +120,6 @@ struct MenuPlane::Impl : public Plane {
   *****************************************************************/
   bool is_menu_open( e_menu menu ) const {
     switch( menu_state_.to_enum() ) {
-      case MenuState::e::menus_hidden: {
-        return false;
-      }
       case MenuState::e::menus_closed: {
         return false;
       }
@@ -505,7 +507,7 @@ struct MenuPlane::Impl : public Plane {
   // and renders the foreground/background for that menu. Use
   // a struct to visit so that we can get recursive
   // visitation.
-  struct MenuRendererVisitor {
+  struct MenuBarRendererVisitor {
     // These would be the "lambda captures".
     Impl const*   impl;
     e_menu const& menu;
@@ -513,7 +515,6 @@ struct MenuPlane::Impl : public Plane {
     Coord const&  foreground_upper_left;
     rr::Renderer& renderer;
 
-    void operator()( MenuState::menus_hidden ) const {}
     void operator()( MenuState::menus_closed closed ) const {
       if( menu == closed.hover )
         impl->render_menu_header_background( renderer, menu,
@@ -575,7 +576,7 @@ struct MenuPlane::Impl : public Plane {
       Coord background_upper_left = rect.upper_left();
       Coord foreground_upper_left =
           menu_header_text_rect( menu ).upper_left();
-      MenuRendererVisitor matcher{
+      MenuBarRendererVisitor matcher{
           this, menu, background_upper_left,
           foreground_upper_left, renderer };
       base::visit( matcher, menu_state_.as_base() );
@@ -594,9 +595,6 @@ struct MenuPlane::Impl : public Plane {
 
     using res_t = maybe<MouseOver>;
 
-    res_t operator()( MenuState::menus_hidden ) const {
-      return res_t{};
-    }
     res_t operator()( MenuState::menus_closed ) const {
       for( auto menu : refl::enum_values<e_menu> )
         if( screen_coord.is_inside(
@@ -645,12 +643,27 @@ struct MenuPlane::Impl : public Plane {
     render_menu_bar( renderer );
     // maybe render open menu.
     overload_visit(
-        menu_state_.as_base(), []( MenuState::menus_hidden ) {},
-        [&]( MenuState::menus_closed ) {},
+        menu_state_.as_base(), [&]( MenuState::menus_closed ) {},
         [&]( MenuState::item_click const& ic ) {
           auto  menu = item_to_menu_[ic.item];
           Coord pos  = menu_body_rect( menu ).upper_left();
-          render_open_menu( renderer, pos, menu, ic.item );
+          SWITCH( ic.phase ) {
+            CASE( off ) {
+              render_open_menu( renderer, pos, menu, nothing );
+              break;
+            }
+            CASE( on ) {
+              render_open_menu( renderer, pos, menu, ic.item );
+              break;
+            }
+            CASE( fade ) {
+              SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
+                                       o.alpha );
+              render_open_menu( renderer, pos, menu, ic.item );
+              break;
+            }
+            END_CASES;
+          }
         },
         [&]( MenuState::menu_open const& o ) {
           Coord pos = menu_body_rect( o.menu ).upper_left();
@@ -662,11 +675,13 @@ struct MenuPlane::Impl : public Plane {
 
   void advance_state() override {
     if_get( menu_state_, MenuState::item_click, val ) {
-      // We must cache this item before changing the menu state
-      // since `val` will be invalidated once we do so.
-      e_menu_item item = val.item;
-      menu_state_      = MenuState::menus_closed{ /*hover=*/{} };
-      do_click( item );
+      if( val.animation.ready() ) {
+        // We must cache this item before changing the menu state
+        // since `val` will be invalidated once we do so.
+        e_menu_item item = val.item;
+        menu_state_ = MenuState::menus_closed{ /*hover=*/{} };
+        do_click( item );
+      }
     }
   }
 
@@ -975,6 +990,45 @@ struct MenuPlane::Impl : public Plane {
         } );
   }
 
+  // The click animation goes like this:
+  //
+  //   ----------------------------
+  //   |  on  |  off |  fade-time |
+  //   ----------------------------
+  //
+  // where each box is one "blink duration" and the "fade-time"
+  // is the time over which the entire menu body will fade away.
+  wait<> click_animation(
+      MenuClickAnimationPhase& phase ) const {
+    using namespace std::chrono;
+    auto& conf = config_ui.menus;
+    if( !conf.enable_click_animation ) co_return;
+    milliseconds const kBlinkDuration =
+        conf.click_animation_blink_duration_millis;
+    milliseconds const kFadeDuration =
+        conf.click_animation_fade_duration_millis;
+    int const  kBlinkCycles = conf.click_animation_blink_cycles;
+    long const kFadeFrames  = kFadeDuration / kFrameDuration;
+
+    // Blinking.
+    for( int i = 0; i < kBlinkCycles; ++i ) {
+      phase = MenuClickAnimationPhase::off{};
+      co_await kBlinkDuration;
+      phase = MenuClickAnimationPhase::on{};
+      co_await kBlinkDuration;
+    }
+
+    // Fading.
+    auto& fade = phase.emplace<MenuClickAnimationPhase::fade>();
+    fade.alpha = 1.0;
+    AnimThrottler throttle( kAlmostStandardFrame );
+    while( fade.alpha > 0 ) {
+      co_await throttle();
+      fade.alpha =
+          std::max( 0.0, fade.alpha - ( 1.0 / kFadeFrames ) );
+    }
+  }
+
   void click_menu_item( e_menu_item item ) {
     switch( menu_state_.to_enum() ) {
       case MenuState::e::item_click: {
@@ -986,14 +1040,14 @@ struct MenuPlane::Impl : public Plane {
       case MenuState::e::menus_closed: {
         SHOULD_NOT_BE_HERE;
       }
-      case MenuState::e::menus_hidden: {
-        SHOULD_NOT_BE_HERE;
-      }
       case MenuState::e::menu_open: {
         if( !is_menu_item_enabled( item ) ) return;
         lg.info( "selected menu item `{}`", item );
-        menu_state_ = MenuState::item_click{
-            item, chrono::system_clock::now() };
+        MenuState::item_click& item_click =
+            menu_state_.emplace<MenuState::item_click>();
+        item_click.item = item;
+        item_click.animation =
+            click_animation( item_click.phase );
         log_menu_state();
         break;
       }
