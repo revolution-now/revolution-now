@@ -48,8 +48,13 @@ maybe<e_nation> player_for_role( SSConst const& ss,
       }
       SHOULD_NOT_BE_HERE; // for gcc.
     }
-    case e_player_role::human:
-      return ss.players.human;
+    case e_player_role::human: {
+      maybe<e_nation> const active =
+          player_for_role( ss, e_player_role::active );
+      if( !active.has_value() ) return ss.players.default_human;
+      if( ss.players.humans[*active] ) return *active;
+      return ss.players.default_human;
+    }
     case e_player_role::active:
       return ss.turn.cycle.get_if<TurnCycle::nation>().member(
           &TurnCycle::nation::nation );

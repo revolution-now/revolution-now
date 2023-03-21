@@ -72,7 +72,8 @@ TEST_CASE( "[roles] player_for_role" ) {
   REQUIRE( f( e_player_role::active ) == nothing );
 
   // Make dutch human.
-  W.players().human = e_nation::dutch;
+  W.players().humans[e_nation::dutch] = true;
+  W.players().default_human           = e_nation::dutch;
   REQUIRE( f( e_player_role::viewer ) == e_nation::dutch );
   REQUIRE( f( e_player_role::human ) == e_nation::dutch );
   REQUIRE( f( e_player_role::active ) == nothing );
@@ -90,8 +91,28 @@ TEST_CASE( "[roles] player_for_role" ) {
   REQUIRE( f( e_player_role::human ) == e_nation::dutch );
   REQUIRE( f( e_player_role::active ) == e_nation::spanish );
 
-  // Remove human status.
-  W.players().human = nothing;
+  // Make spanish human.
+  W.players().humans[e_nation::spanish] = true;
+  REQUIRE( f( e_player_role::viewer ) == e_nation::spanish );
+  REQUIRE( f( e_player_role::human ) == e_nation::spanish );
+  REQUIRE( f( e_player_role::active ) == e_nation::spanish );
+
+  // Make spanish default human.
+  W.players().humans[e_nation::spanish] = true;
+  W.players().default_human             = e_nation::spanish;
+  REQUIRE( f( e_player_role::viewer ) == e_nation::spanish );
+  REQUIRE( f( e_player_role::human ) == e_nation::spanish );
+  REQUIRE( f( e_player_role::active ) == e_nation::spanish );
+
+  // Remove human status from dutch.
+  W.players().humans[e_nation::dutch] = false;
+  REQUIRE( f( e_player_role::viewer ) == e_nation::spanish );
+  REQUIRE( f( e_player_role::human ) == e_nation::spanish );
+  REQUIRE( f( e_player_role::active ) == e_nation::spanish );
+
+  // Remove human status from spanish.
+  W.players().humans[e_nation::spanish] = false;
+  W.players().default_human             = nothing;
   REQUIRE( f( e_player_role::viewer ) == e_nation::spanish );
   REQUIRE( f( e_player_role::human ) == nothing );
   REQUIRE( f( e_player_role::active ) == e_nation::spanish );
@@ -116,8 +137,20 @@ TEST_CASE( "[roles] player_for_role" ) {
   REQUIRE( f( e_player_role::active ) == e_nation::spanish );
 
   // Make french human.
-  W.players().human = e_nation::french;
+  W.players().humans[e_nation::french] = true;
   REQUIRE( f( e_player_role::viewer ) == e_nation::english );
+  REQUIRE( f( e_player_role::human ) == nothing );
+  REQUIRE( f( e_player_role::active ) == e_nation::spanish );
+
+  // And default human.
+  W.players().default_human = e_nation::french;
+  REQUIRE( f( e_player_role::viewer ) == e_nation::english );
+  REQUIRE( f( e_player_role::human ) == e_nation::french );
+  REQUIRE( f( e_player_role::active ) == e_nation::spanish );
+
+  // Switch to no special view.
+  W.land_view().map_revealed = MapRevealed::no_special_view{};
+  REQUIRE( f( e_player_role::viewer ) == e_nation::french );
   REQUIRE( f( e_player_role::human ) == e_nation::french );
   REQUIRE( f( e_player_role::active ) == e_nation::spanish );
 }

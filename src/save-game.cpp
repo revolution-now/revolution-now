@@ -229,7 +229,7 @@ string construct_rcl_title( RootState const& root ) {
   string const difficulty = base::capitalize_initials(
       refl::enum_value_name( root.settings.difficulty ) );
   string const          name  = "David"; // FIXME: temporary
-  maybe<e_nation> const human = root.players.human;
+  maybe<e_nation> const human = root.players.default_human;
   string const          nation_name =
       human.has_value() ? config_nation.nations[*human].adjective
                                  : "(AI only)";

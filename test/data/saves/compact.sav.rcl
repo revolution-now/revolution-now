@@ -1,5 +1,7 @@
 # Conquistador David of the French, Spring 1492, 8x8
 land_view.viewport {
+  center_x: 240
+  center_y: 48
   world_size_tiles {
     h: 8
     w: 8
@@ -37,9 +39,9 @@ natives {
         ownership {
           location {
             x: 3
-            y: 1
+            y: 6
           }
-          tribe: cherokee
+          tribe: iroquois
         }
       }
     },
@@ -48,6 +50,23 @@ natives {
       val {
         dwelling {
           id: 3
+          is_capital: true
+          population: 6
+        }
+        ownership {
+          location {
+            x: 3
+            y: 1
+          }
+          tribe: cherokee
+        }
+      }
+    },
+    {
+      key: 4
+      val {
+        dwelling {
+          id: 4
           is_capital: true
           population: 8
         }
@@ -61,10 +80,10 @@ natives {
       }
     },
     {
-      key: 4
+      key: 5
       val {
         dwelling {
-          id: 4
+          id: 5
           is_capital: true
           population: 6
         }
@@ -78,10 +97,10 @@ natives {
       }
     },
     {
-      key: 5
+      key: 6
       val {
         dwelling {
-          id: 5
+          id: 6
           is_capital: true
           population: 11
         }
@@ -95,10 +114,10 @@ natives {
       }
     },
     {
-      key: 6
+      key: 7
       val {
         dwelling {
-          id: 6
+          id: 7
           is_capital: true
           population: 3
         }
@@ -108,73 +127,56 @@ natives {
         }
       }
     },
-    {
-      key: 7
-      val {
-        dwelling {
-          id: 7
-          is_capital: true
-          population: 6
-        }
-        ownership {
-          location {
-            x: 3
-            y: 6
-          }
-          tribe: iroquois
-        }
-      }
-    },
   ]
   next_dwelling_id: 8
   owned_land_without_minuit: [
     {
       key.x: 1
-      val: 3
+      val: 4
     },
     {
       key.x: 2
-      val: 3
+      val: 4
     },
     {
       key.x: 3
-      val: 3
+      val: 4
     },
     {
       key.x: 4
-      val: 2
+      val: 3
     },
     {
       key.y: 1
-      val: 3
+      val: 4
     },
     {
       key {
         x: 1
         y: 1
       }
-      val: 3
+      val: 4
     },
     {
       key {
         x: 2
         y: 1
       }
-      val: 3
+      val: 4
     },
     {
       key {
         x: 3
         y: 1
       }
-      val: 3
+      val: 4
     },
     {
       key {
         x: 4
         y: 1
       }
-      val: 3
+      val: 4
     },
     {
       key {
@@ -185,131 +187,131 @@ natives {
     },
     {
       key.y: 2
-      val: 3
+      val: 4
     },
     {
       key {
         x: 1
         y: 2
       }
-      val: 5
+      val: 6
     },
     {
       key {
         x: 2
         y: 2
       }
-      val: 5
+      val: 6
     },
     {
       key {
         x: 3
         y: 2
       }
-      val: 5
+      val: 6
     },
     {
       key {
         x: 4
         y: 2
       }
-      val: 4
+      val: 5
     },
     {
       key {
         x: 5
         y: 2
       }
-      val: 4
+      val: 5
     },
     {
       key.y: 3
-      val: 5
+      val: 6
     },
     {
       key {
         x: 1
         y: 3
       }
-      val: 5
+      val: 6
     },
     {
       key {
         x: 2
         y: 3
       }
-      val: 5
+      val: 6
     },
     {
       key {
         x: 3
         y: 3
       }
-      val: 5
+      val: 6
     },
     {
       key {
         x: 4
         y: 3
       }
-      val: 5
+      val: 6
     },
     {
       key {
         x: 5
         y: 3
       }
-      val: 4
+      val: 5
     },
     {
       key.y: 4
-      val: 5
+      val: 6
     },
     {
       key {
         x: 1
         y: 4
       }
-      val: 5
+      val: 6
     },
     {
       key {
         x: 2
         y: 4
       }
-      val: 5
+      val: 6
     },
     {
       key {
         x: 3
         y: 4
       }
-      val: 5
+      val: 6
     },
     {
       key {
         x: 4
         y: 4
       }
-      val: 5
+      val: 6
     },
     {
       key {
         x: 5
         y: 4
       }
-      val: 5
+      val: 6
     },
     {
       key.y: 5
-      val: 6
+      val: 7
     },
     {
       key {
         x: 1
         y: 5
       }
-      val: 6
+      val: 7
     },
     {
       key {
@@ -323,32 +325,32 @@ natives {
         x: 3
         y: 5
       }
-      val: 7
+      val: 6
     },
     {
       key {
         x: 4
         y: 5
       }
-      val: 7
+      val: 6
     },
     {
       key {
         x: 5
         y: 5
       }
-      val: 5
+      val: 6
     },
     {
       key.y: 6
-      val: 6
+      val: 7
     },
     {
       key {
         x: 1
         y: 6
       }
-      val: 6
+      val: 7
     },
     {
       key {
@@ -362,32 +364,32 @@ natives {
         x: 3
         y: 6
       }
-      val: 7
+      val: 6
     },
     {
       key {
         x: 4
         y: 6
       }
-      val: 7
+      val: 6
     },
     {
       key {
         x: 5
         y: 6
       }
-      val: 5
+      val: 6
     },
     {
       key.y: 7
-      val: 6
+      val: 7
     },
     {
       key {
         x: 1
         y: 7
       }
-      val: 6
+      val: 7
     },
     {
       key {
@@ -401,14 +403,14 @@ natives {
         x: 3
         y: 7
       }
-      val: 7
+      val: 6
     },
     {
       key {
         x: 4
         y: 7
       }
-      val: 7
+      val: 6
     },
   ]
   tribes {
@@ -423,13 +425,14 @@ natives {
 }
 
 players {
+  default_human: french
   global_market_state.commodities {
     cigars.intrinsic_volume: 512
     cloth.intrinsic_volume: 512
     coats.intrinsic_volume: 512
     rum.intrinsic_volume: 512
   }
-  human: french
+  humans.french: true
   players.french {
     nation: french
     old_world {
@@ -507,7 +510,7 @@ units {
         ownership.world {
           coord {
             x: 3
-            y: 1
+            y: 6
           }
           dwelling_id: 2
         }
@@ -522,8 +525,8 @@ units {
       val.native.state {
         ownership.world {
           coord {
-            x: 2
-            y: 3
+            x: 3
+            y: 1
           }
           dwelling_id: 3
         }
@@ -538,7 +541,7 @@ units {
       val.native.state {
         ownership.world {
           coord {
-            x: 4
+            x: 2
             y: 3
           }
           dwelling_id: 4
@@ -554,8 +557,8 @@ units {
       val.native.state {
         ownership.world {
           coord {
-            x: 2
-            y: 5
+            x: 4
+            y: 3
           }
           dwelling_id: 5
         }
@@ -570,8 +573,8 @@ units {
       val.native.state {
         ownership.world {
           coord {
-            x: 1
-            y: 6
+            x: 2
+            y: 5
           }
           dwelling_id: 6
         }
@@ -586,7 +589,7 @@ units {
       val.native.state {
         ownership.world {
           coord {
-            x: 3
+            x: 1
             y: 6
           }
           dwelling_id: 7
@@ -750,7 +753,7 @@ zzz_terrain {
           y: 1
         }
         val {
-          ground: tundra
+          ground: grassland
           overlay: forest
           road: true
           surface: land
@@ -787,7 +790,7 @@ zzz_terrain {
           y: 2
         }
         val {
-          ground: plains
+          ground: prairie
           overlay: forest
           surface: land
         }
@@ -798,7 +801,7 @@ zzz_terrain {
           y: 2
         }
         val {
-          ground: desert
+          ground: tundra
           overlay: forest
           surface: land
         }
@@ -809,7 +812,7 @@ zzz_terrain {
           y: 2
         }
         val {
-          ground: plains
+          ground: prairie
           overlay: forest
           road: true
           surface: land
@@ -821,8 +824,8 @@ zzz_terrain {
           y: 2
         }
         val {
-          forest_resource: deer
-          ground: tundra
+          forest_resource: beaver
+          ground: plains
           overlay: forest
           surface: land
         }
@@ -844,7 +847,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: desert
+          ground: savannah
           overlay: forest
           surface: land
         }
@@ -855,7 +858,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: prairie
+          ground: savannah
           road: true
           surface: land
         }
@@ -866,7 +869,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: prairie
+          ground: savannah
           overlay: forest
           surface: land
         }
@@ -877,7 +880,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: savannah
+          ground: prairie
           overlay: forest
           road: true
           surface: land
@@ -889,7 +892,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: savannah
+          ground: desert
           overlay: mountains
           surface: land
         }
@@ -925,7 +928,7 @@ zzz_terrain {
           y: 4
         }
         val {
-          ground: savannah
+          ground: prairie
           overlay: forest
           surface: land
         }
@@ -937,7 +940,7 @@ zzz_terrain {
         }
         val {
           forest_resource: minerals
-          ground: swamp
+          ground: marsh
           overlay: forest
           surface: land
         }
@@ -959,7 +962,7 @@ zzz_terrain {
           y: 5
         }
         val {
-          ground: prairie
+          ground: desert
           overlay: forest
           river: minor
           surface: land
@@ -971,8 +974,8 @@ zzz_terrain {
           y: 5
         }
         val {
-          ground: plains
-          ground_resource: wheat
+          ground: prairie
+          ground_resource: cotton
           road: true
           surface: land
         }
@@ -983,7 +986,7 @@ zzz_terrain {
           y: 5
         }
         val {
-          ground: grassland
+          ground: plains
           overlay: forest
           surface: land
         }
@@ -1005,7 +1008,7 @@ zzz_terrain {
           y: 6
         }
         val {
-          ground: tundra
+          ground: plains
           overlay: forest
           river: minor
           road: true
@@ -1018,7 +1021,7 @@ zzz_terrain {
           y: 6
         }
         val {
-          ground: tundra
+          ground: plains
           overlay: forest
           road: true
           surface: land

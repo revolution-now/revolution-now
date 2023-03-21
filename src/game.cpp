@@ -60,9 +60,12 @@ enum class e_game_module_tune_points {
 };
 
 e_nation ensure_human_player( PlayersState const& players ) {
-  CHECK( players.human.has_value(),
-         "there must be a human player." );
-  return *players.human;
+  for( auto& [nation, human] : players.humans )
+    if( human && players.default_human == nation ) //
+      return nation;
+  FATAL(
+      "there must be at least one human player and the "
+      "default_human must refer to one of them." );
 }
 
 void play( IRand& rand, e_game_module_tune_points tune ) {

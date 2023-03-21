@@ -952,9 +952,6 @@ wait<maybe<NationTurnState>> nation_turn_iter(
     SS& ss, TS& ts, e_nation nation, NationTurnState& st ) {
   Player& player =
       player_for_nation_or_die( ss.players, nation );
-  if( ss.players.human != player.nation )
-    // TODO: Until we have AI.
-    co_return NationTurnState::finished{};
   // `visibility` determines from whose point of view the map is
   // drawn with respect to which tiles are hidden. This will po-
   // tentially redraw the map (if necessary) to align with the
@@ -966,6 +963,9 @@ wait<maybe<NationTurnState>> nation_turn_iter(
   SWITCH( st ) {
     CASE( not_started ) {
       print_bar( '-', fmt::format( "[ {} ]", nation ) );
+      // TODO: Until we have AI.
+      if( !ss.players.humans[nation] )
+        co_return NationTurnState::finished{};
       co_await nation_start_of_turn( ss, ts, player );
       co_return NationTurnState::colonies{};
     }

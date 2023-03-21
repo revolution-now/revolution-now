@@ -22,16 +22,12 @@ function M.default_options()
     -- This determines which nations are enabled and some proper-
     -- ties. If initial ship position is null then the randomly
     -- generated one will be used.
-    --
-    -- FIXME: this needs to be a list instead of a dict because
-    -- iteration order on a table in lua is non-deterministic.
-    nations={
-      ['english']={ ship_pos=nil },
-      ['french']={ ship_pos=nil },
-      ['spanish']={ ship_pos=nil },
-      ['dutch']={ ship_pos=nil }
+    ordered_nations={
+      { nation='english', ship_pos=nil, human=false },
+      { nation='french', ship_pos=nil, human=false },
+      { nation='spanish', ship_pos=nil, human=false },
+      { nation='dutch', ship_pos=nil, human=false }
     },
-    human_nation=nil, -- no humans.
     map={} -- use default map options.
   }
 end
@@ -116,17 +112,17 @@ local function create_initial_units_for_nation(options, nation,
 end
 
 local function create_initial_units( options, root )
-  for nation, _ in pairs( options.nations ) do
-    create_initial_units_for_nation( options, nation, root )
+  for _, o in ipairs( options.ordered_nations ) do
+    create_initial_units_for_nation( options, o.nation, root )
   end
 end
 
 local function create_battlefield_units( options, root )
   local nation1
   local nation2
-  for nation, _ in pairs( options.nations ) do
+  for _, o in ipairs( options.ordered_nations ) do
     nation1 = nation2
-    nation2 = nation
+    nation2 = o.nation
     if nation1 then break end
   end
   assert( nation1 )
@@ -151,8 +147,8 @@ end
 -- FIXME: temporary
 local function create_all_units( options, root )
   local nation1
-  for nation, _ in pairs( options.nations ) do
-    nation1 = nation
+  for _, o in ipairs( options.ordered_nations ) do
+    nation1 = o.nation
     if nation1 then break end
   end
   assert( nation1 )
@@ -243,8 +239,8 @@ local function init_non_processed_goods_prices( options, players )
     local max = assert( limits.bid_price_start_max )
     assert( min <= max )
     local bid_price = math.random( min, max )
-    for nation, tbl in pairs( options.nations ) do
-      local player = players:get( nation )
+    for _, o in ipairs( options.ordered_nations ) do
+      local player = players:get( o.nation )
       player.old_world.market.commodities[comm].bid_price =
           bid_price
     end
@@ -274,8 +270,8 @@ local function init_processed_goods_prices(options, players, root )
                     .new_with_random_volumes()
   local eq_ask_prices = group:equilibrium_prices()
   for _, comm in ipairs{ 'rum', 'cigars', 'cloth', 'coats' } do
-    for nation, tbl in pairs( options.nations ) do
-      local player = players:get( nation )
+    for _, o in ipairs( options.ordered_nations ) do
+      local player = players:get( o.nation )
       local c = player.old_world.market.commodities[comm]
       local spread = market.bid_ask_spread( comm )
       c.bid_price = eq_ask_prices[comm] - spread
@@ -311,18 +307,19 @@ end
 local function create_nations( options, root )
   local players = root.players.players
   local settings = root.settings
-  for nation, tbl in pairs( options.nations ) do
-    local player = players:reset_player( nation )
-    create_player_state( settings, nation, player )
+  for _, o in ipairs( options.ordered_nations ) do
+    local player = players:reset_player( o.nation )
+    create_player_state( settings, o.nation, player )
+    root.players.humans[o.nation] = o.human
+    if o.human then root.players.default_human = o.nation end
   end
-  root.players.human = options.human_nation
   init_prices( options, root )
 end
 
 local function create_player_maps( options, root )
   local terrain = root.terrain
-  for nation, tbl in pairs( options.nations ) do
-    terrain:initialize_player_terrain( nation, --[[visible=]]
+  for _, o in ipairs( options.ordered_nations ) do
+    terrain:initialize_player_terrain( o.nation, --[[visible=]]
                                        false )
   end
 end
@@ -339,13 +336,12 @@ end
 -- Testing
 -----------------------------------------------------------------
 local function add_testing_options( options )
-  options.nations = {
-    -- english={ ship_pos=nil },
-    french={ ship_pos=nil }
-    -- spanish={ ship_pos=nil },
-    -- dutch={ ship_pos=nil },
+  options.ordered_nations = {
+    -- { nation='english', ship_pos=nil, human=false },
+    { nation='french', ship_pos=nil, human=true }
+    -- { nation='spanish', ship_pos=nil, human=false }
+    -- { nation='dutch', ship_pos=nil, human=false }
   }
-  options.human_nation = 'french'
   options.difficulty = 'conquistador'
   -- options.map.type = 'land-partition'
   -- options.map.world_size = { w=4, h=4 }
@@ -368,6 +364,12 @@ function M.create( options )
 
   add_testing_options( options )
 
+  -- Add nations table for quick access.
+  options.nations = {}
+  for _, o in ipairs( options.ordered_nations ) do
+    options.nations[o.nation] = o
+  end
+
   local root = ROOT
 
   set_default_settings( options, root.settings )
@@ -388,9 +390,9 @@ function M.create( options )
     -- rectly hereafter; we should use the ones in the options,
     -- just in case the user overrided it.
     local random_ship_positions = map_gen.initial_ships_pos()
-    for nation, info in pairs( options.nations ) do
-      if info.ship_pos == nil then
-        info.ship_pos = random_ship_positions[nation]
+    for _, o in ipairs( options.ordered_nations ) do
+      if o.ship_pos == nil then
+        o.ship_pos = random_ship_positions[o.nation]
       end
     end
   end
@@ -411,11 +413,10 @@ function M.create( options )
   end
 
   -- Temporary.
-  local all_nations = { 'english', 'french', 'spanish', 'dutch' }
-  for _, nation in ipairs( all_nations ) do
-    if options.nations[nation] then
-      if options.nations[nation].human then
-        local coord = assert( options.nations[nation].ship_pos )
+  for _, o in ipairs( options.ordered_nations ) do
+    if options.nations[o.nation] then
+      if o.human then
+        local coord = assert( o.ship_pos )
         root.land_view.viewport:center_on_tile( coord )
         break
       end
