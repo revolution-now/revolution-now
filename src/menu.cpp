@@ -83,10 +83,8 @@ struct MenuPlane::Impl : public Plane {
   refl::enum_map<e_menu_item, stack<Plane*>> handlers_;
 
   Impl() {
-    auto& menus_layout = config_menu.layout.menus;
-
     // Populate the e_menu_item maps.
-    for( auto& [menu, items] : menus_layout ) {
+    for( auto& [menu, items] : config_menu.layout ) {
       for( auto& item_desc : items.contents ) {
         if( !item_desc.has_value() ) continue;
         e_menu_item const item = *item_desc;
@@ -99,7 +97,7 @@ struct MenuPlane::Impl : public Plane {
     int kCharWidth = rr::rendered_text_line_size_pixels( "X" ).w;
     for( auto menu : refl::enum_values<e_menu> )
       menu_name_width_pixels_[menu] =
-          menus_layout[menu].name.size() * kCharWidth;
+          config_menu.menus[menu].name.size() * kCharWidth;
     for( auto item : refl::enum_values<e_menu_item> )
       menu_item_name_width_pixels_[item] =
           config_menu.items[item].name.size() * kCharWidth;
@@ -182,7 +180,7 @@ struct MenuPlane::Impl : public Plane {
 
   X menu_header_x_pos( e_menu target ) const {
     // TODO: simplify this since menus are not invisible anymore.
-    auto const& menus = config_menu.layout.menus;
+    auto const& menus = config_menu.menus;
     auto const& desc  = menus[target];
     W           width_delta{ 0 };
     if( desc.position == e_menu_side::right ) {
@@ -271,10 +269,9 @@ struct MenuPlane::Impl : public Plane {
   // This is the width of the menu body not including the
   // borders, which themselves occupy part of a tile.
   H menu_body_height_inner( e_menu menu ) const {
-    auto const& menus = config_menu.layout.menus;
-    H           h{ 0 };
+    H h{ 0 };
     for( maybe<e_menu_item> const& item :
-         menus[menu].contents ) {
+         config_menu.layout[menu].contents ) {
       if( item.has_value() )
         h += menu_item_height();
       else // divider.
@@ -297,10 +294,10 @@ struct MenuPlane::Impl : public Plane {
   }
 
   Rect menu_body_rect_inner( e_menu menu ) const {
-    auto const& menus = config_menu.layout.menus;
-    Coord       pos;
+    Coord pos;
     pos.y = menu_bar_rect().bottom_edge() + 4;
-    if( menus[menu].position == e_menu_side::right ) {
+    if( config_menu.menus[menu].position ==
+        e_menu_side::right ) {
       pos.x = menu_header_x_pos( menu ) +
               menu_header_delta( menu ).w -
               menu_body_delta_inner( menu ).w;
@@ -311,10 +308,9 @@ struct MenuPlane::Impl : public Plane {
   }
 
   Rect menu_body_rect( e_menu menu ) const {
-    auto const& menus = config_menu.layout.menus;
-    Coord       pos;
+    Coord pos;
     pos.y = menu_bar_rect().bottom_edge();
-    if( menus[menu].position == e_menu_side::right )
+    if( config_menu.menus[menu].position == e_menu_side::right )
       pos.x = menu_header_x_pos( menu ) +
               menu_header_delta( menu ).w + 4 -
               menu_body_delta( menu ).w;
@@ -336,10 +332,9 @@ struct MenuPlane::Impl : public Plane {
 
   // `h` is the vertical position from the top of the menu body.
   maybe<e_menu_item> cursor_to_item( e_menu menu, H h ) const {
-    auto const& menus = config_menu.layout.menus;
-    H           pos{ 0 };
+    H pos{ 0 };
     for( maybe<e_menu_item> const& item :
-         menus[menu].contents ) {
+         config_menu.layout[menu].contents ) {
       if( item.has_value() )
         pos += menu_item_height();
       else // divider.
@@ -368,8 +363,7 @@ struct MenuPlane::Impl : public Plane {
   ** Rendering Implmementation
   *****************************************************************/
   string_view name_for( e_menu menu ) const {
-    auto const& menus = config_menu.layout.menus;
-    return menus[menu].name;
+    return config_menu.menus[menu].name;
   }
 
   string_view name_for( e_menu_item item ) const {
@@ -398,9 +392,8 @@ struct MenuPlane::Impl : public Plane {
   void render_menu_element( rr::Renderer& renderer, Coord pos,
                             e_menu     item,
                             gfx::pixel color ) const {
-    auto const& menus = config_menu.layout.menus;
     render_menu_element( renderer, pos, item, color,
-                         menus[item].shortcut );
+                         config_menu.menus[item].shortcut );
   }
 
   void render_menu_element( rr::Renderer& renderer, Coord pos,
@@ -482,10 +475,9 @@ struct MenuPlane::Impl : public Plane {
     pos.x += 4;
     pos.y += 4;
 
-    H const     item_height = menu_item_height();
-    auto const& menus       = config_menu.layout.menus;
+    H const item_height = menu_item_height();
     for( maybe<e_menu_item> const& item :
-         menus[menu].contents ) {
+         config_menu.layout[menu].contents ) {
       if( item.has_value() ) {
         bool on = ( *item == subject );
         if( on )
@@ -795,10 +787,8 @@ struct MenuPlane::Impl : public Plane {
           if( key_event.change == input::e_key_change::down &&
               key_event.mod.alt_down ) {
             for( auto menu : refl::enum_values<e_menu> ) {
-              auto const& menus     = config_menu.layout.menus;
-              auto const& menu_desc = menus[menu];
               if( key_event.keycode ==
-                  tolower( menu_desc.shortcut ) ) {
+                  tolower( config_menu.menus[menu].shortcut ) ) {
                 if( !is_menu_open( menu ) )
                   menu_state_ =
                       MenuState::menu_open{ menu, /*hover=*/{} };

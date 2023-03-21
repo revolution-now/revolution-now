@@ -21,16 +21,21 @@ using namespace std;
 
 namespace rn {
 
-base::valid_or<string> config::menu::MenuConfig::validate()
+base::valid_or<string> config::menu::MenuLayout::validate()
     const {
-  REFL_VALIDATE( !name.empty(), "menu name is empty." );
-
   // Check that the menu has at least one non-divider item.
   int clickable_count = 0;
   for( auto const& item_conf : contents )
     if( item_conf.has_value() ) ++clickable_count;
   REFL_VALIDATE( clickable_count > 0,
-                 "the {} menu has no non-divider items.", name );
+                 "menu has no non-divider items." );
+
+  return base::valid;
+}
+
+base::valid_or<string> config::menu::MenuConfig::validate()
+    const {
+  REFL_VALIDATE( !name.empty(), "menu name is empty." );
 
   // Check that the shortcut key is in the menu name.
   REFL_VALIDATE( name.find( shortcut ) != string_view::npos,
@@ -40,8 +45,7 @@ base::valid_or<string> config::menu::MenuConfig::validate()
   return base::valid;
 }
 
-base::valid_or<string> config::menu::MenusLayout::validate()
-    const {
+base::valid_or<string> config_menu_t::validate() const {
   // Check that all menus have unique shortcut keys.
   unordered_set<char> keys;
   for( auto menu : refl::enum_values<e_menu> ) {
@@ -53,10 +57,21 @@ base::valid_or<string> config::menu::MenusLayout::validate()
     keys.insert( key );
   }
 
+  // Check that all menu items have unique names.
+  unordered_set<string> names;
+  for( e_menu_item const item :
+       refl::enum_values<e_menu_item> ) {
+    string const& name = items[item].name;
+    REFL_VALIDATE( !names.contains( name ),
+                   "multiple menu items have the name `{}`.",
+                   name );
+    names.insert( name );
+  }
+
   // Check that all menu items are in precisely one menu.
   refl::enum_map<e_menu_item, bool> items;
   for( auto& [menu, conf] : menus ) {
-    for( auto const& item_conf : conf.contents )
+    for( auto const& item_conf : layout[menu].contents )
       if( item_conf.has_value() ) {
         e_menu_item const item = *item_conf;
         REFL_VALIDATE(
@@ -69,21 +84,6 @@ base::valid_or<string> config::menu::MenusLayout::validate()
     REFL_VALIDATE( items[item],
                    "the menu item `{}` is not in any menu.",
                    item );
-  }
-
-  return base::valid;
-}
-
-base::valid_or<string> config_menu_t::validate() const {
-  // Check that all menu items have unique names.
-  unordered_set<string> names;
-  for( e_menu_item const item :
-       refl::enum_values<e_menu_item> ) {
-    string const& name = items[item].name;
-    REFL_VALIDATE( !names.contains( name ),
-                   "multiple menu items have the name `{}`.",
-                   name );
-    names.insert( name );
   }
 
   return base::valid;

@@ -33,24 +33,20 @@ struct.MenuConfig {
   name 'std::string',
   shortcut 'char',
   position 'e_menu_side',
-  # A value of nothing means menu divider.
-  contents 'std::vector<base::maybe<e_menu_item>>',
-
   _features { equality, validation }
 }
 
-struct.MenusLayout {
-  menus 'refl::enum_map<e_menu, MenuConfig>',
-
+struct.MenuLayout {
+  contents 'std::vector<base::maybe<e_menu_item>>',
   _features { equality, validation }
 }
 
 namespace "rn"
 
 struct.config_menu_t {
-  layout 'config::menu::MenusLayout',
+  layout 'refl::enum_map<e_menu, config::menu::MenuLayout>',
+  menus 'refl::enum_map<e_menu, config::menu::MenuConfig>',
   items 'refl::enum_map<e_menu_item, config::menu::MenuItemConfig>',
-
   _features { equality, validation }
 }
 
