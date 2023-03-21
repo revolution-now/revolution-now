@@ -153,6 +153,9 @@ class [[nodiscard]] wait {
  public:
   using value_type = T;
 
+  // Creates a wait without a value that will never be fulfilled.
+  wait();
+
   wait( T const& ready_val );
 
   // This constructor should not be used by client code.
@@ -356,5 +359,8 @@ template<typename T>
 wait<T>::wait( T const& ready_val ) {
   *this = make_wait<T>( ready_val );
 }
+
+template<typename T>
+wait<T>::wait() : wait( wait_promise<T>().wait() ) {}
 
 } // namespace rn

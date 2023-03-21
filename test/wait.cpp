@@ -48,6 +48,11 @@ TEST_CASE( "[wait] future api basic" ) {
   REQUIRE( s_future.get() == 3 );
 }
 
+TEST_CASE( "[wait] default constructor" ) {
+  wait<int> w;
+  REQUIRE( !w.ready() );
+}
+
 TEST_CASE( "[wait] promise api basic api" ) {
   wait_promise<int> s_promise;
   REQUIRE( !s_promise.has_value() );
