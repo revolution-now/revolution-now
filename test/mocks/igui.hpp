@@ -46,6 +46,11 @@ struct MockIGui : IGui {
   MOCK_GUI_METHOD( wait<maybe<int>>, int_input,
                    ( IntInputConfig const&, e_input_required ) );
 
+  using CheckBoxInfoMap = std::unordered_map<int, CheckBoxInfo>;
+  using CheckBoxResultMap = std::unordered_map<int, bool>;
+  MOCK_GUI_METHOD( wait<CheckBoxResultMap>, check_box_selector,
+                   (std::string const&, CheckBoxInfoMap const&));
+
   MOCK_GUI_METHOD( wait<>, display_woodcut, ( e_woodcut ) );
 
   MOCK_METHOD( int, total_windows_created, (), ( const ) );

@@ -158,5 +158,48 @@ TEST_CASE( "[igui] partial_optional_enum_choice" ) {
   REQUIRE( **w == e_color::blue );
 }
 
+TEST_CASE( "[igui] enum_check_boxes" ) {
+  MockIGui gui;
+
+  refl::enum_map<e_color, CheckBoxInfo> items{
+      { e_color::red,
+        CheckBoxInfo{
+            .name = "Red", .on = false, .disabled = true } },
+      { e_color::green,
+        CheckBoxInfo{
+            .name = "Green", .on = true, .disabled = false } },
+      { e_color::blue,
+        CheckBoxInfo{
+            .name = "Blue", .on = false, .disabled = false } },
+  };
+  auto expected               = items;
+  expected[e_color::green].on = false;
+  expected[e_color::blue].on  = true;
+  unordered_map<int, CheckBoxInfo> int_items{
+      { 0,
+        CheckBoxInfo{
+            .name = "Red", .on = false, .disabled = true } },
+      { 1,
+        CheckBoxInfo{
+            .name = "Green", .on = true, .disabled = false } },
+      { 2,
+        CheckBoxInfo{
+            .name = "Blue", .on = false, .disabled = false } },
+  };
+  unordered_map<int, bool> res_int_items{
+      { 0, false },
+      { 1, false },
+      { 2, true },
+  };
+  gui.EXPECT__check_box_selector( "hello",
+                                  std::move( int_items ) )
+      .returns<>( std::move( res_int_items ) );
+
+  wait<> w = gui.enum_check_boxes( "hello", items );
+  REQUIRE( !w.exception() );
+  REQUIRE( w.ready() );
+  REQUIRE( items == expected );
+}
+
 } // namespace
 } // namespace rn

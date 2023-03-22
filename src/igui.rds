@@ -73,3 +73,9 @@ struct.EnumChoiceConfig {
   # Should they be sorted by display name before being displayed.
   sort 'bool',
 }
+
+struct.CheckBoxInfo {
+  name 'std::string',
+  on 'bool',
+  disabled 'bool',
+}

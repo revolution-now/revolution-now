@@ -192,6 +192,20 @@ struct IGui {
   wait<maybe<E>> partial_optional_enum_choice(
       std::vector<E> const& options, bool sort = false );
 
+  template<typename Enum>
+  wait<> enum_check_boxes(
+      std::string_view                    title,
+      refl::enum_map<Enum, CheckBoxInfo>& items ) {
+    std::unordered_map<int, CheckBoxInfo> int_items;
+    for( auto& [item, info] : items )
+      int_items[static_cast<int>( item )] = info;
+    std::unordered_map<int, bool> int_res =
+        co_await this->check_box_selector( std::string( title ),
+                                           int_items );
+    for( auto& [item, info] : items )
+      items[item].on = int_res[static_cast<int>( item )];
+  }
+
  protected:
   // Do not call these directly, instead call the ones in the
   // next section that make it explicit in the name and return
@@ -218,6 +232,13 @@ struct IGui {
   virtual wait<maybe<int>> int_input(
       IntInputConfig const& config,
       e_input_required      required ) = 0;
+
+  // Displays a window with a grid of checkboxes for each item
+  // and will let the user check or uncheck them, then will up-
+  // date map with the results in place.
+  virtual wait<std::unordered_map<int, bool>> check_box_selector(
+      std::string const&                           title,
+      std::unordered_map<int, CheckBoxInfo> const& items ) = 0;
 
   /* ============================================================
   ** Woodcuts

@@ -65,6 +65,12 @@ struct RealGui : IGui {
       IntInputConfig const& config,
       e_input_required      required ) override;
 
+  // Implement IGui.
+  wait<std::unordered_map<int, bool>> check_box_selector(
+      std::string const&                           title,
+      std::unordered_map<int, CheckBoxInfo> const& items )
+      override;
+
  private:
   WindowPlane& window_plane_;
 };
