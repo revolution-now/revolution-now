@@ -313,7 +313,7 @@ TEST_CASE( "[on-map] non-interactive: updates visibility" ) {
   World W;
   UNWRAP_CHECK( player_terrain, W.terrain().player_terrain(
                                     W.default_nation() ) );
-  Matrix<maybe<FogSquare>> const& map = player_terrain.map;
+  gfx::Matrix<maybe<FogSquare>> const& map = player_terrain.map;
 
   REQUIRE( !map[{ .x = 0, .y = 1 }].has_value() );
   REQUIRE( !map[{ .x = 1, .y = 1 }].has_value() );

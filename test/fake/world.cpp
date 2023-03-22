@@ -188,9 +188,10 @@ MapSquare World::make_terrain( e_terrain terrain ) {
 }
 
 void World::build_map( vector<MapSquare> tiles, W width ) {
-  map_updater().modify_entire_map( [&]( Matrix<MapSquare>& m ) {
-    m = Matrix<MapSquare>( std::move( tiles ), width );
-  } );
+  map_updater().modify_entire_map(
+      [&]( gfx::Matrix<MapSquare>& m ) {
+        m = gfx::Matrix<MapSquare>( std::move( tiles ), width );
+      } );
   init_player_maps();
   ss().land_view.viewport.set_world_size_tiles(
       ss().terrain.world_size_tiles() );

@@ -11,11 +11,11 @@
 # ss
 include "ss/fog-square.rds.hpp"
 include "ss/map-square.rds.hpp"
-include "ss/matrix.hpp"
 include "ss/nation.rds.hpp"
 
 # gfx
 include "gfx/coord.rds.hpp"
+include "gfx/matrix.hpp"
 
 # refl
 include "refl/enum-map.hpp"
@@ -28,7 +28,7 @@ namespace "rn"
 # What each player sees. Some tiles may not be visible, and
 # others might not be up to date with the real map.
 struct.PlayerTerrain {
-  map 'Matrix<base::maybe<FogSquare>>',
+  map 'gfx::Matrix<base::maybe<FogSquare>>',
 }
 
 namespace "rn.wrapped"
@@ -38,7 +38,7 @@ struct.TerrainState {
 
   player_terrain 'refl::enum_map<e_nation, base::maybe<PlayerTerrain>>',
 
-  world_map 'Matrix<MapSquare>',
+  world_map 'gfx::Matrix<MapSquare>',
 
   # For rendering purposes it is necessary to know the contents
   # of squares that are "off of the map edge." These will specify

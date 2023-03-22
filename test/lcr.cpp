@@ -73,9 +73,10 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[lcr] has_lost_city_rumor" ) {
   TerrainState terrain_state;
-  terrain_state.modify_entire_map( []( Matrix<MapSquare>& m ) {
-    m = Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
-  } );
+  terrain_state.modify_entire_map(
+      []( gfx::Matrix<MapSquare>& m ) {
+        m = gfx::Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
+      } );
 
   REQUIRE_FALSE( has_lost_city_rumor( terrain_state, Coord{} ) );
   MapSquare& square = terrain_state.mutable_square_at( Coord{} );

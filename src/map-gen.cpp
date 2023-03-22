@@ -36,7 +36,7 @@ namespace rn {
 namespace {
 
 void generate_terrain_impl( lua::state& st,
-                            Matrix<MapSquare>& ) {
+                            gfx::Matrix<MapSquare>& ) {
   CHECK_HAS_VALUE( st["map_gen"]["generate"].pcall() );
 }
 
@@ -44,22 +44,24 @@ void generate_terrain_impl( lua::state& st,
 
 void reset_terrain( IMapUpdater& map_updater, Delta size ) {
   map_updater.modify_entire_map(
-      [&]( Matrix<MapSquare>& world_map ) {
-        world_map = Matrix<MapSquare>( size );
+      [&]( gfx::Matrix<MapSquare>& world_map ) {
+        world_map = gfx::Matrix<MapSquare>( size );
       } );
 }
 
 void generate_terrain( lua::state&  st,
                        IMapUpdater& map_updater ) {
-  map_updater.modify_entire_map( [&]( Matrix<MapSquare>& m ) {
-    generate_terrain_impl( st, m );
-  } );
+  map_updater.modify_entire_map(
+      [&]( gfx::Matrix<MapSquare>& m ) {
+        generate_terrain_impl( st, m );
+      } );
 }
 
 void ascii_map_gen( lua::state& st, SS& ss ) {
   NonRenderingMapUpdater map_updater( ss );
   generate_terrain( st, map_updater );
-  Matrix<MapSquare> const& world_map = ss.terrain.world_map();
+  gfx::Matrix<MapSquare> const& world_map =
+      ss.terrain.world_map();
 
   auto bar = [&] {
     fmt::print( "+" );
@@ -80,10 +82,17 @@ void ascii_map_gen( lua::state& st, SS& ss ) {
                    ( land_bottom ? 1 : 0 );
         string c = " ";
         switch( mask ) {
-          case 0b01: c = "▄"; break;
-          case 0b10: c = "▀"; break;
-          case 0b11: c = "█"; break;
-          default: SHOULD_NOT_BE_HERE;
+          case 0b01:
+            c = "▄";
+            break;
+          case 0b10:
+            c = "▀";
+            break;
+          case 0b11:
+            c = "█";
+            break;
+          default:
+            SHOULD_NOT_BE_HERE;
         }
         fmt::print( "{}", c );
         continue;
@@ -96,10 +105,17 @@ void ascii_map_gen( lua::state& st, SS& ss ) {
                    ( seal_lane_bottom ? 1 : 0 );
         string c = " ";
         switch( mask ) {
-          case 0b01: c = "╦"; break;
-          case 0b10: c = "╩"; break;
-          case 0b11: c = "╬"; break;
-          default: SHOULD_NOT_BE_HERE;
+          case 0b01:
+            c = "╦";
+            break;
+          case 0b10:
+            c = "╩";
+            break;
+          case 0b11:
+            c = "╬";
+            break;
+          default:
+            SHOULD_NOT_BE_HERE;
         }
         fmt::print( "{}", c );
         continue;

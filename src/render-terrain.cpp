@@ -31,6 +31,7 @@
 
 // gfx
 #include "gfx/iter.hpp"
+#include "gfx/matrix.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -2456,7 +2457,7 @@ void render_terrain_square_merged(
 void render_landscape_buffer(
     rr::Renderer& renderer, SSConst const& ss,
     Visibility const& viz, TerrainRenderOptions const& options,
-    Matrix<rr::VertexRange>& tile_bounds ) {
+    gfx::Matrix<rr::VertexRange>& tile_bounds ) {
   auto start_time = chrono::system_clock::now();
   SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
 
@@ -2464,11 +2465,12 @@ void render_landscape_buffer(
   renderer.clear_buffer( rr::e_render_buffer::landscape_annex );
   SCOPED_RENDERER_MOD_SET( buffer_mods.buffer,
                            rr::e_render_buffer::landscape );
-  for( Rect const square : gfx::subrects( viz.rect_tiles() ) ) {
-    tile_bounds[square.upper_left()] = renderer.range_for( [&] {
+  gfx::rect_iterator const ri( viz.rect_tiles() );
+  for( Coord const square : ri ) {
+    tile_bounds[square] = renderer.range_for( [&] {
       render_landscape_square_if_not_fully_hidden(
-          renderer, square.upper_left() * g_tile_delta, ss,
-          square.upper_left(), viz, options );
+          renderer, square * g_tile_delta, ss, square, viz,
+          options );
     } );
   }
 
@@ -2487,8 +2489,8 @@ void render_landscape_buffer(
 
 void render_obfuscation_buffer(
     rr::Renderer& renderer, Visibility const& viz,
-    TerrainRenderOptions const& options,
-    Matrix<rr::VertexRange>&    tile_bounds ) {
+    TerrainRenderOptions const&   options,
+    gfx::Matrix<rr::VertexRange>& tile_bounds ) {
   auto start_time = chrono::system_clock::now();
   SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
 
@@ -2497,11 +2499,12 @@ void render_obfuscation_buffer(
       rr::e_render_buffer::obfuscation_annex );
   SCOPED_RENDERER_MOD_SET( buffer_mods.buffer,
                            rr::e_render_buffer::obfuscation );
-  for( Rect const square : gfx::subrects( viz.rect_tiles() ) ) {
-    tile_bounds[square.upper_left()] = renderer.range_for( [&] {
-      render_obfuscation_overlay(
-          renderer, square.upper_left() * g_tile_delta,
-          square.upper_left(), viz, options );
+  gfx::rect_iterator const ri( viz.rect_tiles() );
+  for( Coord const square : ri ) {
+    tile_bounds[square] = renderer.range_for( [&] {
+      render_obfuscation_overlay( renderer,
+                                  square * g_tile_delta, square,
+                                  viz, options );
     } );
   }
 

@@ -65,12 +65,13 @@ TerrainState::TerrainState()
   validate_or_die();
 }
 
-Matrix<MapSquare> const& TerrainState::world_map() const {
+gfx::Matrix<MapSquare> const& TerrainState::world_map() const {
   return o_.world_map;
 }
 
 void TerrainState::modify_entire_map(
-    base::function_ref<void( Matrix<MapSquare>& )> mutator ) {
+    base::function_ref<void( gfx::Matrix<MapSquare>& )>
+        mutator ) {
   mutator( o_.world_map );
   // Maintain the invariant that pacific_ocean_tiles should
   // have one element for each map row.
@@ -171,11 +172,12 @@ void TerrainState::initialize_player_terrain( e_nation nation,
                                               bool visible ) {
   if( !o_.player_terrain[nation].has_value() )
     o_.player_terrain[nation].emplace();
-  Matrix<base::maybe<FogSquare>>& map =
+  gfx::Matrix<base::maybe<FogSquare>>& map =
       o_.player_terrain[nation]->map;
-  map = Matrix<base::maybe<FogSquare>>( o_.world_map.size() );
+  map =
+      gfx::Matrix<base::maybe<FogSquare>>( o_.world_map.size() );
   if( visible ) {
-    Matrix<MapSquare> const& world_map = o_.world_map;
+    gfx::Matrix<MapSquare> const& world_map = o_.world_map;
     for( Rect const tile :
          gfx::subrects( o_.world_map.rect() ) ) {
       map[tile.upper_left()].emplace();
@@ -266,8 +268,8 @@ LUA_STARTUP( lua::state& st ) {
         &U::initialize_player_terrain;
 
     u["reset"] = []( U& o, Delta size ) {
-      o.modify_entire_map( [&]( Matrix<MapSquare>& m ) {
-        m = Matrix<MapSquare>( size );
+      o.modify_entire_map( [&]( gfx::Matrix<MapSquare>& m ) {
+        m = gfx::Matrix<MapSquare>( size );
       } );
     };
 

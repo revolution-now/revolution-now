@@ -83,7 +83,7 @@ BuffersUpdated NonRenderingMapUpdater::make_square_visible(
   PlayerTerrain& player_terrain =
       ss_.mutable_terrain_use_with_care.mutable_player_terrain(
           nation );
-  Matrix<maybe<FogSquare>>& map = player_terrain.map;
+  gfx::Matrix<maybe<FogSquare>>& map = player_terrain.map;
 
   BuffersUpdated buffers_updated;
 
@@ -116,7 +116,7 @@ BuffersUpdated NonRenderingMapUpdater::make_square_fogged(
   PlayerTerrain& player_terrain =
       ss_.mutable_terrain_use_with_care.mutable_player_terrain(
           nation );
-  Matrix<maybe<FogSquare>>& map = player_terrain.map;
+  gfx::Matrix<maybe<FogSquare>>& map = player_terrain.map;
 
   BuffersUpdated buffers_updated;
   if( !map[tile].has_value() ) return buffers_updated;
@@ -142,7 +142,8 @@ BuffersUpdated NonRenderingMapUpdater::make_square_fogged(
 }
 
 void NonRenderingMapUpdater::modify_entire_map(
-    base::function_ref<void( Matrix<MapSquare>& )> mutator ) {
+    base::function_ref<void( gfx::Matrix<MapSquare>& )>
+        mutator ) {
   ss_.mutable_terrain_use_with_care.modify_entire_map( mutator );
 }
 
@@ -314,7 +315,8 @@ BuffersUpdated RenderingMapUpdater::make_square_fogged(
 }
 
 void RenderingMapUpdater::modify_entire_map(
-    base::function_ref<void( Matrix<MapSquare>& )> mutator ) {
+    base::function_ref<void( gfx::Matrix<MapSquare>& )>
+        mutator ) {
   this->Base::modify_entire_map( mutator );
 }
 
@@ -391,7 +393,7 @@ BuffersUpdated TrappingMapUpdater::make_square_fogged(
 }
 
 void TrappingMapUpdater::modify_entire_map(
-    base::function_ref<void( Matrix<MapSquare>& )> ) {
+    base::function_ref<void( gfx::Matrix<MapSquare>& )> ) {
   SHOULD_NOT_BE_HERE;
 }
 

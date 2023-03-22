@@ -12,9 +12,6 @@
 
 #include "core-config.hpp"
 
-// ss
-#include "ss/matrix.hpp"
-
 // render
 #include "render/renderer.rds.hpp"
 
@@ -23,6 +20,11 @@
 
 namespace rr {
 struct Renderer;
+}
+
+namespace gfx {
+template<typename T>
+struct Matrix;
 }
 
 namespace rn {
@@ -62,7 +64,7 @@ void render_obfuscation_overlay(
 void render_landscape_buffer(
     rr::Renderer& renderer, SSConst const& ss,
     Visibility const& viz, TerrainRenderOptions const& options,
-    Matrix<rr::VertexRange>& tile_bounds );
+    gfx::Matrix<rr::VertexRange>& tile_bounds );
 
 // Render the obfuscation buffer (all tiles). The reason that the
 // obfuscation overlays get put into a different buffer is so
@@ -70,8 +72,8 @@ void render_landscape_buffer(
 // landscape and obfuscation layers.
 void render_obfuscation_buffer(
     rr::Renderer& renderer, Visibility const& viz,
-    TerrainRenderOptions const& options,
-    Matrix<rr::VertexRange>&    tile_bounds );
+    TerrainRenderOptions const&   options,
+    gfx::Matrix<rr::VertexRange>& tile_bounds );
 
 // This is for when a particular terrain square in its entirety
 // (including landscape and obfuscation) needs to be rendered in

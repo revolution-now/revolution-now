@@ -107,7 +107,7 @@ struct World : testing::World {
           true;
   }
 
-  void clear_all_fog( Matrix<maybe<FogSquare>>& m ) {
+  void clear_all_fog( gfx::Matrix<maybe<FogSquare>>& m ) {
     for( int y = 0; y < m.size().h; ++y ) {
       for( int x = 0; x < m.size().w; ++x ) {
         Coord const coord{ .x = x, .y = y };
@@ -976,7 +976,7 @@ TEST_CASE( "[visibility] Visibility" ) {
   SECTION( "with player, some visibility, no fog" ) {
     Visibility const viz( W.ss(), e_nation::english );
 
-    Matrix<maybe<FogSquare>>& player_map =
+    gfx::Matrix<maybe<FogSquare>>& player_map =
         W.terrain()
             .mutable_player_terrain( e_nation::english )
             .map;
@@ -1026,7 +1026,7 @@ TEST_CASE( "[visibility] Visibility" ) {
   SECTION( "with player, some visibility, some fog" ) {
     Visibility const viz( W.ss(), e_nation::english );
 
-    Matrix<maybe<FogSquare>>& player_map =
+    gfx::Matrix<maybe<FogSquare>>& player_map =
         W.terrain()
             .mutable_player_terrain( e_nation::english )
             .map;
@@ -1121,12 +1121,12 @@ TEST_CASE( "[visibility] recompute_fog_for_nation" ) {
                               e_nation::english );
   };
 
-  Matrix<maybe<FogSquare>>& eng_map =
+  gfx::Matrix<maybe<FogSquare>>& eng_map =
       W.ss()
           .mutable_terrain_use_with_care
           .mutable_player_terrain( e_nation::english )
           .map;
-  Matrix<maybe<FogSquare>>& fr_map =
+  gfx::Matrix<maybe<FogSquare>>& fr_map =
       W.ss()
           .mutable_terrain_use_with_care
           .mutable_player_terrain( e_nation::french )
@@ -1390,7 +1390,7 @@ TEST_CASE( "[visibility] fog_square_at" ) {
 
   auto f = [&] { return viz.fog_square_at( coord ); };
 
-  Matrix<maybe<FogSquare>>& player_map =
+  gfx::Matrix<maybe<FogSquare>>& player_map =
       W.terrain()
           .mutable_player_terrain( e_nation::english )
           .map;

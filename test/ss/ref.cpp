@@ -16,6 +16,9 @@
 // ss
 #include "src/ss/root.hpp"
 
+// gfx
+#include "gfx/cdr-matrix.hpp"
+
 // refl
 #include "refl/cdr.hpp"
 

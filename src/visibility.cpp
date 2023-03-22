@@ -268,7 +268,7 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
                                e_nation nation ) {
   UNWRAP_CHECK( player_terrain,
                 ss.terrain.player_terrain( nation ) );
-  Matrix<maybe<FogSquare>> const& m = player_terrain.map;
+  gfx::Matrix<maybe<FogSquare>> const& m = player_terrain.map;
 
   unordered_set<Coord> fogged;
   for( int y = 0; y < m.size().h; ++y ) {

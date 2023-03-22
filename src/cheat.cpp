@@ -197,7 +197,7 @@ void cheat_explore_entire_map( SS& ss, TS& ts ) {
   // tiles and calling `make_square_visible` on the map updater,
   // but that is way too slow, so we will do this more manual
   // way.
-  Matrix<maybe<FogSquare>>& m =
+  gfx::Matrix<maybe<FogSquare>>& m =
       ss.mutable_terrain_use_with_care
           .mutable_player_terrain( *nation )
           .map;

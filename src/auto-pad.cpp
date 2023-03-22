@@ -40,8 +40,8 @@ struct block {
     id                 = next_id++;
   }
 
-  Matrix<int> to_matrix() const {
-    Matrix<int> res( size );
+  gfx::Matrix<int> to_matrix() const {
+    gfx::Matrix<int> res( size );
     if( size.area() == 0 ) return res;
     for( Rect const r : gfx::subrects( res.rect() ) )
       res[r.upper_left()] = 0;
@@ -92,7 +92,7 @@ struct block {
 };
 NOTHROW_MOVE( block );
 
-void print_matrix( Matrix<int> const& m ) {
+void print_matrix( gfx::Matrix<int> const& m ) {
   fmt::print( "\n" );
   for( Y y{ 0 }; y < m.rect().bottom_edge(); ++y ) {
     for( X x{ 0 }; x < m.rect().right_edge(); ++x ) {

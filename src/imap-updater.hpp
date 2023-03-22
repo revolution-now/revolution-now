@@ -83,7 +83,7 @@ struct IMapUpdater {
   using SquareUpdateFunc =
       base::function_ref<void( MapSquare& )>;
   using MapUpdateFunc =
-      base::function_ref<void( Matrix<MapSquare>& )>;
+      base::function_ref<void( gfx::Matrix<MapSquare>& )>;
   using OptionsUpdateFunc =
       base::function_ref<void( MapUpdaterOptions& )>;
   using Popper = detail::MapUpdaterOptionsPopper;

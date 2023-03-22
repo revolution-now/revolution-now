@@ -26,19 +26,22 @@
 #include "config/nation.rds.hpp"
 #include "config/savegame.rds.hpp"
 
-// refl
-#include "refl/cdr.hpp"
-
 // rcl
 #include "rcl/emit.hpp"
 #include "rcl/model.hpp"
 #include "rcl/parse.hpp"
+
+// gfx
+#include "gfx/cdr-matrix.hpp"
 
 // cdr
 #include "cdr/converter.hpp"
 #include "cdr/ext-base.hpp"
 #include "cdr/ext-builtin.hpp"
 #include "cdr/ext-std.hpp"
+
+// refl
+#include "refl/cdr.hpp"
 
 // base
 #include "base/conv.hpp"

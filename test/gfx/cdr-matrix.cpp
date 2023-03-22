@@ -1,34 +1,32 @@
 /****************************************************************
-**matrix.cpp
+**cdr-matrix.cpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2022-02-14.
+* Created by dsicilia on 2023-03-22.
 *
-* Description: Unit tests for the src/ss/matrix.* module.
+* Description: Unit tests for the src/gfx/cdr-matrix.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/ss/matrix.hpp"
+#include "src/gfx/cdr-matrix.hpp"
 
 // refl
-#include "refl/cdr.hpp"
-#include "refl/to-str.hpp"
+#include "src/refl/cdr.hpp"
 
 // cdr
 #include "src/cdr/ext-builtin.hpp"
 #include "src/cdr/ext-std.hpp"
 
-// base
-// #include "base/to-str.hpp"
-// #include "src/base/to-str-ext-std.hpp"
+// refl
+#include "src/refl/to-str.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
 
-namespace rn {
+namespace gfx {
 namespace {
 
 using namespace ::std;
@@ -39,8 +37,9 @@ using ::cdr::table;
 using ::cdr::value;
 using ::cdr::testing::conv_from_bt;
 
-Matrix<int> m_empty( Delta{} );
-
+/****************************************************************
+** Data.
+*****************************************************************/
 value cdr_empty = table{
     "has_coords"_key = false,
     "size"_key =
@@ -108,8 +107,10 @@ value const cdr_2x4_with_default_elem = table{
     "data"_key = cdr::list{ 1, 2, 3, 4, 5, 0, 7, 8 },
 };
 
+Matrix<int> m_empty( rn::Delta{} );
+
 Matrix<int> make_m_2x4() {
-  Matrix<int> m_2x4( Delta{ .w = 4, .h = 2 } );
+  Matrix<int> m_2x4( rn::Delta{ .w = 4, .h = 2 } );
   m_2x4[0][0] = 1;
   m_2x4[0][1] = 2;
   m_2x4[0][2] = 3;
@@ -121,9 +122,12 @@ Matrix<int> make_m_2x4() {
   return m_2x4;
 }
 
-TEST_CASE( "[src/matrix] cdr/empty matrix" ) {
+/****************************************************************
+** Test Cases
+*****************************************************************/
+TEST_CASE( "[gfx/cdr-matrix] cdr/empty matrix" ) {
   cdr::converter conv;
-  Matrix<int>    m_empty( Delta{} );
+  Matrix<int>    m_empty( rn::Delta{} );
   SECTION( "to_canonical" ) {
     REQUIRE( conv.to( m_empty ) == cdr_empty );
   }
@@ -133,7 +137,7 @@ TEST_CASE( "[src/matrix] cdr/empty matrix" ) {
   }
 }
 
-TEST_CASE( "[src/matrix] cdr/include-defaults" ) {
+TEST_CASE( "[gfx/cdr-matrix] cdr/include-defaults" ) {
   cdr::converter conv;
   Matrix<int>    m_2x4 = make_m_2x4();
   SECTION( "to_canonical" ) {
@@ -145,7 +149,7 @@ TEST_CASE( "[src/matrix] cdr/include-defaults" ) {
   }
 }
 
-TEST_CASE( "[src/matrix] cdr/no-include-defaults" ) {
+TEST_CASE( "[gfx/cdr-matrix] cdr/no-include-defaults" ) {
   cdr::converter conv( cdr::converter::options{
       .write_fields_with_default_value  = false,
       .default_construct_missing_fields = true,
@@ -160,7 +164,7 @@ TEST_CASE( "[src/matrix] cdr/no-include-defaults" ) {
   }
 }
 
-TEST_CASE( "[src/matrix] cdr/no data" ) {
+TEST_CASE( "[gfx/cdr-matrix] cdr/no data" ) {
   cdr::converter conv;
   REQUIRE(
       conv.from<Matrix<int>>( cdr_no_data ) ==
@@ -169,7 +173,7 @@ TEST_CASE( "[src/matrix] cdr/no data" ) {
           "field ('size' implies 1 while 'data' implies 0)." ) );
 }
 
-TEST_CASE( "[src/matrix] cdr/inconsistent data" ) {
+TEST_CASE( "[gfx/cdr-matrix] cdr/inconsistent data" ) {
   cdr::converter conv;
   REQUIRE(
       conv.from<Matrix<int>>( cdr_inconsistent_size ) ==
@@ -179,4 +183,4 @@ TEST_CASE( "[src/matrix] cdr/inconsistent data" ) {
 }
 
 } // namespace
-} // namespace rn
+} // namespace gfx

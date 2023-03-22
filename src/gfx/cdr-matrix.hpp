@@ -1,126 +1,31 @@
 /****************************************************************
-**matrix.hpp
+**cdr-matrix.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2019-10-22.
+* Created by dsicilia on 2023-03-22.
 *
-* Description: The Matrix.
+* Description: Cdr conversions for gfx::Matrix.
 *
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
-// Revolution Now
-#include "error.hpp"
+// gfx
+#include "iter.hpp"
+#include "matrix.hpp"
 
 // refl
 #include "refl/cdr.hpp"
 
-// gfx
-#include "gfx/coord.hpp"
-#include "gfx/iter.hpp"
-
-// Cdr
+// cdr
 #include "cdr/converter.hpp"
 #include "cdr/ext-builtin.hpp"
 #include "cdr/ext.hpp"
 
-// base
-#include "base/attributes.hpp"
-#include "base/fmt.hpp"
-
-// C++ standard library
-#include <span>
-#include <vector>
-
-namespace rn {
-
-// This is a matrix with type-safe indexing using X/Y and where
-// the dimensions are set with W/H. Indexing it once returns a
-// span that can only be indexed by X; indexing that span will
-// return a value.
-template<typename T>
-class Matrix {
-  W              w_ = 0;
-  std::vector<T> data_{};
-
- public:
-  Matrix( Delta delta ) : w_( delta.w ) {
-    CHECK( delta.w >= 0 );
-    CHECK( delta.h >= 0 );
-    size_t size = delta.h * delta.w;
-    data_.resize( size );
-    CHECK( data_.size() == size );
-  }
-
-  Matrix( Delta delta, T init ) : w_( delta.w ) {
-    CHECK( delta.w >= 0 );
-    CHECK( delta.h >= 0 );
-    size_t size = delta.h * delta.w;
-    data_.assign( size, init );
-    CHECK( data_.size() == size );
-  }
-
-  Matrix() : Matrix( Delta{} ) {}
-
-  Matrix( std::vector<T>&& data, W w )
-    : w_{ w }, data_{ std::move( data ) } {}
-
-  Matrix( Matrix const& )            = default;
-  Matrix& operator=( Matrix const& ) = default;
-  Matrix( Matrix&& )                 = default;
-  Matrix& operator=( Matrix&& )      = default;
-
-  bool operator==( Matrix<T> const& rhs ) const {
-    return w_ == rhs.w_ && data_ == rhs.data_;
-  }
-  bool operator!=( Matrix<T> const& rhs ) const {
-    return !( *this == rhs );
-  }
-
-  Delta size() const {
-    if( data_.size() == 0 ) return {};
-    return Delta{ .w = w_, .h = int( data_.size() / w_ ) };
-  }
-
-  Rect rect() const { return Rect::from( Coord{}, size() ); }
-
-  std::span<T const> operator[]( Y y ) const ATTR_LIFETIMEBOUND {
-    CHECK( y >= 0 && size_t( y ) < data_.size() );
-    return { &data_[y * w_], size_t( w_ ) };
-  }
-  std::span<T> operator[]( Y y ) ATTR_LIFETIMEBOUND {
-    CHECK( y >= 0 && size_t( y ) < data_.size() );
-    return { &data_[y * w_], size_t( w_ ) };
-  }
-
-  T const& operator[]( Coord coord ) const ATTR_LIFETIMEBOUND {
-    // These subscript operators should do the range checking.
-    return ( *this )[coord.y][coord.x];
-  };
-
-  T& operator[]( Coord coord ) ATTR_LIFETIMEBOUND {
-    // These subscript operators should do the range checking.
-    return ( *this )[coord.y][coord.x];
-  };
-
-  void clear() {
-    data_.clear();
-    w_ = 0;
-  }
-
-  std::vector<T> const& data() const { return data_; }
-
-  friend void to_str( Matrix const& o, std::string& out,
-                      base::ADL_t ) {
-    out += fmt::format( "Matrix{{size={}}}", o.size() );
-  }
-};
+namespace gfx {
 
 /****************************************************************
-** Cdr
+** gfx::Matrix cdr conversions.
 *****************************************************************/
 // The Matrix<T> class, although generic, happens to be used to
 // represent the world map in the game. Since this map can get
@@ -180,12 +85,13 @@ cdr::value to_canonical( cdr::converter&  conv,
   lst.reserve( m.data().size() );
   if( !write_defaults ) {
     conv.to_field( tbl, "has_coords", true );
-    for( Rect const r : gfx::subrects( m.rect() ) ) {
-      T const&       elem = m[r.upper_left()];
+    rect_iterator const ri( m.rect() );
+    for( rn::Coord const coord : ri ) {
+      T const&       elem = m[coord];
       static const T def{};
       if( elem == def ) continue;
-      lst.emplace_back( conv.to(
-          std::pair{ r.upper_left(), m[r.upper_left()] } ) );
+      lst.emplace_back(
+          conv.to( std::pair{ coord, m[coord] } ) );
     }
   } else {
     // Write defaults.
@@ -210,8 +116,8 @@ cdr::result<Matrix<T>> from_canonical( cdr::converter&   conv,
   UNWRAP_RETURN(
       has_coords,
       conv.from_field<bool>( tbl, "has_coords", used_keys ) );
-  UNWRAP_RETURN(
-      size, conv.from_field<Delta>( tbl, "size", used_keys ) );
+  UNWRAP_RETURN( size, conv.from_field<rn::Delta>( tbl, "size",
+                                                   used_keys ) );
 
   bool allow_missing_coords =
       conv.opts().default_construct_missing_fields;
@@ -235,8 +141,9 @@ cdr::result<Matrix<T>> from_canonical( cdr::converter&   conv,
 
   if( has_coords ) {
     UNWRAP_RETURN(
-        data, conv.from_field<std::vector<std::pair<Coord, T>>>(
-                  tbl, "data", used_keys ) );
+        data,
+        conv.from_field<std::vector<std::pair<rn::Coord, T>>>(
+            tbl, "data", used_keys ) );
     HAS_VALUE_OR_RET( check_sizes( data ) );
     Matrix<T> res( size );
     for( auto& [coord, elem] : data )
@@ -255,4 +162,4 @@ cdr::result<Matrix<T>> from_canonical( cdr::converter&   conv,
   }
 }
 
-} // namespace rn
+} // namespace gfx

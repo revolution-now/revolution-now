@@ -35,7 +35,7 @@ struct TerrainState {
   static constexpr std::string_view refl_ns   = "rn";
   static constexpr std::string_view refl_name = "TerrainState";
 
-  Matrix<MapSquare> const& world_map() const;
+  gfx::Matrix<MapSquare> const& world_map() const;
 
   Delta world_size_tiles() const;
   Rect  world_rect_tiles() const;
@@ -114,7 +114,8 @@ struct TerrainState {
   // involve changing its dimensions) it must always be done via
   // this method so that invariants of this class will be upheld.
   void modify_entire_map(
-      base::function_ref<void( Matrix<MapSquare>& )> mutator );
+      base::function_ref<void( gfx::Matrix<MapSquare>& )>
+          mutator );
 
   // This should only be called by code doing map generation.
   // Once a map is generated, the proto squares should not be
@@ -136,7 +137,7 @@ using ProtoSquaresMap =
     refl::enum_map<e_cardinal_direction, MapSquare>;
 using PlayerTerrainMap =
     refl::enum_map<e_nation, base::maybe<PlayerTerrain>>;
-using PlayerTerrainMatrix = Matrix<base::maybe<FogSquare>>;
+using PlayerTerrainMatrix = gfx::Matrix<base::maybe<FogSquare>>;
 
 } // namespace rn
 
