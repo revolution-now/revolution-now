@@ -283,8 +283,6 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
     }
   }
 
-  unordered_map<Coord, unordered_set<GenericUnitId>> const&
-                       units_and_coords = ss.units.from_coords();
   unordered_set<Coord> unfogged;
 
   auto reveal = [&]( Coord const coord ) {
@@ -296,21 +294,16 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
   };
 
   // Unfog the surroundings of units.
-  for( auto& [coord, unit_ids] : units_and_coords ) {
-    for( GenericUnitId const generic_id : unit_ids ) {
-      // Note that in this loop iteration we always break instead
-      // of continue as an optimization, since if one unit on a
-      // tile does not satisfy the predicates then none of the
-      // others will.
-      maybe<Unit const&> unit =
-          ss.units.maybe_euro_unit_for( generic_id );
-      if( !unit.has_value() ) break;
-      if( unit->nation() != nation ) break;
-      // This should not yield and squares that don't exist.
-      vector<Coord> const visible = unit_visible_squares(
-          ss, nation, unit->type(), coord );
-      for( Coord const coord : visible ) reveal( coord );
-    }
+  for( auto& [unit_id, p_state] : ss.units.euro_all() ) {
+    maybe<UnitOwnership::world const&> world =
+        p_state->ownership.get_if<UnitOwnership::world>();
+    if( !world.has_value() ) continue;
+    Unit const& unit = p_state->unit;
+    if( unit.nation() != nation ) continue;
+    // This should not yield and squares that don't exist.
+    vector<Coord> const visible = unit_visible_squares(
+        ss, nation, unit.type(), world->coord );
+    for( Coord const coord : visible ) reveal( coord );
   }
 
   // Unfog the surroundings of colonies.
