@@ -487,40 +487,35 @@ void LandViewRenderer::render_input_overrun_indicator() const {
                  e_tile::lift_key );
 }
 
-void LandViewRenderer::render_colony(
-    Colony const& colony ) const {
-  if( viz_.visible( colony.location ) ==
-      e_tile_visibility::hidden )
-    return;
-  Coord const tile_coord =
-      render_rect_for_tile( colony.location ).upper_left();
-  Coord const colony_sprite_upper_left =
-      tile_coord - Delta{ .w = 6, .h = 6 };
-  ColonyRenderOptions const options{ .render_name       = true,
-                                     .render_population = true,
-                                     .render_flag       = true };
-  if( viz_.visible( colony.location ) ==
-      e_tile_visibility::visible_and_clear ) {
-    render_real_colony( renderer_, colony_sprite_upper_left, ss_,
-                        colony, options );
-    return;
-  }
-
-  // The tile is explored but fogged.
-  UNWRAP_CHECK( fog_square,
-                viz_.fog_square_at( colony.location ) );
-  if( fog_square.colony.has_value() ) {
-    render_fog_colony( renderer_, colony_sprite_upper_left,
-                       *fog_square.colony, options );
-    return;
-  }
-
-  // Do nothing since the player is not aware of the colony here,
-  // probably because they explored this tile before it was
-  // founded.
+Coord LandViewRenderer::colony_pixel_coord_from_tile(
+    Coord tile ) const {
+  Coord const pixel_coord =
+      render_rect_for_tile( tile ).upper_left() -
+      Delta{ .w = 6, .h = 6 };
+  return pixel_coord;
 }
 
-void LandViewRenderer::render_colony_depixelate(
+static ColonyRenderOptions const kDefaultColonyRenderOptions{
+    .render_name       = true,
+    .render_population = true,
+    .render_flag       = true };
+
+void LandViewRenderer::render_real_colony(
+    Colony const& colony ) const {
+  Coord const tile = colony.location;
+  rn::render_real_colony(
+      renderer_, colony_pixel_coord_from_tile( tile ), ss_,
+      colony, kDefaultColonyRenderOptions );
+}
+
+void LandViewRenderer::render_fog_colony(
+    FogColony const& fog_colony, Coord tile ) const {
+  rn::render_fog_colony(
+      renderer_, colony_pixel_coord_from_tile( tile ),
+      fog_colony, kDefaultColonyRenderOptions );
+}
+
+void LandViewRenderer::render_real_colony_depixelate(
     Colony const& colony ) const {
   UNWRAP_CHECK(
       animation,
@@ -534,7 +529,7 @@ void LandViewRenderer::render_colony_depixelate(
                            animation.stage );
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
                            hash_anchor );
-  this->render_colony( colony );
+  this->render_real_colony( colony );
 }
 
 // This will render the background around the zoomed-out map.
@@ -670,19 +665,30 @@ void LandViewRenderer::render_colonies() const {
   // FIXME: since colony icons spill over the usual 32x32 tile
   // we need to render colonies that are beyond the `covered`
   // rect.
-  unordered_map<ColonyId, Colony> const& all =
-      ss_.colonies.all();
-  for( auto const& [id, colony] : all ) {
-    if( !colony.location.is_inside( covered_ ) ) continue;
-    maybe<ColonyAnimationState const&> anim =
-        lv_animator_.colony_animation( id );
-    if( !anim.has_value() )
-      this->render_colony( colony );
-    else {
-      switch( anim->to_enum() ) {
-        case ColonyAnimationState::e::depixelate:
-          render_colony_depixelate( colony );
-          break;
+  for( Coord const coord : gfx::rect_iterator( covered_ ) ) {
+    switch( viz_.visible( coord ) ) {
+      case e_tile_visibility::hidden:
+        continue;
+      case e_tile_visibility::visible_and_clear: {
+        maybe<ColonyId> const real_colony_id =
+            ss_.colonies.maybe_from_coord( coord );
+        if( real_colony_id.has_value() ) {
+          maybe<ColonyAnimationState const&> anim =
+              lv_animator_.colony_animation( *real_colony_id );
+          Colony const& colony =
+              ss_.colonies.colony_for( *real_colony_id );
+          if( !anim.has_value() )
+            render_real_colony( colony );
+          else
+            render_real_colony_depixelate( colony );
+        }
+        break;
+      }
+      case e_tile_visibility::visible_with_fog: {
+        UNWRAP_CHECK( fog_square, viz_.fog_square_at( coord ) );
+        if( fog_square.colony.has_value() )
+          render_fog_colony( *fog_square.colony, coord );
+        break;
       }
     }
   }

@@ -40,6 +40,7 @@ namespace rn {
 
 class SmoothViewport;
 
+struct FogColony;
 struct FogDwelling;
 struct LandViewAnimator;
 struct SSConst;
@@ -110,9 +111,15 @@ struct LandViewRenderer {
 
   void render_input_overrun_indicator() const;
 
-  void render_colony( Colony const& colony ) const;
+  void render_fog_colony( FogColony const& fog_colony,
+                          Coord            tile ) const;
 
-  void render_colony_depixelate( Colony const& colony ) const;
+  void render_real_colony( Colony const& colony ) const;
+
+  void render_real_colony_depixelate(
+      Colony const& colony ) const;
+
+  Coord colony_pixel_coord_from_tile( Coord tile ) const;
 
   void render_backdrop() const;
 
