@@ -113,69 +113,22 @@ bool is_checkbox_enabled( e_game_flag_option option ) {
 ** Public API
 *****************************************************************/
 wait<> open_game_options_box( SS& ss, TS& ts ) {
-  using namespace ui;
-
   auto& flags = ss.settings.game_options.flags;
-
-  auto top_array = make_unique<VerticalArrayView>(
-      VerticalArrayView::align::center );
-
-  // Add text.
-  auto text_view = make_unique<TextView>(
-      "Select or unselect game options:" );
-  top_array->add_view( std::move( text_view ) );
-  // Add some space between title and check boxes.
-  top_array->add_view(
-      make_unique<EmptyView>( Delta{ .w = 1, .h = 2 } ) );
-
-  // Add check boxes.
-  auto boxes_array = make_unique<VerticalArrayView>(
-      VerticalArrayView::align::left );
-
-  refl::enum_map<e_game_flag_option, LabeledCheckBoxView const*>
-      boxes;
+  refl::enum_map<e_game_flag_option, CheckBoxInfo> boxes;
   for( e_game_flag_option option :
-       refl::enum_values<e_game_flag_option> ) {
-    auto labeled_box = make_unique<LabeledCheckBoxView>(
-        IGui::identifier_to_display_name(
+       refl::enum_values<e_game_flag_option> )
+    boxes[option] = CheckBoxInfo{
+        .name = IGui::identifier_to_display_name(
             refl::enum_value_name( option ) ),
-        flags[option] );
-    if( !is_checkbox_enabled( option ) )
-      labeled_box->set_disabled( true );
-    boxes[option] = labeled_box.get();
-    boxes_array->add_view( std::move( labeled_box ) );
-  }
-  boxes_array->recompute_child_positions();
+        .on       = flags[option],
+        .disabled = !is_checkbox_enabled( option ) };
 
-  top_array->add_view( std::move( boxes_array ) );
-  // Add some space between boxes and buttons.
-  top_array->add_view(
-      make_unique<EmptyView>( Delta{ .w = 1, .h = 4 } ) );
+  co_await ts.gui.enum_check_boxes(
+      "Select or unselect game options:", boxes );
 
-  // Add buttons.
-  // FIXME: get rid of the buttons here; the player should just
-  // be able to set the check boxes and then close the window.
-  auto buttons_view          = make_unique<ui::OkCancelView2>();
-  ui::OkCancelView2* buttons = buttons_view.get();
-  top_array->add_view( std::move( buttons_view ) );
-
-  // Finalize top-level array.
-  top_array->recompute_child_positions();
-
-  // Create window.
-  WindowManager& wm = ts.planes.window().manager();
-  Window         window( wm );
-  window.set_view( std::move( top_array ) );
-  window.autopad_me();
-  // Must be done after auto-padding.
-  window.center_me();
-
-  ui::e_ok_cancel const finished = co_await buttons->next();
-  if( finished == ui::e_ok_cancel::cancel ) co_return;
-
-  for( auto [option, box] : boxes ) {
+  for( auto [option, info] : boxes ) {
     bool const had_previously = flags[option];
-    bool const has_now        = box->on();
+    bool const has_now        = info.on;
     flags[option]             = has_now;
     if( has_now && !had_previously )
       on_option_enabled( ts, option );
