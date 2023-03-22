@@ -38,4 +38,9 @@ struct game_load_interrupt : std::exception {
 // erences the colony during the unwinding.
 struct colony_abandon_interrupt : std::exception {};
 
+// This is thrown when we want to back out all the way to the top
+// of the turn loop, perhaps due to some change in the configura-
+// tion of the game.
+struct top_of_turn_loop : std::exception {};
+
 } // namespace rn

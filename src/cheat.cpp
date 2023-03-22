@@ -21,6 +21,7 @@
 #include "fog-conv.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
+#include "interrupts.hpp"
 #include "logger.hpp"
 #include "market.hpp"
 #include "plane-stack.hpp"
@@ -35,6 +36,7 @@
 
 // config
 #include "config/colony.rds.hpp"
+#include "config/nation.hpp"
 #include "config/rn.rds.hpp"
 #include "config/unit-type.hpp"
 
@@ -132,6 +134,55 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
   ss.land_view.map_revealed = revealed;
   update_map_visibility(
       ts, player_for_role( ss, e_player_role::viewer ) );
+}
+
+wait<> cheat_set_human_players( SS& ss, TS& ts ) {
+  CO_RETURN_IF_NO_CHEAT;
+  // All enabled by default.
+  refl::enum_map<e_nation, CheckBoxInfo> info_map;
+  for( e_nation nation : refl::enum_values<e_nation> ) {
+    info_map[nation] = CheckBoxInfo{
+        .name     = config_nation.nations[nation].display_name,
+        .on       = false,
+        .disabled = true };
+    if( !ss.players.players[nation].has_value() ) {
+      info_map[nation].disabled = true;
+      info_map[nation].on       = false;
+      continue;
+    }
+    info_map[nation].disabled = false;
+    info_map[nation].on       = ss.players.humans[nation];
+  }
+
+  while( true ) {
+    co_await ts.gui.enum_check_boxes<e_nation>(
+        "Select Human Nations:", info_map );
+    bool found_human = false;
+    for( e_nation nation : refl::enum_values<e_nation> )
+      if( info_map[nation].on ) found_human = true;
+    if( found_human ) break;
+    co_await ts.gui.message_box(
+        "There must be at least one human player." );
+  }
+
+  // Set new human statuses.
+  for( e_nation nation : refl::enum_values<e_nation> )
+    ss.players.humans[nation] = info_map[nation].on;
+
+  // Set new default human.
+  for( e_nation nation : refl::enum_values<e_nation> ) {
+    if( !info_map[nation].on ) continue;
+    ss.players.default_human = nation;
+    break;
+  }
+
+  // We do this because we need to back out beyond the individual
+  // nation's turn processor in order to handle this configura-
+  // tion change properly. For example, if the current player is
+  // a human and the above just changed it to an AI player then
+  // we don't want to immediately resume having that player's
+  // units ask for orders.
+  throw top_of_turn_loop{};
 }
 
 void cheat_explore_entire_map( SS& ss, TS& ts ) {

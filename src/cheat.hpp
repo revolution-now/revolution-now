@@ -50,6 +50,9 @@ wait<> cheat_reveal_map( SS& ss, TS& ts );
 // with a unit, in that they will be exposed but then fogged.
 void cheat_explore_entire_map( SS& ss, TS& ts );
 
+// Set which players are human.
+wait<> cheat_set_human_players( SS& ss, TS& ts );
+
 // No dialog box, just toggle the map view between the entire map
 // and "no special view."
 void cheat_toggle_reveal_full_map( SS& ss, TS& ts );

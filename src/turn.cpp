@@ -356,6 +356,10 @@ wait<> menu_handler( SS& ss, TS& ts, Player& player,
       cheat_explore_entire_map( ss, ts );
       break;
     }
+    case e_menu_item::cheat_set_human_players: {
+      co_await cheat_set_human_players( ss, ts );
+      break;
+    }
     case e_menu_item::cheat_map_editor: {
       // Need to co_await so that the map_updater stays alive.
       co_await run_map_editor( ss, ts );
@@ -963,9 +967,6 @@ wait<maybe<NationTurnState>> nation_turn_iter(
   SWITCH( st ) {
     CASE( not_started ) {
       print_bar( '-', fmt::format( "[ {} ]", nation ) );
-      // TODO: Until we have AI.
-      if( !ss.players.humans[nation] )
-        co_return NationTurnState::finished{};
       co_await nation_start_of_turn( ss, ts, player );
       co_return NationTurnState::colonies{};
     }
@@ -1033,6 +1034,11 @@ wait<maybe<NationTurnState>> nation_turn_iter(
 wait<> nation_turn( SS& ss, TS& ts, e_nation nation,
                     NationTurnState& st ) {
   if( !ss.players.players[nation].has_value() ) co_return;
+  // TODO: Until we have AI.
+  if( !ss.players.humans[nation] ) {
+    st = NationTurnState::finished{};
+    co_return;
+  }
   while( true ) {
     maybe<NationTurnState> const next =
         co_await nation_turn_iter( ss, ts, nation, st );
@@ -1122,7 +1128,11 @@ wait<> next_turn( SS& ss, TS& ts ) {
 *****************************************************************/
 // Runs through multiple turns.
 wait<> turn_loop( SS& ss, TS& ts ) {
-  while( true ) co_await next_turn( ss, ts );
+  while( true ) {
+    try {
+      co_await next_turn( ss, ts );
+    } catch( top_of_turn_loop const& ) {}
+  }
 }
 
 } // namespace rn
