@@ -402,41 +402,32 @@ void LandViewRenderer::render_units_impl() const {
   }
 }
 
-void LandViewRenderer::render_native_dwelling(
-    Dwelling const& dwelling ) const {
-  Coord const location = ss_.natives.coord_for( dwelling.id );
-  if( viz_.visible( location ) == e_tile_visibility::hidden )
-    return;
-  Coord const tile_coord =
-      render_rect_for_tile( location ).upper_left() -
+Coord LandViewRenderer::dwelling_pixel_coord_from_tile(
+    Coord tile ) const {
+  Coord const pixel_coord =
+      render_rect_for_tile( tile ).upper_left() -
       Delta{ .w = 6, .h = 6 };
-
-  if( viz_.visible( location ) ==
-      e_tile_visibility::visible_and_clear ) {
-    render_real_dwelling( renderer_, tile_coord, ss_, dwelling );
-    return;
-  }
-
-  // The tile is explored but fogged.
-  UNWRAP_CHECK( fog_square, viz_.fog_square_at( location ) );
-  if( fog_square.dwelling.has_value() ) {
-    render_fog_dwelling( renderer_, tile_coord,
-                         *fog_square.dwelling );
-    return;
-  }
-
-  // The player has apparently visited this tile but is not aware
-  // of the dwelling on it. This should never happen in an (un-
-  // modded) game because dwellings can't spawn or respawn after
-  // map generation under any circumstances. TODO: consider re-
-  // moving this check-fail in the future to allow for mods that
-  // might cause dwellings to spawn.
-  SHOULD_NOT_BE_HERE;
+  return pixel_coord;
 }
 
-void LandViewRenderer::render_native_dwelling_depixelate(
+void LandViewRenderer::render_real_dwelling(
     Dwelling const& dwelling ) const {
-  Coord const location = ss_.natives.coord_for( dwelling.id );
+  Coord const tile = ss_.natives.coord_for( dwelling.id );
+  rn::render_real_dwelling(
+      renderer_, dwelling_pixel_coord_from_tile( tile ), ss_,
+      dwelling );
+}
+
+void LandViewRenderer::render_fog_dwelling(
+    FogDwelling const& fog_dwelling, Coord tile ) const {
+  rn::render_fog_dwelling(
+      renderer_, dwelling_pixel_coord_from_tile( tile ),
+      fog_dwelling );
+}
+
+void LandViewRenderer::render_real_dwelling_depixelate(
+    Dwelling const& dwelling ) const {
+  Coord const tile = ss_.natives.coord_for( dwelling.id );
   UNWRAP_CHECK(
       animation,
       lv_animator_.dwelling_animation( dwelling.id )
@@ -444,12 +435,12 @@ void LandViewRenderer::render_native_dwelling_depixelate(
   // As usual, the hash anchor coord is arbitrary so long as
   // its position is fixed relative to the sprite.
   Coord const hash_anchor =
-      render_rect_for_tile( location ).upper_left();
+      render_rect_for_tile( tile ).upper_left();
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                            animation.stage );
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
                            hash_anchor );
-  render_native_dwelling( dwelling );
+  render_real_dwelling( dwelling );
 }
 
 // When the player is moving a unit and it runs out of movement
@@ -607,20 +598,34 @@ void LandViewRenderer::render_units() const {
   render_input_overrun_indicator();
 }
 
-void LandViewRenderer::render_native_dwellings() const {
-  unordered_map<DwellingId, DwellingState> const& all =
-      ss_.natives.dwellings_all();
-  // FIXME: this needs to just iterate over those in the covered
-  // rect for efficiency.
-  for( auto const& [id, state] : all ) {
-    if( !state.ownership.location.is_inside( covered_ ) )
-      continue;
-    maybe<DwellingAnimationState const&> anim =
-        lv_animator_.dwelling_animation( id );
-    if( !anim.has_value() )
-      render_native_dwelling( state.dwelling );
-    else
-      render_native_dwelling_depixelate( state.dwelling );
+void LandViewRenderer::render_dwellings() const {
+  for( Coord const coord : gfx::rect_iterator( covered_ ) ) {
+    switch( viz_.visible( coord ) ) {
+      case e_tile_visibility::hidden:
+        continue;
+      case e_tile_visibility::visible_and_clear: {
+        maybe<DwellingId> const real_dwelling_id =
+            ss_.natives.maybe_dwelling_from_coord( coord );
+        if( real_dwelling_id.has_value() ) {
+          maybe<DwellingAnimationState const&> anim =
+              lv_animator_.dwelling_animation(
+                  *real_dwelling_id );
+          Dwelling const& dwelling =
+              ss_.natives.dwelling_for( *real_dwelling_id );
+          if( !anim.has_value() )
+            render_real_dwelling( dwelling );
+          else
+            render_real_dwelling_depixelate( dwelling );
+        }
+        break;
+      }
+      case e_tile_visibility::visible_with_fog: {
+        UNWRAP_CHECK( fog_square, viz_.fog_square_at( coord ) );
+        if( fog_square.dwelling.has_value() )
+          render_fog_dwelling( *fog_square.dwelling, coord );
+        break;
+      }
+    }
   }
 }
 
@@ -731,7 +736,7 @@ void LandViewRenderer::render_entities() const {
   SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
                            corner.distance_from_origin() );
   render_units_underneath();
-  render_native_dwellings();
+  render_dwellings();
   render_colonies();
   render_units();
 }
