@@ -8,9 +8,13 @@
 # Description: Rds definitions for the imap-updater module.
 #
 # ===============================================================
+# gfx
+include "gfx/coord.hpp"
+
 namespace "rn"
 
 struct.BuffersUpdated {
+  tile 'Coord',
   landscape 'bool',
   obfuscation 'bool',
 }

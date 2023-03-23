@@ -109,24 +109,24 @@ struct IMapUpdater {
   // quently.
   virtual void modify_entire_map( MapUpdateFunc mutator ) = 0;
 
-  // If the given nation cannot see the square it will be made
-  // visible, and if it was already visible then it will be up-
-  // dated in case it was stale. In either case, it will also
-  // remove the fog from the square if there is any.
-  //
-  // The return object will specify which buffers needed a re-
-  // draw. and will have been redrawn.
-  virtual BuffersUpdated make_square_visible(
-      Coord tile, e_nation nation ) = 0;
+  // If the given nation cannot see the squares they will be made
+  // visible, and if they were already visible then they will be
+  // updated in case they were stale. In either case, it will
+  // also remove the fog from the squares if there is any. The
+  // return objects will specify which buffers needed a redraw
+  // for each tile, respectively, and which will have been re-
+  // drawn.
+  virtual std::vector<BuffersUpdated> make_squares_visible(
+      e_nation nation, std::vector<Coord> const& tiles ) = 0;
 
-  // If the square is not fogged from the perspective of the
-  // player then it is made so and any redrawing is done if nec-
-  // essary, if fog rendering is enabled. If the square is not
-  // visible then no changes are made. Returns which buffers
-  // needed a redraw, if any (in practice, this will just be the
-  // obfuscation buffer).
-  virtual BuffersUpdated make_square_fogged(
-      Coord tile, e_nation nation ) = 0;
+  // If the squares are not fogged from the perspective of the
+  // nation then they are made so and any redrawing is done if
+  // necessary, if fog rendering is enabled. If the squares are
+  // not visible then no changes are made. Returns which buffers
+  // needed a redraw for each tile respectively, if any (in prac-
+  // tice, this will just be the obfuscation buffer).
+  virtual std::vector<BuffersUpdated> make_squares_fogged(
+      e_nation nation, std::vector<Coord> const& tiles ) = 0;
 
   // Will redraw the entire map.
   virtual void redraw() = 0;

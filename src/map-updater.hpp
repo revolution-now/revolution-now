@@ -43,12 +43,14 @@ struct NonRenderingMapUpdater : IMapUpdater {
                                     SquareUpdateFunc ) override;
 
   // Implement IMapUpdater.
-  BuffersUpdated make_square_visible( Coord    tile,
-                                      e_nation nation ) override;
+  std::vector<BuffersUpdated> make_squares_visible(
+      e_nation                  nation,
+      std::vector<Coord> const& tiles ) override;
 
   // Implement IMapUpdater.
-  BuffersUpdated make_square_fogged( Coord    tile,
-                                     e_nation nation ) override;
+  std::vector<BuffersUpdated> make_squares_fogged(
+      e_nation                  nation,
+      std::vector<Coord> const& tiles ) override;
 
   // Implement IMapUpdater.
   void modify_entire_map( MapUpdateFunc mutator ) override;
@@ -81,12 +83,14 @@ struct RenderingMapUpdater : NonRenderingMapUpdater {
       Coord tile, SquareUpdateFunc mutator ) override;
 
   // Implement IMapUpdater.
-  BuffersUpdated make_square_visible( Coord    tile,
-                                      e_nation nation ) override;
+  std::vector<BuffersUpdated> make_squares_visible(
+      e_nation                  nation,
+      std::vector<Coord> const& tiles ) override;
 
   // Implement IMapUpdater.
-  BuffersUpdated make_square_fogged( Coord    tile,
-                                     e_nation nation ) override;
+  std::vector<BuffersUpdated> make_squares_fogged(
+      e_nation                  nation,
+      std::vector<Coord> const& tiles ) override;
 
   // Implement IMapUpdater.
   void modify_entire_map( MapUpdateFunc mutator ) override;
@@ -98,8 +102,8 @@ struct RenderingMapUpdater : NonRenderingMapUpdater {
   void unrender() override;
 
  private:
-  BuffersUpdated redraw_buffers_for_tile_where_needed(
-      Coord tile, BuffersUpdated const& buffers_updated );
+  void redraw_buffers_for_tiles_where_needed(
+      std::vector<BuffersUpdated> const& buffers_updated );
 
   void redraw_landscape_buffer();
   void redraw_obfuscation_buffer();
@@ -137,12 +141,14 @@ struct TrappingMapUpdater : IMapUpdater {
                                     SquareUpdateFunc ) override;
 
   // Implement IMapUpdater.
-  BuffersUpdated make_square_visible( Coord    tile,
-                                      e_nation nation ) override;
+  std::vector<BuffersUpdated> make_squares_visible(
+      e_nation                  nation,
+      std::vector<Coord> const& tiles ) override;
 
   // Implement IMapUpdater.
-  BuffersUpdated make_square_fogged( Coord    tile,
-                                     e_nation nation ) override;
+  std::vector<BuffersUpdated> make_squares_fogged(
+      e_nation                  nation,
+      std::vector<Coord> const& tiles ) override;
 
   // Implement IMapUpdater.
   void modify_entire_map( MapUpdateFunc mutator ) override;

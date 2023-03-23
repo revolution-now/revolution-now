@@ -320,15 +320,12 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
     }
   }
 
-  // Now affect the changes.
-  for( Coord const coord : fogged ) {
-    CHECK( !unfogged.contains( coord ) );
-    ts.map_updater.make_square_fogged( coord, nation );
-  }
-  for( Coord const coord : unfogged ) {
-    CHECK( !fogged.contains( coord ) );
-    ts.map_updater.make_square_visible( coord, nation );
-  }
+  // Now affect the changes in batch.
+  ts.map_updater.make_squares_fogged(
+      nation, vector<Coord>( fogged.begin(), fogged.end() ) );
+  ts.map_updater.make_squares_visible(
+      nation,
+      vector<Coord>( unfogged.begin(), unfogged.end() ) );
 }
 
 void update_map_visibility( TS&                   ts,

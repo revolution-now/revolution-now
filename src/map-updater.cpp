@@ -61,7 +61,7 @@ BuffersUpdated NonRenderingMapUpdater::modify_map_square(
   mutator( ss_.mutable_terrain_use_with_care.mutable_square_at(
       tile ) );
   MapSquare      new_square = ss_.terrain.square_at( tile );
-  BuffersUpdated buffers_updated;
+  BuffersUpdated buffers_updated{ .tile = tile };
   if( new_square == old_square ) return buffers_updated;
 
   // Update player maps.
@@ -69,76 +69,90 @@ BuffersUpdated NonRenderingMapUpdater::modify_map_square(
       nations_with_visibility_of_square( ss_, tile );
   for( auto [nation, visible] : visible_to_nations ) {
     if( !visible ) continue;
-    BuffersUpdated const nation_buffers_updated =
-        make_square_visible( tile, nation );
+    vector<BuffersUpdated> const nation_buffers_updated =
+        make_squares_visible( nation, { tile } );
+    CHECK( nation_buffers_updated.size() == 1 );
     if( options().nation != nation ) continue;
-    buffers_updated = nation_buffers_updated;
+    buffers_updated = nation_buffers_updated[0];
   }
 
   return buffers_updated;
 }
 
-BuffersUpdated NonRenderingMapUpdater::make_square_visible(
-    Coord tile, e_nation nation ) {
+vector<BuffersUpdated>
+NonRenderingMapUpdater::make_squares_visible(
+    e_nation nation, vector<Coord> const& tiles ) {
   PlayerTerrain& player_terrain =
       ss_.mutable_terrain_use_with_care.mutable_player_terrain(
           nation );
   gfx::Matrix<maybe<FogSquare>>& map = player_terrain.map;
 
-  BuffersUpdated buffers_updated;
+  vector<BuffersUpdated> res;
+  for( Coord const tile : tiles ) {
+    BuffersUpdated& buffers_updated = res.emplace_back();
+    buffers_updated.tile            = tile;
+    // Unexplored status.
+    bool const unexplored_before = !map[tile].has_value();
+    if( unexplored_before ) {
+      buffers_updated.landscape   = true;
+      buffers_updated.obfuscation = true;
+      map[tile].emplace();
+    }
 
-  // Unexplored status.
-  bool const unexplored_before = !map[tile].has_value();
-  if( unexplored_before ) {
-    buffers_updated.landscape   = true;
-    buffers_updated.obfuscation = true;
-    map[tile].emplace();
+    FogSquare& fog_square = *map[tile];
+    bool const fog_present_before =
+        !fog_square.fog_of_war_removed;
+    fog_square.fog_of_war_removed = true;
+    if( fog_present_before && options().render_fog_of_war )
+      buffers_updated.obfuscation = true;
+
+    MapSquare&       player_square = fog_square.square;
+    MapSquare const& real_square = ss_.terrain.square_at( tile );
+    if( player_square != real_square )
+      buffers_updated.landscape = true;
+    copy_real_square_to_fog_square( ss_, tile, fog_square );
   }
 
-  FogSquare& fog_square         = *map[tile];
-  bool const fog_present_before = !fog_square.fog_of_war_removed;
-  fog_square.fog_of_war_removed = true;
-  if( fog_present_before && options().render_fog_of_war )
-    buffers_updated.obfuscation = true;
-
-  MapSquare&       player_square = fog_square.square;
-  MapSquare const& real_square   = ss_.terrain.square_at( tile );
-  if( player_square != real_square )
-    buffers_updated.landscape = true;
-  copy_real_square_to_fog_square( ss_, tile, fog_square );
-
-  return buffers_updated;
+  CHECK( res.size() == tiles.size() );
+  return res;
 }
 
 // Implement IMapUpdater.
-BuffersUpdated NonRenderingMapUpdater::make_square_fogged(
-    Coord tile, e_nation nation ) {
+vector<BuffersUpdated>
+NonRenderingMapUpdater::make_squares_fogged(
+    e_nation nation, vector<Coord> const& tiles ) {
   PlayerTerrain& player_terrain =
       ss_.mutable_terrain_use_with_care.mutable_player_terrain(
           nation );
   gfx::Matrix<maybe<FogSquare>>& map = player_terrain.map;
 
-  BuffersUpdated buffers_updated;
-  if( !map[tile].has_value() ) return buffers_updated;
-  FogSquare& fog_square = *map[tile];
-  if( !fog_square.fog_of_war_removed ) return buffers_updated;
+  vector<BuffersUpdated> res;
+  for( Coord const tile : tiles ) {
+    BuffersUpdated& buffers_updated = res.emplace_back();
+    buffers_updated.tile            = tile;
+    if( !map[tile].has_value() ) continue;
+    FogSquare& fog_square = *map[tile];
+    if( !fog_square.fog_of_war_removed ) continue;
 
-  fog_square.fog_of_war_removed = false;
-  if( options().render_fog_of_war )
-    buffers_updated.obfuscation = true;
+    fog_square.fog_of_war_removed = false;
+    if( options().render_fog_of_war )
+      buffers_updated.obfuscation = true;
 
-  // This won't affect the fog of war, but because the unit is
-  // losing full visibility of this tile, we need to make sure
-  // that the player's copy of the square reflects everything
-  // that is currently on it. This is needed because e.g. let's
-  // say that the player is sitting next to a dwelling, then a
-  // foreign missionary establishes a mission there (which won't
-  // update the player's FogSquare), then the player moves away;
-  // we want the latest state of that dwelling to be recorded so
-  // that the mission doesn't then appear to disappear when the
-  // fog appears.
-  copy_real_square_to_fog_square( ss_, tile, fog_square );
-  return buffers_updated;
+    // This won't affect the fog of war, but because the unit is
+    // losing full visibility of this tile, we need to make sure
+    // that the player's copy of the square reflects everything
+    // that is currently on it. This is needed because e.g. let's
+    // say that the player is sitting next to a dwelling, then a
+    // foreign missionary establishes a mission there (which
+    // won't update the player's FogSquare), then the player
+    // moves away; we want the latest state of that dwelling to
+    // be recorded so that the mission doesn't then appear to
+    // disappear when the fog appears.
+    copy_real_square_to_fog_square( ss_, tile, fog_square );
+  }
+
+  CHECK( res.size() == tiles.size() );
+  return res;
 }
 
 void NonRenderingMapUpdater::modify_entire_map(
@@ -227,9 +241,8 @@ void RenderingMapUpdater::redraw_square_single_buffer(
             buffer_tracking.tiles_redrawn );
 }
 
-BuffersUpdated
-RenderingMapUpdater::redraw_buffers_for_tile_where_needed(
-    Coord tile, BuffersUpdated const& buffers_updated ) {
+void RenderingMapUpdater::redraw_buffers_for_tiles_where_needed(
+    vector<BuffersUpdated> const& buffers_updated ) {
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
   Visibility const viz( ss_, options().nation );
@@ -244,40 +257,53 @@ RenderingMapUpdater::redraw_buffers_for_tile_where_needed(
   // and so it doesn't seem worth it to take the performance hit
   // of re-rendering an additional 16 tiles just to support that
   // case, which is not part of a normal game anyway.
+  //
+  // In any case, in practice when we are rerendering multiple
+  // tiles in a single region, the addition of these surrounding
+  // tiles will cause many tiles to be redrawn redundantly, and
+  // so we first find a unique set, then render each tile ones.
+  unordered_set<Coord> landscape_updates;
+  unordered_set<Coord> obfuscation_updates;
 
-  if( buffers_updated.landscape ) {
-    for( e_cdirection d : refl::enum_values<e_cdirection> ) {
-      Coord const moved = tile.moved( d );
-      if( !ss_.terrain.square_exists( moved ) ) continue;
-      redraw_square_single_buffer(
-          moved, landscape_tracking_,
-          rr::e_render_buffer::landscape_annex,
-          [&] {
-            render_landscape_square_if_not_fully_hidden(
-                renderer_, moved * g_tile_delta, ss_, moved, viz,
-                terrain_options );
-          },
-          [&] { redraw_landscape_buffer(); } );
+  for( int i = 0; i < int( buffers_updated.size() ); ++i ) {
+    Coord const tile = buffers_updated[i].tile;
+    if( buffers_updated[i].landscape ) {
+      for( e_cdirection d : refl::enum_values<e_cdirection> ) {
+        Coord const moved = tile.moved( d );
+        if( !ss_.terrain.square_exists( moved ) ) continue;
+        landscape_updates.insert( moved );
+      }
+    }
+    if( buffers_updated[i].obfuscation ) {
+      for( e_cdirection d : refl::enum_values<e_cdirection> ) {
+        Coord const moved = tile.moved( d );
+        if( !ss_.terrain.square_exists( moved ) ) continue;
+        obfuscation_updates.insert( moved );
+      }
     }
   }
 
-  if( buffers_updated.obfuscation ) {
-    for( e_cdirection d : refl::enum_values<e_cdirection> ) {
-      Coord const moved = tile.moved( d );
-      if( !ss_.terrain.square_exists( moved ) ) continue;
-      redraw_square_single_buffer(
-          moved, obfuscation_tracking_,
-          rr::e_render_buffer::obfuscation_annex,
-          [&] {
-            render_obfuscation_overlay(
-                renderer_, moved * g_tile_delta, moved, viz,
-                terrain_options );
-          },
-          [&] { redraw_obfuscation_buffer(); } );
-    }
-  }
+  for( Coord const tile : landscape_updates )
+    redraw_square_single_buffer(
+        tile, landscape_tracking_,
+        rr::e_render_buffer::landscape_annex,
+        [&] {
+          render_landscape_square_if_not_fully_hidden(
+              renderer_, tile * g_tile_delta, ss_, tile, viz,
+              terrain_options );
+        },
+        [&] { redraw_landscape_buffer(); } );
 
-  return buffers_updated;
+  for( Coord const tile : obfuscation_updates )
+    redraw_square_single_buffer(
+        tile, obfuscation_tracking_,
+        rr::e_render_buffer::obfuscation_annex,
+        [&] {
+          render_obfuscation_overlay( renderer_,
+                                      tile * g_tile_delta, tile,
+                                      viz, terrain_options );
+        },
+        [&] { redraw_obfuscation_buffer(); } );
 }
 
 BuffersUpdated RenderingMapUpdater::modify_map_square(
@@ -285,33 +311,34 @@ BuffersUpdated RenderingMapUpdater::modify_map_square(
     base::function_ref<void( MapSquare& )> mutator ) {
   BuffersUpdated const buffers_updated =
       this->Base::modify_map_square( tile, mutator );
-  return redraw_buffers_for_tile_where_needed( tile,
-                                               buffers_updated );
+  redraw_buffers_for_tiles_where_needed( { buffers_updated } );
+  return buffers_updated;
 }
 
-BuffersUpdated RenderingMapUpdater::make_square_visible(
-    Coord const tile, e_nation nation ) {
-  BuffersUpdated const buffers_updated =
-      this->Base::make_square_visible( tile, nation );
+vector<BuffersUpdated> RenderingMapUpdater::make_squares_visible(
+    e_nation nation, vector<Coord> const& tiles ) {
+  vector<BuffersUpdated> buffers_updated =
+      this->Base::make_squares_visible( nation, tiles );
   // If entire map is visible then there is no need to render.
-  if( !options().nation.has_value() ) return BuffersUpdated{};
+  if( !options().nation.has_value() ) return buffers_updated;
   // If it's another nation then not relevant for rendering.
-  if( nation != *options().nation ) return BuffersUpdated{};
-  return redraw_buffers_for_tile_where_needed( tile,
-                                               buffers_updated );
+  if( nation != *options().nation ) return buffers_updated;
+  redraw_buffers_for_tiles_where_needed( buffers_updated );
+  return buffers_updated;
 }
 
-BuffersUpdated RenderingMapUpdater::make_square_fogged(
-    Coord tile, e_nation nation ) {
-  BuffersUpdated const buffers_updated =
-      this->Base::make_square_fogged( tile, nation );
+vector<BuffersUpdated> RenderingMapUpdater::make_squares_fogged(
+    e_nation nation, vector<Coord> const& tiles ) {
+  vector<BuffersUpdated> buffers_updated =
+      this->Base::make_squares_fogged( nation, tiles );
+  vector<BuffersUpdated> empty( tiles.size() );
   // If the entire map is visible then there is also no fog ren-
   // dered anywhere, so no need to re-render.
-  if( !options().nation.has_value() ) return BuffersUpdated{};
+  if( !options().nation.has_value() ) return buffers_updated;
   // If it's another nation then not relevant for rendering.
-  if( nation != *options().nation ) return BuffersUpdated{};
-  return redraw_buffers_for_tile_where_needed( tile,
-                                               buffers_updated );
+  if( nation != *options().nation ) return buffers_updated;
+  redraw_buffers_for_tiles_where_needed( buffers_updated );
+  return buffers_updated;
 }
 
 void RenderingMapUpdater::modify_entire_map(
@@ -382,13 +409,13 @@ BuffersUpdated TrappingMapUpdater::modify_map_square(
   SHOULD_NOT_BE_HERE;
 }
 
-BuffersUpdated TrappingMapUpdater::make_square_visible(
-    Coord, e_nation ) {
+vector<BuffersUpdated> TrappingMapUpdater::make_squares_visible(
+    e_nation, vector<Coord> const& ) {
   SHOULD_NOT_BE_HERE;
 }
 
-BuffersUpdated TrappingMapUpdater::make_square_fogged(
-    Coord, e_nation ) {
+vector<BuffersUpdated> TrappingMapUpdater::make_squares_fogged(
+    e_nation, vector<Coord> const& ) {
   SHOULD_NOT_BE_HERE;
 }
 

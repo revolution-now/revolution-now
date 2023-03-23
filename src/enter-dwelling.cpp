@@ -656,8 +656,8 @@ wait<> do_speak_with_chief(
       co_await ts.planes.land_view().center_on_tile(
           ss.natives.coord_for( dwelling.id ) );
       for( Coord tile : tiles ) {
-        ts.map_updater.make_square_visible( tile,
-                                            unit.nation() );
+        ts.map_updater.make_squares_visible( unit.nation(),
+                                             { tile } );
         co_await ts.gui.wait_for( 20ms );
       }
       co_await ts.gui.wait_for( 600ms );

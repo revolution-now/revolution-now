@@ -17,6 +17,7 @@
 #include "test/fake/world.hpp"
 
 // ss
+#include "src/ss/ref.hpp"
 #include "src/ss/terrain.hpp"
 
 // refl
@@ -58,49 +59,138 @@ struct World : testing::World {
 TEST_CASE( "[map-updater] fog of war" ) {
   World                  W;
   NonRenderingMapUpdater map_updater( W.ss() );
-  BuffersUpdated         expected;
+  vector<BuffersUpdated> expected;
   e_nation const         nation = W.default_nation();
-  UNWRAP_CHECK( player_terrain,
-                W.terrain().player_terrain( nation ) );
-  Coord const coord = { .x = 0, .y = 0 };
+  PlayerTerrain&         player_terrain =
+      W.ss()
+          .mutable_terrain_use_with_care.mutable_player_terrain(
+              nation );
+  Coord const coord1 = { .x = 0, .y = 0 };
+  Coord const coord2 = { .x = 1, .y = 0 };
 
-  auto f = [&] {
-    return map_updater.make_square_visible( coord, nation );
-  };
-
-  REQUIRE( !player_terrain.map[coord].has_value() );
+  REQUIRE( !player_terrain.map[coord1].has_value() );
+  REQUIRE( !player_terrain.map[coord2].has_value() );
 
   {
-    expected = { .landscape = true, .obfuscation = true };
-    REQUIRE( f() == expected );
-    REQUIRE( player_terrain.map[coord].has_value() );
-    FogSquare const& fog_square = *player_terrain.map[coord];
-    REQUIRE( fog_square.fog_of_war_removed );
+    expected = { { .tile        = coord1,
+                   .landscape   = true,
+                   .obfuscation = true },
+                 { .tile        = coord2,
+                   .landscape   = true,
+                   .obfuscation = true } };
+    REQUIRE( map_updater.make_squares_visible(
+                 nation, { coord1, coord2 } ) == expected );
+    REQUIRE( player_terrain.map[coord1].has_value() );
+    REQUIRE( player_terrain.map[coord2].has_value() );
+    FogSquare const& fog_square1 = *player_terrain.map[coord1];
+    REQUIRE( fog_square1.fog_of_war_removed );
+    FogSquare const& fog_square2 = *player_terrain.map[coord2];
+    REQUIRE( fog_square2.fog_of_war_removed );
   }
 
   {
-    expected = { .landscape = false, .obfuscation = true };
-    REQUIRE( map_updater.make_square_fogged( coord, nation ) ==
-             expected );
-    REQUIRE( player_terrain.map[coord].has_value() );
-    FogSquare const& fog_square = *player_terrain.map[coord];
-    REQUIRE( !fog_square.fog_of_war_removed );
+    expected = { { .tile        = coord1,
+                   .landscape   = false,
+                   .obfuscation = true },
+                 { .tile        = coord2,
+                   .landscape   = false,
+                   .obfuscation = true } };
+    REQUIRE( map_updater.make_squares_fogged(
+                 nation, { coord1, coord2 } ) == expected );
+    REQUIRE( player_terrain.map[coord1].has_value() );
+    REQUIRE( player_terrain.map[coord2].has_value() );
+    FogSquare const& fog_square1 = *player_terrain.map[coord1];
+    REQUIRE( !fog_square1.fog_of_war_removed );
+    FogSquare const& fog_square2 = *player_terrain.map[coord2];
+    REQUIRE( !fog_square2.fog_of_war_removed );
   }
 
   {
-    expected = { .landscape = false, .obfuscation = true };
-    REQUIRE( f() == expected );
-    REQUIRE( player_terrain.map[coord].has_value() );
-    FogSquare const& fog_square = *player_terrain.map[coord];
-    REQUIRE( fog_square.fog_of_war_removed );
+    expected = { { .tile        = coord1,
+                   .landscape   = false,
+                   .obfuscation = true } };
+    REQUIRE( map_updater.make_squares_visible(
+                 nation, { coord1 } ) == expected );
+    REQUIRE( player_terrain.map[coord1].has_value() );
+    REQUIRE( player_terrain.map[coord2].has_value() );
+    FogSquare const& fog_square1 = *player_terrain.map[coord1];
+    REQUIRE( fog_square1.fog_of_war_removed );
+    FogSquare const& fog_square2 = *player_terrain.map[coord2];
+    REQUIRE( !fog_square2.fog_of_war_removed );
   }
 
   {
-    expected = { .landscape = false, .obfuscation = false };
-    REQUIRE( f() == expected );
-    REQUIRE( player_terrain.map[coord].has_value() );
-    FogSquare const& fog_square = *player_terrain.map[coord];
-    REQUIRE( fog_square.fog_of_war_removed );
+    expected                   = { { .tile        = coord1,
+                                     .landscape   = true,
+                                     .obfuscation = true },
+                                   { .tile        = coord2,
+                                     .landscape   = false,
+                                     .obfuscation = true } };
+    player_terrain.map[coord1] = nothing;
+    REQUIRE( map_updater.make_squares_visible(
+                 nation, { coord1, coord2 } ) == expected );
+    REQUIRE( player_terrain.map[coord1].has_value() );
+    REQUIRE( player_terrain.map[coord2].has_value() );
+    FogSquare const& fog_square1 = *player_terrain.map[coord1];
+    REQUIRE( fog_square1.fog_of_war_removed );
+    FogSquare const& fog_square2 = *player_terrain.map[coord2];
+    REQUIRE( fog_square2.fog_of_war_removed );
+  }
+
+  {
+    expected = { { .tile        = coord1,
+                   .landscape   = false,
+                   .obfuscation = false },
+                 { .tile        = coord2,
+                   .landscape   = false,
+                   .obfuscation = false } };
+    REQUIRE( map_updater.make_squares_visible(
+                 nation, { coord1, coord2 } ) == expected );
+    REQUIRE( player_terrain.map[coord1].has_value() );
+    REQUIRE( player_terrain.map[coord2].has_value() );
+    FogSquare const& fog_square1 = *player_terrain.map[coord1];
+    REQUIRE( fog_square1.fog_of_war_removed );
+    FogSquare const& fog_square2 = *player_terrain.map[coord2];
+    REQUIRE( fog_square2.fog_of_war_removed );
+  }
+
+  {
+    expected = { { .tile        = coord1,
+                   .landscape   = false,
+                   .obfuscation = false },
+                 { .tile        = coord2,
+                   .landscape   = false,
+                   .obfuscation = false } };
+    REQUIRE( map_updater.make_squares_visible(
+                 nation, { coord1, coord2 } ) == expected );
+    REQUIRE( player_terrain.map[coord1].has_value() );
+    REQUIRE( player_terrain.map[coord2].has_value() );
+    FogSquare const& fog_square1 = *player_terrain.map[coord1];
+    REQUIRE( fog_square1.fog_of_war_removed );
+    FogSquare const& fog_square2 = *player_terrain.map[coord2];
+    REQUIRE( fog_square2.fog_of_war_removed );
+  }
+
+  {
+    expected = { { .tile        = coord1,
+                   .landscape   = false,
+                   .obfuscation = true } };
+    REQUIRE( map_updater.make_squares_fogged(
+                 nation, { coord1 } ) == expected );
+    expected = { { .tile        = coord1,
+                   .landscape   = false,
+                   .obfuscation = true },
+                 { .tile        = coord2,
+                   .landscape   = false,
+                   .obfuscation = false } };
+    REQUIRE( map_updater.make_squares_visible(
+                 nation, { coord1, coord2 } ) == expected );
+    REQUIRE( player_terrain.map[coord1].has_value() );
+    REQUIRE( player_terrain.map[coord2].has_value() );
+    FogSquare const& fog_square1 = *player_terrain.map[coord1];
+    REQUIRE( fog_square1.fog_of_war_removed );
+    FogSquare const& fog_square2 = *player_terrain.map[coord2];
+    REQUIRE( fog_square2.fog_of_war_removed );
   }
 }
 

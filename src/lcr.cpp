@@ -401,8 +401,8 @@ wait<LostCityRumorResult> run_lost_city_rumor_result(
   // this unit onto the square, and so it would be expected that
   // the LCR should disappear. In order to ensure that happens,
   // we will explicitly do that here.
-  ts.map_updater.make_square_visible( world_square,
-                                      player.nation );
+  ts.map_updater.make_squares_visible( player.nation,
+                                       { world_square } );
 
   co_return result;
 }

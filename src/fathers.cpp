@@ -154,16 +154,23 @@ void francisco_de_coronado( SS& ss, TS& ts,
                             Player const& player ) {
   unordered_map<ColonyId, Colony> const& colonies_all =
       ss.colonies.all();
+  static auto const expand = []( Coord coord ) {
+    return Rect::from( coord, Delta{ .w = 1, .h = 1 } )
+        .with_border_added( 5 );
+  };
+  int const     tiles_per_colony = expand( Coord{} ).area();
+  vector<Coord> make_visible;
+  make_visible.reserve( colonies_all.size() * tiles_per_colony +
+                        1 );
   for( auto& [colony_id, colony] : colonies_all ) {
-    Rect const to_reveal =
-        Rect::from( colony.location, Delta{ .w = 1, .h = 1 } )
-            .with_border_added( 5 );
-    for( Rect const sub : gfx::subrects( to_reveal ) ) {
-      Coord const tile = sub.upper_left();
+    Rect const to_reveal = expand( colony.location );
+    for( Coord const tile : gfx::rect_iterator( to_reveal ) ) {
       if( !ss.terrain.square_exists( tile ) ) continue;
-      ts.map_updater.make_square_visible( tile, player.nation );
+      make_visible.push_back( tile );
     }
   }
+  ts.map_updater.make_squares_visible( player.nation,
+                                       make_visible );
 }
 
 // La Salle gives all current and future colonies a stockade when

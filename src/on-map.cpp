@@ -168,8 +168,7 @@ void UnitOnMapMover::to_map_non_interactive(
   // square. Should be done before unit is moved.
   vector<Coord> const visible = unit_visible_squares(
       ss, unit.nation(), unit.type(), world_square );
-  for( Coord const coord : visible )
-    ts.map_updater.make_square_visible( coord, unit.nation() );
+  ts.map_updater.make_squares_visible( unit.nation(), visible );
 
   // 2. Move the unit. This is the only place where this function
   //    should be called by normal game code.

@@ -1281,26 +1281,17 @@ TEST_CASE( "[visibility] recompute_fog_for_nation" ) {
   W.add_unit_on_map( e_unit_type::scout, { .x = 5, .y = 5 },
                      e_nation::english );
   W.add_colony( { .x = 7, .y = 2 }, e_nation::english );
-  W.map_updater().make_square_visible( { .x = 7, .y = 2 },
-                                       e_nation::english );
-  W.map_updater().make_square_visible( { .x = 6, .y = 1 },
-                                       e_nation::english );
-  W.map_updater().make_square_visible( { .x = 7, .y = 1 },
-                                       e_nation::english );
-  W.map_updater().make_square_visible( { .x = 8, .y = 1 },
-                                       e_nation::english );
-  W.map_updater().make_square_visible( { .x = 6, .y = 2 },
-                                       e_nation::english );
-  W.map_updater().make_square_visible( { .x = 7, .y = 2 },
-                                       e_nation::english );
-  W.map_updater().make_square_visible( { .x = 8, .y = 2 },
-                                       e_nation::english );
-  W.map_updater().make_square_visible( { .x = 6, .y = 3 },
-                                       e_nation::english );
-  W.map_updater().make_square_visible( { .x = 7, .y = 3 },
-                                       e_nation::english );
-  W.map_updater().make_square_visible( { .x = 8, .y = 3 },
-                                       e_nation::english );
+  W.map_updater().make_squares_visible( e_nation::english,
+                                        { { .x = 7, .y = 2 },
+                                          { .x = 6, .y = 1 },
+                                          { .x = 7, .y = 1 },
+                                          { .x = 8, .y = 1 },
+                                          { .x = 6, .y = 2 },
+                                          { .x = 7, .y = 2 },
+                                          { .x = 8, .y = 2 },
+                                          { .x = 6, .y = 3 },
+                                          { .x = 7, .y = 3 },
+                                          { .x = 8, .y = 3 } } );
 
   f();
 

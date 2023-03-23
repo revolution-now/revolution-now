@@ -28,10 +28,10 @@ struct MockIMapUpdater : IMapUpdater {
   MOCK_METHOD( BuffersUpdated, modify_map_square,
                ( Coord, SquareUpdateFunc ), () );
   MOCK_METHOD( void, modify_entire_map, ( MapUpdateFunc ), () );
-  MOCK_METHOD( BuffersUpdated, make_square_visible,
-               ( Coord, e_nation ), () );
-  MOCK_METHOD( BuffersUpdated, make_square_fogged,
-               ( Coord, e_nation ), () );
+  MOCK_METHOD( std::vector<BuffersUpdated>, make_squares_visible,
+               (e_nation, std::vector<Coord> const&), () );
+  MOCK_METHOD( std::vector<BuffersUpdated>, make_squares_fogged,
+               (e_nation, std::vector<Coord> const&), () );
   MOCK_METHOD( void, redraw, (), () );
   MOCK_METHOD( void, unrender, (), () );
 };
