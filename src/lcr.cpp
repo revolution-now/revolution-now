@@ -350,6 +350,15 @@ e_rumor_type pick_rumor_type_result(
     weights[e_rumor_type::unit_lost] = 0;
   }
 
+  // Make sure, after having removed some of the possibilities,
+  // that we still have some non-zero weights for at least one
+  // outcome. If we don't, which could happen in a modded game,
+  // then the below will crash. So in that case we just default
+  // to "no outcome."
+  int sum = 0;
+  for( auto [_, weight] : weights ) sum += weight;
+  if( sum == 0 ) weights[e_rumor_type::none] = 100;
+
   return pick_from_weighted_enum_values( rand, weights );
 }
 
