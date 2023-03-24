@@ -108,10 +108,10 @@ struct ScopedTimer {
 
  private:
   struct Segment {
-    std::string          label;
-    std::source_location source_loc;
-    time_point           start;
-    time_point           end;
+    std::string          label      = {};
+    std::source_location source_loc = {};
+    time_point           start      = {};
+    time_point           end        = {};
   };
 
   void add_segment( maybe<Segment>& where, std::string label,
