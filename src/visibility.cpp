@@ -291,16 +291,6 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
     }
   }
 
-  unordered_set<Coord> unfogged;
-
-  auto reveal = [&]( Coord const coord ) {
-    bool const has_fog = !m[coord]->fog_of_war_removed;
-    if( has_fog )
-      unfogged.insert( coord );
-    else if( fogged.contains( coord ) )
-      fogged.erase( coord );
-  };
-
   // Unfog the surroundings of units.
   //
   // FIXME: it's not ideal that we iterate over all euro units
@@ -310,7 +300,7 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
   // braves walking around which we don't want. Ideally we need
   // to add a cache for euro units on the map, then we can it-
   // erate over that only.
-  timer.checkpoint( "generate unfogged (units)" );
+  timer.checkpoint( "de-fog unit surroundings" );
   for( auto& [unit_id, p_state] : ss.units.euro_all() ) {
     maybe<UnitOwnership::world const&> world =
         p_state->ownership.get_if<UnitOwnership::world>();
@@ -320,21 +310,21 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
     // This should not yield and squares that don't exist.
     vector<Coord> const visible = unit_visible_squares(
         ss, nation, unit.type(), world->coord );
-    for( Coord const coord : visible ) reveal( coord );
+    for( Coord const coord : visible ) fogged.erase( coord );
   }
 
   // Unfog the surroundings of colonies.
-  timer.checkpoint( "generate unfogged (units)" );
+  timer.checkpoint( "de-fog colony surroundings" );
   vector<ColonyId> const colonies =
       ss.colonies.for_nation( nation );
   for( ColonyId const colony_id : colonies ) {
     Colony const& colony = ss.colonies.colony_for( colony_id );
     Coord const   coord  = colony.location;
-    reveal( coord );
+    fogged.erase( coord );
     for( e_direction const d : refl::enum_values<e_direction> ) {
       Coord const moved = coord.moved( d );
       if( !ss.terrain.square_exists( moved ) ) continue;
-      reveal( moved );
+      fogged.erase( moved );
     }
   }
 
@@ -342,10 +332,6 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
   timer.checkpoint( "make_squares_fogged" );
   ts.map_updater.make_squares_fogged(
       nation, vector<Coord>( fogged.begin(), fogged.end() ) );
-  timer.checkpoint( "make_squares_visible" );
-  ts.map_updater.make_squares_visible(
-      nation,
-      vector<Coord>( unfogged.begin(), unfogged.end() ) );
 }
 
 void update_map_visibility( TS&                   ts,
