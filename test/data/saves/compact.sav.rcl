@@ -500,7 +500,7 @@ units {
         }
         unit {
           id: 1
-          movement_points: 1
+          movement_points.atoms: 3
         }
       }
     },
@@ -516,7 +516,7 @@ units {
         }
         unit {
           id: 2
-          movement_points: 1
+          movement_points.atoms: 3
         }
       }
     },
@@ -532,7 +532,7 @@ units {
         }
         unit {
           id: 3
-          movement_points: 1
+          movement_points.atoms: 3
         }
       }
     },
@@ -548,7 +548,7 @@ units {
         }
         unit {
           id: 4
-          movement_points: 1
+          movement_points.atoms: 3
         }
       }
     },
@@ -564,7 +564,7 @@ units {
         }
         unit {
           id: 5
-          movement_points: 1
+          movement_points.atoms: 3
         }
       }
     },
@@ -580,7 +580,7 @@ units {
         }
         unit {
           id: 6
-          movement_points: 1
+          movement_points.atoms: 3
         }
       }
     },
@@ -596,7 +596,7 @@ units {
         }
         unit {
           id: 7
-          movement_points: 1
+          movement_points.atoms: 3
         }
       }
     },
@@ -753,7 +753,7 @@ zzz_terrain {
           y: 1
         }
         val {
-          ground: grassland
+          ground: prairie
           overlay: forest
           road: true
           surface: land
@@ -801,7 +801,7 @@ zzz_terrain {
           y: 2
         }
         val {
-          ground: tundra
+          ground: desert
           overlay: forest
           surface: land
         }
@@ -824,8 +824,8 @@ zzz_terrain {
           y: 2
         }
         val {
-          forest_resource: beaver
-          ground: plains
+          forest_resource: deer
+          ground: prairie
           overlay: forest
           surface: land
         }
@@ -880,7 +880,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: prairie
+          ground: plains
           overlay: forest
           road: true
           surface: land
@@ -892,7 +892,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: desert
+          ground: prairie
           overlay: mountains
           surface: land
         }
@@ -939,8 +939,8 @@ zzz_terrain {
           y: 4
         }
         val {
-          forest_resource: minerals
-          ground: marsh
+          forest_resource: tree
+          ground: savannah
           overlay: forest
           surface: land
         }
@@ -962,7 +962,7 @@ zzz_terrain {
           y: 5
         }
         val {
-          ground: desert
+          ground: plains
           overlay: forest
           river: minor
           surface: land
@@ -986,7 +986,7 @@ zzz_terrain {
           y: 5
         }
         val {
-          ground: plains
+          ground: grassland
           overlay: forest
           surface: land
         }
@@ -1008,7 +1008,7 @@ zzz_terrain {
           y: 6
         }
         val {
-          ground: plains
+          ground: prairie
           overlay: forest
           river: minor
           road: true
@@ -1021,7 +1021,7 @@ zzz_terrain {
           y: 6
         }
         val {
-          ground: plains
+          ground: prairie
           overlay: forest
           road: true
           surface: land

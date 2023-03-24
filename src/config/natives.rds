@@ -14,6 +14,7 @@ include "config/tile-enum-fwd.hpp"
 
 # ss
 include "ss/colony-enums.rds.hpp"
+include "ss/mv-points.hpp"
 include "ss/native-enums.rds.hpp"
 include "ss/settings.rds.hpp"
 include "ss/unit-classes.rds.hpp"
@@ -65,7 +66,7 @@ namespace "rn.config.natives"
 struct.UnitType {
   type 'e_native_unit_type',
   name 'std::string',
-  movement_points 'int',
+  movement_points 'MovementPoints',
   combat 'int',
   tile 'e_tile',
   nat_icon_front 'bool',

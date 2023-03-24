@@ -9,6 +9,7 @@
 #
 # ===============================================================
 # ss
+include "ss/mv-points.hpp"
 include "ss/native-enums.rds.hpp"
 include "ss/unit-id.hpp"
 
@@ -28,5 +29,5 @@ struct.NativeUnit {
   type 'e_native_unit_type',
 
   # How many movement points does the unit have left this turn.
-  movement_points 'int',
+  movement_points 'MovementPoints',
 }

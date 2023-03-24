@@ -37,8 +37,9 @@ LUA_STARTUP( lua::state& st ) {
 
     auto u = st.usertype.create<U>();
 
-    u["id"]   = &U::id;
-    u["type"] = &U::type;
+    u["id"]              = &U::id;
+    u["type"]            = &U::type;
+    u["movement_points"] = &U::movement_points;
   }();
 };
 
