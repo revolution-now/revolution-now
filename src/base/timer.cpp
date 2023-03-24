@@ -29,7 +29,9 @@ using ::std::chrono::nanoseconds;
 *****************************************************************/
 ScopedTimer::ScopedTimer( string                 total_label,
                           source_location const& loc ) {
-  add_segment( total_, std::move( total_label ), loc );
+  if( options_.disable ) return;
+  total_.emplace();
+  add_segment( *total_, std::move( total_label ), loc );
 }
 
 void ScopedTimer::log_segment_result( Segment const& segment,
@@ -43,34 +45,39 @@ void ScopedTimer::log_segment_result( Segment const& segment,
 }
 
 ScopedTimer::~ScopedTimer() noexcept {
-  string_view prefix = "";
-  if( total_.has_value() ) {
-    total_->end = clock::now();
-    log_segment_result( *total_ );
-    prefix = "  ";
-  }
-  flush_active_checkpoint();
+  if( options_.disable ) return;
+
+  // Before we do anything else, we need to nail down the end
+  // times so that they are as accurate as possible.
+  flush_latest_segment();
+  if( total_.has_value() ) total_->end = clock::now();
+
+  // Now we can log.
+  if( total_.has_value() ) log_segment_result( *total_ );
+  if( options_.no_checkpoints_logging ) return;
+  string_view const prefix = total_.has_value() ? "  " : "";
   for( Segment const& segment : segments_ )
     log_segment_result( segment, prefix );
 }
 
 void ScopedTimer::checkpoint( string                 label,
                               source_location const& loc ) {
-  add_segment( active_checkpoint_, std::move( label ), loc );
+  if( options_.disable ) return;
+  flush_latest_segment();
+  Segment& new_segment = segments_.emplace_back();
+  add_segment( new_segment, std::move( label ), loc );
 }
 
-void ScopedTimer::flush_active_checkpoint() {
-  if( !active_checkpoint_.has_value() ) return;
-  segments_.push_back( std::move( *active_checkpoint_ ) );
-  segments_.back().end = clock::now();
-  active_checkpoint_.reset();
+void ScopedTimer::flush_latest_segment() {
+  if( segments_.empty() ) return;
+  Segment& segment = segments_.back();
+  if( segment.end != time_point{} ) return;
+  segment.end = clock::now();
 }
 
-void ScopedTimer::add_segment( maybe<Segment>&        where,
-                               string                 label,
+void ScopedTimer::add_segment( Segment& segment, string label,
                                source_location const& loc ) {
-  flush_active_checkpoint();
-  where = Segment{
+  segment = Segment{
       .label      = std::move( label ),
       .source_loc = loc,
       .start      = clock::now(),

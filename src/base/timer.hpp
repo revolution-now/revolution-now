@@ -77,6 +77,14 @@ void timer_logger_hook( std::string_view            msg,
 //  ScopedTimer.
 //
 struct ScopedTimer {
+  struct Options {
+    // When this is true, this class will act as a no-op.
+    bool disable = false;
+    // When this is true, only the "total" will be logged, if
+    // there is one.
+    bool no_checkpoints_logging = false;
+  };
+
   using clock      = std::chrono::system_clock;
   using time_point = clock::time_point;
 
@@ -106,6 +114,8 @@ struct ScopedTimer {
         fmt_str_and_loc.loc );
   }
 
+  Options& options() { return options_; }
+
  private:
   struct Segment {
     std::string          label      = {};
@@ -114,16 +124,16 @@ struct ScopedTimer {
     time_point           end        = {};
   };
 
-  void add_segment( maybe<Segment>& where, std::string label,
-                    std::source_location const& loc );
+  static void add_segment( Segment& segment, std::string label,
+                           std::source_location const& loc );
 
-  void flush_active_checkpoint();
+  void flush_latest_segment();
 
   static void log_segment_result( Segment const&   segment,
                                   std::string_view prefix = "" );
 
+  Options              options_ = {};
   std::vector<Segment> segments_;
-  maybe<Segment>       active_checkpoint_;
   // Measures the time from the creation of this object to the
   // destruction, but only if a name is provided upon construc-
   // tion.
