@@ -47,10 +47,8 @@
 #include "base/conv.hpp"
 #include "base/io.hpp"
 #include "base/string.hpp"
+#include "base/timer.hpp"
 #include "base/to-str-ext-std.hpp"
-
-// base-util
-#include "base-util/stopwatch.hpp"
 
 // C++ standard library
 #include <fstream>
@@ -104,42 +102,28 @@ maybe<string> rcl_file_title( fs::path const& rcl_path ) {
   return trimmed;
 }
 
-void print_time( util::StopWatch const& watch,
-                 string_view            name ) {
-  (void)watch;
-  (void)name;
-  // fmt::print( "{}: {}\n", name, watch.human( name ) );
-}
-
 string save_game_to_rcl( RootState const&       root,
                          SaveGameOptions const& opts ) {
   cdr::converter::options const cdr_opts{
       .write_fields_with_default_value =
           opts.verbosity == e_savegame_verbosity::full,
   };
-  util::StopWatch watch;
-  watch.start( "[save] total" );
-  watch.start( "  [save] to_canonical" );
+  base::ScopedTimer timer( "save-game" );
+  timer.checkpoint( "to_canonical" );
   cdr::value cdr_val =
       cdr::run_conversion_to_canonical( root, cdr_opts );
-  watch.stop( "  [save] to_canonical" );
   cdr::converter conv( cdr_opts );
   UNWRAP_CHECK( tbl, conv.ensure_type<cdr::table>( cdr_val ) );
   rcl::ProcessingOptions proc_opts{ .run_key_parse  = false,
                                     .unflatten_keys = false };
+  timer.checkpoint( "create doc" );
   UNWRAP_CHECK(
       rcl_doc, rcl::doc::create( std::move( tbl ), proc_opts ) );
   rcl::EmitOptions emit_opts{
       .flatten_keys = true,
   };
-  watch.start( "  [save] emit rcl" );
-  string res = rcl::emit( rcl_doc, emit_opts );
-  watch.stop( "  [save] emit rcl" );
-  watch.stop( "[save] total" );
-  print_time( watch, "[save] total" );
-  print_time( watch, "  [save] to_canonical" );
-  print_time( watch, "  [save] emit rcl" );
-  return res;
+  timer.checkpoint( "emit rcl" );
+  return rcl::emit( rcl_doc, emit_opts );
 }
 
 // The filename is only used for error reporting.
@@ -151,22 +135,15 @@ valid_or<string> load_game_from_rcl( RootState&    out_root,
       .allow_unrecognized_fields        = false,
       .default_construct_missing_fields = true,
   };
-  util::StopWatch watch;
-  watch.start( "[load] total" );
-  watch.start( "  [load] rcl parse" );
+  base::ScopedTimer timer( "load-game" );
+  timer.checkpoint( "rcl parse" );
   rcl::ProcessingOptions proc_opts{ .run_key_parse  = true,
                                     .unflatten_keys = true };
   UNWRAP_RETURN( rcl_doc,
                  rcl::parse( filename, in, proc_opts ) );
-  watch.stop( "  [load] rcl parse" );
-  watch.start( "  [load] from_canonical" );
+  timer.checkpoint( "from_canonical" );
   UNWRAP_RETURN( root, run_conversion_from_canonical<RootState>(
                            rcl_doc.top_val(), cdr_opts ) );
-  watch.stop( "  [load] from_canonical" );
-  watch.stop( "[load] total" );
-  print_time( watch, "[load] total" );
-  print_time( watch, "  [load] rcl parse" );
-  print_time( watch, "  [load] from_canonical" );
   out_root = std::move( root );
   return valid;
 }
@@ -254,24 +231,15 @@ void record_saved_state( SSConst const& ss, TS& ts ) {
   // If we're trying to copy to ourselves then something is
   // wrong.
   CHECK( &ts.saved != &ss.root );
-  util::StopWatch watch;
-  watch.timeit( "copy", [&] { //
-    ts.saved = ss.root;
-  } );
-  lg.debug( "copying root baseline took {}.",
-            watch.human( "copy" ) );
+  base::timer( "copy of root baseline",
+               [&] { ts.saved = ss.root; } );
 }
+
 // Checks if the serializable game state has been modified in any
 // way since the last time it was saved or loaded.
 bool is_game_saved( SSConst const& ss, TS& ts ) {
-  util::StopWatch watch;
-
-  bool equal = {};
-  watch.timeit( "save",
-                [&] { equal = ( ss.root == ts.saved ); } );
-  lg.debug( "saved state comparison took {}.",
-            watch.human( "save" ) );
-  return equal;
+  return base::timer( "saved state comparison",
+                      [&] { return ss.root == ts.saved; } );
 }
 
 } // namespace
@@ -284,16 +252,9 @@ valid_or<std::string> save_game_to_rcl_file(
     SaveGameOptions const& opts ) {
   lg.info( "saving game to {}.", p );
   // Increase this to get more accurate reading on save times.
-  constexpr int   trials = 1;
-  util::StopWatch watch;
-  static string   label = "game save (rcl)";
-  watch.start( label );
-  string rcl_output;
-  for( int i = trials; i >= 1; --i )
-    rcl_output = save_game_to_rcl( root, opts );
-  watch.stop( label );
-  lg.info( "saving game to rcl ({} trials) took: {}", trials,
-           watch.human( label ) );
+  string const rcl_output = base::timer(
+      "saving game to rcl",
+      [&] { return save_game_to_rcl( root, opts ); } );
   ofstream out( p );
   if( !out.good() )
     return fmt::format( "failed to open {} for writing.", p );
@@ -308,16 +269,11 @@ valid_or<std::string> load_game_from_rcl_file(
   auto maybe_rcl = base::read_text_file_as_string( p );
   if( !maybe_rcl )
     return fmt::format( "failed to read Rcl file" );
-  util::StopWatch watch;
-  watch.start( "loading from rcl" );
-  constexpr int trials = 1;
-  for( int i = trials; i >= 1; --i ) {
+  {
+    base::ScopedTimer timer( "loading game from rcl" );
     HAS_VALUE_OR_RET( load_game_from_rcl( root, p.string(),
                                           *maybe_rcl, opts ) );
   }
-  watch.stop( "loading from rcl" );
-  lg.info( "loading game ({} trials) took: {}", trials,
-           watch.human( "loading from rcl" ) );
   return valid;
 }
 

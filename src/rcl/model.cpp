@@ -19,9 +19,6 @@
 // base
 #include "base/macros.hpp" // FIXME: remove
 
-// base-util
-#include "base-util/stopwatch.hpp"
-
 // C++ standard library
 #include <sstream>
 
@@ -372,28 +369,17 @@ namespace {
 // placed into a doc, and the doc will run this post-processing.
 base::expect<table, string> run_postprocessing(
     table&& v1, ProcessingOptions const& opts ) {
-  util::StopWatch watch;
-  table           v2;
-  if( opts.run_key_parse ) {
-    watch.start( "[post-processing] key parser" );
+  table v2;
+  if( opts.run_key_parse )
     v2 = key_parser_table( std::move( v1 ) );
-    watch.stop( "[post-processing] key parser" );
-  } else {
+  else
     v2 = std::move( v1 );
-  }
   table v3;
-  if( opts.unflatten_keys ) {
-    watch.start( "[post-processing] unflatten" );
+  if( opts.unflatten_keys )
     v3 = unflatten_table( std::move( v2 ) );
-    watch.stop( "[post-processing] unflatten" );
-  } else {
+  else
     v3 = std::move( v2 );
-  }
   table v4 = std::move( v3 );
-#if 0
-  for( auto const& p : watch.results() )
-    fmt::print( "    {}: {}\n", p.first, p.second );
-#endif
   return v4;
 }
 

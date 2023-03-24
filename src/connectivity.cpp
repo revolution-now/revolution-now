@@ -18,10 +18,7 @@
 #include "ss/terrain.hpp"
 
 // base
-#include "base/scope-exit.hpp"
-
-// base-util
-#include "base-util/stopwatch.hpp"
+#include "base/timer.hpp"
 
 using namespace std;
 
@@ -159,14 +156,7 @@ bool contains_segment_index( vector<int> const&        indices,
 *****************************************************************/
 TerrainConnectivity compute_terrain_connectivity(
     SSConst const& ss ) {
-  util::StopWatch     watch;
-  static string const kTimerName = "terrain connectivity update";
-  watch.start( kTimerName );
-  SCOPE_EXIT( {
-    watch.stop( kTimerName );
-    lg.debug( "{} took {}.", kTimerName,
-              watch.human( kTimerName ) );
-  } );
+  base::ScopedTimer const timer( "terrain connectivity update" );
   return compute_terrain_connectivity_impl( ss );
 }
 

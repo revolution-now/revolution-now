@@ -207,3 +207,15 @@ void print_bar( char c, string_view msg ) {
 }
 
 } // namespace rn
+
+// FIXME: temporary until we move logging into the base module.
+// This needs to be available at link time somewhere in the bi-
+// nary.
+namespace base::detail {
+void timer_logger_hook( std::string_view       msg,
+                        source_location const& loc );
+void timer_logger_hook( std::string_view       msg,
+                        source_location const& loc ) {
+  ::rn::lg.log( rn::e_log_level::debug, msg, loc );
+}
+}
