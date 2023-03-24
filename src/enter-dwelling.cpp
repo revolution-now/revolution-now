@@ -316,17 +316,28 @@ EnterNativeDwellingOptions enter_native_dwelling_options(
 wait<e_enter_dwelling_option> present_dwelling_entry_options(
     SSConst const& ss, TS& ts, Player& player,
     EnterNativeDwellingOptions const& options ) {
+  Tribe const& tribe =
+      ss.natives.tribe_for( options.dwelling_id );
+  // Don't do anything at all if we haven't formally encountered
+  // this tribe ("encounter" means that they introduce themselves
+  // and offer to smoke the peace pipe, etc.).
+  if( !tribe.relationship[player.nation].encountered ) {
+    co_await ts.gui.message_box(
+        "We must meet this native tribe on land first before we "
+        "trade with them." );
+    co_return e_enter_dwelling_option::cancel;
+  }
   co_await display_woodcut_if_needed(
       ts, player, e_woodcut::entering_native_village );
   Dwelling const& dwelling =
       ss.natives.dwelling_for( options.dwelling_id );
-  e_tribe const tribe = ss.natives.tribe_for( dwelling.id ).type;
-  string        msg   = fmt::format(
+  string msg = fmt::format(
       "You have arrived at a {} of the [{}].  {}",
       config_natives
-          .dwelling_types[config_natives.tribes[tribe].level]
+          .dwelling_types[config_natives.tribes[tribe.type]
+                              .level]
           .name_singular,
-      base::capitalize_initials( base::to_str( tribe ) ),
+      base::capitalize_initials( base::to_str( tribe.type ) ),
       reaction_str( options.reaction ) );
   maybe<e_enter_dwelling_option> res =
       co_await ts.gui.partial_optional_enum_choice(

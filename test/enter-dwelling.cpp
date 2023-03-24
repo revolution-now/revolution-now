@@ -339,12 +339,44 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   REQUIRE( f() == expected );
 }
 
+TEST_CASE( "[enter-dwelling] dwelling entry not encountered" ) {
+  World           W;
+  Dwelling const& dwelling =
+      W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois );
+  EnterNativeDwellingOptions options;
+  e_enter_dwelling_option    expected = {};
+
+  auto f = [&] {
+    wait<e_enter_dwelling_option> w =
+        present_dwelling_entry_options(
+            W.ss(), W.ts(), W.default_player(), options );
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+    return *w;
+  };
+
+  options = {
+      .dwelling_id = dwelling.id,
+      .reaction    = e_enter_dwelling_reaction::wave_happily,
+      .options     = {
+          e_enter_dwelling_option::attack_village,
+          e_enter_dwelling_option::live_among_the_natives } };
+
+  W.gui()
+      .EXPECT__message_box( StrContains( "on land first" ) )
+      .returns<monostate>();
+  expected = e_enter_dwelling_option::cancel;
+  REQUIRE( f() == expected );
+}
+
 TEST_CASE( "[enter-dwelling] present_dwelling_entry_options" ) {
   World           W;
   Dwelling const& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois );
   EnterNativeDwellingOptions options;
   e_enter_dwelling_option    expected = {};
+  W.iroquois().relationship[W.default_nation()].encountered =
+      true;
 
   auto f = [&] {
     wait<e_enter_dwelling_option> w =

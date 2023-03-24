@@ -1124,7 +1124,9 @@ struct NativeDwellingHandler : public CommandHandler {
   wait<> perform() override {
     // The OG will always drain the movement points of the unit
     // completely (even a scout) when it enters a village, and
-    // will do so even when the user then cancels the action.
+    // will do so even when the user then cancels the action. It
+    // will even do so when a ship is denied entry into a village
+    // on account of not having encountered them on land first.
     unit_.forfeight_mv_points();
 
     switch( outcome_.to_enum() ) {
