@@ -16,11 +16,12 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
-// base
-#include "base/to-str-ext-std.hpp"
-
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-chrono.hpp"
+#include "base/to-str-ext-std.hpp"
 
 namespace rn {
 namespace {

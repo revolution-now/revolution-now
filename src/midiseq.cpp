@@ -19,6 +19,7 @@
 
 // base
 #include "base/string.hpp"
+#include "base/to-str-ext-chrono.hpp"
 #include "base/to-str-ext-std.hpp"
 
 // base-util

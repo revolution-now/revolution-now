@@ -32,9 +32,6 @@ namespace detail {
 void timer_logger_hook( std::string_view            msg,
                         std::source_location const& loc );
 
-// Formats the duration in a human-readable form.
-std::string format_duration( std::chrono::nanoseconds );
-
 }
 
 /****************************************************************

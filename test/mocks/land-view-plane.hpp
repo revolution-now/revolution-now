@@ -27,6 +27,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/to-str-ext-chrono.hpp"
 #include "base/to-str-ext-std.hpp"
 
 namespace rn {

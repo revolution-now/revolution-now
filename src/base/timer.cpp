@@ -10,88 +10,16 @@
 *****************************************************************/
 #include "timer.hpp"
 
+// base
+#include "to-str-ext-chrono.hpp"
+
 using namespace std;
 
 namespace base {
 
-namespace {
+namespace {}        // namespace
 
-using ::std::chrono::duration;
-using ::std::chrono::duration_cast;
-using ::std::chrono::hours;
-using ::std::chrono::microseconds;
-using ::std::chrono::milliseconds;
-using ::std::chrono::minutes;
-using ::std::chrono::nanoseconds;
-using ::std::chrono::seconds;
-
-} // namespace
-
-namespace detail {
-
-string format_duration( nanoseconds ns ) {
-  using namespace std::literals::chrono_literals;
-
-  auto h  = duration_cast<hours>( ns );
-  auto m  = duration_cast<minutes>( ns );
-  auto s  = duration_cast<seconds>( ns );
-  auto ms = duration_cast<milliseconds>( ns );
-  auto us = duration_cast<microseconds>( ns );
-
-  static constexpr int64_t kMinutesInHour =
-      hours{ 1 } / minutes{ 1 };
-  static constexpr int64_t kSecondsInMinute =
-      minutes{ 1 } / seconds{ 1 };
-  static constexpr int64_t kMillisInSecond =
-      seconds{ 1 } / milliseconds{ 1 };
-  static constexpr int64_t kMicrosInMilli =
-      milliseconds{ 1 } / microseconds{ 1 };
-  static constexpr int64_t kNanosInMicro =
-      microseconds{ 1 } / nanoseconds{ 1 };
-
-  static constexpr hours        kSmallEnoughForMinutes{ 20 };
-  static constexpr minutes      kSmallEnoughForSeconds{ 20 };
-  static constexpr seconds      kSmallEnoughForMillis{ 10 };
-  static constexpr milliseconds kSmallEnoughForMicros{ 10 };
-  static constexpr microseconds kSmallEnoughForNanos{ 10 };
-
-  // Note that the below, most of the time, should fit into the
-  // small string buffer so there shouldn't be any allocations.
-  string res;
-
-  auto emit = [&]( auto dur, string_view suffix ) {
-    res += fmt::to_string( dur.count() );
-    res += suffix;
-  };
-
-  if( h > 0ns ) {
-    emit( h, "h" );
-    if( h < kSmallEnoughForMinutes )
-      emit( m % kMinutesInHour, "m" );
-  } else if( m > 0ns ) {
-    emit( m, "m" );
-    if( m < kSmallEnoughForSeconds )
-      emit( s % kSecondsInMinute, "s" );
-  } else if( s > 0ns ) {
-    emit( s, "s" );
-    if( s < kSmallEnoughForMillis )
-      emit( ms % kMillisInSecond, "ms" );
-  } else if( ms > 0ns ) {
-    emit( ms, "ms" );
-    if( ms < kSmallEnoughForMicros )
-      emit( us % kMicrosInMilli, "us" );
-  } else if( us > 0ns ) {
-    emit( us, "us" );
-    if( us < kSmallEnoughForNanos )
-      emit( ns % kNanosInMicro, "ns" );
-  } else if( ns >= 0ns ) {
-    emit( ns, "ns" );
-  }
-
-  return res;
-}
-
-} // namespace detail
+namespace detail {} // namespace detail
 
 /****************************************************************
 ** ScopedTimer
@@ -103,11 +31,10 @@ ScopedTimer::ScopedTimer( string                 total_label,
 
 void ScopedTimer::log_segment_result( Segment const& segment,
                                       string_view    prefix ) {
-  nanoseconds const d =
+  chrono::nanoseconds const d =
       std::max( 0ns, segment.end - segment.start );
-  string const res =
-      fmt::format( "{}{}: {}", prefix, segment.label,
-                   detail::format_duration( d ) );
+  string const res = fmt::format(
+      "{}{}: {}", prefix, segment.label, format_duration( d ) );
   detail::timer_logger_hook( res, segment.source_loc );
 }
 

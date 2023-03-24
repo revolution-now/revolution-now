@@ -16,12 +16,8 @@
 #include "fs.hpp"
 #include "to-str.hpp"
 
-// base-util
-#include "base-util/string.hpp"
-
 // C++ standard library // FIXME: too many heavy includes below.
 #include <array>
-#include <chrono>
 #include <deque>
 #include <map>
 #include <queue>
@@ -85,14 +81,6 @@ void to_str( std::array<T, Size> o, std::string& out, ADL_t ) {
 void to_str( fs::path const& o, std::string& out, ADL_t );
 
 void to_str( std::monostate const&, std::string& out, ADL_t );
-
-template<typename... Ts>
-void to_str( std::chrono::time_point<Ts...> const& o,
-             std::string&                          out, ADL_t ) {
-  out += "\"";
-  out += util::to_string( o );
-  out += "\"";
-};
 
 // {fmt} formatter for formatting unordered_maps whose contained
 // types are formattable.
@@ -175,43 +163,6 @@ void to_str( std::deque<T> const& o, std::string& out, ADL_t ) {
     if( i != int( o.size() - 1 ) ) out += ',';
   }
   out += ']';
-};
-
-// FIXME: move this somewhere else and improve it.
-template<class Rep, class Period>
-auto to_string_colons(
-    std::chrono::duration<Rep, Period> const& duration ) {
-  using namespace std::chrono;
-  using namespace std::literals::chrono_literals;
-  std::string res; // should use small-string optimization.
-  auto        d = duration;
-
-  bool has_hour_or_minute = false;
-  if( d > 1h ) {
-    auto hrs = duration_cast<hours>( d );
-    res += fmt::format( "{:0>2}", hrs.count() );
-    res += ':';
-    d -= hrs;
-    has_hour_or_minute = true;
-  }
-  if( d > 1min ) {
-    auto mins = duration_cast<minutes>( d );
-    res += fmt::format( "{:0>2}", mins.count() );
-    res += ':';
-    d -= mins;
-    has_hour_or_minute = true;
-  }
-  auto secs = duration_cast<seconds>( d );
-  res += fmt::format( "{:0>2}", secs.count() );
-  if( !has_hour_or_minute ) res += 's';
-  return res;
-}
-
-// {fmt} formatter for formatting duration.
-template<class Rep, class Period>
-void to_str( std::chrono::duration<Rep, Period> const& o,
-             std::string& out, ADL_t ) {
-  out += to_string_colons( o );
 };
 
 void to_str( std::source_location const& o, std::string& out,
