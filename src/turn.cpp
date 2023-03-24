@@ -72,6 +72,7 @@
 #include "base/keyval.hpp"
 #include "base/lambda.hpp"
 #include "base/scope-exit.hpp"
+#include "base/timer.hpp"
 #include "base/to-str-ext-std.hpp"
 
 // base-util
@@ -307,6 +308,12 @@ wait<vector<UnitId>> process_unit_prioritization_request(
         "Some of the selected units have already moved this "
         "turn." );
   co_return std::move( prioritize );
+}
+
+void regenerate_fog_of_war( SS& ss, TS& ts, e_nation nation ) {
+  base::ScopedTimer timer(
+      fmt::format( "regenerating fog-of-war ({})", nation ) );
+  recompute_fog_for_nation( ss, ts, nation );
 }
 
 /****************************************************************
@@ -925,6 +932,17 @@ wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
 // nation's turn but where the player can't save the game until
 // they are complete.
 wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
+  // Fog of war is regenerated once at the start of the player's
+  // turn. Any land that is uncovered during the player's turn
+  // remains de-fogged throughout the duration of the player's
+  // turn and other player's turns for one full cycle. There are
+  // many other ways that this could be done, but after much con-
+  // sideration, this seems to be the right trade-off between ef-
+  // ficiency (this is not a cheap operation especially when
+  // there are many units on the map), making visual sense to the
+  // player, and implementation complexity.
+  regenerate_fog_of_war( ss, ts, player.nation );
+
   // Evolve market prices.
   if( ss.turn.time_point.turns >
       config_turn.turns_to_wait.market_evolution ) {
@@ -1002,31 +1020,7 @@ wait<maybe<NationTurnState>> nation_turn_iter(
       }
       SHOULD_NOT_BE_HERE; // for gcc.
     }
-    CASE( finished ) {
-      // We've allowed the fog removal to accumulate during this
-      // player's turn, i.e., as a unit moves, the fog the does
-      // regenerate in its wake. This is ok because, even if we
-      // were to regenerate the fog in its wake (which is tricky
-      // to get right) that fog wouldn't be hiding anything from
-      // the player because nothing on those tiles would change
-      // until the player finishes its turn and other players
-      // move. And if something on those tiles does change, it
-      // will be caused by the player (because it is their turn)
-      // and so the player will be able to see it anyway. The
-      // point here is that there is nothing to gain by regener-
-      // ating fog behind a unit as it moves on the map during
-      // the course of a turn, and so we avoid doing it because a
-      // first attempt revealed that it is very tricky to get
-      // right. So what we do is we just let the units move and
-      // remove fog, then at the end of the player's turn we re-
-      // generate all of the fog on all squares except those
-      // within the sighting radius of units and colonies, so by
-      // the time the next player (or natives) move, the fog will
-      // be as it would have been had to regenerated it in the
-      // wake of the units as they moved.
-      recompute_fog_for_nation( ss, ts, nation );
-      co_return nothing;
-    }
+    CASE( finished ) { co_return nothing; }
     END_CASES;
   }
 }
