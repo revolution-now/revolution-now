@@ -147,6 +147,6 @@ auto timer(
 // Example usage:
 // auto res = TIMER( "my function", f( 1, 2, 3 ) );
 #define TIMER( name, code ) \
-  ::base::timeit( name, [&]() { return code; } );
+  ::base::timeir( name, [&]() { return code; } );
 
 } // namespace base
