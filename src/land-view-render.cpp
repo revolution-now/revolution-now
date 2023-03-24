@@ -312,13 +312,6 @@ void LandViewRenderer::render_units_impl() const {
   auto render_impl = [&]( GenericUnitId id, auto const& f ) {
     Coord const tile =
         coord_for_unit_multi_ownership_or_die( ss_, id );
-    // This will suppress the slide animation if the unit is
-    // coming from a fully hidden square, so that the unit will
-    // just appear on the destination square, as opposed to first
-    // appearing on top of a non-visible square and sliding off
-    // of it.
-    if( viz_.visible( tile ) == e_tile_visibility::hidden )
-      return;
     Coord const where =
         render_rect_for_tile( tile ).upper_left();
     bool const multiple_units =
