@@ -72,7 +72,6 @@
 #include "base/keyval.hpp"
 #include "base/lambda.hpp"
 #include "base/scope-exit.hpp"
-#include "base/timer.hpp"
 #include "base/to-str-ext-std.hpp"
 
 // base-util
@@ -308,12 +307,6 @@ wait<vector<UnitId>> process_unit_prioritization_request(
         "Some of the selected units have already moved this "
         "turn." );
   co_return std::move( prioritize );
-}
-
-void regenerate_fog_of_war( SS& ss, TS& ts, e_nation nation ) {
-  base::ScopedTimer timer(
-      fmt::format( "regenerating fog-of-war ({})", nation ) );
-  recompute_fog_for_nation( ss, ts, nation );
 }
 
 /****************************************************************
@@ -941,7 +934,18 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
   // ficiency (this is not a cheap operation especially when
   // there are many units on the map), making visual sense to the
   // player, and implementation complexity.
-  regenerate_fog_of_war( ss, ts, player.nation );
+  //
+  // TODO: the performance of this function may need to be revis-
+  // ited. For normal game maps, the make_square_fogged stage
+  // seems to dominate, which could pobably be addressed by opti-
+  // mizing the fog rendering (caching?). For large maps it seems
+  // to be the "generate fogged set" stage that dominates since
+  // it has to iterate through the entire map. Not sure yet how
+  // to deal with that. There might also be an issue (not tested)
+  // where we have a large number of european units on the map;
+  // to address that we might want to add another cache to ss/u-
+  // nits that keeps a set of all european units on the map.
+  recompute_fog_for_nation( ss, ts, player.nation );
 
   // Evolve market prices.
   if( ss.turn.time_point.turns >

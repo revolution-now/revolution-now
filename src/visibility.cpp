@@ -35,6 +35,9 @@
 // rds
 #include "rds/switch-macro.hpp"
 
+// base
+#include "base/timer.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -266,10 +269,15 @@ refl::enum_map<e_nation, bool> nations_with_visibility_of_square(
 
 void recompute_fog_for_nation( SS& ss, TS& ts,
                                e_nation nation ) {
+  base::ScopedTimer timer(
+      fmt::format( "regenerating fog-of-war ({})", nation ) );
+  timer.options().no_checkpoints_logging = true;
+
   UNWRAP_CHECK( player_terrain,
                 ss.terrain.player_terrain( nation ) );
   gfx::Matrix<maybe<FogSquare>> const& m = player_terrain.map;
 
+  timer.checkpoint( "generate fogged set" );
   unordered_set<Coord> fogged;
   for( int y = 0; y < m.size().h; ++y ) {
     for( int x = 0; x < m.size().w; ++x ) {
@@ -302,6 +310,7 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
   // braves walking around which we don't want. Ideally we need
   // to add a cache for euro units on the map, then we can it-
   // erate over that only.
+  timer.checkpoint( "generate unfogged (units)" );
   for( auto& [unit_id, p_state] : ss.units.euro_all() ) {
     maybe<UnitOwnership::world const&> world =
         p_state->ownership.get_if<UnitOwnership::world>();
@@ -315,6 +324,7 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
   }
 
   // Unfog the surroundings of colonies.
+  timer.checkpoint( "generate unfogged (units)" );
   vector<ColonyId> const colonies =
       ss.colonies.for_nation( nation );
   for( ColonyId const colony_id : colonies ) {
@@ -329,8 +339,10 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
   }
 
   // Now affect the changes in batch.
+  timer.checkpoint( "make_squares_fogged" );
   ts.map_updater.make_squares_fogged(
       nation, vector<Coord>( fogged.begin(), fogged.end() ) );
+  timer.checkpoint( "make_squares_visible" );
   ts.map_updater.make_squares_visible(
       nation,
       vector<Coord>( unfogged.begin(), unfogged.end() ) );
