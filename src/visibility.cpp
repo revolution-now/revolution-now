@@ -294,6 +294,14 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
   };
 
   // Unfog the surroundings of units.
+  //
+  // FIXME: it's not ideal that we iterate over all euro units
+  // here because that includes the ones working in colonies that
+  // we don't want. It also would not be ideal to iterate over
+  // all units on the map because that would include all of the
+  // braves walking around which we don't want. Ideally we need
+  // to add a cache for euro units on the map, then we can it-
+  // erate over that only.
   for( auto& [unit_id, p_state] : ss.units.euro_all() ) {
     maybe<UnitOwnership::world const&> world =
         p_state->ownership.get_if<UnitOwnership::world>();
