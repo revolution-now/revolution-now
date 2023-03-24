@@ -17,9 +17,12 @@ using namespace std;
 
 namespace base {
 
-namespace {}        // namespace
+namespace {
 
-namespace detail {} // namespace detail
+using ::std::chrono::duration_cast;
+using ::std::chrono::nanoseconds;
+
+} // namespace
 
 /****************************************************************
 ** ScopedTimer
@@ -31,8 +34,9 @@ ScopedTimer::ScopedTimer( string                 total_label,
 
 void ScopedTimer::log_segment_result( Segment const& segment,
                                       string_view    prefix ) {
-  chrono::nanoseconds const d =
-      std::max( 0ns, segment.end - segment.start );
+  nanoseconds const d =
+      std::max( 0ns, duration_cast<nanoseconds>(
+                         segment.end - segment.start ) );
   string const res = fmt::format(
       "{}{}: {}", prefix, segment.label, format_duration( d ) );
   detail::timer_logger_hook( res, segment.source_loc );
