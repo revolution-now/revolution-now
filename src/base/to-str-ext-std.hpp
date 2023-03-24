@@ -25,6 +25,7 @@
 #include <deque>
 #include <map>
 #include <queue>
+#include <source_location>
 #include <span>
 #include <string>
 #include <string_view>
@@ -155,12 +156,12 @@ void to_str( std::pair<T, U> const& o, std::string& out,
 template<Show... Ts>
 void to_str( std::tuple<Ts...> const& o, std::string& out,
              ADL_t ) {
-  auto build = [&]<size_t... Idx>(
-      std::index_sequence<Idx...> ) {
-    ( ( out += fmt::format( "{}, ", std::get<Idx>( o ) ) ),
-      ... );
-    if( sizeof...( Idx ) > 0 ) out.resize( out.size() - 2 );
-  };
+  auto build =
+      [&]<size_t... Idx>( std::index_sequence<Idx...> ) {
+        ( ( out += fmt::format( "{}, ", std::get<Idx>( o ) ) ),
+          ... );
+        if( sizeof...( Idx ) > 0 ) out.resize( out.size() - 2 );
+      };
   out += "(";
   build( std::index_sequence_for<Ts...>() ), out += ")";
 };
@@ -212,5 +213,8 @@ void to_str( std::chrono::duration<Rep, Period> const& o,
              std::string& out, ADL_t ) {
   out += to_string_colons( o );
 };
+
+void to_str( std::source_location const& o, std::string& out,
+             ADL_t );
 
 } // namespace base

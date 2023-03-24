@@ -13,6 +13,9 @@
 // C++ standard library
 #include <cstring>
 
+// base
+#include "base/to-str-ext-std.hpp"
+
 using namespace std;
 
 namespace gfx {
@@ -165,7 +168,7 @@ image new_filled_image( size size_pixels, pixel color ) {
 namespace testing {
 
 bool image_equals( image const& img, span<pixel const> sp,
-                   base::SourceLoc loc ) {
+                   source_location loc ) {
   if( img.size_pixels().area() != int( sp.size() ) ) {
     fmt::print( "{}:error:images have different sizes: {} != {}",
                 loc, img.size_pixels().area(), sp.size() );

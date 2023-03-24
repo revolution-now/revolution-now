@@ -21,6 +21,7 @@
 
 // C++ standard library
 #include <cassert>
+#include <source_location>
 #include <type_traits>
 
 namespace lua {
@@ -40,10 +41,10 @@ namespace lua {
 // This macro is used to define a push function that can only be
 // called for a specific type, preventing issues with ambiguious
 // overloads due to implicit conversions.
-#define LUA_PUSH_FUNC( type )                                   \
-  template<typename T>                                          \
-  requires( std::is_same_v<std::remove_cvref_t<T>, type> ) void \
-  lua_push( cthread L, T const& o )
+#define LUA_PUSH_FUNC( type )                              \
+  template<typename T>                                     \
+  requires( std::is_same_v<std::remove_cvref_t<T>, type> ) \
+  void lua_push( cthread L, T const& o )
 
 /****************************************************************
 ** Tag used throughout luapp.
@@ -85,17 +86,16 @@ concept HasTraitsNvalues = requires {
 };
 
 template<typename T>
-concept PushableViaAdl = requires( T const& o, cthread L ) {
-  lua_push( L, o );
-};
+concept PushableViaAdl =
+    requires( T const& o, cthread L ) { lua_push( L, o ); };
 
 template<typename T>
-concept PushableViaTraits = HasTraitsNvalues<T> &&
-    requires( T o, cthread L ) {
-  {
-    traits_for<T>::push( L, std::forward<T>( o ) )
-    } -> std::same_as<void>;
-};
+concept PushableViaTraits =
+    HasTraitsNvalues<T> && requires( T o, cthread L ) {
+      {
+        traits_for<T>::push( L, std::forward<T>( o ) )
+      } -> std::same_as<void>;
+    };
 
 template<typename T>
 concept GettableViaAdl = requires( cthread L ) {
@@ -103,31 +103,29 @@ concept GettableViaAdl = requires( cthread L ) {
 };
 
 template<typename T>
-concept GettableViaTraits = HasTraitsNvalues<T> &&
-    requires( cthread L ) {
-  // clang-format off
+concept GettableViaTraits =
+    HasTraitsNvalues<T> && requires( cthread L ) {
+      // clang-format off
   { traits_for<T>::get( L, -1, tag<T>{} ) } ->
     std::same_as<base::maybe<T>>;
-  // clang-format on
-};
+      // clang-format on
+    };
 
 // Must be one or the other to avoid ambiguity.  We could
 // use the xor operator, but the following representation
 // gives more revealing error messages.
 template<typename T>
 concept Pushable =
-    (PushableViaAdl<T> ||
-     PushableViaTraits<T>)&&!( PushableViaAdl<T> &&
-                               PushableViaTraits<T> );
+    (PushableViaAdl<T> || PushableViaTraits<T>)&&!(
+        PushableViaAdl<T> && PushableViaTraits<T> );
 
 // Must be one or the other to avoid ambiguity.  We could
 // use the xor operator, but the following representation
 // gives more revealing error messages.
 template<typename T>
 concept Gettable =
-    (GettableViaAdl<T> ||
-     GettableViaTraits<T>)&&!( GettableViaAdl<T> &&
-                               GettableViaTraits<T> );
+    (GettableViaAdl<T> || GettableViaTraits<T>)&&!(
+        GettableViaAdl<T> && GettableViaTraits<T> );
 
 // Can the type be sent to and from Lua.
 template<typename T>
@@ -199,8 +197,8 @@ using storage_type_for =
 template<typename T>
 concept StorageGettable =
     Gettable<storage_type_for<T>> && requires {
-  requires std::is_constructible_v<T, storage_type_for<T>>;
-};
+      requires std::is_constructible_v<T, storage_type_for<T>>;
+    };
 
 /****************************************************************
 ** nvalues_for
@@ -217,9 +215,8 @@ constexpr int nvalues_for() {
 }
 
 template<typename T1, typename T2>
-concept CompatibleNvalues = requires {
-  nvalues_for<T1>() == nvalues_for<T2>();
-};
+concept CompatibleNvalues =
+    requires { nvalues_for<T1>() == nvalues_for<T2>(); };
 
 /****************************************************************
 ** push
@@ -258,9 +255,9 @@ auto get( cthread L, int idx ) {
 // convert it to the given type and will throw a lua error if it
 // cannot convert it.
 template<Gettable T>
-T get_or_luaerr(
-    cthread L, int idx,
-    base::SourceLoc loc = base::SourceLoc::current() ) {
+T get_or_luaerr( cthread L, int idx,
+                 std::source_location loc =
+                     std::source_location::current() ) {
   base::maybe<T> m = lua::get<T>( L, idx );
   if( m.has_value() ) return *m;
   throw_lua_error( L,

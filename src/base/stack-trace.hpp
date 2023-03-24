@@ -12,8 +12,8 @@
 
 #include "config.hpp"
 
-// base
-#include "source-loc.hpp"
+// C++ standard library
+#include <source_location>
 
 // FIXME: move this to the error module after that is moved into
 // the base library.
@@ -37,6 +37,6 @@ namespace base {
 // it should either call std::abort, or throw an exception, what-
 // ever is most appropriate for the binary.
 [[noreturn]] void abort_with_backtrace_here(
-    SourceLoc loc = SourceLoc::current() );
+    std::source_location loc = std::source_location::current() );
 
 } // namespace base

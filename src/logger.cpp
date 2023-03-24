@@ -84,7 +84,7 @@ void set_global_log_level( e_log_level level ) {
 *****************************************************************/
 struct ConsoleLogger final : public ILogger {
   void log( e_log_level target, std::string_view what,
-            base::SourceLoc const& ) override {
+            source_location const& ) override {
     if( target < global_log_level() ) return;
     if( terminal_ )
       // Note that the console has its own mutex, so we don't
@@ -124,7 +124,7 @@ mutex& terminal_mutex() {
 
 struct TerminalLogger final : public ILogger {
   void log( e_log_level target, std::string_view what,
-            base::SourceLoc const& loc ) override {
+            source_location const& loc ) override {
     if( target < global_log_level() ) return;
     fs::path const module_name =
         fs::path( loc.file_name() ).filename();
@@ -158,7 +158,7 @@ ILogger& terminal_logger() {
 *****************************************************************/
 struct HybridLogger final : public ILogger {
   void log( e_log_level target, std::string_view what,
-            base::SourceLoc const& loc ) override {
+            source_location const& loc ) override {
     terminal_logger().log( target, what, loc );
     console_logger().log( target, what, loc );
   }

@@ -17,10 +17,10 @@
 #include "attributes.hpp"
 #include "error.hpp"
 #include "maybe.hpp"
-#include "source-loc.hpp"
 #include "to-str.hpp"
 
 // C++ standard library
+#include <source_location>
 #include <variant>
 
 namespace base {
@@ -74,7 +74,8 @@ class variant : public std::variant<Args...> {
   ** get (no checks!)
   ***************************************************************/
   template<typename T>
-  T const& get( SourceLoc loc = SourceLoc::current() )
+  T const& get( std::source_location loc =
+                    std::source_location::current() )
       const noexcept ATTR_LIFETIMEBOUND {
     auto* p = std::get_if<T>( this );
     CHECK( p, "invalid base::variant::get():{}:{}",
@@ -83,7 +84,8 @@ class variant : public std::variant<Args...> {
   }
 
   template<typename T>
-  T& get( SourceLoc loc = SourceLoc::current() ) noexcept
+  T& get( std::source_location loc =
+              std::source_location::current() ) noexcept
       ATTR_LIFETIMEBOUND {
     auto* p = std::get_if<T>( this );
     CHECK( p, "invalid base::variant::get():{}:{}",
@@ -95,7 +97,8 @@ class variant : public std::variant<Args...> {
   ** as (same as get
   ***************************************************************/
   template<typename T>
-  T const& as( SourceLoc loc = SourceLoc::current() )
+  T const& as( std::source_location loc =
+                   std::source_location::current() )
       const noexcept ATTR_LIFETIMEBOUND {
     auto* p = std::get_if<T>( this );
     CHECK( p, "invalid base::variant::get():{}:{}",
@@ -104,7 +107,8 @@ class variant : public std::variant<Args...> {
   }
 
   template<typename T>
-  T& as( SourceLoc loc = SourceLoc::current() ) noexcept
+  T& as( std::source_location loc =
+             std::source_location::current() ) noexcept
       ATTR_LIFETIMEBOUND {
     auto* p = std::get_if<T>( this );
     CHECK( p, "invalid base::variant::get():{}:{}",

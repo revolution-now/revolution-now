@@ -44,7 +44,7 @@ namespace base {
 //
 // FIXME: we should probably be using the source location passed
 // into this function in case a stack trace is not available.
-void abort_with_backtrace_here( SourceLoc /*loc*/ ) {
+void abort_with_backtrace_here( source_location /*loc*/ ) {
   auto here = ::rn::stack_trace_here();
   rn::print_SDL_error();
   rn::run_all_cleanup_routines();

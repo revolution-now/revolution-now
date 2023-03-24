@@ -16,13 +16,15 @@
 
 // base
 #include "base/cc-specific.hpp"
-#include "base/source-loc.hpp"
+
+// C++ standard library
+#include <source_location>
 
 namespace lua {
 
 template<typename From, typename To>
 concept Castable = Pushable<From> && Gettable<To> &&
-    CompatibleNvalues<From, To>;
+                   CompatibleNvalues<From, To>;
 
 // Needed to prevent weird indentation after concept.
 struct FixClangFormat1 {};
@@ -36,9 +38,9 @@ std::string as_type_name( cthread L, int idx );
 
 template<typename To, typename From>
 requires Castable<From, To>
-[[nodiscard]] To as(
-    cthread L, From&& from,
-    base::SourceLoc loc = base::SourceLoc::current() ) {
+[[nodiscard]] To as( cthread L, From&& from,
+                     std::source_location loc =
+                         std::source_location::current() ) {
   int n_pushed = lua::push( L, FWD( from ) );
   To  to       = get_or_luaerr<To>( L, -1, loc );
   detail::as_pop( L, n_pushed );
@@ -47,9 +49,9 @@ requires Castable<From, To>
 
 template<typename To, typename From>
 requires Castable<From, To> && HasCthread<From>
-[[nodiscard]] To as(
-    From&&          from,
-    base::SourceLoc loc = base::SourceLoc::current() ) {
+[[nodiscard]] To as( From&&               from,
+                     std::source_location loc =
+                         std::source_location::current() ) {
   cthread L = from.this_cthread();
   return as<To>( L, FWD( from ), loc );
 }
@@ -60,8 +62,8 @@ requires Castable<From, To> && HasCthread<From>
 template<typename To, typename From>
 requires Castable<From, To>
 [[nodiscard]] auto safe_as(
-    From&&          from,
-    base::SourceLoc loc = base::SourceLoc::current() ) {
+    From&& from, std::source_location loc =
+                     std::source_location::current() ) {
   return as<base::maybe<To>>( FWD( from ), loc );
 }
 

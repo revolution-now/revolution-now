@@ -16,7 +16,6 @@
 #include "adl-tag.hpp"
 #include "fmt.hpp"
 #include "macros.hpp"
-#include "source-loc.hpp"
 
 // base-util
 #include "base-util/pp.hpp"
@@ -341,7 +340,8 @@ std::string check_msg( char const*        expr,
 } // namespace detail
 
 [[noreturn]] void abort_with_msg(
-    std::string_view msg, SourceLoc loc = SourceLoc::current() );
+    std::string_view     msg,
+    std::source_location loc = std::source_location::current() );
 
 struct GenericError {
   // This is to force storing these by pointer; storing them by
@@ -349,18 +349,20 @@ struct GenericError {
   // expected that they will only get created when errors happen
   // anyway.
   static std::unique_ptr<GenericError> create(
-      std::string_view what,
-      SourceLoc        loc = SourceLoc::current() ) {
+      std::string_view     what,
+      std::source_location loc =
+          std::source_location::current() ) {
     return std::unique_ptr<GenericError>(
         new GenericError( what, loc ) );
   }
 
-  std::string what;
-  SourceLoc   loc;
+  std::string          what;
+  std::source_location loc;
 
  private:
-  GenericError( std::string_view what_,
-                SourceLoc        loc_ = SourceLoc::current() )
+  GenericError( std::string_view     what_,
+                std::source_location loc_ =
+                    std::source_location::current() )
     : what( what_ ), loc( loc_ ) {}
 };
 

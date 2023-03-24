@@ -1681,13 +1681,14 @@ TEST_CASE( "[expected] value()" ) {
   SECTION( "int" ) {
     E<int, string> m1 = "hello";
     try {
-      (void)m1.value( SourceLoc{} );
+      (void)m1.value( source_location{} );
       // Should not be here.
       REQUIRE( false );
     } catch( bad_expect_access const& e ) {
-      REQUIRE_THAT( e.what(), Contains( fmt::format(
-                                  "unknown:0: value() called on "
-                                  "an inactive expect" ) ) );
+      REQUIRE_THAT(
+          e.what(),
+          Contains( fmt::format(
+              ":0: value() called on an inactive expect" ) ) );
     }
     m1 = 5;
     REQUIRE( m1.has_value() );
@@ -1710,13 +1711,14 @@ TEST_CASE( "[expected] error()" ) {
   SECTION( "int" ) {
     E<int, string> m1 = 5;
     try {
-      (void)m1.error( SourceLoc{} );
+      (void)m1.error( source_location{} );
       // Should not be here.
       REQUIRE( false );
     } catch( bad_expect_access const& e ) {
-      REQUIRE_THAT( e.what(), Contains( fmt::format(
-                                  "unknown:0: error() called on "
-                                  "an active expect" ) ) );
+      REQUIRE_THAT(
+          e.what(),
+          Contains( fmt::format(
+              ":0: error() called on an active expect" ) ) );
     }
     m1 = "hello";
     REQUIRE( !m1.has_value() );

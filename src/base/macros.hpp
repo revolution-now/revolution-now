@@ -46,9 +46,6 @@
     ::std::forward<decltype( __VA_ARGS__ )>( __VA_ARGS__ )
 #endif
 
-#define CALLER_LOCATION( var ) \
-  const base::SourceLoc& var = base::SourceLoc::current()
-
 #define NON_COPYABLE( C )            \
   C( C const& )            = delete; \
   C& operator=( C const& ) = delete

@@ -33,9 +33,10 @@ using namespace std;
 using ::base::maybe;
 
 namespace base {
-[[noreturn]] void abort_with_backtrace_here( SourceLoc /*loc*/ );
 [[noreturn]] void abort_with_backtrace_here(
-    SourceLoc /*loc*/ ) {
+    source_location /*loc*/ );
+[[noreturn]] void abort_with_backtrace_here(
+    source_location /*loc*/ ) {
   abort();
 }
 } // namespace base

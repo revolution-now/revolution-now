@@ -14,7 +14,6 @@
 
 // base
 #include "base/fmt.hpp"
-#include "base/source-loc.hpp"
 
 // C++ standard library
 #include <string>
@@ -39,37 +38,6 @@ e_log_level global_log_level();
 void        set_global_log_level( e_log_level level );
 
 /****************************************************************
-** FmtStrAndLoc
-*****************************************************************/
-// This class is a helper that is implicitly constructed from a
-// constexpr string, but also captures the source location in the
-// process. It is used to automatically collect source location
-// info when logging. We can't use the usual technique of making
-// a defaulted SourceLoc parameter at the end of the argument
-// list of the logging statements because they already need to
-// have a variable number of arguments to support formatting.
-// Note that we also store the format string in a format_string
-// so that we get fmt's compile time format checking, which we
-// would otherwise lose. We really want the compile-time format
-// string checking afforded to us by fmt::format_string because
-// otherwise format string syntax issues (or argument count dis-
-// crepencies) would not be caught until runtime at which point
-// fmt throws an exception which immediately terminates our pro-
-// gram without much info for debugging where it happened. So
-// even though we could bypass the compile time checking by using
-// fmt::runtime(...) and perhaps save some compile time, we opt
-// to keep the checking.
-template<typename... Args>
-struct FmtStrAndLoc {
-  consteval FmtStrAndLoc(
-      char const*     s,
-      base::SourceLoc loc = base::SourceLoc::current() )
-    : fs( s ), loc( loc ) {}
-  fmt::format_string<Args...> fs;
-  base::SourceLoc             loc;
-};
-
-/****************************************************************
 ** Logger Interface
 *****************************************************************/
 // The use of std::type_identity_t trick was taken from fmt's de-
@@ -85,15 +53,15 @@ struct FmtStrAndLoc {
 // now forced to infer Args from the subsequent parameters, which
 // then fixes them for the first parameter. See the type_identity
 // cppreference page for more info.
-#define ILOGGER_LEVEL( level )                            \
-  template<typename... Args>                              \
-  void level( FmtStrAndLoc<std::type_identity_t<Args>...> \
-                  fmt_str_and_loc,                        \
-              Args&&... args ) {                          \
-    log( e_log_level::level,                              \
-         fmt::format( fmt_str_and_loc.fs,                 \
-                      std::forward<Args>( args )... ),    \
-         fmt_str_and_loc.loc );                           \
+#define ILOGGER_LEVEL( level )                                  \
+  template<typename... Args>                                    \
+  void level( base::FmtStrAndLoc<std::type_identity_t<Args>...> \
+                  fmt_str_and_loc,                              \
+              Args&&... args ) {                                \
+    log( e_log_level::level,                                    \
+         fmt::format( fmt_str_and_loc.fs,                       \
+                      std::forward<Args>( args )... ),          \
+         fmt_str_and_loc.loc );                                 \
   }
 
 // Subclasses of this must be thread safe with respect to them-
@@ -110,7 +78,7 @@ struct ILogger {
 
   // Should not call this one.
   virtual void log( e_log_level level, std::string_view what,
-                    base::SourceLoc const& loc ) = 0;
+                    std::source_location const& loc ) = 0;
 };
 
 /****************************************************************

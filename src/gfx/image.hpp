@@ -15,11 +15,11 @@
 #include "pixel.hpp"
 
 // base
-#include "base/source-loc.hpp"
 #include "base/zero.hpp"
 
 // C++ standard library
 #include <cstddef>
+#include <source_location>
 #include <span>
 
 namespace gfx {
@@ -35,7 +35,7 @@ struct image : base::zero<image, unsigned char*> {
   // free.
   image( size size_pixels, unsigned char* data );
 
-  image( image&& ) = default;
+  image( image&& )            = default;
   image& operator=( image&& ) = default;
 
   gfx::pixel const& at( point p ) const;
@@ -68,7 +68,7 @@ struct image : base::zero<image, unsigned char*> {
  private:
   unsigned char* data_for( point const p ) const;
 
-  image( image const& ) = delete;
+  image( image const& )            = delete;
   image& operator=( image const& ) = delete;
 
   size size_pixels_ = {};
@@ -95,7 +95,7 @@ namespace testing {
 
 bool image_equals(
     image const& img, std::span<pixel const> sp,
-    base::SourceLoc loc = base::SourceLoc::current() );
+    std::source_location loc = std::source_location::current() );
 
 image new_image_from_pixels( size                   dimensions,
                              std::span<pixel const> sp );

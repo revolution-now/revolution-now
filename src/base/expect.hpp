@@ -16,11 +16,11 @@
 #include "fmt.hpp"
 #include "maybe.hpp"
 #include "meta.hpp"
-#include "source-loc.hpp"
 #include "to-str.hpp"
 
 // C++ standard library
 #include <concepts>
+#include <source_location>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
@@ -61,7 +61,7 @@ struct bad_expect_access : public std::exception {
   // Don't give a default value to loc because we want that to be
   // supplied by someone further up the call chain in order to
   // produce a more helpful location to the user.
-  bad_expect_access( SourceLoc loc, bool error )
+  bad_expect_access( std::source_location loc, bool error )
     : std::exception{}, loc_{ std::move( loc ) }, error_msg_{} {
     error_msg_ = loc_.file_name();
     error_msg_ += ":";
@@ -82,8 +82,8 @@ struct bad_expect_access : public std::exception {
     return error_msg_.c_str();
   }
 
-  SourceLoc   loc_;
-  std::string error_msg_;
+  std::source_location loc_;
+  std::string          error_msg_;
 };
 
 /****************************************************************
@@ -810,23 +810,27 @@ class [[nodiscard]] expect { /* clang-format on */
   ** value
   ***************************************************************/
   [[nodiscard]] constexpr T const& value(
-      SourceLoc loc = SourceLoc::current() ) const& {
+      std::source_location loc =
+          std::source_location::current() ) const& {
     if( !good_ ) throw bad_expect_access{ loc, /*error=*/false };
     return **this;
   }
   [[nodiscard]] constexpr T& value(
-      SourceLoc loc = SourceLoc::current() ) & {
+      std::source_location loc =
+          std::source_location::current() ) & {
     if( !good_ ) throw bad_expect_access{ loc, /*error=*/false };
     return **this;
   }
 
   [[nodiscard]] constexpr T const&& value(
-      SourceLoc loc = SourceLoc::current() ) const&& {
+      std::source_location loc =
+          std::source_location::current() ) const&& {
     if( !good_ ) throw bad_expect_access{ loc, /*error=*/false };
     return std::move( **this );
   }
   [[nodiscard]] constexpr T&& value(
-      SourceLoc loc = SourceLoc::current() ) && {
+      std::source_location loc =
+          std::source_location::current() ) && {
     if( !good_ ) throw bad_expect_access{ loc, /*error=*/false };
     return std::move( **this );
   }
@@ -835,23 +839,27 @@ class [[nodiscard]] expect { /* clang-format on */
   ** error
   ***************************************************************/
   [[nodiscard]] constexpr E const& error(
-      SourceLoc loc = SourceLoc::current() ) const& {
+      std::source_location loc =
+          std::source_location::current() ) const& {
     if( good_ ) throw bad_expect_access{ loc, /*error=*/true };
     return err_;
   }
   [[nodiscard]] constexpr E& error(
-      SourceLoc loc = SourceLoc::current() ) & {
+      std::source_location loc =
+          std::source_location::current() ) & {
     if( good_ ) throw bad_expect_access{ loc, /*error=*/true };
     return err_;
   }
 
   [[nodiscard]] constexpr E const&& error(
-      SourceLoc loc = SourceLoc::current() ) const&& {
+      std::source_location loc =
+          std::source_location::current() ) const&& {
     if( good_ ) throw bad_expect_access{ loc, /*error=*/true };
     return std::move( err_ );
   }
   [[nodiscard]] constexpr E&& error(
-      SourceLoc loc = SourceLoc::current() ) && {
+      std::source_location loc =
+          std::source_location::current() ) && {
     if( good_ ) throw bad_expect_access{ loc, /*error=*/true };
     return std::move( err_ );
   }
@@ -1398,7 +1406,8 @@ class [[nodiscard]] expect<T&, E> { /* clang-format on */
   ** value
   ***************************************************************/
   [[nodiscard]] constexpr T& value(
-      SourceLoc loc = SourceLoc::current() ) const {
+      std::source_location loc =
+          std::source_location::current() ) const {
     if( !has_value() )
       throw bad_expect_access{ loc, /*error=*/false };
     return **this;
@@ -1408,14 +1417,16 @@ class [[nodiscard]] expect<T&, E> { /* clang-format on */
   ** error
   ***************************************************************/
   [[nodiscard]] constexpr E& error(
-      SourceLoc loc = SourceLoc::current() ) {
+      std::source_location loc =
+          std::source_location::current() ) {
     if( has_value() )
       throw bad_expect_access{ loc, /*error=*/true };
     return err_;
   }
 
   [[nodiscard]] constexpr E const& error(
-      SourceLoc loc = SourceLoc::current() ) const {
+      std::source_location loc =
+          std::source_location::current() ) const {
     if( has_value() )
       throw bad_expect_access{ loc, /*error=*/false };
     return err_;

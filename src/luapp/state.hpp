@@ -27,6 +27,7 @@
 #include "base/zero.hpp"
 
 // C++ standard library
+#include <source_location>
 #include <string_view>
 
 namespace lua {
@@ -51,7 +52,7 @@ struct state : base::zero<state, cthread> {
   // Creates a non-owning view of the state.
   static state view( cthread L ) { return state( L ); }
 
-  state( state&& ) = default;
+  state( state&& )            = default;
   state& operator=( state&& ) = default;
 
  private:
@@ -213,9 +214,9 @@ struct state : base::zero<state, cthread> {
   ***************************************************************/
   template<typename To, typename From>
   requires Castable<From, To>
-  [[nodiscard]] To as(
-      From&&          from,
-      base::SourceLoc loc = base::SourceLoc::current() ) {
+  [[nodiscard]] To as( From&&               from,
+                       std::source_location loc =
+                           std::source_location::current() ) {
     cthread L = resource();
     return lua::as<To>( L, std::forward<From>( from ), loc );
   }
@@ -230,7 +231,7 @@ struct state : base::zero<state, cthread> {
   }
 
  private:
-  state( state const& ) = delete;
+  state( state const& )            = delete;
   state& operator=( state const& ) = delete;
 };
 

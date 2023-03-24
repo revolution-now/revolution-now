@@ -18,7 +18,6 @@
 #include "error.hpp"
 #include "fmt.hpp"
 #include "meta.hpp"
-#include "source-loc.hpp"
 #include "to-str.hpp"
 
 // base-util
@@ -26,6 +25,7 @@
 
 // C++ standard library
 #include <functional>
+#include <source_location>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -92,7 +92,7 @@ struct bad_maybe_access : public std::exception {
   // Don't give a default value to loc because we want that to be
   // supplied by someone further up the call chain in order to
   // produce a more helpful location to the user.
-  bad_maybe_access( SourceLoc loc )
+  bad_maybe_access( std::source_location loc )
     : std::exception{}, loc_{ std::move( loc ) }, error_msg_{} {
     error_msg_ = loc_.file_name();
     error_msg_ += ":";
@@ -110,8 +110,8 @@ struct bad_maybe_access : public std::exception {
     return error_msg_.c_str();
   }
 
-  SourceLoc   loc_;
-  std::string error_msg_;
+  std::source_location loc_;
+  std::string          error_msg_;
 };
 
 /****************************************************************
@@ -638,30 +638,35 @@ class [[nodiscard]] maybe { /* clang-format on */
   ** value
   ***************************************************************/
   [[nodiscard]] constexpr T const& value(
-      SourceLoc loc = SourceLoc::current() ) const& {
+      std::source_location loc =
+          std::source_location::current() ) const& {
     if( !active_ ) throw bad_maybe_access{ loc };
     return **this;
   }
   [[nodiscard]] constexpr T& value(
-      SourceLoc loc = SourceLoc::current() ) & {
+      std::source_location loc =
+          std::source_location::current() ) & {
     if( !active_ ) throw bad_maybe_access{ loc };
     return **this;
   }
 
   [[nodiscard]] constexpr T const&& value(
-      SourceLoc loc = SourceLoc::current() ) const&& {
+      std::source_location loc =
+          std::source_location::current() ) const&& {
     if( !active_ ) throw bad_maybe_access{ loc };
     return std::move( **this );
   }
   [[nodiscard]] constexpr T&& value(
-      SourceLoc loc = SourceLoc::current() ) && {
+      std::source_location loc =
+          std::source_location::current() ) && {
     if( !active_ ) throw bad_maybe_access{ loc };
     return std::move( **this );
   }
 
   // Just to give a uniform interface with expect<>.
   constexpr nothing_t error(
-      SourceLoc loc = SourceLoc::current() ) const {
+      std::source_location loc =
+          std::source_location::current() ) const {
     if( active_ ) throw bad_maybe_access{ loc };
     return nothing;
   }
@@ -1113,14 +1118,16 @@ class [[nodiscard]] maybe<T&> { /* clang-format on */
   ** value
   ***************************************************************/
   [[nodiscard]] constexpr T& value(
-      SourceLoc loc = SourceLoc::current() ) const {
+      std::source_location loc =
+          std::source_location::current() ) const {
     if( !has_value() ) throw bad_maybe_access{ loc };
     return **this;
   }
 
   // Just to give a uniform interface with expect<>.
   constexpr nothing_t error(
-      SourceLoc loc = SourceLoc::current() ) const {
+      std::source_location loc =
+          std::source_location::current() ) const {
     if( has_value() ) throw bad_maybe_access{ loc };
     return nothing;
   }

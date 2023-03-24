@@ -13,6 +13,7 @@
 // base
 #include "base/error.hpp"
 #include "base/macros.hpp"
+#include "base/to-str.hpp"
 
 // C++ standard library
 #include <concepts>

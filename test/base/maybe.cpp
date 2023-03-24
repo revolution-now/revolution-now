@@ -1396,13 +1396,14 @@ TEST_CASE( "[maybe] value()" ) {
   SECTION( "int" ) {
     M<int> m1;
     try {
-      (void)m1.value( SourceLoc{} );
+      (void)m1.value( source_location{} );
       // Should not be here.
       REQUIRE( false );
     } catch( bad_maybe_access const& e ) {
-      REQUIRE_THAT( e.what(), Contains( fmt::format(
-                                  "unknown:0: value() called on "
-                                  "an inactive maybe" ) ) );
+      REQUIRE_THAT(
+          e.what(),
+          Contains( fmt::format(
+              ":0: value() called on an inactive maybe" ) ) );
     }
 
     m1 = 5;

@@ -28,4 +28,9 @@ void to_str( monostate const&, string& out, ADL_t ) {
   out += "monostate";
 };
 
+void to_str( source_location const& o, string& out, ADL_t ) {
+  out += fmt::format( "{}:{}:{}", o.file_name(), o.line(),
+                      o.column() );
+};
+
 } // namespace base

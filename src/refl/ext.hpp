@@ -14,12 +14,12 @@
 #include "base/fmt.hpp"
 #include "base/maybe.hpp"
 #include "base/meta.hpp"
-#include "base/source-loc.hpp"
 #include "base/valid.hpp"
 #include "base/variant.hpp"
 
 // C++ standard library
 #include <array>
+#include <source_location>
 #include <string_view>
 #include <tuple>
 #include <type_traits>
@@ -128,7 +128,7 @@ concept ReflectedStruct = Reflected<T> && requires {
 #define REFL_VALIDATE( a, ... )                     \
   {                                                 \
     if( !( a ) ) {                                  \
-      auto loc = ::base::SourceLoc::current();      \
+      auto loc = ::std::source_location::current(); \
       return base::invalid( fmt::format(            \
           "{}:{}: {}", loc.file_name(), loc.line(), \
           fmt::format( "" __VA_ARGS__ ) ) );        \
