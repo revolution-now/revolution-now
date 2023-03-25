@@ -335,10 +335,7 @@ e_tribe tribe_for_unit( SSConst const&    ss,
       ss.units.ownership_of( native_unit.id );
   UNWRAP_CHECK( world,
                 ownership.get_if<NativeUnitOwnership::world>() );
-  return ss.natives
-      .tribe_for(
-          ss.natives.dwelling_for( world.dwelling_id ).id )
-      .type;
+  return ss.natives.tribe_for( world.dwelling_id ).type;
 }
 
 /****************************************************************
