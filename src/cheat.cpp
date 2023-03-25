@@ -195,10 +195,18 @@ void cheat_explore_entire_map( SS& ss, TS& ts ) {
     // Entire map is already visible, no need to do anything.
     return;
   base::ScopedTimer timer( "explore entire map" );
-  // Ideally what we would be doing here is just looping over all
-  // tiles and calling `make_square_visible` on the map updater,
-  // but that is way too slow, so we will do this more manual
-  // way.
+  // In a sense, what we'd ideally be doing here is just calling
+  // `make_squares_visible` with the map_updater on all tiles.
+  // However, there are two problems with that. One, it would re-
+  // move fog from all of the tiles on the map which is both un-
+  // necessary and wasteful because on the very next turn most of
+  // that fog would have to be regenerated. Second, even though
+  // make_squares_visible is a batch API that will only render
+  // each square once, it will do so on the annex buffers, which
+  // will then cause the entire map to be re-rendered multiple
+  // times throughout the process, slowing it down. The below is
+  // as effecicient as can be since it will leave the fog buffer
+  // completely untouched and will redraw the map only once.
   gfx::Matrix<maybe<FogSquare>>& m =
       ss.mutable_terrain_use_with_care
           .mutable_player_terrain( *nation )
