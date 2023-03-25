@@ -55,6 +55,7 @@
 
 // base
 #include "base/scope-exit.hpp"
+#include "base/timer.hpp"
 #include "base/to-str-ext-std.hpp"
 
 using namespace std;
@@ -193,6 +194,7 @@ void cheat_explore_entire_map( SS& ss, TS& ts ) {
   if( !nation.has_value() )
     // Entire map is already visible, no need to do anything.
     return;
+  base::ScopedTimer timer( "explore entire map" );
   // Ideally what we would be doing here is just looping over all
   // tiles and calling `make_square_visible` on the map updater,
   // but that is way too slow, so we will do this more manual
@@ -201,19 +203,15 @@ void cheat_explore_entire_map( SS& ss, TS& ts ) {
       ss.mutable_terrain_use_with_care
           .mutable_player_terrain( *nation )
           .map;
-  for( Rect const r : gfx::subrects( world_rect ) ) {
-    Coord const coord      = r.upper_left();
-    FogSquare&  fog_square = m[coord].emplace();
+  for( Coord const coord : gfx::rect_iterator( world_rect ) ) {
+    // This will reveal the square to the player with fog if the
+    // square was not already explored but with existing fog
+    // status if it was already explored.
+    FogSquare& fog_square =
+        m[coord].has_value() ? *m[coord] : m[coord].emplace();
     copy_real_square_to_fog_square( ss, coord, fog_square );
-    // The reason that we leave it fogged is because if we remove
-    // then fog then, on the next turn, the game will regenerate
-    // the fog on most of the map squares which will cause a huge
-    // delay for larger maps. So we just leave it fogged, but
-    // then remove the fog around units after we redraw below.
-    fog_square.fog_of_war_removed = false;
   }
   ts.map_updater.redraw();
-  recompute_fog_for_nation( ss, ts, *nation );
 }
 
 void cheat_toggle_reveal_full_map( SS& ss, TS& ts ) {
