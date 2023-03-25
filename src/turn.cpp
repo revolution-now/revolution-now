@@ -10,6 +10,7 @@
 *****************************************************************/
 #include "turn.hpp"
 
+// rds
 #include "turn-impl.rds.hpp"
 
 // Revolution Now
@@ -265,8 +266,8 @@ vector<UnitId> euro_units_all( UnitsState const& units_state,
   return res;
 }
 
-// Apply a function to all units. The function may mutate the
-// units.
+// Apply a function to all european units. The function may mu-
+// tate the units.
 void map_all_euro_units(
     UnitsState&                       units_state,
     base::function_ref<void( Unit& )> func ) {
@@ -974,8 +975,9 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
 }
 
 // Processes the current state and returns the next state.
-wait<maybe<NationTurnState>> nation_turn_iter(
-    SS& ss, TS& ts, e_nation nation, NationTurnState& st ) {
+wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
+                                        e_nation         nation,
+                                        NationTurnState& st ) {
   Player& player =
       player_for_nation_or_die( ss.players, nation );
   // `visibility` determines from whose point of view the map is
@@ -1024,7 +1026,7 @@ wait<maybe<NationTurnState>> nation_turn_iter(
       }
       SHOULD_NOT_BE_HERE; // for gcc.
     }
-    CASE( finished ) { co_return nothing; }
+    CASE( finished ) { SHOULD_NOT_BE_HERE; }
     END_CASES;
   }
 }
@@ -1033,16 +1035,10 @@ wait<> nation_turn( SS& ss, TS& ts, e_nation nation,
                     NationTurnState& st ) {
   if( !ss.players.players[nation].has_value() ) co_return;
   // TODO: Until we have AI.
-  if( !ss.players.humans[nation] ) {
+  if( !ss.players.humans[nation] )
     st = NationTurnState::finished{};
-    co_return;
-  }
-  while( true ) {
-    maybe<NationTurnState> const next =
-        co_await nation_turn_iter( ss, ts, nation, st );
-    if( !next.has_value() ) break;
-    st = *next;
-  }
+  while( !st.holds<NationTurnState::finished>() )
+    st = co_await nation_turn_iter( ss, ts, nation, st );
 }
 
 /****************************************************************
@@ -1061,16 +1057,16 @@ void start_of_turn_cycle( SS& ss ) {
   if( ss.turn.time_point.turns >
       config_turn.turns_to_wait.market_evolution )
     evolve_group_model_volumes( ss );
-}
 
-void reset_units( SS& ss ) {
-  refl::enum_map<e_nation, Player const*> players;
+  // Note: resetting of the european units' movement points must
+  // be done in this function so that it does not get redone if a
+  // game is loaded that was mid-turn. For the natives, that can
+  // be done in the "natives" section because we know that the
+  // game will never be saved during the natives' turn.
   map_all_euro_units( ss.units, [&]( Unit& unit ) {
     UNWRAP_CHECK( player, ss.players.players[unit.nation()] );
     unit.new_turn( player );
   } );
-
-  // TODO: handle native units.
 }
 
 // Processes teh current state and returns the next state.
@@ -1079,7 +1075,6 @@ wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
   TurnCycle& cycle = ss.turn.cycle;
   SWITCH( cycle ) {
     CASE( not_started ) {
-      reset_units( ss );
       start_of_turn_cycle( ss );
       co_return TurnCycle::natives{};
     }
