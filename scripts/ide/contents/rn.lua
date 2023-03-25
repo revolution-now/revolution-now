@@ -5,8 +5,11 @@ return {
   'ss/terrain',
   'ss/players',
   'ss/turn',
-  'turn',
   'mv-calc',
   'icombat',
   'attack-handlers',
+  'turn',
+  'native-turn',
+  'inative-mind',
+  'native-mind',
 }
