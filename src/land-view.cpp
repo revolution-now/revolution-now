@@ -527,6 +527,9 @@ struct LandViewPlane::Impl : public Plane {
     static_assert( zoom_in_factor * zoom_out_factor == 1.0 );
     switch( item ) {
       case e_menu_item::cheat_reveal_map: {
+        if( !landview_mode_.holds<LandViewMode::unit_input>() &&
+            !landview_mode_.holds<LandViewMode::end_of_turn>() )
+          break;
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::reveal_map{} ) );
