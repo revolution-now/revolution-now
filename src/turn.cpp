@@ -32,6 +32,7 @@
 #include "map-edit.hpp"
 #include "market.hpp"
 #include "menu.hpp"
+#include "native-turn.hpp"
 #include "on-map.hpp"
 #include "panel.hpp"
 #include "plane-stack.hpp"
@@ -1079,7 +1080,7 @@ wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
       co_return TurnCycle::natives{};
     }
     CASE( natives ) {
-      // TODO
+      co_await natives_turn( ss, ts );
       co_return TurnCycle::nation{};
     }
     CASE( nation ) {
