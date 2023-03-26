@@ -2,14 +2,12 @@
 
 return {
   'ss/natives',
-  'ss/terrain',
-  'ss/players',
-  'ss/turn',
   'mv-calc',
   'icombat',
   'attack-handlers',
   'turn',
   'native-turn',
+  'on-map',
   'inative-mind',
-  'native-mind',
+  'ai-native-mind',
 }
