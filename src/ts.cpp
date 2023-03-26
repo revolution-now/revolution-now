@@ -12,16 +12,42 @@
 
 // Revolution Now
 #include "imap-updater.hpp"
+#include "inative-mind.hpp"
 #include "irand.hpp"
 #include "map-updater-lua.hpp"
+
+// ss
+#include "ss/native-enums.rds.hpp"
 
 // luapp
 #include "luapp/any.hpp"
 #include "luapp/register.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 using namespace std;
 
 namespace rn {
+
+/****************************************************************
+** NativeMinds
+*****************************************************************/
+NativeMinds::NativeMinds(
+    std::unordered_map<e_tribe, unique_ptr<INativeMind>> minds )
+  : minds_( std::move( minds ) ) {}
+
+NativeMinds::~NativeMinds() = default;
+
+INativeMind& NativeMinds::operator[]( e_tribe tribe ) const {
+  auto iter = minds_.find( tribe );
+  CHECK( iter != minds_.end(),
+         "no INativeMind object for tribe {}.", tribe );
+  unique_ptr<INativeMind> const& p_mind = iter->second;
+  CHECK( p_mind != nullptr,
+         "null INativeMind object for tribe {}.", tribe );
+  return *p_mind;
+}
 
 /****************************************************************
 ** TS::LuaRefSetAndRestore
@@ -60,7 +86,8 @@ struct TS::LuaRefSetAndRestore {
 TS::TS( Planes& planes_, IMapUpdater& map_updater_,
         lua::state& lua_, IGui& gui_, IRand& rand_,
         ICombat& combat_, IColonyViewer& colony_viewer_,
-        RootState& saved, TerrainConnectivity& connectivity_ )
+        RootState& saved, TerrainConnectivity& connectivity_,
+        NativeMinds& native_minds_ )
   : planes( planes_ ),
     map_updater( map_updater_ ),
     lua( lua_ ),
@@ -70,6 +97,7 @@ TS::TS( Planes& planes_, IMapUpdater& map_updater_,
     colony_viewer( colony_viewer_ ),
     saved( saved ),
     connectivity( connectivity_ ),
+    native_minds( native_minds_ ),
     pimpl_( new LuaRefSetAndRestore( lua, *this ) ) {}
 
 // These are here because we are using the pimpl idiom.
@@ -83,7 +111,7 @@ void to_str( TS const& o, string& out, base::ADL_t ) {
 
 TS TS::with_gui( IGui& new_gui ) {
   return TS( planes, map_updater, lua, new_gui, rand, combat,
-             colony_viewer, saved, connectivity );
+             colony_viewer, saved, connectivity, native_minds );
 }
 
 /****************************************************************

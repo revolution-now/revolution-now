@@ -14,6 +14,7 @@
 #include "test/mocks/icolony-viewer.hpp"
 #include "test/mocks/icombat.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/mocks/inative-mind.hpp"
 #include "test/mocks/irand.hpp"
 
 // Revolution Now
@@ -105,6 +106,17 @@ TerrainConnectivity& World::connectivity() {
   return *connectivity_;
 }
 
+NativeMinds& World::native_minds() {
+  if( uninitialized_native_minds_ == nullptr )
+    uninitialized_native_minds_ = [] {
+      unordered_map<e_tribe, unique_ptr<INativeMind>> holder;
+      for( e_tribe const tribe : refl::enum_values<e_tribe> )
+        holder[tribe] = make_unique<MockINativeMind>();
+      return make_unique<NativeMinds>( std::move( holder ) );
+    }();
+  return *uninitialized_native_minds_;
+}
+
 Planes& World::planes() {
   if( uninitialized_planes_ == nullptr )
     uninitialized_planes_ = make_unique<Planes>();
@@ -158,7 +170,8 @@ TS* make_ts( World& world ) {
   return new TS( world.planes(), world.map_updater(),
                  world.lua(), world.gui(), world.rand(),
                  world.combat(), world.colony_viewer(),
-                 world.ss_saved().root, world.connectivity() );
+                 world.ss_saved().root, world.connectivity(),
+                 world.native_minds() );
 }
 
 }
@@ -630,6 +643,7 @@ World::World()
     uninitialized_planes_(),
     uninitialized_lua_(),
     uninitialized_gui_(),
+    uninitialized_native_minds_(),
     uninitialized_ts_() {}
 
 World::~World() noexcept = default;

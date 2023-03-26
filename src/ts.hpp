@@ -18,6 +18,9 @@
 // luapp
 #include "luapp/ext-userdata.hpp"
 
+// C++ standard library
+#include <unordered_map>
+
 namespace lua {
 struct state;
 }
@@ -28,10 +31,36 @@ struct IColonyViewer;
 struct ICombat;
 struct IGui;
 struct IMapUpdater;
+struct INativeMind;
 struct IRand;
 struct Planes;
 struct RootState;
 struct TerrainConnectivity;
+
+enum class e_tribe;
+
+/****************************************************************
+** NativeMinds
+*****************************************************************/
+struct NativeMinds {
+  NativeMinds() = default;
+
+  // Have this defined in the cpp allows us to use the
+  // forward-declared INativeMInd in a unique_ptr.
+  ~NativeMinds();
+
+  NativeMinds(
+      std::unordered_map<e_tribe, std::unique_ptr<INativeMind>>
+          minds );
+
+  INativeMind& operator[]( e_tribe tribe ) const;
+
+ private:
+  // We don't use enum map here because it has some constraints
+  // that don't work with forward-declared enums.
+  std::unordered_map<e_tribe, std::unique_ptr<INativeMind>>
+      minds_;
+};
 
 /****************************************************************
 ** TS
@@ -40,7 +69,8 @@ struct TS {
   TS( Planes& planes, IMapUpdater& map_updater_,
       lua::state& lua_, IGui& gui_, IRand& rand_,
       ICombat& combat, IColonyViewer& colony_viewer,
-      RootState& saved, TerrainConnectivity& connectivity );
+      RootState& saved, TerrainConnectivity& connectivity,
+      NativeMinds& native_minds );
 
   ~TS();
 
@@ -60,6 +90,8 @@ struct TS {
   RootState& saved;
 
   TerrainConnectivity& connectivity;
+
+  NativeMinds& native_minds;
 
   // Builder style.
   TS with_gui( IGui& new_gui );

@@ -55,7 +55,9 @@ struct LandViewState;
 struct MockIColonyViewer;
 struct MockICombat;
 struct MockIGui;
+struct MockINativeMind;
 struct MockIRand;
+struct NativeMinds;
 struct NativeUnit;
 struct NativesState;
 struct Planes;
@@ -328,6 +330,8 @@ struct World {
   TerrainConnectivity const& connectivity() const;
   TerrainConnectivity&       connectivity();
 
+  NativeMinds& native_minds();
+
   // These will initialize their respective objects the first
   // time they are called, so they should always be used.
   Planes&            planes();
@@ -368,8 +372,9 @@ struct World {
   std::unique_ptr<MockIRand>   uninitialized_rand_;
   std::unique_ptr<MockICombat> uninitialized_combat_;
   std::unique_ptr<MockIColonyViewer>
-                      uninitialized_colony_viewer_;
-  std::unique_ptr<TS> uninitialized_ts_;
+                               uninitialized_colony_viewer_;
+  std::unique_ptr<NativeMinds> uninitialized_native_minds_;
+  std::unique_ptr<TS>          uninitialized_ts_;
 };
 
 } // namespace rn::testing

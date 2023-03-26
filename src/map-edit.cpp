@@ -15,8 +15,9 @@
 #include "colony-view.hpp"
 #include "compositor.hpp"
 #include "connectivity.hpp"
-#include "gui.hpp" // FIXME
+#include "gui.hpp"          // FIXME
 #include "icombat.hpp"
+#include "inative-mind.hpp" // FIXME
 #include "input.hpp"
 #include "logger.hpp"
 #include "lua.hpp" // FIXME
@@ -644,8 +645,9 @@ wait<> run_map_editor_standalone( Planes& planes ) {
   TrappingCombat      combat;
   ColonyViewer        colony_viewer( ss );
   TerrainConnectivity connectivity;
+  NativeMinds         native_minds;
   TS ts( planes, map_updater, st, gui, rand, combat,
-         colony_viewer, ss.root, connectivity );
+         colony_viewer, ss.root, connectivity, native_minds );
   co_await run_map_editor( ss, ts );
 }
 

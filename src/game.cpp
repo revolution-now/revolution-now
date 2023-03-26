@@ -11,6 +11,7 @@
 #include "game.hpp"
 
 // Revolution Now
+#include "ai-native-mind.hpp"
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
 #include "colony-view.hpp"
@@ -107,13 +108,20 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
 
   TerrainConnectivity connectivity;
 
+  NativeMinds native_minds = [&] {
+    unordered_map<e_tribe, unique_ptr<INativeMind>> holder;
+    for( e_tribe const tribe : refl::enum_values<e_tribe> )
+      holder[tribe] = make_unique<AiNativeMind>( ss, rand );
+    return NativeMinds( std::move( holder ) );
+  }();
+
   {
     // The real map updater needs to know the map size during
     // construction, so use the non-rendering one, which is fine
     // because we don't need to render yet anyway.
     NonRenderingMapUpdater map_updater( ss );
     TS ts( planes, map_updater, st, gui, rand, combat,
-           colony_viewer, saved, connectivity );
+           colony_viewer, saved, connectivity, native_minds );
     if( !co_await loader( ss, ts ) )
       // Didn't load a game for some reason. Could have failed or
       // maybe there are no games to load.
@@ -134,7 +142,7 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
               ss.settings.game_options.flags
                   [e_game_flag_option::show_fog_of_war] } );
   TS ts( planes, map_updater, st, gui, rand, combat,
-         colony_viewer, saved, connectivity );
+         colony_viewer, saved, connectivity, native_minds );
 
   ensure_human_player( ss.players );
 
