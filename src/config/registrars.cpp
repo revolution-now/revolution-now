@@ -47,7 +47,7 @@
 // Other config files.
 #include "config/tile-enum.rds.hpp"
 
-#include "../test/rds/testing.rds.hpp"
+#include "../../test/rds/testing.rds.hpp"
 
 // cdr
 #include "cdr/ext-base.hpp"
