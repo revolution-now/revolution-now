@@ -19,6 +19,7 @@
 #include "lcr.hpp"
 #include "logger.hpp"
 #include "meet-natives.hpp"
+#include "society.hpp"
 #include "treasure.hpp"
 #include "ts.hpp"
 #include "visibility.hpp"
@@ -34,6 +35,9 @@
 
 // config
 #include "config/nation.rds.hpp"
+
+// rds
+#include "rds/switch-macro.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -225,6 +229,32 @@ wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
 
   // Unit is still alive.
   co_return nothing;
+}
+
+wait<> UnitOnMapMover::native_unit_to_map_interactive(
+    SS& ss, TS& ts, NativeUnitId id, Coord dst_tile,
+    DwellingId dwelling_id ) {
+  native_unit_to_map_non_interactive( ss, id, dst_tile,
+                                      dwelling_id );
+
+  for( e_direction const d : refl::enum_values<e_direction> ) {
+    Coord const moved = dst_tile.moved( d );
+    if( !ss.terrain.square_exists( moved ) ) continue;
+    maybe<Society> const society =
+        society_on_square( ss, moved );
+    if( !society.has_value() ) continue;
+    SWITCH( *society ) {
+      CASE( european ) {
+        co_await try_meet_natives(
+            ss, ts,
+            player_for_nation_or_die( ss.players, o.nation ),
+            moved );
+        break;
+      }
+      CASE( native ) continue;
+      END_CASES;
+    }
+  }
 }
 
 } // namespace rn

@@ -340,5 +340,11 @@ TEST_CASE( "[on-map] non-interactive: updates visibility" ) {
   REQUIRE( map[{ .x = 1, .y = 1 }]->fog_of_war_removed );
 }
 
+TEST_CASE(
+    "[on-map] non-interactive: "
+    "native_unit_to_map_interactive" ) {
+  World W;
+}
+
 } // namespace
 } // namespace rn
