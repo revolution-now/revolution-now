@@ -88,21 +88,21 @@ wait<> handle_native_unit_command(
       co_await ts.gui.message_box( "Brave attack." );
       co_await ts.planes.land_view().animate(
           anim_seq_for_unit_move( native_unit.id,
-                                  o.direction ) );
+                                  attack.direction ) );
       native_unit.movement_points = 0;
       break;
     }
     CASE( travel ) {
       Coord const src = ss.units.coord_for( native_unit.id );
-      Coord const dst = src.moved( o.direction );
-      CHECK_GT( o.consumed, 0 );
-      native_unit.movement_points -= o.consumed;
+      Coord const dst = src.moved( travel.direction );
+      CHECK_GT( travel.consumed, 0 );
+      native_unit.movement_points -= travel.consumed;
       CHECK_GE( native_unit.movement_points, 0 );
 
       if( should_animate_native_travel( ss, src, dst ) )
         co_await ts.planes.land_view().animate(
             anim_seq_for_unit_move( native_unit.id,
-                                    o.direction ) );
+                                    travel.direction ) );
       co_await UnitOnMapMover::native_unit_to_map_interactive(
           ss, ts, native_unit.id, dst,
           ss.units.dwelling_for( native_unit.id ) );

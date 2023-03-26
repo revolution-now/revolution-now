@@ -1001,9 +1001,9 @@ wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
       co_return NationTurnState::units{};
     }
     CASE( units ) {
-      co_await units_turn( ss, ts, player, o );
-      CHECK( o.q.empty() );
-      if( !o.skip_eot ) co_return NationTurnState::eot{};
+      co_await units_turn( ss, ts, player, units );
+      CHECK( units.q.empty() );
+      if( !units.skip_eot ) co_return NationTurnState::eot{};
       if( ss.settings.game_options
               .flags[e_game_flag_option::end_of_turn] )
         // As in the OG, this setting means "always stop on end
@@ -1021,7 +1021,7 @@ wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
         }
         CASE( return_to_units ) {
           co_return NationTurnState::units{
-              .q = { o.first_to_ask } };
+              .q = { return_to_units.first_to_ask } };
         }
         END_CASES;
       }
@@ -1084,9 +1084,9 @@ wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
       co_return TurnCycle::nation{};
     }
     CASE( nation ) {
-      co_await nation_turn( ss, ts, o.nation, o.st );
+      co_await nation_turn( ss, ts, nation.nation, nation.st );
       auto& ns   = refl::enum_values<e_nation>;
-      auto  next = base::find( ns, o.nation ) + 1;
+      auto  next = base::find( ns, nation.nation ) + 1;
       if( next != ns.end() )
         co_return TurnCycle::nation{ .nation = *next };
       co_return TurnCycle::end_cycle{};

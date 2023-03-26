@@ -380,21 +380,23 @@ void unit_ownership_change_non_interactive(
       return;
     }
     CASE( world ) {
-      TS& ts = *o.ts.get();
+      TS& ts = *world.ts.get();
       UnitOnMapMover::to_map_non_interactive( ss, ts, unit_id,
-                                              o.target );
+                                              world.target );
       return;
     }
     CASE( colony_low_level ) {
       // NOTE: do not use this one directly since it does not
       // preserve invariants; instead use the move_unit_to_colony
       // method.
-      ss.units.change_to_colony( unit_id, o.colony_id );
+      ss.units.change_to_colony( unit_id,
+                                 colony_low_level.colony_id );
       return;
     }
     CASE( cargo ) {
-      ss.units.change_to_cargo_somewhere(
-          o.new_holder, /*held=*/unit_id, o.starting_slot );
+      ss.units.change_to_cargo_somewhere( cargo.new_holder,
+                                          /*held=*/unit_id,
+                                          cargo.starting_slot );
       return;
     }
     CASE( sail_to_new_world ) {
@@ -413,7 +415,8 @@ void unit_ownership_change_non_interactive(
       return;
     }
     CASE( dwelling ) {
-      ss.units.change_to_dwelling( unit_id, o.dwelling_id );
+      ss.units.change_to_dwelling( unit_id,
+                                   dwelling.dwelling_id );
       return;
     }
     END_CASES;

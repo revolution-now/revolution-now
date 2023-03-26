@@ -381,10 +381,10 @@ void HarborCargo::draw( rr::Renderer& renderer,
       CASE( empty ) { break; }
       CASE( overflow ) { break; }
       CASE( cargo ) {
-        SWITCH( o.contents ) {
+        SWITCH( cargo.contents ) {
           CASE( unit ) {
             render_unit( renderer, dst_coord,
-                         ss_.units.unit_for( o.id ),
+                         ss_.units.unit_for( unit.id ),
                          UnitRenderOptions{} );
             break;
           }
@@ -392,7 +392,7 @@ void HarborCargo::draw( rr::Renderer& renderer,
             render_commodity_annotated(
                 renderer,
                 dst_coord + kCommodityInCargoHoldRenderingOffset,
-                o.obj );
+                commodity.obj );
             break;
           }
           END_CASES;

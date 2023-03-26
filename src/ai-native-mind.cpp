@@ -67,7 +67,7 @@ NativeUnitCommand AiNativeMind::command_for(
                                       .consumed  = consumed };
   SWITCH( *society ) {
     CASE( native ) {
-      if( o.tribe == tribe.type )
+      if( native.tribe == tribe.type )
         return NativeUnitCommand::travel{ .direction = rand_d,
                                           .consumed = consumed };
       return NativeUnitCommand::forfeight{};

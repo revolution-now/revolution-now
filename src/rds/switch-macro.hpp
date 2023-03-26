@@ -62,7 +62,7 @@
 #define CASE( alt )   \
   }                   \
   case __C::e::alt: { \
-    auto& o [[maybe_unused]] = __o.get<__C::alt>();
+    auto& alt [[maybe_unused]] = __o.get<__C::alt>();
 
 #define END_CASES \
   }               \

@@ -658,7 +658,7 @@ struct MenuPlane::Impl : public Plane {
             }
             CASE( fade ) {
               SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
-                                       o.alpha );
+                                       fade.alpha );
               render_open_menu( renderer, pos, menu, ic.item );
               break;
             }

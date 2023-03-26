@@ -247,7 +247,8 @@ wait<> UnitOnMapMover::native_unit_to_map_interactive(
       CASE( european ) {
         co_await try_meet_natives(
             ss, ts,
-            player_for_nation_or_die( ss.players, o.nation ),
+            player_for_nation_or_die( ss.players,
+                                      european.nation ),
             moved );
         break;
       }

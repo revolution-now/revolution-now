@@ -43,7 +43,7 @@ maybe<e_nation> player_for_role( SSConst const& ss,
         CASE( entire ) { //
           return nothing;
         }
-        CASE( nation ) { return o.nation; }
+        CASE( nation ) { return nation.nation; }
         END_CASES;
       }
       SHOULD_NOT_BE_HERE; // for gcc.
