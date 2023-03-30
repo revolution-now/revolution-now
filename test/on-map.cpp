@@ -54,7 +54,9 @@ using ::mock::matchers::StrContains;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_default_player();
+    add_player( e_nation::dutch );
+    add_player( e_nation::spanish );
+    set_default_player( e_nation::dutch );
     create_default_map();
   }
 
@@ -338,6 +340,39 @@ TEST_CASE( "[on-map] non-interactive: updates visibility" ) {
   REQUIRE( !map[{ .x = 4, .y = 1 }].has_value() );
   REQUIRE( map[{ .x = 0, .y = 1 }]->fog_of_war_removed );
   REQUIRE( map[{ .x = 1, .y = 1 }]->fog_of_war_removed );
+}
+
+TEST_CASE(
+    "[on-map] non-interactive: to_map_non_interactive "
+    "unsentries surrounding units" ) {
+  World W;
+  Unit& unit1 =
+      W.add_unit_on_map( e_unit_type::free_colonist,
+                         { .x = 1, .y = 1 }, e_nation::dutch );
+  unit1.sentry();
+  REQUIRE( unit1.orders().holds<unit_orders::sentry>() );
+  Unit& unit2 =
+      W.add_unit_on_map( e_unit_type::free_colonist,
+                         { .x = 2, .y = 1 }, e_nation::spanish );
+  REQUIRE( unit1.orders().holds<unit_orders::none>() );
+  REQUIRE( unit2.orders().holds<unit_orders::none>() );
+}
+
+TEST_CASE(
+    "[on-map] non-interactive: "
+    "native_unit_to_map_non_interactive unsentries surrounding "
+    "units" ) {
+  World W;
+  Unit& unit1 =
+      W.add_unit_on_map( e_unit_type::free_colonist,
+                         { .x = 1, .y = 1 }, e_nation::dutch );
+  unit1.sentry();
+  REQUIRE( unit1.orders().holds<unit_orders::sentry>() );
+  Dwelling const& dwelling =
+      W.add_dwelling( { .x = 2, .y = 1 }, e_tribe::cherokee );
+  W.add_native_unit_on_map( e_native_unit_type::brave,
+                            { .x = 2, .y = 0 }, dwelling.id );
+  REQUIRE( unit1.orders().holds<unit_orders::none>() );
 }
 
 TEST_CASE(

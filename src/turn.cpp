@@ -47,6 +47,7 @@
 #include "turn-plane.hpp"
 #include "unit-mgr.hpp"
 #include "unit.hpp"
+#include "unsentry.hpp"
 #include "visibility.hpp"
 #include "woodcut.hpp"
 
@@ -215,49 +216,6 @@ bool should_remove_unit_from_queue( Unit const& unit ) {
   }
 }
 
-// Get all units in the eight squares that surround coord.
-vector<UnitId> surrounding_euro_units(
-    UnitsState const& units_state, Coord const& coord ) {
-  vector<UnitId> res;
-  for( e_direction d : refl::enum_values<e_direction> )
-    for( GenericUnitId id :
-         units_state.from_coord( coord.moved( d ) ) )
-      if( units_state.unit_kind( id ) == e_unit_kind::euro )
-        res.push_back( units_state.check_euro_unit( id ) );
-  return res;
-}
-
-// See if `unit` needs to be unsentry'd due to surrounding for-
-// eign units.
-void try_unsentry_unit( SS& ss, Unit& unit ) {
-  if( !unit.orders().holds<unit_orders::sentry>() ) return;
-  // Don't use the "indirect" version here because we don't want
-  // to e.g. wake up units that are sentry'd on ships.
-  maybe<Coord> loc = ss.units.maybe_coord_for( unit.id() );
-  if( !loc.has_value() ) return;
-  for( UnitId id : surrounding_euro_units( ss.units, *loc ) ) {
-    if( ss.units.unit_for( id ).nation() != unit.nation() ) {
-      unit.clear_orders();
-      return;
-    }
-  }
-}
-
-// See if any foreign units in the vicinity of src_id need to be
-// unsentry'd.
-void unsentry_surroundings( UnitsState& units_state,
-                            Unit const& src_unit ) {
-  Coord src_loc = coord_for_unit_indirect_or_die(
-      units_state, src_unit.id() );
-  for( UnitId id :
-       surrounding_euro_units( units_state, src_loc ) ) {
-    Unit& unit = units_state.unit_for( id );
-    if( !unit.orders().holds<unit_orders::sentry>() ) continue;
-    if( unit.nation() == src_unit.nation() ) continue;
-    unit.clear_orders();
-  }
-}
-
 vector<UnitId> euro_units_all( UnitsState const& units_state,
                                e_nation          n ) {
   vector<UnitId> res;
@@ -274,18 +232,6 @@ void map_all_euro_units(
     base::function_ref<void( Unit& )> func ) {
   for( auto& p : units_state.euro_all() )
     func( units_state.unit_for( p.first ) );
-}
-
-// This will map only over those that haven't yet moved this
-// turn.
-void map_active_euro_units(
-    UnitsState& units_state, e_nation nation,
-    base::function_ref<void( Unit& )> func ) {
-  for( auto& p : units_state.euro_all() ) {
-    Unit& unit = units_state.unit_for( p.first );
-    if( unit.mv_pts_exhausted() ) continue;
-    if( unit.nation() == nation ) func( unit );
-  }
 }
 
 // This won't actually prioritize the units, it will just check
@@ -573,8 +519,6 @@ wait<> process_player_input(
       unique_ptr<CommandHandler> handler =
           command_handler( ss, ts, player, id, command );
       CHECK( handler );
-      Coord old_loc =
-          coord_for_unit_indirect_or_die( ss.units, id );
 
       auto run_result = co_await handler->run();
       if( !run_result.order_was_run ) break;
@@ -582,17 +526,6 @@ wait<> process_player_input(
       // !! The unit may no longer exist at this point, e.g. if
       // they were disbanded or if they lost a battle to the na-
       // tives.
-
-      // If the unit still exists, check if it has moved squares
-      // in any fashion, and if so then wake up any foreign sen-
-      // try'd neighbors.
-      if( ss.units.exists( id ) ) {
-        maybe<Coord> new_loc =
-            coord_for_unit_indirect( ss.units, id );
-        if( new_loc && *new_loc != old_loc )
-          unsentry_surroundings( ss.units,
-                                 ss.units.unit_for( id ) );
-      }
 
       for( auto id : run_result.units_to_prioritize )
         prioritize_unit( q, id );
@@ -786,8 +719,6 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
         // in port then when the player goes to the harbor view,
         // one of them should always be selected.
         update_harbor_selected_unit( ss.units, player );
-        unsentry_surroundings( ss.units,
-                               ss.units.unit_for( id ) );
         co_return true; // needs to ask for orders.
       }
       case e_high_seas_result::arrived_in_harbor: {
@@ -856,14 +787,6 @@ wait<> units_turn( SS& ss, TS& ts, Player& player,
                    NationTurnState::units& nat_units ) {
   auto& st = nat_units;
   auto& q  = st.q;
-
-  // Unsentry any units that are sentried but have foreign units
-  // in an adjacent square. FIXME: move this to the the function
-  // that is called to put a unit on a new map square.
-  map_active_euro_units( ss.units, player.nation,
-                         [&]( Unit& unit ) {
-                           return try_unsentry_unit( ss, unit );
-                         } );
 
   // Here we will keep reloading all of the units (that still
   // need to move) and making passes over them in order make sure
@@ -948,6 +871,19 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
   // to address that we might want to add another cache to ss/u-
   // nits that keeps a set of all european units on the map.
   recompute_fog_for_nation( ss, ts, player.nation );
+
+  // Unsentry any units that are directly on the map and which
+  // are sentry'd but have foreign units in an adjacent square.
+  // Normally this isn't necessary, since if a unit is sentried
+  // and a foreign unit moves adjacent to it then the former unit
+  // will be unsentried. However, there are cases where, e.g. a
+  // unit moves next to a fortified unit and the former unit sen-
+  // tries. That unit needs to be woken up at the start of the
+  // next turn. We could just prevent sentrying next to a foreign
+  // unit, but 1) that's not what the OG does, and that might
+  // have other side effects, e.g. you could not sentry a unit in
+  // a colony to board a ship if there were foreign units nearby.
+  unsentry_units_next_to_foreign_units( ss, player.nation );
 
   // Evolve market prices.
   if( ss.turn.time_point.turns >

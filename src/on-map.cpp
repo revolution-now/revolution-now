@@ -22,6 +22,7 @@
 #include "society.hpp"
 #include "treasure.hpp"
 #include "ts.hpp"
+#include "unsentry.hpp"
 #include "visibility.hpp"
 #include "woodcut.hpp"
 
@@ -179,7 +180,7 @@ void UnitOnMapMover::to_map_non_interactive(
   ss.units.change_to_map( id, world_square );
 
   // 3. Unsentry surrounding foreign units.
-  //    TODO
+  unsentry_foreign_units_next_to_euro_unit( ss, unit );
 
   // 4. If the unit is at a colony site then append the unit ID
   //    to the colony's list of unit's at the gate (said list
@@ -199,6 +200,9 @@ void UnitOnMapMover::native_unit_to_map_non_interactive(
   // 1. Move the unit. This is the only place where this function
   //    should be called by normal game code.
   ss.units.change_to_map( id, dst_tile, dwelling_id );
+
+  // 2. Unsentry surrounding european units.
+  unsentry_units_next_to_tile( ss, dst_tile );
 }
 
 wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
