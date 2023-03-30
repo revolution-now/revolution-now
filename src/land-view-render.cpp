@@ -15,6 +15,7 @@
 #include "render.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
+#include "unit-flag.hpp"
 #include "unit-mgr.hpp"
 #include "unit-stack.hpp"
 #include "visibility.hpp"
@@ -103,25 +104,33 @@ vector<GenericUnitId> land_view_unit_stack(
   return res;
 }
 
-// `multiple_units` is for the case when there are multiple units
-// on the square and we want to indicate that visually.
 void LandViewRenderer::render_single_unit(
     Coord where, GenericUnitId id,
-    e_flag_count flag_count ) const {
+    maybe<UnitFlagOptions> flag_options ) const {
   switch( ss_.units.unit_kind( id ) ) {
     case e_unit_kind::euro: {
       UnitId const unit_id{ to_underlying( id ) };
-      render_unit( renderer_, where,
-                   ss_.units.unit_for( unit_id ),
-                   UnitRenderOptions{ .flag   = flag_count,
+      Unit const&  unit = ss_.units.unit_for( unit_id );
+      maybe<UnitFlagRenderInfo> flag_info;
+      if( flag_options.has_value() )
+        flag_info = euro_unit_flag_render_info(
+            unit, viz_.nation(), *flag_options );
+      render_unit( renderer_, where, unit,
+                   UnitRenderOptions{ .flag   = flag_info,
                                       .shadow = UnitShadow{} } );
       break;
     }
     case e_unit_kind::native: {
       NativeUnitId const unit_id{ to_underlying( id ) };
+      NativeUnit const&  native_unit =
+          ss_.units.unit_for( unit_id );
+      maybe<UnitFlagRenderInfo> flag_info;
+      if( flag_options.has_value() )
+        flag_info = native_unit_flag_render_info(
+            ss_, native_unit, *flag_options );
       render_native_unit(
-          renderer_, where, ss_, ss_.units.unit_for( unit_id ),
-          UnitRenderOptions{ .flag   = flag_count,
+          renderer_, where, native_unit,
+          UnitRenderOptions{ .flag   = flag_info,
                              .shadow = UnitShadow{} } );
       break;
     }
@@ -149,12 +158,16 @@ void LandViewRenderer::render_units_on_square(
   GenericUnitId const max_defense = sorted[0];
 
   Coord const where = render_rect_for_tile( tile ).upper_left();
-  bool const  multiple_units    = ( sorted.size() > 1 );
-  e_flag_count const flag_count = !flags ? e_flag_count::none
-                                  : !multiple_units
-                                      ? e_flag_count::single
-                                      : e_flag_count::multiple;
-  render_single_unit( where, max_defense, flag_count );
+  bool const  multiple_units        = ( sorted.size() > 1 );
+  e_flag_count const     flag_count = !multiple_units
+                                          ? e_flag_count::single
+                                          : e_flag_count::multiple;
+  maybe<UnitFlagOptions> flag_options;
+  if( flags )
+    flag_options =
+        UnitFlagOptions{ .flag_count = flag_count,
+                         .type = e_flag_char_type::normal };
+  render_single_unit( where, max_defense, flag_options );
 }
 
 vector<pair<Coord, GenericUnitId>>
@@ -201,22 +214,34 @@ void LandViewRenderer::render_units_default() const {
 void LandViewRenderer::render_single_unit_depixelate_to(
     Coord where, GenericUnitId id, bool multiple_units,
     double stage, e_tile target_tile ) const {
-  e_flag_count const flag_style = multiple_units
-                                      ? e_flag_count::multiple
-                                      : e_flag_count::single;
+  e_flag_count const    flag_count = multiple_units
+                                         ? e_flag_count::multiple
+                                         : e_flag_count::single;
+  UnitFlagOptions const flag_options{
+      .flag_count = flag_count,
+      .type       = e_flag_char_type::normal };
   switch( ss_.units.unit_kind( id ) ) {
-    case e_unit_kind::euro:
+    case e_unit_kind::euro: {
+      UnitId const unit_id{ to_underlying( id ) };
+      Unit const&  unit = ss_.units.unit_for( unit_id );
+      UnitFlagRenderInfo const flag_info =
+          euro_unit_flag_render_info( unit, viz_.nation(),
+                                      flag_options );
       render_unit_depixelate_to(
-          renderer_, where, ss_, ss_.units.euro_unit_for( id ),
-          target_tile, stage,
-          UnitRenderOptions{ .flag   = flag_style,
+          renderer_, where, unit, target_tile, stage,
+          UnitRenderOptions{ .flag   = flag_info,
                              .shadow = UnitShadow{} } );
       break;
+    }
     case e_unit_kind::native:
+      NativeUnitId const unit_id{ to_underlying( id ) };
+      NativeUnit const&  unit = ss_.units.unit_for( unit_id );
+      UnitFlagRenderInfo const flag_info =
+          native_unit_flag_render_info( ss_, unit,
+                                        flag_options );
       render_native_unit_depixelate_to(
-          renderer_, where, ss_, ss_.units.native_unit_for( id ),
-          target_tile, stage,
-          UnitRenderOptions{ .flag   = flag_style,
+          renderer_, where, unit, target_tile, stage,
+          UnitRenderOptions{ .flag   = flag_info,
                              .shadow = UnitShadow{} } );
       break;
   }
@@ -316,25 +341,32 @@ void LandViewRenderer::render_units_impl() const {
         render_rect_for_tile( tile ).upper_left();
     bool const multiple_units =
         ss_.units.from_coord( tile ).size() > 1;
-    e_flag_count const flag_count = multiple_units
-                                        ? e_flag_count::multiple
-                                        : e_flag_count::single;
-    f( where, flag_count );
+    e_flag_count const    flag_count = multiple_units
+                                           ? e_flag_count::multiple
+                                           : e_flag_count::single;
+    UnitFlagOptions const flag_options{
+        .flag_count = flag_count,
+        .type       = e_flag_char_type::normal };
+    f( where, flag_options );
   };
 
   // 1. Render units that are supposed to hover above a colony.
   for( auto const& [id, anim] : front ) {
-    render_impl( id,
-                 [&]( Coord where, e_flag_count flag_count ) {
-                   render_single_unit( where, id, flag_count );
-                 } );
+    render_impl( id, [&]( Coord                  where,
+                          UnitFlagOptions const& flag_options ) {
+      render_single_unit( where, id, flag_options );
+    } );
   }
 
   // 2. Render units that are blinking.
   for( auto const& [id, anim] : blink ) {
     if( !anim->visible ) continue;
-    render_impl( id, [&]( Coord where, e_flag_count ) {
-      render_single_unit( where, id, e_flag_count::single );
+    render_impl( id, [&]( Coord                 where,
+                          UnitFlagOptions const flag_options ) {
+      render_single_unit(
+          where, id,
+          UnitFlagOptions( flag_options )
+              .with_flag_count( e_flag_count::single ) );
     } );
   }
 
@@ -348,9 +380,12 @@ void LandViewRenderer::render_units_impl() const {
             mover_coord ) *
           g_tile_delta )
             .multiply_and_round( anim->percent );
-    render_impl( id, [&]( Coord where, e_flag_count ) {
-      render_single_unit( where + pixel_delta, id,
-                          e_flag_count::single );
+    render_impl( id, [&]( Coord                 where,
+                          UnitFlagOptions const flag_options ) {
+      render_single_unit(
+          where + pixel_delta, id,
+          UnitFlagOptions( flag_options )
+              .with_flag_count( e_flag_count::single ) );
     } );
   }
 
@@ -367,30 +402,36 @@ void LandViewRenderer::render_units_impl() const {
           painter_mods.depixelate.hash_anchor, loc );
       SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                                anim->stage );
-      render_impl( id, [&]( Coord where, e_flag_count ) {
-        render_single_unit( where, id, e_flag_count::single );
-      } );
+      render_impl(
+          id, [&]( Coord                 where,
+                   UnitFlagOptions const flag_options ) {
+            render_single_unit(
+                where, id,
+                UnitFlagOptions( flag_options )
+                    .with_flag_count( e_flag_count::single ) );
+          } );
     } else {
       CHECK( anim->target.has_value() );
       // Render and the unit and the flag but only depixelate the
       // unit to the target unit. This function will set the hash
       // anchor and stage ultimately.
-      render_impl( id, [&]( Coord where, e_flag_count ) {
-        render_single_unit_depixelate_to(
-            where, id, /*multiple_units=*/false, anim->stage,
-            *anim->target );
-      } );
+      render_impl( id,
+                   [&]( Coord where, UnitFlagOptions const& ) {
+                     render_single_unit_depixelate_to(
+                         where, id, /*multiple_units=*/false,
+                         anim->stage, *anim->target );
+                   } );
     }
   }
 
   // 5. Render units that are enpixelating.
   for( auto const& [id, anim] : enpixelate_unit ) {
-    render_impl( id, [&]( Coord where, e_flag_count ) {
+    render_impl( id, [&]( Coord where, UnitFlagOptions const& ) {
       SCOPED_RENDERER_MOD_SET(
           painter_mods.depixelate.hash_anchor, where );
       SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                                anim->stage );
-      render_single_unit( where, id, e_flag_count::none );
+      render_single_unit( where, id, /*flag_options=*/nothing );
     } );
   }
 }

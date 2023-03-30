@@ -36,6 +36,7 @@
 #include "screen.hpp"
 #include "text.hpp"
 #include "ts.hpp"
+#include "unit-flag.hpp"
 #include "unit-mgr.hpp"
 #include "views.hpp"
 
@@ -1026,11 +1027,15 @@ class UnitsAtGateColonyView
                              gfx::pixel::black() );
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
       if( dragging_ == unit_id ) continue;
-      Coord draw_pos = unit_pos.as_if_origin_were( coord );
+      Coord       draw_pos = unit_pos.as_if_origin_were( coord );
+      Unit const& unit     = ss_.units.unit_for( unit_id );
+      UnitFlagRenderInfo const flag_info =
+          euro_unit_flag_render_info( unit, /*viewer=*/nothing,
+                                      UnitFlagOptions{} );
       render_unit(
-          renderer, draw_pos, ss_.units.unit_for( unit_id ),
+          renderer, draw_pos, unit,
           UnitRenderOptions{
-              .flag   = e_flag_count::single,
+              .flag   = flag_info,
               .shadow = UnitShadow{
                   .color = config_colony.colors
                                .unit_shadow_color_light } } );

@@ -45,6 +45,7 @@ struct FogDwelling;
 struct LandViewAnimator;
 struct SSConst;
 struct Visibility;
+struct UnitFlagOptions;
 
 // A fading hourglass icon will be drawn over a unit to signal to
 // the player that the movement command just entered will be
@@ -83,8 +84,9 @@ struct LandViewRenderer {
 
   Rect render_rect_for_tile( Coord tile ) const;
 
-  void render_single_unit( Coord where, GenericUnitId id,
-                           e_flag_count flag_count ) const;
+  void render_single_unit(
+      Coord where, GenericUnitId id,
+      maybe<UnitFlagOptions> flag_count ) const;
 
   void render_units_on_square( Coord tile, bool flags ) const;
 

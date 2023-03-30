@@ -13,19 +13,12 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "command.hpp"
+#include "maybe.hpp"
+#include "unit-flag.rds.hpp"
 #include "unit-id.hpp"
 
-// config
-#include "config/tile-enum-fwd.hpp"
-
-// ss
-#include "ss/nation.rds.hpp"
-#include "ss/native-enums.rds.hpp"
-#include "ss/unit-type.rds.hpp"
-#include "ss/unit.rds.hpp"
-
 // gfx
+#include "gfx/coord.hpp"
 #include "gfx/pixel.hpp"
 
 namespace rr {
@@ -43,8 +36,12 @@ struct NativeUnit;
 struct SSConst;
 struct Unit;
 
+enum class e_native_unit_type;
+enum class e_unit_type;
+enum class e_tile;
+
 /****************************************************************
-** UnitShadow
+** Unit Rendering.
 *****************************************************************/
 struct UnitShadow {
   gfx::pixel color  = default_color();
@@ -54,19 +51,8 @@ struct UnitShadow {
   static W          default_offset();
 };
 
-/****************************************************************
-** UnitRenderingOptions
-*****************************************************************/
-enum class e_flag_count {
-  none,
-  single,
-  // This is used to visually indicate when there are multiple
-  // units on a tile; as in the OG, we draw two stacked flags.
-  multiple
-};
-
 struct UnitRenderOptions {
-  e_flag_count flag = e_flag_count::none;
+  maybe<UnitFlagRenderInfo> flag = {};
 
   maybe<UnitShadow> shadow = {};
 
@@ -76,58 +62,51 @@ struct UnitRenderOptions {
   gfx::pixel outline_color = gfx::pixel::black();
 };
 
+// Render an actual unit.
+void render_unit( rr::Renderer& renderer, Coord where,
+                  Unit const&              unit,
+                  UnitRenderOptions const& options );
+
+// Render an actual native unit.
+void render_native_unit( rr::Renderer& renderer, Coord where,
+                         NativeUnit const&        native_unit,
+                         UnitRenderOptions const& options );
+
+// Render an abstract unit of a given type.
+void render_unit_type( rr::Renderer& renderer, Coord where,
+                       e_unit_type              unit_type,
+                       UnitRenderOptions const& options );
+
+void render_native_unit_type( rr::Renderer&            renderer,
+                              Coord                    where,
+                              e_native_unit_type       unit_type,
+                              UnitRenderOptions const& options );
+
+void render_unit_depixelate( rr::Renderer& renderer, Coord where,
+                             Unit const& unit, double stage,
+                             UnitRenderOptions const& options );
+
+void render_unit_depixelate_to( rr::Renderer& renderer,
+                                Coord where, Unit const& unit,
+                                e_tile target, double stage,
+                                UnitRenderOptions options );
+
+void render_native_unit_depixelate(
+    rr::Renderer& renderer, Coord where, NativeUnit const& unit,
+    double stage, UnitRenderOptions const& options );
+
+void render_native_unit_depixelate_to(
+    rr::Renderer& renderer, Coord where, NativeUnit const& unit,
+    e_tile target, double stage, UnitRenderOptions options );
+
 /****************************************************************
-** ColonyRenderingOptions
+** Colony Rendering.
 *****************************************************************/
 struct ColonyRenderOptions {
   bool render_name       = true;
   bool render_population = true;
   bool render_flag       = true;
 };
-
-/****************************************************************
-** Public API
-*****************************************************************/
-// Render an actual unit.
-void render_unit( rr::Renderer& renderer, Coord where,
-                  Unit const&              unit,
-                  UnitRenderOptions const& options = {} );
-
-// Render an actual native unit.
-void render_native_unit( rr::Renderer& renderer, Coord where,
-                         SSConst const&           ss,
-                         NativeUnit const&        native_unit,
-                         UnitRenderOptions const& options = {} );
-
-// Render an abstract unit of a given type.
-void render_unit_type( rr::Renderer& renderer, Coord where,
-                       e_unit_type              unit_type,
-                       UnitRenderOptions const& options = {} );
-
-void render_native_unit_type(
-    rr::Renderer& renderer, Coord where,
-    e_native_unit_type       unit_type,
-    UnitRenderOptions const& options = {} );
-
-void render_unit_depixelate(
-    rr::Renderer& renderer, Coord where, Unit const& unit,
-    double stage, UnitRenderOptions const& options = {} );
-
-void render_unit_depixelate_to( rr::Renderer& renderer,
-                                Coord where, SSConst const& ss,
-                                Unit const& unit, e_tile target,
-                                double            stage,
-                                UnitRenderOptions options = {} );
-
-void render_native_unit_depixelate(
-    rr::Renderer& renderer, Coord where, SSConst const& ss,
-    NativeUnit const& unit, double stage,
-    UnitRenderOptions const& options = {} );
-
-void render_native_unit_depixelate_to(
-    rr::Renderer& renderer, Coord where, SSConst const& ss,
-    NativeUnit const& unit, e_tile target, double stage,
-    UnitRenderOptions options = {} );
 
 // Use this for tiles that are explored but fogged.
 void render_fog_colony( rr::Renderer& renderer, Coord where,
@@ -139,6 +118,9 @@ void render_real_colony( rr::Renderer& renderer, Coord where,
                          SSConst const& ss, Colony const& colony,
                          ColonyRenderOptions const& options );
 
+/****************************************************************
+** Dwelling Rendering.
+*****************************************************************/
 // Use this for tiles that are explored but fogged.
 void render_fog_dwelling( rr::Renderer& renderer, Coord where,
                           FogDwelling const& fog_dwelling );
@@ -148,13 +130,10 @@ void render_real_dwelling( rr::Renderer& renderer, Coord where,
                            SSConst const&  ss,
                            Dwelling const& dwelling );
 
-// Note that the coordinate provided here is the coordinate of
-// the unit whose flag is being drawn, not the flag position it-
-// self (which could be shifted to another corner).
-void render_unit_flag( rr::Renderer& renderer, Coord where,
-                       e_unit_type type, e_nation nation,
-                       unit_orders const& orders );
-
+/****************************************************************
+** Misc. Rendering.
+*****************************************************************/
+// TODO: move this.
 void render_shadow_hightlight_border( rr::Renderer& renderer,
                                       gfx::rect     rect,
                                       gfx::pixel left_and_bottom,

@@ -13,12 +13,12 @@
 // Revolution Now
 #include "render.hpp"
 #include "text.hpp"
+#include "unit-flag.hpp"
 #include "util.hpp"
 
 // config
 #include "config/tile-enum.rds.hpp"
 #include "config/ui.rds.hpp"
-#include "config/unit-type.hpp"
 
 // gfx
 #include "gfx/coord.hpp"
@@ -1285,22 +1285,18 @@ maybe<int> OptionSelectView::get_selected() const {
 *****************************************************************/
 FakeUnitView::FakeUnitView( e_unit_type type, e_nation nation,
                             unit_orders const& orders )
-  : CompositeSingleView(
-        make_unique<SpriteView>( unit_attr( type ).tile ),
-        Coord{} ),
-    type_( type ),
-    nation_( nation ),
-    orders_( orders ) {}
+  : type_( type ), nation_( nation ), orders_( orders ) {}
+
+Delta FakeUnitView::delta() const {
+  return { .w = 32, .h = 32 };
+}
 
 void FakeUnitView::draw( rr::Renderer& renderer,
                          Coord         coord ) const {
-  if( !unit_attr( type_ ).nat_icon_front ) {
-    render_unit_flag( renderer, coord, type_, nation_, orders_ );
-    this->CompositeSingleView::draw( renderer, coord );
-  } else {
-    this->CompositeSingleView::draw( renderer, coord );
-    render_unit_flag( renderer, coord, type_, nation_, orders_ );
-  }
+  UnitFlagRenderInfo const flag_info =
+      euro_unit_type_orders_flag_info( type_, orders_, nation_ );
+  render_unit_type( renderer, coord, type_,
+                    UnitRenderOptions{ .flag = flag_info } );
 }
 
 /****************************************************************

@@ -11,19 +11,12 @@
 #include "render.hpp"
 
 // Revolution Now
-#include "compositor.hpp"
 #include "error.hpp"
 #include "fog-conv.hpp"
-#include "logger.hpp"
-#include "plane.hpp"
-#include "screen.hpp"
 #include "text.hpp"
-#include "unit-classes.hpp"
-#include "unit-mgr.hpp"
-#include "views.hpp"
+#include "tiles.hpp"
 
 // config
-#include "config/gfx.rds.hpp"
 #include "config/land-view.rds.hpp"
 #include "config/missionary.rds.hpp"
 #include "config/nation.hpp"
@@ -38,22 +31,14 @@
 #include "ss/natives.hpp"
 #include "ss/units.hpp"
 
-// base
-#include "base/keyval.hpp"
-
-// C++ standard library
-#include <vector>
-
 using namespace std;
 
 namespace rn {
 
 namespace {
 
-constexpr Delta nationality_icon_size{ .w = 14, .h = 14 };
-
 // Unit only, no flag.
-void render_unit_no_icon( rr::Renderer& renderer, Coord where,
+void render_unit_no_flag( rr::Renderer& renderer, Coord where,
                           e_tile                   tile,
                           UnitRenderOptions const& options ) {
   if( options.shadow.has_value() )
@@ -76,137 +61,78 @@ void render_colony_flag( rr::Painter& painter, Coord coord,
                               gfx::pixel::wood().shaded( 4 ) );
 }
 
-/****************************************************************
-** Rendering Building Blocks
-*****************************************************************/
-void render_unit_flag_impl( rr::Renderer& renderer, Coord where,
-                            gfx::pixel color, char c,
-                            bool is_greyed ) {
-  Delta delta = nationality_icon_size;
-  Rect  rect  = Rect::from( where, delta );
+// Renders one flag in the stack.
+void render_unit_flag_single(
+    rr::Renderer& renderer, gfx::point where,
+    UnitFlagRenderInfo const& flag_info ) {
+  gfx::rect const rect = { .origin = where,
+                           .size   = flag_info.size };
 
-  auto        dark       = color.shaded( 2 );
-  auto        text_color = is_greyed
-                               ? config_gfx.unit_flag_text_color_greyed
-                               : config_gfx.unit_flag_text_color;
-  rr::Painter painter    = renderer.painter();
+  rr::Painter painter = renderer.painter();
 
-  painter.draw_solid_rect( rect, color );
-  painter.draw_empty_rect(
-      rect, rr::Painter::e_border_mode::inside, dark );
+  painter.draw_solid_rect( rect, flag_info.background_color );
+  painter.draw_empty_rect( rect,
+                           rr::Painter::e_border_mode::inside,
+                           flag_info.outline_color );
 
-  Delta char_size = Delta::from_gfx(
-      rr::rendered_text_line_size_pixels( string( 1, c ) ) );
-  render_text( renderer, centered( char_size, rect ),
-               font::nat_icon(), text_color, string( 1, c ) );
+  if( flag_info.char_info.has_value() ) {
+    string const text( 1, flag_info.char_info->value );
+    Delta        char_size = Delta::from_gfx(
+        rr::rendered_text_line_size_pixels( text ) );
+    render_text(
+        renderer, centered( char_size, Rect::from_gfx( rect ) ),
+        font::nat_icon(), flag_info.char_info->color, text );
+  }
 }
 
 void render_unit_flag( rr::Renderer& renderer, Coord where,
-                       auto const& desc, gfx::pixel color,
-                       unit_orders const& orders,
-                       e_flag_count       flag ) {
-  // Now we will advance the pixel_coord to put the icon at the
-  // location specified in the unit descriptor.
-  auto  position = desc.nat_icon_position;
-  Delta delta{};
-  // If we're going to draw a stacked flag (i.e., one behind the
-  // front flag to indicated stacked units) then this will be its
-  // offset from the front flag.
-  Delta            delta_stacked;
-  static int const S = 2;
-  switch( position ) {
-    case e_direction::nw:
-      delta_stacked = { .w = S, .h = S };
-      break;
-    case e_direction::ne:
-      delta.w +=
-          ( ( 1 * g_tile_width ) - nationality_icon_size.w );
-      delta_stacked = { .w = -S, .h = S };
-      break;
-    case e_direction::se:
-      delta += ( ( Delta{ .w = 1, .h = 1 } * g_tile_delta ) -
-                 nationality_icon_size );
-      delta_stacked = { .w = -S, .h = -S };
-      break;
-    case e_direction::sw:
-      delta.h +=
-          ( ( 1 * g_tile_height ) - nationality_icon_size.h );
-      delta_stacked = { .w = S, .h = -S };
-      break;
-    case e_direction::w:
-      delta.h += ( g_tile_height - nationality_icon_size.h ) / 2;
-      delta_stacked = { .w = S, .h = -S };
-      break;
-    case e_direction::n:
-      delta.w += ( g_tile_width - nationality_icon_size.w ) / 2;
-      delta_stacked = { .w = 0, .h = S };
-      break;
-    case e_direction::e:
-      delta.h += ( g_tile_height - nationality_icon_size.h ) / 2;
-      delta.w +=
-          ( ( 1 * g_tile_width ) - nationality_icon_size.w );
-      delta_stacked = { .w = -S, .h = -S };
-      break;
-    case e_direction::s:
-      delta.w += ( g_tile_width - nationality_icon_size.w ) / 2;
-      delta.h +=
-          ( ( 1 * g_tile_height ) - nationality_icon_size.h );
-      delta_stacked = { .w = 0, .h = -S };
-      break;
-  };
-  where += delta;
+                       UnitFlagRenderInfo const& flag_info ) {
+  if( flag_info.stacked )
+    render_unit_flag_single(
+        renderer, where + flag_info.offsets.offset_stacked,
+        flag_info );
+  render_unit_flag_single(
+      renderer, where + flag_info.offsets.offset_first,
+      flag_info );
+}
 
-  char c{ '-' }; // gcc seems to want us to initialize this
-  switch( orders.to_enum() ) {
-    using e = unit_orders::e;
-    case e::none:
-      c = '-';
-      break;
-    case e::sentry:
-      c = 'S';
-      break;
-    case e::fortified:
-      c = 'F';
-      break;
-    case e::fortifying:
-      c = 'F';
-      break;
-    case e::road:
-      c = 'R';
-      break;
-    case e::plow:
-      c = 'P';
-      break;
-    case e::damaged: {
-      auto&     o          = orders.get<unit_orders::damaged>();
-      int const turns_left = o.turns_until_repair;
-      // The number can be larger than 9, i.e. it can have more
-      // than one digit which we cannot display on the flag. So
-      // we will do what the OG does and display a + sign in that
-      // case. TODO: Maybe we should find a better way to commu-
-      // nicate that number (tool tips?).
-      if( turns_left > 9 )
-        c = '+';
-      else
-        c = '0' + turns_left;
-      break;
+void render_unit_with_tile( rr::Renderer& renderer, Coord where,
+                            e_tile tile, bool damaged,
+                            UnitRenderOptions const& options ) {
+  rr::Painter painter = renderer.painter();
+  if( !options.flag.has_value() ) {
+    // No flag.
+    render_unit_no_flag( renderer, where, tile, options );
+  } else if( !options.flag->in_front ) {
+    // Show the flag but in the back. This is a bit tricky if
+    // there's a shadow because we don't want the shadow to be
+    // over the flag.
+    if( options.shadow.has_value() )
+      render_sprite_silhouette(
+          renderer, where + Delta{ .w = options.shadow->offset },
+          tile, options.shadow->color );
+    render_unit_flag( renderer, where, *options.flag );
+    if( options.shadow.has_value() ) {
+      // Draw a light shadow over the flag so that we can dif-
+      // ferentiate the edge of the unit from the flag, but not
+      // so dark that it will cover up the flag.
+      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .35 );
+      render_sprite_silhouette(
+          renderer, where + Delta{ .w = options.shadow->offset },
+          tile, options.shadow->color );
     }
-  };
-  // We don't grey out the "fortifying" state to signal to the
-  // player that the unit is not yet fully fortified.
-  bool is_greyed = ( orders.holds<unit_orders::fortified>() ||
-                     orders.holds<unit_orders::sentry>() );
-  switch( flag ) {
-    case e_flag_count::none:
-      break;
-    case e_flag_count::single:
-      break;
-    case e_flag_count::multiple:
-      render_unit_flag_impl( renderer, where + delta_stacked,
-                             color, c, is_greyed );
-      break;
+    render_sprite( painter, where, tile );
+  } else {
+    // Show the flag in the front.
+    render_unit_no_flag( renderer, where, tile, options );
+    render_unit_flag( renderer, where, *options.flag );
   }
-  render_unit_flag_impl( renderer, where, color, c, is_greyed );
+
+  if( damaged )
+    // Reuse the red X from boycotted commodities for the damaged
+    // icon (the OG seems to do this).
+    render_sprite( painter, where + Delta{ .w = 8, .h = 8 },
+                   e_tile::boycott );
 }
 
 void depixelate_from_to( rr::Renderer& renderer, double stage,
@@ -260,122 +186,127 @@ gfx::pixel UnitShadow::default_color() {
 W UnitShadow::default_offset() { return W{ -3 }; }
 
 /****************************************************************
-** Public API
+** Unit Rendering.
 *****************************************************************/
-void render_unit_flag( rr::Renderer& renderer, Coord where,
-                       e_unit_type type, e_nation nation,
-                       unit_orders const& orders ) {
-  render_unit_flag( renderer, where, unit_attr( type ),
-                    nation_obj( nation ).flag_color, orders,
-                    e_flag_count::single );
-}
-
-static void render_unit_flag( rr::Renderer& renderer,
-                              Coord        where, SSConst const&,
-                              Unit const&  unit,
-                              e_flag_count flag ) {
-  render_unit_flag( renderer, where, unit.desc(),
-                    nation_obj( unit.nation() ).flag_color,
-                    unit.orders(), flag );
-}
-
-static void render_unit_flag( rr::Renderer& renderer,
-                              Coord where, SSConst const& ss,
-                              NativeUnit const& unit,
-                              e_flag_count      flag ) {
-  e_tribe const    tribe = tribe_for_unit( ss, unit );
-  gfx::pixel const flag_color =
-      config_natives.tribes[tribe].flag_color;
-  render_unit_flag( renderer, where, unit_attr( unit.type ),
-                    flag_color, unit_orders::none{}, flag );
-}
-
-static void render_unit_impl(
-    rr::Renderer& renderer, Coord where, e_tile tile,
-    auto const& desc, gfx::pixel flag_color,
-    unit_orders const& orders, bool damaged,
-    UnitRenderOptions const& options ) {
-  rr::Painter painter = renderer.painter();
-  if( options.flag == e_flag_count::none ) {
-    // No flag.
-    render_unit_no_icon( renderer, where, tile, options );
-  } else if( !desc.nat_icon_front ) {
-    // Show the flag but in the back. This is a bit tricky if
-    // there's a shadow because we don't want the shadow to be
-    // over the flag.
-    if( options.shadow.has_value() )
-      render_sprite_silhouette(
-          renderer, where + Delta{ .w = options.shadow->offset },
-          desc.tile, options.shadow->color );
-    render_unit_flag( renderer, where, desc, flag_color, orders,
-                      options.flag );
-    if( options.shadow.has_value() ) {
-      // Draw a light shadow over the flag so that we can dif-
-      // ferentiate the edge of the unit from the flag, but not
-      // so dark that it will cover up the flag.
-      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .35 );
-      render_sprite_silhouette(
-          renderer, where + Delta{ .w = options.shadow->offset },
-          desc.tile, options.shadow->color );
-    }
-    render_sprite( painter, where, desc.tile );
-  } else {
-    // Show the flag in the front.
-    render_unit_no_icon( renderer, where, tile, options );
-    render_unit_flag( renderer, where, desc, flag_color, orders,
-                      options.flag );
-  }
-
-  if( damaged )
-    // Reuse the red X from boycotted commodities for the damaged
-    // icon (the OG seems to do this).
-    render_sprite( painter, where + Delta{ .w = 8, .h = 8 },
-                   e_tile::boycott );
-}
-
 void render_unit( rr::Renderer& renderer, Coord where,
                   Unit const&              unit,
                   UnitRenderOptions const& options ) {
-  render_unit_impl(
-      renderer, where, unit.desc().tile, unit.desc(),
-      nation_obj( unit.nation() ).flag_color, unit.orders(),
+  render_unit_with_tile(
+      renderer, where, unit.desc().tile,
       unit.orders().holds<unit_orders::damaged>(), options );
 }
 
 void render_native_unit( rr::Renderer& renderer, Coord where,
-                         SSConst const&           ss,
                          NativeUnit const&        native_unit,
                          UnitRenderOptions const& options ) {
-  auto const&      desc  = unit_attr( native_unit.type );
-  e_tribe const    tribe = tribe_for_unit( ss, native_unit );
-  gfx::pixel const flag_color =
-      config_natives.tribes[tribe].flag_color;
-  render_unit_impl( renderer, where, desc.tile, desc, flag_color,
-                    unit_orders::none{}, /*damaged=*/false,
-                    options );
-}
-
-static void render_unit_type(
-    rr::Renderer& renderer, Coord where, e_tile tile,
-    UnitRenderOptions const& options ) {
-  render_unit_no_icon( renderer, where, tile, options );
+  render_unit_with_tile( renderer, where,
+                         unit_attr( native_unit.type ).tile,
+                         /*damaged=*/false, options );
 }
 
 void render_unit_type( rr::Renderer& renderer, Coord where,
                        e_unit_type              unit_type,
                        UnitRenderOptions const& options ) {
-  render_unit_no_icon( renderer, where,
-                       unit_attr( unit_type ).tile, options );
+  render_unit_with_tile( renderer, where,
+                         unit_attr( unit_type ).tile,
+                         /*damaged=*/false, options );
 }
 
 void render_native_unit_type(
     rr::Renderer& renderer, Coord where,
     e_native_unit_type       unit_type,
     UnitRenderOptions const& options ) {
-  render_unit_no_icon( renderer, where,
-                       unit_attr( unit_type ).tile, options );
+  render_unit_with_tile( renderer, where,
+                         unit_attr( unit_type ).tile,
+                         /*damaged=*/false, options );
 }
 
+// This is a bit tricky because we need to render the shadow, the
+// flag, and the unit, but 1) the flag has to go between the unit
+// and the shadow if the flag is to be behind the unit, and 2) we
+// don't want to depixelate the flag since we have a target unit,
+// so it would look strange if the flag depixelated.
+static void render_unit_depixelate_to_impl(
+    rr::Renderer& renderer, Coord where, auto const& desc,
+    e_tile target_tile, double stage,
+    UnitRenderOptions options ) {
+  // The shadow always goes in back of the flag, so if there is
+  // one we can get that out of the way.
+  if( options.shadow.has_value() )
+    depixelate_from_to(
+        renderer, stage, /*anchor=*/where, /*from=*/
+        [&] {
+          render_sprite_silhouette(
+              renderer,
+              where + Delta{ .w = options.shadow->offset },
+              desc.tile, options.shadow->color );
+        },
+        /*to=*/
+        [&] {
+          render_sprite_silhouette(
+              renderer,
+              where + Delta{ .w = options.shadow->offset },
+              target_tile, options.shadow->color );
+        } );
+  options.shadow.reset();
+
+  // If the flag is on then it goes in between the shadow and
+  // unit.
+  if( options.flag.has_value() && !desc.nat_icon_front )
+    render_unit_flag( renderer, where, *options.flag );
+
+  // Now the unit.
+  depixelate_from_to(
+      renderer, stage, /*anchor=*/where, /*from=*/
+      [&] {
+        render_unit_no_flag( renderer, where, desc.tile,
+                             options );
+      },
+      /*to=*/
+      [&] {
+        render_unit_no_flag( renderer, where, target_tile,
+                             options );
+      } );
+
+  if( options.flag.has_value() && desc.nat_icon_front )
+    render_unit_flag( renderer, where, *options.flag );
+}
+
+void render_unit_depixelate( rr::Renderer& renderer, Coord where,
+                             Unit const& unit, double stage,
+                             UnitRenderOptions const& options ) {
+  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                           stage );
+  render_unit( renderer, where, unit, options );
+}
+
+void render_native_unit_depixelate(
+    rr::Renderer& renderer, Coord where, NativeUnit const& unit,
+    double stage, UnitRenderOptions const& options ) {
+  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                           stage );
+  render_native_unit( renderer, where, unit, options );
+}
+
+void render_unit_depixelate_to( rr::Renderer& renderer,
+                                Coord where, Unit const& unit,
+                                e_tile target, double stage,
+                                UnitRenderOptions options ) {
+  render_unit_depixelate_to_impl( renderer, where, unit.desc(),
+                                  target, stage, options );
+}
+
+void render_native_unit_depixelate_to(
+    rr::Renderer& renderer, Coord where, NativeUnit const& unit,
+    e_tile target, double stage, UnitRenderOptions options ) {
+  render_unit_depixelate_to_impl( renderer, where,
+                                  unit_attr( unit.type ), target,
+                                  stage, options );
+}
+
+/****************************************************************
+** Colony Rendering.
+*****************************************************************/
 void render_fog_colony( rr::Renderer& renderer, Coord where,
                         FogColony const&           fog_colony,
                         ColonyRenderOptions const& options ) {
@@ -432,6 +363,9 @@ void render_real_colony( rr::Renderer& renderer, Coord where,
                      options );
 }
 
+/****************************************************************
+** Dwelling Rendering.
+*****************************************************************/
 void render_fog_dwelling( rr::Renderer& renderer, Coord where,
                           FogDwelling const& fog_dwelling ) {
   rr::Painter   painter    = renderer.painter();
@@ -490,93 +424,9 @@ void render_real_dwelling( rr::Renderer& renderer, Coord where,
       dwelling_to_fog_dwelling( ss, dwelling.id ) );
 }
 
-void render_unit_depixelate( rr::Renderer& renderer, Coord where,
-                             Unit const& unit, double stage,
-                             UnitRenderOptions const& options ) {
-  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
-                           stage );
-  render_unit( renderer, where, unit, options );
-}
-
-// This is a bit tricky because we need to render the shadow, the
-// flag, and the unit, but 1) the flag has to go between the unit
-// and the shadow if the flag is to be behind the unit, and 2) we
-// don't want to depixelate the flag since we have a target unit,
-// so it would look strange if the flag depixelated.
-static void render_unit_depixelate_to_impl(
-    rr::Renderer& renderer, Coord where, SSConst const& ss,
-    auto const& desc, auto const& unit, e_tile target_tile,
-    double stage, UnitRenderOptions options ) {
-  // The shadow always goes in back of the flag, so if there is
-  // one we can get that out of the way.
-  if( options.shadow.has_value() )
-    depixelate_from_to(
-        renderer, stage, /*anchor=*/where, /*from=*/
-        [&] {
-          render_sprite_silhouette(
-              renderer,
-              where + Delta{ .w = options.shadow->offset },
-              desc.tile, options.shadow->color );
-        },
-        /*to=*/
-        [&] {
-          render_sprite_silhouette(
-              renderer,
-              where + Delta{ .w = options.shadow->offset },
-              target_tile, options.shadow->color );
-        } );
-  options.shadow.reset();
-
-  // If the flag is on then it goes in between the shadow and
-  // unit.
-  if( options.flag != e_flag_count::none &&
-      !desc.nat_icon_front )
-    render_unit_flag( renderer, where, ss, unit, options.flag );
-
-  // Now the unit.
-  depixelate_from_to(
-      renderer, stage, /*anchor=*/where, /*from=*/
-      [&] {
-        render_unit_type( renderer, where, desc.tile, options );
-      },
-      /*to=*/
-      [&] {
-        render_unit_type( renderer, where, target_tile,
-                          options );
-      } );
-
-  if( options.flag != e_flag_count::none && desc.nat_icon_front )
-    render_unit_flag( renderer, where, ss, unit, options.flag );
-}
-
-void render_unit_depixelate_to( rr::Renderer& renderer,
-                                Coord where, SSConst const& ss,
-                                Unit const& unit, e_tile target,
-                                double            stage,
-                                UnitRenderOptions options ) {
-  render_unit_depixelate_to_impl( renderer, where, ss,
-                                  unit.desc(), unit, target,
-                                  stage, options );
-}
-
-void render_native_unit_depixelate(
-    rr::Renderer& renderer, Coord where, SSConst const& ss,
-    NativeUnit const& unit, double stage,
-    UnitRenderOptions const& options ) {
-  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
-                           stage );
-  render_native_unit( renderer, where, ss, unit, options );
-}
-
-void render_native_unit_depixelate_to(
-    rr::Renderer& renderer, Coord where, SSConst const& ss,
-    NativeUnit const& unit, e_tile target, double stage,
-    UnitRenderOptions options ) {
-  render_unit_depixelate_to_impl( renderer, where, ss,
-                                  unit_attr( unit.type ), unit,
-                                  target, stage, options );
-}
-
+/****************************************************************
+** Misc. Rendering.
+*****************************************************************/
 void render_shadow_hightlight_border(
     rr::Renderer& renderer, gfx::rect rect,
     gfx::pixel left_and_bottom, gfx::pixel top_and_right ) {

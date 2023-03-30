@@ -767,28 +767,30 @@ class OptionSelectView : public VectorView {
   maybe<int> selected_;
 };
 
-class FakeUnitView : public CompositeSingleView {
+class FakeUnitView : public View {
  public:
   FakeUnitView( e_unit_type type, e_nation nation,
                 unit_orders const& orders );
 
   // Implement Object
+  Delta delta() const override;
+
+  // Implement Object
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override;
-  // Implement CompositeView
-  void notify_children_updated() override {}
 
   unit_orders const& orders() const { return orders_; }
-  void               set_orders( unit_orders const& orders ) {
+
+  void set_orders( unit_orders const& orders ) {
     orders_ = orders;
   }
 
   bool needs_padding() const override { return true; }
 
  private:
-  e_unit_type type_;
-  e_nation    nation_;
-  unit_orders orders_;
+  e_unit_type const type_;
+  e_nation const    nation_;
+  unit_orders       orders_;
 };
 
 class ClickableView : public CompositeSingleView {
