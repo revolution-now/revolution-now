@@ -894,6 +894,8 @@ TEST_CASE( "[visibility] Visibility" ) {
   SECTION( "no player" ) {
     Visibility const viz( W.ss(), /*nation=*/nothing );
 
+    REQUIRE( viz.nation() == nothing );
+
     // visible.
     REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
              e_tile_visibility::visible_and_clear );
@@ -935,6 +937,8 @@ TEST_CASE( "[visibility] Visibility" ) {
   SECTION( "with player, no visibility" ) {
     Visibility const viz( W.ss(), e_nation::english );
 
+    REQUIRE( viz.nation() == e_nation::english );
+
     // visible.
     REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
              e_tile_visibility::hidden );
@@ -975,6 +979,8 @@ TEST_CASE( "[visibility] Visibility" ) {
 
   SECTION( "with player, some visibility, no fog" ) {
     Visibility const viz( W.ss(), e_nation::english );
+
+    REQUIRE( viz.nation() == e_nation::english );
 
     gfx::Matrix<maybe<FogSquare>>& player_map =
         W.terrain()
@@ -1025,6 +1031,8 @@ TEST_CASE( "[visibility] Visibility" ) {
 
   SECTION( "with player, some visibility, some fog" ) {
     Visibility const viz( W.ss(), e_nation::english );
+
+    REQUIRE( viz.nation() == e_nation::english );
 
     gfx::Matrix<maybe<FogSquare>>& player_map =
         W.terrain()

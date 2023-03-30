@@ -93,6 +93,7 @@ int unit_sight_radius( SSConst const& ss, e_nation nation,
 Visibility::Visibility( SSConst const&  ss,
                         maybe<e_nation> nation )
   : terrain_( &ss.terrain ),
+    nation_( nation ),
     player_terrain_(
         ( nation.has_value()
               ? ss.terrain.player_terrain( *nation )

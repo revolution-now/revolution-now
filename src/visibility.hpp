@@ -82,14 +82,17 @@ struct Visibility {
   // Is the tile on the map.
   bool on_map( Coord tile ) const;
 
+  base::maybe<e_nation> nation() const { return nation_; }
+
  private:
   // These are pointers instead of references so that the class
   // can be assigned.
 
   TerrainState const* terrain_;
 
-  // If this does not have a value then we are rendering in the
+  // If these do not have a value then we are rendering in the
   // mode where all tiles are fully visible.
+  base::maybe<e_nation>             nation_;
   base::maybe<PlayerTerrain const*> player_terrain_;
 };
 
