@@ -2,10 +2,6 @@ target_frame_rate: 61
 
 wait_for_vsync: true
 
-unit_flag_text_color: "#222222"
-
-unit_flag_text_color_greyed: "#777777"
-
 pixelation_curve {
   # During a pixelation animation (such as e.g. when a unit gets
   # defeated in battle) this curve controls the rate at which
@@ -32,3 +28,18 @@ pixelation_curve {
 # of transparency); this will be an additional alpha scaling of
 # it.
 fog_of_war_alpha: .75
+
+unit_flag_colors {
+  # This is the color used to render the letter on a unit's flag
+  # that is not fortified or sentried.
+  unit_flag_text_color: "#222222"
+
+  # This is the color used to render the letter on a unit's flag
+  # that is either fortified or sentried.
+  unit_flag_text_color_greyed: "#777777"
+
+  # Privateer's, when seen by a foreign nation, have flags that
+  # are dark colored with a light colored 'X' on them.
+  privateer_flag_color: "#222222"
+  privateer_X_color:    "#DDDDDD"
+}
