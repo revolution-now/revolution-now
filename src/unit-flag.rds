@@ -1,0 +1,67 @@
+# ===============================================================
+# unit-flag.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-03-29.
+#
+# Description: Rds definitions for the unit-flag module.
+#
+# ===============================================================
+# gfx
+include "gfx/cartesian.hpp"
+include "gfx/pixel.hpp"
+
+# base
+include "base/maybe.hpp"
+
+namespace "rn"
+
+struct.UnitFlagOffsets {
+  # Pixel offset from unit sprite origin at which to place the
+  # primary flag.
+  offset_first 'gfx::size',
+
+  # Pixel offset from unit sprite origin at which to place the
+  # secondary flag. This is the one behind the primary flag, but
+  # is only relevant when stacked=true.
+  offset_stacked 'gfx::size',
+}
+
+struct.UnitFlagCharInfo {
+  value 'char',
+
+  # Color of the character.
+  color 'gfx::pixel',
+}
+
+# This contains the info required to directly render a flag,
+# without applying any further game logic.
+struct.UnitFlagRenderInfo {
+  # Should we render a second flag just behind the first, i.e.,
+  # to signal that there are multiple units on a square.
+  stacked 'bool',
+
+  # Size of the flag including outline.
+  size 'gfx::size',
+
+  offsets 'UnitFlagOffsets',
+
+  # The color of the box outline around the flag.
+  outline_color 'gfx::pixel',
+
+  # Typically determined by the nation/tribe of the unit, al-
+  # though an exception would be for privateers when viewed by a
+  # foreign nation.
+  background_color 'gfx::pixel',
+
+  # What character, if any, is rendered over the background. Nor-
+  # mally, this would be a character representing the current or-
+  # ders of the unit (for european units). None for native units.
+  char_info 'base::maybe<UnitFlagCharInfo>',
+
+  # Should the flag be rendered in front or behind the unit.
+  in_front 'bool',
+
+  _features { equality, nodiscard }
+}
