@@ -17,6 +17,7 @@
 #include "test/fake/world.hpp"
 
 // ss
+#include "ss/dwelling.rds.hpp"
 #include "ss/unit-composer.hpp"
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
@@ -109,9 +110,6 @@ struct World : testing::World {
     unit8.sentry();
     (void)unit9;
     unit10.sentry();
-
-    REQUIRE( unit3.id() == UnitId{ 3 } );
-    REQUIRE( unit3.orders().holds<unit_orders::sentry>() );
   }
 
   bool sentried( UnitId unit_id ) const {
@@ -183,6 +181,51 @@ TEST_CASE( "[unsentry] unsentry_units_next_to_foreign_units" ) {
   REQUIRE( !W.sentried( UnitId{ 8 } ) );
   REQUIRE( !W.sentried( UnitId{ 9 } ) );
   REQUIRE( W.sentried( UnitId{ 10 } ) );
+}
+
+TEST_CASE(
+    "[unsentry] unsentry_units_next_to_foreign_units "
+    "(native)" ) {
+  World    W;
+  e_nation nation = {};
+
+  Dwelling const& dwelling =
+      W.add_dwelling( { .x = 0, .y = 1 }, e_tribe::sioux );
+  W.add_native_unit_on_map( e_native_unit_type::brave,
+                            { .x = 0, .y = 3 }, dwelling.id );
+  W.create_units();
+
+  auto f = [&] {
+    unsentry_units_next_to_foreign_units( W.ss(), nation );
+  };
+
+  // Note that unit_id=1 is the brave, so in this test case we
+  // have to shift the IDs relative to what they are in the com-
+  // ments above. And we need to generate the brave first other-
+  // wise the brave creation will unsentry the surrounding units.
+  REQUIRE( W.sentried( UnitId{ 1 + 1 } ) );
+  REQUIRE( W.sentried( UnitId{ 2 + 1 } ) );
+  REQUIRE( W.sentried( UnitId{ 3 + 1 } ) );
+  REQUIRE( W.sentried( UnitId{ 4 + 1 } ) );
+  REQUIRE( !W.sentried( UnitId{ 5 + 1 } ) );
+  REQUIRE( W.sentried( UnitId{ 6 + 1 } ) );
+  REQUIRE( W.sentried( UnitId{ 7 + 1 } ) );
+  REQUIRE( W.sentried( UnitId{ 8 + 1 } ) );
+  REQUIRE( !W.sentried( UnitId{ 9 + 1 } ) );
+  REQUIRE( W.sentried( UnitId{ 10 + 1 } ) );
+
+  nation = e_nation::english;
+  f();
+  REQUIRE( W.sentried( UnitId{ 1 + 1 } ) );
+  REQUIRE( !W.sentried( UnitId{ 2 + 1 } ) );
+  REQUIRE( !W.sentried( UnitId{ 3 + 1 } ) );
+  REQUIRE( !W.sentried( UnitId{ 4 + 1 } ) );
+  REQUIRE( !W.sentried( UnitId{ 5 + 1 } ) );
+  REQUIRE( W.sentried( UnitId{ 6 + 1 } ) );
+  REQUIRE( W.sentried( UnitId{ 7 + 1 } ) );
+  REQUIRE( W.sentried( UnitId{ 8 + 1 } ) );
+  REQUIRE( !W.sentried( UnitId{ 9 + 1 } ) );
+  REQUIRE( W.sentried( UnitId{ 10 + 1 } ) );
 }
 
 TEST_CASE(
