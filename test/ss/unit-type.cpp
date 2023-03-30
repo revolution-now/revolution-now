@@ -112,7 +112,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.name_plural == "Expert Cotton Planters" );
     REQUIRE( desc.tile == e_tile::expert_cotton_planter );
     REQUIRE( desc.nat_icon_front == false );
-    REQUIRE( desc.nat_icon_position == e_direction::sw );
+    REQUIRE( desc.nat_icon_position == e_direction::se );
     REQUIRE( desc.ship == false );
     REQUIRE( desc.human == e_unit_human::yes );
     REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
@@ -158,7 +158,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.name_plural == "Petty Criminals" );
     REQUIRE( desc.tile == e_tile::petty_criminal );
     REQUIRE( desc.nat_icon_front == false );
-    REQUIRE( desc.nat_icon_position == e_direction::sw );
+    REQUIRE( desc.nat_icon_position == e_direction::se );
     REQUIRE( desc.ship == false );
     REQUIRE( desc.human == e_unit_human::yes );
     REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
@@ -205,7 +205,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.name_plural == "Free Colonists" );
     REQUIRE( desc.tile == e_tile::free_colonist );
     REQUIRE( desc.nat_icon_front == false );
-    REQUIRE( desc.nat_icon_position == e_direction::sw );
+    REQUIRE( desc.nat_icon_position == e_direction::se );
     REQUIRE( desc.ship == false );
     REQUIRE( desc.human == e_unit_human::yes );
     REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
@@ -325,7 +325,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.name_plural == "Pioneers" );
     REQUIRE( desc.tile == e_tile::pioneer );
     REQUIRE( desc.nat_icon_front == false );
-    REQUIRE( desc.nat_icon_position == e_direction::sw );
+    REQUIRE( desc.nat_icon_position == e_direction::se );
     REQUIRE( desc.ship == false );
     REQUIRE( desc.human == e_unit_human::from_base );
     REQUIRE( desc.can_found ==
@@ -362,7 +362,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.name_plural == "Missionaries" );
     REQUIRE( desc.tile == e_tile::missionary );
     REQUIRE( desc.nat_icon_front == false );
-    REQUIRE( desc.nat_icon_position == e_direction::sw );
+    REQUIRE( desc.nat_icon_position == e_direction::se );
     REQUIRE( desc.ship == false );
     REQUIRE( desc.human == e_unit_human::from_base );
     REQUIRE( desc.can_found ==

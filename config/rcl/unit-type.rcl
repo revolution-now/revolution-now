@@ -81,7 +81,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -117,7 +117,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -153,7 +153,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -189,7 +189,7 @@ composition {
       human:                 yes
       can_found:             no
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -222,7 +222,7 @@ composition {
       human:                 from_base
       can_found:             from_base
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -255,7 +255,7 @@ composition {
       human:                 from_base
       can_found:             from_base
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  2
       can_attack:            false
@@ -320,7 +320,7 @@ composition {
       human:                 from_base
       can_found:             from_base
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            true
@@ -383,7 +383,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -419,7 +419,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -455,7 +455,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -491,7 +491,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -527,7 +527,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -563,7 +563,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -599,7 +599,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -635,7 +635,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -671,7 +671,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -707,7 +707,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -743,7 +743,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -779,7 +779,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -815,7 +815,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -851,7 +851,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -887,7 +887,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -923,7 +923,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -959,7 +959,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -995,7 +995,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -1031,7 +1031,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -1067,7 +1067,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -1103,7 +1103,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -1139,7 +1139,7 @@ composition {
       human:                 yes
       can_found:             yes
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -1180,7 +1180,7 @@ composition {
       human:                 from_base
       can_found:             from_base
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            true
@@ -1240,7 +1240,7 @@ composition {
       human:                 from_base
       can_found:             from_base
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            true
@@ -1300,7 +1300,7 @@ composition {
       human:                 yes
       can_found:             no
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            true
@@ -1362,7 +1362,7 @@ composition {
       human:                 from_base
       can_found:             from_base
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
       can_attack:            false
@@ -1395,7 +1395,7 @@ composition {
       human:                 from_base
       can_found:             from_base
       nat_icon_front:        false
-      nat_icon_position:     sw
+      nat_icon_position:     se
       visibility:            1
       base_movement_points:  2
       can_attack:            false
