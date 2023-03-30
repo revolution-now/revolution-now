@@ -74,13 +74,16 @@ TEST_CASE( "[unit-flag] euro_unit_type_orders_flag_info" ) {
 
   // Common.
   expected = {
-      .stacked       = false,
-      .size          = { .w = 14, .h = 14 },
-      .offsets       = { .offset_first   = { .w = 32 - 14,
-                                             .h = 32 - 14 },
-                         .offset_stacked = { .w = 32 - 2 - 14,
-                                             .h = 32 - 2 - 14 } },
-      .outline_color = { .r = 0xcc, .g = 0x07, .b = 0x22, 0xff },
+      .stacked          = false,
+      .size             = { .w = 14, .h = 14 },
+      .offsets          = { .offset_first   = { .w = 32 - 14,
+                                                .h = 32 - 14 },
+                            .offset_stacked = { .w = 32 - 2 - 14,
+                                                .h = 32 - 2 - 14 } },
+      .outline_color    = { .r = 0xcc,
+                            .g = 0x07,
+                            .b = 0x22,
+                            .a = 0xff },
       .background_color = { .r = 255, .a = 255 },
       .char_info        = UnitFlagCharInfo{ .value = '-',
                                             .color = { .r = 0x22,
@@ -140,13 +143,16 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info" ) {
 
   // Common.
   expected = {
-      .stacked       = false,
-      .size          = { .w = 14, .h = 14 },
-      .offsets       = { .offset_first   = { .w = 32 - 14,
-                                             .h = 32 - 14 },
-                         .offset_stacked = { .w = 32 - 2 - 14,
-                                             .h = 32 - 2 - 14 } },
-      .outline_color = { .r = 0xcc, .g = 0x07, .b = 0x22, 0xff },
+      .stacked          = false,
+      .size             = { .w = 14, .h = 14 },
+      .offsets          = { .offset_first   = { .w = 32 - 14,
+                                                .h = 32 - 14 },
+                            .offset_stacked = { .w = 32 - 2 - 14,
+                                                .h = 32 - 2 - 14 } },
+      .outline_color    = { .r = 0xcc,
+                            .g = 0x07,
+                            .b = 0x22,
+                            .a = 0xff },
       .background_color = { .r = 255, .a = 255 },
       .char_info        = UnitFlagCharInfo{ .value = '-',
                                             .color = { .r = 0x22,
@@ -216,7 +222,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info" ) {
   expected.offsets       = { .offset_first   = { .w = 0, .h = 0 },
                              .offset_stacked = { .w = 2, .h = 2 } };
   expected.outline_color = {
-      .r = 0x1b, .g = 0x1b, .b = 0x1b, 0xff };
+      .r = 0x1b, .g = 0x1b, .b = 0x1b, .a = 0xff };
   expected.background_color = {
       .r = 0x22, .g = 0x22, .b = 0x22, .a = 0xff };
   expected.char_info = UnitFlagCharInfo{
@@ -245,13 +251,16 @@ TEST_CASE( "[unit-flag] native_unit_flag_render_info" ) {
 
   // Common.
   expected = {
-      .stacked       = false,
-      .size          = { .w = 14, .h = 14 },
-      .offsets       = { .offset_first   = { .w = 32 - 14,
-                                             .h = 32 - 14 },
-                         .offset_stacked = { .w = 32 - 2 - 14,
-                                             .h = 32 - 2 - 14 } },
-      .outline_color = { .r = 0x6f, .g = 0x04, .b = 0x12, 0xff },
+      .stacked          = false,
+      .size             = { .w = 14, .h = 14 },
+      .offsets          = { .offset_first   = { .w = 32 - 14,
+                                                .h = 32 - 14 },
+                            .offset_stacked = { .w = 32 - 2 - 14,
+                                                .h = 32 - 2 - 14 } },
+      .outline_color    = { .r = 0x6f,
+                            .g = 0x04,
+                            .b = 0x12,
+                            .a = 0xff },
       .background_color = { .r = 0x91,
                             .g = 0x00,
                             .b = 0x00,
@@ -263,7 +272,6 @@ TEST_CASE( "[unit-flag] native_unit_flag_render_info" ) {
                                                        .a = 0xff } },
       .in_front         = false,
   };
-  auto baseline = expected;
 
   // brave.
   options = { .flag_count = e_flag_count::single,
