@@ -13,6 +13,7 @@
 // Testing
 #include "test/mocks/icolony-viewer.hpp"
 #include "test/mocks/icombat.hpp"
+#include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/inative-mind.hpp"
 #include "test/mocks/irand.hpp"
@@ -117,6 +118,25 @@ NativeMinds& World::native_minds() {
   return *uninitialized_native_minds_;
 }
 
+EuroMinds& World::euro_minds() {
+  if( uninitialized_euro_minds_ == nullptr )
+    uninitialized_euro_minds_ = [] {
+      unordered_map<e_nation, unique_ptr<IEuroMind>> holder;
+      for( e_nation const nation : refl::enum_values<e_nation> )
+        holder[nation] = make_unique<MockIEuroMind>();
+      return make_unique<EuroMinds>( std::move( holder ) );
+    }();
+  return *uninitialized_euro_minds_;
+}
+
+MockINativeMind& World::mock_native_mind( e_tribe tribe ) {
+  return static_cast<MockINativeMind&>( native_minds()[tribe] );
+}
+
+MockIEuroMind& World::mock_euro_mind( e_nation nation ) {
+  return static_cast<MockIEuroMind&>( euro_minds()[nation] );
+}
+
 Planes& World::planes() {
   if( uninitialized_planes_ == nullptr )
     uninitialized_planes_ = make_unique<Planes>();
@@ -171,7 +191,7 @@ TS* make_ts( World& world ) {
                  world.lua(), world.gui(), world.rand(),
                  world.combat(), world.colony_viewer(),
                  world.ss_saved().root, world.connectivity(),
-                 world.native_minds() );
+                 world.native_minds(), world.euro_minds() );
 }
 
 }

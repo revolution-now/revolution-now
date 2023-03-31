@@ -17,6 +17,7 @@
 #include "connectivity.hpp"
 #include "gui.hpp"          // FIXME
 #include "icombat.hpp"
+#include "ieuro-mind.hpp"   // FIXME
 #include "inative-mind.hpp" // FIXME
 #include "input.hpp"
 #include "logger.hpp"
@@ -646,8 +647,10 @@ wait<> run_map_editor_standalone( Planes& planes ) {
   ColonyViewer        colony_viewer( ss );
   TerrainConnectivity connectivity;
   NativeMinds         native_minds;
+  EuroMinds           euro_minds;
   TS ts( planes, map_updater, st, gui, rand, combat,
-         colony_viewer, ss.root, connectivity, native_minds );
+         colony_viewer, ss.root, connectivity, native_minds,
+         euro_minds );
   co_await run_map_editor( ss, ts );
 }
 

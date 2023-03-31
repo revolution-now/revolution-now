@@ -48,12 +48,14 @@ struct RootState;
 struct ColoniesState;
 struct Colony;
 struct Dwelling;
+struct EuroMinds;
 struct EventsState;
 struct FormatVersion;
 struct IMapUpdater;
 struct LandViewState;
 struct MockIColonyViewer;
 struct MockICombat;
+struct MockIEuroMind;
 struct MockIGui;
 struct MockINativeMind;
 struct MockIRand;
@@ -330,7 +332,11 @@ struct World {
   TerrainConnectivity const& connectivity() const;
   TerrainConnectivity&       connectivity();
 
+  MockINativeMind& mock_native_mind( e_tribe tribe );
+  MockIEuroMind&   mock_euro_mind( e_nation nation );
+
   NativeMinds& native_minds();
+  EuroMinds&   euro_minds();
 
   // These will initialize their respective objects the first
   // time they are called, so they should always be used.
@@ -374,6 +380,7 @@ struct World {
   std::unique_ptr<MockIColonyViewer>
                                uninitialized_colony_viewer_;
   std::unique_ptr<NativeMinds> uninitialized_native_minds_;
+  std::unique_ptr<EuroMinds>   uninitialized_euro_minds_;
   std::unique_ptr<TS>          uninitialized_ts_;
 };
 

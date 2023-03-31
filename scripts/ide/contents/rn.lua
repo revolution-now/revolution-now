@@ -10,4 +10,6 @@ return {
   'on-map',
   'inative-mind',
   'ai-native-mind',
+  'ieuro-mind',
+  'human-euro-mind',
 }

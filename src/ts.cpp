@@ -11,6 +11,7 @@
 #include "ts.hpp"
 
 // Revolution Now
+#include "ieuro-mind.hpp"
 #include "imap-updater.hpp"
 #include "inative-mind.hpp"
 #include "irand.hpp"
@@ -46,6 +47,25 @@ INativeMind& NativeMinds::operator[]( e_tribe tribe ) const {
   unique_ptr<INativeMind> const& p_mind = iter->second;
   CHECK( p_mind != nullptr,
          "null INativeMind object for tribe {}.", tribe );
+  return *p_mind;
+}
+
+/****************************************************************
+** EuroMinds
+*****************************************************************/
+EuroMinds::EuroMinds(
+    std::unordered_map<e_nation, unique_ptr<IEuroMind>> minds )
+  : minds_( std::move( minds ) ) {}
+
+EuroMinds::~EuroMinds() = default;
+
+IEuroMind& EuroMinds::operator[]( e_nation nation ) const {
+  auto iter = minds_.find( nation );
+  CHECK( iter != minds_.end(),
+         "no IEuroMind object for nation {}.", nation );
+  unique_ptr<IEuroMind> const& p_mind = iter->second;
+  CHECK( p_mind != nullptr,
+         "null IEuroMind object for nation {}.", nation );
   return *p_mind;
 }
 
@@ -87,7 +107,7 @@ TS::TS( Planes& planes_, IMapUpdater& map_updater_,
         lua::state& lua_, IGui& gui_, IRand& rand_,
         ICombat& combat_, IColonyViewer& colony_viewer_,
         RootState& saved, TerrainConnectivity& connectivity_,
-        NativeMinds& native_minds_ )
+        NativeMinds& native_minds_, EuroMinds& euro_minds_ )
   : planes( planes_ ),
     map_updater( map_updater_ ),
     lua( lua_ ),
@@ -98,6 +118,7 @@ TS::TS( Planes& planes_, IMapUpdater& map_updater_,
     saved( saved ),
     connectivity( connectivity_ ),
     native_minds( native_minds_ ),
+    euro_minds( euro_minds_ ),
     pimpl_( new LuaRefSetAndRestore( lua, *this ) ) {}
 
 // These are here because we are using the pimpl idiom.
@@ -111,7 +132,8 @@ void to_str( TS const& o, string& out, base::ADL_t ) {
 
 TS TS::with_gui( IGui& new_gui ) {
   return TS( planes, map_updater, lua, new_gui, rand, combat,
-             colony_viewer, saved, connectivity, native_minds );
+             colony_viewer, saved, connectivity, native_minds,
+             euro_minds );
 }
 
 /****************************************************************

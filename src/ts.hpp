@@ -29,6 +29,7 @@ namespace rn {
 
 struct IColonyViewer;
 struct ICombat;
+struct IEuroMind;
 struct IGui;
 struct IMapUpdater;
 struct INativeMind;
@@ -37,6 +38,7 @@ struct Planes;
 struct RootState;
 struct TerrainConnectivity;
 
+enum class e_nation;
 enum class e_tribe;
 
 /****************************************************************
@@ -63,6 +65,29 @@ struct NativeMinds {
 };
 
 /****************************************************************
+** EuroMinds
+*****************************************************************/
+struct EuroMinds {
+  EuroMinds() = default;
+
+  // Have this defined in the cpp allows us to use the
+  // forward-declared IEuroMind in a unique_ptr.
+  ~EuroMinds();
+
+  EuroMinds(
+      std::unordered_map<e_nation, std::unique_ptr<IEuroMind>>
+          minds );
+
+  IEuroMind& operator[]( e_nation nation ) const;
+
+ private:
+  // We don't use enum map here because it has some constraints
+  // that don't work with forward-declared enums.
+  std::unordered_map<e_nation, std::unique_ptr<IEuroMind>>
+      minds_;
+};
+
+/****************************************************************
 ** TS
 *****************************************************************/
 struct TS {
@@ -70,7 +95,7 @@ struct TS {
       lua::state& lua_, IGui& gui_, IRand& rand_,
       ICombat& combat, IColonyViewer& colony_viewer,
       RootState& saved, TerrainConnectivity& connectivity,
-      NativeMinds& native_minds );
+      NativeMinds& native_minds, EuroMinds& euro_minds );
 
   ~TS();
 
@@ -92,6 +117,7 @@ struct TS {
   TerrainConnectivity& connectivity;
 
   NativeMinds& native_minds;
+  EuroMinds&   euro_minds;
 
   // Builder style.
   TS with_gui( IGui& new_gui );
