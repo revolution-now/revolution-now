@@ -28,6 +28,7 @@
 #include "ss/colonies.hpp"
 #include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
+#include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/tribe.rds.hpp"
@@ -103,6 +104,36 @@ MeetTribe check_meet_tribe_single( SSConst const& ss,
 /****************************************************************
 ** Public API
 *****************************************************************/
+vector<MeetTribe> check_meet_europeans( SSConst const& ss,
+                                        e_tribe tribe_type,
+                                        Coord   native_square ) {
+  Tribe const&      tribe = ss.natives.tribe_for( tribe_type );
+  vector<MeetTribe> res;
+  unordered_set<e_nation> met;
+  for( e_direction d : refl::enum_values<e_direction> ) {
+    Coord const moved = native_square.moved( d );
+    if( !ss.terrain.square_exists( moved ) ) continue;
+    MapSquare const& square = ss.terrain.square_at( moved );
+    if( square.surface != e_surface::land ) continue;
+    maybe<Society> const society =
+        society_on_square( ss, moved );
+    if( !society.has_value() ) continue;
+    maybe<Society::european const&> european =
+        society->get_if<Society::european>();
+    if( !european.has_value() ) continue;
+    e_nation const nation = european->nation;
+    if( met.contains( nation ) ) continue;
+    if( tribe.relationship[nation].encountered ) continue;
+    // We're meeting a new tribe.
+    met.insert( nation );
+    res.push_back( check_meet_tribe_single(
+        ss, player_for_nation_or_die( ss.players, nation ),
+        tribe_type ) );
+  }
+
+  return res;
+}
+
 vector<MeetTribe> check_meet_tribes( SSConst const& ss,
                                      Player const&  player,
                                      Coord          coord ) {

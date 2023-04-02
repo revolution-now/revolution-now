@@ -24,6 +24,7 @@
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
+#include "ss/unit-composer.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -46,6 +47,9 @@ struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
     add_player( e_nation::english );
+    add_player( e_nation::french );
+    add_player( e_nation::spanish );
+    add_player( e_nation::dutch );
     set_default_player( e_nation::english );
     create_default_map();
   }
@@ -269,6 +273,46 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
     };
     REQUIRE( f() == expected );
   }
+}
+
+TEST_CASE( "[meet-natives] check_meet_europeans" ) {
+  World             W;
+  vector<MeetTribe> expected;
+  // S . b d . .
+  // D E F . . .
+
+  auto f = [&]( Coord coord ) {
+    return check_meet_europeans( W.ss(), e_tribe::apache,
+                                 coord );
+  };
+
+  W.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 1, .y = 1 }, e_nation::english );
+  W.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 2, .y = 1 }, e_nation::french );
+  W.add_unit_on_map( e_unit_type::caravel, { .x = 0, .y = 0 },
+                     e_nation::spanish );
+  W.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 0, .y = 1 }, e_nation::dutch );
+
+  DwellingId const apache_dwelling_id =
+      W.add_dwelling( { .x = 3, .y = 0 }, e_tribe::apache ).id;
+  W.add_native_unit_on_map( e_native_unit_type::brave,
+                            { .x = 2, .y = 0 },
+                            apache_dwelling_id );
+
+  W.apache().relationship[e_nation::dutch].encountered = true;
+  W.add_tribe( e_tribe::cherokee );
+  W.cherokee().relationship[e_nation::english].encountered =
+      true;
+
+  expected = { MeetTribe{ .nation        = e_nation::english,
+                          .tribe         = e_tribe::apache,
+                          .num_dwellings = 1 },
+               MeetTribe{ .nation        = e_nation::french,
+                          .tribe         = e_tribe::apache,
+                          .num_dwellings = 1 } };
+  REQUIRE( f( { .x = 1, .y = 0 } ) == expected );
 }
 
 TEST_CASE( "[meet-natives] perform_meet_tribe" ) {

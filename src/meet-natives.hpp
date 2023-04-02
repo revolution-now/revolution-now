@@ -30,6 +30,8 @@
 
 namespace rn {
 
+enum class e_tribe;
+
 struct Player;
 struct SS;
 struct SSConst;
@@ -45,6 +47,16 @@ struct TS;
 std::vector<MeetTribe> check_meet_tribes( SSConst const& ss,
                                           Player const&  player,
                                           Coord square );
+
+// Checks if there are any europeans in the immediate vicinity of
+// the given square that the tribe has not yet met. The square is
+// interpreted as the location of a hypothetical native unit that
+// would do the encountering. As such, the returned list will not
+// include europeans that are only adjacent via ships on water
+// squares, since ships (and units on ships) cannot meet the na-
+// tives for the first time unless they are on land.
+std::vector<MeetTribe> check_meet_europeans(
+    SSConst const& ss, e_tribe tribe_type, Coord native_square );
 
 wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
     TS& ts, Player& player, MeetTribe const& meet_tribe );
