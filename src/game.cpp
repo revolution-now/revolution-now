@@ -110,6 +110,22 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
 
   TerrainConnectivity connectivity;
 
+  {
+    // The real map updater needs to know the map size during
+    // construction, so use the non-rendering one, which is fine
+    // because we don't need to render yet anyway.
+    NonRenderingMapUpdater map_updater( ss );
+    EuroMinds              euro_minds;
+    NativeMinds            native_minds;
+    TS ts( planes, map_updater, st, gui, rand, combat,
+           colony_viewer, saved, connectivity, native_minds,
+           euro_minds );
+    if( !co_await loader( ss, ts ) )
+      // Didn't load a game for some reason. Could have failed or
+      // maybe there are no games to load.
+      co_return;
+  }
+
   NativeMinds native_minds = [&] {
     unordered_map<e_tribe, unique_ptr<INativeMind>> holder;
     for( e_tribe const tribe : refl::enum_values<e_tribe> )
@@ -117,6 +133,8 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
     return NativeMinds( std::move( holder ) );
   }();
 
+  // This one needs to run after the loader because it needs to
+  // know which nations are human.
   EuroMinds euro_minds = [&] {
     unordered_map<e_nation, unique_ptr<IEuroMind>> holder;
     for( e_nation const nation : refl::enum_values<e_nation> ) {
@@ -128,20 +146,6 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
     }
     return EuroMinds( std::move( holder ) );
   }();
-
-  {
-    // The real map updater needs to know the map size during
-    // construction, so use the non-rendering one, which is fine
-    // because we don't need to render yet anyway.
-    NonRenderingMapUpdater map_updater( ss );
-    TS ts( planes, map_updater, st, gui, rand, combat,
-           colony_viewer, saved, connectivity, native_minds,
-           euro_minds );
-    if( !co_await loader( ss, ts ) )
-      // Didn't load a game for some reason. Could have failed or
-      // maybe there are no games to load.
-      co_return;
-  }
 
   // After this, any changes to the map that change land to water
   // or vice versa (or change map size) need to be followed up by
