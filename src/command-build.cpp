@@ -137,7 +137,7 @@ struct BuildHandler : public CommandHandler {
 
   wait<> perform() override {
     co_await display_woodcut_if_needed(
-        ts_.gui, player_, e_woodcut::building_first_colony );
+        ts_, player_, e_woodcut::building_first_colony );
     colony_id =
         found_colony( ss_, ts_, player_, unit_id, *colony_name );
     e_colony_abandoned const abandoned =

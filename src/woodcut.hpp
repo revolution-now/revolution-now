@@ -22,6 +22,7 @@ namespace rn {
 
 struct IGui;
 struct Player;
+struct TS;
 
 namespace detail {
 // Displays a "woodcut." This is a kind of "cut scene" consisting
@@ -39,7 +40,7 @@ wait<> display_woodcut( IGui& gui, e_woodcut cut );
 // so that it doesn't get displayed again. This will actually
 // display the woodcut not directly, but instead via the corre-
 // sponding IGui interface so that it can be mocked.
-wait<> display_woodcut_if_needed( IGui& gui, Player& player,
+wait<> display_woodcut_if_needed( TS& ts, Player& player,
                                   e_woodcut cut );
 
 } // namespace rn

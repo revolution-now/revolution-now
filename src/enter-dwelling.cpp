@@ -328,7 +328,7 @@ wait<e_enter_dwelling_option> present_dwelling_entry_options(
     co_return e_enter_dwelling_option::cancel;
   }
   co_await display_woodcut_if_needed(
-      ts.gui, player, e_woodcut::entering_native_village );
+      ts, player, e_woodcut::entering_native_village );
   Dwelling const& dwelling =
       ss.natives.dwelling_for( options.dwelling_id );
   string msg = fmt::format(

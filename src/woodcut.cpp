@@ -13,6 +13,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "igui.hpp"
+#include "ts.hpp"
 
 // ss
 #include "ss/player.rds.hpp"
@@ -68,13 +69,13 @@ wait<> display_woodcut( IGui& gui, e_woodcut cut ) {
 
 }
 
-wait<> display_woodcut_if_needed( IGui& gui, Player& player,
+wait<> display_woodcut_if_needed( TS& ts, Player& player,
                                   e_woodcut cut ) {
   if( player.woodcuts[cut] ) co_return;
   // Note that we don't directly call the display_woodcut method
   // above; we want to call it via the IGui interface so that it
   // can be mocked.
-  co_await gui.display_woodcut( cut );
+  co_await ts.gui.display_woodcut( cut );
   player.woodcuts[cut] = true;
 }
 

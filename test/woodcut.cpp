@@ -58,7 +58,7 @@ TEST_CASE( "[woodcut] display_woodcut_if_needed" ) {
   e_woodcut cut    = {};
 
   auto f = [&] {
-    wait<> w = display_woodcut_if_needed( W.gui(), player, cut );
+    wait<> w = display_woodcut_if_needed( W.ts(), player, cut );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
   };

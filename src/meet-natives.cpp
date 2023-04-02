@@ -17,6 +17,7 @@
 #include "logger.hpp"
 #include "native-owned.hpp"
 #include "society.hpp"
+#include "ts.hpp"
 #include "woodcut.hpp"
 
 // config
@@ -167,20 +168,20 @@ vector<MeetTribe> check_meet_tribes( SSConst const& ss,
 }
 
 wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
-    IGui& gui, Player& player, MeetTribe const& meet_tribe ) {
+    TS& ts, Player& player, MeetTribe const& meet_tribe ) {
   co_await display_woodcut_if_needed(
-      gui, player, e_woodcut::meeting_the_natives );
+      ts, player, e_woodcut::meeting_the_natives );
   if( meet_tribe.tribe == e_tribe::inca )
     co_await display_woodcut_if_needed(
-        gui, player, e_woodcut::meeting_the_inca_nation );
+        ts, player, e_woodcut::meeting_the_inca_nation );
   else if( meet_tribe.tribe == e_tribe::aztec )
     co_await display_woodcut_if_needed(
-        gui, player, e_woodcut::meeting_the_aztec_empire );
+        ts, player, e_woodcut::meeting_the_aztec_empire );
 
   auto const& tribe_conf =
       config_natives.tribes[meet_tribe.tribe];
   ui::e_confirm accept_peace =
-      co_await gui.required_yes_no( YesNoConfig{
+      co_await ts.gui.required_yes_no( YesNoConfig{
           .msg = fmt::format(
               "The [{}] tribe is a celebrated nation of "
               "[{} {}].  In honor of our glorious future "
@@ -201,7 +202,7 @@ wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
           .no_comes_first = false } );
   switch( accept_peace ) {
     case ui::e_confirm::no: {
-      co_await gui.message_box(
+      co_await ts.gui.message_box(
           "In that case the mighty [{}] will drive you "
           "into oblivion. Prepare for WAR!",
           tribe_conf.name_singular );
@@ -211,12 +212,12 @@ wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
       break;
   }
 
-  co_await gui.message_box(
+  co_await ts.gui.message_box(
       "Let us smoke a peace pipe to celebrate our purpetual "
       "friendship with the [{}].",
       config_nation.nations[player.nation].display_name );
 
-  co_await gui.message_box(
+  co_await ts.gui.message_box(
       "We hope that you will send us your colonists and "
       "[Wagon Trains] to share knowledge and to trade." );
 
