@@ -71,7 +71,7 @@ wait<> try_discover_new_world( SSConst const& ss, TS& ts,
     if( square->surface != e_surface::land ) continue;
     // We've discovered the new world!
     co_await display_woodcut_if_needed(
-        ts, player, e_woodcut::discovered_new_world );
+        ts.gui, player, e_woodcut::discovered_new_world );
     string const name = co_await ts.gui.required_string_input(
         { .msg = "You've discovered the new world!  What shall "
                  "we call this land, Your Excellency?",
@@ -93,7 +93,7 @@ wait<> try_discover_pacific_ocean( SSConst const& ss, TS& ts,
     if( !ss.terrain.is_pacific_ocean( coord ) ) continue;
     // We've discovered the Pacific Ocean!
     co_await display_woodcut_if_needed(
-        ts, player, e_woodcut::discovered_pacific_ocean );
+        ts.gui, player, e_woodcut::discovered_pacific_ocean );
     lg.info( "the pacific ocean been discovered." );
     break;
   }
@@ -117,7 +117,8 @@ wait<base::NoDiscard<bool>> try_lost_city_rumor(
       ts.rand, player, explorer, burial_type );
   if( rumor_type == e_rumor_type::fountain_of_youth )
     co_await display_woodcut_if_needed(
-        ts, player, e_woodcut::discovered_fountain_of_youth );
+        ts.gui, player,
+        e_woodcut::discovered_fountain_of_youth );
   LostCityRumorResult const lcr_res =
       co_await run_lost_city_rumor_result(
           ss, ts, player, id, world_square, rumor_type,
@@ -153,7 +154,7 @@ wait<> try_meet_natives( SS& ss, TS& ts, Player& player,
       check_meet_tribes( as_const( ss ), player, square );
   for( MeetTribe const& meet_tribe : meet_tribes ) {
     e_declare_war_on_natives const declare_war =
-        co_await perform_meet_tribe_ui_sequence( ts, player,
+        co_await perform_meet_tribe_ui_sequence( ss, ts.gui,
                                                  meet_tribe );
     perform_meet_tribe( ss, player, meet_tribe, declare_war );
   }
