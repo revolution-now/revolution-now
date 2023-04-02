@@ -11,17 +11,28 @@
 *****************************************************************/
 #include "ieuro-mind.hpp"
 
+// Revolution Now
+#include "co-wait.hpp"
+
 using namespace std;
 
 namespace rn {
 
 /****************************************************************
+** IEuroMind
+*****************************************************************/
+IEuroMind::IEuroMind( e_nation nation ) : nation_( nation ) {}
+
+/****************************************************************
 ** NoopEuroMind
 *****************************************************************/
 NoopEuroMind::NoopEuroMind( e_nation nation )
-  : nation_( nation ) {}
+  : IEuroMind( nation ) {}
 
 // Implement IEuroMind.
-e_nation NoopEuroMind::nation() const { return nation_; }
+wait<e_declare_war_on_natives>
+NoopEuroMind::meet_tribe_ui_sequence( MeetTribe const& ) {
+  co_return e_declare_war_on_natives::no;
+}
 
 } // namespace rn

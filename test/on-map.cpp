@@ -15,6 +15,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
 
@@ -376,9 +377,31 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "[on-map] non-interactive: "
-    "native_unit_to_map_interactive" ) {
+    "[on-map] non-interactive: native_unit_to_map_interactive "
+    "meets europeans" ) {
   World W;
+  W.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 1, .y = 1 }, e_nation::dutch );
+  Dwelling const& dwelling =
+      W.add_dwelling( { .x = 3, .y = 1 }, e_tribe::cherokee );
+  NativeUnit const& native_unit = W.add_native_unit_on_map(
+      e_native_unit_type::brave, { .x = 3, .y = 1 },
+      dwelling.id );
+
+  MockIEuroMind& euro_mind = W.mock_euro_mind( e_nation::dutch );
+  euro_mind
+      .EXPECT__meet_tribe_ui_sequence(
+          MeetTribe{ .nation        = e_nation::dutch,
+                     .tribe         = e_tribe::cherokee,
+                     .num_dwellings = 1 } )
+      .returns<wait<e_declare_war_on_natives>>(
+          e_declare_war_on_natives::no );
+  wait<> const w =
+      UnitOnMapMover::native_unit_to_map_interactive(
+          W.ss(), W.ts(), native_unit.id, { .x = 2, .y = 1 },
+          dwelling.id );
+  REQUIRE( !w.exception() );
+  REQUIRE( w.ready() );
 }
 
 } // namespace

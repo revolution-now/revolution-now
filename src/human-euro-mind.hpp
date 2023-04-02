@@ -29,12 +29,12 @@ struct HumanEuroMind final : IEuroMind {
   HumanEuroMind( e_nation nation, SS& ss, IGui& gui );
 
   // Implement IEuroMind.
-  e_nation nation() const override;
+  wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
+      MeetTribe const& meet_tribe ) override;
 
  private:
-  e_nation nation_ = {};
-  SS&      ss_;
-  IGui&    gui_;
+  SS&   ss_;
+  IGui& gui_;
 };
 
 } // namespace rn

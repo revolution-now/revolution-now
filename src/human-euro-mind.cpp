@@ -10,6 +10,10 @@
 *****************************************************************/
 #include "human-euro-mind.hpp"
 
+// Revolution Now
+#include "co-wait.hpp"
+#include "meet-natives.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -19,13 +23,14 @@ namespace rn {
 *****************************************************************/
 HumanEuroMind::HumanEuroMind( e_nation nation, SS& ss,
                               IGui& gui )
-  : nation_( nation ), ss_( ss ), gui_( gui ) {
-  // TODO: to suppress unused variable warnings.
-  (void)ss_;
-  (void)gui_;
-}
+  : IEuroMind( nation ), ss_( ss ), gui_( gui ) {}
 
 // Implement IEuroMind.
-e_nation HumanEuroMind::nation() const { return nation_; }
+wait<e_declare_war_on_natives>
+HumanEuroMind::meet_tribe_ui_sequence(
+    MeetTribe const& meet_tribe ) {
+  co_return co_await perform_meet_tribe_ui_sequence(
+      ss_, gui_, meet_tribe );
+}
 
 } // namespace rn

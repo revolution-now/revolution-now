@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "ieuro-mind.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
 #include "lcr.hpp"
@@ -22,6 +23,7 @@
 #include "society.hpp"
 #include "treasure.hpp"
 #include "ts.hpp"
+#include "unit-mgr.hpp"
 #include "unsentry.hpp"
 #include "visibility.hpp"
 #include "woodcut.hpp"
@@ -36,9 +38,6 @@
 
 // config
 #include "config/nation.rds.hpp"
-
-// rds
-#include "rds/switch-macro.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -154,8 +153,22 @@ wait<> try_meet_natives( SS& ss, TS& ts, Player& player,
       check_meet_tribes( as_const( ss ), player, square );
   for( MeetTribe const& meet_tribe : meet_tribes ) {
     e_declare_war_on_natives const declare_war =
-        co_await perform_meet_tribe_ui_sequence( ss, ts.gui,
-                                                 meet_tribe );
+        co_await ts.euro_minds[meet_tribe.nation]
+            .meet_tribe_ui_sequence( meet_tribe );
+    perform_meet_tribe( ss, player, meet_tribe, declare_war );
+  }
+}
+
+wait<> try_meet_europeans( SS& ss, TS& ts, e_tribe tribe_type,
+                           Coord native_tile ) {
+  vector<MeetTribe> const meet_tribes = check_meet_europeans(
+      as_const( ss ), tribe_type, native_tile );
+  for( MeetTribe const& meet_tribe : meet_tribes ) {
+    Player& player = player_for_nation_or_die(
+        ss.players, meet_tribe.nation );
+    e_declare_war_on_natives const declare_war =
+        co_await ts.euro_minds[meet_tribe.nation]
+            .meet_tribe_ui_sequence( meet_tribe );
     perform_meet_tribe( ss, player, meet_tribe, declare_war );
   }
 }
@@ -239,28 +252,12 @@ wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
 wait<> UnitOnMapMover::native_unit_to_map_interactive(
     SS& ss, TS& ts, NativeUnitId id, Coord dst_tile,
     DwellingId dwelling_id ) {
+  NativeUnit const& native_unit = ss.units.unit_for( id );
+  e_tribe const tribe_type = tribe_for_unit( ss, native_unit );
   native_unit_to_map_non_interactive( ss, id, dst_tile,
                                       dwelling_id );
 
-  for( e_direction const d : refl::enum_values<e_direction> ) {
-    Coord const moved = dst_tile.moved( d );
-    if( !ss.terrain.square_exists( moved ) ) continue;
-    maybe<Society> const society =
-        society_on_square( ss, moved );
-    if( !society.has_value() ) continue;
-    SWITCH( *society ) {
-      CASE( european ) {
-        co_await try_meet_natives(
-            ss, ts,
-            player_for_nation_or_die( ss.players,
-                                      european.nation ),
-            moved );
-        break;
-      }
-      CASE( native ) continue;
-      END_CASES;
-    }
-  }
+  co_await try_meet_europeans( ss, ts, tribe_type, dst_tile );
 }
 
 } // namespace rn

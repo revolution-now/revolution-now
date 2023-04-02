@@ -25,7 +25,10 @@ namespace rn {
 ** MockIRand
 *****************************************************************/
 struct MockIEuroMind : IEuroMind {
-  MOCK_METHOD( e_nation, nation, (), ( const ) );
+  MockIEuroMind( e_nation nation ) : IEuroMind( nation ) {}
+
+  MOCK_METHOD( wait<e_declare_war_on_natives>,
+               meet_tribe_ui_sequence, (MeetTribe const&), () );
 };
 
 static_assert( !std::is_abstract_v<MockIEuroMind> );

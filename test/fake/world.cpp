@@ -123,7 +123,7 @@ EuroMinds& World::euro_minds() {
     uninitialized_euro_minds_ = [] {
       unordered_map<e_nation, unique_ptr<IEuroMind>> holder;
       for( e_nation const nation : refl::enum_values<e_nation> )
-        holder[nation] = make_unique<MockIEuroMind>();
+        holder[nation] = make_unique<MockIEuroMind>( nation );
       return make_unique<EuroMinds>( std::move( holder ) );
     }();
   return *uninitialized_euro_minds_;

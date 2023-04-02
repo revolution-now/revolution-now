@@ -13,6 +13,10 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "meet-natives.rds.hpp"
+#include "wait.hpp"
+
 // ss
 #include "ss/unit-id.hpp"
 
@@ -23,13 +27,27 @@ namespace rn {
 
 enum class e_nation;
 
+struct MeetTribe;
+
 /****************************************************************
 ** IEuroMind
 *****************************************************************/
 struct IEuroMind {
+  IEuroMind( e_nation nation );
+
   virtual ~IEuroMind() = default;
 
-  virtual e_nation nation() const = 0;
+  // For convenience.
+  e_nation nation() const { return nation_; }
+
+  // This is the interactive part of the sequence of events that
+  // happens when first encountering a given native tribe. In
+  // particular, it will ask if you want to accept peace.
+  virtual wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
+      MeetTribe const& meet_tribe ) = 0;
+
+ private:
+  e_nation nation_ = {};
 };
 
 /****************************************************************
@@ -41,10 +59,8 @@ struct NoopEuroMind final : IEuroMind {
   NoopEuroMind( e_nation nation );
 
   // Implement IEuroMind.
-  e_nation nation() const override;
-
- private:
-  e_nation nation_ = {};
+  wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
+      MeetTribe const& meet_tribe ) override;
 };
 
 } // namespace rn
