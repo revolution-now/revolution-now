@@ -92,7 +92,7 @@ MeetTribe check_meet_tribe_single( SSConst const& ss,
 
   int const num_dwellings = dwellings.size();
   return MeetTribe{
-      .is_first      = false, // filled out later.
+      .nation        = player.nation,
       .tribe         = tribe,
       .num_dwellings = num_dwellings,
       .land_awarded  = std::move( sorted_land_awarded ) };
@@ -133,21 +133,6 @@ vector<MeetTribe> check_meet_tribes( SSConst const& ss,
         check_meet_tribe_single( ss, player, native->tribe ) );
   }
 
-  if( res.empty() ) return res;
-
-  // Determines if this is the very first tribe we're meeting. We
-  // do this last in order to avoid running this every time a
-  // unit moves to a new square, since it will yield "no" the
-  // vast majority of the time.
-  for( e_tribe tribe : refl::enum_values<e_tribe> ) {
-    if( !ss.natives.tribe_exists( tribe ) ) continue;
-    Tribe const& tribe_obj = ss.natives.tribe_for( tribe );
-    if( tribe_obj.relationship[player.nation].encountered )
-      // We've already met at least one tribe, so we're done.
-      return res;
-  }
-  CHECK( !res.empty() );
-  res[0].is_first = true;
   return res;
 }
 

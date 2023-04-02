@@ -101,7 +101,7 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
     square   = { .x = 0, .y = 1 };
     expected = {
         MeetTribe{
-            .is_first      = true,
+            .nation        = e_nation::english,
             .tribe         = e_tribe::inca,
             .num_dwellings = 2,
             .land_awarded  = {},
@@ -135,13 +135,13 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
     square   = { .x = 0, .y = 1 };
     expected = {
         MeetTribe{
-            .is_first      = true,
+            .nation        = e_nation::english,
             .tribe         = e_tribe::aztec,
             .num_dwellings = 1,
             .land_awarded  = {},
         },
         MeetTribe{
-            .is_first      = false,
+            .nation        = e_nation::english,
             .tribe         = e_tribe::inca,
             .num_dwellings = 2,
             .land_awarded  = {},
@@ -157,7 +157,7 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
     square   = { .x = 0, .y = 1 };
     expected = {
         MeetTribe{
-            .is_first      = true,
+            .nation        = e_nation::english,
             .tribe         = e_tribe::inca,
             .num_dwellings = 3,
             .land_awarded  = {},
@@ -190,7 +190,7 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
     square   = { .x = 3, .y = 3 };
     expected = {
         MeetTribe{
-            .is_first      = true,
+            .nation        = e_nation::english,
             .tribe         = e_tribe::inca,
             .num_dwellings = 1,
             .land_awarded  = {},
@@ -225,7 +225,7 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
                          e_outdoor_job::food );
     square   = { .x = 3, .y = 3 };
     expected = {
-        MeetTribe{ .is_first      = true,
+        MeetTribe{ .nation        = e_nation::english,
                    .tribe         = e_tribe::inca,
                    .num_dwellings = 1,
                    .land_awarded  = { { .x = 1, .y = 3 },
@@ -262,7 +262,7 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
                          e_outdoor_job::food );
     square   = { .x = 3, .y = 3 };
     expected = {
-        MeetTribe{ .is_first      = true,
+        MeetTribe{ .nation        = e_nation::english,
                    .tribe         = e_tribe::inca,
                    .num_dwellings = 1,
                    .land_awarded  = {} },
@@ -292,7 +292,7 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
                 .relationship[nation]
                 .encountered );
 
-  meet_tribe = { .is_first      = false,
+  meet_tribe = { .nation        = e_nation::dutch,
                  .tribe         = tribe,
                  .num_dwellings = 3,
                  .land_awarded  = { { .x = 1, .y = 0 },
@@ -368,8 +368,9 @@ TEST_CASE( "[meet-natives] perform_meet_tribe arawak" ) {
                         declare_war );
   };
 
-  meet_tribe = {
-      .is_first = false, .tribe = tribe, .num_dwellings = 3 };
+  meet_tribe = { .nation        = e_nation::dutch,
+                 .tribe         = tribe,
+                 .num_dwellings = 3 };
   f();
   REQUIRE( tribe_obj.relationship[nation] ==
            TribeRelationship{ .encountered  = true,

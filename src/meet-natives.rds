@@ -9,6 +9,7 @@
 #
 # ===============================================================
 # ss
+include "ss/nation.rds.hpp"
 include "ss/native-enums.rds.hpp"
 
 # gfx
@@ -27,21 +28,20 @@ enum.e_declare_war_on_natives {
 }
 
 struct.MeetTribe {
-  # Is this the first native tribe that the player is meeting?
-  is_first 'bool',
+  nation 'e_nation',
   tribe 'e_tribe',
   num_dwellings 'int',
-  # These are the squares currently being used by the player's
+  # These are the squares currently being used by the nation's
   # colonies that are also owned by the tribe and that the tribe
-  # is awarding to the player. This includes squares occuiped by
+  # is awarding to the nation. This includes squares occuiped by
   # the colony itself as well as any outdoor workers in the
   # colony. The OG does this, probably because there wouldn't be
-  # a clear way to prevent the player from using the land before
+  # a clear way to prevent the nation from using the land before
   # meeting the natives and no clear way to evict them after
   # they've founded a colony. Also, it enables an interesting
-  # strategy where the player can attempt to found colonies ini-
+  # strategy where the nation can attempt to found colonies ini-
   # tially while avoiding contact with the natives in order to
   # not have to pay for the first few land squares. Note that
-  # this will be empty if the player has Peter Minuit.
+  # this will be empty if the nation has Peter Minuit.
   land_awarded 'std::vector<Coord>',
 }
