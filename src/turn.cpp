@@ -727,7 +727,8 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
         if( unit.cargo()
                 .count_items_of_type<Cargo::commodity>() > 0 )
           co_await display_woodcut_if_needed(
-              ts, player, e_woodcut::cargo_from_the_new_world );
+              ts.gui, player,
+              e_woodcut::cargo_from_the_new_world );
         co_await show_harbor_view( ss, ts, player, id );
         co_return false; // do not ask for orders.
       }
