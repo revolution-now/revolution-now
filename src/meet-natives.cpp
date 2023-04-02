@@ -167,7 +167,9 @@ vector<MeetTribe> check_meet_tribes( SSConst const& ss,
 }
 
 wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
-    IGui& gui, Player& player, MeetTribe const& meet_tribe ) {
+    SS& ss, IGui& gui, MeetTribe const& meet_tribe ) {
+  Player& player =
+      player_for_nation_or_die( ss.players, meet_tribe.nation );
   co_await display_woodcut_if_needed(
       gui, player, e_woodcut::meeting_the_natives );
   if( meet_tribe.tribe == e_tribe::inca )
