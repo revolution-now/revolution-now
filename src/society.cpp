@@ -87,6 +87,19 @@ gfx::pixel flag_color_for_society( Society const& society ) {
   }
 }
 
+string name_of_society( Society const& society ) {
+  switch( society.to_enum() ) {
+    case Society::e::european: {
+      auto const& o = society.get<Society::european>();
+      return config_nation.nations[o.nation].display_name;
+    }
+    case Society::e::native: {
+      auto const& o = society.get<Society::native>();
+      return config_natives.tribes[o.tribe].name_singular;
+    }
+  }
+}
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/

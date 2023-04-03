@@ -125,5 +125,20 @@ TEST_CASE( "[society] society_on_square" ) {
   }
 }
 
+TEST_CASE( "[society] name_of_society" ) {
+  Society society;
+  string  expected;
+
+  auto f = [&] { return name_of_society( society ); };
+
+  society  = Society::european{ .nation = e_nation::french };
+  expected = "French";
+  REQUIRE( f() == expected );
+
+  society  = Society::native{ .tribe = e_tribe::aztec };
+  expected = "Aztec";
+  REQUIRE( f() == expected );
+}
+
 } // namespace
 } // namespace rn

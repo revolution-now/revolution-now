@@ -43,4 +43,7 @@ maybe<Society> society_on_square( SSConst const& ss,
 // the banner of a colony or native dwelling.
 gfx::pixel flag_color_for_society( Society const& society );
 
+// E.g. "French", or "Apache".
+std::string name_of_society( Society const& society );
+
 } // namespace rn
