@@ -306,12 +306,22 @@ TEST_CASE( "[meet-natives] check_meet_europeans" ) {
   W.cherokee().relationship[e_nation::english].encountered =
       true;
 
-  expected = { MeetTribe{ .nation        = e_nation::english,
-                          .tribe         = e_tribe::apache,
-                          .num_dwellings = 1 },
-               MeetTribe{ .nation        = e_nation::french,
-                          .tribe         = e_tribe::apache,
-                          .num_dwellings = 1 } };
+  // Set up english colonists on apache owned land.
+  Colony const& colony =
+      W.add_colony( { .x = 1, .y = 2 }, e_nation::english );
+  W.add_unit_outdoors( colony.id, e_direction::n,
+                       e_outdoor_job::food );
+  W.natives().mark_land_owned( apache_dwelling_id,
+                               { .x = 1, .y = 1 } );
+
+  expected = {
+      MeetTribe{ .nation        = e_nation::english,
+                 .tribe         = e_tribe::apache,
+                 .num_dwellings = 1,
+                 .land_awarded  = { { .x = 1, .y = 1 } } },
+      MeetTribe{ .nation        = e_nation::french,
+                 .tribe         = e_tribe::apache,
+                 .num_dwellings = 1 } };
   REQUIRE( f( { .x = 1, .y = 0 } ) == expected );
 }
 
