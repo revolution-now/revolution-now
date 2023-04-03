@@ -421,7 +421,7 @@ void cheat_upgrade_unit_expertise( SS& ss, TS& ts, Unit& unit ) {
   UnitType const original_type = unit.type_obj();
   SCOPE_EXIT(
       lg.debug( "{} --> {}", original_type, unit.type_obj() ) );
-  if( !is_unit_human( unit.type_obj() ) ) return;
+  if( !is_unit_a_colonist( unit.type_obj() ) ) return;
 
   // First just use the normal game logic to attempt a promotion.
   // This will work in many cases but not all. It won't do a pro-
@@ -478,7 +478,7 @@ void cheat_downgrade_unit_expertise( SS& ss, TS& ts,
   UnitType const original_type = unit.type_obj();
   SCOPE_EXIT(
       lg.debug( "{} --> {}", original_type, unit.type_obj() ) );
-  if( !is_unit_human( unit.type_obj() ) ) return;
+  if( !is_unit_a_colonist( unit.type_obj() ) ) return;
 
   if( !unit.desc().is_derived ) {
     e_unit_type new_type = {};

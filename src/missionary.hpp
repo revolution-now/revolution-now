@@ -58,11 +58,11 @@ struct Unit;
 *****************************************************************/
 // This will determine if a colony can bless a missionary; in the
 // original game this requires either a church or cathedral. Note
-// that any human unit can be blessed as a missionary.
+// that any colonist unit can be blessed as a missionary.
 bool can_bless_missionaries( Colony const& colony );
 
 // This will determine if the unit type can be blessed as a mis-
-// sionary; in the original game, it is any human unit (once
+// sionary; in the original game, it is any colonist unit (once
 // stripped to its base type).
 bool unit_can_be_blessed( UnitType type );
 

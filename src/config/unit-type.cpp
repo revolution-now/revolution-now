@@ -124,25 +124,25 @@ valid_or<string> UnitTypeAttributes::validate() const {
         "`can_found` field.",
         type );
 
-  // Validate that if can_found is yes, then is_human is true.
+  // Validate that if can_found is yes, then is_colonist is true.
   if( can_found == e_unit_can_found_colony::yes )
-    REFL_VALIDATE(
-        human != e_unit_human::no,
-        "type {} has can_found=yes but it is a non-human unit.",
-        type );
+    REFL_VALIDATE( colonist != e_unit_colonist::no,
+                   "type {} has can_found=yes but it is a "
+                   "non-colonist unit.",
+                   type );
 
-  // Validate that only base types have human == yes/no and de-
-  // rived types have human == from_base.
+  // Validate that only base types have colonist == yes/no and
+  // derived types have colonist == from_base.
   if( is_derived )
-    REFL_VALIDATE( human == e_unit_human::from_base,
+    REFL_VALIDATE( colonist == e_unit_colonist::from_base,
                    "derived type {} must have `from_base` for "
-                   "its `human` field.",
+                   "its `colonist` field.",
                    type )
   else
     // Not derived type.
-    REFL_VALIDATE( human != e_unit_human::from_base,
+    REFL_VALIDATE( colonist != e_unit_colonist::from_base,
                    "base type {} must not have `from_base` for "
-                   "its `human` field.",
+                   "its `colonist` field.",
                    type );
 
   // Validate that the `expertise` field is only set for base

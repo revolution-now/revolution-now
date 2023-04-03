@@ -22,7 +22,7 @@ enum.e_found_colony_err {
   no_water_colony,
   colonist_not_on_map,
   ship_cannot_found_colony,
-  non_human_cannot_found_colony,
+  non_colonist_cannot_found_colony,
   native_convert_cannot_found,
   unit_cannot_found,
   no_mountain_colony,

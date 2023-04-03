@@ -42,7 +42,7 @@ bool can_bless_missionaries( Colony const& colony ) {
 }
 
 bool unit_can_be_blessed( UnitType type ) {
-  return is_unit_human( type );
+  return is_unit_a_colonist( type );
 }
 
 void bless_as_missionary( SS& ss, TS& ts, Colony& colony,

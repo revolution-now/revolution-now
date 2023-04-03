@@ -82,9 +82,10 @@ struct BuildHandler : public CommandHandler {
           co_await ts_.gui.message_box(
               "Cannot found a colony on mountains." );
           co_return false;
-        case e_found_colony_err::non_human_cannot_found_colony:
+        case e_found_colony_err::
+            non_colonist_cannot_found_colony:
           co_await ts_.gui.message_box(
-              "Only human units can found colonies." );
+              "Only colonist units can found colonies." );
           co_return false;
         case e_found_colony_err::native_convert_cannot_found:
           co_await ts_.gui.message_box(

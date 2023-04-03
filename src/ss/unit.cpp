@@ -63,8 +63,8 @@ UnitTypeAttributes& Unit::desc_non_const() const {
   return const_cast<UnitTypeAttributes&>( unit_attr( type() ) );
 }
 
-bool Unit::is_human() const {
-  return is_unit_human( o_.composition.type_obj() );
+bool Unit::is_colonist() const {
+  return is_unit_a_colonist( o_.composition.type_obj() );
 }
 
 // Mark unit as having moved.

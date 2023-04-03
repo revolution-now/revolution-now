@@ -24,7 +24,7 @@ include "refl/enum-map.hpp"
 
 namespace "rn"
 
-enum.e_unit_human {
+enum.e_unit_colonist {
   no,
   yes,
   from_base,
@@ -199,16 +199,16 @@ struct.UnitTypeAttributes {
   # Slots occupied by this unit.
   cargo_slots_occupies 'base::maybe<int>',
 
-  # Describes if/how this unit is a human. This is important to
-  # know so that we can e.g. ensure that only human units can
-  # found colonies. Derived types must always have "from_base"
-  # for this field, meaning that the human status will be in-
-  # ferred from the base type, which it kind of has to be because
-  # in theory there could be multiple pathways to derive a single
-  # unit and so there (again, theoretically) wouldn't be a
-  # well-defined value for this field for a derived type. For a
-  # base type, it can be either "yes" or "no".
-  human 'e_unit_human',
+  # Describes if/how this unit is a colonist. This is important
+  # to know so that we can e.g. ensure that only colonist units
+  # can found colonies. Derived types must always have
+  # "from_base" for this field, meaning that the colonist status
+  # will be inferred from the base type, which it kind of has to
+  # be because in theory there could be multiple pathways to de-
+  # rive a single unit and so there (again, theoretically)
+  # wouldn't be a well-defined value for this field for a derived
+  # type. For a base type, it can be either "yes" or "no".
+  colonist 'e_unit_colonist',
 
   # Can this unit found a colony. Derived types must have a value
   # of from_base.

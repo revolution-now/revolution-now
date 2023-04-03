@@ -122,7 +122,7 @@ LUA_STARTUP( lua::state& st ) {
   LUA_ADD_MEMBER( nat_icon_front );
   LUA_ADD_MEMBER( nat_icon_position );
   LUA_ADD_MEMBER( ship );
-  LUA_ADD_MEMBER( human );
+  LUA_ADD_MEMBER( colonist );
   LUA_ADD_MEMBER( visibility );
   // Should not be accessing this in Lua since it would probably
   // indicate a bug. Intead Lua should call the movement_points
@@ -242,24 +242,25 @@ maybe<UnitType> find_unit_type_modifiers(
   return nothing;
 }
 
-bool is_unit_human( UnitType ut ) {
-  e_unit_human res =
-      config_unit_type.composition.unit_types[ut.type()].human;
+bool is_unit_a_colonist( UnitType ut ) {
+  e_unit_colonist res =
+      config_unit_type.composition.unit_types[ut.type()]
+          .colonist;
   switch( res ) {
-    case e_unit_human::no:
+    case e_unit_colonist::no:
       return false;
-    case e_unit_human::yes:
+    case e_unit_colonist::yes:
       return true;
-    case e_unit_human::from_base: {
+    case e_unit_colonist::from_base: {
       res =
           config_unit_type.composition.unit_types[ut.base_type()]
-              .human;
+              .colonist;
       switch( res ) {
-        case e_unit_human::no:
+        case e_unit_colonist::no:
           return false;
-        case e_unit_human::yes:
+        case e_unit_colonist::yes:
           return true;
-        case e_unit_human::from_base: {
+        case e_unit_colonist::from_base: {
           SHOULD_NOT_BE_HERE;
         }
       }

@@ -118,7 +118,7 @@ static_assert( sizeof( UnitType ) <=
 static_assert( std::is_trivially_copyable_v<UnitType> );
 static_assert( std::is_trivially_destructible_v<UnitType> );
 
-bool is_unit_human( UnitType ut );
+bool is_unit_a_colonist( UnitType ut );
 
 // Can this unit type found a colony?
 bool can_unit_found( UnitType ut );

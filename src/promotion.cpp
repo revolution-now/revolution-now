@@ -238,7 +238,7 @@ e_unit_type expert_for_activity( e_unit_activity activity ) {
 
 bool try_promote_unit_for_current_activity( SS& ss, TS& ts,
                                             Unit& unit ) {
-  if( !is_unit_human( unit.type_obj() ) ) return false;
+  if( !is_unit_a_colonist( unit.type_obj() ) ) return false;
   maybe<e_unit_activity> activity = current_activity_for_unit(
       ss.units, ss.colonies, unit.id() );
   if( !activity.has_value() ) return false;

@@ -358,7 +358,7 @@ LiveAmongTheNatives compute_live_among_the_natives(
           .relationship[unit.nation()];
   e_unit_type const base_type = unit.base_type();
   auto const&       attr      = unit_attr( base_type );
-  if( !is_unit_human( unit.type_obj() ) )
+  if( !is_unit_a_colonist( unit.type_obj() ) )
     return LiveAmongTheNatives::generally_ineligible{};
   if( attr.expertise.has_value() )
     return LiveAmongTheNatives::has_expertise{

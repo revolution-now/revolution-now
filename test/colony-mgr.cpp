@@ -270,16 +270,15 @@ TEST_CASE( "[colony-mgr] found_colony by ship fails" ) {
       invalid( e_found_colony_err::ship_cannot_found_colony ) );
 }
 
-TEST_CASE( "[colony-mgr] found_colony by non-human fails" ) {
+TEST_CASE( "[colony-mgr] found_colony by non-colonist fails" ) {
   World W;
 
   Coord const coord = { .x = 1, .y = 1 };
   UnitId      id =
       W.add_unit_on_map( e_unit_type::wagon_train, coord ).id();
-  REQUIRE(
-      unit_can_found_colony( W.ss(), id ) ==
-      invalid(
-          e_found_colony_err::non_human_cannot_found_colony ) );
+  REQUIRE( unit_can_found_colony( W.ss(), id ) ==
+           invalid( e_found_colony_err::
+                        non_colonist_cannot_found_colony ) );
 }
 
 TEST_CASE( "[colony-mgr] create, query, destroy" ) {

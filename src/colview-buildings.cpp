@@ -216,10 +216,10 @@ maybe<ColViewObject> ColViewBuildings::can_receive(
   maybe<UnitId> unit_id = o.get_if<ColViewObject::unit>().member(
       &ColViewObject::unit::id );
   if( !unit_id.has_value() ) return nothing;
-  // Check if the unit is a human.
+  // Check if the unit is a colonist.
   UnitsState const& units_state = ss_.units;
   Unit const&       unit = units_state.unit_for( *unit_id );
-  if( !unit.is_human() ) return nothing;
+  if( !unit.is_colonist() ) return nothing;
   // Check if this unit is coming from another building; if so
   // we'll allow it.
   if( dragging_.has_value() ) return o;

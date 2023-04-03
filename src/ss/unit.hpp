@@ -42,7 +42,7 @@ struct ND Unit {
   UnitTypeAttributes const& desc() const;
   // FIXME: luapp can only take this as non-const....
   UnitTypeAttributes& desc_non_const() const;
-  bool                is_human() const;
+  bool                is_colonist() const;
   unit_orders const&  orders() const { return o_.orders; }
   unit_orders&        orders() { return o_.orders; }
   CargoHold const&    cargo() const { return o_.cargo; }

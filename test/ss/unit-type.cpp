@@ -114,7 +114,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::se );
     REQUIRE( desc.ship == false );
-    REQUIRE( desc.human == e_unit_human::yes );
+    REQUIRE( desc.colonist == e_unit_colonist::yes );
     REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 1 );
@@ -160,7 +160,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::se );
     REQUIRE( desc.ship == false );
-    REQUIRE( desc.human == e_unit_human::yes );
+    REQUIRE( desc.colonist == e_unit_colonist::yes );
     REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 1 );
@@ -207,7 +207,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::se );
     REQUIRE( desc.ship == false );
-    REQUIRE( desc.human == e_unit_human::yes );
+    REQUIRE( desc.colonist == e_unit_colonist::yes );
     REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 1 );
@@ -252,7 +252,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::sw );
     REQUIRE( desc.ship == false );
-    REQUIRE( desc.human == e_unit_human::from_base );
+    REQUIRE( desc.colonist == e_unit_colonist::from_base );
     REQUIRE( desc.can_found ==
              e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 1 );
@@ -291,7 +291,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::sw );
     REQUIRE( desc.ship == false );
-    REQUIRE( desc.human == e_unit_human::from_base );
+    REQUIRE( desc.colonist == e_unit_colonist::from_base );
     REQUIRE( desc.can_found ==
              e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 2 );
@@ -327,7 +327,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::se );
     REQUIRE( desc.ship == false );
-    REQUIRE( desc.human == e_unit_human::from_base );
+    REQUIRE( desc.colonist == e_unit_colonist::from_base );
     REQUIRE( desc.can_found ==
              e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 1 );
@@ -364,7 +364,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::se );
     REQUIRE( desc.ship == false );
-    REQUIRE( desc.human == e_unit_human::from_base );
+    REQUIRE( desc.colonist == e_unit_colonist::from_base );
     REQUIRE( desc.can_found ==
              e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 1 );
@@ -400,7 +400,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::n );
     REQUIRE( desc.ship == false );
-    REQUIRE( desc.human == e_unit_human::no );
+    REQUIRE( desc.colonist == e_unit_colonist::no );
     REQUIRE( desc.can_found == e_unit_can_found_colony::no );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 1 );
@@ -749,37 +749,37 @@ TEST_CASE( "[unit-type] lua bindings" ) {
           "and base_type=expert_farmer." ) );
 }
 
-TEST_CASE( "[unit-type] unit human status" ) {
+TEST_CASE( "[unit-type] unit colonist status" ) {
   bool     expected;
   UnitType ut;
 
   ut       = e_unit_type::free_colonist;
   expected = true;
-  REQUIRE( is_unit_human( ut ) == expected );
+  REQUIRE( is_unit_a_colonist( ut ) == expected );
 
   ut       = e_unit_type::native_convert;
   expected = true;
-  REQUIRE( is_unit_human( ut ) == expected );
+  REQUIRE( is_unit_a_colonist( ut ) == expected );
 
   ut       = e_unit_type::dragoon;
   expected = true;
-  REQUIRE( is_unit_human( ut ) == expected );
+  REQUIRE( is_unit_a_colonist( ut ) == expected );
 
   ut       = e_unit_type::veteran_colonist;
   expected = true;
-  REQUIRE( is_unit_human( ut ) == expected );
+  REQUIRE( is_unit_a_colonist( ut ) == expected );
 
   ut       = e_unit_type::hardy_pioneer;
   expected = true;
-  REQUIRE( is_unit_human( ut ) == expected );
+  REQUIRE( is_unit_a_colonist( ut ) == expected );
 
   ut       = e_unit_type::wagon_train;
   expected = false;
-  REQUIRE( is_unit_human( ut ) == expected );
+  REQUIRE( is_unit_a_colonist( ut ) == expected );
 
   ut       = e_unit_type::treasure;
   expected = false;
-  REQUIRE( is_unit_human( ut ) == expected );
+  REQUIRE( is_unit_a_colonist( ut ) == expected );
 }
 
 TEST_CASE( "[unit-type] unit can_found status" ) {

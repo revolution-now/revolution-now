@@ -196,9 +196,9 @@ maybe<ColViewObject> ColonyLandView::can_receive(
   maybe<UnitId> unit_id = o.get_if<ColViewObject::unit>().member(
       &ColViewObject::unit::id );
   if( !unit_id.has_value() ) return nothing;
-  // Check if the unit is a human.
+  // Check if the unit is a colonist.
   Unit const& unit = ss_.units.unit_for( *unit_id );
-  if( !unit.is_human() ) return nothing;
+  if( !unit.is_colonist() ) return nothing;
   // Check if there is a land square under the cursor that is
   // not the center.
   maybe<e_direction> d = direction_under_cursor( where );

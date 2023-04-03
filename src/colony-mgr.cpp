@@ -544,8 +544,8 @@ valid_or<e_found_colony_err> unit_can_found_colony(
   if( unit.desc().ship )
     return invalid( Res_t::ship_cannot_found_colony );
 
-  if( !unit.is_human() )
-    return invalid( Res_t::non_human_cannot_found_colony );
+  if( !unit.is_colonist() )
+    return invalid( Res_t::non_colonist_cannot_found_colony );
 
   if( !can_unit_found( unit.type_obj() ) ) {
     if( unit.type() == e_unit_type::native_convert )

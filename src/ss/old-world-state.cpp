@@ -48,11 +48,11 @@ base::valid_or<string> ExpeditionaryForce::validate() const {
 }
 
 base::valid_or<string> ImmigrationState::validate() const {
-  // Validate that all immigrants in the pool are human.
+  // Validate that all immigrants in the pool are colonists.
   for( e_unit_type type : immigrants_pool ) {
-    REFL_VALIDATE( is_unit_human( type ),
-                   "units in the immigrant pool must be human, "
-                   "but {} is not.",
+    REFL_VALIDATE( is_unit_a_colonist( type ),
+                   "units in the immigrant pool must be a "
+                   "colonist, but {} is not.",
                    type );
   }
 
