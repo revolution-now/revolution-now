@@ -87,7 +87,6 @@ cdr::value cdr_game_state_default = cdr::table{
                     "french"_key  = false,
                     "spanish"_key = false,
                 },
-            "default_human"_key = cdr::null,
             "global_market_state"_key =
                 cdr::table{
                     "commodities"_key =
@@ -98,50 +97,48 @@ cdr::value cdr_game_state_default = cdr::table{
                             "sugar"_key =
                                 cdr::table{
                                     "intrinsic_volume"_key = 0 },
-                            "tobacco"_key = cdr::table{ "intrinsic_volume"_key =
-                                                            0 },
+                            "tobacco"_key =
+                                cdr::table{
+                                    "intrinsic_volume"_key = 0 },
                             "cotton"_key =
-                                cdr::table{ "intrinsic_volume"_key =
-                                                0 },
+                                cdr::table{
+                                    "intrinsic_volume"_key = 0 },
                             "fur"_key = cdr::
                                 table{ "intrinsic_volume"_key =
                                            0 },
                             "lumber"_key =
-                                cdr::table{ "intrinsic_volume"_key =
-                                                0 },
+                                cdr::table{
+                                    "intrinsic_volume"_key = 0 },
                             "ore"_key = cdr::
                                 table{ "intrinsic_volume"_key =
                                            0 },
                             "silver"_key =
-                                cdr::table{ "intrinsic_volume"_key =
-                                                0 },
+                                cdr::table{
+                                    "intrinsic_volume"_key = 0 },
                             "horses"_key =
-                                cdr::table{ "intrinsic_volume"_key =
-                                                0 },
+                                cdr::table{
+                                    "intrinsic_volume"_key = 0 },
                             "rum"_key = cdr::
                                 table{ "intrinsic_volume"_key =
                                            0 },
                             "cigars"_key =
-                                cdr::table{ "intrinsic_volume"_key =
-                                                0 },
+                                cdr::table{
+                                    "intrinsic_volume"_key = 0 },
                             "cloth"_key =
-                                cdr::
-                                    table{ "intrinsic_volume"_key =
-                                               0 },
+                                cdr::table{
+                                    "intrinsic_volume"_key = 0 },
                             "coats"_key =
-                                cdr::
-                                    table{ "intrinsic_volume"_key =
-                                               0 },
+                                cdr::table{
+                                    "intrinsic_volume"_key = 0 },
                             "trade_goods"_key =
-                                cdr::
-                                    table{ "intrinsic_volume"_key =
-                                               0 },
+                                cdr::table{
+                                    "intrinsic_volume"_key = 0 },
                             "tools"_key =
-                                cdr::
-                                    table{ "intrinsic_volume"_key =
-                                               0 },
-                            "muskets"_key = cdr::table{ "intrinsic_volume"_key =
-                                                            0 },
+                                cdr::table{
+                                    "intrinsic_volume"_key = 0 },
+                            "muskets"_key = cdr::
+                                table{ "intrinsic_volume"_key =
+                                           0 },
                         },
                 },
         },

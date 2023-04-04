@@ -22,6 +22,7 @@
 #include "src/rand.hpp"
 
 // ss
+#include "src/ss/ref.hpp"
 #include "src/ss/root.hpp"
 
 // luapp
@@ -96,7 +97,7 @@ void generate_save_file( World& world, fs::path const& dst,
   create_new_game_from_lua( world );
   if( fs::exists( dst ) ) fs::remove( dst );
   CHECK( !fs::exists( dst ) );
-  REQUIRE( save_game_to_rcl_file( world.root(), dst, options ) );
+  REQUIRE( save_game_to_rcl_file( world.ss(), dst, options ) );
 }
 
 /****************************************************************
@@ -133,7 +134,7 @@ TEST_CASE( "[save-game] no default values (compact)" ) {
   print_line( "Load Compact" );
   REQUIRE( load_game_from_rcl_file( W.root(), src, opts ) );
   print_line( "Save Compact" );
-  REQUIRE( save_game_to_rcl_file( W.root(), dst, opts ) );
+  REQUIRE( save_game_to_rcl_file( W.ss(), dst, opts ) );
 
   UNWRAP_CHECK( src_text,
                 base::read_text_file_as_string( src ) );
@@ -179,7 +180,7 @@ TEST_CASE( "[save-game] default values (full)" ) {
   print_line( "Load Full" );
   REQUIRE( load_game_from_rcl_file( W.root(), src, opts ) );
   print_line( "Save Full" );
-  REQUIRE( save_game_to_rcl_file( W.root(), dst, opts ) );
+  REQUIRE( save_game_to_rcl_file( W.ss(), dst, opts ) );
 
   UNWRAP_CHECK( src_text,
                 base::read_text_file_as_string( src ) );
@@ -212,7 +213,7 @@ TEST_CASE( "[save-game] world gen with default values (full)" ) {
 
   // Make a round trip.
   print_line( "Save Gen" );
-  REQUIRE( save_game_to_rcl_file( W.root(), dst, opts ) );
+  REQUIRE( save_game_to_rcl_file( W.ss(), dst, opts ) );
   W.root() = {};
   print_line( "Load Gen" );
   REQUIRE( load_game_from_rcl_file( W.root(), dst, opts ) );
@@ -244,7 +245,7 @@ TEST_CASE(
 
   // Make a round trip.
   print_line( "Save Gen" );
-  REQUIRE( save_game_to_rcl_file( W.root(), dst, opts ) );
+  REQUIRE( save_game_to_rcl_file( W.ss(), dst, opts ) );
   W.root() = {};
   print_line( "Load Gen" );
   REQUIRE( load_game_from_rcl_file( W.root(), dst, opts ) );

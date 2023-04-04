@@ -14,6 +14,7 @@
 #include "igui.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
+#include "roles.hpp"
 #include "ts.hpp"
 
 // ss
@@ -205,21 +206,23 @@ wait<maybe<int>> select_slot( TS& ts, bool include_autosaves,
   }
 }
 
-string construct_rcl_title( RootState const& root ) {
+string construct_rcl_title( SSConst const& ss ) {
   string const difficulty = base::capitalize_initials(
-      refl::enum_value_name( root.settings.difficulty ) );
-  string const          name  = "David"; // FIXME: temporary
-  maybe<e_nation> const human = root.players.default_human;
-  string const          nation_name =
-      human.has_value() ? config_nation.nations[*human].adjective
-                                 : "(AI only)";
-  TurnState const& turn_state = root.turn;
+      refl::enum_value_name( ss.root.settings.difficulty ) );
+  string const          name = "SomeName"; // FIXME: temporary
+  maybe<e_nation> const active =
+      player_for_role( ss, e_player_role::active );
+  string const nation_name =
+      active.has_value()
+          ? config_nation.nations[*active].adjective
+          : "(AI only)";
+  TurnState const& turn_state = ss.root.turn;
   string const     time_point = fmt::format(
       "{} {}",
       base::capitalize_initials( refl::enum_value_name(
           turn_state.time_point.season ) ),
       turn_state.time_point.year );
-  Delta const map_size = root.zzz_terrain.world_size_tiles();
+  Delta const map_size = ss.root.zzz_terrain.world_size_tiles();
   return fmt::format( "{} {} of the {}, {}, {}x{}", difficulty,
                       name, nation_name, time_point, map_size.w,
                       map_size.h );
@@ -248,17 +251,17 @@ bool is_game_saved( SSConst const& ss, TS& ts ) {
 ** Public API
 *****************************************************************/
 valid_or<std::string> save_game_to_rcl_file(
-    RootState const& root, fs::path const& p,
+    SSConst const& ss, fs::path const& p,
     SaveGameOptions const& opts ) {
   lg.info( "saving game to {}.", p );
   // Increase this to get more accurate reading on save times.
   string const rcl_output = base::timer(
       "saving game to rcl",
-      [&] { return save_game_to_rcl( root, opts ); } );
+      [&] { return save_game_to_rcl( ss.root, opts ); } );
   ofstream out( p );
   if( !out.good() )
     return fmt::format( "failed to open {} for writing.", p );
-  out << "# " << construct_rcl_title( root ) << "\n";
+  out << "# " << construct_rcl_title( ss ) << "\n";
   out << rcl_output;
   return valid;
 }
@@ -283,7 +286,7 @@ expect<fs::path> save_game( SSConst const& ss, TS& ts,
   p.replace_extension( ".sav.rcl" );
   // Serialize to rcl. Do this before b64 for timestamp reasons.
   HAS_VALUE_OR_RET(
-      save_game_to_rcl_file( ss.root, p, SaveGameOptions{} ) );
+      save_game_to_rcl_file( ss, p, SaveGameOptions{} ) );
   // Serialize to b64.
   p.replace_extension( ".sav.b64" );
   // HAS_VALUE_OR_RET( blob.write( p ) );

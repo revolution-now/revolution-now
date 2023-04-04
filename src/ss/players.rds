@@ -30,20 +30,6 @@ struct.PlayersState {
   # for the purpose of diplomacy.
   humans 'refl::enum_map<e_nation, bool>',
 
-  # There can be at most one human player at any given moment. If
-  # the active player is a human player then that active player
-  # will be the designated human player. If the active player is
-  # not a human player then this holds the human. In a normal
-  # game this is just the nation that the player chose when
-  # starting the game, and it never changes. When cheat mode is
-  # enabled, however, one can enable multiple nations as human,
-  # and in that case this becomes more meaningful as it deter-
-  # mines who is the designated human player when an AI player is
-  # moving. If this does not have a value then all players must
-  # be AI players. If it does have a value then it must be a na-
-  # tion that is listed in the `humans` map above.
-  default_human 'base::maybe<e_nation>',
-
   # Market state that is shared by all nations.
   global_market_state 'GlobalMarketState',
 

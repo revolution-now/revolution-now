@@ -421,7 +421,6 @@ void World::add_default_player() {
 }
 
 void World::set_human_player( maybe<e_nation> nation ) {
-  if( nation.has_value() ) players().humans[*nation] = true;
   set_unique_human_player( players(), nation );
 }
 

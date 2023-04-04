@@ -93,8 +93,9 @@ struct SaveGameOptions {
 };
 
 valid_or<std::string> save_game_to_rcl_file(
-    RootState const& root, fs::path const& p,
+    SSConst const& ss, fs::path const& p,
     SaveGameOptions const& opts );
+
 valid_or<std::string> load_game_from_rcl_file(
     RootState& root, fs::path const& p,
     SaveGameOptions const& opts );

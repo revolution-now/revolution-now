@@ -34,11 +34,19 @@ maybe<e_nation> player_for_role( SSConst const& ss,
     case e_player_role::viewer: {
       SWITCH( ss.land_view.map_revealed ) {
         CASE( no_special_view ) {
-          if( maybe<e_nation> const human =
-                  player_for_role( ss, e_player_role::human );
-              human.has_value() )
-            return human;
-          return player_for_role( ss, e_player_role::active );
+          maybe<e_nation> const active =
+              player_for_role( ss, e_player_role::active );
+          if( active.has_value() && ss.players.humans[*active] )
+            return *active;
+          // Find the first human that we can find. In a normal
+          // game, where there is only one human player, this
+          // will yield that one. If there are multiple human
+          // players then we are just picking the first one. This
+          // is a bit arbitrary, but there doesn't seem to be
+          // anything better to do here.
+          for( e_nation nation : refl::enum_values<e_nation> )
+            if( ss.players.humans[nation] ) return nation;
+          return active;
         }
         CASE( entire ) { //
           return nothing;
@@ -47,13 +55,6 @@ maybe<e_nation> player_for_role( SSConst const& ss,
         END_CASES;
       }
       SHOULD_NOT_BE_HERE; // for gcc.
-    }
-    case e_player_role::human: {
-      maybe<e_nation> const active =
-          player_for_role( ss, e_player_role::active );
-      if( !active.has_value() ) return ss.players.default_human;
-      if( ss.players.humans[*active] ) return *active;
-      return ss.players.default_human;
     }
     case e_player_role::active:
       return ss.turn.cycle.get_if<TurnCycle::nation>().member(

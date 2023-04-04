@@ -39,24 +39,6 @@ base::valid_or<string> PlayersState::validate() const {
                      "mismatch in player nations for the {}.",
                      nation );
 
-  // Check that the default_human nation, if it has a value, cor-
-  // responds to a player that exists.
-  if( default_human.has_value() )
-    REFL_VALIDATE( players[*default_human].has_value(),
-                   "default human player set to {} but that "
-                   "that player does not exist.",
-                   *default_human );
-
-  // Check that, if there is a default human player, that that
-  // player is marked as a possible human player in the humans
-  // map.
-  if( default_human.has_value() )
-    REFL_VALIDATE(
-        humans[*default_human] == true,
-        "default human player set to {} but that that player is "
-        "not in the list of allowed human players.",
-        *default_human );
-
   return base::valid;
 }
 
@@ -76,7 +58,6 @@ void reset_players( PlayersState&           players_state,
 
 void set_unique_human_player( PlayersState&         players,
                               base::maybe<e_nation> nation ) {
-  players.default_human = nation;
   for( e_nation const n : refl::enum_values<e_nation> )
     players.humans[n] = ( n == nation );
   CHECK_HAS_VALUE( players.validate() );
@@ -111,7 +92,6 @@ LUA_STARTUP( lua::state& st ) {
 
     u["players"]             = &U::players;
     u["humans"]              = &U::humans;
-    u["default_human"]       = &U::default_human;
     u["global_market_state"] = &U::global_market_state;
     u[lua::metatable_key]    = st.table.create();
   }();

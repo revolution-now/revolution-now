@@ -311,7 +311,6 @@ local function create_nations( options, root )
     local player = players:reset_player( o.nation )
     create_player_state( settings, o.nation, player )
     root.players.humans[o.nation] = o.human
-    if o.human then root.players.default_human = o.nation end
   end
   init_prices( options, root )
 end

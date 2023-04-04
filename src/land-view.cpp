@@ -359,7 +359,7 @@ struct LandViewPlane::Impl : public Plane {
         if( o.mods.shf_down ) {
           // cheat mode.
           maybe<e_nation> const nation =
-              player_for_role( ss_, e_player_role::human );
+              player_for_role( ss_, e_player_role::active );
           if( !nation.has_value() ) break;
           co_await cheat_create_unit_on_map( ss_, ts_, *nation,
                                              o.coord );

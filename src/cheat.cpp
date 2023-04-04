@@ -170,13 +170,6 @@ wait<> cheat_set_human_players( SS& ss, TS& ts ) {
   for( e_nation nation : refl::enum_values<e_nation> )
     ss.players.humans[nation] = info_map[nation].on;
 
-  // Set new default human.
-  for( e_nation nation : refl::enum_values<e_nation> ) {
-    if( !info_map[nation].on ) continue;
-    ss.players.default_human = nation;
-    break;
-  }
-
   // We do this because we need to back out beyond the individual
   // nation's turn processor in order to handle this configura-
   // tion change properly. For example, if the current player is

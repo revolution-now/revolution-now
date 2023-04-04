@@ -64,8 +64,7 @@ enum class e_game_module_tune_points {
 
 e_nation ensure_human_player( PlayersState const& players ) {
   for( auto& [nation, human] : players.humans )
-    if( human && players.default_human == nation ) //
-      return nation;
+    if( human ) return nation;
   FATAL(
       "there must be at least one human player and the "
       "default_human must refer to one of them." );
