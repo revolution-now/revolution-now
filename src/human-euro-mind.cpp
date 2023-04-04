@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "igui.hpp"
 #include "meet-natives.hpp"
 
 using namespace std;
@@ -25,7 +26,10 @@ HumanEuroMind::HumanEuroMind( e_nation nation, SS& ss,
                               IGui& gui )
   : IEuroMind( nation ), ss_( ss ), gui_( gui ) {}
 
-// Implement IEuroMind.
+wait<> HumanEuroMind::message_box( string const& msg ) {
+  co_await gui_.message_box( msg );
+}
+
 wait<e_declare_war_on_natives>
 HumanEuroMind::meet_tribe_ui_sequence(
     MeetTribe const& meet_tribe ) {

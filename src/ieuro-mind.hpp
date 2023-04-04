@@ -40,6 +40,17 @@ struct IEuroMind {
   // For convenience.
   e_nation nation() const { return nation_; }
 
+  virtual wait<> message_box( std::string const& msg ) = 0;
+
+  // For convenience.  Should not be overridden.
+  template<typename Arg, typename... Rest>
+  wait<> message_box( std::string_view msg, Arg&& arg,
+                      Rest&&... rest ) {
+    return message_box( fmt::format(
+        fmt::runtime( msg ), std::forward<Arg>( arg ),
+        std::forward<Rest>( rest )... ) );
+  }
+
   // This is the interactive part of the sequence of events that
   // happens when first encountering a given native tribe. In
   // particular, it will ask if you want to accept peace.
@@ -57,6 +68,9 @@ struct IEuroMind {
 // necessary to fulfill the contract of each request.
 struct NoopEuroMind final : IEuroMind {
   NoopEuroMind( e_nation nation );
+
+  // Implement IEuroMind.
+  wait<> message_box( std::string const& msg ) override;
 
   // Implement IEuroMind.
   wait<e_declare_war_on_natives> meet_tribe_ui_sequence(

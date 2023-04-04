@@ -27,6 +27,8 @@ namespace rn {
 struct MockIEuroMind : IEuroMind {
   MockIEuroMind( e_nation nation ) : IEuroMind( nation ) {}
 
+  MOCK_METHOD( wait<>, message_box, (std::string const&), () );
+
   MOCK_METHOD( wait<e_declare_war_on_natives>,
                meet_tribe_ui_sequence, (MeetTribe const&), () );
 };

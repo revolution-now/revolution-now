@@ -29,6 +29,9 @@ struct HumanEuroMind final : IEuroMind {
   HumanEuroMind( e_nation nation, SS& ss, IGui& gui );
 
   // Implement IEuroMind.
+  wait<> message_box( std::string const& msg ) override;
+
+  // Implement IEuroMind.
   wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
       MeetTribe const& meet_tribe ) override;
 
