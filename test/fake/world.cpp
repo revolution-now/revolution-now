@@ -129,11 +129,11 @@ EuroMinds& World::euro_minds() {
   return *uninitialized_euro_minds_;
 }
 
-MockINativeMind& World::mock_native_mind( e_tribe tribe ) {
+MockINativeMind& World::native_mind( e_tribe tribe ) {
   return static_cast<MockINativeMind&>( native_minds()[tribe] );
 }
 
-MockIEuroMind& World::mock_euro_mind( e_nation nation ) {
+MockIEuroMind& World::euro_mind( e_nation nation ) {
   return static_cast<MockIEuroMind&>( euro_minds()[nation] );
 }
 

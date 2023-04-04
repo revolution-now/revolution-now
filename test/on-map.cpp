@@ -388,8 +388,7 @@ TEST_CASE(
       e_native_unit_type::brave, { .x = 3, .y = 1 },
       dwelling.id );
 
-  MockIEuroMind& euro_mind = W.mock_euro_mind( e_nation::dutch );
-  euro_mind
+  W.euro_mind( e_nation::dutch )
       .EXPECT__meet_tribe_ui_sequence(
           MeetTribe{ .nation        = e_nation::dutch,
                      .tribe         = e_tribe::cherokee,

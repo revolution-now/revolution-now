@@ -332,8 +332,8 @@ struct World {
   TerrainConnectivity const& connectivity() const;
   TerrainConnectivity&       connectivity();
 
-  MockINativeMind& mock_native_mind( e_tribe tribe );
-  MockIEuroMind&   mock_euro_mind( e_nation nation );
+  MockINativeMind& native_mind( e_tribe tribe );
+  MockIEuroMind&   euro_mind( e_nation nation );
 
   NativeMinds& native_minds();
   EuroMinds&   euro_minds();
