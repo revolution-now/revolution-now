@@ -23,6 +23,23 @@
 namespace mock {
 
 /****************************************************************
+** Helpers.
+*****************************************************************/
+template<typename T>
+std::string stringify( T const&         o,
+                       std::string_view unformattable ) {
+  if constexpr( base::Show<T> ) {
+    static bool constexpr kNeedQuotes =
+        std::is_same_v<std::remove_cvref_t<T>, std::string>;
+    std::string res = base::to_str( o );
+    if constexpr( kNeedQuotes ) res = "\"" + res + "\"";
+    return res;
+  } else {
+    return std::string( unformattable );
+  }
+}
+
+/****************************************************************
 ** Matcher Concepts
 *****************************************************************/
 template<typename T>
@@ -48,8 +65,11 @@ struct IMatcher {
 
   virtual bool matches( T const& val ) const = 0;
 
-  virtual std::string format_expected() const {
-    return "<unformatted>";
+  virtual std::string format_expected() const = 0;
+
+  friend void to_str( IMatcher const& o, std::string& out,
+                      base::ADL_t ) {
+    out += o.format_expected();
   }
 };
 
@@ -82,10 +102,7 @@ struct Value : IMatcher<T> {
   }
 
   std::string format_expected() const override {
-    if constexpr( base::Show<T> )
-      return base::to_str( val_ );
-    else
-      return this->IMatcher<T>::format_expected();
+    return stringify( val_, "<unformattable>" );
   }
 
  private:
@@ -94,8 +111,11 @@ struct Value : IMatcher<T> {
   // string_view as the matcher, and that can cause lifetime is-
   // sues if the string_view was constructed from a temporary
   // during the expect-call statement.
-  static_assert( !std::is_same_v<std::string_view,
-                                 std::remove_cvref_t<T>> );
+  static_assert(
+      !std::is_same_v<std::string_view, std::remove_cvref_t<T>>,
+      "It is not safe to mock a method that takes a string_view "
+      "as an argument, or any other non-owning view." );
+
   std::remove_cvref_t<T> val_;
 };
 

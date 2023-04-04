@@ -52,19 +52,36 @@ namespace detail {
 // something deriving from IMatcher), this is what it uses.
 template<typename Target, typename HeldType, typename Parent>
 struct NodeMatcher : IMatcher<Target> {
-  NodeMatcher( HeldType&& children )
-    : children_( std::move( children ) ) {}
-  NodeMatcher( HeldType const& children )
-    : children_( std::move( children ) ) {}
+  NodeMatcher( std::string_view name, HeldType&& children )
+    : name_( name ), children_( std::move( children ) ) {}
+
+  NodeMatcher( std::string_view name, HeldType const& children )
+    : name_( name ), children_( std::move( children ) ) {}
+
   bool matches( Target const& val ) const override {
     return Parent::equal( children_, val );
   }
-  HeldType children_;
+
+  std::string format_expected() const override {
+    return fmt::format(
+        "{}( {} )", name_,
+        stringify( children_, "<unformattable>" ) );
+  }
+
+  std::string_view name_;
+  HeldType         children_;
 };
 
 // Common Node stuff not dependent on the template parameters of
 // Node.
 struct NodeBase {
+  constexpr NodeBase( std::string_view name ) : name_( name ) {}
+
+  constexpr std::string_view name() const { return name_; }
+
+ private:
+  std::string_view name_ = {};
+
  protected:
   // These should always be used instead of the bare operators
   // when comparing values for the actual matching operations
@@ -104,21 +121,22 @@ struct Node : public NodeBase {
   using NodeBase::converting_operator_equal;
   using NodeBase::converting_operator_greater;
 
-  explicit constexpr Node( T&& val )
-    : children_( std::move( val ) ) {}
+  explicit constexpr Node( std::string_view name, T&& val )
+    : NodeBase( name ), children_( std::move( val ) ) {}
 
   template<typename Target>
   operator MatcherWrapper<Target>() && {
     return MatcherWrapper<Target>(
         NodeMatcher<Target, held_type, Derived>(
-            std::move( children_ ) ) );
+            name(), std::move( children_ ) ) );
   }
 
   template<typename Target>
   requires std::is_copy_assignable_v<held_type>
   operator MatcherWrapper<Target>() const& {
     return MatcherWrapper<Target>(
-        NodeMatcher<Target, held_type, Derived>( children_ ) );
+        NodeMatcher<Target, held_type, Derived>( name(),
+                                                 children_ ) );
   }
 
   bool operator==( Node const& ) const = default;
@@ -126,6 +144,13 @@ struct Node : public NodeBase {
   template<typename U>
   bool operator==( U const& rhs ) const {
     return Derived::equal( children_, rhs );
+  }
+
+  friend void to_str( Node const& o, std::string& out,
+                      base::ADL_t ) {
+    out += fmt::format(
+        "{}( {} )", o.name(),
+        stringify( o.children_, "<unformattable>" ) );
   }
 
  private:

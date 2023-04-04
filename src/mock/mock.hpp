@@ -176,17 +176,9 @@ struct exhaust_checker {
 // cause not all of them need to be formattable.
 template<typename... Args>
 std::string format_args_where_possible( Args&&... args ) {
-  static auto format_if_possible
-      [[maybe_unused]] = []<typename T>( T&& o ) {
-        std::string res = "?";
-        if constexpr( base::Show<std::remove_cvref_t<T>> )
-          res = fmt::to_string( o );
-        return res;
-      };
-
   std::string formatted_args;
   ( ( formatted_args +=
-      format_if_possible( std::forward<Args>( args ) ) + ", " ),
+      stringify( std::forward<Args>( args ), "?" ) + ", " ),
     ... );
   if( !formatted_args.empty() )
     // Remove ", " from the end.

@@ -28,15 +28,15 @@
   template<typename T>                                 \
   auto name( T&& arg ) {                               \
     return detail::name##Impl<std::remove_cvref_t<T>>( \
-        std::forward<T>( arg ) );                      \
+        #name, std::forward<T>( arg ) );               \
   }
 
-#define GENERIC_ZERO_ARG_MATCHER( name )                \
-  inline constexpr auto name() {                        \
-    struct Unused {                                     \
-      bool operator==( Unused const& ) const = default; \
-    };                                                  \
-    return detail::name##Impl<Unused>( Unused{} );      \
+#define GENERIC_ZERO_ARG_MATCHER( name )                  \
+  inline constexpr auto name() {                          \
+    struct Unused {                                       \
+      bool operator==( Unused const& ) const = default;   \
+    };                                                    \
+    return detail::name##Impl<Unused>( #name, Unused{} ); \
   }
 
 #define GENERIC_TUPLE_ARG_MATCHER( name )                      \
@@ -44,12 +44,12 @@
   auto name( M&&... to_match ) {                               \
     using child_t = std::tuple<std::remove_reference_t<M>...>; \
     return detail::name##Impl<child_t>(                        \
-        child_t{ std::forward<M>( to_match )... } );           \
+        #name, child_t{ std::forward<M>( to_match )... } );    \
   }
 
-#define CONCRETE_SINGLE_ARG_MATCHER( name, type )        \
-  inline auto name( type arg ) {                         \
-    return detail::name##Impl<type>( std::move( arg ) ); \
+#define CONCRETE_SINGLE_ARG_MATCHER( name, type )               \
+  inline auto name( type arg ) {                                \
+    return detail::name##Impl<type>( #name, std::move( arg ) ); \
   }
 
 namespace mock::matchers {
@@ -167,6 +167,7 @@ MATCHER_DEFINE_NODE( Approx, held, actual ) {
 
 inline auto Approx( double target, double plus_minus ) {
   return detail::ApproxImpl<ApproxData>(
+      "Approx",
       ApproxData{ .target = target, .plus_minus = plus_minus } );
 }
 
@@ -284,6 +285,7 @@ auto TupleElement( M&& to_match ) {
   using child_t = std::pair<std::integral_constant<size_t, N>,
                             std::remove_reference_t<M>>;
   return detail::TupleElementImpl<child_t>(
+      "TupleElement",
       child_t{ {}, std::forward<M>( to_match ) } );
 }
 
@@ -295,7 +297,7 @@ auto Key( M&& to_match ) {
   using child_t = std::pair<std::integral_constant<size_t, 0>,
                             std::remove_reference_t<M>>;
   return detail::TupleElementImpl<child_t>(
-      child_t{ {}, std::forward<M>( to_match ) } );
+      "Key", child_t{ {}, std::forward<M>( to_match ) } );
 }
 
 /****************************************************************
@@ -314,6 +316,7 @@ auto Field( MemberVarT&& member_ptr, M&& to_match ) {
   using child_t = std::pair<std::remove_reference_t<MemberVarT>,
                             std::remove_reference_t<M>>;
   return detail::FieldImpl<child_t>(
+      "Field",
       child_t{ member_ptr, std::forward<M>( to_match ) } );
 }
 
@@ -333,6 +336,7 @@ auto Property( MemberFnT&& member_ptr, M&& to_match ) {
   using child_t = std::pair<std::remove_reference_t<MemberFnT>,
                             std::remove_reference_t<M>>;
   return detail::PropertyImpl<child_t>(
+      "Property",
       child_t{ member_ptr, std::forward<M>( to_match ) } );
 }
 

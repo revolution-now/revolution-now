@@ -16,6 +16,9 @@
 // mock
 #include "src/mock/mock.hpp"
 
+// base
+#include "base/to-str-ext-std.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -749,6 +752,22 @@ TEST_CASE( "[mock] Approx" ) {
   PointUser user( &mp );
   mp.EXPECT__double_add( Approx( .6, .01 ) ).returns( .7 );
   REQUIRE( user.add_two( .499 ) == 1.199_a );
+}
+
+TEST_CASE( "[mock] matcher stringification" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  mp.EXPECT__set_xy_pair( AllOf( TupleElement<0>( Ge( 5 ) ),
+                                 TupleElement<1>( Ge( 3 ) ) ) );
+  REQUIRE_THROWS_WITH(
+      user.set_xy_pair( { 5, 2 } ),
+      "mock function call with unexpected arguments: "
+      "set_xy_pair( (5,2) ); Argument #1 (one-based) does not "
+      "match expected value AllOf( (TupleElement( (0,Ge( 5 )) "
+      "), TupleElement( (1,Ge( 3 )) )) )." );
+
+  user.set_xy_pair( { 5, 3 } );
 }
 
 } // namespace

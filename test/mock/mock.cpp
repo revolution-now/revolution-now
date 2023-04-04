@@ -56,6 +56,9 @@ struct IPoint {
 
   virtual bool get_xy( int* x_out, int& y_out ) const = 0;
 
+  virtual std::string repeat_str( std::string const& s,
+                                  int count ) const = 0;
+
   virtual void set_x( int x ) = 0;
 
   virtual void set_y( int y ) = 0;
@@ -82,6 +85,8 @@ struct MockPoint : IPoint {
   MOCK_METHOD( int, get_x, (), ( const ) );
   MOCK_METHOD( int, get_y, (), ( const ) );
   MOCK_METHOD( bool, get_xy, (int*, int&), ( const ) );
+  MOCK_METHOD( std::string, repeat_str,
+               (std::string const&, int), ( const ) );
   MOCK_METHOD( void, set_x, (int), () );
   MOCK_METHOD( void, set_y, (int), () );
   MOCK_METHOD( void, set_xy, (int, int), () );
@@ -116,6 +121,11 @@ struct PointUser {
 
   bool get_xy( int* x_out, int& y_out ) const {
     return p_->get_xy( x_out, y_out );
+  }
+
+  std::string repeat_str( std::string const& s,
+                          int                count ) const {
+    return p_->repeat_str( s, count );
   }
 
   void set_xy( int x, int y ) { p_->set_xy( x, y ); }
@@ -231,11 +241,24 @@ TEST_CASE(
   MockPoint mp;
   PointUser user( &mp );
 
-  mp.EXPECT__set_xy( _, 5 );
-  REQUIRE_THROWS_WITH( user.set_xy( 0, 4 ),
-                       Matches( ".*unexpected arguments.*" ) );
-  // Make the expected call to an error isn't thrown.
-  mp.set_xy( 0, 5 );
+  SECTION( "set_xy" ) {
+    mp.EXPECT__set_xy( _, 5 );
+    REQUIRE_THROWS_WITH( user.set_xy( 0, 4 ),
+                         Matches( ".*unexpected arguments.*" ) );
+    // Make the expected call so an error isn't thrown.
+    mp.set_xy( 0, 5 );
+  }
+
+  SECTION( "repeat_str" ) {
+    mp.EXPECT__repeat_str( "hello", 5 ).returns( "none" );
+    REQUIRE_THROWS_WITH(
+        user.repeat_str( "hellx", 5 ),
+        "mock function call with unexpected arguments: "
+        "repeat_str( \"hellx\", 5 ); Argument #1 (one-based) "
+        "does not match expected value \"hello\"." );
+    // Make the expected call so an error isn't thrown.
+    mp.repeat_str( "hello", 5 );
+  }
 }
 
 TEST_CASE( "[mock] throws on unexpected mock call" ) {
@@ -258,6 +281,11 @@ TEST_CASE(
   REQUIRE_THROWS_WITH(
       user.get_xy( &m, n ),
       "unexpected mock function call: get_xy( ?, 7 )" );
+
+  // Test that string arguments get quoted.
+  REQUIRE_THROWS_WITH( user.repeat_str( "hello", 5 ),
+                       "unexpected mock function call: "
+                       "repeat_str( \"hello\", 5 )" );
 }
 
 TEST_CASE( "[mock] some_method_1" ) {
