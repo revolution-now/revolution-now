@@ -30,29 +30,26 @@ struct TS;
 // This will handle the case when a european unit is attacking
 // another european unit on land.
 std::unique_ptr<CommandHandler> attack_euro_land_handler(
-    SS& ss, TS& ts, Player& player, UnitId attacker_id,
-    UnitId defender_id );
+    SS& ss, TS& ts, UnitId attacker_id, UnitId defender_id );
 
 // Handles when one ship attacks another at sea.
 std::unique_ptr<CommandHandler> naval_battle_handler(
-    SS& ss, TS& ts, Player& player, UnitId attacker_id,
-    UnitId defender_id );
+    SS& ss, TS& ts, UnitId attacker_id, UnitId defender_id );
 
 // This handles the special case that a european unit is at-
 // tacking a colony that does not have any military units at the
 // gate (and so a capture is being attempted).
 std::unique_ptr<CommandHandler> attack_colony_undefended_handler(
-    SS& ss, TS& ts, Player& player, UnitId attacker_id,
-    UnitId defender_id, Colony& colony );
+    SS& ss, TS& ts, UnitId attacker_id, UnitId defender_id,
+    Colony& colony );
 
 // When a european unit attacks a brave (on land).
 std::unique_ptr<CommandHandler> attack_native_unit_handler(
-    SS& ss, TS& ts, Player& player, UnitId attacker_id,
+    SS& ss, TS& ts, UnitId attacker_id,
     NativeUnitId defender_id );
 
 // When a european unit attacks a dwelling (on land).
 std::unique_ptr<CommandHandler> attack_dwelling_handler(
-    SS& ss, TS& ts, Player& player, UnitId attacker_id,
-    DwellingId dwelling_id );
+    SS& ss, TS& ts, UnitId attacker_id, DwellingId dwelling_id );
 
 } // namespace rn

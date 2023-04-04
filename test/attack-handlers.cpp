@@ -17,6 +17,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocks/icombat.hpp"
+#include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/land-view-plane.hpp"
 
@@ -154,9 +155,15 @@ struct World : testing::World {
     return *w;
   }
 
-  void expect_msg_contains( string_view msg ) {
-    gui()
+  void expect_msg_contains( e_nation nation, string_view msg ) {
+    euro_mind( nation )
         .EXPECT__message_box( StrContains( string( msg ) ) )
+        .returns<monostate>();
+  }
+
+  void expect_msg_matches( e_nation nation, string_view msg ) {
+    euro_mind( nation )
+        .EXPECT__message_box( Matches( string( msg ) ) )
         .returns<monostate>();
   }
 
@@ -167,35 +174,24 @@ struct World : testing::World {
 
   void expect_convert() {
     expect_some_animation();
-    gui()
-        .EXPECT__message_box( StrContains( "converts" ) )
-        .returns<monostate>();
+    expect_msg_contains( kAttackingNation, "[converts]" );
     expect_some_animation();
   }
 
-  void expect_promotion() {
-    gui()
-        .EXPECT__message_box( StrContains( "valor" ) )
-        .returns<monostate>();
+  void expect_promotion( e_nation nation ) {
+    expect_msg_contains( nation, "valor" );
   }
 
-  void expect_evaded() {
-    gui()
-        .EXPECT__message_box( StrContains( "evades" ) )
-        .returns<monostate>();
+  void expect_evaded( e_nation nation ) {
+    expect_msg_contains( nation, "evades" );
   }
 
-  void expect_ship_sunk() {
-    gui()
-        .EXPECT__message_box( StrContains( "sunk by" ) )
-        .returns<monostate>();
+  void expect_ship_sunk( e_nation nation ) {
+    expect_msg_contains( nation, "sunk by" );
   }
 
-  void expect_ship_sunk_and_units_lost() {
-    gui()
-        .EXPECT__message_box(
-            Matches( ".*sunk by.*been lost.*" ) )
-        .returns<monostate>();
+  void expect_ship_sunk_and_units_lost( e_nation nation ) {
+    expect_msg_matches( nation, ".*sunk by.*been lost.*" );
   }
 
   void expect_tribe_wiped_out( string_view tribe_name ) {
@@ -205,20 +201,7 @@ struct World : testing::World {
         .returns<monostate>();
   }
 
-  void set_active_player( e_nation nation ) {
-    set_human_player( nation );
-    active_nation_ = nation;
-  }
-
   MockLandViewPlane mock_land_view_plane_;
-
-  // By convention this is the active player whose turn it would
-  // currently be if this were a real game. We need to supply
-  // this to the methods so they know which nation's units'
-  // changes need to be flagged via message boxes. E.g., if a
-  // non-human player's unit gets promoted we don't show a mes-
-  // sage. Note that this can be changed as needed.
-  e_nation active_nation_ = kAttackingNation;
 };
 
 /****************************************************************
@@ -242,21 +225,23 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
 
   auto f = [&] {
     return W.run_handler( attack_euro_land_handler(
-        W.ss(), W.ts(), W.player( W.active_nation_ ),
-        combat.attacker.id, combat.defender.id ) );
+        W.ss(), W.ts(), combat.attacker.id,
+        combat.defender.id ) );
   };
 
   SECTION( "ships cannot attack land units" ) {
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::frigate, e_unit_type::free_colonist );
-    W.expect_msg_contains( "Ships cannot attack land units" );
+    W.expect_msg_contains( W.kAttackingNation,
+                           "Ships cannot attack land units" );
     REQUIRE( f() == expected );
   }
 
   SECTION( "non-military units cannot attack" ) {
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::free_colonist, e_unit_type::free_colonist );
-    W.expect_msg_contains( "unit cannot attack" );
+    W.expect_msg_contains( W.kAttackingNation,
+                           "unit cannot attack" );
     REQUIRE( f() == expected );
   }
 
@@ -268,6 +253,7 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
             .id();
     combat.defender.id = defender_id;
     W.expect_msg_contains(
+        W.kAttackingNation,
         "cannot attack a land unit from a ship" );
     REQUIRE( f() == expected );
   }
@@ -275,7 +261,8 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
   SECTION( "land unit cannot attack ship" ) {
     tie( combat.attacker.id, combat.defender.id ) =
         W.add_pair( e_unit_type::soldier, e_unit_type::caravel );
-    W.expect_msg_contains( "Land units cannot attack ship" );
+    W.expect_msg_contains( W.kAttackingNation,
+                           "Land units cannot attack ship" );
     REQUIRE( f() == expected );
   }
 
@@ -324,8 +311,8 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
 
   auto f = [&] {
     return W.run_handler( attack_euro_land_handler(
-        W.ss(), W.ts(), W.player( W.active_nation_ ),
-        combat.attacker.id, combat.defender.id ) );
+        W.ss(), W.ts(), combat.attacker.id,
+        combat.defender.id ) );
   };
 
   SECTION( "soldier->soldier, attacker loses" ) {
@@ -375,6 +362,8 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         W.add_pair( e_unit_type::soldier, e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
+    W.expect_msg_contains( W.kDefendingNation,
+                           "promoted for valor" );
     REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
@@ -432,9 +421,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         W.add_pair( e_unit_type::soldier, e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
-    // Which player's unit should get messaged.
-    W.set_active_player( W.kAttackingNation );
-    W.expect_msg_contains( "promoted" );
+    W.expect_msg_contains( W.kAttackingNation, "promoted" );
     REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
@@ -464,6 +451,12 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         e_unit_type::soldier, e_unit_type::free_colonist );
     expect_combat();
     W.expect_some_animation();
+    W.expect_msg_contains(
+        W.kAttackingNation,
+        "[French] Free Colonist captured by the [English]" );
+    W.expect_msg_contains(
+        W.kDefendingNation,
+        "[French] Free Colonist captured by the [English]" );
     REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
@@ -497,8 +490,13 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         e_unit_type::soldier, e_unit_type::veteran_colonist );
     expect_combat();
     W.expect_some_animation();
-    W.expect_msg_contains( "Veteran status lost upon capture" );
-    W.set_active_player( W.kDefendingNation );
+    W.expect_msg_contains(
+        W.kDefendingNation,
+        "[French] Veteran Colonist captured by the [English]" );
+    W.expect_msg_contains(
+        W.kAttackingNation,
+        "[French] Veteran Colonist captured by the [English]! "
+        "Veteran status lost upon capture!" );
     REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
@@ -526,9 +524,8 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         e_unit_type::soldier, e_unit_type::free_colonist );
     expect_combat();
     W.expect_some_animation();
-    // This will ensure the "lost in battle" message box pops up.
-    W.set_active_player( W.kDefendingNation );
-    W.expect_msg_contains( "lost in battle" );
+    W.expect_msg_contains( W.kDefendingNation,
+                           "lost in battle" );
     REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
@@ -563,8 +560,8 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
 
   auto f = [&] {
     return W.run_handler( attack_native_unit_handler(
-        W.ss(), W.ts(), W.player( W.active_nation_ ),
-        combat.attacker.id, combat.defender.id ) );
+        W.ss(), W.ts(), combat.attacker.id,
+        combat.defender.id ) );
   };
 
   SECTION( "ask attack, cancel" ) {
@@ -695,7 +692,8 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
         e_unit_type::soldier, e_native_unit_type::brave );
     expect_combat();
     W.expect_some_animation();
-    W.expect_msg_contains( "[Muskets] acquired by brave" );
+    W.expect_msg_contains( W.kAttackingNation,
+                           "[Muskets] acquired by brave" );
     REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
@@ -719,7 +717,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
   World                    W;
   CommandHandlerRunResult  expected = { .order_was_run = true };
   CombatEuroAttackDwelling combat;
-  Player&                  player = W.player( W.active_nation_ );
+  Player& player = W.player( W.kAttackingNation );
 
   Tribe&             tribe = W.tribe( W.kNativeTribe );
   TribeRelationship& relationship =
@@ -746,8 +744,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
 
   auto f = [&] {
     return W.run_handler( attack_dwelling_handler(
-        W.ss(), W.ts(), W.player( W.active_nation_ ),
-        combat.attacker.id, combat.defender.id ) );
+        W.ss(), W.ts(), combat.attacker.id,
+        combat.defender.id ) );
   };
 
   SECTION( "attacker loses" ) {
@@ -820,12 +818,10 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
-    string const missions_burned_msg =
-        "The [Apache] revolt against [English] "
-        "missions! All English missionaries eliminated!";
-    W.gui()
-        .EXPECT__message_box( missions_burned_msg )
-        .returns<monostate>();
+    W.expect_msg_contains(
+        W.kAttackingNation,
+        "The [Apache] revolt against [English] missions! All "
+        "English missionaries eliminated!" );
     expected = { .order_was_run = true };
     REQUIRE( f() == expected );
     Unit const& attacker =
@@ -873,12 +869,10 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
-    string const missions_burned_msg =
-        "The [Apache] revolt against [English] "
-        "missions! All English missionaries eliminated!";
-    W.gui()
-        .EXPECT__message_box( missions_burned_msg )
-        .returns<monostate>();
+    W.expect_msg_contains(
+        W.kAttackingNation,
+        "The [Apache] revolt against [English] missions! All "
+        "English missionaries eliminated!" );
     expected = { .order_was_run = true };
     REQUIRE( f() == expected );
     Unit const& attacker =
@@ -1029,12 +1023,10 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
-    W.expect_promotion();
-    W.gui()
-        .EXPECT__message_box(
-            "[Apache] camp burned by the "
-            "[English]!" )
-        .returns<monostate>();
+    W.expect_promotion( W.kAttackingNation );
+    W.expect_msg_contains(
+        W.kAttackingNation,
+        "[Apache] camp burned by the [English]!" );
     W.expect_tribe_wiped_out( "Apache" );
 
     expected = { .order_was_run       = true,
@@ -1080,16 +1072,13 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
-    W.expect_promotion();
-    W.gui()
-        .EXPECT__message_box(
-            "[Apache] capital burned by the [English]!" )
-        .returns<monostate>();
-    W.gui()
-        .EXPECT__message_box(
-            "The [Apache] bow before the might of the "
-            "[English]!" )
-        .returns<monostate>();
+    W.expect_promotion( W.kAttackingNation );
+    W.expect_msg_contains(
+        W.kAttackingNation,
+        "[Apache] capital burned by the [English]!" );
+    W.expect_msg_contains(
+        W.kAttackingNation,
+        "The [Apache] bow before the might of the [English]!" );
 
     expected = { .order_was_run       = true,
                  .units_to_prioritize = {} };
@@ -1137,15 +1126,15 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
-    W.expect_promotion();
+    W.expect_promotion( W.kAttackingNation );
     W.expect_convert();
-    W.gui()
-        .EXPECT__message_box( fmt::format(
+    W.expect_msg_contains(
+        W.kAttackingNation,
+        fmt::format(
             "[Apache] camp burned by the [English]! "
             "[Missionary] flees in panic! Treasure worth [123] "
             "has been recovered! It will take a [Galleon] to "
-            "transport this treasure back to [London]." ) )
-        .returns<monostate>();
+            "transport this treasure back to [London]." ) );
     W.expect_some_animation(); // treasure enpixelation.
     W.expect_tribe_wiped_out( "Apache" );
     UnitId const expected_convert_id  = UnitId{ 5 };
@@ -1219,12 +1208,11 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
-    W.expect_promotion();
-    W.gui()
-        .EXPECT__message_box( fmt::format(
-            "[Apache] capital burned by the [English]! [Foreign "
-            "missionary] hanged!" ) )
-        .returns<monostate>();
+    W.expect_promotion( W.kAttackingNation );
+    W.expect_msg_contains(
+        W.kAttackingNation,
+        fmt::format( "[Apache] capital burned by the [English]! "
+                     "[Foreign missionary] hanged!" ) );
     W.expect_tribe_wiped_out( "Apache" );
 
     expected = { .order_was_run       = true,
@@ -1263,9 +1251,9 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
   };
 
   auto f = [&] {
-    return W.run_handler( naval_battle_handler(
-        W.ss(), W.ts(), W.player( W.active_nation_ ),
-        combat.attacker.id, combat.defender.id ) );
+    return W.run_handler(
+        naval_battle_handler( W.ss(), W.ts(), combat.attacker.id,
+                              combat.defender.id ) );
   };
 
   SECTION( "evade" ) {
@@ -1282,7 +1270,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
         e_unit_type::privateer, e_unit_type::merchantman );
     expect_combat();
     W.expect_some_animation();
-    W.expect_evaded();
+    W.expect_evaded( W.kAttackingNation );
+    W.expect_evaded( W.kDefendingNation );
     REQUIRE( W.units()
                  .unit_for( combat.attacker.id )
                  .movement_points() == 8 );
@@ -1322,6 +1311,14 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( W.units()
                  .unit_for( combat.attacker.id )
                  .movement_points() == 8 );
+    W.expect_msg_contains(
+        W.kAttackingNation,
+        "French [Merchantman] damaged in battle! Ship sent to "
+        "[La Rochelle] for repair." );
+    W.expect_msg_contains(
+        W.kDefendingNation,
+        "French [Merchantman] damaged in battle! Ship sent to "
+        "[La Rochelle] for repair." );
     REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
@@ -1366,6 +1363,14 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
         e_unit_type::privateer, e_unit_type::merchantman );
     expect_combat();
     W.expect_some_animation();
+    W.expect_msg_contains(
+        W.kAttackingNation,
+        "French [Merchantman] damaged in battle! Ship sent to "
+        "[1] for repair." );
+    W.expect_msg_contains(
+        W.kDefendingNation,
+        "French [Merchantman] damaged in battle! Ship sent to "
+        "[1] for repair." );
     REQUIRE( W.units()
                  .unit_for( combat.attacker.id )
                  .movement_points() == 8 );
@@ -1410,6 +1415,12 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
         e_unit_type::privateer, e_unit_type::caravel );
     expect_combat();
     W.expect_some_animation();
+    W.expect_msg_contains( W.kAttackingNation,
+                           "French [Caravel] damaged in battle! "
+                           "Ship sent to [1] for repair." );
+    W.expect_msg_contains( W.kDefendingNation,
+                           "French [Caravel] damaged in battle! "
+                           "Ship sent to [1] for repair." );
     REQUIRE( W.units()
                  .unit_for( combat.attacker.id )
                  .movement_points() == 8 );
@@ -1447,7 +1458,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
         e_unit_type::privateer, e_unit_type::merchantman );
     expect_combat();
     W.expect_some_animation();
-    W.expect_ship_sunk();
+    W.expect_ship_sunk( W.kAttackingNation );
+    W.expect_ship_sunk( W.kDefendingNation );
     REQUIRE( W.units()
                  .unit_for( combat.attacker.id )
                  .movement_points() == 8 );
@@ -1487,7 +1499,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( attacker.cargo().count_items() == 2 );
     expect_combat();
     W.expect_some_animation();
-    W.expect_ship_sunk_and_units_lost();
+    W.expect_ship_sunk_and_units_lost( W.kAttackingNation );
+    W.expect_ship_sunk( W.kDefendingNation );
     REQUIRE( W.units()
                  .unit_for( combat.attacker.id )
                  .movement_points() == 8 );
@@ -1548,11 +1561,14 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( defender.cargo().count_items() == 1 );
     expect_combat();
     W.expect_some_animation();
-    W.gui()
-        .EXPECT__message_box(
-            "English [Privateer] damaged in battle! Ship sent "
-            "to [London] for repair." )
-        .returns<monostate>();
+    W.expect_msg_contains(
+        W.kAttackingNation,
+        "English [Privateer] damaged in battle! Ship sent to "
+        "[London] for repair." );
+    W.expect_msg_contains(
+        W.kDefendingNation,
+        "English [Privateer] damaged in battle! Ship sent to "
+        "[London] for repair." );
     REQUIRE( W.units()
                  .unit_for( combat.attacker.id )
                  .movement_points() == 8 );
@@ -1605,12 +1621,15 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( attacker.cargo().count_items() == 2 );
     expect_combat();
     W.expect_some_animation();
-    W.gui()
-        .EXPECT__message_box(
-            "English [Privateer] damaged in battle! Ship sent "
-            "to [London] for repair. [Two] units onboard have "
-            "been lost." )
-        .returns<monostate>();
+    W.expect_msg_contains(
+        W.kAttackingNation,
+        "English [Privateer] damaged in battle! Ship sent to "
+        "[London] for repair. [Two] units onboard have been "
+        "lost." );
+    W.expect_msg_contains(
+        W.kDefendingNation,
+        "English [Privateer] damaged in battle! Ship sent to "
+        "[London] for repair." );
     REQUIRE( W.units()
                  .unit_for( combat.attacker.id )
                  .movement_points() == 8 );

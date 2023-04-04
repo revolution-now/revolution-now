@@ -23,6 +23,7 @@
 #include "damaged.hpp"
 #include "harbor-units.hpp"
 #include "icombat.hpp"
+#include "ieuro-mind.hpp"
 #include "igui.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
@@ -31,6 +32,7 @@
 #include "on-map.hpp"
 #include "plane-stack.hpp"
 #include "road.hpp"
+#include "society.hpp"
 #include "tribe-mgr.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
@@ -79,76 +81,51 @@ enum class e_attack_verdict_base {
 };
 
 wait<> display_base_verdict_msg(
-    IGui& gui, e_attack_verdict_base verdict ) {
+    IEuroMind& mind, e_attack_verdict_base verdict ) {
   switch( verdict ) {
     case e_attack_verdict_base::cancelled: //
       break;
     // Non-allowed (would break game rules).
     case e_attack_verdict_base::ship_attack_land_unit:
-      co_await gui.message_box(
+      co_await mind.message_box(
           "Ships cannot attack land units." );
       break;
     case e_attack_verdict_base::unit_cannot_attack:
-      co_await gui.message_box( "This unit cannot attack." );
+      co_await mind.message_box( "This unit cannot attack." );
       break;
     case e_attack_verdict_base::attack_from_ship:
-      co_await gui.message_box(
+      co_await mind.message_box(
           "We cannot attack a land unit from a ship." );
       break;
     case e_attack_verdict_base::land_unit_attack_ship:
-      co_await gui.message_box(
+      co_await mind.message_box(
           "Land units cannot attack ships that are at sea." );
       break;
   }
 }
 
-// This is for checking for no-go conditions that apply to both
-// attacking a euro unit and attacking native units.
-wait<maybe<e_attack_verdict_base>> check_attack_verdict_base(
-    SSConst const& ss, TS& ts, Unit const& attacker,
-    e_direction d ) {
-  if( is_unit_onboard( ss.units, attacker.id() ) )
-    co_return e_attack_verdict_base::attack_from_ship;
+// In general, the outcome of a battle for a specific unit may
+// need to be broadcast to the owner of the defending unit, the
+// owner of the attacking unit, or both, for either the defender
+// or attacker. This struct helps facilitate that. Some strings
+// may be empty, in which case they should not be shown.
+struct OutcomeMessage {
+  vector<string> for_owner;
+  vector<string> for_other; // non-owner.
+  vector<string> for_both;
+};
 
-  Coord const source = ss.units.coord_for( attacker.id() );
-  Coord const target = source.moved( d );
-
-  if( !can_attack( attacker.type() ) )
-    co_return e_attack_verdict_base::unit_cannot_attack;
-
-  if( attacker.desc().ship ) {
-    // Ship-specific checks.
-    if( ss.terrain.is_land( target ) )
-      co_return e_attack_verdict_base::ship_attack_land_unit;
-  }
-
-  if( surface_type( ss.terrain.square_at( target ) ) ==
-          e_surface::water &&
-      !attacker.desc().ship )
-    co_return e_attack_verdict_base::land_unit_attack_ship;
-
-  if( attacker.movement_points() < 1 ) {
-    if( co_await ts.gui.optional_yes_no(
-            { .msg = fmt::format(
-                  "This unit only has [{}] movement points "
-                  "and so will not be fighting at full "
-                  "strength.  Continue?",
-                  attacker.movement_points() ),
-              .yes_label =
-                  "Yes, let us proceed with full force!",
-              .no_label = "No, do not attack." } ) !=
-        ui::e_confirm::yes )
-      co_return e_attack_verdict_base::cancelled;
-  }
-  co_return nothing;
-}
-
-maybe<string> perform_euro_unit_combat_outcome(
-    SS& ss, TS& ts, Player const& active_player,
-    Player const& player, Unit& unit,
+OutcomeMessage perform_euro_unit_combat_outcome(
+    SS& ss, TS& ts, Unit& unit, Society const& other_society,
     EuroUnitCombatOutcome const& outcome ) {
+  OutcomeMessage res;
+
   auto capture_unit = [&]( e_nation new_nation,
                            Coord    new_coord ) {
+    res.for_both.push_back( fmt::format(
+        "[{}] {} captured by the [{}]!",
+        nation_obj( unit.nation() ).display_name,
+        unit.desc().name, name_of_society( other_society ) ) );
     change_unit_nation( ss, ts, unit, new_nation );
     unit_ownership_change_non_interactive(
         ss, unit.id(),
@@ -160,8 +137,6 @@ maybe<string> perform_euro_unit_combat_outcome(
     unit.clear_orders();
   };
 
-  maybe<string> msg;
-
   switch( outcome.to_enum() ) {
     using e = EuroUnitCombatOutcome::e;
     case e::no_change:
@@ -169,9 +144,10 @@ maybe<string> perform_euro_unit_combat_outcome(
     case e::destroyed: {
       // This will be scouts, pioneers, missionaries, and ar-
       // tillery.
-      msg = fmt::format( "{} [{}] has been lost in battle!",
-                         nation_obj( unit.nation() ).adjective,
-                         unit.desc().name );
+      res.for_owner.push_back(
+          fmt::format( "{} [{}] has been lost in battle!",
+                       nation_obj( unit.nation() ).adjective,
+                       unit.desc().name ) );
       // Need to destroy the unit after accessing its info.
       destroy_unit( ss, unit.id() );
       break;
@@ -184,26 +160,22 @@ maybe<string> perform_euro_unit_combat_outcome(
     case e::captured_and_demoted: {
       auto& o = outcome.get<
           EuroUnitCombatOutcome::captured_and_demoted>();
-      // Need to do this first before demoting the unit.
-      msg = "Unit demoted upon capture!";
-      if( unit.type() == e_unit_type::veteran_colonist )
-        // FIXME: this message needs to be displayed to the
-        // player that is capturing the unit. Perhaps below when
-        // we test the player's nation, instead of testing the
-        // `player` that is passed in, we re-measure the unit's
-        // nation and use that, that way in the case of a capture
-        // it will use the new nation, which should probably do
-        // the right thing (but only do that if the unit hasn't
-        // been destroyed).
-        msg = "Veteran status lost upon capture!";
-      change_unit_type( ss, ts, unit, o.to );
       capture_unit( o.new_nation, o.new_coord );
+      // Need to do this first before demoting the unit.
+      string msg = "Unit demoted upon capture!";
+      if( unit.type() == e_unit_type::veteran_colonist )
+        msg = "Veteran status lost upon capture!";
+      // This message only goes to the player that is capturing
+      // the unit being demoted.
+      res.for_other.push_back( msg );
+      change_unit_type( ss, ts, unit, o.to );
       break;
     }
     case e::promoted: {
       auto& o = outcome.get<EuroUnitCombatOutcome::promoted>();
       // TODO: make this message more specific like in the OG.
-      msg = "Unit promoted for valor in combat!";
+      res.for_owner.push_back(
+          "Unit promoted for valor in combat!" );
       change_unit_type( ss, ts, unit, o.to );
       break;
     }
@@ -214,21 +186,13 @@ maybe<string> perform_euro_unit_combat_outcome(
     }
   }
 
-  if( player.nation == active_player.nation &&
-      ss.players.humans[player.nation] )
-    // FIXME: not sure yet how we're going to do this GUI han-
-    // dling with AI players. For now we just say that we will
-    // only pop up a message box notifying the player of battle
-    // outcomes for their unit if the active player owns the unit
-    // and that active player is a human.
-    return msg;
-  return nothing;
+  return res;
 }
 
-maybe<string> perform_native_unit_combat_outcome(
-    SS& ss, Player const& active_player, NativeUnit& unit,
+OutcomeMessage perform_native_unit_combat_outcome(
+    SS& ss, NativeUnit& unit,
     NativeUnitCombatOutcome const& outcome ) {
-  maybe<string> msg;
+  OutcomeMessage res;
 
   switch( outcome.to_enum() ) {
     using e = NativeUnitCombatOutcome::e;
@@ -262,33 +226,31 @@ maybe<string> perform_native_unit_combat_outcome(
         return res;
       }();
 
-      msg       = promotion_messages[unit.type][o.to];
+      res.for_both.push_back(
+          promotion_messages[unit.type][o.to].value_or( "" ) );
       unit.type = o.to;
       break;
     }
   }
 
-  // FIXME
-  if( ss.players.humans[active_player.nation] ) return msg;
-  return nothing;
+  return res;
 }
 
-maybe<string> perform_naval_unit_combat_outcome(
-    SS& ss, TS& ts, Player const& active_player, Player& player,
-    Unit& unit, EuroNavalUnitCombatOutcome const& outcome,
-    UnitId opponent_id ) {
-  maybe<string> msg;
+OutcomeMessage perform_naval_unit_combat_outcome(
+    SS& ss, TS& ts, Unit& unit,
+    EuroNavalUnitCombatOutcome const& outcome,
+    UnitId                            opponent_id ) {
+  OutcomeMessage res;
 
   auto add_units_lost = [&]( int count ) {
-    CHECK( msg.has_value() );
     if( count == 1 )
-      *msg +=
-          fmt::format( " [One] unit onboard has been lost." );
+      res.for_owner.push_back(
+          fmt::format( "[One] unit onboard has been lost." ) );
     else if( count > 1 )
-      *msg += fmt::format(
-          " [{}] units onboard have been lost.",
+      res.for_owner.push_back( fmt::format(
+          "[{}] units onboard have been lost.",
           base::capitalize_initials(
-              base::int_to_string_literary( count ) ) );
+              base::int_to_string_literary( count ) ) ) );
   };
 
   switch( outcome.to_enum() ) {
@@ -297,11 +259,15 @@ maybe<string> perform_naval_unit_combat_outcome(
       break;
     case e::moved: {
       auto& o = outcome.get<EuroNavalUnitCombatOutcome::moved>();
-      // FIXME: This really should be run interactively because
-      // e.g. the ship might discover the pacific ocean or an-
-      // other nation upon moving. Once we figure out how to deal
-      // with multiple european players then this needs to be im-
-      // proved.
+      // This ideally would be run interactively because e.g. the
+      // ship might discover the pacific ocean or another nation
+      // upon moving. However, that might be tricky to get right
+      // because then we sit waiting for the message box before
+      // the other unit has had its outcome performed. So what we
+      // do is we just run this non-interactively, then after
+      // both ships have their outcomes performed, we will
+      // re-place the ship on the square interactively in order
+      // to run any interactive routines that are necessary.
       unit_ownership_change_non_interactive(
           ss, unit.id(),
           EuroUnitOwnershipChangeTo::world{ .ts     = &ts,
@@ -336,9 +302,10 @@ maybe<string> perform_naval_unit_combat_outcome(
       for( UnitId const held_id : units_in_cargo )
         destroy_unit( ss, held_id );
       // Now send the ship for repair.
-      msg = fmt::format( "{} [{}] damaged in battle!",
-                         nation_obj( unit.nation() ).adjective,
-                         unit.desc().name );
+      res.for_both.push_back(
+          fmt::format( "{} [{}] damaged in battle!",
+                       nation_obj( unit.nation() ).adjective,
+                       unit.desc().name ) );
       switch( o.port.to_enum() ) {
         case ShipRepairPort::e::colony: {
           ColonyId const colony_id =
@@ -353,17 +320,17 @@ maybe<string> perform_naval_unit_combat_outcome(
               ss, unit.id(),
               EuroUnitOwnershipChangeTo::world{
                   .ts = &ts, .target = colony.location } );
-          *msg += fmt::format( " Ship sent to [{}] for repair.",
-                               colony.name );
+          res.for_both.push_back( fmt::format(
+              "Ship sent to [{}] for repair.", colony.name ) );
           break;
         }
         case ShipRepairPort::e::european_harbor: {
           unit_ownership_change_non_interactive(
               ss, unit.id(),
               EuroUnitOwnershipChangeTo::move_to_port{} );
-          *msg += fmt::format(
-              " Ship sent to [{}] for repair.",
-              nation_obj( unit.nation() ).harbor_city_name );
+          res.for_both.push_back( fmt::format(
+              "Ship sent to [{}] for repair.",
+              nation_obj( unit.nation() ).harbor_city_name ) );
           break;
         }
       }
@@ -378,14 +345,12 @@ maybe<string> perform_naval_unit_combat_outcome(
       Unit const& opponent = ss.units.unit_for( opponent_id );
       int const   num_units_lost =
           unit.cargo().items_of_type<Cargo::unit>().size();
-      lg.info( "ship sunk: {} units onboard lost.",
-               num_units_lost );
-      msg =
+      res.for_both.push_back(
           fmt::format( "{} [{}] sunk by [{}] {}.",
                        nation_obj( unit.nation() ).adjective,
                        unit.desc().name,
                        nation_obj( opponent.nation() ).adjective,
-                       opponent.desc().name );
+                       opponent.desc().name ) );
       add_units_lost( num_units_lost );
       // Need to destroy unit first before displaying message
       // otherwise the unit will reappear on the map while the
@@ -395,18 +360,7 @@ maybe<string> perform_naval_unit_combat_outcome(
     }
   }
 
-  // FIXME: this is a mess: some parts of the messages above
-  // should be shown to the human player regardless of whether it
-  // concerns their ship or not (e.g., information as to whether
-  // a ship sunk or not), but other info (such as how many units
-  // lost) should only be conveyed for the player's units. We
-  // need to figure out a better way to handle UI interactions
-  // throughout this module in situations with units from mul-
-  // tiple players and messages/prompts concerning them.
-  if( player.nation == active_player.nation &&
-      ss.players.humans[player.nation] )
-    return msg;
-  return nothing;
+  return res;
 }
 
 e_direction direction_of_attack( SSConst const& ss,
@@ -433,23 +387,69 @@ e_direction direction_of_attack( SSConst const& ss,
   return d;
 }
 
-wait<> show_outcome_messages( TS&                  ts,
-                              maybe<string> const& attacker,
-                              maybe<string> const& defender ) {
-  if( attacker.has_value() )
-    co_await ts.gui.message_box( *attacker );
-  if( defender.has_value() )
-    co_await ts.gui.message_box( *defender );
+struct EuroOutcomeMsg {
+  IEuroMind&     mind;
+  OutcomeMessage msg;
+};
+
+struct NativeOutcomeMsg {
+  OutcomeMessage msg;
+};
+
+string concat_sentences(
+    vector<vector<string>> const& msg_groups ) {
+  string res;
+  for( vector<string> const& msg_group : msg_groups ) {
+    for( string const& msg : msg_group ) {
+      if( msg.empty() ) continue;
+      if( !res.empty() ) res += ' ';
+      res += msg;
+    }
+  }
+  return res;
 }
 
-} // namespace
+wait<> show_outcome_messages_euro_euro(
+    EuroOutcomeMsg const& attacker,
+    EuroOutcomeMsg const& defender ) {
+  string const attacker_msg = concat_sentences(
+      { attacker.msg.for_both, attacker.msg.for_owner,
+        defender.msg.for_both, defender.msg.for_other } );
+  if( !attacker_msg.empty() )
+    co_await attacker.mind.message_box( attacker_msg );
+  string const defender_msg = concat_sentences(
+      { defender.msg.for_both, defender.msg.for_owner,
+        attacker.msg.for_both, attacker.msg.for_other } );
+  if( !defender_msg.empty() )
+    co_await defender.mind.message_box( defender_msg );
+}
+
+wait<> show_outcome_messages_euro_only(
+    EuroOutcomeMsg const& attacker ) {
+  string const attacker_msg = concat_sentences(
+      { attacker.msg.for_both, attacker.msg.for_owner } );
+  if( !attacker_msg.empty() )
+    co_await attacker.mind.message_box( attacker_msg );
+}
+
+wait<> show_outcome_messages_euro_native(
+    EuroOutcomeMsg const&   attacker,
+    NativeOutcomeMsg const& defender ) {
+  string const attacker_msg = concat_sentences(
+      { attacker.msg.for_both, attacker.msg.for_owner,
+        defender.msg.for_both, defender.msg.for_other } );
+  if( !attacker_msg.empty() )
+    co_await attacker.mind.message_box( attacker_msg );
+}
 
 /****************************************************************
 ** AttackHandlerBase
 *****************************************************************/
+// Base class for all handlers that have a european unit as the
+// attacker.
 struct AttackHandlerBase : public CommandHandler {
-  AttackHandlerBase( SS& ss, TS& ts, Player& player,
-                     UnitId attacker_id, e_direction direction );
+  AttackHandlerBase( SS& ss, TS& ts, UnitId attacker_id,
+                     e_direction direction );
 
   // Implement CommandHandler.
   wait<bool> confirm() override;
@@ -461,14 +461,18 @@ struct AttackHandlerBase : public CommandHandler {
   wait<> perform() override;
 
  protected:
-  SS&     ss_;
-  TS&     ts_;
-  Player& active_player_;
+  wait<maybe<e_attack_verdict_base>> check_attack_verdict_base()
+      const;
+
+  SS& ss_;
+  TS& ts_;
 
   // The unit doing the attacking.
-  UnitId  attacker_id_;
-  Unit&   attacker_;
-  Player& attacking_player_;
+  UnitId     attacker_id_;
+  Unit&      attacker_;
+  Player&    attacking_player_;
+  IEuroMind& attacker_mind_;
+  bool       attacker_human_ = {};
 
   e_direction direction_;
 
@@ -481,16 +485,16 @@ struct AttackHandlerBase : public CommandHandler {
 };
 
 AttackHandlerBase::AttackHandlerBase( SS& ss, TS& ts,
-                                      Player&     player,
                                       UnitId      attacker_id,
                                       e_direction direction )
   : ss_( ss ),
     ts_( ts ),
-    active_player_( player ),
     attacker_id_( attacker_id ),
     attacker_( ss.units.unit_for( attacker_id ) ),
     attacking_player_( player_for_nation_or_die(
         ss.players, attacker_.nation() ) ),
+    attacker_mind_( ts.euro_minds[attacker_.nation()] ),
+    attacker_human_( ss.players.humans[attacker_.nation()] ),
     direction_( direction ) {
   attack_src_ =
       coord_for_unit_indirect_or_die( ss_.units, attacker_id_ );
@@ -500,12 +504,52 @@ AttackHandlerBase::AttackHandlerBase( SS& ss, TS& ts,
   CHECK( attack_src_.is_adjacent_to( attack_dst_ ) );
 }
 
+// This is for checking for no-go conditions that apply to both
+// attacking a euro unit and attacking native units.
+wait<maybe<e_attack_verdict_base>>
+AttackHandlerBase::check_attack_verdict_base() const {
+  if( is_unit_onboard( ss_.units, attacker_.id() ) )
+    co_return e_attack_verdict_base::attack_from_ship;
+
+  Coord const source = ss_.units.coord_for( attacker_.id() );
+  Coord const target = source.moved( direction_ );
+
+  if( !can_attack( attacker_.type() ) )
+    co_return e_attack_verdict_base::unit_cannot_attack;
+
+  if( attacker_.desc().ship ) {
+    // Ship-specific checks.
+    if( ss_.terrain.is_land( target ) )
+      co_return e_attack_verdict_base::ship_attack_land_unit;
+  }
+
+  if( surface_type( ss_.terrain.square_at( target ) ) ==
+          e_surface::water &&
+      !attacker_.desc().ship )
+    co_return e_attack_verdict_base::land_unit_attack_ship;
+
+  if( attacker_.movement_points() < 1 && attacker_human_ ) {
+    if( co_await ts_.gui.optional_yes_no(
+            { .msg = fmt::format(
+                  "This unit only has [{}] movement points "
+                  "and so will not be fighting at full "
+                  "strength.  Continue?",
+                  attacker_.movement_points() ),
+              .yes_label =
+                  "Yes, let us proceed with full force!",
+              .no_label = "No, do not attack." } ) !=
+        ui::e_confirm::yes )
+      co_return e_attack_verdict_base::cancelled;
+  }
+  co_return nothing;
+}
+
 wait<bool> AttackHandlerBase::confirm() {
   if( maybe<e_attack_verdict_base> const verdict =
-          co_await check_attack_verdict_base(
-              ss_, ts_, attacker_, direction_ );
+          co_await check_attack_verdict_base();
       verdict.has_value() ) {
-    co_await display_base_verdict_msg( ts_.gui, *verdict );
+    co_await display_base_verdict_msg( attacker_mind_,
+                                       *verdict );
     co_return false;
   }
 
@@ -530,26 +574,26 @@ wait<> AttackHandlerBase::perform() {
 struct EuroAttackHandlerBase : public AttackHandlerBase {
   using Base = AttackHandlerBase;
 
-  EuroAttackHandlerBase( SS& ss, TS& ts, Player& player,
-                         UnitId attacker_id,
+  EuroAttackHandlerBase( SS& ss, TS& ts, UnitId attacker_id,
                          UnitId defender_id );
 
  protected:
-  UnitId  defender_id_;
-  Unit&   defender_;
-  Player& defending_player_;
+  UnitId     defender_id_;
+  Unit&      defender_;
+  Player&    defending_player_;
+  IEuroMind& defender_mind_;
 };
 
 EuroAttackHandlerBase::EuroAttackHandlerBase(
-    SS& ss, TS& ts, Player& player, UnitId attacker_id,
-    UnitId defender_id )
+    SS& ss, TS& ts, UnitId attacker_id, UnitId defender_id )
   : AttackHandlerBase(
-        ss, ts, player, attacker_id,
+        ss, ts, attacker_id,
         direction_of_attack( ss, attacker_id, defender_id ) ),
     defender_id_( defender_id ),
     defender_( ss.units.unit_for( defender_id ) ),
     defending_player_( player_for_nation_or_die(
-        ss.players, defender_.nation() ) ) {
+        ss.players, defender_.nation() ) ),
+    defender_mind_( ts.euro_minds[defender_.nation()] ) {
   CHECK( defender_id_ != attacker_id_ );
 }
 
@@ -560,8 +604,7 @@ EuroAttackHandlerBase::EuroAttackHandlerBase(
 struct NativeAttackHandlerBase : public AttackHandlerBase {
   using Base = AttackHandlerBase;
 
-  NativeAttackHandlerBase( SS& ss, TS& ts, Player& player,
-                           UnitId       attacker_id,
+  NativeAttackHandlerBase( SS& ss, TS& ts, UnitId attacker_id,
                            NativeUnitId defender_id );
 
  protected:
@@ -571,10 +614,10 @@ struct NativeAttackHandlerBase : public AttackHandlerBase {
 };
 
 NativeAttackHandlerBase::NativeAttackHandlerBase(
-    SS& ss, TS& ts, Player& player, UnitId attacker_id,
+    SS& ss, TS& ts, UnitId attacker_id,
     NativeUnitId defender_id )
   : AttackHandlerBase(
-        ss, ts, player, attacker_id,
+        ss, ts, attacker_id,
         direction_of_attack( ss, attacker_id, defender_id ) ),
     defender_id_( defender_id ),
     defender_( ss.units.unit_for( defender_id ) ),
@@ -588,7 +631,7 @@ struct AttackColonyUndefendedHandler
   : public EuroAttackHandlerBase {
   using Base = EuroAttackHandlerBase;
 
-  AttackColonyUndefendedHandler( SS& ss, TS& ts, Player& player,
+  AttackColonyUndefendedHandler( SS& ss, TS& ts,
                                  UnitId  attacker_id,
                                  UnitId  defender_id,
                                  Colony& colony );
@@ -604,18 +647,10 @@ struct AttackColonyUndefendedHandler
   CombatEuroAttackUndefendedColony combat_;
 };
 
-unique_ptr<CommandHandler> attack_colony_undefended_handler(
-    SS& ss, TS& ts, Player& player, UnitId attacker_id,
-    UnitId defender_id, Colony& colony ) {
-  return make_unique<AttackColonyUndefendedHandler>(
-      ss, ts, player, attacker_id, defender_id, colony );
-}
-
 AttackColonyUndefendedHandler::AttackColonyUndefendedHandler(
-    SS& ss, TS& ts, Player& player, UnitId attacker_id,
-    UnitId defender_id, Colony& colony )
-  : EuroAttackHandlerBase( ss, ts, player, attacker_id,
-                           defender_id ),
+    SS& ss, TS& ts, UnitId attacker_id, UnitId defender_id,
+    Colony& colony )
+  : EuroAttackHandlerBase( ss, ts, attacker_id, defender_id ),
     colony_( colony ) {}
 
 wait<bool> AttackColonyUndefendedHandler::confirm() {
@@ -638,11 +673,14 @@ wait<> AttackColonyUndefendedHandler::perform() {
   co_await ts_.planes.land_view().animate(
       anim_seq_for_undefended_colony( ss_, combat_ ) );
 
-  maybe<string> const attacker_msg =
+  OutcomeMessage const attacker_outcome_message =
       perform_euro_unit_combat_outcome(
-          ss_, ts_, active_player_, attacking_player_, attacker_,
+          ss_, ts_, attacker_,
+          Society::european{ .nation = defender_.nation() },
           combat_.attacker.outcome );
-  co_await show_outcome_messages( ts_, attacker_msg, nothing );
+  co_await show_outcome_messages_euro_only(
+      EuroOutcomeMsg{ .mind = attacker_mind_,
+                      .msg  = attacker_outcome_message } );
 
   if( combat_.winner == e_combat_winner::defender )
     // return since in this case the attacker lost, so nothing
@@ -700,10 +738,12 @@ wait<> AttackColonyUndefendedHandler::perform() {
   // conductor::play_request(
   //     ts_.rand, conductor::e_request::fife_drum_happy,
   //     conductor::e_request_probability::always );
-  co_await ts_.gui.message_box(
-      "The [{}] have captured the colony of [{}]!",
-      nation_obj( attacker_.nation() ).display_name,
-      colony_.name );
+  string const capture_msg =
+      fmt::format( "The [{}] have captured the colony of [{}]!",
+                   nation_obj( attacker_.nation() ).display_name,
+                   colony_.name );
+  co_await attacker_mind_.message_box( capture_msg );
+  co_await defender_mind_.message_box( capture_msg );
 
   // 4. Open colony view.
   e_colony_abandoned const abandoned =
@@ -738,13 +778,6 @@ struct NavalBattleHandler : public EuroAttackHandlerBase {
   CombatShipAttackShip combat_;
 };
 
-unique_ptr<CommandHandler> naval_battle_handler(
-    SS& ss, TS& ts, Player& player, UnitId attacker_id,
-    UnitId defender_id ) {
-  return make_unique<NavalBattleHandler>(
-      ss, ts, player, attacker_id, defender_id );
-}
-
 wait<bool> NavalBattleHandler::confirm() {
   if( !co_await Base::confirm() ) co_return false;
   combat_ = ts_.combat.ship_attack_ship( attacker_, defender_ );
@@ -762,12 +795,14 @@ wait<> NavalBattleHandler::perform() {
 
   if( !combat_.winner.has_value() ) {
     // Defender evaded.
-    co_await ts_.gui.message_box(
-        "{} [{}] evades {} [{}].",
-        nation_obj( defender_.nation() ).adjective,
-        defender_.desc().name,
-        nation_obj( attacker_.nation() ).adjective,
-        attacker_.desc().name );
+    string const evade_msg =
+        fmt::format( "{} [{}] evades {} [{}].",
+                     nation_obj( defender_.nation() ).adjective,
+                     defender_.desc().name,
+                     nation_obj( attacker_.nation() ).adjective,
+                     attacker_.desc().name );
+    co_await attacker_mind_.message_box( evade_msg );
+    co_await defender_mind_.message_box( evade_msg );
     // There shouldn't be anything else to do here; none of the
     // below should be relevant.
     co_return;
@@ -788,19 +823,10 @@ wait<> NavalBattleHandler::perform() {
       // the ship has units in cargo then they will be destroyed,
       // but that is handled further below. This section is just
       // for commodity capture.
-
-      // TODO: implementing this probably has to wait until we
-      // have some kind of AI interface where we can ask the
-      // player for which commodities they'd like to capture in a
-      // way that will work for both human and AI players, since
-      // the unit in question here (that is having its commodi-
-      // ties stolen) could be an AI player. It could also be
-      // that both players are human players, which would also
-      // pose a challenge, but we probably will end up supporting
-      // only one human player at a time, like the OG.
       //
-      // So for now we will just clear the cargo out of the ship
-      // if it has been damaged.
+      // TODO: add a method to IEuroMind to implement this for
+      // both human and AI players. Until then, we will just
+      // clear the cargo out of the ship if it has been damaged.
       for( auto [comm, slot] : loser.cargo().commodities() ) {
         Commodity const removed = rm_commodity_from_cargo(
             ss_.units, loser.id(), slot );
@@ -809,27 +835,29 @@ wait<> NavalBattleHandler::perform() {
     }
   }
 
-  maybe<string> const attacker_msg =
+  OutcomeMessage const attacker_outcome_msg =
       perform_naval_unit_combat_outcome(
-          ss_, ts_, active_player_, attacking_player_, attacker_,
-          combat_.attacker.outcome, defender_id_ );
-  maybe<string> const defender_msg =
+          ss_, ts_, attacker_, combat_.attacker.outcome,
+          defender_id_ );
+  OutcomeMessage const defender_outcome_msg =
       perform_naval_unit_combat_outcome(
-          ss_, ts_, active_player_, defending_player_, defender_,
-          combat_.defender.outcome, attacker_id_ );
+          ss_, ts_, defender_, combat_.defender.outcome,
+          attacker_id_ );
   // Messages must be shown after effects are made for both par-
   // ties, otherwise they will temporarily appear to visually re-
   // vert while the message box is up.
-  co_await show_outcome_messages( ts_, attacker_msg,
-                                  defender_msg );
+  co_await show_outcome_messages_euro_euro(
+      EuroOutcomeMsg{ .mind = attacker_mind_,
+                      .msg  = attacker_outcome_msg },
+      EuroOutcomeMsg{ .mind = defender_mind_,
+                      .msg  = defender_outcome_msg } );
 
-  // FIXME: hack. This is because the attacker may have moved to
-  // the defender's square, but the above functions that perform
-  // that movement don't do it interactively, so here we will
-  // rerun it interactively just in case e.g. the ship discovers
-  // the pacific ocean or another nation upon moving. Once we
-  // figure out how to deal with multiple european players then
-  // this needs to be improved.
+  // This is slightly hacky, but because the attacker may have
+  // moved to the defender's square, but the above functions that
+  // perform that movement don't do it interactively (see com-
+  // ments in that function for why), so here we will rerun it
+  // interactively just in case e.g. the ship discovers the pa-
+  // cific ocean or another nation upon moving.
   if( auto o = combat_.attacker.outcome
                    .get_if<EuroNavalUnitCombatOutcome::moved>();
       o.has_value() ) {
@@ -863,13 +891,6 @@ struct EuroAttackHandler : public EuroAttackHandlerBase {
   CombatEuroAttackEuro combat_ = {};
 };
 
-unique_ptr<CommandHandler> attack_euro_land_handler(
-    SS& ss, TS& ts, Player& player, UnitId attacker_id,
-    UnitId defender_id ) {
-  return make_unique<EuroAttackHandler>(
-      ss, ts, player, attacker_id, defender_id );
-}
-
 wait<bool> EuroAttackHandler::confirm() {
   if( !co_await Base::confirm() ) co_return false;
   combat_ = ts_.combat.euro_attack_euro( attacker_, defender_ );
@@ -885,19 +906,24 @@ wait<> EuroAttackHandler::animate() const {
 
 wait<> EuroAttackHandler::perform() {
   co_await Base::perform();
-  maybe<string> const attacker_msg =
+  OutcomeMessage const attacker_outcome_msg =
       perform_euro_unit_combat_outcome(
-          ss_, ts_, active_player_, attacking_player_, attacker_,
+          ss_, ts_, attacker_,
+          Society::european{ .nation = defender_.nation() },
           combat_.attacker.outcome );
-  maybe<string> const defender_msg =
+  OutcomeMessage const defender_outcome_msg =
       perform_euro_unit_combat_outcome(
-          ss_, ts_, active_player_, defending_player_, defender_,
+          ss_, ts_, defender_,
+          Society::european{ .nation = attacker_.nation() },
           combat_.defender.outcome );
   // Messages must be shown after effects are made for both par-
   // ties, otherwise they will temporarily appear to visually re-
   // vert while the message box is up.
-  co_await show_outcome_messages( ts_, attacker_msg,
-                                  defender_msg );
+  co_await show_outcome_messages_euro_euro(
+      EuroOutcomeMsg{ .mind = attacker_mind_,
+                      .msg  = attacker_outcome_msg },
+      EuroOutcomeMsg{ .mind = defender_mind_,
+                      .msg  = defender_outcome_msg } );
 }
 
 /****************************************************************
@@ -907,11 +933,6 @@ struct AttackNativeUnitHandler : public NativeAttackHandlerBase {
   using Base = NativeAttackHandlerBase;
 
   using Base::Base;
-
-  AttackNativeUnitHandler( SS& ss, TS& ts, Player& player,
-                           UnitId       attacker_id,
-                           NativeUnitId defender_id,
-                           e_direction  direction );
 
   // Implement CommandHandler.
   wait<bool> confirm() override;
@@ -926,13 +947,6 @@ struct AttackNativeUnitHandler : public NativeAttackHandlerBase {
   CombatEuroAttackBrave combat_;
 };
 
-unique_ptr<CommandHandler> attack_native_unit_handler(
-    SS& ss, TS& ts, Player& player, UnitId attacker_id,
-    NativeUnitId defender_id ) {
-  return make_unique<AttackNativeUnitHandler>(
-      ss, ts, player, attacker_id, defender_id );
-}
-
 // Returns true if the move is allowed.
 wait<bool> AttackNativeUnitHandler::confirm() {
   if( !co_await Base::confirm() ) co_return false;
@@ -940,17 +954,19 @@ wait<bool> AttackNativeUnitHandler::confirm() {
   TribeRelationship& relationship =
       defender_tribe_.relationship[attacker_.nation()];
   if( !relationship.nation_has_attacked_tribe ) {
-    YesNoConfig const config{
-        .msg = fmt::format(
-            "Shall we attack the [{}]?",
-            ts_.gui.identifier_to_display_name(
-                fmt::to_string( defender_tribe_.type ) ) ),
-        .yes_label      = "Attack",
-        .no_label       = "Cancel",
-        .no_comes_first = true };
-    maybe<ui::e_confirm> const proceed =
-        co_await ts_.gui.optional_yes_no( config );
-    if( proceed != ui::e_confirm::yes ) co_return false;
+    if( attacker_human_ ) {
+      YesNoConfig const config{
+          .msg = fmt::format(
+              "Shall we attack the [{}]?",
+              ts_.gui.identifier_to_display_name(
+                  fmt::to_string( defender_tribe_.type ) ) ),
+          .yes_label      = "Attack",
+          .no_label       = "Cancel",
+          .no_comes_first = true };
+      maybe<ui::e_confirm> const proceed =
+          co_await ts_.gui.optional_yes_no( config );
+      if( proceed != ui::e_confirm::yes ) co_return false;
+    }
     relationship.nation_has_attacked_tribe = true;
   }
 
@@ -977,18 +993,21 @@ wait<> AttackNativeUnitHandler::perform() {
           ss_.units.dwelling_for( defender_id_ ) ),
       relationship );
 
-  maybe<string> const attacker_msg =
+  OutcomeMessage const attacker_outcome_msg =
       perform_euro_unit_combat_outcome(
-          ss_, ts_, active_player_, attacking_player_, attacker_,
+          ss_, ts_, attacker_,
+          Society::native{ .tribe = defender_tribe_.type },
           combat_.attacker.outcome );
-  maybe<string> const brave_msg =
+  OutcomeMessage const brave_outcome_msg =
       perform_native_unit_combat_outcome(
-          ss_, active_player_, defender_,
-          combat_.defender.outcome );
+          ss_, defender_, combat_.defender.outcome );
   // Messages must be shown after effects are made for both par-
   // ties, otherwise they will temporarily appear to visually re-
   // vert while the message box is up.
-  co_await show_outcome_messages( ts_, attacker_msg, brave_msg );
+  co_await show_outcome_messages_euro_native(
+      EuroOutcomeMsg{ .mind = attacker_mind_,
+                      .msg  = attacker_outcome_msg },
+      NativeOutcomeMsg{ .msg = brave_outcome_msg } );
 }
 
 /****************************************************************
@@ -997,8 +1016,7 @@ wait<> AttackNativeUnitHandler::perform() {
 struct AttackDwellingHandler : public AttackHandlerBase {
   using Base = AttackHandlerBase;
 
-  AttackDwellingHandler( SS& ss, TS& ts, Player& player,
-                         UnitId     attacker_id,
+  AttackDwellingHandler( SS& ss, TS& ts, UnitId attacker_id,
                          DwellingId defender_id );
 
   // Implement CommandHandler.
@@ -1032,23 +1050,16 @@ struct AttackDwellingHandler : public AttackHandlerBase {
   maybe<UnitId> native_convert_;
 };
 
-unique_ptr<CommandHandler> attack_dwelling_handler(
-    SS& ss, TS& ts, Player& player, UnitId attacker_id,
-    DwellingId dwelling_id ) {
-  return make_unique<AttackDwellingHandler>(
-      ss, ts, player, attacker_id, dwelling_id );
-}
-
 AttackDwellingHandler::AttackDwellingHandler(
-    SS& ss, TS& ts, Player& player, UnitId attacker_id,
-    DwellingId dwelling_id )
+    SS& ss, TS& ts, UnitId attacker_id, DwellingId dwelling_id )
   : AttackHandlerBase(
-        ss, ts, player, attacker_id,
+        ss, ts, attacker_id,
         direction_of_attack( ss, attacker_id, dwelling_id ) ),
     dwelling_id_( dwelling_id ),
     dwelling_( ss.natives.dwelling_for( dwelling_id ) ),
     tribe_( ss.natives.tribe_for( dwelling_.id ) ),
-    relationship_( tribe_.relationship[player.nation] ) {}
+    relationship_(
+        tribe_.relationship[attacking_player_.nation] ) {}
 
 // Returns true if the move is allowed.
 wait<bool> AttackDwellingHandler::confirm() {
@@ -1120,9 +1131,9 @@ wait<> AttackDwellingHandler::produce_convert() {
           convert_id, reverse_direction( direction_ ) );
   wait<> appear_and_slide_animation =
       ts_.planes.land_view().animate( appear_and_slide_seq );
-  wait<> box = ts_.gui.message_box(
-      "[{}] citizens frightened in combat rush to the "
-      "[{} mission] as [converts]!",
+  wait<> box = attacker_mind_.message_box(
+      "[{}] citizens frightened in combat rush to the [{} "
+      "mission] as [converts]!",
       tribe_name_adjective, nation_name_adjective );
   co_await std::move( appear_and_slide_animation );
   // Non-interactive is OK here because the attacker is already
@@ -1195,7 +1206,7 @@ wait<> AttackDwellingHandler::perform() {
     // continue to show a cross. It seems reasonable to remove
     // the crosses from the fogged ones because we are giving the
     // player that information.
-    co_await ts_.gui.message_box(
+    co_await attacker_mind_.message_box(
         "The [{}] revolt against [{}] missions! "
         "All {} missionaries eliminated!",
         tribe_name, nation_name_adjective,
@@ -1212,11 +1223,13 @@ wait<> AttackDwellingHandler::perform() {
               anim_seq_for_attack_brave( ss_, combat );
           co_await ts_.planes.land_view().animate( seq );
         } );
-    maybe<string> const attacker_msg =
+    OutcomeMessage const attacker_outcome_msg =
         perform_euro_unit_combat_outcome(
-            ss_, ts_, active_player_, attacking_player_,
-            attacker_, combat_.attacker.outcome );
-    co_await show_outcome_messages( ts_, attacker_msg, nothing );
+            ss_, ts_, attacker_,
+            Society::native{ .tribe = tribe_.type },
+            combat_.attacker.outcome );
+    co_await show_outcome_messages_euro_only( EuroOutcomeMsg{
+        .mind = attacker_mind_, .msg = attacker_outcome_msg } );
     co_return;
   }
 
@@ -1233,11 +1246,13 @@ wait<> AttackDwellingHandler::perform() {
               anim_seq_for_attack_brave( ss_, combat );
           co_await ts_.planes.land_view().animate( seq );
         } );
-    maybe<string> const attacker_msg =
+    OutcomeMessage const attacker_outcome_msg =
         perform_euro_unit_combat_outcome(
-            ss_, ts_, active_player_, attacking_player_,
-            attacker_, combat_.attacker.outcome );
-    co_await show_outcome_messages( ts_, attacker_msg, nothing );
+            ss_, ts_, attacker_,
+            Society::native{ .tribe = tribe_.type },
+            combat_.attacker.outcome );
+    co_await show_outcome_messages_euro_only( EuroOutcomeMsg{
+        .mind = attacker_mind_, .msg = attacker_outcome_msg } );
     --dwelling_.population;
     CHECK_GT( dwelling_.population, 0 );
     if( population_decrease->convert_produced )
@@ -1298,11 +1313,13 @@ wait<> AttackDwellingHandler::perform() {
   // under the dwelling.
   bool const was_capital = dwelling_.is_capital;
   destroy_dwelling( ss_, ts_, dwelling_id_ );
-  maybe<string> const attacker_msg =
+  OutcomeMessage const attacker_outcome_msg =
       perform_euro_unit_combat_outcome(
-          ss_, ts_, active_player_, attacking_player_, attacker_,
+          ss_, ts_, attacker_,
+          Society::native{ .tribe = tribe_.type },
           combat_.attacker.outcome );
-  co_await show_outcome_messages( ts_, attacker_msg, nothing );
+  co_await show_outcome_messages_euro_only( EuroOutcomeMsg{
+      .mind = attacker_mind_, .msg = attacker_outcome_msg } );
 
   // Check if convert produced.
   if( destruction.convert_produced ) co_await produce_convert();
@@ -1323,7 +1340,7 @@ wait<> AttackDwellingHandler::perform() {
         " Treasure worth [{}] has been recovered! It will take "
         "a [Galleon] to transport this treasure back to [{}].",
         *destruction.treasure_amount, nation_harbor_name );
-  co_await ts_.gui.message_box( msg );
+  co_await attacker_mind_.message_box( msg );
 
   if( destruction.treasure_amount.has_value() ) {
     UNWRAP_CHECK( treasure_comp,
@@ -1350,7 +1367,7 @@ wait<> AttackDwellingHandler::perform() {
   }
 
   if( was_capital && !destruction.tribe_destroyed.has_value() )
-    co_await ts_.gui.message_box(
+    co_await attacker_mind_.message_box(
         "The [{}] bow before the might of the [{}]!", tribe_name,
         nation_name );
 
@@ -1367,6 +1384,44 @@ vector<UnitId> AttackDwellingHandler::units_to_prioritize()
     res.push_back( *native_convert_ );
   if( treasure_.has_value() ) res.push_back( *treasure_ );
   return res;
+}
+
+} // namespace
+
+/****************************************************************
+** Public API
+*****************************************************************/
+unique_ptr<CommandHandler> attack_euro_land_handler(
+    SS& ss, TS& ts, UnitId attacker_id, UnitId defender_id ) {
+  return make_unique<EuroAttackHandler>( ss, ts, attacker_id,
+                                         defender_id );
+}
+
+unique_ptr<CommandHandler> naval_battle_handler(
+    SS& ss, TS& ts, UnitId attacker_id, UnitId defender_id ) {
+  return make_unique<NavalBattleHandler>( ss, ts, attacker_id,
+                                          defender_id );
+}
+
+unique_ptr<CommandHandler> attack_colony_undefended_handler(
+    SS& ss, TS& ts, UnitId attacker_id, UnitId defender_id,
+    Colony& colony ) {
+  return make_unique<AttackColonyUndefendedHandler>(
+      ss, ts, attacker_id, defender_id, colony );
+}
+
+unique_ptr<CommandHandler> attack_native_unit_handler(
+    SS& ss, TS& ts, UnitId attacker_id,
+    NativeUnitId defender_id ) {
+  return make_unique<AttackNativeUnitHandler>(
+      ss, ts, attacker_id, defender_id );
+}
+
+unique_ptr<CommandHandler> attack_dwelling_handler(
+    SS& ss, TS& ts, UnitId attacker_id,
+    DwellingId dwelling_id ) {
+  return make_unique<AttackDwellingHandler>( ss, ts, attacker_id,
+                                             dwelling_id );
 }
 
 } // namespace rn

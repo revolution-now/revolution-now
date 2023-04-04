@@ -17,6 +17,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocks/icolony-viewer.hpp"
+#include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/land-view-plane.hpp"
 
@@ -416,7 +417,7 @@ TEST_CASE(
   unique_ptr<CommandHandler> handler =
       handle_command( W.ss(), W.ts(), W.french(), colonist.id(),
                       command::move{ .d = e_direction::se } );
-  W.gui()
+  W.euro_mind( W.default_nation() )
       .EXPECT__message_box(
           "We cannot attack a land unit from a ship." )
       .returns<monostate>();

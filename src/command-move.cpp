@@ -1095,8 +1095,8 @@ struct NativeDwellingHandler : public CommandHandler {
       // with this new handler.
       NativeUnitId const defender_id =
           select_native_unit_defender( ss_, move_dst_ );
-      return attack_native_unit_handler( ss_, ts_, player_,
-                                         unit_id_, defender_id );
+      return attack_native_unit_handler( ss_, ts_, unit_id_,
+                                         defender_id );
     }
 
     if( outcome_
@@ -1108,8 +1108,8 @@ struct NativeDwellingHandler : public CommandHandler {
       relationship.nation_has_attacked_tribe = true;
       // Delegate: the order handling process will be restarted
       // with this new handler.
-      return attack_dwelling_handler( ss_, ts_, player_,
-                                      unit_id_, dwelling_.id );
+      return attack_dwelling_handler( ss_, ts_, unit_id_,
+                                      dwelling_.id );
     }
 
     return nullptr; // Continue with this handler.
@@ -1238,8 +1238,8 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
     // Must be attacking a brave.
     NativeUnitId const defender_id =
         select_native_unit_defender( ss, dst );
-    return attack_native_unit_handler(
-        ss, ts, player, attacker_id, defender_id );
+    return attack_native_unit_handler( ss, ts, attacker_id,
+                                       defender_id );
   }
 
   // Must be an attack (or an attempted attack) on a foreign eu-
@@ -1252,11 +1252,11 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
         select_colony_defender( ss, colony );
     Unit const& defender = ss.units.unit_for( defender_id );
     if( is_military_unit( defender.desc().type ) )
-      return attack_euro_land_handler(
-          ss, ts, player, attacker_id, defender_id );
+      return attack_euro_land_handler( ss, ts, attacker_id,
+                                       defender_id );
     else
       return attack_colony_undefended_handler(
-          ss, ts, player, attacker_id, defender_id, colony );
+          ss, ts, attacker_id, defender_id, colony );
   }
 
   UnitId const defender_id =
@@ -1274,13 +1274,13 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
     // before the attack, it will ask to sail the high seas. How-
     // ever, this is likely a bug, since it does not allow this
     // for non-war ships, so we don't replicate it here.
-    return naval_battle_handler( ss, ts, player, attacker_id,
+    return naval_battle_handler( ss, ts, attacker_id,
                                  defender_id );
 
   // We are attacking a non-ship foreign european unit either
   // outside of a colony or at a colony's gate.
   CHECK( !ss.units.unit_for( defender_id ).desc().ship );
-  return attack_euro_land_handler( ss, ts, player, attacker_id,
+  return attack_euro_land_handler( ss, ts, attacker_id,
                                    defender_id );
 }
 
