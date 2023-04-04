@@ -11,6 +11,7 @@
 #include "image.hpp"
 
 // base
+#include "base/cc-specific.hpp"
 #include "base/error.hpp"
 
 // stb
@@ -18,10 +19,17 @@
 #  pragma clang diagnostic push
 #  pragma clang diagnostic ignored "-Weverything"
 #endif
+#ifdef COMPILER_GCC
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#endif
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#ifdef COMPILER_GCC
+#  pragma GCC diagnostic pop
+#endif
 #ifdef __clang__
 #  pragma clang diagnostic pop
 #endif
