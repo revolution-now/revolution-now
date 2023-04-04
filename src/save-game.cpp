@@ -14,7 +14,6 @@
 #include "igui.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
-#include "roles.hpp"
 #include "ts.hpp"
 
 // ss
@@ -209,13 +208,18 @@ wait<maybe<int>> select_slot( TS& ts, bool include_autosaves,
 string construct_rcl_title( SSConst const& ss ) {
   string const difficulty = base::capitalize_initials(
       refl::enum_value_name( ss.root.settings.difficulty ) );
-  string const          name = "SomeName"; // FIXME: temporary
-  maybe<e_nation> const active =
-      player_for_role( ss, e_player_role::active );
+  string const    name = "SomeName"; // FIXME: temporary
+  maybe<e_nation> human;
+  // Use the first human nation.
+  for( e_nation nation : refl::enum_values<e_nation> ) {
+    if( ss.players.humans[nation] ) {
+      human = nation;
+      break;
+    }
+  }
   string const nation_name =
-      active.has_value()
-          ? config_nation.nations[*active].adjective
-          : "(AI only)";
+      human.has_value() ? config_nation.nations[*human].adjective
+                        : "(AI only)";
   TurnState const& turn_state = ss.root.turn;
   string const     time_point = fmt::format(
       "{} {}",
