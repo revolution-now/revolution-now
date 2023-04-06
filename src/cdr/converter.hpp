@@ -19,7 +19,7 @@
 #include "base/valid.hpp"
 
 // C++ standard library
-#include <unordered_set>
+#include <set>
 
 namespace cdr {
 
@@ -110,7 +110,7 @@ struct converter {
   template<FromCanonical T>
   result<std::remove_const_t<T>> from_field(
       table const& tbl, std::string const& key,
-      std::unordered_set<std::string>& used_keys ) {
+      std::set<std::string>& used_keys ) {
     used_keys.insert( key );
     return from_field_no_tracking<T>( tbl, key );
   }
@@ -161,8 +161,7 @@ struct converter {
   // Call this and check the result when finished calling
   // from_field on the fields of a record object.
   base::valid_or<error> end_field_tracking(
-      table const&                           tbl,
-      std::unordered_set<std::string> const& used_keys );
+      table const& tbl, std::set<std::string> const& used_keys );
 
   template<ToCanonical T>
   void to_field( table& tbl, std::string const& key,

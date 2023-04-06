@@ -112,7 +112,7 @@ cdr::result<Matrix<T>> from_canonical( cdr::converter&   conv,
                                        cdr::value const& v,
                                        cdr::tag_t<Matrix<T>> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  std::unordered_set<std::string> used_keys;
+  std::set<std::string> used_keys;
   UNWRAP_RETURN(
       has_coords,
       conv.from_field<bool>( tbl, "has_coords", used_keys ) );

@@ -37,7 +37,7 @@ base::valid_or<error> converter::ensure_table_size(
 }
 
 base::valid_or<error> converter::end_field_tracking(
-    table const& tbl, unordered_set<string> const& used_keys ) {
+    table const& tbl, set<string> const& used_keys ) {
   if( options_.allow_unrecognized_fields ) return base::valid;
   for( auto const& [k, v] : tbl )
     if( !used_keys.contains( k ) )

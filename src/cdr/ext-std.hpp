@@ -22,6 +22,7 @@
 #include <deque>
 #include <queue>
 #include <ranges>
+#include <set>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -101,7 +102,7 @@ result<std::pair<Fst, Snd>> from_canonical(
     converter& conv, value const& v,
     tag_t<std::pair<Fst, Snd>> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<table>( v ) );
-  std::unordered_set<std::string> used_keys;
+  std::set<std::string> used_keys;
   UNWRAP_RETURN( fst,
                  conv.from_field<Fst>( tbl, "key", used_keys ) );
   UNWRAP_RETURN( snd,

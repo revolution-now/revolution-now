@@ -21,8 +21,8 @@
 #include "base/meta.hpp"
 
 // C++ standard library
+#include <set>
 #include <string>
-#include <unordered_set>
 
 namespace refl {
 
@@ -108,8 +108,8 @@ result<S> from_canonical( converter& conv, value const& v,
       std::tuple_size_v<decltype( Tr::fields )>;
   S res{};
   UNWRAP_RETURN( tbl, conv.ensure_type<table>( v ) );
-  std::unordered_set<std::string> used_keys;
-  base::maybe<error>              err;
+  std::set<std::string> used_keys;
+  base::maybe<error>    err;
   FOR_CONSTEXPR_IDX( Idx, kNumFields ) {
     CHECK( !err.has_value() );
     auto& field_desc = std::get<Idx>( Tr::fields );

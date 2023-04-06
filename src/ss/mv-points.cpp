@@ -24,7 +24,7 @@
 #include "base/fmt.hpp"
 
 // C++ standard library
-#include <unordered_set>
+#include <set>
 
 using namespace std;
 
@@ -115,7 +115,7 @@ cdr::result<MovementPoints> from_canonical(
   }
   // Assume table.
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  std::unordered_set<std::string> used_keys;
+  std::set<std::string> used_keys;
   UNWRAP_RETURN(
       n, conv.from_field<int>( tbl, "atoms", used_keys ) );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );

@@ -26,7 +26,7 @@
 
 // C++ standard library
 #include <memory>
-#include <unordered_set>
+#include <set>
 #include <vector>
 
 namespace refl {
@@ -145,8 +145,8 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
       cdr::converter& conv, cdr::value const& v,
       cdr::tag_t<enum_map> ) {
     UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-    std::unordered_set<std::string> used_keys;
-    enum_map                        res;
+    std::set<std::string> used_keys;
+    enum_map              res;
     // Here we can use from_field to allow the converter to con-
     // trol default field value behavior because, for this data
     // structure, we know the complete set of possible keys and

@@ -67,8 +67,8 @@ value to_canonical( converter& conv, Address const& o,
 result<Address> from_canonical( converter& conv, value const& v,
                                 tag_t<Address> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<table>( v ) );
-  Address               res{};
-  unordered_set<string> used_keys;
+  Address     res{};
+  set<string> used_keys;
   CONV_FROM_FIELD( street_number );
   CONV_FROM_FIELD( state );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
@@ -85,9 +85,12 @@ enum class e_pet { cat, dog, frog };
 
 value to_canonical( converter&, e_pet const& o, tag_t<e_pet> ) {
   switch( o ) {
-    case e_pet::cat: return "cat";
-    case e_pet::dog: return "dog";
-    case e_pet::frog: return "frog";
+    case e_pet::cat:
+      return "cat";
+    case e_pet::dog:
+      return "dog";
+    case e_pet::frog:
+      return "frog";
   }
 }
 
@@ -103,9 +106,15 @@ result<e_pet> from_canonical( converter& conv, value const& v,
 
 void to_str( e_pet const& o, string& out, base::ADL_t ) {
   switch( o ) {
-    case e_pet::cat: out += "cat"; break;
-    case e_pet::dog: out += "dog"; break;
-    case e_pet::frog: out += "frog"; break;
+    case e_pet::cat:
+      out += "cat";
+      break;
+    case e_pet::dog:
+      out += "dog";
+      break;
+    case e_pet::frog:
+      out += "frog";
+      break;
   }
 }
 
@@ -146,8 +155,8 @@ value to_canonical( converter& conv, Person const& o,
 result<Person> from_canonical( converter& conv, value const& v,
                                tag_t<Person> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<table>( v ) );
-  Person                res{};
-  unordered_set<string> used_keys;
+  Person      res{};
+  set<string> used_keys;
   CONV_FROM_FIELD( name );
   CONV_FROM_FIELD( height );
   CONV_FROM_FIELD( male );
@@ -190,8 +199,8 @@ value to_canonical( converter& conv, Rolodex const& o,
 result<Rolodex> from_canonical( converter& conv, value const& v,
                                 tag_t<Rolodex> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<table>( v ) );
-  Rolodex               res{};
-  unordered_set<string> used_keys;
+  Rolodex     res{};
+  set<string> used_keys;
   CONV_FROM_FIELD( self );
   CONV_FROM_FIELD( updated );
   CONV_FROM_FIELD( contacts );
