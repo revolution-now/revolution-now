@@ -17,6 +17,9 @@
 #include "refl/ext.hpp"
 #include "refl/to-str.hpp"
 
+// C++ standard library
+#include <unordered_set>
+
 using namespace std;
 
 namespace rn {

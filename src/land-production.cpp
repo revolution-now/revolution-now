@@ -23,6 +23,9 @@
 #include "config/production.rds.hpp"
 #include "config/unit-type.hpp"
 
+// C++ standard library
+#include <unordered_set>
+
 using namespace std;
 
 namespace rn {

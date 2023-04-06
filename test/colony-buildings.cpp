@@ -22,6 +22,9 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
+// C++ standard library
+#include <unordered_set>
+
 namespace rn {
 namespace {
 

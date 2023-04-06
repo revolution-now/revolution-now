@@ -20,6 +20,9 @@
 // gfx
 #include "gfx/coord.hpp"
 
+// C++ standard library
+#include <unordered_set>
+
 namespace rn {
 
 struct Player;

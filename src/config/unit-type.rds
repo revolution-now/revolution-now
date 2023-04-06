@@ -22,6 +22,9 @@ include "gfx/coord.rds.hpp"
 # refl
 include "refl/enum-map.hpp"
 
+# C++ standard library
+include "<unordered_set>"
+
 namespace "rn"
 
 enum.e_unit_colonist {

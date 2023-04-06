@@ -24,6 +24,9 @@
 // render
 #include "render/renderer.hpp"
 
+// C++ standard library
+#include <unordered_set>
+
 using namespace std;
 
 namespace rn {
