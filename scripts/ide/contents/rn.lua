@@ -7,7 +7,6 @@ return {
   'attack-handlers',
   'turn',
   'native-turn',
-  'on-map',
   'inative-mind',
   'ai-native-mind',
   'ieuro-mind',
