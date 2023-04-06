@@ -471,6 +471,16 @@ Dwelling& World::add_dwelling( Coord where, e_tribe tribe ) {
   return natives().dwelling_for( id );
 }
 
+pair<DwellingId, NativeUnitId> World::add_dwelling_and_brave(
+    Coord where, e_tribe tribe,
+    maybe<e_native_unit_type> type ) {
+  Dwelling const&   dwelling = add_dwelling( where, tribe );
+  NativeUnit const& unit     = add_native_unit_on_map(
+      type.value_or( e_native_unit_type::brave ), where,
+      dwelling.id );
+  return { dwelling.id, unit.id };
+}
+
 Tribe& World::add_tribe( e_tribe tribe ) {
   return natives().create_or_add_tribe( tribe );
 }
