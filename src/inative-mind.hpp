@@ -20,7 +20,7 @@
 #include "ss/unit-id.hpp"
 
 // C++ standard library
-#include <unordered_set>
+#include <set>
 
 namespace rn {
 
@@ -34,7 +34,7 @@ struct INativeMind {
   // be non-empty and contain only units that have some movement
   // points remaining.
   virtual NativeUnitId select_unit(
-      std::unordered_set<NativeUnitId> const& units ) = 0;
+      std::set<NativeUnitId> const& units ) = 0;
 
   // Give a command to a unit.
   virtual NativeUnitCommand command_for(
@@ -49,7 +49,7 @@ struct NoopNativeMind final : INativeMind {
 
   // Implement INativeMind.
   NativeUnitId select_unit(
-      std::unordered_set<NativeUnitId> const& units ) override;
+      std::set<NativeUnitId> const& units ) override;
 
   // Implement INativeMind.
   NativeUnitCommand command_for(

@@ -36,7 +36,7 @@ AiNativeMind::AiNativeMind( SS& ss, IRand& rand )
 
 // Implement INativeMind.
 NativeUnitId AiNativeMind::select_unit(
-    unordered_set<NativeUnitId> const& units ) {
+    set<NativeUnitId> const& units ) {
   CHECK( !units.empty() );
   return *units.begin();
 }

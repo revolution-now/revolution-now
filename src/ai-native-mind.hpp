@@ -30,7 +30,7 @@ struct AiNativeMind : INativeMind {
 
   // Implement INativeMind.
   NativeUnitId select_unit(
-      std::unordered_set<NativeUnitId> const& units ) override;
+      std::set<NativeUnitId> const& units ) override;
 
   // Implement INativeMind.
   NativeUnitCommand command_for(

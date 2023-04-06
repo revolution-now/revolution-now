@@ -19,7 +19,7 @@ namespace rn {
 ** NoopNativeMind
 *****************************************************************/
 NativeUnitId NoopNativeMind::select_unit(
-    std::unordered_set<NativeUnitId> const& units ) {
+    std::set<NativeUnitId> const& units ) {
   CHECK( !units.empty() );
   return *units.begin();
 }

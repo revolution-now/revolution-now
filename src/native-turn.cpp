@@ -46,6 +46,9 @@
 // base
 #include "base/timer.hpp"
 
+// C++ standard library
+#include <map>
+
 using namespace std;
 
 namespace rn {
@@ -115,7 +118,7 @@ wait<> handle_native_unit_command(
 }
 
 wait<> tribe_turn( SS& ss, TS& ts, INativeMind& mind,
-                   unordered_set<NativeUnitId>& units ) {
+                   set<NativeUnitId>& units ) {
   while( !units.empty() ) {
     NativeUnitId const native_unit_id =
         mind.select_unit( as_const( units ) );
@@ -162,8 +165,7 @@ wait<> natives_turn( SS& ss, TS& ts ) {
   // we've already evolved the dwellings. However, native units
   // can be lost.
   auto const& native_units = ss.units.native_all();
-  unordered_map<e_tribe, unordered_set<NativeUnitId>>
-      tribe_to_units;
+  map<e_tribe, set<NativeUnitId>> tribe_to_units;
 
   timer.checkpoint( "gathering units" );
   for( auto [unit_id, p_state] : native_units ) {

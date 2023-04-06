@@ -29,7 +29,8 @@ namespace rn {
 *****************************************************************/
 struct MockINativeMind : INativeMind {
   MOCK_METHOD( NativeUnitId, select_unit,
-               (std::unordered_set<NativeUnitId> const&), () );
+               (std::set<NativeUnitId> const&), () );
+
   MOCK_METHOD( NativeUnitCommand, command_for, ( NativeUnitId ),
                () );
 };
