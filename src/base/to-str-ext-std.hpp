@@ -21,6 +21,7 @@
 #include <deque>
 #include <map>
 #include <queue>
+#include <set>
 #include <source_location>
 #include <span>
 #include <string>
@@ -110,17 +111,28 @@ void to_str( std::map<K, V> const& o, std::string& out, ADL_t ) {
 };
 
 // {fmt} formatter for formatting unordered_sets whose contained
-// {fmt} formatter for formatting unordered_sets whose contained
 // types are formattable.
 template<Show T>
 void to_str( std::unordered_set<T> const& o, std::string& out,
              ADL_t ) {
-  out += "[";
+  out += "{";
   for( auto const& elem : o ) out += fmt::format( "{},", elem );
   if( !o.empty() )
     // Remove trailing comma.
     out.resize( out.size() - 1 );
-  out += "]";
+  out += "}";
+};
+
+// {fmt} formatter for formatting sets whose contained types are
+// formattable.
+template<Show T>
+void to_str( std::set<T> const& o, std::string& out, ADL_t ) {
+  out += "{";
+  for( auto const& elem : o ) out += fmt::format( "{},", elem );
+  if( !o.empty() )
+    // Remove trailing comma.
+    out.resize( out.size() - 1 );
+  out += "}";
 };
 
 // {fmt} formatter for formatting reference wrappers whose
