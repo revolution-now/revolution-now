@@ -9,7 +9,7 @@ die() {
   exit 1
 }
 
-dot_gen="$(realpath scripts/header-dependency-gen.lua)"
+dot_gen="$(realpath tools/header-dependency-gen.lua)"
 
 [[ ! -z "$start" ]] || \
   die "first argument must be starting file"

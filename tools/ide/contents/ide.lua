@@ -8,14 +8,14 @@ return
 -----------------------------------------------------------------
 vsplit {
   hsplit {
-    'scripts/ide/contents/ide.lua',
-    'scripts/ide/contents/rn.lua',
-    'scripts/ide/util.lua',
+    'tools/ide/contents/ide.lua',
+    'tools/ide/contents/rn.lua',
+    'tools/ide/util.lua',
   },
-  'scripts/ide/edit-rn.lua',
-  'scripts/ide/layout.lua',
+  'tools/ide/edit-rn.lua',
+  'tools/ide/layout.lua',
   hsplit {
-    'scripts/ide/module-cpp.lua',
-    'scripts/ide/win.lua',
+    'tools/ide/module-cpp.lua',
+    'tools/ide/win.lua',
   }
 }

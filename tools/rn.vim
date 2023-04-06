@@ -1,9 +1,6 @@
 " Revolution-Now-specific vim configuration.
-set sw=2
-set shiftwidth=2
-set tabstop=2
 
-" Sourcing other vim scripts in currnet folder.
+" Sourcing other vim scripts in current folder.
 " 1: Get the absolute path of this script.
 " 2: Resolve all symbolic links.
 " 3: Get the folder of the resolved absolute file.
@@ -24,6 +21,10 @@ au BufNewFile,BufRead *design.txt set syntax=cpp11
 au BufNewFile,BufRead *.jsav set syntax=yaml
 au BufNewFile,BufRead *.rds set filetype=rds
 au BufNewFile,BufRead *.rcl set syntax=yaml
+
+" Our version of Lua has a `continue` keyword which normal Lua
+" does not.
+syntax keyword luaStatement continue
 
 function! MyTabLine()
   let s = ''
@@ -117,26 +118,8 @@ autocmd BufWritePre *.lua       :silent! call MaybeFormat( 'LuaFormatAll' )
 " reason we don't just put a .ycm_extra_conf.py in the root folder
 " (which YCM would then find on its own without our help) is that we
 " want to keep the folder structure organized with all scripts in the
-" scripts folder.
+" tools folder.
 let g:ycm_global_ycm_extra_conf = s:this_folder . '/ycm_extra_conf.py'
 
 " Tell the vim-templates function where to find the templates.
 let g:tmpl_search_paths = [s:this_folder . '/templates']
-
-function! TmuxBuild( target )
-  let module = ''
-  if a:target == 'o'
-    let module = @%
-  endif
-  let cmd = ":silent !tmux split-window -f -p 10 -vb "
-  let cmd = cmd . '~/dev/rn/scripts/vim-build.sh ' . a:target
-  let cmd = cmd . ' ' . module
-  exec cmd
-  :silent !tmux select-pane -D
-endfunction
-
-" Build command
-" nnoremap <F5>  :silent call TmuxBuild( 'run' )<CR>
-nnoremap <F6>  :silent call TmuxBuild( 'all' )<CR>
-nnoremap <F9>  :silent call TmuxBuild( 'test' )<CR>
-nnoremap <F10> :silent call TmuxBuild( 'o' )<CR>

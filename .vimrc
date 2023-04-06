@@ -1,1 +1,1 @@
-scripts/rn.vim
+tools/rn.vim

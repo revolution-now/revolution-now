@@ -6,4 +6,4 @@ if (( $# > 0 )); then
   what=$1
 fi
 
-nvim -S .vimrc -c 'lua loadfile( "scripts/run-ide.lua" )( "'$what'" )'
+nvim -S .vimrc -c 'lua loadfile( "tools/run-ide.lua" )( "'$what'" )'
