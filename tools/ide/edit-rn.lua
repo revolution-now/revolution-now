@@ -42,12 +42,6 @@ local function open_module( stem )
   return layout.open( module_cpp.create( stem ) )
 end
 
-local function open_module_with_input()
-  local stem = util.input( 'Enter name: ' )
-  if stem == nil or #stem == 0 then return end
-  open_module( stem )
-end
-
 -----------------------------------------------------------------
 -- Tabs.
 -----------------------------------------------------------------
@@ -61,23 +55,7 @@ local function create_tabs()
 end
 
 -- This function contains the logic that determines the name of a
--- tab given the list of buffers that are currently visible in
--- it.
---
--- buffer_list will be a list of buffer tables, e.g.:
---
---   buffers = {
---     1: {
---       buffer_idx = 123,
---       path = "/some/path/to/file.cpp"
---     },
---     2: {
---       buffer_idx = 567,
---       path = "/another/file.hpp"
---     }
---     ...
---   }
---
+-- tab given the list of buffers that are visible in it.
 local function tab_namer( buffer_list )
   for _, buffer in ipairs( buffer_list ) do
     local path = buffer.path
@@ -100,9 +78,6 @@ local function tab_namer( buffer_list )
   return buffer_list[1].path
 end
 
------------------------------------------------------------------
--- Quitting.
------------------------------------------------------------------
 local function save_tabs()
   local tab_list = tabs.tab_config()
   local out = assert( io.open( TABS_FILE, 'w' ) )
@@ -119,11 +94,26 @@ local function save_tabs()
   out:close()
 end
 
+local function open_module_with_input()
+  local stem = util.input( 'Enter name: ' )
+  if stem == nil or #stem == 0 then return end
+  open_module( stem )
+  save_tabs()
+end
+
+-----------------------------------------------------------------
+-- Quitting.
+-----------------------------------------------------------------
 local function quit_all_and_save_tabs()
   save_tabs()
   -- Close all tabs and quit. This will refuse to exit if there
   -- are unsaved changes in some buffer.
   vim.cmd[[qa]]
+end
+
+local function close_tab_and_save_tabs()
+  require( 'dsicilia.tabs' ).close_current_tab()
+  save_tabs()
 end
 
 -----------------------------------------------------------------
@@ -137,7 +127,7 @@ end
 local function mappings()
   nmap( '<C-p>', open_module_with_input )
   nmap( 'Q', quit_all_and_save_tabs )
-  -- Add more here...
+  nmap( 'E', close_tab_and_save_tabs )
 end
 
 -----------------------------------------------------------------
