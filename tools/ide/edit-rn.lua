@@ -18,6 +18,11 @@ local fnamemodify = vim.fn.fnamemodify
 local keymap = vim.keymap
 
 -----------------------------------------------------------------
+-- Constants.
+-----------------------------------------------------------------
+local TABS_FILE = '.tabs.txt'
+
+-----------------------------------------------------------------
 -- Layout Functions.
 -----------------------------------------------------------------
 local module_types = {
@@ -43,8 +48,11 @@ local function open_module_with_input()
   open_module( stem )
 end
 
-local function create_tabs()
-  for _, stem in ipairs( rn ) do
+-----------------------------------------------------------------
+-- Tabs.
+-----------------------------------------------------------------
+local function create_tabs_from_stems( stems )
+  for _, stem in ipairs( stems ) do
     open_module( stem )
     -- This is optional but allows us to see the tabs appearing
     -- as they are opened, which is cool.
@@ -52,9 +60,18 @@ local function create_tabs()
   end
 end
 
------------------------------------------------------------------
--- Tabline.
------------------------------------------------------------------
+-- Returns the selected tab, or nil for last selected.
+local function create_tabs()
+  local input = io.open( TABS_FILE, 'r' )
+  if input == nil then return create_tabs_from_stems( rn ) end
+  local stems = {}
+  for line in input:lines() do table.insert( stems, line ) end
+  local selected_tab = stems[1]
+  table.remove( stems, 1 )
+  create_tabs_from_stems( stems )
+  return selected_tab
+end
+
 -- This function contains the logic that determines the name of a
 -- tab given the list of buffers that are currently visible in
 -- it.
@@ -98,6 +115,22 @@ end
 -----------------------------------------------------------------
 -- Key maps.
 -----------------------------------------------------------------
+local function quit_all_and_save_tabs()
+  local tab_list = tabs.tab_config()
+  local out = assert( io.open( TABS_FILE, 'w' ) )
+  local function writeln( line )
+    out:write( tostring( line ) .. '\n' )
+  end
+  writeln( tabs.current_tab() )
+  for _, tab in ipairs( tab_list ) do
+    writeln( tab_namer( tab.buffers ) )
+  end
+  out:close()
+  -- Close all tabs and quit. This will refuse to exit if there
+  -- are unsaved changes in some buffer.
+  vim.cmd[[qa]]
+end
+
 local function nmap( keys, func )
   -- This will by default have remap=false.
   keymap.set( 'n', keys, func, { silent=true } )
@@ -105,6 +138,7 @@ end
 
 local function mappings()
   nmap( '<C-p>', open_module_with_input )
+  nmap( 'Q', quit_all_and_save_tabs )
   -- Add more here...
 end
 
@@ -117,13 +151,17 @@ local function main()
 
   -- Creates all of the tabs/splits.
   tabs.set_tab_namer( tab_namer )
-  create_tabs()
+  local active_tab = create_tabs()
 
   -- In case anyone changed it.
   vim.cmd[[tabdo set cmdheight=1]]
   vim.cmd[[tabdo wincmd =]]
   -- When nvim supports it.
   -- vim.cmd[[tabdo set cmdheight=0]]
+
+  -- Do this after we perform tabdo actions since those will
+  -- leave the active tab as the last one.
+  if active_tab then tabs.set_selected_tab( active_tab ) end
 end
 
 main()

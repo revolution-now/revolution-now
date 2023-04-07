@@ -61,9 +61,13 @@ local Layout = {
 }
 
 function M.open( layout )
-  -- FIXME: find out how to detect when we don't need to create a
-  -- new tab, i.e. when we are opening the first one.
-  win.tab()
+  -- If there are multiple buffers or if there is only one buffer
+  -- but it contains a file open in it, then open a new tab
+  -- first. Otherwise, we have only one tab/buffer open and it is
+  -- the initial (empty) one, so we don't need to open a new tab.
+  if vim.fn.bufnr( '$' ) > 1 or #vim.fn.bufname( 1 ) > 0 then
+    win.tab()
+  end
   Layout:dispatch( layout )
 end
 

@@ -12,20 +12,23 @@ local call = vim.call
 -----------------------------------------------------------------
 -- Functions.
 -----------------------------------------------------------------
-local function num_tabs() return call( 'tabpagenr', '$' ) end
+function M.num_tabs() return call( 'tabpagenr', '$' ) end
 
 -- 1-based, so compatible with Lua by default.
-local function current_tab() return call( 'tabpagenr' ) end
+function M.current_tab() return call( 'tabpagenr' ) end
+
+-- Selects the nth tab, 1-based.
+function M.set_selected_tab( n ) vim.cmd( 'tabn ' .. n ) end
 
 -- Given the buffer number, get the file name.
 local function buffer_name( n )
-  return assert( call( 'bufname', assert( n ) ) )
+  return call( 'bufname', assert( n ) )
 end
 
 -- Returns a list of buffer indices (integers) that are open in
 -- the given tab page (which starts at 1).
 local function tab_page_buffer_list( n )
-  return assert( call( 'tabpagebuflist', assert( n ) ) )
+  return call( 'tabpagebuflist', n )
 end
 
 -- Returns a data structure describing the currently open tabs
@@ -61,10 +64,10 @@ end
 --    ...
 --  }
 --
-local function get_tab_config()
+function M.tab_config()
   local res = {}
-  local curr = current_tab()
-  for i = 1, num_tabs() do
+  local curr = M.current_tab()
+  for i = 1, M.num_tabs() do
     local tab = {}
     res[i] = tab
     tab.active = (i == curr)
@@ -85,12 +88,12 @@ end
 -- Takes a function that takes a list of buffer tables (see
 -- above) and returns a name for the tab.
 local function construct_tabline( namer )
-  local tab_config = get_tab_config()
+  local tab_config = M.tab_config()
   local list = {}
   for idx, tab in ipairs( tab_config ) do
     local tab_fmt
     -- Select the highlighting.
-    if idx == current_tab() then
+    if idx == M.current_tab() then
       tab_fmt = '%#TabLineSel#'
     else
       tab_fmt = '%#TabLine#'
@@ -107,7 +110,7 @@ local function construct_tabline( namer )
   table.insert( list, '%#TabLineFill#%T' )
 
   -- Right-align the label to close the current tab page.
-  if num_tabs() > 1 then
+  if M.num_tabs() > 1 then
     table.insert( list, '%=%#TabLine#%999XX' )
   end
 
