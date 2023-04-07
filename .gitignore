@@ -52,6 +52,3 @@ saves/slot*
 
 # environment specific.
 /source-me.fish
-
-# IDE related.
-/.tabs.txt
