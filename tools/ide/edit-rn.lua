@@ -7,11 +7,14 @@
 local rn = require( 'ide.contents.rn' )
 local layout = require( 'ide.layout' )
 local module_cpp = require( 'ide.module-cpp' )
+local tabs = require( 'ide.tabs' )
 local util = require( 'ide.util' )
 
 -----------------------------------------------------------------
 -- Aliases.
 -----------------------------------------------------------------
+local call = vim.call
+local fnamemodify = vim.fn.fnamemodify
 local keymap = vim.keymap
 
 -----------------------------------------------------------------
@@ -50,6 +53,49 @@ local function create_tabs()
 end
 
 -----------------------------------------------------------------
+-- Tabline.
+-----------------------------------------------------------------
+-- This function contains the logic that determines the name of a
+-- tab given the list of buffers that are currently visible in
+-- it.
+--
+-- buffer_list will be a list of buffer tables, e.g.:
+--
+--   buffers = {
+--     1: {
+--       buffer_idx = 123,
+--       path = "/some/path/to/file.cpp"
+--     },
+--     2: {
+--       buffer_idx = 567,
+--       path = "/another/file.hpp"
+--     }
+--     ...
+--   }
+--
+local function tab_namer( buffer_list )
+  for _, buffer in ipairs( buffer_list ) do
+    local path = buffer.path
+    local ext = fnamemodify( path, ':e' )
+    local stem = fnamemodify( path, ':t:r' )
+    if ext == 'cpp' or ext == 'hpp' then
+      path = fnamemodify( path, ':s|^src/||' )
+      path = fnamemodify( path, ':s|^exe/||' )
+      path = fnamemodify( path, ':s|^test/|../test/|' )
+      path = fnamemodify( path, ':r' )
+      return path
+    end
+    if ext == 'txt' then return 'doc/' .. stem end
+    if ext == 'lua' then return 'lua/' .. stem end
+    if ext == 'vert' then return 'shaders:' .. stem end
+    if ext == 'frag' then return 'shaders:' .. stem end
+  end
+  -- We could not determine a name from any of the buffers, so
+  -- just use the path of the filename of the first buffer.
+  return buffer_list[1].path
+end
+
+-----------------------------------------------------------------
 -- Key maps.
 -----------------------------------------------------------------
 local function nmap( keys, func )
@@ -70,6 +116,7 @@ local function main()
   mappings()
 
   -- Creates all of the tabs/splits.
+  tabs.set_tab_namer( tab_namer )
   create_tabs()
 
   -- In case anyone changed it.

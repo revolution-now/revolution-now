@@ -26,67 +26,6 @@ au BufNewFile,BufRead *.rcl set syntax=yaml
 " does not.
 syntax keyword luaStatement continue
 
-function! MyTabLine()
-  let s = ''
-  for i in range(tabpagenr('$'))
-    " select the highlighting
-    if i + 1 == tabpagenr()
-      let s .= '%#TabLineSel#'
-    else
-      let s .= '%#TabLine#'
-    endif
-
-    " set the tab page number (for mouse clicks)
-    let s .= '%' . (i + 1) . 'T'
-
-    " the label is made by MyTabLabel()
-    let s .= ' %{MyTabLabel(' . (i + 1) . ')} '
-  endfor
-
-  " after the last tab fill with TabLineFill and reset tab page nr
-  let s .= '%#TabLineFill#%T'
-
-  " right-align the label to close the current tab page
-  if tabpagenr('$') > 1
-    let s .= '%=%#TabLine#%999XX'
-  endif
-
-  return s
-endfunction
-
-function! MyTabLabel( n )
-  let buflist = tabpagebuflist( a:n )
-  let winnr = tabpagewinnr( a:n, '$' )
-  for i in range( winnr )
-    let path = bufname( buflist[i] )
-    let ext = fnamemodify( path, ':e' )
-    if ext == 'cpp' || ext == 'hpp'
-      let rm_prefix = path
-      let rm_prefix = fnamemodify( rm_prefix, ':s|^src/||' )
-      let rm_prefix = fnamemodify( rm_prefix, ':s|^exe/||' )
-      return fnamemodify( rm_prefix, ':r' )
-    endif
-    if ext == 'rcl'
-      return fnamemodify( 'rcl', ':t:r' )
-    endif
-    if ext == 'txt'
-      return fnamemodify( 'docs', ':t:r' )
-    endif
-    if ext == 'lua'
-      let path = fnamemodify( path, ':t:r' )
-      return 'lua/' . path
-    endif
-    if ext == 'vert' || ext == 'frag'
-      let path = fnamemodify( path, ':t:r' )
-      return 'shaders:' . path
-    endif
-  endfor
-  let winnr = tabpagewinnr( a:n )
-  return bufname( buflist[winnr - 1] )
-endfunction
-
-set tabline=%!MyTabLine()
-
 " Only call format if we are under the src or test folders.
 function! MaybeFormat( func )
   " Full path of file trying to be formatted.
