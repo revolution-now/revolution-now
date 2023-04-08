@@ -40,6 +40,8 @@ struct AnimationPrimitive;
 struct AnimationSequence;
 struct Colony;
 struct Dwelling;
+struct Visibility;
+
 class SmoothViewport;
 
 /****************************************************************
@@ -56,8 +58,9 @@ struct LandViewAnimator {
       std::unordered_map<ColonyId,
                          std::stack<ColonyAnimationState>>;
 
-  LandViewAnimator( SSConst const& ss, SmoothViewport& viewport )
-    : ss_( ss ), viewport_( viewport ) {}
+  LandViewAnimator( SSConst const& ss, SmoothViewport& viewport,
+                    Visibility const& viz )
+    : ss_( ss ), viewport_( viewport ), viz_( viz ) {}
 
   // Getters.
 
@@ -172,6 +175,7 @@ struct LandViewAnimator {
   UnitAnimStatesMap     unit_animations_;
   ColonyAnimStatesMap   colony_animations_;
   DwellingAnimStatesMap dwelling_animations_;
+  Visibility const&     viz_;
 };
 
 } // namespace rn

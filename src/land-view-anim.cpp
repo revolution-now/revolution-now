@@ -19,6 +19,7 @@
 #include "throttler.hpp"
 #include "unit-mgr.hpp"
 #include "viewport.hpp"
+#include "visibility.hpp"
 
 // config
 #include "config/gfx.rds.hpp"
@@ -325,18 +326,33 @@ wait<> LandViewAnimator::animate_primitive(
       Coord const src =
           coord_for_unit_indirect_or_die( ss_.units, unit_id );
       Coord const dst = src.moved( direction );
-      co_await ensure_visible( src );
       // The destination square may not exist if it is a ship
       // sailing the high seas by moving off of the map edge
       // (which the original game allows).
-      if( ss_.terrain.square_exists( dst ) )
-        co_await ensure_visible( dst );
+      bool const dst_exists = ss_.terrain.square_exists( dst );
+      // Check visibility.
+      bool const should_animate =
+          dst_exists ? should_animate_move( viz_, src, dst )
+                     : should_animate_move( viz_, src, src );
+      if( !should_animate ) break;
+      co_await ensure_visible( src );
+      if( dst_exists ) co_await ensure_visible( dst );
       co_await slide_throttler( unit_id, direction );
       break;
     }
     case e::depixelate_unit: {
       auto& [unit_id] =
           primitive.get<AnimationPrimitive::depixelate_unit>();
+      Coord const tile =
+          coord_for_unit_indirect_or_die( ss_.units, unit_id );
+      // Check visibility. This will avoid both scrolling the map
+      // and the animation in the case that the unit in question
+      // is on a fogged tile, which can happen e.g. if we are de-
+      // pixelating a native unit that is under fog when we de-
+      // stroy its dwelling.
+      if( viz_.visible( tile ) !=
+          e_tile_visibility::visible_and_clear )
+        break;
       co_await ensure_visible_unit( unit_id );
       co_await unit_depixelation_throttler( unit_id,
                                             /*target=*/nothing );

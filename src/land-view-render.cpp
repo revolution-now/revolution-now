@@ -337,12 +337,6 @@ void LandViewRenderer::render_units_impl() const {
   auto render_impl = [&]( GenericUnitId id, auto const& f ) {
     Coord const tile =
         coord_for_unit_multi_ownership_or_die( ss_, id );
-    if( viz_.visible( tile ) !=
-        e_tile_visibility::visible_and_clear )
-      // Sometimes we can have e.g. a brave depixelating on a
-      // fogged tile if its dwelling is destroyed, so we want to
-      // suppress that.
-      return;
     Coord const where =
         render_rect_for_tile( tile ).upper_left();
     bool const multiple_units =

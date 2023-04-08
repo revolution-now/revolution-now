@@ -158,7 +158,7 @@ struct LandViewPlane::Impl : public Plane {
     : ss_( ss ),
       ts_( ts ),
       viz_( ss, nation ),
-      lv_animator_( ss, ss.land_view.viewport ) {
+      lv_animator_( ss, ss.land_view.viewport, viz_ ) {
     register_menu_items( ts.planes.menu() );
     // Initialize general global data.
     landview_mode_   = LandViewMode::none{};
