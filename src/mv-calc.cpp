@@ -15,7 +15,11 @@
 #include "irand.hpp"
 #include "ts.hpp"
 
+// config
+#include "config/natives.hpp"
+
 // ss
+#include "ss/native-unit.rds.hpp"
 #include "ss/unit-type.hpp"
 #include "ss/unit.hpp"
 
@@ -25,6 +29,34 @@
 using namespace std;
 
 namespace rn {
+
+namespace {
+
+MovementPointsAnalysis can_unit_move_based_on_mv_points_impl(
+    TS& ts, MovementPoints has, MovementPoints start_of_turn_pts,
+    MovementPoints needed ) {
+  MovementPointsAnalysis res{
+      .has                           = has,
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = false };
+  if( has == 0 ) return res;
+  if( has >= needed ) return res;
+  // At this point the unit does not have enough movement points
+  // to make the move, so check the exceptions.
+  res.using_start_of_turn_exemption =
+      ( has == start_of_turn_pts );
+  if( res.using_start_of_turn_exemption ) return res;
+  CHECK_LT( has, needed );
+  double const probability =
+      double( has.atoms() ) / needed.atoms();
+  // If this returns true then the unit gets to move anyway.
+  res.using_overdraw_allowance =
+      ts.rand.bernoulli( probability );
+  return res;
+}
+
+} // namespace
 
 /****************************************************************
 ** MovementPointsAnalysis
@@ -47,26 +79,16 @@ MovementPoints MovementPointsAnalysis::points_to_subtract()
 MovementPointsAnalysis can_unit_move_based_on_mv_points(
     TS& ts, Player const& player, Unit const& unit,
     MovementPoints needed ) {
-  MovementPoints const   has = unit.movement_points();
-  MovementPointsAnalysis res{
-      .has                           = has,
-      .needed                        = needed,
-      .using_start_of_turn_exemption = false,
-      .using_overdraw_allowance      = false };
-  if( has == 0 ) return res;
-  if( has >= needed ) return res;
-  // At this point the unit does not have enough movement points
-  // to make the move, so check the exceptions.
-  res.using_start_of_turn_exemption =
-      ( has == movement_points( player, unit.type() ) );
-  if( res.using_start_of_turn_exemption ) return res;
-  CHECK_LT( has, needed );
-  double const probability =
-      double( has.atoms() ) / needed.atoms();
-  // If this returns true then the unit gets to move anyway.
-  res.using_overdraw_allowance =
-      ts.rand.bernoulli( probability );
-  return res;
+  return can_unit_move_based_on_mv_points_impl(
+      ts, unit.movement_points(),
+      movement_points( player, unit.type() ), needed );
+}
+
+MovementPointsAnalysis can_native_unit_move_based_on_mv_points(
+    TS& ts, NativeUnit const& unit, MovementPoints needed ) {
+  return can_unit_move_based_on_mv_points_impl(
+      ts, unit.movement_points,
+      unit_attr( unit.type ).movement_points, needed );
 }
 
 } // namespace rn

@@ -21,6 +21,9 @@
 // Revolution Now
 #include "src/unit-mgr.hpp"
 
+// ss
+#include "src/ss/native-unit.rds.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -236,6 +239,214 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
     needed   = MovementPoints( 5 );
     expected = MovementPointsAnalysis{
         .has                           = unit.movement_points(),
+        .needed                        = needed,
+        .using_start_of_turn_exemption = false,
+        .using_overdraw_allowance      = true };
+    W.rand()
+        .EXPECT__bernoulli( Approx( .4, .00001 ) )
+        .returns( true );
+    res = f();
+    REQUIRE( res == expected );
+    REQUIRE( res.allowed() );
+    REQUIRE( res.points_to_subtract() == MovementPoints( 2 ) );
+  }
+}
+
+TEST_CASE(
+    "[src/mv-calc] can_native_unit_move_based_on_mv_points" ) {
+  World W;
+
+  NativeUnit             unit;
+  MovementPointsAnalysis res, expected;
+  MovementPoints         needed;
+
+  auto f = [&] {
+    return can_native_unit_move_based_on_mv_points( W.ts(), unit,
+                                                    needed );
+  };
+
+  auto create = [&]( e_native_unit_type type ) {
+    return create_unregistered_unit( type );
+  };
+
+  SECTION( "has=0, needed=0" ) {
+    unit                 = create( e_native_unit_type::brave );
+    unit.movement_points = 0;
+    needed               = MovementPoints( 0 );
+    expected             = MovementPointsAnalysis{
+                    .has                           = unit.movement_points,
+                    .needed                        = needed,
+                    .using_start_of_turn_exemption = false,
+                    .using_overdraw_allowance      = false };
+    res = f();
+    REQUIRE( res == expected );
+    REQUIRE( res.allowed() );
+    REQUIRE( res.points_to_subtract() == MovementPoints( 0 ) );
+  }
+
+  SECTION( "has=1, needed=0" ) {
+    unit     = create( e_native_unit_type::brave );
+    needed   = MovementPoints( 0 );
+    expected = MovementPointsAnalysis{
+        .has                           = unit.movement_points,
+        .needed                        = needed,
+        .using_start_of_turn_exemption = false,
+        .using_overdraw_allowance      = false };
+    res = f();
+    REQUIRE( res == expected );
+    REQUIRE( res.allowed() );
+    REQUIRE( res.points_to_subtract() == MovementPoints( 0 ) );
+  }
+
+  SECTION( "has=1, needed=1" ) {
+    unit     = create( e_native_unit_type::brave );
+    needed   = MovementPoints( 1 );
+    expected = MovementPointsAnalysis{
+        .has                           = unit.movement_points,
+        .needed                        = needed,
+        .using_start_of_turn_exemption = false,
+        .using_overdraw_allowance      = false };
+    res = f();
+    REQUIRE( res == expected );
+    REQUIRE( res.allowed() );
+    REQUIRE( res.points_to_subtract() == MovementPoints( 1 ) );
+  }
+
+  SECTION( "has=1/3, needed=1/3" ) {
+    unit = create( e_native_unit_type::brave );
+    unit.movement_points -= MovementPoints::_2_3();
+    needed   = MovementPoints::_1_3();
+    expected = MovementPointsAnalysis{
+        .has                           = unit.movement_points,
+        .needed                        = needed,
+        .using_start_of_turn_exemption = false,
+        .using_overdraw_allowance      = false };
+    res = f();
+    REQUIRE( res == expected );
+    REQUIRE( res.allowed() );
+    REQUIRE( res.points_to_subtract() ==
+             MovementPoints::_1_3() );
+  }
+
+  SECTION( "has=1/3, needed=0" ) {
+    unit = create( e_native_unit_type::brave );
+    unit.movement_points -= MovementPoints::_2_3();
+    needed   = MovementPoints( 0 );
+    expected = MovementPointsAnalysis{
+        .has                           = unit.movement_points,
+        .needed                        = needed,
+        .using_start_of_turn_exemption = false,
+        .using_overdraw_allowance      = false };
+    res = f();
+    REQUIRE( res == expected );
+    REQUIRE( res.allowed() );
+    REQUIRE( res.points_to_subtract() == MovementPoints( 0 ) );
+  }
+
+  SECTION( "has=1, needed=2, start of turn" ) {
+    unit     = create( e_native_unit_type::brave );
+    needed   = MovementPoints( 2 );
+    expected = MovementPointsAnalysis{
+        .has                           = unit.movement_points,
+        .needed                        = needed,
+        .using_start_of_turn_exemption = true,
+        .using_overdraw_allowance      = false };
+    res = f();
+    REQUIRE( res == expected );
+    REQUIRE( res.allowed() );
+    REQUIRE( res.points_to_subtract() == MovementPoints( 1 ) );
+  }
+
+  SECTION( "has=2/3, needed=1, overdraw denied" ) {
+    unit = create( e_native_unit_type::brave );
+    unit.movement_points -= MovementPoints::_1_3();
+    needed   = MovementPoints( 1 );
+    expected = MovementPointsAnalysis{
+        .has                           = unit.movement_points,
+        .needed                        = needed,
+        .using_start_of_turn_exemption = false,
+        .using_overdraw_allowance      = false };
+    W.rand()
+        .EXPECT__bernoulli( Approx( .666666, .00001 ) )
+        .returns( false );
+    res = f();
+    REQUIRE( res == expected );
+    REQUIRE( !res.allowed() );
+    REQUIRE( res.points_to_subtract() ==
+             MovementPoints::_2_3() );
+  }
+
+  SECTION( "has=2/3, needed=1, overdraw allowed" ) {
+    unit = create( e_native_unit_type::brave );
+    unit.movement_points -= MovementPoints::_1_3();
+    needed   = MovementPoints( 1 );
+    expected = MovementPointsAnalysis{
+        .has                           = unit.movement_points,
+        .needed                        = needed,
+        .using_start_of_turn_exemption = false,
+        .using_overdraw_allowance      = true };
+    W.rand()
+        .EXPECT__bernoulli( Approx( .666666, .00001 ) )
+        .returns( true );
+    res = f();
+    REQUIRE( res == expected );
+    REQUIRE( res.allowed() );
+    REQUIRE( res.points_to_subtract() ==
+             MovementPoints::_2_3() );
+  }
+
+  SECTION( "has=4, needed=4" ) {
+    unit     = create( e_native_unit_type::mounted_brave );
+    needed   = MovementPoints( 4 );
+    expected = MovementPointsAnalysis{
+        .has                           = unit.movement_points,
+        .needed                        = needed,
+        .using_start_of_turn_exemption = false,
+        .using_overdraw_allowance      = false };
+    res = f();
+    REQUIRE( res == expected );
+    REQUIRE( res.allowed() );
+    REQUIRE( res.points_to_subtract() == MovementPoints( 4 ) );
+  }
+
+  SECTION( "has=4, needed=5, start of turn" ) {
+    unit     = create( e_native_unit_type::mounted_brave );
+    needed   = MovementPoints( 5 );
+    expected = MovementPointsAnalysis{
+        .has                           = unit.movement_points,
+        .needed                        = needed,
+        .using_start_of_turn_exemption = true,
+        .using_overdraw_allowance      = false };
+    res = f();
+    REQUIRE( res == expected );
+    REQUIRE( res.allowed() );
+    REQUIRE( res.points_to_subtract() == MovementPoints( 4 ) );
+  }
+
+  SECTION( "has=2, needed=5, overdraw denied" ) {
+    unit = create( e_native_unit_type::mounted_brave );
+    unit.movement_points -= MovementPoints( 2 );
+    needed   = MovementPoints( 5 );
+    expected = MovementPointsAnalysis{
+        .has                           = unit.movement_points,
+        .needed                        = needed,
+        .using_start_of_turn_exemption = false,
+        .using_overdraw_allowance      = false };
+    W.rand()
+        .EXPECT__bernoulli( Approx( .4, .00001 ) )
+        .returns( false );
+    res = f();
+    REQUIRE( res == expected );
+    REQUIRE( !res.allowed() );
+    REQUIRE( res.points_to_subtract() == MovementPoints( 2 ) );
+  }
+
+  SECTION( "has=2, needed=5, overdraw allowed" ) {
+    unit = create( e_native_unit_type::mounted_brave );
+    unit.movement_points -= MovementPoints( 2 );
+    needed   = MovementPoints( 5 );
+    expected = MovementPointsAnalysis{
+        .has                           = unit.movement_points,
         .needed                        = needed,
         .using_start_of_turn_exemption = false,
         .using_overdraw_allowance      = true };
