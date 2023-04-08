@@ -134,7 +134,7 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[combat] combat_euro_attack_euro" ) {
+TEST_CASE( "[combat] euro_attack_euro" ) {
   World                W;
   Player&              english = W.english();
   CombatEuroAttackEuro expected;
@@ -426,7 +426,7 @@ TEST_CASE( "[combat] combat_euro_attack_euro" ) {
   }
 }
 
-TEST_CASE( "[combat] combat_euro_attack_undefended_colony" ) {
+TEST_CASE( "[combat] euro_attack_undefended_colony" ) {
   World                            W;
   CombatEuroAttackUndefendedColony expected;
   Colony const& colony = W.add_colony( { .x = 1, .y = 1 } );
@@ -488,7 +488,7 @@ TEST_CASE( "[combat] combat_euro_attack_undefended_colony" ) {
   }
 }
 
-TEST_CASE( "[combat] combat_euro_attack_brave" ) {
+TEST_CASE( "[combat] euro_attack_brave" ) {
   World                 W;
   CombatEuroAttackBrave expected;
   Dwelling const&       dwelling =
@@ -606,7 +606,7 @@ TEST_CASE( "[combat] combat_euro_attack_brave" ) {
   }
 }
 
-TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
+TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
   World                    W;
   CombatEuroAttackDwelling expected;
   e_tribe const            tribe_type = e_tribe::arawak;
@@ -895,8 +895,7 @@ TEST_CASE( "[combat] combat_euro_attack_dwelling no-burn" ) {
   }
 }
 
-TEST_CASE(
-    "[combat] combat_euro_attack_dwelling village-burn" ) {
+TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
   World                    W;
   CombatEuroAttackDwelling expected;
   e_tribe const            tribe_type = e_tribe::arawak;

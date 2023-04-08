@@ -249,7 +249,7 @@ struct.CombatBraveAttackEuro {
   winner 'e_combat_winner',
 
   # According to the SG, when a brave attacks a square containing
-  # multiple (non-military) colonies, and it wins, then all
+  # multiple (non-military) colonists, and it wins, then all
   # colonists on the square are destroyed. But this doesn't apply
   # if the square contains a colony. TODO: Should verify this.
   all_colonists_destroyed 'bool',
