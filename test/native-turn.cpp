@@ -61,7 +61,6 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
         L, L, L, L, L, L, //
