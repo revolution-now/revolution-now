@@ -18,6 +18,8 @@
 #include "igui.hpp"
 #include "inative-mind.hpp"
 #include "land-view.hpp"
+#include "map-square.hpp"
+#include "mv-calc.hpp"
 #include "on-map.hpp"
 #include "plane-stack.hpp"
 #include "roles.hpp"
@@ -32,6 +34,7 @@
 #include "ss/natives.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
+#include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
 // gfx
@@ -55,54 +58,61 @@ namespace rn {
 
 namespace {
 
-bool should_animate_native_travel( SSConst const& ss, Coord src,
-                                   Coord dst ) {
+bool should_animate_native_move( SSConst const&    ss,
+                                 Visibility const& viz,
+                                 Coord src, Coord dst ) {
   if( !ss.settings.game_options
            .flags[e_game_flag_option::show_indian_moves] )
     return false;
-  // The player want's to see animations of native units. So now
-  // we just check if the unit is actually visible to the viewing
-  // player.
-  maybe<e_nation> const viewer =
-      player_for_role( ss, e_player_role::viewer );
-  if( !viewer.has_value() )
-    // No viewer is interpreted as "everything visible."
-    return true;
-  Visibility const viz( ss, *viewer );
-
-  bool const src_clear =
-      viz.visible( src ) == e_tile_visibility::visible_and_clear;
-  bool const dst_clear =
-      viz.visible( dst ) == e_tile_visibility::visible_and_clear;
-  return src_clear || dst_clear;
+  // At the time of writing, the land view renderer will suppress
+  // any slide/attack animations where the src and dst tiles are
+  // both not visible, so technically we don't have to do this
+  // here. However, this is an optimization that hopefully makes
+  // a difference for large maps where there are many native
+  // units; it will prevent an animation API from getting called
+  // for each of the braves, most of which are not visible.
+  return should_animate_move( viz, src, dst );
 }
 
 wait<> handle_native_unit_command(
-    SS& ss, TS& ts, NativeUnit& native_unit,
-    NativeUnitCommand const& command ) {
+    SS& ss, TS& ts, Visibility const& viz,
+    NativeUnit& native_unit, NativeUnitCommand const& command ) {
   SWITCH( command ) {
     CASE( forfeight ) {
       native_unit.movement_points = 0;
       break;
     }
     CASE( attack ) {
-      // TODO: if the unit is lost here then it needs to be re-
-      // moved from the map.
-      co_await ts.gui.message_box( "Brave attack." );
-      co_await ts.planes.land_view().animate(
-          anim_seq_for_unit_move( native_unit.id,
-                                  attack.direction ) );
+      Coord const src = ss.units.coord_for( native_unit.id );
+      Coord const dst = src.moved( attack.direction );
+      if( should_animate_native_move( ss, viz, src, dst ) )
+        co_await ts.planes.land_view().animate(
+            anim_seq_for_unit_move( native_unit.id,
+                                    attack.direction ) );
+      // Carry out attack.
+      // !! Native unit may no longer exist here.
       native_unit.movement_points = 0;
       break;
     }
     CASE( travel ) {
       Coord const src = ss.units.coord_for( native_unit.id );
       Coord const dst = src.moved( travel.direction );
-      CHECK_GT( travel.consumed, 0 );
-      native_unit.movement_points -= travel.consumed;
+      MovementPoints const needed = movement_points_required(
+          ss.terrain.square_at( src ),
+          ss.terrain.square_at( dst ), travel.direction );
+      MovementPointsAnalysis const mv_analysis =
+          can_native_unit_move_based_on_mv_points(
+              ts, native_unit, needed );
+      MovementPoints const to_subtract =
+          mv_analysis.points_to_subtract();
+      CHECK_GT( to_subtract, 0 );
+      native_unit.movement_points -= to_subtract;
       CHECK_GE( native_unit.movement_points, 0 );
-
-      if( should_animate_native_travel( ss, src, dst ) )
+      if( !mv_analysis.allowed() ) {
+        CHECK_EQ( native_unit.movement_points, 0 );
+        break;
+      }
+      if( should_animate_native_move( ss, viz, src, dst ) )
         co_await ts.planes.land_view().animate(
             anim_seq_for_unit_move( native_unit.id,
                                     travel.direction ) );
@@ -117,7 +127,8 @@ wait<> handle_native_unit_command(
   // !! Note that the unit may no longer exist here.
 }
 
-wait<> tribe_turn( SS& ss, TS& ts, INativeMind& mind,
+wait<> tribe_turn( SS& ss, TS& ts, Visibility const& viz,
+                   INativeMind&       mind,
                    set<NativeUnitId>& units ) {
   while( !units.empty() ) {
     NativeUnitId const native_unit_id =
@@ -128,8 +139,8 @@ wait<> tribe_turn( SS& ss, TS& ts, INativeMind& mind,
     CHECK_GT( native_unit.movement_points, 0 );
     NativeUnitCommand const command =
         mind.command_for( native_unit_id );
-    co_await handle_native_unit_command( ss, ts, native_unit,
-                                         command );
+    co_await handle_native_unit_command( ss, ts, viz,
+                                         native_unit, command );
 
     // !! Unit may no longer exist at this point.
     if( !ss.units.exists( native_unit_id ) ) {
@@ -141,8 +152,6 @@ wait<> tribe_turn( SS& ss, TS& ts, INativeMind& mind,
     if( native_unit.movement_points == 0 )
       units.erase( native_unit_id );
   }
-
-  co_return;
 }
 
 } // namespace
@@ -153,17 +162,20 @@ wait<> tribe_turn( SS& ss, TS& ts, INativeMind& mind,
 wait<> natives_turn( SS& ss, TS& ts ) {
   base::ScopedTimer timer( "native turns" );
   timer.options().no_checkpoints_logging = true;
-  // Evolve dwellings. NOTE: We need to do this first for all
-  // tribes so that when we get to the units phase, all of the
-  // units that will be created this turn have been created, so
-  // that way we only have to iterate over them once to group
+
+  // TODO: Evolve dwellings. Note: We need to do this first for
+  // all tribes so that when we get to the units phase, all of
+  // the units that will be created this turn have been created,
+  // so that way we only have to iterate over them once to group
   // them into their respective tribes.
-  // TODO
 
   // Collect all native units for each tribe. At this point in
   // the turn no further native units should be created, since
   // we've already evolved the dwellings. However, native units
-  // can be lost.
+  // can be lost. We use a std::set here for two reasons: 1) we
+  // get deterministic iteration over the units, and 2) it turned
+  // out to be twice as fast on large maps when profiled, sur-
+  // prisingly.
   auto const& native_units = ss.units.native_all();
   map<e_tribe, set<NativeUnitId>> tribe_to_units;
 
@@ -188,11 +200,15 @@ wait<> natives_turn( SS& ss, TS& ts ) {
     units.insert( unit_id );
   }
 
+  Visibility const viz(
+      ss, player_for_role( ss, e_player_role::viewer ) );
+
   for( e_tribe const tribe : refl::enum_values<e_tribe> ) {
-    INativeMind& mind = ts.native_minds[tribe];
     if( !ss.natives.tribe_exists( tribe ) ) continue;
+    INativeMind& mind = ts.native_minds[tribe];
     timer.checkpoint( "{}", tribe );
-    co_await tribe_turn( ss, ts, mind, tribe_to_units[tribe] );
+    co_await tribe_turn( ss, ts, viz, mind,
+                         tribe_to_units[tribe] );
     CHECK( tribe_to_units[tribe].empty() );
   }
 }

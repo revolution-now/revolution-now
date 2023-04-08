@@ -61,15 +61,12 @@ NativeUnitCommand AiNativeMind::command_for(
   if( square.surface != e_surface::land )
     return NativeUnitCommand::forfeight{};
   maybe<Society> const society = society_on_square( ss_, moved );
-  MovementPoints const consumed( 1 ); // TODO
   if( !society.has_value() )
-    return NativeUnitCommand::travel{ .direction = rand_d,
-                                      .consumed  = consumed };
+    return NativeUnitCommand::travel{ .direction = rand_d };
   SWITCH( *society ) {
     CASE( native ) {
       if( native.tribe == tribe.type )
-        return NativeUnitCommand::travel{ .direction = rand_d,
-                                          .consumed = consumed };
+        return NativeUnitCommand::travel{ .direction = rand_d };
       return NativeUnitCommand::forfeight{};
     }
     CASE( european ) {

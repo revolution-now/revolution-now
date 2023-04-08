@@ -19,12 +19,16 @@ namespace "rn"
 sumtype.NativeUnitCommand {
   forfeight {},
 
+  # Note that this means "attempt a move;" the move could be re-
+  # jected if there are not enough movement points left.
   travel {
     direction 'e_direction',
-    consumed 'MovementPoints',
   },
 
-  # Note this consumes all of the unit's movement points.
+  # Note this is always allowed regardless of movement points,
+  # though the attack strength might be diminished if the unit
+  # has less than one movement point and, after the attack, it
+  # will always consumes all of the unit's movement points.
   attack {
     direction 'e_direction',
   },
