@@ -10,21 +10,16 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
+#include "src/core-config.hpp"
 
 // Revolution Now
-#include "error.hpp"
+#include "src/error.hpp"
 
 // base
-#include "base/fs.hpp"
+#include "src/base/fs.hpp" // FIXME
 
 namespace testing {
 
 fs::path const& data_dir();
-
-// This literally default constructs all save-game data struc-
-// tures. The result will not be an officially valid game state,
-// but it may be ok for some unit tests.
-void default_construct_all_game_state();
 
 } // namespace testing
