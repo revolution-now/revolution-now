@@ -2,7 +2,6 @@
 
 return {
   'ss/natives',
-  'mv-calc',
   'icombat',
   'attack-handlers',
   'turn',
