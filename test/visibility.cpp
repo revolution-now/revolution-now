@@ -1434,5 +1434,58 @@ TEST_CASE( "[visibility] fog_square_at" ) {
   REQUIRE( f() == nothing );
 }
 
+TEST_CASE( "[visibility] should_animate_move" ) {
+  World W;
+  W.create_small_map();
+  Coord const src = { .x = 0, .y = 0 };
+  Coord const dst = { .x = 0, .y = 1 };
+  Visibility  viz( W.ss(), nothing );
+
+  auto f = [&]() {
+    return should_animate_move( viz, src, dst );
+  };
+
+  viz = Visibility( W.ss(), nothing );
+  REQUIRE( f() );
+
+  viz = Visibility( W.ss(), W.default_nation() );
+  REQUIRE_FALSE( f() );
+
+  W.player_square( { .x = 1, .y = 0 } ).emplace();
+  REQUIRE_FALSE( f() );
+
+  W.player_square( { .x = 1, .y = 0 } )
+      .emplace()
+      .fog_of_war_removed = true;
+  REQUIRE_FALSE( f() );
+
+  W.player_square( src ).emplace();
+  REQUIRE_FALSE( f() );
+
+  W.player_square( dst ).emplace();
+  REQUIRE_FALSE( f() );
+
+  W.player_square( src ).emplace().fog_of_war_removed = true;
+  REQUIRE( f() );
+
+  W.player_square( dst ).emplace().fog_of_war_removed = true;
+  REQUIRE( f() );
+
+  W.player_square( src ).emplace().fog_of_war_removed = false;
+  REQUIRE( f() );
+
+  W.player_square( src ).reset();
+  REQUIRE( f() );
+
+  W.player_square( dst ).emplace().fog_of_war_removed = false;
+  REQUIRE_FALSE( f() );
+
+  W.player_square( dst ).reset();
+  REQUIRE_FALSE( f() );
+
+  viz = Visibility( W.ss(), nothing );
+  REQUIRE( f() );
+}
+
 } // namespace
 } // namespace rn

@@ -145,4 +145,10 @@ void recompute_fog_for_nation( SS& ss, TS& ts, e_nation nation );
 // map if necessary.
 void update_map_visibility( TS& ts, maybe<e_nation> nation );
 
+// Used to determine if a unit move should be animated, which
+// happens if either the source or destination tiles of the move
+// (or attack) is visible and clear.
+bool should_animate_move( Visibility const& viz, Coord src,
+                          Coord dst );
+
 } // namespace rn

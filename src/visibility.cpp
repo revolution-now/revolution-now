@@ -346,4 +346,12 @@ void update_map_visibility( TS&                   ts,
   ts.planes.land_view().set_visibility( nation );
 }
 
+bool should_animate_move( Visibility const& viz, Coord src,
+                          Coord dst ) {
+  return ( viz.visible( src ) ==
+           e_tile_visibility::visible_and_clear ) ||
+         ( viz.visible( dst ) ==
+           e_tile_visibility::visible_and_clear );
+}
+
 } // namespace rn
