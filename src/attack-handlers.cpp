@@ -900,7 +900,7 @@ wait<bool> EuroAttackHandler::confirm() {
 wait<> EuroAttackHandler::animate() const {
   co_await Base::animate();
   AnimationSequence const seq =
-      anim_seq_for_attack_euro( ss_, combat_ );
+      anim_seq_for_euro_attack_euro( ss_, combat_ );
   co_await ts_.planes.land_view().animate( seq );
 }
 

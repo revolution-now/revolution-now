@@ -34,7 +34,7 @@ struct EuroUnitCombatOutcome;
 struct DwellingCombatOutcome;
 
 // General euro-on-euro attack sequence.
-AnimationSequence anim_seq_for_attack_euro(
+AnimationSequence anim_seq_for_euro_attack_euro(
     SSConst const& ss, CombatEuroAttackEuro const& combat );
 
 // General euro-on-brave attack sequence.

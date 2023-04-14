@@ -214,7 +214,7 @@ void play_combat_outcome_sound(
 /****************************************************************
 ** Public API
 *****************************************************************/
-AnimationSequence anim_seq_for_attack_euro(
+AnimationSequence anim_seq_for_euro_attack_euro(
     SSConst const& ss, CombatEuroAttackEuro const& combat ) {
   UnitId const attacker_id = combat.attacker.id;
   UnitId const defender_id = combat.defender.id;
@@ -338,7 +338,7 @@ static AnimationSequence anim_seq_for_lost_colony_capture(
           .base_weight     = combat.defender.base_weight,
           .modified_weight = combat.defender.modified_weight,
           .outcome = EuroUnitCombatOutcome::no_change{} } };
-  return anim_seq_for_attack_euro( ss, new_combat );
+  return anim_seq_for_euro_attack_euro( ss, new_combat );
 }
 
 AnimationSequence anim_seq_for_undefended_colony(
