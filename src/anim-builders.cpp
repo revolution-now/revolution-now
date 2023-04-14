@@ -296,7 +296,7 @@ AnimationSequence anim_seq_for_naval_battle(
   return builder.result();
 }
 
-AnimationSequence anim_seq_for_attack_brave(
+AnimationSequence anim_seq_for_euro_attack_brave(
     SSConst const& ss, CombatEuroAttackBrave const& combat ) {
   UnitId const       attacker_id = combat.attacker.id;
   NativeUnitId const defender_id = combat.defender.id;

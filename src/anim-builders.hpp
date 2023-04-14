@@ -38,7 +38,7 @@ AnimationSequence anim_seq_for_euro_attack_euro(
     SSConst const& ss, CombatEuroAttackEuro const& combat );
 
 // General euro-on-brave attack sequence.
-AnimationSequence anim_seq_for_attack_brave(
+AnimationSequence anim_seq_for_euro_attack_brave(
     SSConst const& ss, CombatEuroAttackBrave const& combat );
 
 AnimationSequence anim_seq_for_naval_battle(

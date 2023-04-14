@@ -977,7 +977,7 @@ wait<bool> AttackNativeUnitHandler::confirm() {
 wait<> AttackNativeUnitHandler::animate() const {
   co_await Base::animate();
   AnimationSequence const seq =
-      anim_seq_for_attack_brave( ss_, combat_ );
+      anim_seq_for_euro_attack_brave( ss_, combat_ );
   co_await ts_.planes.land_view().animate( seq );
 }
 
@@ -1220,7 +1220,7 @@ wait<> AttackDwellingHandler::perform() {
     co_await with_phantom_brave_combat(
         [&]( CombatEuroAttackBrave const& combat ) -> wait<> {
           AnimationSequence const seq =
-              anim_seq_for_attack_brave( ss_, combat );
+              anim_seq_for_euro_attack_brave( ss_, combat );
           co_await ts_.planes.land_view().animate( seq );
         } );
     OutcomeMessage const attacker_outcome_msg =
@@ -1243,7 +1243,7 @@ wait<> AttackDwellingHandler::perform() {
     co_await with_phantom_brave_combat(
         [&]( CombatEuroAttackBrave const& combat ) -> wait<> {
           AnimationSequence const seq =
-              anim_seq_for_attack_brave( ss_, combat );
+              anim_seq_for_euro_attack_brave( ss_, combat );
           co_await ts_.planes.land_view().animate( seq );
         } );
     OutcomeMessage const attacker_outcome_msg =
