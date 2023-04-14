@@ -277,7 +277,7 @@ TEST_CASE(
   REQUIRE( f() == expected );
 }
 
-TEST_CASE( "[anim-builders] anim_seq_for_attack_euro" ) {
+TEST_CASE( "[anim-builders] anim_seq_for_euro_attack_euro" ) {
   World             W;
   AnimationSequence expected;
   Unit const& attacker = W.add_unit_on_map( e_unit_type::soldier,
@@ -289,7 +289,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_attack_euro" ) {
       .defender = { .id = defender.id() } };
 
   auto f = [&] {
-    return anim_seq_for_attack_euro( W.ss(), combat );
+    return anim_seq_for_euro_attack_euro( W.ss(), combat );
   };
 
   expected = {
@@ -383,7 +383,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_attack_euro" ) {
   }
 }
 
-TEST_CASE( "[anim-builders] anim_seq_for_attack_brave" ) {
+TEST_CASE( "[anim-builders] anim_seq_for_euro_attack_brave" ) {
   World             W;
   AnimationSequence expected;
 
@@ -399,7 +399,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_attack_brave" ) {
       .defender = { .id = defender.id } };
 
   auto f = [&] {
-    return anim_seq_for_attack_brave( W.ss(), combat );
+    return anim_seq_for_euro_attack_brave( W.ss(), combat );
   };
 
   expected = {
