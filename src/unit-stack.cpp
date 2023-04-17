@@ -19,6 +19,7 @@
 #include "config/unit-type.rds.hpp"
 
 // ss
+#include "ss/colonies.hpp"
 #include "ss/native-unit.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
@@ -148,6 +149,9 @@ void sort_euro_unit_stack( SSConst const&  ss,
 
 UnitId select_euro_unit_defender( SSConst const& ss,
                                   Coord          tile ) {
+  // There should not be a colony on this square; if there is
+  // then we're supposed to use the other dedicated function.
+  CHECK( !ss.colonies.maybe_from_coord( tile ).has_value() );
   UNWRAP_CHECK( defender_id, highest_defense_euro_unit_on_square(
                                  ss, tile ) );
   return defender_id;
