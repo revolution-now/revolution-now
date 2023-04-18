@@ -37,17 +37,17 @@ struct IRand {
   virtual ~IRand() = default;
 
   // Biased coin flip.  Returns true with probability p.
-  virtual bool bernoulli( double p ) = 0;
+  [[nodiscard]] virtual bool bernoulli( double p ) = 0;
 
   // Random integer between tbe bounds, where the meaning of "be-
   // tween" depends on the interval type. If interval is half
   // open then lower must be < upper.
-  virtual int between_ints( int lower, int upper,
-                            e_interval type ) = 0;
+  [[nodiscard]] virtual int between_ints( int lower, int upper,
+                                          e_interval type ) = 0;
 
   // Random floating point number in [lower, upper).
-  virtual double between_doubles( double lower,
-                                  double upper ) = 0;
+  [[nodiscard]] virtual double between_doubles(
+      double lower, double upper ) = 0;
 
   // Shuffles the elements. Vector can be empty. Picks a random
   // element.
@@ -57,7 +57,7 @@ struct IRand {
   // For convenience. Vector must be non-empty. Picks a random
   // element.
   template<typename T>
-  T const& pick_one(
+  [[nodiscard]] T const& pick_one(
       std::vector<T> const& v ATTR_LIFETIMEBOUND ) {
     CHECK( !v.empty() );
     return v[between_ints( 0, v.size(), e_interval::half_open )];
