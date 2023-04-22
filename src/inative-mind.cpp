@@ -16,14 +16,17 @@ using namespace std;
 namespace rn {
 
 /****************************************************************
-** NoopNativeMind
+** INativeMind
 *****************************************************************/
-NativeUnitId NoopNativeMind::select_unit(
-    std::set<NativeUnitId> const& units ) {
+NativeUnitId INativeMind::select_unit(
+    set<NativeUnitId> const& units ) {
   CHECK( !units.empty() );
   return *units.begin();
 }
 
+/****************************************************************
+** NoopNativeMind
+*****************************************************************/
 // Implement INativeMind.
 NativeUnitCommand NoopNativeMind::command_for( NativeUnitId ) {
   return NativeUnitCommand::forfeight{};

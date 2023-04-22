@@ -35,13 +35,6 @@ AiNativeMind::AiNativeMind( SS& ss, IRand& rand )
   : ss_( ss ), rand_( rand ) {}
 
 // Implement INativeMind.
-NativeUnitId AiNativeMind::select_unit(
-    set<NativeUnitId> const& units ) {
-  CHECK( !units.empty() );
-  return *units.begin();
-}
-
-// Implement INativeMind.
 NativeUnitCommand AiNativeMind::command_for(
     NativeUnitId native_unit_id ) {
   NativeUnitOwnership const& ownership =

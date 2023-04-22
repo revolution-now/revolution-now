@@ -32,9 +32,10 @@ struct INativeMind {
 
   // Select which unit is to receive orders next. The set should
   // be non-empty and contain only units that have some movement
-  // points remaining.
+  // points remaining. Default implementation just selects the
+  // first one in the (ordered) set.
   virtual NativeUnitId select_unit(
-      std::set<NativeUnitId> const& units ) = 0;
+      std::set<NativeUnitId> const& units );
 
   // Give a command to a unit.
   virtual NativeUnitCommand command_for(
@@ -46,10 +47,6 @@ struct INativeMind {
 *****************************************************************/
 struct NoopNativeMind final : INativeMind {
   NoopNativeMind() = default;
-
-  // Implement INativeMind.
-  NativeUnitId select_unit(
-      std::set<NativeUnitId> const& units ) override;
 
   // Implement INativeMind.
   NativeUnitCommand command_for(

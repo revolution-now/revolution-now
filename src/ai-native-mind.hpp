@@ -29,10 +29,6 @@ struct AiNativeMind : INativeMind {
   AiNativeMind( SS& ss, IRand& rand );
 
   // Implement INativeMind.
-  NativeUnitId select_unit(
-      std::set<NativeUnitId> const& units ) override;
-
-  // Implement INativeMind.
   NativeUnitCommand command_for(
       NativeUnitId native_unit_id ) override;
 
