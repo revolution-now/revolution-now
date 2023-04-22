@@ -61,6 +61,18 @@ enum.e_speak_with_chief_result {
   promotion,
 }
 
+# Possible effects that can happen when a brave attacks a colony.
+# Note that in the OG, when a brave attacks a colony, it always
+# "loses" the battle, but some of the following things may be
+# damaged or stolen as a result.
+enum.e_brave_attack_colony_effect {
+  none,
+  commodity_stolen,
+  money_stolen,
+  building_destroyed,
+  ship_in_port_damaged,
+}
+
 namespace "rn.config.natives"
 
 struct.UnitType {
@@ -331,6 +343,24 @@ struct.Treasure {
   capital_amount_scale 'double',
 }
 
+struct.ColonyAttack {
+  outcome_weights 'refl::enum_map<e_brave_attack_colony_effect, int>',
+
+  building_slots_eligible_for_destruction 'refl::enum_map<e_colony_building_slot, bool>',
+
+  commodity_percent_stolen 'config::DoubleRange',
+  min_commodity_quantity_for_stealing 'int',
+
+  money_percent_stolen 'config::DoubleRange',
+  money_stolen_abs_range_max 'int',
+
+  _features { equality, validation }
+}
+
+struct.Combat {
+  colony_attack 'config::natives::ColonyAttack',
+}
+
 namespace "rn"
 
 struct.config_natives_t {
@@ -369,6 +399,8 @@ struct.config_natives_t {
   # Configures the nature of the treasure that yields from de-
   # stroying a native dwelling.
   treasure 'config::natives::Treasure',
+
+  combat 'config::natives::Combat',
 
   _features { equality, validation }
 }

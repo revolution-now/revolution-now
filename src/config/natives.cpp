@@ -17,6 +17,33 @@ using namespace std;
 
 namespace rn {
 
+base::valid_or<string> config::natives::ColonyAttack::validate()
+    const {
+  int total = 0;
+  for( auto outcome :
+       refl::enum_values<e_brave_attack_colony_effect> )
+    total += outcome_weights[outcome];
+  REFL_VALIDATE( total == 100,
+                 "Brave colony attack outcome weights must sum "
+                 "to 100, but instead sum to {}.",
+                 total );
+
+  REFL_VALIDATE( commodity_percent_stolen.min > 0.0,
+                 "commodity_percent_stolen.min must be > 0.0." );
+  REFL_VALIDATE( commodity_percent_stolen.min < 1.0,
+                 "commodity_percent_stolen.min must be < 1.0." );
+  REFL_VALIDATE( commodity_percent_stolen.max > 0.0,
+                 "commodity_percent_stolen.max must be > 0.0." );
+  REFL_VALIDATE( commodity_percent_stolen.max < 1.0,
+                 "commodity_percent_stolen.max must be < 1.0." );
+  REFL_VALIDATE( commodity_percent_stolen.min <=
+                     commodity_percent_stolen.max,
+                 "commodity_percent_stolen.min must be <= "
+                 "commodity_percent_stolen.max" );
+
+  return base::valid;
+}
+
 base::valid_or<string> config::natives::LandPrices::validate()
     const {
   REFL_VALIDATE( bonus_prime_resource >= 1.0,

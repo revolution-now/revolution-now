@@ -617,3 +617,54 @@ treasure {
   # amount if the dwelling is the capital.
   capital_amount_scale: 2.0
 }
+
+combat {
+  # Parameters describing possible outcomes when a brave attacks
+  # a colony.
+  colony_attack {
+    outcome_weights {
+      none:                 12
+      commodity_stolen:     30
+      money_stolen:         21
+      building_destroyed:   12
+      ship_in_port_damaged: 25
+    }
+
+    building_slots_eligible_for_destruction {
+      muskets:      true
+      tools:        true
+      rum:          true
+      cloth:        true
+      coats:        true
+      cigars:       true
+      hammers:      true
+      town_hall:    false
+      newspapers:   true
+      schools:      true
+      offshore:     true
+      horses:       true
+      wall:         false
+      warehouses:   true
+      crosses:      true
+      custom_house: true
+    }
+
+    # Min/max percent of total money that the commodity amount
+    # stolen is chosen from.
+    commodity_percent_stolen: { min=.02, max=.50 }
+
+    # If a commodity has at least this amount then it will be el-
+    # igible for stealing. Also, the minimum range for stealing
+    # will be floored to this number.
+    min_commodity_quantity_for_stealing: 5
+
+    # Min/max percent of total money that the money amount stolen
+    # is chosen from.
+    money_percent_stolen: { min=.03, max=.20 }
+
+    # After an absolute range is computed for the amount of money
+    # stolen (using the above percents) the upper limit is itself
+    # capped using this value.
+    money_stolen_abs_range_max: 25000
+  }
+}
