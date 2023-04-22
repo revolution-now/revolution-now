@@ -291,7 +291,7 @@ wait<TaxChangeResult> prompt_for_tax_change_result(
     }
     case TaxChangeProposal::e::decrease: {
       auto& o = proposal.get<TaxChangeProposal::decrease>();
-      string const decrease_msg =
+      string_view constexpr decrease_msg =
           "The crown has graciously decided to LOWER your tax "
           "rate by [{}%].  The tax rate is now [{}%].";
       co_await ts.gui.message_box(
