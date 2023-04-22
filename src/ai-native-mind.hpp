@@ -32,6 +32,11 @@ struct AiNativeMind : INativeMind {
   NativeUnitCommand command_for(
       NativeUnitId native_unit_id ) override;
 
+  // Override INativeMind.
+  void on_attack_colony_finished(
+      CombatBraveAttackColony const& combat,
+      BraveAttackColonyEffect const& side_effect ) override;
+
  private:
   SS&    ss_; // can this be SSConst?
   IRand& rand_;

@@ -24,6 +24,10 @@
 
 namespace rn {
 
+struct BraveAttackColonyEffect;
+struct CombatBraveAttackColony;
+struct CombatBraveAttackEuro;
+
 /****************************************************************
 ** INativeMind
 *****************************************************************/
@@ -40,6 +44,19 @@ struct INativeMind {
   // Give a command to a unit.
   virtual NativeUnitCommand command_for(
       NativeUnitId native_unit_id ) = 0;
+
+  // After a native attack on a colony this will notify of the
+  // result. This can be used e.g. to adjust tribal alarm. De-
+  // fault implementation does nothing.
+  virtual void on_attack_colony_finished(
+      CombatBraveAttackColony const& combat,
+      BraveAttackColonyEffect const& side_effect );
+
+  // After a native attack on a european unit this will notify of
+  // the result. This can be used e.g. to adjust tribal alarm.
+  // Default implementation does nothing.
+  virtual void on_attack_unit_finished(
+      CombatBraveAttackEuro const& combat );
 };
 
 /****************************************************************

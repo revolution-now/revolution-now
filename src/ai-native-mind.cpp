@@ -69,4 +69,9 @@ NativeUnitCommand AiNativeMind::command_for(
   }
 }
 
+void AiNativeMind::on_attack_colony_finished(
+    CombatBraveAttackColony const&,
+    BraveAttackColonyEffect const& ) {
+}
+
 } // namespace rn

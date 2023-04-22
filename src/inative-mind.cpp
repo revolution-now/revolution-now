@@ -18,6 +18,13 @@ namespace rn {
 /****************************************************************
 ** INativeMind
 *****************************************************************/
+void INativeMind::on_attack_colony_finished(
+    CombatBraveAttackColony const&,
+    BraveAttackColonyEffect const& ) {}
+
+void INativeMind::on_attack_unit_finished(
+    CombatBraveAttackEuro const& ) {}
+
 NativeUnitId INativeMind::select_unit(
     set<NativeUnitId> const& units ) {
   CHECK( !units.empty() );
