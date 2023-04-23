@@ -1418,8 +1418,8 @@ class UnitsAtGateColonyView
     if( auto damaged =
             unit.orders().get_if<unit_orders::damaged>();
         damaged.has_value() ) {
-      co_await ts_.gui.message_box(
-          damaged_ship_message( damaged->turns_until_repair ) );
+      co_await ts_.gui.message_box( ship_still_damaged_message(
+          damaged->turns_until_repair ) );
       co_return;
     }
     // FIXME: need to replace the two below calls with a more

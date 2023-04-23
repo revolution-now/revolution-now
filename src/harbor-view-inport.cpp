@@ -123,8 +123,8 @@ wait<> HarborInPortShips::click_on_unit( UnitId unit_id ) {
     if( auto damaged =
             unit.orders().get_if<unit_orders::damaged>();
         damaged.has_value() ) {
-      co_await ts_.gui.message_box(
-          damaged_ship_message( damaged->turns_until_repair ) );
+      co_await ts_.gui.message_box( ship_still_damaged_message(
+          damaged->turns_until_repair ) );
       co_return;
     }
     ChoiceConfig config{
@@ -185,8 +185,9 @@ HarborInPortShips::source_check( HarborDraggableObject const&,
     // We return this in the result instead of showing it here so
     // that it will be displayed after the rubberbanding, which
     // looks a bit more natural.
-    co_return DragRejection{ .reason = damaged_ship_message(
-                                 damaged->turns_until_repair ) };
+    co_return DragRejection{
+        .reason = ship_still_damaged_message(
+            damaged->turns_until_repair ) };
   co_return base::valid;
 }
 

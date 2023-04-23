@@ -161,12 +161,12 @@ TEST_CASE( "[damaged] find_repair_port_for_ship" ) {
   REQUIRE( f() == expected );
 }
 
-TEST_CASE( "[damaged] damaged_ship_message" ) {
+TEST_CASE( "[damaged] ship_still_damaged_message" ) {
   World  W;
   string expected;
   int    turns = 0;
 
-  auto f = [&] { return damaged_ship_message( turns ); };
+  auto f = [&] { return ship_still_damaged_message( turns ); };
 
   turns = 1;
   expected =

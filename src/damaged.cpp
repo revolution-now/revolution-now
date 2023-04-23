@@ -92,7 +92,7 @@ maybe<ShipRepairPort> find_repair_port_for_ship(
   return res;
 }
 
-string damaged_ship_message( int turns_until_repaired ) {
+string ship_still_damaged_message( int turns_until_repaired ) {
   CHECK_GT( turns_until_repaired, 0 );
   string_view const s = ( turns_until_repaired > 1 ) ? "s" : "";
   return fmt::format(

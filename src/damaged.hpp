@@ -44,7 +44,8 @@ base::maybe<ShipRepairPort> find_repair_port_for_ship(
 // Produce the standard message that should be displayed to the
 // user when they try to interact with a damaged ship in a way
 // that is not allowed.
-std::string damaged_ship_message( int turns_until_repaired );
+std::string ship_still_damaged_message(
+    int turns_until_repaired );
 
 // When a ship is damaged this will return the number of turns
 // that it will need until repaired. Note that this could be zero
