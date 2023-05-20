@@ -50,6 +50,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[{{FILE}}] some test" ) {
+  World W;
   // TODO
 }
 
