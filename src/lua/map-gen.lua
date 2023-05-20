@@ -40,7 +40,7 @@ local CLASSIC_WORLD_SIZE = { w=56, h=70 }
 local function secure_options( tbl )
   assert( tbl )
   return setmetatable( tbl, {
-    __index=function( tbl, key )
+    __index=function( _, key )
       error( 'options key ' .. key .. ' does not exist.' )
     end
   } )
@@ -92,19 +92,14 @@ end
 -----------------------------------------------------------------
 -- Utils
 -----------------------------------------------------------------
+local function eat( ... ) end
+
 local function debug_log( fmt, ... )
+  eat( fmt, ... )
   -- io.write( string.format( fmt .. '\n', ... ) )
 end
 
 local function append( tbl, elem ) tbl[#tbl + 1] = elem end
-
-local function switch( b, t, f )
-  if b then
-    return t
-  else
-    return f
-  end
-end
 
 -- Take a percent (where 1.0 is 100%) and format it like nn.n%
 local function percent( x )
@@ -116,15 +111,6 @@ local function round( x ) return math.floor( x + 0.5 ) end
 -----------------------------------------------------------------
 -- Random Numbers
 -----------------------------------------------------------------
-local function random_elem( tbl, len )
-  local idx = math.random( 1, len )
-  local j = 1
-  for key, elem in pairs( tbl ) do
-    if j == idx then return key, elem end
-    j = j + 1
-  end
-end
-
 local function random_bool( p )
   p = p or 0.5
   return math.random() < p
@@ -154,7 +140,6 @@ local function shuffle( lst )
 end
 
 local function random_point_in_rect( rect )
-  local size = { w=rect.w, h=rect.h }
   local x = math.random( 0, rect.w - 1 ) + rect.x
   local y = math.random( 0, rect.h - 1 ) + rect.y
   return { x=x, y=y }
@@ -223,7 +208,6 @@ end
 function M.initial_ships_pos()
   local size = world_size()
   local quintile = size.h // 5
-  local y = size.h / 2
   local quintiles = {
     quintile, quintile * 2, quintile * 3, quintile * 4
   }
@@ -247,10 +231,9 @@ end
 -----------------------------------------------------------------
 -- Terrain Manipulation
 -----------------------------------------------------------------
-local function is_on_map_edge( world_size, coord )
-  return
-      coord.x == 0 or coord.y == 0 or coord.x == world_size.w - 1 or
-          coord.y == world_size.h - 1
+local function is_on_map_edge( size, coord )
+  return coord.x == 0 or coord.y == 0 or coord.x == size.w - 1 or
+             coord.y == size.h - 1
 end
 
 local function set_land( coord )
@@ -354,18 +337,6 @@ end
 -----------------------------------------------------------------
 -- Square Surroundings
 -----------------------------------------------------------------
-local function surrounding_squares_7x7( square )
-  local possible = {}
-  for y = square.y - 3, square.y + 3 do
-    for x = square.x - 3, square.x + 3 do
-      if x ~= square.x or y ~= square.y then
-        append( possible, { x=x, y=y } )
-      end
-    end
-  end
-  return possible
-end
-
 local function surrounding_squares_3x3( square )
   local possible = {}
   for y = square.y - 1, square.y + 1 do
@@ -443,16 +414,6 @@ local function surrounding_squares_7x7_right_edge( square )
   return possible
 end
 
-local function surrounding_squares_diagonal( square )
-  local possible = {
-    { x=square.x - 1, y=square.y - 1 }, --
-    { x=square.x + 1, y=square.y - 1 }, --
-    { x=square.x - 1, y=square.y + 1 }, --
-    { x=square.x + 1, y=square.y + 1 } --
-  }
-  return possible
-end
-
 local function surrounding_squares_cardinal( square )
   local possible = {
     { x=square.x + 0, y=square.y - 1 }, --
@@ -471,21 +432,10 @@ local function filter_on_map( coords )
   return res
 end
 
-local function filter( lst, predicate )
-  local res = {}
-  for _, elem in ipairs( lst ) do
-    local retain = predicate( elem )
-    assert( retain == true or retain == false )
-    if retain then table.insert( res, elem ) end
-  end
-  return res
-end
-
 -----------------------------------------------------------------
 -- Hills/Mountains Generation
 -----------------------------------------------------------------
 local function create_hills( options )
-  local size = world_size()
   on_all( function( coord )
     local square = square_at( coord )
     if square.surface == 'land' then
@@ -505,10 +455,10 @@ local function can_receive_mountain( square )
           square.overlay == nil
 end
 
-local function create_mountain_range( options, coord )
+local function create_mountain_range( coord )
   local range_length = math.random( 1, 10 )
   local curr = coord
-  for i = 1, range_length do
+  for _ = 1, range_length do
     if square_exists( curr ) then
       local square = square_at( curr )
       if can_receive_mountain( square ) then
@@ -522,13 +472,12 @@ local function create_mountain_range( options, coord )
 end
 
 local function create_mountains( options )
-  local size = world_size()
   on_all( function( coord )
     local square = square_at( coord )
     if can_receive_mountain( square ) then
       if math.random() <= options.mountains_density then
         if math.random() <= options.mountains_range_density then
-          create_mountain_range( options, coord )
+          create_mountain_range( coord )
         else
           square.overlay = 'mountains'
         end
@@ -542,7 +491,6 @@ end
 -----------------------------------------------------------------
 -- TODO: tweak the density of forest to match the original game.
 local function forest_cover()
-  local size = world_size()
   on_all( function( coord )
     local square = square_at( coord )
     if square.surface == 'land' then
@@ -596,7 +544,7 @@ local function create_sea_lanes()
   local size = world_size()
 
   -- First set all water tiles to sea lane.
-  on_all( function( coord, square )
+  on_all( function( _, square )
     if is_square_water( square ) then square.sea_lane = true end
   end )
 
@@ -635,8 +583,7 @@ local function create_sea_lanes()
         -- with no sea lane, which means we've already cleared
         -- the remainder as part of another row, so we can stop.
         for x = s.x, 0, -1 do
-          local coord = { x=x, y=s.y }
-          local square = square_at( coord )
+          local square = square_at( { x=x, y=s.y } )
           if square.surface == 'water' and not square.sea_lane then
             break
           end
@@ -770,12 +717,11 @@ local function paint_native_land_partitions( partitions )
   end
 end
 
-local function has_dwelling_in_surroundings( coord )
-  local squares =
-      filter_on_map( surrounding_squares_3x3( coord ) )
+local function has_dwelling_in_surroundings( center )
+  local squares = filter_on_map(
+                      surrounding_squares_3x3( center ) )
   local natives = ROOT.natives
   for _, coord in ipairs( squares ) do
-    local square = square_at( coord )
     if natives:has_dwelling_on_square( coord ) then
       return true
     end
@@ -854,8 +800,8 @@ local function add_dwelling( coord, tribe )
                       surrounding_squares_tribe_owned( tribe,
                                                        coord ) )
   natives:mark_land_owned( dwelling.id, coord )
-  for _, coord in ipairs( owned_squares ) do
-    natives:mark_land_owned( dwelling.id, coord )
+  for _, where in ipairs( owned_squares ) do
+    natives:mark_land_owned( dwelling.id, where )
   end
   -- Create the brave associated with this dwelling.
   create_brave_for_dwelling( dwelling )
@@ -937,8 +883,8 @@ local function create_indian_villages_using_partition(options,
   end
   -- Assign dwelling populations now that we've populated the
   -- "capital" field.
-  for tribe, dwellings in pairs( dwellings ) do
-    for _, dwelling in ipairs( dwellings ) do
+  for tribe, tribe_dwellings in pairs( dwellings ) do
+    for _, dwelling in ipairs( tribe_dwellings ) do
       set_dwelling_population( tribe, dwelling )
     end
   end
@@ -1070,9 +1016,9 @@ local RESOURCES_FOREST = {
 -- and 2) it does make navigating by ship a bit easier since you
 -- can effectively spot land from further away by noticing
 -- fishes, which is a help.
-local function can_place_fish( coord )
-  local squares =
-      filter_on_map( surrounding_squares_5x5( coord ) )
+local function can_place_fish( center )
+  local squares = filter_on_map(
+                      surrounding_squares_5x5( center ) )
   for _, coord in ipairs( squares ) do
     if square_at( coord ).surface == 'land' then return true end
   end
@@ -1108,7 +1054,7 @@ local function add_ground_prime_resource( coord, square )
   if resource then square.ground_resource = resource end
 end
 
-local function add_forest_prime_resource( coord, square )
+local function add_forest_prime_resource( square )
   assert( square.overlay == 'forest' )
   assert( square.surface ~= 'water' )
   local resource = RESOURCES_FOREST[square.ground]
@@ -1138,7 +1084,7 @@ local function distribute_prime_forest_resources( y_offset )
       -- prime resource on the same square as a ground prime re-
       -- source, but theoretically that would not be a problem if
       -- it happened.
-      add_forest_prime_resource( coord, square )
+      add_forest_prime_resource( square )
     end
   end
   log.debug( 'prime forest resources density: ' ..
@@ -1283,8 +1229,8 @@ local function remove_islands()
       local surrounding = filter_on_map(
                               surrounding_squares_3x3( coord ) )
       local has_land = false
-      for _, square in ipairs( surrounding ) do
-        if square_at( square ).surface == 'land' then
+      for _, surrounding_square in ipairs( surrounding ) do
+        if square_at( surrounding_square ).surface == 'land' then
           has_land = true
           break
         end
@@ -1309,8 +1255,8 @@ local function remove_river_islands()
     local surrounding = filter_on_map(
                             surrounding_squares_cardinal( coord ) )
     local has_river = false
-    for _, square in ipairs( surrounding ) do
-      if square_at( square ).river ~= nil then
+    for _, surrounding_square in ipairs( surrounding ) do
+      if square_at( surrounding_square ).river ~= nil then
         has_river = true
         break
       end
@@ -1349,14 +1295,14 @@ end
 -----------------------------------------------------------------
 -- River Generation
 -----------------------------------------------------------------
-local function create_river_segment( options, coord, river_type )
+local function create_river_segment( coord, river_type )
   local pos = { x=coord.x, y=coord.y }
   -- This does not have to be long, since even a short range will
   -- give rise to long segments since in many cases two consecu-
   -- tive segments will be pointing in the same direction.
   local length = math.random( 1, 3 )
   local delta = random_cardinal_direction()
-  for i = 1, length do
+  for _ = 1, length do
     if not square_exists( pos ) then return nil end
     local square = square_at( pos )
     if is_arctic_square( square ) then return nil end
@@ -1382,8 +1328,8 @@ local function create_river( options, coord )
   if random_bool( options.major_river_fraction ) then
     river_type = 'major'
   end
-  for i = 1, num_segments do
-    coord = create_river_segment( options, coord, river_type )
+  for _ = 1, num_segments do
+    coord = create_river_segment( coord, river_type )
     -- We've either reached the ocean or off-map.
     if not coord then break end
   end
@@ -1393,18 +1339,18 @@ end
 -- ocean tiles, even inland ocean tiles (which makes sense).
 -- Also, it looks like rivers can fork mid-way.
 local function create_rivers( options )
-  on_all( function( coord, square )
+  on_all( function( center, square )
     if is_land( square ) then
       if random_bool( options.river_density ) then
         -- Before starting a new river make sure there are no ex-
         -- isting rivers in the vicinity. Without this, the
         -- rivers tend to clump too much.
         local squares = filter_on_map(
-                            surrounding_squares_3x3( coord ) )
+                            surrounding_squares_3x3( center ) )
         for _, coord in ipairs( squares ) do
           if square_at( coord ).river then goto skip end
         end
-        create_river( options, coord )
+        create_river( options, center )
         ::skip::
       end
     end
@@ -1426,8 +1372,6 @@ end
 -- code doesn't have to filter out non-exstent squares in every
 -- algorithm.
 local function generate_proto_squares()
-  local size = world_size()
-
   -- Arctic.
   set_square_arctic( ROOT.terrain:proto_square( 'n' ) )
   set_square_arctic( ROOT.terrain:proto_square( 's' ) )
@@ -1476,12 +1420,12 @@ end
 -- given shape and returns the number of water squares that were
 -- changed to land in the process.
 local brushes = {
-  single=function( self, x, y )
+  single=function( _, x, y )
     local count = 0
     count = count + set_land_if_needed{ x=x, y=y }
     return count
   end,
-  cross=function( self, x, y )
+  cross=function( _, x, y )
     local count = 0
     count = count + set_land_if_needed{ x=x, y=y }
     count = count + set_land_if_needed{ x=x - 1, y=y }
@@ -1497,7 +1441,7 @@ local brushes = {
       return self:cross( x, y )
     end
   end,
-  rand=function( self, x, y )
+  rand=function( _, x, y )
     local count = 0
     local squares = surrounding_squares_cardinal{ x=x, y=y }
     for _, coord in ipairs( squares ) do
@@ -1520,7 +1464,7 @@ local function generate_continent( options, seed_square, stretch )
 
   set_land( square )
   local brush = assert( brushes[options.brush] )
-  for i = 1, area - 1 do
+  for _ = 1, area - 1 do
     local delta_x = random_choice( p_horizontal, 1, 0 ) *
                         random_choice( .5, -1, 1 )
     local delta_y = random_choice( p_vertical, 1, 0 ) *
@@ -1602,7 +1546,7 @@ local function generate_land( options )
     }
   }
   local land_squares = 0
-  for i = 1, 1000 do
+  for _ = 1, 1000 do
     for _, rect in ipairs( quadrants ) do
       land_squares = land_squares +
                          generate_continent_in_rect( options,
@@ -1681,33 +1625,32 @@ local function generate_testing_land()
   -- end )
 end
 
-local function generate_circles_land( options )
-  local circles = {
-    { x=10, y=10, r=3 }, { x=46, y=10, r=3 },
-    { x=10, y=60, r=3 }, { x=46, y=60, r=3 }, --
-    { x=28, y=20, r=3 }, { x=28, y=50, r=3 },
-    { x=10, y=35, r=3 }, { x=46, y=35, r=3 }
-  }
-  on_all( function( coord, square )
-    local in_circle = false
-    for _, circle in ipairs( circles ) do
-      local dist = math.sqrt( (coord.x - circle.x) ^ 2 +
-                                  (coord.y - circle.y) ^ 2 )
-      if dist <= circle.r then
-        in_circle = true
-        break
-      end
-    end
-    if not in_circle then return end
-    square.surface = 'land'
-    square.ground = 'grassland'
-  end )
-end
+-- local function generate_circles_land( options )
+--   local circles = {
+--     { x=10, y=10, r=3 }, { x=46, y=10, r=3 },
+--     { x=10, y=60, r=3 }, { x=46, y=60, r=3 }, --
+--     { x=28, y=20, r=3 }, { x=28, y=50, r=3 },
+--     { x=10, y=35, r=3 }, { x=46, y=35, r=3 }
+--   }
+--   on_all( function( coord, square )
+--     local in_circle = false
+--     for _, circle in ipairs( circles ) do
+--       local dist = math.sqrt( (coord.x - circle.x) ^ 2 +
+--                                   (coord.y - circle.y) ^ 2 )
+--       if dist <= circle.r then
+--         in_circle = true
+--         break
+--       end
+--     end
+--     if not in_circle then return end
+--     square.surface = 'land'
+--     square.ground = 'grassland'
+--   end )
+-- end
 
 -- FIXME move this
 local function generate_battlefield()
-  local size = world_size()
-  on_all( function( coord, square )
+  on_all( function( _, square )
     square.surface = 'land'
     square.ground = 'grassland'
   end )
@@ -1733,7 +1676,7 @@ end
 -- standard distribution algorithm applied after the map is fin-
 -- ished.
 function M.redistribute_resources( placement_seed )
-  on_all( function( coord, square )
+  on_all( function( _, square )
     square.lost_city_rumor = false
     square.ground_resource = nil
     square.forest_resource = nil
@@ -1753,7 +1696,7 @@ end
 function M.remake_rivers( options )
   -- FIXME: merge these options with the default ones.
   options = options or M.default_options()
-  on_all( function( coord, square ) square.river = nil end )
+  on_all( function( _, square ) square.river = nil end )
   create_rivers( options )
   ROOT_TS.map_updater:redraw()
 end
@@ -1797,7 +1740,7 @@ local function generate( options )
   generate_proto_squares()
 
   if options.type == 'battlefield' then
-    generate_battlefield( options )
+    generate_battlefield()
     return
   elseif options.type == 'land-partition' then
     generate_land( options )
