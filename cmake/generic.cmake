@@ -136,7 +136,7 @@ function( clang_tidy target )
     endif()
 endfunction()
 
-# This is used not only for clang-tidy but also for YCM.
+# This is used by the clang tools (e.g. clangd, clang-tidy).
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 # === sanitizers ==================================================

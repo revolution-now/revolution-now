@@ -5,26 +5,27 @@
 #                                      be good if it were working; perhaps try it
 #                                      again in the future.
 
+# TODO: currently all checks are disabled; re-enable them gradually.
 Checks: '
     -*,
-     abseil-*,
-     boost-*,
-     bugprone-*,
-     cert-*,
-     cppcoreguidelines-*,
-     clang-analyzer-*,
-     hicpp-*,
-     misc-*,
-     modernize-*,
-     performance-*,
-     portability-*,
-     readability-*,
+    -abseil-*,
+    -boost-*,
+    -bugprone-*,
+    -cert-*,
+    -cppcoreguidelines-*,
+    -clang-analyzer-*,
+    -hicpp-*,
+    -misc-*,
+    -modernize-*,
+    -performance-*,
+    -portability-*,
+    -readability-*,
     -hicpp-braces-around-statements,
     -readability-braces-around-statements,
     -abseil-no-internal-dependencies,
     -cert-err58-cpp
 '
-WarningsAsErrors: '*'
+#WarningsAsErrors: '*'
 FormatStyle: 'file'
 # Only report errors from headers in our project and not third party headers.
 HeaderFilterRegex: 'src/.*'

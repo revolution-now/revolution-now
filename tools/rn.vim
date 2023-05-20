@@ -53,12 +53,5 @@ autocmd BufWritePre *.hpp,*.cpp :silent! call MaybeFormat( 'ClangFormatAll' )
 autocmd BufWritePre *.lua       :silent! call MaybeFormat( 'LuaFormatAll' )
 " autocmd BufWritePre *.rds       :silent! call MaybeFormat( 'LuaFormatAll' )
 
-" We set this ycm global variable to point YCM to the conf script.  The
-" reason we don't just put a .ycm_extra_conf.py in the root folder
-" (which YCM would then find on its own without our help) is that we
-" want to keep the folder structure organized with all scripts in the
-" tools folder.
-let g:ycm_global_ycm_extra_conf = s:this_folder . '/ycm_extra_conf.py'
-
 " Tell the vim-templates function where to find the templates.
 let g:tmpl_search_paths = [s:this_folder . '/templates']
