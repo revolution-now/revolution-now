@@ -18,7 +18,7 @@ local M = {}
 -- rently call it when iterating over a table) or don't want to
 -- call (maybe it's expensive).
 function M.all_pairs( tbl )
-  res = {}
+  local res = {}
   for k, v in pairs( tbl ) do res[k] = v end
   return res
 end
@@ -75,7 +75,7 @@ local function freeze_table( parent, tbl_name )
     __index=tbl,
     __pairs=pairs_table_override( tbl ),
     __ipairs=ipairs_table_override( tbl ),
-    __newindex=function( t, k, v )
+    __newindex=function( _, _, _ )
       error( 'attempt to modify a read-only table: ' .. tbl_name )
     end,
     __metatable=false
@@ -84,7 +84,7 @@ end
 
 -- Redefine the global builtin function rawset since the real
 -- version is unsafe.
-local real_rawset = rawset
+local real_rawset = assert( rawset )
 rawset = nil
 
 -- In this case "freeze" means that one cannot change what a
@@ -115,7 +115,7 @@ local function freeze_existing_globals()
     __metatable=false
   } )
   -- Now delete all globals from accessible environment.
-  for k, v in pairs( globals ) do _G[k] = nil end
+  for k, _ in pairs( globals ) do _G[k] = nil end
 end
 
 function M.freeze_all()
