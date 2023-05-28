@@ -12,7 +12,6 @@ local util = require( 'ide.util' )
 -----------------------------------------------------------------
 -- Aliases.
 -----------------------------------------------------------------
-local call = vim.call
 local fnamemodify = vim.fn.fnamemodify
 local keymap = vim.keymap
 
@@ -136,6 +135,9 @@ end
 local function main()
   -- Create key mappings.
   mappings()
+
+  -- Add snippets.
+  require( 'ide.snippets' )
 
   -- Creates all of the tabs/splits.
   tabs.set_tab_namer( tab_namer )
