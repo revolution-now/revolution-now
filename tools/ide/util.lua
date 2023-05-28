@@ -78,4 +78,10 @@ function M.is_wide()
   return false
 end
 
+-- See here:
+--   https://superuser.com/questions/345520/vim-number-of-total-buffers
+function M.total_buffers()
+  return #vim.fn.getbufinfo{ buflisted=1 }
+end
+
 return M

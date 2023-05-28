@@ -7,6 +7,7 @@ local M = {}
 -- Imports.
 -----------------------------------------------------------------
 local win = require( 'ide.win' )
+local util = require( 'ide.util' )
 
 -----------------------------------------------------------------
 -- Layout
@@ -65,7 +66,7 @@ function M.open( layout )
   -- but it contains a file open in it, then open a new tab
   -- first. Otherwise, we have only one tab/buffer open and it is
   -- the initial (empty) one, so we don't need to open a new tab.
-  if vim.fn.bufnr( '$' ) > 1 or #vim.fn.bufname( 1 ) > 0 then
+  if util.total_buffers() > 1 or #vim.fn.bufname( 1 ) > 0 then
     win.tab()
   end
   Layout:dispatch( layout )
