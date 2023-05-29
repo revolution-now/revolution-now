@@ -1,32 +1,14 @@
 -----------------------------------------------------------------
--- C++ snippets for revolution-now.
+-- Snippets for revolution-now.
 -----------------------------------------------------------------
-local assembler = require( 'dsicilia.snippets.assemble' )
-local ls = require( 'luasnip' )
-local S = {}
+local SNIPPETS_FOLDER = '~/dev/revolution-now/tools/ide/snippets'
 
------------------------------------------------------------------
--- Snippets.
------------------------------------------------------------------
--- Test case using the testing::World class. TODO: make this more
--- sophisticated by putting in the correct path name of the file
--- relative to the src folder.
-S.wtest =
-[[TEST_CASE( "[$TM_FILENAME_BASE] $1" ) {
-  World W;
-  $0// TODO
+-- Lua snippets.
+require( "luasnip.loaders.from_lua" ).lazy_load {
+  paths = { SNIPPETS_FOLDER .. '/lua' }
 }
 
-]]
-
------------------------------------------------------------------
--- Parse, and add snippets.
------------------------------------------------------------------
-local cpp_parsed = assembler.parse_snippets( S )
-
--- Map from filetype to snippets.
-local parsed = {
-  cpp = cpp_parsed,
+-- Snippets from snipmate files.
+require( "luasnip.loaders.from_snipmate" ).lazy_load {
+  paths = { SNIPPETS_FOLDER .. '/snipmate' }
 }
-
-ls.add_snippets( nil, parsed, { type='autosnippets' } )

@@ -1,0 +1,22 @@
+autosnippet =vswitch
+	SWITCH( $1 ) {
+	  CASE( $2 ) {
+	    ${0:// TODO}
+	  }
+	  END_CASES;
+	}
+	
+
+# Implementation of a standalone function.
+autosnippet =fimpl
+	${1:return_type} ${2:function_name}( ${3:args, ...} ) {
+	  ${0:// TODO}
+	}
+	
+
+# Implementation of a member function.
+autosnippet =mfimpl
+	${1:return_type} ${2:class_name}::${3:method_name}( ${4:args, ...} ) {
+	  ${0:// TODO}
+	}
+	
