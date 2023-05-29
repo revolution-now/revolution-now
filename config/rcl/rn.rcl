@@ -16,6 +16,20 @@ viewport {
   # When zooming out, do we allow the player to keep zooming
   # until there is space around the map revealed, or do we stop
   # the zooming just when that is about to happen.
+  #
+  # FIXME: ideally we want this to be false for normal and large
+  # map sizes, since it seems to look/feel better, and it makes
+  # it so that the targeted zoom always works even when zoomed
+  # out completely (otherwise, if there is space around the map,
+  # targeted zoome doesn't really work because the mouse moves
+  # relative to the map as it zooms, until the edges are no
+  # longer visible). However, a value of "false" for this does
+  # not really work well for super small maps, since then it
+  # forces them to fill the screen and hence have large tile
+  # sizes. So the real ideal for this would be to have a third
+  # option that says "when a value of false would cause the min-
+  # imum zoom factor to be larger than 1.0 then we need to set it
+  # to true; otherwise, set it to false."
   can_reveal_space_around_map: false
 
   # When the map view needs to scroll to reveal a tile that is
