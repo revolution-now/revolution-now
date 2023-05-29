@@ -42,7 +42,7 @@ local function secure_options( tbl )
   return setmetatable( tbl, {
     __index=function( _, key )
       error( 'options key ' .. key .. ' does not exist.' )
-    end
+    end,
   } )
 end
 
@@ -80,12 +80,12 @@ function M.default_options()
     major_river_fraction=.15,
     native_tribes={
       'inca', 'aztec', 'apache', 'sioux', 'tupi', 'arawak',
-      'cherokee', 'iroquois'
+      'cherokee', 'iroquois',
     },
     -- This is in [0,1.0] and gives a probability that a dwelling
     -- will be placed on a tile assuming that all other condi-
     -- tions are met.
-    dwelling_frequency=.20
+    dwelling_frequency=.20,
   }
 end
 
@@ -147,7 +147,7 @@ end
 
 local function random_cardinal_direction()
   return random_list_elem{
-    { w=-1, h=0 }, { w=1, h=0 }, { w=0, h=-1 }, { w=0, h=1 }
+    { w=-1, h=0 }, { w=1, h=0 }, { w=0, h=-1 }, { w=0, h=1 },
   }
 end
 
@@ -209,7 +209,7 @@ function M.initial_ships_pos()
   local size = world_size()
   local quintile = size.h // 5
   local quintiles = {
-    quintile, quintile * 2, quintile * 3, quintile * 4
+    quintile, quintile * 2, quintile * 3, quintile * 4,
   }
   shuffle( quintiles )
   local spanish_y = quintiles[1]
@@ -224,7 +224,7 @@ function M.initial_ships_pos()
     dutch={ x=dutch_x, y=dutch_y },
     french={ x=french_x, y=french_y },
     english={ x=english_x, y=english_y },
-    spanish={ x=spanish_x, y=spanish_y }
+    spanish={ x=spanish_x, y=spanish_y },
   }
 end
 
@@ -359,7 +359,7 @@ local function generate_large_tribe_owned_land()
     X, X, X, X, X, X, X, --
     X, X, X, X, X, X, X, --
     _, X, X, X, X, X, _, --
-    _, _, X, X, X, _, _ --
+    _, _, X, X, X, _, _, --
   }
   assert( #map == 7 * 7 )
   return map
@@ -419,7 +419,7 @@ local function surrounding_squares_cardinal( square )
     { x=square.x + 0, y=square.y - 1 }, --
     { x=square.x - 1, y=square.y + 0 }, --
     { x=square.x + 1, y=square.y + 0 }, --
-    { x=square.x + 0, y=square.y + 1 } --
+    { x=square.x + 0, y=square.y + 1 }, --
   }
   return possible
 end
@@ -697,12 +697,12 @@ local function paint_native_land_partitions( partitions )
     [4]='desert',
     [5]='arctic',
     [6]='tundra',
-    [7]='swamp'
+    [7]='swamp',
   }
   for rasterized_coord, n in pairs( partitions ) do
     local coord = {
       x=rasterized_coord % size.w,
-      y=rasterized_coord // size.w
+      y=rasterized_coord // size.w,
     }
     local square = assert( square_at( coord ) )
     if not is_on_map_edge( size, coord ) and square.surface ==
@@ -817,7 +817,7 @@ local function create_indian_villages_using_partition(options,
   local size = world_size()
   local city_tribes = { 'inca', 'aztec' }
   local non_city_tribes = {
-    'apache', 'sioux', 'tupi', 'arawak', 'cherokee', 'iroquois'
+    'apache', 'sioux', 'tupi', 'arawak', 'cherokee', 'iroquois',
   }
   -- Helps to make sure that we place at least one dwelling for
   -- each tribe.
@@ -839,7 +839,7 @@ local function create_indian_villages_using_partition(options,
     local tribe = tribes[n + 1]
     local coord = {
       x=rasterized_coord % size.w,
-      y=rasterized_coord // size.w
+      y=rasterized_coord // size.w,
     }
     if is_on_map_edge( size, coord ) then goto continue end
     table.insert( coords_for_partition[n + 1], coord )
@@ -898,7 +898,7 @@ local tribe_level = {
   cherokee='agrarian',
   iroquois='agrarian',
   aztec='civilized',
-  inca='civilized'
+  inca='civilized',
 }
 
 local function log_dwelling_expertises( level )
@@ -984,7 +984,7 @@ local RESOURCES_GROUND = {
   ['prairie']='cotton',
   ['savannah']='sugar',
   ['swamp']='minerals',
-  ['tundra']='minerals'
+  ['tundra']='minerals',
 }
 
 -- If a forest tile has a prime resource then this table will
@@ -999,7 +999,7 @@ local RESOURCES_FOREST = {
   ['prairie']='deer',
   ['savannah']='tree',
   ['swamp']='minerals',
-  ['tundra']='deer'
+  ['tundra']='deer',
 }
 
 -- The original game checks to see if there is at least one land
@@ -1197,8 +1197,8 @@ local function remove_Xs( options )
     if coord.y < size.h - 1 and coord.x < size.w - 1 then
       local square_right = square_at{ x=coord.x + 1, y=coord.y }
       local square_down = square_at{ x=coord.x, y=coord.y + 1 }
-      local square_diag =
-          square_at{ x=coord.x + 1, y=coord.y + 1 }
+      local square_diag = square_at{ x=coord.x + 1,
+                                     y=coord.y + 1 }
       if is_land( square ) and is_water( square_right ) and
           is_water( square_down ) and is_land( square_diag ) then
         if random_bool( p ) then
@@ -1450,7 +1450,7 @@ local brushes = {
       end
     end
     return count
-  end
+  end,
 }
 
 -- Start at the seed square and do a biased 2D random walk
@@ -1512,7 +1512,7 @@ local function generate_land( options )
     top=round_buffer( size.h / 70 ),
     bottom=round_buffer( size.h / 70 ),
     left=round_buffer( 3 * size.w / 56 ),
-    right=round_buffer( 2 * size.w / 56 )
+    right=round_buffer( 2 * size.w / 56 ),
   }
   -- Seeds will be chosen from this rect, which is a bit smaller
   -- than the buffer to allow for outward growth.
@@ -1520,30 +1520,30 @@ local function generate_land( options )
     x=buffer.left * 2,
     y=buffer.top * 2,
     w=max( size.w - buffer.left * 2 - buffer.right * 4, 2 ),
-    h=max( size.h - buffer.top * 2 - buffer.bottom * 2, 2 )
+    h=max( size.h - buffer.top * 2 - buffer.bottom * 2, 2 ),
   }
   local quadrants = {
     { -- upper left
       x=seed_rect.x,
       y=seed_rect.y,
       w=seed_rect.w // 2,
-      h=seed_rect.h // 2
+      h=seed_rect.h // 2,
     }, { -- upper right
       x=seed_rect.x + seed_rect.w // 2,
       y=seed_rect.y,
       w=seed_rect.w // 2,
-      h=seed_rect.h // 2
+      h=seed_rect.h // 2,
     }, { -- lower left
       x=seed_rect.x,
       y=seed_rect.y + seed_rect.h // 2,
       w=seed_rect.w // 2,
-      h=seed_rect.h // 2
+      h=seed_rect.h // 2,
     }, { -- lower right
       x=seed_rect.x + seed_rect.w // 2,
       y=seed_rect.y + seed_rect.h // 2,
       w=seed_rect.w // 2,
-      h=seed_rect.h // 2
-    }
+      h=seed_rect.h // 2,
+    },
   }
   local land_squares = 0
   for _ = 1, 1000 do

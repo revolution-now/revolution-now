@@ -103,7 +103,7 @@ function M.auto_assert( w )
         -- rameter.
         return w[k]( w, ... )
       end
-    end
+    end,
   } )
 end
 

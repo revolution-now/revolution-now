@@ -6,9 +6,7 @@ local M = {}
 -----------------------------------------------------------------
 -- Public API.
 -----------------------------------------------------------------
-function M.matches( stem )
-  return (stem == 'exe/main')
-end
+function M.matches( stem ) return (stem == 'exe/main') end
 
 function M.create( stem )
   -- No distinction between wide/narrow here since we only have

@@ -29,20 +29,19 @@ local PriceGroup = price_group.PriceGroup
 local GOODS = { 'rum', 'cigars', 'cloth', 'coats' }
 local TARGET_PRICE = 12
 
-local STARTING_INTRINSIC_VOLUMES =
-    {
-      -- 11/12 10/11 14/15 9/10
-      rum=0x02a9,
-      cigars=0x02c6,
-      cloth=0x0224,
-      coats=0x033c
+local STARTING_INTRINSIC_VOLUMES = {
+  -- 11/12 10/11 14/15 9/10
+  rum=0x02a9,
+  cigars=0x02c6,
+  cloth=0x0224,
+  coats=0x033c,
 
-      -- 12/13 9/10 14/15 8/9
-      -- rum=0x1f3,
-      -- cigars=0x277,
-      -- cloth=0x1c6,
-      -- coats=0x2b5
-    }
+  -- 12/13 9/10 14/15 8/9
+  -- rum=0x1f3,
+  -- cigars=0x277,
+  -- cloth=0x1c6,
+  -- coats=0x2b5
+}
 local INITIAL_CMD = 'e'
 local DUTCH = false
 
@@ -53,7 +52,7 @@ local PRICE_GROUP_CONFIG = {
   starting_traded_volumes=nil, -- zeroes.
   min=1,
   max=20,
-  target_price=12
+  target_price=12,
 }
 
 local group

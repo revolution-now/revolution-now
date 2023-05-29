@@ -29,7 +29,7 @@ local tbl_keyword = function( type )
       return function( tbl )
         push( rds.items, { type=type, ns=ns, name=k, obj=tbl } )
       end
-    end
+    end,
   } )
 end
 
@@ -39,12 +39,12 @@ local cmd = {
   config=tbl_keyword( 'config' ),
   sumtype=tbl_keyword( 'sumtype' ),
   enum=tbl_keyword( 'enum' ),
-  struct=tbl_keyword( 'struct' )
+  struct=tbl_keyword( 'struct' ),
 }
 
 setmetatable( _G, {
   __index=function( _, k )
     return cmd[k] or function( o ) return { name=k, obj=o } end
   end,
-  __newindex=function() error( 'no setting globals' ) end
+  __newindex=function() error( 'no setting globals' ) end,
 } )

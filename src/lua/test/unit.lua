@@ -45,7 +45,7 @@ function M.new_test_pack()
       assert( not store[k], 'duplicate test name: ' .. k )
       store[k] = v
     end,
-    __pairs=function() return pairs( store ) end
+    __pairs=function() return pairs( store ) end,
   } )
 end
 

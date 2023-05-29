@@ -33,13 +33,13 @@ function Test.test_dry_weights()
   local weights, expected
 
   weights = W.dry_weights_for_row( 100, 0 )
-  expected =
-      { grassland=.03, plains=.35, prairie=.25, tundra=.37 }
+  expected = { grassland=.03, plains=.35, prairie=.25,
+               tundra=.37 }
   validate_weights( weights, expected )
 
   weights = W.dry_weights_for_row( 100, 99 )
-  expected =
-      { grassland=.03, plains=.35, prairie=.25, tundra=.37 }
+  expected = { grassland=.03, plains=.35, prairie=.25,
+               tundra=.37 }
   validate_weights( weights, expected )
 
   weights = W.dry_weights_for_row( 100, 49 )
@@ -48,13 +48,13 @@ function Test.test_dry_weights()
     plains=.05,
     prairie=.15,
     savannah=.45,
-    desert=.15
+    desert=.15,
   }
   validate_weights( weights, expected )
 
   weights = W.dry_weights_for_row( 100, 10 )
-  expected =
-      { grassland=.04, plains=.35, prairie=.30, tundra=.31 }
+  expected = { grassland=.04, plains=.35, prairie=.30,
+               tundra=.31 }
   validate_weights( weights, expected )
 
   weights = W.dry_weights_for_row( 100, 25 )
@@ -64,7 +64,7 @@ function Test.test_dry_weights()
     plains=.30,
     prairie=.30,
     savannah=.00,
-    tundra=.10
+    tundra=.10,
   }
   validate_weights( weights, expected )
 
@@ -74,7 +74,7 @@ function Test.test_dry_weights()
     grassland=.14,
     plains=.305,
     prairie=.305,
-    tundra=.115
+    tundra=.115,
   }
   validate_weights( weights, expected )
 
@@ -85,7 +85,7 @@ function Test.test_dry_weights()
     plains=.075,
     prairie=.20,
     savannah=.30,
-    tundra=.05
+    tundra=.05,
   }
   validate_weights( weights, expected )
 end

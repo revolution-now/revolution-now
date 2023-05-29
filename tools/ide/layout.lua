@@ -58,7 +58,7 @@ local Layout = {
       assert( layout.type )
       self[layout.type]( self, layout )
     end
-  end
+  end,
 }
 
 function M.open( layout )

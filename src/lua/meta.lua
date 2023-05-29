@@ -78,7 +78,7 @@ local function freeze_table( parent, tbl_name )
     __newindex=function( _, _, _ )
       error( 'attempt to modify a read-only table: ' .. tbl_name )
     end,
-    __metatable=false
+    __metatable=false,
   } );
 end
 
@@ -112,7 +112,7 @@ local function freeze_existing_globals()
       -- Allow setting new global variables.
       real_rawset( t, k, v )
     end,
-    __metatable=false
+    __metatable=false,
   } )
   -- Now delete all globals from accessible environment.
   for k, _ in pairs( globals ) do _G[k] = nil end

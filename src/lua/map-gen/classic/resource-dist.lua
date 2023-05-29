@@ -61,11 +61,11 @@ function M.compute_lost_city_rumors( size, y_offset )
       [17 * 0]=1, --
       [17 * 1]=1, --
       [17 * 2]=1, --
-      [17 * 3]=1 --
+      [17 * 3]=1, --
     },
     board_size=128,
     x_offset=-5,
-    y_offset=y_offset
+    y_offset=y_offset,
   }
   return distribute( config )
 end
@@ -84,11 +84,11 @@ local function compute_prime_resources( size, y_offset, x_offset )
       [7 + 17 * 0]=1, --
       [7 + 17 * 1]=1, --
       [7 + 17 * 2]=1, --
-      [7 + 17 * 3]=1 --
+      [7 + 17 * 3]=1, --
     },
     board_size=64,
     x_offset=x_offset,
-    y_offset=y_offset
+    y_offset=y_offset,
   }
   return distribute( config )
 end

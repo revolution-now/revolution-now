@@ -59,7 +59,7 @@ local printers = {
   sumtype=print_sumtype,
   enum=print_enum,
   struct=print_struct,
-  config=print_config
+  config=print_config,
 }
 
 function print_rds()

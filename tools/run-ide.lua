@@ -16,8 +16,6 @@ package.cpath = package.cpath --
 local format = string.format
 
 local mode = ...
-if not mode then
-  mode = 'rn'
-end
+if not mode then mode = 'rn' end
 
 require( format( 'ide.edit-%s', mode ) )

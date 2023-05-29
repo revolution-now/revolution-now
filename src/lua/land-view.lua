@@ -20,7 +20,7 @@ local orders = {
   wait=function() return { wait={} } end,
   build=function() return { build={} } end,
   road=function() return { road={} } end,
-  plow=function() return { plow={} } end
+  plow=function() return { plow={} } end,
 }
 
 local key_map = {
@@ -43,7 +43,7 @@ local key_map = {
   ['w']=orders.wait(),
   ['b']=orders.build(),
   ['r']=orders.road(),
-  ['p']=orders.plow()
+  ['p']=orders.plow(),
 }
 
 -- Will accept a key press from the user in the land view and

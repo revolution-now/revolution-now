@@ -26,7 +26,7 @@ function M.globals( env )
     __newindex=function( _, key, _ )
       error( 'attempt to modify global "' .. key ..
                  '" which is not permitted.' )
-    end
+    end,
   } )
 end
 

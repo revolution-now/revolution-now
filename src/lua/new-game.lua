@@ -42,9 +42,9 @@ function M.default_options()
       { nation='english', ship_pos=nil, human=false },
       { nation='french', ship_pos=nil, human=false },
       { nation='spanish', ship_pos=nil, human=false },
-      { nation='dutch', ship_pos=nil, human=false }
+      { nation='dutch', ship_pos=nil, human=false },
     },
-    map={} -- use default map options.
+    map={}, -- use default map options.
   }
 end
 
@@ -187,7 +187,7 @@ local function create_all_units( options, root )
     'veteran_soldier', 'veteran_dragoon', 'continental_army',
     'continental_cavalry', 'regular', 'cavalry', 'hardy_pioneer',
     'jesuit_missionary', 'seasoned_scout', 'artillery',
-    'damaged_artillery', 'wagon_train', 'treasure'
+    'damaged_artillery', 'wagon_train', 'treasure',
   }
 
   local function create( where, unit_name )
@@ -201,7 +201,7 @@ local function create_all_units( options, root )
   for i, unit_name in ipairs( land_units ) do
     local coord = {
       x=origin.x + (i - 1) % 7,
-      y=origin.y + (i - 1) // 7
+      y=origin.y + (i - 1) // 7,
     }
     create( coord, unit_name )
   end
@@ -211,13 +211,13 @@ local function create_all_units( options, root )
   -- Ships
   local ships = {
     'caravel', 'merchantman', 'galleon', 'privateer', 'frigate',
-    'man_o_war'
+    'man_o_war',
   }
 
   for i, unit_name in ipairs( ships ) do
     local coord = {
       x=origin.x + (i - 1) % 3,
-      y=origin.y + (i - 1) // 3
+      y=origin.y + (i - 1) // 3,
     }
     create( coord, unit_name )
   end
@@ -311,7 +311,7 @@ local STARTING_GOLD = {
   explorer=300,
   conquistador=0,
   governor=0,
-  viceroy=0
+  viceroy=0,
 }
 
 local function create_player_state( settings, nation, player )
@@ -353,7 +353,7 @@ end
 local function add_testing_options( options )
   options.ordered_nations = {
     -- { nation='english', ship_pos=nil, human=false },
-    { nation='french', ship_pos=nil, human=true }
+    { nation='french', ship_pos=nil, human=true },
     -- { nation='spanish', ship_pos=nil, human=false }
     -- { nation='dutch', ship_pos=nil, human=false }
   }

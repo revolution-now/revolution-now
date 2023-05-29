@@ -66,15 +66,15 @@ local function split_vertical( land_coords, world_size )
       if iters > 100 then return land_coords, {} end
       x_top = math.random( x_min, x_max )
       x_bottom = x_min
-      local line =
-          { m=(x_bottom - x_top) / world_size.h, b=x_top }
+      local line = { m=(x_bottom - x_top) / world_size.h,
+                     b=x_top }
       local left, right = land_coords_left_right_of_line(
                               land_coords, line )
       log( 'iter 2: left=%d, right=%d', #left, #right )
     until #right > #left * scale
     for i = 1, x_max - x_min do
-      local line =
-          { m=(x_bottom - x_top) / world_size.h, b=x_top }
+      local line = { m=(x_bottom - x_top) / world_size.h,
+                     b=x_top }
       local left, right = land_coords_left_right_of_line(
                               land_coords, line )
       log( 'iter 3: left=%d, right=%d', #left, #right )
@@ -110,7 +110,7 @@ local function split_horizontal( land_coords, world_size )
       y_right = y_min
       local line = {
         m=(y_right - y_left) / world_size.w,
-        b=y_left
+        b=y_left,
       }
       local above, below = land_coords_above_below_line(
                                land_coords, line )
@@ -119,7 +119,7 @@ local function split_horizontal( land_coords, world_size )
     for i = 1, y_max - y_min do
       local line = {
         m=(y_right - y_left) / world_size.w,
-        b=y_left
+        b=y_left,
       }
       local above, below = land_coords_above_below_line(
                                land_coords, line )
@@ -173,7 +173,7 @@ function M.generate( world_size, partitions, has_land )
   local res = {}
   local split_funcs = {
     func=split_horizontal,
-    next={ func=split_vertical, next={ func=split_horizontal } }
+    next={ func=split_vertical, next={ func=split_horizontal } },
   }
   do_split( res, split_funcs, { min=0, max=partitions - 1 },
             land_coords, world_size )

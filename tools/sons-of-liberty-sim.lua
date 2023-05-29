@@ -45,7 +45,6 @@
 -- (and plausible) algorithm, suggests that are true correct for-
 -- mula (1) is the one that the game uses, but deviates from it
 -- because of the primitive rounding that it uses.
-
 -- Simulate the kind of rounding error that you'd have with a
 -- fixed point number representation which keeps log2(precision)
 -- bits.
@@ -76,7 +75,7 @@ local start = 0
 local finish = 100
 
 for i = 1, 20 do
-  print( 'round=2^' .. string.format( '%-2d', i-1 ) .. ': [' ..
+  print( 'round=2^' .. string.format( '%-2d', i - 1 ) .. ': [' ..
              string.format( '%15s', find( start, round ) ) .. ',' ..
              find( finish, round ) .. ']' )
   round = round * 2

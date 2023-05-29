@@ -23,7 +23,7 @@ local function default_price_group_config()
     starting_traded_volumes=nil, -- zeroes.
     min=1,
     max=20,
-    target_price=12
+    target_price=12,
   }
 end
 

@@ -27,7 +27,7 @@ local TABS_MODULE = 'ide.contents.rn'
 local module_types = {
   require( 'ide.module-config' ), --
   require( 'ide.module-main' ), --
-  require( 'ide.module-shader' ) --
+  require( 'ide.module-shader' ), --
 }
 
 local function open_module( stem )
@@ -84,10 +84,9 @@ local function save_tabs()
     out:write( tostring( line or '' ) .. '\n' )
   end
   writeln( '-- List of modules to open when we edit RN.' )
-  writeln()
   writeln( 'return {' )
   for _, tab in ipairs( tab_list ) do
-    writeln( "  '" .. tab_namer( tab.buffers ) .. "'," )
+    writeln( '  \'' .. tab_namer( tab.buffers ) .. '\', --' )
   end
   writeln( '}' )
   out:close()
