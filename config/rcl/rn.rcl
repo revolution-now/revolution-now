@@ -16,7 +16,7 @@ viewport {
   # When zooming out, do we allow the player to keep zooming
   # until there is space around the map revealed, or do we stop
   # the zooming just when that is about to happen.
-  can_reveal_space_around_map: true
+  can_reveal_space_around_map: false
 
   # When the map view needs to scroll to reveal a tile that is
   # off screen it will only perform a smooth scroll if the tile
