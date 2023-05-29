@@ -88,7 +88,8 @@ void create_new_game_from_lua( World& world ) {
   UNWRAP_CHECK(
       options, new_game["default_options"].pcall<lua::table>() );
   options["map"]["world_size"] = Delta{ .w = 8, .h = 8 };
-  CHECK_HAS_VALUE( new_game["create"].pcall( options ) );
+  CHECK_HAS_VALUE(
+      new_game["create"].pcall( world.root(), options ) );
 }
 
 void generate_save_file( World& world, fs::path const& dst,

@@ -13,6 +13,22 @@ local M = {}
 
 local map_gen = require( 'map-gen' )
 
+-- This, together with the LSP's warnings on accessing global
+-- variables, will help to ensure that we 1) don't access global
+-- variables accidentally, and 2) if we do then we need to de-
+-- clare them here. This will ensure eagerly that the ones we ac-
+-- cess do exist eagerly upon loading this module. As a result,
+-- every variable referenced in this module is either a local or
+-- a declared global.
+local function global( name ) return assert( _G[name] ) end
+
+local unit_type = global( 'unit_type' )
+local unit_composer = global( 'unit_composer' )
+local unit_mgr = global( 'unit_mgr' )
+local immigration = global( 'immigration' )
+local market = global( 'market' )
+local price_group = global( 'price_group' )
+
 -----------------------------------------------------------------
 -- Options
 -----------------------------------------------------------------
@@ -153,7 +169,7 @@ local function create_all_units( options, root )
   end
   assert( nation1 )
 
-  local size = ROOT.terrain:size()
+  local size = root.terrain:size()
   local origin = { x=size.w // 2 - 8, y=size.h // 2 - 4 }
 
   local land_units = {
@@ -233,7 +249,7 @@ end
 local function init_non_processed_goods_prices( options, players )
   -- Initializes the same commodity for all players to the same
   -- value.
-  local init_commodity = function( comm, bid_price )
+  local init_commodity = function( comm )
     local limits = market.starting_price_limits( comm )
     local min = assert( limits.bid_price_start_min )
     local max = assert( limits.bid_price_start_max )
@@ -353,7 +369,7 @@ end
 -- the game, which should be passed in as options here. Also, the
 -- save-game state should be default-constructed before calling
 -- this.
-function M.create( options )
+function M.create( root, options )
   options = options or {}
   -- Merge the options with the default ones so that any missing
   -- fields will have their default values.
@@ -368,8 +384,6 @@ function M.create( options )
   for _, o in ipairs( options.ordered_nations ) do
     options.nations[o.nation] = o
   end
-
-  local root = ROOT
 
   set_default_settings( options, root.settings )
 

@@ -215,9 +215,10 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
 }
 
 wait<> handle_mode( Planes& planes, StartMode::new_ const& ) {
-  auto factory = []( SS&,
+  auto factory = []( SS& ss,
                      TS& ts ) -> wait<base::NoDiscard<bool>> {
-    CHECK_HAS_VALUE( ts.lua["new_game"]["create"].pcall() );
+    CHECK_HAS_VALUE( ts.lua["new_game"]["create"].pcall(
+        ss.root, /*options=*/lua::nil ) );
     co_return true;
   };
   co_await run_game( planes, factory );
