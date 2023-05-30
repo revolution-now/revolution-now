@@ -185,14 +185,14 @@ LUA_TEST_CASE( "[rfunction] cpp->lua->cpp round trip" ) {
     return fmt::format( "args: n={}, s='{}', d={}", n, s, d );
   };
 
-  REQUIRE( C.dostring( R"(
+  REQUIRE( C.dostring( R"lua(
     function foo( n, s, d )
       assert( n ~= nil, 'n is nil' )
       assert( s ~= nil, 's is nil' )
       assert( d ~= nil, 'd is nil' )
       return go( n, s, d )
     end
-  )" ) == valid );
+  )lua" ) == valid );
   rfunction foo = as<rfunction>( st["foo"] );
 
   any a = foo( 3, "hello", 3.6 );

@@ -180,9 +180,9 @@ LUA_TEST_CASE( "[rtable] table index" ) {
   // Create circular reference.
   G["hello"][5]["foo"] = G;
 
-  REQUIRE( C.dostring( R"(
+  REQUIRE( C.dostring( R"lua(
     return G.hello[5].foo.hello[5]['foo'][7.7]
-  )" ) == valid );
+  )lua" ) == valid );
 
   REQUIRE( C.get<string>( -1 ) == "target" );
   C.pop();

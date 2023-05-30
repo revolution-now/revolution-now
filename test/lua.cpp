@@ -63,17 +63,17 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[lua] run trivial script" ) {
   lua::state st;
-  auto       script = R"(
+  auto       script = R"lua(
     local x = 5+6
-  )";
+  )lua";
   REQUIRE( st.script.run_safe( script ) == valid );
 }
 
 TEST_CASE( "[lua] syntax error" ) {
   lua::state st;
-  auto       script = R"(
+  auto       script = R"lua(
     local x =
-  )";
+  )lua";
 
   auto xp = st.script.run_safe( script );
   REQUIRE( !xp.valid() );
@@ -82,10 +82,10 @@ TEST_CASE( "[lua] syntax error" ) {
 
 TEST_CASE( "[lua] semantic error" ) {
   lua::state st;
-  auto       script = R"(
+  auto       script = R"lua(
     local a, b
     local x = a + b
-  )";
+  )lua";
 
   auto xp = st.script.run_safe( script );
   REQUIRE( !xp.valid() );
@@ -96,37 +96,37 @@ TEST_CASE( "[lua] semantic error" ) {
 TEST_CASE( "[lua] has base lib" ) {
   lua::state st;
   st.lib.open_all();
-  auto script = R"(
+  auto script = R"lua(
     return tostring( 5 ) .. type( function() end )
-  )";
+  )lua";
   REQUIRE( st.script.run_safe<lua::rstring>( script ) ==
            "5function" );
 }
 
 TEST_CASE( "[lua] no implicit conversions from double to int" ) {
   lua::state st;
-  auto       script = R"(
+  auto       script = R"lua(
     return 5+8.5
-  )";
+  )lua";
   REQUIRE( st.script.run_safe<maybe<int>>( script ) == nothing );
 }
 
 TEST_CASE( "[lua] returns double" ) {
   lua::state st;
-  auto       script = R"(
+  auto       script = R"lua(
     return 5+8.5
-  )";
+  )lua";
   REQUIRE( st.script.run_safe<double>( script ) == 13.5 );
 }
 
 TEST_CASE( "[lua] returns string" ) {
   lua::state st;
-  auto       script = R"(
+  auto       script = R"lualua(
     local function f( s )
       return s .. '!'
     end
     return f( 'hello' )
-  )";
+  )lualua";
   REQUIRE( st.script.run_safe<lua::rstring>( script ) ==
            "hello!" );
 }
@@ -171,7 +171,7 @@ TEST_CASE( "[lua] after initialization" ) {
 
   // Function binding.
   {
-    auto script = R"(
+    auto script = R"lua(
       assert( type( unit_mgr.create_unit_on_map ) == 'function' )
       local soldier_type =
           unit_type.UnitType.create( "soldier" )
@@ -188,7 +188,7 @@ TEST_CASE( "[lua] after initialization" ) {
                                                  soldier_comp,
                                                  { x=0, y=0 } )
       return unit3:id()-unit1:id()
-    )";
+    )lua";
 
     REQUIRE( W.lua().script.run_safe<int>( script ) == 2 );
   }
@@ -252,7 +252,7 @@ TEST_CASE( "[lua] after initialization" ) {
   // optional
   {
     // string/int
-    auto script = R"(
+    auto script = R"lua(
       assert( testing.opt_test( nil ) == "got nothing"  )
       assert( testing.opt_test( 0   ) ==  nil           )
       assert( testing.opt_test( 4   ) ==  nil           )
@@ -260,7 +260,7 @@ TEST_CASE( "[lua] after initialization" ) {
       assert( testing.opt_test( 9   ) == "less than 10" )
       assert( testing.opt_test( 10  ) == "10"           )
       assert( testing.opt_test( 100 ) == "100"          )
-    )";
+    )lua";
     REQUIRE( st.script.run_safe( script ) == valid );
 
     REQUIRE( st.script.run_safe<maybe<string>>( "return nil" ) ==
@@ -335,11 +335,11 @@ TEST_CASE( "[lua] run lua tests" ) {
   // to make sure that they get run regularly.
   lua::state st;
   st.lib.open_all();
-  auto script = R"(
+  auto script = R"lua(
     package.path = 'src/lua/?.lua'
     local main = require( 'test.runner' )
     main( true )
-  )";
+  )lua";
   REQUIRE( st.script.run_safe( script ) == valid );
 }
 

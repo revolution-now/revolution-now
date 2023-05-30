@@ -76,14 +76,14 @@ TEST_CASE( "[mv-points] lua conversion" ) {
   lua::state st;
   st.lib.open_all();
 
-  auto script = R"(
+  auto script = R"lua(
     function f( mv_points )
       assert( mv_points.atoms == 12 )
       assert( tostring( mv_points ) == 'MovementPoints{atoms=12}' )
       mv_points.atoms = 9
       return mv_points
     end
-  )";
+  )lua";
   REQUIRE( st.script.run_safe( script ) == valid );
 
   REQUIRE( st["f"].pcall<MovementPoints>(

@@ -79,7 +79,7 @@ wait<int> do_lua_coroutine( lua::state& st, int n ) {
   co_return r;
 }
 
-constexpr string_view lua_1 = R"(
+constexpr string_view lua_1 = R"lua(
   local await = wait.await
 
   function TRACE( letter )
@@ -94,7 +94,7 @@ constexpr string_view lua_1 = R"(
     if n == 50 then error( 'some error' ) end
     return 42
   end
-)";
+)lua";
 
 void setup( lua::state& st ) {
   st["trace"] = trace;
@@ -164,7 +164,7 @@ wait<int> do_lua_coroutine( lua::state& st ) {
   co_return r;
 }
 
-constexpr string_view lua_1 = R"(
+constexpr string_view lua_1 = R"lua(
   local await = wait.await
 
   function TRACE( letter )
@@ -189,7 +189,7 @@ constexpr string_view lua_1 = R"(
     local _<close> = TRACE( "P" )
     error( msg )
   end
-)";
+)lua";
 
 wait<int> get_int_from_user1() {
   TRACE( G );
@@ -439,11 +439,11 @@ TEST_CASE( "[co-lua] scenario 1 coroutine.create" ) {
   REQUIRE( shown_int == "" );
   REQUIRE( trace_log == "" );
 
-  st.script.run( R"(
+  st.script.run( R"lua(
     coro = coroutine.create( get_and_add_ints )
     assert( coroutine.resume( coro, 5 ) )
     assert( coroutine.status( coro ) == "suspended" )
-  )" );
+  )lua" );
 
   // When the test fails we need to make sure that the coroutine
   // gets closed otherwise some of the C++ resources might not
@@ -477,16 +477,16 @@ TEST_CASE( "[co-lua] scenario 1 coroutine.create" ) {
   run_all_coroutines();
   REQUIRE( trace_log == "CGHhgDIJjiEMK" );
   REQUIRE( shown_int == "20" );
-  st.script.run( R"(
+  st.script.run( R"lua(
     assert( coroutine.status( coro ) == "suspended" )
-  )" );
+  )lua" );
 
   p3.set_value_emplace();
   run_all_coroutines();
   REQUIRE( trace_log == "CGHhgDIJjiEMKLlkNnmFfedc" );
-  st.script.run( R"(
+  st.script.run( R"lua(
     assert( coroutine.status( coro ) == "dead" )
-  )" );
+  )lua" );
 }
 
 /****************************************************************
@@ -522,7 +522,7 @@ wait<string> accum_cpp( lua::state& st, int n ) {
   co_return to_string( n + s_int );
 }
 
-constexpr string_view lua_1 = R"(
+constexpr string_view lua_1 = R"lua(
   local await = wait.await
 
   function TRACE( letter )
@@ -544,7 +544,7 @@ constexpr string_view lua_1 = R"(
     local _<close> = TRACE( "I" )
     return r
   end
-)";
+)lua";
 
 void setup( lua::state& st ) {
   st["trace"]     = trace;
@@ -751,7 +751,7 @@ wait<int> cpp_3() {
   co_return n;
 }
 
-constexpr string_view lua_1 = R"(
+constexpr string_view lua_1 = R"lua(
   local await = wait.await
 
   function TRACE( letter )
@@ -779,7 +779,7 @@ constexpr string_view lua_1 = R"(
     local _<close> = TRACE( "G" )
     return n
   end
-)";
+)lua";
 
 void setup( lua::state& st ) {
   st["trace"] = trace;
@@ -867,7 +867,7 @@ TEST_CASE( "[co-lua] wait auto registration" ) {
   lua::state st;
   lua_init( st ); // NOTE: expensive.
 
-  st.script.run( R"(
+  st.script.run( R"lua(
     function assert_func( f )
       assert( type( f ) == "function" )
     end
@@ -887,7 +887,7 @@ TEST_CASE( "[co-lua] wait auto registration" ) {
       verify( w3 )
       verify( w4 )
     end
-  )" );
+  )lua" );
 
   wait_promise<>       p1;
   wait_promise<int>    p2;

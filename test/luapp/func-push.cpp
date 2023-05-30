@@ -357,7 +357,7 @@ struct AdderTracker {
     C.push( n + 2 + x_ + y_ );
     return 1;
   }
-  AdderTracker( AdderTracker const& ) = delete;
+  AdderTracker( AdderTracker const& )            = delete;
   AdderTracker& operator=( AdderTracker const& ) = delete;
   AdderTracker( AdderTracker&& rhs ) {
     x_         = rhs.x_;
@@ -493,7 +493,7 @@ LUA_TEST_CASE(
   C.setglobal( "go" );
 
   SECTION( "successful call" ) {
-    REQUIRE( C.dostring( R"(
+    REQUIRE( C.dostring( R"lua(
       local result =
         go( 6, 'hello this is a very long string', 3.5 )
       local expected =
@@ -501,7 +501,7 @@ LUA_TEST_CASE(
       local err = tostring( result ) .. ' not equal to "' ..
                   tostring( expected ) .. '".'
       assert( result == expected, err )
-    )" ) == valid );
+    )lua" ) == valid );
   }
 
   SECTION( "too few args" ) {
@@ -513,9 +513,9 @@ LUA_TEST_CASE(
       "\t[string \"...\"]:2: in main chunk";
     // clang-format on
 
-    REQUIRE( C.dostring( R"(
+    REQUIRE( C.dostring( R"lua(
       go( 6, 'hello this is a very long string' )
-    )" ) == lua_invalid( err ) );
+    )lua" ) == lua_invalid( err ) );
   }
 
   SECTION( "too many args" ) {
@@ -527,9 +527,9 @@ LUA_TEST_CASE(
       "\t[string \"...\"]:2: in main chunk";
     // clang-format on
 
-    REQUIRE( C.dostring( R"(
+    REQUIRE( C.dostring( R"lua(
       go( 6, 'hello this is a very long string', 3.5, true )
-    )" ) == lua_invalid( err ) );
+    )lua" ) == lua_invalid( err ) );
   }
 
   SECTION( "wrong arg type" ) {
@@ -542,19 +542,19 @@ LUA_TEST_CASE(
       "\t[C]: in function 'go'\n"
       "\t[string \"...\"]:2: in main chunk";
     // clang-format on
-    REQUIRE( C.dostring( R"(
+    REQUIRE( C.dostring( R"lua(
       go( 6, 'hello this is a very long string', 'world' )
-    )" ) == lua_invalid( err ) );
+    )lua" ) == lua_invalid( err ) );
   }
 
   SECTION( "convertible arg types" ) {
-    REQUIRE( C.dostring( R"(
+    REQUIRE( C.dostring( R"lua(
       local result = go( '6', 1.23, '3.5' )
       local expected = "args: n=6, s='1.23', d=3.5"
       local err = tostring( result ) .. ' not equal to "' ..
                   tostring( expected ) .. '".'
       assert( result == expected, err )
-    )" ) == valid );
+    )lua" ) == valid );
   }
 }
 

@@ -90,31 +90,31 @@ LUA_TEST_CASE( "[lua-state] state indexing" ) {
 }
 
 LUA_TEST_CASE( "[lua-state] script loading" ) {
-  rfunction f = st.script.load( R"(
+  rfunction f = st.script.load( R"lua(
     return 'hello'
-  )" );
+  )lua" );
 
   REQUIRE( f() == "hello" );
 }
 
 LUA_TEST_CASE( "[lua-state] script run unsafe" ) {
-  REQUIRE( st.script.run<string>( R"(
+  REQUIRE( st.script.run<string>( R"lua(
     return 'hello'
-  )" ) == "hello" );
+  )lua" ) == "hello" );
 }
 
 LUA_TEST_CASE( "[lua-state] script run unsafe void" ) {
-  st.script( R"(
+  st.script( R"lua(
     res = 'hello'
-  )" );
+  )lua" );
   REQUIRE( st["res"] == "hello" );
 }
 
 LUA_TEST_CASE( "[lua-state] script run safe" ) {
   C.openlibs();
-  lua_valid   v = st.script.run_safe( R"(
+  lua_valid   v = st.script.run_safe( R"lua(
     assert( 1 == 2 )
-  )" );
+  )lua" );
   char const* err =
       "[string \"...\"]:2: assertion failed!\n"
       "stack traceback:\n"

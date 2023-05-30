@@ -115,12 +115,12 @@ LUA_TEST_CASE( "[lua-c-api] dofile" ) {
     REQUIRE( C.enforce_type_of( -1, type::table ) == valid );
     C.setglobal( "my_module" );
     REQUIRE( C.stack_size() == 0 );
-    char const* lua_script = R"(
+    char const* lua_script = R"lua(
       list = {}
       for i = 1, 5, 1 do
        list[i] = my_module.hello_to_number( i )
       end
-    )";
+    )lua";
     REQUIRE( C.loadstring( lua_script ) == valid );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.getglobal( "list" ) == type::nil );
@@ -370,9 +370,9 @@ LUA_TEST_CASE( "[lua-c-api] call" ) {
   C.openlibs();
 
   SECTION( "no args, no results" ) {
-    char const* lua_script = R"(
+    char const* lua_script = R"lua(
       function foo() end
-    )";
+    )lua";
     REQUIRE( C.dostring( lua_script ) == valid );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( C.getglobal( "foo" ) == type::function );
@@ -382,11 +382,11 @@ LUA_TEST_CASE( "[lua-c-api] call" ) {
   }
 
   SECTION( "no args, one result" ) {
-    char const* lua_script = R"(
+    char const* lua_script = R"lua(
       function foo()
         return 42
       end
-    )";
+    )lua";
     REQUIRE( C.dostring( lua_script ) == valid );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( C.getglobal( "foo" ) == type::function );
@@ -400,11 +400,11 @@ LUA_TEST_CASE( "[lua-c-api] call" ) {
   }
 
   SECTION( "no args, two results" ) {
-    char const* lua_script = R"(
+    char const* lua_script = R"lua(
       function foo()
         return 42, "hello"
       end
-    )";
+    )lua";
     REQUIRE( C.dostring( lua_script ) == valid );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( C.getglobal( "foo" ) == type::function );
@@ -421,11 +421,11 @@ LUA_TEST_CASE( "[lua-c-api] call" ) {
   }
 
   SECTION( "no args, LUA_MULTRET" ) {
-    char const* lua_script = R"(
+    char const* lua_script = R"lua(
       function foo()
         return 42, "hello", "world"
       end
-    )";
+    )lua";
     REQUIRE( C.dostring( lua_script ) == valid );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( C.getglobal( "foo" ) == type::function );
@@ -445,11 +445,11 @@ LUA_TEST_CASE( "[lua-c-api] call" ) {
   }
 
   SECTION( "one arg, no results" ) {
-    char const* lua_script = R"(
+    char const* lua_script = R"lua(
       function foo( n )
         assert( n == 5 )
       end
-    )";
+    )lua";
     REQUIRE( C.dostring( lua_script ) == valid );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( C.getglobal( "foo" ) == type::function );
@@ -461,12 +461,12 @@ LUA_TEST_CASE( "[lua-c-api] call" ) {
   }
 
   SECTION( "two args, no results" ) {
-    char const* lua_script = R"(
+    char const* lua_script = R"lua(
       function foo( n, s )
         assert( n == 5 )
         assert( s == "hello" )
       end
-    )";
+    )lua";
     REQUIRE( C.dostring( lua_script ) == valid );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( C.getglobal( "foo" ) == type::function );
@@ -479,13 +479,13 @@ LUA_TEST_CASE( "[lua-c-api] call" ) {
   }
 
   SECTION( "two args, two results" ) {
-    char const* lua_script = R"(
+    char const* lua_script = R"lua(
       function foo( n, s )
         assert( n == 42 )
         assert( s == "hello" )
         return n+1, s .. " world"
       end
-    )";
+    )lua";
     REQUIRE( C.dostring( lua_script ) == valid );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( C.getglobal( "foo" ) == type::function );
@@ -509,9 +509,9 @@ LUA_TEST_CASE( "[lua-c-api] pcall" ) {
   C.openlibs();
 
   SECTION( "no args, no results" ) {
-    char const* lua_script = R"(
+    char const* lua_script = R"lua(
       function foo() end
-    )";
+    )lua";
     REQUIRE( C.dostring( lua_script ) == valid );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( C.getglobal( "foo" ) == type::function );
@@ -521,11 +521,11 @@ LUA_TEST_CASE( "[lua-c-api] pcall" ) {
   }
 
   SECTION( "no args, one result" ) {
-    char const* lua_script = R"(
+    char const* lua_script = R"lua(
       function foo()
         return 42
       end
-    )";
+    )lua";
     REQUIRE( C.dostring( lua_script ) == valid );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( C.getglobal( "foo" ) == type::function );
@@ -539,11 +539,11 @@ LUA_TEST_CASE( "[lua-c-api] pcall" ) {
   }
 
   SECTION( "no args, two results" ) {
-    char const* lua_script = R"(
+    char const* lua_script = R"lua(
       function foo()
         return 42, "hello"
       end
-    )";
+    )lua";
     REQUIRE( C.dostring( lua_script ) == valid );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( C.getglobal( "foo" ) == type::function );
@@ -560,11 +560,11 @@ LUA_TEST_CASE( "[lua-c-api] pcall" ) {
   }
 
   SECTION( "no args, LUA_MULTRET" ) {
-    char const* lua_script = R"(
+    char const* lua_script = R"lua(
       function foo()
         return 42, "hello", "world"
       end
-    )";
+    )lua";
     REQUIRE( C.dostring( lua_script ) == valid );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( C.getglobal( "foo" ) == type::function );
@@ -585,11 +585,11 @@ LUA_TEST_CASE( "[lua-c-api] pcall" ) {
   }
 
   SECTION( "one arg, no results" ) {
-    char const* lua_script = R"(
+    char const* lua_script = R"lua(
       function foo( n )
         assert( n == 5 )
       end
-    )";
+    )lua";
     REQUIRE( C.dostring( lua_script ) == valid );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( C.getglobal( "foo" ) == type::function );
@@ -601,11 +601,11 @@ LUA_TEST_CASE( "[lua-c-api] pcall" ) {
   }
 
   SECTION( "one arg, error" ) {
-    char const* lua_script = R"(
+    char const* lua_script = R"lua(
       function foo( n )
         assert( n == 5 )
       end
-    )";
+    )lua";
     REQUIRE( C.dostring( lua_script ) == valid );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( C.getglobal( "foo" ) == type::function );
@@ -625,12 +625,12 @@ LUA_TEST_CASE( "[lua-c-api] pcall" ) {
   }
 
   SECTION( "two args, no results" ) {
-    char const* lua_script = R"(
+    char const* lua_script = R"lua(
       function foo( n, s )
         assert( n == 5 )
         assert( s == "hello" )
       end
-    )";
+    )lua";
     REQUIRE( C.dostring( lua_script ) == valid );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( C.getglobal( "foo" ) == type::function );
@@ -643,13 +643,13 @@ LUA_TEST_CASE( "[lua-c-api] pcall" ) {
   }
 
   SECTION( "two args, two results" ) {
-    char const* lua_script = R"(
+    char const* lua_script = R"lua(
       function foo( n, s )
         assert( n == 42 )
         assert( s == "hello" )
         return n+1, s .. " world"
       end
-    )";
+    )lua";
     REQUIRE( C.dostring( lua_script ) == valid );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( C.getglobal( "foo" ) == type::function );
@@ -697,11 +697,11 @@ LUA_TEST_CASE( "[lua-c-api] pcallk no yield or error" ) {
     return 0;
   };
 
-  char const* lua_script = R"(
+  char const* lua_script = R"lua(
     function foo()
       --
     end
-  )";
+  )lua";
   REQUIRE( C.dostring( lua_script ) == valid );
 
   cthread L2 = C.newthread();
@@ -754,11 +754,11 @@ LUA_TEST_CASE( "[lua-c-api] pcallk, yield, no error" ) {
     SHOULD_NOT_BE_HERE;
   };
 
-  char const* lua_script = R"(
+  char const* lua_script = R"lua(
     function foo()
       coroutine.yield()
     end
-  )";
+  )lua";
   REQUIRE( C.dostring( lua_script ) == valid );
 
   cthread L2 = C.newthread();
@@ -817,11 +817,11 @@ LUA_TEST_CASE( "[lua-c-api] pcallk with eager error" ) {
     SHOULD_NOT_BE_HERE;
   };
 
-  char const* lua_script = R"(
+  char const* lua_script = R"lua(
     function foo()
       error( 'some error' )
     end
-  )";
+  )lua";
   REQUIRE( C.dostring( lua_script ) == valid );
 
   cthread L2 = C.newthread();
@@ -873,12 +873,12 @@ LUA_TEST_CASE( "[lua-c-api] pcallk with late error" ) {
     SHOULD_NOT_BE_HERE;
   };
 
-  char const* lua_script = R"(
+  char const* lua_script = R"lua(
     function foo()
       coroutine.yield()
       error( 'some error' )
     end
-  )";
+  )lua";
   REQUIRE( C.dostring( lua_script ) == valid );
 
   cthread L2 = C.newthread();
@@ -1009,13 +1009,13 @@ LUA_TEST_CASE( "[lua-c-api] rawgeti, rawseti" ) {
 
 LUA_TEST_CASE( "[lua-c-api] rawget" ) {
   C.openlibs();
-  st.script.run( R"(
+  st.script.run( R"lua(
     hello = setmetatable( {}, {
       __index=function( t, k )
         return 5
       end
     } )
-  )" );
+  )lua" );
 
   REQUIRE( C.stack_size() == 0 );
   C.getglobal( "hello" );
@@ -1093,13 +1093,13 @@ LUA_TEST_CASE( "[lua-c-api] push c function" ) {
   } );
   C.setglobal( "bar" );
 
-  REQUIRE( C.dostring( R"(
+  REQUIRE( C.dostring( R"lua(
     local input  = 7
     local expect = 10
     local output    = bar( input )
     assert( output == expect,
             tostring( output ) .. ' != ' .. tostring( expect ) )
-  )" ) == valid );
+  )lua" ) == valid );
 }
 
 LUA_TEST_CASE(
@@ -1121,13 +1121,13 @@ LUA_TEST_CASE(
   REQUIRE( C.stack_size() == 1 );
   C.setglobal( "bar" );
 
-  REQUIRE( C.dostring( R"(
+  REQUIRE( C.dostring( R"lua(
     local input  = 7
     local expect = 49 -- 7+42
     local output    = bar( input )
     assert( output == expect,
             tostring( output ) .. ' != ' .. tostring( expect ) )
-  )" ) == valid );
+  )lua" ) == valid );
 
   // Test that the function has an up value and that the upvalue
   // has the right type.
@@ -1203,9 +1203,9 @@ LUA_TEST_CASE( "[lua-c-api] setmetatable/getmetatable" ) {
   REQUIRE( C.stack_size() == 1 );
   C.setglobal( "x" );
   REQUIRE( C.stack_size() == 0 );
-  REQUIRE( C.dostring( R"(
+  REQUIRE( C.dostring( R"lua(
     x.assert( x.print ~= nil )
-  )" ) == valid );
+  )lua" ) == valid );
   REQUIRE( C.stack_size() == 0 );
 
   C.getglobal( "x" );
@@ -1225,9 +1225,9 @@ LUA_TEST_CASE( "[lua-c-api] setmetatable/getmetatable" ) {
       "stack traceback:\n"
       "\t[string \"...\"]:2: in main chunk";
 
-  REQUIRE( C.dostring( R"(
+  REQUIRE( C.dostring( R"lua(
     x.assert( x.print ~= nil )
-  )" ) == lua_invalid( err ) );
+  )lua" ) == lua_invalid( err ) );
 }
 
 LUA_TEST_CASE( "[lua-c-api] newuserdata" ) {
@@ -1773,7 +1773,7 @@ LUA_TEST_CASE(
   };
   // Use run_safe because there is an assertion in this Lua code
   // that is part of this unit test.
-  REQUIRE( st.script.run_safe( R"(
+  REQUIRE( st.script.run_safe( R"lua(
     f0 = coroutine.create( function() end )
     f1 = coroutine.create( function() end )
     f2 = coroutine.create( function()
@@ -1798,7 +1798,7 @@ LUA_TEST_CASE(
     assert( status_from_cpp == expected_coro_status,
             tostring( status_from_cpp ) .. " != " ..
             tostring( expected_coro_status ) )
-  )" ) == valid );
+  )lua" ) == valid );
 
   {
     C.getglobal( "f0" );
@@ -1852,7 +1852,7 @@ LUA_TEST_CASE(
 
 LUA_TEST_CASE( "[lua-c-api] resetthread" ) {
   C.openlibs();
-  st.script.run( R"(
+  st.script.run( R"lua(
     f1 = coroutine.create( function()
       local x<close> = setmetatable( {}, {
         __close = function()
@@ -1891,7 +1891,7 @@ LUA_TEST_CASE( "[lua-c-api] resetthread" ) {
     coroutine.resume( f2 )
     coroutine.resume( f3 )
     coroutine.resume( f4 )
-  )" );
+  )lua" );
 
   {
     C.getglobal( "f1" );
@@ -1953,7 +1953,7 @@ LUA_TEST_CASE( "[lua-c-api] resetthread" ) {
 
 LUA_TEST_CASE( "[lua-c-api] resume_or_leak" ) {
   C.openlibs();
-  st.script.run( R"(
+  st.script.run( R"lua(
     f1 = coroutine.create( function()
       coroutine.yield()
       local x<close> = setmetatable( {}, {
@@ -1984,7 +1984,7 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_leak" ) {
     coroutine.resume( f1 )
     coroutine.resume( f2 )
     coroutine.resume( f3 )
-  )" );
+  )lua" );
 
   {
     C.getglobal( "f1" );
@@ -2083,7 +2083,7 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_leak" ) {
 
 LUA_TEST_CASE( "[lua-c-api] resume_or_reset" ) {
   C.openlibs();
-  st.script.run( R"(
+  st.script.run( R"lua(
     f1 = coroutine.create( function()
       coroutine.yield()
       local x<close> = setmetatable( {}, {
@@ -2114,7 +2114,7 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_reset" ) {
     coroutine.resume( f1 )
     coroutine.resume( f2 )
     coroutine.resume( f3 )
-  )" );
+  )lua" );
 
   {
     C.getglobal( "f1" );

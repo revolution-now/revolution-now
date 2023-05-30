@@ -89,7 +89,7 @@ LUA_TEST_CASE( "[rthread] construction + is_main" ) {
 
 LUA_TEST_CASE( "[lua-state] thread resume unsafe" ) {
   C.openlibs();
-  st.script.run( R"(
+  st.script.run( R"lua(
   function f()
     coroutine.yield()
     local n = coroutine.yield( "hello" )
@@ -98,7 +98,7 @@ LUA_TEST_CASE( "[lua-state] thread resume unsafe" ) {
     assert( m == 7 )
     return n+m
   end
-  )" );
+  )lua" );
   rfunction f = st["f"].as<rfunction>();
 
   rthread coro = st.thread.create_coro( f );
@@ -123,14 +123,14 @@ LUA_TEST_CASE( "[lua-state] thread resume unsafe" ) {
 
 LUA_TEST_CASE( "[lua-state] thread resume safe w/ error" ) {
   C.openlibs();
-  st.script.run( R"(
+  st.script.run( R"lua(
   function f()
     coroutine.yield()
     local n = coroutine.yield( "hello" )
     assert( n == 6, 'n is incorrect' )
     error( 'some error' )
   end
-  )" );
+  )lua" );
   rfunction f = st["f"].as<rfunction>();
 
   rthread coro = st.thread.create_coro( f );

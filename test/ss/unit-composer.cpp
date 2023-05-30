@@ -2497,7 +2497,7 @@ TEST_CASE( "[unit-composer] lua bindings" ) {
   st.lib.open_all();
   run_lua_startup_routines( st );
 
-  auto script = R"(
+  auto script = R"lua(
     local uc
     local UC = unit_composer.UnitComposition
     -- free_colonist
@@ -2524,7 +2524,7 @@ TEST_CASE( "[unit-composer] lua bindings" ) {
     assert( uc )
     assert( uc:type() == "pioneer" )
     assert( uc:base_type() == "expert_farmer" )
-  )";
+  )lua";
   REQUIRE( st.script.run_safe( script ) == valid );
 }
 

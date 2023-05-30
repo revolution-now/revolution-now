@@ -90,11 +90,11 @@ LUA_TEST_CASE( "[ext-std] push/get" ) {
 
 LUA_TEST_CASE( "[ext-std] tuple" ) {
   SECTION( "single" ) {
-    st.script.run( R"(
+    st.script.run( R"lua(
       function foo( n )
         return n, 'hello', 7.7
       end
-    )" );
+    )lua" );
 
     auto t = st["foo"].call<tuple<int>>( 42 );
     static_assert( is_same_v<decltype( t ), tuple<int>> );
@@ -102,11 +102,11 @@ LUA_TEST_CASE( "[ext-std] tuple" ) {
     REQUIRE( t == tuple{ 42 } );
   }
   SECTION( "double" ) {
-    st.script.run( R"(
+    st.script.run( R"lua(
       function foo( n )
         return n, 'hello'
       end
-    )" );
+    )lua" );
 
     auto t = st["foo"].call<tuple<int, string>>( 42 );
     static_assert(
@@ -115,11 +115,11 @@ LUA_TEST_CASE( "[ext-std] tuple" ) {
     REQUIRE( t == tuple{ 42, "hello" } );
   }
   SECTION( "many" ) {
-    st.script.run( R"(
+    st.script.run( R"lua(
       function foo( n )
         return n, 'hello', 7.7
       end
-    )" );
+    )lua" );
 
     auto t = st["foo"].call<tuple<int, string, double>>( 42 );
     static_assert(
@@ -128,11 +128,11 @@ LUA_TEST_CASE( "[ext-std] tuple" ) {
     REQUIRE( t == tuple{ 42, "hello", 7.7 } );
   }
   SECTION( "integers" ) {
-    st.script.run( R"(
+    st.script.run( R"lua(
       function foo()
         return 1, 2, 3, 4, 5, 6
       end
-    )" );
+    )lua" );
 
     auto t =
         st["foo"].call<tuple<int, int, int, int, int, int>>();
@@ -147,11 +147,11 @@ LUA_TEST_CASE( "[ext-std] tuple" ) {
     MyUserdata mud{ .n = 9 };
     st["mud"] = mud;
 
-    st.script.run( R"(
+    st.script.run( R"lua(
       function foo( n )
         return n, mud
       end
-    )" );
+    )lua" );
 
     auto t = st["foo"].call<tuple<int, MyUserdata&>>( 42 );
     static_assert(
@@ -163,11 +163,11 @@ LUA_TEST_CASE( "[ext-std] tuple" ) {
     MyUserdata mud{ .n = 9 };
     st["mud"] = mud;
 
-    st.script.run( R"(
+    st.script.run( R"lua(
       function foo( n )
         return n
       end
-    )" );
+    )lua" );
 
     auto res = st["foo"].pcall<tuple<int, MyUserdata&>>( 42 );
     REQUIRE( !res.has_value() );
@@ -185,11 +185,11 @@ LUA_TEST_CASE( "[ext-std] tuple" ) {
     MyUserdata mud{ .n = 9 };
     st["mud"] = mud;
 
-    st.script.run( R"(
+    st.script.run( R"lua(
       function foo( n )
         return n
       end
-    )" );
+    )lua" );
 
     any any_nil = st["?"];
     REQUIRE( st["foo"].pcall<tuple<int, any>>( 42 ) ==
@@ -199,11 +199,11 @@ LUA_TEST_CASE( "[ext-std] tuple" ) {
     MyUserdata mud{ .n = 9 };
     st["mud"] = mud;
 
-    st.script.run( R"(
+    st.script.run( R"lua(
       function foo( n )
         return n, mud, 5, 6
       end
-    )" );
+    )lua" );
 
     auto t = st["foo"].call<tuple<int, MyUserdata const&>>( 43 );
     mud.n  = 7;
@@ -214,11 +214,11 @@ LUA_TEST_CASE( "[ext-std] tuple" ) {
 
 LUA_TEST_CASE( "[ext-std] pair" ) {
   SECTION( "double" ) {
-    st.script.run( R"(
+    st.script.run( R"lua(
       function foo( n )
         return n, 'hello'
       end
-    )" );
+    )lua" );
 
     auto t = st["foo"].call<pair<int, string>>( 42 );
     static_assert( is_same_v<decltype( t ), pair<int, string>> );
@@ -226,11 +226,11 @@ LUA_TEST_CASE( "[ext-std] pair" ) {
     REQUIRE( t == pair<int, string>{ 42, "hello" } );
   }
   SECTION( "integers" ) {
-    st.script.run( R"(
+    st.script.run( R"lua(
       function foo()
         return 1, 2
       end
-    )" );
+    )lua" );
 
     auto t = st["foo"].call<pair<int, int>>();
     static_assert( is_same_v<decltype( t ), pair<int, int>> );
@@ -241,11 +241,11 @@ LUA_TEST_CASE( "[ext-std] pair" ) {
     MyUserdata mud{ .n = 9 };
     st["mud"] = mud;
 
-    st.script.run( R"(
+    st.script.run( R"lua(
       function foo( n )
         return n, mud
       end
-    )" );
+    )lua" );
 
     auto t = st["foo"].call<pair<int, MyUserdata&>>( 42 );
     static_assert(
@@ -257,11 +257,11 @@ LUA_TEST_CASE( "[ext-std] pair" ) {
     MyUserdata mud{ .n = 9 };
     st["mud"] = mud;
 
-    st.script.run( R"(
+    st.script.run( R"lua(
       function foo( n )
         return n
       end
-    )" );
+    )lua" );
 
     auto res = st["foo"].pcall<pair<int, MyUserdata&>>( 42 );
     REQUIRE( !res.has_value() );
@@ -278,11 +278,11 @@ LUA_TEST_CASE( "[ext-std] pair" ) {
     MyUserdata mud{ .n = 9 };
     st["mud"] = mud;
 
-    st.script.run( R"(
+    st.script.run( R"lua(
       function foo( n )
         return n
       end
-    )" );
+    )lua" );
 
     any any_nil = st["?"];
     REQUIRE( st["foo"].pcall<pair<int, any>>( 42 ) ==
@@ -292,11 +292,11 @@ LUA_TEST_CASE( "[ext-std] pair" ) {
     MyUserdata mud{ .n = 9 };
     st["mud"] = mud;
 
-    st.script.run( R"(
+    st.script.run( R"lua(
       function foo( n )
         return n, mud, 5, 6
       end
-    )" );
+    )lua" );
 
     auto t = st["foo"].call<pair<int, MyUserdata const&>>( 43 );
     mud.n  = 7;

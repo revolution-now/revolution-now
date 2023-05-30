@@ -73,7 +73,7 @@ struct SomeTable : TableBase<EmptyTable> {
   SomeTable( cthread L )
     : Base( L, [L] {
         c_api C( L );
-        CHECK( C.dostring( R"(
+        CHECK( C.dostring( R"lua(
           return {
             [5] = {
               [1] = {
@@ -81,7 +81,7 @@ struct SomeTable : TableBase<EmptyTable> {
               }
             }
           }
-        )" ) );
+        )lua" ) );
         return C.ref_registry();
       }() ) {}
 };
@@ -176,7 +176,7 @@ LUA_TEST_CASE( "[indexer] assignment" ) {
   // NOTE: since key iteration order can be non-deterministic, we
   // should only use this with simple tables that have at most
   // one key per table.
-  char const* dump_table = R"(
+  char const* dump_table = R"lua(
     function dump( o )
       if type( o ) == 'table' then
         local s = '{ '
@@ -189,13 +189,13 @@ LUA_TEST_CASE( "[indexer] assignment" ) {
         return tostring( o )
       end
     end
-  )";
+  )lua";
   CHECK( C.dostring( dump_table ) == valid );
 
   GlobalTable{ L }["my_table"] = mt;
-  CHECK( C.dostring( R"(
+  CHECK( C.dostring( R"lua(
     return dump( my_table )
-  )" ) == valid );
+  )lua" ) == valid );
   REQUIRE( C.stack_size() == 1 );
   REQUIRE( C.type_of( -1 ) == type::string );
   // The following is what we're expecting, modulo some spacing.
@@ -348,14 +348,14 @@ LUA_TEST_CASE( "[indexer] cpp->lua->cpp round trip" ) {
   any a = st["go"];
   REQUIRE( type_of( a ) == type::function );
 
-  REQUIRE( C.dostring( R"(
+  REQUIRE( C.dostring( R"lua(
     function foo( n, s, d )
       assert( n ~= nil, 'n is nil' )
       assert( s ~= nil, 's is nil' )
       assert( d ~= nil, 'd is nil' )
       return go( n, s, d )
     end
-  )" ) == valid );
+  )lua" ) == valid );
 
   // call with no errors.
   REQUIRE( st["foo"]( 3, "hello", 3.6 ) ==
@@ -397,7 +397,7 @@ LUA_TEST_CASE( "[indexer] cpp->lua->cpp round trip" ) {
 // it may not need testing, but...
 LUA_TEST_CASE( "[indexer] error recovery" ) {
   C.openlibs();
-  REQUIRE( C.dostring( R"(
+  REQUIRE( C.dostring( R"lua(
     a = {}
     a.b = {}
     a.b.c = {}
@@ -406,7 +406,7 @@ LUA_TEST_CASE( "[indexer] error recovery" ) {
           error( 'no go.' )
         end
     } )
-  )" ) == valid );
+  )lua" ) == valid );
 
   st["go"] = [&] { st["a"]["b"]["c"]["d"]["e"] = 1; };
 
@@ -466,9 +466,9 @@ LUA_TEST_CASE( "[indexer] metatable" ) {
   REQUIRE( st["x"][metatable_key]["__index"][metatable_key]
              ["__index"]["y"] == 42 );
 
-  REQUIRE( st.script.run_safe( R"(
+  REQUIRE( st.script.run_safe( R"lua(
     assert( x.y == 42 )
-  )" ) == valid );
+  )lua" ) == valid );
 }
 
 LUA_TEST_CASE( "[indexer] inline cast" ) {

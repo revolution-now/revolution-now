@@ -709,7 +709,7 @@ TEST_CASE( "[unit-type] lua bindings" ) {
   st.lib.open_all();
   run_lua_startup_routines( st );
 
-  auto script = R"(
+  auto script = R"lua(
     local ut
     -- free_colonist
     ut = unit_type.UnitType.create( "free_colonist" )
@@ -732,14 +732,14 @@ TEST_CASE( "[unit-type] lua bindings" ) {
     assert( ut )
     assert( ut:type() == "pioneer" )
     assert( ut:base_type() == "expert_farmer" )
-  )";
+  )lua";
   REQUIRE( st.script.run_safe( script ) == valid );
 
-  script  = R"(
+  script  = R"lua(
     local ut
     unit_type.UnitType.create_with_base(
         "hardy_pioneer", "expert_farmer" )
-  )";
+  )lua";
   auto xp = st.script.run_safe( script );
   REQUIRE( !xp.valid() );
   REQUIRE_THAT(

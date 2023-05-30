@@ -202,7 +202,7 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
   REQUIRE( member_setters["flat1"] == nil );
   REQUIRE( member_setters["flat2"] == nil );
 
-  lua_valid res = st.script.run_safe( R"(
+  lua_valid res = st.script.run_safe( R"lua(
     function assert_eq( l, r )
       if l == r then return end
       error( tostring( l ) .. ' is not equal to ' ..
@@ -239,7 +239,7 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
     assert_suffix( tostring( o ),
                   'CppOwnedType{n=6,d=1.2,s=hellohello}' )
     assert_eq( o.n_const, 10 )
-  )" );
+  )lua" );
   REQUIRE( res == valid );
 
   char const* err_non_existent =
@@ -248,12 +248,12 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
       "\t[C]: in metamethod 'newindex'\n"
       "\t[string \"...\"]:5: in main chunk";
 
-  REQUIRE( st.script.run_safe( R"(
+  REQUIRE( st.script.run_safe( R"lua(
     -- This should cover calling non-existent values as well as
     -- setting them.
     assert( o.non_existent == nil )
     o.non_existent = 5
-  )" ) == lua_invalid( err_non_existent ) );
+  )lua" ) == lua_invalid( err_non_existent ) );
 
   char const* err_const =
       "attempt to set const field `n_const'.\n"
@@ -261,10 +261,10 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
       "\t[C]: in metamethod 'newindex'\n"
       "\t[string \"...\"]:3: in main chunk";
 
-  REQUIRE( st.script.run_safe( R"(
+  REQUIRE( st.script.run_safe( R"lua(
     o.n       = 5 -- ok
     o.n_const = 5 -- boom!
-  )" ) == lua_invalid( err_const ) );
+  )lua" ) == lua_invalid( err_const ) );
 }
 
 LUA_TEST_CASE( "[usertype] lua owned" ) {
@@ -350,7 +350,7 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
   REQUIRE( member_setters["flat1"] == nil );
   REQUIRE( member_setters["flat2"] == nil );
 
-  lua_valid res = st.script.run_safe( R"(
+  lua_valid res = st.script.run_safe( R"lua(
     function assert_eq( l, r )
       if l == r then return end
       error( tostring( l ) .. ' is not equal to ' ..
@@ -387,7 +387,7 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
     assert_suffix( tostring( o ),
                   'LuaOwnedType{n=6,d=1.2,s=hellohello}' )
     assert_eq( o.n_const, 10 )
-  )" );
+  )lua" );
   REQUIRE( res == valid );
 
   char const* err_non_existent =
@@ -396,12 +396,12 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
       "\t[C]: in metamethod 'newindex'\n"
       "\t[string \"...\"]:5: in main chunk";
 
-  REQUIRE( st.script.run_safe( R"(
+  REQUIRE( st.script.run_safe( R"lua(
     -- This should cover calling non-existent values as well as
     -- setting them.
     assert( o.non_existent == nil )
     o.non_existent = 5
-  )" ) == lua_invalid( err_non_existent ) );
+  )lua" ) == lua_invalid( err_non_existent ) );
 
   char const* err_const =
       "attempt to set const field `n_const'.\n"
@@ -409,10 +409,10 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
       "\t[C]: in metamethod 'newindex'\n"
       "\t[string \"...\"]:3: in main chunk";
 
-  REQUIRE( st.script.run_safe( R"(
+  REQUIRE( st.script.run_safe( R"lua(
     o.n       = 5 -- ok
     o.n_const = 5 -- boom!
-  )" ) == lua_invalid( err_const ) );
+  )lua" ) == lua_invalid( err_const ) );
 }
 
 LUA_TEST_CASE( "[usertype] lua owned constructor" ) {
@@ -435,19 +435,19 @@ LUA_TEST_CASE( "[usertype] lua owned constructor" ) {
     return lo;
   };
 
-  int res = st.script.run<int>( R"(
+  int res = st.script.run<int>( R"lua(
     lo = LuaOwned( 7 )
     return lo.n + lo.n_const
-  )" );
+  )lua" );
   REQUIRE( res == 7 + 10 );
 
   LuaOwnedType& lo = as<LuaOwnedType&>( st["lo"] );
   REQUIRE( lo.n == 7 );
 
-  st.script.run( R"(
+  st.script.run( R"lua(
     lo.d = 11
     lo.n = 21
-  )" );
+  )lua" );
 
   REQUIRE( lo.d == 11.0 );
   REQUIRE( lo.n == 21 );

@@ -33,11 +33,11 @@ using ::base::valid;
 LUA_TEST_CASE( "[lua-call] no args" ) {
   C.openlibs();
 
-  REQUIRE( C.dostring( R"(
+  REQUIRE( C.dostring( R"lua(
     function foo()
       return "hello"
     end
-  )" ) == valid );
+  )lua" ) == valid );
 
   C.getglobal( "foo" );
   REQUIRE( C.stack_size() == 1 );
@@ -67,7 +67,7 @@ LUA_TEST_CASE( "[lua-call] no args" ) {
 LUA_TEST_CASE( "[lua-call] multiple args, one result" ) {
   C.openlibs();
 
-  REQUIRE( C.dostring( R"(
+  REQUIRE( C.dostring( R"lua(
     function foo( n, s, d )
       assert( n ~= nil, 'n is nil' )
       assert( s ~= nil, 's is nil' )
@@ -75,7 +75,7 @@ LUA_TEST_CASE( "[lua-call] multiple args, one result" ) {
       local fmt = string.format
       return fmt( "args: n=%s, s='%s', d=%s", n, s, d )
     end
-  )" ) == valid );
+  )lua" ) == valid );
 
   C.getglobal( "foo" );
   REQUIRE( C.stack_size() == 1 );
@@ -113,11 +113,11 @@ LUA_TEST_CASE( "[lua-call] multiple args, one result" ) {
 LUA_TEST_CASE( "[lua-call] with nresults" ) {
   C.openlibs();
 
-  REQUIRE( C.dostring( R"(
+  REQUIRE( C.dostring( R"lua(
     function foo()
       return 1, 2, 3, 4, 5
     end
-  )" ) == valid );
+  )lua" ) == valid );
 
   C.getglobal( "foo" );
   REQUIRE( C.stack_size() == 1 );
@@ -171,11 +171,11 @@ LUA_TEST_CASE( "[lua-call] with nresults" ) {
 LUA_TEST_CASE( "[lua-call] call/pcall multret" ) {
   C.openlibs();
 
-  REQUIRE( C.dostring( R"(
+  REQUIRE( C.dostring( R"lua(
     function foo( n, s, d )
       return n+1, s .. '!', d+1.5
     end
-  )" ) == valid );
+  )lua" ) == valid );
 
   C.getglobal( "foo" );
   REQUIRE( C.stack_size() == 1 );
@@ -203,11 +203,11 @@ LUA_TEST_CASE( "[lua-call] call_lua_{un}safe_and_get" ) {
   C.openlibs();
 
   SECTION( "call" ) {
-    REQUIRE( C.dostring( R"(
+    REQUIRE( C.dostring( R"lua(
       function foo( n, s, d )
         return {n+1, s .. '!', d+1.5}
       end
-    )" ) == valid );
+    )lua" ) == valid );
 
     C.getglobal( "foo" );
     REQUIRE( C.stack_size() == 1 );
@@ -222,11 +222,11 @@ LUA_TEST_CASE( "[lua-call] call_lua_{un}safe_and_get" ) {
   }
 
   SECTION( "call limit one result" ) {
-    REQUIRE( C.dostring( R"(
+    REQUIRE( C.dostring( R"lua(
       function foo( n, s, d )
         return n+1, s .. '!', d+1.5
       end
-    )" ) == valid );
+    )lua" ) == valid );
 
     C.getglobal( "foo" );
     REQUIRE( C.stack_size() == 1 );
@@ -237,12 +237,12 @@ LUA_TEST_CASE( "[lua-call] call_lua_{un}safe_and_get" ) {
   }
 
   SECTION( "pcall" ) {
-    REQUIRE( C.dostring( R"(
+    REQUIRE( C.dostring( R"lua(
       function foo( n, s, d )
         assert( n ~= 9 )
         return {n+1, s .. '!', d+1.5}
       end
-    )" ) == valid );
+    )lua" ) == valid );
 
     C.getglobal( "foo" );
     REQUIRE( C.stack_size() == 1 );
@@ -259,11 +259,11 @@ LUA_TEST_CASE( "[lua-call] call_lua_{un}safe_and_get" ) {
   }
 
   SECTION( "pcall with error" ) {
-    REQUIRE( C.dostring( R"(
+    REQUIRE( C.dostring( R"lua(
       function foo( n, s, d )
         assert( n ~= 9 )
       end
-    )" ) == valid );
+    )lua" ) == valid );
 
     C.getglobal( "foo" );
     REQUIRE( C.stack_size() == 1 );
@@ -279,11 +279,11 @@ LUA_TEST_CASE( "[lua-call] call_lua_{un}safe_and_get" ) {
   }
 
   SECTION( "call with maybe result" ) {
-    REQUIRE( C.dostring( R"(
+    REQUIRE( C.dostring( R"lua(
       function foo( s )
         return 'hello' .. s
       end
-    )" ) == valid );
+    )lua" ) == valid );
 
     C.getglobal( "foo" );
     REQUIRE( C.stack_size() == 1 );
@@ -305,13 +305,13 @@ LUA_TEST_CASE(
   C.openlibs();
 
   SECTION( "call" ) {
-    REQUIRE( C.dostring( R"(
+    REQUIRE( C.dostring( R"lua(
       function foo( n, s, d )
         res = {n+1, s .. '!', d+1.5}
         -- These results should be ignored.
         return 1, 2, 3
       end
-    )" ) == valid );
+    )lua" ) == valid );
 
     C.getglobal( "foo" );
     REQUIRE( C.stack_size() == 1 );
@@ -330,14 +330,14 @@ LUA_TEST_CASE(
   }
 
   SECTION( "pcall" ) {
-    REQUIRE( C.dostring( R"(
+    REQUIRE( C.dostring( R"lua(
       function foo( n, s, d )
         assert( n ~= 9 )
         res = {n+1, s .. '!', d+1.5}
         -- Should be ignored
         return 1
       end
-    )" ) == valid );
+    )lua" ) == valid );
 
     C.getglobal( "foo" );
     REQUIRE( C.stack_size() == 1 );
@@ -354,11 +354,11 @@ LUA_TEST_CASE(
   }
 
   SECTION( "pcall with error" ) {
-    REQUIRE( C.dostring( R"(
+    REQUIRE( C.dostring( R"lua(
       function foo( n, s, d )
         assert( n ~= 9 )
       end
-    )" ) == valid );
+    )lua" ) == valid );
 
     C.getglobal( "foo" );
     REQUIRE( C.stack_size() == 1 );
@@ -376,7 +376,7 @@ LUA_TEST_CASE(
 
 LUA_TEST_CASE( "[lua-call] call_lua_resume_safe" ) {
   C.openlibs();
-  st.script.run( R"(
+  st.script.run( R"lua(
   function f( n, s )
     n = coroutine.yield( s .. tostring( n ) )
     local _<close> = setmetatable( {}, {
@@ -388,7 +388,7 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe" ) {
     coroutine.yield( s .. tostring( n ) )
     return n*3
   end
-  )" );
+  )lua" );
   REQUIRE( C.stack_size() == 0 );
   cthread L2 = C.newthread();
   c_api   C2( L2 );
@@ -447,7 +447,7 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe" ) {
 
 LUA_TEST_CASE( "[lua-call] call_lua_resume_safe w/ error" ) {
   C.openlibs();
-  st.script.run( R"(
+  st.script.run( R"lua(
   function f( n, s )
     n = coroutine.yield( s .. tostring( n ) )
     local _<close> = setmetatable( {}, {
@@ -457,7 +457,7 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe w/ error" ) {
     } )
     error( 'some error' )
   end
-  )" );
+  )lua" );
   REQUIRE( C.stack_size() == 0 );
   cthread L2 = C.newthread();
   c_api   C2( L2 );
@@ -499,7 +499,7 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe w/ error" ) {
 
 LUA_TEST_CASE( "[lua-call] call_lua_resume_safe_and_get" ) {
   C.openlibs();
-  st.script.run( R"(
+  st.script.run( R"lua(
   function f( n, s )
     n = coroutine.yield( s .. tostring( n ) )
     local _<close> = setmetatable( {}, {
@@ -511,7 +511,7 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe_and_get" ) {
     coroutine.yield( s .. tostring( n ) )
     return n*3
   end
-  )" );
+  )lua" );
   REQUIRE( C.stack_size() == 0 );
   cthread L2 = C.newthread();
   c_api   C2( L2 );
@@ -557,7 +557,7 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe_and_get" ) {
 LUA_TEST_CASE(
     "[lua-call] call_lua_resume_safe_and_get w/ error" ) {
   C.openlibs();
-  st.script.run( R"(
+  st.script.run( R"lua(
   function f( n, s )
     n = coroutine.yield( s .. tostring( n ) )
     local _<close> = setmetatable( {}, {
@@ -567,7 +567,7 @@ LUA_TEST_CASE(
     } )
     error( 'some error' )
   end
-  )" );
+  )lua" );
   REQUIRE( C.stack_size() == 0 );
   cthread L2 = C.newthread();
   c_api   C2( L2 );
@@ -602,11 +602,11 @@ LUA_TEST_CASE(
   C2.pop();
 
   // Let's try to run another coroutine on it.
-  st.script.run( R"(
+  st.script.run( R"lua(
   function f( n )
     return coroutine.yield( n+1 )
   end
-  )" );
+  )lua" );
   C2.getglobal( "f" );
   REQUIRE( C2.stack_size() == 1 );
   REQUIRE( call_lua_resume_safe_and_get<int>( L2, 5 ) ==
@@ -622,11 +622,11 @@ LUA_TEST_CASE(
     "[lua-call] call_lua_resume_safe_and_get w/ conversion "
     "error" ) {
   C.openlibs();
-  st.script.run( R"(
+  st.script.run( R"lua(
   function f()
     coroutine.yield( "hello" )
   end
-  )" );
+  )lua" );
   REQUIRE( C.stack_size() == 0 );
   cthread L2 = C.newthread();
   c_api   C2( L2 );
