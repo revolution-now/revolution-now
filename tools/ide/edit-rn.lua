@@ -114,15 +114,16 @@ local function find_all_modules()
   return res
 end
 
+local function module_opener( stem )
+  open_module( stem )
+  save_tabs()
+end
+
 local function open_module_with_telescope()
   -- This is non-blocking, so this function will return right
   -- away, while the picker window is still open.
-  local function opener( stem )
-    open_module( stem )
-    save_tabs()
-  end
   local tl = require( 'ide.telescope' )
-  tl.pick_module( find_all_modules(), opener )
+  tl.pick_module( find_all_modules(), module_opener )
 end
 
 -----------------------------------------------------------------
