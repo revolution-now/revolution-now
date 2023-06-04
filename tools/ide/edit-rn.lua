@@ -14,6 +14,8 @@ local util = require( 'ide.util' )
 -----------------------------------------------------------------
 local fnamemodify = vim.fn.fnamemodify
 local keymap = vim.keymap
+local glob = vim.fn.glob
+local format = string.format
 
 -----------------------------------------------------------------
 -- Constants.
@@ -92,11 +94,35 @@ local function save_tabs()
   out:close()
 end
 
-local function open_module_with_input()
-  local stem = util.input( 'Enter name: ' )
-  if stem == nil or #stem == 0 then return end
-  open_module( stem )
-  save_tabs()
+local function find_all_modules()
+  -- Extensions of files that, if found, mean that their stem
+  -- should be added to the pool of module names.
+  local EXTS = { '?pp', 'rds', 'vert', 'frag' }
+  local rn = util.rn_root_dir()
+  local modules = {}
+  local function add_glob( ext )
+    local files = glob( format( '%s/src/**/*.%s', rn, ext ) )
+    for file in files:gmatch( '[^\r\n]+' ) do
+      local module_name = file:match( '.*/src/(.+)%..*' )
+      modules[module_name] = true
+    end
+  end
+  for _, ext in ipairs( EXTS ) do add_glob( ext ) end
+  local res = {}
+  for k, _ in pairs( modules ) do table.insert( res, k ) end
+  table.sort( res )
+  return res
+end
+
+local function open_module_with_telescope()
+  -- This is non-blocking, so this function will return right
+  -- away, while the picker window is still open.
+  local function opener( stem )
+    open_module( stem )
+    save_tabs()
+  end
+  local tl = require( 'ide.telescope' )
+  tl.pick_module( find_all_modules(), opener )
 end
 
 -----------------------------------------------------------------
@@ -123,7 +149,7 @@ local function nmap( keys, func )
 end
 
 local function mappings()
-  nmap( '<C-p>', open_module_with_input )
+  nmap( '<C-p>', open_module_with_telescope )
   nmap( 'Q', quit_all_and_save_tabs )
   nmap( 'E', close_tab_and_save_tabs )
 end

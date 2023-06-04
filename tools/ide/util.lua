@@ -14,6 +14,11 @@ local posix = require( 'posix' )
 local format = string.format
 local call = vim.call
 
+local fnamemodify = vim.fn.fnamemodify
+local resolve = vim.fn.resolve
+local expand = vim.fn.expand
+local getbufinfo = vim.fn.getbufinfo
+
 -----------------------------------------------------------------
 -- Functions.
 -----------------------------------------------------------------
@@ -80,8 +85,10 @@ end
 
 -- See here:
 --   https://superuser.com/questions/345520/vim-number-of-total-buffers
-function M.total_buffers()
-  return #vim.fn.getbufinfo{ buflisted=1 }
+function M.total_buffers() return #getbufinfo{ buflisted=1 } end
+
+function M.rn_root_dir()
+  return fnamemodify( resolve( expand( '<sfile>:p' ) ), ':h' )
 end
 
 return M
