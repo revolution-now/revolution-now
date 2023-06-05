@@ -170,10 +170,9 @@ local function main()
   create_tabs()
 
   -- In case anyone changed it.
-  vim.cmd[[tabdo set cmdheight=1]]
   vim.cmd[[tabdo wincmd =]]
   -- When nvim supports it.
-  -- vim.cmd[[tabdo set cmdheight=0]]
+  vim.cmd[[tabdo set cmdheight=0]]
 end
 
 main()
