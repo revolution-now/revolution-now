@@ -11,6 +11,9 @@
 --]] ------------------------------------------------------------
 local M = {}
 
+-----------------------------------------------------------------
+-- Methods.
+-----------------------------------------------------------------
 -- Takes a table and just returns a new table with all the same
 -- key/value pairs that come from the pairs(...) iterator. This
 -- is useful if e.g. a table's pairs are produced by a __pairs

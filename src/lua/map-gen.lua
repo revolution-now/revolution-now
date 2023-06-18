@@ -20,10 +20,18 @@ local weights = require( 'map-gen.classic.terrain-weights' )
 local timer = require( 'util.timer' )
 
 -----------------------------------------------------------------
--- aliases
+-- Aliases.
 -----------------------------------------------------------------
 local min = math.min
 local max = math.max
+
+-----------------------------------------------------------------
+-- Globals.
+-----------------------------------------------------------------
+local function global( name ) return assert( _G[name] ) end
+
+local unit_mgr = global( 'unit_mgr' )
+local native_expertise = global( 'native_expertise' )
 
 -----------------------------------------------------------------
 -- Constants

@@ -9,15 +9,32 @@
 | Description: Used for testing.
 |
 --]] ------------------------------------------------------------
-M = {}
+local M = {}
 
+-----------------------------------------------------------------
+-- Imports.
+-----------------------------------------------------------------
 local wait = require( 'wait' )
 
+-----------------------------------------------------------------
+-- Aliases.
+-----------------------------------------------------------------
 local auto_await = wait.auto_await
 local await = wait.await
 local native_coroutine = wait.native_coroutine
 local auto_assert = wait.auto_assert
 
+-----------------------------------------------------------------
+-- Globals.
+-----------------------------------------------------------------
+local function global( name ) return assert( _G[name] ) end
+
+local lua_ui = global( 'lua_ui' )
+local co_time = global( 'co_time' )
+
+-----------------------------------------------------------------
+-- Methods.
+-----------------------------------------------------------------
 local function message_box_format( ... )
   local msg = string.format( ... )
   log.info( 'message box: ' .. msg )
@@ -35,7 +52,7 @@ local function multiply( n )
   return m
 end
 
-function timer_routine( seconds )
+local function timer_routine( seconds )
   local wait_micros = seconds * 1000 * 1000
   local n = 1
   while true do
@@ -54,8 +71,8 @@ function timer_routine( seconds )
 end
 local timer_routine_coro = native_coroutine( timer_routine )
 
-function M.some_ui_routine( n )
-  log.info( 'start of some_ui_routine: ' .. tostring( n ) )
+function M.some_ui_routine( arg )
+  log.info( 'start of some_ui_routine: ' .. tostring( arg ) )
 
   do
     -- auto_assert will wrap the resulting wait in an object

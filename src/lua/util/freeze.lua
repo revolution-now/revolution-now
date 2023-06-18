@@ -22,7 +22,7 @@ local M = {}
 --
 function M.globals( env )
   return setmetatable( {}, {
-    __index=_ENV,
+    __index=env,
     __newindex=function( _, key, _ )
       error( 'attempt to modify global "' .. key ..
                  '" which is not permitted.' )
