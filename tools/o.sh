@@ -14,7 +14,7 @@ set -o pipefail
   echo
   echo "    $0 src/cargo.cpp"
   echo "    $0 src/rds/rdsc/parser.cpp"
-  echo "    $0 test/cargo.cpp"
+  echo "    $0 test/cargo-test.cpp"
   echo
   exit 1
 }

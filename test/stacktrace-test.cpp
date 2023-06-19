@@ -57,7 +57,7 @@ TEST_CASE( "[stacktrace] path filter" ) {
   REQUIRE( f( p.string(), mode ) );
   p = base::source_tree_root() / "exe/main.cppx";
   REQUIRE_FALSE( f( p.string(), mode ) );
-  p = base::source_tree_root() / "test/ss/cargo.cpp";
+  p = base::source_tree_root() / "test/ss/cargo-test.cpp";
   REQUIRE( f( p.string(), mode ) );
 
   // RN+Extern Only
@@ -82,7 +82,7 @@ TEST_CASE( "[stacktrace] path filter" ) {
   REQUIRE( f( p.string(), mode ) );
   p = base::source_tree_root() / "exe/main.cppx";
   REQUIRE_FALSE( f( p.string(), mode ) );
-  p = base::source_tree_root() / "test/ss/cargo.cpp";
+  p = base::source_tree_root() / "test/ss/cargo-test.cpp";
   REQUIRE( f( p.string(), mode ) );
 }
 

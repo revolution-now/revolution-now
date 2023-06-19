@@ -48,7 +48,7 @@ local function files( stem )
   F.rds = format( 'src/%s.rds', stem )
   F.rds_impl = format( 'src/%s-impl.rds', stem )
   F.test = function()
-    cpptest_initializer( format( 'test/%s.cpp', stem ) )
+    cpptest_initializer( format( 'test/%s-test.cpp', stem ) )
   end
   return F
 end
