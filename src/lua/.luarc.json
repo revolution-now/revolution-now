@@ -1,0 +1,13 @@
+{
+  "runtime": {
+    "version": "Lua 5.4"
+  },
+
+  "diagnostics": {
+    "globals": [
+      "ROOT",
+      "ROOT_TS",
+      "log"
+    ]
+  }
+}

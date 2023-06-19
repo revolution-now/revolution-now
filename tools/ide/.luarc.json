@@ -1,0 +1,15 @@
+{
+  "runtime": {
+    "version": "LuaJIT"
+  },
+
+  "workspace": {
+    "checkThirdParty": false,
+    "library": [
+      "~/.config/nvim",
+      "~/.local/share/nvim",
+      "~/dev/tools/nvim-current/share/nvim/runtime",
+      "~/dev/tools/nvim-current/lib/nvim"
+    ]
+  }
+}
