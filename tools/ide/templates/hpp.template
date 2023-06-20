@@ -1,0 +1,21 @@
+/****************************************************************
+**{{FILE_NAME}}
+*
+* Project: Revolution Now
+*
+* Created by {{AUTHOR}} on {{YEAR}}-{{MONTH}}-{{DAY}}.
+*
+* Description: TODO [FILL ME IN]
+*
+*****************************************************************/
+#pragma once
+
+{{INCLUDE_CONFIG}}
+
+{{INCLUDE_RDS}}
+
+namespace {{NAMESPACE}} {
+
+// TODO
+
+} // namespace {{NAMESPACE}}

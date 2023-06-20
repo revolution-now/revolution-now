@@ -1,23 +1,21 @@
 # ===============================================================
-# {{FILEE}}
+# {{FILE_NAME}}
 #
 # Project: Revolution Now
 #
-# Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
+# Created by {{AUTHOR}} on {{YEAR}}-{{MONTH}}-{{DAY}}.
 #
-# Description: Rds definitions for the {{FILE}} module.
+# Description: Rds definitions for the {{MODULE}} module.
 #
 # ===============================================================
 # Revolution Now
-include "some-header.hpp"
-
-# Rds
 include "command.rds.hpp"
+include "some-header.hpp"
 
 # C++ standard library
 include "<string>"
 
-namespace "rn"
+namespace "{{NAMESPACE}}"
 
 sumtype.MyVariant {
   first {

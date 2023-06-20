@@ -1,19 +1,16 @@
 /****************************************************************
-**{{FILEE}}
+**{{FILE_NAME}}
 *
 * Project: Revolution Now
 *
-* Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
+* Created by {{AUTHOR}} on {{YEAR}}-{{MONTH}}-{{DAY}}.
 *
 * Description: TODO [FILL ME IN]
 *
 *****************************************************************/
-#pragma once
+#version 330 core
+layout (location = 0) in vec3 pos;
 
-#include "core-config.hpp"
-
-namespace rn {
-
-// TODO
-
-} // namespace rn
+void main() {
+  gl_Position = vec4( pos, 1.0 );
+}

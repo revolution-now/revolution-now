@@ -1,16 +1,16 @@
 /****************************************************************
-**{{FILEE}}
+**{{FILE_NAME}}
 *
 * Project: Revolution Now
 *
-* Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
+* Created by {{AUTHOR}} on {{YEAR}}-{{MONTH}}-{{DAY}}.
 *
-* Description: [FILL ME IN]
+* Description: TODO [FILL ME IN]
 *
 *****************************************************************/
 #version 330 core
-layout (location = 0) in vec3 pos;
+out vec4 FragColor;
 
 void main() {
-  gl_Position = vec4( pos, 1.0 );
+  FragColor = vec4( 1.0f, 1.0f, 1.0f, 1.0f );
 }

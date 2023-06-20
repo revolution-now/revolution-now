@@ -26,7 +26,4 @@ au BufNewFile,BufRead *.rcl set syntax=yaml
 " does not.
 syntax keyword luaStatement continue
 
-" Tell the vim-templates function where to find the templates.
-let g:tmpl_search_paths = [s:this_folder . '/templates']
-
 exec ':source ' . s:this_folder . '/nvimrc.lua'

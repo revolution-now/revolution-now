@@ -1,0 +1,34 @@
+# ===============================================================
+# {{FILE_NAME}}
+#
+# Project: Revolution Now
+#
+# Created by {{AUTHOR}} on {{YEAR}}-{{MONTH}}-{{DAY}}.
+#
+# Description: Config data for the {{FILE_STEM}} module.
+#
+# ===============================================================
+# config
+include "some-include.rds.hpp"
+
+# refl
+include "refl/enum-map.hpp"
+
+# C++ standard library
+include "<string>"
+
+namespace "rn.config.{{FILE_STEM_IDENTIFIER}}"
+
+struct.Foo {
+  bar 'int',
+
+  _features { equality, validation }
+}
+
+namespace "rn"
+
+struct.config_{{FILE_STEM_IDENTIFIER}}_t {
+  foo 'config::{{FILE_STEM_IDENTIFIER}}::Foo',
+}
+
+config.{{FILE_STEM_IDENTIFIER}} {}

@@ -1,0 +1,37 @@
+/****************************************************************
+**{{FILE_NAME}}
+*
+* Project: Revolution Now
+*
+* Created by {{AUTHOR}} on {{YEAR}}-{{MONTH}}-{{DAY}}.
+*
+* Description: Unit tests for the {{MODULE}} module.
+*
+*****************************************************************/
+#include "test/testing.hpp"
+
+// Under test.
+{{INCLUDE_MODULE_HEADER}}
+
+{{INCLUDE_FAKE_WORLD}}
+
+// Must be last.
+#include "test/catch-common.hpp"
+
+namespace {{NAMESPACE}} {
+namespace {
+
+using namespace std;
+
+{{FAKE_WORLD_SETUP}}
+
+/****************************************************************
+** Test Cases
+*****************************************************************/
+TEST_CASE( "[{{MODULE}}] some test" ) {
+  {{WORLD_INST}}
+  // TODO
+}
+
+} // namespace
+} // namespace {{NAMESPACE}}

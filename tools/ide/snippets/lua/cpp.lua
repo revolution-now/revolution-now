@@ -21,9 +21,9 @@ local function unit_test_module()
   -- If we are in ~/dev/revolution-now/test/x/y/z/a.cpp then
   -- test_dir_stem = ~/dev/revolution-now/test/x/y/z/a and we
   -- then extract just x/y/z/a.
-  local test_dir_stem = assert( vim.fn.expand( '%:p:r' ) )
-  return
-      string.match( test_dir_stem, 'revolution.now/test/(.*)' )
+  local test_dir_stem = assert( vim.fn.expand( '%:p' ) )
+  return string.match( test_dir_stem,
+                       'revolution.now/test/(.*)-test.cpp' )
 end
 
 add_s{

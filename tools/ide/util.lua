@@ -4,19 +4,12 @@
 local M = {}
 
 -----------------------------------------------------------------
--- Imports.
------------------------------------------------------------------
-local posix = require( 'posix' )
-
------------------------------------------------------------------
 -- Aliases
 -----------------------------------------------------------------
 local format = string.format
 local call = vim.call
 
 local fnamemodify = vim.fn.fnamemodify
-local resolve = vim.fn.resolve
-local expand = vim.fn.expand
 local getbufinfo = vim.fn.getbufinfo
 
 -----------------------------------------------------------------
@@ -54,9 +47,8 @@ function M.formattable( func )
 end
 
 -- Returns the file name if it exists, otherwise nil.
-M.exists = M.formattable( function( file )
-  if posix.stat( file ) == nil then return nil end
-  return file
+M.file_exists = M.formattable( function( file )
+  return vim.fn.filereadable( file ) == 1
 end )
 
 -- Returns a function that will call the named vim command with a
@@ -87,8 +79,17 @@ end
 --   https://superuser.com/questions/345520/vim-number-of-total-buffers
 function M.total_buffers() return #getbufinfo{ buflisted=1 } end
 
+local this_script = assert( fnamemodify(
+                                require( 'debug' ).getinfo( 1 )
+                                    .short_src, ':p' ) )
+
 function M.rn_root_dir()
-  return fnamemodify( resolve( expand( '<sfile>:p' ) ), ':h' )
+  return assert(
+             this_script:match( '^(.*/revolution.now[^/]*)/' ) )
+end
+
+function M.ide_root_dir()
+  return assert( this_script:match( '^(.*/ide)/' ) )
 end
 
 return M

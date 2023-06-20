@@ -14,7 +14,7 @@ local vsplit = LU.vsplit
 -- Aliases.
 -----------------------------------------------------------------
 local format = string.format
-local exists = util.exists
+local file_exists = util.file_exists
 
 -----------------------------------------------------------------
 -- Private Functions.
@@ -40,7 +40,7 @@ end
 -- Public API.
 -----------------------------------------------------------------
 function M.matches( stem )
-  return exists( 'src/' .. stem .. '.vert' )
+  return file_exists( 'src/' .. stem .. '.vert' )
 end
 
 function M.create( stem )

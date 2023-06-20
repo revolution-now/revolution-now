@@ -1,18 +1,18 @@
 /****************************************************************
-**{{FILEE}}
+**{{FILE_NAME}}
 *
 * Project: Revolution Now
 *
-* Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
+* Created by {{AUTHOR}} on {{YEAR}}-{{MONTH}}-{{DAY}}.
 *
 * Description: TODO [FILL ME IN]
 *
 *****************************************************************/
-#include "{{FILE}}.hpp"
+{{INCLUDE_MODULE_HEADER}}
 
-using namespace std;
+{{USING_NAMESPACE_STD}}
 
-namespace rn {
+namespace {{NAMESPACE}} {
 
 namespace {
 
@@ -21,7 +21,7 @@ namespace {
 } // namespace
 
 /****************************************************************
-** Public API
+** Public API.
 *****************************************************************/
 
-} // namespace rn
+} // namespace {{NAMESPACE}}
