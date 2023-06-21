@@ -63,10 +63,6 @@ local function apply_to_buf( tmpl_name, buf, handler )
                                         handler )
   vim.api.nvim_buf_set_lines( buf, 0, -1, false,
                               vim.fn.split( new_body, '\n' ) )
-  -- May not be needed.
-  -- vim.cmd[[set nomodified]]
-  -- vim.bo[buf].modified = 0
-  -- vim.bo[buf].modified = false
 end
 
 local function get_handler_for_tmpl( tmpl_name )
