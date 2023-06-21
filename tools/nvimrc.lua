@@ -5,18 +5,23 @@
 -- Aliases.
 -----------------------------------------------------------------
 local vim = _G['vim']
-local fnamemodify = vim.fn.fnamemodify
 local format = string.format
+
+local o = vim.o
+
+local fnamemodify = vim.fn.fnamemodify
+local resolve = vim.fn.resolve
+
+local autocmd = vim.api.nvim_create_autocmd
+local augroup = vim.api.nvim_create_augroup
 
 -----------------------------------------------------------------
 -- Compute rn root directory.
 -----------------------------------------------------------------
--- These are things that we want to have in place regardless of
--- whether we're running the full ide scripts or not.
-local this_script = fnamemodify(
-                        require( 'debug' ).getinfo( 1 ).short_src,
-                        ':p' )
-local RN_ROOT = this_script:match( '^(.*/revolution.now[^/]*)/' )
+local this_file = require( 'debug' ).getinfo( 1 ).short_src
+this_file = resolve( fnamemodify( this_file, ':p' ) )
+
+local RN_ROOT = fnamemodify( this_file, ':h:h' )
 
 -----------------------------------------------------------------
 -- Make sure that we can import the IDE.
@@ -42,6 +47,28 @@ local fmt = require( 'dsicilia.format' )
 local template = require( 'ide.template' )
 
 -----------------------------------------------------------------
+-- Extra syntax files.
+-----------------------------------------------------------------
+-- This is so that the Rds syntax file gets picked up.
+o.runtimepath = o.runtimepath .. ',' .. RN_ROOT .. '/src/rds'
+
+-----------------------------------------------------------------
+-- Filetypes.
+-----------------------------------------------------------------
+vim.filetype.add{
+  -- jsav/rcl files are not yaml, but it seems to work nicely.
+  extension={ rds='rds' },
+  pattern={ ['.*/doc/.*design.txt']='markdown' },
+}
+
+-- Until we have something more dedicated.
+autocmd( { 'BufNewFile', 'BufWinEnter' }, {
+  pattern='*.rcl',
+  group=augroup( 'SetRclSyntax', { clear=true } ),
+  callback=function( ev ) vim.bo[ev.buf].syntax = 'yaml' end,
+} )
+
+-----------------------------------------------------------------
 -- Templates.
 -----------------------------------------------------------------
 template.enable()
@@ -58,3 +85,12 @@ fmt.enable_autoformat_on_save( function( path )
   local is_tools = path:match( 'revolution.now/tools' )
   return is_src or is_exe or is_test or is_tools
 end )
+
+-----------------------------------------------------------------
+-- Experimental.
+-----------------------------------------------------------------
+-- Our version of Lua may have a `continue` keyword which normal
+-- Lua does not. This may not have any effect though if the oper-
+-- ative syntax highlighter considers it a syntax error and
+-- changes the color of it.
+vim.cmd[[syntax keyword luaStatement continue]]
