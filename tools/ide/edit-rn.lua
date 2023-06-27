@@ -133,7 +133,7 @@ local function quit_all_and_save_tabs()
   save_tabs()
   -- Close all tabs and quit. This will refuse to exit if there
   -- are unsaved changes in some buffer.
-  vim.cmd[[qa]]
+  require( 'dsicilia.quitting' ).quit_all()
 end
 
 local function close_tab_and_save_tabs()
