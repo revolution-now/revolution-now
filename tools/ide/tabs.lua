@@ -4,31 +4,39 @@
 local M = {}
 
 -----------------------------------------------------------------
+-- Imports.
+-----------------------------------------------------------------
+local dslsp = require( 'dsicilia.lsp' )
+local colors = require( 'dsicilia.colors' )
+local palette = require( 'gruvbox.palette' )
+
+-----------------------------------------------------------------
 -- Aliases
 -----------------------------------------------------------------
 local format = string.format
-local call = vim.call
+local autocmd = vim.api.nvim_create_autocmd
+local augroup = vim.api.nvim_create_augroup
 
 -----------------------------------------------------------------
 -- Functions.
 -----------------------------------------------------------------
-function M.num_tabs() return call( 'tabpagenr', '$' ) end
+function M.num_tabs() return vim.fn.tabpagenr( '$' ) end
 
 -- 1-based, so compatible with Lua by default.
-function M.current_tab() return call( 'tabpagenr' ) end
+function M.current_tab() return vim.fn.tabpagenr() end
 
 -- Selects the nth tab, 1-based.
 function M.set_selected_tab( n ) vim.cmd( 'tabn ' .. n ) end
 
 -- Given the buffer number, get the file name.
 local function buffer_name( n )
-  return call( 'bufname', assert( n ) )
+  return vim.fn.bufname( assert( n ) )
 end
 
 -- Returns a list of buffer indices (integers) that are open in
 -- the given tab page (which starts at 1).
 local function tab_page_buffer_list( n )
-  return call( 'tabpagebuflist', n )
+  return vim.fn.tabpagebuflist( n )
 end
 
 -- Returns a data structure describing the currently open tabs
@@ -40,14 +48,17 @@ end
 --    1: {
 --      active = false,
 --      idx = 1,
+--      diagnostics = { errors=1, warnings=2, infos=0, hints=0 },
 --      buffers = {
 --        1: {
 --          buffer_idx = 123,
---          path = "/some/path/to/file.cpp"
+--          path = "/some/path/to/file.cpp",
+--      diagnostics = { errors=1, warnings=0, infos=0, hints=0 },
 --        },
 --        2: {
 --          buffer_idx = 567,
---          path = "/another/file.hpp"
+--          path = "/another/file.hpp",
+--      diagnostics = { errors=0, warnings=2, infos=0, hints=0 },
 --        }
 --        ...
 --      }
@@ -56,6 +67,7 @@ end
 --    2: {
 --      active = true,
 --      idx = 2,
+--      diagnostics = { errors=0, warnings=0, infos=0, hints=0 },
 --      buffers = {
 --        ...
 --      }
@@ -75,15 +87,32 @@ function M.tab_config()
     -- Fill in buffers.
     tab.buffers = {}
     local buf_list = tab_page_buffer_list( i )
+    tab.diagnostics = { errors=0, warnings=0, infos=0, hints=0 }
     for _, buf_idx in ipairs( buf_list ) do
       local buffer = {}
       table.insert( tab.buffers, buffer )
       buffer.buffer_idx = buf_idx
       buffer.path = buffer_name( buf_idx )
+      buffer.diagnostics =
+          dslsp.diagnostics_for_buffer( buf_idx )
+      for k, v in pairs( buffer.diagnostics ) do
+        tab.diagnostics[k] = tab.diagnostics[k] + v
+      end
     end
   end
   return res
 end
+
+colors.hl_setter( 'IdeTabColors', function( hi )
+  local P = palette.colors
+  hi.TabLineError = { fg=P.bright_red, bg=P.dark1,
+                      underline=true }
+  hi.TabLineWarning = {
+    fg=P.bright_yellow,
+    bg=P.dark1,
+    underline=true,
+  }
+end )
 
 -- Takes a function that takes a list of buffer tables (see
 -- above) and returns a name for the tab.
@@ -92,16 +121,35 @@ local function construct_tabline( namer )
   local list = {}
   for idx, tab in ipairs( tab_config ) do
     local tab_fmt
-    -- Select the highlighting.
+    -- Select the highlighting. Note that some of these have the
+    -- space on the left and some on the right. That is because
+    -- for the ones that underline the text we don't want them to
+    -- include the space otherwise the space will be underlined
+    -- which does not look good.
     if idx == M.current_tab() then
-      tab_fmt = '%#TabLineSel#'
+      tab_fmt = '%#TabLineSel# '
+    elseif tab.diagnostics.errors > 0 then
+      tab_fmt = ' %#TabLineError#'
+    elseif tab.diagnostics.warnings > 0 then
+      tab_fmt = ' %#TabLineWarning#'
     else
-      tab_fmt = '%#TabLine#'
+      tab_fmt = '%#TabLine# '
     end
     -- Set the tab page number (for mouse clicks).
     tab_fmt = tab_fmt .. format( '%%%dT', idx )
     -- Set the tab label.
-    tab_fmt = tab_fmt .. format( ' %s ', namer( tab.buffers ) )
+    tab_fmt = tab_fmt .. namer( tab.buffers )
+
+    -- Similar idea as above regarding spaces.
+    if idx == M.current_tab() then
+      tab_fmt = tab_fmt .. ' %#TabLine#'
+    elseif tab.diagnostics.errors > 0 then
+      tab_fmt = tab_fmt .. '%#TabLine# '
+    elseif tab.diagnostics.warnings > 0 then
+      tab_fmt = tab_fmt .. '%#TabLine# '
+    else
+      tab_fmt = tab_fmt .. ' %#TabLine#'
+    end
     table.insert( list, tab_fmt )
   end
 
@@ -119,6 +167,11 @@ end
 
 -- This holds the function used to generate the tabline.
 M._ide_tabline_generator = nil
+
+autocmd( 'DiagnosticChanged', {
+  group=augroup( 'IdeTabs', { clear=true } ),
+  callback=function( _ ) vim.cmd.redrawtabline() end,
+} )
 
 -- Takes a tab namer (i.e., a function that takes a list of
 -- buffer tables and returns a name for the tab) and sets the
