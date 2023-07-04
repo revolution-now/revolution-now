@@ -480,7 +480,7 @@ LUA_STARTUP( lua::state& st ) {
 
   u["base_type"] = &U::base_type;
   u["type"]      = &U::type;
-  u["type_obj"]  = &U::type_obj;
+  u["type_obj"]  = []( U& o ) { return o.type_obj(); };
   // FIXME: Currently Lua does not know how to deal with the `ex-
   // pect` type that this returns. What we should probably do is
   // to create a wrapper whereby we could write:

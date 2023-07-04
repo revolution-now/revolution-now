@@ -18,14 +18,6 @@
 
 namespace base {
 
-#if defined( __clang__ )
-#  define COMPILER_CLANG
-#elif defined( __GNUC__ ) || defined( __GNUG__ )
-#  define COMPILER_GCC
-#elif defined( _MSC_VER )
-#  define COMPILER_MSVC
-#endif
-
 // These will demangle a type or symbol (e.g. one returned from
 // type_id(<type>).name() if the compiler supports it, otherwise
 // will return the mangled version. MUST be NULL-terminated.

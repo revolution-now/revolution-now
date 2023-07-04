@@ -78,4 +78,11 @@ void to_str( any const& r, string& out, base::ADL_t ) {
   out += C.pop_tostring();
 }
 
+bool operator==( any const& lhs, any const& rhs ) {
+  cthread L = lhs.this_cthread();
+  push( L, lhs );
+  push( L, rhs );
+  return internal::compare_top_two_and_pop( L );
+}
+
 } // namespace lua

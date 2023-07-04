@@ -52,7 +52,7 @@ struct UnitComposition {
 
   e_unit_type base_type() const { return o_.type.base_type(); }
   e_unit_type type() const { return o_.type.type(); }
-  UnitType    type_obj() const { return o_.type; }
+  UnitType const& type_obj() const { return o_.type; }
 
   UnitInventoryMap const& inventory() const {
     return o_.inventory;

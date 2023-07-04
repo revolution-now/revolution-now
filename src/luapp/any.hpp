@@ -37,6 +37,8 @@ struct any : base::zero<any, int> {
 
   cthread this_cthread() const noexcept;
 
+  friend bool operator==( any const& lhs, any const& rhs );
+
   // Pushes nil if there is no reference. Note that we don't push
   // onto the Lua state that is held inside the any object, since
   // that could correspond to a different thread.
@@ -90,7 +92,11 @@ bool compare_top_two_and_pop( cthread L );
 
 } // namespace internal
 
+// Need to exclude rhs types that derive from lua::any here oth-
+// erwise there will be an ambiguity with the the operator==(
+// any, any ) defined in the any class.
 template<typename T>
+requires( !std::is_convertible_v<T const&, any const&> )
 bool operator==( any const& r, T const& rhs ) {
   cthread L = r.this_cthread();
   push( L, r );

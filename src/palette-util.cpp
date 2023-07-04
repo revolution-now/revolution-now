@@ -40,7 +40,6 @@
 using namespace std;
 
 using ::base::maybe;
-using ::fmt::format;
 using ::gfx::pixel;
 
 namespace rn {
@@ -338,8 +337,9 @@ void dump_palette( ColorBuckets const& bucketed,
       inl_out << "    OBJ( sat" << sat << ",\n";
       for( int lum = 0; lum < luminosity_buckets; ++lum ) {
         if( auto c = bucketed[hue][sat][lum]; c.has_value() ) {
-          auto line = format( "    lum{}: \"{}\"\n", lum,
-                              c.value().to_string( false ) );
+          auto line =
+              fmt::format( "    lum{}: \"{}\"\n", lum,
+                           c.value().to_string( false ) );
           rcl_out << line;
           inl_out << "      FLD( pixel, lum" << lum << " )\n";
         }
@@ -357,12 +357,12 @@ void dump_palette( ColorBuckets const& bucketed,
   uint8_t jump = 256 / grey_scale_colors;
   for( uint8_t n = 0; n < grey_scale_colors; ++n ) {
     auto v    = n * jump;
-    auto line = format(
+    auto line = fmt::format(
         "  n{:02X}: \"{}\"\n", v,
         pixel{ uint8_t( v ), uint8_t( v ), uint8_t( v ), 255 }
             .to_string( false ) );
     rcl_out << line;
-    auto fld = format( "    FLD( pixel, n{:02X} )\n", v );
+    auto fld = fmt::format( "    FLD( pixel, n{:02X} )\n", v );
     inl_out << fld;
   }
   rcl_out << "}\n";
@@ -446,8 +446,8 @@ string bucket_path( pixel c ) {
   auto sat_bucket = to_bucket( hsl.s, saturation_buckets );
   auto lum_bucket =
       to_bucket( c.luminosity(), luminosity_buckets );
-  return format( "{}.sat{}.lum{}", hue_names[hue_bucket],
-                 sat_bucket, lum_bucket );
+  return fmt::format( "{}.sat{}.lum{}", hue_names[hue_bucket],
+                      sat_bucket, lum_bucket );
 }
 
 } // namespace rn

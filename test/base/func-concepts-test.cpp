@@ -130,7 +130,11 @@ static_assert( !NonOverloadedStatelessCallable<
 static_assert( NonOverloadedStatefulCallable<
                decltype( func::c_ext_lambda_capture )> );
 
+#ifndef COMPILER_GCC
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109680
+// Should be fixed in gcc 13.2.
 static_assert( NonOverloadedStatefulCallable<int() const> );
+#endif
 static_assert( NonOverloadedStatefulCallable<int() &> );
 
 static_assert( !NonOverloadedStatelessCallable<

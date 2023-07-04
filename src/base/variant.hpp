@@ -187,16 +187,11 @@ inline constexpr bool is_base_variant_v =
 /****************************************************************
 ** to_str
 *****************************************************************/
-template<template<typename...> typename V, typename... Ts>
-/* clang-format off */
-    requires( std::is_convertible_v<V<Ts...>&,
-              std::variant<Ts...>&> &&
-              (base::Show<Ts> &&...) )
-void to_str( V<Ts...> const& o, std::string& out, ADL_t ) {
-  /* clang-format on */
+template<base::Show... Ts>
+void to_str( std::variant<Ts...> const& o, std::string& out,
+             ADL_t ) {
   return std::visit(
-      [&]( auto const& _ ) { to_str( _, out, ADL ); },
-      static_cast<std::variant<Ts...> const&>( o ) );
+      [&]( auto const& _ ) { to_str( _, out, ADL ); }, o );
 };
 
 template<typename T>

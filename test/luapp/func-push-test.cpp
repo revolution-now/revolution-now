@@ -131,8 +131,12 @@ static_assert(
     StatelessLuaCExtensionFunction<int ( * )( lua_State* )> );
 static_assert(
     StatelessLuaCExtensionFunction<int ( & )( lua_State* )> );
+#ifndef COMPILER_GCC
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109680
+// Should be fixed in gcc 13.2.
 static_assert(
     !StatelessLuaCExtensionFunction<int( lua_State* ) const> );
+#endif
 static_assert(
     !StatelessLuaCExtensionFunction<int( lua_State* ) const&> );
 static_assert(
@@ -173,8 +177,12 @@ static_assert(
     !StatefulLuaCExtensionFunction<int ( * )( lua_State* )> );
 static_assert(
     !StatefulLuaCExtensionFunction<int ( & )( lua_State* )> );
+#ifndef COMPILER_GCC
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109680
+// Should be fixed in gcc 13.2.
 static_assert(
     StatefulLuaCExtensionFunction<int( lua_State* ) const> );
+#endif
 static_assert(
     StatefulLuaCExtensionFunction<int( lua_State* ) const&> );
 static_assert(

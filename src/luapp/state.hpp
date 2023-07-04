@@ -102,8 +102,8 @@ struct state : base::zero<state, cthread> {
   struct Table {
     Table( cthread cth );
 
-    table global() noexcept;
-    table create() noexcept;
+    ::lua::table global() noexcept;
+    ::lua::table create() noexcept;
 
    private:
     cthread L;
