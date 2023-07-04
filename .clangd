@@ -1,3 +1,7 @@
 CompileFlags:
   # Search .builds/current for compile_commands.json.
   CompilationDatabase: .builds/current
+  Remove: [
+    # gcc-specific flags.
+    -static-libasan
+    ]
