@@ -73,6 +73,15 @@ MovementPoints MovementPointsAnalysis::points_to_subtract()
   return needed;
 }
 
+void to_str( MovementPointsAnalysis const& o, std::string& out,
+             base::ADL_t ) {
+  out += fmt::format(
+      "MovementPointsAnalysis{{has={},needed={},using_start_of_"
+      "turn_exemption={},using_overdraw_allowance={}}}",
+      o.has, o.needed, o.using_start_of_turn_exemption,
+      o.using_overdraw_allowance );
+}
+
 /****************************************************************
 ** Public API
 *****************************************************************/
