@@ -539,4 +539,13 @@ maybe<pair<Cargo const&, int>> CargoHold::cargo_covering_slot(
   return nothing;
 }
 
+// Removes all commodities.
+void CargoHold::clear_commodities() {
+  // This assumes that commodities never have overflow slots as
+  // e.g. a treasure would.
+  for( int i = 0; i < int( o_.slots.size() ); ++i )
+    if( slot_holds_cargo_type<Cargo::commodity>( i ) )
+      o_.slots[i] = CargoSlot::empty{};
+}
+
 } // namespace rn

@@ -173,6 +173,9 @@ class CargoHold {
       UnitsState const& units_state ) const;
   void validate_or_die( UnitsState const& units_state ) const;
 
+  // Removes all commodities.
+  void clear_commodities();
+
  protected:
   // These friend classes/functions are the only ones that should
   // be allowed to add or remove units to/from the cargo.

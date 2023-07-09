@@ -2730,5 +2730,58 @@ TEST_CASE( "CargoHold max_commodity_per_cargo_slot" ) {
   ch.clear();
 }
 
+TEST_CASE( "CargoHold::clear_commodities" ) {
+  World           W;
+  CargoHoldTester ch( 6 );
+
+  auto food     = Commodity{ /*type=*/e_commodity::food,
+                         /*quantity=*/100 };
+  auto silver   = Commodity{ /*type=*/e_commodity::silver,
+                           /*quantity=*/50 };
+  auto unit_id1 = create_unit( W, e_nation::english,
+                               e_unit_type::free_colonist );
+  auto unit_id2 = create_unit( W, e_nation::english,
+                               e_unit_type::free_colonist );
+
+  REQUIRE(
+      ch.try_add( W.units(), Cargo::commodity{ food }, 1 ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id1 }, 2 ) );
+  REQUIRE(
+      ch.try_add( W.units(), Cargo::commodity{ silver }, 3 ) );
+  REQUIRE( ch.try_add( W.units(), Cargo::unit{ unit_id2 }, 4 ) );
+
+  REQUIRE( ch[0] == CargoSlot::empty{} );
+  REQUIRE( ch[1] ==
+           CargoSlot::cargo{
+               .contents = Cargo::commodity{ .obj = food } } );
+  REQUIRE( ch[2] == CargoSlot::cargo{ .contents = Cargo::unit{
+                                          .id = unit_id1 } } );
+  REQUIRE( ch[3] ==
+           CargoSlot::cargo{
+               .contents = Cargo::commodity{ .obj = silver } } );
+  REQUIRE( ch[4] == CargoSlot::cargo{ .contents = Cargo::unit{
+                                          .id = unit_id2 } } );
+  REQUIRE( ch[5] == CargoSlot::empty{} );
+  REQUIRE( ch.slots_occupied() == 4 );
+  REQUIRE( ch.slots_remaining() == 2 );
+  REQUIRE( ch.slots_total() == 6 );
+
+  ch.clear_commodities();
+
+  REQUIRE( ch[0] == CargoSlot::empty{} );
+  REQUIRE( ch[1] == CargoSlot::empty{} );
+  REQUIRE( ch[2] == CargoSlot::cargo{ .contents = Cargo::unit{
+                                          .id = unit_id1 } } );
+  REQUIRE( ch[3] == CargoSlot::empty{} );
+  REQUIRE( ch[4] == CargoSlot::cargo{ .contents = Cargo::unit{
+                                          .id = unit_id2 } } );
+  REQUIRE( ch[5] == CargoSlot::empty{} );
+  REQUIRE( ch.slots_occupied() == 2 );
+  REQUIRE( ch.slots_remaining() == 4 );
+  REQUIRE( ch.slots_total() == 6 );
+
+  ch.clear();
+}
+
 } // namespace
 } // namespace rn
