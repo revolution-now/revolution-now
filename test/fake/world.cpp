@@ -20,6 +20,7 @@
 
 // Revolution Now
 #include "src/colony-mgr.hpp"
+#include "src/commodity.hpp"
 #include "src/connectivity.hpp"
 #include "src/harbor-units.hpp"
 #include "src/lua.hpp"
@@ -406,6 +407,24 @@ Unit& World::add_expert_unit_outdoors(
   return add_unit_outdoors( colony_id, d, outdoor_job,
                             config_production.outdoor_production
                                 .expert_for[outdoor_job] );
+}
+
+// Try to add the commodity into the cargo and fail if it
+// cannot be added. Returns slot where it was placed.
+void World::add_commodity_in_cargo( Commodity const& comm,
+                                    UnitId           holder,
+                                    int starting_slot ) {
+  add_commodity_to_cargo( units(), comm, holder, starting_slot,
+                          /*try_other_slots=*/true );
+}
+
+// Adds a quantity of 100.
+void World::add_commodity_in_cargo( e_commodity type,
+                                    UnitId      holder,
+                                    int         starting_slot ) {
+  add_commodity_in_cargo(
+      Commodity{ .type = type, .quantity = 100 }, holder,
+      starting_slot );
 }
 
 void World::add_player( e_nation nation ) {

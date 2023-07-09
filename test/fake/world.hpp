@@ -178,6 +178,18 @@ struct World {
                                   e_outdoor_job outdoor_job );
 
   // ------------------------------------------------------------
+  // Commodity cargo.
+  // ------------------------------------------------------------
+  // Try to add the commodity into the cargo and fail if it
+  // cannot be added.
+  void add_commodity_in_cargo( Commodity const& comm,
+                               UnitId           holder,
+                               int starting_slot = 0 );
+  // Adds a quantity of 100.
+  void add_commodity_in_cargo( e_commodity type, UnitId holder,
+                               int starting_slot = 0 );
+
+  // ------------------------------------------------------------
   // Steering ships.
   // ------------------------------------------------------------
   // Given a unit that is a ship (in any state) it will change it
