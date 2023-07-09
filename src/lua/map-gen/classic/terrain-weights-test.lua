@@ -10,18 +10,35 @@
 |
 --]] ------------------------------------------------------------
 local W = require( 'map-gen.classic.terrain-weights' )
-
-local tbl_util = require( 'util.tables' )
-
+local tables = require( 'util.tables' )
 local U = require( 'test.unit' )
+
+-----------------------------------------------------------------
+-- Freeze global access.
+-----------------------------------------------------------------
+-- Declare all globals used.
+local pairs = pairs
+
+-- No reading or writing of globals from here on.
+local _ENV = nil
+
+-----------------------------------------------------------------
+-- Aliases.
+-----------------------------------------------------------------
 local ASSERT_EQ = U.ASSERT_EQ
 local ASSERT_EQ_APPROX = U.ASSERT_EQ_APPROX
 
+-----------------------------------------------------------------
+-- Test setup.
+-----------------------------------------------------------------
 local Test = U.new_test_pack()
 
+-----------------------------------------------------------------
+-- Helpers.
+-----------------------------------------------------------------
 local function validate_weights( weights, expected )
-  ASSERT_EQ( tbl_util.table_size( weights ),
-             tbl_util.table_size( expected ),
+  ASSERT_EQ( tables.table_size( weights ),
+             tables.table_size( expected ),
              'lengths of result and expected result' )
   for type, weight in pairs( weights ) do
     ASSERT_EQ_APPROX( weight, expected[type],
@@ -29,6 +46,9 @@ local function validate_weights( weights, expected )
   end
 end
 
+-----------------------------------------------------------------
+-- Test cases.
+-----------------------------------------------------------------
 function Test.test_dry_weights()
   local weights, expected
 

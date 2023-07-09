@@ -15,15 +15,20 @@ local M = {}
 -- Imports
 -----------------------------------------------------------------
 local limits = require( 'util.limits' )
-local freeze = require( 'util.freeze' )
 
 -----------------------------------------------------------------
 -- Aliases/Globals
 -----------------------------------------------------------------
-local _ENV = freeze.globals( _ENV )
+-- Declare all globals used.
+local format = string.format
+local floor = math.floor
+local abs = math.abs
+local random = math.random
+local pairs = pairs
+local assert, error = assert, error
 
-local format = assert( string.format )
-local floor = assert( math.floor )
+-- No reading or writing of globals from here on.
+local _ENV = nil
 
 -----------------------------------------------------------------
 -- Weights
@@ -38,27 +43,27 @@ local floor = assert( math.floor )
 -- metric about the equator, so there are really only five dis-
 -- tinct slices that we need to define.
 --
---                   +------------------------+
---                   |       segment 0        |
---                   +------------------------+
---                   |       segment 1        |
---                   +------------------------+
---                   |       segment 2        |
---                   +------------------------+
---                   |       segment 3        |
---                   +------------------------+
---                   |       segment 4        |
---                   +------------------------+
---                   |       segment 4        |
---                   +------------------------+
---                   |       segment 3        |
---                   +------------------------+
---                   |       segment 2        |
---                   +------------------------+
---                   |       segment 1        |
---                   +------------------------+
---                   |       segment 0        |
---                   +------------------------+
+--                 +------------------------+
+--                 |       segment 0        |
+--                 +------------------------+
+--                 |       segment 1        |
+--                 +------------------------+
+--                 |       segment 2        |
+--                 +------------------------+
+--                 |       segment 3        |
+--                 +------------------------+
+--                 |       segment 4        |
+--                 +------------------------+
+--                 |       segment 4        |
+--                 +------------------------+
+--                 |       segment 3        |
+--                 +------------------------+
+--                 |       segment 2        |
+--                 +------------------------+
+--                 |       segment 1        |
+--                 +------------------------+
+--                 |       segment 0        |
+--                 +------------------------+
 --
 -- The weights in each segment must add to 100.
 --
@@ -205,7 +210,7 @@ local function weights_for_row( map_height, weights, row )
   -- moves to the border with the adjacent slice, the more weight
   -- that will get. If it is right on the border then the two
   -- slices each get 0.5.
-  local weight1 = 1.0 - math.abs( fractional_part - .5 )
+  local weight1 = 1.0 - abs( fractional_part - .5 )
   local weight2 = 1.0 - weight1
   assert( weight1 >= 0.0 )
   assert( weight2 >= 0.0 )
@@ -236,7 +241,7 @@ end
 
 -- The weights need to add up to 1.0.
 function M.select_from_weights( weights )
-  local cut = math.random()
+  local cut = random()
   local total = 0.0
   for type, weight in pairs( weights ) do
     total = total + weight
