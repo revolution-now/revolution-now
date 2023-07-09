@@ -73,7 +73,7 @@
 #define CHECK( ... )     BASE_CHECK( __VA_ARGS__ )
 #define CHECK_EQ( ... )  BASE_CHECK_EQ( __VA_ARGS__ )
 #define CHECK_NEQ( ... ) BASE_CHECK_NEQ( __VA_ARGS__ )
-
+// It is important that we only evaluate a once here!
 #define BASE_CHECK( a, ... )                             \
   {                                                      \
     if( !( a ) ) {                                       \
