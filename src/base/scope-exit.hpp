@@ -21,6 +21,11 @@
 
 namespace base {
 
+// TODO: when C++23 is fully implemented there will be a
+// std::scope_exit (std::experimental::scope_exit at the time of
+// writing) that we might want to use to replace some of the
+// things in this header.
+
 /****************************************************************
 ** ScopedSet
 *****************************************************************/
@@ -70,10 +75,10 @@ namespace base {
 //
 template<typename T>
 struct ScopedSet {
-  ScopedSet( ScopedSet const& ) = delete;
+  ScopedSet( ScopedSet const& )            = delete;
   ScopedSet& operator=( ScopedSet const& ) = delete;
   ScopedSet( ScopedSet&& )                 = delete;
-  ScopedSet& operator=( ScopedSet&& ) = delete;
+  ScopedSet& operator=( ScopedSet&& )      = delete;
 
   template<typename U>
   explicit ScopedSet( T& var, U&& new_val )
