@@ -12,20 +12,28 @@
 
 // Revolution Now
 #include "colony-buildings.hpp"
+#include "unit-mgr.hpp"
 
 // config
+#include "config/nation.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
 #include "ss/colonies.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
+#include "ss/terrain.hpp"
+#include "ss/units.hpp"
+
+// Rds
+#include "rds/switch-macro.hpp"
 
 // refl
 #include "refl/to-str.hpp"
 
 // base
 #include "base/conv.hpp"
+#include "base/string.hpp"
 
 using namespace std;
 
@@ -115,6 +123,113 @@ int repair_turn_count_for_unit( ShipRepairPort const& port,
     case ShipRepairPort::e::european_harbor:
       return turns_to_repair.harbor;
   }
+}
+
+void move_damaged_ship_for_repair( SS& ss, TS& ts, Unit& ship,
+                                   ShipRepairPort const& port ) {
+  int const turns_until_repair =
+      repair_turn_count_for_unit( port, ship.type() );
+  if( turns_until_repair > 0 )
+    // This means that the unit is being marked as damaged and
+    // has been damaged for zero turns as of now. Note that this
+    // automatically removes the unit from any sentry/fortified
+    // status that it had, which is what we want.
+    ship.orders() = unit_orders::damaged{
+        .turns_until_repair = turns_until_repair };
+  else
+    // In the OG a Caravel that is sent to the drydock will
+    // have a repair turn requirement of 0, and so it is im-
+    // mediately activated and can still move in the same
+    // turn if it has movement points left. That said, it
+    // still needs to be transported to the colony and any
+    // units on it need to be destroyed as usual, so even in
+    // this case we need to carry out the rest of the actions
+    // in this function.
+    ship.clear_orders();
+  // All units in cargo are destroyed. Note that if the ship is
+  // in a colony port then we could theoretically offbooard the
+  // units onto land, but instead we will just destroy them 1)
+  // for consistency, 2) for simplicity, 3) if we didn't then
+  // we'd have to deal with a strange situation where a colony is
+  // captured by a foreign power and the ship becomes damaged and
+  // moved to a different port (which is what normally happens)
+  // and some military units it contains are left on the colony
+  // square and reassigned to the other nation.
+  vector<UnitId> const units_in_cargo = ship.cargo().units();
+  for( UnitId const held_id : units_in_cargo )
+    destroy_unit( ss, held_id );
+  // In the OG any commodities that remain in the ship after an
+  // attacking ship has seized some will be destroyed, although
+  // the user is not notified of this.
+  ship.cargo().clear_commodities();
+  // Now send the ship for repair.
+  SWITCH( port ) {
+    CASE( colony ) {
+      // This can be non-interactive because there is already a
+      // colony on the square, and the ship is damaged, so it
+      // shouldn't really trigger anything interactive when we
+      // move it into the colony.
+      unit_ownership_change_non_interactive(
+          ss, ship.id(),
+          EuroUnitOwnershipChangeTo::world{
+              .ts     = &ts,
+              .target = ss.colonies.colony_for( colony.id )
+                            .location } );
+      break;
+    }
+    CASE( european_harbor ) {
+      unit_ownership_change_non_interactive(
+          ss, ship.id(),
+          EuroUnitOwnershipChangeTo::move_to_port{} );
+      break;
+    }
+    END_CASES;
+  }
+}
+
+string ship_damaged_message( SSConst const& ss, Unit const& ship,
+                             ShipRepairPort const& port ) {
+  string res;
+  res = fmt::format( "{} [{}] damaged in battle!",
+                     nation_obj( ship.nation() ).adjective,
+                     ship.desc().name );
+  res += ' ';
+  switch( port.to_enum() ) {
+    case ShipRepairPort::e::colony: {
+      ColonyId const colony_id =
+          port.get<ShipRepairPort::colony>().id;
+      Colony const& colony = ss.colonies.colony_for( colony_id );
+      res += fmt::format( "Ship sent to [{}] for repair.",
+                          colony.name );
+      break;
+    }
+    case ShipRepairPort::e::european_harbor: {
+      res += fmt::format(
+          "Ship sent to [{}] for repair.",
+          nation_obj( ship.nation() ).harbor_city_name );
+      break;
+    }
+  }
+  return res;
+}
+
+string ship_damaged_no_port_message( Unit const& ship ) {
+  return fmt::format(
+      "{} [{}] damaged in battle! As there are no available "
+      "repair ports, our ship has been lost.",
+      nation_obj( ship.nation() ).adjective, ship.desc().name );
+}
+
+maybe<string> units_lost_on_ship_message( Unit const& ship ) {
+  int const num_units_lost =
+      ship.cargo().count_items_of_type<Cargo::unit>();
+  if( num_units_lost == 0 ) return nothing;
+  if( num_units_lost == 1 )
+    return fmt::format( "[One] unit onboard has been lost." );
+  return fmt::format(
+      "[{}] units onboard have been lost.",
+      base::capitalize_initials(
+          base::int_to_string_literary( num_units_lost ) ) );
 }
 
 } // namespace rn
