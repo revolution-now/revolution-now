@@ -24,7 +24,7 @@ local function validate_weights( weights, expected )
              tbl_util.table_size( expected ),
              'lengths of result and expected result' )
   for type, weight in pairs( weights ) do
-    ASSERT_EQ_APPROX( weights[type], expected[type],
+    ASSERT_EQ_APPROX( weight, expected[type],
                       'weights for type ' .. type )
   end
 end

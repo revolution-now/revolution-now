@@ -157,7 +157,7 @@ local wet_weights = {
 local function check_weights( weights )
   for i = 0, 4 do
     local sum = 0
-    local group = dry_weights[i]
+    local group = weights[i]
     for _, v in pairs( group ) do sum = sum + v end
     assert( sum == 100, format(
                 'weights for segment %d do not sum to 100.', i ) )
@@ -221,8 +221,7 @@ local function weights_for_row( map_height, weights, row )
   end
   -- Normalize the weights so that they sum to 1.
   for type, weight in pairs( linear_combo_weights ) do
-    linear_combo_weights[type] =
-        linear_combo_weights[type] / total
+    linear_combo_weights[type] = weight / total
   end
   return linear_combo_weights
 end

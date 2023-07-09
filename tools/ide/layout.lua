@@ -16,7 +16,7 @@ local Layout = {
   vsplit=function( self, layout )
     local num = #layout
     -- Create all the splits.
-    for i = 1, num - 1 do win.vsplit() end
+    for _ = 1, num - 1 do win.vsplit() end
     -- Now we're in the right-most split.
     for i = #layout, 1, -1 do
       self:dispatch( layout[i] )
@@ -27,7 +27,7 @@ local Layout = {
   hsplit=function( self, layout )
     local num = #layout
     -- Create all the splits.
-    for i = 1, num - 1 do win.split() end
+    for _ = 1, num - 1 do win.split() end
     -- Now we're in the bottom-most split.
     for i = #layout, 1, -1 do
       self:dispatch( layout[i] )
@@ -35,7 +35,7 @@ local Layout = {
     end
   end,
 
-  edit=function( self, name )
+  edit=function( _, name )
     assert( type( name ) == 'string' )
     win.edit( name )
   end,
@@ -43,7 +43,7 @@ local Layout = {
   -- The user can specify a function as a leaf node (instead of a
   -- string) and we will just call it to do whatever needs to be
   -- done.
-  func=function( self, f )
+  func=function( _, f )
     assert( type( f ) == 'function' )
     f()
   end,
