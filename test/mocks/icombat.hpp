@@ -42,6 +42,11 @@ struct MockICombat : ICombat {
                (Unit const&, NativeUnit const&), () );
   MOCK_METHOD( CombatEuroAttackDwelling, euro_attack_dwelling,
                (Unit const&, Dwelling const&), () );
+  MOCK_METHOD( CombatBraveAttackEuro, brave_attack_euro,
+               (NativeUnit const&, Unit const&), () );
+  MOCK_METHOD( CombatBraveAttackColony, brave_attack_colony,
+               (NativeUnit const&, Unit const&, Colony const&),
+               () );
 };
 
 static_assert( !std::is_abstract_v<MockICombat> );

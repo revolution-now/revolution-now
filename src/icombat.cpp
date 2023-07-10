@@ -46,4 +46,14 @@ CombatEuroAttackDwelling TrappingCombat::euro_attack_dwelling(
   SHOULD_NOT_BE_HERE;
 }
 
+CombatBraveAttackEuro TrappingCombat::brave_attack_euro(
+    NativeUnit const&, Unit const& ) {
+  SHOULD_NOT_BE_HERE;
+}
+
+CombatBraveAttackColony TrappingCombat::brave_attack_colony(
+    NativeUnit const&, Unit const&, Colony const& ) {
+  SHOULD_NOT_BE_HERE;
+}
+
 } // namespace rn

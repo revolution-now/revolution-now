@@ -50,6 +50,13 @@ struct ICombat {
 
   virtual CombatEuroAttackDwelling euro_attack_dwelling(
       Unit const& attacker, Dwelling const& dwelling ) = 0;
+
+  virtual CombatBraveAttackEuro brave_attack_euro(
+      NativeUnit const& attacker, Unit const& defender ) = 0;
+
+  virtual CombatBraveAttackColony brave_attack_colony(
+      NativeUnit const& attacker, Unit const& defender,
+      Colony const& colony ) = 0;
 };
 
 /****************************************************************
@@ -80,6 +87,16 @@ struct TrappingCombat : public ICombat {
   // Implement ICombat.
   CombatEuroAttackDwelling euro_attack_dwelling(
       Unit const& attacker, Dwelling const& dwelling ) override;
+
+  // Implement ICombat.
+  CombatBraveAttackEuro brave_attack_euro(
+      NativeUnit const& attacker,
+      Unit const&       defender ) override;
+
+  // Implement ICombat.
+  CombatBraveAttackColony brave_attack_colony(
+      NativeUnit const& attacker, Unit const& defender,
+      Colony const& colony ) override;
 };
 
 } // namespace rn

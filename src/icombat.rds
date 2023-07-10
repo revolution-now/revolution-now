@@ -14,7 +14,9 @@ include "damaged.rds.hpp"
 include "maybe.hpp"
 
 # ss
+include "ss/colony-enums.rds.hpp"
 include "ss/colony-id.hpp"
+include "ss/commodity.rds.hpp"
 include "ss/dwelling-id.hpp"
 include "ss/nation.rds.hpp"
 include "ss/native-enums.rds.hpp"
@@ -248,6 +250,21 @@ struct.CombatEuroAttackBrave {
 struct.CombatBraveAttackEuro {
   winner 'e_combat_winner',
 
+  attacker 'CombatStats<NativeUnitId, e_brave_combat_modifiers, NativeUnitCombatOutcome>',
+  defender 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome>',
+}
+
+# Note that there is also a "side effect" that happens when
+# braves attack colonies (e.g., money stolen) but that is not
+# represented in this struct.
+struct.CombatBraveAttackColony {
+  winner 'e_combat_winner',
+
+  # If the player has multiple colonies and the colony being at-
+  # tacked has only one colonist and is not defended by any mili-
+  # tary units and the brave wins then the colony will be de-
+  # stroyed.
+  colony_destroyed 'maybe<ColonyId>',
 
   attacker 'CombatStats<NativeUnitId, e_brave_combat_modifiers, NativeUnitCombatOutcome>',
   defender 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome>',
