@@ -55,7 +55,6 @@
 // base
 #include "base/conv.hpp"
 #include "base/scope-exit.hpp"
-#include "base/string.hpp"
 #include "base/to-str-ext-std.hpp"
 
 // refl
@@ -242,15 +241,10 @@ OutcomeMessage perform_naval_unit_combat_outcome(
     UnitId                            opponent_id ) {
   OutcomeMessage res;
 
-  auto add_units_lost = [&]( int count ) {
-    if( count == 1 )
-      res.for_owner.push_back(
-          fmt::format( "[One] unit onboard has been lost." ) );
-    else if( count > 1 )
-      res.for_owner.push_back( fmt::format(
-          "[{}] units onboard have been lost.",
-          base::capitalize_initials(
-              base::int_to_string_literary( count ) ) ) );
+  auto add_units_lost = [&] {
+    maybe<string> msg = units_lost_on_ship_message( unit );
+    if( !msg.has_value() ) return;
+    res.for_owner.push_back( std::move( *msg ) );
   };
 
   switch( outcome.to_enum() ) {
@@ -277,64 +271,10 @@ OutcomeMessage perform_naval_unit_combat_outcome(
     case e::damaged: {
       auto& o =
           outcome.get<EuroNavalUnitCombatOutcome::damaged>();
-      // This means that the unit is being marked as damaged and
-      // has been damaged for zero turns as of now. Note that
-      // this automatically removes the unit from any sentry/for-
-      // tified status that it had, which is what we want.
-      int const turns_until_repair =
-          repair_turn_count_for_unit( o.port, unit.type() );
-      if( turns_until_repair > 0 )
-        unit.orders() = unit_orders::damaged{
-            .turns_until_repair = turns_until_repair };
-      else
-        // In the OG a Caravel that is sent to the drydock will
-        // have a repair turn requirement of 0, and so it is im-
-        // mediately activated and can still move in the same
-        // turn if it has movement points left. That said, it
-        // still needs to be transported to the colony and any
-        // units on it need to be destroyed as usual, so even in
-        // this case we need to carry out the rest of the actions
-        // in this function.
-        unit.clear_orders();
-      // All units in cargo are destroyed.
-      vector<UnitId> const units_in_cargo = unit.cargo().units();
-      int const num_units_lost = units_in_cargo.size();
-      for( UnitId const held_id : units_in_cargo )
-        destroy_unit( ss, held_id );
-      // Now send the ship for repair.
       res.for_both.push_back(
-          fmt::format( "{} [{}] damaged in battle!",
-                       nation_obj( unit.nation() ).adjective,
-                       unit.desc().name ) );
-      switch( o.port.to_enum() ) {
-        case ShipRepairPort::e::colony: {
-          ColonyId const colony_id =
-              o.port.get<ShipRepairPort::colony>().id;
-          Colony const& colony =
-              ss.colonies.colony_for( colony_id );
-          // This can be non-interactive because there is already
-          // a colony on the square, and the ship is damaged, so
-          // it shouldn't really trigger anything interactive
-          // when we move it into the colony.
-          unit_ownership_change_non_interactive(
-              ss, unit.id(),
-              EuroUnitOwnershipChangeTo::world{
-                  .ts = &ts, .target = colony.location } );
-          res.for_both.push_back( fmt::format(
-              "Ship sent to [{}] for repair.", colony.name ) );
-          break;
-        }
-        case ShipRepairPort::e::european_harbor: {
-          unit_ownership_change_non_interactive(
-              ss, unit.id(),
-              EuroUnitOwnershipChangeTo::move_to_port{} );
-          res.for_both.push_back( fmt::format(
-              "Ship sent to [{}] for repair.",
-              nation_obj( unit.nation() ).harbor_city_name ) );
-          break;
-        }
-      }
-      add_units_lost( num_units_lost );
+          ship_damaged_message( ss, unit, o.port ) );
+      add_units_lost();
+      move_damaged_ship_for_repair( ss, ts, unit, o.port );
       break;
     }
     case e::sunk: {
@@ -343,18 +283,13 @@ OutcomeMessage perform_naval_unit_combat_outcome(
       // ship should not have been sunk and thus should exist.
       CHECK( ss.units.exists( opponent_id ) );
       Unit const& opponent = ss.units.unit_for( opponent_id );
-      int const   num_units_lost =
-          unit.cargo().items_of_type<Cargo::unit>().size();
       res.for_both.push_back(
           fmt::format( "{} [{}] sunk by [{}] {}.",
                        nation_obj( unit.nation() ).adjective,
                        unit.desc().name,
                        nation_obj( opponent.nation() ).adjective,
                        opponent.desc().name ) );
-      add_units_lost( num_units_lost );
-      // Need to destroy unit first before displaying message
-      // otherwise the unit will reappear on the map while the
-      // message is open.
+      add_units_lost();
       destroy_unit( ss, unit.id() );
       break;
     }
@@ -713,6 +648,11 @@ wait<> AttackColonyUndefendedHandler::perform() {
   // rival's initial colony and wait for them to move their ship
   // into the colony, then conquer it. That losing player would
   // then probably not be able to recover from that.
+  //
+  // Note that when we are searching for a port colony to repair
+  // the ship we should make sure that it doesn't find the colony
+  // being captured; that might require modifying the
+  // find_repair_port_for_ship function.
   // TODO
 
   // 3. Any veteran_colonists in the colony must have their vet-
