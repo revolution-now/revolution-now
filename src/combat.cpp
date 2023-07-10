@@ -17,6 +17,7 @@
 #include "logger.hpp"
 #include "missionary.hpp"
 #include "promotion.hpp"
+#include "rand-enum.hpp"
 #include "society.rds.hpp"
 #include "treasure.hpp"
 #include "unit-mgr.hpp"
@@ -26,6 +27,7 @@
 #include "config/natives.hpp"
 
 // ss
+#include "ss/colonies.hpp"
 #include "ss/colony.rds.hpp"
 #include "ss/natives.hpp"
 #include "ss/players.hpp"
@@ -107,9 +109,7 @@ EuroUnitCombatOutcome euro_unit_combat_outcome(
       if( society_of_opponent.holds<Society::native>() )
         // When the natives defeat a unit that is otherwise cap-
         // turable then it just gets destroyed. E.g. a colonist,
-        // treasure, wagon train, etc. FIXME: this is not yet
-        // unit tested because we don't have a function braves
-        // attacking european units.
+        // treasure, wagon train, etc.
         return EuroUnitCombatOutcome::destroyed{};
       UNWRAP_CHECK(
           euro_society,
@@ -152,10 +152,6 @@ NativeUnitCombatOutcome native_unit_combat_outcome(
   // tackers in the battle. Moreover, in that situation, they
   // will take the horses/muskets 100% of the time, assuming they
   // are available and the brave unit can accept them.
-  //
-  // TODO: when braves start to attack, they should take muskets
-  // and horses whenever possible.
-  //
   if( won )
     return NativeUnitCombatOutcome::no_change{};
   else
@@ -538,6 +534,92 @@ CombatEuroAttackBrave RealCombat::euro_attack_brave(
                     .base_weight     = defense_points,
                     .modified_weight = defense_points,
                     .outcome         = defender_outcome } };
+}
+
+CombatBraveAttackEuro RealCombat::brave_attack_euro(
+    NativeUnit const& attacker, Unit const& defender ) {
+  double const attack_points = unit_attr( attacker.type ).combat;
+  double const defense_points = defender.desc().combat;
+  Coord const  attacker_coord =
+      ss_.units.coord_for( attacker.id );
+  e_combat_winner const winner =
+      choose_winner( rand_, attack_points, defense_points );
+  NativeUnitCombatOutcome const attacker_outcome =
+      native_unit_combat_outcome(
+          attacker, winner == e_combat_winner::attacker );
+  EuroUnitCombatOutcome const defender_outcome =
+      euro_unit_combat_outcome(
+          ss_, rand_, defender,
+          Society::native{ .tribe =
+                               tribe_for_unit( ss_, attacker ) },
+          attacker_coord, winner == e_combat_winner::defender );
+  return CombatBraveAttackEuro{
+      .winner   = winner,
+      .attacker = { .id              = attacker.id,
+                    .modifiers       = {},
+                    .base_weight     = attack_points,
+                    .modified_weight = attack_points,
+                    .outcome         = attacker_outcome },
+      .defender = { .id              = defender.id(),
+                    .modifiers       = {},
+                    .base_weight     = defense_points,
+                    .modified_weight = defense_points,
+                    .outcome         = defender_outcome } };
+}
+
+CombatBraveAttackColony RealCombat::brave_attack_colony(
+    NativeUnit const& attacker, Unit const& defender,
+    Colony const& colony ) {
+  if( ss_.colonies.for_nation( colony.nation ).size() > 1 ) {
+    // When the player has more than one colony then the battle
+    // between the units proceeds normally, e.g. the brave can
+    // win and demote a soldier, destroy a colonist, destroy the
+    // colony, cause the defender to get promoted, etc.
+    CombatBraveAttackEuro const units_combat =
+        brave_attack_euro( attacker, defender );
+    // Note that this colony destruction happens even when the
+    // colony posesses a fortress.
+    maybe<ColonyId> const colony_destroyed =
+        ( units_combat.winner == e_combat_winner::attacker &&
+          !is_military_unit( defender.type() ) )
+            ? colony.id
+            : maybe<ColonyId>{};
+    return { .winner           = units_combat.winner,
+             .colony_destroyed = colony_destroyed,
+             .attacker         = units_combat.attacker,
+             .defender         = units_combat.defender };
+  }
+  // This is the player's first/last colony; in this case, the OG
+  // handles the side effects as usual (such as e.g. stealing
+  // money or damaging buildings), but always causes the brave to
+  // lose the combat, so i.e. no colonies or military units are
+  // ever lost or damaged, and the colony is never lost.
+  double const attack_points = unit_attr( attacker.type ).combat;
+  double const defense_points = defender.desc().combat;
+  Coord const  attacker_coord =
+      ss_.units.coord_for( attacker.id );
+  NativeUnitCombatOutcome const attacker_outcome =
+      native_unit_combat_outcome( attacker, /*won=*/false );
+  // It seems that in the OG, even though the defender can never
+  // lose, it can still be promoted.
+  EuroUnitCombatOutcome const defender_outcome =
+      euro_unit_combat_outcome(
+          ss_, rand_, defender,
+          Society::native{ .tribe =
+                               tribe_for_unit( ss_, attacker ) },
+          attacker_coord, /*won=*/true );
+  return { .winner           = e_combat_winner::defender,
+           .colony_destroyed = nothing,
+           .attacker         = { .id              = attacker.id,
+                                 .modifiers       = {},
+                                 .base_weight     = attack_points,
+                                 .modified_weight = attack_points,
+                                 .outcome         = attacker_outcome },
+           .defender         = { .id              = defender.id(),
+                                 .modifiers       = {},
+                                 .base_weight     = defense_points,
+                                 .modified_weight = defense_points,
+                                 .outcome         = defender_outcome } };
 }
 
 CombatEuroAttackDwelling RealCombat::euro_attack_dwelling(

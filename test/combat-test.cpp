@@ -606,6 +606,14 @@ TEST_CASE( "[combat] euro_attack_brave" ) {
   }
 }
 
+TEST_CASE( "[combat] brave_attack_euro" ) {
+  World W;
+}
+
+TEST_CASE( "[combat] brave_attack_colony" ) {
+  World W;
+}
+
 TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
   World                    W;
   CombatEuroAttackDwelling expected;

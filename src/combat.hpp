@@ -56,6 +56,16 @@ struct RealCombat : public ICombat {
   CombatEuroAttackDwelling euro_attack_dwelling(
       Unit const& attacker, Dwelling const& dwelling ) override;
 
+  // Implement ICombat.
+  CombatBraveAttackEuro brave_attack_euro(
+      NativeUnit const& attacker,
+      Unit const&       defender ) override;
+
+  // Implement ICombat.
+  CombatBraveAttackColony brave_attack_colony(
+      NativeUnit const& attacker, Unit const& defender,
+      Colony const& colony ) override;
+
  private:
   SSConst ss_; // should be held by value for safety.
   IRand&  rand_;
