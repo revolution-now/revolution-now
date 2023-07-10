@@ -1,0 +1,49 @@
+# ===============================================================
+# raid.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2023-04-18.
+#
+# Description: Rds definitions for the raid module.
+#
+# ===============================================================
+# Revolution Now
+include "damaged.rds.hpp"
+
+# ss
+include "ss/colony-enums.rds.hpp"
+include "ss/commodity.rds.hpp"
+include "ss/unit-id.hpp"
+
+# base
+include "base/maybe.hpp"
+
+namespace "rn"
+
+sumtype.BraveAttackColonyEffect {
+  none {},
+
+  commodity_stolen {
+    what 'Commodity',
+  },
+
+  # According to the SG, this will not happen with Stockade or
+  # above.
+  money_stolen {
+    quantity 'int',
+  },
+
+  # According to the SG, this will not happen with Fort or above.
+  building_destroyed {
+    # In the OG this will never include any of the "free" build-
+    # ings that are given to a colony upon founding.
+    which 'e_colony_building',
+  },
+
+  # According to the SG, this will not happen with Fortress.
+  ship_in_port_damaged {
+    which 'UnitId',
+    sent_to 'base::maybe<ShipRepairPort>',
+  },
+}
