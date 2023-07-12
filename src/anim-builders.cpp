@@ -180,6 +180,28 @@ void play_combat_outcome_sound(
 }
 
 void play_combat_outcome_sound(
+    AnimationBuilder&            builder,
+    CombatBraveAttackEuro const& combat ) {
+  builder.play_sound(
+      ( combat.winner == e_combat_winner::defender )
+          ? e_sfx::attacker_lost
+          : e_sfx::attacker_won );
+}
+
+void play_combat_outcome_sound(
+    AnimationBuilder&              builder,
+    CombatBraveAttackColony const& combat ) {
+  if( combat.colony_destroyed.has_value() ) {
+    builder.play_sound( e_sfx::city_destroyed );
+    return;
+  }
+  builder.play_sound(
+      ( combat.winner == e_combat_winner::defender )
+          ? e_sfx::attacker_lost
+          : e_sfx::attacker_won );
+}
+
+void play_combat_outcome_sound(
     AnimationBuilder&           builder,
     CombatShipAttackShip const& combat ) {
   switch( combat.outcome ) {
@@ -321,6 +343,75 @@ AnimationSequence anim_seq_for_euro_attack_brave(
       ss, builder, combat.attacker.id, combat.attacker.outcome );
   add_attack_outcome_for_native_unit(
       builder, combat.defender.id, combat.defender.outcome );
+  play_combat_outcome_sound( builder, combat );
+
+  return builder.result();
+}
+
+AnimationSequence anim_seq_for_brave_attack_euro(
+    SSConst const& ss, CombatBraveAttackEuro const& combat ) {
+  NativeUnitId const attacker_id = combat.attacker.id;
+  UnitId const       defender_id = combat.defender.id;
+  Coord const        attacker_coord =
+      coord_for_unit_indirect_or_die( ss.units, attacker_id );
+  Coord const defender_coord =
+      coord_for_unit_multi_ownership_or_die( ss, defender_id );
+  UNWRAP_CHECK( direction,
+                attacker_coord.direction_to( defender_coord ) );
+  AnimationBuilder builder;
+
+  // Phase 1: defender unit appears on top of stack and the at-
+  // tacker slides toward it. Most of the time the defender will
+  // already be on top of the stack because the defender is
+  // chosen as the unit in the stack with highest defense, which
+  // is also the unit that will be rendered on top of a stack
+  // normally. However, there are some cases where those two
+  // might not correspond, since the default stack ordering goes
+  // by raw combat value whereas the defender unit is chosen with
+  // combat modifiers applied as well.
+  builder.front_unit( defender_id );
+  builder.slide_unit( attacker_id, direction );
+  builder.play_sound( e_sfx::move );
+
+  // Phase 2: pixelations for both attacker and defender where
+  // needed.
+  builder.new_phase();
+  add_attack_outcome_for_native_unit(
+      builder, combat.attacker.id, combat.attacker.outcome );
+  add_attack_outcome_for_euro_unit(
+      ss, builder, combat.defender.id, combat.defender.outcome );
+  play_combat_outcome_sound( builder, combat );
+
+  return builder.result();
+}
+
+AnimationSequence anim_seq_for_brave_attack_colony(
+    SSConst const& ss, CombatBraveAttackColony const& combat ) {
+  NativeUnitId const attacker_id = combat.attacker.id;
+  UnitId const       defender_id = combat.defender.id;
+  Coord const        attacker_coord =
+      coord_for_unit_indirect_or_die( ss.units, attacker_id );
+  Coord const defender_coord =
+      coord_for_unit_multi_ownership_or_die( ss, defender_id );
+  UNWRAP_CHECK( direction,
+                attacker_coord.direction_to( defender_coord ) );
+  AnimationBuilder builder;
+
+  // Phase 1: defender unit appears on top of stack and the at-
+  // tacker slides toward it.
+  builder.front_unit( defender_id );
+  builder.slide_unit( attacker_id, direction );
+  builder.play_sound( e_sfx::move );
+
+  // Phase 2: pixelations for both attacker and defender where
+  // needed, as well as depixelating the colony.
+  builder.new_phase();
+  add_attack_outcome_for_native_unit(
+      builder, combat.attacker.id, combat.attacker.outcome );
+  add_attack_outcome_for_euro_unit(
+      ss, builder, combat.defender.id, combat.defender.outcome );
+  if( combat.colony_destroyed.has_value() )
+    builder.depixelate_colony( *combat.colony_destroyed );
   play_combat_outcome_sound( builder, combat );
 
   return builder.result();

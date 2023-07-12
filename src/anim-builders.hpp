@@ -25,13 +25,15 @@
 
 namespace rn {
 
+struct CombatBraveAttackColony;
+struct CombatBraveAttackEuro;
 struct CombatEuroAttackBrave;
 struct CombatEuroAttackEuro;
-struct CombatShipAttackShip;
 struct CombatEuroAttackUndefendedColony;
-struct SSConst;
-struct EuroUnitCombatOutcome;
+struct CombatShipAttackShip;
 struct DwellingCombatOutcome;
+struct EuroUnitCombatOutcome;
+struct SSConst;
 
 // General euro-on-euro attack sequence.
 AnimationSequence anim_seq_for_euro_attack_euro(
@@ -40,6 +42,13 @@ AnimationSequence anim_seq_for_euro_attack_euro(
 // General euro-on-brave attack sequence.
 AnimationSequence anim_seq_for_euro_attack_brave(
     SSConst const& ss, CombatEuroAttackBrave const& combat );
+
+// General brave-on-euro attack sequence.
+AnimationSequence anim_seq_for_brave_attack_euro(
+    SSConst const& ss, CombatBraveAttackEuro const& combat );
+
+AnimationSequence anim_seq_for_brave_attack_colony(
+    SSConst const& ss, CombatBraveAttackColony const& combat );
 
 AnimationSequence anim_seq_for_naval_battle(
     SSConst const& ss, CombatShipAttackShip const& combat );

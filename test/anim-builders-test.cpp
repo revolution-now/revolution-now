@@ -478,6 +478,218 @@ TEST_CASE( "[anim-builders] anim_seq_for_euro_attack_brave" ) {
   }
 }
 
+TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_euro" ) {
+  World             W;
+  AnimationSequence expected;
+
+  Dwelling& dwelling =
+      W.add_dwelling( { .x = 2, .y = 1 }, e_tribe::sioux );
+  Unit const& defender = W.add_unit_on_map( e_unit_type::soldier,
+                                            { .x = 1, .y = 0 } );
+  NativeUnit const& attacker = W.add_native_unit_on_map(
+      e_native_unit_type::mounted_brave, { .x = 1, .y = 1 },
+      dwelling.id );
+  CombatBraveAttackEuro combat{
+      .attacker = { .id = attacker.id },
+      .defender = { .id = defender.id() } };
+
+  auto f = [&] {
+    return anim_seq_for_brave_attack_euro( W.ss(), combat );
+  };
+
+  expected = {
+      .sequence = { /*phase 1=*/{
+          { .primitive =
+                P::front_unit{ .unit_id = defender.id() },
+            .background = true },
+          { .primitive =
+                P::slide_unit{ .unit_id   = attacker.id,
+                               .direction = e_direction::n } },
+          { .primitive =
+                P::play_sound{ .what = e_sfx::move } } } } };
+
+  SECTION( "attacker wins" ) {
+    combat.winner = e_combat_winner::attacker;
+
+    combat.attacker.outcome =
+        NativeUnitCombatOutcome::no_change{};
+    combat.defender.outcome = EuroUnitCombatOutcome::demoted{
+        .to = e_unit_type::free_colonist };
+
+    expected.sequence.push_back(
+        /*phase 2=*/{
+            { .primitive =
+                  P::front_unit{ .unit_id = attacker.id },
+              .background = true },
+            { .primitive =
+                  P::depixelate_euro_unit_to_target{
+                      .unit_id = defender.id(),
+                      .target  = e_unit_type::free_colonist } },
+            { .primitive = P::play_sound{
+                  .what = e_sfx::attacker_won } } } );
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "defender wins" ) {
+    combat.winner = e_combat_winner::defender;
+
+    combat.attacker.outcome =
+        NativeUnitCombatOutcome::destroyed{};
+    combat.defender.outcome = EuroUnitCombatOutcome::no_change{};
+
+    expected.sequence.push_back(
+        /*phase 2=*/{
+            { .primitive =
+                  P::depixelate_unit{ .unit_id = attacker.id } },
+            { .primitive =
+                  P::front_unit{ .unit_id = defender.id() },
+              .background = true },
+            { .primitive = P::play_sound{
+                  .what = e_sfx::attacker_lost } } } );
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "defender wins (promoted)" ) {
+    combat.winner = e_combat_winner::defender;
+
+    combat.attacker.outcome =
+        NativeUnitCombatOutcome::destroyed{};
+    combat.defender.outcome = EuroUnitCombatOutcome::promoted{
+        .to = e_unit_type::veteran_soldier };
+
+    expected.sequence.push_back(
+        /*phase 2=*/{
+            { .primitive =
+                  P::depixelate_unit{ .unit_id = attacker.id } },
+            { .primitive =
+                  P::depixelate_euro_unit_to_target{
+                      .unit_id = defender.id(),
+                      .target = e_unit_type::veteran_soldier } },
+            { .primitive = P::play_sound{
+                  .what = e_sfx::attacker_lost } } } );
+    REQUIRE( f() == expected );
+  }
+}
+
+TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_colony" ) {
+  World             W;
+  AnimationSequence expected;
+
+  Unit const& defender = W.add_unit_on_map( e_unit_type::soldier,
+                                            { .x = 1, .y = 0 } );
+  Colony const& colony =
+      W.add_colony( { .x = 1, .y = 0 }, W.default_nation() );
+  Dwelling& dwelling =
+      W.add_dwelling( { .x = 2, .y = 1 }, e_tribe::sioux );
+  NativeUnit const& attacker = W.add_native_unit_on_map(
+      e_native_unit_type::mounted_brave, { .x = 1, .y = 1 },
+      dwelling.id );
+  CombatBraveAttackColony combat{
+      .attacker = { .id = attacker.id },
+      .defender = { .id = defender.id() } };
+
+  auto f = [&] {
+    return anim_seq_for_brave_attack_colony( W.ss(), combat );
+  };
+
+  expected = {
+      .sequence = { /*phase 1=*/{
+          { .primitive =
+                P::front_unit{ .unit_id = defender.id() },
+            .background = true },
+          { .primitive =
+                P::slide_unit{ .unit_id   = attacker.id,
+                               .direction = e_direction::n } },
+          { .primitive =
+                P::play_sound{ .what = e_sfx::move } } } } };
+
+  SECTION( "attacker wins" ) {
+    combat.winner = e_combat_winner::attacker;
+
+    combat.attacker.outcome =
+        NativeUnitCombatOutcome::no_change{};
+    combat.defender.outcome = EuroUnitCombatOutcome::demoted{
+        .to = e_unit_type::free_colonist };
+
+    expected.sequence.push_back(
+        /*phase 2=*/{
+            { .primitive =
+                  P::front_unit{ .unit_id = attacker.id },
+              .background = true },
+            { .primitive =
+                  P::depixelate_euro_unit_to_target{
+                      .unit_id = defender.id(),
+                      .target  = e_unit_type::free_colonist } },
+            { .primitive = P::play_sound{
+                  .what = e_sfx::attacker_won } } } );
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "attacker wins (colony destroyed)" ) {
+    combat.winner           = e_combat_winner::attacker;
+    combat.colony_destroyed = true;
+
+    combat.attacker.outcome =
+        NativeUnitCombatOutcome::no_change{};
+    combat.defender.outcome = EuroUnitCombatOutcome::no_change{};
+
+    expected.sequence.push_back(
+        /*phase 2=*/{
+            { .primitive =
+                  P::front_unit{ .unit_id = attacker.id },
+              .background = true },
+            { .primitive =
+                  P::front_unit{ .unit_id = defender.id() },
+              .background = true },
+            { .primitive =
+                  P::depixelate_colony{ .colony_id =
+                                            colony.id } },
+            { .primitive = P::play_sound{
+                  .what = e_sfx::city_destroyed } } } );
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "defender wins" ) {
+    combat.winner = e_combat_winner::defender;
+
+    combat.attacker.outcome =
+        NativeUnitCombatOutcome::destroyed{};
+    combat.defender.outcome = EuroUnitCombatOutcome::no_change{};
+
+    expected.sequence.push_back(
+        /*phase 2=*/{
+            { .primitive =
+                  P::depixelate_unit{ .unit_id = attacker.id } },
+            { .primitive =
+                  P::front_unit{ .unit_id = defender.id() },
+              .background = true },
+            { .primitive = P::play_sound{
+                  .what = e_sfx::attacker_lost } } } );
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "defender wins (promoted)" ) {
+    combat.winner = e_combat_winner::defender;
+
+    combat.attacker.outcome =
+        NativeUnitCombatOutcome::destroyed{};
+    combat.defender.outcome = EuroUnitCombatOutcome::promoted{
+        .to = e_unit_type::veteran_soldier };
+
+    expected.sequence.push_back(
+        /*phase 2=*/{
+            { .primitive =
+                  P::depixelate_unit{ .unit_id = attacker.id } },
+            { .primitive =
+                  P::depixelate_euro_unit_to_target{
+                      .unit_id = defender.id(),
+                      .target = e_unit_type::veteran_soldier } },
+            { .primitive = P::play_sound{
+                  .what = e_sfx::attacker_lost } } } );
+    REQUIRE( f() == expected );
+  }
+}
+
 TEST_CASE( "[anim-builders] anim_seq_for_naval_battle" ) {
   World             W;
   AnimationSequence expected;
