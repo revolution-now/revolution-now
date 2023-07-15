@@ -1428,7 +1428,12 @@ class UnitsAtGateColonyView
         .msg     = "What would you like to do?",
         .options = {
             { .key = "orders", .display_name = "Change Orders" },
-            { .key = "strip", .display_name = "Strip Unit" } } };
+        } };
+    if( unit.cargo().slots_total() == 0 )
+      // If we try to strip a unit that can carry cargo then we
+      // might crash.
+      config.options.push_back(
+          { .key = "strip", .display_name = "Strip Unit" } );
     if( can_bless_missionaries( colony_ ) &&
         unit_can_be_blessed( unit.type_obj() ) )
       config.options.push_back(
