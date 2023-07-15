@@ -97,6 +97,19 @@ LUA_TEST_CASE( "[lua-state] script loading" ) {
   REQUIRE( f() == "hello" );
 }
 
+LUA_TEST_CASE( "[lua-state] inline lua function" ) {
+  std::function<lua::any()> f = st.script.load( R"lua(
+    local x = 0
+    for i = 1, 5 do
+      if i ~= 4 then
+        x = x + i
+      end
+    end
+    return x
+  )lua" );
+  REQUIRE( f() == 11 );
+}
+
 LUA_TEST_CASE( "[lua-state] script run unsafe" ) {
   REQUIRE( st.script.run<string>( R"lua(
     return 'hello'
