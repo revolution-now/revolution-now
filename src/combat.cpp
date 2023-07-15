@@ -147,7 +147,7 @@ EuroUnitCombatOutcome euro_unit_combat_outcome(
 
 NativeUnitCombatOutcome native_unit_combat_outcome(
     NativeUnit const&, bool won ) {
-  // Note: in the OG, experiments seem to indicate that the
+  // TODO: In the OG, experiments seem to indicate that the
   // braves will take muskets/horses only when they are the at-
   // tackers in the battle. Moreover, in that situation, they
   // will take the horses/muskets 100% of the time, assuming they
