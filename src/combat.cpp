@@ -584,10 +584,14 @@ CombatBraveAttackColony RealCombat::brave_attack_colony(
           !is_military_unit( defender.type() ) )
             ? colony.id
             : maybe<ColonyId>{};
+    auto defender_stats = units_combat.defender;
+    if( colony_destroyed.has_value() )
+      defender_stats.outcome =
+          EuroUnitCombatOutcome::destroyed{};
     return { .winner           = units_combat.winner,
              .colony_destroyed = colony_destroyed,
              .attacker         = units_combat.attacker,
-             .defender         = units_combat.defender };
+             .defender         = defender_stats };
   }
   // This is the player's first/last colony; in this case, the OG
   // handles the side effects as usual (such as e.g. stealing
