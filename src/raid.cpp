@@ -102,6 +102,8 @@ BraveAttackColonyEffect calculate_money_stolen(
   if( money_stolen_max == 0 ) return none;
   int const quantity = rand.between_ints(
       money_stolen_min, money_stolen_max, e_interval::closed );
+  if( quantity == 0 ) return none;
+  CHECK_GT( quantity, 0 );
   return BraveAttackColonyEffect::money_stolen{ .quantity =
                                                     quantity };
 }
@@ -165,7 +167,7 @@ BraveAttackColonyEffect choose_building_to_destroy(
 // cate that the general strategy for selecting an outcome is
 // that it will select the complete outcome before checking if it
 // is possible; if the selected outcome is not possible then it
-// will just return none{}. This would be as opposed to apriori
+// will just return none{}. This would be as opposed to a priori
 // adjustments to the weights (i.e., zero-ing some out) when a
 // particular outcome would not make sense.
 BraveAttackColonyEffect select_brave_attack_colony_effect(
