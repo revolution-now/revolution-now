@@ -45,7 +45,7 @@ BraveAttackColonyEffect choose_stolen_commodity(
   vector<e_commodity> stealable;
   stealable.reserve( refl::enum_count<e_commodity> );
   for( auto [comm, q] : colony.commodities )
-    if( q > conf.min_commodity_quantity_for_stealing )
+    if( q >= conf.min_commodity_quantity_for_stealing )
       stealable.push_back( comm );
   if( stealable.empty() ) return BraveAttackColonyEffect::none{};
   e_commodity const type = rand.pick_one( stealable );
@@ -56,19 +56,18 @@ BraveAttackColonyEffect choose_stolen_commodity(
   if( comm_stolen_max <
       conf.min_commodity_quantity_for_stealing )
     comm_stolen_max = conf.min_commodity_quantity_for_stealing;
+  CHECK_LE( comm_stolen_max, quantity_in_store );
   // Lower bound.
   int comm_stolen_min = lround(
       conf.commodity_percent_stolen.min * quantity_in_store );
   if( comm_stolen_min <
       conf.min_commodity_quantity_for_stealing )
     comm_stolen_min = conf.min_commodity_quantity_for_stealing;
-  if( comm_stolen_min >= comm_stolen_max )
+  if( comm_stolen_min > comm_stolen_max )
     comm_stolen_min = comm_stolen_max;
   CHECK_LE( comm_stolen_min, comm_stolen_max );
-  int const quantity_to_steal = std::max(
-      rand.between_ints( comm_stolen_min, comm_stolen_max,
-                         e_interval::closed ),
-      quantity_in_store );
+  int const quantity_to_steal = rand.between_ints(
+      comm_stolen_min, comm_stolen_max, e_interval::closed );
   CHECK_LE( quantity_to_steal, quantity_in_store );
   Commodity const commodity{ .type     = type,
                              .quantity = quantity_to_steal };

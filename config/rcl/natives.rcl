@@ -649,7 +649,7 @@ combat {
       custom_house: true
     }
 
-    # Min/max percent of total money that the commodity amount
+    # Min/max percent of total quantity that the commodity amount
     # stolen is chosen from.
     commodity_percent_stolen: { min=.02, max=.50 }
 
