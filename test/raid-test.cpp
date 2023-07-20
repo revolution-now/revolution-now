@@ -241,6 +241,14 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
       REQUIRE( f() == expected );
     }
 
+    SECTION( "money=10, res=2, with stockade" ) {
+      colony.buildings[e_colony_building::stockade] = true;
+      money                                         = 10;
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 42 );
+      expected = BraveAttackColonyEffect::none{};
+      REQUIRE( f() == expected );
+    }
+
     SECTION( "money=10000, res=1234" ) {
       money = 10000;
       R.EXPECT__between_ints( 0, 100, half_open ).returns( 42 );
@@ -268,6 +276,14 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
           .returns( 12345 );
       expected = BraveAttackColonyEffect::money_stolen{
           .quantity = 12345 };
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "money=200000, res=12345, with fort" ) {
+      colony.buildings[e_colony_building::fort] = true;
+      money                                     = 200000;
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 42 );
+      expected = BraveAttackColonyEffect::none{};
       REQUIRE( f() == expected );
     }
 
@@ -310,6 +326,14 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
           .returns( 20000 );
       expected = BraveAttackColonyEffect::money_stolen{
           .quantity = 20000 };
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "money=1100000, res=20000, with fortress" ) {
+      colony.buildings[e_colony_building::fortress] = true;
+      money                                         = 1100000;
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 42 );
+      expected = BraveAttackColonyEffect::none{};
       REQUIRE( f() == expected );
     }
   }
