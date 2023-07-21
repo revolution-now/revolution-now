@@ -339,6 +339,103 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
   }
 
   SECTION( "building destroyed" ) {
+    auto& buildings = colony.buildings;
+    using B         = e_colony_building;
+
+    SECTION( "attempt=weaver's house" ) {
+      buildings[B::weavers_house] = true;
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 63 );
+      // slot = cloth.
+      R.EXPECT__between_ints( 0, 16, half_open ).returns( 3 );
+      expected = BraveAttackColonyEffect::none{};
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "attempt=weaver's shop" ) {
+      buildings[B::weavers_shop] = true;
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 63 );
+      // slot = cloth.
+      R.EXPECT__between_ints( 0, 16, half_open ).returns( 3 );
+      expected = BraveAttackColonyEffect::building_destroyed{
+          .which = B::weavers_shop };
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "attempt=weaver's shop, with stockade" ) {
+      buildings[B::stockade]     = true;
+      buildings[B::weavers_shop] = true;
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 63 );
+      // slot = cloth.
+      R.EXPECT__between_ints( 0, 16, half_open ).returns( 3 );
+      expected = BraveAttackColonyEffect::building_destroyed{
+          .which = B::weavers_shop };
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "attempt=weaver's shop, with fort" ) {
+      buildings[B::fort]         = true;
+      buildings[B::weavers_shop] = true;
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 63 );
+      expected = BraveAttackColonyEffect::none{};
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "attempt=weaver's shop, with fortress" ) {
+      buildings[B::fortress]     = true;
+      buildings[B::weavers_shop] = true;
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 63 );
+      expected = BraveAttackColonyEffect::none{};
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "attempt=town hall" ) {
+      buildings[B::town_hall] = true;
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 63 );
+      // slot = town hall.
+      R.EXPECT__between_ints( 0, 16, half_open ).returns( 7 );
+      expected = BraveAttackColonyEffect::none{};
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "attempt=stockade" ) {
+      buildings[B::stockade]  = true;
+      buildings[B::town_hall] = true;
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 63 );
+      // slot = wall.
+      R.EXPECT__between_ints( 0, 16, half_open ).returns( 12 );
+      expected = BraveAttackColonyEffect::none{};
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "attempt=non existent hammers" ) {
+      buildings[B::lumber_mill]     = false;
+      buildings[B::carpenters_shop] = false;
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 63 );
+      // slot = hammers.
+      R.EXPECT__between_ints( 0, 16, half_open ).returns( 6 );
+      expected = BraveAttackColonyEffect::none{};
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "attempt=textile mill" ) {
+      buildings[B::textile_mill] = true;
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 74 );
+      // slot = cloth.
+      R.EXPECT__between_ints( 0, 16, half_open ).returns( 3 );
+      expected = BraveAttackColonyEffect::building_destroyed{
+          .which = B::textile_mill };
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "attempt=custom house" ) {
+      buildings[B::custom_house] = true;
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 74 );
+      // slot = custom_house.
+      R.EXPECT__between_ints( 0, 16, half_open ).returns( 15 );
+      expected = BraveAttackColonyEffect::building_destroyed{
+          .which = B::custom_house };
+      REQUIRE( f() == expected );
+    }
   }
 
   SECTION( "ship in port damaged" ) {
