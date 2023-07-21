@@ -20,6 +20,8 @@
 // ss
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
+#include "src/ss/unit-composer.hpp"
+#include "src/ss/unit.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -43,11 +45,12 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, //
-        L, L, L, //
-        _, L, L, //
+        _, L, _, L, L, L, //
+        L, L, L, L, L, L, //
+        _, L, L, L, L, L, //
+        L, L, L, L, L, L, //
     };
-    build_map( std::move( tiles ), 3 );
+    build_map( std::move( tiles ), 6 );
   }
 };
 
@@ -439,6 +442,164 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
   }
 
   SECTION( "ship in port damaged" ) {
+    auto add_ship = [&]( e_unit_type type ) -> Unit& {
+      return W.add_unit_on_map( type, colony.location,
+                                W.default_nation() );
+    };
+
+    SECTION( "no ships" ) {
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 75 );
+      expected = BraveAttackColonyEffect::none{};
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "one ship" ) {
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 75 );
+      UnitId const ship_id =
+          add_ship( e_unit_type::caravel ).id();
+      R.EXPECT__between_ints( 0, 1, half_open ).returns( 0 );
+      expected = BraveAttackColonyEffect::ship_in_port_damaged{
+          .which   = ship_id,
+          .sent_to = ShipRepairPort::european_harbor{} };
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "one damaged ship" ) {
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 75 );
+      Unit& ship    = add_ship( e_unit_type::caravel );
+      ship.orders() = unit_orders::damaged{};
+      expected      = BraveAttackColonyEffect::none{};
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "two ships" ) {
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 75 );
+      add_ship( e_unit_type::caravel );
+      UnitId const ship_id2 =
+          add_ship( e_unit_type::galleon ).id();
+      R.EXPECT__between_ints( 0, 2, half_open ).returns( 1 );
+      expected = BraveAttackColonyEffect::ship_in_port_damaged{
+          .which   = ship_id2,
+          .sent_to = ShipRepairPort::european_harbor{} };
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "three ships" ) {
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 75 );
+      UnitId const ship_id1 =
+          add_ship( e_unit_type::caravel ).id();
+      add_ship( e_unit_type::galleon );
+      add_ship( e_unit_type::merchantman );
+      R.EXPECT__between_ints( 0, 3, half_open ).returns( 0 );
+      expected = BraveAttackColonyEffect::ship_in_port_damaged{
+          .which   = ship_id1,
+          .sent_to = ShipRepairPort::european_harbor{} };
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "three ships, stockade" ) {
+      colony.buildings[e_colony_building::stockade] = true;
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 75 );
+      UnitId const ship_id1 =
+          add_ship( e_unit_type::caravel ).id();
+      add_ship( e_unit_type::galleon );
+      add_ship( e_unit_type::merchantman );
+      R.EXPECT__between_ints( 0, 3, half_open ).returns( 0 );
+      expected = BraveAttackColonyEffect::ship_in_port_damaged{
+          .which   = ship_id1,
+          .sent_to = ShipRepairPort::european_harbor{} };
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "three ships, fort" ) {
+      colony.buildings[e_colony_building::fort] = true;
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 75 );
+      UnitId const ship_id1 =
+          add_ship( e_unit_type::caravel ).id();
+      add_ship( e_unit_type::galleon );
+      add_ship( e_unit_type::merchantman );
+      R.EXPECT__between_ints( 0, 3, half_open ).returns( 0 );
+      expected = BraveAttackColonyEffect::ship_in_port_damaged{
+          .which   = ship_id1,
+          .sent_to = ShipRepairPort::european_harbor{} };
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "three ships, fortress" ) {
+      colony.buildings[e_colony_building::fortress] = true;
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 75 );
+      add_ship( e_unit_type::caravel );
+      add_ship( e_unit_type::galleon );
+      add_ship( e_unit_type::merchantman );
+      expected = BraveAttackColonyEffect::none{};
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "three ships, one damaged" ) {
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 75 );
+      add_ship( e_unit_type::caravel );
+      Unit&        galleon = add_ship( e_unit_type::galleon );
+      UnitId const ship_id3 =
+          add_ship( e_unit_type::merchantman ).id();
+      galleon.orders() = unit_orders::damaged{};
+      R.EXPECT__between_ints( 0, 2, half_open ).returns( 1 );
+      expected = BraveAttackColonyEffect::ship_in_port_damaged{
+          .which   = ship_id3,
+          .sent_to = ShipRepairPort::european_harbor{} };
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "three ships, all damaged" ) {
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 75 );
+      Unit& caravel     = add_ship( e_unit_type::caravel );
+      Unit& galleon     = add_ship( e_unit_type::galleon );
+      Unit& merchantman = add_ship( e_unit_type::merchantman );
+      caravel.orders()  = unit_orders::damaged{};
+      galleon.orders()  = unit_orders::damaged{};
+      merchantman.orders() = unit_orders::damaged{};
+      expected             = BraveAttackColonyEffect::none{};
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "one ship, second colony no drydock" ) {
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 75 );
+      W.add_colony( { .x = 0, .y = 1 } );
+      UnitId const ship_id =
+          add_ship( e_unit_type::caravel ).id();
+      R.EXPECT__between_ints( 0, 1, half_open ).returns( 0 );
+      expected = BraveAttackColonyEffect::ship_in_port_damaged{
+          .which   = ship_id,
+          .sent_to = ShipRepairPort::european_harbor{} };
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "one ship, second colony with drydock" ) {
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 75 );
+      Colony& colony2 = W.add_colony( { .x = 0, .y = 1 } );
+      colony2.buildings[e_colony_building::drydock] = true;
+      UnitId const ship_id =
+          add_ship( e_unit_type::caravel ).id();
+      R.EXPECT__between_ints( 0, 1, half_open ).returns( 0 );
+      expected = BraveAttackColonyEffect::ship_in_port_damaged{
+          .which = ship_id,
+          .sent_to =
+              ShipRepairPort::colony{ .id = colony2.id } };
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "one ship, second colony with shipyard" ) {
+      R.EXPECT__between_ints( 0, 100, half_open ).returns( 75 );
+      Colony& colony2 = W.add_colony( { .x = 0, .y = 1 } );
+      colony2.buildings[e_colony_building::shipyard] = true;
+      UnitId const ship_id =
+          add_ship( e_unit_type::caravel ).id();
+      R.EXPECT__between_ints( 0, 1, half_open ).returns( 0 );
+      expected = BraveAttackColonyEffect::ship_in_port_damaged{
+          .which = ship_id,
+          .sent_to =
+              ShipRepairPort::colony{ .id = colony2.id } };
+      REQUIRE( f() == expected );
+    }
   }
 }
 

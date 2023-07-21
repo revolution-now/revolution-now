@@ -110,7 +110,7 @@ BraveAttackColonyEffect calculate_money_stolen(
 BraveAttackColonyEffect choose_ship_to_damage(
     SSConst const& ss, IRand& rand, Colony const& colony ) {
   // The SG states that, although undocumented, a colony with a
-  // fortress won't have money stolen during native raids.
+  // fortress won't have ships damaged during native raids.
   if( colony_has_building_level( colony,
                                  e_colony_building::fortress ) )
     return BraveAttackColonyEffect::none{};
@@ -120,14 +120,21 @@ BraveAttackColonyEffect choose_ship_to_damage(
   for( GenericUnitId const generic_id : units ) {
     UnitId const unit_id =
         ss.units.check_euro_unit( generic_id );
-    if( !ss.units.unit_for( unit_id ).desc().ship ) continue;
+    Unit const& unit = ss.units.unit_for( unit_id );
+    if( !unit.desc().ship ) continue;
+    if( unit.orders().holds<unit_orders::damaged>() ) continue;
     ships.push_back( unit_id );
   }
   if( ships.empty() ) return BraveAttackColonyEffect::none{};
+  // Need this for determinism; the units are ultimately taken
+  // from an unordered set, so will be in random order.
+  std::sort( ships.begin(), ships.end() );
+  UnitId const ship = rand.pick_one( ships );
+
+  maybe<ShipRepairPort> const port = find_repair_port_for_ship(
+      ss, colony.nation, colony.location );
   return BraveAttackColonyEffect::ship_in_port_damaged{
-      .which   = rand.pick_one( ships ),
-      .sent_to = find_repair_port_for_ship( ss, colony.nation,
-                                            colony.location ) };
+      .which = ship, .sent_to = port };
 }
 
 BraveAttackColonyEffect choose_building_to_destroy(
