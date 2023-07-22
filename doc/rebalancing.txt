@@ -1,12 +1,15 @@
-This doc lists some ideas for rebalancing the special abilities
-of the four european nations. It seems to be the case that people
-generally feel that the Dutch overall have the strongest advan-
-tages (slower price movement and merchantman), so here we will
-list some possibilities for bringing the four nations on par. In-
-stead of reducing the abilities of the Dutch, we will increase
-the abilities of the other nations, since that seems like it
-would produce a more fun game since there'd be a more diverse set
-of possible strategies.
+This doc lists some ideas for rebalancing the game.
+
+Special Nation Abilities
+
+  It seems to be the case that people generally feel that the
+  Dutch overall have the strongest advantages (slower price move-
+  ment and merchantman), so here we will list some possibilities
+  for bringing the four nations on par. Instead of reducing the
+  abilities of the Dutch, we will increase the abilities of the
+  other nations, since that seems like it would produce a more
+  fun game since there'd be a more diverse set of possible
+  strategies.
 
   French:
 
@@ -136,6 +139,26 @@ General changes to the game:
 
     Also we should come up with a name for the propery that the
     colony receives which prevents it from being abandoned.
+
+  * Generally, it seems that it is too easy to acquire colonists
+    (unskilled) in the new world, to the point that the English
+    don't seem appealing. The mechanisms for getting a new un-
+    skilled colonist are:
+
+       1. Food production.
+       2. LCR survivor.
+       3. LCR fountain of youth.
+       4. Immigration via crosses.
+
+    At times it even feels like we have more colonists that we
+    know what to do with as the mid-game is nearing. This is true
+    especially since, towards the end of the game when we do want
+    to create a large number of colonists to act as dragoons (if
+    using that strategy) then we can easily produce them via food
+    production at that time.
+
+    Hence, maybe we should consider nurfing some of the above in
+    order to make the English more valuable.
 
   * Enhance Francisco de Coronado. It might be nice to be able to
     get info about a native dwelling (i.e., has it been visited,

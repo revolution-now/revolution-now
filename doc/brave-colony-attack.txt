@@ -1,0 +1,53 @@
+none:                 12
+commodity_stolen:     30    2%-50% range.
+building_destroyed:   12
+ship_in_port_damaged: 25
+money_stolen:         21    3%-20%, then 25000 cap on upper limit,
+                            then uniform random.
+
+Only 1 commodity can be stolen:
+  none:      23
+  commodity: 9
+
+With one building + soldier:
+  none:     52
+  building: 3
+
+With many buildings + soldier:
+  none:     22
+  building: 7
+
+Only money can be lost:
+  none:  28
+  money: 8
+
+With all buildings:
+  none:     65
+  building: 7
+
+With Fortifications
+===================
+
+Stockade:
+  none:      11
+  comm:      3
+  ship:      6
+  buildings: 1
+  money:     0
+
+Fort:
+  none:      15
+  comm:      2
+  ship:      8
+  buildings: 0
+  money:     0
+
+// This was measured (I think) but was lost and not recoverable
+// on a vim crash. I think it revealed what the strategy guide
+// says which is that the only outcomes are "none" and "comm".
+Fortress:
+  none:      0
+  comm:      0
+  ship:      0
+  buildings: 0
+  money:     0
