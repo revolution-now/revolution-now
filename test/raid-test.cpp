@@ -15,6 +15,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/irand.hpp"
 
 // ss
@@ -753,6 +754,62 @@ TEST_CASE( "[raid] perform_brave_attack_colony_effect" ) {
 
 TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
   World W;
+
+  MockIEuroMind& mind   = W.euro_mind( W.default_nation() );
+  Colony&        colony = W.add_colony( { .x = 1, .y = 1 } );
+  colony.name           = "my colony";
+  Unit const& ship =
+      W.add_unit_on_map( e_unit_type::frigate, colony.location );
+  W.add_unit_in_cargo( e_unit_type::free_colonist, ship.id() );
+  BraveAttackColonyEffect effect;
+
+  auto f = [&] {
+    wait<> const w = display_brave_attack_colony_effect_msg(
+        W.ss(), mind, colony, effect );
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+  };
+
+  // No effect.
+  effect = BraveAttackColonyEffect::none{};
+  f();
+
+  // Commodity stolen.
+  effect = BraveAttackColonyEffect::commodity_stolen{
+      .what = Commodity{ .type     = e_commodity::coats,
+                         .quantity = 20 } };
+  mind.EXPECT__message_box(
+          "[20] tons of [coats] have been stolen from [my "
+          "colony]!" )
+      .returns<monostate>();
+  f();
+
+  // Money stolen.
+  effect =
+      BraveAttackColonyEffect::money_stolen{ .quantity = 234 };
+  mind.EXPECT__message_box( "[234] stolen from treasury!" )
+      .returns<monostate>();
+  f();
+
+  // Building destroyed.
+  effect = BraveAttackColonyEffect::building_destroyed{
+      .which = e_colony_building::blacksmiths_shop };
+  mind.EXPECT__message_box(
+          "The [Blacksmith's Shop] in [my colony] has been "
+          "destroyed!" )
+      .returns<monostate>();
+  f();
+
+  // Ship in port damaged.
+  effect = BraveAttackColonyEffect::ship_in_port_damaged{
+      .which   = ship.id(),
+      .sent_to = ShipRepairPort::european_harbor{} };
+  mind.EXPECT__message_box(
+          "Dutch [Frigate] damaged in battle! Ship sent to "
+          "[Amsterdam] for repair. [One] unit onboard has been "
+          "lost." )
+      .returns<monostate>();
+  f();
 }
 
 } // namespace
