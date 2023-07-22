@@ -130,9 +130,20 @@ wait<> handle_native_unit_command(
 wait<> tribe_turn( SS& ss, TS& ts, Visibility const& viz,
                    INativeMind&       mind,
                    set<NativeUnitId>& units ) {
+  // As a safety check to prevent the AI from never exhausting
+  // all of the movement points of all of its units, we'll give
+  // the AI a maximum of 100 tries per unit. If it can't finish
+  // all unit movements in that time, then there is probably
+  // something wrong with the AI.
+  int       tries     = 0;
+  int const max_tries = 100;
   while( !units.empty() ) {
     NativeUnitId const native_unit_id =
         mind.select_unit( as_const( units ) );
+    CHECK( tries++ < max_tries,
+           "the AI had {} attempts to exhaust the movement "
+           "points of unit {} but did not do so.",
+           max_tries, native_unit_id );
     CHECK( units.contains( native_unit_id ) );
     NativeUnit& native_unit =
         ss.units.unit_for( native_unit_id );
@@ -148,9 +159,11 @@ wait<> tribe_turn( SS& ss, TS& ts, Visibility const& viz,
       continue;
     }
 
-    // Should be last.
     if( native_unit.movement_points == 0 )
       units.erase( native_unit_id );
+
+    // Should be last.
+    if( !units.contains( native_unit_id ) ) tries = 0;
   }
 }
 
