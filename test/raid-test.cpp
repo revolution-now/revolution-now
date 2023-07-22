@@ -22,6 +22,13 @@
 #include "src/ss/ref.hpp"
 #include "src/ss/unit-composer.hpp"
 #include "src/ss/unit.hpp"
+#include "src/ss/units.hpp"
+
+// refl
+#include "src/refl/to-str.hpp"
+
+// base
+#include "src/base/to-str-ext-std.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -605,6 +612,143 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
 
 TEST_CASE( "[raid] perform_brave_attack_colony_effect" ) {
   World W;
+
+  Colony& colony        = W.add_colony( { .x = 1, .y = 1 } );
+  Colony& colony_repair = W.add_colony( { .x = 1, .y = 2 } );
+  BraveAttackColonyEffect effect;
+
+  colony.commodities[e_commodity::sugar] = 50;
+  colony.commodities[e_commodity::coats] = 70;
+
+  colony_repair.buildings[e_colony_building::drydock] = true;
+
+  Player& player = W.default_player();
+  player.money   = 1234;
+
+  colony.buildings[e_colony_building::blacksmiths_shop] = true;
+  colony.buildings[e_colony_building::iron_works]       = true;
+  colony.buildings[e_colony_building::newspaper]        = true;
+
+  Colony       old_colony        = colony;
+  Colony const old_colony_repair = colony_repair;
+
+  Unit const& ship1 =
+      W.add_unit_on_map( e_unit_type::frigate, colony.location );
+  Unit const& ship2 =
+      W.add_unit_on_map( e_unit_type::frigate, colony.location );
+
+  auto f = [&] {
+    perform_brave_attack_colony_effect( W.ss(), W.ts(), colony,
+                                        effect );
+  };
+
+  // No effect.
+  effect = BraveAttackColonyEffect::none{};
+  f();
+  REQUIRE( colony == old_colony );
+  REQUIRE( player.money == 1234 );
+  REQUIRE( ship1.orders() == unit_orders::none{} );
+  REQUIRE( as_const( W.units() ).ownership_of( ship1.id() ) ==
+           UnitOwnership::world{ .coord = { .x = 1, .y = 1 } } );
+  REQUIRE( ship2.orders() == unit_orders::none{} );
+  REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
+           UnitOwnership::world{ .coord = { .x = 1, .y = 1 } } );
+
+  // Commodity stolen.
+  effect = BraveAttackColonyEffect::commodity_stolen{
+      .what = Commodity{ .type     = e_commodity::coats,
+                         .quantity = 20 } };
+  f();
+  REQUIRE( colony.commodities[e_commodity::coats] == 50 );
+  old_colony.commodities[e_commodity::coats] = 50;
+  REQUIRE( colony == old_colony );
+  REQUIRE( player.money == 1234 );
+  REQUIRE( ship1.orders() == unit_orders::none{} );
+  REQUIRE( as_const( W.units() ).ownership_of( ship1.id() ) ==
+           UnitOwnership::world{ .coord = { .x = 1, .y = 1 } } );
+  REQUIRE( ship2.orders() == unit_orders::none{} );
+  REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
+           UnitOwnership::world{ .coord = { .x = 1, .y = 1 } } );
+
+  // Money stolen.
+  effect =
+      BraveAttackColonyEffect::money_stolen{ .quantity = 234 };
+  f();
+  REQUIRE( colony == old_colony );
+  REQUIRE( player.money == 1000 );
+  REQUIRE( ship1.orders() == unit_orders::none{} );
+  REQUIRE( as_const( W.units() ).ownership_of( ship1.id() ) ==
+           UnitOwnership::world{ .coord = { .x = 1, .y = 1 } } );
+  REQUIRE( ship2.orders() == unit_orders::none{} );
+  REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
+           UnitOwnership::world{ .coord = { .x = 1, .y = 1 } } );
+
+  // Building destroyed.
+  effect = BraveAttackColonyEffect::building_destroyed{
+      .which = e_colony_building::blacksmiths_shop };
+  f();
+  REQUIRE(
+      colony.buildings[e_colony_building::blacksmiths_shop] ==
+      false );
+  old_colony.buildings[e_colony_building::blacksmiths_shop] =
+      false;
+  REQUIRE( colony == old_colony );
+  effect = BraveAttackColonyEffect::building_destroyed{
+      .which = e_colony_building::iron_works };
+  f();
+  REQUIRE( colony.buildings[e_colony_building::iron_works] ==
+           false );
+  old_colony.buildings[e_colony_building::iron_works] = false;
+  REQUIRE( colony == old_colony );
+  REQUIRE(
+      colony.buildings[e_colony_building::blacksmiths_house] ==
+      true );
+  REQUIRE( colony.buildings[e_colony_building::newspaper] ==
+           true );
+  REQUIRE( player.money == 1000 );
+  REQUIRE( ship1.orders() == unit_orders::none{} );
+  REQUIRE( as_const( W.units() ).ownership_of( ship1.id() ) ==
+           UnitOwnership::world{ .coord = { .x = 1, .y = 1 } } );
+  REQUIRE( ship2.orders() == unit_orders::none{} );
+  REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
+           UnitOwnership::world{ .coord = { .x = 1, .y = 1 } } );
+
+  // Ship in port damaged.
+  effect = BraveAttackColonyEffect::ship_in_port_damaged{
+      .which   = ship1.id(),
+      .sent_to = ShipRepairPort::european_harbor{} };
+  f();
+  REQUIRE( colony == old_colony );
+  REQUIRE( player.money == 1000 );
+  REQUIRE( ship1.orders() ==
+           unit_orders::damaged{ .turns_until_repair = 12 } );
+  REQUIRE( as_const( W.units() ).ownership_of( ship1.id() ) ==
+           UnitOwnership::harbor{
+               .st = UnitHarborViewState{
+                   .port_status = PortStatus::in_port{},
+                   .sailed_from = nothing } } );
+  REQUIRE( ship2.orders() == unit_orders::none{} );
+  REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
+           UnitOwnership::world{ .coord = { .x = 1, .y = 1 } } );
+  effect = BraveAttackColonyEffect::ship_in_port_damaged{
+      .which = ship2.id(),
+      .sent_to =
+          ShipRepairPort::colony{ .id = colony_repair.id } };
+  f();
+  REQUIRE( colony == old_colony );
+  REQUIRE( colony_repair == old_colony_repair );
+  REQUIRE( player.money == 1000 );
+  REQUIRE( ship1.orders() ==
+           unit_orders::damaged{ .turns_until_repair = 12 } );
+  REQUIRE( as_const( W.units() ).ownership_of( ship1.id() ) ==
+           UnitOwnership::harbor{
+               .st = UnitHarborViewState{
+                   .port_status = PortStatus::in_port{},
+                   .sailed_from = nothing } } );
+  REQUIRE( ship2.orders() ==
+           unit_orders::damaged{ .turns_until_repair = 5 } );
+  REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
+           UnitOwnership::world{ .coord = { .x = 1, .y = 2 } } );
 }
 
 TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
