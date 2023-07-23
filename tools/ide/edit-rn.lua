@@ -47,12 +47,15 @@ end
 -- Tabs.
 -----------------------------------------------------------------
 local function create_tabs()
-  for _, stem in ipairs( require( TABS_MODULE ) ) do
+  local modules = require( TABS_MODULE )
+  for _, stem in ipairs( modules ) do
     open_module( stem )
     -- This is optional but allows us to see the tabs appearing
     -- as they are opened, which is cool.
     vim.cmd[[redraw!]]
   end
+  local curr_tab = modules.current_tab or 1
+  return curr_tab
 end
 
 -- This function contains the logic that determines the name of a
@@ -80,6 +83,7 @@ local function tab_namer( buffer_list )
 end
 
 local function save_tabs()
+  local current_tab = tabs.current_tab()
   local tab_list = tabs.tab_config()
   local out = assert( io.open( TABS_FILE, 'w' ) )
   local function writeln( line )
@@ -87,9 +91,16 @@ local function save_tabs()
   end
   writeln( '-- List of modules to open when we edit RN.' )
   writeln( 'return {' )
-  for _, tab in ipairs( tab_list ) do
-    writeln( '  \'' .. tab_namer( tab.buffers ) .. '\', --' )
+  for idx, tab in ipairs( tab_list ) do
+    writeln( '  \'' .. tab_namer( tab.buffers ) .. '\', -- ' ..
+                 tostring( idx ) )
   end
+  local curr_tab_name =
+      tab_namer( tab_list[current_tab].buffers )
+  writeln()
+  writeln( '  -- 1-based.' )
+  writeln( '  current_tab=' .. current_tab .. ', -- ' ..
+               curr_tab_name )
   writeln( '}' )
   out:close()
 end
@@ -167,12 +178,14 @@ local function main()
 
   -- Creates all of the tabs/splits.
   tabs.set_tab_namer( tab_namer )
-  create_tabs()
+  local curr_tab = create_tabs()
 
   -- In case anyone changed it.
   vim.cmd[[tabdo wincmd =]]
   -- When nvim supports it.
   vim.cmd[[tabdo set cmdheight=0]]
+
+  tabs.set_selected_tab( curr_tab )
 end
 
 main()
