@@ -39,6 +39,7 @@ local function layout_wide( stem )
     F.cpp,
     F.test,
   }
+  local new_module = not exists( F.hpp ) and not exists( F.cpp )
   -- LuaFormatter on
   if exists( F.rds ) and exists( F.rds_impl ) then
     -- LuaFormatter off
@@ -57,7 +58,7 @@ local function layout_wide( stem )
       F.hpp
     }
     -- LuaFormatter on
-  elseif exists( F.rds ) then
+  elseif exists( F.rds ) or new_module then
     -- LuaFormatter off
     plan[1] = vsplit {
       F.rds,
@@ -79,6 +80,7 @@ local function layout_narrow( stem )
     F.cpp,
     F.test,
   }
+  local new_module = not exists( F.hpp ) and not exists( F.cpp )
   -- LuaFormatter on
   if exists( F.rds ) and exists( F.rds_impl ) then
     -- LuaFormatter off
@@ -95,7 +97,7 @@ local function layout_narrow( stem )
       F.rds_impl
     }
     -- LuaFormatter on
-  elseif exists( F.rds ) then
+  elseif exists( F.rds ) or new_module then
     -- LuaFormatter off
     plan[1] = hsplit {
       F.rds,
