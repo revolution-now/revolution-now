@@ -179,7 +179,7 @@ struct World : testing::World {
   }
 
   void expect_promotion( e_nation nation ) {
-    expect_msg_contains( nation, "valor" );
+    expect_msg_contains( nation, "victory" );
   }
 
   void expect_evaded( e_nation nation ) {
@@ -363,7 +363,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
     expect_combat();
     W.expect_some_animation();
     W.expect_msg_contains( W.kDefendingNation,
-                           "promoted for valor" );
+                           "promoted for victory" );
     REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
@@ -453,10 +453,10 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
     W.expect_some_animation();
     W.expect_msg_contains(
         W.kAttackingNation,
-        "[French] Free Colonist captured by the [English]" );
+        "French [Free Colonist] captured by the [English]" );
     W.expect_msg_contains(
         W.kDefendingNation,
-        "[French] Free Colonist captured by the [English]" );
+        "French [Free Colonist] captured by the [English]" );
     REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
@@ -492,10 +492,10 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
     W.expect_some_animation();
     W.expect_msg_contains(
         W.kDefendingNation,
-        "[French] Veteran Colonist captured by the [English]" );
+        "French [Veteran Colonist] captured by the [English]" );
     W.expect_msg_contains(
         W.kAttackingNation,
-        "[French] Veteran Colonist captured by the [English]! "
+        "French [Veteran Colonist] captured by the [English]! "
         "Veteran status lost upon capture!" );
     REQUIRE( f() == expected );
     Unit const& attacker =
@@ -693,7 +693,8 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
     expect_combat();
     W.expect_some_animation();
     W.expect_msg_contains( W.kAttackingNation,
-                           "[Muskets] acquired by brave" );
+                           "[Apache] Brave has acquired "
+                           "[muskets] upon victory in combat!" );
     REQUIRE( f() == expected );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );

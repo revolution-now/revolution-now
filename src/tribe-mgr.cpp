@@ -100,4 +100,12 @@ wait<> destroy_tribe_interactive( SS& ss, TS& ts,
       config_natives.tribes[tribe].name_singular );
 }
 
+void tribe_take_horses_from_destroyed_brave( Tribe& tribe ) {
+  tribe.horses += 50;
+}
+
+void tribe_take_muskets_from_destroyed_brave( Tribe& tribe ) {
+  tribe.muskets += 50;
+}
+
 } // namespace rn

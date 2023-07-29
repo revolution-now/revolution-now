@@ -23,7 +23,11 @@ namespace rn {
 
 struct SS;
 struct TS;
+struct Tribe;
 
+/****************************************************************
+** Destroying things.
+*****************************************************************/
 // This is the method that normal game code should call in order
 // destroy a dwelling. It is always safe to call in that it will
 // perform all actions and cleanup needed to safely remove the
@@ -46,5 +50,16 @@ void destroy_tribe( SS& ss, TS& ts, e_tribe tribe );
 // This will destroy the tribe and pop up a message box.
 wait<> destroy_tribe_interactive( SS& ss, TS& ts,
                                   e_tribe tribe );
+
+/****************************************************************
+** Acquiring Horses/Muskets.
+*****************************************************************/
+// Called when a brave with horses is defeated in combat (de-
+// stroyed) and the tribe retains the horses.
+void tribe_take_horses_from_destroyed_brave( Tribe& tribe );
+
+// Called when a brave with muskets is defeated in combat (de-
+// stroyed) and the tribe retains the muskets.
+void tribe_take_muskets_from_destroyed_brave( Tribe& tribe );
 
 } // namespace rn
