@@ -117,6 +117,12 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Player& player,
                                Colony&            colony,
                                maybe<std::string> msg );
 
+// Same as above but for when the animation is done separately.
+wait<> run_colony_destruction_no_anim( SS& ss, TS& ts,
+                                       Player&            player,
+                                       Colony&            colony,
+                                       maybe<std::string> msg );
+
 // Given a colony, find the squares in its surroundings that are
 // being worked by units in other colonies, either friendly or
 // foreign. In the original game, these squares will be drawn

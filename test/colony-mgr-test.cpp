@@ -453,6 +453,24 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
     REQUIRE( w.ready() );
   }
 
+  SECTION( "interactive no animation" ) {
+    // We don't technically need this here, but it makes the
+    // error messages better if the code incorrectly tries to an-
+    // imate something.
+    MockLandViewPlane mock_land_view;
+    W.planes().back().land_view = &mock_land_view;
+
+    W.gui()
+        .EXPECT__message_box( "some msg" )
+        .returns( make_wait<>() );
+
+    wait<> w = run_colony_destruction_no_anim(
+        W.ss(), W.ts(), W.default_player(), colony,
+        /*msg=*/"some msg" );
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+  }
+
   SECTION( "interactive with ship" ) {
     Unit const& ship1 =
         W.add_unit_on_map( e_unit_type::caravel, loc );
