@@ -134,8 +134,9 @@ MockINativeMind& World::native_mind( e_tribe tribe ) {
   return static_cast<MockINativeMind&>( native_minds()[tribe] );
 }
 
-MockIEuroMind& World::euro_mind( e_nation nation ) {
-  return static_cast<MockIEuroMind&>( euro_minds()[nation] );
+MockIEuroMind& World::euro_mind( maybe<e_nation> nation ) {
+  return static_cast<MockIEuroMind&>(
+      euro_minds()[nation.value_or( default_nation_ )] );
 }
 
 Planes& World::planes() {
