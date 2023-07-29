@@ -343,8 +343,11 @@ wait<> LandViewAnimator::animate_primitive(
     case e::depixelate_unit: {
       auto& [unit_id] =
           primitive.get<AnimationPrimitive::depixelate_unit>();
+      // We need the multi-ownership version if the unit being
+      // depixelated is a unit working in a colony that is being
+      // attacked.
       Coord const tile =
-          coord_for_unit_indirect_or_die( ss_.units, unit_id );
+          coord_for_unit_multi_ownership_or_die( ss_, unit_id );
       // Check visibility. This will avoid both scrolling the map
       // and the animation in the case that the unit in question
       // is on a fogged tile, which can happen e.g. if we are de-
