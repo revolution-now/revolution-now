@@ -42,10 +42,10 @@ TEST_CASE( "[anim-builder] builders" ) {
   builder.new_phase();
   builder.depixelate_unit( GenericUnitId{ 4 } );
   builder.enpixelate_unit( GenericUnitId{ 5 } );
-  builder.depixelate_euro_unit_to_target( UnitId{ 6 },
-                                          e_unit_type::cavalry );
+  builder.pixelate_euro_unit_to_target( UnitId{ 6 },
+                                        e_unit_type::cavalry );
   builder.new_phase();
-  builder.depixelate_native_unit_to_target(
+  builder.pixelate_native_unit_to_target(
       NativeUnitId{ 7 }, e_native_unit_type::mounted_brave );
   builder.depixelate_colony( ColonyId{ 8 } );
   builder.depixelate_dwelling( DwellingId{ 9 } );
@@ -77,11 +77,11 @@ TEST_CASE( "[anim-builder] builders" ) {
                   P::enpixelate_unit{ .unit_id =
                                           GenericUnitId{ 5 } } },
             { .primitive =
-                  P::depixelate_euro_unit_to_target{
+                  P::pixelate_euro_unit_to_target{
                       .unit_id = UnitId{ 6 },
                       .target  = e_unit_type::cavalry } } },
           { { .primitive =
-                  P::depixelate_native_unit_to_target{
+                  P::pixelate_native_unit_to_target{
                       .unit_id = NativeUnitId{ 7 },
                       .target =
                           e_native_unit_type::mounted_brave } },

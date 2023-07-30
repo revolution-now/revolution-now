@@ -368,18 +368,17 @@ wait<> LandViewAnimator::animate_primitive(
       co_await unit_enpixelation_throttler( unit_id );
       break;
     }
-    case e::depixelate_euro_unit_to_target: {
+    case e::pixelate_euro_unit_to_target: {
       auto& [unit_id, target] = primitive.get<
-          AnimationPrimitive::depixelate_euro_unit_to_target>();
+          AnimationPrimitive::pixelate_euro_unit_to_target>();
       co_await ensure_visible_unit( unit_id );
       co_await unit_depixelation_throttler(
           unit_id, unit_attr( target ).tile );
       break;
     }
-    case e::depixelate_native_unit_to_target: {
-      auto& [unit_id, target] =
-          primitive.get<AnimationPrimitive::
-                            depixelate_native_unit_to_target>();
+    case e::pixelate_native_unit_to_target: {
+      auto& [unit_id, target] = primitive.get<
+          AnimationPrimitive::pixelate_native_unit_to_target>();
       co_await ensure_visible_unit( unit_id );
       co_await unit_depixelation_throttler(
           unit_id, unit_attr( target ).tile );

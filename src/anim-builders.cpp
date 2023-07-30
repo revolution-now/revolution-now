@@ -66,16 +66,16 @@ void add_attack_outcome_for_euro_unit(
         // nal/soldier gets promoted to a servant/soldier.
         builder.front_unit( unit_id );
       else
-        builder.depixelate_euro_unit_to_target( unit_id,
-                                                o.to.type() );
+        builder.pixelate_euro_unit_to_target( unit_id,
+                                              o.to.type() );
       break;
     }
     case e::demoted: {
       auto& o = outcome.get<EuroUnitCombatOutcome::demoted>();
       Unit const& unit = ss.units.unit_for( unit_id );
       CHECK_NEQ( unit.type(), o.to.type() );
-      builder.depixelate_euro_unit_to_target( unit_id,
-                                              o.to.type() );
+      builder.pixelate_euro_unit_to_target( unit_id,
+                                            o.to.type() );
       break;
     }
   }
@@ -137,7 +137,7 @@ void add_attack_outcome_for_native_unit(
       break;
     case e::promoted: {
       auto& o = outcome.get<NativeUnitCombatOutcome::promoted>();
-      builder.depixelate_native_unit_to_target( unit_id, o.to );
+      builder.pixelate_native_unit_to_target( unit_id, o.to );
       break;
     }
   }
@@ -544,7 +544,7 @@ AnimationSequence anim_seq_for_unit_depixelation(
 AnimationSequence anim_seq_for_unit_depixelation(
     UnitId unit_id, e_unit_type target_type ) {
   AnimationBuilder builder;
-  builder.depixelate_euro_unit_to_target( unit_id, target_type );
+  builder.pixelate_euro_unit_to_target( unit_id, target_type );
   // TODO: sound effect.
   return builder.result();
 }
@@ -552,8 +552,7 @@ AnimationSequence anim_seq_for_unit_depixelation(
 AnimationSequence anim_seq_for_unit_depixelation(
     NativeUnitId unit_id, e_native_unit_type target_type ) {
   AnimationBuilder builder;
-  builder.depixelate_native_unit_to_target( unit_id,
-                                            target_type );
+  builder.pixelate_native_unit_to_target( unit_id, target_type );
   // TODO: sound effect.
   return builder.result();
 }

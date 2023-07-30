@@ -80,7 +80,7 @@ sumtype.AnimationPrimitive {
   # -------------------------------------------------------------
   # Euro units.
   # -------------------------------------------------------------
-  depixelate_euro_unit_to_target {
+  pixelate_euro_unit_to_target {
     unit_id 'UnitId',
     target 'e_unit_type',
   },
@@ -88,7 +88,7 @@ sumtype.AnimationPrimitive {
   # -------------------------------------------------------------
   # Native units.
   # -------------------------------------------------------------
-  depixelate_native_unit_to_target {
+  pixelate_native_unit_to_target {
     unit_id 'NativeUnitId',
     target 'e_native_unit_type',
   },

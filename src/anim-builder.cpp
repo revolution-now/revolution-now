@@ -77,16 +77,16 @@ void AnimationBuilder::enpixelate_unit( GenericUnitId unit_id ) {
   push( P::enpixelate_unit{ .unit_id = unit_id } );
 }
 
-void AnimationBuilder::depixelate_euro_unit_to_target(
+void AnimationBuilder::pixelate_euro_unit_to_target(
     UnitId unit_id, e_unit_type target ) {
-  push( P::depixelate_euro_unit_to_target{ .unit_id = unit_id,
-                                           .target  = target } );
+  push( P::pixelate_euro_unit_to_target{ .unit_id = unit_id,
+                                         .target  = target } );
 }
 
-void AnimationBuilder::depixelate_native_unit_to_target(
+void AnimationBuilder::pixelate_native_unit_to_target(
     NativeUnitId unit_id, e_native_unit_type target ) {
-  push( P::depixelate_native_unit_to_target{
-      .unit_id = unit_id, .target = target } );
+  push( P::pixelate_native_unit_to_target{ .unit_id = unit_id,
+                                           .target  = target } );
 }
 
 void AnimationBuilder::depixelate_colony( ColonyId colony_id ) {

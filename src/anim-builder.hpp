@@ -48,10 +48,10 @@ struct AnimationBuilder {
 
   void enpixelate_unit( GenericUnitId unit_id );
 
-  void depixelate_euro_unit_to_target( UnitId      unit_id,
-                                       e_unit_type target );
+  void pixelate_euro_unit_to_target( UnitId      unit_id,
+                                     e_unit_type target );
 
-  void depixelate_native_unit_to_target(
+  void pixelate_native_unit_to_target(
       NativeUnitId unit_id, e_native_unit_type target );
 
   void depixelate_colony( ColonyId colony_id );

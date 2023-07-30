@@ -141,7 +141,7 @@ TEST_CASE(
   target_type = e_unit_type::expert_fur_trapper;
   expected    = {
          .sequence = {
-          { { .primitive = P::depixelate_euro_unit_to_target{
+          { { .primitive = P::pixelate_euro_unit_to_target{
                      .unit_id = unit_id,
                      .target  = target_type } } } } };
   REQUIRE( f() == expected );
@@ -162,7 +162,7 @@ TEST_CASE(
   target_type = e_native_unit_type::mounted_warrior;
   expected    = {
          .sequence = {
-          { { .primitive = P::depixelate_native_unit_to_target{
+          { { .primitive = P::pixelate_native_unit_to_target{
                      .unit_id = unit_id,
                      .target  = target_type } } } } };
   REQUIRE( f() == expected );
@@ -332,7 +332,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_euro_attack_euro" ) {
     expected.sequence.push_back(
         /*phase 2=*/{
             { .primitive =
-                  P::depixelate_euro_unit_to_target{
+                  P::pixelate_euro_unit_to_target{
                       .unit_id = attacker.id(),
                       .target  = e_unit_type::free_colonist } },
             { .primitive =
@@ -442,7 +442,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_euro_attack_brave" ) {
     expected.sequence.push_back(
         /*phase 2=*/{
             { .primitive =
-                  P::depixelate_euro_unit_to_target{
+                  P::pixelate_euro_unit_to_target{
                       .unit_id = attacker.id(),
                       .target  = e_unit_type::free_colonist } },
             { .primitive =
@@ -464,11 +464,11 @@ TEST_CASE( "[anim-builders] anim_seq_for_euro_attack_brave" ) {
     expected.sequence.push_back(
         /*phase 2=*/{
             { .primitive =
-                  P::depixelate_euro_unit_to_target{
+                  P::pixelate_euro_unit_to_target{
                       .unit_id = attacker.id(),
                       .target  = e_unit_type::free_colonist } },
             { .primitive =
-                  P::depixelate_native_unit_to_target{
+                  P::pixelate_native_unit_to_target{
                       .unit_id = defender.id,
                       .target  = e_native_unit_type::
                           mounted_warrior } },
@@ -522,7 +522,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_euro" ) {
                   P::front_unit{ .unit_id = attacker.id },
               .background = true },
             { .primitive =
-                  P::depixelate_euro_unit_to_target{
+                  P::pixelate_euro_unit_to_target{
                       .unit_id = defender.id(),
                       .target  = e_unit_type::free_colonist } },
             { .primitive = P::play_sound{
@@ -562,7 +562,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_euro" ) {
             { .primitive =
                   P::depixelate_unit{ .unit_id = attacker.id } },
             { .primitive =
-                  P::depixelate_euro_unit_to_target{
+                  P::pixelate_euro_unit_to_target{
                       .unit_id = defender.id(),
                       .target = e_unit_type::veteran_soldier } },
             { .primitive = P::play_sound{
@@ -617,7 +617,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_colony" ) {
                   P::front_unit{ .unit_id = attacker.id },
               .background = true },
             { .primitive =
-                  P::depixelate_euro_unit_to_target{
+                  P::pixelate_euro_unit_to_target{
                       .unit_id = defender.id(),
                       .target  = e_unit_type::free_colonist } },
             { .primitive = P::play_sound{
@@ -681,7 +681,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_colony" ) {
             { .primitive =
                   P::depixelate_unit{ .unit_id = attacker.id } },
             { .primitive =
-                  P::depixelate_euro_unit_to_target{
+                  P::pixelate_euro_unit_to_target{
                       .unit_id = defender.id(),
                       .target = e_unit_type::veteran_soldier } },
             { .primitive = P::play_sound{
@@ -847,7 +847,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_undefended_colony" ) {
     expected.sequence.push_back(
         /*phase 2=*/{
             { .primitive =
-                  P::depixelate_euro_unit_to_target{
+                  P::pixelate_euro_unit_to_target{
                       .unit_id = attacker.id(),
                       .target  = e_unit_type::free_colonist } },
             { .primitive =
@@ -900,7 +900,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_dwelling_burn" ) {
                     P::play_sound{ .what = e_sfx::move } } },
           /*phase 2=*/{
               { .primitive =
-                    P::depixelate_euro_unit_to_target{
+                    P::pixelate_euro_unit_to_target{
                         .unit_id = attacker.id(),
                         .target =
                             e_unit_type::veteran_soldier } },
