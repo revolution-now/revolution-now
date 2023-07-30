@@ -221,7 +221,12 @@ struct World {
 
   // Creates a dwelling on the tile and then a brave on the same
   // tile associated with the dwelling.
-  std::pair<DwellingId, NativeUnitId> add_dwelling_and_brave(
+  std::pair<Dwelling&, NativeUnit&> add_dwelling_and_brave(
+      Coord where, e_tribe tribe,
+      maybe<e_native_unit_type> type = nothing );
+
+  // Same as above but returns IDs instead of refs.
+  std::pair<DwellingId, NativeUnitId> add_dwelling_and_brave_ids(
       Coord where, e_tribe tribe,
       maybe<e_native_unit_type> type = nothing );
 

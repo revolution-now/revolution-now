@@ -77,7 +77,8 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[native-turn] natives_turn" ) {
+TEST_CASE(
+    "[native-turn] natives_turn, unit iteration, travel" ) {
   World W;
 
   auto f = [&] {
@@ -90,7 +91,7 @@ TEST_CASE( "[native-turn] natives_turn" ) {
   SECTION( "no units" ) { f(); }
 
   SECTION( "one unit, forfeight" ) {
-    auto [dwelling_id, unit_id] = W.add_dwelling_and_brave(
+    auto [dwelling_id, unit_id] = W.add_dwelling_and_brave_ids(
         { .x = 0, .y = 0 }, e_tribe::arawak );
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
              1 );
@@ -106,7 +107,7 @@ TEST_CASE( "[native-turn] natives_turn" ) {
   }
 
   SECTION( "one unit, travel" ) {
-    auto [dwelling_id, unit_id] = W.add_dwelling_and_brave(
+    auto [dwelling_id, unit_id] = W.add_dwelling_and_brave_ids(
         { .x = 0, .y = 0 }, e_tribe::arawak );
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
              1 );
@@ -127,7 +128,7 @@ TEST_CASE( "[native-turn] natives_turn" ) {
     W.square( { .x = 1, .y = 0 } ).road = true;
     W.square( { .x = 2, .y = 0 } ).road = true;
     W.square( { .x = 3, .y = 0 } ).road = true;
-    auto [dwelling_id, unit_id] = W.add_dwelling_and_brave(
+    auto [dwelling_id, unit_id] = W.add_dwelling_and_brave_ids(
         { .x = 0, .y = 0 }, e_tribe::arawak );
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
              1 );
@@ -161,7 +162,7 @@ TEST_CASE( "[native-turn] natives_turn" ) {
     W.square( { .x = 1, .y = 0 } ).road = true;
     W.square( { .x = 2, .y = 0 } ).road = true;
     W.square( { .x = 3, .y = 0 } ).road = true;
-    auto [dwelling_id, unit_id] = W.add_dwelling_and_brave(
+    auto [dwelling_id, unit_id] = W.add_dwelling_and_brave_ids(
         { .x = 0, .y = 0 }, e_tribe::arawak );
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
              1 );
@@ -193,7 +194,7 @@ TEST_CASE( "[native-turn] natives_turn" ) {
     W.square( { .x = 0, .y = 0 } ).road = true;
     W.square( { .x = 1, .y = 0 } ).road = true;
     W.square( { .x = 2, .y = 0 } ).road = true;
-    auto [dwelling_id, unit_id] = W.add_dwelling_and_brave(
+    auto [dwelling_id, unit_id] = W.add_dwelling_and_brave_ids(
         { .x = 0, .y = 0 }, e_tribe::arawak );
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
              1 );
@@ -241,7 +242,7 @@ TEST_CASE( "[native-turn] natives_turn" ) {
   SECTION( "one unit, animation enabled/disabled" ) {
     MockLandViewPlane mock_land_view;
     W.planes().back().land_view = &mock_land_view;
-    auto [dwelling_id, unit_id] = W.add_dwelling_and_brave(
+    auto [dwelling_id, unit_id] = W.add_dwelling_and_brave_ids(
         { .x = 0, .y = 0 }, e_tribe::arawak );
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
              1 );
@@ -316,9 +317,9 @@ TEST_CASE( "[native-turn] natives_turn" ) {
   }
 
   SECTION( "two units same tribe, forfeight" ) {
-    auto [dwelling_id1, unit_id1] = W.add_dwelling_and_brave(
+    auto [dwelling_id1, unit_id1] = W.add_dwelling_and_brave_ids(
         { .x = 0, .y = 0 }, e_tribe::arawak );
-    auto [dwelling_id2, unit_id2] = W.add_dwelling_and_brave(
+    auto [dwelling_id2, unit_id2] = W.add_dwelling_and_brave_ids(
         { .x = 0, .y = 1 }, e_tribe::arawak );
     REQUIRE( W.units().unit_for( unit_id1 ).movement_points ==
              1 );
@@ -344,9 +345,9 @@ TEST_CASE( "[native-turn] natives_turn" ) {
   }
 
   SECTION( "two units same tribe, travel" ) {
-    auto [dwelling_id1, unit_id1] = W.add_dwelling_and_brave(
+    auto [dwelling_id1, unit_id1] = W.add_dwelling_and_brave_ids(
         { .x = 0, .y = 0 }, e_tribe::arawak );
-    auto [dwelling_id2, unit_id2] = W.add_dwelling_and_brave(
+    auto [dwelling_id2, unit_id2] = W.add_dwelling_and_brave_ids(
         { .x = 0, .y = 1 }, e_tribe::arawak );
     REQUIRE( W.units().unit_for( unit_id1 ).movement_points ==
              1 );
@@ -382,9 +383,9 @@ TEST_CASE( "[native-turn] natives_turn" ) {
     W.square( { .x = 1, .y = 1 } ).road = true;
     W.square( { .x = 2, .y = 1 } ).road = true;
     W.square( { .x = 3, .y = 1 } ).road = true;
-    auto [dwelling_id1, unit_id1] = W.add_dwelling_and_brave(
+    auto [dwelling_id1, unit_id1] = W.add_dwelling_and_brave_ids(
         { .x = 0, .y = 0 }, e_tribe::arawak );
-    auto [dwelling_id2, unit_id2] = W.add_dwelling_and_brave(
+    auto [dwelling_id2, unit_id2] = W.add_dwelling_and_brave_ids(
         { .x = 0, .y = 1 }, e_tribe::arawak );
     REQUIRE( W.units().unit_for( unit_id1 ).movement_points ==
              1 );
@@ -449,9 +450,9 @@ TEST_CASE( "[native-turn] natives_turn" ) {
     W.square( { .x = 1, .y = 1 } ).road = true;
     W.square( { .x = 2, .y = 1 } ).road = true;
     W.square( { .x = 3, .y = 1 } ).road = true;
-    auto [dwelling_id1, unit_id1] = W.add_dwelling_and_brave(
+    auto [dwelling_id1, unit_id1] = W.add_dwelling_and_brave_ids(
         { .x = 0, .y = 0 }, e_tribe::arawak );
-    auto [dwelling_id2, unit_id2] = W.add_dwelling_and_brave(
+    auto [dwelling_id2, unit_id2] = W.add_dwelling_and_brave_ids(
         { .x = 0, .y = 1 }, e_tribe::inca );
     REQUIRE( W.units().unit_for( unit_id1 ).movement_points ==
              1 );
