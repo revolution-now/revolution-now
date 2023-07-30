@@ -16,6 +16,7 @@
 // Testing.
 #include "test/fake/world.hpp"
 #include "test/mocks/ieuro-mind.hpp"
+#include "test/util/coro.hpp"
 
 // Revolution Now
 #include "src/damaged.rds.hpp"
@@ -868,10 +869,8 @@ TEST_CASE(
   EuroCombatEffectsMessage defender{ .mind = defender_mind };
 
   auto f = [&] {
-    wait<> const w = show_combat_effects_messages_euro_euro(
-        attacker, defender );
-    REQUIRE( !w.exception() );
-    REQUIRE( w.ready() );
+    co_await_test( show_combat_effects_messages_euro_euro(
+        attacker, defender ) );
   };
 
   attacker.msg = CombatEffectsMessage{
@@ -907,11 +906,9 @@ TEST_CASE(
   EuroCombatEffectsMessage attacker{ .mind = attacker_mind };
 
   auto f = [&] {
-    wait<> const w =
+    co_await_test(
         show_combat_effects_messages_euro_attacker_only(
-            attacker );
-    REQUIRE( !w.exception() );
-    REQUIRE( w.ready() );
+            attacker ) );
   };
 
   attacker.msg = CombatEffectsMessage{
@@ -935,10 +932,8 @@ TEST_CASE(
   NativeCombatEffectsMessage native;
 
   auto f = [&] {
-    wait<> const w =
-        show_combat_effects_messages_euro_native( euro, native );
-    REQUIRE( !w.exception() );
-    REQUIRE( w.ready() );
+    co_await_test( show_combat_effects_messages_euro_native(
+        euro, native ) );
   };
 
   euro.msg = CombatEffectsMessage{

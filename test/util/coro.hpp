@@ -19,10 +19,17 @@
 namespace rn {
 
 template<typename T>
-T co_await_test( wait<T> const w ) {
+std::conditional_t<std::is_same_v<T, std::monostate>, void, T>
+co_await_test( wait<T> const w ) {
   BASE_CHECK( !w.exception() );
   BASE_CHECK( w.ready() );
   return std::move( *w );
+}
+
+template<>
+inline void co_await_test( wait<> const w ) {
+  BASE_CHECK( !w.exception() );
+  BASE_CHECK( w.ready() );
 }
 
 } // namespace rn
