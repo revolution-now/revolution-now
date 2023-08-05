@@ -3,21 +3,37 @@ set -eo pipefail
 
 source ~/dev/utilities/bashlib/util.sh
 
-[[ -d .builds ]] ||
-  die 'must run from rn root folder.'
+[[ -d .builds ]] || die 'must run from rn root folder.'
 
-local_dst='.builds/from-linode/exe/exe'
-linode_src='linode:/home/dsicilia/dev/revolution-now/.builds/current/exe/exe'
+get_file() {
+  local from="$1"
+  local to="$2"
+  log "creating local destination: $(dirname "$to")"
+  mkdir -p "$(dirname "$to")"
+  log "pulling remote file: $from"
+  rsync --checksum "dsicilia@linode:$from" "$to"
+}
 
-log "creating local destination: $local_dst"
-mkdir -p "$(dirname "$local_dst")"
+get_dir() {
+  local from="$1"
+  local to="$2"
+  log "creating local destination: $to"
+  mkdir -p "$to"
+  log "pulling remote folder: $from"
+  rsync --checksum --recursive "dsicilia@linode:$from" "$to"
+}
 
-log "pulling remote file: $linode_src"
-scp "$linode_src" "$local_dst"
+local_exe='.builds/from-linode/exe/exe'
+linode_exe='/home/dsicilia/dev/revolution-now/.builds/current/exe/exe'
+get_file "$linode_exe"  "$local_exe"
+
+local_conf='config/'
+linode_conf='/home/dsicilia/dev/revolution-now/config/'
+get_dir  "$linode_conf" "$local_conf"
 
 log "checking result..."
-[[ -x "$local_dst" ]] ||
-  die "result ($local_dst) is not executable."
+[[ -x "$local_exe" ]] || die "result ($local_exe) is not executable."
 
 log "done. running..."
-$local_dst
+export LSAN_OPTIONS='print_suppressions=false,suppressions=tools/lsan.suppressions'
+$local_exe
