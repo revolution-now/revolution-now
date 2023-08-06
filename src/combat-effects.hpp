@@ -72,11 +72,11 @@ void perform_naval_unit_combat_effects(
 *****************************************************************/
 struct EuroCombatEffectsMessage {
   IEuroMind&           mind;
-  CombatEffectsMessage msg;
+  CombatEffectsMessage msg = {};
 };
 
 struct NativeCombatEffectsMessage {
-  CombatEffectsMessage msg;
+  CombatEffectsMessage msg = {};
 };
 
 wait<> show_combat_effects_messages_euro_euro(
