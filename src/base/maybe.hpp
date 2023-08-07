@@ -817,22 +817,24 @@ class [[nodiscard]] maybe { /* clang-format on */
   ** Monadic Interface: get_if
   ***************************************************************/
   // This is when the value type is a std::variant.
-  template<typename Alt> /* clang-format off */
-  maybe<Alt&> get_if() noexcept
-    requires(
-        requires { std::get_if<Alt>(std::declval<T*>()); } ) {
-    /* clang-format on */
+  template<typename Alt>
+  maybe<Alt&> get_if() noexcept ATTR_LIFETIMEBOUND
+  requires( requires {
+    std::get_if<Alt>( std::declval<T*>() );
+  } )
+  {
     if( !has_value() ) return nothing;
     auto* p = std::get_if<Alt>( &( **this ) );
     if( p == nullptr ) return nothing;
     return *p;
   }
 
-  template<typename Alt> /* clang-format off */
-  maybe<Alt const&> get_if() const noexcept
-    requires(
-        requires { std::get_if<Alt>(std::declval<T*>()); } ) {
-    /* clang-format on */
+  template<typename Alt>
+  maybe<Alt const&> get_if() const noexcept ATTR_LIFETIMEBOUND
+  requires( requires {
+    std::get_if<Alt>( std::declval<T*>() );
+  } )
+  {
     if( !has_value() ) return nothing;
     auto* p = std::get_if<Alt>( &( **this ) );
     if( p == nullptr ) return nothing;

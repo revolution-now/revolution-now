@@ -873,7 +873,7 @@ TEST_CASE( "[maybe] emplace" ) {
   }
   SECTION( "weird constructor" ) {
     struct A {
-      A( int n_, string s_, double d_ )
+      [[maybe_unused]] A( int n_, string s_, double d_ )
         : n( n_ ), s( s_ ), d( d_ ) {}
       int    n;
       string s;
