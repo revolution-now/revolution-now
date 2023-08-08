@@ -60,6 +60,10 @@ set( CMAKE_CXX_STANDARD 20 )
 # vious CMake run because we do enable tests us.
 set( BUILD_TESTING OFF )
 
+# Apparently setting BUILD_SHARED_LIBS=NO is not enough.
+set( RTMIDI_BUILD_STATIC_LIBS YES )
+set( RTMIDI_BUILD_SHARED_LIBS NO  )
+
 add_subdirectory( extern/base-util/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/backward-cpp  EXCLUDE_FROM_ALL )
 add_subdirectory( extern/fmt           EXCLUDE_FROM_ALL )
