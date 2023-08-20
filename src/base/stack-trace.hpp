@@ -17,7 +17,7 @@
 
 // FIXME: move this to the error module after that is moved into
 // the base library.
-#ifndef NDEBUG
+#ifdef USE_BACKWARD
 #  define assert_bt( ... ) \
     if( !( __VA_ARGS__ ) ) ::base::abort_with_backtrace_here();
 #else

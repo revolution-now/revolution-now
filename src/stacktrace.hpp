@@ -18,7 +18,7 @@
 #include <string>
 
 // This decides when to enable stack traces in the build.
-#ifndef NDEBUG
+#ifdef USE_BACKWARD
 #  define STACK_TRACE_ON
 #endif
 
