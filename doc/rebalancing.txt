@@ -132,6 +132,16 @@ General changes to the game:
     pendence). Maybe we can introduce another way of preventing
     that. Ideas could be:
 
+      * A stockade still prevents a colony from being abandoned,
+        but the player can "sell" the stockade, which will get
+        rid of it and allow the player to abandon the colony.
+        However, when trying to sell the stockade, the player is
+        told that the population of that colony, in exchange for
+        the feelins of vulnerability they feel as a result of
+        selling the stockade, damand 1/5 of your treasury as com-
+        pensation in order to sell it, otherwise they will erect
+        a new one. That way, the player has to effectively pay a
+        lot to abandon a colony.
       * Once a colony goes above 50% SoL it cannot be abandoned.
       * If a colony exists at population >= 3 for longer than N
         turns then it cannot be abandoned.
