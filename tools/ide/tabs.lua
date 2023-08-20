@@ -9,6 +9,7 @@ local M = {}
 local dslsp = require( 'dsicilia.lsp' )
 local colors = require( 'dsicilia.colors' )
 local palette = require( 'gruvbox.palette' )
+local dsstatus = require( 'dsicilia.status-bar' )
 
 -----------------------------------------------------------------
 -- Aliases
@@ -49,16 +50,19 @@ end
 --      active = false,
 --      idx = 1,
 --      diagnostics = { errors=1, warnings=2, infos=0, hints=0 },
+--      compiling = false,
 --      buffers = {
 --        1: {
 --          buffer_idx = 123,
 --          path = "/some/path/to/file.cpp",
---      diagnostics = { errors=1, warnings=0, infos=0, hints=0 },
+--          compiling = false,
+--          diagnostics = { errors=1, warnings=0, infos=0, hints=0 },
 --        },
 --        2: {
 --          buffer_idx = 567,
 --          path = "/another/file.hpp",
---      diagnostics = { errors=0, warnings=2, infos=0, hints=0 },
+--          compiling = false,
+--          diagnostics = { errors=0, warnings=2, infos=0, hints=0 },
 --        }
 --        ...
 --      }
@@ -68,6 +72,7 @@ end
 --      active = true,
 --      idx = 2,
 --      diagnostics = { errors=0, warnings=0, infos=0, hints=0 },
+--      compiling = true,
 --      buffers = {
 --        ...
 --      }
@@ -88,6 +93,7 @@ function M.tab_config()
     tab.buffers = {}
     local buf_list = tab_page_buffer_list( i )
     tab.diagnostics = { errors=0, warnings=0, infos=0, hints=0 }
+    tab.compiling = false
     for _, buf_idx in ipairs( buf_list ) do
       local buffer = {}
       table.insert( tab.buffers, buffer )
@@ -98,6 +104,8 @@ function M.tab_config()
       for k, v in pairs( buffer.diagnostics ) do
         tab.diagnostics[k] = tab.diagnostics[k] + v
       end
+      buffer.compiling = dsstatus.is_buffer_compiling( buf_idx )
+      tab.compiling = tab.compiling or buffer.compiling
     end
   end
   return res
@@ -111,6 +119,11 @@ colors.hl_setter( 'IdeTabColors', function( hi )
     fg=P.bright_yellow,
     bg=P.dark1,
     underline=true,
+  }
+  hi.TabLineCompiling = {
+    fg=P.bright_orange,
+    bg=P.dark1,
+    underline=false,
   }
 end )
 
@@ -128,6 +141,8 @@ local function construct_tabline( namer )
     -- which does not look good.
     if idx == M.current_tab() then
       tab_fmt = '%#TabLineSel# '
+    elseif tab.compiling then
+      tab_fmt = ' %#TabLineCompiling#'
     elseif tab.diagnostics.errors > 0 then
       tab_fmt = ' %#TabLineError#'
     elseif tab.diagnostics.warnings > 0 then
@@ -172,6 +187,13 @@ autocmd( 'DiagnosticChanged', {
   group=augroup( 'IdeTabs', { clear=true } ),
   callback=function( _ ) vim.cmd.redrawtabline() end,
 } )
+
+-- This allows us to redraw the status bar whenever the status of
+-- a buffer changes to/from "compiling", which is not always cap-
+-- tured by DiagnosticChanged (though sometimes it seems to be).
+dsstatus.register_filestatus_hook( function()
+  vim.cmd.redrawtabline()
+end )
 
 -- Takes a tab namer (i.e., a function that takes a list of
 -- buffer tables and returns a name for the tab) and sets the
