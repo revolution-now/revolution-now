@@ -410,6 +410,7 @@ class [[nodiscard]] expect { /* clang-format on */
   // to expect<T::value_type&>.
   template<typename U>
   constexpr operator expect<U&, E>() const noexcept
+      ATTR_LIFETIMEBOUND
   requires( mp::is_reference_wrapper_v<T> &&
             std::is_copy_constructible_v<E> )
   {
@@ -420,6 +421,7 @@ class [[nodiscard]] expect { /* clang-format on */
   // Always allow implici conversions to expect<T&, E>.
   template<typename U>
   constexpr operator expect<U const&, E>() const noexcept
+      ATTR_LIFETIMEBOUND
   requires( !mp::is_reference_wrapper_v<T> &&
             std::is_convertible_v<T const&, U const&> &&
             std::is_copy_constructible_v<E> )
@@ -429,7 +431,7 @@ class [[nodiscard]] expect { /* clang-format on */
   }
 
   template<typename U>
-  constexpr operator expect<U&, E>() noexcept
+  constexpr operator expect<U&, E>() noexcept ATTR_LIFETIMEBOUND
   requires( !mp::is_reference_wrapper_v<T> &&
             std::is_convertible_v<T&, U&> &&
             std::is_copy_constructible_v<E> )

@@ -396,6 +396,7 @@ class [[nodiscard]] maybe { /* clang-format on */
   // to maybe<T::value_type&>.
   template<typename U>
   constexpr operator maybe<U&>() const noexcept
+      ATTR_LIFETIMEBOUND
   requires( mp::is_reference_wrapper_v<T> )
   {
     if( !has_value() ) return nothing;
@@ -405,6 +406,7 @@ class [[nodiscard]] maybe { /* clang-format on */
   // Always allow implici conversions to maybe<T&>.
   template<typename U>
   constexpr operator maybe<U const&>() const noexcept
+      ATTR_LIFETIMEBOUND
   requires( !mp::is_reference_wrapper_v<T> &&
             std::is_convertible_v<T const&, U const&> )
   {
@@ -413,7 +415,7 @@ class [[nodiscard]] maybe { /* clang-format on */
   }
 
   template<typename U>
-  constexpr operator maybe<U&>() noexcept
+  constexpr operator maybe<U&>() noexcept ATTR_LIFETIMEBOUND
   requires( !mp::is_reference_wrapper_v<T> &&
             std::is_convertible_v<T&, U&> )
   {
