@@ -1,0 +1,10 @@
+Some links on understanding/reading the original game's save
+files:
+
+  1. https://github.com/nawagers/Colonization-SAV-files/blob/master/Format.md
+  2. https://forums.civfanatics.com/threads/colonization-1994-sav-files-decoder-and-encoder.681919/
+  3. https://forums.civfanatics.com/threads/decoding-colonization-sav-files-1994-old-classic.674707/
+  4. https://github.com/hegemogy/viceroy
+  5. https://github.com/pavelbel/smcol_saves_utility
+  6. https://forums.civfanatics.com/threads/colsaves-updates.678126/
+  7. https://github.com/henryjfry/colsaves/tree/master/colsaves
