@@ -40,6 +40,15 @@ warehouses {
 
 food_for_creating_new_colonist: 200
 
+# This is the maximum pythagorean distance that we will search in
+# the vicinity of a starting square for a colony that is "close
+# by". It is used e.g. in giving context for the location of a
+# battle.
+#
+# The below value was chosen so that a circle with that radius
+# approximately covers a "standard" screen size.
+search_dist_for_nearby_colony: 7.0
+
 # The maximum number of people that be placed in each (indoor)
 # colony building. The original game uses 3.
 max_workers_per_building: 3

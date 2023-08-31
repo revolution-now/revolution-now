@@ -206,6 +206,12 @@ struct.config_colony_t {
 
   food_for_creating_new_colonist 'int',
 
+  # This is the maximum pythagorean distance that we will search
+  # in the vicinity of a starting square for a colony that is
+  # "close by". It is used e.g. in giving context for the loca-
+  # tion of a battle.
+  search_dist_for_nearby_colony 'double',
+
   # The maximum number of people that be placed in each (indoor)
   # colony building, though this does not apply to school / col-
   # lege / university.
