@@ -19,6 +19,7 @@ include "ss/settings.rds.hpp"
 include "refl/enum-map.hpp"
 
 # C++ standard library
+include "<chrono>"
 include "<string>"
 
 namespace "rn"
