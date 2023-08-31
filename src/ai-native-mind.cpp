@@ -16,6 +16,7 @@
 #include "society.hpp"
 
 // ss
+#include "ss/colonies.hpp"
 #include "ss/natives.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
@@ -46,8 +47,24 @@ NativeUnitCommand AiNativeMind::command_for(
   Tribe const&      tribe =
       ss_.natives.tribe_for( world->dwelling_id );
   CHECK_GT( unit.movement_points, 0 );
-  e_direction const rand_d = pick_one<e_direction>( rand_ );
-  Coord const       moved  = world->coord.moved( rand_d );
+  e_direction const rand_d = [&] {
+    for( e_direction d : refl::enum_values<e_direction> ) {
+      Coord const moved = world->coord.moved( d );
+      if( !ss_.terrain.square_exists( moved ) ) continue;
+      if( ss_.colonies.maybe_from_coord( moved ) ) return d;
+    }
+    for( e_direction d : refl::enum_values<e_direction> ) {
+      Coord const moved = world->coord.moved( d );
+      if( !ss_.terrain.square_exists( moved ) ) continue;
+      maybe<Society> const society =
+          society_on_square( ss_, moved );
+      if( society.has_value() &&
+          society->holds<Society::european>() )
+        return d;
+    }
+    return pick_one<e_direction>( rand_ );
+  }();
+  Coord const moved = world->coord.moved( rand_d );
   if( !ss_.terrain.square_exists( moved ) )
     return NativeUnitCommand::forfeight{};
   MapSquare const& square = ss_.terrain.square_at( moved );
@@ -71,6 +88,8 @@ NativeUnitCommand AiNativeMind::command_for(
 
 void AiNativeMind::on_attack_colony_finished(
     CombatBraveAttackColony const&,
-    BraveAttackColonyEffect const& ) {}
+    BraveAttackColonyEffect const& ) {
+  // TODO: adjust alarm.
+}
 
 } // namespace rn
