@@ -68,7 +68,7 @@ FogColony colony_to_fog_colony( SSConst const& ss,
   // date the below.
   static_assert(
       tuple_size_v<
-          decltype( refl::traits<FogColony>::fields )> == 5 );
+          decltype( refl::traits<FogColony>::fields )> == 6 );
   int const     population = colony_population( colony );
   Player const& player =
       player_for_nation_or_die( ss.players, colony.nation );
