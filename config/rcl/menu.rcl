@@ -38,7 +38,7 @@ menus {
   cheat {
     name:     Cheat
     shortcut: C
-    position: right
+    position: left
   }
 
   pedia {
