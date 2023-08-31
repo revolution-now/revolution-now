@@ -124,7 +124,7 @@ valid_or<string> UnitTypeAttributes::validate() const {
         "`can_found` field.",
         type );
 
-  // Validate that if can_found is yes, then is_colonist is true.
+  // Validate that if can_found is yes, then colonist is true.
   if( can_found == e_unit_can_found_colony::yes )
     REFL_VALIDATE( colonist != e_unit_colonist::no,
                    "type {} has can_found=yes but it is a "
