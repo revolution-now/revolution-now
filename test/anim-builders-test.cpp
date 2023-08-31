@@ -585,8 +585,9 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_colony" ) {
       e_native_unit_type::mounted_brave, { .x = 1, .y = 1 },
       dwelling.id );
   CombatBraveAttackColony combat{
-      .attacker = { .id = attacker.id },
-      .defender = { .id = defender.id() } };
+      .colony_id = colony.id,
+      .attacker  = { .id = attacker.id },
+      .defender  = { .id = defender.id() } };
 
   auto f = [&] {
     return anim_seq_for_brave_attack_colony( W.ss(), combat );

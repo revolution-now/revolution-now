@@ -815,19 +815,20 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
         dwelling.id );
     defender = &indoor_unit;
     expected = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id              = attacker->id,
-                      .modifiers       = {},
-                      .base_weight     = 1.0,
-                      .modified_weight = 1.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::destroyed{} },
-        .defender = {
-            .id              = defender->id(),
-            .modifiers       = {},
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = EuroUnitCombatOutcome::no_change{} } };
+        .winner    = e_combat_winner::defender,
+        .colony_id = colony.id,
+        .attacker  = { .id              = attacker->id,
+                       .modifiers       = {},
+                       .base_weight     = 1.0,
+                       .modified_weight = 1.0,
+                       .outcome =
+                           NativeUnitCombatOutcome::destroyed{} },
+        .defender  = {
+             .id              = defender->id(),
+             .modifiers       = {},
+             .base_weight     = 1.0,
+             .modified_weight = 1.0,
+             .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -839,19 +840,20 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
                                    colony.location );
     W.expect_promotion( false );
     expected = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id              = attacker->id,
-                      .modifiers       = {},
-                      .base_weight     = 1.0,
-                      .modified_weight = 1.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::destroyed{} },
-        .defender = {
-            .id              = defender->id(),
-            .modifiers       = {},
-            .base_weight     = 2.0,
-            .modified_weight = 2.0,
-            .outcome = EuroUnitCombatOutcome::no_change{} } };
+        .winner    = e_combat_winner::defender,
+        .colony_id = colony.id,
+        .attacker  = { .id              = attacker->id,
+                       .modifiers       = {},
+                       .base_weight     = 1.0,
+                       .modified_weight = 1.0,
+                       .outcome =
+                           NativeUnitCombatOutcome::destroyed{} },
+        .defender  = {
+             .id              = defender->id(),
+             .modifiers       = {},
+             .base_weight     = 2.0,
+             .modified_weight = 2.0,
+             .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -863,20 +865,21 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
                                    colony.location );
     W.expect_promotion( true );
     expected = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id              = attacker->id,
-                      .modifiers       = {},
-                      .base_weight     = 1.0,
-                      .modified_weight = 1.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::destroyed{} },
-        .defender = {
-            .id              = defender->id(),
-            .modifiers       = {},
-            .base_weight     = 2.0,
-            .modified_weight = 2.0,
-            .outcome         = EuroUnitCombatOutcome::promoted{
-                        .to = e_unit_type::veteran_soldier } } };
+        .winner    = e_combat_winner::defender,
+        .colony_id = colony.id,
+        .attacker  = { .id              = attacker->id,
+                       .modifiers       = {},
+                       .base_weight     = 1.0,
+                       .modified_weight = 1.0,
+                       .outcome =
+                           NativeUnitCombatOutcome::destroyed{} },
+        .defender  = {
+             .id              = defender->id(),
+             .modifiers       = {},
+             .base_weight     = 2.0,
+             .modified_weight = 2.0,
+             .outcome         = EuroUnitCombatOutcome::promoted{
+                         .to = e_unit_type::veteran_soldier } } };
     REQUIRE( f() == expected );
   }
 
@@ -888,19 +891,20 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     defender = &indoor_unit;
     W.expect_defender_wins( .5 );
     expected = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id              = attacker->id,
-                      .modifiers       = {},
-                      .base_weight     = 1.0,
-                      .modified_weight = 1.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::destroyed{} },
-        .defender = {
-            .id              = defender->id(),
-            .modifiers       = {},
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = EuroUnitCombatOutcome::no_change{} } };
+        .winner    = e_combat_winner::defender,
+        .colony_id = colony.id,
+        .attacker  = { .id              = attacker->id,
+                       .modifiers       = {},
+                       .base_weight     = 1.0,
+                       .modified_weight = 1.0,
+                       .outcome =
+                           NativeUnitCombatOutcome::destroyed{} },
+        .defender  = {
+             .id              = defender->id(),
+             .modifiers       = {},
+             .base_weight     = 1.0,
+             .modified_weight = 1.0,
+             .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -912,19 +916,20 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     defender = &indoor_unit;
     W.expect_defender_wins( .333333 );
     expected = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id              = attacker->id,
-                      .modifiers       = {},
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::destroyed{} },
-        .defender = {
-            .id              = defender->id(),
-            .modifiers       = {},
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = EuroUnitCombatOutcome::no_change{} } };
+        .winner    = e_combat_winner::defender,
+        .colony_id = colony.id,
+        .attacker  = { .id              = attacker->id,
+                       .modifiers       = {},
+                       .base_weight     = 2.0,
+                       .modified_weight = 2.0,
+                       .outcome =
+                           NativeUnitCombatOutcome::destroyed{} },
+        .defender  = {
+             .id              = defender->id(),
+             .modifiers       = {},
+             .base_weight     = 1.0,
+             .modified_weight = 1.0,
+             .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -936,19 +941,20 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     defender = &indoor_unit;
     W.expect_defender_wins( .333333 );
     expected = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id              = attacker->id,
-                      .modifiers       = {},
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::destroyed{} },
-        .defender = {
-            .id              = defender->id(),
-            .modifiers       = {},
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = EuroUnitCombatOutcome::no_change{} } };
+        .winner    = e_combat_winner::defender,
+        .colony_id = colony.id,
+        .attacker  = { .id              = attacker->id,
+                       .modifiers       = {},
+                       .base_weight     = 2.0,
+                       .modified_weight = 2.0,
+                       .outcome =
+                           NativeUnitCombatOutcome::destroyed{} },
+        .defender  = {
+             .id              = defender->id(),
+             .modifiers       = {},
+             .base_weight     = 1.0,
+             .modified_weight = 1.0,
+             .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -961,7 +967,8 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     W.expect_attacker_wins( .5 );
     expected = {
         .winner           = e_combat_winner::attacker,
-        .colony_destroyed = colony.id,
+        .colony_id        = colony.id,
+        .colony_destroyed = true,
         .attacker         = { .id              = attacker->id,
                               .modifiers       = {},
                               .base_weight     = 1.0,
@@ -988,7 +995,8 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     W.expect_promotion( false );
     expected = {
         .winner           = e_combat_winner::defender,
-        .colony_destroyed = nothing,
+        .colony_id        = colony.id,
+        .colony_destroyed = false,
         .attacker         = { .id              = attacker->id,
                               .modifiers       = {},
                               .base_weight     = 1.0,
@@ -1015,7 +1023,8 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     W.expect_promotion( true );
     expected = {
         .winner           = e_combat_winner::defender,
-        .colony_destroyed = nothing,
+        .colony_id        = colony.id,
+        .colony_destroyed = false,
         .attacker         = { .id              = attacker->id,
                               .modifiers       = {},
                               .base_weight     = 1.0,
@@ -1042,7 +1051,8 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     W.expect_defender_wins( .75 );
     expected = {
         .winner           = e_combat_winner::defender,
-        .colony_destroyed = nothing,
+        .colony_id        = colony.id,
+        .colony_destroyed = false,
         .attacker         = { .id              = attacker->id,
                               .modifiers       = {},
                               .base_weight     = 1.0,
@@ -1068,7 +1078,8 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     W.expect_attacker_wins( .5 );
     expected = {
         .winner           = e_combat_winner::attacker,
-        .colony_destroyed = nothing,
+        .colony_id        = colony.id,
+        .colony_destroyed = false,
         .attacker         = { .id              = attacker->id,
                               .modifiers       = {},
                               .base_weight     = 3.0,

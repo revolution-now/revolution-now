@@ -260,11 +260,13 @@ struct.CombatBraveAttackEuro {
 struct.CombatBraveAttackColony {
   winner 'e_combat_winner',
 
+  colony_id 'ColonyId',
+
   # If the player has multiple colonies and the colony being at-
   # tacked has only one colonist and is not defended by any mili-
   # tary units and the brave wins then the colony will be de-
   # stroyed.
-  colony_destroyed 'maybe<ColonyId>',
+  colony_destroyed 'bool',
 
   attacker 'CombatStats<NativeUnitId, e_brave_combat_modifiers, NativeUnitCombatOutcome>',
   defender 'CombatStats<UnitId, e_euro_unit_combat_modifiers, EuroUnitCombatOutcome>',

@@ -191,7 +191,7 @@ void play_combat_outcome_sound(
 void play_combat_outcome_sound(
     AnimationBuilder&              builder,
     CombatBraveAttackColony const& combat ) {
-  if( combat.colony_destroyed.has_value() ) {
+  if( combat.colony_destroyed ) {
     builder.play_sound( e_sfx::city_destroyed );
     return;
   }
@@ -410,8 +410,8 @@ AnimationSequence anim_seq_for_brave_attack_colony(
       builder, combat.attacker.id, combat.attacker.outcome );
   add_attack_outcome_for_euro_unit(
       ss, builder, combat.defender.id, combat.defender.outcome );
-  if( combat.colony_destroyed.has_value() )
-    builder.depixelate_colony( *combat.colony_destroyed );
+  if( combat.colony_destroyed )
+    builder.depixelate_colony( combat.colony_id );
   play_combat_outcome_sound( builder, combat );
 
   return builder.result();

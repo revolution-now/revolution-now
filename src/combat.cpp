@@ -579,16 +579,15 @@ CombatBraveAttackColony RealCombat::brave_attack_colony(
         brave_attack_euro( attacker, defender );
     // Note that this colony destruction happens even when the
     // colony posesses a fortress.
-    maybe<ColonyId> const colony_destroyed =
+    bool const colony_destroyed =
         ( units_combat.winner == e_combat_winner::attacker &&
-          !is_military_unit( defender.type() ) )
-            ? colony.id
-            : maybe<ColonyId>{};
+          !is_military_unit( defender.type() ) );
     auto defender_stats = units_combat.defender;
-    if( colony_destroyed.has_value() )
+    if( colony_destroyed )
       defender_stats.outcome =
           EuroUnitCombatOutcome::destroyed{};
     return { .winner           = units_combat.winner,
+             .colony_id        = colony.id,
              .colony_destroyed = colony_destroyed,
              .attacker         = units_combat.attacker,
              .defender         = defender_stats };
@@ -613,7 +612,8 @@ CombatBraveAttackColony RealCombat::brave_attack_colony(
                                tribe_for_unit( ss_, attacker ) },
           attacker_coord, /*won=*/true );
   return { .winner           = e_combat_winner::defender,
-           .colony_destroyed = nothing,
+           .colony_id        = colony.id,
+           .colony_destroyed = false,
            .attacker         = { .id              = attacker.id,
                                  .modifiers       = {},
                                  .base_weight     = attack_points,
