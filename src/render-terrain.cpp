@@ -2373,7 +2373,7 @@ struct OverlayInfo {
 
 OverlayInfo surrounding_overlays(
     Visibility const& viz, Coord tile,
-    refl::enum_map<e_tile_visibility, bool> targets ) {
+    refl::enum_map<e_tile_visibility, bool> const& targets ) {
   OverlayInfo info;
   info.fully_surrounded = true;
   for( e_cdirection d : refl::enum_values<e_cdirection> ) {

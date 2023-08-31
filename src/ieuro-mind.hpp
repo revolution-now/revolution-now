@@ -21,9 +21,6 @@
 // ss
 #include "ss/unit-id.hpp"
 
-// C++ standard library
-#include <unordered_set>
-
 namespace rn {
 
 enum class e_nation;
