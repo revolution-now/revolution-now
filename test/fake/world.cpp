@@ -449,8 +449,8 @@ void World::set_default_player_as_human() {
 }
 
 Colony& World::add_colony( UnitId founder ) {
-  string name =
-      fmt::to_string( colonies().last_colony_id() + 1 );
+  string name = fmt::to_string(
+      colonies().last_colony_id().value_or( 0 ) + 1 );
   ColonyId id = found_colony(
       ss(), ts(),
       player( ss().units.unit_for( founder ).nation() ), founder,
@@ -460,8 +460,8 @@ Colony& World::add_colony( UnitId founder ) {
 
 Colony& World::add_colony( Coord           where,
                            maybe<e_nation> nation ) {
-  string name =
-      fmt::to_string( colonies().last_colony_id() + 1 );
+  string name = fmt::to_string(
+      colonies().last_colony_id().value_or( 0 ) + 1 );
   Colony& colony   = colonies().colony_for( create_empty_colony(
       colonies(), nation.value_or( default_nation_ ), where,
       name ) );

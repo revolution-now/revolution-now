@@ -33,7 +33,11 @@ struct ColoniesState {
   // variants. Any more complicated game logic that gets layered
   // on top of these should go elsewhere.
 
-  ColonyId last_colony_id() const;
+  inline static ColonyId const kFirstColonyId = ColonyId{ 1 };
+
+  // Returns the id of the most recently founded colony. Returns
+  // nothing if no colonies have yet been founded.
+  base::maybe<ColonyId> last_colony_id() const;
 
   std::unordered_map<ColonyId, Colony> const& all() const;
 

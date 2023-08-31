@@ -11,6 +11,7 @@
 #include "colonies.hpp"
 
 // luapp
+#include "luapp/ext-base.hpp"
 #include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
@@ -28,18 +29,18 @@ using namespace std;
 
 namespace rn {
 
-namespace {
-
-constexpr int kFirstColonyId = 1;
-
-} // namespace
-
 /****************************************************************
 ** wrapped::ColoniesState
 *****************************************************************/
 base::valid_or<string> wrapped::ColoniesState::validate() const {
   unordered_set<Coord>  used_coords;
   unordered_set<string> used_names;
+
+  auto const kFirstColonyId = rn::ColoniesState::kFirstColonyId;
+
+  REFL_VALIDATE( next_colony_id >= kFirstColonyId,
+                 "next_colony_id must be >= {}.",
+                 kFirstColonyId );
 
   ColonyId max_id{ -1 };
 
@@ -188,8 +189,11 @@ ColonyId ColoniesState::next_colony_id() {
   return ColonyId{ o_.next_colony_id++ };
 }
 
-ColonyId ColoniesState::last_colony_id() const {
-  CHECK( o_.next_colony_id > 0, "no colonies yet created." );
+base::maybe<ColonyId> ColoniesState::last_colony_id() const {
+  CHECK(
+      o_.next_colony_id >= kFirstColonyId,
+      "invalid value of next_colony_id: ", o_.next_colony_id );
+  if( o_.next_colony_id == kFirstColonyId ) return base::nothing;
   return ColonyId{ o_.next_colony_id - 1 };
 }
 

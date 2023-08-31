@@ -93,7 +93,7 @@ TEST_CASE( "[command-build] build colony" ) {
     REQUIRE( w_confirm.ready() );
   };
 
-  REQUIRE( W.colonies().last_colony_id() == 0 );
+  REQUIRE( W.colonies().last_colony_id() == nothing );
 
   W.gui()
       .EXPECT__display_woodcut(
@@ -138,7 +138,7 @@ TEST_CASE( "[command-build] build colony no ocean access" ) {
     return *w_confirm;
   };
 
-  REQUIRE( W.colonies().last_colony_id() == 0 );
+  REQUIRE( W.colonies().last_colony_id() == nothing );
 
   auto config_matcher =
       Field( &ChoiceConfig::msg, StrContains( "ocean access" ) );
@@ -148,7 +148,7 @@ TEST_CASE( "[command-build] build colony no ocean access" ) {
   REQUIRE( confirm() == false );
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
   REQUIRE( unit.orders().to_enum() == unit_orders::e::none );
-  REQUIRE( W.colonies().last_colony_id() == 0 );
+  REQUIRE( W.colonies().last_colony_id() == nothing );
 }
 
 } // namespace
