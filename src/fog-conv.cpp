@@ -87,6 +87,7 @@ FogColony colony_to_fog_colony( SSConst const& ss,
   return FogColony{
       .nation         = colony.nation,
       .name           = colony.name,
+      .location       = colony.location,
       .population     = population,
       .barricade_type = barricade_for_colony( colony ),
       .sons_of_liberty_integral_percent = sol_int_percent };

@@ -70,12 +70,16 @@ TEST_CASE( "[fog-conv] colony_to_fog_colony" ) {
     return colony_to_fog_colony( W.ss(), colony );
   };
 
-  expected = FogColony{ .nation = e_nation::spanish };
+  colony.location = Coord{ .x = 1, .y = 1 };
+
+  expected = FogColony{ .nation   = e_nation::spanish,
+                        .location = Coord{ .x = 1, .y = 1 } };
   REQUIRE( f() == expected );
 
   colony.name = "hello";
-  expected =
-      FogColony{ .nation = e_nation::spanish, .name = "hello" };
+  expected    = FogColony{ .nation   = e_nation::spanish,
+                           .name     = "hello",
+                           .location = Coord{ .x = 1, .y = 1 } };
   REQUIRE( f() == expected );
 
   colony.indoor_jobs[e_indoor_job::bells] = { UnitId{ 1 },
@@ -84,12 +88,14 @@ TEST_CASE( "[fog-conv] colony_to_fog_colony" ) {
          .unit_id = UnitId{ 3 }, .job = e_outdoor_job::food };
   expected = FogColony{ .nation     = e_nation::spanish,
                         .name       = "hello",
+                        .location   = { .x = 1, .y = 1 },
                         .population = 3 };
   REQUIRE( f() == expected );
 
   expected = FogColony{
       .nation         = e_nation::spanish,
       .name           = "hello",
+      .location       = { .x = 1, .y = 1 },
       .population     = 3,
       .barricade_type = e_colony_barricade_type::fort };
   colony.buildings[e_colony_building::fort] = true;
@@ -98,6 +104,7 @@ TEST_CASE( "[fog-conv] colony_to_fog_colony" ) {
   expected =
       FogColony{ .nation         = e_nation::spanish,
                  .name           = "hello",
+                 .location       = { .x = 1, .y = 1 },
                  .population     = 3,
                  .barricade_type = e_colony_barricade_type::fort,
                  .sons_of_liberty_integral_percent = 67 };
@@ -109,6 +116,7 @@ TEST_CASE( "[fog-conv] colony_to_fog_colony" ) {
   expected =
       FogColony{ .nation         = e_nation::spanish,
                  .name           = "hello",
+                 .location       = { .x = 1, .y = 1 },
                  .population     = 3,
                  .barricade_type = e_colony_barricade_type::fort,
                  .sons_of_liberty_integral_percent = 87 };
@@ -218,8 +226,9 @@ TEST_CASE( "[visibility] copy_real_square_to_fog_square" ) {
       .square =
           MapSquare{ .surface = e_surface::land,
                      .ground  = e_ground_terrain::grassland },
-      .colony = FogColony{ .nation = e_nation::spanish,
-                           .name   = "1" } };
+      .colony = FogColony{ .nation   = e_nation::spanish,
+                           .name     = "1",
+                           .location = { .x = 0, .y = 1 } } };
   f();
   REQUIRE( output == expected );
 
@@ -229,8 +238,9 @@ TEST_CASE( "[visibility] copy_real_square_to_fog_square" ) {
          .square =
           MapSquare{ .surface = e_surface::land,
                         .ground  = e_ground_terrain::grassland },
-         .colony = FogColony{ .nation = e_nation::spanish,
-                              .name   = "hello" } };
+         .colony = FogColony{ .nation   = e_nation::spanish,
+                              .name     = "hello",
+                              .location = { .x = 0, .y = 1 } } };
   f();
   REQUIRE( output == expected );
 

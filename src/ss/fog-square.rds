@@ -15,6 +15,9 @@ include "ss/nation.rds.hpp"
 include "ss/native-enums.rds.hpp"
 include "ss/unit-classes.rds.hpp"
 
+# gfx
+include "gfx/coord.hpp"
+
 # base
 include "base/maybe.hpp"
 
@@ -28,6 +31,7 @@ namespace "rn"
 struct.FogColony {
   nation 'e_nation',
   name 'std::string',
+  location 'Coord',
   population 'int',
   barricade_type 'base::maybe<e_colony_barricade_type>',
   sons_of_liberty_integral_percent 'int',
