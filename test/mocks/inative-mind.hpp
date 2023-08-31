@@ -31,6 +31,8 @@ struct MockINativeMind : INativeMind {
   MOCK_METHOD( NativeUnitId, select_unit,
                (std::set<NativeUnitId> const&), () );
 
+  MOCK_METHOD( wait<>, message_box, (std::string const&), () );
+
   MOCK_METHOD( NativeUnitCommand, command_for, ( NativeUnitId ),
                () );
 };

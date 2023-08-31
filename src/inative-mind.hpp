@@ -16,6 +16,9 @@
 // rds
 #include "inative-mind.rds.hpp"
 
+// Revolution Now
+#include "imind.hpp"
+
 // ss
 #include "ss/unit-id.hpp"
 
@@ -31,8 +34,11 @@ struct CombatBraveAttackEuro;
 /****************************************************************
 ** INativeMind
 *****************************************************************/
-struct INativeMind {
-  virtual ~INativeMind() = default;
+struct INativeMind : IMind {
+  virtual ~INativeMind() override = default;
+
+  // Implement IMind.
+  wait<> message_box( std::string const& msg ) override;
 
   // Select which unit is to receive orders next. The set should
   // be non-empty and contain only units that have some movement

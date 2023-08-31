@@ -28,7 +28,7 @@ struct SS;
 struct HumanEuroMind final : IEuroMind {
   HumanEuroMind( e_nation nation, SS& ss, IGui& gui );
 
-  // Implement IEuroMind.
+  // Implement IMind.
   wait<> message_box( std::string const& msg ) override;
 
   // Implement IEuroMind.

@@ -11,6 +11,9 @@
 *****************************************************************/
 #include "inative-mind.hpp"
 
+// Revolution Now
+#include "co-wait.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -30,6 +33,8 @@ NativeUnitId INativeMind::select_unit(
   CHECK( !units.empty() );
   return *units.begin();
 }
+
+wait<> INativeMind::message_box( string const& ) { co_return; }
 
 /****************************************************************
 ** NoopNativeMind

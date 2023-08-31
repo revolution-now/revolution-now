@@ -14,6 +14,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "imind.hpp"
 #include "meet-natives.rds.hpp"
 #include "wait.hpp"
 
@@ -32,29 +33,13 @@ struct MeetTribe;
 /****************************************************************
 ** IEuroMind
 *****************************************************************/
-struct IEuroMind {
+struct IEuroMind : IMind {
   IEuroMind( e_nation nation );
 
-  virtual ~IEuroMind() = default;
+  virtual ~IEuroMind() override = default;
 
   // For convenience.
   e_nation nation() const { return nation_; }
-
-  virtual wait<> message_box( std::string const& msg ) = 0;
-
-  // For convenience.  Should not be overridden.
-  template<typename Arg, typename... Rest>
-  wait<> message_box(
-      // The type_identity prevents the compiler from using the
-      // first arg to try to infer Arg/Rest (which would fail);
-      // it will defer that, then when it gets to the end it will
-      // have inferred those parameters through other args.
-      fmt::format_string<std::type_identity_t<Arg>, Rest...> fmt,
-      Arg&& arg, Rest&&... rest ) {
-    return message_box(
-        fmt::format( fmt, std::forward<Arg>( arg ),
-                     std::forward<Rest>( rest )... ) );
-  }
 
   // This is the interactive part of the sequence of events that
   // happens when first encountering a given native tribe. In
@@ -74,7 +59,7 @@ struct IEuroMind {
 struct NoopEuroMind final : IEuroMind {
   NoopEuroMind( e_nation nation );
 
-  // Implement IEuroMind.
+  // Implement IMind.
   wait<> message_box( std::string const& msg ) override;
 
   // Implement IEuroMind.

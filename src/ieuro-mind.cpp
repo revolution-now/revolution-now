@@ -29,9 +29,7 @@ IEuroMind::IEuroMind( e_nation nation ) : nation_( nation ) {}
 NoopEuroMind::NoopEuroMind( e_nation nation )
   : IEuroMind( nation ) {}
 
-wait<> NoopEuroMind::message_box( std::string const& ) {
-  co_return;
-}
+wait<> NoopEuroMind::message_box( string const& ) { co_return; }
 
 wait<e_declare_war_on_natives>
 NoopEuroMind::meet_tribe_ui_sequence( MeetTribe const& ) {
