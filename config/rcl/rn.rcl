@@ -30,7 +30,7 @@ viewport {
   # option that says "when a value of false would cause the min-
   # imum zoom factor to be larger than 1.0 then we need to set it
   # to true; otherwise, set it to false."
-  can_reveal_space_around_map: false
+  can_reveal_space_around_map: true
 
   # When the map view needs to scroll to reveal a tile that is
   # off screen it will only perform a smooth scroll if the tile
@@ -43,7 +43,7 @@ viewport {
   # 1.0 then the threshold for scrolling will be roughly one
   # screen length, where screen length is defined as the average
   # of the two screen dimensions. This can be fractional.
-  smooth_scroll_threshold: 1.0
+  smooth_scroll_threshold: 0.5
 }
 
 console {
