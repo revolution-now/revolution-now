@@ -70,6 +70,10 @@ size size::max_with( size const rhs ) const {
   return size{ std::max( w, rhs.w ), std::max( h, rhs.h ) };
 }
 
+double size::pythagorean() const {
+  return sqrt( w * w + h * h );
+}
+
 size size::operator+( size const term ) const {
   return size{ .w = w + term.w, .h = h + term.h };
 };

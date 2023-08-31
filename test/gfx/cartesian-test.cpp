@@ -27,6 +27,7 @@ using namespace std;
 using namespace Catch::literals;
 
 using ::base::nothing;
+using ::Catch::Detail::Approx;
 
 /****************************************************************
 ** size
@@ -35,6 +36,15 @@ TEST_CASE( "[gfx/cartesian] size::max_with" ) {
   size s1{ .w = 4, .h = 2 };
   size s2{ .w = 2, .h = 8 };
   REQUIRE( s1.max_with( s2 ) == size{ .w = 4, .h = 8 } );
+}
+
+TEST_CASE( "[gfx/cartesian] size::pythagorean" ) {
+  size s = {};
+
+  s = { .w = 4, .h = -2 };
+  REQUIRE( s.pythagorean() == Approx( 4.472136 ) );
+  s = { .w = 5, .h = 12 };
+  REQUIRE( s.pythagorean() == 13.0 );
 }
 
 TEST_CASE( "[gfx/cartesian] size::operator*( int )" ) {

@@ -41,6 +41,8 @@ struct size {
   // Returns a dsize; auto is used to avoid circular dependency.
   auto to_double() const;
 
+  double pythagorean() const;
+
   size operator+( size term ) const;
 
   void operator+=( size term );
