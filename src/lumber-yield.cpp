@@ -21,52 +21,14 @@
 
 // ss
 #include "ss/colonies.hpp"
-#include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
-
-// base
-#include "base/range-lite.hpp"
 
 using namespace std;
 
 namespace rn {
 
 namespace {
-
-using ::base::generator;
-
-// Yields a finite stream of friendly colonies spiraling outward
-// from the starting point that are within a radius of 3.5 to the
-// start.
-generator<ColonyId> close_friendly_colonies(
-    SSConst const& ss, Player const& player,
-    gfx::point const start ) {
-  generator<gfx::point> points =
-      outward_spiral_search_existing( ss, start );
-  // If we search a 7x7 grid (49) tiles then we should cover all
-  // of the ones that are within a 3.5 pythagorean distance to
-  // the starting square.
-  int  kMaxSquaresToSearch = 49;
-  auto rng = base::rl::all( points ).take( kMaxSquaresToSearch );
-
-  for( gfx::point p : rng ) {
-    Coord const square = Coord::from_gfx( p );
-    CHECK( ss.terrain.square_exists( square ) );
-    gfx::size const delta = square.to_gfx() - start;
-    double const    distance =
-        std::sqrt( delta.w * delta.w + delta.h * delta.h );
-    if( distance > 3.5 ) continue;
-    // Is there a friendly colony there.
-    maybe<ColonyId> const colony_id =
-        ss.colonies.maybe_from_coord( square );
-    if( !colony_id.has_value() ) continue;
-    if( ss.colonies.colony_for( *colony_id ).nation !=
-        player.nation )
-      continue;
-    co_yield *colony_id;
-  }
-}
 
 LumberYield yield_for_colony( SSConst const& ss,
                               ColonyId colony_id, Coord plow_loc,
@@ -123,8 +85,8 @@ vector<LumberYield> lumber_yields( SSConst const& ss,
                                    Coord          loc,
                                    e_unit_type pioneer_type ) {
   vector<LumberYield> res;
-  for( ColonyId colony_id :
-       close_friendly_colonies( ss, player, loc ) )
+  for( ColonyId colony_id : close_friendly_colonies(
+           ss, player, loc, /*max_distance=*/3.5 ) )
     res.push_back(
         yield_for_colony( ss, colony_id, loc, pioneer_type ) );
   return res;

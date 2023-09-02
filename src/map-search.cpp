@@ -10,27 +10,49 @@
 *****************************************************************/
 #include "map-search.hpp"
 
+// Revolution Now
+#include "maybe.hpp"
+
 // ss
+#include "ss/colonies.hpp"
+#include "ss/fog-square.rds.hpp"
+#include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 
+// base
+#include "base/generator.hpp"
+#include "base/range-lite.hpp"
+
 using namespace std;
+
+namespace rl = base::rl;
 
 namespace rn {
 
 namespace {
 
 using ::base::generator;
+using ::gfx::point;
 
-} // namespace
+// NOTE: we want all of the coroutines in this module to be
+// static (internal only) because that allows the optimizer to
+// better optimize them, since it knows all possible ways they
+// will be used.
+#define YIELD( r ) static generator<r>
 
-/****************************************************************
-** Public API
-*****************************************************************/
-generator<gfx::point> outward_spiral_search(
-    gfx::point const start ) {
-  gfx::point curr = start;
-  int        len  = 1;
+// Yields an infinite stream of points spiraling outward from
+// the starting point, i.e. (a-y):
+//
+//   j k l m n
+//   y b c d o
+//   x i a e p
+//   w h g f q
+//   v u t s r
+//
+YIELD( point ) outward_spiral_search( point const start ) {
+  point curr = start;
+  int   len  = 1;
   co_yield curr;
   while( true ) {
     --curr.x;
@@ -44,16 +66,101 @@ generator<gfx::point> outward_spiral_search(
   }
 }
 
-generator<gfx::point> outward_spiral_search_existing(
-    SSConst const ss, gfx::point const start ) {
-  int remaining = ss.terrain.world_size_tiles().area();
-  for( gfx::point const p : outward_spiral_search( start ) ) {
-    if( !ss.terrain.square_exists( Coord::from_gfx( p ) ) )
+// Same as above by limits the search to squares within the given
+// pythagorean distance. A distance of zero will include the
+// starting square. A distance of one will include the four car-
+// dinally adjacent squares, etc. Same NOTE as above regarding
+// taking parameters by value.
+YIELD( point )
+outward_spiral_pythdist_search_existing_gen(
+    SSConst const ss, point const start, double max_distance ) {
+  auto const spiral_gen = outward_spiral_search( start );
+  // If we search a NxN grid then we should cover all of the ones
+  // that are within the requested pythagorean distance to the
+  // starting square.
+  int const N = static_cast<int>( max_distance * 2 + 1 );
+  int const kMaxSquaresToSearch = N * N;
+
+  auto close_enough = [&]( point p ) {
+    return ( start - p ).pythagorean() <= max_distance;
+  };
+
+  auto exists = [&]( point p ) {
+    return ss.terrain.square_exists( Coord::from_gfx( p ) );
+  };
+
+  // To avoid an infinite search, we need to call `take` before
+  // we call `exists`.
+  auto points = rl::all( spiral_gen )
+                    .take( kMaxSquaresToSearch )
+                    .keep_if( exists )
+                    .keep_if( close_enough );
+
+  for( point const point : points ) co_yield point;
+}
+
+} // namespace
+
+/****************************************************************
+** Public API
+*****************************************************************/
+vector<point> outward_spiral_pythdist_search_existing(
+    SSConst const ss, point const start, double max_distance ) {
+  vector<point> res;
+  for( point const p :
+       outward_spiral_pythdist_search_existing_gen(
+           ss, start, max_distance ) )
+    res.push_back( p );
+  return res;
+}
+
+maybe<FogColony const&> find_close_explored_colony(
+    SSConst const& ss, e_nation nation, point location,
+    double max_distance ) {
+  UNWRAP_CHECK( player_terrain,
+                ss.terrain.player_terrain( nation ) );
+  base::generator<point> const search =
+      outward_spiral_pythdist_search_existing_gen(
+          ss, location, max_distance );
+  for( point const point : search ) {
+    maybe<FogSquare> const& fog_square =
+        player_terrain.map[Coord::from_gfx( point )];
+    if( !fog_square.has_value() )
+      // The generator should be giving us only squares that
+      // exist on the map, so this here means that the square is
+      // unexplored.
       continue;
-    co_yield p;
-    --remaining;
-    if( remaining == 0 ) break;
+    if( !fog_square->colony.has_value() )
+      // No colony here the last time we explored.
+      continue;
+    return fog_square->colony;
   }
+  return nothing;
+}
+
+// Yields a finite stream of friendly colonies spiraling outward
+// from the starting point that are within a radius of 3.5 to the
+// start.
+vector<ColonyId> close_friendly_colonies( SSConst const& ss,
+                                          Player const&  player,
+                                          gfx::point const start,
+                                          double max_distance ) {
+  vector<ColonyId>      res;
+  generator<gfx::point> points =
+      outward_spiral_pythdist_search_existing_gen(
+          ss, start, max_distance );
+  for( gfx::point p : points ) {
+    Coord const square = Coord::from_gfx( p );
+    // Is there a friendly colony there.
+    maybe<ColonyId> const colony_id =
+        ss.colonies.maybe_from_coord( square );
+    if( !colony_id.has_value() ) continue;
+    if( ss.colonies.colony_for( *colony_id ).nation !=
+        player.nation )
+      continue;
+    res.push_back( *colony_id );
+  }
+  return res;
 }
 
 } // namespace rn

@@ -10,37 +10,49 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
+// Revolution Now
+#include "maybe.hpp"
+
+// ss
+#include "ss/colony-id.hpp"
+#include "ss/nation.rds.hpp"
 
 // gfx
 #include "gfx/cartesian.hpp"
 
-// base
-#include "base/generator.hpp"
+// C++ standard library
+#include <vector>
 
 namespace rn {
 
+struct Colony;
+struct FogColony;
+struct Player;
 struct SSConst;
 
-// Yields an infinite stream of points spiraling outward from
-// the starting point, i.e. (a-y):
-//
-//   j k l m n
-//   y b c d o
-//   x i a e p
-//   w h g f q
-//   v u t s r
-//
-base::generator<gfx::point> outward_spiral_search(
-    gfx::point const start );
+// Returns a list of existing map squares spiraling outward from
+// the starting point and which are within `max_distance`
+// pythagorean distance from the start.
+std::vector<gfx::point> outward_spiral_pythdist_search_existing(
+    SSConst const ss, gfx::point const start,
+    double max_distance );
 
-// Same as above but will only yield squares that exist on the
-// map. It will stop spiral-searching when it has yielded all of
-// the points on the map once. NOTE: since this is a coroutine,
-// to be safe, this must take all paramters by value that could
-// potentially be supplied from temporaries. This include SS-
-// Const, which is constructed implicitly from SS.
-base::generator<gfx::point> outward_spiral_search_existing(
-    SSConst const ss, gfx::point const start );
+// Starting from (and including) `location`, find the square con-
+// taining any colony that is either friendly or which has been
+// found through exploration (that is, it is currently either
+// visible or fogged) that is the shortest pythagorean distance
+// away, among those whose distance is less than `max_distance`.
+// Note that this returns a FogColony, and so said colony may no
+// longer exist; in fact, even the nation may no longer exist.
+maybe<FogColony const&> find_close_explored_colony(
+    SSConst const& ss, e_nation nation, gfx::point location,
+    double max_distance );
+
+// Returns a list of friendly colonies spiraling outward from the
+// starting point that are within a radius of `max_distance` to
+// the start.
+std::vector<ColonyId> close_friendly_colonies(
+    SSConst const& ss, Player const& player,
+    gfx::point const start, double max_distance );
 
 } // namespace rn
