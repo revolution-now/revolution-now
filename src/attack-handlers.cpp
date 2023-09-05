@@ -1032,8 +1032,8 @@ wait<> AttackDwellingHandler::perform() {
         " Treasure worth [{}{}] has been recovered! It will "
         "take a [Galleon] to transport this treasure back to "
         "[{}].",
-        *destruction.treasure_amount, nation_harbor_name,
-        config_text.special_chars.currency );
+        *destruction.treasure_amount,
+        config_text.special_chars.currency, nation_harbor_name );
   co_await attacker_mind_.message_box( msg );
 
   if( destruction.treasure_amount.has_value() ) {
