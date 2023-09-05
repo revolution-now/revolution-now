@@ -34,6 +34,7 @@
 // config
 #include "config/nation.hpp"
 #include "config/natives.rds.hpp"
+#include "config/text.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss
@@ -648,9 +649,9 @@ wait<> do_speak_with_chief(
       auto const& o =
           outcome.action.get<ChiefAction::gift_money>();
       co_await ts.gui.message_box(
-          "Please take these valuable beads (worth [{}]) "
-          "back to your chieftan.",
-          o.quantity );
+          "Please take these valuable beads (worth [{}{}]) back "
+          "to your chieftain.",
+          o.quantity, config_text.special_chars.currency );
       player.money += o.quantity;
       co_return;
     }

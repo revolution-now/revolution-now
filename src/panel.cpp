@@ -27,6 +27,7 @@
 
 // config
 #include "config/menu-items.rds.hpp"
+#include "config/text.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 #include "config/ui.rds.hpp"
 
@@ -158,9 +159,10 @@ struct PanelPlane::Impl : public Plane {
 
     if( player.new_world_name )
       typer.write( "{}\n", *player.new_world_name );
-    typer.write( "Nation:  {}\n", nation );
-    typer.write( "Gold:    ${}\n", player.money );
-    typer.write( "Tax:     {}%\n",
+    typer.write( "Nation:   {}\n", nation );
+    typer.write( "Treasury: {}{}\n", player.money,
+                 config_text.special_chars.currency );
+    typer.write( "Tax:      {}%\n",
                  player.old_world.taxes.tax_rate );
 
     typer.newline();

@@ -175,8 +175,8 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
       .kings_cut_percent = 10,
       .net_received      = 90 };
   msg =
-      "Treasure worth 100 reimbursed in Amsterdam yielding "
-      "[90] after 10% taxes witheld.";
+      "Treasure worth 100\x7f reimbursed in Amsterdam yielding "
+      "[90\x7f] after 10% taxes witheld.";
   W.gui().EXPECT__message_box( msg ).returns( monostate{} );
   f();
 
@@ -187,8 +187,8 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
               .kings_cut_percent = 10,
               .net_received      = 90 };
   msg =
-      "Treasure worth 100 arrives in Amsterdam!  The crown has "
-      "provided a reimbursement of [90] after a [10%] "
+      "Treasure worth 100\x7f arrives in Amsterdam!  The crown "
+      "has provided a reimbursement of [90\x7f] after a [10%] "
       "witholding.";
   W.gui().EXPECT__message_box( msg ).returns( monostate{} );
   f();
@@ -201,8 +201,8 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
       .kings_cut_percent = 10,
       .net_received      = 90 };
   msg =
-      "Treasure worth 100 arrives in Amsterdam!  The crown has "
-      "provided a reimbursement of [90] after a [10%] "
+      "Treasure worth 100\x7f arrives in Amsterdam!  The crown "
+      "has provided a reimbursement of [90\x7f] after a [10%] "
       "tax witholding.";
   W.gui().EXPECT__message_box( msg ).returns( monostate{} );
   f();

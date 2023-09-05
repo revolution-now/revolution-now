@@ -40,6 +40,7 @@
 // config
 #include "config/nation.hpp"
 #include "config/natives.rds.hpp"
+#include "config/text.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
@@ -1028,9 +1029,11 @@ wait<> AttackDwellingHandler::perform() {
     msg += fmt::format( " [Foreign missionary] hanged!" );
   if( destruction.treasure_amount.has_value() )
     msg += fmt::format(
-        " Treasure worth [{}] has been recovered! It will take "
-        "a [Galleon] to transport this treasure back to [{}].",
-        *destruction.treasure_amount, nation_harbor_name );
+        " Treasure worth [{}{}] has been recovered! It will "
+        "take a [Galleon] to transport this treasure back to "
+        "[{}].",
+        *destruction.treasure_amount, nation_harbor_name,
+        config_text.special_chars.currency );
   co_await attacker_mind_.message_box( msg );
 
   if( destruction.treasure_amount.has_value() ) {

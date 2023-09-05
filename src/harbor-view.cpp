@@ -25,6 +25,7 @@
 
 // config
 #include "config/nation.hpp"
+#include "config/text.rds.hpp"
 
 // ss
 #include "ss/player.rds.hpp"
@@ -132,14 +133,15 @@ struct HarborPlane::Impl : public Plane {
                               compositor::e_section::normal ) );
     auto&        nation = nation_obj( player_.nation );
     string const stats  = fmt::format(
-        "{}, {}. {}, {}. Tax: {}%  Gold: ${}",
+        "{}, {}. {}, {}. Tax: {}%  Treasury: {}{}",
         nation.harbor_city_name, nation.country_name,
         // FIXME
         ts_.gui.identifier_to_display_name(
             refl::enum_value_name(
                 ss_.turn.time_point.season ) ),
         ss_.turn.time_point.year,
-        player_.old_world.taxes.tax_rate, player_.money );
+        player_.old_world.taxes.tax_rate, player_.money,
+        config_text.special_chars.currency );
     Coord start = canvas.center();
     start.y     = 1;
     start.x -= rr::rendered_text_line_size_pixels( stats ).w / 2;

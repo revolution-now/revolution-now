@@ -21,6 +21,7 @@
 
 // config
 #include "config/harbor.rds.hpp"
+#include "config/text.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss
@@ -58,9 +59,9 @@ wait<> click_recruit( SS& ss, TS& ts, Player& player ) {
   ChoiceConfig config{
       .msg = fmt::format(
           "The following individuals will accompany us to the "
-          "new world if we pay their passage ([{} gold]).  "
+          "new world if we pay their passage ([{}{}]).  "
           "Whom shall we recruit?",
-          price ),
+          price, config_text.special_chars.currency ),
       .initial_selection = 0 };
   static string const kNone = "none";
   config.options.push_back(

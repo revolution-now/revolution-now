@@ -250,9 +250,8 @@ TEST_CASE( "[rpt] click_recruit" ) {
   using C             = ChoiceConfig;
   using CO            = ChoiceConfigOption;
   auto config_matcher = AllOf(
-      Field(
-          &C::msg,
-          Matches( "The following individuals.*153 gold.*" ) ),
+      Field( &C::msg,
+             Matches( "The following individuals.*153\x7f.*" ) ),
       Field( &C::options,
              IterableElementsAre(
                  AllOf( Field( &CO::key, "none"s ),

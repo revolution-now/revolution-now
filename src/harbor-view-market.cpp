@@ -186,9 +186,9 @@ HarborMarketCommodities::source_check(
   if( -invoice.money_delta_final > player_.money )
     co_return DragRejection{
         .reason = fmt::format(
-            "You do not have enough gold to purchase [{} {}].  "
-            "Try holding down the [shift] key to reduce the "
-            "quantity of your purchase.",
+            "We do not have enough in our treasury to purchase "
+            "[{} {}]. Try holding down the [shift] key to "
+            "reduce the quantity of your purchase.",
             comm.quantity,
             lowercase_commodity_display_name( comm.type ) ) };
   co_return base::valid;

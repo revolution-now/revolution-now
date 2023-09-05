@@ -33,6 +33,7 @@
 
 // config
 #include "config/lcr.rds.hpp"
+#include "config/text.rds.hpp"
 
 // refl
 #include "refl/enum-map.hpp"
@@ -112,8 +113,8 @@ wait<LostCityRumorResult> run_burial_mounds_result(
             .max      = config_lcr.trinkets_gift_max[explorer],
             .multiple = config_lcr.trinkets_gift_multiple } );
       co_await ts.gui.message_box(
-          "You've found some trinkets worth [{}] gold.",
-          amount );
+          "You've found some trinkets worth [{}{}].", amount,
+          config_text.special_chars.currency );
       int total = player.money += amount;
       lg.info(
           "{} gold added to {} treasury.  current balance: {}.",
@@ -131,7 +132,8 @@ wait<LostCityRumorResult> run_burial_mounds_result(
             .multiple =
                 config_lcr.burial_mounds_treasure_multiple } );
       co_await ts.gui.message_box(
-          "You've recovered a treasure worth [{}]!", amount );
+          "You've recovered a treasure worth [{}{}]!", amount,
+          config_text.special_chars.currency );
       UnitId const unit_id = create_treasure_train(
           ss, ts, player, world_square, amount );
       co_await ts.planes.land_view().animate(
@@ -218,8 +220,8 @@ wait<LostCityRumorResult> run_rumor_result(
             .multiple = config_lcr.ruins_gift_multiple } );
       co_await ts.gui.message_box(
           "You've discovered the ruins of a lost colony, among "
-          "which there are items worth [{}] in gold.",
-          amount );
+          "which there are items worth [{}{}].",
+          amount, config_text.special_chars.currency );
       player.money += amount;
       int total = player.money;
       lg.info(
@@ -250,8 +252,8 @@ wait<LostCityRumorResult> run_rumor_result(
             .multiple = config_lcr.chief_gift_multiple } );
       co_await ts.gui.message_box(
           "You happen upon a small village.  The chief offers "
-          "you a gift worth [{}] gold.",
-          amount );
+          "you a gift worth [{}{}].",
+          amount, config_text.special_chars.currency );
       player.money += amount;
       int total = player.money;
       lg.info(
@@ -290,8 +292,8 @@ wait<LostCityRumorResult> run_rumor_result(
             .multiple = config_lcr.cibola_treasure_multiple } );
       co_await ts.gui.message_box(
           "You've discovered one of the [Seven Cities of "
-          "Cibola] and have recovered a treasure worth [{}]!",
-          amount );
+          "Cibola] and have recovered a treasure worth [{}{}]!",
+          amount, config_text.special_chars.currency );
       UnitId unit_id = create_treasure_train(
           ss, ts, player, world_square, amount );
       co_await ts.planes.land_view().animate(

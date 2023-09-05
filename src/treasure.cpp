@@ -21,6 +21,7 @@
 #include "config/nation.rds.hpp"
 #include "config/natives.rds.hpp"
 #include "config/old-world.rds.hpp"
+#include "config/text.rds.hpp"
 
 // ss
 #include "ss/dwelling.rds.hpp"
@@ -166,26 +167,35 @@ wait<> show_treasure_receipt( TS& ts, Player const& player,
   switch( receipt.transport_mode ) {
     case e_treasure_transport_mode::player:
       msg = fmt::format(
-          "Treasure worth {} reimbursed in {} yielding "
-          "[{}] after {}% taxes witheld.",
-          receipt.original_worth, harbor_name,
-          receipt.net_received, receipt.kings_cut_percent );
+          "Treasure worth {}{} reimbursed in {} yielding [{}{}] "
+          "after {}% taxes witheld.",
+          receipt.original_worth,
+          config_text.special_chars.currency, harbor_name,
+          receipt.net_received,
+          config_text.special_chars.currency,
+          receipt.kings_cut_percent );
       break;
     case e_treasure_transport_mode::king_with_charge:
       msg = fmt::format(
-          "Treasure worth {} arrives in {}!  The crown has "
-          "provided a reimbursement of [{}] after a "
-          "[{}%] witholding.",
-          receipt.original_worth, harbor_name,
-          receipt.net_received, receipt.kings_cut_percent );
+          "Treasure worth {}{} arrives in {}!  The crown has "
+          "provided a reimbursement of [{}{}] after a [{}%] "
+          "witholding.",
+          receipt.original_worth,
+          config_text.special_chars.currency, harbor_name,
+          receipt.net_received,
+          config_text.special_chars.currency,
+          receipt.kings_cut_percent );
       break;
     case e_treasure_transport_mode::king_no_extra_charge:
       msg = fmt::format(
-          "Treasure worth {} arrives in {}!  The crown has "
-          "provided a reimbursement of [{}] after a "
-          "[{}%] tax witholding.",
-          receipt.original_worth, harbor_name,
-          receipt.net_received, receipt.kings_cut_percent );
+          "Treasure worth {}{} arrives in {}!  The crown has "
+          "provided a reimbursement of [{}{}] after a [{}%] tax "
+          "witholding.",
+          receipt.original_worth,
+          config_text.special_chars.currency, harbor_name,
+          receipt.net_received,
+          config_text.special_chars.currency,
+          receipt.kings_cut_percent );
       break;
   }
   co_await ts.gui.message_box( msg );

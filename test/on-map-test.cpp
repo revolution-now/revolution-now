@@ -244,9 +244,9 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
         .EXPECT__choice( _, e_input_required::no )
         .returns<maybe<string>>( "yes" );
     string const msg =
-        "Treasure worth 1000 arrives in Amsterdam!  The crown "
-        "has provided a reimbursement of [500] after a "
-        "[50%] witholding.";
+        "Treasure worth 1000\x7f arrives in Amsterdam!  The "
+        "crown has provided a reimbursement of [500\x7f] after "
+        "a [50%] witholding.";
     W.gui().EXPECT__message_box( msg ).returns( monostate{} );
     w = TestingOnlyUnitOnMapMover::to_map_interactive(
         W.ss(), W.ts(), unit_id, { .x = 1, .y = 1 } );

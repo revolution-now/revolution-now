@@ -1131,11 +1131,11 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     W.expect_convert();
     W.expect_msg_contains(
         W.kAttackingNation,
-        fmt::format(
-            "[Apache] camp burned by the [English]! "
-            "[Missionary] flees in panic! Treasure worth [123] "
-            "has been recovered! It will take a [Galleon] to "
-            "transport this treasure back to [London]." ) );
+        fmt::format( "[Apache] camp burned by the [English]! "
+                     "[Missionary] flees in panic! Treasure "
+                     "worth [123\x7f] has been recovered! It "
+                     "will take a [Galleon] to transport this "
+                     "treasure back to [London]." ) );
     W.expect_some_animation(); // treasure enpixelation.
     W.expect_tribe_wiped_out( "Apache" );
     UnitId const expected_convert_id  = UnitId{ 5 };
