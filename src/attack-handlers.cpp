@@ -25,6 +25,7 @@
 #include "icombat.hpp"
 #include "ieuro-mind.hpp"
 #include "igui.hpp"
+#include "inative-mind.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "map-square.hpp"
@@ -295,6 +296,7 @@ struct NativeAttackHandlerBase : public AttackHandlerBase {
   NativeUnitId defender_id_;
   NativeUnit&  defender_;
   Tribe&       defender_tribe_;
+  INativeMind& defender_mind_;
 };
 
 NativeAttackHandlerBase::NativeAttackHandlerBase(
@@ -306,7 +308,8 @@ NativeAttackHandlerBase::NativeAttackHandlerBase(
     defender_id_( defender_id ),
     defender_( ss.units.unit_for( defender_id ) ),
     defender_tribe_( ss.natives.tribe_for(
-        tribe_for_unit( ss, defender_ ) ) ) {}
+        tribe_for_unit( ss, defender_ ) ) ),
+    defender_mind_( ts.native_minds[defender_tribe_.type] ) {}
 
 /****************************************************************
 ** AttackColonyUndefendedHandler
@@ -357,15 +360,13 @@ wait<> AttackColonyUndefendedHandler::perform() {
   co_await ts_.planes.land_view().animate(
       anim_seq_for_undefended_colony( ss_, combat_ ) );
 
-  CombatEffectsMessage const attacker_outcome_message =
-      euro_unit_combat_effects_msg( attacker_,
-                                    combat_.attacker.outcome );
+  CombatEffectsMessages const effects_msg =
+      combat_effects_msg( ss_, combat_ );
   perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                     combat_.attacker.outcome );
-  co_await show_combat_effects_messages_euro_attacker_only(
-      EuroCombatEffectsMessage{
-          .mind = attacker_mind_,
-          .msg  = attacker_outcome_message } );
+  co_await show_combat_effects_msg(
+      combine_combat_effects_msgs( effects_msg ), attacker_mind_,
+      defender_mind_ );
 
   if( combat_.winner == e_combat_winner::defender )
     // return since in this case the attacker lost, so nothing
@@ -525,23 +526,17 @@ wait<> NavalBattleHandler::perform() {
     }
   }
 
-  CombatEffectsMessage const attacker_outcome_msg =
-      naval_unit_combat_effects_msg( ss_, attacker_, defender_,
-                                     combat_.attacker.outcome );
-  CombatEffectsMessage const defender_outcome_msg =
-      naval_unit_combat_effects_msg( ss_, defender_, attacker_,
-                                     combat_.defender.outcome );
+  CombatEffectsMessages const effects_msg =
+      combat_effects_msg( ss_, combat_ );
   perform_naval_unit_combat_effects( ss_, ts_, attacker_,
                                      defender_id_,
                                      combat_.attacker.outcome );
   perform_naval_unit_combat_effects( ss_, ts_, defender_,
                                      attacker_id_,
                                      combat_.defender.outcome );
-  co_await show_combat_effects_messages_euro_euro(
-      EuroCombatEffectsMessage{ .mind = attacker_mind_,
-                                .msg  = attacker_outcome_msg },
-      EuroCombatEffectsMessage{ .mind = defender_mind_,
-                                .msg  = defender_outcome_msg } );
+  co_await show_combat_effects_msg(
+      combine_combat_effects_msgs( effects_msg ), attacker_mind_,
+      defender_mind_ );
 
   // This is slightly hacky, but because the attacker may have
   // moved to the defender's square, but the above functions that
@@ -597,21 +592,15 @@ wait<> EuroAttackHandler::animate() const {
 
 wait<> EuroAttackHandler::perform() {
   co_await Base::perform();
-  CombatEffectsMessage const attacker_outcome_msg =
-      euro_unit_combat_effects_msg( attacker_,
-                                    combat_.attacker.outcome );
-  CombatEffectsMessage const defender_outcome_msg =
-      euro_unit_combat_effects_msg( defender_,
-                                    combat_.defender.outcome );
+  CombatEffectsMessages const effects_msg =
+      combat_effects_msg( ss_, combat_ );
   perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                     combat_.attacker.outcome );
   perform_euro_unit_combat_effects( ss_, ts_, defender_,
                                     combat_.defender.outcome );
-  co_await show_combat_effects_messages_euro_euro(
-      EuroCombatEffectsMessage{ .mind = attacker_mind_,
-                                .msg  = attacker_outcome_msg },
-      EuroCombatEffectsMessage{ .mind = defender_mind_,
-                                .msg  = defender_outcome_msg } );
+  co_await show_combat_effects_msg(
+      combine_combat_effects_msgs( effects_msg ), attacker_mind_,
+      defender_mind_ );
 }
 
 /****************************************************************
@@ -681,20 +670,15 @@ wait<> AttackNativeUnitHandler::perform() {
           ss_.units.dwelling_for( defender_id_ ) ),
       relationship );
 
-  CombatEffectsMessage const attacker_outcome_msg =
-      euro_unit_combat_effects_msg( attacker_,
-                                    combat_.attacker.outcome );
-  CombatEffectsMessage const brave_outcome_msg =
-      native_unit_combat_effects_msg( ss_, defender_,
-                                      combat_.defender.outcome );
+  CombatEffectsMessages const effects_msg =
+      combat_effects_msg( ss_, combat_ );
   perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                     combat_.attacker.outcome );
   perform_native_unit_combat_effects( ss_, defender_,
                                       combat_.defender.outcome );
-  co_await show_combat_effects_messages_euro_native(
-      EuroCombatEffectsMessage{ .mind = attacker_mind_,
-                                .msg  = attacker_outcome_msg },
-      NativeCombatEffectsMessage{ .msg = brave_outcome_msg } );
+  co_await show_combat_effects_msg(
+      combine_combat_effects_msgs( effects_msg ), attacker_mind_,
+      defender_mind_ );
 }
 
 /****************************************************************
@@ -729,6 +713,7 @@ struct AttackDwellingHandler : public AttackHandlerBase {
   DwellingId         dwelling_id_;
   Dwelling&          dwelling_;
   Tribe&             tribe_;
+  INativeMind&       defender_mind_;
   TribeRelationship& relationship_;
 
   CombatEuroAttackDwelling combat_;
@@ -745,6 +730,7 @@ AttackDwellingHandler::AttackDwellingHandler(
     dwelling_id_( dwelling_id ),
     dwelling_( ss.natives.dwelling_for( dwelling_id ) ),
     tribe_( ss.natives.tribe_for( dwelling_.id ) ),
+    defender_mind_( ts.native_minds[tribe_.type] ),
     relationship_(
         tribe_.relationship[attacking_player_.nation] ) {}
 
@@ -910,15 +896,13 @@ wait<> AttackDwellingHandler::perform() {
               anim_seq_for_euro_attack_brave( ss_, combat );
           co_await ts_.planes.land_view().animate( seq );
         } );
-    CombatEffectsMessage const attacker_outcome_msg =
-        euro_unit_combat_effects_msg( attacker_,
-                                      combat_.attacker.outcome );
+    CombatEffectsMessages const effects_msg =
+        combat_effects_msg( ss_, combat_ );
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                       combat_.attacker.outcome );
-    co_await show_combat_effects_messages_euro_attacker_only(
-        EuroCombatEffectsMessage{
-            .mind = attacker_mind_,
-            .msg  = attacker_outcome_msg } );
+    co_await show_combat_effects_msg(
+        combine_combat_effects_msgs( effects_msg ),
+        attacker_mind_, defender_mind_ );
     co_return;
   }
 
@@ -935,15 +919,13 @@ wait<> AttackDwellingHandler::perform() {
               anim_seq_for_euro_attack_brave( ss_, combat );
           co_await ts_.planes.land_view().animate( seq );
         } );
-    CombatEffectsMessage const attacker_outcome_msg =
-        euro_unit_combat_effects_msg( attacker_,
-                                      combat_.attacker.outcome );
+    CombatEffectsMessages const effects_msg =
+        combat_effects_msg( ss_, combat_ );
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                       combat_.attacker.outcome );
-    co_await show_combat_effects_messages_euro_attacker_only(
-        EuroCombatEffectsMessage{
-            .mind = attacker_mind_,
-            .msg  = attacker_outcome_msg } );
+    co_await show_combat_effects_msg(
+        combine_combat_effects_msgs( effects_msg ),
+        attacker_mind_, defender_mind_ );
     --dwelling_.population;
     CHECK_GT( dwelling_.population, 0 );
     if( population_decrease->convert_produced )
@@ -1003,15 +985,16 @@ wait<> AttackDwellingHandler::perform() {
   // owned land of the dwelling. This will also remove the road
   // under the dwelling.
   bool const was_capital = dwelling_.is_capital;
+  // Do this before destroying the dwelling in case it wants to
+  // inspect it.
+  CombatEffectsMessages const effects_msg =
+      combat_effects_msg( ss_, combat_ );
   destroy_dwelling( ss_, ts_, dwelling_id_ );
-  CombatEffectsMessage const attacker_outcome_msg =
-      euro_unit_combat_effects_msg( attacker_,
-                                    combat_.attacker.outcome );
   perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                     combat_.attacker.outcome );
-  co_await show_combat_effects_messages_euro_attacker_only(
-      EuroCombatEffectsMessage{ .mind = attacker_mind_,
-                                .msg  = attacker_outcome_msg } );
+  co_await show_combat_effects_msg(
+      combine_combat_effects_msgs( effects_msg ), attacker_mind_,
+      defender_mind_ );
 
   // Check if convert produced.
   if( destruction.convert_produced ) co_await produce_convert();

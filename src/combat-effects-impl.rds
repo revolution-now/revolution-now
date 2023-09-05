@@ -1,0 +1,27 @@
+# ===============================================================
+# combat-effects-impl.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2023-08-12.
+#
+# Description: Rds definitions for the combat-effects module's
+#              implementation.
+#
+# ===============================================================
+# ss
+include "ss/unit-id.hpp"
+include "ss/colony-id.hpp"
+
+namespace "rn"
+
+sumtype.NavalBattleOpponent {
+  unit {
+    id 'UnitId',
+  },
+
+  # This would be the fort/fortress firing on an adjacent ship.
+  colony {
+    id 'ColonyId',
+  },
+}

@@ -24,9 +24,17 @@
 
 namespace rn {
 
+struct CombatBraveAttackColony;
+struct CombatBraveAttackEuro;
+struct CombatColonyArtilleryAttackShip;
+struct CombatEuroAttackBrave;
+struct CombatEuroAttackDwelling;
+struct CombatEuroAttackEuro;
+struct CombatEuroAttackUndefendedColony;
+struct CombatShipAttackShip;
 struct EuroNavalUnitCombatOutcome;
 struct EuroUnitCombatOutcome;
-struct IEuroMind;
+struct IMind;
 struct NativeUnit;
 struct NativeUnitCombatOutcome;
 struct SS;
@@ -37,16 +45,41 @@ struct Unit;
 /****************************************************************
 ** Producing combat effects messages.
 *****************************************************************/
-CombatEffectsMessage euro_unit_combat_effects_msg(
-    Unit const& unit, EuroUnitCombatOutcome const& outcome );
+CombatEffectsMessages combat_effects_msg(
+    SSConst const& ss, CombatEuroAttackEuro const& combat );
 
-CombatEffectsMessage native_unit_combat_effects_msg(
-    SSConst const& ss, NativeUnit const& unit,
-    NativeUnitCombatOutcome const& outcome );
+CombatEffectsMessages combat_effects_msg(
+    SSConst const& ss, CombatBraveAttackColony const& combat );
 
-CombatEffectsMessage naval_unit_combat_effects_msg(
-    SSConst const& ss, Unit const& unit, Unit const& opponent,
-    EuroNavalUnitCombatOutcome const& outcome );
+CombatEffectsMessages combat_effects_msg(
+    SSConst const& ss, CombatBraveAttackEuro const& combat );
+
+CombatEffectsMessages combat_effects_msg(
+    SSConst const& ss, CombatEuroAttackBrave const& combat );
+
+CombatEffectsMessages combat_effects_msg(
+    SSConst const&                         ss,
+    CombatColonyArtilleryAttackShip const& combat );
+
+CombatEffectsMessages combat_effects_msg(
+    SSConst const& ss, CombatEuroAttackDwelling const& combat );
+
+CombatEffectsMessages combat_effects_msg(
+    SSConst const&                          ss,
+    CombatEuroAttackUndefendedColony const& combat );
+
+CombatEffectsMessages combat_effects_msg(
+    SSConst const& ss, CombatShipAttackShip const& combat );
+
+/****************************************************************
+** Showing combat effects messages.
+*****************************************************************/
+MixedCombatEffectsMessages combine_combat_effects_msgs(
+    CombatEffectsMessages const& msg );
+
+wait<> show_combat_effects_msg(
+    MixedCombatEffectsMessages const& msgs, IMind& attacker_mind,
+    IMind& defender_mind );
 
 /****************************************************************
 ** Performing combat effects.
@@ -66,28 +99,5 @@ void perform_native_unit_combat_effects(
 void perform_naval_unit_combat_effects(
     SS& ss, TS& ts, Unit& unit, UnitId opponent_id,
     EuroNavalUnitCombatOutcome const& outcome );
-
-/****************************************************************
-** Showing combat effects messages.
-*****************************************************************/
-struct EuroCombatEffectsMessage {
-  IEuroMind&           mind;
-  CombatEffectsMessage msg = {};
-};
-
-struct NativeCombatEffectsMessage {
-  CombatEffectsMessage msg = {};
-};
-
-wait<> show_combat_effects_messages_euro_euro(
-    EuroCombatEffectsMessage const& attacker,
-    EuroCombatEffectsMessage const& defender );
-
-wait<> show_combat_effects_messages_euro_attacker_only(
-    EuroCombatEffectsMessage const& attacker );
-
-wait<> show_combat_effects_messages_euro_native(
-    EuroCombatEffectsMessage const&   euro,
-    NativeCombatEffectsMessage const& native );
 
 } // namespace rn

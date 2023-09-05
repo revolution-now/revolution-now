@@ -17,11 +17,36 @@ namespace "rn"
 # In general, the effects of a battle for a specific unit may
 # need to be broadcast to the owner of the defending unit, the
 # owner of the attacking unit, or both, for either the defender
-# or attacker. This struct helps facilitate that.
-struct.CombatEffectsMessage {
+# or attacker. This struct helps facilitate that. Some strings
+# may be empty, in which case they should not be shown.
+struct.UnitCombatEffectsMessages {
   for_owner 'std::vector<std::string>',
   for_other 'std::vector<std::string>', # non-owner.
   for_both  'std::vector<std::string>',
+}
 
-  _features { equality, nodiscard }
+struct.CombatEffectsSummaries {
+  # Each unit needs its own summary because sometimes the summary
+  # will refer to a Colony name that is near the battle, and we
+  # want that colony to be visible to the player receiving the
+  # message.
+  attacker 'std::string',
+  defender 'std::string',
+}
+
+struct.CombatEffectsMessages {
+  summaries 'CombatEffectsSummaries',
+
+  # Contrary to how it may appear, messages in either the `at-
+  # tacker` or `defender` object may be shown to either the at-
+  # tacker or the defender, or both.
+  attacker 'UnitCombatEffectsMessages',
+  defender 'UnitCombatEffectsMessages',
+}
+
+struct.MixedCombatEffectsMessages {
+  summaries 'CombatEffectsSummaries',
+
+  attacker 'std::vector<std::string>',
+  defender 'std::vector<std::string>',
 }
