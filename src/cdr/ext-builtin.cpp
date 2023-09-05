@@ -26,16 +26,25 @@ value to_canonical( converter&, char o, tag_t<char> ) {
 
 result<char> from_canonical( converter& conv, value const& v,
                              tag_t<char> ) {
-  auto char_str = conv.ensure_type<string>( v );
-  if( !char_str.has_value() )
+  if( auto i = v.get_if<integer_type>(); i.has_value() ) {
+    if( *i < numeric_limits<char>::min() ||
+        *i > numeric_limits<char>::max() )
+      return conv.err(
+          "received out-of-range integral representation of "
+          "char: {}",
+          *i );
+    return static_cast<char>( *i );
+  } else if( auto s = v.get_if<string>(); s.has_value() ) {
+    if( s->size() != 1 )
+      return conv.err(
+          "expected character but found string of length {}.",
+          s->size() );
+    return ( *s )[0];
+  } else {
     return conv.err(
         "cannot convert value of type {} to character.",
         type_name( v ) );
-  if( char_str->size() != 1 )
-    return conv.err(
-        "expected character but found string of length {}.",
-        char_str->size() );
-  return ( *char_str )[0];
+  }
 }
 
 /****************************************************************

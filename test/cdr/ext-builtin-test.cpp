@@ -45,8 +45,20 @@ TEST_CASE( "[cdr/ext-builtin] char" ) {
       conv.from<char>( value{ "SS" } ) ==
       conv.err(
           "expected character but found string of length 2." ) );
-  REQUIRE( conv.from<char>( value{ 5 } ) ==
-           conv.err( "cannot convert value of type integer to "
+  REQUIRE( conv.from<char>( value{ -128 } ) == char{ -128 } );
+  REQUIRE( conv.from<char>( value{ -1 } ) == char{ -1 } );
+  REQUIRE( conv.from<char>( value{ 0 } ) == char{ 0 } );
+  REQUIRE( conv.from<char>( value{ 1 } ) == char{ 1 } );
+  REQUIRE( conv.from<char>( value{ 127 } ) == char{ 127 } );
+  REQUIRE( conv.from<char>( value{ -129 } ) ==
+           conv.err( "received out-of-range integral "
+                     "representation of char: -129" ) );
+  REQUIRE( conv.from<char>( value{ 128 } ) ==
+           conv.err( "received out-of-range integral "
+                     "representation of char: 128" ) );
+
+  REQUIRE( conv.from<char>( value{ 5.5 } ) ==
+           conv.err( "cannot convert value of type floating to "
                      "character." ) );
 }
 
