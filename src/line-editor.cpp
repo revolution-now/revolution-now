@@ -29,7 +29,7 @@ namespace {
 bool is_char_allowed( char c ) {
   static string_view const cs{
       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-      "0123456789 +-*/^._,()[]!@#$%&={}|?<>`~;'\"" };
+      "0123456789 +-*/^._,()[]!@#$%&={}|?<>`~;'\"\\" };
   return find( begin( cs ), end( cs ), c ) != end( cs );
 }
 
