@@ -1734,8 +1734,8 @@ composition {
     #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
     treasure {
       type:                  treasure
-      name:                  Treasure
-      name_plural:           Treasures
+      name:                  Treasure Train
+      name_plural:           Treasure Trains
       tile:                  treasure
       expertise:             null
       type_activity:         null

@@ -394,8 +394,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
   SECTION( "treasure" ) {
     UnitTypeAttributes const& desc =
         unit_attr( e_unit_type::treasure );
-    REQUIRE( desc.name == "Treasure" );
-    REQUIRE( desc.name_plural == "Treasures" );
+    REQUIRE( desc.name == "Treasure Train" );
+    REQUIRE( desc.name_plural == "Treasure Trains" );
     REQUIRE( desc.tile == e_tile::treasure );
     REQUIRE( desc.nat_icon_front == false );
     REQUIRE( desc.nat_icon_position == e_direction::n );
