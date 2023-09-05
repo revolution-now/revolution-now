@@ -1,0 +1,5 @@
+special_chars {
+  # ASCII 127 is not really used, so we use that space to render
+  # the generic circular currency sign that the OG had.
+  currency: 127
+}

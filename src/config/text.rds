@@ -1,0 +1,23 @@
+# ===============================================================
+# text.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2023-09-05.
+#
+# Description: Config data for things related to text/fonts.
+#
+# ===============================================================
+namespace "rn.config.text"
+
+struct.SpecialChars {
+  currency 'char',
+}
+
+namespace "rn"
+
+struct.config_text_t {
+  special_chars 'config::text::SpecialChars',
+}
+
+config.text {}

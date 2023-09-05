@@ -39,6 +39,7 @@
 #include "config/savegame.rds.hpp"
 #include "config/sound.rds.hpp"
 #include "config/terrain.rds.hpp"
+#include "config/text.rds.hpp"
 #include "config/tile-sheet.rds.hpp"
 #include "config/turn.rds.hpp"
 #include "config/ui.rds.hpp"
@@ -120,6 +121,7 @@ INSTANTIATE_RN_CONFIG( rn );
 INSTANTIATE_RN_CONFIG( savegame );
 INSTANTIATE_RN_CONFIG( sound );
 INSTANTIATE_RN_CONFIG( terrain );
+INSTANTIATE_RN_CONFIG( text );
 INSTANTIATE_RN_CONFIG( tile_sheet );
 INSTANTIATE_RN_CONFIG( turn );
 INSTANTIATE_RN_CONFIG( ui );
