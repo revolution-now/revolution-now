@@ -116,10 +116,6 @@ ColoniesState::ColoniesState( wrapped::ColoniesState&& o )
   // Populate colony_from_coord_.
   for( auto const& [id, colony] : o_.colonies )
     colony_from_coord_[colony.location] = id;
-
-  // Populate colony_from_name_.
-  for( auto const& [id, colony] : o_.colonies )
-    colony_from_name_[colony.name] = id;
 }
 
 ColoniesState::ColoniesState()
@@ -161,12 +157,10 @@ vector<ColonyId> ColoniesState::for_nation(
 ColonyId ColoniesState::add_colony( Colony&& colony ) {
   CHECK( colony.id == ColonyId{ 0 },
          "colony ID must be zero when creating colony." );
-  ColonyId id = next_colony_id();
-  colony.id   = id;
+  ColonyId const id = next_colony_id();
+  colony.id         = id;
   CHECK( !colony_from_coord_.contains( colony.location ) );
-  CHECK( !colony_from_name_.contains( colony.name ) );
   colony_from_coord_[colony.location] = id;
-  colony_from_name_[colony.name]      = id;
   // Must be last to avoid use-after-move.
   CHECK( !o_.colonies.contains( id ) );
   o_.colonies[id] = std::move( colony );
@@ -177,10 +171,6 @@ void ColoniesState::destroy_colony( ColonyId id ) {
   Colony& colony = colony_for( id );
   CHECK( colony_from_coord_.contains( colony.location ) );
   colony_from_coord_.erase( colony.location );
-  CHECK( colony_from_name_.contains( colony.name ),
-         "colony_from_name_ does not contain '{}'.",
-         colony.name );
-  colony_from_name_.erase( colony.name );
   // Should be last so above reference doesn't dangle.
   o_.colonies.erase( id );
 }
@@ -209,7 +199,14 @@ ColonyId ColoniesState::from_coord( Coord const& coord ) const {
 
 base::maybe<ColonyId> ColoniesState::maybe_from_name(
     string_view name ) const {
-  return base::lookup( colony_from_name_, string( name ) );
+  // NOTE: We used to have a hash map caching the names of the
+  // colonies for faster lookup, but that caused issues because
+  // it is possible for the user to directly change the name of a
+  // colony (colony.name) when then makes it inconsistent with
+  // what is in the cache.
+  for( auto const& [colony_id, colony] : o_.colonies )
+    if( colony.name == name ) return colony_id;
+  return base::nothing;
 }
 
 bool ColoniesState::exists( ColonyId id ) const {

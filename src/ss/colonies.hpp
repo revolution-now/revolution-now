@@ -77,8 +77,11 @@ struct ColoniesState {
   wrapped::ColoniesState o_;
 
   // ----- Non-serializable (transient) state.
-  std::unordered_map<Coord, ColonyId>       colony_from_coord_;
-  std::unordered_map<std::string, ColonyId> colony_from_name_;
+  std::unordered_map<Coord, ColonyId> colony_from_coord_;
+  // NOTE: be careful when adding new caches here; we don't want
+  // to cache something that can be changed directly on the
+  // colony object, such as the name, otherwise it could become
+  // inconsistent with the cache.
 };
 
 } // namespace rn
