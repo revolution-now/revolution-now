@@ -477,6 +477,23 @@ Colony& World::add_colony_with_new_unit(
   return add_colony( founder.id() );
 }
 
+void World::kill_all_colonies( maybe<e_nation> const nation ) {
+  auto const& colonies = ss().colonies.all();
+  // We can't destroy the colonies while iterating through the
+  // above map since it would then be mutated as we iterate, so
+  // we need to extract the IDs.
+  vector<ColonyId> colony_ids;
+  colony_ids.reserve( colonies.size() );
+  for( auto const& [colony_id, colony] : colonies )
+    colony_ids.push_back( colony_id );
+  for( ColonyId const colony_id : colony_ids ) {
+    Colony& colony = ss().colonies.colony_for( colony_id );
+    if( nation.has_value() && colony.nation != *nation )
+      continue;
+    destroy_colony( ss(), ts(), colony );
+  }
+}
+
 // --------------------------------------------------------------
 // Creating Native Dwellings.
 // --------------------------------------------------------------

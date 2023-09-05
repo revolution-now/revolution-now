@@ -214,6 +214,8 @@ struct World {
   Colony& add_colony_with_new_unit(
       Coord where, maybe<e_nation> nation = nothing );
 
+  void kill_all_colonies( maybe<e_nation> nation = nothing );
+
   // ------------------------------------------------------------
   // Creating Native Dwellings.
   // ------------------------------------------------------------
