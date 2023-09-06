@@ -221,7 +221,7 @@ std::string naval_battle_opponent_clause(
     }
     END_CASES;
   }
-  return fmt::format( "[{}] {}.", nation_obj( nation ).adjective,
+  return fmt::format( "[{}] {}", nation_obj( nation ).adjective,
                       unit_part );
 }
 
