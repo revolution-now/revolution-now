@@ -441,8 +441,7 @@ CombatEffectsSummaries summarize_combat_outcome(
 wait<> show_combat_effects_msg_impl( string const& summary,
                                      vector<string> const& msgs,
                                      IMind& mind ) {
-  if( msgs.empty() && !summary.empty() )
-    co_await mind.message_box( summary );
+  if( !summary.empty() ) co_await mind.message_box( summary );
   for( string const& msg : msgs ) {
     // Empty messages should have been filtered out in the
     // combine_combat_effects_msgs function.

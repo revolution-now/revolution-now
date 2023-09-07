@@ -179,6 +179,14 @@ struct World : testing::World {
   }
 
   template<typename... Args>
+  void expect_msg_both_contains( Args&&... fragments ) {
+    expect_msg_contains( kAttackingNation,
+                         std::forward<Args>( fragments )... );
+    expect_msg_contains( kDefendingNation,
+                         std::forward<Args>( fragments )... );
+  }
+
+  template<typename... Args>
   void expect_msg_contains( e_tribe tribe_type,
                             Args&&... fragments ) {
     native_mind( tribe_type )
@@ -351,6 +359,8 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
     REQUIRE( W.units()
                  .unit_for( combat.attacker.id )
                  .movement_points() == 1 );
+    W.expect_msg_both_contains( "French", "defeats",
+                                "wilderness" );
     W.expect_msg_contains( W.kAttackingNation, "English",
                            "Soldier", "routed" );
     W.expect_msg_contains( W.kDefendingNation, "English",
@@ -386,6 +396,8 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         W.add_pair( e_unit_type::soldier, e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
+    W.expect_msg_both_contains( "French", "defeats",
+                                "wilderness" );
     W.expect_msg_contains( W.kAttackingNation, "English",
                            "Soldier", "routed" );
     W.expect_msg_contains( W.kDefendingNation, "promoted" );
@@ -418,6 +430,8 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         W.add_pair( e_unit_type::soldier, e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
+    W.expect_msg_both_contains( "English", "defeats",
+                                "wilderness" );
     W.expect_msg_contains( W.kAttackingNation, "French",
                            "Soldier", "routed" );
     W.expect_msg_contains( W.kDefendingNation, "French",
@@ -451,6 +465,8 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         W.add_pair( e_unit_type::soldier, e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
+    W.expect_msg_both_contains( "English", "defeats",
+                                "wilderness" );
     W.expect_msg_contains( W.kAttackingNation, "promoted" );
     W.expect_msg_contains( W.kAttackingNation, "routed" );
     W.expect_msg_contains( W.kDefendingNation, "routed" );
@@ -483,6 +499,8 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         e_unit_type::soldier, e_unit_type::free_colonist );
     expect_combat();
     W.expect_some_animation();
+    W.expect_msg_both_contains( "English", "defeats",
+                                "wilderness" );
     W.expect_msg_contains( W.kAttackingNation, "captured" );
     W.expect_msg_contains( W.kDefendingNation, "captured" );
     REQUIRE( f() == expected );
@@ -518,6 +536,8 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         e_unit_type::soldier, e_unit_type::veteran_colonist );
     expect_combat();
     W.expect_some_animation();
+    W.expect_msg_both_contains( "English", "defeats",
+                                "wilderness" );
     W.expect_msg_contains( W.kDefendingNation, "captured" );
     W.expect_msg_contains( W.kAttackingNation, "captured" );
     W.expect_msg_contains( W.kAttackingNation,
@@ -549,8 +569,8 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         e_unit_type::soldier, e_unit_type::free_colonist );
     expect_combat();
     W.expect_some_animation();
-    W.expect_msg_contains( W.kAttackingNation, "English",
-                           "defeats", "French" );
+    W.expect_msg_both_contains( "English", "defeats",
+                                "wilderness" );
     W.expect_msg_contains( W.kDefendingNation,
                            "lost in battle" );
     REQUIRE( f() == expected );
