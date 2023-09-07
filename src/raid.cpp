@@ -22,6 +22,7 @@
 #include "config/colony.rds.hpp"
 #include "config/commodity.rds.hpp"
 #include "config/natives.rds.hpp"
+#include "config/text.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
@@ -242,7 +243,8 @@ wait<> display_brave_attack_colony_effect_msg(
     CASE( none ) { co_return; }
     CASE( commodity_stolen ) {
       co_await mind.message_box(
-          "[{}] tons of [{}] have been stolen from [{}]!",
+          "Indian looting parties have stolen [{}] tons of [{}] "
+          "from [{}]!",
           commodity_stolen.what.quantity,
           config_commodity.types[commodity_stolen.what.type]
               .lowercase_display_name,
@@ -250,13 +252,17 @@ wait<> display_brave_attack_colony_effect_msg(
       co_return;
     }
     CASE( money_stolen ) {
-      co_await mind.message_box( "[{}] stolen from treasury!",
-                                 money_stolen.quantity );
+      co_await mind.message_box(
+          "Indian looting parties have stolen [{}]{} from the "
+          "treasury!",
+          money_stolen.quantity,
+          config_text.special_chars.currency );
       co_return;
     }
     CASE( building_destroyed ) {
       co_await mind.message_box(
-          "The [{}] in [{}] has been destroyed!",
+          "Indian raiding parties have destroyed the [{}] in "
+          "[{}]!",
           config_colony
               .building_display_names[building_destroyed.which],
           colony.name );

@@ -779,15 +779,17 @@ TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
       .what = Commodity{ .type     = e_commodity::coats,
                          .quantity = 20 } };
   mind.EXPECT__message_box(
-          "[20] tons of [coats] have been stolen from [my "
-          "colony]!" )
+          "Indian looting parties have stolen [20] tons of "
+          "[coats] from [my colony]!" )
       .returns<monostate>();
   f();
 
   // Money stolen.
   effect =
       BraveAttackColonyEffect::money_stolen{ .quantity = 234 };
-  mind.EXPECT__message_box( "[234] stolen from treasury!" )
+  mind.EXPECT__message_box(
+          "Indian looting parties have stolen [234]\x7f from "
+          "the treasury!" )
       .returns<monostate>();
   f();
 
@@ -795,8 +797,8 @@ TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
   effect = BraveAttackColonyEffect::building_destroyed{
       .which = e_colony_building::blacksmiths_shop };
   mind.EXPECT__message_box(
-          "The [Blacksmith's Shop] in [my colony] has been "
-          "destroyed!" )
+          "Indian raiding parties have destroyed the "
+          "[Blacksmith's Shop] in [my colony]!" )
       .returns<monostate>();
   f();
 
