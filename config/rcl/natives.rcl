@@ -44,6 +44,35 @@ unit_types {
   }
 }
 
+# How many units of horses/muskets need to be added/removed from
+# the unit to transition from one type to another.
+equipment {
+  armed_brave {
+    armed_brave:     { muskets =  0, horses =  0 }
+    brave:           { muskets = -1, horses =  0 }
+    mounted_brave:   { muskets = -1, horses =  1 }
+    mounted_warrior: { muskets =  0, horses =  1 }
+  }
+  brave {
+    armed_brave:     { muskets =  1, horses =  0 }
+    brave:           { muskets =  0, horses =  0 }
+    mounted_brave:   { muskets =  0, horses =  1 }
+    mounted_warrior: { muskets =  1, horses =  1 }
+  }
+  mounted_brave {
+    armed_brave:     { muskets =  1, horses = -1 }
+    brave:           { muskets =  0, horses = -1 }
+    mounted_brave:   { muskets =  0, horses =  0 }
+    mounted_warrior: { muskets =  1, horses =  0 }
+  }
+  mounted_warrior {
+    armed_brave:     { muskets =  0, horses = -1 }
+    brave:           { muskets = -1, horses = -1 }
+    mounted_brave:   { muskets = -1, horses =  0 }
+    mounted_warrior: { muskets =  0, horses =  0 }
+  }
+}
+
 dwelling_types {
   semi_nomadic {
     radius:         small

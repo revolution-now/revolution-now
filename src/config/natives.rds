@@ -362,6 +362,11 @@ struct.Combat {
   colony_attack 'config::natives::ColonyAttack',
 }
 
+enum.e_brave_equipment {
+  muskets,
+  horses,
+}
+
 namespace "rn"
 
 struct.config_natives_t {
@@ -402,6 +407,21 @@ struct.config_natives_t {
   treasure 'config::natives::Treasure',
 
   combat 'config::natives::Combat',
+
+  # How many units of horses/muskets need to be added/removed
+  # from the unit to transition from one type to another.
+  equipment [[
+    refl::enum_map<
+      e_native_unit_type,
+      refl::enum_map<
+        e_native_unit_type,
+        refl::enum_map<
+          config::natives::e_brave_equipment,
+          int
+        >
+      >
+    >
+  ]],
 
   _features { equality, validation }
 }
