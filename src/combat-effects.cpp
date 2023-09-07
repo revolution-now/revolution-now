@@ -145,26 +145,24 @@ static maybe<std::string> brave_promotion_message(
     e_native_unit_type to ) {
   string_view const tribe_name =
       config_natives.tribes[tribe].name_singular;
-  string_view const from_name =
-      config_natives.unit_types[from].name;
-  using E                = e_native_unit_type;
-  auto       p           = pair{ from, to };
+  string_view const from_name_plural =
+      config_natives.unit_types[from].name_plural;
   auto const acquisition = [&]() -> maybe<string> {
-    if( p == pair{ E::brave, E::armed_brave } )
+    auto const& equip = config_natives.equipment[from][to];
+    // In the OG's rules only one of these can be obtained at a
+    // time since there is no unit that can lose both muskets and
+    // horses in one battle. Also, braves can't lose horses or
+    // muskets in a battle, they just get destroyed.
+    if( equip[config::natives::e_brave_equipment::muskets] > 0 )
       return "muskets";
-    else if( p == pair{ E::brave, E::mounted_brave } )
+    if( equip[config::natives::e_brave_equipment::horses] > 0 )
       return "horses";
-    else if( p == pair{ E::armed_brave, E::mounted_warrior } )
-      return "horses";
-    else if( p == pair{ E::mounted_brave, E::mounted_warrior } )
-      return "muskets";
-    else
-      return nothing;
+    return nothing;
   }();
   if( !acquisition.has_value() ) return nothing;
   return fmt::format(
-      "[{}] {} has acquired [{}] upon victory in combat!",
-      tribe_name, from_name, acquisition );
+      "[{}] {} have acquired [{}] upon victory in combat!",
+      tribe_name, from_name_plural, acquisition );
 }
 
 UnitCombatEffectsMessages native_unit_combat_effects_msg(
@@ -377,9 +375,9 @@ CombatEffectsSummaries summarize_combat_outcome(
     case e_combat_winner::attacker: {
       // Brave wins. Note that the below works with both
       // singular and plural unit names.
-      return { .defender = fmt::format( "[{}] ambush [{}]{}!",
-                                        tribe_name, nation_adj,
-                                        colony_str ) };
+      return { .defender = fmt::format(
+                   "[{}] ambush [{}] [{}]{}!", tribe_name,
+                   nation_adj, euro_unit_name, colony_str ) };
     }
     case e_combat_winner::defender: {
       // European wins.

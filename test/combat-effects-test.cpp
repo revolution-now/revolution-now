@@ -60,6 +60,8 @@ struct World : testing::World {
   inline static e_nation const kDefenderNation =
       e_nation::french;
 
+  inline static e_tribe const kNativeTribe = e_tribe::sioux;
+
   inline static Coord const kLandAttackerCoord{ .x = 0, .y = 0 };
   inline static Coord const kLandDefenderCoord{ .x = 0, .y = 1 };
 
@@ -67,6 +69,8 @@ struct World : testing::World {
                                                   .y = 4 };
   inline static Coord const kDefenderColonyCoord{ .x = 3,
                                                   .y = 2 };
+  inline static Coord const kAttackerDwellingCoord{ .x = 1,
+                                                    .y = 4 };
 
   void create_default_map() {
     MapSquare const   _ = make_ocean();
@@ -800,13 +804,317 @@ TEST_CASE(
 
 TEST_CASE(
     "[combat-effects] combat_effects_msg, "
-    "CombatBraveAttackColony" ) {
-  World W;
+    "CombatBraveAttackEuro" ) {
+  World                 W;
+  CombatEffectsMessages expected;
+
+  enum class e_colony {
+    // Order matters here; needs to be in order of increasing
+    // visibility.
+    no,
+    yes_but_hidden,
+    yes_and_visible,
+  };
+
+  struct Params {
+    e_native_unit_type      attacker = {};
+    UnitType                defender = {};
+    e_combat_winner         winner   = {};
+    NativeUnitCombatOutcome attacker_outcome;
+    EuroUnitCombatOutcome   defender_outcome;
+    e_colony                defender_colony = {};
+  } params;
+
+  auto run = [&] {
+    if( params.defender_colony > e_colony::no ) {
+      Colony& colony = W.add_colony( W.kDefenderColonyCoord,
+                                     W.kDefenderNation );
+      colony.name    = "defender colony";
+      if( params.defender_colony > e_colony::yes_but_hidden ) {
+        W.map_updater().make_squares_visible(
+            W.kDefenderNation, { colony.location } );
+        if( params.defender_colony >
+            e_colony::yes_and_visible ) {
+          W.map_updater().make_squares_visible(
+              W.kAttackerNation, { colony.location } );
+        }
+      }
+    }
+    Dwelling const& dwelling = W.add_dwelling(
+        W.kAttackerDwellingCoord, W.kNativeTribe );
+    NativeUnit const& attacker = W.add_native_unit_on_map(
+        params.attacker, W.kLandAttackerCoord, dwelling.id );
+    Unit const& defender =
+        W.add_unit_on_map( params.defender, W.kLandDefenderCoord,
+                           W.kDefenderNation );
+    CombatBraveAttackEuro const combat{
+        .winner   = params.winner,
+        .attacker = { .id      = attacker.id,
+                      .outcome = params.attacker_outcome },
+        .defender = { .id      = defender.id(),
+                      .outcome = params.defender_outcome },
+    };
+    return combat_effects_msg( W.ss(), combat );
+  };
+
+  SECTION( "(brave,free_colonist) -> (brave,)" ) {
+    params = {
+        .attacker         = e_native_unit_type::brave,
+        .defender         = e_unit_type::free_colonist,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = NativeUnitCombatOutcome::no_change{},
+        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+    };
+    expected = {
+        .summaries = { .defender =
+                           "[Sioux] ambush [French] [Free "
+                           "Colonist] in the wilderness!" },
+        .defender  = {
+             .for_owner = { "Our [Free Colonist] has been lost "
+                             "in battle." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(brave,treasure) -> (brave,)" ) {
+    params = {
+        .attacker         = e_native_unit_type::brave,
+        .defender         = e_unit_type::treasure,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = NativeUnitCombatOutcome::no_change{},
+        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+        .defender_colony  = e_colony::yes_and_visible,
+    };
+    expected = {
+        .summaries = { .defender =
+                           "[Sioux] ambush [French] [Treasure "
+                           "Train] near defender colony!" },
+        .defender  = {
+             .for_owner = { "Our [Treasure Train] has been lost "
+                             "in battle." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(brave,wagon_train) -> (brave,)" ) {
+    params = {
+        .attacker         = e_native_unit_type::brave,
+        .defender         = e_unit_type::wagon_train,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = NativeUnitCombatOutcome::no_change{},
+        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+    };
+    expected = {
+        .summaries = { .defender =
+                           "[Sioux] ambush [French] [Wagon "
+                           "Train] in the wilderness!" },
+        .defender  = {
+             .for_owner = { "Our [Wagon Train] has been lost in "
+                             "battle." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(brave,dragoon) -> (mounted_brave,soldier)" ) {
+    params = {
+        .attacker = e_native_unit_type::brave,
+        .defender = e_unit_type::dragoon,
+        .winner   = e_combat_winner::attacker,
+        .attacker_outcome =
+            NativeUnitCombatOutcome::promoted{
+                .to = e_native_unit_type::mounted_brave },
+        .defender_outcome =
+            EuroUnitCombatOutcome::demoted{
+                .to = e_unit_type::soldier },
+    };
+    expected = {
+        .summaries = { .defender =
+                           "[Sioux] ambush [French] [Dragoon] "
+                           "in the wilderness!" },
+        .attacker =
+            { .for_both =
+                  { "[Sioux] Braves have acquired [horses] upon "
+                    "victory in combat!" } },
+        .defender = {
+            .for_both = { "[French] [Dragoon] routed! Unit "
+                          "demoted to [Soldier]." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION(
+      "(brave,veteran_soldier) -> "
+      "(armed_brave,veteran_colonist)" ) {
+    params = {
+        .attacker = e_native_unit_type::brave,
+        .defender = e_unit_type::veteran_soldier,
+        .winner   = e_combat_winner::attacker,
+        .attacker_outcome =
+            NativeUnitCombatOutcome::promoted{
+                .to = e_native_unit_type::armed_brave },
+        .defender_outcome =
+            EuroUnitCombatOutcome::demoted{
+                .to = e_unit_type::veteran_colonist },
+    };
+    expected = {
+        .summaries = { .defender =
+                           "[Sioux] ambush [French] [Veteran "
+                           "Soldier] in the wilderness!" },
+        .attacker =
+            { .for_both =
+                  { "[Sioux] Braves have acquired [muskets] "
+                    "upon victory in combat!" } },
+        .defender = {
+            .for_both = {
+                "[French] [Veteran Soldier] routed! Unit "
+                "demoted to colonist status." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION(
+      "(mounted_brave,soldier) -> "
+      "(mounted_warrior,free_colonist)" ) {
+    params = {
+        .attacker = e_native_unit_type::mounted_brave,
+        .defender = e_unit_type::soldier,
+        .winner   = e_combat_winner::attacker,
+        .attacker_outcome =
+            NativeUnitCombatOutcome::promoted{
+                .to = e_native_unit_type::mounted_warrior },
+        .defender_outcome =
+            EuroUnitCombatOutcome::demoted{
+                .to = e_unit_type::free_colonist },
+    };
+    expected = {
+        .summaries = { .defender =
+                           "[Sioux] ambush [French] [Soldier] "
+                           "in the wilderness!" },
+        .attacker =
+            { .for_both =
+                  { "[Sioux] Mounted Braves have acquired "
+                    "[muskets] upon victory in combat!" } },
+        .defender = {
+            .for_both = { "[French] [Soldier] routed! Unit "
+                          "demoted to colonist status." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION(
+      "(armed_brave,dragoon) -> (mounted_warrior,soldier)" ) {
+    params = {
+        .attacker = e_native_unit_type::armed_brave,
+        .defender = e_unit_type::dragoon,
+        .winner   = e_combat_winner::attacker,
+        .attacker_outcome =
+            NativeUnitCombatOutcome::promoted{
+                .to = e_native_unit_type::mounted_warrior },
+        .defender_outcome =
+            EuroUnitCombatOutcome::demoted{
+                .to = e_unit_type::soldier },
+    };
+    expected = {
+        .summaries = { .defender =
+                           "[Sioux] ambush [French] [Dragoon] "
+                           "in the wilderness!" },
+        .attacker =
+            { .for_both =
+                  { "[Sioux] Armed Braves have acquired "
+                    "[horses] upon victory in combat!" } },
+        .defender = {
+            .for_both = { "[French] [Dragoon] routed! Unit "
+                          "demoted to [Soldier]." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION(
+      "(mounted_brave,artillery) -> "
+      "(mounted_brave,damaged_artillery)" ) {
+    params = {
+        .attacker         = e_native_unit_type::mounted_brave,
+        .defender         = e_unit_type::artillery,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = NativeUnitCombatOutcome::no_change{},
+        .defender_outcome =
+            EuroUnitCombatOutcome::demoted{
+                .to = e_unit_type::damaged_artillery },
+    };
+    expected = {
+        .summaries = { .defender =
+                           "[Sioux] ambush [French] [Artillery] "
+                           "in the wilderness!" },
+        .defender  = {
+             .for_both = {
+                "[French] Artillery [damaged]. Further damage "
+                 "will destroy it." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(brave,free_colonist) -> (,free_colonist)" ) {
+    params = {
+        .attacker         = e_native_unit_type::brave,
+        .defender         = e_unit_type::free_colonist,
+        .winner           = e_combat_winner::defender,
+        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+        .defender_outcome = EuroUnitCombatOutcome::no_change{},
+    };
+    expected = { .summaries = {
+                     .defender =
+                         "[French] Free Colonist defeats "
+                         "[Sioux] Brave in the wilderness!" } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(armed_brave,soldier) -> (,soldier)" ) {
+    params = {
+        .attacker         = e_native_unit_type::armed_brave,
+        .defender         = e_unit_type::soldier,
+        .winner           = e_combat_winner::defender,
+        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+        .defender_outcome = EuroUnitCombatOutcome::no_change{},
+    };
+    expected = {
+        .summaries = { .defender =
+                           "[French] Soldier defeats [Sioux] "
+                           "Armed Brave in the wilderness!" } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(mounted_brave,soldier) -> (,soldier)" ) {
+    params = {
+        .attacker         = e_native_unit_type::mounted_brave,
+        .defender         = e_unit_type::soldier,
+        .winner           = e_combat_winner::defender,
+        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+        .defender_outcome = EuroUnitCombatOutcome::no_change{},
+    };
+    expected = { .summaries = {
+                     .defender =
+                         "[French] Soldier defeats [Sioux] "
+                         "Mounted Brave in the wilderness!" } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(mounted_warrior,soldier) -> (,veteran_soldier)" ) {
+    params = {
+        .attacker         = e_native_unit_type::mounted_brave,
+        .defender         = e_unit_type::soldier,
+        .winner           = e_combat_winner::defender,
+        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+        .defender_outcome =
+            EuroUnitCombatOutcome::promoted{
+                .to = e_unit_type::veteran_soldier },
+    };
+    expected = {
+        .summaries = { .defender =
+                           "[French] Soldier defeats [Sioux] "
+                           "Mounted Brave in the wilderness!" },
+        .defender  = {
+             .for_owner = {
+                "[French] Soldier promoted to [Veteran Soldier] "
+                 "for victory in combat!" } } };
+    REQUIRE( run() == expected );
+  }
 }
 
 TEST_CASE(
     "[combat-effects] combat_effects_msg, "
-    "CombatBraveAttackEuro" ) {
+    "CombatBraveAttackColony" ) {
   World W;
 }
 
@@ -838,96 +1146,6 @@ TEST_CASE(
     "[combat-effects] combat_effects_msg, "
     "CombatShipAttackShip" ) {
   World W;
-}
-
-TEST_CASE( "[combat-effects] native_unit_combat_effects_msg" ) {
-  World W;
-
-  NativeUnitId            unit_id = {};
-  NativeUnitCombatOutcome outcome;
-  CombatEffectsMessages   expected;
-
-  Dwelling const& dwelling =
-      W.add_dwelling( { .x = 1, .y = 0 }, e_tribe::cherokee );
-
-  auto f = [&] {
-    return native_unit_combat_effects_msg(
-        W.ss(), W.units().unit_for( unit_id ), outcome );
-  };
-
-  SECTION( "no_change" ) {
-    unit_id = W.add_native_unit_on_map(
-                   e_native_unit_type::brave, { .x = 1, .y = 1 },
-                   dwelling.id )
-                  .id;
-    outcome  = NativeUnitCombatOutcome::no_change{};
-    expected = {};
-    REQUIRE( f() == expected );
-  }
-
-  SECTION( "destroyed" ) {
-    unit_id = W.add_native_unit_on_map(
-                   e_native_unit_type::brave, { .x = 1, .y = 1 },
-                   dwelling.id )
-                  .id;
-    outcome = NativeUnitCombatOutcome::destroyed{
-        .tribe_retains_horses  = true,
-        .tribe_retains_muskets = true };
-    expected = {};
-    REQUIRE( f() == expected );
-  }
-
-  SECTION( "promoted, brave --> armed_brave" ) {
-    unit_id = W.add_native_unit_on_map(
-                   e_native_unit_type::brave, { .x = 1, .y = 1 },
-                   dwelling.id )
-                  .id;
-    outcome = NativeUnitCombatOutcome::promoted{
-        .to = e_native_unit_type::armed_brave };
-    expected = {
-        .for_both = { "[Cherokee] Brave has acquired [muskets] "
-                      "upon victory in combat!" } };
-    REQUIRE( f() == expected );
-  }
-
-  SECTION( "promoted, brave --> mounted_brave" ) {
-    unit_id = W.add_native_unit_on_map(
-                   e_native_unit_type::brave, { .x = 1, .y = 1 },
-                   dwelling.id )
-                  .id;
-    outcome = NativeUnitCombatOutcome::promoted{
-        .to = e_native_unit_type::mounted_brave };
-    expected = {
-        .for_both = { "[Cherokee] Brave has acquired [horses] "
-                      "upon victory in combat!" } };
-    REQUIRE( f() == expected );
-  }
-
-  SECTION( "promoted, mounted_brave --> mounted_warrior" ) {
-    unit_id = W.add_native_unit_on_map(
-                   e_native_unit_type::mounted_brave,
-                   { .x = 1, .y = 1 }, dwelling.id )
-                  .id;
-    outcome = NativeUnitCombatOutcome::promoted{
-        .to = e_native_unit_type::mounted_warrior };
-    expected = {
-        .for_both = { "[Cherokee] Mounted Brave has acquired "
-                      "[muskets] upon victory in combat!" } };
-    REQUIRE( f() == expected );
-  }
-
-  SECTION( "promoted, armed_brave --> mounted_warrior" ) {
-    unit_id = W.add_native_unit_on_map(
-                   e_native_unit_type::armed_brave,
-                   { .x = 1, .y = 1 }, dwelling.id )
-                  .id;
-    outcome = NativeUnitCombatOutcome::promoted{
-        .to = e_native_unit_type::mounted_warrior };
-    expected = {
-        .for_both = { "[Cherokee] Armed Brave has acquired "
-                      "[horses] upon victory in combat!" } };
-    REQUIRE( f() == expected );
-  }
 }
 
 TEST_CASE( "[combat-effects] naval_unit_combat_effects_msg" ) {
