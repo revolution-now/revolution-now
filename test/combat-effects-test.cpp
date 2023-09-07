@@ -353,7 +353,7 @@ TEST_CASE(
                     "Soldier] for victory in combat!" } },
         .defender = {
             .for_owner = {
-                "Our [Scout] has been lost in battle." } } };
+                "[French] [Scout] lost in battle." } } };
     REQUIRE( run() == expected );
   }
 
@@ -378,8 +378,9 @@ TEST_CASE(
             { .for_owner =
                   { "[Dutch] Soldier promoted to [Veteran "
                     "Soldier] for victory in combat!" } },
-        .defender = { .for_owner = { "Our [Missionary] has been "
-                                     "lost in battle." } } };
+        .defender = {
+            .for_owner = {
+                "[French] [Missionary] lost in battle." } } };
     REQUIRE( run() == expected );
   }
 
@@ -405,8 +406,8 @@ TEST_CASE(
                   { "[Dutch] Soldier promoted to [Veteran "
                     "Soldier] for victory in combat!" } },
         .defender = {
-            .for_owner = { "Our [Hardy Pioneer] has been lost "
-                           "in battle." } } };
+            .for_owner = {
+                "[French] [Hardy Pioneer] lost in battle." } } };
     REQUIRE( run() == expected );
   }
 
@@ -649,7 +650,7 @@ TEST_CASE(
                            "[Dutch] in the wilderness!" },
         .attacker  = {
              .for_owner = {
-                "Our [Scout] has been lost in battle." } } };
+                "[Dutch] [Scout] lost in battle." } } };
     REQUIRE( run() == expected );
   }
 
@@ -721,8 +722,8 @@ TEST_CASE(
                            "[French] Expert Farmer defeats "
                            "[Dutch] in the wilderness!" },
         .attacker  = {
-             .for_owner = { "Our [Damaged Artillery] has been "
-                             "lost in battle." } } };
+             .for_both = { "Damaged [Dutch] Artillery has been "
+                            "[destroyed]." } } };
     REQUIRE( run() == expected );
   }
 
@@ -771,7 +772,7 @@ TEST_CASE(
                            "[Dutch] in the wilderness!" },
         .attacker  = {
              .for_owner = {
-                "Our [Scout] has been lost in battle." } } };
+                "[Dutch] [Scout] lost in battle." } } };
     REQUIRE( run() == expected );
   }
 
@@ -870,8 +871,8 @@ TEST_CASE(
                            "[Sioux] ambush [French] [Free "
                            "Colonist] in the wilderness!" },
         .defender  = {
-             .for_owner = { "Our [Free Colonist] has been lost "
-                             "in battle." } } };
+             .for_owner = {
+                "[French] [Free Colonist] lost in battle." } } };
     REQUIRE( run() == expected );
   }
 
@@ -888,9 +889,8 @@ TEST_CASE(
         .summaries = { .defender =
                            "[Sioux] ambush [French] [Treasure "
                            "Train] near defender colony!" },
-        .defender  = {
-             .for_owner = { "Our [Treasure Train] has been lost "
-                             "in battle." } } };
+        .defender = { .for_owner = { "[French] [Treasure Train] "
+                                     "lost in battle." } } };
     REQUIRE( run() == expected );
   }
 
@@ -907,8 +907,8 @@ TEST_CASE(
                            "[Sioux] ambush [French] [Wagon "
                            "Train] in the wilderness!" },
         .defender  = {
-             .for_owner = { "Our [Wagon Train] has been lost in "
-                             "battle." } } };
+             .for_owner = {
+                "[French] [Wagon Train] lost in battle." } } };
     REQUIRE( run() == expected );
   }
 

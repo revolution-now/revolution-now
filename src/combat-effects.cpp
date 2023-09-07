@@ -82,11 +82,21 @@ UnitCombatEffectsMessages euro_unit_combat_effects_msg(
   SWITCH( outcome ) {
     CASE( no_change ) { break; }
     CASE( destroyed ) {
-      // This will be scouts, pioneers, missionaries, and ar-
-      // tillery.
-      res.for_owner.push_back(
-          fmt::format( "Our [{}] has been lost in battle.",
-                       unit.desc().name ) );
+      switch( unit.type() ) {
+        case e_unit_type::damaged_artillery:
+          res.for_both.push_back( fmt::format(
+              "Damaged [{}] Artillery has been [destroyed].",
+              nation_obj( unit.nation() ).adjective ) );
+          break;
+        default:
+          // This will be scouts, pioneers, missionaries, and ar-
+          // tillery.
+          res.for_owner.push_back(
+              fmt::format( "[{}] [{}] lost in battle.",
+                           nation_obj( unit.nation() ).adjective,
+                           unit.desc().name ) );
+          break;
+      }
       break;
     }
     CASE( captured ) {
