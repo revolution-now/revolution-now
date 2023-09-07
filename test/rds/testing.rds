@@ -116,7 +116,13 @@ sumtype.CompositeTemplateTwo {
   _template{ T, U },
 
   first {
-    ttp 'rdstest::inner::TemplateTwoParams<T,U>',
+    # Make sure that we can support multi-line types.
+    ttp [[
+      rdstest::inner::TemplateTwoParams<
+        T,
+        U
+      >
+    ]],
   },
   second {},
 }
@@ -235,7 +241,13 @@ struct.MyTemplateStruct {
 
   xxx 'T',
   yyy 'double',
-  zzz_map 'std::unordered_map<std::string, U>',
+  # Make sure that we can support multi-line types.
+  zzz_map [[
+    std::unordered_map<
+      std::string,
+      U
+    >
+  ]],
 }
 
 struct.config_testing_t {

@@ -1734,9 +1734,9 @@ namespace rn::test {
 
   template<typename T, typename U>
   struct MyTemplateStruct {
-    T                                  xxx     = {};
-    double                             yyy     = {};
-    std::unordered_map<std::string, U> zzz_map = {};
+    T                                 xxx     = {};
+    double                            yyy     = {};
+    std::unordered_map<std::string,U> zzz_map = {};
 
     bool operator==( MyTemplateStruct const& ) const = default;
   };

@@ -11,11 +11,12 @@
 --]] ------------------------------------------------------------
 local setmetatable = setmetatable
 local error = error
+local type = type
 
 -- Erase all globals. Need to grab a reference to _G first be-
 -- cause at some point in the loop it will be destroyed.
 local _G = _G
-for k, v in pairs( _G ) do _G[k] = nil end
+for k, _ in pairs( _G ) do _G[k] = nil end
 
 -- require( 'printer' )
 rds = { includes={}, items={} } -- results will be put here.
@@ -23,11 +24,12 @@ rds = { includes={}, items={} } -- results will be put here.
 local ns = '' -- current namespace.
 local push = function( tbl, o ) tbl[#tbl + 1] = o end
 
-local tbl_keyword = function( type )
+local tbl_keyword = function( type_name )
   return setmetatable( {}, {
     __index=function( _, k )
       return function( tbl )
-        push( rds.items, { type=type, ns=ns, name=k, obj=tbl } )
+        push( rds.items,
+              { type=type_name, ns=ns, name=k, obj=tbl } )
       end
     end,
   } )
@@ -42,9 +44,20 @@ local cmd = {
   struct=tbl_keyword( 'struct' ),
 }
 
+local function trim( o )
+  if type( o ) ~= 'string' then return o end
+  -- This will remove all new lines and condense spaces.
+  -- LuaFormatter off
+  return o:gsub( '^ +', '' )  -- remove spaces from beginning.
+          :gsub( '\n +', '' ) -- remove newlines and spaces that follow them.
+          :gsub( '%s+', ' ' ) -- keep remaining spaces, but condensed.
+  -- LuaFormatter on
+end
+
 setmetatable( _G, {
   __index=function( _, k )
-    return cmd[k] or function( o ) return { name=k, obj=o } end
+    local f = function( o ) return { name=k, obj=trim( o ) } end
+    return cmd[k] or f
   end,
   __newindex=function() error( 'no setting globals' ) end,
 } )

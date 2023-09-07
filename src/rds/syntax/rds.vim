@@ -76,8 +76,9 @@ syn region   rdsSumtypeTableBlock start='{' end='}' contained fold contains=rdsS
 syn match    rdsSumtypeAlternative '[a-zA-Z][a-zA-Z0-9_]*' contained nextgroup=rdsSumtypeAlternativeBlock skipwhite skipempty
 syn region   rdsSumtypeAlternativeBlock start='{' end='}' contained fold contains=rdsSumtypeAlternativeVar,rdsLineComment nextgroup=rdsSumtypeAlternativeBlockComma skipwhite skipempty
 syn match    rdsSumtypeAlternativeBlockComma ',' contained nextgroup=rdsSumtypeAlternative,rdsSumtypeTemplate,rdsSumtypeFeatures skipwhite skipempty
-syn match    rdsSumtypeAlternativeVar '[a-zA-Z_][a-zA-Z0-9_]*' contained nextgroup=rdsSumtypeAlternativeVarTypeQuoted skipwhite skipempty
+syn match    rdsSumtypeAlternativeVar '[a-zA-Z_][a-zA-Z0-9_]*' contained nextgroup=rdsSumtypeAlternativeVarTypeQuoted,rdsSumtypeAlternativeVarTypeMultiLine  skipwhite skipempty
 syn region   rdsSumtypeAlternativeVarTypeQuoted start="'" end="'" contained contains=rdsSumtypeAlternativeVarTypeQuotedContents,rdsSumtypeAlternativeVarTypeError nextgroup=rdsSumtypeAlternativeVarComma skipwhite skipempty
+syn region   rdsSumtypeAlternativeVarTypeMultiLine start='\[\[' end='\]\]' contained nextgroup=rdsSumtypeAlternativeVarComma skipwhite skipempty
 syn match    rdsSumtypeAlternativeVarTypeError "[^']\+" contained
 syn match    rdsSumtypeAlternativeVarTypeQuotedContents "[a-zA-Z_][a-zA-Z0-9_:\*, <>]*" contained skipwhite skipempty
 syn match    rdsSumtypeAlternativeVarComma ',' nextgroup=rdsSumtypeAlternativeVar skipwhite skipempty
@@ -109,6 +110,7 @@ hi def link  rdsSumtypeAlternative                      Identifier
 hi def link  rdsSumtypeAlternativeVar                   None
 hi def link  rdsSumtypeAlternativeVarTypeQuoted         Comment
 hi def link  rdsSumtypeAlternativeVarTypeQuotedContents String
+hi def link  rdsSumtypeAlternativeVarTypeMultiLine      String
 hi def link  rdsSumtypeAlternativeVarTypeError          Error
 
 hi def link  rdsSumtypeFeatures            Keyword
@@ -128,8 +130,9 @@ syn match    rdsStructDot '\.' nextgroup=rdsStructName
 syn match    rdsStructName '[a-zA-Z_][a-zA-Z0-9_]\+' nextgroup=rdsStructTableBlock skipwhite skipempty
 syn region   rdsStructTableBlock start='{' end='}' contained fold contains=rdsStructVar,rdsStructFeatures,rdsStructTemplate,rdsLineComment
 
-syn match    rdsStructVar '[a-zA-Z_][a-zA-Z0-9_]*' contained nextgroup=rdsStructVarTypeQuoted skipwhite skipempty
+syn match    rdsStructVar '[a-zA-Z_][a-zA-Z0-9_]*' contained nextgroup=rdsStructVarTypeQuoted,rdsStructVarTypeMultiLine skipwhite skipempty
 syn region   rdsStructVarTypeQuoted start="'" end="'" contained contains=rdsStructVarTypeQuotedContents,rdsStructVarTypeError nextgroup=rdsStructVarComma skipwhite skipempty
+syn region   rdsStructVarTypeMultiLine start='\[\[' end='\]\]' contained nextgroup=rdsStructVarComma skipwhite skipempty
 syn match    rdsStructVarTypeError "[^']\+" contained
 syn match    rdsStructVarTypeQuotedContents "[a-zA-Z_][a-zA-Z0-9_:\*, <>]*" contained skipwhite skipempty
 syn match    rdsStructVarComma ',' nextgroup=rdsStructVar,rdsStructFeatures skipwhite skipempty
@@ -159,6 +162,7 @@ hi def link  rdsStructName                   None
 hi def link  rdsStructVar                   None
 hi def link  rdsStructVarTypeQuoted         Comment
 hi def link  rdsStructVarTypeQuotedContents String
+hi def link  rdsStructVarTypeMultiLine      String
 hi def link  rdsStructVarTypeError          Error
 
 hi def link  rdsStructFeatures            Keyword
