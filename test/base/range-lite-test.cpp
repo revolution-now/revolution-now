@@ -90,7 +90,7 @@ TEST_CASE( "[range-lite] long-range" ) {
 TEST_CASE( "[range-lite] move-only" ) {
   struct A {
     A( int m ) : n( m ) {}
-    A( A const& a ) = delete;
+    A( A const& a )            = delete;
     A& operator=( A const& a ) = delete;
     A( A&& a ) { n = a.n; }
     bool operator==( A const& ) const = default;
@@ -1406,6 +1406,22 @@ TEST_CASE( "[range-lite] filter alias" ) {
 
   vector<string> expected{ "six", "two" };
   REQUIRE_THAT( view.to_vector(), Equals( expected ) );
+}
+
+// https://youtu.be/uYFRnsMD9ks?si=ioRuQWY7uQNJCJd9
+TEST_CASE( "[range-lite] sushi for two (zip_adjacent)" ) {
+  vector<int> const in{ 2, 2, 2, 1, 1, 2, 2 };
+
+  int const res = rl::all( in )
+                      .group()
+                      .map_L( _.distance() )
+                      .zip_adjacent()
+                      .map_L( std::min( _.first, _.second ) )
+                      .max()
+                      .value() //
+                  * 2;
+
+  REQUIRE( res == 4 );
 }
 
 } // namespace

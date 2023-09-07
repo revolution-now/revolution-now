@@ -722,7 +722,8 @@ class ChainView {
   }
 
   std::string to_string() const
-      requires( std::is_convertible_v<value_type, char> ) {
+  requires( std::is_convertible_v<value_type, char> )
+  {
     std::string res;
     for( char c : *this ) res.push_back( c );
     return res;
@@ -1570,6 +1571,16 @@ class ChainView {
                            decltype( p.first )>{ p.second,
                                                  p.first };
         } );
+  }
+
+  /**************************************************************
+  ** zip_adjacent
+  ***************************************************************/
+  auto zip_adjacent() && {
+    using IntsCursor   = IdentityCursor<IntsView>;
+    using Data         = typename IntsCursor::Data;
+    auto const shifted = copy_me().drop( 1 );
+    return std::move( *this ).zip( shifted );
   }
 
   /**************************************************************
