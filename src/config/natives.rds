@@ -78,6 +78,7 @@ namespace "rn.config.natives"
 struct.UnitType {
   type 'e_native_unit_type',
   name 'std::string',
+  name_plural 'std::string',
   movement_points 'MovementPoints',
   combat 'int',
   tile 'e_tile',
