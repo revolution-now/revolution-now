@@ -125,7 +125,7 @@ UnitCombatEffectsMessages euro_unit_combat_effects_msg(
         default:
           string demoted_to;
           if( !to_desc.can_attack &&
-              to_desc.colonist >= e_unit_colonist::yes )
+              is_unit_a_colonist( to_desc.type ) )
             demoted_to = "colonist status";
           else
             demoted_to = fmt::format( "[{}]", to_desc.name );
