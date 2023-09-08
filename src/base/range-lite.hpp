@@ -1577,10 +1577,7 @@ class ChainView {
   ** zip_adjacent
   ***************************************************************/
   auto zip_adjacent() && {
-    using IntsCursor   = IdentityCursor<IntsView>;
-    using Data         = typename IntsCursor::Data;
-    auto const shifted = copy_me().drop( 1 );
-    return std::move( *this ).zip( shifted );
+    return std::move( *this ).zip( copy_me().drop( 1 ) );
   }
 
   /**************************************************************
