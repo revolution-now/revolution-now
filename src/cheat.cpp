@@ -24,6 +24,7 @@
 #include "interrupts.hpp"
 #include "logger.hpp"
 #include "market.hpp"
+#include "minds.hpp"
 #include "plane-stack.hpp"
 #include "promotion.hpp"
 #include "roles.hpp"
@@ -169,6 +170,8 @@ wait<> cheat_set_human_players( SS& ss, TS& ts ) {
   // Set new human statuses.
   for( e_nation nation : refl::enum_values<e_nation> )
     ss.players.humans[nation] = info_map[nation].on;
+
+  ts.euro_minds = create_euro_minds( ss, ts.gui );
 
   // We do this because we need to back out beyond the individual
   // nation's turn processor in order to handle this configura-
