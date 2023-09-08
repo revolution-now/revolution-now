@@ -1,0 +1,47 @@
+Things to try (taken from https://www.youtube.com/watch?v=PfHD3BsVsAM):
+
+  * Take a look at ClandBuildAnalyzer. It is a tool that parses
+    the output of -ftime-trace and gives a report that is more
+    human readable and actionable than the flame graph, including
+    sorted lists of culprit files in each category of compilation
+    work, such as template instantiations and "template set" in-
+    stantiations, which might be very informative.
+
+  * Go to the "C++ Compile Health Watchdog" site, which ranks
+    headers according to how long they take to compile. E.g., it
+    shows that just includng <filesystem> adds .3sec to the com-
+    pile time of a TU.
+
+  * "mold" linker: Apparently it is 2-3 times faster even than lld!
+    https://github.com/rui314/mold
+    Note: it is still fairly new and there may be some bugs. This should
+    only be used for dev builds, because it only supports other platforms
+    via a paid version, and also it may not support LTO (check this), which
+    we would want to include in a real release build.
+
+  * Take a look at "sccache", the ccache with cloud storage. It
+    might speed up builds when moving between machines, and also
+    it apparently supports some kind of distributed building.
+    Along the same lines, regular ccache apparently supports a
+    Redis storage backend.
+
+  * Give PCHs another try using CMake's builtin support, via
+    `target_precompile_headers`; see above video for tutorial.
+    There is a mechanism called "reuse" that CMake supports that
+    allows multiple targets to reuse the same PCH, but beware of
+    it in that it only works if the targets have idential compile
+    flags; if they don't, the PCHs will be ignored.
+
+  * [probably don't do] Whenever a new type is declared, follow
+    it up by some extern template statements for the template
+    types that it is likely to be instantiated with, which will
+    suppress instantiating them in all translation units. Then,
+    in the main cpp associated with the header, explicitly in-
+    stantiate those types. This could also be done with rds types
+    by enhancing the code gen. This can also be done with types
+    from 3rd party libraries. NOTE: this likely will only have an
+    effect for function templates, see:
+      https://stackoverflow.com/questions/61477486/using-extern-template-with-third-party-header-only-library
+    as class templates will probably get instantiated anyway. But
+    there might be a couple of wins with function templates that
+    we have in the code base.
