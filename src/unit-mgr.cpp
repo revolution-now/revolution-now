@@ -249,6 +249,16 @@ void change_unit_nation( SS& ss, TS& ts, Unit& unit,
   }
 }
 
+void change_unit_nation_and_move( SS& ss, TS& ts, Unit& unit,
+                                  e_nation new_nation,
+                                  Coord    target ) {
+  unit.change_nation( ss.units, new_nation );
+  unit_ownership_change_non_interactive(
+      ss, unit.id(),
+      EuroUnitOwnershipChangeTo::world{ .ts     = &ts,
+                                        .target = target } );
+}
+
 /****************************************************************
 ** Map Ownership
 *****************************************************************/

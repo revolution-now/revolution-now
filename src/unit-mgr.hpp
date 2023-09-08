@@ -146,6 +146,14 @@ void change_unit_type( SS& ss, TS& ts, Unit& unit,
 void change_unit_nation( SS& ss, TS& ts, Unit& unit,
                          e_nation new_nation );
 
+// This is for when we want to change the unit's nation and move
+// them in one go. This is useful for a unit capture in order to
+// avoid changing the unit's nation first and inadvertantly re-
+// vealing map square around it before moving it.
+void change_unit_nation_and_move( SS& ss, TS& ts, Unit& unit,
+                                  e_nation new_nation,
+                                  Coord    target );
+
 /****************************************************************
 ** Native-specific
 *****************************************************************/

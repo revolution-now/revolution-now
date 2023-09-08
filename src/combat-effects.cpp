@@ -594,11 +594,18 @@ void perform_euro_unit_combat_effects(
     EuroUnitCombatOutcome const& outcome ) {
   auto capture_unit = [&]( e_nation new_nation,
                            Coord    new_coord ) {
-    change_unit_nation( ss, ts, unit, new_nation );
-    unit_ownership_change_non_interactive(
-        ss, unit.id(),
-        EuroUnitOwnershipChangeTo::world{
-            .ts = &ts, .target = new_coord } );
+    // We need to use this special function to do the nation
+    // change and the move at the same time. If we did the move
+    // first then there would be an intermediate state where we'd
+    // have multiple units of different nations on the same
+    // square, which we don't want. On the other hand, if we were
+    // to do the the nation change first then it would cause the
+    // map squares around the captured unit to be revealed to the
+    // capturing nation (since the captured unit is still on the
+    // original square when the nation change happens) which ends
+    // up looking visually surprising and confusing.
+    change_unit_nation_and_move( ss, ts, unit, new_nation,
+                                 new_coord );
     // This is so that the captured unit won't ask for orders
     // in the same turn that it is captured.
     unit.forfeight_mv_points();

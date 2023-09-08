@@ -311,6 +311,10 @@ TEST_CASE( "[unit-mgr] change_unit_nation" ) {
            e_tile_visibility::visible_and_clear );
 }
 
+TEST_CASE( "[unit-mgr] change_unit_nation_and_move" ) {
+  World W;
+}
+
 TEST_CASE( "[unit-mgr] destroy_unit" ) {
   World        W;
   UnitId const caravel_id =

@@ -20,6 +20,7 @@
 
 namespace rn {
 
+struct Coord;
 struct SS;
 struct TS;
 struct UnitTypeAttributes;
@@ -148,6 +149,10 @@ struct ND Unit {
 
   friend void change_unit_nation( SS& ss, TS& ts, Unit& unit,
                                   e_nation new_nation );
+  friend void change_unit_nation_and_move( SS& ss, TS& ts,
+                                           Unit&    unit,
+                                           e_nation new_nation,
+                                           Coord    target );
 
  public:
   maybe<e_unit_type> demoted_type() const;
