@@ -1373,6 +1373,13 @@ TEST_CASE(
 
   Colony& colony =
       W.add_colony( W.kAttackerColonyCoord, W.kAttackerNation );
+  colony.name = "colony-with-guns";
+  // In a real situation the colony will always be visible and
+  // unfogged to both nations, since they are adjacent.
+  W.map_updater().make_squares_visible( W.kAttackerNation,
+                                        { colony.location } );
+  W.map_updater().make_squares_visible( W.kDefenderNation,
+                                        { colony.location } );
 
   auto run = [&] {
     colony.buildings[params.building] = true;
@@ -1402,6 +1409,13 @@ TEST_CASE(
                 .port = ShipRepairPort::european_harbor{} },
         .building = e_colony_building::fort };
     expected = {
+        .summaries =
+            { .attacker =
+                  "[Dutch] coastal fortification defeats "
+                  "[French] in colony-with-guns!",
+              .defender =
+                  "[Dutch] coastal fortification defeats "
+                  "[French] near colony-with-guns!" },
         .defender = {
             .for_both = {
                 "[French] [Caravel] damaged in battle! Ship "
@@ -1420,6 +1434,13 @@ TEST_CASE(
         .units_on_defender = 2,
         .building          = e_colony_building::fortress };
     expected = {
+        .summaries =
+            { .attacker =
+                  "[Dutch] coastal fortification defeats "
+                  "[French] in colony-with-guns!",
+              .defender =
+                  "[Dutch] coastal fortification defeats "
+                  "[French] near colony-with-guns!" },
         .defender = {
             .for_owner =
                 { "[Two] units onboard have been lost." },
@@ -1437,6 +1458,13 @@ TEST_CASE(
         .defender_outcome = EuroNavalUnitCombatOutcome::sunk{},
         .building         = e_colony_building::fort };
     expected = {
+        .summaries =
+            { .attacker =
+                  "[Dutch] coastal fortification defeats "
+                  "[French] in colony-with-guns!",
+              .defender =
+                  "[Dutch] coastal fortification defeats "
+                  "[French] near colony-with-guns!" },
         .defender = { .for_both = { "[French] [Frigate] sunk by "
                                     "[Dutch] [Fort]." } } };
     REQUIRE( run() == expected );
@@ -1451,6 +1479,13 @@ TEST_CASE(
         .units_on_defender = 1,
         .building          = e_colony_building::fortress };
     expected = {
+        .summaries =
+            { .attacker =
+                  "[Dutch] coastal fortification defeats "
+                  "[French] in colony-with-guns!",
+              .defender =
+                  "[Dutch] coastal fortification defeats "
+                  "[French] near colony-with-guns!" },
         .defender = {
             .for_owner = { "[One] unit onboard has been lost." },
             .for_both  = { "[French] [Frigate] sunk by [Dutch] "
@@ -1466,7 +1501,14 @@ TEST_CASE(
         .defender_outcome =
             EuroNavalUnitCombatOutcome::no_change{},
         .building = e_colony_building::fort };
-    expected = {};
+    expected = {
+        .summaries = { .attacker =
+                           "[French] Caravel defeats [Dutch] in "
+                           "colony-with-guns!",
+                       .defender =
+                           "[French] Caravel defeats [Dutch] "
+                           "near colony-with-guns!" },
+    };
     REQUIRE( run() == expected );
   }
 
@@ -1478,7 +1520,14 @@ TEST_CASE(
         .defender_outcome =
             EuroNavalUnitCombatOutcome::no_change{},
         .building = e_colony_building::fortress };
-    expected = {};
+    expected = {
+        .summaries = { .attacker =
+                           "[French] Privateer defeats [Dutch] "
+                           "in colony-with-guns!",
+                       .defender =
+                           "[French] Privateer defeats [Dutch] "
+                           "near colony-with-guns!" },
+    };
     REQUIRE( run() == expected );
   }
 }
