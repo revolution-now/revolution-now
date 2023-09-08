@@ -64,6 +64,8 @@ struct World : testing::World {
 
   inline static Coord const kLandAttackerCoord{ .x = 0, .y = 0 };
   inline static Coord const kLandDefenderCoord{ .x = 0, .y = 1 };
+  inline static Coord const kSeaAttackerCoord{ .x = 0, .y = 2 };
+  inline static Coord const kSeaDefenderCoord{ .x = 0, .y = 3 };
 
   inline static Coord const kAttackerColonyCoord{ .x = 1,
                                                   .y = 4 };
@@ -1114,6 +1116,375 @@ TEST_CASE(
 
 TEST_CASE(
     "[combat-effects] combat_effects_msg, "
+    "CombatShipAttackShip" ) {
+  World                 W;
+  CombatEffectsMessages expected;
+
+  enum class e_colony {
+    // Order matters here; needs to be in order of increasing
+    // visibility.
+    no,
+    yes_but_hidden,
+    yes_and_visible_to_owner,
+    yes_and_visible_to_both,
+  };
+
+  struct Params {
+    e_unit_type                attacker = {};
+    e_unit_type                defender = {};
+    maybe<e_combat_winner>     winner   = {};
+    EuroNavalUnitCombatOutcome attacker_outcome;
+    EuroNavalUnitCombatOutcome defender_outcome;
+    e_colony                   attacker_colony   = {};
+    e_colony                   defender_colony   = {};
+    int                        units_on_attacker = 0;
+    int                        units_on_defender = 0;
+  } params;
+
+  auto run = [&] {
+    if( params.attacker_colony > e_colony::no ) {
+      Colony& colony = W.add_colony( W.kAttackerColonyCoord,
+                                     W.kAttackerNation );
+      colony.name    = "attacker colony";
+      if( params.attacker_colony > e_colony::yes_but_hidden ) {
+        W.map_updater().make_squares_visible(
+            W.kAttackerNation, { colony.location } );
+        if( params.attacker_colony >
+            e_colony::yes_and_visible_to_owner ) {
+          W.map_updater().make_squares_visible(
+              W.kDefenderNation, { colony.location } );
+        }
+      }
+    }
+    if( params.defender_colony > e_colony::no ) {
+      Colony& colony = W.add_colony( W.kDefenderColonyCoord,
+                                     W.kDefenderNation );
+      colony.name    = "defender colony";
+      if( params.defender_colony > e_colony::yes_but_hidden ) {
+        W.map_updater().make_squares_visible(
+            W.kDefenderNation, { colony.location } );
+        if( params.defender_colony >
+            e_colony::yes_and_visible_to_owner ) {
+          W.map_updater().make_squares_visible(
+              W.kAttackerNation, { colony.location } );
+        }
+      }
+    }
+    Unit const& attacker =
+        W.add_unit_on_map( params.attacker, W.kSeaAttackerCoord,
+                           W.kAttackerNation );
+    for( int i = 0; i < params.units_on_attacker; ++i )
+      W.add_unit_in_cargo( e_unit_type::free_colonist,
+                           attacker.id() );
+    Unit const& defender =
+        W.add_unit_on_map( params.defender, W.kSeaDefenderCoord,
+                           W.kDefenderNation );
+    for( int i = 0; i < params.units_on_defender; ++i )
+      W.add_unit_in_cargo( e_unit_type::free_colonist,
+                           defender.id() );
+    CombatShipAttackShip const combat{
+        .winner   = params.winner,
+        .attacker = { .id      = attacker.id(),
+                      .outcome = params.attacker_outcome },
+        .defender = { .id      = defender.id(),
+                      .outcome = params.defender_outcome },
+    };
+    return combat_effects_msg( W.ss(), combat );
+  };
+
+  SECTION( "(privateer,caravel) -> (privateer,[damaged])" ) {
+    params = {
+        .attacker = e_unit_type::privateer,
+        .defender = e_unit_type::caravel,
+        .winner   = e_combat_winner::attacker,
+        .attacker_outcome =
+            EuroNavalUnitCombatOutcome::no_change{},
+        .defender_outcome = EuroNavalUnitCombatOutcome::damaged{
+            .port = ShipRepairPort::european_harbor{} } };
+    expected = {
+        .summaries =
+            { .attacker =
+                  "[Dutch] Privateer defeats [French] at sea!",
+              .defender =
+                  "[Dutch] Privateer defeats [French] at sea!" },
+        .defender = {
+            .for_both = {
+                "[French] [Caravel] damaged in battle! Ship "
+                "sent to [La Rochelle] for repairs." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(privateer,caravel[2]) -> (privateer,[damaged])" ) {
+    params = {
+        .attacker = e_unit_type::privateer,
+        .defender = e_unit_type::caravel,
+        .winner   = e_combat_winner::attacker,
+        .attacker_outcome =
+            EuroNavalUnitCombatOutcome::no_change{},
+        .defender_outcome =
+            EuroNavalUnitCombatOutcome::damaged{
+                .port = ShipRepairPort::european_harbor{} },
+        .units_on_defender = 2 };
+    expected = {
+        .summaries =
+            { .attacker =
+                  "[Dutch] Privateer defeats [French] at sea!",
+              .defender =
+                  "[Dutch] Privateer defeats [French] at sea!" },
+        .defender = {
+            .for_owner =
+                { "[Two] units onboard have been lost." },
+            .for_both = {
+                "[French] [Caravel] damaged in battle! Ship "
+                "sent to [La Rochelle] for repairs." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(privateer,caravel) -> (privateer,[evade])" ) {
+    params   = { .attacker = e_unit_type::privateer,
+                 .defender = e_unit_type::caravel,
+                 .winner   = nothing,
+                 .attacker_outcome =
+                     EuroNavalUnitCombatOutcome::no_change{},
+                 .defender_outcome =
+                     EuroNavalUnitCombatOutcome::no_change{} };
+    expected = { .summaries = {
+                     .attacker = { "[French] [Caravel] evades "
+                                   "[Dutch] [Privateer]." },
+                     .defender = { "[French] [Caravel] evades "
+                                   "[Dutch] [Privateer]." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(privateer,frigate) -> (privateer,[sunk])" ) {
+    params = {
+        .attacker = e_unit_type::privateer,
+        .defender = e_unit_type::frigate,
+        .winner   = e_combat_winner::attacker,
+        .attacker_outcome =
+            EuroNavalUnitCombatOutcome::moved{
+                .to = W.kSeaDefenderCoord },
+        .defender_outcome = EuroNavalUnitCombatOutcome::sunk{} };
+    expected = {
+        .summaries = { .attacker = { "[Dutch] Privateer defeats "
+                                     "[French] at sea!" },
+                       .defender = { "[Dutch] Privateer defeats "
+                                     "[French] at sea!" } },
+        .defender = { .for_both = { "[French] [Frigate] sunk by "
+                                    "[Dutch] [Privateer]." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(privateer,frigate[1]) -> (privateer,[sunk])" ) {
+    params = {
+        .attacker = e_unit_type::privateer,
+        .defender = e_unit_type::frigate,
+        .winner   = e_combat_winner::attacker,
+        .attacker_outcome =
+            EuroNavalUnitCombatOutcome::moved{
+                .to = W.kSeaDefenderCoord },
+        .defender_outcome  = EuroNavalUnitCombatOutcome::sunk{},
+        .units_on_defender = 1 };
+    expected = {
+        .summaries = { .attacker = { "[Dutch] Privateer defeats "
+                                     "[French] at sea!" },
+                       .defender = { "[Dutch] Privateer defeats "
+                                     "[French] at sea!" } },
+        .defender  = {
+             .for_owner = { "[One] unit onboard has been lost." },
+             .for_both  = { "[French] [Frigate] sunk by "
+                              "[Dutch] [Privateer]." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(privateer[2],caravel) -> ([damaged],caravel)" ) {
+    params = {
+        .attacker = e_unit_type::privateer,
+        .defender = e_unit_type::caravel,
+        .winner   = e_combat_winner::defender,
+        .attacker_outcome =
+            EuroNavalUnitCombatOutcome::damaged{
+                .port = ShipRepairPort::european_harbor{} },
+        .defender_outcome =
+            EuroNavalUnitCombatOutcome::no_change{},
+        .defender_colony   = e_colony::yes_and_visible_to_owner,
+        .units_on_attacker = 2 };
+    expected = {
+        .summaries =
+            { .attacker =
+                  "[French] Caravel defeats [Dutch] at sea!",
+              .defender = "[French] Caravel defeats [Dutch] "
+                          "near defender colony!" },
+        .attacker = {
+            .for_owner =
+                { "[Two] units onboard have been lost." },
+            .for_both = {
+                "[Dutch] [Privateer] damaged in battle! Ship "
+                "sent to [Amsterdam] for repairs." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(privateer[1],frigate) -> ([sunk],frigate)" ) {
+    params = {
+        .attacker         = e_unit_type::privateer,
+        .defender         = e_unit_type::frigate,
+        .winner           = e_combat_winner::defender,
+        .attacker_outcome = EuroNavalUnitCombatOutcome::sunk{},
+        .defender_outcome =
+            EuroNavalUnitCombatOutcome::no_change{},
+        .attacker_colony   = e_colony::yes_and_visible_to_both,
+        .units_on_attacker = 2 };
+    expected = {
+        .summaries =
+            { .attacker = { "[French] Frigate defeats [Dutch] "
+                            "near attacker colony!" },
+              .defender = { "[French] Frigate defeats [Dutch] "
+                            "near attacker colony!" } },
+        .attacker = {
+            .for_owner =
+                { "[Two] units onboard have been lost." },
+            .for_both = { "[Dutch] [Privateer] sunk by [French] "
+                          "[Frigate]." } } };
+    REQUIRE( run() == expected );
+  }
+}
+
+TEST_CASE(
+    "[combat-effects] combat_effects_msg, "
+    "CombatColonyArtilleryAttackShip" ) {
+  World                 W;
+  CombatEffectsMessages expected;
+
+  struct Params {
+    e_unit_type                  defender = {};
+    e_combat_winner              winner   = {};
+    ColonyArtilleryCombatOutcome attacker_outcome;
+    EuroNavalUnitCombatOutcome   defender_outcome;
+    int                          units_on_defender = 0;
+    e_colony_building            building          = {};
+  } params;
+
+  // Make sure that the defending ship is adjacent to the attack-
+  // er's colony. Probably not necessary for this test, but just
+  // in case, since that's how it'd be in the real game.
+  BASE_CHECK(
+      W.kAttackerColonyCoord.direction_to( W.kSeaDefenderCoord )
+          .has_value() );
+
+  Colony& colony =
+      W.add_colony( W.kAttackerColonyCoord, W.kAttackerNation );
+
+  auto run = [&] {
+    colony.buildings[params.building] = true;
+    Unit const& defender =
+        W.add_unit_on_map( params.defender, W.kSeaDefenderCoord,
+                           W.kDefenderNation );
+    for( int i = 0; i < params.units_on_defender; ++i )
+      W.add_unit_in_cargo( e_unit_type::free_colonist,
+                           defender.id() );
+    CombatColonyArtilleryAttackShip const combat{
+        .winner   = params.winner,
+        .attacker = { .id      = colony.id,
+                      .outcome = params.attacker_outcome },
+        .defender = { .id      = defender.id(),
+                      .outcome = params.defender_outcome },
+    };
+    return combat_effects_msg( W.ss(), combat );
+  };
+
+  SECTION( "(fort,caravel) -> (fort,[damaged])" ) {
+    params = {
+        .defender         = e_unit_type::caravel,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = ColonyArtilleryCombatOutcome::win{},
+        .defender_outcome =
+            EuroNavalUnitCombatOutcome::damaged{
+                .port = ShipRepairPort::european_harbor{} },
+        .building = e_colony_building::fort };
+    expected = {
+        .defender = {
+            .for_both = {
+                "[French] [Caravel] damaged in battle! Ship "
+                "sent to [La Rochelle] for repairs." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(fortress,caravel[2]) -> (fortress,[damaged])" ) {
+    params = {
+        .defender         = e_unit_type::caravel,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = ColonyArtilleryCombatOutcome::win{},
+        .defender_outcome =
+            EuroNavalUnitCombatOutcome::damaged{
+                .port = ShipRepairPort::european_harbor{} },
+        .units_on_defender = 2,
+        .building          = e_colony_building::fortress };
+    expected = {
+        .defender = {
+            .for_owner =
+                { "[Two] units onboard have been lost." },
+            .for_both = {
+                "[French] [Caravel] damaged in battle! Ship "
+                "sent to [La Rochelle] for repairs." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(fort,frigate) -> (fort,[sunk])" ) {
+    params = {
+        .defender         = e_unit_type::frigate,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = ColonyArtilleryCombatOutcome::win{},
+        .defender_outcome = EuroNavalUnitCombatOutcome::sunk{},
+        .building         = e_colony_building::fort };
+    expected = {
+        .defender = { .for_both = { "[French] [Frigate] sunk by "
+                                    "[Dutch] [Fort]." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(fortress,frigate[1]) -> (fortress,[sunk])" ) {
+    params = {
+        .defender          = e_unit_type::frigate,
+        .winner            = e_combat_winner::attacker,
+        .attacker_outcome  = ColonyArtilleryCombatOutcome::win{},
+        .defender_outcome  = EuroNavalUnitCombatOutcome::sunk{},
+        .units_on_defender = 1,
+        .building          = e_colony_building::fortress };
+    expected = {
+        .defender = {
+            .for_owner = { "[One] unit onboard has been lost." },
+            .for_both  = { "[French] [Frigate] sunk by [Dutch] "
+                            "[Fortress]." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(fort,caravel) -> (fort,caravel)" ) {
+    params = {
+        .defender         = e_unit_type::caravel,
+        .winner           = e_combat_winner::defender,
+        .attacker_outcome = ColonyArtilleryCombatOutcome::lose{},
+        .defender_outcome =
+            EuroNavalUnitCombatOutcome::no_change{},
+        .building = e_colony_building::fort };
+    expected = {};
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(fortress,privateer) -> (fortress,privateer)" ) {
+    params = {
+        .defender         = e_unit_type::privateer,
+        .winner           = e_combat_winner::defender,
+        .attacker_outcome = ColonyArtilleryCombatOutcome::lose{},
+        .defender_outcome =
+            EuroNavalUnitCombatOutcome::no_change{},
+        .building = e_colony_building::fortress };
+    expected = {};
+    REQUIRE( run() == expected );
+  }
+}
+
+TEST_CASE(
+    "[combat-effects] combat_effects_msg, "
     "CombatBraveAttackColony" ) {
   World W;
 }
@@ -1126,12 +1497,6 @@ TEST_CASE(
 
 TEST_CASE(
     "[combat-effects] combat_effects_msg, "
-    "CombatColonyArtilleryAttackShip" ) {
-  World W;
-}
-
-TEST_CASE(
-    "[combat-effects] combat_effects_msg, "
     "CombatEuroAttackDwelling" ) {
   World W;
 }
@@ -1139,12 +1504,6 @@ TEST_CASE(
 TEST_CASE(
     "[combat-effects] combat_effects_msg, "
     "CombatEuroAttackUndefendedColony" ) {
-  World W;
-}
-
-TEST_CASE(
-    "[combat-effects] combat_effects_msg, "
-    "CombatShipAttackShip" ) {
   World W;
 }
 

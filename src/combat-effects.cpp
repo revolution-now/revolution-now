@@ -229,8 +229,8 @@ std::string naval_battle_opponent_clause(
     }
     END_CASES;
   }
-  return fmt::format( "[{}] {}", nation_obj( nation ).adjective,
-                      unit_part );
+  return fmt::format(
+      "[{}] [{}]", nation_obj( nation ).adjective, unit_part );
 }
 
 UnitCombatEffectsMessages naval_unit_combat_effects_msg(
@@ -256,7 +256,7 @@ UnitCombatEffectsMessages naval_unit_combat_effects_msg(
     }
     CASE( sunk ) {
       res.for_both.push_back( fmt::format(
-          "{} [{}] sunk by {}.",
+          "[{}] [{}] sunk by {}.",
           nation_obj( unit.nation() ).adjective,
           unit.desc().name,
           naval_battle_opponent_clause( ss, opponent ) ) );
@@ -266,11 +266,6 @@ UnitCombatEffectsMessages naval_unit_combat_effects_msg(
     END_CASES;
   }
   return res;
-}
-
-UnitCombatEffectsMessages colony_artillery_combat_effects_msg(
-    ColonyArtilleryCombatOutcome const& ) {
-  return {};
 }
 
 UnitCombatEffectsMessages dwelling_combat_effects_msg(
@@ -305,53 +300,56 @@ CombatEffectsSummaries summarize_combat_outcome(
   return {};
 }
 
+string summarize_for_euro_unit( SSConst const& ss, bool won,
+                                auto const& unit_stats,
+                                auto const& opponent_stats,
+                                string_view near_default ) {
+  Unit const& unit     = ss.units.unit_for( unit_stats.id );
+  Unit const& opponent = ss.units.unit_for( opponent_stats.id );
+  string_view const nation_adj =
+      config_nation.nations[unit.nation()].adjective;
+  string_view const nation_name =
+      config_nation.nations[unit.nation()].display_name;
+  string_view const opponent_nation_adj =
+      config_nation.nations[opponent.nation()].adjective;
+  string_view const opponent_nation_name =
+      config_nation.nations[opponent.nation()].display_name;
+  Coord const coord =
+      coord_for_unit_multi_ownership_or_die( ss, unit.id() );
+  maybe<FogColony const&> const closest_colony =
+      find_close_explored_colony(
+          ss, unit.nation(), coord,
+          /*max_distance=*/
+          config_colony.search_dist_for_nearby_colony );
+  string const colony_str =
+      closest_colony.has_value()
+          ? ( closest_colony->location == coord )
+                ? fmt::format( " in {}", closest_colony->name )
+                : fmt::format( " near {}", closest_colony->name )
+          : string( near_default );
+  // E.g. "[English] Artillery defeats [French] near Roanoke!".
+  if( won ) {
+    return fmt::format( "[{}] {} defeats [{}]{}!", nation_adj,
+                        unit.desc().name, opponent_nation_name,
+                        colony_str );
+  } else {
+    return fmt::format(
+        "[{}] {} defeats [{}]{}!", opponent_nation_adj,
+        opponent.desc().name, nation_name, colony_str );
+  }
+}
+
 CombatEffectsSummaries summarize_combat_outcome(
     SSConst const& ss, CombatEuroAttackEuro const& combat ) {
-  auto summarize_for = [&]( bool won, auto const& stats,
-                            auto const& opponent_stats ) {
-    Unit const& unit = ss.units.unit_for( stats.id );
-    Unit const& opponent =
-        ss.units.unit_for( opponent_stats.id );
-    string_view const nation_adj =
-        config_nation.nations[unit.nation()].adjective;
-    string_view const nation_name =
-        config_nation.nations[unit.nation()].display_name;
-    string_view const opponent_nation_adj =
-        config_nation.nations[opponent.nation()].adjective;
-    string_view const opponent_nation_name =
-        config_nation.nations[opponent.nation()].display_name;
-    Coord const coord =
-        coord_for_unit_multi_ownership_or_die( ss, unit.id() );
-    maybe<FogColony const&> const closest_colony =
-        find_close_explored_colony(
-            ss, unit.nation(), coord,
-            /*max_distance=*/
-            config_colony.search_dist_for_nearby_colony );
-    string const colony_str =
-        closest_colony.has_value()
-            ? ( closest_colony->location == coord )
-                  ? fmt::format( " in {}", closest_colony->name )
-                  : fmt::format( " near {}",
-                                 closest_colony->name )
-            : " in the wilderness";
-    // E.g. "[English] Artillery defeats [French] near Roanoke!".
-    if( won ) {
-      return fmt::format( "[{}] {} defeats [{}]{}!", nation_adj,
-                          unit.desc().name, opponent_nation_name,
-                          colony_str );
-    } else {
-      return fmt::format(
-          "[{}] {} defeats [{}]{}!", opponent_nation_adj,
-          opponent.desc().name, nation_name, colony_str );
-    }
-  };
+  static constexpr string_view kNearDefault =
+      " in the wilderness";
   return {
-      .attacker = summarize_for(
-          combat.winner == e_combat_winner::attacker,
-          combat.attacker, combat.defender ),
-      .defender = summarize_for(
-          combat.winner == e_combat_winner::defender,
-          combat.defender, combat.attacker ),
+      .attacker = summarize_for_euro_unit(
+          ss, combat.winner == e_combat_winner::attacker,
+          combat.attacker, combat.defender, kNearDefault ),
+      .defender = summarize_for_euro_unit(
+          ss, combat.winner == e_combat_winner::defender,
+          combat.defender, combat.attacker, kNearDefault ),
   };
 }
 
@@ -440,7 +438,6 @@ CombatEffectsSummaries summarize_combat_outcome(
 
 CombatEffectsSummaries summarize_combat_outcome(
     SSConst const& ss, CombatShipAttackShip const& combat ) {
-  CombatEffectsSummaries res;
   if( !combat.winner.has_value() ) {
     // Defender evaded.
     Unit const& attacker =
@@ -453,10 +450,17 @@ CombatEffectsSummaries summarize_combat_outcome(
                      defender.desc().name,
                      nation_obj( attacker.nation() ).adjective,
                      attacker.desc().name );
-    res.attacker = evade_msg;
-    res.defender = evade_msg;
+    return { .attacker = evade_msg, .defender = evade_msg };
   }
-  return res;
+  static constexpr string_view kNearDefault = " at sea";
+  return {
+      .attacker = summarize_for_euro_unit(
+          ss, combat.winner == e_combat_winner::attacker,
+          combat.attacker, combat.defender, kNearDefault ),
+      .defender = summarize_for_euro_unit(
+          ss, combat.winner == e_combat_winner::defender,
+          combat.defender, combat.attacker, kNearDefault ),
+  };
 }
 
 wait<> show_combat_effects_msg_impl( string const& summary,
@@ -505,12 +509,14 @@ CombatEffectsMessages combat_effects_msg(
 CombatEffectsMessages combat_effects_msg(
     SSConst const&                         ss,
     CombatColonyArtilleryAttackShip const& combat ) {
+  // In the OG there is no summary (as defined here) and no mes-
+  // sage from the attacker (fort/fortress); there is only a
+  // pre-battle message (that is not generated here), and pos-
+  // sibly a message for the ship if it is damaged or sunk as a
+  // result. Otherwise, there is nothing else.
   auto& defender = ss.units.unit_for( combat.defender.id );
   ColonyId const colony_id = combat.attacker.id;
-  return { .summaries = summarize_combat_outcome( ss, combat ),
-           .attacker  = colony_artillery_combat_effects_msg(
-               combat.attacker.outcome ),
-           .defender = naval_unit_combat_effects_msg(
+  return { .defender = naval_unit_combat_effects_msg(
                ss, defender,
                NavalBattleOpponent::colony{ .id = colony_id },
                combat.defender.outcome ) };
