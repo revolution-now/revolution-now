@@ -1248,11 +1248,9 @@ TEST_CASE(
                      EuroNavalUnitCombatOutcome::no_change{},
                  .defender_outcome =
                      EuroNavalUnitCombatOutcome::no_change{} };
-    expected = { .summaries = {
-                     .attacker = { "[French] [Caravel] evades "
-                                   "[Dutch] [Privateer]." },
-                     .defender = { "[French] [Caravel] evades "
-                                   "[Dutch] [Privateer]." } } };
+    expected = {
+        .defender = { .for_both = { "[French] [Caravel] evades "
+                                    "[Dutch] [Privateer]." } } };
     REQUIRE( run() == expected );
   }
 

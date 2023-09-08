@@ -451,20 +451,9 @@ CombatEffectsSummaries summarize_combat_outcome(
 
 CombatEffectsSummaries summarize_combat_outcome(
     SSConst const& ss, CombatShipAttackShip const& combat ) {
-  if( !combat.winner.has_value() ) {
-    // Defender evaded.
-    Unit const& attacker =
-        ss.units.unit_for( combat.attacker.id );
-    Unit const& defender =
-        ss.units.unit_for( combat.defender.id );
-    string const evade_msg =
-        fmt::format( "[{}] [{}] evades [{}] [{}].",
-                     nation_obj( defender.nation() ).adjective,
-                     defender.desc().name,
-                     nation_obj( attacker.nation() ).adjective,
-                     attacker.desc().name );
-    return { .attacker = evade_msg, .defender = evade_msg };
-  }
+  if( !combat.winner.has_value() )
+    // Evade.
+    return {};
   static constexpr string_view kNearDefault = " at sea";
   return {
       .attacker = summarize_for_euro_unit(
@@ -533,6 +522,17 @@ CombatEffectsMessages combat_effects_msg(
     SSConst const& ss, CombatShipAttackShip const& combat ) {
   auto& attacker = ss.units.unit_for( combat.attacker.id );
   auto& defender = ss.units.unit_for( combat.defender.id );
+  if( !combat.winner.has_value() ) {
+    // Defender evaded.
+    string const evade_msg =
+        fmt::format( "[{}] [{}] evades [{}] [{}].",
+                     nation_obj( defender.nation() ).adjective,
+                     defender.desc().name,
+                     nation_obj( attacker.nation() ).adjective,
+                     attacker.desc().name );
+    return { .summaries = summarize_combat_outcome( ss, combat ),
+             .defender  = { .for_both = { evade_msg } } };
+  }
   return { .summaries = summarize_combat_outcome( ss, combat ),
            .attacker  = naval_unit_combat_effects_msg(
                ss, attacker,
