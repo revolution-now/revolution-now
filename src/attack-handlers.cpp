@@ -29,6 +29,7 @@
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "map-square.hpp"
+#include "minds.hpp"
 #include "missionary.hpp"
 #include "on-map.hpp"
 #include "plane-stack.hpp"

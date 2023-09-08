@@ -20,6 +20,7 @@
 #include "lcr.hpp"
 #include "logger.hpp"
 #include "meet-natives.hpp"
+#include "minds.hpp"
 #include "society.hpp"
 #include "treasure.hpp"
 #include "ts.hpp"

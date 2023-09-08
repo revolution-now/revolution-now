@@ -12,14 +12,8 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "maybe.hpp"
-
 // luapp
 #include "luapp/ext-userdata.hpp"
-
-// C++ standard library
-#include <unordered_map>
 
 namespace lua {
 struct state;
@@ -27,65 +21,16 @@ struct state;
 
 namespace rn {
 
+struct EuroMinds;
 struct IColonyViewer;
 struct ICombat;
-struct IEuroMind;
 struct IGui;
 struct IMapUpdater;
-struct INativeMind;
 struct IRand;
+struct NativeMinds;
 struct Planes;
 struct RootState;
 struct TerrainConnectivity;
-
-enum class e_nation;
-enum class e_tribe;
-
-/****************************************************************
-** NativeMinds
-*****************************************************************/
-struct NativeMinds {
-  NativeMinds() = default;
-
-  // Have this defined in the cpp allows us to use the
-  // forward-declared INativeMInd in a unique_ptr.
-  ~NativeMinds();
-
-  NativeMinds(
-      std::unordered_map<e_tribe, std::unique_ptr<INativeMind>>
-          minds );
-
-  INativeMind& operator[]( e_tribe tribe ) const;
-
- private:
-  // We don't use enum map here because it has some constraints
-  // that don't work with forward-declared enums.
-  std::unordered_map<e_tribe, std::unique_ptr<INativeMind>>
-      minds_;
-};
-
-/****************************************************************
-** EuroMinds
-*****************************************************************/
-struct EuroMinds {
-  EuroMinds() = default;
-
-  // Have this defined in the cpp allows us to use the
-  // forward-declared IEuroMind in a unique_ptr.
-  ~EuroMinds();
-
-  EuroMinds(
-      std::unordered_map<e_nation, std::unique_ptr<IEuroMind>>
-          minds );
-
-  IEuroMind& operator[]( e_nation nation ) const;
-
- private:
-  // We don't use enum map here because it has some constraints
-  // that don't work with forward-declared enums.
-  std::unordered_map<e_nation, std::unique_ptr<IEuroMind>>
-      minds_;
-};
 
 /****************************************************************
 ** TS

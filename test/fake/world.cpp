@@ -27,6 +27,7 @@
 #include "src/map-updater-lua.hpp"
 #include "src/map-updater.hpp"
 #include "src/market.hpp"
+#include "src/minds.hpp"
 #include "src/missionary.hpp"
 #include "src/plane-stack.hpp"
 #include "src/ts.hpp"

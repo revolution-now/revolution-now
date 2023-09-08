@@ -11,7 +11,6 @@
 #include "game.hpp"
 
 // Revolution Now
-#include "ai-native-mind.hpp"
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
 #include "colony-view.hpp"
@@ -20,8 +19,8 @@
 #include "connectivity.hpp"
 #include "console.hpp"
 #include "gui.hpp"
-#include "human-euro-mind.hpp"
 #include "ieuro-mind.hpp"
+#include "inative-mind.hpp"
 #include "interrupts.hpp"
 #include "irand.hpp"
 #include "land-view.hpp"
@@ -29,6 +28,7 @@
 #include "lua.hpp"
 #include "map-updater.hpp"
 #include "menu.hpp"
+#include "minds.hpp"
 #include "panel.hpp"
 #include "plane-stack.hpp"
 #include "rand.hpp"
@@ -125,26 +125,11 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
       co_return;
   }
 
-  NativeMinds native_minds = [&] {
-    unordered_map<e_tribe, unique_ptr<INativeMind>> holder;
-    for( e_tribe const tribe : refl::enum_values<e_tribe> )
-      holder[tribe] = make_unique<AiNativeMind>( ss, rand );
-    return NativeMinds( std::move( holder ) );
-  }();
+  NativeMinds native_minds = create_native_minds( ss, rand );
 
   // This one needs to run after the loader because it needs to
   // know which nations are human.
-  EuroMinds euro_minds = [&] {
-    unordered_map<e_nation, unique_ptr<IEuroMind>> holder;
-    for( e_nation const nation : refl::enum_values<e_nation> ) {
-      if( ss.players.humans[nation] )
-        holder[nation] =
-            make_unique<HumanEuroMind>( nation, ss, gui );
-      else
-        holder[nation] = make_unique<NoopEuroMind>( nation );
-    }
-    return EuroMinds( std::move( holder ) );
-  }();
+  EuroMinds euro_minds = create_euro_minds( ss, gui );
 
   // After this, any changes to the map that change land to water
   // or vice versa (or change map size) need to be followed up by

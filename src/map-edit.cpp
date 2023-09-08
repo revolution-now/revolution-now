@@ -26,6 +26,7 @@
 #include "map-square.hpp"
 #include "map-updater.hpp"
 #include "menu.hpp"
+#include "minds.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "plow.hpp"
