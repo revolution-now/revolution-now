@@ -190,7 +190,7 @@ void move_damaged_ship_for_repair( SS& ss, TS& ts, Unit& ship,
 string ship_damaged_message( SSConst const& ss, Unit const& ship,
                              ShipRepairPort const& port ) {
   string res;
-  res = fmt::format( "{} [{}] damaged in battle!",
+  res = fmt::format( "[{}] [{}] damaged in battle!",
                      nation_obj( ship.nation() ).adjective,
                      ship.desc().name );
   res += ' ';
@@ -199,13 +199,13 @@ string ship_damaged_message( SSConst const& ss, Unit const& ship,
       ColonyId const colony_id =
           port.get<ShipRepairPort::colony>().id;
       Colony const& colony = ss.colonies.colony_for( colony_id );
-      res += fmt::format( "Ship sent to [{}] for repair.",
+      res += fmt::format( "Ship sent to [{}] for repairs.",
                           colony.name );
       break;
     }
     case ShipRepairPort::e::european_harbor: {
       res += fmt::format(
-          "Ship sent to [{}] for repair.",
+          "Ship sent to [{}] for repairs.",
           nation_obj( ship.nation() ).harbor_city_name );
       break;
     }

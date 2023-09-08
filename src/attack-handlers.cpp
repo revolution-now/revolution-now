@@ -485,21 +485,6 @@ wait<> NavalBattleHandler::animate() const {
 wait<> NavalBattleHandler::perform() {
   co_await Base::perform();
 
-  if( !combat_.winner.has_value() ) {
-    // Defender evaded.
-    string const evade_msg =
-        fmt::format( "{} [{}] evades {} [{}].",
-                     nation_obj( defender_.nation() ).adjective,
-                     defender_.desc().name,
-                     nation_obj( attacker_.nation() ).adjective,
-                     attacker_.desc().name );
-    co_await attacker_mind_.message_box( evade_msg );
-    co_await defender_mind_.message_box( evade_msg );
-    // There shouldn't be anything else to do here; none of the
-    // below should be relevant.
-    co_return;
-  }
-
   if( combat_.winner.has_value() ) {
     // One of the ships was either damaged or sunk.
     Unit const& loser =

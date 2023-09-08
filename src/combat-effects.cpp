@@ -438,6 +438,27 @@ CombatEffectsSummaries summarize_combat_outcome(
           tribe_name, nation_adj, colony.name, king_part ) };
 }
 
+CombatEffectsSummaries summarize_combat_outcome(
+    SSConst const& ss, CombatShipAttackShip const& combat ) {
+  CombatEffectsSummaries res;
+  if( !combat.winner.has_value() ) {
+    // Defender evaded.
+    Unit const& attacker =
+        ss.units.unit_for( combat.attacker.id );
+    Unit const& defender =
+        ss.units.unit_for( combat.defender.id );
+    string const evade_msg =
+        fmt::format( "[{}] [{}] evades [{}] [{}].",
+                     nation_obj( defender.nation() ).adjective,
+                     defender.desc().name,
+                     nation_obj( attacker.nation() ).adjective,
+                     attacker.desc().name );
+    res.attacker = evade_msg;
+    res.defender = evade_msg;
+  }
+  return res;
+}
+
 wait<> show_combat_effects_msg_impl( string const& summary,
                                      vector<string> const& msgs,
                                      IMind& mind ) {

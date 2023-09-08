@@ -807,8 +807,8 @@ TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
       .which   = ship.id(),
       .sent_to = ShipRepairPort::european_harbor{} };
   mind.EXPECT__message_box(
-          "Dutch [Frigate] damaged in battle! Ship sent to "
-          "[Amsterdam] for repair. [One] unit onboard has been "
+          "[Dutch] [Frigate] damaged in battle! Ship sent to "
+          "[Amsterdam] for repairs. [One] unit onboard has been "
           "lost." )
       .returns<monostate>();
   f();

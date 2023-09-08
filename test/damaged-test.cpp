@@ -254,8 +254,8 @@ TEST_CASE( "[damaged] ship_damaged_message" ) {
 
   port = ShipRepairPort::european_harbor{};
   expected =
-      "French [Privateer] damaged in battle! Ship sent to [La "
-      "Rochelle] for repair.";
+      "[French] [Privateer] damaged in battle! Ship sent to [La "
+      "Rochelle] for repairs.";
   REQUIRE( f( W.add_unit_on_map(
                e_unit_type::privateer, { .x = 0, .y = 0 },
                e_nation::french ) ) == expected );
@@ -264,8 +264,8 @@ TEST_CASE( "[damaged] ship_damaged_message" ) {
   colony.name    = "some colony";
   port           = ShipRepairPort::colony{ .id = colony.id };
   expected =
-      "Spanish [Man-O-War] damaged in battle! Ship sent to "
-      "[some colony] for repair.";
+      "[Spanish] [Man-O-War] damaged in battle! Ship sent to "
+      "[some colony] for repairs.";
   REQUIRE( f( W.add_unit_on_map(
                e_unit_type::man_o_war, { .x = 0, .y = 0 },
                e_nation::spanish ) ) == expected );
