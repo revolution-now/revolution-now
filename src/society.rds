@@ -22,5 +22,4 @@ sumtype.Society {
   native {
     tribe 'e_tribe',
   },
-  # TODO: ref (royal expeditionary force)
 }
