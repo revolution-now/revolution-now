@@ -50,3 +50,8 @@ struct.MixedCombatEffectsMessages {
   attacker 'std::vector<std::string>',
   defender 'std::vector<std::string>',
 }
+
+struct.FilteredMixedCombatEffectsMessages {
+  attacker 'std::vector<std::string>',
+  defender 'std::vector<std::string>',
+}

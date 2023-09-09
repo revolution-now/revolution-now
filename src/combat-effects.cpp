@@ -490,18 +490,6 @@ CombatEffectsSummaries summarize_combat_outcome(
                kAttackerName, kNearDefault ) };
 }
 
-wait<> show_combat_effects_msg_impl( string const& summary,
-                                     vector<string> const& msgs,
-                                     IMind& mind ) {
-  if( !summary.empty() ) co_await mind.message_box( summary );
-  for( string const& msg : msgs ) {
-    // Empty messages should have been filtered out in the
-    // combine_combat_effects_msgs function.
-    CHECK( !msg.empty() );
-    co_await mind.message_box( msg );
-  }
-}
-
 } // namespace
 
 /****************************************************************
@@ -623,7 +611,7 @@ CombatEffectsMessages combat_effects_msg(
 /****************************************************************
 ** Showing combat effects messages.
 *****************************************************************/
-MixedCombatEffectsMessages combine_combat_effects_msgs(
+MixedCombatEffectsMessages mix_combat_effects_msgs(
     CombatEffectsMessages const& msg ) {
   auto flatten = []( vector<vector<string>> vv ) { // by copy.
     vector<string> res;
@@ -643,13 +631,64 @@ MixedCombatEffectsMessages combine_combat_effects_msgs(
             msg.attacker.for_both, msg.attacker.for_other } ) };
 }
 
+FilteredMixedCombatEffectsMessages filter_combat_effects_msgs(
+    MixedCombatEffectsMessages const& msgs ) {
+  FilteredMixedCombatEffectsMessages res;
+
+  auto show_msg = []( vector<string>& to, string const& msg ) {
+    if( msg.empty() ) return;
+    to.push_back( msg );
+  };
+
+  auto show_msgs = [&]( vector<string>&       to,
+                        vector<string> const& msgs ) {
+    for( string const& msg : msgs ) {
+      // Empty messages should have been filtered out in the
+      // mix_combat_effects_msgs function.
+      CHECK( !msg.empty() );
+      show_msg( to, msg );
+    }
+  };
+
+  // In the OG the summary is only shown for the defender. This
+  // is probably done so that, during the AI turns, attacks on
+  // the human player that don't otherwise have messages associ-
+  // ated with them will have at least one message for the player
+  // to acknowledge before moving onto the next attack/move in
+  // order give the player an opportunity to digest what just
+  // happened, since the player didn't initiate it. For the at-
+  // tacker, there really isn't a need for a summary because the
+  // player will 1) see the animation to tell what the result
+  // was, and also will have time to digest the result if only
+  // when the next unit asks for orders. For similar reasons, we
+  // only show the summary for the defender when there are no
+  // other messages that get shown. This departs from the OG, but
+  // that is probably OK because the OG displays non-summary mes-
+  // sage before the animation happens, while we display all mes-
+  // sages after the animation, and so putting the summary there
+  // would serve no purpose if there are other messages that are
+  // shown at the same time. Given all this, all of the attacker
+  // summaries that are generated in this module are pointless,
+  // but we generate them anyway just in case we find a reason to
+  // enable them in the future.
+
+  show_msgs( res.attacker, msgs.attacker );
+  /* No summary for attacker, even if it has no msgs. */
+
+  show_msgs( res.defender, msgs.defender );
+  if( msgs.defender.empty() )
+    show_msg( res.defender, msgs.summaries.defender );
+
+  return res;
+}
+
 wait<> show_combat_effects_msg(
-    MixedCombatEffectsMessages const& msgs, IMind& attacker_mind,
-    IMind& defender_mind ) {
-  co_await show_combat_effects_msg_impl(
-      msgs.summaries.attacker, msgs.attacker, attacker_mind );
-  co_await show_combat_effects_msg_impl(
-      msgs.summaries.defender, msgs.defender, defender_mind );
+    FilteredMixedCombatEffectsMessages const& msgs,
+    IMind& attacker_mind, IMind& defender_mind ) {
+  for( string const& msg : msgs.attacker )
+    co_await attacker_mind.message_box( msg );
+  for( string const& msg : msgs.defender )
+    co_await defender_mind.message_box( msg );
 }
 
 /****************************************************************

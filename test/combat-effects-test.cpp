@@ -2156,111 +2156,115 @@ TEST_CASE(
   }
 }
 
-TEST_CASE(
-    "[combat-effects] show_combat_effects_messages_euro_euro" ) {
-  World          W;
-  MockIEuroMind& attacker_mind = W.euro_mind( e_nation::dutch );
-  MockIEuroMind& defender_mind = W.euro_mind( e_nation::french );
-  EuroCombatEffectsMessage attacker{ .mind = attacker_mind };
-  EuroCombatEffectsMessage defender{ .mind = defender_mind };
-  std::string              summary = "summary";
+TEST_CASE( "[combat-effects] mix_combat_effects_msgs" ) {
+  CombatEffectsMessages      msgs;
+  MixedCombatEffectsMessages expected;
 
-  auto f = [&] {
-    co_await_test( show_combat_effects_messages_euro_euro(
-        summary, attacker, defender ) );
+  auto f = [&] { return mix_combat_effects_msgs( msgs ); };
+
+  msgs.summaries = {
+      .attacker = "xxx xxx",
+      .defender = "yyy yyy",
   };
 
-  attacker.msg = CombatEffectsMessages{
-      .for_owner = { "111 111", "222 222" },
-      .for_other = { "333 333", "444 444" },
-      .for_both  = { "555 555", "666 666" },
-  };
+  msgs.attacker = { .for_owner = { "111 111", "222 222" },
+                    .for_other = { "333 333", "444 444" },
+                    .for_both  = { "555 555", "666 666" } };
 
-  defender.msg = CombatEffectsMessages{
-      .for_owner = { "777 777", "888 888" },
-      .for_other = { "999 999", "aaa aaa" },
-      .for_both  = { "bbb bbb", "ccc ccc" },
-  };
+  msgs.defender = { .for_owner = { "777 777", "888 888" },
+                    .for_other = { "999 999", "aaa aaa" },
+                    .for_both  = { "bbb bbb", "ccc ccc" } };
 
-  attacker_mind
-      .EXPECT__message_box(
-          "summary 555 555 666 666 111 111 222 222 bbb bbb ccc "
-          "ccc 999 999 aaa aaa" )
-      .returns<monostate>();
-  defender_mind
-      .EXPECT__message_box(
-          "summary bbb bbb ccc ccc 777 777 888 888 555 555 666 "
-          "666 333 333 444 444" )
-      .returns<monostate>();
-  f();
+  expected = {
+      .summaries = { .attacker = "xxx xxx",
+                     .defender = "yyy yyy" },
+      .attacker  = { "555 555", "666 666", "111 111", "222 222",
+                     "bbb bbb", "ccc ccc", "999 999", "aaa aaa" },
+      .defender  = { "bbb bbb", "ccc ccc", "777 777", "888 888",
+                     "555 555", "666 666", "333 333", "444 444" },
+  };
+  REQUIRE( f() == expected );
 }
 
-TEST_CASE(
-    "[combat-effects] "
-    "show_combat_effects_messages_euro_attacker_only" ) {
-  World          W;
-  MockIEuroMind& attacker_mind = W.euro_mind( e_nation::dutch );
-  EuroCombatEffectsMessage attacker{ .mind = attacker_mind };
-  std::string              summary = "summary";
+TEST_CASE( "[combat-effects] filter_combat_effects_msgs" ) {
+  MixedCombatEffectsMessages         msgs;
+  FilteredMixedCombatEffectsMessages expected;
 
-  auto f = [&] {
-    co_await_test(
-        show_combat_effects_messages_euro_attacker_only(
-            summary, attacker ) );
+  auto f = [&] { return filter_combat_effects_msgs( msgs ); };
+
+  msgs = {
+      .summaries = { .attacker = "xxx xxx",
+                     .defender = "yyy yyy" },
+      .attacker  = { "555 555", "666 666", "111 111", "222 222",
+                     "bbb bbb", "ccc ccc", "999 999", "aaa aaa" },
+      .defender  = { "bbb bbb", "ccc ccc", "777 777", "888 888",
+                     "555 555", "666 666", "333 333", "444 444" },
   };
-
-  attacker.msg = CombatEffectsMessages{
-      .for_owner = { "111 111", "222 222" },
-      .for_other = { "333 333", "444 444" },
-      .for_both  = { "555 555", "666 666" },
+  expected = {
+      .attacker = { "555 555", "666 666", "111 111", "222 222",
+                    "bbb bbb", "ccc ccc", "999 999", "aaa aaa" },
+      .defender = { "bbb bbb", "ccc ccc", "777 777", "888 888",
+                    "555 555", "666 666", "333 333", "444 444" },
   };
+  REQUIRE( f() == expected );
 
-  attacker_mind
-      .EXPECT__message_box(
-          "summary 555 555 666 666 111 111 222 222" )
-      .returns<monostate>();
-  f();
-}
-
-TEST_CASE(
-    "[combat-effects] "
-    "show_combat_effects_messages_euro_native" ) {
-  World          W;
-  MockIEuroMind& euro_mind = W.euro_mind( e_nation::dutch );
-  EuroCombatEffectsMessage   euro{ .mind = euro_mind };
-  NativeCombatEffectsMessage native;
-  std::string                summary = "summary";
-
-  auto f = [&] {
-    co_await_test( show_combat_effects_messages_euro_native(
-        summary, euro, native ) );
+  msgs = {
+      .summaries = { .defender = "yyy yyy" },
+      .attacker  = { "555 555", "666 666", "111 111", "222 222",
+                     "bbb bbb", "ccc ccc", "999 999", "aaa aaa" },
   };
-
-  euro.msg = CombatEffectsMessages{
-      .for_owner = { "111 111", "222 222" },
-      .for_other = { "333 333", "444 444" },
-      .for_both  = { "555 555", "666 666" },
+  expected = {
+      .attacker = { "555 555", "666 666", "111 111", "222 222",
+                    "bbb bbb", "ccc ccc", "999 999", "aaa aaa" },
+      .defender = { "yyy yyy" },
   };
-  native.msg = CombatEffectsMessages{
-      .for_owner = { "777 777", "888 888" },
-      .for_other = { "999 999", "aaa aaa" },
-      .for_both  = { "bbb bbb", "ccc ccc" },
-  };
+  REQUIRE( f() == expected );
 
-  euro_mind
-      .EXPECT__message_box(
-          "summary 555 555 666 666 111 111 222 222 bbb bbb ccc "
-          "ccc 999 999 aaa aaa" )
-      .returns<monostate>();
-  f();
-}
+  msgs     = { .summaries = { .defender = "yyy yyy" } };
+  expected = { .defender = { "yyy yyy" } };
+  REQUIRE( f() == expected );
 
-TEST_CASE( "[combat-effects] combine_combat_effects_msgs" ) {
-  World W;
+  msgs     = { .summaries = { .defender = "" } };
+  expected = {};
+  REQUIRE( f() == expected );
+
+  msgs     = {};
+  expected = {};
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[combat-effects] show_combat_effects_msg" ) {
-  World W;
+  World          W;
+  MockIEuroMind& attacker_mind = W.euro_mind( e_nation::dutch );
+  MockIEuroMind& defender_mind = W.euro_mind( e_nation::french );
+
+  FilteredMixedCombatEffectsMessages msgs;
+
+  auto f = [&] {
+    co_await_test( show_combat_effects_msg( msgs, attacker_mind,
+                                            defender_mind ) );
+  };
+
+  msgs = {};
+  f();
+  attacker_mind.queue__message_box.ensure_expectations();
+  defender_mind.queue__message_box.ensure_expectations();
+
+  msgs = { .attacker = { "xxx" } };
+  attacker_mind.EXPECT__message_box( "xxx" ).returns();
+  f();
+  attacker_mind.queue__message_box.ensure_expectations();
+  defender_mind.queue__message_box.ensure_expectations();
+
+  msgs = { .attacker = { "xxx", "yyy" },
+           .defender = { "aaa", "bbb" } };
+  attacker_mind.EXPECT__message_box( "xxx" ).returns();
+  attacker_mind.EXPECT__message_box( "yyy" ).returns();
+  defender_mind.EXPECT__message_box( "aaa" ).returns();
+  defender_mind.EXPECT__message_box( "bbb" ).returns();
+  f();
+  attacker_mind.queue__message_box.ensure_expectations();
+  defender_mind.queue__message_box.ensure_expectations();
 }
 
 } // namespace

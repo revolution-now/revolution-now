@@ -366,8 +366,9 @@ wait<> AttackColonyUndefendedHandler::perform() {
   perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                     combat_.attacker.outcome );
   co_await show_combat_effects_msg(
-      combine_combat_effects_msgs( effects_msg ), attacker_mind_,
-      defender_mind_ );
+      filter_combat_effects_msgs(
+          mix_combat_effects_msgs( effects_msg ) ),
+      attacker_mind_, defender_mind_ );
 
   if( combat_.winner == e_combat_winner::defender )
     // return since in this case the attacker lost, so nothing
@@ -521,8 +522,9 @@ wait<> NavalBattleHandler::perform() {
                                      attacker_id_,
                                      combat_.defender.outcome );
   co_await show_combat_effects_msg(
-      combine_combat_effects_msgs( effects_msg ), attacker_mind_,
-      defender_mind_ );
+      filter_combat_effects_msgs(
+          mix_combat_effects_msgs( effects_msg ) ),
+      attacker_mind_, defender_mind_ );
 
   // This is slightly hacky, but because the attacker may have
   // moved to the defender's square, but the above functions that
@@ -585,8 +587,9 @@ wait<> EuroAttackHandler::perform() {
   perform_euro_unit_combat_effects( ss_, ts_, defender_,
                                     combat_.defender.outcome );
   co_await show_combat_effects_msg(
-      combine_combat_effects_msgs( effects_msg ), attacker_mind_,
-      defender_mind_ );
+      filter_combat_effects_msgs(
+          mix_combat_effects_msgs( effects_msg ) ),
+      attacker_mind_, defender_mind_ );
 }
 
 /****************************************************************
@@ -663,8 +666,9 @@ wait<> AttackNativeUnitHandler::perform() {
   perform_native_unit_combat_effects( ss_, defender_,
                                       combat_.defender.outcome );
   co_await show_combat_effects_msg(
-      combine_combat_effects_msgs( effects_msg ), attacker_mind_,
-      defender_mind_ );
+      filter_combat_effects_msgs(
+          mix_combat_effects_msgs( effects_msg ) ),
+      attacker_mind_, defender_mind_ );
 }
 
 /****************************************************************
@@ -887,7 +891,8 @@ wait<> AttackDwellingHandler::perform() {
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                       combat_.attacker.outcome );
     co_await show_combat_effects_msg(
-        combine_combat_effects_msgs( effects_msg ),
+        filter_combat_effects_msgs(
+            mix_combat_effects_msgs( effects_msg ) ),
         attacker_mind_, defender_mind_ );
     co_return;
   }
@@ -910,7 +915,8 @@ wait<> AttackDwellingHandler::perform() {
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                       combat_.attacker.outcome );
     co_await show_combat_effects_msg(
-        combine_combat_effects_msgs( effects_msg ),
+        filter_combat_effects_msgs(
+            mix_combat_effects_msgs( effects_msg ) ),
         attacker_mind_, defender_mind_ );
     --dwelling_.population;
     CHECK_GT( dwelling_.population, 0 );
@@ -979,8 +985,9 @@ wait<> AttackDwellingHandler::perform() {
   perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                     combat_.attacker.outcome );
   co_await show_combat_effects_msg(
-      combine_combat_effects_msgs( effects_msg ), attacker_mind_,
-      defender_mind_ );
+      filter_combat_effects_msgs(
+          mix_combat_effects_msgs( effects_msg ) ),
+      attacker_mind_, defender_mind_ );
 
   // Check if convert produced.
   if( destruction.convert_produced ) co_await produce_convert();

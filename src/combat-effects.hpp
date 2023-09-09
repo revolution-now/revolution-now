@@ -74,12 +74,18 @@ CombatEffectsMessages combat_effects_msg(
 /****************************************************************
 ** Showing combat effects messages.
 *****************************************************************/
-MixedCombatEffectsMessages combine_combat_effects_msgs(
+// Allows the attacker and defender to see the messages generated
+// by each that were intended for the other (or both).
+MixedCombatEffectsMessages mix_combat_effects_msgs(
     CombatEffectsMessages const& msg );
 
+// Prunes messages that shouldn't be seen for various reasons.
+FilteredMixedCombatEffectsMessages filter_combat_effects_msgs(
+    MixedCombatEffectsMessages const& msgs );
+
 wait<> show_combat_effects_msg(
-    MixedCombatEffectsMessages const& msgs, IMind& attacker_mind,
-    IMind& defender_mind );
+    FilteredMixedCombatEffectsMessages const& msgs,
+    IMind& attacker_mind, IMind& defender_mind );
 
 /****************************************************************
 ** Performing combat effects.
