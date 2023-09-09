@@ -5,3 +5,7 @@ CompileFlags:
     # gcc-specific flags.
     -static-libasan
     ]
+
+#Diagnostics:
+#  UnusedIncludes: Strict
+#  MissingIncludes: Strict
