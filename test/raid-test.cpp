@@ -788,7 +788,7 @@ TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
   effect =
       BraveAttackColonyEffect::money_stolen{ .quantity = 234 };
   mind.EXPECT__message_box(
-          "Indian looting parties have stolen [234]\x7f from "
+          "Indian looting parties have stolen [234\x7f] from "
           "the treasury!" )
       .returns();
   f();

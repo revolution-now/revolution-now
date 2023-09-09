@@ -253,7 +253,7 @@ wait<> display_brave_attack_colony_effect_msg(
     }
     CASE( money_stolen ) {
       co_await mind.message_box(
-          "Indian looting parties have stolen [{}]{} from the "
+          "Indian looting parties have stolen [{}{}] from the "
           "treasury!",
           money_stolen.quantity,
           config_text.special_chars.currency );
