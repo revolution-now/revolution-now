@@ -1322,6 +1322,36 @@ TEST_CASE(
     REQUIRE( run() == expected );
   }
 
+  SECTION(
+      "(privateer[2],caravel) -> ([damaged/drydock],caravel)" ) {
+    params = {
+        .attacker = e_unit_type::privateer,
+        .defender = e_unit_type::caravel,
+        .winner   = e_combat_winner::defender,
+        .attacker_outcome =
+            EuroNavalUnitCombatOutcome::damaged{
+                .port =
+                    ShipRepairPort::colony{
+                        .id = ColonyId{ 1 } } },
+        .defender_outcome =
+            EuroNavalUnitCombatOutcome::no_change{},
+        .defender_colony   = e_colony::yes_and_visible_to_owner,
+        .units_on_attacker = 2 };
+    expected = {
+        .summaries =
+            { .attacker =
+                  "[French] Caravel defeats [Dutch] at sea!",
+              .defender = "[French] Caravel defeats [Dutch] "
+                          "near defender colony!" },
+        .attacker = {
+            .for_owner =
+                { "[Two] units onboard have been lost." },
+            .for_both = {
+                "[Dutch] [Privateer] damaged in battle! Ship "
+                "sent to [defender colony] for repairs." } } };
+    REQUIRE( run() == expected );
+  }
+
   SECTION( "(privateer[1],frigate) -> ([sunk],frigate)" ) {
     params = {
         .attacker         = e_unit_type::privateer,
@@ -1552,145 +1582,6 @@ TEST_CASE(
     "[combat-effects] combat_effects_msg, "
     "CombatEuroAttackUndefendedColony" ) {
   World W;
-}
-
-TEST_CASE( "[combat-effects] naval_unit_combat_effects_msg" ) {
-  World W;
-
-  UnitId                     unit_id          = {};
-  UnitId                     opponent_unit_id = {};
-  EuroNavalUnitCombatOutcome outcome;
-  CombatEffectsMessages      expected;
-
-  auto f = [&] {
-    return naval_unit_combat_effects_msg(
-        W.ss(), W.units().unit_for( unit_id ),
-        W.units().unit_for( opponent_unit_id ), outcome );
-  };
-
-  SECTION( "no_change" ) {
-    unit_id =
-        W.add_unit_on_map( e_unit_type::caravel,
-                           { .x = 0, .y = 2 }, e_nation::dutch )
-            .id();
-    opponent_unit_id =
-        W.add_unit_on_map( e_unit_type::privateer,
-                           { .x = 0, .y = 3 }, e_nation::french )
-            .id();
-    outcome  = EuroNavalUnitCombatOutcome::no_change{};
-    expected = {};
-    REQUIRE( f() == expected );
-  }
-
-  SECTION( "moved" ) {
-    unit_id =
-        W.add_unit_on_map( e_unit_type::privateer,
-                           { .x = 0, .y = 3 }, e_nation::dutch )
-            .id();
-    opponent_unit_id =
-        W.add_unit_on_map( e_unit_type::caravel,
-                           { .x = 0, .y = 2 }, e_nation::french )
-            .id();
-    outcome = EuroNavalUnitCombatOutcome::moved{
-        .to = { .x = 0, .y = 2 } };
-    expected = {};
-    REQUIRE( f() == expected );
-  }
-
-  SECTION( "damaged, sent to harbor" ) {
-    unit_id =
-        W.add_unit_on_map( e_unit_type::privateer,
-                           { .x = 0, .y = 3 }, e_nation::dutch )
-            .id();
-    opponent_unit_id =
-        W.add_unit_on_map( e_unit_type::caravel,
-                           { .x = 0, .y = 2 }, e_nation::french )
-            .id();
-    outcome = EuroNavalUnitCombatOutcome::damaged{
-        .port = ShipRepairPort::european_harbor{} };
-    expected = {
-        .for_both = { "Dutch [Privateer] damaged in battle! "
-                      "Ship sent to [Amsterdam] for repair." } };
-    REQUIRE( f() == expected );
-  }
-
-  SECTION( "damaged, sent to colony" ) {
-    Colony& colony =
-        W.add_colony( { .x = 1, .y = 0 }, e_nation::dutch );
-    colony.name = "Billooboo";
-    unit_id =
-        W.add_unit_on_map( e_unit_type::privateer,
-                           { .x = 0, .y = 3 }, e_nation::dutch )
-            .id();
-    opponent_unit_id =
-        W.add_unit_on_map( e_unit_type::caravel,
-                           { .x = 0, .y = 2 }, e_nation::french )
-            .id();
-    outcome = EuroNavalUnitCombatOutcome::damaged{
-        .port = ShipRepairPort::colony{ .id = colony.id } };
-    expected = {
-        .for_both = { "Dutch [Privateer] damaged in battle! "
-                      "Ship sent to [Billooboo] for repair." } };
-    REQUIRE( f() == expected );
-  }
-
-  SECTION( "damaged, sent to colony, one unit lost" ) {
-    Colony& colony =
-        W.add_colony( { .x = 1, .y = 0 }, e_nation::dutch );
-    colony.name = "Billooboo";
-    unit_id =
-        W.add_unit_on_map( e_unit_type::privateer,
-                           { .x = 0, .y = 3 }, e_nation::dutch )
-            .id();
-    W.add_unit_in_cargo( e_unit_type::free_colonist, unit_id );
-    opponent_unit_id =
-        W.add_unit_on_map( e_unit_type::caravel,
-                           { .x = 0, .y = 2 }, e_nation::french )
-            .id();
-    outcome = EuroNavalUnitCombatOutcome::damaged{
-        .port = ShipRepairPort::colony{ .id = colony.id } };
-    expected = {
-        .for_owner = { "[One] unit onboard has been lost." },
-        .for_both  = { "Dutch [Privateer] damaged in battle! "
-                        "Ship sent to [Billooboo] for repair." } };
-    REQUIRE( f() == expected );
-  }
-
-  SECTION( "sunk" ) {
-    unit_id =
-        W.add_unit_on_map( e_unit_type::frigate,
-                           { .x = 0, .y = 3 }, e_nation::dutch )
-            .id();
-    opponent_unit_id =
-        W.add_unit_on_map( e_unit_type::merchantman,
-                           { .x = 0, .y = 2 }, e_nation::french )
-            .id();
-    outcome  = EuroNavalUnitCombatOutcome::sunk{};
-    expected = {
-        .for_both = {
-            "Dutch [Frigate] sunk by [French] Merchantman." } };
-    REQUIRE( f() == expected );
-  }
-
-  SECTION( "sunk, three units on board lost" ) {
-    unit_id =
-        W.add_unit_on_map( e_unit_type::frigate,
-                           { .x = 0, .y = 3 }, e_nation::dutch )
-            .id();
-    W.add_unit_in_cargo( e_unit_type::free_colonist, unit_id );
-    W.add_unit_in_cargo( e_unit_type::free_colonist, unit_id );
-    W.add_unit_in_cargo( e_unit_type::free_colonist, unit_id );
-    opponent_unit_id =
-        W.add_unit_on_map( e_unit_type::merchantman,
-                           { .x = 0, .y = 2 }, e_nation::french )
-            .id();
-    outcome  = EuroNavalUnitCombatOutcome::sunk{};
-    expected = {
-        .for_owner = { "[Three] units onboard have been lost." },
-        .for_both  = {
-            "Dutch [Frigate] sunk by [French] Merchantman." } };
-    REQUIRE( f() == expected );
-  }
 }
 
 TEST_CASE(
