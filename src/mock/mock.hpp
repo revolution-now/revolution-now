@@ -145,8 +145,10 @@ template<typename T>
 struct exhaust_checker {
   std::string queue_name_;
   T*          p_;
+
   exhaust_checker( std::string_view queue_name, T* p )
     : queue_name_( queue_name ), p_( p ) {}
+
   ~exhaust_checker() {
     // This is so that if there is already an exception in pro-
     // gress, e.g. from an unexpected mock function call, we will
@@ -156,19 +158,21 @@ struct exhaust_checker {
     // expected calls have been called because 1) we know that
     // they haven't and 2) terminating here would prevent the
     // unit test framework from displaying the real error).
-    if( std::uncaught_exceptions() == 0 ) {
-      int unfinished = 0;
-      while( !p_->empty() ) {
-        if( !p_->front().finished() )
-          unfinished += p_->front().times_remaining();
-        p_->pop();
-      }
-      BASE_CHECK( !unfinished,
-                  "not all expected calls of the function '{}' "
-                  "have been called.  It was expected to have "
-                  "been called {} more times.",
-                  queue_name_, unfinished );
+    if( std::uncaught_exceptions() == 0 ) perform_check();
+  }
+
+  void perform_check() const {
+    int unfinished = 0;
+    while( !p_->empty() ) {
+      if( !p_->front().finished() )
+        unfinished += p_->front().times_remaining();
+      p_->pop();
     }
+    BASE_CHECK( !unfinished,
+                "not all expected calls of the function '{}' "
+                "have been called.  It was expected to have "
+                "been called {} more times.",
+                queue_name_, unfinished );
   }
 };
 
@@ -418,6 +422,8 @@ struct ResponderQueue {
 
   ResponderQueue( std::string fn_name )
     : fn_name_( std::move( fn_name ) ) {}
+
+  void ensure_expectations() const { checker_.perform_check(); }
 
   R& add( typename R::matchers_t args ) {
     answers_.push( R( fn_name_, std::move( args ) ) );
