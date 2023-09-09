@@ -19,6 +19,7 @@
 #include "inative-mind.hpp"
 #include "land-view.hpp"
 #include "map-square.hpp"
+#include "minds.hpp"
 #include "mv-calc.hpp"
 #include "on-map.hpp"
 #include "plane-stack.hpp"
