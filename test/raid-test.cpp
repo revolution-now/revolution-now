@@ -781,7 +781,7 @@ TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
   mind.EXPECT__message_box(
           "Indian looting parties have stolen [20] tons of "
           "[coats] from [my colony]!" )
-      .returns<monostate>();
+      .returns();
   f();
 
   // Money stolen.
@@ -790,7 +790,7 @@ TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
   mind.EXPECT__message_box(
           "Indian looting parties have stolen [234]\x7f from "
           "the treasury!" )
-      .returns<monostate>();
+      .returns();
   f();
 
   // Building destroyed.
@@ -799,7 +799,7 @@ TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
   mind.EXPECT__message_box(
           "Indian raiding parties have destroyed the "
           "[Blacksmith's Shop] in [my colony]!" )
-      .returns<monostate>();
+      .returns();
   f();
 
   // Ship in port damaged.
@@ -810,7 +810,7 @@ TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
           "[Dutch] [Frigate] damaged in battle! Ship sent to "
           "[Amsterdam] for repairs. [One] unit onboard has been "
           "lost." )
-      .returns<monostate>();
+      .returns();
   f();
 }
 

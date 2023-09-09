@@ -166,7 +166,7 @@ struct World : testing::World {
   void expect_msg_equals( e_nation nation, string_view msg ) {
     euro_mind( nation )
         .EXPECT__message_box( string( msg ) )
-        .returns<monostate>();
+        .returns();
   }
 
   template<typename... Args>
@@ -192,12 +192,11 @@ struct World : testing::World {
     native_mind( tribe_type )
         .EXPECT__message_box(
             AllOf( StrContains( string( fragments ) )... ) )
-        .template returns<monostate>();
+        .template returns();
   }
 
   void expect_some_animation() {
-    mock_land_view_plane_.EXPECT__animate( _ )
-        .returns<monostate>();
+    mock_land_view_plane_.EXPECT__animate( _ ).returns();
   }
 
   void expect_convert() {
@@ -222,7 +221,7 @@ struct World : testing::World {
     gui()
         .EXPECT__message_box( fmt::format(
             "The [{}] tribe has been wiped out.", tribe_name ) )
-        .returns<monostate>();
+        .returns();
   }
 
   MockLandViewPlane mock_land_view_plane_;

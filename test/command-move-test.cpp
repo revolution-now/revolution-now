@@ -153,7 +153,7 @@ TEST_CASE( "[command-move] ship can't move into inland lake" ) {
                       command::move{ .d = e_direction::s } );
   W.gui()
       .EXPECT__message_box( StrContains( "inland lake" ) )
-      .returns<monostate>();
+      .returns();
   wait<bool> w_confirm = handler->confirm();
   REQUIRE( !w_confirm.exception() );
   REQUIRE( w_confirm.ready() );
@@ -180,7 +180,7 @@ TEST_CASE(
       e_unit_type::privateer, { .x = 0, .y = 0 } );
 
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
-    land_view_plane.EXPECT__animate( _ ).returns<monostate>();
+    land_view_plane.EXPECT__animate( _ ).returns();
     unique_ptr<CommandHandler> handler =
         handle_command( W.ss(), W.ts(), player, unit_id,
                         command::move{ .d = d } );
@@ -262,7 +262,7 @@ TEST_CASE(
       e_unit_type::free_colonist, galleon.id() );
 
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
-    land_view_plane.EXPECT__animate( _ ).returns<monostate>();
+    land_view_plane.EXPECT__animate( _ ).returns();
     unique_ptr<CommandHandler> handler =
         handle_command( W.ss(), W.ts(), player, unit_id,
                         command::move{ .d = d } );
@@ -316,7 +316,7 @@ TEST_CASE(
           .id();
 
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
-    land_view_plane.EXPECT__animate( _ ).returns<monostate>();
+    land_view_plane.EXPECT__animate( _ ).returns();
     unique_ptr<CommandHandler> handler =
         handle_command( W.ss(), W.ts(), player, unit_id,
                         command::move{ .d = d } );
@@ -335,7 +335,7 @@ TEST_CASE(
   W.gui()
       .EXPECT__message_box(
           StrContains( "Treasure worth 1000" ) )
-      .returns<monostate>();
+      .returns();
   W.colony_viewer()
       .EXPECT__show( _, colony.id )
       .returns( e_colony_abandoned::no );
@@ -371,7 +371,7 @@ TEST_CASE(
           .id();
 
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
-    land_view_plane.EXPECT__animate( _ ).returns<monostate>();
+    land_view_plane.EXPECT__animate( _ ).returns();
     unique_ptr<CommandHandler> handler =
         handle_command( W.ss(), W.ts(), player, unit_id,
                         command::move{ .d = d } );
@@ -390,7 +390,7 @@ TEST_CASE(
   W.gui()
       .EXPECT__message_box(
           StrContains( "Treasure worth 1000" ) )
-      .returns<monostate>();
+      .returns();
   CommandHandlerRunResult const expected_res{
       .order_was_run = true, .units_to_prioritize = {} };
   CommandHandlerRunResult const res =
@@ -420,7 +420,7 @@ TEST_CASE(
   W.euro_mind( W.default_nation() )
       .EXPECT__message_box(
           "We cannot attack a land unit from a ship." )
-      .returns<monostate>();
+      .returns();
   wait<bool> w_confirm = handler->confirm();
   REQUIRE( !w_confirm.exception() );
   REQUIRE( w_confirm.ready() );

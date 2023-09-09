@@ -189,7 +189,7 @@ TEST_CASE( "[command-plow] no double pioneers" ) {
   W.gui()
       .EXPECT__message_box(
           "There is already a pioneer working on this tile." )
-      .returns<monostate>();
+      .returns();
   expected = { .order_was_run       = false,
                .units_to_prioritize = {} };
   REQUIRE( f( pioneer2.id() ) == expected );

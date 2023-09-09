@@ -45,7 +45,7 @@ TEST_CASE( "[woodcut] display_woodcut" ) {
   W.gui()
       .EXPECT__message_box(
           "(woodcut): Discovery of the Fountain of Youth!" )
-      .returns<monostate>();
+      .returns();
   wait<> w = detail::display_woodcut(
       W.gui(), e_woodcut::discovered_fountain_of_youth );
   REQUIRE( !w.exception() );
@@ -64,7 +64,7 @@ TEST_CASE( "[woodcut] display_woodcut_if_needed" ) {
   };
 
   cut = e_woodcut::colony_destroyed;
-  W.gui().EXPECT__display_woodcut( cut ).returns<monostate>();
+  W.gui().EXPECT__display_woodcut( cut ).returns();
   REQUIRE_FALSE( player.woodcuts[cut] );
   f();
   REQUIRE( player.woodcuts[cut] );
@@ -72,7 +72,7 @@ TEST_CASE( "[woodcut] display_woodcut_if_needed" ) {
   REQUIRE( player.woodcuts[cut] );
 
   cut = e_woodcut::meeting_fellow_europeans;
-  W.gui().EXPECT__display_woodcut( cut ).returns<monostate>();
+  W.gui().EXPECT__display_woodcut( cut ).returns();
   REQUIRE_FALSE( player.woodcuts[cut] );
   f();
   REQUIRE( player.woodcuts[cut] );

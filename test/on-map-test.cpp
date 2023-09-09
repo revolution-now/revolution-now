@@ -141,7 +141,7 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
     W.gui()
         .EXPECT__display_woodcut(
             e_woodcut::discovered_new_world )
-        .returns<monostate>();
+        .returns();
     W.gui()
         .EXPECT__string_input( _, e_input_required::yes )
         .returns<maybe<string>>( "my world 2" );
@@ -176,7 +176,7 @@ TEST_CASE( "[on-map] interactive: discovers pacific ocean" ) {
   W.gui()
       .EXPECT__display_woodcut(
           e_woodcut::discovered_pacific_ocean )
-      .returns<monostate>();
+      .returns();
   w = TestingOnlyUnitOnMapMover::to_map_interactive(
       W.ss(), W.ts(), unit_id, { .x = 1, .y = 3 } );
   REQUIRE( !w.exception() );
@@ -291,10 +291,10 @@ TEST_CASE(
   W.gui()
       .EXPECT__display_woodcut(
           e_woodcut::discovered_fountain_of_youth )
-      .returns<monostate>();
+      .returns();
   W.gui()
       .EXPECT__message_box( StrContains( "Youth" ) )
-      .returns<monostate>();
+      .returns();
 
   for( int i = 0; i < 8; ++i ) {
     // Pick immigrant.

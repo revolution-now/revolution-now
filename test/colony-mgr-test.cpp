@@ -729,8 +729,7 @@ TEST_CASE( "[colony-mgr] presents transient updates." ) {
                            e_unit_type::expert_farmer );
       W.add_unit_indoors( colony.id, e_indoor_job::hammers );
       colony.commodities[e_commodity::ore] = 100;
-      land_view_plane.EXPECT__ensure_visible( coord )
-          .returns<monostate>();
+      land_view_plane.EXPECT__ensure_visible( coord ).returns();
       W.gui()
           .EXPECT__choice(
               Field( &ChoiceConfig::msg,

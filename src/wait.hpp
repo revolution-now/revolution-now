@@ -154,7 +154,9 @@ class [[nodiscard]] wait {
   using value_type = T;
 
   // Creates a wait without a value that will never be fulfilled.
-  wait();
+  wait()
+  requires std::is_default_constructible_v<T>
+    : wait( T{} ) {}
 
   wait( T const& ready_val );
 
@@ -359,8 +361,5 @@ template<typename T>
 wait<T>::wait( T const& ready_val ) {
   *this = make_wait<T>( ready_val );
 }
-
-template<typename T>
-wait<T>::wait() : wait( wait_promise<T>().wait() ) {}
 
 } // namespace rn

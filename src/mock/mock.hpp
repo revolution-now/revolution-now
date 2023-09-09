@@ -344,7 +344,7 @@ struct Responder<RetT, std::tuple<Args...>,
   }
 
   // clang-format off
-  template<typename U>
+  template<typename U = RetT>
   requires std::is_convertible_v<U, RetT>
   Responder& returns( U&& val = {} ) {
     // clang-format on

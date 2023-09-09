@@ -98,7 +98,7 @@ TEST_CASE( "[command-build] build colony" ) {
   W.gui()
       .EXPECT__display_woodcut(
           e_woodcut::building_first_colony )
-      .returns<monostate>();
+      .returns();
   W.gui()
       .EXPECT__string_input( _, e_input_required::no )
       .returns<maybe<string>>( "my colony" );

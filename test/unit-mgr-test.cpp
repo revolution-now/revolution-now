@@ -457,7 +457,7 @@ TEST_CASE( "[unit-mgr] unit_ownership_change" ) {
   // function that moves a unit onto a map square.
   W.gui()
       .EXPECT__display_woodcut( e_woodcut::discovered_new_world )
-      .returns<monostate>();
+      .returns();
   // Player asked to name the new world.
   W.gui().EXPECT__string_input( _, _ ).returns<maybe<string>>(
       "my land" );

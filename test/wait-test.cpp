@@ -50,7 +50,7 @@ TEST_CASE( "[wait] future api basic" ) {
 
 TEST_CASE( "[wait] default constructor" ) {
   wait<int> w;
-  REQUIRE( !w.ready() );
+  REQUIRE( w.ready() );
 }
 
 TEST_CASE( "[wait] promise api basic api" ) {

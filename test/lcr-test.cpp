@@ -455,7 +455,7 @@ TEST_CASE( "[lcr] cibola / treasure" ) {
       .EXPECT__between_ints( 2000, 10500, e_interval::closed )
       .returns( 5555 );
   // Enpixelate the treasure.
-  land_view_plane.EXPECT__animate( _ ).returns<monostate>();
+  land_view_plane.EXPECT__animate( _ ).returns();
 
   // Go
   wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(
@@ -525,7 +525,7 @@ TEST_CASE( "[lcr] burial mounds / treasure" ) {
       .EXPECT__between_ints( 2000, 3500, e_interval::closed )
       .returns( 2222 );
   // Enpixelate the treasure.
-  land_view_plane.EXPECT__animate( _ ).returns<monostate>();
+  land_view_plane.EXPECT__animate( _ ).returns();
 
   // Go
   wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(
