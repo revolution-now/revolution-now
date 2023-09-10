@@ -1,5 +1,5 @@
 /****************************************************************
-**raid.hpp
+**raid-effects.hpp
 *
 * Project: Revolution Now
 *
@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // rds
-#include "raid.rds.hpp"
+#include "raid-effects.rds.hpp"
 
 // Revolution Now
 #include "wait.hpp"

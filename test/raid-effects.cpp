@@ -1,17 +1,17 @@
 /****************************************************************
-**raid.cpp
+**raid-effects.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2023-04-17.
 *
-* Description: Unit tests for the src/raid.* module.
+* Description: Unit tests for the src/raid-effects.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/raid.hpp"
+#include "src/raid-effects.hpp"
 
 // Testing
 #include "test/fake/world.hpp"

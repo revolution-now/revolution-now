@@ -1,5 +1,5 @@
 /****************************************************************
-**raid.cpp
+**raid-effects.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: Handles when braves raid a colony.
 *
 *****************************************************************/
-#include "raid.hpp"
+#include "raid-effects.hpp"
 
 // Revolution Now
 #include "co-wait.hpp"
