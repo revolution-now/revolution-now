@@ -339,13 +339,30 @@ maybe<UnitId> is_unit_onboard( UnitsState const& units_state,
 /****************************************************************
 ** Native-specific
 *****************************************************************/
-e_tribe tribe_for_unit( SSConst const&    ss,
-                        NativeUnit const& native_unit ) {
+Tribe const& tribe_for_unit( SSConst const&    ss,
+                             NativeUnit const& native_unit ) {
   NativeUnitOwnership const& ownership =
       ss.units.ownership_of( native_unit.id );
   UNWRAP_CHECK( world,
                 ownership.get_if<NativeUnitOwnership::world>() );
-  return ss.natives.tribe_for( world.dwelling_id ).type;
+  return ss.natives.tribe_for( world.dwelling_id );
+}
+
+Tribe& tribe_for_unit( SS& ss, NativeUnit const& native_unit ) {
+  NativeUnitOwnership const& ownership =
+      as_const( ss.units ).ownership_of( native_unit.id );
+  UNWRAP_CHECK( world,
+                ownership.get_if<NativeUnitOwnership::world>() );
+  return ss.natives.tribe_for( world.dwelling_id );
+}
+
+e_tribe tribe_type_for_unit( SSConst const&    ss,
+                             NativeUnit const& native_unit ) {
+  NativeUnitOwnership const& ownership =
+      ss.units.ownership_of( native_unit.id );
+  UNWRAP_CHECK( world,
+                ownership.get_if<NativeUnitOwnership::world>() );
+  return ss.natives.tribe_type_for( world.dwelling_id );
 }
 
 /****************************************************************

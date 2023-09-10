@@ -516,8 +516,8 @@ CombatEuroAttackBrave RealCombat::euro_attack_brave(
   EuroUnitCombatOutcome const attacker_outcome =
       euro_unit_combat_outcome(
           ss_, rand_, attacker,
-          Society::native{ .tribe =
-                               tribe_for_unit( ss_, defender ) },
+          Society::native{
+              .tribe = tribe_type_for_unit( ss_, defender ) },
           defender_coord, winner == e_combat_winner::attacker );
   NativeUnitCombatOutcome const defender_outcome =
       native_unit_combat_outcome(
@@ -550,8 +550,8 @@ CombatBraveAttackEuro RealCombat::brave_attack_euro(
   EuroUnitCombatOutcome const defender_outcome =
       euro_unit_combat_outcome(
           ss_, rand_, defender,
-          Society::native{ .tribe =
-                               tribe_for_unit( ss_, attacker ) },
+          Society::native{
+              .tribe = tribe_type_for_unit( ss_, attacker ) },
           attacker_coord, winner == e_combat_winner::defender );
   return CombatBraveAttackEuro{
       .winner   = winner,
@@ -608,8 +608,8 @@ CombatBraveAttackColony RealCombat::brave_attack_colony(
   EuroUnitCombatOutcome const defender_outcome =
       euro_unit_combat_outcome(
           ss_, rand_, defender,
-          Society::native{ .tribe =
-                               tribe_for_unit( ss_, attacker ) },
+          Society::native{
+              .tribe = tribe_type_for_unit( ss_, attacker ) },
           attacker_coord, /*won=*/true );
   return { .winner           = e_combat_winner::defender,
            .colony_id        = colony.id,

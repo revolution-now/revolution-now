@@ -184,7 +184,8 @@ UnitCombatEffectsMessages native_unit_combat_effects_msg(
     CASE( destroyed ) { break; }
     CASE( promoted ) {
       maybe<string> const maybe_msg = brave_promotion_message(
-          tribe_for_unit( ss, unit ), unit.type, promoted.to );
+          tribe_type_for_unit( ss, unit ), unit.type,
+          promoted.to );
       if( maybe_msg.has_value() )
         res.for_both.push_back( *maybe_msg );
       break;
@@ -371,7 +372,7 @@ CombatEffectsSummaries summarize_combat_outcome(
   Unit const& defender = ss.units.unit_for( combat.defender.id );
   NativeUnit const& attacker =
       ss.units.unit_for( combat.attacker.id );
-  e_tribe const     tribe_type = tribe_for_unit( ss, attacker );
+  e_tribe const tribe_type = tribe_type_for_unit( ss, attacker );
   string_view const tribe_name =
       config_natives.tribes[tribe_type].name_singular;
   string_view const nation_adj =
@@ -428,7 +429,7 @@ CombatEffectsSummaries summarize_combat_outcome(
   //    Colony burned to the ground! King demands explanation!"
   NativeUnit const& attacker =
       ss.units.unit_for( combat.attacker.id );
-  e_tribe const     tribe_type = tribe_for_unit( ss, attacker );
+  e_tribe const tribe_type = tribe_type_for_unit( ss, attacker );
   string_view const tribe_name =
       config_natives.tribes[tribe_type].name_singular;
   Colony const& colony =
@@ -753,8 +754,7 @@ void perform_native_unit_combat_effects(
   SWITCH( outcome ) {
     CASE( no_change ) { break; }
     CASE( destroyed ) {
-      Tribe& tribe =
-          ss.natives.tribe_for( tribe_for_unit( ss, unit ) );
+      Tribe& tribe = tribe_for_unit( ss, unit );
       if( destroyed.tribe_retains_horses )
         tribe_take_horses_from_destroyed_brave( tribe );
       if( destroyed.tribe_retains_muskets )

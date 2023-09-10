@@ -212,6 +212,10 @@ Tribe& NativesState::tribe_for( DwellingId id ) {
   return tribe_for( ownership_for( id ).tribe );
 }
 
+e_tribe NativesState::tribe_type_for( DwellingId id ) const {
+  return ownership_for( id ).tribe;
+}
+
 base::maybe<std::unordered_set<DwellingId> const&>
 NativesState::dwellings_for_tribe( e_tribe tribe ) const {
   return base::lookup( dwellings_from_tribe_, tribe );

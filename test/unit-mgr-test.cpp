@@ -23,6 +23,7 @@
 // ss
 #include "src/ss/dwelling.rds.hpp"
 #include "src/ss/ref.hpp"
+#include "src/ss/tribe.rds.hpp"
 #include "src/ss/units.hpp"
 #include "src/ss/woodcut.rds.hpp"
 
@@ -167,6 +168,17 @@ TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
   }
 }
 
+TEST_CASE( "[unit-mgr] tribe_type_for_unit" ) {
+  World           W;
+  Dwelling const& dwelling =
+      W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::arawak );
+  NativeUnit const& unit = W.add_native_unit_on_map(
+      e_native_unit_type::mounted_brave, { .x = 0, .y = 0 },
+      dwelling.id );
+  REQUIRE( tribe_type_for_unit( W.ss(), unit ) ==
+           e_tribe::arawak );
+}
+
 TEST_CASE( "[unit-mgr] tribe_for_unit" ) {
   World           W;
   Dwelling const& dwelling =
@@ -174,7 +186,11 @@ TEST_CASE( "[unit-mgr] tribe_for_unit" ) {
   NativeUnit const& unit = W.add_native_unit_on_map(
       e_native_unit_type::mounted_brave, { .x = 0, .y = 0 },
       dwelling.id );
-  REQUIRE( tribe_for_unit( W.ss(), unit ) == e_tribe::arawak );
+  REQUIRE( tribe_for_unit( W.ss(), unit ).type ==
+           e_tribe::arawak );
+  SSConst const ss_const( W.ss() );
+  REQUIRE( tribe_for_unit( ss_const, unit ).type ==
+           e_tribe::arawak );
 }
 
 TEST_CASE( "[unit-mgr] coord_for_unit_multi_ownership" ) {

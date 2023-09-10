@@ -254,7 +254,8 @@ wait<> UnitOnMapMover::native_unit_to_map_interactive(
     SS& ss, TS& ts, NativeUnitId id, Coord dst_tile,
     DwellingId dwelling_id ) {
   NativeUnit const& native_unit = ss.units.unit_for( id );
-  e_tribe const tribe_type = tribe_for_unit( ss, native_unit );
+  e_tribe const     tribe_type =
+      tribe_type_for_unit( ss, native_unit );
   native_unit_to_map_non_interactive( ss, id, dst_tile,
                                       dwelling_id );
 

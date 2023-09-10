@@ -1741,7 +1741,7 @@ TEST_CASE(
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type == e_native_unit_type::brave );
-    REQUIRE( tribe_for_unit( W.ss(), unit ) ==
+    REQUIRE( tribe_type_for_unit( W.ss(), unit ) ==
              e_tribe::cherokee );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 1, .y = 1 } );
@@ -1774,7 +1774,7 @@ TEST_CASE(
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type == e_native_unit_type::armed_brave );
-    REQUIRE( tribe_for_unit( W.ss(), unit ) ==
+    REQUIRE( tribe_type_for_unit( W.ss(), unit ) ==
              e_tribe::cherokee );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 1, .y = 1 } );
@@ -1793,7 +1793,7 @@ TEST_CASE(
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type == e_native_unit_type::mounted_brave );
-    REQUIRE( tribe_for_unit( W.ss(), unit ) ==
+    REQUIRE( tribe_type_for_unit( W.ss(), unit ) ==
              e_tribe::cherokee );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 1, .y = 1 } );
@@ -1814,7 +1814,7 @@ TEST_CASE(
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type == e_native_unit_type::mounted_warrior );
-    REQUIRE( tribe_for_unit( W.ss(), unit ) ==
+    REQUIRE( tribe_type_for_unit( W.ss(), unit ) ==
              e_tribe::cherokee );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 1, .y = 1 } );
@@ -1833,7 +1833,7 @@ TEST_CASE(
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type == e_native_unit_type::mounted_warrior );
-    REQUIRE( tribe_for_unit( W.ss(), unit ) ==
+    REQUIRE( tribe_type_for_unit( W.ss(), unit ) ==
              e_tribe::cherokee );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 1, .y = 1 } );

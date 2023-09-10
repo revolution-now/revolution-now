@@ -67,7 +67,7 @@ maybe<Society> society_on_square( SSConst const& ss,
       return Society::european{ .nation = nation };
     }
     case e_unit_kind::native: {
-      e_tribe const tribe = tribe_for_unit(
+      e_tribe const tribe = tribe_type_for_unit(
           ss, units.unit_for( units.check_native_unit( id ) ) );
       return Society::native{ .tribe = tribe };
     }

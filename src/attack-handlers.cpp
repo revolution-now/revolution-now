@@ -308,8 +308,7 @@ NativeAttackHandlerBase::NativeAttackHandlerBase(
         direction_of_attack( ss, attacker_id, defender_id ) ),
     defender_id_( defender_id ),
     defender_( ss.units.unit_for( defender_id ) ),
-    defender_tribe_( ss.natives.tribe_for(
-        tribe_for_unit( ss, defender_ ) ) ),
+    defender_tribe_( tribe_for_unit( ss, defender_ ) ),
     defender_mind_( ts.native_minds[defender_tribe_.type] ) {}
 
 /****************************************************************

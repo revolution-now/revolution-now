@@ -45,6 +45,7 @@ struct ColoniesState;
 struct Player;
 struct SS;
 struct TS;
+struct Tribe;
 struct UnitsState;
 
 /****************************************************************
@@ -159,8 +160,12 @@ void change_unit_nation_and_move( SS& ss, TS& ts, Unit& unit,
 *****************************************************************/
 // This will check-fail if the unit is free and thus is not asso-
 // ciated with a dwelling or tribe.
-e_tribe tribe_for_unit( SSConst const&    ss,
-                        NativeUnit const& native_unit );
+Tribe const& tribe_for_unit( SSConst const&    ss,
+                             NativeUnit const& native_unit );
+Tribe& tribe_for_unit( SS& ss, NativeUnit const& native_unit );
+
+e_tribe tribe_type_for_unit( SSConst const&    ss,
+                             NativeUnit const& native_unit );
 
 /****************************************************************
 ** Multi
