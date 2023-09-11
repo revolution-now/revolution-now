@@ -45,6 +45,7 @@
 #include "ss/colonies.hpp"
 #include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
+#include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
@@ -742,6 +743,10 @@ void change_unit_outdoor_job( Colony& colony, UnitId id,
 ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
                                          Colony& colony ) {
   ColonyDestructionOutcome outcome;
+  // Before the colony is destroyed.
+  string const   colony_name     = colony.name;
+  Coord const    colony_location = colony.location;
+  e_nation const colony_nation   = colony.nation;
   // These are the units working in the colony, not those at the
   // gate or in port (which won't be affected).
   vector<UnitId> units = colony_units_all( colony );
@@ -784,8 +789,23 @@ ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
         ss, unit_id, EuroUnitOwnershipChangeTo::move_to_port{} );
   }
 
-  // Should be last.
   ss.colonies.destroy_colony( colony.id );
+  // Now that the colony is gone, update the player's map square
+  // so that it no longer has a FogColony on the square.
+  Player const& player =
+      player_for_nation_or_die( ss.players, colony_nation );
+  ts.map_updater.make_squares_visible( player.nation,
+                                       { colony_location } );
+
+  UNWRAP_CHECK( player_terrain,
+                ss.terrain.player_terrain( player.nation ) );
+  // Sanity check. This shouldn't fire given the call above, but
+  // you never know.
+  CHECK(
+      !player_terrain.map[colony_location]->colony.has_value(),
+      "the colony {} was destroyed but the player map was not "
+      "updated to reflect this.",
+      colony_name );
   return outcome;
 }
 

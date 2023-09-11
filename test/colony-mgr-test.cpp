@@ -14,6 +14,7 @@
 #include "test/fake/world.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/land-view-plane.hpp"
+#include "test/util/coro.hpp"
 
 // Revolution Now
 #include "colony-mgr.hpp"
@@ -396,7 +397,7 @@ TEST_CASE( "[colony-mgr] change_unit_outdoor_job." ) {
                           .job     = e_outdoor_job::ore } ) );
 }
 
-TEST_CASE( "[colony-mgr] destroy_colony" ) {
+TEST_CASE( "[colony-mgr] colony destruction" ) {
   World       W;
   Coord const loc            = { .x = 1, .y = 1 };
   auto [colony, founder]     = W.add_colony_with_new_unit( loc );
@@ -407,6 +408,10 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
   REQUIRE( W.units().exists( founder_id ) );
   REQUIRE( W.colonies().all().size() == 1 );
   REQUIRE( W.terrain().square_at( loc ).road );
+
+  maybe<FogSquare> const& player_square =
+      W.player_square( colony.location );
+  REQUIRE( player_square->colony.has_value() );
 
   SECTION( "non interactive" ) {
     destroy_colony( W.ss(), W.ts(), colony );
@@ -420,6 +425,7 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
     Unit const& ship3 =
         W.add_unit_on_map( e_unit_type::caravel, loc );
     destroy_colony( W.ss(), W.ts(), colony );
+    REQUIRE( !player_square->colony.has_value() );
     REQUIRE( W.units().exists( ship1.id() ) );
     REQUIRE( W.units().exists( ship2.id() ) );
     REQUIRE( W.units().exists( ship3.id() ) );
@@ -446,11 +452,9 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
         .EXPECT__message_box( "some msg" )
         .returns( make_wait<>() );
 
-    wait<> w = run_colony_destruction(
+    co_await_test( run_colony_destruction(
         W.ss(), W.ts(), W.default_player(), colony,
-        /*msg=*/"some msg" );
-    REQUIRE( !w.exception() );
-    REQUIRE( w.ready() );
+        /*msg=*/"some msg" ) );
   }
 
   SECTION( "interactive no animation" ) {
@@ -464,11 +468,9 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
         .EXPECT__message_box( "some msg" )
         .returns( make_wait<>() );
 
-    wait<> w = run_colony_destruction_no_anim(
+    co_await_test( run_colony_destruction_no_anim(
         W.ss(), W.ts(), W.default_player(), colony,
-        /*msg=*/"some msg" );
-    REQUIRE( !w.exception() );
-    REQUIRE( w.ready() );
+        /*msg=*/"some msg" ) );
   }
 
   SECTION( "interactive with ship" ) {
@@ -497,11 +499,9 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
             "sent back to [Amsterdam] for protection." )
         .returns( make_wait<>() );
 
-    wait<> w = run_colony_destruction(
+    co_await_test( run_colony_destruction(
         W.ss(), W.ts(), W.default_player(), colony,
-        /*msg=*/"some msg" );
-    REQUIRE( !w.exception() );
-    REQUIRE( w.ready() );
+        /*msg=*/"some msg" ) );
 
     REQUIRE( W.units().exists( ship1.id() ) );
     REQUIRE( W.units().exists( ship2.id() ) );
@@ -525,6 +525,7 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
   REQUIRE( !W.units().exists( founder_id ) );
   REQUIRE( W.colonies().all().size() == 0 );
   REQUIRE( !W.terrain().square_at( loc ).road );
+  REQUIRE( !player_square->colony.has_value() );
 }
 
 TEST_CASE(
