@@ -505,9 +505,11 @@ AnimationSequence anim_seq_for_dwelling_burn(
       builder, defender_id,
       NativeUnitCombatOutcome::destroyed{} );
   builder.depixelate_dwelling( dwelling_id );
-  for( NativeUnitId brave_id :
-       dwelling_destruction.braves_to_kill )
+  for( NativeUnitId const brave_id :
+       dwelling_destruction.braves_to_kill ) {
+    CHECK( brave_id != defender_id );
     builder.depixelate_unit( brave_id );
+  }
   // Poor-man's volume increase.
   builder.play_sound( e_sfx::city_destroyed );
   builder.play_sound( e_sfx::city_destroyed );
