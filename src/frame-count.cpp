@@ -21,6 +21,10 @@ using namespace std;
 
 namespace rn {
 
+FrameCount operator""_frames( unsigned long long n ) {
+  return FrameCount{ .frames = static_cast<int>( n ) };
+}
+
 wait<> co_await_transform( FrameCount count ) {
   return wait_n_frames( count );
 }

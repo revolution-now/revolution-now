@@ -15,12 +15,14 @@
 // Revolution Now
 #include "wait.hpp"
 
+namespace rn {
+
 // Strongly-typed integer for representing frame counts.
 struct FrameCount {
   int frames = 0;
 };
 
-namespace rn {
+FrameCount operator""_frames( unsigned long long n );
 
 // This allows co_await'ing directly on a frame count.
 //
