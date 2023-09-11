@@ -4,16 +4,18 @@ return {
   'config/natives', -- 2
   'turn', -- 3
   'native-turn', -- 4
-  'anim-builders', -- 5
+  'attack-handlers', -- 5
   'raid', -- 6
-  'icombat', -- 7
-  'combat', -- 8
-  'attack-handlers', -- 9
-  'inative-mind', -- 10
-  'ai-native-mind', -- 11
-  'ieuro-mind', -- 12
-  'human-euro-mind', -- 13
+  'raid-effects', -- 7
+  'combat-effects', -- 8
+  'icombat', -- 9
+  'combat', -- 10
+  'imind', -- 11
+  'inative-mind', -- 12
+  'ai-native-mind', -- 13
+  'ieuro-mind', -- 14
+  'human-euro-mind', -- 15
 
   -- 1-based.
-  current_tab=9, -- attack-handlers
+  current_tab=5, -- attack-handlers
 }
