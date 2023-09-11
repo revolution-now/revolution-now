@@ -695,8 +695,8 @@ TEST_CASE(
 }
 
 TEST_CASE( "[construction] rush_construction_cost" ) {
-  World   W;
-  Colony& colony =
+  World W;
+  auto [colony, founder] =
       W.add_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
   Player& player = W.default_player();
 
@@ -928,8 +928,8 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
 #ifdef COMPILER_GCC
   return;
 #endif
-  World   W;
-  Colony& colony =
+  World W;
+  auto [colony, founder] =
       W.add_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
   Player& player = W.default_player();
 

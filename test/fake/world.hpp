@@ -210,8 +210,8 @@ struct World {
                       maybe<e_nation> nation = nothing );
 
   // This will create a free colonist on the square and use it to
-  // found a colony, this it should be a realistic valid colony.
-  Colony& add_colony_with_new_unit(
+  // found a colony, thus it should be a realistic valid colony.
+  std::pair<Colony&, Unit&> add_colony_with_new_unit(
       Coord where, maybe<e_nation> nation = nothing );
 
   void kill_all_colonies( maybe<e_nation> nation = nothing );

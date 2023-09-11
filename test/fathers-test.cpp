@@ -661,12 +661,15 @@ TEST_CASE( "[fathers] on_father_received: sieur_de_la_salle" ) {
   Coord const kDutchColony1{ .x = 0, .y = 0 };
   Coord const kDutchColony2{ .x = 2, .y = 0 };
   Coord const kFrenchColony{ .x = 0, .y = 2 };
-  Colony&     dutch_colony1 = W.add_colony_with_new_unit(
-      kDutchColony1, e_nation::dutch );
-  Colony& dutch_colony2 = W.add_colony_with_new_unit(
-      kDutchColony2, e_nation::dutch );
-  Colony& french_colony = W.add_colony_with_new_unit(
-      kFrenchColony, e_nation::french );
+  auto [dutch_colony1, dutch1_founder] =
+      W.add_colony_with_new_unit( kDutchColony1,
+                                  e_nation::dutch );
+  auto [dutch_colony2, dutch2_founder] =
+      W.add_colony_with_new_unit( kDutchColony2,
+                                  e_nation::dutch );
+  auto [french_colony, french_founder] =
+      W.add_colony_with_new_unit( kFrenchColony,
+                                  e_nation::french );
   W.add_unit_indoors( dutch_colony1.id, e_indoor_job::bells );
   W.add_unit_indoors( dutch_colony2.id, e_indoor_job::bells );
   W.add_unit_indoors( dutch_colony2.id, e_indoor_job::bells );

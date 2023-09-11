@@ -520,7 +520,7 @@ TEST_CASE( "[colony-evolve] colony starves" ) {
   // on the center square or any other square when on a hard dif-
   // ficulty level.
   W.create_arctic_map();
-  Colony& colony =
+  auto [colony, founder] =
       W.add_colony_with_new_unit( { .x = 1, .y = 1 } );
   REQUIRE( colony.commodities[e_commodity::food] == 0 );
   REQUIRE( colony_units_all( colony ).size() == 1 );
@@ -719,7 +719,7 @@ TEST_CASE( "[colony-evolve] gives stockade if needed" ) {
   // _, L, _,
   // L, L, L,
   // _, L, L,
-  Colony& colony = W.add_colony_with_new_unit(
+  auto [colony, founder] = W.add_colony_with_new_unit(
       { .x = 1, .y = 1 }, e_nation::dutch );
   W.add_unit_indoors( colony.id, e_indoor_job::bells );
   // So that the colony doesn't starve when we evolve it.

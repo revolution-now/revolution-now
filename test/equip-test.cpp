@@ -617,9 +617,9 @@ TEST_CASE( "[equip] colony_equip_description" ) {
 }
 
 TEST_CASE( "[equip] perform_colony_equip_option" ) {
-  World   W;
-  Unit&   unit   = W.add_free_unit( e_unit_type::free_colonist );
-  Colony& colony = W.add_colony_with_new_unit( Coord{} );
+  World W;
+  Unit& unit = W.add_free_unit( e_unit_type::free_colonist );
+  auto [colony, founder] = W.add_colony_with_new_unit( Coord{} );
   colony.commodities[e_commodity::sugar]   = 50;
   colony.commodities[e_commodity::muskets] = 50;
   colony.commodities[e_commodity::horses]  = 100;
@@ -654,8 +654,8 @@ TEST_CASE( "[equip] perform_colony_equip_option" ) {
 TEST_CASE( "[equip] colony_equip_options" ) {
   // We're not going to do an exhaustive test of all possible
   // unit transformations here because that is done elsewhere.
-  World   W;
-  Colony& colony = W.add_colony_with_new_unit( Coord{} );
+  World W;
+  auto [colony, founder] = W.add_colony_with_new_unit( Coord{} );
   colony.commodities[e_commodity::sugar]   = 50;
   colony.commodities[e_commodity::muskets] = 50;
   colony.commodities[e_commodity::horses]  = 100;

@@ -554,7 +554,7 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
     int const kPlowTurnsRequired  = 2;
 
     W.add_colony_with_new_unit( { .x = 0, .y = 0 } );
-    Colony& with_lumber_mill =
+    auto [with_lumber_mill, founder1] =
         W.add_colony_with_new_unit( { .x = 1, .y = 2 } );
     with_lumber_mill.buildings[e_colony_building::lumber_mill] =
         true;
@@ -563,7 +563,7 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
     // ferred were it not too far.
     with_lumber_mill.commodities[e_commodity::lumber] = 20;
     // Should be too far.
-    Colony& with_lumber_mill_too_far =
+    auto [with_lumber_mill_too_far, founder2] =
         W.add_colony_with_new_unit( { .x = 4, .y = 0 } );
     with_lumber_mill_too_far
         .buildings[e_colony_building::lumber_mill] = true;

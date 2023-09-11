@@ -97,7 +97,7 @@ TEST_CASE( "[lumber-yield] pioneer" ) {
   }
 
   SECTION( "one colony, filled capacity" ) {
-    Colony& colony =
+    auto [colony, founder] =
         W.add_colony_with_new_unit( { .x = 2, .y = 2 } );
     colony.commodities[e_commodity::lumber] = 100;
     expected = { LumberYield{ .colony_id              = 1,
@@ -107,7 +107,7 @@ TEST_CASE( "[lumber-yield] pioneer" ) {
   }
 
   SECTION( "one colony, empty capacity" ) {
-    Colony& colony =
+    auto [colony, founder] =
         W.add_colony_with_new_unit( { .x = 2, .y = 2 } );
     colony.commodities[e_commodity::lumber] = 0;
     expected = { LumberYield{ .colony_id              = 1,
@@ -117,7 +117,7 @@ TEST_CASE( "[lumber-yield] pioneer" ) {
   }
 
   SECTION( "one colony, empty capacity, same square" ) {
-    Colony& colony =
+    auto [colony, founder] =
         W.add_colony_with_new_unit( { .x = 1, .y = 1 } );
     colony.commodities[e_commodity::lumber] = 0;
     expected = { LumberYield{ .colony_id              = 1,
@@ -127,7 +127,7 @@ TEST_CASE( "[lumber-yield] pioneer" ) {
   }
 
   SECTION( "one colony, partial capacity" ) {
-    Colony& colony =
+    auto [colony, founder] =
         W.add_colony_with_new_unit( { .x = 2, .y = 2 } );
     colony.commodities[e_commodity::lumber] = 90;
     expected = { LumberYield{ .colony_id              = 1,
@@ -137,7 +137,7 @@ TEST_CASE( "[lumber-yield] pioneer" ) {
   }
 
   SECTION( "one colony, empty capacity, lumber mill" ) {
-    Colony& colony =
+    auto [colony, founder] =
         W.add_colony_with_new_unit( { .x = 2, .y = 2 } );
     colony.buildings[e_colony_building::lumber_mill] = true;
     colony.commodities[e_commodity::lumber]          = 0;
@@ -150,7 +150,7 @@ TEST_CASE( "[lumber-yield] pioneer" ) {
   SECTION(
       "one colony, empty capacity, lumber mill, different "
       "terrain" ) {
-    Colony& colony =
+    auto [colony, founder] =
         W.add_colony_with_new_unit( { .x = 2, .y = 2 } );
     // Remove forest under colony to make sure that we compute
     // the lumber produced from the square being plowed and not
@@ -166,7 +166,7 @@ TEST_CASE( "[lumber-yield] pioneer" ) {
 
   SECTION(
       "one colony, empty capacity, lumber mill, broadleaf" ) {
-    Colony& colony =
+    auto [colony, founder] =
         W.add_colony_with_new_unit( { .x = 2, .y = 2 } );
     W.square( plow_loc ).ground = e_ground_terrain::prairie;
     colony.buildings[e_colony_building::lumber_mill] = true;
@@ -179,7 +179,7 @@ TEST_CASE( "[lumber-yield] pioneer" ) {
 
   SECTION(
       "one colony, partial capacity/warehouse, lumber mill" ) {
-    Colony& colony =
+    auto [colony, founder] =
         W.add_colony_with_new_unit( { .x = 2, .y = 2 } );
     colony.buildings[e_colony_building::lumber_mill] = true;
     colony.buildings[e_colony_building::warehouse]   = true;
@@ -191,11 +191,11 @@ TEST_CASE( "[lumber-yield] pioneer" ) {
   }
 
   SECTION( "two colonies, empty capacity" ) {
-    Colony& colony1 =
+    auto [colony1, founder] =
         W.add_colony_with_new_unit( { .x = 3, .y = 3 } );
     colony1.buildings[e_colony_building::lumber_mill] = true;
     colony1.commodities[e_commodity::lumber]          = 0;
-    Colony& colony2 =
+    auto [colony2, founder2] =
         W.add_colony_with_new_unit( { .x = 1, .y = 1 } );
     colony2.commodities[e_commodity::lumber] = 0;
 
@@ -211,11 +211,11 @@ TEST_CASE( "[lumber-yield] pioneer" ) {
   }
 
   SECTION( "two colonies, empty capacity" ) {
-    Colony& colony1 =
+    auto [colony1, founder] =
         W.add_colony_with_new_unit( { .x = 3, .y = 3 } );
     colony1.buildings[e_colony_building::lumber_mill] = true;
     colony1.commodities[e_commodity::lumber]          = 0;
-    Colony& colony2 =
+    auto [colony2, founder2] =
         W.add_colony_with_new_unit( { .x = 1, .y = 1 } );
     colony2.commodities[e_commodity::lumber] = 0;
 
@@ -262,7 +262,7 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
   }
 
   SECTION( "one colony, filled capacity" ) {
-    Colony& colony =
+    auto [colony, founder] =
         W.add_colony_with_new_unit( { .x = 2, .y = 2 } );
     colony.commodities[e_commodity::lumber] = 100;
     expected = { LumberYield{ .colony_id              = 1,
@@ -272,7 +272,7 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
   }
 
   SECTION( "one colony, empty capacity" ) {
-    Colony& colony =
+    auto [colony, founder] =
         W.add_colony_with_new_unit( { .x = 2, .y = 2 } );
     colony.commodities[e_commodity::lumber] = 0;
     expected = { LumberYield{ .colony_id              = 1,
@@ -282,7 +282,7 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
   }
 
   SECTION( "one colony, empty capacity, same square" ) {
-    Colony& colony =
+    auto [colony, founder] =
         W.add_colony_with_new_unit( { .x = 1, .y = 1 } );
     colony.commodities[e_commodity::lumber] = 0;
     expected = { LumberYield{ .colony_id              = 1,
@@ -292,7 +292,7 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
   }
 
   SECTION( "one colony, partial capacity" ) {
-    Colony& colony =
+    auto [colony, founder] =
         W.add_colony_with_new_unit( { .x = 2, .y = 2 } );
     colony.commodities[e_commodity::lumber] = 90;
     expected = { LumberYield{ .colony_id              = 1,
@@ -302,7 +302,7 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
   }
 
   SECTION( "one colony, empty capacity, lumber mill" ) {
-    Colony& colony =
+    auto [colony, founder] =
         W.add_colony_with_new_unit( { .x = 2, .y = 2 } );
     colony.buildings[e_colony_building::lumber_mill] = true;
     colony.commodities[e_commodity::lumber]          = 0;
@@ -314,7 +314,7 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
 
   SECTION(
       "one colony, empty capacity, lumber mill, warehouse" ) {
-    Colony& colony =
+    auto [colony, founder] =
         W.add_colony_with_new_unit( { .x = 2, .y = 2 } );
     colony.buildings[e_colony_building::lumber_mill] = true;
     colony.buildings[e_colony_building::warehouse]   = true;
@@ -327,7 +327,7 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
 
   SECTION(
       "one colony, empty capacity, lumber mill, broadleaf" ) {
-    Colony& colony =
+    auto [colony, founder] =
         W.add_colony_with_new_unit( { .x = 2, .y = 2 } );
     W.square( plow_loc ).ground = e_ground_terrain::prairie;
     colony.buildings[e_colony_building::lumber_mill] = true;
@@ -340,7 +340,7 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
 
   SECTION(
       "one colony, partial capacity/warehouse, lumber mill" ) {
-    Colony& colony =
+    auto [colony, founder] =
         W.add_colony_with_new_unit( { .x = 2, .y = 2 } );
     colony.buildings[e_colony_building::lumber_mill] = true;
     colony.buildings[e_colony_building::warehouse]   = true;
@@ -352,11 +352,11 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
   }
 
   SECTION( "two colonies, empty capacity" ) {
-    Colony& colony1 =
+    auto [colony1, founder1] =
         W.add_colony_with_new_unit( { .x = 3, .y = 3 } );
     colony1.buildings[e_colony_building::lumber_mill] = true;
     colony1.commodities[e_commodity::lumber]          = 0;
-    Colony& colony2 =
+    auto [colony2, founder2] =
         W.add_colony_with_new_unit( { .x = 1, .y = 1 } );
     colony2.commodities[e_commodity::lumber] = 0;
 
@@ -372,11 +372,11 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
   }
 
   SECTION( "two colonies, empty capacity" ) {
-    Colony& colony1 =
+    auto [colony1, founder1] =
         W.add_colony_with_new_unit( { .x = 3, .y = 3 } );
     colony1.buildings[e_colony_building::lumber_mill] = true;
     colony1.commodities[e_commodity::lumber]          = 0;
-    Colony& colony2 =
+    auto [colony2, founder2] =
         W.add_colony_with_new_unit( { .x = 1, .y = 1 } );
     colony2.commodities[e_commodity::lumber] = 0;
 

@@ -795,8 +795,8 @@ TEST_CASE( "[sons-of-liberty] compute_tory_penalty_level" ) {
 }
 
 TEST_CASE( "[sons-of-liberty] compute_colony_sons_of_liberty" ) {
-  World   W;
-  Colony& colony =
+  World W;
+  auto [colony, founder] =
       W.add_colony_with_new_unit( { .x = 1, .y = 1 } );
   W.add_unit_indoors( colony.id, e_indoor_job::hammers );
   W.add_unit_indoors( colony.id, e_indoor_job::hammers );

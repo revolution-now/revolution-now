@@ -323,8 +323,8 @@ TEST_CASE( "[colony-mgr] create, query, destroy" ) {
 }
 
 TEST_CASE( "[colony-mgr] initial colony buildings." ) {
-  World   W;
-  Colony& colony =
+  World W;
+  auto [colony, founder] =
       W.add_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
   unordered_set<e_colony_building> buildings;
   for( auto const& [building, has] : colony.buildings )
@@ -399,12 +399,12 @@ TEST_CASE( "[colony-mgr] change_unit_outdoor_job." ) {
 TEST_CASE( "[colony-mgr] destroy_colony" ) {
   World       W;
   Coord const loc            = { .x = 1, .y = 1 };
-  Colony&     colony         = W.add_colony_with_new_unit( loc );
+  auto [colony, founder]     = W.add_colony_with_new_unit( loc );
   vector<UnitId> const units = colony_units_all( colony );
   REQUIRE( units.size() == 1 );
-  UnitId const founder = units[0];
+  UnitId const founder_id = founder.id();
 
-  REQUIRE( W.units().exists( founder ) );
+  REQUIRE( W.units().exists( founder_id ) );
   REQUIRE( W.colonies().all().size() == 1 );
   REQUIRE( W.terrain().square_at( loc ).road );
 
@@ -522,7 +522,7 @@ TEST_CASE( "[colony-mgr] destroy_colony" ) {
 
   // !! Do not access colony after this point.
 
-  REQUIRE( !W.units().exists( founder ) );
+  REQUIRE( !W.units().exists( founder_id ) );
   REQUIRE( W.colonies().all().size() == 0 );
   REQUIRE( !W.terrain().square_at( loc ).road );
 }
@@ -569,11 +569,11 @@ TEST_CASE( "[colony-mgr] give_stockade_if_needed" ) {
   // _, L, _, L, L, L,
   // _, L, L, L, L, L,
   // L, L, L, L, L, L,
-  Colony& dutch1 = W.add_colony_with_new_unit(
+  auto [dutch1, dutch1_founder] = W.add_colony_with_new_unit(
       { .x = 1, .y = 1 }, e_nation::dutch );
-  Colony& dutch2 = W.add_colony_with_new_unit(
+  auto [dutch2, dutch2_founder] = W.add_colony_with_new_unit(
       { .x = 1, .y = 3 }, e_nation::dutch );
-  Colony& english1 = W.add_colony_with_new_unit(
+  auto [english1, english1_founder] = W.add_colony_with_new_unit(
       { .x = 3, .y = 1 }, e_nation::english );
   W.add_unit_indoors( english1.id, e_indoor_job::bells );
   W.add_unit_indoors( english1.id, e_indoor_job::bells );

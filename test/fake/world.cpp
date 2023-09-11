@@ -470,12 +470,13 @@ Colony& World::add_colony( Coord           where,
   return colony;
 }
 
-Colony& World::add_colony_with_new_unit(
+pair<Colony&, Unit&> World::add_colony_with_new_unit(
     Coord where, maybe<e_nation> nation ) {
   if( !nation ) nation = default_nation_;
-  Unit& founder = add_unit_on_map( e_unit_type::free_colonist,
-                                   where, *nation );
-  return add_colony( founder.id() );
+  Unit&   founder = add_unit_on_map( e_unit_type::free_colonist,
+                                     where, *nation );
+  Colony& colony  = add_colony( founder.id() );
+  return { colony, founder };
 }
 
 void World::kill_all_colonies( maybe<e_nation> const nation ) {
