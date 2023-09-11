@@ -17,13 +17,13 @@
 // if this is a debug build and the second otherwise.
 #ifdef NDEBUG // release build
 #  define DEBUG_RELEASE( a, b ) ( b )
-#else // debug build
+#else         // debug build
 #  define DEBUG_RELEASE( a, b ) ( a )
 #endif
 
 #ifdef NDEBUG // release build
 #  define WHEN_DEBUG( a )
-#else // debug build
+#else         // debug build
 #  define WHEN_DEBUG( a ) ( a )
 #endif
 
