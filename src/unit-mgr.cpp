@@ -446,7 +446,6 @@ void unit_ownership_change_non_interactive(
                                    dwelling.dwelling_id );
       return;
     }
-    END_CASES;
   }
 }
 

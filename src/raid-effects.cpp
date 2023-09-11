@@ -232,7 +232,6 @@ void perform_brave_attack_colony_effect(
             ss, ts, ship, *ship_in_port_damaged.sent_to );
       }
     }
-    END_CASES;
   }
 }
 
@@ -286,7 +285,6 @@ wait<> display_brave_attack_colony_effect_msg(
       co_await mind.message_box( "{}", msg );
       co_return;
     }
-    END_CASES;
   }
 }
 

@@ -122,7 +122,6 @@ wait<> handle_native_unit_command(
           ss.units.dwelling_for( native_unit.id ) );
       break;
     }
-    END_CASES;
   }
 
   // !! Note that the unit may no longer exist here.

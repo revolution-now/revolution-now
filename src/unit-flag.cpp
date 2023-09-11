@@ -55,7 +55,6 @@ gfx::pixel char_color_for_orders( unit_orders const& orders ) {
     CASE( road ) { break; }
     CASE( plow ) { break; }
     CASE( damaged ) { break; }
-    END_CASES;
   }
   return is_greyed
              ? config_gfx.unit_flag_colors
@@ -79,7 +78,6 @@ char char_value_for_orders( unit_orders const& orders ) {
       // case.
       return ( turns_left > 9 ) ? '+' : ( '0' + turns_left );
     }
-    END_CASES;
   }
 }
 

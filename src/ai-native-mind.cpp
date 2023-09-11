@@ -82,7 +82,6 @@ NativeUnitCommand AiNativeMind::command_for(
     CASE( european ) {
       return NativeUnitCommand::attack{ .direction = rand_d };
     }
-    END_CASES;
   }
 }
 

@@ -145,7 +145,6 @@ UnitCombatEffectsMessages euro_unit_combat_effects_msg(
           unit.desc().name, unit_attr( promoted.to ).name ) );
       break;
     }
-    END_CASES;
   }
 
   return res;
@@ -191,7 +190,6 @@ UnitCombatEffectsMessages native_unit_combat_effects_msg(
         res.for_both.push_back( *maybe_msg );
       break;
     }
-    END_CASES;
   }
   return res;
 }
@@ -229,7 +227,6 @@ std::string naval_battle_opponent_clause(
       unit_part                 = opponent_unit.desc().name;
       break;
     }
-    END_CASES;
   }
   return fmt::format(
       "[{}] [{}]", nation_obj( nation ).adjective, unit_part );
@@ -265,7 +262,6 @@ UnitCombatEffectsMessages naval_unit_combat_effects_msg(
       add_units_lost();
       break;
     }
-    END_CASES;
   }
   return res;
 }
@@ -794,7 +790,6 @@ void perform_euro_unit_combat_effects(
       change_unit_type( ss, ts, unit, promoted.to );
       break;
     }
-    END_CASES;
   }
 }
 
@@ -816,7 +811,6 @@ void perform_native_unit_combat_effects(
       unit.type = promoted.to;
       break;
     }
-    END_CASES;
   }
 }
 
@@ -853,7 +847,6 @@ void perform_naval_unit_combat_effects(
       destroy_unit( ss, unit.id() );
       break;
     }
-    END_CASES;
   }
 }
 

@@ -662,7 +662,6 @@ struct MenuPlane::Impl : public Plane {
               render_open_menu( renderer, pos, menu, ic.item );
               break;
             }
-            END_CASES;
           }
         },
         [&]( MenuState::menu_open const& o ) {

@@ -960,12 +960,10 @@ wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
           co_return NationTurnState::units{
               .q = { return_to_units.first_to_ask } };
         }
-        END_CASES;
       }
       SHOULD_NOT_BE_HERE; // for gcc.
     }
     CASE( finished ) { SHOULD_NOT_BE_HERE; }
-    END_CASES;
   }
 }
 
@@ -1034,7 +1032,6 @@ wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
       co_return TurnCycle::finished{};
     }
     CASE( finished ) { SHOULD_NOT_BE_HERE; }
-    END_CASES;
   }
 }
 

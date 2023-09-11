@@ -183,7 +183,6 @@ void move_damaged_ship_for_repair( SS& ss, TS& ts, Unit& ship,
           EuroUnitOwnershipChangeTo::move_to_port{} );
       break;
     }
-    END_CASES;
   }
 }
 

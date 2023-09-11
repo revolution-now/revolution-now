@@ -395,11 +395,9 @@ void HarborCargo::draw( rr::Renderer& renderer,
                 commodity.obj );
             break;
           }
-          END_CASES;
         }
         break;
       }
-      END_CASES;
     }
   }
 }
