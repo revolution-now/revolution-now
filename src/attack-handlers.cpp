@@ -705,7 +705,7 @@ struct AttackDwellingHandler : public AttackHandlerBase {
   INativeMind&       defender_mind_;
   TribeRelationship& relationship_;
 
-  CombatEuroAttackDwelling combat_;
+  CombatEuroAttackDwelling const combat_;
 
   maybe<UnitId> treasure_;
   maybe<UnitId> native_convert_;
@@ -721,13 +721,13 @@ AttackDwellingHandler::AttackDwellingHandler(
     tribe_( ss.natives.tribe_for( dwelling_.id ) ),
     defender_mind_( ts.native_minds[tribe_.type] ),
     relationship_(
-        tribe_.relationship[attacking_player_.nation] ) {}
+        tribe_.relationship[attacking_player_.nation] ),
+    combat_( ts.combat.euro_attack_dwelling( attacker_,
+                                             dwelling_ ) ) {}
 
 // Returns true if the move is allowed.
 wait<bool> AttackDwellingHandler::confirm() {
   if( !co_await Base::confirm() ) co_return false;
-  combat_ =
-      ts_.combat.euro_attack_dwelling( attacker_, dwelling_ );
   co_return true;
 }
 
@@ -875,6 +875,9 @@ wait<> AttackDwellingHandler::perform() {
         nation_name_adjective );
   }
 
+  CombatEffectsMessages const effects_msg =
+      combat_effects_msg( ss_, combat_ );
+
   // Attacker lost:
   if( combat_.winner == e_combat_winner::defender ) {
     CHECK( combat_.defender.outcome
@@ -885,8 +888,6 @@ wait<> AttackDwellingHandler::perform() {
               anim_seq_for_euro_attack_brave( ss_, combat );
           co_await ts_.planes.land_view().animate( seq );
         } );
-    CombatEffectsMessages const effects_msg =
-        combat_effects_msg( ss_, combat_ );
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                       combat_.attacker.outcome );
     co_await show_combat_effects_msg(
@@ -909,8 +910,6 @@ wait<> AttackDwellingHandler::perform() {
               anim_seq_for_euro_attack_brave( ss_, combat );
           co_await ts_.planes.land_view().animate( seq );
         } );
-    CombatEffectsMessages const effects_msg =
-        combat_effects_msg( ss_, combat_ );
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                       combat_.attacker.outcome );
     co_await show_combat_effects_msg(
@@ -978,8 +977,6 @@ wait<> AttackDwellingHandler::perform() {
   bool const was_capital = dwelling_.is_capital;
   // Do this before destroying the dwelling in case it wants to
   // inspect it.
-  CombatEffectsMessages const effects_msg =
-      combat_effects_msg( ss_, combat_ );
   destroy_dwelling( ss_, ts_, dwelling_id_ );
   perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                     combat_.attacker.outcome );
