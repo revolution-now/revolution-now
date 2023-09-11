@@ -12,6 +12,7 @@
 #include "combat-effects.hpp"
 
 // Rds.
+#include "colony-mgr.hpp"
 #include "combat-effects-impl.rds.hpp"
 
 // Revolution Now
