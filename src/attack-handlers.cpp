@@ -998,21 +998,28 @@ wait<> AttackDwellingHandler::perform() {
                       UnitComposition::UnitInventoryMap{
                           { e_unit_inventory::gold,
                             *destruction.treasure_amount } } ) );
-    maybe<UnitId> const treasure_id =
-        co_await create_unit_on_map( ss_, ts_, attacking_player_,
-                                     treasure_comp,
-                                     dwelling_location );
+    // This one needs to be non-interactive for the same reason
+    // as is described in the comment further above at the point
+    // when we release the missionary from the dwelling. Specfi-
+    // cally, it would be weird to enter an interactive sequence
+    // here since the treasure has not yet appeared yet. We will
+    // take care of this by replacing it interactively after it
+    // appears.
+    UnitId const treasure_id =
+        create_unit_on_map_non_interactive(
+            ss_, ts_, attacking_player_, treasure_comp,
+            dwelling_location );
     treasure_ = treasure_id;
-    // We'll be defensive here and not check-fail if the treasure
-    // doesn't exist, even though that should never really happen
-    // in a normal game... it is possible somehow that there
-    // could be an LCR under the dwelling tile that could have
-    // swallowed up the treasure unit.
-    if( treasure_id.has_value() ) {
-      AnimationSequence const seq =
-          anim_seq_for_treasure_enpixelation( *treasure_id );
-      co_await ts_.planes.land_view().animate( seq );
-    }
+    AnimationSequence const seq =
+        anim_seq_for_treasure_enpixelation( treasure_id );
+    co_await ts_.planes.land_view().animate( seq );
+    // Just in case e.g. the treasure appeared next to a brave
+    // from unencountered tribe, or the pacific ocean.
+    maybe<UnitDeleted> const unit_deleted =
+        co_await unit_ownership_change(
+            ss_, treasure_id,
+            EuroUnitOwnershipChangeTo::world{
+                .ts = &ts_, .target = dwelling_location } );
   }
 
   if( was_capital && !destruction.tribe_destroyed.has_value() )
@@ -1024,6 +1031,19 @@ wait<> AttackDwellingHandler::perform() {
   if( destruction.tribe_destroyed.has_value() )
     // At this point there should be nothing left
     co_await destroy_tribe_interactive( ss_, ts_, tribe_.type );
+
+  if( destruction.missionary_to_release.has_value() ) {
+    // Now that the missionary is visible, we will replace it on
+    // the world interactively, e.g. in case it ended up next to
+    // a brave from an unencountered tribe. We do this last be-
+    // cause any UI sequence that this leads to will be unrelated
+    // to the burning of the dwelling.
+    maybe<UnitDeleted> const unit_deleted =
+        co_await unit_ownership_change(
+            ss_, *destruction.missionary_to_release,
+            EuroUnitOwnershipChangeTo::world{
+                .ts = &ts_, .target = dwelling_location } );
+  }
 }
 
 vector<UnitId> AttackDwellingHandler::units_to_prioritize()
