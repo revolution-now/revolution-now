@@ -721,8 +721,17 @@ void perform_euro_unit_combat_effects(
   SWITCH( outcome ) {
     CASE( no_change ) { break; }
     CASE( destroyed ) {
-      // This will be scouts, pioneers, missionaries, and ar-
-      // tillery.
+      // This will be scouts, pioneers, missionaries, artillery,
+      // and colony workers (on colony destruction).
+      if( auto const& colony_owned =
+              as_const( ss.units )
+                  .ownership_of( unit.id() )
+                  .get_if<UnitOwnership::colony>();
+          colony_owned.has_value() ) {
+        auto& colony =
+            ss.colonies.colony_for( colony_owned->id );
+        remove_unit_from_colony( ss, colony, unit.id() );
+      }
       destroy_unit( ss, unit.id() );
       break;
     }

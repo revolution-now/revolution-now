@@ -470,6 +470,12 @@ wait<maybe<UnitDeleted>> unit_ownership_change(
 }
 
 void destroy_unit( SS& ss, UnitId id ) {
+  CHECK( !as_const( ss.units )
+              .ownership_of( id )
+              .holds<UnitOwnership::colony>(),
+         "This method isn't equipped to directly destroy a unit "
+         "that is in a colony; you must first call "
+         "remove_unit_from_colony." );
   ss.units.destroy_unit( id );
 }
 

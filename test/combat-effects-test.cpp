@@ -1715,6 +1715,17 @@ TEST_CASE(
     REQUIRE( unit.movement_points() == 1 );
     REQUIRE( unit.orders() == unit_orders::fortified{} );
   }
+
+  SECTION( "colony worker destroyed" ) {
+    Colony const& colony = W.add_colony( { .x = 1, .y = 1 } );
+    unit_id =
+        W.add_unit_indoors( colony.id, e_indoor_job::bells )
+            .id();
+    outcome = EuroUnitCombatOutcome::destroyed{};
+    f();
+    REQUIRE( !W.units().exists( unit_id ) );
+    // !! No further tests since unit does not exist.
+  }
 }
 
 TEST_CASE(

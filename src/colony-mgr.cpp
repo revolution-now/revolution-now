@@ -700,6 +700,10 @@ void remove_unit_from_colony( SS& ss, Colony& colony,
                               UnitId unit_id ) {
   CHECK( ss.units.unit_for( unit_id ).nation() ==
          colony.nation );
+  CHECK( as_const( ss.units )
+             .ownership_of( unit_id )
+             .holds<UnitOwnership::colony>(),
+         "Unit {} is not working in a colony.", unit_id );
   unit_ownership_change_non_interactive(
       ss, unit_id, EuroUnitOwnershipChangeTo::free{} );
   // Now remove the unit from the colony.
