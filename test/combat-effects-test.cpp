@@ -27,6 +27,7 @@
 
 // ss
 #include "src/ss/dwelling.rds.hpp"
+#include "src/ss/player.rds.hpp"
 #include "src/ss/tribe.rds.hpp"
 #include "src/ss/units.hpp"
 
@@ -66,6 +67,8 @@ struct World : testing::World {
   inline static Coord const kLandDefenderCoord{ .x = 0, .y = 1 };
   inline static Coord const kSeaAttackerCoord{ .x = 0, .y = 2 };
   inline static Coord const kSeaDefenderCoord{ .x = 0, .y = 3 };
+
+  inline static Coord const kNativeRaiderCoord{ .x = 2, .y = 2 };
 
   inline static Coord const kAttackerColonyCoord{ .x = 1,
                                                   .y = 4 };
@@ -1563,7 +1566,209 @@ TEST_CASE(
 TEST_CASE(
     "[combat-effects] combat_effects_msg, "
     "CombatBraveAttackColony" ) {
-  World W;
+  World                 W;
+  CombatEffectsMessages expected;
+
+  struct Params {
+    e_native_unit_type      attacker         = {};
+    maybe<e_unit_type>      defender_at_gate = {};
+    e_combat_winner         winner           = {};
+    NativeUnitCombatOutcome attacker_outcome;
+    EuroUnitCombatOutcome   defender_outcome;
+    bool                    burned = false;
+  } params;
+
+  BASE_CHECK(
+      W.kNativeRaiderCoord.direction_to( W.kDefenderColonyCoord )
+          .has_value() );
+  auto [colony, founder] = W.add_colony_with_new_unit(
+      W.kDefenderColonyCoord, W.kDefenderNation );
+  colony.name = "raided-colony";
+
+  auto run = [&] {
+    Dwelling const& dwelling = W.add_dwelling(
+        W.kAttackerDwellingCoord, W.kNativeTribe );
+    NativeUnit const& attacker = W.add_native_unit_on_map(
+        params.attacker, W.kNativeRaiderCoord, dwelling.id );
+    Unit const& defender =
+        params.defender_at_gate.has_value()
+            ? W.add_unit_on_map( *params.defender_at_gate,
+                                 W.kLandDefenderCoord,
+                                 W.kDefenderNation )
+            : founder;
+    CombatBraveAttackColony const combat{
+        .winner           = params.winner,
+        .colony_id        = colony.id,
+        .colony_destroyed = params.burned,
+        .attacker         = { .id      = attacker.id,
+                              .outcome = params.attacker_outcome },
+        .defender         = { .id      = defender.id(),
+                              .outcome = params.defender_outcome },
+    };
+    return combat_effects_msg( W.ss(), combat );
+  };
+
+  SECTION( "no units at gate, not burned" ) {
+    params = {
+        .attacker         = e_native_unit_type::brave,
+        .defender_at_gate = nothing,
+        .winner           = e_combat_winner::defender,
+        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+        .defender_outcome = EuroUnitCombatOutcome::no_change{},
+        .burned           = false };
+    expected = {
+        .summaries = {
+            .defender =
+                "[Sioux] raiding party wiped out in "
+                "[raided-colony]! Colonists celebrate!" } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "non-military unit at gate, not burned" ) {
+    params = {
+        .attacker         = e_native_unit_type::brave,
+        .defender_at_gate = e_unit_type::expert_farmer,
+        .winner           = e_combat_winner::defender,
+        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+        .defender_outcome = EuroUnitCombatOutcome::no_change{},
+        .burned           = false };
+    expected = {
+        .summaries = {
+            .defender =
+                "[Sioux] raiding party wiped out in "
+                "[raided-colony]! Colonists celebrate!" } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "military unit at gate, defender wins" ) {
+    params = {
+        .attacker         = e_native_unit_type::brave,
+        .defender_at_gate = e_unit_type::soldier,
+        .winner           = e_combat_winner::defender,
+        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+        .defender_outcome = EuroUnitCombatOutcome::no_change{},
+        .burned           = false };
+    expected = {
+        .summaries = {
+            .defender =
+                "[Sioux] raiding party wiped out in "
+                "[raided-colony]! Colonists celebrate!" } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION(
+      "military unit at gate, defender wins w/ promotion" ) {
+    params = {
+        .attacker         = e_native_unit_type::brave,
+        .defender_at_gate = e_unit_type::soldier,
+        .winner           = e_combat_winner::defender,
+        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+        .defender_outcome =
+            EuroUnitCombatOutcome::promoted{
+                .to = e_unit_type::veteran_soldier },
+        .burned = false };
+    expected = {
+        .summaries =
+            { .defender =
+                  "[Sioux] raiding party wiped out in "
+                  "[raided-colony]! Colonists celebrate!" },
+        .defender = {
+            .for_owner = {
+                "[French] Soldier promoted to [Veteran Soldier] "
+                "for victory in combat!" } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "military unit at gate, defender loses" ) {
+    params = {
+        .attacker         = e_native_unit_type::brave,
+        .defender_at_gate = e_unit_type::soldier,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+        .defender_outcome =
+            EuroUnitCombatOutcome::demoted{
+                .to = e_unit_type::free_colonist },
+        .burned = false };
+    expected = {
+        .summaries = { .defender =
+                           "[Sioux] ambush [French] [Soldier] "
+                           "in [raided-colony]!" },
+        .defender  = {
+             .for_both = { "[French] [Soldier] routed! Unit "
+                            "demoted to colonist status." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "military unit (scout) at gate, defender loses" ) {
+    params = {
+        .attacker         = e_native_unit_type::brave,
+        .defender_at_gate = e_unit_type::scout,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+        .burned           = false };
+    expected = {
+        .summaries = { .defender =
+                           "[Sioux] ambush [French] [Scout] in "
+                           "[raided-colony]!" },
+        .defender  = {
+             .for_owner = {
+                "[French] [Scout] lost in battle." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "no units at gate, burned" ) {
+    params = {
+        .attacker         = e_native_unit_type::brave,
+        .defender_at_gate = nothing,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+        .burned           = true };
+    expected = { .summaries = {
+                     .defender =
+                         "[Sioux] massacre [French] population "
+                         "in [raided-colony]! Colony set ablaze "
+                         "and decimated! The King demands "
+                         "accountability!" } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "non-military unit at gate, burned" ) {
+    params = {
+        .attacker         = e_native_unit_type::brave,
+        .defender_at_gate = e_unit_type::expert_farmer,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+        .burned           = true };
+    expected = { .summaries = {
+                     .defender =
+                         "[Sioux] massacre [French] population "
+                         "in [raided-colony]! Colony set ablaze "
+                         "and decimated! The King demands "
+                         "accountability!" } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "no units at gate, burned, after revolution" ) {
+    W.french().revolution_status = e_revolution_status::declared;
+
+    params = {
+        .attacker         = e_native_unit_type::brave,
+        .defender_at_gate = nothing,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+        .burned           = true };
+    expected = { .summaries = {
+                     .defender =
+                         "[Sioux] massacre [French] population "
+                         "in [raided-colony]! Colony set ablaze "
+                         "and decimated! The King laughs at "
+                         "such incompetent governance!" } };
+    REQUIRE( run() == expected );
+  }
 }
 
 TEST_CASE(

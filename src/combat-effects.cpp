@@ -276,11 +276,6 @@ UnitCombatEffectsMessages dwelling_combat_effects_msg(
 }
 
 UnitCombatEffectsMessages colony_combat_effects_msg(
-    Colony const&, EuroUnitCombatOutcome const& ) {
-  return {};
-}
-
-UnitCombatEffectsMessages colony_combat_effects_msg(
     Colony const&, EuroColonyWorkerCombatOutcome const& ) {
   return {};
 }
@@ -388,11 +383,13 @@ CombatEffectsSummaries summarize_combat_outcome(
           ss, defender.nation(), defender_coord,
           /*max_distance=*/
           config_colony.search_dist_for_nearby_colony );
+  CHECK( !closest_colony.has_value() ||
+             ( closest_colony->location != defender_coord ),
+         "this method should not be used when a brave is "
+         "attacking a colony." );
   string const colony_str =
       closest_colony.has_value()
-          ? ( closest_colony->location == defender_coord )
-                ? fmt::format( " in {}", closest_colony->name )
-                : fmt::format( " near {}", closest_colony->name )
+          ? fmt::format( " near {}", closest_colony->name )
           : " in the wilderness";
   switch( combat.winner ) {
     case e_combat_winner::attacker: {
@@ -413,18 +410,46 @@ CombatEffectsSummaries summarize_combat_outcome(
   }
 }
 
-CombatEffectsSummaries summarize_combat_outcome(
-    SSConst const& ss, CombatBraveAttackColony const& combat ) {
-  if( !combat.colony_destroyed ) {
-    // In this case we just have a normal battle, so defer to
-    // the handler for that one. It will take care of
-    // mentioning the colony name as well.
-    return summarize_combat_outcome(
-        ss,
-        CombatBraveAttackEuro{ .winner   = combat.winner,
-                               .attacker = combat.attacker,
-                               .defender = combat.defender } );
+// This is for summarizing an attack against a unit defending a
+// colony in the case where the colony is not destroyed.
+CombatEffectsSummaries
+summarize_non_destroying_combat_outcome_in_colony(
+    SSConst const& ss, CombatBraveAttackColony const& combat,
+    Colony const& colony ) {
+  Unit const& defender = ss.units.unit_for( combat.defender.id );
+  NativeUnit const& attacker =
+      ss.units.unit_for( combat.attacker.id );
+  e_tribe const tribe_type = tribe_type_for_unit( ss, attacker );
+  string_view const tribe_name =
+      config_natives.tribes[tribe_type].name_singular;
+  string_view const nation_adj =
+      config_nation.nations[defender.nation()].adjective;
+  string_view const euro_unit_name = defender.desc().name;
+  switch( combat.winner ) {
+    case e_combat_winner::attacker: {
+      // Brave wins. Note that the below works with both
+      // singular and plural unit names.
+      return { .defender = fmt::format(
+                   "[{}] ambush [{}] [{}] in [{}]!", tribe_name,
+                   nation_adj, euro_unit_name, colony.name ) };
+    }
+    case e_combat_winner::defender: {
+      // European wins.
+      //   [Inca] raiding party wiped out in Roanoke! Colonists
+      //   celebrate!
+      return { .defender =
+                   fmt::format( "[{}] raiding party wiped out "
+                                "in [{}]! Colonists celebrate!",
+                                tribe_name, colony.name ) };
+    }
   }
+}
+
+// This is for summarizing an attack against a unit defending a
+// colony in the case where the colony is destroyed.
+CombatEffectsSummaries summarize_colony_burn_combat_outcome(
+    SSConst const& ss, CombatBraveAttackColony const& combat ) {
+  CHECK( combat.colony_destroyed );
   // Sample:
   //   "[Souix] massacre [English] colonists at [Penobscot]!
   //    Colony burned to the ground! King demands explanation!"
@@ -443,12 +468,14 @@ CombatEffectsSummaries summarize_combat_outcome(
       ( player.revolution_status <
         e_revolution_status::declared )
           ? " The King demands accountability!"
-          : "";
-  return {
-      .defender = fmt::format(
-          "[{}] massacre [{}] population in [{}]!  Colony set "
-          "ablaze and ruined!{}",
-          tribe_name, nation_adj, colony.name, king_part ) };
+          : " The King laughs at such incompetent governance!";
+  // Since colony burning is a big event, we will always show the
+  // summary here.
+  return { .defender = fmt::format(
+               "[{}] massacre [{}] population in [{}]! Colony "
+               "set ablaze and decimated!{}",
+               tribe_name, nation_adj, colony.name,
+               king_part ) };
 }
 
 CombatEffectsSummaries summarize_combat_outcome(
@@ -587,14 +614,27 @@ CombatEffectsMessages combat_effects_msg(
 
 CombatEffectsMessages combat_effects_msg(
     SSConst const& ss, CombatBraveAttackColony const& combat ) {
-  auto& attacker = ss.units.unit_for( combat.attacker.id );
-  Colony const& colony =
-      ss.colonies.colony_for( combat.colony_id );
-  return { .summaries = summarize_combat_outcome( ss, combat ),
-           .attacker  = native_unit_combat_effects_msg(
-               ss, attacker, combat.attacker.outcome ),
-           .defender = colony_combat_effects_msg(
-               colony, combat.defender.outcome ) };
+  auto& defender = ss.units.unit_for( combat.defender.id );
+  if( !combat.colony_destroyed )
+    return {
+        .summaries =
+            summarize_non_destroying_combat_outcome_in_colony(
+                ss, combat,
+                ss.colonies.colony_for( combat.colony_id ) ),
+        // There is no attacker message here because, as in the
+        // OG, the brave always gets destroyed when attacking a
+        // colony (whether it wins or loses), and there is no
+        // message displayed for that specifically.
+        .defender = euro_unit_combat_effects_msg(
+            defender, combat.defender.outcome ) };
+
+  // Colony burned. In this case there is no attacker message for
+  // the same reason as above, but also no defender message since
+  // the colony burning pretty much overrides what the message
+  // would otherwise been for the attacker, which would be some-
+  // thing like "colonist destroyed."
+  return { .summaries = summarize_colony_burn_combat_outcome(
+               ss, combat ) };
 }
 
 CombatEffectsMessages combat_effects_msg(
