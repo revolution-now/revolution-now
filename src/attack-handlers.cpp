@@ -926,12 +926,21 @@ wait<> AttackDwellingHandler::perform() {
     CHECK_EQ(
         ss_.units.unit_for( *missionary_in_dwelling ).nation(),
         attacking_player_.nation );
-    maybe<UnitDeleted> const unit_deleted =
-        co_await unit_ownership_change(
-            ss_, *destruction.missionary_to_release,
-            EuroUnitOwnershipChangeTo::world{
-                .ts = &ts_, .target = dwelling_location } );
-    CHECK( !unit_deleted.has_value() );
+    // We need to use the non-interactive version here because,
+    // at this point, the player is not aware that the missionary
+    // has been released (no visual indication or messages), and
+    // so if we were to release it onto the map interactively
+    // then it could trigger some interactive events which would
+    // probably seem confusing to the player. An example of such
+    // an interactive event is that the missionary, upon being
+    // released on the dwelling square, might end up adjacent to
+    // a brave of another unencountered tribe which would then
+    // trigger the meet-tribe UI sequence, which would feel
+    // strange right in the middle of an attack sequence.
+    unit_ownership_change_non_interactive(
+        ss_, *destruction.missionary_to_release,
+        EuroUnitOwnershipChangeTo::world{
+            .ts = &ts_, .target = dwelling_location } );
   }
 
   // Animate attacker winning w/ burning village and depixelating
