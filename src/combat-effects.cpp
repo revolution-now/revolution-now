@@ -406,6 +406,45 @@ CombatEffectsSummaries summarize_combat_outcome(
   }
 }
 
+CombatEffectsSummaries summarize_combat_outcome(
+    SSConst const& ss, CombatEuroAttackBrave const& combat ) {
+  Unit const& attacker = ss.units.unit_for( combat.attacker.id );
+  NativeUnit const& defender =
+      ss.units.unit_for( combat.defender.id );
+  e_tribe const tribe_type = tribe_type_for_unit( ss, defender );
+  string_view const tribe_name =
+      config_natives.tribes[tribe_type].name_singular;
+  string_view const nation_adj =
+      config_nation.nations[attacker.nation()].adjective;
+  string_view const euro_unit_name = attacker.desc().name;
+  string_view const native_unit_name =
+      unit_attr( defender.type ).name;
+  Coord const attacker_coord =
+      coord_for_unit_multi_ownership_or_die( ss, attacker.id() );
+  maybe<FogColony const&> const closest_colony =
+      find_close_explored_colony(
+          ss, attacker.nation(), attacker_coord,
+          /*max_distance=*/
+          config_colony.search_dist_for_nearby_colony );
+  string const proximity_str =
+      closest_colony.has_value()
+          ? fmt::format( " near {}", closest_colony->name )
+          : " in the wilderness";
+  switch( combat.winner ) {
+    case e_combat_winner::attacker: {
+      return { .attacker = fmt::format(
+                   "[{}] {} defeats [{}] {}{}!", nation_adj,
+                   euro_unit_name, tribe_name, native_unit_name,
+                   proximity_str ) };
+    }
+    case e_combat_winner::defender: {
+      return { .attacker = fmt::format(
+                   "[{}] defeat [{}] [{}]{}!", tribe_name,
+                   nation_adj, euro_unit_name, proximity_str ) };
+    }
+  }
+}
+
 // This is for summarizing an attack against a unit defending a
 // colony in the case where the colony is not destroyed.
 CombatEffectsSummaries
