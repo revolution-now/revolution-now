@@ -765,7 +765,7 @@ TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
 
   auto f = [&] {
     wait<> const w = display_brave_attack_colony_effect_msg(
-        W.ss(), mind, colony, effect );
+        W.ss(), mind, colony, effect, e_tribe::inca );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
   };
@@ -779,7 +779,7 @@ TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
       .what = Commodity{ .type     = e_commodity::coats,
                          .quantity = 20 } };
   mind.EXPECT__message_box(
-          "Indian looting parties have stolen [20] tons of "
+          "[Inca] looting parties have stolen [20] tons of "
           "[coats] from [my colony]!" )
       .returns();
   f();
@@ -788,7 +788,7 @@ TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
   effect =
       BraveAttackColonyEffect::money_stolen{ .quantity = 234 };
   mind.EXPECT__message_box(
-          "Indian looting parties have stolen [234\x7f] from "
+          "[Inca] looting parties have stolen [234\x7f] from "
           "the treasury!" )
       .returns();
   f();
@@ -797,7 +797,7 @@ TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
   effect = BraveAttackColonyEffect::building_destroyed{
       .which = e_colony_building::blacksmiths_shop };
   mind.EXPECT__message_box(
-          "Indian raiding parties have destroyed the "
+          "[Inca] raiding parties have destroyed the "
           "[Blacksmith's Shop] in [my colony]!" )
       .returns();
   f();

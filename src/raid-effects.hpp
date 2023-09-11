@@ -27,6 +27,8 @@ struct SS;
 struct SSConst;
 struct TS;
 
+enum class e_tribe;
+
 /****************************************************************
 ** Public API
 *****************************************************************/
@@ -39,6 +41,6 @@ void perform_brave_attack_colony_effect(
 
 wait<> display_brave_attack_colony_effect_msg(
     SSConst const& ss, IEuroMind& mind, Colony const& colony,
-    BraveAttackColonyEffect const& effect );
+    BraveAttackColonyEffect const& effect, e_tribe tribe );
 
 } // namespace rn

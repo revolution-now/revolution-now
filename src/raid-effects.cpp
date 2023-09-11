@@ -237,13 +237,14 @@ void perform_brave_attack_colony_effect(
 
 wait<> display_brave_attack_colony_effect_msg(
     SSConst const& ss, IEuroMind& mind, Colony const& colony,
-    BraveAttackColonyEffect const& effect ) {
+    BraveAttackColonyEffect const& effect, e_tribe tribe ) {
   SWITCH( effect ) {
     CASE( none ) { co_return; }
     CASE( commodity_stolen ) {
       co_await mind.message_box(
-          "Indian looting parties have stolen [{}] tons of [{}] "
+          "[{}] looting parties have stolen [{}] tons of [{}] "
           "from [{}]!",
+          config_natives.tribes[tribe].name_adjective,
           commodity_stolen.what.quantity,
           config_commodity.types[commodity_stolen.what.type]
               .lowercase_display_name,
@@ -252,16 +253,18 @@ wait<> display_brave_attack_colony_effect_msg(
     }
     CASE( money_stolen ) {
       co_await mind.message_box(
-          "Indian looting parties have stolen [{}{}] from the "
+          "[{}] looting parties have stolen [{}{}] from the "
           "treasury!",
+          config_natives.tribes[tribe].name_adjective,
           money_stolen.quantity,
           config_text.special_chars.currency );
       co_return;
     }
     CASE( building_destroyed ) {
       co_await mind.message_box(
-          "Indian raiding parties have destroyed the [{}] in "
+          "[{}] raiding parties have destroyed the [{}] in "
           "[{}]!",
+          config_natives.tribes[tribe].name_adjective,
           config_colony
               .building_display_names[building_destroyed.which],
           colony.name );
