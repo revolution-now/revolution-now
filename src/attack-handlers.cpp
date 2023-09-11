@@ -769,46 +769,20 @@ wait<> AttackDwellingHandler::produce_convert() {
       config_natives.tribes[tribe_.type].name_adjective;
   string_view const nation_name_adjective =
       nation_obj( attacking_player_.nation ).adjective;
-  // Pop up a message box and simultaneously make the convert ap-
-  // pear and slide over to the attacker's square.
-  //
-  // The ordering of following is a bit subtle: Overall, we want
-  // to wait for both the animations and the message box to fin-
-  // ish, but as soon as the slide animation finishes we need to
-  // move the convert to the attacker's square so that it doesn't
-  // revert back while the user finishes reading the contents of
-  // the message box.
-  //
-  // Then, as soon as the unit is moved, we initiate another ani-
-  // mation to keep the unit on the front of the stack while the
-  // message box is open. That will 1) allow the player to see
-  // the unit that they're reading about in the message box, and
-  // 2) will provide continuity because we are going to arrange
-  // for the convert to ask for orders immediately after this.
-  // Note that we use a non-background "front" animation which is
-  // non-terminating, so we don't await on it, we just let it get
-  // cancelled when the box closes.
-  AnimationSequence const appear_and_slide_seq =
-      anim_seq_for_convert_produced(
-          convert_id, reverse_direction( direction_ ) );
-  wait<> appear_and_slide_animation =
-      ts_.planes.land_view().animate( appear_and_slide_seq );
-  wait<> box = attacker_mind_.message_box(
+
+  co_await attacker_mind_.message_box(
       "[{}] citizens frightened in combat rush to the [{} "
       "mission] as [converts]!",
       tribe_name_adjective, nation_name_adjective );
-  co_await std::move( appear_and_slide_animation );
+  co_await ts_.planes.land_view().animate(
+      anim_seq_for_convert_produced(
+          convert_id, reverse_direction( direction_ ) ) );
   // Non-interactive is OK here because the attacker is already
   // on this square.
   unit_ownership_change_non_interactive(
       ss_, convert_id,
       EuroUnitOwnershipChangeTo::world{
           .ts = &ts_, .target = attacker_coord } );
-  AnimationSequence const front_seq =
-      anim_seq_unit_to_front_non_background( convert_id );
-  wait<> front_animation =
-      ts_.planes.land_view().animate( front_seq );
-  co_await std::move( box );
 }
 
 wait<> AttackDwellingHandler::with_phantom_brave_combat(

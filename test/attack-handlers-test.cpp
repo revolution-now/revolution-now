@@ -192,7 +192,6 @@ struct World : testing::World {
   }
 
   void expect_convert() {
-    expect_some_animation();
     expect_msg_contains( kAttackingNation, "[converts]" );
     expect_some_animation();
   }
