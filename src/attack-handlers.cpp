@@ -411,7 +411,12 @@ wait<> AttackColonyUndefendedHandler::perform() {
   // eran status stripped.
   // TODO
 
-  // 4. Compute gold plundered.  The OG using this formula:
+  // 4. Any non-military units at the gate (including wagon
+  // trains) are captured (not destroyed) and a message pops up
+  // informing of that.
+  // TODO
+
+  // 5. Compute gold plundered.  The OG using this formula:
   //
   //      plundered = G*(CP/TP)
   //
@@ -420,12 +425,12 @@ wait<> AttackColonyUndefendedHandler::perform() {
   //    total population of all colonies in that nation.
   // TODO
 
-  // 5. The colony changes ownership, as well as all of the units
+  // 6. The colony changes ownership, as well as all of the units
   // that are working in it and who are on the map at the colony
   // location.
   change_colony_nation( ss_, ts_, colony_, attacker_.nation() );
 
-  // 6. Announce capture.
+  // 7. Announce capture.
   // TODO: add an interface method to IGui for playing music.
   // conductor::play_request(
   //     ts_.rand, conductor::e_request::fife_drum_happy,
@@ -437,7 +442,7 @@ wait<> AttackColonyUndefendedHandler::perform() {
   co_await attacker_mind_.message_box( capture_msg );
   co_await defender_mind_.message_box( capture_msg );
 
-  // 4. Open colony view.
+  // 8. Open colony view.
   e_colony_abandoned const abandoned =
       co_await ts_.colony_viewer.show( ts_, colony_.id );
   if( abandoned == e_colony_abandoned::yes )
