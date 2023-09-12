@@ -854,8 +854,9 @@ wait<> AttackDwellingHandler::perform() {
         nation_name_adjective );
   }
 
-  CombatEffectsMessages const effects_msg =
-      combat_effects_msg( ss_, combat_ );
+  FilteredMixedCombatEffectsMessages const effects_msg =
+      filter_combat_effects_msgs( mix_combat_effects_msgs(
+          combat_effects_msg( ss_, combat_ ) ) );
 
   // Attacker lost:
   if( combat_.winner == e_combat_winner::defender ) {
@@ -870,9 +871,7 @@ wait<> AttackDwellingHandler::perform() {
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                       combat_.attacker.outcome );
     co_await show_combat_effects_msg(
-        filter_combat_effects_msgs(
-            mix_combat_effects_msgs( effects_msg ) ),
-        attacker_mind_, defender_mind_ );
+        effects_msg, attacker_mind_, defender_mind_ );
     co_return;
   }
 
@@ -892,9 +891,7 @@ wait<> AttackDwellingHandler::perform() {
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                       combat_.attacker.outcome );
     co_await show_combat_effects_msg(
-        filter_combat_effects_msgs(
-            mix_combat_effects_msgs( effects_msg ) ),
-        attacker_mind_, defender_mind_ );
+        effects_msg, attacker_mind_, defender_mind_ );
     --dwelling_.population;
     CHECK_GT( dwelling_.population, 0 );
     if( population_decrease->convert_produced )
@@ -968,10 +965,9 @@ wait<> AttackDwellingHandler::perform() {
   destroy_dwelling( ss_, ts_, dwelling_id_ );
   perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                     combat_.attacker.outcome );
-  co_await show_combat_effects_msg(
-      filter_combat_effects_msgs(
-          mix_combat_effects_msgs( effects_msg ) ),
-      attacker_mind_, defender_mind_ );
+
+  co_await show_combat_effects_msg( effects_msg, attacker_mind_,
+                                    defender_mind_ );
 
   // Check if convert produced.
   if( destruction.convert_produced ) co_await produce_convert();
