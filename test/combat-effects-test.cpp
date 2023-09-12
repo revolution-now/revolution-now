@@ -72,6 +72,8 @@ struct World : testing::World {
 
   inline static Coord const kAttackerColonyCoord{ .x = 1,
                                                   .y = 4 };
+  inline static Coord const kEuroColonyAttackerCoord{ .x = 3,
+                                                      .y = 1 };
   inline static Coord const kDefenderColonyCoord{ .x = 3,
                                                   .y = 2 };
   inline static Coord const kAttackerDwellingCoord{ .x = 1,
@@ -1448,7 +1450,7 @@ TEST_CASE(
                   "[French] in colony-with-guns!",
               .defender =
                   "[Dutch] coastal fortification defeats "
-                  "[French] near colony-with-guns!" },
+                  "[French] in colony-with-guns!" },
         .defender = {
             .for_both = {
                 "[French] [Caravel] damaged in battle! Ship "
@@ -1473,7 +1475,7 @@ TEST_CASE(
                   "[French] in colony-with-guns!",
               .defender =
                   "[Dutch] coastal fortification defeats "
-                  "[French] near colony-with-guns!" },
+                  "[French] in colony-with-guns!" },
         .defender = {
             .for_owner =
                 { "[Two] units onboard have been lost." },
@@ -1497,7 +1499,7 @@ TEST_CASE(
                   "[French] in colony-with-guns!",
               .defender =
                   "[Dutch] coastal fortification defeats "
-                  "[French] near colony-with-guns!" },
+                  "[French] in colony-with-guns!" },
         .defender = { .for_both = { "[French] [Frigate] sunk by "
                                     "[Dutch] [Fort]." } } };
     REQUIRE( run() == expected );
@@ -1518,7 +1520,7 @@ TEST_CASE(
                   "[French] in colony-with-guns!",
               .defender =
                   "[Dutch] coastal fortification defeats "
-                  "[French] near colony-with-guns!" },
+                  "[French] in colony-with-guns!" },
         .defender = {
             .for_owner = { "[One] unit onboard has been lost." },
             .for_both  = { "[French] [Frigate] sunk by [Dutch] "
@@ -1539,8 +1541,8 @@ TEST_CASE(
                            "[French] Caravel defeats [Dutch] in "
                            "colony-with-guns!",
                        .defender =
-                           "[French] Caravel defeats [Dutch] "
-                           "near colony-with-guns!" },
+                           "[French] Caravel defeats [Dutch] in "
+                           "colony-with-guns!" },
     };
     REQUIRE( run() == expected );
   }
@@ -1559,7 +1561,7 @@ TEST_CASE(
                            "in colony-with-guns!",
                        .defender =
                            "[French] Privateer defeats [Dutch] "
-                           "near colony-with-guns!" },
+                           "in colony-with-guns!" },
     };
     REQUIRE( run() == expected );
   }
@@ -1946,13 +1948,240 @@ TEST_CASE(
 TEST_CASE(
     "[combat-effects] combat_effects_msg, "
     "CombatEuroAttackDwelling" ) {
-  World W;
+  World                 W;
+  CombatEffectsMessages expected;
+
+  enum class e_colony {
+    // Order matters here; needs to be in order of increasing
+    // visibility.
+    no,
+    yes_but_hidden,
+    yes_and_visible,
+  };
+
+  struct Params {
+    UnitType              attacker = {};
+    e_combat_winner       winner   = {};
+    EuroUnitCombatOutcome attacker_outcome;
+    DwellingCombatOutcome defender_outcome;
+    e_colony              attacker_colony = {};
+  } params;
+
+  auto run = [&] {
+    if( params.attacker_colony > e_colony::no ) {
+      Colony& colony = W.add_colony( W.kAttackerColonyCoord,
+                                     W.kAttackerNation );
+      colony.name    = "attacker colony";
+      if( params.attacker_colony > e_colony::yes_but_hidden ) {
+        W.map_updater().make_squares_visible(
+            W.kAttackerNation, { colony.location } );
+        if( params.attacker_colony >
+            e_colony::yes_and_visible ) {
+          W.map_updater().make_squares_visible(
+              W.kAttackerNation, { colony.location } );
+        }
+      }
+    }
+    Dwelling const& dwelling = W.add_dwelling(
+        W.kDefenderDwellingCoord, W.kNativeTribe );
+    Unit const& attacker =
+        W.add_unit_on_map( params.attacker, W.kLandAttackerCoord,
+                           W.kAttackerNation );
+    CombatEuroAttackDwelling const combat{
+        // Here we ignore the other fields because messages asso-
+        // ciated with those are generated in another module.
+        .winner   = params.winner,
+        .attacker = { .id      = attacker.id(),
+                      .outcome = params.attacker_outcome },
+        .defender = { .id      = dwelling.id,
+                      .outcome = params.defender_outcome },
+    };
+    return combat_effects_msg( W.ss(), combat );
+  };
+
+  SECTION( "soldier, loses" ) {
+    params = {
+        .attacker = e_unit_type::soldier,
+        .winner   = e_combat_winner::defender,
+        .attacker_outcome =
+            EuroUnitCombatOutcome::demoted{
+                .to = e_unit_type::free_colonist },
+        .defender_outcome = DwellingCombatOutcome::no_change{},
+    };
+    expected = {
+        .summaries = { .attacker =
+                           "[Sioux] defeat [Dutch] [Soldier] "
+                           "near a Sioux camp!" },
+        .attacker  = {
+             .for_both = { "[Dutch] [Soldier] routed! Unit "
+                            "demoted to colonist status." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "soldier, wins, populated decrease" ) {
+    params = {
+        .attacker         = e_unit_type::soldier,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+        .defender_outcome =
+            DwellingCombatOutcome::population_decrease{},
+    };
+    expected = {
+        .summaries = { .attacker =
+                           "[Dutch] Soldier defeats [Sioux] "
+                           "Brave near a Sioux camp!" } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "soldier, wins, populated decrease" ) {
+    params = {
+        .attacker         = e_unit_type::soldier,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+        .defender_outcome =
+            DwellingCombatOutcome::population_decrease{},
+        .attacker_colony = e_colony::yes_and_visible };
+    expected = {
+        .summaries = { .attacker =
+                           "[Dutch] Soldier defeats [Sioux] "
+                           "Brave near attacker colony!" } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "soldier, wins, burn" ) {
+    params = {
+        .attacker         = e_unit_type::soldier,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+        .defender_outcome =
+            DwellingCombatOutcome::destruction{
+                // Test that these don't add to the messages.
+                .treasure_amount  = 1000,
+                .convert_produced = true },
+    };
+    expected = {
+        .summaries = { .attacker =
+                           "[Dutch] Soldier defeats [Sioux] "
+                           "Brave near a Sioux camp!" } };
+    REQUIRE( run() == expected );
+  }
 }
 
 TEST_CASE(
     "[combat-effects] combat_effects_msg, "
     "CombatEuroAttackUndefendedColony" ) {
-  World W;
+  World                 W;
+  CombatEffectsMessages expected;
+
+  enum class e_colony {
+    // Order matters here; needs to be in order of increasing
+    // visibility.
+    no,
+    yes_but_hidden,
+    yes_and_visible_to_owner,
+    yes_and_visible_to_both,
+  };
+
+  struct Params {
+    UnitType                      attacker = {};
+    e_unit_type                   defender = {};
+    e_combat_winner               winner   = {};
+    EuroUnitCombatOutcome         attacker_outcome;
+    EuroColonyWorkerCombatOutcome defender_outcome;
+    e_colony                      attacker_colony = {};
+  } params;
+
+  auto run = [&] {
+    if( params.attacker_colony > e_colony::no ) {
+      Colony& colony = W.add_colony( W.kAttackerColonyCoord,
+                                     W.kAttackerNation );
+      colony.name    = "attacker colony";
+      if( params.attacker_colony > e_colony::yes_but_hidden ) {
+        W.map_updater().make_squares_visible(
+            W.kAttackerNation, { colony.location } );
+        if( params.attacker_colony >
+            e_colony::yes_and_visible_to_owner ) {
+          W.map_updater().make_squares_visible(
+              W.kDefenderNation, { colony.location } );
+        }
+      }
+    }
+    Colony& defender_colony = W.add_colony(
+        W.kDefenderColonyCoord, W.kDefenderNation );
+    defender_colony.name = "defender colony";
+    Unit const& defender = W.add_unit_indoors(
+        defender_colony.id, e_indoor_job::bells,
+        params.defender );
+    W.map_updater().make_squares_visible(
+        W.kDefenderNation, { defender_colony.location } );
+    W.map_updater().make_squares_visible(
+        W.kAttackerNation, { defender_colony.location } );
+    Unit const& attacker = W.add_unit_on_map(
+        params.attacker, W.kEuroColonyAttackerCoord,
+        W.kAttackerNation );
+    CombatEuroAttackUndefendedColony const combat{
+        .winner    = params.winner,
+        .colony_id = defender_colony.id,
+        .attacker  = { .id      = attacker.id(),
+                       .outcome = params.attacker_outcome },
+        .defender  = { .id      = defender.id(),
+                       .outcome = params.defender_outcome },
+    };
+    return combat_effects_msg( W.ss(), combat );
+  };
+
+  SECTION(
+      "(artillery,free_colonist) -> "
+      "(damaged_artillery,free_colonist)" ) {
+    params   = { .attacker = e_unit_type::artillery,
+                 .defender = e_unit_type::free_colonist,
+                 .winner   = e_combat_winner::defender,
+                 .attacker_outcome =
+                     EuroUnitCombatOutcome::demoted{
+                         .to = e_unit_type::damaged_artillery },
+                 .defender_outcome =
+                     EuroColonyWorkerCombatOutcome::no_change{} };
+    expected = {
+        .summaries = { .attacker =
+                           "[French] Free Colonist defeats "
+                           "[Dutch] in defender colony!",
+                       .defender =
+                           "[French] Free Colonist defeats "
+                           "[Dutch] in defender colony!" },
+        .attacker  = {
+             .for_both = { "[Dutch] Artillery [damaged]. Further "
+                            "damage will destroy it." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION(
+      "(soldier,free_colonist) -> (veteran soldier,captured)" ) {
+    params   = { .attacker = e_unit_type::soldier,
+                 .defender = e_unit_type::free_colonist,
+                 .winner   = e_combat_winner::attacker,
+                 .attacker_outcome =
+                     EuroUnitCombatOutcome::promoted{
+                         .to = e_unit_type::veteran_soldier },
+                 .defender_outcome =
+                     EuroColonyWorkerCombatOutcome::defeated{} };
+    expected = { .attacker = {
+                     .for_owner = {
+                         "[Dutch] Soldier promoted to [Veteran "
+                         "Soldier] for victory in combat!" } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(artillery,free_colonist) -> captured" ) {
+    params = {
+        .attacker         = e_unit_type::artillery,
+        .defender         = e_unit_type::free_colonist,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+        .defender_outcome =
+            EuroColonyWorkerCombatOutcome::defeated{} };
+    expected = {};
+    REQUIRE( run() == expected );
+  }
 }
 
 TEST_CASE(

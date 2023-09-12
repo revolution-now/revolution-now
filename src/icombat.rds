@@ -98,7 +98,7 @@ sumtype.EuroNavalUnitCombatOutcome {
 }
 
 # This is for a unit working in a colony that defends the colony
-# when it is attacked in an undefended state.
+# when it is attacked by a european unit in an undefended state.
 sumtype.EuroColonyWorkerCombatOutcome {
   no_change {},
   defeated {}, # colony is captured.
