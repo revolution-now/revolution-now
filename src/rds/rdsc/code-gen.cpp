@@ -251,16 +251,12 @@ struct CodeGenerator {
                    "This requires that the types of the member "
                    "variables " );
           comment( "{}", "also support equality." );
-          // We need the 'struct' keyword in fron of the
-          // alternative name to disambiguate in cases where
-          // there is an alternative member with the same name as
-          // the alternative.
+          // We need the 'struct' keyword in front of the alter-
+          // native name to disambiguate in cases where there is
+          // an alternative member with the same name as the al-
+          // ternative.
           line(
               "bool operator==( struct {} const& ) const = "
-              "default;",
-              alt.name );
-          line(
-              "bool operator!=( struct {} const& ) const = "
               "default;",
               alt.name );
         }

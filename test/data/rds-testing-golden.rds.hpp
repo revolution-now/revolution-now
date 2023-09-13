@@ -39,7 +39,6 @@ namespace rdstest {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct nothing const& ) const = default;
-        bool operator!=( struct nothing const& ) const = default;
       };
 
       template<typename T>
@@ -48,7 +47,6 @@ namespace rdstest {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct just const& ) const = default;
-        bool operator!=( struct just const& ) const = default;
       };
 
     } // namespace Maybe_alternatives
@@ -147,7 +145,6 @@ namespace rdstest {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct happy const& ) const = default;
-        bool operator!=( struct happy const& ) const = default;
       };
 
       struct sad {
@@ -156,14 +153,12 @@ namespace rdstest {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct sad const& ) const = default;
-        bool operator!=( struct sad const& ) const = default;
       };
 
       struct excited {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct excited const& ) const = default;
-        bool operator!=( struct excited const& ) const = default;
       };
 
     } // namespace MyVariant1_alternatives
@@ -285,7 +280,6 @@ namespace rdstest {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct first const& ) const = default;
-        bool operator!=( struct first const& ) const = default;
       };
 
       struct second {
@@ -294,7 +288,6 @@ namespace rdstest {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct second const& ) const = default;
-        bool operator!=( struct second const& ) const = default;
       };
 
       struct third {
@@ -302,7 +295,6 @@ namespace rdstest {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct third const& ) const = default;
-        bool operator!=( struct third const& ) const = default;
       };
 
     } // namespace MyVariant2_alternatives
@@ -426,7 +418,6 @@ namespace rdstest::inner {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct a1 const& ) const = default;
-        bool operator!=( struct a1 const& ) const = default;
       };
 
       struct a2 {
@@ -435,7 +426,6 @@ namespace rdstest::inner {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct a2 const& ) const = default;
-        bool operator!=( struct a2 const& ) const = default;
       };
 
       struct a3 {
@@ -443,7 +433,6 @@ namespace rdstest::inner {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct a3 const& ) const = default;
-        bool operator!=( struct a3 const& ) const = default;
       };
 
     } // namespace MyVariant3_alternatives
@@ -569,14 +558,12 @@ namespace rdstest::inner {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct first const& ) const = default;
-        bool operator!=( struct first const& ) const = default;
       };
 
       struct _2nd {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct _2nd const& ) const = default;
-        bool operator!=( struct _2nd const& ) const = default;
       };
 
       struct third {
@@ -585,7 +572,6 @@ namespace rdstest::inner {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct third const& ) const = default;
-        bool operator!=( struct third const& ) const = default;
       };
 
     } // namespace MyVariant4_alternatives
@@ -711,7 +697,6 @@ namespace rdstest::inner {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct first_alternative const& ) const = default;
-        bool operator!=( struct first_alternative const& ) const = default;
       };
 
       template<typename T, typename U>
@@ -719,7 +704,6 @@ namespace rdstest::inner {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct second_alternative const& ) const = default;
-        bool operator!=( struct second_alternative const& ) const = default;
       };
 
       template<typename T, typename U>
@@ -729,7 +713,6 @@ namespace rdstest::inner {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct third_alternative const& ) const = default;
-        bool operator!=( struct third_alternative const& ) const = default;
       };
 
     } // namespace TemplateTwoParams_alternatives
@@ -854,7 +837,6 @@ namespace rdstest::inner {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct first const& ) const = default;
-        bool operator!=( struct first const& ) const = default;
       };
 
       template<typename T, typename U>
@@ -862,7 +844,6 @@ namespace rdstest::inner {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct second const& ) const = default;
-        bool operator!=( struct second const& ) const = default;
       };
 
     } // namespace CompositeTemplateTwo_alternatives
@@ -960,7 +941,6 @@ namespace rn {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct none const& ) const = default;
-        bool operator!=( struct none const& ) const = default;
       };
 
       struct some {
@@ -969,7 +949,6 @@ namespace rn {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct some const& ) const = default;
-        bool operator!=( struct some const& ) const = default;
       };
 
       struct more {
@@ -977,7 +956,6 @@ namespace rn {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct more const& ) const = default;
-        bool operator!=( struct more const& ) const = default;
       };
 
     } // namespace MySumtype_alternatives
@@ -1097,7 +1075,6 @@ namespace rn {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct off const& ) const = default;
-        bool operator!=( struct off const& ) const = default;
       };
 
       struct on {
@@ -1105,7 +1082,6 @@ namespace rn {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct on const& ) const = default;
-        bool operator!=( struct on const& ) const = default;
       };
 
       struct switching_on {
@@ -1113,7 +1089,6 @@ namespace rn {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct switching_on const& ) const = default;
-        bool operator!=( struct switching_on const& ) const = default;
       };
 
       struct switching_off {
@@ -1121,7 +1096,6 @@ namespace rn {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct switching_off const& ) const = default;
-        bool operator!=( struct switching_off const& ) const = default;
       };
 
     } // namespace OnOffState_alternatives
@@ -1263,14 +1237,12 @@ namespace rn {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct turn_off const& ) const = default;
-        bool operator!=( struct turn_off const& ) const = default;
       };
 
       struct turn_on {
         // This requires that the types of the member variables
         // also support equality.
         bool operator==( struct turn_on const& ) const = default;
-        bool operator!=( struct turn_on const& ) const = default;
       };
 
     } // namespace OnOffEvent_alternatives
