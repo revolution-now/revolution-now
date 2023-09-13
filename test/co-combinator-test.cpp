@@ -32,6 +32,16 @@ using namespace std;
 using Catch::Contains;
 using Catch::Equals;
 
+/****************************************************************
+** Static checks.
+*****************************************************************/
+static_assert( Streamable<stream<int>> );
+static_assert( Streamable<finite_stream<int>> );
+static_assert( Streamable<one_shot_stream_adapter<int>> );
+
+/****************************************************************
+** Test Cases.
+*****************************************************************/
 TEST_CASE( "[co-combinator] any" ) {
   wait_promise<> p1, p2;
   auto           f1 = [&p1]() -> wait<> { co_await p1.wait(); };
