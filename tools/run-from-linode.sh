@@ -34,6 +34,11 @@ get_dir  "$linode_conf" "$local_conf"
 log "checking result..."
 [[ -x "$local_exe" ]] || die "result ($local_exe) is not executable."
 
-log "done. running..."
+log "loading env-vars..."
+env_vars=.builds/current/env-vars.sh
+[[ -f "$env_vars" ]] || die "$env_vars file does not exist."
+source "$env_vars"
 export LSAN_OPTIONS='print_suppressions=false,suppressions=tools/lsan.suppressions'
-$local_exe
+
+log "done. running..."
+exec $local_exe
