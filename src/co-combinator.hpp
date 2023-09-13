@@ -261,22 +261,24 @@ wait<> loop( base::unique_func<wait<>() const> coroutine );
 // Given a function that produces a wait, this object will
 // take ownership of the function, then repeatedly call the func-
 // tion to obtain a wait.
-template<typename T>
+template<typename T, typename Func>
+requires std::is_invocable_r_v<wait<T>, Func>
 struct repeater {
   using value_type = T;
 
-  repeater( base::unique_func<wait<T>() const> producer )
-    : producer_( std::move( producer ) ) {}
+  repeater( Func&& producer )
+    : producer_( std::forward<Func>( producer ) ) {}
 
   // Implement the Streamable concept interface.
   wait<T> next() { return producer_(); }
 
-  base::unique_func<wait<T>() const> producer_;
+  std::remove_cvref_t<Func> producer_;
 };
 
 template<typename Func>
-repeater( Func&& )
-    -> repeater<typename std::invoke_result_t<Func>::value_type>;
+repeater( Func&& o )
+    -> repeater<typename std::invoke_result_t<Func>::value_type,
+                decltype( std::forward<Func>( o ) )>;
 
 /****************************************************************
 ** latch
@@ -318,6 +320,15 @@ struct ticker {
 
  private:
   wait_promise<> p;
+};
+
+/****************************************************************
+** Streamable
+*****************************************************************/
+template<typename T>
+concept Streamable = requires( T s ) {
+  typename T::value_type;
+  { s.next() } -> std::same_as<wait<typename T::value_type>>;
 };
 
 /****************************************************************
@@ -459,15 +470,6 @@ template<typename T>
 auto make_streamable( wait<T>&& w ) {
   return one_shot_stream_adapter( std::move( w ) );
 }
-
-/****************************************************************
-** Streamable
-*****************************************************************/
-template<typename T>
-concept Streamable = requires( T s ) {
-  typename T::value_type;
-  { s.next() } -> std::same_as<wait<typename T::value_type>>;
-};
 
 /****************************************************************
 ** interleave
