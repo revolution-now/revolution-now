@@ -114,9 +114,14 @@ namespace detail {
 
 template<typename T>
 struct RetHolder {
+  RetHolder()
+  requires std::is_default_constructible_v<T>
+    : o() {}
+
   RetHolder( T& val )
   requires std::is_reference_v<T>
     : o( val ) {}
+
   RetHolder( T val )
   requires( !std::is_reference_v<T> )
     : o( std::move( val ) ) {}
@@ -131,6 +136,18 @@ struct RetHolder {
     else
       return std::move( o );
   }
+
+  friend void to_str( RetHolder const& o, std::string& out,
+                      base::ADL_t adl ) {
+    if constexpr( base::Show<T> ) {
+      out += "RetHolder{.o=";
+      to_str( o.o, out, adl );
+      out += '}';
+    } else {
+      out += "<unformattable>";
+    }
+  }
+
   T o;
 };
 
@@ -303,6 +320,16 @@ struct Responder<RetT, std::tuple<Args...>,
 
     // 4. Return what was requested to be returned.
     if constexpr( !std::is_same_v<RetT, void> ) {
+      if constexpr( std::is_default_constructible_v<RetT> )
+        if( !ret_.has_value() )
+          // As a convenience to the user, set a default con-
+          // structed return object by default. This is probably
+          // not useful for the vast majority of normal func-
+          // tions, but it is useful for coroutines since many
+          // times they have no value, which corresponds to a de-
+          // fault constructed coroutine task state as the actual
+          // return.
+          returns();
       BASE_CHECK( ret_.has_value(),
                   "return value not set for {}.", fn_name_ );
       if constexpr( !std::is_copy_constructible_v<RetT> ||
@@ -347,12 +374,17 @@ struct Responder<RetT, std::tuple<Args...>,
     return *this;
   }
 
-  // clang-format off
   template<typename U = RetT>
   requires std::is_convertible_v<U, RetT>
-  Responder& returns( U&& val = {} ) {
-    // clang-format on
+  Responder& returns( U&& val ) {
     ret_.emplace( static_cast<RetT>( std::forward<U>( val ) ) );
+    return *this;
+  }
+
+  Responder& returns()
+  requires std::is_default_constructible_v<RetT>
+  {
+    ret_.emplace();
     return *this;
   }
 

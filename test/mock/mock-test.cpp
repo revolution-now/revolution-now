@@ -115,6 +115,8 @@ struct PointUser {
     return static_cast<int>( p_->length() );
   }
 
+  double length() const { return p_->length(); }
+
   int get_x() const { return p_->get_x(); }
 
   int get_y() const { return p_->get_y(); }
@@ -305,7 +307,7 @@ TEST_CASE(
   MockPoint mp;
   PointUser user( &mp );
 
-  mp.EXPECT__moves_result().returns<MovedFromCounter>();
+  mp.EXPECT__moves_result().returns();
   MovedFromCounter const c = user.moves_result();
   // Move move into storage, then another into c1.
   REQUIRE( c.last_move_source_val == 1 );
@@ -318,8 +320,9 @@ TEST_CASE(
   MockPoint mp;
   PointUser user( &mp );
 
-  mp.EXPECT__moves_result().returns<MovedFromCounter>().times(
-      3 );
+  mp.EXPECT__moves_result()
+      .returns( MovedFromCounter{} )
+      .times( 3 );
 
   // In the below, the last_move_source_val would increase each
   // time if the stored return value were being moved from each
@@ -340,6 +343,14 @@ TEST_CASE(
     REQUIRE( c.last_move_source_val == 1 );
     REQUIRE( c.moved_from == 0 );
   }
+}
+
+TEST_CASE( "[mock] default return value" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  mp.EXPECT__length();
+  REQUIRE( user.length() == 0.0 );
 }
 
 } // namespace

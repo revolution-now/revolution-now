@@ -138,10 +138,8 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
   }
 
   SECTION( "not yet discovered" ) {
-    W.gui()
-        .EXPECT__display_woodcut(
-            e_woodcut::discovered_new_world )
-        .returns();
+    W.gui().EXPECT__display_woodcut(
+        e_woodcut::discovered_new_world );
     W.gui()
         .EXPECT__string_input( _, e_input_required::yes )
         .returns<maybe<string>>( "my world 2" );
@@ -173,10 +171,8 @@ TEST_CASE( "[on-map] interactive: discovers pacific ocean" ) {
       player.woodcuts[e_woodcut::discovered_pacific_ocean] ==
       false );
 
-  W.gui()
-      .EXPECT__display_woodcut(
-          e_woodcut::discovered_pacific_ocean )
-      .returns();
+  W.gui().EXPECT__display_woodcut(
+      e_woodcut::discovered_pacific_ocean );
   w = TestingOnlyUnitOnMapMover::to_map_interactive(
       W.ss(), W.ts(), unit_id, { .x = 1, .y = 3 } );
   REQUIRE( !w.exception() );
@@ -288,13 +284,9 @@ TEST_CASE(
   W.rand()
       .EXPECT__between_ints( 0, 100, e_interval::half_open )
       .returns( 0 );
-  W.gui()
-      .EXPECT__display_woodcut(
-          e_woodcut::discovered_fountain_of_youth )
-      .returns();
-  W.gui()
-      .EXPECT__message_box( StrContains( "Youth" ) )
-      .returns();
+  W.gui().EXPECT__display_woodcut(
+      e_woodcut::discovered_fountain_of_youth );
+  W.gui().EXPECT__message_box( StrContains( "Youth" ) );
 
   for( int i = 0; i < 8; ++i ) {
     // Pick immigrant.
@@ -304,9 +296,8 @@ TEST_CASE(
     // Replace with next immigrant.
     W.rand().EXPECT__between_doubles( _, _ ).returns( 0 );
     // Wait a bit.
-    W.gui()
-        .EXPECT__wait_for( _ )
-        .returns<chrono::microseconds>();
+    W.gui().EXPECT__wait_for( _ ).returns(
+        chrono::microseconds{} );
   }
 
   f();

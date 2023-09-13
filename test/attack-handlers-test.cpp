@@ -164,18 +164,14 @@ struct World : testing::World {
   // redundant tests and to make these tests less fragile against
   // changes to those messages.
   void expect_msg_equals( e_nation nation, string_view msg ) {
-    euro_mind( nation )
-        .EXPECT__message_box( string( msg ) )
-        .returns();
+    euro_mind( nation ).EXPECT__message_box( string( msg ) );
   }
 
   template<typename... Args>
   void expect_msg_contains( e_nation nation,
                             Args&&... fragments ) {
-    euro_mind( nation )
-        .EXPECT__message_box(
-            AllOf( StrContains( string( fragments ) )... ) )
-        .template returns();
+    euro_mind( nation ).EXPECT__message_box(
+        AllOf( StrContains( string( fragments ) )... ) );
   }
 
   template<typename... Args>
@@ -183,12 +179,11 @@ struct World : testing::World {
                             Args&&... fragments ) {
     native_mind( tribe_type )
         .EXPECT__message_box(
-            AllOf( StrContains( string( fragments ) )... ) )
-        .template returns();
+            AllOf( StrContains( string( fragments ) )... ) );
   }
 
   void expect_some_animation() {
-    mock_land_view_plane_.EXPECT__animate( _ ).returns();
+    mock_land_view_plane_.EXPECT__animate( _ );
   }
 
   void expect_convert() {
@@ -209,10 +204,8 @@ struct World : testing::World {
   }
 
   void expect_tribe_wiped_out( string_view tribe_name ) {
-    gui()
-        .EXPECT__message_box( fmt::format(
-            "The [{}] tribe has been wiped out.", tribe_name ) )
-        .returns();
+    gui().EXPECT__message_box( fmt::format(
+        "The [{}] tribe has been wiped out.", tribe_name ) );
   }
 
   MockLandViewPlane mock_land_view_plane_;

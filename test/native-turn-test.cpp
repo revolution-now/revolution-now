@@ -286,7 +286,7 @@ TEST_CASE(
         W.player_square( { .x = 1, .y = 0 } )
             .emplace()
             .fog_of_war_removed = true;
-        mock_land_view.EXPECT__animate( _ ).returns();
+        mock_land_view.EXPECT__animate( _ );
         f();
       }
 
@@ -294,7 +294,7 @@ TEST_CASE(
         W.player_square( { .x = 0, .y = 0 } )
             .emplace()
             .fog_of_war_removed = true;
-        mock_land_view.EXPECT__animate( _ ).returns();
+        mock_land_view.EXPECT__animate( _ );
         f();
       }
 
@@ -305,7 +305,7 @@ TEST_CASE(
         W.player_square( { .x = 1, .y = 0 } )
             .emplace()
             .fog_of_war_removed = true;
-        mock_land_view.EXPECT__animate( _ ).returns();
+        mock_land_view.EXPECT__animate( _ );
         f();
       }
     }

@@ -2753,17 +2753,17 @@ TEST_CASE( "[combat-effects] show_combat_effects_msg" ) {
   defender_mind.queue__message_box.ensure_expectations();
 
   msgs = { .attacker = { "xxx" } };
-  attacker_mind.EXPECT__message_box( "xxx" ).returns();
+  attacker_mind.EXPECT__message_box( "xxx" );
   f();
   attacker_mind.queue__message_box.ensure_expectations();
   defender_mind.queue__message_box.ensure_expectations();
 
   msgs = { .attacker = { "xxx", "yyy" },
            .defender = { "aaa", "bbb" } };
-  attacker_mind.EXPECT__message_box( "xxx" ).returns();
-  attacker_mind.EXPECT__message_box( "yyy" ).returns();
-  defender_mind.EXPECT__message_box( "aaa" ).returns();
-  defender_mind.EXPECT__message_box( "bbb" ).returns();
+  attacker_mind.EXPECT__message_box( "xxx" );
+  attacker_mind.EXPECT__message_box( "yyy" );
+  defender_mind.EXPECT__message_box( "aaa" );
+  defender_mind.EXPECT__message_box( "bbb" );
   f();
   attacker_mind.queue__message_box.ensure_expectations();
   defender_mind.queue__message_box.ensure_expectations();

@@ -779,27 +779,24 @@ TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
       .what = Commodity{ .type     = e_commodity::coats,
                          .quantity = 20 } };
   mind.EXPECT__message_box(
-          "[Inca] looting parties have stolen [20] tons of "
-          "[coats] from [my colony]!" )
-      .returns();
+      "[Inca] looting parties have stolen [20] tons of "
+      "[coats] from [my colony]!" );
   f();
 
   // Money stolen.
   effect =
       BraveAttackColonyEffect::money_stolen{ .quantity = 234 };
   mind.EXPECT__message_box(
-          "[Inca] looting parties have stolen [234\x7f] from "
-          "the treasury!" )
-      .returns();
+      "[Inca] looting parties have stolen [234\x7f] from "
+      "the treasury!" );
   f();
 
   // Building destroyed.
   effect = BraveAttackColonyEffect::building_destroyed{
       .which = e_colony_building::blacksmiths_shop };
   mind.EXPECT__message_box(
-          "[Inca] raiding parties have destroyed the "
-          "[Blacksmith's Shop] in [my colony]!" )
-      .returns();
+      "[Inca] raiding parties have destroyed the "
+      "[Blacksmith's Shop] in [my colony]!" );
   f();
 
   // Ship in port damaged.
@@ -807,10 +804,9 @@ TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
       .which   = ship.id(),
       .sent_to = ShipRepairPort::european_harbor{} };
   mind.EXPECT__message_box(
-          "[Dutch] [Frigate] damaged in battle! Ship sent to "
-          "[Amsterdam] for repairs. [One] unit onboard has been "
-          "lost." )
-      .returns();
+      "[Dutch] [Frigate] damaged in battle! Ship sent to "
+      "[Amsterdam] for repairs. [One] unit onboard has been "
+      "lost." );
   f();
 }
 

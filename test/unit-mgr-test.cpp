@@ -471,9 +471,8 @@ TEST_CASE( "[unit-mgr] unit_ownership_change" ) {
   // We'll allow these async events to trigger so that we can
   // verify that we're calling the interactive version of the
   // function that moves a unit onto a map square.
-  W.gui()
-      .EXPECT__display_woodcut( e_woodcut::discovered_new_world )
-      .returns();
+  W.gui().EXPECT__display_woodcut(
+      e_woodcut::discovered_new_world );
   // Player asked to name the new world.
   W.gui().EXPECT__string_input( _, _ ).returns<maybe<string>>(
       "my land" );

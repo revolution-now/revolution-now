@@ -186,10 +186,8 @@ TEST_CASE( "[command-plow] no double pioneers" ) {
   REQUIRE( pioneer1.orders().holds<unit_orders::plow>() );
   REQUIRE( pioneer1.has_full_mv_points() );
 
-  W.gui()
-      .EXPECT__message_box(
-          "There is already a pioneer working on this tile." )
-      .returns();
+  W.gui().EXPECT__message_box(
+      "There is already a pioneer working on this tile." );
   expected = { .order_was_run       = false,
                .units_to_prioritize = {} };
   REQUIRE( f( pioneer2.id() ) == expected );

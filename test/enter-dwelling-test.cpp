@@ -362,9 +362,7 @@ TEST_CASE( "[enter-dwelling] dwelling entry not encountered" ) {
           e_enter_dwelling_option::attack_village,
           e_enter_dwelling_option::live_among_the_natives } };
 
-  W.gui()
-      .EXPECT__message_box( StrContains( "on land first" ) )
-      .returns();
+  W.gui().EXPECT__message_box( StrContains( "on land first" ) );
   expected = e_enter_dwelling_option::cancel;
   REQUIRE( f() == expected );
 }
@@ -394,10 +392,8 @@ TEST_CASE( "[enter-dwelling] present_dwelling_entry_options" ) {
           e_enter_dwelling_option::attack_village,
           e_enter_dwelling_option::live_among_the_natives } };
 
-  W.gui()
-      .EXPECT__display_woodcut(
-          e_woodcut::entering_native_village )
-      .returns();
+  W.gui().EXPECT__display_woodcut(
+      e_woodcut::entering_native_village );
   W.gui()
       .EXPECT__choice( _, e_input_required::no )
       .returns<maybe<string>>( "attack_village" );
@@ -571,7 +567,7 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
       .EXPECT__message_box(
           Matches( "Congratulations.*Cotton.*"s ) )
       .returns<wait<>>( make_wait<>() );
-  mock_land_view.EXPECT__animate( _ ).returns();
+  mock_land_view.EXPECT__animate( _ );
   f();
   REQUIRE( unit.type() == e_unit_type::expert_cotton_planter );
   REQUIRE( dwelling.has_taught == true );
@@ -835,15 +831,11 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
     p_unit         = &scout_petty;
     outcome.action = ChiefAction::none{};
 
-    W.gui()
-        .EXPECT__message_box(
-            StrContains( "Greetings traveler" ) )
-        .returns();
+    W.gui().EXPECT__message_box(
+        StrContains( "Greetings traveler" ) );
 
-    W.gui()
-        .EXPECT__message_box(
-            StrContains( "We always welcome" ) )
-        .returns();
+    W.gui().EXPECT__message_box(
+        StrContains( "We always welcome" ) );
     f();
     REQUIRE( player.money == 0 );
     REQUIRE( p_unit->type() == scout_petty.type() );
@@ -853,15 +845,11 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
     p_unit         = &scout_petty;
     outcome.action = ChiefAction::gift_money{ .quantity = 111 };
 
-    W.gui()
-        .EXPECT__message_box(
-            StrContains( "Greetings traveler" ) )
-        .returns();
+    W.gui().EXPECT__message_box(
+        StrContains( "Greetings traveler" ) );
 
-    W.gui()
-        .EXPECT__message_box(
-            StrContains( "Please take these" ) )
-        .returns();
+    W.gui().EXPECT__message_box(
+        StrContains( "Please take these" ) );
     f();
     REQUIRE( player.money == 111 );
     REQUIRE( p_unit->type() == scout_petty.type() );
@@ -873,20 +861,15 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
     outcome.action = ChiefAction::tales_of_nearby_lands{
         .tiles = { { .x = 0, .y = 6 }, { .x = 1, .y = 6 } } };
 
-    W.gui()
-        .EXPECT__message_box(
-            StrContains( "Greetings traveler" ) )
-        .returns();
+    W.gui().EXPECT__message_box(
+        StrContains( "Greetings traveler" ) );
     vector<int> const shuffled_indices{ 1, 0 };
     expect_shuffle( W.rand(), shuffled_indices );
 
-    W.gui()
-        .EXPECT__message_box(
-            StrContains( "sit around the campfire" ) )
-        .returns();
-    mock_land_view
-        .EXPECT__center_on_tile( Coord{ .x = 4, .y = 4 } )
-        .returns();
+    W.gui().EXPECT__message_box(
+        StrContains( "sit around the campfire" ) );
+    mock_land_view.EXPECT__center_on_tile(
+        Coord{ .x = 4, .y = 4 } );
     W.gui().EXPECT__wait_for( 20ms ).returns( 20000us );
     W.gui().EXPECT__wait_for( 20ms ).returns( 20000us );
     W.gui().EXPECT__wait_for( 600ms ).returns( 600000us );
@@ -924,18 +907,12 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
     p_unit         = &scout_petty;
     outcome.action = ChiefAction::promotion{};
 
-    W.gui()
-        .EXPECT__message_box(
-            StrContains( "Greetings traveler" ) )
-        .returns();
-    W.gui()
-        .EXPECT__message_box( StrContains( "send guides" ) )
-        .returns();
-    mock_land_view.EXPECT__animate( _ ).returns();
-    W.gui()
-        .EXPECT__message_box(
-            StrContains( "promoted to [Seasoned Scout]" ) )
-        .returns();
+    W.gui().EXPECT__message_box(
+        StrContains( "Greetings traveler" ) );
+    W.gui().EXPECT__message_box( StrContains( "send guides" ) );
+    mock_land_view.EXPECT__animate( _ );
+    W.gui().EXPECT__message_box(
+        StrContains( "promoted to [Seasoned Scout]" ) );
     f();
     REQUIRE( player.money == 0 );
     REQUIRE( p_unit->type() == e_unit_type::seasoned_scout );
@@ -945,11 +922,9 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
     p_unit         = &scout_petty;
     outcome.action = ChiefAction::target_practice{};
 
-    W.gui()
-        .EXPECT__message_box(
-            StrContains( "violated sacred taboos" ) )
-        .returns();
-    mock_land_view.EXPECT__animate( _ ).returns();
+    W.gui().EXPECT__message_box(
+        StrContains( "violated sacred taboos" ) );
+    mock_land_view.EXPECT__animate( _ );
     REQUIRE( W.units().exists( UnitId{ 1 } ) );
     f();
     REQUIRE_FALSE( W.units().exists( UnitId{ 1 } ) );
@@ -1013,14 +988,14 @@ TEST_CASE( "[enter-dwelling] do_establish_mission" ) {
   msg =
       "[English] mission established in [Inca] city "
       "in the year 1501. The Inca react with [curiosity].";
-  W.gui().EXPECT__message_box( msg ).returns();
+  W.gui().EXPECT__message_box( msg );
   f();
 
   outcome = { .reaction = e_missionary_reaction::hostility };
   msg =
       "[English] mission established in [Inca] city "
       "in the year 1501. The Inca react with [hostility].";
-  W.gui().EXPECT__message_box( msg ).returns();
+  W.gui().EXPECT__message_box( msg );
   f();
 
   REQUIRE(
