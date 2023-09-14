@@ -36,4 +36,8 @@ NoopEuroMind::meet_tribe_ui_sequence( MeetTribe const& ) {
   co_return e_declare_war_on_natives::no;
 }
 
+wait<> NoopEuroMind::show_woodcut( e_woodcut woodcut ) {
+  co_return;
+}
+
 } // namespace rn

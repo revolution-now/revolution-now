@@ -31,6 +31,8 @@ struct MockIEuroMind : IEuroMind {
 
   MOCK_METHOD( wait<e_declare_war_on_natives>,
                meet_tribe_ui_sequence, (MeetTribe const&), () );
+
+  MOCK_METHOD( wait<>, show_woodcut, ( e_woodcut ), () );
 };
 
 static_assert( !std::is_abstract_v<MockIEuroMind> );

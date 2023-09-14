@@ -15,6 +15,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
 
 // ss
@@ -44,7 +45,7 @@ TEST_CASE( "[woodcut] display_woodcut" ) {
 
   W.gui().EXPECT__message_box(
       "(woodcut): Discovery of the Fountain of Youth!" );
-  wait<> w = detail::display_woodcut(
+  wait<> w = internal::show_woodcut(
       W.gui(), e_woodcut::discovered_fountain_of_youth );
   REQUIRE( !w.exception() );
   REQUIRE( w.ready() );
@@ -56,13 +57,14 @@ TEST_CASE( "[woodcut] display_woodcut_if_needed" ) {
   e_woodcut cut    = {};
 
   auto f = [&] {
-    wait<> w = display_woodcut_if_needed( W.gui(), player, cut );
+    wait<> w =
+        show_woodcut_if_needed( player, W.euro_mind(), cut );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
   };
 
   cut = e_woodcut::colony_destroyed;
-  W.gui().EXPECT__display_woodcut( cut );
+  W.euro_mind().EXPECT__show_woodcut( cut );
   REQUIRE_FALSE( player.woodcuts[cut] );
   f();
   REQUIRE( player.woodcuts[cut] );
@@ -70,7 +72,7 @@ TEST_CASE( "[woodcut] display_woodcut_if_needed" ) {
   REQUIRE( player.woodcuts[cut] );
 
   cut = e_woodcut::meeting_fellow_europeans;
-  W.gui().EXPECT__display_woodcut( cut );
+  W.euro_mind().EXPECT__show_woodcut( cut );
   REQUIRE_FALSE( player.woodcuts[cut] );
   f();
   REQUIRE( player.woodcuts[cut] );

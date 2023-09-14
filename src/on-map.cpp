@@ -57,8 +57,9 @@ string new_world_name_for( Player const& player ) {
 }
 
 wait<> try_discover_new_world( SSConst const& ss, TS& ts,
-                               Player& player,
-                               Coord   world_square ) {
+                               Player&    player,
+                               IEuroMind& euro_mind,
+                               Coord      world_square ) {
   // This field holds the name of the new world given by the
   // player if it has a value (meaning, if the new world has been
   // discovered).
@@ -70,8 +71,8 @@ wait<> try_discover_new_world( SSConst const& ss, TS& ts,
     if( !square.has_value() ) continue;
     if( square->surface != e_surface::land ) continue;
     // We've discovered the new world!
-    co_await display_woodcut_if_needed(
-        ts.gui, player, e_woodcut::discovered_new_world );
+    co_await show_woodcut_if_needed(
+        player, euro_mind, e_woodcut::discovered_new_world );
     string const name = co_await ts.gui.required_string_input(
         { .msg = "You've discovered the new world!  What shall "
                  "we call this land, Your Excellency?",
@@ -85,15 +86,16 @@ wait<> try_discover_new_world( SSConst const& ss, TS& ts,
 }
 
 wait<> try_discover_pacific_ocean( SSConst const& ss, TS& ts,
-                                   Player& player,
-                                   Coord   world_square ) {
+                                   Player&    player,
+                                   IEuroMind& euro_mind,
+                                   Coord      world_square ) {
   for( e_direction d : refl::enum_values<e_direction> ) {
     Coord const coord = world_square.moved( d );
     if( !ss.terrain.square_exists( coord ) ) continue;
     if( !ss.terrain.is_pacific_ocean( coord ) ) continue;
     // We've discovered the Pacific Ocean!
-    co_await display_woodcut_if_needed(
-        ts.gui, player, e_woodcut::discovered_pacific_ocean );
+    co_await show_woodcut_if_needed(
+        player, euro_mind, e_woodcut::discovered_pacific_ocean );
     lg.info( "the pacific ocean been discovered." );
     break;
   }
@@ -101,8 +103,8 @@ wait<> try_discover_pacific_ocean( SSConst const& ss, TS& ts,
 
 // Returns true if the unit was deleted.
 wait<base::NoDiscard<bool>> try_lost_city_rumor(
-    SS& ss, TS& ts, Player& player, UnitId id,
-    Coord world_square ) {
+    SS& ss, TS& ts, Player& player, IEuroMind& euro_mind,
+    UnitId id, Coord world_square ) {
   // Check if the unit actually moved and it landed on a Lost
   // City Rumor.
   if( !has_lost_city_rumor( ss.terrain, world_square ) )
@@ -116,8 +118,8 @@ wait<base::NoDiscard<bool>> try_lost_city_rumor(
   bool const has_burial_grounds = pick_burial_grounds_result(
       ts.rand, player, explorer, burial_type );
   if( rumor_type == e_rumor_type::fountain_of_youth )
-    co_await display_woodcut_if_needed(
-        ts.gui, player,
+    co_await show_woodcut_if_needed(
+        player, euro_mind,
         e_woodcut::discovered_fountain_of_youth );
   LostCityRumorResult const lcr_res =
       co_await run_lost_city_rumor_result(
@@ -149,13 +151,12 @@ wait<bool> try_king_transport_treasure( SS& ss, TS& ts,
 }
 
 wait<> try_meet_natives( SS& ss, TS& ts, Player& player,
-                         Coord square ) {
+                         IEuroMind& euro_mind, Coord square ) {
   vector<MeetTribe> const meet_tribes =
       check_meet_tribes( as_const( ss ), player, square );
   for( MeetTribe const& meet_tribe : meet_tribes ) {
     e_declare_war_on_natives const declare_war =
-        co_await ts.euro_minds[meet_tribe.nation]
-            .meet_tribe_ui_sequence( meet_tribe );
+        co_await euro_mind.meet_tribe_ui_sequence( meet_tribe );
     perform_meet_tribe( ss, player, meet_tribe, declare_war );
   }
 }
@@ -226,15 +227,19 @@ wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
 
   Unit& unit = ss.units.unit_for( id );
   UNWRAP_CHECK( player, ss.players.players[unit.nation()] );
+  IEuroMind& euro_mind = ts.euro_minds[player.nation];
 
   if( !player.new_world_name.has_value() )
-    co_await try_discover_new_world( ss, ts, player, dst );
+    co_await try_discover_new_world( ss, ts, player, euro_mind,
+                                     dst );
 
   if( !player.woodcuts[e_woodcut::discovered_pacific_ocean] )
-    co_await try_discover_pacific_ocean( ss, ts, player, dst );
+    co_await try_discover_pacific_ocean( ss, ts, player,
+                                         euro_mind, dst );
 
   if( has_lost_city_rumor( ss.terrain, dst ) )
-    if( co_await try_lost_city_rumor( ss, ts, player, id, dst ) )
+    if( co_await try_lost_city_rumor( ss, ts, player, euro_mind,
+                                      id, dst ) )
       co_return UnitDeleted{};
 
   if( co_await try_king_transport_treasure( ss, ts, player, unit,
@@ -244,7 +249,7 @@ wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
     // the treasure unit was deleted.
     co_return UnitDeleted{};
 
-  co_await try_meet_natives( ss, ts, player, dst );
+  co_await try_meet_natives( ss, ts, player, euro_mind, dst );
 
   // Unit is still alive.
   co_return nothing;

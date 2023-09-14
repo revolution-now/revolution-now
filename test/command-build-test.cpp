@@ -17,6 +17,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocks/icolony-viewer.hpp"
+#include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
 
 // ss
@@ -95,7 +96,7 @@ TEST_CASE( "[command-build] build colony" ) {
 
   REQUIRE( W.colonies().last_colony_id() == nothing );
 
-  W.gui().EXPECT__display_woodcut(
+  W.euro_mind().EXPECT__show_woodcut(
       e_woodcut::building_first_colony );
   W.gui()
       .EXPECT__string_input( _, e_input_required::no )

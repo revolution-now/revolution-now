@@ -16,11 +16,13 @@
 #include "colony-view.hpp"
 #include "connectivity.hpp"
 #include "maybe.hpp"
+#include "minds.hpp"
 #include "ts.hpp"
 #include "woodcut.hpp"
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
 
@@ -55,6 +57,7 @@ struct BuildHandler : public CommandHandler {
     : ss_( ss ),
       ts_( ts ),
       player_( player ),
+      euro_mind_( ts.euro_minds[player.nation] ),
       unit_id( unit_id_ ) {}
 
   wait<bool> confirm() override {
@@ -137,8 +140,8 @@ struct BuildHandler : public CommandHandler {
   }
 
   wait<> perform() override {
-    co_await display_woodcut_if_needed(
-        ts_.gui, player_, e_woodcut::building_first_colony );
+    co_await show_woodcut_if_needed(
+        player_, euro_mind_, e_woodcut::building_first_colony );
     colony_id =
         found_colony( ss_, ts_, player_, unit_id, *colony_name );
     e_colony_abandoned const abandoned =
@@ -149,9 +152,10 @@ struct BuildHandler : public CommandHandler {
     co_return;
   }
 
-  SS&     ss_;
-  TS&     ts_;
-  Player& player_;
+  SS&        ss_;
+  TS&        ts_;
+  Player&    player_;
+  IEuroMind& euro_mind_;
 
   UnitId unit_id;
 

@@ -131,7 +131,7 @@ wait<maybe<int>> RealGui::int_input(
 }
 
 wait<> RealGui::display_woodcut( e_woodcut cut ) {
-  co_await detail::display_woodcut( *this, cut );
+  co_await internal::show_woodcut( *this, cut );
 }
 
 int RealGui::total_windows_created() const {

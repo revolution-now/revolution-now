@@ -24,6 +24,7 @@
 namespace rn {
 
 enum class e_nation;
+enum class e_woodcut;
 
 struct MeetTribe;
 
@@ -44,6 +45,11 @@ struct IEuroMind : IMind {
   virtual wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
       MeetTribe const& meet_tribe ) = 0;
 
+  // Woodcut's are static "cut scenes" consisting of a single
+  // image pixelated to mark a (good or bad) milestone in the
+  // game. This will show it each time it is called.
+  virtual wait<> show_woodcut( e_woodcut woodcut ) = 0;
+
  private:
   e_nation nation_ = {};
 };
@@ -62,6 +68,9 @@ struct NoopEuroMind final : IEuroMind {
   // Implement IEuroMind.
   wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
       MeetTribe const& meet_tribe ) override;
+
+  // Implement IEuroMind.
+  wait<> show_woodcut( e_woodcut woodcut ) override;
 };
 
 } // namespace rn

@@ -34,7 +34,11 @@ wait<e_declare_war_on_natives>
 HumanEuroMind::meet_tribe_ui_sequence(
     MeetTribe const& meet_tribe ) {
   co_return co_await perform_meet_tribe_ui_sequence(
-      ss_, gui_, meet_tribe );
+      ss_, *this, gui_, meet_tribe );
+}
+
+wait<> HumanEuroMind::show_woodcut( e_woodcut woodcut ) {
+  co_await gui_.display_woodcut( woodcut );
 }
 
 } // namespace rn

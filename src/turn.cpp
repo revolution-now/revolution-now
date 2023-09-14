@@ -32,6 +32,7 @@
 #include "map-edit.hpp"
 #include "market.hpp"
 #include "menu.hpp"
+#include "minds.hpp"
 #include "native-turn.hpp"
 #include "on-map.hpp"
 #include "panel.hpp"
@@ -583,7 +584,8 @@ wait<> query_unit_input( UnitId id, SS& ss, TS& ts,
 // Returns true if the unit needs to ask the user for input.
 wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
                          UnitId id ) {
-  Unit& unit = ss.units.unit_for( id );
+  IEuroMind& euro_mind = ts.euro_minds[player.nation];
+  Unit&      unit      = ss.units.unit_for( id );
   CHECK( !should_remove_unit_from_queue( unit ) );
 
   if( unit.orders().holds<unit_orders::fortifying>() ) {
@@ -726,8 +728,8 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
         finish_turn( unit );
         if( unit.cargo()
                 .count_items_of_type<Cargo::commodity>() > 0 )
-          co_await display_woodcut_if_needed(
-              ts.gui, player,
+          co_await show_woodcut_if_needed(
+              player, euro_mind,
               e_woodcut::cargo_from_the_new_world );
         co_await show_harbor_view( ss, ts, player, id );
         co_return false; // do not ask for orders.

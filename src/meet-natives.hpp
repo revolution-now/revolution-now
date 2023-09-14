@@ -32,6 +32,7 @@ namespace rn {
 
 enum class e_tribe;
 
+struct IEuroMind;
 struct IGui;
 struct Player;
 struct SS;
@@ -58,8 +59,11 @@ std::vector<MeetTribe> check_meet_tribes( SSConst const& ss,
 std::vector<MeetTribe> check_meet_europeans(
     SSConst const& ss, e_tribe tribe_type, Coord native_square );
 
+// TODO: we need to eventually consolidate on the euro_mind in-
+// terface.
 wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
-    SS& ss, IGui& ts, MeetTribe const& meet_tribe );
+    SS& ss, IEuroMind& euro_mind, IGui& gui,
+    MeetTribe const& meet_tribe );
 
 // This will actually perform the actions (non-UI actions) that
 // happen when the player meets a tribe for the first time.

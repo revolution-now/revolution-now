@@ -138,7 +138,7 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
   }
 
   SECTION( "not yet discovered" ) {
-    W.gui().EXPECT__display_woodcut(
+    W.euro_mind().EXPECT__show_woodcut(
         e_woodcut::discovered_new_world );
     W.gui()
         .EXPECT__string_input( _, e_input_required::yes )
@@ -171,7 +171,7 @@ TEST_CASE( "[on-map] interactive: discovers pacific ocean" ) {
       player.woodcuts[e_woodcut::discovered_pacific_ocean] ==
       false );
 
-  W.gui().EXPECT__display_woodcut(
+  W.euro_mind().EXPECT__show_woodcut(
       e_woodcut::discovered_pacific_ocean );
   w = TestingOnlyUnitOnMapMover::to_map_interactive(
       W.ss(), W.ts(), unit_id, { .x = 1, .y = 3 } );
@@ -284,7 +284,7 @@ TEST_CASE(
   W.rand()
       .EXPECT__between_ints( 0, 100, e_interval::half_open )
       .returns( 0 );
-  W.gui().EXPECT__display_woodcut(
+  W.euro_mind().EXPECT__show_woodcut(
       e_woodcut::discovered_fountain_of_youth );
   W.gui().EXPECT__message_box( StrContains( "Youth" ) );
 

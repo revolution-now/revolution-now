@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "ieuro-mind.hpp"
 #include "igui.hpp"
 
 // ss
@@ -23,6 +24,7 @@ namespace rn {
 
 namespace {
 
+// TODO: Move this to the config files.
 string_view msg_for_woodcut( e_woodcut cut ) {
   switch( cut ) {
     case e_woodcut::discovered_new_world:
@@ -59,23 +61,19 @@ string_view msg_for_woodcut( e_woodcut cut ) {
 /****************************************************************
 ** Public API
 *****************************************************************/
-namespace detail {
+wait<> show_woodcut_if_needed( Player& player, IEuroMind& mind,
+                               e_woodcut cut ) {
+  if( player.woodcuts[cut] ) co_return;
+  player.woodcuts[cut] = true;
+  co_await mind.show_woodcut( cut );
+}
 
-wait<> display_woodcut( IGui& gui, e_woodcut cut ) {
+namespace internal {
+wait<> show_woodcut( IGui& gui, e_woodcut cut ) {
+  // TODO: temporary implementation.
   co_await gui.message_box( "(woodcut): {}",
                             msg_for_woodcut( cut ) );
 }
-
-}
-
-wait<> display_woodcut_if_needed( IGui& gui, Player& player,
-                                  e_woodcut cut ) {
-  if( player.woodcuts[cut] ) co_return;
-  // Note that we don't directly call the display_woodcut method
-  // above; we want to call it via the IGui interface so that it
-  // can be mocked.
-  co_await gui.display_woodcut( cut );
-  player.woodcuts[cut] = true;
 }
 
 } // namespace rn

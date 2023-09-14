@@ -15,6 +15,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
 #include "test/mocks/land-view-plane.hpp"
@@ -392,7 +393,7 @@ TEST_CASE( "[enter-dwelling] present_dwelling_entry_options" ) {
           e_enter_dwelling_option::attack_village,
           e_enter_dwelling_option::live_among_the_natives } };
 
-  W.gui().EXPECT__display_woodcut(
+  W.euro_mind().EXPECT__show_woodcut(
       e_woodcut::entering_native_village );
   W.gui()
       .EXPECT__choice( _, e_input_required::no )

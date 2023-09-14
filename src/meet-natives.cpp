@@ -167,17 +167,18 @@ vector<MeetTribe> check_meet_tribes( SSConst const& ss,
 }
 
 wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
-    SS& ss, IGui& gui, MeetTribe const& meet_tribe ) {
+    SS& ss, IEuroMind& euro_mind, IGui& gui,
+    MeetTribe const& meet_tribe ) {
   Player& player =
       player_for_nation_or_die( ss.players, meet_tribe.nation );
-  co_await display_woodcut_if_needed(
-      gui, player, e_woodcut::meeting_the_natives );
+  co_await show_woodcut_if_needed(
+      player, euro_mind, e_woodcut::meeting_the_natives );
   if( meet_tribe.tribe == e_tribe::inca )
-    co_await display_woodcut_if_needed(
-        gui, player, e_woodcut::meeting_the_inca_nation );
+    co_await show_woodcut_if_needed(
+        player, euro_mind, e_woodcut::meeting_the_inca_nation );
   else if( meet_tribe.tribe == e_tribe::aztec )
-    co_await display_woodcut_if_needed(
-        gui, player, e_woodcut::meeting_the_aztec_empire );
+    co_await show_woodcut_if_needed(
+        player, euro_mind, e_woodcut::meeting_the_aztec_empire );
 
   auto const& tribe_conf =
       config_natives.tribes[meet_tribe.tribe];

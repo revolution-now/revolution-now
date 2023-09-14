@@ -35,6 +35,9 @@ struct HumanEuroMind final : IEuroMind {
   wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
       MeetTribe const& meet_tribe ) override;
 
+  // Implement IEuroMind.
+  wait<> show_woodcut( e_woodcut woodcut ) override;
+
  private:
   SS&   ss_;
   IGui& gui_;
