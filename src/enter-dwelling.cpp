@@ -21,6 +21,7 @@
 #include "irand.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
+#include "minds.hpp"
 #include "missionary.hpp"
 #include "plane-stack.hpp"
 #include "promotion.hpp"
