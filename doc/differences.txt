@@ -1,0 +1,74 @@
+                     Differences from the OG
+=================================================================
+
+                         Sinking Ships
+                         -------------
+  In the OG, When a ship is damaged/sunk, it affects all other
+  ships on the square. The reason for this is not totally clear,
+  but it could be a result of the way that the OG handles keeping
+  units on ships and how when multiple ships are on the same
+  square it is ambiguous as to which ship each unit is on (in
+  fact, they can switch ships). When there are multiple ships on
+  the defending square and the defender loses, all of the ships
+  on the square will be either sunk or damaged. The non-war ships
+  will be damaged, and the non-war ships will be sunk. However,
+  when the attacker loses (and there are units in the cargo of
+  one of the ships on the attacker's square) the attacker and
+  units go away, but the other ships on the attacker's square re-
+  main. When an attacking ship loses, the other ships on its
+  square are unaffected, but units on the square go away, which
+  gives credibility to our hypothesis as to the reason for this.
+  So when a ship is sunk, the game is not sure on which ship the
+  units were, so it needs to just damage/sink all of them, which
+  it also does for consistency even when there are no units on-
+  board. In RN none of this happens; ship battles are treated ex-
+  actly the same as land battles when there are multiple units on
+  a square.
+
+                Naval Battle Mechanics & Navy Size
+                ----------------------------------
+  The mechanics of naval battles are retained to a very high de-
+  gree of accuracy, with the exception of one thing: the OG seems
+  to skew the results of ship battles according to the overall
+  size of the players' navies, perhaps with the intention of dis-
+  couraging large naval fleets by making it more likely that
+  ships will sink (rather than be damaged) in such a situation.
+  In RN we do not do that.
+
+                    Ships in Abandoned Colony
+                    -------------------------
+  In the OG, when a colony is abandoned, any ships in port are
+  left on the square. Then if you try to attack on with a land
+  unit the game panics. In RN, whenever a colony goes away for
+  any reason, any ships left in port are marked as damaged and
+  moved for repair. If there is no port available for repair then
+  they are destroyed.
+
+                          Units on Ships
+                          --------------
+  In the OG it is not possible to actually put a unit on a ship;
+  the unit just remains on the map and travels with the ship.
+  When it is in a colony, it is sentried, then when the next ship
+  leaves the units will move with it. This mechanism has prob-
+  lems, most notably the fact that two ships on the same square
+  both with units in their cargo lose track of which units were
+  on which ship. In RN, a unit can actually be on the cargo of a
+  ship, just like commodities. However, this does raise a ques-
+  tion as to what happens when a colony is attacked and said
+  colony has a ship in port containing a military unit in its
+  cargo? Another question is, when a colony is destroyed by
+  braves and the ships are sent for repair, what should happen to
+  the units in the cargo? The position that RN takes is that
+  whenever there is an ambiguity having to do with units being in
+  the cargo of a ship that is on a land square, those units (or
+  unit) will be offboarded from the ship and then the behavior of
+  the OG will be applied. So for example, when a ship in a colony
+  port containing military units is attacked, one of those mili-
+  tary units, if chosen to defend, will be offboarded from the
+  ship to defend, and then will remain at the gate. When a colony
+  is destroyed or captured, all units are offboarded first, then
+  things proceed as usual as if those units had been at the gate
+  all along. The basic idea is that we want to replicate the be-
+  havior of the OG in all cases except for the bugs/problems as-
+  sociated with the ambiguity arising when two ships with unit
+  cargos are on the same ocean square (which is fixed in RN).
