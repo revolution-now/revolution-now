@@ -566,6 +566,27 @@ TravelHandler::confirm_travel_impl() {
   if( surface == e_surface::water and unit.desc().ship &&
       !water_square_has_ocean_access( ts_.connectivity,
                                       move_dst ) )
+    // TODO: evaluate whether it is ok to allow ships to move
+    // into inland tiles. That would probably be nicer from a
+    // player experience perspective. A glance through the code
+    // suggests that there would be nothing inherently wrong with
+    // this, but we would potentially run into non-sensical be-
+    // haviors where e.g. if a ship in an inland sea were damaged
+    // in battle and there were not colonies with drydocks along
+    // the coast of that sea, it would have to be returned to eu-
+    // rope, but that isn't conceptually possible since it has no
+    // ocean access. Then when it returns, it would have to ei-
+    // ther be placed on a sea lane, in which case it would not
+    // be able to get back into the inland sea, or it would have
+    // to be placed directly in the inland sea, which again would
+    // be strange. So we could have it that ships in that situa-
+    // tion are always sunk. But then, to allow ships in an in-
+    // land sea, we'd also ahve to change the rules that allow
+    // colonies to build shipyards etc. Also, we'd have to make
+    // sure not to send damaged ships (in the ocean) to be re-
+    // paired at a colony that has a drydock but only inland lake
+    // access. Given these complications, not sure yet whether it
+    // would be worth it.
     co_return e_travel_verdict::no_ship_into_inland_lake;
 
   e_unit_relationship relationship =
