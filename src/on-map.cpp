@@ -85,10 +85,10 @@ wait<> try_discover_new_world( SSConst const& ss, TS& ts,
   }
 }
 
-wait<> try_discover_pacific_ocean( SSConst const& ss, TS& ts,
-                                   Player&    player,
-                                   IEuroMind& euro_mind,
-                                   Coord      world_square ) {
+wait<> try_discover_pacific_ocean( SSConst const& ss,
+                                   Player&        player,
+                                   IEuroMind&     euro_mind,
+                                   Coord world_square ) {
   for( e_direction d : refl::enum_values<e_direction> ) {
     Coord const coord = world_square.moved( d );
     if( !ss.terrain.square_exists( coord ) ) continue;
@@ -150,7 +150,7 @@ wait<bool> try_king_transport_treasure( SS& ss, TS& ts,
   co_return true; // treasure unit deleted.
 }
 
-wait<> try_meet_natives( SS& ss, TS& ts, Player& player,
+wait<> try_meet_natives( SS& ss, Player& player,
                          IEuroMind& euro_mind, Coord square ) {
   vector<MeetTribe> const meet_tribes =
       check_meet_tribes( as_const( ss ), player, square );
@@ -234,8 +234,8 @@ wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
                                      dst );
 
   if( !player.woodcuts[e_woodcut::discovered_pacific_ocean] )
-    co_await try_discover_pacific_ocean( ss, ts, player,
-                                         euro_mind, dst );
+    co_await try_discover_pacific_ocean( ss, player, euro_mind,
+                                         dst );
 
   if( has_lost_city_rumor( ss.terrain, dst ) )
     if( co_await try_lost_city_rumor( ss, ts, player, euro_mind,
@@ -249,7 +249,7 @@ wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
     // the treasure unit was deleted.
     co_return UnitDeleted{};
 
-  co_await try_meet_natives( ss, ts, player, euro_mind, dst );
+  co_await try_meet_natives( ss, player, euro_mind, dst );
 
   // Unit is still alive.
   co_return nothing;
