@@ -850,7 +850,8 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
         StrContains( "Greetings traveler" ) );
 
     W.gui().EXPECT__message_box(
-        StrContains( "Please take these" ) );
+        "Please take these valuable beads (worth [111\x7f]) "
+        "back to your chieftain." );
     f();
     REQUIRE( player.money == 111 );
     REQUIRE( p_unit->type() == scout_petty.type() );
