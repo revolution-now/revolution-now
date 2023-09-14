@@ -69,10 +69,12 @@ wait<maybe<ui::e_confirm>> IGui::optional_yes_no(
       { "yes", config.yes_label }, { "no", config.no_label } };
   if( config.no_comes_first )
     reverse( options.begin(), options.end() );
-  maybe<string> str_res = co_await optional_choice(
+  maybe<string> const str_res = co_await optional_choice(
       { .msg = config.msg, .options = std::move( options ) } );
   if( !str_res.has_value() ) co_return nothing;
-  DCHECK( *str_res == "no" || *str_res == "yes" );
+  CHECK( *str_res == "no" || *str_res == "yes",
+         "invalid value for option choice result: {}",
+         *str_res );
   if( *str_res == "no" ) co_return ui::e_confirm::no;
   if( *str_res == "yes" ) co_return ui::e_confirm::yes;
   FATAL( "unexpected input result: {}", *str_res );
@@ -86,7 +88,8 @@ wait<ui::e_confirm> IGui::required_yes_no(
     reverse( options.begin(), options.end() );
   string const str_res = co_await required_choice(
       { .msg = config.msg, .options = std::move( options ) } );
-  DCHECK( str_res == "no" || str_res == "yes" );
+  CHECK( str_res == "no" || str_res == "yes",
+         "invalid value for option choice result: {}", str_res );
   if( str_res == "no" ) co_return ui::e_confirm::no;
   if( str_res == "yes" ) co_return ui::e_confirm::yes;
   FATAL( "unexpected input result: {}", str_res );
