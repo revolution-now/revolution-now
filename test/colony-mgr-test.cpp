@@ -472,7 +472,7 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
         .EXPECT__message_box( "some msg" )
         .returns( make_wait<>() );
 
-    co_await_test( run_colony_destruction(
+    co_await_test( run_animated_colony_destruction(
         W.ss(), W.ts(), colony, ship_damaged_reason,
         /*msg=*/"some msg" ) );
   }
@@ -488,7 +488,7 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
         .EXPECT__message_box( "some msg" )
         .returns( make_wait<>() );
 
-    co_await_test( run_colony_destruction_no_anim(
+    co_await_test( run_colony_destruction(
         W.ss(), W.ts(), colony, ship_damaged_reason,
         /*msg=*/"some msg" ) );
   }
@@ -565,7 +565,7 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
           .returns( make_wait<>() );
     }
 
-    co_await_test( run_colony_destruction(
+    co_await_test( run_animated_colony_destruction(
         W.ss(), W.ts(), colony, ship_damaged_reason,
         /*msg=*/"some msg" ) );
 
@@ -621,7 +621,7 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
             "available ports for repair." )
         .returns( make_wait<>() );
 
-    co_await_test( run_colony_destruction(
+    co_await_test( run_animated_colony_destruction(
         W.ss(), W.ts(), colony, ship_damaged_reason,
         /*msg=*/"some msg" ) );
 

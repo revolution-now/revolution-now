@@ -822,9 +822,9 @@ ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
   return outcome;
 }
 
-wait<> run_colony_destruction_no_anim(
-    SS& ss, TS& ts, Colony& colony, e_ship_damaged_reason reason,
-    maybe<string> msg ) {
+wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
+                               e_ship_damaged_reason reason,
+                               maybe<string>         msg ) {
   // Must extract this info before destroying the colony.
   string const   colony_name   = colony.name;
   e_nation const colony_nation = colony.nation;
@@ -865,9 +865,9 @@ wait<> run_colony_destruction_no_anim(
   }
 }
 
-wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
-                               e_ship_damaged_reason reason,
-                               maybe<string>         msg ) {
+wait<> run_animated_colony_destruction(
+    SS& ss, TS& ts, Colony& colony, e_ship_damaged_reason reason,
+    maybe<string> msg ) {
   // The road needs to be cleared before the animation so that
   // the depixelating colony won't reveal a road behind it.
   clear_abandoned_colony_road( ss, ts.map_updater,
@@ -875,8 +875,7 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
   AnimationSequence const seq =
       anim_seq_for_colony_depixelation( colony.id );
   co_await ts.planes.land_view().animate( seq );
-  co_await run_colony_destruction_no_anim( ss, ts, colony,
-                                           reason, msg );
+  co_await run_colony_destruction( ss, ts, colony, reason, msg );
 }
 
 wait<> evolve_colonies_for_player( SS& ss, TS& ts,

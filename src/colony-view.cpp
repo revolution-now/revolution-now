@@ -359,7 +359,7 @@ wait<e_colony_abandoned> ColonyViewer::show(
   } catch( colony_abandon_interrupt const& ) {}
 
   // We are abandoned.
-  co_await run_colony_destruction(
+  co_await run_animated_colony_destruction(
       ss_, ts, colony, e_ship_damaged_reason::colony_abandoned,
       /*msg=*/nothing );
   co_return e_colony_abandoned::yes;
