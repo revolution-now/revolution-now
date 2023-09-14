@@ -35,6 +35,14 @@ namespace rn {
 AiNativeMind::AiNativeMind( SS& ss, IRand& rand )
   : ss_( ss ), rand_( rand ) {}
 
+// TODO:
+//   Recording this so that we don't forget, since it may not be
+//   explicitly mentioned in the SG. When the natives are upset,
+//   sometimes a brave can approach a wagon train and demand all
+//   of a particular good within it. In the OG, there seems to
+//   also be a bug where they will ask even if the wagon train is
+//   empty.
+
 // Implement INativeMind.
 NativeUnitCommand AiNativeMind::command_for(
     NativeUnitId native_unit_id ) {
