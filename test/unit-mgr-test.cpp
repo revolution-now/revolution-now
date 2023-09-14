@@ -333,35 +333,74 @@ TEST_CASE( "[unit-mgr] change_unit_nation_and_move" ) {
 }
 
 TEST_CASE( "[unit-mgr] destroy_unit" ) {
-  World        W;
-  UnitId const caravel_id =
-      W.add_unit_on_map( e_unit_type::caravel,
-                         { .x = 0, .y = 0 } )
-          .id();
-  UnitId const free_colonist_id =
-      W.add_unit_in_cargo( e_unit_type::free_colonist,
-                           caravel_id )
-          .id();
-  UnitId const expert_farmer_id =
-      W.add_unit_in_cargo( e_unit_type::expert_farmer,
-                           caravel_id )
-          .id();
+  World W;
 
-  REQUIRE( W.units().exists( caravel_id ) );
-  REQUIRE( W.units().exists( free_colonist_id ) );
-  REQUIRE( W.units().exists( expert_farmer_id ) );
+  SECTION( "euro units" ) {
+    UnitId const caravel_id =
+        W.add_unit_on_map( e_unit_type::caravel,
+                           { .x = 0, .y = 0 } )
+            .id();
+    UnitId const free_colonist_id =
+        W.add_unit_in_cargo( e_unit_type::free_colonist,
+                             caravel_id )
+            .id();
+    UnitId const expert_farmer_id =
+        W.add_unit_in_cargo( e_unit_type::expert_farmer,
+                             caravel_id )
+            .id();
 
-  destroy_unit( W.ss(), expert_farmer_id );
+    REQUIRE( W.units().exists( caravel_id ) );
+    REQUIRE( W.units().exists( free_colonist_id ) );
+    REQUIRE( W.units().exists( expert_farmer_id ) );
 
-  REQUIRE( W.units().exists( caravel_id ) );
-  REQUIRE( W.units().exists( free_colonist_id ) );
-  REQUIRE_FALSE( W.units().exists( expert_farmer_id ) );
+    destroy_unit( W.ss(), expert_farmer_id );
 
-  destroy_unit( W.ss(), caravel_id );
+    REQUIRE( W.units().exists( caravel_id ) );
+    REQUIRE( W.units().exists( free_colonist_id ) );
+    REQUIRE_FALSE( W.units().exists( expert_farmer_id ) );
 
-  REQUIRE_FALSE( W.units().exists( caravel_id ) );
-  REQUIRE_FALSE( W.units().exists( free_colonist_id ) );
-  REQUIRE_FALSE( W.units().exists( expert_farmer_id ) );
+    destroy_unit( W.ss(), caravel_id );
+
+    REQUIRE_FALSE( W.units().exists( caravel_id ) );
+    REQUIRE_FALSE( W.units().exists( free_colonist_id ) );
+    REQUIRE_FALSE( W.units().exists( expert_farmer_id ) );
+  }
+
+  SECTION( "native units" ) {
+    DwellingId const dwelling_id =
+        W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::tupi ).id;
+    NativeUnitId const brave_id =
+        W.add_native_unit_on_map( e_native_unit_type::brave,
+                                  { .x = 0, .y = 0 },
+                                  dwelling_id )
+            .id;
+    NativeUnitId const mounted_brave_id =
+        W.add_native_unit_on_map(
+             e_native_unit_type::mounted_brave,
+             { .x = 1, .y = 0 }, dwelling_id )
+            .id;
+    NativeUnitId const armed_brave_id =
+        W.add_native_unit_on_map(
+             e_native_unit_type::armed_brave, { .x = 0, .y = 1 },
+             dwelling_id )
+            .id;
+
+    REQUIRE( W.units().exists( brave_id ) );
+    REQUIRE( W.units().exists( mounted_brave_id ) );
+    REQUIRE( W.units().exists( armed_brave_id ) );
+
+    destroy_unit( W.ss(), armed_brave_id );
+
+    REQUIRE( W.units().exists( brave_id ) );
+    REQUIRE( W.units().exists( mounted_brave_id ) );
+    REQUIRE_FALSE( W.units().exists( armed_brave_id ) );
+
+    destroy_unit( W.ss(), brave_id );
+
+    REQUIRE_FALSE( W.units().exists( brave_id ) );
+    REQUIRE( W.units().exists( mounted_brave_id ) );
+    REQUIRE_FALSE( W.units().exists( armed_brave_id ) );
+  }
 }
 
 TEST_CASE( "[unit-mgr] unit_ownership_change_non_interactive" ) {

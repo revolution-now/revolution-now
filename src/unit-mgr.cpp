@@ -468,14 +468,29 @@ wait<maybe<UnitDeleted>> unit_ownership_change(
   }
 }
 
-void destroy_unit( SS& ss, UnitId id ) {
-  CHECK( !as_const( ss.units )
-              .ownership_of( id )
-              .holds<UnitOwnership::colony>(),
-         "This method isn't equipped to directly destroy a unit "
-         "that is in a colony; you must first call "
-         "remove_unit_from_colony." );
-  ss.units.destroy_unit( id );
+void destroy_unit( SS& ss, GenericUnitId id ) {
+  switch( ss.units.unit_kind( id ) ) {
+    case e_unit_kind::euro: {
+      UnitId const unit_id = ss.units.check_euro_unit( id );
+      // FIXME: the unit ownership/destruction mechanism is not
+      // consistent in which unit states allow direct deletion
+      // and which require cleanup, and then is also inconsistent
+      // in what states it cleans up and which it does not (i.e.,
+      // the below function call will clean up if the unit is
+      // held as cargo, but not if the unit is a colony worker).
+      CHECK( !as_const( ss.units )
+                  .ownership_of( unit_id )
+                  .holds<UnitOwnership::colony>(),
+             "This method isn't equipped to directly destroy a "
+             "unit that is in a colony; you must first call "
+             "remove_unit_from_colony." );
+      ss.units.destroy_unit( unit_id );
+      break;
+    }
+    case e_unit_kind::native:
+      ss.units.destroy_unit( ss.units.check_native_unit( id ) );
+      break;
+  }
 }
 
 /****************************************************************

@@ -195,6 +195,6 @@ void unit_ownership_change_non_interactive(
     SS& ss, UnitId id,
     EuroUnitOwnershipChangeTo const& change_to );
 
-void destroy_unit( SS& ss, UnitId id );
+void destroy_unit( SS& ss, GenericUnitId id );
 
 } // namespace rn

@@ -183,7 +183,7 @@ struct UnitsState {
   // functions below in order to ensure that the proper cleanup
   // is done and invariants are maintained.
 
-  friend void destroy_unit( SS& ss, UnitId id );
+  friend void destroy_unit( SS& ss, GenericUnitId id );
 
   friend void unit_ownership_change_non_interactive(
       SS& ss, UnitId id, EuroUnitOwnershipChangeTo const& info );
