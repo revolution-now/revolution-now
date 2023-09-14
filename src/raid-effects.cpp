@@ -283,12 +283,15 @@ wait<> display_brave_attack_colony_effect_msg(
         msg = ship_damaged_message(
             ss, ship.nation(), ship.type(), reason,
             *ship_in_port_damaged.sent_to );
-      maybe<string> const units_lost_msg =
-          units_lost_on_ship_message( ship );
-      if( units_lost_msg.has_value() ) {
-        msg += ' ';
-        msg += *units_lost_msg;
-      }
+      int const num_units_onboard =
+          ship.cargo().count_items_of_type<Cargo::unit>();
+      // This is to ensure that we replicate the behavior of the
+      // OG which does not have a concept of units on ships; it
+      // just has sentried units whose square conincides with a
+      // ship.
+      CHECK( num_units_onboard == 0,
+             "before a colony is destroyed, any units in the "
+             "cargo of ships in its port must be removed." );
       co_await mind.message_box( "{}", msg );
       co_return;
     }

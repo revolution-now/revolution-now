@@ -760,7 +760,6 @@ TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
   colony.name           = "my colony";
   Unit const& ship =
       W.add_unit_on_map( e_unit_type::frigate, colony.location );
-  W.add_unit_in_cargo( e_unit_type::free_colonist, ship.id() );
   BraveAttackColonyEffect effect;
 
   auto f = [&] {
@@ -805,8 +804,7 @@ TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
       .sent_to = ShipRepairPort::european_harbor{} };
   mind.EXPECT__message_box(
       "[Dutch] [Frigate] damaged in battle! Ship sent to "
-      "[Amsterdam] for repairs. [One] unit onboard has been "
-      "lost." );
+      "[Amsterdam] for repairs." );
   f();
 }
 
