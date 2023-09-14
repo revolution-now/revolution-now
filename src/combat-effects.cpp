@@ -248,8 +248,9 @@ UnitCombatEffectsMessages naval_unit_combat_effects_msg(
     CASE( no_change ) { break; }
     CASE( moved ) { break; }
     CASE( damaged ) {
-      res.for_both.push_back(
-          ship_damaged_message( ss, unit, damaged.port ) );
+      res.for_both.push_back( ship_damaged_message(
+          ss, unit.nation(), unit.type(),
+          e_ship_damaged_reason::battle, damaged.port ) );
       add_units_lost();
       break;
     }

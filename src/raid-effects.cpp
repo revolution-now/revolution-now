@@ -273,12 +273,16 @@ wait<> display_brave_attack_colony_effect_msg(
     CASE( ship_in_port_damaged ) {
       UnitId const ship_id = ship_in_port_damaged.which;
       Unit const&  ship    = ss.units.unit_for( ship_id );
-      string       msg;
+      e_ship_damaged_reason const reason =
+          e_ship_damaged_reason::battle;
+      string msg;
       if( !ship_in_port_damaged.sent_to.has_value() )
-        msg = ship_damaged_no_port_message( ship );
+        msg = ship_damaged_no_port_message(
+            ship.nation(), ship.type(), reason );
       else
         msg = ship_damaged_message(
-            ss, ship, *ship_in_port_damaged.sent_to );
+            ss, ship.nation(), ship.type(), reason,
+            *ship_in_port_damaged.sent_to );
       maybe<string> const units_lost_msg =
           units_lost_on_ship_message( ship );
       if( units_lost_msg.has_value() ) {

@@ -8,6 +8,10 @@
 # Description: RDS definitions for the colony-mgr module.
 #
 # ===============================================================
+# Revolution Now
+include "damaged.rds.hpp"
+include "maybe.hpp"
+
 # ss
 include "ss/unit-type.rds.hpp"
 
@@ -33,7 +37,12 @@ enum.e_new_colony_name_err {
 }
 
 struct.ColonyDestructionOutcome {
-  # Count of each ship type that was in port and sent back to the
-  # harbor.
-  ships_returned_to_harbor 'refl::enum_map<e_unit_type, int>',
+  # Count of each ship type that was in port. Note that, pre
+  # colony destruction, all units onboard will have been removed.
+  ships_that_were_in_port 'refl::enum_map<e_unit_type, int>',
+
+  # Where they were sent. This would only be `nothing` after in-
+  # dependence is declared and the harbor is no longer accessi-
+  # ble; in that case, the ships are destroyed.
+  port 'maybe<ShipRepairPort>',
 }

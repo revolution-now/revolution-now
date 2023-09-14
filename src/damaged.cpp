@@ -16,7 +16,7 @@
 
 // config
 #include "config/nation.hpp"
-#include "config/unit-type.rds.hpp"
+#include "config/unit-type.hpp"
 
 // ss
 #include "ss/colonies.hpp"
@@ -186,37 +186,48 @@ void move_damaged_ship_for_repair( SS& ss, TS& ts, Unit& ship,
   }
 }
 
-string ship_damaged_message( SSConst const& ss, Unit const& ship,
-                             ShipRepairPort const& port ) {
-  string res;
-  res = fmt::format( "[{}] [{}] damaged in battle!",
-                     nation_obj( ship.nation() ).adjective,
-                     ship.desc().name );
-  res += ' ';
-  switch( port.to_enum() ) {
-    case ShipRepairPort::e::colony: {
-      ColonyId const colony_id =
-          port.get<ShipRepairPort::colony>().id;
-      Colony const& colony = ss.colonies.colony_for( colony_id );
-      res += fmt::format( "Ship sent to [{}] for repairs.",
-                          colony.name );
-      break;
+string ship_repair_port_name( SSConst const& ss, e_nation nation,
+                              ShipRepairPort const& port ) {
+  SWITCH( port ) {
+    CASE( colony ) {
+      return ss.colonies.colony_for( colony.id ).name;
     }
-    case ShipRepairPort::e::european_harbor: {
-      res += fmt::format(
-          "Ship sent to [{}] for repairs.",
-          nation_obj( ship.nation() ).harbor_city_name );
-      break;
+    CASE( european_harbor ) {
+      return nation_obj( nation ).harbor_city_name;
     }
   }
-  return res;
 }
 
-string ship_damaged_no_port_message( Unit const& ship ) {
+string ship_damaged_reason( e_ship_damaged_reason reason ) {
+  switch( reason ) {
+    case e_ship_damaged_reason::battle:
+      return "in battle";
+    case e_ship_damaged_reason::colony_abandoned:
+    case e_ship_damaged_reason::colony_starved:
+      return "during colony collapse";
+  }
+}
+
+string ship_damaged_message( SSConst const& ss, e_nation nation,
+                             e_unit_type           ship_type,
+                             e_ship_damaged_reason reason,
+                             ShipRepairPort const& port ) {
   return fmt::format(
-      "{} [{}] damaged in battle! As there are no available "
-      "repair ports, our ship has been lost.",
-      nation_obj( ship.nation() ).adjective, ship.desc().name );
+      "[{}] [{}] damaged {}! Ship sent to [{}] for repairs.",
+      nation_obj( nation ).adjective,
+      unit_attr( ship_type ).name, ship_damaged_reason( reason ),
+      ship_repair_port_name( ss, nation, port ) );
+}
+
+string ship_damaged_no_port_message(
+    e_nation nation, e_unit_type ship_type,
+    e_ship_damaged_reason reason ) {
+  return fmt::format(
+      "[{}] [{}] damaged {}! As there are no available repair "
+      "ports, the ship has been lost.",
+      nation_obj( nation ).adjective,
+      unit_attr( ship_type ).name,
+      ship_damaged_reason( reason ) );
 }
 
 maybe<string> units_lost_on_ship_message( Unit const& ship ) {

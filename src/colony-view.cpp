@@ -30,7 +30,7 @@
 
 // ss
 #include "ss/colonies.hpp"
-#include "ss/players.hpp"
+#include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
 
@@ -353,16 +353,15 @@ wait<> ColonyViewer::show_impl( TS& ts_old, Colony& colony ) {
 wait<e_colony_abandoned> ColonyViewer::show(
     TS& ts, ColonyId colony_id ) {
   Colony& colony = ss_.colonies.colony_for( colony_id );
-  Player& player =
-      player_for_nation_or_die( ss_.players, colony.nation );
   try {
     co_await show_impl( ts, colony );
     co_return e_colony_abandoned::no;
   } catch( colony_abandon_interrupt const& ) {}
 
   // We are abandoned.
-  co_await run_colony_destruction( ss_, ts, player, colony,
-                                   /*msg=*/nothing );
+  co_await run_colony_destruction(
+      ss_, ts, colony, e_ship_damaged_reason::colony_abandoned,
+      /*msg=*/nothing );
   co_return e_colony_abandoned::yes;
 }
 

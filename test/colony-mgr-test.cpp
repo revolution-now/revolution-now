@@ -17,11 +17,11 @@
 #include "test/util/coro.hpp"
 
 // Revolution Now
-#include "colony-mgr.hpp"
-#include "imap-updater.hpp"
-#include "map-square.hpp"
-#include "plane-stack.hpp"
-#include "unit-mgr.hpp"
+#include "src/colony-mgr.hpp"
+#include "src/imap-updater.hpp"
+#include "src/map-square.hpp"
+#include "src/plane-stack.hpp"
+#include "src/unit-mgr.hpp"
 
 // ss
 #include "ss/colonies.hpp"
@@ -403,7 +403,8 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
   auto [colony, founder]     = W.add_colony_with_new_unit( loc );
   vector<UnitId> const units = colony_units_all( colony );
   REQUIRE( units.size() == 1 );
-  UnitId const founder_id = founder.id();
+  UnitId const          founder_id          = founder.id();
+  e_ship_damaged_reason ship_damaged_reason = {};
 
   REQUIRE( W.units().exists( founder_id ) );
   REQUIRE( W.colonies().all().size() == 1 );
@@ -443,6 +444,25 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
             .st = { .port_status = PortStatus::in_port{} } } );
   }
 
+  SECTION( "non interactive with ships, post-revolution" ) {
+    W.default_player().revolution_status =
+        e_revolution_status::declared;
+    Unit const& ship1 =
+        W.add_unit_on_map( e_unit_type::caravel, loc );
+    Unit const& ship2 =
+        W.add_unit_on_map( e_unit_type::merchantman, loc );
+    Unit const& ship3 =
+        W.add_unit_on_map( e_unit_type::caravel, loc );
+    UnitId const ship1_id = ship1.id();
+    UnitId const ship2_id = ship2.id();
+    UnitId const ship3_id = ship3.id();
+    destroy_colony( W.ss(), W.ts(), colony );
+    REQUIRE( !player_square->colony.has_value() );
+    REQUIRE_FALSE( W.units().exists( ship1_id ) );
+    REQUIRE_FALSE( W.units().exists( ship2_id ) );
+    REQUIRE_FALSE( W.units().exists( ship3_id ) );
+  }
+
   SECTION( "interactive" ) {
     MockLandViewPlane mock_land_view;
     W.planes().back().land_view = &mock_land_view;
@@ -453,7 +473,7 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
         .returns( make_wait<>() );
 
     co_await_test( run_colony_destruction(
-        W.ss(), W.ts(), W.default_player(), colony,
+        W.ss(), W.ts(), colony, ship_damaged_reason,
         /*msg=*/"some msg" ) );
   }
 
@@ -469,7 +489,7 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
         .returns( make_wait<>() );
 
     co_await_test( run_colony_destruction_no_anim(
-        W.ss(), W.ts(), W.default_player(), colony,
+        W.ss(), W.ts(), colony, ship_damaged_reason,
         /*msg=*/"some msg" ) );
   }
 
@@ -485,22 +505,68 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     W.planes().back().land_view = &mock_land_view;
 
     mock_land_view.EXPECT__animate( _ ).returns( make_wait<>() );
-    W.gui()
-        .EXPECT__message_box( "some msg" )
-        .returns( make_wait<>() );
-    W.gui()
-        .EXPECT__message_box(
-            "Port in [1] contained two [Caravels] that were "
-            "sent back to [Amsterdam] for protection." )
-        .returns( make_wait<>() );
-    W.gui()
-        .EXPECT__message_box(
-            "Port in [1] contained one [Merchantman] that was "
-            "sent back to [Amsterdam] for protection." )
-        .returns( make_wait<>() );
+
+    SECTION( "reason=battle" ) {
+      ship_damaged_reason = e_ship_damaged_reason::battle;
+      W.gui()
+          .EXPECT__message_box( "some msg" )
+          .returns( make_wait<>() );
+      W.gui()
+          .EXPECT__message_box(
+              "Port in [1] contained two [Caravels] that were "
+              "damaged in battle and were sent to [Amsterdam] "
+              "for repairs." )
+          .returns( make_wait<>() );
+      W.gui()
+          .EXPECT__message_box(
+              "Port in [1] contained one [Merchantman] that was "
+              "damaged in battle and was sent to [Amsterdam] "
+              "for repairs." )
+          .returns( make_wait<>() );
+    }
+
+    SECTION( "reason=colony_abandoned" ) {
+      ship_damaged_reason =
+          e_ship_damaged_reason::colony_abandoned;
+      W.gui()
+          .EXPECT__message_box( "some msg" )
+          .returns( make_wait<>() );
+      W.gui()
+          .EXPECT__message_box(
+              "Port in [1] contained two [Caravels] that were "
+              "damaged during colony collapse and were sent "
+              "to [Amsterdam] for repairs." )
+          .returns( make_wait<>() );
+      W.gui()
+          .EXPECT__message_box(
+              "Port in [1] contained one [Merchantman] that was "
+              "damaged during colony collapse and was sent to "
+              "[Amsterdam] for repairs." )
+          .returns( make_wait<>() );
+    }
+
+    SECTION( "reason=colony_starved" ) {
+      ship_damaged_reason =
+          e_ship_damaged_reason::colony_starved;
+      W.gui()
+          .EXPECT__message_box( "some msg" )
+          .returns( make_wait<>() );
+      W.gui()
+          .EXPECT__message_box(
+              "Port in [1] contained two [Caravels] that were "
+              "damaged during colony collapse and were sent "
+              "to [Amsterdam] for repairs." )
+          .returns( make_wait<>() );
+      W.gui()
+          .EXPECT__message_box(
+              "Port in [1] contained one [Merchantman] that was "
+              "damaged during colony collapse and was sent to "
+              "[Amsterdam] for repairs." )
+          .returns( make_wait<>() );
+    }
 
     co_await_test( run_colony_destruction(
-        W.ss(), W.ts(), W.default_player(), colony,
+        W.ss(), W.ts(), colony, ship_damaged_reason,
         /*msg=*/"some msg" ) );
 
     REQUIRE( W.units().exists( ship1.id() ) );
@@ -518,6 +584,50 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
         as_const( W.units() ).ownership_of( ship3.id() ) ==
         UnitOwnership::harbor{
             .st = { .port_status = PortStatus::in_port{} } } );
+  }
+
+  SECTION( "interactive with ship, post-revolution" ) {
+    W.default_player().revolution_status =
+        e_revolution_status::declared;
+    Unit const& ship1 =
+        W.add_unit_on_map( e_unit_type::caravel, loc );
+    Unit const& ship2 =
+        W.add_unit_on_map( e_unit_type::merchantman, loc );
+    Unit const& ship3 =
+        W.add_unit_on_map( e_unit_type::caravel, loc );
+    UnitId const ship1_id = ship1.id();
+    UnitId const ship2_id = ship2.id();
+    UnitId const ship3_id = ship3.id();
+
+    MockLandViewPlane mock_land_view;
+    W.planes().back().land_view = &mock_land_view;
+
+    mock_land_view.EXPECT__animate( _ );
+
+    ship_damaged_reason = e_ship_damaged_reason::battle;
+    W.gui()
+        .EXPECT__message_box( "some msg" )
+        .returns( make_wait<>() );
+    W.gui()
+        .EXPECT__message_box(
+            "Port in [1] contained two [Caravels] that were "
+            "damaged in battle and destroyed as there are no "
+            "available ports for repair." )
+        .returns( make_wait<>() );
+    W.gui()
+        .EXPECT__message_box(
+            "Port in [1] contained one [Merchantman] that was "
+            "damaged in battle and destroyed as there are no "
+            "available ports for repair." )
+        .returns( make_wait<>() );
+
+    co_await_test( run_colony_destruction(
+        W.ss(), W.ts(), colony, ship_damaged_reason,
+        /*msg=*/"some msg" ) );
+
+    REQUIRE_FALSE( W.units().exists( ship1_id ) );
+    REQUIRE_FALSE( W.units().exists( ship2_id ) );
+    REQUIRE_FALSE( W.units().exists( ship3_id ) );
   }
 
   // !! Do not access colony after this point.

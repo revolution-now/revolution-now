@@ -13,6 +13,13 @@ include "colony-id.hpp"
 
 namespace "rn"
 
+# This is used for generating messages.
+enum.e_ship_damaged_reason {
+  battle,
+  colony_abandoned,
+  colony_starved,
+}
+
 sumtype.ShipRepairPort {
   # When a colony posesses a Drydock then it can host damaged
   # ships.

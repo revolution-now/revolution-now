@@ -46,22 +46,34 @@ enum class e_unit_type;
 maybe<ShipRepairPort> find_repair_port_for_ship(
     SSConst const& ss, e_nation nation, Coord ship_location );
 
+// Returns a predicate describing why the ship was damaged.
+std::string ship_damaged_reason( e_ship_damaged_reason reason );
+
 // Produce the standard message that should be displayed to the
 // user when they try to interact with a damaged ship in a way
 // that is not allowed.
 std::string ship_still_damaged_message(
     int turns_until_repaired );
 
+// Will be either a colony name or the harbor city name.
+std::string ship_repair_port_name( SSConst const&        ss,
+                                   e_nation              nation,
+                                   ShipRepairPort const& port );
+
 // Produces the message that is displayed when a ship is damaged.
-std::string ship_damaged_message( SSConst const&        ss,
-                                  Unit const&           ship,
+std::string ship_damaged_message( SSConst const& ss,
+                                  e_nation       nation,
+                                  e_unit_type    ship_type,
+                                  e_ship_damaged_reason reason,
                                   ShipRepairPort const& port );
 
 // This one generates a message for the case where a ship is dam-
 // aged but there is no port to send it to. This would only
 // happen after independence is declared, after which the euro-
 // pean harbor is no longer accessible.
-std::string ship_damaged_no_port_message( Unit const& ship );
+std::string ship_damaged_no_port_message(
+    e_nation nation, e_unit_type ship_type,
+    e_ship_damaged_reason reason );
 
 // Generates a message describing how many units onboard a ship
 // have been lost, if any.

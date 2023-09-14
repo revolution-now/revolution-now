@@ -221,54 +221,144 @@ TEST_CASE( "[damaged] repair_turn_count_for_unit" ) {
 }
 
 TEST_CASE( "[damaged] ship_damaged_no_port_message" ) {
-  World  W;
-  string expected;
+  World                 W;
+  string                expected;
+  e_ship_damaged_reason reason = {};
 
   auto f = [&]( Unit const& ship ) {
-    return ship_damaged_no_port_message( ship );
+    return ship_damaged_no_port_message( ship.nation(),
+                                         ship.type(), reason );
   };
 
+  reason = e_ship_damaged_reason::battle;
   expected =
-      "French [Privateer] damaged in battle! As there are no "
-      "available repair ports, our ship has been lost.";
+      "[French] [Privateer] damaged in battle! As there are no "
+      "available repair ports, the ship has been lost.";
   REQUIRE( f( W.add_unit_on_map(
                e_unit_type::privateer, { .x = 0, .y = 0 },
                e_nation::french ) ) == expected );
 
+  reason = e_ship_damaged_reason::battle;
   expected =
-      "Spanish [Galleon] damaged in battle! As there are no "
-      "available repair ports, our ship has been lost.";
+      "[Spanish] [Galleon] damaged in battle! As there are no "
+      "available repair ports, the ship has been lost.";
+  REQUIRE( f( W.add_unit_on_map(
+               e_unit_type::galleon, { .x = 0, .y = 0 },
+               e_nation::spanish ) ) == expected );
+
+  reason = e_ship_damaged_reason::colony_abandoned;
+  expected =
+      "[French] [Privateer] damaged during colony collapse! As "
+      "there are no available repair ports, the ship has been "
+      "lost.";
+  REQUIRE( f( W.add_unit_on_map(
+               e_unit_type::privateer, { .x = 0, .y = 0 },
+               e_nation::french ) ) == expected );
+
+  reason = e_ship_damaged_reason::colony_abandoned;
+  expected =
+      "[Spanish] [Galleon] damaged during colony collapse! As "
+      "there are no available repair ports, the ship has been "
+      "lost.";
+  REQUIRE( f( W.add_unit_on_map(
+               e_unit_type::galleon, { .x = 0, .y = 0 },
+               e_nation::spanish ) ) == expected );
+
+  reason = e_ship_damaged_reason::colony_starved;
+  expected =
+      "[French] [Privateer] damaged during colony collapse! As "
+      "there are no available repair ports, the ship has been "
+      "lost.";
+  REQUIRE( f( W.add_unit_on_map(
+               e_unit_type::privateer, { .x = 0, .y = 0 },
+               e_nation::french ) ) == expected );
+
+  reason = e_ship_damaged_reason::colony_starved;
+  expected =
+      "[Spanish] [Galleon] damaged during colony collapse! As "
+      "there are no available repair ports, the ship has been "
+      "lost.";
   REQUIRE( f( W.add_unit_on_map(
                e_unit_type::galleon, { .x = 0, .y = 0 },
                e_nation::spanish ) ) == expected );
 }
 
 TEST_CASE( "[damaged] ship_damaged_message" ) {
-  World          W;
-  string         expected;
-  ShipRepairPort port;
+  World                 W;
+  string                expected;
+  ShipRepairPort        port;
+  e_ship_damaged_reason reason = {};
 
   auto f = [&]( Unit const& ship ) {
-    return ship_damaged_message( W.ss(), ship, port );
+    return ship_damaged_message( W.ss(), ship.nation(),
+                                 ship.type(), reason, port );
   };
 
-  port = ShipRepairPort::european_harbor{};
-  expected =
-      "[French] [Privateer] damaged in battle! Ship sent to [La "
-      "Rochelle] for repairs.";
-  REQUIRE( f( W.add_unit_on_map(
-               e_unit_type::privateer, { .x = 0, .y = 0 },
-               e_nation::french ) ) == expected );
+  SECTION( "battle" ) {
+    reason = e_ship_damaged_reason::battle;
+    port   = ShipRepairPort::european_harbor{};
+    expected =
+        "[French] [Privateer] damaged in battle! Ship sent to "
+        "[La Rochelle] for repairs.";
+    REQUIRE( f( W.add_unit_on_map(
+                 e_unit_type::privateer, { .x = 0, .y = 0 },
+                 e_nation::french ) ) == expected );
 
-  Colony& colony = W.add_colony( { .x = 1, .y = 0 } );
-  colony.name    = "some colony";
-  port           = ShipRepairPort::colony{ .id = colony.id };
-  expected =
-      "[Spanish] [Man-O-War] damaged in battle! Ship sent to "
-      "[some colony] for repairs.";
-  REQUIRE( f( W.add_unit_on_map(
-               e_unit_type::man_o_war, { .x = 0, .y = 0 },
-               e_nation::spanish ) ) == expected );
+    Colony& colony = W.add_colony( { .x = 1, .y = 0 } );
+    colony.name    = "some colony";
+    reason         = e_ship_damaged_reason::battle;
+    port           = ShipRepairPort::colony{ .id = colony.id };
+    expected =
+        "[Spanish] [Man-O-War] damaged in battle! Ship sent to "
+        "[some colony] for repairs.";
+    REQUIRE( f( W.add_unit_on_map(
+                 e_unit_type::man_o_war, { .x = 0, .y = 0 },
+                 e_nation::spanish ) ) == expected );
+  }
+
+  SECTION( "colony_abandoned" ) {
+    reason = e_ship_damaged_reason::colony_abandoned;
+    port   = ShipRepairPort::european_harbor{};
+    expected =
+        "[French] [Privateer] damaged during colony collapse! "
+        "Ship sent to [La Rochelle] for repairs.";
+    REQUIRE( f( W.add_unit_on_map(
+                 e_unit_type::privateer, { .x = 0, .y = 0 },
+                 e_nation::french ) ) == expected );
+
+    Colony& colony = W.add_colony( { .x = 1, .y = 0 } );
+    colony.name    = "some colony";
+    reason         = e_ship_damaged_reason::colony_abandoned;
+    port           = ShipRepairPort::colony{ .id = colony.id };
+    expected =
+        "[Spanish] [Man-O-War] damaged during colony collapse! "
+        "Ship sent to [some colony] for repairs.";
+    REQUIRE( f( W.add_unit_on_map(
+                 e_unit_type::man_o_war, { .x = 0, .y = 0 },
+                 e_nation::spanish ) ) == expected );
+  }
+
+  SECTION( "colony_starved" ) {
+    reason = e_ship_damaged_reason::colony_starved;
+    port   = ShipRepairPort::european_harbor{};
+    expected =
+        "[French] [Privateer] damaged during colony collapse! "
+        "Ship sent to [La Rochelle] for repairs.";
+    REQUIRE( f( W.add_unit_on_map(
+                 e_unit_type::privateer, { .x = 0, .y = 0 },
+                 e_nation::french ) ) == expected );
+
+    Colony& colony = W.add_colony( { .x = 1, .y = 0 } );
+    colony.name    = "some colony";
+    reason         = e_ship_damaged_reason::colony_starved;
+    port           = ShipRepairPort::colony{ .id = colony.id };
+    expected =
+        "[Spanish] [Man-O-War] damaged during colony collapse! "
+        "Ship sent to [some colony] for repairs.";
+    REQUIRE( f( W.add_unit_on_map(
+                 e_unit_type::man_o_war, { .x = 0, .y = 0 },
+                 e_nation::spanish ) ) == expected );
+  }
 }
 
 TEST_CASE( "[damaged] units_lost_on_ship_message" ) {
@@ -560,6 +650,57 @@ TEST_CASE( "[damaged] move_damaged_ship_for_repair" ) {
         as_const( W.units() ).ownership_of( caravel.id() ) ==
         UnitOwnership::world{ .coord =
                                   french_colony.location } );
+  }
+}
+
+TEST_CASE( "[damaged] ship_damaged_reason" ) {
+  e_ship_damaged_reason reason = {};
+  string                expected;
+
+  auto f = [&] { return ship_damaged_reason( reason ); };
+
+  reason   = e_ship_damaged_reason::battle;
+  expected = "in battle";
+  REQUIRE( f() == expected );
+
+  reason   = e_ship_damaged_reason::colony_abandoned;
+  expected = "during colony collapse";
+  REQUIRE( f() == expected );
+
+  reason   = e_ship_damaged_reason::colony_starved;
+  expected = "during colony collapse";
+  REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[damaged] ship_repair_port_name" ) {
+  World          W;
+  ShipRepairPort port;
+  string         expected;
+  e_nation       nation = {};
+
+  auto f = [&] {
+    return ship_repair_port_name( W.ss(), nation, port );
+  };
+
+  SECTION( "colony" ) {
+    Colony& colony = W.add_colony( { .x = 1, .y = 0 } );
+    colony.name    = "some colony";
+    nation         = colony.nation; // should be irrelevant.
+    port           = ShipRepairPort::colony{ .id = colony.id };
+    expected       = "some colony";
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "harbor" ) {
+    nation   = e_nation::french;
+    port     = ShipRepairPort::european_harbor{};
+    expected = "La Rochelle";
+    REQUIRE( f() == expected );
+
+    nation   = e_nation::spanish;
+    port     = ShipRepairPort::european_harbor{};
+    expected = "Seville";
+    REQUIRE( f() == expected );
   }
 }
 

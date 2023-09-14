@@ -113,15 +113,14 @@ ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
 // then will actually destroy the colony using the destroy_colony
 // method documented above. An optional message will be shown to
 // the user first, before any others.
-wait<> run_colony_destruction( SS& ss, TS& ts, Player& player,
-                               Colony&            colony,
-                               maybe<std::string> msg );
+wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
+                               e_ship_damaged_reason reason,
+                               maybe<std::string>    msg );
 
 // Same as above but for when the animation is done separately.
-wait<> run_colony_destruction_no_anim( SS& ss, TS& ts,
-                                       Player&            player,
-                                       Colony&            colony,
-                                       maybe<std::string> msg );
+wait<> run_colony_destruction_no_anim(
+    SS& ss, TS& ts, Colony& colony, e_ship_damaged_reason reason,
+    maybe<std::string> msg );
 
 // Given a colony, find the squares in its surroundings that are
 // being worked by units in other colonies, either friendly or
