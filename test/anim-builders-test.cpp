@@ -650,6 +650,46 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_colony" ) {
     REQUIRE( f() == expected );
   }
 
+  SECTION(
+      "attacker wins (colony destroyed) with units at gate" ) {
+    combat.winner           = e_combat_winner::attacker;
+    combat.colony_destroyed = true;
+
+    UnitId const wagon_train_id =
+        W.add_unit_on_map( e_unit_type::wagon_train,
+                           colony.location, colony.nation )
+            .id();
+    UnitId const treasure_id =
+        W.add_unit_on_map( e_unit_type::treasure,
+                           colony.location, colony.nation )
+            .id();
+
+    combat.attacker.outcome =
+        NativeUnitCombatOutcome::no_change{};
+    combat.defender.outcome = EuroUnitCombatOutcome::no_change{};
+
+    expected.sequence.push_back(
+        /*phase 2=*/{
+            { .primitive =
+                  P::front_unit{ .unit_id = attacker.id },
+              .background = true },
+            { .primitive =
+                  P::front_unit{ .unit_id = defender.id() },
+              .background = true },
+            { .primitive =
+                  P::hide_unit{ .unit_id = wagon_train_id },
+              .background = true },
+            { .primitive =
+                  P::hide_unit{ .unit_id = treasure_id },
+              .background = true },
+            { .primitive =
+                  P::depixelate_colony{ .colony_id =
+                                            colony.id } },
+            { .primitive = P::play_sound{
+                  .what = e_sfx::city_destroyed } } } );
+    REQUIRE( f() == expected );
+  }
+
   SECTION( "defender wins" ) {
     combat.winner = e_combat_winner::defender;
 

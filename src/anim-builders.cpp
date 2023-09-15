@@ -393,6 +393,7 @@ AnimationSequence anim_seq_for_brave_attack_colony(
       coord_for_unit_indirect_or_die( ss.units, attacker_id );
   Coord const defender_coord =
       coord_for_unit_multi_ownership_or_die( ss, defender_id );
+  Coord const colony_location = defender_coord;
   UNWRAP_CHECK( direction,
                 attacker_coord.direction_to( defender_coord ) );
   AnimationBuilder builder;
@@ -410,8 +411,27 @@ AnimationSequence anim_seq_for_brave_attack_colony(
       builder, combat.attacker.id, combat.attacker.outcome );
   add_attack_outcome_for_euro_unit(
       ss, builder, combat.defender.id, combat.defender.outcome );
-  if( combat.colony_destroyed )
+  if( combat.colony_destroyed ) {
+    // If there are any units on the square then those need to be
+    // hidden during the depixelation since they will be removed
+    // from that square after the animation (ships will be sent
+    // for repair and all other units, which will be
+    // non-military, will be destroyed).
+    vector<GenericUnitId> const units_to_hide = [&] {
+      auto const& units_at_gate =
+          ss.units.from_coord( colony_location );
+      vector sorted_units( units_at_gate.begin(),
+                           units_at_gate.end() );
+      // The defender's animation is handled above.
+      erase( sorted_units, defender_id );
+      // For for determinism in unit tests.
+      sort( sorted_units.begin(), sorted_units.end() );
+      return sorted_units;
+    }();
+    for( GenericUnitId const id : units_to_hide )
+      builder.hide_unit( id );
     builder.depixelate_colony( combat.colony_id );
+  }
   play_combat_outcome_sound( builder, combat );
 
   return builder.result();
