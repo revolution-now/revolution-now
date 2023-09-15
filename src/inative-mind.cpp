@@ -19,29 +19,27 @@ using namespace std;
 namespace rn {
 
 /****************************************************************
-** INativeMind
+** NoopNativeMind
 *****************************************************************/
-void INativeMind::on_attack_colony_finished(
+wait<> NoopNativeMind::message_box( string const& ) {
+  co_return;
+}
+
+NativeUnitCommand NoopNativeMind::command_for( NativeUnitId ) {
+  return NativeUnitCommand::forfeight{};
+}
+
+void NoopNativeMind::on_attack_colony_finished(
     CombatBraveAttackColony const&,
     BraveAttackColonyEffect const& ) {}
 
-void INativeMind::on_attack_unit_finished(
+void NoopNativeMind::on_attack_unit_finished(
     CombatBraveAttackEuro const& ) {}
 
-NativeUnitId INativeMind::select_unit(
+NativeUnitId NoopNativeMind::select_unit(
     set<NativeUnitId> const& units ) {
   CHECK( !units.empty() );
   return *units.begin();
-}
-
-wait<> INativeMind::message_box( string const& ) { co_return; }
-
-/****************************************************************
-** NoopNativeMind
-*****************************************************************/
-// Implement INativeMind.
-NativeUnitCommand NoopNativeMind::command_for( NativeUnitId ) {
-  return NativeUnitCommand::forfeight{};
 }
 
 } // namespace rn

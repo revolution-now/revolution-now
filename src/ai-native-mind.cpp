@@ -35,6 +35,16 @@ namespace rn {
 AiNativeMind::AiNativeMind( SS& ss, IRand& rand )
   : ss_( ss ), rand_( rand ) {}
 
+wait<> AiNativeMind::message_box( std::string const& ) {
+  return {};
+}
+
+NativeUnitId AiNativeMind::select_unit(
+    set<NativeUnitId> const& units ) {
+  CHECK( !units.empty() );
+  return *units.begin();
+}
+
 // TODO:
 //   Recording this so that we don't forget, since it may not be
 //   explicitly mentioned in the SG. When the natives are upset,
@@ -97,6 +107,10 @@ void AiNativeMind::on_attack_colony_finished(
     CombatBraveAttackColony const&,
     BraveAttackColonyEffect const& ) {
   // TODO: adjust alarm.
+}
+
+void AiNativeMind::on_attack_unit_finished(
+    CombatBraveAttackEuro const& ) {
 }
 
 } // namespace rn

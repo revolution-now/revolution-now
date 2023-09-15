@@ -23,10 +23,17 @@ struct SS;
 /****************************************************************
 ** AiNativeMind
 *****************************************************************/
-struct AiNativeMind : INativeMind {
+struct AiNativeMind final : INativeMind {
   // We don't take TS here because would create a circular depen-
   // dency.
   AiNativeMind( SS& ss, IRand& rand );
+
+  // Implement IMind.
+  wait<> message_box( std::string const& msg ) override;
+
+  // Implement INativeMind.
+  NativeUnitId select_unit(
+      std::set<NativeUnitId> const& units ) override;
 
   // Implement INativeMind.
   NativeUnitCommand command_for(
@@ -36,6 +43,10 @@ struct AiNativeMind : INativeMind {
   void on_attack_colony_finished(
       CombatBraveAttackColony const& combat,
       BraveAttackColonyEffect const& side_effect ) override;
+
+  // Implement INativeMind.
+  void on_attack_unit_finished(
+      CombatBraveAttackEuro const& ) override;
 
  private:
   SS&    ss_; // can this be SSConst?

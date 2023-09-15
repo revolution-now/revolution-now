@@ -11,7 +11,9 @@
 #pragma once
 
 // Revolution Now
+#include "src/icombat.rds.hpp"
 #include "src/inative-mind.hpp"
+#include "src/raid-effects.rds.hpp"
 
 // mock
 #include "src/mock/mock.hpp"
@@ -27,7 +29,7 @@ namespace rn {
 /****************************************************************
 ** MockIRand
 *****************************************************************/
-struct MockINativeMind : INativeMind {
+struct MockINativeMind final : INativeMind {
   MOCK_METHOD( NativeUnitId, select_unit,
                (std::set<NativeUnitId> const&), () );
 
@@ -35,8 +37,14 @@ struct MockINativeMind : INativeMind {
 
   MOCK_METHOD( NativeUnitCommand, command_for, ( NativeUnitId ),
                () );
-};
 
-static_assert( !std::is_abstract_v<MockINativeMind> );
+  MOCK_METHOD( void, on_attack_colony_finished,
+               (CombatBraveAttackColony const&,
+                BraveAttackColonyEffect const&),
+               () );
+
+  MOCK_METHOD( void, on_attack_unit_finished,
+               (CombatBraveAttackEuro const&), () );
+};
 
 } // namespace rn

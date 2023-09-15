@@ -37,15 +37,12 @@ struct CombatBraveAttackEuro;
 struct INativeMind : IMind {
   virtual ~INativeMind() override = default;
 
-  // Implement IMind.
-  wait<> message_box( std::string const& msg ) override;
-
   // Select which unit is to receive orders next. The set should
   // be non-empty and contain only units that have some movement
   // points remaining. Default implementation just selects the
   // first one in the (ordered) set.
   virtual NativeUnitId select_unit(
-      std::set<NativeUnitId> const& units );
+      std::set<NativeUnitId> const& units ) = 0;
 
   // Give a command to a unit.
   virtual NativeUnitCommand command_for(
@@ -56,13 +53,13 @@ struct INativeMind : IMind {
   // fault implementation does nothing.
   virtual void on_attack_colony_finished(
       CombatBraveAttackColony const& combat,
-      BraveAttackColonyEffect const& side_effect );
+      BraveAttackColonyEffect const& side_effect ) = 0;
 
   // After a native attack on a european unit this will notify of
   // the result. This can be used e.g. to adjust tribal alarm.
   // Default implementation does nothing.
   virtual void on_attack_unit_finished(
-      CombatBraveAttackEuro const& combat );
+      CombatBraveAttackEuro const& combat ) = 0;
 };
 
 /****************************************************************
@@ -71,9 +68,25 @@ struct INativeMind : IMind {
 struct NoopNativeMind final : INativeMind {
   NoopNativeMind() = default;
 
+  // Implement IMind.
+  wait<> message_box( std::string const& msg ) override;
+
+  // Implement INativeMind.
+  NativeUnitId select_unit(
+      std::set<NativeUnitId> const& units ) override;
+
   // Implement INativeMind.
   NativeUnitCommand command_for(
       NativeUnitId native_unit_id ) override;
+
+  // Implement INativeMind.
+  void on_attack_colony_finished(
+      CombatBraveAttackColony const&,
+      BraveAttackColonyEffect const& ) override;
+
+  // Implement INativeMind.
+  void on_attack_unit_finished(
+      CombatBraveAttackEuro const& ) override;
 };
 
 } // namespace rn
