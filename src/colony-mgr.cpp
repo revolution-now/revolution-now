@@ -637,7 +637,7 @@ ColonyId found_colony( SS& ss, TS& ts, Player const& player,
   // Done.
   auto& desc = nation_obj( nation );
   lg.info( "created {} {} colony at {}.", desc.article,
-           desc.adjective, where );
+           desc.possessive, where );
 
   return col_id;
 }

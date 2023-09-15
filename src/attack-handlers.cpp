@@ -770,15 +770,15 @@ wait<> AttackDwellingHandler::produce_convert() {
       ss_, ts_, attacking_player_, e_unit_type::native_convert,
       dwelling_coord );
   native_convert_ = convert_id;
-  string_view const tribe_name_adjective =
-      config_natives.tribes[tribe_.type].name_adjective;
-  string_view const nation_name_adjective =
-      nation_obj( attacking_player_.nation ).adjective;
+  string_view const tribe_name_possessive =
+      config_natives.tribes[tribe_.type].name_possessive;
+  string_view const nation_name_possessive =
+      nation_obj( attacking_player_.nation ).possessive;
 
   co_await attacker_mind_.message_box(
       "[{}] citizens frightened in combat rush to the [{} "
       "mission] as [converts]!",
-      tribe_name_adjective, nation_name_adjective );
+      tribe_name_possessive, nation_name_possessive );
   co_await ts_.planes.land_view().animate(
       anim_seq_for_convert_produced(
           convert_id, reverse_direction( direction_ ) ) );
@@ -819,8 +819,8 @@ wait<> AttackDwellingHandler::perform() {
   string_view const tribe_name = tribe_conf.name_singular;
   string_view const nation_name =
       nation_obj( attacking_player_.nation ).display_name;
-  string_view const nation_name_adjective =
-      nation_obj( attacking_player_.nation ).adjective;
+  string_view const nation_name_possessive =
+      nation_obj( attacking_player_.nation ).possessive;
   string_view const nation_harbor_name =
       nation_obj( attacking_player_.nation ).harbor_city_name;
 
@@ -850,8 +850,8 @@ wait<> AttackDwellingHandler::perform() {
     co_await attacker_mind_.message_box(
         "The [{}] revolt against [{}] missions! "
         "All {} missionaries eliminated!",
-        tribe_name, nation_name_adjective,
-        nation_name_adjective );
+        tribe_name, nation_name_possessive,
+        nation_name_possessive );
   }
 
   FilteredMixedCombatEffectsMessages const effects_msg =

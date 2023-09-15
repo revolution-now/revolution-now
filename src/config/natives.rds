@@ -95,7 +95,7 @@ struct.DwellingType {
 struct.Tribe {
   name_singular 'std::string',
   name_plural 'std::string',
-  name_adjective 'std::string',
+  name_possessive 'std::string',
 
   level 'e_native_level',
 

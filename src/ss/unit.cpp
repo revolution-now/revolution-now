@@ -251,7 +251,7 @@ LUA_STARTUP( lua::state& st ) {
 
   u[lua::metatable_key]["__tostring"] = []( U const& u ) {
     return fmt::format( "{} {} (id={})",
-                        nation_obj( u.nation() ).adjective,
+                        nation_obj( u.nation() ).possessive,
                         u.desc().name, u.id() );
   };
 };

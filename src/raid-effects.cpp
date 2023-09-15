@@ -244,7 +244,7 @@ wait<> display_brave_attack_colony_effect_msg(
       co_await mind.message_box(
           "[{}] looting parties have stolen [{}] tons of [{}] "
           "from [{}]!",
-          config_natives.tribes[tribe].name_adjective,
+          config_natives.tribes[tribe].name_possessive,
           commodity_stolen.what.quantity,
           config_commodity.types[commodity_stolen.what.type]
               .lowercase_display_name,
@@ -255,7 +255,7 @@ wait<> display_brave_attack_colony_effect_msg(
       co_await mind.message_box(
           "[{}] looting parties have stolen [{}{}] from the "
           "treasury!",
-          config_natives.tribes[tribe].name_adjective,
+          config_natives.tribes[tribe].name_possessive,
           money_stolen.quantity,
           config_text.special_chars.currency );
       co_return;
@@ -264,7 +264,7 @@ wait<> display_brave_attack_colony_effect_msg(
       co_await mind.message_box(
           "[{}] raiding parties have destroyed the [{}] in "
           "[{}]!",
-          config_natives.tribes[tribe].name_adjective,
+          config_natives.tribes[tribe].name_possessive,
           config_colony
               .building_display_names[building_destroyed.which],
           colony.name );

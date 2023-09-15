@@ -51,7 +51,7 @@ struct.SpecialAbility {
 }
 
 struct.Nationality {
-  enum_val     'e_nation',
+  enum_val 'e_nation',
 
   # The ____ have captured the colony of...
   display_name 'std::string',
@@ -66,13 +66,13 @@ struct.Nationality {
   new_world_name 'std::string',
 
   # ____ forces have captured...
-  adjective    'std::string',
+  possessive 'std::string',
 
-  # __ <adjective> ship has been sunk...
-  article      'std::string',
+  # __ <possessive> ship has been sunk...
+  article 'std::string',
 
   # Must be unique for each nation.
-  flag_color   'gfx::pixel',
+  flag_color 'gfx::pixel',
 }
 
 struct.config_nation_t {

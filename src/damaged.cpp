@@ -214,7 +214,7 @@ string ship_damaged_message( SSConst const& ss, e_nation nation,
                              ShipRepairPort const& port ) {
   return fmt::format(
       "[{}] [{}] damaged {}! Ship sent to [{}] for repairs.",
-      nation_obj( nation ).adjective,
+      nation_obj( nation ).possessive,
       unit_attr( ship_type ).name, ship_damaged_reason( reason ),
       ship_repair_port_name( ss, nation, port ) );
 }
@@ -225,7 +225,7 @@ string ship_damaged_no_port_message(
   return fmt::format(
       "[{}] [{}] damaged {}! As there are no available repair "
       "ports, the ship has been lost.",
-      nation_obj( nation ).adjective,
+      nation_obj( nation ).possessive,
       unit_attr( ship_type ).name,
       ship_damaged_reason( reason ) );
 }

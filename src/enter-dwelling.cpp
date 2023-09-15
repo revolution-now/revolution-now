@@ -745,11 +745,11 @@ wait<> do_establish_mission(
   string msg = fmt::format(
       "[{}] mission established in [{}] {} in the year {}. The "
       "{} {}.",
-      nation_obj( player.nation ).adjective,
-      tribe_conf.name_adjective,
+      nation_obj( player.nation ).possessive,
+      tribe_conf.name_possessive,
       config_natives.dwelling_types[tribe_conf.level]
           .name_singular,
-      ss.turn.time_point.year, tribe_conf.name_adjective,
+      ss.turn.time_point.year, tribe_conf.name_possessive,
       reaction_to_mission( outcome.reaction ) );
 
   // In the OG the tribe's reaction to the missionary does not

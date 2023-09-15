@@ -120,8 +120,8 @@ wait<> boycott_msg( SSConst const& ss, TS& ts,
   string const upper_commodity_name =
       uppercase_commodity_display_name(
           party.how.commodity.type_and_quantity.type );
-  string_view const country_adjective =
-      config_nation.nations[player.nation].adjective;
+  string_view const country_possessive =
+      config_nation.nations[player.nation].possessive;
   string_view const harbor_city_name =
       config_nation.nations[player.nation].harbor_city_name;
   int const quantity =
@@ -134,7 +134,7 @@ wait<> boycott_msg( SSConst const& ss, TS& ts,
       "boycott of {}.  {} cannot be traded in {} until boycott "
       "is lifted.",
       colony_name, upper_commodity_name, quantity,
-      lower_commodity_name, country_adjective,
+      lower_commodity_name, country_possessive,
       lower_commodity_name, upper_commodity_name,
       harbor_city_name );
   co_await ts.gui.message_box( msg );

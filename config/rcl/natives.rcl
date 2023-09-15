@@ -101,90 +101,90 @@ dwelling_types {
 
 tribes {
   apache {
-    name_singular:  Apache
-    name_plural:    Apaches
-    name_adjective: Apache
-    level:          semi_nomadic
-    dwelling_tile:  camp
-    flag_color:     '#C2AE85'
-    max_population: 3
+    name_singular:   Apache
+    name_plural:     Apaches
+    name_possessive: Apache
+    level:           semi_nomadic
+    dwelling_tile:   camp
+    flag_color:      '#C2AE85'
+    max_population:  3
     max_population_capital: 3
   }
 
   sioux {
-    name_singular:  Sioux
-    name_plural:    Sioux
-    name_adjective: Sioux
-    level:          semi_nomadic
-    dwelling_tile:  camp
-    flag_color:     '#910000'
-    max_population: 3
+    name_singular:   Sioux
+    name_plural:     Sioux
+    name_possessive: Sioux
+    level:           semi_nomadic
+    dwelling_tile:   camp
+    flag_color:      '#910000'
+    max_population:  3
     max_population_capital: 3
   }
 
   tupi {
-    name_singular:  Tupi
-    name_plural:    Tupis
-    name_adjective: Tupi
-    level:          semi_nomadic
-    dwelling_tile:  camp
-    flag_color:     '#035D03'
-    max_population: 3
+    name_singular:   Tupi
+    name_plural:     Tupis
+    name_possessive: Tupi
+    level:           semi_nomadic
+    dwelling_tile:   camp
+    flag_color:      '#035D03'
+    max_population:  3
     max_population_capital: 3
   }
 
   arawak {
-    name_singular:  Arawak
-    name_plural:    Arawaks
-    name_adjective: Arawak
-    level:          agrarian
-    dwelling_tile:  village
-    flag_color:     '#6989C2'
-    max_population: 5
+    name_singular:   Arawak
+    name_plural:     Arawaks
+    name_possessive: Arawak
+    level:           agrarian
+    dwelling_tile:   village
+    flag_color:      '#6989C2'
+    max_population:  5
     max_population_capital: 6
   }
 
   cherokee {
-    name_singular:  Cherokee
-    name_plural:    Cherokees
-    name_adjective: Cherokee
-    level:          agrarian
-    dwelling_tile:  village
-    flag_color:     '#74A54C'
-    max_population: 5
+    name_singular:   Cherokee
+    name_plural:     Cherokees
+    name_possessive: Cherokee
+    level:           agrarian
+    dwelling_tile:   village
+    flag_color:      '#74A54C'
+    max_population:  5
     max_population_capital: 6
   }
 
   iroquois {
-    name_singular:  Iroquois
-    name_plural:    Iroquois
-    name_adjective: Iroquois
-    level:          agrarian
-    dwelling_tile:  village
-    flag_color:     '#6B3B18'
-    max_population: 5
+    name_singular:   Iroquois
+    name_plural:     Iroquois
+    name_possessive: Iroquois
+    level:           agrarian
+    dwelling_tile:   village
+    flag_color:      '#6B3B18'
+    max_population:  5
     max_population_capital: 6
   }
 
   aztec {
-    name_singular:  Aztec
-    name_plural:    Aztecs
-    name_adjective: Aztec
-    level:          advanced
-    dwelling_tile:  tan_pyramid
-    flag_color:     '#C6A21F'
-    max_population: 7
+    name_singular:   Aztec
+    name_plural:     Aztecs
+    name_possessive: Aztec
+    level:           advanced
+    dwelling_tile:   tan_pyramid
+    flag_color:      '#C6A21F'
+    max_population:  7
     max_population_capital: 8
   }
 
   inca {
-    name_singular:  Inca
-    name_plural:    Incas
-    name_adjective: Inca
-    level:          civilized
-    dwelling_tile:  grey_pyramid
-    flag_color:     '#F6F3C7'
-    max_population: 9
+    name_singular:   Inca
+    name_plural:     Incas
+    name_possessive: Inca
+    level:           civilized
+    dwelling_tile:   grey_pyramid
+    flag_color:      '#F6F3C7'
+    max_population:  9
     max_population_capital: 11
   }
 }
