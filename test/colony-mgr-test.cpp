@@ -326,7 +326,7 @@ TEST_CASE( "[colony-mgr] create, query, destroy" ) {
 TEST_CASE( "[colony-mgr] initial colony buildings." ) {
   World W;
   auto [colony, founder] =
-      W.add_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
+      W.found_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
   unordered_set<e_colony_building> buildings;
   for( auto const& [building, has] : colony.buildings )
     if( has ) buildings.insert( building );
@@ -399,8 +399,8 @@ TEST_CASE( "[colony-mgr] change_unit_outdoor_job." ) {
 
 TEST_CASE( "[colony-mgr] colony destruction" ) {
   World       W;
-  Coord const loc            = { .x = 1, .y = 1 };
-  auto [colony, founder]     = W.add_colony_with_new_unit( loc );
+  Coord const loc        = { .x = 1, .y = 1 };
+  auto [colony, founder] = W.found_colony_with_new_unit( loc );
   vector<UnitId> const units = colony_units_all( colony );
   REQUIRE( units.size() == 1 );
   UnitId const          founder_id          = founder.id();
@@ -680,12 +680,13 @@ TEST_CASE( "[colony-mgr] give_stockade_if_needed" ) {
   // _, L, _, L, L, L,
   // _, L, L, L, L, L,
   // L, L, L, L, L, L,
-  auto [dutch1, dutch1_founder] = W.add_colony_with_new_unit(
+  auto [dutch1, dutch1_founder] = W.found_colony_with_new_unit(
       { .x = 1, .y = 1 }, e_nation::dutch );
-  auto [dutch2, dutch2_founder] = W.add_colony_with_new_unit(
+  auto [dutch2, dutch2_founder] = W.found_colony_with_new_unit(
       { .x = 1, .y = 3 }, e_nation::dutch );
-  auto [english1, english1_founder] = W.add_colony_with_new_unit(
-      { .x = 3, .y = 1 }, e_nation::english );
+  auto [english1, english1_founder] =
+      W.found_colony_with_new_unit( { .x = 3, .y = 1 },
+                                    e_nation::english );
   W.add_unit_indoors( english1.id, e_indoor_job::bells );
   W.add_unit_indoors( english1.id, e_indoor_job::bells );
   W.add_unit_indoors( english1.id, e_indoor_job::bells );

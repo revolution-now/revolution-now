@@ -615,8 +615,9 @@ TEST_CASE(
   W.create_large_map();
   Coord const kDutchColony{ .x = 6, .y = 6 };
   Coord const kFrenchColony{ .x = 18, .y = 18 };
-  W.add_colony_with_new_unit( kDutchColony, e_nation::dutch );
-  W.add_colony_with_new_unit( kFrenchColony, e_nation::french );
+  W.found_colony_with_new_unit( kDutchColony, e_nation::dutch );
+  W.found_colony_with_new_unit( kFrenchColony,
+                                e_nation::french );
 
   // First make sure that the dutch player can only see the
   // squares around their colony.
@@ -662,14 +663,14 @@ TEST_CASE( "[fathers] on_father_received: sieur_de_la_salle" ) {
   Coord const kDutchColony2{ .x = 2, .y = 0 };
   Coord const kFrenchColony{ .x = 0, .y = 2 };
   auto [dutch_colony1, dutch1_founder] =
-      W.add_colony_with_new_unit( kDutchColony1,
-                                  e_nation::dutch );
+      W.found_colony_with_new_unit( kDutchColony1,
+                                    e_nation::dutch );
   auto [dutch_colony2, dutch2_founder] =
-      W.add_colony_with_new_unit( kDutchColony2,
-                                  e_nation::dutch );
+      W.found_colony_with_new_unit( kDutchColony2,
+                                    e_nation::dutch );
   auto [french_colony, french_founder] =
-      W.add_colony_with_new_unit( kFrenchColony,
-                                  e_nation::french );
+      W.found_colony_with_new_unit( kFrenchColony,
+                                    e_nation::french );
   W.add_unit_indoors( dutch_colony1.id, e_indoor_job::bells );
   W.add_unit_indoors( dutch_colony2.id, e_indoor_job::bells );
   W.add_unit_indoors( dutch_colony2.id, e_indoor_job::bells );

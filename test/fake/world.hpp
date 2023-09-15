@@ -199,21 +199,28 @@ struct World {
   // ------------------------------------------------------------
   // Creating Colonies.
   // ------------------------------------------------------------
-  // Create a colony using the founder unit on the same square as
-  // the unit.
-  Colony& add_colony( UnitId founder );
-
   // This one will create an empty colony with no units (though
   // it will have the default set of buildings). It is not really
   // a valid colony therefore, but should be fine for testing.
+  // This one should be preferred where it works, since it is
+  // fastest.
   Colony& add_colony( Coord           where,
                       maybe<e_nation> nation = nothing );
 
-  // This will create a free colonist on the square and use it to
-  // found a colony, thus it should be a realistic valid colony.
-  std::pair<Colony&, Unit&> add_colony_with_new_unit(
+  // Create a colony using the founder unit on the same square as
+  // the unit, and uses the same routine to do so as is used by
+  // the game, thus it should be a realistic colony. For that
+  // same reason, this should probably not be used often in unit
+  // tests since it typically does more than what is necessary,
+  // but it is hear in case it is needed.
+  Colony& found_colony( UnitId founder );
+  // Same as above but will first create a free colonist on the
+  // square and then use it to found the colony.
+  std::pair<Colony&, Unit&> found_colony_with_new_unit(
       Coord where, maybe<e_nation> nation = nothing );
 
+  // Calls the proper destroy_colony method on all colonies for
+  // the given nation. E.g., it will also erase the road.
   void kill_all_colonies( maybe<e_nation> nation = nothing );
 
   // ------------------------------------------------------------

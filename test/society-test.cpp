@@ -119,7 +119,7 @@ TEST_CASE( "[society] society_on_square" ) {
 
   SECTION( "colony" ) {
     where = { .x = 1, .y = 1 };
-    W.add_colony_with_new_unit( where, e_nation::french );
+    W.found_colony_with_new_unit( where, e_nation::french );
     expected = Society::european{ .nation = e_nation::french };
     REQUIRE( f() == expected );
   }

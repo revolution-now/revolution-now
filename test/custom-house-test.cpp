@@ -64,7 +64,8 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[custom-house] set_default_custom_house_state" ) {
   World W;
-  auto [colony, founder] = W.add_colony_with_new_unit( Coord{} );
+  auto [colony, founder] =
+      W.found_colony_with_new_unit( Coord{} );
 
   // Sanity check.
   for( auto& [comm, on] : colony.custom_house ) {
@@ -94,8 +95,9 @@ TEST_CASE( "[custom-house] set_default_custom_house_state" ) {
 
 TEST_CASE( "[custom-house] apply_custom_house_sales" ) {
   World   W;
-  Player& player         = W.default_player();
-  auto [colony, founder] = W.add_colony_with_new_unit( Coord{} );
+  Player& player = W.default_player();
+  auto [colony, founder] =
+      W.found_colony_with_new_unit( Coord{} );
   CustomHouseSales sales;
 
   auto f = [&] {
@@ -203,7 +205,8 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
   World W;
   W.settings().difficulty = e_difficulty::conquistador;
   Player& dutch           = W.dutch();
-  auto [colony, founder] = W.add_colony_with_new_unit( Coord{} );
+  auto [colony, founder] =
+      W.found_colony_with_new_unit( Coord{} );
   CustomHouseSales expected;
   colony.buildings[e_colony_building::custom_house] = true;
   for( e_commodity comm : refl::enum_values<e_commodity> ) {
@@ -393,7 +396,8 @@ TEST_CASE(
   W.set_human_player( e_nation::french );
   french.revolution_status = e_revolution_status::not_declared;
   // Init colony.
-  auto [colony, founder] = W.add_colony_with_new_unit( Coord{} );
+  auto [colony, founder] =
+      W.found_colony_with_new_unit( Coord{} );
   colony.buildings[e_colony_building::custom_house] = true;
   colony.commodities[e_commodity::silver]           = 150;
   colony.custom_house[e_commodity::silver]          = true;
@@ -477,7 +481,8 @@ TEST_CASE(
   W.set_human_player( e_nation::dutch );
   dutch.revolution_status = e_revolution_status::not_declared;
   // Init colony.
-  auto [colony, founder] = W.add_colony_with_new_unit( Coord{} );
+  auto [colony, founder] =
+      W.found_colony_with_new_unit( Coord{} );
   colony.buildings[e_colony_building::custom_house] = true;
   colony.commodities[e_commodity::silver]           = 150;
   colony.custom_house[e_commodity::silver]          = true;

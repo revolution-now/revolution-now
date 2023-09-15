@@ -497,7 +497,7 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
     int const kClearTurnsRequired = 6;
     int const kPlowTurnsRequired  = 5;
 
-    W.add_colony_with_new_unit( { .x = 1, .y = 1 } );
+    W.found_colony_with_new_unit( { .x = 1, .y = 1 } );
 
     // Tell unit to start clearing work.
     unit.orders() = unit_orders::plow{ .turns_worked = 0 };
@@ -553,9 +553,9 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
     int const kClearTurnsRequired = 3;
     int const kPlowTurnsRequired  = 2;
 
-    W.add_colony_with_new_unit( { .x = 0, .y = 0 } );
+    W.found_colony_with_new_unit( { .x = 0, .y = 0 } );
     auto [with_lumber_mill, founder1] =
-        W.add_colony_with_new_unit( { .x = 1, .y = 2 } );
+        W.found_colony_with_new_unit( { .x = 1, .y = 2 } );
     with_lumber_mill.buildings[e_colony_building::lumber_mill] =
         true;
     // Give this one just enough lumber so that the one that also
@@ -564,7 +564,7 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
     with_lumber_mill.commodities[e_commodity::lumber] = 20;
     // Should be too far.
     auto [with_lumber_mill_too_far, founder2] =
-        W.add_colony_with_new_unit( { .x = 4, .y = 0 } );
+        W.found_colony_with_new_unit( { .x = 4, .y = 0 } );
     with_lumber_mill_too_far
         .buildings[e_colony_building::lumber_mill] = true;
     BASE_CHECK( W.ss().colonies.all().size() == 3 );

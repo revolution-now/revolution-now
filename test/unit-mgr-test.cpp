@@ -198,7 +198,7 @@ TEST_CASE( "[unit-mgr] coord_for_unit_multi_ownership" ) {
   World W;
 
   SECTION( "colonist in colony" ) {
-    W.add_colony_with_new_unit( { .x = 1, .y = 1 } );
+    W.found_colony_with_new_unit( { .x = 1, .y = 1 } );
     UnitId const id{ 1 };
     REQUIRE(
         !coord_for_unit_indirect( W.units(), id ).has_value() );

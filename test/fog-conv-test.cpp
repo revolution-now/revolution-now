@@ -223,9 +223,9 @@ TEST_CASE( "[visibility] copy_real_square_to_fog_square" ) {
       W.add_colony( { .x = 0, .y = 1 }, e_nation::spanish );
   coord    = { .x = 0, .y = 1 };
   expected = {
-      .square =
-          MapSquare{ .surface = e_surface::land,
-                     .ground  = e_ground_terrain::grassland },
+      .square = MapSquare{ .surface = e_surface::land,
+                           .ground = e_ground_terrain::grassland,
+                           .road   = true },
       .colony = FogColony{ .nation   = e_nation::spanish,
                            .name     = "1",
                            .location = { .x = 0, .y = 1 } } };
@@ -235,9 +235,9 @@ TEST_CASE( "[visibility] copy_real_square_to_fog_square" ) {
   colony.name = "hello";
   coord       = { .x = 0, .y = 1 };
   expected    = {
-         .square =
-          MapSquare{ .surface = e_surface::land,
-                        .ground  = e_ground_terrain::grassland },
+         .square = MapSquare{ .surface = e_surface::land,
+                              .ground = e_ground_terrain::grassland,
+                              .road   = true },
          .colony = FogColony{ .nation   = e_nation::spanish,
                               .name     = "hello",
                               .location = { .x = 0, .y = 1 } } };

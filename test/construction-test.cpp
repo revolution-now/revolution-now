@@ -697,7 +697,7 @@ TEST_CASE(
 TEST_CASE( "[construction] rush_construction_cost" ) {
   World W;
   auto [colony, founder] =
-      W.add_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
+      W.found_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
   Player& player = W.default_player();
 
   maybe<RushConstruction> expected;
@@ -930,7 +930,7 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
 #endif
   World W;
   auto [colony, founder] =
-      W.add_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
+      W.found_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
   Player& player = W.default_player();
 
   Construction     project;

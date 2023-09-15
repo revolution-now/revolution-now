@@ -109,7 +109,6 @@ TEST_CASE(
     // Order matters here; needs to be in order of increasing
     // visibility.
     no,
-    yes_but_hidden,
     yes_and_visible_to_owner,
     yes_and_visible_to_both,
   };
@@ -129,7 +128,8 @@ TEST_CASE(
       Colony& colony = W.add_colony( W.kAttackerColonyCoord,
                                      W.kAttackerNation );
       colony.name    = "attacker colony";
-      if( params.attacker_colony > e_colony::yes_but_hidden ) {
+      if( params.attacker_colony >=
+          e_colony::yes_and_visible_to_owner ) {
         W.map_updater().make_squares_visible(
             W.kAttackerNation, { colony.location } );
         if( params.attacker_colony >
@@ -143,7 +143,8 @@ TEST_CASE(
       Colony& colony = W.add_colony( W.kDefenderColonyCoord,
                                      W.kDefenderNation );
       colony.name    = "defender colony";
-      if( params.defender_colony > e_colony::yes_but_hidden ) {
+      if( params.defender_colony >=
+          e_colony::yes_and_visible_to_owner ) {
         W.map_updater().make_squares_visible(
             W.kDefenderNation, { colony.location } );
         if( params.defender_colony >
@@ -722,11 +723,11 @@ TEST_CASE(
         .winner           = e_combat_winner::defender,
         .attacker_outcome = EuroUnitCombatOutcome::destroyed{},
         .defender_outcome = EuroUnitCombatOutcome::no_change{},
-        .attacker_colony  = e_colony::yes_but_hidden };
+        .attacker_colony  = e_colony::yes_and_visible_to_owner };
     expected = {
         .summaries = { .attacker =
                            "[French] Expert Farmer defeats "
-                           "[Dutch] in the wilderness!",
+                           "[Dutch] near attacker colony!",
                        .defender =
                            "[French] Expert Farmer defeats "
                            "[Dutch] in the wilderness!" },
@@ -822,7 +823,6 @@ TEST_CASE(
     // Order matters here; needs to be in order of increasing
     // visibility.
     no,
-    yes_but_hidden,
     yes_and_visible,
   };
 
@@ -840,7 +840,7 @@ TEST_CASE(
       Colony& colony = W.add_colony( W.kDefenderColonyCoord,
                                      W.kDefenderNation );
       colony.name    = "defender colony";
-      if( params.defender_colony > e_colony::yes_but_hidden ) {
+      if( params.defender_colony >= e_colony::yes_and_visible ) {
         W.map_updater().make_squares_visible(
             W.kDefenderNation, { colony.location } );
         if( params.defender_colony >
@@ -1131,7 +1131,6 @@ TEST_CASE(
     // Order matters here; needs to be in order of increasing
     // visibility.
     no,
-    yes_but_hidden,
     yes_and_visible_to_owner,
     yes_and_visible_to_both,
   };
@@ -1153,7 +1152,8 @@ TEST_CASE(
       Colony& colony = W.add_colony( W.kAttackerColonyCoord,
                                      W.kAttackerNation );
       colony.name    = "attacker colony";
-      if( params.attacker_colony > e_colony::yes_but_hidden ) {
+      if( params.attacker_colony >=
+          e_colony::yes_and_visible_to_owner ) {
         W.map_updater().make_squares_visible(
             W.kAttackerNation, { colony.location } );
         if( params.attacker_colony >
@@ -1167,7 +1167,8 @@ TEST_CASE(
       Colony& colony = W.add_colony( W.kDefenderColonyCoord,
                                      W.kDefenderNation );
       colony.name    = "defender colony";
-      if( params.defender_colony > e_colony::yes_but_hidden ) {
+      if( params.defender_colony >=
+          e_colony::yes_and_visible_to_owner ) {
         W.map_updater().make_squares_visible(
             W.kDefenderNation, { colony.location } );
         if( params.defender_colony >
@@ -1585,7 +1586,7 @@ TEST_CASE(
   BASE_CHECK(
       W.kNativeRaiderCoord.direction_to( W.kDefenderColonyCoord )
           .has_value() );
-  auto [colony, founder] = W.add_colony_with_new_unit(
+  auto [colony, founder] = W.found_colony_with_new_unit(
       W.kDefenderColonyCoord, W.kDefenderNation );
   colony.name = "raided-colony";
 
@@ -1785,7 +1786,6 @@ TEST_CASE(
     // Order matters here; needs to be in order of increasing
     // visibility.
     no,
-    yes_but_hidden,
     yes_and_visible,
   };
 
@@ -1803,7 +1803,7 @@ TEST_CASE(
       Colony& colony = W.add_colony( W.kAttackerColonyCoord,
                                      W.kAttackerNation );
       colony.name    = "attacker colony";
-      if( params.attacker_colony > e_colony::yes_but_hidden ) {
+      if( params.attacker_colony >= e_colony::yes_and_visible ) {
         W.map_updater().make_squares_visible(
             W.kAttackerNation, { colony.location } );
         if( params.attacker_colony >
@@ -1955,7 +1955,6 @@ TEST_CASE(
     // Order matters here; needs to be in order of increasing
     // visibility.
     no,
-    yes_but_hidden,
     yes_and_visible,
   };
 
@@ -1972,7 +1971,7 @@ TEST_CASE(
       Colony& colony = W.add_colony( W.kAttackerColonyCoord,
                                      W.kAttackerNation );
       colony.name    = "attacker colony";
-      if( params.attacker_colony > e_colony::yes_but_hidden ) {
+      if( params.attacker_colony >= e_colony::yes_and_visible ) {
         W.map_updater().make_squares_visible(
             W.kAttackerNation, { colony.location } );
         if( params.attacker_colony >
@@ -2077,7 +2076,6 @@ TEST_CASE(
     // Order matters here; needs to be in order of increasing
     // visibility.
     no,
-    yes_but_hidden,
     yes_and_visible_to_owner,
     yes_and_visible_to_both,
   };
@@ -2096,7 +2094,8 @@ TEST_CASE(
       Colony& colony = W.add_colony( W.kAttackerColonyCoord,
                                      W.kAttackerNation );
       colony.name    = "attacker colony";
-      if( params.attacker_colony > e_colony::yes_but_hidden ) {
+      if( params.attacker_colony >=
+          e_colony::yes_and_visible_to_owner ) {
         W.map_updater().make_squares_visible(
             W.kAttackerNation, { colony.location } );
         if( params.attacker_colony >

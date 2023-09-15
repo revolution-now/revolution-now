@@ -30,6 +30,7 @@
 #include "src/minds.hpp"
 #include "src/missionary.hpp"
 #include "src/plane-stack.hpp"
+#include "src/road.hpp"
 #include "src/ts.hpp"
 #include "src/unit-mgr.hpp"
 
@@ -449,10 +450,10 @@ void World::set_default_player_as_human() {
   set_human_player( default_nation() );
 }
 
-Colony& World::add_colony( UnitId founder ) {
+Colony& World::found_colony( UnitId founder ) {
   string name = fmt::to_string(
       colonies().last_colony_id().value_or( 0 ) + 1 );
-  ColonyId id = found_colony(
+  ColonyId id = rn::found_colony(
       ss(), ts(),
       player( ss().units.unit_for( founder ).nation() ), founder,
       name );
@@ -463,19 +464,23 @@ Colony& World::add_colony( Coord           where,
                            maybe<e_nation> nation ) {
   string name = fmt::to_string(
       colonies().last_colony_id().value_or( 0 ) + 1 );
-  Colony& colony   = colonies().colony_for( create_empty_colony(
+  Colony& colony = colonies().colony_for( create_empty_colony(
       colonies(), nation.value_or( default_nation_ ), where,
       name ) );
+  // Reproduce the things that we need that "found_colony" does.
   colony.buildings = config_colony.initial_colony_buildings;
+  // This will also have the effect of making the square visible
+  // in the player map.
+  set_road( map_updater(), where );
   return colony;
 }
 
-pair<Colony&, Unit&> World::add_colony_with_new_unit(
+pair<Colony&, Unit&> World::found_colony_with_new_unit(
     Coord where, maybe<e_nation> nation ) {
   if( !nation ) nation = default_nation_;
   Unit&   founder = add_unit_on_map( e_unit_type::free_colonist,
                                      where, *nation );
-  Colony& colony  = add_colony( founder.id() );
+  Colony& colony  = this->found_colony( founder.id() );
   return { colony, founder };
 }
 

@@ -201,7 +201,7 @@ TEST_CASE( "[on-map] interactive: discovers pacific ocean" ) {
 TEST_CASE( "[on-map] interactive: treasure in colony" ) {
   World   W;
   Player& player = W.default_player();
-  W.add_colony_with_new_unit( W.kColonySquare );
+  W.found_colony_with_new_unit( W.kColonySquare );
   UnitId const unit_id =
       W.add_unit_on_map( e_unit_type::treasure,
                          { .x = 1, .y = 0 } )

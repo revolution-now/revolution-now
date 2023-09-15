@@ -62,7 +62,8 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[missionary] can_bless_missionaries" ) {
   World W;
-  auto [colony, founder] = W.add_colony_with_new_unit( Coord{} );
+  auto [colony, founder] =
+      W.found_colony_with_new_unit( Coord{} );
 
   // First with no buildings.
   REQUIRE( can_bless_missionaries( colony ) == false );
@@ -117,7 +118,8 @@ TEST_CASE( "[missionary] unit_can_be_blessed" ) {
 
 TEST_CASE( "[missionary] bless_as_missionary" ) {
   World W;
-  auto [colony, founder] = W.add_colony_with_new_unit( Coord{} );
+  auto [colony, founder] =
+      W.found_colony_with_new_unit( Coord{} );
   UnitType input, expected;
 
   auto f = [&]( UnitType type ) {

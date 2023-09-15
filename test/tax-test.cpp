@@ -211,7 +211,8 @@ TEST_CASE( "[tax] apply_tax_result" ) {
   W.turn().time_point.turns       = 5;
   player.old_world.taxes.tax_rate = 50;
 
-  auto [colony, founder] = W.add_colony_with_new_unit( Coord{} );
+  auto [colony, founder] =
+      W.found_colony_with_new_unit( Coord{} );
 
   int bid = 1;
   for( e_commodity type : refl::enum_values<e_commodity> ) {
@@ -285,8 +286,9 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
   TaxChangeProposal proposal;
   TaxChangeResult   expected;
 
-  auto [colony, founder] = W.add_colony_with_new_unit( Coord{} );
-  colony.name            = "my colony";
+  auto [colony, founder] =
+      W.found_colony_with_new_unit( Coord{} );
+  colony.name = "my colony";
 
   auto f = [&] {
     wait<TaxChangeResult> w = prompt_for_tax_change_result(
@@ -471,9 +473,9 @@ TEST_CASE( "[tax] compute_tax_change" ) {
 
         SECTION( "with colonies" ) {
           auto [colony1, founder1] =
-              W.add_colony_with_new_unit( Coord{} );
+              W.found_colony_with_new_unit( Coord{} );
           auto [colony2, founder2] =
-              W.add_colony_with_new_unit( Coord{ .x = 2 } );
+              W.found_colony_with_new_unit( Coord{ .x = 2 } );
 
           // Tax change amount.
           W.rand()
@@ -605,9 +607,9 @@ TEST_CASE(
   player.old_world.taxes.next_tax_event_turn = 37;
 
   auto [colony1, founder1] =
-      W.add_colony_with_new_unit( { .x = 2, .y = 3 } );
+      W.found_colony_with_new_unit( { .x = 2, .y = 3 } );
   auto [colony2, founder2] =
-      W.add_colony_with_new_unit( { .x = 0, .y = 3 } );
+      W.found_colony_with_new_unit( { .x = 0, .y = 3 } );
 
   // Sanity check that we're testing what we think we're testing.
   REQUIRE_FALSE( colony_has_ocean_access(
@@ -683,11 +685,11 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
   player.old_world.taxes.tax_rate            = 72;
 
   auto [colony1, founder1] =
-      W.add_colony_with_new_unit( Coord{} );
+      W.found_colony_with_new_unit( Coord{} );
   colony1.name = "my colony 1";
   colony1.sons_of_liberty.num_rebels_from_bells_only = .3;
   auto [colony2, founder2] =
-      W.add_colony_with_new_unit( Coord{ .x = 2 } );
+      W.found_colony_with_new_unit( Coord{ .x = 2 } );
   colony2.name = "my colony 2";
   colony2.sons_of_liberty.num_rebels_from_bells_only = .4;
 
@@ -794,8 +796,8 @@ TEST_CASE( "[tax] compute_tax_change when over max" ) {
   W.turn().time_point.turns                  = 38;
   player.old_world.taxes.next_tax_event_turn = 37;
 
-  W.add_colony_with_new_unit( Coord{} );
-  W.add_colony_with_new_unit( Coord{ .x = 2 } );
+  W.found_colony_with_new_unit( Coord{} );
+  W.found_colony_with_new_unit( Coord{ .x = 2 } );
 
   // Tax change amount.
   W.rand()
