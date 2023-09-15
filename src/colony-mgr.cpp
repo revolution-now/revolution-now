@@ -461,7 +461,7 @@ wait<> run_colony_starvation( SS& ss, TS& ts, Colony& colony ) {
       "its last remaining colonists.  As a result, the colony "
       "has disappeared.",
       colony.name );
-  co_await run_colony_destruction(
+  co_await run_animated_colony_destruction(
       ss, ts, colony, e_ship_damaged_reason::colony_starved,
       msg );
   // !! Do not reference `colony` beyond this point.
