@@ -103,6 +103,10 @@ wait<> handle_native_unit_command(
       MovementPointsAnalysis const mv_analysis =
           can_native_unit_move_based_on_mv_points(
               ts, native_unit, needed );
+      // Note that the AI may select a move that ends up not
+      // being allowed on the basis of movement points since the
+      // unit may have less movement points that required and
+      // hence it comes down to probabilitity.
       MovementPoints const to_subtract =
           mv_analysis.points_to_subtract();
       CHECK_GT( to_subtract, 0 );
