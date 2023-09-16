@@ -228,6 +228,10 @@ wait<base::valid_or<DragRejection>> ColonyLandView::sink_check(
   Colony const& colony = ss_.colonies.colony_for( colony_.id );
   UNWRAP_CHECK( d, direction_under_cursor( where ) );
   Coord const tile_under_cursor = colony.location.moved( d );
+  if( !ss_.terrain.square_exists( tile_under_cursor ) )
+    co_return DragRejection{
+        .reason =
+            "This tile is beyond the bounds of the world map." };
   MapSquare const& square =
       ss_.terrain.square_at( tile_under_cursor );
 
