@@ -164,6 +164,41 @@ TEST_CASE( "[damaged] find_repair_port_for_ship" ) {
   REQUIRE( f() == expected );
 }
 
+// This tests that if a ship is damaged in the port of a colony
+// that has a drydock that the algo will find the colony it is in
+// for repair instead of sending it elsewhere.
+TEST_CASE( "[damaged] find_repair_port_for_ship from land" ) {
+  World W;
+
+  maybe<ShipRepairPort> expected      = {};
+  Coord const           ship_location = { .x = 2, .y = 3 };
+
+  auto f = [&] {
+    return find_repair_port_for_ship( W.ss(), W.default_nation(),
+                                      ship_location );
+  };
+
+  // No colonies.
+  expected = ShipRepairPort::european_harbor{};
+  REQUIRE( f() == expected );
+
+  // Colocated colony with no drydock.
+  Colony& colony_1 = W.add_colony( ship_location );
+  expected         = ShipRepairPort::european_harbor{};
+  REQUIRE( f() == expected );
+
+  // Non-colocated colony with drydock.
+  Colony& colony_2 = W.add_colony( { .x = 5, .y = 4 } );
+  colony_2.buildings[e_colony_building::drydock] = true;
+  expected = ShipRepairPort::colony{ .id = colony_2.id };
+  REQUIRE( f() == expected );
+
+  // Colocated colony with drydock.
+  colony_1.buildings[e_colony_building::drydock] = true;
+  expected = ShipRepairPort::colony{ .id = colony_1.id };
+  REQUIRE( f() == expected );
+}
+
 TEST_CASE( "[damaged] ship_still_damaged_message" ) {
   World  W;
   string expected;
