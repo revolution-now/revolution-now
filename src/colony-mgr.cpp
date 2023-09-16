@@ -22,12 +22,14 @@
 #include "damaged.hpp"
 #include "enum.hpp"
 #include "harbor-units.hpp"
+#include "ieuro-mind.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
 #include "immigration.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "map-square.hpp"
+#include "minds.hpp"
 #include "native-owned.hpp"
 #include "plane-stack.hpp"
 #include "rand.hpp"
@@ -828,12 +830,13 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
   // Must extract this info before destroying the colony.
   string const   colony_name   = colony.name;
   e_nation const colony_nation = colony.nation;
+  IEuroMind&     mind          = ts.euro_minds[colony.nation];
   // In case it hasn't already been done...
   clear_abandoned_colony_road( ss, ts.map_updater,
                                colony.location );
   ColonyDestructionOutcome const outcome =
       destroy_colony( ss, ts, colony );
-  if( msg.has_value() ) co_await ts.gui.message_box( *msg );
+  if( msg.has_value() ) co_await mind.message_box( *msg );
   // Check if there are any ships in port.
   for( auto [unit_type, count] :
        outcome.ships_that_were_in_port ) {
@@ -852,7 +855,7 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
           ship_damaged_reason( reason ), verb,
           ship_repair_port_name( ss, colony_nation,
                                  *outcome.port ) );
-      co_await ts.gui.message_box( msg );
+      co_await mind.message_box( msg );
     } else {
       string const msg = fmt::format(
           "Port in [{}] contained {} [{}] that {} damaged {} "
@@ -860,7 +863,7 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
           "repair.",
           colony_name, count_str, unit_type_name, verb,
           ship_damaged_reason( reason ) );
-      co_await ts.gui.message_box( msg );
+      co_await mind.message_box( msg );
     }
   }
 }

@@ -12,6 +12,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/land-view-plane.hpp"
 #include "test/util/coro.hpp"
@@ -468,7 +469,7 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     W.planes().back().land_view = &mock_land_view;
 
     mock_land_view.EXPECT__animate( _ ).returns( make_wait<>() );
-    W.gui()
+    W.euro_mind()
         .EXPECT__message_box( "some msg" )
         .returns( make_wait<>() );
 
@@ -484,7 +485,7 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     MockLandViewPlane mock_land_view;
     W.planes().back().land_view = &mock_land_view;
 
-    W.gui()
+    W.euro_mind()
         .EXPECT__message_box( "some msg" )
         .returns( make_wait<>() );
 
@@ -508,16 +509,16 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
 
     SECTION( "reason=battle" ) {
       ship_damaged_reason = e_ship_damaged_reason::battle;
-      W.gui()
+      W.euro_mind()
           .EXPECT__message_box( "some msg" )
           .returns( make_wait<>() );
-      W.gui()
+      W.euro_mind()
           .EXPECT__message_box(
               "Port in [1] contained two [Caravels] that were "
               "damaged in battle and were sent to [Amsterdam] "
               "for repairs." )
           .returns( make_wait<>() );
-      W.gui()
+      W.euro_mind()
           .EXPECT__message_box(
               "Port in [1] contained one [Merchantman] that was "
               "damaged in battle and was sent to [Amsterdam] "
@@ -528,16 +529,16 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     SECTION( "reason=colony_abandoned" ) {
       ship_damaged_reason =
           e_ship_damaged_reason::colony_abandoned;
-      W.gui()
+      W.euro_mind()
           .EXPECT__message_box( "some msg" )
           .returns( make_wait<>() );
-      W.gui()
+      W.euro_mind()
           .EXPECT__message_box(
               "Port in [1] contained two [Caravels] that were "
               "damaged during colony collapse and were sent "
               "to [Amsterdam] for repairs." )
           .returns( make_wait<>() );
-      W.gui()
+      W.euro_mind()
           .EXPECT__message_box(
               "Port in [1] contained one [Merchantman] that was "
               "damaged during colony collapse and was sent to "
@@ -548,16 +549,16 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     SECTION( "reason=colony_starved" ) {
       ship_damaged_reason =
           e_ship_damaged_reason::colony_starved;
-      W.gui()
+      W.euro_mind()
           .EXPECT__message_box( "some msg" )
           .returns( make_wait<>() );
-      W.gui()
+      W.euro_mind()
           .EXPECT__message_box(
               "Port in [1] contained two [Caravels] that were "
               "damaged during colony collapse and were sent "
               "to [Amsterdam] for repairs." )
           .returns( make_wait<>() );
-      W.gui()
+      W.euro_mind()
           .EXPECT__message_box(
               "Port in [1] contained one [Merchantman] that was "
               "damaged during colony collapse and was sent to "
@@ -605,16 +606,16 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     mock_land_view.EXPECT__animate( _ );
 
     ship_damaged_reason = e_ship_damaged_reason::battle;
-    W.gui()
+    W.euro_mind()
         .EXPECT__message_box( "some msg" )
         .returns( make_wait<>() );
-    W.gui()
+    W.euro_mind()
         .EXPECT__message_box(
             "Port in [1] contained two [Caravels] that were "
             "damaged in battle and destroyed as there are no "
             "available ports for repair." )
         .returns( make_wait<>() );
-    W.gui()
+    W.euro_mind()
         .EXPECT__message_box(
             "Port in [1] contained one [Merchantman] that was "
             "damaged in battle and destroyed as there are no "
