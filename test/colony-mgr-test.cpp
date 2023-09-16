@@ -445,6 +445,50 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
             .st = { .port_status = PortStatus::in_port{} } } );
   }
 
+  // This will make sure that sure that units on ships will be
+  // offboarded before the ships are marked as damaged.
+  SECTION( "non interactive with ships containing units" ) {
+    Unit const& ship1 =
+        W.add_unit_on_map( e_unit_type::caravel, loc );
+    Unit const& ship2 =
+        W.add_unit_on_map( e_unit_type::merchantman, loc );
+    Unit const& ship3 =
+        W.add_unit_on_map( e_unit_type::caravel, loc );
+    Unit const& free_colonist = W.add_unit_in_cargo(
+        e_unit_type::free_colonist, ship1.id() );
+    Unit const& soldier =
+        W.add_unit_in_cargo( e_unit_type::soldier, ship2.id() );
+    UnitId const ship1_id         = ship1.id();
+    UnitId const ship2_id         = ship2.id();
+    UnitId const ship3_id         = ship3.id();
+    UnitId const free_colonist_id = free_colonist.id();
+    UnitId const soldier_id       = soldier.id();
+    destroy_colony( W.ss(), W.ts(), colony );
+    REQUIRE( !player_square->colony.has_value() );
+    REQUIRE( W.units().exists( ship1_id ) );
+    REQUIRE( W.units().exists( ship2_id ) );
+    REQUIRE( W.units().exists( ship3_id ) );
+    REQUIRE( W.units().exists( free_colonist_id ) );
+    REQUIRE( W.units().exists( soldier_id ) );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( ship1.id() ) ==
+        UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{} } } );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( ship2.id() ) ==
+        UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{} } } );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( ship3.id() ) ==
+        UnitOwnership::harbor{
+            .st = { .port_status = PortStatus::in_port{} } } );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( free_colonist_id ) ==
+        UnitOwnership::world{ .coord = loc } );
+    REQUIRE( as_const( W.units() ).ownership_of( soldier_id ) ==
+             UnitOwnership::world{ .coord = loc } );
+  }
+
   SECTION( "non interactive with ships, post-revolution" ) {
     W.default_player().revolution_status =
         e_revolution_status::declared;

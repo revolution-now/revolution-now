@@ -759,6 +759,15 @@ ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
     destroy_unit( ss, unit_id );
   }
   CHECK( colony_population( colony ) == 0 );
+  // Remove any units from the cargo of ships, since those ships
+  // will be damaged or sunk, and we want to replicate the be-
+  // havior of the OG which does not have the concept of units on
+  // ships, so those units in the OG would have just been at the
+  // gate and sentried. Note that in some cases, such as when a
+  // colony is destroyed as a result of an attack, this may have
+  // been done in advance, e.g. to offboard any soldiers needed
+  // to defend the colony. In that case this just does nothing.
+  offboard_units_on_ships( ss, ts, colony_location );
   clear_abandoned_colony_road( ss, ts.map_updater,
                                colony.location );
 
@@ -789,11 +798,10 @@ ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
     if( !ship.desc().ship ) continue;
     int& count = outcome.ships_that_were_in_port[ship.type()];
     ++count;
+    // We should have already removed these above, but just as a
+    // sanity check.
     int const num_units_onboard =
         ship.cargo().count_items_of_type<Cargo::unit>();
-    // This is to ensure that we replicate the behavior of the OG
-    // which does not have a concept of units on ships; it just
-    // has sentried units whose square conincides with a ship.
     CHECK( num_units_onboard == 0,
            "before a colony is destroyed, any units in the "
            "cargo of ships in its port must be removed." );
