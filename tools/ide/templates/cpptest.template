@@ -16,7 +16,7 @@
 {{INCLUDE_FAKE_WORLD}}
 
 // Must be last.
-#include "test/catch-common.hpp"
+#include "test/catch-common.hpp" // IWYU pragma: keep
 
 namespace {{NAMESPACE}} {
 namespace {
