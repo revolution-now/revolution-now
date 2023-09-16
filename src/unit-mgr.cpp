@@ -336,6 +336,41 @@ maybe<UnitId> is_unit_onboard( UnitsState const& units_state,
   return units_state.maybe_holder_of( id );
 }
 
+vector<UnitId> offboard_units_on_ships( SS& ss, TS& ts,
+                                        Coord coord ) {
+  // NOTE: offboarding units means putting them onto the map,
+  // which will change the set that we are iterating over here,
+  // which is why we gather the units to offboard before removing
+  // them.
+  vector<UnitId> const res = [&] { // RVO should be fine.
+    vector<UnitId> res;
+    for( GenericUnitId const id :
+         ss.units.from_coord( coord ) ) {
+      if( ss.units.unit_kind( id ) != e_unit_kind::euro )
+        continue;
+      Unit const& holder = ss.units.euro_unit_for( id );
+      if( !holder.desc().ship ) continue;
+      UNWRAP_CHECK( cargo_units, holder.units_in_cargo() );
+      for( UnitId const held_id : cargo_units )
+        res.push_back( held_id );
+    }
+    return res;
+  }();
+  for( UnitId const held_id : res ) {
+    // We can use the non-interactive version here because there
+    // is already a unit of the same nation on the same square
+    // (i.e. the ship).
+    unit_ownership_change_non_interactive(
+        ss, held_id,
+        EuroUnitOwnershipChangeTo::world{ .ts     = &ts,
+                                          .target = coord } );
+    // Reproduce the behavior of the OG where "units on ships"
+    // are really just sentried on the map.
+    ss.units.unit_for( held_id ).sentry();
+  }
+  return res;
+}
+
 /****************************************************************
 ** Native-specific
 *****************************************************************/

@@ -100,6 +100,19 @@ bool is_unit_on_map( UnitsState const& units_state, UnitId id );
 maybe<UnitId> is_unit_onboard( UnitsState const& units_state,
                                UnitId            id );
 
+// This is called on a colony square just before it is attacked.
+// It will eject all units (not commodities) from the cargo of
+// any ships that are on the square and mark those offboarded
+// units as sentried. This is to remove the ambiguity of what
+// happens when there are units on a ship in a colony port and
+// that colony is either attacked and/or destroyed. By first off-
+// boarding all units we are guaranteed to then replicate the be-
+// havior of the OG which does not have the concept of units on
+// ships technically. Returns a list of the units that were off-
+// boarded.
+std::vector<UnitId> offboard_units_on_ships( SS& ss, TS& ts,
+                                             Coord coord );
+
 /****************************************************************
 ** Creation
 *****************************************************************/

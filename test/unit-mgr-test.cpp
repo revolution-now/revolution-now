@@ -521,5 +521,95 @@ TEST_CASE( "[unit-mgr] unit_ownership_change" ) {
 }
 #endif
 
+TEST_CASE( "[unit-mgr] offboard_units_on_ships" ) {
+  World          W;
+  vector<UnitId> expected;
+
+  auto f = [&] {
+    return offboard_units_on_ships( W.ss(), W.ts(), W.kLand );
+  };
+
+  auto require_on_land = [&]( Unit const& unit ) {
+    REQUIRE( as_const( W.units() ).ownership_of( unit.id() ) ==
+             UnitOwnership::world{ .coord = W.kLand } );
+  };
+
+  auto require_sentried = [&]( Unit const& unit ) {
+    REQUIRE( unit.orders().holds<unit_orders::sentry>() );
+  };
+
+  auto require_not_sentried = [&]( Unit const& unit ) {
+    REQUIRE( !unit.orders().holds<unit_orders::sentry>() );
+  };
+
+  // No units.
+  SECTION( "this" ) {
+    expected = {};
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "one non-ship" ) {
+    Unit const& free_colonist =
+        W.add_unit_on_map( e_unit_type::free_colonist, W.kLand );
+
+    SECTION( "this" ) {
+      expected = {};
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "two non-ship" ) {
+      Unit const& soldier =
+          W.add_unit_on_map( e_unit_type::soldier, W.kLand );
+
+      SECTION( "this" ) {
+        expected = {};
+        REQUIRE( f() == expected );
+      }
+
+      SECTION( "two non-ship, one ship" ) {
+        Unit const& galleon =
+            W.add_unit_on_map( e_unit_type::galleon, W.kLand );
+
+        SECTION( "this" ) {
+          expected = {};
+          REQUIRE( f() == expected );
+        }
+
+        SECTION( "two non-ship, one ship with one unit" ) {
+          Unit const& indentured_servant = W.add_unit_in_cargo(
+              e_unit_type::indentured_servant, galleon.id() );
+
+          SECTION( "this" ) {
+            expected = { indentured_servant.id() };
+            REQUIRE( f() == expected );
+          }
+
+          SECTION( "two non-ship, one ship with two units" ) {
+            Unit const& dragoon = W.add_unit_in_cargo(
+                e_unit_type::dragoon, galleon.id() );
+            expected = { indentured_servant.id(), dragoon.id() };
+            REQUIRE( f() == expected );
+
+            require_on_land( dragoon );
+            require_sentried( dragoon );
+          }
+
+          require_on_land( indentured_servant );
+          require_sentried( indentured_servant );
+        }
+
+        require_on_land( galleon );
+        require_not_sentried( galleon );
+      }
+
+      require_on_land( soldier );
+      require_not_sentried( soldier );
+    }
+
+    require_on_land( free_colonist );
+    require_not_sentried( free_colonist );
+  }
+}
+
 } // namespace
 } // namespace rn
