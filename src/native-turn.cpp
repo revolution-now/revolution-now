@@ -59,9 +59,12 @@ namespace rn {
 
 namespace {
 
-bool should_animate_native_move( SSConst const&    ss,
-                                 Visibility const& viz,
-                                 Coord src, Coord dst ) {
+// This is for non-attack moves. Attack moves are handled else-
+// where, and they just rely on whether the viewing player can
+// see one of the squares in question.
+bool should_animate_native_travel( SSConst const&    ss,
+                                   Visibility const& viz,
+                                   Coord src, Coord dst ) {
   if( !ss.settings.game_options
            .flags[e_game_flag_option::show_indian_moves] )
     return false;
@@ -86,10 +89,6 @@ wait<> handle_native_unit_command(
     CASE( attack ) {
       Coord const src = ss.units.coord_for( native_unit.id );
       Coord const dst = src.moved( attack.direction );
-      if( should_animate_native_move( ss, viz, src, dst ) )
-        co_await ts.planes.land_view().animate(
-            anim_seq_for_unit_move( native_unit.id,
-                                    attack.direction ) );
       // Carry out attack.
       // !! Native unit may no longer exist here.
       native_unit.movement_points = 0;
@@ -113,7 +112,7 @@ wait<> handle_native_unit_command(
         CHECK_EQ( native_unit.movement_points, 0 );
         break;
       }
-      if( should_animate_native_move( ss, viz, src, dst ) )
+      if( should_animate_native_travel( ss, viz, src, dst ) )
         co_await ts.planes.land_view().animate(
             anim_seq_for_unit_move( native_unit.id,
                                     travel.direction ) );
