@@ -679,7 +679,7 @@ void move_unit_to_colony( SS& ss, TS& ts, Colony& colony,
       EuroUnitOwnershipChangeTo::colony_low_level{
           .colony_id = colony.id } );
   // Now add the unit to the colony.
-  SCOPE_EXIT( CHECK( colony.validate() ) );
+  SCOPE_EXIT { CHECK( colony.validate() ); };
   CHECK( !colony_has_unit( colony, unit_id ),
          "Unit {} already in colony.", unit_id );
   switch( job.to_enum() ) {
@@ -712,7 +712,7 @@ void remove_unit_from_colony( SS& ss, Colony& colony,
   unit_ownership_change_non_interactive(
       ss, unit_id, EuroUnitOwnershipChangeTo::free{} );
   // Now remove the unit from the colony.
-  SCOPE_EXIT( CHECK( colony.validate() ) );
+  SCOPE_EXIT { CHECK( colony.validate() ); };
 
   for( auto& [job, units] : colony.indoor_jobs ) {
     if( find( units.begin(), units.end(), unit_id ) !=

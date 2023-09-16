@@ -345,7 +345,7 @@ wait<> drag_drop_routine(
   // during the drag (e.g. early return, or cancellation) then
   // the source object will be told about it so that it can go
   // back to normal rendering of the dragged object.
-  SCOPE_EXIT( drag_source.cancel_drag() );
+  SCOPE_EXIT { drag_source.cancel_drag(); };
   if( !can_drag )
     NO_DRAG(
         "the source view does not allow dragging object {}.",
@@ -362,7 +362,7 @@ wait<> drag_drop_routine(
       .where                = origin,
       .click_offset = origin - source_object_bounds.upper_left(),
   };
-  SCOPE_EXIT( drag_state = nothing );
+  SCOPE_EXIT { drag_state = nothing; };
 
   // This can optionally be populated to be displayed as a mes-
   // sage to the user after the drag is rejected and the item is

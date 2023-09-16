@@ -36,7 +36,7 @@ wait<> wait_n_frames( FrameCount n ) {
   int64_t const subscription_id =
       subscribe_to_frame_tick( after_ticks, n,
                                /*repeating=*/false );
-  SCOPE_EXIT( unsubscribe_frame_tick( subscription_id ) );
+  SCOPE_EXIT { unsubscribe_frame_tick( subscription_id ); };
   // Need to keep p alive.
   co_await p.wait();
 }

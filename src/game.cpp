@@ -176,7 +176,7 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   ts.map_updater.redraw();
   // This is so that when the game is exited the terrain buffers
   // won't continue to render in the background.
-  SCOPE_EXIT( ts.map_updater.unrender() );
+  SCOPE_EXIT { ts.map_updater.unrender(); };
 
   play( rand, e_game_module_tune_points::start_game );
   // All of the above needs to stay alive, so we must wait.

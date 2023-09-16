@@ -793,7 +793,7 @@ wait<> AttackDwellingHandler::produce_convert() {
 wait<> AttackDwellingHandler::with_phantom_brave_combat(
     base::function_ref<PhantomCombatAnimatorFunc> func ) {
   NativeUnitId const phantom_brave = create_phantom_brave();
-  SCOPE_EXIT( ss_.units.destroy_unit( phantom_brave ) );
+  SCOPE_EXIT { ss_.units.destroy_unit( phantom_brave ); };
   CombatEuroAttackBrave phantom_combat{
       .winner   = combat_.winner,
       .attacker = combat_.attacker,

@@ -478,7 +478,9 @@ struct ResponderQueue {
                        fn_name_, formatted_args ) );
     }
     R& responder = answers_.front();
-    SCOPE_EXIT( if( responder.finished() ) answers_.pop(); );
+    SCOPE_EXIT {
+      if( responder.finished() ) answers_.pop();
+    };
     return responder( { std::forward<T>( args )... } );
   }
 };

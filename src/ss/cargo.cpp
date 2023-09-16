@@ -363,7 +363,7 @@ bool CargoHold::fits_somewhere( UnitsState const& units_state,
   // Do this so that this tmp cargo hold does not get destroyed
   // with stuff in it, which currently triggers a warning to be
   // logged to the console and slows things down.
-  SCOPE_EXIT( new_hold.o_.slots.clear() );
+  SCOPE_EXIT { new_hold.o_.slots.clear(); };
   return new_hold.try_add_somewhere( units_state, cargo,
                                      starting_slot );
 }

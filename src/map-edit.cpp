@@ -317,7 +317,7 @@ struct MapEditPlane::Impl : public Plane {
 
   wait<> dragging( input::e_mouse_button button,
                    Coord /*coord*/ ) {
-    SCOPE_EXIT( drag_finished = true );
+    SCOPE_EXIT { drag_finished = true; };
     if( button == input::e_mouse_button::r ) {
       while( maybe<DragUpdate> d = co_await drag_stream.next() )
         viewport().pan_by_screen_coords( d->prev - d->current );
@@ -638,7 +638,7 @@ wait<> run_map_editor_standalone( Planes& planes ) {
   lua_init( st );
   Terminal terminal( st );
   set_console_terminal( &terminal );
-  SCOPE_EXIT( set_console_terminal( nullptr ) );
+  SCOPE_EXIT { set_console_terminal( nullptr ); };
   lua::table::create_or_get( st["log"] )["console"] =
       [&]( string const& msg ) { terminal.log( msg ); };
   WindowPlane         window_plane;

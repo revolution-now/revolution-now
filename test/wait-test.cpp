@@ -644,18 +644,18 @@ string         places;
 
 wait<> exception_coro_early_level_2() {
   places += 'c';
-  SCOPE_EXIT( places += 'C' );
+  SCOPE_EXIT { places += 'C'; };
   throw runtime_error( "test" );
 }
 
 wait<> exception_coro_early_level_1() {
   places += 'a';
-  SCOPE_EXIT( places += 'A' );
+  SCOPE_EXIT { places += 'A'; };
   wait<> w = exception_coro_early_level_2();
   REQUIRE( w.has_exception() );
   co_await std::move( w );
   places += 'b';
-  SCOPE_EXIT( places += 'B' );
+  SCOPE_EXIT { places += 'B'; };
 }
 
 TEST_CASE( "[wait] exception coro early two_levels" ) {
@@ -669,10 +669,10 @@ TEST_CASE( "[wait] exception coro early two_levels" ) {
 
 wait<> exception_coro_simple() {
   places += 'a';
-  SCOPE_EXIT( places += 'A' );
+  SCOPE_EXIT { places += 'A'; };
   co_await exception_p0.wait();
   places += 'b';
-  SCOPE_EXIT( places += 'B' );
+  SCOPE_EXIT { places += 'B'; };
   throw runtime_error( "test" );
 }
 
@@ -711,44 +711,44 @@ TEST_CASE( "[wait] exception coro simple" ) {
 wait<> exception_0() {
   exception_p0.reset();
   places += 'l';
-  SCOPE_EXIT( places += 'L' );
+  SCOPE_EXIT { places += 'L'; };
   co_await exception_p0.wait();
   places += 'm';
-  SCOPE_EXIT( places += 'M' );
+  SCOPE_EXIT { places += 'M'; };
 }
 
 wait<> exception_2() {
   places += 'h';
-  SCOPE_EXIT( places += 'H' );
+  SCOPE_EXIT { places += 'H'; };
   co_await exception_p1.wait();
   places += 'i';
-  SCOPE_EXIT( places += 'I' );
+  SCOPE_EXIT { places += 'I'; };
   throw runtime_error( "test" );
 }
 
 wait<> exception_1() {
   places += 'e';
-  SCOPE_EXIT( places += 'E' );
+  SCOPE_EXIT { places += 'E'; };
   co_await exception_0();
   places += 'f';
-  SCOPE_EXIT( places += 'F' );
+  SCOPE_EXIT { places += 'F'; };
   co_await exception_2();
   places += 'g';
-  SCOPE_EXIT( places += 'G' );
+  SCOPE_EXIT { places += 'G'; };
 }
 
 wait<> exception_coro_complex() {
   places += 'a';
-  SCOPE_EXIT( places += 'A' );
+  SCOPE_EXIT { places += 'A'; };
   co_await exception_0();
   places += 'b';
-  SCOPE_EXIT( places += 'B' );
+  SCOPE_EXIT { places += 'B'; };
   co_await exception_1();
   places += 'c';
-  SCOPE_EXIT( places += 'C' );
+  SCOPE_EXIT { places += 'C'; };
   co_await exception_0();
   places += 'd';
-  SCOPE_EXIT( places += 'D' );
+  SCOPE_EXIT { places += 'D'; };
 }
 
 TEST_CASE( "[wait] exception coro complex" ) {

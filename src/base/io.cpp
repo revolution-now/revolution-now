@@ -76,7 +76,7 @@ read_text_file( fs::path const& file, maybe<size_t&> o_size ) {
   FILE* fp = ::fopen( file.string().c_str(), "rb" );
   if( fp == nullptr )
     return e_error_read_text_file::open_file_failure;
-  SCOPE_EXIT( ::fclose( fp ) );
+  SCOPE_EXIT { ::fclose( fp ); };
 
   size_t binary_size_read = 0;
 

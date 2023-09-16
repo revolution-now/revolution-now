@@ -55,7 +55,7 @@ string to_lower_str( string_view c ) {
 
 #define TRACE( letter ) \
   trace( #letter );     \
-  SCOPE_EXIT( trace( to_lower_str( #letter ) ) )
+  SCOPE_EXIT { trace( to_lower_str( #letter ) ); };
 
 #define REQUIRE_NO_EXCEPTION( w )                       \
   if( w.has_exception() ) {                             \
@@ -462,7 +462,7 @@ TEST_CASE( "[co-lua] scenario 1 coroutine.create" ) {
   // Removing this actually doesn't cause a crash at the time of
   // writing even when the test fails, but it seems like the
   // right thing to do anyway.
-  SCOPE_EXIT( st.script.run( "coroutine.close( coro )" ) );
+  SCOPE_EXIT { st.script.run( "coroutine.close( coro )" ); };
 
   run_all_coroutines();
   REQUIRE( trace_log == "CG" );

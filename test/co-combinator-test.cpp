@@ -546,7 +546,7 @@ string         places;
 
 #define LOG_PLACES( a, A ) \
   places += a;             \
-  SCOPE_EXIT( places += A );
+  SCOPE_EXIT { places += A; };
 
 wait<int> get_int_from_stream() {
   LOG_PLACES( 'a', 'A' );

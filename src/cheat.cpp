@@ -415,8 +415,9 @@ wait<> cheat_colony_buildings( Colony& colony, IGui& gui ) {
 void cheat_upgrade_unit_expertise( SS& ss, TS& ts, Unit& unit ) {
   RETURN_IF_NO_CHEAT;
   UnitType const original_type = unit.type_obj();
-  SCOPE_EXIT(
-      lg.debug( "{} --> {}", original_type, unit.type_obj() ) );
+  SCOPE_EXIT {
+    lg.debug( "{} --> {}", original_type, unit.type_obj() );
+  };
   if( !is_unit_a_colonist( unit.type_obj() ) ) return;
 
   // First just use the normal game logic to attempt a promotion.
@@ -472,8 +473,9 @@ void cheat_downgrade_unit_expertise( SS& ss, TS& ts,
                                      Unit& unit ) {
   RETURN_IF_NO_CHEAT;
   UnitType const original_type = unit.type_obj();
-  SCOPE_EXIT(
-      lg.debug( "{} --> {}", original_type, unit.type_obj() ) );
+  SCOPE_EXIT {
+    lg.debug( "{} --> {}", original_type, unit.type_obj() );
+  };
   if( !is_unit_a_colonist( unit.type_obj() ) ) return;
 
   if( !unit.desc().is_derived ) {

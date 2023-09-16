@@ -105,7 +105,7 @@ struct ScopedSet {
 //
 // Small expression:
 //
-//   SCOPE_EXIT( x = 5 );
+//   SCOPE_EXIT { x = 5; };
 //
 // Multi-line:
 //
@@ -113,11 +113,11 @@ struct ScopedSet {
 //     ...
 //     int x = 3;
 //     ...
-//     SCOPE_EXIT( {
+//     SCOPE_EXIT {
 //       x = 4;           // Captures outer context by ref.
 //       CHECK( x == 4 ); // Ok to throw exceptions.
 //       fmt::print( "hello" );
-//     } );
+//     };
 //     ...
 //   }
 //
@@ -127,9 +127,11 @@ struct ScopedSet {
 //
 // Exceptions: it is generally OK to throw exceptions from inside
 // the code snippet; see below for details.
-#define SCOPE_EXIT( code )                        \
-  base::ScopeExit STRING_JOIN( exit_, __LINE__ )( \
-      __FILE__, __LINE__, [&] { code; } )
+#define SCOPE_EXIT                                     \
+  auto STRING_JOIN( exit_, __LINE__ ) =                \
+      ::base::detail::scope_exit_grabber( __FILE__,    \
+                                          __LINE__ ) % \
+      [&]
 
 namespace detail {
 
@@ -188,5 +190,22 @@ struct ScopeExit {
   T           func_;
   int         exceptions_in_flight_{};
 };
+
+namespace detail {
+
+struct scope_exit_grabber {
+  scope_exit_grabber( char const* file, int line )
+    : file_( file ), line_( line ) {}
+
+  template<typename Func>
+  auto operator%( Func&& func ) const&& {
+    return ScopeExit( file_, line_, std::forward<Func>( func ) );
+  }
+
+  char const* file_{};
+  int         line_{};
+};
+
+} // namespace detail
 
 } // namespace base

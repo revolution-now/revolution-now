@@ -34,7 +34,9 @@ wait<> any( vector<wait<>> ws ) {
   // to the above promise which will be out of scope, which would
   // cause a crash if someone subsequently fulfilled another
   // promise in the list.
-  SCOPE_EXIT( for( auto& w : ws ) w.cancel() );
+  SCOPE_EXIT {
+    for( auto& w : ws ) w.cancel();
+  };
   // !! Need to co_await instead of just returning the wait<>
   // because we need to keep the ws alive (we own them now).
   co_await wp.wait();

@@ -25,7 +25,7 @@ TEST_CASE( "[scope-exit] SCOPE_EXIT" ) {
   SECTION( "one statement" ) {
     int x = 0;
     {
-      SCOPE_EXIT( x = 5 );
+      SCOPE_EXIT { x = 5; };
       x = 3;
       REQUIRE( x == 3 );
     }
@@ -34,10 +34,10 @@ TEST_CASE( "[scope-exit] SCOPE_EXIT" ) {
   SECTION( "block statement" ) {
     int y = 0;
     {
-      SCOPE_EXIT( {
+      SCOPE_EXIT {
         y = 4;
         y = 6;
-      } );
+      };
       y = 3;
       REQUIRE( y == 3 );
     }

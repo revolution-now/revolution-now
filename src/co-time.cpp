@@ -43,7 +43,7 @@ wait<chrono::microseconds> wait_for_duration(
   };
   int64_t const subscription_id = subscribe_to_frame_tick(
       after_time, us, /*repeating=*/false );
-  SCOPE_EXIT( unsubscribe_frame_tick( subscription_id ) );
+  SCOPE_EXIT { unsubscribe_frame_tick( subscription_id ); };
   // Need to keep p alive.
   co_return co_await p.wait();
 }

@@ -156,7 +156,7 @@ void MiniMap::fix_invariants() {
 
 MiniMap::MiniMap( SS& ss, gfx::size available_size )
   : ss_( ss ) {
-  SCOPE_EXIT( fix_invariants() );
+  SCOPE_EXIT { fix_invariants(); };
   // Compute size_screen_pixels_.
   gfx::size const world_size    = ss_.terrain.world_size_tiles();
   gfx::size const pixels_needed = world_size * kPixelsPerPoint;
@@ -176,7 +176,7 @@ MiniMap::MiniMap( SS& ss, gfx::size available_size )
 }
 
 void MiniMap::drag_map( gfx::size const mouse_delta ) {
-  SCOPE_EXIT( fix_invariants() );
+  SCOPE_EXIT { fix_invariants(); };
   SmoothViewport& viewport = ss_.land_view.viewport;
   viewport.stop_auto_zoom();
   viewport.stop_auto_panning();
@@ -260,7 +260,7 @@ void MiniMap::drag_map( gfx::size const mouse_delta ) {
 }
 
 void MiniMap::drag_box( gfx::size const mouse_delta ) {
-  SCOPE_EXIT( fix_invariants() );
+  SCOPE_EXIT { fix_invariants(); };
   SmoothViewport& viewport = ss_.land_view.viewport;
   viewport.stop_auto_zoom();
   viewport.stop_auto_panning();
@@ -338,7 +338,7 @@ gfx::drect MiniMap::fractional_tiles_inside_white_box() const {
 }
 
 void MiniMap::advance_auto_pan() {
-  SCOPE_EXIT( fix_invariants() );
+  SCOPE_EXIT { fix_invariants(); };
   MiniMapState& minimap   = ss_.land_view.minimap;
   gfx::drect    visible   = tiles_visible_on_minimap();
   gfx::drect    white_box = fractional_tiles_inside_white_box();

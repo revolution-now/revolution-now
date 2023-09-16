@@ -635,10 +635,10 @@ struct c_api {
   c_api( cthread state, bool own );
 
  private:
-  c_api( c_api const& ) = delete;
-  c_api( c_api&& )      = delete;
+  c_api( c_api const& )            = delete;
+  c_api( c_api&& )                 = delete;
   c_api& operator=( c_api const& ) = delete;
-  c_api& operator=( c_api&& ) = delete;
+  c_api& operator=( c_api&& )      = delete;
 
   // Not necessarily the main thread.
   cthread L_;
@@ -661,8 +661,10 @@ base::maybe<T> get( c_api& C, int idx, tag<T> t ) {
 *****************************************************************/
 // This requires including base/scope-exit.hpp and also requires
 // C to be in scope.
-#define SCOPE_CHECK_STACK_UNCHANGED         \
-  int starting_stack_size = C.stack_size(); \
-  SCOPE_EXIT( CHECK_EQ( C.stack_size(), starting_stack_size ) )
+#define SCOPE_CHECK_STACK_UNCHANGED                  \
+  int starting_stack_size = C.stack_size();          \
+  SCOPE_EXIT {                                       \
+    CHECK_EQ( C.stack_size(), starting_stack_size ); \
+  };
 
 } // namespace lua

@@ -59,8 +59,10 @@ int msghandler( lua_State* L ) {
 
 thread_status to_thread_status( int status ) noexcept {
   switch( status ) {
-    case LUA_OK: return thread_status::ok;
-    case LUA_YIELD: return thread_status::yield;
+    case LUA_OK:
+      return thread_status::ok;
+    case LUA_YIELD:
+      return thread_status::yield;
   }
   return thread_status::err;
 }
@@ -148,7 +150,7 @@ lua_valid c_api::pcall( int nargs, int nresults ) noexcept {
   DCHECK( msghandler_idx > 0 );
   // Remove message handler from the stack. This index will re-
   // main valid because it is positive.
-  SCOPE_EXIT( lua_remove( L_, msghandler_idx ) );
+  SCOPE_EXIT { lua_remove( L_, msghandler_idx ); };
 
   // No matter what happens, lua_pcall will remove the function
   // and arguments from the stack.
@@ -381,7 +383,7 @@ maybe<string> c_api::get( int idx, string* ) noexcept {
   }
   // Thread is not in an error state, so we can push things.
   pushvalue( idx );
-  SCOPE_EXIT( pop() );
+  SCOPE_EXIT { pop(); };
   // lua_tolstring:  [-0, +0, m]
   //
   // Converts the Lua value at the given index to a C string. If
@@ -693,7 +695,8 @@ void c_api::settop( int top ) { lua_settop( L_, top ); }
 lua_valid c_api::loadfile( const char* filename ) {
   int res = luaL_loadfile( L_, filename );
   switch( res ) {
-    case LUA_OK: return base::valid;
+    case LUA_OK:
+      return base::valid;
     case LUA_ERRSYNTAX: {
       string err = pop_tostring();
       return lua_invalid( fmt::format(
@@ -733,7 +736,8 @@ lua_valid c_api::thread_ok() noexcept {
       break;
     }
     case thread_status::ok:
-    case thread_status::yield: break;
+    case thread_status::yield:
+      break;
   }
   return res;
 }
@@ -760,7 +764,7 @@ lua_expect<resume_result> c_api::resume_or_leak(
   lua_State*    L_from   = L_;
   int           nresults = 0;
   thread_status status   = to_thread_status(
-        lua_resume( L_toresume, L_from, nargs, &nresults ) );
+      lua_resume( L_toresume, L_from, nargs, &nresults ) );
   HAS_VALUE_OR_RET( C_toresume.thread_ok() );
   CHECK( status != thread_status::err );
   return resume_result{ .status = ( status == thread_status::ok )
@@ -793,7 +797,8 @@ lua_expect<resume_result> c_api::resume_or_reset(
 // source code.
 coroutine_status c_api::coro_status() noexcept {
   switch( lua_status( L_ ) ) {
-    case LUA_YIELD: return coroutine_status::suspended;
+    case LUA_YIELD:
+      return coroutine_status::suspended;
     case LUA_OK: {
       lua_Debug ar;
       if( lua_getstack( L_, 0, &ar ) )   // does it have frames?

@@ -740,13 +740,13 @@ wait<> SmoothViewport::center_on_tile_smooth( Coord coord ) {
   // we want the scrolling to slow as it nears its final point
   // (is that even well defined?), but we don't want to hold up
   // the coroutine for all that time, hence current behavior.
-  SCOPE_EXIT( {
+  SCOPE_EXIT {
     // This check is defensive; it is possible that someone could
     // call e.g. stop_auto_panning while this coroutine is alive,
     // which would reset coro_smooth_scroll_.
     if( coro_smooth_scroll_.has_value() )
       coro_smooth_scroll_->promise = nullptr;
-  } );
+  };
   co_await p.wait();
 }
 

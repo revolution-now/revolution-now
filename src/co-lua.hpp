@@ -69,7 +69,7 @@ struct LuaWaitable {
         internal::create_runner_coro( o.this_cthread() );
     // Ensure that all to-be-closed variables get closed and the
     // coroutine gets de-queued if an error happens.
-    SCOPE_EXIT( internal::cleanup_coro( coro ) );
+    SCOPE_EXIT { internal::cleanup_coro( coro ); };
 
     wait_promise<R> p;
 

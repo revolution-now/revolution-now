@@ -874,7 +874,7 @@ struct LandViewPlane::Impl : public Plane {
 
   wait<> dragging( input::e_mouse_button /*button*/,
                    Coord /*origin*/ ) {
-    SCOPE_EXIT( drag_finished = true );
+    SCOPE_EXIT { drag_finished = true; };
     while( maybe<DragUpdate> d = co_await drag_stream.next() )
       viewport().pan_by_screen_coords( d->prev - d->current );
   }
@@ -954,7 +954,7 @@ struct LandViewPlane::Impl : public Plane {
     reset_input_buffers();
     auto const kWait =
         config_land_view.input_overrun_detection.wait_time;
-    SCOPE_EXIT( input_overrun_indicator_ = nothing );
+    SCOPE_EXIT { input_overrun_indicator_ = nothing; };
     int const kMaxInputsToWithold =
         config_land_view.input_overrun_detection
             .max_inputs_to_withold;

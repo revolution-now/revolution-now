@@ -346,10 +346,10 @@ struct stream {
     // will not be able to call next on the stream again since we
     // can only extract one wait<> object per promise (at least
     // until next reset).
-    SCOPE_EXIT( {
+    SCOPE_EXIT {
       p.reset();
       update();
-    } );
+    };
     co_await p.wait();
     T res = std::move( q.front() );
     q.pop();
