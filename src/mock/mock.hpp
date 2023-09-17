@@ -18,12 +18,14 @@
 #include "base/maybe.hpp"
 #include "base/scope-exit.hpp"
 #include "base/to-str.hpp"
+#include "base/unique-func.hpp"
 
 // base-util
 #include "base-util/pp.hpp"
 
 // C++ standard library
 #include <queue>
+#include <type_traits>
 
 /****************************************************************
 ** EXPECT* Macros
@@ -313,12 +315,15 @@ struct Responder<RetT, std::tuple<Args...>,
         ... );
     }
 
+    // 4. Invoke a callable is requested.
+    if( invokes_.has_value() ) ( *invokes_ )();
+
     // Decrement this after args are checked so that we can de-
     // tect arg failures and recover and still use the responder.
     BASE_CHECK( times_expected_ > 0 );
     --times_expected_;
 
-    // 4. Return what was requested to be returned.
+    // 5. Return what was requested to be returned.
     if constexpr( !std::is_same_v<RetT, void> ) {
       if constexpr( std::is_default_constructible_v<RetT> )
         if( !ret_.has_value() )
@@ -374,6 +379,18 @@ struct Responder<RetT, std::tuple<Args...>,
     return *this;
   }
 
+  template<typename Func>
+  Responder& invokes( Func&& func ) {
+    static_assert( std::is_invocable_r_v<void, Func>,
+                   "invocables set on expectations must have "
+                   "the signature void()." );
+    BASE_CHECK(
+        !invokes_.has_value(),
+        "only one invocable per expectation is supported." );
+    invokes_.emplace( std::forward<Func>( func ) );
+    return *this;
+  }
+
   template<typename U = RetT>
   requires std::is_convertible_v<U, RetT>
   Responder& returns( U&& val ) {
@@ -426,7 +443,8 @@ struct Responder<RetT, std::tuple<Args...>,
   }
 
  private:
-  base::maybe<RetHolder<RetT>> ret_ = {};
+  base::maybe<base::unique_func<void()>> invokes_ = {};
+  base::maybe<RetHolder<RetT>>           ret_     = {};
   // setters_t and array_setters_t are wrapped in a maybe for ef-
   // ficiency purposes; in most cases there will be no parameter
   // setting, and so then they will remain `nothing` and when the

@@ -353,5 +353,47 @@ TEST_CASE( "[mock] default return value" ) {
   REQUIRE( user.length() == 0.0 );
 }
 
+TEST_CASE( "[mock] invokers" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  int invoked_1 = 0;
+  int invoked_2 = 0;
+  int invoked_3 = 0;
+
+  mp.EXPECT__get_x().returns( 7 ).invokes(
+      [&] { ++invoked_1; } );
+  REQUIRE( invoked_1 == 0 );
+  REQUIRE( user.get_x() == 7 );
+  REQUIRE( invoked_1 == 1 );
+  REQUIRE_THROWS_WITH(
+      user.get_x(),
+      Matches( "unexpected mock function call.*" ) );
+
+  mp.EXPECT__get_x().times( 1 ).returns( 8 ).invokes(
+      [&] { ++invoked_2; } );
+  mp.EXPECT__get_x().times( 2 ).returns( 9 ).invokes(
+      [&] { ++invoked_3; } );
+  REQUIRE( invoked_2 == 0 );
+  REQUIRE( invoked_3 == 0 );
+  REQUIRE( user.get_x() == 8 );
+  REQUIRE( invoked_2 == 1 );
+  REQUIRE( invoked_3 == 0 );
+  REQUIRE( user.get_x() == 9 );
+  REQUIRE( invoked_2 == 1 );
+  REQUIRE( invoked_3 == 1 );
+  REQUIRE( user.get_x() == 9 );
+  REQUIRE( invoked_2 == 1 );
+  REQUIRE( invoked_3 == 2 );
+
+  REQUIRE_THROWS_WITH(
+      user.get_x(),
+      Matches( "unexpected mock function call.*" ) );
+
+  REQUIRE( invoked_1 == 1 );
+  REQUIRE( invoked_2 == 1 );
+  REQUIRE( invoked_3 == 2 );
+}
+
 } // namespace
 } // namespace mock
