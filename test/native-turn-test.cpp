@@ -24,8 +24,10 @@
 
 // Revolution Now
 #include "src/plane-stack.hpp"
+#include "src/ts.hpp"
 
 // ss
+#include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
 #include "src/ss/units.hpp"
 #include "src/ss/woodcut.rds.hpp"
