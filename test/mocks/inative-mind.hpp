@@ -30,6 +30,9 @@ namespace rn {
 ** MockIRand
 *****************************************************************/
 struct MockINativeMind final : INativeMind {
+  MockINativeMind( e_tribe tribe_type )
+    : INativeMind( tribe_type ) {}
+
   MOCK_METHOD( NativeUnitId, select_unit,
                (std::set<NativeUnitId> const&), () );
 

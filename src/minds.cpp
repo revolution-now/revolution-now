@@ -90,7 +90,7 @@ EuroMinds create_euro_minds( SS& ss, IGui& gui ) {
 NativeMinds create_native_minds( SS& ss, IRand& rand ) {
   unordered_map<e_tribe, unique_ptr<INativeMind>> holder;
   for( e_tribe const tribe : refl::enum_values<e_tribe> )
-    holder[tribe] = make_unique<AiNativeMind>( ss, rand );
+    holder[tribe] = make_unique<AiNativeMind>( ss, rand, tribe );
   return NativeMinds( std::move( holder ) );
 }
 

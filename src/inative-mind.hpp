@@ -31,11 +31,17 @@ struct BraveAttackColonyEffect;
 struct CombatBraveAttackColony;
 struct CombatBraveAttackEuro;
 
+enum class e_tribe;
+
 /****************************************************************
 ** INativeMind
 *****************************************************************/
 struct INativeMind : IMind {
+  INativeMind( e_tribe tribe_type )
+    : tribe_type_( tribe_type ) {}
   virtual ~INativeMind() override = default;
+
+  e_tribe tribe_type() const { return tribe_type_; }
 
   // Select which unit is to receive orders next. The set should
   // be non-empty and contain only units that have some movement
@@ -60,13 +66,17 @@ struct INativeMind : IMind {
   // Default implementation does nothing.
   virtual void on_attack_unit_finished(
       CombatBraveAttackEuro const& combat ) = 0;
+
+ private:
+  e_tribe tribe_type_ = {};
 };
 
 /****************************************************************
 ** NoopNativeMind
 *****************************************************************/
 struct NoopNativeMind final : INativeMind {
-  NoopNativeMind() = default;
+  NoopNativeMind( e_tribe tribe_type )
+    : INativeMind( tribe_type ) {}
 
   // Implement IMind.
   wait<> message_box( std::string const& msg ) override;

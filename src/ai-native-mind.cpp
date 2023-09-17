@@ -32,8 +32,9 @@ namespace rn {
 /****************************************************************
 ** Public API
 *****************************************************************/
-AiNativeMind::AiNativeMind( SS& ss, IRand& rand )
-  : ss_( ss ), rand_( rand ) {}
+AiNativeMind::AiNativeMind( SS& ss, IRand& rand,
+                            e_tribe tribe_type )
+  : INativeMind( tribe_type ), ss_( ss ), rand_( rand ) {}
 
 wait<> AiNativeMind::message_box( std::string const& ) {
   return {};

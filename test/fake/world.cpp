@@ -115,7 +115,7 @@ NativeMinds& World::native_minds() {
     uninitialized_native_minds_ = [] {
       unordered_map<e_tribe, unique_ptr<INativeMind>> holder;
       for( e_tribe const tribe : refl::enum_values<e_tribe> )
-        holder[tribe] = make_unique<MockINativeMind>();
+        holder[tribe] = make_unique<MockINativeMind>( tribe );
       return make_unique<NativeMinds>( std::move( holder ) );
     }();
   return *uninitialized_native_minds_;

@@ -26,7 +26,7 @@ struct SS;
 struct AiNativeMind final : INativeMind {
   // We don't take TS here because would create a circular depen-
   // dency.
-  AiNativeMind( SS& ss, IRand& rand );
+  AiNativeMind( SS& ss, IRand& rand, e_tribe tribe_type );
 
   // Implement IMind.
   wait<> message_box( std::string const& msg ) override;
