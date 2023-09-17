@@ -114,6 +114,41 @@ vector<point> outward_spiral_pythdist_search_existing(
   return res;
 }
 
+// The idea with the implementation here is that we iterate over
+// colonies instead of squares with the assumption that there
+// will generally by fewer colonies than squares, even if we are
+// e.g. iterating over a 7x7 grid.
+maybe<Colony const&> find_any_close_colony(
+    SSConst const& ss, gfx::point location, double max_distance,
+    base::function_ref<bool( Colony const& )> pred ) {
+  maybe<ColonyId> const last = ss.colonies.last_colony_id();
+  if( !last.has_value() ) return nothing;
+  struct ColonyWithDistance {
+    ColonyId colony_id = {};
+    double   distance  = {};
+  };
+  maybe<ColonyWithDistance> state;
+  // Iterate through colonies by ID so that we get a determin-
+  // istic ordering; otherwise we'd be iterating over the un-
+  // ordered map in which the colonies are store.
+  for( ColonyId colony_id = ColoniesState::kFirstColonyId;
+       colony_id <= *last; ++colony_id ) {
+    Colony const& colony = ss.colonies.colony_for( colony_id );
+    double const  distance =
+        ( colony.location - Coord::from_gfx( location ) )
+            .diagonal();
+    if( distance > max_distance ) continue;
+    if( !pred( colony ) ) continue;
+    if( !state.has_value() || distance < state->distance )
+      state = ColonyWithDistance{ .colony_id = colony_id,
+                                  .distance  = distance };
+  }
+  return state.fmap(
+      [&]( ColonyWithDistance const& cwd ) -> Colony const& {
+        return ss.colonies.colony_for( cwd.colony_id );
+      } );
+}
+
 maybe<FogColony const&> find_close_explored_colony(
     SSConst const& ss, e_nation nation, point location,
     double max_distance ) {

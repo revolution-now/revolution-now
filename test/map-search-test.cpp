@@ -43,8 +43,18 @@ using ::gfx::point;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    MapSquare const L = make_grassland();
-    build_map( vector<MapSquare>( 5 * 5, L ), 5 );
+    add_player( e_nation::dutch );
+    add_player( e_nation::english );
+    set_default_player( e_nation::dutch );
+    MapSquare const   L = make_grassland();
+    vector<MapSquare> tiles{
+        L, L, L, L, L, //
+        L, L, L, L, L, //
+        L, L, L, L, L, //
+        L, L, L, L, L, //
+        L, L, L, L, L, //
+    };
+    build_map( std::move( tiles ), 5 );
   }
 };
 
@@ -179,6 +189,119 @@ TEST_CASE(
         { .x = 4, .y = 0 } };
     REQUIRE( vec == expected );
   }
+}
+
+TEST_CASE( "[map-search] find_any_close_colony" ) {
+  World           W;
+  Coord           start        = {};
+  double          max_distance = {};
+  maybe<ColonyId> expected     = {};
+
+  base::function_ref<bool( Colony const& )> const pred_default =
+      +[]( Colony const& ) { return true; };
+  base::function_ref<bool( Colony const& )> pred = pred_default;
+
+  auto f = [&] {
+    return find_any_close_colony( W.ss(), start, max_distance,
+                                  pred )
+        .fmap(
+            []( Colony const& colony ) { return colony.id; } );
+  };
+
+  // No colonies, max distance 0.
+  start        = { .x = 2, .y = 2 };
+  max_distance = 0;
+  expected     = nothing;
+  REQUIRE( f() == expected );
+
+  // No colonies, max distance 10.
+  max_distance = 10;
+  expected     = nothing;
+  REQUIRE( f() == expected );
+
+  // One colony, max distance 0.
+  Colony& colony_1 =
+      W.add_colony( { .x = 0, .y = 0 }, e_nation::dutch );
+  max_distance = 0;
+  expected     = nothing;
+  REQUIRE( f() == expected );
+
+  // One colony, max distance 1.
+  max_distance = 1;
+  expected     = nothing;
+  REQUIRE( f() == expected );
+
+  // One colony, max distance 2.
+  max_distance = 2;
+  expected     = nothing;
+  REQUIRE( f() == expected );
+
+  // One colony, max distance 3.
+  max_distance = 3;
+  expected     = colony_1.id;
+  REQUIRE( f() == expected );
+
+  // One colony, max distance 3, with pred, wrong nation.
+  max_distance = 3;
+  pred         = +[]( Colony const& colony ) {
+    return colony.nation == e_nation::english;
+  };
+  expected = nothing;
+  REQUIRE( f() == expected );
+
+  // One colony, max distance 4, with pred, right nation.
+  max_distance = 4;
+  pred         = +[]( Colony const& colony ) {
+    return colony.nation == e_nation::dutch;
+  };
+  expected = colony_1.id;
+  REQUIRE( f() == expected );
+
+  // Two colonies, max distance 5.
+  Colony& colony_2 =
+      W.add_colony( { .x = 2, .y = 4 }, e_nation::english );
+  max_distance = 5;
+  pred         = pred_default;
+  expected     = colony_2.id;
+  REQUIRE( f() == expected );
+
+  // Two colonies, max distance 5, with pred dutch.
+  max_distance = 5;
+  pred         = +[]( Colony const& colony ) {
+    return colony.nation == e_nation::dutch;
+  };
+  expected = colony_1.id;
+  REQUIRE( f() == expected );
+
+  // Three colonies, max distance 0.
+  Colony& colony_3 =
+      W.add_colony( { .x = 2, .y = 2 }, e_nation::dutch );
+  max_distance = 0;
+  pred         = pred_default;
+  expected     = colony_3.id;
+  REQUIRE( f() == expected );
+
+  // Three colonies, max distance 1.
+  max_distance = 1;
+  pred         = pred_default;
+  expected     = colony_3.id;
+  REQUIRE( f() == expected );
+
+  // Three colonies, max distance 1, with pred english.
+  max_distance = 1;
+  pred         = +[]( Colony const& colony ) {
+    return colony.nation == e_nation::english;
+  };
+  expected = nothing;
+  REQUIRE( f() == expected );
+
+  // Three colonies, max distance 2, with pred english.
+  max_distance = 2;
+  pred         = +[]( Colony const& colony ) {
+    return colony.nation == e_nation::english;
+  };
+  expected = colony_2.id;
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[map-search] find_close_explored_colony" ) {

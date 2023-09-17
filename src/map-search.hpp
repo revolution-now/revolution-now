@@ -20,6 +20,9 @@
 // gfx
 #include "gfx/cartesian.hpp"
 
+// base
+#include "base/function-ref.hpp"
+
 // C++ standard library
 #include <vector>
 
@@ -36,6 +39,15 @@ struct SSConst;
 std::vector<gfx::point> outward_spiral_pythdist_search_existing(
     SSConst const ss, gfx::point const start,
     double max_distance );
+
+// Find the closest colony within a pythagorean distance of
+// `max_distance` that satisfies the predicate. Note that this
+// function itself does not check visibility or ownership of the
+// colonies in any way; if needed, that should be done in the
+// predicate.
+maybe<Colony const&> find_any_close_colony(
+    SSConst const& ss, gfx::point location, double max_distance,
+    base::function_ref<bool( Colony const& )> pred );
 
 // Starting from (and including) `location`, find the square con-
 // taining any colony that is either friendly or which has been
