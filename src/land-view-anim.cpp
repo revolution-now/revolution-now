@@ -258,6 +258,9 @@ wait<> LandViewAnimator::slide_throttler( GenericUnitId id,
     co_await throttle();
     slide.percent_vel.advance( e_push_direction::none );
     slide.percent += slide.percent_vel.to_double();
+    // Need to prevent overshooting which can visually manifest.
+    slide.percent = std::min( slide.percent, 1.0 );
+    CHECK_LE( slide.percent, 1.0 );
   }
   // Need this so that final frame is visible.
   co_await throttle();
