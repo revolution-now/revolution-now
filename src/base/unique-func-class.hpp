@@ -31,10 +31,11 @@ class unique_func;
 
 // FIXME:
 //   * Add small-buffer optimization.
-//   * Doesn't work with callables that take rvalue refs.
+//   * Doesn't work with callables that take rvalue refs (true?).
 
 template<typename R, typename... Args>
 class unique_func<R( Args... ) UNIQUE_FUNC_CONST> {
+  using archetype_t = R( Args... );
   struct func_base {
     virtual ~func_base()                              = default;
     virtual R operator()( Args... ) UNIQUE_FUNC_CONST = 0;
@@ -45,6 +46,7 @@ class unique_func<R( Args... ) UNIQUE_FUNC_CONST> {
   // Can never be empty.
   unique_func() = delete;
 
+ private:
   // The int parameter is for avoiding constructor delegation cy-
   // cles.
   template<typename Func>
@@ -67,7 +69,9 @@ class unique_func<R( Args... ) UNIQUE_FUNC_CONST> {
         std::make_unique<child>( std::forward<Func>( func ) );
   }
 
+ public:
   template<typename Func>
+  requires std::is_invocable_r_v<R, Func, Args...>
   unique_func( Func&& f )
     : unique_func( std::forward<Func>( f ), 0 ) {}
 
@@ -83,7 +87,11 @@ class unique_func<R( Args... ) UNIQUE_FUNC_CONST> {
   template<typename... RealArgs>
   R operator()( RealArgs&&... args ) UNIQUE_FUNC_CONST
       noexcept( noexcept( func_->operator()(
-          std::forward<RealArgs>( args )... ) ) ) {
+          std::forward<RealArgs>( args )... ) ) )
+  requires std::is_invocable_r_v<
+      R, archetype_t,
+      decltype( std::forward<RealArgs>( args ) )...>
+  {
     return func_->operator()(
         std::forward<RealArgs>( args )... );
   }
