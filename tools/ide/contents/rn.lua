@@ -3,15 +3,14 @@ return {
   'ss/natives', -- 1
   'config/natives', -- 2
   'turn', -- 3
-  'native-turn', -- 4
-  'icombat', -- 5
-  'combat', -- 6
-  'imind', -- 7
-  'inative-mind', -- 8
-  'ai-native-mind', -- 9
-  'ieuro-mind', -- 10
-  'human-euro-mind', -- 11
+  'icombat', -- 4
+  'combat', -- 5
+  'imind', -- 6
+  'inative-mind', -- 7
+  'ai-native-mind', -- 8
+  'ieuro-mind', -- 9
+  'human-euro-mind', -- 10
 
   -- 1-based.
-  current_tab=4, -- native-turn
+  current_tab=4, -- icombat
 }
