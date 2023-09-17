@@ -92,7 +92,6 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
                                    as_const( defender ) );
   Coord const src       = ss.units.coord_for( attacker.id );
   IEuroMind&  euro_mind = ts.euro_minds[defender.nation()];
-  co_await surprise_raid_msg( ss, euro_mind, dst, tribe_type );
 
   // Note that for attacks the "show indian moves" game flag is
   // not relevant, since there is really no natural way to show
@@ -100,9 +99,19 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
   // pecially if it results in a unit or colony disappearing. So
   // all that we really care about here is if the viewer can see
   // either the src or dst square.
-  if( should_animate_move( viz, src, dst ) )
+  bool const viewable = should_animate_move( viz, src, dst );
+
+  if( viewable ) {
+    co_await ts.planes.land_view().ensure_visible( src );
+    co_await ts.planes.land_view().ensure_visible( dst );
+  }
+
+  co_await surprise_raid_msg( ss, euro_mind, dst, tribe_type );
+
+  if( viewable )
     co_await ts.planes.land_view().animate(
         anim_seq_for_brave_attack_euro( ss, combat ) );
+
   CombatEffectsMessages const effects_msg =
       combat_effects_msg( ss, combat );
   perform_euro_unit_combat_effects( ss, ts, defender,
@@ -234,6 +243,22 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
                                      colony );
   IEuroMind&    euro_mind  = ts.euro_minds[colony.nation];
   e_tribe const tribe_type = tribe_type_for_unit( ss, attacker );
+  Visibility const viz(
+      ss, player_for_role( ss, e_player_role::viewer ) );
+  Coord const src = ss.units.coord_for( attacker.id );
+  Coord const dst = colony.location;
+
+  // Note that for attacks the "show indian moves" game flag is
+  // not relevant, since there is really no natural way to show
+  // an attack without the slide and depixelation animations, es-
+  // pecially if it results in a unit or colony disappearing.
+  bool const viewable = should_animate_move( viz, src, dst );
+
+  if( viewable ) {
+    co_await ts.planes.land_view().ensure_visible( src );
+    co_await ts.planes.land_view().ensure_visible( dst );
+  }
+
   co_await surprise_raid_msg( ss, euro_mind, colony.location,
                               tribe_type );
   if( !offboarded.empty() )
@@ -242,16 +267,7 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
         "to help defend the colony!",
         colony.name );
 
-  Visibility const viz(
-      ss, player_for_role( ss, e_player_role::viewer ) );
-  Coord const src = ss.units.coord_for( attacker.id );
-  Coord const dst = colony.location;
-  // Note that for attacks the "show indian moves" game flag is
-  // not relevant, since there is really no natural way to show
-  // an attack without the slide and depixelation animations,
-  // es- pecially if it results in a unit or colony
-  // disappearing.
-  if( should_animate_move( viz, src, dst ) )
+  if( viewable )
     co_await ts.planes.land_view().animate(
         anim_seq_for_brave_attack_colony( ss, combat ) );
 

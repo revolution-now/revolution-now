@@ -78,12 +78,13 @@ TEST_CASE( "[raid] raid_unit" ) {
 
   CombatBraveAttackEuro combat;
   Coord const           defender_coord{ .x = 1, .y = 0 };
+  Coord const           attacker_coord{ .x = 0, .y = 0 };
   MockINativeMind&      native_mind =
       W.native_mind( e_tribe::arawak );
   MockIEuroMind& euro_mind = W.euro_mind( W.default_nation() );
 
   auto [dwelling, brave] = W.add_dwelling_and_brave(
-      { .x = 0, .y = 0 }, e_tribe::arawak );
+      attacker_coord, e_tribe::arawak );
   // This is for use after the brave is destroyed.
   NativeUnitId const brave_id = brave.id;
 
@@ -94,7 +95,7 @@ TEST_CASE( "[raid] raid_unit" ) {
 
   SECTION( "brave, one euro, brave loses, soldier promoted" ) {
     Unit const& soldier = W.add_unit_on_map(
-        e_unit_type::soldier, { .x = 1, .y = 0 } );
+        e_unit_type::soldier, defender_coord );
     UnitId const soldier_id = soldier.id();
 
     combat = {
@@ -115,6 +116,8 @@ TEST_CASE( "[raid] raid_unit" ) {
     W.combat()
         .EXPECT__brave_attack_euro( brave, soldier )
         .returns( combat );
+    mock_land_view.EXPECT__ensure_visible( attacker_coord );
+    mock_land_view.EXPECT__ensure_visible( defender_coord );
     euro_mind.EXPECT__message_box(
         "[Arawaks] make surprise raid! Terror descends upon "
         "colonists! Arawak chief unavailable for comment." );
@@ -131,12 +134,12 @@ TEST_CASE( "[raid] raid_unit" ) {
     REQUIRE( soldier.movement_points() == 1 );
     REQUIRE( soldier.type() == e_unit_type::veteran_soldier );
     REQUIRE( W.units().coord_for( soldier_id ) ==
-             point{ .x = 1, .y = 0 } );
+             defender_coord );
   }
 
   SECTION( "brave, one euro, brave wins" ) {
     Unit const& soldier = W.add_unit_on_map(
-        e_unit_type::soldier, { .x = 1, .y = 0 } );
+        e_unit_type::soldier, defender_coord );
     UnitId const soldier_id = soldier.id();
 
     combat = {
@@ -158,6 +161,8 @@ TEST_CASE( "[raid] raid_unit" ) {
     W.combat()
         .EXPECT__brave_attack_euro( brave, soldier )
         .returns( combat );
+    mock_land_view.EXPECT__ensure_visible( attacker_coord );
+    mock_land_view.EXPECT__ensure_visible( defender_coord );
     euro_mind.EXPECT__message_box(
         "[Arawaks] make surprise raid! Terror descends upon "
         "colonists! Arawak chief unavailable for comment." );
@@ -180,28 +185,27 @@ TEST_CASE( "[raid] raid_unit" ) {
     REQUIRE( W.units().exists( brave_id ) );
     REQUIRE( brave.movement_points == 1 );
     REQUIRE( brave.type == e_native_unit_type::armed_brave );
-    REQUIRE( W.units().coord_for( brave_id ) ==
-             point{ .x = 0, .y = 0 } );
+    REQUIRE( W.units().coord_for( brave_id ) == attacker_coord );
     // Defender(s).
     REQUIRE( W.units().exists( soldier_id ) );
     REQUIRE( soldier.movement_points() == 1 );
     REQUIRE( soldier.type() == e_unit_type::free_colonist );
     REQUIRE( W.units().coord_for( soldier_id ) ==
-             point{ .x = 1, .y = 0 } );
+             defender_coord );
   }
 
   SECTION( "brave, three euro, brave loses" ) {
     // The soldier should be chosen as defender.
     Unit const& free_colonist1 = W.add_unit_on_map(
-        e_unit_type::free_colonist, { .x = 1, .y = 0 } );
+        e_unit_type::free_colonist, defender_coord );
     UnitId const free_colonist1_id = free_colonist1.id();
     // Put the soldier in the middle so we can test that it gets
     // picked for the right reasons.
     Unit const& soldier = W.add_unit_on_map(
-        e_unit_type::soldier, { .x = 1, .y = 0 } );
+        e_unit_type::soldier, defender_coord );
     UnitId const soldier_id     = soldier.id();
     Unit const&  free_colonist2 = W.add_unit_on_map(
-        e_unit_type::free_colonist, { .x = 1, .y = 0 } );
+        e_unit_type::free_colonist, defender_coord );
     UnitId const free_colonist2_id = free_colonist2.id();
 
     combat = {
@@ -221,6 +225,8 @@ TEST_CASE( "[raid] raid_unit" ) {
     W.combat()
         .EXPECT__brave_attack_euro( brave, soldier )
         .returns( combat );
+    mock_land_view.EXPECT__ensure_visible( attacker_coord );
+    mock_land_view.EXPECT__ensure_visible( defender_coord );
     euro_mind.EXPECT__message_box(
         "[Arawaks] make surprise raid! Terror descends upon "
         "colonists! Arawak chief unavailable for comment." );
@@ -245,11 +251,11 @@ TEST_CASE( "[raid] raid_unit" ) {
     REQUIRE( free_colonist2.type() ==
              e_unit_type::free_colonist );
     REQUIRE( W.units().coord_for( soldier_id ) ==
-             point{ .x = 1, .y = 0 } );
+             defender_coord );
     REQUIRE( W.units().coord_for( free_colonist1_id ) ==
-             point{ .x = 1, .y = 0 } );
+             defender_coord );
     REQUIRE( W.units().coord_for( free_colonist2_id ) ==
-             point{ .x = 1, .y = 0 } );
+             defender_coord );
   }
 
   // Here we do the same as above but create the units with the
@@ -258,19 +264,19 @@ TEST_CASE( "[raid] raid_unit" ) {
   // suppressed.
   SECTION( "brave, three euro, brave loses, no anim" ) {
     // The soldier should be chosen as defender.
-    Unit const& free_colonist1 = W.add_unit_on_map(
-        e_unit_type::free_colonist, { .x = 1, .y = 0 },
-        e_nation::english );
+    Unit const& free_colonist1 =
+        W.add_unit_on_map( e_unit_type::free_colonist,
+                           defender_coord, e_nation::english );
     UnitId const free_colonist1_id = free_colonist1.id();
     // Put the soldier in the middle so we can test that it gets
     // picked for the right reasons.
-    Unit const& soldier = W.add_unit_on_map(
-        e_unit_type::soldier, { .x = 1, .y = 0 },
-        e_nation::english );
-    UnitId const soldier_id     = soldier.id();
-    Unit const&  free_colonist2 = W.add_unit_on_map(
-        e_unit_type::free_colonist, { .x = 1, .y = 0 },
-        e_nation::english );
+    Unit const& soldier =
+        W.add_unit_on_map( e_unit_type::soldier, defender_coord,
+                           e_nation::english );
+    UnitId const soldier_id = soldier.id();
+    Unit const&  free_colonist2 =
+        W.add_unit_on_map( e_unit_type::free_colonist,
+                           defender_coord, e_nation::english );
     UnitId const free_colonist2_id = free_colonist2.id();
 
     combat = {
@@ -315,23 +321,25 @@ TEST_CASE( "[raid] raid_unit" ) {
     REQUIRE( free_colonist2.type() ==
              e_unit_type::free_colonist );
     REQUIRE( W.units().coord_for( soldier_id ) ==
-             point{ .x = 1, .y = 0 } );
+             defender_coord );
     REQUIRE( W.units().coord_for( free_colonist1_id ) ==
-             point{ .x = 1, .y = 0 } );
+             defender_coord );
     REQUIRE( W.units().coord_for( free_colonist2_id ) ==
-             point{ .x = 1, .y = 0 } );
+             defender_coord );
   }
 }
 
 TEST_CASE( "[raid] raid_colony" ) {
   World             W;
   MockLandViewPlane mock_land_view;
-  W.planes().back().land_view = &mock_land_view;
-  e_tribe const   tribe_type  = e_tribe::arawak;
+  W.planes().back().land_view    = &mock_land_view;
+  e_tribe const   tribe_type     = e_tribe::arawak;
+  Coord const     attacker_coord = { .x = 0, .y = 0 };
+  Coord const     defender_coord = { .x = 1, .y = 0 };
   Dwelling const& dwelling =
-      W.add_dwelling( { .x = 0, .y = 0 }, tribe_type );
+      W.add_dwelling( attacker_coord, tribe_type );
   DwellingId const dwelling_id = dwelling.id;
-  Colony&          colony = W.add_colony( { .x = 1, .y = 0 } );
+  Colony&          colony      = W.add_colony( defender_coord );
   Coord const      colony_location = colony.location;
   Unit const&      worker =
       W.add_unit_indoors( colony.id, e_indoor_job::bells );
@@ -356,8 +364,7 @@ TEST_CASE( "[raid] raid_colony" ) {
 
   SECTION( "brave->soldier, brave wins" ) {
     NativeUnit& attacker = W.add_native_unit_on_map(
-        e_native_unit_type::brave, { .x = 0, .y = 1 },
-        dwelling.id );
+        e_native_unit_type::brave, attacker_coord, dwelling.id );
     Unit const& defender = W.add_unit_on_map(
         e_unit_type::soldier, colony.location, colony.nation );
     Unit const& caravel = W.add_unit_on_map(
@@ -394,6 +401,8 @@ TEST_CASE( "[raid] raid_colony" ) {
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
         .returns( combat );
+    mock_land_view.EXPECT__ensure_visible( attacker_coord );
+    mock_land_view.EXPECT__ensure_visible( defender_coord );
     mock_euro_mind.EXPECT__message_box(
         "[Arawaks] make surprise raid of [1]! Terror "
         "descends upon colonists! Arawak chief unavailable "
@@ -458,8 +467,7 @@ TEST_CASE( "[raid] raid_colony" ) {
 
   SECTION( "brave->soldier, soldier on ship, brave loses" ) {
     NativeUnit& attacker = W.add_native_unit_on_map(
-        e_native_unit_type::brave, { .x = 0, .y = 1 },
-        dwelling.id );
+        e_native_unit_type::brave, attacker_coord, dwelling.id );
     Unit const& caravel = W.add_unit_on_map(
         e_unit_type::caravel, colony.location, colony.nation );
     Unit const& defender = W.add_unit_in_cargo(
@@ -492,6 +500,8 @@ TEST_CASE( "[raid] raid_colony" ) {
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
         .returns( combat );
+    mock_land_view.EXPECT__ensure_visible( attacker_coord );
+    mock_land_view.EXPECT__ensure_visible( defender_coord );
     mock_euro_mind.EXPECT__message_box(
         "[Arawaks] make surprise raid of [1]! Terror "
         "descends upon colonists! Arawak chief unavailable "
@@ -551,8 +561,7 @@ TEST_CASE( "[raid] raid_colony" ) {
 
   SECTION( "brave->worker, brave loses" ) {
     NativeUnit& attacker = W.add_native_unit_on_map(
-        e_native_unit_type::brave, { .x = 0, .y = 1 },
-        dwelling.id );
+        e_native_unit_type::brave, attacker_coord, dwelling.id );
     Unit const& defender = worker;
 
     // These are for after the raid when they may no longer exist
@@ -578,6 +587,8 @@ TEST_CASE( "[raid] raid_colony" ) {
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
         .returns( combat );
+    mock_land_view.EXPECT__ensure_visible( attacker_coord );
+    mock_land_view.EXPECT__ensure_visible( defender_coord );
     mock_euro_mind.EXPECT__message_box(
         "[Arawaks] make surprise raid of [1]! Terror "
         "descends upon colonists! Arawak chief unavailable "
@@ -619,8 +630,7 @@ TEST_CASE( "[raid] raid_colony" ) {
 
   SECTION( "brave->worker, burn" ) {
     NativeUnit& attacker = W.add_native_unit_on_map(
-        e_native_unit_type::brave, { .x = 0, .y = 1 },
-        dwelling.id );
+        e_native_unit_type::brave, attacker_coord, dwelling.id );
     Unit const& defender = worker;
 
     // These are for after the raid when they may no longer exist
@@ -646,6 +656,8 @@ TEST_CASE( "[raid] raid_colony" ) {
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
         .returns( combat );
+    mock_land_view.EXPECT__ensure_visible( attacker_coord );
+    mock_land_view.EXPECT__ensure_visible( defender_coord );
     mock_euro_mind.EXPECT__message_box(
         "[Arawaks] make surprise raid of [1]! Terror "
         "descends upon colonists! Arawak chief unavailable "
@@ -674,8 +686,7 @@ TEST_CASE( "[raid] raid_colony" ) {
 
   SECTION( "brave->worker, burn, with units at gate" ) {
     NativeUnit& attacker = W.add_native_unit_on_map(
-        e_native_unit_type::brave, { .x = 0, .y = 1 },
-        dwelling.id );
+        e_native_unit_type::brave, attacker_coord, dwelling.id );
     Unit& wagon_train =
         W.add_unit_on_map( e_unit_type::wagon_train,
                            colony.location, colony.nation );
@@ -720,6 +731,8 @@ TEST_CASE( "[raid] raid_colony" ) {
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
         .returns( combat );
+    mock_land_view.EXPECT__ensure_visible( attacker_coord );
+    mock_land_view.EXPECT__ensure_visible( defender_coord );
     mock_euro_mind.EXPECT__message_box(
         "[Arawaks] make surprise raid of [1]! Terror "
         "descends upon colonists! Arawak chief unavailable "
