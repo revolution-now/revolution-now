@@ -4,19 +4,14 @@ return {
   'config/natives', -- 2
   'turn', -- 3
   'native-turn', -- 4
-  'land-view-anim', -- 5
-  'map-search', -- 6
-  'raid', -- 7
-  'visibility', -- 8
-  'game', -- 9
-  'icombat', -- 10
-  'combat', -- 11
-  'imind', -- 12
-  'inative-mind', -- 13
-  'ai-native-mind', -- 14
-  'ieuro-mind', -- 15
-  'human-euro-mind', -- 16
+  'icombat', -- 5
+  'combat', -- 6
+  'imind', -- 7
+  'inative-mind', -- 8
+  'ai-native-mind', -- 9
+  'ieuro-mind', -- 10
+  'human-euro-mind', -- 11
 
   -- 1-based.
-  current_tab=6, -- map-search
+  current_tab=4, -- native-turn
 }
