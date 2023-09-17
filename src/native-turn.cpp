@@ -18,21 +18,27 @@
 #include "igui.hpp"
 #include "inative-mind.hpp"
 #include "land-view.hpp"
+#include "logger.hpp"
 #include "map-square.hpp"
 #include "minds.hpp"
 #include "mv-calc.hpp"
 #include "on-map.hpp"
 #include "plane-stack.hpp"
+#include "raid.hpp"
 #include "roles.hpp"
+#include "society.hpp"
 #include "ts.hpp"
 #include "visibility.hpp"
+#include "woodcut.hpp"
 
 // config
 #include "config/natives.hpp"
 
 // ss
+#include "ss/colonies.hpp"
 #include "ss/native-unit.rds.hpp"
 #include "ss/natives.hpp"
+#include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
 #include "ss/terrain.hpp"
@@ -78,83 +84,148 @@ bool should_animate_native_travel( SSConst const&    ss,
   return should_animate_move( viz, src, dst );
 }
 
+wait<> handle_native_unit_attack( INativesTurnDeps const& deps,
+                                  SS& ss, TS& ts,
+                                  NativeUnit& native_unit,
+                                  e_direction direction,
+                                  e_nation    nation ) {
+  Coord const        src = ss.units.coord_for( native_unit.id );
+  Coord const        dst = src.moved( direction );
+  NativeUnit&        attacker    = native_unit;
+  NativeUnitId const attacker_id = attacker.id;
+
+  Player& player =
+      player_for_nation_or_die( ss.players, nation );
+  IEuroMind& euro_mind = ts.euro_minds[nation];
+  co_await show_woodcut_if_needed( player, euro_mind,
+                                   e_woodcut::indian_raid );
+
+  if( maybe<ColonyId> const colony_id =
+          ss.colonies.maybe_from_coord( dst );
+      colony_id.has_value() )
+    co_await deps.raid_colony(
+        &ss, &ts, attacker,
+        ss.colonies.colony_for( *colony_id ) );
+  else
+    co_await deps.raid_unit( &ss, &ts, attacker, dst );
+
+  // !! Native unit may no longer exist here.
+  if( !ss.units.exists( attacker_id ) ) co_return;
+
+  native_unit.movement_points = 0;
+}
+
+wait<> handle_native_unit_travel( SS& ss, TS& ts,
+                                  Visibility const& viz,
+                                  NativeUnit&       native_unit,
+                                  e_direction       direction ) {
+  Coord const src = ss.units.coord_for( native_unit.id );
+  Coord const dst = src.moved( direction );
+  MovementPoints const needed = movement_points_required(
+      ss.terrain.square_at( src ), ss.terrain.square_at( dst ),
+      direction );
+  MovementPointsAnalysis const mv_analysis =
+      can_native_unit_move_based_on_mv_points( ts, native_unit,
+                                               needed );
+  // Note that the AI may select a move that ends up not being
+  // allowed on the basis of movement points since the unit may
+  // have less movement points that required and hence it comes
+  // down to probabilitity.
+  MovementPoints const to_subtract =
+      mv_analysis.points_to_subtract();
+  CHECK_GT( to_subtract, 0 );
+  native_unit.movement_points -= to_subtract;
+  CHECK_GE( native_unit.movement_points, 0 );
+  if( !mv_analysis.allowed() ) {
+    CHECK_EQ( native_unit.movement_points, 0 );
+    co_return;
+  }
+  if( should_animate_native_travel( ss, viz, src, dst ) )
+    co_await ts.planes.land_view().animate(
+        anim_seq_for_unit_move( native_unit.id, direction ) );
+  co_await UnitOnMapMover::native_unit_to_map_interactive(
+      ss, ts, native_unit.id, dst,
+      ss.units.dwelling_for( native_unit.id ) );
+}
+
 wait<> handle_native_unit_command(
-    SS& ss, TS& ts, Visibility const& viz,
+    INativesTurnDeps const& deps, SS& ss, TS& ts,
+    Visibility const& viz, e_tribe tribe_type,
     NativeUnit& native_unit, NativeUnitCommand const& command ) {
   SWITCH( command ) {
     CASE( forfeight ) {
       native_unit.movement_points = 0;
       break;
     }
-    CASE( attack ) {
+    CASE( move ) {
       Coord const src = ss.units.coord_for( native_unit.id );
-      Coord const dst = src.moved( attack.direction );
-      // Carry out attack.
-      // !! Native unit may no longer exist here.
-      native_unit.movement_points = 0;
-      break;
+      Coord const dst = src.moved( move.direction );
+      maybe<Society> const society =
+          society_on_square( ss, dst );
+      if( !society.has_value() ) {
+        co_await handle_native_unit_travel(
+            ss, ts, viz, native_unit, move.direction );
+      } else {
+        SWITCH( *society ) {
+          CASE( native ) {
+            CHECK( native.tribe == tribe_type );
+            co_await handle_native_unit_travel(
+                ss, ts, viz, native_unit, move.direction );
+            break;
+          }
+          CASE( european ) {
+            co_await handle_native_unit_attack(
+                deps, ss, ts, native_unit, move.direction,
+                european.nation );
+            break;
+          }
+        }
+      };
     }
-    CASE( travel ) {
-      Coord const src = ss.units.coord_for( native_unit.id );
-      Coord const dst = src.moved( travel.direction );
-      MovementPoints const needed = movement_points_required(
-          ss.terrain.square_at( src ),
-          ss.terrain.square_at( dst ), travel.direction );
-      MovementPointsAnalysis const mv_analysis =
-          can_native_unit_move_based_on_mv_points(
-              ts, native_unit, needed );
-      // Note that the AI may select a move that ends up not
-      // being allowed on the basis of movement points since the
-      // unit may have less movement points that required and
-      // hence it comes down to probabilitity.
-      MovementPoints const to_subtract =
-          mv_analysis.points_to_subtract();
-      CHECK_GT( to_subtract, 0 );
-      native_unit.movement_points -= to_subtract;
-      CHECK_GE( native_unit.movement_points, 0 );
-      if( !mv_analysis.allowed() ) {
-        CHECK_EQ( native_unit.movement_points, 0 );
-        break;
-      }
-      if( should_animate_native_travel( ss, viz, src, dst ) )
-        co_await ts.planes.land_view().animate(
-            anim_seq_for_unit_move( native_unit.id,
-                                    travel.direction ) );
-      co_await UnitOnMapMover::native_unit_to_map_interactive(
-          ss, ts, native_unit.id, dst,
-          ss.units.dwelling_for( native_unit.id ) );
-      break;
-    }
+    break;
   }
 
   // !! Note that the unit may no longer exist here.
 }
 
-wait<> tribe_turn( SS& ss, TS& ts, Visibility const& viz,
-                   INativeMind&       mind,
+wait<> tribe_turn( INativesTurnDeps const& deps, SS& ss, TS& ts,
+                   Visibility const& viz, INativeMind& mind,
                    set<NativeUnitId>& units ) {
-  // As a safety check to prevent the AI from never exhausting
+  // As a circuit breaker to prevent the AI from never exhausting
   // all of the movement points of all of its units, we'll give
   // the AI a maximum of 100 tries per unit. If it can't finish
   // all unit movements in that time, then there is probably
   // something wrong with the AI.
-  int       tries     = 0;
-  int const max_tries = 100;
+  unordered_map<NativeUnitId, int> tries_for_unit;
+  tries_for_unit.reserve( units.size() );
+  int const kMaxTries = 100;
+  // Twelve is chosen for this because, in practice, it should be
+  // the upper limit for number of moves, since it represents the
+  // max number of moves that a brave could make, which happens
+  // when the unit has 4 movement points (mounted brave or
+  // mounted warrior) and it is traveling entirely along a road.
+  int const kTriesWarn = 12;
   while( !units.empty() ) {
     NativeUnitId const native_unit_id =
         mind.select_unit( as_const( units ) );
-    CHECK( tries++ < max_tries,
-           "the AI had {} attempts to exhaust the movement "
-           "points of unit {} but did not do so.",
-           max_tries, native_unit_id );
     CHECK( units.contains( native_unit_id ) );
     NativeUnit& native_unit =
         ss.units.unit_for( native_unit_id );
     CHECK_GT( native_unit.movement_points, 0 );
-    NativeUnitCommand const command =
-        mind.command_for( native_unit_id );
-    co_await handle_native_unit_command( ss, ts, viz,
-                                         native_unit, command );
+    int& tries = tries_for_unit[native_unit_id];
+    if( tries >= kTriesWarn )
+      lg.warn(
+          "the AI took more than {} attempts to exhaust the "
+          "movement points of native unit {}.",
+          kTriesWarn, native_unit );
+    CHECK( tries++ < kMaxTries,
+           "the AI had {} attempts to exhaust the movement "
+           "points of unit {} but did not do so.",
+           kMaxTries, native_unit_id );
+
+    co_await handle_native_unit_command(
+        deps, ss, ts, viz, mind.tribe_type(), native_unit,
+        mind.command_for( native_unit_id ) );
 
     // !! Unit may no longer exist at this point.
     if( !ss.units.exists( native_unit_id ) ) {
@@ -164,18 +235,35 @@ wait<> tribe_turn( SS& ss, TS& ts, Visibility const& viz,
 
     if( native_unit.movement_points == 0 )
       units.erase( native_unit_id );
-
-    // Should be last.
-    if( !units.contains( native_unit_id ) ) tries = 0;
   }
 }
 
 } // namespace
 
 /****************************************************************
+** RealNativesTurnDeps.
+*****************************************************************/
+struct RealNativesTurnDeps final : INativesTurnDeps {
+  wait<> raid_unit( SS* ss, TS* ts, NativeUnit& attacker,
+                    Coord dst ) const override {
+    return rn::raid_unit( *ss, *ts, attacker, dst );
+  }
+
+  wait<> raid_colony( SS* ss, TS* ts, NativeUnit& attacker,
+                      Colony& colony ) const override {
+    return rn::raid_colony( *ss, *ts, attacker, colony );
+  }
+};
+
+/****************************************************************
 ** Public API
 *****************************************************************/
-wait<> natives_turn( SS& ss, TS& ts ) {
+wait<> natives_turn(
+    SS& ss, TS& ts, maybe<INativesTurnDeps const&> maybe_deps ) {
+  auto& deps = [&]() -> INativesTurnDeps const& {
+    static RealNativesTurnDeps real_deps;
+    return maybe_deps.value_or( real_deps );
+  }();
   base::ScopedTimer timer( "native turns" );
   timer.options().no_checkpoints_logging = true;
 
@@ -223,7 +311,7 @@ wait<> natives_turn( SS& ss, TS& ts ) {
     if( !ss.natives.tribe_exists( tribe ) ) continue;
     INativeMind& mind = ts.native_minds[tribe];
     timer.checkpoint( "{}", tribe );
-    co_await tribe_turn( ss, ts, viz, mind,
+    co_await tribe_turn( deps, ss, ts, viz, mind,
                          tribe_to_units[tribe] );
     CHECK( tribe_to_units[tribe].empty() );
   }

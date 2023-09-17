@@ -19,17 +19,16 @@ namespace "rn"
 sumtype.NativeUnitCommand {
   forfeight {},
 
-  # Note that this means "attempt a move;" the move could be re-
-  # jected if there are not enough movement points left.
-  travel {
-    direction 'e_direction',
-  },
-
-  # Note this is always allowed regardless of movement points,
-  # though the attack strength might be diminished if the unit
-  # has less than one movement point and, after the attack, it
-  # will always consumes all of the unit's movement points.
-  attack {
+  # This can be a travel or an attack, based on what is on the
+  # target square, which is assumed to have already been examined
+  # by whatever is controlling the unit.
+  #
+  # If it is an attack then it is always allowed regardless of
+  # movement points (though movement point based penalties still
+  # apply). If it is a travel then it is interpreted as "attempt
+  # a move," in that it will be allowed only probabilistically if
+  # there are not enough movement points.
+  move {
     direction 'e_direction',
   },
 }

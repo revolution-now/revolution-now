@@ -12,16 +12,41 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // Revolution Now
 #include "wait.hpp"
 
+// gfx
+#include "gfx/coord.hpp"
+
 namespace rn {
 
+struct Colony;
+struct NativeUnit;
 struct SS;
 struct TS;
 
-wait<> natives_turn( SS& ss, TS& ts );
+/****************************************************************
+** INativesTurnDeps.
+*****************************************************************/
+// The dependencies representing complex actions are injected in
+// order to make unit testing easier.
+struct INativesTurnDeps {
+  virtual ~INativesTurnDeps() = default;
+
+  // Dependencies. Parameters need to be mock friendly.
+  // ------------------------------------------------------------
+  virtual wait<> raid_unit( SS* ss, TS* ts, NativeUnit& attacker,
+                            Coord dst ) const = 0;
+
+  virtual wait<> raid_colony( SS* ss, TS* ts,
+                              NativeUnit& attacker,
+                              Colony&     colony ) const = 0;
+};
+
+/****************************************************************
+** Public API.
+*****************************************************************/
+wait<> natives_turn( SS& ss, TS& ts,
+                     maybe<INativesTurnDeps const&> = {} );
 
 } // namespace rn

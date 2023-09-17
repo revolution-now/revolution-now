@@ -16,6 +16,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
+#include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/inative-mind.hpp"
 #include "test/mocks/irand.hpp"
 #include "test/mocks/land-view-plane.hpp"
@@ -27,6 +28,7 @@
 // ss
 #include "src/ss/settings.rds.hpp"
 #include "src/ss/units.hpp"
+#include "src/ss/woodcut.rds.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -51,12 +53,14 @@ using ::mock::matchers::Approx;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_default_player();
+    add_player( e_nation::spanish );
+    add_player( e_nation::english );
+    set_default_player( e_nation::spanish );
     // Need at least one human player otherwise the map will be
     // fully visible during the natives' turns and we won't be
     // able to test whether animations get suppressed or not due
     // to map visibility.
-    set_human_player( default_nation() );
+    set_default_player_as_human();
     create_default_map();
   }
 
@@ -75,6 +79,16 @@ struct World : testing::World {
 };
 
 /****************************************************************
+** Mocks.
+*****************************************************************/
+struct MockNativesTurnDeps final : INativesTurnDeps {
+  MOCK_METHOD( wait<>, raid_unit,
+               ( SS*, TS*, NativeUnit&, Coord ), ( const ) );
+  MOCK_METHOD( wait<>, raid_colony,
+               (SS*, TS*, NativeUnit&, Colony&), ( const ) );
+};
+
+/****************************************************************
 ** Test Cases
 *****************************************************************/
 TEST_CASE(
@@ -82,6 +96,8 @@ TEST_CASE(
   World W;
 
   auto f = [&] {
+    // In this one we don't inject dependencies because it seems
+    // simple enough to test thoroughly.
     co_await_test( natives_turn( W.ss(), W.ts() ) );
   };
 
@@ -114,8 +130,7 @@ TEST_CASE(
     native_mind.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
     native_mind.EXPECT__command_for( unit_id ).returns(
-        NativeUnitCommand::travel{ .direction =
-                                       e_direction::e } );
+        NativeUnitCommand::move{ .direction = e_direction::e } );
     f();
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
              0 );
@@ -136,20 +151,17 @@ TEST_CASE(
     native_mind.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
     native_mind.EXPECT__command_for( unit_id ).returns(
-        NativeUnitCommand::travel{ .direction =
-                                       e_direction::e } );
+        NativeUnitCommand::move{ .direction = e_direction::e } );
     // Second move.
     native_mind.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
     native_mind.EXPECT__command_for( unit_id ).returns(
-        NativeUnitCommand::travel{ .direction =
-                                       e_direction::e } );
+        NativeUnitCommand::move{ .direction = e_direction::e } );
     // Third move.
     native_mind.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
     native_mind.EXPECT__command_for( unit_id ).returns(
-        NativeUnitCommand::travel{ .direction =
-                                       e_direction::e } );
+        NativeUnitCommand::move{ .direction = e_direction::e } );
     f();
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
              0 );
@@ -170,14 +182,12 @@ TEST_CASE(
     native_mind.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
     native_mind.EXPECT__command_for( unit_id ).returns(
-        NativeUnitCommand::travel{ .direction =
-                                       e_direction::e } );
+        NativeUnitCommand::move{ .direction = e_direction::e } );
     // Second move.
     native_mind.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
     native_mind.EXPECT__command_for( unit_id ).returns(
-        NativeUnitCommand::travel{ .direction =
-                                       e_direction::e } );
+        NativeUnitCommand::move{ .direction = e_direction::e } );
     // Third move.
     native_mind.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
@@ -202,20 +212,17 @@ TEST_CASE(
     native_mind.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
     native_mind.EXPECT__command_for( unit_id ).returns(
-        NativeUnitCommand::travel{ .direction =
-                                       e_direction::e } );
+        NativeUnitCommand::move{ .direction = e_direction::e } );
     // Second move.
     native_mind.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
     native_mind.EXPECT__command_for( unit_id ).returns(
-        NativeUnitCommand::travel{ .direction =
-                                       e_direction::e } );
+        NativeUnitCommand::move{ .direction = e_direction::e } );
     // Third move.
     native_mind.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
     native_mind.EXPECT__command_for( unit_id ).returns(
-        NativeUnitCommand::travel{ .direction =
-                                       e_direction::e } );
+        NativeUnitCommand::move{ .direction = e_direction::e } );
 
     SECTION( "final move allowed" ) {
       W.rand()
@@ -249,8 +256,7 @@ TEST_CASE(
     native_mind.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
     native_mind.EXPECT__command_for( unit_id ).returns(
-        NativeUnitCommand::travel{ .direction =
-                                       e_direction::e } );
+        NativeUnitCommand::move{ .direction = e_direction::e } );
 
     bool& show_indian_moves =
         W.settings()
@@ -356,12 +362,12 @@ TEST_CASE(
     native_mind.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id2 );
     native_mind.EXPECT__command_for( unit_id2 )
-        .returns( NativeUnitCommand::travel{
+        .returns( NativeUnitCommand::move{
             .direction = e_direction::e } );
     native_mind.EXPECT__select_unit( set{ unit_id1 } )
         .returns( unit_id1 );
     native_mind.EXPECT__command_for( unit_id1 )
-        .returns( NativeUnitCommand::travel{
+        .returns( NativeUnitCommand::move{
             .direction = e_direction::e } );
     f();
     REQUIRE( W.units().unit_for( unit_id1 ).movement_points ==
@@ -399,25 +405,25 @@ TEST_CASE(
     native_mind.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id1 );
     native_mind.EXPECT__command_for( unit_id1 )
-        .returns( NativeUnitCommand::travel{
+        .returns( NativeUnitCommand::move{
             .direction = e_direction::e } );
     // 2. Move unit 2 to the right.
     native_mind.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id2 );
     native_mind.EXPECT__command_for( unit_id2 )
-        .returns( NativeUnitCommand::travel{
+        .returns( NativeUnitCommand::move{
             .direction = e_direction::e } );
     // 3. Move unit 1 to the right.
     native_mind.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id1 );
     native_mind.EXPECT__command_for( unit_id1 )
-        .returns( NativeUnitCommand::travel{
+        .returns( NativeUnitCommand::move{
             .direction = e_direction::e } );
     // 4. Move unit 2 to the right.
     native_mind.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id2 );
     native_mind.EXPECT__command_for( unit_id2 )
-        .returns( NativeUnitCommand::travel{
+        .returns( NativeUnitCommand::move{
             .direction = e_direction::e } );
     // 5. unit 1 forfeights.
     native_mind.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
@@ -428,7 +434,7 @@ TEST_CASE(
     native_mind.EXPECT__select_unit( set{ unit_id2 } )
         .returns( unit_id2 );
     native_mind.EXPECT__command_for( unit_id2 )
-        .returns( NativeUnitCommand::travel{
+        .returns( NativeUnitCommand::move{
             .direction = e_direction::e } );
     f();
     REQUIRE( W.units().unit_for( unit_id1 ).movement_points ==
@@ -468,13 +474,13 @@ TEST_CASE(
     native_mind.EXPECT__select_unit( set{ unit_id1 } )
         .returns( unit_id1 );
     native_mind.EXPECT__command_for( unit_id1 )
-        .returns( NativeUnitCommand::travel{
+        .returns( NativeUnitCommand::move{
             .direction = e_direction::e } );
     // 2. Move unit 1 to the right.
     native_mind.EXPECT__select_unit( set{ unit_id1 } )
         .returns( unit_id1 );
     native_mind.EXPECT__command_for( unit_id1 )
-        .returns( NativeUnitCommand::travel{
+        .returns( NativeUnitCommand::move{
             .direction = e_direction::e } );
     // 3. unit 1 forfeights.
     native_mind.EXPECT__select_unit( set{ unit_id1 } )
@@ -485,19 +491,19 @@ TEST_CASE(
     native_mind2.EXPECT__select_unit( set{ unit_id2 } )
         .returns( unit_id2 );
     native_mind2.EXPECT__command_for( unit_id2 )
-        .returns( NativeUnitCommand::travel{
+        .returns( NativeUnitCommand::move{
             .direction = e_direction::e } );
     // 5. Move unit 2 to the right.
     native_mind2.EXPECT__select_unit( set{ unit_id2 } )
         .returns( unit_id2 );
     native_mind2.EXPECT__command_for( unit_id2 )
-        .returns( NativeUnitCommand::travel{
+        .returns( NativeUnitCommand::move{
             .direction = e_direction::e } );
     // 6. Move unit 2 to the right.
     native_mind2.EXPECT__select_unit( set{ unit_id2 } )
         .returns( unit_id2 );
     native_mind2.EXPECT__command_for( unit_id2 )
-        .returns( NativeUnitCommand::travel{
+        .returns( NativeUnitCommand::move{
             .direction = e_direction::e } );
     f();
     REQUIRE( W.units().unit_for( unit_id1 ).movement_points ==
@@ -508,6 +514,82 @@ TEST_CASE(
              0 );
     REQUIRE( W.units().coord_for( unit_id2 ) ==
              Coord{ .x = 3, .y = 1 } );
+  }
+}
+
+TEST_CASE( "[native-turn] natives_turn, attack euro unit" ) {
+  World             W;
+  MockLandViewPlane mock_land_view;
+  W.planes().back().land_view = &mock_land_view;
+  MockNativesTurnDeps mock_deps;
+
+  auto f = [&] {
+    co_await_test( natives_turn( W.ss(), W.ts(), mock_deps ) );
+  };
+
+  MockINativeMind& native_mind =
+      W.native_mind( e_tribe::arawak );
+  MockIEuroMind& mock_euro_mind = W.euro_mind();
+
+  auto [dwelling, brave] = W.add_dwelling_and_brave(
+      { .x = 0, .y = 0 }, e_tribe::arawak );
+  Coord const defender_loc = { .x = 1, .y = 0 };
+
+  SECTION( "brave, one euro, brave loses, soldier promoted" ) {
+    Unit const& soldier =
+        W.add_unit_on_map( e_unit_type::soldier, defender_loc );
+    native_mind.EXPECT__select_unit( set{ brave.id } )
+        .returns( brave.id );
+    native_mind.EXPECT__command_for( brave.id )
+        .returns( NativeUnitCommand::move{ e_direction::e } );
+    mock_euro_mind.EXPECT__show_woodcut(
+        e_woodcut::indian_raid );
+    mock_deps.EXPECT__raid_unit( &W.ss(), &W.ts(), brave,
+                                 defender_loc );
+    f();
+    REQUIRE( brave.movement_points == 0 );
+    REQUIRE( soldier.movement_points() == 1 );
+  }
+
+  SECTION( "brave, one euro, brave wins" ) {
+    Unit const& soldier =
+        W.add_unit_on_map( e_unit_type::soldier, defender_loc );
+    native_mind.EXPECT__select_unit( set{ brave.id } )
+        .returns( brave.id );
+    native_mind.EXPECT__command_for( brave.id )
+        .returns( NativeUnitCommand::move{ e_direction::e } );
+    mock_euro_mind.EXPECT__show_woodcut(
+        e_woodcut::indian_raid );
+    mock_deps.EXPECT__raid_unit( &W.ss(), &W.ts(), brave,
+                                 defender_loc );
+    f();
+    REQUIRE( brave.movement_points == 0 );
+    REQUIRE( soldier.movement_points() == 1 );
+  }
+
+  SECTION( "brave, three euro, brave loses" ) {
+    // The soldier should be chosen as defender.
+    Unit const& free_colonist1 = W.add_unit_on_map(
+        e_unit_type::free_colonist, defender_loc );
+    // Put the soldier in the middle so we can test that it gets
+    // picked for the right reasons.
+    Unit const& soldier =
+        W.add_unit_on_map( e_unit_type::soldier, defender_loc );
+    Unit const& free_colonist2 = W.add_unit_on_map(
+        e_unit_type::free_colonist, defender_loc );
+    native_mind.EXPECT__select_unit( set{ brave.id } )
+        .returns( brave.id );
+    native_mind.EXPECT__command_for( brave.id )
+        .returns( NativeUnitCommand::move{ e_direction::e } );
+    mock_euro_mind.EXPECT__show_woodcut(
+        e_woodcut::indian_raid );
+    mock_deps.EXPECT__raid_unit( &W.ss(), &W.ts(), brave,
+                                 defender_loc );
+    f();
+    REQUIRE( brave.movement_points == 0 );
+    REQUIRE( soldier.movement_points() == 1 );
+    REQUIRE( free_colonist1.movement_points() == 1 );
+    REQUIRE( free_colonist2.movement_points() == 1 );
   }
 }
 

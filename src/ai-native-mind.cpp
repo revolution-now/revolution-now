@@ -89,19 +89,19 @@ NativeUnitCommand AiNativeMind::command_for(
   MapSquare const& square = ss_.terrain.square_at( moved );
   if( square.surface != e_surface::land )
     return NativeUnitCommand::forfeight{};
-  maybe<Society> const society = society_on_square( ss_, moved );
-  if( !society.has_value() )
-    return NativeUnitCommand::travel{ .direction = rand_d };
-  SWITCH( *society ) {
-    CASE( native ) {
-      if( native.tribe == tribe.type )
-        return NativeUnitCommand::travel{ .direction = rand_d };
-      return NativeUnitCommand::forfeight{};
-    }
-    CASE( european ) {
-      return NativeUnitCommand::attack{ .direction = rand_d };
+  if( maybe<Society> const society =
+          society_on_square( ss_, moved );
+      society.has_value() ) {
+    SWITCH( *society ) {
+      CASE( native ) {
+        if( native.tribe != tribe.type )
+          return NativeUnitCommand::forfeight{};
+        break;
+      }
+      CASE( european ) { break; }
     }
   }
+  return NativeUnitCommand::move{ .direction = rand_d };
 }
 
 void AiNativeMind::on_attack_colony_finished(
