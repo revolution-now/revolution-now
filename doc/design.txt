@@ -258,6 +258,7 @@ Coroutine-based GUI windows and widgets
       |                   \__________/   \__________/  |
       \________________________________________________/
 
+  ```cpp
   struct actor {
     waitable<> coro;
     // Pointer to stream inside of coro.
@@ -308,9 +309,11 @@ Coroutine-based GUI windows and widgets
     // State
     bool down_ = false;
   };
+  ```
 
 In user code:
 
+  ```cpp
   int level = co_await get_level();
 
   waitable<maybe<int>> get_level() {
@@ -362,6 +365,7 @@ In user code:
       }
     }
   }
+  ```
 
 =================================================================
 Unit Composition
