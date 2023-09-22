@@ -735,16 +735,23 @@ wait<> SmoothViewport::center_on_tile_smooth( Coord coord ) {
   // When the coroutine ends we will null out the promise so that
   // no one tries to access it (because it will be gone) but we
   // don't reset the coro_smooth_scroll_ variable, that way it
-  // can continue to finish scrolling. TODO: think about poten-
-  // tially a better way to do this. It is a bit tricky because
-  // we want the scrolling to slow as it nears its final point
-  // (is that even well defined?), but we don't want to hold up
-  // the coroutine for all that time, hence current behavior.
+  // can continue to finish scrolling. That said, we need to be
+  // defensive in how we do that because it is possible that
+  // someone could call e.g. stop_auto_panning while this corou-
+  // tine is alive, which would reset coro_smooth_scroll_. Also,
+  // it is possible that someone invoked another instance of this
+  // coroutine while we were waiting, in which case the promise
+  // will be theirs and hence we wouldn't want to reset it.
+  // TODO: think about potentially a better way to do this. It is
+  // a bit tricky because we want the scrolling to slow as it
+  // nears its final point, but we don't want to hold up the
+  // coroutine for all that time, hence current behavior.
+  // TODO: also think about a better way to handle when multiple
+  // of these requires are fired concurrently; we probably want
+  // to represent the state in a map or stack.
   SCOPE_EXIT {
-    // This check is defensive; it is possible that someone could
-    // call e.g. stop_auto_panning while this coroutine is alive,
-    // which would reset coro_smooth_scroll_.
-    if( coro_smooth_scroll_.has_value() )
+    if( coro_smooth_scroll_.has_value() &&
+        coro_smooth_scroll_->promise == &p )
       coro_smooth_scroll_->promise = nullptr;
   };
   co_await p.wait();
