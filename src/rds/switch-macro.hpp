@@ -18,8 +18,8 @@
 //      ments. `break`, `return`, `continue`, etc. have exactly
 //      the expected effect.
 //   2. Compiler will warn about missing cases and fallthrough.
-//   3. Are easy to write and looks natural; no extra braces or
-//      starting/closing macros needed.
+//   3. Are easy to write and looks natural; no starting or
+//      closing macros needed, though braces are required.
 //   4. Automatically provide the reference to the alternative
 //      object in each case block.
 //
@@ -31,7 +31,7 @@
 //       break;
 //     }
 //     CASE( another_alt ) {
-//       return (o.some_member == e_nation::english);
+//       return (another_alt.some_member == e_nation::english);
 //     }
 //   }
 //
@@ -47,12 +47,12 @@
 //     case C::e::another_alt:
 //       if( auto& another_alt [[maybe_unused]] =
 //             __o.get<C::another_alt>(); true ) {
-//         return (o.some_member == e_nation::english);
+//         return (another_alt.some_member == e_nation::english);
 //       }
 //     }
 //   }
 //
-// where C = std::remove_cvref_t<decltype( __o )> for exposition.
+// where C = std::remove_cvref_t<decltype( __o )>.
 
 #define SWITCH( what ) switch( auto&& __o = what; __o.to_enum() )
 
