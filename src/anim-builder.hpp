@@ -31,32 +31,33 @@ struct AnimationBuilder {
 
   void new_phase();
 
-  void delay( std::chrono::microseconds duration );
+  AnimationAction& delay( std::chrono::microseconds duration );
 
-  void play_sound( e_sfx what );
+  AnimationAction& play_sound( e_sfx what );
 
-  void hide_unit( GenericUnitId unit_id );
+  AnimationAction& hide_unit( GenericUnitId unit_id );
 
-  void front_unit( GenericUnitId unit_id );
+  AnimationAction& front_unit( GenericUnitId unit_id );
 
-  void front_unit_non_background( GenericUnitId unit_id );
+  AnimationAction& front_unit_non_background(
+      GenericUnitId unit_id );
 
-  void slide_unit( GenericUnitId unit_id,
-                   e_direction   direction );
+  AnimationAction& slide_unit( GenericUnitId unit_id,
+                               e_direction   direction );
 
-  void depixelate_unit( GenericUnitId unit_id );
+  AnimationAction& depixelate_unit( GenericUnitId unit_id );
 
-  void enpixelate_unit( GenericUnitId unit_id );
+  AnimationAction& enpixelate_unit( GenericUnitId unit_id );
 
-  void pixelate_euro_unit_to_target( UnitId      unit_id,
-                                     e_unit_type target );
+  AnimationAction& pixelate_euro_unit_to_target(
+      UnitId unit_id, e_unit_type target );
 
-  void pixelate_native_unit_to_target(
+  AnimationAction& pixelate_native_unit_to_target(
       NativeUnitId unit_id, e_native_unit_type target );
 
-  void depixelate_colony( ColonyId colony_id );
+  AnimationAction& depixelate_colony( ColonyId colony_id );
 
-  void depixelate_dwelling( DwellingId dwelling_id );
+  AnimationAction& depixelate_dwelling( DwellingId dwelling_id );
 
  private:
   // Add another animation into the current phase.
