@@ -284,8 +284,9 @@ wait<> LandViewAnimator::ensure_visible_unit(
 
 // In this function we can assume that the `primitive` argument
 // will outlive this coroutine.
-wait<> LandViewAnimator::animate_primitive(
-    AnimationPrimitive const& primitive ) {
+wait<> LandViewAnimator::animate_action_primitive(
+    AnimationAction const& action ) {
+  AnimationPrimitive const& primitive = action.primitive;
   switch( primitive.to_enum() ) {
     using e = AnimationPrimitive::e;
     case e::delay: {
@@ -419,12 +420,11 @@ wait<> LandViewAnimator::animate_sequence(
     must_complete.reserve( sub_seq.size() );
     background.reserve( sub_seq.size() );
     for( AnimationAction const& action : sub_seq ) {
+      wait<> w = animate_action_primitive( action );
       if( action.background )
-        background.push_back(
-            animate_primitive( action.primitive ) );
+        background.push_back( std::move( w ) );
       else
-        must_complete.push_back(
-            animate_primitive( action.primitive ) );
+        must_complete.push_back( std::move( w ) );
     }
     co_await co::all( std::move( must_complete ) );
   }

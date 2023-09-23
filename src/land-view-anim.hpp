@@ -36,7 +36,7 @@
 
 namespace rn {
 
-struct AnimationPrimitive;
+struct AnimationAction;
 struct AnimationSequence;
 struct Colony;
 struct Dwelling;
@@ -100,8 +100,8 @@ struct LandViewAnimator {
  private:
   // Animation primitives.
 
-  wait<> animate_primitive(
-      AnimationPrimitive const& primitive );
+  wait<> animate_action_primitive(
+      AnimationAction const& action );
 
   wait<> unit_depixelation_throttler(
       GenericUnitId id, maybe<e_tile> target_tile );
