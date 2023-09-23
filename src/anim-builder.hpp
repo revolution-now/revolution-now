@@ -59,6 +59,8 @@ struct AnimationBuilder {
 
   AnimationAction& depixelate_dwelling( DwellingId dwelling_id );
 
+  AnimationAction& depixelate_fog_dwelling( Coord tile );
+
  private:
   // Add another animation into the current phase.
   AnimationAction& push( auto&& o ) {

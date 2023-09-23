@@ -109,4 +109,9 @@ AnimationAction& AnimationBuilder::depixelate_dwelling(
       P::depixelate_dwelling{ .dwelling_id = dwelling_id } );
 }
 
+AnimationAction& AnimationBuilder::depixelate_fog_dwelling(
+    Coord tile ) {
+  return push( P::depixelate_fog_dwelling{ .tile = tile } );
+}
+
 } // namespace rn

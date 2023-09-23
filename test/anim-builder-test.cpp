@@ -49,6 +49,7 @@ TEST_CASE( "[anim-builder] builders" ) {
       NativeUnitId{ 7 }, e_native_unit_type::mounted_brave );
   builder.depixelate_colony( ColonyId{ 8 } );
   builder.depixelate_dwelling( DwellingId{ 9 } );
+  builder.depixelate_fog_dwelling( Coord{ .x = 1, .y = 2 } );
   builder.front_unit_non_background( GenericUnitId{ 10 } );
 
   AnimationSequence const& res = builder.result();
@@ -91,6 +92,9 @@ TEST_CASE( "[anim-builder] builders" ) {
             { .primitive =
                   P::depixelate_dwelling{
                       .dwelling_id = DwellingId{ 9 } } },
+            { .primitive =
+                  P::depixelate_fog_dwelling{
+                      .tile = { .x = 1, .y = 2 } } },
             { .primitive = P::front_unit{
                   .unit_id = GenericUnitId{ 10 } } } } } };
 

@@ -19,7 +19,7 @@ include "ss/unit-id.hpp"
 include "ss/unit-type.rds.hpp"
 
 # gfx
-include "gfx/coord.rds.hpp"
+include "gfx/coord.hpp"
 
 # C++ standard library
 include "<chrono>"
@@ -105,6 +105,10 @@ sumtype.AnimationPrimitive {
   # -------------------------------------------------------------
   depixelate_dwelling {
     dwelling_id 'DwellingId',
+  },
+
+  depixelate_fog_dwelling {
+    tile 'Coord',
   },
 }
 
