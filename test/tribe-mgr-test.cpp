@@ -16,6 +16,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/util/coro.hpp"
 
 // ss
 #include "ss/dwelling.rds.hpp"
@@ -345,10 +346,19 @@ TEST_CASE( "[tribe-mgr] destroy_tribe_interactive" ) {
   W.add_tribe( e_tribe::aztec );
   W.gui().EXPECT__message_box(
       "The [Aztec] tribe has been wiped out." );
-  wait<> const w = destroy_tribe_interactive( W.ss(), W.ts(),
-                                              e_tribe::aztec );
-  REQUIRE( !w.exception() );
-  REQUIRE( w.ready() );
+  co_await_test( destroy_tribe_interactive( W.ss(), W.ts(),
+                                            e_tribe::aztec ) );
+  REQUIRE( !W.natives().tribe_exists( e_tribe::aztec ) );
+}
+
+TEST_CASE( "[tribe-mgr] tribe_wiped_out_message" ) {
+  World W;
+  W.add_tribe( e_tribe::aztec );
+  W.gui().EXPECT__message_box(
+      "The [Aztec] tribe has been wiped out." );
+  co_await_test(
+      tribe_wiped_out_message( W.ts(), e_tribe::aztec ) );
+  REQUIRE( W.natives().tribe_exists( e_tribe::aztec ) );
 }
 
 } // namespace

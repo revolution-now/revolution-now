@@ -51,6 +51,9 @@ void destroy_tribe( SS& ss, TS& ts, e_tribe tribe );
 wait<> destroy_tribe_interactive( SS& ss, TS& ts,
                                   e_tribe tribe );
 
+// Displays the message that a tribe is gone.
+wait<> tribe_wiped_out_message( TS& ts, e_tribe tribe );
+
 /****************************************************************
 ** Acquiring Horses/Muskets.
 *****************************************************************/

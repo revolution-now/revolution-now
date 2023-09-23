@@ -92,12 +92,16 @@ void destroy_tribe( SS& ss, TS& ts, e_tribe tribe ) {
   ss.natives.destroy_tribe_last_step( tribe );
 }
 
-wait<> destroy_tribe_interactive( SS& ss, TS& ts,
-                                  e_tribe tribe ) {
-  destroy_tribe( ss, ts, tribe );
+wait<> tribe_wiped_out_message( TS& ts, e_tribe tribe ) {
   co_await ts.gui.message_box(
       "The [{}] tribe has been wiped out.",
       config_natives.tribes[tribe].name_singular );
+}
+
+wait<> destroy_tribe_interactive( SS& ss, TS& ts,
+                                  e_tribe tribe ) {
+  destroy_tribe( ss, ts, tribe );
+  co_await tribe_wiped_out_message( ts, tribe );
 }
 
 void tribe_take_horses_from_destroyed_brave( Tribe& tribe ) {
