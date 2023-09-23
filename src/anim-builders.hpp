@@ -34,6 +34,9 @@ struct CombatShipAttackShip;
 struct DwellingCombatOutcome;
 struct EuroUnitCombatOutcome;
 struct SSConst;
+struct Visibility;
+
+enum class e_tribe;
 
 // General euro-on-euro attack sequence.
 AnimationSequence anim_seq_for_euro_attack_euro(
@@ -123,5 +126,10 @@ AnimationSequence anim_seq_unit_to_front(
 // imations runnings in parallel) until some other event occurs.
 AnimationSequence anim_seq_unit_to_front_non_background(
     GenericUnitId unit_id );
+
+// Depixelates an entire tribe; only used in cheat mode when
+// deleting a tribe. The tribe must exist.
+AnimationSequence anim_seq_for_cheat_tribe_destruction(
+    SSConst const& ss, Visibility const& viz, e_tribe tribe );
 
 } // namespace rn

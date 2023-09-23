@@ -18,6 +18,8 @@
 
 // Revolution Now
 #include "icombat.rds.hpp"
+#include "imap-updater.hpp"
+#include "visibility.hpp"
 
 // ss
 #include "ss/dwelling.rds.hpp"
@@ -41,7 +43,8 @@ using P = AnimationPrimitive;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_default_player();
+    add_player( e_nation::french );
+    set_default_player( e_nation::french );
     create_default_map();
   }
 
@@ -49,11 +52,13 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, //
-        _, L, L, //
-        _, L, L, //
+        _, L, _, L, L, //
+        _, L, L, L, L, //
+        _, L, L, L, L, //
+        _, L, L, L, L, //
+        _, L, L, L, L, //
     };
-    build_map( std::move( tiles ), 3 );
+    build_map( std::move( tiles ), 5 );
   }
 };
 
@@ -963,6 +968,180 @@ TEST_CASE( "[anim-builders] anim_seq_for_dwelling_burn" ) {
               { .primitive = P::play_sound{
                     .what = e_sfx::city_destroyed } } } } };
   REQUIRE( f() == expected );
+}
+
+TEST_CASE(
+    "[anim-builders] anim_seq_for_cheat_tribe_destruction" ) {
+  World             W;
+  AnimationSequence expected;
+  e_tribe           tribe = {};
+
+  W.add_tribe( e_tribe::inca ); // no dwellings.
+
+  Dwelling const& dwelling_1 =
+      W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::apache );
+  NativeUnit const& brave_1 = W.add_native_unit_on_map(
+      e_native_unit_type::brave, { .x = 2, .y = 1 },
+      dwelling_1.id );
+
+  Dwelling const& dwelling_2 =
+      W.add_dwelling( { .x = 1, .y = 2 }, e_tribe::apache );
+  NativeUnit const& brave_2 = W.add_native_unit_on_map(
+      e_native_unit_type::brave, { .x = 2, .y = 2 },
+      dwelling_2.id );
+
+  Dwelling const& dwelling_3 =
+      W.add_dwelling( { .x = 1, .y = 3 }, e_tribe::aztec );
+  NativeUnit const& brave_3 = W.add_native_unit_on_map(
+      e_native_unit_type::brave, { .x = 2, .y = 3 },
+      dwelling_3.id );
+
+  Dwelling const& dwelling_4 =
+      W.add_dwelling( { .x = 1, .y = 4 }, e_tribe::aztec );
+  NativeUnit const& brave_4 = W.add_native_unit_on_map(
+      e_native_unit_type::brave, { .x = 2, .y = 4 },
+      dwelling_4.id );
+
+  auto f = [&]( Visibility const& viz ) {
+    return anim_seq_for_cheat_tribe_destruction( W.ss(), viz,
+                                                 tribe );
+  };
+
+  SECTION( "all visible" ) {
+    Visibility const viz( W.ss(), nothing );
+
+    tribe    = e_tribe::inca;
+    expected = {
+        .sequence = { /*phase 1=*/{
+            { .primitive = P::play_sound{
+                  .what = e_sfx::city_destroyed } } } } };
+    REQUIRE( f( viz ) == expected );
+
+    tribe    = e_tribe::aztec;
+    expected = {
+        .sequence = { /*phase 1=*/{
+            { .primitive =
+                  P::play_sound{ .what =
+                                     e_sfx::city_destroyed } },
+            { .primitive =
+                  P::depixelate_dwelling{ .dwelling_id =
+                                              dwelling_3.id } },
+            { .primitive =
+                  P::depixelate_dwelling{ .dwelling_id =
+                                              dwelling_4.id } },
+            { .primitive =
+                  P::depixelate_unit{ .unit_id = brave_3.id } },
+            { .primitive =
+                  P::depixelate_unit{ .unit_id = brave_4.id } },
+        } } };
+    REQUIRE( f( viz ) == expected );
+
+    tribe    = e_tribe::apache;
+    expected = {
+        .sequence = { /*phase 1=*/{
+            { .primitive =
+                  P::play_sound{ .what =
+                                     e_sfx::city_destroyed } },
+            { .primitive =
+                  P::depixelate_dwelling{ .dwelling_id =
+                                              dwelling_1.id } },
+            { .primitive =
+                  P::depixelate_dwelling{ .dwelling_id =
+                                              dwelling_2.id } },
+            { .primitive =
+                  P::depixelate_unit{ .unit_id = brave_1.id } },
+            { .primitive =
+                  P::depixelate_unit{ .unit_id = brave_2.id } },
+        } } };
+    REQUIRE( f( viz ) == expected );
+  }
+
+  SECTION( "none visible" ) {
+    Visibility const viz( W.ss(), e_nation::french );
+
+    tribe    = e_tribe::inca;
+    expected = {
+        .sequence = { /*phase 1=*/{
+            { .primitive = P::play_sound{
+                  .what = e_sfx::city_destroyed } } } } };
+    REQUIRE( f( viz ) == expected );
+
+    tribe    = e_tribe::aztec;
+    expected = {
+        .sequence = { /*phase 1=*/{
+            { .primitive =
+                  P::play_sound{ .what =
+                                     e_sfx::city_destroyed } },
+            { .primitive =
+                  P::depixelate_unit{ .unit_id = brave_3.id } },
+            { .primitive =
+                  P::depixelate_unit{ .unit_id = brave_4.id } },
+        } } };
+    REQUIRE( f( viz ) == expected );
+
+    tribe    = e_tribe::apache;
+    expected = {
+        .sequence = { /*phase 1=*/{
+            { .primitive =
+                  P::play_sound{ .what =
+                                     e_sfx::city_destroyed } },
+            { .primitive =
+                  P::depixelate_unit{ .unit_id = brave_1.id } },
+            { .primitive =
+                  P::depixelate_unit{ .unit_id = brave_2.id } },
+        } } };
+    REQUIRE( f( viz ) == expected );
+  }
+
+  SECTION( "some visible" ) {
+    Visibility const viz( W.ss(), e_nation::french );
+
+    W.map_updater().make_squares_visible(
+        e_nation::french, { { .x = 1, .y = 1 } } );
+    W.map_updater().make_squares_fogged(
+        e_nation::french, { { .x = 1, .y = 1 } } );
+    W.map_updater().make_squares_visible(
+        e_nation::french, { { .x = 1, .y = 3 } } );
+
+    tribe    = e_tribe::inca;
+    expected = {
+        .sequence = { /*phase 1=*/{
+            { .primitive = P::play_sound{
+                  .what = e_sfx::city_destroyed } } } } };
+    REQUIRE( f( viz ) == expected );
+
+    tribe    = e_tribe::aztec;
+    expected = {
+        .sequence = { /*phase 1=*/{
+            { .primitive =
+                  P::play_sound{ .what =
+                                     e_sfx::city_destroyed } },
+            { .primitive =
+                  P::depixelate_fog_dwelling{
+                      .tile = { .x = 1, .y = 3 } } },
+            { .primitive =
+                  P::depixelate_unit{ .unit_id = brave_3.id } },
+            { .primitive =
+                  P::depixelate_unit{ .unit_id = brave_4.id } },
+        } } };
+    REQUIRE( f( viz ) == expected );
+
+    tribe    = e_tribe::apache;
+    expected = {
+        .sequence = { /*phase 1=*/{
+            { .primitive =
+                  P::play_sound{ .what =
+                                     e_sfx::city_destroyed } },
+            { .primitive =
+                  P::depixelate_fog_dwelling{
+                      .tile = { .x = 1, .y = 1 } } },
+            { .primitive =
+                  P::depixelate_unit{ .unit_id = brave_1.id } },
+            { .primitive =
+                  P::depixelate_unit{ .unit_id = brave_2.id } },
+        } } };
+    REQUIRE( f( viz ) == expected );
+  }
 }
 
 } // namespace

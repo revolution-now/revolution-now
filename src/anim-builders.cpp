@@ -14,16 +14,25 @@
 #include "anim-builder.hpp"
 #include "icombat.rds.hpp"
 #include "unit-mgr.hpp"
+#include "visibility.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"
 
 // ss
+#include "ss/natives.hpp"
 #include "ss/ref.hpp"
+#include "ss/terrain.hpp"
 #include "ss/units.hpp"
+
+// gfx
+#include "gfx/iter.hpp"
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/sort.hpp"
 
 using namespace std;
 
@@ -629,6 +638,72 @@ AnimationSequence anim_seq_unit_to_front_non_background(
     GenericUnitId unit_id ) {
   AnimationBuilder builder;
   builder.front_unit_non_background( unit_id );
+  return builder.result();
+}
+
+static void destroy_real_dwellings( AnimationBuilder& builder,
+                                    SSConst const&    ss,
+                                    e_tribe           tribe ) {
+  UNWRAP_CHECK( dwellings_unsorted,
+                ss.natives.dwellings_for_tribe( tribe ) );
+  vector<DwellingId> const dwellings =
+      base::sorted( dwellings_unsorted );
+  for( DwellingId const dwelling_id : dwellings )
+    builder.depixelate_dwelling( dwelling_id );
+}
+
+static void destroy_fogged_dwellings( AnimationBuilder& builder,
+                                      SSConst const&    ss,
+                                      e_nation          nation,
+                                      e_tribe           tribe ) {
+  // This should cover both fogged and visible dwellings.
+  UNWRAP_CHECK( player_terrain,
+                ss.terrain.player_terrain( nation ) );
+  auto&              m = player_terrain.map;
+  gfx::rect_iterator ri( m.rect() );
+  for( Coord const tile : ri ) {
+    maybe<FogSquare> const& fog_square = m[tile];
+    if( !fog_square.has_value() ) continue;
+    maybe<FogDwelling> const& fog_dwelling =
+        fog_square->dwelling;
+    if( !fog_dwelling.has_value() ) continue;
+    if( fog_dwelling->tribe != tribe ) continue;
+    builder.depixelate_fog_dwelling( tile );
+  }
+}
+
+AnimationSequence anim_seq_for_cheat_tribe_destruction(
+    SSConst const& ss, Visibility const& viz, e_tribe tribe ) {
+  AnimationBuilder builder;
+  builder.play_sound( e_sfx::city_destroyed );
+
+  // Dwellings.
+  if( maybe<e_nation> const nation = viz.nation();
+      !nation.has_value() )
+    destroy_real_dwellings( builder, ss, tribe );
+  else
+    destroy_fogged_dwellings( builder, ss, *nation, tribe );
+
+  // Braves.
+  auto const&          native_units = ss.units.native_all();
+  vector<NativeUnitId> native_unit_ids;
+  native_unit_ids.reserve( native_units.size() );
+  for( auto [unit_id, p_state] : native_units ) {
+    UNWRAP_CHECK( world,
+                  p_state->ownership
+                      .get_if<NativeUnitOwnership::world>() );
+    e_tribe const tribe_type =
+        ss.natives.tribe_for( world.dwelling_id ).type;
+    if( tribe_type != tribe ) continue;
+    native_unit_ids.push_back( unit_id );
+  }
+  sort( native_unit_ids.begin(), native_unit_ids.end() );
+  for( NativeUnitId const unit_id : native_unit_ids )
+    // This should do the right thing whether the unit is visible
+    // or not (if it's not, it won't be animated, and there are
+    // no fogged units).
+    builder.depixelate_unit( unit_id );
+
   return builder.result();
 }
 
