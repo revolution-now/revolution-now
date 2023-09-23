@@ -477,6 +477,23 @@ void LandViewRenderer::render_real_dwelling_depixelate(
   render_real_dwelling( dwelling );
 }
 
+void LandViewRenderer::render_fog_dwelling_depixelate(
+    FogDwelling const& fog_dwelling, Coord tile ) const {
+  UNWRAP_CHECK(
+      animation,
+      lv_animator_.fog_dwelling_animation( tile )
+          .get_if<DwellingAnimationState::depixelate>() );
+  // As usual, the hash anchor coord is arbitrary so long as
+  // its position is fixed relative to the sprite.
+  Coord const hash_anchor =
+      render_rect_for_tile( tile ).upper_left();
+  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                           animation.stage );
+  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
+                           hash_anchor );
+  render_fog_dwelling( fog_dwelling, tile );
+}
+
 // When the player is moving a unit and it runs out of movement
 // points there is a chance that the player will accidentally
 // issue a couple of extra input commands to the unit beyond the
@@ -629,10 +646,27 @@ void LandViewRenderer::render_units() const {
 
 void LandViewRenderer::render_dwellings() const {
   for( Coord const coord : gfx::rect_iterator( covered_ ) ) {
+    auto try_fog_dwelling_anim = [&] {
+      maybe<DwellingAnimationState const&> anim =
+          lv_animator_.fog_dwelling_animation( coord );
+      if( !anim.has_value() ) return false;
+      maybe<FogSquare const&> fog_square =
+          viz_.fog_square_at( coord );
+      if( !fog_square.has_value() ) return false;
+      if( !fog_square->dwelling.has_value() ) return false;
+      render_fog_dwelling_depixelate( *fog_square->dwelling,
+                                      coord );
+      return true;
+    };
     switch( viz_.visible( coord ) ) {
       case e_tile_visibility::hidden:
         continue;
       case e_tile_visibility::visible_and_clear: {
+        // Sometimes, even when a dwelling is visible, we animate
+        // the fog version of it for convenience. This should be
+        // ok, because when the tile is visible the two should
+        // coincide.
+        if( try_fog_dwelling_anim() ) break;
         maybe<DwellingId> const real_dwelling_id =
             ss_.natives.maybe_dwelling_from_coord( coord );
         if( real_dwelling_id.has_value() ) {
@@ -649,6 +683,7 @@ void LandViewRenderer::render_dwellings() const {
         break;
       }
       case e_tile_visibility::visible_with_fog: {
+        if( try_fog_dwelling_anim() ) break;
         UNWRAP_CHECK( fog_square, viz_.fog_square_at( coord ) );
         if( fog_square.dwelling.has_value() )
           render_fog_dwelling( *fog_square.dwelling, coord );

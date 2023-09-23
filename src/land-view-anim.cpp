@@ -166,6 +166,15 @@ LandViewAnimator::dwelling_animation( DwellingId id ) const {
   return st.top();
 }
 
+maybe<DwellingAnimationState const&>
+LandViewAnimator::fog_dwelling_animation( Coord tile ) const {
+  auto it = fog_dwelling_animations_.find( tile );
+  if( it == fog_dwelling_animations_.end() ) return nothing;
+  stack<DwellingAnimationState> const& st = it->second;
+  CHECK( !st.empty() );
+  return st.top();
+}
+
 wait<> LandViewAnimator::unit_depixelation_throttler(
     GenericUnitId id, maybe<e_tile> target_tile ) {
   auto popper =
@@ -206,6 +215,16 @@ wait<> LandViewAnimator::dwelling_depixelation_throttler(
   auto popper =
       add_dwelling_animation<DwellingAnimationState::depixelate>(
           dwelling.id );
+  DwellingAnimationState::depixelate& depixelate = popper.get();
+
+  depixelate.stage = 0.0;
+  co_await pixelation_stage_throttler( depixelate.stage );
+}
+
+wait<> LandViewAnimator::fog_dwelling_depixelation_throttler(
+    Coord tile ) {
+  auto popper = add_fog_dwelling_animation<
+      DwellingAnimationState::depixelate>( tile );
   DwellingAnimationState::depixelate& depixelate = popper.get();
 
   depixelate.stage = 0.0;
@@ -407,6 +426,13 @@ wait<> LandViewAnimator::animate_action_primitive(
           ss_.natives.coord_for( dwelling_id );
       co_await ensure_visible( location );
       co_await dwelling_depixelation_throttler( dwelling );
+      break;
+    }
+    case e::depixelate_fog_dwelling: {
+      auto& [tile] = primitive.get<
+          AnimationPrimitive::depixelate_fog_dwelling>();
+      co_await ensure_visible( tile );
+      co_await fog_dwelling_depixelation_throttler( tile );
       break;
     }
   }

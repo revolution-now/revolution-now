@@ -54,6 +54,9 @@ struct LandViewAnimator {
   using DwellingAnimStatesMap =
       std::unordered_map<DwellingId,
                          std::stack<DwellingAnimationState>>;
+  using FogDwellingAnimStatesMap =
+      std::unordered_map<Coord,
+                         std::stack<DwellingAnimationState>>;
   using ColonyAnimStatesMap =
       std::unordered_map<ColonyId,
                          std::stack<ColonyAnimationState>>;
@@ -73,6 +76,9 @@ struct LandViewAnimator {
   maybe<DwellingAnimationState const&> dwelling_animation(
       DwellingId id ) const;
 
+  maybe<DwellingAnimationState const&> fog_dwelling_animation(
+      Coord tile ) const;
+
   auto const& unit_animations() const {
     return unit_animations_;
   }
@@ -83,6 +89,10 @@ struct LandViewAnimator {
 
   auto const& dwelling_animations() const {
     return dwelling_animations_;
+  }
+
+  auto const& fog_dwelling_animations() const {
+    return fog_dwelling_animations_;
   }
 
   // Animation sequences.
@@ -112,6 +122,8 @@ struct LandViewAnimator {
 
   wait<> dwelling_depixelation_throttler(
       Dwelling const& dwelling );
+
+  wait<> fog_dwelling_depixelation_throttler( Coord tile );
 
   wait<> slide_throttler( GenericUnitId id, e_direction d );
 
@@ -168,14 +180,20 @@ struct LandViewAnimator {
     return make_popper<Anim>( dwelling_animations_, id );
   }
 
+  template<typename Anim>
+  auto add_fog_dwelling_animation( Coord tile ) {
+    return make_popper<Anim>( fog_dwelling_animations_, tile );
+  }
+
  private:
   // Note: SSConst should be held by value.
-  SSConst const         ss_;
-  SmoothViewport&       viewport_;
-  UnitAnimStatesMap     unit_animations_;
-  ColonyAnimStatesMap   colony_animations_;
-  DwellingAnimStatesMap dwelling_animations_;
-  Visibility const&     viz_;
+  SSConst const            ss_;
+  SmoothViewport&          viewport_;
+  UnitAnimStatesMap        unit_animations_;
+  ColonyAnimStatesMap      colony_animations_;
+  DwellingAnimStatesMap    dwelling_animations_;
+  FogDwellingAnimStatesMap fog_dwelling_animations_;
+  Visibility const&        viz_;
 };
 
 } // namespace rn

@@ -109,6 +109,9 @@ struct LandViewRenderer {
   void render_real_dwelling_depixelate(
       Dwelling const& dwelling ) const;
 
+  void render_fog_dwelling_depixelate(
+      FogDwelling const& fog_dwelling, Coord tile ) const;
+
   Coord dwelling_pixel_coord_from_tile( Coord tile ) const;
 
   void render_input_overrun_indicator() const;
