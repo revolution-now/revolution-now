@@ -898,13 +898,6 @@ wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
                                         NationTurnState& st ) {
   Player& player =
       player_for_nation_or_die( ss.players, nation );
-  // `visibility` determines from whose point of view the map is
-  // drawn with respect to which tiles are hidden. This will po-
-  // tentially redraw the map (if necessary) to align with the
-  // nation from whose perspective we are currently viewing the
-  // map (if any) as specified in the land view state.
-  update_map_visibility(
-      ts, player_for_role( ss, e_player_role::viewer ) );
 
   SWITCH( st ) {
     CASE( not_started ) {
@@ -1024,6 +1017,17 @@ void start_of_turn_cycle( SS& ss ) {
 wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
   TurnState& turn  = ss.turn;
   TurnCycle& cycle = ss.turn.cycle;
+  // The "visibility" here determines from whose point of view
+  // the map is drawn with respect to which tiles are hidden.
+  // This will potentially redraw the map (if necessary) to align
+  // with the nation from whose perspective we are currently
+  // viewing the map (if any) as specified in the land view
+  // state. This is a function of the player whose turn it cur-
+  // rently is (or the human status of the players if it is no
+  // european nations' turn) and so we need to update it each
+  // time the turn cycle changes.
+  update_map_visibility(
+      ts, player_for_role( ss, e_player_role::viewer ) );
   SWITCH( cycle ) {
     CASE( not_started ) {
       start_of_turn_cycle( ss );
