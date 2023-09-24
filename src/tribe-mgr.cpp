@@ -55,7 +55,8 @@ void delete_dwelling_ignoring_owned_land(
       missionary.has_value() )
     destroy_unit( ss, *missionary );
 
-  // 3. Remove road under dwelling.
+  // 3. Remove road under dwelling. There may not be any good
+  // reason that we need to do this, but that's what the OG does.
   clear_road( ts.map_updater,
               ss.natives.coord_for( dwelling_id ) );
 
