@@ -644,29 +644,27 @@ void LandViewRenderer::render_units() const {
   render_input_overrun_indicator();
 }
 
+bool LandViewRenderer::try_render_fog_dwelling_anim(
+    Coord coord ) const {
+  maybe<DwellingAnimationState const&> anim =
+      lv_animator_.fog_dwelling_animation( coord );
+  if( !anim.has_value() ) return false;
+  maybe<FogSquare const&> fog_square =
+      viz_.fog_square_at( coord );
+  if( !fog_square.has_value() ) return false;
+  if( !fog_square->dwelling.has_value() ) return false;
+  render_fog_dwelling_depixelate( *fog_square->dwelling, coord );
+  return true;
+}
+
 void LandViewRenderer::render_dwellings() const {
+  bool const has_fog_dwelling_anims =
+      !lv_animator_.fog_dwelling_animations().empty();
   for( Coord const coord : gfx::rect_iterator( covered_ ) ) {
-    auto try_fog_dwelling_anim = [&] {
-      maybe<DwellingAnimationState const&> anim =
-          lv_animator_.fog_dwelling_animation( coord );
-      if( !anim.has_value() ) return false;
-      maybe<FogSquare const&> fog_square =
-          viz_.fog_square_at( coord );
-      if( !fog_square.has_value() ) return false;
-      if( !fog_square->dwelling.has_value() ) return false;
-      render_fog_dwelling_depixelate( *fog_square->dwelling,
-                                      coord );
-      return true;
-    };
     switch( viz_.visible( coord ) ) {
       case e_tile_visibility::hidden:
         continue;
       case e_tile_visibility::visible_and_clear: {
-        // Sometimes, even when a dwelling is visible, we animate
-        // the fog version of it for convenience. This should be
-        // ok, because when the tile is visible the two should
-        // coincide.
-        if( try_fog_dwelling_anim() ) break;
         maybe<DwellingId> const real_dwelling_id =
             ss_.natives.maybe_dwelling_from_coord( coord );
         if( real_dwelling_id.has_value() ) {
@@ -683,7 +681,9 @@ void LandViewRenderer::render_dwellings() const {
         break;
       }
       case e_tile_visibility::visible_with_fog: {
-        if( try_fog_dwelling_anim() ) break;
+        if( has_fog_dwelling_anims &&
+            try_render_fog_dwelling_anim( coord ) )
+          break;
         UNWRAP_CHECK( fog_square, viz_.fog_square_at( coord ) );
         if( fog_square.dwelling.has_value() )
           render_fog_dwelling( *fog_square.dwelling, coord );

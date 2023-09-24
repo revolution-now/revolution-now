@@ -78,6 +78,10 @@ struct LandViewRenderer {
 
   void render_dwellings() const;
 
+  // Returns true if there is a fog dwelling anim on the file and
+  // it was rendered.
+  bool try_render_fog_dwelling_anim( Coord coord ) const;
+
   void render_units_underneath() const;
 
   void render_colonies() const;
