@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "maybe.hpp"
+#include "visibility.hpp"
 
 // ss
 #include "ss/colonies.hpp"
@@ -149,7 +150,12 @@ maybe<Colony const&> find_any_close_colony(
       } );
 }
 
-maybe<FogColony const&> find_close_explored_colony(
+// Note that when a tile is visible we use the real square in-
+// stead of the fog square because the contents of fog squares
+// are not guaranteed to be current with the real square when the
+// square is visible and clear. Fog squares only get updated when
+// a square goes from visible to fogged.
+maybe<ExploredColony> find_close_explored_colony(
     SSConst const& ss, e_nation nation, point location,
     double max_distance ) {
   UNWRAP_CHECK( player_terrain,
@@ -157,18 +163,37 @@ maybe<FogColony const&> find_close_explored_colony(
   base::generator<point> const search =
       outward_spiral_pythdist_search_existing_gen(
           ss, location, max_distance );
+  Visibility const viz( ss, nation );
   for( point const point : search ) {
-    maybe<FogSquare> const& fog_square =
-        player_terrain.map[Coord::from_gfx( point )];
-    if( !fog_square.has_value() )
-      // The generator should be giving us only squares that
-      // exist on the map, so this here means that the square is
-      // unexplored.
-      continue;
-    if( !fog_square->colony.has_value() )
-      // No colony here the last time we explored.
-      continue;
-    return fog_square->colony;
+    switch( viz.visible( Coord::from_gfx( point ) ) ) {
+      case e_tile_visibility::hidden:
+        continue;
+      case e_tile_visibility::visible_and_clear: {
+        maybe<ColonyId> const colony_id =
+            ss.colonies.maybe_from_coord(
+                Coord::from_gfx( point ) );
+        if( !colony_id.has_value() ) continue;
+        Colony const& colony =
+            ss.colonies.colony_for( *colony_id );
+        return ExploredColony{ .name     = colony.name,
+                               .location = colony.location };
+      }
+      case e_tile_visibility::visible_with_fog: {
+        maybe<FogSquare> const& fog_square =
+            player_terrain.map[Coord::from_gfx( point )];
+        if( !fog_square.has_value() )
+          // The generator should be giving us only squares that
+          // exist on the map, so this here means that the square
+          // is unexplored.
+          continue;
+        if( !fog_square->colony.has_value() )
+          // No colony here the last time we explored.
+          continue;
+        FogColony const& fog_colony = *fog_square->colony;
+        return ExploredColony{ .name     = fog_colony.name,
+                               .location = fog_colony.location };
+      }
+    }
   }
   return nothing;
 }

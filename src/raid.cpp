@@ -55,7 +55,7 @@ wait<> surprise_raid_msg( SSConst const& ss,
                           e_tribe        tribe_type ) {
   e_nation const friendly_nation = euro_mind.nation();
   string         where;
-  maybe<FogColony const&> const closest =
+  maybe<ExploredColony> const closest =
       find_close_explored_colony(
           ss, friendly_nation, defender_loc,
           /*max_distance=*/

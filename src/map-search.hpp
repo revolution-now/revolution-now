@@ -10,6 +10,9 @@
 *****************************************************************/
 #pragma once
 
+// rds
+#include "map-search.rds.hpp"
+
 // Revolution Now
 #include "maybe.hpp"
 
@@ -56,7 +59,7 @@ maybe<Colony const&> find_any_close_colony(
 // away, among those whose distance is less than `max_distance`.
 // Note that this returns a FogColony, and so said colony may no
 // longer exist; in fact, even the nation may no longer exist.
-maybe<FogColony const&> find_close_explored_colony(
+maybe<ExploredColony> find_close_explored_colony(
     SSConst const& ss, e_nation nation, gfx::point location,
     double max_distance );
 
