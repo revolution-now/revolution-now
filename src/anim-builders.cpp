@@ -32,7 +32,6 @@
 #include "refl/to-str.hpp"
 
 // base
-#include "base/sort.hpp"
 #include "visibility.rds.hpp"
 
 using namespace std;
