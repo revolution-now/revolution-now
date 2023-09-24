@@ -18,9 +18,6 @@
 #include "meet-natives.rds.hpp"
 #include "wait.hpp"
 
-// ss
-#include "ss/unit-id.hpp"
-
 namespace rn {
 
 enum class e_nation;
