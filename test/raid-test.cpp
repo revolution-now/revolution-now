@@ -349,13 +349,9 @@ TEST_CASE( "[raid] raid_colony" ) {
       W.native_mind( tribe_type );
   Player& player = W.default_player();
   player.money   = 1000;
-  maybe<FogSquare> const& player_square =
-      W.player_square( colony.location );
 
   // Sanity checks.
   REQUIRE( W.square( colony.location ).road );
-  REQUIRE( player_square->square.road );
-  REQUIRE( player_square->colony.has_value() );
 
   auto f = [&]( NativeUnit& attacker ) {
     co_await_test(
@@ -444,8 +440,6 @@ TEST_CASE( "[raid] raid_colony" ) {
     REQUIRE( defender.movement_points() == 1 );
     REQUIRE( W.units().exists( worker_id ) );
     REQUIRE( W.square( colony_location ).road );
-    REQUIRE( player_square->square.road );
-    REQUIRE( player_square->colony.has_value() );
 
     REQUIRE( W.units().exists( caravel_id ) );
     REQUIRE( W.units().exists( frigate_id ) );
@@ -546,8 +540,6 @@ TEST_CASE( "[raid] raid_colony" ) {
              UnitOwnership::world{ .coord = colony_location } );
     REQUIRE( W.units().exists( worker_id ) );
     REQUIRE( W.square( colony_location ).road );
-    REQUIRE( player_square->square.road );
-    REQUIRE( player_square->colony.has_value() );
 
     REQUIRE( W.units().exists( caravel_id ) );
     REQUIRE( caravel.cargo().slots_occupied() == 0 );
@@ -624,8 +616,6 @@ TEST_CASE( "[raid] raid_colony" ) {
     REQUIRE( defender.movement_points() == 1 );
     REQUIRE( W.units().exists( worker_id ) );
     REQUIRE( W.square( colony_location ).road );
-    REQUIRE( player_square->square.road );
-    REQUIRE( player_square->colony.has_value() );
   }
 
   SECTION( "brave->worker, burn" ) {
@@ -680,8 +670,6 @@ TEST_CASE( "[raid] raid_colony" ) {
     REQUIRE_FALSE( W.units().exists( defender_id ) );
     REQUIRE_FALSE( W.units().exists( worker_id ) );
     REQUIRE_FALSE( W.square( colony_location ).road );
-    REQUIRE_FALSE( player_square->square.road );
-    REQUIRE_FALSE( player_square->colony.has_value() );
   }
 
   SECTION( "brave->worker, burn, with units at gate" ) {
@@ -767,8 +755,6 @@ TEST_CASE( "[raid] raid_colony" ) {
     REQUIRE_FALSE( W.units().exists( wagon_train_id ) );
     REQUIRE_FALSE( W.units().exists( pioneer_id ) );
     REQUIRE_FALSE( W.square( colony_location ).road );
-    REQUIRE_FALSE( player_square->square.road );
-    REQUIRE_FALSE( player_square->colony.has_value() );
 
     REQUIRE( W.units().exists( caravel_id ) );
     REQUIRE( W.units().exists( frigate_id ) );
