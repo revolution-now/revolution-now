@@ -15,9 +15,17 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocks/igui.hpp"
+#include "test/mocks/imap-updater.hpp"
+#include "test/mocks/land-view-plane.hpp"
+#include "test/util/coro.hpp"
+
+// Revolution Now
+#include "src/plane-stack.hpp"
+#include "src/visibility.hpp"
 
 // ss
-#include "src/ss/colonies.hpp"
+#include "src/ss/natives.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/units.hpp"
 
@@ -35,12 +43,17 @@ namespace {
 
 using namespace std;
 
+using ::mock::matchers::_;
+
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
 struct World : testing::World {
   using Base = testing::World;
-  World() : Base() { add_default_player(); }
+  World() : Base() {
+    add_default_player();
+    create_default_map();
+  }
 
   void create_default_map() {
     MapSquare const _ = make_ocean();
@@ -518,6 +531,137 @@ TEST_CASE( "[cheat] cheat change commodity quantity" ) {
     REQUIRE( down() == 0 );
     REQUIRE( up() == 50 );
     REQUIRE( up() == 100 );
+  }
+}
+
+TEST_CASE( "[cheat] kill_natives" ) {
+  World             W;
+  MockLandViewPlane mock_land_view;
+  W.planes().back().land_view = &mock_land_view;
+
+  auto f = [&] {
+    co_await_test( kill_natives( W.ss(), W.ts() ) );
+  };
+
+  SECTION( "no tribes" ) {
+    W.gui().EXPECT__message_box(
+        "All native tribes have been wiped out." );
+    f();
+    REQUIRE( !W.natives().tribe_exists( e_tribe::apache ) );
+    REQUIRE( !W.natives().tribe_exists( e_tribe::sioux ) );
+    REQUIRE( !W.natives().tribe_exists( e_tribe::tupi ) );
+    REQUIRE( !W.natives().tribe_exists( e_tribe::arawak ) );
+    REQUIRE( !W.natives().tribe_exists( e_tribe::cherokee ) );
+    REQUIRE( !W.natives().tribe_exists( e_tribe::iroquois ) );
+    REQUIRE( !W.natives().tribe_exists( e_tribe::aztec ) );
+    REQUIRE( !W.natives().tribe_exists( e_tribe::inca ) );
+  }
+
+  SECTION( "one tribe, no dwellings" ) {
+    REQUIRE( !W.natives().tribe_exists( e_tribe::tupi ) );
+    W.add_tribe( e_tribe::tupi );
+    REQUIRE( W.natives().tribe_exists( e_tribe::tupi ) );
+    W.gui().EXPECT__check_box_selector( _, _ ).returns(
+        wait( unordered_map<int, bool>{
+            { static_cast<int>( e_tribe::tupi ), true } } ) );
+    mock_land_view.EXPECT__animate( _ );
+    W.gui().EXPECT__message_box(
+        "The [Tupi] tribe has been wiped out." );
+    f();
+    REQUIRE( !W.natives().tribe_exists( e_tribe::tupi ) );
+  }
+
+  SECTION( "two tribes, some dwellings" ) {
+    REQUIRE( !W.natives().tribe_exists( e_tribe::tupi ) );
+    REQUIRE( !W.natives().tribe_exists( e_tribe::iroquois ) );
+    W.add_tribe( e_tribe::tupi );
+    W.add_tribe( e_tribe::iroquois );
+    REQUIRE( W.natives().tribe_exists( e_tribe::tupi ) );
+    REQUIRE( W.natives().tribe_exists( e_tribe::iroquois ) );
+    DwellingId const dwelling_id_1 =
+        W.add_dwelling( { .x = 1, .y = 0 }, e_tribe::tupi ).id;
+    DwellingId const dwelling_id_2 =
+        W.add_dwelling( { .x = 0, .y = 1 }, e_tribe::tupi ).id;
+    DwellingId const dwelling_id_3 =
+        W.add_dwelling( { .x = 1, .y = 2 }, e_tribe::tupi ).id;
+    DwellingId const dwelling_id_4 =
+        W.add_dwelling( { .x = 2, .y = 1 }, e_tribe::tupi ).id;
+    DwellingId const dwelling_id_5 =
+        W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois )
+            .id;
+    W.square( { .x = 1, .y = 0 } ).road = true;
+    W.square( { .x = 0, .y = 1 } ).road = true;
+    W.square( { .x = 1, .y = 2 } ).road = true;
+    W.square( { .x = 2, .y = 1 } ).road = true;
+    W.square( { .x = 1, .y = 1 } ).road = true;
+    W.map_updater().make_squares_visible(
+        W.default_nation(), { { .x = 1, .y = 0 } } );
+    W.map_updater().make_squares_visible(
+        W.default_nation(), { { .x = 0, .y = 1 } } );
+    W.map_updater().make_squares_fogged(
+        W.default_nation(), { { .x = 0, .y = 1 } } );
+    W.gui().EXPECT__check_box_selector( _, _ ).returns(
+        wait( unordered_map<int, bool>{
+            { static_cast<int>( e_tribe::tupi ), true } } ) );
+    mock_land_view.EXPECT__animate( _ );
+    W.gui().EXPECT__message_box(
+        "The [Tupi] tribe has been wiped out." );
+    REQUIRE( W.player_square( { .x = 1, .y = 0 } ).has_value() );
+    REQUIRE( W.player_square( { .x = 0, .y = 1 } ).has_value() );
+    REQUIRE(
+        !W.player_square( { .x = 1, .y = 2 } ).has_value() );
+    REQUIRE(
+        !W.player_square( { .x = 2, .y = 1 } ).has_value() );
+    REQUIRE(
+        !W.player_square( { .x = 1, .y = 1 } ).has_value() );
+    // Only the fogged one got its fog square updated, because it
+    // was flipped from visible to fogged.
+    REQUIRE( !W.player_square( { .x = 1, .y = 0 } )
+                  ->dwelling.has_value() );
+    REQUIRE( W.player_square( { .x = 0, .y = 1 } )
+                 ->dwelling.has_value() );
+    REQUIRE(
+        !W.player_square( { .x = 1, .y = 0 } )->square.road );
+    REQUIRE(
+        W.player_square( { .x = 0, .y = 1 } )->square.road );
+    f();
+    REQUIRE( !W.natives().tribe_exists( e_tribe::tupi ) );
+    REQUIRE( W.natives().tribe_exists( e_tribe::iroquois ) );
+    REQUIRE( !W.natives().dwelling_exists( dwelling_id_1 ) );
+    REQUIRE( !W.natives().dwelling_exists( dwelling_id_2 ) );
+    REQUIRE( !W.natives().dwelling_exists( dwelling_id_3 ) );
+    REQUIRE( !W.natives().dwelling_exists( dwelling_id_4 ) );
+    REQUIRE( W.natives().dwelling_exists( dwelling_id_5 ) );
+    Visibility const viz( W.ss(), W.default_nation() );
+    REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 1, .y = 0 } ) ==
+             e_tile_visibility::visible_and_clear );
+    REQUIRE( viz.visible( { .x = 0, .y = 1 } ) ==
+             e_tile_visibility::visible_with_fog );
+    REQUIRE( viz.visible( { .x = 1, .y = 2 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 2, .y = 1 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( viz.visible( { .x = 1, .y = 1 } ) ==
+             e_tile_visibility::hidden );
+    REQUIRE( W.player_square( { .x = 1, .y = 0 } ).has_value() );
+    REQUIRE( W.player_square( { .x = 0, .y = 1 } ).has_value() );
+    REQUIRE(
+        !W.player_square( { .x = 1, .y = 2 } ).has_value() );
+    REQUIRE(
+        !W.player_square( { .x = 2, .y = 1 } ).has_value() );
+    REQUIRE(
+        !W.player_square( { .x = 1, .y = 1 } ).has_value() );
+    // Only the fogged one got its fog square updated.
+    REQUIRE( !W.player_square( { .x = 1, .y = 0 } )
+                  ->dwelling.has_value() );
+    REQUIRE( !W.player_square( { .x = 0, .y = 1 } )
+                  ->dwelling.has_value() );
+    REQUIRE(
+        !W.player_square( { .x = 1, .y = 0 } )->square.road );
+    REQUIRE(
+        !W.player_square( { .x = 0, .y = 1 } )->square.road );
   }
 }
 

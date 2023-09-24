@@ -14,6 +14,7 @@
 #include "cheat-impl.rds.hpp"
 
 // Revolution Now
+#include "anim-builders.hpp"
 #include "co-wait.hpp"
 #include "colony-buildings.hpp"
 #include "colony-evolve.hpp"
@@ -22,12 +23,14 @@
 #include "igui.hpp"
 #include "imap-updater.hpp"
 #include "interrupts.hpp"
+#include "land-view.hpp"
 #include "logger.hpp"
 #include "market.hpp"
 #include "minds.hpp"
 #include "plane-stack.hpp"
 #include "promotion.hpp"
 #include "roles.hpp"
+#include "tribe-mgr.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "unit.hpp"
@@ -37,16 +40,17 @@
 
 // config
 #include "config/colony.rds.hpp"
-#include "config/nation.hpp"
+#include "config/nation.rds.hpp"
+#include "config/natives.rds.hpp"
 #include "config/rn.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss
-#include "ss/colony.hpp"
+#include "ss/colony.rds.hpp"
 #include "ss/land-view.rds.hpp"
+#include "ss/natives.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/terrain.hpp"
-#include "ss/turn.hpp"
 
 // gfx
 #include "gfx/iter.hpp"
@@ -305,6 +309,112 @@ wait<> cheat_edit_fathers( SS& ss, TS& ts, Player& player ) {
     if( has_now && !had_previously )
       on_father_received( ss, ts, player, father );
   }
+}
+
+wait<> kill_natives( SS& ss, TS& ts ) {
+  CO_RETURN_IF_NO_CHEAT;
+  constexpr auto& tribes = refl::enum_values<e_tribe>;
+
+  // Is there anything to do?
+  bool const at_least_one = any_of(
+      tribes.begin(), tribes.end(), [&]( e_tribe tribe ) {
+        return ss.natives.tribe_exists( tribe );
+      } );
+  if( !at_least_one ) {
+    co_await ts.gui.message_box(
+        "All native tribes have been wiped out." );
+    co_return;
+  }
+
+  // Create and open window.
+  refl::enum_map<e_tribe, CheckBoxInfo> info_map;
+  for( e_tribe const tribe : tribes )
+    info_map[tribe] = {
+        .name     = config_natives.tribes[tribe].name_singular,
+        .on       = false,
+        .disabled = !ss.natives.tribe_exists( tribe ),
+    };
+  // Note that if the user cancels this box then the values will
+  // be unchanged, so effectively nothing will happen.
+  co_await ts.gui.enum_check_boxes<e_tribe>(
+      "Select Native Tribes to Kill:", info_map );
+
+  // Collect results.
+  vector<e_tribe> const destroyed = [&] {
+    vector<e_tribe> res;
+    res.reserve( info_map.size() );
+    for( e_tribe const tribe : tribes )
+      if( !info_map[tribe].disabled && info_map[tribe].on )
+        res.push_back( tribe );
+    return res;
+  }();
+
+  // Before we destroy the dwellings we need to record where they
+  // were so that we can later update the maps.
+  vector<Coord> const affected_coords = [&] {
+    vector<Coord> res;
+    res.reserve( ss.natives.dwellings_all().size() );
+    for( e_tribe const tribe : destroyed ) {
+      UNWRAP_CHECK( dwellings,
+                    ss.natives.dwellings_for_tribe( tribe ) );
+      for( DwellingId const dwelling_id : dwellings )
+        res.push_back( ss.natives.coord_for( dwelling_id ) );
+    }
+    return res;
+  }();
+
+  Visibility const viz(
+      ss, player_for_role( ss, e_player_role::viewer ) );
+
+  // Kill 'em.
+  vector<wait<>> destruction_routines;
+  // This needs to be out-of-line to avoid dangling stuff.
+  auto destruction_routine = [&]( e_tribe tribe ) -> wait<> {
+    co_await ts.planes.land_view().animate(
+        anim_seq_for_cheat_tribe_destruction( ss, viz, tribe ) );
+    destroy_tribe( ss, ts, tribe );
+  };
+  for( e_tribe const tribe : destroyed )
+    destruction_routines.push_back(
+        destruction_routine( tribe ) );
+
+  co_await co::all( std::move( destruction_routines ) );
+
+  // At this point we need to update the fogged squares that con-
+  // tained destroyed dwellings on the player maps to 1) remove
+  // the fog dwellings and 2) to redraw the terrain since the
+  // roads under the dwellings will have been removed. The sim-
+  // plest way to do that using the usual map updater API is to
+  // just go through all of the squares that had fogged dwellings
+  // on them that were destroyed and flip the fog on and then off
+  // again. This is not very elegant, but it will ensure that all
+  // of the things get done that need to: player fog squares up-
+  // dated and redrawing of rendered map where necessary. Note
+  // that we don't have to do this for dwellings that were to-
+  // tally hidden and we don't have to do this for dwellings that
+  // were fully visible and clear, since in the latter case those
+  // fog squares will eventually get updated if/when the square
+  // flips from clear to fogged.
+  for( e_nation const nation : refl::enum_values<e_nation> ) {
+    if( !ss.players.players[nation].has_value() ) continue;
+    vector<Coord> const affected_fogged = [&] {
+      vector<Coord> res;
+      res.reserve( affected_coords.size() );
+      Visibility const viz( ss, nation );
+      for( Coord const tile : affected_coords )
+        if( viz.visible( tile ) ==
+            e_tile_visibility::visible_with_fog )
+          res.push_back( tile );
+      return res;
+    }();
+    ts.map_updater.make_squares_visible( nation,
+                                         affected_fogged );
+    ts.map_updater.make_squares_fogged( nation,
+                                        affected_fogged );
+  }
+
+  for( e_tribe const tribe : destroyed )
+    co_await tribe_wiped_out_message( ts, tribe );
 }
 
 /****************************************************************
