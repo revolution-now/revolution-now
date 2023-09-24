@@ -853,28 +853,6 @@ wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
 // nation's turn but where the player can't save the game until
 // they are complete.
 wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
-  // Fog of war is regenerated once at the start of the player's
-  // turn. Any land that is uncovered during the player's turn
-  // remains de-fogged throughout the duration of the player's
-  // turn and other player's turns for one full cycle. There are
-  // many other ways that this could be done, but after much con-
-  // sideration, this seems to be the right trade-off between ef-
-  // ficiency (this is not a cheap operation especially when
-  // there are many units on the map), making visual sense to the
-  // player, and implementation complexity.
-  //
-  // TODO: the performance of this function may need to be revis-
-  // ited. For normal game maps, the make_square_fogged stage
-  // seems to dominate, which could pobably be addressed by opti-
-  // mizing the fog rendering (caching?). For large maps it seems
-  // to be the "generate fogged set" stage that dominates since
-  // it has to iterate through the entire map. Not sure yet how
-  // to deal with that. There might also be an issue (not tested)
-  // where we have a large number of european units on the map;
-  // to address that we might want to add another cache to ss/u-
-  // nits that keeps a set of all european units on the map.
-  recompute_fog_for_nation( ss, ts, player.nation );
-
   // Unsentry any units that are directly on the map and which
   // are sentry'd but have foreign units in an adjacent square.
   // Normally this isn't necessary, since if a unit is sentried
@@ -948,22 +926,57 @@ wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
         // As in the OG, this setting means "always stop on end
         // of turn," even we otherwise wouldn't have.
         co_return NationTurnState::eot{};
-      co_return NationTurnState::finished{};
+      co_return NationTurnState::finish{};
     }
     CASE( eot ) {
       SWITCH( co_await end_of_turn( ss, ts, player ) ) {
         CASE( not_done_yet ) {
           co_return NationTurnState::eot{};
         }
-        CASE( proceed ) {
-          co_return NationTurnState::finished{};
-        }
+        CASE( proceed ) { co_return NationTurnState::finish{}; }
         CASE( return_to_units ) {
           co_return NationTurnState::units{
               .q = { return_to_units.first_to_ask } };
         }
       }
       SHOULD_NOT_BE_HERE; // for gcc.
+    }
+    CASE( finish ) {
+      // Fog of war is regenerated once at the end of the play-
+      // er's turn. Any land that is uncovered during the play-
+      // er's turn will get re-fogged unless it is still directly
+      // visible.
+      //
+      // There are many other ways that this could be done, but
+      // after much consideration, doing the update once per turn
+      // seems to be the right trade-off between efficiency (this
+      // is not a cheap operation especially when there are many
+      // units on the map), making visual sense to the player,
+      // and implementation complexity. Doing it at the end of
+      // the turn instead of at the start of the turn makes
+      // sense, because if we were to do it at the start of the
+      // turn, then any terrain discovered by the player during
+      // their turn would remain visible during the proceeding
+      // player's turns, even if the squares are no longer di-
+      // rectly visible. Though one consequence of doing it at
+      // the end of the turn is that, if a foreign player de-
+      // stroys one of our units or colonies then the space
+      // around those will remain visible into our next turn, but
+      // that is probably not a big deal.
+      //
+      // TODO: the performance of this function may need to be
+      // revisited. For normal game maps, the make_square_fogged
+      // stage seems to dominate, which could pobably be ad-
+      // dressed by optimizing the fog rendering (caching?). For
+      // large maps it seems to be the "generate fogged set"
+      // stage that dominates since it has to iterate through the
+      // entire map. Not sure yet how to deal with that. There
+      // might also be an issue (not tested) where we have a
+      // large number of european units on the map; to address
+      // that we might want to add another cache to ss/units that
+      // keeps a set of all european units on the map.
+      recompute_fog_for_nation( ss, ts, player.nation );
+      co_return NationTurnState::finished{};
     }
     CASE( finished ) { SHOULD_NOT_BE_HERE; }
   }
