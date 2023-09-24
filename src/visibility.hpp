@@ -102,11 +102,6 @@ struct Visibility {
 /****************************************************************
 ** Public API
 *****************************************************************/
-// Compute which nations have at least one unit that currently
-// has visibility on the given tile. To qualify, the nation must
-// be able to currently see the tile.
-refl::enum_map<e_nation, bool> nations_with_visibility_of_square(
-    SSConst const& ss, Coord tile );
 // Returns true if, were that nation's view to be currently ren-
 // dered, the square would be visible and clear. This could mean
 // that it is actively visible by some unit now, or it could mean

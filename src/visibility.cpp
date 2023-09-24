@@ -220,58 +220,6 @@ vector<Coord> unit_visible_squares( SSConst const& ss,
   return res;
 }
 
-refl::enum_map<e_nation, bool> nations_with_visibility_of_square(
-    SSConst const& ss, Coord tile ) {
-  refl::enum_map<e_nation, bool> res;
-  // These are all the squares where there could possibly be a
-  // unit that could see this square.
-  Rect const possible_for_units =
-      Rect::from( tile, Delta{ .w = 1, .h = 1 } )
-          .with_border_added(
-              largest_possible_sighting_radius() );
-  for( Rect rect : gfx::subrects( possible_for_units ) ) {
-    Coord coord = rect.upper_left();
-    // We don't use the recursive variant because we don't want
-    // e.g. a scout on a ship to increase the sighting radius.
-    unordered_set<GenericUnitId> const& units =
-        ss.units.from_coord( coord );
-    for( GenericUnitId generic_id : units ) {
-      if( ss.units.unit_kind( generic_id ) != e_unit_kind::euro )
-        continue;
-      Unit const& unit = ss.units.euro_unit_for( generic_id );
-      if( res[unit.nation()] )
-        // If one unit on this square has a nation that can al-
-        // ready see the tile in question then we can stop this
-        // inner loop, because all of the other units on this
-        // square (if any) will be the same nation.
-        break;
-      vector<Coord> const visible = unit_visible_squares(
-          ss, unit.nation(), unit.type(), coord );
-      if( find( visible.begin(), visible.end(), tile ) !=
-          visible.end() ) {
-        res[unit.nation()] = true;
-        // Again, any other units on this tile will be from the
-        // same nation, so no need to continue on this tile.
-        break;
-      }
-    }
-  }
-  // These are all the squares where there could possibly be a
-  // colony that could see this square. Assume that colonies have
-  // a sighting radius of 1.
-  Rect const possible_for_colonies =
-      Rect::from( tile, Delta{ .w = 1, .h = 1 } )
-          .with_border_added(
-              config_colony.colony_visibility_radius );
-  for( Rect rect : gfx::subrects( possible_for_colonies ) ) {
-    Coord                  coord = rect.upper_left();
-    maybe<ColonyId> const& colony_id =
-        ss.colonies.maybe_from_coord( coord );
-    if( !colony_id.has_value() ) continue;
-    Colony const& colony = ss.colonies.colony_for( *colony_id );
-    res[colony.nation]   = true;
-  }
-  return res;
 bool does_nation_have_fog_removed_on_square( SSConst const& ss,
                                              e_nation nation,
                                              Coord    tile ) {
