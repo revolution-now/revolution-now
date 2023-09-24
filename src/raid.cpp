@@ -38,7 +38,6 @@
 #include "config/unit-type.rds.hpp"
 
 // ss
-#include "ss/fog-square.rds.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
