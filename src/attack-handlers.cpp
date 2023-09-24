@@ -758,27 +758,27 @@ NativeUnitId AttackDwellingHandler::create_phantom_brave() {
 wait<> AttackDwellingHandler::produce_convert() {
   Coord const attacker_coord =
       ss_.units.coord_for( attacker_id_ );
-  Coord const dwelling_coord = attack_dst_;
-  // Produce the convert on the dwelling tile, then we will ani-
-  // mate it enpixelating and then sliding over to the attacker's
-  // square. We can use the non-interactive version because the
-  // convert is not actually going to be created on the dwelling
-  // square; it will be created on the attacker's square, where
-  // we know there is already a friendly unit, so no interactive
-  // stuff need be done.
-  UnitId const convert_id = create_unit_on_map_non_interactive(
-      ss_, ts_, attacking_player_, e_unit_type::native_convert,
-      dwelling_coord );
-  native_convert_ = convert_id;
   string_view const tribe_name_possessive =
       config_natives.tribes[tribe_.type].name_possessive;
   string_view const nation_name_possessive =
       nation_obj( attacking_player_.nation ).possessive;
-
   co_await attacker_mind_.message_box(
       "[{}] citizens frightened in combat rush to the [{} "
       "mission] as [converts]!",
       tribe_name_possessive, nation_name_possessive );
+
+  // Produce the convert on the dwelling tile, then we will ani-
+  // mate it enpixelating and then sliding over to the attacker's
+  // square. We can use the non-interactive version because the
+  // convert, although created on the dwelling square, will be
+  // moved over to the attacker's square immediately, where we
+  // know there is already a friendly unit, so no interactive
+  // stuff need be done.
+  Coord const  dwelling_coord = attack_dst_;
+  UnitId const convert_id = create_unit_on_map_non_interactive(
+      ss_, ts_, attacking_player_, e_unit_type::native_convert,
+      dwelling_coord );
+  native_convert_ = convert_id;
   co_await ts_.planes.land_view().animate(
       anim_seq_for_convert_produced(
           convert_id, reverse_direction( direction_ ) ) );
