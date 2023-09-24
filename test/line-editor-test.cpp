@@ -13,6 +13,9 @@
 // Revolution Now
 #include "line-editor.hpp"
 
+// base
+#include "src/base/meta.hpp"
+
 // Must be last.
 #include "catch-common.hpp"
 
@@ -60,11 +63,90 @@ TEST_CASE( "[line-editor] construction" ) {
 }
 
 TEST_CASE( "[line-editor] input" ) {
-  // FIXME: implement this.
-}
+  LineEditor le;
 
-TEST_CASE( "[line-editor] clear" ) {
-  // FIXME: implement this.
+  auto input_char = [&]( int c, bool shift ) {
+    input::key_event_t event;
+    event.keycode      = c;
+    event.mod.shf_down = shift;
+    return le.input( event );
+  };
+
+  auto input = mp::overload{ input_char,
+                             [&]( string_view sv, bool shift ) {
+                               for( char const c : sv )
+                                 input_char( c, shift );
+                             } };
+
+  REQUIRE( le.buffer() == "" );
+  REQUIRE( le.pos() == 0 );
+
+  input( '1', /*shift=*/false );
+  REQUIRE( le.buffer() == "1" );
+  REQUIRE( le.pos() == 1 );
+
+  input( "1234", /*shift=*/false );
+  REQUIRE( le.buffer() == "11234" );
+  REQUIRE( le.pos() == 5 );
+
+  input( "ab", /*shift=*/true );
+  REQUIRE( le.buffer() == "11234AB" );
+  REQUIRE( le.pos() == 7 );
+
+  input( ::SDLK_LEFT, /*shift=*/false );
+  input( ::SDLK_LEFT, /*shift=*/false );
+  REQUIRE( le.buffer() == "11234AB" );
+  REQUIRE( le.pos() == 5 );
+
+  input( ::SDLK_BACKSPACE, /*shift=*/false );
+  REQUIRE( le.buffer() == "1123AB" );
+  REQUIRE( le.pos() == 4 );
+
+  input( ::SDLK_DELETE, /*shift=*/false );
+  REQUIRE( le.buffer() == "1123B" );
+  REQUIRE( le.pos() == 4 );
+
+  input( ::SDLK_HOME, /*shift=*/false );
+  REQUIRE( le.buffer() == "1123B" );
+  REQUIRE( le.pos() == 0 );
+
+  input( ::SDLK_BACKSPACE, /*shift=*/false );
+  REQUIRE( le.buffer() == "1123B" );
+  REQUIRE( le.pos() == 0 );
+
+  input( ::SDLK_DELETE, /*shift=*/false );
+  REQUIRE( le.buffer() == "123B" );
+  REQUIRE( le.pos() == 0 );
+
+  input( ::SDLK_RIGHT, /*shift=*/false );
+  REQUIRE( le.buffer() == "123B" );
+  REQUIRE( le.pos() == 1 );
+
+  input( ::SDLK_BACKSPACE, /*shift=*/false );
+  REQUIRE( le.buffer() == "23B" );
+  REQUIRE( le.pos() == 0 );
+
+  input( ::SDLK_END, /*shift=*/false );
+  REQUIRE( le.buffer() == "23B" );
+  REQUIRE( le.pos() == 3 );
+
+  le.clear();
+  REQUIRE( le.buffer() == "" );
+  REQUIRE( le.pos() == 0 );
+
+  input( "345", /*shift=*/true );
+  REQUIRE( le.buffer() == "#$%" );
+  REQUIRE( le.pos() == 3 );
+
+  input( ::SDLK_BACKSPACE, /*shift=*/false );
+  input( ::SDLK_BACKSPACE, /*shift=*/false );
+  input( ::SDLK_BACKSPACE, /*shift=*/false );
+  REQUIRE( le.buffer() == "" );
+  REQUIRE( le.pos() == 0 );
+
+  input( ::SDLK_DELETE, /*shift=*/false );
+  REQUIRE( le.buffer() == "" );
+  REQUIRE( le.pos() == 0 );
 }
 
 TEST_CASE( "[line-editor] set" ) {
