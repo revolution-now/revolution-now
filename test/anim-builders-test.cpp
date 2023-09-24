@@ -1117,8 +1117,8 @@ TEST_CASE(
                   P::play_sound{ .what =
                                      e_sfx::city_destroyed } },
             { .primitive =
-                  P::depixelate_fog_dwelling{
-                      .tile = { .x = 1, .y = 3 } } },
+                  P::depixelate_dwelling{ .dwelling_id =
+                                              dwelling_3.id } },
             { .primitive =
                   P::depixelate_unit{ .unit_id = brave_3.id } },
             { .primitive =

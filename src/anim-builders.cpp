@@ -33,6 +33,7 @@
 
 // base
 #include "base/sort.hpp"
+#include "visibility.rds.hpp"
 
 using namespace std;
 
@@ -439,6 +440,26 @@ AnimationSequence anim_seq_for_brave_attack_colony(
     }();
     for( GenericUnitId const id : units_to_hide )
       builder.hide_unit( id );
+    // TODO: when the colony is depixelating, the road under it
+    // is not removed during the animation (though it will later
+    // be removed)... not yet sure if this is something that
+    // should be changed. In the OG, it appears that it renders
+    // the complete screen without the colony (and with the new
+    // road configuration) and then depixelates the entire
+    // screen, so the road configuration pixelates into the new
+    // road configuration on the surrounding tiles as the colony
+    // goes away. For the sake of polish, we should probably
+    // replicate this, but it is probably not a high priority. It
+    // will probably be non-trivial because we would need to
+    // first remove the roads from the terrain by rerendering the
+    // squares, then adding animations for roads, and pixelating
+    // one road tile to another in the surrounding squares. NOTE:
+    // this should also be done in the other colony depixelation
+    // function, i.e., the one that gets called when the colony
+    // starves or is abandoned. This would also allow us to not
+    // have to clear the road first before the animation, which
+    // would allow us to get rid of the function that does the
+    // animated colony destruction.
     builder.depixelate_colony( combat.colony_id );
   }
   play_combat_outcome_sound( builder, combat );
@@ -528,11 +549,29 @@ AnimationSequence anim_seq_for_dwelling_burn(
   // any owned braves depixelate. If the attacker unit is pro-
   // moted then it will pixelate.
   builder.new_phase();
+  // FIXME: there is a race in situations like the one below
+  // where there are multiple things pixelating in the same
+  // phase: they may end at slightly different times because they
+  // start at slightly different times and because of how the
+  // complicated nature of their timing mechanism interacts with
+  // (discreet) frames. Need to figure out a general solution to
+  // this. Adding a one frame delay to the end of each pixelation
+  // animation may not help, since one could still finish before
+  // the others. This issue can be demonstrated by adding a
+  // `co_await 1_frames` onto the end of the dwelling depixela-
+  // tion animation and then observing that, at the very end of a
+  // dwelling burn, the phantom brave flashes on for one frame.
   add_attack_outcome_for_euro_unit( ss, builder, attacker_id,
                                     attacker_outcome );
   add_attack_outcome_for_native_unit(
       builder, defender_id,
       NativeUnitCombatOutcome::destroyed{} );
+  // TODO: once we fix viewport scrolling in animations, we
+  // should make sure to pan to the dwelling coord last so that
+  // the viewport doesn't end up scrolling away from it just to
+  // see one of the dwelling's brave depixelate, which can happen
+  // if the brave has strayed far from the dwelling (if we can
+  // only see one then it is better to see the dwelling).
   builder.depixelate_dwelling( dwelling_id );
   for( NativeUnitId const brave_id :
        dwelling_destruction.braves_to_kill ) {
@@ -599,6 +638,17 @@ AnimationSequence anim_seq_for_unit_enpixelation(
 AnimationSequence anim_seq_for_treasure_enpixelation(
     UnitId unit_id ) {
   AnimationBuilder builder;
+  // TODO: this is not a high priority, but one thing that the
+  // original game does that might be nice for us to do as an ef-
+  // fect, if it is feasible, is that if a treasure enpixelates
+  // over the location of a burned dwelling then any hidden ter-
+  // rain around it that is revealed as a result will be revealed
+  // in a pixelated way, along with the treasure's enpixelation
+  // animation. The OG probably handles pixelation animations by
+  // rerendering the entire screen in the new state and then pix-
+  // elating the entire screen. This may be tricky for us to im-
+  // plement given how we render terrain and obfuscation; need to
+  // determine if it is worth the effort.
   builder.enpixelate_unit( unit_id );
   builder.play_sound( e_sfx::treasure );
   return builder.result();
@@ -641,48 +691,39 @@ AnimationSequence anim_seq_unit_to_front_non_background(
   return builder.result();
 }
 
-static void destroy_real_dwellings( AnimationBuilder& builder,
-                                    SSConst const&    ss,
-                                    e_tribe           tribe ) {
-  UNWRAP_CHECK( dwellings_unsorted,
-                ss.natives.dwellings_for_tribe( tribe ) );
-  vector<DwellingId> const dwellings =
-      base::sorted( dwellings_unsorted );
-  for( DwellingId const dwelling_id : dwellings )
-    builder.depixelate_dwelling( dwelling_id );
-}
-
-static void destroy_fogged_dwellings( AnimationBuilder& builder,
-                                      SSConst const&    ss,
-                                      e_nation          nation,
-                                      e_tribe           tribe ) {
-  // This should cover both fogged and visible dwellings.
-  UNWRAP_CHECK( player_terrain,
-                ss.terrain.player_terrain( nation ) );
-  auto&              m = player_terrain.map;
-  gfx::rect_iterator ri( m.rect() );
-  for( Coord const tile : ri ) {
-    maybe<FogSquare> const& fog_square = m[tile];
-    if( !fog_square.has_value() ) continue;
-    maybe<FogDwelling> const& fog_dwelling =
-        fog_square->dwelling;
-    if( !fog_dwelling.has_value() ) continue;
-    if( fog_dwelling->tribe != tribe ) continue;
-    builder.depixelate_fog_dwelling( tile );
-  }
-}
-
 AnimationSequence anim_seq_for_cheat_tribe_destruction(
     SSConst const& ss, Visibility const& viz, e_tribe tribe ) {
   AnimationBuilder builder;
   builder.play_sound( e_sfx::city_destroyed );
 
   // Dwellings.
-  if( maybe<e_nation> const nation = viz.nation();
-      !nation.has_value() )
-    destroy_real_dwellings( builder, ss, tribe );
-  else
-    destroy_fogged_dwellings( builder, ss, *nation, tribe );
+  gfx::rect_iterator ri( ss.terrain.world_rect_tiles() );
+  for( Coord const tile : ri ) {
+    switch( viz.visible( tile ) ) {
+      case e_tile_visibility::visible_and_clear: {
+        maybe<DwellingId> const dwelling_id =
+            ss.natives.maybe_dwelling_from_coord( tile );
+        if( !dwelling_id.has_value() ) break;
+        if( ss.natives.tribe_for( *dwelling_id ).type != tribe )
+          continue;
+        builder.depixelate_dwelling( *dwelling_id );
+        break;
+      }
+      case e_tile_visibility::visible_with_fog: {
+        maybe<FogSquare const&> fog_square =
+            viz.fog_square_at( tile );
+        if( !fog_square.has_value() ) continue;
+        maybe<FogDwelling> const& fog_dwelling =
+            fog_square->dwelling;
+        if( !fog_dwelling.has_value() ) continue;
+        if( fog_dwelling->tribe != tribe ) continue;
+        builder.depixelate_fog_dwelling( tile );
+        break;
+      }
+      case e_tile_visibility::hidden:
+        break;
+    }
+  }
 
   // Braves.
   auto const&          native_units = ss.units.native_all();
