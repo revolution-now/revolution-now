@@ -55,6 +55,7 @@ items {
   cheat_map_editor.name: Enter Map Editor
   cheat_reveal_map.name: Reveal Map
   cheat_set_human_players.name: Set Human Players
+  cheat_kill_natives.name: Kill Natives
   colony_report_options.name: Colony Report Options
   dump.name: Dump Cargo Overboard
   economics_advisor.name: Economics Advisor
@@ -171,6 +172,8 @@ layout {
     cheat_map_editor,
     null,
     cheat_edit_fathers,
+    null,
+    cheat_kill_natives,
   ]
 
   pedia.contents: [

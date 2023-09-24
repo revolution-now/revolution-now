@@ -309,6 +309,10 @@ wait<> menu_handler( SS& ss, TS& ts, Player& player,
       co_await cheat_set_human_players( ss, ts );
       break;
     }
+    case e_menu_item::cheat_kill_natives: {
+      co_await kill_natives( ss, ts );
+      break;
+    }
     case e_menu_item::cheat_map_editor: {
       // Need to co_await so that the map_updater stays alive.
       co_await run_map_editor( ss, ts );

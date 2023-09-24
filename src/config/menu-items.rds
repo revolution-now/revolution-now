@@ -30,6 +30,7 @@ enum.e_menu_item {
   cheat_map_editor,
   cheat_reveal_map,
   cheat_set_human_players,
+  cheat_kill_natives,
   colony_report_options,
   dump,
   economics_advisor,
