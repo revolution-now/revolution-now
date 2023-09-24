@@ -199,8 +199,8 @@ maybe<ExploredColony> find_close_explored_colony(
 }
 
 // Yields a finite stream of friendly colonies spiraling outward
-// from the starting point that are within a radius of 3.5 to the
-// start.
+// from the starting point that are within a radius of
+// `max_distance` to the start.
 vector<ColonyId> close_friendly_colonies( SSConst const& ss,
                                           Player const&  player,
                                           gfx::point const start,

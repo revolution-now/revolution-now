@@ -57,8 +57,13 @@ maybe<Colony const&> find_any_close_colony(
 // found through exploration (that is, it is currently either
 // visible or fogged) that is the shortest pythagorean distance
 // away, among those whose distance is less than `max_distance`.
-// Note that this returns a FogColony, and so said colony may no
-// longer exist; in fact, even the nation may no longer exist.
+//
+// We must return an ExploredColony type here because the
+// "colony" that is found might be either a real colony (Colony)
+// or a FogColony (explored but not visible and in fact may no
+// longer exist), and those don't really have a common base type.
+// So the ExploredColony type contains only the info that is
+// common to both that the current callers need to know about.
 maybe<ExploredColony> find_close_explored_colony(
     SSConst const& ss, e_nation nation, gfx::point location,
     double max_distance );
