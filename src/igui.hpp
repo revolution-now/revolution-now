@@ -239,8 +239,8 @@ struct IGui {
       e_input_required      required ) = 0;
 
   // Displays a window with a grid of checkboxes for each item
-  // and will let the user check or uncheck them, then will up-
-  // date map with the results in place.
+  // and will let the user check or uncheck them, then will re-
+  // turn the updated map.
   virtual wait<std::unordered_map<int, bool>> check_box_selector(
       std::string const&                           title,
       std::unordered_map<int, CheckBoxInfo> const& items ) = 0;
