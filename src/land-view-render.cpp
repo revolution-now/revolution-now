@@ -13,11 +13,11 @@
 // Revolution Now
 #include "land-view-anim.hpp"
 #include "render.hpp"
-#include "text.hpp"
 #include "tiles.hpp"
 #include "unit-flag.hpp"
 #include "unit-mgr.hpp"
 #include "unit-stack.hpp"
+#include "viewport.hpp"
 #include "visibility.hpp"
 
 // config
@@ -28,7 +28,6 @@
 #include "ss/colonies.hpp"
 #include "ss/dwelling.rds.hpp"
 #include "ss/fog-square.rds.hpp"
-#include "ss/land-view.rds.hpp"
 #include "ss/natives.hpp"
 #include "ss/ref.hpp"
 #include "ss/unit-id.hpp"
@@ -40,9 +39,6 @@
 // gfx
 #include "gfx/coord.hpp"
 #include "gfx/iter.hpp"
-
-// base
-#include "base/keyval.hpp"
 
 // C++ standard library
 #include <unordered_map>

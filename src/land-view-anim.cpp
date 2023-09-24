@@ -39,7 +39,6 @@
 #include "refl/to-str.hpp"
 
 // base
-#include "base/keyval.hpp"
 #include "base/to-str-ext-std.hpp"
 
 using namespace std;
