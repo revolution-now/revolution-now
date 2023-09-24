@@ -22,7 +22,6 @@
 #include "src/damaged.rds.hpp"
 #include "src/icombat.rds.hpp"
 #include "src/imap-updater.hpp"
-#include "src/society.rds.hpp"
 #include "src/unit-mgr.hpp"
 
 // ss

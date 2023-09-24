@@ -36,7 +36,6 @@
 
 // ss
 #include "ss/colonies.hpp"
-#include "ss/fog-square.rds.hpp"
 #include "ss/natives.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
