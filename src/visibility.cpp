@@ -134,16 +134,22 @@ MapSquare const& Visibility::square_at( Coord tile ) const {
   if( !tile.is_inside( terrain_->world_rect_tiles() ) )
     // Will yield a proto square.
     return terrain_->total_square_at( tile );
-  maybe<MapSquare const&> square =
-      ( *player_terrain_ )
-          ->map[tile]
-          .member( &FogSquare::square );
-  if( !square.has_value() )
-    // Player can't see this tile.
+  maybe<FogSquare> const& fog_square =
+      ( *player_terrain_ )->map[tile];
+  if( !fog_square.has_value() )
+    // Player can't see this tile (it is hidden).
     return terrain_->total_square_at( tile );
-  // The player can see this tile, so return the player's version
-  // of it.
-  return *square;
+  // The player can see this tile, either clear or fogged.
+  if( fog_square->fog_of_war_removed )
+    // Use the real tile in this case because the fogged tile is
+    // not always guaranteed to match the real tile when the tile
+    // is visible, since the fog square is only updated in re-
+    // sopnse to certain actions (and that's ok, because when a
+    // tile is visible and clear, the fog square is not used at
+    // all for rendering).
+    return terrain_->total_square_at( tile );
+  // Return the player's version of it.
+  return fog_square->square;
 };
 
 maybe<FogSquare const&> Visibility::fog_square_at(
@@ -266,6 +272,15 @@ refl::enum_map<e_nation, bool> nations_with_visibility_of_square(
     res[colony.nation]   = true;
   }
   return res;
+bool does_nation_have_fog_removed_on_square( SSConst const& ss,
+                                             e_nation nation,
+                                             Coord    tile ) {
+  if( !ss.players.players[nation].has_value() ) return false;
+  UNWRAP_CHECK( player_terrain,
+                ss.terrain.player_terrain( nation ) );
+  maybe<FogSquare> const& fog_square = player_terrain.map[tile];
+  return fog_square.has_value() &&
+         fog_square->fog_of_war_removed;
 }
 
 void recompute_fog_for_nation( SS& ss, TS& ts,

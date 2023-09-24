@@ -58,28 +58,17 @@ NonRenderingMapUpdater::NonRenderingMapUpdater( SS& ss )
 BuffersUpdated NonRenderingMapUpdater::modify_map_square(
     Coord                                  tile,
     base::function_ref<void( MapSquare& )> mutator ) {
-  MapSquare old_square = ss_.terrain.square_at( tile );
-  // NOTE: This is the only non-testing place where this mutable
-  // terrain should be used.
+  MapSquare const old_square = ss_.terrain.square_at( tile );
   mutator( ss_.mutable_terrain_use_with_care.mutable_square_at(
       tile ) );
-  MapSquare      new_square = ss_.terrain.square_at( tile );
-  BuffersUpdated buffers_updated{ .tile = tile };
-  if( new_square == old_square ) return buffers_updated;
-
-  // Update player maps.
-  refl::enum_map<e_nation, bool> const visible_to_nations =
-      nations_with_visibility_of_square( ss_, tile );
-  for( auto [nation, visible] : visible_to_nations ) {
-    if( !visible ) continue;
-    vector<BuffersUpdated> const nation_buffers_updated =
-        make_squares_visible( nation, { tile } );
-    CHECK( nation_buffers_updated.size() == 1 );
-    if( options().nation != nation ) continue;
-    buffers_updated = nation_buffers_updated[0];
-  }
-
-  return buffers_updated;
+  MapSquare const& new_square = ss_.terrain.square_at( tile );
+  // Check if the rendered map needs its buffer updated.
+  return BuffersUpdated{
+      .tile      = tile,
+      .landscape = ( new_square != old_square ) &&
+                   ( !options().nation.has_value() ||
+                     does_nation_have_fog_removed_on_square(
+                         ss_, *options().nation, tile ) ) };
 }
 
 vector<BuffersUpdated>
@@ -113,7 +102,6 @@ NonRenderingMapUpdater::make_squares_visible(
     MapSquare const& real_square = ss_.terrain.square_at( tile );
     if( player_square != real_square )
       buffers_updated.landscape = true;
-    copy_real_square_to_fog_square( ss_, tile, fog_square );
   }
 
   CHECK( res.size() == tiles.size() );
@@ -147,10 +135,22 @@ NonRenderingMapUpdater::make_squares_fogged(
     // that is currently on it. This is needed because e.g. let's
     // say that the player is sitting next to a dwelling, then a
     // foreign missionary establishes a mission there (which
-    // won't update the player's FogSquare), then the player
-    // moves away; we want the latest state of that dwelling to
-    // be recorded so that the mission doesn't then appear to
-    // disappear when the fog appears.
+    // won't update the player's FogSquare; it is not necessary
+    // at that point because the tile as a whole will be rendered
+    // from its real contents as it is fully visible to the play-
+    // er), then the player moves away; we want the latest state
+    // of that dwelling to be recorded so that the mission
+    // doesn't then appear to disappear when the fog appears. In
+    // general, the way it works is that the fog square is not
+    // guaranteed to be in sync with the real square while the
+    // square is visible. This may at first seem counterintu-
+    // itive, but it it works because, when the tile is visible,
+    // everything on it is drawn from the real version, and so
+    // that simplifies a lot of things in that when either the
+    // terrain or the fogged contents of a tile change, we don't
+    // have to remember to update the player's fog squares. The
+    // fog squares are only updated here, when a square goes from
+    // visible and clear to fogged.
     copy_real_square_to_fog_square( ss_, tile, fog_square );
   }
 

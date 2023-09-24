@@ -62,12 +62,15 @@ struct Visibility {
   // view of a player and so it may have only partial visibility.
   // Our square_at function thus will try the player's first,
   // then fall back to the real map. Even when rendering for a
-  // plyaer we still need access to the real map in some cases
+  // player we still need access to the real map in some cases
   // because to render a (visible) tile we need to know the ter-
   // rain type of the adjacent tiles to render the spill-over
   // part. If the tile is not on the map, it will return one of
   // the proto squares (which are always considered to be "visi-
-  // ble" to the player).
+  // ble" to the player). Finally, if the tile is not entirely
+  // hidden to the player, this will return either the real map
+  // square (if visible and clear) or the player's version of it
+  // (if fogged).
   MapSquare const& square_at( Coord tile ) const;
 
   // If we are rendering the terrain from the point of view of a
@@ -104,6 +107,14 @@ struct Visibility {
 // be able to currently see the tile.
 refl::enum_map<e_nation, bool> nations_with_visibility_of_square(
     SSConst const& ss, Coord tile );
+// Returns true if, were that nation's view to be currently ren-
+// dered, the square would be visible and clear. This could mean
+// that it is actively visible by some unit now, or it could mean
+// that it was explored earlier in the turn and is still consid-
+// ered visible and clear.
+bool does_nation_have_fog_removed_on_square( SSConst const& ss,
+                                             e_nation nation,
+                                             Coord    tile );
 
 // This will look up the unit type's sighting radius, and then
 // compute each (existing) square that the unit could see as-

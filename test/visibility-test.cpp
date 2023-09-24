@@ -1013,7 +1013,7 @@ TEST_CASE( "[visibility] Visibility" ) {
     REQUIRE( viz.square_at( { .x = 0, .y = 0 } ).surface ==
              e_surface::water );
     REQUIRE( viz.square_at( { .x = 1, .y = 0 } ).surface ==
-             e_surface::water );
+             e_surface::land );
     REQUIRE( viz.square_at( { .x = 0, .y = 1 } ).surface ==
              e_surface::land );
     REQUIRE( viz.square_at( { .x = 1, .y = 1 } ).surface ==
@@ -1485,6 +1485,11 @@ TEST_CASE( "[visibility] should_animate_move" ) {
 
   viz = Visibility( W.ss(), nothing );
   REQUIRE( f() );
+}
+
+TEST_CASE(
+    "[visibility] does_nation_have_fog_removed_on_square" ) {
+  World W;
 }
 
 } // namespace

@@ -372,19 +372,17 @@ TEST_CASE( "[lcr] unit lost" ) {
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
 
-  MapSquare&              square = W.square( Coord{} );
-  maybe<FogSquare> const& player_square =
-      W.player_square( Coord{} );
+  MapSquare& square      = W.square( Coord{} );
   square.lost_city_rumor = true;
-  REQUIRE( !player_square.has_value() );
+
+  maybe<FogSquare>& player_square = W.player_square( Coord{} );
+  player_square.emplace().square.lost_city_rumor = true;
 
   // Create unit on map.
   UnitId unit_id =
       W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
           .id();
   REQUIRE( W.units().all().size() == 1 );
-  REQUIRE( player_square.has_value() );
-  REQUIRE( player_square->square.lost_city_rumor == true );
 
   // Set outcome types.
   e_rumor_type         rumor_type = e_rumor_type::unit_lost;
@@ -413,12 +411,18 @@ TEST_CASE( "[lcr] unit lost" ) {
   REQUIRE( player.money == 0 );
   REQUIRE_FALSE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 0 );
-  // Make sure that, even though the unit was lost, that the
-  // player map was updated to remove the LCR. Otherwise the tile
-  // will still appear to be there to the player until they move
-  // another unit near it, at which point it will disappear mys-
-  // teriously.
-  REQUIRE( player_square->square.lost_city_rumor == false );
+  // Even though the LCR has been removed and the unit destroyed,
+  // the fog square isn't yet updated, because the square that
+  // used to contain the LCR will still be visible and clear to
+  // the player at least until the end of its turn; during that
+  // time, the square will be rendered from its real contents.
+  // Then at some point (possible they end of this turn), if/when
+  // there are no more friendly units that can view the tile then
+  // it will get fogged, at which point the fog square will be
+  // sync'd with the real square. We don't really need to be
+  // testing this here, but it might be useful at some point for
+  // catching an unintentional change in behavior.
+  REQUIRE( player_square->square.lost_city_rumor == true );
 }
 
 TEST_CASE( "[lcr] cibola / treasure" ) {
