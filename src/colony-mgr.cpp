@@ -16,15 +16,13 @@
 #include "colony-buildings.hpp"
 #include "colony-evolve.hpp"
 #include "colony-view.hpp"
-#include "colony.hpp"
+#include "colony.rds.hpp"
 #include "commodity.hpp"
 #include "construction.hpp"
 #include "damaged.hpp"
-#include "enum.hpp"
 #include "harbor-units.hpp"
 #include "ieuro-mind.hpp"
 #include "igui.hpp"
-#include "imap-updater.hpp"
 #include "immigration.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
@@ -32,7 +30,6 @@
 #include "minds.hpp"
 #include "native-owned.hpp"
 #include "plane-stack.hpp"
-#include "rand.hpp"
 #include "road.hpp"
 #include "teaching.hpp"
 #include "ts.hpp"
@@ -41,14 +38,12 @@
 // config
 #include "config/colony.rds.hpp"
 #include "config/nation.hpp"
-#include "config/production.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss
 #include "ss/colonies.hpp"
 #include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
-#include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
@@ -62,12 +57,11 @@
 
 // base
 #include "base/conv.hpp"
-#include "base/keyval.hpp"
 #include "base/scope-exit.hpp"
 #include "base/to-str-ext-std.hpp"
 
-// base-util
-#include "base-util/string.hpp"
+// C++ standard library
+#include <numeric>
 
 using namespace std;
 
@@ -813,22 +807,9 @@ ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
   }
 
   ss.colonies.destroy_colony( colony.id );
-  // Now that the colony is gone, update the player's map square
-  // so that it no longer has a FogColony on the square.
-  Player const& player =
-      player_for_nation_or_die( ss.players, colony_nation );
-  ts.map_updater.make_squares_visible( player.nation,
-                                       { colony_location } );
-
-  UNWRAP_CHECK( player_terrain,
-                ss.terrain.player_terrain( player.nation ) );
-  // Sanity check. This shouldn't fire given the call above, but
-  // you never know.
-  CHECK(
-      !player_terrain.map[colony_location]->colony.has_value(),
-      "the colony {} was destroyed but the player map was not "
-      "updated to reflect this.",
-      colony_name );
+  // Note that the player map (fog colony) won't be updated at
+  // this point; it will be updated if/when the square that con-
+  // tained the colony is transitioned to a fog state.
   return outcome;
 }
 

@@ -411,10 +411,6 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
   REQUIRE( W.colonies().all().size() == 1 );
   REQUIRE( W.terrain().square_at( loc ).road );
 
-  maybe<FogSquare> const& player_square =
-      W.player_square( colony.location );
-  REQUIRE( player_square->colony.has_value() );
-
   SECTION( "non interactive" ) {
     destroy_colony( W.ss(), W.ts(), colony );
   }
@@ -427,7 +423,6 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     Unit const& ship3 =
         W.add_unit_on_map( e_unit_type::caravel, loc );
     destroy_colony( W.ss(), W.ts(), colony );
-    REQUIRE( !player_square->colony.has_value() );
     REQUIRE( W.units().exists( ship1.id() ) );
     REQUIRE( W.units().exists( ship2.id() ) );
     REQUIRE( W.units().exists( ship3.id() ) );
@@ -464,7 +459,6 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     UnitId const free_colonist_id = free_colonist.id();
     UnitId const soldier_id       = soldier.id();
     destroy_colony( W.ss(), W.ts(), colony );
-    REQUIRE( !player_square->colony.has_value() );
     REQUIRE( W.units().exists( ship1_id ) );
     REQUIRE( W.units().exists( ship2_id ) );
     REQUIRE( W.units().exists( ship3_id ) );
@@ -502,7 +496,6 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     UnitId const ship2_id = ship2.id();
     UnitId const ship3_id = ship3.id();
     destroy_colony( W.ss(), W.ts(), colony );
-    REQUIRE( !player_square->colony.has_value() );
     REQUIRE_FALSE( W.units().exists( ship1_id ) );
     REQUIRE_FALSE( W.units().exists( ship2_id ) );
     REQUIRE_FALSE( W.units().exists( ship3_id ) );
@@ -680,7 +673,6 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
   REQUIRE( !W.units().exists( founder_id ) );
   REQUIRE( W.colonies().all().size() == 0 );
   REQUIRE( !W.terrain().square_at( loc ).road );
-  REQUIRE( !player_square->colony.has_value() );
 }
 
 TEST_CASE(
