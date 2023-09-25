@@ -31,6 +31,8 @@ enum class e_nation;
 ** NativeMinds
 *****************************************************************/
 struct NativeMinds {
+  // Use unordered_map instead of enum_map so that we can use a
+  // forward-declared enum key.
   using MindsMap =
       std::unordered_map<e_tribe, std::unique_ptr<INativeMind>>;
 
@@ -56,6 +58,8 @@ struct NativeMinds {
 ** EuroMinds
 *****************************************************************/
 struct EuroMinds {
+  // Use unordered_map instead of enum_map so that we can use a
+  // forward-declared enum key.
   using MindsMap =
       std::unordered_map<e_nation, std::unique_ptr<IEuroMind>>;
 
