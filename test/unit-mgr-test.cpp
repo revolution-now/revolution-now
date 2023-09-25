@@ -33,6 +33,7 @@
 
 // Must be last.
 #include "test/catch-common.hpp"
+#include "visibility.rds.hpp"
 
 namespace rn {
 namespace {
@@ -330,6 +331,63 @@ TEST_CASE( "[unit-mgr] change_unit_nation" ) {
 
 TEST_CASE( "[unit-mgr] change_unit_nation_and_move" ) {
   World W;
+
+  Coord const viz_check1{ .x = 0, .y = 0 };
+  Coord const src{ .x = 1, .y = 1 };
+  Coord const dst{ .x = 2, .y = 2 };
+  Coord const viz_check2{ .x = 3, .y = 3 };
+
+  Unit& unit = W.add_unit_on_map( e_unit_type::free_colonist,
+                                  src, e_nation::dutch );
+
+  Visibility const dutch_viz( W.ss(), e_nation::dutch );
+  Visibility const spanish_viz( W.ss(), e_nation::spanish );
+
+  auto f = [&] {
+    change_unit_nation_and_move( W.ss(), W.ts(), unit,
+                                 e_nation::spanish, dst );
+  };
+
+  REQUIRE( W.units().coord_for( unit.id() ) == src );
+
+  REQUIRE( dutch_viz.visible( src ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( dutch_viz.visible( dst ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( dutch_viz.visible( viz_check1 ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( dutch_viz.visible( viz_check2 ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( spanish_viz.visible( src ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( spanish_viz.visible( dst ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( spanish_viz.visible( viz_check1 ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( spanish_viz.visible( viz_check2 ) ==
+           e_tile_visibility::hidden );
+
+  f();
+
+  REQUIRE( W.units().coord_for( unit.id() ) == dst );
+
+  REQUIRE( dutch_viz.visible( src ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( dutch_viz.visible( dst ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( spanish_viz.visible( src ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( spanish_viz.visible( dst ) ==
+           e_tile_visibility::visible_and_clear );
+
+  // These are the real test... if we were not moving and
+  // changing nation atomically then one of these would fail.
+  REQUIRE( spanish_viz.visible( viz_check1 ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( spanish_viz.visible( viz_check2 ) ==
+           e_tile_visibility::visible_and_clear );
+  REQUIRE( dutch_viz.visible( viz_check2 ) ==
+           e_tile_visibility::hidden );
 }
 
 TEST_CASE( "[unit-mgr] destroy_unit" ) {
