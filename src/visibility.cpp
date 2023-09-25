@@ -277,6 +277,18 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
   }
 
   // Unfog the surroundings of colonies.
+  //
+  // Note regarding de soto: in the OG, the sighting radius of a
+  // colony is always 1 (with or without de soto) unless there is
+  // at least one unit (of any kind) at the gate. In the latter
+  // case, the sighting radius is determined by the unit's
+  // sighting radius given the de soto status, as well as the
+  // sighting limitations (i.e., land units can't see into
+  // oceans, etc.). All that we have to do to replicate that is
+  // to use a fixed sighting radius of 1 below for the colonies,
+  // since if there are any units at the gate then they would
+  // have already been accounted for in the units section above,
+  // and the right thing will have been done.
   timer.checkpoint( "de-fog colony surroundings" );
   vector<ColonyId> const colonies =
       ss.colonies.for_nation( nation );
