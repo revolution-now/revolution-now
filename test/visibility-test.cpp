@@ -23,6 +23,7 @@
 
 // ss
 #include "ss/player.rds.hpp"
+#include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/unit-composer.hpp"
@@ -50,7 +51,7 @@ struct World : testing::World {
     set_default_player( e_nation::french );
     add_player( e_nation::french );
     add_player( e_nation::english );
-    add_player( e_nation::dutch );
+    /* no dutch */
     add_player( e_nation::spanish );
   }
 
@@ -102,9 +103,10 @@ struct World : testing::World {
 
   void give_de_soto() {
     for( e_nation nation : refl::enum_values<e_nation> )
-      player( nation )
-          .fathers.has[e_founding_father::hernando_de_soto] =
-          true;
+      if( players().players[nation].has_value() )
+        player( nation )
+            .fathers.has[e_founding_father::hernando_de_soto] =
+            true;
   }
 
   void clear_all_fog( gfx::Matrix<maybe<FogSquare>>& m ) {
@@ -825,6 +827,33 @@ TEST_CASE( "[visibility] should_animate_move" ) {
 TEST_CASE(
     "[visibility] does_nation_have_fog_removed_on_square" ) {
   World W;
+  W.create_small_map();
+  Coord const coord  = { .x = 0, .y = 0 };
+  e_nation    nation = {};
+
+  auto f = [&] {
+    return does_nation_have_fog_removed_on_square(
+        W.ss(), nation, coord );
+  };
+
+  // Sanity check.
+  REQUIRE_FALSE(
+      W.players().players[e_nation::dutch].has_value() );
+
+  nation = e_nation::dutch;
+  REQUIRE_FALSE( f() );
+
+  nation = e_nation::french;
+  REQUIRE_FALSE( f() );
+
+  nation = e_nation::french;
+  W.player_square( coord, nation ).emplace();
+  REQUIRE_FALSE( f() );
+
+  nation = e_nation::french;
+  W.player_square( coord, nation ).emplace().fog_of_war_removed =
+      true;
+  REQUIRE( f() );
 }
 
 } // namespace
