@@ -22,12 +22,13 @@ local map_gen = require( 'map-gen' )
 -- a declared global.
 local function global( name ) return assert( _G[name] ) end
 
-local unit_type = global( 'unit_type' )
-local unit_composer = global( 'unit_composer' )
-local unit_mgr = global( 'unit_mgr' )
+local game_options = global( 'game_options' )
 local immigration = global( 'immigration' )
 local market = global( 'market' )
 local price_group = global( 'price_group' )
+local unit_composer = global( 'unit_composer' )
+local unit_mgr = global( 'unit_mgr' )
+local unit_type = global( 'unit_type' )
 
 -----------------------------------------------------------------
 -- Options
@@ -53,16 +54,16 @@ end
 -----------------------------------------------------------------
 local function set_default_settings( options, settings )
   settings.difficulty = options.difficulty
-  -- FIXME: these are in config/rn... get them from there.
-  settings.game_options.flags.show_indian_moves = true
-  settings.game_options.flags.show_foreign_moves = true
-  settings.game_options.flags.fast_piece_slide = false
-  settings.game_options.flags.end_of_turn = false
-  settings.game_options.flags.autosave = true
-  settings.game_options.flags.combat_analysis = true
-  settings.game_options.flags.water_color_cycling = true
-  settings.game_options.flags.tutorial_hints = false
-  settings.game_options.flags.show_fog_of_war = true
+  -- TODO: these are in config/rn... get them from there.
+  game_options.set_flag( 'show_indian_moves', true )
+  game_options.set_flag( 'show_foreign_moves', true )
+  game_options.set_flag( 'fast_piece_slide', false )
+  game_options.set_flag( 'end_of_turn', false )
+  game_options.set_flag( 'autosave', true )
+  game_options.set_flag( 'combat_analysis', true )
+  game_options.set_flag( 'water_color_cycling', true )
+  game_options.set_flag( 'tutorial_hints', false )
+  game_options.set_flag( 'show_fog_of_war', true )
 
   if options.difficulty == 'discoverer' then
     settings.game_options.flags.tutorial_hints = true

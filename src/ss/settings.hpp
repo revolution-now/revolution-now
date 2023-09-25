@@ -18,11 +18,7 @@
 // luapp
 #include "luapp/ext-userdata.hpp"
 
-namespace rn {
-
-using GameOptionsMap = refl::enum_map<e_game_flag_option, bool>;
-
-} // namespace rn
+namespace rn {} // namespace rn
 
 /****************************************************************
 ** Lua
@@ -30,7 +26,5 @@ using GameOptionsMap = refl::enum_map<e_game_flag_option, bool>;
 namespace lua {
 
 LUA_USERDATA_TRAITS( ::rn::SettingsState, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::GameOptions, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::GameOptionsMap, owned_by_cpp ){};
 
 } // namespace lua

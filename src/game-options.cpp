@@ -23,6 +23,14 @@
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
 
+// luapp
+#include "luapp/enum.hpp"
+#include "luapp/register.hpp"
+#include "luapp/state.hpp"
+
+// refl
+#include "refl/to-str.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -136,5 +144,36 @@ wait<> open_game_options_box( SS& ss, TS& ts ) {
       on_option_disabled( ts, option );
   }
 }
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace {
+
+LUA_FN( list_flags, lua::table ) {
+  lua::table lst = st.table.create();
+  int        i   = 1;
+  for( auto const flag : refl::enum_values<e_game_flag_option> )
+    lst[i++] = fmt::to_string( flag );
+  return lst;
+};
+
+LUA_FN( get_flag, bool, e_game_flag_option flag ) {
+  SS& ss = st["SS"].as<SS&>();
+  return ss.settings.game_options.flags[flag];
+};
+
+LUA_FN( set_flag, void, e_game_flag_option option, bool value ) {
+  SS& ss = st["SS"].as<SS&>();
+  TS& ts = st["TS"].as<TS&>();
+
+  ss.settings.game_options.flags[option] = value;
+  if( value )
+    on_option_enabled( ts, option );
+  else
+    on_option_disabled( ts, option );
+};
+
+} // namespace
 
 } // namespace rn

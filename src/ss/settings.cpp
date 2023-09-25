@@ -12,7 +12,6 @@
 
 // luapp
 #include "luapp/enum.hpp"
-#include "luapp/ext-base.hpp"
 #include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
@@ -37,36 +36,17 @@ base::valid_or<string> SettingsState::validate() const {
 namespace {
 
 LUA_STARTUP( lua::state& st ) {
-  // GameOptionsMap.
-  [&] {
-    // TODO: make this generic.
-    using U = ::rn::GameOptionsMap;
-    auto u  = st.usertype.create<U>();
-
-    u[lua::metatable_key]["__index"] =
-        [&]( U& obj, e_game_flag_option c ) { return obj[c]; };
-
-    u[lua::metatable_key]["__newindex"] =
-        [&]( U& obj, e_game_flag_option c, bool on_off ) {
-          obj[c] = on_off;
-        };
-  }();
-
-  // GameOptions.
-  [&] {
-    using U = ::rn::GameOptions;
-    auto u  = st.usertype.create<U>();
-
-    u["flags"] = &U::flags;
-  }();
-
   // SettingsState.
   [&] {
     using U = ::rn::SettingsState;
     auto u  = st.usertype.create<U>();
 
-    u["difficulty"]   = &U::difficulty;
-    u["game_options"] = &U::game_options;
+    u["difficulty"] = &U::difficulty;
+
+    // NOTE: Game options are not exposed here; they are exposed
+    // via a higher level API in the game-options module because
+    // they require wrappers that execute functions when their
+    // values are changed.
   }();
 };
 
