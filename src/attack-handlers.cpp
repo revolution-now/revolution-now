@@ -37,6 +37,7 @@
 #include "tribe-mgr.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 #include "unit-stack.hpp"
 
 // config
@@ -381,10 +382,8 @@ wait<> AttackColonyUndefendedHandler::perform() {
   co_await ts_.planes.land_view().animate(
       anim_seq_for_unit_move( attacker_.id(), direction_ ) );
   maybe<UnitDeleted> const unit_deleted =
-      co_await unit_ownership_change(
-          ss_, attacker_.id(),
-          EuroUnitOwnershipChangeTo::world{
-              .ts = &ts_, .target = attack_dst_ } );
+      co_await UnitOwnershipChanger( ss_, attacker_.id() )
+          .change_to_map( ts_, attack_dst_ );
   CHECK( !unit_deleted.has_value() );
 
   // 2. All ships in the colony's port are considered damaged and
@@ -538,14 +537,9 @@ wait<> NavalBattleHandler::perform() {
   // cific ocean or another nation upon moving.
   if( auto o = combat_.attacker.outcome
                    .get_if<EuroNavalUnitCombatOutcome::moved>();
-      o.has_value() ) {
-    maybe<UnitDeleted> const unit_deleted =
-        co_await unit_ownership_change(
-            ss_, attacker_id_,
-            EuroUnitOwnershipChangeTo::world{
-                .ts = &ts_, .target = o->to } );
-    CHECK( !unit_deleted.has_value() );
-  }
+      o.has_value() )
+    UnitOwnershipChanger( ss_, attacker_id_ )
+        .reinstate_on_map_if_on_map( ts_ );
 }
 
 /****************************************************************
@@ -784,10 +778,8 @@ wait<> AttackDwellingHandler::produce_convert() {
           convert_id, reverse_direction( direction_ ) ) );
   // Non-interactive is OK here because the attacker is already
   // on this square.
-  unit_ownership_change_non_interactive(
-      ss_, convert_id,
-      EuroUnitOwnershipChangeTo::world{
-          .ts = &ts_, .target = attacker_coord } );
+  UnitOwnershipChanger( ss_, convert_id )
+      .change_to_map_non_interactive( ts_, attacker_coord );
 }
 
 wait<> AttackDwellingHandler::with_phantom_brave_combat(
@@ -839,7 +831,7 @@ wait<> AttackDwellingHandler::perform() {
     for( UnitId const missionary : missionaries ) {
       CHECK( ss_.units.unit_for( missionary ).nation() ==
              attacking_player_.nation );
-      destroy_unit( ss_, missionary );
+      UnitOwnershipChanger( ss_, missionary ).destroy();
     }
     // TODO: decide whether to update player fog squares to re-
     // move missionary status. We don't have to worry about the
@@ -939,10 +931,9 @@ wait<> AttackDwellingHandler::perform() {
     // a brave of another unencountered tribe which would then
     // trigger the meet-tribe UI sequence, which would feel
     // strange right in the middle of an attack sequence.
-    unit_ownership_change_non_interactive(
-        ss_, *destruction.missionary_to_release,
-        EuroUnitOwnershipChangeTo::world{
-            .ts = &ts_, .target = dwelling_location } );
+    UnitOwnershipChanger( ss_,
+                          *destruction.missionary_to_release )
+        .change_to_map_non_interactive( ts_, dwelling_location );
   }
 
   // Animate attacker winning w/ burning village and depixelating
@@ -1017,10 +1008,8 @@ wait<> AttackDwellingHandler::perform() {
     // Just in case e.g. the treasure appeared next to a brave
     // from unencountered tribe, or the pacific ocean.
     maybe<UnitDeleted> const unit_deleted =
-        co_await unit_ownership_change(
-            ss_, treasure_id,
-            EuroUnitOwnershipChangeTo::world{
-                .ts = &ts_, .target = dwelling_location } );
+        co_await UnitOwnershipChanger( ss_, treasure_id )
+            .change_to_map( ts_, dwelling_location );
   }
 
   if( was_capital && !destruction.tribe_destroyed.has_value() )
@@ -1040,10 +1029,9 @@ wait<> AttackDwellingHandler::perform() {
     // cause any UI sequence that this leads to will be unrelated
     // to the burning of the dwelling.
     maybe<UnitDeleted> const unit_deleted =
-        co_await unit_ownership_change(
-            ss_, *destruction.missionary_to_release,
-            EuroUnitOwnershipChangeTo::world{
-                .ts = &ts_, .target = dwelling_location } );
+        co_await UnitOwnershipChanger(
+            ss_, *destruction.missionary_to_release )
+            .change_to_map( ts_, dwelling_location );
   }
 }
 

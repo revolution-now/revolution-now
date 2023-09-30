@@ -1352,8 +1352,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE(
         as_const( W.units() ).ownership_of( defender.id() ) ==
         UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{},
-                    .sailed_from = nothing } } );
+            .port_status = PortStatus::in_port{},
+            .sailed_from = nothing } );
     REQUIRE( attacker.nation() == W.kAttackingNation );
     REQUIRE( defender.nation() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
@@ -1593,8 +1593,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE(
         as_const( W.units() ).ownership_of( attacker.id() ) ==
         UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{},
-                    .sailed_from = nothing } } );
+            .port_status = PortStatus::in_port{},
+            .sailed_from = nothing } );
     REQUIRE( W.units().coord_for( defender.id() ) ==
              W.kWaterDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
@@ -1656,8 +1656,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE(
         as_const( W.units() ).ownership_of( attacker.id() ) ==
         UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{},
-                    .sailed_from = nothing } } );
+            .port_status = PortStatus::in_port{},
+            .sailed_from = nothing } );
     REQUIRE( W.units().coord_for( defender.id() ) ==
              W.kWaterDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );

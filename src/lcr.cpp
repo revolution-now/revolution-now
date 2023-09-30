@@ -23,10 +23,12 @@
 #include "rand-enum.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 
 // ss
 #include "ss/old-world-state.rds.hpp"
 #include "ss/player.rds.hpp"
+#include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/unit-type.hpp"
 #include "ss/units.hpp"
@@ -279,7 +281,7 @@ wait<LostCityRumorResult> run_rumor_result(
     case e_rumor_type::unit_lost: {
       // Destroy unit before showing message so that the unit ac-
       // tually appears to disappear.
-      destroy_unit( ss, unit_id );
+      UnitOwnershipChanger( ss, unit_id ).destroy();
       co_await ts.gui.message_box(
           "Our colonist has vanished without a trace." );
       co_return LostCityRumorResult::unit_lost{};

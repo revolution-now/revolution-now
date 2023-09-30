@@ -16,9 +16,6 @@
 // Testing
 #include "test/fake/world.hpp"
 
-// Revolution Now
-#include "src/unit-mgr.hpp"
-
 // ss
 #include "src/ss/dwelling.rds.hpp"
 
@@ -106,51 +103,6 @@ TEST_CASE( "[units] braves_for_dwelling" ) {
 
   expected = {};
   REQUIRE( W.units().braves_for_dwelling( DwellingId{ 3 } ) ==
-           expected );
-}
-
-TEST_CASE( "[units] missionary_from_dwelling" ) {
-  World         W;
-  maybe<UnitId> expected;
-
-  Dwelling const& dwelling1 =
-      W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::apache );
-  Dwelling const& dwelling2 =
-      W.add_dwelling( { .x = 1, .y = 2 }, e_tribe::inca );
-
-  expected = nothing;
-  REQUIRE( W.units().missionary_from_dwelling( dwelling1.id ) ==
-           expected );
-  expected = nothing;
-  REQUIRE( W.units().missionary_from_dwelling( dwelling2.id ) ==
-           expected );
-
-  Unit const& unit = W.add_missionary_in_dwelling(
-      e_unit_type::missionary, dwelling1.id );
-  REQUIRE( as_const( W.units() ).ownership_of( unit.id() ) ==
-           UnitOwnership::dwelling{ .id = dwelling1.id } );
-  REQUIRE( W.units().maybe_dwelling_for_missionary(
-               unit.id() ) == dwelling1.id );
-
-  expected = unit.id();
-  REQUIRE( W.units().missionary_from_dwelling( dwelling1.id ) ==
-           expected );
-  expected = nothing;
-  REQUIRE( W.units().missionary_from_dwelling( dwelling2.id ) ==
-           expected );
-
-  unit_ownership_change_non_interactive(
-      W.ss(), unit.id(), EuroUnitOwnershipChangeTo::free{} );
-  REQUIRE( as_const( W.units() ).ownership_of( unit.id() ) ==
-           UnitOwnership::free{} );
-  REQUIRE( W.units().maybe_dwelling_for_missionary(
-               unit.id() ) == nothing );
-
-  expected = nothing;
-  REQUIRE( W.units().missionary_from_dwelling( dwelling1.id ) ==
-           expected );
-  expected = nothing;
-  REQUIRE( W.units().missionary_from_dwelling( dwelling2.id ) ==
            expected );
 }
 

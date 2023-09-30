@@ -25,6 +25,7 @@
 
 // ss
 #include "src/ss/colonies.hpp"
+#include "src/ss/ref.hpp"
 #include "src/ss/terrain.hpp"
 #include "src/ss/units.hpp"
 

@@ -50,6 +50,7 @@
 #include "ss/land-view.rds.hpp"
 #include "ss/natives.hpp"
 #include "ss/players.rds.hpp"
+#include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 
 // gfx

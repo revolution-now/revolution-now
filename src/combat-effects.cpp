@@ -12,7 +12,6 @@
 #include "combat-effects.hpp"
 
 // Rds.
-#include "colony-mgr.hpp"
 #include "combat-effects-impl.rds.hpp"
 
 // Revolution Now
@@ -26,6 +25,7 @@
 #include "tribe-mgr.hpp"
 #include "tribe.rds.hpp"
 #include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 
 // config
 #include "config/colony.rds.hpp"
@@ -835,18 +835,7 @@ void perform_euro_unit_combat_effects(
   SWITCH( outcome ) {
     CASE( no_change ) { break; }
     CASE( destroyed ) {
-      // This will be scouts, pioneers, missionaries, artillery,
-      // and colony workers (on colony destruction).
-      if( auto const& colony_owned =
-              as_const( ss.units )
-                  .ownership_of( unit.id() )
-                  .get_if<UnitOwnership::colony>();
-          colony_owned.has_value() ) {
-        auto& colony =
-            ss.colonies.colony_for( colony_owned->id );
-        remove_unit_from_colony( ss, colony, unit.id() );
-      }
-      destroy_unit( ss, unit.id() );
+      UnitOwnershipChanger( ss, unit.id() ).destroy();
       break;
     }
     CASE( captured ) {
@@ -906,10 +895,8 @@ void perform_naval_unit_combat_effects(
       // both ships have their outcomes performed, we will
       // re-place the ship on the square interactively in order
       // to run any interactive routines that are necessary.
-      unit_ownership_change_non_interactive(
-          ss, unit.id(),
-          EuroUnitOwnershipChangeTo::world{
-              .ts = &ts, .target = moved.to } );
+      UnitOwnershipChanger( ss, unit.id() )
+          .change_to_map_non_interactive( ts, moved.to );
       break;
     }
     CASE( damaged ) {
@@ -921,7 +908,7 @@ void perform_naval_unit_combat_effects(
       // this ship has been sunk, which means that the opponent
       // ship should not have been sunk and thus should exist.
       CHECK( ss.units.exists( opponent_id ) );
-      destroy_unit( ss, unit.id() );
+      UnitOwnershipChanger( ss, unit.id() ).destroy();
       break;
     }
   }

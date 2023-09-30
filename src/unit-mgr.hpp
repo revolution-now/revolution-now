@@ -13,21 +13,15 @@
 
 #include "core-config.hpp"
 
-// rds
-#include "unit-mgr.rds.hpp"
-
 // Revolution Now
 #include "error.hpp"
-#include "unit-deleted.hpp"
-#include "unit.hpp"
 #include "wait.hpp"
 
 // ss
 #include "ss/dwelling-id.hpp"
-#include "ss/native-enums.rds.hpp"
 #include "ss/native-unit.rds.hpp"
-#include "ss/ref.hpp"
 #include "ss/unit-id.hpp"
+#include "ss/unit.hpp"
 
 // gfx
 #include "gfx/coord.hpp"
@@ -44,9 +38,14 @@ namespace rn {
 struct ColoniesState;
 struct Player;
 struct SS;
+struct SSConst;
 struct TS;
 struct Tribe;
 struct UnitsState;
+struct UnitComposition;
+
+enum class e_native_unit_type;
+enum class e_tribe;
 
 /****************************************************************
 ** Units
@@ -118,34 +117,32 @@ std::vector<UnitId> offboard_units_on_ships( SS& ss, TS& ts,
 *****************************************************************/
 // Creates a unit that is registered (with a valid ID) but with
 // no ownership.
-UnitId       create_free_unit( UnitsState&     units_state,
-                               Player const&   player,
-                               UnitComposition comp );
+UnitId       create_free_unit( UnitsState&            units_state,
+                               Player const&          player,
+                               UnitComposition const& comp );
 NativeUnitId create_free_unit( SS& ss, e_native_unit_type type );
 
 // Create unit that is not registered in the unit database, and
 // thus has no ID and no ownership. The unit will always have
 // id=0, since a unit does not get assigned an ID until it is
 // added into the units database.
-Unit       create_unregistered_unit( Player const&   player,
-                                     UnitComposition comp );
+Unit       create_unregistered_unit( Player const&          player,
+                                     UnitComposition const& comp );
 NativeUnit create_unregistered_unit( e_native_unit_type type );
 
 // This has to return a maybe because the unit could theoreti-
 // cally by placed on an LCR square, and, since this is the
 // coroutine version, the LCR will be explored and one of the
 // outcomes is that the unit could be lost.
-wait<maybe<UnitId>> create_unit_on_map( SS& ss, TS& ts,
-                                        Player&         player,
-                                        UnitComposition comp,
-                                        Coord           coord );
+wait<maybe<UnitId>> create_unit_on_map(
+    SS& ss, TS& ts, Player& player, UnitComposition const& comp,
+    Coord coord );
 
 // Note: when calling from a coroutine, call the coroutine ver-
 // sion above since it will run through any UI actions.
-UnitId create_unit_on_map_non_interactive( SS& ss, TS& ts,
-                                           Player const& player,
-                                           UnitComposition comp,
-                                           Coord coord );
+UnitId create_unit_on_map_non_interactive(
+    SS& ss, TS& ts, Player const& player,
+    UnitComposition const& comp, Coord coord );
 
 NativeUnitId create_unit_on_map_non_interactive(
     SS& ss, e_native_unit_type type, Coord coord,
@@ -155,7 +152,7 @@ NativeUnitId create_unit_on_map_non_interactive(
 ** Type/Nation Change.
 *****************************************************************/
 void change_unit_type( SS& ss, TS& ts, Unit& unit,
-                       UnitComposition new_comp );
+                       UnitComposition const& new_comp );
 
 void change_unit_nation( SS& ss, TS& ts, Unit& unit,
                          e_nation new_nation );
@@ -193,21 +190,5 @@ maybe<Coord> coord_for_unit_multi_ownership( SSConst const& ss,
                                              GenericUnitId  id );
 Coord coord_for_unit_multi_ownership_or_die( SSConst const& ss,
                                              GenericUnitId  id );
-
-/****************************************************************
-** Unit Ownership changes.
-*****************************************************************/
-// All normal game code should use these methods whenever a
-// unit's ownership is changed. The interactive version should be
-// used where possible.
-wait<maybe<UnitDeleted>> unit_ownership_change(
-    SS& ss, UnitId id,
-    EuroUnitOwnershipChangeTo const& change_to );
-
-void unit_ownership_change_non_interactive(
-    SS& ss, UnitId id,
-    EuroUnitOwnershipChangeTo const& change_to );
-
-void destroy_unit( SS& ss, GenericUnitId id );
 
 } // namespace rn

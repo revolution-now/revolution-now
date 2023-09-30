@@ -25,6 +25,7 @@
 #include "src/mock/matchers.hpp"
 #include "src/plane-stack.hpp"
 #include "src/unit-mgr.hpp"
+#include "src/unit-ownership.hpp"
 #include "src/visibility.hpp"
 
 // ss
@@ -245,10 +246,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   unit_type           = e_unit_type::missionary;
   // This unit doesn't exist but that should be ok for the pur-
   // poses of this test.
-  unit_ownership_change_non_interactive(
-      W.ss(), missionary.id(),
-      EuroUnitOwnershipChangeTo::dwelling{ .dwelling_id =
-                                               dwelling.id } );
+  UnitOwnershipChanger( W.ss(), missionary.id() )
+      .change_to_dwelling( dwelling.id );
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
@@ -260,9 +259,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   // Missionary, with contact, no war, no mission.
   relationship.at_war = false;
   unit_type           = e_unit_type::missionary;
-  unit_ownership_change_non_interactive(
-      W.ss(), missionary.id(),
-      EuroUnitOwnershipChangeTo::free{} );
+  UnitOwnershipChanger( W.ss(), missionary.id() )
+      .change_to_free();
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
@@ -275,13 +273,10 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   // Missionary, with contact, no war, foreign mission.
   relationship.at_war = false;
   unit_type           = e_unit_type::missionary;
-  unit_ownership_change_non_interactive(
-      W.ss(), missionary.id(),
-      EuroUnitOwnershipChangeTo::free{} );
-  unit_ownership_change_non_interactive(
-      W.ss(), foreign_missionary.id(),
-      EuroUnitOwnershipChangeTo::dwelling{ .dwelling_id =
-                                               dwelling.id } );
+  UnitOwnershipChanger( W.ss(), missionary.id() )
+      .change_to_free();
+  UnitOwnershipChanger( W.ss(), foreign_missionary.id() )
+      .change_to_dwelling( dwelling.id );
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
@@ -290,16 +285,14 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
       e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
-  unit_ownership_change_non_interactive(
-      W.ss(), foreign_missionary.id(),
-      EuroUnitOwnershipChangeTo::free{} );
+  UnitOwnershipChanger( W.ss(), foreign_missionary.id() )
+      .change_to_free();
 
   // Missionary, with contact, with war, no mission.
   relationship.at_war = true;
   unit_type           = e_unit_type::missionary;
-  unit_ownership_change_non_interactive(
-      W.ss(), missionary.id(),
-      EuroUnitOwnershipChangeTo::free{} );
+  UnitOwnershipChanger( W.ss(), missionary.id() )
+      .change_to_free();
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.options = {

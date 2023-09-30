@@ -51,31 +51,6 @@ sumtype.PortStatus {
   _features { equality, validation }
 }
 
-struct.UnitHarborViewState {
-  port_status 'PortStatus',
-
-  # This field only has a value if the unit is a ship and the
-  # ship arrived in europe by sailing the high seas in the new
-  # world. In that case it specifies the square from which the
-  # unit sailed the high seas. This is so that, when the ship
-  # eventually returns to the new world, it can be placed where
-  # it left. Note that this square is not the destination square
-  # of the last move order but the source square, since the des-
-  # tination square might not exist if the unit moved off the
-  # edge of the map.
-  #
-  # On the other hand if the ship ended up in europe without
-  # having sailed there (possibly because it was purchased there
-  # or it was damaged and was transported there) then this will
-  # not have a value. In those cases, the game will place the
-  # ship on the last sea lane square sailed by the player, re-
-  # gardless of which side of the map it is on. If, in turn, that
-  # value is not present (i.e. at the very start of the game)
-  # then it will use the player's starting position as a final
-  # fallback.
-  sailed_from 'maybe<Coord>',
-}
-
 sumtype.UnitOwnership {
   free {},
   world {
@@ -85,7 +60,28 @@ sumtype.UnitOwnership {
     holder 'UnitId',
   },
   harbor {
-    st 'UnitHarborViewState',
+    port_status 'PortStatus',
+
+    # This field only has a value if the unit is a ship and the
+    # ship arrived in europe by sailing the high seas in the new
+    # world. In that case it specifies the square from which the
+    # unit sailed the high seas. This is so that, when the ship
+    # eventually returns to the new world, it can be placed where
+    # it left. Note that this square is not the destination
+    # square of the last move order but the source square, since
+    # the destination square might not exist if the unit moved
+    # off the edge of the map.
+    #
+    # On the other hand if the ship ended up in europe without
+    # having sailed there (possibly because it was purchased
+    # there or it was damaged and was transported there) then
+    # this will not have a value. In those cases, the game will
+    # place the ship on the last sea lane square sailed by the
+    # player, regardless of which side of the map it is on. If,
+    # in turn, that value is not present (i.e. at the very start
+    # of the game) then it will use the player's starting posi-
+    # tion as a final fallback.
+    sailed_from 'maybe<Coord>',
   },
   colony {
     id 'ColonyId',

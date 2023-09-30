@@ -38,10 +38,10 @@ constexpr GenericUnitId kFirstUnitId{ 1 };
 
 // FIXME: we should have a generic way to do this.
 valid_or<generic_err> check_harbor_state_invariants(
-    UnitHarborViewState const& info ) {
+    PortStatus const& port_status ) {
   valid_or<string> res =
       base::visit( []( auto const& o ) { return o.validate(); },
-                   info.port_status.as_base() );
+                   port_status.as_base() );
   if( !res ) return GENERIC_ERROR( "{}", res.error() );
   return base::valid;
 }
@@ -475,35 +475,17 @@ maybe<DwellingId> UnitsState::maybe_dwelling_for_missionary(
   };
 }
 
-maybe<UnitHarborViewState&>
+maybe<UnitOwnership::harbor&>
 UnitsState::maybe_harbor_view_state_of( UnitId id ) {
-  switch( auto& o = ownership_of( id ); o.to_enum() ) {
-    case UnitOwnership::e::harbor:
-      return o.get<UnitOwnership::harbor>().st;
-    case UnitOwnership::e::world:
-    case UnitOwnership::e::free:
-    case UnitOwnership::e::cargo:
-    case UnitOwnership::e::colony:
-    case UnitOwnership::e::dwelling: //
-      return nothing;
-  };
+  return ownership_of( id ).get_if<UnitOwnership::harbor>();
 }
 
-maybe<UnitHarborViewState const&>
+maybe<UnitOwnership::harbor const&>
 UnitsState::maybe_harbor_view_state_of( UnitId id ) const {
-  switch( auto& o = ownership_of( id ); o.to_enum() ) {
-    case UnitOwnership::e::harbor:
-      return o.get<UnitOwnership::harbor>().st;
-    case UnitOwnership::e::world:
-    case UnitOwnership::e::free:
-    case UnitOwnership::e::cargo:
-    case UnitOwnership::e::colony:
-    case UnitOwnership::e::dwelling: //
-      return nothing;
-  };
+  return ownership_of( id ).get_if<UnitOwnership::harbor>();
 }
 
-UnitHarborViewState& UnitsState::harbor_view_state_of(
+UnitOwnership::harbor& UnitsState::harbor_view_state_of(
     UnitId id ) {
   UNWRAP_CHECK_MSG( st, maybe_harbor_view_state_of( id ),
                     "unit is not in the old world state." );
@@ -602,23 +584,6 @@ void UnitsState::change_to_map( NativeUnitId id, Coord target,
   braves_for_dwelling_[dwelling_id].insert( id );
 }
 
-void UnitsState::change_to_cargo_somewhere( UnitId new_holder,
-                                            UnitId held,
-                                            int starting_slot ) {
-  auto& cargo = unit_for( new_holder ).cargo();
-  for( int i = starting_slot;
-       i < starting_slot + cargo.slots_total(); ++i ) {
-    int modded = i % cargo.slots_total();
-    if( cargo.fits( *this, Cargo::unit{ held }, modded ) ) {
-      change_to_cargo( new_holder, held, modded );
-      return;
-    }
-  }
-  FATAL( "{} cannot be placed in {}'s cargo: {}",
-         debug_string( unit_for( held ) ),
-         debug_string( unit_for( new_holder ) ), cargo );
-}
-
 void UnitsState::change_to_cargo( UnitId new_holder, UnitId held,
                                   int slot ) {
   // Make sure that we're not adding the unit to its own cargo.
@@ -650,12 +615,15 @@ void UnitsState::change_to_cargo( UnitId new_holder, UnitId held,
 }
 
 void UnitsState::change_to_harbor_view(
-    UnitId id, UnitHarborViewState info ) {
-  CHECK_HAS_VALUE( check_harbor_state_invariants( info ) );
+    UnitId id, PortStatus const& port_status,
+    maybe<Coord> sailed_from ) {
+  CHECK_HAS_VALUE(
+      check_harbor_state_invariants( port_status ) );
   UnitOwnership& ownership = ownership_of( id );
   if( !ownership.holds<UnitOwnership::harbor>() )
     disown_unit( id );
-  ownership = UnitOwnership::harbor{ /*st=*/info };
+  ownership = UnitOwnership::harbor{
+      .port_status = port_status, .sailed_from = sailed_from };
 }
 
 void UnitsState::change_to_dwelling( UnitId     unit_id,
@@ -734,24 +702,7 @@ void UnitsState::destroy_unit( UnitId unit_id ) {
   CHECK( o_.units.contains( id ) );
   CHECK( euro_units_.contains( unit_id ) );
   CHECK( !deleted_.contains( id ) );
-  auto& unit = unit_for( unit_id );
-  // Recursively destroy any units in the cargo. We must get the
-  // list of units to destroy first because we don't want to
-  // destroy a cargo unit while iterating over the cargo.
-  vector<UnitId> cargo_units_to_destroy;
-  for( auto const& cargo_unit :
-       unit.cargo().items_of_type<Cargo::unit>() ) {
-    lg.debug(
-        "{} being destroyed as a consequence of {} being "
-        "destroyed",
-        debug_string( unit_for( cargo_unit.id ) ),
-        debug_string( unit_for( unit_id ) ) );
-    cargo_units_to_destroy.push_back( cargo_unit.id );
-  }
-  for( UnitId to_destroy : cargo_units_to_destroy )
-    destroy_unit( to_destroy );
   disown_unit( unit_id );
-
   o_.units.erase( id );
   euro_units_.erase( unit_id );
   deleted_.insert( id );

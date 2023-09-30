@@ -42,6 +42,7 @@ struct World : testing::World {
   World() : Base() {
     add_player( e_nation::dutch );
     add_player( e_nation::spanish );
+    add_player( e_nation::french );
     set_default_player( e_nation::dutch );
     create_default_map();
   }

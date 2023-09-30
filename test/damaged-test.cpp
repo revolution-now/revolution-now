@@ -514,10 +514,8 @@ TEST_CASE( "[damaged] move_damaged_ship_for_repair" ) {
     REQUIRE(
         as_const( W.units() ).ownership_of( privateer.id() ) ==
         UnitOwnership::harbor{
-            .st = UnitHarborViewState{
-                .port_status = PortStatus::in_port{},
-                .sailed_from = nothing,
-            } } );
+            .port_status = PortStatus::in_port{},
+            .sailed_from = nothing } );
     REQUIRE(
         as_const( W.units() ).ownership_of( galleon.id() ) ==
         UnitOwnership::world{ .coord = { .x = 0, .y = 0 } } );
@@ -543,17 +541,13 @@ TEST_CASE( "[damaged] move_damaged_ship_for_repair" ) {
     REQUIRE(
         as_const( W.units() ).ownership_of( privateer.id() ) ==
         UnitOwnership::harbor{
-            .st = UnitHarborViewState{
-                .port_status = PortStatus::in_port{},
-                .sailed_from = nothing,
-            } } );
+            .port_status = PortStatus::in_port{},
+            .sailed_from = nothing } );
     REQUIRE(
         as_const( W.units() ).ownership_of( galleon.id() ) ==
         UnitOwnership::harbor{
-            .st = UnitHarborViewState{
-                .port_status = PortStatus::in_port{},
-                .sailed_from = nothing,
-            } } );
+            .port_status = PortStatus::in_port{},
+            .sailed_from = nothing } );
     REQUIRE(
         as_const( W.units() ).ownership_of( caravel.id() ) ==
         UnitOwnership::world{ .coord = { .x = 0, .y = 0 } } );
@@ -577,24 +571,18 @@ TEST_CASE( "[damaged] move_damaged_ship_for_repair" ) {
     REQUIRE(
         as_const( W.units() ).ownership_of( privateer.id() ) ==
         UnitOwnership::harbor{
-            .st = UnitHarborViewState{
-                .port_status = PortStatus::in_port{},
-                .sailed_from = nothing,
-            } } );
+            .port_status = PortStatus::in_port{},
+            .sailed_from = nothing } );
     REQUIRE(
         as_const( W.units() ).ownership_of( galleon.id() ) ==
         UnitOwnership::harbor{
-            .st = UnitHarborViewState{
-                .port_status = PortStatus::in_port{},
-                .sailed_from = nothing,
-            } } );
+            .port_status = PortStatus::in_port{},
+            .sailed_from = nothing } );
     REQUIRE(
         as_const( W.units() ).ownership_of( caravel.id() ) ==
         UnitOwnership::harbor{
-            .st = UnitHarborViewState{
-                .port_status = PortStatus::in_port{},
-                .sailed_from = nothing,
-            } } );
+            .port_status = PortStatus::in_port{},
+            .sailed_from = nothing } );
   }
 
   SECTION( "to colony" ) {

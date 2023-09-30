@@ -28,7 +28,7 @@
 #include "rand-enum.hpp"
 #include "ts.hpp"
 #include "unit-classes.hpp"
-#include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 #include "visibility.hpp"
 #include "woodcut.hpp"
 
@@ -703,7 +703,7 @@ wait<> do_speak_with_chief(
       AnimationSequence const seq =
           anim_seq_for_unit_depixelation( unit.id() );
       co_await ts.planes.land_view().animate( seq );
-      destroy_unit( ss, unit.id() );
+      UnitOwnershipChanger( ss, unit.id() ).destroy();
       co_return;
     }
   }
@@ -728,12 +728,8 @@ EstablishMissionResult compute_establish_mission(
 wait<> do_establish_mission(
     SS& ss, TS& ts, Player const& player, Dwelling& dwelling,
     Unit& unit, EstablishMissionResult const& outcome ) {
-  maybe<UnitDeleted> const deleted =
-      co_await unit_ownership_change(
-          ss, unit.id(),
-          EuroUnitOwnershipChangeTo::dwelling{
-              .dwelling_id = dwelling.id } );
-  CHECK( !deleted.has_value() );
+  UnitOwnershipChanger( ss, unit.id() )
+      .change_to_dwelling( dwelling.id );
 
   // TODO: need to create a mockable interface for playing sound
   // effects and changing music. Once that happens, we can play

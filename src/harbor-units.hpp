@@ -27,12 +27,10 @@
 
 namespace rn {
 
-struct EuroUnitOwnershipChangeTo;
 struct Player;
 struct SS;
 struct SSConst;
 struct TS;
-struct TerrainState;
 struct UnitsState;
 
 /****************************************************************
@@ -59,48 +57,29 @@ std::vector<UnitId> harbor_units_outbound(
 /****************************************************************
 ** Harbor ownership changes.
 *****************************************************************/
-// The methods in this class are private because they are not
-// supposed to be called by normal game code. Instead, the
-// top-level unit_ownership_change* family of methods should be
-// used.
-class UnitHarborMover {
-  // This is called on a ship that is in the harbor to make it
-  // sail to the new world. This just puts it into inbound state
-  // with the appropriate percentage given its current state; it
-  // will not ever move the unit to the map.
-  static void unit_sail_to_new_world(
-      TerrainState const& terrain_state, UnitsState& units_state,
-      Player const& player, UnitId id );
+// This is called on a ship that is in the harbor to make it sail
+// to the new world. This just puts it into inbound state with
+// the appropriate percentage given its current state; it will
+// not ever move the unit to the map.
+void unit_sail_to_new_world( SS& ss, UnitId id );
 
-  // This is the method that should always be called to set a
-  // ship sailing the high seas, or at least moving toward the
-  // harbor if it is already either on the high seas (in either
-  // direction) or in port. If it is a unit owned by the map then
-  // it record its position so that it can return to that posi-
-  // tion when it emerges back in the new world eventually.
-  static void unit_sail_to_harbor(
-      TerrainState const& terrain_state, UnitsState& units_state,
-      Player& player, UnitId id );
+// This is the method that should always be called to set a ship
+// sailing the high seas, or at least moving toward the harbor if
+// it is already either on the high seas (in either direction) or
+// in port. If it is a unit owned by the map then it record its
+// position so that it can return to that position when it
+// emerges back in the new world eventually.
+void unit_sail_to_harbor( SS& ss, UnitId id );
 
-  // Takes a unit and just moves it to port (that means the dock
-  // if it is a non-ship) by just overwriting whatever state it
-  // currently has (though note that it will preserve the
-  // `sailed_from`). This can be used in the following circum-
-  // stances: 1. a unit that is already inbound which as arrived
-  // and needs to be moved to port, 2. a ship that is damaged and
-  // needs to be immediately relocated to port, 3. a unit that is
-  // purchased in europe. Also useful for creating testing se-
-  // tups.
-  static void unit_move_to_port( UnitsState& units_state,
-                                 Player& player, UnitId id );
-
-  // Friends.
-  friend void unit_ownership_change_non_interactive(
-      SS& ss, UnitId unit_id,
-      EuroUnitOwnershipChangeTo const& info );
-
-  friend struct TestingOnlyUnitHarborMover;
-};
+// Takes a unit and just moves it to port (that means the dock if
+// it is a non-ship) by just overwriting whatever state it cur-
+// rently has (though note that it will preserve the
+// `sailed_from`). This can be used in the following circum-
+// stances: 1. a unit that is already inbound which as arrived
+// and needs to be moved to port, 2. a ship that is damaged and
+// needs to be immediately relocated to port, 3. a unit that is
+// purchased in europe. Also useful for creating testing setups.
+void unit_move_to_port( SS& ss, UnitId id );
 
 // Takes a unit on the high seas and increases the turn count of
 // its journey. If the turn count reaches the maximum as a result

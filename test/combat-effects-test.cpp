@@ -23,10 +23,12 @@
 #include "src/icombat.rds.hpp"
 #include "src/imap-updater.hpp"
 #include "src/unit-mgr.hpp"
+#include "src/unit-ownership.hpp"
 
 // ss
 #include "src/ss/dwelling.rds.hpp"
 #include "src/ss/player.rds.hpp"
+#include "src/ss/ref.hpp"
 #include "src/ss/tribe.rds.hpp"
 #include "src/ss/units.hpp"
 
@@ -2545,9 +2547,8 @@ TEST_CASE(
     REQUIRE( unit.nation() == e_nation::dutch );
     REQUIRE( as_const( W.units() ).ownership_of( unit_id ) ==
              UnitOwnership::harbor{
-                 .st = UnitHarborViewState{
-                     .port_status = PortStatus::in_port{},
-                     .sailed_from = nothing } } );
+                 .port_status = PortStatus::in_port{},
+                 .sailed_from = nothing } );
     REQUIRE( unit.movement_points() == 8 );
     REQUIRE( unit.orders() ==
              unit_orders::damaged{ .turns_until_repair = 8 } );

@@ -53,12 +53,7 @@ struct UnitOnMapMover {
       SS& ss, TS& ts, UnitId unit_id, Coord tile );
 
   // Friends.
-  friend wait<maybe<UnitDeleted>> unit_ownership_change(
-      SS& ss, UnitId id, EuroUnitOwnershipChangeTo const& info );
-
-  friend void unit_ownership_change_non_interactive(
-      SS& ss, UnitId id, EuroUnitOwnershipChangeTo const& info );
-
+  friend struct UnitOwnershipChanger;
   friend struct TestingOnlyUnitOnMapMover;
 };
 

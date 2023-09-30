@@ -14,7 +14,7 @@
 #include "igui.hpp"
 #include "road.hpp"
 #include "ts.hpp"
-#include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 #include "wait.hpp"
 
 // config
@@ -53,7 +53,7 @@ void delete_dwelling_ignoring_owned_land(
   if( maybe<UnitId> const missionary =
           ss.units.missionary_from_dwelling( dwelling_id );
       missionary.has_value() )
-    destroy_unit( ss, *missionary );
+    UnitOwnershipChanger( ss, *missionary ).destroy();
 
   // 3. Remove road under dwelling. There may not be any good
   // reason that we need to do this, but that's what the OG does.

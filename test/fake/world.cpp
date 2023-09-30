@@ -33,6 +33,7 @@
 #include "src/road.hpp"
 #include "src/ts.hpp"
 #include "src/unit-mgr.hpp"
+#include "src/unit-ownership.hpp"
 
 // config
 #include "config/colony.rds.hpp"
@@ -43,6 +44,7 @@
 
 // ss
 #include "src/ss/players.hpp"
+#include "src/ss/ref.hpp"
 #include "src/ss/root.hpp"
 
 // luapp
@@ -337,10 +339,8 @@ Unit& World::add_missionary_in_dwelling(
   if( !nation ) nation = default_nation_;
   UnitId const unit_id = create_free_unit(
       units(), player( *nation ), missionary_type );
-  unit_ownership_change_non_interactive(
-      ss(), unit_id,
-      EuroUnitOwnershipChangeTo::dwelling{ .dwelling_id =
-                                               dwelling_id } );
+  UnitOwnershipChanger( ss(), unit_id )
+      .change_to_dwelling( dwelling_id );
   return units().unit_for( unit_id );
 }
 
@@ -349,10 +349,8 @@ Unit& World::add_unit_in_cargo( e_unit_type type,
   e_nation const nation = units().unit_for( holder ).nation();
   UnitId         held =
       create_free_unit( units(), player( nation ), type );
-  unit_ownership_change_non_interactive(
-      ss(), held,
-      EuroUnitOwnershipChangeTo::cargo{ .new_holder    = holder,
-                                        .starting_slot = 0 } );
+  UnitOwnershipChanger( ss(), held )
+      .change_to_cargo( holder, /*starting_slot=*/0 );
   return units().unit_for( held );
 }
 
@@ -371,11 +369,12 @@ NativeUnit& World::add_free_unit( e_native_unit_type type ) {
 Unit& World::add_unit_indoors( ColonyId     colony_id,
                                e_indoor_job indoor_job,
                                e_unit_type  type ) {
-  Colony& colony = colonies().colony_for( colony_id );
-  Coord   loc    = colonies().coord_for( colony_id );
-  Unit&   unit   = add_unit_on_map( type, loc, colony.nation );
-  ColonyJob::indoor job{ .job = indoor_job };
-  move_unit_to_colony( ss(), ts(), colony, unit.id(), job );
+  Colony&     colony = colonies().colony_for( colony_id );
+  Coord const loc    = colonies().coord_for( colony_id );
+  Unit&       unit = add_unit_on_map( type, loc, colony.nation );
+  ColonyJob::indoor const job{ .job = indoor_job };
+  UnitOwnershipChanger( ss(), unit.id() )
+      .change_to_colony( ts(), colony, job );
   return unit;
 }
 
@@ -387,9 +386,9 @@ Unit& World::add_expert_unit_indoors( ColonyId     colony_id,
 }
 
 void World::ship_to_outbound( UnitId id ) {
-  CHECK( units().unit_for( id ).desc().ship );
-  unit_ownership_change_non_interactive(
-      ss(), id, EuroUnitOwnershipChangeTo::sail_to_new_world{} );
+  Unit const& unit = units().unit_for( id );
+  CHECK( unit.desc().ship );
+  unit_sail_to_new_world( ss(), id );
 }
 
 Unit& World::add_unit_outdoors( ColonyId      colony_id,
@@ -400,7 +399,8 @@ Unit& World::add_unit_outdoors( ColonyId      colony_id,
   Coord   loc    = colonies().coord_for( colony_id );
   Unit&   unit   = add_unit_on_map( type, loc, colony.nation );
   ColonyJob::outdoor job{ .direction = d, .job = outdoor_job };
-  move_unit_to_colony( ss(), ts(), colony, unit.id(), job );
+  UnitOwnershipChanger( ss(), unit.id() )
+      .change_to_colony( ts(), colony, job );
   return unit;
 }
 

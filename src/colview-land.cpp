@@ -22,6 +22,7 @@
 #include "text.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
+#include "unit-ownership.hpp"
 #include "visibility.hpp"
 
 // config
@@ -283,7 +284,8 @@ wait<> ColonyLandView::drop( ColViewObject const& o,
     job = ColonyJob::outdoor{ .direction = d,
                               .job       = dragging_->job };
   }
-  move_unit_to_colony( ss_, ts_, colony, unit_id, job );
+  UnitOwnershipChanger( ss_, unit_id )
+      .change_to_colony( ts_, colony, job );
   CHECK_HAS_VALUE( colony.validate() );
   co_return;
 }
@@ -310,8 +312,7 @@ void ColonyLandView::cancel_drag() { dragging_ = nothing; }
 wait<> ColonyLandView::disown_dragged_object() {
   UNWRAP_CHECK( draggable, dragging_ );
   UNWRAP_CHECK( unit_id, unit_for_direction( draggable.d ) );
-  Colony& colony = ss_.colonies.colony_for( colony_.id );
-  remove_unit_from_colony( ss_, colony, unit_id );
+  UnitOwnershipChanger( ss_, unit_id ).change_to_free();
   co_return;
 }
 

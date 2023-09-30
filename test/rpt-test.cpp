@@ -293,8 +293,7 @@ TEST_CASE( "[rpt] click_recruit" ) {
   REQUIRE( units.unit_for( UnitId{ 1 } ).nation() ==
            player.nation );
   UnitOwnership const expected_ownership{ UnitOwnership::harbor{
-      .st = UnitHarborViewState{ .port_status =
-                                     PortStatus::in_port{} } } };
+      .port_status = PortStatus::in_port{} } };
   REQUIRE( units.ownership_of( UnitId{ 1 } ) ==
            expected_ownership );
 

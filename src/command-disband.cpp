@@ -13,7 +13,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "ts.hpp"
-#include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"
@@ -47,7 +47,7 @@ struct DisbandHandler : public CommandHandler {
   }
 
   wait<> perform() override {
-    destroy_unit( ss_, unit_id_ );
+    UnitOwnershipChanger( ss_, unit_id_ ).destroy();
     co_return;
   }
 

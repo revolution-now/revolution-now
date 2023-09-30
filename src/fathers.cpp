@@ -22,6 +22,7 @@
 #include "logger.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 
 // config
 #include "config/fathers.rds.hpp"
@@ -254,10 +255,8 @@ void hernando_de_soto( SS& ss, TS& ts, Player& player ) {
           ss.units.maybe_euro_unit_for( generic_id );
       if( !unit.has_value() ) break;
       if( unit->nation() != player.nation ) break;
-      unit_ownership_change_non_interactive(
-          ss, unit->id(),
-          EuroUnitOwnershipChangeTo::world{ .ts     = &ts,
-                                            .target = coord } );
+      UnitOwnershipChanger( ss, unit->id() )
+          .reinstate_on_map_if_on_map( ts );
     }
   }
 }

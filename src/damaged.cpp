@@ -12,7 +12,8 @@
 
 // Revolution Now
 #include "colony-buildings.hpp"
-#include "unit-mgr.hpp"
+#include "harbor-units.hpp"
+#include "unit-ownership.hpp"
 
 // config
 #include "config/nation.hpp"
@@ -157,7 +158,7 @@ void move_damaged_ship_for_repair( SS& ss, TS& ts, Unit& ship,
   // square and reassigned to the other nation.
   vector<UnitId> const units_in_cargo = ship.cargo().units();
   for( UnitId const held_id : units_in_cargo )
-    destroy_unit( ss, held_id );
+    UnitOwnershipChanger( ss, held_id ).destroy();
   // In the OG any commodities that remain in the ship after an
   // attacking ship has seized some will be destroyed, although
   // the user is not notified of this.
@@ -169,18 +170,13 @@ void move_damaged_ship_for_repair( SS& ss, TS& ts, Unit& ship,
       // colony on the square, and the ship is damaged, so it
       // shouldn't really trigger anything interactive when we
       // move it into the colony.
-      unit_ownership_change_non_interactive(
-          ss, ship.id(),
-          EuroUnitOwnershipChangeTo::world{
-              .ts     = &ts,
-              .target = ss.colonies.colony_for( colony.id )
-                            .location } );
+      UnitOwnershipChanger( ss, ship.id() )
+          .change_to_map_non_interactive(
+              ts, ss.colonies.colony_for( colony.id ).location );
       break;
     }
     CASE( european_harbor ) {
-      unit_ownership_change_non_interactive(
-          ss, ship.id(),
-          EuroUnitOwnershipChangeTo::move_to_port{} );
+      unit_move_to_port( ss, ship.id() );
       break;
     }
   }

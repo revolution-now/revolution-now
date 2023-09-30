@@ -768,12 +768,10 @@ TEST_CASE( "[raid] raid_colony" ) {
                  .holds<unit_orders::damaged>() );
     REQUIRE( as_const( W.units() ).ownership_of( caravel_id ) ==
              UnitOwnership::harbor{
-                 .st = UnitHarborViewState{
-                     .port_status = PortStatus::in_port{} } } );
+                 .port_status = PortStatus::in_port{} } );
     REQUIRE( as_const( W.units() ).ownership_of( frigate_id ) ==
              UnitOwnership::harbor{
-                 .st = UnitHarborViewState{
-                     .port_status = PortStatus::in_port{} } } );
+                 .port_status = PortStatus::in_port{} } );
   }
 }
 

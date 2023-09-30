@@ -34,6 +34,7 @@
 #include "teaching.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 
 // config
 #include "config/colony.rds.hpp"
@@ -50,6 +51,9 @@
 
 // gfx
 #include "gfx/iter.hpp"
+
+// rds
+#include "rds/switch-macro.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -615,7 +619,8 @@ ColonyId found_colony( SS& ss, TS& ts, Player const& player,
       find_job_for_initial_colonist( ss, player, col );
 
   // Move unit into it.
-  move_unit_to_colony( ss, ts, col, founder, job );
+  UnitOwnershipChanger const ownership_changer( ss, founder );
+  ownership_changer.change_to_colony( ts, col, job );
 
   // Add road onto colony square.
   set_road( ts.map_updater, where );
@@ -662,49 +667,43 @@ void strip_unit_to_base_type( SS& ss, TS& ts, Unit& unit,
   }
 }
 
-void move_unit_to_colony( SS& ss, TS& ts, Colony& colony,
-                          UnitId           unit_id,
-                          ColonyJob const& job ) {
-  Unit& unit = ss.units.unit_for( unit_id );
+void add_unit_to_colony_obj_low_level( SS& ss, TS& ts,
+                                       Colony&          colony,
+                                       Unit&            unit,
+                                       ColonyJob const& job ) {
   CHECK( unit.nation() == colony.nation );
+  UnitId const unit_id = unit.id();
   strip_unit_to_base_type( ss, ts, unit, colony );
-  unit_ownership_change_non_interactive(
-      ss, unit_id,
-      EuroUnitOwnershipChangeTo::colony_low_level{
-          .colony_id = colony.id } );
-  // Now add the unit to the colony.
+  // Now add the unit to the colony object.
   SCOPE_EXIT { CHECK( colony.validate() ); };
   CHECK( !colony_has_unit( colony, unit_id ),
          "Unit {} already in colony.", unit_id );
-  switch( job.to_enum() ) {
-    case ColonyJob::e::indoor: {
-      auto const& o = job.get<ColonyJob::indoor>();
-      colony.indoor_jobs[o.job].push_back( unit_id );
+  SWITCH( job ) {
+    CASE( indoor ) {
+      colony.indoor_jobs[indoor.job].push_back( unit_id );
       sync_colony_teachers( colony );
       break;
     }
-    case ColonyJob::e::outdoor: {
-      auto const&         o = job.get<ColonyJob::outdoor>();
+    CASE( outdoor ) {
       maybe<OutdoorUnit>& outdoor_unit =
-          colony.outdoor_jobs[o.direction];
+          colony.outdoor_jobs[outdoor.direction];
       CHECK( !outdoor_unit.has_value() );
       outdoor_unit =
-          OutdoorUnit{ .unit_id = unit_id, .job = o.job };
+          OutdoorUnit{ .unit_id = unit_id, .job = outdoor.job };
       break;
     }
   }
 }
 
-void remove_unit_from_colony( SS& ss, Colony& colony,
-                              UnitId unit_id ) {
+void remove_unit_from_colony_obj_low_level( SS&     ss,
+                                            Colony& colony,
+                                            UnitId  unit_id ) {
   CHECK( ss.units.unit_for( unit_id ).nation() ==
          colony.nation );
   CHECK( as_const( ss.units )
              .ownership_of( unit_id )
              .holds<UnitOwnership::colony>(),
          "Unit {} is not working in a colony.", unit_id );
-  unit_ownership_change_non_interactive(
-      ss, unit_id, EuroUnitOwnershipChangeTo::free{} );
   // Now remove the unit from the colony.
   SCOPE_EXIT { CHECK( colony.validate() ); };
 
@@ -748,10 +747,8 @@ ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
   // These are the units working in the colony, not those at the
   // gate or in cargo.
   vector<UnitId> units = colony_units_all( colony );
-  for( UnitId unit_id : units ) {
-    remove_unit_from_colony( ss, colony, unit_id );
-    destroy_unit( ss, unit_id );
-  }
+  for( UnitId unit_id : units )
+    UnitOwnershipChanger( ss, unit_id ).destroy();
   CHECK( colony_population( colony ) == 0 );
   // Remove any units from the cargo of ships, since those ships
   // will be damaged or sunk, and we want to replicate the be-
@@ -803,7 +800,7 @@ ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
       move_damaged_ship_for_repair( ss, ts, ship,
                                     *outcome.port );
     else
-      destroy_unit( ss, ship.id() );
+      UnitOwnershipChanger( ss, ship.id() ).destroy();
   }
 
   ss.colonies.destroy_colony( colony.id );

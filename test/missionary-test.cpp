@@ -18,7 +18,7 @@
 #include "test/mocks/irand.hpp"
 
 // Revolution Now
-#include "src/unit-mgr.hpp"
+#include "src/unit-ownership.hpp"
 
 // ss
 #include "src/ss/dwelling.rds.hpp"
@@ -420,8 +420,8 @@ TEST_CASE( "[missionary] player_missionaries_in_tribe" ) {
   REQUIRE( f( e_nation::french, e_tribe::cherokee ) ==
            V{ missionary4_id } );
 
-  destroy_unit( W.ss(), missionary1_id );
-  destroy_unit( W.ss(), missionary3_id );
+  UnitOwnershipChanger( W.ss(), missionary1_id ).destroy();
+  UnitOwnershipChanger( W.ss(), missionary3_id ).destroy();
 
   REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
            V{ missionary2_id } );
@@ -430,8 +430,8 @@ TEST_CASE( "[missionary] player_missionaries_in_tribe" ) {
   REQUIRE( f( e_nation::french, e_tribe::cherokee ) ==
            V{ missionary4_id } );
 
-  destroy_unit( W.ss(), missionary2_id );
-  destroy_unit( W.ss(), missionary4_id );
+  UnitOwnershipChanger( W.ss(), missionary2_id ).destroy();
+  UnitOwnershipChanger( W.ss(), missionary4_id ).destroy();
 
   REQUIRE( f( e_nation::dutch, e_tribe::apache ) == V{} );
   REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) == V{} );

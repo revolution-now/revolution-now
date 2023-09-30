@@ -77,7 +77,7 @@ UnitCounts unit_counts( UnitsState const& units_state,
         harbor.has_value() ) {
       if( !unit.desc().ship ) {
         ++counts.units_on_dock;
-      } else if( harbor->st.port_status
+      } else if( harbor->port_status
                      .holds<PortStatus::in_port>() ) {
         maybe<vector<UnitId>> cargo_units =
             unit.units_in_cargo();

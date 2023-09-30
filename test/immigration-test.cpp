@@ -23,13 +23,14 @@
 #include "src/harbor-units.hpp"
 #include "src/igui.hpp"
 #include "src/map-square.hpp"
-#include "src/unit-mgr.hpp"
+#include "src/unit-ownership.hpp"
 
 // config
 #include "config/unit-type.hpp"
 
 // ss
 #include "src/ss/player.rds.hpp"
+#include "src/ss/ref.hpp"
 #include "src/ss/settings.hpp"
 #include "src/ss/terrain.hpp"
 #include "src/ss/units.hpp"
@@ -475,9 +476,8 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     REQUIRE( W.units().all().begin()->first ==
              GenericUnitId{ 1 } );
     UnitOwnership const expected_ownership{
-        UnitOwnership::harbor{
-            .st = UnitHarborViewState{
-                .port_status = PortStatus::in_port{} } } };
+        UnitOwnership::harbor{ .port_status =
+                                   PortStatus::in_port{} } };
     REQUIRE( as_const( W.units() ).ownership_of( UnitId{ 1 } ) ==
              expected_ownership );
   }
@@ -524,9 +524,8 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     REQUIRE( W.units().all().begin()->first ==
              GenericUnitId{ 1 } );
     UnitOwnership const expected_ownership{
-        UnitOwnership::harbor{
-            .st = UnitHarborViewState{
-                .port_status = PortStatus::in_port{} } } };
+        UnitOwnership::harbor{ .port_status =
+                                   PortStatus::in_port{} } };
     REQUIRE( as_const( W.units() ).ownership_of( UnitId{ 1 } ) ==
              expected_ownership );
   }
@@ -665,8 +664,7 @@ TEST_CASE( "[immigration] rush_recruit_next_immigrant" ) {
   REQUIRE( W.units().unit_for( UnitId{ 1 } ).type() ==
            e_unit_type::pioneer );
   UnitOwnership const expected_ownership{ UnitOwnership::harbor{
-      .st = UnitHarborViewState{ .port_status =
-                                     PortStatus::in_port{} } } };
+      .port_status = PortStatus::in_port{} } };
   REQUIRE( as_const( W.units() ).ownership_of( UnitId{ 1 } ) ==
            expected_ownership );
 }

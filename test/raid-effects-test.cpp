@@ -725,9 +725,8 @@ TEST_CASE( "[raid] perform_brave_attack_colony_effect" ) {
            unit_orders::damaged{ .turns_until_repair = 12 } );
   REQUIRE( as_const( W.units() ).ownership_of( ship1.id() ) ==
            UnitOwnership::harbor{
-               .st = UnitHarborViewState{
-                   .port_status = PortStatus::in_port{},
-                   .sailed_from = nothing } } );
+               .port_status = PortStatus::in_port{},
+               .sailed_from = nothing } );
   REQUIRE( ship2.orders() == unit_orders::none{} );
   REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
            UnitOwnership::world{ .coord = { .x = 1, .y = 1 } } );
@@ -743,9 +742,8 @@ TEST_CASE( "[raid] perform_brave_attack_colony_effect" ) {
            unit_orders::damaged{ .turns_until_repair = 12 } );
   REQUIRE( as_const( W.units() ).ownership_of( ship1.id() ) ==
            UnitOwnership::harbor{
-               .st = UnitHarborViewState{
-                   .port_status = PortStatus::in_port{},
-                   .sailed_from = nothing } } );
+               .port_status = PortStatus::in_port{},
+               .sailed_from = nothing } );
   REQUIRE( ship2.orders() ==
            unit_orders::damaged{ .turns_until_repair = 5 } );
   REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==

@@ -21,7 +21,7 @@
 #include "tiles.hpp"
 #include "treasure.hpp"
 #include "ts.hpp"
-#include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"
@@ -166,8 +166,7 @@ void HarborDockUnits::cancel_drag() { dragging_ = nothing; }
 wait<> HarborDockUnits::disown_dragged_object() {
   UNWRAP_CHECK( unit_id,
                 dragging_.member( &Draggable::unit_id ) );
-  unit_ownership_change_non_interactive(
-      ss_, unit_id, EuroUnitOwnershipChangeTo::free{} );
+  UnitOwnershipChanger( ss_, unit_id ).change_to_free();
   co_return;
 }
 
@@ -196,9 +195,7 @@ wait<> HarborDockUnits::drop( HarborDraggableObject const& o,
     CHECK( !ss_.units.exists( draggable_unit.id ) );
     co_return;
   }
-  unit_ownership_change_non_interactive(
-      ss_, draggable_unit.id,
-      EuroUnitOwnershipChangeTo::move_to_port{} );
+  unit_move_to_port( ss_, draggable_unit.id );
   co_return;
 }
 

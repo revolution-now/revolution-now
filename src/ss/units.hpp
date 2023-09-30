@@ -32,10 +32,7 @@
 namespace rn {
 
 struct Colony;
-struct ColonyJob;
-struct EuroUnitOwnershipChangeTo;
-struct Player;
-struct SS;
+struct UnitOwnershipChanger;
 
 struct UnitsState {
   UnitsState();
@@ -120,12 +117,12 @@ struct UnitsState {
 
   // We allow non-const access to the harbor view state because
   // changing it will not affect the invariants of this class.
-  maybe<UnitHarborViewState&> maybe_harbor_view_state_of(
+  maybe<UnitOwnership::harbor&> maybe_harbor_view_state_of(
       UnitId id );
-  maybe<UnitHarborViewState const&> maybe_harbor_view_state_of(
+  maybe<UnitOwnership::harbor const&> maybe_harbor_view_state_of(
       UnitId id ) const;
 
-  UnitHarborViewState& harbor_view_state_of( UnitId id );
+  UnitOwnership::harbor& harbor_view_state_of( UnitId id );
 
   std::unordered_set<GenericUnitId> const& from_coord(
       Coord const& c ) const;
@@ -179,23 +176,12 @@ struct UnitsState {
   // ------------------------------------------------------------
   // State Changes.
   // ------------------------------------------------------------
-  // These are all private and must be called via the friend
-  // functions below in order to ensure that the proper cleanup
-  // is done and invariants are maintained.
-
-  friend void destroy_unit( SS& ss, GenericUnitId id );
-
-  friend void unit_ownership_change_non_interactive(
-      SS& ss, UnitId id, EuroUnitOwnershipChangeTo const& info );
-
+  friend struct UnitOwnershipChanger;
   friend struct UnitOnMapMover;
-  friend class UnitHarborMover;
 
-  friend void move_unit_to_colony( UnitsState&      units_state,
-                                   Player const&    player,
-                                   Colony&          colony,
-                                   UnitId           unit_id,
-                                   ColonyJob const& job );
+  // These are all private and must be called via the friend en-
+  // tities above in order to ensure that the proper cleanup is
+  // done and invariants are maintained.
 
   void destroy_unit( UnitId id );
 
@@ -205,17 +191,13 @@ struct UnitsState {
 
   void change_to_colony( UnitId id, ColonyId col_id );
 
-  // Will start at the starting slot and rotate right trying to
-  // find a place where the unit can fit.
-  void change_to_cargo_somewhere( UnitId new_holder, UnitId held,
-                                  int starting_slot = 0 );
-
   // Not really used.
   void change_to_cargo( UnitId new_holder, UnitId held,
                         int slot );
 
-  void change_to_harbor_view( UnitId              id,
-                              UnitHarborViewState info );
+  void change_to_harbor_view( UnitId            id,
+                              PortStatus const& port_status,
+                              maybe<Coord>      sailed_from );
 
   void change_to_dwelling( UnitId     unit_id,
                            DwellingId dwelling_id );

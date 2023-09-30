@@ -24,9 +24,11 @@
 #include "teaching.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 
 // gs
 #include "ss/players.hpp"
+#include "ss/ref.hpp"
 #include "ss/unit-type.hpp"
 #include "ss/units.hpp"
 
@@ -142,10 +144,7 @@ void check_create_or_starve_colonist(
     } else {
       UnitId      unit_id = ts.rand.pick_one( units_in_colony );
       e_unit_type type    = ss.units.unit_for( unit_id ).type();
-      // Note that calling `destroy_unit` is not enough, we have
-      // to remove it from the colony as well.
-      remove_unit_from_colony( ss, colony, unit_id );
-      destroy_unit( ss, unit_id );
+      UnitOwnershipChanger( ss, unit_id ).destroy();
       notifications.emplace_back(
           ColonyNotification::colonist_starved{ .type = type } );
     }
@@ -166,10 +165,8 @@ void check_create_or_starve_colonist(
     current_food -= food_needed_for_creation;
     UnitId unit_id = create_free_unit(
         ss.units, player, e_unit_type::free_colonist );
-    unit_ownership_change_non_interactive(
-        ss, unit_id,
-        EuroUnitOwnershipChangeTo::world{
-            .ts = &ts, .target = colony.location } );
+    UnitOwnershipChanger( ss, unit_id )
+        .change_to_map_non_interactive( ts, colony.location );
     notifications.emplace_back(
         ColonyNotification::new_colonist{ .id = unit_id } );
 

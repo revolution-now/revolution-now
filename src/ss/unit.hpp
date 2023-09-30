@@ -140,8 +140,9 @@ struct ND Unit {
   void change_type( Player const&   player,
                     UnitComposition new_comp );
 
-  friend void change_unit_type( SS& ss, TS& ts, Unit& unit,
-                                UnitComposition new_comp );
+  friend void change_unit_type(
+      SS& ss, TS& ts, Unit& unit,
+      UnitComposition const& new_comp );
 
   // This would be used when e.g. a colonist is captured and
   // changes nations.

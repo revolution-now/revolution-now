@@ -38,6 +38,7 @@
 #include "ts.hpp"
 #include "unit-flag.hpp"
 #include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 #include "views.hpp"
 
 // config
@@ -817,11 +818,9 @@ class CargoView : public ui::View,
                 ss_, ts_, colony_, to_transform,
                 *draggable_unit.transformed );
           }
-          unit_ownership_change_non_interactive(
-              ss_, u.id,
-              EuroUnitOwnershipChangeTo::cargo{
-                  .new_holder    = *holder_,
-                  .starting_slot = slot_idx } );
+          UnitOwnershipChanger( ss_, u.id )
+              .change_to_cargo( *holder_,
+                                /*starting_slot=*/slot_idx );
           // Check if we've abandoned the colony, which could
           // happen if we dragged the last unit working in the
           // colony into the cargo hold.
@@ -913,8 +912,7 @@ class CargoView : public ui::View,
     overload_visit(
         cargo_to_remove,
         [this]( Cargo::unit held ) {
-          unit_ownership_change_non_interactive(
-              ss_, held.id, EuroUnitOwnershipChangeTo::free{} );
+          UnitOwnershipChanger( ss_, held.id ).change_to_free();
         },
         [this]( Cargo::commodity const& to_remove ) {
           UNWRAP_CHECK(
@@ -1312,18 +1310,15 @@ class UnitsAtGateColonyView
                 *draggable_unit.transformed );
           }
           if( target_unit_id ) {
-            unit_ownership_change_non_interactive(
-                ss_, draggable_unit.id,
-                EuroUnitOwnershipChangeTo::cargo{
-                    .new_holder    = *target_unit_id,
-                    .starting_slot = 0 } );
+            UnitOwnershipChanger( ss_, draggable_unit.id )
+                .change_to_cargo( *target_unit_id,
+                                  /*starting_slot=*/0 );
             // !! Need to fall through here since we may have
             // abandoned the colony.
           } else {
-            unit_ownership_change_non_interactive(
-                ss_, draggable_unit.id,
-                EuroUnitOwnershipChangeTo::world{
-                    .ts = &ts_, .target = colony_.location } );
+            UnitOwnershipChanger( ss_, draggable_unit.id )
+                .change_to_map_non_interactive(
+                    ts_, colony_.location );
             // This is not strictly necessary, but as a conve-
             // nience to the user, clear the orders, otherwise it
             // would be sentry'd, which is probably not what the
@@ -1357,16 +1352,17 @@ class UnitsAtGateColonyView
                    dropping_comm.quantity );
             change_unit_type( ss_, ts_, target_unit,
                               xform_res.new_comp );
+            CHECK( ss_.units.coord_for( target_unit.id() ) ==
+                   colony_.location );
             // The unit, being at the colony gate, is actually on
             // the map at the site of this colony. In the event
             // that we are e.g. changing a colonist to a scout
             // (whsch has a sighting radius of two) we should
             // call this function to update the rendered map
             // along with anything else that needs to be done.
-            unit_ownership_change_non_interactive(
-                ss_, target_unit.id(),
-                EuroUnitOwnershipChangeTo::world{
-                    .ts = &ts_, .target = colony_.location } );
+            UnitOwnershipChanger( ss_, target_unit.id() )
+                .change_to_map_non_interactive(
+                    ts_, colony_.location );
             // Note that we clear orders and deal with movement
             // points for the target unit at the top of this
             // function.
@@ -1391,8 +1387,7 @@ class UnitsAtGateColonyView
 
   wait<> disown_dragged_object() override {
     UNWRAP_CHECK( unit_id, dragging_ );
-    unit_ownership_change_non_interactive(
-        ss_, unit_id, EuroUnitOwnershipChangeTo::free{} );
+    UnitOwnershipChanger( ss_, unit_id ).change_to_free();
     co_return;
   }
 

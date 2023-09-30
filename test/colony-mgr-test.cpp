@@ -19,14 +19,17 @@
 
 // Revolution Now
 #include "src/colony-mgr.hpp"
+#include "src/harbor-units.hpp"
 #include "src/imap-updater.hpp"
 #include "src/map-square.hpp"
 #include "src/plane-stack.hpp"
 #include "src/unit-mgr.hpp"
+#include "src/unit-ownership.hpp"
 
 // ss
 #include "ss/colonies.hpp"
 #include "ss/player.rds.hpp"
+#include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
@@ -227,10 +230,8 @@ TEST_CASE( "[colony-mgr] can't build colony in water" ) {
   UnitId unit_id =
       create_free_unit( W.units(), W.default_player(),
                         e_unit_type::free_colonist );
-  unit_ownership_change_non_interactive(
-      W.ss(), unit_id,
-      EuroUnitOwnershipChangeTo::cargo{ .new_holder    = ship_id,
-                                        .starting_slot = 0 } );
+  UnitOwnershipChanger( W.ss(), unit_id )
+      .change_to_cargo( ship_id, /*starting_slot=*/0 );
   REQUIRE( unit_can_found_colony( W.ss(), unit_id ) ==
            invalid( e_found_colony_err::no_water_colony ) );
 }
@@ -254,8 +255,7 @@ TEST_CASE(
 
   UnitId id = create_free_unit( W.units(), W.default_player(),
                                 e_unit_type::free_colonist );
-  unit_ownership_change_non_interactive(
-      W.ss(), id, EuroUnitOwnershipChangeTo::move_to_port{} );
+  unit_move_to_port( W.ss(), id );
   REQUIRE( unit_can_found_colony( W.ss(), id ) ==
            invalid( e_found_colony_err::colonist_not_on_map ) );
 }
@@ -426,18 +426,15 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     REQUIRE( W.units().exists( ship1.id() ) );
     REQUIRE( W.units().exists( ship2.id() ) );
     REQUIRE( W.units().exists( ship3.id() ) );
-    REQUIRE(
-        as_const( W.units() ).ownership_of( ship1.id() ) ==
-        UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{} } } );
-    REQUIRE(
-        as_const( W.units() ).ownership_of( ship2.id() ) ==
-        UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{} } } );
-    REQUIRE(
-        as_const( W.units() ).ownership_of( ship3.id() ) ==
-        UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{} } } );
+    REQUIRE( as_const( W.units() ).ownership_of( ship1.id() ) ==
+             UnitOwnership::harbor{
+                 .port_status = PortStatus::in_port{} } );
+    REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
+             UnitOwnership::harbor{
+                 .port_status = PortStatus::in_port{} } );
+    REQUIRE( as_const( W.units() ).ownership_of( ship3.id() ) ==
+             UnitOwnership::harbor{
+                 .port_status = PortStatus::in_port{} } );
   }
 
   // This will make sure that sure that units on ships will be
@@ -464,18 +461,15 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     REQUIRE( W.units().exists( ship3_id ) );
     REQUIRE( W.units().exists( free_colonist_id ) );
     REQUIRE( W.units().exists( soldier_id ) );
-    REQUIRE(
-        as_const( W.units() ).ownership_of( ship1.id() ) ==
-        UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{} } } );
-    REQUIRE(
-        as_const( W.units() ).ownership_of( ship2.id() ) ==
-        UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{} } } );
-    REQUIRE(
-        as_const( W.units() ).ownership_of( ship3.id() ) ==
-        UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{} } } );
+    REQUIRE( as_const( W.units() ).ownership_of( ship1.id() ) ==
+             UnitOwnership::harbor{
+                 .port_status = PortStatus::in_port{} } );
+    REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
+             UnitOwnership::harbor{
+                 .port_status = PortStatus::in_port{} } );
+    REQUIRE( as_const( W.units() ).ownership_of( ship3.id() ) ==
+             UnitOwnership::harbor{
+                 .port_status = PortStatus::in_port{} } );
     REQUIRE(
         as_const( W.units() ).ownership_of( free_colonist_id ) ==
         UnitOwnership::world{ .coord = loc } );
@@ -610,18 +604,15 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     REQUIRE( W.units().exists( ship1.id() ) );
     REQUIRE( W.units().exists( ship2.id() ) );
     REQUIRE( W.units().exists( ship3.id() ) );
-    REQUIRE(
-        as_const( W.units() ).ownership_of( ship1.id() ) ==
-        UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{} } } );
-    REQUIRE(
-        as_const( W.units() ).ownership_of( ship2.id() ) ==
-        UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{} } } );
-    REQUIRE(
-        as_const( W.units() ).ownership_of( ship3.id() ) ==
-        UnitOwnership::harbor{
-            .st = { .port_status = PortStatus::in_port{} } } );
+    REQUIRE( as_const( W.units() ).ownership_of( ship1.id() ) ==
+             UnitOwnership::harbor{
+                 .port_status = PortStatus::in_port{} } );
+    REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
+             UnitOwnership::harbor{
+                 .port_status = PortStatus::in_port{} } );
+    REQUIRE( as_const( W.units() ).ownership_of( ship3.id() ) ==
+             UnitOwnership::harbor{
+                 .port_status = PortStatus::in_port{} } );
   }
 
   SECTION( "interactive with ship, post-revolution" ) {

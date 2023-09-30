@@ -20,7 +20,7 @@
 #include "render.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
-#include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"
@@ -143,11 +143,7 @@ wait<> HarborInPortShips::click_on_unit( UnitId unit_id ) {
         co_await ts_.gui.optional_choice( config );
     if( !choice.has_value() ) co_return;
     if( choice == "set sail" ) {
-      maybe<UnitDeleted> const deleted =
-          co_await unit_ownership_change(
-              ss_, unit_id,
-              EuroUnitOwnershipChangeTo::sail_to_new_world{} );
-      CHECK( !deleted.has_value() );
+      unit_sail_to_new_world( ss_, unit_id );
       co_return;
     }
   }
@@ -302,21 +298,12 @@ wait<> HarborInPortShips::drop( HarborDraggableObject const& o,
       UnitId const dragged_id = alt.id;
       Unit const&  dragged    = ss_.units.unit_for( dragged_id );
       if( dragged.desc().ship ) {
-        maybe<UnitDeleted> const deleted =
-            co_await unit_ownership_change(
-                ss_, dragged_id,
-                EuroUnitOwnershipChangeTo::sail_to_harbor{} );
-        CHECK( !deleted.has_value() );
+        unit_sail_to_harbor( ss_, dragged_id );
       } else {
         UNWRAP_CHECK( unit_with_pos, unit_at_location( where ) );
-        UnitId const             holder_id = unit_with_pos.id;
-        maybe<UnitDeleted> const deleted =
-            co_await unit_ownership_change(
-                ss_, dragged_id,
-                EuroUnitOwnershipChangeTo::cargo{
-                    .new_holder    = holder_id,
-                    .starting_slot = 0 } );
-        CHECK( !deleted.has_value() );
+        UnitId const holder_id = unit_with_pos.id;
+        UnitOwnershipChanger( ss_, dragged_id )
+            .change_to_cargo( holder_id, /*starting_slot=*/0 );
       }
       break;
     }

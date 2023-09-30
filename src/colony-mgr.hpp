@@ -10,20 +10,15 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // Rds
 #include "colony-mgr.rds.hpp"
 
 // Revolution Now
-#include "error.hpp"
 #include "expect.hpp"
 #include "wait.hpp"
 
-// gs
+// ss
 #include "ss/colony-id.hpp"
-#include "ss/colony.hpp"
-#include "ss/nation.rds.hpp"
 #include "ss/unit-id.hpp"
 
 // gfx
@@ -34,15 +29,17 @@
 
 namespace rn {
 
+struct ColoniesState;
+struct Colony;
+struct ColonyJob;
+struct Player;
 struct SS;
 struct SSConst;
 struct TS;
-
-struct ColoniesState;
-struct Colony;
-struct Player;
 struct Unit;
-struct UnitsState;
+
+enum class e_outdoor_job;
+enum class e_nation;
 
 valid_or<e_new_colony_name_err> is_valid_new_colony_name(
     ColoniesState const& colonies_state, std::string_view name );
@@ -83,15 +80,6 @@ ColonyId create_empty_colony( ColoniesState& colonies_state,
 // from the unit as well.
 void strip_unit_to_base_type( SS& ss, TS& ts, Unit& unit,
                               Colony& colony );
-
-void move_unit_to_colony( SS& ss, TS& ts, Colony& colony,
-                          UnitId unit_id, ColonyJob const& job );
-
-// This will leave the unit in an unowned state (free), and so
-// must be followed by a new ownership assignment and/or destruc-
-// tion.
-void remove_unit_from_colony( SS& ss, Colony& colony,
-                              UnitId unit_id );
 
 void change_unit_outdoor_job( Colony& colony, UnitId id,
                               e_outdoor_job new_job );
@@ -136,5 +124,18 @@ find_occupied_surrounding_colony_squares( SSConst const& ss,
 // given a stockade.
 void give_stockade_if_needed( Player const& player,
                               Colony&       colony );
+
+// This is a low-level method that shouldn't be used directly;
+// instead, one should use the unit-ownership module API.
+void add_unit_to_colony_obj_low_level( SS& ss, TS& ts,
+                                       Colony&          colony,
+                                       Unit&            unit,
+                                       ColonyJob const& job );
+
+// This is a low-level method that shouldn't be used directly;
+// instead, one should use the unit-ownership module API.
+void remove_unit_from_colony_obj_low_level( SS&     ss,
+                                            Colony& colony,
+                                            UnitId  unit_id );
 
 } // namespace rn

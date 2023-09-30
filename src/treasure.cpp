@@ -15,7 +15,7 @@
 #include "igui.hpp"
 #include "irand.hpp"
 #include "ts.hpp"
-#include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 
 // config
 #include "config/nation.rds.hpp"
@@ -155,7 +155,7 @@ wait<maybe<TreasureReceipt>> treasure_enter_colony(
 
 void apply_treasure_reimbursement(
     SS& ss, Player& player, TreasureReceipt const& receipt ) {
-  destroy_unit( ss, receipt.treasure_id );
+  UnitOwnershipChanger( ss, receipt.treasure_id ).destroy();
   player.money += receipt.net_received;
 }
 

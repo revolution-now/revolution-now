@@ -47,6 +47,7 @@
 #include "ts.hpp"
 #include "turn-plane.hpp"
 #include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 #include "unit.hpp"
 #include "unsentry.hpp"
 #include "visibility.hpp"
@@ -713,10 +714,8 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
         }
         ss.units.unit_for( id ).clear_orders();
         maybe<UnitDeleted> const unit_deleted =
-            co_await unit_ownership_change(
-                ss, id,
-                EuroUnitOwnershipChangeTo::world{
-                    .ts = &ts, .target = *dst_coord } );
+            co_await UnitOwnershipChanger( ss, id )
+                .change_to_map( ts, *dst_coord );
         // There are no LCR tiles on water squares.
         CHECK( !unit_deleted.has_value() );
         // This is not required, but it is for a good player ex-

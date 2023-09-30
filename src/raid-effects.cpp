@@ -16,7 +16,7 @@
 #include "damaged.hpp"
 #include "ieuro-mind.hpp"
 #include "rand-enum.hpp"
-#include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 
 // config
 #include "config/colony.rds.hpp"
@@ -226,7 +226,7 @@ void perform_brave_attack_colony_effect(
       UnitId const ship_id = ship_in_port_damaged.which;
       Unit&        ship    = ss.units.unit_for( ship_id );
       if( !ship_in_port_damaged.sent_to.has_value() ) {
-        destroy_unit( ss, ship_id );
+        UnitOwnershipChanger( ss, ship_id ).destroy();
       } else {
         move_damaged_ship_for_repair(
             ss, ts, ship, *ship_in_port_damaged.sent_to );

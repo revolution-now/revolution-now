@@ -27,7 +27,9 @@
 #include "plane-stack.hpp"
 #include "raid-effects.hpp"
 #include "roles.hpp"
+#include "ts.hpp"
 #include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 #include "unit-stack.hpp"
 #include "visibility.hpp"
 #include "woodcut.hpp"
@@ -199,7 +201,7 @@ static wait<> raid_colony_burn(
     Unit const& unit = ss.units.euro_unit_for( id );
     if( unit.desc().ship ) continue;
     lg.debug( "{} at gate lost in battle.", unit.desc().name );
-    destroy_unit( ss, id );
+    UnitOwnershipChanger( ss, unit.id() ).destroy();
   }
 
   // One of the things this will do is it will move any remaining

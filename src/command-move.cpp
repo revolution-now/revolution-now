@@ -30,6 +30,7 @@
 #include "society.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 #include "unit-stack.hpp"
 
 // config
@@ -897,10 +898,8 @@ wait<> TravelHandler::perform() {
         }
       }
       maybe<UnitDeleted> const unit_deleted =
-          co_await unit_ownership_change(
-              ss_, id,
-              EuroUnitOwnershipChangeTo::world{
-                  .ts = &ts_, .target = move_dst } );
+          co_await UnitOwnershipChanger( ss_, id ).change_to_map(
+              ts_, move_dst );
       CHECK_GT( mv_points_to_subtract_, 0 );
       if( unit_deleted.has_value() ) co_return;
       unit.consume_mv_points( mv_points_to_subtract_ );
@@ -908,13 +907,8 @@ wait<> TravelHandler::perform() {
     }
     case e_travel_verdict::board_ship: {
       CHECK( target_unit.has_value() );
-      maybe<UnitDeleted> const deleted =
-          co_await unit_ownership_change(
-              ss_, id,
-              EuroUnitOwnershipChangeTo::cargo{
-                  .new_holder    = *target_unit,
-                  .starting_slot = 0 } );
-      CHECK( !deleted.has_value() );
+      UnitOwnershipChanger( ss_, id ).change_to_cargo(
+          *target_unit, /*starting_slot=*/0 );
       unit.forfeight_mv_points();
       unit.sentry();
       // If the ship is sentried then clear it's orders because
@@ -926,10 +920,8 @@ wait<> TravelHandler::perform() {
     }
     case e_travel_verdict::offboard_ship: {
       maybe<UnitDeleted> const unit_deleted =
-          co_await unit_ownership_change(
-              ss_, id,
-              EuroUnitOwnershipChangeTo::world{
-                  .ts = &ts_, .target = move_dst } );
+          co_await UnitOwnershipChanger( ss_, id ).change_to_map(
+              ts_, move_dst );
       if( unit_deleted.has_value() ) co_return;
       unit.forfeight_mv_points();
       CHECK( unit.orders().holds<unit_orders::none>() );
@@ -937,10 +929,8 @@ wait<> TravelHandler::perform() {
     }
     case e_travel_verdict::ship_into_port: {
       maybe<UnitDeleted> const unit_deleted =
-          co_await unit_ownership_change(
-              ss_, id,
-              EuroUnitOwnershipChangeTo::world{
-                  .ts = &ts_, .target = move_dst } );
+          co_await UnitOwnershipChanger( ss_, id ).change_to_map(
+              ts_, move_dst );
       CHECK( !unit_deleted.has_value() );
       // When a ship moves into port it forfeights its movement
       // points as in the OG.
@@ -952,10 +942,8 @@ wait<> TravelHandler::perform() {
       vector<UnitId> const held = unit.cargo().units();
       for( UnitId const held_id : held ) {
         maybe<UnitDeleted> const unit_deleted =
-            co_await unit_ownership_change(
-                ss_, held_id,
-                EuroUnitOwnershipChangeTo::world{
-                    .ts = &ts_, .target = move_dst } );
+            co_await UnitOwnershipChanger( ss_, held_id )
+                .change_to_map( ts_, move_dst );
         // !! Note that the unit could have been deleted here in
         // the case that the unit is a treasure and the player
         // accepts the King's offer to transport it.
@@ -1013,11 +1001,7 @@ wait<> TravelHandler::perform() {
       break;
     case e_travel_verdict::sail_high_seas:
     case e_travel_verdict::map_edge_high_seas: {
-      maybe<UnitDeleted> const unit_deleted =
-          co_await unit_ownership_change(
-              ss_, id,
-              EuroUnitOwnershipChangeTo::sail_to_harbor{} );
-      CHECK( !unit_deleted.has_value() );
+      unit_sail_to_harbor( ss_, id );
       // Don't process it again this turn.
       unit.forfeight_mv_points();
       break;
@@ -1268,7 +1252,7 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
   if( maybe<ColonyId> colony_id =
           ss.colonies.maybe_from_coord( dst );
       colony_id.has_value() ) {
-    Colony&      colony = ss.colonies.colony_for( *colony_id );
+    Colony& colony = ss.colonies.colony_for( *colony_id );
     UnitId const defender_id =
         select_colony_defender( ss, colony );
     Unit const& defender = ss.units.unit_for( defender_id );

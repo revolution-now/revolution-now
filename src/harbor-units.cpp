@@ -18,6 +18,7 @@
 #include "society.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 #include "variant.hpp"
 
 // config
@@ -25,6 +26,8 @@
 
 // ss
 #include "ss/player.rds.hpp"
+#include "ss/players.hpp"
+#include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
@@ -61,7 +64,7 @@ namespace {
 // will allow for that possibility here.
 int turns_needed_for_high_seas(
     TerrainState const& terrain_state, Player const& player,
-    UnitHarborViewState const& harbor_state ) {
+    UnitOwnership::harbor const& harbor_state ) {
   // First find where the unit sailed from (east or west). If
   // that information is not available then just assume east
   // edge.
@@ -287,12 +290,13 @@ vector<UnitId> harbor_units_outbound(
                                    is_unit_outbound );
 }
 
-void UnitHarborMover::unit_move_to_port( UnitsState& units_state,
-                                         Player&     player,
-                                         UnitId      id ) {
-  UnitHarborViewState new_state;
-  if( maybe<UnitHarborViewState const&> existing_state =
-          units_state.maybe_harbor_view_state_of( id );
+void unit_move_to_port( SS& ss, UnitId id ) {
+  Unit&   unit = ss.units.unit_for( id );
+  Player& player =
+      player_for_nation_or_die( ss.players, unit.nation() );
+  UnitOwnership::harbor new_state;
+  if( maybe<UnitOwnership::harbor const&> existing_state =
+          ss.units.maybe_harbor_view_state_of( id );
       existing_state.has_value() ) {
     new_state             = *existing_state;
     new_state.port_status = PortStatus::in_port{};
@@ -300,22 +304,24 @@ void UnitHarborMover::unit_move_to_port( UnitsState& units_state,
     new_state = { .port_status = PortStatus::in_port{},
                   .sailed_from = nothing };
   }
-  units_state.change_to_harbor_view( id, new_state );
-  update_harbor_selected_unit( units_state, player );
+  UnitOwnershipChanger( ss, id ).change_to_harbor(
+      new_state.port_status, new_state.sailed_from );
+  update_harbor_selected_unit( ss.units, player );
 }
 
-void UnitHarborMover::unit_sail_to_harbor(
-    TerrainState const& terrain_state, UnitsState& units_state,
-    Player& player, UnitId id ) {
+void unit_sail_to_harbor( SS& ss, UnitId id ) {
   // FIXME: do other checks here, e.g., make sure that the
   //        ship is not damaged.
-  CHECK( units_state.unit_for( id ).desc().ship );
+  Unit& unit = ss.units.unit_for( id );
+  CHECK( unit.desc().ship );
+  Player& player =
+      player_for_nation_or_die( ss.players, unit.nation() );
 
-  if( maybe<UnitHarborViewState const&> previous_harbor_state =
-          units_state.maybe_harbor_view_state_of( id );
+  if( maybe<UnitOwnership::harbor const&> previous_harbor_state =
+          ss.units.maybe_harbor_view_state_of( id );
       previous_harbor_state.has_value() ) {
     int const turns_needed = turns_needed_for_high_seas(
-        terrain_state, player, *previous_harbor_state );
+        ss.terrain, player, *previous_harbor_state );
     switch( auto& v = previous_harbor_state->port_status;
             v.to_enum() ) {
       case PortStatus::e::in_port:
@@ -325,26 +331,26 @@ void UnitHarborMover::unit_sail_to_harbor(
         if( turns >= turns_needed )
           // Unit has not yet made any progress, so we can
           // imme- diately move it to in_port.
-          unit_move_to_port( units_state, player, id );
+          unit_move_to_port( ss, id );
         return;
       }
       case PortStatus::e::outbound: {
         auto const& [turns] = v.get<PortStatus::outbound>();
-        UnitHarborViewState new_state = *previous_harbor_state;
+        UnitOwnership::harbor new_state = *previous_harbor_state;
         // Unit must "turn around" and go the other way.
         new_state.port_status =
             PortStatus::inbound{ .turns = turns_needed - turns };
-        units_state.change_to_harbor_view( id, new_state );
+        UnitOwnershipChanger( ss, id ).change_to_harbor(
+            new_state.port_status, new_state.sailed_from );
         // Recurse to deal with the inbound state, which might
         // in turn need to be translated to in_port.
-        unit_sail_to_harbor( terrain_state, units_state, player,
-                             id );
+        unit_sail_to_harbor( ss, id );
         return;
       }
     }
   }
 
-  maybe<Coord> sailed_from = units_state.maybe_coord_for( id );
+  maybe<Coord> sailed_from = ss.units.maybe_coord_for( id );
   // Even though last_high_seas is a maybe<Coord>, don't over-
   // write it unless the new position has a value.
   if( sailed_from.has_value() )
@@ -353,24 +359,24 @@ void UnitHarborMover::unit_sail_to_harbor(
   // Unit is not owned by the harbor view, so let's make it so.
   // If the unit is currently on the map then record that posi-
   // tion so that it can return to it.
-  units_state.change_to_harbor_view(
-      id, UnitHarborViewState{
-              .port_status = PortStatus::inbound{ .turns = 0 },
-              .sailed_from = sailed_from } );
+  UnitOwnershipChanger( ss, id ).change_to_harbor(
+      PortStatus::inbound{ .turns = 0 }, sailed_from );
 }
 
-void UnitHarborMover::unit_sail_to_new_world(
-    TerrainState const& terrain_state, UnitsState& units_state,
-    Player const& player, UnitId id ) {
+void unit_sail_to_new_world( SS& ss, UnitId id ) {
   // FIXME: do other checks here, e.g., make sure that the
   //        ship is not damaged.
-  CHECK( units_state.unit_for( id ).desc().ship );
+  Unit const& unit = ss.units.unit_for( id );
+  CHECK( unit.desc().ship );
+  Player const& player =
+      player_for_nation_or_die( ss.players, unit.nation() );
+  CHECK( unit.desc().ship );
 
   UNWRAP_CHECK( previous_harbor_state,
-                units_state.maybe_harbor_view_state_of( id ) );
+                ss.units.maybe_harbor_view_state_of( id ) );
 
   // Note that we are always reusing the `sailed_from`.
-  UnitHarborViewState new_state = previous_harbor_state;
+  UnitOwnership::harbor new_state = previous_harbor_state;
 
   switch( auto& v = previous_harbor_state.port_status;
           v.to_enum() ) {
@@ -382,7 +388,7 @@ void UnitHarborMover::unit_sail_to_new_world(
     case PortStatus::e::inbound: {
       auto& [turns]          = v.get<PortStatus::inbound>();
       int const turns_needed = turns_needed_for_high_seas(
-          terrain_state, player, previous_harbor_state );
+          ss.terrain, player, previous_harbor_state );
       // Unit must "turn around" and go the other way.
       new_state.port_status =
           PortStatus::outbound{ .turns = turns_needed - turns };
@@ -394,7 +400,8 @@ void UnitHarborMover::unit_sail_to_new_world(
     }
   }
 
-  units_state.change_to_harbor_view( id, new_state );
+  UnitOwnershipChanger( ss, id ).change_to_harbor(
+      new_state.port_status, new_state.sailed_from );
 }
 
 e_high_seas_result advance_unit_on_high_seas( SS&     ss,
@@ -423,8 +430,7 @@ e_high_seas_result advance_unit_on_high_seas( SS&     ss,
               debug_string( ss.units, id ), inbound.turns );
     if( inbound.turns >= turns_needed ) {
       // This should preserve the `sailed_from`.
-      unit_ownership_change_non_interactive(
-          ss, id, EuroUnitOwnershipChangeTo::move_to_port{} );
+      unit_move_to_port( ss, id );
       return e_high_seas_result::arrived_in_harbor;
     }
     return e_high_seas_result::still_traveling;
@@ -436,10 +442,9 @@ e_high_seas_result advance_unit_on_high_seas( SS&     ss,
 
 UnitId create_unit_in_harbor( SS& ss, Player& player,
                               UnitComposition comp ) {
-  UnitId id =
+  UnitId const id =
       create_free_unit( ss.units, player, std::move( comp ) );
-  unit_ownership_change_non_interactive(
-      ss, id, EuroUnitOwnershipChangeTo::move_to_port{} );
+  unit_move_to_port( ss, id );
   return id;
 }
 
