@@ -153,13 +153,9 @@ struct WithBackground {
   //
   template<typename T>
   wait<T> operator()( wait<T> w, wait<> /*background*/ ) const {
-    wait_promise<T> wp;
-    // Need to do w first so that if both are ready already then
-    // w will take precedence and return its value.
-    disjunctive_link_to_promise( w, wp );
     // !! Need to co_await instead of just returning the wait
     // because we need to keep the waits alive.
-    co_return co_await wp.wait();
+    co_return co_await std::move( w );
   }
 };
 
