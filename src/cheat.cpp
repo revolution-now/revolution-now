@@ -539,8 +539,9 @@ void cheat_upgrade_unit_expertise( SS& ss, TS& ts, Unit& unit ) {
   if( try_promote_unit_for_current_activity( ss, ts, unit ) )
     return;
 
-  maybe<e_unit_activity> activity = current_activity_for_unit(
-      ss.units, ss.colonies, unit.id() );
+  maybe<e_unit_activity> const activity =
+      current_activity_for_unit( ss.units, ss.colonies,
+                                 unit.id() );
 
   if( activity.has_value() ) {
     if( unit_attr( unit.base_type() ).expertise == *activity )
@@ -650,6 +651,8 @@ void cheat_create_new_colonist( SS& ss, TS& ts,
                                 Player const& player,
                                 Colony const& colony ) {
   RETURN_IF_NO_CHEAT;
+  // Non-interactive works here because currently we're only
+  // using this to create a unit inside the colony view.
   create_unit_on_map_non_interactive( ss, ts, player,
                                       e_unit_type::free_colonist,
                                       colony.location );
