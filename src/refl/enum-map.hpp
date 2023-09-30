@@ -126,6 +126,7 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
   void pop_back()                    = delete;
   void resize( size_t )              = delete;
   void find( ValT )                  = delete;
+  void empty()                       = delete;
 
   friend cdr::value to_canonical( cdr::converter& conv,
                                   enum_map const& o,
