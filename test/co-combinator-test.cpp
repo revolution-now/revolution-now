@@ -12,6 +12,8 @@
 
 // Under test.
 #include "src/co-combinator.hpp"
+
+// Revolution Now
 #include "src/co-scheduler.hpp"
 #include "src/co-wait.hpp"
 
@@ -307,37 +309,6 @@ TEST_CASE( "[co-combinator] background" ) {
     REQUIRE( w.ready() );
     REQUIRE( w.get() == 5 );
   }
-}
-
-TEST_CASE( "[co-combinator] latch" ) {
-  latch  l;
-  wait<> w = l.wait();
-  REQUIRE( !w.ready() );
-  l.set();
-  REQUIRE( w.ready() );
-  l.reset();
-  REQUIRE( w.ready() );
-  w = l.wait();
-  REQUIRE( !w.ready() );
-  l.set();
-  REQUIRE( w.ready() );
-  l.set();
-  REQUIRE( w.ready() );
-}
-
-TEST_CASE( "[co-combinator] ticker" ) {
-  ticker t;
-  t.tick();
-  wait<> w = t.wait();
-  REQUIRE( !w.ready() );
-  t.tick();
-  REQUIRE( w.ready() );
-  t.tick();
-  REQUIRE( w.ready() );
-  w = t.wait();
-  REQUIRE( !w.ready() );
-  t.tick();
-  REQUIRE( w.ready() );
 }
 
 TEST_CASE( "[co-combinator] stream" ) {

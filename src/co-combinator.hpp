@@ -277,48 +277,6 @@ repeater( Func&& o )
                 decltype( std::forward<Func>( o ) )>;
 
 /****************************************************************
-** latch
-*****************************************************************/
-// A latch is meant to be a singlton object (per use-case) that
-// can be awaited on by multiple things. When it is set, all
-// awaiters will be resumed, and it will remain set until reset.
-struct latch {
-  void set() { p.set_value_emplace_if_not_set(); }
-  void reset() { p.reset(); }
-
-  auto wait() { return p.wait(); }
-
-  auto operator co_await() noexcept {
-    return detail::awaitable(
-        static_cast<detail::promise_type<std::monostate>*>(
-            nullptr ),
-        wait() );
-  }
-
-  wait_promise<> p;
-};
-
-/****************************************************************
-** ticker
-*****************************************************************/
-// A ticker is meant to be a singlton object (per use-case) that
-// can be awaited on by multiple things. When it is ticked, all
-// the awaiters will be resumed, and it will be reset, so anyone
-// who then starts newly awaiting on it will have to wait until
-// the next tick.
-struct ticker {
-  void tick() {
-    p.set_value_emplace();
-    p.reset();
-  }
-
-  ::rn::wait<> wait() { return p.wait(); }
-
- private:
-  wait_promise<> p;
-};
-
-/****************************************************************
 ** Streamable
 *****************************************************************/
 template<typename T>
@@ -430,11 +388,9 @@ struct finite_stream {
 /****************************************************************
 ** Adapter: wait to streamable
 *****************************************************************/
-// This is an adapter that takes a wait and makes it into
-// something streamable (implementing the Streamble concept).
-// However, the resulting "stream" will only produce one object,
-// so the resulting object is a kind of latch but that cannot be
-// manually set.
+// This is an adapter that takes a wait and makes it into some-
+// thing streamable (implementing the Streamble concept). How-
+// ever, the resulting "stream" will only produce one object,
 template<typename T>
 struct one_shot_stream_adapter {
   using value_type = T;
