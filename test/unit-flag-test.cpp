@@ -19,6 +19,9 @@
 // Revolution Now
 #include "src/unit-mgr.hpp"
 
+// config
+#include "config/tile-enum.rds.hpp"
+
 // ss
 #include "ss/dwelling.rds.hpp"
 #include "ss/ref.hpp"
@@ -85,12 +88,13 @@ TEST_CASE( "[unit-flag] euro_unit_type_orders_flag_info" ) {
                             .b = 0x22,
                             .a = 0xff },
       .background_color = { .r = 255, .a = 255 },
-      .char_info        = UnitFlagCharInfo{ .value = '-',
-                                            .color = { .r = 0x22,
-                                                       .g = 0x22,
-                                                       .b = 0x22,
-                                                       .a = 0xff } },
-      .in_front         = false,
+      .contents =
+          UnitFlagContents::character{ .value = '-',
+                                       .color = { .r = 0x22,
+                                                  .g = 0x22,
+                                                  .b = 0x22,
+                                                  .a = 0xff } },
+      .in_front = false,
   };
   auto baseline = expected;
 
@@ -101,16 +105,18 @@ TEST_CASE( "[unit-flag] euro_unit_type_orders_flag_info" ) {
   REQUIRE( f() == expected );
 
   // Fortified.
-  orders                    = unit_orders::fortifying{};
-  expected                  = baseline;
-  expected.char_info->value = 'F';
+  orders   = unit_orders::fortifying{};
+  expected = baseline;
+  expected.contents.get<UnitFlagContents::character>().value =
+      'F';
   REQUIRE( f() == expected );
 
   // Fortified.
-  orders                    = unit_orders::fortified{};
-  expected                  = baseline;
-  expected.char_info->value = 'F';
-  expected.char_info->color = {
+  orders   = unit_orders::fortified{};
+  expected = baseline;
+  expected.contents.get<UnitFlagContents::character>().value =
+      'F';
+  expected.contents.get<UnitFlagContents::character>().color = {
       .r = 0x77, .g = 0x77, .b = 0x77, .a = 0xff };
   REQUIRE( f() == expected );
 
@@ -154,12 +160,13 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info" ) {
                             .b = 0x22,
                             .a = 0xff },
       .background_color = { .r = 255, .a = 255 },
-      .char_info        = UnitFlagCharInfo{ .value = '-',
-                                            .color = { .r = 0x22,
-                                                       .g = 0x22,
-                                                       .b = 0x22,
-                                                       .a = 0xff } },
-      .in_front         = false,
+      .contents =
+          UnitFlagContents::character{ .value = '-',
+                                       .color = { .r = 0x22,
+                                                  .g = 0x22,
+                                                  .b = 0x22,
+                                                  .a = 0xff } },
+      .in_front = false,
   };
   auto baseline = expected;
 
@@ -172,15 +179,17 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info" ) {
 
   // Fortified.
   unit.start_fortify();
-  expected                  = baseline;
-  expected.char_info->value = 'F';
+  expected = baseline;
+  expected.contents.get<UnitFlagContents::character>().value =
+      'F';
   REQUIRE( f() == expected );
 
   // Fortified.
   unit.fortify();
-  expected                  = baseline;
-  expected.char_info->value = 'F';
-  expected.char_info->color = {
+  expected = baseline;
+  expected.contents.get<UnitFlagContents::character>().value =
+      'F';
+  expected.contents.get<UnitFlagContents::character>().color = {
       .r = 0x77, .g = 0x77, .b = 0x77, .a = 0xff };
   REQUIRE( f() == expected );
 
@@ -225,9 +234,8 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info" ) {
       .r = 0x1b, .g = 0x1b, .b = 0x1b, .a = 0xff };
   expected.background_color = {
       .r = 0x22, .g = 0x22, .b = 0x22, .a = 0xff };
-  expected.char_info = UnitFlagCharInfo{
-      .value = 'X',
-      .color = { .r = 0xdd, .g = 0xdd, .b = 0xdd, .a = 0xff } };
+  expected.contents =
+      UnitFlagContents::icon{ .tile = e_tile::privateer_x };
   REQUIRE( f() == expected );
 }
 
@@ -265,12 +273,13 @@ TEST_CASE( "[unit-flag] native_unit_flag_render_info" ) {
                             .g = 0x00,
                             .b = 0x00,
                             .a = 255 },
-      .char_info        = UnitFlagCharInfo{ .value = '-',
-                                            .color = { .r = 0x22,
-                                                       .g = 0x22,
-                                                       .b = 0x22,
-                                                       .a = 0xff } },
-      .in_front         = false,
+      .contents =
+          UnitFlagContents::character{ .value = '-',
+                                       .color = { .r = 0x22,
+                                                  .g = 0x22,
+                                                  .b = 0x22,
+                                                  .a = 0xff } },
+      .in_front = false,
   };
 
   // brave.
