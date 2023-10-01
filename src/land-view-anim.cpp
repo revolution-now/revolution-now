@@ -328,13 +328,6 @@ wait<> LandViewAnimator::ensure_visible_unit(
 // will outlive this coroutine.
 wait<> LandViewAnimator::animate_action_primitive(
     AnimationAction const& action, co::latch& hold ) {
-  int const latch_count_start = hold.counter();
-  SCOPE_EXIT {
-    CHECK( hold.counter() < latch_count_start,
-           "a call to animation action {} failed to decrement "
-           "the latch counter.",
-           action );
-  };
   AnimationPrimitive const& primitive = action.primitive;
   // Note: in the below, each animation primitive must handle the
   // latch. If the primitive leaves some visual animation state
@@ -342,11 +335,23 @@ wait<> LandViewAnimator::animate_action_primitive(
   // arrive_and_wait, while otherwise it can use count_down. If
   // it delegates the animation to another function, it must give
   // the latch to that function so that it can do the above. Ei-
-  // ther way, the latch counter must be decremented otherwise
-  // the composite animation (phase) will never terminate.
-  //
-  // NOTE: We must tick the latch through every code path in the
-  // below switch statement, otherwise animations will hang!
+  // ther way, the latch counter must be decremented (through all
+  // code paths!) otherwise the composite animation (phase) will
+  // never terminate. The following check should enforce that at
+  // least for the cases where we don't suspend. It is possible
+  // that if we suspend, then another coroutine decrements the
+  // latch, then we resume but don't decrement the latch, that
+  // this check won't catch it, but it is better than nothing.
+  int const latch_count_start = hold.counter();
+  SCOPE_EXIT {
+    CHECK( hold.counter() < latch_count_start,
+           "a call to animation action {} failed to decrement "
+           "the latch counter.",
+           action );
+  };
+  // NOTE: Once again, we must tick the latch through every code
+  // path in the below switch statement, otherwise animations
+  // will hang!
   SWITCH( primitive ) {
     CASE( delay ) {
       co_await delay.duration;
@@ -392,7 +397,10 @@ wait<> LandViewAnimator::animate_action_primitive(
       bool const should_animate =
           dst_exists ? should_animate_move( viz_, src, dst )
                      : should_animate_move( viz_, src, src );
-      if( !should_animate ) break;
+      if( !should_animate ) {
+        hold.count_down();
+        break;
+      }
       co_await slide_throttler( hold, unit_id, direction );
       break;
     }
@@ -409,8 +417,10 @@ wait<> LandViewAnimator::animate_action_primitive(
       // pixelating a native unit that is under fog when we de-
       // stroy its dwelling.
       if( viz_.visible( tile ) !=
-          e_tile_visibility::visible_and_clear )
+          e_tile_visibility::visible_and_clear ) {
+        hold.count_down();
         break;
+      }
       co_await unit_depixelation_throttler( hold, unit_id,
                                             /*target=*/nothing );
       break;
