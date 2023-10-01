@@ -46,6 +46,8 @@ struct latch {
   // Decrements the counter and blocks until it reaches zero.
   wait<> arrive_and_wait( int n = 1 );
 
+  int counter() const { return counter_; }
+
  private:
   int counter_ = 0;
 

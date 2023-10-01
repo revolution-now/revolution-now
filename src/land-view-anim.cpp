@@ -43,6 +43,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/to-str-ext-chrono.hpp"
 #include "base/to-str-ext-std.hpp"
 
 using namespace std;
@@ -327,6 +328,13 @@ wait<> LandViewAnimator::ensure_visible_unit(
 // will outlive this coroutine.
 wait<> LandViewAnimator::animate_action_primitive(
     AnimationAction const& action, co::latch& hold ) {
+  int const latch_count_start = hold.counter();
+  SCOPE_EXIT {
+    CHECK( hold.counter() < latch_count_start,
+           "a call to animation action {} failed to decrement "
+           "the latch counter.",
+           action );
+  };
   AnimationPrimitive const& primitive = action.primitive;
   // Note: in the below, each animation primitive must handle the
   // latch. If the primitive leaves some visual animation state
@@ -336,6 +344,9 @@ wait<> LandViewAnimator::animate_action_primitive(
   // the latch to that function so that it can do the above. Ei-
   // ther way, the latch counter must be decremented otherwise
   // the composite animation (phase) will never terminate.
+  //
+  // NOTE: We must tick the latch through every code path in the
+  // below switch statement, otherwise animations will hang!
   SWITCH( primitive ) {
     CASE( delay ) {
       co_await delay.duration;
