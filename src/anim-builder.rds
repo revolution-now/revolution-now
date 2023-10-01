@@ -38,6 +38,13 @@ sumtype.AnimationPrimitive {
   },
 
   # -------------------------------------------------------------
+  # Viewport.
+  # -------------------------------------------------------------
+  ensure_tile_visible {
+    tile 'Coord',
+  },
+
+  # -------------------------------------------------------------
   # Sound effects.
   # -------------------------------------------------------------
   play_sound {
@@ -114,12 +121,6 @@ sumtype.AnimationPrimitive {
 
 struct.AnimationAction {
   primitive 'AnimationPrimitive',
-
-  # If this is true then this is an animation that will be can-
-  # celled when the ones with background=false all complete. As
-  # such, this primitive may be non-terminating without causing
-  # the overall animation to be non-terminating.
-  background 'bool',
 }
 
 struct.AnimationSequence {

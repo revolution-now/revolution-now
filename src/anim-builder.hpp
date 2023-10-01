@@ -39,9 +39,6 @@ struct AnimationBuilder {
 
   AnimationAction& front_unit( GenericUnitId unit_id );
 
-  AnimationAction& front_unit_non_background(
-      GenericUnitId unit_id );
-
   AnimationAction& slide_unit( GenericUnitId unit_id,
                                e_direction   direction );
 
@@ -60,6 +57,8 @@ struct AnimationBuilder {
   AnimationAction& depixelate_dwelling( DwellingId dwelling_id );
 
   AnimationAction& depixelate_fog_dwelling( Coord tile );
+
+  AnimationAction& ensure_tile_visible( Coord tile );
 
  private:
   // Add another animation into the current phase.

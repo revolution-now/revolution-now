@@ -45,28 +45,12 @@ AnimationAction& AnimationBuilder::play_sound( e_sfx what ) {
 
 AnimationAction& AnimationBuilder::hide_unit(
     GenericUnitId unit_id ) {
-  AnimationAction& action =
-      push( P::hide_unit{ .unit_id = unit_id } );
-  // The "hide" animation must always be a background animation
-  // because it never ends.
-  action.background = true;
-  return action;
+  return push( P::hide_unit{ .unit_id = unit_id } );
 }
 
 AnimationAction& AnimationBuilder::front_unit(
     GenericUnitId unit_id ) {
-  AnimationAction& action =
-      push( P::front_unit{ .unit_id = unit_id } );
-  action.background = true;
-  return action;
-}
-
-AnimationAction& AnimationBuilder::front_unit_non_background(
-    GenericUnitId unit_id ) {
-  AnimationAction& action =
-      push( P::front_unit{ .unit_id = unit_id } );
-  action.background = false;
-  return action;
+  return push( P::front_unit{ .unit_id = unit_id } );
 }
 
 AnimationAction& AnimationBuilder::slide_unit(
@@ -112,6 +96,11 @@ AnimationAction& AnimationBuilder::depixelate_dwelling(
 AnimationAction& AnimationBuilder::depixelate_fog_dwelling(
     Coord tile ) {
   return push( P::depixelate_fog_dwelling{ .tile = tile } );
+}
+
+AnimationAction& AnimationBuilder::ensure_tile_visible(
+    Coord tile ) {
+  return push( P::ensure_tile_visible{ .tile = tile } );
 }
 
 } // namespace rn

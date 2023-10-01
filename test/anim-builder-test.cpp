@@ -50,27 +50,31 @@ TEST_CASE( "[anim-builder] builders" ) {
   builder.depixelate_colony( ColonyId{ 8 } );
   builder.depixelate_dwelling( DwellingId{ 9 } );
   builder.depixelate_fog_dwelling( Coord{ .x = 1, .y = 2 } );
-  builder.front_unit_non_background( GenericUnitId{ 10 } );
+  builder.ensure_tile_visible( Coord{ .x = 1, .y = 3 } );
 
   AnimationSequence const& res = builder.result();
 
   using P = AnimationPrimitive;
   AnimationSequence const expected{
       .sequence = {
-          { { .primitive =
-                  P::delay{ .duration = chrono::seconds{ 1 } } },
-            { .primitive =
-                  P::play_sound{ .what = e_sfx::attacker_won } },
-            { .primitive =
-                  P::hide_unit{ .unit_id = GenericUnitId{ 1 } },
-              .background = true },
-            { .primitive =
-                  P::front_unit{ .unit_id = GenericUnitId{ 2 } },
-              .background = true },
-            { .primitive =
-                  P::slide_unit{
-                      .unit_id   = GenericUnitId{ 3 },
-                      .direction = e_direction::sw } } },
+          /*phase 0*/ {
+              { .primitive =
+                    P::delay{ .duration =
+                                  chrono::seconds{ 1 } } },
+              { .primitive =
+                    P::play_sound{ .what =
+                                       e_sfx::attacker_won } },
+              { .primitive =
+                    P::hide_unit{ .unit_id =
+                                      GenericUnitId{ 1 } } },
+              { .primitive =
+                    P::front_unit{ .unit_id =
+                                       GenericUnitId{ 2 } } },
+              { .primitive =
+                    P::slide_unit{
+                        .unit_id   = GenericUnitId{ 3 },
+                        .direction = e_direction::sw } } },
+          /*phase 1*/
           { { .primitive =
                   P::depixelate_unit{ .unit_id =
                                           GenericUnitId{ 4 } } },
@@ -81,6 +85,7 @@ TEST_CASE( "[anim-builder] builders" ) {
                   P::pixelate_euro_unit_to_target{
                       .unit_id = UnitId{ 6 },
                       .target  = e_unit_type::cavalry } } },
+          /*phase 2*/
           { { .primitive =
                   P::pixelate_native_unit_to_target{
                       .unit_id = NativeUnitId{ 7 },
@@ -95,8 +100,8 @@ TEST_CASE( "[anim-builder] builders" ) {
             { .primitive =
                   P::depixelate_fog_dwelling{
                       .tile = { .x = 1, .y = 2 } } },
-            { .primitive = P::front_unit{
-                  .unit_id = GenericUnitId{ 10 } } } } } };
+            { .primitive = P::ensure_tile_visible{
+                  .tile = { .x = 1, .y = 3 } } } } } };
 
   REQUIRE( res == expected );
 }

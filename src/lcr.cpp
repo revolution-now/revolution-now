@@ -139,7 +139,7 @@ wait<LostCityRumorResult> run_burial_mounds_result(
       UnitId const unit_id = create_treasure_train(
           ss, ts, player, world_square, amount );
       co_await ts.planes.land_view().animate(
-          anim_seq_for_treasure_enpixelation( unit_id ) );
+          anim_seq_for_treasure_enpixelation( ss, unit_id ) );
       result =
           LostCityRumorResult::unit_created{ .id = unit_id };
       break;
@@ -299,7 +299,7 @@ wait<LostCityRumorResult> run_rumor_result(
       UnitId unit_id = create_treasure_train(
           ss, ts, player, world_square, amount );
       co_await ts.planes.land_view().animate(
-          anim_seq_for_treasure_enpixelation( unit_id ) );
+          anim_seq_for_treasure_enpixelation( ss, unit_id ) );
       co_return LostCityRumorResult::unit_created{ .id =
                                                        unit_id };
     }

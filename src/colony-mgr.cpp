@@ -862,7 +862,7 @@ wait<> run_animated_colony_destruction(
   clear_abandoned_colony_road( ss, ts.map_updater,
                                colony.location );
   AnimationSequence const seq =
-      anim_seq_for_colony_depixelation( colony.id );
+      anim_seq_for_colony_depixelation( ss, colony.id );
   co_await ts.planes.land_view().animate( seq );
   co_await run_colony_destruction( ss, ts, colony, reason, msg );
 }

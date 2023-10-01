@@ -20,6 +20,7 @@
 #include "config/unit-type.rds.hpp"
 
 // ss
+#include "ss/colonies.hpp"
 #include "ss/natives.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
@@ -240,6 +241,21 @@ void play_combat_outcome_sound(
   }
 }
 
+// This is intended to be used on small collections of tiles
+// (usually two) that are near each other, and attempts to leave
+// the viewport panned in a way where both are visible. In theory
+// that is not always possible when there are more than one, so
+// we just pan to them in sequence. Visually this should be ok
+// because, again, we are expecting that they will be near each
+// other, and so panning to the first one will very likely also
+// reveal the second one; but even if it doesn't, panning to the
+// second should still leave the first one visible.
+void ensure_tiles_visible( AnimationBuilder&    builder,
+                           vector<Coord> const& tiles ) {
+  for( Coord const tile : tiles )
+    builder.ensure_tile_visible( tile );
+}
+
 } // namespace
 
 /****************************************************************
@@ -257,6 +273,10 @@ AnimationSequence anim_seq_for_euro_attack_euro(
                 attacker_coord.direction_to( defender_coord ) );
   AnimationBuilder builder;
 
+  // Phase 0: pan to battle site;
+  ensure_tiles_visible( builder,
+                        { attacker_coord, defender_coord } );
+
   // Phase 1: defender unit appears on top of stack and the at-
   // tacker slides toward it. Most of the time the defender will
   // already be on top of the stack because the defender is
@@ -266,6 +286,7 @@ AnimationSequence anim_seq_for_euro_attack_euro(
   // might not correspond, since the default stack ordering goes
   // by raw combat value whereas the defender unit is chosen with
   // combat modifiers applied as well.
+  builder.new_phase();
   builder.front_unit( defender_id );
   builder.slide_unit( attacker_id, direction );
   builder.play_sound( e_sfx::move );
@@ -294,8 +315,13 @@ AnimationSequence anim_seq_for_naval_battle(
                 attacker_coord.direction_to( defender_coord ) );
   AnimationBuilder builder;
 
+  // Phase 0: pan to battle site;
+  ensure_tiles_visible( builder,
+                        { attacker_coord, defender_coord } );
+
   // Phase 1: defender unit appears on top of stack and the at-
   // tacker slides toward it.
+  builder.new_phase();
   builder.front_unit( defender_id );
   builder.slide_unit( attacker_id, direction );
   builder.play_sound( e_sfx::move );
@@ -339,8 +365,13 @@ AnimationSequence anim_seq_for_euro_attack_brave(
                 attacker_coord.direction_to( defender_coord ) );
   AnimationBuilder builder;
 
+  // Phase 0: pan to battle site;
+  ensure_tiles_visible( builder,
+                        { attacker_coord, defender_coord } );
+
   // Phase 1: defender unit appears on top of stack and the at-
   // tacker slides toward it.
+  builder.new_phase();
   builder.front_unit( defender_id );
   builder.slide_unit( attacker_id, direction );
   builder.play_sound( e_sfx::move );
@@ -369,6 +400,10 @@ AnimationSequence anim_seq_for_brave_attack_euro(
                 attacker_coord.direction_to( defender_coord ) );
   AnimationBuilder builder;
 
+  // Phase 0: pan to battle site;
+  ensure_tiles_visible( builder,
+                        { attacker_coord, defender_coord } );
+
   // Phase 1: defender unit appears on top of stack and the at-
   // tacker slides toward it. Most of the time the defender will
   // already be on top of the stack because the defender is
@@ -378,6 +413,7 @@ AnimationSequence anim_seq_for_brave_attack_euro(
   // might not correspond, since the default stack ordering goes
   // by raw combat value whereas the defender unit is chosen with
   // combat modifiers applied as well.
+  builder.new_phase();
   builder.front_unit( defender_id );
   builder.slide_unit( attacker_id, direction );
   builder.play_sound( e_sfx::move );
@@ -407,8 +443,13 @@ AnimationSequence anim_seq_for_brave_attack_colony(
                 attacker_coord.direction_to( defender_coord ) );
   AnimationBuilder builder;
 
+  // Phase 0: pan to battle site;
+  ensure_tiles_visible( builder,
+                        { attacker_coord, defender_coord } );
+
   // Phase 1: defender unit appears on top of stack and the at-
   // tacker slides toward it.
+  builder.new_phase();
   builder.front_unit( defender_id );
   builder.slide_unit( attacker_id, direction );
   builder.play_sound( e_sfx::move );
@@ -498,8 +539,13 @@ AnimationSequence anim_seq_for_undefended_colony(
                 attacker_coord.direction_to( defender_coord ) );
   AnimationBuilder builder;
 
+  // Phase 0: pan to battle site;
+  ensure_tiles_visible( builder,
+                        { attacker_coord, defender_coord } );
+
   // Phase 1: defender unit appears above colony and the attacker
   // slides toward it.
+  builder.new_phase();
   builder.front_unit( defender_id );
   builder.slide_unit( attacker_id, direction );
   builder.play_sound( e_sfx::move );
@@ -538,8 +584,13 @@ AnimationSequence anim_seq_for_dwelling_burn(
                 attacker_coord.direction_to( defender_coord ) );
   AnimationBuilder builder;
 
+  // Phase 0: pan to battle site;
+  ensure_tiles_visible( builder,
+                        { attacker_coord, defender_coord } );
+
   // Phase 1: defender unit appears above colony and the attacker
   // slides toward it.
+  builder.new_phase();
   builder.front_unit( defender_id );
   builder.slide_unit( attacker_id, direction );
   builder.play_sound( e_sfx::move );
@@ -548,29 +599,11 @@ AnimationSequence anim_seq_for_dwelling_burn(
   // any owned braves depixelate. If the attacker unit is pro-
   // moted then it will pixelate.
   builder.new_phase();
-  // FIXME: there is a race in situations like the one below
-  // where there are multiple things pixelating in the same
-  // phase: they may end at slightly different times because they
-  // start at slightly different times and because of how the
-  // complicated nature of their timing mechanism interacts with
-  // (discreet) frames. Need to figure out a general solution to
-  // this. Adding a one frame delay to the end of each pixelation
-  // animation may not help, since one could still finish before
-  // the others. This issue can be demonstrated by adding a
-  // `co_await 1_frames` onto the end of the dwelling depixela-
-  // tion animation and then observing that, at the very end of a
-  // dwelling burn, the phantom brave flashes on for one frame.
   add_attack_outcome_for_euro_unit( ss, builder, attacker_id,
                                     attacker_outcome );
   add_attack_outcome_for_native_unit(
       builder, defender_id,
       NativeUnitCombatOutcome::destroyed{} );
-  // TODO: once we fix viewport scrolling in animations, we
-  // should make sure to pan to the dwelling coord last so that
-  // the viewport doesn't end up scrolling away from it just to
-  // see one of the dwelling's brave depixelate, which can happen
-  // if the brave has strayed far from the dwelling (if we can
-  // only see one then it is better to see the dwelling).
   builder.depixelate_dwelling( dwelling_id );
   for( NativeUnitId const brave_id :
        dwelling_destruction.braves_to_kill ) {
@@ -586,16 +619,34 @@ AnimationSequence anim_seq_for_dwelling_burn(
 }
 
 AnimationSequence anim_seq_for_unit_move(
-    GenericUnitId unit_id, e_direction direction ) {
+    SSConst const& ss, GenericUnitId unit_id,
+    e_direction direction ) {
+  Coord const tile =
+      coord_for_unit_multi_ownership_or_die( ss, unit_id );
+  Coord const      target = tile.moved( direction );
   AnimationBuilder builder;
+  // Phase 0: pan to site.
+  ensure_tiles_visible( builder, { tile, target } );
+  // Phase 1: slide.
+  builder.new_phase();
   builder.slide_unit( unit_id, direction );
   builder.play_sound( e_sfx::move );
   return builder.result();
 }
 
 AnimationSequence anim_seq_for_boarding_ship(
-    UnitId unit_id, UnitId ship_id, e_direction direction ) {
+    SSConst const& ss, UnitId unit_id, UnitId ship_id,
+    e_direction direction ) {
+  Coord const unit_tile =
+      coord_for_unit_multi_ownership_or_die( ss, unit_id );
+  Coord const ship_tile =
+      coord_for_unit_multi_ownership_or_die( ss, ship_id );
+  CHECK_EQ( unit_tile.moved( direction ), ship_tile );
   AnimationBuilder builder;
+  // Phase 0: pan to site.
+  ensure_tiles_visible( builder, { unit_tile, ship_tile } );
+  // Phase 1: slide.
+  builder.new_phase();
   builder.front_unit( ship_id );
   builder.slide_unit( unit_id, direction );
   builder.play_sound( e_sfx::move );
@@ -603,24 +654,44 @@ AnimationSequence anim_seq_for_boarding_ship(
 }
 
 AnimationSequence anim_seq_for_unit_depixelation(
-    GenericUnitId unit_id ) {
+    SSConst const& ss, GenericUnitId unit_id ) {
+  Coord const tile =
+      coord_for_unit_multi_ownership_or_die( ss, unit_id );
   AnimationBuilder builder;
+  // Phase 0: pan to site.
+  builder.ensure_tile_visible( tile );
+  // Phase 1: depixelate.
+  builder.new_phase();
   builder.depixelate_unit( unit_id );
   builder.play_sound( e_sfx::attacker_lost );
   return builder.result();
 }
 
 AnimationSequence anim_seq_for_unit_depixelation(
-    UnitId unit_id, e_unit_type target_type ) {
+    SSConst const& ss, UnitId unit_id,
+    e_unit_type target_type ) {
+  Coord const tile =
+      coord_for_unit_multi_ownership_or_die( ss, unit_id );
   AnimationBuilder builder;
+  // Phase 0: pan to site.
+  builder.ensure_tile_visible( tile );
+  // Phase 1: pixelate.
+  builder.new_phase();
   builder.pixelate_euro_unit_to_target( unit_id, target_type );
   // TODO: sound effect.
   return builder.result();
 }
 
 AnimationSequence anim_seq_for_unit_depixelation(
-    NativeUnitId unit_id, e_native_unit_type target_type ) {
+    SSConst const& ss, NativeUnitId unit_id,
+    e_native_unit_type target_type ) {
+  Coord const tile =
+      coord_for_unit_multi_ownership_or_die( ss, unit_id );
   AnimationBuilder builder;
+  // Phase 0: pan to site.
+  builder.ensure_tile_visible( tile );
+  // Phase 1: pixelate.
+  builder.new_phase();
   builder.pixelate_native_unit_to_target( unit_id, target_type );
   // TODO: sound effect.
   return builder.result();
@@ -628,15 +699,27 @@ AnimationSequence anim_seq_for_unit_depixelation(
 
 // General enpixelation animation for unit.
 AnimationSequence anim_seq_for_unit_enpixelation(
-    GenericUnitId unit_id ) {
+    SSConst const& ss, GenericUnitId unit_id ) {
+  Coord const tile =
+      coord_for_unit_multi_ownership_or_die( ss, unit_id );
   AnimationBuilder builder;
+  // Phase 0: pan to site.
+  builder.ensure_tile_visible( tile );
+  // Phase 1: enpixelate.
+  builder.new_phase();
   builder.enpixelate_unit( unit_id );
   return builder.result();
 }
 
 AnimationSequence anim_seq_for_treasure_enpixelation(
-    UnitId unit_id ) {
+    SSConst const& ss, UnitId unit_id ) {
+  Coord const tile =
+      coord_for_unit_multi_ownership_or_die( ss, unit_id );
   AnimationBuilder builder;
+  // Phase 0: pan to site.
+  builder.ensure_tile_visible( tile );
+  // Phase 1: enpixelate.
+  builder.new_phase();
   // TODO: this is not a high priority, but one thing that the
   // original game does that might be nice for us to do as an ef-
   // fect, if it is feasible, is that if a treasure enpixelates
@@ -654,10 +737,17 @@ AnimationSequence anim_seq_for_treasure_enpixelation(
 }
 
 AnimationSequence anim_seq_for_convert_produced(
-    UnitId unit_id, e_direction direction ) {
+    SSConst const& ss, UnitId unit_id, e_direction direction ) {
+  Coord const tile =
+      coord_for_unit_multi_ownership_or_die( ss, unit_id );
+  Coord const target = tile.moved( direction );
+
   AnimationBuilder builder;
+  // Phase 0: pan to site.
+  ensure_tiles_visible( builder, { tile, target } );
 
   // Phase 1: enpixelate convert.
+  builder.new_phase();
   builder.enpixelate_unit( unit_id );
 
   // Phase 2: slide to attacker.
@@ -669,8 +759,14 @@ AnimationSequence anim_seq_for_convert_produced(
 }
 
 AnimationSequence anim_seq_for_colony_depixelation(
-    ColonyId colony_id ) {
+    SSConst const& ss, ColonyId colony_id ) {
+  Coord const tile =
+      ss.colonies.colony_for( colony_id ).location;
   AnimationBuilder builder;
+  // Phase 0: pan to site.
+  builder.ensure_tile_visible( tile );
+  // Phase 1: depixelate colony.
+  builder.new_phase();
   builder.depixelate_colony( colony_id );
   builder.play_sound( e_sfx::city_destroyed );
   return builder.result();
@@ -680,13 +776,6 @@ AnimationSequence anim_seq_unit_to_front(
     GenericUnitId unit_id ) {
   AnimationBuilder builder;
   builder.front_unit( unit_id );
-  return builder.result();
-}
-
-AnimationSequence anim_seq_unit_to_front_non_background(
-    GenericUnitId unit_id ) {
-  AnimationBuilder builder;
-  builder.front_unit_non_background( unit_id );
   return builder.result();
 }
 

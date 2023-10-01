@@ -300,7 +300,7 @@ struct TravelHandler : public CommandHandler {
         // that the player knows which ship is being boarded.
         CHECK( target_unit.has_value() );
         AnimationSequence const seq = anim_seq_for_boarding_ship(
-            unit_id, *target_unit, direction );
+            ss_, unit_id, *target_unit, direction );
         co_await ts_.planes.land_view().animate( seq );
         break;
       }
@@ -315,7 +315,7 @@ struct TravelHandler : public CommandHandler {
       case e_travel_verdict::ship_into_port:
       case e_travel_verdict::sail_high_seas: {
         AnimationSequence const seq =
-            anim_seq_for_unit_move( unit_id, direction );
+            anim_seq_for_unit_move( ss_, unit_id, direction );
         co_await ts_.planes.land_view().animate( seq );
         break;
       }

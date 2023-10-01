@@ -380,7 +380,8 @@ wait<> AttackColonyUndefendedHandler::perform() {
 
   // 1. The attacker moves into the colony square.
   co_await ts_.planes.land_view().animate(
-      anim_seq_for_unit_move( attacker_.id(), direction_ ) );
+      anim_seq_for_unit_move( ss_, attacker_.id(),
+                              direction_ ) );
   maybe<UnitDeleted> const unit_deleted =
       co_await UnitOwnershipChanger( ss_, attacker_.id() )
           .change_to_map( ts_, attack_dst_ );
@@ -775,7 +776,7 @@ wait<> AttackDwellingHandler::produce_convert() {
   native_convert_ = convert_id;
   co_await ts_.planes.land_view().animate(
       anim_seq_for_convert_produced(
-          convert_id, reverse_direction( direction_ ) ) );
+          ss_, convert_id, reverse_direction( direction_ ) ) );
   // Non-interactive is OK here because the attacker is already
   // on this square.
   UnitOwnershipChanger( ss_, convert_id )
@@ -1003,7 +1004,7 @@ wait<> AttackDwellingHandler::perform() {
             dwelling_location );
     treasure_ = treasure_id;
     AnimationSequence const seq =
-        anim_seq_for_treasure_enpixelation( treasure_id );
+        anim_seq_for_treasure_enpixelation( ss_, treasure_id );
     co_await ts_.planes.land_view().animate( seq );
     // Just in case e.g. the treasure appeared next to a brave
     // from unencountered tribe, or the pacific ocean.

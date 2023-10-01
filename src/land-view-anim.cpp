@@ -15,6 +15,7 @@
 #include "co-combinator.hpp"
 #include "co-time.hpp"
 #include "co-wait.hpp"
+#include "latch.hpp"
 #include "sound.hpp"
 #include "throttler.hpp"
 #include "unit-mgr.hpp"
@@ -34,6 +35,9 @@
 #include "ss/settings.rds.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
+
+// rds
+#include "rds/switch-macro.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -113,8 +117,9 @@ double depixelation_delta_from_stage( double initial_delta,
 
 // TODO: move this into a dedicated pixelation module and unit
 // test it.
-wait<> pixelation_stage_throttler( double& stage,
-                                   bool    negative = false ) {
+wait<> pixelation_stage_throttler( co::latch& hold,
+                                   double&    stage,
+                                   bool negative = false ) {
   double const        sign = negative ? -1.0 : 1.0;
   static double const pixelation_per_frame =
       config_gfx.pixelation_curve.pixelation_per_frame
@@ -131,6 +136,8 @@ wait<> pixelation_stage_throttler( double& stage,
   }
   // Need this so that final frame is visible.
   co_await throttle();
+  // Must be last.
+  co_await hold.arrive_and_wait();
 }
 
 } // namespace
@@ -175,7 +182,8 @@ LandViewAnimator::fog_dwelling_animation( Coord tile ) const {
 }
 
 wait<> LandViewAnimator::unit_depixelation_throttler(
-    GenericUnitId id, maybe<e_tile> target_tile ) {
+    co::latch& hold, GenericUnitId id,
+    maybe<e_tile> target_tile ) {
   auto popper =
       add_unit_animation<UnitAnimationState::depixelate_unit>(
           id );
@@ -183,51 +191,51 @@ wait<> LandViewAnimator::unit_depixelation_throttler(
 
   depixelate.stage  = 0.0;
   depixelate.target = target_tile;
-  co_await pixelation_stage_throttler( depixelate.stage );
+  co_await pixelation_stage_throttler( hold, depixelate.stage );
 }
 
 wait<> LandViewAnimator::unit_enpixelation_throttler(
-    GenericUnitId id ) {
+    co::latch& hold, GenericUnitId id ) {
   auto popper =
       add_unit_animation<UnitAnimationState::enpixelate_unit>(
           id );
   UnitAnimationState::enpixelate_unit& enpixelate = popper.get();
 
   enpixelate.stage = 1.0;
-  co_await pixelation_stage_throttler( enpixelate.stage,
+  co_await pixelation_stage_throttler( hold, enpixelate.stage,
                                        /*negative=*/true );
 }
 
 wait<> LandViewAnimator::colony_depixelation_throttler(
-    Colony const& colony ) {
+    co::latch& hold, Colony const& colony ) {
   auto popper =
       add_colony_animation<ColonyAnimationState::depixelate>(
           colony.id );
   ColonyAnimationState::depixelate& depixelate = popper.get();
 
   depixelate.stage = 0.0;
-  co_await pixelation_stage_throttler( depixelate.stage );
+  co_await pixelation_stage_throttler( hold, depixelate.stage );
 }
 
 wait<> LandViewAnimator::dwelling_depixelation_throttler(
-    Dwelling const& dwelling ) {
+    co::latch& hold, Dwelling const& dwelling ) {
   auto popper =
       add_dwelling_animation<DwellingAnimationState::depixelate>(
           dwelling.id );
   DwellingAnimationState::depixelate& depixelate = popper.get();
 
   depixelate.stage = 0.0;
-  co_await pixelation_stage_throttler( depixelate.stage );
+  co_await pixelation_stage_throttler( hold, depixelate.stage );
 }
 
 wait<> LandViewAnimator::fog_dwelling_depixelation_throttler(
-    Coord tile ) {
+    co::latch& hold, Coord tile ) {
   auto popper = add_fog_dwelling_animation<
       DwellingAnimationState::depixelate>( tile );
   DwellingAnimationState::depixelate& depixelate = popper.get();
 
   depixelate.stage = 0.0;
-  co_await pixelation_stage_throttler( depixelate.stage );
+  co_await pixelation_stage_throttler( hold, depixelate.stage );
 }
 
 // TODO: this animation needs to be sync'd with the one in the
@@ -248,7 +256,8 @@ wait<> LandViewAnimator::animate_blink(
   }
 }
 
-wait<> LandViewAnimator::slide_throttler( GenericUnitId id,
+wait<> LandViewAnimator::slide_throttler( co::latch&    hold,
+                                          GenericUnitId id,
                                           e_direction   d ) {
   double const kMaxVelocity =
       ss_.settings.game_options
@@ -282,9 +291,23 @@ wait<> LandViewAnimator::slide_throttler( GenericUnitId id,
   }
   // Need this so that final frame is visible.
   co_await throttle();
+  // Must be last.
+  co_await hold.arrive_and_wait();
 }
 
 wait<> LandViewAnimator::ensure_visible( Coord const& coord ) {
+  if( !ss_.terrain.square_exists( coord ) ) {
+    // We could have a situation where a ship is being animated
+    // to move off the map edge to sail the high seas, and so
+    // someone might end up calling this with such a tile. Even
+    // in those cases, we do expect that it should be just one
+    // tile off of the edge.
+    CHECK(
+        coord.is_inside(
+            ss_.terrain.world_rect_tiles().with_border_added() ),
+        "world map does not contain tile {}", coord );
+    co_return;
+  }
   co_await viewport_.ensure_tile_visible_smooth( coord );
 }
 
@@ -303,48 +326,50 @@ wait<> LandViewAnimator::ensure_visible_unit(
 // In this function we can assume that the `primitive` argument
 // will outlive this coroutine.
 wait<> LandViewAnimator::animate_action_primitive(
-    AnimationAction const& action ) {
+    AnimationAction const& action, co::latch& hold ) {
   AnimationPrimitive const& primitive = action.primitive;
-  switch( primitive.to_enum() ) {
-    using e = AnimationPrimitive::e;
-    case e::delay: {
-      auto& [duration] =
-          primitive.get<AnimationPrimitive::delay>();
-      co_await duration;
+  // Note: in the below, each animation primitive must handle the
+  // latch. If the primitive leaves some visual animation state
+  // different than when it started then it needs to use
+  // arrive_and_wait, while otherwise it can use count_down. If
+  // it delegates the animation to another function, it must give
+  // the latch to that function so that it can do the above. Ei-
+  // ther way, the latch counter must be decremented otherwise
+  // the composite animation (phase) will never terminate.
+  SWITCH( primitive ) {
+    CASE( delay ) {
+      co_await delay.duration;
+      hold.count_down();
       break;
     }
-    case e::play_sound: {
-      auto& [what] =
-          primitive.get<AnimationPrimitive::play_sound>();
+    CASE( ensure_tile_visible ) {
+      co_await ensure_visible( ensure_tile_visible.tile );
+      hold.count_down();
+      break;
+    }
+    CASE( play_sound ) {
       // TODO: should we co_await on the length of the sound ef-
       // fect? Maybe that would be a separate animation such as
       // `play_sound_wait`.
-      play_sound_effect( what );
+      play_sound_effect( play_sound.what );
+      hold.count_down();
       break;
     }
-    case e::hide_unit: {
-      auto& [unit_id] =
-          primitive.get<AnimationPrimitive::hide_unit>();
+    CASE( hide_unit ) {
       auto popper = add_unit_animation<UnitAnimationState::hide>(
-          unit_id );
-      // Never resumes.
-      co_await wait_promise<>().wait();
-      SHOULD_NOT_BE_HERE;
+          hide_unit.unit_id );
+      co_await hold.arrive_and_wait();
+      break;
     }
-    case e::front_unit: {
-      auto& [unit_id] =
-          primitive.get<AnimationPrimitive::front_unit>();
+    CASE( front_unit ) {
       auto popper =
           add_unit_animation<UnitAnimationState::front>(
-              unit_id );
-      // Never resumes.
-      co_await wait_promise<>().wait();
-      SHOULD_NOT_BE_HERE;
+              front_unit.unit_id );
+      co_await hold.arrive_and_wait();
+      break;
     }
-    case e::slide_unit: {
-      auto& [unit_id, direction] =
-          primitive.get<AnimationPrimitive::slide_unit>();
-      // Ensure that both src and dst squares are visible.
+    CASE( slide_unit ) {
+      auto& [unit_id, direction] = slide_unit;
       Coord const src =
           coord_for_unit_indirect_or_die( ss_.units, unit_id );
       Coord const dst = src.moved( direction );
@@ -357,14 +382,11 @@ wait<> LandViewAnimator::animate_action_primitive(
           dst_exists ? should_animate_move( viz_, src, dst )
                      : should_animate_move( viz_, src, src );
       if( !should_animate ) break;
-      co_await ensure_visible( src );
-      if( dst_exists ) co_await ensure_visible( dst );
-      co_await slide_throttler( unit_id, direction );
+      co_await slide_throttler( hold, unit_id, direction );
       break;
     }
-    case e::depixelate_unit: {
-      auto& [unit_id] =
-          primitive.get<AnimationPrimitive::depixelate_unit>();
+    CASE( depixelate_unit ) {
+      GenericUnitId const unit_id = depixelate_unit.unit_id;
       // We need the multi-ownership version if the unit being
       // depixelated is a unit working in a colony that is being
       // attacked.
@@ -378,60 +400,42 @@ wait<> LandViewAnimator::animate_action_primitive(
       if( viz_.visible( tile ) !=
           e_tile_visibility::visible_and_clear )
         break;
-      co_await ensure_visible_unit( unit_id );
-      co_await unit_depixelation_throttler( unit_id,
+      co_await unit_depixelation_throttler( hold, unit_id,
                                             /*target=*/nothing );
       break;
     }
-    case e::enpixelate_unit: {
-      auto& [unit_id] =
-          primitive.get<AnimationPrimitive::enpixelate_unit>();
-      co_await ensure_visible_unit( unit_id );
-      co_await unit_enpixelation_throttler( unit_id );
+    CASE( enpixelate_unit ) {
+      co_await unit_enpixelation_throttler(
+          hold, enpixelate_unit.unit_id );
       break;
     }
-    case e::pixelate_euro_unit_to_target: {
-      auto& [unit_id, target] = primitive.get<
-          AnimationPrimitive::pixelate_euro_unit_to_target>();
-      co_await ensure_visible_unit( unit_id );
+    CASE( pixelate_euro_unit_to_target ) {
+      auto& [unit_id, target] = pixelate_euro_unit_to_target;
       co_await unit_depixelation_throttler(
-          unit_id, unit_attr( target ).tile );
+          hold, unit_id, unit_attr( target ).tile );
       break;
     }
-    case e::pixelate_native_unit_to_target: {
-      auto& [unit_id, target] = primitive.get<
-          AnimationPrimitive::pixelate_native_unit_to_target>();
-      co_await ensure_visible_unit( unit_id );
+    CASE( pixelate_native_unit_to_target ) {
+      auto& [unit_id, target] = pixelate_native_unit_to_target;
       co_await unit_depixelation_throttler(
-          unit_id, unit_attr( target ).tile );
+          hold, unit_id, unit_attr( target ).tile );
       break;
     }
-    case e::depixelate_colony: {
-      auto& [colony_id] =
-          primitive.get<AnimationPrimitive::depixelate_colony>();
+    CASE( depixelate_colony ) {
       Colony const& colony =
-          ss_.colonies.colony_for( colony_id );
-      co_await ensure_visible( colony.location );
-      co_await colony_depixelation_throttler( colony );
+          ss_.colonies.colony_for( depixelate_colony.colony_id );
+      co_await colony_depixelation_throttler( hold, colony );
       break;
     }
-    case e::depixelate_dwelling: {
-      auto& [dwelling_id] =
-          primitive
-              .get<AnimationPrimitive::depixelate_dwelling>();
-      Dwelling const& dwelling =
-          ss_.natives.dwelling_for( dwelling_id );
-      Coord const location =
-          ss_.natives.coord_for( dwelling_id );
-      co_await ensure_visible( location );
-      co_await dwelling_depixelation_throttler( dwelling );
+    CASE( depixelate_dwelling ) {
+      Dwelling const& dwelling = ss_.natives.dwelling_for(
+          depixelate_dwelling.dwelling_id );
+      co_await dwelling_depixelation_throttler( hold, dwelling );
       break;
     }
-    case e::depixelate_fog_dwelling: {
-      auto& [tile] = primitive.get<
-          AnimationPrimitive::depixelate_fog_dwelling>();
-      co_await ensure_visible( tile );
-      co_await fog_dwelling_depixelation_throttler( tile );
+    CASE( depixelate_fog_dwelling ) {
+      co_await fog_dwelling_depixelation_throttler(
+          hold, depixelate_fog_dwelling.tile );
       break;
     }
   }
@@ -440,19 +444,44 @@ wait<> LandViewAnimator::animate_action_primitive(
 wait<> LandViewAnimator::animate_sequence(
     AnimationSequence const& seq ) {
   for( vector<AnimationAction> const& sub_seq : seq.sequence ) {
-    vector<wait<>> must_complete;
-    vector<wait<>> background;
-    must_complete.reserve( sub_seq.size() );
-    background.reserve( sub_seq.size() );
-    for( AnimationAction const& action : sub_seq ) {
-      wait<> w = animate_action_primitive( action );
-      if( action.background )
-        background.push_back( std::move( w ) );
-      else
-        must_complete.push_back( std::move( w ) );
-    }
-    co_await co::all( std::move( must_complete ) );
+    vector<wait<>> ws;
+    ws.reserve( sub_seq.size() );
+    // The latch is to synchronize the animations so that they
+    // all end at the same time. If one is shorter than the other
+    // and it were to return early, it would revert its final an-
+    // imation state while the other animations keep going, which
+    // would lead to incorrect visuals. The latch makes it so
+    // that each animation, when it gets to the end, holds its
+    // state until all of the other animations in the phase have
+    // completed (meaning that they've either called count_down
+    // or arrive_and_wait on the latch).
+    co::latch hold( sub_seq.size() );
+    for( AnimationAction const& action : sub_seq )
+      ws.push_back( animate_action_primitive( action, hold ) );
+    co_await co::all( std::move( ws ) );
   }
+}
+
+wait<> LandViewAnimator::animate_sequence_and_hold(
+    AnimationSequence const& seq ) {
+  if( seq.sequence.empty() ) co_return;
+  // Since the phase we animate will be told to hold and not ever
+  // return, it only makes sense to animate a single phase.
+  CHECK( seq.sequence.size() == 1 );
+  vector<AnimationAction> const& sub_seq = seq.sequence[0];
+
+  vector<wait<>> ws;
+  ws.reserve( sub_seq.size() );
+  // See the corresponding comment in `animate_sequence` for an
+  // explanation of the latch; the thing we do differently here
+  // is ensure that the counter never hits zero, so i.e. the ani-
+  // mation will run to completion, then just hold its final
+  // state, never to return. Such animations are intended to be
+  // cancelled at some point by the caller.
+  co::latch hold( numeric_limits<int>::max() );
+  for( AnimationAction const& action : sub_seq )
+    ws.push_back( animate_action_primitive( action, hold ) );
+  co_await co::all( std::move( ws ) );
 }
 
 } // namespace rn

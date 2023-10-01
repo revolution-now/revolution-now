@@ -76,55 +76,52 @@ AnimationSequence anim_seq_for_dwelling_burn(
 // might not if a ship is moving off the map to sail the high
 // seas).
 AnimationSequence anim_seq_for_unit_move(
-    GenericUnitId unit_id, e_direction direction );
+    SSConst const& ss, GenericUnitId unit_id,
+    e_direction direction );
 
 // In the case that a unit is boarding a ship we need a special
 // animation which does the slide but also makes sure that the
 // ship being boarded gets rendered on top of its stack so that
 // the player knows which ship is being boarded.
 AnimationSequence anim_seq_for_boarding_ship(
-    UnitId unit_id, UnitId ship_id, e_direction direction );
+    SSConst const& ss, UnitId unit_id, UnitId ship_id,
+    e_direction direction );
 
 // General depixelation animation for unit.
 AnimationSequence anim_seq_for_unit_depixelation(
-    GenericUnitId unit_id );
+    SSConst const& ss, GenericUnitId unit_id );
 
 // Depixelation animation for euro units with a target.
 AnimationSequence anim_seq_for_unit_depixelation(
-    UnitId unit_id, e_unit_type target_type );
+    SSConst const& ss, UnitId unit_id, e_unit_type target_type );
 
 // Depixelation animation for native units with a target.
 AnimationSequence anim_seq_for_unit_depixelation(
-    NativeUnitId unit_id, e_native_unit_type target_type );
+    SSConst const& ss, NativeUnitId unit_id,
+    e_native_unit_type target_type );
 
 // General enpixelation animation for unit.
 AnimationSequence anim_seq_for_unit_enpixelation(
-    GenericUnitId unit_id );
+    SSConst const& ss, GenericUnitId unit_id );
 
 // This one comes with a nice sound effect.
 AnimationSequence anim_seq_for_treasure_enpixelation(
-    UnitId unit_id );
+    SSConst const& ss, UnitId unit_id );
 
 // Colony just disappears.
 AnimationSequence anim_seq_for_colony_depixelation(
-    ColonyId colony_id );
+    SSConst const& ss, ColonyId colony_id );
 
 // Native convert appears on the dwelling tile then slides to the
 // attacker.
 AnimationSequence anim_seq_for_convert_produced(
-    UnitId unit_id, e_direction direction );
+    SSConst const& ss, UnitId unit_id, e_direction direction );
 
 // Generally units that are animated will be rendered on top of
 // other (non-animated) units. But there are cases when a unit is
 // not being animated but you still want it to appear at the top
 // of its stack, and that's what this is for.
 AnimationSequence anim_seq_unit_to_front(
-    GenericUnitId unit_id );
-
-// Version of the above but non-terminating. This is needed when
-// you want to run this on its own (not with any other finite an-
-// imations runnings in parallel) until some other event occurs.
-AnimationSequence anim_seq_unit_to_front_non_background(
     GenericUnitId unit_id );
 
 // Depixelates an entire tribe; only used in cheat mode when

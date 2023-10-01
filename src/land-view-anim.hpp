@@ -44,6 +44,10 @@ struct Visibility;
 
 class SmoothViewport;
 
+namespace co {
+struct latch;
+}
+
 /****************************************************************
 ** LandViewAnimator
 *****************************************************************/
@@ -99,6 +103,9 @@ struct LandViewAnimator {
 
   wait<> animate_sequence( AnimationSequence const& seq );
 
+  wait<> animate_sequence_and_hold(
+      AnimationSequence const& seq );
+
   wait<> animate_blink( UnitId id, bool visible_initially );
 
   // Smooth map scrolling.
@@ -110,22 +117,27 @@ struct LandViewAnimator {
  private:
   // Animation primitives.
 
-  wait<> animate_action_primitive(
-      AnimationAction const& action );
+  wait<> animate_action_primitive( AnimationAction const& action,
+                                   co::latch&             hold );
 
   wait<> unit_depixelation_throttler(
-      GenericUnitId id, maybe<e_tile> target_tile );
+      co::latch& hold, GenericUnitId id,
+      maybe<e_tile> target_tile );
 
-  wait<> unit_enpixelation_throttler( GenericUnitId id );
+  wait<> unit_enpixelation_throttler( co::latch&    hold,
+                                      GenericUnitId id );
 
-  wait<> colony_depixelation_throttler( Colony const& colony );
+  wait<> colony_depixelation_throttler( co::latch&    hold,
+                                        Colony const& colony );
 
   wait<> dwelling_depixelation_throttler(
-      Dwelling const& dwelling );
+      co::latch& hold, Dwelling const& dwelling );
 
-  wait<> fog_dwelling_depixelation_throttler( Coord tile );
+  wait<> fog_dwelling_depixelation_throttler( co::latch& hold,
+                                              Coord      tile );
 
-  wait<> slide_throttler( GenericUnitId id, e_direction d );
+  wait<> slide_throttler( co::latch& hold, GenericUnitId id,
+                          e_direction d );
 
  private:
   template<typename Anim, typename Map>

@@ -142,7 +142,8 @@ wait<> handle_native_unit_travel( SS& ss, TS& ts,
   }
   if( should_animate_native_travel( ss, viz, src, dst ) )
     co_await ts.planes.land_view().animate(
-        anim_seq_for_unit_move( native_unit.id, direction ) );
+        anim_seq_for_unit_move( ss, native_unit.id,
+                                direction ) );
   co_await UnitOnMapMover::native_unit_to_map_interactive(
       ss, ts, native_unit.id, dst,
       ss.units.dwelling_for( native_unit.id ) );

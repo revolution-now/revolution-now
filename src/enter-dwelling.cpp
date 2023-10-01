@@ -469,7 +469,7 @@ wait<> do_live_among_the_natives(
         // (and hence unit sprite) remains as a pioneer.
         if( o.to.type() != unit.type() ) {
           AnimationSequence const seq =
-              anim_seq_for_unit_depixelation( unit.id(),
+              anim_seq_for_unit_depixelation( ss, unit.id(),
                                               o.to.type() );
           co_await ts.planes.land_view().animate( seq );
         }
@@ -683,7 +683,7 @@ wait<> do_speak_with_chief(
           "along with your scout." );
       AnimationSequence const seq =
           anim_seq_for_unit_depixelation(
-              unit.id(), e_unit_type::seasoned_scout );
+              ss, unit.id(), e_unit_type::seasoned_scout );
       co_await ts.planes.land_view().animate( seq );
       // Need to change type before awaiting on the promotion
       // message otherwise the unit will change back temporarily
@@ -701,7 +701,7 @@ wait<> do_speak_with_chief(
           "target practice.",
           config_natives.tribes[tribe].name_singular );
       AnimationSequence const seq =
-          anim_seq_for_unit_depixelation( unit.id() );
+          anim_seq_for_unit_depixelation( ss, unit.id() );
       co_await ts.planes.land_view().animate( seq );
       UnitOwnershipChanger( ss, unit.id() ).destroy();
       co_return;

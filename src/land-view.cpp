@@ -1086,13 +1086,12 @@ struct LandViewPlane::Impl : public Plane {
       // We typically wait for a bit while eating input events;
       // during that time, make sure that the unit who is about
       // to ask for orders is rendered on the front.
-      //
-      // We need the non-background version because we need this
-      // to stay alive until the buffer eating is complete, at
-      // which point it will be cancelled.
-      AnimationSequence const seq =
-          anim_seq_unit_to_front_non_background( id );
-      wait<> anim = lv_animator_.animate_sequence( seq );
+      AnimationSequence const seq = anim_seq_unit_to_front( id );
+      // We need the "hold" version because we need this to keep
+      // going until the buffer eating is complete, at which
+      // point it will be cancelled.
+      wait<> anim =
+          lv_animator_.animate_sequence_and_hold( seq );
       co_await eat_cross_unit_buffered_input_events( id );
     }
 
