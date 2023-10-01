@@ -15,6 +15,13 @@ sheets {
 
   sprite_sheets [
     {
+      img_path: assets/art/tiles/flags.png
+      sprite_size: { w: 12, h: 12 }
+      sprites {
+        privateer_x: { y: 0, x: 0 }
+      }
+    }
+    {
       img_path: assets/art/tiles/ui-32x32.png
       sprite_size: { w: 32, h: 32 }
       sprites {

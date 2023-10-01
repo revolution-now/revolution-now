@@ -8,6 +8,9 @@
 # Description: Rds definitions for the unit-flag module.
 #
 # ===============================================================
+# config
+include "config/tile-enum-fwd.hpp"
+
 # gfx
 include "gfx/cartesian.hpp"
 include "gfx/pixel.hpp"
@@ -28,11 +31,19 @@ struct.UnitFlagOffsets {
   offset_stacked 'gfx::size',
 }
 
-struct.UnitFlagCharInfo {
-  value 'char',
+sumtype.UnitFlagContents {
+  # This is a character rendered using the text rendering engine.
+  character {
+    value 'char',
 
-  # Color of the character.
-  color 'gfx::pixel',
+    # Color of the character.
+    color 'gfx::pixel',
+  },
+
+  # This is a sprite.
+  icon {
+    tile 'e_tile',
+  },
 }
 
 # This contains the info required to directly render a flag,
@@ -58,7 +69,7 @@ struct.UnitFlagRenderInfo {
   # What character, if any, is rendered over the background. Nor-
   # mally, this would be a character representing the current or-
   # ders of the unit (for european units). None for native units.
-  char_info 'base::maybe<UnitFlagCharInfo>',
+  contents 'UnitFlagContents',
 
   # Should the flag be rendered in front or behind the unit.
   in_front 'bool',

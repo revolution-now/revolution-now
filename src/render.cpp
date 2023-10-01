@@ -31,6 +31,9 @@
 #include "ss/natives.hpp"
 #include "ss/units.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -75,13 +78,23 @@ void render_unit_flag_single(
                            rr::Painter::e_border_mode::inside,
                            flag_info.outline_color );
 
-  if( flag_info.char_info.has_value() ) {
-    string const text( 1, flag_info.char_info->value );
-    Delta        char_size = Delta::from_gfx(
-        rr::rendered_text_line_size_pixels( text ) );
-    render_text(
-        renderer, centered( char_size, Rect::from_gfx( rect ) ),
-        font::nat_icon(), flag_info.char_info->color, text );
+  SWITCH( flag_info.contents ) {
+    CASE( character ) {
+      string const text( 1, character.value );
+      Delta        char_size = Delta::from_gfx(
+          rr::rendered_text_line_size_pixels( text ) );
+      render_text( renderer,
+                   centered( char_size, Rect::from_gfx( rect ) ),
+                   font::nat_icon(), character.color, text );
+      break;
+    }
+    CASE( icon ) {
+      render_sprite(
+          painter,
+          Coord::from_gfx( where.moved_down().moved_right() ),
+          icon.tile );
+      break;
+    }
   }
 }
 

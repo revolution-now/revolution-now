@@ -18,6 +18,7 @@
 #include "config/gfx.rds.hpp"
 #include "config/nation.hpp"
 #include "config/natives.hpp"
+#include "config/tile-enum.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss
@@ -32,8 +33,10 @@ namespace rn {
 
 namespace {
 
+// This includes the border.
 constexpr gfx::size kFlagIconSize{ .w = 14, .h = 14 };
-constexpr int       kStackedFlagSeparation = 2;
+
+constexpr int kStackedFlagSeparation = 2;
 
 gfx::pixel background_color_for_nation( e_nation nation ) {
   return nation_obj( nation ).flag_color;
@@ -81,23 +84,21 @@ char char_value_for_orders( unit_orders const& orders ) {
   }
 }
 
-UnitFlagCharInfo flag_char_info_from_orders(
+UnitFlagContents flag_char_info_from_orders(
     unit_orders const& orders ) {
-  return UnitFlagCharInfo{
+  return UnitFlagContents::character{
       .value = char_value_for_orders( orders ),
       .color = char_color_for_orders( orders ),
   };
 }
 
-UnitFlagCharInfo flag_char_info_for_privateer() {
-  return UnitFlagCharInfo{
-      .value = 'X',
-      .color = config_gfx.unit_flag_colors.privateer_X_color };
+UnitFlagContents flag_char_info_for_privateer() {
+  return UnitFlagContents::icon{ .tile = e_tile::privateer_x };
 }
 
-UnitFlagCharInfo flag_char_info_for_strategy() {
+UnitFlagContents flag_char_info_for_strategy() {
   // TODO
-  return UnitFlagCharInfo{
+  return UnitFlagContents::character{
       .value = '?',
       .color =
           config_gfx.unit_flag_colors.unit_flag_text_color };
@@ -175,7 +176,7 @@ UnitFlagRenderInfo euro_unit_type_orders_flag_info(
     e_nation nation ) {
   gfx::pixel const background_color =
       background_color_for_nation( nation );
-  UnitFlagCharInfo const char_info =
+  UnitFlagContents const flag_contents =
       flag_char_info_from_orders( orders );
   gfx::pixel const outline_color =
       outline_color_from_background_color( background_color );
@@ -189,7 +190,7 @@ UnitFlagRenderInfo euro_unit_type_orders_flag_info(
       .offsets          = offsets,
       .outline_color    = outline_color,
       .background_color = background_color,
-      .char_info        = char_info,
+      .contents         = flag_contents,
       .in_front         = in_front };
 }
 
@@ -203,7 +204,7 @@ UnitFlagRenderInfo euro_unit_flag_render_info(
       privateer_X
           ? config_gfx.unit_flag_colors.privateer_flag_color
           : background_color_for_nation( unit.nation() );
-  UnitFlagCharInfo const char_info = [&] {
+  UnitFlagContents const flag_contents = [&] {
     switch( options.type ) {
       case e_flag_char_type::normal:
         return privateer_X
@@ -226,7 +227,7 @@ UnitFlagRenderInfo euro_unit_flag_render_info(
       .offsets          = offsets,
       .outline_color    = outline_color,
       .background_color = background_color,
-      .char_info        = char_info,
+      .contents         = flag_contents,
       .in_front         = in_front };
 }
 
@@ -236,7 +237,7 @@ UnitFlagRenderInfo native_unit_flag_render_info(
   e_tribe const    tribe_type = tribe_type_for_unit( ss, unit );
   gfx::pixel const background_color =
       config_natives.tribes[tribe_type].flag_color;
-  UnitFlagCharInfo const char_info = [&] {
+  UnitFlagContents const flag_contents = [&] {
     switch( options.type ) {
       case e_flag_char_type::normal:
         return flag_char_info_from_orders( unit_orders::none{} );
@@ -257,7 +258,7 @@ UnitFlagRenderInfo native_unit_flag_render_info(
       .offsets          = offsets,
       .outline_color    = outline_color,
       .background_color = background_color,
-      .char_info        = char_info,
+      .contents         = flag_contents,
       .in_front         = in_front };
 }
 

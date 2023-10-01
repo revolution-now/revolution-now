@@ -51,9 +51,9 @@ struct.UnitFlagColors {
   unit_flag_text_color_greyed 'gfx::pixel',
 
   # Privateer's, when seen by a foreign nation, have flags that
-  # are dark colored with a light colored 'X' on them.
+  # are dark colored with a light colored 'X' on them. The X is
+  # rendered from a sprite.
   privateer_flag_color 'gfx::pixel',
-  privateer_X_color 'gfx::pixel',
 }
 
 namespace "rn"

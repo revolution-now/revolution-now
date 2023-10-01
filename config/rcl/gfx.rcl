@@ -39,7 +39,7 @@ unit_flag_colors {
   unit_flag_text_color_greyed: "#777777"
 
   # Privateer's, when seen by a foreign nation, have flags that
-  # are dark colored with a light colored 'X' on them.
+  # are dark colored with a light colored 'X' on them. The X is
+  # rendered from a sprite.
   privateer_flag_color: "#222222"
-  privateer_X_color:    "#DDDDDD"
 }
