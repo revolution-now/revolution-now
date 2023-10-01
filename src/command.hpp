@@ -65,11 +65,8 @@ struct CommandHandler {
     return nullptr;
   }
 
-  // Animate the commands being carried out, if any. This should
-  // be run before `perform`.
-  virtual wait<> animate() const { return make_wait<>(); }
-
-  // Perform the commands (i.e., make changes to game state).
+  // Animate and perform the commands (i.e., make changes to game
+  // state).
   virtual wait<> perform() = 0;
 
  protected:

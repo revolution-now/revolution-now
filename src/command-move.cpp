@@ -282,7 +282,8 @@ struct TravelHandler : public CommandHandler {
     co_return true;
   }
 
-  wait<> animate() const override {
+  // This is called by the `perform` method.
+  wait<> animate() const {
     switch( verdict ) {
       case e_travel_verdict::cancelled:
       case e_travel_verdict::map_edge:
@@ -869,6 +870,8 @@ wait<> TravelHandler::perform() {
   CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders().holds<unit_orders::none>() );
 
+  co_await animate();
+
   // This will throw if the unit has no coords, but I think it
   // should always be ok at this point if we're moving it.
   auto old_coord =
@@ -1118,12 +1121,6 @@ struct NativeDwellingHandler : public CommandHandler {
     }
 
     return nullptr; // Continue with this handler.
-  }
-
-  wait<> animate() const override {
-    // Note that animations for some of the outcomes are handled
-    // by the methods called in the perform() function.
-    co_return;
   }
 
   wait<> perform() override {

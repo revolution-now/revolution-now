@@ -91,8 +91,7 @@ wait<CommandHandlerRunResult> CommandHandler::run() {
 
   res.order_was_run = true;
 
-  // Command can be carried out.
-  co_await animate();
+  // Command can be carried out (which includes animation).
   co_await perform();
 
   res.units_to_prioritize = units_to_prioritize();

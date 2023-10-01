@@ -142,9 +142,6 @@ struct AttackHandlerBase : public CommandHandler {
   wait<bool> confirm() override;
 
   // Implement CommandHandler.
-  wait<> animate() const override;
-
-  // Implement CommandHandler.
   wait<> perform() override;
 
  protected:
@@ -242,8 +239,6 @@ wait<bool> AttackHandlerBase::confirm() {
 
   co_return true;
 }
-
-wait<> AttackHandlerBase::animate() const { co_return; }
 
 wait<> AttackHandlerBase::perform() {
   CHECK( !attacker_.mv_pts_exhausted() );
@@ -466,9 +461,6 @@ struct NavalBattleHandler : public EuroAttackHandlerBase {
   wait<bool> confirm() override;
 
   // Implement CommandHandler.
-  wait<> animate() const override;
-
-  // Implement CommandHandler.
   wait<> perform() override;
 
  private:
@@ -481,14 +473,11 @@ wait<bool> NavalBattleHandler::confirm() {
   co_return true;
 }
 
-wait<> NavalBattleHandler::animate() const {
-  co_await Base::animate();
-  co_await ts_.planes.land_view().animate(
-      anim_seq_for_naval_battle( ss_, combat_ ) );
-}
-
 wait<> NavalBattleHandler::perform() {
   co_await Base::perform();
+
+  co_await ts_.planes.land_view().animate(
+      anim_seq_for_naval_battle( ss_, combat_ ) );
 
   if( combat_.winner.has_value() ) {
     // One of the ships was either damaged or sunk.
@@ -555,9 +544,6 @@ struct EuroAttackHandler : public EuroAttackHandlerBase {
   wait<bool> confirm() override;
 
   // Implement CommandHandler.
-  wait<> animate() const override;
-
-  // Implement CommandHandler.
   wait<> perform() override;
 
  private:
@@ -570,15 +556,13 @@ wait<bool> EuroAttackHandler::confirm() {
   co_return true;
 }
 
-wait<> EuroAttackHandler::animate() const {
-  co_await Base::animate();
+wait<> EuroAttackHandler::perform() {
+  co_await Base::perform();
+
   AnimationSequence const seq =
       anim_seq_for_euro_attack_euro( ss_, combat_ );
   co_await ts_.planes.land_view().animate( seq );
-}
 
-wait<> EuroAttackHandler::perform() {
-  co_await Base::perform();
   CombatEffectsMessages const effects_msg =
       combat_effects_msg( ss_, combat_ );
   perform_euro_unit_combat_effects( ss_, ts_, attacker_,
@@ -601,9 +585,6 @@ struct AttackNativeUnitHandler : public NativeAttackHandlerBase {
 
   // Implement CommandHandler.
   wait<bool> confirm() override;
-
-  // Implement CommandHandler.
-  wait<> animate() const override;
 
   // Implement CommandHandler.
   wait<> perform() override;
@@ -639,15 +620,12 @@ wait<bool> AttackNativeUnitHandler::confirm() {
   co_return true;
 }
 
-wait<> AttackNativeUnitHandler::animate() const {
-  co_await Base::animate();
+wait<> AttackNativeUnitHandler::perform() {
+  co_await Base::perform();
+
   AnimationSequence const seq =
       anim_seq_for_euro_attack_brave( ss_, combat_ );
   co_await ts_.planes.land_view().animate( seq );
-}
-
-wait<> AttackNativeUnitHandler::perform() {
-  co_await Base::perform();
 
   // The tribal alarm goes up regardless of the battle outcome.
   TribeRelationship& relationship =

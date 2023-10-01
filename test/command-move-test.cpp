@@ -85,7 +85,9 @@ TEST_CASE( "[command-move] ship can move from land to ocean" ) {
 #ifdef COMPILER_GCC
   return;
 #endif
-  World W;
+  World             W;
+  MockLandViewPlane mock_land_view;
+  W.planes().back().land_view = &mock_land_view;
   W.update_terrain_connectivity();
   Player& player = W.default_player();
   UnitId  id     = W.add_unit_on_map( e_unit_type::galleon,
@@ -123,6 +125,7 @@ TEST_CASE( "[command-move] ship can move from land to ocean" ) {
     REQUIRE( W.units().coord_for( id ) ==
              Coord{ .x = 1, .y = 1 } );
 
+    mock_land_view.EXPECT__animate( _ );
     wait<> w_perform = handler->perform();
     REQUIRE( !w_perform.exception() );
     REQUIRE( w_perform.ready() );
