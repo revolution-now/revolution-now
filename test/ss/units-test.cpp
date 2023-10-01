@@ -30,6 +30,9 @@ namespace {
 
 using namespace std;
 
+using ::base::valid;
+using ::Catch::Matchers::Contains;
+
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
@@ -104,6 +107,30 @@ TEST_CASE( "[units] braves_for_dwelling" ) {
   expected = {};
   REQUIRE( W.units().braves_for_dwelling( DwellingId{ 3 } ) ==
            expected );
+}
+
+TEST_CASE( "[units] validation" ) {
+  World                  W;
+  base::valid_or<string> v = valid;
+
+  REQUIRE( W.units().validate() == valid );
+
+  // Test that a ship in port fails validation if it does not
+  // have cleared orders.
+  Unit& caravel = W.add_unit_in_port( e_unit_type::caravel );
+  REQUIRE( W.units().validate() == valid );
+  Unit& free_colonist =
+      W.add_unit_in_port( e_unit_type::free_colonist );
+  REQUIRE( W.units().validate() == valid );
+  free_colonist.sentry();
+  REQUIRE( W.units().validate() == valid );
+  caravel.sentry();
+  v = W.units().validate();
+  REQUIRE( v != valid );
+  REQUIRE_THAT(
+      v.error(),
+      Contains(
+          "unit 1 in port does not have cleared orders." ) );
 }
 
 } // namespace

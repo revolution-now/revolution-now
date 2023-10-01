@@ -21,6 +21,9 @@
 #include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -69,6 +72,30 @@ valid_or<string> wrapped::UnitsState::validate() const {
                        "unit {} is in the `free` state.", id );
         break;
       }
+    }
+  }
+
+  // Check that ships in the harbor have cleared orders. This is
+  // important because the game does not provide any mechanism
+  // for the player to clear their orders when in the harbor, and
+  // so they will never move.
+  for( auto const& [id, unit_state] : units ) {
+    SWITCH( unit_state ) {
+      CASE( euro ) {
+        UnitOwnership const& st = euro.state.ownership;
+        if( !euro.state.unit.desc().ship ) break;
+        maybe<UnitOwnership::harbor const&> harbor =
+            st.get_if<UnitOwnership::harbor>();
+        if( !harbor.has_value() ) break;
+        if( !harbor->port_status.holds<PortStatus::in_port>() )
+          break;
+        REFL_VALIDATE(
+            euro.state.unit.orders().holds<unit_orders::none>(),
+            "unit {} in port does not have cleared orders.",
+            id );
+        break;
+      }
+      CASE( native ) { break; }
     }
   }
   return base::valid;

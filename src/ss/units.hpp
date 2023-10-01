@@ -172,6 +172,10 @@ struct UnitsState {
   bool exists( UnitId id ) const;
   bool exists( NativeUnitId id ) const;
 
+  // Again, probably only to be used in unit tests.
+  valid_or<std::string> validate() const;
+  void                  validate_or_die() const;
+
  private:
   // ------------------------------------------------------------
   // State Changes.
@@ -217,9 +221,6 @@ struct UnitsState {
   NativeUnitState&     state_of( NativeUnitId id );
   UnitOwnership&       ownership_of( UnitId id );
   NativeUnitOwnership& ownership_of( NativeUnitId id );
-
-  valid_or<std::string> validate() const;
-  void                  validate_or_die() const;
 
   // ----- Serializable state.
   wrapped::UnitsState o_;
