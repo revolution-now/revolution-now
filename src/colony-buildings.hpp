@@ -71,7 +71,9 @@ int max_workers_for_building( e_colony_building building );
 
 // Should be called when a colony building is added to the colony
 // as it will ensure that any one-time changes that need to be
-// made will be made.
+// made will be made. It also ensures that the buildings remain
+// in a state consistent with the OG's rules, in that e.g. having
+// a Cathedral implies that you also have a Church.
 void add_colony_building( Colony&           colony,
                           e_colony_building building );
 

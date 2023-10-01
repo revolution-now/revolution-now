@@ -219,6 +219,14 @@ void perform_brave_attack_colony_effect(
       e_colony_building const building =
           building_destroyed.which;
       CHECK( colony.buildings[building] );
+      // In the OG, when a a building is destroyed, all lower
+      // buildings in that slot remain. So e.g. if a Cathedral is
+      // destroyed, the Church will remain. If a Shipyard is de-
+      // stroyed, the Drydock will remain. So setting this one
+      // building to false should do the right thing, under the
+      // assumption that, under normal game rules, the player
+      // can't acquire one building without first having the one
+      // below it.
       colony.buildings[building] = false;
       return;
     }

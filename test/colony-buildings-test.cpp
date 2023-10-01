@@ -17,7 +17,10 @@
 #include "src/ss/colony.hpp"
 
 // refl
-#include "refl/to-str.hpp"
+#include "src/refl/to-str.hpp"
+
+// base
+#include "src/base/to-str-ext-std.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -421,6 +424,50 @@ TEST_CASE( "[colony-buildings] barricade_for_colony" ) {
 
   colony.buildings[e_colony_building::fortress] = true;
   REQUIRE( f() == e_colony_barricade_type::fortress );
+}
+
+TEST_CASE( "[colony-buildings] add_colony_building" ) {
+  Colony                                  colony;
+  refl::enum_map<e_colony_building, bool> expected;
+
+  REQUIRE( colony.buildings == expected );
+
+  expected[e_colony_building::cathedral] = true;
+  expected[e_colony_building::church]    = true;
+  add_colony_building( colony, e_colony_building::cathedral );
+  REQUIRE( colony.buildings == expected );
+
+  expected[e_colony_building::rum_distillery]       = true;
+  expected[e_colony_building::rum_distillers_house] = true;
+  add_colony_building( colony,
+                       e_colony_building::rum_distillery );
+  REQUIRE( colony.buildings == expected );
+
+  expected[e_colony_building::rum_factory] = true;
+  add_colony_building( colony, e_colony_building::rum_factory );
+  REQUIRE( colony.buildings == expected );
+
+  expected[e_colony_building::carpenters_shop] = true;
+  add_colony_building( colony,
+                       e_colony_building::carpenters_shop );
+  REQUIRE( colony.buildings == expected );
+
+  expected[e_colony_building::textile_mill]  = true;
+  expected[e_colony_building::weavers_shop]  = true;
+  expected[e_colony_building::weavers_house] = true;
+  add_colony_building( colony, e_colony_building::textile_mill );
+  REQUIRE( colony.buildings == expected );
+
+  expected[e_colony_building::shipyard] = true;
+  expected[e_colony_building::drydock]  = true;
+  expected[e_colony_building::docks]    = true;
+  add_colony_building( colony, e_colony_building::shipyard );
+  REQUIRE( colony.buildings == expected );
+
+  expected[e_colony_building::magazine] = true;
+  expected[e_colony_building::armory]   = true;
+  add_colony_building( colony, e_colony_building::magazine );
+  REQUIRE( colony.buildings == expected );
 }
 
 } // namespace

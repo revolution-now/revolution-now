@@ -21,7 +21,12 @@
 // refl
 #include "refl/to-str.hpp"
 
+// base
+#include "base/range-lite.hpp"
+
 using namespace std;
+
+namespace rl = base::rl;
 
 namespace rn {
 
@@ -398,7 +403,13 @@ int max_workers_for_building( e_colony_building building ) {
 void add_colony_building( Colony&           colony,
                           e_colony_building building ) {
   if( colony.buildings[building] ) return;
-  colony.buildings[building] = true;
+  vector<e_colony_building> const& buildings =
+      buildings_for_slot( slot_for_building( building ) );
+  auto const this_and_lesser_buildings =
+      rl::all( buildings ).drop_while_L( _ != building );
+  for( e_colony_building const building :
+       this_and_lesser_buildings )
+    colony.buildings[building] = true;
   switch( building ) {
     case e_colony_building::custom_house:
       set_default_custom_house_state( colony );
