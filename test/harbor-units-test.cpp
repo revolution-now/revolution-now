@@ -321,6 +321,15 @@ TEST_CASE( "[harbor-units] unit_move_to_port" ) {
   REQUIRE( w.units().maybe_harbor_view_state_of( soldier2 ) ==
            nothing );
 
+  // Make some of them have non-clear orders to simulate a situa-
+  // tion where they are e.g. fortified at sea and get attacked
+  // and damaged and suddenly moved to port.
+  w.units().unit_for( caravel2 ).fortify();
+  w.units().unit_for( merchantman1 ).sentry();
+  w.units().unit_for( merchantman2 ).orders() =
+      unit_orders::damaged{ .turns_until_repair = 1 };
+  w.units().unit_for( soldier1 ).fortify();
+
   // Move them to port.
   unit_move_to_port( w.ss(), caravel1 );
   unit_move_to_port( w.ss(), caravel2 );
@@ -359,6 +368,28 @@ TEST_CASE( "[harbor-units] unit_move_to_port" ) {
   REQUIRE( w.units().harbor_view_state_of( soldier1 ) ==
            UnitOwnership::harbor{ .port_status =
                                       PortStatus::in_port{} } );
+
+  // Verify the ships have clear orders.
+  REQUIRE( w.units()
+               .unit_for( caravel1 )
+               .orders()
+               .holds<unit_orders::none>() );
+  REQUIRE( w.units()
+               .unit_for( caravel2 )
+               .orders()
+               .holds<unit_orders::none>() );
+  REQUIRE( w.units()
+               .unit_for( merchantman1 )
+               .orders()
+               .holds<unit_orders::none>() );
+  REQUIRE( w.units()
+               .unit_for( merchantman2 )
+               .orders()
+               .holds<unit_orders::damaged>() );
+  REQUIRE( w.units()
+               .unit_for( soldier1 )
+               .orders()
+               .holds<unit_orders::fortified>() );
 }
 
 TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
