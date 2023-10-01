@@ -124,13 +124,14 @@ TEST_CASE( "[units] validation" ) {
   REQUIRE( W.units().validate() == valid );
   free_colonist.sentry();
   REQUIRE( W.units().validate() == valid );
+  caravel.orders() = unit_orders::damaged{};
+  REQUIRE( W.units().validate() == valid );
   caravel.sentry();
   v = W.units().validate();
   REQUIRE( v != valid );
-  REQUIRE_THAT(
-      v.error(),
-      Contains(
-          "unit 1 in port does not have cleared orders." ) );
+  REQUIRE_THAT( v.error(),
+                Contains( "unit 1 in port is not damaged but "
+                          "does not have cleared orders." ) );
 }
 
 } // namespace

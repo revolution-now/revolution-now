@@ -89,9 +89,13 @@ valid_or<string> wrapped::UnitsState::validate() const {
         if( !harbor.has_value() ) break;
         if( !harbor->port_status.holds<PortStatus::in_port>() )
           break;
+        if( euro.state.unit.orders()
+                .holds<unit_orders::damaged>() )
+          break;
         REFL_VALIDATE(
             euro.state.unit.orders().holds<unit_orders::none>(),
-            "unit {} in port does not have cleared orders.",
+            "unit {} in port is not damaged but does not have "
+            "cleared orders.",
             id );
         break;
       }
