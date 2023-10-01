@@ -75,7 +75,7 @@ string converter::dump_error_stack() const {
     if( spaces.empty() )
       spaces = " \\-";
     else
-      spaces = "   " + spaces;
+      spaces = "  " + spaces;
   }
   out += "---------------------------------------------------";
   return out;

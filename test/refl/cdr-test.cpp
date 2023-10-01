@@ -710,11 +710,11 @@ TEST_CASE( "[refl] missing field" ) {
       "---------------------------------------------------\n"
       "refl::my_ns::Rolodex\n"
       " \\-value for key 'contacts'\n"
-      "    \\-std::unordered_map<std::string, "
+      "   \\-std::unordered_map<std::string, "
       "refl::my_ns::Person, std::hash...\n"
-      "       \\-value for key 'joe'\n"
-      "          \\-refl::my_ns::Person\n"
-      "             \\-value for key 'houses'\n"
+      "     \\-value for key 'joe'\n"
+      "       \\-refl::my_ns::Person\n"
+      "         \\-value for key 'houses'\n"
       "---------------------------------------------------" );
   REQUIRE( conv_from_bt<Rolodex>(
                conv, cdr_rolodex_1_missing_houses ) ==
@@ -730,8 +730,8 @@ TEST_CASE( "[refl] extra field" ) {
       "---------------------------------------------------\n"
       "refl::my_ns::Rolodex\n"
       " \\-value for key 'self'\n"
-      "    \\-refl::my_ns::PersonWrapper\n"
-      "       \\-refl::my_ns::Person\n"
+      "   \\-refl::my_ns::PersonWrapper\n"
+      "     \\-refl::my_ns::Person\n"
       "---------------------------------------------------" );
   REQUIRE( conv_from_bt<Rolodex>(
                conv, cdr_rolodex_1_extra_field ) == expected );
@@ -790,10 +790,10 @@ TEST_CASE( "[refl] variant" ) {
         "base::variant<refl::my_ns::Address, "
         "refl::my_ns::Rolodex, refl...\n"
         " \\-value for key 'Rolodex'\n"
-        "    \\-refl::my_ns::Rolodex\n"
-        "       \\-value for key 'self'\n"
-        "          \\-refl::my_ns::PersonWrapper\n"
-        "             \\-refl::my_ns::Person\n"
+        "   \\-refl::my_ns::Rolodex\n"
+        "     \\-value for key 'self'\n"
+        "       \\-refl::my_ns::PersonWrapper\n"
+        "         \\-refl::my_ns::Person\n"
         "---------------------------------------------------" );
     REQUIRE( conv_from_bt<Variant3>(
                  conv, cdr_variant3_extra_field_inner ) ==
