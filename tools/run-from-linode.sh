@@ -31,6 +31,10 @@ local_conf='config/'
 linode_conf='/home/dsicilia/dev/revolution-now/config/'
 get_dir  "$linode_conf" "$local_conf"
 
+# local_lua='src/lua/'
+# linode_lua='/home/dsicilia/dev/revolution-now/src/lua/'
+# get_dir  "$linode_lua" "$local_lua"
+
 log "checking result..."
 [[ -x "$local_exe" ]] || die "result ($local_exe) is not executable."
 
