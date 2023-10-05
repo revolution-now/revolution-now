@@ -37,6 +37,7 @@ struct SSConst;
 struct Visibility;
 
 enum class e_tribe;
+enum class e_sfx;
 
 // General euro-on-euro attack sequence.
 AnimationSequence anim_seq_for_euro_attack_euro(
@@ -128,5 +129,8 @@ AnimationSequence anim_seq_unit_to_front(
 // deleting a tribe. The tribe must exist.
 AnimationSequence anim_seq_for_cheat_tribe_destruction(
     SSConst const& ss, Visibility const& viz, e_tribe tribe );
+
+// Just plays a sound.
+AnimationSequence anim_seq_for_sfx( e_sfx sound );
 
 } // namespace rn

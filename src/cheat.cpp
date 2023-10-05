@@ -350,6 +350,8 @@ wait<> kill_natives( SS& ss, TS& ts ) {
     return res;
   }();
 
+  if( destroyed.empty() ) co_return;
+
   // Before we destroy the dwellings we need to record where they
   // were so that we can later update the maps.
   vector<Coord> const affected_coords = [&] {
@@ -369,6 +371,9 @@ wait<> kill_natives( SS& ss, TS& ts ) {
 
   // Kill 'em.
   vector<wait<>> destruction_routines;
+  destruction_routines.push_back( ts.planes.land_view().animate(
+      anim_seq_for_sfx( e_sfx::city_destroyed ) ) );
+
   // This needs to be out-of-line to avoid dangling stuff.
   auto destruction_routine = [&]( e_tribe tribe ) -> wait<> {
     co_await ts.planes.land_view().animate(

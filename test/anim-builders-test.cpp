@@ -1147,18 +1147,12 @@ TEST_CASE(
     Visibility const viz( W.ss(), nothing );
 
     tribe    = e_tribe::inca;
-    expected = {
-        .sequence = { /*phase 1=*/{
-            { .primitive = P::play_sound{
-                  .what = e_sfx::city_destroyed } } } } };
+    expected = { .sequence = { {} } };
     REQUIRE( f( viz ) == expected );
 
     tribe    = e_tribe::aztec;
     expected = {
         .sequence = { /*phase 1=*/{
-            { .primitive =
-                  P::play_sound{ .what =
-                                     e_sfx::city_destroyed } },
             { .primitive =
                   P::depixelate_dwelling{ .dwelling_id =
                                               dwelling_3.id } },
@@ -1175,9 +1169,6 @@ TEST_CASE(
     tribe    = e_tribe::apache;
     expected = {
         .sequence = { /*phase 1=*/{
-            { .primitive =
-                  P::play_sound{ .what =
-                                     e_sfx::city_destroyed } },
             { .primitive =
                   P::depixelate_dwelling{ .dwelling_id =
                                               dwelling_1.id } },
@@ -1196,18 +1187,12 @@ TEST_CASE(
     Visibility const viz( W.ss(), e_nation::french );
 
     tribe    = e_tribe::inca;
-    expected = {
-        .sequence = { /*phase 1=*/{
-            { .primitive = P::play_sound{
-                  .what = e_sfx::city_destroyed } } } } };
+    expected = { .sequence = { {} } };
     REQUIRE( f( viz ) == expected );
 
     tribe    = e_tribe::aztec;
     expected = {
         .sequence = { /*phase 1=*/{
-            { .primitive =
-                  P::play_sound{ .what =
-                                     e_sfx::city_destroyed } },
             { .primitive =
                   P::depixelate_unit{ .unit_id = brave_3.id } },
             { .primitive =
@@ -1218,9 +1203,6 @@ TEST_CASE(
     tribe    = e_tribe::apache;
     expected = {
         .sequence = { /*phase 1=*/{
-            { .primitive =
-                  P::play_sound{ .what =
-                                     e_sfx::city_destroyed } },
             { .primitive =
                   P::depixelate_unit{ .unit_id = brave_1.id } },
             { .primitive =
@@ -1240,18 +1222,12 @@ TEST_CASE(
         e_nation::french, { { .x = 1, .y = 3 } } );
 
     tribe    = e_tribe::inca;
-    expected = {
-        .sequence = { /*phase 1=*/{
-            { .primitive = P::play_sound{
-                  .what = e_sfx::city_destroyed } } } } };
+    expected = { .sequence = { {} } };
     REQUIRE( f( viz ) == expected );
 
     tribe    = e_tribe::aztec;
     expected = {
         .sequence = { /*phase 1=*/{
-            { .primitive =
-                  P::play_sound{ .what =
-                                     e_sfx::city_destroyed } },
             { .primitive =
                   P::depixelate_dwelling{ .dwelling_id =
                                               dwelling_3.id } },
@@ -1266,9 +1242,6 @@ TEST_CASE(
     expected = {
         .sequence = { /*phase 1=*/{
             { .primitive =
-                  P::play_sound{ .what =
-                                     e_sfx::city_destroyed } },
-            { .primitive =
                   P::depixelate_fog_dwelling{
                       .tile = { .x = 1, .y = 1 } } },
             { .primitive =
@@ -1278,6 +1251,19 @@ TEST_CASE(
         } } };
     REQUIRE( f( viz ) == expected );
   }
+}
+
+TEST_CASE( "[anim-builders] anim_seq_for_sfx" ) {
+  AnimationSequence expected;
+  e_sfx             sound = {};
+
+  auto f = [&] { return anim_seq_for_sfx( sound ); };
+
+  sound    = e_sfx::sunk_ship;
+  expected = {
+      .sequence = { { { .primitive = P::play_sound{
+                            .what = e_sfx::sunk_ship } } } } };
+  REQUIRE( f() == expected );
 }
 
 } // namespace

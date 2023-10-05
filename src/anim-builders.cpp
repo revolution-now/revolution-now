@@ -779,10 +779,11 @@ AnimationSequence anim_seq_unit_to_front(
   return builder.result();
 }
 
+// Note that we don't play any sounds here because this may be
+// called multiple times in a loop to destroy multiple tribes.
 AnimationSequence anim_seq_for_cheat_tribe_destruction(
     SSConst const& ss, Visibility const& viz, e_tribe tribe ) {
   AnimationBuilder builder;
-  builder.play_sound( e_sfx::city_destroyed );
 
   // Dwellings.
   gfx::rect_iterator ri( ss.terrain.world_rect_tiles() );
@@ -833,6 +834,12 @@ AnimationSequence anim_seq_for_cheat_tribe_destruction(
     // no fogged units).
     builder.depixelate_unit( unit_id );
 
+  return builder.result();
+}
+
+AnimationSequence anim_seq_for_sfx( e_sfx sound ) {
+  AnimationBuilder builder;
+  builder.play_sound( sound );
   return builder.result();
 }
 

@@ -557,6 +557,16 @@ TEST_CASE( "[cheat] kill_natives" ) {
     REQUIRE( !W.natives().tribe_exists( e_tribe::inca ) );
   }
 
+  SECTION( "one tribe, no dwellings, none selected" ) {
+    REQUIRE( !W.natives().tribe_exists( e_tribe::tupi ) );
+    W.add_tribe( e_tribe::tupi );
+    REQUIRE( W.natives().tribe_exists( e_tribe::tupi ) );
+    W.gui().EXPECT__check_box_selector( _, _ ).returns(
+        wait( unordered_map<int, bool>{} ) );
+    f();
+    REQUIRE( W.natives().tribe_exists( e_tribe::tupi ) );
+  }
+
   SECTION( "one tribe, no dwellings" ) {
     REQUIRE( !W.natives().tribe_exists( e_tribe::tupi ) );
     W.add_tribe( e_tribe::tupi );
@@ -564,6 +574,7 @@ TEST_CASE( "[cheat] kill_natives" ) {
     W.gui().EXPECT__check_box_selector( _, _ ).returns(
         wait( unordered_map<int, bool>{
             { static_cast<int>( e_tribe::tupi ), true } } ) );
+    mock_land_view.EXPECT__animate( _ ); // sound.
     mock_land_view.EXPECT__animate( _ );
     W.gui().EXPECT__message_box(
         "The [Tupi] tribe has been wiped out." );
@@ -603,6 +614,7 @@ TEST_CASE( "[cheat] kill_natives" ) {
     W.gui().EXPECT__check_box_selector( _, _ ).returns(
         wait( unordered_map<int, bool>{
             { static_cast<int>( e_tribe::tupi ), true } } ) );
+    mock_land_view.EXPECT__animate( _ ); // sound.
     mock_land_view.EXPECT__animate( _ );
     W.gui().EXPECT__message_box(
         "The [Tupi] tribe has been wiped out." );
