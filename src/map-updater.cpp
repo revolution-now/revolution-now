@@ -404,31 +404,4 @@ void RenderingMapUpdater::unrender() {
       BufferTracking( ss_.terrain.world_size_tiles() );
 }
 
-/****************************************************************
-** TrappingMapUpdater
-*****************************************************************/
-BuffersUpdated TrappingMapUpdater::modify_map_square(
-    Coord, base::function_ref<void( MapSquare& )> ) {
-  SHOULD_NOT_BE_HERE;
-}
-
-vector<BuffersUpdated> TrappingMapUpdater::make_squares_visible(
-    e_nation, vector<Coord> const& ) {
-  SHOULD_NOT_BE_HERE;
-}
-
-vector<BuffersUpdated> TrappingMapUpdater::make_squares_fogged(
-    e_nation, vector<Coord> const& ) {
-  SHOULD_NOT_BE_HERE;
-}
-
-void TrappingMapUpdater::modify_entire_map(
-    base::function_ref<void( gfx::Matrix<MapSquare>& )> ) {
-  SHOULD_NOT_BE_HERE;
-}
-
-void TrappingMapUpdater::redraw() { SHOULD_NOT_BE_HERE; }
-
-void TrappingMapUpdater::unrender() { SHOULD_NOT_BE_HERE; }
-
 } // namespace rn

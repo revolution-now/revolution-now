@@ -126,38 +126,4 @@ struct RenderingMapUpdater : NonRenderingMapUpdater {
   BufferTracking obfuscation_tracking_;
 };
 
-/****************************************************************
-** TrappingMapUpdater
-*****************************************************************/
-// This one literally does nothing except for check-fail if any
-// of its methods are called that attempt to modify the map. It's
-// for when you know that the map updater will not be called, but
-// need one to pass in anyway.
-struct TrappingMapUpdater : IMapUpdater {
-  TrappingMapUpdater() = default;
-
-  // Implement IMapUpdater.
-  BuffersUpdated modify_map_square( Coord,
-                                    SquareUpdateFunc ) override;
-
-  // Implement IMapUpdater.
-  std::vector<BuffersUpdated> make_squares_visible(
-      e_nation                  nation,
-      std::vector<Coord> const& tiles ) override;
-
-  // Implement IMapUpdater.
-  std::vector<BuffersUpdated> make_squares_fogged(
-      e_nation                  nation,
-      std::vector<Coord> const& tiles ) override;
-
-  // Implement IMapUpdater.
-  void modify_entire_map( MapUpdateFunc mutator ) override;
-
-  // Implement IMapUpdater.
-  void redraw() override;
-
-  // Implement IMapUpdater.
-  void unrender() override;
-};
-
 } // namespace rn
