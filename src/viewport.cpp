@@ -860,6 +860,8 @@ bool SmoothViewport::is_tile_too_far( Coord tile ) const {
                     : 0;
   CHECK_GE( w, 0 );
   CHECK_GE( h, 0 );
+  // FIXME: this needs to be done per axis, not on an average of
+  // the axis. Actually not sure about this, need to revisit.
   double const dist = sqrt( double( w * w + h * h ) );
   double const threshold =
       ( covered.w + covered.h ) / 2.0 *
