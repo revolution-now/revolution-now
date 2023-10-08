@@ -44,8 +44,8 @@
   moved for repair. If there is no port available for repair then
   they are destroyed.
 
-                          Units on Ships
-                          --------------
+                    Units on Ships in a Colony
+                    --------------------------
   In the OG it is not possible to actually put a unit on a ship;
   the unit just remains on the map and travels with the ship.
   When it is in a colony, it is sentried, then when the next ship
@@ -72,3 +72,32 @@
   havior of the OG in all cases except for the bugs/problems as-
   sociated with the ambiguity arising when two ships with unit
   cargos are on the same ocean square (which is fixed in RN).
+
+                Disbanding Units on Ships at Sea
+                --------------------------------
+  Likely related to this is the fact that the OG forbids dis-
+  banding a ship at sea that contains units. The reason for this
+  is probably that, if it were to allow it, it would only be able
+  to allow it when there is a single ship on the square in order
+  to avoid the ambiguity problem of which units are on the ship.
+  For consistency, the designers probably just decided to forbid
+  it completely. The workaround is to just select the units on
+  the ship and activate them individually and disband them before
+  disbanding the ship, with the same effect. There is an edge
+  case where one of the units on the ship cannot be activated be-
+  cause it has already moved this turn, but that is probably
+  rare. Thus, in RN we allow it by default, since it 1) has no
+  ambiguity problems, 2) there is a workaround for it anyway,
+  thus preventing it would just make things more difficult for
+  the player without any reason.
+
+  Note that, even in the OG, this issue does not arise for ships
+  in colony ports, since they can't hold units either; any units
+  on the square are at the colony gate, and so the OG allows dis-
+  banding ships there since it doesn't require destroying the
+  units. In order to mimic this, when we destroy a ship con-
+  taining units in a colony port, we will first offboard those
+  units, in accordance with the principles layed out in sections
+  above that seek to always replicate the OG's behavior with re-
+  spect to units on ships, where there would be an ambiguity due
+  to the fact that the NG does support units on ships properly.
