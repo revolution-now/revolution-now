@@ -326,8 +326,7 @@ struct AttackColonyUndefendedHandler
   wait<> perform() override;
 
  private:
-  Colony&                          colony_;
-  CombatEuroAttackUndefendedColony combat_;
+  Colony& colony_;
 };
 
 AttackColonyUndefendedHandler::AttackColonyUndefendedHandler(
@@ -339,8 +338,6 @@ AttackColonyUndefendedHandler::AttackColonyUndefendedHandler(
 wait<bool> AttackColonyUndefendedHandler::confirm() {
   if( !co_await Base::confirm() ) co_return false;
 
-  combat_ = ts_.combat.euro_attack_undefended_colony(
-      attacker_, defender_, colony_ );
   co_return true;
 }
 
@@ -349,23 +346,28 @@ wait<bool> AttackColonyUndefendedHandler::confirm() {
 // In particular, the attacking unit, if it wins and gets pro-
 // moted, needs to be promoted before it slides into the colony.
 wait<> AttackColonyUndefendedHandler::perform() {
+  // Should be done before consuming mv points in Base::perform.
+  CombatEuroAttackUndefendedColony const combat =
+      ts_.combat.euro_attack_undefended_colony(
+          attacker_, defender_, colony_ );
+
   co_await Base::perform();
 
   // Animate the attack part of it. If the colony is captured
   // then the remainder will be done further below.
   co_await ts_.planes.land_view().animate(
-      anim_seq_for_undefended_colony( ss_, combat_ ) );
+      anim_seq_for_undefended_colony( ss_, combat ) );
 
   CombatEffectsMessages const effects_msg =
-      combat_effects_msg( ss_, combat_ );
+      combat_effects_msg( ss_, combat );
   perform_euro_unit_combat_effects( ss_, ts_, attacker_,
-                                    combat_.attacker.outcome );
+                                    combat.attacker.outcome );
   co_await show_combat_effects_msg(
       filter_combat_effects_msgs(
           mix_combat_effects_msgs( effects_msg ) ),
       attacker_mind_, defender_mind_ );
 
-  if( combat_.winner == e_combat_winner::defender )
+  if( combat.winner == e_combat_winner::defender )
     // return since in this case the attacker lost, so nothing
     // special happens; we just do what we normally do when an
     // attacker loses a battle.
@@ -462,27 +464,27 @@ struct NavalBattleHandler : public EuroAttackHandlerBase {
 
   // Implement CommandHandler.
   wait<> perform() override;
-
- private:
-  CombatShipAttackShip combat_;
 };
 
 wait<bool> NavalBattleHandler::confirm() {
   if( !co_await Base::confirm() ) co_return false;
-  combat_ = ts_.combat.ship_attack_ship( attacker_, defender_ );
   co_return true;
 }
 
 wait<> NavalBattleHandler::perform() {
+  // Should be done before consuming mv points in Base::perform.
+  CombatShipAttackShip const combat =
+      ts_.combat.ship_attack_ship( attacker_, defender_ );
+
   co_await Base::perform();
 
   co_await ts_.planes.land_view().animate(
-      anim_seq_for_naval_battle( ss_, combat_ ) );
+      anim_seq_for_naval_battle( ss_, combat ) );
 
-  if( combat_.winner.has_value() ) {
+  if( combat.winner.has_value() ) {
     // One of the ships was either damaged or sunk.
     Unit const& loser =
-        ( combat_.winner == e_combat_winner::attacker )
+        ( combat.winner == e_combat_winner::attacker )
             ? defender_
             : attacker_;
     bool const has_commodity_cargo =
@@ -507,13 +509,13 @@ wait<> NavalBattleHandler::perform() {
   }
 
   CombatEffectsMessages const effects_msg =
-      combat_effects_msg( ss_, combat_ );
+      combat_effects_msg( ss_, combat );
   perform_naval_unit_combat_effects( ss_, ts_, attacker_,
                                      defender_id_,
-                                     combat_.attacker.outcome );
+                                     combat.attacker.outcome );
   perform_naval_unit_combat_effects( ss_, ts_, defender_,
                                      attacker_id_,
-                                     combat_.defender.outcome );
+                                     combat.defender.outcome );
   co_await show_combat_effects_msg(
       filter_combat_effects_msgs(
           mix_combat_effects_msgs( effects_msg ) ),
@@ -525,7 +527,7 @@ wait<> NavalBattleHandler::perform() {
   // ments in that function for why), so here we will rerun it
   // interactively just in case e.g. the ship discovers the pa-
   // cific ocean or another nation upon moving.
-  if( auto o = combat_.attacker.outcome
+  if( auto o = combat.attacker.outcome
                    .get_if<EuroNavalUnitCombatOutcome::moved>();
       o.has_value() )
     UnitOwnershipChanger( ss_, attacker_id_ )
@@ -545,9 +547,6 @@ struct EuroAttackHandler : public EuroAttackHandlerBase {
 
   // Implement CommandHandler.
   wait<> perform() override;
-
- private:
-  CombatEuroAttackEuro combat_ = {};
 };
 
 wait<bool> EuroAttackHandler::confirm() {
@@ -561,23 +560,26 @@ wait<bool> EuroAttackHandler::confirm() {
   // Do all of the more generic tests that don't know about the
   // defender.
   if( !co_await Base::confirm() ) co_return false;
-  combat_ = ts_.combat.euro_attack_euro( attacker_, defender_ );
   co_return true;
 }
 
 wait<> EuroAttackHandler::perform() {
+  // Should be done before consuming mv points in Base::perform.
+  CombatEuroAttackEuro const combat =
+      ts_.combat.euro_attack_euro( attacker_, defender_ );
+
   co_await Base::perform();
 
   AnimationSequence const seq =
-      anim_seq_for_euro_attack_euro( ss_, combat_ );
+      anim_seq_for_euro_attack_euro( ss_, combat );
   co_await ts_.planes.land_view().animate( seq );
 
   CombatEffectsMessages const effects_msg =
-      combat_effects_msg( ss_, combat_ );
+      combat_effects_msg( ss_, combat );
   perform_euro_unit_combat_effects( ss_, ts_, attacker_,
-                                    combat_.attacker.outcome );
+                                    combat.attacker.outcome );
   perform_euro_unit_combat_effects( ss_, ts_, defender_,
-                                    combat_.defender.outcome );
+                                    combat.defender.outcome );
   co_await show_combat_effects_msg(
       filter_combat_effects_msgs(
           mix_combat_effects_msgs( effects_msg ) ),
@@ -597,9 +599,6 @@ struct AttackNativeUnitHandler : public NativeAttackHandlerBase {
 
   // Implement CommandHandler.
   wait<> perform() override;
-
- private:
-  CombatEuroAttackBrave combat_;
 };
 
 // Returns true if the move is allowed.
@@ -625,15 +624,18 @@ wait<bool> AttackNativeUnitHandler::confirm() {
     relationship.nation_has_attacked_tribe = true;
   }
 
-  combat_ = ts_.combat.euro_attack_brave( attacker_, defender_ );
   co_return true;
 }
 
 wait<> AttackNativeUnitHandler::perform() {
+  // Should be done before consuming mv points in Base::perform.
+  CombatEuroAttackBrave const combat =
+      ts_.combat.euro_attack_brave( attacker_, defender_ );
+
   co_await Base::perform();
 
   AnimationSequence const seq =
-      anim_seq_for_euro_attack_brave( ss_, combat_ );
+      anim_seq_for_euro_attack_brave( ss_, combat );
   co_await ts_.planes.land_view().animate( seq );
 
   // The tribal alarm goes up regardless of the battle outcome.
@@ -646,11 +648,11 @@ wait<> AttackNativeUnitHandler::perform() {
       relationship );
 
   CombatEffectsMessages const effects_msg =
-      combat_effects_msg( ss_, combat_ );
+      combat_effects_msg( ss_, combat );
   perform_euro_unit_combat_effects( ss_, ts_, attacker_,
-                                    combat_.attacker.outcome );
+                                    combat.attacker.outcome );
   perform_native_unit_combat_effects( ss_, defender_,
-                                      combat_.defender.outcome );
+                                      combat.defender.outcome );
   co_await show_combat_effects_msg(
       filter_combat_effects_msgs(
           mix_combat_effects_msgs( effects_msg ) ),
@@ -684,6 +686,7 @@ struct AttackDwellingHandler : public AttackHandlerBase {
       wait<>( CombatEuroAttackBrave const& combat );
 
   wait<> with_phantom_brave_combat(
+      CombatEuroAttackDwelling const&               combat,
       base::function_ref<PhantomCombatAnimatorFunc> func );
 
   DwellingId         dwelling_id_;
@@ -691,8 +694,6 @@ struct AttackDwellingHandler : public AttackHandlerBase {
   Tribe&             tribe_;
   INativeMind&       defender_mind_;
   TribeRelationship& relationship_;
-
-  CombatEuroAttackDwelling const combat_;
 
   maybe<UnitId> treasure_;
   maybe<UnitId> native_convert_;
@@ -708,9 +709,7 @@ AttackDwellingHandler::AttackDwellingHandler(
     tribe_( ss.natives.tribe_for( dwelling_.id ) ),
     defender_mind_( ts.native_minds[tribe_.type] ),
     relationship_(
-        tribe_.relationship[attacking_player_.nation] ),
-    combat_( ts.combat.euro_attack_dwelling( attacker_,
-                                             dwelling_ ) ) {}
+        tribe_.relationship[attacking_player_.nation] ) {}
 
 // Returns true if the move is allowed.
 wait<bool> AttackDwellingHandler::confirm() {
@@ -771,14 +770,15 @@ wait<> AttackDwellingHandler::produce_convert() {
 }
 
 wait<> AttackDwellingHandler::with_phantom_brave_combat(
+    CombatEuroAttackDwelling const&               combat,
     base::function_ref<PhantomCombatAnimatorFunc> func ) {
   NativeUnitId const phantom_brave = create_phantom_brave();
   SCOPE_EXIT { ss_.units.destroy_unit( phantom_brave ); };
   CombatEuroAttackBrave phantom_combat{
-      .winner   = combat_.winner,
-      .attacker = combat_.attacker,
+      .winner   = combat.winner,
+      .attacker = combat.attacker,
       .defender = { .id = phantom_brave } };
-  if( combat_.winner == e_combat_winner::attacker )
+  if( combat.winner == e_combat_winner::attacker )
     phantom_combat.defender.outcome =
         NativeUnitCombatOutcome::destroyed{};
   else
@@ -788,6 +788,10 @@ wait<> AttackDwellingHandler::with_phantom_brave_combat(
 }
 
 wait<> AttackDwellingHandler::perform() {
+  // Should be done before consuming mv points in Base::perform.
+  CombatEuroAttackDwelling const combat =
+      ts_.combat.euro_attack_dwelling( attacker_, dwelling_ );
+
   co_await Base::perform();
 
   auto const& tribe_conf = config_natives.tribes[tribe_.type];
@@ -805,13 +809,13 @@ wait<> AttackDwellingHandler::perform() {
       nation_obj( attacking_player_.nation ).harbor_city_name;
 
   // Set new tribal alarm.
-  relationship_.tribal_alarm = combat_.new_tribal_alarm;
+  relationship_.tribal_alarm = combat.new_tribal_alarm;
 
   // Consume attacker movement points.
   // Done in base handler.
 
   // Check if the tribe has burned our missions.
-  if( combat_.missions_burned ) {
+  if( combat.missions_burned ) {
     // TODO: depixelation animation/sound?
     vector<UnitId> const missionaries =
         player_missionaries_in_tribe( ss_, attacking_player_,
@@ -836,20 +840,21 @@ wait<> AttackDwellingHandler::perform() {
 
   FilteredMixedCombatEffectsMessages const effects_msg =
       filter_combat_effects_msgs( mix_combat_effects_msgs(
-          combat_effects_msg( ss_, combat_ ) ) );
+          combat_effects_msg( ss_, combat ) ) );
 
   // Attacker lost:
-  if( combat_.winner == e_combat_winner::defender ) {
-    CHECK( combat_.defender.outcome
+  if( combat.winner == e_combat_winner::defender ) {
+    CHECK( combat.defender.outcome
                .holds<DwellingCombatOutcome::no_change>() );
     co_await with_phantom_brave_combat(
+        combat,
         [&]( CombatEuroAttackBrave const& combat ) -> wait<> {
           AnimationSequence const seq =
               anim_seq_for_euro_attack_brave( ss_, combat );
           co_await ts_.planes.land_view().animate( seq );
         } );
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
-                                      combat_.attacker.outcome );
+                                      combat.attacker.outcome );
     co_await show_combat_effects_msg(
         effects_msg, attacker_mind_, defender_mind_ );
     co_return;
@@ -859,17 +864,18 @@ wait<> AttackDwellingHandler::perform() {
 
   // Population decrease.
   if( auto population_decrease =
-          combat_.defender.outcome.get_if<
+          combat.defender.outcome.get_if<
               DwellingCombatOutcome::population_decrease>();
       population_decrease.has_value() ) {
     co_await with_phantom_brave_combat(
+        combat,
         [&]( CombatEuroAttackBrave const& combat ) -> wait<> {
           AnimationSequence const seq =
               anim_seq_for_euro_attack_brave( ss_, combat );
           co_await ts_.planes.land_view().animate( seq );
         } );
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
-                                      combat_.attacker.outcome );
+                                      combat.attacker.outcome );
     co_await show_combat_effects_msg(
         effects_msg, attacker_mind_, defender_mind_ );
     --dwelling_.population;
@@ -882,7 +888,7 @@ wait<> AttackDwellingHandler::perform() {
   // Dwelling burned.
   UNWRAP_CHECK(
       destruction,
-      combat_.defender.outcome
+      combat.defender.outcome
           .get_if<DwellingCombatOutcome::destruction>() );
   Coord const dwelling_location =
       ss_.natives.coord_for( dwelling_id_ );
@@ -927,11 +933,13 @@ wait<> AttackDwellingHandler::perform() {
   // Animate attacker winning w/ burning village and depixelating
   // all braves.
   co_await with_phantom_brave_combat(
-      [&]( CombatEuroAttackBrave const& combat ) -> wait<> {
+      combat,
+      [&]( CombatEuroAttackBrave const& phantom_combat )
+          -> wait<> {
         AnimationSequence const seq = anim_seq_for_dwelling_burn(
-            ss_, attacker_id_, combat_.attacker.outcome,
-            combat.defender.id, dwelling_id_,
-            combat_.defender.outcome );
+            ss_, attacker_id_, combat.attacker.outcome,
+            phantom_combat.defender.id, dwelling_id_,
+            combat.defender.outcome );
         co_await ts_.planes.land_view().animate( seq );
       } );
 
@@ -943,7 +951,7 @@ wait<> AttackDwellingHandler::perform() {
   // inspect it.
   destroy_dwelling( ss_, ts_, dwelling_id_ );
   perform_euro_unit_combat_effects( ss_, ts_, attacker_,
-                                    combat_.attacker.outcome );
+                                    combat.attacker.outcome );
 
   co_await show_combat_effects_msg( effects_msg, attacker_mind_,
                                     defender_mind_ );
