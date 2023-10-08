@@ -23,8 +23,6 @@ struct Renderer;
 namespace rn {
 
 struct SS;
-struct TerrainRenderOptions;
-struct Visibility;
 
 /****************************************************************
 ** NonRenderingMapUpdater

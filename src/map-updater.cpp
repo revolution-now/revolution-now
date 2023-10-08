@@ -80,28 +80,47 @@ NonRenderingMapUpdater::make_squares_visible(
   gfx::Matrix<maybe<FogSquare>>& map = player_terrain.map;
 
   vector<BuffersUpdated> res;
+  Visibility const       viz( ss_, nation );
   for( Coord const tile : tiles ) {
     BuffersUpdated& buffers_updated = res.emplace_back();
     buffers_updated.tile            = tile;
-    // Unexplored status.
-    bool const unexplored_before = !map[tile].has_value();
-    if( unexplored_before ) {
-      buffers_updated.landscape   = true;
-      buffers_updated.obfuscation = true;
-      map[tile].emplace();
+
+    // The Visibility::visible function also works with off-map
+    // ("proto") tiles, but we don't anticipate having those
+    // here, so just check that for sanity.
+    CHECK( tile.is_inside( map.rect() ) );
+    switch( viz.visible( tile ) ) {
+      case e_tile_visibility::hidden: {
+        CHECK( !map[tile].has_value() );
+        buffers_updated.landscape   = true;
+        buffers_updated.obfuscation = true;
+        // Signal that the square is now explored. Note that we
+        // only care that the fog square has a value; the con-
+        // tents won't matter since when a square is visible and
+        // clear (which is what we're making it) the fog square
+        // is never consulted. The fog square will be updated
+        // eventually if/when then square transitions to fogged.
+        map[tile].emplace();
+        map[tile]->fog_of_war_removed = true;
+        break;
+      }
+      case e_tile_visibility::visible_and_clear:
+        CHECK( map[tile].has_value() );
+        break;
+      case e_tile_visibility::visible_with_fog: {
+        CHECK( map[tile].has_value() );
+        map[tile]->fog_of_war_removed = true;
+        if( options().render_fog_of_war )
+          buffers_updated.obfuscation = true;
+
+        MapSquare const& player_square = map[tile]->square;
+        MapSquare const& real_square =
+            ss_.terrain.square_at( tile );
+        if( player_square != real_square )
+          buffers_updated.landscape = true;
+        break;
+      }
     }
-
-    FogSquare& fog_square = *map[tile];
-    bool const fog_present_before =
-        !fog_square.fog_of_war_removed;
-    fog_square.fog_of_war_removed = true;
-    if( fog_present_before && options().render_fog_of_war )
-      buffers_updated.obfuscation = true;
-
-    MapSquare&       player_square = fog_square.square;
-    MapSquare const& real_square = ss_.terrain.square_at( tile );
-    if( player_square != real_square )
-      buffers_updated.landscape = true;
   }
 
   CHECK( res.size() == tiles.size() );
