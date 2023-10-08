@@ -1,3 +1,35 @@
+Pixelating Landscape Tiles
+=================================================================
+There are cases where we need to pixelate a landscape tile from
+one state to another. E.g., we want to depixelate some roads. To
+do this in a general way without having to make temporary changes
+to the terrain state and without having to do anything hacky, we
+will have a new buffer that goes just above the landscape_annex
+buffer, and will be called the landscape_anim buffer. This new
+buffer is always empty except for during animations. During an
+animation, it will contain the fully rendered set of tiles that
+are animating (but no others, so it will be a small buffer) in
+their target state. Then, the animation will consist of rendering
+them on top of the landscape buffer with a gradual enpixelation,
+so they will slowly cover the landscape tiles behind them (land-
+scape tiles must never have any transparent pixels). In order to
+avoid re-rendering those tiles in the landscape_anim buffer each
+frame with a different pixelation stage, we will introduce a new
+uniform into the shaders that, when not equal to 0.0, will intro-
+duce a global depixelation (in this case, we will ramp it down
+from 1.0 to create an enpixelation).
+
+A similar method could eventually be used to e.g. enpixelate
+fog-of-war when a unit is destroyed (by adding an
+obfuscation-anim buffer), after the point at which we add a more
+incremental fog-of-war updater mechanism. At the time of writing
+we would not be ready for that because we only update the fog of
+war at the start/end of each player's turn. An obfuscation anim
+buffer could also be used to depixelate hidden terrain when a
+treasure train enpixelates on a former dwelling tile that is
+still adjacent to some other hidden tiles, although this is prob-
+ably not a high priority.
+
 RAII Planes Redesign
 =================================================================
 

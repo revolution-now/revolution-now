@@ -480,26 +480,6 @@ AnimationSequence anim_seq_for_brave_attack_colony(
     }();
     for( GenericUnitId const id : units_to_hide )
       builder.hide_unit( id );
-    // TODO: when the colony is depixelating, the road under it
-    // is not removed during the animation (though it will later
-    // be removed)... not yet sure if this is something that
-    // should be changed. In the OG, it appears that it renders
-    // the complete screen without the colony (and with the new
-    // road configuration) and then depixelates the entire
-    // screen, so the road configuration pixelates into the new
-    // road configuration on the surrounding tiles as the colony
-    // goes away. For the sake of polish, we should probably
-    // replicate this, but it is probably not a high priority. It
-    // will probably be non-trivial because we would need to
-    // first remove the roads from the terrain by rerendering the
-    // squares, then adding animations for roads, and pixelating
-    // one road tile to another in the surrounding squares. NOTE:
-    // this should also be done in the other colony depixelation
-    // function, i.e., the one that gets called when the colony
-    // starves or is abandoned. This would also allow us to not
-    // have to clear the road first before the animation, which
-    // would allow us to get rid of the function that does the
-    // animated colony destruction.
     builder.depixelate_colony( combat.colony_id );
   }
   play_combat_outcome_sound( builder, combat );
