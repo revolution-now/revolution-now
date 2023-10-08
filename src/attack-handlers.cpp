@@ -551,6 +551,15 @@ struct EuroAttackHandler : public EuroAttackHandlerBase {
 };
 
 wait<bool> EuroAttackHandler::confirm() {
+  CHECK( !attacker_.desc().ship );
+  if( defender_.desc().ship ) {
+    co_await attacker_mind_.message_box(
+        "Our land units can neither attack nor board foreign "
+        "ships." );
+    co_return false;
+  }
+  // Do all of the more generic tests that don't know about the
+  // defender.
   if( !co_await Base::confirm() ) co_return false;
   combat_ = ts_.combat.euro_attack_euro( attacker_, defender_ );
   co_return true;

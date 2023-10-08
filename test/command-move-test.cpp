@@ -20,6 +20,7 @@
 #include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/land-view-plane.hpp"
+#include "test/util/coro.hpp"
 
 // Revolution Now
 #include "src/map-square.hpp"
@@ -67,6 +68,7 @@ struct World : testing::World {
     build_map( std::move( tiles ), 6 );
     add_player( e_nation::dutch );
     add_player( e_nation::french );
+    set_default_player( e_nation::dutch );
 
     // This is so that we don't try to pop up a box telling the
     // player that they've discovered the new world.
@@ -421,6 +423,58 @@ TEST_CASE(
   REQUIRE( !w_confirm.exception() );
   REQUIRE( w_confirm.ready() );
   REQUIRE_FALSE( *w_confirm );
+}
+
+TEST_CASE(
+    "[command-move] unit attempting to board/attack foreign "
+    "ship" ) {
+  World       W;
+  Unit const& caravel =
+      W.add_unit_on_map( e_unit_type::caravel,
+                         { .x = 0, .y = 0 }, e_nation::dutch );
+
+  Unit const& colonist =
+      W.add_unit_on_map( e_unit_type::free_colonist,
+                         { .x = 1, .y = 1 }, e_nation::french );
+
+  BASE_CHECK( caravel.nation() != colonist.nation() );
+  unique_ptr<CommandHandler> handler =
+      handle_command( W.ss(), W.ts(), W.french(), colonist.id(),
+                      command::move{ .d = e_direction::nw } );
+  W.euro_mind( e_nation::french )
+      .EXPECT__message_box(
+          "Our land units can neither attack nor board foreign "
+          "ships." );
+  bool const confirmed = co_await_test( handler->confirm() );
+  REQUIRE_FALSE( confirmed );
+}
+
+// This can't really happen in the normal game since we never
+// allow ships to linger on land, but we should still make sure
+// that we don't crash because this situation could be created in
+// cheat mode.
+TEST_CASE(
+    "[command-move] land unit attempting to attack ship on "
+    "land" ) {
+  World       W;
+  Unit const& caravel =
+      W.add_unit_on_map( e_unit_type::caravel,
+                         { .x = 1, .y = 0 }, e_nation::dutch );
+
+  Unit const& soldier =
+      W.add_unit_on_map( e_unit_type::free_colonist,
+                         { .x = 1, .y = 1 }, e_nation::french );
+
+  BASE_CHECK( caravel.nation() != soldier.nation() );
+  unique_ptr<CommandHandler> handler =
+      handle_command( W.ss(), W.ts(), W.french(), soldier.id(),
+                      command::move{ .d = e_direction::n } );
+  W.euro_mind( e_nation::french )
+      .EXPECT__message_box(
+          "Our land units can neither attack nor board foreign "
+          "ships." );
+  bool const confirmed = co_await_test( handler->confirm() );
+  REQUIRE_FALSE( confirmed );
 }
 
 } // namespace

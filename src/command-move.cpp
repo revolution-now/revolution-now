@@ -1279,9 +1279,11 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
     return naval_battle_handler( ss, ts, attacker_id,
                                  defender_id );
 
-  // We are attacking a non-ship foreign european unit either
-  // outside of a colony or at a colony's gate.
-  CHECK( !ss.units.unit_for( defender_id ).desc().ship );
+  // We are attacking a foreign european unit either outside of a
+  // colony or at a colony's gate. Note that this may include
+  // some forbidden scenarios, such as a land unit trying to
+  // board or attack a foreign ship, but those should be inter-
+  // cepted and prevented.
   return attack_euro_land_handler( ss, ts, attacker_id,
                                    defender_id );
 }

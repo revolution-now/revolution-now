@@ -215,9 +215,10 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 // This test case tests failure modes that are common to most of
-// the handlers.
+// the handlers for the case of a land battle.
 #ifndef COMPILER_GCC
-TEST_CASE( "[attack-handlers] common failure checks" ) {
+TEST_CASE(
+    "[attack-handlers] common failure checks (land attacker)" ) {
   World                   W;
   CommandHandlerRunResult expected = { .order_was_run = false };
   CombatEuroAttackEuro    combat;
@@ -235,14 +236,6 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
         W.ss(), W.ts(), combat.attacker.id,
         combat.defender.id ) );
   };
-
-  SECTION( "ships cannot attack land units" ) {
-    tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
-        e_unit_type::frigate, e_unit_type::free_colonist );
-    W.expect_msg_contains( W.kAttackingNation,
-                           "Ships cannot attack land units" );
-    REQUIRE( f() == expected );
-  }
 
   SECTION( "non-military units cannot attack" ) {
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
@@ -269,7 +262,17 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
     tie( combat.attacker.id, combat.defender.id ) =
         W.add_pair( e_unit_type::soldier, e_unit_type::caravel );
     W.expect_msg_contains( W.kAttackingNation,
-                           "Land units cannot attack ship" );
+                           "Our land units can neither attack "
+                           "nor board foreign ships." );
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "land unit cannot board ship" ) {
+    tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
+        e_unit_type::free_colonist, e_unit_type::caravel );
+    W.expect_msg_contains( W.kAttackingNation,
+                           "Our land units can neither attack "
+                           "nor board foreign ships." );
     REQUIRE( f() == expected );
   }
 
@@ -303,6 +306,29 @@ TEST_CASE( "[attack-handlers] common failure checks" ) {
   }
 }
 #endif
+
+// This test case tests failure modes that are common to most of
+// the handlers for the case of a ship battle.
+TEST_CASE(
+    "[attack-handlers] common failure checks (ship attacker)" ) {
+  World                   W;
+  CommandHandlerRunResult expected = { .order_was_run = false };
+  CombatEuroAttackEuro    combat;
+
+  auto f = [&] {
+    return W.run_handler(
+        naval_battle_handler( W.ss(), W.ts(), combat.attacker.id,
+                              combat.defender.id ) );
+  };
+
+  SECTION( "ships cannot attack land units" ) {
+    tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
+        e_unit_type::frigate, e_unit_type::free_colonist );
+    W.expect_msg_contains( W.kAttackingNation,
+                           "Ships cannot attack land units" );
+    REQUIRE( f() == expected );
+  }
+}
 
 #ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
