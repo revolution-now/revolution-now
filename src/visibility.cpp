@@ -104,12 +104,11 @@ e_tile_visibility Visibility::visible( Coord tile ) const {
   if( !player_terrain_.has_value() )
     // No player, so always visible.
     return e_tile_visibility::visible_and_clear;
-  DCHECK( *player_terrain_ != nullptr );
   // We're rendering from the player's point of view.
   if( !tile.is_inside( terrain_->world_rect_tiles() ) )
     // Proto squares are never considered visible.
     return e_tile_visibility::hidden;
-  DCHECK( player_terrain_.has_value() );
+  CHECK( *player_terrain_ != nullptr );
   maybe<FogSquare> const& fog_square =
       ( *player_terrain_ )->map[tile];
   if( !fog_square.has_value() )
