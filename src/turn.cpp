@@ -937,43 +937,7 @@ wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
       }
       SHOULD_NOT_BE_HERE; // for gcc.
     }
-    CASE( finish ) {
-      // Fog of war is regenerated once at the end of the play-
-      // er's turn. Any land that is uncovered during the play-
-      // er's turn will get re-fogged unless it is still directly
-      // visible.
-      //
-      // There are many other ways that this could be done, but
-      // after much consideration, doing the update once per turn
-      // seems to be the right trade-off between efficiency (this
-      // is not a cheap operation especially when there are many
-      // units on the map), making visual sense to the player,
-      // and implementation complexity. Doing it at the end of
-      // the turn instead of at the start of the turn makes
-      // sense, because if we were to do it at the start of the
-      // turn, then any terrain discovered by the player during
-      // their turn would remain visible during the proceeding
-      // player's turns, even if the squares are no longer di-
-      // rectly visible. Though one consequence of doing it at
-      // the end of the turn is that, if a foreign player de-
-      // stroys one of our units or colonies then the space
-      // around those will remain visible into our next turn, but
-      // that is probably not a big deal.
-      //
-      // TODO: the performance of this function may need to be
-      // revisited. For normal game maps, the make_square_fogged
-      // stage seems to dominate, which could pobably be ad-
-      // dressed by optimizing the fog rendering (caching?). For
-      // large maps it seems to be the "generate fogged set"
-      // stage that dominates since it has to iterate through the
-      // entire map. Not sure yet how to deal with that. There
-      // might also be an issue (not tested) where we have a
-      // large number of european units on the map; to address
-      // that we might want to add another cache to ss/units that
-      // keeps a set of all european units on the map.
-      recompute_fog_for_nation( ss, ts, player.nation );
-      co_return NationTurnState::finished{};
-    }
+    CASE( finish ) { co_return NationTurnState::finished{}; }
     CASE( finished ) { SHOULD_NOT_BE_HERE; }
   }
 }
@@ -1016,6 +980,28 @@ void start_of_turn_cycle( SS& ss ) {
   } );
 }
 
+// This is a bit costly, and so it is unfortunate that, for vi-
+// sual consistency, we have to call it at the start of each na-
+// tion's turn (and the start of the natives' turn). Actually, it
+// doesn't even work perfectly, because e.g. if nation A de-
+// stroy's nation B's unit during nation A's turn, nation B will
+// continue to have visibility in the unit's surroundings for the
+// remainder of nation A's turn. Maybe in the future we can im-
+// prove this mechanism by using a more incremental approach,
+// e.g. adding fog whenever a unit leaves the map, which we
+// should be able to hook into via the change_to_free method in
+// the unit-ownership module. Until then, we'll just call this
+// for all nations at the start and end of each turn, which for
+// the most part does the right thing despite being unnecessarily
+// costly. Actually, the cost of it may need to be reassessed;
+// for normal game map sizes with normal numbers of units on the
+// map, it actually may not be that bad at all.
+void recompute_fog_for_all_nations( SS& ss, TS& ts ) {
+  for( e_nation const nation : refl::enum_values<e_nation> )
+    if( ss.players.players[nation].has_value() )
+      recompute_fog_for_nation( ss, ts, nation );
+}
+
 // Processes teh current state and returns the next state.
 wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
   TurnState& turn  = ss.turn;
@@ -1041,6 +1027,7 @@ wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
       co_return TurnCycle::nation{};
     }
     CASE( nation ) {
+      recompute_fog_for_all_nations( ss, ts );
       co_await nation_turn( ss, ts, nation.nation, nation.st );
       auto& ns   = refl::enum_values<e_nation>;
       auto  next = base::find( ns, nation.nation ) + 1;
@@ -1049,6 +1036,9 @@ wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
       co_return TurnCycle::end_cycle{};
     }
     CASE( end_cycle ) {
+      // Do this here so that it will be done in preparation for
+      // the start of the native's turn in the next cycle.
+      recompute_fog_for_all_nations( ss, ts );
       co_await advance_time( ts.gui, turn.time_point );
       if( should_autosave( ss ) ) autosave( ss, ts );
       co_return TurnCycle::finished{};
