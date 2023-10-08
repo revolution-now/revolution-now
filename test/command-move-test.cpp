@@ -17,6 +17,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocks/icolony-viewer.hpp"
+#include "test/mocks/icombat.hpp"
 #include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/land-view-plane.hpp"
@@ -33,6 +34,7 @@
 #include "ss/dwelling.rds.hpp"
 #include "ss/player.hpp"
 #include "ss/settings.hpp"
+#include "ss/unit.hpp"
 #include "ss/units.hpp"
 
 // Must be last.
@@ -475,6 +477,127 @@ TEST_CASE(
           "ships." );
   bool const confirmed = co_await_test( handler->confirm() );
   REQUIRE_FALSE( confirmed );
+}
+
+TEST_CASE(
+    "[command-move] units on ships in colony offboarded to help "
+    "defend" ) {
+  World             W;
+  MockLandViewPlane mock_land_view;
+  W.planes().back().land_view = &mock_land_view;
+  Colony const& colony =
+      W.add_colony( { .x = 1, .y = 0 }, e_nation::dutch );
+  Unit const& master_distiller =
+      W.add_unit_indoors( colony.id, e_indoor_job::bells,
+                          e_unit_type::master_distiller );
+  Unit const& caravel =
+      W.add_unit_on_map( e_unit_type::caravel,
+                         { .x = 1, .y = 0 }, e_nation::dutch );
+  Unit const& soldier =
+      W.add_unit_on_map( e_unit_type::soldier,
+                         { .x = 1, .y = 1 }, e_nation::french );
+  BASE_CHECK( colony.nation != soldier.nation() );
+
+  auto require_on_map = [&]( Unit const& unit ) {
+    REQUIRE( as_const( W.units() )
+                 .ownership_of( unit.id() )
+                 .holds<UnitOwnership::world>() );
+  };
+
+  auto require_in_cargo = [&]( Unit const& unit ) {
+    REQUIRE( as_const( W.units() )
+                 .ownership_of( unit.id() )
+                 .holds<UnitOwnership::cargo>() );
+  };
+
+  auto require_in_colony = [&]( Unit const& unit ) {
+    REQUIRE( as_const( W.units() )
+                 .ownership_of( unit.id() )
+                 .holds<UnitOwnership::colony>() );
+  };
+
+  auto require_sentried = [&]( Unit const& unit ) {
+    REQUIRE( unit.orders().holds<unit_orders::sentry>() );
+  };
+
+  auto require_not_sentried = [&]( Unit const& unit ) {
+    REQUIRE( !unit.orders().holds<unit_orders::sentry>() );
+  };
+
+  SECTION( "no units on ship" ) {
+    unique_ptr<CommandHandler> handler =
+        handle_command( W.ss(), W.ts(), W.french(), soldier.id(),
+                        command::move{ .d = e_direction::n } );
+    require_in_colony( master_distiller );
+    require_not_sentried( master_distiller );
+    require_on_map( caravel );
+    bool const confirmed = co_await_test( handler->confirm() );
+    REQUIRE( confirmed );
+    // We don't really care what this is, we just need to give it
+    // some plausible values so that we can test that the combat
+    // creation function is called with the correct defender.
+    CombatEuroAttackUndefendedColony const combat{
+        .winner    = e_combat_winner::defender,
+        .colony_id = colony.id,
+        .attacker  = { .id = soldier.id(),
+                       .outcome =
+                           EuroUnitCombatOutcome::no_change{} },
+        .defender  = {
+             .id = master_distiller.id(),
+             .outcome =
+                EuroColonyWorkerCombatOutcome::no_change{} } };
+    W.combat()
+        .EXPECT__euro_attack_undefended_colony(
+            soldier, master_distiller, colony )
+        .returns( combat );
+    mock_land_view.EXPECT__animate( _ );
+    W.euro_mind( e_nation::dutch )
+        .EXPECT__message_box(
+            "[Dutch] Master Distiller defeats [French] in 1!" );
+    co_await_test( handler->perform() );
+  }
+
+  SECTION( "unit on ship" ) {
+    Unit const& soldier_onboard = W.add_unit_in_cargo(
+        e_unit_type::soldier, caravel.id() );
+    require_in_cargo( soldier_onboard );
+    unique_ptr<CommandHandler> handler =
+        handle_command( W.ss(), W.ts(), W.french(), soldier.id(),
+                        command::move{ .d = e_direction::n } );
+    require_in_colony( master_distiller );
+    require_not_sentried( master_distiller );
+    require_on_map( soldier_onboard );
+    require_sentried( soldier_onboard );
+    require_on_map( caravel );
+    bool const confirmed = co_await_test( handler->confirm() );
+    REQUIRE( confirmed );
+    // We don't really care what this is, we just need to give it
+    // some plausible values so that we can test that the combat
+    // creation function is called with the correct defender.
+    CombatEuroAttackEuro const combat{
+        .winner   = e_combat_winner::defender,
+        .attacker = { .id = soldier.id(),
+                      .outcome =
+                          EuroUnitCombatOutcome::no_change{} },
+        .defender = {
+            .id      = soldier_onboard.id(),
+            .outcome = EuroUnitCombatOutcome::no_change{} } };
+    // In this scenario, since the soldier should have been auto-
+    // matically offboarded from the ship, it should have been
+    // chosen as the defender. So that means it is just a regular
+    // land battle with the soldier as the defender. Although we
+    // specified the soldier as the defender above, the real test
+    // is that it gets passed in as a parameter to the function
+    // below; that's what indicates that it was chosen.
+    W.combat()
+        .EXPECT__euro_attack_euro( soldier, soldier_onboard )
+        .returns( combat );
+    mock_land_view.EXPECT__animate( _ );
+    W.euro_mind( e_nation::dutch )
+        .EXPECT__message_box(
+            "[Dutch] Soldier defeats [French] in 1!" );
+    co_await_test( handler->perform() );
+  }
 }
 
 } // namespace

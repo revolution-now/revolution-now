@@ -1246,10 +1246,31 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
 
   // Must be an attack (or an attempted attack) on a foreign eu-
   // ropean unit or colony. First check for an undefended colony.
-  if( maybe<ColonyId> colony_id =
+  if( maybe<ColonyId> const colony_id =
           ss.colonies.maybe_from_coord( dst );
       colony_id.has_value() ) {
     Colony& colony = ss.colonies.colony_for( *colony_id );
+    // Before we select the defender we need to unload all mili-
+    // tary units on ships in the colony's port in order to
+    // replicate the OG's behavior.
+    if( vector<UnitId> const offboarded =
+            offboard_units_on_ships( ss, ts, colony.location );
+        !offboarded.empty() )
+      // TODO: Might be nice to display a message to the user
+      // here like we do when a brave attacks a colony, but that
+      // would require make this call stack a coroutine, which it
+      // currently is not. Also, not sure this would be a good
+      // place for it because it would pop up before any other
+      // messages having to do with the combat. Furthermore, such
+      // a message should really only go to the defender (colony
+      // owner), which for the time being is just going to be an
+      // AI colony, so wouldn't have any effect anyway. Therefore
+      // this might be something that we just leave for a later
+      // time, since it is not strictly required.
+      lg.info(
+          "colonists on ships docked in {} have been offboarded "
+          "to help defend the colony.",
+          colony.name );
     UnitId const defender_id =
         select_colony_defender( ss, colony );
     Unit const& defender = ss.units.unit_for( defender_id );
