@@ -829,6 +829,13 @@ LUA_STARTUP( lua::state& st ) {
   u["unit_from_id"] = []( U& o, UnitId id ) -> Unit& {
     return o.unit_for( id );
   };
+  u["from_coord"] = [&]( U& o, Coord tile ) -> lua::table {
+    lua::table tbl        = st.table.create();
+    auto&      from_coord = o.from_coord( tile );
+    int        i          = 1;
+    for( auto id : from_coord ) tbl[i++] = id;
+    return tbl;
+  };
 };
 
 } // namespace
