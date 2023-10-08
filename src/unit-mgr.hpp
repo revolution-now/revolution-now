@@ -112,6 +112,12 @@ maybe<UnitId> is_unit_onboard( UnitsState const& units_state,
 std::vector<UnitId> offboard_units_on_ships( SS& ss, TS& ts,
                                              Coord coord );
 
+// Offboards any units and puts them on the map, which should be
+// land in order to uphold game rules, though this function won't
+// check for that.
+std::vector<UnitId> offboard_units_on_ship( SS& ss, TS& ts,
+                                            Unit& ship );
+
 /****************************************************************
 ** Creation
 *****************************************************************/

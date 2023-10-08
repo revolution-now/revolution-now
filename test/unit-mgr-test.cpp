@@ -480,5 +480,79 @@ TEST_CASE( "[unit-mgr] offboard_units_on_ships" ) {
   }
 }
 
+TEST_CASE( "[unit-mgr] offboard_units_on_ship" ) {
+  World          W;
+  vector<UnitId> expected;
+  Unit*          p_unit = nullptr;
+
+  auto f = [&] {
+    CHECK( p_unit != nullptr );
+    return offboard_units_on_ship( W.ss(), W.ts(), *p_unit );
+  };
+
+  auto require_on_land = [&]( Unit const& unit ) {
+    REQUIRE( as_const( W.units() ).ownership_of( unit.id() ) ==
+             UnitOwnership::world{ .coord = W.kLand } );
+  };
+
+  auto require_sentried = [&]( Unit const& unit ) {
+    REQUIRE( unit.orders().holds<unit_orders::sentry>() );
+  };
+
+  auto require_not_sentried = [&]( Unit const& unit ) {
+    REQUIRE( !unit.orders().holds<unit_orders::sentry>() );
+  };
+
+  Unit& galleon =
+      W.add_unit_on_map( e_unit_type::galleon, W.kLand );
+
+  p_unit   = &galleon;
+  expected = {};
+  REQUIRE( f() == expected );
+
+  Unit const& free_colonist =
+      W.add_unit_on_map( e_unit_type::free_colonist, W.kLand );
+
+  p_unit   = &galleon;
+  expected = {};
+  REQUIRE( f() == expected );
+  require_on_land( free_colonist );
+  require_not_sentried( free_colonist );
+
+  Unit const& soldier =
+      W.add_unit_on_map( e_unit_type::soldier, W.kLand );
+
+  p_unit   = &galleon;
+  expected = {};
+  REQUIRE( f() == expected );
+  require_on_land( free_colonist );
+  require_not_sentried( free_colonist );
+  require_on_land( soldier );
+  require_not_sentried( soldier );
+
+  Unit const& indentured_servant = W.add_unit_in_cargo(
+      e_unit_type::indentured_servant, galleon.id() );
+
+  Unit const& dragoon =
+      W.add_unit_in_cargo( e_unit_type::dragoon, galleon.id() );
+
+  p_unit   = &galleon;
+  expected = { indentured_servant.id(), dragoon.id() };
+  REQUIRE( f() == expected );
+  require_on_land( dragoon );
+  require_sentried( dragoon );
+  require_on_land( indentured_servant );
+  require_sentried( indentured_servant );
+
+  Unit const& dragoon2 =
+      W.add_unit_in_cargo( e_unit_type::dragoon, galleon.id() );
+
+  p_unit   = &galleon;
+  expected = { dragoon2.id() };
+  REQUIRE( f() == expected );
+  require_on_land( dragoon2 );
+  require_sentried( dragoon2 );
+}
+
 } // namespace
 } // namespace rn
