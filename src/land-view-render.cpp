@@ -208,39 +208,55 @@ void LandViewRenderer::render_units_default() const {
 // `multiple_units` is for the case when there are multiple units
 // on the square and we want to indicate that visually.
 void LandViewRenderer::render_single_unit_depixelate_to(
-    Coord where, GenericUnitId id, bool multiple_units,
-    double stage, e_tile target_tile ) const {
+    Coord where, UnitId unit_id, bool multiple_units,
+    double stage, e_unit_type target_type ) const {
   e_flag_count const    flag_count = multiple_units
                                          ? e_flag_count::multiple
                                          : e_flag_count::single;
   UnitFlagOptions const flag_options{
       .flag_count = flag_count,
       .type       = e_flag_char_type::normal };
-  switch( ss_.units.unit_kind( id ) ) {
-    case e_unit_kind::euro: {
-      UnitId const unit_id{ to_underlying( id ) };
-      Unit const&  unit = ss_.units.unit_for( unit_id );
-      UnitFlagRenderInfo const flag_info =
-          euro_unit_flag_render_info( unit, viz_.nation(),
-                                      flag_options );
-      render_unit_depixelate_to(
-          renderer_, where, unit, target_tile, stage,
-          UnitRenderOptions{ .flag   = flag_info,
-                             .shadow = UnitShadow{} } );
-      break;
-    }
-    case e_unit_kind::native:
-      NativeUnitId const unit_id{ to_underlying( id ) };
-      NativeUnit const&  unit = ss_.units.unit_for( unit_id );
-      UnitFlagRenderInfo const flag_info =
-          native_unit_flag_render_info( ss_, unit,
-                                        flag_options );
-      render_native_unit_depixelate_to(
-          renderer_, where, unit, target_tile, stage,
-          UnitRenderOptions{ .flag   = flag_info,
-                             .shadow = UnitShadow{} } );
-      break;
-  }
+  Unit const&              unit = ss_.units.unit_for( unit_id );
+  UnitFlagRenderInfo const flag_info =
+      euro_unit_flag_render_info( unit, viz_.nation(),
+                                  flag_options );
+  UnitFlagRenderInfo const target_flag_info =
+      euro_unit_type_flag_info( target_type, unit.orders(),
+                                unit.nation() );
+
+  render_unit_depixelate_to(
+      renderer_, where, unit, target_type, stage,
+      UnitRenderOptions{ .flag   = flag_info,
+                         .shadow = UnitShadow{} },
+      UnitRenderOptions{ .flag   = target_flag_info,
+                         .shadow = UnitShadow{} } );
+}
+
+// `multiple_units` is for the case when there are multiple units
+// on the square and we want to indicate that visually.
+void LandViewRenderer::render_single_native_unit_depixelate_to(
+    Coord where, NativeUnitId unit_id, bool multiple_units,
+    double stage, e_native_unit_type target_type ) const {
+  e_flag_count const    flag_count = multiple_units
+                                         ? e_flag_count::multiple
+                                         : e_flag_count::single;
+  UnitFlagOptions const flag_options{
+      .flag_count = flag_count,
+      .type       = e_flag_char_type::normal };
+  NativeUnit const&        unit = ss_.units.unit_for( unit_id );
+  UnitFlagRenderInfo const flag_info =
+      native_unit_flag_render_info( ss_, unit, flag_options );
+  e_tribe const tribe_type =
+      tribe_for_unit( ss_, ss_.units.unit_for( unit_id ) ).type;
+  UnitFlagRenderInfo const target_flag_info =
+      native_unit_type_flag_info( target_type, tribe_type,
+                                  flag_options );
+  render_native_unit_depixelate_to(
+      renderer_, where, unit, target_type, stage,
+      UnitRenderOptions{ .flag   = flag_info,
+                         .shadow = UnitShadow{} },
+      UnitRenderOptions{ .flag   = target_flag_info,
+                         .shadow = UnitShadow{} } );
 }
 
 void LandViewRenderer::render_units_impl() const {
@@ -257,9 +273,13 @@ void LandViewRenderer::render_units_impl() const {
       blink;
   unordered_map<GenericUnitId, UnitAnimationState::slide const*>
       slide;
-  unordered_map<GenericUnitId,
-                UnitAnimationState::depixelate_unit const*>
-      depixelate_unit;
+  unordered_map<UnitId,
+                UnitAnimationState::depixelate_euro_unit const*>
+      depixelate_euro_unit;
+  unordered_map<
+      NativeUnitId,
+      UnitAnimationState::depixelate_native_unit const*>
+      depixelate_native_unit;
   unordered_map<GenericUnitId,
                 UnitAnimationState::enpixelate_unit const*>
       enpixelate_unit;
@@ -298,11 +318,21 @@ void LandViewRenderer::render_units_impl() const {
         slide[id] = &anim.get<UnitAnimationState::slide>();
         tiles_to_fade.insert( tile );
         break;
-      case UnitAnimationState::e::depixelate_unit:
-        depixelate_unit[id] =
-            &anim.get<UnitAnimationState::depixelate_unit>();
+      case UnitAnimationState::e::depixelate_euro_unit: {
+        UnitId const unit_id = ss_.units.check_euro_unit( id );
+        depixelate_euro_unit[unit_id] = &anim.get<
+            UnitAnimationState::depixelate_euro_unit>();
         tiles_to_fade.insert( tile );
         break;
+      }
+      case UnitAnimationState::e::depixelate_native_unit: {
+        NativeUnitId const native_unit_id =
+            ss_.units.check_native_unit( id );
+        depixelate_native_unit[native_unit_id] = &anim.get<
+            UnitAnimationState::depixelate_native_unit>();
+        tiles_to_fade.insert( tile );
+        break;
+      }
       case UnitAnimationState::e::enpixelate_unit:
         enpixelate_unit[id] =
             &anim.get<UnitAnimationState::enpixelate_unit>();
@@ -385,8 +415,8 @@ void LandViewRenderer::render_units_impl() const {
     } );
   }
 
-  // 4. Render units that are depixelating.
-  for( auto const& [id, anim] : depixelate_unit ) {
+  // 4a. Render euro units that are depixelating.
+  for( auto const& [id, anim] : depixelate_euro_unit ) {
     // Check if we are depixelating to another unit.
     if( !anim->target.has_value() ) {
       Coord const tile =
@@ -408,12 +438,47 @@ void LandViewRenderer::render_units_impl() const {
           } );
     } else {
       CHECK( anim->target.has_value() );
-      // Render and the unit and the flag but only depixelate the
-      // unit to the target unit. This function will set the hash
-      // anchor and stage ultimately.
+      // Render and the unit and the flag and depixelate to the
+      // target unit with its own flag. This function will set
+      // the hash anchor and stage ultimately.
       render_impl( id,
                    [&]( Coord where, UnitFlagOptions const& ) {
                      render_single_unit_depixelate_to(
+                         where, id, /*multiple_units=*/false,
+                         anim->stage, *anim->target );
+                   } );
+    }
+  }
+
+  // 4b. Render native units that are depixelating.
+  for( auto const& [id, anim] : depixelate_native_unit ) {
+    // Check if we are depixelating to another unit.
+    if( !anim->target.has_value() ) {
+      Coord const tile =
+          coord_for_unit_multi_ownership_or_die( ss_, id );
+      Coord const loc =
+          render_rect_for_tile( tile ).upper_left();
+      // Render and depixelate both the unit and the flag.
+      SCOPED_RENDERER_MOD_SET(
+          painter_mods.depixelate.hash_anchor, loc );
+      SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                               anim->stage );
+      render_impl(
+          id, [&]( Coord                 where,
+                   UnitFlagOptions const flag_options ) {
+            render_single_unit(
+                where, id,
+                UnitFlagOptions( flag_options )
+                    .with_flag_count( e_flag_count::single ) );
+          } );
+    } else {
+      CHECK( anim->target.has_value() );
+      // Render and the unit and the flag and depixelate to the
+      // target unit with its own flag. This function will set
+      // the hash anchor and stage ultimately.
+      render_impl( id,
+                   [&]( Coord where, UnitFlagOptions const& ) {
+                     render_single_native_unit_depixelate_to(
                          where, id, /*multiple_units=*/false,
                          anim->stage, *anim->target );
                    } );

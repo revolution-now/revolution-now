@@ -58,13 +58,13 @@ void add_attack_outcome_for_euro_unit(
       builder.front_unit( unit_id );
       break;
     case e::destroyed:
-      builder.depixelate_unit( unit_id );
+      builder.depixelate_euro_unit( unit_id );
       break;
     case e::captured:
-      builder.depixelate_unit( unit_id );
+      builder.depixelate_euro_unit( unit_id );
       break;
     case e::captured_and_demoted:
-      builder.depixelate_unit( unit_id );
+      builder.depixelate_euro_unit( unit_id );
       break;
     case e::promoted: {
       auto& o = outcome.get<EuroUnitCombatOutcome::promoted>();
@@ -107,10 +107,10 @@ void add_naval_attack_outcome_for_unit(
       builder.front_unit( unit_id );
       break;
     case e::damaged:
-      builder.depixelate_unit( unit_id );
+      builder.depixelate_euro_unit( unit_id );
       break;
     case e::sunk:
-      builder.depixelate_unit( unit_id );
+      builder.depixelate_euro_unit( unit_id );
       break;
     case e::moved:
       // None here, since this will be done in a subsequent
@@ -129,7 +129,7 @@ void add_colony_worker_attack_outcome_for_unit(
       builder.front_unit( unit_id );
       break;
     case e::defeated:
-      builder.depixelate_unit( unit_id );
+      builder.depixelate_euro_unit( unit_id );
       break;
   }
 }
@@ -143,7 +143,7 @@ void add_attack_outcome_for_native_unit(
       builder.front_unit( unit_id );
       break;
     case e::destroyed:
-      builder.depixelate_unit( unit_id );
+      builder.depixelate_native_unit( unit_id );
       break;
     case e::promoted: {
       auto& o = outcome.get<NativeUnitCombatOutcome::promoted>();
@@ -588,7 +588,7 @@ AnimationSequence anim_seq_for_dwelling_burn(
   for( NativeUnitId const brave_id :
        dwelling_destruction.braves_to_kill ) {
     CHECK( brave_id != defender_id );
-    builder.depixelate_unit( brave_id );
+    builder.depixelate_native_unit( brave_id );
   }
   // Poor-man's volume increase.
   builder.play_sound( e_sfx::city_destroyed );
@@ -634,7 +634,7 @@ AnimationSequence anim_seq_for_boarding_ship(
 }
 
 AnimationSequence anim_seq_for_unit_depixelation(
-    SSConst const& ss, GenericUnitId unit_id ) {
+    SSConst const& ss, UnitId unit_id ) {
   Coord const tile =
       coord_for_unit_multi_ownership_or_die( ss, unit_id );
   AnimationBuilder builder;
@@ -642,7 +642,21 @@ AnimationSequence anim_seq_for_unit_depixelation(
   builder.ensure_tile_visible( tile );
   // Phase 1: depixelate.
   builder.new_phase();
-  builder.depixelate_unit( unit_id );
+  builder.depixelate_euro_unit( unit_id );
+  builder.play_sound( e_sfx::attacker_lost );
+  return builder.result();
+}
+
+AnimationSequence anim_seq_for_unit_depixelation(
+    SSConst const& ss, NativeUnitId unit_id ) {
+  Coord const tile =
+      coord_for_unit_multi_ownership_or_die( ss, unit_id );
+  AnimationBuilder builder;
+  // Phase 0: pan to site.
+  builder.ensure_tile_visible( tile );
+  // Phase 1: depixelate.
+  builder.new_phase();
+  builder.depixelate_native_unit( unit_id );
   builder.play_sound( e_sfx::attacker_lost );
   return builder.result();
 }
@@ -812,7 +826,7 @@ AnimationSequence anim_seq_for_cheat_tribe_destruction(
     // This should do the right thing whether the unit is visible
     // or not (if it's not, it won't be animated, and there are
     // no fogged units).
-    builder.depixelate_unit( unit_id );
+    builder.depixelate_native_unit( unit_id );
 
   return builder.result();
 }

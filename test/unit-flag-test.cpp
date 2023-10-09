@@ -71,8 +71,7 @@ TEST_CASE( "[unit-flag] euro_unit_type_orders_flag_info" ) {
   e_nation           nation    = {};
 
   auto f = [&] {
-    return euro_unit_type_orders_flag_info( unit_type, orders,
-                                            nation );
+    return euro_unit_type_flag_info( unit_type, orders, nation );
   };
 
   // Common.
@@ -291,6 +290,52 @@ TEST_CASE( "[unit-flag] native_unit_flag_render_info" ) {
   options = { .flag_count = e_flag_count::single,
               .type       = e_flag_char_type::normal };
   REQUIRE( f( mounted_brave ) == expected );
+}
+
+TEST_CASE( "[unit-flag] native_unit_type_flag_render_info" ) {
+  World              W;
+  UnitFlagRenderInfo expected;
+  UnitFlagOptions    options;
+
+  auto f = [&]( e_native_unit_type type ) {
+    return native_unit_type_flag_info( type, e_tribe::sioux,
+                                       options );
+  };
+
+  // Common.
+  expected = {
+      .stacked          = false,
+      .size             = { .w = 14, .h = 14 },
+      .offsets          = { .offset_first   = { .w = 32 - 14,
+                                                .h = 32 - 14 },
+                            .offset_stacked = { .w = 32 - 2 - 14,
+                                                .h = 32 - 2 - 14 } },
+      .outline_color    = { .r = 0x6f,
+                            .g = 0x04,
+                            .b = 0x12,
+                            .a = 0xff },
+      .background_color = { .r = 0x91,
+                            .g = 0x00,
+                            .b = 0x00,
+                            .a = 255 },
+      .contents =
+          UnitFlagContents::character{ .value = '-',
+                                       .color = { .r = 0x22,
+                                                  .g = 0x22,
+                                                  .b = 0x22,
+                                                  .a = 0xff } },
+      .in_front = false,
+  };
+
+  // brave.
+  options = { .flag_count = e_flag_count::single,
+              .type       = e_flag_char_type::normal };
+  REQUIRE( f( e_native_unit_type::brave ) == expected );
+
+  // mounted_brave.
+  options = { .flag_count = e_flag_count::single,
+              .type       = e_flag_char_type::normal };
+  REQUIRE( f( e_native_unit_type::mounted_brave ) == expected );
 }
 
 } // namespace

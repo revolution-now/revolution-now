@@ -16,9 +16,6 @@
 #include "render.hpp"
 #include "time.hpp"
 
-// config
-#include "config/tile-enum-fwd.hpp"
-
 // ss
 #include "ss/colony-id.hpp"
 #include "ss/dwelling-id.hpp"
@@ -100,8 +97,12 @@ struct LandViewRenderer {
   void render_units_default() const;
 
   void render_single_unit_depixelate_to(
-      Coord where, GenericUnitId id, bool multiple_units,
-      double stage, e_tile target_tile ) const;
+      Coord where, UnitId id, bool multiple_units, double stage,
+      e_unit_type target_type ) const;
+
+  void render_single_native_unit_depixelate_to(
+      Coord where, NativeUnitId id, bool multiple_units,
+      double stage, e_native_unit_type target_type ) const;
 
   void render_units_impl() const;
 

@@ -43,13 +43,17 @@ sumtype.UnitAnimationState {
     percent 'double',
     percent_vel 'DissipativeVelocity',
   },
-  depixelate_unit {
+  depixelate_euro_unit {
     stage 'double',
     # If we're depixelating to another unit this will have a
-    # value; otherwise we are depixelating to nothing. For a na-
-    # tive unit this would happen if e.g. a brave wins a battle
-    # and acquires muskets or horses.
-    target 'maybe<e_tile>',
+    # value; otherwise we are depixelating to nothing.
+    target 'maybe<e_unit_type>',
+  },
+  depixelate_native_unit {
+    stage 'double',
+    # If we're depixelating to another unit this will have a
+    # value; otherwise we are depixelating to nothing.
+    target 'maybe<e_native_unit_type>',
   },
   # Start from nothing and gradually reveal the tile.
   enpixelate_unit {

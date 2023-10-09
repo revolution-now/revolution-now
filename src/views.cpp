@@ -1294,7 +1294,7 @@ Delta FakeUnitView::delta() const {
 void FakeUnitView::draw( rr::Renderer& renderer,
                          Coord         coord ) const {
   UnitFlagRenderInfo const flag_info =
-      euro_unit_type_orders_flag_info( type_, orders_, nation_ );
+      euro_unit_type_flag_info( type_, orders_, nation_ );
   render_unit_type( renderer, coord, type_,
                     UnitRenderOptions{ .flag = flag_info } );
 }

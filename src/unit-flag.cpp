@@ -171,7 +171,7 @@ UnitFlagOptions&& UnitFlagOptions::with_flag_count(
   return (UnitFlagOptions&&)*this;
 };
 
-UnitFlagRenderInfo euro_unit_type_orders_flag_info(
+UnitFlagRenderInfo euro_unit_type_flag_info(
     e_unit_type unit_type, unit_orders const& orders,
     e_nation nation ) {
   gfx::pixel const background_color =
@@ -250,6 +250,36 @@ UnitFlagRenderInfo native_unit_flag_render_info(
   UnitFlagOffsets const offsets =
       offsets_from_unit_type( unit.type );
   bool const in_front = unit_attr( unit.type ).nat_icon_front;
+  bool const stacked =
+      ( options.flag_count == e_flag_count::multiple );
+  return UnitFlagRenderInfo{
+      .stacked          = stacked,
+      .size             = kFlagIconSize,
+      .offsets          = offsets,
+      .outline_color    = outline_color,
+      .background_color = background_color,
+      .contents         = flag_contents,
+      .in_front         = in_front };
+}
+
+UnitFlagRenderInfo native_unit_type_flag_info(
+    e_native_unit_type unit_type, e_tribe tribe_type,
+    UnitFlagOptions const& options ) {
+  gfx::pixel const background_color =
+      config_natives.tribes[tribe_type].flag_color;
+  UnitFlagContents const flag_contents = [&] {
+    switch( options.type ) {
+      case e_flag_char_type::normal:
+        return flag_char_info_from_orders( unit_orders::none{} );
+      case e_flag_char_type::strategy:
+        return flag_char_info_for_strategy();
+    }
+  }();
+  gfx::pixel const outline_color =
+      outline_color_from_background_color( background_color );
+  UnitFlagOffsets const offsets =
+      offsets_from_unit_type( unit_type );
+  bool const in_front = unit_attr( unit_type ).nat_icon_front;
   bool const stacked =
       ( options.flag_count == e_flag_count::multiple );
   return UnitFlagRenderInfo{

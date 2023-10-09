@@ -183,15 +183,28 @@ LandViewAnimator::fog_dwelling_animation( Coord tile ) const {
 }
 
 wait<> LandViewAnimator::unit_depixelation_throttler(
-    co::latch& hold, GenericUnitId id,
-    maybe<e_tile> target_tile ) {
-  auto popper =
-      add_unit_animation<UnitAnimationState::depixelate_unit>(
-          id );
-  UnitAnimationState::depixelate_unit& depixelate = popper.get();
+    co::latch& hold, UnitId id,
+    maybe<e_unit_type> target_type ) {
+  auto popper = add_unit_animation<
+      UnitAnimationState::depixelate_euro_unit>( id );
+  UnitAnimationState::depixelate_euro_unit& depixelate =
+      popper.get();
 
   depixelate.stage  = 0.0;
-  depixelate.target = target_tile;
+  depixelate.target = target_type;
+  co_await pixelation_stage_throttler( hold, depixelate.stage );
+}
+
+wait<> LandViewAnimator::native_unit_depixelation_throttler(
+    co::latch& hold, NativeUnitId id,
+    maybe<e_native_unit_type> target_type ) {
+  auto popper = add_unit_animation<
+      UnitAnimationState::depixelate_native_unit>( id );
+  UnitAnimationState::depixelate_native_unit& depixelate =
+      popper.get();
+
+  depixelate.stage  = 0.0;
+  depixelate.target = target_type;
   co_await pixelation_stage_throttler( hold, depixelate.stage );
 }
 
@@ -404,8 +417,8 @@ wait<> LandViewAnimator::animate_action_primitive(
       co_await slide_throttler( hold, unit_id, direction );
       break;
     }
-    CASE( depixelate_unit ) {
-      GenericUnitId const unit_id = depixelate_unit.unit_id;
+    CASE( depixelate_euro_unit ) {
+      UnitId const unit_id = depixelate_euro_unit.unit_id;
       // We need the multi-ownership version if the unit being
       // depixelated is a unit working in a colony that is being
       // attacked.
@@ -425,6 +438,25 @@ wait<> LandViewAnimator::animate_action_primitive(
                                             /*target=*/nothing );
       break;
     }
+    CASE( depixelate_native_unit ) {
+      NativeUnitId const unit_id =
+          depixelate_native_unit.unit_id;
+      Coord const tile = ss_.units.coord_for( unit_id );
+      // Check visibility. This will avoid both scrolling the map
+      // and the animation in the case that the unit in question
+      // is on a fogged tile, which can happen e.g. if we are de-
+      // pixelating a native unit that is under fog when we de-
+      // stroy its dwelling.
+      if( viz_.visible( tile ) !=
+          e_tile_visibility::visible_and_clear ) {
+        hold.count_down();
+        break;
+      }
+      co_await native_unit_depixelation_throttler(
+          hold, unit_id,
+          /*target=*/nothing );
+      break;
+    }
     CASE( enpixelate_unit ) {
       co_await unit_enpixelation_throttler(
           hold, enpixelate_unit.unit_id );
@@ -432,14 +464,14 @@ wait<> LandViewAnimator::animate_action_primitive(
     }
     CASE( pixelate_euro_unit_to_target ) {
       auto& [unit_id, target] = pixelate_euro_unit_to_target;
-      co_await unit_depixelation_throttler(
-          hold, unit_id, unit_attr( target ).tile );
+      co_await unit_depixelation_throttler( hold, unit_id,
+                                            target );
       break;
     }
     CASE( pixelate_native_unit_to_target ) {
       auto& [unit_id, target] = pixelate_native_unit_to_target;
-      co_await unit_depixelation_throttler(
-          hold, unit_id, unit_attr( target ).tile );
+      co_await native_unit_depixelation_throttler( hold, unit_id,
+                                                   target );
       break;
     }
     CASE( depixelate_colony ) {

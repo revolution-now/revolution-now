@@ -193,7 +193,8 @@ TEST_CASE( "[anim-builders] anim_seq_for_unit_depixelation" ) {
                     P::ensure_tile_visible{ .tile = coord } } },
           /*phase 1*/ {
               { .primitive =
-                    P::depixelate_unit{ .unit_id = unit_id } },
+                    P::depixelate_euro_unit{ .unit_id =
+                                                 unit_id } },
               { .primitive = P::play_sound{
                     .what = e_sfx::attacker_lost } } } } };
   REQUIRE( f() == expected );
@@ -433,8 +434,8 @@ TEST_CASE( "[anim-builders] anim_seq_for_euro_attack_euro" ) {
             { .primitive =
                   P::front_unit{ .unit_id = attacker.id() } },
             { .primitive =
-                  P::depixelate_unit{ .unit_id =
-                                          defender.id() } },
+                  P::depixelate_euro_unit{ .unit_id =
+                                               defender.id() } },
             { .primitive = P::play_sound{
                   .what = e_sfx::attacker_won } } } );
     REQUIRE( f() == expected );
@@ -471,8 +472,8 @@ TEST_CASE( "[anim-builders] anim_seq_for_euro_attack_euro" ) {
             { .primitive =
                   P::front_unit{ .unit_id = attacker.id() } },
             { .primitive =
-                  P::depixelate_unit{ .unit_id =
-                                          defender.id() } },
+                  P::depixelate_euro_unit{ .unit_id =
+                                               defender.id() } },
             { .primitive = P::play_sound{
                   .what = e_sfx::attacker_won } } } );
     REQUIRE( f() == expected );
@@ -490,8 +491,8 @@ TEST_CASE( "[anim-builders] anim_seq_for_euro_attack_euro" ) {
             { .primitive =
                   P::front_unit{ .unit_id = attacker.id() } },
             { .primitive =
-                  P::depixelate_unit{ .unit_id =
-                                          defender.id() } },
+                  P::depixelate_euro_unit{ .unit_id =
+                                               defender.id() } },
             { .primitive = P::play_sound{
                   .what = e_sfx::attacker_won } } } );
     REQUIRE( f() == expected );
@@ -548,7 +549,8 @@ TEST_CASE( "[anim-builders] anim_seq_for_euro_attack_brave" ) {
             { .primitive =
                   P::front_unit{ .unit_id = attacker.id() } },
             { .primitive =
-                  P::depixelate_unit{ .unit_id = defender.id } },
+                  P::depixelate_native_unit{ .unit_id =
+                                                 defender.id } },
             { .primitive = P::play_sound{
                   .what = e_sfx::attacker_won } } } );
     REQUIRE( f() == expected );
@@ -669,7 +671,8 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_euro" ) {
     expected.sequence.push_back(
         /*phase 2=*/{
             { .primitive =
-                  P::depixelate_unit{ .unit_id = attacker.id } },
+                  P::depixelate_native_unit{ .unit_id =
+                                                 attacker.id } },
             { .primitive =
                   P::front_unit{ .unit_id = defender.id() } },
             { .primitive = P::play_sound{
@@ -688,7 +691,8 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_euro" ) {
     expected.sequence.push_back(
         /*phase 2=*/{
             { .primitive =
-                  P::depixelate_unit{ .unit_id = attacker.id } },
+                  P::depixelate_native_unit{ .unit_id =
+                                                 attacker.id } },
             { .primitive =
                   P::pixelate_euro_unit_to_target{
                       .unit_id = defender.id(),
@@ -829,7 +833,8 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_colony" ) {
     expected.sequence.push_back(
         /*phase 2=*/{
             { .primitive =
-                  P::depixelate_unit{ .unit_id = attacker.id } },
+                  P::depixelate_native_unit{ .unit_id =
+                                                 attacker.id } },
             { .primitive =
                   P::front_unit{ .unit_id = defender.id() } },
             { .primitive = P::play_sound{
@@ -848,7 +853,8 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_colony" ) {
     expected.sequence.push_back(
         /*phase 2=*/{
             { .primitive =
-                  P::depixelate_unit{ .unit_id = attacker.id } },
+                  P::depixelate_native_unit{ .unit_id =
+                                                 attacker.id } },
             { .primitive =
                   P::pixelate_euro_unit_to_target{
                       .unit_id = defender.id(),
@@ -924,7 +930,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_naval_battle" ) {
 
     expected.sequence.push_back(
         /*phase 2=*/{ { .primitive =
-                            P::depixelate_unit{
+                            P::depixelate_euro_unit{
                                 .unit_id = defender.id() } },
                       { .primitive = P::play_sound{
                             .what = e_sfx::attacker_won } } } );
@@ -951,8 +957,8 @@ TEST_CASE( "[anim-builders] anim_seq_for_naval_battle" ) {
     expected.sequence.push_back(
         /*phase 2=*/{
             { .primitive =
-                  P::depixelate_unit{ .unit_id =
-                                          attacker.id() } },
+                  P::depixelate_euro_unit{ .unit_id =
+                                               attacker.id() } },
             { .primitive =
                   P::front_unit{ .unit_id = defender.id() } },
             { .primitive = P::play_sound{
@@ -1009,8 +1015,8 @@ TEST_CASE( "[anim-builders] anim_seq_for_undefended_colony" ) {
             { .primitive =
                   P::front_unit{ .unit_id = attacker.id() } },
             { .primitive =
-                  P::depixelate_unit{ .unit_id =
-                                          defender.id() } },
+                  P::depixelate_euro_unit{ .unit_id =
+                                               defender.id() } },
             { .primitive = P::play_sound{
                   .what = e_sfx::city_destroyed } } } );
     REQUIRE( f() == expected );
@@ -1088,13 +1094,14 @@ TEST_CASE( "[anim-builders] anim_seq_for_dwelling_burn" ) {
                       .unit_id = attacker.id(),
                       .target = e_unit_type::veteran_soldier } },
             { .primitive =
-                  P::depixelate_unit{ .unit_id = defender_id } },
+                  P::depixelate_native_unit{ .unit_id =
+                                                 defender_id } },
             { .primitive =
                   P::depixelate_dwelling{ .dwelling_id =
                                               dwelling.id } },
             { .primitive =
-                  P::depixelate_unit{ .unit_id =
-                                          other_brave_id } },
+                  P::depixelate_native_unit{
+                      .unit_id = other_brave_id } },
             { .primitive =
                   P::play_sound{ .what =
                                      e_sfx::city_destroyed } },
@@ -1151,35 +1158,37 @@ TEST_CASE(
     REQUIRE( f( viz ) == expected );
 
     tribe    = e_tribe::aztec;
-    expected = {
-        .sequence = { /*phase 1=*/{
-            { .primitive =
-                  P::depixelate_dwelling{ .dwelling_id =
-                                              dwelling_3.id } },
-            { .primitive =
-                  P::depixelate_dwelling{ .dwelling_id =
-                                              dwelling_4.id } },
-            { .primitive =
-                  P::depixelate_unit{ .unit_id = brave_3.id } },
-            { .primitive =
-                  P::depixelate_unit{ .unit_id = brave_4.id } },
-        } } };
+    expected = { .sequence = { /*phase 1=*/{
+                     { .primitive =
+                           P::depixelate_dwelling{
+                               .dwelling_id = dwelling_3.id } },
+                     { .primitive =
+                           P::depixelate_dwelling{
+                               .dwelling_id = dwelling_4.id } },
+                     { .primitive =
+                           P::depixelate_native_unit{
+                               .unit_id = brave_3.id } },
+                     { .primitive =
+                           P::depixelate_native_unit{
+                               .unit_id = brave_4.id } },
+                 } } };
     REQUIRE( f( viz ) == expected );
 
     tribe    = e_tribe::apache;
-    expected = {
-        .sequence = { /*phase 1=*/{
-            { .primitive =
-                  P::depixelate_dwelling{ .dwelling_id =
-                                              dwelling_1.id } },
-            { .primitive =
-                  P::depixelate_dwelling{ .dwelling_id =
-                                              dwelling_2.id } },
-            { .primitive =
-                  P::depixelate_unit{ .unit_id = brave_1.id } },
-            { .primitive =
-                  P::depixelate_unit{ .unit_id = brave_2.id } },
-        } } };
+    expected = { .sequence = { /*phase 1=*/{
+                     { .primitive =
+                           P::depixelate_dwelling{
+                               .dwelling_id = dwelling_1.id } },
+                     { .primitive =
+                           P::depixelate_dwelling{
+                               .dwelling_id = dwelling_2.id } },
+                     { .primitive =
+                           P::depixelate_native_unit{
+                               .unit_id = brave_1.id } },
+                     { .primitive =
+                           P::depixelate_native_unit{
+                               .unit_id = brave_2.id } },
+                 } } };
     REQUIRE( f( viz ) == expected );
   }
 
@@ -1191,23 +1200,25 @@ TEST_CASE(
     REQUIRE( f( viz ) == expected );
 
     tribe    = e_tribe::aztec;
-    expected = {
-        .sequence = { /*phase 1=*/{
-            { .primitive =
-                  P::depixelate_unit{ .unit_id = brave_3.id } },
-            { .primitive =
-                  P::depixelate_unit{ .unit_id = brave_4.id } },
-        } } };
+    expected = { .sequence = { /*phase 1=*/{
+                     { .primitive =
+                           P::depixelate_native_unit{
+                               .unit_id = brave_3.id } },
+                     { .primitive =
+                           P::depixelate_native_unit{
+                               .unit_id = brave_4.id } },
+                 } } };
     REQUIRE( f( viz ) == expected );
 
     tribe    = e_tribe::apache;
-    expected = {
-        .sequence = { /*phase 1=*/{
-            { .primitive =
-                  P::depixelate_unit{ .unit_id = brave_1.id } },
-            { .primitive =
-                  P::depixelate_unit{ .unit_id = brave_2.id } },
-        } } };
+    expected = { .sequence = { /*phase 1=*/{
+                     { .primitive =
+                           P::depixelate_native_unit{
+                               .unit_id = brave_1.id } },
+                     { .primitive =
+                           P::depixelate_native_unit{
+                               .unit_id = brave_2.id } },
+                 } } };
     REQUIRE( f( viz ) == expected );
   }
 
@@ -1226,29 +1237,31 @@ TEST_CASE(
     REQUIRE( f( viz ) == expected );
 
     tribe    = e_tribe::aztec;
-    expected = {
-        .sequence = { /*phase 1=*/{
-            { .primitive =
-                  P::depixelate_dwelling{ .dwelling_id =
-                                              dwelling_3.id } },
-            { .primitive =
-                  P::depixelate_unit{ .unit_id = brave_3.id } },
-            { .primitive =
-                  P::depixelate_unit{ .unit_id = brave_4.id } },
-        } } };
+    expected = { .sequence = { /*phase 1=*/{
+                     { .primitive =
+                           P::depixelate_dwelling{
+                               .dwelling_id = dwelling_3.id } },
+                     { .primitive =
+                           P::depixelate_native_unit{
+                               .unit_id = brave_3.id } },
+                     { .primitive =
+                           P::depixelate_native_unit{
+                               .unit_id = brave_4.id } },
+                 } } };
     REQUIRE( f( viz ) == expected );
 
     tribe    = e_tribe::apache;
-    expected = {
-        .sequence = { /*phase 1=*/{
-            { .primitive =
-                  P::depixelate_fog_dwelling{
-                      .tile = { .x = 1, .y = 1 } } },
-            { .primitive =
-                  P::depixelate_unit{ .unit_id = brave_1.id } },
-            { .primitive =
-                  P::depixelate_unit{ .unit_id = brave_2.id } },
-        } } };
+    expected = { .sequence = { /*phase 1=*/{
+                     { .primitive =
+                           P::depixelate_fog_dwelling{
+                               .tile = { .x = 1, .y = 1 } } },
+                     { .primitive =
+                           P::depixelate_native_unit{
+                               .unit_id = brave_1.id } },
+                     { .primitive =
+                           P::depixelate_native_unit{
+                               .unit_id = brave_2.id } },
+                 } } };
     REQUIRE( f( viz ) == expected );
   }
 }

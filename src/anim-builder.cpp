@@ -59,9 +59,14 @@ AnimationAction& AnimationBuilder::slide_unit(
                               .direction = direction } );
 }
 
-AnimationAction& AnimationBuilder::depixelate_unit(
-    GenericUnitId unit_id ) {
-  return push( P::depixelate_unit{ .unit_id = unit_id } );
+AnimationAction& AnimationBuilder::depixelate_euro_unit(
+    UnitId unit_id ) {
+  return push( P::depixelate_euro_unit{ .unit_id = unit_id } );
+}
+
+AnimationAction& AnimationBuilder::depixelate_native_unit(
+    NativeUnitId unit_id ) {
+  return push( P::depixelate_native_unit{ .unit_id = unit_id } );
 }
 
 AnimationAction& AnimationBuilder::enpixelate_unit(

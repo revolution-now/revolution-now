@@ -121,8 +121,12 @@ struct LandViewAnimator {
                                    co::latch&             hold );
 
   wait<> unit_depixelation_throttler(
-      co::latch& hold, GenericUnitId id,
-      maybe<e_tile> target_tile );
+      co::latch& hold, UnitId id,
+      maybe<e_unit_type> target_type );
+
+  wait<> native_unit_depixelation_throttler(
+      co::latch& hold, NativeUnitId id,
+      maybe<e_native_unit_type> target_type );
 
   wait<> unit_enpixelation_throttler( co::latch&    hold,
                                       GenericUnitId id );

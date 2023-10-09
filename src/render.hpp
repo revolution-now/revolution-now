@@ -77,19 +77,19 @@ void render_unit_type( rr::Renderer& renderer, Coord where,
                        e_unit_type              unit_type,
                        UnitRenderOptions const& options );
 
-void render_native_unit_type( rr::Renderer&            renderer,
-                              Coord                    where,
-                              e_native_unit_type       unit_type,
-                              UnitRenderOptions const& options );
+void render_unit_type( rr::Renderer& renderer, Coord where,
+                       e_native_unit_type       unit_type,
+                       UnitRenderOptions const& options );
 
 void render_unit_depixelate( rr::Renderer& renderer, Coord where,
                              Unit const& unit, double stage,
                              UnitRenderOptions const& options );
 
-void render_unit_depixelate_to( rr::Renderer& renderer,
-                                Coord where, Unit const& unit,
-                                e_tile target, double stage,
-                                UnitRenderOptions options );
+void render_unit_depixelate_to(
+    rr::Renderer& renderer, Coord where, Unit const& unit,
+    e_unit_type target, double stage,
+    UnitRenderOptions const& from_options,
+    UnitRenderOptions const& target_options );
 
 void render_native_unit_depixelate(
     rr::Renderer& renderer, Coord where, NativeUnit const& unit,
@@ -97,7 +97,9 @@ void render_native_unit_depixelate(
 
 void render_native_unit_depixelate_to(
     rr::Renderer& renderer, Coord where, NativeUnit const& unit,
-    e_tile target, double stage, UnitRenderOptions options );
+    e_native_unit_type target, double stage,
+    UnitRenderOptions const& from_options,
+    UnitRenderOptions const& target_options );
 
 /****************************************************************
 ** Colony Rendering.

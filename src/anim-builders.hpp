@@ -90,7 +90,10 @@ AnimationSequence anim_seq_for_boarding_ship(
 
 // General depixelation animation for unit.
 AnimationSequence anim_seq_for_unit_depixelation(
-    SSConst const& ss, GenericUnitId unit_id );
+    SSConst const& ss, UnitId unit_id );
+
+AnimationSequence anim_seq_for_unit_depixelation(
+    SSConst const& ss, NativeUnitId unit_id );
 
 // Depixelation animation for euro units with a target.
 AnimationSequence anim_seq_for_unit_depixelation(

@@ -40,7 +40,7 @@ TEST_CASE( "[anim-builder] builders" ) {
   builder.front_unit( GenericUnitId{ 2 } );
   builder.slide_unit( GenericUnitId{ 3 }, e_direction::sw );
   builder.new_phase();
-  builder.depixelate_unit( GenericUnitId{ 4 } );
+  builder.depixelate_euro_unit( UnitId{ 4 } );
   builder.enpixelate_unit( GenericUnitId{ 5 } );
   builder.pixelate_euro_unit_to_target( UnitId{ 6 },
                                         e_unit_type::cavalry );
@@ -51,6 +51,7 @@ TEST_CASE( "[anim-builder] builders" ) {
   builder.depixelate_dwelling( DwellingId{ 9 } );
   builder.depixelate_fog_dwelling( Coord{ .x = 1, .y = 2 } );
   builder.ensure_tile_visible( Coord{ .x = 1, .y = 3 } );
+  builder.depixelate_native_unit( NativeUnitId{ 10 } );
 
   AnimationSequence const& res = builder.result();
 
@@ -76,8 +77,8 @@ TEST_CASE( "[anim-builder] builders" ) {
                         .direction = e_direction::sw } } },
           /*phase 1*/
           { { .primitive =
-                  P::depixelate_unit{ .unit_id =
-                                          GenericUnitId{ 4 } } },
+                  P::depixelate_euro_unit{ .unit_id =
+                                               UnitId{ 4 } } },
             { .primitive =
                   P::enpixelate_unit{ .unit_id =
                                           GenericUnitId{ 5 } } },
@@ -100,8 +101,11 @@ TEST_CASE( "[anim-builder] builders" ) {
             { .primitive =
                   P::depixelate_fog_dwelling{
                       .tile = { .x = 1, .y = 2 } } },
-            { .primitive = P::ensure_tile_visible{
-                  .tile = { .x = 1, .y = 3 } } } } } };
+            { .primitive =
+                  P::ensure_tile_visible{
+                      .tile = { .x = 1, .y = 3 } } },
+            { .primitive = P::depixelate_native_unit{
+                  .unit_id = NativeUnitId{ 10 } } } } } };
 
   REQUIRE( res == expected );
 }

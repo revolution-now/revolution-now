@@ -166,6 +166,25 @@ void depixelate_from_to( rr::Renderer& renderer, double stage,
   from();
 }
 
+void render_unit_depixelate_to_impl(
+    rr::Renderer& renderer, Coord where, auto const& from_desc,
+    auto const& target_desc, double stage,
+    UnitRenderOptions from_options,
+    UnitRenderOptions target_options ) {
+  depixelate_from_to(
+      renderer, stage, /*anchor=*/where,
+      /*from=*/
+      [&] {
+        render_unit_type( renderer, where, from_desc.type,
+                          from_options );
+      },
+      /*to=*/
+      [&] {
+        render_unit_type( renderer, where, target_desc.type,
+                          target_options );
+      } );
+}
+
 // We really don't want to compute the dulled colors everytime we
 // render a dwelling, so we will cache it.
 gfx::pixel missionary_cross_color( e_nation nation,
@@ -225,64 +244,12 @@ void render_unit_type( rr::Renderer& renderer, Coord where,
                          /*damaged=*/false, options );
 }
 
-void render_native_unit_type(
-    rr::Renderer& renderer, Coord where,
-    e_native_unit_type       unit_type,
-    UnitRenderOptions const& options ) {
+void render_unit_type( rr::Renderer& renderer, Coord where,
+                       e_native_unit_type       unit_type,
+                       UnitRenderOptions const& options ) {
   render_unit_with_tile( renderer, where,
                          unit_attr( unit_type ).tile,
                          /*damaged=*/false, options );
-}
-
-// This is a bit tricky because we need to render the shadow, the
-// flag, and the unit, but 1) the flag has to go between the unit
-// and the shadow if the flag is to be behind the unit, and 2) we
-// don't want to depixelate the flag since we have a target unit,
-// so it would look strange if the flag depixelated.
-static void render_unit_depixelate_to_impl(
-    rr::Renderer& renderer, Coord where, auto const& desc,
-    e_tile target_tile, double stage,
-    UnitRenderOptions options ) {
-  // The shadow always goes in back of the flag, so if there is
-  // one we can get that out of the way.
-  if( options.shadow.has_value() )
-    depixelate_from_to(
-        renderer, stage, /*anchor=*/where, /*from=*/
-        [&] {
-          render_sprite_silhouette(
-              renderer,
-              where + Delta{ .w = options.shadow->offset },
-              desc.tile, options.shadow->color );
-        },
-        /*to=*/
-        [&] {
-          render_sprite_silhouette(
-              renderer,
-              where + Delta{ .w = options.shadow->offset },
-              target_tile, options.shadow->color );
-        } );
-  options.shadow.reset();
-
-  // If the flag is on then it goes in between the shadow and
-  // unit.
-  if( options.flag.has_value() && !desc.nat_icon_front )
-    render_unit_flag( renderer, where, *options.flag );
-
-  // Now the unit.
-  depixelate_from_to(
-      renderer, stage, /*anchor=*/where, /*from=*/
-      [&] {
-        render_unit_no_flag( renderer, where, desc.tile,
-                             options );
-      },
-      /*to=*/
-      [&] {
-        render_unit_no_flag( renderer, where, target_tile,
-                             options );
-      } );
-
-  if( options.flag.has_value() && desc.nat_icon_front )
-    render_unit_flag( renderer, where, *options.flag );
 }
 
 void render_unit_depixelate( rr::Renderer& renderer, Coord where,
@@ -301,20 +268,24 @@ void render_native_unit_depixelate(
   render_native_unit( renderer, where, unit, options );
 }
 
-void render_unit_depixelate_to( rr::Renderer& renderer,
-                                Coord where, Unit const& unit,
-                                e_tile target, double stage,
-                                UnitRenderOptions options ) {
+void render_unit_depixelate_to(
+    rr::Renderer& renderer, Coord where, Unit const& unit,
+    e_unit_type target, double stage,
+    UnitRenderOptions const& from_options,
+    UnitRenderOptions const& target_options ) {
   render_unit_depixelate_to_impl( renderer, where, unit.desc(),
-                                  target, stage, options );
+                                  unit_attr( target ), stage,
+                                  from_options, target_options );
 }
 
 void render_native_unit_depixelate_to(
     rr::Renderer& renderer, Coord where, NativeUnit const& unit,
-    e_tile target, double stage, UnitRenderOptions options ) {
-  render_unit_depixelate_to_impl( renderer, where,
-                                  unit_attr( unit.type ), target,
-                                  stage, options );
+    e_native_unit_type target, double stage,
+    UnitRenderOptions const& from_options,
+    UnitRenderOptions const& target_options ) {
+  render_unit_depixelate_to_impl(
+      renderer, where, unit_attr( unit.type ),
+      unit_attr( target ), stage, from_options, target_options );
 }
 
 /****************************************************************

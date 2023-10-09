@@ -76,8 +76,12 @@ sumtype.AnimationPrimitive {
     direction 'e_direction',
   },
 
-  depixelate_unit {
-    unit_id 'GenericUnitId',
+  depixelate_euro_unit {
+    unit_id 'UnitId',
+  },
+
+  depixelate_native_unit {
+    unit_id 'NativeUnitId',
   },
 
   enpixelate_unit {
