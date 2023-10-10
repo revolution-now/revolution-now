@@ -39,21 +39,31 @@ local key_map = {
   ['k']=orders.forfeight(),
   ['f']=orders.fortify(),
   ['s']=orders.sentry(),
-  ['d']=orders.disband(),
   ['w']=orders.wait(),
   ['b']=orders.build(),
   ['r']=orders.road(),
   ['p']=orders.plow(),
 }
 
+local shift_key_map = {
+  -- Other orders.
+  ['d']=orders.disband(),
+}
+
+local ctrl_key_map = {
+  -- none.
+}
+
 -- Will accept a key press from the user in the land view and
 -- will try to map it to an `orders` sumtype. If it can't then it
 -- returns nil.
 function M.key_to_orders( key, ctrl, shift )
-  if ctrl or shift then return end
   if key < 0 or key > 255 then return end
   -- Convert (integral) key into a one-character string, then
   -- look it up in the table. Will yield null if key not found.
+  local stringed = string.char( key )
+  if ctrl then return ctrl_key_map[stringed] end
+  if shift then return shift_key_map[stringed] end
   return key_map[string.char( key )]
 end
 

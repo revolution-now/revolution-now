@@ -426,7 +426,7 @@ struct LandViewPlane::Impl : public Plane {
       return __state[code] != 0;
     };
 
-    if( state( ::SDL_SCANCODE_LSHIFT ) ) {
+    if( state( ::SDL_SCANCODE_LCTRL ) ) {
       viewport().set_x_push( state( ::SDL_SCANCODE_A )
                                  ? e_push_direction::negative
                              : state( ::SDL_SCANCODE_D )
@@ -759,7 +759,8 @@ struct LandViewPlane::Impl : public Plane {
                 RawInput( LandViewRawInput::center{} ) );
             break;
           case ::SDLK_d:
-            if( key_event.mod.shf_down ) break;
+            if( !key_event.mod.shf_down ) break;
+            // Note: shift key down.
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::cmd{
                     .what = command::disband{} } ) );
