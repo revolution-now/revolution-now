@@ -267,5 +267,40 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
   }
 }
 
+// Make sure that the "no" option is first and highlighted by de-
+// fault, so if you just hit enter accidentally nothing bad will
+// happen.
+TEST_CASE(
+    "[command-disband] confirmation box has 'no' first" ) {
+  World W;
+
+  UnitId const unit_id = W.add_unit_on_map( e_unit_type::galleon,
+                                            { .x = 0, .y = 0 } )
+                             .id();
+
+  auto confirm = [&] {
+    auto handler =
+        handle_command( W.ss(), W.ts(), W.default_player(),
+                        unit_id, command::disband{} );
+    return co_await_test( handler->confirm() );
+  };
+
+  ChoiceConfig const expected_config{
+      .msg     = "Really disband [Galleon]?",
+      .options = { ChoiceConfigOption{ .key          = "no",
+                                       .display_name = "No" },
+                   ChoiceConfigOption{ .key          = "yes",
+                                       .display_name = "Yes" } },
+      .sort    = false,
+      // This should cause the first enabled item to be selected
+      // by default.
+      .initial_selection = nothing };
+
+  W.gui()
+      .EXPECT__choice( expected_config, e_input_required::no )
+      .returns<maybe<string>>( nothing );
+  REQUIRE( confirm() == false );
+}
+
 } // namespace
 } // namespace rn

@@ -77,12 +77,15 @@ struct DisbandHandler : public CommandHandler {
 
   wait<bool> confirm() override {
     auto q = fmt::format(
-        "Really disband {}?",
+        "Really disband [{}]?",
         ss_.units.unit_for( unit_id_ ).desc().name );
 
     maybe<ui::e_confirm> const answer =
         co_await ts_.gui.optional_yes_no(
-            { .msg = q, .yes_label = "Yes", .no_label = "No" } );
+            { .msg            = q,
+              .yes_label      = "Yes",
+              .no_label       = "No",
+              .no_comes_first = true } );
     co_return answer == ui::e_confirm::yes;
   }
 
