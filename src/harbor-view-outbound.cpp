@@ -172,13 +172,15 @@ wait<> HarborOutboundShips::disown_dragged_object() {
   co_return;
 }
 
-maybe<HarborDraggableObject> HarborOutboundShips::can_receive(
-    HarborDraggableObject const& a, int from_entity,
-    Coord const& ) const {
+maybe<CanReceiveDraggable<HarborDraggableObject>>
+HarborOutboundShips::can_receive( HarborDraggableObject const& a,
+                                  int from_entity,
+                                  Coord const& ) const {
   CONVERT_ENTITY( entity_enum, from_entity );
   if( entity_enum == e_harbor_view_entity::inbound ||
       entity_enum == e_harbor_view_entity::in_port )
-    return a;
+    return CanReceiveDraggable<HarborDraggableObject>::yes{
+        .draggable = a };
   return nothing;
 }
 

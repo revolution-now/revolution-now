@@ -1,0 +1,26 @@
+# ===============================================================
+# drag-drop.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2023-10-12.
+#
+# Description: Rds definitions for the drag-drop module.
+#
+# ===============================================================
+# C++ standard library
+include "<string>"
+
+namespace "rn"
+
+sumtype.CanReceiveDraggable {
+  _template{ Draggable },
+
+  no_with_msg {
+    msg 'std::string',
+  },
+
+  yes {
+    draggable 'Draggable',
+  },
+}

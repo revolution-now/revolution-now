@@ -202,8 +202,9 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
   }
 }
 
-maybe<ColViewObject> ColViewBuildings::can_receive(
-    ColViewObject const& o, int, Coord const& where ) const {
+maybe<CanReceiveDraggable<ColViewObject>>
+ColViewBuildings::can_receive( ColViewObject const& o, int,
+                               Coord const& where ) const {
   // Verify that there is a slot under the cursor.
   UNWRAP_RETURN( slot, slot_for_coord( where ) );
   // Check that the colony has a building in this slot.
@@ -222,10 +223,13 @@ maybe<ColViewObject> ColViewBuildings::can_receive(
   if( !unit.is_colonist() ) return nothing;
   // Check if this unit is coming from another building; if so
   // we'll allow it.
-  if( dragging_.has_value() ) return o;
+  if( dragging_.has_value() )
+    return CanReceiveDraggable<ColViewObject>::yes{ .draggable =
+                                                        o };
   // Note that we don't check for number of workers in building
   // here; that is done in the check function.
-  return o; // allowed.
+  return CanReceiveDraggable<ColViewObject>::yes{
+      .draggable = o }; // allowed.
 }
 
 wait<base::valid_or<DragRejection>> ColViewBuildings::sink_check(

@@ -66,7 +66,7 @@ class ColViewBuildings : public ui::View,
   }
 
   // Implement IDragSink.
-  maybe<ColViewObject> can_receive(
+  maybe<CanReceiveDraggable<ColViewObject>> can_receive(
       ColViewObject const& o, int from_entity,
       Coord const& where ) const override;
 

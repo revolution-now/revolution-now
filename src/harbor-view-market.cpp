@@ -214,12 +214,13 @@ wait<> HarborMarketCommodities::post_successful_source(
         ts_, player_, dragging_->price_change );
 }
 
-maybe<HarborDraggableObject>
+maybe<CanReceiveDraggable<HarborDraggableObject>>
 HarborMarketCommodities::can_receive(
     HarborDraggableObject const& o, int /*from_entity*/,
     Coord const& /*where*/ ) const {
   if( o.holds<HarborDraggableObject::cargo_commodity>() )
-    return o;
+    return CanReceiveDraggable<HarborDraggableObject>::yes{
+        .draggable = o };
   return nothing;
 }
 

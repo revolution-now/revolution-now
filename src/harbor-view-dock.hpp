@@ -70,7 +70,7 @@ struct HarborDockUnits
   wait<> disown_dragged_object() override;
 
   // Impelement IDragSink.
-  maybe<HarborDraggableObject> can_receive(
+  maybe<CanReceiveDraggable<HarborDraggableObject>> can_receive(
       HarborDraggableObject const& a, int from_entity,
       Coord const& where ) const override;
 

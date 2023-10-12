@@ -243,9 +243,10 @@ wait<> HarborCargo::disown_dragged_object() {
   co_return;
 }
 
-maybe<HarborDraggableObject> HarborCargo::can_receive(
-    HarborDraggableObject const& o, int from_entity,
-    Coord const& where ) const {
+maybe<CanReceiveDraggable<HarborDraggableObject>>
+HarborCargo::can_receive( HarborDraggableObject const& o,
+                          int          from_entity,
+                          Coord const& where ) const {
   if( !get_active_unit().has_value() ) return nothing;
   UNWRAP_CHECK( active_unit_id, get_active_unit() );
   CONVERT_ENTITY( entity_enum, from_entity );
@@ -271,7 +272,8 @@ maybe<HarborDraggableObject> HarborCargo::can_receive(
                 slot ) )
           return nothing;
       }
-      return alt;
+      return CanReceiveDraggable<HarborDraggableObject>::yes{
+          .draggable = alt };
     }
     case HarborDraggableObject::e::market_commodity: {
       auto const& alt =
@@ -283,8 +285,9 @@ maybe<HarborDraggableObject> HarborCargo::can_receive(
           active_unit.cargo().max_commodity_quantity_that_fits(
               comm.type ) );
       if( corrected.quantity == 0 ) return nothing;
-      return HarborDraggableObject::market_commodity{
-          .comm = corrected };
+      return CanReceiveDraggable<HarborDraggableObject>::yes{
+          .draggable = HarborDraggableObject::market_commodity{
+              .comm = corrected } };
     }
     case HarborDraggableObject::e::cargo_commodity: {
       auto const& alt =
@@ -296,8 +299,9 @@ maybe<HarborDraggableObject> HarborCargo::can_receive(
           active_unit.cargo().max_commodity_quantity_that_fits(
               comm.type ) );
       if( corrected.quantity == 0 ) return nothing;
-      return HarborDraggableObject::cargo_commodity{
-          .comm = corrected, .slot = alt.slot };
+      return CanReceiveDraggable<HarborDraggableObject>::yes{
+          .draggable = HarborDraggableObject::cargo_commodity{
+              .comm = corrected, .slot = alt.slot } };
     }
   }
 }

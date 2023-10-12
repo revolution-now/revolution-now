@@ -170,14 +170,16 @@ wait<> HarborDockUnits::disown_dragged_object() {
   co_return;
 }
 
-maybe<HarborDraggableObject> HarborDockUnits::can_receive(
-    HarborDraggableObject const& o, int /*from_entity*/,
-    Coord const& ) const {
+maybe<CanReceiveDraggable<HarborDraggableObject>>
+HarborDockUnits::can_receive( HarborDraggableObject const& o,
+                              int /*from_entity*/,
+                              Coord const& ) const {
   auto const& unit = o.get_if<HarborDraggableObject::unit>();
   if( !unit.has_value() ) return nothing;
   if( ss_.units.unit_for( unit->id ).desc().ship )
     return nothing;
-  return o;
+  return CanReceiveDraggable<HarborDraggableObject>::yes{
+      .draggable = o };
 }
 
 wait<> HarborDockUnits::drop( HarborDraggableObject const& o,

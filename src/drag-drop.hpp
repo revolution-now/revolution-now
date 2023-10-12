@@ -10,7 +10,8 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
+// Rds
+#include "drag-drop.rds.hpp"
 
 // Revolution Now
 #include "co-combinator.hpp"
@@ -195,7 +196,13 @@ struct IDragSink {
   // quantity that the user is dragging, the returned object will
   // be updated to reflect the capacity of the cargo so that the
   // controller algorithm knows how much to remove from source.
-  virtual maybe<Draggable> can_receive(
+  // If the object cannot be received then it can be rejected ei-
+  // ther without a message (nothing) or with a message; if
+  // without a message then the user will not be allowed to drop
+  // the draggable there. If with a message then the user will be
+  // allowed to drop the draggable but then a message will appear
+  // explaining why it is being rejected, then it is rejected.
+  virtual maybe<CanReceiveDraggable<Draggable>> can_receive(
       Draggable const& o, int from_entity,
       Coord const& where ) const = 0;
 
@@ -403,8 +410,9 @@ wait<> drag_drop_routine(
       //
       // WARNING: do not force a re-composite here, since there
       // are SCOPE_EXIT's above that are hanging onto pointers
-      // into the views, that we don't want to invalidate. FIXME:
-      // to fix this, we need to have a way to re-composite
+      // into the views, that we don't want to invalidate.
+      //
+      // FIXME: to fix this, we need to have a way to recomposite
       // without invalidating the pointers to the views.
       //
       // We know that this event is not the last drag event,
@@ -475,9 +483,36 @@ wait<> drag_drop_routine(
     if( drag_event->state.phase != input::e_drag_phase::end )
       continue;
 
-    // *** After this point, we should only `break` as opposed
-    // to `continue`, since we have already received the end drag
+    // **********************************************************
+    // After this point, we should only `break` as opposed to
+    // `continue`, since we have already received the end drag
     // event.
+    // **********************************************************
+
+    // This is basically just for a rejection that was accompa-
+    // nied by a message. It was already known to be rejected by
+    // the can_receive above, but we allowed it to proceed to
+    // this point so that we could reject it in a place where we
+    // can open a message box and show the message, namely after
+    // the drag phase ends. NOTE: just like the first
+    // can_receive, call above this one is not yet allowed to
+    // edit the object further (edits will be ignored); that hap-
+    // pens further below.
+    //
+    // This should have been checked above in the first call to
+    // can_receive.
+    UNWRAP_CHECK(
+        can_receive_draggable,
+        drag_sink.can_receive( source_object, *source_entity,
+                               sink_coord ) );
+    if( auto no_with_msg =
+            can_receive_draggable
+                .template get_if<typename CanReceiveDraggable<
+                    Draggable>::no_with_msg>();
+        no_with_msg.has_value() ) {
+      co_await gui.message_box( "{}", no_with_msg->msg );
+      break; // NOTE: break, not continue; see above message.
+    }
 
     // At this point we have the first candidate for the dragged
     // object. Now we will do two rounds of "negotiation" between
@@ -515,8 +550,9 @@ wait<> drag_drop_routine(
 
       // Check that the target view can receive this object as it
       // currently is, and/or allow it to adjust it.
-      maybe<Draggable> const sink_edited = drag_sink.can_receive(
-          source_object, *source_entity, sink_coord );
+      maybe<CanReceiveDraggable<Draggable>> const sink_edited =
+          drag_sink.can_receive( source_object, *source_entity,
+                                 sink_coord );
       if( !sink_edited ) {
         // The sink can't find a way to make it work, drag is
         // cancelled.
@@ -524,9 +560,20 @@ wait<> drag_drop_routine(
                   source_object );
         break;
       }
+      if( auto no_with_msg =
+              sink_edited
+                  ->template get_if<typename CanReceiveDraggable<
+                      Draggable>::no_with_msg>();
+          no_with_msg.has_value() ) {
+        co_await gui.message_box( "{}", no_with_msg->msg );
+        break;
+      }
+      auto yes_can_receive = sink_edited->template get_if<
+          typename CanReceiveDraggable<Draggable>::yes>();
+      CHECK( yes_can_receive.has_value() );
       lg.debug( "drag sink responded with object {}.",
-                *sink_edited );
-      source_object = *sink_edited;
+                yes_can_receive->draggable );
+      source_object = yes_can_receive->draggable;
 
       // Since the sink may have edited the object, lets make
       // sure that the source can handle it.

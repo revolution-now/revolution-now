@@ -81,7 +81,7 @@ struct ColonyLandView : public ui::View,
       input::mouse_button_event_t const& event ) override;
 
   // Implement IDragSink.
-  maybe<ColViewObject> can_receive(
+  maybe<CanReceiveDraggable<ColViewObject>> can_receive(
       ColViewObject const& o, int,
       Coord const&         where ) const override;
 

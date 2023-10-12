@@ -191,8 +191,9 @@ wait<> ColonyLandView::perform_click(
   update_production( ss_, colony_ );
 }
 
-maybe<ColViewObject> ColonyLandView::can_receive(
-    ColViewObject const& o, int, Coord const& where ) const {
+maybe<CanReceiveDraggable<ColViewObject>>
+ColonyLandView::can_receive( ColViewObject const& o, int,
+                             Coord const&         where ) const {
   // Verify that the dragged object is a unit.
   maybe<UnitId> unit_id = o.get_if<ColViewObject::unit>().member(
       &ColViewObject::unit::id );
@@ -207,7 +208,9 @@ maybe<ColViewObject> ColonyLandView::can_receive(
   Coord const world_square = colony_.location.moved( *d );
   // Check if this is the same unit currently being dragged, if
   // so we'll allow it.
-  if( dragging_.has_value() && d == dragging_->d ) return o;
+  if( dragging_.has_value() && d == dragging_->d )
+    return CanReceiveDraggable<ColViewObject>::yes{ .draggable =
+                                                        o };
   // Check if there is already a unit on the square.
   if( unit_under_cursor( where ).has_value() ) return nothing;
   // Check if there is a colonist from another colony (friendly
@@ -221,7 +224,8 @@ maybe<ColViewObject> ColonyLandView::can_receive(
   // done in the check function.
 
   // We're good to go.
-  return o;
+  return CanReceiveDraggable<ColViewObject>::yes{ .draggable =
+                                                      o };
 }
 
 wait<base::valid_or<DragRejection>> ColonyLandView::sink_check(

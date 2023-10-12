@@ -504,11 +504,13 @@ class MarketCommodities
     co_return;
   }
 
-  maybe<ColViewObject> can_receive(
+  maybe<CanReceiveDraggable<ColViewObject>> can_receive(
       ColViewObject const& o, int /*from_entity*/,
       Coord const&         where ) const override {
     CHECK( where.is_inside( rect( {} ) ) );
-    if( o.holds<ColViewObject::commodity>() ) return o;
+    if( o.holds<ColViewObject::commodity>() )
+      return CanReceiveDraggable<ColViewObject>::yes{
+          .draggable = o };
     return nothing;
   }
 
@@ -670,7 +672,7 @@ class CargoView : public ui::View,
 
   void set_unit( maybe<UnitId> unit ) { holder_ = unit; }
 
-  maybe<ColViewObject> can_receive(
+  maybe<CanReceiveDraggable<ColViewObject>> can_receive(
       ColViewObject const& o, int from_entity,
       Coord const& where ) const override {
     CHECK( where.is_inside( rect( {} ) ) );
@@ -690,7 +692,8 @@ class CargoView : public ui::View,
       // enough space anywhere in the cargo for that cargo, which
       // there always will be, because the cargo originated from
       // within this same cargo.
-      return o;
+      return CanReceiveDraggable<ColViewObject>::yes{
+          .draggable = o };
     }
     // We are dragging from another source, so we must check to
     // see if we have room for what is being dragged.
@@ -706,7 +709,8 @@ class CargoView : public ui::View,
         if( !unit.cargo().fits_somewhere( ss_.units,
                                           Cargo::unit{ id } ) )
           return nothing;
-        return o;
+        return CanReceiveDraggable<ColViewObject>::yes{
+            .draggable = o };
       }
       case e::commodity:
         Commodity c = o.get<ColViewObject::commodity>().comm;
@@ -715,7 +719,8 @@ class CargoView : public ui::View,
                 c.type );
         c.quantity = clamp( c.quantity, 0, max_quantity );
         if( c.quantity == 0 ) return nothing;
-        return ColViewObject::commodity{ .comm = c };
+        return CanReceiveDraggable<ColViewObject>::yes{
+            .draggable = ColViewObject::commodity{ .comm = c } };
     }
   }
 
@@ -1079,7 +1084,7 @@ class UnitsAtGateColonyView
     return nothing;
   }
 
-  maybe<ColViewObject> can_receive_unit(
+  maybe<CanReceiveDraggable<ColViewObject>> can_receive_unit(
       UnitId       dragged, e_colview_entity /*from*/,
       Coord const& where ) const {
     auto& unit = ss_.units.unit_for( dragged );
@@ -1098,7 +1103,8 @@ class UnitsAtGateColonyView
       // then we won't allow the population to be reduced below
       // three, but that will be checked in the confirmation
       // stage.
-      return ColViewObject::unit{ .id = dragged };
+      return CanReceiveDraggable<ColViewObject>::yes{
+          .draggable = ColViewObject::unit{ .id = dragged } };
     }
     Unit const& target_unit =
         ss_.units.unit_for( *over_unit_id );
@@ -1118,7 +1124,8 @@ class UnitsAtGateColonyView
     if( !target_unit.cargo().fits_somewhere(
             ss_.units, Cargo::unit{ dragged } ) )
       return nothing;
-    return ColViewObject::unit{ .id = dragged };
+    return CanReceiveDraggable<ColViewObject>::yes{
+        .draggable = ColViewObject::unit{ .id = dragged } };
   }
 
   // Implement IDragSinkUserEdit.
@@ -1186,7 +1193,8 @@ class UnitsAtGateColonyView
     }
   }
 
-  maybe<ColViewObject> can_cargo_unit_receive_commodity(
+  maybe<CanReceiveDraggable<ColViewObject>>
+  can_cargo_unit_receive_commodity(
       Commodity const& comm, e_colview_entity from,
       UnitId cargo_unit_id ) const {
     Unit const& target_unit =
@@ -1215,7 +1223,9 @@ class UnitsAtGateColonyView
     Commodity new_comm = comm;
     new_comm.quantity  = std::min( new_comm.quantity, max_q );
     CHECK( new_comm.quantity > 0 );
-    return ColViewObject::commodity{ .comm = new_comm };
+    return CanReceiveDraggable<ColViewObject>::yes{
+        .draggable =
+            ColViewObject::commodity{ .comm = new_comm } };
   }
 
   static maybe<UnitTransformationFromCommodityResult>
@@ -1241,22 +1251,26 @@ class UnitsAtGateColonyView
     return res;
   }
 
-  maybe<ColViewObject> can_unit_receive_commodity(
-      Commodity const& comm, e_colview_entity /*from*/,
-      UnitId           id ) const {
+  maybe<CanReceiveDraggable<ColViewObject>>
+  can_unit_receive_commodity( Commodity const& comm,
+                              e_colview_entity /*from*/,
+                              UnitId id ) const {
     // We are dragging a commodity over a unit that does not have
     // a cargo hold. This could be valid if we are e.g. giving
     // muskets to a colonist.
     UNWRAP_RETURN( xform_res,
                    transformed_unit_composition_from_commodity(
                        ss_.units.unit_for( id ), comm ) );
-    return ColViewObject::commodity{
-        .comm = with_quantity( comm, xform_res.quantity_used ) };
+    return CanReceiveDraggable<ColViewObject>::yes{
+        .draggable = ColViewObject::commodity{
+            .comm = with_quantity( comm,
+                                   xform_res.quantity_used ) } };
   }
 
-  maybe<ColViewObject> can_receive_commodity(
-      Commodity const& comm, e_colview_entity from,
-      Coord const& where ) const {
+  maybe<CanReceiveDraggable<ColViewObject>>
+  can_receive_commodity( Commodity const& comm,
+                         e_colview_entity from,
+                         Coord const&     where ) const {
     maybe<UnitId> over_unit_id = contains_unit( where );
     if( !over_unit_id ) return nothing;
     Unit const& target_unit =
@@ -1269,7 +1283,7 @@ class UnitsAtGateColonyView
                                          *over_unit_id );
   }
 
-  maybe<ColViewObject> can_receive(
+  maybe<CanReceiveDraggable<ColViewObject>> can_receive(
       ColViewObject const& o, int from_entity,
       Coord const& where ) const override {
     CONVERT_ENTITY( from_enum, from_entity );

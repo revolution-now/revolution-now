@@ -87,7 +87,7 @@ struct HarborMarketCommodities
                                  Coord const& ) override;
 
   // Impelement IDragSink.
-  maybe<HarborDraggableObject> can_receive(
+  maybe<CanReceiveDraggable<HarborDraggableObject>> can_receive(
       HarborDraggableObject const& a, int from_entity,
       Coord const& where ) const override;
 

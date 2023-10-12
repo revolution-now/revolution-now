@@ -200,9 +200,10 @@ wait<> HarborInPortShips::disown_dragged_object() {
   co_return;
 }
 
-maybe<HarborDraggableObject> HarborInPortShips::can_receive(
-    HarborDraggableObject const& o, int from_entity,
-    Coord const& where ) const {
+maybe<CanReceiveDraggable<HarborDraggableObject>>
+HarborInPortShips::can_receive( HarborDraggableObject const& o,
+                                int          from_entity,
+                                Coord const& where ) const {
   CONVERT_ENTITY( entity_enum, from_entity );
   auto draggable_unit = o.get_if<HarborDraggableObject::unit>();
   if( draggable_unit.has_value() ) {
@@ -225,7 +226,8 @@ maybe<HarborDraggableObject> HarborInPortShips::can_receive(
       // will cause them to be moved to the inbound box.
       if( entity_enum == e_harbor_view_entity::inbound )
         return nothing;
-      return o;
+      return CanReceiveDraggable<HarborDraggableObject>::yes{
+          .draggable = o };
     }
   }
   // At this point we're either not dragging a unit or we are but
@@ -259,7 +261,8 @@ maybe<HarborDraggableObject> HarborInPortShips::can_receive(
                 ss_.units, Cargo::unit{ .id = dragged_id } ) )
           return nothing;
       }
-      return alt;
+      return CanReceiveDraggable<HarborDraggableObject>::yes{
+          .draggable = alt };
     }
     case HarborDraggableObject::e::market_commodity: {
       auto const& alt =
@@ -271,8 +274,9 @@ maybe<HarborDraggableObject> HarborInPortShips::can_receive(
           ship.cargo().max_commodity_quantity_that_fits(
               comm.type ) );
       if( corrected.quantity == 0 ) return nothing;
-      return HarborDraggableObject::market_commodity{
-          .comm = corrected };
+      return CanReceiveDraggable<HarborDraggableObject>::yes{
+          .draggable = HarborDraggableObject::market_commodity{
+              .comm = corrected } };
     }
     case HarborDraggableObject::e::cargo_commodity: {
       auto const& alt =
@@ -284,8 +288,9 @@ maybe<HarborDraggableObject> HarborInPortShips::can_receive(
           ship.cargo().max_commodity_quantity_that_fits(
               comm.type ) );
       if( corrected.quantity == 0 ) return nothing;
-      return HarborDraggableObject::cargo_commodity{
-          .comm = corrected, .slot = alt.slot };
+      return CanReceiveDraggable<HarborDraggableObject>::yes{
+          .draggable = HarborDraggableObject::cargo_commodity{
+              .comm = corrected, .slot = alt.slot } };
     }
   }
 }
