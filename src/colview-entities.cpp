@@ -56,6 +56,9 @@
 #include "config/colony.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
 // refl
 #include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"
@@ -697,30 +700,39 @@ class CargoView : public ui::View,
     }
     // We are dragging from another source, so we must check to
     // see if we have room for what is being dragged.
-    auto& unit = ss_.units.unit_for( *holder_ );
-    switch( o.to_enum() ) {
-      using e = ColViewObject::e;
-      case e::unit: {
-        UnitId id = o.get<ColViewObject::unit>().id;
+    auto& holder = ss_.units.unit_for( *holder_ );
+    SWITCH( o ) {
+      CASE( unit ) {
+        // This is basically to prevent wagon trains from re-
+        // ceiving units as cargo.
+        if( !holder.desc().can_hold_unit_cargo )
+          // It may not be obvious to the player why this is
+          // being rejected, so give this one a message.
+          return CanReceiveDraggable<ColViewObject>::no_with_msg{
+              .msg = fmt::format(
+                  "[{}] cannot hold units as cargo.",
+                  holder.desc().name_plural ) };
         // Note that we allow wagon trains to recieve units at
         // this stage as long as they theoretically fit. In the
         // next stage we will reject that and present a message
         // to the user.
-        if( !unit.cargo().fits_somewhere( ss_.units,
-                                          Cargo::unit{ id } ) )
+        if( !holder.cargo().fits_somewhere(
+                ss_.units, Cargo::unit{ unit.id } ) )
           return nothing;
         return CanReceiveDraggable<ColViewObject>::yes{
             .draggable = o };
       }
-      case e::commodity:
-        Commodity c = o.get<ColViewObject::commodity>().comm;
-        int       max_quantity =
-            unit.cargo().max_commodity_quantity_that_fits(
-                c.type );
-        c.quantity = clamp( c.quantity, 0, max_quantity );
-        if( c.quantity == 0 ) return nothing;
+      CASE( commodity ) {
+        Commodity comm = commodity.comm;
+        int const max_quantity =
+            holder.cargo().max_commodity_quantity_that_fits(
+                comm.type );
+        comm.quantity = clamp( comm.quantity, 0, max_quantity );
+        if( comm.quantity == 0 ) return nothing;
         return CanReceiveDraggable<ColViewObject>::yes{
-            .draggable = ColViewObject::commodity{ .comm = c } };
+            .draggable =
+                ColViewObject::commodity{ .comm = comm } };
+      }
     }
   }
 
@@ -764,12 +776,12 @@ class CargoView : public ui::View,
       ColViewObject const& o, int from_entity,
       Coord const ) override {
     CHECK( holder_.has_value() );
-    if( ss_.units.unit_for( *holder_ ).type() ==
-            e_unit_type::wagon_train &&
-        o.holds<ColViewObject::unit>() )
-      co_return DragRejection{
-          .reason =
-              "Only ships can hold other units as cargo." };
+    // Sanity check.
+    if( o.holds<ColViewObject::unit>() ) {
+      CHECK( ss_.units.unit_for( *holder_ )
+                 .desc()
+                 .can_hold_unit_cargo );
+    }
     CONVERT_ENTITY( from_enum, from_entity );
     switch( from_enum ) {
       case e_colview_entity::units_at_gate:
@@ -1109,6 +1121,14 @@ class UnitsAtGateColonyView
     Unit const& target_unit =
         ss_.units.unit_for( *over_unit_id );
     if( target_unit.desc().cargo_slots == 0 ) return nothing;
+    // This is basically to prevent wagon trains from receiving
+    // units as cargo.
+    if( !target_unit.desc().can_hold_unit_cargo )
+      // It may not be obvious to the player why this is being
+      // rejected, so give this one a message.
+      return CanReceiveDraggable<ColViewObject>::no_with_msg{
+          .msg = fmt::format( "[{}] cannot hold units as cargo.",
+                              target_unit.desc().name_plural ) };
     // Check if the target_unit is already holding the dragged
     // unit.
     maybe<UnitId> maybe_holder_of_dragged =
