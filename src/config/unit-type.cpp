@@ -96,6 +96,13 @@ valid_or<string> UnitTypeAttributes::validate() const {
     seen.insert( used );
   }
 
+  // If the unit cannot hold cargo then it cannot hold units as
+  // cargo.
+  if( cargo_slots == 0 )
+    REFL_VALIDATE( !can_hold_unit_cargo,
+                   "units that cannot hold cargo must have "
+                   "can_hold_unit_cargo=false." );
+
   // The ship_combat_extra field must be set if an only if the
   // unit type is a ship.
   REFL_VALIDATE( ship == ship_combat_extra.has_value(),

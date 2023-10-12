@@ -201,6 +201,10 @@ struct.UnitTypeAttributes {
   cargo_slots 'int',
   # Slots occupied by this unit.
   cargo_slots_occupies 'base::maybe<int>',
+  # When the unit can hold cargo, this determines whether it can
+  # hold units as cargo. This would be "no" for wagon trains but
+  # "yes" for ships. Must be false if the unit cannot hold cargo.
+  can_hold_unit_cargo 'bool',
 
   # Describes if/how this unit is a colonist. This is important
   # to know so that we can e.g. ensure that only colonist units
