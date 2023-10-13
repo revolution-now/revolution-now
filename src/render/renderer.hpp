@@ -142,6 +142,12 @@ struct Renderer {
 
   gfx::size logical_screen_size() const;
 
+  // For convenience.
+  gfx::rect logical_screen_rect() const {
+    return gfx::rect{ .origin = {},
+                      .size   = logical_screen_size() };
+  }
+
   // Must be called each time the logical screen size changes.
   void set_physical_screen_size( gfx::size new_size );
 
