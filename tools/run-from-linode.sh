@@ -25,15 +25,27 @@ get_dir() {
 
 local_exe='.builds/from-linode/exe/exe'
 linode_exe='/home/dsicilia/dev/revolution-now/.builds/current/exe/exe'
-get_file "$linode_exe"  "$local_exe"
+get_file "$linode_exe"  "$local_exe" &
 
 local_conf='config/'
 linode_conf='/home/dsicilia/dev/revolution-now/config/'
-get_dir  "$linode_conf" "$local_conf"
+get_dir  "$linode_conf" "$local_conf" &
 
-# local_lua='src/lua/'
-# linode_lua='/home/dsicilia/dev/revolution-now/src/lua/'
-# get_dir  "$linode_lua" "$local_lua"
+local_lua='src/lua/'
+linode_lua='/home/dsicilia/dev/revolution-now/src/lua/'
+get_dir  "$linode_lua" "$local_lua" &
+
+# Fragment shader.
+local_frag='src/render/generic.frag'
+linode_frag='/home/dsicilia/dev/revolution-now/src/render/generic.frag'
+get_file "$linode_frag" "$local_frag" &
+
+# Vertex shader.
+local_vert='src/render/generic.vert'
+linode_vert='/home/dsicilia/dev/revolution-now/src/render/generic.vert'
+get_file "$linode_vert" "$local_vert" &
+
+wait
 
 log "checking result..."
 [[ -x "$local_exe" ]] || die "result ($local_exe) is not executable."
