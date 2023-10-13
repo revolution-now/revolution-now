@@ -235,6 +235,22 @@ struct rect {
 
   [[nodiscard]] rect with_border_added( int n = 1 ) const;
 
+  // New coord equal to this one unit of edge trimmed off
+  // on all sides.  That is, we will have:
+  //
+  //   (width,height) ==> (width-2*n,height-2*n)
+  //
+  // unless one of the dimensions becomes less than zero in which
+  // case that dimension will be 0 in the result.
+  //
+  // For the (x,y) coordinates we will always have:
+  //
+  //   (x,y) ==> (x+n,y+n)
+  //
+  // unless one of the dimensions has width 0 in which case
+  // that dimension will remain as-is.
+  [[nodiscard]] rect with_edges_removed( int n = 1 ) const;
+
   rect operator*( int scale ) const;
 
   rect operator/( int scale ) const;

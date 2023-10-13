@@ -381,6 +381,26 @@ rect rect::with_border_added( int n ) const {
       .size   = { .w = size.w + 2 * n, .h = size.h + 2 * n } };
 }
 
+rect rect::with_edges_removed( int n ) const {
+  rect r( *this );
+
+  // TODO: not very efficient.
+  for( int i = 0; i < n; ++i ) {
+    // We always advance location unless length is zero.
+    if( size.w >= 1 ) ++r.origin.x;
+    if( size.h >= 1 ) ++r.origin.y;
+
+    r.size.w -= 2;
+    r.size.h -= 2;
+    if( r.size.w < 0 ) r.size.w = 0;
+    if( r.size.h < 0 ) r.size.h = 0;
+
+    if( r.size.w == 0 && r.size.h == 0 ) break;
+  }
+
+  return r;
+}
+
 rect rect::operator*( int scale ) const {
   rect res   = *this;
   res.origin = res.origin * scale;

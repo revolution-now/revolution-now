@@ -433,6 +433,33 @@ TEST_CASE( "[gfx/cartesian] with_border_added" ) {
                  .size   = { .w = 5, .h = 7 } } );
 }
 
+TEST_CASE( "[gfx/cartesian] with_edges_removed" ) {
+  rect r;
+
+  r = { .origin = { .x = 3, .y = 4 },
+        .size   = { .w = 1, .h = 3 } };
+
+  REQUIRE( r.with_edges_removed() ==
+           rect{ .origin = { .x = 4, .y = 5 },
+                 .size   = { .w = 0, .h = 1 } } );
+
+  REQUIRE( r.with_edges_removed( 2 ) ==
+           rect{ .origin = { .x = 5, .y = 6 },
+                 .size   = { .w = 0, .h = 0 } } );
+
+  r = { .origin = { .x = 1, .y = 1 },
+        .size   = { .w = 1, .h = 1 } };
+  REQUIRE( r.with_edges_removed( 2 ) ==
+           rect{ .origin = { .x = 2, .y = 2 },
+                 .size   = { .w = 0, .h = 0 } } );
+
+  r = { .origin = { .x = 1, .y = 1 },
+        .size   = { .w = 0, .h = 0 } };
+  REQUIRE( r.with_edges_removed( 2 ) ==
+           rect{ .origin = { .x = 1, .y = 1 },
+                 .size   = { .w = 0, .h = 0 } } );
+}
+
 TEST_CASE( "[gfx/cartesian] rect::nw, rect::se, etc." ) {
   rect r;
 
