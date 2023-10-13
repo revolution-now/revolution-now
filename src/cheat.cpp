@@ -366,8 +366,9 @@ wait<> kill_natives( SS& ss, TS& ts ) {
     return res;
   }();
 
-  Visibility const viz(
-      ss, player_for_role( ss, e_player_role::viewer ) );
+  unique_ptr<IVisibility const> const viz =
+      create_visibility_for(
+          ss, player_for_role( ss, e_player_role::viewer ) );
 
   // Kill 'em.
   vector<wait<>> destruction_routines;
@@ -377,7 +378,8 @@ wait<> kill_natives( SS& ss, TS& ts ) {
   // This needs to be out-of-line to avoid dangling stuff.
   auto destruction_routine = [&]( e_tribe tribe ) -> wait<> {
     co_await ts.planes.land_view().animate(
-        anim_seq_for_cheat_tribe_destruction( ss, viz, tribe ) );
+        anim_seq_for_cheat_tribe_destruction( ss, *viz,
+                                              tribe ) );
     destroy_tribe( ss, ts, tribe );
   };
   for( e_tribe const tribe : destroyed )
@@ -406,7 +408,7 @@ wait<> kill_natives( SS& ss, TS& ts ) {
     vector<Coord> const affected_fogged = [&] {
       vector<Coord> res;
       res.reserve( affected_coords.size() );
-      Visibility const viz( ss, nation );
+      VisibilityForNation const viz( ss, nation );
       for( Coord const tile : affected_coords )
         if( viz.visible( tile ) ==
             e_tile_visibility::visible_with_fog )

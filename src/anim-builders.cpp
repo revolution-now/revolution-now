@@ -776,7 +776,7 @@ AnimationSequence anim_seq_unit_to_front(
 // Note that we don't play any sounds here because this may be
 // called multiple times in a loop to destroy multiple tribes.
 AnimationSequence anim_seq_for_cheat_tribe_destruction(
-    SSConst const& ss, Visibility const& viz, e_tribe tribe ) {
+    SSConst const& ss, IVisibility const& viz, e_tribe tribe ) {
   AnimationBuilder builder;
 
   // Dwellings.

@@ -28,7 +28,7 @@ struct MapSquare;
 struct SSConst;
 struct TerrainState;
 struct UnitsState;
-struct Visibility;
+struct IVisibility;
 
 /****************************************************************
 ** Road State
@@ -62,8 +62,8 @@ bool can_build_road( Unit const& unit );
 ** Rendering
 *****************************************************************/
 void render_road_if_present( rr::Painter& painter, Coord where,
-                             SSConst const&    ss,
-                             Visibility const& viz,
-                             Coord             world_tile );
+                             SSConst const&     ss,
+                             IVisibility const& viz,
+                             Coord              world_tile );
 
 } // namespace rn

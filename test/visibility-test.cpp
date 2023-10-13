@@ -118,6 +118,11 @@ struct World : testing::World {
       }
     }
   }
+
+  unique_ptr<IVisibility const> make_viz(
+      maybe<e_nation> nation ) const {
+    return create_visibility_for( ss(), nation );
+  };
 };
 
 /****************************************************************
@@ -229,7 +234,7 @@ TEST_CASE( "[visibility] Visibility" ) {
   W.create_small_map();
 
   SECTION( "no player" ) {
-    Visibility const viz( W.ss(), /*nation=*/nothing );
+    VisibilityEntire const viz( W.ss() );
 
     REQUIRE( viz.nation() == nothing );
 
@@ -272,7 +277,7 @@ TEST_CASE( "[visibility] Visibility" ) {
   }
 
   SECTION( "with player, no visibility" ) {
-    Visibility const viz( W.ss(), e_nation::english );
+    VisibilityForNation const viz( W.ss(), e_nation::english );
 
     REQUIRE( viz.nation() == e_nation::english );
 
@@ -315,7 +320,7 @@ TEST_CASE( "[visibility] Visibility" ) {
   }
 
   SECTION( "with player, some visibility, no fog" ) {
-    Visibility const viz( W.ss(), e_nation::english );
+    VisibilityForNation const viz( W.ss(), e_nation::english );
 
     REQUIRE( viz.nation() == e_nation::english );
 
@@ -367,7 +372,7 @@ TEST_CASE( "[visibility] Visibility" ) {
   }
 
   SECTION( "with player, some visibility, some fog" ) {
-    Visibility const viz( W.ss(), e_nation::english );
+    VisibilityForNation const viz( W.ss(), e_nation::english );
 
     REQUIRE( viz.nation() == e_nation::english );
 
@@ -722,9 +727,9 @@ TEST_CASE( "[visibility] fog_square_at" ) {
   Coord            coord;
   Coord const      kOutsideCoord = { .x = 2, .y = 2 };
   BASE_CHECK( !W.terrain().square_exists( kOutsideCoord ) );
-  Visibility viz( W.ss(), nothing );
+  unique_ptr<IVisibility const> viz;
 
-  auto f = [&] { return viz.fog_square_at( coord ); };
+  auto f = [&] { return viz->fog_square_at( coord ); };
 
   gfx::Matrix<maybe<FogSquare>>& player_map =
       W.terrain()
@@ -743,7 +748,7 @@ TEST_CASE( "[visibility] fog_square_at" ) {
   };
 
   // No nation.
-  viz = Visibility( W.ss(), nothing );
+  viz = W.make_viz( nothing );
 
   coord = { .x = 0, .y = 0 };
   REQUIRE( f() == nothing );
@@ -757,7 +762,7 @@ TEST_CASE( "[visibility] fog_square_at" ) {
   REQUIRE( f() == nothing );
 
   // English.
-  viz = Visibility( W.ss(), e_nation::english );
+  viz = W.make_viz( e_nation::english );
 
   coord = { .x = 0, .y = 0 };
   REQUIRE( f() == fog_square1 );
@@ -774,18 +779,19 @@ TEST_CASE( "[visibility] fog_square_at" ) {
 TEST_CASE( "[visibility] should_animate_move" ) {
   World W;
   W.create_small_map();
-  Coord const src = { .x = 0, .y = 0 };
-  Coord const dst = { .x = 0, .y = 1 };
-  Visibility  viz( W.ss(), nothing );
+  Coord const                   src = { .x = 0, .y = 0 };
+  Coord const                   dst = { .x = 0, .y = 1 };
+  unique_ptr<IVisibility const> viz;
 
   auto f = [&]() {
-    return should_animate_move( viz, src, dst );
+    BASE_CHECK( viz != nullptr );
+    return should_animate_move( *viz, src, dst );
   };
 
-  viz = Visibility( W.ss(), nothing );
+  viz = W.make_viz( nothing );
   REQUIRE( f() );
 
-  viz = Visibility( W.ss(), W.default_nation() );
+  viz = W.make_viz( W.default_nation() );
   REQUIRE_FALSE( f() );
 
   W.player_square( { .x = 1, .y = 0 } ).emplace();
@@ -820,7 +826,7 @@ TEST_CASE( "[visibility] should_animate_move" ) {
   W.player_square( dst ).reset();
   REQUIRE_FALSE( f() );
 
-  viz = Visibility( W.ss(), nothing );
+  viz = W.make_viz( nothing );
   REQUIRE( f() );
 }
 

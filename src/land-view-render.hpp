@@ -41,7 +41,7 @@ struct FogColony;
 struct FogDwelling;
 struct LandViewAnimator;
 struct SSConst;
-struct Visibility;
+struct IVisibility;
 struct UnitFlagOptions;
 
 // A fading hourglass icon will be drawn over a unit to signal to
@@ -59,7 +59,8 @@ struct InputOverrunIndicator {
 struct LandViewRenderer {
   LandViewRenderer(
       SSConst const& ss, rr::Renderer& renderer_arg,
-      LandViewAnimator const& lv_animator, Visibility const& viz,
+      LandViewAnimator const&                   lv_animator,
+      std::unique_ptr<IVisibility const> const& viz,
       maybe<UnitId> last_unit_input, Rect viewport_rect_pixels,
       maybe<InputOverrunIndicator> input_overrun_indicator,
       SmoothViewport const&        viewport );
@@ -136,13 +137,15 @@ struct LandViewRenderer {
   // Note: SSConst needs to be held by value since otherwise it
   // would be a reference to the temporary created at the call
   // site by converting from SS.
-  SSConst const                ss_;
-  rr::Renderer&                renderer_;
-  rr::Renderer&                renderer; // no _ for macros.
-  LandViewAnimator const&      lv_animator_;
-  Rect                         covered_;
-  Visibility const&            viz_;
-  maybe<UnitId>                last_unit_input_;
+  SSConst const           ss_;
+  rr::Renderer&           renderer_;
+  rr::Renderer&           renderer; // no _ for macros.
+  LandViewAnimator const& lv_animator_;
+  Rect                    covered_;
+  // We use the unique_ptr here because we need to know when the
+  // source instance changed its value.
+  std::unique_ptr<IVisibility const> const& viz_;
+  maybe<UnitId>                             last_unit_input_;
   Rect                         viewport_rect_pixels_;
   maybe<InputOverrunIndicator> input_overrun_indicator_;
   SmoothViewport const&        viewport_;

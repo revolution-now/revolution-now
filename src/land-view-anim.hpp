@@ -40,7 +40,7 @@ struct AnimationAction;
 struct AnimationSequence;
 struct Colony;
 struct Dwelling;
-struct Visibility;
+struct IVisibility;
 
 class SmoothViewport;
 
@@ -65,9 +65,9 @@ struct LandViewAnimator {
       std::unordered_map<ColonyId,
                          std::stack<ColonyAnimationState>>;
 
-  LandViewAnimator( SSConst const& ss, SmoothViewport& viewport,
-                    Visibility const& viz )
-    : ss_( ss ), viewport_( viewport ), viz_( viz ) {}
+  LandViewAnimator(
+      SSConst const& ss, SmoothViewport& viewport,
+      std::unique_ptr<IVisibility const> const& viz );
 
   // Getters.
 
@@ -209,7 +209,9 @@ struct LandViewAnimator {
   ColonyAnimStatesMap      colony_animations_;
   DwellingAnimStatesMap    dwelling_animations_;
   FogDwellingAnimStatesMap fog_dwelling_animations_;
-  Visibility const&        viz_;
+  // We hold the unique_ptr reference because we need to know
+  // when the source version was changed.
+  std::unique_ptr<IVisibility const> const& viz_;
 };
 
 } // namespace rn

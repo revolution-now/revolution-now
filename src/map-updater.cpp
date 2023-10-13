@@ -79,8 +79,8 @@ NonRenderingMapUpdater::make_squares_visible(
           nation );
   gfx::Matrix<maybe<FogSquare>>& map = player_terrain.map;
 
-  vector<BuffersUpdated> res;
-  Visibility const       viz( ss_, nation );
+  vector<BuffersUpdated>    res;
+  VisibilityForNation const viz( ss_, nation );
   for( Coord const tile : tiles ) {
     BuffersUpdated& buffers_updated = res.emplace_back();
     buffers_updated.tile            = tile;
@@ -267,7 +267,8 @@ void RenderingMapUpdater::redraw_buffers_for_tiles_where_needed(
     vector<BuffersUpdated> const& buffers_updated ) {
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
-  Visibility const viz( ss_, options().nation );
+  unique_ptr<IVisibility const> const viz =
+      create_visibility_for( ss_, options().nation );
 
   // Note: in the below, we need to draw the surrounding squares
   // because a visibility change in one square can reveal part of
@@ -311,7 +312,7 @@ void RenderingMapUpdater::redraw_buffers_for_tiles_where_needed(
         rr::e_render_buffer::landscape_annex,
         [&] {
           render_landscape_square_if_not_fully_hidden(
-              renderer_, tile * g_tile_delta, ss_, tile, viz,
+              renderer_, tile * g_tile_delta, ss_, tile, *viz,
               terrain_options );
         },
         [&] { redraw_landscape_buffer(); } );
@@ -323,7 +324,7 @@ void RenderingMapUpdater::redraw_buffers_for_tiles_where_needed(
         [&] {
           render_obfuscation_overlay( renderer_,
                                       tile * g_tile_delta, tile,
-                                      viz, terrain_options );
+                                      *viz, terrain_options );
         },
         [&] { redraw_obfuscation_buffer(); } );
 }
@@ -375,8 +376,9 @@ void RenderingMapUpdater::redraw_landscape_buffer() {
          landscape_tracking_.tile_bounds.size() );
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
-  Visibility const viz( ss_, options().nation );
-  render_landscape_buffer( renderer_, ss_, viz, terrain_options,
+  unique_ptr<IVisibility const> const viz =
+      create_visibility_for( ss_, options().nation );
+  render_landscape_buffer( renderer_, ss_, *viz, terrain_options,
                            landscape_tracking_.tile_bounds );
   // Reset this since we just redrew the map.
   landscape_tracking_.tiles_redrawn = 0;
@@ -388,8 +390,9 @@ void RenderingMapUpdater::redraw_obfuscation_buffer() {
          obfuscation_tracking_.tile_bounds.size() );
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
-  Visibility const viz( ss_, options().nation );
-  render_obfuscation_buffer( renderer_, viz, terrain_options,
+  unique_ptr<IVisibility const> const viz =
+      create_visibility_for( ss_, options().nation );
+  render_obfuscation_buffer( renderer_, *viz, terrain_options,
                              obfuscation_tracking_.tile_bounds );
   // Reset this since we just redrew the map.
   obfuscation_tracking_.tiles_redrawn = 0;

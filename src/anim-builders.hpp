@@ -34,7 +34,7 @@ struct CombatShipAttackShip;
 struct DwellingCombatOutcome;
 struct EuroUnitCombatOutcome;
 struct SSConst;
-struct Visibility;
+struct IVisibility;
 
 enum class e_tribe;
 enum class e_sfx;
@@ -131,7 +131,7 @@ AnimationSequence anim_seq_unit_to_front(
 // Depixelates an entire tribe; only used in cheat mode when
 // deleting a tribe. The tribe must exist.
 AnimationSequence anim_seq_for_cheat_tribe_destruction(
-    SSConst const& ss, Visibility const& viz, e_tribe tribe );
+    SSConst const& ss, IVisibility const& viz, e_tribe tribe );
 
 // Just plays a sound.
 AnimationSequence anim_seq_for_sfx( e_sfx sound );

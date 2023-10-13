@@ -87,34 +87,54 @@ int unit_sight_radius( SSConst const& ss, e_nation nation,
 } // namespace
 
 /****************************************************************
-** Visibility
+** IVisibility
 *****************************************************************/
-Visibility::Visibility( SSConst const&  ss,
-                        maybe<e_nation> nation )
-  : terrain_( &ss.terrain ),
-    nation_( nation ),
-    player_terrain_(
-        ( nation.has_value()
-              ? ss.terrain.player_terrain( *nation )
-              : base::nothing )
-            .fmap( []( auto& arg ) { return &arg; } ) ) {}
+IVisibility::IVisibility( SSConst const& ss )
+  : terrain_( &ss.terrain ) {
+  CHECK( terrain_ != nullptr );
+}
 
-e_tile_visibility Visibility::visible( Coord tile ) const {
-  DCHECK( terrain_ != nullptr );
-  if( !player_terrain_.has_value() )
-    // No player, so always visible.
-    return e_tile_visibility::visible_and_clear;
-  // We're rendering from the player's point of view.
-  if( !tile.is_inside( terrain_->world_rect_tiles() ) )
-    // Proto squares are never considered visible.
-    return e_tile_visibility::hidden;
-  CHECK( *player_terrain_ != nullptr );
-  maybe<FogSquare> const& fog_square =
-      ( *player_terrain_ )->map[tile];
-  if( !fog_square.has_value() )
+maybe<FogSquare const&> IVisibility::will_render_from_fog_square(
+    Coord tile ) const {
+  if( maybe<FogSquare const&> fog_square = fog_square_at( tile );
+      fog_square.has_value() && !fog_square->fog_of_war_removed )
+    return fog_square;
+  return nothing;
+}
+
+MapSquare const& IVisibility::square_at( Coord tile ) const {
+  if( maybe<FogSquare const&> fog_square =
+          will_render_from_fog_square( tile );
+      fog_square.has_value() )
+    return fog_square->square;
+  return terrain_->total_square_at( tile );
+};
+
+Rect IVisibility::rect_tiles() const {
+  return terrain_->world_rect_tiles();
+}
+
+bool IVisibility::on_map( Coord tile ) const {
+  return tile.is_inside( rect_tiles() );
+}
+
+/****************************************************************
+** VisibilityForNation
+*****************************************************************/
+VisibilityForNation::VisibilityForNation( SSConst const& ss,
+                                          e_nation       nation )
+  : IVisibility( ss ),
+    nation_( nation ),
+    player_terrain_( addressof(
+        ss.terrain.player_terrain( nation ).value() ) ) {}
+
+e_tile_visibility VisibilityForNation::visible(
+    Coord tile ) const {
+  if( maybe<FogSquare> const& fog_square = fog_square_at( tile );
+      !fog_square.has_value() )
     // There is a player and they can't see this tile.
     return e_tile_visibility::hidden;
-  if( !fog_square->fog_of_war_removed )
+  else if( !fog_square->fog_of_war_removed )
     // There is a player, they've seen this tile, but no units
     // can currently see it, so it is fogged.
     return e_tile_visibility::visible_with_fog;
@@ -122,67 +142,30 @@ e_tile_visibility Visibility::visible( Coord tile ) const {
   return e_tile_visibility::visible_and_clear;
 }
 
-MapSquare const& Visibility::square_at( Coord tile ) const {
-  DCHECK( terrain_ != nullptr );
-  if( !player_terrain_.has_value() )
-    // Real map.
-    return terrain_->total_square_at( tile );
-  DCHECK( *player_terrain_ != nullptr );
-  // We're rendering from the player's point of view.
-  if( !tile.is_inside( terrain_->world_rect_tiles() ) )
-    // Will yield a proto square.
-    return terrain_->total_square_at( tile );
-  maybe<FogSquare> const& fog_square =
-      ( *player_terrain_ )->map[tile];
-  if( !fog_square.has_value() )
-    // Player can't see this tile (it is hidden).
-    return terrain_->total_square_at( tile );
-  // The player can see this tile, either clear or fogged.
-  if( fog_square->fog_of_war_removed )
-    // Use the real tile in this case because the fogged tile is
-    // not always guaranteed to match the real tile when the tile
-    // is visible, since the fog square is only updated in re-
-    // sopnse to certain actions (and that's ok, because when a
-    // tile is visible and clear, the fog square is not used at
-    // all for rendering).
-    return terrain_->total_square_at( tile );
-  // Return the player's version of it.
-  return fog_square->square;
-};
-
-maybe<FogSquare const&> Visibility::fog_square_at(
+maybe<FogSquare const&> VisibilityForNation::fog_square_at(
     Coord tile ) const {
-  DCHECK( terrain_ != nullptr );
-  if( !player_terrain_.has_value() )
-    // Real map, no fog.
-    return nothing;
-  DCHECK( *player_terrain_ != nullptr );
-  // We're rendering from the player's point of view.
-  if( !tile.is_inside( terrain_->world_rect_tiles() ) )
-    // Would be a proto square; again, not fog square.
-    return nothing;
-  maybe<FogSquare> const& square =
-      ( *player_terrain_ )->map[tile];
-  if( !square.has_value() )
-    // Player can't see this tile.
-    return nothing;
-  // The player can see this tile, so return the player's version
-  // of it.
-  return *square;
-}
-
-Rect Visibility::rect_tiles() const {
-  DCHECK( terrain_ != nullptr );
-  return terrain_->world_rect_tiles();
-}
-
-bool Visibility::on_map( Coord tile ) const {
-  return tile.is_inside( rect_tiles() );
+  // If it's a proto square then can't obtain a fog square.
+  if( !on_map( tile ) ) return nothing;
+  if( auto const& square = player_terrain_->map[tile];
+      square.has_value() )
+    // The player can see this tile, so return the player's ver-
+    // sion of it.
+    return *square;
+  // Player can't see this tile.
+  return nothing;
 }
 
 /****************************************************************
 ** Public API
 *****************************************************************/
+std::unique_ptr<IVisibility const> create_visibility_for(
+    SSConst const& ss, maybe<e_nation> nation ) {
+  if( nation.has_value() )
+    return make_unique<VisibilityForNation const>( ss, *nation );
+  else
+    return make_unique<VisibilityEntire const>( ss );
+}
+
 vector<Coord> unit_visible_squares( SSConst const& ss,
                                     e_nation       nation,
                                     e_unit_type    type,
@@ -319,7 +302,7 @@ void update_map_visibility( TS&                   ts,
   ts.planes.land_view().set_visibility( nation );
 }
 
-bool should_animate_move( Visibility const& viz, Coord src,
+bool should_animate_move( IVisibility const& viz, Coord src,
                           Coord dst ) {
   return ( viz.visible( src ) ==
            e_tile_visibility::visible_and_clear ) ||

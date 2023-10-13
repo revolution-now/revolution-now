@@ -68,8 +68,8 @@ namespace {
 // This is for non-attack moves. Attack moves are handled else-
 // where, and they just rely on whether the viewing player can
 // see one of the squares in question.
-bool should_animate_native_travel( SSConst const&    ss,
-                                   Visibility const& viz,
+bool should_animate_native_travel( SSConst const&     ss,
+                                   IVisibility const& viz,
                                    Coord src, Coord dst ) {
   if( !ss.settings.game_options
            .flags[e_game_flag_option::show_indian_moves] )
@@ -116,9 +116,9 @@ wait<> handle_native_unit_attack( INativesTurnDeps const& deps,
 }
 
 wait<> handle_native_unit_travel( SS& ss, TS& ts,
-                                  Visibility const& viz,
-                                  NativeUnit&       native_unit,
-                                  e_direction       direction ) {
+                                  IVisibility const& viz,
+                                  NativeUnit&        native_unit,
+                                  e_direction direction ) {
   Coord const src = ss.units.coord_for( native_unit.id );
   Coord const dst = src.moved( direction );
   MovementPoints const needed = movement_points_required(
@@ -151,7 +151,7 @@ wait<> handle_native_unit_travel( SS& ss, TS& ts,
 
 wait<> handle_native_unit_command(
     INativesTurnDeps const& deps, SS& ss, TS& ts,
-    Visibility const& viz, e_tribe tribe_type,
+    IVisibility const& viz, e_tribe tribe_type,
     NativeUnit& native_unit, NativeUnitCommand const& command ) {
   SWITCH( command ) {
     CASE( forfeight ) {
@@ -190,7 +190,7 @@ wait<> handle_native_unit_command(
 }
 
 wait<> tribe_turn( INativesTurnDeps const& deps, SS& ss, TS& ts,
-                   Visibility const& viz, INativeMind& mind,
+                   IVisibility const& viz, INativeMind& mind,
                    set<NativeUnitId>& units ) {
   // As a circuit breaker to prevent the AI from never exhausting
   // all of the movement points of all of its units, we'll give
@@ -305,14 +305,15 @@ wait<> natives_turn(
     units.insert( unit_id );
   }
 
-  Visibility const viz(
-      ss, player_for_role( ss, e_player_role::viewer ) );
+  unique_ptr<IVisibility const> const viz =
+      create_visibility_for(
+          ss, player_for_role( ss, e_player_role::viewer ) );
 
   for( e_tribe const tribe : refl::enum_values<e_tribe> ) {
     if( !ss.natives.tribe_exists( tribe ) ) continue;
     INativeMind& mind = ts.native_minds[tribe];
     timer.checkpoint( "{}", tribe );
-    co_await tribe_turn( deps, ss, ts, viz, mind,
+    co_await tribe_turn( deps, ss, ts, *viz, mind,
                          tribe_to_units[tribe] );
     CHECK( tribe_to_units[tribe].empty() );
   }

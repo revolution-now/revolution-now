@@ -30,7 +30,7 @@ namespace rn {
 
 struct SS;
 struct TS;
-struct Visibility;
+struct IVisibility;
 
 /****************************************************************
 ** MiniMap
@@ -119,8 +119,8 @@ struct MiniMapView : ui::View {
   // Any non-const method should call this at the end.
   void fix_invariants();
 
-  void draw_impl( rr::Renderer&     renderer,
-                  Visibility const& viz ) const;
+  void draw_impl( rr::Renderer&      renderer,
+                  IVisibility const& viz ) const;
 
   SS&                    ss_;
   TS&                    ts_;

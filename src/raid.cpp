@@ -83,8 +83,9 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
                   Coord dst ) {
   UnitId const defender_id =
       select_euro_unit_defender( ss, dst );
-  Visibility const viz(
-      ss, player_for_role( ss, e_player_role::viewer ) );
+  unique_ptr<IVisibility const> const viz =
+      create_visibility_for(
+          ss, player_for_role( ss, e_player_role::viewer ) );
   e_tribe const tribe_type = tribe_type_for_unit( ss, attacker );
   INativeMind&  native_mind = ts.native_minds[tribe_type];
   Unit&         defender    = ss.units.unit_for( defender_id );
@@ -100,7 +101,7 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
   // pecially if it results in a unit or colony disappearing. So
   // all that we really care about here is if the viewer can see
   // either the src or dst square.
-  bool const viewable = should_animate_move( viz, src, dst );
+  bool const viewable = should_animate_move( *viz, src, dst );
 
   if( viewable ) {
     co_await ts.planes.land_view().ensure_visible( src );
@@ -244,8 +245,9 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
                                      colony );
   IEuroMind&    euro_mind  = ts.euro_minds[colony.nation];
   e_tribe const tribe_type = tribe_type_for_unit( ss, attacker );
-  Visibility const viz(
-      ss, player_for_role( ss, e_player_role::viewer ) );
+  unique_ptr<IVisibility const> const viz =
+      create_visibility_for(
+          ss, player_for_role( ss, e_player_role::viewer ) );
   Coord const src = ss.units.coord_for( attacker.id );
   Coord const dst = colony.location;
 
@@ -253,7 +255,7 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
   // not relevant, since there is really no natural way to show
   // an attack without the slide and depixelation animations, es-
   // pecially if it results in a unit or colony disappearing.
-  bool const viewable = should_animate_move( viz, src, dst );
+  bool const viewable = should_animate_move( *viz, src, dst );
 
   if( viewable ) {
     co_await ts.planes.land_view().ensure_visible( src );

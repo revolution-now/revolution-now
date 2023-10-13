@@ -90,10 +90,10 @@ struct PlayerInput {
 } // namespace
 
 struct LandViewPlane::Impl : public Plane {
-  SS&              ss_;
-  TS&              ts_;
-  Visibility       viz_;
-  LandViewAnimator lv_animator_;
+  SS&                           ss_;
+  TS&                           ts_;
+  unique_ptr<IVisibility const> viz_;
+  LandViewAnimator              lv_animator_;
 
   vector<MenuPlane::Deregistrar> dereg;
 
@@ -157,8 +157,10 @@ struct LandViewPlane::Impl : public Plane {
   Impl( SS& ss, TS& ts, maybe<e_nation> nation )
     : ss_( ss ),
       ts_( ts ),
-      viz_( ss, nation ),
+      viz_( create_visibility_for( ss, nothing ) ),
       lv_animator_( ss, ss.land_view.viewport, viz_ ) {
+    set_visibility( nation );
+    CHECK( viz_ != nullptr );
     register_menu_items( ts.planes.menu() );
     // Initialize general global data.
     landview_mode_   = LandViewMode::none{};
@@ -932,7 +934,7 @@ struct LandViewPlane::Impl : public Plane {
   }
 
   void set_visibility( maybe<e_nation> nation ) {
-    viz_ = Visibility( ss_, nation );
+    viz_ = create_visibility_for( ss_, nation );
   }
 
   void zoom_out_full() {

@@ -396,8 +396,8 @@ gfx::rect MiniMapView::white_box_pixels() const {
   return white_rect.truncated();
 }
 
-void MiniMapView::draw_impl( rr::Renderer&     renderer,
-                             Visibility const& viz ) const {
+void MiniMapView::draw_impl( rr::Renderer&      renderer,
+                             IVisibility const& viz ) const {
   gfx::rect const actual{
       .origin = {}, .size = mini_map_.size_screen_pixels() };
   gfx::drect const squares =
@@ -513,11 +513,13 @@ void MiniMapView::draw_impl( rr::Renderer&     renderer,
 
 void MiniMapView::draw( rr::Renderer& renderer,
                         Coord         where ) const {
-  Visibility const viz( ss_, ts_.map_updater.options().nation );
+  unique_ptr<IVisibility const> const viz =
+      create_visibility_for( ss_,
+                             ts_.map_updater.options().nation );
   SCOPED_RENDERER_MOD_ADD(
       painter_mods.repos.translation,
       where.distance_from_origin().to_gfx().to_double() );
-  draw_impl( renderer, viz );
+  draw_impl( renderer, *viz );
 }
 
 Delta MiniMapView::delta() const {

@@ -163,7 +163,7 @@ maybe<ExploredColony> find_close_explored_colony(
   base::generator<point> const search =
       outward_spiral_pythdist_search_existing_gen(
           ss, location, max_distance );
-  Visibility const viz( ss, nation );
+  VisibilityForNation const viz( ss, nation );
   for( point const point : search ) {
     switch( viz.visible( Coord::from_gfx( point ) ) ) {
       case e_tile_visibility::hidden:

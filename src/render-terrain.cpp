@@ -68,7 +68,7 @@ e_tile tile_for_ground_terrain( e_ground_terrain terrain ) {
 }
 
 maybe<e_ground_terrain> ground_terrain_for_square(
-    Visibility const& viz, MapSquare const& square,
+    IVisibility const& viz, MapSquare const& square,
     Coord world_square ) {
   if( square.surface == e_surface::land ) return square.ground;
   // We have a water so get it from the surroundings.
@@ -110,7 +110,7 @@ maybe<e_ground_terrain> ground_terrain_for_square(
   return nothing;
 }
 
-void render_mountains( Visibility const& viz,
+void render_mountains( IVisibility const& viz,
                        rr::Painter& painter, Coord where,
                        Coord world_square ) {
   MapSquare const& here = viz.square_at( world_square );
@@ -225,7 +225,7 @@ void render_mountains( Visibility const& viz,
   render_sprite( painter, where, mountains_tile );
 }
 
-void render_hills( Visibility const& viz, rr::Painter& painter,
+void render_hills( IVisibility const& viz, rr::Painter& painter,
                    Coord where, Coord world_square ) {
   MapSquare const& here = viz.square_at( world_square );
   CHECK( here.surface == e_surface::land );
@@ -338,7 +338,7 @@ void render_hills( Visibility const& viz, rr::Painter& painter,
   render_sprite( painter, where, hills_tile );
 }
 
-void render_forest( Visibility const& viz, rr::Painter& painter,
+void render_forest( IVisibility const& viz, rr::Painter& painter,
                     Coord where, Coord world_square ) {
   MapSquare const& here = viz.square_at( world_square );
   CHECK( here.surface == e_surface::land );
@@ -458,8 +458,8 @@ void render_forest( Visibility const& viz, rr::Painter& painter,
   render_sprite( painter, where, forest_tile );
 }
 
-void render_adjacent_overlap( Visibility const& viz,
-                              rr::Renderer&     renderer,
+void render_adjacent_overlap( IVisibility const& viz,
+                              rr::Renderer&      renderer,
                               Coord where, Coord world_square,
                               double chop_percent,
                               Coord  hash_anchor ) {
@@ -601,8 +601,8 @@ void render_adjacent_overlap( Visibility const& viz,
   }
 }
 
-void render_terrain_ground( Visibility const& viz,
-                            rr::Painter&      painter,
+void render_terrain_ground( IVisibility const& viz,
+                            rr::Painter&       painter,
                             rr::Renderer& renderer, Coord where,
                             Coord            world_square,
                             e_ground_terrain ground ) {
@@ -672,9 +672,9 @@ void render_terrain_ground( Visibility const& viz,
 }
 
 // Pass in the painter as well for efficiency.
-void render_terrain_land_square( Visibility const& viz,
-                                 rr::Painter&      painter,
-                                 rr::Renderer&     renderer,
+void render_terrain_land_square( IVisibility const& viz,
+                                 rr::Painter&       painter,
+                                 rr::Renderer&      renderer,
                                  Coord where, Coord world_square,
                                  MapSquare const& square ) {
   DCHECK( square.surface == e_surface::land );
@@ -739,7 +739,7 @@ void render_river_water_tile( rr::Renderer& renderer,
 //   3. We draw special fan-out tiles, one for each surrounding
 //      square that has a river.
 //
-void render_river_on_ocean( Visibility const& viz,
+void render_river_on_ocean( IVisibility const& viz,
                             rr::Renderer& renderer, Coord where,
                             Coord            world_square,
                             MapSquare const& square ) {
@@ -795,7 +795,7 @@ void render_river_on_ocean( Visibility const& viz,
   }
 }
 
-void render_river_on_land( Visibility const& viz,
+void render_river_on_land( IVisibility const& viz,
                            rr::Renderer& renderer, Coord where,
                            Coord            world_square,
                            MapSquare const& square,
@@ -1054,7 +1054,7 @@ void render_river_on_land( Visibility const& viz,
 }
 
 bool has_surrounding_nonforest_river_squares(
-    Visibility const& viz, Coord world_square ) {
+    IVisibility const& viz, Coord world_square ) {
   MapSquare const& up =
       viz.square_at( world_square - Delta{ .h = 1 } );
   MapSquare const& right =
@@ -1086,7 +1086,7 @@ bool has_surrounding_nonforest_river_squares(
   return res > 0;
 }
 
-void render_river_hinting( Visibility const& viz,
+void render_river_hinting( IVisibility const& viz,
                            rr::Renderer& renderer, Coord where,
                            Coord            world_square,
                            MapSquare const& square ) {
@@ -1110,8 +1110,8 @@ void render_river_hinting( Visibility const& viz,
                         square, /*no_bank=*/true );
 }
 
-void render_land_overlay( Visibility const& viz,
-                          rr::Renderer&     renderer,
+void render_land_overlay( IVisibility const& viz,
+                          rr::Renderer&      renderer,
                           rr::Painter& painter, Coord where,
                           Coord            world_square,
                           MapSquare const& square,
@@ -1157,11 +1157,11 @@ void render_land_overlay( Visibility const& viz,
   }
 }
 
-void render_terrain_ocean_square( rr::Renderer&     renderer,
-                                  rr::Painter&      painter,
-                                  Coord             where,
-                                  Visibility const& viz,
-                                  MapSquare const&  square,
+void render_terrain_ocean_square( rr::Renderer&      renderer,
+                                  rr::Painter&       painter,
+                                  Coord              where,
+                                  IVisibility const& viz,
+                                  MapSquare const&   square,
                                   Coord world_square ) {
   DCHECK( square.surface == e_surface::water );
 
@@ -1951,7 +1951,7 @@ void render_lost_city_rumor( rr::Painter& painter, Coord where,
     render_sprite( painter, where, e_tile::lost_city_rumor );
 }
 
-void render_fish( Visibility const& viz, rr::Renderer& renderer,
+void render_fish( IVisibility const& viz, rr::Renderer& renderer,
                   Coord where, Coord world_square ) {
   MapSquare const& up =
       viz.square_at( world_square - Delta{ .h = 1 } );
@@ -2029,9 +2029,9 @@ e_tile resource_tile( e_natural_resource resource ) {
   }
 }
 
-void render_resources( rr::Renderer&     renderer,
-                       rr::Painter&      painter,
-                       Visibility const& viz, Coord where,
+void render_resources( rr::Renderer&      renderer,
+                       rr::Painter&       painter,
+                       IVisibility const& viz, Coord where,
                        MapSquare const& square,
                        Coord            world_square ) {
   maybe<e_natural_resource> resource =
@@ -2047,7 +2047,7 @@ void render_resources( rr::Renderer&     renderer,
 // blend with surrounding squares that might lack the overlay.
 void render_pixelated_overlay_transitions(
     rr::Renderer& renderer, Coord where,
-    Coord const world_square, Visibility const& viz,
+    Coord const world_square, IVisibility const& viz,
     refl::enum_map<e_cdirection, bool> const& has_overlay,
     e_tile                                    overlay_tile ) {
   SCOPED_RENDERER_MOD_SET(
@@ -2329,7 +2329,7 @@ void render_pixelated_overlay_transitions(
 
 void render_visible_terrain_square(
     rr::Renderer& renderer, Coord where, SSConst const& ss,
-    Coord const world_square, Visibility const& viz,
+    Coord const world_square, IVisibility const& viz,
     TerrainRenderOptions const& options ) {
   rr::Painter      painter = renderer.painter();
   MapSquare const& square  = viz.square_at( world_square );
@@ -2372,7 +2372,7 @@ struct OverlayInfo {
 };
 
 OverlayInfo surrounding_overlays(
-    Visibility const& viz, Coord tile,
+    IVisibility const& viz, Coord tile,
     refl::enum_map<e_tile_visibility, bool> const& targets ) {
   OverlayInfo info;
   info.fully_surrounded = true;
@@ -2388,7 +2388,7 @@ OverlayInfo surrounding_overlays(
 
 void render_landscape_square_if_not_fully_hidden(
     rr::Renderer& renderer, Coord where, SSConst const& ss,
-    Coord const world_square, Visibility const& viz,
+    Coord const world_square, IVisibility const& viz,
     TerrainRenderOptions const& options ) {
   bool const fully_hidden =
       surrounding_overlays(
@@ -2409,7 +2409,7 @@ void render_landscape_square_if_not_fully_hidden(
 
 void render_obfuscation_overlay(
     rr::Renderer& renderer, Coord where,
-    Coord const world_square, Visibility const& viz,
+    Coord const world_square, IVisibility const& viz,
     TerrainRenderOptions const& options ) {
   { // Unexplored.
     OverlayInfo const hidden = surrounding_overlays(
@@ -2446,7 +2446,7 @@ void render_obfuscation_overlay(
 
 void render_terrain_square_merged(
     rr::Renderer& renderer, Coord where, SSConst const& ss,
-    Coord world_square, Visibility const& viz,
+    Coord world_square, IVisibility const& viz,
     TerrainRenderOptions const& options ) {
   render_landscape_square_if_not_fully_hidden(
       renderer, where, ss, world_square, viz, options );
@@ -2456,7 +2456,7 @@ void render_terrain_square_merged(
 
 void render_landscape_buffer(
     rr::Renderer& renderer, SSConst const& ss,
-    Visibility const& viz, TerrainRenderOptions const& options,
+    IVisibility const& viz, TerrainRenderOptions const& options,
     gfx::Matrix<rr::VertexRange>& tile_bounds ) {
   auto start_time = chrono::system_clock::now();
   SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
@@ -2488,7 +2488,7 @@ void render_landscape_buffer(
 }
 
 void render_obfuscation_buffer(
-    rr::Renderer& renderer, Visibility const& viz,
+    rr::Renderer& renderer, IVisibility const& viz,
     TerrainRenderOptions const&   options,
     gfx::Matrix<rr::VertexRange>& tile_bounds ) {
   auto start_time = chrono::system_clock::now();

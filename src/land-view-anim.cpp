@@ -146,6 +146,13 @@ wait<> pixelation_stage_throttler( co::latch& hold,
 /****************************************************************
 ** Public API
 *****************************************************************/
+LandViewAnimator::LandViewAnimator(
+    SSConst const& ss, SmoothViewport& viewport,
+    std::unique_ptr<IVisibility const> const& viz )
+  : ss_( ss ), viewport_( viewport ), viz_( viz ) {
+  CHECK( viz_ != nullptr );
+}
+
 maybe<UnitAnimationState const&>
 LandViewAnimator::unit_animation( UnitId id ) const {
   auto it = unit_animations_.find( id );
@@ -408,8 +415,8 @@ wait<> LandViewAnimator::animate_action_primitive(
       bool const dst_exists = ss_.terrain.square_exists( dst );
       // Check visibility.
       bool const should_animate =
-          dst_exists ? should_animate_move( viz_, src, dst )
-                     : should_animate_move( viz_, src, src );
+          dst_exists ? should_animate_move( *viz_, src, dst )
+                     : should_animate_move( *viz_, src, src );
       if( !should_animate ) {
         hold.count_down();
         break;
@@ -429,7 +436,7 @@ wait<> LandViewAnimator::animate_action_primitive(
       // is on a fogged tile, which can happen e.g. if we are de-
       // pixelating a native unit that is under fog when we de-
       // stroy its dwelling.
-      if( viz_.visible( tile ) !=
+      if( viz_->visible( tile ) !=
           e_tile_visibility::visible_and_clear ) {
         hold.count_down();
         break;
@@ -447,7 +454,7 @@ wait<> LandViewAnimator::animate_action_primitive(
       // is on a fogged tile, which can happen e.g. if we are de-
       // pixelating a native unit that is under fog when we de-
       // stroy its dwelling.
-      if( viz_.visible( tile ) !=
+      if( viz_->visible( tile ) !=
           e_tile_visibility::visible_and_clear ) {
         hold.count_down();
         break;

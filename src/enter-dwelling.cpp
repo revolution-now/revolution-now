@@ -500,7 +500,7 @@ static vector<Coord> compute_tales_of_nearby_lands_tiles(
   Rect const  rect =
       Rect::from( location, Delta{ .w = 1, .h = 1 } )
           .with_border_added( radius / 2 );
-  Visibility const viz( ss, unit.nation() );
+  VisibilityForNation const viz( ss, unit.nation() );
   for( auto r : gfx::subrects( rect ) ) {
     Coord const             coord = r.upper_left();
     maybe<MapSquare const&> square =

@@ -110,7 +110,7 @@ void LandViewRenderer::render_single_unit(
       maybe<UnitFlagRenderInfo> flag_info;
       if( flag_options.has_value() )
         flag_info = euro_unit_flag_render_info(
-            unit, viz_.nation(), *flag_options );
+            unit, viz_->nation(), *flag_options );
       render_unit( renderer_, where, unit,
                    UnitRenderOptions{ .flag   = flag_info,
                                       .shadow = UnitShadow{} } );
@@ -135,7 +135,7 @@ void LandViewRenderer::render_single_unit(
 
 void LandViewRenderer::render_units_on_square(
     Coord tile, bool flags ) const {
-  if( viz_.visible( tile ) !=
+  if( viz_->visible( tile ) !=
       e_tile_visibility::visible_and_clear )
     return;
   // This will be sorted in decreasing order of defense, then by
@@ -218,7 +218,7 @@ void LandViewRenderer::render_single_unit_depixelate_to(
       .type       = e_flag_char_type::normal };
   Unit const&              unit = ss_.units.unit_for( unit_id );
   UnitFlagRenderInfo const flag_info =
-      euro_unit_flag_render_info( unit, viz_.nation(),
+      euro_unit_flag_render_info( unit, viz_->nation(),
                                   flag_options );
   UnitFlagRenderInfo const target_flag_info =
       euro_unit_type_flag_info( target_type, unit.orders(),
@@ -711,7 +711,7 @@ bool LandViewRenderer::try_render_fog_dwelling_anim(
       lv_animator_.fog_dwelling_animation( coord );
   if( !anim.has_value() ) return false;
   maybe<FogSquare const&> fog_square =
-      viz_.fog_square_at( coord );
+      viz_->fog_square_at( coord );
   if( !fog_square.has_value() ) return false;
   if( !fog_square->dwelling.has_value() ) return false;
   render_fog_dwelling_depixelate( *fog_square->dwelling, coord );
@@ -722,7 +722,7 @@ void LandViewRenderer::render_dwellings() const {
   bool const has_fog_dwelling_anims =
       !lv_animator_.fog_dwelling_animations().empty();
   for( Coord const coord : gfx::rect_iterator( covered_ ) ) {
-    switch( viz_.visible( coord ) ) {
+    switch( viz_->visible( coord ) ) {
       case e_tile_visibility::hidden:
         continue;
       case e_tile_visibility::visible_and_clear: {
@@ -745,7 +745,7 @@ void LandViewRenderer::render_dwellings() const {
         if( has_fog_dwelling_anims &&
             try_render_fog_dwelling_anim( coord ) )
           break;
-        UNWRAP_CHECK( fog_square, viz_.fog_square_at( coord ) );
+        UNWRAP_CHECK( fog_square, viz_->fog_square_at( coord ) );
         if( fog_square.dwelling.has_value() )
           render_fog_dwelling( *fog_square.dwelling, coord );
         break;
@@ -796,7 +796,7 @@ void LandViewRenderer::render_colonies() const {
   // we need to render colonies that are beyond the `covered`
   // rect.
   for( Coord const coord : gfx::rect_iterator( covered_ ) ) {
-    switch( viz_.visible( coord ) ) {
+    switch( viz_->visible( coord ) ) {
       case e_tile_visibility::hidden:
         continue;
       case e_tile_visibility::visible_and_clear: {
@@ -815,7 +815,7 @@ void LandViewRenderer::render_colonies() const {
         break;
       }
       case e_tile_visibility::visible_with_fog: {
-        UNWRAP_CHECK( fog_square, viz_.fog_square_at( coord ) );
+        UNWRAP_CHECK( fog_square, viz_->fog_square_at( coord ) );
         if( fog_square.colony.has_value() )
           render_fog_colony( *fog_square.colony, coord );
         break;
@@ -829,7 +829,8 @@ void LandViewRenderer::render_colonies() const {
 *****************************************************************/
 LandViewRenderer::LandViewRenderer(
     SSConst const& ss, rr::Renderer& renderer_arg,
-    LandViewAnimator const& lv_animator, Visibility const& viz,
+    LandViewAnimator const&              lv_animator,
+    unique_ptr<IVisibility const> const& viz,
     maybe<UnitId> last_unit_input, Rect viewport_rect_pixels,
     maybe<InputOverrunIndicator> input_overrun_indicator,
     SmoothViewport const&        viewport )
@@ -843,6 +844,7 @@ LandViewRenderer::LandViewRenderer(
     viewport_rect_pixels_( viewport_rect_pixels ),
     input_overrun_indicator_( input_overrun_indicator ),
     viewport_( viewport ) {
+  CHECK( viz_ != nullptr );
   // Some of the actions in this class would crash if the last
   // unit input corresponds to a unit ID that no longer exists.
   // Since this class does not care about the last unit id in

@@ -1145,13 +1145,13 @@ TEST_CASE(
       e_native_unit_type::brave, { .x = 2, .y = 4 },
       dwelling_4.id );
 
-  auto f = [&]( Visibility const& viz ) {
+  auto f = [&]( IVisibility const& viz ) {
     return anim_seq_for_cheat_tribe_destruction( W.ss(), viz,
                                                  tribe );
   };
 
   SECTION( "all visible" ) {
-    Visibility const viz( W.ss(), nothing );
+    VisibilityEntire const viz( W.ss() );
 
     tribe    = e_tribe::inca;
     expected = { .sequence = { {} } };
@@ -1193,7 +1193,7 @@ TEST_CASE(
   }
 
   SECTION( "none visible" ) {
-    Visibility const viz( W.ss(), e_nation::french );
+    VisibilityForNation const viz( W.ss(), e_nation::french );
 
     tribe    = e_tribe::inca;
     expected = { .sequence = { {} } };
@@ -1223,7 +1223,7 @@ TEST_CASE(
   }
 
   SECTION( "some visible" ) {
-    Visibility const viz( W.ss(), e_nation::french );
+    VisibilityForNation const viz( W.ss(), e_nation::french );
 
     W.map_updater().make_squares_visible(
         e_nation::french, { { .x = 1, .y = 1 } } );
