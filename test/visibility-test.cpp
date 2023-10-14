@@ -865,6 +865,171 @@ TEST_CASE(
 TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
   World W;
   W.create_small_map();
+  FogSquare   expected_fogged;
+  MapSquare   expected_unfogged;
+  Coord       coord;
+  Coord const kOutsideCoord = { .x = 2, .y = 2 };
+  BASE_CHECK( !W.terrain().square_exists( kOutsideCoord ) );
+  VisibilityEntire    viz_entire( W.ss() );
+  VisibilityForNation viz_nation( W.ss(), e_nation::english );
+  unordered_map<Coord, FogSquare> overrides;
+  // This will keep a reference to the overrides.
+  VisibilityWithOverrides viz_overrides_entire(
+      W.ss(), viz_entire, overrides );
+  VisibilityWithOverrides viz_overrides_nation(
+      W.ss(), viz_nation, overrides );
+
+  gfx::Matrix<maybe<FogSquare>>& player_map =
+      W.terrain()
+          .mutable_player_terrain( e_nation::english )
+          .map;
+
+  MapSquare& real_square0 = W.square( { .x = 0, .y = 0 } );
+  MapSquare& real_square1 = W.square( { .x = 1, .y = 0 } );
+  MapSquare& real_square2 = W.square( { .x = 0, .y = 1 } );
+  MapSquare& real_square3 = W.square( { .x = 1, .y = 1 } );
+  real_square0            = MapSquare{};
+  real_square1            = MapSquare{ .irrigation = true };
+  real_square2 =
+      MapSquare{ .ground_resource = e_natural_resource::silver };
+  real_square3 = MapSquare{ .river = e_river::major };
+
+  FogSquare& fog_square0 =
+      player_map[{ .x = 0, .y = 0 }].emplace();
+  fog_square0 = FogSquare{ .square = MapSquare{ .road = true },
+                           .fog_of_war_removed = true };
+  FogSquare& fog_square1 =
+      player_map[{ .x = 1, .y = 0 }].emplace();
+  fog_square1 = FogSquare{
+      .colony   = FogColony{},
+      .dwelling = FogDwelling{ .capital = true },
+  };
+
+  IVisibility* p_viz = nullptr;
+
+  auto visible = [&] { return p_viz->visible( coord ); };
+
+  auto fog_square_at = [&] {
+    return p_viz->fog_square_at( coord );
+  };
+
+  auto square_at = [&] { return p_viz->square_at( coord ); };
+
+  SECTION( "no overrides, entire" ) {
+    BASE_CHECK( overrides.empty() );
+    p_viz = &viz_overrides_entire;
+    coord = { .x = 0, .y = 0 };
+    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( fog_square_at() == nothing );
+    REQUIRE( square_at() == real_square0 );
+    coord = { .x = 1, .y = 0 };
+    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( fog_square_at() == nothing );
+    REQUIRE( square_at() == real_square1 );
+    coord = { .x = 0, .y = 1 };
+    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( fog_square_at() == nothing );
+    REQUIRE( square_at() == real_square2 );
+    coord = { .x = 1, .y = 1 };
+    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( fog_square_at() == nothing );
+    REQUIRE( square_at() == real_square3 );
+    coord = kOutsideCoord;
+    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( fog_square_at() == nothing );
+    REQUIRE( square_at() == MapSquare{} ); // proto.
+  }
+
+  SECTION( "no overrides, player" ) {
+    BASE_CHECK( overrides.empty() );
+    p_viz = &viz_overrides_nation;
+    coord = { .x = 0, .y = 0 };
+    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( fog_square_at() == fog_square0 );
+    REQUIRE( square_at() == real_square0 );
+    coord = { .x = 1, .y = 0 };
+    REQUIRE( visible() == e_tile_visibility::visible_with_fog );
+    REQUIRE( fog_square_at() == fog_square1 );
+    REQUIRE( square_at() == fog_square1.square );
+    coord = { .x = 0, .y = 1 };
+    REQUIRE( visible() == e_tile_visibility::hidden );
+    REQUIRE( fog_square_at() == nothing );
+    REQUIRE( square_at() == real_square2 );
+    coord = { .x = 1, .y = 1 };
+    REQUIRE( visible() == e_tile_visibility::hidden );
+    REQUIRE( fog_square_at() == nothing );
+    REQUIRE( square_at() == real_square3 );
+    coord = kOutsideCoord;
+    REQUIRE( visible() == e_tile_visibility::hidden );
+    REQUIRE( fog_square_at() == nothing );
+    REQUIRE( square_at() == MapSquare{} ); // proto.
+  }
+
+  SECTION( "with overrides, entire" ) {
+    p_viz = &viz_overrides_entire;
+    FogSquare const override_fog_square2{
+        .square =
+            MapSquare{ .overlay = e_land_overlay::forest } };
+    FogSquare const override_fog_square3{
+        .square = MapSquare{ .overlay = e_land_overlay::hills },
+        .fog_of_war_removed = true };
+    overrides[{ .x = 0, .y = 1 }] = override_fog_square2;
+    overrides[{ .x = 1, .y = 1 }] = override_fog_square3;
+
+    coord = { .x = 0, .y = 0 };
+    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( fog_square_at() == nothing );
+    REQUIRE( square_at() == real_square0 );
+    coord = { .x = 1, .y = 0 };
+    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( fog_square_at() == nothing );
+    REQUIRE( square_at() == real_square1 );
+    coord = { .x = 0, .y = 1 };
+    REQUIRE( visible() == e_tile_visibility::visible_with_fog );
+    REQUIRE( fog_square_at() == override_fog_square2 );
+    REQUIRE( square_at() == override_fog_square2.square );
+    coord = { .x = 1, .y = 1 };
+    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( fog_square_at() == override_fog_square3 );
+    REQUIRE( square_at() == override_fog_square3.square );
+    coord = kOutsideCoord;
+    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( fog_square_at() == nothing );
+    REQUIRE( square_at() == MapSquare{} ); // proto.
+  }
+
+  SECTION( "with overrides, player" ) {
+    p_viz = &viz_overrides_nation;
+    FogSquare const override_fog_square2{
+        .square =
+            MapSquare{ .overlay = e_land_overlay::forest } };
+    FogSquare const override_fog_square3{
+        .square = MapSquare{ .overlay = e_land_overlay::hills },
+        .fog_of_war_removed = true };
+    overrides[{ .x = 0, .y = 1 }] = override_fog_square2;
+    overrides[{ .x = 1, .y = 1 }] = override_fog_square3;
+
+    coord = { .x = 0, .y = 0 };
+    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( fog_square_at() == fog_square0 );
+    REQUIRE( square_at() == real_square0 );
+    coord = { .x = 1, .y = 0 };
+    REQUIRE( visible() == e_tile_visibility::visible_with_fog );
+    REQUIRE( fog_square_at() == fog_square1 );
+    REQUIRE( square_at() == fog_square1.square );
+    coord = { .x = 0, .y = 1 };
+    REQUIRE( visible() == e_tile_visibility::visible_with_fog );
+    REQUIRE( fog_square_at() == override_fog_square2 );
+    REQUIRE( square_at() == override_fog_square2.square );
+    coord = { .x = 1, .y = 1 };
+    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( fog_square_at() == override_fog_square3 );
+    REQUIRE( square_at() == override_fog_square3.square );
+    coord = kOutsideCoord;
+    REQUIRE( visible() == e_tile_visibility::hidden );
+    REQUIRE( fog_square_at() == nothing );
+    REQUIRE( square_at() == MapSquare{} ); // proto.
+  }
 }
 
 } // namespace
