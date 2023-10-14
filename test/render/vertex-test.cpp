@@ -259,5 +259,25 @@ TEST_CASE( "[render/vertex] fixed_color" ) {
            0 );
 }
 
+TEST_CASE( "[render/vertex] uniform depixelation" ) {
+  static_assert( VERTEX_FLAG_UNIFORM_DEPIXELATION == 16 );
+  SpriteVertex vert( point{ .x = 6, .y = 12 },
+                     point{ .x = 3, .y = 4 },
+                     rect{ .origin = point{ .x = 5, .y = 6 },
+                           .size   = { .w = 1, .h = 2 } } );
+  REQUIRE( ( vert.generic().flags &
+             VERTEX_FLAG_UNIFORM_DEPIXELATION ) == 0 );
+  REQUIRE_FALSE( vert.get_uniform_depixelation() );
+  vert.set_uniform_depixelation( true );
+  REQUIRE( ( vert.generic().flags &
+             VERTEX_FLAG_UNIFORM_DEPIXELATION ) ==
+           VERTEX_FLAG_UNIFORM_DEPIXELATION );
+  REQUIRE( vert.get_uniform_depixelation() );
+  vert.set_uniform_depixelation( false );
+  REQUIRE( ( vert.generic().flags &
+             VERTEX_FLAG_UNIFORM_DEPIXELATION ) == 0 );
+  REQUIRE_FALSE( vert.get_uniform_depixelation() );
+}
+
 } // namespace
 } // namespace rr

@@ -175,6 +175,19 @@ base::maybe<gfx::pixel> VertexBase::get_fixed_color() const {
                      .a = to_8_bit( fixed_color.a ) };
 }
 
+void VertexBase::set_uniform_depixelation( bool enabled ) {
+  auto constexpr mask = VERTEX_FLAG_UNIFORM_DEPIXELATION;
+  if( enabled )
+    flags |= mask;
+  else
+    flags &= ~mask;
+}
+
+bool VertexBase::get_uniform_depixelation() const {
+  auto constexpr mask = VERTEX_FLAG_UNIFORM_DEPIXELATION;
+  return ( ( flags & mask ) != 0 ) ? true : false;
+}
+
 /****************************************************************
 ** SpriteVertex
 *****************************************************************/

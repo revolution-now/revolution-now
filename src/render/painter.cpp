@@ -132,6 +132,8 @@ void Painter::add_mods( VertexBase&        vert,
     vert.set_desaturate( *mods.desaturate );
   if( mods.fixed_color.has_value() )
     vert.set_fixed_color( *mods.fixed_color );
+  if( mods.uniform_depixelation.has_value() )
+    vert.set_uniform_depixelation( *mods.uniform_depixelation );
   vert.set_color_cycle( mods.cycling.enabled );
 }
 

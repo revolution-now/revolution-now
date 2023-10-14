@@ -80,12 +80,13 @@ struct ColorCyclingInfo {
 };
 
 struct PainterMods {
-  DepixelateInfo          depixelate  = {};
-  base::maybe<double>     alpha       = {};
-  RepositionInfo          repos       = {};
-  ColorCyclingInfo        cycling     = {};
-  base::maybe<bool>       desaturate  = {};
-  base::maybe<gfx::pixel> fixed_color = {};
+  DepixelateInfo          depixelate           = {};
+  base::maybe<double>     alpha                = {};
+  RepositionInfo          repos                = {};
+  ColorCyclingInfo        cycling              = {};
+  base::maybe<bool>       desaturate           = {};
+  base::maybe<gfx::pixel> fixed_color          = {};
+  base::maybe<bool>       uniform_depixelation = {};
 };
 
 /****************************************************************

@@ -75,6 +75,7 @@ struct ProgramUniforms {
       gl::UniformSpec<int32_t>( "u_color_cycle_stage" ),
       gl::UniformSpec<gl::vec2>( "u_camera_translation" ),
       gl::UniformSpec<float>( "u_camera_zoom" ),
+      gl::UniformSpec<float>( "u_depixelation_stage" ),
   };
 };
 
@@ -168,6 +169,7 @@ struct Renderer::Impl {
       bool const track_dirty =
           ( buffer == e_render_buffer::landscape ) ||
           ( buffer == e_render_buffer::landscape_annex ) ||
+          ( buffer == e_render_buffer::landscape_anim ) ||
           ( buffer == e_render_buffer::obfuscation ) ||
           ( buffer == e_render_buffer::obfuscation_annex );
       buffers[buffer] =
@@ -529,6 +531,10 @@ void Renderer::render_pass(
 
 void Renderer::set_color_cycle_stage( int stage ) {
   impl_->program["u_color_cycle_stage"_t] = stage;
+}
+
+void Renderer::set_uniform_depixelation_stage( double stage ) {
+  impl_->program["u_depixelation_stage"_t] = stage;
 }
 
 void Renderer::set_camera( gfx::dsize translation,

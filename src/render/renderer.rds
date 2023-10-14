@@ -23,6 +23,15 @@ enum.e_render_buffer {
   # overwriting them. This buffer will be drawn overtop of the
   # landscape buffer.
   landscape_annex,
+  # For rendering pixelations of landscape tiles. The idea here
+  # is that we draw a bunch of tiles to this buffer in the same
+  # manner as we would to the normal landscape buffer, and then
+  # we adjust a uniform each frame to enpixelate the buffer as a
+  # whole, which creates the effect of a bunch of landscape tiles
+  # pixelating to another state. Doing it this way means that we
+  # don't have to redraw those landscape tiles each frame, so it
+  # is scalable.
+  landscape_anim,
   # For units, colonies, and dwellings.
   entities,
   # For the overlays that signal both unexplored terrain and

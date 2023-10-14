@@ -62,6 +62,10 @@ struct.GenericVertex {
   #        rgb values of the color, before desaturation is
   #        applied.
   #
+  #   4    Uniform depixelation. Apply to the final result a
+  #        depixelation with the stage given by the global
+  #        depixelation stage uniform.
+  #
   flags 'uint32_t',
 
   # Depixelation. This triangle will have individual pixels ran-

@@ -159,7 +159,7 @@ void expect_create_vertex_array( gl::MockOpenGL& mock ) {
 TEST_CASE( "[render/renderer] workflows" ) {
   gl::MockOpenGL mock;
 
-  int const num_get_errors = 51;
+  int const num_get_errors = 54;
 
   mock.EXPECT__gl_GetError()
       .times( num_get_errors )
@@ -237,6 +237,9 @@ TEST_CASE( "[render/renderer] workflows" ) {
   mock.EXPECT__gl_GetUniformLocation(
           9, Eq<string>( "u_camera_zoom" ) )
       .returns( 93 );
+  mock.EXPECT__gl_GetUniformLocation(
+          9, Eq<string>( "u_depixelation_stage" ) )
+      .returns( 94 );
 
   // Validate the program.
   mock.EXPECT__gl_GetProgramiv( 9, GL_ACTIVE_ATTRIBUTES,
@@ -280,6 +283,8 @@ TEST_CASE( "[render/renderer] workflows" ) {
                              0.0 );     // u_camera_translation
   mock.EXPECT__gl_UseProgram( 9 );
   mock.EXPECT__gl_Uniform1f( 93, 0.0 ); // u_camera_zoom
+  mock.EXPECT__gl_UseProgram( 9 );
+  mock.EXPECT__gl_Uniform1f( 94, 0.0 ); // u_depixelation_stage
 
   // Unbind dummy vertex array.
   expect_unbind_vertex_array( mock );

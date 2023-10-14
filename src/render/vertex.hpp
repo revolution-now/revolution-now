@@ -34,10 +34,11 @@ namespace rr {
 *****************************************************************/
 // These need to be kept in sync with the corresponding ones in
 // the shader.
-#define VERTEX_FLAG_COLOR_CYCLE ( uint32_t{ 1 } << 0 )
-#define VERTEX_FLAG_USE_CAMERA  ( uint32_t{ 1 } << 1 )
-#define VERTEX_FLAG_DESATURATE  ( uint32_t{ 1 } << 2 )
-#define VERTEX_FLAG_FIXED_COLOR ( uint32_t{ 1 } << 3 )
+#define VERTEX_FLAG_COLOR_CYCLE          ( uint32_t{ 1 } << 0 )
+#define VERTEX_FLAG_USE_CAMERA           ( uint32_t{ 1 } << 1 )
+#define VERTEX_FLAG_DESATURATE           ( uint32_t{ 1 } << 2 )
+#define VERTEX_FLAG_FIXED_COLOR          ( uint32_t{ 1 } << 3 )
+#define VERTEX_FLAG_UNIFORM_DEPIXELATION ( uint32_t{ 1 } << 4 )
 
 /****************************************************************
 ** Concept
@@ -102,6 +103,10 @@ struct VertexBase : protected GenericVertex {
   // *** Fixed color.
   base::maybe<gfx::pixel> get_fixed_color() const;
   void set_fixed_color( base::maybe<gfx::pixel> color );
+
+  // *** Uniform depixelation.
+  bool get_uniform_depixelation() const;
+  void set_uniform_depixelation( bool enabled );
 
   bool operator==( VertexBase const& ) const = default;
 };

@@ -14,6 +14,7 @@ flat in int   frag_type;
 flat in int   frag_color_cycle;
 flat in int   frag_desaturate;
 flat in int   frag_use_fixed_color;
+flat in int   frag_uniform_depixelation;
 flat in vec4  frag_depixelate;
 flat in vec4  frag_depixelate_stages;
 flat in vec4  frag_depixelate_stages_unscaled;
@@ -25,12 +26,20 @@ flat in vec2  frag_atlas_target_offset;
      in vec4  frag_fixed_color;
      in float frag_alpha_multiplier;
 flat in float frag_scaling;
+flat in vec2  frag_default_anchor;
 
 uniform sampler2D u_atlas;
 uniform vec2 u_atlas_size;
 // Screen dimensions in the game's logical pixel units.
 uniform vec2 u_screen_size;
 uniform int u_color_cycle_stage;
+
+// Stage of the global depixelation. This can be used to achieve
+// two different things: 1) it can be used to allow depixelation
+// of something without regenerate the vertices each frame, and
+// 2) it can be used to allow depixelating things that are al-
+// ready normally in a stage of depixelation.
+uniform float u_depixelation_stage;
 
 out vec4 final_color;
 
@@ -129,7 +138,7 @@ float hash_vec2( in vec2 vec ) {
   return fract( sin( dot( vec, magic_vec2 ) )*magic_float );
 }
 
-float hash_position() {
+float hash_position( in vec2 anchor ) {
   // The position that we will hash will be 1) a position that is
   // relative to an anchor position so that the sprite will de-
   // pixelate deterministically even if it is moving on screen
@@ -137,7 +146,6 @@ float hash_position() {
   // sprite is scaled we will still depixelate the sprite's
   // pixels (which may be larger or smaller than the logical
   // pixels if we are zoomed).
-  vec2 anchor = frag_depixelate.xy;
   vec2 hash_position = (frag_position-anchor)/frag_scaling;
   // The number 320 is chosen because it is on the order of the
   // width of the land view in logical pixels (i.e., about ten
@@ -211,10 +219,16 @@ float depixel_stage() {
 }
 
 vec4 depixelate( in vec4 c ) {
-  float animation_stage = depixel_stage();
-  bool on = ( hash_position() > animation_stage );
+  vec2 anchor = frag_depixelate.xy;
+  bool on = ( hash_position( anchor ) > depixel_stage() );
   float inverted = frag_depixelate.w;
   if( inverted != 0.0 ) on = !on;
+  return on ? c : vec4( 0.0 );
+}
+
+vec4 uniform_depixelate( in vec4 c ) {
+  vec2 anchor = frag_default_anchor;
+  bool on = ( hash_position( anchor ) > u_depixelation_stage );
   return on ? c : vec4( 0.0 );
 }
 
@@ -348,6 +362,9 @@ void main() {
 
   // Desaturation.
   if( frag_desaturate != 0 ) color.rgb = desaturate( color.rgb );
+
+  // Uniform depixelation.
+  if( frag_uniform_depixelation != 0 ) color = uniform_depixelate( color );
 
   final_color = color;
 }
