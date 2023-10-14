@@ -108,4 +108,10 @@ AnimationAction& AnimationBuilder::ensure_tile_visible(
   return push( P::ensure_tile_visible{ .tile = tile } );
 }
 
+AnimationAction& AnimationBuilder::enpixelate_landview_tiles(
+    std::map<Coord, MapSquare> targets ) {
+  return push( P::landscape_anim_enpixelate{
+      .targets = std::move( targets ) } );
+}
+
 } // namespace rn

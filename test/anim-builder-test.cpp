@@ -52,6 +52,10 @@ TEST_CASE( "[anim-builder] builders" ) {
   builder.depixelate_fog_dwelling( Coord{ .x = 1, .y = 2 } );
   builder.ensure_tile_visible( Coord{ .x = 1, .y = 3 } );
   builder.depixelate_native_unit( NativeUnitId{ 10 } );
+  builder.enpixelate_landview_tiles( {
+      { Coord{ .x = 3, .y = 5 }, MapSquare{} },
+      { Coord{ .x = 4, .y = 6 }, MapSquare{ .road = true } },
+  } );
 
   AnimationSequence const& res = builder.result();
 
@@ -87,25 +91,38 @@ TEST_CASE( "[anim-builder] builders" ) {
                       .unit_id = UnitId{ 6 },
                       .target  = e_unit_type::cavalry } } },
           /*phase 2*/
-          { { .primitive =
-                  P::pixelate_native_unit_to_target{
-                      .unit_id = NativeUnitId{ 7 },
-                      .target =
-                          e_native_unit_type::mounted_brave } },
-            { .primitive =
-                  P::depixelate_colony{ .colony_id =
-                                            ColonyId{ 8 } } },
-            { .primitive =
-                  P::depixelate_dwelling{
-                      .dwelling_id = DwellingId{ 9 } } },
-            { .primitive =
-                  P::depixelate_fog_dwelling{
-                      .tile = { .x = 1, .y = 2 } } },
-            { .primitive =
-                  P::ensure_tile_visible{
-                      .tile = { .x = 1, .y = 3 } } },
-            { .primitive = P::depixelate_native_unit{
-                  .unit_id = NativeUnitId{ 10 } } } } } };
+          {
+              { .primitive =
+                    P::pixelate_native_unit_to_target{
+                        .unit_id = NativeUnitId{ 7 },
+                        .target  = e_native_unit_type::
+                            mounted_brave } },
+              { .primitive =
+                    P::depixelate_colony{ .colony_id =
+                                              ColonyId{ 8 } } },
+              { .primitive =
+                    P::depixelate_dwelling{
+                        .dwelling_id = DwellingId{ 9 } } },
+              { .primitive =
+                    P::depixelate_fog_dwelling{
+                        .tile = { .x = 1, .y = 2 } } },
+              { .primitive =
+                    P::ensure_tile_visible{
+                        .tile = { .x = 1, .y = 3 } } },
+              { .primitive =
+                    P::depixelate_native_unit{
+                        .unit_id = NativeUnitId{ 10 } } },
+              { .primitive =
+                    P::landscape_anim_enpixelate{
+                        .targets =
+                            {
+                                { Coord{ .x = 3, .y = 5 },
+                                  MapSquare{} },
+                                { Coord{ .x = 4, .y = 6 },
+                                  MapSquare{ .road = true } },
+                            } } },
+
+          } } };
 
   REQUIRE( res == expected );
 }

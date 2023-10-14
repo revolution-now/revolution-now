@@ -13,6 +13,7 @@ include "sound.rds.hpp" # FIXME: forward declare e_sfx.
 
 # ss
 include "ss/colony-id.hpp"
+include "ss/map-square.rds.hpp"
 include "ss/dwelling-id.hpp"
 include "ss/native-enums.rds.hpp"
 include "ss/unit-id.hpp"
@@ -23,6 +24,7 @@ include "gfx/coord.hpp"
 
 # C++ standard library
 include "<chrono>"
+include "<map>"
 include "<vector>"
 
 namespace "rn"
@@ -120,6 +122,19 @@ sumtype.AnimationPrimitive {
 
   depixelate_fog_dwelling {
     tile 'Coord',
+  },
+
+  # -------------------------------------------------------------
+  # Landscape pixelation.
+  # -------------------------------------------------------------
+  # This will set the uniform depixelation stage in motion from 1
+  # to 0, i.e. so that if the landscape_anim buffer holds the
+  # target squares, the existing squares will slowly become the
+  # target squares as the landscape_anim buffer enpixelates over
+  # the regular landcape. You should have at most one of these
+  # per phase.
+  landscape_anim_enpixelate {
+    targets 'std::map<Coord, MapSquare>',
   },
 }
 

@@ -63,6 +63,9 @@ struct AnimationBuilder {
 
   AnimationAction& ensure_tile_visible( Coord tile );
 
+  AnimationAction& enpixelate_landview_tiles(
+      std::map<Coord, MapSquare> targets );
+
  private:
   // Add another animation into the current phase.
   AnimationAction& push( auto&& o ) {
