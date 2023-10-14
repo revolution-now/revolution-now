@@ -15,7 +15,9 @@ flat in int   frag_color_cycle;
 flat in int   frag_desaturate;
 flat in int   frag_use_fixed_color;
 flat in int   frag_uniform_depixelation;
-flat in vec4  frag_depixelate;
+flat in float frag_depixelate_stage;
+flat in float frag_depixelate_inverted;
+flat in vec2  frag_depixelate_anchor;
 flat in vec4  frag_depixelate_stages;
 flat in vec4  frag_depixelate_stages_unscaled;
      in vec2  frag_position;
@@ -35,10 +37,11 @@ uniform vec2 u_screen_size;
 uniform int u_color_cycle_stage;
 
 // Stage of the global depixelation. This can be used to achieve
-// two different things: 1) it can be used to allow depixelation
-// of something without regenerate the vertices each frame, and
-// 2) it can be used to allow depixelating things that are al-
-// ready normally in a stage of depixelation.
+// two different things:
+//   1. it can be used to allow depixelation of something without
+//      regenerate the vertices each frame, and
+//   2. it can be used to allow depixelating things that are al-
+//      ready normally in a stage of depixelation.
 uniform float u_depixelation_stage;
 
 out vec4 final_color;
@@ -146,19 +149,20 @@ float hash_position( in vec2 anchor ) {
   // sprite is scaled we will still depixelate the sprite's
   // pixels (which may be larger or smaller than the logical
   // pixels if we are zoomed).
-  vec2 hash_position = (frag_position-anchor)/frag_scaling;
-  // The number 320 is chosen because it is on the order of the
-  // width of the land view in logical pixels (i.e., about ten
-  // tiles across * 32 pixel width). This doesn't have to be ex-
-  // act, it just has to serve as a divisor that will map the
-  // logical pixels across the screen to [0,1) so that the hash
-  // function will produce good (and non-repeating) results
-  // across the screen. The reason that we don't use
-  // u_screen_size.x here (which would give us the real screen
-  // size in logical pixels) is that then as we resize the main
-  // game window and/or scale up/down the logical screen resolu-
-  // tion, the depixelation pattern changes, which looks kind of
-  // odd (although it is harmless).
+  vec2 hashable = (frag_position - anchor)/frag_scaling;
+  // This basically determines the max possible "wave-length" of
+  // the repeating hash pattern in logical pixels. The number 320
+  // is chosen because it is on the order of the width of the
+  // land view in logical pixels (i.e., about ten tiles across *
+  // 32 pixel width). This doesn't have to be exact, it just has
+  // to serve as a divisor that will map the logical pixels
+  // across the screen to [0,1) so that the hash function will
+  // produce good (and non-repeating) results across the screen.
+  // The reason that we don't use u_screen_size.x here (which
+  // would give us the real screen size in logical pixels) is
+  // that then as we resize the main game window and/or scale up-
+  // /down the logical screen resolution, the depixelation pat-
+  // tern changes, which looks kind of odd.
   float fixed_approx_screen_width_logical = 320.0;
   // Use floor() so that all physical pixels inside a logical
   // pixel are treated the same way, in order to create the illu-
@@ -166,7 +170,7 @@ float hash_position( in vec2 anchor ) {
   // put the hash input in the range [0,1) for hash function to
   // yield good results, otherwise we could get repeating pat-
   // terns.
-  return hash_vec2( fract( floor( hash_position ) /
+  return hash_vec2( fract( floor( hashable ) /
                            fixed_approx_screen_width_logical ) );
 }
 
@@ -213,23 +217,47 @@ float depixel_stage() {
   // at the upper left corner of the tile (stage_base) and we
   // need to extrapolate down to our point (really, the upper
   // left corner of the logical pixel that we're currently in).
-  float stage_base = frag_depixelate.z;
+  float stage_base = frag_depixelate_stage;
   float stage = stage_base + stage_deltas.x + stage_deltas.y;
   return stage;
 }
 
-vec4 depixelate( in vec4 c ) {
-  vec2 anchor = frag_depixelate.xy;
+float depixelate() {
+  vec2 anchor = frag_depixelate_anchor;
   bool on = ( hash_position( anchor ) > depixel_stage() );
-  float inverted = frag_depixelate.w;
-  if( inverted != 0.0 ) on = !on;
-  return on ? c : vec4( 0.0 );
+  if( frag_depixelate_inverted != 0.0 ) on = !on;
+  return on ? 1.0 : 0.0;
 }
 
-vec4 uniform_depixelate( in vec4 c ) {
+float uniform_depixelate() {
+  // The anchor used here must not be related to the anchor used
+  // by the normal depixelation process. This is because we may
+  // be applying this uniform depixelation to a composite ren-
+  // dering consisting of multiple things rendered on top of each
+  // other, each with different origins and different depixela-
+  // tion anchors that produced them. If each of those components
+  // has a different anchor, and if we use those anchors for this
+  // uniform depixelation, then that means that a given pixel
+  // could be on in one component but off in another component,
+  // producing visual artifacts. Therefore, we have to use an an-
+  // chor that is fixed for all components that are under the
+  // uniform depixelation. That said, the anchor still needs to
+  // be scaled and translated appropriately so that things remain
+  // consistent as the screen is scrolled. As a result, note that
+  // this uniform depixelation won't really work with an indi-
+  // vidual sprite that is moving on screen via a mechanism other
+  // than the usual scale/translate mods. But that is probably OK
+  // because such a graphic would likely need to be re-rendered
+  // each frame, in which case we could just use normal depixela-
+  // tion for it. This "uniform" depixelation is really just for
+  // rendering and pixelating complex buffers that we don't want
+  // to re-render each frame and/or we can't depixelate them
+  // using the normal depixelation mod because they are already
+  // normally composed of some kind of depixelation (thus we need
+  // a separate depixelation mechanism).
   vec2 anchor = frag_default_anchor;
   bool on = ( hash_position( anchor ) > u_depixelation_stage );
-  return on ? c : vec4( 0.0 );
+  return on ? 1.0 : 0.0;
 }
 
 /****************************************************************
@@ -346,10 +374,9 @@ void main() {
   }
 
   // Depixelation.
-  bool depixel_enabled = frag_depixelate.z != 0 ||
+  bool depixel_enabled = frag_depixelate_stage != 0 ||
                          frag_depixelate_stages.zw != vec2( 0, 0 );
-  if( depixel_enabled )
-    color = depixelate( color );
+  if( depixel_enabled ) color *= depixelate();
 
   // Color cycling.
   if( frag_color_cycle != 0 ) color = color_cycle( color );
@@ -364,7 +391,7 @@ void main() {
   if( frag_desaturate != 0 ) color.rgb = desaturate( color.rgb );
 
   // Uniform depixelation.
-  if( frag_uniform_depixelation != 0 ) color = uniform_depixelate( color );
+  if( frag_uniform_depixelation != 0 ) color *= uniform_depixelate();
 
   final_color = color;
 }

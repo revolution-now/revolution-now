@@ -29,7 +29,9 @@ flat out int   frag_color_cycle;
 flat out int   frag_desaturate;
 flat out int   frag_use_fixed_color;
 flat out int   frag_uniform_depixelation;
-flat out vec4  frag_depixelate;
+flat out float frag_depixelate_stage;
+flat out float frag_depixelate_inverted;
+flat out vec2  frag_depixelate_anchor;
 flat out vec4  frag_depixelate_stages;
 flat out vec4  frag_depixelate_stages_unscaled;
      out vec2  frag_position;
@@ -103,8 +105,9 @@ void forwarding() {
   frag_desaturate           = get_flag( VERTEX_FLAG_DESATURATE );
   frag_use_fixed_color      = get_flag( VERTEX_FLAG_FIXED_COLOR );
   frag_uniform_depixelation = get_flag( VERTEX_FLAG_UNIFORM_DEPIXELATION );
-  frag_depixelate.zw        = in_depixelate.zw;
-  frag_depixelate.xy        = shift_and_scale( in_depixelate.xy );
+  frag_depixelate_stage     = in_depixelate.z;
+  frag_depixelate_inverted  = in_depixelate.w;
+  frag_depixelate_anchor.xy = shift_and_scale( in_depixelate.xy );
   frag_depixelate_stages.zw = inverse_scale( in_depixelate_stages.zw );
   frag_depixelate_stages.xy = shift_and_scale( in_depixelate_stages.xy );
   // In the fragment shader there is a place where we need to use
