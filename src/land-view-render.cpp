@@ -183,6 +183,12 @@ LandViewRenderer::units_to_render() const {
   int const                          num_tiles = covered_.area();
   vector<pair<Coord, GenericUnitId>> res;
   res.reserve( num_units );
+  // FIXME: Not urgent, but when zooming in, at some point we
+  // cross a threshold where the below strategy changes from it-
+  // erating over units to iterating over tiles, and that can
+  // change the order in which the units are rendered, which can
+  // cause the shadow of a unit on an adjacent tile to flip from
+  // being behind to in front of the a unit on an adjacent tile.
   if( num_tiles > num_units ) {
     // Iterate over units.
     for( auto const& [id, state] : all )
