@@ -64,6 +64,9 @@
 #include "base/timer.hpp"
 #include "base/to-str-ext-std.hpp"
 
+// C++ standard library
+#include <set>
+
 using namespace std;
 
 namespace rn {
@@ -341,12 +344,11 @@ wait<> kill_natives( SS& ss, TS& ts ) {
       "Select Native Tribes to Kill:", info_map );
 
   // Collect results.
-  vector<e_tribe> const destroyed = [&] {
-    vector<e_tribe> res;
-    res.reserve( info_map.size() );
+  set<e_tribe> const destroyed = [&] {
+    set<e_tribe> res;
     for( e_tribe const tribe : tribes )
       if( !info_map[tribe].disabled && info_map[tribe].on )
-        res.push_back( tribe );
+        res.insert( tribe );
     return res;
   }();
 
@@ -370,23 +372,11 @@ wait<> kill_natives( SS& ss, TS& ts ) {
       create_visibility_for(
           ss, player_for_role( ss, e_player_role::viewer ) );
 
-  // Kill 'em.
-  vector<wait<>> destruction_routines;
-  destruction_routines.push_back( ts.planes.land_view().animate(
-      anim_seq_for_sfx( e_sfx::city_destroyed ) ) );
+  co_await ts.planes.land_view().animate(
+      anim_seq_for_cheat_kill_natives( ss, *viz, destroyed ) );
 
-  // This needs to be out-of-line to avoid dangling stuff.
-  auto destruction_routine = [&]( e_tribe tribe ) -> wait<> {
-    co_await ts.planes.land_view().animate(
-        anim_seq_for_cheat_tribe_destruction( ss, *viz,
-                                              tribe ) );
-    destroy_tribe( ss, ts, tribe );
-  };
   for( e_tribe const tribe : destroyed )
-    destruction_routines.push_back(
-        destruction_routine( tribe ) );
-
-  co_await co::all( std::move( destruction_routines ) );
+    destroy_tribe( ss, ts, tribe );
 
   // At this point we need to update the fogged squares that con-
   // tained destroyed dwellings on the player maps to 1) remove

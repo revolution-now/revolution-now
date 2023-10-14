@@ -795,10 +795,9 @@ AnimationSequence anim_seq_unit_to_front(
   return builder.result();
 }
 
-// Note that we don't play any sounds here because this may be
-// called multiple times in a loop to destroy multiple tribes.
-AnimationSequence anim_seq_for_cheat_tribe_destruction(
-    SSConst const& ss, IVisibility const& viz, e_tribe tribe ) {
+AnimationSequence anim_seq_for_cheat_kill_natives(
+    SSConst const& ss, IVisibility const& viz,
+    set<e_tribe> const& tribes ) {
   AnimationBuilder builder;
 
   vector<Coord> dwelling_coords;
@@ -811,8 +810,9 @@ AnimationSequence anim_seq_for_cheat_tribe_destruction(
         maybe<DwellingId> const dwelling_id =
             ss.natives.maybe_dwelling_from_coord( tile );
         if( !dwelling_id.has_value() ) break;
-        if( ss.natives.tribe_for( *dwelling_id ).type != tribe )
-          continue;
+        e_tribe const tribe_type =
+            ss.natives.tribe_for( *dwelling_id ).type;
+        if( !tribes.contains( tribe_type ) ) continue;
         dwelling_coords.push_back( tile );
         builder.depixelate_dwelling( *dwelling_id );
         break;
@@ -824,7 +824,7 @@ AnimationSequence anim_seq_for_cheat_tribe_destruction(
         maybe<FogDwelling> const& fog_dwelling =
             fog_square->dwelling;
         if( !fog_dwelling.has_value() ) continue;
-        if( fog_dwelling->tribe != tribe ) continue;
+        if( !tribes.contains( fog_dwelling->tribe ) ) continue;
         dwelling_coords.push_back( tile );
         builder.depixelate_fog_dwelling( tile );
         break;
@@ -847,7 +847,7 @@ AnimationSequence anim_seq_for_cheat_tribe_destruction(
                       .get_if<NativeUnitOwnership::world>() );
     e_tribe const tribe_type =
         ss.natives.tribe_for( world.dwelling_id ).type;
-    if( tribe_type != tribe ) continue;
+    if( !tribes.contains( tribe_type ) ) continue;
     native_unit_ids.push_back( unit_id );
   }
   sort( native_unit_ids.begin(), native_unit_ids.end() );
@@ -857,6 +857,7 @@ AnimationSequence anim_seq_for_cheat_tribe_destruction(
     // no fogged units).
     builder.depixelate_native_unit( unit_id );
 
+  builder.play_sound( e_sfx::city_destroyed );
   return builder.result();
 }
 

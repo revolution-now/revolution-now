@@ -23,6 +23,9 @@
 // gfx
 #include "gfx/coord.rds.hpp"
 
+// C++ standard library
+#include <set>
+
 namespace rn {
 
 struct CombatBraveAttackColony;
@@ -133,8 +136,9 @@ AnimationSequence anim_seq_unit_to_front(
 
 // Depixelates an entire tribe; only used in cheat mode when
 // deleting a tribe. The tribe must exist.
-AnimationSequence anim_seq_for_cheat_tribe_destruction(
-    SSConst const& ss, IVisibility const& viz, e_tribe tribe );
+AnimationSequence anim_seq_for_cheat_kill_natives(
+    SSConst const& ss, IVisibility const& viz,
+    std::set<e_tribe> const& tribes );
 
 // Just plays a sound.
 AnimationSequence anim_seq_for_sfx( e_sfx sound );
