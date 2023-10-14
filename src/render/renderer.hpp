@@ -39,8 +39,8 @@ namespace rr {
 //
 // {
 //   SCOPED_RENDERER_MOD_SET( painter_mods.repos.scale, 2.0 );
-//   SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation, 5
-//   ); SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, 1.5 );
+//   SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation, 5);
+//   SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, 1.5 );
 //   ...
 // }
 //
