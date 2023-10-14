@@ -19,6 +19,16 @@ uniform into the shaders that, when not equal to 0.0, will intro-
 duce a global depixelation (in this case, we will ramp it down
 from 1.0 to create an enpixelation).
 
+In a way, this method of animation is kind of more similar to the
+way the OG appears to do it than the way we've been doing it up
+until now. The way we've been doing it until now is that we indi-
+vidually animate each thing that changes from its original state
+to the final state. In the OG, it likely just renders the full
+scene in its target state, then pixelates the entire screen
+buffer from old to new. This allows it to animate any transition
+without having to enumerate all of the things that are animating
+and in what precise way.
+
 A similar method could eventually be used to e.g. enpixelate
 fog-of-war when a unit is destroyed (by adding an
 obfuscation-anim buffer), after the point at which we add a more
