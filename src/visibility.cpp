@@ -36,6 +36,7 @@
 
 // base
 #include "base/timer.hpp"
+#include "visibility.rds.hpp"
 
 using namespace std;
 
@@ -103,10 +104,6 @@ maybe<FogSquare const&> IVisibility::will_render_from_fog_square(
 }
 
 MapSquare const& IVisibility::square_at( Coord tile ) const {
-  if( maybe<FogSquare const&> fog_square =
-          will_render_from_fog_square( tile );
-      fog_square.has_value() )
-    return fog_square->square;
   return terrain_->total_square_at( tile );
 };
 
@@ -153,6 +150,54 @@ maybe<FogSquare const&> VisibilityForNation::fog_square_at(
     return *square;
   // Player can't see this tile.
   return nothing;
+}
+
+MapSquare const& VisibilityForNation::square_at(
+    Coord tile ) const {
+  if( maybe<FogSquare const&> fog_square =
+          will_render_from_fog_square( tile );
+      fog_square.has_value() )
+    return fog_square->square;
+  return IVisibility::square_at( tile );
+};
+
+/****************************************************************
+** VisibilityWithOverrides
+*****************************************************************/
+VisibilityWithOverrides::VisibilityWithOverrides(
+    SSConst const& ss, IVisibility const& underlying,
+    unordered_map<Coord, FogSquare> const& overrides )
+  : IVisibility( ss ),
+    underlying_( underlying ),
+    overrides_( overrides ) {}
+
+e_tile_visibility VisibilityWithOverrides::visible(
+    Coord tile ) const {
+  if( auto it = overrides_.find( tile );
+      it != overrides_.end() ) {
+    // We have a fog square override, so we at least know that
+    // the square won't be hidden, even if the underlying object
+    // would return hidden.
+    FogSquare const& fog_square = it->second;
+    return fog_square.fog_of_war_removed
+               ? e_tile_visibility::visible_and_clear
+               : e_tile_visibility::visible_with_fog;
+  }
+  return underlying_.visible( tile );
+}
+
+maybe<FogSquare const&> VisibilityWithOverrides::fog_square_at(
+    Coord tile ) const {
+  if( auto it = overrides_.find( tile ); it != overrides_.end() )
+    return it->second;
+  return underlying_.fog_square_at( tile );
+}
+
+MapSquare const& VisibilityWithOverrides::square_at(
+    Coord tile ) const {
+  if( auto it = overrides_.find( tile ); it != overrides_.end() )
+    return it->second.square;
+  return underlying_.square_at( tile );
 }
 
 /****************************************************************

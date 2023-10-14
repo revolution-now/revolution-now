@@ -862,5 +862,10 @@ TEST_CASE(
   REQUIRE( f() );
 }
 
+TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
+  World W;
+  W.create_small_map();
+}
+
 } // namespace
 } // namespace rn

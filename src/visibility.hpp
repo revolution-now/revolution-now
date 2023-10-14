@@ -57,6 +57,9 @@ struct IVisibility {
 
   virtual ~IVisibility() = default;
 
+  // Are we viewing from the perspective of a nation or not.
+  virtual base::maybe<e_nation> nation() const = 0;
+
   // Returns if the tile is visible in this rendering. If the
   // tile if off-map then they are always hidden (proto square).
   virtual e_tile_visibility visible( Coord tile ) const = 0;
@@ -76,9 +79,6 @@ struct IVisibility {
   virtual maybe<FogSquare const&> fog_square_at(
       Coord tile ) const = 0;
 
-  // Are we viewing from the perspective of a nation or not.
-  virtual base::maybe<e_nation> nation() const = 0;
-
   // In general we're rendering the terrain from the point of
   // view of a player and so it may have only partial visibility.
   // Our square_at function thus will try the player's first,
@@ -92,7 +92,12 @@ struct IVisibility {
   // hidden to the player, this will return either the real map
   // square (if visible and clear) or the player's version of it
   // (if fogged).
-  MapSquare const& square_at( Coord tile ) const;
+  //
+  // Note that we make this pure virtual because we want to force
+  // derived classes to implement it, but IVisibility actually
+  // does provide a default implementation that you can fall back
+  // on to read the real map.
+  virtual MapSquare const& square_at( Coord tile ) const = 0;
 
   // For convenience.
   Rect rect_tiles() const;
@@ -121,6 +126,11 @@ struct VisibilityEntire : IVisibility {
   using IVisibility::IVisibility;
 
   // Implement IVisibility.
+  base::maybe<e_nation> nation() const override {
+    return base::nothing;
+  };
+
+  // Implement IVisibility.
   e_tile_visibility visible( Coord ) const override {
     return e_tile_visibility::visible_and_clear;
   }
@@ -130,10 +140,10 @@ struct VisibilityEntire : IVisibility {
     return nothing;
   }
 
-  // Are we viewing from the perspective of a nation or not.
-  base::maybe<e_nation> nation() const override {
-    return base::nothing;
-  };
+  // Implement IVisibility.
+  MapSquare const& square_at( Coord tile ) const override {
+    return IVisibility::square_at( tile );
+  }
 };
 
 /****************************************************************
@@ -144,20 +154,57 @@ struct VisibilityForNation : IVisibility {
   VisibilityForNation( SSConst const& ss, e_nation nation );
 
   // Implement IVisibility.
+  base::maybe<e_nation> nation() const override {
+    return nation_;
+  };
+
+  // Implement IVisibility.
   e_tile_visibility visible( Coord tile ) const override;
 
   // Implement IVisibility.
   maybe<FogSquare const&> fog_square_at(
       Coord tile ) const override;
 
-  // Are we viewing from the perspective of a nation or not.
-  base::maybe<e_nation> nation() const override {
-    return nation_;
-  };
+  // Implement IVisibility.
+  MapSquare const& square_at( Coord tile ) const override;
 
  private:
   e_nation const             nation_         = {};
   PlayerTerrain const* const player_terrain_ = nullptr;
+};
+
+/****************************************************************
+** VisibilityWithOverrides
+*****************************************************************/
+// Delegates to a provided IVisibility object except for a cer-
+// tain set of tiles whose values will be overridden. Note that
+// we take in FogSquares to specify the overriding values instead
+// of MapSquares because FogSquares contain MapSquares, and this
+// way we can also return FogSquares when it is requested, since
+// the fog_square_at method returns a reference.
+struct VisibilityWithOverrides : IVisibility {
+  VisibilityWithOverrides(
+      SSConst const& ss, IVisibility const& underlying,
+      std::unordered_map<Coord, FogSquare> const& overrides );
+
+  // Are we viewing from the perspective of a nation or not.
+  base::maybe<e_nation> nation() const override {
+    return underlying_.nation();
+  };
+
+  // Implement IVisibility.
+  e_tile_visibility visible( Coord tile ) const override;
+
+  // Implement IVisibility.
+  maybe<FogSquare const&> fog_square_at(
+      Coord tile ) const override;
+
+  // Implement IVisibility.
+  MapSquare const& square_at( Coord tile ) const override;
+
+ private:
+  IVisibility const&                          underlying_;
+  std::unordered_map<Coord, FogSquare> const& overrides_;
 };
 
 /****************************************************************
