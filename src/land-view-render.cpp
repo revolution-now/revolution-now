@@ -12,7 +12,10 @@
 
 // Revolution Now
 #include "land-view-anim.hpp"
+#include "logger.hpp"
+#include "render-terrain.hpp"
 #include "render.hpp"
+#include "renderer.rds.hpp"
 #include "tiles.hpp"
 #include "unit-flag.hpp"
 #include "unit-mgr.hpp"
@@ -39,6 +42,9 @@
 // gfx
 #include "gfx/coord.hpp"
 #include "gfx/iter.hpp"
+
+// refl
+#include "refl/to-str.hpp"
 
 // C++ standard library
 #include <unordered_map>
@@ -879,6 +885,34 @@ void LandViewRenderer::render_entities() const {
   render_units();
 }
 
+void LandViewRenderer::render_landscape_anim_buffer() const {
+  static constexpr auto kBuffer =
+      rr::e_render_buffer::landscape_anim;
+  maybe<LandscapeAnimBufferState> const& state =
+      lv_animator_.landview_anim_buffer_state();
+  if( !state.has_value() ) {
+    renderer.clear_buffer( kBuffer );
+    return;
+  }
+  renderer_.set_uniform_depixelation_stage( state->stage );
+  // This flag will be enabled for precisely one frame to trigger
+  // a one-time rendering of the buffer.
+  if( !state->needs_rendering ) return;
+  lg.debug( "rendering the {} buffer.", kBuffer );
+  renderer.clear_buffer( kBuffer );
+  SCOPED_RENDERER_MOD_SET( buffer_mods.buffer, kBuffer );
+  SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
+  SCOPED_RENDERER_MOD_SET( painter_mods.uniform_depixelation,
+                           true );
+  VisibilityWithOverrides const viz( ss_, *viz_,
+                                     state->targets );
+  for( auto const& [tile, fog_square] : state->targets ) {
+    render_landscape_square_if_not_fully_hidden(
+        renderer_, tile* Delta{ .w = 32, .h = 32 }, ss_, tile,
+        viz, TerrainRenderOptions{} );
+  }
+}
+
 void LandViewRenderer::render_non_entities() const {
   // If the map is zoomed out enough such that some of the outter
   // space is visible, paint a background so that it won't just
@@ -915,6 +949,8 @@ void LandViewRenderer::render_non_entities() const {
       viewport_.landscape_buffer_render_upper_left();
   renderer.set_camera( translation.distance_from_origin(),
                        zoom );
+
+  render_landscape_anim_buffer();
 }
 
 } // namespace rn

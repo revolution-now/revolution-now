@@ -15,6 +15,7 @@
 #include "co-combinator.hpp"
 #include "co-time.hpp"
 #include "co-wait.hpp"
+#include "frame-count.hpp"
 #include "latch.hpp"
 #include "sound.hpp"
 #include "throttler.hpp"
@@ -259,6 +260,62 @@ wait<> LandViewAnimator::fog_dwelling_depixelation_throttler(
   co_await pixelation_stage_throttler( hold, depixelate.stage );
 }
 
+wait<> LandViewAnimator::landscape_anim_depixelation_throttler(
+    co::latch& hold, map<Coord, MapSquare> const& targets ) {
+  CHECK( !landview_anim_buffer_state_.has_value() );
+  LandscapeAnimBufferState& state =
+      landview_anim_buffer_state_.emplace();
+  SCOPE_EXIT { landview_anim_buffer_state_.reset(); };
+
+  // First, get a full set of squares that we'll have to animate;
+  // this includes the ones that are changing plus surrounding
+  // ones that might change indirectly.
+  unordered_map<Coord, FogSquare> fog_squares;
+  for( auto const& [tile, _] : targets ) {
+    for( e_cdirection const d :
+         refl::enum_values<e_cdirection> ) {
+      Coord const moved = tile.moved( d );
+      if( !ss_.terrain.square_exists( moved ) ) continue;
+      switch( viz_->visible( moved ) ) {
+        case e_tile_visibility::hidden: {
+          // No sense in animating a square that is fully hidden.
+          continue;
+        }
+        case e_tile_visibility::visible_and_clear: {
+          // Don't use the fog square here since it may be stale.
+          fog_squares[moved].square = viz_->square_at( moved );
+          fog_squares[moved].fog_of_war_removed = true;
+          break;
+        }
+        case e_tile_visibility::visible_with_fog: {
+          UNWRAP_CHECK( fog_square,
+                        viz_->fog_square_at( moved ) );
+          fog_squares[moved] = fog_square;
+          break;
+        }
+      }
+    }
+  }
+
+  // Now inject the target ones that are directly changing.
+  for( auto const& [tile, target_square] : targets )
+    if( fog_squares.contains( tile ) )
+      fog_squares[tile].square = target_square;
+
+  state.needs_rendering = false;
+  state.targets         = std::move( fog_squares );
+  state.stage           = 1.0;
+  {
+    // This will cause the renderer to rerender the landscape
+    // anim buffer, but only once. This is slightly hacky, but
+    // allows ultimately to keep our draw() method const.
+    SCOPED_SET_AND_RESTORE( state.needs_rendering, true );
+    co_await 1_frames;
+  }
+  co_await pixelation_stage_throttler( hold, state.stage,
+                                       /*negative=*/true );
+}
+
 // TODO: this animation needs to be sync'd with the one in the
 // mini-map.
 wait<> LandViewAnimator::animate_blink(
@@ -496,6 +553,11 @@ wait<> LandViewAnimator::animate_action_primitive(
     CASE( depixelate_fog_dwelling ) {
       co_await fog_dwelling_depixelation_throttler(
           hold, depixelate_fog_dwelling.tile );
+      break;
+    }
+    CASE( landscape_anim_enpixelate ) {
+      co_await landscape_anim_depixelation_throttler(
+          hold, landscape_anim_enpixelate.targets );
       break;
     }
   }

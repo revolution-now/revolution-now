@@ -99,6 +99,11 @@ struct LandViewAnimator {
     return fog_dwelling_animations_;
   }
 
+  maybe<LandscapeAnimBufferState> const&
+  landview_anim_buffer_state() const {
+    return landview_anim_buffer_state_;
+  }
+
   // Animation sequences.
 
   wait<> animate_sequence( AnimationSequence const& seq );
@@ -139,6 +144,10 @@ struct LandViewAnimator {
 
   wait<> fog_dwelling_depixelation_throttler( co::latch& hold,
                                               Coord      tile );
+
+  wait<> landscape_anim_depixelation_throttler(
+      co::latch&                        hold,
+      std::map<Coord, MapSquare> const& targets );
 
   wait<> slide_throttler( co::latch& hold, GenericUnitId id,
                           e_direction d );
@@ -203,12 +212,13 @@ struct LandViewAnimator {
 
  private:
   // Note: SSConst should be held by value.
-  SSConst const            ss_;
-  SmoothViewport&          viewport_;
-  UnitAnimStatesMap        unit_animations_;
-  ColonyAnimStatesMap      colony_animations_;
-  DwellingAnimStatesMap    dwelling_animations_;
-  FogDwellingAnimStatesMap fog_dwelling_animations_;
+  SSConst const                   ss_;
+  SmoothViewport&                 viewport_;
+  UnitAnimStatesMap               unit_animations_;
+  ColonyAnimStatesMap             colony_animations_;
+  DwellingAnimStatesMap           dwelling_animations_;
+  FogDwellingAnimStatesMap        fog_dwelling_animations_;
+  maybe<LandscapeAnimBufferState> landview_anim_buffer_state_;
   // We hold the unique_ptr reference because we need to know
   // when the source version was changed.
   std::unique_ptr<IVisibility const> const& viz_;

@@ -52,7 +52,8 @@ AnimationSequence anim_seq_for_brave_attack_euro(
     SSConst const& ss, CombatBraveAttackEuro const& combat );
 
 AnimationSequence anim_seq_for_brave_attack_colony(
-    SSConst const& ss, CombatBraveAttackColony const& combat );
+    SSConst const& ss, IVisibility const& viz,
+    CombatBraveAttackColony const& combat );
 
 AnimationSequence anim_seq_for_naval_battle(
     SSConst const& ss, CombatShipAttackShip const& combat );
@@ -67,7 +68,8 @@ AnimationSequence anim_seq_for_undefended_colony(
 
 // For when a dwelling gets burned.
 AnimationSequence anim_seq_for_dwelling_burn(
-    SSConst const& ss, UnitId attacker_id,
+    SSConst const& ss, IVisibility const& viz,
+    UnitId                       attacker_id,
     EuroUnitCombatOutcome const& attacker_outcome,
     NativeUnitId defender_id, DwellingId dwelling_id,
     DwellingCombatOutcome const& dwelling_destruction );
@@ -114,7 +116,8 @@ AnimationSequence anim_seq_for_treasure_enpixelation(
 
 // Colony just disappears.
 AnimationSequence anim_seq_for_colony_depixelation(
-    SSConst const& ss, ColonyId colony_id );
+    SSConst const& ss, IVisibility const& viz,
+    ColonyId colony_id );
 
 // Native convert appears on the dwelling tile then slides to the
 // attacker.

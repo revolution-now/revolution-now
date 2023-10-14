@@ -256,6 +256,21 @@ void ensure_tiles_visible( AnimationBuilder&    builder,
     builder.ensure_tile_visible( tile );
 }
 
+// Should only call this once per phase.
+void animate_remove_roads( AnimationBuilder&    builder,
+                           IVisibility const&   viz,
+                           vector<Coord> const& road_tiles ) {
+  map<Coord, MapSquare> remove_roads;
+  for( Coord const tile : road_tiles ) {
+    MapSquare const& map_square = viz.square_at( tile );
+    if( !map_square.road ) continue;
+    remove_roads[tile]      = map_square;
+    remove_roads[tile].road = false;
+  }
+  if( remove_roads.empty() ) return;
+  builder.enpixelate_landview_tiles( std::move( remove_roads ) );
+}
+
 } // namespace
 
 /****************************************************************
@@ -431,7 +446,8 @@ AnimationSequence anim_seq_for_brave_attack_euro(
 }
 
 AnimationSequence anim_seq_for_brave_attack_colony(
-    SSConst const& ss, CombatBraveAttackColony const& combat ) {
+    SSConst const& ss, IVisibility const& viz,
+    CombatBraveAttackColony const& combat ) {
   NativeUnitId const attacker_id = combat.attacker.id;
   UnitId const       defender_id = combat.defender.id;
   Coord const        attacker_coord =
@@ -480,6 +496,7 @@ AnimationSequence anim_seq_for_brave_attack_colony(
     }();
     for( GenericUnitId const id : units_to_hide )
       builder.hide_unit( id );
+    animate_remove_roads( builder, viz, { colony_location } );
     builder.depixelate_colony( combat.colony_id );
   }
   play_combat_outcome_sound( builder, combat );
@@ -544,7 +561,8 @@ AnimationSequence anim_seq_for_undefended_colony(
 }
 
 AnimationSequence anim_seq_for_dwelling_burn(
-    SSConst const& ss, UnitId attacker_id,
+    SSConst const& ss, IVisibility const& viz,
+    UnitId                       attacker_id,
     EuroUnitCombatOutcome const& attacker_outcome,
     NativeUnitId defender_id, DwellingId dwelling_id,
     DwellingCombatOutcome const& dwelling_outcome ) {
@@ -560,6 +578,7 @@ AnimationSequence anim_seq_for_dwelling_burn(
       coord_for_unit_indirect_or_die( ss.units, attacker_id );
   Coord const defender_coord =
       coord_for_unit_multi_ownership_or_die( ss, defender_id );
+  CHECK( defender_coord == ss.natives.coord_for( dwelling_id ) );
   UNWRAP_CHECK( direction,
                 attacker_coord.direction_to( defender_coord ) );
   AnimationBuilder builder;
@@ -584,6 +603,7 @@ AnimationSequence anim_seq_for_dwelling_burn(
   add_attack_outcome_for_native_unit(
       builder, defender_id,
       NativeUnitCombatOutcome::destroyed{} );
+  animate_remove_roads( builder, viz, { defender_coord } );
   builder.depixelate_dwelling( dwelling_id );
   for( NativeUnitId const brave_id :
        dwelling_destruction.braves_to_kill ) {
@@ -753,7 +773,8 @@ AnimationSequence anim_seq_for_convert_produced(
 }
 
 AnimationSequence anim_seq_for_colony_depixelation(
-    SSConst const& ss, ColonyId colony_id ) {
+    SSConst const& ss, IVisibility const& viz,
+    ColonyId colony_id ) {
   Coord const tile =
       ss.colonies.colony_for( colony_id ).location;
   AnimationBuilder builder;
@@ -761,6 +782,7 @@ AnimationSequence anim_seq_for_colony_depixelation(
   builder.ensure_tile_visible( tile );
   // Phase 1: depixelate colony.
   builder.new_phase();
+  animate_remove_roads( builder, viz, { tile } );
   builder.depixelate_colony( colony_id );
   builder.play_sound( e_sfx::city_destroyed );
   return builder.result();
@@ -779,6 +801,8 @@ AnimationSequence anim_seq_for_cheat_tribe_destruction(
     SSConst const& ss, IVisibility const& viz, e_tribe tribe ) {
   AnimationBuilder builder;
 
+  vector<Coord> dwelling_coords;
+
   // Dwellings.
   gfx::rect_iterator ri( ss.terrain.world_rect_tiles() );
   for( Coord const tile : ri ) {
@@ -789,6 +813,7 @@ AnimationSequence anim_seq_for_cheat_tribe_destruction(
         if( !dwelling_id.has_value() ) break;
         if( ss.natives.tribe_for( *dwelling_id ).type != tribe )
           continue;
+        dwelling_coords.push_back( tile );
         builder.depixelate_dwelling( *dwelling_id );
         break;
       }
@@ -800,6 +825,7 @@ AnimationSequence anim_seq_for_cheat_tribe_destruction(
             fog_square->dwelling;
         if( !fog_dwelling.has_value() ) continue;
         if( fog_dwelling->tribe != tribe ) continue;
+        dwelling_coords.push_back( tile );
         builder.depixelate_fog_dwelling( tile );
         break;
       }
@@ -807,6 +833,9 @@ AnimationSequence anim_seq_for_cheat_tribe_destruction(
         break;
     }
   }
+
+  // For pixelating roads under/around the dwelling.
+  animate_remove_roads( builder, viz, dwelling_coords );
 
   // Braves.
   auto const&          native_units = ss.units.native_all();

@@ -469,8 +469,6 @@ Colony& World::add_colony( Coord           where,
       name ) );
   // Reproduce the things that we need that "found_colony" does.
   colony.buildings = config_colony.initial_colony_buildings;
-  // This will also have the effect of making the square visible
-  // in the player map.
   set_road( map_updater(), where );
   return colony;
 }
@@ -512,6 +510,7 @@ Dwelling& World::add_dwelling( Coord where, e_tribe tribe ) {
           .population =
               config_natives.tribes[tribe].max_population,
       } );
+  set_road( map_updater(), where );
   return natives().dwelling_for( id );
 }
 

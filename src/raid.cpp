@@ -272,7 +272,7 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
 
   if( viewable )
     co_await ts.planes.land_view().animate(
-        anim_seq_for_brave_attack_colony( ss, combat ) );
+        anim_seq_for_brave_attack_colony( ss, *viz, combat ) );
 
   if( combat.colony_destroyed )
     co_await raid_colony_burn( ss, ts, attacker, colony,

@@ -195,9 +195,9 @@ TEST_CASE( "[visibility] copy_real_square_to_fog_square" ) {
       W.add_dwelling( { .x = 1, .y = 0 }, e_tribe::cherokee );
   coord    = { .x = 1, .y = 0 };
   expected = {
-      .square =
-          MapSquare{ .surface = e_surface::land,
-                     .ground  = e_ground_terrain::grassland },
+      .square   = MapSquare{ .surface = e_surface::land,
+                             .ground = e_ground_terrain::grassland,
+                             .road   = true },
       .dwelling = FogDwelling{ .tribe = e_tribe::cherokee } };
   f();
   REQUIRE( output == expected );
@@ -205,9 +205,9 @@ TEST_CASE( "[visibility] copy_real_square_to_fog_square" ) {
   dwelling.is_capital = true;
   coord               = { .x = 1, .y = 0 };
   expected            = {
-                 .square =
-          MapSquare{ .surface = e_surface::land,
-                                .ground  = e_ground_terrain::grassland },
+                 .square   = MapSquare{ .surface = e_surface::land,
+                                        .ground = e_ground_terrain::grassland,
+                                        .road   = true },
                  .dwelling = FogDwelling{ .tribe   = e_tribe::cherokee,
                                           .capital = true } };
   f();
@@ -249,9 +249,9 @@ TEST_CASE( "[visibility] copy_real_square_to_fog_square" ) {
   output.fog_of_war_removed = true;
   coord                     = { .x = 1, .y = 0 };
   expected                  = {
-                       .square =
-          MapSquare{ .surface = e_surface::land,
-                                      .ground  = e_ground_terrain::grassland },
+                       .square   = MapSquare{ .surface = e_surface::land,
+                                              .ground = e_ground_terrain::grassland,
+                                              .road   = true },
                        .dwelling = FogDwelling{ .tribe   = e_tribe::cherokee,
                                                 .capital = true },
                        .fog_of_war_removed = true };
@@ -261,9 +261,9 @@ TEST_CASE( "[visibility] copy_real_square_to_fog_square" ) {
   coord                     = { .x = 1, .y = 0 };
   output.fog_of_war_removed = false;
   expected                  = {
-                       .square =
-          MapSquare{ .surface = e_surface::land,
-                                      .ground  = e_ground_terrain::grassland },
+                       .square   = MapSquare{ .surface = e_surface::land,
+                                              .ground = e_ground_terrain::grassland,
+                                              .road   = true },
                        .dwelling = FogDwelling{ .tribe   = e_tribe::cherokee,
                                                 .capital = true },
                        .fog_of_war_removed = false };

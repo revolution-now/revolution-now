@@ -17,12 +17,16 @@ include "config/tile-enum-fwd.hpp"
 
 # ss
 include "ss/dwelling-id.hpp"
+include "ss/fog-square.rds.hpp"
 include "ss/native-enums.rds.hpp"
 include "ss/unit-id.hpp"
 include "ss/unit-type.rds.hpp"
 
 # gfx
 include "gfx/coord.rds.hpp"
+
+# C++ standard library
+include "<unordered_map>"
 
 namespace "rn"
 
@@ -71,4 +75,15 @@ sumtype.DwellingAnimationState {
   depixelate {
     stage 'double',
   },
+}
+
+struct.LandscapeAnimBufferState {
+  # This flag is enabled for one frame to get the renderer to
+  # render the buffer once, then it is turned off for the rest
+  # of the animation since the animation being done is the
+  # pixelation of the entire landscape_anim buffer, which is
+  # controlled via a uniform.
+  needs_rendering 'bool',
+  stage 'double',
+  targets 'std::unordered_map<Coord, FogSquare>',
 }

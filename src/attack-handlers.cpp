@@ -33,7 +33,7 @@
 #include "missionary.hpp"
 #include "on-map.hpp"
 #include "plane-stack.hpp"
-#include "road.hpp"
+#include "roles.hpp"
 #include "tribe-mgr.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
@@ -61,6 +61,7 @@
 
 // refl
 #include "refl/to-str.hpp"
+#include "visibility.hpp"
 
 using namespace std;
 
@@ -151,6 +152,8 @@ struct AttackHandlerBase : public CommandHandler {
   SS& ss_;
   TS& ts_;
 
+  unique_ptr<IVisibility const> viz_;
+
   // The unit doing the attacking.
   UnitId     attacker_id_;
   Unit&      attacker_;
@@ -173,6 +176,8 @@ AttackHandlerBase::AttackHandlerBase( SS& ss, TS& ts,
                                       e_direction direction )
   : ss_( ss ),
     ts_( ts ),
+    viz_( create_visibility_for(
+        ss, player_for_role( ss, e_player_role::viewer ) ) ),
     attacker_id_( attacker_id ),
     attacker_( ss.units.unit_for( attacker_id ) ),
     attacking_player_( player_for_nation_or_die(
@@ -180,6 +185,7 @@ AttackHandlerBase::AttackHandlerBase( SS& ss, TS& ts,
     attacker_mind_( ts.euro_minds[attacker_.nation()] ),
     attacker_human_( ss.players.humans[attacker_.nation()] ),
     direction_( direction ) {
+  CHECK( viz_ != nullptr );
   attack_src_ =
       coord_for_unit_indirect_or_die( ss_.units, attacker_id_ );
   attack_dst_ = attack_src_.moved( direction_ );
@@ -896,13 +902,6 @@ wait<> AttackDwellingHandler::perform() {
   // Inc villages burned.
   ++attacking_player_.score_stats.dwellings_burned;
 
-  // Clear road. When we eventually delete the dwelling this will
-  // be done, but here we want to do it earlier, before the ani-
-  // mations, otherwise the dwelling will depixelate showing the
-  // road, then the road will suddenly disappear, which doesn't
-  // look good.
-  clear_road( ts_.map_updater, dwelling_location );
-
   // If missionary needs releasing, release it under the
   // dwelling. It should continue to be hidden until the dwelling
   // starts depixelating, then it should gradually become visi-
@@ -937,18 +936,16 @@ wait<> AttackDwellingHandler::perform() {
       [&]( CombatEuroAttackBrave const& phantom_combat )
           -> wait<> {
         AnimationSequence const seq = anim_seq_for_dwelling_burn(
-            ss_, attacker_id_, combat.attacker.outcome,
+            ss_, *viz_, attacker_id_, combat.attacker.outcome,
             phantom_combat.defender.id, dwelling_id_,
             combat.defender.outcome );
         co_await ts_.planes.land_view().animate( seq );
       } );
 
+  bool const was_capital = dwelling_.is_capital;
   // Kill dwelling, free braves owned by the dwelling, and any
   // owned land of the dwelling. This will also remove the road
   // under the dwelling.
-  bool const was_capital = dwelling_.is_capital;
-  // Do this before destroying the dwelling in case it wants to
-  // inspect it.
   destroy_dwelling( ss_, ts_, dwelling_id_ );
   perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                     combat.attacker.outcome );

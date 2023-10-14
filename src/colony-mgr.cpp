@@ -31,6 +31,7 @@
 #include "native-owned.hpp"
 #include "plane-stack.hpp"
 #include "road.hpp"
+#include "roles.hpp"
 #include "teaching.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
@@ -63,6 +64,7 @@
 #include "base/conv.hpp"
 #include "base/scope-exit.hpp"
 #include "base/to-str-ext-std.hpp"
+#include "visibility.hpp"
 
 // C++ standard library
 #include <numeric>
@@ -818,8 +820,6 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
   e_nation const colony_nation = colony.nation;
   IEuroMind&     mind          = ts.euro_minds[colony.nation];
   // In case it hasn't already been done...
-  clear_abandoned_colony_road( ss, ts.map_updater,
-                               colony.location );
   ColonyDestructionOutcome const outcome =
       destroy_colony( ss, ts, colony );
   if( msg.has_value() ) co_await mind.message_box( *msg );
@@ -857,12 +857,11 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
 wait<> run_animated_colony_destruction(
     SS& ss, TS& ts, Colony& colony, e_ship_damaged_reason reason,
     maybe<string> msg ) {
-  // The road needs to be cleared before the animation so that
-  // the depixelating colony won't reveal a road behind it.
-  clear_abandoned_colony_road( ss, ts.map_updater,
-                               colony.location );
+  unique_ptr<IVisibility const> const viz =
+      create_visibility_for(
+          ss, player_for_role( ss, e_player_role::viewer ) );
   AnimationSequence const seq =
-      anim_seq_for_colony_depixelation( ss, colony.id );
+      anim_seq_for_colony_depixelation( ss, *viz, colony.id );
   co_await ts.planes.land_view().animate( seq );
   co_await run_colony_destruction( ss, ts, colony, reason, msg );
 }

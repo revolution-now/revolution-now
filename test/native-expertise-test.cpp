@@ -141,6 +141,23 @@ TEST_CASE( "[native-expertise] dwelling_expertise_weights" ) {
                    { e_native_skill::tobacco_planting, 66 },
                    { e_native_skill::cotton_planting, 32 },
                    { e_native_skill::fur_trapping, 119 },
+                   { e_native_skill::ore_mining, 144 },
+                   { e_native_skill::silver_mining, 0 },
+                   { e_native_skill::fur_trading, 14 },
+                   { e_native_skill::scouting, 52 } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "agrarian, without road" ) {
+    dwelling =
+        &W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::cherokee );
+    W.square( { .x = 2, .y = 2 } ).road = false;
+    expected = { { { e_native_skill::farming, 141 },
+                   { e_native_skill::fishing, 48 },
+                   { e_native_skill::sugar_planting, 140 },
+                   { e_native_skill::tobacco_planting, 66 },
+                   { e_native_skill::cotton_planting, 32 },
+                   { e_native_skill::fur_trapping, 119 },
                    { e_native_skill::ore_mining, 136 },
                    { e_native_skill::silver_mining, 0 },
                    { e_native_skill::fur_trading, 14 },
@@ -151,6 +168,23 @@ TEST_CASE( "[native-expertise] dwelling_expertise_weights" ) {
   SECTION( "civilized" ) {
     dwelling =
         &W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::inca );
+    expected = { { { e_native_skill::farming, 2350 },
+                   { e_native_skill::fishing, 520 },
+                   { e_native_skill::sugar_planting, 21 },
+                   { e_native_skill::tobacco_planting, 0 },
+                   { e_native_skill::cotton_planting, 0 },
+                   { e_native_skill::fur_trapping, 17 },
+                   { e_native_skill::ore_mining, 144 },
+                   { e_native_skill::silver_mining, 0 },
+                   { e_native_skill::fur_trading, 20 },
+                   { e_native_skill::scouting, 4 } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "civilized, without road" ) {
+    dwelling =
+        &W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::inca );
+    W.square( { .x = 2, .y = 2 } ).road = false;
     expected = { { { e_native_skill::farming, 2350 },
                    { e_native_skill::fishing, 520 },
                    { e_native_skill::sugar_planting, 21 },
