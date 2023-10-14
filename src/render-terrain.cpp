@@ -461,8 +461,7 @@ void render_forest( IVisibility const& viz, rr::Painter& painter,
 void render_adjacent_overlap( IVisibility const& viz,
                               rr::Renderer&      renderer,
                               Coord where, Coord world_square,
-                              double chop_percent,
-                              Coord  hash_anchor ) {
+                              double chop_percent ) {
   MapSquare const& west =
       viz.square_at( world_square - Delta{ .w = 1 } );
   MapSquare const& north =
@@ -495,8 +494,6 @@ void render_adjacent_overlap( IVisibility const& viz,
     src.h -= chop_h;
     src.y += chop_h;
     dst.y += 0;
-    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
-                             hash_anchor );
     SCOPED_RENDERER_MOD_MUL( painter_mods.depixelate.stage,
                              0.5 );
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.inverted,
@@ -524,8 +521,6 @@ void render_adjacent_overlap( IVisibility const& viz,
     src.h -= chop_h;
     src.y += 0;
     dst.y += chop_h;
-    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
-                             hash_anchor );
     SCOPED_RENDERER_MOD_MUL( painter_mods.depixelate.stage,
                              0.0 );
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.inverted,
@@ -553,8 +548,6 @@ void render_adjacent_overlap( IVisibility const& viz,
     src.w -= chop_w;
     src.x += chop_w;
     dst.x += 0;
-    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
-                             hash_anchor );
     SCOPED_RENDERER_MOD_MUL( painter_mods.depixelate.stage,
                              0.5 );
     SCOPED_RENDERER_MOD_SET(
@@ -580,8 +573,6 @@ void render_adjacent_overlap( IVisibility const& viz,
     src.w -= chop_w;
     src.x += 0;
     dst.x += chop_w;
-    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
-                             hash_anchor );
     SCOPED_RENDERER_MOD_MUL( painter_mods.depixelate.stage,
                              1.0 );
     SCOPED_RENDERER_MOD_SET(
@@ -608,31 +599,10 @@ void render_terrain_ground( IVisibility const& viz,
                             e_ground_terrain ground ) {
   e_tile tile = tile_for_ground_terrain( ground );
   render_sprite( painter, where, tile );
-  // This will ensure good pseudo (deterministic) randomization
-  // of the dithering from one tile to another.
-  //
-  // It's value is kind of arbitrary, but it should satisfy these
-  // requirements:
-  //
-  //   1. Its value must not depend on `where`, i.e., the screen
-  //      coordinate where we are rendering, otherwise the effect
-  //      would appear to change as the map is scrolled.
-  //   2. It should be different for each square (or at least ap-
-  //      proximately.
-  //   3. It should be in the range of screen coordinates because
-  //      that is what the hash function in the fragment shader
-  //      is calibrated for (at the time of writing, the fragment
-  //      shader uses 320, which is 10 tiles*32 pixels per tile,
-  //      hence the block of 10 tiles used below).
-  //
-  Delta const hash_anchor_offset =
-      g_tile_delta *
-      ( world_square % Delta{ .w = 10, .h = 10 } );
   render_adjacent_overlap(
       viz, renderer, where, world_square,
       /*chop_percent=*/
-      clamp( 1.0 - g_tile_overlap_width_percent, 0.0, 1.0 ),
-      where - hash_anchor_offset );
+      clamp( 1.0 - g_tile_overlap_width_percent, 0.0, 1.0 ) );
 
   MapSquare const& left =
       viz.square_at( world_square - Delta{ .w = 1 } );
@@ -1102,8 +1072,6 @@ void render_river_hinting( IVisibility const& viz,
   double const stage =
       is_edge ? kEdgeDepixelStage : kInnerDepixelStage;
   SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
-  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
-                           where );
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                            stage );
   render_river_on_land( viz, renderer, where, world_square,
@@ -2050,9 +2018,6 @@ void render_pixelated_overlay_transitions(
     Coord const world_square, IVisibility const& viz,
     refl::enum_map<e_cdirection, bool> const& has_overlay,
     e_tile                                    overlay_tile ) {
-  SCOPED_RENDERER_MOD_SET(
-      painter_mods.depixelate.hash_anchor,
-      ( where / Delta{ .w = 32, .h = 32 } ) );
   rr::Painter painter = renderer.painter();
   // The below will render 9 pieces, and will do so with dif-
   // ferent depixelation stages and alphas depending on the
