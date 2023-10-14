@@ -906,11 +906,10 @@ void LandViewRenderer::render_landscape_anim_buffer() const {
                            true );
   VisibilityWithOverrides const viz( ss_, *viz_,
                                      state->targets );
-  for( auto const& [tile, fog_square] : state->targets ) {
+  for( auto const& [tile, fog_square] : state->targets )
     render_landscape_square_if_not_fully_hidden(
-        renderer_, tile* Delta{ .w = 32, .h = 32 }, ss_, tile,
-        viz, TerrainRenderOptions{} );
-  }
+        renderer_, tile * g_tile_delta, ss_, tile, viz,
+        TerrainRenderOptions{} );
 }
 
 void LandViewRenderer::render_non_entities() const {
