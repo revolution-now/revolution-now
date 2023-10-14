@@ -28,6 +28,9 @@
 // refl
 #include "refl/enum-map.hpp"
 
+// base
+#include "base/attributes.hpp"
+
 namespace rn {
 
 struct FogSquare;
@@ -185,7 +188,8 @@ struct VisibilityForNation : IVisibility {
 struct VisibilityWithOverrides : IVisibility {
   VisibilityWithOverrides(
       SSConst const& ss, IVisibility const& underlying,
-      std::unordered_map<Coord, FogSquare> const& overrides );
+      std::unordered_map<Coord, FogSquare> const& overrides
+          ATTR_LIFETIMEBOUND );
 
   // Are we viewing from the perspective of a nation or not.
   base::maybe<e_nation> nation() const override {
