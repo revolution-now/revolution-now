@@ -28,7 +28,7 @@ flat in vec2  frag_atlas_target_offset;
      in vec4  frag_fixed_color;
      in float frag_alpha_multiplier;
 flat in float frag_scaling;
-flat in vec2  frag_default_anchor;
+flat in vec2  frag_default_hash_anchor;
 
 uniform sampler2D u_atlas;
 uniform vec2 u_atlas_size;
@@ -255,7 +255,7 @@ float uniform_depixelate() {
   // using the normal depixelation mod because they are already
   // normally composed of some kind of depixelation (thus we need
   // a separate depixelation mechanism).
-  vec2 anchor = frag_default_anchor;
+  vec2 anchor = frag_default_hash_anchor;
   bool on = ( hash_position( anchor ) > u_depixelation_stage );
   return on ? 1.0 : 0.0;
 }

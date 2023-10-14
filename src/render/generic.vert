@@ -42,7 +42,7 @@ flat out vec2  frag_atlas_target_offset;
      out vec4  frag_fixed_color;
      out float frag_alpha_multiplier;
 flat out float frag_scaling;
-flat out vec2  frag_default_anchor;
+flat out vec2  frag_default_hash_anchor;
 
 // Screen dimensions in the game's logical pixel units.
 uniform vec2  u_screen_size;
@@ -124,7 +124,7 @@ void forwarding() {
   frag_fixed_color          = in_fixed_color;
   frag_alpha_multiplier     = in_alpha_multiplier;
   frag_scaling              = in_scaling;
-  frag_default_anchor       = shift_and_scale( vec2( 0.0 ) );
+  frag_default_hash_anchor  = shift_and_scale( vec2( 0.0 ) );
   if( use_camera() )
     frag_scaling *= u_camera_zoom;
 }
