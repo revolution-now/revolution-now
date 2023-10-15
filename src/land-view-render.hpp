@@ -78,10 +78,6 @@ struct LandViewRenderer {
 
   void render_landscape_anim_buffer() const;
 
-  // Returns true if there is a fog dwelling anim on the file and
-  // it was rendered.
-  bool try_render_fog_dwelling_anim( Coord coord ) const;
-
   void render_units_underneath() const;
 
   void render_colonies() const;
@@ -112,25 +108,17 @@ struct LandViewRenderer {
   void render_fog_dwelling( FogDwelling const& fog_dwelling,
                             Coord              tile ) const;
 
-  void render_real_dwelling( Dwelling const& dwelling ) const;
-
-  void render_real_dwelling_depixelate(
-      Dwelling const& dwelling ) const;
-
-  void render_fog_dwelling_depixelate(
+  void render_dwelling_depixelate(
       FogDwelling const& fog_dwelling, Coord tile ) const;
 
   Coord dwelling_pixel_coord_from_tile( Coord tile ) const;
 
   void render_input_overrun_indicator() const;
 
-  void render_fog_colony( FogColony const& fog_colony,
-                          Coord            tile ) const;
+  void render_fog_colony( FogColony const& fog_colony ) const;
 
-  void render_real_colony( Colony const& colony ) const;
-
-  void render_real_colony_depixelate(
-      Colony const& colony ) const;
+  void render_colony_depixelate(
+      ColonyId colony_id, FogColony const& fog_colony ) const;
 
   Coord colony_pixel_coord_from_tile( Coord tile ) const;
 

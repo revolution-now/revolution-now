@@ -517,40 +517,13 @@ Coord LandViewRenderer::dwelling_pixel_coord_from_tile(
   return pixel_coord;
 }
 
-void LandViewRenderer::render_real_dwelling(
-    Dwelling const& dwelling ) const {
-  Coord const tile = ss_.natives.coord_for( dwelling.id );
-  rn::render_real_dwelling(
-      renderer_, dwelling_pixel_coord_from_tile( tile ), ss_,
-      dwelling );
-}
-
 void LandViewRenderer::render_fog_dwelling(
     FogDwelling const& fog_dwelling, Coord tile ) const {
   rn::render_fog_dwelling(
       renderer_, dwelling_pixel_coord_from_tile( tile ),
       fog_dwelling );
 }
-
-void LandViewRenderer::render_real_dwelling_depixelate(
-    Dwelling const& dwelling ) const {
-  Coord const tile = ss_.natives.coord_for( dwelling.id );
-  UNWRAP_CHECK(
-      animation,
-      lv_animator_.dwelling_animation( dwelling.id )
-          .get_if<DwellingAnimationState::depixelate>() );
-  // As usual, the hash anchor coord is arbitrary so long as
-  // its position is fixed relative to the sprite.
-  Coord const hash_anchor =
-      render_rect_for_tile( tile ).upper_left();
-  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
-                           animation.stage );
-  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
-                           hash_anchor );
-  render_real_dwelling( dwelling );
-}
-
-void LandViewRenderer::render_fog_dwelling_depixelate(
+void LandViewRenderer::render_dwelling_depixelate(
     FogDwelling const& fog_dwelling, Coord tile ) const {
   UNWRAP_CHECK(
       animation,
@@ -624,36 +597,29 @@ static ColonyRenderOptions const kDefaultColonyRenderOptions{
     .render_population = true,
     .render_flag       = true };
 
-void LandViewRenderer::render_real_colony(
-    Colony const& colony ) const {
-  Coord const tile = colony.location;
-  rn::render_real_colony(
-      renderer_, colony_pixel_coord_from_tile( tile ), ss_,
-      colony, kDefaultColonyRenderOptions );
-}
-
 void LandViewRenderer::render_fog_colony(
-    FogColony const& fog_colony, Coord tile ) const {
+    FogColony const& fog_colony ) const {
   rn::render_fog_colony(
-      renderer_, colony_pixel_coord_from_tile( tile ),
+      renderer_,
+      colony_pixel_coord_from_tile( fog_colony.location ),
       fog_colony, kDefaultColonyRenderOptions );
 }
 
-void LandViewRenderer::render_real_colony_depixelate(
-    Colony const& colony ) const {
+void LandViewRenderer::render_colony_depixelate(
+    ColonyId colony_id, FogColony const& fog_colony ) const {
   UNWRAP_CHECK(
       animation,
-      lv_animator_.colony_animation( colony.id )
+      lv_animator_.colony_animation( colony_id )
           .get_if<ColonyAnimationState::depixelate>() );
   // As usual, the hash anchor coord is arbitrary so long as
   // its position is fixed relative to the sprite.
   Coord const hash_anchor =
-      render_rect_for_tile( colony.location ).upper_left();
+      render_rect_for_tile( fog_colony.location ).upper_left();
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                            animation.stage );
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
                            hash_anchor );
-  this->render_real_colony( colony );
+  render_fog_colony( fog_colony );
 }
 
 // This will render the background around the zoomed-out map.
@@ -717,52 +683,43 @@ void LandViewRenderer::render_units() const {
   render_input_overrun_indicator();
 }
 
-bool LandViewRenderer::try_render_fog_dwelling_anim(
-    Coord coord ) const {
-  maybe<DwellingAnimationState const&> anim =
-      lv_animator_.fog_dwelling_animation( coord );
-  if( !anim.has_value() ) return false;
-  maybe<FogSquare const&> fog_square =
-      viz_->fog_square_at( coord );
-  if( !fog_square.has_value() ) return false;
-  if( !fog_square->dwelling.has_value() ) return false;
-  render_fog_dwelling_depixelate( *fog_square->dwelling, coord );
-  return true;
-}
-
 void LandViewRenderer::render_dwellings() const {
   bool const has_fog_dwelling_anims =
       !lv_animator_.fog_dwelling_animations().empty();
   for( Coord const coord : gfx::rect_iterator( covered_ ) ) {
-    switch( viz_->visible( coord ) ) {
-      case e_tile_visibility::hidden:
+    maybe<FogSquare> const fog_square =
+        viz_->create_fog_square_at( coord );
+    if( !fog_square.has_value() )
+      // Hidden.
+      continue;
+    if( !fog_square->dwelling.has_value() ) continue;
+    FogDwelling const& fog_dwelling = *fog_square->dwelling;
+
+    // We have a dwelling, either real or fogged.
+    if( fog_square->fog_of_war_removed ) {
+      // Visibile and clear. Since the fog square above indicated
+      // the presence of a dwelling, and since we are visible and
+      // clear, that means there must currently be a real
+      // dwelling there.
+      UNWRAP_CHECK(
+          real_dwelling_id,
+          ss_.natives.maybe_dwelling_from_coord( coord ) );
+      maybe<DwellingAnimationState const&> anim =
+          lv_animator_.dwelling_animation( real_dwelling_id );
+      if( anim.has_value() ) {
+        render_dwelling_depixelate( fog_dwelling, coord );
         continue;
-      case e_tile_visibility::visible_and_clear: {
-        maybe<DwellingId> const real_dwelling_id =
-            ss_.natives.maybe_dwelling_from_coord( coord );
-        if( real_dwelling_id.has_value() ) {
-          maybe<DwellingAnimationState const&> anim =
-              lv_animator_.dwelling_animation(
-                  *real_dwelling_id );
-          Dwelling const& dwelling =
-              ss_.natives.dwelling_for( *real_dwelling_id );
-          if( !anim.has_value() )
-            render_real_dwelling( dwelling );
-          else
-            render_real_dwelling_depixelate( dwelling );
-        }
-        break;
       }
-      case e_tile_visibility::visible_with_fog: {
-        if( has_fog_dwelling_anims &&
-            try_render_fog_dwelling_anim( coord ) )
-          break;
-        UNWRAP_CHECK( fog_square, viz_->fog_square_at( coord ) );
-        if( fog_square.dwelling.has_value() )
-          render_fog_dwelling( *fog_square.dwelling, coord );
-        break;
+    } else if( has_fog_dwelling_anims ) {
+      maybe<DwellingAnimationState const&> anim =
+          lv_animator_.fog_dwelling_animation( coord );
+      if( anim.has_value() ) {
+        render_dwelling_depixelate( fog_dwelling, coord );
+        continue;
       }
     }
+
+    render_fog_dwelling( fog_dwelling, coord );
   }
 }
 
@@ -808,31 +765,30 @@ void LandViewRenderer::render_colonies() const {
   // we need to render colonies that are beyond the `covered`
   // rect.
   for( Coord const coord : gfx::rect_iterator( covered_ ) ) {
-    switch( viz_->visible( coord ) ) {
-      case e_tile_visibility::hidden:
+    maybe<FogSquare> const fog_square =
+        viz_->create_fog_square_at( coord );
+    if( !fog_square.has_value() )
+      // Hidden.
+      continue;
+    if( !fog_square->colony.has_value() ) continue;
+    FogColony const& fog_colony = *fog_square->colony;
+    // We have a colony, either real or fogged.
+    if( fog_square->fog_of_war_removed ) {
+      // Visibile and clear. Since the fog square above indicated
+      // the presence of a colony, and since we are visible and
+      // clear, that means there must currently be a real colony
+      // there.
+      UNWRAP_CHECK( real_colony_id,
+                    ss_.colonies.maybe_from_coord( coord ) );
+      maybe<ColonyAnimationState const&> anim =
+          lv_animator_.colony_animation( real_colony_id );
+      if( anim.has_value() ) {
+        render_colony_depixelate( real_colony_id, fog_colony );
         continue;
-      case e_tile_visibility::visible_and_clear: {
-        maybe<ColonyId> const real_colony_id =
-            ss_.colonies.maybe_from_coord( coord );
-        if( real_colony_id.has_value() ) {
-          maybe<ColonyAnimationState const&> anim =
-              lv_animator_.colony_animation( *real_colony_id );
-          Colony const& colony =
-              ss_.colonies.colony_for( *real_colony_id );
-          if( !anim.has_value() )
-            render_real_colony( colony );
-          else
-            render_real_colony_depixelate( colony );
-        }
-        break;
-      }
-      case e_tile_visibility::visible_with_fog: {
-        UNWRAP_CHECK( fog_square, viz_->fog_square_at( coord ) );
-        if( fog_square.colony.has_value() )
-          render_fog_colony( *fog_square.colony, coord );
-        break;
       }
     }
+
+    render_fog_colony( fog_colony );
   }
 }
 

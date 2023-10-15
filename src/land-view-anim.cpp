@@ -276,24 +276,10 @@ wait<> LandViewAnimator::landscape_anim_depixelation_throttler(
          refl::enum_values<e_cdirection> ) {
       Coord const moved = tile.moved( d );
       if( !ss_.terrain.square_exists( moved ) ) continue;
-      switch( viz_->visible( moved ) ) {
-        case e_tile_visibility::hidden: {
-          // No sense in animating a square that is fully hidden.
-          continue;
-        }
-        case e_tile_visibility::visible_and_clear: {
-          // Don't use the fog square here since it may be stale.
-          fog_squares[moved].square = viz_->square_at( moved );
-          fog_squares[moved].fog_of_war_removed = true;
-          break;
-        }
-        case e_tile_visibility::visible_with_fog: {
-          UNWRAP_CHECK( fog_square,
-                        viz_->fog_square_at( moved ) );
-          fog_squares[moved] = fog_square;
-          break;
-        }
-      }
+      maybe<FogSquare> fog_square =
+          viz_->create_fog_square_at( tile );
+      if( !fog_square.has_value() ) continue;
+      fog_squares[moved] = std::move( *fog_square );
     }
   }
 

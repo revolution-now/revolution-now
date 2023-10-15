@@ -19,6 +19,7 @@
 #include "maybe.hpp"
 
 // ss
+#include "ss/fog-square.rds.hpp"
 #include "ss/nation.rds.hpp"
 #include "ss/unit-type.rds.hpp"
 
@@ -39,6 +40,7 @@ struct PlayerTerrain;
 struct SSConst;
 struct TerrainState;
 struct SS;
+struct SSConst;
 struct TS;
 
 /****************************************************************
@@ -67,19 +69,21 @@ struct IVisibility {
   // tile if off-map then they are always hidden (proto square).
   virtual e_tile_visibility visible( Coord tile ) const = 0;
 
-  // If we are rendering the terrain from the point of view of a
-  // player then this will return the FogSquare if the tile is
-  // explored and on the map. In all other cases it will return
-  // nothing. WARNING: for tiles that are visible and clear, the
-  // player's fog square may not reflect the true tile contents,
-  // since the fog square isn't updated when it is visible and
-  // clear. For example, if the player puts a road on a tile with
-  // a pioneer, the player's fog square won't be updated to re-
-  // flect that road until the pioneer leaves the area and the
-  // square becomes fogged. All this is because, when a square is
-  // visible and clear, we don't use it for rendering, thus don't
-  // need to update it.
-  virtual maybe<FogSquare const&> fog_square_at(
+  // Returns a fog square that represents what is currently visi-
+  // ble. In some cases that requires creating a new FogSquare,
+  // i.e. in the case where the player has a fog square but it
+  // might be stale (the tile is visible and clear) or if the en-
+  // tire map is visible. It will only return nothing if we are
+  // rendering from the point of a view of a player and that tile
+  // is hidden. Note that we return the FogSquare by value and
+  // not by reference, and that is because, as mentioned above,
+  // we aren't necessarily returning a player's FogSquare, even
+  // when we are viewing from the point of view of a player.
+  //
+  // This is not a cheap function, since it may need to construct
+  // an entire FogSquare, so probably should only be called when
+  // absolutely necessary.
+  virtual maybe<FogSquare> create_fog_square_at(
       Coord tile ) const = 0;
 
   // In general we're rendering the terrain from the point of
@@ -108,11 +112,6 @@ struct IVisibility {
   // For convenience. Is the tile on the map.
   bool on_map( Coord tile ) const;
 
- protected:
-  // If so, will return the fog square, otherwise nothing.
-  maybe<FogSquare const&> will_render_from_fog_square(
-      Coord tile ) const;
-
  private:
   // This is a pointer instead of a reference so that the class
   // can be assigned.
@@ -126,7 +125,7 @@ struct IVisibility {
 // For when we are viewing the entire map, not from any player's
 // perspective; trivial implementation.
 struct VisibilityEntire : IVisibility {
-  using IVisibility::IVisibility;
+  VisibilityEntire( SSConst const& ss );
 
   // Implement IVisibility.
   base::maybe<e_nation> nation() const override {
@@ -139,14 +138,16 @@ struct VisibilityEntire : IVisibility {
   }
 
   // Implement IVisibility.
-  maybe<FogSquare const&> fog_square_at( Coord ) const override {
-    return nothing;
-  }
+  maybe<FogSquare> create_fog_square_at(
+      Coord tile ) const override;
 
   // Implement IVisibility.
   MapSquare const& square_at( Coord tile ) const override {
     return IVisibility::square_at( tile );
   }
+
+ private:
+  SSConst const& ss_;
 };
 
 /****************************************************************
@@ -165,13 +166,21 @@ struct VisibilityForNation : IVisibility {
   e_tile_visibility visible( Coord tile ) const override;
 
   // Implement IVisibility.
-  maybe<FogSquare const&> fog_square_at(
+  maybe<FogSquare> create_fog_square_at(
       Coord tile ) const override;
 
   // Implement IVisibility.
   MapSquare const& square_at( Coord tile ) const override;
 
  private:
+  maybe<FogSquare const&> player_fog_square_at(
+      Coord tile ) const;
+
+  // If so, will return the fog square, otherwise nothing.
+  maybe<FogSquare const&> will_render_from_fog_square(
+      Coord tile ) const;
+
+  SSConst const&             ss_;
   e_nation const             nation_         = {};
   PlayerTerrain const* const player_terrain_ = nullptr;
 };
@@ -183,8 +192,8 @@ struct VisibilityForNation : IVisibility {
 // tain set of tiles whose values will be overridden. Note that
 // we take in FogSquares to specify the overriding values instead
 // of MapSquares because FogSquares contain MapSquares, and this
-// way we can also return FogSquares when it is requested, since
-// the fog_square_at method returns a reference.
+// way we can also return FogSquares when it is requested by the
+// create_fog_square_at method.
 struct VisibilityWithOverrides : IVisibility {
   VisibilityWithOverrides(
       SSConst const& ss, IVisibility const& underlying,
@@ -200,7 +209,7 @@ struct VisibilityWithOverrides : IVisibility {
   e_tile_visibility visible( Coord tile ) const override;
 
   // Implement IVisibility.
-  maybe<FogSquare const&> fog_square_at(
+  maybe<FogSquare> create_fog_square_at(
       Coord tile ) const override;
 
   // Implement IVisibility.

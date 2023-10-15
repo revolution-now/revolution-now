@@ -818,8 +818,8 @@ AnimationSequence anim_seq_for_cheat_kill_natives(
         break;
       }
       case e_tile_visibility::visible_with_fog: {
-        maybe<FogSquare const&> fog_square =
-            viz.fog_square_at( tile );
+        maybe<FogSquare> const fog_square =
+            viz.create_fog_square_at( tile );
         if( !fog_square.has_value() ) continue;
         maybe<FogDwelling> const& fog_dwelling =
             fog_square->dwelling;
