@@ -45,9 +45,43 @@ struct RootState;
 /****************************************************************
 ** SS (serialized state)
 *****************************************************************/
+struct SS;
+
+struct SSConst {
+  SSConst( SS& ss );
+  SSConst( SS const& ss );
+
+  SSConst( SSConst const& ) = delete;
+
+ private:
+  SS const& ss_;
+
+ public:
+  FormatVersion const& version;
+  SettingsState const& settings;
+  EventsState const&   events;
+  UnitsState const&    units;
+  PlayersState const&  players;
+  TurnState const&     turn;
+  ColoniesState const& colonies;
+  NativesState const&  natives;
+  LandViewState const& land_view;
+  TerrainState const&  terrain;
+
+  RootState const& root;
+
+  // This will run validation routines recursively over the en-
+  // tire save-game state. It is probably expensive to run.
+  base::valid_or<std::string> validate_game_state() const;
+};
+
 struct SS {
   SS();
   ~SS();
+
+  operator SSConst const&() ATTR_LIFETIMEBOUND {
+    return as_const;
+  }
 
  private:
   struct Impl;
@@ -72,32 +106,9 @@ struct SS {
   TerrainState& mutable_terrain_use_with_care;
 
   RootState& root;
-};
 
-struct SSConst {
-  SSConst( SS& ss );
-  SSConst( SS const& ss );
-
- private:
-  SS const& ss_;
-
- public:
-  FormatVersion const& version;
-  SettingsState const& settings;
-  EventsState const&   events;
-  UnitsState const&    units;
-  PlayersState const&  players;
-  TurnState const&     turn;
-  ColoniesState const& colonies;
-  NativesState const&  natives;
-  LandViewState const& land_view;
-  TerrainState const&  terrain;
-
-  RootState const& root;
-
-  // This will run validation routines recursively over the en-
-  // tire save-game state. It is probably expensive to run.
-  base::valid_or<std::string> validate_game_state() const;
+  // Should be last.
+  SSConst const as_const;
 };
 
 void to_str( SS const& o, std::string& out, base::ADL_t );

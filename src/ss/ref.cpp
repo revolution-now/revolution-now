@@ -48,7 +48,8 @@ SS::SS()
     land_view( impl_->top.land_view ),
     terrain( impl_->top.zzz_terrain ),
     mutable_terrain_use_with_care( impl_->top.zzz_terrain ),
-    root( impl_->top ) {}
+    root( impl_->top ),
+    as_const( *this ) {}
 
 void to_str( SS const& o, string& out, base::ADL_t ) {
   out += "SS@";

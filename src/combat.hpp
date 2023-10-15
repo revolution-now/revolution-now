@@ -67,8 +67,8 @@ struct RealCombat : public ICombat {
       Colony const& colony ) override;
 
  private:
-  SSConst ss_; // should be held by value for safety.
-  IRand&  rand_;
+  SSConst const& ss_;
+  IRand&         rand_;
 };
 
 } // namespace rn

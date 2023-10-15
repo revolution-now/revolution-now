@@ -70,11 +70,10 @@ YIELD( point ) outward_spiral_search( point const start ) {
 // Same as above by limits the search to squares within the given
 // pythagorean distance. A distance of zero will include the
 // starting square. A distance of one will include the four car-
-// dinally adjacent squares, etc. Same NOTE as above regarding
-// taking parameters by value.
+// dinally adjacent squares, etc.
 YIELD( point )
 outward_spiral_pythdist_search_existing_gen(
-    SSConst const ss, point const start, double max_distance ) {
+    SSConst const& ss, point const start, double max_distance ) {
   auto const spiral_gen = outward_spiral_search( start );
   // If we search a NxN grid then we should cover all of the ones
   // that are within the requested pythagorean distance to the
@@ -106,7 +105,7 @@ outward_spiral_pythdist_search_existing_gen(
 ** Public API
 *****************************************************************/
 vector<point> outward_spiral_pythdist_search_existing(
-    SSConst const ss, point const start, double max_distance ) {
+    SSConst const& ss, point const start, double max_distance ) {
   vector<point> res;
   for( point const p :
        outward_spiral_pythdist_search_existing_gen(

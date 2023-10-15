@@ -136,10 +136,7 @@ struct LandViewRenderer {
 
   void render_backdrop() const;
 
-  // Note: SSConst needs to be held by value since otherwise it
-  // would be a reference to the temporary created at the call
-  // site by converting from SS.
-  SSConst const           ss_;
+  SSConst const&          ss_;
   rr::Renderer&           renderer_;
   rr::Renderer&           renderer; // no _ for macros.
   LandViewAnimator const& lv_animator_;

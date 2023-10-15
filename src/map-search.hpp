@@ -40,7 +40,7 @@ struct SSConst;
 // the starting point and which are within `max_distance`
 // pythagorean distance from the start.
 std::vector<gfx::point> outward_spiral_pythdist_search_existing(
-    SSConst const ss, gfx::point const start,
+    SSConst const& ss, gfx::point const start,
     double max_distance );
 
 // Find the closest colony within a pythagorean distance of

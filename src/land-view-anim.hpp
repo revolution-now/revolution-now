@@ -211,8 +211,7 @@ struct LandViewAnimator {
   }
 
  private:
-  // Note: SSConst should be held by value.
-  SSConst const                   ss_;
+  SSConst const&                  ss_;
   SmoothViewport&                 viewport_;
   UnitAnimStatesMap               unit_animations_;
   ColonyAnimStatesMap             colony_animations_;
