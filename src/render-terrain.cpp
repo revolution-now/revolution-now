@@ -2293,7 +2293,7 @@ void render_pixelated_overlay_transitions(
 }
 
 void render_visible_terrain_square(
-    rr::Renderer& renderer, Coord where, SSConst const& ss,
+    rr::Renderer& renderer, Coord where,
     Coord const world_square, IVisibility const& viz,
     TerrainRenderOptions const& options ) {
   rr::Painter      painter = renderer.painter();
@@ -2319,8 +2319,7 @@ void render_visible_terrain_square(
   if( !square.lost_city_rumor && options.render_resources )
     render_resources( renderer, painter, viz, where, square,
                       world_square );
-  render_road_if_present( painter, where, ss, viz,
-                          world_square );
+  render_road_if_present( painter, where, viz, world_square );
   if( options.render_lcrs )
     render_lost_city_rumor( painter, where, square );
 }
@@ -2352,7 +2351,7 @@ OverlayInfo surrounding_overlays(
 } // namespace
 
 void render_landscape_square_if_not_fully_hidden(
-    rr::Renderer& renderer, Coord where, SSConst const& ss,
+    rr::Renderer& renderer, Coord where,
     Coord const world_square, IVisibility const& viz,
     TerrainRenderOptions const& options ) {
   bool const fully_hidden =
@@ -2361,8 +2360,8 @@ void render_landscape_square_if_not_fully_hidden(
           { { e_tile_visibility::hidden, true } } )
           .fully_surrounded;
   if( fully_hidden ) return;
-  render_visible_terrain_square( renderer, where, ss,
-                                 world_square, viz, options );
+  render_visible_terrain_square( renderer, where, world_square,
+                                 viz, options );
 
   // Always last.
   rr::Painter painter = renderer.painter();
@@ -2410,18 +2409,18 @@ void render_obfuscation_overlay(
 }
 
 void render_terrain_square_merged(
-    rr::Renderer& renderer, Coord where, SSConst const& ss,
-    Coord world_square, IVisibility const& viz,
+    rr::Renderer& renderer, Coord where, Coord world_square,
+    IVisibility const&          viz,
     TerrainRenderOptions const& options ) {
   render_landscape_square_if_not_fully_hidden(
-      renderer, where, ss, world_square, viz, options );
+      renderer, where, world_square, viz, options );
   render_obfuscation_overlay( renderer, where, world_square, viz,
                               options );
 }
 
 void render_landscape_buffer(
-    rr::Renderer& renderer, SSConst const& ss,
-    IVisibility const& viz, TerrainRenderOptions const& options,
+    rr::Renderer& renderer, IVisibility const& viz,
+    TerrainRenderOptions const&   options,
     gfx::Matrix<rr::VertexRange>& tile_bounds ) {
   auto start_time = chrono::system_clock::now();
   SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
@@ -2434,7 +2433,7 @@ void render_landscape_buffer(
   for( Coord const square : ri ) {
     tile_bounds[square] = renderer.range_for( [&] {
       render_landscape_square_if_not_fully_hidden(
-          renderer, square * g_tile_delta, ss, square, viz,
+          renderer, square * g_tile_delta, square, viz,
           options );
     } );
   }

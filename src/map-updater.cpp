@@ -312,7 +312,7 @@ void RenderingMapUpdater::redraw_buffers_for_tiles_where_needed(
         rr::e_render_buffer::landscape_annex,
         [&] {
           render_landscape_square_if_not_fully_hidden(
-              renderer_, tile * g_tile_delta, ss_, tile, *viz,
+              renderer_, tile * g_tile_delta, tile, *viz,
               terrain_options );
         },
         [&] { redraw_landscape_buffer(); } );
@@ -378,7 +378,7 @@ void RenderingMapUpdater::redraw_landscape_buffer() {
       make_terrain_options( options() );
   unique_ptr<IVisibility const> const viz =
       create_visibility_for( ss_, options().nation );
-  render_landscape_buffer( renderer_, ss_, *viz, terrain_options,
+  render_landscape_buffer( renderer_, *viz, terrain_options,
                            landscape_tracking_.tile_bounds );
   // Reset this since we just redrew the map.
   landscape_tracking_.tiles_redrawn = 0;

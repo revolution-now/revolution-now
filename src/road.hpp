@@ -25,7 +25,6 @@ namespace rn {
 
 struct IMapUpdater;
 struct MapSquare;
-struct SSConst;
 struct TerrainState;
 struct UnitsState;
 struct IVisibility;
@@ -62,7 +61,6 @@ bool can_build_road( Unit const& unit );
 ** Rendering
 *****************************************************************/
 void render_road_if_present( rr::Painter& painter, Coord where,
-                             SSConst const&     ss,
                              IVisibility const& viz,
                              Coord              world_tile );
 

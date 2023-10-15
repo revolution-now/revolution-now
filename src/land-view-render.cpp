@@ -870,7 +870,7 @@ void LandViewRenderer::render_landscape_anim_buffer() const {
                                      state->targets );
   for( auto const& [tile, fog_square] : state->targets )
     render_landscape_square_if_not_fully_hidden(
-        renderer_, tile * g_tile_delta, ss_, tile, viz,
+        renderer_, tile * g_tile_delta, tile, viz,
         TerrainRenderOptions{} );
 }
 

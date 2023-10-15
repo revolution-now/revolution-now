@@ -29,7 +29,6 @@ struct Matrix;
 
 namespace rn {
 
-struct SSConst;
 struct IVisibility;
 
 /****************************************************************
@@ -49,8 +48,8 @@ struct TerrainRenderOptions {
 // Render the terrain square as seen by a player (meaning that it
 // might not be visible, in which case nothing will be drawn).
 void render_landscape_square_if_not_fully_hidden(
-    rr::Renderer& renderer, Coord where, SSConst const& ss,
-    Coord world_square, IVisibility const& viz,
+    rr::Renderer& renderer, Coord where, Coord world_square,
+    IVisibility const&          viz,
     TerrainRenderOptions const& options );
 
 // Renders the overlays both for unexplored terrain and fog of
@@ -63,8 +62,8 @@ void render_obfuscation_overlay(
 
 // Render the landscape buffer (all tiles).
 void render_landscape_buffer(
-    rr::Renderer& renderer, SSConst const& ss,
-    IVisibility const& viz, TerrainRenderOptions const& options,
+    rr::Renderer& renderer, IVisibility const& viz,
+    TerrainRenderOptions const&   options,
     gfx::Matrix<rr::VertexRange>& tile_bounds );
 
 // Render the obfuscation buffer (all tiles). The reason that the
@@ -84,8 +83,8 @@ void render_obfuscation_buffer(
 // and obfuscation into separate buffers so that entities (units,
 // etc.) can be drawn in between them.
 void render_terrain_square_merged(
-    rr::Renderer& renderer, Coord where, SSConst const& ss,
-    Coord world_square, IVisibility const& viz,
+    rr::Renderer& renderer, Coord where, Coord world_square,
+    IVisibility const&          viz,
     TerrainRenderOptions const& options );
 
 } // namespace rn

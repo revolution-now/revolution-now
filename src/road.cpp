@@ -136,7 +136,6 @@ bool can_build_road( Unit const& unit ) {
 ** Rendering
 *****************************************************************/
 void render_road_if_present( rr::Painter& painter, Coord where,
-                             SSConst const&     ss,
                              IVisibility const& viz,
                              Coord              world_tile ) {
   auto has_road = [&]( Coord tile ) {
@@ -176,8 +175,8 @@ void render_road_if_present( rr::Painter& painter, Coord where,
     // pletely hidden behind the dwelling, but still be visible
     // e.g. in "hidden terrain" view or while in the map editor.
     bool const has_dwelling =
-        ss.natives.maybe_dwelling_from_coord( world_tile )
-            .has_value();
+        viz.create_fog_square_at( world_tile )
+            ->dwelling.has_value();
     if( !has_dwelling )
       render_sprite( painter, where, e_tile::road_island );
     else
