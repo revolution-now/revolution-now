@@ -10,15 +10,12 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // Revolution Now
 #include "render.hpp"
 #include "time.hpp"
 
 // ss
 #include "ss/colony-id.hpp"
-#include "ss/dwelling-id.hpp"
 #include "ss/ref.hpp"
 #include "ss/unit-id.hpp"
 
@@ -26,7 +23,6 @@
 #include "gfx/coord.hpp"
 
 // C++ standard library
-#include <unordered_map>
 #include <vector>
 
 namespace rr {
@@ -37,6 +33,7 @@ namespace rn {
 
 class SmoothViewport;
 
+struct DwellingAnimationState;
 struct FogColony;
 struct FogDwelling;
 struct LandViewAnimator;
@@ -109,6 +106,7 @@ struct LandViewRenderer {
                             Coord              tile ) const;
 
   void render_dwelling_depixelate(
+      DwellingAnimationState const& anim,
       FogDwelling const& fog_dwelling, Coord tile ) const;
 
   Coord dwelling_pixel_coord_from_tile( Coord tile ) const;

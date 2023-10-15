@@ -29,7 +29,6 @@
 
 // ss
 #include "ss/colonies.hpp"
-#include "ss/dwelling.rds.hpp"
 #include "ss/fog-square.rds.hpp"
 #include "ss/natives.hpp"
 #include "ss/ref.hpp"
@@ -523,18 +522,19 @@ void LandViewRenderer::render_fog_dwelling(
       renderer_, dwelling_pixel_coord_from_tile( tile ),
       fog_dwelling );
 }
+
 void LandViewRenderer::render_dwelling_depixelate(
+    DwellingAnimationState const& anim,
     FogDwelling const& fog_dwelling, Coord tile ) const {
   UNWRAP_CHECK(
-      animation,
-      lv_animator_.fog_dwelling_animation( tile )
-          .get_if<DwellingAnimationState::depixelate>() );
+      depixelate,
+      anim.get_if<DwellingAnimationState::depixelate>() );
   // As usual, the hash anchor coord is arbitrary so long as
   // its position is fixed relative to the sprite.
   Coord const hash_anchor =
       render_rect_for_tile( tile ).upper_left();
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
-                           animation.stage );
+                           depixelate.stage );
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
                            hash_anchor );
   render_fog_dwelling( fog_dwelling, tile );
@@ -655,8 +655,8 @@ void LandViewRenderer::render_backdrop() const {
       Delta{ .w = W{ shortest_side }, .h = H{ shortest_side } };
   Rect const tiled_rect =
       Rect::from( Coord{},
-                  tile_size* Delta{ .w = num_squares_needed,
-                                    .h = num_squares_needed } )
+                  tile_size * Delta{ .w = num_squares_needed,
+                                     .h = num_squares_needed } )
           .centered_on( Coord{} );
   Delta const shift = viewport_rect_pixels_.center() -
                       viewport_rect_pixels_.upper_left();
@@ -707,14 +707,14 @@ void LandViewRenderer::render_dwellings() const {
       maybe<DwellingAnimationState const&> anim =
           lv_animator_.dwelling_animation( real_dwelling_id );
       if( anim.has_value() ) {
-        render_dwelling_depixelate( fog_dwelling, coord );
+        render_dwelling_depixelate( *anim, fog_dwelling, coord );
         continue;
       }
     } else if( has_fog_dwelling_anims ) {
       maybe<DwellingAnimationState const&> anim =
           lv_animator_.fog_dwelling_animation( coord );
       if( anim.has_value() ) {
-        render_dwelling_depixelate( fog_dwelling, coord );
+        render_dwelling_depixelate( *anim, fog_dwelling, coord );
         continue;
       }
     }
