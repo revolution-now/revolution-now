@@ -79,7 +79,7 @@ struct SS {
   SS();
   ~SS();
 
-  operator SSConst const&() ATTR_LIFETIMEBOUND {
+  operator SSConst const&() const ATTR_LIFETIMEBOUND {
     return as_const;
   }
 
