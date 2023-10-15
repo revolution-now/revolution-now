@@ -277,7 +277,7 @@ wait<> LandViewAnimator::landscape_anim_depixelation_throttler(
       Coord const moved = tile.moved( d );
       if( !ss_.terrain.square_exists( moved ) ) continue;
       maybe<FogSquare> fog_square =
-          viz_->create_fog_square_at( tile );
+          viz_->create_fog_square_at( moved );
       if( !fog_square.has_value() ) continue;
       fog_squares[moved] = std::move( *fog_square );
     }
