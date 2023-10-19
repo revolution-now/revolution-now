@@ -11,11 +11,9 @@
 *****************************************************************/
 #include "co-scheduler.hpp"
 
-// Revolution Now
-#include "error.hpp"
-
-// C++ standard library
-#include <queue>
+// base
+#include "base/assoc-queue.hpp"
+#include "base/error.hpp"
 
 using namespace std;
 
@@ -23,7 +21,25 @@ namespace rn {
 
 namespace {
 
-queue<coroutine_handle<>> g_coros_to_resume;
+// This associative queue, which is basically a list+map data
+// structure that allows O(1) push, pop, and removal by value ap-
+// pears to be noticeably faster than than using the alternatives
+// (std::queue, std::set, set::unordered_set). This because we
+// need to not only push/pop efficiently, but we need to be able
+// to delete from the middle efficiently for when a coroutine
+// gets destroyed.
+//
+// Because it is a kind of queue, it will ensure that coroutines
+// get run in a FIFO manner. This does not actually seem neces-
+// sary, since coroutines that are scheduled to run in the same
+// frame are conceptually running asynchronously, and so should
+// be tolerant of any (even non-deterministic) ordering. That
+// said, the fact that we order them in a FIFO manner will guar-
+// antee no starvation, just in case that ever becomes a concern
+// (I don't believe that the code base currently has the kind of
+// complex interaction among coroutines that would be necessary
+// to make it a concern, but I don't know for sure).
+base::AssociativeQueue<coroutine_handle<>> g_coros_to_resume;
 
 } // namespace
 
@@ -46,17 +62,11 @@ void run_all_cpp_coroutines() {
 }
 
 void remove_cpp_coroutine_if_queued( coroutine_handle<> h ) {
-  queue<coroutine_handle<>> coros_to_resume;
-  while( !g_coros_to_resume.empty() ) {
-    coroutine_handle<> front = g_coros_to_resume.front();
-    if( front != h ) coros_to_resume.push( front );
-    g_coros_to_resume.pop();
-  }
-  g_coros_to_resume = std::move( coros_to_resume );
+  g_coros_to_resume.erase( h );
 }
 
 int number_of_queued_cpp_coroutines() {
-  return int( g_coros_to_resume.size() );
+  return g_coros_to_resume.size();
 }
 
 } // namespace rn

@@ -11,8 +11,6 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // C++ standard library
 #include <coroutine>
 
