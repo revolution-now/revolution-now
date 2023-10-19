@@ -10,13 +10,8 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // Revolution Now
 #include "wait.hpp"
-
-// base
-#include "base/function-ref.hpp"
 
 // C++ standard library
 #include <chrono>
