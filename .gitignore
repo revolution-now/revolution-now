@@ -52,3 +52,6 @@ saves/slot*
 
 # environment specific.
 /source-me.fish
+
+# python (tools)
+__pycache__
