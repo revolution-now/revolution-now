@@ -1,10 +1,28 @@
-Some links on understanding/reading the original game's save
-files:
+Primary source:
 
-  1. https://github.com/nawagers/Colonization-SAV-files/blob/master/Format.md
-  2. https://forums.civfanatics.com/threads/colonization-1994-sav-files-decoder-and-encoder.681919/
+  1. https://github.com/pavelbel/smcol_saves_utility
+       Notes:
+          * Associated thread:
+              https://forums.civfanatics.com/threads/colonization-1994-sav-files-decoder-and-encoder.681919/
+
+These do or may provide unique info beyond the primary source above:
+
+  1. https://github.com/eb4x/viceroy
+       Notes:
+          * See savegame.h, looks like it has additional fields.
+          * Forked: https://github.com/hegemogy/viceroy but looks behind.
+
+  2. https://github.com/nawagers/Colonization-SAV-files/blob/master/Format.md
+       Notes:
+          * May have a couple bits of additional fields related to market prices.
+
   3. https://forums.civfanatics.com/threads/decoding-colonization-sav-files-1994-old-classic.674707/
-  4. https://github.com/hegemogy/viceroy
-  5. https://github.com/pavelbel/smcol_saves_utility
-  6. https://forums.civfanatics.com/threads/colsaves-updates.678126/
-  7. https://github.com/henryjfry/colsaves/tree/master/colsaves
+       Notes:
+          * The usefulness of this is that it provides additional links.
+
+  4. https://github.com/henryjfry/colsaves/tree/master/colsaves
+       Notes:
+          * Has a lot of fields populated in reader.py, but not
+            yet sure if there are any unique ones.
+          * Forked from https://github.com/marfsama/colsaves but
+            which appears to be behind.
