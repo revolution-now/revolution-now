@@ -28,3 +28,6 @@
 [submodule "extern/stb"]
 	path = extern/stb
 	url = ../stb
+[submodule "extern/smcol_saves_utility"]
+	path = extern/smcol_saves_utility
+	url = https://github.com/no-more-secrets/smcol_saves_utility
