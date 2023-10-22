@@ -73,6 +73,18 @@ end
 
 local function format_hex_byte( b ) return format( '%02x', b ) end
 
+local function format_as_binary( n, num_bits )
+  local res = ''
+  for _ = 1, num_bits do
+    local digit = n & 1
+    res = digit .. res
+    n = n >> 1
+  end
+  assert( n == 0 )
+  assert( #res == num_bits )
+  return res
+end
+
 -----------------------------------------------------------------
 -- JSON helpers.
 -----------------------------------------------------------------
@@ -105,6 +117,19 @@ local function add_reverse_metadata( metadata )
         reverse[v2] = k2
       end
       v.__reverse = reverse
+      setmetatable( v.__reverse, {
+        __index=function( tbl, k )
+          if rawget( tbl, k ) then
+            return rawget( tbl, k )
+          end
+          if rawget( tbl, k:lower() ) then
+            return rawget( tbl, k:lower() )
+          end
+          if rawget( tbl, k:upper() ) then
+            return rawget( tbl, k:upper() )
+          end
+        end,
+      } )
     end
   end
 end
@@ -115,6 +140,7 @@ end
 local SAVParser = {}
 
 function SAVParser:dbg( ... )
+  if not self.debug_logging_ then return end
   local msg = format( ... )
   msg = format( '[%08x] %s', self.sav_file_:seek(), msg )
   dbg( msg )
@@ -143,19 +169,24 @@ end
 function SAVParser:as_meta_type( val, metatype )
   if not metatype then return val end
   assert( type( metatype ) == 'string' )
+  assert( self.metadata_[metatype] )
+  local rev = self.metadata_[metatype].__reverse
+  assert( type( val ) == 'string', format( 'val is %s', val ) )
+  return assert( rev[val] )
+end
+
+function SAVParser:as_meta_bitfield_type( val, metatype )
+  if not metatype then return val end
+  assert( type( metatype ) == 'string' )
   if metatype == 'bit_bool' then
-    assert( val == 0 or val == 1 )
-    if val == 0 then return false end
-    if val == 1 then return true end
+    assert( val == '0' or val == '1' )
+    if val == '0' then return false end
+    if val == '1' then return true end
     error( 'should not be here.' )
   end
-  if self.metadata_[metatype] then
-    local rev = self.metadata_[metatype].__reverse
-    assert( type( val ) == 'string' )
-    if rev[val] then return rev[val] end
-    -- return val .. ' (not mapped)'
-  end
-  return JNULL
+  assert( self.metadata_[metatype] )
+  local rev = self.metadata_[metatype].__reverse
+  return assert( rev[val] )
 end
 
 function SAVParser:byte()
@@ -174,7 +205,12 @@ function SAVParser:bit_field( n, desc )
   assert( desc.size > 0 )
   local mask = (1 << desc.size) - 1
   local res = n & mask
-  return self:as_meta_type( res, desc.type )
+  if desc.type == 'uint' then
+    return res
+  else
+    local formatted = format_as_binary( res, desc.size )
+    return self:as_meta_bitfield_type( formatted, desc.type )
+  end
 end
 
 function SAVParser:unknown( size )
@@ -207,7 +243,7 @@ function SAVParser:struct( struct )
 end
 
 function SAVParser:struct_array( count, struct )
-  self:dbg( 'parsing struct [%s]', self:backtrace() )
+  self:dbg( 'parsing struct array [%s]', self:backtrace() )
   assert( count )
   assert( count >= 0 )
   local res = {}
@@ -254,6 +290,19 @@ function SAVParser:bit_struct( bit_struct )
   return res
 end
 
+function SAVParser:bit_struct_array( count, bit_struct )
+  self:dbg( 'parsing bit_struct array [%s]', self:backtrace() )
+  assert( count )
+  assert( count >= 0 )
+  local res = {}
+  for _ = 1, count do
+    table.insert( res, self:bit_struct( bit_struct ) )
+  end
+  -- Signals this is an array.
+  res[0] = count
+  return res
+end
+
 function SAVParser:string( size )
   self:dbg( 'parsing string [%s]', self:backtrace() )
   assert( size )
@@ -288,11 +337,75 @@ function SAVParser:uint( size )
   return n
 end
 
-function SAVParser:lookup_count( count )
-  if type( count ) == 'number' then return count end
-  assert( type( count ) == 'string' )
-  assert( self.saved_[count] )
-  return self.saved_[count]
+function SAVParser:int( size )
+  local uint = self:uint( size )
+  local nbits = size * 8
+  if uint >> (nbits - 1) == 0 then
+    -- positive.
+    return uint
+  end
+  assert( uint >> (nbits - 1) == 1 )
+  local fs = 0
+  for _ = 1, size do
+    fs = fs << 8
+    fs = fs + 255
+  end
+  local positive = (fs & ~uint) + 1
+  assert( positive > 0 )
+  return -positive
+end
+
+function SAVParser:bits( nbytes )
+  local n = 0
+  for _ = 1, nbytes do
+    n = n << 8
+    n = n + self:byte()
+  end
+  return format_as_binary( n, nbytes * 8 )
+end
+
+function SAVParser:lookup_cells( tbl )
+  local count = tbl.count or 1
+  local cols = tbl.cols or 1
+  if type( count ) == 'string' then
+    count = assert( self.saved_[count] )
+  end
+  if type( cols ) == 'string' then
+    cols = assert( self.saved_[cols] )
+  end
+  assert( type( count ) == 'number' )
+  assert( type( cols ) == 'number' )
+  local res = count * cols
+  assert( res >= 0 )
+  return res
+end
+
+function SAVParser:primitive( tbl )
+  assert( type( tbl.size ) == 'number' )
+  local grab_one = function()
+    if tbl.type == 'str' then
+      return self:string( tbl.size )
+    elseif tbl.type == 'bits' then
+      local byte_count = assert( tbl.size )
+      return self:bits( byte_count )
+    elseif tbl.type == 'uint' then
+      return self:uint( tbl.size )
+    elseif tbl.type == 'int' then
+      return self:int( tbl.size )
+    else
+      return self:as_meta_type( self:unknown( tbl.size ),
+                                tbl.type )
+    end
+  end
+  if tbl.count or tbl.cols then
+    local cells = self:lookup_cells( tbl )
+    assert( type( cells ) == 'number' )
+    local res = {}
+    for _ = 1, cells do table.insert( res, grab_one() ) end
+    return res
+  else
+    return grab_one()
+  end
 end
 
 function SAVParser:entity( parent, field )
@@ -304,27 +417,25 @@ function SAVParser:entity( parent, field )
   table.insert( self.backtrace_, field )
   local res
   if tbl.struct then
-    if tbl.count then
-      local count = self:lookup_count( tbl.count )
-      assert( type( count ) == 'number' )
-      res = self:struct_array( count, tbl.struct )
+    if tbl.count or tbl.cols then
+      local cells = self:lookup_cells( tbl )
+      assert( type( cells ) == 'number' )
+      res = self:struct_array( cells, tbl.struct )
     else
       res = self:struct( tbl.struct )
     end
   elseif tbl.bit_struct then
-    res = self:bit_struct( tbl.bit_struct )
-  else
-    assert( type( tbl.size ) == 'number' )
-    if tbl.type == 'str' then
-      res = self:string( tbl.size )
-    elseif tbl.type == 'uint' then
-      res = self:uint( tbl.size )
+    if tbl.count or tbl.cols then
+      local cells = self:lookup_cells( tbl )
+      assert( type( cells ) == 'number' )
+      res = self:bit_struct_array( cells, tbl.bit_struct )
     else
-      res = self:unknown( tbl.size )
-      res = self:as_meta_type( res, tbl.type )
+      res = self:bit_struct( tbl.bit_struct )
     end
+  else
+    res = self:primitive( tbl )
   end
-  res = res or JNULL
+  assert( res )
   if tbl.save_meta then self.saved_[field] = res end
   table.remove( self.backtrace_ )
   return res
@@ -336,6 +447,7 @@ local function NewSAVParser( sav_file, metadata )
   obj.metadata_ = metadata
   obj.backtrace_ = {}
   obj.saved_ = {}
+  obj.debug_logging_ = false
   setmetatable( obj, {
     __newindex=function() error( 'cannot modify parsers.', 2 ) end,
     __index=SAVParser,
@@ -350,11 +462,8 @@ local function parse_sav( structure, sav )
   local parser = NewSAVParser( sav, structure.__metadata )
   local res
   local success, msg = pcall( function()
-    -- res = parser:struct( structure, 1 )
-    res = {}
-    res.HEAD = parser:entity( structure, 'HEAD' )
-    -- Last.
-    -- res._type = 'SAV'
+    res = parser:struct( structure, 1 )
+    res._type = 'SAV'
   end )
   assert( success, format( 'error at location [%s]: %s',
                            parser:backtrace(), msg ) )
@@ -368,9 +477,8 @@ end
 -- JSON while preserving key ordering.
 local function pprint_json( o, prefix, spaces )
   spaces = spaces or ''
-  if o == JNULL then
-    return 'null'
-  elseif type( o ) == 'table' and not o[0] then
+  assert( o ~= JNULL )
+  if type( o ) == 'table' and not o[0] then
     -- Object.
     local name = o._type or ''
     if #name > 0 then name = name .. ' ' end
