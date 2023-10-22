@@ -71,6 +71,8 @@ local function usage()
       'usage: sav.lua <structure-json-file> <SAV-filename> <output>' )
 end
 
+local function format_hex_byte( b ) return format( '%02x', b ) end
+
 -----------------------------------------------------------------
 -- JSON helpers.
 -----------------------------------------------------------------
@@ -92,9 +94,31 @@ local function json_decode( json_string )
 end
 
 -----------------------------------------------------------------
+-- Structure document.
+-----------------------------------------------------------------
+local function add_reverse_metadata( metadata )
+  for _, v in pairs( metadata ) do
+    if type( v ) == 'table' then
+      local reverse = {}
+      for k2, v2 in pairs( v ) do
+        assert( not reverse[v2] )
+        reverse[v2] = k2
+      end
+      v.__reverse = reverse
+    end
+  end
+end
+
+-----------------------------------------------------------------
 -- Parsers.
 -----------------------------------------------------------------
 local SAVParser = {}
+
+function SAVParser:dbg( ... )
+  local msg = format( ... )
+  msg = format( '[%08x] %s', self.sav_file_:seek(), msg )
+  dbg( msg )
+end
 
 function SAVParser:backtrace()
   local res = 'top'
@@ -116,6 +140,24 @@ function SAVParser:stats()
   return res
 end
 
+function SAVParser:as_meta_type( val, metatype )
+  if not metatype then return val end
+  assert( type( metatype ) == 'string' )
+  if metatype == 'bit_bool' then
+    assert( val == 0 or val == 1 )
+    if val == 0 then return false end
+    if val == 1 then return true end
+    error( 'should not be here.' )
+  end
+  if self.metadata_[metatype] then
+    local rev = self.metadata_[metatype].__reverse
+    assert( type( val ) == 'string' )
+    if rev[val] then return rev[val] end
+    -- return val .. ' (not mapped)'
+  end
+  return JNULL
+end
+
 function SAVParser:byte()
   local c = assert( self.sav_file_:read( 1 ), 'eof' )
   return string.byte( c )
@@ -127,8 +169,27 @@ function SAVParser:bytes( n )
   return res
 end
 
+function SAVParser:bit_field( n, desc )
+  assert( desc.size )
+  assert( desc.size > 0 )
+  local mask = (1 << desc.size) - 1
+  local res = n & mask
+  return self:as_meta_type( res, desc.type )
+end
+
+function SAVParser:unknown( size )
+  assert( size )
+  assert( size > 0 )
+  local res = ''
+  for _ = 1, size do
+    local b = self:byte()
+    res = format( '%s%s ', res, format_hex_byte( b ) )
+  end
+  return res:match( '(.+) +' )
+end
+
 function SAVParser:struct( struct )
-  dbg( 'parsing struct [%s]', self:backtrace() )
+  self:dbg( 'parsing struct [%s]', self:backtrace() )
   assert( struct )
   assert( struct.__key_order )
   assert( not struct.struct )
@@ -146,7 +207,7 @@ function SAVParser:struct( struct )
 end
 
 function SAVParser:struct_array( count, struct )
-  dbg( 'parsing struct [%s]', self:backtrace() )
+  self:dbg( 'parsing struct [%s]', self:backtrace() )
   assert( count )
   assert( count >= 0 )
   local res = {}
@@ -157,7 +218,7 @@ function SAVParser:struct_array( count, struct )
 end
 
 function SAVParser:bit_struct( bit_struct )
-  dbg( 'parsing bit_struct [%s]', self:backtrace() )
+  self:dbg( 'parsing bit_struct [%s]', self:backtrace() )
   assert( bit_struct )
   assert( bit_struct.__key_order )
   local total_bits = 0
@@ -170,13 +231,31 @@ function SAVParser:bit_struct( bit_struct )
   assert( total_bits % 8 == 0,
           format( 'found %d bits in bit_struct.', total_bits ) )
   local total_bytes = total_bits // 8
-  -- TODO: for now just read the bytes.
-  for _ = 1, total_bytes do self:byte() end
-  return JNULL
+  self:dbg( 'bit_struct has %d bytes.', total_bytes )
+  assert( total_bytes <= 4 )
+  local as_number = 0
+  for i = 1, total_bytes do
+    local b = self:byte()
+    assert( b >= 0 and b < 256 )
+    self:dbg( 'byte: %s', format_hex_byte( b ) )
+    as_number = as_number + (b << ((i - 1) * 8))
+  end
+  self:dbg( 'as number: %04x', as_number )
+  local res = {}
+  for _, e in ipairs( bit_struct.__key_order ) do
+    if not e:match( '__' ) then
+      local desc = bit_struct[e]
+      res[e] = self:bit_field( as_number, desc )
+      as_number = as_number >> desc.size
+    end
+  end
+  assert( as_number == 0 )
+  res.__key_order = bit_struct.__key_order
+  return res
 end
 
 function SAVParser:string( size )
-  dbg( 'parsing string [%s]', self:backtrace() )
+  self:dbg( 'parsing string [%s]', self:backtrace() )
   assert( size )
   assert( type( size ) == 'number' )
   local res = ''
@@ -241,8 +320,8 @@ function SAVParser:entity( parent, field )
     elseif tbl.type == 'uint' then
       res = self:uint( tbl.size )
     else
-      self:bytes( tbl.size )
-      res = JNULL
+      res = self:unknown( tbl.size )
+      res = self:as_meta_type( res, tbl.type )
     end
   end
   res = res or JNULL
@@ -285,13 +364,9 @@ end
 -----------------------------------------------------------------
 -- Reporters.
 -----------------------------------------------------------------
-local function is_identifier( str )
-  local m = str:match( '^[a-zA-Z_][a-zA-Z0-9_]*$' )
-  return m ~= nil and #m > 0
-end
-
--- Recursive function that pretty-prints a layout.
-local function pprint( o, prefix, spaces )
+-- Recursive function that pretty-prints a layout in conforming
+-- JSON while preserving key ordering.
+local function pprint_json( o, prefix, spaces )
   spaces = spaces or ''
   if o == JNULL then
     return 'null'
@@ -317,11 +392,12 @@ local function pprint( o, prefix, spaces )
     end
     for i, k in ipairs( keys ) do
       if not tostring( k ):match( '^_' ) then
-        local v = assert( o[k] )
+        assert( o[k] ~= nil )
+        local v = o[k]
         local k_str = tostring( k )
         k_str = '"' .. k_str .. '"'
         s = s .. prefix .. spaces .. k_str .. ': ' ..
-                pprint( v, prefix, spaces )
+                pprint_json( v, prefix, spaces )
         if i ~= total_emitted_keys then s = s .. ',' end
         s = s .. '\n'
       end
@@ -337,7 +413,8 @@ local function pprint( o, prefix, spaces )
     spaces = spaces .. '  '
     local total_emitted_keys = #o
     for i, e in ipairs( o ) do
-      s = s .. prefix .. spaces .. pprint( e, prefix, spaces )
+      s = s .. prefix .. spaces ..
+              pprint_json( e, prefix, spaces )
       if i ~= total_emitted_keys then s = s .. ',' end
       s = s .. '\n'
     end
@@ -366,6 +443,9 @@ local function main( args )
   log( 'decoding json structure file %s...', structure_json )
   local structure = json_decode(
                         io.open( structure_json, 'r' ):read( 'a' ) )
+  log( 'producing reverse metadata mapping...' )
+  assert( structure.__metadata )
+  add_reverse_metadata( structure.__metadata )
   local colony_sav = assert( args[2] )
   check( colony_sav:match( '^COLONY%d%d%.SAV$' ),
          'colony_sav %s has invalid format.', colony_sav )
@@ -379,7 +459,7 @@ local function main( args )
     err( 'bytes remaining: %d', stats.bytes_remaining )
   end
   log( 'encoding json...' )
-  local json_sav = pprint( parsed, '', '' )
+  local json_sav = pprint_json( parsed, '', '' )
   log( 'writing output file %s...', output_json )
   io.open( output_json, 'w' ):write( json_sav )
   return 0
