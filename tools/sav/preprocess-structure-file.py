@@ -28,8 +28,9 @@ but it does actually make the document more readable by keeping
 those tables on a single line that give the type/size of each
 field.
 '''
-
 import sys
+sys.dont_write_bytecode = True
+
 import json
 import argparse
 
@@ -56,9 +57,9 @@ def add_key_orders( o ):
   return o
 
 def main( args ):
-  version = (sys.version_info.major, sys.version_info.minor)
-  print( f'python version: {version}' )
-  if version < (3, 7):
+  major, minor = (sys.version_info.major, sys.version_info.minor)
+  print( f'python version: {major}.{minor}' )
+  if (major, minor) < (3, 7):
     raise Exception( 'This script requires python 3.7+ because ' + \
                      'it relies on ordered dictionary keys.' )
   print( f'reading {args.input}...' )

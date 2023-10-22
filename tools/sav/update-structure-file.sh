@@ -1,4 +1,7 @@
 #!/bin/bash
+# Run this when the smcol_sav_struct.json file is updated, which
+# is done by pulling in changes from the smcol_saves_utility ex-
+# tern repo.
 set -eo pipefail
 
 sav="$(realpath "$(dirname "$0")")"
