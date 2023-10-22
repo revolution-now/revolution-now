@@ -67,13 +67,13 @@ local function check( condition, ... )
 end
 
 local function usage()
-  err( 'usage: sav.lua <structure-json-file> <SAV-filename>' )
+  err(
+      'usage: sav.lua <structure-json-file> <SAV-filename> <output>' )
 end
 
 -----------------------------------------------------------------
 -- JSON helpers.
 -----------------------------------------------------------------
--- lunajson.decode(jsonstr, [pos, [nullv, [arraylen]]])
 local JNULL = {}
 
 -- Decode  a string of json.
@@ -151,6 +151,8 @@ function SAVParser:struct_array( count, struct )
   assert( count >= 0 )
   local res = {}
   for _ = 1, count do table.insert( res, self:struct( struct ) ) end
+  -- Signals this is an array.
+  res[0] = count
   return res
 end
 
@@ -293,13 +295,8 @@ local function pprint( o, prefix, spaces )
   spaces = spaces or ''
   if o == JNULL then
     return 'null'
-  elseif type( o ) == 'table' then
-    local meta = getmetatable( o )
-    if meta and meta.__tostring then
-      local s = ''
-      if #spaces == 0 then s = prefix end
-      return s .. meta.__tostring( o )
-    end
+  elseif type( o ) == 'table' and not o[0] then
+    -- Object.
     local name = o._type or ''
     if #name > 0 then name = name .. ' ' end
     local s = ''
@@ -312,23 +309,43 @@ local function pprint( o, prefix, spaces )
       for k, _ in pairs( o ) do table.insert( keys, k ) end
       table.sort( keys )
     end
-
+    local total_emitted_keys = 0
     for _, k in ipairs( keys ) do
+      if not tostring( k ):match( '^_' ) then
+        total_emitted_keys = total_emitted_keys + 1
+      end
+    end
+    for i, k in ipairs( keys ) do
       if not tostring( k ):match( '^_' ) then
         local v = assert( o[k] )
         local k_str = tostring( k )
-        if not is_identifier( k_str ) then
-          k_str = '"' .. k_str .. '"'
-        end
+        k_str = '"' .. k_str .. '"'
         s = s .. prefix .. spaces .. k_str .. ': ' ..
-                pprint( v, prefix, spaces ) .. ',\n'
+                pprint( v, prefix, spaces )
+        if i ~= total_emitted_keys then s = s .. ',' end
+        s = s .. '\n'
       end
     end
     return s .. prefix .. string.sub( spaces, 3 ) .. '}'
+  elseif type( o ) == 'table' and o[0] then
+    -- Array.
+    local name = o._type or ''
+    if #name > 0 then name = name .. ' ' end
+    local s = ''
+    if #spaces == 0 then s = prefix end
+    s = s .. name .. '[\n'
+    spaces = spaces .. '  '
+    local total_emitted_keys = #o
+    for i, e in ipairs( o ) do
+      s = s .. prefix .. spaces .. pprint( e, prefix, spaces )
+      if i ~= total_emitted_keys then s = s .. ',' end
+      s = s .. '\n'
+    end
+    return s .. prefix .. string.sub( spaces, 3 ) .. ']'
   elseif type( o ) == 'string' then
     local s = ''
     if #spaces == 0 then s = prefix end
-    return s .. '\'' .. tostring( o ) .. '\''
+    return s .. '"' .. tostring( o ) .. '"'
   else
     local s = ''
     if #spaces == 0 then s = prefix end
@@ -340,11 +357,11 @@ end
 -- main
 -----------------------------------------------------------------
 local function main( args )
-  if #args < 2 then
+  if #args < 3 then
     usage()
     return 1
   end
-  if #args > 2 then warn( 'extra unused arguments detected' ) end
+  if #args > 3 then warn( 'extra unused arguments detected' ) end
   local structure_json = assert( args[1] )
   log( 'decoding json structure file %s...', structure_json )
   local structure = json_decode(
@@ -353,16 +370,18 @@ local function main( args )
   check( colony_sav:match( '^COLONY%d%d%.SAV$' ),
          'colony_sav %s has invalid format.', colony_sav )
   log( 'reading save file %s', colony_sav )
-  local res, stats = parse_sav( structure, assert(
-                                    io.open( colony_sav, 'rb' ) ) )
+  local output_json = assert( args[3] )
+  local parsed, stats = parse_sav( structure, assert(
+                                       io.open( colony_sav, 'rb' ) ) )
   log( 'finished parsing. stats:' )
   log( 'bytes read: %d', stats.bytes_read )
-  log( 'bytes remaining: %d', stats.bytes_remaining )
-  log( 'finished parsing. output:' )
-  print( pprint( res, '', '' ) )
   if stats.bytes_remaining > 0 then
     err( 'bytes remaining: %d', stats.bytes_remaining )
   end
+  log( 'encoding json...' )
+  local json_sav = pprint( parsed, '', '' )
+  log( 'writing output file %s...', output_json )
+  io.open( output_json, 'w' ):write( json_sav )
   return 0
 end
 
