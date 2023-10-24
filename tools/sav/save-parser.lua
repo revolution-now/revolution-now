@@ -1,12 +1,12 @@
 --[[ ------------------------------------------------------------
 |
-| sav.lua
+| save-parser.lua
 |
 | Project: Revolution Now
 |
 | Created by David P. Sicilia on 2023-10-16.
 |
-| Description: Prototype *.SAV parser (OG's save-game files).
+| Description: SAV parser (OG's save-game files).
 |
 --]] ------------------------------------------------------------
 -----------------------------------------------------------------
@@ -30,7 +30,6 @@ local ANSI_RED = char( 27 ) .. '[31m'
 local ANSI_YELLOW = char( 27 ) .. '[93m'
 local ANSI_BLUE = char( 27 ) .. '[34m'
 local ANSI_BOLD = char( 27 ) .. '[1m'
--- local ANSI_UNDER = char( 27 ) .. '[4m'
 
 -----------------------------------------------------------------
 -- General utils.
@@ -90,7 +89,7 @@ end
 -----------------------------------------------------------------
 local JNULL = {}
 
--- Decode  a string of json.
+-- Decode a string of json.
 local function json_decode( json_string )
   -- Start decoding from the start of the string.
   local pos = 0
@@ -192,12 +191,6 @@ end
 function SAVParser:byte()
   local c = assert( self.sav_file_:read( 1 ), 'eof' )
   return string.byte( c )
-end
-
-function SAVParser:bytes( n )
-  local res = {}
-  for _ = 1, n do table.insert( res, self:byte() ) end
-  return res
 end
 
 function SAVParser:bit_field( n, desc )
@@ -465,10 +458,10 @@ local function parse_sav( structure, sav )
   local parser = NewSAVParser( sav, structure.__metadata )
   local res
   local success, msg = pcall( function()
-    res = parser:struct( structure, 1 )
+    res = parser:struct( structure )
   end )
-  assert( success, format( 'error at location [%s]: %s',
-                           parser:backtrace(), msg ) )
+  check( success, 'error at location [%s]: %s',
+         parser:backtrace(), msg )
   return res, parser:stats()
 end
 

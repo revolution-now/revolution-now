@@ -21,4 +21,4 @@ out="$sav.json"
     "$sav"                        \
     "$out"
 
-bat --theme=base16 --style=plain "$out"
+# bat --theme=base16 --style=plain "$out"
