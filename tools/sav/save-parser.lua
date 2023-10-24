@@ -147,7 +147,7 @@ function SAVParser:dbg( ... )
 end
 
 function SAVParser:backtrace()
-  local res = 'top'
+  local res = 'SAV'
   for _, e in ipairs( self.backtrace_ ) do
     res = format( '%s.%s', res, e )
   end
@@ -402,6 +402,8 @@ function SAVParser:primitive( tbl )
     assert( type( cells ) == 'number' )
     local res = {}
     for _ = 1, cells do table.insert( res, grab_one() ) end
+    -- Signals this is an array.
+    res[0] = cells
     return res
   else
     return grab_one()
@@ -463,7 +465,6 @@ local function parse_sav( structure, sav )
   local res
   local success, msg = pcall( function()
     res = parser:struct( structure, 1 )
-    res._type = 'SAV'
   end )
   assert( success, format( 'error at location [%s]: %s',
                            parser:backtrace(), msg ) )
@@ -480,11 +481,9 @@ local function pprint_json( o, prefix, spaces )
   assert( o ~= JNULL )
   if type( o ) == 'table' and not o[0] then
     -- Object.
-    local name = o._type or ''
-    if #name > 0 then name = name .. ' ' end
     local s = ''
     if #spaces == 0 then s = prefix end
-    s = s .. name .. '{\n'
+    s = s .. '{\n'
     spaces = spaces .. '  '
     local keys = o.__key_order
     if not keys then
@@ -494,17 +493,17 @@ local function pprint_json( o, prefix, spaces )
     end
     local total_emitted_keys = 0
     for _, k in ipairs( keys ) do
-      if not tostring( k ):match( '^_' ) then
+      if not k:match( '^_' ) then
         total_emitted_keys = total_emitted_keys + 1
       end
     end
     for i, k in ipairs( keys ) do
-      if not tostring( k ):match( '^_' ) then
+      assert( type( k ) == 'string' )
+      if not k:match( '^_' ) then
         assert( o[k] ~= nil )
         local v = o[k]
-        local k_str = tostring( k )
-        k_str = '"' .. k_str .. '"'
-        s = s .. prefix .. spaces .. k_str .. ': ' ..
+        k = '"' .. k .. '"'
+        s = s .. prefix .. spaces .. k .. ': ' ..
                 pprint_json( v, prefix, spaces )
         if i ~= total_emitted_keys then s = s .. ',' end
         s = s .. '\n'
@@ -513,11 +512,9 @@ local function pprint_json( o, prefix, spaces )
     return s .. prefix .. string.sub( spaces, 3 ) .. '}'
   elseif type( o ) == 'table' and o[0] then
     -- Array.
-    local name = o._type or ''
-    if #name > 0 then name = name .. ' ' end
     local s = ''
     if #spaces == 0 then s = prefix end
-    s = s .. name .. '[\n'
+    s = s .. '[\n'
     spaces = spaces .. '  '
     local total_emitted_keys = #o
     for i, e in ipairs( o ) do
