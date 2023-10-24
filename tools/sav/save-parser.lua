@@ -20,6 +20,7 @@ local lunajson = require( 'lunajson' )
 local format = string.format
 local char = string.char
 local exit = os.exit
+local yield = coroutine.yield
 
 -----------------------------------------------------------------
 -- Constants.
@@ -468,16 +469,30 @@ end
 -----------------------------------------------------------------
 -- Reporters.
 -----------------------------------------------------------------
--- Recursive function that pretty-prints a layout in conforming
--- JSON while preserving key ordering.
-local function pprint_json( o, prefix, spaces )
+local function appender()
+  local res = ''
+  return function( segment )
+    if not segment then
+      -- flush line.
+      yield( res )
+      res = ''
+    else
+      res = res .. segment
+    end
+  end
+end
+
+-- Coroutine generator function that pretty-prints a layout in
+-- conforming JSON while preserving key ordering. Each time a
+-- line is produced it will yield it.
+local function pprint_json( append, o, prefix, spaces )
   spaces = spaces or ''
   assert( o ~= JNULL )
   if type( o ) == 'table' and not o[0] then
     -- Object.
-    local s = ''
-    if #spaces == 0 then s = prefix end
-    s = s .. '{\n'
+    if #spaces == 0 then append( prefix ) end
+    append( '{' )
+    append()
     spaces = spaces .. '  '
     local keys = {}
     if o.__key_order then
@@ -500,33 +515,33 @@ local function pprint_json( o, prefix, spaces )
       assert( o[k] ~= nil )
       local v = o[k]
       k = '"' .. k .. '"'
-      s = s .. prefix .. spaces .. k .. ': ' ..
-              pprint_json( v, prefix, spaces )
-      if i ~= #keys then s = s .. ',' end
-      s = s .. '\n'
+      append( prefix .. spaces .. k .. ': ' )
+      pprint_json( append, v, prefix, spaces )
+      if i ~= #keys then append( ',' ) end
+      append()
     end
-    return s .. prefix .. string.sub( spaces, 3 ) .. '}'
+    append( prefix .. string.sub( spaces, 3 ) .. '}' )
   elseif type( o ) == 'table' and o[0] then
     -- Array.
-    local s = ''
-    if #spaces == 0 then s = prefix end
-    s = s .. '[\n'
+    if #spaces == 0 then append( prefix ) end
+    append( '[' )
+    append()
     spaces = spaces .. '  '
     for i, e in ipairs( o ) do
-      s = s .. prefix .. spaces ..
-              pprint_json( e, prefix, spaces )
-      if i ~= #o then s = s .. ',' end
-      s = s .. '\n'
+      append( prefix .. spaces )
+      pprint_json( append, e, prefix, spaces )
+      if i ~= #o then append( ',' ) end
+      append()
     end
-    return s .. prefix .. string.sub( spaces, 3 ) .. ']'
+    append( prefix .. string.sub( spaces, 3 ) .. ']' )
   elseif type( o ) == 'string' then
     local s = ''
     if #spaces == 0 then s = prefix end
-    return s .. '"' .. tostring( o ) .. '"'
+    append( s .. '"' .. tostring( o ) .. '"' )
   else
     local s = ''
     if #spaces == 0 then s = prefix end
-    return s .. tostring( o )
+    append( s .. tostring( o ) )
   end
 end
 
@@ -559,9 +574,15 @@ local function main( args )
     err( 'bytes remaining: %d', stats.bytes_remaining )
   end
   log( 'encoding json...' )
-  local json_sav = pprint_json( parsed, '', '' )
+  local append = appender()
+  local printer = coroutine.wrap( function()
+    pprint_json( append, parsed, '', '' )
+    append() -- emit final brace.
+  end )
   log( 'writing output file %s...', output_json )
-  io.open( output_json, 'w' ):write( json_sav )
+  local out = assert( io.open( output_json, 'w' ) )
+  for line in printer do out:write( line .. '\n' ) end
+  out:close()
   return 0
 end
 
