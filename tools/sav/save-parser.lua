@@ -485,29 +485,31 @@ local function pprint_json( o, prefix, spaces )
     if #spaces == 0 then s = prefix end
     s = s .. '{\n'
     spaces = spaces .. '  '
-    local keys = o.__key_order
-    if not keys then
-      keys = {}
-      for k, _ in pairs( o ) do table.insert( keys, k ) end
+    local keys = {}
+    if o.__key_order then
+      for _, k in ipairs( o.__key_order ) do
+        assert( type( k ) == 'string' )
+        if not k:match( '^_' ) then
+          table.insert( keys, k )
+        end
+      end
+    else
+      for k, _ in pairs( o ) do
+        assert( type( k ) == 'string' )
+        if not k:match( '^_' ) then
+          table.insert( keys, k )
+        end
+      end
       table.sort( keys )
     end
-    local total_emitted_keys = 0
-    for _, k in ipairs( keys ) do
-      if not k:match( '^_' ) then
-        total_emitted_keys = total_emitted_keys + 1
-      end
-    end
     for i, k in ipairs( keys ) do
-      assert( type( k ) == 'string' )
-      if not k:match( '^_' ) then
-        assert( o[k] ~= nil )
-        local v = o[k]
-        k = '"' .. k .. '"'
-        s = s .. prefix .. spaces .. k .. ': ' ..
-                pprint_json( v, prefix, spaces )
-        if i ~= total_emitted_keys then s = s .. ',' end
-        s = s .. '\n'
-      end
+      assert( o[k] ~= nil )
+      local v = o[k]
+      k = '"' .. k .. '"'
+      s = s .. prefix .. spaces .. k .. ': ' ..
+              pprint_json( v, prefix, spaces )
+      if i ~= #keys then s = s .. ',' end
+      s = s .. '\n'
     end
     return s .. prefix .. string.sub( spaces, 3 ) .. '}'
   elseif type( o ) == 'table' and o[0] then
@@ -516,11 +518,10 @@ local function pprint_json( o, prefix, spaces )
     if #spaces == 0 then s = prefix end
     s = s .. '[\n'
     spaces = spaces .. '  '
-    local total_emitted_keys = #o
     for i, e in ipairs( o ) do
       s = s .. prefix .. spaces ..
               pprint_json( e, prefix, spaces )
-      if i ~= total_emitted_keys then s = s .. ',' end
+      if i ~= #o then s = s .. ',' end
       s = s .. '\n'
     end
     return s .. prefix .. string.sub( spaces, 3 ) .. ']'
