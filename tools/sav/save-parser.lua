@@ -268,7 +268,8 @@ function SAVParser:bit_struct( bit_struct )
           format( 'found %d bits in bit_struct.', total_bits ) )
   local total_bytes = total_bits // 8
   self:dbg( 'bit_struct has %d bytes.', total_bytes )
-  assert( total_bytes <= 4 )
+  -- This is the largest value seen in the structure file.
+  assert( total_bytes <= 6 )
   local as_number = 0
   for i = 1, total_bytes do
     local b = self:byte()
