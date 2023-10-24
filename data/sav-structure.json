@@ -403,7 +403,7 @@
                 "unknown45",
                 "expeditionary_force",
                 "backup_force",
-                "unknown46",
+                "price_group_state",
                 "event",
                 "unknown05"
             ],
@@ -518,7 +518,50 @@
                     "artillery": {"size": 2, "type": "uint"}
                 }
             },
-            "unknown46": {"size": 32},
+            "price_group_state":
+            {
+                "__hint_1": "For those goods that are in a price group (rum/cigars/cloth/coats), these contain",
+                "__hint_2": "part of the internal state used for computing their market prices, used for all nations.",
+                "__hint_3": "See the relevant section in supplemental-info.md for more details.",
+                "no_indent": true,
+                "struct":
+                {
+                    "__key_order": [
+                        "food",
+                        "sugar",
+                        "tobacco",
+                        "cotton",
+                        "furs",
+                        "lumber",
+                        "ore",
+                        "silver",
+                        "horses",
+                        "rum",
+                        "cigars",
+                        "cloth",
+                        "coats",
+                        "trade_goods",
+                        "tools",
+                        "muskets"
+                    ],
+                    "food": {"size": 2, "type": "uint", "__hint": "unused?"},
+                    "sugar": {"size": 2, "type": "uint", "__hint": "unused?"},
+                    "tobacco": {"size": 2, "type": "uint", "__hint": "unused?"},
+                    "cotton": {"size": 2, "type": "uint", "__hint": "unused?"},
+                    "furs": {"size": 2, "type": "uint", "__hint": "unused?"},
+                    "lumber": {"size": 2, "type": "uint", "__hint": "unused?"},
+                    "ore": {"size": 2, "type": "uint", "__hint": "unused?"},
+                    "silver": {"size": 2, "type": "uint", "__hint": "unused?"},
+                    "horses": {"size": 2, "type": "uint", "__hint": "unused?"},
+                    "rum": {"size": 2, "type": "uint", "__hint": "used as part of rum's internal price group state."},
+                    "cigars": {"size": 2, "type": "uint", "__hint": "used as part of cigars' internal price group state."},
+                    "cloth": {"size": 2, "type": "uint", "__hint": "used as part of cloth's internal price group state."},
+                    "coats": {"size": 2, "type": "uint", "__hint": "used as part of coats' internal price group state."},
+                    "trade_goods": {"size": 2, "type": "uint", "__hint": "unused?"},
+                    "tools": {"size": 2, "type": "uint", "__hint": "unused?"},
+                    "muskets": {"size": 2, "type": "uint", "__hint": "unused?"}
+                }
+            },
             "event":
             {
                 "__hint": "bit flags for events shown in a 'wood box'",
