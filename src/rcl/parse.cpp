@@ -485,7 +485,16 @@ base::expect<doc, string> parse(
   g_end          = in.end();
 
   table tbl;
-  while( parse_key_val( &tbl ) ) {}
+  // At the top level, the document must be a table. However,
+  // top-level braces are optional (unlike with JSON). So first
+  // check if we are parsing a JSON-like document and, if not,
+  // fall back to just parsing the key/value pairs directly.
+  eat_blanks();
+  if( g_cur != g_end && *g_cur == '{' )
+    parse_table( &tbl );
+  else
+    while( parse_key_val( &tbl ) ) {}
+  eat_blanks();
 
   auto [line, col] = error_pos( in, g_cur - g_start );
   if( g_cur != g_end )

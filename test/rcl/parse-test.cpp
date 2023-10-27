@@ -16,6 +16,7 @@
 // base
 #include "base/io.hpp"
 #include "base/string.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -304,6 +305,64 @@ TEST_CASE( "[parse] table with duplicate keys" ) {
         Contains(
             "fake-file:error:3:4: unexpected character" ) );
   }
+}
+
+TEST_CASE( "[parse] parse empty document." ) {
+  string const input;
+  auto         doc = parse( "fake-file", input );
+  REQUIRE( doc );
+  cdr::table expected;
+  REQUIRE( doc->top_tbl() == expected );
+}
+
+// Test that we can parse standards-confirming JSON, which we're
+// supposed to be able to do because rcl is supposed to be a su-
+// perset of JSON.
+TEST_CASE( "[parse] rcl is a superset of JSON." ) {
+  using namespace cdr;
+  using namespace cdr::literals;
+  static string const input = R"json(
+    {
+      "key_1": 42,
+      "key_2": 55.6,
+      "hello": "world",
+      "boolean": true,
+      "not boolean": false,
+      "null_value": null,
+      "people": [
+        {
+          "name": "bob",
+          "age": 123
+        },
+        {
+          "name": "joe",
+          "age": 0
+        }
+      ],
+      "table_value": {
+        "another_key": 99,
+        "yet another key": "with\nnew\nlines"
+      }
+    }
+  )json";
+
+  auto doc = parse( "fake-file", input );
+  REQUIRE( doc );
+
+  table expected = {
+      "key_1"_key       = 42,
+      "key_2"_key       = 55.6,
+      "hello"_key       = "world",
+      "boolean"_key     = true,
+      "not boolean"_key = false,
+      "null_value"_key  = null,
+      "people"_key =
+          list{ table{ "name"_key = "bob", "age"_key = 123 },
+                table{ "name"_key = "joe", "age"_key = 0 } },
+      "table_value"_key = table{
+          "another_key"_key     = 99,
+          "yet another key"_key = "with\\nnew\\nlines" } };
+  REQUIRE( doc->top_tbl() == expected );
 }
 
 } // namespace
