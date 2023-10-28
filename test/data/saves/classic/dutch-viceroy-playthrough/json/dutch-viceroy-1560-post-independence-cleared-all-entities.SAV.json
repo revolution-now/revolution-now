@@ -43,7 +43,7 @@
     "unknown41": "03 00 03 00 03 00",
     "tribe_count": 0,
     "unit_count": 0,
-    "colony_count": 1,
+    "colony_count": 0,
     "trade_route_count": 2,
     "unknown42": "00 01 00 ff ff",
     "difficulty": "Viceroy",
@@ -139,237 +139,6 @@
   ],
   "OTHER": "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 2c 00 18 00 00 00",
   "COLONY": [
-    {
-      "x, y": [
-        45,
-        57
-      ],
-      "name": "Isabella",
-      "nation_id": "Spain",
-      "unknown08": "b8 40 00 00",
-      "population": 3,
-      "occupation": [
-        "Carpenter",
-        "Farmer",
-        "Lumberjack",
-        "Teacher",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer",
-        "Farmer"
-      ],
-      "profession": [
-        "Master tobacco planter",
-        "Indian convert",
-        "Expert lumberjack",
-        "Petty criminal",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer",
-        "Expert farmer"
-      ],
-      "duration": [
-        {
-          "dur_1": 0,
-          "dur_2": 0
-        },
-        {
-          "dur_1": 0,
-          "dur_2": 0
-        },
-        {
-          "dur_1": 0,
-          "dur_2": 0
-        },
-        {
-          "dur_1": 0,
-          "dur_2": 0
-        },
-        {
-          "dur_1": 0,
-          "dur_2": 0
-        },
-        {
-          "dur_1": 0,
-          "dur_2": 0
-        },
-        {
-          "dur_1": 0,
-          "dur_2": 0
-        },
-        {
-          "dur_1": 0,
-          "dur_2": 0
-        },
-        {
-          "dur_1": 0,
-          "dur_2": 0
-        },
-        {
-          "dur_1": 0,
-          "dur_2": 0
-        },
-        {
-          "dur_1": 0,
-          "dur_2": 0
-        },
-        {
-          "dur_1": 0,
-          "dur_2": 0
-        },
-        {
-          "dur_1": 0,
-          "dur_2": 0
-        },
-        {
-          "dur_1": 0,
-          "dur_2": 0
-        },
-        {
-          "dur_1": 0,
-          "dur_2": 0
-        },
-        {
-          "dur_1": 0,
-          "dur_2": 0
-        }
-      ],
-      "tiles": {
-        "tile_N": 1,
-        "tile_E": -1,
-        "tile_S": -1,
-        "tile_W": -1,
-        "tile_NW": -1,
-        "tile_NE": -1,
-        "tile_SE": -1,
-        "tile_SW": 2
-      },
-      "unknown10": "ff ff ff ff ff ff ff ff ff ff ff ff",
-      "buildings": {
-        "fortification": "0",
-        "armory": "0",
-        "docks": "0",
-        "town_hall": "1",
-        "schoolhouse": "0",
-        "warehouse": false,
-        "unused05a": false,
-        "stables": false,
-        "custom_house": false,
-        "printing_press": "0",
-        "weavers_house": "1",
-        "tobacconists_house": "1",
-        "rum_distillers_house": "1",
-        "capitol (unused)": "0",
-        "fur_traders_house": "1",
-        "carpenters_shop": "1",
-        "church": "0",
-        "blacksmiths_house": "1",
-        "unused05b": "000000"
-      },
-      "custom_house_flags": {
-        "food": false,
-        "sugar": false,
-        "tobacco": false,
-        "cotton": false,
-        "furs": false,
-        "lumber": false,
-        "ore": false,
-        "silver": false,
-        "horses": false,
-        "rum": false,
-        "cigars": false,
-        "cloth": false,
-        "coats": false,
-        "trade_goods": false,
-        "tools": false,
-        "muskets": false
-      },
-      "unknown11": "10 0f 00 01 31 00",
-      "hammers": 42,
-      "building_in_production": "00",
-      "warehouse_level": 0,
-      "unknown12": "00 09 0a 00",
-      "stock": {
-        "food": 42,
-        "sugar": 0,
-        "tobacco": 0,
-        "cotton": 0,
-        "furs": 2,
-        "lumber": 100,
-        "ore": 0,
-        "silver": 0,
-        "horses": 0,
-        "rum": 0,
-        "cigars": 0,
-        "cloth": 0,
-        "coats": 0,
-        "trade_goods": 0,
-        "tools": 80,
-        "muskets": 0
-      },
-      "population_on_map": {
-        "for english": 1,
-        "for french": 1,
-        "for spanish": 3,
-        "for dutch": 1
-      },
-      "fortification_on_map": {
-        "for english": "none",
-        "for french": "none",
-        "for spanish": "none",
-        "for dutch": "none"
-      },
-      "rebel_dividend": "19 00 00 00",
-      "rebel_divisor": "8a 01 00 00"
-    }
   ],
   "UNIT": [
   ],
@@ -1334,7 +1103,7 @@
   "STUFF": {
     "unknown34": "01 ff 00 00 01 00 01 00 ff ff 00 01 00 00 00",
     "counter_decreasing_on_new_colony": 0,
-    "unknown35": "00 01",
+    "unknown35": "00 00",
     "counter_increasing_on_new_colony": 256,
     "unknown36": [
       "00",
@@ -52260,7 +52029,7 @@
     },
     {
       "has_unit": " ",
-      "has_city": "C",
+      "has_city": " ",
       "suppress": " ",
       "road": " ",
       "purchased": " ",
