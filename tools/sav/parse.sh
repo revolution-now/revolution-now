@@ -13,12 +13,11 @@ cd "$this"
 sav="$1"
 [[ -f "$sav" ]] || die "must specify input file as first argument to $0."
 
-out="$sav.json"
+out="${2:-$sav.json}"
+[[ -n "$out" ]] || die "out file is empty."
 
-./with-luarocks-env.sh lua        \
-    save-parser.lua               \
-    ../../data/sav-structure.json \
-    "$sav"                        \
+./with-luarocks-env.sh lua \
+    save-parser.lua        \
+    sav-structure.json     \
+    "$sav"                 \
     "$out"
-
-# bat --theme=base16 --style=plain "$out"
