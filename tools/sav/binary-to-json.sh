@@ -14,11 +14,11 @@ sav="$1"
 out="${2:-$sav.json}"
 [[ -n "$out" ]] || die "out file is empty."
 
-source "$this/with-luarocks-env.sh"
+source "$this/luarocks-env.sh"
 export LUA_PATH="$this/?.lua;$LUA_PATH"
 
 lua                          \
-  "$this/save-parser.lua"    \
+  "$this/binary-to-json.lua" \
   "$this/sav-structure.json" \
   "$sav"                     \
   "$out"
