@@ -22,7 +22,7 @@ parse() {
   local in_file="$1"
   local out_file="$2"
   [[ -f "$in_file" ]]
-  "$sav/parse.sh" "$in_file" "$out_file"
+  "$sav/binary-to-json.sh" "$in_file" "$out_file"
 }
 
 convert_file() {
