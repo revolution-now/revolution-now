@@ -51,8 +51,6 @@ convert_batch() {
 main() {
   batches="$(ls $classic_saves/* -d)"
   for batch in $batches; do
-    # FIXME: 1990s are turned off until we can parse them.
-    [[ "$batch" =~ .*1990s ]] && continue
     convert_batch "$batch"
   done
 }

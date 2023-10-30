@@ -6,7 +6,7 @@
 |
 | Created by David P. Sicilia on 2023-10-28.
 |
-| Description: TODO [FILL ME IN]
+| Description: Reads binary SAV files.
 |
 --]] ------------------------------------------------------------
 local M = {}
@@ -73,7 +73,7 @@ function BinaryLoader:_byte()
   return string.byte( c )
 end
 
-function BinaryLoader:_bit_field( n, desc )
+function BinaryLoader:_extract_bit_field( n, desc )
   assert( desc.size )
   assert( desc.size > 0 )
   local mask = (1 << desc.size) - 1
@@ -126,7 +126,7 @@ function BinaryLoader:bit_struct( bit_struct )
   for _, e in ipairs( bit_struct.__key_order ) do
     if not e:match( '__' ) then
       local desc = bit_struct[e]
-      res[e] = self:_bit_field( as_number, desc )
+      res[e] = self:_extract_bit_field( as_number, desc )
       as_number = as_number >> desc.size
     end
   end
@@ -218,10 +218,8 @@ function BinaryLoader:primitive( tbl )
   return self:_primitive_grab_one( tbl )
 end
 
-function BinaryLoader:primitive_array( tbl )
+function BinaryLoader:primitive_array( cells, tbl )
   assert( type( tbl.size ) == 'number' )
-  assert( tbl.count or tbl.cols )
-  local cells = self:lookup_cells( tbl )
   assert( type( cells ) == 'number' )
   local res = {}
   for _ = 1, cells do

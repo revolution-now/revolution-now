@@ -6,14 +6,10 @@
 |
 | Created by David P. Sicilia on 2023-10-29.
 |
-| Description: TODO [FILL ME IN]
+| Description: General helpers for the Lua SAV manipulators.
 |
 --]] ------------------------------------------------------------
 local M = {}
-
------------------------------------------------------------------
--- Imports.
------------------------------------------------------------------
 
 -----------------------------------------------------------------
 -- Aliases.
@@ -67,7 +63,7 @@ function M.check( condition, ... )
   if not condition then M.fatal( ... ) end
 end
 
-function M.not_implemented() assert( false, 'not implemented', 2 ) end
+function M.not_implemented() assert( false, 'not implemented' ) end
 
 -----------------------------------------------------------------
 -- Finished.
