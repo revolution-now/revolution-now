@@ -225,8 +225,11 @@ function CppEmitter:_primitive_impl( tbl )
     return self:uint( tbl.size )
   elseif tbl.type == 'int' then
     return self:int( tbl.size )
-  elseif tbl.size and tbl.size <= 2 then
+  elseif not tbl.type and tbl.size and tbl.size <= 2 then
     return self:uint( tbl.size )
+  elseif tbl.type then
+    assert( tbl.size )
+    return tbl
   else
     -- return
     --     self:as_meta_type( self:unknown( tbl.size ), tbl.type )
@@ -377,7 +380,6 @@ end
 
 local function elem_type_name( info )
   if type( info ) == 'string' then return info end
-  if info.__name then return struct_name_for( info.__name ) end
   if info.type then
     if not info.value_type then
       return elem_type_name( info.type )
@@ -385,9 +387,9 @@ local function elem_type_name( info )
       return elem_type_name( info.value_type )
     end
   end
-  if info.value_type then
-    return elem_type_name( info.value_type )
-  end
+  assert( not info.value_type )
+  if info.__name then return struct_name_for( info.__name ) end
+  error( 'failed to find elem type name.' )
 end
 
 function CppEmitter:emit_struct( emitter, struct, name )
@@ -424,7 +426,8 @@ function CppEmitter:emit_struct( emitter, struct, name )
       emitter:line( '%s %s = {};', member.type,
                     as_var_name( key ) )
     else
-      emitter:line( '%s %s = {};', elem_type_name( member ),
+      emitter:line( '%s %s = {};',
+                    struct_name_for( assert( member.__name ) ),
                     as_var_name( key ) )
     end
     ::continue::
