@@ -77,7 +77,7 @@ local function main( args )
   info( 'running emitter...' )
   local emitter = assert( NewCppEmitter( structure.__metadata ) )
   local top = emitter:struct( structure )
-  top.__name = 'ColonySav'
+  top.__name = 'ColonySAV'
   table.insert( emitter.finished_structs_, top )
   -- local success, msg = pcall( function()
   --   emitter:struct( 'ColonySav', structure )

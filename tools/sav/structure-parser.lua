@@ -65,7 +65,7 @@ function StructureParser:as_meta_bitfield_type( val, metatype )
     if val == '1' then return true end
     error( 'should not be here.' )
   end
-  assert( self.metadata_[metatype] )
+  assert( self.metadata_[metatype], metatype )
   local rev = self.metadata_[metatype].__reverse
   return assert( rev[val] )
 end
@@ -208,7 +208,7 @@ function StructureParser:bits( _ ) not_implemented() end
 function StructureParser:primitive( _ ) not_implemented() end
 function StructureParser:primitive_array( _, _ ) not_implemented() end
 
-function M.NewStructureParser( metadata )
+function StructureParser.new( metadata )
   local obj = {}
   add_reverse_metadata( metadata )
   obj.metadata_ = assert( metadata )
@@ -223,7 +223,11 @@ function M.NewStructureParser( metadata )
   return obj
 end
 
+setmetatable( StructureParser, {
+  __call=function( _, ... ) return StructureParser.new( ... ) end,
+} )
+
 -----------------------------------------------------------------
 -- Finished.
 -----------------------------------------------------------------
-return M
+return { StructureParser=StructureParser }

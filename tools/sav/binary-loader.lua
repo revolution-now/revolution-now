@@ -23,7 +23,7 @@ local structure_parser = require( 'structure-parser' )
 local format = string.format
 local dbg = util.dbg
 local char = string.char
-local NewStructureParser = structure_parser.NewStructureParser
+local StructureParser = structure_parser.StructureParser
 
 -----------------------------------------------------------------
 -- Helpers.
@@ -231,7 +231,7 @@ function BinaryLoader:primitive_array( cells, tbl )
 end
 
 function M.NewBinaryLoader( metadata, binary_file )
-  local base = NewStructureParser( metadata )
+  local base = StructureParser( metadata )
   local obj = {}
   local BinaryLoaderMeta = setmetatable( {}, {
     __newindex=function() error( 'cannot modify.', 2 ) end,

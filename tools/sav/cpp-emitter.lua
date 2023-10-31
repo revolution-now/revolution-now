@@ -21,14 +21,14 @@ local structure_parser = require( 'structure-parser' )
 -- Aliases.
 -----------------------------------------------------------------
 local insert = table.insert
-local remove = table.remove
 local concat = table.concat
+local sort = table.sort
 
 local format = string.format
 
 local dbg = util.dbg
 
-local NewStructureParser = structure_parser.NewStructureParser
+local StructureParser = structure_parser.StructureParser
 
 -----------------------------------------------------------------
 -- Code gen.
@@ -177,6 +177,13 @@ function CppEmitter:string( size )
   return { type='str', size=size }
 end
 
+local ALLOWED_INTEGRAL_SIZES = {
+  [1]=true,
+  [2]=true,
+  [4]=true,
+  [8]=true,
+}
+
 function CppEmitter:uint( size )
   assert( size )
   assert( type( size ) == 'number' )
@@ -188,7 +195,9 @@ function CppEmitter:uint( size )
     [3]=nil,
     [4]='uint32_t',
     [5]=nil,
-    [6]='uint64_t',
+    [6]=nil,
+    [7]=nil,
+    [8]='uint64_t',
   }
   res.type = assert( types[size] )
   return res
@@ -205,13 +214,18 @@ function CppEmitter:int( size )
     [3]=nil,
     [4]='int32_t',
     [5]=nil,
-    [6]='int64_t',
+    [6]=nil,
+    [7]=nil,
+    [8]='int64_t',
   }
   res.type = assert( types[size] )
   return res
 end
 
 function CppEmitter:bits( nbytes )
+  if ALLOWED_INTEGRAL_SIZES[nbytes] then
+    return self:primitive{ size=nbytes, type='uint' }
+  end
   return { type='std::array', value_type='uint8_t', size=nbytes }
 end
 
@@ -225,14 +239,13 @@ function CppEmitter:_primitive_impl( tbl )
     return self:uint( tbl.size )
   elseif tbl.type == 'int' then
     return self:int( tbl.size )
-  elseif not tbl.type and tbl.size and tbl.size <= 2 then
+  elseif not tbl.type and tbl.size and
+      ALLOWED_INTEGRAL_SIZES[tbl.size] then
     return self:uint( tbl.size )
   elseif tbl.type then
     assert( tbl.size )
     return tbl
   else
-    -- return
-    --     self:as_meta_type( self:unknown( tbl.size ), tbl.type )
     return self:unknown( tbl.size )
   end
 end
@@ -278,7 +291,7 @@ function CppEmitter:struct_array( cells, struct )
     }
   end
   return {
-    type='vector',
+    type='std::vector',
     value_type=res,
     cells=cells,
     __key_order=assert( struct.__key_order ),
@@ -287,8 +300,16 @@ end
 
 function CppEmitter:bit_struct_array( cells, bit_struct )
   local res = self.base_.bit_struct( self, bit_struct )
+  if type( cells ) == 'number' then
+    return {
+      type='std::array',
+      value_type=res,
+      size=cells,
+      __key_order=assert( bit_struct.__key_order ),
+    }
+  end
   return {
-    type='vector',
+    type='std::vector',
     value_type=res,
     cells=cells,
     __key_order=assert( bit_struct.__key_order ),
@@ -320,17 +341,39 @@ function CppEmitter:entity( parent, field )
   return res
 end
 
-local function as_identifier( var )
-  var = var:gsub( '-', '_' )
-  var = var:gsub( ' ', '_' )
-  var = var:gsub( '%(', '_' )
-  var = var:gsub( '%)', '_' )
-  var = var:gsub( ',', '_' )
-  return var
+local function replace_non_identifier_chars( raw )
+  raw = raw:gsub( '[_()%-, ]', '_' )
+  raw = raw:gsub( '%^', 'c' )
+  raw = raw:gsub( '%*', 'a' )
+  raw = raw:gsub( '~', 't' )
+  raw = raw:gsub( ':', 'n' )
+  raw = raw:gsub( '=', 'e' )
+  raw = raw:gsub( '?', 'q' )
+  raw = raw:gsub( '#', 'h' )
+  return raw
 end
 
-local function as_var_name( var )
-  return as_identifier( var ):lower()
+local function as_identifier( raw )
+  if raw:match( '^ +$' ) then return 'empty' end
+  raw = raw:lower()
+  raw = replace_non_identifier_chars( raw )
+  if raw:match( '^[0-9]' ) then raw = '_' .. raw end
+  if raw == 'goto' then raw = 'g0to' end
+  raw = raw:gsub( '_+', '_' )
+  -- Remove trailing underscore.
+  if raw:match( '[^_]' ) then raw = raw:gsub( '_$', '' ) end
+  return raw
+end
+
+local function readably_equivalent( l, r )
+  local function canonical( raw )
+    raw = raw:lower()
+    raw = raw:gsub( '[_%- ]', '_' )
+    if raw:match( '^[0-9]' ) then raw = '_' .. raw end
+    if raw == 'goto' then raw = 'g0to' end
+    return raw
+  end
+  return canonical( l ) == canonical( r )
 end
 
 function CppEmitter:emit_bit_struct( emitter, bit_struct, name )
@@ -352,7 +395,10 @@ function CppEmitter:emit_bit_struct( emitter, bit_struct, name )
     assert( type( member.size ) == 'number' )
     assert( member.size >= 0 )
     assert( member.size <= 8 )
-    emitter:line( 'uint8_t %s : %d;', as_var_name( key ),
+    local type = member.type or 'uint8_t'
+    local remaps = { bit_bool='bool', uint='uint8_t' }
+    type = remaps[type] or type
+    emitter:line( '%s %s : %d;', type, as_identifier( key ),
                   member.size );
   end
   emitter:unindent()
@@ -366,7 +412,7 @@ local function struct_name_for( name )
     return word:gsub( '^.', string.upper )
   end )
   local camel = title:gsub( '_', '' )
-  return as_identifier( camel )
+  return replace_non_identifier_chars( camel )
 end
 
 function CppEmitter:emit_bit_structs( emitter )
@@ -380,14 +426,15 @@ end
 
 local function elem_type_name( info )
   if type( info ) == 'string' then return info end
-  if info.type then
-    if not info.value_type then
-      return elem_type_name( info.type )
-    else
-      return elem_type_name( info.value_type )
+  local non_primitive = (info.__key_order ~= nil)
+  if info.type and not non_primitive then
+    if info.type == 'std::array' then
+      return format( 'std::array<%s, %s>',
+                     elem_type_name( info.value_type ), info.size )
     end
+    return elem_type_name( info.type )
   end
-  assert( not info.value_type )
+  -- assert( not info.value_type )
   if info.__name then return struct_name_for( info.__name ) end
   error( 'failed to find elem type name.' )
 end
@@ -411,24 +458,23 @@ function CppEmitter:emit_struct( emitter, struct, name )
     -- assert( member.size >= 0 )
     -- assert( member.size <= 8 )
     -- emitter:line( 'uint8_t %s : %d;', key, member.size );
-    if member.type == 'vector' then
+    if member.type == 'std::vector' then
       emitter:line( 'std::vector<%s> %s = {};',
                     elem_type_name( member.value_type ),
-                    as_var_name( key ) )
+                    as_identifier( key ) )
     elseif member.type == 'std::array' then
-      emitter:line( 'std::array<%s, %d> %s = {};',
-                    elem_type_name( member.value_type ),
-                    member.size, as_var_name( key ) );
+      emitter:line( '%s %s = {};', elem_type_name( member ),
+                    as_identifier( key ) );
     elseif member.type == 'str' then
-      emitter:line( 'char %s[%d] = {};', as_var_name( key ),
+      emitter:line( 'char %s[%d] = {};', as_identifier( key ),
                     member.size )
     elseif member.type then
       emitter:line( '%s %s = {};', member.type,
-                    as_var_name( key ) )
+                    as_identifier( key ) )
     else
       emitter:line( '%s %s = {};',
                     struct_name_for( assert( member.__name ) ),
-                    as_var_name( key ) )
+                    as_identifier( key ) )
     end
     ::continue::
   end
@@ -445,6 +491,86 @@ function CppEmitter:emit_structs( emitter )
   end
 end
 
+local function metadata_field_value( field, str_value )
+  local bits = field:match( '_([0-9]+)bit_' )
+  if bits then
+    return format( '0b%s', str_value )
+  else
+    local bytes = {}
+    str_value:gsub( '[0-9a-zA-Z]+', function( byte )
+      insert( bytes, 1, byte )
+    end )
+    return format( '0x%s', concat( bytes ) )
+  end
+end
+
+function CppEmitter:emit_metadata_item( emitter, name, elems )
+  self:dbg( 'emitting metadata for %s.', name )
+  emitter:newline()
+  emitter:section( name )
+  emitter:line( 'enum class %s {', name )
+  emitter:indent()
+  local ordered_elems = {}
+  for k, v in pairs( elems ) do
+    if k:match( '__' ) then goto continue end
+    assert( type( k ) == 'string', k )
+    assert( type( v ) == 'string', k )
+    insert( ordered_elems, { field=k, str_value=v } )
+    ::continue::
+  end
+  sort( ordered_elems,
+        function( l, r ) return l.str_value < r.str_value end )
+  local result = {}
+  for _, pair in ipairs( ordered_elems ) do
+    local field, str_value = pair.field, pair.str_value
+    if field:match( '__' ) then goto continue end
+    local numeric_value = metadata_field_value( name, str_value )
+    insert( result, {
+      field=as_identifier( field ),
+      original_field=field,
+      numeric_value=numeric_value,
+    } )
+    ::continue::
+  end
+  local max_key_width = 0
+  for _, pair in ipairs( result ) do
+    local field = pair.field
+    assert( type( field ) == 'string' )
+    max_key_width = math.max( max_key_width, #field )
+  end
+  local fmt = format( '%%-%ds = %%s,%%s', max_key_width )
+  for _, pair in ipairs( result ) do
+    local field, original_field, numeric_value = pair.field,
+                                                 pair.original_field,
+                                                 pair.numeric_value
+    local comment = ''
+    if not readably_equivalent( field, original_field ) then
+      comment = format( '  // original: "%s"', original_field )
+    end
+    emitter:line( fmt, field, numeric_value, comment )
+  end
+  emitter:unindent()
+  emitter:line( '};' )
+end
+
+function CppEmitter:emit_metadata( emitter )
+  self:dbg( 'emitting metadata...' )
+  local ordered_keys = {}
+  for k, _ in pairs( self.metadata_ ) do
+    if k:match( '__' ) then goto continue end
+    assert( type( k ) == 'string', k )
+    insert( ordered_keys, k )
+    ::continue::
+  end
+  sort( ordered_keys )
+  for _, name in ipairs( ordered_keys ) do
+    if name:match( '__' ) then goto continue end
+    local elems = assert( self.metadata_[name] )
+    self:emit_metadata_item( emitter, name, elems )
+    ::continue::
+  end
+end
+
 function CppEmitter:generate_code()
   local hpp = CodeGenerator()
   hpp:section( 'Classic Colonization Save File Structure.' )
@@ -456,6 +582,7 @@ function CppEmitter:generate_code()
   hpp:include( '<vector>' )
   hpp:newline()
   hpp:open_ns( 'sav' )
+  self:emit_metadata( hpp )
   self:emit_bit_structs( hpp )
   self:emit_structs( hpp )
   hpp:close_ns( 'sav' )
@@ -483,7 +610,7 @@ function CppEmitter:generate_code()
 end
 
 function M.NewCppEmitter( metadata )
-  local base = NewStructureParser( metadata )
+  local base = StructureParser( metadata )
   local obj = {}
   local CppEmitterMeta = setmetatable( {}, {
     __newindex=function() error( 'cannot modify.', 2 ) end,
