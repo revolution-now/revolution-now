@@ -426,15 +426,13 @@ end
 
 local function elem_type_name( info )
   if type( info ) == 'string' then return info end
-  local non_primitive = (info.__key_order ~= nil)
-  if info.type and not non_primitive then
+  if info.type then
     if info.type == 'std::array' then
       return format( 'std::array<%s, %s>',
                      elem_type_name( info.value_type ), info.size )
     end
     return elem_type_name( info.type )
   end
-  -- assert( not info.value_type )
   if info.__name then return struct_name_for( info.__name ) end
   error( 'failed to find elem type name.' )
 end
