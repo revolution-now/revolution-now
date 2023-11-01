@@ -48,6 +48,7 @@ local handlers = {
       refl='refl',
       rds='rds',
       cdr='cdr',
+      sav='sav',
     }
     return namespaces[first_folder] or 'rn'
   end,
