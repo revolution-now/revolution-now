@@ -17,7 +17,6 @@
 #include "base/variant.hpp"
 
 // C++ standard library
-#include <concepts>
 #include <map>
 #include <string>
 #include <vector>
