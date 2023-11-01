@@ -387,7 +387,7 @@ enum class unit_type {
   wagon_train         = 0x0C,
   caravel             = 0x0D,
   merchantman         = 0x0E,
-  galeon              = 0x0F,
+  galleon             = 0x0F,
   privateer           = 0x10,
   frigate             = 0x11,
   man_o_war           = 0x12,

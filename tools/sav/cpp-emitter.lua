@@ -451,11 +451,6 @@ function CppEmitter:emit_struct( emitter, struct, name )
                 'key "%s" not found in bit struct of name "%s".',
                 key, name ) )
     local member = struct[key]
-    -- assert( member.size )
-    -- assert( type( member.size ) == 'number' )
-    -- assert( member.size >= 0 )
-    -- assert( member.size <= 8 )
-    -- emitter:line( 'uint8_t %s : %d;', key, member.size );
     if member.type == 'std::vector' then
       emitter:line( 'std::vector<%s> %s = {};',
                     elem_type_name( member.value_type ),

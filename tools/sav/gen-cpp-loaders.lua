@@ -22,7 +22,6 @@ local format = string.format
 
 local err = util.err
 local info = util.info
-local check = util.check
 
 local NewCppEmitter = cpp_emitter.NewCppEmitter
 local json_decode = json_transcode.decode
@@ -31,12 +30,13 @@ local json_decode = json_transcode.decode
 -- Helpers.
 -----------------------------------------------------------------
 local function usage()
-  err(
-      'usage: gen-cpp-loaders.lua ' .. '<structure-json-file> ' ..
-          '<output-dir>' )
+  err( 'usage: gen-cpp-loaders.lua ' .. --
+  '<structure-json-file> ' .. --
+  '<output-dir>' )
 end
 
 local function emit_lines( out, lines )
+  assert( lines )
   for i, line in ipairs( lines ) do
     local emit = line .. '\n'
     if i == #lines then emit = line end
@@ -79,24 +79,10 @@ local function main( args )
   local top = emitter:struct( structure )
   top.__name = 'ColonySAV'
   table.insert( emitter.finished_structs_, top )
-  -- local success, msg = pcall( function()
-  --   emitter:struct( 'ColonySav', structure )
-  -- end )
-  -- check( success, 'error at location [%s]: %s',
-  --        emitter:backtrace(), msg )
   info( 'generating source code...' )
   local res = emitter:generate_code()
   local hpp_lines = assert( res.hpp )
   local cpp_lines = assert( res.cpp )
-
-  -- Print stats.
-  -- local stats = emitter:stats()
-  -- info( 'finished emitting. stats:' )
-  -- TODO
-  -- info( 'bytes read: %d', stats.bytes_read )
-  -- if stats.bytes_remaining > 0 then
-  --   fatal( 'bytes remaining: %d', stats.bytes_remaining )
-  -- end
 
   -- Encoding and outputting JSON.
   info( 'emitting hpp to %s...', hpp_file )
