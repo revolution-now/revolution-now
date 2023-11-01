@@ -174,7 +174,7 @@ end
 function CppEmitter:string( size )
   assert( size )
   assert( type( size ) == 'number' )
-  return { type='str', size=size }
+  return { type='std::array', value_type='uint8_t', size=size }
 end
 
 local ALLOWED_INTEGRAL_SIZES = {
@@ -376,6 +376,15 @@ local function readably_equivalent( l, r )
   return canonical( l ) == canonical( r )
 end
 
+local function emit_binary_conv( emitter, name )
+  emitter:newline();
+  emitter:comment( 'Binary conversion.' )
+  emitter:line(
+      'bool read_binary( BinaryFile& b, %s const& o );', name )
+  emitter:line(
+      'bool write_binary( BinaryFile& b, %s const& o );', name )
+end
+
 function CppEmitter:emit_bit_struct( emitter, bit_struct, name )
   self:dbg( 'emitting bit struct %s.', name )
   emitter:newline()
@@ -403,6 +412,9 @@ function CppEmitter:emit_bit_struct( emitter, bit_struct, name )
   end
   emitter:unindent()
   emitter:line( '};' )
+
+  -- Binary conversion.
+  emit_binary_conv( emitter, name )
 end
 
 local function struct_name_for( name )
@@ -458,9 +470,6 @@ function CppEmitter:emit_struct( emitter, struct, name )
     elseif member.type == 'std::array' then
       emitter:line( '%s %s = {};', elem_type_name( member ),
                     as_identifier( key ) );
-    elseif member.type == 'str' then
-      emitter:line( 'char %s[%d] = {};', as_identifier( key ),
-                    member.size )
     elseif member.type then
       emitter:line( '%s %s = {};', member.type,
                     as_identifier( key ) )
@@ -473,6 +482,9 @@ function CppEmitter:emit_struct( emitter, struct, name )
   end
   emitter:unindent()
   emitter:line( '};' )
+
+  -- Binary conversion.
+  emit_binary_conv( emitter, name )
 end
 
 function CppEmitter:emit_structs( emitter )
@@ -564,6 +576,10 @@ function CppEmitter:emit_metadata( emitter )
   end
 end
 
+function CppEmitter:emit_fwd_decls( emitter )
+  emitter:line( 'struct BinaryFile;' )
+end
+
 function CppEmitter:generate_code()
   local hpp = CodeGenerator()
   hpp:section( 'Classic Colonization Save File Structure.' )
@@ -575,6 +591,9 @@ function CppEmitter:generate_code()
   hpp:include( '<vector>' )
   hpp:newline()
   hpp:open_ns( 'sav' )
+  hpp:newline()
+  hpp:section( 'Forward Declarations.' )
+  self:emit_fwd_decls( hpp )
   self:emit_metadata( hpp )
   self:emit_bit_structs( hpp )
   self:emit_structs( hpp )
