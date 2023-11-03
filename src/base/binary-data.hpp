@@ -11,142 +11,142 @@
 #pragma once
 
 // base
+#include "error.hpp"
 #include "maybe.hpp"
 
 // C++ standard library.
 #include <array>
-#include <cstdint>
+#include <concepts>
+#include <span>
 #include <type_traits>
 
 namespace base {
 
-namespace detail {
-template<size_t N>
-consteval auto uint_for_bits() {
-  if constexpr( N <= 0 )
-    return static_cast<void*>( nullptr ); // bad.
-  // bool is not necessarily the smallest integral type that can
-  // hold one bit, but it is probably a better API.
-  else if constexpr( N <= 1 )
-    return static_cast<bool*>( nullptr );
-  else if constexpr( N <= 8 )
-    return static_cast<uint8_t*>( nullptr );
-  else if constexpr( N <= 16 )
-    return static_cast<uint16_t*>( nullptr );
-  else if constexpr( N <= 32 )
-    return static_cast<uint32_t*>( nullptr );
-  else if constexpr( N <= 64 )
-    return static_cast<uint64_t*>( nullptr );
-}
-} // namespace detail
-
-template<size_t N>
-using uint_for_bits_t = std::remove_reference_t<
-    decltype( *detail::uint_for_bits<N>() )>;
-
 /****************************************************************
 ** BinaryData.
 *****************************************************************/
+// Reads or writes to a binary buffer.
 struct BinaryData {
-  bool good() const;
+  BinaryData( std::span<unsigned char> buffer )
+    : buffer_( buffer ) {}
 
- private:
-  maybe<uint8_t> buffer_;
-};
+  bool eof() const;
 
-/****************************************************************
-** BinaryReader.
-*****************************************************************/
-struct BinaryReader : BinaryData {
-  template<size_t N, typename Ret = uint_for_bits_t<N>>
-  requires( sizeof( Ret ) <= sizeof( uint64_t ) &&
-            sizeof( Ret ) >= ( N + 8 ) / 8 )
-  [[nodiscard]] Ret read_n_bits() {
-    if( !good() ) return 0;
-    uint64_t const ret = read_n_bits( N );
-    return static_cast<Ret>( ret );
-  }
+  bool good( int nbytes ) const;
 
-  template<typename T>
-  T read_one() {
-    T out = {};
-    read_n_bytes( sizeof( T ), out );
-  }
+  int pos() const { return idx_; }
 
-  template<typename T>
+  int size() const { return buffer_.size(); }
+
+  template<typename..., typename T>
+  requires std::is_integral_v<T>
   bool read( T& out ) {
-    if( !good() ) return false;
-    // TODO
+    static auto constexpr nbytes = sizeof( T );
+    return read_bytes(
+        nbytes, reinterpret_cast<unsigned char*>( &out ) );
+  }
+
+  template<typename..., typename T>
+  requires std::is_integral_v<T>
+  bool write( T const& in ) {
+    static auto constexpr nbytes = sizeof( T );
+    return write_bytes(
+        nbytes, reinterpret_cast<unsigned char const*>( &in ) );
+  }
+
+  template<size_t N, typename..., typename T>
+  requires std::is_integral_v<T> && ( N <= sizeof( T ) )
+  bool read_bytes( T& out ) {
+    out = 0;
+    return read_bytes(
+        N, reinterpret_cast<unsigned char*>( &out ) );
+  }
+
+  template<size_t N, typename..., typename T>
+  requires std::is_integral_v<T> && ( N <= sizeof( T ) )
+  bool write_bytes( T const& in ) {
+    return write_bytes(
+        N, reinterpret_cast<unsigned char const*>( &in ) );
   }
 
  private:
-  [[nodiscard]] uint64_t read_n_bits( int nbits );
+  bool read_bytes( int n, unsigned char* dst );
+  bool write_bytes( int n, unsigned char const* src );
+
+  std::span<unsigned char> buffer_;
+  int                      idx_ = 0;
 };
 
 /****************************************************************
-** BinaryWriter.
+** Concepts.
 *****************************************************************/
-struct BinaryWriter : BinaryData {
-  void write_bit( bool b );
-
-  template<typename T>
-  requires( (std::is_unsigned_v<T> ||
-             std::is_unsigned_v<std::underlying_type_t<T>>) &&
-            sizeof( T ) <= sizeof( uint64_t ) )
-  void write_bits( int nbits, T n ) {
-    auto input = static_cast<uint64_t>( n );
-    for( int i = 0; i < nbits; ++i ) {
-      write_bit( input & 1 );
-      input >>= 1;
-    }
-  }
-
-  template<typename T>
-  bool write( T const& out ) {
-    if( !good() ) return false;
-    // TODO
-  }
+template<typename T>
+concept ToBinary = requires( BinaryData& b, T const& o ) {
+  { write_binary( b, o ) } -> std::same_as<bool>;
 };
 
 template<typename T>
-requires std::is_integral_v<T>
-bool read_binary( base::BinaryReader& b, T& o ) {
-  // TODO
-  return false;
-}
+concept FromBinary = requires( BinaryData& b, T& o ) {
+  { read_binary( b, o ) } -> std::same_as<bool>;
+};
 
 template<typename T>
-requires std::is_enum_v<T>
-bool read_binary( base::BinaryReader& b, T& o ) {
-  return read_binary(
-      b, static_cast<std::underlying_type_t<T>&>( o ) );
-}
+concept Binable = ToBinary<T> && FromBinary<T>;
 
-template<typename T, size_t N>
-bool read_binary( base::BinaryReader& b, std::array<T, N>& o ) {
-  // TODO
-  return false;
+/****************************************************************
+** Instances (builtins).
+*****************************************************************/
+template<typename T>
+requires std::is_integral_v<T>
+bool read_binary( base::BinaryData& b, T& o ) {
+  return b.read( o );
 }
 
 template<typename T>
 requires std::is_integral_v<T>
-bool write_binary( base::BinaryWriter& b, T const& o ) {
-  // TODO
-  return false;
+bool write_binary( base::BinaryData& b, T const& o ) {
+  return b.write( o );
 }
 
 template<typename T>
-requires std::is_enum_v<T>
-bool write_binary( base::BinaryWriter& b, T const& o ) {
-  return write_binary(
-      b, static_cast<std::underlying_type_t<T> const&>( o ) );
+requires std::is_enum_v<T> &&
+         FromBinary<std::underlying_type_t<T>>
+bool read_binary( base::BinaryData& b, T& o ) {
+  using U = std::underlying_type_t<T>;
+  U res;
+  if( !read_binary( b, res ) ) return false;
+  o = static_cast<T>( res );
+  return true;
 }
 
-template<typename T, size_t N>
-bool write_binary( base::BinaryWriter&     b,
+template<typename T>
+requires std::is_enum_v<T> && ToBinary<std::underlying_type_t<T>>
+bool write_binary( base::BinaryData& b, T const& o ) {
+  using U = std::underlying_type_t<T>;
+  // Need to convert to U by value because a U const& can't bind
+  // to a T const&, which is strange, since U const& is the un-
+  // derlying type.
+  return write_binary( b, static_cast<U>( o ) );
+}
+
+/****************************************************************
+** Instances (std).
+*****************************************************************/
+template<FromBinary T, size_t N>
+bool read_binary( base::BinaryData& b, std::array<T, N>& o ) {
+  for( T& elem : o )
+    if( !read_binary( b, elem ) ) //
+      return false;
+  return true;
+}
+
+template<ToBinary T, size_t N>
+bool write_binary( base::BinaryData&       b,
                    std::array<T, N> const& o ) {
-  // TODO
-  return false;
+  for( T const& elem : o )
+    if( !write_binary( b, elem ) ) //
+      return false;
+  return true;
 }
 
 } // namespace base

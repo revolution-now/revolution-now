@@ -392,10 +392,10 @@ end
 local function emit_binary_conv_decl( hpp, name )
   hpp:newline();
   hpp:comment( 'Binary conversion.' )
-  hpp:line( 'bool read_binary( base::BinaryReader& b, %s& o );',
+  hpp:line( 'bool read_binary( base::BinaryData& b, %s& o );',
             name )
   hpp:line(
-      'bool write_binary( base::BinaryWriter& b, %s const& o );',
+      'bool write_binary( base::BinaryData& b, %s const& o );',
       name )
 end
 
@@ -419,14 +419,20 @@ local function some_metadata_field_value( elems )
   return some_value
 end
 
+local function bytes_needed_for_bits( nbits )
+  local bytes = nbits // 8
+  if nbits % 8 ~= 0 then bytes = bytes + 1 end
+  return bytes
+end
+
 local function nbits_base_type( field_name, elems )
   local some_value = some_metadata_field_value( elems )
   local nbits = bits_for_metadata_type( field_name, some_value )
-  local base = smallest_uint( (nbits + 8) // 8 )
-  return base
+  local bytes = bytes_needed_for_bits( nbits )
+  return smallest_uint( bytes )
 end
 
-local function static_cast_to_bit_field( info )
+local function bitfield_named_type( info )
   if not info.type then return end
   if info.type == 'bit_bool' then return end
   if info.type:match( 'bit_' ) then return info.type end
@@ -436,23 +442,32 @@ local function emit_bit_struct_binary_conv_impl(cpp, name,
                                                 bit_struct )
   assert( type( bit_struct ) == 'table' )
   cpp:comment( 'Binary conversion.' )
+  local nbytes = assert( bit_struct.__total_bytes )
+  local holder = smallest_uint( nbytes )
 
   -- Read.
-  cpp:line( 'bool read_binary( base::BinaryReader& b, %s& o ) {',
+  cpp:line( 'bool read_binary( base::BinaryData& b, %s& o ) {',
             name )
   cpp:indent()
+  cpp:line( '%s bits = 0;', holder )
+  cpp:line( 'if( !b.read_bytes<%d>( bits ) ) return false;',
+            nbytes )
   for _, field_name in ipairs( bit_struct.__key_order ) do
     local info = bit_struct[field_name]
-    local cast_type = static_cast_to_bit_field( info )
+    local ones = '0b' .. string.rep( '1', info.size )
+    local cast_type = bitfield_named_type( info )
     if cast_type then
-      cpp:line( 'o.%s = b.read_n_bits<%d, %s>();',
-                as_identifier( field_name ), info.size, cast_type )
+      cpp:line(
+          'o.%s = static_cast<%s>( bits & %s ); bits >>= %d;',
+          as_identifier( field_name ), cast_type, ones,
+          info.size, cast_type )
     else
-      cpp:line( 'o.%s = b.read_n_bits<%d>();',
-                as_identifier( field_name ), info.size )
+      cpp:line( 'o.%s = (bits & %s); bits >>= %d;',
+                as_identifier( field_name ), ones, info.size,
+                cast_type )
     end
   end
-  cpp:line( 'return b.good();' );
+  cpp:line( 'return true;' );
   cpp:unindent()
   cpp:line( '}' )
 
@@ -460,16 +475,24 @@ local function emit_bit_struct_binary_conv_impl(cpp, name,
 
   -- Write.
   cpp:line(
-      'bool write_binary( base::BinaryWriter& b, %s const& o ) {',
+      'bool write_binary( base::BinaryData& b, %s const& o ) {',
       name )
   cpp:indent()
+  cpp:line( '%s bits = 0;', holder )
   for _, field_name in ipairs( bit_struct.__key_order ) do
     local info = bit_struct[field_name]
     local nbits = info.size
-    cpp:line( 'b.write_bits( %d, o.%s );', nbits,
-              as_identifier( field_name ) )
+    local ones = '0b' .. string.rep( '1', info.size )
+    if bitfield_named_type( info ) then
+      cpp:line(
+          'bits <<= %d; bits |= (static_cast<%s>( o.%s ) & %s);',
+          nbits, holder, as_identifier( field_name ), ones )
+    else
+      cpp:line( 'bits <<= %d; bits |= (o.%s & %s);', nbits,
+                as_identifier( field_name ), ones )
+    end
   end
-  cpp:line( 'return b.good();' );
+  cpp:line( 'return b.write_bytes<%d>( bits );', nbytes )
   cpp:unindent()
   cpp:line( '}' )
 end
@@ -479,7 +502,7 @@ local function emit_struct_binary_conv_impl( cpp, name, struct )
   cpp:comment( 'Binary conversion.' )
 
   -- Read.
-  cpp:line( 'bool read_binary( base::BinaryReader& b, %s& o ) {',
+  cpp:line( 'bool read_binary( base::BinaryData& b, %s& o ) {',
             name )
   cpp:indent()
   cpp:line( 'return true' );
@@ -502,7 +525,7 @@ local function emit_struct_binary_conv_impl( cpp, name, struct )
 
   -- Write.
   cpp:line(
-      'bool write_binary( base::BinaryWriter& b, %s const& o ) {',
+      'bool write_binary( base::BinaryData& b, %s const& o ) {',
       name )
   cpp:indent()
   cpp:line( 'return true' );
@@ -546,7 +569,8 @@ function CppEmitter:emit_bit_struct( hpp, cpp, bit_struct, name )
     assert( member.size >= 0 )
     -- assert( member.size <= 8 )
     local type = member.type or
-                     smallest_uint( (member.size + 8) // 8 )
+                     smallest_uint(
+                         bytes_needed_for_bits( member.size ) )
     local remaps = { bit_bool='bool', uint='uint8_t' }
     type = remaps[type] or type
     hpp:line( '%s %s : %d;', type, as_identifier( key ),
@@ -740,8 +764,8 @@ end
 function CppEmitter:emit_fwd_decls( hpp )
   hpp:open_ns( 'base' )
   hpp:newline()
-  hpp:line( 'struct BinaryReader;' )
-  hpp:line( 'struct BinaryWriter;' )
+  hpp:line( 'struct BinaryData;' )
+  hpp:line( 'struct BinaryData;' )
   hpp:close_ns( 'base' )
 end
 

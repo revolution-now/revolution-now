@@ -12,8 +12,8 @@
 *****************************************************************/
 namespace base {
 
-struct BinaryReader;
-struct BinaryWriter;
+struct BinaryData;
+struct BinaryData;
 
 }  // namespace base
 
@@ -47,7 +47,7 @@ enum class cargo_4bit_type : uint8_t {
 /****************************************************************
 ** control_type
 *****************************************************************/
-enum class control_type : uint16_t {
+enum class control_type : uint8_t {
   player    = 0x00,
   ai        = 0x01,
   withdrawn = 0x02,
@@ -56,7 +56,7 @@ enum class control_type : uint16_t {
 /****************************************************************
 ** difficulty_type
 *****************************************************************/
-enum class difficulty_type : uint16_t {
+enum class difficulty_type : uint8_t {
   discoverer   = 0x00,
   explorer     = 0x01,
   conquistador = 0x02,
@@ -67,7 +67,7 @@ enum class difficulty_type : uint16_t {
 /****************************************************************
 ** fortification_level_type
 *****************************************************************/
-enum class fortification_level_type : uint16_t {
+enum class fortification_level_type : uint8_t {
   none     = 0x00,
   stockade = 0x01,
   fort     = 0x02,
@@ -163,7 +163,7 @@ enum class nation_4bit_type : uint8_t {
 /****************************************************************
 ** nation_type
 *****************************************************************/
-enum class nation_type : uint16_t {
+enum class nation_type : uint8_t {
   england     = 0x00,
   france      = 0x01,
   spain       = 0x02,
@@ -182,7 +182,7 @@ enum class nation_type : uint16_t {
 /****************************************************************
 ** occupation_type
 *****************************************************************/
-enum class occupation_type : uint16_t {
+enum class occupation_type : uint8_t {
   farmer          = 0x00,
   sugar_planter   = 0x01,
   tobacco_planter = 0x02,
@@ -208,7 +208,7 @@ enum class occupation_type : uint16_t {
 /****************************************************************
 ** orders_type
 *****************************************************************/
-enum class orders_type : uint16_t {
+enum class orders_type : uint8_t {
   none      = 0x00,
   sentry    = 0x01,
   trading   = 0x02,
@@ -241,7 +241,7 @@ enum class plowed_1bit_type : uint8_t {
 /****************************************************************
 ** profession_type
 *****************************************************************/
-enum class profession_type : uint16_t {
+enum class profession_type : uint8_t {
   expert_farmer          = 0x00,
   master_sugar_planter   = 0x01,
   master_tobacco_planter = 0x02,
@@ -306,7 +306,7 @@ enum class region_id_4bit_type : uint8_t {
 /****************************************************************
 ** relation_type
 *****************************************************************/
-enum class relation_type : uint16_t {
+enum class relation_type : uint8_t {
   not_met      = 0x00,
   war          = 0x20,
   peace        = 0x60,
@@ -325,7 +325,7 @@ enum class road_1bit_type : uint8_t {
 /****************************************************************
 ** season_type
 *****************************************************************/
-enum class season_type : uint32_t {
+enum class season_type : uint16_t {
   spring = 0x0000,
   autumn = 0x0001,
 };
@@ -341,7 +341,7 @@ enum class suppress_1bit_type : uint8_t {
 /****************************************************************
 ** tech_type
 *****************************************************************/
-enum class tech_type : uint16_t {
+enum class tech_type : uint8_t {
   semi_nomadic = 0x00,
   agrarian     = 0x01,
   advanced     = 0x02,
@@ -376,7 +376,7 @@ enum class terrain_5bit_type : uint8_t {
 /****************************************************************
 ** trade_route_type
 *****************************************************************/
-enum class trade_route_type : uint16_t {
+enum class trade_route_type : uint8_t {
   land = 0x00,
   sea  = 0x01,
 };
@@ -384,7 +384,7 @@ enum class trade_route_type : uint16_t {
 /****************************************************************
 ** unit_type
 *****************************************************************/
-enum class unit_type : uint16_t {
+enum class unit_type : uint8_t {
   colonist            = 0x00,
   soldier             = 0x01,
   pioneer             = 0x02,
@@ -459,8 +459,8 @@ struct GameOptions {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, GameOptions& o );
-bool write_binary( base::BinaryWriter& b, GameOptions const& o );
+bool read_binary( base::BinaryData& b, GameOptions& o );
+bool write_binary( base::BinaryData& b, GameOptions const& o );
 
 /****************************************************************
 ** ColonyReportOptions
@@ -480,8 +480,8 @@ struct ColonyReportOptions {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, ColonyReportOptions& o );
-bool write_binary( base::BinaryWriter& b, ColonyReportOptions const& o );
+bool read_binary( base::BinaryData& b, ColonyReportOptions& o );
+bool write_binary( base::BinaryData& b, ColonyReportOptions const& o );
 
 /****************************************************************
 ** Event
@@ -506,8 +506,8 @@ struct Event {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Event& o );
-bool write_binary( base::BinaryWriter& b, Event const& o );
+bool read_binary( base::BinaryData& b, Event& o );
+bool write_binary( base::BinaryData& b, Event const& o );
 
 /****************************************************************
 ** Duration
@@ -518,8 +518,8 @@ struct Duration {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Duration& o );
-bool write_binary( base::BinaryWriter& b, Duration const& o );
+bool read_binary( base::BinaryData& b, Duration& o );
+bool write_binary( base::BinaryData& b, Duration const& o );
 
 /****************************************************************
 ** Buildings
@@ -547,8 +547,8 @@ struct Buildings {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Buildings& o );
-bool write_binary( base::BinaryWriter& b, Buildings const& o );
+bool read_binary( base::BinaryData& b, Buildings& o );
+bool write_binary( base::BinaryData& b, Buildings const& o );
 
 /****************************************************************
 ** CustomHouseFlags
@@ -573,8 +573,8 @@ struct CustomHouseFlags {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, CustomHouseFlags& o );
-bool write_binary( base::BinaryWriter& b, CustomHouseFlags const& o );
+bool read_binary( base::BinaryData& b, CustomHouseFlags& o );
+bool write_binary( base::BinaryData& b, CustomHouseFlags const& o );
 
 /****************************************************************
 ** NationInfo
@@ -585,8 +585,8 @@ struct NationInfo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, NationInfo& o );
-bool write_binary( base::BinaryWriter& b, NationInfo const& o );
+bool read_binary( base::BinaryData& b, NationInfo& o );
+bool write_binary( base::BinaryData& b, NationInfo const& o );
 
 /****************************************************************
 ** Unknown15
@@ -597,8 +597,8 @@ struct Unknown15 {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Unknown15& o );
-bool write_binary( base::BinaryWriter& b, Unknown15 const& o );
+bool read_binary( base::BinaryData& b, Unknown15& o );
+bool write_binary( base::BinaryData& b, Unknown15 const& o );
 
 /****************************************************************
 ** CargoItems
@@ -609,8 +609,8 @@ struct CargoItems {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, CargoItems& o );
-bool write_binary( base::BinaryWriter& b, CargoItems const& o );
+bool read_binary( base::BinaryData& b, CargoItems& o );
+bool write_binary( base::BinaryData& b, CargoItems const& o );
 
 /****************************************************************
 ** BoycottBitmap
@@ -635,8 +635,8 @@ struct BoycottBitmap {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, BoycottBitmap& o );
-bool write_binary( base::BinaryWriter& b, BoycottBitmap const& o );
+bool read_binary( base::BinaryData& b, BoycottBitmap& o );
+bool write_binary( base::BinaryData& b, BoycottBitmap const& o );
 
 /****************************************************************
 ** ALCS
@@ -650,8 +650,8 @@ struct ALCS {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, ALCS& o );
-bool write_binary( base::BinaryWriter& b, ALCS const& o );
+bool read_binary( base::BinaryData& b, ALCS& o );
+bool write_binary( base::BinaryData& b, ALCS const& o );
 
 /****************************************************************
 ** TILE
@@ -662,8 +662,8 @@ struct TILE {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, TILE& o );
-bool write_binary( base::BinaryWriter& b, TILE const& o );
+bool read_binary( base::BinaryData& b, TILE& o );
+bool write_binary( base::BinaryData& b, TILE const& o );
 
 /****************************************************************
 ** MASK
@@ -680,8 +680,8 @@ struct MASK {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, MASK& o );
-bool write_binary( base::BinaryWriter& b, MASK const& o );
+bool read_binary( base::BinaryData& b, MASK& o );
+bool write_binary( base::BinaryData& b, MASK const& o );
 
 /****************************************************************
 ** PATH
@@ -692,8 +692,8 @@ struct PATH {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, PATH& o );
-bool write_binary( base::BinaryWriter& b, PATH const& o );
+bool read_binary( base::BinaryData& b, PATH& o );
+bool write_binary( base::BinaryData& b, PATH const& o );
 
 /****************************************************************
 ** SEEN
@@ -707,8 +707,8 @@ struct SEEN {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, SEEN& o );
-bool write_binary( base::BinaryWriter& b, SEEN const& o );
+bool read_binary( base::BinaryData& b, SEEN& o );
+bool write_binary( base::BinaryData& b, SEEN const& o );
 
 /****************************************************************
 ** Stop1LoadsAndUnloadsCount
@@ -719,8 +719,8 @@ struct Stop1LoadsAndUnloadsCount {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Stop1LoadsAndUnloadsCount& o );
-bool write_binary( base::BinaryWriter& b, Stop1LoadsAndUnloadsCount const& o );
+bool read_binary( base::BinaryData& b, Stop1LoadsAndUnloadsCount& o );
+bool write_binary( base::BinaryData& b, Stop1LoadsAndUnloadsCount const& o );
 
 /****************************************************************
 ** Stop1LoadsCargo
@@ -735,8 +735,8 @@ struct Stop1LoadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Stop1LoadsCargo& o );
-bool write_binary( base::BinaryWriter& b, Stop1LoadsCargo const& o );
+bool read_binary( base::BinaryData& b, Stop1LoadsCargo& o );
+bool write_binary( base::BinaryData& b, Stop1LoadsCargo const& o );
 
 /****************************************************************
 ** Stop1UnloadsCargo
@@ -751,8 +751,8 @@ struct Stop1UnloadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Stop1UnloadsCargo& o );
-bool write_binary( base::BinaryWriter& b, Stop1UnloadsCargo const& o );
+bool read_binary( base::BinaryData& b, Stop1UnloadsCargo& o );
+bool write_binary( base::BinaryData& b, Stop1UnloadsCargo const& o );
 
 /****************************************************************
 ** Stop2LoadsAndUnloadsCount
@@ -763,8 +763,8 @@ struct Stop2LoadsAndUnloadsCount {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Stop2LoadsAndUnloadsCount& o );
-bool write_binary( base::BinaryWriter& b, Stop2LoadsAndUnloadsCount const& o );
+bool read_binary( base::BinaryData& b, Stop2LoadsAndUnloadsCount& o );
+bool write_binary( base::BinaryData& b, Stop2LoadsAndUnloadsCount const& o );
 
 /****************************************************************
 ** Stop2LoadsCargo
@@ -779,8 +779,8 @@ struct Stop2LoadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Stop2LoadsCargo& o );
-bool write_binary( base::BinaryWriter& b, Stop2LoadsCargo const& o );
+bool read_binary( base::BinaryData& b, Stop2LoadsCargo& o );
+bool write_binary( base::BinaryData& b, Stop2LoadsCargo const& o );
 
 /****************************************************************
 ** Stop2UnloadsCargo
@@ -795,8 +795,8 @@ struct Stop2UnloadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Stop2UnloadsCargo& o );
-bool write_binary( base::BinaryWriter& b, Stop2UnloadsCargo const& o );
+bool read_binary( base::BinaryData& b, Stop2UnloadsCargo& o );
+bool write_binary( base::BinaryData& b, Stop2UnloadsCargo const& o );
 
 /****************************************************************
 ** Stop3LoadsAndUnloadsCount
@@ -807,8 +807,8 @@ struct Stop3LoadsAndUnloadsCount {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Stop3LoadsAndUnloadsCount& o );
-bool write_binary( base::BinaryWriter& b, Stop3LoadsAndUnloadsCount const& o );
+bool read_binary( base::BinaryData& b, Stop3LoadsAndUnloadsCount& o );
+bool write_binary( base::BinaryData& b, Stop3LoadsAndUnloadsCount const& o );
 
 /****************************************************************
 ** Stop3LoadsCargo
@@ -823,8 +823,8 @@ struct Stop3LoadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Stop3LoadsCargo& o );
-bool write_binary( base::BinaryWriter& b, Stop3LoadsCargo const& o );
+bool read_binary( base::BinaryData& b, Stop3LoadsCargo& o );
+bool write_binary( base::BinaryData& b, Stop3LoadsCargo const& o );
 
 /****************************************************************
 ** Stop3UnloadsCargo
@@ -839,8 +839,8 @@ struct Stop3UnloadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Stop3UnloadsCargo& o );
-bool write_binary( base::BinaryWriter& b, Stop3UnloadsCargo const& o );
+bool read_binary( base::BinaryData& b, Stop3UnloadsCargo& o );
+bool write_binary( base::BinaryData& b, Stop3UnloadsCargo const& o );
 
 /****************************************************************
 ** Stop4LoadsAndUnloadsCount
@@ -851,8 +851,8 @@ struct Stop4LoadsAndUnloadsCount {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Stop4LoadsAndUnloadsCount& o );
-bool write_binary( base::BinaryWriter& b, Stop4LoadsAndUnloadsCount const& o );
+bool read_binary( base::BinaryData& b, Stop4LoadsAndUnloadsCount& o );
+bool write_binary( base::BinaryData& b, Stop4LoadsAndUnloadsCount const& o );
 
 /****************************************************************
 ** Stop4LoadsCargo
@@ -867,8 +867,8 @@ struct Stop4LoadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Stop4LoadsCargo& o );
-bool write_binary( base::BinaryWriter& b, Stop4LoadsCargo const& o );
+bool read_binary( base::BinaryData& b, Stop4LoadsCargo& o );
+bool write_binary( base::BinaryData& b, Stop4LoadsCargo const& o );
 
 /****************************************************************
 ** Stop4UnloadsCargo
@@ -883,8 +883,8 @@ struct Stop4UnloadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Stop4UnloadsCargo& o );
-bool write_binary( base::BinaryWriter& b, Stop4UnloadsCargo const& o );
+bool read_binary( base::BinaryData& b, Stop4UnloadsCargo& o );
+bool write_binary( base::BinaryData& b, Stop4UnloadsCargo const& o );
 
 /****************************************************************
 ** ExpeditionaryForce
@@ -897,8 +897,8 @@ struct ExpeditionaryForce {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, ExpeditionaryForce& o );
-bool write_binary( base::BinaryWriter& b, ExpeditionaryForce const& o );
+bool read_binary( base::BinaryData& b, ExpeditionaryForce& o );
+bool write_binary( base::BinaryData& b, ExpeditionaryForce const& o );
 
 /****************************************************************
 ** BackupForce
@@ -911,8 +911,8 @@ struct BackupForce {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, BackupForce& o );
-bool write_binary( base::BinaryWriter& b, BackupForce const& o );
+bool read_binary( base::BinaryData& b, BackupForce& o );
+bool write_binary( base::BinaryData& b, BackupForce const& o );
 
 /****************************************************************
 ** PriceGroupState
@@ -937,8 +937,8 @@ struct PriceGroupState {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, PriceGroupState& o );
-bool write_binary( base::BinaryWriter& b, PriceGroupState const& o );
+bool read_binary( base::BinaryData& b, PriceGroupState& o );
+bool write_binary( base::BinaryData& b, PriceGroupState const& o );
 
 /****************************************************************
 ** HEAD
@@ -982,8 +982,8 @@ struct HEAD {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, HEAD& o );
-bool write_binary( base::BinaryWriter& b, HEAD const& o );
+bool read_binary( base::BinaryData& b, HEAD& o );
+bool write_binary( base::BinaryData& b, HEAD const& o );
 
 /****************************************************************
 ** PLAYER
@@ -998,8 +998,8 @@ struct PLAYER {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, PLAYER& o );
-bool write_binary( base::BinaryWriter& b, PLAYER const& o );
+bool read_binary( base::BinaryData& b, PLAYER& o );
+bool write_binary( base::BinaryData& b, PLAYER const& o );
 
 /****************************************************************
 ** Tiles
@@ -1016,8 +1016,8 @@ struct Tiles {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Tiles& o );
-bool write_binary( base::BinaryWriter& b, Tiles const& o );
+bool read_binary( base::BinaryData& b, Tiles& o );
+bool write_binary( base::BinaryData& b, Tiles const& o );
 
 /****************************************************************
 ** Stock
@@ -1042,8 +1042,8 @@ struct Stock {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Stock& o );
-bool write_binary( base::BinaryWriter& b, Stock const& o );
+bool read_binary( base::BinaryData& b, Stock& o );
+bool write_binary( base::BinaryData& b, Stock const& o );
 
 /****************************************************************
 ** PopulationOnMap
@@ -1056,8 +1056,8 @@ struct PopulationOnMap {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, PopulationOnMap& o );
-bool write_binary( base::BinaryWriter& b, PopulationOnMap const& o );
+bool read_binary( base::BinaryData& b, PopulationOnMap& o );
+bool write_binary( base::BinaryData& b, PopulationOnMap const& o );
 
 /****************************************************************
 ** FortificationOnMap
@@ -1070,8 +1070,8 @@ struct FortificationOnMap {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, FortificationOnMap& o );
-bool write_binary( base::BinaryWriter& b, FortificationOnMap const& o );
+bool read_binary( base::BinaryData& b, FortificationOnMap& o );
+bool write_binary( base::BinaryData& b, FortificationOnMap const& o );
 
 /****************************************************************
 ** COLONY
@@ -1102,8 +1102,8 @@ struct COLONY {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, COLONY& o );
-bool write_binary( base::BinaryWriter& b, COLONY const& o );
+bool read_binary( base::BinaryData& b, COLONY& o );
+bool write_binary( base::BinaryData& b, COLONY const& o );
 
 /****************************************************************
 ** TransportChain
@@ -1114,8 +1114,8 @@ struct TransportChain {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, TransportChain& o );
-bool write_binary( base::BinaryWriter& b, TransportChain const& o );
+bool read_binary( base::BinaryData& b, TransportChain& o );
+bool write_binary( base::BinaryData& b, TransportChain const& o );
 
 /****************************************************************
 ** UNIT
@@ -1140,8 +1140,8 @@ struct UNIT {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, UNIT& o );
-bool write_binary( base::BinaryWriter& b, UNIT const& o );
+bool read_binary( base::BinaryData& b, UNIT& o );
+bool write_binary( base::BinaryData& b, UNIT const& o );
 
 /****************************************************************
 ** RelationByIndian
@@ -1158,8 +1158,8 @@ struct RelationByIndian {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, RelationByIndian& o );
-bool write_binary( base::BinaryWriter& b, RelationByIndian const& o );
+bool read_binary( base::BinaryData& b, RelationByIndian& o );
+bool write_binary( base::BinaryData& b, RelationByIndian const& o );
 
 /****************************************************************
 ** Trade
@@ -1173,8 +1173,8 @@ struct Trade {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Trade& o );
-bool write_binary( base::BinaryWriter& b, Trade const& o );
+bool read_binary( base::BinaryData& b, Trade& o );
+bool write_binary( base::BinaryData& b, Trade const& o );
 
 /****************************************************************
 ** NATION
@@ -1212,8 +1212,8 @@ struct NATION {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, NATION& o );
-bool write_binary( base::BinaryWriter& b, NATION const& o );
+bool read_binary( base::BinaryData& b, NATION& o );
+bool write_binary( base::BinaryData& b, NATION const& o );
 
 /****************************************************************
 ** Alarm
@@ -1224,8 +1224,8 @@ struct Alarm {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, Alarm& o );
-bool write_binary( base::BinaryWriter& b, Alarm const& o );
+bool read_binary( base::BinaryData& b, Alarm& o );
+bool write_binary( base::BinaryData& b, Alarm const& o );
 
 /****************************************************************
 ** TRIBE
@@ -1243,8 +1243,8 @@ struct TRIBE {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, TRIBE& o );
-bool write_binary( base::BinaryWriter& b, TRIBE const& o );
+bool read_binary( base::BinaryData& b, TRIBE& o );
+bool write_binary( base::BinaryData& b, TRIBE const& o );
 
 /****************************************************************
 ** RelationByNations
@@ -1257,8 +1257,8 @@ struct RelationByNations {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, RelationByNations& o );
-bool write_binary( base::BinaryWriter& b, RelationByNations const& o );
+bool read_binary( base::BinaryData& b, RelationByNations& o );
+bool write_binary( base::BinaryData& b, RelationByNations const& o );
 
 /****************************************************************
 ** INDIAN
@@ -1278,8 +1278,8 @@ struct INDIAN {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, INDIAN& o );
-bool write_binary( base::BinaryWriter& b, INDIAN const& o );
+bool read_binary( base::BinaryData& b, INDIAN& o );
+bool write_binary( base::BinaryData& b, INDIAN const& o );
 
 /****************************************************************
 ** STUFF
@@ -1299,8 +1299,8 @@ struct STUFF {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, STUFF& o );
-bool write_binary( base::BinaryWriter& b, STUFF const& o );
+bool read_binary( base::BinaryData& b, STUFF& o );
+bool write_binary( base::BinaryData& b, STUFF const& o );
 
 /****************************************************************
 ** TRADEROUTE
@@ -1332,8 +1332,8 @@ struct TRADEROUTE {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryReader& b, TRADEROUTE& o );
-bool write_binary( base::BinaryWriter& b, TRADEROUTE const& o );
+bool read_binary( base::BinaryData& b, TRADEROUTE& o );
+bool write_binary( base::BinaryData& b, TRADEROUTE const& o );
 
 /****************************************************************
 ** ColonySAV

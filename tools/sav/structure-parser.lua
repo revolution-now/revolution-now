@@ -124,13 +124,17 @@ function StructureParser:bit_struct( bit_struct )
   assert( bit_struct )
   assert( bit_struct.__key_order )
   local res = {}
+  local total_bits = 0
   for _, e in ipairs( bit_struct.__key_order ) do
     local field = assert( bit_struct[e] )
     if not e:match( '__' ) then
       self:dbg( 'parsing bit_field [%s] %s', self:backtrace(), e )
+      total_bits = total_bits + assert( field.size )
       res[e] = self:bit_field( field )
     end
   end
+  assert( total_bits % 8 == 0 )
+  res.__total_bytes = total_bits // 8
   res.__key_order = bit_struct.__key_order
   return res
 end
