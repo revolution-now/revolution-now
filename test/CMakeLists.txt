@@ -19,6 +19,7 @@ file( GLOB src_stb_sources    "stb/[a-zA-Z]*.cpp"      )
 file( GLOB src_render_sources "render/[a-zA-Z]*.cpp"   )
 file( GLOB src_fake_sources   "fake/[a-zA-Z]*.cpp"     )
 file( GLOB src_ss_sources     "ss/[a-zA-Z]*.cpp"       )
+file( GLOB src_sav_sources    "sav/[a-zA-Z]*.cpp"      )
 
 file( GLOB test_mocks_sources "mocks/[a-zA-Z]*.cpp"    )
 
@@ -37,6 +38,7 @@ add_executable(
   ${src_render_sources}
   ${src_fake_sources}
   ${src_ss_sources}
+  ${src_sav_sources}
   ${test_mocks_sources}
 )
 

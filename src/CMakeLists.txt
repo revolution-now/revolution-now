@@ -42,6 +42,7 @@ add_rn_library(
   rn-refl
   rn-render
   rn-rds-util
+  rn-sav
   rn-stb
   rtmidi
   Threads::Threads
