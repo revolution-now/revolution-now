@@ -581,7 +581,10 @@ bool write_binary( base::BinaryData& b, CustomHouseFlags const& o );
 *****************************************************************/
 struct NationInfo {
   nation_4bit_type nation_id : 4;
-  uint8_t unknown14 : 4;
+  bool vis_to_english : 1;
+  bool vis_to_french : 1;
+  bool vis_to_spanish : 1;
+  bool vis_to_dutch : 1;
 };
 
 // Binary conversion.
@@ -1126,7 +1129,8 @@ struct UNIT {
   NationInfo nation_info = {};
   Unknown15 unknown15 = {};
   uint8_t moves = {};
-  uint16_t unknown16 = {};
+  uint8_t origin_settlement = {};
+  uint8_t unknown16b = {};
   orders_type orders = {};
   uint8_t goto_x = {};
   uint8_t goto_y = {};
@@ -1202,7 +1206,7 @@ struct NATION {
   int32_t gold = {};
   uint16_t current_crosses = {};
   uint16_t needed_crosses = {};
-  uint16_t unknown25a = {};
+  std::array<uint8_t, 2> point_return_from_europe = {};
   uint32_t unknown25b = {};
   RelationByIndian relation_by_indian = {};
   uint32_t unknown26a = {};

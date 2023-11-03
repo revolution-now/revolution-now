@@ -9,10 +9,10 @@ tools="$(realpath "$sav/../")"
 root="$(realpath "$tools/../")"
 
 cd "$root"
-[[ -d data ]]
+[[ -d src ]]
 
 input="extern/smcol_saves_utility/smcol_sav_struct.json"
-output="data/sav-structure.json"
+output="$sav/sav-structure.json"
 
 [[ -f "$input" ]]
 

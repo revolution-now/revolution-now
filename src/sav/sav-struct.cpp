@@ -257,14 +257,20 @@ bool read_binary( base::BinaryData& b, NationInfo& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
   o.nation_id = static_cast<nation_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.unknown14 = (bits & 0b1111); bits >>= 4;
+  o.vis_to_english = (bits & 0b1); bits >>= 1;
+  o.vis_to_french = (bits & 0b1); bits >>= 1;
+  o.vis_to_spanish = (bits & 0b1); bits >>= 1;
+  o.vis_to_dutch = (bits & 0b1); bits >>= 1;
   return true;
 }
 
 bool write_binary( base::BinaryData& b, NationInfo const& o ) {
   uint8_t bits = 0;
   bits <<= 4; bits |= (static_cast<uint8_t>( o.nation_id ) & 0b1111);
-  bits <<= 4; bits |= (o.unknown14 & 0b1111);
+  bits <<= 1; bits |= (o.vis_to_english & 0b1);
+  bits <<= 1; bits |= (o.vis_to_french & 0b1);
+  bits <<= 1; bits |= (o.vis_to_spanish & 0b1);
+  bits <<= 1; bits |= (o.vis_to_dutch & 0b1);
   return b.write_bytes<1>( bits );
 }
 
@@ -1171,7 +1177,8 @@ bool read_binary( base::BinaryData& b, UNIT& o ) {
     && read_binary( b, o.nation_info )
     && read_binary( b, o.unknown15 )
     && read_binary( b, o.moves )
-    && read_binary( b, o.unknown16 )
+    && read_binary( b, o.origin_settlement )
+    && read_binary( b, o.unknown16b )
     && read_binary( b, o.orders )
     && read_binary( b, o.goto_x )
     && read_binary( b, o.goto_y )
@@ -1192,7 +1199,8 @@ bool write_binary( base::BinaryData& b, UNIT const& o ) {
     && write_binary( b, o.nation_info )
     && write_binary( b, o.unknown15 )
     && write_binary( b, o.moves )
-    && write_binary( b, o.unknown16 )
+    && write_binary( b, o.origin_settlement )
+    && write_binary( b, o.unknown16b )
     && write_binary( b, o.orders )
     && write_binary( b, o.goto_x )
     && write_binary( b, o.goto_y )
@@ -1288,7 +1296,7 @@ bool read_binary( base::BinaryData& b, NATION& o ) {
     && read_binary( b, o.gold )
     && read_binary( b, o.current_crosses )
     && read_binary( b, o.needed_crosses )
-    && read_binary( b, o.unknown25a )
+    && read_binary( b, o.point_return_from_europe )
     && read_binary( b, o.unknown25b )
     && read_binary( b, o.relation_by_indian )
     && read_binary( b, o.unknown26a )
@@ -1322,7 +1330,7 @@ bool write_binary( base::BinaryData& b, NATION const& o ) {
     && write_binary( b, o.gold )
     && write_binary( b, o.current_crosses )
     && write_binary( b, o.needed_crosses )
-    && write_binary( b, o.unknown25a )
+    && write_binary( b, o.point_return_from_europe )
     && write_binary( b, o.unknown25b )
     && write_binary( b, o.relation_by_indian )
     && write_binary( b, o.unknown26a )

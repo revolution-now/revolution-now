@@ -1535,14 +1535,18 @@
       "type": "Artillery",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1111"
+        "vis_to_english": true,
+        "vis_to_french": true,
+        "vis_to_spanish": true,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -1585,14 +1589,18 @@
       "type": "Artillery",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1111"
+        "vis_to_english": true,
+        "vis_to_french": true,
+        "vis_to_spanish": true,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -1635,14 +1643,18 @@
       "type": "Artillery",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1111"
+        "vis_to_english": true,
+        "vis_to_french": true,
+        "vis_to_spanish": true,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -1685,14 +1697,18 @@
       "type": "Artillery",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1111"
+        "vis_to_english": true,
+        "vis_to_french": true,
+        "vis_to_spanish": true,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -1735,14 +1751,18 @@
       "type": "Artillery",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1111"
+        "vis_to_english": true,
+        "vis_to_french": true,
+        "vis_to_spanish": true,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -1785,14 +1805,18 @@
       "type": "Artillery",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1111"
+        "vis_to_english": true,
+        "vis_to_french": true,
+        "vis_to_spanish": true,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -1835,14 +1859,18 @@
       "type": "Artillery",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1111"
+        "vis_to_english": true,
+        "vis_to_french": true,
+        "vis_to_spanish": true,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -1885,14 +1913,18 @@
       "type": "Artillery",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1111"
+        "vis_to_english": true,
+        "vis_to_french": true,
+        "vis_to_spanish": true,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -1935,14 +1967,18 @@
       "type": "Artillery",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1111"
+        "vis_to_english": true,
+        "vis_to_french": true,
+        "vis_to_spanish": true,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -1985,14 +2021,18 @@
       "type": "Dragoon",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -2035,14 +2075,18 @@
       "type": "Dragoon",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -2085,14 +2129,18 @@
       "type": "Dragoon",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -2135,14 +2183,18 @@
       "type": "Dragoon",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -2185,14 +2237,18 @@
       "type": "Dragoon",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -2235,14 +2291,18 @@
       "type": "Dragoon",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -2285,14 +2345,18 @@
       "type": "Dragoon",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -2335,14 +2399,18 @@
       "type": "Dragoon",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -2385,14 +2453,18 @@
       "type": "Dragoon",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -2435,14 +2507,18 @@
       "type": "Dragoon",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -2485,14 +2561,18 @@
       "type": "Continental army",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -2535,14 +2615,18 @@
       "type": "Continental army",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -2585,14 +2669,18 @@
       "type": "Continental cavalry",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -2635,14 +2723,18 @@
       "type": "Continental army",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -2685,14 +2777,18 @@
       "type": "Continental army",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -2735,14 +2831,18 @@
       "type": "Artillery",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -2823,7 +2923,10 @@
       "gold": 1526,
       "current_crosses": 8,
       "needed_crosses": 10,
-      "unknown25a": "34 2a",
+      "point_return_from_europe": [
+        52,
+        42
+      ],
       "unknown25b": "00 60 00 60",
       "relation_by_indian": {
         "Inca": "not met",
@@ -2975,7 +3078,10 @@
       "gold": 1064,
       "current_crosses": 1,
       "needed_crosses": 8,
-      "unknown25a": "35 29",
+      "point_return_from_europe": [
+        53,
+        41
+      ],
       "unknown25b": "60 00 60 22",
       "relation_by_indian": {
         "Inca": "not met",
@@ -3127,7 +3233,10 @@
       "gold": 122,
       "current_crosses": 1,
       "needed_crosses": 12,
-      "unknown25a": "34 33",
+      "point_return_from_europe": [
+        52,
+        51
+      ],
       "unknown25b": "00 60 00 60",
       "relation_by_indian": {
         "Inca": "not met",
@@ -3279,7 +3388,10 @@
       "gold": 3449,
       "current_crosses": 152,
       "needed_crosses": 144,
-      "unknown25a": "34 1a",
+      "point_return_from_europe": [
+        52,
+        26
+      ],
       "unknown25b": "60 22 60 00",
       "relation_by_indian": {
         "Inca": "not met",

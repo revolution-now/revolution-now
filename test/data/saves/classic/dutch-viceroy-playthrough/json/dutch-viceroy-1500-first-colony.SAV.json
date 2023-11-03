@@ -1073,14 +1073,18 @@
       "type": "Caravel",
       "nation_info": {
         "nation_id": "England",
-        "unknown14": "0001"
+        "vis_to_english": true,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 12,
-      "unknown16": "ff 34",
+      "origin_settlement": 255,
+      "unknown16b": "34",
       "orders": "unknownb",
       "goto_x": 50,
       "goto_y": 9,
@@ -1123,14 +1127,18 @@
       "type": "Pioneer",
       "nation_info": {
         "nation_id": "England",
-        "unknown14": "0001"
+        "vis_to_english": true,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000100",
         "damaged": false
       },
       "moves": 3,
-      "unknown16": "ff 56",
+      "origin_settlement": 255,
+      "unknown16b": "56",
       "orders": "none",
       "goto_x": 50,
       "goto_y": 9,
@@ -1173,14 +1181,18 @@
       "type": "Caravel",
       "nation_info": {
         "nation_id": "France",
-        "unknown14": "0010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 12,
-      "unknown16": "ff 50",
+      "origin_settlement": 255,
+      "unknown16b": "50",
       "orders": "unknownb",
       "goto_x": 48,
       "goto_y": 37,
@@ -1223,14 +1235,18 @@
       "type": "Caravel",
       "nation_info": {
         "nation_id": "Spain",
-        "unknown14": "0100"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": true,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0010000",
         "damaged": false
       },
       "moves": 12,
-      "unknown16": "ff 34",
+      "origin_settlement": 255,
+      "unknown16b": "34",
       "orders": "unknownb",
       "goto_x": 45,
       "goto_y": 57,
@@ -1273,14 +1289,18 @@
       "type": "Soldier",
       "nation_info": {
         "nation_id": "Spain",
-        "unknown14": "0100"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": true,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0001100",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "ff 39",
+      "origin_settlement": 255,
+      "unknown16b": "39",
       "orders": "unknownc",
       "goto_x": 42,
       "goto_y": 56,
@@ -1323,14 +1343,18 @@
       "type": "Merchantman",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "ff 58",
+      "origin_settlement": 255,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 52,
       "goto_y": 26,
@@ -1373,14 +1397,18 @@
       "type": "Pioneer",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "1000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": true
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 3,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "plow",
       "goto_x": 49,
       "goto_y": 28,
@@ -1423,14 +1451,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Inca",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "00 58",
+      "origin_settlement": 0,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -1473,14 +1505,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Aztec",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "01 58",
+      "origin_settlement": 1,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -1523,14 +1559,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Awarak",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "02 58",
+      "origin_settlement": 2,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -1573,14 +1613,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Iroquois",
-        "unknown14": "0010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 9,
-      "unknown16": "03 58",
+      "origin_settlement": 3,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -1623,14 +1667,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Cherokee",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "04 58",
+      "origin_settlement": 4,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -1673,14 +1721,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Apache",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "05 58",
+      "origin_settlement": 5,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -1723,14 +1775,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Sioux",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "06 58",
+      "origin_settlement": 6,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -1773,14 +1829,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "07 58",
+      "origin_settlement": 7,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -1823,14 +1883,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Apache",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 9,
-      "unknown16": "08 58",
+      "origin_settlement": 8,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -1873,14 +1937,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Cherokee",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "09 58",
+      "origin_settlement": 9,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -1923,14 +1991,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Awarak",
-        "unknown14": "0100"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": true,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "0a 58",
+      "origin_settlement": 10,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -1973,14 +2045,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Sioux",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "0b 58",
+      "origin_settlement": 11,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2023,14 +2099,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "0c 58",
+      "origin_settlement": 12,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2073,14 +2153,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 3,
-      "unknown16": "0d 58",
+      "origin_settlement": 13,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2123,14 +2207,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Awarak",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 3,
-      "unknown16": "0e 58",
+      "origin_settlement": 14,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2173,14 +2261,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "0f 58",
+      "origin_settlement": 15,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2223,14 +2315,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Cherokee",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "10 58",
+      "origin_settlement": 16,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2273,14 +2369,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Sioux",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "11 58",
+      "origin_settlement": 17,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2323,14 +2423,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Awarak",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "12 58",
+      "origin_settlement": 18,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2373,14 +2477,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 3,
-      "unknown16": "13 58",
+      "origin_settlement": 19,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2423,14 +2531,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Apache",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 9,
-      "unknown16": "14 58",
+      "origin_settlement": 20,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2473,14 +2585,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Apache",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 3,
-      "unknown16": "15 58",
+      "origin_settlement": 21,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2523,14 +2639,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Apache",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "16 58",
+      "origin_settlement": 22,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2573,14 +2693,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "17 58",
+      "origin_settlement": 23,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2623,14 +2747,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Cherokee",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "18 58",
+      "origin_settlement": 24,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2673,14 +2801,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Inca",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 4,
-      "unknown16": "19 58",
+      "origin_settlement": 25,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2723,14 +2855,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Apache",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "1a 58",
+      "origin_settlement": 26,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2773,14 +2909,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Apache",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "1b 58",
+      "origin_settlement": 27,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2823,14 +2963,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "1c 58",
+      "origin_settlement": 28,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2873,14 +3017,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 9,
-      "unknown16": "1d 58",
+      "origin_settlement": 29,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2923,14 +3071,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Sioux",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "1e 58",
+      "origin_settlement": 30,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -2973,14 +3125,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "1f 58",
+      "origin_settlement": 31,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3023,14 +3179,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Apache",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "20 58",
+      "origin_settlement": 32,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3073,14 +3233,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Cherokee",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 9,
-      "unknown16": "21 58",
+      "origin_settlement": 33,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3123,14 +3287,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Iroquois",
-        "unknown14": "0010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 3,
-      "unknown16": "22 58",
+      "origin_settlement": 34,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3173,14 +3341,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 7,
-      "unknown16": "23 58",
+      "origin_settlement": 35,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3223,14 +3395,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Cherokee",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 9,
-      "unknown16": "24 58",
+      "origin_settlement": 36,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3273,14 +3449,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Apache",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 9,
-      "unknown16": "25 58",
+      "origin_settlement": 37,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3323,14 +3503,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "26 58",
+      "origin_settlement": 38,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3373,14 +3557,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Apache",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "27 58",
+      "origin_settlement": 39,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3423,14 +3611,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "28 58",
+      "origin_settlement": 40,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3473,14 +3665,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Cherokee",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "29 58",
+      "origin_settlement": 41,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3523,14 +3719,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "2a 58",
+      "origin_settlement": 42,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3573,14 +3773,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Aztec",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "2b 58",
+      "origin_settlement": 43,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3623,14 +3827,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Cherokee",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "2c 58",
+      "origin_settlement": 44,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3673,14 +3881,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Cherokee",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "2d 58",
+      "origin_settlement": 45,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3723,14 +3935,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Apache",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 9,
-      "unknown16": "2e 58",
+      "origin_settlement": 46,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3773,14 +3989,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Iroquois",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 9,
-      "unknown16": "2f 58",
+      "origin_settlement": 47,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3823,14 +4043,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Awarak",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "30 58",
+      "origin_settlement": 48,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3873,14 +4097,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "31 58",
+      "origin_settlement": 49,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3923,14 +4151,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "32 58",
+      "origin_settlement": 50,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -3973,14 +4205,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Sioux",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "33 58",
+      "origin_settlement": 51,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4023,14 +4259,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Apache",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "34 58",
+      "origin_settlement": 52,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4073,14 +4313,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Apache",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 3,
-      "unknown16": "35 58",
+      "origin_settlement": 53,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4123,14 +4367,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Apache",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "36 58",
+      "origin_settlement": 54,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4173,14 +4421,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Awarak",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "37 58",
+      "origin_settlement": 55,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4223,14 +4475,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 3,
-      "unknown16": "38 58",
+      "origin_settlement": 56,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4273,14 +4529,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "39 58",
+      "origin_settlement": 57,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4323,14 +4583,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Cherokee",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "3a 58",
+      "origin_settlement": 58,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4373,14 +4637,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "3b 58",
+      "origin_settlement": 59,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4423,14 +4691,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Sioux",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 3,
-      "unknown16": "3c 58",
+      "origin_settlement": 60,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4473,14 +4745,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Aztec",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 9,
-      "unknown16": "3d 58",
+      "origin_settlement": 61,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4523,14 +4799,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Cherokee",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "3e 58",
+      "origin_settlement": 62,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4573,14 +4853,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 9,
-      "unknown16": "3f 58",
+      "origin_settlement": 63,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4623,14 +4907,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Awarak",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 9,
-      "unknown16": "40 58",
+      "origin_settlement": 64,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4673,14 +4961,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Tupi",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 3,
-      "unknown16": "41 58",
+      "origin_settlement": 65,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4723,14 +5015,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Cherokee",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 3,
-      "unknown16": "42 58",
+      "origin_settlement": 66,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4773,14 +5069,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Apache",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "43 58",
+      "origin_settlement": 67,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4823,14 +5123,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Aztec",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 3,
-      "unknown16": "44 58",
+      "origin_settlement": 68,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4873,14 +5177,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Aztec",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "45 58",
+      "origin_settlement": 69,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4923,14 +5231,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Aztec",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "46 58",
+      "origin_settlement": 70,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -4973,14 +5285,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Cherokee",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "47 58",
+      "origin_settlement": 71,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -5023,14 +5339,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Aztec",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "48 58",
+      "origin_settlement": 72,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -5073,14 +5393,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Awarak",
-        "unknown14": "0100"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": true,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "49 58",
+      "origin_settlement": 73,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -5123,14 +5447,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Aztec",
-        "unknown14": "0001"
+        "vis_to_english": true,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0001000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "4a 58",
+      "origin_settlement": 74,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -5173,14 +5501,18 @@
       "type": "Brave",
       "nation_info": {
         "nation_id": "Aztec",
-        "unknown14": "0001"
+        "vis_to_english": true,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0001000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "4b 58",
+      "origin_settlement": 75,
+      "unknown16b": "58",
       "orders": "none",
       "goto_x": 0,
       "goto_y": 0,
@@ -5223,14 +5555,18 @@
       "type": "Colonist",
       "nation_info": {
         "nation_id": "England",
-        "unknown14": "0001"
+        "vis_to_english": true,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 3,
-      "unknown16": "ff 3f",
+      "origin_settlement": 255,
+      "unknown16b": "3f",
       "orders": "sentry",
       "goto_x": 0,
       "goto_y": 0,
@@ -5273,14 +5609,18 @@
       "type": "Colonist",
       "nation_info": {
         "nation_id": "France",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "ff 3f",
+      "origin_settlement": 255,
+      "unknown16b": "3f",
       "orders": "sentry",
       "goto_x": 0,
       "goto_y": 0,
@@ -5323,14 +5663,18 @@
       "type": "Missionary",
       "nation_info": {
         "nation_id": "Spain",
-        "unknown14": "0100"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": true,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 6,
-      "unknown16": "ff 3f",
+      "origin_settlement": 255,
+      "unknown16b": "3f",
       "orders": "sentry",
       "goto_x": 0,
       "goto_y": 0,
@@ -5373,14 +5717,18 @@
       "type": "Soldier",
       "nation_info": {
         "nation_id": "France",
-        "unknown14": "0010"
+        "vis_to_english": false,
+        "vis_to_french": true,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0001110",
         "damaged": false
       },
       "moves": 3,
-      "unknown16": "01 56",
+      "origin_settlement": 1,
+      "unknown16b": "56",
       "orders": "fortify",
       "goto_x": 0,
       "goto_y": 0,
@@ -5423,14 +5771,18 @@
       "type": "Colonist",
       "nation_info": {
         "nation_id": "Netherlands",
-        "unknown14": "0000"
+        "vis_to_english": false,
+        "vis_to_french": false,
+        "vis_to_spanish": false,
+        "vis_to_dutch": false
       },
       "unknown15": {
         "unknown15a": "0000000",
         "damaged": false
       },
       "moves": 0,
-      "unknown16": "ff 58",
+      "origin_settlement": 255,
+      "unknown16b": "58",
       "orders": "sentry",
       "goto_x": 0,
       "goto_y": 0,
@@ -5511,7 +5863,10 @@
       "gold": 38,
       "current_crosses": 5,
       "needed_crosses": 5,
-      "unknown25a": "2f 0f",
+      "point_return_from_europe": [
+        47,
+        15
+      ],
       "unknown25b": "00 00 00 00",
       "relation_by_indian": {
         "Inca": "not met",
@@ -5663,7 +6018,10 @@
       "gold": 0,
       "current_crosses": 1,
       "needed_crosses": 8,
-      "unknown25a": "35 29",
+      "point_return_from_europe": [
+        53,
+        41
+      ],
       "unknown25b": "00 00 00 00",
       "relation_by_indian": {
         "Inca": "not met",
@@ -5815,7 +6173,10 @@
       "gold": 0,
       "current_crosses": 4,
       "needed_crosses": 8,
-      "unknown25a": "34 34",
+      "point_return_from_europe": [
+        52,
+        52
+      ],
       "unknown25b": "00 00 00 00",
       "relation_by_indian": {
         "Inca": "not met",
@@ -5967,7 +6328,10 @@
       "gold": 0,
       "current_crosses": 1,
       "needed_crosses": 16,
-      "unknown25a": "34 1a",
+      "point_return_from_europe": [
+        52,
+        26
+      ],
       "unknown25b": "00 00 00 00",
       "relation_by_indian": {
         "Inca": "not met",
