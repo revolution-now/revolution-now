@@ -184,22 +184,45 @@ local ALLOWED_INTEGRAL_SIZES = {
   [8]=true,
 }
 
+local CPP_UINT_FOR_SIZE = {
+  [1]='uint8_t',
+  [2]='uint16_t',
+  [3]=false,
+  [4]='uint32_t',
+  [5]=false,
+  [6]=false,
+  [7]=false,
+  [8]='uint64_t',
+}
+
+local CPP_INT_FOR_SIZE = {
+  [1]='int8_t',
+  [2]='int16_t',
+  [3]=false,
+  [4]='int32_t',
+  [5]=false,
+  [6]=false,
+  [7]=false,
+  [8]='int64_t',
+}
+
+local function smallest_type_from( list, nbytes )
+  for i = 1, nbytes * 2 do
+    local type = list[i]
+    if i >= nbytes and type then return type end
+  end
+end
+
+local function smallest_uint( nbytes )
+  return smallest_type_from( CPP_UINT_FOR_SIZE, nbytes )
+end
+
 function CppEmitter:uint( size )
   assert( size )
   assert( type( size ) == 'number' )
   assert( size > 0 )
   local res = { size=size }
-  local types = {
-    [1]='uint8_t',
-    [2]='uint16_t',
-    [3]=nil,
-    [4]='uint32_t',
-    [5]=nil,
-    [6]=nil,
-    [7]=nil,
-    [8]='uint64_t',
-  }
-  res.type = assert( types[size] )
+  res.type = assert( CPP_UINT_FOR_SIZE[size] )
   return res
 end
 
@@ -208,17 +231,7 @@ function CppEmitter:int( size )
   assert( type( size ) == 'number' )
   assert( size > 0 )
   local res = { size=size }
-  local types = {
-    [1]='int8_t',
-    [2]='int16_t',
-    [3]=nil,
-    [4]='int32_t',
-    [5]=nil,
-    [6]=nil,
-    [7]=nil,
-    [8]='int64_t',
-  }
-  res.type = assert( types[size] )
+  res.type = assert( CPP_INT_FOR_SIZE[size] )
   return res
 end
 
@@ -376,21 +389,149 @@ local function readably_equivalent( l, r )
   return canonical( l ) == canonical( r )
 end
 
-local function emit_binary_conv( emitter, name )
-  emitter:newline();
-  emitter:comment( 'Binary conversion.' )
-  emitter:line(
-      'bool read_binary( BinaryFile& b, %s const& o );', name )
-  emitter:line(
-      'bool write_binary( BinaryFile& b, %s const& o );', name )
+local function emit_binary_conv_decl( hpp, name )
+  hpp:newline();
+  hpp:comment( 'Binary conversion.' )
+  hpp:line( 'bool read_binary( base::BinaryReader& b, %s& o );',
+            name )
+  hpp:line(
+      'bool write_binary( base::BinaryWriter& b, %s const& o );',
+      name )
 end
 
-function CppEmitter:emit_bit_struct( emitter, bit_struct, name )
+local function bits_for_metadata_type( type_name, first_value )
+  local bits = type_name:match( '_([0-9]+)bit_' )
+  if bits then return bits end
+  local bytes = {}
+  first_value:gsub( '[0-9a-zA-Z]+', function( byte )
+    insert( bytes, 1, byte )
+  end )
+  return #bytes * 8
+end
+
+local function some_metadata_field_value( elems )
+  local some_value
+  for k, v in pairs( elems ) do
+    some_value = v
+    if not k:match( '__' ) then break end
+  end
+  assert( some_value )
+  return some_value
+end
+
+local function nbits_base_type( field_name, elems )
+  local some_value = some_metadata_field_value( elems )
+  local nbits = bits_for_metadata_type( field_name, some_value )
+  local base = smallest_uint( (nbits + 8) // 8 )
+  return base
+end
+
+local function static_cast_to_bit_field( info )
+  if not info.type then return end
+  if info.type == 'bit_bool' then return end
+  if info.type:match( 'bit_' ) then return info.type end
+end
+
+local function emit_bit_struct_binary_conv_impl(cpp, name,
+                                                bit_struct )
+  assert( type( bit_struct ) == 'table' )
+  cpp:comment( 'Binary conversion.' )
+
+  -- Read.
+  cpp:line( 'bool read_binary( base::BinaryReader& b, %s& o ) {',
+            name )
+  cpp:indent()
+  for _, field_name in ipairs( bit_struct.__key_order ) do
+    local info = bit_struct[field_name]
+    local cast_type = static_cast_to_bit_field( info )
+    if cast_type then
+      cpp:line( 'o.%s = b.read_n_bits<%d, %s>();',
+                as_identifier( field_name ), info.size, cast_type )
+    else
+      cpp:line( 'o.%s = b.read_n_bits<%d>();',
+                as_identifier( field_name ), info.size )
+    end
+  end
+  cpp:line( 'return b.good();' );
+  cpp:unindent()
+  cpp:line( '}' )
+
+  cpp:newline()
+
+  -- Write.
+  cpp:line(
+      'bool write_binary( base::BinaryWriter& b, %s const& o ) {',
+      name )
+  cpp:indent()
+  for _, field_name in ipairs( bit_struct.__key_order ) do
+    local info = bit_struct[field_name]
+    local nbits = info.size
+    cpp:line( 'b.write_bits( %d, o.%s );', nbits,
+              as_identifier( field_name ) )
+  end
+  cpp:line( 'return b.good();' );
+  cpp:unindent()
+  cpp:line( '}' )
+end
+
+local function emit_struct_binary_conv_impl( cpp, name, struct )
+  assert( type( struct ) == 'table' )
+  cpp:comment( 'Binary conversion.' )
+
+  -- Read.
+  cpp:line( 'bool read_binary( base::BinaryReader& b, %s& o ) {',
+            name )
+  cpp:indent()
+  cpp:line( 'return true' );
+  cpp:indent();
+  if struct.value_type then struct = struct.value_type end
+  for _, key in ipairs( struct.__key_order ) do
+    if key:match( '__' ) then goto continue end
+    assert( struct[key], format(
+                'key "%s" not found in struct of name "%s".',
+                key, name ) )
+    cpp:line( '&& read_binary( b, o.%s )', as_identifier( key ) );
+    ::continue::
+  end
+  cpp:line( ';' )
+  cpp:unindent()
+  cpp:unindent()
+  cpp:line( '}' )
+
+  cpp:newline()
+
+  -- Write.
+  cpp:line(
+      'bool write_binary( base::BinaryWriter& b, %s const& o ) {',
+      name )
+  cpp:indent()
+  cpp:line( 'return true' );
+  cpp:indent();
+  if struct.value_type then struct = struct.value_type end
+  for _, key in ipairs( struct.__key_order ) do
+    if key:match( '__' ) then goto continue end
+    assert( struct[key], format(
+                'key "%s" not found in struct of name "%s".',
+                key, name ) )
+    cpp:line( '&& write_binary( b, o.%s )', as_identifier( key ) );
+    ::continue::
+  end
+  cpp:line( ';' )
+  cpp:unindent()
+  cpp:unindent()
+  cpp:line( '}' )
+end
+
+function CppEmitter:emit_bit_struct( hpp, cpp, bit_struct, name )
   self:dbg( 'emitting bit struct %s.', name )
-  emitter:newline()
-  emitter:section( name )
-  emitter:line( 'struct %s {', name )
-  emitter:indent()
+  hpp:newline()
+  hpp:section( name )
+  cpp:newline()
+  cpp:section( name )
+
+  -- Struct declaration.
+  hpp:line( 'struct %s {', name )
+  hpp:indent()
   if bit_struct.value_type then
     bit_struct = bit_struct.value_type
   end
@@ -403,18 +544,20 @@ function CppEmitter:emit_bit_struct( emitter, bit_struct, name )
     assert( member.size )
     assert( type( member.size ) == 'number' )
     assert( member.size >= 0 )
-    assert( member.size <= 8 )
-    local type = member.type or 'uint8_t'
+    -- assert( member.size <= 8 )
+    local type = member.type or
+                     smallest_uint( (member.size + 8) // 8 )
     local remaps = { bit_bool='bool', uint='uint8_t' }
     type = remaps[type] or type
-    emitter:line( '%s %s : %d;', type, as_identifier( key ),
-                  member.size );
+    hpp:line( '%s %s : %d;', type, as_identifier( key ),
+              member.size );
   end
-  emitter:unindent()
-  emitter:line( '};' )
+  hpp:unindent()
+  hpp:line( '};' )
 
   -- Binary conversion.
-  emit_binary_conv( emitter, name )
+  emit_binary_conv_decl( hpp, name )
+  emit_bit_struct_binary_conv_impl( cpp, name, bit_struct )
 end
 
 local function struct_name_for( name )
@@ -427,12 +570,12 @@ local function struct_name_for( name )
   return replace_non_identifier_chars( camel )
 end
 
-function CppEmitter:emit_bit_structs( emitter )
+function CppEmitter:emit_bit_structs( hpp, cpp )
   self:dbg( 'emitting bit structs...' )
   for _, bit_struct in ipairs( self.finished_bit_structs_ ) do
     local name = struct_name_for( assert( bit_struct.__name ) )
     assert( bit_struct.__key_order )
-    self:emit_bit_struct( emitter, bit_struct, name )
+    self:emit_bit_struct( hpp, cpp, bit_struct, name )
   end
 end
 
@@ -449,50 +592,67 @@ local function elem_type_name( info )
   error( 'failed to find elem type name.' )
 end
 
-function CppEmitter:emit_struct( emitter, struct, name )
+function CppEmitter:emit_struct( hpp, cpp, struct, name )
   self:dbg( 'emitting struct %s.', name )
-  emitter:newline()
-  emitter:section( name )
-  emitter:line( 'struct %s {', name )
-  emitter:indent()
+  hpp:newline()
+  hpp:section( name )
+  cpp:newline()
+  cpp:section( name )
+
+  -- Struct declaration.
+  hpp:line( 'struct %s {', name )
+  hpp:indent()
   if struct.value_type then struct = struct.value_type end
   for _, key in ipairs( struct.__key_order ) do
     if key:match( '__' ) then goto continue end
-    assert( struct[key],
-            format(
-                'key "%s" not found in bit struct of name "%s".',
+    assert( struct[key], format(
+                'key "%s" not found in struct of name "%s".',
                 key, name ) )
     local member = struct[key]
     if member.type == 'std::vector' then
-      emitter:line( 'std::vector<%s> %s = {};',
-                    elem_type_name( member.value_type ),
-                    as_identifier( key ) )
+      hpp:line( 'std::vector<%s> %s = {};',
+                elem_type_name( member.value_type ),
+                as_identifier( key ) )
     elseif member.type == 'std::array' then
-      emitter:line( '%s %s = {};', elem_type_name( member ),
-                    as_identifier( key ) );
+      hpp:line( '%s %s = {};', elem_type_name( member ),
+                as_identifier( key ) );
     elseif member.type then
-      emitter:line( '%s %s = {};', member.type,
-                    as_identifier( key ) )
+      hpp:line( '%s %s = {};', member.type, as_identifier( key ) )
     else
-      emitter:line( '%s %s = {};',
-                    struct_name_for( assert( member.__name ) ),
-                    as_identifier( key ) )
+      hpp:line( '%s %s = {};',
+                struct_name_for( assert( member.__name ) ),
+                as_identifier( key ) )
     end
     ::continue::
   end
-  emitter:unindent()
-  emitter:line( '};' )
+  hpp:unindent()
+  hpp:line( '};' )
+
+  -- Writing conversion routines for the top-level struct re-
+  -- quires some special considerations (e.g. dealing with
+  -- std::vectors whose sizes are found elsewhere in the struct),
+  -- and/or sometimes wanting to only convert part of it so that
+  -- we can extract the name of the player without converting the
+  -- entire terrain. So instead of trying to automate handling of
+  -- std::vectors in the flexible way that we'd need, we'll just
+  -- write those by hand, since it happens that we only need to
+  -- do this for the top-level struct.
+  if name == 'ColonySAV' then
+    cpp:comment( 'NOTE: manually implemented.' )
+    return
+  end
 
   -- Binary conversion.
-  emit_binary_conv( emitter, name )
+  emit_binary_conv_decl( hpp, name )
+  emit_struct_binary_conv_impl( cpp, name, struct )
 end
 
-function CppEmitter:emit_structs( emitter )
+function CppEmitter:emit_structs( hpp, cpp )
   self:dbg( 'emitting structs...' )
   for _, struct in ipairs( self.finished_structs_ ) do
     local name = struct_name_for( assert( struct.__name ) )
     assert( struct.__key_order )
-    self:emit_struct( emitter, struct, name )
+    self:emit_struct( hpp, cpp, struct, name )
   end
 end
 
@@ -513,7 +673,8 @@ function CppEmitter:emit_metadata_item( emitter, name, elems )
   self:dbg( 'emitting metadata for %s.', name )
   emitter:newline()
   emitter:section( name )
-  emitter:line( 'enum class %s {', name )
+  local base = nbits_base_type( name, elems )
+  emitter:line( 'enum class %s : %s {', name, base )
   emitter:indent()
   local ordered_elems = {}
   for k, v in pairs( elems ) do
@@ -576,8 +737,12 @@ function CppEmitter:emit_metadata( emitter )
   end
 end
 
-function CppEmitter:emit_fwd_decls( emitter )
-  emitter:line( 'struct BinaryFile;' )
+function CppEmitter:emit_fwd_decls( hpp )
+  hpp:open_ns( 'base' )
+  hpp:newline()
+  hpp:line( 'struct BinaryReader;' )
+  hpp:line( 'struct BinaryWriter;' )
+  hpp:close_ns( 'base' )
 end
 
 function CppEmitter:generate_code()
@@ -590,32 +755,32 @@ function CppEmitter:generate_code()
   hpp:include( '<cstdint>' )
   hpp:include( '<vector>' )
   hpp:newline()
-  hpp:open_ns( 'sav' )
-  hpp:newline()
   hpp:section( 'Forward Declarations.' )
   self:emit_fwd_decls( hpp )
+  hpp:newline()
+  hpp:section( 'Structure definitions.' )
+  hpp:open_ns( 'sav' )
   self:emit_metadata( hpp )
-  self:emit_bit_structs( hpp )
-  self:emit_structs( hpp )
-  hpp:close_ns( 'sav' )
-  local hpp_lines = hpp:result()
 
   local cpp = CodeGenerator()
-  cpp:section( 'Test.' )
-  cpp:comment( 'Hello World.' )
+  cpp:section( 'Classic Colonization Save File Structure.' )
+  cpp:comment(
+      'NOTE: this file was auto-generated. DO NOT MODIFY!' )
   cpp:newline()
-  cpp:include( '<string>' )
+  cpp:comment( 'sav' )
+  cpp:include( '"sav-struct.hpp"' )
   cpp:newline()
-  cpp:section( 'Bar' )
-  cpp:fragment( 'struct ' )
-  cpp:fragment( 'Bar ' )
-  cpp:line( '{' )
-  cpp:with_indent( function()
-    cpp:line( 'int x = {};' )
-    cpp:line( 'double y = {};' )
-    cpp:line( 'std::string %s;', 'var_name' )
-  end )
-  cpp:line( '};' )
+  cpp:comment( 'base' )
+  cpp:include( '"base/binary-data.hpp"' )
+  cpp:newline()
+  cpp:open_ns( 'sav' )
+
+  self:emit_bit_structs( hpp, cpp )
+  self:emit_structs( hpp, cpp )
+
+  hpp:close_ns( 'sav' )
+  cpp:close_ns( 'sav' )
+  local hpp_lines = hpp:result()
   local cpp_lines = cpp:result()
 
   return { hpp=hpp_lines, cpp=cpp_lines }

@@ -7,17 +7,25 @@
 #include <cstdint>
 #include <vector>
 
-namespace sav {
-
 /****************************************************************
 ** Forward Declarations.
 *****************************************************************/
-struct BinaryFile;
+namespace base {
+
+struct BinaryReader;
+struct BinaryWriter;
+
+}  // namespace base
+
+/****************************************************************
+** Structure definitions.
+*****************************************************************/
+namespace sav {
 
 /****************************************************************
 ** cargo_4bit_type
 *****************************************************************/
-enum class cargo_4bit_type {
+enum class cargo_4bit_type : uint8_t {
   food    = 0b0000,
   sugar   = 0b0001,
   tobacco = 0b0010,
@@ -39,7 +47,7 @@ enum class cargo_4bit_type {
 /****************************************************************
 ** control_type
 *****************************************************************/
-enum class control_type {
+enum class control_type : uint16_t {
   player    = 0x00,
   ai        = 0x01,
   withdrawn = 0x02,
@@ -48,7 +56,7 @@ enum class control_type {
 /****************************************************************
 ** difficulty_type
 *****************************************************************/
-enum class difficulty_type {
+enum class difficulty_type : uint16_t {
   discoverer   = 0x00,
   explorer     = 0x01,
   conquistador = 0x02,
@@ -59,7 +67,7 @@ enum class difficulty_type {
 /****************************************************************
 ** fortification_level_type
 *****************************************************************/
-enum class fortification_level_type {
+enum class fortification_level_type : uint16_t {
   none     = 0x00,
   stockade = 0x01,
   fort     = 0x02,
@@ -69,7 +77,7 @@ enum class fortification_level_type {
 /****************************************************************
 ** has_city_1bit_type
 *****************************************************************/
-enum class has_city_1bit_type {
+enum class has_city_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   c     = 0b1,
 };
@@ -77,7 +85,7 @@ enum class has_city_1bit_type {
 /****************************************************************
 ** has_unit_1bit_type
 *****************************************************************/
-enum class has_unit_1bit_type {
+enum class has_unit_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   u     = 0b1,
 };
@@ -85,7 +93,7 @@ enum class has_unit_1bit_type {
 /****************************************************************
 ** hills_river_3bit_type
 *****************************************************************/
-enum class hills_river_3bit_type {
+enum class hills_river_3bit_type : uint8_t {
   empty = 0b000,  // original: "  "
   c     = 0b001,  // original: "^ "
   t     = 0b010,  // original: "~ "
@@ -98,7 +106,7 @@ enum class hills_river_3bit_type {
 /****************************************************************
 ** level_2bit_type
 *****************************************************************/
-enum class level_2bit_type {
+enum class level_2bit_type : uint8_t {
   _0 = 0b00,
   _1 = 0b01,
   _2 = 0b11,
@@ -107,7 +115,7 @@ enum class level_2bit_type {
 /****************************************************************
 ** level_3bit_type
 *****************************************************************/
-enum class level_3bit_type {
+enum class level_3bit_type : uint8_t {
   _0 = 0b000,
   _1 = 0b001,
   _2 = 0b011,
@@ -117,7 +125,7 @@ enum class level_3bit_type {
 /****************************************************************
 ** nation_4bit_short_type
 *****************************************************************/
-enum class nation_4bit_short_type {
+enum class nation_4bit_short_type : uint8_t {
   en    = 0b0000,
   fr    = 0b0001,
   sp    = 0b0010,
@@ -136,7 +144,7 @@ enum class nation_4bit_short_type {
 /****************************************************************
 ** nation_4bit_type
 *****************************************************************/
-enum class nation_4bit_type {
+enum class nation_4bit_type : uint8_t {
   england     = 0b0000,
   france      = 0b0001,
   spain       = 0b0010,
@@ -155,7 +163,7 @@ enum class nation_4bit_type {
 /****************************************************************
 ** nation_type
 *****************************************************************/
-enum class nation_type {
+enum class nation_type : uint16_t {
   england     = 0x00,
   france      = 0x01,
   spain       = 0x02,
@@ -174,7 +182,7 @@ enum class nation_type {
 /****************************************************************
 ** occupation_type
 *****************************************************************/
-enum class occupation_type {
+enum class occupation_type : uint16_t {
   farmer          = 0x00,
   sugar_planter   = 0x01,
   tobacco_planter = 0x02,
@@ -200,7 +208,7 @@ enum class occupation_type {
 /****************************************************************
 ** orders_type
 *****************************************************************/
-enum class orders_type {
+enum class orders_type : uint16_t {
   none      = 0x00,
   sentry    = 0x01,
   trading   = 0x02,
@@ -217,7 +225,7 @@ enum class orders_type {
 /****************************************************************
 ** pacific_1bit_type
 *****************************************************************/
-enum class pacific_1bit_type {
+enum class pacific_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   t     = 0b1,  // original: "~"
 };
@@ -225,7 +233,7 @@ enum class pacific_1bit_type {
 /****************************************************************
 ** plowed_1bit_type
 *****************************************************************/
-enum class plowed_1bit_type {
+enum class plowed_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   h     = 0b1,  // original: "#"
 };
@@ -233,7 +241,7 @@ enum class plowed_1bit_type {
 /****************************************************************
 ** profession_type
 *****************************************************************/
-enum class profession_type {
+enum class profession_type : uint16_t {
   expert_farmer          = 0x00,
   master_sugar_planter   = 0x01,
   master_tobacco_planter = 0x02,
@@ -268,7 +276,7 @@ enum class profession_type {
 /****************************************************************
 ** purchased_1bit_type
 *****************************************************************/
-enum class purchased_1bit_type {
+enum class purchased_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   a     = 0b1,  // original: "*"
 };
@@ -276,7 +284,7 @@ enum class purchased_1bit_type {
 /****************************************************************
 ** region_id_4bit_type
 *****************************************************************/
-enum class region_id_4bit_type {
+enum class region_id_4bit_type : uint8_t {
   _0  = 0b0000,
   _1  = 0b0001,
   _2  = 0b0010,
@@ -298,7 +306,7 @@ enum class region_id_4bit_type {
 /****************************************************************
 ** relation_type
 *****************************************************************/
-enum class relation_type {
+enum class relation_type : uint16_t {
   not_met      = 0x00,
   war          = 0x20,
   peace        = 0x60,
@@ -309,7 +317,7 @@ enum class relation_type {
 /****************************************************************
 ** road_1bit_type
 *****************************************************************/
-enum class road_1bit_type {
+enum class road_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   e     = 0b1,  // original: "="
 };
@@ -317,7 +325,7 @@ enum class road_1bit_type {
 /****************************************************************
 ** season_type
 *****************************************************************/
-enum class season_type {
+enum class season_type : uint32_t {
   spring = 0x0000,
   autumn = 0x0001,
 };
@@ -325,7 +333,7 @@ enum class season_type {
 /****************************************************************
 ** suppress_1bit_type
 *****************************************************************/
-enum class suppress_1bit_type {
+enum class suppress_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   _     = 0b1,
 };
@@ -333,7 +341,7 @@ enum class suppress_1bit_type {
 /****************************************************************
 ** tech_type
 *****************************************************************/
-enum class tech_type {
+enum class tech_type : uint16_t {
   semi_nomadic = 0x00,
   agrarian     = 0x01,
   advanced     = 0x02,
@@ -343,7 +351,7 @@ enum class tech_type {
 /****************************************************************
 ** terrain_5bit_type
 *****************************************************************/
-enum class terrain_5bit_type {
+enum class terrain_5bit_type : uint8_t {
   tu  = 0b00000,  // original: "tu "
   de  = 0b00001,  // original: "de "
   pl  = 0b00010,  // original: "pl "
@@ -368,7 +376,7 @@ enum class terrain_5bit_type {
 /****************************************************************
 ** trade_route_type
 *****************************************************************/
-enum class trade_route_type {
+enum class trade_route_type : uint16_t {
   land = 0x00,
   sea  = 0x01,
 };
@@ -376,7 +384,7 @@ enum class trade_route_type {
 /****************************************************************
 ** unit_type
 *****************************************************************/
-enum class unit_type {
+enum class unit_type : uint16_t {
   colonist            = 0x00,
   soldier             = 0x01,
   pioneer             = 0x02,
@@ -405,7 +413,7 @@ enum class unit_type {
 /****************************************************************
 ** visible_to_dutch_1bit_type
 *****************************************************************/
-enum class visible_to_dutch_1bit_type {
+enum class visible_to_dutch_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   d     = 0b1,
 };
@@ -413,7 +421,7 @@ enum class visible_to_dutch_1bit_type {
 /****************************************************************
 ** visible_to_english_1bit_type
 *****************************************************************/
-enum class visible_to_english_1bit_type {
+enum class visible_to_english_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   e     = 0b1,
 };
@@ -421,7 +429,7 @@ enum class visible_to_english_1bit_type {
 /****************************************************************
 ** visible_to_french_1bit_type
 *****************************************************************/
-enum class visible_to_french_1bit_type {
+enum class visible_to_french_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   f     = 0b1,
 };
@@ -429,7 +437,7 @@ enum class visible_to_french_1bit_type {
 /****************************************************************
 ** visible_to_spanish_1bit_type
 *****************************************************************/
-enum class visible_to_spanish_1bit_type {
+enum class visible_to_spanish_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   s     = 0b1,
 };
@@ -451,8 +459,8 @@ struct GameOptions {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, GameOptions const& o );
-bool write_binary( BinaryFile& b, GameOptions const& o );
+bool read_binary( base::BinaryReader& b, GameOptions& o );
+bool write_binary( base::BinaryWriter& b, GameOptions const& o );
 
 /****************************************************************
 ** ColonyReportOptions
@@ -472,8 +480,8 @@ struct ColonyReportOptions {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, ColonyReportOptions const& o );
-bool write_binary( BinaryFile& b, ColonyReportOptions const& o );
+bool read_binary( base::BinaryReader& b, ColonyReportOptions& o );
+bool write_binary( base::BinaryWriter& b, ColonyReportOptions const& o );
 
 /****************************************************************
 ** Event
@@ -498,8 +506,8 @@ struct Event {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Event const& o );
-bool write_binary( BinaryFile& b, Event const& o );
+bool read_binary( base::BinaryReader& b, Event& o );
+bool write_binary( base::BinaryWriter& b, Event const& o );
 
 /****************************************************************
 ** Duration
@@ -510,8 +518,8 @@ struct Duration {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Duration const& o );
-bool write_binary( BinaryFile& b, Duration const& o );
+bool read_binary( base::BinaryReader& b, Duration& o );
+bool write_binary( base::BinaryWriter& b, Duration const& o );
 
 /****************************************************************
 ** Buildings
@@ -539,8 +547,8 @@ struct Buildings {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Buildings const& o );
-bool write_binary( BinaryFile& b, Buildings const& o );
+bool read_binary( base::BinaryReader& b, Buildings& o );
+bool write_binary( base::BinaryWriter& b, Buildings const& o );
 
 /****************************************************************
 ** CustomHouseFlags
@@ -565,8 +573,8 @@ struct CustomHouseFlags {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, CustomHouseFlags const& o );
-bool write_binary( BinaryFile& b, CustomHouseFlags const& o );
+bool read_binary( base::BinaryReader& b, CustomHouseFlags& o );
+bool write_binary( base::BinaryWriter& b, CustomHouseFlags const& o );
 
 /****************************************************************
 ** NationInfo
@@ -577,8 +585,8 @@ struct NationInfo {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, NationInfo const& o );
-bool write_binary( BinaryFile& b, NationInfo const& o );
+bool read_binary( base::BinaryReader& b, NationInfo& o );
+bool write_binary( base::BinaryWriter& b, NationInfo const& o );
 
 /****************************************************************
 ** Unknown15
@@ -589,8 +597,8 @@ struct Unknown15 {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Unknown15 const& o );
-bool write_binary( BinaryFile& b, Unknown15 const& o );
+bool read_binary( base::BinaryReader& b, Unknown15& o );
+bool write_binary( base::BinaryWriter& b, Unknown15 const& o );
 
 /****************************************************************
 ** CargoItems
@@ -601,8 +609,8 @@ struct CargoItems {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, CargoItems const& o );
-bool write_binary( BinaryFile& b, CargoItems const& o );
+bool read_binary( base::BinaryReader& b, CargoItems& o );
+bool write_binary( base::BinaryWriter& b, CargoItems const& o );
 
 /****************************************************************
 ** BoycottBitmap
@@ -627,8 +635,8 @@ struct BoycottBitmap {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, BoycottBitmap const& o );
-bool write_binary( BinaryFile& b, BoycottBitmap const& o );
+bool read_binary( base::BinaryReader& b, BoycottBitmap& o );
+bool write_binary( base::BinaryWriter& b, BoycottBitmap const& o );
 
 /****************************************************************
 ** ALCS
@@ -642,8 +650,8 @@ struct ALCS {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, ALCS const& o );
-bool write_binary( BinaryFile& b, ALCS const& o );
+bool read_binary( base::BinaryReader& b, ALCS& o );
+bool write_binary( base::BinaryWriter& b, ALCS const& o );
 
 /****************************************************************
 ** TILE
@@ -654,8 +662,8 @@ struct TILE {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, TILE const& o );
-bool write_binary( BinaryFile& b, TILE const& o );
+bool read_binary( base::BinaryReader& b, TILE& o );
+bool write_binary( base::BinaryWriter& b, TILE const& o );
 
 /****************************************************************
 ** MASK
@@ -672,8 +680,8 @@ struct MASK {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, MASK const& o );
-bool write_binary( BinaryFile& b, MASK const& o );
+bool read_binary( base::BinaryReader& b, MASK& o );
+bool write_binary( base::BinaryWriter& b, MASK const& o );
 
 /****************************************************************
 ** PATH
@@ -684,8 +692,8 @@ struct PATH {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, PATH const& o );
-bool write_binary( BinaryFile& b, PATH const& o );
+bool read_binary( base::BinaryReader& b, PATH& o );
+bool write_binary( base::BinaryWriter& b, PATH const& o );
 
 /****************************************************************
 ** SEEN
@@ -699,8 +707,8 @@ struct SEEN {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, SEEN const& o );
-bool write_binary( BinaryFile& b, SEEN const& o );
+bool read_binary( base::BinaryReader& b, SEEN& o );
+bool write_binary( base::BinaryWriter& b, SEEN const& o );
 
 /****************************************************************
 ** Stop1LoadsAndUnloadsCount
@@ -711,8 +719,8 @@ struct Stop1LoadsAndUnloadsCount {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Stop1LoadsAndUnloadsCount const& o );
-bool write_binary( BinaryFile& b, Stop1LoadsAndUnloadsCount const& o );
+bool read_binary( base::BinaryReader& b, Stop1LoadsAndUnloadsCount& o );
+bool write_binary( base::BinaryWriter& b, Stop1LoadsAndUnloadsCount const& o );
 
 /****************************************************************
 ** Stop1LoadsCargo
@@ -727,8 +735,8 @@ struct Stop1LoadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Stop1LoadsCargo const& o );
-bool write_binary( BinaryFile& b, Stop1LoadsCargo const& o );
+bool read_binary( base::BinaryReader& b, Stop1LoadsCargo& o );
+bool write_binary( base::BinaryWriter& b, Stop1LoadsCargo const& o );
 
 /****************************************************************
 ** Stop1UnloadsCargo
@@ -743,8 +751,8 @@ struct Stop1UnloadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Stop1UnloadsCargo const& o );
-bool write_binary( BinaryFile& b, Stop1UnloadsCargo const& o );
+bool read_binary( base::BinaryReader& b, Stop1UnloadsCargo& o );
+bool write_binary( base::BinaryWriter& b, Stop1UnloadsCargo const& o );
 
 /****************************************************************
 ** Stop2LoadsAndUnloadsCount
@@ -755,8 +763,8 @@ struct Stop2LoadsAndUnloadsCount {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Stop2LoadsAndUnloadsCount const& o );
-bool write_binary( BinaryFile& b, Stop2LoadsAndUnloadsCount const& o );
+bool read_binary( base::BinaryReader& b, Stop2LoadsAndUnloadsCount& o );
+bool write_binary( base::BinaryWriter& b, Stop2LoadsAndUnloadsCount const& o );
 
 /****************************************************************
 ** Stop2LoadsCargo
@@ -771,8 +779,8 @@ struct Stop2LoadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Stop2LoadsCargo const& o );
-bool write_binary( BinaryFile& b, Stop2LoadsCargo const& o );
+bool read_binary( base::BinaryReader& b, Stop2LoadsCargo& o );
+bool write_binary( base::BinaryWriter& b, Stop2LoadsCargo const& o );
 
 /****************************************************************
 ** Stop2UnloadsCargo
@@ -787,8 +795,8 @@ struct Stop2UnloadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Stop2UnloadsCargo const& o );
-bool write_binary( BinaryFile& b, Stop2UnloadsCargo const& o );
+bool read_binary( base::BinaryReader& b, Stop2UnloadsCargo& o );
+bool write_binary( base::BinaryWriter& b, Stop2UnloadsCargo const& o );
 
 /****************************************************************
 ** Stop3LoadsAndUnloadsCount
@@ -799,8 +807,8 @@ struct Stop3LoadsAndUnloadsCount {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Stop3LoadsAndUnloadsCount const& o );
-bool write_binary( BinaryFile& b, Stop3LoadsAndUnloadsCount const& o );
+bool read_binary( base::BinaryReader& b, Stop3LoadsAndUnloadsCount& o );
+bool write_binary( base::BinaryWriter& b, Stop3LoadsAndUnloadsCount const& o );
 
 /****************************************************************
 ** Stop3LoadsCargo
@@ -815,8 +823,8 @@ struct Stop3LoadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Stop3LoadsCargo const& o );
-bool write_binary( BinaryFile& b, Stop3LoadsCargo const& o );
+bool read_binary( base::BinaryReader& b, Stop3LoadsCargo& o );
+bool write_binary( base::BinaryWriter& b, Stop3LoadsCargo const& o );
 
 /****************************************************************
 ** Stop3UnloadsCargo
@@ -831,8 +839,8 @@ struct Stop3UnloadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Stop3UnloadsCargo const& o );
-bool write_binary( BinaryFile& b, Stop3UnloadsCargo const& o );
+bool read_binary( base::BinaryReader& b, Stop3UnloadsCargo& o );
+bool write_binary( base::BinaryWriter& b, Stop3UnloadsCargo const& o );
 
 /****************************************************************
 ** Stop4LoadsAndUnloadsCount
@@ -843,8 +851,8 @@ struct Stop4LoadsAndUnloadsCount {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Stop4LoadsAndUnloadsCount const& o );
-bool write_binary( BinaryFile& b, Stop4LoadsAndUnloadsCount const& o );
+bool read_binary( base::BinaryReader& b, Stop4LoadsAndUnloadsCount& o );
+bool write_binary( base::BinaryWriter& b, Stop4LoadsAndUnloadsCount const& o );
 
 /****************************************************************
 ** Stop4LoadsCargo
@@ -859,8 +867,8 @@ struct Stop4LoadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Stop4LoadsCargo const& o );
-bool write_binary( BinaryFile& b, Stop4LoadsCargo const& o );
+bool read_binary( base::BinaryReader& b, Stop4LoadsCargo& o );
+bool write_binary( base::BinaryWriter& b, Stop4LoadsCargo const& o );
 
 /****************************************************************
 ** Stop4UnloadsCargo
@@ -875,8 +883,8 @@ struct Stop4UnloadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Stop4UnloadsCargo const& o );
-bool write_binary( BinaryFile& b, Stop4UnloadsCargo const& o );
+bool read_binary( base::BinaryReader& b, Stop4UnloadsCargo& o );
+bool write_binary( base::BinaryWriter& b, Stop4UnloadsCargo const& o );
 
 /****************************************************************
 ** ExpeditionaryForce
@@ -889,8 +897,8 @@ struct ExpeditionaryForce {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, ExpeditionaryForce const& o );
-bool write_binary( BinaryFile& b, ExpeditionaryForce const& o );
+bool read_binary( base::BinaryReader& b, ExpeditionaryForce& o );
+bool write_binary( base::BinaryWriter& b, ExpeditionaryForce const& o );
 
 /****************************************************************
 ** BackupForce
@@ -903,8 +911,8 @@ struct BackupForce {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, BackupForce const& o );
-bool write_binary( BinaryFile& b, BackupForce const& o );
+bool read_binary( base::BinaryReader& b, BackupForce& o );
+bool write_binary( base::BinaryWriter& b, BackupForce const& o );
 
 /****************************************************************
 ** PriceGroupState
@@ -929,8 +937,8 @@ struct PriceGroupState {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, PriceGroupState const& o );
-bool write_binary( BinaryFile& b, PriceGroupState const& o );
+bool read_binary( base::BinaryReader& b, PriceGroupState& o );
+bool write_binary( base::BinaryWriter& b, PriceGroupState const& o );
 
 /****************************************************************
 ** HEAD
@@ -974,8 +982,8 @@ struct HEAD {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, HEAD const& o );
-bool write_binary( BinaryFile& b, HEAD const& o );
+bool read_binary( base::BinaryReader& b, HEAD& o );
+bool write_binary( base::BinaryWriter& b, HEAD const& o );
 
 /****************************************************************
 ** PLAYER
@@ -990,8 +998,8 @@ struct PLAYER {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, PLAYER const& o );
-bool write_binary( BinaryFile& b, PLAYER const& o );
+bool read_binary( base::BinaryReader& b, PLAYER& o );
+bool write_binary( base::BinaryWriter& b, PLAYER const& o );
 
 /****************************************************************
 ** Tiles
@@ -1008,8 +1016,8 @@ struct Tiles {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Tiles const& o );
-bool write_binary( BinaryFile& b, Tiles const& o );
+bool read_binary( base::BinaryReader& b, Tiles& o );
+bool write_binary( base::BinaryWriter& b, Tiles const& o );
 
 /****************************************************************
 ** Stock
@@ -1034,8 +1042,8 @@ struct Stock {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Stock const& o );
-bool write_binary( BinaryFile& b, Stock const& o );
+bool read_binary( base::BinaryReader& b, Stock& o );
+bool write_binary( base::BinaryWriter& b, Stock const& o );
 
 /****************************************************************
 ** PopulationOnMap
@@ -1048,8 +1056,8 @@ struct PopulationOnMap {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, PopulationOnMap const& o );
-bool write_binary( BinaryFile& b, PopulationOnMap const& o );
+bool read_binary( base::BinaryReader& b, PopulationOnMap& o );
+bool write_binary( base::BinaryWriter& b, PopulationOnMap const& o );
 
 /****************************************************************
 ** FortificationOnMap
@@ -1062,8 +1070,8 @@ struct FortificationOnMap {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, FortificationOnMap const& o );
-bool write_binary( BinaryFile& b, FortificationOnMap const& o );
+bool read_binary( base::BinaryReader& b, FortificationOnMap& o );
+bool write_binary( base::BinaryWriter& b, FortificationOnMap const& o );
 
 /****************************************************************
 ** COLONY
@@ -1094,8 +1102,8 @@ struct COLONY {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, COLONY const& o );
-bool write_binary( BinaryFile& b, COLONY const& o );
+bool read_binary( base::BinaryReader& b, COLONY& o );
+bool write_binary( base::BinaryWriter& b, COLONY const& o );
 
 /****************************************************************
 ** TransportChain
@@ -1106,8 +1114,8 @@ struct TransportChain {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, TransportChain const& o );
-bool write_binary( BinaryFile& b, TransportChain const& o );
+bool read_binary( base::BinaryReader& b, TransportChain& o );
+bool write_binary( base::BinaryWriter& b, TransportChain const& o );
 
 /****************************************************************
 ** UNIT
@@ -1132,8 +1140,8 @@ struct UNIT {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, UNIT const& o );
-bool write_binary( BinaryFile& b, UNIT const& o );
+bool read_binary( base::BinaryReader& b, UNIT& o );
+bool write_binary( base::BinaryWriter& b, UNIT const& o );
 
 /****************************************************************
 ** RelationByIndian
@@ -1150,8 +1158,8 @@ struct RelationByIndian {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, RelationByIndian const& o );
-bool write_binary( BinaryFile& b, RelationByIndian const& o );
+bool read_binary( base::BinaryReader& b, RelationByIndian& o );
+bool write_binary( base::BinaryWriter& b, RelationByIndian const& o );
 
 /****************************************************************
 ** Trade
@@ -1165,8 +1173,8 @@ struct Trade {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Trade const& o );
-bool write_binary( BinaryFile& b, Trade const& o );
+bool read_binary( base::BinaryReader& b, Trade& o );
+bool write_binary( base::BinaryWriter& b, Trade const& o );
 
 /****************************************************************
 ** NATION
@@ -1204,8 +1212,8 @@ struct NATION {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, NATION const& o );
-bool write_binary( BinaryFile& b, NATION const& o );
+bool read_binary( base::BinaryReader& b, NATION& o );
+bool write_binary( base::BinaryWriter& b, NATION const& o );
 
 /****************************************************************
 ** Alarm
@@ -1216,8 +1224,8 @@ struct Alarm {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, Alarm const& o );
-bool write_binary( BinaryFile& b, Alarm const& o );
+bool read_binary( base::BinaryReader& b, Alarm& o );
+bool write_binary( base::BinaryWriter& b, Alarm const& o );
 
 /****************************************************************
 ** TRIBE
@@ -1235,8 +1243,8 @@ struct TRIBE {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, TRIBE const& o );
-bool write_binary( BinaryFile& b, TRIBE const& o );
+bool read_binary( base::BinaryReader& b, TRIBE& o );
+bool write_binary( base::BinaryWriter& b, TRIBE const& o );
 
 /****************************************************************
 ** RelationByNations
@@ -1249,8 +1257,8 @@ struct RelationByNations {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, RelationByNations const& o );
-bool write_binary( BinaryFile& b, RelationByNations const& o );
+bool read_binary( base::BinaryReader& b, RelationByNations& o );
+bool write_binary( base::BinaryWriter& b, RelationByNations const& o );
 
 /****************************************************************
 ** INDIAN
@@ -1270,8 +1278,8 @@ struct INDIAN {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, INDIAN const& o );
-bool write_binary( BinaryFile& b, INDIAN const& o );
+bool read_binary( base::BinaryReader& b, INDIAN& o );
+bool write_binary( base::BinaryWriter& b, INDIAN const& o );
 
 /****************************************************************
 ** STUFF
@@ -1291,8 +1299,8 @@ struct STUFF {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, STUFF const& o );
-bool write_binary( BinaryFile& b, STUFF const& o );
+bool read_binary( base::BinaryReader& b, STUFF& o );
+bool write_binary( base::BinaryWriter& b, STUFF const& o );
 
 /****************************************************************
 ** TRADEROUTE
@@ -1324,8 +1332,8 @@ struct TRADEROUTE {
 };
 
 // Binary conversion.
-bool read_binary( BinaryFile& b, TRADEROUTE const& o );
-bool write_binary( BinaryFile& b, TRADEROUTE const& o );
+bool read_binary( base::BinaryReader& b, TRADEROUTE& o );
+bool write_binary( base::BinaryWriter& b, TRADEROUTE const& o );
 
 /****************************************************************
 ** ColonySAV
@@ -1352,9 +1360,5 @@ struct ColonySAV {
   uint8_t unknown39d = {};
   std::array<TRADEROUTE, 12> trade_route = {};
 };
-
-// Binary conversion.
-bool read_binary( BinaryFile& b, ColonySAV const& o );
-bool write_binary( BinaryFile& b, ColonySAV const& o );
 
 }  // namespace sav
