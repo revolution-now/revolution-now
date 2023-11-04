@@ -51,7 +51,7 @@ base::expect<BinaryBuffer, string> BinaryBuffer::from_file(
     return fmt::format(
         "internal error: more bytes read from file {} than "
         "requested; requested {}, read {}.",
-        path, file_size, in.tellg() );
+        path, file_size, int( in.tellg() ) );
 
   return BinaryBuffer( std::move( buffer ) );
 }
