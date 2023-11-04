@@ -69,11 +69,7 @@ local function main( args )
   info( 'reading save file %s', colony_sav )
   local loader = assert( NewBinaryLoader( structure.__metadata,
                                           colony_sav ) )
-  local success, parsed = pcall( function()
-    return loader:struct( structure )
-  end )
-  check( success, 'error at location [%s]: %s',
-         loader:backtrace(), parsed )
+  local parsed = loader:struct( structure )
 
   -- Print stats.
   local stats = loader:stats()

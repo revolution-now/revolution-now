@@ -1113,7 +1113,7 @@
         0
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": "Expert farmer",
+      "profession_or_treasure_amount": 0,
       "transport_chain": {
         "next_unit_idx": 83,
         "prev_unit_idx": -1
@@ -1167,7 +1167,7 @@
         100
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Expert farmer",
+      "profession_or_treasure_amount": 0,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -1221,7 +1221,7 @@
         0
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": "Expert farmer",
+      "profession_or_treasure_amount": 0,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -1275,7 +1275,7 @@
         0
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": "Expert farmer",
+      "profession_or_treasure_amount": 0,
       "transport_chain": {
         "next_unit_idx": 85,
         "prev_unit_idx": -1
@@ -1329,7 +1329,7 @@
         0
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": "Veteran soldier",
+      "profession_or_treasure_amount": 21,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -1383,7 +1383,7 @@
         0
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": "Expert farmer",
+      "profession_or_treasure_amount": 0,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -1437,7 +1437,7 @@
         100
       ],
       "turns_worked": 6,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -1491,7 +1491,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -1545,7 +1545,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -1599,7 +1599,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -1653,7 +1653,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -1707,7 +1707,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -1761,7 +1761,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -1815,7 +1815,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -1869,7 +1869,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -1923,7 +1923,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -1977,7 +1977,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2031,7 +2031,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2085,7 +2085,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2139,7 +2139,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2193,7 +2193,7 @@
         0
       ],
       "turns_worked": 3,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2247,7 +2247,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2301,7 +2301,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2355,7 +2355,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2409,7 +2409,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2463,7 +2463,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2517,7 +2517,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2571,7 +2571,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2625,7 +2625,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2679,7 +2679,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2733,7 +2733,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2787,7 +2787,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2841,7 +2841,7 @@
         0
       ],
       "turns_worked": 2,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2895,7 +2895,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2949,7 +2949,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3003,7 +3003,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3057,7 +3057,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3111,7 +3111,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3165,7 +3165,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3219,7 +3219,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3273,7 +3273,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3327,7 +3327,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3381,7 +3381,7 @@
         0
       ],
       "turns_worked": 2,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3435,7 +3435,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3489,7 +3489,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3543,7 +3543,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3597,7 +3597,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3651,7 +3651,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3705,7 +3705,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3759,7 +3759,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3813,7 +3813,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3867,7 +3867,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3921,7 +3921,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3975,7 +3975,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4029,7 +4029,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4083,7 +4083,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4137,7 +4137,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4191,7 +4191,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4245,7 +4245,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4299,7 +4299,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4353,7 +4353,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4407,7 +4407,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4461,7 +4461,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4515,7 +4515,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4569,7 +4569,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4623,7 +4623,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4677,7 +4677,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4731,7 +4731,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4785,7 +4785,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4839,7 +4839,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4893,7 +4893,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4947,7 +4947,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5001,7 +5001,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5055,7 +5055,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5109,7 +5109,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5163,7 +5163,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5217,7 +5217,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5271,7 +5271,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5325,7 +5325,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5379,7 +5379,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5433,7 +5433,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5487,7 +5487,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5541,7 +5541,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5595,7 +5595,7 @@
         0
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": 0
@@ -5649,7 +5649,7 @@
         0
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": "Master fur trader",
+      "profession_or_treasure_amount": 12,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5703,7 +5703,7 @@
         0
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": "Jesuit missionary",
+      "profession_or_treasure_amount": 24,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": 3
@@ -5757,7 +5757,7 @@
         0
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": "Free colonist",
+      "profession_or_treasure_amount": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5811,7 +5811,7 @@
         0
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": "Petty criminal",
+      "profession_or_treasure_amount": 26,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1

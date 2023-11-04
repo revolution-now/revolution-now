@@ -1139,7 +1139,7 @@ struct UNIT {
   std::array<CargoItems, 3> cargo_items = {};
   std::array<uint8_t, 6> cargo_hold = {};
   uint8_t turns_worked = {};
-  profession_type profession_or_treasure_amount = {};
+  uint8_t profession_or_treasure_amount = {};
   TransportChain transport_chain = {};
 };
 
