@@ -12,15 +12,51 @@
 
 // base
 #include "error.hpp"
+#include "expect.hpp"
 #include "maybe.hpp"
+#include "valid.hpp"
 
 // C++ standard library.
 #include <array>
 #include <concepts>
 #include <span>
 #include <type_traits>
+#include <vector>
 
 namespace base {
+
+/****************************************************************
+** BinaryBuffer.
+*****************************************************************/
+struct BinaryBuffer {
+  BinaryBuffer( std::vector<unsigned char>&& buffer )
+    : buffer_( std::move( buffer ) ) {}
+
+  // The bytes will be initialized to zero.
+  BinaryBuffer( int size )
+    : BinaryBuffer( std::vector<unsigned char>( size ) ) {}
+
+  static base::expect<BinaryBuffer, std::string> from_file(
+      std::string const& path );
+
+  operator std::span<unsigned char>() { return buffer_; }
+
+  valid_or<std::string> write_file( std::string const& path,
+                                    int                n );
+
+  valid_or<std::string> write_file( std::string const& path ) {
+    return write_file( path, buffer_.size() );
+  }
+
+  int size() const { return buffer_.size(); }
+
+  auto const* data() const { return buffer_.data(); }
+
+  bool operator==( BinaryBuffer const& ) const = default;
+
+ private:
+  std::vector<unsigned char> buffer_;
+};
 
 /****************************************************************
 ** BinaryData.

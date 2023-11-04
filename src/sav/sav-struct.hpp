@@ -1347,7 +1347,7 @@ struct ColonySAV {
   std::array<PLAYER, 4> player = {};
   std::array<uint8_t, 24> other = {};
   std::vector<COLONY> colony = {};
-  std::vector<unit_type> unit = {};
+  std::vector<UNIT> unit = {};
   std::array<NATION, 4> nation = {};
   std::vector<TRIBE> tribe = {};
   std::array<INDIAN, 8> indian = {};

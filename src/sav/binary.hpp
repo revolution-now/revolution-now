@@ -5,7 +5,8 @@
 *
 * Created by David P. Sicilia on 2023-11-01.
 *
-* Description: TODO [FILL ME IN]
+* Description: API for loading and saving games in the classic
+*              format of the OG.
 *
 *****************************************************************/
 #pragma once
@@ -24,7 +25,7 @@ struct BinaryFile;
 base::valid_or<std::string> load_binary( std::string const& path,
                                          ColonySAV& out );
 
-base::valid_or<std::string> sav_binary( std::string const& path,
-                                        ColonySAV const&   in );
+base::valid_or<std::string> save_binary( std::string const& path,
+                                         ColonySAV const&   in );
 
 } // namespace sav

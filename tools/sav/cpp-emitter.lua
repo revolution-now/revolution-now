@@ -479,17 +479,31 @@ local function emit_bit_struct_binary_conv_impl(cpp, name,
       name )
   cpp:indent()
   cpp:line( '%s bits = 0;', holder )
-  for _, field_name in ipairs( bit_struct.__key_order ) do
+  -- Need to write out in reverse order.
+  for i = #bit_struct.__key_order, 1, -1 do
+    local field_name = bit_struct.__key_order[i]
     local info = bit_struct[field_name]
-    local nbits = info.size
+    local next_bit_shift = 0
+    local next_key = bit_struct.__key_order[i - 1]
+    -- We need to avoid the [0] that the json parser puts into
+    -- tables that were parsed from json lists.
+    if i - 1 ~= 0 and next_key then
+      local next_field_name = assert(
+                                  bit_struct.__key_order[i - 1] )
+      assert( type( next_field_name ) == 'string',
+              format( 'type == %s', next_field_name ) )
+      local next_info = assert( bit_struct[next_field_name] )
+      next_bit_shift = assert( next_info.size )
+    end
     local ones = '0b' .. string.rep( '1', info.size )
     if bitfield_named_type( info ) then
       cpp:line(
-          'bits <<= %d; bits |= (static_cast<%s>( o.%s ) & %s);',
-          nbits, holder, as_identifier( field_name ), ones )
+          'bits |= (static_cast<%s>( o.%s ) & %s); bits <<= %d;',
+          holder, as_identifier( field_name ), ones,
+          next_bit_shift )
     else
-      cpp:line( 'bits <<= %d; bits |= (o.%s & %s);', nbits,
-                as_identifier( field_name ), ones )
+      cpp:line( 'bits |= (o.%s & %s); bits <<= %d;',
+                as_identifier( field_name ), ones, next_bit_shift )
     end
   end
   cpp:line( 'return b.write_bytes<%d>( bits );', nbytes )
@@ -605,10 +619,14 @@ end
 
 local function elem_type_name( info )
   if type( info ) == 'string' then return info end
-  if info.type then
+  if info.type and type( info.type ) ~= 'table' then
     if info.type == 'std::array' then
       return format( 'std::array<%s, %s>',
                      elem_type_name( info.value_type ), info.size )
+    end
+    if info.type == 'std::vector' then
+      return format( 'std::vector<%s>',
+                     elem_type_name( info.value_type ) )
     end
     return elem_type_name( info.type )
   end
@@ -634,8 +652,7 @@ function CppEmitter:emit_struct( hpp, cpp, struct, name )
                 key, name ) )
     local member = struct[key]
     if member.type == 'std::vector' then
-      hpp:line( 'std::vector<%s> %s = {};',
-                elem_type_name( member.value_type ),
+      hpp:line( '%s %s = {};', elem_type_name( member ),
                 as_identifier( key ) )
     elseif member.type == 'std::array' then
       hpp:line( '%s %s = {};', elem_type_name( member ),

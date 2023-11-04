@@ -695,5 +695,8 @@ TEST_CASE(
   }
 }
 
+TEST_CASE( "[base/binary-data] BinaryBuffer" ) {
+}
+
 } // namespace
 } // namespace base
