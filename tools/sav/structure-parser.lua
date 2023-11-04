@@ -21,6 +21,10 @@ local util = require( 'util' )
 -----------------------------------------------------------------
 local format = string.format
 local not_implemented = util.not_implemented
+local dbg = util.dbg
+
+local insert = table.insert
+local remove = table.remove
 
 -----------------------------------------------------------------
 -- Helpers.
@@ -55,6 +59,18 @@ end
 -----------------------------------------------------------------
 -- This is the "base class".
 local StructureParser = {}
+
+M.StructureParser = StructureParser
+
+function StructureParser:dbg( ... )
+  if not self.debug_logging_ then return end
+  dbg( format( '[%s] %s', self:backtrace(), format( ... ) ) )
+end
+
+function StructureParser:trace( ... )
+  if not self.trace_logging_ then return end
+  dbg( format( '[%s] %s', self:backtrace(), format( ... ) ) )
+end
 
 function StructureParser:as_meta_bitfield_type( val, metatype )
   if not metatype then return val end
@@ -91,7 +107,7 @@ function StructureParser:backtrace()
 end
 
 function StructureParser:struct( struct )
-  self:dbg( 'parsing struct [%s]', self:backtrace() )
+  self:dbg( 'parsing struct...' )
   assert( struct )
   assert( struct.__key_order )
   assert( not struct.struct )
@@ -101,7 +117,9 @@ function StructureParser:struct( struct )
   for _, e in ipairs( struct.__key_order ) do
     assert( struct[e] )
     if not e:match( '__' ) then
+      insert( self.backtrace_, e )
       res[e] = self:entity( struct, e )
+      remove( self.backtrace_ )
     end
   end
   res.__key_order = struct.__key_order
@@ -109,18 +127,22 @@ function StructureParser:struct( struct )
 end
 
 function StructureParser:struct_array( count, struct )
-  self:dbg( 'parsing struct array [%s]', self:backtrace() )
+  self:dbg( 'parsing struct array...' )
   assert( count )
   assert( count >= 0 )
   local res = {}
-  for _ = 1, count do table.insert( res, self:struct( struct ) ) end
+  for i = 1, count do
+    insert( self.backtrace_, i )
+    insert( res, self:struct( struct ) )
+    remove( self.backtrace_ )
+  end
   -- Signals this is an array.
   res[0] = count
   return res
 end
 
 function StructureParser:bit_struct( bit_struct )
-  self:dbg( 'parsing bit_struct [%s]', self:backtrace() )
+  self:dbg( 'parsing bit_struct...' )
   assert( bit_struct )
   assert( bit_struct.__key_order )
   local res = {}
@@ -128,9 +150,12 @@ function StructureParser:bit_struct( bit_struct )
   for _, e in ipairs( bit_struct.__key_order ) do
     local field = assert( bit_struct[e] )
     if not e:match( '__' ) then
-      self:dbg( 'parsing bit_field [%s] %s', self:backtrace(), e )
+      self:dbg( 'parsing bit_field %s', e )
       total_bits = total_bits + assert( field.size )
+      insert( self.backtrace_, e )
+      field.type = field.type or 'uint'
       res[e] = self:bit_field( field )
+      remove( self.backtrace_ )
     end
   end
   assert( total_bits % 8 == 0 )
@@ -140,19 +165,22 @@ function StructureParser:bit_struct( bit_struct )
 end
 
 function StructureParser:bit_struct_array( count, bit_struct )
-  self:dbg( 'parsing bit_struct array [%s]', self:backtrace() )
+  self:dbg( 'parsing bit_struct array...' )
   assert( count )
   assert( count >= 0 )
   local res = {}
-  for _ = 1, count do
-    table.insert( res, self:bit_struct( bit_struct ) )
+  for i = 1, count do
+    insert( self.backtrace_, i )
+    insert( res, self:bit_struct( bit_struct ) )
+    remove( self.backtrace_ )
   end
   -- Signals this is an array.
   res[0] = count
   return res
 end
 
-function StructureParser:lookup_cells( tbl )
+function StructureParser:_lookup_cells( tbl )
+  self:trace( '_lookup_cells...' )
   local count = tbl.count or 1
   local cols = tbl.cols or 1
   if type( count ) == 'string' then
@@ -161,6 +189,7 @@ function StructureParser:lookup_cells( tbl )
   if type( cols ) == 'string' then
     cols = assert( self.saved_[cols] )
   end
+  self:trace( '  count=%s, cols=%s', count, cols )
   assert( type( count ) == 'number' )
   assert( type( cols ) == 'number' )
   local res = count * cols
@@ -174,8 +203,7 @@ function StructureParser:entity( parent, field )
   local tbl = parent[field]
   assert( type( tbl ) == 'table',
           format( 'field %s is not a table', field ) )
-  table.insert( self.backtrace_, field )
-  local cells = self:lookup_cells( tbl )
+  local cells = self:_lookup_cells( tbl )
   local res
   if tbl.struct then
     if tbl.count or tbl.cols then
@@ -197,18 +225,15 @@ function StructureParser:entity( parent, field )
     end
   end
   assert( res )
-  if tbl.save_meta then self.saved_[field] = res end
-  table.remove( self.backtrace_ )
+  if tbl.save_meta then
+    self:dbg( 'saving field %s = %s', field, res )
+    self.saved_[field] = res
+  end
   return res
 end
 
 function StructureParser:bit_field( _, _ ) not_implemented() end
-function StructureParser:unknown( _ ) not_implemented() end
 function StructureParser:stats() not_implemented() end
-function StructureParser:string( _ ) not_implemented() end
-function StructureParser:uint( _ ) not_implemented() end
-function StructureParser:int( _ ) not_implemented() end
-function StructureParser:bits( _ ) not_implemented() end
 function StructureParser:primitive( _ ) not_implemented() end
 function StructureParser:primitive_array( _, _ ) not_implemented() end
 
@@ -219,6 +244,7 @@ function StructureParser.new( metadata )
   obj.backtrace_ = {}
   obj.saved_ = {}
   obj.debug_logging_ = false
+  obj.trace_logging_ = false
   setmetatable( obj, {
     __newindex=function() error( 'cannot modify parsers.', 2 ) end,
     __index=StructureParser,
@@ -234,4 +260,4 @@ setmetatable( StructureParser, {
 -----------------------------------------------------------------
 -- Finished.
 -----------------------------------------------------------------
-return { StructureParser=StructureParser }
+return M

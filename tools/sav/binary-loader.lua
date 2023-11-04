@@ -53,7 +53,7 @@ function BinaryLoader:dbg( ... )
   if not self.debug_logging_ then return end
   local msg = format( ... )
   msg = format( '[%08x] %s', self.sav_file_:seek(), msg )
-  dbg( msg )
+  self.base_.dbg( self, msg )
 end
 
 function BinaryLoader:stats()
@@ -86,7 +86,7 @@ function BinaryLoader:_extract_bit_field( n, desc )
   end
 end
 
-function BinaryLoader:unknown( size )
+function BinaryLoader:_unknown( size )
   assert( size )
   assert( size > 0 )
   local res = ''
@@ -98,7 +98,7 @@ function BinaryLoader:unknown( size )
 end
 
 function BinaryLoader:bit_struct( bit_struct )
-  self:dbg( 'parsing bit_struct [%s]', self:backtrace() )
+  self:dbg( 'parsing bit_struct...' )
   assert( bit_struct )
   assert( bit_struct.__key_order )
   local total_bits = 0
@@ -135,8 +135,8 @@ function BinaryLoader:bit_struct( bit_struct )
   return res
 end
 
-function BinaryLoader:string( size )
-  self:dbg( 'parsing string [%s]', self:backtrace() )
+function BinaryLoader:_string( size )
+  self:dbg( 'parsing string...' )
   assert( size )
   assert( type( size ) == 'number' )
   local res = ''
@@ -152,7 +152,7 @@ function BinaryLoader:string( size )
   return res
 end
 
-function BinaryLoader:uint( size )
+function BinaryLoader:_uint( size )
   assert( size )
   assert( type( size ) == 'number' )
   assert( size > 0 )
@@ -169,8 +169,8 @@ function BinaryLoader:uint( size )
   return n
 end
 
-function BinaryLoader:int( size )
-  local uint = self:uint( size )
+function BinaryLoader:_int( size )
+  local uint = self:_uint( size )
   assert( type( uint ) == 'number' )
   local nbits = size * 8
   if uint >> (nbits - 1) == 0 then
@@ -188,28 +188,25 @@ function BinaryLoader:int( size )
   return -positive
 end
 
-function BinaryLoader:bits( nbytes )
+function BinaryLoader:_bits( nbytes )
   local n = 0
-  for _ = 1, nbytes do
-    n = n << 8
-    n = n + self:_byte()
-  end
+  for i = 1, nbytes do n = n + (self:_byte() << ((i - 1) * 8)) end
   return format_as_binary( n, nbytes * 8 )
 end
 
 function BinaryLoader:_primitive_grab_one( tbl )
   if tbl.type == 'str' then
-    return self:string( tbl.size )
+    return self:_string( tbl.size )
   elseif tbl.type == 'bits' then
     local byte_count = assert( tbl.size )
-    return self:bits( byte_count )
+    return self:_bits( byte_count )
   elseif tbl.type == 'uint' then
-    return self:uint( tbl.size )
+    return self:_uint( tbl.size )
   elseif tbl.type == 'int' then
-    return self:int( tbl.size )
+    return self:_int( tbl.size )
   else
     return
-        self:as_meta_type( self:unknown( tbl.size ), tbl.type )
+        self:as_meta_type( self:_unknown( tbl.size ), tbl.type )
   end
 end
 

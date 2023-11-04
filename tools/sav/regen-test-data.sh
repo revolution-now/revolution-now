@@ -18,40 +18,59 @@ sav="tools/sav"
 
 [[ -d "$classic_saves" ]]
 
-parse() {
-  local in_file="$1"
-  local out_file="$2"
-  [[ -f "$in_file" ]]
-  "$sav/binary-to-json.sh" "$in_file" "$out_file"
-}
-
-convert_file() {
+sav_to_json() {
   local SAV="$1"
   [[ -f "$SAV" ]]
-  echo "converting SAV: $SAV"
   local dir="$(dirname "$SAV")"
   [[ -d "$dir" ]]
   local json_dir="$dir/json"
   [[ -d "$json_dir" ]]
   local basename="$(basename "$SAV")"
   local out_file="$json_dir/$basename.json"
-  parse "$SAV" "$out_file"
+  "$sav/binary-to-json.sh" "$SAV" "$out_file"
 }
 
-convert_batch() {
+json_to_sav() {
+  local json="$1"
+  [[ -f "$json" ]]
+  local dir="$(dirname "$json")"
+  [[ -d "$dir" ]]
+  local sav_dir="${dir%/json}"
+  [[ -d "$sav_dir" ]]
+  local basename="$(basename "$json")"
+  local out_file="$sav_dir/${basename%.json}"
+  # We require this one exist because this scripts first gener-
+  # ates the json, then goes back to the SAV, so the json should
+  # exist.
+  [[ -e "$out_file" ]]
+  "$sav/json-to-binary.sh" "$json" "$out_file"
+}
+
+convert_batch_to_json() {
   local batch="$1"
-  echo "processing batch: $batch"
+  echo "processing batch [-> json]: $batch"
   [[ -d "$batch" ]]
   local SAVs="$(ls $batch/*.SAV)"
   for SAV in $SAVs; do
-    convert_file "$SAV"
+    sav_to_json "$SAV"
+  done
+}
+
+convert_batch_to_binary() {
+  local batch="$1"
+  echo "processing batch [-> binary]: $batch"
+  [[ -d "$batch" ]]
+  local jsons="$(ls $batch/json/*.json)"
+  for json in $jsons; do
+    json_to_sav "$json"
   done
 }
 
 main() {
-  batches="$(ls $classic_saves/* -d)"
+  batches="$(ls $classic_saves/*/ -d)"
   for batch in $batches; do
-    convert_batch "$batch"
+    convert_batch_to_json "$batch"
+    convert_batch_to_binary "$batch"
   done
 }
 

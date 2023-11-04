@@ -1,15 +1,15 @@
 --[[ ------------------------------------------------------------
 |
-| binary-to-json.lua
+| json-to-binary.lua
 |
 | Project: Revolution Now
 |
-| Created by David P. Sicilia on 2023-10-16.
+| Created by David P. Sicilia on 2023-11-04.
 |
 | Description: Converts binary SAV to json.
 |
 --]] ------------------------------------------------------------
-local binary_loader = require( 'binary-loader' )
+local binary_saver = require( 'binary-saver' )
 local json_transcode = require( 'json-transcode' )
 local util = require( 'util' )
 
@@ -20,20 +20,18 @@ local exit = os.exit
 
 local err = util.err
 local check = util.check
-local fatal = util.fatal
 local info = util.info
 
-local NewBinaryLoader = binary_loader.NewBinaryLoader
-local pprint_ordered = json_transcode.pprint_ordered
+local BinarySaver = binary_saver.BinarySaver
 local json_decode = json_transcode.decode
 
 -----------------------------------------------------------------
 -- Helpers.
 -----------------------------------------------------------------
 local function usage()
-  err( 'usage: ' .. 'binary-to-json.lua ' ..
-           '<structure-json-file> ' .. '<SAV-filename> ' ..
-           '<output>' )
+  err( 'usage: ' .. 'json-to-binary.lua ' ..
+           '<structure-json-file> ' .. '<output> ' ..
+           '<SAV-filename>' )
 end
 
 -----------------------------------------------------------------
@@ -55,36 +53,28 @@ local function main( args )
   assert( structure.__metadata )
   assert( structure.HEAD )
 
+  -- Input JSON file.
+  local input_json_file = assert( args[2] )
+  info( 'parsing input JSON sav file %s...', input_json_file )
+  local input_file = assert( io.open( input_json_file, 'r' ) )
+  local colony_json = json_decode( input_file:read( 'a' ) )
+  input_file:close()
+
   -- Binary SAV file.
-  local colony_sav = assert( args[2] )
-  check( colony_sav:match( '%.SAV$' ),
-         'colony_sav %s has invalid format.', colony_sav )
+  local colony_sav_file = assert( args[3] )
+  check( colony_sav_file:match( '%.SAV$' ),
+         'colony_sav %s has invalid format.', colony_sav_file )
+  local colony_sav = assert( io.open( colony_sav_file, 'wb' ) )
 
-  -- Output JSON file.
-  local output_json = assert( args[3] )
-  local out = assert( io.open( output_json, 'w' ) )
-
-  -- Parsing.
-  info( 'reading save file %s', colony_sav )
-  local loader = assert( NewBinaryLoader( structure.__metadata,
-                                          colony_sav ) )
-  local parsed = loader:struct( structure )
-
-  -- Print stats.
-  local stats = loader:stats()
-  info( 'finished parsing. stats:' )
-  info( 'bytes read: %d', stats.bytes_read )
-  if stats.bytes_remaining > 0 then
-    fatal( 'bytes remaining: %d', stats.bytes_remaining )
-  end
-
-  -- Encoding and outputting JSON.
-  info( 'encoding json output to file %s...', output_json )
-  local printer = pprint_ordered( parsed )
-  for line in printer do out:write( line .. '\n' ) end
+  -- Traverse structure and emit binary.
+  info( 'writing binary save file %s', colony_sav_file )
+  local saver = BinarySaver( structure.__metadata, colony_json,
+                             colony_sav )
+  assert( saver )
+  saver:struct( structure )
 
   -- Cleanup.
-  out:close()
+  colony_sav:close()
   return 0
 end
 

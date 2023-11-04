@@ -165,13 +165,13 @@ end
 --   return res
 -- end
 
-function CppEmitter:unknown( size )
+function CppEmitter:_unknown( size )
   assert( size )
   assert( size > 0 )
   return { type='std::array', value_type='uint8_t', size=size }
 end
 
-function CppEmitter:string( size )
+function CppEmitter:_string( size )
   assert( size )
   assert( type( size ) == 'number' )
   return { type='std::array', value_type='uint8_t', size=size }
@@ -217,7 +217,7 @@ local function smallest_uint( nbytes )
   return smallest_type_from( CPP_UINT_FOR_SIZE, nbytes )
 end
 
-function CppEmitter:uint( size )
+function CppEmitter:_uint( size )
   assert( size )
   assert( type( size ) == 'number' )
   assert( size > 0 )
@@ -226,7 +226,7 @@ function CppEmitter:uint( size )
   return res
 end
 
-function CppEmitter:int( size )
+function CppEmitter:_int( size )
   assert( size )
   assert( type( size ) == 'number' )
   assert( size > 0 )
@@ -235,7 +235,7 @@ function CppEmitter:int( size )
   return res
 end
 
-function CppEmitter:bits( nbytes )
+function CppEmitter:_bits( nbytes )
   if ALLOWED_INTEGRAL_SIZES[nbytes] then
     return self:primitive{ size=nbytes, type='uint' }
   end
@@ -244,22 +244,22 @@ end
 
 function CppEmitter:_primitive_impl( tbl )
   if tbl.type == 'str' then
-    return self:string( tbl.size )
+    return self:_string( tbl.size )
   elseif tbl.type == 'bits' then
     local byte_count = assert( tbl.size )
-    return self:bits( byte_count )
+    return self:_bits( byte_count )
   elseif tbl.type == 'uint' then
-    return self:uint( tbl.size )
+    return self:_uint( tbl.size )
   elseif tbl.type == 'int' then
-    return self:int( tbl.size )
+    return self:_int( tbl.size )
   elseif not tbl.type and tbl.size and
       ALLOWED_INTEGRAL_SIZES[tbl.size] then
-    return self:uint( tbl.size )
+    return self:_uint( tbl.size )
   elseif tbl.type then
     assert( tbl.size )
     return tbl
   else
-    return self:unknown( tbl.size )
+    return self:_unknown( tbl.size )
   end
 end
 
@@ -276,7 +276,7 @@ function CppEmitter:primitive_array( cells, tbl )
   return res
 end
 
-function CppEmitter:lookup_cells( tbl )
+function CppEmitter:_lookup_cells( tbl )
   local count = tbl.count or 1
   local cols = tbl.cols or 1
   if type( count ) == 'string' or type( cols ) == 'string' then
@@ -844,7 +844,6 @@ function M.NewCppEmitter( metadata )
   setmetatable( obj, {
     __newindex=function() error( 'cannot modify.', 2 ) end,
     __index=CppEmitterMeta,
-    __gc=function( self ) self:close() end,
     __metatable=false,
   } )
   return obj
