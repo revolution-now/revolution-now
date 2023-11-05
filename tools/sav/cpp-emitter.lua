@@ -35,6 +35,8 @@ local StructureParser = structure_parser.StructureParser
 -----------------------------------------------------------------
 local CodeGenerator = {}
 
+M.CodeGenerator = CodeGenerator
+
 function CodeGenerator:newline()
   insert( self.lines_, { indent=0 } )
 end
@@ -152,6 +154,8 @@ setmetatable( CodeGenerator, {
 -- Structure Handler. Implements an interface to handler re-
 -- sponding to the various components of the structure document.
 local CppEmitter = {}
+
+M.CppEmitter = CppEmitter
 
 function CppEmitter:dbg( ... )
   if not self.debug_logging_ then return end
@@ -710,13 +714,71 @@ local function metadata_field_value( field, str_value )
   end
 end
 
-function CppEmitter:emit_metadata_item( emitter, name, elems )
+function CppEmitter:emit_cdr_conversions(processed_elems, name,
+                                         hpp, cpp )
+  hpp:newline()
+  hpp:comment( 'Cdr conversions.' )
+  hpp:line( 'cdr::value to_canonical( cdr::converter& conv,' )
+  hpp:line( '                         %s const& o,', name )
+  hpp:line( '                         cdr::tag_t<%s> );', name );
+  hpp:newline()
+  hpp:line( 'cdr::result<%s> from_canoncal(', name )
+  hpp:line( '                         cdr::converter& conv,' )
+  hpp:line( '                         cdr::value const& v,' )
+  hpp:line( '                         cdr::tag_t<%s> );', name )
+
+  cpp:line( 'cdr::value to_canonical( cdr::converter&,' )
+  cpp:line( '                         %s const& o,', name )
+  cpp:line( '                         cdr::tag_t<%s> ) {', name );
+  cpp:indent()
+  cpp:line( 'switch( o ) {' )
+  cpp:indent()
+  for _, pe in ipairs( processed_elems ) do
+    cpp:line( 'case %s::%s: return "%s";', name, pe.field,
+              pe.original_field )
+  end
+  cpp:unindent()
+  cpp:line( '}' )
+  cpp:line( 'BAD_ENUM_VALUE( "%s", o );', name )
+  cpp:unindent()
+  cpp:line( '}' )
+  cpp:newline()
+  cpp:line( 'cdr::result<%s> from_canoncal(', name )
+  cpp:line( '                         cdr::converter& conv,' )
+  cpp:line( '                         cdr::value const& v,' )
+  cpp:line( '                         cdr::tag_t<%s> ) {', name )
+  cpp:indent()
+  cpp:line(
+      'UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );' )
+  cpp:line( 'static std::map<std::string, %s> const m{', name )
+  cpp:indent()
+  for _, pe in ipairs( processed_elems ) do
+    cpp:line( '{ "%s", %s::%s },', pe.original_field, name,
+              pe.field )
+  end
+  cpp:unindent()
+  cpp:line( '};' )
+  cpp:line( 'if( auto it = m.find( str ); it != m.end() )' )
+  cpp:indent()
+  cpp:line( 'return it->second;' )
+  cpp:unindent()
+  cpp:line( 'else' )
+  cpp:indent()
+  cpp:line( 'return BAD_ENUM_STR_VALUE( "%s", str );', name )
+  cpp:unindent()
+  cpp:unindent()
+  cpp:line( '}' )
+end
+
+function CppEmitter:emit_metadata_item( name, elems, hpp, cpp )
   self:dbg( 'emitting metadata for %s.', name )
-  emitter:newline()
-  emitter:section( name )
+  hpp:newline()
+  hpp:section( name )
+  cpp:newline()
+  cpp:section( name )
   local base = nbits_base_type( name, elems )
-  emitter:line( 'enum class %s : %s {', name, base )
-  emitter:indent()
+  hpp:line( 'enum class %s : %s {', name, base )
+  hpp:indent()
   local ordered_elems = {}
   for k, v in pairs( elems ) do
     if k:match( '__' ) then goto continue end
@@ -727,12 +789,12 @@ function CppEmitter:emit_metadata_item( emitter, name, elems )
   end
   sort( ordered_elems,
         function( l, r ) return l.str_value < r.str_value end )
-  local result = {}
+  local processed_elems = {}
   for _, pair in ipairs( ordered_elems ) do
     local field, str_value = pair.field, pair.str_value
     if field:match( '__' ) then goto continue end
     local numeric_value = metadata_field_value( name, str_value )
-    insert( result, {
+    insert( processed_elems, {
       field=as_identifier( field ),
       original_field=field,
       numeric_value=numeric_value,
@@ -740,13 +802,13 @@ function CppEmitter:emit_metadata_item( emitter, name, elems )
     ::continue::
   end
   local max_key_width = 0
-  for _, pair in ipairs( result ) do
+  for _, pair in ipairs( processed_elems ) do
     local field = pair.field
     assert( type( field ) == 'string' )
     max_key_width = math.max( max_key_width, #field )
   end
   local fmt = format( '%%-%ds = %%s,%%s', max_key_width )
-  for _, pair in ipairs( result ) do
+  for _, pair in ipairs( processed_elems ) do
     local field, original_field, numeric_value = pair.field,
                                                  pair.original_field,
                                                  pair.numeric_value
@@ -754,13 +816,16 @@ function CppEmitter:emit_metadata_item( emitter, name, elems )
     if not readably_equivalent( field, original_field ) then
       comment = format( '  // original: "%s"', original_field )
     end
-    emitter:line( fmt, field, numeric_value, comment )
+    hpp:line( fmt, field, numeric_value, comment )
   end
-  emitter:unindent()
-  emitter:line( '};' )
+  hpp:unindent()
+  hpp:line( '};' )
+
+  -- Cdr conversions.
+  self:emit_cdr_conversions( processed_elems, name, hpp, cpp )
 end
 
-function CppEmitter:emit_metadata( emitter )
+function CppEmitter:emit_metadata( hpp, cpp )
   self:dbg( 'emitting metadata...' )
   local ordered_keys = {}
   for k, _ in pairs( self.metadata_ ) do
@@ -771,10 +836,8 @@ function CppEmitter:emit_metadata( emitter )
   end
   sort( ordered_keys )
   for _, name in ipairs( ordered_keys ) do
-    if name:match( '__' ) then goto continue end
     local elems = assert( self.metadata_[name] )
-    self:emit_metadata_item( emitter, name, elems )
-    ::continue::
+    self:emit_metadata_item( name, elems, hpp, cpp )
   end
 end
 
@@ -786,12 +849,33 @@ function CppEmitter:emit_fwd_decls( hpp )
   hpp:close_ns( 'base' )
 end
 
+function CppEmitter:emit_cpp_macros( cpp )
+  cpp:section( 'Macros.' )
+  cpp:line(
+      '#define BAD_ENUM_VALUE( typename, value )                \\' )
+  cpp:line(
+      '  FATAL( "unrecognized value for type " typename ": {}", \\' )
+  cpp:line(
+      '      static_cast<std::underlying_type_t<has_city_1bit_type>>( o ) )' )
+
+  cpp:newline()
+  cpp:line(
+      '#define BAD_ENUM_STR_VALUE( typename, str_value )           \\' )
+  cpp:line(
+      '  conv.err( "unreognize value for enum " typename ": \'{}\'", \\' )
+  cpp:line( '             str_value )' )
+end
+
 function CppEmitter:generate_code()
   local hpp = CodeGenerator()
   hpp:section( 'Classic Colonization Save File Structure.' )
   hpp:comment(
       'NOTE: this file was auto-generated. DO NOT MODIFY!' )
   hpp:newline()
+  hpp:comment( 'cdr' )
+  hpp:include( '"cdr/ext.hpp"' )
+  hpp:newline()
+  hpp:comment( 'C++ standard libary' )
   hpp:include( '<array>' )
   hpp:include( '<cstdint>' )
   hpp:include( '<vector>' )
@@ -801,7 +885,6 @@ function CppEmitter:generate_code()
   hpp:newline()
   hpp:section( 'Structure definitions.' )
   hpp:open_ns( 'sav' )
-  self:emit_metadata( hpp )
 
   local cpp = CodeGenerator()
   cpp:section( 'Classic Colonization Save File Structure.' )
@@ -811,11 +894,21 @@ function CppEmitter:generate_code()
   cpp:comment( 'sav' )
   cpp:include( '"sav-struct.hpp"' )
   cpp:newline()
+  cpp:comment( 'cdr' )
+  cpp:include( '"cdr/ext-builtin.hpp"' )
+  cpp:include( '"cdr/ext-std.hpp"' )
+  cpp:newline()
   cpp:comment( 'base' )
   cpp:include( '"base/binary-data.hpp"' )
   cpp:newline()
+  cpp:comment( 'C++ standard libary' )
+  cpp:include( '<map>' )
+  cpp:newline()
+  self:emit_cpp_macros( cpp )
+  cpp:newline()
   cpp:open_ns( 'sav' )
 
+  self:emit_metadata( hpp, cpp )
   self:emit_bit_structs( hpp, cpp )
   self:emit_structs( hpp, cpp )
 
@@ -827,7 +920,7 @@ function CppEmitter:generate_code()
   return { hpp=hpp_lines, cpp=cpp_lines }
 end
 
-function M.NewCppEmitter( metadata )
+function CppEmitter.new( metadata )
   local base = StructureParser( metadata )
   local obj = {}
   local CppEmitterMeta = setmetatable( {}, {
@@ -848,6 +941,10 @@ function M.NewCppEmitter( metadata )
   } )
   return obj
 end
+
+setmetatable( CppEmitter, {
+  __call=function( _, ... ) return CppEmitter.new( ... ) end,
+} )
 
 -----------------------------------------------------------------
 -- Finished.

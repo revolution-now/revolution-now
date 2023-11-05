@@ -23,7 +23,7 @@ local format = string.format
 local err = util.err
 local info = util.info
 
-local NewCppEmitter = cpp_emitter.NewCppEmitter
+local CppEmitter = cpp_emitter.CppEmitter
 local json_decode = json_transcode.decode
 
 -----------------------------------------------------------------
@@ -75,7 +75,7 @@ local function main( args )
 
   -- Emitting.
   info( 'running emitter...' )
-  local emitter = assert( NewCppEmitter( structure.__metadata ) )
+  local emitter = assert( CppEmitter( structure.__metadata ) )
   local top = emitter:struct( structure )
   top.__name = 'ColonySAV'
   table.insert( emitter.finished_structs_, top )

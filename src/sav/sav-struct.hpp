@@ -3,6 +3,10 @@
 *****************************************************************/
 // NOTE: this file was auto-generated. DO NOT MODIFY!
 
+// cdr
+#include "cdr/ext.hpp"
+
+// C++ standard libary
 #include <array>
 #include <cstdint>
 #include <vector>
@@ -44,6 +48,16 @@ enum class cargo_4bit_type : uint8_t {
   muskets = 0b1111,
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         cargo_4bit_type const& o,
+                         cdr::tag_t<cargo_4bit_type> );
+
+cdr::result<cargo_4bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<cargo_4bit_type> );
+
 /****************************************************************
 ** control_type
 *****************************************************************/
@@ -52,6 +66,16 @@ enum class control_type : uint8_t {
   ai        = 0x01,
   withdrawn = 0x02,
 };
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         control_type const& o,
+                         cdr::tag_t<control_type> );
+
+cdr::result<control_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<control_type> );
 
 /****************************************************************
 ** difficulty_type
@@ -64,6 +88,16 @@ enum class difficulty_type : uint8_t {
   viceroy      = 0x04,
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         difficulty_type const& o,
+                         cdr::tag_t<difficulty_type> );
+
+cdr::result<difficulty_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<difficulty_type> );
+
 /****************************************************************
 ** fortification_level_type
 *****************************************************************/
@@ -74,6 +108,16 @@ enum class fortification_level_type : uint8_t {
   fortress = 0x03,
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         fortification_level_type const& o,
+                         cdr::tag_t<fortification_level_type> );
+
+cdr::result<fortification_level_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<fortification_level_type> );
+
 /****************************************************************
 ** has_city_1bit_type
 *****************************************************************/
@@ -82,6 +126,16 @@ enum class has_city_1bit_type : uint8_t {
   c     = 0b1,
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         has_city_1bit_type const& o,
+                         cdr::tag_t<has_city_1bit_type> );
+
+cdr::result<has_city_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<has_city_1bit_type> );
+
 /****************************************************************
 ** has_unit_1bit_type
 *****************************************************************/
@@ -89,6 +143,16 @@ enum class has_unit_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   u     = 0b1,
 };
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         has_unit_1bit_type const& o,
+                         cdr::tag_t<has_unit_1bit_type> );
+
+cdr::result<has_unit_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<has_unit_1bit_type> );
 
 /****************************************************************
 ** hills_river_3bit_type
@@ -103,6 +167,16 @@ enum class hills_river_3bit_type : uint8_t {
   tt    = 0b110,  // original: "~~"
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         hills_river_3bit_type const& o,
+                         cdr::tag_t<hills_river_3bit_type> );
+
+cdr::result<hills_river_3bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<hills_river_3bit_type> );
+
 /****************************************************************
 ** level_2bit_type
 *****************************************************************/
@@ -111,6 +185,16 @@ enum class level_2bit_type : uint8_t {
   _1 = 0b01,
   _2 = 0b11,
 };
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         level_2bit_type const& o,
+                         cdr::tag_t<level_2bit_type> );
+
+cdr::result<level_2bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<level_2bit_type> );
 
 /****************************************************************
 ** level_3bit_type
@@ -121,6 +205,16 @@ enum class level_3bit_type : uint8_t {
   _2 = 0b011,
   _3 = 0b111,
 };
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         level_3bit_type const& o,
+                         cdr::tag_t<level_3bit_type> );
+
+cdr::result<level_3bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<level_3bit_type> );
 
 /****************************************************************
 ** nation_4bit_short_type
@@ -141,6 +235,16 @@ enum class nation_4bit_short_type : uint8_t {
   empty = 0b1111,  // original: "  "
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         nation_4bit_short_type const& o,
+                         cdr::tag_t<nation_4bit_short_type> );
+
+cdr::result<nation_4bit_short_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<nation_4bit_short_type> );
+
 /****************************************************************
 ** nation_4bit_type
 *****************************************************************/
@@ -160,6 +264,16 @@ enum class nation_4bit_type : uint8_t {
   none        = 0b1111,
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         nation_4bit_type const& o,
+                         cdr::tag_t<nation_4bit_type> );
+
+cdr::result<nation_4bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<nation_4bit_type> );
+
 /****************************************************************
 ** nation_type
 *****************************************************************/
@@ -178,6 +292,16 @@ enum class nation_type : uint8_t {
   tupi        = 0x0B,
   none        = 0xFF,
 };
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         nation_type const& o,
+                         cdr::tag_t<nation_type> );
+
+cdr::result<nation_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<nation_type> );
 
 /****************************************************************
 ** occupation_type
@@ -205,6 +329,16 @@ enum class occupation_type : uint8_t {
   qqqqqqqqqq      = 0x13,  // original: "??????????"
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         occupation_type const& o,
+                         cdr::tag_t<occupation_type> );
+
+cdr::result<occupation_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<occupation_type> );
+
 /****************************************************************
 ** orders_type
 *****************************************************************/
@@ -222,6 +356,16 @@ enum class orders_type : uint8_t {
   unknownc  = 0x0C,
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         orders_type const& o,
+                         cdr::tag_t<orders_type> );
+
+cdr::result<orders_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<orders_type> );
+
 /****************************************************************
 ** pacific_1bit_type
 *****************************************************************/
@@ -230,6 +374,16 @@ enum class pacific_1bit_type : uint8_t {
   t     = 0b1,  // original: "~"
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         pacific_1bit_type const& o,
+                         cdr::tag_t<pacific_1bit_type> );
+
+cdr::result<pacific_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<pacific_1bit_type> );
+
 /****************************************************************
 ** plowed_1bit_type
 *****************************************************************/
@@ -237,6 +391,16 @@ enum class plowed_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   h     = 0b1,  // original: "#"
 };
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         plowed_1bit_type const& o,
+                         cdr::tag_t<plowed_1bit_type> );
+
+cdr::result<plowed_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<plowed_1bit_type> );
 
 /****************************************************************
 ** profession_type
@@ -273,6 +437,16 @@ enum class profession_type : uint8_t {
   free_colonist          = 0x1C,
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         profession_type const& o,
+                         cdr::tag_t<profession_type> );
+
+cdr::result<profession_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<profession_type> );
+
 /****************************************************************
 ** purchased_1bit_type
 *****************************************************************/
@@ -280,6 +454,16 @@ enum class purchased_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   a     = 0b1,  // original: "*"
 };
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         purchased_1bit_type const& o,
+                         cdr::tag_t<purchased_1bit_type> );
+
+cdr::result<purchased_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<purchased_1bit_type> );
 
 /****************************************************************
 ** region_id_4bit_type
@@ -303,6 +487,16 @@ enum class region_id_4bit_type : uint8_t {
   _15 = 0b1111,
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         region_id_4bit_type const& o,
+                         cdr::tag_t<region_id_4bit_type> );
+
+cdr::result<region_id_4bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<region_id_4bit_type> );
+
 /****************************************************************
 ** relation_type
 *****************************************************************/
@@ -314,6 +508,16 @@ enum class relation_type : uint8_t {
   unknown_rel  = 0x66,
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         relation_type const& o,
+                         cdr::tag_t<relation_type> );
+
+cdr::result<relation_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<relation_type> );
+
 /****************************************************************
 ** road_1bit_type
 *****************************************************************/
@@ -321,6 +525,16 @@ enum class road_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   e     = 0b1,  // original: "="
 };
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         road_1bit_type const& o,
+                         cdr::tag_t<road_1bit_type> );
+
+cdr::result<road_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<road_1bit_type> );
 
 /****************************************************************
 ** season_type
@@ -330,6 +544,16 @@ enum class season_type : uint16_t {
   autumn = 0x0001,
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         season_type const& o,
+                         cdr::tag_t<season_type> );
+
+cdr::result<season_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<season_type> );
+
 /****************************************************************
 ** suppress_1bit_type
 *****************************************************************/
@@ -337,6 +561,16 @@ enum class suppress_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   _     = 0b1,
 };
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         suppress_1bit_type const& o,
+                         cdr::tag_t<suppress_1bit_type> );
+
+cdr::result<suppress_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<suppress_1bit_type> );
 
 /****************************************************************
 ** tech_type
@@ -347,6 +581,16 @@ enum class tech_type : uint8_t {
   advanced     = 0x02,
   civilized    = 0x03,
 };
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         tech_type const& o,
+                         cdr::tag_t<tech_type> );
+
+cdr::result<tech_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<tech_type> );
 
 /****************************************************************
 ** terrain_5bit_type
@@ -373,6 +617,16 @@ enum class terrain_5bit_type : uint8_t {
   tnt = 0b11010,  // original: "~:~"
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         terrain_5bit_type const& o,
+                         cdr::tag_t<terrain_5bit_type> );
+
+cdr::result<terrain_5bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<terrain_5bit_type> );
+
 /****************************************************************
 ** trade_route_type
 *****************************************************************/
@@ -380,6 +634,16 @@ enum class trade_route_type : uint8_t {
   land = 0x00,
   sea  = 0x01,
 };
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         trade_route_type const& o,
+                         cdr::tag_t<trade_route_type> );
+
+cdr::result<trade_route_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<trade_route_type> );
 
 /****************************************************************
 ** unit_type
@@ -410,6 +674,16 @@ enum class unit_type : uint8_t {
   mounted_warrior     = 0x16,
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         unit_type const& o,
+                         cdr::tag_t<unit_type> );
+
+cdr::result<unit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<unit_type> );
+
 /****************************************************************
 ** visible_to_dutch_1bit_type
 *****************************************************************/
@@ -417,6 +691,16 @@ enum class visible_to_dutch_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   d     = 0b1,
 };
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         visible_to_dutch_1bit_type const& o,
+                         cdr::tag_t<visible_to_dutch_1bit_type> );
+
+cdr::result<visible_to_dutch_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<visible_to_dutch_1bit_type> );
 
 /****************************************************************
 ** visible_to_english_1bit_type
@@ -426,6 +710,16 @@ enum class visible_to_english_1bit_type : uint8_t {
   e     = 0b1,
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         visible_to_english_1bit_type const& o,
+                         cdr::tag_t<visible_to_english_1bit_type> );
+
+cdr::result<visible_to_english_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<visible_to_english_1bit_type> );
+
 /****************************************************************
 ** visible_to_french_1bit_type
 *****************************************************************/
@@ -434,6 +728,16 @@ enum class visible_to_french_1bit_type : uint8_t {
   f     = 0b1,
 };
 
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         visible_to_french_1bit_type const& o,
+                         cdr::tag_t<visible_to_french_1bit_type> );
+
+cdr::result<visible_to_french_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<visible_to_french_1bit_type> );
+
 /****************************************************************
 ** visible_to_spanish_1bit_type
 *****************************************************************/
@@ -441,6 +745,16 @@ enum class visible_to_spanish_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   s     = 0b1,
 };
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         visible_to_spanish_1bit_type const& o,
+                         cdr::tag_t<visible_to_spanish_1bit_type> );
+
+cdr::result<visible_to_spanish_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<visible_to_spanish_1bit_type> );
 
 /****************************************************************
 ** GameOptions

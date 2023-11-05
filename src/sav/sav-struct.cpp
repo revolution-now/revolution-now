@@ -6,10 +6,1240 @@
 // sav
 #include "sav-struct.hpp"
 
+// cdr
+#include "cdr/ext-builtin.hpp"
+#include "cdr/ext-std.hpp"
+
 // base
 #include "base/binary-data.hpp"
 
+// C++ standard libary
+#include <map>
+
+/****************************************************************
+** Macros.
+*****************************************************************/
+#define BAD_ENUM_VALUE( typename, value )                \
+  FATAL( "unrecognized value for type " typename ": {}", \
+      static_cast<std::underlying_type_t<has_city_1bit_type>>( o ) )
+
+#define BAD_ENUM_STR_VALUE( typename, str_value )           \
+  conv.err( "unreognize value for enum " typename ": '{}'", \
+             str_value )
+
 namespace sav {
+
+/****************************************************************
+** cargo_4bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         cargo_4bit_type const& o,
+                         cdr::tag_t<cargo_4bit_type> ) {
+  switch( o ) {
+    case cargo_4bit_type::food: return "food";
+    case cargo_4bit_type::sugar: return "sugar";
+    case cargo_4bit_type::tobacco: return "tobacco";
+    case cargo_4bit_type::cotton: return "cotton";
+    case cargo_4bit_type::furs: return "furs";
+    case cargo_4bit_type::lumber: return "lumber";
+    case cargo_4bit_type::ore: return "ore";
+    case cargo_4bit_type::silver: return "silver";
+    case cargo_4bit_type::horses: return "horses";
+    case cargo_4bit_type::rum: return "rum";
+    case cargo_4bit_type::cigars: return "cigars";
+    case cargo_4bit_type::cloth: return "cloth";
+    case cargo_4bit_type::coats: return "coats";
+    case cargo_4bit_type::goods: return "goods";
+    case cargo_4bit_type::tools: return "tools";
+    case cargo_4bit_type::muskets: return "muskets";
+  }
+  BAD_ENUM_VALUE( "cargo_4bit_type", o );
+}
+
+cdr::result<cargo_4bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<cargo_4bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, cargo_4bit_type> const m{
+    { "food", cargo_4bit_type::food },
+    { "sugar", cargo_4bit_type::sugar },
+    { "tobacco", cargo_4bit_type::tobacco },
+    { "cotton", cargo_4bit_type::cotton },
+    { "furs", cargo_4bit_type::furs },
+    { "lumber", cargo_4bit_type::lumber },
+    { "ore", cargo_4bit_type::ore },
+    { "silver", cargo_4bit_type::silver },
+    { "horses", cargo_4bit_type::horses },
+    { "rum", cargo_4bit_type::rum },
+    { "cigars", cargo_4bit_type::cigars },
+    { "cloth", cargo_4bit_type::cloth },
+    { "coats", cargo_4bit_type::coats },
+    { "goods", cargo_4bit_type::goods },
+    { "tools", cargo_4bit_type::tools },
+    { "muskets", cargo_4bit_type::muskets },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "cargo_4bit_type", str );
+}
+
+/****************************************************************
+** control_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         control_type const& o,
+                         cdr::tag_t<control_type> ) {
+  switch( o ) {
+    case control_type::player: return "PLAYER";
+    case control_type::ai: return "AI";
+    case control_type::withdrawn: return "WITHDRAWN";
+  }
+  BAD_ENUM_VALUE( "control_type", o );
+}
+
+cdr::result<control_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<control_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, control_type> const m{
+    { "PLAYER", control_type::player },
+    { "AI", control_type::ai },
+    { "WITHDRAWN", control_type::withdrawn },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "control_type", str );
+}
+
+/****************************************************************
+** difficulty_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         difficulty_type const& o,
+                         cdr::tag_t<difficulty_type> ) {
+  switch( o ) {
+    case difficulty_type::discoverer: return "Discoverer";
+    case difficulty_type::explorer: return "Explorer";
+    case difficulty_type::conquistador: return "Conquistador";
+    case difficulty_type::governor: return "Governor";
+    case difficulty_type::viceroy: return "Viceroy";
+  }
+  BAD_ENUM_VALUE( "difficulty_type", o );
+}
+
+cdr::result<difficulty_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<difficulty_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, difficulty_type> const m{
+    { "Discoverer", difficulty_type::discoverer },
+    { "Explorer", difficulty_type::explorer },
+    { "Conquistador", difficulty_type::conquistador },
+    { "Governor", difficulty_type::governor },
+    { "Viceroy", difficulty_type::viceroy },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "difficulty_type", str );
+}
+
+/****************************************************************
+** fortification_level_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         fortification_level_type const& o,
+                         cdr::tag_t<fortification_level_type> ) {
+  switch( o ) {
+    case fortification_level_type::none: return "none";
+    case fortification_level_type::stockade: return "stockade";
+    case fortification_level_type::fort: return "fort";
+    case fortification_level_type::fortress: return "fortress";
+  }
+  BAD_ENUM_VALUE( "fortification_level_type", o );
+}
+
+cdr::result<fortification_level_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<fortification_level_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, fortification_level_type> const m{
+    { "none", fortification_level_type::none },
+    { "stockade", fortification_level_type::stockade },
+    { "fort", fortification_level_type::fort },
+    { "fortress", fortification_level_type::fortress },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "fortification_level_type", str );
+}
+
+/****************************************************************
+** has_city_1bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         has_city_1bit_type const& o,
+                         cdr::tag_t<has_city_1bit_type> ) {
+  switch( o ) {
+    case has_city_1bit_type::empty: return " ";
+    case has_city_1bit_type::c: return "C";
+  }
+  BAD_ENUM_VALUE( "has_city_1bit_type", o );
+}
+
+cdr::result<has_city_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<has_city_1bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, has_city_1bit_type> const m{
+    { " ", has_city_1bit_type::empty },
+    { "C", has_city_1bit_type::c },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "has_city_1bit_type", str );
+}
+
+/****************************************************************
+** has_unit_1bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         has_unit_1bit_type const& o,
+                         cdr::tag_t<has_unit_1bit_type> ) {
+  switch( o ) {
+    case has_unit_1bit_type::empty: return " ";
+    case has_unit_1bit_type::u: return "U";
+  }
+  BAD_ENUM_VALUE( "has_unit_1bit_type", o );
+}
+
+cdr::result<has_unit_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<has_unit_1bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, has_unit_1bit_type> const m{
+    { " ", has_unit_1bit_type::empty },
+    { "U", has_unit_1bit_type::u },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "has_unit_1bit_type", str );
+}
+
+/****************************************************************
+** hills_river_3bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         hills_river_3bit_type const& o,
+                         cdr::tag_t<hills_river_3bit_type> ) {
+  switch( o ) {
+    case hills_river_3bit_type::empty: return "  ";
+    case hills_river_3bit_type::c: return "^ ";
+    case hills_river_3bit_type::t: return "~ ";
+    case hills_river_3bit_type::tc: return "~^";
+    case hills_river_3bit_type::qq: return "??";
+    case hills_river_3bit_type::cc: return "^^";
+    case hills_river_3bit_type::tt: return "~~";
+  }
+  BAD_ENUM_VALUE( "hills_river_3bit_type", o );
+}
+
+cdr::result<hills_river_3bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<hills_river_3bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, hills_river_3bit_type> const m{
+    { "  ", hills_river_3bit_type::empty },
+    { "^ ", hills_river_3bit_type::c },
+    { "~ ", hills_river_3bit_type::t },
+    { "~^", hills_river_3bit_type::tc },
+    { "??", hills_river_3bit_type::qq },
+    { "^^", hills_river_3bit_type::cc },
+    { "~~", hills_river_3bit_type::tt },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "hills_river_3bit_type", str );
+}
+
+/****************************************************************
+** level_2bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         level_2bit_type const& o,
+                         cdr::tag_t<level_2bit_type> ) {
+  switch( o ) {
+    case level_2bit_type::_0: return "0";
+    case level_2bit_type::_1: return "1";
+    case level_2bit_type::_2: return "2";
+  }
+  BAD_ENUM_VALUE( "level_2bit_type", o );
+}
+
+cdr::result<level_2bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<level_2bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, level_2bit_type> const m{
+    { "0", level_2bit_type::_0 },
+    { "1", level_2bit_type::_1 },
+    { "2", level_2bit_type::_2 },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "level_2bit_type", str );
+}
+
+/****************************************************************
+** level_3bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         level_3bit_type const& o,
+                         cdr::tag_t<level_3bit_type> ) {
+  switch( o ) {
+    case level_3bit_type::_0: return "0";
+    case level_3bit_type::_1: return "1";
+    case level_3bit_type::_2: return "2";
+    case level_3bit_type::_3: return "3";
+  }
+  BAD_ENUM_VALUE( "level_3bit_type", o );
+}
+
+cdr::result<level_3bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<level_3bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, level_3bit_type> const m{
+    { "0", level_3bit_type::_0 },
+    { "1", level_3bit_type::_1 },
+    { "2", level_3bit_type::_2 },
+    { "3", level_3bit_type::_3 },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "level_3bit_type", str );
+}
+
+/****************************************************************
+** nation_4bit_short_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         nation_4bit_short_type const& o,
+                         cdr::tag_t<nation_4bit_short_type> ) {
+  switch( o ) {
+    case nation_4bit_short_type::en: return "EN";
+    case nation_4bit_short_type::fr: return "FR";
+    case nation_4bit_short_type::sp: return "SP";
+    case nation_4bit_short_type::nl: return "NL";
+    case nation_4bit_short_type::in: return "in";
+    case nation_4bit_short_type::az: return "az";
+    case nation_4bit_short_type::aw: return "aw";
+    case nation_4bit_short_type::ir: return "ir";
+    case nation_4bit_short_type::ch: return "ch";
+    case nation_4bit_short_type::ap: return "ap";
+    case nation_4bit_short_type::si: return "si";
+    case nation_4bit_short_type::tu: return "tu";
+    case nation_4bit_short_type::empty: return "  ";
+  }
+  BAD_ENUM_VALUE( "nation_4bit_short_type", o );
+}
+
+cdr::result<nation_4bit_short_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<nation_4bit_short_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, nation_4bit_short_type> const m{
+    { "EN", nation_4bit_short_type::en },
+    { "FR", nation_4bit_short_type::fr },
+    { "SP", nation_4bit_short_type::sp },
+    { "NL", nation_4bit_short_type::nl },
+    { "in", nation_4bit_short_type::in },
+    { "az", nation_4bit_short_type::az },
+    { "aw", nation_4bit_short_type::aw },
+    { "ir", nation_4bit_short_type::ir },
+    { "ch", nation_4bit_short_type::ch },
+    { "ap", nation_4bit_short_type::ap },
+    { "si", nation_4bit_short_type::si },
+    { "tu", nation_4bit_short_type::tu },
+    { "  ", nation_4bit_short_type::empty },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "nation_4bit_short_type", str );
+}
+
+/****************************************************************
+** nation_4bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         nation_4bit_type const& o,
+                         cdr::tag_t<nation_4bit_type> ) {
+  switch( o ) {
+    case nation_4bit_type::england: return "England";
+    case nation_4bit_type::france: return "France";
+    case nation_4bit_type::spain: return "Spain";
+    case nation_4bit_type::netherlands: return "Netherlands";
+    case nation_4bit_type::inca: return "Inca";
+    case nation_4bit_type::aztec: return "Aztec";
+    case nation_4bit_type::awarak: return "Awarak";
+    case nation_4bit_type::iroquois: return "Iroquois";
+    case nation_4bit_type::cherokee: return "Cherokee";
+    case nation_4bit_type::apache: return "Apache";
+    case nation_4bit_type::sioux: return "Sioux";
+    case nation_4bit_type::tupi: return "Tupi";
+    case nation_4bit_type::none: return "None";
+  }
+  BAD_ENUM_VALUE( "nation_4bit_type", o );
+}
+
+cdr::result<nation_4bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<nation_4bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, nation_4bit_type> const m{
+    { "England", nation_4bit_type::england },
+    { "France", nation_4bit_type::france },
+    { "Spain", nation_4bit_type::spain },
+    { "Netherlands", nation_4bit_type::netherlands },
+    { "Inca", nation_4bit_type::inca },
+    { "Aztec", nation_4bit_type::aztec },
+    { "Awarak", nation_4bit_type::awarak },
+    { "Iroquois", nation_4bit_type::iroquois },
+    { "Cherokee", nation_4bit_type::cherokee },
+    { "Apache", nation_4bit_type::apache },
+    { "Sioux", nation_4bit_type::sioux },
+    { "Tupi", nation_4bit_type::tupi },
+    { "None", nation_4bit_type::none },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "nation_4bit_type", str );
+}
+
+/****************************************************************
+** nation_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         nation_type const& o,
+                         cdr::tag_t<nation_type> ) {
+  switch( o ) {
+    case nation_type::england: return "England";
+    case nation_type::france: return "France";
+    case nation_type::spain: return "Spain";
+    case nation_type::netherlands: return "Netherlands";
+    case nation_type::inca: return "Inca";
+    case nation_type::aztec: return "Aztec";
+    case nation_type::awarak: return "Awarak";
+    case nation_type::iroquois: return "Iroquois";
+    case nation_type::cherokee: return "Cherokee";
+    case nation_type::apache: return "Apache";
+    case nation_type::sioux: return "Sioux";
+    case nation_type::tupi: return "Tupi";
+    case nation_type::none: return "None";
+  }
+  BAD_ENUM_VALUE( "nation_type", o );
+}
+
+cdr::result<nation_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<nation_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, nation_type> const m{
+    { "England", nation_type::england },
+    { "France", nation_type::france },
+    { "Spain", nation_type::spain },
+    { "Netherlands", nation_type::netherlands },
+    { "Inca", nation_type::inca },
+    { "Aztec", nation_type::aztec },
+    { "Awarak", nation_type::awarak },
+    { "Iroquois", nation_type::iroquois },
+    { "Cherokee", nation_type::cherokee },
+    { "Apache", nation_type::apache },
+    { "Sioux", nation_type::sioux },
+    { "Tupi", nation_type::tupi },
+    { "None", nation_type::none },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "nation_type", str );
+}
+
+/****************************************************************
+** occupation_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         occupation_type const& o,
+                         cdr::tag_t<occupation_type> ) {
+  switch( o ) {
+    case occupation_type::farmer: return "Farmer";
+    case occupation_type::sugar_planter: return "Sugar planter";
+    case occupation_type::tobacco_planter: return "Tobacco planter";
+    case occupation_type::cotton_planter: return "Cotton planter";
+    case occupation_type::fur_trapper: return "Fur trapper";
+    case occupation_type::lumberjack: return "Lumberjack";
+    case occupation_type::ore_miner: return "Ore miner";
+    case occupation_type::silver_miner: return "Silver miner";
+    case occupation_type::fisherman: return "Fisherman";
+    case occupation_type::distiller: return "Distiller";
+    case occupation_type::tobacconist: return "Tobacconist";
+    case occupation_type::weaver: return "Weaver";
+    case occupation_type::fur_trader: return "Fur trader";
+    case occupation_type::carpenter: return "Carpenter";
+    case occupation_type::blacksmith: return "Blacksmith";
+    case occupation_type::gunsmith: return "Gunsmith";
+    case occupation_type::preacher: return "Preacher";
+    case occupation_type::statesman: return "Statesman";
+    case occupation_type::teacher: return "Teacher";
+    case occupation_type::qqqqqqqqqq: return "??????????";
+  }
+  BAD_ENUM_VALUE( "occupation_type", o );
+}
+
+cdr::result<occupation_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<occupation_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, occupation_type> const m{
+    { "Farmer", occupation_type::farmer },
+    { "Sugar planter", occupation_type::sugar_planter },
+    { "Tobacco planter", occupation_type::tobacco_planter },
+    { "Cotton planter", occupation_type::cotton_planter },
+    { "Fur trapper", occupation_type::fur_trapper },
+    { "Lumberjack", occupation_type::lumberjack },
+    { "Ore miner", occupation_type::ore_miner },
+    { "Silver miner", occupation_type::silver_miner },
+    { "Fisherman", occupation_type::fisherman },
+    { "Distiller", occupation_type::distiller },
+    { "Tobacconist", occupation_type::tobacconist },
+    { "Weaver", occupation_type::weaver },
+    { "Fur trader", occupation_type::fur_trader },
+    { "Carpenter", occupation_type::carpenter },
+    { "Blacksmith", occupation_type::blacksmith },
+    { "Gunsmith", occupation_type::gunsmith },
+    { "Preacher", occupation_type::preacher },
+    { "Statesman", occupation_type::statesman },
+    { "Teacher", occupation_type::teacher },
+    { "??????????", occupation_type::qqqqqqqqqq },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "occupation_type", str );
+}
+
+/****************************************************************
+** orders_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         orders_type const& o,
+                         cdr::tag_t<orders_type> ) {
+  switch( o ) {
+    case orders_type::none: return "none";
+    case orders_type::sentry: return "sentry";
+    case orders_type::trading: return "trading";
+    case orders_type::g0to: return "goto";
+    case orders_type::fortified: return "fortified";
+    case orders_type::fortify: return "fortify";
+    case orders_type::plow: return "plow";
+    case orders_type::road: return "road";
+    case orders_type::unknowna: return "unknowna";
+    case orders_type::unknownb: return "unknownb";
+    case orders_type::unknownc: return "unknownc";
+  }
+  BAD_ENUM_VALUE( "orders_type", o );
+}
+
+cdr::result<orders_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<orders_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, orders_type> const m{
+    { "none", orders_type::none },
+    { "sentry", orders_type::sentry },
+    { "trading", orders_type::trading },
+    { "goto", orders_type::g0to },
+    { "fortified", orders_type::fortified },
+    { "fortify", orders_type::fortify },
+    { "plow", orders_type::plow },
+    { "road", orders_type::road },
+    { "unknowna", orders_type::unknowna },
+    { "unknownb", orders_type::unknownb },
+    { "unknownc", orders_type::unknownc },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "orders_type", str );
+}
+
+/****************************************************************
+** pacific_1bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         pacific_1bit_type const& o,
+                         cdr::tag_t<pacific_1bit_type> ) {
+  switch( o ) {
+    case pacific_1bit_type::empty: return " ";
+    case pacific_1bit_type::t: return "~";
+  }
+  BAD_ENUM_VALUE( "pacific_1bit_type", o );
+}
+
+cdr::result<pacific_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<pacific_1bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, pacific_1bit_type> const m{
+    { " ", pacific_1bit_type::empty },
+    { "~", pacific_1bit_type::t },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "pacific_1bit_type", str );
+}
+
+/****************************************************************
+** plowed_1bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         plowed_1bit_type const& o,
+                         cdr::tag_t<plowed_1bit_type> ) {
+  switch( o ) {
+    case plowed_1bit_type::empty: return " ";
+    case plowed_1bit_type::h: return "#";
+  }
+  BAD_ENUM_VALUE( "plowed_1bit_type", o );
+}
+
+cdr::result<plowed_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<plowed_1bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, plowed_1bit_type> const m{
+    { " ", plowed_1bit_type::empty },
+    { "#", plowed_1bit_type::h },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "plowed_1bit_type", str );
+}
+
+/****************************************************************
+** profession_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         profession_type const& o,
+                         cdr::tag_t<profession_type> ) {
+  switch( o ) {
+    case profession_type::expert_farmer: return "Expert farmer";
+    case profession_type::master_sugar_planter: return "Master sugar planter";
+    case profession_type::master_tobacco_planter: return "Master tobacco planter";
+    case profession_type::master_cotton_planter: return "Master cotton planter";
+    case profession_type::expert_fur_trapper: return "Expert fur trapper";
+    case profession_type::expert_lumberjack: return "Expert lumberjack";
+    case profession_type::expert_ore_miner: return "Expert ore miner";
+    case profession_type::expert_silver_miner: return "Expert silver miner";
+    case profession_type::expert_fisherman: return "Expert fisherman";
+    case profession_type::master_distiller: return "Master distiller";
+    case profession_type::master_tobacconist: return "Master tobacconist";
+    case profession_type::master_weaver: return "Master weaver";
+    case profession_type::master_fur_trader: return "Master fur trader";
+    case profession_type::master_carpenter: return "Master carpenter";
+    case profession_type::master_blacksmith: return "Master blacksmith";
+    case profession_type::master_gunsmith: return "Master gunsmith";
+    case profession_type::firebrand_preacher: return "Firebrand preacher";
+    case profession_type::elder_statesman: return "Elder statesman";
+    case profession_type::a_student: return "*(Student)";
+    case profession_type::a_free_colonist: return "*(Free colonist)";
+    case profession_type::hardy_pioneer: return "Hardy pioneer";
+    case profession_type::veteran_soldier: return "Veteran soldier";
+    case profession_type::seasoned_scout: return "Seasoned scout";
+    case profession_type::veteran_dragoon: return "Veteran dragoon";
+    case profession_type::jesuit_missionary: return "Jesuit missionary";
+    case profession_type::indentured_servant: return "Indentured servant";
+    case profession_type::petty_criminal: return "Petty criminal";
+    case profession_type::indian_convert: return "Indian convert";
+    case profession_type::free_colonist: return "Free colonist";
+  }
+  BAD_ENUM_VALUE( "profession_type", o );
+}
+
+cdr::result<profession_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<profession_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, profession_type> const m{
+    { "Expert farmer", profession_type::expert_farmer },
+    { "Master sugar planter", profession_type::master_sugar_planter },
+    { "Master tobacco planter", profession_type::master_tobacco_planter },
+    { "Master cotton planter", profession_type::master_cotton_planter },
+    { "Expert fur trapper", profession_type::expert_fur_trapper },
+    { "Expert lumberjack", profession_type::expert_lumberjack },
+    { "Expert ore miner", profession_type::expert_ore_miner },
+    { "Expert silver miner", profession_type::expert_silver_miner },
+    { "Expert fisherman", profession_type::expert_fisherman },
+    { "Master distiller", profession_type::master_distiller },
+    { "Master tobacconist", profession_type::master_tobacconist },
+    { "Master weaver", profession_type::master_weaver },
+    { "Master fur trader", profession_type::master_fur_trader },
+    { "Master carpenter", profession_type::master_carpenter },
+    { "Master blacksmith", profession_type::master_blacksmith },
+    { "Master gunsmith", profession_type::master_gunsmith },
+    { "Firebrand preacher", profession_type::firebrand_preacher },
+    { "Elder statesman", profession_type::elder_statesman },
+    { "*(Student)", profession_type::a_student },
+    { "*(Free colonist)", profession_type::a_free_colonist },
+    { "Hardy pioneer", profession_type::hardy_pioneer },
+    { "Veteran soldier", profession_type::veteran_soldier },
+    { "Seasoned scout", profession_type::seasoned_scout },
+    { "Veteran dragoon", profession_type::veteran_dragoon },
+    { "Jesuit missionary", profession_type::jesuit_missionary },
+    { "Indentured servant", profession_type::indentured_servant },
+    { "Petty criminal", profession_type::petty_criminal },
+    { "Indian convert", profession_type::indian_convert },
+    { "Free colonist", profession_type::free_colonist },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "profession_type", str );
+}
+
+/****************************************************************
+** purchased_1bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         purchased_1bit_type const& o,
+                         cdr::tag_t<purchased_1bit_type> ) {
+  switch( o ) {
+    case purchased_1bit_type::empty: return " ";
+    case purchased_1bit_type::a: return "*";
+  }
+  BAD_ENUM_VALUE( "purchased_1bit_type", o );
+}
+
+cdr::result<purchased_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<purchased_1bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, purchased_1bit_type> const m{
+    { " ", purchased_1bit_type::empty },
+    { "*", purchased_1bit_type::a },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "purchased_1bit_type", str );
+}
+
+/****************************************************************
+** region_id_4bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         region_id_4bit_type const& o,
+                         cdr::tag_t<region_id_4bit_type> ) {
+  switch( o ) {
+    case region_id_4bit_type::_0: return " 0";
+    case region_id_4bit_type::_1: return " 1";
+    case region_id_4bit_type::_2: return " 2";
+    case region_id_4bit_type::_3: return " 3";
+    case region_id_4bit_type::_4: return " 4";
+    case region_id_4bit_type::_5: return " 5";
+    case region_id_4bit_type::_6: return " 6";
+    case region_id_4bit_type::_7: return " 7";
+    case region_id_4bit_type::_8: return " 8";
+    case region_id_4bit_type::_9: return " 9";
+    case region_id_4bit_type::_10: return "10";
+    case region_id_4bit_type::_11: return "11";
+    case region_id_4bit_type::_12: return "12";
+    case region_id_4bit_type::_13: return "13";
+    case region_id_4bit_type::_14: return "14";
+    case region_id_4bit_type::_15: return "15";
+  }
+  BAD_ENUM_VALUE( "region_id_4bit_type", o );
+}
+
+cdr::result<region_id_4bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<region_id_4bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, region_id_4bit_type> const m{
+    { " 0", region_id_4bit_type::_0 },
+    { " 1", region_id_4bit_type::_1 },
+    { " 2", region_id_4bit_type::_2 },
+    { " 3", region_id_4bit_type::_3 },
+    { " 4", region_id_4bit_type::_4 },
+    { " 5", region_id_4bit_type::_5 },
+    { " 6", region_id_4bit_type::_6 },
+    { " 7", region_id_4bit_type::_7 },
+    { " 8", region_id_4bit_type::_8 },
+    { " 9", region_id_4bit_type::_9 },
+    { "10", region_id_4bit_type::_10 },
+    { "11", region_id_4bit_type::_11 },
+    { "12", region_id_4bit_type::_12 },
+    { "13", region_id_4bit_type::_13 },
+    { "14", region_id_4bit_type::_14 },
+    { "15", region_id_4bit_type::_15 },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "region_id_4bit_type", str );
+}
+
+/****************************************************************
+** relation_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         relation_type const& o,
+                         cdr::tag_t<relation_type> ) {
+  switch( o ) {
+    case relation_type::not_met: return "not met";
+    case relation_type::war: return "war";
+    case relation_type::peace: return "peace";
+    case relation_type::unknown_rel2: return "unknown_rel2";
+    case relation_type::unknown_rel: return "unknown_rel";
+  }
+  BAD_ENUM_VALUE( "relation_type", o );
+}
+
+cdr::result<relation_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<relation_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, relation_type> const m{
+    { "not met", relation_type::not_met },
+    { "war", relation_type::war },
+    { "peace", relation_type::peace },
+    { "unknown_rel2", relation_type::unknown_rel2 },
+    { "unknown_rel", relation_type::unknown_rel },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "relation_type", str );
+}
+
+/****************************************************************
+** road_1bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         road_1bit_type const& o,
+                         cdr::tag_t<road_1bit_type> ) {
+  switch( o ) {
+    case road_1bit_type::empty: return " ";
+    case road_1bit_type::e: return "=";
+  }
+  BAD_ENUM_VALUE( "road_1bit_type", o );
+}
+
+cdr::result<road_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<road_1bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, road_1bit_type> const m{
+    { " ", road_1bit_type::empty },
+    { "=", road_1bit_type::e },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "road_1bit_type", str );
+}
+
+/****************************************************************
+** season_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         season_type const& o,
+                         cdr::tag_t<season_type> ) {
+  switch( o ) {
+    case season_type::spring: return "spring";
+    case season_type::autumn: return "autumn";
+  }
+  BAD_ENUM_VALUE( "season_type", o );
+}
+
+cdr::result<season_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<season_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, season_type> const m{
+    { "spring", season_type::spring },
+    { "autumn", season_type::autumn },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "season_type", str );
+}
+
+/****************************************************************
+** suppress_1bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         suppress_1bit_type const& o,
+                         cdr::tag_t<suppress_1bit_type> ) {
+  switch( o ) {
+    case suppress_1bit_type::empty: return " ";
+    case suppress_1bit_type::_: return "_";
+  }
+  BAD_ENUM_VALUE( "suppress_1bit_type", o );
+}
+
+cdr::result<suppress_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<suppress_1bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, suppress_1bit_type> const m{
+    { " ", suppress_1bit_type::empty },
+    { "_", suppress_1bit_type::_ },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "suppress_1bit_type", str );
+}
+
+/****************************************************************
+** tech_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         tech_type const& o,
+                         cdr::tag_t<tech_type> ) {
+  switch( o ) {
+    case tech_type::semi_nomadic: return "Semi-Nomadic";
+    case tech_type::agrarian: return "Agrarian";
+    case tech_type::advanced: return "Advanced";
+    case tech_type::civilized: return "Civilized";
+  }
+  BAD_ENUM_VALUE( "tech_type", o );
+}
+
+cdr::result<tech_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<tech_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, tech_type> const m{
+    { "Semi-Nomadic", tech_type::semi_nomadic },
+    { "Agrarian", tech_type::agrarian },
+    { "Advanced", tech_type::advanced },
+    { "Civilized", tech_type::civilized },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "tech_type", str );
+}
+
+/****************************************************************
+** terrain_5bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         terrain_5bit_type const& o,
+                         cdr::tag_t<terrain_5bit_type> ) {
+  switch( o ) {
+    case terrain_5bit_type::tu: return "tu ";
+    case terrain_5bit_type::de: return "de ";
+    case terrain_5bit_type::pl: return "pl ";
+    case terrain_5bit_type::pr: return "pr ";
+    case terrain_5bit_type::gr: return "gr ";
+    case terrain_5bit_type::sa: return "sa ";
+    case terrain_5bit_type::sw: return "sw ";
+    case terrain_5bit_type::mr: return "mr ";
+    case terrain_5bit_type::tuf: return "tuF";
+    case terrain_5bit_type::def: return "deF";
+    case terrain_5bit_type::plf: return "plF";
+    case terrain_5bit_type::prf: return "prF";
+    case terrain_5bit_type::grf: return "grF";
+    case terrain_5bit_type::saf: return "saF";
+    case terrain_5bit_type::swf: return "swF";
+    case terrain_5bit_type::mrf: return "mrF";
+    case terrain_5bit_type::arc: return "arc";
+    case terrain_5bit_type::ttt: return "~~~";
+    case terrain_5bit_type::tnt: return "~:~";
+  }
+  BAD_ENUM_VALUE( "terrain_5bit_type", o );
+}
+
+cdr::result<terrain_5bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<terrain_5bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, terrain_5bit_type> const m{
+    { "tu ", terrain_5bit_type::tu },
+    { "de ", terrain_5bit_type::de },
+    { "pl ", terrain_5bit_type::pl },
+    { "pr ", terrain_5bit_type::pr },
+    { "gr ", terrain_5bit_type::gr },
+    { "sa ", terrain_5bit_type::sa },
+    { "sw ", terrain_5bit_type::sw },
+    { "mr ", terrain_5bit_type::mr },
+    { "tuF", terrain_5bit_type::tuf },
+    { "deF", terrain_5bit_type::def },
+    { "plF", terrain_5bit_type::plf },
+    { "prF", terrain_5bit_type::prf },
+    { "grF", terrain_5bit_type::grf },
+    { "saF", terrain_5bit_type::saf },
+    { "swF", terrain_5bit_type::swf },
+    { "mrF", terrain_5bit_type::mrf },
+    { "arc", terrain_5bit_type::arc },
+    { "~~~", terrain_5bit_type::ttt },
+    { "~:~", terrain_5bit_type::tnt },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "terrain_5bit_type", str );
+}
+
+/****************************************************************
+** trade_route_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         trade_route_type const& o,
+                         cdr::tag_t<trade_route_type> ) {
+  switch( o ) {
+    case trade_route_type::land: return "land";
+    case trade_route_type::sea: return "sea";
+  }
+  BAD_ENUM_VALUE( "trade_route_type", o );
+}
+
+cdr::result<trade_route_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<trade_route_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, trade_route_type> const m{
+    { "land", trade_route_type::land },
+    { "sea", trade_route_type::sea },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "trade_route_type", str );
+}
+
+/****************************************************************
+** unit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         unit_type const& o,
+                         cdr::tag_t<unit_type> ) {
+  switch( o ) {
+    case unit_type::colonist: return "Colonist";
+    case unit_type::soldier: return "Soldier";
+    case unit_type::pioneer: return "Pioneer";
+    case unit_type::missionary: return "Missionary";
+    case unit_type::dragoon: return "Dragoon";
+    case unit_type::scout: return "Scout";
+    case unit_type::tory_regular: return "Tory regular";
+    case unit_type::continental_cavalry: return "Continental cavalry";
+    case unit_type::tory_cavalry: return "Tory cavalry";
+    case unit_type::continental_army: return "Continental army";
+    case unit_type::treasure: return "Treasure";
+    case unit_type::artillery: return "Artillery";
+    case unit_type::wagon_train: return "Wagon train";
+    case unit_type::caravel: return "Caravel";
+    case unit_type::merchantman: return "Merchantman";
+    case unit_type::galleon: return "Galleon";
+    case unit_type::privateer: return "Privateer";
+    case unit_type::frigate: return "Frigate";
+    case unit_type::man_o_war: return "Man-O-War";
+    case unit_type::brave: return "Brave";
+    case unit_type::armed_brave: return "Armed brave";
+    case unit_type::mounted_brave: return "Mounted brave";
+    case unit_type::mounted_warrior: return "Mounted warrior";
+  }
+  BAD_ENUM_VALUE( "unit_type", o );
+}
+
+cdr::result<unit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<unit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, unit_type> const m{
+    { "Colonist", unit_type::colonist },
+    { "Soldier", unit_type::soldier },
+    { "Pioneer", unit_type::pioneer },
+    { "Missionary", unit_type::missionary },
+    { "Dragoon", unit_type::dragoon },
+    { "Scout", unit_type::scout },
+    { "Tory regular", unit_type::tory_regular },
+    { "Continental cavalry", unit_type::continental_cavalry },
+    { "Tory cavalry", unit_type::tory_cavalry },
+    { "Continental army", unit_type::continental_army },
+    { "Treasure", unit_type::treasure },
+    { "Artillery", unit_type::artillery },
+    { "Wagon train", unit_type::wagon_train },
+    { "Caravel", unit_type::caravel },
+    { "Merchantman", unit_type::merchantman },
+    { "Galleon", unit_type::galleon },
+    { "Privateer", unit_type::privateer },
+    { "Frigate", unit_type::frigate },
+    { "Man-O-War", unit_type::man_o_war },
+    { "Brave", unit_type::brave },
+    { "Armed brave", unit_type::armed_brave },
+    { "Mounted brave", unit_type::mounted_brave },
+    { "Mounted warrior", unit_type::mounted_warrior },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "unit_type", str );
+}
+
+/****************************************************************
+** visible_to_dutch_1bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         visible_to_dutch_1bit_type const& o,
+                         cdr::tag_t<visible_to_dutch_1bit_type> ) {
+  switch( o ) {
+    case visible_to_dutch_1bit_type::empty: return " ";
+    case visible_to_dutch_1bit_type::d: return "D";
+  }
+  BAD_ENUM_VALUE( "visible_to_dutch_1bit_type", o );
+}
+
+cdr::result<visible_to_dutch_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<visible_to_dutch_1bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, visible_to_dutch_1bit_type> const m{
+    { " ", visible_to_dutch_1bit_type::empty },
+    { "D", visible_to_dutch_1bit_type::d },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "visible_to_dutch_1bit_type", str );
+}
+
+/****************************************************************
+** visible_to_english_1bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         visible_to_english_1bit_type const& o,
+                         cdr::tag_t<visible_to_english_1bit_type> ) {
+  switch( o ) {
+    case visible_to_english_1bit_type::empty: return " ";
+    case visible_to_english_1bit_type::e: return "E";
+  }
+  BAD_ENUM_VALUE( "visible_to_english_1bit_type", o );
+}
+
+cdr::result<visible_to_english_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<visible_to_english_1bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, visible_to_english_1bit_type> const m{
+    { " ", visible_to_english_1bit_type::empty },
+    { "E", visible_to_english_1bit_type::e },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "visible_to_english_1bit_type", str );
+}
+
+/****************************************************************
+** visible_to_french_1bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         visible_to_french_1bit_type const& o,
+                         cdr::tag_t<visible_to_french_1bit_type> ) {
+  switch( o ) {
+    case visible_to_french_1bit_type::empty: return " ";
+    case visible_to_french_1bit_type::f: return "F";
+  }
+  BAD_ENUM_VALUE( "visible_to_french_1bit_type", o );
+}
+
+cdr::result<visible_to_french_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<visible_to_french_1bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, visible_to_french_1bit_type> const m{
+    { " ", visible_to_french_1bit_type::empty },
+    { "F", visible_to_french_1bit_type::f },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "visible_to_french_1bit_type", str );
+}
+
+/****************************************************************
+** visible_to_spanish_1bit_type
+*****************************************************************/
+cdr::value to_canonical( cdr::converter&,
+                         visible_to_spanish_1bit_type const& o,
+                         cdr::tag_t<visible_to_spanish_1bit_type> ) {
+  switch( o ) {
+    case visible_to_spanish_1bit_type::empty: return " ";
+    case visible_to_spanish_1bit_type::s: return "S";
+  }
+  BAD_ENUM_VALUE( "visible_to_spanish_1bit_type", o );
+}
+
+cdr::result<visible_to_spanish_1bit_type> from_canoncal(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<visible_to_spanish_1bit_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, visible_to_spanish_1bit_type> const m{
+    { " ", visible_to_spanish_1bit_type::empty },
+    { "S", visible_to_spanish_1bit_type::s },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "visible_to_spanish_1bit_type", str );
+}
 
 /****************************************************************
 ** GameOptions
