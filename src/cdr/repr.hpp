@@ -246,7 +246,7 @@ void to_str( list const& o, std::string& out, ::base::ADL_t );
 /****************************************************************
 ** value
 *****************************************************************/
-using integer_type = long;
+using integer_type = int64_t;
 
 // The order of these matters since 1) affects conversions and
 // how the alternative is selected upon assignment (I think), and
