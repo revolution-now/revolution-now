@@ -400,5 +400,149 @@ zz.yy {}
   REQUIRE( emitted == emitted2 );
 }
 
+TEST_CASE( "[emit] emit json" ) {
+  // We are not testing this here as it is tested in the parser
+  // module. We are just using it for convenience.
+  auto const doc = parse( "fake-file", input );
+  REQUIRE( doc );
+
+  string const emitted = emit_json( *doc );
+
+  static string const expected = R"({
+  "a": {
+    "c": {
+      "f": 5,
+      "g": true,
+      "h": "truedat"
+    }
+  },
+  "aaa": {
+    "b": {
+      "c": {
+        "a": {
+          "b": {
+            "c": [
+              {
+                "a": {
+                  "b": {
+                    "c": {
+                      "f": {
+                        "g": {
+                          "h": {
+                            "i": 5,
+                            "j": 6,
+                            "k": 5,
+                            "l": 6
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "b": {
+    "s": 5,
+    "t": 3.5
+  },
+  "c": {
+    "d": {
+      "e": {
+        "f": {
+          "g": {
+            "h": {
+              "i": 9,
+              "j": 10
+            },
+            "yes": "no"
+          }
+        },
+        "unit": 1
+      }
+    }
+  },
+  "file": "/this/is/a/file/path",
+  "list": [
+    "one",
+    "two",
+    3,
+    "false",
+    "four",
+    null
+  ],
+  "nonnull_val": "null",
+  "null_val": null,
+  "one": {
+    " two\\a\\b\" xxx": [
+      1,
+      2,
+      {
+        "one": {
+          "two": {
+            "four": 4,
+            "hello": 1,
+            "three": 3,
+            "world": 2
+          }
+        }
+      }
+    ]
+  },
+  "subtype": {
+    "this is.a test[]{}": {
+      "a": [
+        "abc",
+        5,
+        -0.03,
+        "table",
+        {
+          "a": {
+            "b": {
+              "c": 1
+            },
+            "d": 2
+          }
+        }
+      ]
+    },
+    "x": 9
+  },
+  "tbl1": {
+    "hello yo": "world",
+    "x": 1,
+    "y": 2,
+    "yes": "no",
+    "z": 3
+  },
+  "tbl2": {
+    "hello": "world wide",
+    "x": 1,
+    "y": "2 3",
+    "yes": "x",
+    "z": 3
+  },
+  "url": "http://domain.com?x=y",
+  "z": {},
+  "zz": {
+    "yy": {}
+  }
+})";
+
+  REQUIRE( emitted == expected );
+
+  // Let's make sure that Rcl can parse what it emits.
+  auto const doc2 = parse( "fake-file", emitted );
+  REQUIRE( doc2 );
+
+  // Now a round trip.
+  string const emitted2 = emit_json( *doc2 );
+  REQUIRE( emitted == emitted2 );
+}
+
 } // namespace
 } // namespace rcl

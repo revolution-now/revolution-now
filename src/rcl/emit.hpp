@@ -25,4 +25,7 @@ struct EmitOptions {
 std::string emit( doc const&         document,
                   EmitOptions const& options = {} );
 
+// Since rcl is a superset of JSON, we can emit JSON as well.
+std::string emit_json( doc const& document );
+
 } // namespace rcl

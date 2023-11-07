@@ -165,8 +165,6 @@ namespace rcl {
 /****************************************************************
 ** doc
 *****************************************************************/
-// The default options are setup to be those required when pro-
-// ducing Rcl via parsing text.
 struct ProcessingOptions {
   bool run_key_parse  = true;
   bool unflatten_keys = true;
