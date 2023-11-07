@@ -442,8 +442,8 @@ local function bitfield_named_type( info )
   if info.type:match( 'bit_' ) then return info.type end
 end
 
-local function emit_bit_struct_binary_conv_impl(cpp, name,
-                                                bit_struct )
+local function emit_bit_struct_binary_conv_def(cpp, name,
+                                               bit_struct )
   assert( type( bit_struct ) == 'table' )
   cpp:comment( 'Binary conversion.' )
   local nbytes = assert( bit_struct.__total_bytes )
@@ -515,7 +515,7 @@ local function emit_bit_struct_binary_conv_impl(cpp, name,
   cpp:line( '}' )
 end
 
-local function emit_struct_binary_conv_impl( cpp, name, struct )
+local function emit_struct_binary_conv_def( cpp, name, struct )
   assert( type( struct ) == 'table' )
   cpp:comment( 'Binary conversion.' )
 
@@ -563,6 +563,160 @@ local function emit_struct_binary_conv_impl( cpp, name, struct )
   cpp:line( '}' )
 end
 
+local function emit_cdr_conv_decl( name, hpp )
+  hpp:newline()
+  hpp:comment( 'Cdr conversions.' )
+  hpp:line( 'cdr::value to_canonical( cdr::converter& conv,' )
+  hpp:line( '                         %s const& o,', name )
+  hpp:line( '                         cdr::tag_t<%s> );', name );
+  hpp:newline()
+  hpp:line( 'cdr::result<%s> from_canonical(', name )
+  hpp:line( '                         cdr::converter& conv,' )
+  hpp:line( '                         cdr::value const& v,' )
+  hpp:line( '                         cdr::tag_t<%s> );', name )
+end
+
+local function emit_metadata_cdr_conv_def(processed_elems, name,
+                                          cpp )
+  cpp:line( 'cdr::value to_canonical( cdr::converter&,' )
+  cpp:line( '                         %s const& o,', name )
+  cpp:line( '                         cdr::tag_t<%s> ) {', name );
+  cpp:indent()
+  cpp:line( 'switch( o ) {' )
+  cpp:indent()
+  for _, pe in ipairs( processed_elems ) do
+    cpp:line( 'case %s::%s: return "%s";', name, pe.field,
+              pe.original_field )
+  end
+  cpp:unindent()
+  cpp:line( '}' )
+  cpp:line( 'BAD_ENUM_VALUE( "%s", o );', name )
+  cpp:unindent()
+  cpp:line( '}' )
+  cpp:newline()
+  cpp:line( 'cdr::result<%s> from_canonical(', name )
+  cpp:line( '                         cdr::converter& conv,' )
+  cpp:line( '                         cdr::value const& v,' )
+  cpp:line( '                         cdr::tag_t<%s> ) {', name )
+  cpp:indent()
+  cpp:line(
+      'UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );' )
+  cpp:line( 'static std::map<std::string, %s> const m{', name )
+  cpp:indent()
+  for _, pe in ipairs( processed_elems ) do
+    cpp:line( '{ "%s", %s::%s },', pe.original_field, name,
+              pe.field )
+  end
+  cpp:unindent()
+  cpp:line( '};' )
+  cpp:line( 'if( auto it = m.find( str ); it != m.end() )' )
+  cpp:indent()
+  cpp:line( 'return it->second;' )
+  cpp:unindent()
+  cpp:line( 'else' )
+  cpp:indent()
+  cpp:line( 'return BAD_ENUM_STR_VALUE( "%s", str );', name )
+  cpp:unindent()
+  cpp:unindent()
+  cpp:line( '}' )
+end
+
+local function emit_bit_struct_cdr_conv_def(name, cpp, bit_struct )
+  cpp:newline()
+  cpp:line( 'cdr::value to_canonical( cdr::converter& conv,' )
+  cpp:line( '                         %s const& o,', name )
+  cpp:line( '                         cdr::tag_t<%s> ) {', name );
+  cpp:indent()
+  cpp:line( 'cdr::table tbl;' )
+  for _, key in ipairs( bit_struct.__key_order ) do
+    if key:match( '__' ) then goto continue end
+    cpp:line( 'conv.to_field( tbl, "%s", o.%s );', key,
+              as_identifier( key ) )
+    ::continue::
+  end
+  cpp:line( 'tbl["__key_order"] = cdr::list{' )
+  cpp:indent()
+  for _, key in ipairs( bit_struct.__key_order ) do
+    if key:match( '__' ) then goto continue end
+    cpp:line( '"%s",', key )
+    ::continue::
+  end
+  cpp:unindent()
+  cpp:line( '};' )
+  cpp:line( 'return tbl;' )
+  cpp:unindent()
+  cpp:line( '}' )
+  cpp:newline()
+  cpp:line( 'cdr::result<%s> from_canonical(', name )
+  cpp:line( '                         cdr::converter& conv,' )
+  cpp:line( '                         cdr::value const& v,' )
+  cpp:line( '                         cdr::tag_t<%s> ) {', name )
+  cpp:indent()
+  cpp:line(
+      'UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );' )
+  cpp:line( '%s res = {};', name )
+  cpp:line( 'std::set<std::string> used_keys;' )
+  for _, key in ipairs( bit_struct.__key_order ) do
+    if key:match( '__' ) then goto continue end
+    cpp:line( 'CONV_FROM_FIELD( "%s", %s );', key,
+              as_identifier( key ) )
+    ::continue::
+  end
+  cpp:line(
+      'HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );' )
+  cpp:line( 'return res;' )
+  cpp:unindent()
+  cpp:line( '}' )
+end
+
+local function emit_struct_cdr_conv_def( name, cpp, struct )
+  cpp:newline()
+  cpp:line( 'cdr::value to_canonical( cdr::converter& conv,' )
+  cpp:line( '                         %s const& o,', name )
+  cpp:line( '                         cdr::tag_t<%s> ) {', name );
+  cpp:indent()
+  cpp:line( 'cdr::table tbl;' )
+  for _, key in ipairs( struct.__key_order ) do
+    if key:match( '__' ) then goto continue end
+    cpp:line( 'conv.to_field( tbl, "%s", o.%s );', key,
+              as_identifier( key ) )
+    ::continue::
+  end
+  cpp:line( 'tbl["__key_order"] = cdr::list{' )
+  cpp:indent()
+  for _, key in ipairs( struct.__key_order ) do
+    if key:match( '__' ) then goto continue end
+    cpp:line( '"%s",', key )
+    ::continue::
+  end
+  cpp:unindent()
+  cpp:line( '};' )
+  cpp:line( 'return tbl;' )
+  cpp:unindent()
+  cpp:line( '}' )
+  cpp:newline()
+  cpp:line( 'cdr::result<%s> from_canonical(', name )
+  cpp:line( '                         cdr::converter& conv,' )
+  cpp:line( '                         cdr::value const& v,' )
+  cpp:line( '                         cdr::tag_t<%s> ) {', name )
+  cpp:indent()
+  cpp:line(
+      'UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );' )
+  cpp:line( '%s res = {};', name )
+  cpp:line( 'std::set<std::string> used_keys;' )
+  for _, key in ipairs( struct.__key_order ) do
+    if key:match( '__' ) then goto continue end
+    cpp:line( 'CONV_FROM_FIELD( "%s", %s );', key,
+              as_identifier( key ) )
+    ::continue::
+  end
+  cpp:line(
+      'HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );' )
+  cpp:line( 'return res;' )
+  cpp:unindent()
+  cpp:line( '}' )
+end
+
 function CppEmitter:emit_bit_struct( hpp, cpp, bit_struct, name )
   self:dbg( 'emitting bit struct %s.', name )
   hpp:newline()
@@ -594,12 +748,18 @@ function CppEmitter:emit_bit_struct( hpp, cpp, bit_struct, name )
     hpp:line( '%s %s : %d;', type, as_identifier( key ),
               member.size );
   end
+  hpp:newline()
+  hpp:line( 'bool operator==( %s const& ) const = default;', name )
   hpp:unindent()
   hpp:line( '};' )
 
   -- Binary conversion.
   emit_binary_conv_decl( hpp, name )
-  emit_bit_struct_binary_conv_impl( cpp, name, bit_struct )
+  emit_bit_struct_binary_conv_def( cpp, name, bit_struct )
+
+  -- Cdr conversion.
+  emit_cdr_conv_decl( name, hpp )
+  emit_bit_struct_cdr_conv_def( name, cpp, bit_struct )
 end
 
 local function struct_name_for( name )
@@ -670,11 +830,15 @@ function CppEmitter:emit_struct( hpp, cpp, struct, name )
     end
     ::continue::
   end
+  hpp:newline()
+  hpp:line( 'bool operator==( %s const& ) const = default;', name )
   hpp:unindent()
   hpp:line( '};' )
 
-  -- Writing conversion routines for the top-level struct re-
-  -- quires some special considerations (e.g. dealing with
+  -- Binary conversion.
+  emit_binary_conv_decl( hpp, name )
+  -- Writing binary conversion routines for the top-level struct
+  -- requires some special considerations (e.g. dealing with
   -- std::vectors whose sizes are found elsewhere in the struct),
   -- and/or sometimes wanting to only convert part of it so that
   -- we can extract the name of the player without converting the
@@ -683,13 +847,14 @@ function CppEmitter:emit_struct( hpp, cpp, struct, name )
   -- write those by hand, since it happens that we only need to
   -- do this for the top-level struct.
   if name == 'ColonySAV' then
-    cpp:comment( 'NOTE: manually implemented.' )
-    return
+    cpp:comment( 'NOTE: binary conversion manually implemented.' )
+  else
+    emit_struct_binary_conv_def( cpp, name, struct )
   end
 
-  -- Binary conversion.
-  emit_binary_conv_decl( hpp, name )
-  emit_struct_binary_conv_impl( cpp, name, struct )
+  -- Cdr conversions.
+  emit_cdr_conv_decl( name, hpp )
+  emit_struct_cdr_conv_def( name, cpp, struct )
 end
 
 function CppEmitter:emit_structs( hpp, cpp )
@@ -712,62 +877,6 @@ local function metadata_field_value( field, str_value )
     end )
     return format( '0x%s', concat( bytes ) )
   end
-end
-
-function CppEmitter:emit_cdr_conversions(processed_elems, name,
-                                         hpp, cpp )
-  hpp:newline()
-  hpp:comment( 'Cdr conversions.' )
-  hpp:line( 'cdr::value to_canonical( cdr::converter& conv,' )
-  hpp:line( '                         %s const& o,', name )
-  hpp:line( '                         cdr::tag_t<%s> );', name );
-  hpp:newline()
-  hpp:line( 'cdr::result<%s> from_canoncal(', name )
-  hpp:line( '                         cdr::converter& conv,' )
-  hpp:line( '                         cdr::value const& v,' )
-  hpp:line( '                         cdr::tag_t<%s> );', name )
-
-  cpp:line( 'cdr::value to_canonical( cdr::converter&,' )
-  cpp:line( '                         %s const& o,', name )
-  cpp:line( '                         cdr::tag_t<%s> ) {', name );
-  cpp:indent()
-  cpp:line( 'switch( o ) {' )
-  cpp:indent()
-  for _, pe in ipairs( processed_elems ) do
-    cpp:line( 'case %s::%s: return "%s";', name, pe.field,
-              pe.original_field )
-  end
-  cpp:unindent()
-  cpp:line( '}' )
-  cpp:line( 'BAD_ENUM_VALUE( "%s", o );', name )
-  cpp:unindent()
-  cpp:line( '}' )
-  cpp:newline()
-  cpp:line( 'cdr::result<%s> from_canoncal(', name )
-  cpp:line( '                         cdr::converter& conv,' )
-  cpp:line( '                         cdr::value const& v,' )
-  cpp:line( '                         cdr::tag_t<%s> ) {', name )
-  cpp:indent()
-  cpp:line(
-      'UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );' )
-  cpp:line( 'static std::map<std::string, %s> const m{', name )
-  cpp:indent()
-  for _, pe in ipairs( processed_elems ) do
-    cpp:line( '{ "%s", %s::%s },', pe.original_field, name,
-              pe.field )
-  end
-  cpp:unindent()
-  cpp:line( '};' )
-  cpp:line( 'if( auto it = m.find( str ); it != m.end() )' )
-  cpp:indent()
-  cpp:line( 'return it->second;' )
-  cpp:unindent()
-  cpp:line( 'else' )
-  cpp:indent()
-  cpp:line( 'return BAD_ENUM_STR_VALUE( "%s", str );', name )
-  cpp:unindent()
-  cpp:unindent()
-  cpp:line( '}' )
 end
 
 function CppEmitter:emit_metadata_item( name, elems, hpp, cpp )
@@ -822,7 +931,8 @@ function CppEmitter:emit_metadata_item( name, elems, hpp, cpp )
   hpp:line( '};' )
 
   -- Cdr conversions.
-  self:emit_cdr_conversions( processed_elems, name, hpp, cpp )
+  emit_cdr_conv_decl( name, hpp )
+  emit_metadata_cdr_conv_def( processed_elems, name, cpp )
 end
 
 function CppEmitter:emit_metadata( hpp, cpp )
@@ -864,6 +974,18 @@ function CppEmitter:emit_cpp_macros( cpp )
   cpp:line(
       '  conv.err( "unreognize value for enum " typename ": \'{}\'", \\' )
   cpp:line( '             str_value )' )
+  cpp:newline()
+  cpp:line(
+      '#define CONV_FROM_FIELD( name, identifier )                       \\' )
+  cpp:line(
+      '  UNWRAP_RETURN(                                                  \\' )
+  cpp:line(
+      '      identifier, conv.from_field<                                \\' )
+  cpp:line(
+      '                std::remove_cvref_t<decltype( res.identifier )>>( \\' )
+  cpp:line(
+      '                tbl, name, used_keys ) );                         \\' )
+  cpp:line( '  res.identifier = std::move( identifier )' )
 end
 
 function CppEmitter:generate_code()

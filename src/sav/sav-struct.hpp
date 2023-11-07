@@ -53,7 +53,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          cargo_4bit_type const& o,
                          cdr::tag_t<cargo_4bit_type> );
 
-cdr::result<cargo_4bit_type> from_canoncal(
+cdr::result<cargo_4bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<cargo_4bit_type> );
@@ -72,7 +72,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          control_type const& o,
                          cdr::tag_t<control_type> );
 
-cdr::result<control_type> from_canoncal(
+cdr::result<control_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<control_type> );
@@ -93,7 +93,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          difficulty_type const& o,
                          cdr::tag_t<difficulty_type> );
 
-cdr::result<difficulty_type> from_canoncal(
+cdr::result<difficulty_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<difficulty_type> );
@@ -113,7 +113,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          fortification_level_type const& o,
                          cdr::tag_t<fortification_level_type> );
 
-cdr::result<fortification_level_type> from_canoncal(
+cdr::result<fortification_level_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<fortification_level_type> );
@@ -131,7 +131,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          has_city_1bit_type const& o,
                          cdr::tag_t<has_city_1bit_type> );
 
-cdr::result<has_city_1bit_type> from_canoncal(
+cdr::result<has_city_1bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<has_city_1bit_type> );
@@ -149,7 +149,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          has_unit_1bit_type const& o,
                          cdr::tag_t<has_unit_1bit_type> );
 
-cdr::result<has_unit_1bit_type> from_canoncal(
+cdr::result<has_unit_1bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<has_unit_1bit_type> );
@@ -172,7 +172,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          hills_river_3bit_type const& o,
                          cdr::tag_t<hills_river_3bit_type> );
 
-cdr::result<hills_river_3bit_type> from_canoncal(
+cdr::result<hills_river_3bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<hills_river_3bit_type> );
@@ -191,7 +191,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          level_2bit_type const& o,
                          cdr::tag_t<level_2bit_type> );
 
-cdr::result<level_2bit_type> from_canoncal(
+cdr::result<level_2bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<level_2bit_type> );
@@ -211,7 +211,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          level_3bit_type const& o,
                          cdr::tag_t<level_3bit_type> );
 
-cdr::result<level_3bit_type> from_canoncal(
+cdr::result<level_3bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<level_3bit_type> );
@@ -240,7 +240,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          nation_4bit_short_type const& o,
                          cdr::tag_t<nation_4bit_short_type> );
 
-cdr::result<nation_4bit_short_type> from_canoncal(
+cdr::result<nation_4bit_short_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<nation_4bit_short_type> );
@@ -269,7 +269,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          nation_4bit_type const& o,
                          cdr::tag_t<nation_4bit_type> );
 
-cdr::result<nation_4bit_type> from_canoncal(
+cdr::result<nation_4bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<nation_4bit_type> );
@@ -298,7 +298,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          nation_type const& o,
                          cdr::tag_t<nation_type> );
 
-cdr::result<nation_type> from_canoncal(
+cdr::result<nation_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<nation_type> );
@@ -334,7 +334,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          occupation_type const& o,
                          cdr::tag_t<occupation_type> );
 
-cdr::result<occupation_type> from_canoncal(
+cdr::result<occupation_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<occupation_type> );
@@ -361,7 +361,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          orders_type const& o,
                          cdr::tag_t<orders_type> );
 
-cdr::result<orders_type> from_canoncal(
+cdr::result<orders_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<orders_type> );
@@ -379,7 +379,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          pacific_1bit_type const& o,
                          cdr::tag_t<pacific_1bit_type> );
 
-cdr::result<pacific_1bit_type> from_canoncal(
+cdr::result<pacific_1bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<pacific_1bit_type> );
@@ -397,7 +397,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          plowed_1bit_type const& o,
                          cdr::tag_t<plowed_1bit_type> );
 
-cdr::result<plowed_1bit_type> from_canoncal(
+cdr::result<plowed_1bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<plowed_1bit_type> );
@@ -442,7 +442,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          profession_type const& o,
                          cdr::tag_t<profession_type> );
 
-cdr::result<profession_type> from_canoncal(
+cdr::result<profession_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<profession_type> );
@@ -460,7 +460,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          purchased_1bit_type const& o,
                          cdr::tag_t<purchased_1bit_type> );
 
-cdr::result<purchased_1bit_type> from_canoncal(
+cdr::result<purchased_1bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<purchased_1bit_type> );
@@ -492,7 +492,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          region_id_4bit_type const& o,
                          cdr::tag_t<region_id_4bit_type> );
 
-cdr::result<region_id_4bit_type> from_canoncal(
+cdr::result<region_id_4bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<region_id_4bit_type> );
@@ -513,7 +513,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          relation_type const& o,
                          cdr::tag_t<relation_type> );
 
-cdr::result<relation_type> from_canoncal(
+cdr::result<relation_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<relation_type> );
@@ -531,7 +531,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          road_1bit_type const& o,
                          cdr::tag_t<road_1bit_type> );
 
-cdr::result<road_1bit_type> from_canoncal(
+cdr::result<road_1bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<road_1bit_type> );
@@ -549,7 +549,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          season_type const& o,
                          cdr::tag_t<season_type> );
 
-cdr::result<season_type> from_canoncal(
+cdr::result<season_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<season_type> );
@@ -567,7 +567,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          suppress_1bit_type const& o,
                          cdr::tag_t<suppress_1bit_type> );
 
-cdr::result<suppress_1bit_type> from_canoncal(
+cdr::result<suppress_1bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<suppress_1bit_type> );
@@ -587,7 +587,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          tech_type const& o,
                          cdr::tag_t<tech_type> );
 
-cdr::result<tech_type> from_canoncal(
+cdr::result<tech_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<tech_type> );
@@ -622,7 +622,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          terrain_5bit_type const& o,
                          cdr::tag_t<terrain_5bit_type> );
 
-cdr::result<terrain_5bit_type> from_canoncal(
+cdr::result<terrain_5bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<terrain_5bit_type> );
@@ -640,7 +640,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          trade_route_type const& o,
                          cdr::tag_t<trade_route_type> );
 
-cdr::result<trade_route_type> from_canoncal(
+cdr::result<trade_route_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<trade_route_type> );
@@ -679,7 +679,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          unit_type const& o,
                          cdr::tag_t<unit_type> );
 
-cdr::result<unit_type> from_canoncal(
+cdr::result<unit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<unit_type> );
@@ -697,7 +697,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          visible_to_dutch_1bit_type const& o,
                          cdr::tag_t<visible_to_dutch_1bit_type> );
 
-cdr::result<visible_to_dutch_1bit_type> from_canoncal(
+cdr::result<visible_to_dutch_1bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<visible_to_dutch_1bit_type> );
@@ -715,7 +715,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          visible_to_english_1bit_type const& o,
                          cdr::tag_t<visible_to_english_1bit_type> );
 
-cdr::result<visible_to_english_1bit_type> from_canoncal(
+cdr::result<visible_to_english_1bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<visible_to_english_1bit_type> );
@@ -733,7 +733,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          visible_to_french_1bit_type const& o,
                          cdr::tag_t<visible_to_french_1bit_type> );
 
-cdr::result<visible_to_french_1bit_type> from_canoncal(
+cdr::result<visible_to_french_1bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<visible_to_french_1bit_type> );
@@ -751,7 +751,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          visible_to_spanish_1bit_type const& o,
                          cdr::tag_t<visible_to_spanish_1bit_type> );
 
-cdr::result<visible_to_spanish_1bit_type> from_canoncal(
+cdr::result<visible_to_spanish_1bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<visible_to_spanish_1bit_type> );
@@ -770,11 +770,23 @@ struct GameOptions {
   bool cheats_enabled : 1;
   bool show_foreign_moves : 1;
   bool show_indian_moves : 1;
+
+  bool operator==( GameOptions const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, GameOptions& o );
 bool write_binary( base::BinaryData& b, GameOptions const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         GameOptions const& o,
+                         cdr::tag_t<GameOptions> );
+
+cdr::result<GameOptions> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<GameOptions> );
 
 /****************************************************************
 ** ColonyReportOptions
@@ -791,11 +803,23 @@ struct ColonyReportOptions {
   bool report_sons_of_liberty_membership : 1;
   bool report_rebel_majorities : 1;
   uint8_t unused03 : 6;
+
+  bool operator==( ColonyReportOptions const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, ColonyReportOptions& o );
 bool write_binary( base::BinaryData& b, ColonyReportOptions const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         ColonyReportOptions const& o,
+                         cdr::tag_t<ColonyReportOptions> );
+
+cdr::result<ColonyReportOptions> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<ColonyReportOptions> );
 
 /****************************************************************
 ** Event
@@ -817,11 +841,23 @@ struct Event {
   bool woodcut14 : 1;
   bool woodcut15 : 1;
   bool woodcut16 : 1;
+
+  bool operator==( Event const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Event& o );
 bool write_binary( base::BinaryData& b, Event const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Event const& o,
+                         cdr::tag_t<Event> );
+
+cdr::result<Event> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Event> );
 
 /****************************************************************
 ** Duration
@@ -829,11 +865,23 @@ bool write_binary( base::BinaryData& b, Event const& o );
 struct Duration {
   uint8_t dur_1 : 4;
   uint8_t dur_2 : 4;
+
+  bool operator==( Duration const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Duration& o );
 bool write_binary( base::BinaryData& b, Duration const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Duration const& o,
+                         cdr::tag_t<Duration> );
+
+cdr::result<Duration> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Duration> );
 
 /****************************************************************
 ** Buildings
@@ -858,11 +906,23 @@ struct Buildings {
   level_2bit_type church : 2;
   level_3bit_type blacksmiths_house : 3;
   uint8_t unused05b : 6;
+
+  bool operator==( Buildings const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Buildings& o );
 bool write_binary( base::BinaryData& b, Buildings const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Buildings const& o,
+                         cdr::tag_t<Buildings> );
+
+cdr::result<Buildings> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Buildings> );
 
 /****************************************************************
 ** CustomHouseFlags
@@ -884,11 +944,23 @@ struct CustomHouseFlags {
   bool trade_goods : 1;
   bool tools : 1;
   bool muskets : 1;
+
+  bool operator==( CustomHouseFlags const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, CustomHouseFlags& o );
 bool write_binary( base::BinaryData& b, CustomHouseFlags const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         CustomHouseFlags const& o,
+                         cdr::tag_t<CustomHouseFlags> );
+
+cdr::result<CustomHouseFlags> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<CustomHouseFlags> );
 
 /****************************************************************
 ** NationInfo
@@ -899,11 +971,23 @@ struct NationInfo {
   bool vis_to_french : 1;
   bool vis_to_spanish : 1;
   bool vis_to_dutch : 1;
+
+  bool operator==( NationInfo const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, NationInfo& o );
 bool write_binary( base::BinaryData& b, NationInfo const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         NationInfo const& o,
+                         cdr::tag_t<NationInfo> );
+
+cdr::result<NationInfo> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<NationInfo> );
 
 /****************************************************************
 ** Unknown15
@@ -911,11 +995,23 @@ bool write_binary( base::BinaryData& b, NationInfo const& o );
 struct Unknown15 {
   uint8_t unknown15a : 7;
   bool damaged : 1;
+
+  bool operator==( Unknown15 const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Unknown15& o );
 bool write_binary( base::BinaryData& b, Unknown15 const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Unknown15 const& o,
+                         cdr::tag_t<Unknown15> );
+
+cdr::result<Unknown15> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Unknown15> );
 
 /****************************************************************
 ** CargoItems
@@ -923,11 +1019,23 @@ bool write_binary( base::BinaryData& b, Unknown15 const& o );
 struct CargoItems {
   cargo_4bit_type cargo_1 : 4;
   cargo_4bit_type cargo_2 : 4;
+
+  bool operator==( CargoItems const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, CargoItems& o );
 bool write_binary( base::BinaryData& b, CargoItems const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         CargoItems const& o,
+                         cdr::tag_t<CargoItems> );
+
+cdr::result<CargoItems> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<CargoItems> );
 
 /****************************************************************
 ** BoycottBitmap
@@ -949,11 +1057,23 @@ struct BoycottBitmap {
   bool trade_goods : 1;
   bool tools : 1;
   bool muskets : 1;
+
+  bool operator==( BoycottBitmap const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, BoycottBitmap& o );
 bool write_binary( base::BinaryData& b, BoycottBitmap const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         BoycottBitmap const& o,
+                         cdr::tag_t<BoycottBitmap> );
+
+cdr::result<BoycottBitmap> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<BoycottBitmap> );
 
 /****************************************************************
 ** ALCS
@@ -964,11 +1084,23 @@ struct ALCS {
   bool capital : 1;
   bool scouted : 1;
   uint8_t unused09 : 4;
+
+  bool operator==( ALCS const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, ALCS& o );
 bool write_binary( base::BinaryData& b, ALCS const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         ALCS const& o,
+                         cdr::tag_t<ALCS> );
+
+cdr::result<ALCS> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<ALCS> );
 
 /****************************************************************
 ** TILE
@@ -976,11 +1108,23 @@ bool write_binary( base::BinaryData& b, ALCS const& o );
 struct TILE {
   terrain_5bit_type tile : 5;
   hills_river_3bit_type hill_river : 3;
+
+  bool operator==( TILE const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, TILE& o );
 bool write_binary( base::BinaryData& b, TILE const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         TILE const& o,
+                         cdr::tag_t<TILE> );
+
+cdr::result<TILE> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<TILE> );
 
 /****************************************************************
 ** MASK
@@ -994,11 +1138,23 @@ struct MASK {
   pacific_1bit_type pacific : 1;
   plowed_1bit_type plowed : 1;
   suppress_1bit_type unused : 1;
+
+  bool operator==( MASK const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, MASK& o );
 bool write_binary( base::BinaryData& b, MASK const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         MASK const& o,
+                         cdr::tag_t<MASK> );
+
+cdr::result<MASK> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<MASK> );
 
 /****************************************************************
 ** PATH
@@ -1006,11 +1162,23 @@ bool write_binary( base::BinaryData& b, MASK const& o );
 struct PATH {
   region_id_4bit_type region_id : 4;
   nation_4bit_short_type visitor_nation : 4;
+
+  bool operator==( PATH const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, PATH& o );
 bool write_binary( base::BinaryData& b, PATH const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         PATH const& o,
+                         cdr::tag_t<PATH> );
+
+cdr::result<PATH> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<PATH> );
 
 /****************************************************************
 ** SEEN
@@ -1021,11 +1189,23 @@ struct SEEN {
   visible_to_french_1bit_type vis2fr : 1;
   visible_to_spanish_1bit_type vis2sp : 1;
   visible_to_dutch_1bit_type vis2du : 1;
+
+  bool operator==( SEEN const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, SEEN& o );
 bool write_binary( base::BinaryData& b, SEEN const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         SEEN const& o,
+                         cdr::tag_t<SEEN> );
+
+cdr::result<SEEN> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<SEEN> );
 
 /****************************************************************
 ** Stop1LoadsAndUnloadsCount
@@ -1033,11 +1213,23 @@ bool write_binary( base::BinaryData& b, SEEN const& o );
 struct Stop1LoadsAndUnloadsCount {
   uint8_t unloads_count : 4;
   uint8_t loads_count : 4;
+
+  bool operator==( Stop1LoadsAndUnloadsCount const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Stop1LoadsAndUnloadsCount& o );
 bool write_binary( base::BinaryData& b, Stop1LoadsAndUnloadsCount const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Stop1LoadsAndUnloadsCount const& o,
+                         cdr::tag_t<Stop1LoadsAndUnloadsCount> );
+
+cdr::result<Stop1LoadsAndUnloadsCount> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Stop1LoadsAndUnloadsCount> );
 
 /****************************************************************
 ** Stop1LoadsCargo
@@ -1049,11 +1241,23 @@ struct Stop1LoadsCargo {
   cargo_4bit_type cargo_4 : 4;
   cargo_4bit_type cargo_5 : 4;
   cargo_4bit_type cargo_6 : 4;
+
+  bool operator==( Stop1LoadsCargo const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Stop1LoadsCargo& o );
 bool write_binary( base::BinaryData& b, Stop1LoadsCargo const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Stop1LoadsCargo const& o,
+                         cdr::tag_t<Stop1LoadsCargo> );
+
+cdr::result<Stop1LoadsCargo> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Stop1LoadsCargo> );
 
 /****************************************************************
 ** Stop1UnloadsCargo
@@ -1065,11 +1269,23 @@ struct Stop1UnloadsCargo {
   cargo_4bit_type cargo_4 : 4;
   cargo_4bit_type cargo_5 : 4;
   cargo_4bit_type cargo_6 : 4;
+
+  bool operator==( Stop1UnloadsCargo const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Stop1UnloadsCargo& o );
 bool write_binary( base::BinaryData& b, Stop1UnloadsCargo const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Stop1UnloadsCargo const& o,
+                         cdr::tag_t<Stop1UnloadsCargo> );
+
+cdr::result<Stop1UnloadsCargo> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Stop1UnloadsCargo> );
 
 /****************************************************************
 ** Stop2LoadsAndUnloadsCount
@@ -1077,11 +1293,23 @@ bool write_binary( base::BinaryData& b, Stop1UnloadsCargo const& o );
 struct Stop2LoadsAndUnloadsCount {
   uint8_t unloads_count : 4;
   uint8_t loads_count : 4;
+
+  bool operator==( Stop2LoadsAndUnloadsCount const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Stop2LoadsAndUnloadsCount& o );
 bool write_binary( base::BinaryData& b, Stop2LoadsAndUnloadsCount const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Stop2LoadsAndUnloadsCount const& o,
+                         cdr::tag_t<Stop2LoadsAndUnloadsCount> );
+
+cdr::result<Stop2LoadsAndUnloadsCount> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Stop2LoadsAndUnloadsCount> );
 
 /****************************************************************
 ** Stop2LoadsCargo
@@ -1093,11 +1321,23 @@ struct Stop2LoadsCargo {
   cargo_4bit_type cargo_4 : 4;
   cargo_4bit_type cargo_5 : 4;
   cargo_4bit_type cargo_6 : 4;
+
+  bool operator==( Stop2LoadsCargo const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Stop2LoadsCargo& o );
 bool write_binary( base::BinaryData& b, Stop2LoadsCargo const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Stop2LoadsCargo const& o,
+                         cdr::tag_t<Stop2LoadsCargo> );
+
+cdr::result<Stop2LoadsCargo> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Stop2LoadsCargo> );
 
 /****************************************************************
 ** Stop2UnloadsCargo
@@ -1109,11 +1349,23 @@ struct Stop2UnloadsCargo {
   cargo_4bit_type cargo_4 : 4;
   cargo_4bit_type cargo_5 : 4;
   cargo_4bit_type cargo_6 : 4;
+
+  bool operator==( Stop2UnloadsCargo const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Stop2UnloadsCargo& o );
 bool write_binary( base::BinaryData& b, Stop2UnloadsCargo const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Stop2UnloadsCargo const& o,
+                         cdr::tag_t<Stop2UnloadsCargo> );
+
+cdr::result<Stop2UnloadsCargo> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Stop2UnloadsCargo> );
 
 /****************************************************************
 ** Stop3LoadsAndUnloadsCount
@@ -1121,11 +1373,23 @@ bool write_binary( base::BinaryData& b, Stop2UnloadsCargo const& o );
 struct Stop3LoadsAndUnloadsCount {
   uint8_t unloads_count : 4;
   uint8_t loads_count : 4;
+
+  bool operator==( Stop3LoadsAndUnloadsCount const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Stop3LoadsAndUnloadsCount& o );
 bool write_binary( base::BinaryData& b, Stop3LoadsAndUnloadsCount const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Stop3LoadsAndUnloadsCount const& o,
+                         cdr::tag_t<Stop3LoadsAndUnloadsCount> );
+
+cdr::result<Stop3LoadsAndUnloadsCount> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Stop3LoadsAndUnloadsCount> );
 
 /****************************************************************
 ** Stop3LoadsCargo
@@ -1137,11 +1401,23 @@ struct Stop3LoadsCargo {
   cargo_4bit_type cargo_4 : 4;
   cargo_4bit_type cargo_5 : 4;
   cargo_4bit_type cargo_6 : 4;
+
+  bool operator==( Stop3LoadsCargo const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Stop3LoadsCargo& o );
 bool write_binary( base::BinaryData& b, Stop3LoadsCargo const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Stop3LoadsCargo const& o,
+                         cdr::tag_t<Stop3LoadsCargo> );
+
+cdr::result<Stop3LoadsCargo> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Stop3LoadsCargo> );
 
 /****************************************************************
 ** Stop3UnloadsCargo
@@ -1153,11 +1429,23 @@ struct Stop3UnloadsCargo {
   cargo_4bit_type cargo_4 : 4;
   cargo_4bit_type cargo_5 : 4;
   cargo_4bit_type cargo_6 : 4;
+
+  bool operator==( Stop3UnloadsCargo const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Stop3UnloadsCargo& o );
 bool write_binary( base::BinaryData& b, Stop3UnloadsCargo const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Stop3UnloadsCargo const& o,
+                         cdr::tag_t<Stop3UnloadsCargo> );
+
+cdr::result<Stop3UnloadsCargo> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Stop3UnloadsCargo> );
 
 /****************************************************************
 ** Stop4LoadsAndUnloadsCount
@@ -1165,11 +1453,23 @@ bool write_binary( base::BinaryData& b, Stop3UnloadsCargo const& o );
 struct Stop4LoadsAndUnloadsCount {
   uint8_t unloads_count : 4;
   uint8_t loads_count : 4;
+
+  bool operator==( Stop4LoadsAndUnloadsCount const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Stop4LoadsAndUnloadsCount& o );
 bool write_binary( base::BinaryData& b, Stop4LoadsAndUnloadsCount const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Stop4LoadsAndUnloadsCount const& o,
+                         cdr::tag_t<Stop4LoadsAndUnloadsCount> );
+
+cdr::result<Stop4LoadsAndUnloadsCount> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Stop4LoadsAndUnloadsCount> );
 
 /****************************************************************
 ** Stop4LoadsCargo
@@ -1181,11 +1481,23 @@ struct Stop4LoadsCargo {
   cargo_4bit_type cargo_4 : 4;
   cargo_4bit_type cargo_5 : 4;
   cargo_4bit_type cargo_6 : 4;
+
+  bool operator==( Stop4LoadsCargo const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Stop4LoadsCargo& o );
 bool write_binary( base::BinaryData& b, Stop4LoadsCargo const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Stop4LoadsCargo const& o,
+                         cdr::tag_t<Stop4LoadsCargo> );
+
+cdr::result<Stop4LoadsCargo> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Stop4LoadsCargo> );
 
 /****************************************************************
 ** Stop4UnloadsCargo
@@ -1197,11 +1509,23 @@ struct Stop4UnloadsCargo {
   cargo_4bit_type cargo_4 : 4;
   cargo_4bit_type cargo_5 : 4;
   cargo_4bit_type cargo_6 : 4;
+
+  bool operator==( Stop4UnloadsCargo const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Stop4UnloadsCargo& o );
 bool write_binary( base::BinaryData& b, Stop4UnloadsCargo const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Stop4UnloadsCargo const& o,
+                         cdr::tag_t<Stop4UnloadsCargo> );
+
+cdr::result<Stop4UnloadsCargo> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Stop4UnloadsCargo> );
 
 /****************************************************************
 ** ExpeditionaryForce
@@ -1211,11 +1535,23 @@ struct ExpeditionaryForce {
   uint16_t dragoons = {};
   uint16_t man_o_wars = {};
   uint16_t artillery = {};
+
+  bool operator==( ExpeditionaryForce const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, ExpeditionaryForce& o );
 bool write_binary( base::BinaryData& b, ExpeditionaryForce const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         ExpeditionaryForce const& o,
+                         cdr::tag_t<ExpeditionaryForce> );
+
+cdr::result<ExpeditionaryForce> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<ExpeditionaryForce> );
 
 /****************************************************************
 ** BackupForce
@@ -1225,11 +1561,23 @@ struct BackupForce {
   uint16_t dragoons = {};
   uint16_t man_o_wars = {};
   uint16_t artillery = {};
+
+  bool operator==( BackupForce const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, BackupForce& o );
 bool write_binary( base::BinaryData& b, BackupForce const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         BackupForce const& o,
+                         cdr::tag_t<BackupForce> );
+
+cdr::result<BackupForce> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<BackupForce> );
 
 /****************************************************************
 ** PriceGroupState
@@ -1251,11 +1599,23 @@ struct PriceGroupState {
   uint16_t trade_goods = {};
   uint16_t tools = {};
   uint16_t muskets = {};
+
+  bool operator==( PriceGroupState const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, PriceGroupState& o );
 bool write_binary( base::BinaryData& b, PriceGroupState const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         PriceGroupState const& o,
+                         cdr::tag_t<PriceGroupState> );
+
+cdr::result<PriceGroupState> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<PriceGroupState> );
 
 /****************************************************************
 ** HEAD
@@ -1296,11 +1656,23 @@ struct HEAD {
   PriceGroupState price_group_state = {};
   Event event = {};
   uint16_t unknown05 = {};
+
+  bool operator==( HEAD const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, HEAD& o );
 bool write_binary( base::BinaryData& b, HEAD const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         HEAD const& o,
+                         cdr::tag_t<HEAD> );
+
+cdr::result<HEAD> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<HEAD> );
 
 /****************************************************************
 ** PLAYER
@@ -1312,11 +1684,23 @@ struct PLAYER {
   control_type control = {};
   uint8_t founded_colonies = {};
   uint8_t diplomacy = {};
+
+  bool operator==( PLAYER const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, PLAYER& o );
 bool write_binary( base::BinaryData& b, PLAYER const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         PLAYER const& o,
+                         cdr::tag_t<PLAYER> );
+
+cdr::result<PLAYER> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<PLAYER> );
 
 /****************************************************************
 ** Tiles
@@ -1330,11 +1714,23 @@ struct Tiles {
   int8_t tile_ne = {};
   int8_t tile_se = {};
   int8_t tile_sw = {};
+
+  bool operator==( Tiles const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Tiles& o );
 bool write_binary( base::BinaryData& b, Tiles const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Tiles const& o,
+                         cdr::tag_t<Tiles> );
+
+cdr::result<Tiles> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Tiles> );
 
 /****************************************************************
 ** Stock
@@ -1356,11 +1752,23 @@ struct Stock {
   int16_t trade_goods = {};
   int16_t tools = {};
   int16_t muskets = {};
+
+  bool operator==( Stock const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Stock& o );
 bool write_binary( base::BinaryData& b, Stock const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Stock const& o,
+                         cdr::tag_t<Stock> );
+
+cdr::result<Stock> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Stock> );
 
 /****************************************************************
 ** PopulationOnMap
@@ -1370,11 +1778,23 @@ struct PopulationOnMap {
   uint8_t for_french = {};
   uint8_t for_spanish = {};
   uint8_t for_dutch = {};
+
+  bool operator==( PopulationOnMap const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, PopulationOnMap& o );
 bool write_binary( base::BinaryData& b, PopulationOnMap const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         PopulationOnMap const& o,
+                         cdr::tag_t<PopulationOnMap> );
+
+cdr::result<PopulationOnMap> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<PopulationOnMap> );
 
 /****************************************************************
 ** FortificationOnMap
@@ -1384,11 +1804,23 @@ struct FortificationOnMap {
   fortification_level_type for_french = {};
   fortification_level_type for_spanish = {};
   fortification_level_type for_dutch = {};
+
+  bool operator==( FortificationOnMap const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, FortificationOnMap& o );
 bool write_binary( base::BinaryData& b, FortificationOnMap const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         FortificationOnMap const& o,
+                         cdr::tag_t<FortificationOnMap> );
+
+cdr::result<FortificationOnMap> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<FortificationOnMap> );
 
 /****************************************************************
 ** COLONY
@@ -1416,11 +1848,23 @@ struct COLONY {
   FortificationOnMap fortification_on_map = {};
   uint32_t rebel_dividend = {};
   uint32_t rebel_divisor = {};
+
+  bool operator==( COLONY const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, COLONY& o );
 bool write_binary( base::BinaryData& b, COLONY const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         COLONY const& o,
+                         cdr::tag_t<COLONY> );
+
+cdr::result<COLONY> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<COLONY> );
 
 /****************************************************************
 ** TransportChain
@@ -1428,11 +1872,23 @@ bool write_binary( base::BinaryData& b, COLONY const& o );
 struct TransportChain {
   int16_t next_unit_idx = {};
   int16_t prev_unit_idx = {};
+
+  bool operator==( TransportChain const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, TransportChain& o );
 bool write_binary( base::BinaryData& b, TransportChain const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         TransportChain const& o,
+                         cdr::tag_t<TransportChain> );
+
+cdr::result<TransportChain> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<TransportChain> );
 
 /****************************************************************
 ** UNIT
@@ -1455,11 +1911,23 @@ struct UNIT {
   uint8_t turns_worked = {};
   uint8_t profession_or_treasure_amount = {};
   TransportChain transport_chain = {};
+
+  bool operator==( UNIT const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, UNIT& o );
 bool write_binary( base::BinaryData& b, UNIT const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         UNIT const& o,
+                         cdr::tag_t<UNIT> );
+
+cdr::result<UNIT> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<UNIT> );
 
 /****************************************************************
 ** RelationByIndian
@@ -1473,11 +1941,23 @@ struct RelationByIndian {
   relation_type apache = {};
   relation_type sioux = {};
   relation_type tupi = {};
+
+  bool operator==( RelationByIndian const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, RelationByIndian& o );
 bool write_binary( base::BinaryData& b, RelationByIndian const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         RelationByIndian const& o,
+                         cdr::tag_t<RelationByIndian> );
+
+cdr::result<RelationByIndian> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<RelationByIndian> );
 
 /****************************************************************
 ** Trade
@@ -1488,11 +1968,23 @@ struct Trade {
   std::array<int32_t, 16> gold = {};
   std::array<int32_t, 16> tons = {};
   std::array<int32_t, 16> tons2 = {};
+
+  bool operator==( Trade const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Trade& o );
 bool write_binary( base::BinaryData& b, Trade const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Trade const& o,
+                         cdr::tag_t<Trade> );
+
+cdr::result<Trade> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Trade> );
 
 /****************************************************************
 ** NATION
@@ -1527,11 +2019,23 @@ struct NATION {
   uint16_t unknown26b = {};
   std::array<uint8_t, 6> unknown26c = {};
   Trade trade = {};
+
+  bool operator==( NATION const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, NATION& o );
 bool write_binary( base::BinaryData& b, NATION const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         NATION const& o,
+                         cdr::tag_t<NATION> );
+
+cdr::result<NATION> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<NATION> );
 
 /****************************************************************
 ** Alarm
@@ -1539,11 +2043,23 @@ bool write_binary( base::BinaryData& b, NATION const& o );
 struct Alarm {
   uint8_t friction = {};
   uint8_t attacks = {};
+
+  bool operator==( Alarm const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, Alarm& o );
 bool write_binary( base::BinaryData& b, Alarm const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Alarm const& o,
+                         cdr::tag_t<Alarm> );
+
+cdr::result<Alarm> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Alarm> );
 
 /****************************************************************
 ** TRIBE
@@ -1558,11 +2074,23 @@ struct TRIBE {
   uint8_t last_bought = {};
   uint8_t last_sold = {};
   std::array<Alarm, 4> alarm = {};
+
+  bool operator==( TRIBE const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, TRIBE& o );
 bool write_binary( base::BinaryData& b, TRIBE const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         TRIBE const& o,
+                         cdr::tag_t<TRIBE> );
+
+cdr::result<TRIBE> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<TRIBE> );
 
 /****************************************************************
 ** RelationByNations
@@ -1572,11 +2100,23 @@ struct RelationByNations {
   relation_type france = {};
   relation_type spain = {};
   relation_type netherlands = {};
+
+  bool operator==( RelationByNations const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, RelationByNations& o );
 bool write_binary( base::BinaryData& b, RelationByNations const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         RelationByNations const& o,
+                         cdr::tag_t<RelationByNations> );
+
+cdr::result<RelationByNations> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<RelationByNations> );
 
 /****************************************************************
 ** INDIAN
@@ -1593,11 +2133,23 @@ struct INDIAN {
   RelationByNations relation_by_nations = {};
   uint64_t unknown33 = {};
   std::array<uint16_t, 4> alarm_by_player = {};
+
+  bool operator==( INDIAN const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, INDIAN& o );
 bool write_binary( base::BinaryData& b, INDIAN const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         INDIAN const& o,
+                         cdr::tag_t<INDIAN> );
+
+cdr::result<INDIAN> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<INDIAN> );
 
 /****************************************************************
 ** STUFF
@@ -1614,11 +2166,23 @@ struct STUFF {
   uint8_t unknown37 = {};
   uint16_t viewport_x = {};
   uint16_t viewport_y = {};
+
+  bool operator==( STUFF const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, STUFF& o );
 bool write_binary( base::BinaryData& b, STUFF const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         STUFF const& o,
+                         cdr::tag_t<STUFF> );
+
+cdr::result<STUFF> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<STUFF> );
 
 /****************************************************************
 ** TRADEROUTE
@@ -1647,11 +2211,23 @@ struct TRADEROUTE {
   Stop4LoadsCargo stop_4_loads_cargo = {};
   Stop4UnloadsCargo stop_4_unloads_cargo = {};
   uint8_t unknown50 = {};
+
+  bool operator==( TRADEROUTE const& ) const = default;
 };
 
 // Binary conversion.
 bool read_binary( base::BinaryData& b, TRADEROUTE& o );
 bool write_binary( base::BinaryData& b, TRADEROUTE const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         TRADEROUTE const& o,
+                         cdr::tag_t<TRADEROUTE> );
+
+cdr::result<TRADEROUTE> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<TRADEROUTE> );
 
 /****************************************************************
 ** ColonySAV
@@ -1677,6 +2253,22 @@ struct ColonySAV {
   uint16_t prime_resource_seed = {};
   uint8_t unknown39d = {};
   std::array<TRADEROUTE, 12> trade_route = {};
+
+  bool operator==( ColonySAV const& ) const = default;
 };
+
+// Binary conversion.
+bool read_binary( base::BinaryData& b, ColonySAV& o );
+bool write_binary( base::BinaryData& b, ColonySAV const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         ColonySAV const& o,
+                         cdr::tag_t<ColonySAV> );
+
+cdr::result<ColonySAV> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<ColonySAV> );
 
 }  // namespace sav
