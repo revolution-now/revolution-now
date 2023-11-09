@@ -102,7 +102,12 @@ end
 
 function BinarySaver:bit_field( tbl )
   self:dbg( 'emitting bit field...' )
-  assert( tbl.type )
+  if not tbl.type then
+    local new_tbl = {}
+    for k, v in pairs( tbl ) do new_tbl[k] = v end
+    new_tbl.type = 'uint'
+    return self:bit_field( new_tbl )
+  end
   local leaf = self:_find_leaf()
   if self.metadata_[tbl.type] then
     local meta = self.metadata_[tbl.type]

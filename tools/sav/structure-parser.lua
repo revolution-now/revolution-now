@@ -153,7 +153,6 @@ function StructureParser:bit_struct( bit_struct )
       self:dbg( 'parsing bit_field %s', e )
       total_bits = total_bits + assert( field.size )
       insert( self.backtrace_, e )
-      field.type = field.type or 'uint'
       res[e] = self:bit_field( field )
       remove( self.backtrace_ )
     end
@@ -179,8 +178,8 @@ function StructureParser:bit_struct_array( count, bit_struct )
   return res
 end
 
-function StructureParser:_lookup_cells( tbl )
-  self:trace( '_lookup_cells...' )
+function StructureParser:lookup_cells( tbl )
+  self:trace( 'lookup_cells...' )
   local count = tbl.count or 1
   local cols = tbl.cols or 1
   if type( count ) == 'string' then
@@ -203,7 +202,7 @@ function StructureParser:entity( parent, field )
   local tbl = parent[field]
   assert( type( tbl ) == 'table',
           format( 'field %s is not a table', field ) )
-  local cells = self:_lookup_cells( tbl )
+  local cells = self:lookup_cells( tbl )
   local res
   if tbl.struct then
     if tbl.count or tbl.cols then
