@@ -81,7 +81,12 @@ local function main( args )
   -- Encoding and outputting JSON.
   info( 'encoding json output to file %s...', output_json )
   local printer = pprint_ordered( parsed )
-  for line in printer do out:write( line .. '\n' ) end
+  local need_nl = false
+  for line in printer do
+    if need_nl then out:write( '\n' ) end
+    need_nl = true
+    out:write( line )
+  end
 
   -- Cleanup.
   out:close()

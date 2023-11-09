@@ -88,6 +88,10 @@ local function pprint_ordered_impl( append, o, prefix, spaces )
     -- Array.
     if #spaces == 0 then append( prefix ) end
     append( '[' )
+    if #o == 0 then
+      append( ']' )
+      return
+    end
     append()
     spaces = spaces .. '  '
     for i, e in ipairs( o ) do
