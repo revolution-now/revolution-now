@@ -28,19 +28,17 @@ enum class rcl_dialect {
 
 std::string save_rcl_to_string( ColonySAV const& in,
                                 rcl_dialect      dialect );
-std::string save_json_to_string( ColonySAV const& in );
 
 base::valid_or<std::string> save_rcl_to_file(
     std::string const& path, ColonySAV const& in,
     rcl_dialect dialect );
-base::valid_or<std::string> save_json_to_file(
-    std::string const& path, ColonySAV const& in );
 
-// Note there are no "load_json*" methods, because JSON is a
-// subset of rcl.
+// Note we don't need to specify the dialect for the load methods
+// because JSON is a subset of rcl.
 base::valid_or<std::string> load_rcl_from_string(
     std::string const& filename_for_error_reporting,
     std::string const& in, ColonySAV& out );
+
 base::valid_or<std::string> load_rcl_from_file(
     std::string const& path, ColonySAV& out );
 

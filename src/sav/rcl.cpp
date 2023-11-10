@@ -18,7 +18,6 @@
 
 // rcl
 #include "rcl/emit.hpp"
-// #include "rcl/model.hpp"
 #include "rcl/parse.hpp"
 
 // cdr
@@ -28,12 +27,8 @@
 #include "cdr/ext-std.hpp"
 
 // base
-// #include "base/conv.hpp"
-// #include "base/io.hpp"
-// #include "base/string.hpp"
 #include "base/function-ref.hpp"
 #include "base/timer.hpp"
-// #include "base/to-str-ext-std.hpp"
 
 // C++ standard library
 #include <fstream>
@@ -111,13 +106,15 @@ string save_rcl_to_string( ColonySAV const& in,
   timer.checkpoint( "emit rcl" );
   switch( dialect ) {
     case rcl_dialect::standard: {
-      rcl::EmitOptions emit_opts{
+      rcl::EmitOptions const emit_opts{
           .flatten_keys = true,
       };
       return rcl::emit( rcl_doc, emit_opts );
     }
     case rcl_dialect::json:
-      return rcl::emit_json( rcl_doc );
+      rcl::JsonEmitOptions const emit_opts{ .key_order_tag =
+                                                "__key_order" };
+      return rcl::emit_json( rcl_doc, emit_opts );
   }
 }
 
@@ -128,19 +125,10 @@ valid_or<string> save_rcl_to_file( string const&    path,
   ofstream     out{ path };
   if( !out.good() )
     return fmt::format( "failed to open {} for writing.", path );
-  out << "# TODO: title."
-      << "\n";
+  // out << "# TODO: title."
+  //     << "\n";
   out << rcl_output;
   return valid;
-}
-
-string save_json_to_string( ColonySAV const& in ) {
-  return save_rcl_to_string( in, rcl_dialect::json );
-}
-
-valid_or<string> save_json_to_file( string const&    path,
-                                    ColonySAV const& in ) {
-  return save_rcl_to_file( path, in, rcl_dialect::json );
 }
 
 } // namespace sav
