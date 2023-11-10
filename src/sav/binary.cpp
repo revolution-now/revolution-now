@@ -17,6 +17,7 @@
 
 // base
 #include "base/binary-data.hpp"
+#include "base/timer.hpp"
 
 using namespace std;
 
@@ -202,6 +203,7 @@ valid_or<string> write( BinaryData& b, ColonySAV const& out ) {
 *****************************************************************/
 valid_or<string> load_binary( string const& path,
                               ColonySAV&    out ) {
+  base::ScopedTimer timer( "load SAV binary" );
   UNWRAP_RETURN( buffer, BinaryBuffer::from_file( path ) );
   base::BinaryData data( buffer );
   if( auto res = read( data, out ); !res )
@@ -219,6 +221,7 @@ valid_or<string> load_binary( string const& path,
 
 valid_or<string> save_binary( string const&    path,
                               ColonySAV const& in ) {
+  base::ScopedTimer timer( "save SAV binary" );
   // This should be more than enough. The OG's save files are
   // typically no more than 20-40k.
   BinaryBuffer buffer( 200 * 1024 );
