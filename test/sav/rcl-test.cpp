@@ -60,7 +60,7 @@ bool json_round_trip( fs::path const& folder,
   fs::path const   out = tmp / file;
   CHECK_HAS_VALUE( load_rcl_from_file( in, sav ) );
   CHECK_HAS_VALUE(
-      save_rcl_to_file( out, sav, rcl_dialect::json ) );
+      save_rcl_to_file( out, sav, e_rcl_dialect::json ) );
   return file_contents_same( in, out );
 }
 

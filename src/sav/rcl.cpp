@@ -89,7 +89,7 @@ valid_or<string> load_rcl_from_file( std::string const& path,
 }
 
 string save_rcl_to_string( ColonySAV const& in,
-                           rcl_dialect      dialect ) {
+                           e_rcl_dialect    dialect ) {
   cdr::converter::options const cdr_opts{
       .write_fields_with_default_value = true };
   base::ScopedTimer timer( "save-ColonySAV-to-rcl" );
@@ -105,13 +105,13 @@ string save_rcl_to_string( ColonySAV const& in,
       rcl_doc, rcl::doc::create( std::move( tbl ), proc_opts ) );
   timer.checkpoint( "emit rcl" );
   switch( dialect ) {
-    case rcl_dialect::standard: {
+    case e_rcl_dialect::standard: {
       rcl::EmitOptions const emit_opts{
           .flatten_keys = true,
       };
       return rcl::emit( rcl_doc, emit_opts );
     }
-    case rcl_dialect::json:
+    case e_rcl_dialect::json:
       rcl::JsonEmitOptions const emit_opts{ .key_order_tag =
                                                 "__key_order" };
       return rcl::emit_json( rcl_doc, emit_opts );
@@ -120,7 +120,7 @@ string save_rcl_to_string( ColonySAV const& in,
 
 valid_or<string> save_rcl_to_file( string const&    path,
                                    ColonySAV const& in,
-                                   rcl_dialect      dialect ) {
+                                   e_rcl_dialect    dialect ) {
   string const rcl_output = save_rcl_to_string( in, dialect );
   ofstream     out{ path };
   if( !out.good() )

@@ -21,17 +21,17 @@ namespace sav {
 
 struct ColonySAV;
 
-enum class rcl_dialect {
+enum class e_rcl_dialect {
   standard,
   json,
 };
 
 std::string save_rcl_to_string( ColonySAV const& in,
-                                rcl_dialect      dialect );
+                                e_rcl_dialect    dialect );
 
 base::valid_or<std::string> save_rcl_to_file(
     std::string const& path, ColonySAV const& in,
-    rcl_dialect dialect );
+    e_rcl_dialect dialect );
 
 // Note we don't need to specify the dialect for the load methods
 // because JSON is a subset of rcl.
