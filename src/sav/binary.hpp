@@ -20,7 +20,6 @@
 namespace sav {
 
 struct ColonySAV;
-struct BinaryFile;
 
 base::valid_or<std::string> load_binary( std::string const& path,
                                          ColonySAV& out );
