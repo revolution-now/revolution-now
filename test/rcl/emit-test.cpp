@@ -544,5 +544,73 @@ TEST_CASE( "[emit] emit json" ) {
   REQUIRE( emitted == emitted2 );
 }
 
+TEST_CASE( "[emit] emit json with key ordering" ) {
+  static string const input = R"({
+  "__key_order": [
+    "hello",
+    "test",
+    "foo",
+    "bar",
+    "aaa"
+  ],
+  "foo": 1,
+  "bar": 2,
+  "hello": "world",
+  "zzz": "will disappear",
+  "aaa": [
+    {
+      "__key_order": ["a"],
+      "a": 99
+    }
+  ],
+  "test": {
+    "d": 9,
+    "c": {
+      "f": 5,
+      "g": true,
+      "h": "truedat",
+      "__key_order": [
+        "g",
+        "f",
+        "h"
+      ]
+    }
+  },
+})";
+
+  // We are not testing this here as it is tested in the parser
+  // module. We are just using it for convenience.
+  auto const doc = parse( "fake-file", input );
+  REQUIRE( doc );
+
+  string const emitted = emit_json(
+      *doc, JsonEmitOptions{ .key_order_tag = "__key_order" } );
+
+  static string const expected = R"({
+  "hello": "world",
+  "test": {
+    "c": {
+      "g": true,
+      "f": 5,
+      "h": "truedat"
+    },
+    "d": 9
+  },
+  "foo": 1,
+  "bar": 2,
+  "aaa": [
+    {
+      "a": 99
+    }
+  ]
+})";
+
+  REQUIRE( emitted == expected );
+
+  // We don't try to parse the emitted output again because it
+  // won't have the __key_order tags in it, so we can't do an-
+  // other round trip.
+}
+
 } // namespace
 } // namespace rcl

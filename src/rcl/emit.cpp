@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2022-02-08.
 *
-* Description: Rcl language emitter.
+* Description: Rcl language emitters.
 *
 *****************************************************************/
 #include "emit.hpp"
@@ -24,6 +24,9 @@ namespace rcl {
 
 namespace {
 
+/****************************************************************
+** Helpers.
+*****************************************************************/
 string json_quote( string const& s ) {
   string res;
   for( char c : s ) {
@@ -34,8 +37,12 @@ string json_quote( string const& s ) {
   return '"' + res + '"';
 }
 
-struct emitter {
-  emitter( EmitOptions const& options ) : opts_( options ) {}
+/****************************************************************
+** Standard rcl emitter.
+*****************************************************************/
+struct standard_emitter {
+  standard_emitter( EmitOptions const& options )
+    : opts_( options ) {}
 
   void do_indent( int level, string& out ) {
     CHECK_GE( level, 0 );
@@ -122,15 +129,12 @@ struct emitter {
   }
 
   struct list_visitor {
-    void operator()( table const& o ) const {
-      parent.emit_table( o, out, indent );
-    }
     void operator()( auto const& o ) const {
       parent.emit( o, out, indent );
     }
-    emitter& parent;
-    string&  out;
-    int      indent;
+    standard_emitter& parent;
+    string&           out;
+    int               indent;
   };
 
   void emit( list const& o, string& out, int indent ) {
@@ -157,11 +161,19 @@ struct emitter {
   EmitOptions opts_;
 };
 
+/****************************************************************
+** JSON emitter.
+*****************************************************************/
 // This one is basically just a stripped down version of the
 // above, with some extra JSON-confirming things like quotes and
-// commas.
+// commas, along with the ability to order keys.
+//
+// Note that this emitter must support both key-ordered tables
+// and non-key-ordered tables, since we may receive a cdr object
+// that is a mix of both.
 struct json_emitter {
-  json_emitter() {}
+  json_emitter( JsonEmitOptions options )
+    : options_( std::move( options ) ) {}
 
   void do_indent( int level, string& out ) {
     CHECK_GE( level, 0 );
@@ -184,6 +196,38 @@ struct json_emitter {
 
   void emit( string const& o, string& out, int ) {
     out += json_quote( o );
+  }
+
+  void emit_table_with_key_order( table const& o,
+                                  list const&  key_order,
+                                  string& out, int indent ) {
+    // In this function we need to use key_order's size instead
+    // of the table's size because the table contains an extra
+    // key order tag that will be used but not emitted.
+    if( key_order.size() == 0 ) {
+      out += "{}";
+      return;
+    }
+    out += "{\n";
+
+    int idx = 0;
+    for( auto& kvalue : key_order ) {
+      base::maybe<string const&> k = kvalue.get_if<string>();
+      if( !k.has_value() ) continue;
+      base::maybe<cdr::value const&> v = o[*k];
+      if( !v.has_value() ) continue;
+      do_indent( indent, out );
+      out += json_quote( *k );
+      out += ": ";
+      base::visit(
+          [&]( auto const& o ) { emit( o, out, indent + 1 ); },
+          v->as_base() );
+      if( idx++ < int( key_order.size() - 1 ) ) out += ',';
+      out += '\n';
+    }
+
+    do_indent( indent - 1, out );
+    out += '}';
   }
 
   void emit_table( table const& o, string& out, int indent ) {
@@ -210,13 +254,18 @@ struct json_emitter {
   }
 
   void emit( table const& o, string& out, int indent ) {
-    emit_table( o, out, indent );
+    if( options_.key_order_tag.has_value() &&
+        o.contains( *options_.key_order_tag ) ) {
+      base::maybe<cdr::list const&> const key_order =
+          o[*options_.key_order_tag].get_if<cdr::list>();
+      if( key_order.has_value() )
+        emit_table_with_key_order( o, *key_order, out, indent );
+    } else {
+      emit_table( o, out, indent );
+    }
   }
 
   struct list_visitor {
-    void operator()( table const& o ) const {
-      parent.emit_table( o, out, indent );
-    }
     void operator()( auto const& o ) const {
       parent.emit( o, out, indent );
     }
@@ -247,21 +296,27 @@ struct json_emitter {
     do_indent( indent - 1, out );
     out += ']';
   }
+
+  JsonEmitOptions const options_;
 };
 
 } // namespace
 
+/****************************************************************
+** Public API.
+*****************************************************************/
 string emit( doc const& document, EmitOptions const& options ) {
   string res;
-  emitter{ options }.emit_table( document.top_tbl(), res,
-                                 /*indent=*/0 );
+  standard_emitter{ options }.emit( document.top_tbl(), res,
+                                    /*indent=*/0 );
   return res;
 }
 
-string emit_json( doc const& document ) {
+string emit_json( doc const&      document,
+                  JsonEmitOptions options ) {
   string res;
-  json_emitter{}.emit_table( document.top_tbl(), res,
-                             /*indent=*/1 );
+  json_emitter{ options }.emit( document.top_tbl(), res,
+                                /*indent=*/1 );
   return res;
 }
 
