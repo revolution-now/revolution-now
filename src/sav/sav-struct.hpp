@@ -3,6 +3,12 @@
 *****************************************************************/
 // NOTE: this file was auto-generated. DO NOT MODIFY!
 
+// sav
+#include "sav/bits.hpp"
+#include "sav/bytes.hpp"
+#include "sav/string.hpp"
+#undef HEAD
+
 // cdr
 #include "cdr/ext.hpp"
 
@@ -1621,41 +1627,41 @@ cdr::result<PriceGroupState> from_canonical(
 ** HEAD
 *****************************************************************/
 struct HEAD {
-  std::array<uint8_t, 9> colonize = {};
-  std::array<uint8_t, 3> unknown00 = {};
+  array_string<9> colonize = {};
+  bytes<3> unknown00 = {};
   uint16_t map_size_x = {};
   uint16_t map_size_y = {};
-  uint8_t tut1 = {};
-  uint8_t unknown03 = {};
+  bytes<1> tut1 = {};
+  bytes<1> unknown03 = {};
   GameOptions game_options = {};
   ColonyReportOptions colony_report_options = {};
-  uint8_t tut2 = {};
-  uint8_t tut3 = {};
-  uint16_t unknown39 = {};
+  bytes<1> tut2 = {};
+  bytes<1> tut3 = {};
+  bytes<2> unknown39 = {};
   uint16_t year = {};
   season_type season = {};
   uint16_t turn = {};
-  uint8_t tile_selection_mode = {};
-  uint8_t unknown40 = {};
+  bytes<1> tile_selection_mode = {};
+  bytes<1> unknown40 = {};
   uint16_t active_unit = {};
-  std::array<uint8_t, 6> unknown41 = {};
+  bytes<6> unknown41 = {};
   uint16_t tribe_count = {};
   uint16_t unit_count = {};
   uint16_t colony_count = {};
   uint8_t trade_route_count = {};
-  std::array<uint8_t, 5> unknown42 = {};
+  bytes<5> unknown42 = {};
   difficulty_type difficulty = {};
-  uint8_t unknown43a = {};
-  uint8_t unknown43b = {};
-  std::array<uint8_t, 25> founding_father = {};
-  std::array<uint8_t, 6> unknown44 = {};
-  uint64_t nation_relation = {};
-  std::array<uint8_t, 10> unknown45 = {};
+  bytes<1> unknown43a = {};
+  bytes<1> unknown43b = {};
+  bytes<25> founding_father = {};
+  bytes<6> unknown44 = {};
+  bytes<8> nation_relation = {};
+  bytes<10> unknown45 = {};
   ExpeditionaryForce expeditionary_force = {};
   BackupForce backup_force = {};
   PriceGroupState price_group_state = {};
   Event event = {};
-  uint16_t unknown05 = {};
+  bytes<2> unknown05 = {};
 
   bool operator==( HEAD const& ) const = default;
 };
@@ -1678,12 +1684,12 @@ cdr::result<HEAD> from_canonical(
 ** PLAYER
 *****************************************************************/
 struct PLAYER {
-  std::array<uint8_t, 24> name = {};
-  std::array<uint8_t, 24> country_name = {};
-  uint8_t unknown06 = {};
+  array_string<24> name = {};
+  array_string<24> country_name = {};
+  bytes<1> unknown06 = {};
   control_type control = {};
   uint8_t founded_colonies = {};
-  uint8_t diplomacy = {};
+  bytes<1> diplomacy = {};
 
   bool operator==( PLAYER const& ) const = default;
 };
@@ -1827,27 +1833,27 @@ cdr::result<FortificationOnMap> from_canonical(
 *****************************************************************/
 struct COLONY {
   std::array<uint8_t, 2> x_y = {};
-  std::array<uint8_t, 24> name = {};
+  array_string<24> name = {};
   nation_type nation_id = {};
-  uint32_t unknown08 = {};
+  bytes<4> unknown08 = {};
   uint8_t population = {};
   std::array<occupation_type, 32> occupation = {};
   std::array<profession_type, 32> profession = {};
   std::array<Duration, 16> duration = {};
   Tiles tiles = {};
-  std::array<uint8_t, 12> unknown10 = {};
+  bytes<12> unknown10 = {};
   Buildings buildings = {};
   CustomHouseFlags custom_house_flags = {};
-  std::array<uint8_t, 6> unknown11 = {};
+  bytes<6> unknown11 = {};
   uint16_t hammers = {};
-  uint8_t building_in_production = {};
+  bytes<1> building_in_production = {};
   uint8_t warehouse_level = {};
-  uint32_t unknown12 = {};
+  bytes<4> unknown12 = {};
   Stock stock = {};
   PopulationOnMap population_on_map = {};
   FortificationOnMap fortification_on_map = {};
-  uint32_t rebel_dividend = {};
-  uint32_t rebel_divisor = {};
+  bytes<4> rebel_dividend = {};
+  bytes<4> rebel_divisor = {};
 
   bool operator==( COLONY const& ) const = default;
 };
@@ -1900,11 +1906,11 @@ struct UNIT {
   Unknown15 unknown15 = {};
   uint8_t moves = {};
   uint8_t origin_settlement = {};
-  uint8_t unknown16b = {};
+  bytes<1> unknown16b = {};
   orders_type orders = {};
   uint8_t goto_x = {};
   uint8_t goto_y = {};
-  uint8_t unknown18 = {};
+  bytes<1> unknown18 = {};
   uint8_t holds_occupied = {};
   std::array<CargoItems, 3> cargo_items = {};
   std::array<uint8_t, 6> cargo_hold = {};
@@ -1990,34 +1996,34 @@ cdr::result<Trade> from_canonical(
 ** NATION
 *****************************************************************/
 struct NATION {
-  uint8_t unknown19 = {};
+  bytes<1> unknown19 = {};
   uint8_t tax_rate = {};
   std::array<profession_type, 3> recruit = {};
-  uint8_t unused07 = {};
+  bytes<1> unused07 = {};
   uint8_t recruit_count = {};
-  uint32_t founding_fathers = {};
-  uint8_t unknown21 = {};
+  bits<32> founding_fathers = {};
+  bytes<1> unknown21 = {};
   uint16_t liberty_bells_total = {};
   uint16_t liberty_bells_last_turn = {};
-  uint16_t unknown22 = {};
+  bytes<2> unknown22 = {};
   uint16_t next_founding_father = {};
   uint16_t founding_father_count = {};
-  uint16_t prob_founding_father_count_end = {};
+  bytes<2> prob_founding_father_count_end = {};
   uint8_t villages_burned = {};
-  std::array<uint8_t, 5> unknown23 = {};
+  bytes<5> unknown23 = {};
   uint16_t artillery_bought_count = {};
   BoycottBitmap boycott_bitmap = {};
   int32_t royal_money = {};
-  uint32_t unknown24b = {};
+  bytes<4> unknown24b = {};
   int32_t gold = {};
   uint16_t current_crosses = {};
   uint16_t needed_crosses = {};
   std::array<uint8_t, 2> point_return_from_europe = {};
-  uint32_t unknown25b = {};
+  bytes<4> unknown25b = {};
   RelationByIndian relation_by_indian = {};
-  uint32_t unknown26a = {};
-  uint16_t unknown26b = {};
-  std::array<uint8_t, 6> unknown26c = {};
+  bytes<4> unknown26a = {};
+  bytes<2> unknown26b = {};
+  bytes<6> unknown26c = {};
   Trade trade = {};
 
   bool operator==( NATION const& ) const = default;
@@ -2041,8 +2047,8 @@ cdr::result<NATION> from_canonical(
 ** Alarm
 *****************************************************************/
 struct Alarm {
-  uint8_t friction = {};
-  uint8_t attacks = {};
+  bytes<1> friction = {};
+  bytes<1> attacks = {};
 
   bool operator==( Alarm const& ) const = default;
 };
@@ -2069,10 +2075,10 @@ struct TRIBE {
   nation_type nation_id = {};
   ALCS alcs = {};
   uint8_t population = {};
-  uint8_t mission = {};
-  uint16_t unknown28 = {};
-  uint8_t last_bought = {};
-  uint8_t last_sold = {};
+  bytes<1> mission = {};
+  bytes<2> unknown28 = {};
+  bytes<1> last_bought = {};
+  bytes<1> last_sold = {};
   std::array<Alarm, 4> alarm = {};
 
   bool operator==( TRIBE const& ) const = default;
@@ -2124,14 +2130,14 @@ cdr::result<RelationByNations> from_canonical(
 struct INDIAN {
   std::array<uint8_t, 2> capitol_x_y = {};
   tech_type tech = {};
-  uint32_t unknown31a = {};
+  bytes<4> unknown31a = {};
   uint8_t muskets = {};
   uint8_t horse_herds = {};
-  std::array<uint8_t, 5> unknown31b = {};
+  bytes<5> unknown31b = {};
   std::array<int16_t, 16> tons = {};
-  std::array<uint8_t, 12> unknown32 = {};
+  bytes<12> unknown32 = {};
   RelationByNations relation_by_nations = {};
-  uint64_t unknown33 = {};
+  bytes<8> unknown33 = {};
   std::array<uint16_t, 4> alarm_by_player = {};
 
   bool operator==( INDIAN const& ) const = default;
@@ -2155,15 +2161,15 @@ cdr::result<INDIAN> from_canonical(
 ** STUFF
 *****************************************************************/
 struct STUFF {
-  std::array<uint8_t, 15> unknown34 = {};
+  bytes<15> unknown34 = {};
   uint16_t counter_decreasing_on_new_colony = {};
-  uint16_t unknown35 = {};
+  bytes<2> unknown35 = {};
   uint16_t counter_increasing_on_new_colony = {};
-  std::array<uint8_t, 696> unknown36 = {};
+  std::array<bytes<1>, 696> unknown36 = {};
   uint16_t x = {};
   uint16_t y = {};
   uint8_t zoom_level = {};
-  uint8_t unknown37 = {};
+  bytes<1> unknown37 = {};
   uint16_t viewport_x = {};
   uint16_t viewport_y = {};
 
@@ -2188,29 +2194,29 @@ cdr::result<STUFF> from_canonical(
 ** TRADEROUTE
 *****************************************************************/
 struct TRADEROUTE {
-  std::array<uint8_t, 32> name = {};
+  array_string<32> name = {};
   trade_route_type land_or_sea = {};
   uint8_t stops_count = {};
   uint16_t stop_1_colony_index = {};
   Stop1LoadsAndUnloadsCount stop_1_loads_and_unloads_count = {};
   Stop1LoadsCargo stop_1_loads_cargo = {};
   Stop1UnloadsCargo stop_1_unloads_cargo = {};
-  uint8_t unknown47 = {};
+  bytes<1> unknown47 = {};
   uint16_t stop_2_colony_index = {};
   Stop2LoadsAndUnloadsCount stop_2_loads_and_unloads_count = {};
   Stop2LoadsCargo stop_2_loads_cargo = {};
   Stop2UnloadsCargo stop_2_unloads_cargo = {};
-  uint8_t unknown48 = {};
+  bytes<1> unknown48 = {};
   uint16_t stop_3_colony_index = {};
   Stop3LoadsAndUnloadsCount stop_3_loads_and_unloads_count = {};
   Stop3LoadsCargo stop_3_loads_cargo = {};
   Stop3UnloadsCargo stop_3_unloads_cargo = {};
-  uint8_t unknown49 = {};
+  bytes<1> unknown49 = {};
   uint16_t stop_4_colony_index = {};
   Stop4LoadsAndUnloadsCount stop_4_loads_and_unloads_count = {};
   Stop4LoadsCargo stop_4_loads_cargo = {};
   Stop4UnloadsCargo stop_4_unloads_cargo = {};
-  uint8_t unknown50 = {};
+  bytes<1> unknown50 = {};
 
   bool operator==( TRADEROUTE const& ) const = default;
 };
@@ -2235,7 +2241,7 @@ cdr::result<TRADEROUTE> from_canonical(
 struct ColonySAV {
   HEAD head = {};
   std::array<PLAYER, 4> player = {};
-  std::array<uint8_t, 24> other = {};
+  bytes<24> other = {};
   std::vector<COLONY> colony = {};
   std::vector<UNIT> unit = {};
   std::array<NATION, 4> nation = {};
@@ -2246,12 +2252,12 @@ struct ColonySAV {
   std::vector<MASK> mask = {};
   std::vector<PATH> path = {};
   std::vector<SEEN> seen = {};
-  std::array<std::array<uint8_t, 18>, 14> unknown_map38a = {};
-  std::array<std::array<uint8_t, 18>, 14> unknown_map38b = {};
-  std::array<uint8_t, 104> unknown39a = {};
-  std::array<uint8_t, 3> unknown39b = {};
-  uint16_t prime_resource_seed = {};
-  uint8_t unknown39d = {};
+  std::array<bytes<18>, 14> unknown_map38a = {};
+  std::array<bytes<18>, 14> unknown_map38b = {};
+  bytes<104> unknown39a = {};
+  bytes<3> unknown39b = {};
+  bytes<2> prime_resource_seed = {};
+  bytes<1> unknown39d = {};
   std::array<TRADEROUTE, 12> trade_route = {};
 
   bool operator==( ColonySAV const& ) const = default;

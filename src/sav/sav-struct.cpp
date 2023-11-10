@@ -34,6 +34,13 @@
                 tbl, name, used_keys ) );                         \
   res.identifier = std::move( identifier )
 
+#define CONV_FROM_BITSTRING_FIELD( name, identifier, N ) \
+  UNWRAP_RETURN( identifier, conv.from_field<bits<N>>(   \
+                 tbl, name, used_keys ) );               \
+  res.identifier = static_cast<std::remove_cvref_t<      \
+                     decltype( res.identifier )          \
+                   >>( identifier.n() );
+
 namespace sav {
 
 /****************************************************************
@@ -1287,7 +1294,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          GameOptions const& o,
                          cdr::tag_t<GameOptions> ) {
   cdr::table tbl;
-  conv.to_field( tbl, "unused01", o.unused01 );
+  conv.to_field( tbl, "unused01", bits<7>{ o.unused01 } );
   conv.to_field( tbl, "tutorial_hints", o.tutorial_hints );
   conv.to_field( tbl, "water_color_cycling", o.water_color_cycling );
   conv.to_field( tbl, "combat_analysis", o.combat_analysis );
@@ -1319,7 +1326,7 @@ cdr::result<GameOptions> from_canonical(
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
   GameOptions res = {};
   std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "unused01", unused01 );
+  CONV_FROM_BITSTRING_FIELD( "unused01", unused01, 7 );
   CONV_FROM_FIELD( "tutorial_hints", tutorial_hints );
   CONV_FROM_FIELD( "water_color_cycling", water_color_cycling );
   CONV_FROM_FIELD( "combat_analysis", combat_analysis );
@@ -1384,7 +1391,7 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "report_when_colonists_trained", o.report_when_colonists_trained );
   conv.to_field( tbl, "report_sons_of_liberty_membership", o.report_sons_of_liberty_membership );
   conv.to_field( tbl, "report_rebel_majorities", o.report_rebel_majorities );
-  conv.to_field( tbl, "unused03", o.unused03 );
+  conv.to_field( tbl, "unused03", bits<6>{ o.unused03 } );
   tbl["__key_order"] = cdr::list{
     "labels_on_cargo_and_terrain",
     "labels_on_buildings",
@@ -1418,7 +1425,7 @@ cdr::result<ColonyReportOptions> from_canonical(
   CONV_FROM_FIELD( "report_when_colonists_trained", report_when_colonists_trained );
   CONV_FROM_FIELD( "report_sons_of_liberty_membership", report_sons_of_liberty_membership );
   CONV_FROM_FIELD( "report_rebel_majorities", report_rebel_majorities );
-  CONV_FROM_FIELD( "unused03", unused03 );
+  CONV_FROM_BITSTRING_FIELD( "unused03", unused03, 6 );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
@@ -1658,7 +1665,7 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "carpenters_shop", o.carpenters_shop );
   conv.to_field( tbl, "church", o.church );
   conv.to_field( tbl, "blacksmiths_house", o.blacksmiths_house );
-  conv.to_field( tbl, "unused05b", o.unused05b );
+  conv.to_field( tbl, "unused05b", bits<6>{ o.unused05b } );
   tbl["__key_order"] = cdr::list{
     "fortification",
     "armory",
@@ -1708,7 +1715,7 @@ cdr::result<Buildings> from_canonical(
   CONV_FROM_FIELD( "carpenters_shop", carpenters_shop );
   CONV_FROM_FIELD( "church", church );
   CONV_FROM_FIELD( "blacksmiths_house", blacksmiths_house );
-  CONV_FROM_FIELD( "unused05b", unused05b );
+  CONV_FROM_BITSTRING_FIELD( "unused05b", unused05b, 6 );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
@@ -1911,7 +1918,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          Unknown15 const& o,
                          cdr::tag_t<Unknown15> ) {
   cdr::table tbl;
-  conv.to_field( tbl, "unknown15a", o.unknown15a );
+  conv.to_field( tbl, "unknown15a", bits<7>{ o.unknown15a } );
   conv.to_field( tbl, "damaged", o.damaged );
   tbl["__key_order"] = cdr::list{
     "unknown15a",
@@ -1927,7 +1934,7 @@ cdr::result<Unknown15> from_canonical(
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
   Unknown15 res = {};
   std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "unknown15a", unknown15a );
+  CONV_FROM_BITSTRING_FIELD( "unknown15a", unknown15a, 7 );
   CONV_FROM_FIELD( "damaged", damaged );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
   return res;
@@ -2126,7 +2133,7 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "learned", o.learned );
   conv.to_field( tbl, "capital", o.capital );
   conv.to_field( tbl, "scouted", o.scouted );
-  conv.to_field( tbl, "unused09", o.unused09 );
+  conv.to_field( tbl, "unused09", bits<4>{ o.unused09 } );
   tbl["__key_order"] = cdr::list{
     "artillery_near",
     "learned",
@@ -2148,7 +2155,7 @@ cdr::result<ALCS> from_canonical(
   CONV_FROM_FIELD( "learned", learned );
   CONV_FROM_FIELD( "capital", capital );
   CONV_FROM_FIELD( "scouted", scouted );
-  CONV_FROM_FIELD( "unused09", unused09 );
+  CONV_FROM_BITSTRING_FIELD( "unused09", unused09, 4 );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
