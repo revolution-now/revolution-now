@@ -125,8 +125,6 @@ valid_or<string> save_rcl_to_file( string const&    path,
   ofstream     out{ path };
   if( !out.good() )
     return fmt::format( "failed to open {} for writing.", path );
-  // out << "# TODO: title."
-  //     << "\n";
   out << rcl_output;
   return valid;
 }
