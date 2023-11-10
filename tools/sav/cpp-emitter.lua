@@ -163,30 +163,19 @@ function CppEmitter:dbg( ... )
   dbg( msg )
 end
 
--- function CppEmitter:stats()
---   local res = {}
---   -- TODO
---   return res
--- end
-
 function CppEmitter:_unknown( size )
   assert( size )
   assert( size > 0 )
-  return { type='std::array', value_type='uint8_t', size=size }
+  local type = format( 'bytes<%d>', size )
+  return { type=type, size=size }
 end
 
 function CppEmitter:_string( size )
   assert( size )
   assert( type( size ) == 'number' )
-  return { type='std::array', value_type='uint8_t', size=size }
+  local type = format( 'array_string<%d>', size )
+  return { type=type, size=size }
 end
-
-local ALLOWED_INTEGRAL_SIZES = {
-  [1]=true,
-  [2]=true,
-  [4]=true,
-  [8]=true,
-}
 
 local CPP_UINT_FOR_SIZE = {
   [1]='uint8_t',
@@ -240,10 +229,8 @@ function CppEmitter:_int( size )
 end
 
 function CppEmitter:_bits( nbytes )
-  if ALLOWED_INTEGRAL_SIZES[nbytes] then
-    return self:primitive{ size=nbytes, type='uint' }
-  end
-  return { type='std::array', value_type='uint8_t', size=nbytes }
+  local type = format( 'bits<%d>', nbytes * 8 )
+  return { type=type, size=nbytes }
 end
 
 function CppEmitter:_primitive_impl( tbl )
@@ -256,9 +243,6 @@ function CppEmitter:_primitive_impl( tbl )
     return self:_uint( tbl.size )
   elseif tbl.type == 'int' then
     return self:_int( tbl.size )
-  elseif not tbl.type and tbl.size and
-      ALLOWED_INTEGRAL_SIZES[tbl.size] then
-    return self:_uint( tbl.size )
   elseif tbl.type then
     assert( tbl.size )
     return tbl
@@ -280,7 +264,7 @@ function CppEmitter:primitive_array( cells, tbl )
   return res
 end
 
-function CppEmitter:_lookup_cells( tbl )
+function CppEmitter:lookup_cells( tbl )
   local count = tbl.count or 1
   local cols = tbl.cols or 1
   if type( count ) == 'string' or type( cols ) == 'string' then
@@ -630,8 +614,17 @@ local function emit_bit_struct_cdr_conv_def(name, cpp, bit_struct )
   cpp:line( 'cdr::table tbl;' )
   for _, key in ipairs( bit_struct.__key_order ) do
     if key:match( '__' ) then goto continue end
-    cpp:line( 'conv.to_field( tbl, "%s", o.%s );', key,
-              as_identifier( key ) )
+    local info = assert( bit_struct[key] )
+    assert( info.size )
+    assert( type( info.size ) == 'number' )
+    local field
+    if not info.type then
+      field = format( 'bits<%d>{ o.%s }', info.size,
+                      as_identifier( key ) )
+    else
+      field = format( 'o.%s', as_identifier( key ) )
+    end
+    cpp:line( 'conv.to_field( tbl, "%s", %s );', key, field )
     ::continue::
   end
   cpp:line( 'tbl["__key_order"] = cdr::list{' )
@@ -658,8 +651,16 @@ local function emit_bit_struct_cdr_conv_def(name, cpp, bit_struct )
   cpp:line( 'std::set<std::string> used_keys;' )
   for _, key in ipairs( bit_struct.__key_order ) do
     if key:match( '__' ) then goto continue end
-    cpp:line( 'CONV_FROM_FIELD( "%s", %s );', key,
-              as_identifier( key ) )
+    local info = assert( bit_struct[key] )
+    assert( info.size )
+    assert( type( info.size ) == 'number' )
+    if not info.type then
+      cpp:line( 'CONV_FROM_BITSTRING_FIELD( "%s", %s, %d );',
+                key, as_identifier( key ), info.size )
+    else
+      cpp:line( 'CONV_FROM_FIELD( "%s", %s );', key,
+                as_identifier( key ) )
+    end
     ::continue::
   end
   cpp:line(
@@ -986,6 +987,18 @@ function CppEmitter:emit_cpp_macros( cpp )
   cpp:line(
       '                tbl, name, used_keys ) );                         \\' )
   cpp:line( '  res.identifier = std::move( identifier )' )
+  cpp:newline()
+  cpp:line(
+      '#define CONV_FROM_BITSTRING_FIELD( name, identifier, N ) \\' )
+  cpp:line(
+      '  UNWRAP_RETURN( identifier, conv.from_field<bits<N>>(   \\' )
+  cpp:line(
+      '                 tbl, name, used_keys ) );               \\' )
+  cpp:line(
+      '  res.identifier = static_cast<std::remove_cvref_t<      \\' )
+  cpp:line(
+      '                     decltype( res.identifier )          \\' )
+  cpp:line( '                   >>( identifier.n() );' )
 end
 
 function CppEmitter:generate_code()
@@ -993,6 +1006,12 @@ function CppEmitter:generate_code()
   hpp:section( 'Classic Colonization Save File Structure.' )
   hpp:comment(
       'NOTE: this file was auto-generated. DO NOT MODIFY!' )
+  hpp:newline()
+  hpp:comment( 'sav' )
+  hpp:include( '"sav/bits.hpp"' )
+  hpp:include( '"sav/bytes.hpp"' )
+  hpp:include( '"sav/string.hpp"' )
+  hpp:line( '#undef HEAD' )
   hpp:newline()
   hpp:comment( 'cdr' )
   hpp:include( '"cdr/ext.hpp"' )
