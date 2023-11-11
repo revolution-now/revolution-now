@@ -19,9 +19,9 @@ types {
     plural: false
   }
 
-  fur {
-    lowercase_display_name: "fur"
-    plural: false
+  furs {
+    lowercase_display_name: "furs"
+    plural: true
   }
 
   lumber {

@@ -103,9 +103,9 @@ cdr::value cdr_game_state_default = cdr::table{
                             "cotton"_key =
                                 cdr::table{
                                     "intrinsic_volume"_key = 0 },
-                            "fur"_key = cdr::
-                                table{ "intrinsic_volume"_key =
-                                           0 },
+                            "furs"_key =
+                                cdr::table{
+                                    "intrinsic_volume"_key = 0 },
                             "lumber"_key =
                                 cdr::table{
                                     "intrinsic_volume"_key = 0 },

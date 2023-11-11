@@ -309,7 +309,7 @@ dwelling_expertise {
     sugar:   false
     tobacco: false
     cotton:  false
-    fur:     false
+    furs:    false
     lumber:  false
     ore:     false
     # We use an expert to compute silver production because this

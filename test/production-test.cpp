@@ -5534,7 +5534,7 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
   W.add_expert_unit_outdoors( colony.id, e_direction::nw,
                               e_outdoor_job::fish );
   W.add_expert_unit_outdoors( colony.id, e_direction::n,
-                              e_outdoor_job::fur );
+                              e_outdoor_job::furs );
   W.add_expert_unit_outdoors( colony.id, e_direction::ne,
                               e_outdoor_job::lumber );
   W.add_expert_unit_outdoors( colony.id, e_direction::e,
@@ -5679,7 +5679,7 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
               SquareProduction{ .what = e_outdoor_job::lumber,
                                 .quantity = 4 * 2 + XE } },
             { e_direction::n,
-              SquareProduction{ .what     = e_outdoor_job::fur,
+              SquareProduction{ .what     = e_outdoor_job::furs,
                                 .quantity = 2 * 2 + XE } },
             { e_direction::nw,
               SquareProduction{
@@ -5788,7 +5788,7 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
               SquareProduction{ .what = e_outdoor_job::lumber,
                                 .quantity = 4 * 2 + XE } },
             { e_direction::n,
-              SquareProduction{ .what     = e_outdoor_job::fur,
+              SquareProduction{ .what     = e_outdoor_job::furs,
                                 .quantity = 2 * 2 + XE } },
             { e_direction::nw,
               SquareProduction{
@@ -5897,7 +5897,7 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
               SquareProduction{ .what = e_outdoor_job::lumber,
                                 .quantity = 4 * 2 + XE } },
             { e_direction::n,
-              SquareProduction{ .what     = e_outdoor_job::fur,
+              SquareProduction{ .what     = e_outdoor_job::furs,
                                 .quantity = 2 * 2 + XE } },
             { e_direction::nw,
               SquareProduction{
@@ -6003,7 +6003,7 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
               SquareProduction{ .what = e_outdoor_job::lumber,
                                 .quantity = 4 * 2 + XE } },
             { e_direction::n,
-              SquareProduction{ .what     = e_outdoor_job::fur,
+              SquareProduction{ .what     = e_outdoor_job::furs,
                                 .quantity = 2 * 2 + XE } },
             { e_direction::nw,
               SquareProduction{

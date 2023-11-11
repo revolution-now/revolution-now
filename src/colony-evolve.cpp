@@ -65,7 +65,7 @@ void check_ran_out_of_raw_materials( ColonyEvolution& ev ) {
          ev.production.tobacco_cigars );
   check( e_commodity::cotton, e_indoor_job::cloth,
          ev.production.cotton_cloth );
-  check( e_commodity::fur, e_indoor_job::coats,
+  check( e_commodity::furs, e_indoor_job::coats,
          ev.production.fur_coats );
   check( e_commodity::lumber, e_indoor_job::hammers,
          ev.production.lumber_hammers );

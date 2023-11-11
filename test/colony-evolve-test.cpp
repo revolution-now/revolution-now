@@ -104,7 +104,7 @@ TEST_CASE( "[colony-evolve] spoilage" ) {
   REQUIRE( colony.commodities[e_commodity::sugar] == 100 );
   REQUIRE( colony.commodities[e_commodity::tobacco] == 100 );
   REQUIRE( colony.commodities[e_commodity::cotton] == 100 );
-  REQUIRE( colony.commodities[e_commodity::fur] == 100 );
+  REQUIRE( colony.commodities[e_commodity::furs] == 100 );
   REQUIRE( colony.commodities[e_commodity::lumber] == 100 );
   REQUIRE( colony.commodities[e_commodity::ore] == 100 );
   REQUIRE( colony.commodities[e_commodity::silver] == 100 );
@@ -125,7 +125,7 @@ TEST_CASE( "[colony-evolve] spoilage" ) {
               { .type = e_commodity::sugar, .quantity = 1 },
               { .type = e_commodity::tobacco, .quantity = 1 },
               { .type = e_commodity::cotton, .quantity = 1 },
-              { .type = e_commodity::fur, .quantity = 1 },
+              { .type = e_commodity::furs, .quantity = 1 },
               { .type = e_commodity::lumber, .quantity = 1 },
               { .type = e_commodity::ore, .quantity = 1 },
               { .type = e_commodity::silver, .quantity = 1 },
@@ -160,7 +160,7 @@ TEST_CASE( "[colony-evolve] spoilage" ) {
   REQUIRE( colony.commodities[e_commodity::sugar] == 200 );
   REQUIRE( colony.commodities[e_commodity::tobacco] == 200 );
   REQUIRE( colony.commodities[e_commodity::cotton] == 200 );
-  REQUIRE( colony.commodities[e_commodity::fur] == 200 );
+  REQUIRE( colony.commodities[e_commodity::furs] == 200 );
   REQUIRE( colony.commodities[e_commodity::lumber] == 200 );
   REQUIRE( colony.commodities[e_commodity::ore] == 200 );
   REQUIRE( colony.commodities[e_commodity::silver] == 200 );
@@ -182,7 +182,7 @@ TEST_CASE( "[colony-evolve] spoilage" ) {
               { .type = e_commodity::sugar, .quantity = 1 },
               { .type = e_commodity::tobacco, .quantity = 1 },
               { .type = e_commodity::cotton, .quantity = 1 },
-              { .type = e_commodity::fur, .quantity = 1 },
+              { .type = e_commodity::furs, .quantity = 1 },
               { .type = e_commodity::lumber, .quantity = 1 },
               { .type = e_commodity::ore, .quantity = 1 },
               { .type = e_commodity::silver, .quantity = 1 },

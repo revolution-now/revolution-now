@@ -234,7 +234,7 @@ outdoor_production {
     sugar:   expert_sugar_planter
     tobacco: expert_tobacco_planter
     cotton:  expert_cotton_planter
-    fur:     expert_fur_trapper
+    furs:    expert_fur_trapper
     lumber:  expert_lumberjack
     ore:     expert_ore_miner
     silver:  expert_silver_miner
@@ -505,7 +505,7 @@ outdoor_production {
 
       non_resource_override: null
     }
-    fur: {
+    furs: {
       minor_river_bonus.add { non_expert=2, expert=2 }
       major_river_bonus.add { non_expert=4, expert=4 }
       road_bonus.add        { non_expert=2, expert=2 }
@@ -879,18 +879,18 @@ center_square_production {
   }
 
   override_secondary_minor_river_bonus  {
-    sugar:   null
-    tobacco: null
-    cotton:  null
-    fur.add: { non_expert=1, expert=1 }
-    ore:     null
+    sugar:    null
+    tobacco:  null
+    cotton:   null
+    furs.add: { non_expert=1, expert=1 }
+    ore:      null
   }
 
   override_secondary_major_river_bonus  {
-    sugar:   null
-    tobacco: null
-    cotton:  null
-    fur.add: { non_expert=2, expert=2 }
-    ore:     null
+    sugar:    null
+    tobacco:  null
+    cotton:   null
+    furs.add: { non_expert=2, expert=2 }
+    ore:      null
   }
 }

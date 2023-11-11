@@ -23,8 +23,8 @@ e_outdoor_job to_outdoor_job(
       return e_outdoor_job::tobacco;
     case e_outdoor_commons_secondary_job::cotton:
       return e_outdoor_job::cotton;
-    case e_outdoor_commons_secondary_job::fur:
-      return e_outdoor_job::fur;
+    case e_outdoor_commons_secondary_job::furs:
+      return e_outdoor_job::furs;
     case e_outdoor_commons_secondary_job::ore:
       return e_outdoor_job::ore;
   }

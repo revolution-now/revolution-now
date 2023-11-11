@@ -54,7 +54,7 @@ maybe<e_tile> tile_for_slot( e_colony_building_slot slot ) {
     case e_colony_building_slot::cloth:
       return e_tile::commodity_cloth;
     case e_colony_building_slot::coats:
-      return e_tile::commodity_fur;
+      return e_tile::commodity_furs;
     case e_colony_building_slot::cigars:
       return e_tile::commodity_cigars;
     case e_colony_building_slot::hammers:

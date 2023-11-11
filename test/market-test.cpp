@@ -443,9 +443,9 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
   REQUIRE( intrinsic_vol( e_commodity::cotton ) == -11 );
   REQUIRE( traded_vol( e_commodity::cotton ) == 0 );
 
-  REQUIRE( curr_price( e_commodity::fur ) == 3 );
-  REQUIRE( intrinsic_vol( e_commodity::fur ) == -13 );
-  REQUIRE( traded_vol( e_commodity::fur ) == 0 );
+  REQUIRE( curr_price( e_commodity::furs ) == 3 );
+  REQUIRE( intrinsic_vol( e_commodity::furs ) == -13 );
+  REQUIRE( traded_vol( e_commodity::furs ) == 0 );
 
   REQUIRE( curr_price( e_commodity::lumber ) == 1 );
   REQUIRE( intrinsic_vol( e_commodity::lumber ) == 0 );
@@ -513,7 +513,7 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
   vol( e_commodity::sugar ) += -400;    // just at a rise.
   vol( e_commodity::tobacco ) += -401;  // just over the rise.
   vol( e_commodity::cotton ) += -850; // more than twice a rise.
-  vol( e_commodity::fur ) += 0;       // no change.
+  vol( e_commodity::furs ) += 0;      // no change.
   vol( e_commodity::lumber ) += -500; // rise, but won't move.
   vol( e_commodity::ore ) += 399;     // just below fall.
   vol( e_commodity::silver ) += 100;  // just at fall.
@@ -561,10 +561,10 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
   REQUIRE( traded_vol( e_commodity::cotton ) == 0 );
   REQUIRE( changes[e_commodity::cotton].delta == 3 - 2 );
 
-  REQUIRE( curr_price( e_commodity::fur ) == 3 );
-  REQUIRE( intrinsic_vol( e_commodity::fur ) == 0 );
-  REQUIRE( traded_vol( e_commodity::fur ) == 0 );
-  REQUIRE( changes[e_commodity::fur].delta == 3 - 3 );
+  REQUIRE( curr_price( e_commodity::furs ) == 3 );
+  REQUIRE( intrinsic_vol( e_commodity::furs ) == 0 );
+  REQUIRE( traded_vol( e_commodity::furs ) == 0 );
+  REQUIRE( changes[e_commodity::furs].delta == 3 - 3 );
 
   REQUIRE( curr_price( e_commodity::lumber ) == 1 );
   REQUIRE( intrinsic_vol( e_commodity::lumber ) == -200 );
@@ -777,9 +777,9 @@ TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
   REQUIRE( intrinsic_vol( e_commodity::cotton ) == -17 );
   REQUIRE( traded_vol( e_commodity::cotton ) == 0 );
 
-  REQUIRE( curr_price( e_commodity::fur ) == 3 );
-  REQUIRE( intrinsic_vol( e_commodity::fur ) == -20 );
-  REQUIRE( traded_vol( e_commodity::fur ) == 0 );
+  REQUIRE( curr_price( e_commodity::furs ) == 3 );
+  REQUIRE( intrinsic_vol( e_commodity::furs ) == -20 );
+  REQUIRE( traded_vol( e_commodity::furs ) == 0 );
 
   REQUIRE( curr_price( e_commodity::lumber ) == 1 );
   REQUIRE( intrinsic_vol( e_commodity::lumber ) == 0 );
@@ -847,7 +847,7 @@ TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
   vol( e_commodity::sugar ) += -400;    // just at a rise.
   vol( e_commodity::tobacco ) += -401;  // just over the rise.
   vol( e_commodity::cotton ) += -850; // more than twice a rise.
-  vol( e_commodity::fur ) += 0;       // no change.
+  vol( e_commodity::furs ) += 0;      // no change.
   vol( e_commodity::lumber ) += -500; // rise, but won't move.
   vol( e_commodity::ore ) += 399;     // just below fall.
   vol( e_commodity::silver ) += 100;  // just at fall.
@@ -895,10 +895,10 @@ TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
   REQUIRE( traded_vol( e_commodity::cotton ) == 0 );
   REQUIRE( changes[e_commodity::cotton].delta == 3 - 2 );
 
-  REQUIRE( curr_price( e_commodity::fur ) == 3 );
-  REQUIRE( intrinsic_vol( e_commodity::fur ) == 0 );
-  REQUIRE( traded_vol( e_commodity::fur ) == 0 );
-  REQUIRE( changes[e_commodity::fur].delta == 3 - 3 );
+  REQUIRE( curr_price( e_commodity::furs ) == 3 );
+  REQUIRE( intrinsic_vol( e_commodity::furs ) == 0 );
+  REQUIRE( traded_vol( e_commodity::furs ) == 0 );
+  REQUIRE( changes[e_commodity::furs].delta == 3 - 3 );
 
   REQUIRE( curr_price( e_commodity::lumber ) == 1 );
   REQUIRE( intrinsic_vol( e_commodity::lumber ) == -200 );

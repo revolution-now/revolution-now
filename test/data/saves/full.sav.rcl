@@ -112,7 +112,7 @@ players.players {
           starting_bid_price_in_hundreds: 10
           unscaled_net_traded_volume: 0
         }
-        fur {
+        furs {
           boycott: false
           current_bid_price_in_hundreds: 10
           intrinsic_volume: 512

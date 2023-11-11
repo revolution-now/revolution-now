@@ -859,7 +859,7 @@ sheets {
         commodity_sugar:       { y: 0, x: 1  }
         commodity_tobacco:     { y: 0, x: 2  }
         commodity_cotton:      { y: 0, x: 3  }
-        commodity_fur:         { y: 0, x: 4  }
+        commodity_furs:        { y: 0, x: 4  }
         commodity_lumber:      { y: 0, x: 5  }
         commodity_ore:         { y: 0, x: 6  }
         commodity_silver:      { y: 0, x: 7  }

@@ -586,8 +586,8 @@ TEST_CASE( "[fathers] on_father_received: jakob_fugger" ) {
       e_founding_father::jakob_fugger;
   player.old_world.market.commodities[e_commodity::food]
       .boycott = true;
-  player.old_world.market.commodities[e_commodity::fur].boycott =
-      true;
+  player.old_world.market.commodities[e_commodity::furs]
+      .boycott = true;
   player.old_world.market.commodities[e_commodity::muskets]
       .boycott = true;
   W.french()

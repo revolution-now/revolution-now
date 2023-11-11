@@ -23,7 +23,7 @@ warehouses {
     sugar:       true
     tobacco:     true
     cotton:      true
-    fur:         true
+    furs:        true
     lumber:      true
     ore:         true
     silver:      true
@@ -101,7 +101,7 @@ outdoors {
     sugar:   Sugar Planter
     tobacco: Tobacco Planter
     cotton:  Cotton Planter
-    fur:     Fur Trapper
+    furs:    Fur Trapper
     lumber:  Lumberjack
     ore:     Ore Miner
     silver:  Silver Miner
@@ -779,7 +779,7 @@ on_the_job_training {
     sugar:   true
     tobacco: true
     cotton:  true
-    fur:     true
+    furs:    true
     lumber:  false
     ore:     false
     silver:  false
@@ -881,7 +881,7 @@ custom_house {
     sugar:       true
     tobacco:     true
     cotton:      true
-    fur:         true
+    furs:        true
     lumber:      false
     ore:         true
     silver:      true

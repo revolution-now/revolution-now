@@ -447,7 +447,7 @@ players {
         coats.bid_price: 11
         cotton.bid_price: 4
         food.bid_price: 1
-        fur.bid_price: 3
+        furs.bid_price: 3
         horses.bid_price: 2
         lumber.bid_price: 1
         muskets.bid_price: 2
@@ -679,10 +679,7 @@ zzz_terrain {
       },
       {
         key.x: 7
-        val {
-          fog_of_war_removed: true
-          square.sea_lane: true
-        }
+        val.fog_of_war_removed: true
       },
       {
         key {
@@ -696,10 +693,7 @@ zzz_terrain {
           x: 7
           y: 1
         }
-        val {
-          fog_of_war_removed: true
-          square.sea_lane: true
-        }
+        val.fog_of_war_removed: true
       },
       {
         key {
@@ -713,10 +707,7 @@ zzz_terrain {
           x: 7
           y: 2
         }
-        val {
-          fog_of_war_removed: true
-          square.sea_lane: true
-        }
+        val.fog_of_war_removed: true
       },
     ]
     has_coords: true
@@ -789,7 +780,7 @@ zzz_terrain {
           y: 2
         }
         val {
-          ground: desert
+          ground: plains
           overlay: forest
           surface: land
         }
@@ -800,7 +791,7 @@ zzz_terrain {
           y: 2
         }
         val {
-          ground: prairie
+          ground: grassland
           overlay: forest
           surface: land
         }
@@ -823,8 +814,8 @@ zzz_terrain {
           y: 2
         }
         val {
-          forest_resource: deer
-          ground: tundra
+          forest_resource: beaver
+          ground: plains
           overlay: forest
           surface: land
         }
@@ -846,7 +837,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: prairie
+          ground: grassland
           overlay: forest
           surface: land
         }
@@ -857,7 +848,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: prairie
+          ground: savannah
           road: true
           surface: land
         }
@@ -868,7 +859,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: prairie
+          ground: savannah
           overlay: forest
           surface: land
         }
@@ -879,7 +870,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: savannah
+          ground: plains
           overlay: forest
           road: true
           surface: land
@@ -891,7 +882,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: savannah
+          ground: prairie
           overlay: mountains
           surface: land
         }
@@ -927,7 +918,7 @@ zzz_terrain {
           y: 4
         }
         val {
-          ground: savannah
+          ground: tundra
           overlay: forest
           surface: land
         }
@@ -939,7 +930,7 @@ zzz_terrain {
         }
         val {
           forest_resource: minerals
-          ground: swamp
+          ground: marsh
           overlay: forest
           surface: land
         }
@@ -985,7 +976,7 @@ zzz_terrain {
           y: 5
         }
         val {
-          ground: grassland
+          ground: desert
           overlay: forest
           surface: land
         }

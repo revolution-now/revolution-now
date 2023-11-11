@@ -99,7 +99,7 @@ int& final_production_delta_for_commodity( ColonyProduction& pr,
       return pr.cotton_cloth.raw_delta_final;
     case e_commodity::cloth:
       return pr.cotton_cloth.product_delta_final;
-    case e_commodity::fur:
+    case e_commodity::furs:
       return pr.fur_coats.raw_delta_final;
     case e_commodity::coats:
       return pr.fur_coats.product_delta_final;
@@ -131,7 +131,7 @@ maybe<e_indoor_job> indoor_job_from_outdoor_job(
       return e_indoor_job::cigars;
     case e_outdoor_job::cotton:
       return e_indoor_job::cloth;
-    case e_outdoor_job::fur:
+    case e_outdoor_job::furs:
       return e_indoor_job::coats;
     case e_outdoor_job::lumber:
       return e_indoor_job::hammers;
@@ -716,7 +716,7 @@ void compute_land_production(
   compute( e_outdoor_job::sugar, pr.sugar_rum );
   compute( e_outdoor_job::tobacco, pr.tobacco_cigars );
   compute( e_outdoor_job::cotton, pr.cotton_cloth );
-  compute( e_outdoor_job::fur, pr.fur_coats );
+  compute( e_outdoor_job::furs, pr.fur_coats );
   compute( e_outdoor_job::silver, pr.silver );
 
   // In the original game it appears that hammer production
@@ -917,7 +917,7 @@ maybe<e_commodity> product_from_raw( e_commodity raw ) {
       return e_commodity::cigars;
     case e_commodity::cotton:
       return e_commodity::cloth;
-    case e_commodity::fur:
+    case e_commodity::furs:
       return e_commodity::coats;
     case e_commodity::lumber:
       return nothing;
@@ -963,7 +963,7 @@ int const& final_production_delta_for_commodity(
       return pr.cotton_cloth.raw_delta_final;
     case e_commodity::cloth:
       return pr.cotton_cloth.product_delta_final;
-    case e_commodity::fur:
+    case e_commodity::furs:
       return pr.fur_coats.raw_delta_final;
     case e_commodity::coats:
       return pr.fur_coats.product_delta_final;

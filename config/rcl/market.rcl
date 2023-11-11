@@ -83,7 +83,7 @@ price_behavior {
     }
   }
 
-  fur {
+  furs {
     # From NAMES.TXT: 4,  6,  2,  6,  1,  4, 20,-13,  1
     price_limits {
       bid_price_start_min:  3

@@ -74,7 +74,7 @@ TEST_CASE( "[production] outdoor_job_for_expertise" ) {
   REQUIRE( f( e_unit_activity::cotton_planting ) ==
            e_outdoor_job::cotton );
   REQUIRE( f( e_unit_activity::fur_trapping ) ==
-           e_outdoor_job::fur );
+           e_outdoor_job::furs );
   REQUIRE( f( e_unit_activity::lumberjacking ) ==
            e_outdoor_job::lumber );
   REQUIRE( f( e_unit_activity::ore_mining ) ==
@@ -115,7 +115,7 @@ TEST_CASE( "[production] activity_for_outdoor_job" ) {
            e_unit_activity::tobacco_planting );
   REQUIRE( f( e_outdoor_job::cotton ) ==
            e_unit_activity::cotton_planting );
-  REQUIRE( f( e_outdoor_job::fur ) ==
+  REQUIRE( f( e_outdoor_job::furs ) ==
            e_unit_activity::fur_trapping );
   REQUIRE( f( e_outdoor_job::lumber ) ==
            e_unit_activity::lumberjacking );
@@ -1140,12 +1140,12 @@ TEST_CASE( "[production] production_on_square/tobacco" ) {
   }
 }
 
-TEST_CASE( "[production] production_on_square/fur" ) {
+TEST_CASE( "[production] production_on_square/furs" ) {
   World W;
   W.create_default_map();
   gfx::point P{ .x = 0, .y = 1 };
 
-  e_outdoor_job const job = e_outdoor_job::fur;
+  e_outdoor_job const job = e_outdoor_job::furs;
 
   auto S = [&]() -> decltype( auto ) { return W.square( P ); };
 
@@ -2273,7 +2273,7 @@ TEST_CASE(
 
   square     = &plains;
   difficulty = e_difficulty::explorer;
-  job        = e_outdoor_commons_secondary_job::fur;
+  job        = e_outdoor_commons_secondary_job::furs;
   expected   = 0;
   REQUIRE( f() == expected );
 
@@ -2303,7 +2303,7 @@ TEST_CASE(
 
   square     = &plains_plowed;
   difficulty = e_difficulty::explorer;
-  job        = e_outdoor_commons_secondary_job::fur;
+  job        = e_outdoor_commons_secondary_job::furs;
   expected   = 0;
   REQUIRE( f() == expected );
 
@@ -2333,7 +2333,7 @@ TEST_CASE(
 
   square     = &plains_plowed_cotton;
   difficulty = e_difficulty::explorer;
-  job        = e_outdoor_commons_secondary_job::fur;
+  job        = e_outdoor_commons_secondary_job::furs;
   expected   = 0;
   REQUIRE( f() == expected );
 
@@ -2363,7 +2363,7 @@ TEST_CASE(
 
   square     = &plains_plowed_cotton_river;
   difficulty = e_difficulty::explorer;
-  job        = e_outdoor_commons_secondary_job::fur;
+  job        = e_outdoor_commons_secondary_job::furs;
   expected   = 0;
   REQUIRE( f() == expected );
 
@@ -2393,7 +2393,7 @@ TEST_CASE(
 
   square     = &plains_plowed_cotton_river_road;
   difficulty = e_difficulty::explorer;
-  job        = e_outdoor_commons_secondary_job::fur;
+  job        = e_outdoor_commons_secondary_job::furs;
   expected   = 0;
   REQUIRE( f() == expected );
 
@@ -2433,21 +2433,21 @@ TEST_CASE( "[production] choose_secondary_job" ) {
   };
 
   REQUIRE( f( m( T::desert ) ) == J::ore );
-  REQUIRE( f( m( T::scrub ) ) == J::fur );
+  REQUIRE( f( m( T::scrub ) ) == J::furs );
   REQUIRE( f( m( T::grassland ) ) == J::tobacco );
-  REQUIRE( f( m( T::conifer ) ) == J::fur );
+  REQUIRE( f( m( T::conifer ) ) == J::furs );
   REQUIRE( f( m( T::marsh ) ) == J::tobacco );
-  REQUIRE( f( m( T::wetland ) ) == J::fur );
+  REQUIRE( f( m( T::wetland ) ) == J::furs );
   REQUIRE( f( m( T::plains ) ) == J::cotton );
-  REQUIRE( f( m( T::mixed ) ) == J::fur );
+  REQUIRE( f( m( T::mixed ) ) == J::furs );
   REQUIRE( f( m( T::prairie ) ) == J::cotton );
-  REQUIRE( f( m( T::broadleaf ) ) == J::fur );
+  REQUIRE( f( m( T::broadleaf ) ) == J::furs );
   REQUIRE( f( m( T::savannah ) ) == J::sugar );
-  REQUIRE( f( m( T::tropical ) ) == J::fur );
+  REQUIRE( f( m( T::tropical ) ) == J::furs );
   REQUIRE( f( m( T::swamp ) ) == J::sugar );
   REQUIRE( f( m( T::rain ) ) == J::sugar );
   REQUIRE( f( m( T::tundra ) ) == J::ore );
-  REQUIRE( f( m( T::boreal ) ) == J::fur );
+  REQUIRE( f( m( T::boreal ) ) == J::furs );
   REQUIRE( f( m( T::arctic ) ) == nothing );
   REQUIRE( f( m( T::hills ) ) == J::ore );
   REQUIRE( f( m( T::mountains ) ) == J::ore );
@@ -2500,15 +2500,15 @@ TEST_CASE( "[production] fur trappers with hudson" ) {
   CHECK( S().surface == e_surface::land );
 
   auto f = [&] {
-    return production_on_square( e_outdoor_job::fur, W.terrain(),
-                                 W.default_player().fathers.has,
-                                 unit_type,
-                                 Coord::from_gfx( P ) );
+    return production_on_square(
+        e_outdoor_job::furs, W.terrain(),
+        W.default_player().fathers.has, unit_type,
+        Coord::from_gfx( P ) );
   };
 
   auto g = [&] {
     return commodity_production_on_center_square(
-        e_outdoor_commons_secondary_job::fur, S(),
+        e_outdoor_commons_secondary_job::furs, S(),
         W.default_player(), e_difficulty::conquistador );
   };
 

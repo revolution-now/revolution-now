@@ -61,7 +61,7 @@ e_tile tile_for_commodity( e_commodity c ) {
               sugar,       //
               tobacco,     //
               cotton,      //
-              fur,         //
+              furs,        //
               lumber,      //
               ore,         //
               silver,      //

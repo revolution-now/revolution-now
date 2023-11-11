@@ -92,8 +92,8 @@ e_commodity commodity_for_outdoor_job( e_outdoor_job job ) {
       return e_commodity::tobacco;
     case e_outdoor_job::cotton:
       return e_commodity::cotton;
-    case e_outdoor_job::fur:
-      return e_commodity::fur;
+    case e_outdoor_job::furs:
+      return e_commodity::furs;
     case e_outdoor_job::lumber:
       return e_commodity::lumber;
     case e_outdoor_job::ore:
@@ -117,7 +117,7 @@ maybe<e_outdoor_job> outdoor_job_for_expertise(
     case e_unit_activity::cotton_planting:
       return e_outdoor_job::cotton;
     case e_unit_activity::fur_trapping:
-      return e_outdoor_job::fur;
+      return e_outdoor_job::furs;
     case e_unit_activity::lumberjacking:
       return e_outdoor_job::lumber;
     case e_unit_activity::ore_mining:
@@ -155,7 +155,7 @@ e_unit_activity activity_for_outdoor_job( e_outdoor_job job ) {
       return e_unit_activity::tobacco_planting;
     case e_outdoor_job::cotton:
       return e_unit_activity::cotton_planting;
-    case e_outdoor_job::fur:
+    case e_outdoor_job::furs:
       return e_unit_activity::fur_trapping;
     case e_outdoor_job::lumber:
       return e_unit_activity::lumberjacking;

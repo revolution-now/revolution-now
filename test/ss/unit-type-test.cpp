@@ -85,7 +85,7 @@ TEST_CASE( "[unit-type] commodity_to_inventory" ) {
   REQUIRE( f( e_commodity::coats ) == nothing );
   REQUIRE( f( e_commodity::cotton ) == nothing );
   REQUIRE( f( e_commodity::food ) == nothing );
-  REQUIRE( f( e_commodity::fur ) == nothing );
+  REQUIRE( f( e_commodity::furs ) == nothing );
   REQUIRE( f( e_commodity::horses ) == nothing );
   REQUIRE( f( e_commodity::lumber ) == nothing );
   REQUIRE( f( e_commodity::muskets ) == nothing );

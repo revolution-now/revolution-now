@@ -691,7 +691,7 @@ enum.e_tile {
   commodity_sugar,
   commodity_tobacco,
   commodity_cotton,
-  commodity_fur,
+  commodity_furs,
   commodity_lumber,
   commodity_ore,
   commodity_silver,

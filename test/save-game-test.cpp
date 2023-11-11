@@ -125,6 +125,7 @@ TEST_CASE( "[save-game] no default values (compact)" ) {
 #endif
 
   CHECK( fs::exists( src ) );
+  INFO( fmt::format( "src file: {}", src ) );
 
   // FIXME: find a better way to get a random temp folder.
   static fs::path const dst = "/tmp/test-compact.sav.rcl";

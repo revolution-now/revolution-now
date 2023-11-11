@@ -79,7 +79,7 @@ TEST_CASE( "[custom-house] set_default_custom_house_state" ) {
   REQUIRE( colony.custom_house[e_commodity::sugar] );
   REQUIRE( colony.custom_house[e_commodity::tobacco] );
   REQUIRE( colony.custom_house[e_commodity::cotton] );
-  REQUIRE( colony.custom_house[e_commodity::fur] );
+  REQUIRE( colony.custom_house[e_commodity::furs] );
   REQUIRE_FALSE( colony.custom_house[e_commodity::lumber] );
   REQUIRE( colony.custom_house[e_commodity::ore] );
   REQUIRE( colony.custom_house[e_commodity::silver] );
@@ -224,7 +224,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
       .intrinsic_volume = 1000;
 
   SECTION( "independence not declared" ) {
-    colony.custom_house[e_commodity::fur]     = true;
+    colony.custom_house[e_commodity::furs]    = true;
     colony.custom_house[e_commodity::ore]     = true;
     colony.custom_house[e_commodity::cloth]   = true;
     colony.custom_house[e_commodity::muskets] = true;
@@ -238,7 +238,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
                 {
                     Invoice{
                         .what =
-                            Commodity{ .type = e_commodity::fur,
+                            Commodity{ .type = e_commodity::furs,
                                        .quantity = 150 },
                         .money_delta_before_taxes = 150 * 5,
                         .tax_rate                 = 10,
@@ -251,7 +251,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
                         .global_intrinsic_volume_deltas = {
                             /*only processed goods*/ },
                         .price_change = create_price_change(
-                            dutch, e_commodity::fur,
+                            dutch, e_commodity::furs,
                             /*price_change=*/0 ) },
                     Invoice{
                         .what =
@@ -295,7 +295,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
     // Charge (in place of tax rate) is 50%.
     dutch.revolution_status = e_revolution_status::declared;
     // One should be enough here.
-    colony.custom_house[e_commodity::fur] = true;
+    colony.custom_house[e_commodity::furs] = true;
     W.set_human_player( e_nation::dutch );
     CustomHouseSales const res =
         compute_custom_house_sales( W.ss(), dutch, colony );
@@ -303,7 +303,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
         .invoices =
             {
                 Invoice{
-                    .what = Commodity{ .type = e_commodity::fur,
+                    .what = Commodity{ .type = e_commodity::furs,
                                        .quantity = 150 },
                     .money_delta_before_taxes = 150 * 5,
                     .tax_rate                 = 50,
@@ -316,7 +316,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
                     .global_intrinsic_volume_deltas = {
                         /*only processed goods*/ },
                     .price_change = create_price_change(
-                        dutch, e_commodity::fur,
+                        dutch, e_commodity::furs,
                         /*price_change=*/0 ) },
             },
         .boycotted = {},
@@ -328,7 +328,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
     W.default_player()
         .old_world.market.commodities[e_commodity::ore]
         .boycott                              = true;
-    colony.custom_house[e_commodity::fur]     = true;
+    colony.custom_house[e_commodity::furs]    = true;
     colony.custom_house[e_commodity::ore]     = true;
     colony.custom_house[e_commodity::cloth]   = true;
     colony.custom_house[e_commodity::muskets] = true;
@@ -342,7 +342,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
                 {
                     Invoice{
                         .what =
-                            Commodity{ .type = e_commodity::fur,
+                            Commodity{ .type = e_commodity::furs,
                                        .quantity = 150 },
                         .money_delta_before_taxes = 150 * 5,
                         .tax_rate                 = 10,
@@ -355,7 +355,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
                         .global_intrinsic_volume_deltas = {
                             /*only processed goods*/ },
                         .price_change = create_price_change(
-                            dutch, e_commodity::fur,
+                            dutch, e_commodity::furs,
                             /*price_change=*/0 ) },
                     /* !! ore omitted due to boycott */
                     Invoice{ .what =

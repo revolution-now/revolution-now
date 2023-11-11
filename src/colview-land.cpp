@@ -62,8 +62,8 @@ e_tile tile_for_outdoor_job( e_outdoor_job job ) {
       return e_tile::commodity_tobacco;
     case e_outdoor_job::cotton:
       return e_tile::commodity_cotton;
-    case e_outdoor_job::fur:
-      return e_tile::commodity_fur;
+    case e_outdoor_job::furs:
+      return e_tile::commodity_furs;
     case e_outdoor_job::lumber:
       return e_tile::commodity_lumber;
     case e_outdoor_job::ore:

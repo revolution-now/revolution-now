@@ -18,7 +18,7 @@ enum.e_commodity {
   sugar,
   tobacco,
   cotton,
-  fur,
+  furs,
   lumber,
   ore,
   silver,

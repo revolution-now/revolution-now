@@ -181,7 +181,7 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
       comms[C::coats]       = 20;
       comms[C::cotton]      = 30;
       comms[C::food]        = 40;
-      comms[C::fur]         = 50;
+      comms[C::furs]        = 50;
       comms[C::horses]      = 60;
       comms[C::lumber]      = 70;
       comms[C::muskets]     = 80;
