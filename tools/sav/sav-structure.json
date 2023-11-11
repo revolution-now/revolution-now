@@ -285,7 +285,8 @@
             "not met": "00",
             "war": "20",
             "peace": "60",
-            "unknown_rel": "66"
+            "unknown_rel": "66",
+            "unknown_rel2": "64"
         },
         "cargo_4bit_type":
         {
@@ -925,7 +926,7 @@
             },
             "cargo_hold": {"size": 1, "cols": 6, "type": "uint", "no_indent": true},
             "turns_worked": {"size": 1, "type": "uint"},
-            "profession_or_treasure_amount": {"size": 1, "type": "profession_type", "__hint": "Can be 'expert farmer' for ships, it's ok. A amount of gold for Treasure units (100's, i.e. 0x32 = 50d = 5000 gold)"},
+            "profession_or_treasure_amount": {"size": 1, "type": "uint", "__hint": "Can be 'expert farmer' for ships, it's ok. A amount of gold for Treasure units (100's, i.e. 0x32 = 50d = 5000 gold)"},
             "transport_chain":
             {
                 "no_indent": true,
