@@ -12,6 +12,9 @@
 // cdr
 #include "cdr/ext.hpp"
 
+// base
+#include "base/to-str.hpp"
+
 // C++ standard libary
 #include <array>
 #include <cstdint>
@@ -53,6 +56,9 @@ enum class cargo_4bit_type : uint8_t {
   muskets = 0b1111,
 };
 
+// String conversion.
+void to_str( cargo_4bit_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          cargo_4bit_type const& o,
@@ -71,6 +77,9 @@ enum class control_type : uint8_t {
   ai        = 0x01,
   withdrawn = 0x02,
 };
+
+// String conversion.
+void to_str( control_type const& o, std::string& out, base::ADL_t );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -93,6 +102,9 @@ enum class difficulty_type : uint8_t {
   viceroy      = 0x04,
 };
 
+// String conversion.
+void to_str( difficulty_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          difficulty_type const& o,
@@ -113,6 +125,9 @@ enum class fortification_level_type : uint8_t {
   fortress = 0x03,
 };
 
+// String conversion.
+void to_str( fortification_level_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          fortification_level_type const& o,
@@ -131,6 +146,9 @@ enum class has_city_1bit_type : uint8_t {
   c     = 0b1,
 };
 
+// String conversion.
+void to_str( has_city_1bit_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          has_city_1bit_type const& o,
@@ -148,6 +166,9 @@ enum class has_unit_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   u     = 0b1,
 };
+
+// String conversion.
+void to_str( has_unit_1bit_type const& o, std::string& out, base::ADL_t );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -172,6 +193,9 @@ enum class hills_river_3bit_type : uint8_t {
   tt    = 0b110,  // original: "~~"
 };
 
+// String conversion.
+void to_str( hills_river_3bit_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          hills_river_3bit_type const& o,
@@ -190,6 +214,9 @@ enum class level_2bit_type : uint8_t {
   _1 = 0b01,
   _2 = 0b11,
 };
+
+// String conversion.
+void to_str( level_2bit_type const& o, std::string& out, base::ADL_t );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -210,6 +237,9 @@ enum class level_3bit_type : uint8_t {
   _2 = 0b011,
   _3 = 0b111,
 };
+
+// String conversion.
+void to_str( level_3bit_type const& o, std::string& out, base::ADL_t );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -240,6 +270,9 @@ enum class nation_4bit_short_type : uint8_t {
   empty = 0b1111,  // original: "  "
 };
 
+// String conversion.
+void to_str( nation_4bit_short_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          nation_4bit_short_type const& o,
@@ -269,6 +302,9 @@ enum class nation_4bit_type : uint8_t {
   none        = 0b1111,
 };
 
+// String conversion.
+void to_str( nation_4bit_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          nation_4bit_type const& o,
@@ -297,6 +333,9 @@ enum class nation_type : uint8_t {
   tupi        = 0x0B,
   none        = 0xFF,
 };
+
+// String conversion.
+void to_str( nation_type const& o, std::string& out, base::ADL_t );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -334,6 +373,9 @@ enum class occupation_type : uint8_t {
   qqqqqqqqqq      = 0x13,  // original: "??????????"
 };
 
+// String conversion.
+void to_str( occupation_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          occupation_type const& o,
@@ -361,6 +403,9 @@ enum class orders_type : uint8_t {
   unknownc  = 0x0C,
 };
 
+// String conversion.
+void to_str( orders_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          orders_type const& o,
@@ -379,6 +424,9 @@ enum class pacific_1bit_type : uint8_t {
   t     = 0b1,  // original: "~"
 };
 
+// String conversion.
+void to_str( pacific_1bit_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          pacific_1bit_type const& o,
@@ -396,6 +444,9 @@ enum class plowed_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   h     = 0b1,  // original: "#"
 };
+
+// String conversion.
+void to_str( plowed_1bit_type const& o, std::string& out, base::ADL_t );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -442,6 +493,9 @@ enum class profession_type : uint8_t {
   free_colonist          = 0x1C,
 };
 
+// String conversion.
+void to_str( profession_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          profession_type const& o,
@@ -459,6 +513,9 @@ enum class purchased_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   a     = 0b1,  // original: "*"
 };
+
+// String conversion.
+void to_str( purchased_1bit_type const& o, std::string& out, base::ADL_t );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -492,6 +549,9 @@ enum class region_id_4bit_type : uint8_t {
   _15 = 0b1111,
 };
 
+// String conversion.
+void to_str( region_id_4bit_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          region_id_4bit_type const& o,
@@ -513,6 +573,9 @@ enum class relation_type : uint8_t {
   unknown_rel  = 0x66,
 };
 
+// String conversion.
+void to_str( relation_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          relation_type const& o,
@@ -530,6 +593,9 @@ enum class road_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   e     = 0b1,  // original: "="
 };
+
+// String conversion.
+void to_str( road_1bit_type const& o, std::string& out, base::ADL_t );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -549,6 +615,9 @@ enum class season_type : uint16_t {
   autumn = 0x0001,
 };
 
+// String conversion.
+void to_str( season_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          season_type const& o,
@@ -566,6 +635,9 @@ enum class suppress_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   _     = 0b1,
 };
+
+// String conversion.
+void to_str( suppress_1bit_type const& o, std::string& out, base::ADL_t );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -586,6 +658,9 @@ enum class tech_type : uint8_t {
   advanced     = 0x02,
   civilized    = 0x03,
 };
+
+// String conversion.
+void to_str( tech_type const& o, std::string& out, base::ADL_t );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -622,6 +697,9 @@ enum class terrain_5bit_type : uint8_t {
   tnt = 0b11010,  // original: "~:~"
 };
 
+// String conversion.
+void to_str( terrain_5bit_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          terrain_5bit_type const& o,
@@ -639,6 +717,9 @@ enum class trade_route_type : uint8_t {
   land = 0x00,
   sea  = 0x01,
 };
+
+// String conversion.
+void to_str( trade_route_type const& o, std::string& out, base::ADL_t );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -679,6 +760,9 @@ enum class unit_type : uint8_t {
   mounted_warrior     = 0x16,
 };
 
+// String conversion.
+void to_str( unit_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          unit_type const& o,
@@ -696,6 +780,9 @@ enum class visible_to_dutch_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   d     = 0b1,
 };
+
+// String conversion.
+void to_str( visible_to_dutch_1bit_type const& o, std::string& out, base::ADL_t );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -715,6 +802,9 @@ enum class visible_to_english_1bit_type : uint8_t {
   e     = 0b1,
 };
 
+// String conversion.
+void to_str( visible_to_english_1bit_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          visible_to_english_1bit_type const& o,
@@ -733,6 +823,9 @@ enum class visible_to_french_1bit_type : uint8_t {
   f     = 0b1,
 };
 
+// String conversion.
+void to_str( visible_to_french_1bit_type const& o, std::string& out, base::ADL_t );
+
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
                          visible_to_french_1bit_type const& o,
@@ -750,6 +843,9 @@ enum class visible_to_spanish_1bit_type : uint8_t {
   empty = 0b0,  // original: " "
   s     = 0b1,
 };
+
+// String conversion.
+void to_str( visible_to_spanish_1bit_type const& o, std::string& out, base::ADL_t );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -779,8 +875,12 @@ struct GameOptions {
   bool operator==( GameOptions const& ) const = default;
 };
 
+// String conversion.
+void to_str( GameOptions const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, GameOptions& o );
+
 bool write_binary( base::IBinaryIO& b, GameOptions const& o );
 
 // Cdr conversions.
@@ -812,8 +912,12 @@ struct ColonyReportOptions {
   bool operator==( ColonyReportOptions const& ) const = default;
 };
 
+// String conversion.
+void to_str( ColonyReportOptions const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, ColonyReportOptions& o );
+
 bool write_binary( base::IBinaryIO& b, ColonyReportOptions const& o );
 
 // Cdr conversions.
@@ -850,8 +954,12 @@ struct Event {
   bool operator==( Event const& ) const = default;
 };
 
+// String conversion.
+void to_str( Event const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Event& o );
+
 bool write_binary( base::IBinaryIO& b, Event const& o );
 
 // Cdr conversions.
@@ -874,8 +982,12 @@ struct Duration {
   bool operator==( Duration const& ) const = default;
 };
 
+// String conversion.
+void to_str( Duration const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Duration& o );
+
 bool write_binary( base::IBinaryIO& b, Duration const& o );
 
 // Cdr conversions.
@@ -915,8 +1027,12 @@ struct Buildings {
   bool operator==( Buildings const& ) const = default;
 };
 
+// String conversion.
+void to_str( Buildings const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Buildings& o );
+
 bool write_binary( base::IBinaryIO& b, Buildings const& o );
 
 // Cdr conversions.
@@ -953,8 +1069,12 @@ struct CustomHouseFlags {
   bool operator==( CustomHouseFlags const& ) const = default;
 };
 
+// String conversion.
+void to_str( CustomHouseFlags const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, CustomHouseFlags& o );
+
 bool write_binary( base::IBinaryIO& b, CustomHouseFlags const& o );
 
 // Cdr conversions.
@@ -980,8 +1100,12 @@ struct NationInfo {
   bool operator==( NationInfo const& ) const = default;
 };
 
+// String conversion.
+void to_str( NationInfo const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, NationInfo& o );
+
 bool write_binary( base::IBinaryIO& b, NationInfo const& o );
 
 // Cdr conversions.
@@ -1004,8 +1128,12 @@ struct Unknown15 {
   bool operator==( Unknown15 const& ) const = default;
 };
 
+// String conversion.
+void to_str( Unknown15 const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Unknown15& o );
+
 bool write_binary( base::IBinaryIO& b, Unknown15 const& o );
 
 // Cdr conversions.
@@ -1028,8 +1156,12 @@ struct CargoItems {
   bool operator==( CargoItems const& ) const = default;
 };
 
+// String conversion.
+void to_str( CargoItems const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, CargoItems& o );
+
 bool write_binary( base::IBinaryIO& b, CargoItems const& o );
 
 // Cdr conversions.
@@ -1066,8 +1198,12 @@ struct BoycottBitmap {
   bool operator==( BoycottBitmap const& ) const = default;
 };
 
+// String conversion.
+void to_str( BoycottBitmap const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, BoycottBitmap& o );
+
 bool write_binary( base::IBinaryIO& b, BoycottBitmap const& o );
 
 // Cdr conversions.
@@ -1093,8 +1229,12 @@ struct ALCS {
   bool operator==( ALCS const& ) const = default;
 };
 
+// String conversion.
+void to_str( ALCS const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, ALCS& o );
+
 bool write_binary( base::IBinaryIO& b, ALCS const& o );
 
 // Cdr conversions.
@@ -1117,8 +1257,12 @@ struct TILE {
   bool operator==( TILE const& ) const = default;
 };
 
+// String conversion.
+void to_str( TILE const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, TILE& o );
+
 bool write_binary( base::IBinaryIO& b, TILE const& o );
 
 // Cdr conversions.
@@ -1147,8 +1291,12 @@ struct MASK {
   bool operator==( MASK const& ) const = default;
 };
 
+// String conversion.
+void to_str( MASK const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, MASK& o );
+
 bool write_binary( base::IBinaryIO& b, MASK const& o );
 
 // Cdr conversions.
@@ -1171,8 +1319,12 @@ struct PATH {
   bool operator==( PATH const& ) const = default;
 };
 
+// String conversion.
+void to_str( PATH const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, PATH& o );
+
 bool write_binary( base::IBinaryIO& b, PATH const& o );
 
 // Cdr conversions.
@@ -1198,8 +1350,12 @@ struct SEEN {
   bool operator==( SEEN const& ) const = default;
 };
 
+// String conversion.
+void to_str( SEEN const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, SEEN& o );
+
 bool write_binary( base::IBinaryIO& b, SEEN const& o );
 
 // Cdr conversions.
@@ -1222,8 +1378,12 @@ struct Stop1LoadsAndUnloadsCount {
   bool operator==( Stop1LoadsAndUnloadsCount const& ) const = default;
 };
 
+// String conversion.
+void to_str( Stop1LoadsAndUnloadsCount const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop1LoadsAndUnloadsCount& o );
+
 bool write_binary( base::IBinaryIO& b, Stop1LoadsAndUnloadsCount const& o );
 
 // Cdr conversions.
@@ -1250,8 +1410,12 @@ struct Stop1LoadsCargo {
   bool operator==( Stop1LoadsCargo const& ) const = default;
 };
 
+// String conversion.
+void to_str( Stop1LoadsCargo const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop1LoadsCargo& o );
+
 bool write_binary( base::IBinaryIO& b, Stop1LoadsCargo const& o );
 
 // Cdr conversions.
@@ -1278,8 +1442,12 @@ struct Stop1UnloadsCargo {
   bool operator==( Stop1UnloadsCargo const& ) const = default;
 };
 
+// String conversion.
+void to_str( Stop1UnloadsCargo const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop1UnloadsCargo& o );
+
 bool write_binary( base::IBinaryIO& b, Stop1UnloadsCargo const& o );
 
 // Cdr conversions.
@@ -1302,8 +1470,12 @@ struct Stop2LoadsAndUnloadsCount {
   bool operator==( Stop2LoadsAndUnloadsCount const& ) const = default;
 };
 
+// String conversion.
+void to_str( Stop2LoadsAndUnloadsCount const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop2LoadsAndUnloadsCount& o );
+
 bool write_binary( base::IBinaryIO& b, Stop2LoadsAndUnloadsCount const& o );
 
 // Cdr conversions.
@@ -1330,8 +1502,12 @@ struct Stop2LoadsCargo {
   bool operator==( Stop2LoadsCargo const& ) const = default;
 };
 
+// String conversion.
+void to_str( Stop2LoadsCargo const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop2LoadsCargo& o );
+
 bool write_binary( base::IBinaryIO& b, Stop2LoadsCargo const& o );
 
 // Cdr conversions.
@@ -1358,8 +1534,12 @@ struct Stop2UnloadsCargo {
   bool operator==( Stop2UnloadsCargo const& ) const = default;
 };
 
+// String conversion.
+void to_str( Stop2UnloadsCargo const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop2UnloadsCargo& o );
+
 bool write_binary( base::IBinaryIO& b, Stop2UnloadsCargo const& o );
 
 // Cdr conversions.
@@ -1382,8 +1562,12 @@ struct Stop3LoadsAndUnloadsCount {
   bool operator==( Stop3LoadsAndUnloadsCount const& ) const = default;
 };
 
+// String conversion.
+void to_str( Stop3LoadsAndUnloadsCount const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop3LoadsAndUnloadsCount& o );
+
 bool write_binary( base::IBinaryIO& b, Stop3LoadsAndUnloadsCount const& o );
 
 // Cdr conversions.
@@ -1410,8 +1594,12 @@ struct Stop3LoadsCargo {
   bool operator==( Stop3LoadsCargo const& ) const = default;
 };
 
+// String conversion.
+void to_str( Stop3LoadsCargo const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop3LoadsCargo& o );
+
 bool write_binary( base::IBinaryIO& b, Stop3LoadsCargo const& o );
 
 // Cdr conversions.
@@ -1438,8 +1626,12 @@ struct Stop3UnloadsCargo {
   bool operator==( Stop3UnloadsCargo const& ) const = default;
 };
 
+// String conversion.
+void to_str( Stop3UnloadsCargo const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop3UnloadsCargo& o );
+
 bool write_binary( base::IBinaryIO& b, Stop3UnloadsCargo const& o );
 
 // Cdr conversions.
@@ -1462,8 +1654,12 @@ struct Stop4LoadsAndUnloadsCount {
   bool operator==( Stop4LoadsAndUnloadsCount const& ) const = default;
 };
 
+// String conversion.
+void to_str( Stop4LoadsAndUnloadsCount const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop4LoadsAndUnloadsCount& o );
+
 bool write_binary( base::IBinaryIO& b, Stop4LoadsAndUnloadsCount const& o );
 
 // Cdr conversions.
@@ -1490,8 +1686,12 @@ struct Stop4LoadsCargo {
   bool operator==( Stop4LoadsCargo const& ) const = default;
 };
 
+// String conversion.
+void to_str( Stop4LoadsCargo const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop4LoadsCargo& o );
+
 bool write_binary( base::IBinaryIO& b, Stop4LoadsCargo const& o );
 
 // Cdr conversions.
@@ -1518,8 +1718,12 @@ struct Stop4UnloadsCargo {
   bool operator==( Stop4UnloadsCargo const& ) const = default;
 };
 
+// String conversion.
+void to_str( Stop4UnloadsCargo const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop4UnloadsCargo& o );
+
 bool write_binary( base::IBinaryIO& b, Stop4UnloadsCargo const& o );
 
 // Cdr conversions.
@@ -1544,8 +1748,12 @@ struct ExpeditionaryForce {
   bool operator==( ExpeditionaryForce const& ) const = default;
 };
 
+// String conversion.
+void to_str( ExpeditionaryForce const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, ExpeditionaryForce& o );
+
 bool write_binary( base::IBinaryIO& b, ExpeditionaryForce const& o );
 
 // Cdr conversions.
@@ -1570,8 +1778,12 @@ struct BackupForce {
   bool operator==( BackupForce const& ) const = default;
 };
 
+// String conversion.
+void to_str( BackupForce const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, BackupForce& o );
+
 bool write_binary( base::IBinaryIO& b, BackupForce const& o );
 
 // Cdr conversions.
@@ -1608,8 +1820,12 @@ struct PriceGroupState {
   bool operator==( PriceGroupState const& ) const = default;
 };
 
+// String conversion.
+void to_str( PriceGroupState const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, PriceGroupState& o );
+
 bool write_binary( base::IBinaryIO& b, PriceGroupState const& o );
 
 // Cdr conversions.
@@ -1665,8 +1881,12 @@ struct HEAD {
   bool operator==( HEAD const& ) const = default;
 };
 
+// String conversion.
+void to_str( HEAD const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, HEAD& o );
+
 bool write_binary( base::IBinaryIO& b, HEAD const& o );
 
 // Cdr conversions.
@@ -1693,8 +1913,12 @@ struct PLAYER {
   bool operator==( PLAYER const& ) const = default;
 };
 
+// String conversion.
+void to_str( PLAYER const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, PLAYER& o );
+
 bool write_binary( base::IBinaryIO& b, PLAYER const& o );
 
 // Cdr conversions.
@@ -1723,8 +1947,12 @@ struct Tiles {
   bool operator==( Tiles const& ) const = default;
 };
 
+// String conversion.
+void to_str( Tiles const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Tiles& o );
+
 bool write_binary( base::IBinaryIO& b, Tiles const& o );
 
 // Cdr conversions.
@@ -1761,8 +1989,12 @@ struct Stock {
   bool operator==( Stock const& ) const = default;
 };
 
+// String conversion.
+void to_str( Stock const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stock& o );
+
 bool write_binary( base::IBinaryIO& b, Stock const& o );
 
 // Cdr conversions.
@@ -1787,8 +2019,12 @@ struct PopulationOnMap {
   bool operator==( PopulationOnMap const& ) const = default;
 };
 
+// String conversion.
+void to_str( PopulationOnMap const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, PopulationOnMap& o );
+
 bool write_binary( base::IBinaryIO& b, PopulationOnMap const& o );
 
 // Cdr conversions.
@@ -1813,8 +2049,12 @@ struct FortificationOnMap {
   bool operator==( FortificationOnMap const& ) const = default;
 };
 
+// String conversion.
+void to_str( FortificationOnMap const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, FortificationOnMap& o );
+
 bool write_binary( base::IBinaryIO& b, FortificationOnMap const& o );
 
 // Cdr conversions.
@@ -1857,8 +2097,12 @@ struct COLONY {
   bool operator==( COLONY const& ) const = default;
 };
 
+// String conversion.
+void to_str( COLONY const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, COLONY& o );
+
 bool write_binary( base::IBinaryIO& b, COLONY const& o );
 
 // Cdr conversions.
@@ -1881,8 +2125,12 @@ struct TransportChain {
   bool operator==( TransportChain const& ) const = default;
 };
 
+// String conversion.
+void to_str( TransportChain const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, TransportChain& o );
+
 bool write_binary( base::IBinaryIO& b, TransportChain const& o );
 
 // Cdr conversions.
@@ -1920,8 +2168,12 @@ struct UNIT {
   bool operator==( UNIT const& ) const = default;
 };
 
+// String conversion.
+void to_str( UNIT const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, UNIT& o );
+
 bool write_binary( base::IBinaryIO& b, UNIT const& o );
 
 // Cdr conversions.
@@ -1950,8 +2202,12 @@ struct RelationByIndian {
   bool operator==( RelationByIndian const& ) const = default;
 };
 
+// String conversion.
+void to_str( RelationByIndian const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, RelationByIndian& o );
+
 bool write_binary( base::IBinaryIO& b, RelationByIndian const& o );
 
 // Cdr conversions.
@@ -1977,8 +2233,12 @@ struct Trade {
   bool operator==( Trade const& ) const = default;
 };
 
+// String conversion.
+void to_str( Trade const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Trade& o );
+
 bool write_binary( base::IBinaryIO& b, Trade const& o );
 
 // Cdr conversions.
@@ -2028,8 +2288,12 @@ struct NATION {
   bool operator==( NATION const& ) const = default;
 };
 
+// String conversion.
+void to_str( NATION const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, NATION& o );
+
 bool write_binary( base::IBinaryIO& b, NATION const& o );
 
 // Cdr conversions.
@@ -2052,8 +2316,12 @@ struct Alarm {
   bool operator==( Alarm const& ) const = default;
 };
 
+// String conversion.
+void to_str( Alarm const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Alarm& o );
+
 bool write_binary( base::IBinaryIO& b, Alarm const& o );
 
 // Cdr conversions.
@@ -2083,8 +2351,12 @@ struct TRIBE {
   bool operator==( TRIBE const& ) const = default;
 };
 
+// String conversion.
+void to_str( TRIBE const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, TRIBE& o );
+
 bool write_binary( base::IBinaryIO& b, TRIBE const& o );
 
 // Cdr conversions.
@@ -2109,8 +2381,12 @@ struct RelationByNations {
   bool operator==( RelationByNations const& ) const = default;
 };
 
+// String conversion.
+void to_str( RelationByNations const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, RelationByNations& o );
+
 bool write_binary( base::IBinaryIO& b, RelationByNations const& o );
 
 // Cdr conversions.
@@ -2142,8 +2418,12 @@ struct INDIAN {
   bool operator==( INDIAN const& ) const = default;
 };
 
+// String conversion.
+void to_str( INDIAN const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, INDIAN& o );
+
 bool write_binary( base::IBinaryIO& b, INDIAN const& o );
 
 // Cdr conversions.
@@ -2175,8 +2455,12 @@ struct STUFF {
   bool operator==( STUFF const& ) const = default;
 };
 
+// String conversion.
+void to_str( STUFF const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, STUFF& o );
+
 bool write_binary( base::IBinaryIO& b, STUFF const& o );
 
 // Cdr conversions.
@@ -2220,8 +2504,12 @@ struct TRADEROUTE {
   bool operator==( TRADEROUTE const& ) const = default;
 };
 
+// String conversion.
+void to_str( TRADEROUTE const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, TRADEROUTE& o );
+
 bool write_binary( base::IBinaryIO& b, TRADEROUTE const& o );
 
 // Cdr conversions.
@@ -2262,8 +2550,12 @@ struct ColonySAV {
   bool operator==( ColonySAV const& ) const = default;
 };
 
+// String conversion.
+void to_str( ColonySAV const& o, std::string& out, base::ADL_t );
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, ColonySAV& o );
+
 bool write_binary( base::IBinaryIO& b, ColonySAV const& o );
 
 // Cdr conversions.

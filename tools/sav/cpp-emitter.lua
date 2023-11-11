@@ -378,10 +378,10 @@ local function readably_equivalent( l, r )
 end
 
 local function emit_binary_conv_decl( hpp, name )
-  hpp:newline();
   hpp:comment( 'Binary conversion.' )
   hpp:line( 'bool read_binary( base::IBinaryIO& b, %s& o );',
             name )
+  hpp:newline()
   hpp:line(
       'bool write_binary( base::IBinaryIO& b, %s const& o );',
       name )
@@ -547,8 +547,14 @@ local function emit_struct_binary_conv_def( cpp, name, struct )
   cpp:line( '}' )
 end
 
-local function emit_cdr_conv_decl( name, hpp )
-  hpp:newline()
+local function emit_to_str_conv_decl( hpp, name )
+  hpp:comment( 'String conversion.' )
+  hpp:line(
+      'void to_str( %s const& o, std::string& out, base::ADL_t );',
+      name )
+end
+
+local function emit_cdr_conv_decl( hpp, name )
   hpp:comment( 'Cdr conversions.' )
   hpp:line( 'cdr::value to_canonical( cdr::converter& conv,' )
   hpp:line( '                         %s const& o,', name )
@@ -560,8 +566,27 @@ local function emit_cdr_conv_decl( name, hpp )
   hpp:line( '                         cdr::tag_t<%s> );', name )
 end
 
-local function emit_metadata_cdr_conv_def(processed_elems, name,
-                                          cpp )
+local function emit_metadata_to_str_conv_def(processed_elems,
+                                             cpp, name )
+  cpp:line(
+      'void to_str( %s const& o, std::string& out, base::ADL_t ) {',
+      name )
+  cpp:indent()
+  cpp:line( 'switch( o ) {' )
+  cpp:indent()
+  for _, pe in ipairs( processed_elems ) do
+    cpp:line( 'case %s::%s: out += "%s"; return;', name,
+              pe.field, pe.original_field )
+  end
+  cpp:unindent()
+  cpp:line( '}' )
+  cpp:line( 'out += "<unrecognized>";' )
+  cpp:unindent()
+  cpp:line( '}' )
+end
+
+local function emit_metadata_cdr_conv_def(processed_elems, cpp,
+                                          name )
   cpp:line( 'cdr::value to_canonical( cdr::converter&,' )
   cpp:line( '                         %s const& o,', name )
   cpp:line( '                         cdr::tag_t<%s> ) {', name );
@@ -574,7 +599,7 @@ local function emit_metadata_cdr_conv_def(processed_elems, name,
   end
   cpp:unindent()
   cpp:line( '}' )
-  cpp:line( 'BAD_ENUM_VALUE( "%s", o );', name )
+  cpp:line( 'return cdr::null;' )
   cpp:unindent()
   cpp:line( '}' )
   cpp:newline()
@@ -605,8 +630,37 @@ local function emit_metadata_cdr_conv_def(processed_elems, name,
   cpp:line( '}' )
 end
 
-local function emit_bit_struct_cdr_conv_def(name, cpp, bit_struct )
-  cpp:newline()
+local function emit_bit_struct_to_str_conv_def(cpp, name,
+                                               bit_struct )
+  cpp:line(
+      'void to_str( %s const& o, std::string& out, base::ADL_t t ) {',
+      name )
+  cpp:indent()
+  cpp:line( 'out += "%s{";', name )
+  for i, key in ipairs( bit_struct.__key_order ) do
+    if key:match( '__' ) then goto continue end
+    local info = assert( bit_struct[key] )
+    assert( info.size )
+    assert( type( info.size ) == 'number' )
+    local field
+    if not info.type then
+      field = format( 'bits<%d>{ o.%s }', info.size,
+                      as_identifier( key ) )
+    else
+      field = format( 'o.%s', as_identifier( key ) )
+    end
+    local comma = ' out += \',\';'
+    if i == #bit_struct.__key_order then comma = '' end
+    cpp:line( 'out += "%s="; to_str( %s, out, t );%s',
+              as_identifier( key ), field, comma )
+    ::continue::
+  end
+  cpp:line( 'out += \'}\';' )
+  cpp:unindent()
+  cpp:line( '}' )
+end
+
+local function emit_bit_struct_cdr_conv_def(cpp, name, bit_struct )
   cpp:line( 'cdr::value to_canonical( cdr::converter& conv,' )
   cpp:line( '                         %s const& o,', name )
   cpp:line( '                         cdr::tag_t<%s> ) {', name );
@@ -670,8 +724,26 @@ local function emit_bit_struct_cdr_conv_def(name, cpp, bit_struct )
   cpp:line( '}' )
 end
 
-local function emit_struct_cdr_conv_def( name, cpp, struct )
-  cpp:newline()
+local function emit_struct_to_str_conv_def( cpp, name, struct )
+  cpp:line(
+      'void to_str( %s const& o, std::string& out, base::ADL_t t ) {',
+      name )
+  cpp:indent()
+  cpp:line( 'out += "%s{";', name )
+  for i, key in ipairs( struct.__key_order ) do
+    if key:match( '__' ) then goto continue end
+    local comma = ' out += \',\';'
+    if i == #struct.__key_order then comma = '' end
+    cpp:line( 'out += "%s="; to_str( o.%s, out, t );%s',
+              as_identifier( key ), as_identifier( key ), comma )
+    ::continue::
+  end
+  cpp:line( 'out += \'}\';' )
+  cpp:unindent()
+  cpp:line( '}' )
+end
+
+local function emit_struct_cdr_conv_def( cpp, name, struct )
   cpp:line( 'cdr::value to_canonical( cdr::converter& conv,' )
   cpp:line( '                         %s const& o,', name )
   cpp:line( '                         cdr::tag_t<%s> ) {', name );
@@ -754,13 +826,22 @@ function CppEmitter:emit_bit_struct( hpp, cpp, bit_struct, name )
   hpp:unindent()
   hpp:line( '};' )
 
+  -- to-str conversion.
+  hpp:newline()
+  emit_to_str_conv_decl( hpp, name );
+  emit_bit_struct_to_str_conv_def( cpp, name, bit_struct );
+
   -- Binary conversion.
+  hpp:newline()
+  cpp:newline()
   emit_binary_conv_decl( hpp, name )
   emit_bit_struct_binary_conv_def( cpp, name, bit_struct )
 
   -- Cdr conversion.
-  emit_cdr_conv_decl( name, hpp )
-  emit_bit_struct_cdr_conv_def( name, cpp, bit_struct )
+  hpp:newline()
+  cpp:newline()
+  emit_cdr_conv_decl( hpp, name )
+  emit_bit_struct_cdr_conv_def( cpp, name, bit_struct )
 end
 
 local function struct_name_for( name )
@@ -836,7 +917,14 @@ function CppEmitter:emit_struct( hpp, cpp, struct, name )
   hpp:unindent()
   hpp:line( '};' )
 
+  -- to-str conversion.
+  hpp:newline()
+  emit_to_str_conv_decl( hpp, name );
+  emit_struct_to_str_conv_def( cpp, name, struct );
+
   -- Binary conversion.
+  hpp:newline()
+  cpp:newline()
   emit_binary_conv_decl( hpp, name )
   -- Writing binary conversion routines for the top-level struct
   -- requires some special considerations (e.g. dealing with
@@ -854,8 +942,10 @@ function CppEmitter:emit_struct( hpp, cpp, struct, name )
   end
 
   -- Cdr conversions.
-  emit_cdr_conv_decl( name, hpp )
-  emit_struct_cdr_conv_def( name, cpp, struct )
+  hpp:newline()
+  cpp:newline()
+  emit_cdr_conv_decl( hpp, name )
+  emit_struct_cdr_conv_def( cpp, name, struct )
 end
 
 function CppEmitter:emit_structs( hpp, cpp )
@@ -931,9 +1021,16 @@ function CppEmitter:emit_metadata_item( name, elems, hpp, cpp )
   hpp:unindent()
   hpp:line( '};' )
 
+  -- to-str conversion.
+  hpp:newline()
+  emit_to_str_conv_decl( hpp, name );
+  emit_metadata_to_str_conv_def( processed_elems, cpp, name );
+
   -- Cdr conversions.
-  emit_cdr_conv_decl( name, hpp )
-  emit_metadata_cdr_conv_def( processed_elems, name, cpp )
+  hpp:newline()
+  cpp:newline()
+  emit_cdr_conv_decl( hpp, name )
+  emit_metadata_cdr_conv_def( processed_elems, cpp, name )
 end
 
 function CppEmitter:emit_metadata( hpp, cpp )
@@ -962,12 +1059,8 @@ end
 function CppEmitter:emit_cpp_macros( cpp )
   cpp:section( 'Macros.' )
   -- LuaFormatter off
-  cpp:line( [[#define BAD_ENUM_VALUE( typename, value )                \]] )
-  cpp:line( [[  FATAL( "unrecognized value for type " typename ": {}", \]] )
-  cpp:line( [[      static_cast<std::underlying_type_t<has_city_1bit_type>>( o ) )]] )
-  cpp:line( [[]] )
-  cpp:line( [[#define BAD_ENUM_STR_VALUE( typename, str_value )           \]] )
-  cpp:line( [[  conv.err( "unreognize value for enum " typename ": '{}'", \]] )
+  cpp:line( [[#define BAD_ENUM_STR_VALUE( typename, str_value )             \]] )
+  cpp:line( [[  conv.err( "unrecognized value for enum " typename ": '{}'", \]] )
   cpp:line( [[             str_value )]] )
   cpp:line( [[]] )
   cpp:line( [[#define CONV_FROM_FIELD( name, identifier )                       \]] )
@@ -1001,6 +1094,9 @@ function CppEmitter:generate_code()
   hpp:comment( 'cdr' )
   hpp:include( '"cdr/ext.hpp"' )
   hpp:newline()
+  hpp:comment( 'base' )
+  hpp:include( '"base/to-str.hpp"' )
+  hpp:newline()
   hpp:comment( 'C++ standard libary' )
   hpp:include( '<array>' )
   hpp:include( '<cstdint>' )
@@ -1026,6 +1122,7 @@ function CppEmitter:generate_code()
   cpp:newline()
   cpp:comment( 'base' )
   cpp:include( '"base/binary-data.hpp"' )
+  cpp:include( '"base/to-str-ext-std.hpp"' )
   cpp:newline()
   cpp:comment( 'C++ standard libary' )
   cpp:include( '<map>' )

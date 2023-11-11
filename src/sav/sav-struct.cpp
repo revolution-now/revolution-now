@@ -12,6 +12,7 @@
 
 // base
 #include "base/binary-data.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // C++ standard libary
 #include <map>
@@ -19,12 +20,8 @@
 /****************************************************************
 ** Macros.
 *****************************************************************/
-#define BAD_ENUM_VALUE( typename, value )                \
-  FATAL( "unrecognized value for type " typename ": {}", \
-      static_cast<std::underlying_type_t<has_city_1bit_type>>( o ) )
-
-#define BAD_ENUM_STR_VALUE( typename, str_value )           \
-  conv.err( "unreognize value for enum " typename ": '{}'", \
+#define BAD_ENUM_STR_VALUE( typename, str_value )             \
+  conv.err( "unrecognized value for enum " typename ": '{}'", \
              str_value )
 
 #define CONV_FROM_FIELD( name, identifier )                       \
@@ -46,6 +43,28 @@ namespace sav {
 /****************************************************************
 ** cargo_4bit_type
 *****************************************************************/
+void to_str( cargo_4bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case cargo_4bit_type::food: out += "food"; return;
+    case cargo_4bit_type::sugar: out += "sugar"; return;
+    case cargo_4bit_type::tobacco: out += "tobacco"; return;
+    case cargo_4bit_type::cotton: out += "cotton"; return;
+    case cargo_4bit_type::furs: out += "furs"; return;
+    case cargo_4bit_type::lumber: out += "lumber"; return;
+    case cargo_4bit_type::ore: out += "ore"; return;
+    case cargo_4bit_type::silver: out += "silver"; return;
+    case cargo_4bit_type::horses: out += "horses"; return;
+    case cargo_4bit_type::rum: out += "rum"; return;
+    case cargo_4bit_type::cigars: out += "cigars"; return;
+    case cargo_4bit_type::cloth: out += "cloth"; return;
+    case cargo_4bit_type::coats: out += "coats"; return;
+    case cargo_4bit_type::goods: out += "goods"; return;
+    case cargo_4bit_type::tools: out += "tools"; return;
+    case cargo_4bit_type::muskets: out += "muskets"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          cargo_4bit_type const& o,
                          cdr::tag_t<cargo_4bit_type> ) {
@@ -67,7 +86,7 @@ cdr::value to_canonical( cdr::converter&,
     case cargo_4bit_type::tools: return "tools";
     case cargo_4bit_type::muskets: return "muskets";
   }
-  BAD_ENUM_VALUE( "cargo_4bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<cargo_4bit_type> from_canonical(
@@ -102,6 +121,15 @@ cdr::result<cargo_4bit_type> from_canonical(
 /****************************************************************
 ** control_type
 *****************************************************************/
+void to_str( control_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case control_type::player: out += "PLAYER"; return;
+    case control_type::ai: out += "AI"; return;
+    case control_type::withdrawn: out += "WITHDRAWN"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          control_type const& o,
                          cdr::tag_t<control_type> ) {
@@ -110,7 +138,7 @@ cdr::value to_canonical( cdr::converter&,
     case control_type::ai: return "AI";
     case control_type::withdrawn: return "WITHDRAWN";
   }
-  BAD_ENUM_VALUE( "control_type", o );
+  return cdr::null;
 }
 
 cdr::result<control_type> from_canonical(
@@ -132,6 +160,17 @@ cdr::result<control_type> from_canonical(
 /****************************************************************
 ** difficulty_type
 *****************************************************************/
+void to_str( difficulty_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case difficulty_type::discoverer: out += "Discoverer"; return;
+    case difficulty_type::explorer: out += "Explorer"; return;
+    case difficulty_type::conquistador: out += "Conquistador"; return;
+    case difficulty_type::governor: out += "Governor"; return;
+    case difficulty_type::viceroy: out += "Viceroy"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          difficulty_type const& o,
                          cdr::tag_t<difficulty_type> ) {
@@ -142,7 +181,7 @@ cdr::value to_canonical( cdr::converter&,
     case difficulty_type::governor: return "Governor";
     case difficulty_type::viceroy: return "Viceroy";
   }
-  BAD_ENUM_VALUE( "difficulty_type", o );
+  return cdr::null;
 }
 
 cdr::result<difficulty_type> from_canonical(
@@ -166,6 +205,16 @@ cdr::result<difficulty_type> from_canonical(
 /****************************************************************
 ** fortification_level_type
 *****************************************************************/
+void to_str( fortification_level_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case fortification_level_type::none: out += "none"; return;
+    case fortification_level_type::stockade: out += "stockade"; return;
+    case fortification_level_type::fort: out += "fort"; return;
+    case fortification_level_type::fortress: out += "fortress"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          fortification_level_type const& o,
                          cdr::tag_t<fortification_level_type> ) {
@@ -175,7 +224,7 @@ cdr::value to_canonical( cdr::converter&,
     case fortification_level_type::fort: return "fort";
     case fortification_level_type::fortress: return "fortress";
   }
-  BAD_ENUM_VALUE( "fortification_level_type", o );
+  return cdr::null;
 }
 
 cdr::result<fortification_level_type> from_canonical(
@@ -198,6 +247,14 @@ cdr::result<fortification_level_type> from_canonical(
 /****************************************************************
 ** has_city_1bit_type
 *****************************************************************/
+void to_str( has_city_1bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case has_city_1bit_type::empty: out += " "; return;
+    case has_city_1bit_type::c: out += "C"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          has_city_1bit_type const& o,
                          cdr::tag_t<has_city_1bit_type> ) {
@@ -205,7 +262,7 @@ cdr::value to_canonical( cdr::converter&,
     case has_city_1bit_type::empty: return " ";
     case has_city_1bit_type::c: return "C";
   }
-  BAD_ENUM_VALUE( "has_city_1bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<has_city_1bit_type> from_canonical(
@@ -226,6 +283,14 @@ cdr::result<has_city_1bit_type> from_canonical(
 /****************************************************************
 ** has_unit_1bit_type
 *****************************************************************/
+void to_str( has_unit_1bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case has_unit_1bit_type::empty: out += " "; return;
+    case has_unit_1bit_type::u: out += "U"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          has_unit_1bit_type const& o,
                          cdr::tag_t<has_unit_1bit_type> ) {
@@ -233,7 +298,7 @@ cdr::value to_canonical( cdr::converter&,
     case has_unit_1bit_type::empty: return " ";
     case has_unit_1bit_type::u: return "U";
   }
-  BAD_ENUM_VALUE( "has_unit_1bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<has_unit_1bit_type> from_canonical(
@@ -254,6 +319,19 @@ cdr::result<has_unit_1bit_type> from_canonical(
 /****************************************************************
 ** hills_river_3bit_type
 *****************************************************************/
+void to_str( hills_river_3bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case hills_river_3bit_type::empty: out += "  "; return;
+    case hills_river_3bit_type::c: out += "^ "; return;
+    case hills_river_3bit_type::t: out += "~ "; return;
+    case hills_river_3bit_type::tc: out += "~^"; return;
+    case hills_river_3bit_type::qq: out += "??"; return;
+    case hills_river_3bit_type::cc: out += "^^"; return;
+    case hills_river_3bit_type::tt: out += "~~"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          hills_river_3bit_type const& o,
                          cdr::tag_t<hills_river_3bit_type> ) {
@@ -266,7 +344,7 @@ cdr::value to_canonical( cdr::converter&,
     case hills_river_3bit_type::cc: return "^^";
     case hills_river_3bit_type::tt: return "~~";
   }
-  BAD_ENUM_VALUE( "hills_river_3bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<hills_river_3bit_type> from_canonical(
@@ -292,6 +370,15 @@ cdr::result<hills_river_3bit_type> from_canonical(
 /****************************************************************
 ** level_2bit_type
 *****************************************************************/
+void to_str( level_2bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case level_2bit_type::_0: out += "0"; return;
+    case level_2bit_type::_1: out += "1"; return;
+    case level_2bit_type::_2: out += "2"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          level_2bit_type const& o,
                          cdr::tag_t<level_2bit_type> ) {
@@ -300,7 +387,7 @@ cdr::value to_canonical( cdr::converter&,
     case level_2bit_type::_1: return "1";
     case level_2bit_type::_2: return "2";
   }
-  BAD_ENUM_VALUE( "level_2bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<level_2bit_type> from_canonical(
@@ -322,6 +409,16 @@ cdr::result<level_2bit_type> from_canonical(
 /****************************************************************
 ** level_3bit_type
 *****************************************************************/
+void to_str( level_3bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case level_3bit_type::_0: out += "0"; return;
+    case level_3bit_type::_1: out += "1"; return;
+    case level_3bit_type::_2: out += "2"; return;
+    case level_3bit_type::_3: out += "3"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          level_3bit_type const& o,
                          cdr::tag_t<level_3bit_type> ) {
@@ -331,7 +428,7 @@ cdr::value to_canonical( cdr::converter&,
     case level_3bit_type::_2: return "2";
     case level_3bit_type::_3: return "3";
   }
-  BAD_ENUM_VALUE( "level_3bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<level_3bit_type> from_canonical(
@@ -354,6 +451,25 @@ cdr::result<level_3bit_type> from_canonical(
 /****************************************************************
 ** nation_4bit_short_type
 *****************************************************************/
+void to_str( nation_4bit_short_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case nation_4bit_short_type::en: out += "EN"; return;
+    case nation_4bit_short_type::fr: out += "FR"; return;
+    case nation_4bit_short_type::sp: out += "SP"; return;
+    case nation_4bit_short_type::nl: out += "NL"; return;
+    case nation_4bit_short_type::in: out += "in"; return;
+    case nation_4bit_short_type::az: out += "az"; return;
+    case nation_4bit_short_type::aw: out += "aw"; return;
+    case nation_4bit_short_type::ir: out += "ir"; return;
+    case nation_4bit_short_type::ch: out += "ch"; return;
+    case nation_4bit_short_type::ap: out += "ap"; return;
+    case nation_4bit_short_type::si: out += "si"; return;
+    case nation_4bit_short_type::tu: out += "tu"; return;
+    case nation_4bit_short_type::empty: out += "  "; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          nation_4bit_short_type const& o,
                          cdr::tag_t<nation_4bit_short_type> ) {
@@ -372,7 +488,7 @@ cdr::value to_canonical( cdr::converter&,
     case nation_4bit_short_type::tu: return "tu";
     case nation_4bit_short_type::empty: return "  ";
   }
-  BAD_ENUM_VALUE( "nation_4bit_short_type", o );
+  return cdr::null;
 }
 
 cdr::result<nation_4bit_short_type> from_canonical(
@@ -404,6 +520,25 @@ cdr::result<nation_4bit_short_type> from_canonical(
 /****************************************************************
 ** nation_4bit_type
 *****************************************************************/
+void to_str( nation_4bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case nation_4bit_type::england: out += "England"; return;
+    case nation_4bit_type::france: out += "France"; return;
+    case nation_4bit_type::spain: out += "Spain"; return;
+    case nation_4bit_type::netherlands: out += "Netherlands"; return;
+    case nation_4bit_type::inca: out += "Inca"; return;
+    case nation_4bit_type::aztec: out += "Aztec"; return;
+    case nation_4bit_type::awarak: out += "Awarak"; return;
+    case nation_4bit_type::iroquois: out += "Iroquois"; return;
+    case nation_4bit_type::cherokee: out += "Cherokee"; return;
+    case nation_4bit_type::apache: out += "Apache"; return;
+    case nation_4bit_type::sioux: out += "Sioux"; return;
+    case nation_4bit_type::tupi: out += "Tupi"; return;
+    case nation_4bit_type::none: out += "None"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          nation_4bit_type const& o,
                          cdr::tag_t<nation_4bit_type> ) {
@@ -422,7 +557,7 @@ cdr::value to_canonical( cdr::converter&,
     case nation_4bit_type::tupi: return "Tupi";
     case nation_4bit_type::none: return "None";
   }
-  BAD_ENUM_VALUE( "nation_4bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<nation_4bit_type> from_canonical(
@@ -454,6 +589,25 @@ cdr::result<nation_4bit_type> from_canonical(
 /****************************************************************
 ** nation_type
 *****************************************************************/
+void to_str( nation_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case nation_type::england: out += "England"; return;
+    case nation_type::france: out += "France"; return;
+    case nation_type::spain: out += "Spain"; return;
+    case nation_type::netherlands: out += "Netherlands"; return;
+    case nation_type::inca: out += "Inca"; return;
+    case nation_type::aztec: out += "Aztec"; return;
+    case nation_type::awarak: out += "Awarak"; return;
+    case nation_type::iroquois: out += "Iroquois"; return;
+    case nation_type::cherokee: out += "Cherokee"; return;
+    case nation_type::apache: out += "Apache"; return;
+    case nation_type::sioux: out += "Sioux"; return;
+    case nation_type::tupi: out += "Tupi"; return;
+    case nation_type::none: out += "None"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          nation_type const& o,
                          cdr::tag_t<nation_type> ) {
@@ -472,7 +626,7 @@ cdr::value to_canonical( cdr::converter&,
     case nation_type::tupi: return "Tupi";
     case nation_type::none: return "None";
   }
-  BAD_ENUM_VALUE( "nation_type", o );
+  return cdr::null;
 }
 
 cdr::result<nation_type> from_canonical(
@@ -504,6 +658,32 @@ cdr::result<nation_type> from_canonical(
 /****************************************************************
 ** occupation_type
 *****************************************************************/
+void to_str( occupation_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case occupation_type::farmer: out += "Farmer"; return;
+    case occupation_type::sugar_planter: out += "Sugar planter"; return;
+    case occupation_type::tobacco_planter: out += "Tobacco planter"; return;
+    case occupation_type::cotton_planter: out += "Cotton planter"; return;
+    case occupation_type::fur_trapper: out += "Fur trapper"; return;
+    case occupation_type::lumberjack: out += "Lumberjack"; return;
+    case occupation_type::ore_miner: out += "Ore miner"; return;
+    case occupation_type::silver_miner: out += "Silver miner"; return;
+    case occupation_type::fisherman: out += "Fisherman"; return;
+    case occupation_type::distiller: out += "Distiller"; return;
+    case occupation_type::tobacconist: out += "Tobacconist"; return;
+    case occupation_type::weaver: out += "Weaver"; return;
+    case occupation_type::fur_trader: out += "Fur trader"; return;
+    case occupation_type::carpenter: out += "Carpenter"; return;
+    case occupation_type::blacksmith: out += "Blacksmith"; return;
+    case occupation_type::gunsmith: out += "Gunsmith"; return;
+    case occupation_type::preacher: out += "Preacher"; return;
+    case occupation_type::statesman: out += "Statesman"; return;
+    case occupation_type::teacher: out += "Teacher"; return;
+    case occupation_type::qqqqqqqqqq: out += "??????????"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          occupation_type const& o,
                          cdr::tag_t<occupation_type> ) {
@@ -529,7 +709,7 @@ cdr::value to_canonical( cdr::converter&,
     case occupation_type::teacher: return "Teacher";
     case occupation_type::qqqqqqqqqq: return "??????????";
   }
-  BAD_ENUM_VALUE( "occupation_type", o );
+  return cdr::null;
 }
 
 cdr::result<occupation_type> from_canonical(
@@ -568,6 +748,23 @@ cdr::result<occupation_type> from_canonical(
 /****************************************************************
 ** orders_type
 *****************************************************************/
+void to_str( orders_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case orders_type::none: out += "none"; return;
+    case orders_type::sentry: out += "sentry"; return;
+    case orders_type::trading: out += "trading"; return;
+    case orders_type::g0to: out += "goto"; return;
+    case orders_type::fortified: out += "fortified"; return;
+    case orders_type::fortify: out += "fortify"; return;
+    case orders_type::plow: out += "plow"; return;
+    case orders_type::road: out += "road"; return;
+    case orders_type::unknowna: out += "unknowna"; return;
+    case orders_type::unknownb: out += "unknownb"; return;
+    case orders_type::unknownc: out += "unknownc"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          orders_type const& o,
                          cdr::tag_t<orders_type> ) {
@@ -584,7 +781,7 @@ cdr::value to_canonical( cdr::converter&,
     case orders_type::unknownb: return "unknownb";
     case orders_type::unknownc: return "unknownc";
   }
-  BAD_ENUM_VALUE( "orders_type", o );
+  return cdr::null;
 }
 
 cdr::result<orders_type> from_canonical(
@@ -614,6 +811,14 @@ cdr::result<orders_type> from_canonical(
 /****************************************************************
 ** pacific_1bit_type
 *****************************************************************/
+void to_str( pacific_1bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case pacific_1bit_type::empty: out += " "; return;
+    case pacific_1bit_type::t: out += "~"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          pacific_1bit_type const& o,
                          cdr::tag_t<pacific_1bit_type> ) {
@@ -621,7 +826,7 @@ cdr::value to_canonical( cdr::converter&,
     case pacific_1bit_type::empty: return " ";
     case pacific_1bit_type::t: return "~";
   }
-  BAD_ENUM_VALUE( "pacific_1bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<pacific_1bit_type> from_canonical(
@@ -642,6 +847,14 @@ cdr::result<pacific_1bit_type> from_canonical(
 /****************************************************************
 ** plowed_1bit_type
 *****************************************************************/
+void to_str( plowed_1bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case plowed_1bit_type::empty: out += " "; return;
+    case plowed_1bit_type::h: out += "#"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          plowed_1bit_type const& o,
                          cdr::tag_t<plowed_1bit_type> ) {
@@ -649,7 +862,7 @@ cdr::value to_canonical( cdr::converter&,
     case plowed_1bit_type::empty: return " ";
     case plowed_1bit_type::h: return "#";
   }
-  BAD_ENUM_VALUE( "plowed_1bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<plowed_1bit_type> from_canonical(
@@ -670,6 +883,41 @@ cdr::result<plowed_1bit_type> from_canonical(
 /****************************************************************
 ** profession_type
 *****************************************************************/
+void to_str( profession_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case profession_type::expert_farmer: out += "Expert farmer"; return;
+    case profession_type::master_sugar_planter: out += "Master sugar planter"; return;
+    case profession_type::master_tobacco_planter: out += "Master tobacco planter"; return;
+    case profession_type::master_cotton_planter: out += "Master cotton planter"; return;
+    case profession_type::expert_fur_trapper: out += "Expert fur trapper"; return;
+    case profession_type::expert_lumberjack: out += "Expert lumberjack"; return;
+    case profession_type::expert_ore_miner: out += "Expert ore miner"; return;
+    case profession_type::expert_silver_miner: out += "Expert silver miner"; return;
+    case profession_type::expert_fisherman: out += "Expert fisherman"; return;
+    case profession_type::master_distiller: out += "Master distiller"; return;
+    case profession_type::master_tobacconist: out += "Master tobacconist"; return;
+    case profession_type::master_weaver: out += "Master weaver"; return;
+    case profession_type::master_fur_trader: out += "Master fur trader"; return;
+    case profession_type::master_carpenter: out += "Master carpenter"; return;
+    case profession_type::master_blacksmith: out += "Master blacksmith"; return;
+    case profession_type::master_gunsmith: out += "Master gunsmith"; return;
+    case profession_type::firebrand_preacher: out += "Firebrand preacher"; return;
+    case profession_type::elder_statesman: out += "Elder statesman"; return;
+    case profession_type::a_student: out += "*(Student)"; return;
+    case profession_type::a_free_colonist: out += "*(Free colonist)"; return;
+    case profession_type::hardy_pioneer: out += "Hardy pioneer"; return;
+    case profession_type::veteran_soldier: out += "Veteran soldier"; return;
+    case profession_type::seasoned_scout: out += "Seasoned scout"; return;
+    case profession_type::veteran_dragoon: out += "Veteran dragoon"; return;
+    case profession_type::jesuit_missionary: out += "Jesuit missionary"; return;
+    case profession_type::indentured_servant: out += "Indentured servant"; return;
+    case profession_type::petty_criminal: out += "Petty criminal"; return;
+    case profession_type::indian_convert: out += "Indian convert"; return;
+    case profession_type::free_colonist: out += "Free colonist"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          profession_type const& o,
                          cdr::tag_t<profession_type> ) {
@@ -704,7 +952,7 @@ cdr::value to_canonical( cdr::converter&,
     case profession_type::indian_convert: return "Indian convert";
     case profession_type::free_colonist: return "Free colonist";
   }
-  BAD_ENUM_VALUE( "profession_type", o );
+  return cdr::null;
 }
 
 cdr::result<profession_type> from_canonical(
@@ -752,6 +1000,14 @@ cdr::result<profession_type> from_canonical(
 /****************************************************************
 ** purchased_1bit_type
 *****************************************************************/
+void to_str( purchased_1bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case purchased_1bit_type::empty: out += " "; return;
+    case purchased_1bit_type::a: out += "*"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          purchased_1bit_type const& o,
                          cdr::tag_t<purchased_1bit_type> ) {
@@ -759,7 +1015,7 @@ cdr::value to_canonical( cdr::converter&,
     case purchased_1bit_type::empty: return " ";
     case purchased_1bit_type::a: return "*";
   }
-  BAD_ENUM_VALUE( "purchased_1bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<purchased_1bit_type> from_canonical(
@@ -780,6 +1036,28 @@ cdr::result<purchased_1bit_type> from_canonical(
 /****************************************************************
 ** region_id_4bit_type
 *****************************************************************/
+void to_str( region_id_4bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case region_id_4bit_type::_0: out += " 0"; return;
+    case region_id_4bit_type::_1: out += " 1"; return;
+    case region_id_4bit_type::_2: out += " 2"; return;
+    case region_id_4bit_type::_3: out += " 3"; return;
+    case region_id_4bit_type::_4: out += " 4"; return;
+    case region_id_4bit_type::_5: out += " 5"; return;
+    case region_id_4bit_type::_6: out += " 6"; return;
+    case region_id_4bit_type::_7: out += " 7"; return;
+    case region_id_4bit_type::_8: out += " 8"; return;
+    case region_id_4bit_type::_9: out += " 9"; return;
+    case region_id_4bit_type::_10: out += "10"; return;
+    case region_id_4bit_type::_11: out += "11"; return;
+    case region_id_4bit_type::_12: out += "12"; return;
+    case region_id_4bit_type::_13: out += "13"; return;
+    case region_id_4bit_type::_14: out += "14"; return;
+    case region_id_4bit_type::_15: out += "15"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          region_id_4bit_type const& o,
                          cdr::tag_t<region_id_4bit_type> ) {
@@ -801,7 +1079,7 @@ cdr::value to_canonical( cdr::converter&,
     case region_id_4bit_type::_14: return "14";
     case region_id_4bit_type::_15: return "15";
   }
-  BAD_ENUM_VALUE( "region_id_4bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<region_id_4bit_type> from_canonical(
@@ -836,6 +1114,17 @@ cdr::result<region_id_4bit_type> from_canonical(
 /****************************************************************
 ** relation_type
 *****************************************************************/
+void to_str( relation_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case relation_type::not_met: out += "not met"; return;
+    case relation_type::war: out += "war"; return;
+    case relation_type::peace: out += "peace"; return;
+    case relation_type::unknown_rel2: out += "unknown_rel2"; return;
+    case relation_type::unknown_rel: out += "unknown_rel"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          relation_type const& o,
                          cdr::tag_t<relation_type> ) {
@@ -846,7 +1135,7 @@ cdr::value to_canonical( cdr::converter&,
     case relation_type::unknown_rel2: return "unknown_rel2";
     case relation_type::unknown_rel: return "unknown_rel";
   }
-  BAD_ENUM_VALUE( "relation_type", o );
+  return cdr::null;
 }
 
 cdr::result<relation_type> from_canonical(
@@ -870,6 +1159,14 @@ cdr::result<relation_type> from_canonical(
 /****************************************************************
 ** road_1bit_type
 *****************************************************************/
+void to_str( road_1bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case road_1bit_type::empty: out += " "; return;
+    case road_1bit_type::e: out += "="; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          road_1bit_type const& o,
                          cdr::tag_t<road_1bit_type> ) {
@@ -877,7 +1174,7 @@ cdr::value to_canonical( cdr::converter&,
     case road_1bit_type::empty: return " ";
     case road_1bit_type::e: return "=";
   }
-  BAD_ENUM_VALUE( "road_1bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<road_1bit_type> from_canonical(
@@ -898,6 +1195,14 @@ cdr::result<road_1bit_type> from_canonical(
 /****************************************************************
 ** season_type
 *****************************************************************/
+void to_str( season_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case season_type::spring: out += "spring"; return;
+    case season_type::autumn: out += "autumn"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          season_type const& o,
                          cdr::tag_t<season_type> ) {
@@ -905,7 +1210,7 @@ cdr::value to_canonical( cdr::converter&,
     case season_type::spring: return "spring";
     case season_type::autumn: return "autumn";
   }
-  BAD_ENUM_VALUE( "season_type", o );
+  return cdr::null;
 }
 
 cdr::result<season_type> from_canonical(
@@ -926,6 +1231,14 @@ cdr::result<season_type> from_canonical(
 /****************************************************************
 ** suppress_1bit_type
 *****************************************************************/
+void to_str( suppress_1bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case suppress_1bit_type::empty: out += " "; return;
+    case suppress_1bit_type::_: out += "_"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          suppress_1bit_type const& o,
                          cdr::tag_t<suppress_1bit_type> ) {
@@ -933,7 +1246,7 @@ cdr::value to_canonical( cdr::converter&,
     case suppress_1bit_type::empty: return " ";
     case suppress_1bit_type::_: return "_";
   }
-  BAD_ENUM_VALUE( "suppress_1bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<suppress_1bit_type> from_canonical(
@@ -954,6 +1267,16 @@ cdr::result<suppress_1bit_type> from_canonical(
 /****************************************************************
 ** tech_type
 *****************************************************************/
+void to_str( tech_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case tech_type::semi_nomadic: out += "Semi-Nomadic"; return;
+    case tech_type::agrarian: out += "Agrarian"; return;
+    case tech_type::advanced: out += "Advanced"; return;
+    case tech_type::civilized: out += "Civilized"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          tech_type const& o,
                          cdr::tag_t<tech_type> ) {
@@ -963,7 +1286,7 @@ cdr::value to_canonical( cdr::converter&,
     case tech_type::advanced: return "Advanced";
     case tech_type::civilized: return "Civilized";
   }
-  BAD_ENUM_VALUE( "tech_type", o );
+  return cdr::null;
 }
 
 cdr::result<tech_type> from_canonical(
@@ -986,6 +1309,31 @@ cdr::result<tech_type> from_canonical(
 /****************************************************************
 ** terrain_5bit_type
 *****************************************************************/
+void to_str( terrain_5bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case terrain_5bit_type::tu: out += "tu "; return;
+    case terrain_5bit_type::de: out += "de "; return;
+    case terrain_5bit_type::pl: out += "pl "; return;
+    case terrain_5bit_type::pr: out += "pr "; return;
+    case terrain_5bit_type::gr: out += "gr "; return;
+    case terrain_5bit_type::sa: out += "sa "; return;
+    case terrain_5bit_type::sw: out += "sw "; return;
+    case terrain_5bit_type::mr: out += "mr "; return;
+    case terrain_5bit_type::tuf: out += "tuF"; return;
+    case terrain_5bit_type::def: out += "deF"; return;
+    case terrain_5bit_type::plf: out += "plF"; return;
+    case terrain_5bit_type::prf: out += "prF"; return;
+    case terrain_5bit_type::grf: out += "grF"; return;
+    case terrain_5bit_type::saf: out += "saF"; return;
+    case terrain_5bit_type::swf: out += "swF"; return;
+    case terrain_5bit_type::mrf: out += "mrF"; return;
+    case terrain_5bit_type::arc: out += "arc"; return;
+    case terrain_5bit_type::ttt: out += "~~~"; return;
+    case terrain_5bit_type::tnt: out += "~:~"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          terrain_5bit_type const& o,
                          cdr::tag_t<terrain_5bit_type> ) {
@@ -1010,7 +1358,7 @@ cdr::value to_canonical( cdr::converter&,
     case terrain_5bit_type::ttt: return "~~~";
     case terrain_5bit_type::tnt: return "~:~";
   }
-  BAD_ENUM_VALUE( "terrain_5bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<terrain_5bit_type> from_canonical(
@@ -1048,6 +1396,14 @@ cdr::result<terrain_5bit_type> from_canonical(
 /****************************************************************
 ** trade_route_type
 *****************************************************************/
+void to_str( trade_route_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case trade_route_type::land: out += "land"; return;
+    case trade_route_type::sea: out += "sea"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          trade_route_type const& o,
                          cdr::tag_t<trade_route_type> ) {
@@ -1055,7 +1411,7 @@ cdr::value to_canonical( cdr::converter&,
     case trade_route_type::land: return "land";
     case trade_route_type::sea: return "sea";
   }
-  BAD_ENUM_VALUE( "trade_route_type", o );
+  return cdr::null;
 }
 
 cdr::result<trade_route_type> from_canonical(
@@ -1076,6 +1432,35 @@ cdr::result<trade_route_type> from_canonical(
 /****************************************************************
 ** unit_type
 *****************************************************************/
+void to_str( unit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case unit_type::colonist: out += "Colonist"; return;
+    case unit_type::soldier: out += "Soldier"; return;
+    case unit_type::pioneer: out += "Pioneer"; return;
+    case unit_type::missionary: out += "Missionary"; return;
+    case unit_type::dragoon: out += "Dragoon"; return;
+    case unit_type::scout: out += "Scout"; return;
+    case unit_type::tory_regular: out += "Tory regular"; return;
+    case unit_type::continental_cavalry: out += "Continental cavalry"; return;
+    case unit_type::tory_cavalry: out += "Tory cavalry"; return;
+    case unit_type::continental_army: out += "Continental army"; return;
+    case unit_type::treasure: out += "Treasure"; return;
+    case unit_type::artillery: out += "Artillery"; return;
+    case unit_type::wagon_train: out += "Wagon train"; return;
+    case unit_type::caravel: out += "Caravel"; return;
+    case unit_type::merchantman: out += "Merchantman"; return;
+    case unit_type::galleon: out += "Galleon"; return;
+    case unit_type::privateer: out += "Privateer"; return;
+    case unit_type::frigate: out += "Frigate"; return;
+    case unit_type::man_o_war: out += "Man-O-War"; return;
+    case unit_type::brave: out += "Brave"; return;
+    case unit_type::armed_brave: out += "Armed brave"; return;
+    case unit_type::mounted_brave: out += "Mounted brave"; return;
+    case unit_type::mounted_warrior: out += "Mounted warrior"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          unit_type const& o,
                          cdr::tag_t<unit_type> ) {
@@ -1104,7 +1489,7 @@ cdr::value to_canonical( cdr::converter&,
     case unit_type::mounted_brave: return "Mounted brave";
     case unit_type::mounted_warrior: return "Mounted warrior";
   }
-  BAD_ENUM_VALUE( "unit_type", o );
+  return cdr::null;
 }
 
 cdr::result<unit_type> from_canonical(
@@ -1146,6 +1531,14 @@ cdr::result<unit_type> from_canonical(
 /****************************************************************
 ** visible_to_dutch_1bit_type
 *****************************************************************/
+void to_str( visible_to_dutch_1bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case visible_to_dutch_1bit_type::empty: out += " "; return;
+    case visible_to_dutch_1bit_type::d: out += "D"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          visible_to_dutch_1bit_type const& o,
                          cdr::tag_t<visible_to_dutch_1bit_type> ) {
@@ -1153,7 +1546,7 @@ cdr::value to_canonical( cdr::converter&,
     case visible_to_dutch_1bit_type::empty: return " ";
     case visible_to_dutch_1bit_type::d: return "D";
   }
-  BAD_ENUM_VALUE( "visible_to_dutch_1bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<visible_to_dutch_1bit_type> from_canonical(
@@ -1174,6 +1567,14 @@ cdr::result<visible_to_dutch_1bit_type> from_canonical(
 /****************************************************************
 ** visible_to_english_1bit_type
 *****************************************************************/
+void to_str( visible_to_english_1bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case visible_to_english_1bit_type::empty: out += " "; return;
+    case visible_to_english_1bit_type::e: out += "E"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          visible_to_english_1bit_type const& o,
                          cdr::tag_t<visible_to_english_1bit_type> ) {
@@ -1181,7 +1582,7 @@ cdr::value to_canonical( cdr::converter&,
     case visible_to_english_1bit_type::empty: return " ";
     case visible_to_english_1bit_type::e: return "E";
   }
-  BAD_ENUM_VALUE( "visible_to_english_1bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<visible_to_english_1bit_type> from_canonical(
@@ -1202,6 +1603,14 @@ cdr::result<visible_to_english_1bit_type> from_canonical(
 /****************************************************************
 ** visible_to_french_1bit_type
 *****************************************************************/
+void to_str( visible_to_french_1bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case visible_to_french_1bit_type::empty: out += " "; return;
+    case visible_to_french_1bit_type::f: out += "F"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          visible_to_french_1bit_type const& o,
                          cdr::tag_t<visible_to_french_1bit_type> ) {
@@ -1209,7 +1618,7 @@ cdr::value to_canonical( cdr::converter&,
     case visible_to_french_1bit_type::empty: return " ";
     case visible_to_french_1bit_type::f: return "F";
   }
-  BAD_ENUM_VALUE( "visible_to_french_1bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<visible_to_french_1bit_type> from_canonical(
@@ -1230,6 +1639,14 @@ cdr::result<visible_to_french_1bit_type> from_canonical(
 /****************************************************************
 ** visible_to_spanish_1bit_type
 *****************************************************************/
+void to_str( visible_to_spanish_1bit_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case visible_to_spanish_1bit_type::empty: out += " "; return;
+    case visible_to_spanish_1bit_type::s: out += "S"; return;
+  }
+  out += "<unrecognized>";
+}
+
 cdr::value to_canonical( cdr::converter&,
                          visible_to_spanish_1bit_type const& o,
                          cdr::tag_t<visible_to_spanish_1bit_type> ) {
@@ -1237,7 +1654,7 @@ cdr::value to_canonical( cdr::converter&,
     case visible_to_spanish_1bit_type::empty: return " ";
     case visible_to_spanish_1bit_type::s: return "S";
   }
-  BAD_ENUM_VALUE( "visible_to_spanish_1bit_type", o );
+  return cdr::null;
 }
 
 cdr::result<visible_to_spanish_1bit_type> from_canonical(
@@ -1258,6 +1675,21 @@ cdr::result<visible_to_spanish_1bit_type> from_canonical(
 /****************************************************************
 ** GameOptions
 *****************************************************************/
+void to_str( GameOptions const& o, std::string& out, base::ADL_t t ) {
+  out += "GameOptions{";
+  out += "unused01="; to_str( bits<7>{ o.unused01 }, out, t ); out += ',';
+  out += "tutorial_hints="; to_str( o.tutorial_hints, out, t ); out += ',';
+  out += "water_color_cycling="; to_str( o.water_color_cycling, out, t ); out += ',';
+  out += "combat_analysis="; to_str( o.combat_analysis, out, t ); out += ',';
+  out += "autosave="; to_str( o.autosave, out, t ); out += ',';
+  out += "end_of_turn="; to_str( o.end_of_turn, out, t ); out += ',';
+  out += "fast_piece_slide="; to_str( o.fast_piece_slide, out, t ); out += ',';
+  out += "cheats_enabled="; to_str( o.cheats_enabled, out, t ); out += ',';
+  out += "show_foreign_moves="; to_str( o.show_foreign_moves, out, t ); out += ',';
+  out += "show_indian_moves="; to_str( o.show_indian_moves, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, GameOptions& o ) {
   uint16_t bits = 0;
@@ -1343,6 +1775,22 @@ cdr::result<GameOptions> from_canonical(
 /****************************************************************
 ** ColonyReportOptions
 *****************************************************************/
+void to_str( ColonyReportOptions const& o, std::string& out, base::ADL_t t ) {
+  out += "ColonyReportOptions{";
+  out += "labels_on_cargo_and_terrain="; to_str( o.labels_on_cargo_and_terrain, out, t ); out += ',';
+  out += "labels_on_buildings="; to_str( o.labels_on_buildings, out, t ); out += ',';
+  out += "report_new_cargos_available="; to_str( o.report_new_cargos_available, out, t ); out += ',';
+  out += "report_inefficient_government="; to_str( o.report_inefficient_government, out, t ); out += ',';
+  out += "report_tools_needed_for_production="; to_str( o.report_tools_needed_for_production, out, t ); out += ',';
+  out += "report_raw_materials_shortages="; to_str( o.report_raw_materials_shortages, out, t ); out += ',';
+  out += "report_food_shortages="; to_str( o.report_food_shortages, out, t ); out += ',';
+  out += "report_when_colonists_trained="; to_str( o.report_when_colonists_trained, out, t ); out += ',';
+  out += "report_sons_of_liberty_membership="; to_str( o.report_sons_of_liberty_membership, out, t ); out += ',';
+  out += "report_rebel_majorities="; to_str( o.report_rebel_majorities, out, t ); out += ',';
+  out += "unused03="; to_str( bits<6>{ o.unused03 }, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, ColonyReportOptions& o ) {
   uint16_t bits = 0;
@@ -1433,6 +1881,27 @@ cdr::result<ColonyReportOptions> from_canonical(
 /****************************************************************
 ** Event
 *****************************************************************/
+void to_str( Event const& o, std::string& out, base::ADL_t t ) {
+  out += "Event{";
+  out += "discovery_of_the_new_world="; to_str( o.discovery_of_the_new_world, out, t ); out += ',';
+  out += "building_a_colony="; to_str( o.building_a_colony, out, t ); out += ',';
+  out += "meeting_the_natives="; to_str( o.meeting_the_natives, out, t ); out += ',';
+  out += "the_aztec_empire="; to_str( o.the_aztec_empire, out, t ); out += ',';
+  out += "the_inca_nation="; to_str( o.the_inca_nation, out, t ); out += ',';
+  out += "discovery_of_the_pacific_ocean="; to_str( o.discovery_of_the_pacific_ocean, out, t ); out += ',';
+  out += "entering_indian_village="; to_str( o.entering_indian_village, out, t ); out += ',';
+  out += "the_fountain_of_youth="; to_str( o.the_fountain_of_youth, out, t ); out += ',';
+  out += "cargo_from_the_new_world="; to_str( o.cargo_from_the_new_world, out, t ); out += ',';
+  out += "meeting_fellow_europeans="; to_str( o.meeting_fellow_europeans, out, t ); out += ',';
+  out += "colony_burning="; to_str( o.colony_burning, out, t ); out += ',';
+  out += "colony_destroyed="; to_str( o.colony_destroyed, out, t ); out += ',';
+  out += "indian_raid="; to_str( o.indian_raid, out, t ); out += ',';
+  out += "woodcut14="; to_str( o.woodcut14, out, t ); out += ',';
+  out += "woodcut15="; to_str( o.woodcut15, out, t ); out += ',';
+  out += "woodcut16="; to_str( o.woodcut16, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Event& o ) {
   uint16_t bits = 0;
@@ -1548,6 +2017,13 @@ cdr::result<Event> from_canonical(
 /****************************************************************
 ** Duration
 *****************************************************************/
+void to_str( Duration const& o, std::string& out, base::ADL_t t ) {
+  out += "Duration{";
+  out += "dur_1="; to_str( o.dur_1, out, t ); out += ',';
+  out += "dur_2="; to_str( o.dur_2, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Duration& o ) {
   uint8_t bits = 0;
@@ -1593,6 +2069,30 @@ cdr::result<Duration> from_canonical(
 /****************************************************************
 ** Buildings
 *****************************************************************/
+void to_str( Buildings const& o, std::string& out, base::ADL_t t ) {
+  out += "Buildings{";
+  out += "fortification="; to_str( o.fortification, out, t ); out += ',';
+  out += "armory="; to_str( o.armory, out, t ); out += ',';
+  out += "docks="; to_str( o.docks, out, t ); out += ',';
+  out += "town_hall="; to_str( o.town_hall, out, t ); out += ',';
+  out += "schoolhouse="; to_str( o.schoolhouse, out, t ); out += ',';
+  out += "warehouse="; to_str( o.warehouse, out, t ); out += ',';
+  out += "unused05a="; to_str( o.unused05a, out, t ); out += ',';
+  out += "stables="; to_str( o.stables, out, t ); out += ',';
+  out += "custom_house="; to_str( o.custom_house, out, t ); out += ',';
+  out += "printing_press="; to_str( o.printing_press, out, t ); out += ',';
+  out += "weavers_house="; to_str( o.weavers_house, out, t ); out += ',';
+  out += "tobacconists_house="; to_str( o.tobacconists_house, out, t ); out += ',';
+  out += "rum_distillers_house="; to_str( o.rum_distillers_house, out, t ); out += ',';
+  out += "capitol_unused="; to_str( o.capitol_unused, out, t ); out += ',';
+  out += "fur_traders_house="; to_str( o.fur_traders_house, out, t ); out += ',';
+  out += "carpenters_shop="; to_str( o.carpenters_shop, out, t ); out += ',';
+  out += "church="; to_str( o.church, out, t ); out += ',';
+  out += "blacksmiths_house="; to_str( o.blacksmiths_house, out, t ); out += ',';
+  out += "unused05b="; to_str( bits<6>{ o.unused05b }, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Buildings& o ) {
   uint64_t bits = 0;
@@ -1723,6 +2223,27 @@ cdr::result<Buildings> from_canonical(
 /****************************************************************
 ** CustomHouseFlags
 *****************************************************************/
+void to_str( CustomHouseFlags const& o, std::string& out, base::ADL_t t ) {
+  out += "CustomHouseFlags{";
+  out += "food="; to_str( o.food, out, t ); out += ',';
+  out += "sugar="; to_str( o.sugar, out, t ); out += ',';
+  out += "tobacco="; to_str( o.tobacco, out, t ); out += ',';
+  out += "cotton="; to_str( o.cotton, out, t ); out += ',';
+  out += "furs="; to_str( o.furs, out, t ); out += ',';
+  out += "lumber="; to_str( o.lumber, out, t ); out += ',';
+  out += "ore="; to_str( o.ore, out, t ); out += ',';
+  out += "silver="; to_str( o.silver, out, t ); out += ',';
+  out += "horses="; to_str( o.horses, out, t ); out += ',';
+  out += "rum="; to_str( o.rum, out, t ); out += ',';
+  out += "cigars="; to_str( o.cigars, out, t ); out += ',';
+  out += "cloth="; to_str( o.cloth, out, t ); out += ',';
+  out += "coats="; to_str( o.coats, out, t ); out += ',';
+  out += "trade_goods="; to_str( o.trade_goods, out, t ); out += ',';
+  out += "tools="; to_str( o.tools, out, t ); out += ',';
+  out += "muskets="; to_str( o.muskets, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, CustomHouseFlags& o ) {
   uint16_t bits = 0;
@@ -1838,6 +2359,16 @@ cdr::result<CustomHouseFlags> from_canonical(
 /****************************************************************
 ** NationInfo
 *****************************************************************/
+void to_str( NationInfo const& o, std::string& out, base::ADL_t t ) {
+  out += "NationInfo{";
+  out += "nation_id="; to_str( o.nation_id, out, t ); out += ',';
+  out += "vis_to_english="; to_str( o.vis_to_english, out, t ); out += ',';
+  out += "vis_to_french="; to_str( o.vis_to_french, out, t ); out += ',';
+  out += "vis_to_spanish="; to_str( o.vis_to_spanish, out, t ); out += ',';
+  out += "vis_to_dutch="; to_str( o.vis_to_dutch, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, NationInfo& o ) {
   uint8_t bits = 0;
@@ -1898,6 +2429,13 @@ cdr::result<NationInfo> from_canonical(
 /****************************************************************
 ** Unknown15
 *****************************************************************/
+void to_str( Unknown15 const& o, std::string& out, base::ADL_t t ) {
+  out += "Unknown15{";
+  out += "unknown15a="; to_str( bits<7>{ o.unknown15a }, out, t ); out += ',';
+  out += "damaged="; to_str( o.damaged, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Unknown15& o ) {
   uint8_t bits = 0;
@@ -1943,6 +2481,13 @@ cdr::result<Unknown15> from_canonical(
 /****************************************************************
 ** CargoItems
 *****************************************************************/
+void to_str( CargoItems const& o, std::string& out, base::ADL_t t ) {
+  out += "CargoItems{";
+  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
+  out += "cargo_2="; to_str( o.cargo_2, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, CargoItems& o ) {
   uint8_t bits = 0;
@@ -1988,6 +2533,27 @@ cdr::result<CargoItems> from_canonical(
 /****************************************************************
 ** BoycottBitmap
 *****************************************************************/
+void to_str( BoycottBitmap const& o, std::string& out, base::ADL_t t ) {
+  out += "BoycottBitmap{";
+  out += "food="; to_str( o.food, out, t ); out += ',';
+  out += "sugar="; to_str( o.sugar, out, t ); out += ',';
+  out += "tobacco="; to_str( o.tobacco, out, t ); out += ',';
+  out += "cotton="; to_str( o.cotton, out, t ); out += ',';
+  out += "furs="; to_str( o.furs, out, t ); out += ',';
+  out += "lumber="; to_str( o.lumber, out, t ); out += ',';
+  out += "ore="; to_str( o.ore, out, t ); out += ',';
+  out += "silver="; to_str( o.silver, out, t ); out += ',';
+  out += "horses="; to_str( o.horses, out, t ); out += ',';
+  out += "rum="; to_str( o.rum, out, t ); out += ',';
+  out += "cigars="; to_str( o.cigars, out, t ); out += ',';
+  out += "cloth="; to_str( o.cloth, out, t ); out += ',';
+  out += "coats="; to_str( o.coats, out, t ); out += ',';
+  out += "trade_goods="; to_str( o.trade_goods, out, t ); out += ',';
+  out += "tools="; to_str( o.tools, out, t ); out += ',';
+  out += "muskets="; to_str( o.muskets, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, BoycottBitmap& o ) {
   uint16_t bits = 0;
@@ -2103,6 +2669,16 @@ cdr::result<BoycottBitmap> from_canonical(
 /****************************************************************
 ** ALCS
 *****************************************************************/
+void to_str( ALCS const& o, std::string& out, base::ADL_t t ) {
+  out += "ALCS{";
+  out += "artillery_near="; to_str( o.artillery_near, out, t ); out += ',';
+  out += "learned="; to_str( o.learned, out, t ); out += ',';
+  out += "capital="; to_str( o.capital, out, t ); out += ',';
+  out += "scouted="; to_str( o.scouted, out, t ); out += ',';
+  out += "unused09="; to_str( bits<4>{ o.unused09 }, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, ALCS& o ) {
   uint8_t bits = 0;
@@ -2163,6 +2739,13 @@ cdr::result<ALCS> from_canonical(
 /****************************************************************
 ** TILE
 *****************************************************************/
+void to_str( TILE const& o, std::string& out, base::ADL_t t ) {
+  out += "TILE{";
+  out += "tile="; to_str( o.tile, out, t ); out += ',';
+  out += "hill_river="; to_str( o.hill_river, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, TILE& o ) {
   uint8_t bits = 0;
@@ -2208,6 +2791,19 @@ cdr::result<TILE> from_canonical(
 /****************************************************************
 ** MASK
 *****************************************************************/
+void to_str( MASK const& o, std::string& out, base::ADL_t t ) {
+  out += "MASK{";
+  out += "has_unit="; to_str( o.has_unit, out, t ); out += ',';
+  out += "has_city="; to_str( o.has_city, out, t ); out += ',';
+  out += "suppress="; to_str( o.suppress, out, t ); out += ',';
+  out += "road="; to_str( o.road, out, t ); out += ',';
+  out += "purchased="; to_str( o.purchased, out, t ); out += ',';
+  out += "pacific="; to_str( o.pacific, out, t ); out += ',';
+  out += "plowed="; to_str( o.plowed, out, t ); out += ',';
+  out += "unused="; to_str( o.unused, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, MASK& o ) {
   uint8_t bits = 0;
@@ -2283,6 +2879,13 @@ cdr::result<MASK> from_canonical(
 /****************************************************************
 ** PATH
 *****************************************************************/
+void to_str( PATH const& o, std::string& out, base::ADL_t t ) {
+  out += "PATH{";
+  out += "region_id="; to_str( o.region_id, out, t ); out += ',';
+  out += "visitor_nation="; to_str( o.visitor_nation, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, PATH& o ) {
   uint8_t bits = 0;
@@ -2328,6 +2931,16 @@ cdr::result<PATH> from_canonical(
 /****************************************************************
 ** SEEN
 *****************************************************************/
+void to_str( SEEN const& o, std::string& out, base::ADL_t t ) {
+  out += "SEEN{";
+  out += "score="; to_str( o.score, out, t ); out += ',';
+  out += "vis2en="; to_str( o.vis2en, out, t ); out += ',';
+  out += "vis2fr="; to_str( o.vis2fr, out, t ); out += ',';
+  out += "vis2sp="; to_str( o.vis2sp, out, t ); out += ',';
+  out += "vis2du="; to_str( o.vis2du, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, SEEN& o ) {
   uint8_t bits = 0;
@@ -2388,6 +3001,13 @@ cdr::result<SEEN> from_canonical(
 /****************************************************************
 ** Stop1LoadsAndUnloadsCount
 *****************************************************************/
+void to_str( Stop1LoadsAndUnloadsCount const& o, std::string& out, base::ADL_t t ) {
+  out += "Stop1LoadsAndUnloadsCount{";
+  out += "unloads_count="; to_str( o.unloads_count, out, t ); out += ',';
+  out += "loads_count="; to_str( o.loads_count, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop1LoadsAndUnloadsCount& o ) {
   uint8_t bits = 0;
@@ -2433,6 +3053,17 @@ cdr::result<Stop1LoadsAndUnloadsCount> from_canonical(
 /****************************************************************
 ** Stop1LoadsCargo
 *****************************************************************/
+void to_str( Stop1LoadsCargo const& o, std::string& out, base::ADL_t t ) {
+  out += "Stop1LoadsCargo{";
+  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
+  out += "cargo_2="; to_str( o.cargo_2, out, t ); out += ',';
+  out += "cargo_3="; to_str( o.cargo_3, out, t ); out += ',';
+  out += "cargo_4="; to_str( o.cargo_4, out, t ); out += ',';
+  out += "cargo_5="; to_str( o.cargo_5, out, t ); out += ',';
+  out += "cargo_6="; to_str( o.cargo_6, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop1LoadsCargo& o ) {
   uint32_t bits = 0;
@@ -2498,6 +3129,17 @@ cdr::result<Stop1LoadsCargo> from_canonical(
 /****************************************************************
 ** Stop1UnloadsCargo
 *****************************************************************/
+void to_str( Stop1UnloadsCargo const& o, std::string& out, base::ADL_t t ) {
+  out += "Stop1UnloadsCargo{";
+  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
+  out += "cargo_2="; to_str( o.cargo_2, out, t ); out += ',';
+  out += "cargo_3="; to_str( o.cargo_3, out, t ); out += ',';
+  out += "cargo_4="; to_str( o.cargo_4, out, t ); out += ',';
+  out += "cargo_5="; to_str( o.cargo_5, out, t ); out += ',';
+  out += "cargo_6="; to_str( o.cargo_6, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop1UnloadsCargo& o ) {
   uint32_t bits = 0;
@@ -2563,6 +3205,13 @@ cdr::result<Stop1UnloadsCargo> from_canonical(
 /****************************************************************
 ** Stop2LoadsAndUnloadsCount
 *****************************************************************/
+void to_str( Stop2LoadsAndUnloadsCount const& o, std::string& out, base::ADL_t t ) {
+  out += "Stop2LoadsAndUnloadsCount{";
+  out += "unloads_count="; to_str( o.unloads_count, out, t ); out += ',';
+  out += "loads_count="; to_str( o.loads_count, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop2LoadsAndUnloadsCount& o ) {
   uint8_t bits = 0;
@@ -2608,6 +3257,17 @@ cdr::result<Stop2LoadsAndUnloadsCount> from_canonical(
 /****************************************************************
 ** Stop2LoadsCargo
 *****************************************************************/
+void to_str( Stop2LoadsCargo const& o, std::string& out, base::ADL_t t ) {
+  out += "Stop2LoadsCargo{";
+  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
+  out += "cargo_2="; to_str( o.cargo_2, out, t ); out += ',';
+  out += "cargo_3="; to_str( o.cargo_3, out, t ); out += ',';
+  out += "cargo_4="; to_str( o.cargo_4, out, t ); out += ',';
+  out += "cargo_5="; to_str( o.cargo_5, out, t ); out += ',';
+  out += "cargo_6="; to_str( o.cargo_6, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop2LoadsCargo& o ) {
   uint32_t bits = 0;
@@ -2673,6 +3333,17 @@ cdr::result<Stop2LoadsCargo> from_canonical(
 /****************************************************************
 ** Stop2UnloadsCargo
 *****************************************************************/
+void to_str( Stop2UnloadsCargo const& o, std::string& out, base::ADL_t t ) {
+  out += "Stop2UnloadsCargo{";
+  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
+  out += "cargo_2="; to_str( o.cargo_2, out, t ); out += ',';
+  out += "cargo_3="; to_str( o.cargo_3, out, t ); out += ',';
+  out += "cargo_4="; to_str( o.cargo_4, out, t ); out += ',';
+  out += "cargo_5="; to_str( o.cargo_5, out, t ); out += ',';
+  out += "cargo_6="; to_str( o.cargo_6, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop2UnloadsCargo& o ) {
   uint32_t bits = 0;
@@ -2738,6 +3409,13 @@ cdr::result<Stop2UnloadsCargo> from_canonical(
 /****************************************************************
 ** Stop3LoadsAndUnloadsCount
 *****************************************************************/
+void to_str( Stop3LoadsAndUnloadsCount const& o, std::string& out, base::ADL_t t ) {
+  out += "Stop3LoadsAndUnloadsCount{";
+  out += "unloads_count="; to_str( o.unloads_count, out, t ); out += ',';
+  out += "loads_count="; to_str( o.loads_count, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop3LoadsAndUnloadsCount& o ) {
   uint8_t bits = 0;
@@ -2783,6 +3461,17 @@ cdr::result<Stop3LoadsAndUnloadsCount> from_canonical(
 /****************************************************************
 ** Stop3LoadsCargo
 *****************************************************************/
+void to_str( Stop3LoadsCargo const& o, std::string& out, base::ADL_t t ) {
+  out += "Stop3LoadsCargo{";
+  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
+  out += "cargo_2="; to_str( o.cargo_2, out, t ); out += ',';
+  out += "cargo_3="; to_str( o.cargo_3, out, t ); out += ',';
+  out += "cargo_4="; to_str( o.cargo_4, out, t ); out += ',';
+  out += "cargo_5="; to_str( o.cargo_5, out, t ); out += ',';
+  out += "cargo_6="; to_str( o.cargo_6, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop3LoadsCargo& o ) {
   uint32_t bits = 0;
@@ -2848,6 +3537,17 @@ cdr::result<Stop3LoadsCargo> from_canonical(
 /****************************************************************
 ** Stop3UnloadsCargo
 *****************************************************************/
+void to_str( Stop3UnloadsCargo const& o, std::string& out, base::ADL_t t ) {
+  out += "Stop3UnloadsCargo{";
+  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
+  out += "cargo_2="; to_str( o.cargo_2, out, t ); out += ',';
+  out += "cargo_3="; to_str( o.cargo_3, out, t ); out += ',';
+  out += "cargo_4="; to_str( o.cargo_4, out, t ); out += ',';
+  out += "cargo_5="; to_str( o.cargo_5, out, t ); out += ',';
+  out += "cargo_6="; to_str( o.cargo_6, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop3UnloadsCargo& o ) {
   uint32_t bits = 0;
@@ -2913,6 +3613,13 @@ cdr::result<Stop3UnloadsCargo> from_canonical(
 /****************************************************************
 ** Stop4LoadsAndUnloadsCount
 *****************************************************************/
+void to_str( Stop4LoadsAndUnloadsCount const& o, std::string& out, base::ADL_t t ) {
+  out += "Stop4LoadsAndUnloadsCount{";
+  out += "unloads_count="; to_str( o.unloads_count, out, t ); out += ',';
+  out += "loads_count="; to_str( o.loads_count, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop4LoadsAndUnloadsCount& o ) {
   uint8_t bits = 0;
@@ -2958,6 +3665,17 @@ cdr::result<Stop4LoadsAndUnloadsCount> from_canonical(
 /****************************************************************
 ** Stop4LoadsCargo
 *****************************************************************/
+void to_str( Stop4LoadsCargo const& o, std::string& out, base::ADL_t t ) {
+  out += "Stop4LoadsCargo{";
+  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
+  out += "cargo_2="; to_str( o.cargo_2, out, t ); out += ',';
+  out += "cargo_3="; to_str( o.cargo_3, out, t ); out += ',';
+  out += "cargo_4="; to_str( o.cargo_4, out, t ); out += ',';
+  out += "cargo_5="; to_str( o.cargo_5, out, t ); out += ',';
+  out += "cargo_6="; to_str( o.cargo_6, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop4LoadsCargo& o ) {
   uint32_t bits = 0;
@@ -3023,6 +3741,17 @@ cdr::result<Stop4LoadsCargo> from_canonical(
 /****************************************************************
 ** Stop4UnloadsCargo
 *****************************************************************/
+void to_str( Stop4UnloadsCargo const& o, std::string& out, base::ADL_t t ) {
+  out += "Stop4UnloadsCargo{";
+  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
+  out += "cargo_2="; to_str( o.cargo_2, out, t ); out += ',';
+  out += "cargo_3="; to_str( o.cargo_3, out, t ); out += ',';
+  out += "cargo_4="; to_str( o.cargo_4, out, t ); out += ',';
+  out += "cargo_5="; to_str( o.cargo_5, out, t ); out += ',';
+  out += "cargo_6="; to_str( o.cargo_6, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop4UnloadsCargo& o ) {
   uint32_t bits = 0;
@@ -3088,6 +3817,15 @@ cdr::result<Stop4UnloadsCargo> from_canonical(
 /****************************************************************
 ** ExpeditionaryForce
 *****************************************************************/
+void to_str( ExpeditionaryForce const& o, std::string& out, base::ADL_t t ) {
+  out += "ExpeditionaryForce{";
+  out += "regulars="; to_str( o.regulars, out, t ); out += ',';
+  out += "dragoons="; to_str( o.dragoons, out, t ); out += ',';
+  out += "man_o_wars="; to_str( o.man_o_wars, out, t ); out += ',';
+  out += "artillery="; to_str( o.artillery, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, ExpeditionaryForce& o ) {
   return true
@@ -3142,6 +3880,15 @@ cdr::result<ExpeditionaryForce> from_canonical(
 /****************************************************************
 ** BackupForce
 *****************************************************************/
+void to_str( BackupForce const& o, std::string& out, base::ADL_t t ) {
+  out += "BackupForce{";
+  out += "regulars="; to_str( o.regulars, out, t ); out += ',';
+  out += "dragoons="; to_str( o.dragoons, out, t ); out += ',';
+  out += "man_o_wars="; to_str( o.man_o_wars, out, t ); out += ',';
+  out += "artillery="; to_str( o.artillery, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, BackupForce& o ) {
   return true
@@ -3196,6 +3943,27 @@ cdr::result<BackupForce> from_canonical(
 /****************************************************************
 ** PriceGroupState
 *****************************************************************/
+void to_str( PriceGroupState const& o, std::string& out, base::ADL_t t ) {
+  out += "PriceGroupState{";
+  out += "food="; to_str( o.food, out, t ); out += ',';
+  out += "sugar="; to_str( o.sugar, out, t ); out += ',';
+  out += "tobacco="; to_str( o.tobacco, out, t ); out += ',';
+  out += "cotton="; to_str( o.cotton, out, t ); out += ',';
+  out += "furs="; to_str( o.furs, out, t ); out += ',';
+  out += "lumber="; to_str( o.lumber, out, t ); out += ',';
+  out += "ore="; to_str( o.ore, out, t ); out += ',';
+  out += "silver="; to_str( o.silver, out, t ); out += ',';
+  out += "horses="; to_str( o.horses, out, t ); out += ',';
+  out += "rum="; to_str( o.rum, out, t ); out += ',';
+  out += "cigars="; to_str( o.cigars, out, t ); out += ',';
+  out += "cloth="; to_str( o.cloth, out, t ); out += ',';
+  out += "coats="; to_str( o.coats, out, t ); out += ',';
+  out += "trade_goods="; to_str( o.trade_goods, out, t ); out += ',';
+  out += "tools="; to_str( o.tools, out, t ); out += ',';
+  out += "muskets="; to_str( o.muskets, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, PriceGroupState& o ) {
   return true
@@ -3310,6 +4078,46 @@ cdr::result<PriceGroupState> from_canonical(
 /****************************************************************
 ** HEAD
 *****************************************************************/
+void to_str( HEAD const& o, std::string& out, base::ADL_t t ) {
+  out += "HEAD{";
+  out += "colonize="; to_str( o.colonize, out, t ); out += ',';
+  out += "unknown00="; to_str( o.unknown00, out, t ); out += ',';
+  out += "map_size_x="; to_str( o.map_size_x, out, t ); out += ',';
+  out += "map_size_y="; to_str( o.map_size_y, out, t ); out += ',';
+  out += "tut1="; to_str( o.tut1, out, t ); out += ',';
+  out += "unknown03="; to_str( o.unknown03, out, t ); out += ',';
+  out += "game_options="; to_str( o.game_options, out, t ); out += ',';
+  out += "colony_report_options="; to_str( o.colony_report_options, out, t ); out += ',';
+  out += "tut2="; to_str( o.tut2, out, t ); out += ',';
+  out += "tut3="; to_str( o.tut3, out, t ); out += ',';
+  out += "unknown39="; to_str( o.unknown39, out, t ); out += ',';
+  out += "year="; to_str( o.year, out, t ); out += ',';
+  out += "season="; to_str( o.season, out, t ); out += ',';
+  out += "turn="; to_str( o.turn, out, t ); out += ',';
+  out += "tile_selection_mode="; to_str( o.tile_selection_mode, out, t ); out += ',';
+  out += "unknown40="; to_str( o.unknown40, out, t ); out += ',';
+  out += "active_unit="; to_str( o.active_unit, out, t ); out += ',';
+  out += "unknown41="; to_str( o.unknown41, out, t ); out += ',';
+  out += "tribe_count="; to_str( o.tribe_count, out, t ); out += ',';
+  out += "unit_count="; to_str( o.unit_count, out, t ); out += ',';
+  out += "colony_count="; to_str( o.colony_count, out, t ); out += ',';
+  out += "trade_route_count="; to_str( o.trade_route_count, out, t ); out += ',';
+  out += "unknown42="; to_str( o.unknown42, out, t ); out += ',';
+  out += "difficulty="; to_str( o.difficulty, out, t ); out += ',';
+  out += "unknown43a="; to_str( o.unknown43a, out, t ); out += ',';
+  out += "unknown43b="; to_str( o.unknown43b, out, t ); out += ',';
+  out += "founding_father="; to_str( o.founding_father, out, t ); out += ',';
+  out += "unknown44="; to_str( o.unknown44, out, t ); out += ',';
+  out += "nation_relation="; to_str( o.nation_relation, out, t ); out += ',';
+  out += "unknown45="; to_str( o.unknown45, out, t ); out += ',';
+  out += "expeditionary_force="; to_str( o.expeditionary_force, out, t ); out += ',';
+  out += "backup_force="; to_str( o.backup_force, out, t ); out += ',';
+  out += "price_group_state="; to_str( o.price_group_state, out, t ); out += ',';
+  out += "event="; to_str( o.event, out, t ); out += ',';
+  out += "unknown05="; to_str( o.unknown05, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, HEAD& o ) {
   return true
@@ -3519,6 +4327,17 @@ cdr::result<HEAD> from_canonical(
 /****************************************************************
 ** PLAYER
 *****************************************************************/
+void to_str( PLAYER const& o, std::string& out, base::ADL_t t ) {
+  out += "PLAYER{";
+  out += "name="; to_str( o.name, out, t ); out += ',';
+  out += "country_name="; to_str( o.country_name, out, t ); out += ',';
+  out += "unknown06="; to_str( o.unknown06, out, t ); out += ',';
+  out += "control="; to_str( o.control, out, t ); out += ',';
+  out += "founded_colonies="; to_str( o.founded_colonies, out, t ); out += ',';
+  out += "diplomacy="; to_str( o.diplomacy, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, PLAYER& o ) {
   return true
@@ -3583,6 +4402,19 @@ cdr::result<PLAYER> from_canonical(
 /****************************************************************
 ** Tiles
 *****************************************************************/
+void to_str( Tiles const& o, std::string& out, base::ADL_t t ) {
+  out += "Tiles{";
+  out += "tile_n="; to_str( o.tile_n, out, t ); out += ',';
+  out += "tile_e="; to_str( o.tile_e, out, t ); out += ',';
+  out += "tile_s="; to_str( o.tile_s, out, t ); out += ',';
+  out += "tile_w="; to_str( o.tile_w, out, t ); out += ',';
+  out += "tile_nw="; to_str( o.tile_nw, out, t ); out += ',';
+  out += "tile_ne="; to_str( o.tile_ne, out, t ); out += ',';
+  out += "tile_se="; to_str( o.tile_se, out, t ); out += ',';
+  out += "tile_sw="; to_str( o.tile_sw, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Tiles& o ) {
   return true
@@ -3657,6 +4489,27 @@ cdr::result<Tiles> from_canonical(
 /****************************************************************
 ** Stock
 *****************************************************************/
+void to_str( Stock const& o, std::string& out, base::ADL_t t ) {
+  out += "Stock{";
+  out += "food="; to_str( o.food, out, t ); out += ',';
+  out += "sugar="; to_str( o.sugar, out, t ); out += ',';
+  out += "tobacco="; to_str( o.tobacco, out, t ); out += ',';
+  out += "cotton="; to_str( o.cotton, out, t ); out += ',';
+  out += "furs="; to_str( o.furs, out, t ); out += ',';
+  out += "lumber="; to_str( o.lumber, out, t ); out += ',';
+  out += "ore="; to_str( o.ore, out, t ); out += ',';
+  out += "silver="; to_str( o.silver, out, t ); out += ',';
+  out += "horses="; to_str( o.horses, out, t ); out += ',';
+  out += "rum="; to_str( o.rum, out, t ); out += ',';
+  out += "cigars="; to_str( o.cigars, out, t ); out += ',';
+  out += "cloth="; to_str( o.cloth, out, t ); out += ',';
+  out += "coats="; to_str( o.coats, out, t ); out += ',';
+  out += "trade_goods="; to_str( o.trade_goods, out, t ); out += ',';
+  out += "tools="; to_str( o.tools, out, t ); out += ',';
+  out += "muskets="; to_str( o.muskets, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stock& o ) {
   return true
@@ -3771,6 +4624,15 @@ cdr::result<Stock> from_canonical(
 /****************************************************************
 ** PopulationOnMap
 *****************************************************************/
+void to_str( PopulationOnMap const& o, std::string& out, base::ADL_t t ) {
+  out += "PopulationOnMap{";
+  out += "for_english="; to_str( o.for_english, out, t ); out += ',';
+  out += "for_french="; to_str( o.for_french, out, t ); out += ',';
+  out += "for_spanish="; to_str( o.for_spanish, out, t ); out += ',';
+  out += "for_dutch="; to_str( o.for_dutch, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, PopulationOnMap& o ) {
   return true
@@ -3825,6 +4687,15 @@ cdr::result<PopulationOnMap> from_canonical(
 /****************************************************************
 ** FortificationOnMap
 *****************************************************************/
+void to_str( FortificationOnMap const& o, std::string& out, base::ADL_t t ) {
+  out += "FortificationOnMap{";
+  out += "for_english="; to_str( o.for_english, out, t ); out += ',';
+  out += "for_french="; to_str( o.for_french, out, t ); out += ',';
+  out += "for_spanish="; to_str( o.for_spanish, out, t ); out += ',';
+  out += "for_dutch="; to_str( o.for_dutch, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, FortificationOnMap& o ) {
   return true
@@ -3879,6 +4750,33 @@ cdr::result<FortificationOnMap> from_canonical(
 /****************************************************************
 ** COLONY
 *****************************************************************/
+void to_str( COLONY const& o, std::string& out, base::ADL_t t ) {
+  out += "COLONY{";
+  out += "x_y="; to_str( o.x_y, out, t ); out += ',';
+  out += "name="; to_str( o.name, out, t ); out += ',';
+  out += "nation_id="; to_str( o.nation_id, out, t ); out += ',';
+  out += "unknown08="; to_str( o.unknown08, out, t ); out += ',';
+  out += "population="; to_str( o.population, out, t ); out += ',';
+  out += "occupation="; to_str( o.occupation, out, t ); out += ',';
+  out += "profession="; to_str( o.profession, out, t ); out += ',';
+  out += "duration="; to_str( o.duration, out, t ); out += ',';
+  out += "tiles="; to_str( o.tiles, out, t ); out += ',';
+  out += "unknown10="; to_str( o.unknown10, out, t ); out += ',';
+  out += "buildings="; to_str( o.buildings, out, t ); out += ',';
+  out += "custom_house_flags="; to_str( o.custom_house_flags, out, t ); out += ',';
+  out += "unknown11="; to_str( o.unknown11, out, t ); out += ',';
+  out += "hammers="; to_str( o.hammers, out, t ); out += ',';
+  out += "building_in_production="; to_str( o.building_in_production, out, t ); out += ',';
+  out += "warehouse_level="; to_str( o.warehouse_level, out, t ); out += ',';
+  out += "unknown12="; to_str( o.unknown12, out, t ); out += ',';
+  out += "stock="; to_str( o.stock, out, t ); out += ',';
+  out += "population_on_map="; to_str( o.population_on_map, out, t ); out += ',';
+  out += "fortification_on_map="; to_str( o.fortification_on_map, out, t ); out += ',';
+  out += "rebel_dividend="; to_str( o.rebel_dividend, out, t ); out += ',';
+  out += "rebel_divisor="; to_str( o.rebel_divisor, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, COLONY& o ) {
   return true
@@ -4023,6 +4921,13 @@ cdr::result<COLONY> from_canonical(
 /****************************************************************
 ** TransportChain
 *****************************************************************/
+void to_str( TransportChain const& o, std::string& out, base::ADL_t t ) {
+  out += "TransportChain{";
+  out += "next_unit_idx="; to_str( o.next_unit_idx, out, t ); out += ',';
+  out += "prev_unit_idx="; to_str( o.prev_unit_idx, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, TransportChain& o ) {
   return true
@@ -4067,6 +4972,28 @@ cdr::result<TransportChain> from_canonical(
 /****************************************************************
 ** UNIT
 *****************************************************************/
+void to_str( UNIT const& o, std::string& out, base::ADL_t t ) {
+  out += "UNIT{";
+  out += "x_y="; to_str( o.x_y, out, t ); out += ',';
+  out += "type="; to_str( o.type, out, t ); out += ',';
+  out += "nation_info="; to_str( o.nation_info, out, t ); out += ',';
+  out += "unknown15="; to_str( o.unknown15, out, t ); out += ',';
+  out += "moves="; to_str( o.moves, out, t ); out += ',';
+  out += "origin_settlement="; to_str( o.origin_settlement, out, t ); out += ',';
+  out += "unknown16b="; to_str( o.unknown16b, out, t ); out += ',';
+  out += "orders="; to_str( o.orders, out, t ); out += ',';
+  out += "goto_x="; to_str( o.goto_x, out, t ); out += ',';
+  out += "goto_y="; to_str( o.goto_y, out, t ); out += ',';
+  out += "unknown18="; to_str( o.unknown18, out, t ); out += ',';
+  out += "holds_occupied="; to_str( o.holds_occupied, out, t ); out += ',';
+  out += "cargo_items="; to_str( o.cargo_items, out, t ); out += ',';
+  out += "cargo_hold="; to_str( o.cargo_hold, out, t ); out += ',';
+  out += "turns_worked="; to_str( o.turns_worked, out, t ); out += ',';
+  out += "profession_or_treasure_amount="; to_str( o.profession_or_treasure_amount, out, t ); out += ',';
+  out += "transport_chain="; to_str( o.transport_chain, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, UNIT& o ) {
   return true
@@ -4186,6 +5113,19 @@ cdr::result<UNIT> from_canonical(
 /****************************************************************
 ** RelationByIndian
 *****************************************************************/
+void to_str( RelationByIndian const& o, std::string& out, base::ADL_t t ) {
+  out += "RelationByIndian{";
+  out += "inca="; to_str( o.inca, out, t ); out += ',';
+  out += "aztec="; to_str( o.aztec, out, t ); out += ',';
+  out += "awarak="; to_str( o.awarak, out, t ); out += ',';
+  out += "iroquois="; to_str( o.iroquois, out, t ); out += ',';
+  out += "cherokee="; to_str( o.cherokee, out, t ); out += ',';
+  out += "apache="; to_str( o.apache, out, t ); out += ',';
+  out += "sioux="; to_str( o.sioux, out, t ); out += ',';
+  out += "tupi="; to_str( o.tupi, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, RelationByIndian& o ) {
   return true
@@ -4260,6 +5200,16 @@ cdr::result<RelationByIndian> from_canonical(
 /****************************************************************
 ** Trade
 *****************************************************************/
+void to_str( Trade const& o, std::string& out, base::ADL_t t ) {
+  out += "Trade{";
+  out += "eu_prc="; to_str( o.eu_prc, out, t ); out += ',';
+  out += "nr="; to_str( o.nr, out, t ); out += ',';
+  out += "gold="; to_str( o.gold, out, t ); out += ',';
+  out += "tons="; to_str( o.tons, out, t ); out += ',';
+  out += "tons2="; to_str( o.tons2, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Trade& o ) {
   return true
@@ -4319,6 +5269,40 @@ cdr::result<Trade> from_canonical(
 /****************************************************************
 ** NATION
 *****************************************************************/
+void to_str( NATION const& o, std::string& out, base::ADL_t t ) {
+  out += "NATION{";
+  out += "unknown19="; to_str( o.unknown19, out, t ); out += ',';
+  out += "tax_rate="; to_str( o.tax_rate, out, t ); out += ',';
+  out += "recruit="; to_str( o.recruit, out, t ); out += ',';
+  out += "unused07="; to_str( o.unused07, out, t ); out += ',';
+  out += "recruit_count="; to_str( o.recruit_count, out, t ); out += ',';
+  out += "founding_fathers="; to_str( o.founding_fathers, out, t ); out += ',';
+  out += "unknown21="; to_str( o.unknown21, out, t ); out += ',';
+  out += "liberty_bells_total="; to_str( o.liberty_bells_total, out, t ); out += ',';
+  out += "liberty_bells_last_turn="; to_str( o.liberty_bells_last_turn, out, t ); out += ',';
+  out += "unknown22="; to_str( o.unknown22, out, t ); out += ',';
+  out += "next_founding_father="; to_str( o.next_founding_father, out, t ); out += ',';
+  out += "founding_father_count="; to_str( o.founding_father_count, out, t ); out += ',';
+  out += "prob_founding_father_count_end="; to_str( o.prob_founding_father_count_end, out, t ); out += ',';
+  out += "villages_burned="; to_str( o.villages_burned, out, t ); out += ',';
+  out += "unknown23="; to_str( o.unknown23, out, t ); out += ',';
+  out += "artillery_bought_count="; to_str( o.artillery_bought_count, out, t ); out += ',';
+  out += "boycott_bitmap="; to_str( o.boycott_bitmap, out, t ); out += ',';
+  out += "royal_money="; to_str( o.royal_money, out, t ); out += ',';
+  out += "unknown24b="; to_str( o.unknown24b, out, t ); out += ',';
+  out += "gold="; to_str( o.gold, out, t ); out += ',';
+  out += "current_crosses="; to_str( o.current_crosses, out, t ); out += ',';
+  out += "needed_crosses="; to_str( o.needed_crosses, out, t ); out += ',';
+  out += "point_return_from_europe="; to_str( o.point_return_from_europe, out, t ); out += ',';
+  out += "unknown25b="; to_str( o.unknown25b, out, t ); out += ',';
+  out += "relation_by_indian="; to_str( o.relation_by_indian, out, t ); out += ',';
+  out += "unknown26a="; to_str( o.unknown26a, out, t ); out += ',';
+  out += "unknown26b="; to_str( o.unknown26b, out, t ); out += ',';
+  out += "unknown26c="; to_str( o.unknown26c, out, t ); out += ',';
+  out += "trade="; to_str( o.trade, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, NATION& o ) {
   return true
@@ -4498,6 +5482,13 @@ cdr::result<NATION> from_canonical(
 /****************************************************************
 ** Alarm
 *****************************************************************/
+void to_str( Alarm const& o, std::string& out, base::ADL_t t ) {
+  out += "Alarm{";
+  out += "friction="; to_str( o.friction, out, t ); out += ',';
+  out += "attacks="; to_str( o.attacks, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Alarm& o ) {
   return true
@@ -4542,6 +5533,20 @@ cdr::result<Alarm> from_canonical(
 /****************************************************************
 ** TRIBE
 *****************************************************************/
+void to_str( TRIBE const& o, std::string& out, base::ADL_t t ) {
+  out += "TRIBE{";
+  out += "x_y="; to_str( o.x_y, out, t ); out += ',';
+  out += "nation_id="; to_str( o.nation_id, out, t ); out += ',';
+  out += "alcs="; to_str( o.alcs, out, t ); out += ',';
+  out += "population="; to_str( o.population, out, t ); out += ',';
+  out += "mission="; to_str( o.mission, out, t ); out += ',';
+  out += "unknown28="; to_str( o.unknown28, out, t ); out += ',';
+  out += "last_bought="; to_str( o.last_bought, out, t ); out += ',';
+  out += "last_sold="; to_str( o.last_sold, out, t ); out += ',';
+  out += "alarm="; to_str( o.alarm, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, TRIBE& o ) {
   return true
@@ -4621,6 +5626,15 @@ cdr::result<TRIBE> from_canonical(
 /****************************************************************
 ** RelationByNations
 *****************************************************************/
+void to_str( RelationByNations const& o, std::string& out, base::ADL_t t ) {
+  out += "RelationByNations{";
+  out += "england="; to_str( o.england, out, t ); out += ',';
+  out += "france="; to_str( o.france, out, t ); out += ',';
+  out += "spain="; to_str( o.spain, out, t ); out += ',';
+  out += "netherlands="; to_str( o.netherlands, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, RelationByNations& o ) {
   return true
@@ -4675,6 +5689,22 @@ cdr::result<RelationByNations> from_canonical(
 /****************************************************************
 ** INDIAN
 *****************************************************************/
+void to_str( INDIAN const& o, std::string& out, base::ADL_t t ) {
+  out += "INDIAN{";
+  out += "capitol_x_y="; to_str( o.capitol_x_y, out, t ); out += ',';
+  out += "tech="; to_str( o.tech, out, t ); out += ',';
+  out += "unknown31a="; to_str( o.unknown31a, out, t ); out += ',';
+  out += "muskets="; to_str( o.muskets, out, t ); out += ',';
+  out += "horse_herds="; to_str( o.horse_herds, out, t ); out += ',';
+  out += "unknown31b="; to_str( o.unknown31b, out, t ); out += ',';
+  out += "tons="; to_str( o.tons, out, t ); out += ',';
+  out += "unknown32="; to_str( o.unknown32, out, t ); out += ',';
+  out += "relation_by_nations="; to_str( o.relation_by_nations, out, t ); out += ',';
+  out += "unknown33="; to_str( o.unknown33, out, t ); out += ',';
+  out += "alarm_by_player="; to_str( o.alarm_by_player, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, INDIAN& o ) {
   return true
@@ -4764,6 +5794,22 @@ cdr::result<INDIAN> from_canonical(
 /****************************************************************
 ** STUFF
 *****************************************************************/
+void to_str( STUFF const& o, std::string& out, base::ADL_t t ) {
+  out += "STUFF{";
+  out += "unknown34="; to_str( o.unknown34, out, t ); out += ',';
+  out += "counter_decreasing_on_new_colony="; to_str( o.counter_decreasing_on_new_colony, out, t ); out += ',';
+  out += "unknown35="; to_str( o.unknown35, out, t ); out += ',';
+  out += "counter_increasing_on_new_colony="; to_str( o.counter_increasing_on_new_colony, out, t ); out += ',';
+  out += "unknown36="; to_str( o.unknown36, out, t ); out += ',';
+  out += "x="; to_str( o.x, out, t ); out += ',';
+  out += "y="; to_str( o.y, out, t ); out += ',';
+  out += "zoom_level="; to_str( o.zoom_level, out, t ); out += ',';
+  out += "unknown37="; to_str( o.unknown37, out, t ); out += ',';
+  out += "viewport_x="; to_str( o.viewport_x, out, t ); out += ',';
+  out += "viewport_y="; to_str( o.viewport_y, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, STUFF& o ) {
   return true
@@ -4853,6 +5899,34 @@ cdr::result<STUFF> from_canonical(
 /****************************************************************
 ** TRADEROUTE
 *****************************************************************/
+void to_str( TRADEROUTE const& o, std::string& out, base::ADL_t t ) {
+  out += "TRADEROUTE{";
+  out += "name="; to_str( o.name, out, t ); out += ',';
+  out += "land_or_sea="; to_str( o.land_or_sea, out, t ); out += ',';
+  out += "stops_count="; to_str( o.stops_count, out, t ); out += ',';
+  out += "stop_1_colony_index="; to_str( o.stop_1_colony_index, out, t ); out += ',';
+  out += "stop_1_loads_and_unloads_count="; to_str( o.stop_1_loads_and_unloads_count, out, t ); out += ',';
+  out += "stop_1_loads_cargo="; to_str( o.stop_1_loads_cargo, out, t ); out += ',';
+  out += "stop_1_unloads_cargo="; to_str( o.stop_1_unloads_cargo, out, t ); out += ',';
+  out += "unknown47="; to_str( o.unknown47, out, t ); out += ',';
+  out += "stop_2_colony_index="; to_str( o.stop_2_colony_index, out, t ); out += ',';
+  out += "stop_2_loads_and_unloads_count="; to_str( o.stop_2_loads_and_unloads_count, out, t ); out += ',';
+  out += "stop_2_loads_cargo="; to_str( o.stop_2_loads_cargo, out, t ); out += ',';
+  out += "stop_2_unloads_cargo="; to_str( o.stop_2_unloads_cargo, out, t ); out += ',';
+  out += "unknown48="; to_str( o.unknown48, out, t ); out += ',';
+  out += "stop_3_colony_index="; to_str( o.stop_3_colony_index, out, t ); out += ',';
+  out += "stop_3_loads_and_unloads_count="; to_str( o.stop_3_loads_and_unloads_count, out, t ); out += ',';
+  out += "stop_3_loads_cargo="; to_str( o.stop_3_loads_cargo, out, t ); out += ',';
+  out += "stop_3_unloads_cargo="; to_str( o.stop_3_unloads_cargo, out, t ); out += ',';
+  out += "unknown49="; to_str( o.unknown49, out, t ); out += ',';
+  out += "stop_4_colony_index="; to_str( o.stop_4_colony_index, out, t ); out += ',';
+  out += "stop_4_loads_and_unloads_count="; to_str( o.stop_4_loads_and_unloads_count, out, t ); out += ',';
+  out += "stop_4_loads_cargo="; to_str( o.stop_4_loads_cargo, out, t ); out += ',';
+  out += "stop_4_unloads_cargo="; to_str( o.stop_4_unloads_cargo, out, t ); out += ',';
+  out += "unknown50="; to_str( o.unknown50, out, t );
+  out += '}';
+}
+
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, TRADEROUTE& o ) {
   return true
@@ -5002,6 +6076,31 @@ cdr::result<TRADEROUTE> from_canonical(
 /****************************************************************
 ** ColonySAV
 *****************************************************************/
+void to_str( ColonySAV const& o, std::string& out, base::ADL_t t ) {
+  out += "ColonySAV{";
+  out += "head="; to_str( o.head, out, t ); out += ',';
+  out += "player="; to_str( o.player, out, t ); out += ',';
+  out += "other="; to_str( o.other, out, t ); out += ',';
+  out += "colony="; to_str( o.colony, out, t ); out += ',';
+  out += "unit="; to_str( o.unit, out, t ); out += ',';
+  out += "nation="; to_str( o.nation, out, t ); out += ',';
+  out += "tribe="; to_str( o.tribe, out, t ); out += ',';
+  out += "indian="; to_str( o.indian, out, t ); out += ',';
+  out += "stuff="; to_str( o.stuff, out, t ); out += ',';
+  out += "tile="; to_str( o.tile, out, t ); out += ',';
+  out += "mask="; to_str( o.mask, out, t ); out += ',';
+  out += "path="; to_str( o.path, out, t ); out += ',';
+  out += "seen="; to_str( o.seen, out, t ); out += ',';
+  out += "unknown_map38a="; to_str( o.unknown_map38a, out, t ); out += ',';
+  out += "unknown_map38b="; to_str( o.unknown_map38b, out, t ); out += ',';
+  out += "unknown39a="; to_str( o.unknown39a, out, t ); out += ',';
+  out += "unknown39b="; to_str( o.unknown39b, out, t ); out += ',';
+  out += "prime_resource_seed="; to_str( o.prime_resource_seed, out, t ); out += ',';
+  out += "unknown39d="; to_str( o.unknown39d, out, t ); out += ',';
+  out += "trade_route="; to_str( o.trade_route, out, t );
+  out += '}';
+}
+
 // NOTE: binary conversion manually implemented.
 
 cdr::value to_canonical( cdr::converter& conv,
