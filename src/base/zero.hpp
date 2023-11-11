@@ -25,7 +25,6 @@ namespace base {
 // iting from this class.  Derived class needs to implement at
 // least the following;
 //
-//  using resource_type = ...;
 //  void free_resource();
 //
 // and optionally the following if copyability is to be sup-
